@@ -15,6 +15,7 @@ const Index = () => {
   const [sortBy, setSortBy] = useState("stars");
   const [tools, setTools] = useState<McpTool[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     fetchTools();
@@ -22,15 +23,22 @@ const Index = () => {
 
   const fetchTools = async () => {
     setIsLoading(true);
-    const { data, error } = await supabase
-      .from("mcp_tools")
-      .select("*")
-      .in("status", ["approved", "pending"]);
+    setError(null);
+    try {
+      const { data, error } = await supabase
+        .from("mcp_tools")
+        .select("*")
+        .in("status", ["approved", "pending"]);
 
-    if (error) {
-      console.error("Error fetching tools:", error);
-    } else {
-      setTools(data || []);
+      if (error) {
+        console.error("Error fetching tools:", error);
+        setError(`Failed to load tools: ${error.message}`);
+      } else {
+        setTools(data || []);
+      }
+    } catch (err) {
+      console.error("Exception fetching tools:", err);
+      setError(`Exception: ${err instanceof Error ? err.message : 'Unknown error'}`);
     }
     setIsLoading(false);
   };
@@ -139,6 +147,19 @@ const Index = () => {
             <SubmitToolDialog />
           </div>
         </div>
+
+        {error && (
+          <div className="bg-destructive/10 border border-destructive/30 rounded-lg p-6 mb-8">
+            <p className="text-destructive font-semibold">Error loading tools</p>
+            <p className="text-destructive/80 text-sm mt-2">{error}</p>
+            <button 
+              onClick={fetchTools}
+              className="mt-4 px-4 py-2 bg-destructive text-white rounded hover:bg-destructive/90 transition"
+            >
+              Retry
+            </button>
+          </div>
+        )}
 
         {isLoading ? (
           <div className="flex flex-col items-center justify-center py-32">
