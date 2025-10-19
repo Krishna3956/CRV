@@ -25,17 +25,39 @@ const Index = () => {
     setIsLoading(true);
     setError(null);
     try {
-      const { data, error } = await supabase
-        .from("mcp_tools")
-        .select("*")
-        .in("status", ["approved", "pending"]);
+      let allData: McpTool[] = [];
+      let from = 0;
+      const batchSize = 1000;
+      let hasMore = true;
 
-      if (error) {
-        console.error("Error fetching tools:", error);
-        setError(`Failed to load tools: ${error.message}`);
-      } else {
-        setTools(data || []);
+      // Fetch all data in batches to bypass the 1000 row limit
+      while (hasMore) {
+        const { data, error } = await supabase
+          .from("mcp_tools")
+          .select("*")
+          .in("status", ["approved", "pending"])
+          .range(from, from + batchSize - 1);
+
+        if (error) {
+          console.error("Error fetching tools:", error);
+          setError(`Failed to load tools: ${error.message}`);
+          hasMore = false;
+        } else {
+          if (data && data.length > 0) {
+            allData = [...allData, ...data];
+            from += batchSize;
+            // If we got less than batchSize, we've reached the end
+            if (data.length < batchSize) {
+              hasMore = false;
+            }
+          } else {
+            hasMore = false;
+          }
+        }
       }
+
+      setTools(allData);
+      console.log(`Fetched ${allData.length} total tools`);
     } catch (err) {
       console.error("Exception fetching tools:", err);
       setError(`Exception: ${err instanceof Error ? err.message : 'Unknown error'}`);
