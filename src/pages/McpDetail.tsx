@@ -500,6 +500,7 @@ const MarkdownRenderer = ({ content, githubUrl }: { content: string; githubUrl?:
 
 const McpDetail = () => {
   const { name } = useParams<{ name: string }>();
+  const decodedName = name ? decodeURIComponent(name) : "";
   const [tool, setTool] = useState<McpTool | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [readme, setReadme] = useState<string>("");
@@ -508,7 +509,7 @@ const McpDetail = () => {
 
   useEffect(() => {
     fetchToolDetails();
-  }, [name]);
+  }, [decodedName]);
 
   const fetchToolDetails = async () => {
     setIsLoading(true);
@@ -517,7 +518,7 @@ const McpDetail = () => {
     const { data, error } = await supabase
       .from("mcp_tools")
       .select("*")
-      .eq("repo_name", name)
+      .eq("repo_name", decodedName)
       .single();
 
     if (error) {

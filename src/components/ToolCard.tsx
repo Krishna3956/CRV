@@ -56,7 +56,7 @@ export const ToolCard = ({
   return (
     <Card 
       className="group relative overflow-hidden card-gradient hover:shadow-elegant transition-all duration-500 hover:-translate-y-2 border-2 hover:border-primary/20 cursor-pointer"
-      onClick={() => navigate(`/${name}`)}
+      onClick={() => navigate(`/tool/${encodeURIComponent(name)}`)}
     >
       {/* Gradient overlay on hover */}
       <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" 
@@ -84,7 +84,7 @@ export const ToolCard = ({
             className="shrink-0 hover:bg-primary/10 hover:text-primary hover:scale-110 transition-all duration-300"
             onClick={(e) => {
               e.stopPropagation();
-              navigate(`/${name}`);
+              navigate(`/tool/${encodeURIComponent(name)}`);
             }}
           >
             <ExternalLink className="h-5 w-5" />
