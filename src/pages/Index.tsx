@@ -183,6 +183,10 @@ const Index = () => {
       {!isLoading && (
         <section className="container mx-auto px-4 mt-8 relative z-10">
           <StatsSection totalTools={filteredAndSortedTools.length} totalStars={totalStars} isSearching={!!searchQuery} />
+          {/* Submit Tool button - visible on mobile only, centered below stats */}
+          <div className="flex justify-center mt-6 sm:hidden">
+            <SubmitToolDialog />
+          </div>
         </section>
       )}
 
@@ -199,11 +203,10 @@ const Index = () => {
                   </p>
                 )}
               </div>
-              <div className="flex flex-row gap-2 w-full sm:w-auto">
-                <div className="flex-1 sm:flex-initial">
-                  <FilterBar sortBy={sortBy} onSortChange={setSortBy} />
-                </div>
-                <div className="flex-1 sm:flex-initial">
+              <div className="flex flex-row gap-2 w-auto">
+                <FilterBar sortBy={sortBy} onSortChange={setSortBy} />
+                {/* Submit Tool button - hidden on mobile, shown on desktop */}
+                <div className="hidden sm:block">
                   <SubmitToolDialog />
                 </div>
               </div>

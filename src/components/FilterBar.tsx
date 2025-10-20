@@ -8,12 +8,12 @@ interface FilterBarProps {
 
 export const FilterBar = ({ sortBy, onSortChange }: FilterBarProps) => {
   return (
-    <div className="flex items-center gap-3 bg-card/50 backdrop-blur-sm border-2 rounded-lg px-4 py-2 h-10 w-full">
+    <div className="flex items-center gap-3 bg-card/50 backdrop-blur-sm border-2 rounded-lg px-4 py-2 h-10 w-auto">
       <Label htmlFor="sort" className="text-sm font-medium whitespace-nowrap">
         Sort by:
       </Label>
       <Select value={sortBy} onValueChange={onSortChange}>
-        <SelectTrigger id="sort" className="w-[150px] border-0 bg-transparent focus:ring-0 text-sm">
+        <SelectTrigger id="sort" className="w-auto border-0 bg-transparent focus:ring-0 text-sm">
           <SelectValue />
         </SelectTrigger>
         <SelectContent className="bg-popover border-2 z-50">
