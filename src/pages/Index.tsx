@@ -135,34 +135,14 @@ const Index = () => {
     }
   }, [searchQuery]);
 
-  const organizationSchema = {
-    '@context': 'https://schema.org',
-    '@type': 'Organization',
-    'url': 'https://trackmcp.com',
-    'name': 'Track MCP',
-    'logo': 'https://trackmcp.com/logo.png'
-  };
-
-  const websiteSchema = {
-    '@context': 'https://schema.org',
-    '@type': 'WebSite',
-    'url': 'https://trackmcp.com/',
-    'name': 'Track MCP',
-    'potentialAction': {
-      '@type': 'SearchAction',
-      'target': 'https://trackmcp.com/?q={search_term_string}',
-      'query-input': 'required name=search_term_string',
-    },
-  };
-
+  
   return (
     <>
       <SEO 
         title="Discover Model Context Protocol Tools"
         description="Explore and discover the best Model Context Protocol (MCP) tools, servers, and connectors. A modern, searchable directory for MCP developers."
         imageUrl="https://lovable.dev/opengraph-image-p98pqg.png"
-        schema={[websiteSchema, organizationSchema]}
-        canonicalUrl="https://trackmcp.com/"
+                canonicalUrl="https://trackmcp.com/"
       />
       <div className="min-h-screen bg-background">
       {/* Hero Section */}
