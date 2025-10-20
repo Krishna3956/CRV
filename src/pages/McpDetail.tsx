@@ -630,19 +630,21 @@ const McpDetail = () => {
     );
   }
 
+  const metaDescription = `Learn about ${tool.repo_name}, a tool for the Model Context Protocol. ${tool.description || ''}`;
+
   const softwareSchema = {
     '@context': 'https://schema.org',
     '@type': 'SoftwareApplication',
     'name': tool.repo_name,
     'applicationCategory': 'DeveloperApplication',
-    'description': tool.description || `Explore the details of the ${tool.repo_name} MCP tool.`,
+    'description': metaDescription,
   };
 
   return (
     <>
       <SEO 
         title={tool.repo_name || 'Tool Details'}
-        description={tool.description || `Explore the details of the ${tool.repo_name} MCP tool.`}
+        description={metaDescription}
         schema={softwareSchema}
       />
       <div className="min-h-screen bg-background">
