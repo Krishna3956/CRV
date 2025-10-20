@@ -188,19 +188,23 @@ const Index = () => {
 
       {/* Directory Section */}
       <section className="container mx-auto px-4 py-6 pb-8">
-        <div className="flex flex-col gap-1 mb-12">
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-            <h2 className="text-3xl font-bold gradient-text h-10 flex items-center">Browse Repository</h2>
-            <div className="flex flex-row gap-4 w-full sm:w-auto">
-              <FilterBar sortBy={sortBy} onSortChange={setSortBy} />
-              <SubmitToolDialog />
+        <div className="flex flex-col gap-4 mb-12">
+          <div className="flex flex-col gap-4">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+              <div>
+                <h2 className="text-3xl font-bold gradient-text">Browse Repository</h2>
+                {!isLoading && (
+                  <p className="text-muted-foreground text-lg mt-1">
+                    {searchQuery ? filteredAndSortedTools.length : filteredAndSortedTools.length + 10000} available
+                  </p>
+                )}
+              </div>
+              <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
+                <FilterBar sortBy={sortBy} onSortChange={setSortBy} />
+                <SubmitToolDialog />
+              </div>
             </div>
           </div>
-          {!isLoading && (
-            <p className="text-muted-foreground text-lg">
-              {searchQuery ? filteredAndSortedTools.length : filteredAndSortedTools.length + 10000} available
-            </p>
-          )}
         </div>
 
         {error && (
