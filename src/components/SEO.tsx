@@ -5,9 +5,10 @@ type SEOProps = {
   description: string;
   imageUrl?: string;
   schema?: object;
+  canonicalUrl?: string;
 };
 
-const SEO = ({ title, description, imageUrl, schema }: SEOProps) => {
+const SEO = ({ title, description, imageUrl, schema, canonicalUrl }: SEOProps) => {
   const siteName = 'Track MCP';
   const fullTitle = `${title} - ${siteName}`;
 
@@ -27,7 +28,10 @@ const SEO = ({ title, description, imageUrl, schema }: SEOProps) => {
   return (
     <Helmet>
       <title>{fullTitle}</title>
+      <link rel="icon" href="/favicon.ico" type="image/x-icon" />
+      <link rel="icon" href="/favicon.png" type="image/png" />
       <meta name="description" content={truncatedDescription} />
+      {canonicalUrl && <link rel="canonical" href={canonicalUrl} />}
 
       {/* Open Graph Tags */}
       <meta property="og:title" content={fullTitle} />

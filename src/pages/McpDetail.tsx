@@ -646,6 +646,7 @@ const McpDetail = () => {
         title={tool.repo_name || 'Tool Details'}
         description={metaDescription}
         schema={softwareSchema}
+        canonicalUrl={`https://trackmcp.com/tool/${decodedName}`}
       />
       <div className="min-h-screen bg-background">
       <div className="container mx-auto px-4 py-8 max-w-4xl">
