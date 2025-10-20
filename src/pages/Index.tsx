@@ -199,9 +199,13 @@ const Index = () => {
                   </p>
                 )}
               </div>
-              <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
-                <FilterBar sortBy={sortBy} onSortChange={setSortBy} />
-                <SubmitToolDialog />
+              <div className="flex flex-row gap-2 w-full sm:w-auto">
+                <div className="flex-1 sm:flex-initial">
+                  <FilterBar sortBy={sortBy} onSortChange={setSortBy} />
+                </div>
+                <div className="flex-1 sm:flex-initial">
+                  <SubmitToolDialog />
+                </div>
               </div>
             </div>
           </div>

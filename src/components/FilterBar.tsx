@@ -8,7 +8,7 @@ interface FilterBarProps {
 
 export const FilterBar = ({ sortBy, onSortChange }: FilterBarProps) => {
   return (
-    <div className="flex items-center gap-3 bg-card/50 backdrop-blur-sm border-2 rounded-lg px-4 py-2 h-10">
+    <div className="flex items-center gap-3 bg-card/50 backdrop-blur-sm border-2 rounded-lg px-4 py-2 h-10 w-full">
       <Label htmlFor="sort" className="text-sm font-medium whitespace-nowrap">
         Sort by:
       </Label>
