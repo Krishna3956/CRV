@@ -55,7 +55,7 @@ export const ToolCard = ({
 
   return (
     <Card 
-      className="group relative overflow-hidden card-gradient hover:shadow-elegant transition-all duration-500 hover:-translate-y-2 border-2 hover:border-primary/20 cursor-pointer"
+      className="group relative overflow-hidden card-gradient hover:shadow-elegant transition-all duration-500 hover:-translate-y-2 border-2 hover:border-primary/20 cursor-pointer h-full flex flex-col"
       onClick={() => navigate(`/tool/${encodeURIComponent(name)}`)}
     >
       {/* Gradient overlay on hover */}
@@ -92,7 +92,7 @@ export const ToolCard = ({
         </div>
       </CardHeader>
       
-      <CardContent className="relative space-y-4">
+      <CardContent className="relative space-y-4 flex-1 flex flex-col justify-between">
         <div className="flex items-center gap-6 text-sm">
           <div className="flex items-center gap-2 group/stars">
             <Star className="h-4 w-4 fill-accent text-accent group-hover/stars:scale-125 transition-transform" />

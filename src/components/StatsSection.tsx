@@ -3,10 +3,11 @@ import { Package, Star, GitBranch } from "lucide-react";
 interface StatsSectionProps {
   totalTools: number;
   totalStars: number;
+  isSearching?: boolean;
 }
 
-export const StatsSection = ({ totalTools, totalStars }: StatsSectionProps) => {
-  const adjustedTools = totalTools + 10000;
+export const StatsSection = ({ totalTools, totalStars, isSearching = false }: StatsSectionProps) => {
+  const adjustedTools = isSearching ? totalTools : totalTools + 10000;
   const stats = [
     {
       icon: Package,

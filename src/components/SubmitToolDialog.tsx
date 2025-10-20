@@ -131,7 +131,7 @@ export const SubmitToolDialog = () => {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button size="lg" className="gap-2 shadow-elegant hover:shadow-glow transition-all">
+        <Button className="gap-2 shadow-elegant hover:shadow-glow transition-all h-10">
           <Plus className="h-5 w-5" />
           Submit Tool
         </Button>

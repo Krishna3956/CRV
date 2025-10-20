@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { SearchBar } from "@/components/SearchBar";
 import { FilterBar } from "@/components/FilterBar";
 import { ToolCard } from "@/components/ToolCard";
@@ -11,15 +11,27 @@ import { Loader2, Sparkles, Package } from "lucide-react";
 type McpTool = Database["public"]["Tables"]["mcp_tools"]["Row"];
 
 const Index = () => {
+  const [inputValue, setInputValue] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
-  const [sortBy, setSortBy] = useState("stars");
+  const [sortBy, setSortBy] = useState("recent");
   const [tools, setTools] = useState<McpTool[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [visibleCount, setVisibleCount] = useState(15);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
 
   useEffect(() => {
     fetchTools();
   }, []);
+
+  // Debounce search query
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setSearchQuery(inputValue);
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, [inputValue]);
 
   const fetchTools = async () => {
     setIsLoading(true);
@@ -68,37 +80,59 @@ const Index = () => {
   // List of blocked repos to hide from UI
   const blockedRepos = ['awesome-mcp-servers'];
 
-  const filteredAndSortedTools = tools
-    .filter((tool) => {
-      // Filter out blocked repos
-      if (blockedRepos.includes(tool.repo_name?.toLowerCase() || '')) {
-        return false;
-      }
+  const filteredAndSortedTools = useMemo(() => {
+    return tools
+      .filter((tool) => {
+        // Filter out blocked repos
+        if (blockedRepos.includes(tool.repo_name?.toLowerCase() || '')) {
+          return false;
+        }
 
-      const searchLower = searchQuery.toLowerCase();
-      return (
-        tool.repo_name?.toLowerCase().includes(searchLower) ||
-        tool.description?.toLowerCase().includes(searchLower) ||
-        tool.topics?.some((topic) => topic.toLowerCase().includes(searchLower))
-      );
-    })
-    .sort((a, b) => {
-      switch (sortBy) {
-        case "stars":
-          return (b.stars || 0) - (a.stars || 0);
-        case "recent":
-          return new Date(b.last_updated || 0).getTime() - new Date(a.last_updated || 0).getTime();
-        case "name":
-          return (a.repo_name || "").localeCompare(b.repo_name || "");
-        default:
-          return 0;
-      }
-    });
+        const searchLower = searchQuery.toLowerCase();
+        return (
+          tool.repo_name?.toLowerCase().includes(searchLower) ||
+          tool.description?.toLowerCase().includes(searchLower) ||
+          tool.topics?.some((topic) => topic.toLowerCase().includes(searchLower))
+        );
+      })
+      .sort((a, b) => {
+        switch (sortBy) {
+          case "stars":
+            return (b.stars || 0) - (a.stars || 0);
+          case "recent":
+            return new Date(b.last_updated || 0).getTime() - new Date(a.last_updated || 0).getTime();
+          case "name":
+            return (a.repo_name || "").localeCompare(b.repo_name || "");
+          default:
+            return 0;
+        }
+      });
+  }, [tools, searchQuery, sortBy]);
 
-  const totalStars = tools.reduce((sum, tool) => sum + (tool.stars || 0), 0);
+  const totalStars = useMemo(() => {
+    return filteredAndSortedTools.reduce((sum, tool) => sum + (tool.stars || 0), 0);
+  }, [filteredAndSortedTools]);
 
-  // Show only 24 tools (8 rows x 3 columns) when no search query, show all when searching
-  const displayedTools = searchQuery ? filteredAndSortedTools : filteredAndSortedTools.slice(0, 24);
+  // Show visibleCount tools when no search query, show all when searching
+  const displayedTools = searchQuery ? filteredAndSortedTools : filteredAndSortedTools.slice(0, visibleCount);
+  
+  const hasMoreToLoad = !searchQuery && visibleCount < filteredAndSortedTools.length;
+  const remainingCount = filteredAndSortedTools.length - visibleCount;
+
+  const loadMore = async () => {
+    setIsLoadingMore(true);
+    // Simulate a brief loading state for smooth UX
+    await new Promise(resolve => setTimeout(resolve, 300));
+    setVisibleCount(prev => prev + 15); // Load 5 rows x 3 columns = 15 items
+    setIsLoadingMore(false);
+  };
+
+  // Reset visible count when search query changes
+  useEffect(() => {
+    if (searchQuery) {
+      setVisibleCount(15);
+    }
+  }, [searchQuery]);
 
   return (
     <div className="min-h-screen bg-background">
@@ -131,13 +165,13 @@ const Index = () => {
             </h1>
             
             <p className="text-xl md:text-2xl text-muted-foreground max-w-3xl mx-auto leading-relaxed animate-fade-in">
-            Discover, Track, and Explore Over 10,000+ Model Context Protocol Tools and Servers in One Centralized Platform
+            Discover, Track, and Explore Over 10,000+ Model Context Protocol Servers, Clients & Tools in One Centralized Platform
             </p>
             
             <div className="flex flex-col items-center gap-2 pt-6 animate-fade-in">
               <SearchBar
-                value={searchQuery}
-                onChange={setSearchQuery}
+                value={inputValue}
+                onChange={setInputValue}
                 placeholder="Search by name, description, or tags..."
               />
             </div>
@@ -148,26 +182,25 @@ const Index = () => {
       {/* Stats Section */}
       {!isLoading && (
         <section className="container mx-auto px-4 mt-8 relative z-10">
-          <StatsSection totalTools={filteredAndSortedTools.length} totalStars={totalStars} />
+          <StatsSection totalTools={filteredAndSortedTools.length} totalStars={totalStars} isSearching={!!searchQuery} />
         </section>
       )}
 
       {/* Directory Section */}
-      <section className="container mx-auto px-4 py-6 pb-20">
-        <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6 mb-12">
-          <div>
-            <h2 className="text-4xl font-bold mb-3 gradient-text">Explore Tools</h2>
-            {!isLoading && (
-              <p className="text-muted-foreground text-lg">
-                {filteredAndSortedTools.length + 10000} {filteredAndSortedTools.length === 1 ? 'tool & server' : 'tools & servers'} available
-              </p>
-            )}
+      <section className="container mx-auto px-4 py-6 pb-8">
+        <div className="flex flex-col gap-1 mb-12">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+            <h2 className="text-3xl font-bold gradient-text h-10 flex items-center">Browse Repository</h2>
+            <div className="flex flex-row gap-4 w-full sm:w-auto">
+              <FilterBar sortBy={sortBy} onSortChange={setSortBy} />
+              <SubmitToolDialog />
+            </div>
           </div>
-          
-          <div className="flex flex-col sm:flex-row gap-4 w-full lg:w-auto">
-            <FilterBar sortBy={sortBy} onSortChange={setSortBy} />
-            <SubmitToolDialog />
-          </div>
+          {!isLoading && (
+            <p className="text-muted-foreground text-lg">
+              {searchQuery ? filteredAndSortedTools.length : filteredAndSortedTools.length + 10000} available
+            </p>
+          )}
         </div>
 
         {error && (
@@ -186,7 +219,7 @@ const Index = () => {
         {isLoading ? (
           <div className="flex flex-col items-center justify-center py-32">
             <Loader2 className="h-16 w-16 animate-spin text-primary mb-4" />
-            <p className="text-muted-foreground text-lg">Loading amazing tools...</p>
+            <p className="text-muted-foreground text-lg">Warming up the MCP engines…</p>
           </div>
         ) : filteredAndSortedTools.length === 0 ? (
           <div className="text-center py-32 space-y-4">
@@ -203,20 +236,66 @@ const Index = () => {
             </p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {displayedTools.map((tool) => (
-              <ToolCard
-                key={tool.id}
-                name={tool.repo_name || "Unknown"}
-                description={tool.description || ""}
-                stars={tool.stars || 0}
-                githubUrl={tool.github_url}
-                language={tool.language || undefined}
-                topics={tool.topics || undefined}
-                lastUpdated={tool.last_updated || undefined}
-              />
-            ))}
-          </div>
+          <>
+            <div 
+              id="rows-container" 
+              className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 auto-rows-fr"
+              aria-live="polite"
+            >
+              {displayedTools.map((tool, index) => (
+                <div
+                  key={tool.id}
+                  className="animate-fade-in h-full"
+                  style={{
+                    animationDelay: index >= visibleCount - 15 ? `${(index % 15) * 30}ms` : '0ms'
+                  }}
+                >
+                  <ToolCard
+                    name={tool.repo_name || "Unknown"}
+                    description={tool.description || ""}
+                    stars={tool.stars || 0}
+                    githubUrl={tool.github_url}
+                    language={tool.language || undefined}
+                    topics={tool.topics || undefined}
+                    lastUpdated={tool.last_updated || undefined}
+                  />
+                </div>
+              ))}
+            </div>
+            
+            {/* Explore More Button */}
+            {hasMoreToLoad && (
+              <div className="flex justify-center mt-8">
+                <button
+                  onClick={loadMore}
+                  disabled={isLoadingMore}
+                  aria-busy={isLoadingMore}
+                  aria-controls="rows-container"
+                  className="group relative px-6 py-2.5 rounded-md font-bold text-sm transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-primary/30 focus:ring-offset-1 bg-gradient-to-r from-primary/10 via-accent/10 to-primary/10 hover:from-primary/20 hover:via-accent/20 hover:to-primary/20"
+                  style={{ color: 'transparent' }}
+                >
+                  <span className="gradient-text">
+                    {isLoadingMore ? (
+                      <span className="flex items-center gap-2">
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                        Loading...
+                      </span>
+                    ) : (
+                      "Explore more"
+                    )}
+                  </span>
+                </button>
+              </div>
+            )}
+            
+            {!hasMoreToLoad && !searchQuery && filteredAndSortedTools.length > 15 && (
+              <div className="flex justify-center mt-12">
+                <div className="px-8 py-4 rounded-lg font-semibold text-base text-muted-foreground">
+                  No more results
+                </div>
+              </div>
+            )}
+          </>
         )}
       </section>
 
