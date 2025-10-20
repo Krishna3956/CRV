@@ -4,7 +4,7 @@ type SEOProps = {
   title: string;
   description: string;
   imageUrl?: string;
-  schema?: object;
+  schema?: object | object[];
   canonicalUrl?: string;
 };
 
@@ -46,11 +46,18 @@ const SEO = ({ title, description, imageUrl, schema, canonicalUrl }: SEOProps) =
       {imageUrl && <meta name="twitter:image" content={imageUrl} />}
 
       {/* JSON-LD Schema */}
-      {schema && (
-        <script type="application/ld+json">
-          {JSON.stringify(schema)}
-        </script>
-      )}
+      {schema &&
+        (Array.isArray(schema) ? (
+          schema.map((s, i) => (
+            <script key={`schema-${i}`} type="application/ld+json">
+              {JSON.stringify(s)}
+            </script>
+          ))
+        ) : (
+          <script type="application/ld+json">
+            {JSON.stringify(schema)}
+          </script>
+        ))}
     </Helmet>
   );
 };
