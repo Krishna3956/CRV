@@ -136,46 +136,60 @@ const renderInlineMarkdown = (text: string) => {
     parts.push(text);
   }
   
-  // Now handle bold **text** on the remaining parts
+  // Now handle inline formatting (bold, italic, code) on the remaining parts
   const finalParts: (string | JSX.Element)[] = [];
   
   parts.forEach((part, idx) => {
     if (typeof part === 'string') {
-      // Handle bold text with regex - match **text** pattern
-      const boldRegex = /\*\*([^*]+?)\*\*/g;
-      let lastBoldIndex = 0;
-      let boldMatch;
-      const boldMatches: Array<{text: string; index: number; length: number}> = [];
+      // Handle inline code `text`, bold **text**, and italic *text*
+      const inlineRegex = /(`[^`]+`|\*\*([^*]+?)\*\*|\*([^*]+?)\*)/g;
+      let lastIndex = 0;
+      let inlineMatch;
+      const hasMatches = inlineRegex.test(part);
+      inlineRegex.lastIndex = 0; // Reset regex after test
       
-      while ((boldMatch = boldRegex.exec(part)) !== null) {
-        boldMatches.push({
-          text: boldMatch[1],
-          index: boldMatch.index,
-          length: boldMatch[0].length
-        });
-      }
-      
-      if (boldMatches.length === 0) {
-        // No bold text, just add the part
+      if (!hasMatches) {
+        // No inline formatting, just add the part
         if (part) finalParts.push(part);
       } else {
-        // Process text with bold matches
-        boldMatches.forEach((match, matchIdx) => {
-          // Add text before this bold
-          if (match.index > lastBoldIndex) {
-            finalParts.push(part.substring(lastBoldIndex, match.index));
+        while ((inlineMatch = inlineRegex.exec(part)) !== null) {
+          // Add text before this match
+          if (inlineMatch.index > lastIndex) {
+            finalParts.push(part.substring(lastIndex, inlineMatch.index));
           }
-          // Add bold text
-          finalParts.push(<strong key={`bold-${idx}-${matchIdx}`}>{match.text}</strong>);
-          lastBoldIndex = match.index + match.length;
-        });
+          
+          const fullMatch = inlineMatch[0];
+          
+          // Inline code
+          if (fullMatch.startsWith('`')) {
+            const codeText = fullMatch.slice(1, -1);
+            finalParts.push(
+              <code key={`code-${idx}-${inlineMatch.index}`} className="px-1.5 py-0.5 bg-muted rounded text-sm font-mono">
+                {codeText}
+              </code>
+            );
+          }
+          // Bold
+          else if (fullMatch.startsWith('**')) {
+            const boldText = inlineMatch[2];
+            finalParts.push(<strong key={`bold-${idx}-${inlineMatch.index}`}>{boldText}</strong>);
+          }
+          // Italic
+          else if (fullMatch.startsWith('*')) {
+            const italicText = inlineMatch[3];
+            finalParts.push(<em key={`italic-${idx}-${inlineMatch.index}`}>{italicText}</em>);
+          }
+          
+          lastIndex = inlineMatch.index + fullMatch.length;
+        }
         
-        // Add remaining text after last bold
-        if (lastBoldIndex < part.length) {
-          finalParts.push(part.substring(lastBoldIndex));
+        // Add remaining text
+        if (lastIndex < part.length) {
+          finalParts.push(part.substring(lastIndex));
         }
       }
     } else {
+      // This is a JSX element (like a link), preserve it as-is
       finalParts.push(part);
     }
   });
@@ -297,6 +311,27 @@ const MarkdownRenderer = ({ content, githubUrl }: { content: string; githubUrl?:
         </h6>
       );
       i++;
+      continue;
+    }
+
+    // Blockquotes - handle lines starting with >
+    if (line.trim().startsWith(">")) {
+      const quoteLines: string[] = [];
+      
+      while (i < lines.length && lines[i].trim().startsWith(">")) {
+        quoteLines.push(lines[i].trim().slice(1).trim());
+        i++;
+      }
+      
+      elements.push(
+        <blockquote key={`quote-${elements.length}`} className="border-l-4 border-primary/50 pl-4 py-2 my-4 italic text-muted-foreground bg-muted/30 rounded-r">
+          {quoteLines.map((quoteLine, idx) => (
+            <p key={idx} className="mb-1 last:mb-0">
+              {renderInlineMarkdown(quoteLine)}
+            </p>
+          ))}
+        </blockquote>
+      );
       continue;
     }
 
@@ -486,7 +521,7 @@ const MarkdownRenderer = ({ content, githubUrl }: { content: string; githubUrl?:
     // Paragraphs
     if (line.trim()) {
       elements.push(
-        <p key={`p-${elements.length}`} className="text-foreground leading-relaxed my-3">
+        <p key={`p-${elements.length}`} className="text-foreground leading-relaxed mb-4">
           {renderInlineMarkdown(line)}
         </p>
       );
@@ -495,7 +530,7 @@ const MarkdownRenderer = ({ content, githubUrl }: { content: string; githubUrl?:
     i++;
   }
 
-  return <div className="space-y-4">{elements}</div>;
+  return <div className="prose prose-slate max-w-none">{elements}</div>;
 };
 
 const McpDetail = () => {
@@ -606,18 +641,21 @@ const McpDetail = () => {
 
         {/* Header */}
         <div className="mb-8 pb-8 border-b">
-          <div className="flex items-start justify-between mb-4">
+          <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-4">
             <div className="flex items-center gap-3">
               <Avatar className="h-10 w-10">
                 <AvatarImage src={ownerAvatar} alt={ownerName} />
                 <AvatarFallback className="text-sm">{ownerName.slice(0, 2).toUpperCase()}</AvatarFallback>
               </Avatar>
-              <h1 className="text-4xl font-bold">{tool.repo_name}</h1>
+              <h1 className="text-2xl sm:text-4xl font-bold">{tool.repo_name}</h1>
             </div>
-            <Button asChild>
-              <a href={tool.github_url} target="_blank" rel="noopener noreferrer">
-                <ExternalLink className="h-4 w-4 mr-2" />
-                View on GitHub
+            <Button asChild size="sm" className="w-fit gap-2">
+              <a href={tool.github_url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2">
+                <span>View on</span>
+                <svg className="h-4 w-4 fill-current" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+                </svg>
+                <ExternalLink className="h-3.5 w-3.5" />
               </a>
             </Button>
           </div>

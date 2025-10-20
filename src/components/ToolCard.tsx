@@ -115,7 +115,7 @@ export const ToolCard = ({
         </div>
         
         {topics && topics.length > 0 && (
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-nowrap gap-2 overflow-hidden">
             {topics.slice(0, 3).map((topic) => (
               <Badge 
                 key={topic} 
