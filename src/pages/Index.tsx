@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
+import SEO from '@/components/SEO';
 import { SearchBar } from "@/components/SearchBar";
 import { FilterBar } from "@/components/FilterBar";
 import { ToolCard } from "@/components/ToolCard";
@@ -134,8 +135,27 @@ const Index = () => {
     }
   }, [searchQuery]);
 
+  const websiteSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'WebSite',
+    'url': 'https://trackmcp.com/',
+    'name': 'Track MCP',
+    'potentialAction': {
+      '@type': 'SearchAction',
+      'target': 'https://trackmcp.com/?q={search_term_string}',
+      'query-input': 'required name=search_term_string',
+    },
+  };
+
   return (
-    <div className="min-h-screen bg-background">
+    <>
+      <SEO 
+        title="Discover Model Context Protocol Tools"
+        description="Explore and discover the best Model Context Protocol (MCP) tools, servers, and connectors. A modern, searchable directory for MCP developers."
+        imageUrl="https://lovable.dev/opengraph-image-p98pqg.png"
+        schema={websiteSchema}
+      />
+      <div className="min-h-screen bg-background">
       {/* Hero Section */}
       <section className="relative overflow-hidden">
         <div 
@@ -330,6 +350,7 @@ const Index = () => {
         </div>
       </footer>
     </div>
+    </>
   );
 };
 

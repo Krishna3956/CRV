@@ -67,7 +67,7 @@ export const ToolCard = ({
           <div className="flex-1 space-y-2">
             <div className="flex items-center gap-2">
               <Avatar className="h-5 w-5">
-                <AvatarImage src={ownerAvatar} alt={ownerName} />
+                <AvatarImage src={ownerAvatar} alt={ownerName} loading="lazy" width="20" height="20" />
                 <AvatarFallback className="text-xs">{ownerName.slice(0, 2).toUpperCase()}</AvatarFallback>
               </Avatar>
               <CardTitle className="text-xl group-hover:gradient-text transition-all duration-300">

@@ -1,0 +1,54 @@
+import { Helmet } from 'react-helmet-async';
+
+type SEOProps = {
+  title: string;
+  description: string;
+  imageUrl?: string;
+  schema?: object;
+};
+
+const SEO = ({ title, description, imageUrl, schema }: SEOProps) => {
+  const siteName = 'Track MCP';
+  const fullTitle = `${title} - ${siteName}`;
+
+  // Truncate description to be SEO-friendly
+  const truncate = (str: string, num: number) => {
+    if (str.length <= num) {
+      return str;
+    }
+    // Find the last space within the limit
+    const subString = str.substring(0, num);
+    const lastSpace = subString.lastIndexOf(' ');
+    return subString.substring(0, lastSpace > 0 ? lastSpace : num) + '...';
+  };
+
+  const truncatedDescription = truncate(description, 155);
+
+  return (
+    <Helmet>
+      <title>{fullTitle}</title>
+      <meta name="description" content={truncatedDescription} />
+
+      {/* Open Graph Tags */}
+      <meta property="og:title" content={fullTitle} />
+      <meta property="og:description" content={truncatedDescription} />
+      <meta property="og:type" content="website" />
+      {imageUrl && <meta property="og:image" content={imageUrl} />}
+
+      {/* Twitter Card Tags */}
+      <meta name="twitter:card" content="summary_large_image" />
+      <meta name="twitter:title" content={fullTitle} />
+      <meta name="twitter:description" content={truncatedDescription} />
+      {imageUrl && <meta name="twitter:image" content={imageUrl} />}
+
+      {/* JSON-LD Schema */}
+      {schema && (
+        <script type="application/ld+json">
+          {JSON.stringify(schema)}
+        </script>
+      )}
+    </Helmet>
+  );
+};
+
+export default SEO;

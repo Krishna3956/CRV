@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import SEO from '@/components/SEO';
 import { useParams, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Database } from "@/integrations/supabase/types";
@@ -629,8 +630,22 @@ const McpDetail = () => {
     );
   }
 
+  const softwareSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'SoftwareApplication',
+    'name': tool.repo_name,
+    'applicationCategory': 'DeveloperApplication',
+    'description': tool.description || `Explore the details of the ${tool.repo_name} MCP tool.`,
+  };
+
   return (
-    <div className="min-h-screen bg-background">
+    <>
+      <SEO 
+        title={tool.repo_name || 'Tool Details'}
+        description={tool.description || `Explore the details of the ${tool.repo_name} MCP tool.`}
+        schema={softwareSchema}
+      />
+      <div className="min-h-screen bg-background">
       <div className="container mx-auto px-4 py-8 max-w-4xl">
         <Link to="/">
           <Button variant="ghost" className="mb-8">
@@ -644,7 +659,7 @@ const McpDetail = () => {
           <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-4">
             <div className="flex items-center gap-3">
               <Avatar className="h-10 w-10">
-                <AvatarImage src={ownerAvatar} alt={ownerName} />
+                <AvatarImage src={ownerAvatar} alt={ownerName} loading="lazy" width="40" height="40" />
                 <AvatarFallback className="text-sm">{ownerName.slice(0, 2).toUpperCase()}</AvatarFallback>
               </Avatar>
               <h1 className="text-2xl sm:text-4xl font-bold">{tool.repo_name}</h1>
@@ -707,6 +722,7 @@ const McpDetail = () => {
         )}
       </div>
     </div>
+    </>
   );
 };
 
