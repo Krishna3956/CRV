@@ -158,8 +158,8 @@ const Index = () => {
   return (
     <>
       <SEO 
-        title="Discover Model Context Protocol Tools"
-        description="Explore and discover the best Model Context Protocol (MCP) tools, servers, and connectors. A modern, searchable directory for MCP developers."
+        title="Discover 10,000+ Model Context Protocol Tools & Servers"
+        description="Explore the world's largest directory of Model Context Protocol (MCP) tools, servers, and connectors. Search 10,000+ GitHub repositories for AI development, LLM integration, and developer tools."
         imageUrl="https://trackmcp.com/logo.png"
         canonicalUrl="https://trackmcp.com/"
         schema={itemListSchema}

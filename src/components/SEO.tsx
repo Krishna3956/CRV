@@ -34,17 +34,21 @@ const SEO = ({ title, description, imageUrl, schema, canonicalUrl }: SEOProps) =
       {canonicalUrl && <link rel="canonical" href={canonicalUrl} />}
 
       {/* Open Graph Tags */}
+      <meta property="og:site_name" content={siteName} />
       <meta property="og:title" content={fullTitle} />
       <meta property="og:description" content={truncatedDescription} />
       <meta property="og:type" content="website" />
       {canonicalUrl && <meta property="og:url" content={canonicalUrl} />}
       {imageUrl && <meta property="og:image" content={imageUrl} />}
+      {imageUrl && <meta property="og:image:alt" content={`${siteName} Logo`} />}
 
       {/* Twitter Card Tags */}
       <meta name="twitter:card" content="summary_large_image" />
+      <meta name="twitter:site" content="@trackmcp" />
       <meta name="twitter:title" content={fullTitle} />
       <meta name="twitter:description" content={truncatedDescription} />
       {imageUrl && <meta name="twitter:image" content={imageUrl} />}
+      {imageUrl && <meta name="twitter:image:alt" content={`${siteName} Logo`} />}
 
       {/* JSON-LD Schema */}
       {schema &&
