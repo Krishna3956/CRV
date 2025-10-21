@@ -340,105 +340,21 @@ const Index = () => {
       </section>
 
       {/* Footer */}
-      <footer className="border-t bg-card/30 backdrop-blur-sm mt-16">
+      <footer className="border-t bg-card/30 backdrop-blur-sm">
         <div className="container mx-auto px-4 py-12">
-          <div className="max-w-6xl mx-auto">
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
-              {/* About Section */}
-              <div className="space-y-3">
-                <h3 className="font-semibold text-lg">Track MCP</h3>
-                <p className="text-sm text-muted-foreground">
-                  The world's largest directory of Model Context Protocol tools, servers, and connectors for AI development.
-                </p>
-              </div>
-              
-              {/* Resources */}
-              <div className="space-y-3">
-                <h3 className="font-semibold text-lg">Resources</h3>
-                <ul className="space-y-2 text-sm">
-                  <li>
-                    <a href="https://github.com/modelcontextprotocol" target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-primary transition-colors">
-                      MCP Documentation
-                    </a>
-                  </li>
-                  <li>
-                    <a href="https://github.com/trackmcp" target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-primary transition-colors">
-                      GitHub Repository
-                    </a>
-                  </li>
-                  <li>
-                    <a href="https://trackmcp.com/sitemap.xml" className="text-muted-foreground hover:text-primary transition-colors">
-                      Sitemap
-                    </a>
-                  </li>
-                </ul>
-              </div>
-              
-              {/* Popular Tools */}
-              <div className="space-y-3">
-                <h3 className="font-semibold text-lg">Popular Categories</h3>
-                <ul className="space-y-2 text-sm">
-                  <li>
-                    <button onClick={() => setInputValue('filesystem')} className="text-muted-foreground hover:text-primary transition-colors text-left">
-                      Filesystem Tools
-                    </button>
-                  </li>
-                  <li>
-                    <button onClick={() => setInputValue('database')} className="text-muted-foreground hover:text-primary transition-colors text-left">
-                      Database Connectors
-                    </button>
-                  </li>
-                  <li>
-                    <button onClick={() => setInputValue('api')} className="text-muted-foreground hover:text-primary transition-colors text-left">
-                      API Integrations
-                    </button>
-                  </li>
-                  <li>
-                    <button onClick={() => setInputValue('claude')} className="text-muted-foreground hover:text-primary transition-colors text-left">
-                      Claude MCP Tools
-                    </button>
-                  </li>
-                </ul>
-              </div>
-              
-              {/* Connect */}
-              <div className="space-y-3">
-                <h3 className="font-semibold text-lg">Connect</h3>
-                <ul className="space-y-2 text-sm">
-                  <li>
-                    <a href="https://x.com/trackmcp" target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-primary transition-colors">
-                      Twitter / X
-                    </a>
-                  </li>
-                  <li>
-                    <a href="https://github.com/trackmcp" target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-primary transition-colors">
-                      GitHub
-                    </a>
-                  </li>
-                  <li>
-                    <a href="https://www.linkedin.com/in/krishnaa-goyal/" target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-primary transition-colors">
-                      LinkedIn
-                    </a>
-                  </li>
-                </ul>
-              </div>
-            </div>
-            
-            {/* Bottom Bar */}
-            <div className="pt-8 border-t border-border text-center">
-              <p className="text-sm text-muted-foreground">
-                Built with ❤️ by{" "}
-                <a 
-                  href="https://www.linkedin.com/in/krishnaa-goyal/" 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className="text-primary hover:underline font-medium"
-                >
-                  Krishna Goyal
-                </a>
-                {" "}for the MCP community • © 2025 Track MCP
-              </p>
-            </div>
+          <div className="max-w-4xl mx-auto text-center">
+            <p className="text-sm text-muted-foreground">
+              Built with ❤️ by{" "}
+              <a 
+                href="https://www.linkedin.com/in/krishnaa-goyal/" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="text-primary hover:underline font-medium"
+              >
+                Krishna Goyal
+              </a>
+              {" "}for the MCP community • © 2025 Track MCP
+            </p>
           </div>
         </div>
       </footer>
