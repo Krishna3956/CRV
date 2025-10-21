@@ -536,6 +536,7 @@ const MarkdownRenderer = ({ content, githubUrl }: { content: string; githubUrl?:
 
 const McpDetail = () => {
   const { name } = useParams<{ name: string }>();
+  const encodedName = name || "";
   const decodedName = name ? decodeURIComponent(name) : "";
   const [tool, setTool] = useState<McpTool | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -638,6 +639,27 @@ const McpDetail = () => {
     'name': tool.repo_name,
     'applicationCategory': 'DeveloperApplication',
     'description': metaDescription,
+    'url': `https://trackmcp.com/tool/${encodedName}`,
+    'operatingSystem': 'Cross-platform',
+  };
+
+  const breadcrumbSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    'itemListElement': [
+      {
+        '@type': 'ListItem',
+        'position': 1,
+        'name': 'Home',
+        'item': 'https://trackmcp.com/',
+      },
+      {
+        '@type': 'ListItem',
+        'position': 2,
+        'name': tool.repo_name,
+        'item': `https://trackmcp.com/tool/${encodedName}`,
+      },
+    ],
   };
 
   return (
@@ -646,8 +668,8 @@ const McpDetail = () => {
         title={tool.repo_name || 'Tool Details'}
         description={metaDescription}
         imageUrl="https://trackmcp.com/logo.png"
-        schema={softwareSchema}
-        canonicalUrl={`https://trackmcp.com/tool/${decodedName}`}
+        schema={[softwareSchema, breadcrumbSchema]}
+        canonicalUrl={`https://trackmcp.com/tool/${encodedName}`}
       />
       <div className="min-h-screen bg-background">
       <div className="container mx-auto px-4 py-8 max-w-4xl">

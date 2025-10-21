@@ -79,6 +79,39 @@ npm run lint
 
 This project is deployed on Vercel. Any push to the main branch will automatically trigger a new deployment.
 
+## 🔍 SEO & Performance
+
+### Core Web Vitals Optimization
+- **Preconnect & DNS-prefetch** for external resources
+- **Code splitting** with optimized chunks
+- **Lazy loading** for images and components
+- **CSS code splitting** for faster initial load
+
+### Structured Data (Schema.org)
+- ✅ **Organization schema** on homepage
+- ✅ **WebSite schema** with search action
+- ✅ **ItemList schema** for tool directory
+- ✅ **SoftwareApplication schema** for individual tools
+- ✅ **BreadcrumbList schema** for navigation
+
+### XML Sitemap
+The sitemap is automatically generated during build and includes all tool pages:
+- **Location**: `https://trackmcp.com/sitemap.xml`
+- **Auto-updated**: Runs on every production build
+- **Dynamic URLs**: Fetches all tools from Supabase
+
+To manually regenerate the sitemap:
+```sh
+npm run generate-sitemap
+```
+
+### Google Search Console Setup
+See [public/google-search-console-setup.md](public/google-search-console-setup.md) for detailed instructions on:
+- Site verification
+- Sitemap submission
+- Performance monitoring
+- Core Web Vitals tracking
+
 ## 👨‍💻 Author
 
 Built with ❤️ by [Krishna Goyal](https://www.linkedin.com/in/krishnaa-goyal/) for the MCP community.
