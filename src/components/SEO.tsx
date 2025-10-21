@@ -37,6 +37,7 @@ const SEO = ({ title, description, imageUrl, schema, canonicalUrl }: SEOProps) =
       <meta property="og:title" content={fullTitle} />
       <meta property="og:description" content={truncatedDescription} />
       <meta property="og:type" content="website" />
+      {canonicalUrl && <meta property="og:url" content={canonicalUrl} />}
       {imageUrl && <meta property="og:image" content={imageUrl} />}
 
       {/* Twitter Card Tags */}

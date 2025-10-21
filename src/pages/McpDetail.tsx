@@ -645,6 +645,7 @@ const McpDetail = () => {
       <SEO 
         title={tool.repo_name || 'Tool Details'}
         description={metaDescription}
+        imageUrl="https://trackmcp.com/logo.png"
         schema={softwareSchema}
         canonicalUrl={`https://trackmcp.com/tool/${decodedName}`}
       />

@@ -141,8 +141,8 @@ const Index = () => {
       <SEO 
         title="Discover Model Context Protocol Tools"
         description="Explore and discover the best Model Context Protocol (MCP) tools, servers, and connectors. A modern, searchable directory for MCP developers."
-        imageUrl="https://lovable.dev/opengraph-image-p98pqg.png"
-                canonicalUrl="https://trackmcp.com/"
+        imageUrl="https://trackmcp.com/logo.png"
+        canonicalUrl="https://trackmcp.com/"
       />
       <div className="min-h-screen bg-background">
       {/* Hero Section */}

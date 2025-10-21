@@ -1,73 +1,88 @@
-# Welcome to your Lovable project
+# Track MCP
 
-## Project info
+> World's Largest MCP Repository - Discover, Track, and Explore Over 10,000+ Model Context Protocol Servers, Clients & Tools
 
-**URL**: https://lovable.dev/projects/2852fd63-ae48-4c6c-a82f-da09d8352ab9
+## 🌐 Live Site
 
-## How can I edit this code?
+**URL**: [https://trackmcp.com](https://trackmcp.com)
 
-There are several ways of editing your application.
+## 📖 About
 
-**Use Lovable**
+Track MCP is a modern, searchable directory for Model Context Protocol (MCP) tools, servers, and connectors. Built for developers and AI enthusiasts to easily discover and explore the growing ecosystem of MCP resources.
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/2852fd63-ae48-4c6c-a82f-da09d8352ab9) and start prompting.
+### Features
 
-Changes made via Lovable will be committed automatically to this repo.
+- 🔍 **Advanced Search** - Search by name, description, or tags
+- 📊 **Real-time Stats** - Track total tools and GitHub stars
+- 🎯 **Smart Filtering** - Sort by stars, recent updates, or name
+- 📱 **Responsive Design** - Works seamlessly on all devices
+- ⚡ **Fast Performance** - Built with Vite and optimized for speed
+- 🎨 **Modern UI** - Beautiful interface with shadcn/ui components
 
-**Use your preferred IDE**
+## 🚀 Getting Started
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+### Prerequisites
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+- Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
 
-Follow these steps:
+### Installation
 
 ```sh
-# Step 1: Clone the repository using the project's Git URL.
+# Clone the repository
 git clone <YOUR_GIT_URL>
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+# Navigate to the project directory
+cd track-mcp
 
-# Step 3: Install the necessary dependencies.
-npm i
+# Install dependencies
+npm install
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
+# Start the development server
 npm run dev
 ```
 
-**Edit a file directly in GitHub**
+The application will be available at `http://localhost:8080`
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+## 🛠️ Tech Stack
 
-**Use GitHub Codespaces**
+This project is built with modern web technologies:
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+- **Vite** - Lightning-fast build tool
+- **TypeScript** - Type-safe development
+- **React** - UI library
+- **shadcn/ui** - Beautiful component library
+- **Tailwind CSS** - Utility-first styling
+- **Supabase** - Backend and database
+- **React Query** - Data fetching and caching
+- **React Router** - Client-side routing
 
-## What technologies are used for this project?
+## 📦 Available Scripts
 
-This project is built with:
+```sh
+# Start development server
+npm run dev
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+# Build for production
+npm run build
 
-## How can I deploy this project?
+# Preview production build
+npm run preview
 
-Simply open [Lovable](https://lovable.dev/projects/2852fd63-ae48-4c6c-a82f-da09d8352ab9) and click on Share -> Publish.
+# Generate sitemap
+npm run generate-sitemap
 
-## Can I connect a custom domain to my Lovable project?
+# Lint code
+npm run lint
+```
 
-Yes, you can!
+## 🌍 Deployment
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+This project is deployed on Vercel. Any push to the main branch will automatically trigger a new deployment.
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+## 👨‍💻 Author
+
+Built with ❤️ by [Krishna Goyal](https://www.linkedin.com/in/krishnaa-goyal/) for the MCP community.
+
+## 📄 License
+
+This project is open source and available under the MIT License.
