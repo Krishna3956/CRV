@@ -639,7 +639,7 @@ const McpDetail = () => {
     'name': tool.repo_name,
     'applicationCategory': 'DeveloperApplication',
     'description': metaDescription,
-    'url': `https://trackmcp.com/tool/${encodedName}`,
+    'url': `https://www.trackmcp.com/tool/${encodedName}`,
     'operatingSystem': 'Cross-platform',
   };
 
@@ -651,13 +651,13 @@ const McpDetail = () => {
         '@type': 'ListItem',
         'position': 1,
         'name': 'Home',
-        'item': 'https://trackmcp.com/',
+        'item': 'https://www.trackmcp.com/',
       },
       {
         '@type': 'ListItem',
         'position': 2,
         'name': tool.repo_name,
-        'item': `https://trackmcp.com/tool/${encodedName}`,
+        'item': `https://www.trackmcp.com/tool/${encodedName}`,
       },
     ],
   };
@@ -667,9 +667,9 @@ const McpDetail = () => {
       <SEO 
         title={tool.repo_name || 'Tool Details'}
         description={metaDescription}
-        imageUrl="https://trackmcp.com/logo.png"
+        imageUrl="https://www.trackmcp.com/logo.png"
         schema={[softwareSchema, breadcrumbSchema]}
-        canonicalUrl={`https://trackmcp.com/tool/${encodedName}`}
+        canonicalUrl={`https://www.trackmcp.com/tool/${encodedName}`}
       />
       <div className="min-h-screen bg-background">
       <div className="container mx-auto px-4 py-8 max-w-4xl">

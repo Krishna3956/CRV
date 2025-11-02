@@ -149,7 +149,7 @@ const Index = () => {
         '@type': 'SoftwareApplication',
         'name': tool.repo_name,
         'description': tool.description,
-        'url': `https://trackmcp.com/tool/${encodeURIComponent(tool.repo_name || '')}`,
+        'url': `https://www.trackmcp.com/tool/${encodeURIComponent(tool.repo_name || '')}`,
         'applicationCategory': 'DeveloperApplication',
       },
     })),
@@ -160,8 +160,8 @@ const Index = () => {
       <SEO 
         title="Discover 10,000+ Model Context Protocol Tools & Servers"
         description="Explore the world's largest directory of Model Context Protocol (MCP) tools, servers, and connectors. Search 10,000+ GitHub repositories for AI development, LLM integration, and developer tools."
-        imageUrl="https://trackmcp.com/logo.png"
-        canonicalUrl="https://trackmcp.com/"
+        imageUrl="https://www.trackmcp.com/logo.png"
+        canonicalUrl="https://www.trackmcp.com/"
         schema={itemListSchema}
       />
       <div className="min-h-screen bg-background">
@@ -348,7 +348,7 @@ const Index = () => {
               <a 
                 href="https://www.linkedin.com/in/krishnaa-goyal/" 
                 target="_blank" 
-                rel="noopener noreferrer"
+                rel="author noopener noreferrer"
                 className="text-primary hover:underline font-medium"
               >
                 Krishna Goyal

@@ -8,7 +8,7 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 async function generateSitemap() {
-  const hostname = 'https://trackmcp.com';
+  const hostname = 'https://www.trackmcp.com';
 
   // --- Supabase setup ---
   const supabaseUrl = process.env.VITE_SUPABASE_URL;

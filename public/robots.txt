@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://trackmcp.com/sitemap.xml
+Sitemap: https://www.trackmcp.com/sitemap.xml

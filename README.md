@@ -4,7 +4,7 @@
 
 ## 🌐 Live Site
 
-**URL**: [https://trackmcp.com](https://trackmcp.com)
+**URL**: [https://www.trackmcp.com](https://www.trackmcp.com)
 
 ## 📖 About
 
@@ -96,7 +96,7 @@ This project is deployed on Vercel. Any push to the main branch will automatical
 
 ### XML Sitemap
 The sitemap is automatically generated during build and includes all tool pages:
-- **Location**: `https://trackmcp.com/sitemap.xml`
+- **Location**: `https://www.trackmcp.com/sitemap.xml`
 - **Auto-updated**: Runs on every production build
 - **Dynamic URLs**: Fetches all tools from Supabase
 
