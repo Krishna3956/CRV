@@ -209,7 +209,7 @@ export const SubmitToolDialog = ({ variant = 'default', onSuccess }: SubmitToolD
                       </div>
                       <div className="flex items-center gap-1.5">
                         <Star className="h-3 w-3 text-primary fill-primary" />
-                        <p className="text-xs font-medium">"Featured" badge on your MCP listing</p>
+                        <p className="text-xs font-medium">&quot;Featured&quot; badge on your MCP listing</p>
                       </div>
                     </div>
                   </label>
