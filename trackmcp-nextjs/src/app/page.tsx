@@ -4,14 +4,14 @@ import type { Database } from '@/types/database.types'
 
 type McpTool = Database['public']['Tables']['mcp_tools']['Row']
 
-// Get total count of tools
+// Get total count of tools (cached with longer revalidation)
 async function getTotalCount(): Promise<number> {
   const supabase = createClient()
   
   try {
     const { count, error } = await supabase
       .from('mcp_tools')
-      .select('*', { count: 'exact', head: true })
+      .select('id', { count: 'exact', head: true }) // Only count id column, not all columns
       .in('status', ['approved', 'pending'])
 
     if (error) {
@@ -26,7 +26,7 @@ async function getTotalCount(): Promise<number> {
   }
 }
 
-// Fetch only top 100 tools initially for faster load
+// Fetch only top 50 tools initially for faster load
 async function getTools(): Promise<McpTool[]> {
   const supabase = createClient()
   
@@ -36,7 +36,7 @@ async function getTools(): Promise<McpTool[]> {
       .select('id, repo_name, description, stars, github_url, language, topics, last_updated')
       .in('status', ['approved', 'pending'])
       .order('stars', { ascending: false })
-      .limit(100) // Only fetch top 100 for initial load
+      .limit(50) // Only fetch top 50 for initial load - faster!
 
     if (error) {
       console.error('Error fetching tools:', error)
@@ -62,6 +62,7 @@ export const revalidate = 3600
 
 // Server Component - renders on server with full HTML
 export default async function HomePage() {
+  // Parallel fetch for better performance
   const [tools, totalCount] = await Promise.all([getTools(), getTotalCount()])
   
   // Create ItemList schema for top tools
