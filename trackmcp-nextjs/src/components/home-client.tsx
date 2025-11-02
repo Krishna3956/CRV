@@ -292,10 +292,6 @@ export function HomeClient({ initialTools, totalCount }: HomeClientProps) {
                   sortBy={sortBy} 
                   onSortChange={setSortBy}
                 />
-                {/* Submit Tool button - hidden on mobile, shown on desktop */}
-                <div className="hidden sm:block">
-                  <SubmitToolDialog />
-                </div>
               </div>
             </div>
           </div>
