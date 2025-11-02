@@ -31,7 +31,7 @@ const nextConfig = {
   // Enable static exports for better performance
   // output: 'export', // Uncomment for static export
   
-  // Headers for SEO
+  // Headers for SEO and Security
   async headers() {
     return [
       {
@@ -40,6 +40,36 @@ const nextConfig = {
           {
             key: 'X-Robots-Tag',
             value: 'all',
+          },
+          {
+            key: 'X-Content-Type-Options',
+            value: 'nosniff',
+          },
+          {
+            key: 'X-Frame-Options',
+            value: 'SAMEORIGIN',
+          },
+          {
+            key: 'Referrer-Policy',
+            value: 'strict-origin-when-cross-origin',
+          },
+        ],
+      },
+      {
+        source: '/sitemap.xml',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'public, max-age=3600, must-revalidate',
+          },
+        ],
+      },
+      {
+        source: '/robots.txt',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'public, max-age=3600, must-revalidate',
           },
         ],
       },

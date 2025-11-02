@@ -76,6 +76,9 @@ export const metadata: Metadata = {
     initialScale: 1,
     maximumScale: 5,
   },
+  category: 'technology',
+  classification: 'Developer Tools',
+  referrer: 'strict-origin-when-cross-origin',
 }
 
 export default function RootLayout({
