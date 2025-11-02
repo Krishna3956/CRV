@@ -54,7 +54,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       type: 'website',
       images: [
         {
-          url: 'https://www.trackmcp.com/og-image.png',
+          url: `https://www.trackmcp.com/api/og?tool=${encodeURIComponent(toolName)}&stars=${tool.stars || 0}&description=${encodeURIComponent(description.slice(0, 150))}`,
           width: 1200,
           height: 630,
           alt: toolName,
@@ -65,13 +65,13 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       card: 'summary_large_image',
       title: `${toolName} - Track MCP`,
       description: description,
-      images: ['https://www.trackmcp.com/og-image.png'],
+      images: [`https://www.trackmcp.com/api/og?tool=${encodeURIComponent(toolName)}&stars=${tool.stars || 0}&description=${encodeURIComponent(description.slice(0, 150))}`],
     },
     other: {
       // OpenAI / ChatGPT meta tags
       'openai:title': `${toolName} - Model Context Protocol Tool`,
       'openai:description': description,
-      'openai:image': 'https://www.trackmcp.com/og-image.png',
+      'openai:image': `https://www.trackmcp.com/api/og?tool=${encodeURIComponent(toolName)}&stars=${tool.stars || 0}&description=${encodeURIComponent(description.slice(0, 150))}`,
       'openai:url': `https://www.trackmcp.com/tool/${encodeURIComponent(toolName)}`,
       // Perplexity AI meta tags
       'perplexity:title': `${toolName} - MCP Tool`,
