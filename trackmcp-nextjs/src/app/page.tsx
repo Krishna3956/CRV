@@ -71,7 +71,7 @@ async function getTools(): Promise<McpTool[]> {
 
 // Use static metadata to match original site SEO
 export const metadata = {
-  title: 'Track MCP - World\'s Largest MCP Repository',
+  title: 'Track MCP - World\'s Largest Model Context Protocol Repository',
   description: 'Explore 10,000+ Model Context Protocol tools, servers, and connectors. The world\'s largest MCP directory for AI development and LLM integration.',
   alternates: {
     canonical: 'https://www.trackmcp.com',

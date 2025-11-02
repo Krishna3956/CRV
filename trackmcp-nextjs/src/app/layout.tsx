@@ -11,7 +11,7 @@ const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
   title: {
-    default: 'Track MCP - World\'s Largest MCP Repository',
+    default: 'Track MCP - World\'s Largest Model Context Protocol Repository',
     template: '%s - Track MCP'
   },
   description: 'Explore 10,000+ Model Context Protocol tools, servers, and connectors. The world\'s largest MCP directory for AI development and LLM integration.',
