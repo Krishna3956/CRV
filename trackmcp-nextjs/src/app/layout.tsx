@@ -61,9 +61,7 @@ export const metadata: Metadata = {
       'max-snippet': -1,
     },
   },
-  alternates: {
-    canonical: null, // Prevent automatic canonical from metadataBase - pages set their own
-  },
+  // No alternates here - let each page set its own canonical
   verification: {
     google: 'your-google-verification-code', // Add your Google Search Console verification
     // yandex: 'your-yandex-verification-code', // Optional: Yandex verification

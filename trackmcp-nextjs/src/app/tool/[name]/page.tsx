@@ -74,7 +74,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       'openai:url': `https://www.trackmcp.com/tool/${encodeURIComponent(toolName)}`,
     },
     alternates: {
-      canonical: `https://www.trackmcp.com/tool/${encodeURIComponent(toolName)}`,
+      canonical: './', // Resolves to current page URL with metadataBase
     },
   }
 }
