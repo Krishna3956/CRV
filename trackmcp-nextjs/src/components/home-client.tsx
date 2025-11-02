@@ -9,6 +9,7 @@ import { SubmitToolDialog } from '@/components/SubmitToolDialog'
 import { StatsSection } from '@/components/StatsSection'
 import { ErrorBoundary } from '@/components/error-boundary'
 import { Footer } from '@/components/Footer'
+import { RotatingText } from '@/components/RotatingText'
 import { Loader2, Sparkles, Package, X, Filter } from 'lucide-react'
 import type { Database } from '@/types/database.types'
 
@@ -210,8 +211,19 @@ export function HomeClient({ initialTools, totalCount }: HomeClientProps) {
               <span className="text-sm font-medium">Track MCP</span>
             </div>
             
-            <h1 className="text-5xl md:text-7xl font-bold gradient-text animate-fade-in leading-tight">
-              World&apos;s Largest MCP Repository
+            <h1 className="text-5xl md:text-7xl font-bold animate-fade-in leading-tight">
+              <span className="gradient-text">World&apos;s Largest MCP</span>
+              <br />
+              {/* Mobile: Static text */}
+              <span className="md:hidden gradient-text">Repository</span>
+              {/* Desktop: Rotating text */}
+              <span className="hidden md:inline whitespace-nowrap">
+                <span className="text-accent">
+                  <RotatingText words={['Server', 'Clients', 'Tools']} interval={3000} />
+                </span>
+                {' '}
+                <span className="gradient-text">Repository</span>
+              </span>
             </h1>
             
             <p className="text-base md:text-xl lg:text-2xl text-muted-foreground max-w-3xl mx-auto leading-relaxed animate-fade-in">
