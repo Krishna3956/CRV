@@ -55,6 +55,9 @@ async function getTools(): Promise<McpTool[]> {
 export const metadata = {
   title: 'Track MCP - Discover 10,000+ Model Context Protocol Tools & Servers',
   description: 'Explore the world\'s largest directory of Model Context Protocol (MCP) tools, servers, and connectors. Search 10,000+ GitHub repositories for AI development, LLM integration, and developer tools.',
+  alternates: {
+    canonical: 'https://www.trackmcp.com',
+  },
 }
 
 // Enable ISR - revalidate every hour for fresh data (reduced from 5 min)

@@ -61,9 +61,6 @@ export const metadata: Metadata = {
       'max-snippet': -1,
     },
   },
-  alternates: {
-    canonical: 'https://www.trackmcp.com',
-  },
   verification: {
     google: 'your-google-verification-code', // Add your Google Search Console verification
     // yandex: 'your-yandex-verification-code', // Optional: Yandex verification
