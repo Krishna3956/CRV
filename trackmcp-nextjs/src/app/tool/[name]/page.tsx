@@ -68,10 +68,18 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       images: ['https://www.trackmcp.com/og-image.png'],
     },
     other: {
+      // OpenAI / ChatGPT meta tags
       'openai:title': `${toolName} - Model Context Protocol Tool`,
       'openai:description': description,
       'openai:image': 'https://www.trackmcp.com/og-image.png',
       'openai:url': `https://www.trackmcp.com/tool/${encodeURIComponent(toolName)}`,
+      // Perplexity AI meta tags
+      'perplexity:title': `${toolName} - MCP Tool`,
+      'perplexity:description': description,
+      // AI-friendly content hints
+      'ai:content_type': 'tool',
+      'ai:primary_topic': 'Model Context Protocol',
+      'ai:tool_name': toolName,
     },
     alternates: {
       canonical: `https://www.trackmcp.com/tool/${encodeURIComponent(params.name)}`,

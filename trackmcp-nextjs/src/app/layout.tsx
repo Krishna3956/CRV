@@ -45,10 +45,17 @@ export const metadata: Metadata = {
     images: ['https://www.trackmcp.com/og-image.png'],
   },
   other: {
+    // OpenAI / ChatGPT meta tags
     'openai:title': 'Track MCP - World\'s Largest Model Context Protocol Directory',
     'openai:description': 'Comprehensive directory of 10,000+ Model Context Protocol (MCP) tools, servers, and connectors for AI development. Find GitHub repositories, integration guides, and developer resources.',
     'openai:image': 'https://www.trackmcp.com/og-image.png',
     'openai:url': 'https://www.trackmcp.com/',
+    // Perplexity AI meta tags
+    'perplexity:title': 'Track MCP - Model Context Protocol Tools Directory',
+    'perplexity:description': 'Search and discover 10,000+ MCP tools, servers, and connectors. Find GitHub repositories, documentation, and integration guides for AI development.',
+    // AI-friendly content hints
+    'ai:content_type': 'directory',
+    'ai:primary_topic': 'Model Context Protocol',
   },
   robots: {
     index: true,
