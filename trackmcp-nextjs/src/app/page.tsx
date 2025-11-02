@@ -40,7 +40,7 @@ async function getTools(): Promise<McpTool[]> {
     while (hasMore) {
       const { data, error } = await supabase
         .from('mcp_tools')
-        .select('id, repo_name, description, stars, github_url, language, topics, last_updated')
+        .select('id, repo_name, description, stars, github_url, language, topics, last_updated, category')
         .in('status', ['approved', 'pending'])
         .order('stars', { ascending: false })
         .range(from, from + batchSize - 1)

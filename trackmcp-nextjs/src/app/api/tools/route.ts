@@ -11,7 +11,7 @@ export async function GET(request: NextRequest) {
   try {
     const { data, error } = await supabase
       .from('mcp_tools')
-      .select('id, repo_name, description, stars, github_url, language, topics, last_updated')
+      .select('id, repo_name, description, stars, github_url, language, topics, last_updated, category')
       .in('status', ['approved', 'pending'])
       .order('stars', { ascending: false })
       .range(offset, offset + limit - 1)

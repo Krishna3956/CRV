@@ -1,6 +1,13 @@
 "use client"
 
+import { useState, useEffect } from "react";
 import { Package, Star, GitBranch } from "lucide-react";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 interface StatsSectionProps {
   totalTools: number;
@@ -8,47 +15,142 @@ interface StatsSectionProps {
   isSearching?: boolean;
 }
 
+interface StatItemProps {
+  icon: React.ElementType;
+  label: string;
+  value: number;
+  tooltip: string;
+  gradient: string;
+}
+
+const AnimatedCounter = ({ value, duration = 2000 }: { value: number; duration?: number }) => {
+  const [count, setCount] = useState(0);
+
+  useEffect(() => {
+    let startTime: number;
+    let animationFrame: number;
+
+    const animate = (currentTime: number) => {
+      if (!startTime) startTime = currentTime;
+      const progress = Math.min((currentTime - startTime) / duration, 1);
+      
+      // Easing function for smooth animation
+      const easeOutQuart = 1 - Math.pow(1 - progress, 4);
+      setCount(Math.floor(easeOutQuart * value));
+
+      if (progress < 1) {
+        animationFrame = requestAnimationFrame(animate);
+      } else {
+        setCount(value);
+      }
+    };
+
+    animationFrame = requestAnimationFrame(animate);
+
+    return () => cancelAnimationFrame(animationFrame);
+  }, [value, duration]);
+
+  return <>{count.toLocaleString()}</>;
+};
+
+const StatItem = ({ icon: Icon, label, value, tooltip, gradient }: StatItemProps) => {
+  return (
+    <TooltipProvider>
+      <Tooltip delayDuration={200}>
+        <TooltipTrigger asChild>
+          <div className="flex flex-col items-center justify-center px-2 py-2 cursor-help group hover:bg-white/10 transition-colors">
+            <div className={`p-1 rounded bg-gradient-to-br ${gradient} mb-0.5`}>
+              <Icon className="h-4 w-4 text-white" strokeWidth={2.5} />
+            </div>
+            <p className="text-sm font-bold text-foreground text-center" style={{ fontSize: '14px', lineHeight: '1.1' }}>
+              <AnimatedCounter value={value} />
+            </p>
+            <p className="text-xs text-muted-foreground font-medium text-center" style={{ fontSize: '10px', lineHeight: '1.1' }}>
+              {label}
+            </p>
+          </div>
+        </TooltipTrigger>
+        <TooltipContent side="left" className="max-w-xs">
+          <p className="text-sm">{tooltip}</p>
+        </TooltipContent>
+      </Tooltip>
+    </TooltipProvider>
+  );
+};
+
 export const StatsSection = ({ totalTools, totalStars, isSearching = false }: StatsSectionProps) => {
   const adjustedTools = isSearching ? totalTools : totalTools + 10000;
+  
   const stats = [
     {
       icon: Package,
       label: "MCP Tools",
-      value: adjustedTools.toLocaleString(),
-      gradient: "from-primary to-primary-glow",
+      value: adjustedTools,
+      tooltip: "Total number of Model Context Protocol tools, servers, and clients in our directory",
+      gradient: "from-blue-500 to-blue-600",
     },
     {
       icon: Star,
       label: "Total Stars",
-      value: totalStars.toLocaleString(),
-      gradient: "from-accent to-accent-glow",
+      value: totalStars,
+      tooltip: "Combined GitHub stars across all MCP repositories, indicating community engagement",
+      gradient: "from-yellow-500 to-orange-500",
     },
     {
       icon: GitBranch,
       label: "Active Projects",
-      value: adjustedTools.toLocaleString(),
-      gradient: "from-primary via-accent to-primary",
+      value: adjustedTools,
+      tooltip: "Number of actively maintained MCP projects with recent updates and contributions",
+      gradient: "from-purple-500 to-pink-500",
     },
   ];
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-2 max-w-lg mx-auto mb-6 justify-items-center">
-      {stats.map((stat) => (
-        <div
-          key={stat.label}
-          className="relative group p-3 rounded-lg border-2 bg-card/50 backdrop-blur-sm hover:shadow-elegant transition-all duration-300 hover:-translate-y-1 w-full max-w-sm h-20"
-        >
-          <div className="flex items-center gap-2 w-full h-full">
-            <div className={`p-1.5 rounded-md bg-gradient-to-br ${stat.gradient} text-white flex-shrink-0`}>
-              <stat.icon className="h-5 w-5" />
+    <>
+      {/* Desktop/Tablet: Slim Ribbon Banner - Absolute positioned in hero section */}
+      <div 
+        className="hidden md:block absolute right-0 top-1/2 -translate-y-1/2 z-40"
+        style={{
+          animation: 'slideInFromRight 0.6s ease-out'
+        }}
+      >
+        <style jsx>{`
+          @keyframes slideInFromRight {
+            from {
+              transform: translateX(40px);
+              opacity: 0;
+            }
+            to {
+              transform: translateX(0);
+              opacity: 1;
+            }
+          }
+        `}</style>
+        <div className="flex flex-col bg-white/90 dark:bg-gray-900/90 backdrop-blur-md border-l-2 border-t-2 border-b-2 border-border/50 rounded-l-2xl divide-y-2 divide-border/60 overflow-hidden shadow-lg">
+          {stats.map((stat) => (
+            <StatItem key={stat.label} {...stat} />
+          ))}
+        </div>
+      </div>
+
+      {/* Mobile: Compact Horizontal Bar (fallback) */}
+      <div className="md:hidden inline-flex items-center justify-center bg-card/50 backdrop-blur-sm border rounded-lg divide-x divide-border mx-auto">
+        {stats.map((stat) => (
+          <div key={stat.label} className="flex items-center gap-2 px-3 py-2">
+            <div className={`p-1.5 rounded bg-gradient-to-br ${stat.gradient}`}>
+              <stat.icon className="h-3.5 w-3.5 text-white" strokeWidth={2.5} />
             </div>
-            <div className="flex-1 min-w-0 flex flex-col justify-center gap-0.5">
-              <p className="text-base font-bold gradient-text truncate leading-tight" style={{ fontSize: '16px' }}>{stat.value}</p>
-              <p className="text-xs text-muted-foreground font-medium truncate leading-tight" style={{ fontSize: '12px' }}>{stat.label}</p>
+            <div className="flex flex-col">
+              <p className="text-sm font-bold text-foreground" style={{ fontSize: '14px', lineHeight: '1.1' }}>
+                {stat.value.toLocaleString()}
+              </p>
+              <p className="text-xs text-muted-foreground font-medium" style={{ fontSize: '11px', lineHeight: '1.1' }}>
+                {stat.label}
+              </p>
             </div>
           </div>
-        </div>
-      ))}
-    </div>
+        ))}
+      </div>
+    </>
   );
 };

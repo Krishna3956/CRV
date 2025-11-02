@@ -14,7 +14,7 @@ export const FilterBar = ({ sortBy, onSortChange }: FilterBarProps) => {
       <Label htmlFor="sort" className="text-sm font-medium whitespace-nowrap">
         Sort by:
       </Label>
-      <Select value={sortBy} onValueChange={onSortChange} defaultValue="recent">
+      <Select value={sortBy} onValueChange={onSortChange}>
         <SelectTrigger id="sort" className="w-auto border-0 bg-transparent focus:ring-0 text-sm">
           <SelectValue placeholder="Sort by..." />
         </SelectTrigger>

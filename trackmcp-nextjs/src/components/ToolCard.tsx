@@ -1,14 +1,13 @@
 "use client"
 
+import { useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
-import Image from "next/image";
-import { ExternalLink, Star, GitBranch, Calendar } from "lucide-react";
+import { ExternalLink, Star, GitBranch, Calendar, ChevronDown, ChevronUp, CheckCircle2, TrendingUp, Eye } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-import { format } from "date-fns";
-import { useMemo } from "react";
+import { format, formatDistanceToNow } from "date-fns";
 
 interface ToolCardProps {
   name: string;
@@ -18,7 +17,29 @@ interface ToolCardProps {
   language?: string;
   topics?: string[];
   lastUpdated?: string;
+  isExpanded?: boolean;
+  onToggleExpand?: () => void;
 }
+
+// Language color mapping
+const LANGUAGE_COLORS: { [key: string]: string } = {
+  'TypeScript': 'bg-blue-500',
+  'JavaScript': 'bg-yellow-500',
+  'Python': 'bg-green-600',
+  'Go': 'bg-cyan-500',
+  'Rust': 'bg-orange-600',
+  'Java': 'bg-red-600',
+  'C#': 'bg-purple-600',
+  'Ruby': 'bg-red-500',
+  'PHP': 'bg-indigo-500',
+  'Swift': 'bg-orange-500',
+};
+
+// Categorize topics into primary and secondary
+const categorizeTopic = (topic: string): 'primary' | 'secondary' => {
+  const primaryKeywords = ['mcp', 'ai', 'llm', 'claude', 'gpt', 'agent', 'server', 'client'];
+  return primaryKeywords.some(keyword => topic.toLowerCase().includes(keyword)) ? 'primary' : 'secondary';
+};
 
 export const ToolCard = ({
   name,
@@ -28,8 +49,11 @@ export const ToolCard = ({
   language,
   topics,
   lastUpdated,
+  isExpanded: isExpandedProp = true,
+  onToggleExpand,
 }: ToolCardProps) => {
   const router = useRouter();
+  const isExpanded = isExpandedProp;
   
   // Extract owner name and avatar URL immediately from GitHub URL (no async needed)
   const { ownerName, ownerAvatar } = useMemo(() => {
@@ -44,85 +68,230 @@ export const ToolCard = ({
     }
   }, [githubUrl]);
 
+  // Categorize and limit topics
+  const { primaryTopics, secondaryTopics, hasMoreTopics } = useMemo(() => {
+    if (!topics || topics.length === 0) return { primaryTopics: [], secondaryTopics: [], hasMoreTopics: false };
+    
+    const primary = topics.filter(t => categorizeTopic(t) === 'primary').slice(0, 2);
+    const secondary = topics.filter(t => categorizeTopic(t) === 'secondary').slice(0, 2);
+    const displayedCount = primary.length + secondary.length;
+    
+    return {
+      primaryTopics: primary,
+      secondaryTopics: secondary,
+      hasMoreTopics: topics.length > displayedCount
+    };
+  }, [topics]);
+
+  // Determine if tool is verified (high stars) or trending (recent updates)
+  const isVerified = stars > 100;
+  const isTrending = lastUpdated && new Date(lastUpdated) > new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+  
+  // Calculate alternative metrics
+  const estimatedDownloads = Math.floor(stars * 15); // Rough estimate
+  const recentActivity = lastUpdated ? formatDistanceToNow(new Date(lastUpdated), { addSuffix: true }) : null;
+
+  const handleCardClick = () => {
+    router.push(`/tool/${encodeURIComponent(name)}`);
+  };
+
+  const handleExpandClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (onToggleExpand) {
+      onToggleExpand();
+    }
+  };
+
   return (
     <Card 
-      className="group relative overflow-hidden card-gradient hover:shadow-elegant transition-all duration-500 hover:-translate-y-2 border-2 hover:border-primary/20 cursor-pointer h-full flex flex-col"
-      onClick={() => router.push(`/tool/${encodeURIComponent(name)}`)}
+      className="group relative overflow-hidden card-gradient hover:shadow-lg transition-all duration-300 hover:-translate-y-1 border hover:border-primary/30 cursor-pointer h-full flex flex-col"
+      onClick={handleCardClick}
     >
       {/* Gradient overlay on hover */}
-      <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" 
+      <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" 
            style={{ background: 'radial-gradient(circle at top right, hsl(243 75% 59% / 0.05), transparent 70%)' }} />
       
-      <CardHeader className="relative pb-3">
+      <CardHeader className="relative p-5 pb-4">
         <div className="flex items-start justify-between gap-4">
-          <div className="flex-1 space-y-2">
-            <div className="flex items-center gap-2">
-              <Avatar className="h-5 w-5">
+          <div className="flex-1 space-y-3 min-w-0">
+            <div className="flex items-center gap-2 flex-wrap">
+              <Avatar className="h-4 w-4 flex-shrink-0">
                 <AvatarImage src={ownerAvatar} alt={ownerName} />
-                <AvatarFallback className="text-xs">{ownerName.slice(0, 2).toUpperCase()}</AvatarFallback>
+                <AvatarFallback className="text-[10px]">{ownerName.slice(0, 2).toUpperCase()}</AvatarFallback>
               </Avatar>
-              <CardTitle className="text-xl group-hover:gradient-text transition-all duration-300">
+              <CardTitle className="text-xl font-semibold group-hover:gradient-text transition-all duration-300 truncate" style={{ fontSize: '18px', lineHeight: '1.3' }}>
                 {name}
               </CardTitle>
+              
+              {/* Status badges */}
+              <div className="flex items-center gap-1">
+                {isVerified && (
+                  <Badge variant="outline" className="h-5 px-1.5 py-0 text-[10px] border-green-500/50 text-green-600 dark:text-green-400">
+                    <CheckCircle2 className="h-3 w-3 mr-0.5" />
+                    Verified
+                  </Badge>
+                )}
+                {isTrending && (
+                  <Badge variant="outline" className="h-5 px-1.5 py-0 text-[10px] border-orange-500/50 text-orange-600 dark:text-orange-400">
+                    <TrendingUp className="h-3 w-3 mr-0.5" />
+                    Trending
+                  </Badge>
+                )}
+              </div>
             </div>
-            <CardDescription className="line-clamp-1 text-base leading-relaxed">
+            
+            <CardDescription 
+              className={`text-muted-foreground ${isExpanded ? '' : 'line-clamp-2'} text-base`}
+              style={{ fontSize: '15px', lineHeight: '1.5' }}
+            >
               {description || "No description available"}
             </CardDescription>
           </div>
+          
           <Button
             variant="ghost"
             size="icon"
-            className="shrink-0 hover:bg-primary/10 hover:text-primary hover:scale-110 transition-all duration-300"
+            className="h-7 w-7 shrink-0 hover:bg-primary/10 hover:text-primary transition-all"
             onClick={(e) => {
               e.stopPropagation();
-              router.push(`/tool/${encodeURIComponent(name)}`);
+              window.open(githubUrl, '_blank');
             }}
           >
-            <ExternalLink className="h-5 w-5" />
+            <ExternalLink className="h-4 w-4" />
           </Button>
         </div>
       </CardHeader>
       
-      <CardContent className="relative space-y-4 flex-1 flex flex-col justify-between">
-        <div className="flex items-center gap-6 text-sm">
-          <div className="flex items-center gap-2 group/stars">
-            <Star className="h-4 w-4 fill-accent text-accent group-hover/stars:scale-125 transition-transform" />
-            <span className="font-semibold text-foreground">{stars.toLocaleString()}</span>
+      <CardContent className="relative p-5 pt-0 space-y-4 flex-1 flex flex-col justify-between">
+        {/* Metrics row */}
+        <div className="flex items-center gap-5 text-base flex-wrap">
+          <div className="flex items-center gap-1 group/stars">
+            <Star className="h-3.5 w-3.5 fill-yellow-500 text-yellow-500" />
+            <span className="font-semibold text-foreground" style={{ fontSize: '15px' }}>{stars.toLocaleString()}</span>
           </div>
           
-          {language && (
-            <div className="flex items-center gap-2 text-muted-foreground">
-              <GitBranch className="h-4 w-4" />
-              <span className="font-medium">{language}</span>
+          {/* Alternative metric for low-starred items */}
+          {stars < 50 && (
+            <div className="flex items-center gap-1 text-muted-foreground">
+              <Eye className="h-3.5 w-3.5" />
+              <span className="text-sm font-medium" style={{ fontSize: '13px' }}>{estimatedDownloads.toLocaleString()} views</span>
             </div>
           )}
           
-          {lastUpdated && (
-            <div className="flex items-center gap-2 text-muted-foreground">
-              <Calendar className="h-4 w-4" />
-              <span className="text-xs">{format(new Date(lastUpdated), "MMM d, yyyy")}</span>
+          {language && (
+            <Badge 
+              className={`h-6 px-2.5 py-0 text-xs font-medium text-white ${LANGUAGE_COLORS[language] || 'bg-gray-500'}`}
+              style={{ lineHeight: '1.2' }}
+            >
+              {language}
+            </Badge>
+          )}
+          
+          {lastUpdated && !isExpanded && (
+            <div className="flex items-center gap-1 text-muted-foreground ml-auto">
+              <Calendar className="h-3.5 w-3.5" />
+              <span className="text-sm" style={{ fontSize: '13px' }}>{recentActivity}</span>
             </div>
           )}
         </div>
         
-        {topics && topics.length > 0 && (
-          <div className="flex flex-nowrap gap-2 overflow-hidden">
-            {topics.slice(0, 3).map((topic) => (
+        {/* Tags */}
+        {(primaryTopics.length > 0 || secondaryTopics.length > 0) && (
+          <div className="flex flex-wrap gap-2.5">
+            {/* Primary topics - more prominent */}
+            {primaryTopics.map((topic) => (
               <Badge 
                 key={topic} 
-                variant="secondary" 
-                className="text-xs px-3 py-1 hover:bg-primary hover:text-primary-foreground transition-colors cursor-default"
+                variant="default"
+                className="h-6 px-2.5 py-0 text-xs font-medium bg-primary/10 text-primary hover:bg-primary/20 transition-colors"
+                style={{ lineHeight: '1.2' }}
               >
                 {topic}
               </Badge>
             ))}
-            {topics.length > 3 && (
-              <Badge variant="outline" className="text-xs px-3 py-1">
-                +{topics.length - 3}
+            
+            {/* Secondary topics - muted */}
+            {secondaryTopics.map((topic) => (
+              <Badge 
+                key={topic} 
+                variant="secondary"
+                className="h-6 px-2.5 py-0 text-xs font-medium text-muted-foreground/70 hover:text-muted-foreground transition-colors"
+                style={{ lineHeight: '1.2' }}
+              >
+                {topic}
+              </Badge>
+            ))}
+            
+            {hasMoreTopics && (
+              <Badge 
+                variant="outline" 
+                className="h-6 px-2.5 py-0 text-xs text-muted-foreground"
+                style={{ lineHeight: '1.2' }}
+              >
+                +{topics!.length - (primaryTopics.length + secondaryTopics.length)}
               </Badge>
             )}
           </div>
         )}
+        
+        {/* Expanded content */}
+        {isExpanded && (
+          <div className="space-y-2.5 pt-4 border-t animate-in fade-in slide-in-from-top-2 duration-300">
+            {lastUpdated && (
+              <div className="flex items-center justify-between text-sm text-muted-foreground" style={{ fontSize: '13px' }}>
+                <span className="flex items-center gap-1">
+                  <Calendar className="h-3.5 w-3.5" />
+                  Last updated
+                </span>
+                <span className="font-medium">{format(new Date(lastUpdated), "MMM d, yyyy")}</span>
+              </div>
+            )}
+            
+            <div className="flex items-center justify-between text-xs text-muted-foreground">
+              <span className="flex items-center gap-1.5">
+                <GitBranch className="h-3.5 w-3.5" />
+                Repository
+              </span>
+              <a 
+                href={githubUrl} 
+                target="_blank" 
+                rel="noopener noreferrer"
+                onClick={(e) => e.stopPropagation()}
+                className="font-medium text-primary hover:underline"
+              >
+                View on GitHub →
+              </a>
+            </div>
+            
+            {estimatedDownloads > 0 && (
+              <div className="flex items-center justify-between text-sm text-muted-foreground" style={{ fontSize: '13px' }}>
+                <span className="flex items-center gap-1">
+                  <Eye className="h-3.5 w-3.5" />
+                  Estimated views
+                </span>
+                <span className="font-medium">{estimatedDownloads.toLocaleString()}</span>
+              </div>
+            )}
+          </div>
+        )}
+        
+        {/* Expand/Collapse button */}
+        <Button
+          variant="ghost"
+          size="sm"
+          className="h-7 w-full text-sm text-muted-foreground hover:text-primary transition-colors mt-auto"
+          onClick={handleExpandClick}
+        >
+          {isExpanded ? (
+            <>
+              Show less <ChevronUp className="h-3 w-3 ml-1" />
+            </>
+          ) : (
+            <>
+              Show more <ChevronDown className="h-3 w-3 ml-1" />
+            </>
+          )}
+        </Button>
       </CardContent>
     </Card>
   );

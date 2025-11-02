@@ -16,6 +16,7 @@ export type Database = {
     Tables: {
       mcp_tools: {
         Row: {
+          category: string | null
           created_at: string
           description: string | null
           github_url: string
@@ -29,6 +30,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          category?: string | null
           created_at?: string
           description?: string | null
           github_url: string
@@ -42,6 +44,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          category?: string | null
           created_at?: string
           description?: string | null
           github_url?: string

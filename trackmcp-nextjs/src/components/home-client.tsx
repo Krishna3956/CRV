@@ -3,12 +3,13 @@
 import { useState, useEffect, useMemo } from 'react'
 import { SearchBar } from '@/components/SearchBar'
 import { FilterBar } from '@/components/FilterBar'
+import { CategoryFilter } from '@/components/CategoryFilter'
 import { ToolCard } from '@/components/ToolCard'
 import { SubmitToolDialog } from '@/components/SubmitToolDialog'
 import { StatsSection } from '@/components/StatsSection'
 import { ErrorBoundary } from '@/components/error-boundary'
 import { Footer } from '@/components/Footer'
-import { Loader2, Sparkles, Package } from 'lucide-react'
+import { Loader2, Sparkles, Package, X, Filter } from 'lucide-react'
 import type { Database } from '@/types/database.types'
 
 type McpTool = Database['public']['Tables']['mcp_tools']['Row']
@@ -22,9 +23,12 @@ export function HomeClient({ initialTools, totalCount }: HomeClientProps) {
   const [inputValue, setInputValue] = useState('')
   const [searchQuery, setSearchQuery] = useState('')
   const [sortBy, setSortBy] = useState('stars')
+  const [selectedCategory, setSelectedCategory] = useState('all')
   const [visibleCount, setVisibleCount] = useState(12)
   const [allTools, setAllTools] = useState<McpTool[]>(initialTools)
   const [isLoadingMore, setIsLoadingMore] = useState(false)
+  const [areCardsExpanded, setAreCardsExpanded] = useState(false)
+  const [isFilterBarSticky, setIsFilterBarSticky] = useState(false)
 
   // Debounce search query
   useEffect(() => {
@@ -34,6 +38,32 @@ export function HomeClient({ initialTools, totalCount }: HomeClientProps) {
 
     return () => clearTimeout(timer)
   }, [inputValue])
+
+  // Handle sticky filter bar on scroll
+  useEffect(() => {
+    const handleScroll = () => {
+      const scrollPosition = window.scrollY
+      setIsFilterBarSticky(scrollPosition > 400)
+    }
+
+    window.addEventListener('scroll', handleScroll)
+    return () => window.removeEventListener('scroll', handleScroll)
+  }, [])
+
+  // Remove all filters
+  const clearAllFilters = () => {
+    setSelectedCategory('all')
+    setSearchQuery('')
+    setInputValue('')
+  }
+
+  // Count active filters
+  const activeFilterCount = useMemo(() => {
+    let count = 0
+    if (selectedCategory !== 'all') count++
+    if (searchQuery) count++
+    return count
+  }, [selectedCategory, searchQuery])
 
   // List of blocked repos to hide from UI
   const blockedRepos = ['awesome-mcp-servers']
@@ -46,6 +76,19 @@ export function HomeClient({ initialTools, totalCount }: HomeClientProps) {
           return false
         }
 
+        // Category filter
+        if (selectedCategory !== 'all') {
+          if (selectedCategory === 'featured') {
+            // Featured tools - will be empty for now until user provides list
+            return false
+          } else {
+            if (tool.category !== selectedCategory) {
+              return false
+            }
+          }
+        }
+
+        // Search filter
         const searchLower = searchQuery.toLowerCase()
         return (
           tool.repo_name?.toLowerCase().includes(searchLower) ||
@@ -72,7 +115,7 @@ export function HomeClient({ initialTools, totalCount }: HomeClientProps) {
             return 0
         }
       })
-  }, [allTools, searchQuery, sortBy])
+  }, [allTools, searchQuery, sortBy, selectedCategory])
 
   const totalStars = useMemo(() => {
     return filteredAndSortedTools.reduce((sum, tool) => sum + (tool.stars || 0), 0)
@@ -119,11 +162,9 @@ export function HomeClient({ initialTools, totalCount }: HomeClientProps) {
   return (
     <div className="min-h-screen bg-background">
       {/* Hero Section */}
-      <section className="relative overflow-hidden">
-        <div 
-          className="absolute inset-0 opacity-60"
-          style={{ background: 'var(--gradient-mesh)' }}
-        />
+      <section className="relative min-h-[60vh] flex items-center justify-center overflow-hidden">
+        {/* Animated background gradient */}
+        <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-background to-accent/5" />
         
         {/* Gradient fade to background */}
         <div 
@@ -134,6 +175,9 @@ export function HomeClient({ initialTools, totalCount }: HomeClientProps) {
         {/* Animated gradient orbs */}
         <div className="absolute top-0 left-1/4 w-96 h-96 bg-primary/20 rounded-full blur-3xl animate-pulse" />
         <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-accent/20 rounded-full blur-3xl animate-pulse delay-700" />
+        
+        {/* Slim Ribbon Stats Banner - Positioned at top of hero section */}
+        <StatsSection totalTools={searchQuery || selectedCategory !== 'all' ? filteredAndSortedTools.length : totalCount} totalStars={totalStars} isSearching={!!searchQuery || selectedCategory !== 'all'} />
         
         <div className="container relative mx-auto px-4 py-4 md:py-8">
           <div className="max-w-5xl mx-auto text-center space-y-8">
@@ -146,7 +190,7 @@ export function HomeClient({ initialTools, totalCount }: HomeClientProps) {
               World&apos;s Largest MCP Repository
             </h1>
             
-            <p className="text-xl md:text-2xl text-muted-foreground max-w-3xl mx-auto leading-relaxed animate-fade-in">
+            <p className="text-base md:text-xl lg:text-2xl text-muted-foreground max-w-3xl mx-auto leading-relaxed animate-fade-in">
               Discover, Track, and Explore Over 10,000+ Model Context Protocol Servers, Clients & Tools in One Centralized Platform
             </p>
             
@@ -161,28 +205,72 @@ export function HomeClient({ initialTools, totalCount }: HomeClientProps) {
         </div>
       </section>
 
-      {/* Stats Section */}
-      <section className="container mx-auto px-4 mt-8 relative z-10">
-        <StatsSection totalTools={searchQuery ? filteredAndSortedTools.length : totalCount} totalStars={totalStars} isSearching={!!searchQuery} />
+      {/* Filter Section - Grouped with subtle background */}
+      <section className="container mx-auto px-4 mt-4 relative z-10">
+        <div className="bg-card/20 backdrop-blur-sm rounded-lg p-4 border border-border/50">
+          {/* Category Filter */}
+          <div className="mb-0">
+            <CategoryFilter 
+              selectedCategory={selectedCategory} 
+              onCategoryChange={setSelectedCategory} 
+            />
+          </div>
+        </div>
+        
         {/* Submit Tool button - visible on mobile only, centered below stats */}
-        <div className="flex justify-center mt-6 sm:hidden">
+        <div className="flex justify-center mt-3 sm:hidden">
           <SubmitToolDialog />
         </div>
       </section>
 
+      {/* Sticky Filter Bar */}
+      {isFilterBarSticky && (
+        <div className="fixed top-0 left-0 right-0 z-40 bg-background/95 backdrop-blur-md border-b shadow-lg animate-in slide-in-from-top duration-300">
+          <div className="container mx-auto px-4 py-3">
+            <div className="flex items-center justify-between gap-4">
+              <div className="flex items-center gap-3">
+                <Filter className="h-5 w-5 text-primary" />
+                <span className="text-base md:text-sm font-semibold">
+                  {searchQuery || selectedCategory !== 'all' ? filteredAndSortedTools.length.toLocaleString() : (10000 + totalCount).toLocaleString()} Available
+                </span>
+                {activeFilterCount > 0 && (
+                  <span className="text-sm md:text-xs text-muted-foreground">({activeFilterCount} filters)</span>
+                )}
+              </div>
+              <div className="flex items-center gap-2">
+                <FilterBar sortBy={sortBy} onSortChange={setSortBy} />
+                {activeFilterCount > 0 && (
+                  <button
+                    onClick={clearAllFilters}
+                    className="text-xs text-muted-foreground hover:text-primary transition-colors underline"
+                  >
+                    Clear all
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Directory Section */}
-      <section className="container mx-auto px-4 py-6 pb-8">
-        <div className="flex flex-col gap-4 mb-12">
-          <div className="flex flex-col gap-4">
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+      <section className="container mx-auto px-4 pt-4 pb-6">
+        {/* Subtle divider */}
+        <div className="h-px bg-gradient-to-r from-transparent via-border to-transparent mb-4" />
+        
+        <div className="flex flex-col gap-2 mb-3">
+          <div className="flex flex-col gap-2">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
               <div>
-                <h2 className="text-3xl font-bold gradient-text">Browse Repository</h2>
-                <p className="text-muted-foreground text-lg mt-1">
-                  {searchQuery ? filteredAndSortedTools.length : (10000 + totalCount).toLocaleString()} available
+                <p className="gradient-text text-xl md:text-lg font-bold">
+                  {searchQuery || selectedCategory !== 'all' ? filteredAndSortedTools.length.toLocaleString() : (10000 + totalCount).toLocaleString()} Available
                 </p>
               </div>
               <div className="flex flex-row gap-2 w-auto">
-                <FilterBar sortBy={sortBy} onSortChange={setSortBy} />
+                <FilterBar 
+                  sortBy={sortBy} 
+                  onSortChange={setSortBy}
+                />
                 {/* Submit Tool button - hidden on mobile, shown on desktop */}
                 <div className="hidden sm:block">
                   <SubmitToolDialog />
@@ -190,6 +278,43 @@ export function HomeClient({ initialTools, totalCount }: HomeClientProps) {
               </div>
             </div>
           </div>
+
+          {/* Active Filter Chips */}
+          {activeFilterCount > 0 && (
+            <div className="flex flex-wrap items-center gap-2 p-3 bg-card/30 rounded-lg border">
+              <span className="text-base md:text-sm font-medium text-muted-foreground">Active filters:</span>
+              
+              {/* Category chip */}
+              {selectedCategory !== 'all' && (
+                <button
+                  onClick={() => setSelectedCategory('all')}
+                  className="inline-flex items-center gap-1.5 px-3 py-2 text-base md:text-sm bg-primary/10 text-primary rounded-full hover:bg-primary/20 transition-colors group min-h-[36px] md:min-h-[32px]"
+                >
+                  <span>{selectedCategory}</span>
+                  <X className="h-3 w-3 group-hover:scale-110 transition-transform" />
+                </button>
+              )}
+
+              {/* Search query chip */}
+              {searchQuery && (
+                <button
+                  onClick={() => { setSearchQuery(''); setInputValue(''); }}
+                  className="inline-flex items-center gap-1.5 px-3 py-2 text-base md:text-sm bg-accent/50 text-accent-foreground rounded-full hover:bg-accent transition-colors group min-h-[36px] md:min-h-[32px]"
+                >
+                  <span>Search: &quot;{searchQuery}&quot;</span>
+                  <X className="h-3 w-3 group-hover:scale-110 transition-transform" />
+                </button>
+              )}
+
+              {/* Clear all button */}
+              <button
+                onClick={clearAllFilters}
+                className="ml-auto text-sm text-muted-foreground hover:text-primary transition-colors underline"
+              >
+                Clear all
+              </button>
+            </div>
+          )}
         </div>
 
         {filteredAndSortedTools.length === 0 ? (
@@ -211,7 +336,7 @@ export function HomeClient({ initialTools, totalCount }: HomeClientProps) {
             <ErrorBoundary>
               <div 
                 id="rows-container" 
-                className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 auto-rows-fr"
+                className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 auto-rows-fr"
                 aria-live="polite"
               >
                 {displayedTools.map((tool, index) => (
@@ -230,6 +355,8 @@ export function HomeClient({ initialTools, totalCount }: HomeClientProps) {
                     language={tool.language || undefined}
                     topics={tool.topics || undefined}
                     lastUpdated={tool.last_updated || undefined}
+                    isExpanded={areCardsExpanded}
+                    onToggleExpand={() => setAreCardsExpanded(!areCardsExpanded)}
                   />
                 </div>
               ))}
