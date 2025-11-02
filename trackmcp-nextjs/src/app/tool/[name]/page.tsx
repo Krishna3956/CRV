@@ -40,11 +40,36 @@ function generateSmartMetadata(tool: McpTool) {
     : `${toolName} - MCP Tool for ${language || 'Developers'}`
   
   // Generate targeted description (150-160 chars ideal)
-  const smartDescription = description.length > 155
-    ? `${description.slice(0, 152)}...`
-    : description.length < 100
-    ? `${description}. ${stars > 0 ? `⭐ ${stars.toLocaleString()} stars on GitHub.` : ''} Model Context Protocol tool for AI development.`.slice(0, 160)
-    : description
+  // Enhance description with context based on tool characteristics
+  let smartDescription = description
+  
+  if (description.length > 155) {
+    // Long description: truncate cleanly
+    smartDescription = `${description.slice(0, 152)}...`
+  } else if (description.length < 120) {
+    // Short description: add valuable context
+    const contextParts = []
+    
+    // Add star count for popular tools
+    if (stars > 100) {
+      contextParts.push(`⭐ ${stars.toLocaleString()} stars`)
+    }
+    
+    // Add language context
+    if (language && !description.toLowerCase().includes(language.toLowerCase())) {
+      contextParts.push(`${language} implementation`)
+    }
+    
+    // Add MCP context if not mentioned
+    if (!description.toLowerCase().includes('mcp') && !description.toLowerCase().includes('model context protocol')) {
+      contextParts.push('MCP tool for AI development')
+    }
+    
+    // Combine description with context
+    const context = contextParts.length > 0 ? `. ${contextParts.join('. ')}.` : ''
+    smartDescription = `${description}${context}`.slice(0, 160)
+  }
+  // Medium length (120-155): use as-is, it's already good
   
   // Generate smart keywords (mix of specific and general)
   const smartKeywords = [
