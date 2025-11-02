@@ -11,10 +11,10 @@ const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
   title: {
-    default: 'Track MCP - Discover 10,000+ Model Context Protocol Tools & Servers',
+    default: 'Track MCP - World\'s Largest MCP Repository',
     template: '%s - Track MCP'
   },
-  description: 'Explore the world\'s largest directory of Model Context Protocol (MCP) tools, servers, and connectors. Search 10,000+ GitHub repositories for AI development, LLM integration, and developer tools.',
+  description: 'Explore 10,000+ Model Context Protocol tools, servers, and connectors. The world\'s largest MCP directory for AI development and LLM integration.',
   keywords: ['MCP', 'Model Context Protocol', 'AI tools', 'LLM tools', 'GitHub MCP', 'developer tools', 'MCP servers', 'MCP connectors', 'AI development', 'Claude MCP', 'OpenAI tools', 'AI integration', 'MCP directory', 'MCP repository'],
   authors: [{ name: 'Krishna Goyal' }],
   creator: 'Krishna Goyal',
@@ -40,7 +40,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     site: '@trackmcp',
     creator: '@trackmcp',
-    title: 'Track MCP - World\'s Largest MCP Repository',
+    title: 'Track MCP - Discover 10,000+ Model Context Protocol Tools & Servers',
     description: 'Explore the world\'s largest directory of MCP tools for AI development',
     images: ['https://www.trackmcp.com/og-image.png'],
   },
