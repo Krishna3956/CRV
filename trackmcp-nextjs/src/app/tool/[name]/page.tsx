@@ -33,11 +33,22 @@ function generateSmartMetadata(tool: McpTool) {
   const description = tool.description || 'Model Context Protocol tool'
   
   // Generate smart, SEO-optimized title (50-60 chars ideal)
-  const smartTitle = stars > 1000 
-    ? `${toolName} - ${stars.toLocaleString()}⭐ MCP Tool`
-    : stars > 100
-    ? `${toolName} - Popular MCP Tool (${stars.toLocaleString()}⭐)`
-    : `${toolName} - MCP Tool for ${language || 'Developers'}`
+  // Ensure title stays under 60 characters for optimal display
+  let smartTitle = ''
+  if (stars > 1000) {
+    const starsStr = stars.toLocaleString()
+    smartTitle = `${toolName} - ${starsStr}⭐ MCP`
+  } else if (stars > 100) {
+    smartTitle = `${toolName} - MCP Tool (${stars.toLocaleString()}⭐)`
+  } else {
+    const suffix = language ? ` - ${language} MCP` : ' - MCP Tool'
+    smartTitle = `${toolName}${suffix}`
+  }
+  
+  // Truncate if still too long (max 60 chars)
+  if (smartTitle.length > 60) {
+    smartTitle = `${smartTitle.slice(0, 57)}...`
+  }
   
   // Generate targeted description (150-160 chars ideal)
   // Enhance description with context based on tool characteristics
@@ -146,6 +157,10 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     },
     alternates: {
       canonical: `https://www.trackmcp.com/tool/${encodeURIComponent(params.name)}`,
+      languages: {
+        'en-US': `https://www.trackmcp.com/tool/${encodeURIComponent(params.name)}`,
+        'x-default': `https://www.trackmcp.com/tool/${encodeURIComponent(params.name)}`,
+      },
     },
   }
 }
