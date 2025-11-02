@@ -138,6 +138,37 @@ export default async function ToolPage({ params }: Props) {
     ],
   }
 
+  // Add Article schema for rich snippets
+  const articleSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'Article',
+    headline: `${tool.repo_name} - Model Context Protocol Tool`,
+    description: tool.description,
+    image: `https://www.trackmcp.com/api/og?tool=${encodeURIComponent(tool.repo_name || '')}&stars=${tool.stars || 0}&description=${encodeURIComponent((tool.description || '').slice(0, 150))}`,
+    datePublished: tool.created_at || new Date().toISOString(),
+    dateModified: tool.last_updated || tool.created_at || new Date().toISOString(),
+    author: {
+      '@type': 'Organization',
+      name: 'Track MCP',
+      url: 'https://www.trackmcp.com',
+    },
+    publisher: {
+      '@type': 'Organization',
+      name: 'Track MCP',
+      logo: {
+        '@type': 'ImageObject',
+        url: 'https://www.trackmcp.com/logo.png',
+      },
+    },
+    mainEntityOfPage: {
+      '@type': 'WebPage',
+      '@id': `https://www.trackmcp.com/tool/${encodeURIComponent(tool.repo_name || '')}`,
+    },
+    keywords: tool.topics?.join(', '),
+    articleSection: 'Developer Tools',
+    inLanguage: 'en-US',
+  }
+
   return (
     <>
       {/* JSON-LD Schema for SoftwareApplication */}
@@ -153,6 +184,14 @@ export default async function ToolPage({ params }: Props) {
         type="application/ld+json"
         dangerouslySetInnerHTML={{
           __html: JSON.stringify(breadcrumbSchema),
+        }}
+      />
+      
+      {/* JSON-LD Schema for Article (Rich Snippets) */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(articleSchema),
         }}
       />
       
