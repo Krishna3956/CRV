@@ -176,8 +176,10 @@ export function HomeClient({ initialTools, totalCount }: HomeClientProps) {
         <div className="absolute top-0 left-1/4 w-96 h-96 bg-primary/20 rounded-full blur-3xl animate-pulse" />
         <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-accent/20 rounded-full blur-3xl animate-pulse delay-700" />
         
-        {/* Slim Ribbon Stats Banner - Positioned at top of hero section */}
-        <StatsSection totalTools={searchQuery || selectedCategory !== 'all' ? filteredAndSortedTools.length : totalCount} totalStars={totalStars} isSearching={!!searchQuery || selectedCategory !== 'all'} />
+        {/* Slim Ribbon Stats Banner - Positioned at top of hero section - Hidden on mobile */}
+        <div className="hidden md:block">
+          <StatsSection totalTools={searchQuery || selectedCategory !== 'all' ? filteredAndSortedTools.length : totalCount} totalStars={totalStars} isSearching={!!searchQuery || selectedCategory !== 'all'} />
+        </div>
         
         <div className="container relative mx-auto px-4 py-4 md:py-8">
           <div className="max-w-5xl mx-auto text-center space-y-8">
