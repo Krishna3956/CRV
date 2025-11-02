@@ -1,8 +1,8 @@
 "use client"
 
 import { useState, useMemo } from "react";
-import { useRouter } from "next/navigation";
-import { ExternalLink, Star, GitBranch, Calendar, ChevronDown, ChevronUp, CheckCircle2, TrendingUp, Eye } from "lucide-react";
+import Link from "next/link";
+import { ExternalLink, Star, GitBranch, Calendar, ChevronDown, ChevronUp, TrendingUp, Eye } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -19,6 +19,7 @@ interface ToolCardProps {
   lastUpdated?: string;
   isExpanded?: boolean;
   onToggleExpand?: () => void;
+  isTrending?: boolean;
 }
 
 // Language color mapping
@@ -51,9 +52,10 @@ export const ToolCard = ({
   lastUpdated,
   isExpanded: isExpandedProp = true,
   onToggleExpand,
+  isTrending = false,
 }: ToolCardProps) => {
-  const router = useRouter();
   const isExpanded = isExpandedProp;
+  const toolUrl = `/tool/${encodeURIComponent(name)}`;
   
   // Extract owner name and avatar URL immediately from GitHub URL (no async needed)
   const { ownerName, ownerAvatar } = useMemo(() => {
@@ -82,31 +84,24 @@ export const ToolCard = ({
       hasMoreTopics: topics.length > displayedCount
     };
   }, [topics]);
-
-  // Determine if tool is verified (high stars) or trending (recent updates)
-  const isVerified = stars > 100;
-  const isTrending = lastUpdated && new Date(lastUpdated) > new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
   
   // Calculate alternative metrics
   const estimatedDownloads = Math.floor(stars * 15); // Rough estimate
   const recentActivity = lastUpdated ? formatDistanceToNow(new Date(lastUpdated), { addSuffix: true }) : null;
 
-  const handleCardClick = () => {
-    router.push(`/tool/${encodeURIComponent(name)}`);
-  };
-
   const handleExpandClick = (e: React.MouseEvent) => {
     e.stopPropagation();
+    e.preventDefault();
     if (onToggleExpand) {
       onToggleExpand();
     }
   };
 
   return (
-    <Card 
-      className="group relative overflow-hidden card-gradient hover:shadow-lg transition-all duration-300 hover:-translate-y-1 border hover:border-primary/30 cursor-pointer h-full flex flex-col"
-      onClick={handleCardClick}
-    >
+    <Link href={toolUrl} className="block h-full">
+      <Card 
+        className="group relative overflow-hidden card-gradient hover:shadow-lg transition-all duration-300 hover:-translate-y-1 border hover:border-primary/30 cursor-pointer h-full flex flex-col"
+      >
       {/* Gradient overlay on hover */}
       <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" 
            style={{ background: 'radial-gradient(circle at top right, hsl(243 75% 59% / 0.05), transparent 70%)' }} />
@@ -124,20 +119,12 @@ export const ToolCard = ({
               </CardTitle>
               
               {/* Status badges */}
-              <div className="flex items-center gap-1">
-                {isVerified && (
-                  <Badge variant="outline" className="h-5 px-1.5 py-0 text-[10px] border-green-500/50 text-green-600 dark:text-green-400">
-                    <CheckCircle2 className="h-3 w-3 mr-0.5" />
-                    Verified
-                  </Badge>
-                )}
-                {isTrending && (
-                  <Badge variant="outline" className="h-5 px-1.5 py-0 text-[10px] border-orange-500/50 text-orange-600 dark:text-orange-400">
-                    <TrendingUp className="h-3 w-3 mr-0.5" />
-                    Trending
-                  </Badge>
-                )}
-              </div>
+              {isTrending && (
+                <Badge variant="outline" className="h-5 px-1.5 py-0 text-[10px] border-orange-500/50 text-orange-600 dark:text-orange-400">
+                  <TrendingUp className="h-3 w-3 mr-0.5" />
+                  Trending
+                </Badge>
+              )}
             </div>
             
             <CardDescription 
@@ -180,7 +167,8 @@ export const ToolCard = ({
           
           {language && (
             <Badge 
-              className={`h-6 px-2.5 py-0 text-xs font-medium text-white ${LANGUAGE_COLORS[language] || 'bg-gray-500'}`}
+              variant="secondary"
+              className="h-6 px-2.5 py-0 text-xs font-medium"
               style={{ lineHeight: '1.2' }}
             >
               {language}
@@ -195,15 +183,15 @@ export const ToolCard = ({
           )}
         </div>
         
-        {/* Tags */}
+        {/* Tags - Limited to 1 row */}
         {(primaryTopics.length > 0 || secondaryTopics.length > 0) && (
-          <div className="flex flex-wrap gap-2.5">
+          <div className="flex gap-2.5 overflow-hidden" style={{ maxHeight: '28px' }}>
             {/* Primary topics - more prominent */}
             {primaryTopics.map((topic) => (
               <Badge 
                 key={topic} 
                 variant="default"
-                className="h-6 px-2.5 py-0 text-xs font-medium bg-primary/10 text-primary hover:bg-primary/20 transition-colors"
+                className="h-6 px-2.5 py-0 text-xs font-medium bg-primary/10 text-primary hover:bg-primary/20 transition-colors flex-shrink-0"
                 style={{ lineHeight: '1.2' }}
               >
                 {topic}
@@ -215,7 +203,7 @@ export const ToolCard = ({
               <Badge 
                 key={topic} 
                 variant="secondary"
-                className="h-6 px-2.5 py-0 text-xs font-medium text-muted-foreground/70 hover:text-muted-foreground transition-colors"
+                className="h-6 px-2.5 py-0 text-xs font-medium text-muted-foreground/70 hover:text-muted-foreground transition-colors flex-shrink-0"
                 style={{ lineHeight: '1.2' }}
               >
                 {topic}
@@ -225,7 +213,7 @@ export const ToolCard = ({
             {hasMoreTopics && (
               <Badge 
                 variant="outline" 
-                className="h-6 px-2.5 py-0 text-xs text-muted-foreground"
+                className="h-6 px-2.5 py-0 text-xs text-muted-foreground flex-shrink-0"
                 style={{ lineHeight: '1.2' }}
               >
                 +{topics!.length - (primaryTopics.length + secondaryTopics.length)}
@@ -294,5 +282,6 @@ export const ToolCard = ({
         </Button>
       </CardContent>
     </Card>
+    </Link>
   );
 };

@@ -121,6 +121,12 @@ export function HomeClient({ initialTools, totalCount }: HomeClientProps) {
     return filteredAndSortedTools.reduce((sum, tool) => sum + (tool.stars || 0), 0)
   }, [filteredAndSortedTools])
 
+  // Get top 5 tools with highest stars for trending badge
+  const top5RecentTools = useMemo(() => {
+    const sorted = [...allTools].sort((a, b) => (b.stars || 0) - (a.stars || 0))
+    return new Set(sorted.slice(0, 5).map(tool => tool.id))
+  }, [allTools])
+
   // Show visibleCount tools when no search query, show all when searching
   const displayedTools = searchQuery ? filteredAndSortedTools : filteredAndSortedTools.slice(0, visibleCount)
   
@@ -356,6 +362,7 @@ export function HomeClient({ initialTools, totalCount }: HomeClientProps) {
                     lastUpdated={tool.last_updated || undefined}
                     isExpanded={areCardsExpanded}
                     onToggleExpand={() => setAreCardsExpanded(!areCardsExpanded)}
+                    isTrending={top5RecentTools.has(tool.id)}
                   />
                 </div>
               ))}
