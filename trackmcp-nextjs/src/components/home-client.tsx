@@ -120,7 +120,7 @@ export function HomeClient({ initialTools, totalCount }: HomeClientProps) {
             </div>
             
             <h1 className="text-5xl md:text-7xl font-bold gradient-text animate-fade-in leading-tight">
-              World's Largest MCP Repository
+              World&apos;s Largest MCP Repository
             </h1>
             
             <p className="text-xl md:text-2xl text-muted-foreground max-w-3xl mx-auto leading-relaxed animate-fade-in">

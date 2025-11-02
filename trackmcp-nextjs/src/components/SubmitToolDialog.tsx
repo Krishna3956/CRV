@@ -94,13 +94,13 @@ export const SubmitToolDialog = () => {
       const { error } = await supabase.from("mcp_tools").insert({
         github_url: githubUrl,
         repo_name: repoData.name,
-        description: repoData.description,
-        stars: repoData.stargazers_count,
-        language: repoData.language,
-        topics: repoData.topics,
-        last_updated: repoData.updated_at,
+        description: repoData.description || null,
+        stars: repoData.stargazers_count || 0,
+        language: repoData.language || null,
+        topics: repoData.topics || [],
+        last_updated: repoData.updated_at || new Date().toISOString(),
         status: "pending",
-      });
+      } as any);
 
       if (error) {
         if (error.code === "23505") {

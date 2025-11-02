@@ -2,8 +2,8 @@
 const GITHUB_TOKEN = process.env.NEXT_PUBLIC_GITHUB_TOKEN
 
 export const fetchGitHub = async (url: string, options: RequestInit = {}) => {
-  const headers: HeadersInit = {
-    ...options.headers,
+  const headers: Record<string, string> = {
+    ...(options.headers as Record<string, string>),
   }
 
   // Add authorization token if available
