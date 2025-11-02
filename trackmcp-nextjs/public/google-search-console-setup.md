@@ -3,7 +3,7 @@
 ## How to Verify Your Site
 
 1. Go to [Google Search Console](https://search.google.com/search-console)
-2. Click "Add Property" and enter your domain: `trackmcp.com`
+2. Click "Add Property" and enter your domain: `www.trackmcp.com`
 3. Choose verification method:
 
 ### Option 1: HTML File Upload (Recommended)
@@ -22,7 +22,7 @@
 
 After verification:
 1. In Google Search Console, go to "Sitemaps" in the left menu
-2. Enter: `https://trackmcp.com/sitemap.xml`
+2. Enter: `https://www.trackmcp.com/sitemap.xml`
 3. Click "Submit"
 
 ## Monitor Performance
