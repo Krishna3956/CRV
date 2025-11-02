@@ -85,6 +85,46 @@ export default async function HomePage() {
     })),
   }
 
+  // Add FAQ schema for common questions
+  const faqSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    'mainEntity': [
+      {
+        '@type': 'Question',
+        'name': 'What is Model Context Protocol (MCP)?',
+        'acceptedAnswer': {
+          '@type': 'Answer',
+          'text': 'Model Context Protocol (MCP) is an open standard that enables seamless integration between AI applications and external data sources. It provides a unified way for AI models to access tools, databases, and services.'
+        }
+      },
+      {
+        '@type': 'Question',
+        'name': 'How many MCP tools are available?',
+        'acceptedAnswer': {
+          '@type': 'Answer',
+          'text': `Track MCP currently lists over ${totalCount.toLocaleString()} Model Context Protocol tools, servers, and connectors from GitHub repositories worldwide.`
+        }
+      },
+      {
+        '@type': 'Question',
+        'name': 'Are these MCP tools free to use?',
+        'acceptedAnswer': {
+          '@type': 'Answer',
+          'text': 'Most MCP tools listed on Track MCP are open-source and free to use. Each tool page links to its GitHub repository where you can find licensing information and installation instructions.'
+        }
+      },
+      {
+        '@type': 'Question',
+        'name': 'How do I submit my MCP tool?',
+        'acceptedAnswer': {
+          '@type': 'Answer',
+          'text': 'You can submit your MCP tool by clicking the "Submit Tool" button on the homepage and providing your GitHub repository URL. Tools are reviewed and added to the directory automatically.'
+        }
+      }
+    ]
+  }
+
   return (
     <>
       {/* JSON-LD Schema for ItemList */}
@@ -92,6 +132,14 @@ export default async function HomePage() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{
           __html: JSON.stringify(itemListSchema),
+        }}
+      />
+      
+      {/* JSON-LD Schema for FAQ */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(faqSchema),
         }}
       />
       

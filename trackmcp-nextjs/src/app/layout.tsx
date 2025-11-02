@@ -64,6 +64,11 @@ export const metadata: Metadata = {
   alternates: {
     canonical: 'https://www.trackmcp.com',
   },
+  verification: {
+    google: 'your-google-verification-code', // Add your Google Search Console verification
+    // yandex: 'your-yandex-verification-code', // Optional: Yandex verification
+    // bing: 'your-bing-verification-code', // Optional: Bing Webmaster verification
+  },
 }
 
 export default function RootLayout({

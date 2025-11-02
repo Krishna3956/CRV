@@ -110,6 +110,26 @@ export default async function ToolPage({ params }: Props) {
     keywords: tool.topics?.join(', '),
   }
 
+  // Add Breadcrumb schema for better navigation
+  const breadcrumbSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      {
+        '@type': 'ListItem',
+        position: 1,
+        name: 'Home',
+        item: 'https://www.trackmcp.com',
+      },
+      {
+        '@type': 'ListItem',
+        position: 2,
+        name: tool.repo_name,
+        item: `https://www.trackmcp.com/tool/${encodeURIComponent(tool.repo_name || '')}`,
+      },
+    ],
+  }
+
   return (
     <>
       {/* JSON-LD Schema for SoftwareApplication */}
@@ -117,6 +137,14 @@ export default async function ToolPage({ params }: Props) {
         type="application/ld+json"
         dangerouslySetInnerHTML={{
           __html: JSON.stringify(softwareSchema),
+        }}
+      />
+      
+      {/* JSON-LD Schema for Breadcrumbs */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(breadcrumbSchema),
         }}
       />
       
