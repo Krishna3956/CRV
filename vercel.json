@@ -1,5 +1,23 @@
 {
+  "redirects": [
+    {
+      "source": "https://trackmcp.com/:path*",
+      "destination": "https://www.trackmcp.com/:path*",
+      "permanent": true
+    }
+  ],
   "rewrites": [
     { "source": "/(.*)", "destination": "/" }
+  ],
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "X-Robots-Tag",
+          "value": "all"
+        }
+      ]
+    }
   ]
 }

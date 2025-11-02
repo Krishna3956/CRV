@@ -160,7 +160,7 @@ const Index = () => {
       <SEO 
         title="Discover 10,000+ Model Context Protocol Tools & Servers"
         description="Explore the world's largest directory of Model Context Protocol (MCP) tools, servers, and connectors. Search 10,000+ GitHub repositories for AI development, LLM integration, and developer tools."
-        imageUrl="https://www.trackmcp.com/logo.png"
+        imageUrl="https://www.trackmcp.com/og-image.png"
         canonicalUrl="https://www.trackmcp.com/"
         schema={itemListSchema}
       />

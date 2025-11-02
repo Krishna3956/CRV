@@ -14,7 +14,7 @@ const NotFound = () => {
       <SEO 
         title="Page Not Found"
         description="The page you are looking for does not exist. Return to Track MCP to discover Model Context Protocol tools."
-        imageUrl="https://www.trackmcp.com/logo.png"
+        imageUrl="https://www.trackmcp.com/og-image.png"
         canonicalUrl="https://www.trackmcp.com/"
       />
       <div className="flex min-h-screen items-center justify-center bg-gray-100">
