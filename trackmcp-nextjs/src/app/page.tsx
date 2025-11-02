@@ -26,25 +26,43 @@ async function getTotalCount(): Promise<number> {
   }
 }
 
-// Fetch only top 50 tools initially for faster load
+// Fetch ALL tools for proper search functionality
 async function getTools(): Promise<McpTool[]> {
   const supabase = createClient()
   
   try {
-    const { data, error } = await supabase
-      .from('mcp_tools')
-      .select('id, repo_name, description, stars, github_url, language, topics, last_updated')
-      .in('status', ['approved', 'pending'])
-      .order('stars', { ascending: false })
-      .limit(50) // Only fetch top 50 for initial load - faster!
+    // Fetch all tools in batches to avoid timeout
+    let allTools: McpTool[] = []
+    let from = 0
+    const batchSize = 1000
+    let hasMore = true
 
-    if (error) {
-      console.error('Error fetching tools:', error)
-      return []
+    while (hasMore) {
+      const { data, error } = await supabase
+        .from('mcp_tools')
+        .select('id, repo_name, description, stars, github_url, language, topics, last_updated')
+        .in('status', ['approved', 'pending'])
+        .order('stars', { ascending: false })
+        .range(from, from + batchSize - 1)
+
+      if (error) {
+        console.error('Error fetching tools:', error)
+        break
+      }
+
+      if (!data || data.length === 0) {
+        hasMore = false
+      } else {
+        allTools = [...allTools, ...data]
+        from += batchSize
+        if (data.length < batchSize) {
+          hasMore = false
+        }
+      }
     }
 
-    console.log(`Fetched ${data?.length || 0} tools`)
-    return data || []
+    console.log(`Fetched ${allTools.length} tools`)
+    return allTools
   } catch (err) {
     console.error('Exception fetching tools:', err)
     return []

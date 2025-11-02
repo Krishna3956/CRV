@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
+import Script from 'next/script'
 import './globals.css'
 import { ThemeProvider } from '@/components/theme-provider'
 import { Toaster } from '@/components/ui/toaster'
@@ -66,6 +67,15 @@ export const metadata: Metadata = {
     // yandex: 'your-yandex-verification-code', // Optional: Yandex verification
     // bing: 'your-bing-verification-code', // Optional: Bing Webmaster verification
   },
+  themeColor: [
+    { media: '(prefers-color-scheme: light)', color: '#ffffff' },
+    { media: '(prefers-color-scheme: dark)', color: '#0a0a0a' },
+  ],
+  viewport: {
+    width: 'device-width',
+    initialScale: 1,
+    maximumScale: 5,
+  },
 }
 
 export default function RootLayout({
@@ -87,21 +97,6 @@ export default function RootLayout({
         <link rel="preconnect" href="https://www.googletagmanager.com" crossOrigin="anonymous" />
         <link rel="dns-prefetch" href="https://www.clarity.ms" />
         
-        {/* Google Analytics */}
-        <script
-          async
-          src="https://www.googletagmanager.com/gtag/js?id=G-22HQQFNJ1F"
-        />
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `
-              window.dataLayer = window.dataLayer || [];
-              function gtag(){dataLayer.push(arguments);}
-              gtag('js', new Date());
-              gtag('config', 'G-22HQQFNJ1F');
-            `,
-          }}
-        />
         
         {/* Microsoft Clarity */}
         <script
@@ -157,6 +152,20 @@ export default function RootLayout({
         />
       </head>
       <body className={inter.className}>
+        {/* Google Analytics - Using next/script for better performance */}
+        <Script
+          src="https://www.googletagmanager.com/gtag/js?id=G-22HQQFNJ1F"
+          strategy="afterInteractive"
+        />
+        <Script id="google-analytics" strategy="afterInteractive">
+          {`
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', 'G-22HQQFNJ1F');
+          `}
+        </Script>
+
         <ThemeProvider
           attribute="class"
           defaultTheme="system"
