@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from "react";
 import Link from "next/link";
-import { ExternalLink, Star, GitBranch, Calendar, ChevronDown, ChevronUp, TrendingUp, Eye } from "lucide-react";
+import { Star, GitBranch, Calendar, ChevronDown, ChevronUp, TrendingUp, Eye, ExternalLink } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -135,17 +135,9 @@ export const ToolCard = ({
             </CardDescription>
           </div>
           
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-7 w-7 shrink-0 hover:bg-primary/10 hover:text-primary transition-all"
-            onClick={(e) => {
-              e.stopPropagation();
-              window.open(githubUrl, '_blank');
-            }}
-          >
+          <div className="h-7 w-7 shrink-0 flex items-center justify-center rounded-md hover:bg-primary/10 hover:text-primary transition-all">
             <ExternalLink className="h-4 w-4" />
-          </Button>
+          </div>
         </div>
       </CardHeader>
       
