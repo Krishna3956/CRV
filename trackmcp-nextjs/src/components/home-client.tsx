@@ -135,7 +135,7 @@ export function HomeClient({ initialTools, totalCount }: HomeClientProps) {
       if (blockedRepos.includes(tool.repo_name?.toLowerCase() || '')) return false
       return true
     }).length
-  }, [allTools])
+  }, [allTools, blockedRepos])
 
   // Get top 5 tools with highest stars for trending badge
   const top5RecentTools = useMemo(() => {
