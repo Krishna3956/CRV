@@ -58,14 +58,14 @@ const StatItem = ({ icon: Icon, label, value, tooltip, gradient }: StatItemProps
     <TooltipProvider>
       <Tooltip delayDuration={200}>
         <TooltipTrigger asChild>
-          <div className="flex flex-col items-center justify-center px-2 py-2 cursor-help group hover:bg-white/10 transition-colors">
-            <div className={`p-1 rounded bg-gradient-to-br ${gradient} mb-0.5`}>
+          <div className="flex flex-col items-center justify-center px-3 py-3 cursor-help group hover:bg-white/10 transition-colors">
+            <div className={`p-1.5 rounded bg-gradient-to-br ${gradient} mb-1`}>
               <Icon className="h-4 w-4 text-white" strokeWidth={2.5} />
             </div>
-            <p className="text-sm font-bold text-foreground text-center" style={{ fontSize: '14px', lineHeight: '1.1' }}>
+            <p className="text-sm font-bold text-foreground text-center" style={{ fontSize: '13px', lineHeight: '1.2' }}>
               <AnimatedCounter value={value} />
             </p>
-            <p className="text-xs text-muted-foreground font-medium text-center" style={{ fontSize: '10px', lineHeight: '1.1' }}>
+            <p className="text-xs text-muted-foreground font-medium text-center" style={{ fontSize: '9px', lineHeight: '1.2' }}>
               {label}
             </p>
           </div>
@@ -111,17 +111,17 @@ export const StatsSection = ({ totalTools, totalStars, isSearching = false }: St
       <div 
         className="hidden md:block absolute right-0 top-1/2 -translate-y-1/2 z-40"
         style={{
-          animation: 'slideInFromRight 0.6s ease-out'
+          animation: 'slideInFromRight 0.8s ease-out'
         }}
       >
         <style jsx>{`
           @keyframes slideInFromRight {
             from {
-              transform: translateX(40px);
+              right: -100px;
               opacity: 0;
             }
             to {
-              transform: translateX(0);
+              right: 0;
               opacity: 1;
             }
           }

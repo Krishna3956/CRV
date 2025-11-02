@@ -257,9 +257,6 @@ export function HomeClient({ initialTools, totalCount }: HomeClientProps) {
 
       {/* Directory Section */}
       <section className="container mx-auto px-4 pt-4 pb-6">
-        {/* Subtle divider */}
-        <div className="h-px bg-gradient-to-r from-transparent via-border to-transparent mb-4" />
-        
         <div className="flex flex-col gap-2 mb-3">
           <div className="flex flex-col gap-2">
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
