@@ -26,44 +26,25 @@ async function getTotalCount(): Promise<number> {
   }
 }
 
-// This runs on the server - fetch all tools
+// Fetch only top 100 tools initially for faster load
 async function getTools(): Promise<McpTool[]> {
   const supabase = createClient()
   
   try {
-    let allData: McpTool[] = []
-    let from = 0
-    const batchSize = 1000
-    let hasMore = true
+    const { data, error } = await supabase
+      .from('mcp_tools')
+      .select('id, repo_name, description, stars, github_url, language, topics, last_updated')
+      .in('status', ['approved', 'pending'])
+      .order('stars', { ascending: false })
+      .limit(100) // Only fetch top 100 for initial load
 
-    // Fetch all data in batches to bypass the 1000 row limit
-    while (hasMore) {
-      const { data, error } = await supabase
-        .from('mcp_tools')
-        .select('id, repo_name, description, stars, github_url, language, topics, last_updated')
-        .in('status', ['approved', 'pending'])
-        .order('stars', { ascending: false })
-        .range(from, from + batchSize - 1)
-
-      if (error) {
-        console.error('Error fetching tools:', error)
-        hasMore = false
-      } else {
-        if (data && data.length > 0) {
-          allData = [...allData, ...data]
-          from += batchSize
-          // If we got less than batchSize, we've reached the end
-          if (data.length < batchSize) {
-            hasMore = false
-          }
-        } else {
-          hasMore = false
-        }
-      }
+    if (error) {
+      console.error('Error fetching tools:', error)
+      return []
     }
 
-    console.log(`Fetched ${allData.length} total tools`)
-    return allData
+    console.log(`Fetched ${data?.length || 0} tools`)
+    return data || []
   } catch (err) {
     console.error('Exception fetching tools:', err)
     return []
@@ -76,8 +57,8 @@ export const metadata = {
   description: 'Explore the world\'s largest directory of Model Context Protocol (MCP) tools, servers, and connectors. Search 10,000+ GitHub repositories for AI development, LLM integration, and developer tools.',
 }
 
-// Enable ISR - revalidate every 5 minutes for fresh data
-export const revalidate = 300
+// Enable ISR - revalidate every hour for fresh data (reduced from 5 min)
+export const revalidate = 3600
 
 // Server Component - renders on server with full HTML
 export default async function HomePage() {

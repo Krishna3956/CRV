@@ -23,6 +23,8 @@ export function HomeClient({ initialTools, totalCount }: HomeClientProps) {
   const [searchQuery, setSearchQuery] = useState('')
   const [sortBy, setSortBy] = useState('stars')
   const [visibleCount, setVisibleCount] = useState(12)
+  const [allTools, setAllTools] = useState<McpTool[]>(initialTools)
+  const [isLoadingMore, setIsLoadingMore] = useState(false)
 
   // Debounce search query
   useEffect(() => {
@@ -37,7 +39,7 @@ export function HomeClient({ initialTools, totalCount }: HomeClientProps) {
   const blockedRepos = ['awesome-mcp-servers']
 
   const filteredAndSortedTools = useMemo(() => {
-    return initialTools
+    return allTools
       .filter((tool) => {
         // Filter out blocked repos
         if (blockedRepos.includes(tool.repo_name?.toLowerCase() || '')) {
@@ -70,7 +72,7 @@ export function HomeClient({ initialTools, totalCount }: HomeClientProps) {
             return 0
         }
       })
-  }, [initialTools, searchQuery, sortBy])
+  }, [allTools, searchQuery, sortBy])
 
   const totalStars = useMemo(() => {
     return filteredAndSortedTools.reduce((sum, tool) => sum + (tool.stars || 0), 0)
@@ -82,8 +84,29 @@ export function HomeClient({ initialTools, totalCount }: HomeClientProps) {
   const hasMoreToLoad = !searchQuery && visibleCount < filteredAndSortedTools.length
   const remainingCount = filteredAndSortedTools.length - visibleCount
 
-  const loadMore = () => {
-    setVisibleCount(prev => prev + 12) // Load 4 rows x 3 columns = 12 items instantly
+  const loadMore = async () => {
+    // If we have more tools in memory, just show them
+    if (visibleCount < allTools.length) {
+      setVisibleCount(prev => prev + 12)
+      return
+    }
+    
+    // Otherwise, fetch more from API
+    if (allTools.length < totalCount && !isLoadingMore) {
+      setIsLoadingMore(true)
+      try {
+        const response = await fetch(`/api/tools?offset=${allTools.length}&limit=100`)
+        const data = await response.json()
+        if (data.tools && data.tools.length > 0) {
+          setAllTools(prev => [...prev, ...data.tools])
+          setVisibleCount(prev => prev + 12)
+        }
+      } catch (error) {
+        console.error('Error loading more tools:', error)
+      } finally {
+        setIsLoadingMore(false)
+      }
+    }
   }
 
   // Reset visible count when search query changes
@@ -218,12 +241,20 @@ export function HomeClient({ initialTools, totalCount }: HomeClientProps) {
               <div className="flex justify-center mt-8">
                 <button
                   onClick={loadMore}
-                  className="group relative px-6 py-2.5 rounded-md font-bold text-sm transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:ring-offset-1 bg-gradient-to-r from-primary/10 via-accent/10 to-primary/10 hover:from-primary/20 hover:via-accent/20 hover:to-primary/20"
+                  disabled={isLoadingMore}
+                  className="group relative px-6 py-2.5 rounded-md font-bold text-sm transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:ring-offset-1 bg-gradient-to-r from-primary/10 via-accent/10 to-primary/10 hover:from-primary/20 hover:via-accent/20 hover:to-primary/20 disabled:opacity-50 disabled:cursor-not-allowed"
                   style={{ color: 'transparent' }}
                 >
-                  <span className="gradient-text">
-                    Explore more
-                  </span>
+                  {isLoadingMore ? (
+                    <span className="flex items-center gap-2 gradient-text">
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      Loading...
+                    </span>
+                  ) : (
+                    <span className="gradient-text">
+                      Explore more
+                    </span>
+                  )}
                 </button>
               </div>
             )}
