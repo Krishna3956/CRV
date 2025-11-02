@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Plus, Loader2 } from "lucide-react";
+import { Plus, Loader2, Sparkles, Star } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { createClient } from "@/lib/supabase/client";
 import { fetchGitHub } from "@/utils/github";
@@ -27,6 +27,7 @@ export const SubmitToolDialog = ({ variant = 'default', onSuccess }: SubmitToolD
   const [open, setOpen] = useState(false);
   const [githubUrl, setGithubUrl] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [wantsFeatured, setWantsFeatured] = useState(false);
   const { toast } = useToast();
   const supabase = createClient();
 
@@ -179,6 +180,42 @@ export const SubmitToolDialog = ({ variant = 'default', onSuccess }: SubmitToolD
                 Example: https://github.com/modelcontextprotocol/servers
               </p>
             </div>
+
+            {/* Featured Listing Option */}
+            <div className="relative overflow-hidden rounded-lg border-2 border-primary/20 bg-gradient-to-br from-primary/5 via-accent/5 to-primary/10 p-4">
+              <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-br from-primary/20 to-accent/20 rounded-full blur-2xl -translate-y-12 translate-x-12"></div>
+              
+              <div className="relative z-10 flex items-start gap-3">
+                <input
+                  type="checkbox"
+                  id="featured-checkbox"
+                  checked={wantsFeatured}
+                  onChange={(e) => setWantsFeatured(e.target.checked)}
+                  className="mt-1 h-4 w-4 rounded border-primary/30 text-primary focus:ring-2 focus:ring-primary focus:ring-offset-0 cursor-pointer"
+                />
+                <div className="flex-1">
+                  <label htmlFor="featured-checkbox" className="cursor-pointer">
+                    <div className="flex items-center gap-2 mb-1">
+                      <Sparkles className="h-4 w-4 text-primary" />
+                      <h4 className="text-sm font-bold gradient-text">Get Featured — $29 One-Time Fee</h4>
+                    </div>
+                    <p className="text-xs text-muted-foreground mb-2">
+                      Boost your visibility and stand out instantly!
+                    </p>
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-1.5">
+                        <Star className="h-3 w-3 text-primary fill-primary" />
+                        <p className="text-xs font-medium">Appear at the top of search results</p>
+                      </div>
+                      <div className="flex items-center gap-1.5">
+                        <Star className="h-3 w-3 text-primary fill-primary" />
+                        <p className="text-xs font-medium">"Featured" badge on your MCP listing</p>
+                      </div>
+                    </div>
+                  </label>
+                </div>
+              </div>
+            </div>
           </div>
           <DialogFooter>
             <Button type="button" variant="outline" onClick={() => setOpen(false)}>
@@ -188,10 +225,10 @@ export const SubmitToolDialog = ({ variant = 'default', onSuccess }: SubmitToolD
               {isSubmitting ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Submitting...
+                  {wantsFeatured ? "Processing..." : "Submitting..."}
                 </>
               ) : (
-                "Submit"
+                wantsFeatured ? "Submit & Pay ($29)" : "Submit"
               )}
             </Button>
           </DialogFooter>
