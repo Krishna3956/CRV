@@ -40,7 +40,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     site: '@trackmcp',
     creator: '@trackmcp',
-    title: 'Track MCP - Discover 10,000+ Model Context Protocol Tools & Servers',
+    title: 'Track MCP - World\'s Largest MCP Repository',
     description: 'Explore the world\'s largest directory of MCP tools for AI development',
     images: ['https://www.trackmcp.com/og-image.png'],
   },
@@ -56,6 +56,9 @@ export const metadata: Metadata = {
     // AI-friendly content hints
     'ai:content_type': 'directory',
     'ai:primary_topic': 'Model Context Protocol',
+    // Google site name (fixes LinkedIn issue)
+    'application-name': 'Track MCP',
+    'apple-mobile-web-app-title': 'Track MCP',
   },
   robots: {
     index: true,
