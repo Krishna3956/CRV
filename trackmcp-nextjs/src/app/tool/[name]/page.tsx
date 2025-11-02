@@ -24,6 +24,50 @@ async function getTool(name: string): Promise<McpTool | null> {
   return data
 }
 
+// Smart metadata generator
+function generateSmartMetadata(tool: McpTool) {
+  const toolName = tool.repo_name || 'Unknown Tool'
+  const stars = tool.stars || 0
+  const language = tool.language || ''
+  const topics = tool.topics || []
+  const description = tool.description || 'Model Context Protocol tool'
+  
+  // Generate smart, SEO-optimized title (50-60 chars ideal)
+  const smartTitle = stars > 1000 
+    ? `${toolName} - ${stars.toLocaleString()}⭐ MCP Tool`
+    : stars > 100
+    ? `${toolName} - Popular MCP Tool (${stars.toLocaleString()}⭐)`
+    : `${toolName} - MCP Tool for ${language || 'Developers'}`
+  
+  // Generate targeted description (150-160 chars ideal)
+  const smartDescription = description.length > 155
+    ? `${description.slice(0, 152)}...`
+    : description.length < 100
+    ? `${description}. ${stars > 0 ? `⭐ ${stars.toLocaleString()} stars on GitHub.` : ''} Model Context Protocol tool for AI development.`.slice(0, 160)
+    : description
+  
+  // Generate smart keywords (mix of specific and general)
+  const smartKeywords = [
+    toolName,
+    `${toolName} MCP`,
+    `${toolName} Model Context Protocol`,
+    'MCP tool',
+    'Model Context Protocol',
+    language ? `${language} MCP` : '',
+    language ? `${language} Model Context Protocol` : '',
+    ...topics.slice(0, 5), // Top 5 topics
+    stars > 1000 ? 'popular MCP tool' : '',
+    stars > 100 ? 'trending MCP tool' : '',
+    'AI development',
+    'LLM integration',
+    'MCP server',
+    'MCP connector',
+    language ? `${language} AI tools` : '',
+  ].filter(Boolean)
+  
+  return { smartTitle, smartDescription, smartKeywords }
+}
+
 // Generate metadata for SEO
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const tool = await getTool(params.name)
@@ -35,26 +79,20 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   }
   
   const toolName = tool.repo_name || 'Unknown Tool'
-  const description = tool.description || 'Model Context Protocol tool'
+  const { smartTitle, smartDescription, smartKeywords } = generateSmartMetadata(tool)
   
   return {
-    title: toolName,
-    description: description,
-    keywords: [
-      toolName,
-      'MCP',
-      'Model Context Protocol',
-      tool.language || '',
-      ...(tool.topics || []),
-    ].filter(Boolean),
+    title: smartTitle,
+    description: smartDescription,
+    keywords: smartKeywords,
     openGraph: {
-      title: `${toolName} - Track MCP`,
-      description: description,
+      title: smartTitle,
+      description: smartDescription,
       url: `https://www.trackmcp.com/tool/${encodeURIComponent(toolName)}`,
       type: 'website',
       images: [
         {
-          url: `https://www.trackmcp.com/api/og?tool=${encodeURIComponent(toolName)}&stars=${tool.stars || 0}&description=${encodeURIComponent(description.slice(0, 150))}`,
+          url: `https://www.trackmcp.com/api/og?tool=${encodeURIComponent(toolName)}&stars=${tool.stars || 0}&description=${encodeURIComponent(smartDescription.slice(0, 150))}`,
           width: 1200,
           height: 630,
           alt: toolName,
@@ -63,19 +101,19 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     },
     twitter: {
       card: 'summary_large_image',
-      title: `${toolName} - Track MCP`,
-      description: description,
-      images: [`https://www.trackmcp.com/api/og?tool=${encodeURIComponent(toolName)}&stars=${tool.stars || 0}&description=${encodeURIComponent(description.slice(0, 150))}`],
+      title: smartTitle,
+      description: smartDescription,
+      images: [`https://www.trackmcp.com/api/og?tool=${encodeURIComponent(toolName)}&stars=${tool.stars || 0}&description=${encodeURIComponent(smartDescription.slice(0, 150))}`],
     },
     other: {
       // OpenAI / ChatGPT meta tags
       'openai:title': `${toolName} - Model Context Protocol Tool`,
-      'openai:description': description,
-      'openai:image': `https://www.trackmcp.com/api/og?tool=${encodeURIComponent(toolName)}&stars=${tool.stars || 0}&description=${encodeURIComponent(description.slice(0, 150))}`,
+      'openai:description': smartDescription,
+      'openai:image': `https://www.trackmcp.com/api/og?tool=${encodeURIComponent(toolName)}&stars=${tool.stars || 0}&description=${encodeURIComponent(smartDescription.slice(0, 150))}`,
       'openai:url': `https://www.trackmcp.com/tool/${encodeURIComponent(toolName)}`,
       // Perplexity AI meta tags
       'perplexity:title': `${toolName} - MCP Tool`,
-      'perplexity:description': description,
+      'perplexity:description': smartDescription,
       // AI-friendly content hints
       'ai:content_type': 'tool',
       'ai:primary_topic': 'Model Context Protocol',
