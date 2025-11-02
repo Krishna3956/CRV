@@ -257,9 +257,31 @@ const Index = () => {
         )}
 
         {isLoading ? (
-          <div className="flex flex-col items-center justify-center py-32">
-            <Loader2 className="h-16 w-16 animate-spin text-primary mb-4" />
-            <p className="text-muted-foreground text-lg">Warming up the MCP engines…</p>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 auto-rows-fr">
+            {[...Array(15)].map((_, index) => (
+              <div
+                key={`skeleton-${index}`}
+                className="animate-pulse bg-card rounded-lg border p-6 space-y-4"
+              >
+                <div className="flex items-start justify-between">
+                  <div className="h-6 bg-muted rounded w-3/4"></div>
+                  <div className="h-5 bg-muted rounded w-12"></div>
+                </div>
+                <div className="space-y-2">
+                  <div className="h-4 bg-muted rounded w-full"></div>
+                  <div className="h-4 bg-muted rounded w-5/6"></div>
+                </div>
+                <div className="flex gap-2">
+                  <div className="h-6 bg-muted rounded w-16"></div>
+                  <div className="h-6 bg-muted rounded w-20"></div>
+                  <div className="h-6 bg-muted rounded w-14"></div>
+                </div>
+                <div className="flex items-center justify-between pt-2">
+                  <div className="h-4 bg-muted rounded w-24"></div>
+                  <div className="h-4 bg-muted rounded w-20"></div>
+                </div>
+              </div>
+            ))}
           </div>
         ) : filteredAndSortedTools.length === 0 ? (
           <div className="text-center py-32 space-y-4">
