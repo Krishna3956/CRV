@@ -77,10 +77,7 @@ export const metadata: Metadata = {
     // yandex: 'your-yandex-verification-code', // Optional: Yandex verification
     // bing: 'your-bing-verification-code', // Optional: Bing Webmaster verification
   },
-  themeColor: [
-    { media: '(prefers-color-scheme: light)', color: '#ffffff' },
-    { media: '(prefers-color-scheme: dark)', color: '#0a0a0a' },
-  ],
+  themeColor: '#ffffff',
   viewport: {
     width: 'device-width',
     initialScale: 1,
@@ -181,8 +178,9 @@ export default function RootLayout({
 
         <ThemeProvider
           attribute="class"
-          defaultTheme="system"
-          enableSystem
+          defaultTheme="light"
+          forcedTheme="light"
+          enableSystem={false}
           disableTransitionOnChange
         >
           <TooltipProvider>
