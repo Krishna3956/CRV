@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "export-metadata": "tsx scripts/export-metadata.ts"
+    "export-metadata": "tsx scripts/export-metadata.ts",
+    "find-404s": "tsx scripts/find-404-tools.ts"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",
