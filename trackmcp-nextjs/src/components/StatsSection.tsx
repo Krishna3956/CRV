@@ -58,7 +58,7 @@ const StatItem = ({ icon: Icon, label, value, tooltip, gradient }: StatItemProps
     <TooltipProvider>
       <Tooltip delayDuration={200}>
         <TooltipTrigger asChild>
-          <div className="flex flex-col items-center justify-center px-3 py-3 cursor-help group hover:bg-white/10 transition-colors">
+          <div className="flex flex-col items-center justify-center px-3 py-3 group hover:bg-white/10 transition-colors">
             <div className={`p-1.5 rounded bg-gradient-to-br ${gradient} mb-1`}>
               <Icon className="h-4 w-4 text-white" strokeWidth={2.5} />
             </div>
@@ -105,14 +105,31 @@ export const StatsSection = ({ totalTools, totalStars, isSearching = false }: St
     },
   ];
 
+  const scrollToCards = () => {
+    const cardsSection = document.getElementById('rows-container');
+    if (cardsSection) {
+      cardsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  };
+
   return (
     <>
       {/* Desktop/Tablet: Slim Ribbon Banner - Absolute positioned in hero section */}
       <div 
-        className="hidden md:block absolute right-0 top-1/2 -translate-y-1/2 z-40"
+        className="hidden md:block absolute right-0 top-1/2 -translate-y-1/2 z-40 cursor-pointer hover:scale-105 transition-transform duration-300"
         style={{
           animation: 'slideInFromRight 0.8s ease-out'
         }}
+        onClick={scrollToCards}
+        role="button"
+        tabIndex={0}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            scrollToCards();
+          }
+        }}
+        aria-label="Scroll to tools section"
       >
         <style jsx>{`
           @keyframes slideInFromRight {

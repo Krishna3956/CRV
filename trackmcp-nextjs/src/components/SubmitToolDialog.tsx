@@ -18,7 +18,12 @@ import { useToast } from "@/hooks/use-toast";
 import { createClient } from "@/lib/supabase/client";
 import { fetchGitHub } from "@/utils/github";
 
-export const SubmitToolDialog = () => {
+interface SubmitToolDialogProps {
+  variant?: 'default' | 'enhanced' | 'mobile'
+  onSuccess?: () => void
+}
+
+export const SubmitToolDialog = ({ variant = 'default', onSuccess }: SubmitToolDialogProps = {}) => {
   const [open, setOpen] = useState(false);
   const [githubUrl, setGithubUrl] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -119,6 +124,7 @@ export const SubmitToolDialog = () => {
         });
         setGithubUrl("");
         setOpen(false);
+        onSuccess?.();
       }
     } catch (error) {
       toast({
@@ -131,12 +137,24 @@ export const SubmitToolDialog = () => {
     }
   };
 
+  // Button styling based on variant
+  const getButtonClasses = () => {
+    switch (variant) {
+      case 'enhanced':
+        return "gap-2 h-9 px-4 bg-gradient-to-r from-primary via-accent to-primary text-primary-foreground font-semibold shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 rounded-xl border-2 border-primary/20"
+      case 'mobile':
+        return "gap-2 h-12 w-full bg-gradient-to-r from-primary via-accent to-primary text-primary-foreground font-semibold shadow-lg hover:shadow-xl transition-all duration-300 rounded-xl"
+      default:
+        return "gap-2 shadow-elegant hover:shadow-glow transition-all h-10 px-4 w-auto"
+    }
+  }
+
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button className="gap-2 shadow-elegant hover:shadow-glow transition-all h-10 px-4 w-auto">
+        <Button className={getButtonClasses()}>
           <Plus className="h-5 w-5" />
-          Submit Tool
+          Submit
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[500px]">
