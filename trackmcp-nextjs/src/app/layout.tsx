@@ -9,7 +9,6 @@ import { TooltipProvider } from '@/components/ui/tooltip'
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
-  metadataBase: new URL('https://www.trackmcp.com'),
   title: {
     default: 'Track MCP - Discover 10,000+ Model Context Protocol Tools & Servers',
     template: '%s - Track MCP'
