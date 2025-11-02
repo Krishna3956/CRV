@@ -127,6 +127,16 @@ export function HomeClient({ initialTools, totalCount }: HomeClientProps) {
     return filteredAndSortedTools.reduce((sum, tool) => sum + (tool.stars || 0), 0)
   }, [filteredAndSortedTools])
 
+  // Calculate actual available tools count (excluding blocked/invalid tools)
+  const actualAvailableCount = useMemo(() => {
+    return allTools.filter(tool => {
+      // Apply same filtering logic as filteredAndSortedTools
+      if (!tool.repo_name || !tool.github_url) return false
+      if (blockedRepos.includes(tool.repo_name?.toLowerCase() || '')) return false
+      return true
+    }).length
+  }, [allTools])
+
   // Get top 5 tools with highest stars for trending badge
   const top5RecentTools = useMemo(() => {
     const sorted = [...allTools].sort((a, b) => (b.stars || 0) - (a.stars || 0))
@@ -190,7 +200,7 @@ export function HomeClient({ initialTools, totalCount }: HomeClientProps) {
         
         {/* Slim Ribbon Stats Banner - Positioned at top of hero section - Hidden on mobile */}
         <div className="hidden md:block">
-          <StatsSection totalTools={searchQuery || selectedCategory !== 'all' ? filteredAndSortedTools.length : totalCount} totalStars={totalStars} isSearching={!!searchQuery || selectedCategory !== 'all'} />
+          <StatsSection totalTools={searchQuery || selectedCategory !== 'all' ? filteredAndSortedTools.length : actualAvailableCount} totalStars={totalStars} isSearching={!!searchQuery || selectedCategory !== 'all'} />
         </div>
         
         <div className="container relative mx-auto px-4 py-4 md:py-8">
@@ -245,7 +255,7 @@ export function HomeClient({ initialTools, totalCount }: HomeClientProps) {
               <div className="flex items-center gap-3">
                 <Filter className="h-5 w-5 text-primary" />
                 <span className="text-base md:text-sm font-semibold">
-                  {searchQuery || selectedCategory !== 'all' ? filteredAndSortedTools.length.toLocaleString() : (10000 + totalCount).toLocaleString()} Available
+                  {searchQuery || selectedCategory !== 'all' ? filteredAndSortedTools.length.toLocaleString() : (10000 + actualAvailableCount).toLocaleString()} Available
                 </span>
                 {activeFilterCount > 0 && (
                   <span className="text-sm md:text-xs text-muted-foreground">({activeFilterCount} filters)</span>
@@ -274,7 +284,7 @@ export function HomeClient({ initialTools, totalCount }: HomeClientProps) {
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
               <div>
                 <p className="gradient-text text-xl md:text-lg font-bold">
-                  {searchQuery || selectedCategory !== 'all' ? filteredAndSortedTools.length.toLocaleString() : (10000 + totalCount).toLocaleString()} Available
+                  {searchQuery || selectedCategory !== 'all' ? filteredAndSortedTools.length.toLocaleString() : (10000 + actualAvailableCount).toLocaleString()} Available
                 </p>
               </div>
               <div className="flex flex-row gap-2 w-auto">
