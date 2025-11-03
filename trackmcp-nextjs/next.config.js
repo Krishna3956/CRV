@@ -25,6 +25,13 @@ const nextConfig = {
   // Optimize compilation
   swcMinify: true,
   
+  // Reduce JavaScript payload
+  modularizeImports: {
+    'lucide-react': {
+      transform: 'lucide-react/dist/esm/icons/{{kebabCase member}}',
+    },
+  },
+  
   // Enable source maps for production debugging
   productionBrowserSourceMaps: true,
   

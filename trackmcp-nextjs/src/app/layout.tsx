@@ -184,12 +184,12 @@ export default function RootLayout({
         />
       </head>
       <body className={inter.className}>
-        {/* Google Analytics - Lazy loaded for better performance */}
+        {/* Google Analytics - Deferred for minimal blocking */}
         <Script
           src="https://www.googletagmanager.com/gtag/js?id=G-22HQQFNJ1F"
-          strategy="afterInteractive"
+          strategy="lazyOnload"
         />
-        <Script id="google-analytics" strategy="afterInteractive">
+        <Script id="google-analytics" strategy="lazyOnload">
           {`
             window.dataLayer = window.dataLayer || [];
             function gtag(){dataLayer.push(arguments);}

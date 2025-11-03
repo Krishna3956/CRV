@@ -2,23 +2,37 @@
 
 import { useState, useEffect, useMemo } from 'react'
 import dynamic from 'next/dynamic'
-import { SearchBar } from '@/components/SearchBar'
-import { FilterBar } from '@/components/FilterBar'
-import { CategoryFilter } from '@/components/CategoryFilter'
-import { ToolCard } from '@/components/ToolCard'
-import { StatsSection } from '@/components/StatsSection'
-import { ErrorBoundary } from '@/components/error-boundary'
-import { RotatingText } from '@/components/RotatingText'
 import { Loader2, Sparkles, Package, X, Filter } from 'lucide-react'
 import type { Database } from '@/types/database.types'
 
-// Lazy load heavy components
+// Lazy load heavy components for better initial load
+const SearchBar = dynamic(() => import('@/components/SearchBar').then(mod => ({ default: mod.SearchBar })), {
+  ssr: true,
+})
+const FilterBar = dynamic(() => import('@/components/FilterBar').then(mod => ({ default: mod.FilterBar })), {
+  ssr: true,
+})
+const CategoryFilter = dynamic(() => import('@/components/CategoryFilter').then(mod => ({ default: mod.CategoryFilter })), {
+  ssr: true,
+})
+const ToolCard = dynamic(() => import('@/components/ToolCard').then(mod => ({ default: mod.ToolCard })), {
+  ssr: true,
+})
+const StatsSection = dynamic(() => import('@/components/StatsSection').then(mod => ({ default: mod.StatsSection })), {
+  ssr: true,
+})
+const ErrorBoundary = dynamic(() => import('@/components/error-boundary').then(mod => ({ default: mod.ErrorBoundary })), {
+  ssr: true,
+})
+const RotatingText = dynamic(() => import('@/components/RotatingText').then(mod => ({ default: mod.RotatingText })), {
+  ssr: true,
+})
 const SubmitToolDialog = dynamic(() => import('@/components/SubmitToolDialog').then(mod => ({ default: mod.SubmitToolDialog })), {
   ssr: false,
   loading: () => null
 })
 const Footer = dynamic(() => import('@/components/Footer').then(mod => ({ default: mod.Footer })), {
-  loading: () => null
+  ssr: true,
 })
 
 type McpTool = Database['public']['Tables']['mcp_tools']['Row']
