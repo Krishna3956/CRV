@@ -50,7 +50,7 @@ const AnimatedCounter = ({ value, duration = 2000 }: { value: number; duration?:
     return () => cancelAnimationFrame(animationFrame);
   }, [value, duration]);
 
-  return <>{count.toLocaleString()}</>;
+  return <span suppressHydrationWarning>{count.toLocaleString()}</span>;
 };
 
 const StatItem = ({ icon: Icon, label, value, tooltip, gradient }: StatItemProps) => {

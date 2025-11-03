@@ -25,6 +25,9 @@ const nextConfig = {
   // Optimize compilation
   swcMinify: true,
   
+  // Enable source maps for production debugging
+  productionBrowserSourceMaps: true,
+  
   // Optimize production builds
   compiler: {
     removeConsole: process.env.NODE_ENV === 'production',
@@ -32,19 +35,21 @@ const nextConfig = {
   
   // Experimental optimizations
   experimental: {
-    optimizePackageImports: ['lucide-react', '@radix-ui/react-icons'],
+    optimizePackageImports: ['lucide-react', '@radix-ui/react-icons', 'date-fns', 'react-markdown'],
   },
   
   // Optimize CSS loading
   optimizeFonts: true,
   
   // Webpack optimization for smaller bundles
-  webpack: (config, { isServer }) => {
-    if (!isServer) {
+  webpack: (config, { isServer, dev }) => {
+    if (!isServer && !dev) {
       config.optimization = {
         ...config.optimization,
         splitChunks: {
           chunks: 'all',
+          maxInitialRequests: 25,
+          minSize: 20000,
           cacheGroups: {
             default: false,
             vendors: false,
@@ -54,6 +59,20 @@ const nextConfig = {
               chunks: 'all',
               test: /node_modules/,
               priority: 20,
+            },
+            // React and React-DOM in separate chunk
+            react: {
+              name: 'react',
+              chunks: 'all',
+              test: /[\\/]node_modules[\\/](react|react-dom|scheduler)[\\/]/,
+              priority: 30,
+            },
+            // UI libraries in separate chunk
+            ui: {
+              name: 'ui',
+              chunks: 'all',
+              test: /[\\/]node_modules[\\/](@radix-ui)[\\/]/,
+              priority: 25,
             },
             // Common chunk for shared code
             common: {
@@ -106,7 +125,7 @@ const nextConfig = {
           },
           {
             key: 'Content-Security-Policy',
-            value: "default-src 'self'; script-src 'self' 'unsafe-eval' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https://api.github.com https://*.supabase.co;",
+            value: "default-src 'self'; script-src 'self' 'unsafe-eval' 'unsafe-inline' https://www.googletagmanager.com https://www.clarity.ms; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https://api.github.com https://*.supabase.co https://www.google-analytics.com https://www.clarity.ms;",
           },
           {
             key: 'Permissions-Policy',

@@ -63,7 +63,7 @@ export function ToolDetailClient({ tool }: ToolDetailClientProps) {
   return (
     <>
       <div className="min-h-screen bg-background">
-        <div className="container mx-auto px-4 py-8 max-w-4xl">
+        <main className="container mx-auto px-4 py-8 max-w-4xl">
           <Link href="/">
             <Button variant="ghost" className="mb-8">
               <ArrowLeft className="h-4 w-4 mr-2" />
@@ -137,7 +137,7 @@ export function ToolDetailClient({ tool }: ToolDetailClientProps) {
               <MarkdownRenderer content={readme} githubUrl={tool.github_url} />
             </div>
           )}
-        </div>
+        </main>
       </div>
       
       <Footer />

@@ -120,7 +120,7 @@ export const ToolCard = ({
               
               {/* Status badges */}
               {isTrending && (
-                <Badge variant="outline" className="h-5 px-1.5 py-0 text-[10px] border-orange-500/50 text-orange-600 dark:text-orange-400">
+                <Badge variant="outline" className="h-5 px-1.5 py-0 text-[10px] border-orange-500/50 text-orange-700 dark:text-orange-400 bg-orange-50 dark:bg-orange-950/30">
                   <TrendingUp className="h-3 w-3 mr-0.5" />
                   Trending
                 </Badge>
@@ -170,7 +170,7 @@ export const ToolCard = ({
           {lastUpdated && !isExpanded && (
             <div className="flex items-center gap-1 text-muted-foreground ml-auto">
               <Calendar className="h-3.5 w-3.5" />
-              <span className="text-sm" style={{ fontSize: '13px' }}>{recentActivity}</span>
+              <span className="text-sm" style={{ fontSize: '13px' }} suppressHydrationWarning>{recentActivity}</span>
             </div>
           )}
         </div>
@@ -195,7 +195,7 @@ export const ToolCard = ({
               <Badge 
                 key={topic} 
                 variant="secondary"
-                className="h-6 px-2.5 py-0 text-xs font-medium text-muted-foreground/70 hover:text-muted-foreground transition-colors flex-shrink-0"
+                className="h-6 px-2.5 py-0 text-xs font-medium text-foreground/80 hover:text-foreground transition-colors flex-shrink-0"
                 style={{ lineHeight: '1.2' }}
               >
                 {topic}
@@ -205,7 +205,7 @@ export const ToolCard = ({
             {hasMoreTopics && (
               <Badge 
                 variant="outline" 
-                className="h-6 px-2.5 py-0 text-xs text-muted-foreground flex-shrink-0"
+                className="h-6 px-2.5 py-0 text-xs text-foreground/90 flex-shrink-0"
                 style={{ lineHeight: '1.2' }}
               >
                 +{topics!.length - (primaryTopics.length + secondaryTopics.length)}
