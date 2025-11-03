@@ -58,14 +58,14 @@ const StatItem = ({ icon: Icon, label, value, tooltip, gradient }: StatItemProps
     <TooltipProvider>
       <Tooltip delayDuration={200}>
         <TooltipTrigger asChild>
-          <div className="flex flex-col items-center justify-center px-3 py-3 group hover:bg-white/10 transition-colors">
-            <div className={`p-1.5 rounded bg-gradient-to-br ${gradient} mb-1`}>
-              <Icon className="h-4 w-4 text-white" strokeWidth={2.5} />
+          <div className="flex flex-col items-center justify-center px-3 md:px-4 lg:px-5 py-3 md:py-3.5 lg:py-4 group hover:bg-white/10 transition-colors">
+            <div className={`p-1.5 md:p-2 rounded bg-gradient-to-br ${gradient} mb-1 md:mb-1.5`}>
+              <Icon className="h-4 md:h-4.5 lg:h-5 w-4 md:w-4.5 lg:w-5 text-white" strokeWidth={2.5} />
             </div>
-            <p className="text-sm font-bold text-foreground text-center" style={{ fontSize: '13px', lineHeight: '1.2' }}>
+            <p className="text-sm md:text-base font-bold text-foreground text-center" style={{ fontSize: 'clamp(13px, 1.4vw, 15px)', lineHeight: '1.2' }}>
               <AnimatedCounter value={value} />
             </p>
-            <p className="text-xs text-muted-foreground font-medium text-center" style={{ fontSize: '9px', lineHeight: '1.2' }}>
+            <p className="text-xs text-muted-foreground font-medium text-center" style={{ fontSize: 'clamp(9px, 1vw, 10px)', lineHeight: '1.2' }}>
               {label}
             </p>
           </div>
@@ -114,11 +114,12 @@ export const StatsSection = ({ totalTools, totalStars, isSearching = false }: St
 
   return (
     <>
-      {/* Desktop/Tablet: Slim Ribbon Banner - Absolute positioned in hero section */}
+      {/* Desktop/Tablet: Slim Ribbon Banner - Absolute positioned in hero section - Hidden on mobile */}
       <div 
         className="hidden md:block absolute right-0 top-1/2 -translate-y-1/2 z-40 cursor-pointer hover:scale-105 transition-transform duration-300"
         style={{
-          animation: 'slideInFromRight 0.8s ease-out'
+          animation: 'slideInFromRight 0.8s ease-out',
+          transform: 'translateY(-50%) scale(0.95)',
         }}
         onClick={scrollToCards}
         role="button"
@@ -143,15 +144,15 @@ export const StatsSection = ({ totalTools, totalStars, isSearching = false }: St
             }
           }
         `}</style>
-        <div className="flex flex-col bg-white/90 dark:bg-gray-900/90 backdrop-blur-md border-l-2 border-t-2 border-b-2 border-border/50 rounded-l-2xl divide-y-2 divide-border/60 overflow-hidden shadow-lg">
+        <div className="flex flex-col bg-white/90 dark:bg-gray-900/90 backdrop-blur-md border-l border-t border-b md:border-l-2 md:border-t-2 md:border-b-2 border-border/50 rounded-l-xl md:rounded-l-2xl divide-y md:divide-y-2 divide-border/60 overflow-hidden shadow-md md:shadow-lg">
           {stats.map((stat) => (
             <StatItem key={stat.label} {...stat} />
           ))}
         </div>
       </div>
 
-      {/* Mobile: Compact Horizontal Bar (fallback) */}
-      <div className="md:hidden inline-flex items-center justify-center bg-card/50 backdrop-blur-sm border rounded-lg divide-x divide-border mx-auto">
+      {/* Mobile: Hidden - No stats bar on mobile */}
+      <div className="hidden">
         {stats.map((stat) => (
           <div key={stat.label} className="flex items-center gap-2 px-3 py-2">
             <div className={`p-1.5 rounded bg-gradient-to-br ${stat.gradient}`}>
