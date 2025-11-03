@@ -118,6 +118,11 @@ All colors MUST be HSL.
   body {
     @apply bg-background text-foreground;
   }
+  
+  /* Optimize rendering performance */
+  img, picture, video {
+    content-visibility: auto;
+  }
 }
 
 @layer utilities {
@@ -127,5 +132,15 @@ All colors MUST be HSL.
   
   .card-gradient {
     background: var(--gradient-card);
+  }
+  
+  /* Optimize animations */
+  .animate-fade-in {
+    animation: fadeIn 0.3s ease-in;
+  }
+  
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
   }
 }

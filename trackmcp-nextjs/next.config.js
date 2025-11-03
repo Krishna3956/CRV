@@ -28,6 +28,15 @@ const nextConfig = {
   // Enable source maps for production debugging
   productionBrowserSourceMaps: true,
   
+  // Compress output
+  compress: true,
+  
+  // Generate ETags for better caching
+  generateEtags: true,
+  
+  // Power by header
+  poweredByHeader: false,
+  
   // Optimize production builds
   compiler: {
     removeConsole: process.env.NODE_ENV === 'production',
@@ -36,6 +45,8 @@ const nextConfig = {
   // Experimental optimizations
   experimental: {
     optimizePackageImports: ['lucide-react', '@radix-ui/react-icons', 'date-fns', 'react-markdown'],
+    // Enable optimized CSS loading
+    optimizeCss: false, // Keep disabled since critters is not installed
   },
   
   // Optimize CSS loading
@@ -100,6 +111,43 @@ const nextConfig = {
   // Headers for SEO and Security
   async headers() {
     return [
+      {
+        source: '/',
+        headers: [
+          {
+            key: 'Link',
+            value: '</logo.png>; rel=preload; as=image; type=image/png, <https://fonts.gstatic.com>; rel=preconnect; crossorigin',
+          },
+          {
+            key: 'X-Robots-Tag',
+            value: 'all',
+          },
+          {
+            key: 'X-Content-Type-Options',
+            value: 'nosniff',
+          },
+          {
+            key: 'X-Frame-Options',
+            value: 'SAMEORIGIN',
+          },
+          {
+            key: 'Referrer-Policy',
+            value: 'strict-origin-when-cross-origin',
+          },
+          {
+            key: 'Strict-Transport-Security',
+            value: 'max-age=31536000; includeSubDomains',
+          },
+          {
+            key: 'Content-Security-Policy',
+            value: "default-src 'self'; script-src 'self' 'unsafe-eval' 'unsafe-inline' https://www.googletagmanager.com https://www.clarity.ms; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https://api.github.com https://*.supabase.co https://www.google-analytics.com https://www.clarity.ms;",
+          },
+          {
+            key: 'Permissions-Policy',
+            value: 'camera=(), microphone=(), geolocation=()',
+          },
+        ],
+      },
       {
         source: '/:path*',
         headers: [

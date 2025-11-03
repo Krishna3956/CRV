@@ -13,6 +13,8 @@ const inter = Inter({
   display: 'swap',
   preload: true,
   variable: '--font-inter',
+  fallback: ['system-ui', 'arial'],
+  adjustFontFallback: true,
 })
 
 export const metadata: Metadata = {
@@ -110,11 +112,14 @@ export default function RootLayout({
         <link rel="manifest" href="/manifest.json" />
         
         {/* Preconnect to external domains for faster loading */}
-        <link rel="preconnect" href="https://fonts.googleapis.com" crossOrigin="anonymous" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <link rel="preconnect" href="https://www.googletagmanager.com" crossOrigin="anonymous" />
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
+        <link rel="dns-prefetch" href="https://www.googletagmanager.com" />
         <link rel="dns-prefetch" href="https://www.clarity.ms" />
         <link rel="dns-prefetch" href="https://api.github.com" />
+        
+        {/* Preload critical assets */}
+        <link rel="preload" href="/logo.png" as="image" type="image/png" />
         
         
         {/* Microsoft Clarity - Deferred for performance */}
@@ -191,12 +196,17 @@ export default function RootLayout({
         />
         <Script id="google-analytics" strategy="afterInteractive">
           {`
-            window.dataLayer = window.dataLayer || [];
-            function gtag(){dataLayer.push(arguments);}
-            gtag('js', new Date());
-            gtag('config', 'G-22HQQFNJ1F', {
-              page_path: window.location.pathname,
-            });
+            try {
+              window.dataLayer = window.dataLayer || [];
+              function gtag(){dataLayer.push(arguments);}
+              gtag('js', new Date());
+              gtag('config', 'G-22HQQFNJ1F', {
+                page_path: window.location.pathname,
+              });
+            } catch (e) {
+              // Silently fail if analytics is blocked
+              console.debug('Analytics blocked:', e);
+            }
           `}
         </Script>
 

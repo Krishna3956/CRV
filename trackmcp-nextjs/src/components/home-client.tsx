@@ -6,18 +6,22 @@ import { SearchBar } from '@/components/SearchBar'
 import { FilterBar } from '@/components/FilterBar'
 import { CategoryFilter } from '@/components/CategoryFilter'
 import { ToolCard } from '@/components/ToolCard'
-import { StatsSection } from '@/components/StatsSection'
 import { ErrorBoundary } from '@/components/error-boundary'
 import { RotatingText } from '@/components/RotatingText'
 import { Loader2, Sparkles, Package, X, Filter } from 'lucide-react'
 import type { Database } from '@/types/database.types'
 
 // Lazy load heavy components
+const StatsSection = dynamic(() => import('@/components/StatsSection').then(mod => ({ default: mod.StatsSection })), {
+  ssr: false,
+  loading: () => null
+})
 const SubmitToolDialog = dynamic(() => import('@/components/SubmitToolDialog').then(mod => ({ default: mod.SubmitToolDialog })), {
   ssr: false,
   loading: () => null
 })
 const Footer = dynamic(() => import('@/components/Footer').then(mod => ({ default: mod.Footer })), {
+  ssr: false,
   loading: () => null
 })
 
@@ -33,7 +37,7 @@ export function HomeClient({ initialTools, totalCount }: HomeClientProps) {
   const [searchQuery, setSearchQuery] = useState('')
   const [sortBy, setSortBy] = useState('stars')
   const [selectedCategory, setSelectedCategory] = useState('all')
-  const [visibleCount, setVisibleCount] = useState(12)
+  const [visibleCount, setVisibleCount] = useState(9)
   const [allTools, setAllTools] = useState<McpTool[]>(initialTools)
   const [isLoadingMore, setIsLoadingMore] = useState(false)
   const [areCardsExpanded, setAreCardsExpanded] = useState(false)
