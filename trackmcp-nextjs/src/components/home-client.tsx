@@ -1,17 +1,25 @@
 'use client'
 
 import { useState, useEffect, useMemo } from 'react'
+import dynamic from 'next/dynamic'
 import { SearchBar } from '@/components/SearchBar'
 import { FilterBar } from '@/components/FilterBar'
 import { CategoryFilter } from '@/components/CategoryFilter'
 import { ToolCard } from '@/components/ToolCard'
-import { SubmitToolDialog } from '@/components/SubmitToolDialog'
 import { StatsSection } from '@/components/StatsSection'
 import { ErrorBoundary } from '@/components/error-boundary'
-import { Footer } from '@/components/Footer'
 import { RotatingText } from '@/components/RotatingText'
 import { Loader2, Sparkles, Package, X, Filter } from 'lucide-react'
 import type { Database } from '@/types/database.types'
+
+// Lazy load heavy components
+const SubmitToolDialog = dynamic(() => import('@/components/SubmitToolDialog').then(mod => ({ default: mod.SubmitToolDialog })), {
+  ssr: false,
+  loading: () => null
+})
+const Footer = dynamic(() => import('@/components/Footer').then(mod => ({ default: mod.Footer })), {
+  loading: () => null
+})
 
 type McpTool = Database['public']['Tables']['mcp_tools']['Row']
 
@@ -185,7 +193,7 @@ export function HomeClient({ initialTools, totalCount }: HomeClientProps) {
   return (
     <div className="min-h-screen bg-background">
       {/* Hero Section */}
-      <section className="relative min-h-[60vh] flex items-center justify-center overflow-hidden">
+      <section className="relative min-h-[60vh] flex items-center justify-center overflow-hidden" aria-label="Hero section">
         {/* Animated background gradient */}
         <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-background to-accent/5" />
         
@@ -241,8 +249,10 @@ export function HomeClient({ initialTools, totalCount }: HomeClientProps) {
         </div>
       </section>
 
-      {/* Filter Section - Grouped with subtle background */}
-      <section className="container mx-auto px-4 mt-4 relative z-10">
+      {/* Main Content */}
+      <main>
+        {/* Filter Section - Grouped with subtle background */}
+        <section className="container mx-auto px-4 mt-4 relative z-10" aria-label="Filter and search tools">
         <div className="bg-card/20 backdrop-blur-sm rounded-lg p-4 border border-border/50">
           {/* Category Filter */}
           <div className="mb-0">
@@ -289,8 +299,9 @@ export function HomeClient({ initialTools, totalCount }: HomeClientProps) {
         </div>
       )}
 
-      {/* Directory Section */}
-      <section className="container mx-auto px-4 pt-4 pb-6">
+        {/* Directory Section */}
+        <section className="container mx-auto px-4 pt-4 pb-6" aria-label="MCP tools listing">
+          <h2 className="sr-only">Available MCP Tools</h2>
         <div className="flex flex-col gap-2 mb-3">
           <div className="flex flex-col gap-2">
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
@@ -425,7 +436,8 @@ export function HomeClient({ initialTools, totalCount }: HomeClientProps) {
             )}
           </>
         )}
-      </section>
+        </section>
+      </main>
 
       <Footer />
     </div>
