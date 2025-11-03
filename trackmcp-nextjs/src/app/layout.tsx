@@ -10,11 +10,12 @@ import { Navbar } from '@/components/Navbar'
 
 const inter = Inter({ 
   subsets: ['latin'],
-  display: 'swap',
+  display: 'block', // Changed from 'swap' to 'block' for faster LCP
   preload: true,
   variable: '--font-inter',
   fallback: ['system-ui', 'arial'],
   adjustFontFallback: true,
+  weight: ['400', '500', '600', '700'], // Limit font weights
 })
 
 export const metadata: Metadata = {
@@ -105,6 +106,9 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
+        {/* Critical CSS for LCP - inline gradient-text */}
+        <style dangerouslySetInnerHTML={{__html: `.gradient-text{background:linear-gradient(90deg,hsl(243 75% 59%),hsl(199 89% 48%),hsl(243 75% 59%));-webkit-background-clip:text;background-clip:text;color:transparent}`}} />
+        
         {/* Favicon and App Icons */}
         <link rel="icon" href="/favicon.ico" sizes="32x32" />
         <link rel="icon" href="/favicon.png" type="image/png" />

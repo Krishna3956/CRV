@@ -25,6 +25,9 @@ const nextConfig = {
   // Optimize compilation
   swcMinify: true,
   
+  // Reduce JavaScript execution time
+  reactStrictMode: true,
+  
   // Enable source maps for production debugging
   productionBrowserSourceMaps: true,
   
@@ -57,10 +60,13 @@ const nextConfig = {
     if (!isServer && !dev) {
       config.optimization = {
         ...config.optimization,
+        moduleIds: 'deterministic',
+        runtimeChunk: 'single',
         splitChunks: {
           chunks: 'all',
           maxInitialRequests: 25,
           minSize: 20000,
+          maxSize: 244000, // Split chunks larger than 244KB
           cacheGroups: {
             default: false,
             vendors: false,
@@ -70,6 +76,7 @@ const nextConfig = {
               chunks: 'all',
               test: /node_modules/,
               priority: 20,
+              maxSize: 244000,
             },
             // React and React-DOM in separate chunk
             react: {
@@ -84,6 +91,7 @@ const nextConfig = {
               chunks: 'all',
               test: /[\\/]node_modules[\\/](@radix-ui)[\\/]/,
               priority: 25,
+              maxSize: 200000,
             },
             // Common chunk for shared code
             common: {
