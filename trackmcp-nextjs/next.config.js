@@ -25,13 +25,6 @@ const nextConfig = {
   // Optimize compilation
   swcMinify: true,
   
-  // Reduce JavaScript payload
-  modularizeImports: {
-    'lucide-react': {
-      transform: 'lucide-react/dist/esm/icons/{{kebabCase member}}',
-    },
-  },
-  
   // Enable source maps for production debugging
   productionBrowserSourceMaps: true,
   
@@ -42,21 +35,19 @@ const nextConfig = {
   
   // Experimental optimizations
   experimental: {
-    optimizePackageImports: ['lucide-react', '@radix-ui/react-icons', 'date-fns', 'react-markdown'],
+    optimizePackageImports: ['lucide-react', '@radix-ui/react-icons'],
   },
   
   // Optimize CSS loading
   optimizeFonts: true,
   
   // Webpack optimization for smaller bundles
-  webpack: (config, { isServer, dev }) => {
-    if (!isServer && !dev) {
+  webpack: (config, { isServer }) => {
+    if (!isServer) {
       config.optimization = {
         ...config.optimization,
         splitChunks: {
           chunks: 'all',
-          maxInitialRequests: 25,
-          minSize: 20000,
           cacheGroups: {
             default: false,
             vendors: false,
@@ -66,20 +57,6 @@ const nextConfig = {
               chunks: 'all',
               test: /node_modules/,
               priority: 20,
-            },
-            // React and React-DOM in separate chunk
-            react: {
-              name: 'react',
-              chunks: 'all',
-              test: /[\\/]node_modules[\\/](react|react-dom|scheduler)[\\/]/,
-              priority: 30,
-            },
-            // UI libraries in separate chunk
-            ui: {
-              name: 'ui',
-              chunks: 'all',
-              test: /[\\/]node_modules[\\/](@radix-ui)[\\/]/,
-              priority: 25,
             },
             // Common chunk for shared code
             common: {
