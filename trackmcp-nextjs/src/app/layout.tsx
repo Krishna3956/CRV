@@ -10,12 +10,9 @@ import { Navbar } from '@/components/Navbar'
 
 const inter = Inter({ 
   subsets: ['latin'],
-  display: 'block', // Changed from 'swap' to 'block' for faster LCP
+  display: 'swap',
   preload: true,
   variable: '--font-inter',
-  fallback: ['system-ui', 'arial'],
-  adjustFontFallback: true,
-  weight: ['400', '500', '600', '700'], // Limit font weights
 })
 
 export const metadata: Metadata = {
@@ -106,9 +103,6 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
-        {/* Critical CSS for LCP - inline gradient-text */}
-        <style dangerouslySetInnerHTML={{__html: `.gradient-text{background:linear-gradient(90deg,hsl(243 75% 59%),hsl(199 89% 48%),hsl(243 75% 59%));-webkit-background-clip:text;background-clip:text;color:transparent}`}} />
-        
         {/* Favicon and App Icons */}
         <link rel="icon" href="/favicon.ico" sizes="32x32" />
         <link rel="icon" href="/favicon.png" type="image/png" />
@@ -116,14 +110,11 @@ export default function RootLayout({
         <link rel="manifest" href="/manifest.json" />
         
         {/* Preconnect to external domains for faster loading */}
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
-        <link rel="dns-prefetch" href="https://www.googletagmanager.com" />
+        <link rel="preconnect" href="https://fonts.googleapis.com" crossOrigin="anonymous" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link rel="preconnect" href="https://www.googletagmanager.com" crossOrigin="anonymous" />
         <link rel="dns-prefetch" href="https://www.clarity.ms" />
         <link rel="dns-prefetch" href="https://api.github.com" />
-        
-        {/* Preload critical assets */}
-        <link rel="preload" href="/logo.png" as="image" type="image/png" />
         
         
         {/* Microsoft Clarity - Deferred for performance */}
@@ -200,17 +191,12 @@ export default function RootLayout({
         />
         <Script id="google-analytics" strategy="afterInteractive">
           {`
-            try {
-              window.dataLayer = window.dataLayer || [];
-              function gtag(){dataLayer.push(arguments);}
-              gtag('js', new Date());
-              gtag('config', 'G-22HQQFNJ1F', {
-                page_path: window.location.pathname,
-              });
-            } catch (e) {
-              // Silently fail if analytics is blocked
-              console.debug('Analytics blocked:', e);
-            }
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', 'G-22HQQFNJ1F', {
+              page_path: window.location.pathname,
+            });
           `}
         </Script>
 

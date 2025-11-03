@@ -35,7 +35,6 @@ export const Navbar = () => {
                 height={36}
                 className="rounded-lg"
                 priority
-                fetchPriority="high"
               />
               <span className="text-xl font-bold gradient-text">Track MCP</span>
             </Link>

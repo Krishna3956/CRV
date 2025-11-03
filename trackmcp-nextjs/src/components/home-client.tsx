@@ -3,31 +3,21 @@
 import { useState, useEffect, useMemo } from 'react'
 import dynamic from 'next/dynamic'
 import { SearchBar } from '@/components/SearchBar'
+import { FilterBar } from '@/components/FilterBar'
+import { CategoryFilter } from '@/components/CategoryFilter'
 import { ToolCard } from '@/components/ToolCard'
+import { StatsSection } from '@/components/StatsSection'
 import { ErrorBoundary } from '@/components/error-boundary'
 import { RotatingText } from '@/components/RotatingText'
 import { Loader2, Sparkles, Package, X, Filter } from 'lucide-react'
 import type { Database } from '@/types/database.types'
 
-// Lazy load heavy and non-critical components
-const FilterBar = dynamic(() => import('@/components/FilterBar').then(mod => ({ default: mod.FilterBar })), {
-  ssr: false,
-  loading: () => null
-})
-const CategoryFilter = dynamic(() => import('@/components/CategoryFilter').then(mod => ({ default: mod.CategoryFilter })), {
-  ssr: false,
-  loading: () => null
-})
-const StatsSection = dynamic(() => import('@/components/StatsSection').then(mod => ({ default: mod.StatsSection })), {
-  ssr: false,
-  loading: () => null
-})
+// Lazy load heavy components
 const SubmitToolDialog = dynamic(() => import('@/components/SubmitToolDialog').then(mod => ({ default: mod.SubmitToolDialog })), {
   ssr: false,
   loading: () => null
 })
 const Footer = dynamic(() => import('@/components/Footer').then(mod => ({ default: mod.Footer })), {
-  ssr: false,
   loading: () => null
 })
 
@@ -43,7 +33,7 @@ export function HomeClient({ initialTools, totalCount }: HomeClientProps) {
   const [searchQuery, setSearchQuery] = useState('')
   const [sortBy, setSortBy] = useState('stars')
   const [selectedCategory, setSelectedCategory] = useState('all')
-  const [visibleCount, setVisibleCount] = useState(6)
+  const [visibleCount, setVisibleCount] = useState(12)
   const [allTools, setAllTools] = useState<McpTool[]>(initialTools)
   const [isLoadingMore, setIsLoadingMore] = useState(false)
   const [areCardsExpanded, setAreCardsExpanded] = useState(false)
@@ -224,12 +214,12 @@ export function HomeClient({ initialTools, totalCount }: HomeClientProps) {
         
         <div className="container relative mx-auto px-4 py-4 md:py-8">
           <div className="max-w-5xl mx-auto text-center space-y-8">
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full border bg-card/50 backdrop-blur-sm mb-6">
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full border bg-card/50 backdrop-blur-sm mb-6 animate-fade-in">
               <Sparkles className="h-4 w-4 text-primary" />
               <span className="text-sm font-medium">Track MCP</span>
             </div>
             
-            <h1 className="text-5xl md:text-7xl font-bold leading-tight" style={{ willChange: 'auto' }}>
+            <h1 className="text-5xl md:text-7xl font-bold animate-fade-in leading-tight">
               <span className="gradient-text">World&apos;s Largest MCP</span>
               <br />
               {/* Mobile: Static text */}
@@ -244,7 +234,7 @@ export function HomeClient({ initialTools, totalCount }: HomeClientProps) {
               </span>
             </h1>
             
-            <p className="text-base md:text-xl lg:text-2xl text-muted-foreground max-w-3xl mx-auto leading-relaxed">
+            <p className="text-base md:text-xl lg:text-2xl text-muted-foreground max-w-3xl mx-auto leading-relaxed animate-fade-in">
               Discover, Track, and Explore Over 10,000+ Model Context Protocol Servers, Clients & Tools in One Centralized Platform
             </p>
             
