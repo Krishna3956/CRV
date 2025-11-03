@@ -1,4 +1,4 @@
-import type { Metadata } from 'next'
+import type { Metadata, Viewport } from 'next'
 import { Inter } from 'next/font/google'
 import Script from 'next/script'
 import './globals.css'
@@ -83,15 +83,16 @@ export const metadata: Metadata = {
     // yandex: 'your-yandex-verification-code', // Optional: Yandex verification
     // bing: 'your-bing-verification-code', // Optional: Bing Webmaster verification
   },
-  themeColor: '#ffffff',
-  viewport: {
-    width: 'device-width',
-    initialScale: 1,
-    maximumScale: 5,
-  },
   category: 'technology',
   classification: 'Developer Tools',
   referrer: 'strict-origin-when-cross-origin',
+}
+
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 5,
+  themeColor: '#ffffff',
 }
 
 export default function RootLayout({

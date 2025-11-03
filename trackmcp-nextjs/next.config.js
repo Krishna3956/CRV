@@ -30,10 +30,8 @@ const nextConfig = {
     removeConsole: process.env.NODE_ENV === 'production',
   },
   
-  // Target modern browsers to reduce polyfills
+  // Experimental optimizations
   experimental: {
-    modern: true,
-    optimizeCss: true,
     optimizePackageImports: ['lucide-react', '@radix-ui/react-icons'],
   },
   
