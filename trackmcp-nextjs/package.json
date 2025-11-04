@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "next lint",
     "export-metadata": "tsx scripts/export-metadata.ts",
-    "find-404s": "tsx scripts/find-404-tools.ts"
+    "find-404s": "tsx scripts/find-404-tools.ts",
+    "bulk-submit": "tsx scripts/bulk-submit-mcp-servers.ts"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",
