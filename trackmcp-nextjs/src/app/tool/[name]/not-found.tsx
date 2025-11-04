@@ -62,11 +62,11 @@ export default function ToolNotFound() {
           <h3 className="text-xl font-semibold mb-4">Popular MCP Tools</h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <Link 
-              href="/tool/github-mcp-server" 
+              href="/tool/browser-use" 
               className="p-4 border rounded-lg hover:bg-muted/50 transition-colors text-left"
             >
-              <div className="font-medium">github-mcp-server</div>
-              <div className="text-sm text-muted-foreground">GitHub&apos;s official MCP Server</div>
+              <div className="font-medium">browser-use</div>
+              <div className="text-sm text-muted-foreground">Make websites accessible for AI agents</div>
             </Link>
             <Link 
               href="/tool/cline" 
@@ -76,18 +76,18 @@ export default function ToolNotFound() {
               <div className="text-sm text-muted-foreground">Autonomous coding agent in your IDE</div>
             </Link>
             <Link 
-              href="/tool/context7" 
+              href="/tool/zed" 
               className="p-4 border rounded-lg hover:bg-muted/50 transition-colors text-left"
             >
-              <div className="font-medium">context7</div>
-              <div className="text-sm text-muted-foreground">Up-to-date code documentation for LLMs</div>
+              <div className="font-medium">zed</div>
+              <div className="text-sm text-muted-foreground">High-performance multiplayer code editor</div>
             </Link>
             <Link 
-              href="/tool/browser-use" 
+              href="/tool/continue" 
               className="p-4 border rounded-lg hover:bg-muted/50 transition-colors text-left"
             >
-              <div className="font-medium">browser-use</div>
-              <div className="text-sm text-muted-foreground">Make websites accessible for AI agents</div>
+              <div className="font-medium">continue</div>
+              <div className="text-sm text-muted-foreground">Ship faster with Continuous AI</div>
             </Link>
           </div>
         </div>
