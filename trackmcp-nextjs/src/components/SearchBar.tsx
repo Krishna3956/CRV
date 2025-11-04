@@ -115,7 +115,7 @@ export const SearchBar = ({
     return () => clearTimeout(timer);
   }, [value]);
 
-  // Calculate relevance score
+  // Calculate relevance score - ultra-fast version
   const calculateScore = useCallback((text: string, query: string, type: 'name' | 'description' | 'topic'): number => {
     const lowerText = text.toLowerCase();
     const lowerQuery = query.toLowerCase();
@@ -126,14 +126,10 @@ export const SearchBar = ({
     // Starts with query gets high score
     if (lowerText.startsWith(lowerQuery)) return 800;
     
-    // Contains query as whole word
-    if (new RegExp(`\\b${lowerQuery}\\b`).test(lowerText)) return 600;
-    
-    // Contains query anywhere
+    // Contains query anywhere (skip regex for speed)
     if (lowerText.includes(lowerQuery)) {
       // Bonus for name matches
       if (type === 'name') return 400;
-      if (type === 'topic') return 300;
       return 200;
     }
     
@@ -151,18 +147,12 @@ export const SearchBar = ({
     const query = debouncedValue.toLowerCase();
     const results: Suggestion[] = [];
     const seen = new Set<string>();
-    const maxResults = 10; // Increased to show more results
-    const maxSearchCount = 1000; // Search more tools
+    const maxResults = 6; // Show 6 results
 
-    // Ultra-fast search - only check tool names first
-    let searchedCount = 0;
+    // Ultra-fast search - only check tool names
     for (const tool of tools) {
-      if (results.length >= maxResults) break; // Stop as soon as we have enough
-      if (searchedCount >= maxSearchCount) break; // Don't search too many tools
+      if (results.length >= maxResults) break; // Stop immediately when we have enough
       
-      searchedCount++;
-      
-      // Only search in tool name for speed
       if (tool.repo_name) {
         const lowerName = tool.repo_name.toLowerCase();
         if (lowerName.includes(query)) {
@@ -180,41 +170,12 @@ export const SearchBar = ({
         }
       }
     }
-    
-    // If we still need more results, search descriptions (but limit it)
-    if (results.length < maxResults) {
-      searchedCount = 0;
-      for (const tool of tools) {
-        if (results.length >= maxResults) break;
-        if (searchedCount >= 200) break; // Even more limited for descriptions
-        
-        searchedCount++;
-        
-        if (tool.description && !seen.has(`desc-${tool.id}`)) {
-          const lowerDesc = tool.description.toLowerCase();
-          if (lowerDesc.includes(query)) {
-            const descScore = calculateScore(tool.description, query, 'description');
-            results.push({
-              id: `desc-${tool.id}`,
-              text: tool.description,
-              type: 'description',
-              tool,
-              score: descScore
-            });
-            seen.add(`desc-${tool.id}`);
-          }
-        }
-      }
-    }
 
-    // Sort by score and limit to top 8
-    const sorted = results
-      .sort((a, b) => b.score - a.score)
-      .slice(0, maxResults);
+    // Sort by score
+    const sorted = results.sort((a, b) => b.score - a.score);
 
     // Cache the results
     cacheRef.current.set(debouncedValue, sorted);
-
     return sorted;
   }, [debouncedValue, tools, calculateScore]);
 
@@ -382,7 +343,6 @@ export const SearchBar = ({
 
     return createPortal(dropdown, document.body);
   };
-
   return (
     <div ref={containerRef} className="relative w-full max-w-3xl group">
       <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-6 w-6 text-primary pointer-events-none z-10" />
@@ -402,9 +362,14 @@ export const SearchBar = ({
           }
         }}
         placeholder={placeholder}
-        className={`pl-14 pr-32 h-16 text-lg border-2 bg-card/50 backdrop-blur-sm focus:border-primary focus:shadow-glow transition-all duration-300 ${
+        className={`pl-14 pr-32 h-16 text-lg border-2 border-border bg-card/50 backdrop-blur-sm focus:border-border focus:outline-none !focus-visible:ring-0 !focus-visible:ring-offset-0 transition-all duration-300 ${
           showSuggestions ? 'rounded-t-2xl rounded-b-none border-b-0' : 'rounded-2xl'
         }`}
+        style={{
+          outline: 'none',
+          boxShadow: 'none',
+          WebkitBoxShadow: 'none'
+        }}
         autoComplete="off"
         spellCheck="false"
       />
@@ -413,7 +378,6 @@ export const SearchBar = ({
         <Button
           onClick={clearSearch}
           size="sm"
-          variant="ghost"
           className="absolute right-24 top-1/2 -translate-y-1/2 h-8 w-8 p-0"
         >
           <X className="h-4 w-4" />
@@ -422,7 +386,7 @@ export const SearchBar = ({
 
       <Button
         size="sm"
-        className="absolute right-2 top-1/2 -translate-y-1/2 gap-2"
+        className="absolute right-2 top-1/2 -translate-y-1/2 gap-2 hidden md:flex"
       >
         Search
       </Button>
