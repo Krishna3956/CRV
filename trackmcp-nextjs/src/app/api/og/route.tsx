@@ -15,26 +15,15 @@ export async function GET(request: NextRequest) {
       (
         <div
           style={{
-            background: 'linear-gradient(135deg, hsl(243, 75%, 59%) 0%, hsl(199, 89%, 48%) 100%)',
+            background: 'linear-gradient(135deg, #6366f1 0%, #0ea5e9 100%)',
             width: '100%',
             height: '100%',
             display: 'flex',
             flexDirection: 'column',
             padding: '0',
-            fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
-            position: 'relative',
+            fontFamily: 'system-ui, sans-serif',
           }}
         >
-          {/* Background Pattern */}
-          <div
-            style={{
-              position: 'absolute',
-              width: '100%',
-              height: '100%',
-              background: 'radial-gradient(circle at 20% 30%, rgba(255, 255, 255, 0.1) 0%, transparent 50%), radial-gradient(circle at 80% 70%, rgba(255, 255, 255, 0.08) 0%, transparent 50%)',
-              display: 'flex',
-            }}
-          />
 
           {/* Content Container */}
           <div
@@ -44,8 +33,6 @@ export async function GET(request: NextRequest) {
               padding: '60px 80px',
               height: '100%',
               justifyContent: 'space-between',
-              position: 'relative',
-              zIndex: 1,
             }}
           >
             {/* Header */}
