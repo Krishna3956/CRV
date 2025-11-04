@@ -173,8 +173,9 @@ export default async function ToolPage({ params }: Props) {
     notFound()
   }
   
-  // Create SoftwareApplication schema
-  const softwareSchema = {
+  // Create SoftwareApplication schema (Google Rich Results compliant)
+  // Build schema dynamically to avoid undefined values
+  const softwareSchema: Record<string, any> = {
     '@context': 'https://schema.org',
     '@type': 'SoftwareApplication',
     name: tool.repo_name,
@@ -187,13 +188,31 @@ export default async function ToolPage({ params }: Props) {
       price: '0',
       priceCurrency: 'USD',
     },
-    aggregateRating: tool.stars ? {
-      '@type': 'AggregateRating',
-      ratingValue: '4.5',
-      ratingCount: tool.stars,
-    } : undefined,
-    programmingLanguage: tool.language || undefined,
-    keywords: tool.topics?.join(', '),
+    author: {
+      '@type': 'Organization',
+      name: 'Track MCP',
+      url: 'https://www.trackmcp.com',
+    },
+    datePublished: tool.created_at || new Date().toISOString(),
+    dateModified: tool.last_updated || tool.created_at || new Date().toISOString(),
+  }
+
+  // Add optional fields only if they exist (avoid undefined)
+  if (tool.language) {
+    softwareSchema.programmingLanguage = tool.language
+  }
+
+  if (tool.topics && tool.topics.length > 0) {
+    softwareSchema.keywords = tool.topics.join(', ')
+  }
+
+  // GitHub stars shown separately as popularity metric (not ratings)
+  if (tool.stars) {
+    softwareSchema.interactionStatistic = {
+      '@type': 'InteractionCounter',
+      interactionType: 'https://schema.org/LikeAction',
+      userInteractionCount: tool.stars,
+    }
   }
 
   // Add Breadcrumb schema for better navigation
