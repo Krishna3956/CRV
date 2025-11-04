@@ -193,13 +193,13 @@ export function HomeClient({ initialTools, totalCount }: HomeClientProps) {
   return (
     <div className="min-h-screen bg-background">
       {/* Hero Section */}
-      <section className="relative min-h-[60vh] flex items-center justify-center overflow-hidden" aria-label="Hero section">
+      <section className="relative min-h-[45vh] flex items-center justify-center overflow-x-hidden" aria-label="Hero section">
         {/* Animated background gradient */}
         <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-background to-accent/5" />
         
         {/* Gradient fade to background */}
         <div 
-          className="absolute bottom-0 inset-x-0 h-32 pointer-events-none"
+          className="absolute bottom-0 inset-x-0 h-20 pointer-events-none"
           style={{ background: 'linear-gradient(to bottom, transparent, var(--background))' }}
         />
         
@@ -212,8 +212,8 @@ export function HomeClient({ initialTools, totalCount }: HomeClientProps) {
           <StatsSection totalTools={searchQuery || selectedCategory !== 'all' ? filteredAndSortedTools.length : actualAvailableCount} totalStars={totalStars} isSearching={!!searchQuery || selectedCategory !== 'all'} />
         </div>
         
-        <div className="container relative mx-auto px-4 py-4 md:py-8">
-          <div className="max-w-5xl mx-auto text-center space-y-8">
+        <div className="container relative mx-auto px-4 py-4 md:py-6">
+          <div className="max-w-5xl mx-auto text-center space-y-6">
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full border bg-card/50 backdrop-blur-sm mb-6 animate-fade-in">
               <Sparkles className="h-4 w-4 text-primary" />
               <span className="text-sm font-medium">Track MCP</span>
@@ -238,11 +238,12 @@ export function HomeClient({ initialTools, totalCount }: HomeClientProps) {
               Discover, Track, and Explore Over 10,000+ Model Context Protocol Servers, Clients & Tools in One Centralized Platform
             </p>
             
-            <div className="flex flex-col items-center gap-2 pt-6 animate-fade-in">
+            <div className="flex flex-col items-center gap-2 pt-4 animate-fade-in relative z-50">
               <SearchBar
                 value={inputValue}
                 onChange={setInputValue}
                 placeholder="Search by name, description, or tags..."
+                tools={allTools}
               />
             </div>
           </div>
