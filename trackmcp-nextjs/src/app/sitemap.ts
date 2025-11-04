@@ -14,6 +14,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     const { data, error } = await supabase
       .from('mcp_tools')
       .select('repo_name, last_updated')
+      .in('status', ['approved', 'pending']) // Only include approved and pending tools
       .range(from, from + batchSize - 1)
 
     if (error || !data || data.length === 0) {
