@@ -104,17 +104,13 @@ export const SearchBar = ({
 
     // Listen to all scroll events
     window.addEventListener('scroll', handleScroll, true);
-    
-    return () => {
-      window.removeEventListener('scroll', handleScroll, true);
-    };
   }, [showSuggestions]);
 
-  // Debounce search input - longer delay for better typing experience
+  // Debounce search input - minimal delay for instant feel
   useEffect(() => {
     const timer = setTimeout(() => {
       setDebouncedValue(value);
-    }, 300); // Longer delay so you can type without lag
+    }, 0); // No delay - instant search
 
     return () => clearTimeout(timer);
   }, [value]);
@@ -327,7 +323,6 @@ export const SearchBar = ({
   // Render suggestions dropdown
   const renderSuggestions = () => {
     if (!showSuggestions || !isMounted) return null;
-
     const dropdown = (
       <div
         ref={suggestionsRef}
@@ -336,13 +331,12 @@ export const SearchBar = ({
           top: `${dropdownPosition.top}px`,
           left: `${dropdownPosition.left}px`,
           width: `${dropdownPosition.width}px`,
-          zIndex: 99999,
+          zIndex: 50,
           maxHeight: '70vh',
           borderRadius: '0 0 1rem 1rem',
           borderTop: 'none',
           boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1)',
           marginTop: '-2px',
-          willChange: 'top, left',
           transition: 'none'
         }}
       >
