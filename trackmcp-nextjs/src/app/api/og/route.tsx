@@ -3,11 +3,20 @@ import { NextRequest } from 'next/server'
 
 export const runtime = 'edge'
 
+// Helper: Format tool name for display (Title Case with spaces)
+function formatToolName(name: string): string {
+  return name
+    .split(/[-_]/)
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+    .join(' ')
+}
+
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url)
     
-    const toolName = searchParams.get('tool') || 'Track MCP'
+    const rawToolName = searchParams.get('tool') || 'Track MCP'
+    const toolName = formatToolName(rawToolName) // Format for display
     const stars = searchParams.get('stars') || '0'
     const description = searchParams.get('description')?.slice(0, 120) || 'Model Context Protocol Tools Directory'
     
