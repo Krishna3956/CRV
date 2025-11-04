@@ -41,7 +41,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const toolPages: MetadataRoute.Sitemap = allTools
     .filter(tool => tool.repo_name)
     .map((tool) => ({
-      url: `https://www.trackmcp.com/tool/${encodeURIComponent(tool.repo_name!)}`,
+      url: `https://www.trackmcp.com/tool/${encodeURIComponent(tool.repo_name!.toLowerCase())}`,
       lastModified: tool.last_updated ? new Date(tool.last_updated) : new Date(),
       changeFrequency: 'weekly' as const,
       priority: 0.8,

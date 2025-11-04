@@ -18,6 +18,14 @@ interface ToolDetailClientProps {
   tool: McpTool
 }
 
+// Helper: Format tool name for display (Title Case with spaces)
+function formatToolName(name: string): string {
+  return name
+    .split(/[-_]/)
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+    .join(' ')
+}
+
 export function ToolDetailClient({ tool }: ToolDetailClientProps) {
   const [readme, setReadme] = useState<string>('')
   const [ownerAvatar, setOwnerAvatar] = useState<string>('')
@@ -79,7 +87,7 @@ export function ToolDetailClient({ tool }: ToolDetailClientProps) {
                   <AvatarImage src={ownerAvatar} alt={ownerName} loading="lazy" width="40" height="40" />
                   <AvatarFallback className="text-sm">{ownerName.slice(0, 2).toUpperCase()}</AvatarFallback>
                 </Avatar>
-                <h1 className="text-2xl sm:text-4xl font-bold">{tool.repo_name}</h1>
+                <h1 className="text-2xl sm:text-4xl font-bold">{formatToolName(tool.repo_name || '')}</h1>
               </div>
               <Button asChild size="sm" className="w-fit gap-2">
                 <a href={tool.github_url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2">

@@ -42,6 +42,14 @@ const categorizeTopic = (topic: string): 'primary' | 'secondary' => {
   return primaryKeywords.some(keyword => topic.toLowerCase().includes(keyword)) ? 'primary' : 'secondary';
 };
 
+// Helper: Format tool name for display (Title Case with spaces)
+function formatToolName(name: string): string {
+  return name
+    .split(/[-_]/)
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+    .join(' ')
+}
+
 export const ToolCard = ({
   name,
   description,
@@ -115,7 +123,7 @@ export const ToolCard = ({
                 <AvatarFallback className="text-[10px]">{ownerName.slice(0, 2).toUpperCase()}</AvatarFallback>
               </Avatar>
               <CardTitle className="text-xl font-semibold group-hover:gradient-text transition-all duration-300 truncate" style={{ fontSize: '18px', lineHeight: '1.3' }}>
-                {name}
+                {formatToolName(name)}
               </CardTitle>
               
               {/* Status badges */}

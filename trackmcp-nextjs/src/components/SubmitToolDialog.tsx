@@ -99,7 +99,7 @@ export const SubmitToolDialog = ({ variant = 'default', onSuccess }: SubmitToolD
       // Insert into database
       const { error } = await supabase.from("mcp_tools").insert({
         github_url: githubUrl,
-        repo_name: repoData.name,
+        repo_name: repoData.name.toLowerCase(), // Normalize to lowercase for consistent URLs
         description: repoData.description || null,
         stars: repoData.stargazers_count || 0,
         language: repoData.language || null,
