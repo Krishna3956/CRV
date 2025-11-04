@@ -63,8 +63,21 @@ function generateSmartMetadata(tool: McpTool) {
     return benefit
   }
   
+  // Helper: Ensure MCP has space before it
+  const ensureMcpSpacing = (name: string): string => {
+    // Replace "MCP" or "mcp" without space before it with " MCP"
+    return name
+      .replace(/([a-z])MCP/gi, '$1 MCP')  // documcp → docu MCP
+      .replace(/([a-z])Mcp/gi, '$1 MCP')  // docuMcp → docu MCP
+      .replace(/MCP/gi, 'MCP')             // Ensure MCP is uppercase
+      .replace(/\s+MCP/g, ' MCP')          // Normalize multiple spaces
+  }
+  
   // Format tool name in Title Case
   let formattedName = toTitleCase(toolName)
+  
+  // Ensure MCP has proper spacing
+  formattedName = ensureMcpSpacing(formattedName)
   
   // Add "MCP" if not already in the name
   const nameLower = formattedName.toLowerCase()
