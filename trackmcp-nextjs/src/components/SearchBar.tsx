@@ -231,7 +231,8 @@ export const SearchBar = ({
 
   // Select a suggestion
   const selectSuggestion = (suggestion: Suggestion) => {
-    onChange(suggestion.text);
+    // Use the actual repo name, not the formatted display name
+    onChange(suggestion.tool.repo_name || suggestion.text);
     setShowSuggestions(false);
     setSelectedIndex(-1);
   };
