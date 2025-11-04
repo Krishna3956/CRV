@@ -19,19 +19,16 @@ export async function GET(request: NextRequest) {
             width: '100%',
             height: '100%',
             display: 'flex',
-            flexDirection: 'column',
-            padding: '0',
+            padding: '60px 80px',
             fontFamily: 'system-ui, sans-serif',
           }}
         >
-
-          {/* Content Container */}
+          {/* Content */}
           <div
             style={{
               display: 'flex',
               flexDirection: 'column',
-              padding: '60px 80px',
-              height: '100%',
+              width: '100%',
               justifyContent: 'space-between',
             }}
           >
@@ -70,7 +67,6 @@ export async function GET(request: NextRequest) {
                     fontSize: '28px',
                     fontWeight: 700,
                     color: 'white',
-                    letterSpacing: '-0.02em',
                   }}
                 >
                   Track MCP
@@ -107,38 +103,34 @@ export async function GET(request: NextRequest) {
                 display: 'flex',
                 flexDirection: 'column',
                 gap: '24px',
-                marginTop: '40px',
+                marginTop: '60px',
+                marginBottom: '60px',
               }}
             >
               {/* Tool Name */}
-              <h1
+              <div
                 style={{
                   fontSize: toolName.length > 40 ? '52px' : toolName.length > 25 ? '64px' : '72px',
                   fontWeight: 800,
                   color: 'white',
-                  margin: 0,
                   lineHeight: 1.1,
-                  letterSpacing: '-0.03em',
                   maxWidth: '1000px',
-                  textShadow: '0 2px 20px rgba(0, 0, 0, 0.2)',
                 }}
               >
                 {toolName}
-              </h1>
+              </div>
 
               {/* Description */}
-              <p
+              <div
                 style={{
                   fontSize: '28px',
                   color: 'rgba(255, 255, 255, 0.95)',
-                  margin: 0,
                   lineHeight: 1.5,
                   maxWidth: '950px',
-                  fontWeight: 400,
                 }}
               >
                 {description}
-              </p>
+              </div>
             </div>
 
             {/* Footer */}
@@ -147,7 +139,6 @@ export async function GET(request: NextRequest) {
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'space-between',
-                marginTop: '40px',
               }}
             >
               <div
