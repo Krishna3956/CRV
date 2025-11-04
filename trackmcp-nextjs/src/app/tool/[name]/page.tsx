@@ -14,10 +14,12 @@ interface Props {
 async function getTool(name: string): Promise<McpTool | null> {
   const supabase = createClient()
   
+  // Use ilike for case-insensitive matching
+  // This handles URLs like /tool/ressl_mcp matching database entry "Ressl_MCP"
   const { data, error } = await supabase
     .from('mcp_tools')
     .select('*')
-    .eq('repo_name', decodeURIComponent(name))
+    .ilike('repo_name', decodeURIComponent(name))
     .single()
   
   if (error || !data) return null
@@ -158,7 +160,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   
   if (!tool) {
     return {
-      title: 'Tool Not Found',
+      title: 'MCP Tool Not Found | Track MCP',
+      description: 'The MCP tool you\'re looking for doesn\'t exist. Browse 10,000+ Model Context Protocol tools, servers, and connectors on Track MCP.',
     }
   }
   
