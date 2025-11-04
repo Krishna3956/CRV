@@ -11,7 +11,7 @@ export default function ToolNotFound() {
           <h1 className="text-6xl font-bold text-primary mb-4">404</h1>
           <h2 className="text-3xl font-bold mb-4">MCP Tool Not Found</h2>
           <p className="text-lg text-muted-foreground">
-            The Model Context Protocol tool you're looking for doesn't exist or has been removed from our directory.
+            The Model Context Protocol tool you&apos;re looking for doesn&apos;t exist or has been removed from our directory.
           </p>
         </div>
 
@@ -52,7 +52,7 @@ export default function ToolNotFound() {
             </li>
             <li className="flex items-start">
               <span className="mr-2">•</span>
-              <span>Submit a new tool if it's not in our directory</span>
+              <span>Submit a new tool if it&apos;s not in our directory</span>
             </li>
           </ul>
         </div>
