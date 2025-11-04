@@ -32,22 +32,57 @@ function generateSmartMetadata(tool: McpTool) {
   const topics = tool.topics || []
   const description = tool.description || 'Model Context Protocol tool'
   
-  // Generate smart, SEO-optimized title (50-60 chars ideal)
-  // Ensure title stays under 60 characters for optimal display
-  let smartTitle = ''
-  if (stars > 1000) {
-    const starsStr = stars.toLocaleString()
-    smartTitle = `${toolName} - ${starsStr}⭐ MCP`
-  } else if (stars > 100) {
-    smartTitle = `${toolName} - MCP Tool (${stars.toLocaleString()}⭐)`
-  } else {
-    const suffix = language ? ` - ${language} MCP` : ' - MCP Tool'
-    smartTitle = `${toolName}${suffix}`
+  // Helper: Convert to Title Case
+  const toTitleCase = (str: string): string => {
+    return str
+      .split(/[-_\s]/)
+      .map(word => {
+        // Keep acronyms uppercase (MCP, API, SDK, etc.)
+        if (word.toUpperCase() === word && word.length <= 4) return word
+        return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
+      })
+      .join(' ')
   }
   
-  // Truncate if still too long (max 60 chars)
+  // Helper: Extract key benefit from description
+  const extractBenefit = (desc: string): string => {
+    // Clean up the description
+    let benefit = desc
+      .replace(/^(A |An |The )/i, '') // Remove articles
+      .replace(/\s+/g, ' ') // Normalize spaces
+      .trim()
+    
+    // Capitalize first letter
+    benefit = benefit.charAt(0).toUpperCase() + benefit.slice(1)
+    
+    // Truncate if too long (keep title under 60 chars total)
+    if (benefit.length > 40) {
+      benefit = benefit.slice(0, 37) + '...'
+    }
+    
+    return benefit
+  }
+  
+  // Format tool name in Title Case
+  let formattedName = toTitleCase(toolName)
+  
+  // Add "MCP" if not already in the name
+  const nameLower = formattedName.toLowerCase()
+  if (!nameLower.includes('mcp')) {
+    formattedName = `${formattedName} MCP`
+  }
+  
+  // Extract benefit from description
+  const benefit = extractBenefit(description)
+  
+  // Generate title: [Tool Name + MCP] | [What It Does or Key Benefit]
+  let smartTitle = `${formattedName} | ${benefit}`
+  
+  // Ensure title stays under 60 characters for optimal SEO
   if (smartTitle.length > 60) {
-    smartTitle = `${smartTitle.slice(0, 57)}...`
+    // Try shortening the benefit
+    const shorterBenefit = benefit.slice(0, 25) + '...'
+    smartTitle = `${formattedName} | ${shorterBenefit}`
   }
   
   // Generate targeted description (150-160 chars ideal)
