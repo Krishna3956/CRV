@@ -191,12 +191,12 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     },
     other: {
       // OpenAI / ChatGPT meta tags
-      'openai:title': `${toolName} - Model Context Protocol Tool`,
+      'openai:title': smartTitle,
       'openai:description': smartDescription,
       'openai:image': `https://www.trackmcp.com/api/og?tool=${encodeURIComponent(toolName)}&stars=${tool.stars || 0}&description=${encodeURIComponent(smartDescription.slice(0, 150))}`,
       'openai:url': `https://www.trackmcp.com/tool/${encodeURIComponent(toolName)}`,
       // Perplexity AI meta tags
-      'perplexity:title': `${toolName} - MCP Tool`,
+      'perplexity:title': smartTitle,
       'perplexity:description': smartDescription,
       // AI-friendly content hints
       'ai:content_type': 'tool',

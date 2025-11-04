@@ -17,8 +17,8 @@ const inter = Inter({
 
 export const metadata: Metadata = {
   title: {
-    default: 'Track MCP - World\'s Largest Model Context Protocol Repository',
-    template: '%s - Track MCP'
+    default: 'Track MCP | World\'s Largest Model Context Protocol Directory',
+    template: '%s'
   },
   description: 'Explore 10,000+ Model Context Protocol tools, servers, and connectors. The world\'s largest MCP directory for AI development and LLM integration.',
   keywords: ['MCP', 'Model Context Protocol', 'AI tools', 'LLM tools', 'GitHub MCP', 'developer tools', 'MCP servers', 'MCP connectors', 'AI development', 'Claude MCP', 'OpenAI tools', 'AI integration', 'MCP directory', 'MCP repository'],
