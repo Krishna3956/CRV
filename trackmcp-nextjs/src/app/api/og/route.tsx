@@ -96,10 +96,9 @@ export async function GET(request: NextRequest) {
                   display: parseInt(stars) > 0 ? 'flex' : 'none',
                   alignItems: 'center',
                   gap: '10px',
-                  background: 'rgba(255, 255, 255, 0.2)',
+                  background: 'rgba(255, 255, 255, 0.25)',
                   padding: '12px 24px',
                   borderRadius: '100px',
-                  backdropFilter: 'blur(10px)',
                 }}
               >
                 <span style={{ fontSize: '24px' }}>⭐</span>
