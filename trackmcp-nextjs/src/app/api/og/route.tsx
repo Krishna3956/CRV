@@ -91,30 +91,28 @@ export async function GET(request: NextRequest) {
               </div>
 
               {/* Stars Badge */}
-              {parseInt(stars) > 0 && (
-                <div
+              <div
+                style={{
+                  display: parseInt(stars) > 0 ? 'flex' : 'none',
+                  alignItems: 'center',
+                  gap: '10px',
+                  background: 'rgba(255, 255, 255, 0.2)',
+                  padding: '12px 24px',
+                  borderRadius: '100px',
+                  backdropFilter: 'blur(10px)',
+                }}
+              >
+                <span style={{ fontSize: '24px' }}>⭐</span>
+                <span
                   style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '10px',
-                    background: 'rgba(255, 255, 255, 0.2)',
-                    padding: '12px 24px',
-                    borderRadius: '100px',
-                    backdropFilter: 'blur(10px)',
+                    fontSize: '24px',
+                    fontWeight: 700,
+                    color: 'white',
                   }}
                 >
-                  <span style={{ fontSize: '24px' }}>⭐</span>
-                  <span
-                    style={{
-                      fontSize: '24px',
-                      fontWeight: 700,
-                      color: 'white',
-                    }}
-                  >
-                    {parseInt(stars).toLocaleString()}
-                  </span>
-                </div>
-              )}
+                  {parseInt(stars).toLocaleString()}
+                </span>
+              </div>
             </div>
 
             {/* Main Content */}
