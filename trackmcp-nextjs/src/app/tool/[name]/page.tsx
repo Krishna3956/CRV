@@ -156,10 +156,10 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       'ai:tool_name': toolName,
     },
     alternates: {
-      canonical: `https://www.trackmcp.com/tool/${encodeURIComponent(params.name)}`,
+      canonical: `https://www.trackmcp.com/tool/${encodeURIComponent(toolName)}`,
       languages: {
-        'en-US': `https://www.trackmcp.com/tool/${encodeURIComponent(params.name)}`,
-        'x-default': `https://www.trackmcp.com/tool/${encodeURIComponent(params.name)}`,
+        'en-US': `https://www.trackmcp.com/tool/${encodeURIComponent(toolName)}`,
+        'x-default': `https://www.trackmcp.com/tool/${encodeURIComponent(toolName)}`,
       },
     },
   }

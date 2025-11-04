@@ -81,6 +81,25 @@ const nextConfig = {
   // Enable static exports for better performance
   // output: 'export', // Uncomment for static export
   
+  // Redirects for renamed or moved tools
+  async redirects() {
+    return [
+      // Example redirects - add your 404 URLs here
+      // {
+      //   source: '/tool/old-tool-name',
+      //   destination: '/tool/new-tool-name',
+      //   permanent: true, // 301 redirect
+      // },
+      
+      // Redirect trailing slashes
+      {
+        source: '/tool/:name/',
+        destination: '/tool/:name',
+        permanent: true,
+      },
+    ]
+  },
+  
   // Headers for SEO and Security
   async headers() {
     return [

@@ -74,10 +74,10 @@ export const metadata = {
   title: 'Track MCP - World\'s Largest Model Context Protocol Repository',
   description: 'Explore 10,000+ Model Context Protocol tools, servers, and connectors. The world\'s largest MCP directory for AI development and LLM integration.',
   alternates: {
-    canonical: 'https://www.trackmcp.com',
+    canonical: 'https://www.trackmcp.com/',
     languages: {
-      'en-US': 'https://www.trackmcp.com',
-      'x-default': 'https://www.trackmcp.com',
+      'en-US': 'https://www.trackmcp.com/',
+      'x-default': 'https://www.trackmcp.com/',
     },
   },
 }
