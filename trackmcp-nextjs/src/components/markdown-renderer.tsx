@@ -74,8 +74,8 @@ const processTextFormatting = (text: string, startKey: number) => {
   const parts: (string | JSX.Element)[] = []
   let key = startKey
   
-  // Process links [text](url)
-  const linkRegex = /\[([^\]]+)\]\(([^)]+)\)/g
+  // Process links [text](url) - improved regex to handle URLs with special chars
+  const linkRegex = /\[([^\]]+)\]\(([^)\s]+)\)/g
   let linkMatch
   let lastIndex = 0
   
@@ -84,15 +84,20 @@ const processTextFormatting = (text: string, startKey: number) => {
       const beforeLink = text.slice(lastIndex, linkMatch.index)
       parts.push(...processBoldItalic(beforeLink, key++))
     }
+    
+    // Clean and validate URL
+    const url = linkMatch[2].trim()
+    const linkText = linkMatch[1]
+    
     parts.push(
       <a 
         key={`link-${key++}`} 
-        href={linkMatch[2]} 
+        href={url} 
         target="_blank" 
         rel="noopener noreferrer"
-        className="text-primary hover:underline"
+        className="text-primary hover:underline font-medium"
       >
-        {linkMatch[1]}
+        {linkText}
       </a>
     )
     lastIndex = linkMatch.index + linkMatch[0].length
@@ -224,6 +229,67 @@ export function MarkdownRenderer({ content, githubUrl }: { content: string; gith
           {listItems}
         </ul>
       )
+      continue
+    }
+
+    // Tables
+    if (line.trim().startsWith("|") && line.trim().endsWith("|")) {
+      const tableLines: string[] = []
+      while (i < lines.length && lines[i].trim().startsWith("|")) {
+        tableLines.push(lines[i].trim())
+        i++
+      }
+      
+      if (tableLines.length >= 2) {
+        // Parse header
+        const headerCells = tableLines[0]
+          .split("|")
+          .map(cell => cell.trim())
+          .filter(cell => cell.length > 0)
+        
+        // Skip separator line (line with dashes)
+        const bodyLines = tableLines.slice(2)
+        
+        elements.push(
+          <div key={`table-${elements.length}`} className="my-6 overflow-x-auto">
+            <table className="min-w-full border-collapse border border-slate-700 rounded-lg overflow-hidden">
+              <thead className="bg-slate-900">
+                <tr>
+                  {headerCells.map((cell, idx) => (
+                    <th 
+                      key={`th-${idx}`} 
+                      className="border border-slate-700 px-4 py-3 text-left font-semibold text-slate-100"
+                    >
+                      {renderInlineMarkdown(cell)}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {bodyLines.map((row, rowIdx) => {
+                  const cells = row
+                    .split("|")
+                    .map(cell => cell.trim())
+                    .filter(cell => cell.length > 0)
+                  
+                  return (
+                    <tr key={`tr-${rowIdx}`} className="hover:bg-slate-900/50 transition-colors">
+                      {cells.map((cell, cellIdx) => (
+                        <td 
+                          key={`td-${rowIdx}-${cellIdx}`} 
+                          className="border border-slate-700 px-4 py-3 text-slate-200"
+                        >
+                          {renderInlineMarkdown(cell)}
+                        </td>
+                      ))}
+                    </tr>
+                  )
+                })}
+              </tbody>
+            </table>
+          </div>
+        )
+      }
       continue
     }
 
