@@ -40,7 +40,7 @@ const CodeBlock = ({ code, language }: { code: string; language?: string }) => {
   )
 }
 
-const renderInlineMarkdown = (text: string) => {
+const renderInlineMarkdown = (text: string, githubUrl?: string) => {
   const parts: (string | JSX.Element)[] = []
   let remaining = text
   let key = 0
@@ -53,7 +53,7 @@ const renderInlineMarkdown = (text: string) => {
   while ((codeMatch = codeRegex.exec(text)) !== null) {
     if (codeMatch.index > lastIndex) {
       const beforeCode = text.slice(lastIndex, codeMatch.index)
-      parts.push(...processTextFormatting(beforeCode, key++))
+      parts.push(...processTextFormatting(beforeCode, key++, githubUrl))
     }
     parts.push(
       <code key={`code-${key++}`} className="bg-slate-900 text-slate-100 px-1.5 py-0.5 rounded text-sm font-mono">
@@ -64,50 +64,146 @@ const renderInlineMarkdown = (text: string) => {
   }
   
   if (lastIndex < text.length) {
-    parts.push(...processTextFormatting(text.slice(lastIndex), key++))
+    parts.push(...processTextFormatting(text.slice(lastIndex), key++, githubUrl))
   }
   
   return parts.length > 0 ? parts : text
 }
 
-const processTextFormatting = (text: string, startKey: number) => {
+const resolveImageUrl = (url: string, githubUrl?: string): string => {
+  // If it's already an absolute URL, return as is
+  if (url.startsWith('http://') || url.startsWith('https://')) {
+    return url
+  }
+  
+  // If we have a GitHub URL, resolve relative paths
+  if (githubUrl) {
+    const repoMatch = githubUrl.match(/github\.com\/([^\/]+)\/([^\/]+)/)
+    if (repoMatch) {
+      const [, owner, repo] = repoMatch
+      const cleanRepo = repo.replace(/\.git$/, '')
+      // Remove leading ./ or /
+      const cleanPath = url.replace(/^\.\//, '').replace(/^\//, '')
+      return `https://raw.githubusercontent.com/${owner}/${cleanRepo}/main/${cleanPath}`
+    }
+  }
+  
+  return url
+}
+
+const processTextFormatting = (text: string, startKey: number, githubUrl?: string) => {
   const parts: (string | JSX.Element)[] = []
   let key = startKey
   
-  // Process links [text](url) - improved regex to handle URLs with special chars
-  const linkRegex = /\[([^\]]+)\]\(([^)\s]+)\)/g
-  let linkMatch
+  // Process image links [![alt](img-url)](link-url) first
+  const imageLinkRegex = /\[!\[([^\]]*)\]\(([^)]+)\)\]\(([^)]+)\)/g
+  let imageLinkMatch
   let lastIndex = 0
   
-  while ((linkMatch = linkRegex.exec(text)) !== null) {
-    if (linkMatch.index > lastIndex) {
-      const beforeLink = text.slice(lastIndex, linkMatch.index)
-      parts.push(...processBoldItalic(beforeLink, key++))
+  while ((imageLinkMatch = imageLinkRegex.exec(text)) !== null) {
+    if (imageLinkMatch.index > lastIndex) {
+      const beforeImageLink = text.slice(lastIndex, imageLinkMatch.index)
+      parts.push(...processLinksAndImages(beforeImageLink, key++, githubUrl))
     }
     
-    // Clean and validate URL
-    const url = linkMatch[2].trim()
-    const linkText = linkMatch[1]
+    const alt = imageLinkMatch[1]
+    const imgUrlRaw = imageLinkMatch[2].trim()
+    const linkUrlRaw = imageLinkMatch[3].trim()
+    
+    // Extract URL from potential "url 'title'" format
+    const imgUrlMatch = imgUrlRaw.match(/^(\S+)(?:\s+['"](.+)['"])?$/)
+    const imgUrl = resolveImageUrl(imgUrlMatch ? imgUrlMatch[1] : imgUrlRaw, githubUrl)
+    
+    const linkUrlMatch = linkUrlRaw.match(/^(\S+)(?:\s+['"](.+)['"])?$/)
+    const linkUrl = linkUrlMatch ? linkUrlMatch[1] : linkUrlRaw
+    
+    // Check if it's a YouTube link - make it bigger
+    const isYouTube = linkUrl.includes('youtube.com') || linkUrl.includes('youtu.be')
     
     parts.push(
       <a 
-        key={`link-${key++}`} 
-        href={url} 
+        key={`img-link-${key++}`} 
+        href={linkUrl} 
         target="_blank" 
         rel="noopener noreferrer"
-        className="text-primary hover:underline font-medium"
+        className="inline-block"
       >
-        {linkText}
+        <img 
+          src={imgUrl} 
+          alt={alt} 
+          className={isYouTube ? "inline-block max-w-full max-h-64 align-middle rounded-lg" : "inline-block max-h-10 align-middle"}
+        />
       </a>
     )
-    lastIndex = linkMatch.index + linkMatch[0].length
+    lastIndex = imageLinkMatch.index + imageLinkMatch[0].length
+  }
+  
+  if (lastIndex < text.length) {
+    parts.push(...processLinksAndImages(text.slice(lastIndex), key++, githubUrl))
+  }
+  
+  return parts.length > 0 ? parts : processLinksAndImages(text, key, githubUrl)
+}
+
+const processLinksAndImages = (text: string, startKey: number, githubUrl?: string) => {
+  const parts: (string | JSX.Element)[] = []
+  let key = startKey
+  
+  // Process images ![alt](url "title") and links [text](url) - allow empty alt text and optional title
+  const linkImageRegex = /(!?)\[([^\]]*)\]\(([^)]+)\)/g
+  let match
+  let lastIndex = 0
+  
+  while ((match = linkImageRegex.exec(text)) !== null) {
+    if (match.index > lastIndex) {
+      const beforeMatch = text.slice(lastIndex, match.index)
+      parts.push(...processBoldItalic(beforeMatch, key++))
+    }
+    
+    const isImage = match[1] === '!'
+    const altOrText = match[2]
+    const urlWithTitle = match[3].trim()
+    
+    // Extract URL and optional title: url "title" or url 'title'
+    const urlMatch = urlWithTitle.match(/^(\S+)(?:\s+['"](.+)['"])?$/)
+    const url = urlMatch ? urlMatch[1] : urlWithTitle
+    const title = urlMatch ? urlMatch[2] : altOrText
+    
+    if (isImage) {
+      // Render image with resolved URL
+      const resolvedUrl = resolveImageUrl(url, githubUrl)
+      parts.push(
+        <img 
+          key={`img-${key++}`} 
+          src={resolvedUrl} 
+          alt={altOrText || title || ''} 
+          title={title}
+          className="inline-block max-w-full max-h-96 align-middle rounded-lg my-2"
+        />
+      )
+    } else {
+      // Render link
+      parts.push(
+        <a 
+          key={`link-${key++}`} 
+          href={url} 
+          target="_blank" 
+          rel="noopener noreferrer"
+          className="text-primary hover:underline font-medium"
+          title={title !== altOrText ? title : undefined}
+        >
+          {altOrText}
+        </a>
+      )
+    }
+    lastIndex = match.index + match[0].length
   }
   
   if (lastIndex < text.length) {
     parts.push(...processBoldItalic(text.slice(lastIndex), key++))
   }
   
-  return parts
+  return parts.length > 0 ? parts : processBoldItalic(text, key)
 }
 
 const processBoldItalic = (text: string, startKey: number) => {
@@ -144,6 +240,37 @@ export function MarkdownRenderer({ content, githubUrl }: { content: string; gith
   cleanContent = cleanContent.replace(/<[^>]+>/g, "")
   cleanContent = cleanContent.replace(/\n\n\n+/g, "\n\n")
   
+  // Parse reference-style links [ref]: url
+  const linkRefs: Record<string, string> = {}
+  const refLinkRegex = /^\[([^\]]+)\]:\s*(.+)$/gm
+  let refMatch
+  while ((refMatch = refLinkRegex.exec(cleanContent)) !== null) {
+    linkRefs[refMatch[1]] = refMatch[2].trim()
+  }
+  
+  // Remove reference definitions from content
+  cleanContent = cleanContent.replace(/^\[([^\]]+)\]:\s*.+$/gm, "")
+  
+  // Replace reference-style links with inline links
+  // [![alt][img-ref]][link-ref] -> [![alt](img-url)](link-url)
+  cleanContent = cleanContent.replace(/\[!\[([^\]]*)\]\[([^\]]+)\]\]\[([^\]]+)\]/g, (match, alt, imgRef, linkRef) => {
+    const imgUrl = linkRefs[imgRef] || imgRef
+    const linkUrl = linkRefs[linkRef] || linkRef
+    return `[![${alt}](${imgUrl})](${linkUrl})`
+  })
+  
+  // ![alt][ref] -> ![alt](url)
+  cleanContent = cleanContent.replace(/!\[([^\]]*)\]\[([^\]]+)\]/g, (match, alt, ref) => {
+    const url = linkRefs[ref] || ref
+    return `![${alt}](${url})`
+  })
+  
+  // [text][ref] -> [text](url)
+  cleanContent = cleanContent.replace(/\[([^\]]+)\]\[([^\]]+)\]/g, (match, text, ref) => {
+    const url = linkRefs[ref] || ref
+    return `[${text}](${url})`
+  })
+  
   const lines = cleanContent.split("\n")
   const elements: JSX.Element[] = []
   let i = 0
@@ -178,7 +305,7 @@ export function MarkdownRenderer({ content, githubUrl }: { content: string; gith
     if (line.startsWith("# ")) {
       elements.push(
         <h1 key={`h1-${i}`} className="text-3xl font-bold mt-8 mb-4">
-          {renderInlineMarkdown(line.slice(2))}
+          {renderInlineMarkdown(line.slice(2), githubUrl)}
         </h1>
       )
       i++
@@ -187,7 +314,7 @@ export function MarkdownRenderer({ content, githubUrl }: { content: string; gith
     if (line.startsWith("## ")) {
       elements.push(
         <h2 key={`h2-${i}`} className="text-2xl font-bold mt-6 mb-3">
-          {renderInlineMarkdown(line.slice(3))}
+          {renderInlineMarkdown(line.slice(3), githubUrl)}
         </h2>
       )
       i++
@@ -196,7 +323,7 @@ export function MarkdownRenderer({ content, githubUrl }: { content: string; gith
     if (line.startsWith("### ")) {
       elements.push(
         <h3 key={`h3-${i}`} className="text-xl font-bold mt-5 mb-2">
-          {renderInlineMarkdown(line.slice(4))}
+          {renderInlineMarkdown(line.slice(4), githubUrl)}
         </h3>
       )
       i++
@@ -205,7 +332,7 @@ export function MarkdownRenderer({ content, githubUrl }: { content: string; gith
     if (line.startsWith("#### ")) {
       elements.push(
         <h4 key={`h4-${i}`} className="text-lg font-bold mt-4 mb-2">
-          {renderInlineMarkdown(line.slice(5))}
+          {renderInlineMarkdown(line.slice(5), githubUrl)}
         </h4>
       )
       i++
@@ -219,7 +346,7 @@ export function MarkdownRenderer({ content, githubUrl }: { content: string; gith
         const itemText = lines[i].trim().slice(2)
         listItems.push(
           <li key={`li-${i}`} className="ml-4">
-            {renderInlineMarkdown(itemText)}
+            {renderInlineMarkdown(itemText, githubUrl)}
           </li>
         )
         i++
@@ -252,20 +379,20 @@ export function MarkdownRenderer({ content, githubUrl }: { content: string; gith
         
         elements.push(
           <div key={`table-${elements.length}`} className="my-6 overflow-x-auto">
-            <table className="min-w-full border-collapse border border-slate-700 rounded-lg overflow-hidden">
-              <thead className="bg-slate-900">
+            <table className="min-w-full border-collapse border border-slate-300 dark:border-slate-600 rounded-lg overflow-hidden bg-white dark:bg-slate-800">
+              <thead className="bg-slate-100 dark:bg-slate-700">
                 <tr>
                   {headerCells.map((cell, idx) => (
                     <th 
                       key={`th-${idx}`} 
-                      className="border border-slate-700 px-4 py-3 text-left font-semibold text-slate-100"
+                      className="border border-slate-300 dark:border-slate-600 px-4 py-3 text-left font-semibold text-slate-900 dark:text-slate-100"
                     >
-                      {renderInlineMarkdown(cell)}
+                      {renderInlineMarkdown(cell, githubUrl)}
                     </th>
                   ))}
                 </tr>
               </thead>
-              <tbody>
+              <tbody className="bg-white dark:bg-slate-800">
                 {bodyLines.map((row, rowIdx) => {
                   const cells = row
                     .split("|")
@@ -273,13 +400,13 @@ export function MarkdownRenderer({ content, githubUrl }: { content: string; gith
                     .filter(cell => cell.length > 0)
                   
                   return (
-                    <tr key={`tr-${rowIdx}`} className="hover:bg-slate-900/50 transition-colors">
+                    <tr key={`tr-${rowIdx}`} className="hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors">
                       {cells.map((cell, cellIdx) => (
                         <td 
                           key={`td-${rowIdx}-${cellIdx}`} 
-                          className="border border-slate-700 px-4 py-3 text-slate-200"
+                          className="border border-slate-300 dark:border-slate-600 px-4 py-3 text-slate-900 dark:text-slate-100"
                         >
-                          {renderInlineMarkdown(cell)}
+                          {renderInlineMarkdown(cell, githubUrl)}
                         </td>
                       ))}
                     </tr>
@@ -304,7 +431,7 @@ export function MarkdownRenderer({ content, githubUrl }: { content: string; gith
         <blockquote key={`quote-${elements.length}`} className="border-l-4 border-primary/50 pl-4 py-2 my-4 italic text-muted-foreground bg-muted/30 rounded-r">
           {quoteLines.map((quoteLine, idx) => (
             <p key={idx} className="mb-1 last:mb-0">
-              {renderInlineMarkdown(quoteLine)}
+              {renderInlineMarkdown(quoteLine, githubUrl)}
             </p>
           ))}
         </blockquote>
@@ -316,7 +443,7 @@ export function MarkdownRenderer({ content, githubUrl }: { content: string; gith
     if (line.trim()) {
       elements.push(
         <p key={`p-${i}`} className="my-4 leading-relaxed">
-          {renderInlineMarkdown(line)}
+          {renderInlineMarkdown(line, githubUrl)}
         </p>
       )
     }
