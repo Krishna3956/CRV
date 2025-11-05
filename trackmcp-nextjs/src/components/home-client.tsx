@@ -36,7 +36,6 @@ export function HomeClient({ initialTools, totalCount }: HomeClientProps) {
   const [visibleCount, setVisibleCount] = useState(12)
   const [allTools, setAllTools] = useState<McpTool[]>(initialTools)
   const [isLoadingMore, setIsLoadingMore] = useState(false)
-  const [areCardsExpanded, setAreCardsExpanded] = useState(false)
   const [isFilterBarSticky, setIsFilterBarSticky] = useState(false)
 
   // Debounce search query
@@ -396,8 +395,6 @@ export function HomeClient({ initialTools, totalCount }: HomeClientProps) {
                     language={tool.language || undefined}
                     topics={tool.topics || undefined}
                     lastUpdated={tool.last_updated || undefined}
-                    isExpanded={areCardsExpanded}
-                    onToggleExpand={() => setAreCardsExpanded(!areCardsExpanded)}
                     isTrending={top5RecentTools.has(tool.id)}
                   />
                 </div>
