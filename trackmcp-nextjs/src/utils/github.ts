@@ -17,31 +17,20 @@ let rateLimitReset: number | null = null
 let remainingRequests: number | null = null
 
 export const fetchGitHub = async (url: string, options: RequestInit = {}, retries = 3): Promise<Response> => {
-  // Check if we're rate limited
-  if (rateLimitReset && Date.now() < rateLimitReset) {
-    const waitTime = Math.ceil((rateLimitReset - Date.now()) / 1000)
-    console.warn(`GitHub API rate limited. Resets in ${waitTime}s. Using cached data if available.`)
-    
-    // Try to return cached data even if expired
-    const cached = cache.get(url)
-    if (cached) {
-      return new Response(JSON.stringify(cached.data), {
-        status: 200,
-        headers: { 'Content-Type': 'application/json', 'X-Cache': 'HIT-RATE-LIMITED' }
-      })
-    }
-    
-    // If no cache, throw error with helpful message
-    throw new Error(`GitHub API rate limited. Please wait ${waitTime} seconds or add a GitHub token.`)
-  }
+  // Don't pre-emptively block requests - let GitHub API respond with actual rate limit status
+  // This allows requests to go through after rate limit resets
 
   // Check cache first
   const cached = cache.get(url)
   if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
     console.log(`Cache hit for: ${url}`)
-    return new Response(JSON.stringify(cached.data), {
+    const isText = typeof cached.data === 'string'
+    return new Response(isText ? cached.data : JSON.stringify(cached.data), {
       status: 200,
-      headers: { 'Content-Type': 'application/json', 'X-Cache': 'HIT' }
+      headers: { 
+        'Content-Type': isText ? 'text/plain' : 'application/json', 
+        'X-Cache': 'HIT' 
+      }
     })
   }
 
@@ -86,9 +75,13 @@ export const fetchGitHub = async (url: string, options: RequestInit = {}, retrie
     if (response.status === 304 && cached) {
       console.log(`Cache revalidated for: ${url}`)
       cached.timestamp = Date.now() // Refresh cache timestamp
-      return new Response(JSON.stringify(cached.data), {
+      const isText = typeof cached.data === 'string'
+      return new Response(isText ? cached.data : JSON.stringify(cached.data), {
         status: 200,
-        headers: { 'Content-Type': 'application/json', 'X-Cache': 'REVALIDATED' }
+        headers: { 
+          'Content-Type': isText ? 'text/plain' : 'application/json', 
+          'X-Cache': 'REVALIDATED' 
+        }
       })
     }
 
@@ -106,9 +99,13 @@ export const fetchGitHub = async (url: string, options: RequestInit = {}, retrie
         console.log('Returning stale cache due to rate limit')
         // Extend cache for rate-limited responses
         cached.timestamp = Date.now()
-        return new Response(JSON.stringify(cached.data), {
+        const isText = typeof cached.data === 'string'
+        return new Response(isText ? cached.data : JSON.stringify(cached.data), {
           status: 200,
-          headers: { 'Content-Type': 'application/json', 'X-Cache': 'STALE-RATE-LIMITED' }
+          headers: { 
+            'Content-Type': isText ? 'text/plain' : 'application/json', 
+            'X-Cache': 'STALE-RATE-LIMITED' 
+          }
         })
       }
 
@@ -129,9 +126,13 @@ export const fetchGitHub = async (url: string, options: RequestInit = {}, retrie
       // Return cached data on error if available
       if (cached) {
         console.log('Returning stale cache due to error')
-        return new Response(JSON.stringify(cached.data), {
+        const isText = typeof cached.data === 'string'
+        return new Response(isText ? cached.data : JSON.stringify(cached.data), {
           status: 200,
-          headers: { 'Content-Type': 'application/json', 'X-Cache': 'STALE-ERROR' }
+          headers: { 
+            'Content-Type': isText ? 'text/plain' : 'application/json', 
+            'X-Cache': 'STALE-ERROR' 
+          }
         })
       }
 
@@ -162,9 +163,13 @@ export const fetchGitHub = async (url: string, options: RequestInit = {}, retrie
     // Return cached data on network error if available
     if (cached) {
       console.log('Returning stale cache due to network error')
-      return new Response(JSON.stringify(cached.data), {
+      const isText = typeof cached.data === 'string'
+      return new Response(isText ? cached.data : JSON.stringify(cached.data), {
         status: 200,
-        headers: { 'Content-Type': 'application/json', 'X-Cache': 'STALE-NETWORK-ERROR' }
+        headers: { 
+          'Content-Type': isText ? 'text/plain' : 'application/json', 
+          'X-Cache': 'STALE-NETWORK-ERROR' 
+        }
       })
     }
     

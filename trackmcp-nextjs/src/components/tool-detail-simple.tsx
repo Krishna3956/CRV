@@ -54,11 +54,30 @@ export function ToolDetailClient({ tool }: ToolDetailClientProps) {
 
         // Fetch README
         const repoPath = tool.github_url.replace('https://github.com/', '').replace(/\/$/, '')
+        console.log('Fetching README for:', repoPath)
         const readmeResponse = await fetchGitHub(`https://api.github.com/repos/${repoPath}/readme`)
         
+        console.log('README response status:', readmeResponse.status)
         if (readmeResponse.ok) {
-          const readmeText = await readmeResponse.text()
-          setReadme(readmeText)
+          const contentType = readmeResponse.headers.get('Content-Type')
+          
+          // Check if response is JSON (base64 encoded) or raw text
+          if (contentType?.includes('application/json')) {
+            const data = await readmeResponse.json()
+            // Decode base64 content
+            if (data.content && data.encoding === 'base64') {
+              const decodedContent = atob(data.content.replace(/\n/g, ''))
+              console.log('README decoded from base64, length:', decodedContent.length)
+              setReadme(decodedContent)
+            }
+          } else {
+            // Raw text response
+            const readmeText = await readmeResponse.text()
+            console.log('README fetched as text, length:', readmeText.length)
+            setReadme(readmeText)
+          }
+        } else {
+          console.error('Failed to fetch README:', readmeResponse.status, readmeResponse.statusText)
         }
       } catch (err) {
         console.error('Error fetching GitHub data:', err)
@@ -139,12 +158,20 @@ export function ToolDetailClient({ tool }: ToolDetailClientProps) {
           </div>
 
           {/* README */}
-          {readme && (
-            <div className="mt-8">
-              <h2 className="text-2xl font-bold mb-4">Documentation</h2>
+          <div className="mt-8">
+            <h2 className="text-2xl font-bold mb-4">Documentation</h2>
+            {isLoadingReadme ? (
+              <div className="flex items-center justify-center py-12">
+                <div className="text-muted-foreground">Loading README...</div>
+              </div>
+            ) : readme ? (
               <MarkdownRenderer content={readme} githubUrl={tool.github_url} />
-            </div>
-          )}
+            ) : (
+              <div className="text-muted-foreground py-8 text-center">
+                No README available for this tool.
+              </div>
+            )}
+          </div>
         </main>
       </div>
       
