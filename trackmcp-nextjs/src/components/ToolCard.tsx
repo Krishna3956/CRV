@@ -1,13 +1,11 @@
 "use client"
 
-import { useState, useMemo } from "react";
+import { useMemo } from "react";
 import Link from "next/link";
-import { Star, GitBranch, Calendar, ChevronDown, ChevronUp, TrendingUp, Eye, ExternalLink } from "lucide-react";
+import { Star, TrendingUp, ExternalLink } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-import { format, formatDistanceToNow } from "date-fns";
 
 interface ToolCardProps {
   name: string;
@@ -17,8 +15,6 @@ interface ToolCardProps {
   language?: string;
   topics?: string[];
   lastUpdated?: string;
-  isExpanded?: boolean;
-  onToggleExpand?: () => void;
   isTrending?: boolean;
 }
 
@@ -58,11 +54,8 @@ export const ToolCard = ({
   language,
   topics,
   lastUpdated,
-  isExpanded: isExpandedProp = true,
-  onToggleExpand,
   isTrending = false,
 }: ToolCardProps) => {
-  const isExpanded = isExpandedProp;
   const toolUrl = `/tool/${encodeURIComponent(name)}`;
   
   // Extract owner name and avatar URL immediately from GitHub URL (no async needed)
@@ -93,17 +86,6 @@ export const ToolCard = ({
     };
   }, [topics]);
   
-  // Calculate alternative metrics
-  const estimatedDownloads = Math.floor(stars * 15); // Rough estimate
-  const recentActivity = lastUpdated ? formatDistanceToNow(new Date(lastUpdated), { addSuffix: true }) : null;
-
-  const handleExpandClick = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    e.preventDefault();
-    if (onToggleExpand) {
-      onToggleExpand();
-    }
-  };
 
   return (
     <Link href={toolUrl} className="block h-full">
@@ -136,7 +118,7 @@ export const ToolCard = ({
             </div>
             
             <CardDescription 
-              className={`text-muted-foreground ${isExpanded ? '' : 'line-clamp-2'} text-base`}
+              className="text-muted-foreground text-base line-clamp-2"
               style={{ fontSize: '15px', lineHeight: '1.5' }}
             >
               {description || "No description available"}
@@ -157,14 +139,6 @@ export const ToolCard = ({
             <span className="font-semibold text-foreground" style={{ fontSize: '15px' }}>{stars.toLocaleString()}</span>
           </div>
           
-          {/* Alternative metric for low-starred items */}
-          {stars < 50 && (
-            <div className="flex items-center gap-1 text-muted-foreground">
-              <Eye className="h-3.5 w-3.5" />
-              <span className="text-sm font-medium" style={{ fontSize: '13px' }}>{estimatedDownloads.toLocaleString()} views</span>
-            </div>
-          )}
-          
           {language && (
             <Badge 
               variant="secondary"
@@ -173,13 +147,6 @@ export const ToolCard = ({
             >
               {language}
             </Badge>
-          )}
-          
-          {lastUpdated && !isExpanded && (
-            <div className="flex items-center gap-1 text-muted-foreground ml-auto">
-              <Calendar className="h-3.5 w-3.5" />
-              <span className="text-sm" style={{ fontSize: '13px' }} suppressHydrationWarning>{recentActivity}</span>
-            </div>
           )}
         </div>
         
@@ -221,65 +188,6 @@ export const ToolCard = ({
             )}
           </div>
         )}
-        
-        {/* Expanded content */}
-        {isExpanded && (
-          <div className="space-y-2.5 pt-4 border-t animate-in fade-in slide-in-from-top-2 duration-300">
-            {lastUpdated && (
-              <div className="flex items-center justify-between text-sm text-muted-foreground" style={{ fontSize: '13px' }}>
-                <span className="flex items-center gap-1">
-                  <Calendar className="h-3.5 w-3.5" />
-                  Last updated
-                </span>
-                <span className="font-medium">{format(new Date(lastUpdated), "MMM d, yyyy")}</span>
-              </div>
-            )}
-            
-            <div className="flex items-center justify-between text-xs text-muted-foreground">
-              <span className="flex items-center gap-1.5">
-                <GitBranch className="h-3.5 w-3.5" />
-                Repository
-              </span>
-              <a 
-                href={githubUrl} 
-                target="_blank" 
-                rel="noopener noreferrer"
-                onClick={(e) => e.stopPropagation()}
-                className="font-medium text-primary hover:underline"
-              >
-                View on GitHub →
-              </a>
-            </div>
-            
-            {estimatedDownloads > 0 && (
-              <div className="flex items-center justify-between text-sm text-muted-foreground" style={{ fontSize: '13px' }}>
-                <span className="flex items-center gap-1">
-                  <Eye className="h-3.5 w-3.5" />
-                  Estimated views
-                </span>
-                <span className="font-medium">{estimatedDownloads.toLocaleString()}</span>
-              </div>
-            )}
-          </div>
-        )}
-        
-        {/* Expand/Collapse button */}
-        <Button
-          variant="ghost"
-          size="sm"
-          className="h-7 w-full text-sm text-muted-foreground hover:text-primary transition-colors mt-auto"
-          onClick={handleExpandClick}
-        >
-          {isExpanded ? (
-            <>
-              Show less <ChevronUp className="h-3 w-3 ml-1" />
-            </>
-          ) : (
-            <>
-              Show more <ChevronDown className="h-3 w-3 ml-1" />
-            </>
-          )}
-        </Button>
       </CardContent>
     </Card>
     </Link>
