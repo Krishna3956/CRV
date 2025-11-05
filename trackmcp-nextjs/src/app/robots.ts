@@ -6,46 +6,95 @@ export default function robots(): MetadataRoute.Robots {
       {
         userAgent: '*',
         allow: '/',
+        disallow: [
+          '/_next/static/',
+          '/_next/image/',
+          '/_next/data/',
+          '/_next/',
+          '/api/',
+          '/assets/',
+          '/.well-known/',
+          '/apple-app-site-association',
+          '/*.json$',
+          '/*.css$',
+          '/*.js$',
+        ],
       },
       // Perplexity AI
       {
         userAgent: 'PerplexityBot',
         allow: '/',
-        crawlDelay: 1, // Be nice to their servers
+        disallow: [
+          '/_next/',
+          '/api/',
+          '/assets/',
+          '/.well-known/',
+        ],
       },
       // ChatGPT / SearchGPT
       {
         userAgent: 'ChatGPT-User',
         allow: '/',
-        crawlDelay: 1,
+        disallow: [
+          '/_next/',
+          '/api/',
+          '/assets/',
+          '/.well-known/',
+        ],
       },
       // OpenAI Search Bot
       {
         userAgent: 'OAI-SearchBot',
         allow: '/',
-        crawlDelay: 1,
+        disallow: [
+          '/_next/',
+          '/api/',
+          '/assets/',
+          '/.well-known/',
+        ],
       },
       // OpenAI Training Bot
       {
         userAgent: 'GPTBot',
         allow: '/',
-        crawlDelay: 1,
+        disallow: [
+          '/_next/',
+          '/api/',
+          '/assets/',
+          '/.well-known/',
+        ],
       },
       // Claude AI (Anthropic)
       {
         userAgent: 'anthropic-ai',
         allow: '/',
-        crawlDelay: 1,
+        disallow: [
+          '/_next/',
+          '/api/',
+          '/assets/',
+          '/.well-known/',
+        ],
       },
       {
         userAgent: 'Claude-Web',
         allow: '/',
-        crawlDelay: 1,
+        disallow: [
+          '/_next/',
+          '/api/',
+          '/assets/',
+          '/.well-known/',
+        ],
       },
       // Google Gemini
       {
         userAgent: 'Google-Extended',
         allow: '/',
+        disallow: [
+          '/_next/',
+          '/api/',
+          '/assets/',
+          '/.well-known/',
+        ],
       },
     ],
     sitemap: 'https://www.trackmcp.com/sitemap.xml',
