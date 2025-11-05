@@ -1,16 +1,48 @@
 User-agent: *
 Allow: /
+# Block Next.js static assets and build files
+Disallow: /_next/static/
+Disallow: /_next/image/
+Disallow: /_next/data/
+Disallow: /_next/
+# Block API routes
+Disallow: /api/
+# Block static assets
+Disallow: /assets/
+# Block system files
+Disallow: /.well-known/
+Disallow: /apple-app-site-association
+# Block other non-content paths
+Disallow: /*.json$
+Disallow: /*.css$
+Disallow: /*.js$
 
 User-agent: PerplexityBot
 Allow: /
+Disallow: /_next/
+Disallow: /api/
+Disallow: /assets/
+Disallow: /.well-known/
 
 User-agent: ChatGPT-User
 Allow: /
+Disallow: /_next/
+Disallow: /api/
+Disallow: /assets/
+Disallow: /.well-known/
 
 User-agent: OAI-SearchBot
 Allow: /
+Disallow: /_next/
+Disallow: /api/
+Disallow: /assets/
+Disallow: /.well-known/
 
 User-agent: GPTBot
 Allow: /
+Disallow: /_next/
+Disallow: /api/
+Disallow: /assets/
+Disallow: /.well-known/
 
 Sitemap: https://www.trackmcp.com/sitemap.xml
