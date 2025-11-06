@@ -95,53 +95,42 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 export default async function CategoryPage({ params, searchParams }: Props) {
   try {
     const supabase = createClient()
-    // Convert slug back to category name (replace hyphens with spaces, "and" with "&")
-    let categoryName = params.slug
-      .replace(/and/g, '&')
-      .replace(/-/g, ' ')
-      .replace(/\b\w/g, (l) => l.toUpperCase())
-    
-    // Format AI properly
-    categoryName = formatCategoryName(categoryName)
     
     const page = parseInt(searchParams.page || '1', 10)
     const pageSize = 50
     const offset = (page - 1) * pageSize
 
-    // Try to fetch tools directly with the formatted category name first
-    const { data: toolsTest, error: testError } = await supabase
+    // Fetch all categories first to find the exact match
+    const { data: allCategoriesData } = await supabase
       .from('mcp_tools')
-      .select('id, repo_name, description, stars, last_updated, category')
-      .eq('category', categoryName)
+      .select('category')
       .in('status', ['approved', 'pending'])
-      .limit(1)
+      .limit(5000) as any
 
-    // If exact match found, use it
-    let actualCategoryName = categoryName
-    
-    // If not found, try case-insensitive search by fetching all and filtering
-    if (!toolsTest || toolsTest.length === 0) {
-      const { data: allCategories } = await supabase
-        .from('mcp_tools')
-        .select('category')
-        .in('status', ['approved', 'pending'])
-        .limit(5000) as any
-
-      if (allCategories && allCategories.length > 0) {
-        const uniqueCategories = [...new Set(allCategories.map((t: any) => t.category))] as string[]
-        const foundCategory = uniqueCategories.find(
-          (cat) => cat.toLowerCase() === categoryName.toLowerCase()
-        )
-        
-        if (foundCategory) {
-          actualCategoryName = foundCategory
-        } else {
-          notFound()
-        }
-      } else {
-        notFound()
-      }
+    if (!allCategoriesData || allCategoriesData.length === 0) {
+      notFound()
     }
+
+    // Get unique categories
+    const uniqueCategories = [...new Set(allCategoriesData.map((t: any) => t.category))] as string[]
+
+    // Find matching category by comparing slugs
+    const slug = params.slug.toLowerCase()
+    const actualCategoryName = uniqueCategories.find((cat) => {
+      const catSlug = cat.toLowerCase().replace(/\s+/g, '-').replace(/&/g, 'and')
+      return catSlug === slug
+    })
+
+    if (!actualCategoryName) {
+      console.error(`Category not found for slug: ${slug}`)
+      notFound()
+    }
+
+    // Format the category name for display
+    let categoryName = actualCategoryName
+      .replace(/&/g, '& ')
+      .replace(/\b\w/g, (l) => l.toUpperCase())
+    categoryName = formatCategoryName(categoryName)
 
     // Fetch tools in category with pagination
     const { data: tools, error: toolsError } = await supabase
