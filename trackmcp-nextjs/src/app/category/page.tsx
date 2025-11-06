@@ -145,58 +145,130 @@ export default async function CategoryPage() {
   }
 
   const categoryList = categories || []
+  
+  // Identify featured categories (top 3 by count)
+  const featuredCategories = categoryList.slice(0, 3)
+  const otherCategories = categoryList.slice(3)
+  
+  // Get gradient colors for featured categories
+  const gradientColors = [
+    'from-blue-500/20 via-blue-400/10 to-blue-500/5',
+    'from-purple-500/20 via-purple-400/10 to-purple-500/5',
+    'from-pink-500/20 via-pink-400/10 to-pink-500/5',
+  ]
+  
+  const borderColors = [
+    'border-blue-500/30 hover:border-blue-500/60',
+    'border-purple-500/30 hover:border-purple-500/60',
+    'border-pink-500/30 hover:border-pink-500/60',
+  ]
 
   return (
     <div className="min-h-screen bg-background">
       <MobileNav title="Categories" showBackButton={true} />
-      <main className="container mx-auto px-4 py-8 md:py-8 pt-20 md:pt-8">
-        {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold mb-2">Browse All Categories</h1>
-          <p className="text-base text-muted-foreground max-w-2xl">
-            Explore Model Context Protocol servers organized by category. Find tools for your specific use case.
-          </p>
+      <main className="container mx-auto px-4 py-8 md:py-12 pt-20 md:pt-8">
+        {/* Hero Section */}
+        <div className="mb-16">
+          <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-primary/10 via-accent/5 to-primary/5 border border-primary/20 p-8 md:p-12">
+            {/* Decorative background elements */}
+            <div className="absolute top-0 right-0 w-96 h-96 bg-primary/5 rounded-full blur-3xl -mr-48 -mt-48" />
+            <div className="absolute bottom-0 left-0 w-96 h-96 bg-accent/5 rounded-full blur-3xl -ml-48 -mb-48" />
+            
+            {/* Content */}
+            <div className="relative z-10">
+              <h1 className="text-4xl md:text-5xl font-bold mb-4 gradient-text">
+                Explore MCP Categories
+              </h1>
+              <p className="text-lg text-muted-foreground max-w-2xl mb-6">
+                Discover the world's largest repository of Model Context Protocol servers organized by category. Find the perfect tools for your AI development needs.
+              </p>
+              <div className="flex flex-col sm:flex-row gap-3">
+                <SubmitToolDialog variant="default" />
+                <button className="px-6 py-2.5 rounded-lg border border-primary/30 hover:border-primary/60 text-foreground hover:bg-primary/5 transition-all duration-300 font-medium text-sm">
+                  Learn More
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
 
-        {/* Categories Grid - 3 columns matching ToolCard layout */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {categoryList.map((cat) => (
-            <Link
-              key={cat.category}
-              href={`/category/${cat.category.toLowerCase().replace(/\s+/g, '-').replace(/&/g, 'and')}`}
-              className="group relative p-5 rounded-lg border border-border bg-card hover:border-primary/50 transition-all duration-300 overflow-hidden"
-            >
-              {/* Gradient background on hover */}
-              <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-accent/5 to-primary/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
-              
-              {/* Shadow effect on hover */}
-              <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none shadow-lg" />
-              
-              {/* Content */}
-              <div className="relative z-10">
-                <div className="flex items-start justify-between mb-3">
-                  <h2 className="text-base font-semibold group-hover:text-primary transition-colors flex-1">
-                    {formatCategoryName(cat.category)}
-                  </h2>
-                  <div className="ml-3 text-muted-foreground group-hover:text-primary transition-colors flex-shrink-0 group-hover:scale-110 transform duration-300">
-                    {getCategoryIcon(cat.category)}
+        {/* Featured Categories - Larger cards */}
+        {featuredCategories.length > 0 && (
+          <div className="mb-16">
+            <h2 className="text-2xl font-bold mb-6">Featured Categories</h2>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {featuredCategories.map((cat, idx) => (
+                <Link
+                  key={cat.category}
+                  href={`/category/${cat.category.toLowerCase().replace(/\s+/g, '-').replace(/&/g, 'and')}`}
+                  className={`group relative p-8 rounded-xl border transition-all duration-300 overflow-hidden hover:shadow-xl ${borderColors[idx]}`}
+                >
+                  {/* Gradient background */}
+                  <div className={`absolute inset-0 bg-gradient-to-br ${gradientColors[idx]} opacity-60 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none`} />
+                  
+                  {/* Content */}
+                  <div className="relative z-10">
+                    <div className="flex items-start justify-between mb-4">
+                      <div>
+                        <h3 className="text-2xl font-bold group-hover:text-primary transition-colors mb-1">
+                          {formatCategoryName(cat.category)}
+                        </h3>
+                        <p className="text-sm text-muted-foreground">
+                          {cat.count} {cat.count === 1 ? 'tool' : 'tools'}
+                        </p>
+                      </div>
+                      <div className="text-4xl opacity-20 group-hover:opacity-40 transition-opacity flex-shrink-0">
+                        {getCategoryIcon(cat.category)}
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground group-hover:text-primary transition-colors mt-6">
+                      <span>Explore</span>
+                      <svg className="w-4 h-4 group-hover:translate-x-1 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                      </svg>
+                    </div>
                   </div>
-                </div>
-                
-                <p className="text-sm text-muted-foreground mb-4 line-clamp-2">
-                  {cat.count} {cat.count === 1 ? 'tool' : 'tools'} available
-                </p>
-                
-                <div className="flex items-center justify-between text-xs text-muted-foreground group-hover:text-primary transition-colors">
-                  <span>Browse category</span>
-                  <svg className="w-3 h-3 group-hover:translate-x-1 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                  </svg>
-                </div>
-              </div>
-            </Link>
-          ))}
-        </div>
+                </Link>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* All Categories - Smaller grid */}
+        {otherCategories.length > 0 && (
+          <div>
+            <h2 className="text-2xl font-bold mb-6">All Categories</h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              {otherCategories.map((cat) => (
+                <Link
+                  key={cat.category}
+                  href={`/category/${cat.category.toLowerCase().replace(/\s+/g, '-').replace(/&/g, 'and')}`}
+                  className="group relative p-4 rounded-lg border border-border bg-card hover:border-primary/50 hover:bg-card/80 transition-all duration-300 overflow-hidden hover:shadow-md"
+                >
+                  {/* Gradient background on hover */}
+                  <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-accent/5 to-primary/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
+                  
+                  {/* Content */}
+                  <div className="relative z-10">
+                    <div className="flex items-start justify-between mb-2">
+                      <h3 className="text-sm font-semibold group-hover:text-primary transition-colors flex-1">
+                        {formatCategoryName(cat.category)}
+                      </h3>
+                      <div className="ml-2 text-muted-foreground group-hover:text-primary transition-colors flex-shrink-0 group-hover:scale-110 transform duration-300">
+                        {getCategoryIcon(cat.category)}
+                      </div>
+                    </div>
+                    
+                    <p className="text-xs text-muted-foreground">
+                      {cat.count} {cat.count === 1 ? 'tool' : 'tools'}
+                    </p>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Empty state */}
         {categoryList.length === 0 && (
