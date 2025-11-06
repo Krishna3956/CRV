@@ -64,9 +64,10 @@ function generateSmartMetadata(tool: McpTool) {
     // Capitalize first letter
     benefit = benefit.charAt(0).toUpperCase() + benefit.slice(1)
     
-    // Truncate if too long (keep title under 60 chars total)
-    if (benefit.length > 40) {
-      benefit = benefit.slice(0, 37) + '...'
+    // Truncate if too long (keep title under 50 chars total)
+    // No ellipsis - clean truncation at word boundary
+    if (benefit.length > 30) {
+      benefit = benefit.slice(0, 30).trim()
     }
     
     return benefit
@@ -98,22 +99,29 @@ function generateSmartMetadata(tool: McpTool) {
   const benefit = extractBenefit(description)
   
   // Generate title: [Tool Name + MCP] | [What It Does or Key Benefit]
+  // Keep under 50 characters - no ellipsis
   let smartTitle = `${formattedName} | ${benefit}`
   
-  // Ensure title stays under 60 characters for optimal SEO
-  if (smartTitle.length > 60) {
-    // Try shortening the benefit
-    const shorterBenefit = benefit.slice(0, 25) + '...'
-    smartTitle = `${formattedName} | ${shorterBenefit}`
+  // Ensure title stays under 50 characters for optimal SEO
+  if (smartTitle.length > 50) {
+    // Remove benefit if title is too long, just use tool name
+    smartTitle = formattedName.length <= 50 ? formattedName : formattedName.slice(0, 50).trim()
   }
   
-  // Generate targeted description (150-160 chars ideal)
+  // Generate targeted description (under 160 chars ideal)
   // Enhance description with context based on tool characteristics
   let smartDescription = description
   
-  if (description.length > 155) {
-    // Long description: truncate cleanly
-    smartDescription = `${description.slice(0, 152)}...`
+  if (description.length > 160) {
+    // Long description: truncate cleanly without ellipsis
+    // Find last space before 160 chars for clean break
+    let truncated = description.slice(0, 160)
+    const lastSpace = truncated.lastIndexOf(' ')
+    if (lastSpace > 100) {
+      smartDescription = truncated.slice(0, lastSpace).trim()
+    } else {
+      smartDescription = truncated.trim()
+    }
   } else if (description.length < 120) {
     // Short description: add valuable context
     const contextParts = []
@@ -133,9 +141,21 @@ function generateSmartMetadata(tool: McpTool) {
       contextParts.push('MCP tool for AI development')
     }
     
-    // Combine description with context
-    const context = contextParts.length > 0 ? `. ${contextParts.join('. ')}.` : ''
-    smartDescription = `${description}${context}`.slice(0, 160)
+    // Combine description with context - keep under 160 chars
+    const context = contextParts.length > 0 ? `. ${contextParts.join('. ')}` : ''
+    let combined = `${description}${context}`
+    if (combined.length > 160) {
+      // Truncate without ellipsis
+      let truncated = combined.slice(0, 160)
+      const lastSpace = truncated.lastIndexOf(' ')
+      if (lastSpace > 100) {
+        smartDescription = truncated.slice(0, lastSpace).trim()
+      } else {
+        smartDescription = truncated.trim()
+      }
+    } else {
+      smartDescription = combined
+    }
   }
   // Medium length (120-155): use as-is, it's already good
   
