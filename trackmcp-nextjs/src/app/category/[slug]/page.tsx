@@ -37,20 +37,32 @@ export async function generateStaticParams() {
   try {
     const supabase = createClient()
 
-    // Fetch all categories
-    const { data: tools } = await supabase
+    // Fetch all categories with limit
+    const { data: tools, error } = await supabase
       .from('mcp_tools')
       .select('category')
       .in('status', ['approved', 'pending'])
+      .limit(10000)
+
+    if (error) {
+      console.error('Error fetching categories:', error)
+      return []
+    }
+
+    if (!tools || tools.length === 0) {
+      console.warn('No tools found for static params generation')
+      return []
+    }
 
     // Get unique categories
-    const uniqueCategories = [...new Set(tools?.map((t: any) => t.category) || [])] as string[]
+    const uniqueCategories = [...new Set(tools.map((t: any) => t.category))] as string[]
 
     // Convert to slugs
     const categoryParams = uniqueCategories.map((category) => ({
       slug: category.toLowerCase().replace(/\s+/g, '-').replace(/&/g, 'and'),
     }))
 
+    console.log(`Generated static params for ${categoryParams.length} categories`)
     return categoryParams
   } catch (error) {
     console.error('Error generating static params:', error)
