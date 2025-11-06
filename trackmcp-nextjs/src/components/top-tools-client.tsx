@@ -99,9 +99,9 @@ export function TopToolsClient({ initialTools }: TopToolsClientProps) {
           <p>Showing <span className="font-semibold text-foreground">{sortedAndFilteredTools.length}</span> tools</p>
         </div>
         
-        <div className="flex flex-col xs:flex-row items-start xs:items-center gap-2 w-full sm:w-auto">
+        <div className="flex flex-row items-center gap-2 sm:gap-3 md:gap-4 w-full sm:w-auto">
           <Select value={sortBy} onValueChange={setSortBy}>
-            <SelectTrigger className="w-full xs:w-auto h-9 text-xs sm:text-sm border border-border rounded-md px-3 py-2 bg-background hover:bg-muted/50 transition-colors">
+            <SelectTrigger className="w-1/2 sm:w-40 md:w-44 h-9 text-xs sm:text-sm border border-border rounded-md px-3 py-2 bg-background hover:bg-muted/50 transition-colors">
               <SelectValue placeholder="Sort by..." />
             </SelectTrigger>
             <SelectContent className="bg-popover border z-50">
@@ -112,7 +112,7 @@ export function TopToolsClient({ initialTools }: TopToolsClientProps) {
           </Select>
 
           <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-            <SelectTrigger className="w-full xs:w-auto h-9 text-xs sm:text-sm border border-border rounded-md px-3 py-2 bg-background hover:bg-muted/50 transition-colors">
+            <SelectTrigger className="w-1/2 sm:w-40 md:w-44 h-9 text-xs sm:text-sm border border-border rounded-md px-3 py-2 bg-background hover:bg-muted/50 transition-colors">
               <SelectValue placeholder="All Categories" />
             </SelectTrigger>
             <SelectContent className="bg-popover border z-50 max-h-60">
@@ -167,10 +167,10 @@ export function TopToolsClient({ initialTools }: TopToolsClientProps) {
                 onTouchStart={() => setHoveredRowId(tool.id)}
                 onTouchEnd={() => setHoveredRowId(null)}
               >
-                <td className="px-2 md:px-4 py-3 md:py-4 text-xs md:text-sm font-semibold text-muted-foreground whitespace-nowrap w-8 md:w-12">
+                <td className="px-2 md:px-3 py-4 md:py-5 text-xs md:text-sm font-semibold text-muted-foreground whitespace-nowrap w-10 md:w-14">
                   #{index + 1}
                 </td>
-                <td className="px-2 md:px-4 py-3 md:py-4 overflow-hidden">
+                <td className="px-2 md:px-3 py-4 md:py-5 overflow-hidden w-48 md:w-64">
                   <Link
                     href={`/tool/${encodeURIComponent(tool.repo_name)}`}
                     className="flex items-center gap-1 md:gap-2 font-medium hover:text-primary transition-colors"
@@ -191,15 +191,15 @@ export function TopToolsClient({ initialTools }: TopToolsClientProps) {
                     {tool.description}
                   </p>
                 </td>
-                <td className="hidden md:table-cell px-4 py-4 text-sm">
-                  <span className="inline-block px-2 py-1 rounded-full bg-primary/10 text-primary text-xs font-medium max-w-xs truncate">
+                <td className="hidden md:table-cell px-1 md:pr-8 py-4 md:py-5 text-sm">
+                  <span className="inline-block px-3 py-1.5 rounded-full bg-primary/10 text-primary text-xs font-medium max-w-lg truncate">
                     {tool.category}
                   </span>
                 </td>
-                <td className="hidden sm:table-cell px-2 md:px-4 py-3 md:py-4 text-right whitespace-nowrap w-20 md:w-28">
+                <td className="hidden sm:table-cell px-4 md:px-6 py-4 md:py-5 text-right whitespace-nowrap">
                   <span className="text-xs md:text-sm text-muted-foreground">{getEstimatedViews(tool.stars)}</span>
                 </td>
-                <td className="px-1 md:px-3 py-3 md:py-4 text-right whitespace-nowrap">
+                <td className="px-2 md:px-3 py-4 md:py-5 text-right whitespace-nowrap w-20 md:w-24">
                   <div className="flex items-center justify-end gap-1 h-6">
                     <Star className="h-3 w-3 md:h-4 md:w-4 fill-yellow-500 text-yellow-500 flex-shrink-0" />
                     <span className="font-semibold text-xs md:text-sm">{tool.stars.toLocaleString()}</span>
