@@ -38,7 +38,7 @@ export default function PrivacyPage() {
               {/* Introduction */}
               <div>
                 <p>
-                  TrackMCP.com ("we," "us," or "our") values your privacy and is committed to protecting your personal information. This Privacy Policy explains what information we collect, how we use it, and your rights relating to your information when you use our website.
+                  TrackMCP.com (&quot;we,&quot; &quot;us,&quot; or &quot;our&quot;) values your privacy and is committed to protecting your personal information. This Privacy Policy explains what information we collect, how we use it, and your rights relating to your information when you use our website.
                 </p>
               </div>
 
@@ -124,7 +124,7 @@ export default function PrivacyPage() {
                   </li>
                   <li className="flex gap-3">
                     <span className="text-primary font-bold flex-shrink-0">•</span>
-                    <span>Legal authorities, if required by law or to protect our legal rights and users' safety.</span>
+                    <span>Legal authorities, if required by law or to protect our legal rights and users&apos; safety.</span>
                   </li>
                 </ul>
               </div>
@@ -180,7 +180,7 @@ export default function PrivacyPage() {
               <div>
                 <h2 className="text-2xl font-bold text-foreground mb-4">9. Updates to This Privacy Policy</h2>
                 <p>
-                  We may update this Privacy Policy from time to time. Changes will be posted on this page, and the "Effective Date" will be updated accordingly. Continued use of TrackMCP.com after changes constitutes your acceptance of the revised policy.
+                  We may update this Privacy Policy from time to time. Changes will be posted on this page, and the &quot;Effective Date&quot; will be updated accordingly. Continued use of TrackMCP.com after changes constitutes your acceptance of the revised policy.
                 </p>
               </div>
 

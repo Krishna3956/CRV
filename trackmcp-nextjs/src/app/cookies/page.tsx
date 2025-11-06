@@ -38,7 +38,7 @@ export default function CookiePage() {
               {/* Introduction */}
               <div>
                 <p>
-                  At TrackMCP.com ("we", "us", or "our"), we use cookies and similar tracking technologies to enhance your browsing experience and analyze site traffic. This Cookie Policy explains what cookies are, how we use them, and how you can manage your cookie preferences.
+                  At TrackMCP.com (&quot;we&quot;, &quot;us&quot;, or &quot;our&quot;), we use cookies and similar tracking technologies to enhance your browsing experience and analyze site traffic. This Cookie Policy explains what cookies are, how we use them, and how you can manage your cookie preferences.
                 </p>
               </div>
 
@@ -107,7 +107,7 @@ export default function CookiePage() {
                   </li>
                   <li className="flex gap-3">
                     <span className="text-primary font-bold flex-shrink-0">•</span>
-                    <span>You can change or withdraw your cookie preferences anytime by clicking the "Cookie Settings" link usually found at the bottom of the website.</span>
+                    <span>You can change or withdraw your cookie preferences anytime by clicking the &quot;Cookie Settings&quot; link usually found at the bottom of the website.</span>
                   </li>
                 </ul>
               </div>

@@ -46,7 +46,7 @@ export default function TermsPage() {
               <div>
                 <h2 className="text-2xl font-bold text-foreground mb-4">1. Acceptance of Terms</h2>
                 <p>
-                  By using TrackMCP.com ("Site"), you acknowledge that you have read, understood, and agree to be bound by these Terms and Conditions and our Privacy Policy. If you do not agree, please do not use our Site.
+                  By using TrackMCP.com (&quot;Site&quot;), you acknowledge that you have read, understood, and agree to be bound by these Terms and Conditions and our Privacy Policy. If you do not agree, please do not use our Site.
                 </p>
               </div>
 
@@ -72,7 +72,7 @@ export default function TermsPage() {
                   </li>
                   <li className="flex gap-3">
                     <span className="text-primary font-bold flex-shrink-0">•</span>
-                    <span>TrackMCP.com reserves the right to review, edit, or remove any submissions that violate our guidelines, are inappropriate, or infringe on others' rights.</span>
+                    <span>TrackMCP.com reserves the right to review, edit, or remove any submissions that violate our guidelines, are inappropriate, or infringe on others&apos; rights.</span>
                   </li>
                   <li className="flex gap-3">
                     <span className="text-primary font-bold flex-shrink-0">•</span>
@@ -140,7 +140,7 @@ export default function TermsPage() {
                 <ul className="space-y-3 ml-4">
                   <li className="flex gap-3">
                     <span className="text-primary font-bold flex-shrink-0">•</span>
-                    <span>TrackMCP.com is provided "as is" without warranties of any kind.</span>
+                    <span>TrackMCP.com is provided &quot;as is&quot; without warranties of any kind.</span>
                   </li>
                   <li className="flex gap-3">
                     <span className="text-primary font-bold flex-shrink-0">•</span>
