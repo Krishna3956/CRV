@@ -1,58 +1,117 @@
 import Link from 'next/link'
+import Image from 'next/image'
+import { Github, Linkedin, Twitter, Mail, ExternalLink } from 'lucide-react'
 
 export default function Footer() {
+  const currentYear = new Date().getFullYear()
+
+  const footerSections = [
+    {
+      title: 'Product',
+      links: [
+        { label: 'Categories', href: '/category' },
+        { label: 'Top Tools', href: '/top-mcp' },
+        { label: 'New & Updated', href: '/new' },
+        { label: 'Submit Tool', href: '/#submit' },
+      ],
+    },
+    {
+      title: 'Company',
+      links: [
+        { label: 'About', href: '/about' },
+        { label: 'Blog', href: '/blog' },
+        { label: 'Contact', href: '/contact' },
+      ],
+    },
+    {
+      title: 'Legal',
+      links: [
+        { label: 'Privacy Policy', href: '/privacy' },
+        { label: 'Terms of Service', href: '/terms' },
+        { label: 'Cookie Policy', href: '/cookies' },
+      ],
+    },
+  ]
+
+  const socialLinks = [
+    { icon: Github, href: '#', label: 'GitHub', color: 'hover:text-gray-400' },
+    { icon: Twitter, href: '#', label: 'Twitter', color: 'hover:text-blue-400' },
+    { icon: Linkedin, href: '#', label: 'LinkedIn', color: 'hover:text-blue-600' },
+    { icon: Mail, href: 'mailto:contact@trackmcp.com', label: 'Email', color: 'hover:text-primary' },
+  ]
+
   return (
-    <footer className="border-t bg-card/30 backdrop-blur-sm mt-16">
-      <div className="container mx-auto px-4 py-12">
+    <footer className="border-t border-border/40 bg-gradient-to-b from-background to-background/50 backdrop-blur-sm mt-12">
+      <div className="container mx-auto px-4 py-16">
         {/* Main Footer Content */}
-        <div className="flex flex-col md:flex-row items-start justify-between gap-12 mb-8">
-          {/* Brand Section - Left */}
-          <div className="flex-1">
-            <h3 className="font-bold text-lg mb-3">TrackMCP</h3>
-            <p className="text-sm text-muted-foreground max-w-sm">
-              The world&apos;s largest repository of Model Context Protocol servers.
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-8 mb-12">
+          {/* Brand Section */}
+          <div className="lg:col-span-2">
+            <Link 
+              href="/" 
+              className="flex items-center gap-3 hover:opacity-80 transition-opacity mb-4 w-fit"
+            >
+              <Image 
+                src="/logo.png" 
+                alt="Track MCP Logo" 
+                width={36} 
+                height={36}
+                className="rounded-lg"
+              />
+              <span className="text-xl font-bold gradient-text">Track MCP</span>
+            </Link>
+            <p className="text-sm text-muted-foreground mb-6 max-w-xs leading-relaxed">
+              The world&apos;s largest repository of Model Context Protocol servers. Discover, explore, and submit MCP tools.
             </p>
+            
+            {/* Social Links */}
+            <div className="flex items-center gap-4">
+              {socialLinks.map((social) => {
+                const Icon = social.icon
+                return (
+                  <a
+                    key={social.label}
+                    href={social.href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label={social.label}
+                    className={`text-muted-foreground transition-colors ${social.color}`}
+                  >
+                    <Icon className="h-5 w-5" />
+                  </a>
+                )
+              })}
+            </div>
           </div>
 
-          {/* Navigation Links - Right */}
-          <div className="flex-shrink-0">
-            <h4 className="font-semibold text-sm mb-4">Quick Links</h4>
-            <ul className="space-y-2">
-              <li>
-                <Link
-                  href="/category"
-                  className="text-sm text-muted-foreground hover:text-primary transition-colors"
-                >
-                  Categories
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="/top-mcp"
-                  className="text-sm text-muted-foreground hover:text-primary transition-colors"
-                >
-                  Top Tools
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="/new"
-                  className="text-sm text-muted-foreground hover:text-primary transition-colors"
-                >
-                  New MCP
-                </Link>
-              </li>
-            </ul>
-          </div>
+          {/* Footer Sections */}
+          {footerSections.map((section) => (
+            <div key={section.title}>
+              <h4 className="font-semibold text-sm mb-4 text-foreground">{section.title}</h4>
+              <ul className="space-y-3">
+                {section.links.map((link) => (
+                  <li key={link.label}>
+                    <Link
+                      href={link.href}
+                      className="text-sm text-muted-foreground hover:text-primary transition-colors inline-flex items-center gap-1 group"
+                    >
+                      {link.label}
+                      <ExternalLink className="h-3 w-3 opacity-0 group-hover:opacity-100 transition-opacity" />
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
         </div>
 
         {/* Divider */}
-        <div className="border-t pt-8" />
+        <div className="border-t border-border/40 my-8" />
 
         {/* Bottom Section */}
         <div className="flex flex-col md:flex-row items-center justify-between gap-4">
           <p className="text-xs text-muted-foreground text-center md:text-left">
-            © {new Date().getFullYear()} TrackMCP. All rights reserved.
+            © {currentYear} TrackMCP. All rights reserved.
           </p>
           <p className="text-xs text-muted-foreground text-center md:text-right">
             Built with ❤️ by{' '}
@@ -60,7 +119,7 @@ export default function Footer() {
               href="https://www.linkedin.com/in/krishnaa-goyal/"
               target="_blank"
               rel="author noopener noreferrer"
-              className="text-primary hover:underline font-medium"
+              className="text-primary hover:underline font-medium transition-colors"
             >
               Krishna Goyal
             </a>

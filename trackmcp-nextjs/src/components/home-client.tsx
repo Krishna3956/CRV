@@ -9,7 +9,7 @@ import { ToolCard } from '@/components/ToolCard'
 import { StatsSection } from '@/components/StatsSection'
 import { ErrorBoundary } from '@/components/error-boundary'
 import { RotatingText } from '@/components/RotatingText'
-import { Loader2, Sparkles, Package, X, Filter } from 'lucide-react'
+import { Loader2, Sparkles, Package, X, Filter, ChevronDown } from 'lucide-react'
 import type { Database } from '@/types/database.types'
 
 // Lazy load heavy components
@@ -297,7 +297,7 @@ export function HomeClient({ initialTools, totalCount }: HomeClientProps) {
       )}
 
         {/* Directory Section */}
-        <section className="container mx-auto px-4 pt-4 pb-6" aria-label="MCP tools listing">
+        <section className="container mx-auto px-4 pt-4 pb-2" aria-label="MCP tools listing">
           <h2 className="sr-only">Available MCP Tools</h2>
         <div className="flex flex-col gap-2 mb-3">
           <div className="flex flex-col gap-2">
@@ -399,26 +399,76 @@ export function HomeClient({ initialTools, totalCount }: HomeClientProps) {
               </div>
             </ErrorBoundary>
             
-            {/* Explore More Button */}
+            {/* Preview Section with Cropped Cards */}
             {hasMoreToLoad && (
-              <div className="flex justify-center mt-8">
-                <button
-                  onClick={loadMore}
-                  disabled={isLoadingMore}
-                  className="group relative px-6 py-2.5 rounded-md font-bold text-sm transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:ring-offset-1 bg-gradient-to-r from-primary/10 via-accent/10 to-primary/10 hover:from-primary/20 hover:via-accent/20 hover:to-primary/20 disabled:opacity-50 disabled:cursor-not-allowed"
-                  style={{ color: 'transparent' }}
-                >
-                  {isLoadingMore ? (
-                    <span className="flex items-center gap-2 gradient-text">
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                      Loading...
-                    </span>
-                  ) : (
-                    <span className="gradient-text">
-                      Explore more
-                    </span>
-                  )}
-                </button>
+              <div className="space-y-0">
+                {/* Preview Container with Fade Mask - Smooth Height Expansion */}
+                <div className={`relative overflow-hidden transition-all duration-600 ease-out ${
+                  isLoadingMore ? 'max-h-[2000px]' : 'max-h-[280px]'
+                }`}>
+                  {/* Gradient Fade Mask - Bottom to Top with Depth Effect */}
+                  <div className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-background via-background/70 via-background/40 to-transparent pointer-events-none z-10" />
+                  
+                  {/* Glassy Depth Layer - Subtle separation effect */}
+                  <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-background/80 via-background/40 to-transparent pointer-events-none z-20" />
+                  
+                  {/* Preview Cards Grid - Cropped with Blur */}
+                  <div className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 transition-all duration-600 ease-out ${
+                    isLoadingMore ? 'opacity-100 blur-0' : 'opacity-70 blur-[0.5px]'
+                  }`}>
+                    {filteredAndSortedTools.slice(visibleCount, visibleCount + 3).map((tool, index) => (
+                      <div
+                        key={`preview-${tool.id}`}
+                        className={`transition-all duration-600 ease-out ${
+                          isLoadingMore 
+                            ? 'opacity-100 translate-y-0 pointer-events-auto' 
+                            : 'opacity-70 translate-y-6 pointer-events-none'
+                        }`}
+                        style={{
+                          transitionDelay: isLoadingMore ? `${index * 120}ms` : '0ms'
+                        }}
+                      >
+                        <ToolCard
+                          name={tool.repo_name || 'Unknown'}
+                          description={tool.description || ''}
+                          stars={tool.stars || 0}
+                          githubUrl={tool.github_url}
+                          language={tool.language || undefined}
+                          topics={tool.topics || undefined}
+                          lastUpdated={tool.last_updated || undefined}
+                          isTrending={top5RecentTools.has(tool.id)}
+                        />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Explore More Button - Highlighted when cards are faded */}
+                <div className="flex justify-center mt-2">
+                  <button
+                    onClick={loadMore}
+                    disabled={isLoadingMore}
+                    className={`group relative px-8 py-3 rounded-lg font-bold text-sm transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed ${
+                      isLoadingMore
+                        ? 'bg-gradient-to-r from-primary/10 via-accent/10 to-primary/10 hover:from-primary/20 hover:via-accent/20 hover:to-primary/20 border border-primary/20 hover:border-primary/40'
+                        : 'bg-gradient-to-r from-primary/20 via-accent/15 to-primary/20 hover:from-primary/30 hover:via-accent/25 hover:to-primary/30 border-2 border-primary hover:border-primary shadow-lg hover:shadow-xl ring-2 ring-primary/30'
+                    }`}
+                  >
+                    {isLoadingMore ? (
+                      <span className="flex items-center gap-2 gradient-text text-foreground">
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                        Loading more...
+                      </span>
+                    ) : (
+                      <span className="flex items-center gap-2 gradient-text text-foreground group-hover:gap-3 transition-all">
+                        Reveal more
+                        <ChevronDown className={`h-5 w-5 text-foreground transition-all duration-300 flex-shrink-0 ${
+                          isLoadingMore ? 'rotate-180' : 'group-hover:translate-y-1'
+                        }`} />
+                      </span>
+                    )}
+                  </button>
+                </div>
               </div>
             )}
             
