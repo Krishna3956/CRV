@@ -100,7 +100,7 @@ export default function PrivacyPage() {
                 <ul className="space-y-3 ml-4">
                   <li className="flex gap-3">
                     <span className="text-primary font-bold flex-shrink-0">•</span>
-                    <span>Our website uses "cookies" and analytics tools to collect information on how visitors interact with our site.</span>
+                    <span>Our website uses &quot;cookies&quot; and analytics tools to collect information on how visitors interact with our site.</span>
                   </li>
                   <li className="flex gap-3">
                     <span className="text-primary font-bold flex-shrink-0">•</span>
@@ -170,7 +170,7 @@ export default function PrivacyPage() {
 
               {/* Section 8 */}
               <div>
-                <h2 className="text-2xl font-bold text-foreground mb-4">8. Children's Privacy</h2>
+                <h2 className="text-2xl font-bold text-foreground mb-4">8. Children&apos;s Privacy</h2>
                 <p>
                   TrackMCP.com is not directed at children under 13. We do not knowingly collect personal data from children under 13. If you believe a child has provided us with their information, contact us to request its removal.
                 </p>
