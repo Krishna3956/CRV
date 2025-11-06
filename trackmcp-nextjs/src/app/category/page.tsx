@@ -182,12 +182,12 @@ export default async function CategoryPage() {
               <p className="text-lg text-muted-foreground max-w-2xl mb-6">
                 Discover the world&apos;s largest repository of Model Context Protocol servers organized by category. Find the perfect tools for your AI development needs.
               </p>
-              <div className="flex flex-col sm:flex-row gap-3">
-                <SubmitToolDialog variant="default" />
-                <button className="px-6 py-2.5 rounded-lg border border-primary/30 hover:border-primary/60 text-foreground hover:bg-primary/5 transition-all duration-300 font-medium text-sm">
-                  Learn More
-                </button>
-              </div>
+              <Link
+                href="/top-mcp"
+                className="inline-flex px-6 py-2.5 rounded-lg bg-gradient-to-r from-primary/20 via-accent/15 to-primary/20 hover:from-primary/30 hover:via-accent/25 hover:to-primary/30 border border-primary/40 hover:border-primary/60 text-foreground hover:text-primary transition-all duration-300 font-medium text-sm shadow-lg hover:shadow-xl"
+              >
+                View Top Tools
+              </Link>
             </div>
           </div>
         </div>
