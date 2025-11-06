@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation'
 import type { Metadata } from 'next'
 import { ToolDetailClient } from '@/components/tool-detail-simple'
 import { fetchReadmeForServer } from '@/utils/github'
+import { createMetaDescription } from '@/utils/metaDescription'
 import type { Database } from '@/types/database.types'
 
 type McpTool = Database['public']['Tables']['mcp_tools']['Row']
@@ -174,18 +175,26 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const toolName = tool.repo_name || 'Unknown Tool'
   const { smartTitle, smartDescription, smartKeywords } = generateSmartMetadata(tool)
   
+  // Use meta_description from database if available, otherwise generate it
+  const metaDescription = tool.meta_description || createMetaDescription({
+    repo_name: tool.repo_name,
+    description: tool.description,
+    topics: tool.topics,
+    language: tool.language,
+  })
+  
   return {
     title: smartTitle,
-    description: smartDescription,
+    description: metaDescription,
     keywords: smartKeywords,
     openGraph: {
       title: smartTitle,
-      description: smartDescription,
+      description: metaDescription,
       url: `https://www.trackmcp.com/tool/${encodeURIComponent(toolName)}`,
       type: 'website',
       images: [
         {
-          url: `https://www.trackmcp.com/api/og?tool=${encodeURIComponent(toolName)}&stars=${tool.stars || 0}&description=${encodeURIComponent(smartDescription.slice(0, 150))}`,
+          url: `https://www.trackmcp.com/api/og?tool=${encodeURIComponent(toolName)}&stars=${tool.stars || 0}&description=${encodeURIComponent(metaDescription.slice(0, 150))}`,
           width: 1200,
           height: 630,
           alt: toolName,
@@ -195,18 +204,18 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     twitter: {
       card: 'summary_large_image',
       title: smartTitle,
-      description: smartDescription,
-      images: [`https://www.trackmcp.com/api/og?tool=${encodeURIComponent(toolName)}&stars=${tool.stars || 0}&description=${encodeURIComponent(smartDescription.slice(0, 150))}`],
+      description: metaDescription,
+      images: [`https://www.trackmcp.com/api/og?tool=${encodeURIComponent(toolName)}&stars=${tool.stars || 0}&description=${encodeURIComponent(metaDescription.slice(0, 150))}`],
     },
     other: {
       // OpenAI / ChatGPT meta tags
       'openai:title': smartTitle,
-      'openai:description': smartDescription,
-      'openai:image': `https://www.trackmcp.com/api/og?tool=${encodeURIComponent(toolName)}&stars=${tool.stars || 0}&description=${encodeURIComponent(smartDescription.slice(0, 150))}`,
+      'openai:description': metaDescription,
+      'openai:image': `https://www.trackmcp.com/api/og?tool=${encodeURIComponent(toolName)}&stars=${tool.stars || 0}&description=${encodeURIComponent(metaDescription.slice(0, 150))}`,
       'openai:url': `https://www.trackmcp.com/tool/${encodeURIComponent(toolName)}`,
       // Perplexity AI meta tags
       'perplexity:title': smartTitle,
-      'perplexity:description': smartDescription,
+      'perplexity:description': metaDescription,
       // AI-friendly content hints
       'ai:content_type': 'tool',
       'ai:primary_topic': 'Model Context Protocol',
