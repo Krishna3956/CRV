@@ -74,7 +74,7 @@ export function FreshnessMonitor({ adminKey }: FreshnessMonitorProps) {
       setUpdating(true)
 
       // Get tools that need updating (stale tools)
-      const toolIds = [] // TODO: Fetch stale tool IDs from API
+      const toolIds: string[] = [] // TODO: Fetch stale tool IDs from API
 
       const headers: HeadersInit = {
         'Content-Type': 'application/json',
@@ -164,7 +164,7 @@ export function FreshnessMonitor({ adminKey }: FreshnessMonitorProps) {
             </div>
 
             <div className="p-4 border rounded-lg bg-yellow-50">
-              <div className="text-sm text-muted-foreground">Stale (>90d)</div>
+              <div className="text-sm text-muted-foreground">Stale (&gt;90d)</div>
               <div className="text-2xl font-bold text-yellow-700">{stats.staleTools.toLocaleString()}</div>
               <div className="text-xs text-yellow-600 mt-1">{stalePercent}%</div>
             </div>
