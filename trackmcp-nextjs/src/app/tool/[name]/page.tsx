@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 import { notFound } from 'next/navigation'
 import type { Metadata } from 'next'
 import { ToolDetailClient } from '@/components/tool-detail-simple'
+import { fetchReadmeForServer } from '@/utils/github'
 import type { Database } from '@/types/database.types'
 
 type McpTool = Database['public']['Tables']['mcp_tools']['Row']
@@ -24,6 +25,11 @@ async function getTool(name: string): Promise<McpTool | null> {
   
   if (error || !data) return null
   return data
+}
+
+// Fetch README on server for SEO indexing
+async function getReadme(githubUrl: string): Promise<string | null> {
+  return fetchReadmeForServer(githubUrl)
 }
 
 // Smart metadata generator
@@ -223,6 +229,9 @@ export default async function ToolPage({ params }: Props) {
   if (!tool) {
     notFound()
   }
+
+  // Fetch README on server for SEO indexing
+  const readme = await getReadme(tool.github_url || '')
   
   // Create SoftwareApplication schema (Google Rich Results compliant)
   // Build schema dynamically to avoid undefined values
@@ -344,7 +353,7 @@ export default async function ToolPage({ params }: Props) {
       />
       
       {/* Pass server-fetched data to client component */}
-      <ToolDetailClient tool={tool} />
+      <ToolDetailClient tool={tool} initialReadme={readme} />
     </>
   )
 }

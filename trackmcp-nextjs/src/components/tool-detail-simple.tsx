@@ -16,6 +16,7 @@ type McpTool = Database['public']['Tables']['mcp_tools']['Row']
 
 interface ToolDetailClientProps {
   tool: McpTool
+  initialReadme?: string | null
 }
 
 // Helper: Format tool name for display (Title Case with spaces)
@@ -26,17 +27,39 @@ function formatToolName(name: string): string {
     .join(' ')
 }
 
-export function ToolDetailClient({ tool }: ToolDetailClientProps) {
-  const [readme, setReadme] = useState<string>('')
+export function ToolDetailClient({ tool, initialReadme }: ToolDetailClientProps) {
+  const [readme, setReadme] = useState<string>(initialReadme || '')
   const [ownerAvatar, setOwnerAvatar] = useState<string>('')
   const [ownerName, setOwnerName] = useState<string>('')
-  const [isLoadingReadme, setIsLoadingReadme] = useState(true)
+  const [isLoadingReadme, setIsLoadingReadme] = useState(!initialReadme)
 
   useEffect(() => {
-    fetchReadmeAndOwner()
-  }, [tool.github_url])
+    fetchOwnerAndReadme()
+  }, [tool.github_url, initialReadme])
 
-  const fetchReadmeAndOwner = async () => {
+  const fetchOwnerAndReadme = async () => {
+    // If we already have README from server, just fetch owner info
+    if (initialReadme) {
+      if (tool?.github_url) {
+        try {
+          const urlParts = tool.github_url.replace(/\/$/, '').split('/')
+          const owner = urlParts[urlParts.length - 2]
+          setOwnerName(owner)
+          
+          // Fetch owner info
+          const ownerResponse = await fetchGitHub(`https://api.github.com/users/${owner}`)
+          if (ownerResponse.ok) {
+            const ownerData = await ownerResponse.json()
+            setOwnerAvatar(ownerData.avatar_url)
+          }
+        } catch (err) {
+          console.error('Error fetching owner info:', err)
+        }
+      }
+      return
+    }
+
+    // Otherwise, fetch both README and owner info (fallback for client-side)
     setIsLoadingReadme(true)
 
     if (tool?.github_url) {
@@ -52,12 +75,12 @@ export function ToolDetailClient({ tool }: ToolDetailClientProps) {
           setOwnerAvatar(ownerData.avatar_url)
         }
 
-        // Fetch README
+        // Fetch README (client-side fallback)
         const repoPath = tool.github_url.replace('https://github.com/', '').replace(/\/$/, '')
-        console.log('Fetching README for:', repoPath)
+        console.log('Client: Fetching README for:', repoPath)
         const readmeResponse = await fetchGitHub(`https://api.github.com/repos/${repoPath}/readme`)
         
-        console.log('README response status:', readmeResponse.status)
+        console.log('Client: README response status:', readmeResponse.status)
         if (readmeResponse.ok) {
           const contentType = readmeResponse.headers.get('Content-Type')
           
@@ -67,20 +90,20 @@ export function ToolDetailClient({ tool }: ToolDetailClientProps) {
             // Decode base64 content
             if (data.content && data.encoding === 'base64') {
               const decodedContent = atob(data.content.replace(/\n/g, ''))
-              console.log('README decoded from base64, length:', decodedContent.length)
+              console.log('Client: README decoded from base64, length:', decodedContent.length)
               setReadme(decodedContent)
             }
           } else {
             // Raw text response
             const readmeText = await readmeResponse.text()
-            console.log('README fetched as text, length:', readmeText.length)
+            console.log('Client: README fetched as text, length:', readmeText.length)
             setReadme(readmeText)
           }
         } else {
-          console.error('Failed to fetch README:', readmeResponse.status, readmeResponse.statusText)
+          console.error('Client: Failed to fetch README:', readmeResponse.status, readmeResponse.statusText)
         }
       } catch (err) {
-        console.error('Error fetching GitHub data:', err)
+        console.error('Client: Error fetching GitHub data:', err)
       }
     }
 

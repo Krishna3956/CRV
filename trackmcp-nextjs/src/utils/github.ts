@@ -191,3 +191,45 @@ export const clearGitHubCache = () => {
   cache.clear()
   console.log('GitHub cache cleared')
 }
+
+// Server-side function to fetch README for SEO indexing
+export const fetchReadmeForServer = async (githubUrl: string): Promise<string | null> => {
+  try {
+    if (!githubUrl) return null
+    
+    // Extract owner and repo from GitHub URL
+    const repoPath = githubUrl.replace('https://github.com/', '').replace(/\/$/, '')
+    
+    console.log('Server: Fetching README for:', repoPath)
+    
+    const response = await fetchGitHub(`https://api.github.com/repos/${repoPath}/readme`)
+    
+    if (!response.ok) {
+      console.warn(`Server: Failed to fetch README (${response.status}):`, repoPath)
+      return null
+    }
+    
+    const contentType = response.headers.get('Content-Type')
+    
+    // Check if response is JSON (base64 encoded) or raw text
+    if (contentType?.includes('application/json')) {
+      const data = await response.json()
+      // Decode base64 content
+      if (data.content && data.encoding === 'base64') {
+        const decodedContent = atob(data.content.replace(/\n/g, ''))
+        console.log('Server: README decoded from base64, length:', decodedContent.length)
+        return decodedContent
+      }
+    } else {
+      // Raw text response
+      const readmeText = await response.text()
+      console.log('Server: README fetched as text, length:', readmeText.length)
+      return readmeText
+    }
+    
+    return null
+  } catch (err) {
+    console.error('Server: Error fetching README:', err)
+    return null
+  }
+}
