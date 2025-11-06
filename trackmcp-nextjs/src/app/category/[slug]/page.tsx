@@ -6,7 +6,9 @@ import { CategoryToolsClient } from '@/components/category-tools-client'
 import { MobileNav } from '@/components/mobile-nav'
 import { SubmitToolDialog } from '@/components/SubmitToolDialog'
 
-export const revalidate = 3600 // Revalidate every hour
+// Use dynamic rendering to avoid static generation issues with cookies()
+export const dynamic = 'force-dynamic'
+export const revalidate = 0 // Disable ISR for dynamic rendering
 
 interface Tool {
   id: string
@@ -32,43 +34,11 @@ function formatCategoryName(category: string): string {
   return category.replace(/\bai\b/gi, 'AI')
 }
 
-// Generate static params for all categories
+// Since we're using dynamic rendering, we don't need static params
+// All category pages will be rendered on-demand
 export async function generateStaticParams() {
-  try {
-    const supabase = createClient()
-
-    // Fetch all categories with limit
-    const { data: tools, error } = await supabase
-      .from('mcp_tools')
-      .select('category')
-      .in('status', ['approved', 'pending'])
-      .limit(10000)
-
-    if (error) {
-      console.error('Error fetching categories:', error)
-      return []
-    }
-
-    if (!tools || tools.length === 0) {
-      console.warn('No tools found for static params generation')
-      return []
-    }
-
-    // Get unique categories
-    const uniqueCategories = [...new Set(tools.map((t: any) => t.category))] as string[]
-
-    // Convert to slugs
-    const categoryParams = uniqueCategories.map((category) => ({
-      slug: category.toLowerCase().replace(/\s+/g, '-').replace(/&/g, 'and'),
-    }))
-
-    console.log(`Generated static params for ${categoryParams.length} categories`)
-    return categoryParams
-  } catch (error) {
-    console.error('Error generating static params:', error)
-    // Return empty array if there's an error - pages will be generated on-demand
-    return []
-  }
+  console.log('[generateStaticParams] Using dynamic rendering - returning empty array')
+  return []
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
@@ -108,7 +78,14 @@ export default async function CategoryPage({ params, searchParams }: Props) {
   try {
     console.log(`[CategoryPage] Loading category page for slug: ${params.slug}`)
     
-    const supabase = createClient()
+    // Create Supabase client - use try-catch to handle any initialization errors
+    let supabase
+    try {
+      supabase = createClient()
+    } catch (error) {
+      console.error('[CategoryPage] Failed to create Supabase client:', error)
+      notFound()
+    }
     
     const page = parseInt(searchParams.page || '1', 10)
     const pageSize = 50
