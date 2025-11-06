@@ -107,11 +107,26 @@ export default async function CategoryPage({ params, searchParams }: Props) {
   const pageSize = 50
   const offset = (page - 1) * pageSize
 
+  // First, find the actual category name from database (case-insensitive)
+  const { data: categoryData } = await supabase
+    .from('mcp_tools')
+    .select('category')
+    .ilike('category', categoryName)
+    .in('status', ['approved', 'pending'])
+    .limit(1) as any
+
+  // If category not found, return 404
+  if (!categoryData || categoryData.length === 0) {
+    notFound()
+  }
+
+  const actualCategoryName = (categoryData[0] as any).category
+
   // Fetch tools in category with pagination
   const { data: tools, error: toolsError } = await supabase
     .from('mcp_tools')
     .select('id, repo_name, description, stars, last_updated')
-    .ilike('category', categoryName)
+    .eq('category', actualCategoryName)
     .in('status', ['approved', 'pending'])
     .order('last_updated', { ascending: false })
     .range(offset, offset + pageSize - 1)
@@ -120,7 +135,7 @@ export default async function CategoryPage({ params, searchParams }: Props) {
   const { count: totalCount } = await supabase
     .from('mcp_tools')
     .select('*', { count: 'exact', head: true })
-    .ilike('category', categoryName)
+    .eq('category', actualCategoryName)
     .in('status', ['approved', 'pending'])
 
   if (toolsError || !tools) {
