@@ -180,7 +180,7 @@ export default async function CategoryPage() {
                 Explore MCP Categories
               </h1>
               <p className="text-lg text-muted-foreground max-w-2xl mb-6">
-                Discover the world's largest repository of Model Context Protocol servers organized by category. Find the perfect tools for your AI development needs.
+                Discover the world&apos;s largest repository of Model Context Protocol servers organized by category. Find the perfect tools for your AI development needs.
               </p>
               <div className="flex flex-col sm:flex-row gap-3">
                 <SubmitToolDialog variant="default" />
