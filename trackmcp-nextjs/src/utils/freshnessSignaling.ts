@@ -117,8 +117,8 @@ export async function updateToolLastModIfChanged(
   }
 
   // Update lastmod
-  const { error } = await supabase
-    .from('mcp_tools')
+  const { error } = await (supabase
+    .from('mcp_tools') as any)
     .update({ last_updated: now })
     .eq('id', toolId)
 
@@ -168,8 +168,8 @@ export async function bulkUpdateToolsLastMod(
   console.log(`[FRESHNESS] Bulk updating ${toolIds.length} tools. Reason: ${reason}`)
 
   for (const toolId of toolIds) {
-    const { error } = await supabase
-      .from('mcp_tools')
+    const { error } = await (supabase
+      .from('mcp_tools') as any)
       .update({ last_updated: now })
       .eq('id', toolId)
 
