@@ -176,7 +176,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { smartTitle, smartDescription, smartKeywords } = generateSmartMetadata(tool)
   
   // Use meta_description from database if available, otherwise generate it
-  const metaDescription = tool.meta_description || createMetaDescription({
+  const metaDescription = (tool as any).meta_description || createMetaDescription({
     repo_name: tool.repo_name,
     description: tool.description,
     topics: tool.topics,

@@ -185,7 +185,7 @@ async function displaySamples(): Promise<void> {
     return
   }
 
-  data.forEach((tool, index) => {
+  data.forEach((tool: any, index: number) => {
     console.log(`\n   ${index + 1}. ${tool.repo_name}`)
     console.log(`      Original: ${tool.description?.substring(0, 60)}...`)
     console.log(`      Meta: "${tool.meta_description}"`)
