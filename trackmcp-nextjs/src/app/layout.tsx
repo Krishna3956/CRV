@@ -2,12 +2,7 @@ import type { Metadata, Viewport } from 'next'
 import { Inter } from 'next/font/google'
 import Script from 'next/script'
 import './globals.css'
-import { ThemeProvider } from '@/components/theme-provider'
-import { Toaster } from '@/components/ui/toaster'
-import { Toaster as Sonner } from '@/components/ui/sonner'
-import { TooltipProvider } from '@/components/ui/tooltip'
-import { Navbar } from '@/components/Navbar'
-import { Footer } from '@/components/Footer'
+import { LayoutWrapper } from '@/components/layout-wrapper'
 
 const inter = Inter({ 
   subsets: ['latin'],
@@ -191,21 +186,9 @@ export default function RootLayout({
           `}
         </Script>
 
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="light"
-          forcedTheme="light"
-          enableSystem={false}
-          disableTransitionOnChange
-        >
-          <TooltipProvider>
-            <Navbar />
-            {children}
-            <Footer />
-            <Toaster />
-            <Sonner />
-          </TooltipProvider>
-        </ThemeProvider>
+        <LayoutWrapper>
+          {children}
+        </LayoutWrapper>
       </body>
     </html>
   )
