@@ -290,9 +290,6 @@ export default function robots(): MetadataRoute.Robots {
         disallow: '/',
       },
     ],
-    sitemap: [
-      'https://www.trackmcp.com/sitemap.xml',
-      'https://www.trackmcp.com/sitemap-tools.xml',
-    ],
+    sitemap: 'https://www.trackmcp.com/sitemap.xml',
   }
 }
