@@ -199,13 +199,9 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           <TooltipProvider>
-            <div className="flex flex-col min-h-screen">
-              <Navbar />
-              <main className="flex-1">
-                {children}
-              </main>
-              <Footer />
-            </div>
+            <Navbar />
+            {children}
+            <Footer />
             <Toaster />
             <Sonner />
           </TooltipProvider>

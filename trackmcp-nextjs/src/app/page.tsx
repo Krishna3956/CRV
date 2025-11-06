@@ -1,7 +1,5 @@
-import { Suspense } from 'react'
 import { createClient } from '@/lib/supabase/server'
 import { HomeClient } from '@/components/home-client'
-import { HomeLoading } from '@/components/home-loading'
 import type { Database } from '@/types/database.types'
 
 type McpTool = Database['public']['Tables']['mcp_tools']['Row']
@@ -87,8 +85,8 @@ export const metadata = {
 // Enable ISR - revalidate every hour for fresh data (reduced from 5 min)
 export const revalidate = 3600
 
-// Async component that fetches data
-async function HomeContent() {
+// Server Component - renders on server with full HTML
+export default async function HomePage() {
   // Parallel fetch for better performance
   const [tools, totalCount] = await Promise.all([getTools(), getTotalCount()])
   
@@ -213,14 +211,5 @@ async function HomeContent() {
       {/* Pass server-fetched data to client component */}
       <HomeClient initialTools={tools} totalCount={totalCount} />
     </>
-  )
-}
-
-// Main page component with Suspense boundary
-export default function HomePage() {
-  return (
-    <Suspense fallback={<HomeLoading />}>
-      <HomeContent />
-    </Suspense>
   )
 }
