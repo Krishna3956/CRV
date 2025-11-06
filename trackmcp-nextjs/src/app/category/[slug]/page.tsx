@@ -32,7 +32,7 @@ function formatCategoryName(category: string): string {
   return category.replace(/\bai\b/gi, 'AI')
 }
 
-// Generate static params for top categories
+// Generate static params for all categories
 export async function generateStaticParams() {
   try {
     const supabase = createClient()
@@ -43,23 +43,15 @@ export async function generateStaticParams() {
       .select('category')
       .in('status', ['approved', 'pending'])
 
-    // Get unique categories and count
-    const categoryMap = new Map<string, number>()
-    tools?.forEach((tool: any) => {
-      if (tool.category) {
-        categoryMap.set(tool.category, (categoryMap.get(tool.category) || 0) + 1)
-      }
-    })
+    // Get unique categories
+    const uniqueCategories = [...new Set(tools?.map((t: any) => t.category) || [])] as string[]
 
-    // Sort by count and get top 10
-    const topCategories = Array.from(categoryMap.entries())
-      .sort((a, b) => b[1] - a[1])
-      .slice(0, 10)
-      .map(([category]) => ({
-        slug: category.toLowerCase().replace(/\s+/g, '-'),
-      }))
+    // Convert to slugs
+    const categoryParams = uniqueCategories.map((category) => ({
+      slug: category.toLowerCase().replace(/\s+/g, '-').replace(/&/g, 'and'),
+    }))
 
-    return topCategories
+    return categoryParams
   } catch (error) {
     console.error('Error generating static params:', error)
     // Return empty array if there's an error - pages will be generated on-demand
@@ -68,27 +60,35 @@ export async function generateStaticParams() {
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  // Convert slug back to category name (replace hyphens with spaces, "and" with "&")
-  let categoryName = params.slug
-    .replace(/and/g, '&')
-    .replace(/-/g, ' ')
-    .replace(/\b\w/g, (l) => l.toUpperCase())
-  
-  // Format AI properly
-  categoryName = formatCategoryName(categoryName)
+  try {
+    // Convert slug back to category name (replace hyphens with spaces, "and" with "&")
+    let categoryName = params.slug
+      .replace(/and/g, '&')
+      .replace(/-/g, ' ')
+      .replace(/\b\w/g, (l) => l.toUpperCase())
+    
+    // Format AI properly
+    categoryName = formatCategoryName(categoryName)
 
-  return {
-    title: `${categoryName} MCP Tools | TrackMCP`,
-    description: `Browse all ${categoryName} MCP servers with descriptions, GitHub stars, and metadata. Find the best Model Context Protocol tools for your needs.`,
-    openGraph: {
+    return {
       title: `${categoryName} MCP Tools | TrackMCP`,
-      description: `Browse all ${categoryName} MCP servers with descriptions, GitHub stars, and metadata.`,
-      url: `https://www.trackmcp.com/category/${params.slug}`,
-      type: 'website',
-    },
-    alternates: {
-      canonical: `https://www.trackmcp.com/category/${params.slug}`,
-    },
+      description: `Browse all ${categoryName} MCP servers with descriptions, GitHub stars, and metadata. Find the best Model Context Protocol tools for your needs.`,
+      openGraph: {
+        title: `${categoryName} MCP Tools | TrackMCP`,
+        description: `Browse all ${categoryName} MCP servers with descriptions, GitHub stars, and metadata.`,
+        url: `https://www.trackmcp.com/category/${params.slug}`,
+        type: 'website',
+      },
+      alternates: {
+        canonical: `https://www.trackmcp.com/category/${params.slug}`,
+      },
+    }
+  } catch (error) {
+    console.error('Error generating metadata:', error)
+    return {
+      title: 'MCP Tools | TrackMCP',
+      description: 'Browse Model Context Protocol servers',
+    }
   }
 }
 
