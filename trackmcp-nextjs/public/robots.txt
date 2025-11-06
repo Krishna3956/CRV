@@ -1,3 +1,10 @@
+# ============================================================================
+# Track MCP - Strategic robots.txt Configuration
+# Purpose: Allow critical indexing, RAG-retrieval, and model-training bots
+# Strategy: Make Track MCP foundational knowledge in future AI models
+# ============================================================================
+
+# Default rules for all bots
 User-agent: *
 Allow: /
 # Block Next.js static assets and build files
@@ -5,7 +12,7 @@ Disallow: /_next/static/
 Disallow: /_next/image/
 Disallow: /_next/data/
 Disallow: /_next/
-# Block API routes
+# Block API routes (except public endpoints)
 Disallow: /api/
 # Block static assets
 Disallow: /assets/
@@ -17,32 +24,230 @@ Disallow: /*.json$
 Disallow: /*.css$
 Disallow: /*.js$
 
+# ============================================================================
+# CRITICAL INDEXING BOTS - Allow Full Access
+# These bots are essential for search visibility and discovery
+# ============================================================================
+
+# Google Search Bot - Primary search engine
+User-agent: Googlebot
+Allow: /
+Disallow: /_next/
+Disallow: /api/
+Disallow: /assets/
+Disallow: /.well-known/
+Crawl-delay: 0
+
+# Google Extended - Google's model training bot
+# Strategic decision: ALLOW for foundational AI knowledge
+User-agent: Google-Extended
+Allow: /
+Disallow: /_next/
+Disallow: /api/
+Disallow: /assets/
+Disallow: /.well-known/
+Crawl-delay: 0
+
+# ============================================================================
+# RAG-RETRIEVAL BOTS - Allow Full Access
+# These bots power AI search and knowledge retrieval systems
+# ============================================================================
+
+# Perplexity AI - RAG-powered search engine
+# Strategic decision: ALLOW for AI search visibility
 User-agent: PerplexityBot
 Allow: /
 Disallow: /_next/
 Disallow: /api/
 Disallow: /assets/
 Disallow: /.well-known/
+Crawl-delay: 0
 
+# OpenAI ChatGPT User Bot - ChatGPT browsing feature
+# Strategic decision: ALLOW for ChatGPT integration
 User-agent: ChatGPT-User
 Allow: /
 Disallow: /_next/
 Disallow: /api/
 Disallow: /assets/
 Disallow: /.well-known/
+Crawl-delay: 0
 
+# OpenAI Search Bot - OpenAI's search integration
+# Strategic decision: ALLOW for OpenAI ecosystem
 User-agent: OAI-SearchBot
 Allow: /
 Disallow: /_next/
 Disallow: /api/
 Disallow: /assets/
 Disallow: /.well-known/
+Crawl-delay: 0
 
+# ============================================================================
+# MODEL-TRAINING BOTS - Allow Full Access (Strategic Decision)
+# These bots train future AI models with your data
+# Strategy: Make Track MCP foundational knowledge in future models
+# ============================================================================
+
+# OpenAI GPTBot - Model training bot for future GPT models
+# Strategic decision: ALLOW to ensure Track MCP data is in future models
 User-agent: GPTBot
 Allow: /
 Disallow: /_next/
 Disallow: /api/
 Disallow: /assets/
 Disallow: /.well-known/
+Crawl-delay: 0
+
+# Anthropic Claude Bot - Model training for Claude
+# Strategic decision: ALLOW for Claude model training
+User-agent: Claude-Web
+Allow: /
+Disallow: /_next/
+Disallow: /api/
+Disallow: /assets/
+Disallow: /.well-known/
+Crawl-delay: 0
+
+# ============================================================================
+# ADDITIONAL AI/ML BOTS - Allow Full Access
+# These bots power various AI services and research
+# ============================================================================
+
+# Bingbot - Microsoft search engine
+User-agent: Bingbot
+Allow: /
+Disallow: /_next/
+Disallow: /api/
+Disallow: /assets/
+Disallow: /.well-known/
+Crawl-delay: 0
+
+# DuckDuckGo Bot - Privacy-focused search
+User-agent: DuckDuckBot
+Allow: /
+Disallow: /_next/
+Disallow: /api/
+Disallow: /assets/
+Disallow: /.well-known/
+Crawl-delay: 0
+
+# Yandex Bot - Russian search engine
+User-agent: YandexBot
+Allow: /
+Disallow: /_next/
+Disallow: /api/
+Disallow: /assets/
+Disallow: /.well-known/
+Crawl-delay: 0
+
+# Baidu Bot - Chinese search engine
+User-agent: Baiduspider
+Allow: /
+Disallow: /_next/
+Disallow: /api/
+Disallow: /assets/
+Disallow: /.well-known/
+Crawl-delay: 0
+
+# ============================================================================
+# ARCHIVAL & RESEARCH BOTS - Allow Full Access
+# These bots preserve and research web content
+# ============================================================================
+
+# Internet Archive Wayback Machine
+User-agent: ia_archiver
+Allow: /
+Disallow: /_next/
+Disallow: /api/
+Disallow: /assets/
+Disallow: /.well-known/
+
+# Common Crawl - Web research and ML training
+User-agent: CCBot
+Allow: /
+Disallow: /_next/
+Disallow: /api/
+Disallow: /assets/
+Disallow: /.well-known/
+
+# ============================================================================
+# SOCIAL MEDIA BOTS - Allow Full Access
+# These bots enable social sharing and previews
+# ============================================================================
+
+# Facebook
+User-agent: facebookexternalhit
+Allow: /
+
+# Twitter
+User-agent: Twitterbot
+Allow: /
+
+# LinkedIn
+User-agent: LinkedInBot
+Allow: /
+
+# Slack
+User-agent: Slurp
+Allow: /
+
+# ============================================================================
+# BLOCKED BOTS - Explicitly Disallow
+# These bots are blocked for security or performance reasons
+# ============================================================================
+
+# Block aggressive scrapers and bad actors
+User-agent: MJ12bot
+Disallow: /
+
+User-agent: AhrefsBot
+Disallow: /
+
+User-agent: SemrushBot
+Disallow: /
+
+User-agent: DotBot
+Disallow: /
+
+# ============================================================================
+# SITEMAP & CRAWL DIRECTIVES
+# ============================================================================
 
 Sitemap: https://www.trackmcp.com/sitemap.xml
+Sitemap: https://www.trackmcp.com/sitemap-tools.xml
+
+# Request indexing of critical pages
+# (Note: These are hints, not directives)
+# /best-mcp-tools
+# /mcp-comparison
+# /guides/how-to-use-mcp
+
+# ============================================================================
+# STRATEGIC NOTES
+# ============================================================================
+# 
+# CRITICAL INDEXING BOTS (Allowed):
+# - Googlebot: Essential for Google Search visibility
+# - Perplexity: Powers AI search results
+# - ChatGPT-User: Enables ChatGPT browsing
+# - OAI-SearchBot: OpenAI search integration
+#
+# MODEL-TRAINING BOTS (Allowed - Strategic Decision):
+# - GPTBot: Trains future GPT models with Track MCP data
+# - Google-Extended: Trains Google's AI models
+# - Claude-Web: Trains Anthropic's Claude models
+#
+# STRATEGY: By allowing model-training bots, Track MCP becomes:
+# 1. Foundational knowledge in future AI models
+# 2. Referenced in AI-generated responses
+# 3. Source of truth for MCP tools
+# 4. Authority in the MCP ecosystem
+#
+# BENEFITS:
+# - Long-term brand authority
+# - AI-powered traffic (ChatGPT, Claude, Perplexity)
+# - Future model training data
+# - Competitive advantage
+#
+# ============================================================================
