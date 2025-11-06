@@ -106,6 +106,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function CategoryPage({ params, searchParams }: Props) {
   try {
+    console.log(`[CategoryPage] Loading category page for slug: ${params.slug}`)
+    
     const supabase = createClient()
     
     const page = parseInt(searchParams.page || '1', 10)
@@ -113,30 +115,45 @@ export default async function CategoryPage({ params, searchParams }: Props) {
     const offset = (page - 1) * pageSize
 
     // Fetch all categories first to find the exact match
-    const { data: allCategoriesData } = await supabase
+    console.log('[CategoryPage] Fetching all categories from database...')
+    const { data: allCategoriesData, error: categoriesError } = await supabase
       .from('mcp_tools')
       .select('category')
       .in('status', ['approved', 'pending'])
       .limit(5000) as any
 
-    if (!allCategoriesData || allCategoriesData.length === 0) {
+    if (categoriesError) {
+      console.error('[CategoryPage] Error fetching categories:', categoriesError)
       notFound()
     }
 
+    if (!allCategoriesData || allCategoriesData.length === 0) {
+      console.error('[CategoryPage] No categories found in database')
+      notFound()
+    }
+
+    console.log(`[CategoryPage] Found ${allCategoriesData.length} category entries`)
+
     // Get unique categories
     const uniqueCategories = [...new Set(allCategoriesData.map((t: any) => t.category))] as string[]
+    console.log(`[CategoryPage] Found ${uniqueCategories.length} unique categories`)
 
     // Find matching category by comparing slugs
     const slug = params.slug.toLowerCase()
+    console.log(`[CategoryPage] Looking for slug: ${slug}`)
+    
     const actualCategoryName = uniqueCategories.find((cat) => {
       const catSlug = cat.toLowerCase().replace(/\s+/g, '-').replace(/&/g, 'and')
       return catSlug === slug
     })
 
     if (!actualCategoryName) {
-      console.error(`Category not found for slug: ${slug}`)
+      console.error(`[CategoryPage] Category not found for slug: ${slug}`)
+      console.error(`[CategoryPage] Available categories: ${uniqueCategories.slice(0, 10).join(', ')}...`)
       notFound()
     }
+
+    console.log(`[CategoryPage] Matched category: ${actualCategoryName}`)
 
     // Format the category name for display
     let categoryName = actualCategoryName
@@ -145,6 +162,7 @@ export default async function CategoryPage({ params, searchParams }: Props) {
     categoryName = formatCategoryName(categoryName)
 
     // Fetch tools in category with pagination
+    console.log(`[CategoryPage] Fetching tools for category: ${actualCategoryName}`)
     const { data: tools, error: toolsError } = await supabase
       .from('mcp_tools')
       .select('id, repo_name, description, stars, last_updated')
@@ -154,18 +172,32 @@ export default async function CategoryPage({ params, searchParams }: Props) {
       .range(offset, offset + pageSize - 1)
 
     // Fetch total count
-    const { count: totalCount } = await supabase
+    console.log(`[CategoryPage] Fetching total count for category: ${actualCategoryName}`)
+    const { count: totalCount, error: countError } = await supabase
       .from('mcp_tools')
       .select('*', { count: 'exact', head: true })
       .eq('category', actualCategoryName)
       .in('status', ['approved', 'pending'])
 
-    if (toolsError || !tools) {
-      console.error('Tools error:', toolsError)
+    if (toolsError) {
+      console.error('[CategoryPage] Tools error:', toolsError)
       notFound()
     }
 
+    if (countError) {
+      console.error('[CategoryPage] Count error:', countError)
+      notFound()
+    }
+
+    if (!tools) {
+      console.error('[CategoryPage] No tools data returned')
+      notFound()
+    }
+
+    console.log(`[CategoryPage] Found ${tools.length} tools, total count: ${totalCount}`)
+
     if (tools.length === 0 && page === 1) {
+      console.warn(`[CategoryPage] No tools found for category: ${actualCategoryName}`)
       notFound()
     }
 
