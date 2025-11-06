@@ -93,61 +93,69 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
 
 export default async function CategoryPage({ params, searchParams }: Props) {
-  const supabase = createClient()
-  // Convert slug back to category name (replace hyphens with spaces, "and" with "&")
-  let categoryName = params.slug
-    .replace(/and/g, '&')
-    .replace(/-/g, ' ')
-    .replace(/\b\w/g, (l) => l.toUpperCase())
-  
-  // Format AI properly
-  categoryName = formatCategoryName(categoryName)
-  
-  const page = parseInt(searchParams.page || '1', 10)
-  const pageSize = 50
-  const offset = (page - 1) * pageSize
+  try {
+    const supabase = createClient()
+    // Convert slug back to category name (replace hyphens with spaces, "and" with "&")
+    let categoryName = params.slug
+      .replace(/and/g, '&')
+      .replace(/-/g, ' ')
+      .replace(/\b\w/g, (l) => l.toUpperCase())
+    
+    // Format AI properly
+    categoryName = formatCategoryName(categoryName)
+    
+    const page = parseInt(searchParams.page || '1', 10)
+    const pageSize = 50
+    const offset = (page - 1) * pageSize
 
-  // First, find the actual category name from database (case-insensitive)
-  const { data: categoryData } = await supabase
-    .from('mcp_tools')
-    .select('category')
-    .ilike('category', categoryName)
-    .in('status', ['approved', 'pending'])
-    .limit(1) as any
+    // Fetch all unique categories to find exact match
+    const { data: allCategories, error: categoriesError } = await supabase
+      .from('mcp_tools')
+      .select('category')
+      .in('status', ['approved', 'pending'])
+      .limit(1000) as any
 
-  // If category not found, return 404
-  if (!categoryData || categoryData.length === 0) {
-    notFound()
-  }
+    if (categoriesError || !allCategories) {
+      notFound()
+    }
 
-  const actualCategoryName = (categoryData[0] as any).category
+    // Find matching category (case-insensitive)
+    const uniqueCategories = [...new Set(allCategories.map((t: any) => t.category))] as string[]
+    const actualCategoryName = uniqueCategories.find(
+      (cat) => cat.toLowerCase() === categoryName.toLowerCase()
+    )
 
-  // Fetch tools in category with pagination
-  const { data: tools, error: toolsError } = await supabase
-    .from('mcp_tools')
-    .select('id, repo_name, description, stars, last_updated')
-    .eq('category', actualCategoryName)
-    .in('status', ['approved', 'pending'])
-    .order('last_updated', { ascending: false })
-    .range(offset, offset + pageSize - 1)
+    // If category not found, return 404
+    if (!actualCategoryName) {
+      notFound()
+    }
 
-  // Fetch total count
-  const { count: totalCount } = await supabase
-    .from('mcp_tools')
-    .select('*', { count: 'exact', head: true })
-    .eq('category', actualCategoryName)
-    .in('status', ['approved', 'pending'])
+    // Fetch tools in category with pagination
+    const { data: tools, error: toolsError } = await supabase
+      .from('mcp_tools')
+      .select('id, repo_name, description, stars, last_updated')
+      .eq('category', actualCategoryName)
+      .in('status', ['approved', 'pending'])
+      .order('last_updated', { ascending: false })
+      .range(offset, offset + pageSize - 1)
 
-  if (toolsError || !tools) {
-    notFound()
-  }
+    // Fetch total count
+    const { count: totalCount } = await supabase
+      .from('mcp_tools')
+      .select('*', { count: 'exact', head: true })
+      .eq('category', actualCategoryName)
+      .in('status', ['approved', 'pending'])
 
-  if (tools.length === 0 && page === 1) {
-    notFound()
-  }
+    if (toolsError || !tools) {
+      notFound()
+    }
 
-  const totalPages = Math.ceil((totalCount || 0) / pageSize)
-  const toolList = (tools || []) as Tool[]
+    if (tools.length === 0 && page === 1) {
+      notFound()
+    }
+
+    const totalPages = Math.ceil((totalCount || 0) / pageSize)
+    const toolList = (tools || []) as Tool[]
 
   return (
     <div className="min-h-screen bg-background">
@@ -172,4 +180,8 @@ export default async function CategoryPage({ params, searchParams }: Props) {
       </div>
     </div>
   )
+  } catch (error) {
+    console.error('Error loading category page:', error)
+    notFound()
+  }
 }

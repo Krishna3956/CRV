@@ -150,18 +150,12 @@ export default async function CategoryPage() {
     <div className="min-h-screen bg-background">
       <MobileNav title="Categories" showBackButton={true} />
       <main className="container mx-auto px-4 py-8 md:py-8 pt-20 md:pt-8">
-        {/* Header with Submit Button */}
-        <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4 mb-8">
-          <div className="flex-1">
-            <h1 className="text-3xl font-bold mb-2">Browse All Categories</h1>
-            <p className="text-base text-muted-foreground max-w-2xl">
-              Explore Model Context Protocol servers organized by category. Find tools for your specific use case.
-            </p>
-          </div>
-          {/* Submit Button - Mobile Only */}
-          <div className="md:hidden w-full">
-            <SubmitToolDialog variant="default" />
-          </div>
+        {/* Header */}
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold mb-2">Browse All Categories</h1>
+          <p className="text-base text-muted-foreground max-w-2xl">
+            Explore Model Context Protocol servers organized by category. Find tools for your specific use case.
+          </p>
         </div>
 
         {/* Categories Grid - 3 columns matching ToolCard layout */}
@@ -170,26 +164,35 @@ export default async function CategoryPage() {
             <Link
               key={cat.category}
               href={`/category/${cat.category.toLowerCase().replace(/\s+/g, '-').replace(/&/g, 'and')}`}
-              className="group p-5 rounded-lg border border-border bg-card hover:border-primary hover:shadow-lg transition-all duration-200"
+              className="group relative p-5 rounded-lg border border-border bg-card hover:border-primary/50 transition-all duration-300 overflow-hidden"
             >
-              <div className="flex items-start justify-between mb-2">
-                <h2 className="text-base font-semibold group-hover:text-primary transition-colors flex-1">
-                  {formatCategoryName(cat.category)}
-                </h2>
-                <div className="ml-3 text-muted-foreground group-hover:text-primary transition-colors flex-shrink-0">
-                  {getCategoryIcon(cat.category)}
+              {/* Gradient background on hover */}
+              <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-accent/5 to-primary/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
+              
+              {/* Shadow effect on hover */}
+              <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none shadow-lg" />
+              
+              {/* Content */}
+              <div className="relative z-10">
+                <div className="flex items-start justify-between mb-3">
+                  <h2 className="text-base font-semibold group-hover:text-primary transition-colors flex-1">
+                    {formatCategoryName(cat.category)}
+                  </h2>
+                  <div className="ml-3 text-muted-foreground group-hover:text-primary transition-colors flex-shrink-0 group-hover:scale-110 transform duration-300">
+                    {getCategoryIcon(cat.category)}
+                  </div>
                 </div>
-              </div>
-              
-              <p className="text-sm text-muted-foreground mb-3 line-clamp-2">
-                Explore {formatCategoryName(cat.category).toLowerCase()} MCP tools and servers
-              </p>
-              
-              <div className="flex items-center text-xs text-muted-foreground group-hover:text-primary transition-colors">
-                <span>Browse category</span>
-                <svg className="w-3 h-3 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                </svg>
+                
+                <p className="text-sm text-muted-foreground mb-4 line-clamp-2">
+                  {cat.count} {cat.count === 1 ? 'tool' : 'tools'} available
+                </p>
+                
+                <div className="flex items-center justify-between text-xs text-muted-foreground group-hover:text-primary transition-colors">
+                  <span>Browse category</span>
+                  <svg className="w-3 h-3 group-hover:translate-x-1 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  </svg>
+                </div>
               </div>
             </Link>
           ))}
