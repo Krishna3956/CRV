@@ -150,6 +150,38 @@ export default async function HomePage() {
     ]
   }
 
+  // Add DataCatalog schema for dataset discovery
+  const dataCatalogSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'DataCatalog',
+    'name': 'TrackMCP Repository',
+    'description': 'The world\'s largest repository of Model Context Protocol servers organized by category, popularity, and recency.',
+    'url': 'https://www.trackmcp.com',
+    'dataset': [
+      {
+        '@type': 'Dataset',
+        'name': 'MCP Tools by Category',
+        'description': 'Browse all MCP tools grouped by category including AI, Developer, Automation, and more.',
+        'url': 'https://www.trackmcp.com/categories',
+        'keywords': ['MCP', 'categories', 'classification', 'Model Context Protocol'],
+      },
+      {
+        '@type': 'Dataset',
+        'name': 'Top 100 MCP Tools',
+        'description': 'The most starred and popular MCP repositories globally, ranked by GitHub stars.',
+        'url': 'https://www.trackmcp.com/top-tools',
+        'keywords': ['MCP', 'popular', 'trending', 'stars', 'Model Context Protocol'],
+      },
+      {
+        '@type': 'Dataset',
+        'name': 'Recently Updated MCP Tools',
+        'description': 'The newest and most recently modified MCP tools, updated within the last 7 days.',
+        'url': 'https://www.trackmcp.com/new',
+        'keywords': ['MCP', 'new', 'recent', 'updated', 'Model Context Protocol'],
+      }
+    ]
+  }
+
   return (
     <>
       {/* JSON-LD Schema for ItemList */}
@@ -165,6 +197,14 @@ export default async function HomePage() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{
           __html: JSON.stringify(faqSchema),
+        }}
+      />
+      
+      {/* JSON-LD Schema for DataCatalog */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(dataCatalogSchema),
         }}
       />
       

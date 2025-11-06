@@ -17,9 +17,6 @@ const SubmitToolDialog = dynamic(() => import('@/components/SubmitToolDialog').t
   ssr: false,
   loading: () => null
 })
-const Footer = dynamic(() => import('@/components/Footer').then(mod => ({ default: mod.Footer })), {
-  loading: () => null
-})
 
 type McpTool = Database['public']['Tables']['mcp_tools']['Row']
 
@@ -436,8 +433,6 @@ export function HomeClient({ initialTools, totalCount }: HomeClientProps) {
         )}
         </section>
       </main>
-
-      <Footer />
     </div>
   )
 }

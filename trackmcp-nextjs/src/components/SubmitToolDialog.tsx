@@ -158,24 +158,24 @@ export const SubmitToolDialog = ({ variant = 'default', onSuccess }: SubmitToolD
           Submit
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[500px] p-6">
+      <DialogContent className="w-[95vw] sm:max-w-[500px] p-4 sm:p-6 max-h-[90vh] overflow-y-auto">
         <form onSubmit={handleSubmit}>
-          <DialogHeader className="space-y-3">
-            <DialogTitle className="text-2xl">Submit MCP Tool</DialogTitle>
-            <DialogDescription className="text-base">
+          <DialogHeader className="space-y-2 sm:space-y-3">
+            <DialogTitle className="text-xl sm:text-2xl">Submit MCP Tool</DialogTitle>
+            <DialogDescription className="text-sm sm:text-base">
               Share a new MCP tool with the community. Enter the GitHub repository URL below.
             </DialogDescription>
           </DialogHeader>
-          <div className="grid gap-5 py-6">
-            <div className="grid gap-3">
-              <Label htmlFor="github-url" className="text-sm font-semibold">GitHub Repository URL</Label>
+          <div className="grid gap-4 sm:gap-5 py-4 sm:py-6">
+            <div className="grid gap-2 sm:gap-3">
+              <Label htmlFor="github-url" className="text-xs sm:text-sm font-semibold">GitHub Repository URL</Label>
               <Input
                 id="github-url"
                 placeholder="https://github.com/username/repository"
                 value={githubUrl}
                 onChange={(e) => setGithubUrl(e.target.value)}
                 required
-                className="h-11"
+                className="h-10 sm:h-11 text-sm"
               />
               <p className="text-xs text-muted-foreground mt-1">
                 Example: https://github.com/modelcontextprotocol/servers
@@ -183,33 +183,33 @@ export const SubmitToolDialog = ({ variant = 'default', onSuccess }: SubmitToolD
             </div>
 
             {/* Featured Listing Option */}
-            <div className="relative overflow-hidden rounded-lg border-2 border-primary/20 bg-gradient-to-br from-primary/5 via-accent/5 to-primary/10 p-5">
-              <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-br from-primary/20 to-accent/20 rounded-full blur-2xl -translate-y-12 translate-x-12"></div>
+            <div className="relative overflow-hidden rounded-lg border-2 border-primary/20 bg-gradient-to-br from-primary/5 via-accent/5 to-primary/10 p-3 sm:p-5">
+              <div className="absolute top-0 right-0 w-20 sm:w-24 h-20 sm:h-24 bg-gradient-to-br from-primary/20 to-accent/20 rounded-full blur-2xl -translate-y-12 translate-x-12"></div>
               
-              <div className="relative z-10 flex items-start gap-4">
+              <div className="relative z-10 flex items-start gap-2 sm:gap-4">
                 <input
                   type="checkbox"
                   id="featured-checkbox"
                   checked={wantsFeatured}
                   onChange={(e) => setWantsFeatured(e.target.checked)}
-                  className="mt-1 h-4 w-4 rounded border-primary/30 text-primary focus:ring-2 focus:ring-primary focus:ring-offset-0 cursor-pointer"
+                  className="mt-1 h-4 w-4 rounded border-primary/30 text-primary focus:ring-2 focus:ring-primary focus:ring-offset-0 cursor-pointer flex-shrink-0"
                 />
-                <div className="flex-1">
+                <div className="flex-1 min-w-0">
                   <label htmlFor="featured-checkbox" className="cursor-pointer">
-                    <div className="flex items-center gap-2 mb-2">
-                      <Sparkles className="h-4 w-4 text-primary" />
-                      <h4 className="text-sm font-bold gradient-text">Get Featured — $29 One-Time Fee</h4>
+                    <div className="flex items-center gap-1 sm:gap-2 mb-2">
+                      <Sparkles className="h-3 w-3 sm:h-4 sm:w-4 text-primary flex-shrink-0" />
+                      <h4 className="text-xs sm:text-sm font-bold gradient-text truncate">Get Featured — $29 One-Time Fee</h4>
                     </div>
-                    <p className="text-xs text-muted-foreground mb-3">
+                    <p className="text-xs text-muted-foreground mb-2 sm:mb-3">
                       Boost your visibility and stand out instantly!
                     </p>
-                    <div className="space-y-1.5">
-                      <div className="flex items-center gap-1.5">
-                        <Star className="h-3 w-3 text-primary fill-primary" />
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-1 sm:gap-1.5">
+                        <Star className="h-2.5 w-2.5 sm:h-3 sm:w-3 text-primary fill-primary flex-shrink-0" />
                         <p className="text-xs font-medium">Appear at the top of search results</p>
                       </div>
-                      <div className="flex items-center gap-1.5">
-                        <Star className="h-3 w-3 text-primary fill-primary" />
+                      <div className="flex items-center gap-1 sm:gap-1.5">
+                        <Star className="h-2.5 w-2.5 sm:h-3 sm:w-3 text-primary fill-primary flex-shrink-0" />
                         <p className="text-xs font-medium">&quot;Featured&quot; badge on your MCP listing</p>
                       </div>
                     </div>
@@ -218,11 +218,11 @@ export const SubmitToolDialog = ({ variant = 'default', onSuccess }: SubmitToolD
               </div>
             </div>
           </div>
-          <DialogFooter className="gap-3 sm:gap-2">
-            <Button type="button" variant="outline" onClick={() => setOpen(false)} className="h-10 px-6">
+          <DialogFooter className="gap-2 sm:gap-3 flex-col-reverse sm:flex-row">
+            <Button type="button" variant="outline" onClick={() => setOpen(false)} className="h-10 px-4 sm:px-6 w-full sm:w-auto text-sm">
               Cancel
             </Button>
-            <Button type="submit" disabled={isSubmitting} className="h-10 px-6">
+            <Button type="submit" disabled={isSubmitting} className="h-10 px-4 sm:px-6 w-full sm:w-auto text-sm">
               {isSubmitting ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />

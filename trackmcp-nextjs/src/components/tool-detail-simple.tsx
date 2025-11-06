@@ -3,7 +3,6 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { MarkdownRenderer } from '@/components/markdown-renderer'
-import { Footer } from '@/components/Footer'
 import { Star, GitBranch, Calendar, ExternalLink, ArrowLeft } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -221,8 +220,6 @@ export function ToolDetailClient({ tool, initialReadme }: ToolDetailClientProps)
           </article>
         </main>
       </div>
-      
-      <Footer />
     </>
   )
 }
