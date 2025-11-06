@@ -21,9 +21,10 @@ import { fetchGitHub } from "@/utils/github";
 interface SubmitToolDialogProps {
   variant?: 'default' | 'enhanced' | 'mobile'
   onSuccess?: () => void
+  buttonText?: string
 }
 
-export const SubmitToolDialog = ({ variant = 'default', onSuccess }: SubmitToolDialogProps = {}) => {
+export const SubmitToolDialog = ({ variant = 'default', onSuccess, buttonText = 'Submit' }: SubmitToolDialogProps = {}) => {
   const [open, setOpen] = useState(false);
   const [githubUrl, setGithubUrl] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -155,7 +156,7 @@ export const SubmitToolDialog = ({ variant = 'default', onSuccess }: SubmitToolD
       <DialogTrigger asChild>
         <Button className={getButtonClasses()}>
           <Plus className="h-5 w-5" />
-          Submit
+          {buttonText}
         </Button>
       </DialogTrigger>
       <DialogContent className="w-[95vw] sm:max-w-[500px] p-4 sm:p-6 max-h-[90vh] overflow-y-auto">
