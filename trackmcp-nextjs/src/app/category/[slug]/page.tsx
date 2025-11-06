@@ -108,26 +108,39 @@ export default async function CategoryPage({ params, searchParams }: Props) {
     const pageSize = 50
     const offset = (page - 1) * pageSize
 
-    // Fetch all unique categories to find exact match
-    const { data: allCategories, error: categoriesError } = await supabase
+    // Try to fetch tools directly with the formatted category name first
+    const { data: toolsTest, error: testError } = await supabase
       .from('mcp_tools')
-      .select('category')
+      .select('id, repo_name, description, stars, last_updated, category')
+      .eq('category', categoryName)
       .in('status', ['approved', 'pending'])
-      .limit(1000) as any
+      .limit(1)
 
-    if (categoriesError || !allCategories) {
-      notFound()
-    }
+    // If exact match found, use it
+    let actualCategoryName = categoryName
+    
+    // If not found, try case-insensitive search by fetching all and filtering
+    if (!toolsTest || toolsTest.length === 0) {
+      const { data: allCategories } = await supabase
+        .from('mcp_tools')
+        .select('category')
+        .in('status', ['approved', 'pending'])
+        .limit(5000) as any
 
-    // Find matching category (case-insensitive)
-    const uniqueCategories = [...new Set(allCategories.map((t: any) => t.category))] as string[]
-    const actualCategoryName = uniqueCategories.find(
-      (cat) => cat.toLowerCase() === categoryName.toLowerCase()
-    )
-
-    // If category not found, return 404
-    if (!actualCategoryName) {
-      notFound()
+      if (allCategories && allCategories.length > 0) {
+        const uniqueCategories = [...new Set(allCategories.map((t: any) => t.category))] as string[]
+        const foundCategory = uniqueCategories.find(
+          (cat) => cat.toLowerCase() === categoryName.toLowerCase()
+        )
+        
+        if (foundCategory) {
+          actualCategoryName = foundCategory
+        } else {
+          notFound()
+        }
+      } else {
+        notFound()
+      }
     }
 
     // Fetch tools in category with pagination
@@ -147,6 +160,7 @@ export default async function CategoryPage({ params, searchParams }: Props) {
       .in('status', ['approved', 'pending'])
 
     if (toolsError || !tools) {
+      console.error('Tools error:', toolsError)
       notFound()
     }
 
