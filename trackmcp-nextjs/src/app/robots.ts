@@ -73,6 +73,73 @@ export default function robots(): MetadataRoute.Robots {
         ],
       },
 
+      // Additional Google variants
+      {
+        userAgent: 'GoogleOther',
+        allow: '/',
+        disallow: [
+          '/_next/',
+          '/api/',
+          '/assets/',
+          '/.well-known/',
+        ],
+      },
+
+      {
+        userAgent: 'GoogleOther-Image',
+        allow: '/',
+        disallow: [
+          '/_next/',
+          '/api/',
+          '/assets/',
+          '/.well-known/',
+        ],
+      },
+
+      {
+        userAgent: 'GoogleOther-Video',
+        allow: '/',
+        disallow: [
+          '/_next/',
+          '/api/',
+          '/assets/',
+          '/.well-known/',
+        ],
+      },
+
+      {
+        userAgent: 'GoogleAgent-Mariner',
+        allow: '/',
+        disallow: [
+          '/_next/',
+          '/api/',
+          '/assets/',
+          '/.well-known/',
+        ],
+      },
+
+      {
+        userAgent: 'Google-CloudVertexBot',
+        allow: '/',
+        disallow: [
+          '/_next/',
+          '/api/',
+          '/assets/',
+          '/.well-known/',
+        ],
+      },
+
+      {
+        userAgent: 'CloudVertexBot',
+        allow: '/',
+        disallow: [
+          '/_next/',
+          '/api/',
+          '/assets/',
+          '/.well-known/',
+        ],
+      },
+
       // ============================================================================
       // RAG-RETRIEVAL BOTS - Allow Full Access
       // ============================================================================
@@ -81,6 +148,86 @@ export default function robots(): MetadataRoute.Robots {
       // Strategic decision: ALLOW for AI search visibility
       {
         userAgent: 'PerplexityBot',
+        allow: '/',
+        disallow: [
+          '/_next/',
+          '/api/',
+          '/assets/',
+          '/.well-known/',
+        ],
+      },
+
+      // Perplexity User variant
+      {
+        userAgent: 'Perplexity-User',
+        allow: '/',
+        disallow: [
+          '/_next/',
+          '/api/',
+          '/assets/',
+          '/.well-known/',
+        ],
+      },
+
+      // Meta AI bots
+      {
+        userAgent: 'Meta-ExternalAgent',
+        allow: '/',
+        disallow: [
+          '/_next/',
+          '/api/',
+          '/assets/',
+          '/.well-known/',
+        ],
+      },
+
+      {
+        userAgent: 'Meta-ExternalFetcher',
+        allow: '/',
+        disallow: [
+          '/_next/',
+          '/api/',
+          '/assets/',
+          '/.well-known/',
+        ],
+      },
+
+      {
+        userAgent: 'meta-externalagent',
+        allow: '/',
+        disallow: [
+          '/_next/',
+          '/api/',
+          '/assets/',
+          '/.well-known/',
+        ],
+      },
+
+      {
+        userAgent: 'meta-externalfetcher',
+        allow: '/',
+        disallow: [
+          '/_next/',
+          '/api/',
+          '/assets/',
+          '/.well-known/',
+        ],
+      },
+
+      // Apple bots
+      {
+        userAgent: 'Applebot',
+        allow: '/',
+        disallow: [
+          '/_next/',
+          '/api/',
+          '/assets/',
+          '/.well-known/',
+        ],
+      },
+
+      {
+        userAgent: 'Applebot-Extended',
         allow: '/',
         disallow: [
           '/_next/',
@@ -157,10 +304,162 @@ export default function robots(): MetadataRoute.Robots {
         ],
       },
 
+      // Additional Claude variants
+      {
+        userAgent: 'ClaudeBot',
+        allow: '/',
+        disallow: [
+          '/_next/',
+          '/api/',
+          '/assets/',
+          '/.well-known/',
+        ],
+      },
+
+      {
+        userAgent: 'Claude-User',
+        allow: '/',
+        disallow: [
+          '/_next/',
+          '/api/',
+          '/assets/',
+          '/.well-known/',
+        ],
+      },
+
+      {
+        userAgent: 'Claude-SearchBot',
+        allow: '/',
+        disallow: [
+          '/_next/',
+          '/api/',
+          '/assets/',
+          '/.well-known/',
+        ],
+      },
+
+      // Additional OpenAI variants
+      {
+        userAgent: 'ChatGPT Agent',
+        allow: '/',
+        disallow: [
+          '/_next/',
+          '/api/',
+          '/assets/',
+          '/.well-known/',
+        ],
+      },
+
       // ============================================================================
       // ADDITIONAL AI/ML BOTS - Allow Full Access
       // ============================================================================
       
+      // Mistral AI
+      {
+        userAgent: 'MistralAI-User',
+        allow: '/',
+        disallow: [
+          '/_next/',
+          '/api/',
+          '/assets/',
+          '/.well-known/',
+        ],
+      },
+
+      {
+        userAgent: 'MistralAI-User/1.0',
+        allow: '/',
+        disallow: [
+          '/_next/',
+          '/api/',
+          '/assets/',
+          '/.well-known/',
+        ],
+      },
+
+      // Cohere AI
+      {
+        userAgent: 'cohere-ai',
+        allow: '/',
+        disallow: [
+          '/_next/',
+          '/api/',
+          '/assets/',
+          '/.well-known/',
+        ],
+      },
+
+      {
+        userAgent: 'cohere-training-data-crawler',
+        allow: '/',
+        disallow: [
+          '/_next/',
+          '/api/',
+          '/assets/',
+          '/.well-known/',
+        ],
+      },
+
+      // You.com search
+      {
+        userAgent: 'YouBot',
+        allow: '/',
+        disallow: [
+          '/_next/',
+          '/api/',
+          '/assets/',
+          '/.well-known/',
+        ],
+      },
+
+      // Phind AI
+      {
+        userAgent: 'PhindBot',
+        allow: '/',
+        disallow: [
+          '/_next/',
+          '/api/',
+          '/assets/',
+          '/.well-known/',
+        ],
+      },
+
+      // Amazon Alexa
+      {
+        userAgent: 'Amazonbot',
+        allow: '/',
+        disallow: [
+          '/_next/',
+          '/api/',
+          '/assets/',
+          '/.well-known/',
+        ],
+      },
+
+      // Diffbot
+      {
+        userAgent: 'Diffbot',
+        allow: '/',
+        disallow: [
+          '/_next/',
+          '/api/',
+          '/assets/',
+          '/.well-known/',
+        ],
+      },
+
+      // ByteDance (TikTok)
+      {
+        userAgent: 'Bytespider',
+        allow: '/',
+        disallow: [
+          '/_next/',
+          '/api/',
+          '/assets/',
+          '/.well-known/',
+        ],
+      },
+
       // Bingbot - Microsoft search engine
       {
         userAgent: 'Bingbot',
