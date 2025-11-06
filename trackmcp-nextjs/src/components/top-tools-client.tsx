@@ -191,8 +191,8 @@ export function TopToolsClient({ initialTools }: TopToolsClientProps) {
                     {tool.description}
                   </p>
                 </td>
-                <td className="hidden md:table-cell px-4 py-4 text-sm whitespace-nowrap w-32 overflow-hidden">
-                  <span className="inline-block px-2 py-1 rounded-full bg-primary/10 text-primary text-xs font-medium truncate">
+                <td className="hidden md:table-cell px-4 py-4 text-sm">
+                  <span className="inline-block px-2 py-1 rounded-full bg-primary/10 text-primary text-xs font-medium max-w-xs truncate">
                     {tool.category}
                   </span>
                 </td>
