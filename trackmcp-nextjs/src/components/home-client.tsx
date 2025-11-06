@@ -44,6 +44,26 @@ export function HomeClient({ initialTools, totalCount }: HomeClientProps) {
     return () => clearTimeout(timer)
   }, [inputValue])
 
+  // Set initial visible count based on screen size
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth < 768) {
+        // Mobile: show 6 cards
+        setVisibleCount(6)
+      } else {
+        // Desktop/Tablet: show 12 cards
+        setVisibleCount(12)
+      }
+    }
+
+    // Set initial value
+    handleResize()
+
+    // Listen for resize events
+    window.addEventListener('resize', handleResize)
+    return () => window.removeEventListener('resize', handleResize)
+  }, [])
+
   // Handle sticky filter bar on scroll
   useEffect(() => {
     const handleScroll = () => {
