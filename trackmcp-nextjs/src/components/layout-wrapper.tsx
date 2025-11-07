@@ -11,6 +11,7 @@ import { TooltipProvider } from '@/components/ui/tooltip'
 interface LayoutWrapperProps {
   children: React.ReactNode
   navbarVisible?: boolean
+  hideNavbarOnMobile?: boolean
 }
 
 /**
@@ -24,7 +25,7 @@ interface LayoutWrapperProps {
  * 
  * No useState/useEffect needed - cleaner and faster
  */
-export function LayoutWrapper({ children, navbarVisible = true }: LayoutWrapperProps) {
+export function LayoutWrapper({ children, navbarVisible = true, hideNavbarOnMobile = false }: LayoutWrapperProps) {
   return (
     <ThemeProvider
       attribute="class"
@@ -36,7 +37,7 @@ export function LayoutWrapper({ children, navbarVisible = true }: LayoutWrapperP
       <TooltipProvider>
         <div className="flex flex-col min-h-screen">
           {/* Navbar: optional for mobile */}
-          {navbarVisible && <Navbar />}
+          {navbarVisible && <Navbar hideOnMobile={hideNavbarOnMobile} />}
           
           {/* Main content area with responsive minimum height */}
           {/* Mobile: min-h-[calc(100vh-64px-120px)] reserves viewport space (64px navbar, 120px footer) */}

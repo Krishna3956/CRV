@@ -24,7 +24,7 @@ interface SubmitToolDialogProps {
   buttonText?: string
 }
 
-export const SubmitToolDialog = ({ variant = 'default', onSuccess, buttonText = 'Submit' }: SubmitToolDialogProps = {}) => {
+export const SubmitToolDialog = ({ variant = 'default', onSuccess, buttonText = 'Submit Your MCP' }: SubmitToolDialogProps = {}) => {
   const [open, setOpen] = useState(false);
   const [githubUrl, setGithubUrl] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -143,9 +143,9 @@ export const SubmitToolDialog = ({ variant = 'default', onSuccess, buttonText = 
   const getButtonClasses = () => {
     switch (variant) {
       case 'enhanced':
-        return "gap-2 h-9 px-4 bg-gradient-to-r from-primary via-accent to-primary text-primary-foreground font-semibold shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 rounded-xl border-2 border-primary/20"
+        return "gap-2 h-10 px-6 bg-gradient-to-r from-blue-600 to-blue-700 text-white font-semibold shadow-md hover:shadow-lg transition-all duration-150 hover:brightness-110 focus:outline-2 focus:outline-offset-2 focus:outline-blue-400 rounded-lg"
       case 'mobile':
-        return "gap-2 h-12 w-full bg-gradient-to-r from-primary via-accent to-primary text-primary-foreground font-semibold shadow-lg hover:shadow-xl transition-all duration-300 rounded-xl"
+        return "gap-2 h-12 w-full bg-gradient-to-r from-blue-600 to-blue-700 text-white font-semibold shadow-md hover:shadow-lg transition-all duration-150 hover:brightness-110 rounded-lg"
       default:
         return "gap-2 shadow-elegant hover:shadow-glow transition-all h-10 px-4 w-auto"
     }
