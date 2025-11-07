@@ -1,6 +1,8 @@
 import type { Metadata, Viewport } from 'next'
 import { Inter } from 'next/font/google'
 import Script from 'next/script'
+import { Analytics } from '@vercel/analytics/next'
+import { SpeedInsights } from '@vercel/speed-insights/next'
 import './globals.css'
 import { LayoutWrapper } from '@/components/layout-wrapper'
 
@@ -189,6 +191,12 @@ export default function RootLayout({
         <LayoutWrapper>
           {children}
         </LayoutWrapper>
+        
+        {/* Vercel Analytics for page views and visitor tracking */}
+        <Analytics />
+        
+        {/* Vercel Speed Insights for performance metrics */}
+        <SpeedInsights />
       </body>
     </html>
   )
