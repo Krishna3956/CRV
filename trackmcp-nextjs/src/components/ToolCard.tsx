@@ -100,9 +100,9 @@ export const ToolCard = ({
         <div className="flex items-start justify-between gap-4">
           <div className="flex-1 space-y-3 min-w-0">
             <div className="flex items-center gap-2 flex-wrap">
-              <Avatar className="h-4 w-4 flex-shrink-0">
+              <Avatar className="h-8 w-8 flex-shrink-0">
                 <AvatarImage src={ownerAvatar} alt={ownerName} />
-                <AvatarFallback className="text-[10px]">{ownerName.slice(0, 2).toUpperCase()}</AvatarFallback>
+                <AvatarFallback className="text-xs">{ownerName.slice(0, 2).toUpperCase()}</AvatarFallback>
               </Avatar>
               <CardTitle className="text-xl font-semibold group-hover:gradient-text transition-all duration-300 truncate" style={{ fontSize: '18px', lineHeight: '1.3' }}>
                 {formatToolName(name)}
