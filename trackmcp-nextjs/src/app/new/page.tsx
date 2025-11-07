@@ -69,11 +69,11 @@ function getGitHubOwnerAvatar(repoName: string): string {
 
 export async function generateMetadata(): Promise<Metadata> {
   return {
-    title: 'New & Recently Updated MCP Tools | TrackMCP',
-    description: 'Discover the newest and most recently updated Model Context Protocol servers. Stay up-to-date with the latest MCP tools and improvements.',
+    title: 'Newly Updated MCP Projects – Latest Additions on Track MCP',
+    description: 'Stay ahead with the newest and recently updated MCP tools. Track fresh repositories, feature releases, and active development updates.',
     openGraph: {
-      title: 'New & Recently Updated MCP Tools | TrackMCP',
-      description: 'Discover the newest and most recently updated Model Context Protocol servers.',
+      title: 'Newly Updated MCP Projects – Latest Additions on Track MCP',
+      description: 'Stay ahead with the newest and recently updated MCP tools. Track fresh repositories, feature releases, and active development updates.',
       url: 'https://www.trackmcp.com/new',
       type: 'website',
     },

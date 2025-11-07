@@ -74,11 +74,11 @@ interface Category {
 
 export async function generateMetadata(): Promise<Metadata> {
   return {
-    title: 'Browse All MCP Categories | TrackMCP',
-    description: 'Explore the largest repository of MCP servers by category, including AI, Developer, Automation, and more.',
+    title: 'MCP Categories – Browse All MCP Tool Categories',
+    description: 'Explore all categories of MCP projects including AI, servers, automation, and communication. Find tools by category to match your use case.',
     openGraph: {
-      title: 'Browse All MCP Categories | TrackMCP',
-      description: 'Explore the largest repository of MCP servers by category, including AI, Developer, Automation, and more.',
+      title: 'MCP Categories – Browse All MCP Tool Categories',
+      description: 'Explore all categories of MCP projects including AI, servers, automation, and communication. Find tools by category to match your use case.',
       url: 'https://www.trackmcp.com/category',
       type: 'website',
     },

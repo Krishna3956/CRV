@@ -3,11 +3,11 @@ import Link from 'next/link'
 import { ArrowLeft } from 'lucide-react'
 
 export const metadata: Metadata = {
-  title: 'Privacy Policy | Track MCP',
-  description: 'Read our Privacy Policy to understand how Track MCP collects, uses, and protects your personal information.',
+  title: 'Privacy Policy – Track MCP',
+  description: 'Understand how Track MCP collects, uses, and protects your data. Review our privacy policy for transparency and compliance.',
   openGraph: {
-    title: 'Privacy Policy | Track MCP',
-    description: 'Privacy Policy for Track MCP',
+    title: 'Privacy Policy – Track MCP',
+    description: 'Understand how Track MCP collects, uses, and protects your data. Review our privacy policy for transparency and compliance.',
     url: 'https://www.trackmcp.com/privacy',
     type: 'website',
   },

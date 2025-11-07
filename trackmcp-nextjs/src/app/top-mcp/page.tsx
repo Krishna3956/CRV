@@ -19,11 +19,11 @@ interface TopTool {
 
 export async function generateMetadata(): Promise<Metadata> {
   return {
-    title: 'Top 100 MCP Tools by Stars | TrackMCP',
-    description: 'Discover the most starred and popular Model Context Protocol servers. See which MCP tools are trusted by thousands of developers worldwide.',
+    title: 'Top 100 MCP Tools by Stars – Track MCP Rankings',
+    description: 'Explore the most popular MCP tools ranked by GitHub stars. Find trending developers, frameworks, and protocols leading the MCP ecosystem.',
     openGraph: {
-      title: 'Top 100 MCP Tools by Stars | TrackMCP',
-      description: 'Discover the most starred and popular Model Context Protocol servers.',
+      title: 'Top 100 MCP Tools by Stars – Track MCP Rankings',
+      description: 'Explore the most popular MCP tools ranked by GitHub stars. Find trending developers, frameworks, and protocols leading the MCP ecosystem.',
       url: 'https://www.trackmcp.com/top-tools',
       type: 'website',
     },

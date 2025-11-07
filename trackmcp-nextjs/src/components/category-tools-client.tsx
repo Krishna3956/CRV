@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from 'react'
 import Link from 'next/link'
-import { Star, ArrowUpRight } from 'lucide-react'
+import { Star, ArrowUpRight, TrendingUp } from 'lucide-react'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Label } from "@/components/ui/label"
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar"
@@ -95,6 +95,9 @@ export function CategoryToolsClient({ initialTools }: CategoryToolsClientProps) 
               // Extract owner name from repo URL for avatar
               const ownerName = tool.repo_name.split('/')[0] || tool.repo_name
               const ownerAvatar = `https://github.com/${ownerName}.png?size=32`
+              
+              // Check if this tool is in top 5 (only when sorted by stars)
+              const isTopTrending = sortBy === 'stars' && index < 5
 
               return (
               <tr
@@ -125,6 +128,12 @@ export function CategoryToolsClient({ initialTools }: CategoryToolsClientProps) 
                     </Avatar>
                     <span className="flex items-center gap-1 text-xs md:text-sm min-w-0">
                       <span className="truncate">{formatToolName(tool.repo_name)}</span>
+                      {isTopTrending && (
+                        <span className="inline-flex items-center gap-0.5 md:px-1.5 md:py-0.5 md:rounded-full md:bg-gradient-to-r md:from-orange-500/20 md:to-red-500/20 md:border md:border-orange-500/30 flex-shrink-0">
+                          <TrendingUp className="h-2.5 w-2.5 text-orange-600 dark:text-orange-400" />
+                          <span className="hidden md:inline text-xs font-semibold text-orange-600 dark:text-orange-400">Trending</span>
+                        </span>
+                      )}
                       <ArrowUpRight className="h-3 w-3 md:h-4 md:w-4 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0" />
                     </span>
                   </Link>

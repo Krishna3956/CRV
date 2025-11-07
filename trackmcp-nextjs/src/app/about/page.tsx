@@ -6,8 +6,8 @@ import { SubmitToolDialog } from '@/components/SubmitToolDialog'
 import { ActiveVisitorsCard } from '@/components/ActiveVisitorsCard'
 
 export const metadata: Metadata = {
-  title: 'About Track MCP | World\'s Largest MCP Platform',
-  description: 'Learn about Track MCP - the world\'s largest directory of Model Context Protocol tools, servers, and integrations. Join 10,000+ daily visitors exploring MCP innovations.',
+  title: 'About Track MCP – Mission, Team & Purpose',
+  description: 'Learn how Track MCP became the global hub for MCP tools and servers. Explore our mission to organize Model Context Protocol data and empower the MCP developer community.',
   openGraph: {
     title: 'About Track MCP',
     description: 'The world\'s largest MCP platform connecting developers with AI tools and integrations.',
