@@ -44,22 +44,31 @@ export function HomeClient({ initialTools, totalCount }: HomeClientProps) {
     return () => clearTimeout(timer)
   }, [inputValue])
 
-  // Set initial visible count based on screen size
+  // Set initial visible count based on screen size (only on mount)
   useEffect(() => {
     const handleResize = () => {
-      if (window.innerWidth < 768) {
-        // Mobile: show 6 cards
-        setVisibleCount(6)
-      } else {
-        // Desktop/Tablet: show 12 cards
-        setVisibleCount(12)
-      }
+      setVisibleCount(prev => {
+        // Only update if we're at the initial state (6 or 12)
+        const isMobile = window.innerWidth < 768
+        const initialCount = isMobile ? 6 : 12
+        
+        // If user has already expanded beyond initial, don't reset
+        if (prev > initialCount) {
+          return prev
+        }
+        
+        return initialCount
+      })
     }
 
-    // Set initial value
-    handleResize()
+    // Set initial value only on mount
+    if (window.innerWidth < 768) {
+      setVisibleCount(6)
+    } else {
+      setVisibleCount(12)
+    }
 
-    // Listen for resize events
+    // Listen for resize events but don't reset expanded state
     window.addEventListener('resize', handleResize)
     return () => window.removeEventListener('resize', handleResize)
   }, [])
@@ -175,14 +184,28 @@ export function HomeClient({ initialTools, totalCount }: HomeClientProps) {
   const remainingCount = filteredAndSortedTools.length - visibleCount
 
   const loadMore = async () => {
+    // Prevent multiple clicks
+    if (isLoadingMore) return
+    
+    // Store current scroll position
+    const scrollPosition = window.scrollY
+    
     // If we have more tools in memory, just show them
     if (visibleCount < allTools.length) {
+      // Set loading state to trigger preview expansion
+      setIsLoadingMore(true)
       setVisibleCount(prev => prev + 12)
+      // Restore scroll position and reset loading state after state update
+      setTimeout(() => {
+        window.scrollTo(0, scrollPosition)
+        // Set isLoadingMore to false AFTER scroll is restored
+        setIsLoadingMore(false)
+      }, 100)
       return
     }
     
     // Otherwise, fetch more from API
-    if (allTools.length < totalCount && !isLoadingMore) {
+    if (allTools.length < totalCount) {
       setIsLoadingMore(true)
       try {
         const response = await fetch(`/api/tools?offset=${allTools.length}&limit=100`)
@@ -190,10 +213,17 @@ export function HomeClient({ initialTools, totalCount }: HomeClientProps) {
         if (data.tools && data.tools.length > 0) {
           setAllTools(prev => [...prev, ...data.tools])
           setVisibleCount(prev => prev + 12)
+          // Restore scroll position after state update
+          setTimeout(() => {
+            window.scrollTo(0, scrollPosition)
+            // Set isLoadingMore to false AFTER scroll is restored
+            setIsLoadingMore(false)
+          }, 100)
+        } else {
+          setIsLoadingMore(false)
         }
       } catch (error) {
         console.error('Error loading more tools:', error)
-      } finally {
         setIsLoadingMore(false)
       }
     }
@@ -205,6 +235,15 @@ export function HomeClient({ initialTools, totalCount }: HomeClientProps) {
       setVisibleCount(15)
     }
   }, [searchQuery])
+
+  // Reset visible count when category changes
+  useEffect(() => {
+    if (selectedCategory !== 'all') {
+      // Reset to initial count when category filter is applied
+      const isMobile = window.innerWidth < 768
+      setVisibleCount(isMobile ? 6 : 12)
+    }
+  }, [selectedCategory])
 
   return (
     <div className="min-h-screen bg-background">
@@ -427,11 +466,15 @@ export function HomeClient({ initialTools, totalCount }: HomeClientProps) {
                 <div className={`relative overflow-hidden transition-all duration-600 ease-out ${
                   isLoadingMore ? 'max-h-[2000px]' : 'max-h-[280px]'
                 }`}>
-                  {/* Gradient Fade Mask - Bottom to Top with Depth Effect */}
-                  <div className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-background via-background/70 via-background/40 to-transparent pointer-events-none z-10" />
+                  {/* Gradient Fade Mask - Bottom to Top with Depth Effect - Only show when collapsed */}
+                  {!isLoadingMore && (
+                    <div className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-background via-background/70 via-background/40 to-transparent pointer-events-none z-10" />
+                  )}
                   
-                  {/* Glassy Depth Layer - Subtle separation effect */}
-                  <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-background/80 via-background/40 to-transparent pointer-events-none z-20" />
+                  {/* Glassy Depth Layer - Subtle separation effect - Only show when collapsed */}
+                  {!isLoadingMore && (
+                    <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-background/80 via-background/40 to-transparent pointer-events-none z-20" />
+                  )}
                   
                   {/* Preview Cards Grid - Cropped with Blur */}
                   <div className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 transition-all duration-600 ease-out ${

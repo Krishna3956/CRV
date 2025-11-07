@@ -4,12 +4,17 @@ import { useEffect, useState } from 'react'
 
 export function ActiveVisitorsCard() {
   const [visitors, setVisitors] = useState<number>(3200)
+  const [isStatic, setIsStatic] = useState<boolean>(false)
+  const [staticValue, setStaticValue] = useState<number>(3200)
 
   useEffect(() => {
     // Get the start of today
     const today = new Date()
     today.setHours(0, 0, 0, 0)
     const startOfDay = today.getTime()
+    
+    // Track when user landed on this page
+    const pageLoadTime = Date.now()
     
     const calculateVisitors = () => {
       const now = Date.now()
@@ -30,11 +35,26 @@ export function ActiveVisitorsCard() {
     }
     
     // Set initial value
-    setVisitors(calculateVisitors())
+    const initialValue = calculateVisitors()
+    setVisitors(initialValue)
+    setStaticValue(initialValue)
 
     // Update every 10 seconds to show increment
     const interval = setInterval(() => {
-      setVisitors(calculateVisitors())
+      const now = Date.now()
+      const timeSpentOnPage = Math.floor((now - pageLoadTime) / 1000)
+      
+      // If user has spent more than 10 seconds on page, freeze the counter
+      if (timeSpentOnPage > 10) {
+        setIsStatic(true)
+        clearInterval(interval)
+        return
+      }
+      
+      // Otherwise, continue updating
+      const newValue = calculateVisitors()
+      setVisitors(newValue)
+      setStaticValue(newValue)
     }, 10000)
 
     return () => clearInterval(interval)
@@ -50,9 +70,11 @@ export function ActiveVisitorsCard() {
 
       <div className="relative z-10 text-center">
         <div className="text-3xl md:text-4xl font-bold text-foreground mb-1 md:mb-2">
-          {visitors.toLocaleString()}
+          {isStatic ? staticValue.toLocaleString() : visitors.toLocaleString()}
         </div>
-        <div className="text-xs md:text-xs font-semibold text-foreground">Unique Visitors Today</div>
+        <div className="text-xs md:text-xs font-semibold text-foreground">
+          Unique Visitors Today {isStatic && <span className="text-muted-foreground">(frozen)</span>}
+        </div>
       </div>
     </div>
   )
