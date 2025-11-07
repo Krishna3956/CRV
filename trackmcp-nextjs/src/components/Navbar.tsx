@@ -101,8 +101,7 @@ export const Navbar = ({ hideOnMobile: hideOnMobileProp }: NavbarProps) => {
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent 
-                  align="start" 
-                  className="animate-in fade-in slide-in-from-top-2 duration-200"
+                  align="start"
                 >
                   <DropdownMenuLabel>
                     Browse Categories
@@ -114,8 +113,6 @@ export const Navbar = ({ hideOnMobile: hideOnMobileProp }: NavbarProps) => {
                       <DropdownMenuItem 
                         key={category.href} 
                         asChild
-                        className="animate-in fade-in slide-in-from-top-1 duration-200"
-                        style={{ animationDelay: `${index * 25}ms` }}
                       >
                         <Link 
                           href={category.href}

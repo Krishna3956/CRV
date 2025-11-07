@@ -3,6 +3,7 @@ import Link from 'next/link'
 import { Globe, Zap, Users, Sparkles, ArrowRight, Github, Mail } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 import { SubmitToolDialog } from '@/components/SubmitToolDialog'
+import { ActiveVisitorsCard } from '@/components/ActiveVisitorsCard'
 
 export const metadata: Metadata = {
   title: 'About Track MCP | World\'s Largest MCP Platform',
@@ -36,35 +37,8 @@ async function getTotalCount(): Promise<number> {
   }
 }
 
-// Generate dynamic active visitors count based on time
-// Changes smoothly throughout the day but stays stable within a session
-function getActiveVisitors(): number {
-  const now = new Date()
-  const hour = now.getHours()
-  const minute = now.getMinutes()
-  const second = now.getSeconds()
-  
-  // Base number around 10,000
-  const baseVisitors = 10000
-  
-  // Add variation based on time of day (±800 max for daily rhythm)
-  const hourFactor = Math.sin((hour / 24) * Math.PI) * 800
-  
-  // Add minute variation (±200 max for visible changes)
-  const minuteFactor = Math.sin((minute / 60) * Math.PI * 2) * 200
-  
-  // Add very small second variation (±30 max for subtle real-time feel)
-  const secondFactor = Math.sin((second / 60) * Math.PI * 4) * 30
-  
-  // Calculate total
-  const total = Math.floor(baseVisitors + hourFactor + minuteFactor + secondFactor)
-  
-  return Math.max(8900, Math.min(total, 11100)) // Keep between 8,900 and 11,100 (±1100 from base)
-}
-
 export default async function AboutPage() {
   const totalCount = await getTotalCount()
-  const activeVisitors = getActiveVisitors()
   return (
     <div className="min-h-screen bg-background">
       {/* Hero Section */}
@@ -97,17 +71,8 @@ export default async function AboutPage() {
             
             {/* Stats Dashboard */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-5 mb-8">
-              {/* Active Visitors Card - Green */}
-              <div className="group relative overflow-hidden rounded-lg border-2 border-green-500/30 hover:border-green-500/60 bg-gradient-to-br from-card/80 to-card/40 backdrop-blur-md shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-1 p-4 md:p-5">
-                <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" 
-                     style={{ background: 'radial-gradient(circle at top right, hsl(142 71% 45% / 0.08), transparent 70%)' }} />
-                <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-green-500/30 to-transparent" />
-                
-                <div className="relative z-10 text-center">
-                  <div className="text-3xl md:text-4xl font-bold text-foreground mb-1 md:mb-2">{activeVisitors.toLocaleString()}</div>
-                  <div className="text-xs md:text-xs font-semibold text-foreground">Active Visitors</div>
-                </div>
-              </div>
+              {/* Active Visitors Card - Green (Client Component with Real-time Updates) */}
+              <ActiveVisitorsCard />
 
               {/* Tools Indexed Card - Blue */}
               <div className="group relative overflow-hidden rounded-lg border-2 border-blue-500/30 hover:border-blue-500/60 bg-gradient-to-br from-card/80 to-card/40 backdrop-blur-md shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-1 p-4 md:p-5">
@@ -128,7 +93,7 @@ export default async function AboutPage() {
                 <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-purple-500/30 to-transparent" />
                 
                 <div className="relative z-10 text-center">
-                  <div className="text-3xl md:text-4xl font-bold text-foreground mb-1 md:mb-2">15</div>
+                  <div className="text-3xl md:text-4xl font-bold text-foreground mb-1 md:mb-2">9</div>
                   <div className="text-xs md:text-xs font-semibold text-foreground">Categories</div>
                 </div>
               </div>
