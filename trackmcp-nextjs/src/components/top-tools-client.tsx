@@ -182,8 +182,7 @@ export function TopToolsClient({ initialTools }: TopToolsClientProps) {
                       </AvatarFallback>
                     </Avatar>
                     <span className="flex items-center gap-1 text-xs md:text-sm min-w-0">
-                      <span className="hidden md:inline truncate">{formatToolName(tool.repo_name)}</span>
-                      <span className="md:hidden truncate">{tool.repo_name.split('/')[1] || tool.repo_name}</span>
+                      <span className="truncate">{formatToolName(tool.repo_name)}</span>
                       <ArrowUpRight className="h-3 w-3 md:h-4 md:w-4 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0" />
                     </span>
                   </Link>

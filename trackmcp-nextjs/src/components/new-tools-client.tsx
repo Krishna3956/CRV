@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import Link from 'next/link'
 import { Badge } from '@/components/ui/badge'
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
@@ -71,17 +71,30 @@ function getCategoryIcon(category: string): string {
   return categoryIcons[categoryLower] || '🔗'
 }
 
+// Helper: Format tool name for display (Title Case with spaces)
+function formatToolName(name: string): string {
+  return name
+    .split(/[-_]/)
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+    .join(' ')
+}
+
 export function NewToolsClient({
   tools,
 }: NewToolsClientProps) {
   const [visibleCount, setVisibleCount] = useState(INITIAL_DISPLAY)
   const [isLoadingMore, setIsLoadingMore] = useState(false)
+  const previewContainerRef = useRef<HTMLDivElement>(null)
+  const scrollPositionRef = useRef(0)
 
   const displayedTools = tools.slice(0, visibleCount)
   const previewTools = tools.slice(visibleCount, visibleCount + PREVIEW_COUNT)
   const hasMoreToLoad = visibleCount < tools.length
 
   const handleRevealMore = () => {
+    // Save current scroll position
+    scrollPositionRef.current = window.scrollY
+    
     setIsLoadingMore(true)
     // Simulate loading delay for smooth animation
     setTimeout(() => {
@@ -89,6 +102,17 @@ export function NewToolsClient({
       setIsLoadingMore(false)
     }, 300)
   }
+
+  // Restore scroll position after state update
+  useEffect(() => {
+    if (!isLoadingMore && scrollPositionRef.current > 0) {
+      // Use requestAnimationFrame to ensure DOM has updated
+      requestAnimationFrame(() => {
+        window.scrollTo(0, scrollPositionRef.current)
+        scrollPositionRef.current = 0
+      })
+    }
+  }, [isLoadingMore, visibleCount])
 
   const ToolCard = ({ tool }: { tool: Tool }) => {
     const isNewTool = isNew(tool.created_at)
@@ -128,7 +152,7 @@ export function NewToolsClient({
             </Avatar>
             <div className="flex-1 min-w-0">
               <h3 className="text-lg font-semibold group-hover:text-primary transition-colors line-clamp-2">
-                {tool.repo_name}
+                {formatToolName(tool.repo_name)}
               </h3>
             </div>
           </div>
@@ -184,9 +208,17 @@ export function NewToolsClient({
       {hasMoreToLoad && (
         <div className="space-y-2 mt-8">
           {/* Preview Container with Fade Mask */}
-          <div className={`relative overflow-hidden transition-all duration-600 ease-out ${
-            isLoadingMore ? 'max-h-[2000px]' : 'max-h-[280px]'
-          }`}>
+          <div 
+            ref={previewContainerRef}
+            className={`relative overflow-hidden transition-all duration-600 ease-out will-change-max-height ${
+              isLoadingMore ? 'max-h-[3000px]' : 'max-h-[280px] md:max-h-[280px]'
+            }`}
+            style={{
+              transitionProperty: 'max-height',
+              transitionDuration: '600ms',
+              transitionTimingFunction: 'cubic-bezier(0.4, 0, 0.2, 1)',
+            }}
+          >
             {/* Gradient Fade Mask */}
             <div className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-background via-background/70 via-background/40 to-transparent pointer-events-none z-10" />
 
