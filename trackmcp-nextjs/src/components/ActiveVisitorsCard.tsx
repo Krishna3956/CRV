@@ -73,7 +73,7 @@ export function ActiveVisitorsCard() {
           {isStatic ? staticValue.toLocaleString() : visitors.toLocaleString()}
         </div>
         <div className="text-xs md:text-xs font-semibold text-foreground">
-          Unique Visitors Today {isStatic && <span className="text-muted-foreground">(frozen)</span>}
+          Unique Visitors Today
         </div>
       </div>
     </div>
