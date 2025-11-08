@@ -15,11 +15,11 @@ const inter = Inter({
 
 export const metadata: Metadata = {
   title: {
-    default: 'Track MCP | World\'s Largest Model Context Protocol Directory',
+    default: 'App Store for MCP Servers, Clients, and Tools | World\'s Largest MCP Marketplace',
     template: '%s'
   },
-  description: 'Explore 10,000+ Model Context Protocol tools, servers, and connectors. The world\'s largest MCP directory for AI development and LLM integration.',
-  keywords: ['MCP', 'Model Context Protocol', 'AI tools', 'LLM tools', 'GitHub MCP', 'developer tools', 'MCP servers', 'MCP connectors', 'AI development', 'Claude MCP', 'OpenAI tools', 'AI integration', 'MCP directory', 'MCP repository'],
+  description: 'Discover the world\'s largest MCP Marketplace for Model Context Protocol servers, clients, and tools. Effortlessly search, find, and install thousands of MCP integrations to power your AI agents and workflows—fast, seamless, and all in one place.',
+  keywords: ['MCP', 'Model Context Protocol', 'MCP Marketplace', 'MCP servers', 'MCP clients', 'MCP tools', 'AI tools', 'LLM tools', 'developer tools', 'AI development', 'Claude MCP', 'OpenAI tools', 'AI integration', 'MCP directory'],
   authors: [{ name: 'Krishna Goyal' }],
   creator: 'Krishna Goyal',
   publisher: 'Track MCP',
@@ -29,14 +29,14 @@ export const metadata: Metadata = {
     locale: 'en_US',
     url: 'https://www.trackmcp.com',
     siteName: 'Track MCP',
-    title: 'Track MCP - Discover 10,000+ Model Context Protocol Tools & Servers',
-    description: 'Explore the world\'s largest directory of Model Context Protocol (MCP) tools, servers, and connectors.',
+    title: 'App Store for MCP Servers, Clients, and Tools | World\'s Largest MCP Marketplace',
+    description: 'Discover the world\'s largest MCP Marketplace for Model Context Protocol servers, clients, and tools. Effortlessly search, find, and install thousands of MCP integrations to power your AI agents and workflows.',
     images: [
       {
         url: 'https://www.trackmcp.com/og-image.png',
         width: 1200,
         height: 630,
-        alt: 'Track MCP - Model Context Protocol Directory',
+        alt: 'App Store for MCP Servers, Clients, and Tools | World\'s Largest MCP Marketplace',
       },
     ],
   },
@@ -44,19 +44,19 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     site: '@trackmcp',
     creator: '@trackmcp',
-    title: 'Track MCP - Discover 10,000+ Model Context Protocol Tools & Servers',
-    description: 'Explore the world\'s largest directory of MCP tools for AI development',
+    title: 'App Store for MCP Servers, Clients, and Tools | World\'s Largest MCP Marketplace',
+    description: 'Discover the world\'s largest MCP Marketplace. Effortlessly search, find, and install thousands of MCP integrations.',
     images: ['https://www.trackmcp.com/og-image.png'],
   },
   other: {
     // OpenAI / ChatGPT meta tags
-    'openai:title': 'Track MCP - World\'s Largest Model Context Protocol Directory',
-    'openai:description': 'Comprehensive directory of 10,000+ Model Context Protocol (MCP) tools, servers, and connectors for AI development. Find GitHub repositories, integration guides, and developer resources.',
+    'openai:title': 'App Store for MCP Servers, Clients, and Tools | World\'s Largest MCP Marketplace',
+    'openai:description': 'Discover the world\'s largest MCP Marketplace for Model Context Protocol servers, clients, and tools. Effortlessly search, find, and install thousands of MCP integrations to power your AI agents and workflows—fast, seamless, and all in one place.',
     'openai:image': 'https://www.trackmcp.com/og-image.png',
     'openai:url': 'https://www.trackmcp.com/',
     // Perplexity AI meta tags
-    'perplexity:title': 'Track MCP - Model Context Protocol Tools Directory',
-    'perplexity:description': 'Search and discover 10,000+ MCP tools, servers, and connectors. Find GitHub repositories, documentation, and integration guides for AI development.',
+    'perplexity:title': 'App Store for MCP Servers, Clients, and Tools | World\'s Largest MCP Marketplace',
+    'perplexity:description': 'Discover the world\'s largest MCP Marketplace. Effortlessly search, find, and install thousands of MCP integrations to power your AI agents and workflows.',
     // AI-friendly content hints
     'ai:content_type': 'directory',
     'ai:primary_topic': 'Model Context Protocol',

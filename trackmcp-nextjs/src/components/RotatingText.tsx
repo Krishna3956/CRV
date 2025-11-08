@@ -32,32 +32,35 @@ export function RotatingText({ words, interval = 3000 }: RotatingTextProps) {
         }
         .rotating-word {
           position: absolute;
-          top: 2px;
-          left: 0;
-          right: 0;
+          top: 0;
+          left: 50%;
+          transform: translateX(-50%);
           white-space: nowrap;
           display: flex;
-          justify-content: flex-end;
+          justify-content: center;
           align-items: center;
           transition: transform 0.6s cubic-bezier(0.65, 0, 0.35, 1), opacity 0.6s ease;
         }
         .rotating-word.active {
-          transform: translateY(0);
+          transform: translateX(-50%) translateY(0);
           opacity: 1;
+          z-index: 10;
         }
         .rotating-word.next {
-          transform: translateY(100%);
+          transform: translateX(-50%) translateY(100%);
           opacity: 0;
+          z-index: 5;
         }
         .rotating-word.prev {
-          transform: translateY(-100%);
+          transform: translateX(-50%) translateY(-100%);
           opacity: 0;
+          z-index: 5;
         }
       `}</style>
       
-      <span className="rotating-container" style={{ overflow: 'hidden', paddingLeft: '4px', paddingRight: '4px', height: '1em', display: 'inline-flex', alignItems: 'center', minWidth: 'fit-content' }}>
+      <span className="rotating-container" style={{ overflow: 'hidden', paddingLeft: '8px', paddingRight: '8px', height: '1.2em', display: 'inline-flex', alignItems: 'center', minWidth: 'fit-content', position: 'relative' }}>
         {/* Invisible text to maintain space - sets the width based on longest word */}
-        <span className="invisible font-bold whitespace-nowrap" aria-hidden="true" style={{ paddingLeft: '2px', paddingRight: '2px', height: '1em' }}>
+        <span className="invisible font-bold whitespace-nowrap" aria-hidden="true" style={{ paddingLeft: '4px', paddingRight: '4px', height: '1.2em' }}>
           {longestWord}
         </span>
         
@@ -82,7 +85,7 @@ export function RotatingText({ words, interval = 3000 }: RotatingTextProps) {
               key={index}
               className={className}
               aria-hidden="true"
-              style={{ paddingLeft: '2px', paddingRight: '2px' }}
+              style={{ paddingLeft: '4px', paddingRight: '4px' }}
             >
               <span className="font-bold">{word}</span>
             </span>

@@ -348,7 +348,7 @@ export const SearchBar = ({
   };
   return (
     <div ref={containerRef} className="relative w-full max-w-3xl group">
-      <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-6 w-6 text-primary pointer-events-none z-10" />
+      <Search className="absolute left-3 sm:left-4 top-1/2 -translate-y-1/2 h-5 w-5 sm:h-6 sm:w-6 text-primary pointer-events-none z-10" />
       
       <Input
         ref={inputRef}
@@ -365,13 +365,13 @@ export const SearchBar = ({
           }
         }}
         placeholder={placeholder}
-        className={`pl-14 pr-32 h-16 text-lg border-2 border-border bg-card/50 backdrop-blur-sm focus:border-border focus:outline-none !focus-visible:ring-0 !focus-visible:ring-offset-0 transition-all duration-300 ${
+        className={`pl-12 pr-10 sm:pl-14 sm:pr-32 h-12 sm:h-16 text-sm sm:text-lg border-2 border-border bg-card/60 backdrop-blur-md focus:border-primary focus:outline-none !focus-visible:ring-0 !focus-visible:ring-offset-0 transition-all duration-300 ${
           showSuggestions ? 'rounded-t-2xl rounded-b-none border-b-0' : 'rounded-2xl'
         }`}
         style={{
           outline: 'none',
-          boxShadow: 'none',
-          WebkitBoxShadow: 'none'
+          boxShadow: '0 2px 10px rgba(0, 0, 0, 0.05)',
+          WebkitBoxShadow: '0 2px 10px rgba(0, 0, 0, 0.05)'
         }}
         autoComplete="off"
         spellCheck="false"
@@ -381,15 +381,15 @@ export const SearchBar = ({
         <Button
           onClick={clearSearch}
           size="sm"
-          className="absolute right-24 top-1/2 -translate-y-1/2 h-8 w-8 p-0"
+          className="absolute right-2 sm:right-24 top-1/2 -translate-y-1/2 h-7 w-7 sm:h-8 sm:w-8 p-0 hover:bg-muted"
         >
-          <X className="h-4 w-4" />
+          <X className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
         </Button>
       )}
 
       <Button
         size="sm"
-        className="absolute right-2 top-1/2 -translate-y-1/2 gap-2 hidden md:flex"
+        className="absolute right-1 sm:right-2 top-1/2 -translate-y-1/2 gap-1 sm:gap-2 h-8 sm:h-10 px-2 sm:px-4 text-xs sm:text-sm hidden md:flex bg-[#4B5CFF] hover:bg-[#3B3B98] text-white font-semibold"
       >
         Search
       </Button>
