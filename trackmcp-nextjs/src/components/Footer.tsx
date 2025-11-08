@@ -39,7 +39,7 @@ export default function Footer() {
   )
 
   const socialLinks = [
-    { icon: XLogo, href: 'https://twitter.com/trackmcp', label: 'X', color: 'hover:text-gray-400' },
+    { icon: XLogo, href: 'https://x.com/trackmcp', label: 'X', color: 'hover:text-gray-400' },
     { icon: Linkedin, href: 'https://www.linkedin.com/company/trackmcp', label: 'LinkedIn', color: 'hover:text-blue-600' },
     { icon: Mail, href: 'mailto:support@trackmcp.com', label: 'Email', color: 'hover:text-primary' },
   ]
