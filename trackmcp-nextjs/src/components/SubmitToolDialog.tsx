@@ -201,9 +201,7 @@ export const SubmitToolDialog = ({ variant = 'default', onSuccess, buttonText = 
             </div>
 
             <div className="grid gap-2 sm:gap-3">
-              <Label htmlFor="email" className="text-xs sm:text-sm font-semibold">
-                Email Address <span className="text-red-500">*</span>
-              </Label>
+              <Label htmlFor="email" className="text-xs sm:text-sm font-semibold">Email Address</Label>
               <Input
                 id="email"
                 type="email"
