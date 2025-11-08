@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { MarkdownRenderer } from '@/components/markdown-renderer'
+import { ToolDiscoverySidebar } from '@/components/ToolDiscoverySidebar'
 import { Star, GitBranch, Calendar, ExternalLink, ArrowLeft } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -16,6 +17,11 @@ type McpTool = Database['public']['Tables']['mcp_tools']['Row']
 interface ToolDetailClientProps {
   tool: McpTool
   initialReadme?: string | null
+  relatedTools?: {
+    similar: McpTool[]
+    trending: McpTool[]
+    new: McpTool[]
+  }
 }
 
 // Helper: Format tool name for display (Title Case with spaces)
@@ -26,7 +32,7 @@ function formatToolName(name: string): string {
     .join(' ')
 }
 
-export function ToolDetailClient({ tool, initialReadme }: ToolDetailClientProps) {
+export function ToolDetailClient({ tool, initialReadme, relatedTools }: ToolDetailClientProps) {
   const [readme, setReadme] = useState<string>(initialReadme || '')
   const [ownerAvatar, setOwnerAvatar] = useState<string>('')
   const [ownerName, setOwnerName] = useState<string>('')
@@ -106,27 +112,27 @@ export function ToolDetailClient({ tool, initialReadme }: ToolDetailClientProps)
       }
     }
 
-    setIsLoadingReadme(false)
   }
 
   return (
     <>
       <div className="min-h-screen bg-background">
-        <main className="container mx-auto px-4 py-8 max-w-4xl">
-          <article>
-            <Link href="/">
-            <Button 
-              variant="ghost" 
-              className="mb-8"
-              aria-label="Return to tool directory"
-            >
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Back to directory
-            </Button>
-          </Link>
+        <main className="flex-1">
+          {/* Grid Layout with precise alignment */}
+          <div className="w-full px-4 sm:px-6 lg:px-8">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-0 max-w-7xl mx-auto">
+              {/* Main Content - 7 columns on desktop */}
+              <article className="lg:col-span-7">
+                {/* Back Button - Hidden on desktop, optimized on mobile */}
+                <Link href="/">
+                  <Button size="sm" className="mb-6 lg:hidden gap-2 mt-4 w-fit bg-primary text-primary-foreground hover:bg-primary/90 rounded-full px-4 py-2">
+                    <ArrowLeft className="h-4 w-4" />
+                    Back to directory
+                  </Button>
+                </Link>
 
-            {/* Header Section */}
-            <section className="mb-8 pb-8 border-b">
+              {/* Header Section */}
+              <section className="mb-8 pb-8 border-b mt-8 lg:mt-16">
             <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-4">
               <div className="flex items-center gap-3">
                 <Avatar className="h-10 w-10">
@@ -217,7 +223,36 @@ export function ToolDetailClient({ tool, initialReadme }: ToolDetailClientProps)
               </div>
             )}
             </section>
-          </article>
+
+            {/* Discovery Sidebar - Mobile Only (Below main content) */}
+            {relatedTools && (
+              <div className="lg:hidden">
+                <ToolDiscoverySidebar
+                  similar={relatedTools.similar}
+                  trending={relatedTools.trending}
+                  new={[]}
+                  currentToolId={tool.id}
+                />
+              </div>
+            )}
+            </article>
+
+            {/* Sidebar - Desktop Only (5 columns, right-aligned with submit button) */}
+            {relatedTools && (
+              <aside className="hidden lg:block lg:col-span-5 lg:ml-auto -mr-8">
+                <div className="sticky top-24 space-y-4">
+                  <ToolDiscoverySidebar
+                    similar={relatedTools.similar}
+                    trending={relatedTools.trending}
+                    new={[]}
+                    currentToolId={tool.id}
+                    variant="sidebar"
+                  />
+                </div>
+              </aside>
+            )}
+            </div>
+          </div>
         </main>
       </div>
     </>

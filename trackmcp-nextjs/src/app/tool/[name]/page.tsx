@@ -4,6 +4,7 @@ import type { Metadata } from 'next'
 import { ToolDetailClient } from '@/components/tool-detail-simple'
 import { fetchReadmeForServer } from '@/utils/github'
 import { createMetaDescription } from '@/utils/metaDescription'
+import { getRelatedTools } from '@/utils/relatedTools'
 import type { Database } from '@/types/database.types'
 
 type McpTool = Database['public']['Tables']['mcp_tools']['Row']
@@ -261,6 +262,9 @@ export default async function ToolPage({ params }: Props) {
 
   // Fetch README on server for SEO indexing
   const readme = await getReadme(tool.github_url || '')
+
+  // Fetch related tools
+  const relatedToolsData = await getRelatedTools(tool, 4)
   
   // Create SoftwareApplication schema (Google Rich Results compliant)
   // Build schema dynamically to avoid undefined values
@@ -382,7 +386,11 @@ export default async function ToolPage({ params }: Props) {
       />
       
       {/* Pass server-fetched data to client component */}
-      <ToolDetailClient tool={tool} initialReadme={readme} />
+      <ToolDetailClient
+        tool={tool}
+        initialReadme={readme}
+        relatedTools={relatedToolsData}
+      />
     </>
   )
 }
