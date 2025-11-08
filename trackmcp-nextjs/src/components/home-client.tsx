@@ -267,8 +267,8 @@ export function HomeClient({ initialTools, totalCount }: HomeClientProps) {
           <StatsSection totalTools={searchQuery || selectedCategory !== 'all' ? filteredAndSortedTools.length : actualAvailableCount} totalStars={totalStars} isSearching={!!searchQuery || selectedCategory !== 'all'} />
         </div>
         
-        <div className="container relative mx-auto px-4 py-2 md:py-6">
-          <div className="max-w-5xl mx-auto text-center space-y-3 md:space-y-6">
+        <div className="container relative mx-auto px-4 py-8 md:py-6">
+          <div className="max-w-5xl mx-auto text-center space-y-6 md:space-y-6">
             {/* Track MCP Badge - Visible on mobile only, hidden on web (md+) */}
             <div className="md:hidden inline-flex items-center gap-2 px-4 py-2 rounded-full border bg-card/50 backdrop-blur-sm mb-2 animate-fade-in">
               <Sparkles className="h-4 w-4 text-primary" />
@@ -286,11 +286,11 @@ export function HomeClient({ initialTools, totalCount }: HomeClientProps) {
               </span>
             </h1>
             
-            <p className="text-lg sm:text-lg md:text-lg lg:text-xl text-muted-foreground max-w-3xl mx-auto leading-relaxed animate-fade-in mt-2">
+            <p className="text-lg sm:text-lg md:text-lg lg:text-xl text-muted-foreground max-w-3xl mx-auto leading-relaxed animate-fade-in mt-4 md:mt-2">
               World&apos;s largest MCP Marketplace. Find what you need, install it in seconds, and bring your ideas to life.
             </p>
             
-            <div className="flex flex-col items-center gap-2 pt-2 animate-fade-in relative z-50">
+            <div className="flex flex-col items-center gap-2 pt-6 md:pt-2 animate-fade-in relative z-50">
               <SearchBar
                 value={inputValue}
                 onChange={setInputValue}
