@@ -172,18 +172,19 @@ export default function RootLayout({
         />
       </head>
       <body className={inter.className}>
-        {/* Google Analytics - Lazy loaded for better performance */}
+        {/* Google Analytics - Loaded after interactive for better tracking */}
         <Script
           src="https://www.googletagmanager.com/gtag/js?id=G-22HQQFNJ1F"
-          strategy="lazyOnload"
+          strategy="afterInteractive"
         />
-        <Script id="google-analytics" strategy="lazyOnload">
+        <Script id="google-analytics" strategy="afterInteractive">
           {`
             window.dataLayer = window.dataLayer || [];
             function gtag(){dataLayer.push(arguments);}
             gtag('js', new Date());
             gtag('config', 'G-22HQQFNJ1F', {
               page_path: window.location.pathname,
+              send_page_view: true,
             });
           `}
         </Script>
