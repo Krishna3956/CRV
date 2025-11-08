@@ -27,6 +27,7 @@ interface SubmitToolDialogProps {
 export const SubmitToolDialog = ({ variant = 'default', onSuccess, buttonText = 'Submit Your MCP' }: SubmitToolDialogProps = {}) => {
   const [open, setOpen] = useState(false);
   const [githubUrl, setGithubUrl] = useState("");
+  const [email, setEmail] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [wantsFeatured, setWantsFeatured] = useState(false);
   const { toast } = useToast();
@@ -59,6 +60,11 @@ export const SubmitToolDialog = ({ variant = 'default', onSuccess, buttonText = 
     return true;
   };
 
+  const validateEmail = (emailAddress: string) => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(emailAddress);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -67,6 +73,24 @@ export const SubmitToolDialog = ({ variant = 'default', onSuccess, buttonText = 
         toast({
           title: "Invalid URL",
           description: "Please enter a valid GitHub repository URL",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      if (!email.trim()) {
+        toast({
+          title: "Email Required",
+          description: "Please enter your email address",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      if (!validateEmail(email)) {
+        toast({
+          title: "Invalid Email",
+          description: "Please enter a valid email address",
           variant: "destructive",
         });
         return;
@@ -107,6 +131,8 @@ export const SubmitToolDialog = ({ variant = 'default', onSuccess, buttonText = 
         topics: repoData.topics || [],
         last_updated: repoData.updated_at || new Date().toISOString(),
         status: "pending",
+        submitter_email: email,
+        wants_featured: wantsFeatured,
       } as any);
 
       if (error) {
@@ -125,6 +151,8 @@ export const SubmitToolDialog = ({ variant = 'default', onSuccess, buttonText = 
           description: "Your MCP tool has been submitted for review",
         });
         setGithubUrl("");
+        setEmail("");
+        setWantsFeatured(false);
         setOpen(false);
         onSuccess?.();
       }
@@ -180,6 +208,24 @@ export const SubmitToolDialog = ({ variant = 'default', onSuccess, buttonText = 
               />
               <p className="text-xs text-muted-foreground mt-1">
                 Example: https://github.com/modelcontextprotocol/servers
+              </p>
+            </div>
+
+            <div className="grid gap-2 sm:gap-3">
+              <Label htmlFor="email" className="text-xs sm:text-sm font-semibold">
+                Email Address <span className="text-red-500">*</span>
+              </Label>
+              <Input
+                id="email"
+                type="email"
+                placeholder="your@email.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                className="h-10 sm:h-11 text-sm"
+              />
+              <p className="text-xs text-muted-foreground mt-1">
+                We&apos;ll use this to contact you about your submission
               </p>
             </div>
 
