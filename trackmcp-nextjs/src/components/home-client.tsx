@@ -275,7 +275,7 @@ export function HomeClient({ initialTools, totalCount }: HomeClientProps) {
               <span className="text-sm font-medium">Track MCP</span>
             </div>
             
-            <h1 className="text-5xl md:text-7xl font-extrabold animate-fade-in leading-[1.15] tracking-tight">
+            <h1 className="text-3xl sm:text-4xl md:text-7xl font-extrabold animate-fade-in leading-[1.15] tracking-tight">
               <span className="gradient-text">App Store for MCP</span>
               <br />
               {/* Mobile: Static text */}
@@ -289,7 +289,7 @@ export function HomeClient({ initialTools, totalCount }: HomeClientProps) {
             </h1>
             
             <p className="text-base md:text-lg lg:text-xl text-muted-foreground max-w-3xl mx-auto leading-relaxed animate-fade-in mt-4">
-              World&apos;s largest MCP Marketplace. Find what you need, install it in seconds, and seamlessly bring your ideas to life.
+              World&apos;s largest MCP Marketplace. Find what you need, install it in seconds, and bring your ideas to life.
             </p>
             
             <div className="flex flex-col items-center gap-2 pt-4 animate-fade-in relative z-50">

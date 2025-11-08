@@ -119,7 +119,7 @@ export default async function AboutPage() {
             <div className="space-y-6 text-sm md:text-base text-foreground/75 leading-relaxed font-normal">
               <p>
                 Hi There,<br /><br />
-                My name is <a href="https://www.linkedin.com/in/krishnaa-goyal/" target="_blank" rel="noopener noreferrer" className="text-primary hover:text-primary/70 font-medium transition-colors">Krishna</a>, and I work as a product manager at Cisco. I don&apos;t know how to code, so this entire project has been brought to life with the help of Vibecoding. Together, we&apos;ve created the world&apos;s largest repository of MCP, with over 10,000 people visiting every day. I run this as a hobby project, and now that we have traffic coming to the site, I&apos;d be happy to help you get your project noticed.
+                My name is <a href="https://www.linkedin.com/in/krishnaa-goyal/" target="_blank" rel="noopener noreferrer" className="text-primary hover:text-primary/70 font-medium transition-colors">Krishna</a>, and I work as a product manager at Cisco. I don&apos;t know how to code, so this entire project has been brought to life with the help of Vibecoding. Together, we&apos;ve created the world&apos;s largest App Store for MCP Servers, Tools & Clients, with over 10,000 people visiting every day. I run this as a hobby project, and now that we have traffic coming to the site, I&apos;d be happy to help you get your project noticed.
               </p>
 
               <p>
