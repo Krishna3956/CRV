@@ -147,15 +147,14 @@ export function ToolDetailClient({ tool, initialReadme, relatedTools }: ToolDeta
                 </Avatar>
                 <h1 className="text-2xl sm:text-4xl font-bold">{formatToolName(tool.repo_name || '')}</h1>
               </div>
-              <Button asChild size="sm" className="w-fit gap-2">
+              <Button asChild size="sm" className="w-fit gap-1.5 px-3">
                 <a 
                   href={tool.github_url} 
                   target="_blank" 
                   rel="noopener noreferrer" 
-                  className="flex items-center gap-2"
+                  className="flex items-center gap-1.5"
                   aria-label={`View ${tool.repo_name} on GitHub`}
                 >
-                  <span>View on</span>
                   <svg 
                     className="h-4 w-4 fill-current" 
                     viewBox="0 0 24 24" 
