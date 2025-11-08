@@ -214,7 +214,7 @@ export const SubmitToolDialog = ({ variant = 'default', onSuccess, buttonText = 
                 className="h-10 sm:h-11 text-sm"
               />
               <p className="text-xs text-muted-foreground mt-1">
-                We'll use this to contact you about your submission
+                We&apos;ll use this to contact you about your submission
               </p>
             </div>
 
