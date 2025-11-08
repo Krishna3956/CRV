@@ -1,0 +1,27 @@
+{
+  "applinks": {
+    "apps": [],
+    "details": [
+      {
+        "appID": "XXXXXXXXXX.com.trackmcp.app",
+        "paths": [
+          "/tool/*",
+          "/category/*",
+          "/categories",
+          "/top-mcp",
+          "/new"
+        ]
+      }
+    ]
+  },
+  "webcredentials": {
+    "apps": [
+      "XXXXXXXXXX.com.trackmcp.app"
+    ]
+  },
+  "activitycontinuation": {
+    "apps": [
+      "XXXXXXXXXX.com.trackmcp.app"
+    ]
+  }
+}

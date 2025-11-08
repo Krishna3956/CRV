@@ -91,10 +91,38 @@ const nextConfig = {
       //   permanent: true, // 301 redirect
       // },
       
-      // Redirect trailing slashes
+      // Redirect trailing slashes (permanent 301)
       {
         source: '/tool/:name/',
         destination: '/tool/:name',
+        permanent: true,
+      },
+      
+      // Redirect root trailing slash (permanent 301)
+      {
+        source: '/',
+        destination: '/',
+        permanent: true,
+      },
+      
+      // Redirect .well-known URLs without trailing slashes
+      {
+        source: '/.well-known/:path*',
+        destination: '/.well-known/:path*',
+        permanent: true,
+      },
+      
+      // Redirect apple-app-site-association with trailing slash
+      {
+        source: '/apple-app-site-association/',
+        destination: '/apple-app-site-association',
+        permanent: true,
+      },
+      
+      // Redirect .well-known/apple-app-site-association with trailing slash
+      {
+        source: '/.well-known/apple-app-site-association/',
+        destination: '/.well-known/apple-app-site-association',
         permanent: true,
       },
     ]
@@ -177,6 +205,52 @@ const nextConfig = {
           {
             key: 'X-Robots-Tag',
             value: 'noindex, nofollow',
+          },
+          {
+            key: 'Cache-Control',
+            value: 'public, max-age=60, must-revalidate',
+          },
+        ],
+      },
+      // Block file downloads from indexing
+      {
+        source: '/:path*.(pdf|doc|docx|xls|xlsx|ppt|pptx|zip|rar|exe|dmg|iso|tar|gz|mp3|mp4|avi|mov|wav|flv|wmv|webm|mkv|m4a|m4v|3gp|ogv)',
+        headers: [
+          {
+            key: 'X-Robots-Tag',
+            value: 'noindex, nofollow',
+          },
+          {
+            key: 'Cache-Control',
+            value: 'public, max-age=86400, immutable',
+          },
+        ],
+      },
+      // Block source maps from indexing
+      {
+        source: '/:path*.map',
+        headers: [
+          {
+            key: 'X-Robots-Tag',
+            value: 'noindex, nofollow',
+          },
+          {
+            key: 'Cache-Control',
+            value: 'public, max-age=31536000, immutable',
+          },
+        ],
+      },
+      // Block config files from indexing
+      {
+        source: '/:path*.(json|xml|yml|yaml|toml|ini|cfg|conf|config|env|lock)',
+        headers: [
+          {
+            key: 'X-Robots-Tag',
+            value: 'noindex, nofollow',
+          },
+          {
+            key: 'Cache-Control',
+            value: 'public, max-age=3600, must-revalidate',
           },
         ],
       },
