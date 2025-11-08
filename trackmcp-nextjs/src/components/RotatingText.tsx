@@ -58,9 +58,9 @@ export function RotatingText({ words, interval = 3000 }: RotatingTextProps) {
         }
       `}</style>
       
-      <span className="rotating-container" style={{ overflow: 'hidden', paddingLeft: '8px', paddingRight: '8px', height: '1.2em', display: 'inline-flex', alignItems: 'center', minWidth: 'fit-content', position: 'relative' }}>
+      <span className="rotating-container" style={{ overflow: 'hidden', paddingLeft: '12px', paddingRight: '12px', height: '1.2em', display: 'inline-flex', alignItems: 'center', minWidth: 'fit-content', position: 'relative' }}>
         {/* Invisible text to maintain space - sets the width based on longest word */}
-        <span className="invisible font-bold whitespace-nowrap" aria-hidden="true" style={{ paddingLeft: '4px', paddingRight: '4px', height: '1.2em' }}>
+        <span className="invisible font-bold whitespace-nowrap" aria-hidden="true" style={{ paddingLeft: '8px', paddingRight: '8px', height: '1.2em' }}>
           {longestWord}
         </span>
         
@@ -85,7 +85,7 @@ export function RotatingText({ words, interval = 3000 }: RotatingTextProps) {
               key={index}
               className={className}
               aria-hidden="true"
-              style={{ paddingLeft: '4px', paddingRight: '4px' }}
+              style={{ paddingLeft: '8px', paddingRight: '8px' }}
             >
               <span className="font-bold">{word}</span>
             </span>

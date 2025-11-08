@@ -127,14 +127,14 @@ export const Navbar = ({ hideOnMobile: hideOnMobileProp }: NavbarProps) => {
                 </DropdownMenuContent>
               </DropdownMenu>
 
-              {/* Top Tools Link */}
+              {/* Top MCP Link */}
               <Link href="/top-mcp">
                 <Button 
                   variant="ghost" 
                   className="gap-2 text-sm font-medium hover:bg-accent/50"
                 >
                   <TrendingUp className="h-4 w-4" />
-                  Top Tools
+                  Top MCP
                 </Button>
               </Link>
 

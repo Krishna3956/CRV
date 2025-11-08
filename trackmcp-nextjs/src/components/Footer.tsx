@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import Image from 'next/image'
-import { Github, Linkedin, Twitter, Mail, ExternalLink } from 'lucide-react'
+import { Linkedin, Mail, ExternalLink } from 'lucide-react'
 
 export default function Footer() {
   const currentYear = new Date().getFullYear()
@@ -12,7 +12,7 @@ export default function Footer() {
       title: 'Product',
       links: [
         { label: 'Categories', href: '/category' },
-        { label: 'Top Tools', href: '/top-mcp' },
+        { label: 'Top MCP', href: '/top-mcp' },
         { label: 'New & Updated', href: '/new' },
       ],
     },
@@ -32,11 +32,16 @@ export default function Footer() {
     },
   ]
 
+  const XLogo = () => (
+    <svg className="h-5 w-5" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+      <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24h-6.657l-5.207-6.807-5.966 6.807H2.882l7.432-8.504-8.17-10.996h6.82l4.71 6.232 5.45-6.232zM17.15 18.75h1.828L6.122 4.126H4.18l13.97 14.624z"/>
+    </svg>
+  )
+
   const socialLinks = [
-    { icon: Github, href: '#', label: 'GitHub', color: 'hover:text-gray-400' },
-    { icon: Twitter, href: '#', label: 'Twitter', color: 'hover:text-blue-400' },
+    { icon: XLogo, href: 'https://twitter.com/trackmcp', label: 'X', color: 'hover:text-gray-400' },
     { icon: Linkedin, href: '#', label: 'LinkedIn', color: 'hover:text-blue-600' },
-    { icon: Mail, href: 'mailto:contact@trackmcp.com', label: 'Email', color: 'hover:text-primary' },
+    { icon: Mail, href: 'mailto:support@trackmcp.com', label: 'Email', color: 'hover:text-primary' },
   ]
 
   return (
