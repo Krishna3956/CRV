@@ -289,7 +289,7 @@ export function HomeClient({ initialTools, totalCount }: HomeClientProps) {
             </h1>
             
             <p className="text-base md:text-lg lg:text-xl text-muted-foreground max-w-3xl mx-auto leading-relaxed animate-fade-in mt-4">
-              World's largest MCP Marketplace. Find what you need, install it in seconds, and seamlessly bring your ideas to life.
+              World&apos;s largest MCP Marketplace. Find what you need, install it in seconds, and seamlessly bring your ideas to life.
             </p>
             
             <div className="flex flex-col items-center gap-2 pt-4 animate-fade-in relative z-50">
