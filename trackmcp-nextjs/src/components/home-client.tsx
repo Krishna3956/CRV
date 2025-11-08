@@ -267,15 +267,15 @@ export function HomeClient({ initialTools, totalCount }: HomeClientProps) {
           <StatsSection totalTools={searchQuery || selectedCategory !== 'all' ? filteredAndSortedTools.length : actualAvailableCount} totalStars={totalStars} isSearching={!!searchQuery || selectedCategory !== 'all'} />
         </div>
         
-        <div className="container relative mx-auto px-4 py-2 md:py-6">
-          <div className="max-w-5xl mx-auto text-center space-y-4 md:space-y-6">
+        <div className="container relative mx-auto px-4 py-4 md:py-6">
+          <div className="max-w-5xl mx-auto text-center space-y-6">
             {/* Track MCP Badge - Visible on mobile only, hidden on web (md+) */}
-            <div className="md:hidden inline-flex items-center gap-2 px-4 py-2 rounded-full border bg-card/50 backdrop-blur-sm mb-3 md:mb-6 animate-fade-in">
+            <div className="md:hidden inline-flex items-center gap-2 px-4 py-2 rounded-full border bg-card/50 backdrop-blur-sm mb-6 animate-fade-in">
               <Sparkles className="h-4 w-4 text-primary" />
               <span className="text-sm font-medium">Track MCP</span>
             </div>
             
-            <h1 className="text-2.5xl sm:text-4xl md:text-7xl font-extrabold animate-fade-in leading-[1.1] md:leading-[1.15] tracking-tight">
+            <h1 className="text-2xl sm:text-4xl md:text-7xl font-extrabold animate-fade-in leading-[1.15] tracking-tight">
               <span className="gradient-text">App Store for MCP</span>
               <br />
               {/* Mobile & Desktop: Rotating text */}
