@@ -98,20 +98,6 @@ const nextConfig = {
         permanent: true,
       },
       
-      // Redirect root trailing slash (permanent 301)
-      {
-        source: '/',
-        destination: '/',
-        permanent: true,
-      },
-      
-      // Redirect .well-known URLs without trailing slashes
-      {
-        source: '/.well-known/:path*',
-        destination: '/.well-known/:path*',
-        permanent: true,
-      },
-      
       // Redirect apple-app-site-association with trailing slash
       {
         source: '/apple-app-site-association/',

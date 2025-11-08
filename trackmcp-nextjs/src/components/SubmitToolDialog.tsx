@@ -78,16 +78,7 @@ export const SubmitToolDialog = ({ variant = 'default', onSuccess, buttonText = 
         return;
       }
 
-      if (!email.trim()) {
-        toast({
-          title: "Email Required",
-          description: "Please enter your email address",
-          variant: "destructive",
-        });
-        return;
-      }
-
-      if (!validateEmail(email)) {
+      if (!email || !validateEmail(email)) {
         toast({
           title: "Invalid Email",
           description: "Please enter a valid email address",
@@ -132,7 +123,6 @@ export const SubmitToolDialog = ({ variant = 'default', onSuccess, buttonText = 
         last_updated: repoData.updated_at || new Date().toISOString(),
         status: "pending",
         submitter_email: email,
-        wants_featured: wantsFeatured,
       } as any);
 
       if (error) {
@@ -152,7 +142,6 @@ export const SubmitToolDialog = ({ variant = 'default', onSuccess, buttonText = 
         });
         setGithubUrl("");
         setEmail("");
-        setWantsFeatured(false);
         setOpen(false);
         onSuccess?.();
       }
@@ -218,14 +207,14 @@ export const SubmitToolDialog = ({ variant = 'default', onSuccess, buttonText = 
               <Input
                 id="email"
                 type="email"
-                placeholder="your@email.com"
+                placeholder="your.email@example.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
                 className="h-10 sm:h-11 text-sm"
               />
               <p className="text-xs text-muted-foreground mt-1">
-                We&apos;ll use this to contact you about your submission
+                We'll use this to contact you about your submission
               </p>
             </div>
 
