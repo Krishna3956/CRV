@@ -146,7 +146,7 @@ export const Navbar = ({ hideOnMobile: hideOnMobileProp }: NavbarProps) => {
                     className="gap-1 text-sm font-medium hover:bg-accent/50 transition-all duration-200"
                   >
                     <Sparkles className="h-4 w-4" />
-                    What's New
+                    What&apos;s New
                     <ChevronDown className="h-4 w-4 opacity-50 transition-transform duration-200 group-data-[state=open]:rotate-180" />
                   </Button>
                 </DropdownMenuTrigger>
@@ -154,7 +154,7 @@ export const Navbar = ({ hideOnMobile: hideOnMobileProp }: NavbarProps) => {
                   align="start"
                 >
                   <DropdownMenuLabel>
-                    Discover What's New
+                    Discover What&apos;s New
                   </DropdownMenuLabel>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem asChild>

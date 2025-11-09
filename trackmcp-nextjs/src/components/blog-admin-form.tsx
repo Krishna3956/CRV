@@ -52,7 +52,7 @@ export function BlogAdminForm() {
             className="rounded border-border"
           />
           <label htmlFor="featured" className="text-sm font-medium cursor-pointer">
-            Mark as "Community Pick"
+            Mark as &quot;Community Pick&quot;
           </label>
         </div>
 
