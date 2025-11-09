@@ -194,7 +194,22 @@ export default function RootLayout({
         </LayoutWrapper>
         
         {/* Vercel Analytics for page views and visitor tracking */}
-        <Analytics />
+        <Analytics beforeSend={(event) => {
+          // Exclude localhost and development traffic
+          if (typeof window !== 'undefined') {
+            const isDev = window.location.hostname === 'localhost' || 
+                         window.location.hostname === '127.0.0.1' ||
+                         window.location.hostname.includes('vercel.app');
+            
+            // Also exclude if you set a flag in localStorage
+            const shouldIgnore = localStorage.getItem('vercel-analytics-ignore') === 'true';
+            
+            if (isDev || shouldIgnore) {
+              return null; // Don't send this event
+            }
+          }
+          return event;
+        }} />
         
         {/* Vercel Speed Insights for performance metrics */}
         <SpeedInsights />
