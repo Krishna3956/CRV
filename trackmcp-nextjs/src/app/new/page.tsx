@@ -69,11 +69,11 @@ function getGitHubOwnerAvatar(repoName: string): string {
 
 export async function generateMetadata(): Promise<Metadata> {
   return {
-    title: 'Newly Updated MCP Projects – Latest Additions on Track MCP',
-    description: 'Stay ahead with the newest and recently updated MCP tools. Track fresh repositories, feature releases, and active development updates.',
+    title: 'Latest MCPs – Newest Tools on Track MCP',
+    description: 'Explore the newest tools and updates in the MCP ecosystem. Discover fresh repositories, feature releases, and active development updates.',
     openGraph: {
-      title: 'Newly Updated MCP Projects – Latest Additions on Track MCP',
-      description: 'Stay ahead with the newest and recently updated MCP tools. Track fresh repositories, feature releases, and active development updates.',
+      title: 'Latest MCPs – Newest Tools on Track MCP',
+      description: 'Explore the newest tools and updates in the MCP ecosystem. Discover fresh repositories, feature releases, and active development updates.',
       url: 'https://www.trackmcp.com/new',
       type: 'website',
     },
@@ -123,7 +123,7 @@ export default async function NewPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <MobileNav title="New & Updated" showBackButton={true} />
+      <MobileNav title="Latest MCPs" showBackButton={true} />
       <main className="container mx-auto px-4 py-8 md:py-12 pt-20 md:pt-8">
         {/* Hero Section */}
         <div className="mb-12">
@@ -139,10 +139,10 @@ export default async function NewPage() {
                 <span className="text-sm font-semibold text-primary">Latest Additions</span>
               </div>
               <h1 className="text-4xl md:text-5xl font-bold mb-4 gradient-text">
-                New & Recently Updated
+                Latest MCPs
               </h1>
               <p className="text-lg text-muted-foreground max-w-2xl mb-6">
-                Discover the newest and most recently updated Model Context Protocol servers. Stay up-to-date with the latest MCP tools, improvements, and innovations.
+                Explore the newest tools and updates in the MCP ecosystem.
               </p>
               <div className="flex flex-col sm:flex-row gap-4">
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">

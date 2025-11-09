@@ -4,7 +4,7 @@ import { useState } from "react"
 import { usePathname } from "next/navigation"
 import Link from "next/link"
 import Image from "next/image"
-import { Menu, X, ChevronDown, Sparkles, TrendingUp, Search as SearchIcon } from "lucide-react"
+import { Menu, X, ChevronDown, Sparkles, TrendingUp, Search as SearchIcon, FileText } from "lucide-react"
 import { SubmitToolDialog } from "./SubmitToolDialog"
 import { Button } from "@/components/ui/button"
 import {
@@ -138,16 +138,45 @@ export const Navbar = ({ hideOnMobile: hideOnMobileProp }: NavbarProps) => {
                 </Button>
               </Link>
 
-              {/* New & Updated Link */}
-              <Link href="/new">
-                <Button 
-                  variant="ghost" 
-                  className="gap-2 text-sm font-medium hover:bg-accent/50"
+              {/* What's New Dropdown */}
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button 
+                    variant="ghost" 
+                    className="gap-1 text-sm font-medium hover:bg-accent/50 transition-all duration-200"
+                  >
+                    <Sparkles className="h-4 w-4" />
+                    What's New
+                    <ChevronDown className="h-4 w-4 opacity-50 transition-transform duration-200 group-data-[state=open]:rotate-180" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent 
+                  align="start"
                 >
-                  <Sparkles className="h-4 w-4" />
-                  New & Updated
-                </Button>
-              </Link>
+                  <DropdownMenuLabel>
+                    Discover What's New
+                  </DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem asChild>
+                    <Link 
+                      href="/new"
+                      className="flex items-center w-full"
+                    >
+                      <Sparkles className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                      <span className="flex-1">Latest MCPs</span>
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link 
+                      href="/new/featured-blogs"
+                      className="flex items-center w-full"
+                    >
+                      <FileText className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                      <span className="flex-1">Featured Blogs</span>
+                    </Link>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
 
               {/* About Us Link */}
               <Link href="/about">
