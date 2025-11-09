@@ -2,7 +2,7 @@
 
 import Image from 'next/image'
 import Link from 'next/link'
-import { ExternalLink, Award } from 'lucide-react'
+import { ExternalLink, Award, ArrowRight } from 'lucide-react'
 import { BlogMetadata } from '@/utils/blog-metadata'
 
 interface BlogCardProps {
@@ -18,115 +18,91 @@ export function BlogCard({ blog, isFeatured = false }: BlogCardProps) {
       rel="noopener noreferrer"
       className="block h-full"
     >
-      <article className="group relative h-full overflow-hidden rounded-xl border border-border/50 bg-card/50 backdrop-blur-sm hover:border-primary/50 hover:shadow-lg transition-all duration-300 cursor-pointer">
-      {/* Featured Badge */}
-      {isFeatured && (
-        <div className="absolute top-4 right-4 z-10 flex items-center gap-1 px-3 py-1 rounded-full bg-gradient-to-r from-primary/20 to-accent/20 border border-primary/30 backdrop-blur-sm">
-          <Award className="h-3.5 w-3.5 text-primary" />
-          <span className="text-xs font-semibold text-primary">Community Pick</span>
-        </div>
-      )}
-
-      {/* Featured Image */}
-      {blog.featuredImage ? (
-        <div className="relative h-48 w-full overflow-hidden bg-gradient-to-br from-primary/10 to-accent/10">
-          <Image
-            src={blog.featuredImage}
-            alt={blog.title}
-            fill
-            unoptimized
-            className="object-cover group-hover:scale-105 transition-transform duration-300"
-            onError={(e) => {
-              // Fallback if image fails to load
-              e.currentTarget.style.display = 'none'
-            }}
-          />
-          {/* Gradient overlay */}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
-        </div>
-      ) : (
-        <div className="h-48 w-full bg-gradient-to-br from-primary/10 via-accent/5 to-primary/5 flex items-center justify-center">
-          <div className="text-center">
-            <div className="text-4xl mb-2">📝</div>
-            <p className="text-xs text-muted-foreground">No image available</p>
+      <article className="group h-full overflow-hidden rounded-xl border-2 border-border bg-card hover:border-primary/50 hover:shadow-xl hover:scale-105 transition-all duration-300 cursor-pointer flex flex-col">
+        {/* Featured Image - BIG */}
+        {blog.featuredImage ? (
+          <div className="relative h-56 w-full overflow-hidden bg-secondary flex-shrink-0">
+            <Image
+              src={blog.featuredImage}
+              alt={blog.title}
+              fill
+              unoptimized
+              className="object-cover"
+              onError={(e) => {
+                e.currentTarget.style.display = 'none'
+              }}
+            />
+            {/* Overlay gradient */}
+            <div className="absolute inset-0 bg-gradient-to-t from-primary/20 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+            
+            {/* Featured Badge - Ribbon Overlay */}
+            {isFeatured && (
+              <div className="absolute top-3 right-0 flex items-center gap-1.5 px-3 py-1.5 bg-primary text-primary-foreground rounded-l-lg shadow-lg">
+                <Award className="h-4 w-4" />
+                <span className="text-xs font-bold">Community Pick</span>
+              </div>
+            )}
           </div>
-        </div>
-      )}
+        ) : (
+          <div className="relative h-56 w-full bg-gradient-to-br from-secondary to-muted flex items-center justify-center flex-shrink-0">
+            <div className="text-5xl">📝</div>
+            
+            {/* Featured Badge - Ribbon Overlay */}
+            {isFeatured && (
+              <div className="absolute top-3 right-0 flex items-center gap-1.5 px-3 py-1.5 bg-primary text-primary-foreground rounded-l-lg shadow-lg">
+                <Award className="h-4 w-4" />
+                <span className="text-xs font-bold">Community Pick</span>
+              </div>
+            )}
+          </div>
+        )}
 
-      {/* Content */}
-      <div className="flex flex-col h-full p-5">
-        {/* Author Section - Prominent */}
-        {blog.author && (
-          <div className="flex items-center gap-2 mb-4 pb-4 border-b border-border/30">
-            <div className="flex-shrink-0">
-              {blog.authorAvatar ? (
-                <Image
-                  src={blog.authorAvatar}
-                  alt={blog.author}
-                  width={32}
-                  height={32}
-                  unoptimized
-                  className="rounded-full"
-                />
-              ) : (
-                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center text-xs font-bold text-white">
-                  {blog.author.charAt(0).toUpperCase()}
+        {/* Content - SMALL */}
+        <div className="flex flex-col h-full p-3.5 border-t-2 border-border">
+
+          {/* Title - Small */}
+          <h3 className="text-base font-bold line-clamp-2 mb-1 text-foreground group-hover:text-primary transition-colors duration-200 leading-snug">
+            {blog.title}
+          </h3>
+
+          {/* Description - Very Small */}
+          {blog.excerpt && (
+            <p className="text-xs text-muted-foreground line-clamp-2 mb-2 flex-grow leading-relaxed">
+              {blog.excerpt}
+            </p>
+          )}
+
+          {/* Author Section - Bottom */}
+          {blog.author && (
+            <div className="flex items-center justify-between pt-2 border-t border-border/30">
+              <div className="flex items-center gap-2 min-w-0">
+                <div className="flex-shrink-0">
+                  {blog.authorAvatar ? (
+                    <Image
+                      src={blog.authorAvatar}
+                      alt={blog.author}
+                      width={32}
+                      height={32}
+                      unoptimized
+                      className="rounded-full ring-1 ring-border/50"
+                    />
+                  ) : (
+                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center text-xs font-bold text-primary-foreground">
+                      {blog.author.charAt(0).toUpperCase()}
+                    </div>
+                  )}
                 </div>
-              )}
+                <div className="min-w-0">
+                  <p className="text-xs font-semibold text-foreground truncate">{blog.author}</p>
+                  {blog.domain && (
+                    <p className="text-xs text-muted-foreground truncate">{blog.domain}</p>
+                  )}
+                </div>
+              </div>
+              <ArrowRight className="h-4 w-4 text-muted-foreground group-hover:text-primary group-hover:translate-x-1 transition-all duration-200 flex-shrink-0" />
             </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-xs font-semibold text-foreground truncate">{blog.author}</p>
-              {blog.domain && (
-                <p className="text-xs text-muted-foreground truncate">{blog.domain}</p>
-              )}
-            </div>
-          </div>
-        )}
-
-        {/* Title */}
-        <h3 className="text-base font-bold line-clamp-2 mb-3 text-foreground group-hover:text-primary transition-colors">
-          {blog.title}
-        </h3>
-
-        {/* Excerpt */}
-        {blog.excerpt && (
-          <p className="text-sm text-muted-foreground line-clamp-2 mb-4 flex-grow">
-            {blog.excerpt}
-          </p>
-        )}
-
-        {/* Footer - Source & CTA */}
-        <div className="flex items-center justify-between gap-3 pt-4 border-t border-border/30 mt-auto">
-          {/* Source Logo */}
-          <div className="flex items-center gap-2 min-w-0">
-            {blog.favicon && (
-              <Image
-                src={blog.favicon}
-                alt={blog.domain || 'Blog source'}
-                width={16}
-                height={16}
-                unoptimized
-                className="flex-shrink-0"
-              />
-            )}
-            {blog.domain && (
-              <span className="text-xs text-muted-foreground truncate">{blog.domain}</span>
-            )}
-          </div>
-
-          {/* Read Blog Button */}
-          <button
-            onClick={(e) => {
-              e.preventDefault()
-              window.open(blog.url, '_blank')
-            }}
-            className="flex-shrink-0 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gradient-to-r from-primary/10 to-accent/10 hover:from-primary/20 hover:to-accent/20 border border-primary/20 hover:border-primary/40 text-xs font-semibold text-primary transition-all duration-200"
-          >
-            Read
-            <ExternalLink className="h-3 w-3" />
-          </button>
+          )}
         </div>
-      </div>
       </article>
     </Link>
   )

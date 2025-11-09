@@ -9,6 +9,12 @@ interface FeaturedBlogsClientProps {
   blogs: {
     url: string
     isFeatured?: boolean
+    title?: string
+    excerpt?: string
+    featuredImage?: string
+    author?: string
+    authorAvatar?: string
+    domain?: string
   }[]
 }
 
@@ -23,29 +29,59 @@ export function FeaturedBlogsClient({ blogs }: FeaturedBlogsClientProps) {
         setLoading(true)
         setError(null)
 
-        // Fetch metadata for all blogs
-        const response = await fetch('/api/blogs/metadata', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ blogs }),
-        })
+        // Separate blogs that have metadata (from DB) vs those that need fetching (static)
+        const blogsWithMetadata = blogs.filter(b => b.title && b.featuredImage)
+        const blogsNeedingMetadata = blogs.filter(b => !b.title || !b.featuredImage)
 
-        if (!response.ok) {
-          throw new Error('Failed to fetch blog metadata')
+        let fetchedMetadata: (BlogMetadata & { isFeatured?: boolean })[] = []
+
+        // Only fetch metadata for blogs that need it
+        if (blogsNeedingMetadata.length > 0) {
+          const response = await fetch('/api/blogs/metadata', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ blogs: blogsNeedingMetadata }),
+          })
+
+          if (!response.ok) {
+            throw new Error('Failed to fetch blog metadata')
+          }
+
+          const data = await response.json()
+          fetchedMetadata = data.blogs || []
         }
 
-        const data = await response.json()
-        setBlogMetadata(data.blogs || [])
+        // Combine blogs with existing metadata and fetched metadata
+        const allBlogs = [
+          ...blogsWithMetadata.map(blog => ({
+            title: blog.title || 'Blog Post',
+            excerpt: blog.excerpt,
+            featuredImage: blog.featuredImage,
+            author: blog.author,
+            authorAvatar: blog.authorAvatar,
+            url: blog.url,
+            domain: blog.domain,
+            isFeatured: blog.isFeatured,
+          })),
+          ...fetchedMetadata,
+        ]
+
+        setBlogMetadata(allBlogs)
       } catch (err) {
         console.error('Error fetching blogs:', err)
         setError('Failed to load blogs. Please try again later.')
         // Still show basic info even if metadata fetch fails
         setBlogMetadata(
           blogs.map((blog) => ({
-            title: 'Blog Post',
+            title: blog.title || 'Blog Post',
+            excerpt: blog.excerpt,
+            featuredImage: blog.featuredImage,
+            author: blog.author,
+            authorAvatar: blog.authorAvatar,
             url: blog.url,
+            domain: blog.domain,
             isFeatured: blog.isFeatured,
           }))
         )
@@ -91,7 +127,7 @@ export function FeaturedBlogsClient({ blogs }: FeaturedBlogsClientProps) {
   ]
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
       {sortedBlogs.map((blog) => (
         <BlogCard key={blog.url} blog={blog} isFeatured={blog.isFeatured} />
       ))}

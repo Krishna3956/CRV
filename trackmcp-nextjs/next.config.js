@@ -15,6 +15,10 @@ const nextConfig = {
         protocol: 'https',
         hostname: 'raw.githubusercontent.com',
       },
+      {
+        protocol: 'https',
+        hostname: '*.supabase.co',
+      },
     ],
     formats: ['image/avif', 'image/webp'],
     minimumCacheTTL: 60 * 60 * 24 * 365, // 1 year - aggressive caching for avatars

@@ -14,13 +14,6 @@ export interface FeaturedBlog {
 }
 
 export const FEATURED_BLOGS: FeaturedBlog[] = [
-  // Featured MCP and AI-related blog posts
-  {
-    url: 'https://blog.neosage.io/p/why-every-ai-builder-needs-to-understand',
-    isFeatured: true,
-  },
-  {
-    url: 'https://www.linkedin.com/pulse/model-context-protocol-bridge-between-ai-potential-harsh-chaudhary-measc/?trackingId=lMKbck7tT%2BC%2FkLH%2FBMQhXw%3D%3D',
-    isFeatured: true,
-  },
+  // Static featured blogs can be added here
+  // All blogs from the database will be shown first
 ]

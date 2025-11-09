@@ -46,10 +46,11 @@ export async function fetchBlogMetadata(url: string): Promise<BlogMetadata> {
   try {
     const response = await fetch(url, {
       headers: {
-        'User-Agent': 'Mozilla/5.0 (compatible; BlogMetadataBot/1.0)',
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
       },
       next: { revalidate: 86400 }, // Cache for 24 hours
-    })
+      timeout: 10000,
+    } as any)
 
     if (!response.ok) {
       return {
@@ -62,15 +63,20 @@ export async function fetchBlogMetadata(url: string): Promise<BlogMetadata> {
 
     const html = await response.text()
 
-    // Extract metadata using regex patterns
-    const titleMatch = html.match(/<meta\s+property=["']og:title["']\s+content=["']([^"']+)["']/i)
-    const descriptionMatch = html.match(/<meta\s+property=["']og:description["']\s+content=["']([^"']+)["']/i)
-    const imageMatch = html.match(/<meta\s+property=["']og:image["']\s+content=["']([^"']+)["']/i)
-    const authorMatch = html.match(/<meta\s+name=["']author["']\s+content=["']([^"']+)["']/i)
+    // Extract metadata using regex patterns - more flexible matching
+    const titleMatch = html.match(/<meta\s+property=["']og:title["']\s+content=["']([^"']*?)["']/i) ||
+                       html.match(/<meta\s+content=["']([^"']*?)["']\s+property=["']og:title["']/i)
+    const descriptionMatch = html.match(/<meta\s+property=["']og:description["']\s+content=["']([^"']*?)["']/i) ||
+                             html.match(/<meta\s+content=["']([^"']*?)["']\s+property=["']og:description["']/i)
+    const imageMatch = html.match(/<meta\s+property=["']og:image["']\s+content=["']([^"']*?)["']/i) ||
+                       html.match(/<meta\s+content=["']([^"']*?)["']\s+property=["']og:image["']/i)
+    const authorMatch = html.match(/<meta\s+name=["']author["']\s+content=["']([^"']*?)["']/i) ||
+                        html.match(/<meta\s+content=["']([^"']*?)["']\s+name=["']author["']/i)
 
     // Fallback to regular meta tags if OG tags not found
     const titleFallback = html.match(/<title>([^<]+)<\/title>/i)
-    const descriptionFallback = html.match(/<meta\s+name=["']description["']\s+content=["']([^"']+)["']/i)
+    const descriptionFallback = html.match(/<meta\s+name=["']description["']\s+content=["']([^"']*?)["']/i) ||
+                                html.match(/<meta\s+content=["']([^"']*?)["']\s+name=["']description["']/i)
 
     const title = titleMatch?.[1] || titleFallback?.[1] || 'Blog Post'
     const excerpt = descriptionMatch?.[1] || descriptionFallback?.[1] || ''
@@ -78,9 +84,9 @@ export async function fetchBlogMetadata(url: string): Promise<BlogMetadata> {
     const author = authorMatch?.[1]
 
     return {
-      title: decodeHTMLEntities(title).trim(),
+      title: decodeHTMLEntities(title).trim().substring(0, 100),
       excerpt: decodeHTMLEntities(excerpt).trim().substring(0, 200),
-      featuredImage,
+      featuredImage: featuredImage && featuredImage.trim() ? featuredImage.trim() : undefined,
       author: author ? decodeHTMLEntities(author).trim() : undefined,
       url,
       domain: extractDomain(url),
