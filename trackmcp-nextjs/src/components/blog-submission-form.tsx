@@ -1,8 +1,8 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { Button } from '@/components/ui/button'
-import { AlertCircle, CheckCircle, Loader2, Upload, X } from 'lucide-react'
+import { AlertCircle, CheckCircle, Loader2, Upload, X, ZoomIn, ZoomOut } from 'lucide-react'
 import Image from 'next/image'
 
 interface FormData {
@@ -38,6 +38,13 @@ export function BlogSubmissionForm() {
   const [submitMessage, setSubmitMessage] = useState('')
   const [uploadingHero, setUploadingHero] = useState(false)
   const [uploadingAuthor, setUploadingAuthor] = useState(false)
+  const [showCropModal, setShowCropModal] = useState(false)
+  const [cropImage, setCropImage] = useState<string>('')
+  const [cropImageFile, setCropImageFile] = useState<File | null>(null)
+  const [cropZoom, setCropZoom] = useState(1)
+  const [cropPosition, setCropPosition] = useState({ x: 0, y: 0 })
+  const canvasRef = useRef<HTMLCanvasElement>(null)
+  const cropContainerRef = useRef<HTMLDivElement>(null)
 
   const validateForm = (): boolean => {
     const newErrors: FormErrors = {}
@@ -122,6 +129,38 @@ export function BlogSubmissionForm() {
     }
   }
 
+  const handleCropSave = () => {
+    if (!canvasRef.current || !cropImageFile || !cropImage) return
+
+    const canvas = canvasRef.current
+    const ctx = canvas.getContext('2d')
+    if (!ctx) return
+
+    const img = new window.Image()
+    img.onload = () => {
+      const size = 200
+      const sourceSize = size / cropZoom
+      const sourceX = (img.width - sourceSize) / 2 + cropPosition.x
+      const sourceY = (img.height - sourceSize) / 2 + cropPosition.y
+
+      canvas.width = size
+      canvas.height = size
+      ctx.drawImage(img, sourceX, sourceY, sourceSize, sourceSize, 0, 0, size, size)
+
+      // Only save the preview, not the actual file
+      const croppedPreview = canvas.toDataURL('image/jpeg', 0.9)
+      setFormData(prev => ({
+        ...prev,
+        authorImage: cropImageFile,
+        authorImagePreview: croppedPreview,
+        // Keep the original file unchanged for upload
+      }))
+      setShowCropModal(false)
+    }
+    // Use the data URL directly
+    img.src = cropImage
+  }
+
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>, type: 'hero' | 'author') => {
     const file = e.target.files?.[0]
     if (!file) return
@@ -135,38 +174,39 @@ export function BlogSubmissionForm() {
       return
     }
 
-    // Validate file size (max 5MB)
-    if (file.size > 5 * 1024 * 1024) {
-      setErrors(prev => ({
-        ...prev,
-        [type === 'hero' ? 'heroImage' : 'authorImage']: 'Image must be less than 5MB',
-      }))
-      return
-    }
-
-    // Create preview
-    const reader = new FileReader()
-    reader.onloadend = () => {
-      if (type === 'hero') {
+    if (type === 'hero') {
+      // For hero image, create preview
+      const reader = new FileReader()
+      reader.onloadend = () => {
         setFormData(prev => ({
           ...prev,
           heroImage: file,
           heroImagePreview: reader.result as string,
         }))
-      } else {
-        setFormData(prev => ({
+        setErrors(prev => ({
           ...prev,
-          authorImage: file,
-          authorImagePreview: reader.result as string,
+          heroImage: '',
         }))
       }
-      // Clear error
+      reader.readAsDataURL(file)
+    } else {
+      // For author image, show crop modal with original file
+      // Read as data URL but with high quality
+      const reader = new FileReader()
+      reader.onload = (e) => {
+        const result = e.target?.result as string
+        setCropImage(result)
+        setCropImageFile(file)
+        setCropZoom(1)
+        setCropPosition({ x: 0, y: 0 })
+        setShowCropModal(true)
+      }
+      reader.readAsDataURL(file)
       setErrors(prev => ({
         ...prev,
-        [type === 'hero' ? 'heroImage' : 'authorImage']: '',
+        authorImage: '',
       }))
     }
-    reader.readAsDataURL(file)
   }
 
   const removeImage = (type: 'hero' | 'author') => {
@@ -349,7 +389,6 @@ export function BlogSubmissionForm() {
           <label htmlFor="heroImageUpload" className="block text-sm font-medium text-foreground mb-2">
             Hero Image
             <span className="text-red-500 ml-1">*</span>
-            <span className="text-xs text-muted-foreground ml-2">(Max 5MB)</span>
           </label>
           {formData.heroImagePreview ? (
             <div className="relative">
@@ -422,25 +461,36 @@ export function BlogSubmissionForm() {
           <label htmlFor="authorImageUpload" className="block text-sm font-medium text-foreground mb-2">
             Author Image
             <span className="text-red-500 ml-1">*</span>
-            <span className="text-xs text-muted-foreground ml-2">(Max 5MB)</span>
           </label>
           {formData.authorImagePreview ? (
-            <div className="relative w-24">
-              <div className="relative w-24 h-24 rounded-full overflow-hidden bg-muted">
+            <div className="space-y-3">
+              <label className="relative w-32 h-32 rounded-full overflow-hidden bg-muted border-2 border-primary/20 cursor-pointer hover:border-primary/50 transition-colors group block">
                 <Image
                   src={formData.authorImagePreview}
                   alt="Author preview"
                   fill
                   className="object-cover"
                 />
+                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 flex items-center justify-center transition-all">
+                  <span className="text-white text-xs font-semibold opacity-0 group-hover:opacity-100 transition-opacity">Click to change</span>
+                </div>
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => handleImageChange(e, 'author')}
+                  className="hidden"
+                />
+              </label>
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => removeImage('author')}
+                  className="px-3 py-1.5 text-sm bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 rounded-lg transition-colors flex items-center gap-1"
+                >
+                  <X className="h-4 w-4" />
+                  Remove
+                </button>
               </div>
-              <button
-                type="button"
-                onClick={() => removeImage('author')}
-                className="absolute -top-2 -right-2 p-1 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors"
-              >
-                <X className="h-4 w-4" />
-              </button>
               {uploadingAuthor && (
                 <div className="absolute inset-0 bg-black/50 flex items-center justify-center rounded-full">
                   <Loader2 className="h-5 w-5 text-white animate-spin" />
@@ -510,6 +560,131 @@ export function BlogSubmissionForm() {
           </p>
         </div>
       </form>
+
+      {/* Crop Modal */}
+      {showCropModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl shadow-xl max-w-md w-full p-6 space-y-4">
+            <h3 className="text-lg font-bold text-foreground">Adjust Author Photo</h3>
+            
+            {/* Crop Preview - Draggable */}
+            <div 
+              ref={cropContainerRef} 
+              className="relative w-48 h-48 mx-auto rounded-full overflow-hidden bg-gray-100 border-2 border-primary/20 cursor-grab active:cursor-grabbing"
+              onMouseDown={(e) => {
+                const startX = e.clientX
+                const startY = e.clientY
+                const startPosX = cropPosition.x
+                const startPosY = cropPosition.y
+
+                const handleMouseMove = (moveEvent: MouseEvent) => {
+                  const deltaX = (moveEvent.clientX - startX) / 2
+                  const deltaY = (moveEvent.clientY - startY) / 2
+                  setCropPosition({
+                    x: Math.max(-100, Math.min(100, startPosX + deltaX)),
+                    y: Math.max(-100, Math.min(100, startPosY + deltaY)),
+                  })
+                }
+
+                const handleMouseUp = () => {
+                  document.removeEventListener('mousemove', handleMouseMove)
+                  document.removeEventListener('mouseup', handleMouseUp)
+                }
+
+                document.addEventListener('mousemove', handleMouseMove)
+                document.addEventListener('mouseup', handleMouseUp)
+              }}
+            >
+              <img
+                key={cropImage}
+                src={cropImage}
+                alt="Crop preview"
+                style={{
+                  width: '100%',
+                  height: '100%',
+                  objectFit: 'cover',
+                  transform: `scale(${cropZoom}) translate(${cropPosition.x}px, ${cropPosition.y}px)`,
+                  transition: 'transform 0.2s',
+                  userSelect: 'none',
+                }}
+                draggable={false}
+                onError={(e) => {
+                  console.error('Image failed to load:', cropImage)
+                  console.error('Error:', e)
+                }}
+              />
+            </div>
+
+            {/* Zoom Controls */}
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-foreground">Zoom</label>
+              <div className="flex items-center gap-3">
+                <ZoomOut className="h-4 w-4 text-muted-foreground" />
+                <input
+                  type="range"
+                  min="1"
+                  max="3"
+                  step="0.1"
+                  value={cropZoom}
+                  onChange={(e) => setCropZoom(parseFloat(e.target.value))}
+                  className="flex-1"
+                />
+                <ZoomIn className="h-4 w-4 text-muted-foreground" />
+              </div>
+            </div>
+
+            {/* Position Controls */}
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-foreground">Position</label>
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <label className="text-xs text-muted-foreground">Horizontal</label>
+                  <input
+                    type="range"
+                    min="-100"
+                    max="100"
+                    value={cropPosition.x}
+                    onChange={(e) => setCropPosition(prev => ({ ...prev, x: parseInt(e.target.value) }))}
+                    className="w-full"
+                  />
+                </div>
+                <div>
+                  <label className="text-xs text-muted-foreground">Vertical</label>
+                  <input
+                    type="range"
+                    min="-100"
+                    max="100"
+                    value={cropPosition.y}
+                    onChange={(e) => setCropPosition(prev => ({ ...prev, y: parseInt(e.target.value) }))}
+                    className="w-full"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex gap-2 pt-4">
+              <button
+                type="button"
+                onClick={() => setShowCropModal(false)}
+                className="flex-1 px-4 py-2 rounded-lg border border-border hover:bg-muted transition-colors text-foreground font-medium"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleCropSave}
+                className="flex-1 px-4 py-2 rounded-lg bg-gradient-to-r from-primary to-accent hover:opacity-90 text-white font-medium transition-opacity"
+              >
+                Save
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Hidden canvas for cropping */}
+      <canvas ref={canvasRef} className="hidden" />
     </div>
   )
 }

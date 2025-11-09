@@ -1,9 +1,10 @@
 import { Metadata } from 'next'
 import { createClient } from '@supabase/supabase-js'
+import Link from 'next/link'
 import { MobileNav } from '@/components/mobile-nav'
 import { FeaturedBlogsClient } from '@/components/featured-blogs-client'
 import { FEATURED_BLOGS } from '@/data/featured-blogs'
-import { FileText } from 'lucide-react'
+import { FileText, Send } from 'lucide-react'
 
 export const revalidate = 3600 // Revalidate every hour
 
@@ -85,9 +86,17 @@ export default async function FeaturedBlogsPage() {
               <h1 className="text-5xl md:text-6xl font-bold mb-6 gradient-text leading-tight">
                 Featured Blogs
               </h1>
-              <p className="text-lg text-muted-foreground max-w-3xl leading-relaxed">
+              <p className="text-lg text-muted-foreground max-w-3xl leading-relaxed mb-8">
                 Discover top reads and insights from MCP creators and experts. Curated articles, in-depth guides, and community perspectives on Model Context Protocol.
               </p>
+              
+              {/* CTA Button */}
+              <Link href="/new/featured-blogs/request">
+                <button className="inline-flex items-center gap-2 px-6 py-3 rounded-lg bg-gradient-to-r from-primary to-accent hover:shadow-lg hover:shadow-primary/20 text-white font-semibold transition-all duration-300 hover:scale-105">
+                  <Send className="h-5 w-5" />
+                  Submit Your Blog
+                </button>
+              </Link>
             </div>
           </div>
         </div>
