@@ -1,0 +1,35 @@
+User-agent: *
+Allow: /
+Allow: /tool/
+Allow: /category/
+Allow: /categories
+Allow: /top-mcp
+Allow: /new
+Allow: /about
+Allow: /privacy
+Allow: /terms
+Allow: /cookies
+Allow: /new/featured-blogs
+
+# Block internal/admin routes
+Disallow: /admin/
+Disallow: /api/
+Disallow: /new/featured-blogs/request
+Disallow: /docs/
+Disallow: /path/
+Disallow: /*.json$
+Disallow: /*.xml$
+Disallow: /*?*
+Disallow: /*#*
+
+# Block common bot scanning paths
+Disallow: /.env
+Disallow: /.git
+Disallow: /config
+Disallow: /backup
+Disallow: /wp-admin
+Disallow: /wp-login
+Disallow: /xmlrpc.php
+
+# Sitemap
+Sitemap: https://www.trackmcp.com/sitemap.xml

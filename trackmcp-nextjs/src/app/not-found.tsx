@@ -2,6 +2,12 @@ import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Footer } from '@/components/Footer'
 import { ArrowLeft, Package } from 'lucide-react'
+import type { Metadata } from 'next'
+
+export const metadata: Metadata = {
+  title: '404 - Page Not Found',
+  robots: 'noindex, nofollow',
+}
 
 export default function NotFound() {
   return (
