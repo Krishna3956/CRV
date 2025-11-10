@@ -110,13 +110,27 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   // Dynamic tool pages
   const toolPages: MetadataRoute.Sitemap = allTools
-    .filter(tool => tool.repo_name)
-    .map((tool) => ({
-      url: `https://www.trackmcp.com/tool/${encodeURIComponent(tool.repo_name!)}`,
-      lastModified: tool.last_updated ? new Date(tool.last_updated) : new Date(),
-      changeFrequency: 'weekly' as const,
-      priority: 0.8,
-    }))
+    .filter(tool => tool.repo_name && tool.repo_name.trim().length > 0)
+    .map((tool) => {
+      // Safely encode tool name for URL
+      const encodedName = encodeURIComponent(tool.repo_name!.trim())
+      return {
+        url: `https://www.trackmcp.com/tool/${encodedName}`,
+        lastModified: tool.last_updated ? new Date(tool.last_updated) : new Date(),
+        changeFrequency: 'weekly' as const,
+        priority: 0.8,
+      }
+    })
+    .filter(page => {
+      // Validate URL is properly formed
+      try {
+        new URL(page.url)
+        return true
+      } catch {
+        console.error(`Invalid URL in sitemap: ${page.url}`)
+        return false
+      }
+    })
 
   // Dynamic category pages (top 10 categories)
   // Map category to its most recent tool update
@@ -141,12 +155,26 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const categoryPages: MetadataRoute.Sitemap = Array.from(categoryMap.entries())
     .sort((a, b) => b[1].count - a[1].count)
     .slice(0, 10)
-    .map(([category, data]) => ({
-      url: `https://www.trackmcp.com/category/${category.toLowerCase().replace(/\s+/g, '-')}`,
-      lastModified: new Date(data.lastUpdated),
-      changeFrequency: 'weekly' as const,
-      priority: 0.85,
-    }))
+    .map(([category, data]) => {
+      // Safely encode category name for URL
+      const encodedCategory = category.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')
+      return {
+        url: `https://www.trackmcp.com/category/${encodedCategory}`,
+        lastModified: new Date(data.lastUpdated),
+        changeFrequency: 'weekly' as const,
+        priority: 0.85,
+      }
+    })
+    .filter(page => {
+      // Validate URL is properly formed
+      try {
+        new URL(page.url)
+        return true
+      } catch {
+        console.error(`Invalid URL in sitemap: ${page.url}`)
+        return false
+      }
+    })
 
   return [...staticPages, ...toolPages, ...categoryPages]
 }
