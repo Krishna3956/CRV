@@ -40,6 +40,14 @@ export default function robots(): MetadataRoute.Robots {
           // API routes (not for search engines)
           '/api/',
           
+          // Admin and internal routes
+          '/admin/',
+          '/docs/',
+          '/path/',
+          
+          // Form submission endpoints
+          '/new/featured-blogs/request',
+          
           // Static assets (handled by CDN)
           '/assets/',
           

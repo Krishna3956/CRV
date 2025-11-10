@@ -83,6 +83,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.9,
     },
     {
+      url: 'https://www.trackmcp.com/new/featured-blogs',
+      lastModified: mostRecentUpdate,
+      changeFrequency: 'weekly',
+      priority: 0.8,
+    },
+    {
       url: 'https://www.trackmcp.com/privacy',
       lastModified: new Date('2025-01-01'),
       changeFrequency: 'monthly',
@@ -136,7 +142,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     .sort((a, b) => b[1].count - a[1].count)
     .slice(0, 10)
     .map(([category, data]) => ({
-      url: `https://www.trackmcp.com/category/${encodeURIComponent(category.toLowerCase().replace(/\s+/g, '-'))}`,
+      url: `https://www.trackmcp.com/category/${category.toLowerCase().replace(/\s+/g, '-')}`,
       lastModified: new Date(data.lastUpdated),
       changeFrequency: 'weekly' as const,
       priority: 0.85,
