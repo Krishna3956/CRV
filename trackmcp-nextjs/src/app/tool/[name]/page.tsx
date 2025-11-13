@@ -34,6 +34,23 @@ async function getReadme(githubUrl: string): Promise<string | null> {
   return fetchReadmeForServer(githubUrl)
 }
 
+// Helper: Estimate pixel width of text (for Google truncation prevention)
+function estimatePixelWidth(text: string): number {
+  let width = 0
+  for (const char of text) {
+    if (/[iIl1!.,;:'"]/.test(char)) {
+      width += 4  // Narrow characters
+    } else if (/[mMwW]/.test(char)) {
+      width += 9  // Wide characters
+    } else if (char === ' ') {
+      width += 5  // Space
+    } else {
+      width += 7  // Average character
+    }
+  }
+  return width
+}
+
 // Smart metadata generator
 function generateSmartMetadata(tool: McpTool) {
   const toolName = tool.repo_name || 'Unknown Tool'
@@ -100,28 +117,45 @@ function generateSmartMetadata(tool: McpTool) {
   const benefit = extractBenefit(description)
   
   // Generate title: [Tool Name + MCP] | [What It Does or Key Benefit]
-  // Keep under 50 characters - no ellipsis
+  // Keep under 55 characters and 600 pixels for optimal SEO
   let smartTitle = `${formattedName} | ${benefit}`
   
-  // Ensure title stays under 50 characters for optimal SEO
-  if (smartTitle.length > 50) {
-    // Remove benefit if title is too long, just use tool name
-    smartTitle = formattedName.length <= 50 ? formattedName : formattedName.slice(0, 50).trim()
+  // Ensure title stays under 55 characters AND 600 pixels (Google desktop limit)
+  const maxTitleChars = 55
+  const maxTitlePixels = 600
+  
+  if (smartTitle.length > maxTitleChars || estimatePixelWidth(smartTitle) > maxTitlePixels) {
+    // Try just the tool name
+    smartTitle = formattedName
+    
+    // If still too long, truncate at word boundary
+    if (smartTitle.length > maxTitleChars || estimatePixelWidth(smartTitle) > maxTitlePixels) {
+      while (smartTitle.length > 1 && (smartTitle.length > maxTitleChars || estimatePixelWidth(smartTitle) > maxTitlePixels)) {
+        smartTitle = smartTitle.slice(0, -1).trim()
+      }
+    }
   }
   
-  // Generate targeted description (under 160 chars ideal)
+  // Generate targeted description (under 155 chars and 920 pixels ideal)
   // Enhance description with context based on tool characteristics
   let smartDescription = description
+  const maxDescChars = 155
+  const maxDescPixels = 920
   
-  if (description.length > 160) {
+  if (description.length > maxDescChars || estimatePixelWidth(description) > maxDescPixels) {
     // Long description: truncate cleanly without ellipsis
-    // Find last space before 160 chars for clean break
-    let truncated = description.slice(0, 160)
+    // Find last space before char limit for clean break
+    let truncated = description.slice(0, maxDescChars)
     const lastSpace = truncated.lastIndexOf(' ')
     if (lastSpace > 100) {
       smartDescription = truncated.slice(0, lastSpace).trim()
     } else {
       smartDescription = truncated.trim()
+    }
+    
+    // Double-check pixel width and truncate further if needed
+    while (estimatePixelWidth(smartDescription) > maxDescPixels && smartDescription.length > 1) {
+      smartDescription = smartDescription.slice(0, -1).trim()
     }
   } else if (description.length < 120) {
     // Short description: add valuable context

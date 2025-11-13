@@ -148,34 +148,42 @@ export default async function CategoryPage({ params, searchParams }: Props) {
     const toolList = (tools || []) as Tool[]
 
     // Fetch all categories for related categories section
-    console.log('[CategoryPage] Fetching all categories for related section')
-    const { data: relatedCategoriesData } = await supabase
-      .from('mcp_tools')
-      .select('category')
-      .in('status', ['approved', 'pending'])
-      .limit(1000)
+    let otherCategories: Array<{ name: string; count: number; slug: string }> = []
+    try {
+      console.log('[CategoryPage] Fetching all categories for related section')
+      const { data: relatedCategoriesData, error: relatedError } = await supabase
+        .from('mcp_tools')
+        .select('category')
+        .in('status', ['approved', 'pending'])
+        .limit(1000)
 
-    const allCategories = new Map<string, number>()
-    if (relatedCategoriesData) {
-      relatedCategoriesData.forEach((tool: any) => {
-        if (tool.category) {
-          allCategories.set(tool.category, (allCategories.get(tool.category) || 0) + 1)
-        }
-      })
+      if (relatedError) {
+        console.error('[CategoryPage] Error fetching related categories:', relatedError)
+      } else if (relatedCategoriesData && relatedCategoriesData.length > 0) {
+        const allCategories = new Map<string, number>()
+        relatedCategoriesData.forEach((tool: any) => {
+          if (tool.category) {
+            allCategories.set(tool.category, (allCategories.get(tool.category) || 0) + 1)
+          }
+        })
+
+        // Get 5 random other categories (excluding current)
+        otherCategories = Array.from(allCategories.entries())
+          .filter(([cat]) => cat !== actualCategoryName)
+          .sort(() => Math.random() - 0.5)
+          .slice(0, 5)
+          .map(([cat, count]) => ({
+            name: cat,
+            count,
+            slug: cat.toLowerCase().replace(/&/g, 'and').replace(/\s+/g, '-')
+          }))
+      }
+    } catch (error) {
+      console.error('[CategoryPage] Exception fetching related categories:', error)
+      // Continue without related categories if there's an error
     }
 
-    // Get 5 random other categories (excluding current)
-    const otherCategories = Array.from(allCategories.entries())
-      .filter(([cat]) => cat !== actualCategoryName)
-      .sort(() => Math.random() - 0.5)
-      .slice(0, 5)
-      .map(([cat, count]) => ({
-        name: cat,
-        count,
-        slug: cat.toLowerCase().replace(/&/g, 'and').replace(/\s+/g, '-')
-      }))
-
-  return (
+    return (
     <div className="min-h-screen bg-background">
       {/* H1 - SEO Critical */}
       <h1 className="sr-only">{categoryName} MCP Tools | Track MCP</h1>
