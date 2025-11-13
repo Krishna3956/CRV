@@ -170,7 +170,7 @@ export default function SubmitMcpPage() {
           </div>
           <div className="space-y-2">
             <h2 className="text-2xl font-bold">Thank you!</h2>
-            <p className="text-muted-foreground">Your tool has been submitted. We'll review it within 24 hours and send you an email confirmation.</p>
+            <p className="text-muted-foreground">Your tool has been submitted. We&apos;ll review it within 24 hours and send you an email confirmation.</p>
           </div>
           <Link href="/">
             <Button variant="outline" className="w-full">
@@ -395,7 +395,7 @@ export default function SubmitMcpPage() {
                       <CheckCircle2 className="absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5 text-green-500 animate-in fade-in flex-shrink-0" />
                     )}
                   </div>
-                  <p className="text-xs text-muted-foreground leading-tight">We'll fetch your repo details automatically</p>
+                  <p className="text-xs text-muted-foreground leading-tight">We&apos;ll fetch your repo details automatically</p>
                 </div>
 
                 {/* Email */}
@@ -416,7 +416,7 @@ export default function SubmitMcpPage() {
                     required
                     className="h-12 text-sm border-slate-200 focus:border-blue-400 focus:ring-blue-400 group-hover:border-slate-300 transition-colors w-full"
                   />
-                  <p className="text-xs text-muted-foreground leading-tight">We'll send you updates and confirmation</p>
+                  <p className="text-xs text-muted-foreground leading-tight">We&apos;ll send you updates and confirmation</p>
                 </div>
 
                 {/* Featured Upsell */}
@@ -556,7 +556,7 @@ export default function SubmitMcpPage() {
                   </span>
                 </summary>
                 <div className="border-t border-border/50 px-5 py-4 text-sm text-muted-foreground">
-                  We'll explain why and provide constructive feedback. Most tools get approved! Feel free to resubmit after making improvements.
+                  We&apos;ll explain why and provide constructive feedback. Most tools get approved! Feel free to resubmit after making improvements.
                 </div>
               </details>
 
@@ -571,7 +571,7 @@ export default function SubmitMcpPage() {
                   </span>
                 </summary>
                 <div className="border-t border-border/50 px-5 py-4 text-sm text-muted-foreground">
-                  Yes! You can edit your submission anytime before approval. Just reply to our email with the changes you'd like to make.
+                  Yes! You can edit your submission anytime before approval. Just reply to our email with the changes you&apos;d like to make.
                 </div>
               </details>
 

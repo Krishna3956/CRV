@@ -320,7 +320,7 @@ export default async function CategoryPage() {
           <div className="p-6 rounded-lg bg-card/50 border border-border/50 hover:border-border transition-colors">
             <h3 className="text-lg font-semibold mb-3">Browse by Category</h3>
             <p className="text-sm text-muted-foreground mb-4 leading-relaxed">
-              Find MCP tools organized by category. Whether you need AI, automation, security, or infrastructure tools, categories help you discover exactly what you're looking for.
+              Find MCP tools organized by category. Whether you need AI, automation, security, or infrastructure tools, categories help you discover exactly what you&apos;re looking for.
             </p>
             <Link href="/category" className="text-primary hover:underline font-medium text-sm">
               Explore all categories →
