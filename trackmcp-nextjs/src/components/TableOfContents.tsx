@@ -56,8 +56,8 @@ export function TableOfContents({ items, pageUrl }: TableOfContentsProps) {
               onClick={() => handleLinkClick(item.id)}
               className={`text-sm py-2 px-3 rounded transition-all duration-150 w-full text-left ${
                 activeId === item.id
-                  ? 'text-foreground font-medium bg-muted/40'
-                  : 'text-muted-foreground hover:text-foreground hover:bg-muted/20'
+                  ? 'text-primary font-medium bg-primary/10'
+                  : 'text-muted-foreground hover:text-foreground hover:bg-muted/30'
               }`}
               aria-current={activeId === item.id ? 'page' : undefined}
             >
@@ -77,19 +77,19 @@ export function TableOfContents({ items, pageUrl }: TableOfContentsProps) {
   }
 
   return (
-    <nav className="bg-background border-2 border-foreground/10 hover:border-foreground/15 rounded-lg p-4 transition-colors duration-200">
+    <nav className="bg-background border-2 border-primary/20 hover:border-primary/30 rounded-lg p-4 transition-all duration-200">
       {/* Header with toggle */}
       <button
         onClick={() => setIsExpanded(!isExpanded)}
-        className="flex items-center justify-between w-full mb-4 pb-3 border-b border-foreground/8 hover:border-foreground/12 transition-colors"
+        className="flex items-center justify-between w-full mb-3 pb-3 border-b border-primary/15 hover:border-primary/25 transition-colors"
         aria-expanded={isExpanded}
       >
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2.5">
           <div className="w-1 h-4 bg-primary rounded-full" />
           <h3 className="font-semibold text-sm text-foreground">On this page</h3>
         </div>
         <ChevronDown
-          className={`h-4 w-4 transition-transform duration-200 text-muted-foreground ${isExpanded ? '' : '-rotate-90'}`}
+          className={`h-4 w-4 transition-transform duration-200 text-primary ${isExpanded ? '' : '-rotate-90'}`}
         />
       </button>
 

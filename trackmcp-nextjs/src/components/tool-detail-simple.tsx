@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { MarkdownRenderer } from '@/components/markdown-renderer'
 import { ToolDiscoverySidebar } from '@/components/ToolDiscoverySidebar'
 import { TableOfContents } from '@/components/TableOfContents'
+import { FAQSection } from '@/components/FAQSection'
 import { Star, GitBranch, Calendar, ExternalLink, ArrowLeft } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -14,6 +15,7 @@ import { fetchGitHub } from '@/utils/github'
 import { extractHeadingsFromMarkdown } from '@/utils/toc'
 import type { Database } from '@/types/database.types'
 import type { TableOfContentsItem } from '@/utils/toc'
+import type { FAQItem } from '@/utils/faq'
 
 type McpTool = Database['public']['Tables']['mcp_tools']['Row']
 
@@ -26,6 +28,7 @@ interface ToolDetailClientProps {
     new: McpTool[]
   }
   toc?: TableOfContentsItem[]
+  faqs?: FAQItem[]
 }
 
 // Helper: Format tool name for display (Title Case with spaces)
@@ -36,12 +39,13 @@ function formatToolName(name: string): string {
     .join(' ')
 }
 
-export function ToolDetailClient({ tool, initialReadme, relatedTools, toc }: ToolDetailClientProps) {
+export function ToolDetailClient({ tool, initialReadme, relatedTools, toc, faqs }: ToolDetailClientProps) {
   const [readme, setReadme] = useState<string>(initialReadme || '')
   const [ownerAvatar, setOwnerAvatar] = useState<string>('')
   const [ownerName, setOwnerName] = useState<string>('')
   const [isLoadingReadme, setIsLoadingReadme] = useState(!initialReadme)
   const [tableOfContents, setTableOfContents] = useState<TableOfContentsItem[]>(toc || [])
+  const [faqItems, setFaqItems] = useState<FAQItem[]>(faqs || [])
 
   useEffect(() => {
     fetchOwnerAndReadme()
@@ -242,11 +246,16 @@ export function ToolDetailClient({ tool, initialReadme, relatedTools, toc }: Too
             ) : readme ? (
               <MarkdownRenderer content={readme} githubUrl={tool.github_url} />
             ) : (
-              <div className="text-muted-foreground py-8 text-center">
+              <div className="text-center py-12 text-muted-foreground">
                 No README available for this tool.
               </div>
             )}
             </section>
+
+            {/* FAQ Section - Only if FAQs exist */}
+            {faqItems && faqItems.length > 0 && (
+              <FAQSection faqs={faqItems} />
+            )}
 
             {/* Discovery Sidebar - Mobile Only (Below main content) */}
             {relatedTools && (

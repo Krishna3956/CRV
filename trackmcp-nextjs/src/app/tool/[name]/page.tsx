@@ -6,6 +6,7 @@ import { fetchReadmeForServer } from '@/utils/github'
 import { createMetaDescription } from '@/utils/metaDescription'
 import { getRelatedTools } from '@/utils/relatedTools'
 import { extractHeadingsFromMarkdown, generateTocSchema } from '@/utils/toc'
+import { extractFAQsFromMarkdown, generateFAQSchema } from '@/utils/faq'
 import type { Database } from '@/types/database.types'
 
 type McpTool = Database['public']['Tables']['mcp_tools']['Row']
@@ -301,6 +302,9 @@ export default async function ToolPage({ params }: Props) {
   // Extract table of contents from README
   const toc = readme ? extractHeadingsFromMarkdown(readme) : []
 
+  // Extract FAQs from README
+  const faqs = readme ? extractFAQsFromMarkdown(readme) : []
+
   // Fetch related tools
   const relatedToolsData = await getRelatedTools(tool, 4)
   
@@ -369,6 +373,9 @@ export default async function ToolPage({ params }: Props) {
   // Generate TOC schema for search engines
   const tocSchema = toc.length > 0 ? generateTocSchema(toc, `https://www.trackmcp.com/tool/${encodeURIComponent(tool.repo_name || '')}`) : null
 
+  // Generate FAQ schema for search engines
+  const faqSchema = faqs.length > 0 ? generateFAQSchema(faqs, `https://www.trackmcp.com/tool/${encodeURIComponent(tool.repo_name || '')}`) : null
+
   // Add Article schema for rich snippets
   const articleSchema = {
     '@context': 'https://schema.org',
@@ -436,12 +443,23 @@ export default async function ToolPage({ params }: Props) {
         />
       )}
       
+      {/* JSON-LD Schema for FAQs */}
+      {faqSchema && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify(faqSchema),
+          }}
+        />
+      )}
+      
       {/* Pass server-fetched data to client component */}
       <ToolDetailClient
         tool={tool}
         initialReadme={readme}
         relatedTools={relatedToolsData}
         toc={toc}
+        faqs={faqs}
       />
     </>
   )
