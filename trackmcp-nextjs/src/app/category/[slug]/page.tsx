@@ -148,39 +148,44 @@ export default async function CategoryPage({ params, searchParams }: Props) {
     const toolList = (tools || []) as Tool[]
 
     // Fetch all categories for related categories section
+    // Note: This is skipped during build time to prevent SSG issues
     let otherCategories: Array<{ name: string; count: number; slug: string }> = []
-    try {
-      console.log('[CategoryPage] Fetching all categories for related section')
-      const { data: relatedCategoriesData, error: relatedError } = await supabase
-        .from('mcp_tools')
-        .select('category')
-        .in('status', ['approved', 'pending'])
-        .limit(1000)
+    
+    // Only fetch related categories if not in build time (check for process.env.NODE_ENV)
+    if (process.env.NODE_ENV === 'production' && process.env.VERCEL !== '1') {
+      try {
+        console.log('[CategoryPage] Fetching all categories for related section')
+        const { data: relatedCategoriesData, error: relatedError } = await supabase
+          .from('mcp_tools')
+          .select('category')
+          .in('status', ['approved', 'pending'])
+          .limit(1000)
 
-      if (relatedError) {
-        console.error('[CategoryPage] Error fetching related categories:', relatedError)
-      } else if (relatedCategoriesData && relatedCategoriesData.length > 0) {
-        const allCategories = new Map<string, number>()
-        relatedCategoriesData.forEach((tool: any) => {
-          if (tool.category) {
-            allCategories.set(tool.category, (allCategories.get(tool.category) || 0) + 1)
-          }
-        })
+        if (relatedError) {
+          console.error('[CategoryPage] Error fetching related categories:', relatedError)
+        } else if (relatedCategoriesData && relatedCategoriesData.length > 0) {
+          const allCategories = new Map<string, number>()
+          relatedCategoriesData.forEach((tool: any) => {
+            if (tool.category) {
+              allCategories.set(tool.category, (allCategories.get(tool.category) || 0) + 1)
+            }
+          })
 
-        // Get 5 random other categories (excluding current)
-        otherCategories = Array.from(allCategories.entries())
-          .filter(([cat]) => cat !== actualCategoryName)
-          .sort(() => Math.random() - 0.5)
-          .slice(0, 5)
-          .map(([cat, count]) => ({
-            name: cat,
-            count,
-            slug: cat.toLowerCase().replace(/&/g, 'and').replace(/\s+/g, '-')
-          }))
+          // Get 5 random other categories (excluding current)
+          otherCategories = Array.from(allCategories.entries())
+            .filter(([cat]) => cat !== actualCategoryName)
+            .sort(() => Math.random() - 0.5)
+            .slice(0, 5)
+            .map(([cat, count]) => ({
+              name: cat,
+              count,
+              slug: cat.toLowerCase().replace(/&/g, 'and').replace(/\s+/g, '-')
+            }))
+        }
+      } catch (error) {
+        console.error('[CategoryPage] Exception fetching related categories:', error)
+        // Continue without related categories if there's an error
       }
-    } catch (error) {
-      console.error('[CategoryPage] Exception fetching related categories:', error)
-      // Continue without related categories if there's an error
     }
 
     return (
