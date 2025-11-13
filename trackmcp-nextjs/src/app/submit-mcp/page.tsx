@@ -368,7 +368,7 @@ export default function SubmitMcpPage() {
                     <span className="text-xs font-semibold text-green-700 dark:text-green-400">Always Free</span>
                   </div>
                 </div>
-                <p className="text-muted-foreground text-xs hidden md:block">Just 2 fields. Takes 2 minutes. We'll handle the rest.</p>
+                <p className="text-muted-foreground text-xs hidden md:block">Just 2 fields. Takes 2 minutes. We&apos;ll handle the rest.</p>
               </div>
 
               {/* Form */}
@@ -638,7 +638,7 @@ export default function SubmitMcpPage() {
                   </span>
                 </summary>
                 <div className="border-t border-border/50 px-5 py-4 text-sm text-muted-foreground">
-                  Yes, you can request removal anytime. Just contact us with your tool name and we'll remove it from the directory.
+                  Yes, you can request removal anytime. Just contact us with your tool name and we&apos;ll remove it from the directory.
                 </div>
               </details>
 
