@@ -1,20 +1,8 @@
-import { Metadata } from 'next'
 import Link from 'next/link'
 import { Globe, Zap, Users, Sparkles, ArrowRight, Github, Mail } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 import { SubmitToolDialog } from '@/components/SubmitToolDialog'
 import { ActiveVisitorsCard } from '@/components/ActiveVisitorsCard'
-
-export const metadata: Metadata = {
-  title: 'About Track MCP – Mission, Team & Purpose',
-  description: 'Learn how Track MCP became the global hub for MCP tools and servers. Explore our mission to organize Model Context Protocol data and empower the MCP developer community.',
-  openGraph: {
-    title: 'About Track MCP',
-    description: 'The world\'s largest MCP platform connecting developers with AI tools and integrations.',
-    url: 'https://www.trackmcp.com/about',
-    type: 'website',
-  },
-}
 
 // Get total count of tools (same as homepage)
 async function getTotalCount(): Promise<number> {
@@ -41,6 +29,55 @@ export default async function AboutPage() {
   const totalCount = await getTotalCount()
   return (
     <div className="min-h-screen bg-background">
+      {/* H1 - SEO Critical */}
+      <h1 className="sr-only">About Track MCP – Mission, Team & Purpose</h1>
+
+      {/* Organization Schema */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "Organization",
+            "name": "Track MCP",
+            "description": "The world's largest MCP tools directory connecting developers with AI tools and integrations.",
+            "url": "https://trackmcp.com",
+            "founder": {
+              "@type": "Person",
+              "name": "Krishna"
+            },
+            "sameAs": [
+              "https://www.linkedin.com/in/krishnaa-goyal/"
+            ]
+          })
+        }}
+      />
+
+      {/* BreadcrumbList Schema */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "BreadcrumbList",
+            "itemListElement": [
+              {
+                "@type": "ListItem",
+                "position": 1,
+                "name": "Home",
+                "item": "https://trackmcp.com"
+              },
+              {
+                "@type": "ListItem",
+                "position": 2,
+                "name": "About",
+                "item": "https://trackmcp.com/about"
+              }
+            ]
+          })
+        }}
+      />
+
       {/* Hero Section */}
       <section className="relative overflow-hidden pt-8 md:pt-12 pb-8 md:pb-12">
         {/* Decorative background */}
@@ -114,7 +151,7 @@ export default async function AboutPage() {
       <section className="py-8 md:py-12 bg-card/30 border-t border-border/50">
         <div className="container mx-auto px-4">
           <div className="max-w-3xl mx-auto">
-            <h2 className="text-3xl md:text-4xl font-bold mb-12 text-center">About Track MCP</h2>
+            <h2 className="text-3xl md:text-4xl font-bold mb-12 text-center">Our Story</h2>
             
             <div className="space-y-6 text-sm md:text-base text-foreground/75 leading-relaxed font-normal">
               <p>
@@ -137,6 +174,15 @@ export default async function AboutPage() {
               <p>
                 Bottom line? Track MCP is here to support the entire MCP community, showcase the best tools, and highlight what&apos;s trending in the world of AI connections. We&apos;re excited about the future, and we&apos;d love for you to be part of it.
               </p>
+
+              <div className="pt-4 flex flex-col sm:flex-row gap-4">
+                <Link href="/category" className="text-primary hover:underline font-medium">
+                  Browse MCP categories →
+                </Link>
+                <Link href="/top-mcp" className="text-primary hover:underline font-medium">
+                  See top tools →
+                </Link>
+              </div>
             </div>
           </div>
         </div>

@@ -83,6 +83,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.9,
     },
     {
+      url: 'https://www.trackmcp.com/submit-mcp',
+      lastModified: new Date(),
+      changeFrequency: 'weekly',
+      priority: 1.0,
+    },
+    {
       url: 'https://www.trackmcp.com/new/featured-blogs',
       lastModified: mostRecentUpdate,
       changeFrequency: 'weekly',
@@ -154,10 +160,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   const categoryPages: MetadataRoute.Sitemap = Array.from(categoryMap.entries())
     .sort((a, b) => b[1].count - a[1].count)
-    .slice(0, 10)
     .map(([category, data]) => {
-      // Safely encode category name for URL
-      const encodedCategory = category.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')
+      // Safely encode category name for URL (convert & to "and", spaces to hyphens)
+      const encodedCategory = category.toLowerCase().replace(/&/g, 'and').replace(/\s+/g, '-')
       return {
         url: `https://www.trackmcp.com/category/${encodedCategory}`,
         lastModified: new Date(data.lastUpdated),

@@ -144,7 +144,7 @@ export default async function HomePage() {
         'name': 'How do I submit my MCP tool?',
         'acceptedAnswer': {
           '@type': 'Answer',
-          'text': 'You can submit your MCP tool by clicking the "Submit Tool" button on the homepage and providing your GitHub repository URL. Tools are reviewed and added to the directory automatically.'
+          'text': 'You can submit your MCP tool by clicking the "Submit MCP" button on the homepage and providing your GitHub repository URL. Tools are reviewed and added to the directory automatically.'
         }
       }
     ]

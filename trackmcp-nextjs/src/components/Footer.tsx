@@ -14,6 +14,7 @@ export default function Footer() {
         { label: 'Categories', href: '/category' },
         { label: 'Top MCP', href: '/top-mcp' },
         { label: 'New & Updated', href: '/new' },
+        { label: 'Submit MCP', href: '/submit-mcp' },
       ],
     },
     {

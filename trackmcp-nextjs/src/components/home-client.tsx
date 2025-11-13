@@ -449,6 +449,7 @@ export function HomeClient({ initialTools, totalCount }: HomeClientProps) {
                     topics={tool.topics || undefined}
                     lastUpdated={tool.last_updated || undefined}
                     isTrending={top5RecentTools.has(tool.id)}
+                    openInNewTab={true}
                   />
                 </div>
               ))}
@@ -497,6 +498,7 @@ export function HomeClient({ initialTools, totalCount }: HomeClientProps) {
                           topics={tool.topics || undefined}
                           lastUpdated={tool.last_updated || undefined}
                           isTrending={top5RecentTools.has(tool.id)}
+                          openInNewTab={true}
                         />
                       </div>
                     ))}

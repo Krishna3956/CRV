@@ -16,6 +16,7 @@ interface ToolCardProps {
   topics?: string[];
   lastUpdated?: string;
   isTrending?: boolean;
+  openInNewTab?: boolean;
 }
 
 // Language color mapping
@@ -55,6 +56,7 @@ export const ToolCard = ({
   topics,
   lastUpdated,
   isTrending = false,
+  openInNewTab = false,
 }: ToolCardProps) => {
   const toolUrl = `/tool/${encodeURIComponent(name)}`;
   
@@ -88,7 +90,12 @@ export const ToolCard = ({
   
 
   return (
-    <Link href={toolUrl} className="block h-full">
+    <Link 
+      href={toolUrl} 
+      className="block h-full"
+      target={openInNewTab ? "_blank" : undefined}
+      rel={openInNewTab ? "noopener noreferrer" : undefined}
+    >
       <Card 
         className="group relative overflow-hidden card-gradient hover:shadow-lg transition-all duration-300 hover:-translate-y-1 border hover:border-primary/30 cursor-pointer h-full flex flex-col"
       >

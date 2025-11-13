@@ -72,21 +72,6 @@ interface Category {
   count: number
 }
 
-export async function generateMetadata(): Promise<Metadata> {
-  return {
-    title: 'MCP Categories – Browse All MCP Tool Categories',
-    description: 'Explore all categories of MCP projects including AI, servers, automation, and communication. Find tools by category to match your use case.',
-    openGraph: {
-      title: 'MCP Categories – Browse All MCP Tool Categories',
-      description: 'Explore all categories of MCP projects including AI, servers, automation, and communication. Find tools by category to match your use case.',
-      url: 'https://www.trackmcp.com/category',
-      type: 'website',
-    },
-    alternates: {
-      canonical: 'https://www.trackmcp.com/category',
-    },
-  }
-}
 
 export default async function CategoryPage() {
   const supabase = createClient()
@@ -165,6 +150,58 @@ export default async function CategoryPage() {
 
   return (
     <div className="min-h-screen bg-background">
+      {/* H1 - SEO Critical */}
+      <h1 className="sr-only">MCP Categories – Browse All MCP Tool Categories</h1>
+
+      {/* CollectionPage Schema */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "CollectionPage",
+            "name": "MCP Categories – Browse All MCP Tool Categories",
+            "description": "Explore all categories of MCP projects including AI, servers, automation, and communication. Find tools by category to match your use case.",
+            "url": "https://trackmcp.com/category",
+            "isPartOf": {
+              "@type": "WebSite",
+              "name": "Track MCP",
+              "url": "https://trackmcp.com"
+            },
+            "publisher": {
+              "@type": "Organization",
+              "name": "Track MCP",
+              "url": "https://trackmcp.com"
+            }
+          })
+        }}
+      />
+
+      {/* BreadcrumbList Schema */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "BreadcrumbList",
+            "itemListElement": [
+              {
+                "@type": "ListItem",
+                "position": 1,
+                "name": "Home",
+                "item": "https://trackmcp.com"
+              },
+              {
+                "@type": "ListItem",
+                "position": 2,
+                "name": "Categories",
+                "item": "https://trackmcp.com/category"
+              }
+            ]
+          })
+        }}
+      />
+
       <MobileNav title="Categories" showBackButton={true} />
       <main className="container mx-auto px-4 py-8 md:py-12 pt-20 md:pt-8">
         {/* Hero Section */}
@@ -176,9 +213,9 @@ export default async function CategoryPage() {
             
             {/* Content */}
             <div className="relative z-10">
-              <h1 className="text-4xl md:text-5xl font-bold mb-4 gradient-text">
+              <h2 className="text-4xl md:text-5xl font-bold mb-4 gradient-text">
                 Explore MCP Categories
-              </h1>
+              </h2>
               <p className="text-lg text-muted-foreground max-w-2xl mb-6">
                 Discover the world&apos;s largest repository of Model Context Protocol servers organized by category. Find the perfect tools for your AI development needs.
               </p>
@@ -276,6 +313,43 @@ export default async function CategoryPage() {
             <p className="text-muted-foreground">No categories found.</p>
           </div>
         )}
+
+        {/* Bottom Sections Grid */}
+        <div className="mt-16 grid grid-cols-1 md:grid-cols-3 gap-6">
+          {/* Browse by Category */}
+          <div className="p-6 rounded-lg bg-card/50 border border-border/50 hover:border-border transition-colors">
+            <h3 className="text-lg font-semibold mb-3">Browse by Category</h3>
+            <p className="text-sm text-muted-foreground mb-4 leading-relaxed">
+              Find MCP tools organized by category. Whether you need AI, automation, security, or infrastructure tools, categories help you discover exactly what you're looking for.
+            </p>
+            <Link href="/category" className="text-primary hover:underline font-medium text-sm">
+              Explore all categories →
+            </Link>
+          </div>
+
+          {/* Top Rated Tools */}
+          <div className="p-6 rounded-lg bg-card/50 border border-border/50 hover:border-border transition-colors">
+            <h3 className="text-lg font-semibold mb-3">Top Rated Tools</h3>
+            <p className="text-sm text-muted-foreground mb-4 leading-relaxed">
+              Discover the most popular and trusted MCP tools ranked by GitHub stars and community engagement. See what developers are using most.
+            </p>
+            <Link href="/top-mcp" className="text-primary hover:underline font-medium text-sm">
+              View top tools →
+            </Link>
+          </div>
+
+          {/* Submit Your Tool */}
+          <div className="p-6 rounded-lg bg-card/50 border border-border/50 hover:border-border transition-colors">
+            <h3 className="text-lg font-semibold mb-3">Submit Your Tool</h3>
+            <p className="text-sm text-muted-foreground mb-4 leading-relaxed">
+              Built an MCP tool? Submit it to Track MCP and get discovered by thousands of developers. Get your tool featured in the right category.
+            </p>
+            <Link href="/submit-mcp" className="text-primary hover:underline font-medium text-sm">
+              Submit your tool →
+            </Link>
+          </div>
+        </div>
+
       </main>
     </div>
   )

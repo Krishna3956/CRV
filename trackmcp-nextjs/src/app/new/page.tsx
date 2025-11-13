@@ -1,4 +1,4 @@
-import { Metadata } from 'next'
+import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import { MobileNav } from '@/components/mobile-nav'
 import { NewToolsClient } from '@/components/new-tools-client'
@@ -67,21 +67,6 @@ function getGitHubOwnerAvatar(repoName: string): string {
   }
 }
 
-export async function generateMetadata(): Promise<Metadata> {
-  return {
-    title: 'Latest MCPs – Newest Tools on Track MCP',
-    description: 'Explore the newest tools and updates in the MCP ecosystem. Discover fresh repositories, feature releases, and active development updates.',
-    openGraph: {
-      title: 'Latest MCPs – Newest Tools on Track MCP',
-      description: 'Explore the newest tools and updates in the MCP ecosystem. Discover fresh repositories, feature releases, and active development updates.',
-      url: 'https://www.trackmcp.com/new',
-      type: 'website',
-    },
-    alternates: {
-      canonical: 'https://www.trackmcp.com/new',
-    },
-  }
-}
 
 function isNew(createdAt: string): boolean {
   const created = new Date(createdAt)
@@ -123,6 +108,58 @@ export default async function NewPage() {
 
   return (
     <div className="min-h-screen bg-background">
+      {/* H1 - SEO Critical */}
+      <h1 className="sr-only">Latest MCPs – Newest Tools on Track MCP</h1>
+
+      {/* CollectionPage Schema */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "CollectionPage",
+            "name": "Latest MCPs – Newest Tools on Track MCP",
+            "description": "Explore the newest tools and updates in the MCP ecosystem. Discover fresh repositories, feature releases, and active development updates.",
+            "url": "https://trackmcp.com/new",
+            "isPartOf": {
+              "@type": "WebSite",
+              "name": "Track MCP",
+              "url": "https://trackmcp.com"
+            },
+            "publisher": {
+              "@type": "Organization",
+              "name": "Track MCP",
+              "url": "https://trackmcp.com"
+            }
+          })
+        }}
+      />
+
+      {/* BreadcrumbList Schema */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "BreadcrumbList",
+            "itemListElement": [
+              {
+                "@type": "ListItem",
+                "position": 1,
+                "name": "Home",
+                "item": "https://trackmcp.com"
+              },
+              {
+                "@type": "ListItem",
+                "position": 2,
+                "name": "Latest MCPs",
+                "item": "https://trackmcp.com/new"
+              }
+            ]
+          })
+        }}
+      />
+
       <MobileNav title="Latest MCPs" showBackButton={true} />
       <main className="container mx-auto px-4 py-8 md:py-12 pt-20 md:pt-8">
         {/* Hero Section */}
@@ -138,9 +175,9 @@ export default async function NewPage() {
                 <Sparkles className="h-6 w-6 text-primary" />
                 <span className="text-sm font-semibold text-primary">Latest Additions</span>
               </div>
-              <h1 className="text-4xl md:text-5xl font-bold mb-4 gradient-text">
+              <h2 className="text-4xl md:text-5xl font-bold mb-4 gradient-text">
                 Latest MCPs
-              </h1>
+              </h2>
               <p className="text-lg text-muted-foreground max-w-2xl mb-6">
                 Explore the newest tools and updates in the MCP ecosystem.
               </p>
@@ -171,6 +208,42 @@ export default async function NewPage() {
             </p>
           </div>
         )}
+
+        {/* Bottom Sections Grid */}
+        <div className="mt-16 grid grid-cols-1 md:grid-cols-3 gap-6">
+          {/* Why Check New Tools */}
+          <div className="p-6 rounded-lg bg-card/50 border border-border/50 hover:border-border transition-colors">
+            <h3 className="text-lg font-semibold mb-3">Why Check New Tools</h3>
+            <p className="text-sm text-muted-foreground mb-4 leading-relaxed">
+              Stay ahead of the curve by discovering fresh MCP implementations. New tools often bring innovative features and solutions to emerging problems.
+            </p>
+            <Link href="/top-mcp" className="text-primary hover:underline font-medium text-sm">
+              See top-rated tools →
+            </Link>
+          </div>
+
+          {/* How We Find New Tools */}
+          <div className="p-6 rounded-lg bg-card/50 border border-border/50 hover:border-border transition-colors">
+            <h3 className="text-lg font-semibold mb-3">How We Find New Tools</h3>
+            <p className="text-sm text-muted-foreground mb-4 leading-relaxed">
+              We continuously monitor the MCP ecosystem for new releases, recent updates, and active development. Tools are ranked by recency and update frequency.
+            </p>
+            <Link href="/category" className="text-primary hover:underline font-medium text-sm">
+              Browse by category →
+            </Link>
+          </div>
+
+          {/* Have a New Tool? */}
+          <div className="p-6 rounded-lg bg-card/50 border border-border/50 hover:border-border transition-colors">
+            <h3 className="text-lg font-semibold mb-3">Have a New Tool?</h3>
+            <p className="text-sm text-muted-foreground mb-4 leading-relaxed">
+              Built an MCP tool? <Link href="/submit-mcp" className="text-primary hover:underline font-medium">Submit your tool</Link> to get it featured in our latest additions.
+            </p>
+            <Link href="/top-mcp" className="text-primary hover:underline font-medium text-sm">
+              View all tools →
+            </Link>
+          </div>
+        </div>
 
       </main>
     </div>
