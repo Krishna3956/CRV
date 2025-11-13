@@ -1,6 +1,7 @@
 import { Metadata } from 'next'
 
-export const revalidate = 3600 // ISR: Revalidate every hour
+// Disable static generation for category pages to prevent build errors
+export const dynamic = 'force-dynamic'
 
 interface Props {
   params: {

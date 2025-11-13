@@ -57,46 +57,17 @@ export default async function CategoryPage({ params, searchParams }: Props) {
     const pageSize = 50
     const offset = (page - 1) * pageSize
 
-    // Fetch all categories first to find the exact match
-    console.log('[CategoryPage] Fetching all categories from database...')
-    const { data: allCategoriesData, error: categoriesError } = await supabase
-      .from('mcp_tools')
-      .select('category')
-      .in('status', ['approved', 'pending'])
-      .limit(5000) as any
-
-    if (categoriesError) {
-      console.error('[CategoryPage] Error fetching categories:', categoriesError)
-      notFound()
-    }
-
-    if (!allCategoriesData || allCategoriesData.length === 0) {
-      console.error('[CategoryPage] No categories found in database')
-      notFound()
-    }
-
-    console.log(`[CategoryPage] Found ${allCategoriesData.length} category entries`)
-
-    // Get unique categories
-    const uniqueCategories = [...new Set(allCategoriesData.map((t: any) => t.category))] as string[]
-    console.log(`[CategoryPage] Found ${uniqueCategories.length} unique categories`)
-
-    // Find matching category by comparing slugs
+    // Convert slug back to category name
     const slug = params.slug.toLowerCase()
-    console.log(`[CategoryPage] Looking for slug: ${slug}`)
+    console.log(`[CategoryPage] Converting slug to category name: ${slug}`)
     
-    const actualCategoryName = uniqueCategories.find((cat) => {
-      const catSlug = cat.toLowerCase().replace(/\s+/g, '-').replace(/&/g, 'and')
-      return catSlug === slug
-    })
-
-    if (!actualCategoryName) {
-      console.error(`[CategoryPage] Category not found for slug: ${slug}`)
-      console.error(`[CategoryPage] Available categories: ${uniqueCategories.slice(0, 10).join(', ')}...`)
-      notFound()
-    }
-
-    console.log(`[CategoryPage] Matched category: ${actualCategoryName}`)
+    // Reverse the slug encoding: "and" -> "&", "-" -> " "
+    let actualCategoryName = slug
+      .replace(/and/g, '&')
+      .replace(/-/g, ' ')
+      .replace(/\b\w/g, (l) => l.toUpperCase())
+    
+    console.log(`[CategoryPage] Converted category name: ${actualCategoryName}`)
 
     // Format the category name for display
     let categoryName = actualCategoryName
@@ -147,46 +118,9 @@ export default async function CategoryPage({ params, searchParams }: Props) {
     const totalPages = Math.ceil((totalCount || 0) / pageSize)
     const toolList = (tools || []) as Tool[]
 
-    // Fetch all categories for related categories section
-    // Note: This is skipped during build time to prevent SSG issues
-    let otherCategories: Array<{ name: string; count: number; slug: string }> = []
-    
-    // Only fetch related categories if not in build time (check for process.env.NODE_ENV)
-    if (process.env.NODE_ENV === 'production' && process.env.VERCEL !== '1') {
-      try {
-        console.log('[CategoryPage] Fetching all categories for related section')
-        const { data: relatedCategoriesData, error: relatedError } = await supabase
-          .from('mcp_tools')
-          .select('category')
-          .in('status', ['approved', 'pending'])
-          .limit(1000)
-
-        if (relatedError) {
-          console.error('[CategoryPage] Error fetching related categories:', relatedError)
-        } else if (relatedCategoriesData && relatedCategoriesData.length > 0) {
-          const allCategories = new Map<string, number>()
-          relatedCategoriesData.forEach((tool: any) => {
-            if (tool.category) {
-              allCategories.set(tool.category, (allCategories.get(tool.category) || 0) + 1)
-            }
-          })
-
-          // Get 5 random other categories (excluding current)
-          otherCategories = Array.from(allCategories.entries())
-            .filter(([cat]) => cat !== actualCategoryName)
-            .sort(() => Math.random() - 0.5)
-            .slice(0, 5)
-            .map(([cat, count]) => ({
-              name: cat,
-              count,
-              slug: cat.toLowerCase().replace(/&/g, 'and').replace(/\s+/g, '-')
-            }))
-        }
-      } catch (error) {
-        console.error('[CategoryPage] Exception fetching related categories:', error)
-        // Continue without related categories if there's an error
-      }
-    }
+    // Related categories section disabled to prevent build errors
+    // Can be re-enabled as a client-side component in the future
+    const otherCategories: Array<{ name: string; count: number; slug: string }> = []
 
     return (
     <div className="min-h-screen bg-background">
