@@ -14,8 +14,64 @@ export const metadata: Metadata = {
 }
 
 export default function TermsPage() {
+  // Create WebPage schema for terms page
+  const webPageSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'WebPage',
+    name: 'Terms of Service – Track MCP',
+    description: 'Read the terms and conditions for using Track MCP. Learn about user rights, repository listings, and content usage policies.',
+    url: 'https://www.trackmcp.com/terms',
+    isPartOf: {
+      '@type': 'WebSite',
+      name: 'Track MCP',
+      url: 'https://www.trackmcp.com',
+    },
+    publisher: {
+      '@type': 'Organization',
+      name: 'Track MCP',
+      url: 'https://www.trackmcp.com',
+    },
+    datePublished: '2024-11-01',
+    dateModified: new Date().toISOString(),
+  }
+
+  // Create BreadcrumbList schema
+  const breadcrumbSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      {
+        '@type': 'ListItem',
+        position: 1,
+        name: 'Home',
+        item: 'https://www.trackmcp.com',
+      },
+      {
+        '@type': 'ListItem',
+        position: 2,
+        name: 'Terms of Service',
+        item: 'https://www.trackmcp.com/terms',
+      },
+    ],
+  }
+
   return (
     <div className="min-h-screen bg-background">
+      {/* JSON-LD Schema for WebPage */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(webPageSchema),
+        }}
+      />
+      
+      {/* JSON-LD Schema for BreadcrumbList */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(breadcrumbSchema),
+        }}
+      />
       {/* Header */}
       <section className="relative overflow-hidden pt-8 md:pt-12 pb-8 md:pb-12 border-b border-border/50">
         <div className="container mx-auto px-4">

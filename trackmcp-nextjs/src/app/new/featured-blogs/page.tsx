@@ -66,8 +66,97 @@ async function getFeaturedBlogs() {
 export default async function FeaturedBlogsPage() {
   const blogs = await getFeaturedBlogs()
 
+  // Create CollectionPage schema for blog collection
+  const collectionSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'CollectionPage',
+    name: 'Featured Blogs – MCP Insights & Guides',
+    description: 'Top reads and insights from MCP creators and experts. Discover in-depth guides, tutorials, and community perspectives on Model Context Protocol.',
+    url: 'https://www.trackmcp.com/new/featured-blogs',
+    isPartOf: {
+      '@type': 'WebSite',
+      name: 'Track MCP',
+      url: 'https://www.trackmcp.com',
+    },
+    publisher: {
+      '@type': 'Organization',
+      name: 'Track MCP',
+      url: 'https://www.trackmcp.com',
+    },
+    numberOfItems: blogs.length,
+  }
+
+  // Create BreadcrumbList schema
+  const breadcrumbSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      {
+        '@type': 'ListItem',
+        position: 1,
+        name: 'Home',
+        item: 'https://www.trackmcp.com',
+      },
+      {
+        '@type': 'ListItem',
+        position: 2,
+        name: 'New & Updated',
+        item: 'https://www.trackmcp.com/new',
+      },
+      {
+        '@type': 'ListItem',
+        position: 3,
+        name: 'Featured Blogs',
+        item: 'https://www.trackmcp.com/new/featured-blogs',
+      },
+    ],
+  }
+
+  // Create ItemList schema for blogs
+  const itemListSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'ItemList',
+    itemListElement: blogs.slice(0, 10).map((blog, index) => ({
+      '@type': 'ListItem',
+      position: index + 1,
+      item: {
+        '@type': 'BlogPosting',
+        headline: (blog as any).title || blog.url,
+        description: (blog as any).excerpt || 'Featured blog post',
+        url: blog.url,
+        author: {
+          '@type': 'Person',
+          name: (blog as any).author || 'Track MCP',
+        },
+      },
+    })),
+  }
+
   return (
     <div className="min-h-screen bg-background">
+      {/* JSON-LD Schema for CollectionPage */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(collectionSchema),
+        }}
+      />
+      
+      {/* JSON-LD Schema for BreadcrumbList */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(breadcrumbSchema),
+        }}
+      />
+      
+      {/* JSON-LD Schema for ItemList */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(itemListSchema),
+        }}
+      />
       <MobileNav title="Featured Blogs" showBackButton={true} />
       <main className="container mx-auto px-4 py-12 md:py-16 pt-20 md:pt-12">
         {/* Hero Section - Enhanced */}
