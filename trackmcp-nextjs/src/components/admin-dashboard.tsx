@@ -244,6 +244,7 @@ export function AdminDashboard({ adminPassword }: AdminDashboardProps) {
                       src={submission.hero_image}
                       alt={submission.title}
                       fill
+                      loading="lazy"
                       className="object-cover"
                       unoptimized
                     />
@@ -261,6 +262,7 @@ export function AdminDashboard({ adminPassword }: AdminDashboardProps) {
                           src={submission.author_image}
                           alt={submission.author_name}
                           fill
+                          loading="lazy"
                           className="object-cover"
                           unoptimized
                         />

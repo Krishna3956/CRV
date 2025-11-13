@@ -27,6 +27,7 @@ export function BlogCard({ blog, isFeatured = false }: BlogCardProps) {
               alt={blog.title}
               fill
               unoptimized
+              loading="lazy"
               className="object-cover"
               onError={(e) => {
                 e.currentTarget.style.display = 'none'

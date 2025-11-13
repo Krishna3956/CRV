@@ -293,6 +293,16 @@ const nextConfig = {
           },
         ],
       },
+      // Cache HTML pages (ISR revalidates them)
+      {
+        source: '/:path((?!_next|api|\.well-known).*)',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'public, max-age=3600, s-maxage=3600, stale-while-revalidate=86400',
+          },
+        ],
+      },
     ]
   },
 }
