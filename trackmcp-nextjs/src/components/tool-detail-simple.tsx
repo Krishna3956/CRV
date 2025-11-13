@@ -4,13 +4,16 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { MarkdownRenderer } from '@/components/markdown-renderer'
 import { ToolDiscoverySidebar } from '@/components/ToolDiscoverySidebar'
+import { TableOfContents } from '@/components/TableOfContents'
 import { Star, GitBranch, Calendar, ExternalLink, ArrowLeft } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
 import { format } from 'date-fns'
 import { fetchGitHub } from '@/utils/github'
+import { extractHeadingsFromMarkdown } from '@/utils/toc'
 import type { Database } from '@/types/database.types'
+import type { TableOfContentsItem } from '@/utils/toc'
 
 type McpTool = Database['public']['Tables']['mcp_tools']['Row']
 
@@ -22,6 +25,7 @@ interface ToolDetailClientProps {
     trending: McpTool[]
     new: McpTool[]
   }
+  toc?: TableOfContentsItem[]
 }
 
 // Helper: Format tool name for display (Title Case with spaces)
@@ -32,11 +36,12 @@ function formatToolName(name: string): string {
     .join(' ')
 }
 
-export function ToolDetailClient({ tool, initialReadme, relatedTools }: ToolDetailClientProps) {
+export function ToolDetailClient({ tool, initialReadme, relatedTools, toc }: ToolDetailClientProps) {
   const [readme, setReadme] = useState<string>(initialReadme || '')
   const [ownerAvatar, setOwnerAvatar] = useState<string>('')
   const [ownerName, setOwnerName] = useState<string>('')
   const [isLoadingReadme, setIsLoadingReadme] = useState(!initialReadme)
+  const [tableOfContents, setTableOfContents] = useState<TableOfContentsItem[]>(toc || [])
 
   useEffect(() => {
     fetchOwnerAndReadme()
@@ -120,7 +125,7 @@ export function ToolDetailClient({ tool, initialReadme, relatedTools }: ToolDeta
         <main className="flex-1">
           {/* Grid Layout with precise alignment */}
           <div className="w-full px-4 sm:px-6 lg:px-8">
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-0 max-w-7xl mx-auto">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 max-w-7xl mx-auto">
               {/* Main Content - 7 columns on desktop */}
               <article className="lg:col-span-7">
                 {/* Back Button - Hidden on desktop, optimized on mobile */}
@@ -206,6 +211,26 @@ export function ToolDetailClient({ tool, initialReadme, relatedTools }: ToolDeta
               </div>
             )}
             </section>
+
+            {/* Table of Contents Section - Above Documentation */}
+            {tableOfContents && tableOfContents.length > 0 && (
+              <section className="mb-8 pb-8 border-b border-border/50">
+                <div className="lg:hidden">
+                  {/* Mobile: Inline TOC */}
+                  <TableOfContents 
+                    items={tableOfContents} 
+                    pageUrl={`https://www.trackmcp.com/tool/${encodeURIComponent(tool.repo_name || '')}`}
+                  />
+                </div>
+                <div className="hidden lg:block">
+                  {/* Desktop: Full-width TOC */}
+                  <TableOfContents 
+                    items={tableOfContents} 
+                    pageUrl={`https://www.trackmcp.com/tool/${encodeURIComponent(tool.repo_name || '')}`}
+                  />
+                </div>
+              </section>
+            )}
 
             {/* Documentation Section */}
             <section className="mt-8">

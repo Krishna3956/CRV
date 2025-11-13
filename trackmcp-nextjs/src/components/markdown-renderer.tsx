@@ -2,6 +2,7 @@
 
 import { Copy, Check } from "lucide-react"
 import { useState } from "react"
+import { generateHeadingId } from "@/utils/toc"
 
 const CodeBlock = ({ code, language }: { code: string; language?: string }) => {
   const [copied, setCopied] = useState(false)
@@ -312,8 +313,10 @@ export function MarkdownRenderer({ content, githubUrl }: { content: string; gith
       continue
     }
     if (line.startsWith("## ")) {
+      const headingText = line.slice(3).trim()
+      const headingId = generateHeadingId(headingText)
       elements.push(
-        <h2 key={`h2-${i}`} className="text-2xl font-bold mt-6 mb-3">
+        <h2 key={`h2-${i}`} id={headingId} className="text-2xl font-bold mt-6 mb-3 scroll-mt-20">
           {renderInlineMarkdown(line.slice(3), githubUrl)}
         </h2>
       )
@@ -321,8 +324,10 @@ export function MarkdownRenderer({ content, githubUrl }: { content: string; gith
       continue
     }
     if (line.startsWith("### ")) {
+      const headingText = line.slice(4).trim()
+      const headingId = generateHeadingId(headingText)
       elements.push(
-        <h3 key={`h3-${i}`} className="text-xl font-bold mt-5 mb-2">
+        <h3 key={`h3-${i}`} id={headingId} className="text-xl font-bold mt-5 mb-2 scroll-mt-20">
           {renderInlineMarkdown(line.slice(4), githubUrl)}
         </h3>
       )
@@ -330,8 +335,10 @@ export function MarkdownRenderer({ content, githubUrl }: { content: string; gith
       continue
     }
     if (line.startsWith("#### ")) {
+      const headingText = line.slice(5).trim()
+      const headingId = generateHeadingId(headingText)
       elements.push(
-        <h4 key={`h4-${i}`} className="text-lg font-bold mt-4 mb-2">
+        <h4 key={`h4-${i}`} id={headingId} className="text-lg font-bold mt-4 mb-2 scroll-mt-20">
           {renderInlineMarkdown(line.slice(5), githubUrl)}
         </h4>
       )
