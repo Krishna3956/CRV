@@ -26,43 +26,29 @@ async function getTotalCount(): Promise<number> {
   }
 }
 
-// Fetch ALL tools for proper search functionality
+// Fetch initial batch of tools for homepage (performance optimized)
+// Rest are fetched on demand via "Load More"
 async function getTools(): Promise<McpTool[]> {
   const supabase = createClient()
   
   try {
-    // Fetch all tools in batches to avoid timeout
-    let allTools: McpTool[] = []
-    let from = 0
-    const batchSize = 1000
-    let hasMore = true
+    // Fetch only initial batch (100 tools) for fast homepage load
+    // This is 50x smaller than fetching all 4893 tools
+    // Remaining tools are fetched on demand when user clicks "Load More"
+    const { data, error } = await supabase
+      .from('mcp_tools')
+      .select('id, repo_name, description, stars, github_url, language, topics, last_updated, category')
+      .in('status', ['approved', 'pending'])
+      .order('stars', { ascending: false })
+      .limit(100) // Only fetch first 100 tools
 
-    while (hasMore) {
-      const { data, error } = await supabase
-        .from('mcp_tools')
-        .select('id, repo_name, description, stars, github_url, language, topics, last_updated, category')
-        .in('status', ['approved', 'pending'])
-        .order('stars', { ascending: false })
-        .range(from, from + batchSize - 1)
-
-      if (error) {
-        console.error('Error fetching tools:', error)
-        break
-      }
-
-      if (!data || data.length === 0) {
-        hasMore = false
-      } else {
-        allTools = [...allTools, ...data]
-        from += batchSize
-        if (data.length < batchSize) {
-          hasMore = false
-        }
-      }
+    if (error) {
+      console.error('Error fetching tools:', error)
+      return []
     }
 
-    console.log(`Fetched ${allTools.length} tools`)
-    return allTools
+    console.log(`Fetched ${data?.length || 0} initial tools (100 max)`)
+    return data || []
   } catch (err) {
     console.error('Exception fetching tools:', err)
     return []

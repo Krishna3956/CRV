@@ -10,6 +10,7 @@ import { StatsSection } from '@/components/StatsSection'
 import { ErrorBoundary } from '@/components/error-boundary'
 import { RotatingText } from '@/components/RotatingText'
 import { Loader2, Sparkles, Package, X, Filter, ChevronDown } from 'lucide-react'
+import { fetchMoreTools, searchTools } from '@/app/actions'
 import type { Database } from '@/types/database.types'
 
 // Lazy load heavy components
@@ -161,15 +162,9 @@ export function HomeClient({ initialTools, totalCount }: HomeClientProps) {
     return filteredAndSortedTools.reduce((sum, tool) => sum + (tool.stars || 0), 0)
   }, [filteredAndSortedTools])
 
-  // Calculate actual available tools count (excluding blocked/invalid tools)
-  const actualAvailableCount = useMemo(() => {
-    return allTools.filter(tool => {
-      // Apply same filtering logic as filteredAndSortedTools
-      if (!tool.repo_name || !tool.github_url) return false
-      if (blockedRepos.includes(tool.repo_name?.toLowerCase() || '')) return false
-      return true
-    }).length
-  }, [allTools, blockedRepos])
+  // Use totalCount from server (accurate count of all tools)
+  // This is NOT affected by how many tools we've loaded locally
+  const actualAvailableCount = totalCount
 
   // Get top 5 tools with highest stars for trending badge
   const top5RecentTools = useMemo(() => {
@@ -204,14 +199,13 @@ export function HomeClient({ initialTools, totalCount }: HomeClientProps) {
       return
     }
     
-    // Otherwise, fetch more from API
+    // Otherwise, fetch more from server action
     if (allTools.length < totalCount) {
       setIsLoadingMore(true)
       try {
-        const response = await fetch(`/api/tools?offset=${allTools.length}&limit=100`)
-        const data = await response.json()
-        if (data.tools && data.tools.length > 0) {
-          setAllTools(prev => [...prev, ...data.tools])
+        const moreTools = await fetchMoreTools(allTools.length, 100)
+        if (moreTools && moreTools.length > 0) {
+          setAllTools(prev => [...prev, ...moreTools])
           setVisibleCount(prev => prev + 12)
           // Restore scroll position after state update
           setTimeout(() => {
