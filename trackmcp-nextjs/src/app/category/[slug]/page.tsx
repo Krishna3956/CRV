@@ -61,13 +61,41 @@ export default async function CategoryPage({ params, searchParams }: Props) {
     const slug = params.slug.toLowerCase()
     console.log(`[CategoryPage] Converting slug to category name: ${slug}`)
     
-    // Reverse the slug encoding: "and" -> "&", "-" -> " "
-    let actualCategoryName = slug
-      .replace(/and/g, '&')
-      .replace(/-/g, ' ')
-      .replace(/\b\w/g, (l) => l.toUpperCase())
+    // Reverse the slug encoding: "and" (word) -> "&", "-" -> " "
+    // First replace hyphens with spaces
+    let actualCategoryName = slug.replace(/-/g, ' ')
+    // Then replace " and " with " & " (only when surrounded by spaces)
+    actualCategoryName = actualCategoryName.replace(/\s+and\s+/g, ' & ')
+    // Capitalize first letter of each word
+    actualCategoryName = actualCategoryName
+      .split(' ')
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(' ')
     
     console.log(`[CategoryPage] Converted category name: ${actualCategoryName}`)
+    
+    // Fetch a sample of categories to find the match
+    const { data: sampleCats } = await supabase
+      .from('mcp_tools')
+      .select('category')
+      .in('status', ['approved', 'pending'])
+      .limit(500)
+    
+    const uniqueCategories = [...new Set(sampleCats?.map((t: any) => t.category) || [])] as string[]
+    console.log(`[CategoryPage] Sample categories: ${uniqueCategories.slice(0, 5).join(', ')}...`)
+    
+    // Find matching category (case-insensitive)
+    const matchedCategory = uniqueCategories.find(cat => 
+      cat.toLowerCase() === actualCategoryName.toLowerCase()
+    )
+    
+    if (!matchedCategory) {
+      console.error(`[CategoryPage] Category not found: ${actualCategoryName}`)
+      console.error(`[CategoryPage] Available categories: ${uniqueCategories.join(', ')}`)
+      notFound()
+    }
+    
+    actualCategoryName = matchedCategory
 
     // Format the category name for display
     let categoryName = actualCategoryName

@@ -184,9 +184,6 @@ export default async function HomePage() {
 
   return (
     <>
-      {/* H1 - SEO Critical */}
-      <h1 className="sr-only">App Store for MCP Servers, Clients, and Tools | World's Largest MCP Marketplace</h1>
-
       {/* JSON-LD Schema for ItemList */}
       <script
         type="application/ld+json"
