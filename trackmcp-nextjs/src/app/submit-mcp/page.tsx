@@ -358,71 +358,73 @@ export default function SubmitMcpPage() {
 
           {/* Right Column - Form */}
           <div className="lg:col-span-7 flex flex-col justify-start order-1 lg:order-2">
-            <div className="bg-gradient-to-br from-blue-50 to-indigo-50/30 backdrop-blur-sm border border-blue-100 rounded-2xl p-4 md:p-6 space-y-3 md:space-y-4 shadow-lg hover:shadow-xl transition-all h-fit md:sticky md:top-20">
+            <div className="bg-white border border-slate-200 rounded-2xl p-6 md:p-8 space-y-6 shadow-lg hover:shadow-xl transition-all h-fit md:sticky md:top-20">
               {/* Form Header with Free Badge */}
-              <div className="space-y-1.5">
-                <div className="flex items-center justify-between gap-2 flex-wrap">
-                  <h3 className="text-base md:text-xl font-bold">Submit your tool</h3>
-                  <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-green-500/10 border border-green-500/30">
-                    <CheckCircle2 className="h-3 w-3 text-green-600" />
-                    <span className="text-xs font-semibold text-green-700 dark:text-green-400">Always Free</span>
+              <div className="space-y-2">
+                <div className="flex items-center justify-between gap-3 flex-wrap">
+                  <h3 className="text-2xl md:text-3xl font-bold text-gray-900">Submit your tool</h3>
+                  <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-green-100 border border-green-300">
+                    <CheckCircle2 className="h-4 w-4 text-green-600" />
+                    <span className="text-xs font-semibold text-green-700">Always Free</span>
                   </div>
                 </div>
-                <p className="text-muted-foreground text-xs hidden md:block">Just 2 fields. Takes 2 minutes. We&apos;ll handle the rest.</p>
+                <p className="text-slate-600 text-sm">Just 2 fields. Takes 2 minutes. We&apos;ll handle the rest.</p>
               </div>
 
               {/* Form */}
-              <form onSubmit={handleSubmit} className="space-y-3 md:space-y-4">
+              <form onSubmit={handleSubmit} className="space-y-5">
                 {/* GitHub URL */}
-                <div className="space-y-2 md:space-y-3">
-                  <div className="flex items-center justify-between gap-2 flex-wrap">
-                    <Label htmlFor="github-url" className="text-xs md:text-sm font-semibold flex items-center gap-2 min-w-0">
-                      <GitBranch className="h-4 w-4 text-blue-600 flex-shrink-0" />
-                      <span className="truncate">GitHub Repository</span>
-                    </Label>
-                    <span className="text-xs text-muted-foreground flex-shrink-0">Required</span>
-                  </div>
+                <div className="space-y-2.5">
+                  <Label htmlFor="github-url" className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+                    <GitBranch className="h-4 w-4 text-blue-600" />
+                    GitHub Repository <span className="text-red-500">*</span>
+                  </Label>
                   <div className="relative group">
+                    <div className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none">
+                      <GitBranch className="h-5 w-5" />
+                    </div>
                     <Input
                       id="github-url"
                       placeholder="https://github.com/username/repository"
                       value={githubUrl}
                       onChange={(e) => setGithubUrl(e.target.value)}
                       required
-                      className="h-12 text-sm pl-4 pr-10 border-slate-200 focus:border-blue-400 focus:ring-blue-400 group-hover:border-slate-300 transition-colors w-full"
+                      className="h-11 text-sm pl-10 pr-10 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition outline-none bg-slate-50 text-gray-700 hover:border-slate-400"
                     />
                     {urlValid && (
                       <CheckCircle2 className="absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5 text-green-500 animate-in fade-in flex-shrink-0" />
                     )}
                   </div>
-                  <p className="text-xs text-muted-foreground leading-tight">We&apos;ll fetch your repo details automatically</p>
+                  <p className="text-xs text-slate-500">We&apos;ll fetch your repo details automatically</p>
                 </div>
 
                 {/* Email */}
-                <div className="space-y-2 md:space-y-3">
-                  <div className="flex items-center justify-between gap-2 flex-wrap">
-                    <Label htmlFor="email" className="text-xs md:text-sm font-semibold flex items-center gap-2 min-w-0">
-                      <Mail className="h-4 w-4 text-blue-600 flex-shrink-0" />
-                      <span className="truncate">Email Address</span>
-                    </Label>
-                    <span className="text-xs text-muted-foreground flex-shrink-0">Required</span>
+                <div className="space-y-2.5">
+                  <Label htmlFor="email" className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+                    <Mail className="h-4 w-4 text-blue-600" />
+                    Email Address <span className="text-red-500">*</span>
+                  </Label>
+                  <div className="relative group">
+                    <div className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none">
+                      <Mail className="h-5 w-5" />
+                    </div>
+                    <Input
+                      id="email"
+                      type="email"
+                      placeholder="you@example.com"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      required
+                      className="h-11 text-sm pl-10 pr-4 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition outline-none bg-slate-50 text-gray-700 hover:border-slate-400"
+                    />
                   </div>
-                  <Input
-                    id="email"
-                    type="email"
-                    placeholder="you@example.com"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    required
-                    className="h-12 text-sm border-slate-200 focus:border-blue-400 focus:ring-blue-400 group-hover:border-slate-300 transition-colors w-full"
-                  />
-                  <p className="text-xs text-muted-foreground leading-tight">We&apos;ll send you updates and confirmation</p>
+                  <p className="text-xs text-slate-500">We&apos;ll send you updates and confirmation</p>
                 </div>
 
                 {/* Featured Upsell */}
                 <div 
                   onClick={() => setWantsFeatured(!wantsFeatured)}
-                  className="bg-gradient-to-br from-indigo-50 to-blue-50 border-2 border-indigo-200 rounded-lg p-3 md:p-5 space-y-2 md:space-y-3 hover:border-indigo-300 hover:shadow-md hover:shadow-indigo-200/50 transition-all cursor-pointer group"
+                  className="bg-blue-50 border border-blue-200 rounded-xl p-4 md:p-5 space-y-3 hover:border-blue-300 hover:shadow-md transition-all cursor-pointer group"
                 >
                   {/* Header with Checkbox */}
                   <div className="flex items-start gap-3">
@@ -431,44 +433,40 @@ export default function SubmitMcpPage() {
                       id="featured-checkbox"
                       checked={wantsFeatured}
                       onChange={(e) => setWantsFeatured(e.target.checked)}
-                      className="mt-1 h-5 w-5 rounded border-primary/30 text-primary focus:ring-2 focus:ring-primary focus:ring-offset-0 cursor-pointer flex-shrink-0"
+                      className="mt-1 h-5 w-5 rounded border-blue-300 text-blue-600 focus:ring-2 focus:ring-blue-500 focus:ring-offset-0 cursor-pointer flex-shrink-0"
                       onClick={(e) => e.stopPropagation()}
                     />
-                    <div className="flex-1 min-w-0 space-y-2">
-                      <div className="cursor-pointer">
-                        <div className="flex items-center justify-between flex-wrap gap-2">
-                          <div className="flex items-center gap-2">
-                            <Sparkles className="h-3.5 md:h-4 w-3.5 md:w-4 text-blue-600 flex-shrink-0" />
-                            <h4 className="text-xs md:text-sm font-bold">Get Featured</h4>
-                          </div>
-                          <span className="text-xs font-bold text-white bg-gradient-to-r from-indigo-600 to-blue-600 px-3 py-1.5 rounded-full whitespace-nowrap shadow-md group-hover:shadow-lg transition-shadow">$8/mo</span>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center justify-between gap-2 flex-wrap">
+                        <div className="flex items-center gap-2">
+                          <Sparkles className="h-4 w-4 text-blue-600 flex-shrink-0" />
+                          <h4 className="text-sm font-bold text-gray-900">Get Featured</h4>
                         </div>
+                        <span className="text-xs font-bold text-white bg-blue-600 px-3 py-1 rounded-full whitespace-nowrap shadow-sm">$8/mo</span>
                       </div>
-                      <p className="text-xs md:text-xs text-muted-foreground leading-relaxed break-words">
+                      <p className="text-xs text-blue-700 mt-1">
                         Get 3x more visibility & reach thousands of developers
                       </p>
                     </div>
                   </div>
                   
                   {/* Featured Benefits */}
-                  <div className="space-y-1.5 md:space-y-2 ml-8 pt-1">
-                    <div className="space-y-1">
-                      <div className="flex items-start gap-2">
-                        <Trophy className="h-3 md:h-3.5 w-3 md:w-3.5 text-blue-600 flex-shrink-0 mt-0.5" />
-                        <span className="text-xs md:text-xs text-foreground font-medium">Top search placement</span>
-                      </div>
-                      <div className="flex items-start gap-2">
-                        <Sparkles className="h-3 md:h-3.5 w-3 md:w-3.5 text-blue-600 flex-shrink-0 mt-0.5" />
-                        <span className="text-xs md:text-xs text-foreground font-medium">Featured badge & highlight</span>
-                      </div>
-                      <div className="flex items-start gap-2">
-                        <Zap className="h-3 md:h-3.5 w-3 md:w-3.5 text-blue-600 flex-shrink-0 mt-0.5" />
-                        <span className="text-xs md:text-xs text-foreground font-medium">3x more visibility</span>
-                      </div>
-                      <div className="flex items-start gap-2">
-                        <Users className="h-3 md:h-3.5 w-3 md:w-3.5 text-blue-600 flex-shrink-0 mt-0.5" />
-                        <span className="text-xs md:text-xs text-foreground font-medium">Priority support</span>
-                      </div>
+                  <div className="space-y-2 ml-8 pt-1">
+                    <div className="flex items-start gap-2">
+                      <Trophy className="h-4 w-4 text-blue-600 flex-shrink-0 mt-0.5" />
+                      <span className="text-xs text-gray-700 font-medium">Top search placement</span>
+                    </div>
+                    <div className="flex items-start gap-2">
+                      <Sparkles className="h-4 w-4 text-blue-600 flex-shrink-0 mt-0.5" />
+                      <span className="text-xs text-gray-700 font-medium">Featured badge & highlight</span>
+                    </div>
+                    <div className="flex items-start gap-2">
+                      <Zap className="h-4 w-4 text-blue-600 flex-shrink-0 mt-0.5" />
+                      <span className="text-xs text-gray-700 font-medium">3x more visibility</span>
+                    </div>
+                    <div className="flex items-start gap-2">
+                      <Users className="h-4 w-4 text-blue-600 flex-shrink-0 mt-0.5" />
+                      <span className="text-xs text-gray-700 font-medium">Priority support</span>
                     </div>
                   </div>
                 </div>
@@ -477,7 +475,7 @@ export default function SubmitMcpPage() {
                 <Button
                   type="submit"
                   disabled={isSubmitting}
-                  className="w-full h-12 text-base font-semibold group hover:shadow-xl transition-all bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-700 hover:to-blue-700 text-white"
+                  className="w-full h-12 text-base font-bold bg-blue-600 hover:bg-blue-700 text-white rounded-xl shadow-md hover:shadow-lg transition-all disabled:opacity-50"
                 >
                   {isSubmitting ? (
                     <>
@@ -486,15 +484,14 @@ export default function SubmitMcpPage() {
                     </>
                   ) : (
                     <>
-                      <Rocket className="mr-2 h-5 w-5 group-hover:translate-y-0.5 transition-transform" />
+                      <Rocket className="mr-2 h-5 w-5" />
                       {wantsFeatured ? 'Submit & Start Featured ($8/mo)' : 'Submit MCP'}
-                      <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
                     </>
                   )}
                 </Button>
 
                 {/* Trust Badge */}
-                <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground">
+                <div className="flex items-center justify-center gap-2 text-xs text-slate-600">
                   <div className="h-1.5 w-1.5 rounded-full bg-green-500" />
                   <span>Secure submission • No spam • Instant confirmation</span>
                 </div>
