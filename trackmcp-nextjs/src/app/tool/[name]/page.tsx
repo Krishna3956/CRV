@@ -1,5 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
-import { notFound } from 'next/navigation'
+import { notFound, redirect } from 'next/navigation'
 import type { Metadata } from 'next'
 import { ToolDetailClient } from '@/components/tool-detail-simple'
 import { fetchReadmeForServer } from '@/utils/github'
@@ -279,10 +279,10 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       'ai:tool_name': toolName,
     },
     alternates: {
-      canonical: `https://www.trackmcp.com/tool/${encodeURIComponent(toolName)}`,
+      canonical: `https://www.trackmcp.com/tool/${encodeURIComponent(toolName.toLowerCase())}`,
       languages: {
-        'en-US': `https://www.trackmcp.com/tool/${encodeURIComponent(toolName)}`,
-        'x-default': `https://www.trackmcp.com/tool/${encodeURIComponent(toolName)}`,
+        'en-US': `https://www.trackmcp.com/tool/${encodeURIComponent(toolName.toLowerCase())}`,
+        'x-default': `https://www.trackmcp.com/tool/${encodeURIComponent(toolName.toLowerCase())}`,
       },
     },
   }
@@ -290,6 +290,15 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 // Server Component - renders on server with full HTML!
 export default async function ToolPage({ params }: Props) {
+  // Normalize URL to lowercase for canonical consistency
+  const normalizedName = decodeURIComponent(params.name).toLowerCase()
+  const decodedName = decodeURIComponent(params.name)
+  
+  // If URL is not lowercase, redirect to lowercase version (301 permanent)
+  if (decodedName !== normalizedName) {
+    redirect(`/tool/${encodeURIComponent(normalizedName)}`)
+  }
+  
   const tool = await getTool(params.name)
   
   if (!tool) {
