@@ -188,3 +188,55 @@ export async function getApprovedTools(limit: number = 100): Promise<McpTool[]> 
     return []
   }
 }
+
+/**
+ * Get recently updated tools
+ */
+export async function getRecentlyUpdatedTools(limit: number = 100): Promise<McpTool[]> {
+  const supabase = createClient()
+
+  try {
+    const { data, error } = await supabase
+      .from('mcp_tools')
+      .select(TOOL_SELECT_FIELDS)
+      .in('status', ['approved', 'pending'])
+      .order('last_updated', { ascending: false })
+      .limit(limit)
+
+    if (error) {
+      console.error('Error fetching recently updated tools:', error)
+      return []
+    }
+
+    return data || []
+  } catch (err) {
+    console.error('Exception fetching recently updated tools:', err)
+    return []
+  }
+}
+
+/**
+ * Get newly created tools
+ */
+export async function getNewlyCreatedTools(limit: number = 100): Promise<McpTool[]> {
+  const supabase = createClient()
+
+  try {
+    const { data, error } = await supabase
+      .from('mcp_tools')
+      .select(TOOL_SELECT_FIELDS)
+      .in('status', ['approved', 'pending'])
+      .order('created_at', { ascending: false })
+      .limit(limit)
+
+    if (error) {
+      console.error('Error fetching newly created tools:', error)
+      return []
+    }
+
+    return data || []
+  } catch (err) {
+    console.error('Exception fetching newly created tools:', err)
+    return []
+  }
+}
