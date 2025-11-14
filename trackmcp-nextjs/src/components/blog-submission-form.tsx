@@ -312,31 +312,49 @@ export function BlogSubmissionForm() {
 
   return (
     <div className="max-w-2xl mx-auto">
-      <form onSubmit={handleSubmit} className="space-y-6">
-        {/* Success Message */}
-        {submitStatus === 'success' && (
-          <div className="p-4 rounded-lg bg-green-50 border border-green-200 flex items-start gap-3">
-            <CheckCircle className="h-5 w-5 text-green-600 flex-shrink-0 mt-0.5" />
-            <div>
-              <p className="font-medium text-green-900">{submitMessage}</p>
-              <p className="text-sm text-green-700 mt-1">
-                We&apos;ll review your submission and add it to our featured blogs soon!
-              </p>
-            </div>
+      {/* Success State - Show Thank You Message Only */}
+      {submitStatus === 'success' ? (
+        <div className="flex flex-col items-center justify-center py-12 px-6 text-center">
+          <div className="mb-6">
+            <CheckCircle className="h-16 w-16 text-green-600 mx-auto" />
           </div>
-        )}
-
-        {/* Error Message */}
-        {submitStatus === 'error' && (
-          <div className="p-4 rounded-lg bg-red-50 border border-red-200 flex items-start gap-3">
-            <AlertCircle className="h-5 w-5 text-red-600 flex-shrink-0 mt-0.5" />
-            <div>
-              <p className="font-medium text-red-900">{submitMessage}</p>
+          <h2 className="text-3xl font-bold text-green-900 mb-2">Thank You!</h2>
+          <p className="text-lg text-green-700 mb-4">{submitMessage}</p>
+          <p className="text-muted-foreground mb-6">
+            We&apos;ll review your submission and add it to our featured blogs soon!
+          </p>
+          <button
+            onClick={() => {
+              setSubmitStatus('idle')
+              setFormData({
+                title: '',
+                description: '',
+                heroImage: null,
+                heroImagePreview: '',
+                authorName: '',
+                authorImage: null,
+                authorImagePreview: '',
+                blogUrl: '',
+              })
+            }}
+            className="px-6 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors"
+          >
+            Submit Another Blog
+          </button>
+        </div>
+      ) : (
+        <form onSubmit={handleSubmit} className="space-y-6">
+          {/* Error Message */}
+          {submitStatus === 'error' && (
+            <div className="p-4 rounded-lg bg-red-50 border border-red-200 flex items-start gap-3">
+              <AlertCircle className="h-5 w-5 text-red-600 flex-shrink-0 mt-0.5" />
+              <div>
+                <p className="font-medium text-red-900">{submitMessage}</p>
+              </div>
             </div>
-          </div>
-        )}
+          )}
 
-        {/* Blog Title */}
+          {/* Blog Title */}
         <div>
           <label htmlFor="title" className="block text-sm font-medium text-foreground mb-2">
             Blog Title
@@ -560,6 +578,7 @@ export function BlogSubmissionForm() {
           </p>
         </div>
       </form>
+      )}
 
       {/* Crop Modal */}
       {showCropModal && (
