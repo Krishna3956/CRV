@@ -51,59 +51,27 @@ export const SearchBar = ({
     if (containerRef.current) {
       const rect = containerRef.current.getBoundingClientRect();
       setDropdownPosition({
-        top: rect.bottom + 8, // Use viewport position, not scroll position
+        top: rect.bottom, // No gap - dropdown sits right below search bar
         left: rect.left,
         width: rect.width
       });
     }
   }, []);
 
-  // Update position only on scroll (not continuously)
+  // Close dropdown when page scrolls
   useEffect(() => {
     if (!showSuggestions) return;
 
     const handleScroll = () => {
-      updateDropdownPosition();
-    };
-    
-    window.addEventListener('scroll', handleScroll, { passive: true, capture: true });
-    
-    return () => {
-      window.removeEventListener('scroll', handleScroll, true);
-    };
-  }, [showSuggestions, updateDropdownPosition]);
-
-  // Handle resize
-  useEffect(() => {
-    const handleResize = () => {
-      updateDropdownPosition();
-    };
-
-    window.addEventListener('resize', handleResize);
-    
-    return () => {
-      window.removeEventListener('resize', handleResize);
-    };
-  }, [updateDropdownPosition]);
-
-  // Close on page scroll, but NOT on dropdown scroll
-  useEffect(() => {
-    if (!showSuggestions) return;
-
-    const handleScroll = (event: Event) => {
-      const target = event.target as HTMLElement;
-      
-      // If scrolling inside the dropdown itself, don't close
-      if (suggestionsRef.current && suggestionsRef.current.contains(target)) {
-        return;
-      }
-      
-      // If scrolling the page, close the dropdown
+      // Close dropdown when user scrolls the page
       setShowSuggestions(false);
     };
-
-    // Listen to all scroll events
-    window.addEventListener('scroll', handleScroll, true);
+    
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+    };
   }, [showSuggestions]);
 
   // Debounce search input - minimal delay for instant feel
@@ -147,17 +115,18 @@ export const SearchBar = ({
     const query = debouncedValue.toLowerCase();
     const results: Suggestion[] = [];
     const seen = new Set<string>();
-    const maxResults = 6; // Show 6 results
+    const maxResults = 5; // Show 5 results
 
-    // Ultra-fast search - only check tool names
+    // Search through tools - check names, descriptions, and topics
     for (const tool of tools) {
-      if (results.length >= maxResults) break; // Stop immediately when we have enough
+      if (results.length >= maxResults) break;
       
+      // Check tool name
       if (tool.repo_name) {
         const lowerName = tool.repo_name.toLowerCase();
         if (lowerName.includes(query)) {
           const nameScore = calculateScore(tool.repo_name, query, 'name');
-          if (!seen.has(`name-${tool.repo_name}`)) {
+          if (!seen.has(`name-${tool.id}`)) {
             results.push({
               id: `name-${tool.id}`,
               text: tool.repo_name,
@@ -165,14 +134,53 @@ export const SearchBar = ({
               tool,
               score: nameScore
             });
-            seen.add(`name-${tool.repo_name}`);
+            seen.add(`name-${tool.id}`);
+          }
+        }
+      }
+      
+      // Check description
+      if (tool.description && results.length < maxResults) {
+        const lowerDesc = tool.description.toLowerCase();
+        if (lowerDesc.includes(query)) {
+          const descScore = calculateScore(tool.description, query, 'description');
+          if (!seen.has(`desc-${tool.id}`) && descScore > 0) {
+            results.push({
+              id: `desc-${tool.id}`,
+              text: tool.description,
+              type: 'description',
+              tool,
+              score: descScore
+            });
+            seen.add(`desc-${tool.id}`);
+          }
+        }
+      }
+      
+      // Check topics
+      if (tool.topics && results.length < maxResults) {
+        for (const topic of tool.topics) {
+          const lowerTopic = topic.toLowerCase();
+          if (lowerTopic.includes(query)) {
+            const topicScore = calculateScore(topic, query, 'topic');
+            if (!seen.has(`topic-${tool.id}-${topic}`) && topicScore > 0) {
+              results.push({
+                id: `topic-${tool.id}-${topic}`,
+                text: topic,
+                type: 'topic',
+                tool,
+                score: topicScore
+              });
+              seen.add(`topic-${tool.id}-${topic}`);
+              break; // Only add one topic per tool
+            }
           }
         }
       }
     }
 
-    // Sort by score
-    const sorted = results.sort((a, b) => b.score - a.score);
+    // Sort by score (highest first)
+    const sorted = results.sort((a, b) => b.score - a.score).slice(0, maxResults);
 
     // Cache the results
     cacheRef.current.set(debouncedValue, sorted);
@@ -273,10 +281,10 @@ export const SearchBar = ({
     scrollClosedRef.current = false;
   }, [value]);
 
+  // Suggestions disabled permanently
   useEffect(() => {
-    // Suggestions disabled
     setShowSuggestions(false);
-  }, [debouncedValue, suggestions.length]);
+  }, []);
 
   // Render suggestions dropdown
   const renderSuggestions = () => {
@@ -289,12 +297,11 @@ export const SearchBar = ({
           top: `${dropdownPosition.top}px`,
           left: `${dropdownPosition.left}px`,
           width: `${dropdownPosition.width}px`,
-          zIndex: 50,
+          zIndex: 9999,
           maxHeight: '70vh',
           borderRadius: '0 0 1rem 1rem',
           borderTop: 'none',
           boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1)',
-          marginTop: '-2px',
           transition: 'none'
         }}
       >

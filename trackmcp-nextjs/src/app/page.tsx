@@ -1,59 +1,5 @@
-import { createClient } from '@/lib/supabase/server'
 import { HomeClient } from '@/components/home-client'
-import type { Database } from '@/types/database.types'
-
-type McpTool = Database['public']['Tables']['mcp_tools']['Row']
-
-// Get total count of tools (cached with longer revalidation)
-async function getTotalCount(): Promise<number> {
-  const supabase = createClient()
-  
-  try {
-    const { count, error } = await supabase
-      .from('mcp_tools')
-      .select('id', { count: 'exact', head: true }) // Only count id column, not all columns
-      .in('status', ['approved', 'pending'])
-
-    if (error) {
-      console.error('Error fetching count:', error)
-      return 0
-    }
-
-    return count || 0
-  } catch (err) {
-    console.error('Exception fetching count:', err)
-    return 0
-  }
-}
-
-// Fetch all tools for homepage
-// All tools are loaded upfront so search/filtering works across entire database
-// Progressive display via "Load More" button for better UX
-async function getTools(): Promise<McpTool[]> {
-  const supabase = createClient()
-  
-  try {
-    // Fetch ALL tools for complete search/filter functionality
-    // Progressive display via visibleCount handles UX performance
-    const { data, error } = await supabase
-      .from('mcp_tools')
-      .select('id, repo_name, description, stars, github_url, language, topics, last_updated, category')
-      .in('status', ['approved', 'pending'])
-      .order('stars', { ascending: false })
-      .limit(10000) // Fetch all tools (up to 10,000)
-
-    if (error) {
-      console.error('Error fetching tools:', error)
-      return []
-    }
-
-    console.log(`Fetched ${data?.length || 0} total tools`)
-    return data || []
-  } catch (err) {
-    console.error('Exception fetching tools:', err)
-    return []
-  }
-}
+import { getToolCount, getAllTools } from '@/utils/db-queries'
 
 // Use static metadata to match original site SEO
 export const metadata = {
@@ -78,7 +24,7 @@ export const dynamic = 'force-dynamic'
 // Server Component - renders on server with full HTML
 export default async function HomePage() {
   // Parallel fetch for better performance
-  const [tools, totalCount] = await Promise.all([getTools(), getTotalCount()])
+  const [tools, totalCount] = await Promise.all([getAllTools(), getToolCount()])
   
   // Create ItemList schema for top tools
   const itemListSchema = {

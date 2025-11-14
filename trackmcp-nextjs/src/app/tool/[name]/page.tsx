@@ -1,4 +1,3 @@
-import { createClient } from '@/lib/supabase/server'
 import { notFound, redirect } from 'next/navigation'
 import type { Metadata } from 'next'
 import { ToolDetailClient } from '@/components/tool-detail-simple'
@@ -7,50 +6,19 @@ import { createMetaDescription } from '@/utils/metaDescription'
 import { getRelatedTools } from '@/utils/relatedTools'
 import { extractHeadingsFromMarkdown, generateTocSchema } from '@/utils/toc'
 import { extractFAQsFromMarkdown, generateFAQSchema } from '@/utils/faq'
+import { getToolByName } from '@/utils/db-queries'
+import {
+  estimatePixelWidth,
+  generateSmartTitle,
+  generateSmartDescription,
+  generateSmartKeywords,
+} from '@/utils/metadata-helpers'
 import type { Database } from '@/types/database.types'
 
 type McpTool = Database['public']['Tables']['mcp_tools']['Row']
 
 interface Props {
   params: { name: string }
-}
-
-// Fetch tool data on server
-async function getTool(name: string): Promise<McpTool | null> {
-  const supabase = createClient()
-  
-  // Use ilike for case-insensitive matching
-  // This handles URLs like /tool/ressl_mcp matching database entry "Ressl_MCP"
-  const { data, error } = await supabase
-    .from('mcp_tools')
-    .select('*')
-    .ilike('repo_name', decodeURIComponent(name))
-    .single()
-  
-  if (error || !data) return null
-  return data
-}
-
-// Fetch README on server for SEO indexing
-async function getReadme(githubUrl: string): Promise<string | null> {
-  return fetchReadmeForServer(githubUrl)
-}
-
-// Helper: Estimate pixel width of text (for Google truncation prevention)
-function estimatePixelWidth(text: string): number {
-  let width = 0
-  for (const char of text) {
-    if (/[iIl1!.,;:'"]/.test(char)) {
-      width += 4  // Narrow characters
-    } else if (/[mMwW]/.test(char)) {
-      width += 9  // Wide characters
-    } else if (char === ' ') {
-      width += 5  // Space
-    } else {
-      width += 7  // Average character
-    }
-  }
-  return width
 }
 
 // Smart metadata generator
@@ -224,7 +192,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const decodedName = decodeURIComponent(params.name)
   const normalizedName = decodedName.toLowerCase().replace(/_/g, '-')
   
-  const tool = await getTool(normalizedName)
+  const tool = await getToolByName(normalizedName)
   
   if (!tool) {
     return {
@@ -311,14 +279,14 @@ export default async function ToolPage({ params }: Props) {
     redirect(`/tool/${encodeURIComponent(normalizedName)}`)
   }
   
-  const tool = await getTool(params.name)
+  const tool = await getToolByName(params.name)
   
   if (!tool) {
     notFound()
   }
 
   // Fetch README on server for SEO indexing
-  const readme = await getReadme(tool.github_url || '')
+  const readme = await fetchReadmeForServer(tool.github_url || '')
 
   // Extract table of contents from README
   const toc = readme ? extractHeadingsFromMarkdown(readme) : []
