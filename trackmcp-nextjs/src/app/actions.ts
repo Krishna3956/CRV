@@ -18,7 +18,7 @@ export async function fetchMoreTools(offset: number, limit: number = 100) {
  * Server action to fetch tools by category
  * Called when user selects a category filter
  */
-export async function fetchToolsByCategory(category: string, limit: number = 1000) {
+export async function fetchToolsByCategory(category: string, limit: number = 10000) {
   return getToolsByCategory(category, limit)
 }
 

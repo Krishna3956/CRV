@@ -85,25 +85,43 @@ export async function getToolByName(name: string): Promise<McpTool | null> {
 
 /**
  * Get tools by category
+ * Fetches in batches of 1000 to work around Supabase free plan limits
  */
 export async function getToolsByCategory(category: string, limit: number = 10000): Promise<McpTool[]> {
   const supabase = createClient()
+  let allTools: McpTool[] = []
+  let offset = 0
+  const batchSize = 1000
 
   try {
-    const { data, error } = await supabase
-      .from('mcp_tools')
-      .select(TOOL_SELECT_FIELDS)
-      .in('status', ['approved', 'pending'])
-      .eq('category', category)
-      .order('stars', { ascending: false })
-      .limit(limit)
+    while (allTools.length < limit) {
+      const { data, error } = await supabase
+        .from('mcp_tools')
+        .select(TOOL_SELECT_FIELDS)
+        .in('status', ['approved', 'pending'])
+        .eq('category', category)
+        .order('stars', { ascending: false })
+        .range(offset, offset + batchSize - 1)
 
-    if (error) {
-      console.error('Error fetching tools by category:', error)
-      return []
+      if (error) {
+        console.error('Error fetching tools by category:', error)
+        break
+      }
+
+      if (!data || data.length === 0) {
+        break
+      }
+
+      allTools = [...allTools, ...data]
+      offset += batchSize
+
+      // Stop if we got fewer results than requested (end of data)
+      if (data.length < batchSize) {
+        break
+      }
     }
 
-    return data || []
+    return allTools.slice(0, limit)
   } catch (err) {
     console.error('Exception fetching tools by category:', err)
     return []
@@ -112,25 +130,45 @@ export async function getToolsByCategory(category: string, limit: number = 10000
 
 /**
  * Search tools
+ * Fetches in batches of 1000 to work around Supabase free plan limits
  */
 export async function searchTools(query: string, limit: number = 100): Promise<McpTool[]> {
   const supabase = createClient()
+  let allTools: McpTool[] = []
+  let offset = 0
+  const batchSize = 1000
 
   try {
-    const { data, error } = await supabase
-      .from('mcp_tools')
-      .select(TOOL_SELECT_FIELDS)
-      .in('status', ['approved', 'pending'])
-      .or(`repo_name.ilike.%${query}%,description.ilike.%${query}%`)
-      .order('stars', { ascending: false })
-      .limit(limit)
+    // Fetch all matching tools in batches
+    while (allTools.length < 10000) {
+      const { data, error } = await supabase
+        .from('mcp_tools')
+        .select(TOOL_SELECT_FIELDS)
+        .in('status', ['approved', 'pending'])
+        .or(`repo_name.ilike.%${query}%,description.ilike.%${query}%`)
+        .order('stars', { ascending: false })
+        .range(offset, offset + batchSize - 1)
 
-    if (error) {
-      console.error('Error searching tools:', error)
-      return []
+      if (error) {
+        console.error('Error searching tools:', error)
+        break
+      }
+
+      if (!data || data.length === 0) {
+        break
+      }
+
+      allTools = [...allTools, ...data]
+      offset += batchSize
+
+      // Stop if we got fewer results than requested (end of data)
+      if (data.length < batchSize) {
+        break
+      }
     }
 
-    return data || []
+    // Return top results limited by the limit parameter
+    return allTools.slice(0, limit)
   } catch (err) {
     console.error('Exception searching tools:', err)
     return []

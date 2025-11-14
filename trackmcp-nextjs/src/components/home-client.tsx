@@ -135,11 +135,6 @@ export function HomeClient({ initialTools, totalCount }: HomeClientProps) {
           return false
         }
 
-        // Filter out blocked repos
-        if (blockedRepos.includes(tool.repo_name?.toLowerCase() || '')) {
-          return false
-        }
-
         // Category filter
         if (selectedCategory !== 'all') {
           if (selectedCategory === 'featured') {
@@ -241,7 +236,7 @@ export function HomeClient({ initialTools, totalCount }: HomeClientProps) {
       // Fetch all tools for this category from server
       const fetchCategoryTools = async () => {
         try {
-          const categoryTools = await fetchToolsByCategory(selectedCategory, 1000)
+          const categoryTools = await fetchToolsByCategory(selectedCategory, 10000)
           // Merge with existing tools to avoid duplicates
           setAllTools(prev => {
             const existingIds = new Set(prev.map(t => t.id))
