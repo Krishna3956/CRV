@@ -274,12 +274,8 @@ export const SearchBar = ({
   }, [value]);
 
   useEffect(() => {
-    // Show suggestions when we have valid results
-    if (debouncedValue.length >= 2 && suggestions.length > 0) {
-      setShowSuggestions(true);
-    } else if (debouncedValue.length < 2) {
-      setShowSuggestions(false);
-    }
+    // Suggestions disabled
+    setShowSuggestions(false);
   }, [debouncedValue, suggestions.length]);
 
   // Render suggestions dropdown
