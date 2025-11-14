@@ -293,6 +293,13 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   }
 }
 
+// Enable ISR for tool pages - revalidate every 6 hours
+// This ensures answer engines see fresh content while reducing server load
+export const revalidate = 21600
+
+// Ensure pages are server-rendered (not cached as static)
+export const dynamic = 'force-dynamic'
+
 // Server Component - renders on server with full HTML!
 export default async function ToolPage({ params }: Props) {
   // Normalize URL to lowercase and replace underscores with dashes for canonical consistency
@@ -500,5 +507,4 @@ export async function generateStaticParams() {
   })) || []
 }
 
-// Enable ISR - revalidate every hour
-export const revalidate = 3600
+// Note: revalidate is already set at the top of this file (21600 seconds / 6 hours)

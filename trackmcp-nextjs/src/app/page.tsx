@@ -68,8 +68,12 @@ export const metadata = {
   },
 }
 
-// Enable ISR - revalidate every hour for fresh data (reduced from 5 min)
+// Enable ISR - revalidate every hour for fresh data
+// This ensures answer engines always see fresh content
 export const revalidate = 3600
+
+// Ensure this page is always server-rendered (not cached as static)
+export const dynamic = 'force-dynamic'
 
 // Server Component - renders on server with full HTML
 export default async function HomePage() {

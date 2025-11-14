@@ -85,6 +85,16 @@ const nextConfig = {
   // Enable static exports for better performance
   // output: 'export', // Uncomment for static export
   
+  // SSR Optimization for Answer Engines
+  // Ensure all pages are server-rendered for proper bot crawling
+  reactStrictMode: true,
+  
+  // Enable SWR (Stale-While-Revalidate) for better cache control
+  onDemandEntries: {
+    maxInactiveAge: 60 * 1000, // 60 seconds
+    pagesBufferLength: 5,
+  },
+  
   // Redirects for renamed or moved tools
   async redirects() {
     return [
