@@ -10,6 +10,14 @@ export const metadata: Metadata = {
     description: 'Read the terms and conditions for using Track MCP. Learn about user rights, repository listings, and content usage policies.',
     url: 'https://www.trackmcp.com/terms',
     type: 'website',
+    images: [
+      {
+        url: 'https://www.trackmcp.com/og-image.png',
+        width: 1200,
+        height: 630,
+        alt: 'Track MCP - App Store for MCP Servers, Clients, and Tools',
+      },
+    ],
   },
 }
 

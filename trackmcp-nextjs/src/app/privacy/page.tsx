@@ -10,6 +10,14 @@ export const metadata: Metadata = {
     description: 'Understand how Track MCP collects, uses, and protects your data. Review our privacy policy for transparency and compliance.',
     url: 'https://www.trackmcp.com/privacy',
     type: 'website',
+    images: [
+      {
+        url: 'https://www.trackmcp.com/og-image.png',
+        width: 1200,
+        height: 630,
+        alt: 'Track MCP - App Store for MCP Servers, Clients, and Tools',
+      },
+    ],
   },
 }
 

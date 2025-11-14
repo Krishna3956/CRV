@@ -18,6 +18,14 @@ export const metadata: Metadata = {
     type: 'website',
     url: 'https://trackmcp.com/category',
     siteName: 'Track MCP',
+    images: [
+      {
+        url: 'https://www.trackmcp.com/og-image.png',
+        width: 1200,
+        height: 630,
+        alt: 'Track MCP - App Store for MCP Servers, Clients, and Tools',
+      },
+    ],
   },
   twitter: {
     card: 'summary_large_image',

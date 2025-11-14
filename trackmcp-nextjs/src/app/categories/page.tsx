@@ -74,6 +74,14 @@ export async function generateMetadata(): Promise<Metadata> {
       description: 'Explore the largest repository of MCP servers by category, including AI, Developer, Automation, and more.',
       url: 'https://www.trackmcp.com/categories',
       type: 'website',
+      images: [
+        {
+          url: 'https://www.trackmcp.com/og-image.png',
+          width: 1200,
+          height: 630,
+          alt: 'Track MCP - App Store for MCP Servers, Clients, and Tools',
+        },
+      ],
     },
     alternates: {
       canonical: 'https://www.trackmcp.com/categories',

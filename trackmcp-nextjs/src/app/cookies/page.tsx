@@ -10,6 +10,14 @@ export const metadata: Metadata = {
     description: 'Learn how Track MCP uses cookies to enhance browsing experience and analyze site performance. Review cookie types and preferences.',
     url: 'https://www.trackmcp.com/cookies',
     type: 'website',
+    images: [
+      {
+        url: 'https://www.trackmcp.com/og-image.png',
+        width: 1200,
+        height: 630,
+        alt: 'Track MCP - App Store for MCP Servers, Clients, and Tools',
+      },
+    ],
   },
 }
 

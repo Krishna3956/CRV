@@ -220,7 +220,11 @@ function generateSmartMetadata(tool: McpTool) {
 
 // Generate metadata for SEO
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const tool = await getTool(params.name)
+  // Normalize URL FIRST to ensure consistent OG image generation
+  const decodedName = decodeURIComponent(params.name)
+  const normalizedName = decodedName.toLowerCase().replace(/_/g, '-')
+  
+  const tool = await getTool(normalizedName)
   
   if (!tool) {
     return {
@@ -229,7 +233,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     }
   }
   
-  const toolName = tool.repo_name || 'Unknown Tool'
+  // Use normalized name for OG image URL (not tool.repo_name which might have different format)
+  const toolName = normalizedName
   const { smartTitle, smartDescription, smartKeywords } = generateSmartMetadata(tool)
   
   // Use meta_description from database if available, otherwise generate it
@@ -279,10 +284,10 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       'ai:tool_name': toolName,
     },
     alternates: {
-      canonical: `https://www.trackmcp.com/tool/${encodeURIComponent(toolName.toLowerCase())}`,
+      canonical: `https://www.trackmcp.com/tool/${encodeURIComponent(toolName.toLowerCase().replace(/_/g, '-'))}`,
       languages: {
-        'en-US': `https://www.trackmcp.com/tool/${encodeURIComponent(toolName.toLowerCase())}`,
-        'x-default': `https://www.trackmcp.com/tool/${encodeURIComponent(toolName.toLowerCase())}`,
+        'en-US': `https://www.trackmcp.com/tool/${encodeURIComponent(toolName.toLowerCase().replace(/_/g, '-'))}`,
+        'x-default': `https://www.trackmcp.com/tool/${encodeURIComponent(toolName.toLowerCase().replace(/_/g, '-'))}`,
       },
     },
   }
@@ -290,11 +295,11 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 // Server Component - renders on server with full HTML!
 export default async function ToolPage({ params }: Props) {
-  // Normalize URL to lowercase for canonical consistency
-  const normalizedName = decodeURIComponent(params.name).toLowerCase()
+  // Normalize URL to lowercase and replace underscores with dashes for canonical consistency
   const decodedName = decodeURIComponent(params.name)
+  const normalizedName = decodedName.toLowerCase().replace(/_/g, '-')
   
-  // If URL is not lowercase, redirect to lowercase version (301 permanent)
+  // If URL is not normalized (lowercase + dashes), redirect to normalized version (301 permanent)
   if (decodedName !== normalizedName) {
     redirect(`/tool/${encodeURIComponent(normalizedName)}`)
   }

@@ -9,6 +9,14 @@ export const metadata: Metadata = {
     title: 'Submit Your Blog | Track MCP',
     description: 'Share your MCP-related blog post with our community.',
     type: 'website',
+    images: [
+      {
+        url: 'https://www.trackmcp.com/og-image.png',
+        width: 1200,
+        height: 630,
+        alt: 'Track MCP - App Store for MCP Servers, Clients, and Tools',
+      },
+    ],
   },
 }
 
