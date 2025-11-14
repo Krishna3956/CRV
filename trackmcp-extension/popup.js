@@ -192,10 +192,18 @@ searchInput.addEventListener('input', (e) => {
           `
         }).join('')
 
-        document.querySelectorAll('.mcp-card').forEach(card => {
-          card.addEventListener('click', function() {
-            const repoName = this.getAttribute('data-repo-name')
-            if (repoName) window.openMcp(repoName)
+        const cards = document.querySelectorAll('.mcp-card')
+        console.log('Found', cards.length, 'cards to attach listeners')
+        cards.forEach((card, index) => {
+          const repoName = card.getAttribute('data-repo-name')
+          console.log('Attaching listener to card', index, ':', repoName)
+          card.addEventListener('click', function(e) {
+            console.log('Card clicked!', repoName)
+            e.stopPropagation()
+            if (repoName) {
+              console.log('Opening MCP:', repoName)
+              window.openMcp(repoName)
+            }
           })
         })
 
