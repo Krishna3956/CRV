@@ -26,28 +26,28 @@ async function getTotalCount(): Promise<number> {
   }
 }
 
-// Fetch initial batch of tools for homepage (performance optimized)
-// Rest are fetched on demand via "Load More"
+// Fetch all tools for homepage
+// All tools are loaded upfront so search/filtering works across entire database
+// Progressive display via "Load More" button for better UX
 async function getTools(): Promise<McpTool[]> {
   const supabase = createClient()
   
   try {
-    // Fetch only initial batch (100 tools) for fast homepage load
-    // This is 50x smaller than fetching all 4893 tools
-    // Remaining tools are fetched on demand when user clicks "Load More"
+    // Fetch ALL tools for complete search/filter functionality
+    // Progressive display via visibleCount handles UX performance
     const { data, error } = await supabase
       .from('mcp_tools')
       .select('id, repo_name, description, stars, github_url, language, topics, last_updated, category')
       .in('status', ['approved', 'pending'])
       .order('stars', { ascending: false })
-      .limit(100) // Only fetch first 100 tools
+      .limit(10000) // Fetch all tools (up to 10,000)
 
     if (error) {
       console.error('Error fetching tools:', error)
       return []
     }
 
-    console.log(`Fetched ${data?.length || 0} initial tools (100 max)`)
+    console.log(`Fetched ${data?.length || 0} total tools`)
     return data || []
   } catch (err) {
     console.error('Exception fetching tools:', err)

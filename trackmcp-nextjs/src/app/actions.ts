@@ -34,6 +34,35 @@ export async function fetchMoreTools(offset: number, limit: number = 100): Promi
 }
 
 /**
+ * Server action to fetch tools by category
+ * Called when user selects a category filter
+ */
+export async function fetchToolsByCategory(category: string, limit: number = 1000): Promise<McpTool[]> {
+  const supabase = createClient()
+
+  try {
+    const { data, error } = await supabase
+      .from('mcp_tools')
+      .select('id, repo_name, description, stars, github_url, language, topics, last_updated, category')
+      .in('status', ['approved', 'pending'])
+      .eq('category', category)
+      .order('stars', { ascending: false })
+      .limit(limit)
+
+    if (error) {
+      console.error('Error fetching tools by category:', error)
+      return []
+    }
+
+    console.log(`Found ${data?.length || 0} tools in category "${category}"`)
+    return data || []
+  } catch (err) {
+    console.error('Exception fetching tools by category:', err)
+    return []
+  }
+}
+
+/**
  * Server action to search tools
  * Called when user searches for a tool
  */

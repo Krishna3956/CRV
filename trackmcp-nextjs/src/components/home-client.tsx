@@ -10,7 +10,7 @@ import { StatsSection } from '@/components/StatsSection'
 import { ErrorBoundary } from '@/components/error-boundary'
 import { RotatingText } from '@/components/RotatingText'
 import { Loader2, Sparkles, Package, X, Filter, ChevronDown } from 'lucide-react'
-import { fetchMoreTools, searchTools } from '@/app/actions'
+import { fetchMoreTools, searchTools, fetchToolsByCategory } from '@/app/actions'
 import type { Database } from '@/types/database.types'
 
 // Lazy load heavy components
@@ -35,11 +35,34 @@ export function HomeClient({ initialTools, totalCount }: HomeClientProps) {
   const [allTools, setAllTools] = useState<McpTool[]>(initialTools)
   const [isLoadingMore, setIsLoadingMore] = useState(false)
   const [isFilterBarSticky, setIsFilterBarSticky] = useState(false)
+  const [isLoadingSearch, setIsLoadingSearch] = useState(false)
+  const [isLoadingCategory, setIsLoadingCategory] = useState(false)
+  const [fetchOffset, setFetchOffset] = useState(100) // Track offset for fetching more tools
 
-  // Debounce search query
+  // Debounce search query and fetch from server when searching
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setSearchQuery(inputValue)
+    const timer = setTimeout(async () => {
+      // If user is searching, fetch all matching tools from server
+      if (inputValue.trim().length > 0) {
+        setIsLoadingSearch(true)
+        try {
+          const results = await searchTools(inputValue, 1000) // Fetch up to 1000 results
+          // Merge with existing tools to avoid duplicates
+          setAllTools(prev => {
+            const existingIds = new Set(prev.map(t => t.id))
+            const newTools = results.filter(t => !existingIds.has(t.id))
+            return [...prev, ...newTools]
+          })
+          setSearchQuery(inputValue)
+        } catch (error) {
+          console.error('Error searching tools:', error)
+        } finally {
+          setIsLoadingSearch(false)
+        }
+      } else {
+        setSearchQuery('')
+        setIsLoadingSearch(false)
+      }
     }, 300)
 
     return () => clearTimeout(timer)
@@ -175,7 +198,9 @@ export function HomeClient({ initialTools, totalCount }: HomeClientProps) {
   // Show visibleCount tools when no search query, show all when searching
   const displayedTools = searchQuery ? filteredAndSortedTools : filteredAndSortedTools.slice(0, visibleCount)
   
-  const hasMoreToLoad = !searchQuery && visibleCount < filteredAndSortedTools.length
+  // Check if there are more tools to display
+  // All tools are loaded upfront, so just check if we have more to show
+  const hasMoreToLoad = visibleCount < filteredAndSortedTools.length
   const remainingCount = filteredAndSortedTools.length - visibleCount
 
   const loadMore = async () => {
@@ -185,57 +210,54 @@ export function HomeClient({ initialTools, totalCount }: HomeClientProps) {
     // Store current scroll position
     const scrollPosition = window.scrollY
     
-    // If we have more tools in memory, just show them
-    if (visibleCount < allTools.length) {
-      // Set loading state to trigger preview expansion
-      setIsLoadingMore(true)
-      setVisibleCount(prev => prev + 12)
-      // Restore scroll position and reset loading state after state update
-      setTimeout(() => {
-        window.scrollTo(0, scrollPosition)
-        // Set isLoadingMore to false AFTER scroll is restored
-        setIsLoadingMore(false)
-      }, 100)
-      return
-    }
+    // Set loading state to trigger preview expansion
+    setIsLoadingMore(true)
+    setVisibleCount(prev => prev + 12)
     
-    // Otherwise, fetch more from server action
-    if (allTools.length < totalCount) {
-      setIsLoadingMore(true)
-      try {
-        const moreTools = await fetchMoreTools(allTools.length, 100)
-        if (moreTools && moreTools.length > 0) {
-          setAllTools(prev => [...prev, ...moreTools])
-          setVisibleCount(prev => prev + 12)
-          // Restore scroll position after state update
-          setTimeout(() => {
-            window.scrollTo(0, scrollPosition)
-            // Set isLoadingMore to false AFTER scroll is restored
-            setIsLoadingMore(false)
-          }, 100)
-        } else {
-          setIsLoadingMore(false)
-        }
-      } catch (error) {
-        console.error('Error loading more tools:', error)
-        setIsLoadingMore(false)
-      }
-    }
+    // Restore scroll position after state update
+    setTimeout(() => {
+      window.scrollTo(0, scrollPosition)
+      setIsLoadingMore(false)
+    }, 100)
   }
 
   // Reset visible count when search query changes
   useEffect(() => {
     if (searchQuery) {
       setVisibleCount(15)
+      setFetchOffset(100) // Reset offset when searching
     }
   }, [searchQuery])
 
-  // Reset visible count when category changes
+  // Fetch all tools for selected category
   useEffect(() => {
     if (selectedCategory !== 'all') {
       // Reset to initial count when category filter is applied
       const isMobile = window.innerWidth < 768
       setVisibleCount(isMobile ? 6 : 12)
+      setFetchOffset(100) // Reset offset when filtering by category
+      setIsLoadingCategory(true)
+      
+      // Fetch all tools for this category from server
+      const fetchCategoryTools = async () => {
+        try {
+          const categoryTools = await fetchToolsByCategory(selectedCategory, 1000)
+          // Merge with existing tools to avoid duplicates
+          setAllTools(prev => {
+            const existingIds = new Set(prev.map(t => t.id))
+            const newTools = categoryTools.filter(t => !existingIds.has(t.id))
+            return [...prev, ...newTools]
+          })
+        } catch (error) {
+          console.error('Error fetching category tools:', error)
+        } finally {
+          setIsLoadingCategory(false)
+        }
+      }
+      
+      fetchCategoryTools()
+    } else {
+      setIsLoadingCategory(false)
     }
   }, [selectedCategory])
 
@@ -404,7 +426,13 @@ export function HomeClient({ initialTools, totalCount }: HomeClientProps) {
           )}
         </div>
 
-        {filteredAndSortedTools.length === 0 ? (
+        {(isLoadingSearch || isLoadingCategory) && filteredAndSortedTools.length === 0 ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {[...Array(12)].map((_, i) => (
+              <div key={i} className="h-64 bg-muted rounded-lg animate-pulse" />
+            ))}
+          </div>
+        ) : filteredAndSortedTools.length === 0 ? (
           <div className="text-center py-32 space-y-4">
             <div className="w-24 h-24 mx-auto rounded-full bg-muted flex items-center justify-center mb-6">
               <Package className="h-12 w-12 text-muted-foreground" />
@@ -471,7 +499,7 @@ export function HomeClient({ initialTools, totalCount }: HomeClientProps) {
                   <div className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 transition-all duration-600 ease-out ${
                     isLoadingMore ? 'opacity-100 blur-0' : 'opacity-70 blur-[0.5px]'
                   }`}>
-                    {filteredAndSortedTools.slice(visibleCount, visibleCount + 3).map((tool, index) => (
+                    {filteredAndSortedTools.slice(visibleCount, visibleCount + 3).length > 0 ? filteredAndSortedTools.slice(visibleCount, visibleCount + 3).map((tool, index) => (
                       <div
                         key={`preview-${tool.id}`}
                         className={`transition-all duration-600 ease-out ${
@@ -495,7 +523,7 @@ export function HomeClient({ initialTools, totalCount }: HomeClientProps) {
                           openInNewTab={true}
                         />
                       </div>
-                    ))}
+                    )) : null}
                   </div>
                 </div>
 

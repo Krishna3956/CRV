@@ -274,14 +274,12 @@ export const SearchBar = ({
   }, [value]);
 
   useEffect(() => {
-    // DISABLED: Search suggestions
-    // Always show suggestions when we have valid results, even after scroll close
-    // if (debouncedValue.length >= 2 && suggestions.length > 0) {
-    //   setShowSuggestions(true);
-    // } else if (debouncedValue.length < 2) {
-    //   setShowSuggestions(false);
-    // }
-    setShowSuggestions(false); // Force disable suggestions
+    // Show suggestions when we have valid results
+    if (debouncedValue.length >= 2 && suggestions.length > 0) {
+      setShowSuggestions(true);
+    } else if (debouncedValue.length < 2) {
+      setShowSuggestions(false);
+    }
   }, [debouncedValue, suggestions.length]);
 
   // Render suggestions dropdown
