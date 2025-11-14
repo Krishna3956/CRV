@@ -86,7 +86,7 @@ export async function getToolByName(name: string): Promise<McpTool | null> {
 /**
  * Get tools by category
  */
-export async function getToolsByCategory(category: string, limit: number = 1000): Promise<McpTool[]> {
+export async function getToolsByCategory(category: string, limit: number = 10000): Promise<McpTool[]> {
   const supabase = createClient()
 
   try {

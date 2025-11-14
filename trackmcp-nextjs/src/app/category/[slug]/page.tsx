@@ -214,8 +214,14 @@ export default async function CategoryPage({ params, searchParams }: Props) {
           </div>
         </div>
 
-        {/* Client Component with Sorting */}
-        <CategoryToolsClient initialTools={toolList} />
+        {/* Client Component with Sorting and Pagination */}
+        <CategoryToolsClient 
+          initialTools={toolList} 
+          categoryName={actualCategoryName}
+          currentPage={page}
+          totalPages={totalPages}
+          totalCount={totalCount}
+        />
 
         {/* Related Categories Section */}
         {otherCategories.length > 0 && (

@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from 'react'
 import Link from 'next/link'
-import { Star, ArrowUpRight, TrendingUp } from 'lucide-react'
+import { Star, ArrowUpRight, TrendingUp, ChevronDown } from 'lucide-react'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Label } from "@/components/ui/label"
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar"
@@ -19,6 +19,10 @@ interface Tool {
 
 interface CategoryToolsClientProps {
   initialTools: Tool[]
+  categoryName?: string
+  currentPage?: number
+  totalPages?: number
+  totalCount?: number | null
 }
 
 // Helper: Format tool name for display (Title Case with spaces)
@@ -37,9 +41,16 @@ function getEstimatedViews(stars: number): string {
   return `~${stars * 10}`
 }
 
-export function CategoryToolsClient({ initialTools }: CategoryToolsClientProps) {
+export function CategoryToolsClient({ 
+  initialTools, 
+  categoryName = '', 
+  currentPage = 1, 
+  totalPages = 1,
+  totalCount = 0 
+}: CategoryToolsClientProps) {
   const [sortBy, setSortBy] = useState('stars')
   const [hoveredRowId, setHoveredRowId] = useState<string | null>(null)
+  const hasNextPage = currentPage < totalPages
 
   const sortedTools = useMemo(() => {
     let tools = [...initialTools]
@@ -161,6 +172,21 @@ export function CategoryToolsClient({ initialTools }: CategoryToolsClientProps) 
       {sortedTools.length === 0 && (
         <div className="text-center py-12">
           <p className="text-muted-foreground">No tools found.</p>
+        </div>
+      )}
+
+      {/* Reveal More Button */}
+      {hasNextPage && (
+        <div className="flex justify-center mt-8">
+          <Link
+            href={`?page=${currentPage + 1}`}
+            className="group relative px-8 py-3 rounded-lg font-bold text-sm transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed bg-gradient-to-r from-primary/20 via-accent/15 to-primary/20 hover:from-primary/30 hover:via-accent/25 hover:to-primary/30 border-2 border-primary hover:border-primary shadow-lg hover:shadow-xl ring-2 ring-primary/30"
+          >
+            <span className="flex items-center gap-2 gradient-text text-foreground group-hover:gap-3 transition-all">
+              Reveal more
+              <ChevronDown className="h-5 w-5 text-foreground transition-all duration-300 flex-shrink-0 group-hover:translate-y-1" />
+            </span>
+          </Link>
         </div>
       )}
     </>
