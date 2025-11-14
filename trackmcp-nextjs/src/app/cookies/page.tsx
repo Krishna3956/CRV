@@ -138,7 +138,7 @@ export default function CookiePage() {
                         <strong>Google Analytics:</strong> We use Google Analytics (ID: G-22HQQFNJ1F) to collect anonymous information about how visitors use our site, including page views, user interactions, and traffic patterns. This helps us understand user behavior and improve our website performance. These cookies require your explicit consent.
                       </p>
                       <p className="text-foreground/80 mt-2">
-                        <strong>Vercel Analytics & Speed Insights:</strong> We use Vercel's analytics tools to monitor page performance, identify bottlenecks, and track visitor metrics. This data is anonymous and helps us optimize the user experience.
+                        <strong>Vercel Analytics & Speed Insights:</strong> We use Vercel&apos;s analytics tools to monitor page performance, identify bottlenecks, and track visitor metrics. This data is anonymous and helps us optimize the user experience.
                       </p>
                     </div>
                   </li>

@@ -10,8 +10,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const batchSize = 1000
   let hasMore = true
 
-  console.log('Starting sitemap generation...')
-
   while (hasMore) {
     const { data, error } = await supabase
       .from('mcp_tools')
@@ -23,20 +21,15 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       console.error(`Error fetching batch at ${from}:`, error)
       hasMore = false
     } else if (!data || data.length === 0) {
-      console.log(`No more data at offset ${from}`)
       hasMore = false
     } else {
-      console.log(`Fetched ${data.length} tools (offset: ${from}, total so far: ${allTools.length + data.length})`)
       allTools = [...allTools, ...data]
       from += batchSize
       if (data.length < batchSize) {
-        console.log(`Last batch had ${data.length} items, stopping`)
         hasMore = false
       }
     }
   }
-
-  console.log(`Total tools fetched for sitemap: ${allTools.length}`)
 
   // Get the most recent tool update for freshness signal
   const mostRecentUpdate = allTools

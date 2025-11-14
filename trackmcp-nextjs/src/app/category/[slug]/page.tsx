@@ -35,15 +35,12 @@ function formatCategoryName(category: string): string {
 // Since we're using dynamic rendering, we don't need static params
 // All category pages will be rendered on-demand
 export async function generateStaticParams() {
-  console.log('[generateStaticParams] Using dynamic rendering - returning empty array')
   return []
 }
 
 
 export default async function CategoryPage({ params, searchParams }: Props) {
   try {
-    console.log(`[CategoryPage] Loading category page for slug: ${params.slug}`)
-    
     // Create Supabase client - use try-catch to handle any initialization errors
     let supabase
     try {
@@ -59,7 +56,6 @@ export default async function CategoryPage({ params, searchParams }: Props) {
 
     // Convert slug back to category name
     const slug = params.slug.toLowerCase()
-    console.log(`[CategoryPage] Converting slug to category name: ${slug}`)
     
     // Reverse the slug encoding: "and" (word) -> "&", "-" -> " "
     // First replace hyphens with spaces
@@ -72,8 +68,6 @@ export default async function CategoryPage({ params, searchParams }: Props) {
       .map(word => word.charAt(0).toUpperCase() + word.slice(1))
       .join(' ')
     
-    console.log(`[CategoryPage] Converted category name: ${actualCategoryName}`)
-    
     // Fetch a sample of categories to find the match
     const { data: sampleCats } = await supabase
       .from('mcp_tools')
@@ -82,7 +76,6 @@ export default async function CategoryPage({ params, searchParams }: Props) {
       .limit(500)
     
     const uniqueCategories = [...new Set(sampleCats?.map((t: any) => t.category) || [])] as string[]
-    console.log(`[CategoryPage] Sample categories: ${uniqueCategories.slice(0, 5).join(', ')}...`)
     
     // Find matching category (case-insensitive)
     const matchedCategory = uniqueCategories.find(cat => 
@@ -104,7 +97,6 @@ export default async function CategoryPage({ params, searchParams }: Props) {
     categoryName = formatCategoryName(categoryName)
 
     // Fetch tools in category with pagination
-    console.log(`[CategoryPage] Fetching tools for category: ${actualCategoryName}`)
     const { data: tools, error: toolsError } = await supabase
       .from('mcp_tools')
       .select('id, repo_name, description, stars, last_updated')
@@ -114,7 +106,6 @@ export default async function CategoryPage({ params, searchParams }: Props) {
       .range(offset, offset + pageSize - 1)
 
     // Fetch total count
-    console.log(`[CategoryPage] Fetching total count for category: ${actualCategoryName}`)
     const { count: totalCount, error: countError } = await supabase
       .from('mcp_tools')
       .select('*', { count: 'exact', head: true })
@@ -136,10 +127,7 @@ export default async function CategoryPage({ params, searchParams }: Props) {
       notFound()
     }
 
-    console.log(`[CategoryPage] Found ${tools.length} tools, total count: ${totalCount}`)
-
     if (tools.length === 0 && page === 1) {
-      console.warn(`[CategoryPage] No tools found for category: ${actualCategoryName}`)
       notFound()
     }
 
