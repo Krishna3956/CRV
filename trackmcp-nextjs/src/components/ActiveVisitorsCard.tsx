@@ -3,11 +3,14 @@
 import { useEffect, useState } from 'react'
 
 export function ActiveVisitorsCard() {
-  const [visitors, setVisitors] = useState<number>(3200)
+  const [visitors, setVisitors] = useState<number | null>(null)
   const [isStatic, setIsStatic] = useState<boolean>(false)
   const [staticValue, setStaticValue] = useState<number>(3200)
+  const [mounted, setMounted] = useState(false)
 
   useEffect(() => {
+    setMounted(true)
+    
     // Get the start of today
     const today = new Date()
     today.setHours(0, 0, 0, 0)
@@ -70,7 +73,7 @@ export function ActiveVisitorsCard() {
 
       <div className="relative z-10 text-center">
         <div className="text-3xl md:text-4xl font-bold text-foreground mb-1 md:mb-2">
-          {isStatic ? staticValue.toLocaleString() : visitors.toLocaleString()}
+          {!mounted ? '3,200' : isStatic ? staticValue.toLocaleString() : (visitors ?? 3200).toLocaleString()}
         </div>
         <div className="text-xs md:text-xs font-semibold text-foreground">
           Unique Visitors Today

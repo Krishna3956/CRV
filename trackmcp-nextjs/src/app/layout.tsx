@@ -5,6 +5,7 @@ import { Analytics } from '@vercel/analytics/react'
 import { SpeedInsights } from '@vercel/speed-insights/react'
 import './globals.css'
 import { LayoutWrapper } from '@/components/layout-wrapper'
+import { CookieConsent } from '@/components/CookieConsent'
 
 const inter = Inter({ 
   subsets: ['latin'],
@@ -192,6 +193,9 @@ export default function RootLayout({
         <LayoutWrapper>
           {children}
         </LayoutWrapper>
+        
+        {/* Cookie Consent Banner */}
+        <CookieConsent />
         
         {/* Vercel Analytics for page views and visitor tracking */}
         <Analytics />

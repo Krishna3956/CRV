@@ -121,29 +121,32 @@ export default function CookiePage() {
                   <li className="flex gap-3">
                     <span className="text-primary font-bold flex-shrink-0">•</span>
                     <div>
-                      <span className="font-semibold text-foreground">Essential Cookies:</span>
-                      <p className="text-foreground/80 mt-1">Necessary for basic website functionality such as security, user authentication, and page navigation. These cookies do not require your consent.</p>
+                      <span className="font-semibold text-foreground">Essential Cookies (Required):</span>
+                      <p className="text-foreground/80 mt-1">
+                        <strong>Supabase Authentication Cookies:</strong> Used for user authentication and session management. These are necessary for basic website functionality and do not require your consent.
+                      </p>
+                      <p className="text-foreground/80 mt-2">
+                        <strong>Cookie Consent Cookie:</strong> Stores your cookie preference choice in localStorage to remember whether you have accepted or rejected non-essential cookies.
+                      </p>
                     </div>
                   </li>
                   <li className="flex gap-3">
                     <span className="text-primary font-bold flex-shrink-0">•</span>
                     <div>
-                      <span className="font-semibold text-foreground">Performance Cookies:</span>
-                      <p className="text-foreground/80 mt-1">Collect information on how visitors use the site, helping us improve its performance and user experience. These are anonymous and do not track personal identity.</p>
+                      <span className="font-semibold text-foreground">Analytics Cookies (Optional):</span>
+                      <p className="text-foreground/80 mt-1">
+                        <strong>Google Analytics:</strong> We use Google Analytics (ID: G-22HQQFNJ1F) to collect anonymous information about how visitors use our site, including page views, user interactions, and traffic patterns. This helps us understand user behavior and improve our website performance. These cookies require your explicit consent.
+                      </p>
+                      <p className="text-foreground/80 mt-2">
+                        <strong>Vercel Analytics & Speed Insights:</strong> We use Vercel's analytics tools to monitor page performance, identify bottlenecks, and track visitor metrics. This data is anonymous and helps us optimize the user experience.
+                      </p>
                     </div>
                   </li>
                   <li className="flex gap-3">
                     <span className="text-primary font-bold flex-shrink-0">•</span>
                     <div>
-                      <span className="font-semibold text-foreground">Functional Cookies:</span>
-                      <p className="text-foreground/80 mt-1">Remember your preferences (e.g., language or region) and enable personalized features.</p>
-                    </div>
-                  </li>
-                  <li className="flex gap-3">
-                    <span className="text-primary font-bold flex-shrink-0">•</span>
-                    <div>
-                      <span className="font-semibold text-foreground">Analytics and Advertising Cookies:</span>
-                      <p className="text-foreground/80 mt-1">Used to collect information about your browsing habits and show relevant ads. These may be set by third-party services and require your consent.</p>
+                      <span className="font-semibold text-foreground">Marketing Cookies (Optional):</span>
+                      <p className="text-foreground/80 mt-1">Currently, we do not use marketing or advertising cookies. However, we reserve the right to implement them in the future with your consent.</p>
                     </div>
                   </li>
                 </ul>
@@ -151,10 +154,30 @@ export default function CookiePage() {
 
               {/* Section 3 */}
               <div>
-                <h2 className="text-2xl font-bold text-foreground mb-4">3. Third-Party Cookies</h2>
-                <p>
-                  We may allow third-party services such as analytics providers and advertising partners to place cookies on your device. These cookies collect information about your online activities across different websites and are subject to their respective privacy policies.
+                <h2 className="text-2xl font-bold text-foreground mb-4">3. Third-Party Services and Cookies</h2>
+                <p className="mb-4">
+                  We use the following third-party services that may set cookies on your device:
                 </p>
+                <ul className="space-y-3 ml-4">
+                  <li className="flex gap-3">
+                    <span className="text-primary font-bold flex-shrink-0">•</span>
+                    <div>
+                      <strong>Google Analytics</strong> – Collects anonymous usage data. Privacy Policy: <a href="https://policies.google.com/privacy" className="text-primary hover:text-primary/80" target="_blank" rel="noopener noreferrer">https://policies.google.com/privacy</a>
+                    </div>
+                  </li>
+                  <li className="flex gap-3">
+                    <span className="text-primary font-bold flex-shrink-0">•</span>
+                    <div>
+                      <strong>Vercel Analytics</strong> – Monitors site performance. Privacy Policy: <a href="https://vercel.com/legal/privacy-policy" className="text-primary hover:text-primary/80" target="_blank" rel="noopener noreferrer">https://vercel.com/legal/privacy-policy</a>
+                    </div>
+                  </li>
+                  <li className="flex gap-3">
+                    <span className="text-primary font-bold flex-shrink-0">•</span>
+                    <div>
+                      <strong>Supabase</strong> – Backend database and authentication. Privacy Policy: <a href="https://supabase.com/privacy" className="text-primary hover:text-primary/80" target="_blank" rel="noopener noreferrer">https://supabase.com/privacy</a>
+                    </div>
+                  </li>
+                </ul>
               </div>
 
               {/* Section 4 */}
