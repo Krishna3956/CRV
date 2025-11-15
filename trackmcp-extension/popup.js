@@ -1,4 +1,4 @@
-const API_BASE = 'https://www.trackmcp.com'
+const API_BASE = 'http://localhost:3000'
 const searchInput = document.getElementById('searchInput')
 const resultsDiv = document.getElementById('results')
 const emptyState = document.getElementById('emptyState')
@@ -234,7 +234,7 @@ window.openMcp = function(repoName) {
     return
   }
 
-  const websiteUrl = 'https://www.trackmcp.com'
+  const websiteUrl = 'http://localhost:3000'
   const toolUrl = `${websiteUrl}/tool/${encodeURIComponent(repoName)}`
   console.log('Full URL:', toolUrl)
   console.log('Chrome API available:', typeof chrome !== 'undefined')
@@ -270,7 +270,7 @@ window.openMcp = function(repoName) {
 }
 
 window.viewAllResults = function(query) {
-  const searchUrl = query ? `https://www.trackmcp.com/search?q=${encodeURIComponent(query)}` : 'https://www.trackmcp.com'
+  const searchUrl = query ? `http://localhost:3000/search?q=${encodeURIComponent(query)}` : 'http://localhost:3000'
   console.log('Opening search results:', searchUrl)
   try {
     chrome.tabs.create({ url: searchUrl }, (tab) => {
