@@ -159,15 +159,61 @@ export default function RootLayout({
             __html: JSON.stringify({
               '@context': 'https://schema.org',
               '@type': 'Organization',
-              url: 'https://www.trackmcp.com',
-              name: 'Track MCP',
-              alternateName: 'TrackMCP',
-              logo: 'https://www.trackmcp.com/og-image.png',
-              description: 'World\'s Largest Model Context Protocol Repository',
-              sameAs: [
+              '@id': 'https://www.trackmcp.com/#organization',
+              'name': 'Track MCP',
+              'alternateName': 'TrackMCP',
+              'url': 'https://www.trackmcp.com',
+              'logo': {
+                '@type': 'ImageObject',
+                'url': 'https://www.trackmcp.com/og-image.png',
+                'width': 1200,
+                'height': 630
+              },
+              'image': {
+                '@type': 'ImageObject',
+                'url': 'https://www.trackmcp.com/og-image.png',
+                'width': 1200,
+                'height': 630
+              },
+              'description': 'The world\'s largest MCP tools directory connecting developers with AI tools and integrations. Discover 10,000+ Model Context Protocol servers.',
+              'foundingDate': '2025-04-09',
+              'foundingLocation': {
+                '@type': 'Place',
+                'name': 'India'
+              },
+              'founder': {
+                '@type': 'Person',
+                '@id': 'https://www.trackmcp.com/#founder',
+                'name': 'Krishna',
+                'jobTitle': 'Product Manager',
+                'url': 'https://www.linkedin.com/in/krishnaa-goyal/'
+              },
+              'contactPoint': {
+                '@type': 'ContactPoint',
+                'contactType': 'Customer Support',
+                'email': 'support@trackmcp.com',
+                'url': 'https://www.trackmcp.com/submit-mcp'
+              },
+              'address': {
+                '@type': 'PostalAddress',
+                'addressCountry': 'IN'
+              },
+              'sameAs': [
                 'https://x.com/trackmcp',
                 'https://github.com/trackmcp',
+                'https://www.linkedin.com/company/trackmcp'
               ],
+              'numberOfEmployees': {
+                '@type': 'QuantitativeValue',
+                'value': '2'
+              },
+              'knowsAbout': [
+                'Model Context Protocol',
+                'MCP Tools',
+                'AI Integration',
+                'Developer Tools',
+                'Open Source'
+              ]
             }),
           }}
         />
