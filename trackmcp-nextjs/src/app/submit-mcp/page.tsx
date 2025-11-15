@@ -266,6 +266,100 @@ export default function SubmitMcpPage() {
           }}
         />
 
+        {/* ContactPage Schema */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "ContactPage",
+              "name": "Submit Your MCP Tool - Contact Track MCP",
+              "description": "Submit your MCP tool to Track MCP and get discovered by 50,000+ developers. Free submission or featured placement options available.",
+              "url": "https://www.trackmcp.com/submit-mcp",
+              "mainEntity": {
+                "@type": "Organization",
+                "name": "Track MCP",
+                "contactPoint": {
+                  "@type": "ContactPoint",
+                  "contactType": "Customer Support",
+                  "email": "support@trackmcp.com",
+                  "url": "https://www.trackmcp.com/submit-mcp"
+                }
+              }
+            })
+          }}
+        />
+
+        {/* Service Schema - Featured Listing */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "Service",
+              "name": "Featured MCP Tool Listing",
+              "description": "Get your MCP tool featured in front of 50,000+ active developers. Premium placement with increased visibility and engagement.",
+              "provider": {
+                "@type": "Organization",
+                "name": "Track MCP",
+                "url": "https://www.trackmcp.com"
+              },
+              "offers": {
+                "@type": "Offer",
+                "priceCurrency": "USD",
+                "price": "8",
+                "pricingModel": "Subscription",
+                "availability": "https://schema.org/InStock",
+                "description": "Monthly featured placement for your MCP tool"
+              },
+              "areaServed": "Worldwide",
+              "hasOfferCatalog": {
+                "@type": "OfferCatalog",
+                "name": "Track MCP Services",
+                "itemListElement": [
+                  {
+                    "@type": "Offer",
+                    "name": "Free Tool Submission",
+                    "price": "0",
+                    "priceCurrency": "USD",
+                    "description": "Submit your MCP tool for free. Reviewed within 24 hours."
+                  },
+                  {
+                    "@type": "Offer",
+                    "name": "Featured Placement",
+                    "price": "8",
+                    "priceCurrency": "USD",
+                    "description": "Monthly featured placement for maximum visibility"
+                  }
+                ]
+              }
+            })
+          }}
+        />
+
+        {/* Pricing/Offer Schema */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "Offer",
+              "name": "Featured MCP Tool Listing",
+              "description": "Get your MCP tool featured and boost visibility with 50,000+ active developers",
+              "priceCurrency": "USD",
+              "price": "8",
+              "pricingModel": "Subscription",
+              "availability": "https://schema.org/InStock",
+              "url": "https://www.trackmcp.com/submit-mcp",
+              "seller": {
+                "@type": "Organization",
+                "name": "Track MCP",
+                "url": "https://www.trackmcp.com"
+              }
+            })
+          }}
+        />
+
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 md:gap-8 lg:gap-16 max-w-7xl mx-auto">
           {/* Left Column - Value Proposition & Social Proof */}
           <div className="lg:col-span-5 space-y-8 flex flex-col justify-start order-2 lg:order-1">

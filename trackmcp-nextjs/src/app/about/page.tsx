@@ -32,7 +32,7 @@ export default async function AboutPage() {
       {/* H1 - SEO Critical */}
       <h1 className="sr-only">About Track MCP – Mission, Team & Purpose</h1>
 
-      {/* Organization Schema */}
+      {/* Enhanced Organization Schema */}
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
@@ -40,15 +40,38 @@ export default async function AboutPage() {
             "@context": "https://schema.org",
             "@type": "Organization",
             "name": "Track MCP",
+            "alternateName": "TrackMCP",
             "description": "The world's largest MCP tools directory connecting developers with AI tools and integrations.",
-            "url": "https://trackmcp.com",
+            "url": "https://www.trackmcp.com",
+            "logo": "https://www.trackmcp.com/og-image.png",
+            "image": "https://www.trackmcp.com/og-image.png",
+            "foundingDate": "2025-04-09",
+            "foundingLocation": "India",
             "founder": {
               "@type": "Person",
-              "name": "Krishna"
+              "name": "Krishna",
+              "jobTitle": "Product Manager",
+              "url": "https://www.linkedin.com/in/krishnaa-goyal/"
+            },
+            "contactPoint": {
+              "@type": "ContactPoint",
+              "contactType": "Customer Support",
+              "email": "support@trackmcp.com",
+              "url": "https://www.trackmcp.com/contact"
+            },
+            "address": {
+              "@type": "PostalAddress",
+              "addressCountry": "IN"
             },
             "sameAs": [
-              "https://www.linkedin.com/in/krishnaa-goyal/"
-            ]
+              "https://x.com/trackmcp",
+              "https://github.com/trackmcp",
+              "https://www.linkedin.com/company/trackmcp"
+            ],
+            "numberOfEmployees": {
+              "@type": "QuantitativeValue",
+              "value": "2"
+            }
           })
         }}
       />
@@ -74,6 +97,46 @@ export default async function AboutPage() {
                 "item": "https://trackmcp.com/about"
               }
             ]
+          })
+        }}
+      />
+
+      {/* Person Schema for Founder */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "Person",
+            "name": "Krishna",
+            "jobTitle": "Product Manager",
+            "worksFor": {
+              "@type": "Organization",
+              "name": "Track MCP"
+            },
+            "url": "https://www.linkedin.com/in/krishnaa-goyal/",
+            "sameAs": [
+              "https://www.linkedin.com/in/krishnaa-goyal/",
+              "https://x.com/trackmcp"
+            ]
+          })
+        }}
+      />
+
+      {/* AboutPage Schema */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "AboutPage",
+            "name": "About Track MCP",
+            "description": "Learn about Track MCP, the world's largest MCP directory, founded by Krishna. Discover our mission to support the MCP community and showcase the best tools.",
+            "url": "https://www.trackmcp.com/about",
+            "mainEntity": {
+              "@type": "Organization",
+              "name": "Track MCP"
+            }
           })
         }}
       />
