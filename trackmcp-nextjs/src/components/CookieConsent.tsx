@@ -47,33 +47,11 @@ export function CookieConsent() {
   const saveCookiePreference = (prefs: CookiePreference) => {
     localStorage.setItem('cookie-consent', JSON.stringify(prefs))
     
-    // Load/unload analytics based on preference
-    if (prefs.analytics) {
-      loadGoogleAnalytics()
-    }
+    // GA4 is loaded in layout.tsx unconditionally
+    // Cookie consent only affects marketing/tracking preferences
+    // Not basic page view tracking
     
     setIsVisible(false)
-  }
-
-  const loadGoogleAnalytics = () => {
-    // Google Analytics will be loaded if user consents
-    if (typeof window !== 'undefined') {
-      const w = window as any
-      if (!w.gtag) {
-        const script = document.createElement('script')
-        script.async = true
-        script.src = 'https://www.googletagmanager.com/gtag/js?id=G-22HQQFNJ1F'
-        document.head.appendChild(script)
-
-        w.dataLayer = w.dataLayer || []
-        function gtag(...args: any[]) {
-          w.dataLayer.push(args)
-        }
-        w.gtag = gtag
-        gtag('js', new Date())
-        gtag('config', 'G-22HQQFNJ1F')
-      }
-    }
   }
 
   if (!isVisible) return null
