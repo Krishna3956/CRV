@@ -166,7 +166,74 @@ export default function TermsPage() {
 
               {/* Section 5 */}
               <div>
-                <h2 className="text-2xl font-bold text-foreground mb-4">5. Advertising</h2>
+                <h2 className="text-2xl font-bold text-foreground mb-4">5. Refund and Cancellation Policy</h2>
+                
+                <div className="mb-6">
+                  <h3 className="text-lg font-semibold text-foreground mb-3">Cancellation</h3>
+                  <ul className="space-y-3 ml-4">
+                    <li className="flex gap-3">
+                      <span className="text-primary font-bold flex-shrink-0">•</span>
+                      <span>You may cancel your featured listing, advertising, or premium service at any time through your account dashboard.</span>
+                    </li>
+                    <li className="flex gap-3">
+                      <span className="text-primary font-bold flex-shrink-0">•</span>
+                      <span>Upon cancellation, your featured listing will be immediately removed and your service will stop.</span>
+                    </li>
+                    <li className="flex gap-3">
+                      <span className="text-primary font-bold flex-shrink-0">•</span>
+                      <span>No refunds will be issued for the current billing period, regardless of when you cancel.</span>
+                    </li>
+                    <li className="flex gap-3">
+                      <span className="text-primary font-bold flex-shrink-0">•</span>
+                      <span>You will not be charged for future billing periods after cancellation.</span>
+                    </li>
+                  </ul>
+                </div>
+
+                <div className="mb-6">
+                  <h3 className="text-lg font-semibold text-foreground mb-3">Refunds</h3>
+                  <ul className="space-y-3 ml-4">
+                    <li className="flex gap-3">
+                      <span className="text-primary font-bold flex-shrink-0">•</span>
+                      <span>All fees paid for services, featured listings, or advertising are non-refundable.</span>
+                    </li>
+                    <li className="flex gap-3">
+                      <span className="text-primary font-bold flex-shrink-0">•</span>
+                      <span>We do not provide partial refunds or pro-rated refunds for unused portions of a billing period.</span>
+                    </li>
+                    <li className="flex gap-3">
+                      <span className="text-primary font-bold flex-shrink-0">•</span>
+                      <span>If you believe there has been a billing error, please contact us within 30 days of the charge with supporting documentation.</span>
+                    </li>
+                    <li className="flex gap-3">
+                      <span className="text-primary font-bold flex-shrink-0">•</span>
+                      <span>We may, at our sole discretion, issue a refund or credit for legitimate billing disputes or service failures.</span>
+                    </li>
+                  </ul>
+                </div>
+
+                <div>
+                  <h3 className="text-lg font-semibold text-foreground mb-3">How to Cancel</h3>
+                  <ul className="space-y-3 ml-4">
+                    <li className="flex gap-3">
+                      <span className="text-primary font-bold flex-shrink-0">•</span>
+                      <span>Log into your account and navigate to your subscription settings to cancel immediately.</span>
+                    </li>
+                    <li className="flex gap-3">
+                      <span className="text-primary font-bold flex-shrink-0">•</span>
+                      <span>For assistance, contact us at{' '}
+                      <a href="mailto:support@trackmcp.com" className="text-primary hover:text-primary/80 font-medium transition-colors">
+                        support@trackmcp.com
+                      </a>
+                      {' '}and we will process your cancellation request.</span>
+                    </li>
+                  </ul>
+                </div>
+              </div>
+
+              {/* Section 6 */}
+              <div>
+                <h2 className="text-2xl font-bold text-foreground mb-4">6. Advertising</h2>
                 <ul className="space-y-3 ml-4">
                   <li className="flex gap-3">
                     <span className="text-primary font-bold flex-shrink-0">•</span>
@@ -183,9 +250,9 @@ export default function TermsPage() {
                 </ul>
               </div>
 
-              {/* Section 6 */}
+              {/* Section 7 */}
               <div>
-                <h2 className="text-2xl font-bold text-foreground mb-4">6. Intellectual Property</h2>
+                <h2 className="text-2xl font-bold text-foreground mb-4">7. Intellectual Property</h2>
                 <ul className="space-y-3 ml-4">
                   <li className="flex gap-3">
                     <span className="text-primary font-bold flex-shrink-0">•</span>
@@ -198,9 +265,9 @@ export default function TermsPage() {
                 </ul>
               </div>
 
-              {/* Section 7 */}
+              {/* Section 8 */}
               <div>
-                <h2 className="text-2xl font-bold text-foreground mb-4">7. Limitation of Liability</h2>
+                <h2 className="text-2xl font-bold text-foreground mb-4">8. Limitation of Liability</h2>
                 <ul className="space-y-3 ml-4">
                   <li className="flex gap-3">
                     <span className="text-primary font-bold flex-shrink-0">•</span>
@@ -217,33 +284,33 @@ export default function TermsPage() {
                 </ul>
               </div>
 
-              {/* Section 8 */}
+              {/* Section 9 */}
               <div>
-                <h2 className="text-2xl font-bold text-foreground mb-4">8. Indemnification</h2>
+                <h2 className="text-2xl font-bold text-foreground mb-4">9. Indemnification</h2>
                 <p>
                   You agree to indemnify and hold harmless TrackMCP.com and its affiliates from any claims, damages, liabilities, costs, or expenses arising out of your breach of these Terms or misuse of the Site.
                 </p>
               </div>
 
-              {/* Section 9 */}
+              {/* Section 10 */}
               <div>
-                <h2 className="text-2xl font-bold text-foreground mb-4">9. Modifications to Terms</h2>
+                <h2 className="text-2xl font-bold text-foreground mb-4">10. Modifications to Terms</h2>
                 <p>
                   We may update these Terms and Conditions from time to time. Your continued use of the Site after changes indicates your acceptance of the revised terms.
                 </p>
               </div>
 
-              {/* Section 10 */}
+              {/* Section 11 */}
               <div>
-                <h2 className="text-2xl font-bold text-foreground mb-4">10. Governing Law</h2>
+                <h2 className="text-2xl font-bold text-foreground mb-4">11. Governing Law</h2>
                 <p>
                   These Terms shall be governed by and construed in accordance with the laws of the jurisdiction where TrackMCP.com operates.
                 </p>
               </div>
 
-              {/* Section 11 */}
+              {/* Section 12 */}
               <div>
-                <h2 className="text-2xl font-bold text-foreground mb-4">11. Contact Us</h2>
+                <h2 className="text-2xl font-bold text-foreground mb-4">12. Contact Us</h2>
                 <p>
                   For any questions or concerns about these Terms, please contact us at{' '}
                   <a href="mailto:support@trackmcp.com" className="text-primary hover:text-primary/80 font-medium transition-colors">
