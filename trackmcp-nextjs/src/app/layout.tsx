@@ -219,19 +219,21 @@ export default function RootLayout({
         />
       </head>
       <body className={inter.className}>
-        {/* Google Analytics - Loaded after interactive for better tracking */}
+        {/* Google Analytics 4 - Fresh Setup */}
         <Script
           src="https://www.googletagmanager.com/gtag/js?id=G-22HQQFNJ1F"
-          strategy="afterInteractive"
+          strategy="beforeInteractive"
+          async
         />
-        <Script id="google-analytics" strategy="afterInteractive">
+        <Script id="ga-init" strategy="beforeInteractive">
           {`
             window.dataLayer = window.dataLayer || [];
             function gtag(){dataLayer.push(arguments);}
             gtag('js', new Date());
             gtag('config', 'G-22HQQFNJ1F', {
-              page_path: window.location.pathname,
               send_page_view: true,
+              allow_google_signals: true,
+              allow_ad_personalization_signals: true
             });
           `}
         </Script>
