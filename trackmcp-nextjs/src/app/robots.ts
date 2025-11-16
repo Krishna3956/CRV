@@ -45,6 +45,18 @@ export default function robots(): MetadataRoute.Robots {
           '/docs/',
           '/path/',
           
+          // Non-existent app routes (prevent 404 errors)
+          '/apps/',
+          '/server/',
+          '/ts/',
+          '/python/',
+          
+          // Repository files that don't exist on site
+          '/CONTRIBUTING.md',
+          '/LICENSE',
+          '/README.md',
+          '/.serena/',
+          
           // Form submission endpoints
           '/new/featured-blogs/request',
           
@@ -164,6 +176,10 @@ export default function robots(): MetadataRoute.Robots {
           '/*.package-lock.json$',
           '/*.yarn.lock$',
           '/*.pnpm-lock.yaml$',
+          
+          // Catch-all for docs subdirectories with markdown files
+          '/docs/*',
+          '/installation-guides/*',
         ],
       },
       // ============================================================================

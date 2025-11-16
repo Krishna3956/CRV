@@ -64,15 +64,27 @@ export async function getAllTools(limit: number = 10000): Promise<McpTool[]> {
 
 /**
  * Get single tool by name
+ * Excludes markdown files and documentation files
  */
 export async function getToolByName(name: string): Promise<McpTool | null> {
   const supabase = createClient()
   
   try {
+    const decodedName = decodeURIComponent(name)
+    
+    // Reject markdown and documentation files
+    if (decodedName.endsWith('.md') || 
+        decodedName.endsWith('.txt') ||
+        decodedName === 'LICENSE' ||
+        decodedName === 'CONTRIBUTING' ||
+        decodedName === 'README') {
+      return null
+    }
+    
     const { data, error } = await supabase
       .from('mcp_tools')
       .select(TOOL_SELECT_ALL)
-      .ilike('repo_name', decodeURIComponent(name))
+      .ilike('repo_name', decodedName)
       .single()
     
     if (error || !data) return null
