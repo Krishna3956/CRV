@@ -15,7 +15,7 @@ export function middleware(request: NextRequest) {
     font-src 'self' https://fonts.gstatic.com;
     img-src 'self' data: https: blob:;
     media-src 'self' https:;
-    connect-src 'self' https: http://localhost:3000 http://localhost:3004 https://www.google-analytics.com https://www.googletagmanager.com;
+    connect-src 'self' https: http://localhost:3000 http://localhost:3004 https://www.google-analytics.com https://www.googletagmanager.com https://*.google-analytics.com https://*.analytics.google.com;
     frame-src 'self' https:;
     object-src 'none';
     base-uri 'self';
