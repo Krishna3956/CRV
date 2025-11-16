@@ -49,7 +49,8 @@ export function CookieConsent() {
     
     // GA4 is loaded in layout.tsx unconditionally
     // Cookie consent only affects marketing/tracking preferences
-    // Not basic page view tracking
+    // GA4 analytics is ESSENTIAL and runs regardless of cookie choice
+    // Users can opt-out in GA4 settings, but basic tracking is always active
     
     setIsVisible(false)
   }
@@ -69,7 +70,7 @@ export function CookieConsent() {
 
         {/* Text */}
         <p className="text-xs sm:text-sm text-foreground/80 leading-relaxed pr-6">
-          We use cookies to improve your experience and analyze site traffic.{' '}
+          We use essential analytics to understand how you use our site. This helps us improve your experience.{' '}
           <a href="/cookies" className="text-primary hover:text-primary/80 font-medium transition-colors">
             Learn more
           </a>
