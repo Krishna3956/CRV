@@ -115,6 +115,18 @@ export default function RootLayout({
         <link rel="dns-prefetch" href="https://www.clarity.ms" />
         <link rel="dns-prefetch" href="https://api.github.com" />
         
+        {/* Google Analytics 4 - Direct HTML script (not Next.js Script component) */}
+        <script async src="https://www.googletagmanager.com/gtag/js?id=G-PSZBQBCRQX"></script>
+        <script dangerouslySetInnerHTML={{
+          __html: `
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', 'G-PSZBQBCRQX', {
+              send_page_view: true
+            });
+          `
+        }} />
         
         {/* Microsoft Clarity - Deferred for performance */}
         <script
@@ -219,32 +231,6 @@ export default function RootLayout({
         />
       </head>
       <body className={inter.className}>
-        {/* Google Analytics 4 - Official Setup */}
-        <Script
-          async
-          src="https://www.googletagmanager.com/gtag/js?id=G-PSZBQBCRQX"
-          strategy="beforeInteractive"
-        />
-        <Script id="ga-config" strategy="beforeInteractive">
-          {`
-            window.dataLayer = window.dataLayer || [];
-            function gtag(){dataLayer.push(arguments);}
-            gtag('js', new Date());
-            gtag('config', 'G-PSZBQBCRQX');
-            
-            // Send test events to activate GA4 data collection
-            gtag('event', 'page_view', {
-              page_title: document.title,
-              page_location: window.location.href,
-            });
-            
-            gtag('event', 'test_activation', {
-              event_category: 'system',
-              event_label: 'GA4 Activation',
-            });
-          `}
-        </Script>
-
         <LayoutWrapper>
           {children}
         </LayoutWrapper>
