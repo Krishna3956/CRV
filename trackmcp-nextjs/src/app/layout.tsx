@@ -231,6 +231,17 @@ export default function RootLayout({
             function gtag(){dataLayer.push(arguments);}
             gtag('js', new Date());
             gtag('config', 'G-PSZBQBCRQX');
+            
+            // Send test events to activate GA4 data collection
+            gtag('event', 'page_view', {
+              page_title: document.title,
+              page_location: window.location.href,
+            });
+            
+            gtag('event', 'test_activation', {
+              event_category: 'system',
+              event_label: 'GA4 Activation',
+            });
           `}
         </Script>
 
