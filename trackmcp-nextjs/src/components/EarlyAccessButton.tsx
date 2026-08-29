@@ -30,7 +30,7 @@ export function EarlyAccessButton({
 }) {
   return (
     <Link
-      href="/signup"
+      href="https://app.trackmcp.com/signup"
       className={`inline-flex items-center justify-center gap-2 rounded-lg font-medium whitespace-nowrap transition duration-150 active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/40 focus-visible:ring-offset-2 focus-visible:ring-offset-white ${sizes[size]} ${variants[variant]} ${className}`}
     >
       {label}
