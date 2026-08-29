@@ -26,7 +26,9 @@ jobs:
       - name: Test TypeScript SDK
         working-directory: trackmcp-nextjs/packages/typescript-sdk
         run: npm test
-      - run: python3 -m unittest discover -s ../packages/python-sdk/tests -v
+      - name: Test Python SDK
+        working-directory: packages/python-sdk
+        run: python3 -m unittest discover -s tests -v
 
   go:
     runs-on: ubuntu-latest
@@ -38,6 +40,7 @@ jobs:
       - uses: actions/setup-go@v5
         with:
           go-version: "1.22"
+          cache: false
       - run: go test ./...
 
   dotnet:
