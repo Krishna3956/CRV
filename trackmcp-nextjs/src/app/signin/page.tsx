@@ -26,8 +26,7 @@ export default function SignInPage() {
     if (status === "loading") return;
     setStatus("loading");
     setError("");
-    const isLocal = ["localhost", "127.0.0.1"].includes(window.location.hostname);
-    const redirectOrigin = isLocal ? window.location.origin : "https://www.trackmcp.com";
+    const redirectOrigin = process.env.NEXT_PUBLIC_AUTH_REDIRECT_URL || "https://www.trackmcp.com";
     const { error: authError } = await getSupabaseBrowser().auth.signInWithOtp({
       email,
       options: { emailRedirectTo: `${redirectOrigin}/auth/callback`, data: mode === "signup" ? { full_name: fullName } : undefined },
