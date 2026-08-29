@@ -88,7 +88,7 @@ export default function ApiDocsPage() {
       <DocSection title="Example analytics response">
         <Para>
           Analytics responses are JSON. The <Inline>days</Inline> query parameter
-          accepts 1–90 days and defaults to 30.
+          accepts 1-90 days and defaults to 30.
         </Para>
         <Code>{`{
   "range_days": 7,

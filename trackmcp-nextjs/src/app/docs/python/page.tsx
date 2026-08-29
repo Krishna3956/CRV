@@ -62,7 +62,7 @@ app = with_trackmcp(
     api_key=os.environ["TRACKMCP_KEY"],
     service="acme-mcp-server",
     environment="production",
-    sample_rate=1.0,                 # 0–1, fraction of calls captured
+    sample_rate=1.0,                 # 0-1, fraction of calls captured
     redact=["args.password", "args.token"],  # never leaves your process
     endpoint="https://trackmcp.com/api/v1/ingest",  # self-hosted override
 )`}</Code>

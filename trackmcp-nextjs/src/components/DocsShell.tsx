@@ -10,7 +10,8 @@ const groups = [
     items: [
       { t: "Overview", href: "/docs" },
       { t: "Quickstart", href: "/docs#quickstart" },
-      { t: "Workspace setup", href: "/dashboard" },
+      { t: "How it works", href: "/docs#how-it-works" },
+      { t: "Verify data", href: "/docs#verify-data" },
     ],
   },
   {
@@ -25,6 +26,7 @@ const groups = [
     items: [
       { t: "REST API", href: "/docs/api" },
       { t: "Configuration", href: "/docs/reference" },
+      { t: "Troubleshooting", href: "/docs#troubleshooting" },
     ],
   },
 ];

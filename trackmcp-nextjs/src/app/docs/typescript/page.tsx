@@ -60,7 +60,7 @@ export default withTrackMCP(server, {
   apiKey: process.env.TRACKMCP_KEY!,
   service: "acme-mcp-server",   // shows up as the server name
   environment: "production",     // production | staging | ...
-  sampleRate: 1.0,               // 0–1, fraction of calls captured
+  sampleRate: 1.0,               // 0-1, fraction of calls captured
   redact: ["args.password", "args.token"], // never leaves your process
   endpoint: "https://trackmcp.com/api/v1/ingest", // self-hosted override
 });`}</Code>

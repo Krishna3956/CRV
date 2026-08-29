@@ -20,7 +20,7 @@ const options: { name: string; type: string; def: string; desc: string }[] = [
   { name: "apiKey", type: "string", def: "required", desc: "Your workspace ingest key." },
   { name: "service", type: "string", def: '"mcp-server"', desc: "Name shown for this server." },
   { name: "environment", type: "string", def: '"production"', desc: "Splits data by environment." },
-  { name: "sampleRate", type: "number", def: "1.0", desc: "Fraction of calls captured (0–1)." },
+  { name: "sampleRate", type: "number", def: "1.0", desc: "Fraction of calls captured (0-1)." },
   { name: "redact", type: "string[]", def: "[]", desc: "Argument/result paths to strip locally." },
   { name: "endpoint", type: "string", def: "trackmcp.com/api/v1/ingest", desc: "Override for self-hosted ingest." },
   { name: "disabled", type: "boolean", def: "false", desc: "Turn capture off without removing the wrapper." },
