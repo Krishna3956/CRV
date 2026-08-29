@@ -12,7 +12,14 @@ export default function SignInPage() {
   const [email, setEmail] = useState("");
   const [mode, setMode] = useState<"signin" | "signup">("signin");
   const [fullName, setFullName] = useState("");
-  const [error, setError] = useState("");
+  const [error, setError] = useState(() => {
+    if (typeof window === "undefined") return "";
+    const authError = new URLSearchParams(window.location.search).get("auth_error");
+    if (!authError) return "";
+    return authError === "missing_link_code"
+      ? "This sign-in link is incomplete. Request a new link."
+      : `This sign-in link could not be used: ${authError}. Request a new link and open the newest email.`;
+  });
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
