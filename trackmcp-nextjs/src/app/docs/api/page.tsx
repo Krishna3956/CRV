@@ -18,12 +18,9 @@ export const metadata: Metadata = pageMeta({
 });
 
 const endpoints: { method: string; path: string; desc: string }[] = [
-  { method: "GET", path: "/v1/tools", desc: "Tool call volume, success rate, latency" },
-  { method: "GET", path: "/v1/tools/{name}", desc: "A single tool's metrics and recent errors" },
-  { method: "GET", path: "/v1/sessions", desc: "Recent sessions with steps and outcome" },
-  { method: "GET", path: "/v1/clients", desc: "Client mix, new and returning connections" },
-  { method: "GET", path: "/v1/workflows", desc: "Common paths and completion rates" },
-  { method: "GET", path: "/v1/insights", desc: "The latest AI synthesis for a workspace" },
+  { method: "POST", path: "/api/v1/ingest", desc: "Submit a validated telemetry batch" },
+  { method: "GET", path: "/api/v1/analytics?days=30", desc: "Workspace metrics, tools, clients, sessions, and insights" },
+  { method: "GET", path: "/api/v1/traces?session_id=...", desc: "Inspect the ordered events for one session" },
 ];
 
 export default function ApiDocsPage() {
@@ -31,8 +28,8 @@ export default function ApiDocsPage() {
     <DocsShell active="/docs/api">
       <DocTitle eyebrow="Reference">REST API</DocTitle>
       <DocLead>
-        Pull any metric TrackMCP computes into your own tools. The API is available on
-        Pro and Enterprise plans.
+          Query the analytics currently exposed by your workspace. Requests use the
+          same TrackMCP domain as the dashboard.
       </DocLead>
 
       <DocSection title="Authentication">
@@ -40,9 +37,8 @@ export default function ApiDocsPage() {
           Send your API key as a bearer token. Keys are scoped to a workspace and can
           be read-only.
         </Para>
-        <Code>{`curl https://api.trackmcp.com/v1/tools \\
-  -H "Authorization: Bearer $TRACKMCP_KEY" \\
-  -G --data-urlencode "range=7d" --data-urlencode "env=production"`}</Code>
+        <Code>{`curl "https://trackmcp.com/api/v1/analytics?days=7" \\
+  -H "Authorization: Bearer $TRACKMCP_KEY"`}</Code>
       </DocSection>
 
       <DocSection title="Send telemetry">
@@ -89,26 +85,22 @@ export default function ApiDocsPage() {
         </div>
       </DocSection>
 
-      <DocSection title="Example response">
+      <DocSection title="Example analytics response">
         <Para>
-          All responses are JSON. Timestamps are ISO 8601, and ranges accept{" "}
-          <Inline>24h</Inline>, <Inline>7d</Inline>, or <Inline>30d</Inline>.
+          Analytics responses are JSON. The <Inline>days</Inline> query parameter
+          accepts 1–90 days and defaults to 30.
         </Para>
         <Code>{`{
-  "range": "7d",
-  "tools": [
-    { "name": "search_docs", "calls": 14208, "success": 0.998, "p95_ms": 210 },
-    { "name": "send_email",  "calls": 412,   "success": 0.06,  "p95_ms": 1240 }
-  ]
+  "range_days": 7,
+  "tool_calls": 14208,
+  "sessions": 3120,
+  "errors": 412,
+  "completion_rate": 0.75,
+  "tools": [{ "name": "search_docs", "calls": 14208, "error_rate": 0.002 }],
+  "insights": []
 }`}</Code>
       </DocSection>
 
-      <DocSection title="Rate limits">
-        <Para>
-          The API allows 600 requests per minute per workspace. Exceeding it returns{" "}
-          <Inline>429</Inline> with a <Inline>Retry-After</Inline> header.
-        </Para>
-      </DocSection>
     </DocsShell>
   );
 }

@@ -31,7 +31,7 @@ const captured = [
   "Result payload and whether it carried isError: true",
   "Client type (Claude, Cursor, ChatGPT, custom)",
   "Duration in milliseconds and transport status",
-  "Session id, so calls can be replayed in order",
+  "Session id, so calls can be inspected in order",
   "Timestamp and environment",
 ];
 
@@ -101,9 +101,10 @@ export default function ReferenceDocsPage() {
 
       <DocSection title="Environment variables">
         <Para>
-          The SDK reads <Inline>TRACKMCP_KEY</Inline> automatically if{" "}
-          <Inline>apiKey</Inline> is not passed, and <Inline>TRACKMCP_ENDPOINT</Inline>{" "}
-          for self-hosted ingest.
+          Python reads <Inline>TRACKMCP_KEY</Inline> automatically when an API key is
+          not passed. TypeScript requires <Inline>apiKey</Inline> in the options. For
+          a self-hosted deployment, pass the ingest URL explicitly as <Inline>endpoint</Inline>;
+          <Inline>TRACKMCP_ENDPOINT</Inline> is not read automatically.
         </Para>
       </DocSection>
     </DocsShell>

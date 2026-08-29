@@ -28,7 +28,7 @@ export default function PythonDocsPage() {
       </DocLead>
 
       <DocSection title="Install">
-        <Code>{`pip install trackmcp
+        <Code>{`python3 -m pip install trackmcp
 # or: uv add trackmcp / poetry add trackmcp`}</Code>
       </DocSection>
 

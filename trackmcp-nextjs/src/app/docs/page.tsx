@@ -38,12 +38,12 @@ export default function DocsPage() {
 
       <DocSection id="quickstart" title="Quickstart">
         <Para>
-          Install the SDK, run the setup assistant once, wrap your server, and deploy.
-          Data shows up in your dashboard within seconds of the first call.
+          Install the SDK, create a workspace key, wrap your server, and deploy. Data
+          appears in your dashboard after the first telemetry flush.
         </Para>
         <Code>{`# TypeScript
 npm i @trackmcp/sdk
-npx @trackmcp/cli setup
+# Create a key at https://trackmcp.com/dashboard
 
 # Python
 pip install trackmcp
@@ -57,9 +57,10 @@ export default withTrackMCP(server, {
   environment: "production",
 });`}</Code>
         <Para>
-          That&apos;s the whole setup. The wrapper intercepts the MCP protocol
-          layer, so coverage is automatic and complete — including the errors
-          returned inside a successful <Inline>200 OK</Inline>.
+          That&apos;s the whole setup. The wrapper observes the MCP protocol layer and
+          tool calls without changing your tool implementations. Errors returned
+          inside a successful <Inline>200 OK</Inline> are preserved in the captured
+          result.
         </Para>
       </DocSection>
 

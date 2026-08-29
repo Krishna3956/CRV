@@ -7,7 +7,7 @@ on:
         description: "Package to publish"
         required: true
         type: choice
-        options: [typescript, python]
+        options: [typescript, python, cli]
 
 jobs:
   publish:
@@ -29,6 +29,12 @@ jobs:
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: npm ci && npm publish --access public
+      - name: Publish TrackMCP CLI
+        if: inputs.package == 'cli'
+        working-directory: trackmcp-nextjs/packages/cli
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: npm publish --access public
       - name: Publish Python SDK
         if: inputs.package == 'python'
         working-directory: packages/python-sdk
