@@ -45,6 +45,29 @@ export default function ApiDocsPage() {
   -G --data-urlencode "range=7d" --data-urlencode "env=production"`}</Code>
       </DocSection>
 
+      <DocSection title="Send telemetry">
+        <Para>
+          SDKs send canonical batches to the ingest endpoint automatically. You normally
+          do not call it directly, but the wire format is useful when integrating another
+          runtime.
+        </Para>
+        <Code>{`curl https://trackmcp.com/api/v1/ingest \\
+  -H "Authorization: Bearer $TRACKMCP_KEY" \\
+  -H "Content-Type: application/json" \\
+  -d '{"events":[{
+    "event_id":"unique-id",
+    "event_type":"tool_call",
+    "service":"my-mcp-server",
+    "environment":"production",
+    "tool_name":"search",
+    "started_at":"2026-01-01T00:00:00Z",
+    "duration_ms":42,
+    "success":true,
+    "is_error":false,
+    "payload":{"args":{}}
+  }]}'`}</Code>
+      </DocSection>
+
       <DocSection title="Endpoints">
         <div className="overflow-hidden rounded-xl border border-line">
           <div className="grid grid-cols-[64px_1fr] gap-2 border-b border-line bg-paper px-4 py-2 text-[11px] font-semibold uppercase tracking-wide text-faint">

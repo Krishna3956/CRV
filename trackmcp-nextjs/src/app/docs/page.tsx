@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { pageMeta } from "@/lib/seo";
 import Link from "next/link";
-import { ArrowRight, Terminal, Braces, Plug, SlidersHorizontal } from "lucide-react";
+import { ArrowRight, Terminal, Braces, Plug, SlidersHorizontal, LayoutDashboard } from "lucide-react";
 import {
   DocsShell,
   DocTitle,
@@ -24,6 +24,7 @@ const cards = [
   { icon: Braces, t: "Python SDK", d: "The same one-line wrap for Python servers.", href: "/docs/python" },
   { icon: Plug, t: "REST API", d: "Query your own metrics programmatically.", href: "/docs/api" },
   { icon: SlidersHorizontal, t: "Configuration", d: "Every option, event, and metric.", href: "/docs/reference" },
+  { icon: LayoutDashboard, t: "Workspace setup", d: "Create a key and connect your server.", href: "/dashboard" },
 ];
 
 export default function DocsPage() {
@@ -37,14 +38,16 @@ export default function DocsPage() {
 
       <DocSection id="quickstart" title="Quickstart">
         <Para>
-          Install the SDK, wrap your server with your API key, and deploy. Data
-          shows up in your dashboard within seconds of the first call.
+          Install the SDK, run the setup assistant once, wrap your server, and deploy.
+          Data shows up in your dashboard within seconds of the first call.
         </Para>
         <Code>{`# TypeScript
 npm i @trackmcp/sdk
+npx @trackmcp/cli setup
 
 # Python
-pip install trackmcp`}</Code>
+pip install trackmcp
+# Create your key at https://trackmcp.com/dashboard`}</Code>
         <Code>{`import { withTrackMCP } from "@trackmcp/sdk";
 import { server } from "./mcp";
 
@@ -85,4 +88,3 @@ export default withTrackMCP(server, {
     </DocsShell>
   );
 }
-

@@ -10,32 +10,39 @@ export function CopyButton({
   size = 15,
   className = "",
   label = "Copy",
+  showLabel = false,
 }: {
   text: string;
   size?: number;
   className?: string;
   label?: string;
+  showLabel?: boolean;
 }) {
   const [done, setDone] = useState(false);
 
   const onCopy = async () => {
+    let copied = false;
     try {
-      await navigator.clipboard.writeText(text);
+      if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(text);
+        copied = true;
+      }
     } catch {
-      // Fallback for older / insecure contexts
+      // Try the fallback below for older or insecure contexts.
+    }
+    if (!copied) {
       const ta = document.createElement("textarea");
       ta.value = text;
+      ta.setAttribute("readonly", "true");
       ta.style.position = "fixed";
       ta.style.opacity = "0";
       document.body.appendChild(ta);
+      ta.focus();
       ta.select();
-      try {
-        document.execCommand("copy");
-      } catch {
-        /* no-op */
-      }
+      try { copied = document.execCommand("copy"); } catch { copied = false; }
       ta.remove();
     }
+    if (!copied) return;
     setDone(true);
     window.setTimeout(() => setDone(false), 1500);
   };
@@ -52,6 +59,7 @@ export function CopyButton({
       ) : (
         <Copy size={size} />
       )}
+      {showLabel && <span>{done ? "Copied" : label}</span>}
     </button>
   );
 }

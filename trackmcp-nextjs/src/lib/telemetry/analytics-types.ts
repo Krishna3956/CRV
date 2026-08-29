@@ -1,0 +1,21 @@
+export type Analytics = {
+  range_days: number;
+  total_events: number;
+  protocol_events: number;
+  catalog_events: number;
+  protocol_versions: string[];
+  transports: string[];
+  methods: string[];
+  tool_calls: number;
+  sessions: number;
+  errors: number;
+  completion_rate: number | null;
+  funnel: { connections: number; discovered_tools: number; tool_calls: number; successful_calls: number };
+  timeline: { date: string; events: number; calls: number; errors: number }[];
+  clients: { name: string; calls: number }[];
+  tools: { name: string; calls: number; errors: number; error_rate: number; avg_ms: number | null; discovered: boolean }[];
+  unused_tools: string[];
+  workflows: { session_id: string; client_name: string; calls: number; tools: (string | null)[]; started_at: string; duration_ms: number; completed: boolean }[];
+  outcomes: { name: string; started: number; completed: number; failed: number }[];
+  insights: { level: string; title: string; detail: string; metric: string }[];
+};

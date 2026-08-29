@@ -1,0 +1,6 @@
+# Python and package build artifacts
+**/__pycache__/
+**/*.py[cod]
+**/dist/
+**/*.egg-info/
+**/node_modules/

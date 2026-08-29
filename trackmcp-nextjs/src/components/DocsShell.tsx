@@ -10,6 +10,7 @@ const groups = [
     items: [
       { t: "Overview", href: "/docs" },
       { t: "Quickstart", href: "/docs#quickstart" },
+      { t: "Workspace setup", href: "/dashboard" },
     ],
   },
   {

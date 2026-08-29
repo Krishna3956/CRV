@@ -1,0 +1,27 @@
+{
+  "name": "@trackmcp/sdk",
+  "version": "0.1.0",
+  "description": "Observability SDK for MCP servers",
+  "keywords": ["mcp", "model-context-protocol", "observability", "analytics"],
+  "license": "MIT",
+  "repository": { "type": "git", "url": "https://github.com/Krishna3956/CRV/tree/main/trackmcp-nextjs/packages/typescript-sdk" },
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "prepublishOnly": "npm run build",
+    "test": "node --test test/*.test.mjs"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "devDependencies": {
+    "@modelcontextprotocol/sdk": "^1.30.0",
+    "typescript": "^5.0.0"
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "name": "@trackmcp/cli",
+  "version": "0.1.0",
+  "description": "Set up TrackMCP and connect an MCP server from the terminal",
+  "type": "module",
+  "bin": { "trackmcp": "./bin/trackmcp.mjs" },
+  "files": ["bin", "README.md"],
+  "keywords": ["mcp", "trackmcp", "observability"],
+  "license": "MIT",
+  "repository": { "type": "git", "url": "https://github.com/Krishna3956/CRV/tree/main/trackmcp-web/packages/cli" },
+  "engines": { "node": ">=18" }
+}

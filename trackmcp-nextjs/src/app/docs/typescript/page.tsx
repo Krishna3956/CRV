@@ -29,6 +29,7 @@ export default function TypeScriptDocsPage() {
 
       <DocSection title="Install">
         <Code>{`npm i @trackmcp/sdk
+npx @trackmcp/cli setup
 # or: pnpm add @trackmcp/sdk / yarn add @trackmcp/sdk`}</Code>
       </DocSection>
 
@@ -61,7 +62,7 @@ export default withTrackMCP(server, {
   environment: "production",     // production | staging | ...
   sampleRate: 1.0,               // 0–1, fraction of calls captured
   redact: ["args.password", "args.token"], // never leaves your process
-  endpoint: "https://in.trackmcp.com",       // self-hosted override
+  endpoint: "https://trackmcp.com/api/v1/ingest", // self-hosted override
 });`}</Code>
       </DocSection>
 

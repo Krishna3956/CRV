@@ -1,0 +1,38 @@
+name: Publish SDK packages
+
+on:
+  workflow_dispatch:
+    inputs:
+      package:
+        description: "Package to publish"
+        required: true
+        type: choice
+        options: [typescript, python]
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          registry-url: https://registry.npmjs.org
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Publish TypeScript SDK
+        if: inputs.package == 'typescript'
+        working-directory: trackmcp-nextjs
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: npm --prefix packages/typescript-sdk publish --access public
+      - name: Publish Python SDK
+        if: inputs.package == 'python'
+        working-directory: packages/python-sdk
+        env:
+          TWINE_USERNAME: __token__
+          TWINE_PASSWORD: ${{ secrets.PYPI_TOKEN }}
+        run: python -m pip install build twine && python -m build && python -m twine upload dist/*
