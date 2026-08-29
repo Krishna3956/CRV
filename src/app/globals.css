@@ -1,26 +1,236 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+@theme {
+  /* Surfaces */
+  --color-canvas: #ffffff;
+  --color-mist: #f5f5f5;
+  --color-paper: #fafafa;
+  /* Text */
+  --color-ink: #0a0a0a;
+  --color-body: #171717;
+  --color-muted: #6b7280;
+  --color-faint: #9ca3af;
+  /* Lines */
+  --color-line: #e5e5e5;
+  --color-line-strong: #d4d4d4;
+  /* Brand */
+  --color-brand: #16a34a;
+  --color-brand-strong: #15803d;
+  --color-brand-soft: #dcfce7;
+  /* Accents */
+  --color-mint: #dcfce7;
+  --color-mint-ink: #166534;
+  --color-violet: #9281f7;
+  /* Code window */
+  --color-code-bg: #0b0c0e;
+  --color-code-panel: #111317;
+  --color-code-line: #1c1f24;
+  --color-code-text: #e6e8eb;
+  --color-code-dim: #8b9099;
+
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, SFMono-Regular, monospace;
+  --font-display: "Satoshi", var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+
+  --animate-marquee: marquee 34s linear infinite;
+  --animate-float: float 9s ease-in-out infinite;
+  --animate-pulse-dot: pulseDot 2.4s ease-in-out infinite;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+@keyframes marquee {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+@keyframes float {
+  0%, 100% { transform: translate(0, 0); }
+  50% { transform: translate(0, -16px); }
+}
+@keyframes pulseDot {
+  0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(22,163,74,.35); }
+  50% { opacity: .85; box-shadow: 0 0 0 6px rgba(22,163,74,0); }
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+/* ── Signal motion language ── */
+@keyframes drift {
+  0%, 100% { transform: translate(0, 0); }
+  33% { transform: translate(24px, -20px); }
+  66% { transform: translate(-18px, 12px); }
+}
+@keyframes drift2 {
+  0%, 100% { transform: translate(0, 0); }
+  50% { transform: translate(-28px, 18px); }
+}
+@keyframes shimmer {
+  from { background-position: -200% 0; }
+  to { background-position: 200% 0; }
+}
+@keyframes blink {
+  0%, 92%, 100% { transform: scaleY(1); }
+  96% { transform: scaleY(0.1); }
+}
+@keyframes wiggle {
+  0%, 88%, 100% { transform: translateX(0) rotate(0deg); }
+  90% { transform: translateX(-2px) rotate(-3deg); }
+  93% { transform: translateX(2px) rotate(3deg); }
+  96% { transform: translateX(-2px) rotate(-2deg); }
+}
+@keyframes bob {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
+@keyframes breathe {
+  0%, 100% { transform: scale(1); opacity: 0.9; }
+  50% { transform: scale(1.06); opacity: 1; }
+}
+@keyframes barPulse {
+  0%, 100% { transform: scaleY(0.55); }
+  50% { transform: scaleY(1); }
+}
+@keyframes sweep {
+  0% { transform: rotate(-52deg); }
+  50% { transform: rotate(52deg); }
+  100% { transform: rotate(-52deg); }
+}
+@keyframes dashFlow {
+  to { stroke-dashoffset: -1000; }
+}
+@keyframes drawLine {
+  to { stroke-dashoffset: 0; }
+}
+@keyframes riseFade {
+  0% { opacity: 0; transform: translateY(6px); }
+  15%, 70% { opacity: 1; transform: translateY(0); }
+  100% { opacity: 0; transform: translateY(-6px); }
+}
+
+@layer base {
+  html { scroll-behavior: smooth; overflow-x: clip; }
+  body {
+    overflow-x: clip;
+    background: var(--color-canvas);
+    color: var(--color-body);
+    font-family: var(--font-sans);
+    font-feature-settings: "cv01" on, "ss03" on, "zero" on;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+  ::selection { background: var(--color-brand-soft); color: var(--color-brand-strong); }
+  h1, h2, h3, h4 {
+    color: var(--color-ink);
+    font-family: var(--font-display);
+    font-weight: 500;
+    letter-spacing: -0.025em;
+  }
+  :focus-visible {
+    outline: 2px solid var(--color-brand);
+    outline-offset: 2px;
+    border-radius: 6px;
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+@layer utilities {
+  .text-balance { text-wrap: balance; }
+  .hairline { border: 1px solid var(--color-line); }
+  /* faint dotted grid backdrop, faded at the edges */
+  .bg-grid {
+    background-image: radial-gradient(circle at 1px 1px, rgba(10,10,10,0.05) 1px, transparent 0);
+    background-size: 28px 28px;
+    -webkit-mask-image: radial-gradient(ellipse 78% 58% at 50% 0%, #000 35%, transparent 100%);
+    mask-image: radial-gradient(ellipse 78% 58% at 50% 0%, #000 35%, transparent 100%);
+  }
+  /* dotted blueprint texture — placed behind product scenes, fades to edges */
+  .bg-dots {
+    background-image: radial-gradient(circle at 1px 1px, rgba(10,10,10,0.10) 1px, transparent 0);
+    background-size: 18px 18px;
+  }
+  .bg-dots-green {
+    background-image: radial-gradient(circle at 1px 1px, rgba(22,163,74,0.16) 1px, transparent 0);
+    background-size: 18px 18px;
+  }
+  /* faint square blueprint grid (thin lines) — the "block" texture */
+  .bg-squares {
+    background-image:
+      linear-gradient(to right, rgba(10,10,10,0.045) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(10,10,10,0.045) 1px, transparent 1px);
+    background-size: 46px 46px;
+  }
+  /* faint diagonal hatch */
+  .bg-diag {
+    background-image: repeating-linear-gradient(
+      45deg,
+      rgba(10,10,10,0.035) 0,
+      rgba(10,10,10,0.035) 1px,
+      transparent 1px,
+      transparent 13px
+    );
+  }
+  /* soft centered fade for section-wide textures */
+  .mask-fade-soft {
+    -webkit-mask-image: radial-gradient(ellipse 85% 70% at 50% 35%, #000 38%, transparent 85%);
+    mask-image: radial-gradient(ellipse 85% 70% at 50% 35%, #000 38%, transparent 85%);
+  }
+  .dots-mask-radial {
+    -webkit-mask-image: radial-gradient(ellipse 70% 70% at 50% 50%, #000 40%, transparent 78%);
+    mask-image: radial-gradient(ellipse 70% 70% at 50% 50%, #000 40%, transparent 78%);
+  }
+  .dots-mask-top {
+    -webkit-mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, #000 30%, transparent 80%);
+    mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, #000 30%, transparent 80%);
+  }
+  @media (max-width: 640px) {
+    .bg-dots, .bg-dots-green { background-size: 22px 22px; opacity: 0.6; }
+  }
+  /* one-shot line draw for chart paths / connectors when in view */
+  .draw-line {
+    stroke-dasharray: var(--draw-len, 1000);
+    stroke-dashoffset: var(--draw-len, 1000);
+    animation: drawLine 1.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
+  /* subtle card hover */
+  .lift {
+    transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1),
+      border-color 0.2s ease, box-shadow 0.2s ease;
+  }
+  .lift:hover {
+    transform: translateY(-3px);
+    border-color: var(--color-line-strong);
+    box-shadow: 0 14px 36px -20px rgba(10, 10, 10, 0.2);
+  }
+  .mask-fade-x {
+    -webkit-mask-image: linear-gradient(to right, transparent, #000 12%, #000 88%, transparent);
+    mask-image: linear-gradient(to right, transparent, #000 12%, #000 88%, transparent);
+  }
+
+  /* Signal motion utilities */
+  .animate-drift { animation: drift 18s ease-in-out infinite; }
+  .animate-drift-2 { animation: drift2 22s ease-in-out infinite; }
+  .animate-blink { animation: blink 4.5s ease-in-out infinite; transform-origin: center; }
+  .animate-wiggle { animation: wiggle 5s ease-in-out infinite; transform-origin: center; }
+  .animate-bob { animation: bob 6s ease-in-out infinite; }
+  .animate-breathe { animation: breathe 3.4s ease-in-out infinite; transform-origin: center; }
+  .animate-sweep { animation: sweep 3.6s ease-in-out infinite; }
+  .wire-flow {
+    stroke-dasharray: 5 9;
+    animation: dashFlow 14s linear infinite;
+  }
+  .bar-pulse {
+    transform-origin: bottom;
+    animation: barPulse 2.4s ease-in-out infinite;
+  }
+  .shimmer-text {
+    background: linear-gradient(100deg, var(--color-ink) 40%, var(--color-brand) 50%, var(--color-ink) 60%);
+    background-size: 200% 100%;
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    animation: shimmer 6s linear infinite;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
 }
