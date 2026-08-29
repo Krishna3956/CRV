@@ -54,7 +54,7 @@ export default function SignInPage({ initialMode = "signin" }: { initialMode?: "
     <main className="grid min-h-screen lg:grid-cols-2">
       {/* form side */}
       <div className="flex flex-col px-6 py-8">
-        <TrackMCPLogo mark />
+        <TrackMCPLogo mark href="https://trackmcp.com" />
         <div className="flex flex-1 items-center justify-center">
           <div className="w-full max-w-[380px] py-10">
             <h1 className="text-[28px] font-medium tracking-[-0.02em] text-ink">{mode === "signup" ? "Create your TrackMCP workspace" : "Sign in to TrackMCP"}</h1>

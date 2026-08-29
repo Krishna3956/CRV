@@ -27,12 +27,14 @@ export function TrackMCPLogo({
   variant = "green",
   mark = false,
   asLink = true,
+  href = "/",
   className = "",
 }: {
   size?: LogoSize;
   variant?: LogoVariant;
   mark?: boolean;
   asLink?: boolean;
+  href?: string;
   className?: string;
 }) {
   const trackColor = variant === "light" ? "text-white" : "text-[#171717]";
@@ -70,7 +72,7 @@ export function TrackMCPLogo({
   }
 
   return (
-    <Link href="/" aria-label="TrackMCP home" className={base}>
+    <Link href={href} aria-label="TrackMCP home" className={base}>
       {inner}
     </Link>
   );
