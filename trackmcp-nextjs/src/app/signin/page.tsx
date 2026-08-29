@@ -1,18 +1,20 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { getSupabaseBrowser } from "@/lib/auth/supabase-browser";
 import { ArrowRight, Loader2, Check } from "lucide-react";
 import { TrackMCPLogo } from "@/components/TrackMCPLogo";
 import { TrackMCPMark } from "@/components/TrackMCPMark";
 
-export default function SignInPage() {
+export default function SignInPage({ initialMode = "signin" }: { initialMode?: "signin" | "signup" }) {
+  const router = useRouter();
   const [status, setStatus] = useState<"idle" | "loading" | "sent" | "error">("idle");
   const [email, setEmail] = useState("");
   const [mode, setMode] = useState<"signin" | "signup">(() => {
     if (typeof window === "undefined") return "signin";
-    return new URLSearchParams(window.location.search).get("mode") === "signup" ? "signup" : "signin";
+    return new URLSearchParams(window.location.search).get("mode") === "signup" ? "signup" : initialMode;
   });
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
@@ -32,7 +34,7 @@ export default function SignInPage() {
     if (status === "loading") return;
     setStatus("loading");
     setError("");
-    const redirectOrigin = "https://www.trackmcp.com";
+    const redirectOrigin = "https://app.trackmcp.com";
     const { error: authError } = await getSupabaseBrowser().auth.signInWithOtp({
       email,
       options: { emailRedirectTo: `${redirectOrigin}/auth/callback`, data: mode === "signup" ? { first_name: firstName, last_name: lastName, full_name: `${firstName} ${lastName}`.trim(), company_name: companyName, terms_accepted: true } : undefined },
@@ -97,7 +99,7 @@ export default function SignInPage() {
             {error && <p className="mt-4 rounded-lg border border-red-200 bg-red-50 px-3.5 py-2.5 text-[13px] text-red-700">{error}</p>}
 
             <p className="mt-6 text-center text-[13.5px] text-muted">
-              {mode === "signin" ? <>New to TrackMCP? <button type="button" onClick={() => { setMode("signup"); setStatus("idle"); }} className="font-medium text-brand-strong">Create an account</button></> : <>Already have an account? <button type="button" onClick={() => { setMode("signin"); setStatus("idle"); }} className="font-medium text-brand-strong">Sign in</button></>}
+              {mode === "signin" ? <>New to TrackMCP? <button type="button" onClick={() => { setMode("signup"); setStatus("idle"); router.replace("/signup"); }} className="font-medium text-brand-strong">Create an account</button></> : <>Already have an account? <button type="button" onClick={() => { setMode("signin"); setStatus("idle"); router.replace("/signin"); }} className="font-medium text-brand-strong">Sign in</button></>}
             </p>
           </div>
         </div>

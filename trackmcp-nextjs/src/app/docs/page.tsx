@@ -43,11 +43,11 @@ export default function DocsPage() {
         </Para>
         <Code>{`# TypeScript
 npm i @trackmcp/sdk
-# Create a key at https://trackmcp.com/dashboard
+# Create a key at https://app.trackmcp.com/dashboard
 
           # Python
           python3 -m pip install trackmcp
-# Create your key at https://trackmcp.com/dashboard`}</Code>
+# Create your key at https://app.trackmcp.com/dashboard`}</Code>
         <Code>{`import { withTrackMCP } from "@trackmcp/sdk";
 import { server } from "./mcp";
 

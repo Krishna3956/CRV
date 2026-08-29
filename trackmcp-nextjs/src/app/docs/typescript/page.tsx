@@ -29,7 +29,7 @@ export default function TypeScriptDocsPage() {
 
       <DocSection title="Install">
         <Code>{`npm i @trackmcp/sdk
-# Create a key at https://trackmcp.com/dashboard
+# Create a key at https://app.trackmcp.com/dashboard
 # or: pnpm add @trackmcp/sdk / yarn add @trackmcp/sdk`}</Code>
       </DocSection>
 
