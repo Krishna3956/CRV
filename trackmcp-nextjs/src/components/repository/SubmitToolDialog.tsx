@@ -14,6 +14,7 @@ type Status = "idle" | "loading" | "done" | "error";
 export function SubmitToolDialog() {
   const [open, setOpen] = useState(false);
   const [url, setUrl] = useState("");
+  const [email, setEmail] = useState("");
   const [status, setStatus] = useState<Status>("idle");
   const [message, setMessage] = useState("");
 
@@ -33,6 +34,7 @@ export function SubmitToolDialog() {
     setStatus("idle");
     setMessage("");
     setUrl("");
+    setEmail("");
   };
 
   const submit = async (e: React.FormEvent) => {
@@ -43,7 +45,7 @@ export function SubmitToolDialog() {
       const res = await fetch("/api/repository/submit", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ url }),
+        body: JSON.stringify({ url, email }),
       });
       const data = await res.json();
       if (!res.ok) {
@@ -113,6 +115,18 @@ export function SubmitToolDialog() {
                   onChange={(e) => setUrl(e.target.value)}
                   placeholder="https://github.com/owner/repository"
                   className="w-full rounded-lg border border-line-strong bg-white px-3.5 py-3 text-[15px] text-ink outline-none transition-colors placeholder:text-faint focus:border-brand focus:ring-2 focus:ring-brand/20"
+                />
+                <label htmlFor="submitter-email" className="sr-only">
+                  Email address
+                </label>
+                <input
+                  id="submitter-email"
+                  type="email"
+                  required
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="you@example.com"
+                  className="mt-3 w-full rounded-lg border border-line-strong bg-white px-3.5 py-3 text-[15px] text-ink outline-none transition-colors placeholder:text-faint focus:border-brand focus:ring-2 focus:ring-brand/20"
                 />
                 {status === "error" && <p className="mt-2 text-[13px] text-amber-600">{message}</p>}
                 <button
