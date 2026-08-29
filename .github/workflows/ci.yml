@@ -20,8 +20,12 @@ jobs:
       - run: npm ci
       - run: npm run lint
       - run: npm run build
-      - run: npm --prefix packages/typescript-sdk run build
-      - run: npm --prefix packages/typescript-sdk test
+      - name: Build TypeScript SDK
+        working-directory: trackmcp-nextjs/packages/typescript-sdk
+        run: npm ci && npm run build
+      - name: Test TypeScript SDK
+        working-directory: trackmcp-nextjs/packages/typescript-sdk
+        run: npm test
       - run: python3 -m unittest discover -s ../packages/python-sdk/tests -v
 
   go:

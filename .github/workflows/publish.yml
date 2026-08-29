@@ -25,10 +25,10 @@ jobs:
           python-version: "3.12"
       - name: Publish TypeScript SDK
         if: inputs.package == 'typescript'
-        working-directory: trackmcp-nextjs
+        working-directory: trackmcp-nextjs/packages/typescript-sdk
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-        run: npm --prefix packages/typescript-sdk publish --access public
+        run: npm ci && npm publish --access public
       - name: Publish Python SDK
         if: inputs.package == 'python'
         working-directory: packages/python-sdk
