@@ -56,8 +56,6 @@ export function WorkflowScene() {
 
   const still = !!reduce;
   const cur = still ? FINAL : FRAMES[frame];
-  const cDone = cur.c >= 4;
-  const sDone = cur.s >= 3;
 
   return (
     <div className="relative">
@@ -76,46 +74,32 @@ export function WorkflowScene() {
 
         {/* completed path */}
         <div className="mt-5">
-          <ClientRow
-            name="Claude"
-            active={cur.cc}
-            state="completed"
-            reached={cDone}
-          />
+          <ClientRow name="Claude" active state="completed" reached />
           <div className="mt-2.5 flex flex-wrap items-center gap-y-2">
-            <Node label="search_docs" on={cur.c >= 1} tone="green" />
-            <Connector tone="green" on={cur.c >= 2} moving={!still && cur.c === 2} />
-            <Node label="run_query" on={cur.c >= 2} tone="green" />
-            <Connector tone="green" on={cur.c >= 3} moving={!still && cur.c === 3} />
-            <Node label="create_issue" on={cur.c >= 3} tone="green" />
-            <Connector tone="green" on={cur.c >= 4} moving={!still && cur.c === 4} />
-            <EndPill kind="completed" on={cDone} still={still} />
+            <Node label="search_docs" on tone="green" />
+            <Connector tone="green" on moving={!still && cur.c === 2} />
+            <Node label="run_query" on tone="green" />
+            <Connector tone="green" on moving={!still && cur.c === 3} />
+            <Node label="create_issue" on tone="green" />
+            <Connector tone="green" on moving={!still && cur.c === 4} />
+            <EndPill kind="completed" on still={still} />
           </div>
         </div>
 
         {/* stopped path */}
         <div className="mt-5 border-t border-line pt-5">
-          <ClientRow
-            name="Cursor"
-            active={cur.cs}
-            state="stopped"
-            reached={sDone}
-          />
+          <ClientRow name="Cursor" active state="stopped" reached />
           <div className="mt-2.5 flex flex-wrap items-center gap-y-2">
-            <Node label="search_docs" on={cur.s >= 1} tone="neutral" />
-            <Connector tone="neutral" on={cur.s >= 2} moving={!still && cur.s === 2} />
-            <Node label="run_query" on={cur.s >= 2} tone="neutral" />
-            <Connector tone="amber" on={cur.s >= 3} moving={!still && cur.s === 3} />
-            <EndPill kind="stopped" on={sDone} still={still} />
+            <Node label="search_docs" on tone="neutral" />
+            <Connector tone="neutral" on moving={!still && cur.s === 2} />
+            <Node label="run_query" on tone="neutral" />
+            <Connector tone="amber" on moving={!still && cur.s === 3} />
+            <EndPill kind="stopped" on still={still} />
           </div>
         </div>
 
         {/* supporting message */}
-        <div
-          className={`mt-5 border-t border-line pt-4 text-[12.5px] leading-snug transition-opacity duration-500 ${
-            cur.msg ? "opacity-100" : "opacity-0"
-          }`}
-        >
+        <div className="mt-5 border-t border-line pt-4 text-[12.5px] leading-snug">
           <span className="font-medium text-ink">4 in 5 sessions</span>{" "}
           <span className="text-muted">reach a useful result.</span>
         </div>

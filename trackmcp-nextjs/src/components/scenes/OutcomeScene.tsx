@@ -78,7 +78,7 @@ export function OutcomeScene() {
                 i === 0 ? 0 : Math.round((1 - f.value / FUNNEL[i - 1].value) * 100);
               return (
                 <div key={f.step}>
-                  {i > 0 && <Flow active={p === f.phase} tone={last ? "green" : "neutral"} />}
+                  {i > 0 && <Flow active={p === f.phase} tone="green" />}
                   <div className="mb-1.5 flex items-center justify-between text-[12.5px]">
                     <span className="text-body">{f.step}</span>
                     <span className="font-mono text-muted">
@@ -100,7 +100,9 @@ export function OutcomeScene() {
                     }`}
                   >
                     <motion.span
-                      className={`absolute inset-y-0 left-0 rounded-md ${last ? "bg-brand" : "bg-ink"}`}
+                      className={`absolute inset-y-0 left-0 rounded-md ${
+                        last ? "bg-brand" : i === 0 ? "bg-brand/40" : "bg-brand/65"
+                      }`}
                       initial={false}
                       animate={{ width: filled ? `${f.pct}%` : "0%" }}
                       transition={{ duration: still ? 0 : 0.8, ease: [0.16, 1, 0.3, 1] }}
