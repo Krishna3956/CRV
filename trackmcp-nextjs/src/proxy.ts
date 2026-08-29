@@ -5,6 +5,13 @@ const MARKETING_HOSTS = new Set(["trackmcp.com", "www.trackmcp.com"]);
 
 export function proxy(request: NextRequest) {
   const host = request.headers.get("x-forwarded-host")?.split(",")[0].trim() || request.headers.get("host") || "";
+
+  // The app subdomain shares this deployment with the marketing site, but its
+  // root should always enter the product instead of rendering the homepage.
+  if (process.env.NODE_ENV === "production" && host === APP_HOST && request.nextUrl.pathname === "/") {
+    return NextResponse.redirect(new URL("/signin", request.url), 307);
+  }
+
   if (process.env.NODE_ENV !== "production" || !MARKETING_HOSTS.has(host)) return NextResponse.next();
 
   const target = new URL(request.nextUrl.pathname + request.nextUrl.search, `https://${APP_HOST}`);
@@ -12,5 +19,5 @@ export function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/signin/:path*", "/signup/:path*", "/dashboard/:path*", "/onboarding/:path*", "/auth/callback/:path*"],
+  matcher: ["/", "/signin/:path*", "/signup/:path*", "/dashboard/:path*", "/onboarding/:path*", "/auth/callback/:path*"],
 };
