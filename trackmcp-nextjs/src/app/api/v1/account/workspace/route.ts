@@ -40,17 +40,20 @@ export async function POST(request: Request) {
   if (!user) return NextResponse.json({ error: "Sign in required." }, { status: 401 });
   if (!admin) return NextResponse.json({ error: "Account service is not configured." }, { status: 503 });
 
-  let body: { name?: string; slug?: string; key_name?: string; full_name?: string; company_name?: string; role?: string; use_case?: string } = {};
+  let body: { name?: string; slug?: string; key_name?: string; full_name?: string; first_name?: string; last_name?: string; company_name?: string; role?: string; use_case?: string; terms_accepted?: boolean } = {};
   try { body = await request.json(); } catch { /* defaults are fine */ }
   const existing = await admin.from("trackmcp_workspace_members").select("workspace_id").eq("user_id", user.id).limit(1).maybeSingle();
   if (existing.error) return NextResponse.json({ error: "Could not check your workspace." }, { status: 500 });
 
   const profile = await admin.from("trackmcp_profiles").upsert({
     user_id: user.id,
-    full_name: body.full_name?.trim() || user.user_metadata?.full_name || null,
+    first_name: body.first_name?.trim() || user.user_metadata?.first_name || null,
+    last_name: body.last_name?.trim() || user.user_metadata?.last_name || null,
+    full_name: body.full_name?.trim() || [body.first_name, body.last_name].filter(Boolean).join(" ").trim() || user.user_metadata?.full_name || null,
     company_name: body.company_name?.trim() || null,
     role: body.role?.trim() || null,
     use_case: body.use_case?.trim() || null,
+    terms_accepted_at: body.terms_accepted ? new Date().toISOString() : null,
     onboarding_completed_at: new Date().toISOString(),
     updated_at: new Date().toISOString(),
   }, { onConflict: "user_id" });

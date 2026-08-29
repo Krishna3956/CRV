@@ -1,0 +1,12 @@
+"use client";
+
+import { useState } from "react";
+import { ArrowRight } from "lucide-react";
+
+export type SetupDetails = { first_name: string; last_name: string; company_name: string };
+
+export function SetupModal({ initial, working, error, onSubmit }: { initial: SetupDetails; working: boolean; error: string; onSubmit: (details: SetupDetails) => void }) {
+  const [form, setForm] = useState(initial);
+  const field = "w-full border border-line-strong bg-white px-3.5 py-2.5 text-sm text-ink outline-none focus:border-brand focus:ring-2 focus:ring-brand/20";
+  return <div className="fixed inset-0 z-50 grid place-items-center bg-ink/55 p-5 backdrop-blur-sm"><section role="dialog" aria-modal="true" aria-labelledby="setup-title" className="w-full max-w-lg border border-line bg-white p-7 sm:p-9"><p className="font-mono text-[10px] font-semibold uppercase tracking-[0.14em] text-brand-strong">First-time setup</p><h2 id="setup-title" className="mt-3 text-3xl font-medium tracking-[-0.035em] text-ink">Let&apos;s set you up.</h2><p className="mt-2 text-sm leading-relaxed text-muted">Tell us who you are and we&apos;ll create your workspace, API key, and sample dashboard.</p><form onSubmit={(event) => { event.preventDefault(); onSubmit(form); }} className="mt-7 space-y-4"><div className="grid gap-3 sm:grid-cols-2"><label className="block"><span className="mb-1.5 block text-xs font-medium text-body">First name</span><input required value={form.first_name} onChange={(event) => setForm({ ...form, first_name: event.target.value })} className={field} /></label><label className="block"><span className="mb-1.5 block text-xs font-medium text-body">Last name</span><input required value={form.last_name} onChange={(event) => setForm({ ...form, last_name: event.target.value })} className={field} /></label></div><label className="block"><span className="mb-1.5 block text-xs font-medium text-body">Company name</span><input required value={form.company_name} onChange={(event) => setForm({ ...form, company_name: event.target.value })} placeholder="Acme AI" className={field} /></label>{error && <p className="border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>}<button disabled={working} className="inline-flex w-full items-center justify-center gap-2 bg-ink px-5 py-3 text-sm font-medium text-white disabled:opacity-60">{working ? "Creating your workspace..." : "Continue to integration"}<ArrowRight size={15} /></button></form></section></div>;
+}

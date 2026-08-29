@@ -38,7 +38,7 @@ const tiers = [
     price: "$49",
     note: "per month",
     desc: "For teams shipping MCP servers to real users.",
-    cta: "Get early access",
+    cta: "Get started",
     variant: "primary" as const,
     featured: true,
     feats: [

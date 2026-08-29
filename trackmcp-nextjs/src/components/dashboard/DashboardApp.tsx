@@ -10,6 +10,7 @@ import type { Analytics } from "@/lib/telemetry/analytics-types";
 import { TrackMCPLogo } from "@/components/TrackMCPLogo";
 import { ClientTile, type ClientName } from "@/components/ClientLogos";
 import { IntegrationChecklist } from "@/components/dashboard/IntegrationChecklist";
+import { SetupModal, type SetupDetails } from "@/components/dashboard/SetupModal";
 
 type Workspace = { id: string; name: string; slug: string };
 type Key = { id: string; name: string; key_prefix: string; revoked_at: string | null; created_at: string };
@@ -47,10 +48,10 @@ const DEMO_ANALYTICS: Analytics = {
 };
 
 export function DashboardApp({
-  email, workspace, keys, analytics, newKey, working, error, onGenerateKey, onRevokeKey, onRefresh, onCreateWorkspace, onSignOut,
+  email, workspace, keys, analytics, newKey, working, error, setupRequired, setupDetails, onGenerateKey, onRevokeKey, onRefresh, onCreateWorkspace, onSignOut,
 }: {
   email: string; workspace: Workspace | null; keys: Key[]; analytics: Analytics | null; newKey: string; working: boolean; error: string;
-  onGenerateKey: () => void; onRevokeKey: (id: string) => void; onRefresh: (days?: string) => void; onCreateWorkspace: () => void; onSignOut: () => void;
+  setupRequired: boolean; setupDetails: SetupDetails; onGenerateKey: () => void; onRevokeKey: (id: string) => void; onRefresh: (days?: string) => void; onCreateWorkspace: (details?: SetupDetails) => void; onSignOut: () => void;
 }) {
   const [view, setView] = useState<View>("overview");
   const [range, setRange] = useState("30");
@@ -80,6 +81,7 @@ export function DashboardApp({
   };
 
   return <div className="min-h-screen bg-[#f7f8f7] text-ink [&_*]:rounded-none [&_*]:shadow-none">
+    {setupRequired && <SetupModal initial={setupDetails} working={working} error={error} onSubmit={onCreateWorkspace} />}
     <aside className="fixed inset-y-0 left-0 z-30 hidden w-[238px] border-r border-line bg-white lg:flex lg:flex-col">
       <div className="flex h-[68px] items-center border-b border-line px-5"><TrackMCPLogo asLink={false} mark size="footer" variant="mono" /></div>
       <div className="mx-3 mt-4 flex items-center gap-2 rounded-lg border border-line bg-paper px-3 py-2.5 text-left"><span className="grid h-7 w-7 place-items-center rounded-md bg-brand text-xs font-bold text-white">{(workspace?.name || "W").slice(0, 1).toUpperCase()}</span><span className="min-w-0 flex-1"><span className="block truncate text-[12.5px] font-medium text-ink">{workspace?.name || "Workspace"}</span><span className="block text-[11px] text-faint">Personal workspace</span></span><ChevronDown size={14} className="text-faint" /></div>

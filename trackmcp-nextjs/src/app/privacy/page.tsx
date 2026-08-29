@@ -19,7 +19,7 @@ const sections: LegalSection[] = [
   {
     h: "Data we collect",
     p: [
-      "Account data: your name, work email, and workspace details when you sign up or request early access.",
+      "Account data: your first name, last name, work email, company, and workspace details when you sign up.",
       "Usage telemetry from your MCP server: the tool called, timing, status, client type, and error details. You control what your server sends. We recommend not sending end-user personal data or secrets in tool arguments; you can redact fields before they reach us.",
       "Product analytics: how you use the TrackMCP dashboard, so we can improve it.",
     ],
@@ -28,7 +28,7 @@ const sections: LegalSection[] = [
     h: "How we use data",
     p: [
       "To provide the analytics you asked for: turning your server's calls into dashboards, sessions, and weekly summaries.",
-      "To operate, secure, and improve the service, and to communicate with you about your account and early access.",
+      "To operate, secure, and improve the service, and to communicate with you about your account.",
       "We do not sell your data, and we do not use your telemetry to train models for other customers.",
     ],
   },

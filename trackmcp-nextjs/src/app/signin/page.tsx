@@ -10,8 +10,14 @@ import { TrackMCPMark } from "@/components/TrackMCPMark";
 export default function SignInPage() {
   const [status, setStatus] = useState<"idle" | "loading" | "sent" | "error">("idle");
   const [email, setEmail] = useState("");
-  const [mode, setMode] = useState<"signin" | "signup">("signin");
-  const [fullName, setFullName] = useState("");
+  const [mode, setMode] = useState<"signin" | "signup">(() => {
+    if (typeof window === "undefined") return "signin";
+    return new URLSearchParams(window.location.search).get("mode") === "signup" ? "signup" : "signin";
+  });
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
+  const [companyName, setCompanyName] = useState("");
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
   const [error, setError] = useState(() => {
     if (typeof window === "undefined") return "";
     const authError = new URLSearchParams(window.location.search).get("auth_error");
@@ -29,7 +35,7 @@ export default function SignInPage() {
     const redirectOrigin = "https://www.trackmcp.com";
     const { error: authError } = await getSupabaseBrowser().auth.signInWithOtp({
       email,
-      options: { emailRedirectTo: `${redirectOrigin}/auth/callback`, data: mode === "signup" ? { full_name: fullName } : undefined },
+      options: { emailRedirectTo: `${redirectOrigin}/auth/callback`, data: mode === "signup" ? { first_name: firstName, last_name: lastName, full_name: `${firstName} ${lastName}`.trim(), company_name: companyName, terms_accepted: true } : undefined },
     });
     if (authError) {
       setError(authError.message);
@@ -55,12 +61,16 @@ export default function SignInPage() {
             </p>
 
             <form onSubmit={submit} className="mt-7 flex flex-col gap-3">
-              {mode === "signup" && <div><label className="mb-1.5 block text-[13px] font-medium text-body">Your name</label><input required value={fullName} onChange={(event) => setFullName(event.target.value)} placeholder="Your name" className={field} /></div>}
+              {mode === "signup" && <>
+                <div className="grid gap-3 sm:grid-cols-2"><div><label className="mb-1.5 block text-[13px] font-medium text-body">First name</label><input required value={firstName} onChange={(event) => setFirstName(event.target.value)} placeholder="Krishna" className={field} /></div><div><label className="mb-1.5 block text-[13px] font-medium text-body">Last name</label><input required value={lastName} onChange={(event) => setLastName(event.target.value)} placeholder="Goyal" className={field} /></div></div>
+                <div><label className="mb-1.5 block text-[13px] font-medium text-body">Company name</label><input required value={companyName} onChange={(event) => setCompanyName(event.target.value)} placeholder="Acme AI" className={field} /></div>
+              </>}
               <div>
                 <label className="mb-1.5 block text-[13px] font-medium text-body">Work email</label>
                 <input required type="email" value={email} onChange={(event) => setEmail(event.target.value)} placeholder="you@company.com" className={field} />
               </div>
               <p className="text-[13px] leading-relaxed text-muted">We&apos;ll email you a secure sign-in link. No password to remember.</p>
+              {mode === "signup" && <label className="flex items-start gap-2 text-[12.5px] leading-relaxed text-muted"><input required type="checkbox" checked={acceptedTerms} onChange={(event) => setAcceptedTerms(event.target.checked)} className="mt-0.5 h-4 w-4 accent-brand" /> <span>I agree to the <Link href="/terms" className="font-medium text-brand-strong hover:underline">Terms of Service</Link> and <Link href="/privacy" className="font-medium text-brand-strong hover:underline">Privacy Policy</Link>.</span></label>}
               <button
                 type="submit"
                 disabled={status === "loading"}

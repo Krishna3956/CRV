@@ -37,13 +37,13 @@ const sections: LegalSection[] = [
   {
     h: "Plans & billing",
     p: [
-      "Paid plans are billed in advance and are month-to-month unless agreed otherwise. Usage above your plan's limits may require an upgrade. During early access, pricing and limits may change with notice.",
+      "Paid plans are billed in advance and are month-to-month unless agreed otherwise. Usage above your plan's limits may require an upgrade. Pricing and limits may change with notice.",
     ],
   },
   {
     h: "Availability",
     p: [
-      "We work hard to keep TrackMCP available, but the service is provided as-is during early access, without an uptime SLA unless your Enterprise agreement states one.",
+      "We work hard to keep TrackMCP available, but the service is provided as-is, without an uptime SLA unless your Enterprise agreement states one.",
     ],
   },
   {
@@ -69,7 +69,7 @@ export default function TermsPage() {
     <LegalPage
       title="Terms of Service"
       updated="February 2026"
-      intro="Plain-language terms for using TrackMCP during early access and beyond."
+      intro="Plain-language terms for using TrackMCP."
       sections={sections}
     />
   );
