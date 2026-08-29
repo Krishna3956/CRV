@@ -44,7 +44,7 @@ const tiers = [
     feats: [
       "5M tool calls / month",
       "90-day data retention",
-      "AI synthesis & weekly insights",
+      "Actionable usage insights",
       "Unlimited MCP servers",
       "Slack & webhook alerts",
       "Email support",
@@ -100,7 +100,7 @@ const compareGroups: { group: string; rows: { label: string; vals: [Cell, Cell, 
     ],
   },
   {
-    group: "AI synthesis",
+    group: "Actionable insights",
     rows: [
       { label: "Weekly plain-English insight digest", vals: [false, true, true] },
       { label: "Root-cause diagnosis & suggested fix", vals: [false, true, true] },

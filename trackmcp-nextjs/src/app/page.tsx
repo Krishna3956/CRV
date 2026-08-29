@@ -423,14 +423,14 @@ export default withTrackMCP(server, {
           </div>
         </section>
 
-        {/* ══════════ CHAPTER 12 · AI SYNTHESIS ══════════ */}
+        {/* ══════════ CHAPTER 12 · ACTIONABLE INSIGHTS ══════════ */}
         <section className="relative overflow-hidden border-b border-line bg-[#f0fdf4] pb-24">
           <SectionCurve color="#ffffff" />
           <div className="relative mx-auto max-w-6xl px-6 pt-4">
             <div className="grid items-center gap-12 lg:grid-cols-2">
               <Reveal>
                 <span className="inline-flex items-center gap-2 text-[12px] font-medium uppercase tracking-[0.04em] text-brand-strong">
-                  <Sparkles size={14} /> AI synthesis
+                  <Sparkles size={14} /> Actionable insights
                 </span>
                 <h2 className="mt-3 text-[30px] font-medium leading-[1.1] tracking-[-0.02em] text-ink sm:text-[36px]">
                   Get the answer, not another dashboard

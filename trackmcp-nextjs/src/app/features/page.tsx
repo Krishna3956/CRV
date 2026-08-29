@@ -29,7 +29,7 @@ import { LoopBars, LatencyGauge, ClientDonut } from "@/components/SignalGraphics
 export const metadata: Metadata = pageMeta({
   title: "Features | TrackMCP",
   description:
-    "Tool analytics, latency and error tracking, silent-failure detection, client breakdown, sessions, alerts, and AI synthesis for the MCP server you ship.",
+    "Tool analytics, latency and error tracking, silent-failure detection, client breakdown, sessions, alerts, and actionable insights for the MCP server you ship.",
   path: "/features",
 });
 
@@ -358,7 +358,7 @@ export default function FeaturesPage() {
                 {[
                   ["Adoption", "#adoption"],
                   ["Reliability", "#reliability"],
-                  ["AI synthesis", "#ai"],
+                  ["Actionable insights", "#ai"],
                   ["Integrations", "#integrations"],
                 ].map(([label, href]) => (
                   <a
@@ -417,11 +417,11 @@ export default function FeaturesPage() {
           </div>
         </section>
 
-        {/* ── AI synthesis ── */}
+        {/* ── Actionable insights ── */}
         <section id="ai" className="mx-auto max-w-6xl scroll-mt-24 px-6 py-20">
           <Reveal className="mx-auto max-w-2xl text-center">
             <span className="inline-flex items-center gap-2 text-[12px] font-medium uppercase tracking-[0.04em] text-brand">
-              <Sparkles size={14} /> AI synthesis
+              <Sparkles size={14} /> Actionable insights
             </span>
             <h2 className="mt-3 text-[30px] font-medium leading-[1.1] tracking-[-0.02em] text-ink sm:text-[36px]">
               The layer that reads the data for you
