@@ -57,9 +57,9 @@ export default function SignInPage({ initialMode = "signin" }: { initialMode?: "
         <TrackMCPLogo mark href="https://trackmcp.com" />
         <div className="flex flex-1 items-center justify-center">
           <div className="w-full max-w-[380px] py-10">
-            <h1 className="text-[28px] font-medium tracking-[-0.02em] text-ink">{mode === "signup" ? "Create your TrackMCP workspace" : "Sign in to TrackMCP"}</h1>
+            <h1 className="text-[28px] font-medium tracking-[-0.02em] text-ink">{mode === "signup" ? "Create your TrackMCP account" : "Sign in to TrackMCP"}</h1>
             <p className="mt-2 text-[14.5px] text-muted">
-              {mode === "signup" ? "Start understanding how your MCP server is used." : "Welcome back. Sign in to your workspace."}
+              {mode === "signup" ? "Start observing your MCP server in minutes." : "Welcome back. Continue to your MCP analytics."}
             </p>
 
             <form onSubmit={submit} className="mt-7 flex flex-col gap-3">
@@ -84,7 +84,7 @@ export default function SignInPage({ initialMode = "signin" }: { initialMode?: "
                   </>
                 ) : (
                   <>
-                    {mode === "signup" ? "Create workspace" : "Send sign-in link"} <ArrowRight size={16} />
+                    {mode === "signup" ? "Create account" : "Send sign-in link"} <ArrowRight size={16} />
                   </>
                 )}
               </button>
@@ -93,7 +93,7 @@ export default function SignInPage({ initialMode = "signin" }: { initialMode?: "
             {status === "sent" && (
               <p className="mt-4 flex items-start gap-2 rounded-lg border border-brand/30 bg-brand-soft/40 px-3.5 py-2.5 text-[13px] leading-snug text-brand-strong">
                 <Check size={15} className="mt-0.5 shrink-0" />
-                Check your email for a secure sign-in link. We&apos;ll create your workspace when you arrive.
+                Check your email for a secure sign-in link. We&apos;ll finish setting up your account when you arrive.
               </p>
             )}
             {error && <p className="mt-4 rounded-lg border border-red-200 bg-red-50 px-3.5 py-2.5 text-[13px] text-red-700">{error}</p>}
