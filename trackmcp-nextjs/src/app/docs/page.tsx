@@ -21,7 +21,7 @@ export const metadata: Metadata = pageMeta({
 
 const cards = [
   { icon: Terminal, t: "TypeScript SDK", d: "Wrap a Node MCP server in one line.", href: "/docs/typescript" },
-  { icon: Braces, t: "Python SDK", d: "The same one-line wrap for Python servers.", href: "/docs/python" },
+  { icon: Braces, t: "Python SDK", d: "Coming soon. The Python package is not published yet.", href: "/docs/python" },
   { icon: Plug, t: "REST API", d: "Query your own metrics programmatically.", href: "/docs/api" },
   { icon: SlidersHorizontal, t: "Configuration", d: "Every option, event, and metric.", href: "/docs/reference" },
 ];
@@ -97,10 +97,10 @@ export default withTrackMCP(server, {
             <span className="flex items-center gap-2 text-sm font-medium text-ink"><Terminal size={16} className="text-brand" /> TypeScript / Node.js</span>
             <p className="mt-2 text-xs leading-relaxed text-muted">For MCP servers running in Node.js. Install the published npm package and wrap your server.</p>
           </Link>
-          <Link href="/docs/python" className="rounded-xl border border-line bg-white p-4 hover:border-line-strong">
-            <span className="flex items-center gap-2 text-sm font-medium text-ink"><Braces size={16} className="text-brand" /> Python</span>
-            <p className="mt-2 text-xs leading-relaxed text-muted">For Python MCP servers. Install the published package and wrap your server object.</p>
-          </Link>
+          <div className="rounded-xl border border-line bg-white p-4 opacity-75">
+            <span className="flex items-center gap-2 text-sm font-medium text-ink"><Braces size={16} className="text-muted" /> Python <span className="text-[10px] font-medium uppercase tracking-[0.08em] text-faint">Coming soon</span></span>
+            <p className="mt-2 text-xs leading-relaxed text-muted">The Python SDK is being prepared and is not available to install yet.</p>
+          </div>
         </div>
       </DocSection>
 
@@ -129,7 +129,7 @@ export default withTrackMCP(server, {
           {[
             ["No data appears", "Confirm TRACKMCP_KEY is set in the same process that runs the MCP server, then make a fresh tool call."],
             ["Invalid or revoked API key", "Generate a new key in the signed-in workspace and restart the server after updating the environment."],
-            ["The install command fails", "Use Node.js 18 or newer for TypeScript, or Python 3.9 or newer for Python. Confirm the package name exactly."],
+            ["The install command fails", "Use Node.js 18 or newer and confirm the published package name exactly."],
           ].map(([title, body]) => <div key={title} className="rounded-xl border border-line bg-white p-4"><h3 className="text-sm font-medium text-ink">{title}</h3><p className="mt-1 text-sm leading-relaxed text-muted">{body}</p></div>)}
         </div>
       </DocSection>

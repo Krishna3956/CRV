@@ -101,9 +101,8 @@ export default function ReferenceDocsPage() {
 
       <DocSection title="Environment variables">
         <Para>
-          Python reads <Inline>TRACKMCP_KEY</Inline> automatically when an API key is
-          not passed. TypeScript requires <Inline>apiKey</Inline> in the options. For
-          a self-hosted deployment, pass the ingest URL explicitly as <Inline>endpoint</Inline>;
+          TypeScript requires <Inline>apiKey</Inline> in the options. For a self-hosted
+          deployment, pass the ingest URL explicitly as <Inline>endpoint</Inline>;
           <Inline>TRACKMCP_ENDPOINT</Inline> is not read automatically.
         </Para>
       </DocSection>
