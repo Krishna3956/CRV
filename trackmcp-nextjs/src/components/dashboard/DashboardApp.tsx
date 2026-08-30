@@ -80,7 +80,7 @@ export function DashboardApp({
     if (ok) { setCopied(true); window.setTimeout(() => setCopied(false), 1600); }
   };
 
-  return <div className="min-h-screen bg-[#fafafa] text-ink">
+  return <div className="min-h-screen bg-[#fafafa] font-display text-ink">
     {setupRequired && <SetupModal initial={setupDetails} working={working} error={error} onSubmit={onCreateWorkspace} />}
     <aside className="fixed inset-y-0 left-0 z-30 hidden w-[248px] border-r border-[#e7e7e7] bg-[#fcfcfc] lg:flex lg:flex-col">
       <div className="flex h-[58px] items-center border-b border-[#e7e7e7] px-5"><TrackMCPLogo asLink={false} mark size="footer" variant="mono" /></div>

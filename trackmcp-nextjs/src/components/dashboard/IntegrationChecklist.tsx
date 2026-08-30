@@ -14,7 +14,7 @@ export function IntegrationChecklist({ hasKey, working, onGenerateKey, onRefresh
   };
   return <section className="mb-7 border border-[#dfe7e2] bg-white">
     <div className="flex flex-wrap items-center justify-between gap-4 border-b border-[#e7ebe8] px-5 py-4 sm:px-6">
-      <div><p className="text-[10px] font-semibold uppercase tracking-[0.15em] text-[#14956f]">First connection</p><h2 className="mt-1 text-[18px] font-semibold tracking-[-0.02em] text-[#202020]">Connect your MCP server</h2><p className="mt-1 text-[13px] text-[#707570]">Generate a key, install the SDK, and send one event to start observing your server.</p></div>
+      <div><p className="text-[11px] font-semibold uppercase tracking-[0.15em] text-[#14956f]">First connection</p><h2 className="mt-1 text-[22px] font-semibold tracking-[-0.025em] text-[#202020]">Connect your MCP server</h2><p className="mt-1 text-[14px] text-[#707570]">Generate a key, install the SDK, and send one event to start observing your server.</p></div>
       <div className="flex items-center gap-2"><button onClick={onExplore} className="border border-[#d8e0db] px-3 py-2 text-[12px] font-medium text-[#444] hover:bg-[#f6f8f6]">Explore sample</button><button onClick={onDismiss} aria-label="Dismiss connection guide" className="rounded-md p-1.5 text-[#999] hover:bg-[#f2f4f2] hover:text-[#333]"><X size={16} /></button></div>
     </div>
     <div className="grid gap-0 divide-y border-b border-[#e7ebe8] md:grid-cols-4 md:divide-x md:divide-y-0">
@@ -27,5 +27,5 @@ export function IntegrationChecklist({ hasKey, working, onGenerateKey, onRefresh
 }
 
 function Step({ number, title, done, children }: { number: string; title: string; done: boolean; children: React.ReactNode }) {
-  return <div className="px-5 py-4 sm:px-6"><div className="flex items-center gap-2"><span className="font-mono text-[10px] text-[#9ba49e]">{number}</span><h3 className="text-[13px] font-semibold text-[#333]">{title}</h3>{done && <Check size={14} className="text-[#14956f]" />}</div>{children}</div>;
+  return <div className="px-5 py-5 sm:px-6"><div className="flex items-center gap-2"><span className="font-mono text-[11px] text-[#9ba49e]">{number}</span><h3 className="text-[14px] font-semibold text-[#333]">{title}</h3>{done && <Check size={15} className="text-[#14956f]" />}</div>{children}</div>;
 }
