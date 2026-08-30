@@ -85,7 +85,7 @@ export default function Home() {
         <section className="relative bg-mist">
           {/* white bridge: a sharp trapezoid dips from the hero into the mist,
               holding the tag stack */}
-          <div className="relative mx-auto w-full max-w-[680px] px-6">
+          <div className="relative mx-auto hidden w-full max-w-[680px] px-6 md:block">
             <div
               aria-hidden
               className="absolute inset-0 bg-white"
@@ -113,12 +113,12 @@ export default function Home() {
           </div>
 
           {/* dashboard — the single central product object, in the mist */}
-          <Reveal y={28} className="relative z-10 mx-auto mt-12 max-w-[1000px] px-6">
+          <Reveal y={28} className="relative z-10 mx-auto mt-12 hidden max-w-[1000px] px-6 md:block">
             <HeroDashboardScene />
           </Reveal>
 
           {/* client compatibility */}
-          <div className="mx-auto max-w-6xl px-6 pb-20 pt-16">
+          <div className="mx-auto max-w-6xl px-6 pb-20 pt-8 md:pt-16">
             <p className="text-center text-[12px] font-medium uppercase tracking-wide text-faint">
               Works with every MCP client
             </p>
