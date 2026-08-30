@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import {
-  Activity, AlertTriangle, BarChart3, Check, ChevronDown, Clock3,
+  Activity, AlertTriangle, BarChart3, Check, ChevronDown, Clock3, Clipboard,
   Gauge, KeyRound, Layers3, LogOut, RefreshCw, Settings, Sparkles,
   Target, Users, Wrench, X,
 } from "lucide-react";
@@ -206,4 +206,47 @@ function CatalogView({ analytics }: { analytics: Analytics }) { return <><PageIn
 function ReleasesView({ analytics }: { analytics: Analytics }) { return <><PageIntro title="Releases" desc="Make changes observable across environments, server versions, and protocol revisions." /><Panel title="Release comparison is ready for deployment metadata" subtitle="The next SDK event includes environment, deployment, server version, and commit context."><div className="mt-5 grid gap-4 sm:grid-cols-3"><div className="rounded-xl bg-paper p-4"><p className="text-xs text-muted">Transports observed</p><p className="mt-2 text-lg font-semibold text-ink">{analytics.transports.length ? analytics.transports.length : "Waiting"}</p></div><div className="rounded-xl bg-paper p-4"><p className="text-xs text-muted">Protocol surface</p><p className="mt-2 text-lg font-semibold text-ink">{fmt(analytics.methods.length)} methods</p></div><div className="rounded-xl bg-paper p-4"><p className="text-xs text-muted">Current sample</p><p className="mt-2 text-lg font-semibold text-ink">{fmt(analytics.total_events)} events</p></div></div><p className="mt-5 text-sm leading-relaxed text-muted">Add deployment metadata in the SDK configuration to unlock before/after regression comparisons for error rate, latency, catalog changes, and workflow completion.</p></Panel></>; }
 function ReliabilityView({ analytics }: { analytics: Analytics }) { const failing = analytics.tools.filter((tool) => tool.error_rate > 0 || (tool.avg_ms || 0) >= 500).sort((a, b) => b.error_rate - a.error_rate); return <><PageIntro title="Reliability" desc="Find the calls that make an agent retry, stall, or abandon a session." /><div className="grid gap-4 sm:grid-cols-3"><Metric label="Error rate" value={analytics.tool_calls ? `${Math.round((analytics.errors / analytics.tool_calls) * 100)}%` : "N/A"} icon={AlertTriangle} tone={analytics.errors ? "warn" : "normal"} /><Metric label="Successful calls" value={fmt(analytics.funnel.successful_calls)} icon={Check} /><Metric label="Tools needing review" value={fmt(failing.length)} icon={Gauge} tone={failing.length ? "warn" : "normal"} /></div><div className="mt-6"><Insights analytics={analytics} /></div><Panel title="Reliability queue" subtitle="Prioritized by observed errors and latency"><div className="mt-3 divide-y divide-line">{failing.length ? failing.map((tool) => <ToolRow key={tool.name} tool={tool} />) : <p className="py-6 text-sm text-muted">No reliability issues detected in this period.</p>}</div></Panel></>; }
 function PageIntro({ title, desc }: { title: string; desc: string }) { return <div className="mb-7"><h2 className="text-2xl font-medium tracking-[-0.03em] text-ink">{title}</h2><p className="mt-2 text-sm text-muted">{desc}</p></div>; }
-function SettingsView({ keys, working, onGenerateKey, onRevokeKey }: { keys: Key[]; working: boolean; onGenerateKey: () => void; onRevokeKey: (id: string) => void }) { return <><PageIntro title="Settings" desc="Manage your workspace connection and the keys your servers use." /><div className="grid gap-6 xl:grid-cols-[minmax(0,1.25fr)_minmax(320px,0.75fr)]"><Panel title="Integration" subtitle="Add TrackMCP to an existing TypeScript MCP server"><div className="mt-4 rounded-xl bg-[#101713] p-5 font-mono text-xs leading-relaxed text-white"><p className="text-white/45"> # install the SDK</p><p className="mt-2">npm install @trackmcp/sdk</p><p className="text-white/45"># create a key in this workspace, then set TRACKMCP_KEY</p><p className="mt-4 text-white/45">{"// wrap your existing MCP server"}</p><p className="mt-2"><span className="text-emerald-300">const</span> tracked = <span className="text-sky-300">withTrackMCP</span>(server, &#123;</p><p>  apiKey: process.env.TRACKMCP_KEY,</p><p>  service: <span className="text-amber-200">&quot;my-mcp-server&quot;</span>,</p><p>&#125;);</p></div><p className="mt-4 text-xs leading-relaxed text-muted">The SDK captures protocol activity in the background. It never blocks your tools when analytics is unavailable.</p></Panel><Panel title="API keys" subtitle="Full secrets are shown only at creation"><div className="mt-4 space-y-2">{keys.map((key) => <div key={key.id} className="flex items-center justify-between gap-3 rounded-xl border border-line bg-paper px-3.5 py-3"><div><p className="font-mono text-xs text-ink">{key.key_prefix}••••••</p><p className="mt-1 text-[11px] text-muted">{key.name} · {key.revoked_at ? "Revoked" : "Active"}</p></div>{!key.revoked_at && <button onClick={() => onRevokeKey(key.id)} className="text-xs text-red-700 hover:underline">Revoke</button>}</div>)}{!keys.length && <p className="py-4 text-sm text-muted">No keys created yet.</p>}</div><button onClick={onGenerateKey} disabled={working} className="mt-4 inline-flex items-center gap-2 rounded-lg bg-ink px-4 py-2.5 text-sm font-medium text-white disabled:opacity-60"><KeyRound size={15} />{working ? "Creating..." : "Create new key"}</button></Panel></div></>; }
+function SettingsView({ keys, working, onGenerateKey, onRevokeKey }: { keys: Key[]; working: boolean; onGenerateKey: () => void; onRevokeKey: (id: string) => void }) {
+  const [language, setLanguage] = useState<"TypeScript" | "Go" | ".NET">("TypeScript");
+  const [copied, setCopied] = useState(false);
+  const snippets = {
+    TypeScript: { install: "npm install @trackmcp/sdk", code: `import { withTrackMCP } from "@trackmcp/sdk";
+import { server } from "./mcp";
+
+export default withTrackMCP(server, {
+  apiKey: process.env.TRACKMCP_KEY!,
+  service: "my-mcp-server",
+  environment: "production",
+});` },
+    Go: { install: "go get github.com/trackmcp/trackmcp-go", code: `client := trackmcp.New(trackmcp.Options{
+  APIKey: os.Getenv("TRACKMCP_KEY"),
+  Service: "my-mcp-server",
+  Environment: "production",
+})
+
+client.Capture(trackmcp.Event{
+  EventType: "tool_call",
+  MCPMethod: "tools/call",
+  ToolName: "search_docs",
+})
+defer client.Flush()` },
+    ".NET": { install: "dotnet add package TrackMcp", code: `using TrackMcp;
+
+using var client = new TrackMcpClient(new TrackMcpOptions(
+  Environment.GetEnvironmentVariable("TRACKMCP_KEY")!,
+  Service: "my-mcp-server",
+  Environment: "production"));
+
+client.Capture("tool_call", "tools/call",
+  toolName: "search_docs");
+await client.FlushAsync();` },
+  } as const;
+  const snippet = snippets[language];
+  const copySnippet = async () => {
+    let ok = false;
+    try { if (navigator.clipboard?.writeText) { await navigator.clipboard.writeText(`${snippet.install}\n\n${snippet.code}`); ok = true; } } catch { /* fallback below */ }
+    if (!ok) { const area = document.createElement("textarea"); area.value = `${snippet.install}\n\n${snippet.code}`; area.style.position = "fixed"; area.style.opacity = "0"; document.body.appendChild(area); area.focus(); area.select(); try { ok = document.execCommand("copy"); } catch { ok = false; } area.remove(); }
+    if (ok) { setCopied(true); window.setTimeout(() => setCopied(false), 1600); }
+  };
+  return <><PageIntro title="Configure" desc="Connect your MCP server and manage the keys your SDK integrations use." /><div className="grid gap-6 xl:grid-cols-[minmax(0,1.25fr)_minmax(320px,0.75fr)]"><Panel title="SDK integration" subtitle="Choose your language, install the package, and add the wrapper at your server boundary"><div className="mt-4 flex flex-wrap gap-1 border-b border-line pb-2">{(Object.keys(snippets) as Array<keyof typeof snippets>).map((item) => <button key={item} onClick={() => { setLanguage(item); setCopied(false); }} className={`px-3 py-2 text-xs font-medium ${language === item ? "border-b-2 border-brand text-brand-strong" : "text-muted hover:text-ink"}`}>{item}</button>)}</div><div className="mt-4 border border-[#26332c] bg-[#101713] text-white"><div className="flex items-center justify-between gap-3 border-b border-white/10 px-4 py-3"><span className="font-mono text-[11px] text-white/55">{language} · quickstart</span><button onClick={() => void copySnippet()} className="inline-flex items-center gap-1.5 border border-white/20 px-2.5 py-1.5 text-[11px] text-white/80 hover:bg-white/10"><Clipboard size={13} />{copied ? "Copied" : "Copy"}</button></div><pre className="overflow-x-auto p-5 font-mono text-xs leading-relaxed"><code><span className="text-emerald-300">{snippet.install}</span>{"\n\n"}{snippet.code}</code></pre></div><p className="mt-4 text-xs leading-relaxed text-muted">Telemetry is fail-open: your server keeps working if TrackMCP is unavailable. Keep <code className="font-mono text-ink">TRACKMCP_KEY</code> in your environment and never commit it.</p></Panel><Panel title="API keys" subtitle="Full secrets are shown only at creation"><div className="mt-4 space-y-2">{keys.map((key) => <div key={key.id} className="flex items-center justify-between gap-3 rounded-xl border border-line bg-paper px-3.5 py-3"><div><p className="font-mono text-xs text-ink">{key.key_prefix}••••••</p><p className="mt-1 text-[11px] text-muted">{key.name} · {key.revoked_at ? "Revoked" : "Active"}</p></div>{!key.revoked_at && <button onClick={() => onRevokeKey(key.id)} className="text-xs text-red-700 hover:underline">Revoke</button>}</div>)}{!keys.length && <p className="py-4 text-sm text-muted">No keys created yet.</p>}</div><button onClick={onGenerateKey} disabled={working} className="mt-4 inline-flex items-center gap-2 rounded-lg bg-ink px-4 py-2.5 text-sm font-medium text-white disabled:opacity-60"><KeyRound size={15} />{working ? "Creating..." : "Create new key"}</button></Panel></div></>;
+}
