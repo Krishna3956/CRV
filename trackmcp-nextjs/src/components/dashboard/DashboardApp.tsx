@@ -47,6 +47,16 @@ const DEMO_ANALYTICS: Analytics = {
   tools: [{ name: "search_docs", calls: 1682, errors: 18, error_rate: 0.011, avg_ms: 142, discovered: true }, { name: "create_issue", calls: 1248, errors: 34, error_rate: 0.027, avg_ms: 208, discovered: true }, { name: "run_query", calls: 1124, errors: 96, error_rate: 0.085, avg_ms: 640, discovered: true }, { name: "get_customer", calls: 986, errors: 42, error_rate: 0.043, avg_ms: 380, discovered: true }, { name: "list_projects", calls: 864, errors: 21, error_rate: 0.024, avg_ms: 186, discovered: true }, { name: "create_pull_request", calls: 712, errors: 29, error_rate: 0.041, avg_ms: 428, discovered: true }, { name: "get_deployment_status", calls: 604, errors: 16, error_rate: 0.026, avg_ms: 312, discovered: true }, { name: "update_ticket", calls: 498, errors: 18, error_rate: 0.036, avg_ms: 274, discovered: true }, { name: "summarize_changes", calls: 386, errors: 12, error_rate: 0.031, avg_ms: 522, discovered: true }, { name: "delete_environment", calls: 0, errors: 0, error_rate: 0, avg_ms: null, discovered: true }], unused_tools: ["delete_environment", "deploy_service"], workflows: [{ session_id: "demo-session-1", client_name: "Claude", calls: 8, tools: ["search_docs", "get_customer", "create_issue"], started_at: "2026-08-28T10:00:00Z", duration_ms: 3680, completed: true }, { session_id: "demo-session-2", client_name: "Cursor", calls: 6, tools: ["run_query", "create_pull_request"], started_at: "2026-08-28T09:42:00Z", duration_ms: 9200, completed: false }, { session_id: "demo-session-3", client_name: "ChatGPT", calls: 11, tools: ["list_projects", "search_docs", "get_deployment_status"], started_at: "2026-08-28T09:18:00Z", duration_ms: 6410, completed: true }, { session_id: "demo-session-4", client_name: "Internal agent", calls: 14, tools: ["run_query", "update_ticket", "summarize_changes"], started_at: "2026-08-28T08:56:00Z", duration_ms: 12480, completed: true }, { session_id: "demo-session-5", client_name: "Claude Desktop", calls: 4, tools: ["search_docs", "list_projects"], started_at: "2026-08-27T16:12:00Z", duration_ms: 2880, completed: true }, { session_id: "demo-session-6", client_name: "Windsurf", calls: 7, tools: ["get_customer", "create_issue", "update_ticket"], started_at: "2026-08-27T14:04:00Z", duration_ms: 7810, completed: false }, { session_id: "demo-session-7", client_name: "Cursor", calls: 9, tools: ["run_query", "create_pull_request", "get_deployment_status"], started_at: "2026-08-27T12:32:00Z", duration_ms: 10240, completed: true }, { session_id: "demo-session-8", client_name: "Internal agent", calls: 5, tools: ["search_docs", "summarize_changes"], started_at: "2026-08-26T11:20:00Z", duration_ms: 4190, completed: true }], outcomes: [{ name: "issue_resolution", started: 168, completed: 142, failed: 26 }, { name: "deployment_check", started: 94, completed: 87, failed: 7 }, { name: "customer_lookup", started: 221, completed: 211, failed: 10 }, { name: "pull_request_review", started: 116, completed: 98, failed: 18 }, { name: "incident_triage", started: 73, completed: 62, failed: 11 }], insights: [{ level: "warn", title: "run_query is slowing down sessions", detail: "Its p95 latency is above the recommended target and appears in 31% of incomplete workflows.", metric: "640ms average" }, { level: "info", title: "Claude drives the broadest adoption", detail: "Claude accounts for the largest share of calls and uses 14 of the 18 discovered tools.", metric: "38% of calls" }, { level: "warn", title: "Two tools are advertised but unused", detail: "Review their descriptions, permissions, and placement in the catalog.", metric: "2 unused tools" }, { level: "error", title: "Pull request reviews have the lowest completion", detail: "18 of 116 observed review workflows did not reach a successful final state.", metric: "84% completion" }],
 };
 
+function sampleTimeline(days: number): Analytics["timeline"] {
+  const end = new Date("2026-08-28T00:00:00Z");
+  return Array.from({ length: days }, (_, index) => {
+    const date = new Date(end);
+    date.setUTCDate(end.getUTCDate() - (days - index - 1));
+    const calls = 360 + index * 14 + (index % 5) * 38;
+    return { date: date.toISOString().slice(0, 10), events: calls + 180 + (index % 3) * 54, calls, errors: 10 + (index % 4) * 4 + (index % 11 === 0 ? 14 : 0) };
+  });
+}
+
 export function DashboardApp({
   email, workspace, keys, analytics, newKey, working, error, setupRequired, setupDetails, onboardingMode = false, onGenerateKey, onRevokeKey, onDismissKey, onRefresh, onCreateWorkspace, onSignOut,
 }: {
@@ -66,7 +76,7 @@ export function DashboardApp({
   const hasLiveData = Boolean(analytics && analytics.total_events > 0);
   const showSample = sampleMode ?? !hasLiveData;
   const activeNav = nav.find((item) => item.id === view);
-  const displayedAnalytics = showSample ? DEMO_ANALYTICS : analytics;
+  const displayedAnalytics = showSample ? { ...DEMO_ANALYTICS, range_days: Number(range), timeline: sampleTimeline(Number(range)) } : analytics;
   const goTo = (next: View) => {
     setOnboarding(false);
     setView(next);
