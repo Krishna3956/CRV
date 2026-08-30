@@ -10,17 +10,18 @@ type Workspace = { id: string; name: string; slug: string };
 type Key = { id: string; name: string; key_prefix: string; revoked_at: string | null; created_at: string };
 type Account = { workspace: Workspace | null; keys: Key[] };
 type SetupDetails = { first_name: string; last_name: string; company_name: string };
+const LOCAL_DASHBOARD_BYPASS = process.env.NODE_ENV === "development" && process.env.NEXT_PUBLIC_LOCAL_DASHBOARD_BYPASS === "true";
 
 export default function DashboardPage() {
-  const [email, setEmail] = useState<string | null>(null);
-  const [workspace, setWorkspace] = useState<Workspace | null>(null);
+  const [email, setEmail] = useState<string | null>(LOCAL_DASHBOARD_BYPASS ? "demo@trackmcp.local" : null);
+  const [workspace, setWorkspace] = useState<Workspace | null>(LOCAL_DASHBOARD_BYPASS ? { id: "local-demo", name: "Local demo workspace", slug: "local-demo" } : null);
   const [keys, setKeys] = useState<Key[]>([]);
   const [analytics, setAnalytics] = useState<Analytics | null>(null);
   const [newKey, setNewKey] = useState("");
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(!LOCAL_DASHBOARD_BYPASS);
   const [working, setWorking] = useState(false);
   const [error, setError] = useState("");
-  const [setupDetails, setSetupDetails] = useState<SetupDetails>({ first_name: "", last_name: "", company_name: "" });
+  const [setupDetails, setSetupDetails] = useState<SetupDetails>(LOCAL_DASHBOARD_BYPASS ? { first_name: "Demo", last_name: "User", company_name: "Local demo" } : { first_name: "", last_name: "", company_name: "" });
 
   const loadAccount = async (): Promise<Account> => {
     const response = await fetch("/api/v1/account/workspace", { cache: "no-store" });
@@ -55,10 +56,13 @@ export default function DashboardPage() {
   };
 
   useEffect(() => {
+    if (LOCAL_DASHBOARD_BYPASS) {
+      return;
+    }
     void (async () => { const { data } = await getSupabaseBrowser().auth.getUser(); const user = data.user; setEmail(user?.email || null); if (!user) { setLoading(false); return; } setSetupDetails({ first_name: user.user_metadata?.first_name || "", last_name: user.user_metadata?.last_name || "", company_name: user.user_metadata?.company_name || "" }); try { const account = await loadAccount(); if (account.workspace) await loadAnalytics(); } catch (reason) { setError(reason instanceof Error ? reason.message : "Could not load your account."); } finally { setLoading(false); } })();
   }, []);
 
   if (loading) return <main className="mx-auto min-h-screen max-w-6xl px-6 py-20 text-sm text-muted">Loading your workspace…</main>;
   if (!email) return <main className="mx-auto min-h-screen max-w-xl px-6 py-24"><p className="text-xs font-semibold uppercase tracking-wide text-brand">TrackMCP</p><h1 className="mt-3 text-4xl font-medium tracking-tight text-ink">Your workspace is waiting.</h1><p className="mt-4 text-muted">Sign in to create an API key and see how your MCP server is being used.</p><Link href="/signin" className="mt-7 inline-flex rounded-lg bg-ink px-5 py-3 text-sm font-medium text-white">Sign in to continue</Link></main>;
-  return <DashboardApp email={email} workspace={workspace} keys={keys} analytics={analytics} newKey={newKey} working={working} error={error} setupRequired={!workspace} setupDetails={setupDetails} onGenerateKey={generateKey} onRevokeKey={revokeKey} onRefresh={(days) => void loadAnalytics(days).catch((reason) => setError(reason instanceof Error ? reason.message : "Could not refresh analytics."))} onCreateWorkspace={createWorkspace} onSignOut={() => void getSupabaseBrowser().auth.signOut().then(() => window.location.reload())} />;
+  return <DashboardApp email={email} workspace={workspace} keys={keys} analytics={analytics} newKey={newKey} working={working} error={error} setupRequired={!LOCAL_DASHBOARD_BYPASS && !workspace} setupDetails={setupDetails} onGenerateKey={generateKey} onRevokeKey={revokeKey} onDismissKey={() => setNewKey("")} onRefresh={(days) => { if (!LOCAL_DASHBOARD_BYPASS) void loadAnalytics(days).catch((reason) => setError(reason instanceof Error ? reason.message : "Could not refresh analytics.")); }} onCreateWorkspace={createWorkspace} onSignOut={() => { if (LOCAL_DASHBOARD_BYPASS) window.location.reload(); else void getSupabaseBrowser().auth.signOut().then(() => window.location.reload()); }} />;
 }
