@@ -13,7 +13,6 @@ import {
 } from "lucide-react";
 import { ClientMark, type ClientName } from "../ClientLogos";
 import { TrackMCPMark } from "../TrackMCPMark";
-import { TrackMCPLogo } from "../TrackMCPLogo";
 
 /* "What happens after one line of code" — a top-to-bottom layered diagram of the
    real architecture, not an ETL funnel:
@@ -147,7 +146,7 @@ export function SystemStoryScene() {
             </span>
             <div className="min-w-0 flex-1">
               <div className="flex items-center gap-2">
-                <TrackMCPLogo asLink={false} size="footer" variant="mono" className="text-[13.5px]" />
+                <span className="text-[13.5px] font-semibold text-ink">TrackMCP</span>
                 <span className="rounded-full bg-white px-1.5 py-0.5 text-[9.5px] font-medium text-brand-strong ring-1 ring-brand/20">
                   analytics layer
                 </span>

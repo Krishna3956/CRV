@@ -1,6 +1,5 @@
 import Link from "next/link";
 import { TrackMCPAppIcon } from "./TrackMCPAppIcon";
-import { TrackMCPLogo } from "./TrackMCPLogo";
 
 const cols = [
   {
@@ -126,7 +125,9 @@ export function Footer() {
 
       {/* oversized faded wordmark */}
       <div aria-hidden className="pointer-events-none relative select-none px-6">
-        <TrackMCPLogo asLink={false} size="watermark" variant="mono" className="block justify-center opacity-[0.08]" />
+        <span className="block bg-gradient-to-b from-[#e9edea] to-[#f4f6f5] bg-clip-text text-center font-display text-[19vw] font-black leading-[0.78] tracking-[-0.05em] text-transparent">
+          trackmcp
+        </span>
       </div>
     </footer>
   );

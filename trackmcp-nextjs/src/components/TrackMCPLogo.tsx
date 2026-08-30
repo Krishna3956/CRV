@@ -1,10 +1,11 @@
 import Link from "next/link";
-import Image from "next/image";
 import { TrackMCPAppIcon } from "./TrackMCPAppIcon";
 
-/* The TrackMCP wordmark. The identity is intentionally typography-first:
-   a clean lowercase black wordmark. The app mark remains a separate component
-   so changing the wordmark never changes the favicon or product icon. */
+/* The TrackMCP wordmark — a calm, typographic lowercase logo.
+   `track` in charcoal, `mcp` in TrackMCP green. No gradient.
+   With `mark`, it becomes a proper lockup: the network mark + the wordmark,
+   so the nav reads as a deliberate identity rather than plain text.
+   One reusable component for nav, footer, and the oversized watermark. */
 
 type LogoSize = "nav" | "footer" | "watermark";
 type LogoVariant = "green" | "mono" | "light";
@@ -21,14 +22,9 @@ const monoSize: Record<LogoSize, number> = {
   watermark: 96,
 };
 
-const wordmarkSize: Record<LogoSize, string> = {
-  nav: "h-[1.12em] w-auto",
-  footer: "h-[1.08em] w-auto",
-  watermark: "h-[0.72em] w-auto",
-};
-
 export function TrackMCPLogo({
   size = "nav",
+  variant = "green",
   mark = false,
   asLink = true,
   href = "/",
@@ -41,6 +37,14 @@ export function TrackMCPLogo({
   href?: string;
   className?: string;
 }) {
+  const trackColor = variant === "light" ? "text-white" : "text-[#171717]";
+  const mcpColor =
+    variant === "mono"
+      ? trackColor
+      : variant === "light"
+        ? "text-[#86efac]"
+        : "text-brand";
+
   const align = mark ? "items-center gap-2" : "items-baseline";
   const base = `group inline-flex ${align} font-display font-medium lowercase tracking-[-0.045em] ${sizeClass[size]} ${className}`;
 
@@ -52,13 +56,10 @@ export function TrackMCPLogo({
           className="shrink-0 transition-transform duration-200 group-hover:-rotate-3"
         />
       )}
-      <Image
-        src="/trackmcp-wordmark.svg"
-        alt="trackmcp"
-        width={512}
-        height={96}
-        className={wordmarkSize[size]}
-      />
+      <span className={mark ? "inline-flex items-baseline" : "contents"}>
+        <span className={trackColor}>track</span>
+        <span className={mcpColor}>mcp</span>
+      </span>
     </>
   );
 
