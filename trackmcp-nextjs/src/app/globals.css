@@ -126,8 +126,6 @@
     outline-offset: 2px;
     border-radius: 6px;
   }
-  [role="switch"] { flex-shrink: 0; white-space: nowrap; }
-  [role="switch"] > span:first-child { display: inline-block; flex: 0 0 1.75rem; width: 1.75rem; }
 }
 
 @layer utilities {
