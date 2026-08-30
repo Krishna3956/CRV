@@ -57,6 +57,28 @@ function sampleTimeline(days: number): Analytics["timeline"] {
   });
 }
 
+function sampleAnalytics(days: number): Analytics {
+  const ratio = days / 30;
+  const count = (value: number) => Math.max(0, Math.round(value * ratio));
+  const workflows = DEMO_ANALYTICS.workflows.slice(days <= 7 ? -5 : days <= 30 ? -7 : 0).map((workflow) => ({ ...workflow, calls: Math.max(1, count(workflow.calls)), duration_ms: Math.max(180, Math.round(workflow.duration_ms * (0.8 + ratio * 0.2))) }));
+  return {
+    ...DEMO_ANALYTICS,
+    range_days: days,
+    total_events: count(DEMO_ANALYTICS.total_events),
+    protocol_events: count(DEMO_ANALYTICS.protocol_events),
+    catalog_events: count(DEMO_ANALYTICS.catalog_events),
+    tool_calls: count(DEMO_ANALYTICS.tool_calls),
+    sessions: count(DEMO_ANALYTICS.sessions),
+    errors: count(DEMO_ANALYTICS.errors),
+    funnel: { connections: count(DEMO_ANALYTICS.funnel.connections), discovered_tools: DEMO_ANALYTICS.funnel.discovered_tools, tool_calls: count(DEMO_ANALYTICS.funnel.tool_calls), successful_calls: count(DEMO_ANALYTICS.funnel.successful_calls) },
+    timeline: sampleTimeline(days),
+    clients: DEMO_ANALYTICS.clients.map((client) => ({ ...client, calls: count(client.calls) })),
+    tools: DEMO_ANALYTICS.tools.map((tool) => ({ ...tool, calls: count(tool.calls), errors: count(tool.errors) })),
+    workflows,
+    outcomes: DEMO_ANALYTICS.outcomes.map((outcome) => ({ ...outcome, started: count(outcome.started), completed: count(outcome.completed), failed: count(outcome.failed) })),
+  };
+}
+
 export function DashboardApp({
   email, workspace, keys, analytics, newKey, working, error, setupRequired, setupDetails, onboardingMode = false, onGenerateKey, onRevokeKey, onDismissKey, onRefresh, onCreateWorkspace, onSignOut,
 }: {
@@ -76,7 +98,7 @@ export function DashboardApp({
   const hasLiveData = Boolean(analytics && analytics.total_events > 0);
   const showSample = sampleMode ?? !hasLiveData;
   const activeNav = nav.find((item) => item.id === view);
-  const displayedAnalytics = showSample ? { ...DEMO_ANALYTICS, range_days: Number(range), timeline: sampleTimeline(Number(range)) } : analytics;
+  const displayedAnalytics = showSample ? sampleAnalytics(Number(range)) : analytics;
   const goTo = (next: View) => {
     setOnboarding(false);
     setView(next);
