@@ -53,9 +53,8 @@ export default async function ToolOgImage({ params }: { params: Promise<{ name: 
               </g>
             </svg>
           </div>
-          <div style={{ display: "flex", fontSize: 30, fontWeight: 700, letterSpacing: "-0.03em" }}>
-            <span style={{ color: "#171717" }}>track</span>
-            <span style={{ color: "#16a34a" }}>mcp</span>
+          <div style={{ display: "flex", fontSize: 30, fontWeight: 700, letterSpacing: "-0.03em", color: "#171717" }}>
+            trackmcp
           </div>
           <div style={{ fontSize: 22, color: "#a3a3a3", marginLeft: 8 }}>· MCP Repository</div>
         </div>

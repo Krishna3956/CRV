@@ -18,6 +18,7 @@ import { ClientMark } from "@/components/ClientLogos";
 import { PageFrame } from "@/components/PageFrame";
 import { HeroDashboardScene } from "@/components/HeroDashboardScene";
 import { TrackMCPMark } from "@/components/TrackMCPMark";
+import { TrackMCPLogo } from "@/components/TrackMCPLogo";
 import { DotGrid } from "@/components/DotGrid";
 import { SectionCurve } from "@/components/SectionCurve";
 import { SystemStoryScene } from "@/components/scenes/SystemStoryScene";
@@ -409,7 +410,7 @@ export default withTrackMCP(server, {
                   <TrackMCPMark size={22} topAccent={false} />
                 </span>
                 <div className="min-w-0 flex-1">
-                  <p className="text-[15px] font-semibold text-ink">TrackMCP</p>
+                  <TrackMCPLogo asLink={false} size="footer" variant="mono" />
                   <p className="text-[13px] text-body">
                     Shows who is using the server, what they are trying to do, and
                     what to improve
