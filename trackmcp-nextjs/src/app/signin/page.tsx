@@ -7,6 +7,7 @@ import { getSupabaseBrowser } from "@/lib/auth/supabase-browser";
 import { ArrowRight, Loader2, Check } from "lucide-react";
 import { TrackMCPLogo } from "@/components/TrackMCPLogo";
 import { TrackMCPMark } from "@/components/TrackMCPMark";
+import { sendWeb3Form } from "@/lib/web3forms";
 
 export default function SignInPage({ initialMode = "signin" }: { initialMode?: "signin" | "signup" }) {
   const router = useRouter();
@@ -18,7 +19,7 @@ export default function SignInPage({ initialMode = "signin" }: { initialMode?: "
   });
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
-  const [companyName, setCompanyName] = useState("");
+  const companyName = "";
   const [acceptedTerms, setAcceptedTerms] = useState(false);
   const [error, setError] = useState(() => {
     if (typeof window === "undefined") return "";
@@ -32,6 +33,10 @@ export default function SignInPage({ initialMode = "signin" }: { initialMode?: "
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (status === "loading") return;
+    if (mode === "signup" && !acceptedTerms) {
+      setError("Please accept the Terms of Service and Privacy Policy to create an account.");
+      return;
+    }
     setStatus("loading");
     setError("");
     const redirectOrigin = "https://app.trackmcp.com";
@@ -43,6 +48,7 @@ export default function SignInPage({ initialMode = "signin" }: { initialMode?: "
       setError(authError.message);
       setStatus("error");
     } else {
+      void sendWeb3Form({ subject: `TrackMCP ${mode} request`, from_name: "TrackMCP · Auth", name: `${firstName} ${lastName}`.trim(), email, company: companyName, intent: mode });
       setStatus("sent");
     }
   };
@@ -64,8 +70,7 @@ export default function SignInPage({ initialMode = "signin" }: { initialMode?: "
 
             <form onSubmit={submit} className="mt-7 flex flex-col gap-3">
               {mode === "signup" && <>
-                <div className="grid gap-3 sm:grid-cols-2"><div><label className="mb-1.5 block text-[13px] font-medium text-body">First name</label><input required value={firstName} onChange={(event) => setFirstName(event.target.value)} placeholder="Krishna" className={field} /></div><div><label className="mb-1.5 block text-[13px] font-medium text-body">Last name</label><input required value={lastName} onChange={(event) => setLastName(event.target.value)} placeholder="Goyal" className={field} /></div></div>
-                <div><label className="mb-1.5 block text-[13px] font-medium text-body">Company name</label><input required value={companyName} onChange={(event) => setCompanyName(event.target.value)} placeholder="Acme AI" className={field} /></div>
+                <div className="grid gap-3 sm:grid-cols-2"><div><label className="mb-1.5 block text-[13px] font-medium text-body">First name</label><input required value={firstName} onChange={(event) => setFirstName(event.target.value)} placeholder="Alex" className={field} /></div><div><label className="mb-1.5 block text-[13px] font-medium text-body">Last name</label><input required value={lastName} onChange={(event) => setLastName(event.target.value)} placeholder="Morgan" className={field} /></div></div>
               </>}
               <div>
                 <label className="mb-1.5 block text-[13px] font-medium text-body">Work email</label>

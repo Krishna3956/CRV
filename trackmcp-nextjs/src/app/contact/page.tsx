@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { pageMeta } from "@/lib/seo";
-import { Mail, MessagesSquare, Building2, BookOpen } from "lucide-react";
+import { MessagesSquare, Building2, BookOpen } from "lucide-react";
 import { Nav } from "@/components/Nav";
 import { Footer } from "@/components/Footer";
 import { PageFrame } from "@/components/PageFrame";
@@ -35,13 +35,6 @@ const channels = [
     body: "Install the SDK and read the reference.",
     action: "Read the docs",
     href: "/docs",
-  },
-  {
-    icon: Mail,
-    title: "General",
-    body: "Anything else on your mind.",
-    action: "hello@trackmcp.com",
-    href: "mailto:hello@trackmcp.com",
   },
 ];
 
