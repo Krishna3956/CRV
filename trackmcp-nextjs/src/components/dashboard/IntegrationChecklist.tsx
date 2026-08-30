@@ -3,8 +3,8 @@
 import { Check, Clipboard, ExternalLink, RefreshCw, X } from "lucide-react";
 import { useState } from "react";
 
-export function IntegrationChecklist({ hasKey, working, onGenerateKey, onRefresh, onExplore, onDismiss, checking, checkStatus }: {
-  hasKey: boolean; working: boolean; onGenerateKey: () => void; onRefresh: () => void; onExplore: () => void; onDismiss: () => void; checking: boolean; checkStatus: "idle" | "checking" | "waiting";
+export function IntegrationChecklist({ hasKey, working, onGenerateKey, onRefresh, onComplete, onDismiss, checking, checkStatus }: {
+  hasKey: boolean; working: boolean; onGenerateKey: () => void; onRefresh: () => void; onComplete: () => void; onDismiss: () => void; checking: boolean; checkStatus: "idle" | "checking" | "waiting";
 }) {
   const [copied, setCopied] = useState(false);
   const copyInstall = async () => {
@@ -15,7 +15,7 @@ export function IntegrationChecklist({ hasKey, working, onGenerateKey, onRefresh
   return <section className="mb-7 border border-[#dfe7e2] bg-white">
     <div className="flex flex-wrap items-center justify-between gap-4 border-b border-[#e7ebe8] px-5 py-4 sm:px-6">
       <div><p className="text-[11px] font-semibold uppercase tracking-[0.15em] text-[#14956f]">First connection</p><h2 className="mt-1 text-[22px] font-semibold tracking-[-0.025em] text-[#202020]">Connect your MCP server</h2><p className="mt-1 text-[14px] text-[#707570]">Generate a key, install the SDK, and send one event to start observing your server.</p></div>
-      <div className="flex items-center gap-2"><button onClick={onExplore} className="border border-[#d8e0db] px-3 py-2 text-[12px] font-medium text-[#444] hover:bg-[#f6f8f6]">Explore sample</button><button onClick={onDismiss} aria-label="Dismiss connection guide" className="rounded-md p-1.5 text-[#999] hover:bg-[#f2f4f2] hover:text-[#333]"><X size={16} /></button></div>
+      <div className="flex items-center gap-2"><button onClick={onComplete} className="border border-[#d8e0db] px-3 py-2 text-[12px] font-medium text-[#444] hover:bg-[#f6f8f6]">Complete onboarding</button><button onClick={onDismiss} aria-label="Dismiss connection guide" className="rounded-md p-1.5 text-[#999] hover:bg-[#f2f4f2] hover:text-[#333]"><X size={16} /></button></div>
     </div>
     <div className="grid gap-0 divide-y border-b border-[#e7ebe8] md:grid-cols-4 md:divide-x md:divide-y-0">
       <Step number="01" title="Create an API key" done={hasKey}>{hasKey ? <span className="text-[12px] text-[#5f7568]">Key created and ready to use.</span> : <button onClick={onGenerateKey} disabled={working} className="mt-2 bg-[#151515] px-3 py-2 text-[12px] font-medium text-white disabled:opacity-50">{working ? "Creating…" : "Generate key"}</button>}</Step>

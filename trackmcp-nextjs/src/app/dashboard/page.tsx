@@ -12,7 +12,7 @@ type Account = { workspace: Workspace | null; keys: Key[] };
 type SetupDetails = { first_name: string; last_name: string; company_name: string };
 const LOCAL_DASHBOARD_BYPASS = process.env.NODE_ENV === "development" && process.env.NEXT_PUBLIC_LOCAL_DASHBOARD_BYPASS === "true";
 
-export default function DashboardPage() {
+export function DashboardPageContent({ onboardingMode = false }: { onboardingMode?: boolean }) {
   const [email, setEmail] = useState<string | null>(LOCAL_DASHBOARD_BYPASS ? "demo@trackmcp.local" : null);
   const [workspace, setWorkspace] = useState<Workspace | null>(LOCAL_DASHBOARD_BYPASS ? { id: "local-demo", name: "Local demo workspace", slug: "local-demo" } : null);
   const [keys, setKeys] = useState<Key[]>([]);
@@ -64,5 +64,9 @@ export default function DashboardPage() {
 
   if (loading) return <main className="mx-auto min-h-screen max-w-6xl px-6 py-20 text-sm text-muted">Loading your workspace…</main>;
   if (!email) return <main className="mx-auto min-h-screen max-w-xl px-6 py-24"><p className="text-xs font-semibold uppercase tracking-wide text-brand">TrackMCP</p><h1 className="mt-3 text-4xl font-medium tracking-tight text-ink">Your workspace is waiting.</h1><p className="mt-4 text-muted">Sign in to create an API key and see how your MCP server is being used.</p><Link href="/signin" className="mt-7 inline-flex rounded-lg bg-ink px-5 py-3 text-sm font-medium text-white">Sign in to continue</Link></main>;
-  return <DashboardApp email={email} workspace={workspace} keys={keys} analytics={analytics} newKey={newKey} working={working} error={error} setupRequired={!LOCAL_DASHBOARD_BYPASS && !workspace} setupDetails={setupDetails} onGenerateKey={generateKey} onRevokeKey={revokeKey} onDismissKey={() => setNewKey("")} onRefresh={(days) => { if (!LOCAL_DASHBOARD_BYPASS) void loadAnalytics(days).catch((reason) => setError(reason instanceof Error ? reason.message : "Could not refresh analytics.")); }} onCreateWorkspace={createWorkspace} onSignOut={() => { if (LOCAL_DASHBOARD_BYPASS) window.location.href = "https://trackmcp.com"; else void getSupabaseBrowser().auth.signOut().then(() => { window.location.href = "https://trackmcp.com"; }); }} />;
+  return <DashboardApp email={email} workspace={workspace} keys={keys} analytics={analytics} newKey={newKey} working={working} error={error} setupRequired={!LOCAL_DASHBOARD_BYPASS && !workspace} setupDetails={setupDetails} onboardingMode={onboardingMode} onGenerateKey={generateKey} onRevokeKey={revokeKey} onDismissKey={() => setNewKey("")} onRefresh={(days) => { if (!LOCAL_DASHBOARD_BYPASS) void loadAnalytics(days).catch((reason) => setError(reason instanceof Error ? reason.message : "Could not refresh analytics.")); }} onCreateWorkspace={createWorkspace} onSignOut={() => { if (LOCAL_DASHBOARD_BYPASS) window.location.href = "https://trackmcp.com"; else void getSupabaseBrowser().auth.signOut().then(() => { window.location.href = "https://trackmcp.com"; }); }} />;
+}
+
+export default function DashboardPage() {
+  return <DashboardPageContent />;
 }
