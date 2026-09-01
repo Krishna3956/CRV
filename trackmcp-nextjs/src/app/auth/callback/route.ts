@@ -13,7 +13,11 @@ export async function GET(request: Request) {
   }
   const { error } = await (await getSupabaseServer()).auth.exchangeCodeForSession(code);
   if (error) {
-    return NextResponse.redirect(new URL(`/signin?auth_error=${encodeURIComponent(error.message)}`, url.origin));
+    const message = error.message.toLowerCase();
+    const errorCode = message.includes("code verifier") || message.includes("pkce")
+      ? "link_unavailable"
+      : "sign_in_failed";
+    return NextResponse.redirect(new URL(`/signin?auth_error=${errorCode}`, url.origin));
   }
   return NextResponse.redirect(new URL("/dashboard/onboarding", url.origin));
 }

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { getSupabaseBrowser } from "@/lib/auth/supabase-browser";
 import { ArrowRight, Loader2, Check } from "lucide-react";
 import { TrackMCPLogo } from "@/components/TrackMCPLogo";
@@ -21,13 +21,16 @@ export default function SignInPage({ initialMode = "signin" }: { initialMode?: "
   const [lastName, setLastName] = useState("");
   const companyName = "";
   const [acceptedTerms, setAcceptedTerms] = useState(false);
+  const emailInputRef = useRef<HTMLInputElement>(null);
   const [error, setError] = useState(() => {
     if (typeof window === "undefined") return "";
     const authError = new URLSearchParams(window.location.search).get("auth_error");
     if (!authError) return "";
     return authError === "missing_link_code"
-      ? "This sign-in link is incomplete. Request a new link."
-      : `This sign-in link could not be used: ${authError}. Request a new link and open the newest email.`;
+      ? "That sign-in link is incomplete. Request a new one below."
+      : authError === "link_unavailable"
+        ? "That link can’t be used here. Sign-in links work only in the same browser where they were requested. Request a new link below and open the newest email on this device."
+        : "We couldn’t complete sign-in with that link. Request a new link below and open the newest email.";
   });
 
   const submit = async (e: React.FormEvent) => {
@@ -74,7 +77,7 @@ export default function SignInPage({ initialMode = "signin" }: { initialMode?: "
               </>}
               <div>
                 <label className="mb-1.5 block text-[13px] font-medium text-body">Work email</label>
-                <input required type="email" value={email} onChange={(event) => setEmail(event.target.value)} placeholder="you@company.com" className={field} />
+                <input ref={emailInputRef} required type="email" value={email} onChange={(event) => setEmail(event.target.value)} placeholder="you@company.com" className={field} />
               </div>
               <p className="text-[13px] leading-relaxed text-muted">We&apos;ll email you a secure sign-in link. No password to remember.</p>
               {mode === "signup" && <label className="flex items-start gap-2 text-[12.5px] leading-relaxed text-muted"><input required type="checkbox" checked={acceptedTerms} onChange={(event) => setAcceptedTerms(event.target.checked)} className="mt-0.5 h-4 w-4 accent-brand" /> <span>I agree to the <Link href="/terms" className="font-medium text-brand-strong hover:underline">Terms of Service</Link> and <Link href="/privacy" className="font-medium text-brand-strong hover:underline">Privacy Policy</Link>.</span></label>}
@@ -101,7 +104,14 @@ export default function SignInPage({ initialMode = "signin" }: { initialMode?: "
                 Check your email for a secure sign-in link. We&apos;ll finish setting up your account when you arrive.
               </p>
             )}
-            {error && <p className="mt-4 rounded-lg border border-red-200 bg-red-50 px-3.5 py-2.5 text-[13px] text-red-700">{error}</p>}
+            {error && (
+              <div className="mt-4 rounded-lg border border-amber-200 bg-amber-50 px-3.5 py-3 text-[13px] leading-relaxed text-amber-900">
+                <p>{error}</p>
+                <button type="button" onClick={() => { setError(""); setStatus("idle"); emailInputRef.current?.focus(); }} className="mt-2 font-medium text-amber-950 underline underline-offset-2">
+                  Request a new link
+                </button>
+              </div>
+            )}
 
             <p className="mt-6 text-center text-[13.5px] text-muted">
               {mode === "signin" ? <>New to TrackMCP? <button type="button" onClick={() => { setMode("signup"); setStatus("idle"); router.replace("/signup"); }} className="font-medium text-brand-strong">Create an account</button></> : <>Already have an account? <button type="button" onClick={() => { setMode("signin"); setStatus("idle"); router.replace("/signin"); }} className="font-medium text-brand-strong">Sign in</button></>}
