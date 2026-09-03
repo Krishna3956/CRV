@@ -1,10 +1,11 @@
 import Link from "next/link";
 import { Star, GitBranch, ArrowUpRight, TrendingUp } from "lucide-react";
-import { ownerFromUrl } from "@/lib/repository/types";
+import { ownerFromUrl, toolSlug } from "@/lib/repository/types";
 
 /* A single MCP tool card in the directory grid, styled to the TrackMCP system.
    Owner avatar comes from github.com/{owner}.png (no API call, no rate limit).
-   Links to /tool/[name] to preserve the live site's SEO URLs. */
+   Links use the canonical GitHub owner--repo slug so different repositories
+   with the same display name do not collide. */
 
 export function ToolCard({
   name,
@@ -26,7 +27,7 @@ export function ToolCard({
   const owner = ownerFromUrl(githubUrl);
   return (
     <Link
-      href={`/tool/${encodeURIComponent(name)}`}
+      href={`/tool/${encodeURIComponent(toolSlug(githubUrl, name))}`}
       className="lift group flex h-full flex-col rounded-2xl border border-line bg-white p-5 transition-colors hover:border-line-strong"
     >
       <div className="flex items-start justify-between gap-3">

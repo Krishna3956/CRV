@@ -48,3 +48,23 @@ export function ownerFromUrl(url: string): string {
 export function repoPathFromUrl(url: string): string {
   return url.replace("https://github.com/", "").replace(/\/$/, "");
 }
+
+/** Stable, collision-resistant URL slug derived from the canonical GitHub repo. */
+export function toolSlug(githubUrl: string, fallbackName = "tool"): string {
+  const repoPath = repoPathFromUrl(githubUrl);
+  if (/^[\w.-]+\/[\w.-]+$/.test(repoPath)) {
+    return repoPath.replace("/", "--").toLowerCase();
+  }
+  return fallbackName;
+}
+
+/** Parse the owner--repo format used by new directory links. */
+export function githubPathFromToolSlug(slug: string): { owner: string; repo: string } | null {
+  const decoded = decodeURIComponent(slug);
+  const separator = decoded.indexOf("--");
+  if (separator <= 0) return null;
+  const owner = decoded.slice(0, separator);
+  const repo = decoded.slice(separator + 2);
+  if (!/^[\w.-]+$/.test(owner) || !/^[\w.-]+$/.test(repo)) return null;
+  return { owner, repo };
+}

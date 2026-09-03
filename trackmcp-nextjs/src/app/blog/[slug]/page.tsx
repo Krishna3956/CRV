@@ -11,6 +11,7 @@ import { PhotoAvatar } from "@/components/PhotoAvatar";
 import { posts, getPost, type Block } from "../posts";
 import { BlogArt } from "../art";
 import { enrichment } from "../enrichment";
+import { metaDescription, pageMeta } from "@/lib/seo";
 
 const slugify = (s: string) =>
   s
@@ -29,13 +30,19 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { slug } = await params;
   const post = getPost(slug);
-  if (!post) return { title: "Not found | TrackMCP" };
-  const canonical = `https://trackmcp.com/blog/${slug}`;
+  if (!post) {
+    return pageMeta({
+      title: "Post not found | TrackMCP",
+      description: "The requested TrackMCP blog post could not be found.",
+      path: `/blog/${slug}`,
+      index: false,
+    });
+  }
+  const description = metaDescription(post.excerpt, "Notes on MCP analytics from TrackMCP.");
+  const base = pageMeta({ title: `${post.title} | TrackMCP`, description, path: `/blog/${slug}` });
   return {
-    title: `${post.title} | TrackMCP`,
-    description: post.excerpt,
-    alternates: { canonical },
-    openGraph: { title: post.title, description: post.excerpt, url: canonical, type: "article" },
+    ...base,
+    openGraph: { ...base.openGraph, title: post.title, type: "article" },
   };
 }
 

@@ -6,6 +6,7 @@ import { PageFrame } from "@/components/PageFrame";
 import { RepoListing } from "@/components/repository/RepoListing";
 import { getToolsByCategory } from "@/lib/repository/queries";
 import { categoryFromSlug } from "@/lib/repository/types";
+import { pageMeta } from "@/lib/seo";
 
 export const revalidate = 3600;
 
@@ -16,13 +17,19 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { slug } = await params;
   const category = categoryFromSlug(slug);
-  if (!category) return { title: "Category not found | TrackMCP" };
-  const canonical = `https://trackmcp.com/category/${slug}`;
-  return {
+  if (!category) {
+    return pageMeta({
+      title: "Category not found | TrackMCP",
+      description: "The requested MCP server category could not be found.",
+      path: `/category/${slug}`,
+      index: false,
+    });
+  }
+  return pageMeta({
     title: `${category} — MCP servers | TrackMCP`,
     description: `Browse ${category} Model Context Protocol servers and tools in the TrackMCP directory, ranked by GitHub stars.`,
-    alternates: { canonical },
-  };
+    path: `/category/${slug}`,
+  });
 }
 
 export default async function CategoryPage({ params }: { params: Promise<{ slug: string }> }) {

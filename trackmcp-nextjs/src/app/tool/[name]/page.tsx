@@ -8,9 +8,10 @@ import { PageFrame } from "@/components/PageFrame";
 import { MarkdownRenderer } from "@/components/repository/MarkdownRenderer";
 import { ToolCard } from "@/components/repository/ToolCard";
 import { getToolByName, getReadme, getTopTools, relatedTools } from "@/lib/repository/queries";
-import { ownerFromUrl, repoPathFromUrl } from "@/lib/repository/types";
+import { ownerFromUrl, repoPathFromUrl, toolSlug } from "@/lib/repository/types";
 import { extractHeadings, shouldShowToc, generateTocSchema } from "@/lib/repository/toc";
 import { TableOfContents } from "@/components/repository/TableOfContents";
+import { metaDescription } from "@/lib/seo";
 
 export const revalidate = 21600;
 
@@ -31,15 +32,31 @@ export async function generateMetadata({
   const tool = await getToolByName(name);
   if (!tool) return { title: "Tool not found | TrackMCP" };
   const repo = tool.repo_name || decodeURIComponent(name);
-  const desc =
+  const slug = toolSlug(tool.github_url, repo);
+  const desc = metaDescription(
     tool.description ||
-    `${repo} — an MCP server in the TrackMCP directory. Explore its docs, stars, and usage.`;
-  const canonical = `https://trackmcp.com/tool/${encodeURIComponent(tool.repo_name || decodeURIComponent(name))}`;
+      `${repo} — an MCP server in the TrackMCP directory. Explore its docs, stars, and usage.`,
+    `${repo} is a Model Context Protocol server listed in the TrackMCP directory. Explore its documentation, GitHub repository, and usage details.`,
+  );
+  const canonical = `https://trackmcp.com/tool/${encodeURIComponent(slug)}`;
+  const title = `${repo} — MCP server | TrackMCP`;
   return {
-    title: `${repo} — MCP server | TrackMCP`,
-    description: desc.slice(0, 155),
+    title,
+    description: desc,
     alternates: { canonical },
-    openGraph: { title: `${repo} — MCP server`, description: desc.slice(0, 155), url: canonical, type: "website" },
+    openGraph: {
+      title: `${repo} — MCP server`,
+      description: desc,
+      url: canonical,
+      type: "website",
+      images: [{ url: `${canonical}/opengraph-image`, width: 1200, height: 630, alt: `${repo} MCP server` }],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description: desc,
+      images: [`${canonical}/opengraph-image`],
+    },
   };
 }
 
@@ -56,7 +73,7 @@ export default async function ToolPage({ params }: { params: Promise<{ name: str
   const related = relatedTools(tool, pool, 6);
   const toc = readme ? extractHeadings(readme) : [];
   const showToc = shouldShowToc(toc);
-  const toolUrl = `https://trackmcp.com/tool/${encodeURIComponent(tool.repo_name || "")}`;
+  const toolUrl = `https://trackmcp.com/tool/${encodeURIComponent(toolSlug(tool.github_url, tool.repo_name || name))}`;
 
   const faqs = [
     {
@@ -81,23 +98,13 @@ export default async function ToolPage({ params }: { params: Promise<{ name: str
     "@context": "https://schema.org",
     "@graph": [
       {
-        "@type": "SoftwareApplication",
+        "@type": "SoftwareSourceCode",
         name: tool.repo_name,
         description: tool.description || undefined,
-        applicationCategory: "DeveloperApplication",
-        operatingSystem: "Cross-platform",
-        url: `https://trackmcp.com/tool/${encodeURIComponent(tool.repo_name || "")}`,
+        url: toolUrl,
         codeRepository: tool.github_url,
         programmingLanguage: tool.language || undefined,
-        ...(tool.stars
-          ? {
-              aggregateRating: {
-                "@type": "AggregateRating",
-                ratingValue: "5",
-                ratingCount: tool.stars,
-              },
-            }
-          : {}),
+        keywords: tool.topics?.join(", ") || undefined,
       },
       {
         "@type": "FAQPage",
@@ -113,18 +120,6 @@ export default async function ToolPage({ params }: { params: Promise<{ name: str
           { "@type": "ListItem", position: 1, name: "MCP Repository", item: "https://trackmcp.com/repository" },
           { "@type": "ListItem", position: 2, name: tool.repo_name, item: toolUrl },
         ],
-      },
-      {
-        "@type": "Article",
-        headline: `${tool.repo_name} — Model Context Protocol tool`,
-        description: tool.description || undefined,
-        datePublished: tool.created_at || undefined,
-        dateModified: tool.last_updated || tool.created_at || undefined,
-        author: { "@type": "Organization", name: "TrackMCP", url: "https://trackmcp.com" },
-        publisher: { "@type": "Organization", name: "TrackMCP", url: "https://trackmcp.com" },
-        mainEntityOfPage: { "@type": "WebPage", "@id": toolUrl },
-        keywords: tool.topics?.join(", ") || undefined,
-        inLanguage: "en-US",
       },
     ],
   };

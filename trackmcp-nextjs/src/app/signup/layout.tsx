@@ -1,10 +1,12 @@
 import type { Metadata } from "next";
+import { pageMeta } from "@/lib/seo";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = pageMeta({
   title: "Create your TrackMCP account",
   description: "Create your TrackMCP account and start observing your MCP server.",
-  robots: { index: false, follow: false },
-};
+  path: "/signup",
+  index: false,
+});
 
 export default function SignupLayout({ children }: LayoutProps<"/signup">) {
   return children;

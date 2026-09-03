@@ -1,5 +1,6 @@
 import { getSupabase } from "./supabase";
 import { isBlocked } from "./blocked";
+import { githubPathFromToolSlug, toolSlug } from "./types";
 import type { McpTool } from "./types";
 
 /* Drop repos that are blocked from the directory (404/invalid/banned). */
@@ -56,14 +57,30 @@ export async function getToolByName(name: string): Promise<McpTool | null> {
   if (/\.(md|txt)$/i.test(decoded) || ["LICENSE", "CONTRIBUTING", "README"].includes(decoded)) {
     return null;
   }
-  if (isBlocked(decoded)) return null;
-  const { data } = await supabase
-    .from("mcp_tools")
-    .select("*")
-    .ilike("repo_name", decoded)
-    .limit(1)
-    .maybeSingle();
-  return (data as McpTool) || null;
+  let data: McpTool | null = null;
+  const githubPath = githubPathFromToolSlug(decoded);
+  if (githubPath) {
+    const githubUrl = `https://github.com/${githubPath.owner}/${githubPath.repo}`;
+    const escapedPattern = githubUrl.replaceAll("\\", "\\\\").replaceAll("%", "\\%").replaceAll("_", "\\_");
+    const result = await supabase
+      .from("mcp_tools")
+      .select("*")
+      .ilike("github_url", escapedPattern)
+      .limit(1)
+      .maybeSingle();
+    data = (result.data as McpTool) || null;
+  }
+  if (!data && !isBlocked(decoded)) {
+    const result = await supabase
+      .from("mcp_tools")
+      .select("*")
+      .ilike("repo_name", decoded)
+      .limit(1)
+      .maybeSingle();
+    data = (result.data as McpTool) || null;
+  }
+  if (!data || isBlocked(data.repo_name)) return null;
+  return data;
 }
 
 export async function getToolsByCategory(category: string, limit = 300): Promise<McpTool[]> {
@@ -93,22 +110,29 @@ export async function searchToolsQuery(query: string, limit = 200): Promise<McpT
 }
 
 /* All tool names (for the sitemap). Batched to work around row limits. */
-export async function getAllToolNames(max = 6000): Promise<{ name: string; updated: string | null }[]> {
+export async function getAllToolNames(max = 50000): Promise<{ name: string; slug: string; updated: string | null }[]> {
   const supabase = getSupabase();
   if (!supabase) return [];
-  const out: { name: string; updated: string | null }[] = [];
+  const out: { name: string; slug: string; updated: string | null }[] = [];
+  const seen = new Set<string>();
   let offset = 0;
   const batch = 1000;
   while (out.length < max) {
     const { data, error } = await supabase
       .from("mcp_tools")
-      .select("repo_name, last_updated")
+      .select("repo_name, github_url, last_updated")
       .in("status", ["approved", "pending"])
       .order("stars", { ascending: false })
       .range(offset, offset + batch - 1);
     if (error || !data || data.length === 0) break;
-    for (const r of data as { repo_name: string | null; last_updated: string | null }[]) {
-      if (r.repo_name && !isBlocked(r.repo_name)) out.push({ name: r.repo_name, updated: r.last_updated });
+    for (const r of data as { repo_name: string | null; github_url: string; last_updated: string | null }[]) {
+      if (r.repo_name && !isBlocked(r.repo_name)) {
+        const slug = toolSlug(r.github_url, r.repo_name);
+        if (!seen.has(slug)) {
+          seen.add(slug);
+          out.push({ name: r.repo_name, slug, updated: r.last_updated });
+        }
+      }
     }
     if (data.length < batch) break;
     offset += batch;

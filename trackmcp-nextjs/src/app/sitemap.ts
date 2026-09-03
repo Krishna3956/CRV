@@ -44,9 +44,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.6,
   }));
 
-  const tools = await getAllToolNames(6000);
+  // Keep the full directory discoverable. The sitemap protocol supports up to
+  // 50,000 URLs per file; TrackMCP currently has fewer than that.
+  const tools = await getAllToolNames(50000);
   const toolRoutes: MetadataRoute.Sitemap = tools.map((t) => ({
-    url: `${BASE}/tool/${encodeURIComponent(t.name)}`,
+    url: `${BASE}/tool/${encodeURIComponent(t.slug)}`,
     lastModified: t.updated ? new Date(t.updated) : undefined,
     changeFrequency: "monthly",
     priority: 0.5,

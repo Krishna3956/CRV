@@ -27,14 +27,37 @@ import { OutcomeScene } from "@/components/scenes/OutcomeScene";
 import { SilentFailureScene } from "@/components/scenes/SilentFailureScene";
 import { CodeWindow, K, Fn, Str, Cm, Pn } from "@/components/CodeWindow";
 import type { Metadata } from "next";
+import { pageMeta } from "@/lib/seo";
 
-export const metadata: Metadata = {
-  alternates: { canonical: "/" },
+const TITLE = "TrackMCP: See how your MCP server is being used";
+const DESCRIPTION =
+  "TrackMCP shows who is using your MCP server, what they are trying to do, and where to improve. Analytics for MCP servers, one line to install.";
+
+export const metadata: Metadata = pageMeta({ title: TITLE, description: DESCRIPTION, path: "/" });
+
+const jsonLd = {
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "WebSite",
+      name: "TrackMCP",
+      url: "https://trackmcp.com",
+      description: DESCRIPTION,
+      inLanguage: "en-US",
+    },
+    {
+      "@type": "Organization",
+      name: "TrackMCP",
+      url: "https://trackmcp.com",
+      logo: "https://trackmcp.com/icon.svg",
+    },
+  ],
 };
 
 export default function Home() {
   return (
     <>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
       <Nav />
       <main className="flex-1">
        <PageFrame>
