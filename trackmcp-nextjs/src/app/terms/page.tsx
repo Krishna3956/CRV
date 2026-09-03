@@ -19,7 +19,7 @@ const sections: LegalSection[] = [
   {
     h: "The service",
     p: [
-      "TrackMCP is analytics for MCP servers. You wrap your server with our SDK, and we turn the resulting calls into dashboards, sessions, and summaries. Features vary by plan; we may add, change, or remove features over time.",
+      "TrackMCP is analytics for MCP servers. You wrap your server with our SDK, and we turn the resulting calls into dashboards, sessions, and summaries. Features and usage limits vary by plan; we may add, change, or remove features over time.",
     ],
   },
   {

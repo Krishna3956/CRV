@@ -35,7 +35,7 @@ const sections: LegalSection[] = [
   {
     h: "Where data is stored",
     p: [
-      "Telemetry is stored in your selected region on managed infrastructure. Enterprise customers can self-host or deploy into their own cloud (VPC), so data never leaves their environment.",
+      "Telemetry is stored in your selected region on managed infrastructure. Enterprise customers can discuss additional deployment and data-residency requirements with us before signing.",
     ],
   },
   {
@@ -53,7 +53,7 @@ const sections: LegalSection[] = [
   {
     h: "Subprocessors & security",
     p: [
-      "We use a small set of infrastructure providers to run the service. Data is encrypted in transit and at rest. Enterprise plans include SSO, audit logs, and a signed DPA.",
+      "We use a small set of infrastructure providers to run the service. Data is encrypted in transit and at rest. Enterprise agreements may include additional security, retention, export, and data-processing terms after review.",
     ],
   },
   {

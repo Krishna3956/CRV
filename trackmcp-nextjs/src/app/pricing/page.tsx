@@ -12,7 +12,7 @@ import { Reveal } from "@/components/Reveal";
 export const metadata: Metadata = pageMeta({
   title: "Pricing — TrackMCP",
   description:
-    "Simple, usage-based pricing for MCP analytics. Start free, upgrade when you scale.",
+    "Usage-based pricing for MCP analytics: start with 1,000 monthly tool calls free, then upgrade to 50,000 calls on Pro.",
   path: "/pricing",
 });
 
@@ -26,10 +26,11 @@ const tiers = [
     variant: "ghost" as const,
     featured: false,
     feats: [
-      "100k tool calls / month",
+      "1,000 captured tool calls / month",
       "7-day data retention",
       "Core analytics dashboard",
       "1 MCP server",
+      "1 team member",
       "Community support",
     ],
   },
@@ -42,11 +43,12 @@ const tiers = [
     variant: "primary" as const,
     featured: true,
     feats: [
-      "5M tool calls / month",
+      "50,000 captured tool calls / month",
       "90-day data retention",
       "Actionable usage insights",
-      "Unlimited MCP servers",
+      "Up to 5 MCP servers",
       "Slack & webhook alerts",
+      "Up to 5 team members",
       "Email support",
     ],
   },
@@ -59,11 +61,11 @@ const tiers = [
     variant: "ghost" as const,
     featured: false,
     feats: [
-      "Unlimited tool calls",
+      "Custom call volume and pricing",
       "Custom retention",
-      "Self-hosted or VPC deployment",
-      "SSO / SAML & audit logs",
-      "SLA & dedicated support",
+      "Multiple teams and environments",
+      "Security review and custom terms",
+      "Priority onboarding and support",
     ],
   },
 ];
@@ -80,11 +82,11 @@ const compareGroups: { group: string; rows: { label: string; vals: [Cell, Cell, 
   {
     group: "Usage & retention",
     rows: [
-      { label: "Tool calls / month", vals: ["100k", "5M", "Unlimited"] },
-      { label: "Data retention", vals: ["7 days", "90 days", "Up to 2 years"] },
-      { label: "MCP servers", vals: ["1", "Unlimited", "Unlimited"] },
+      { label: "Captured tool calls / month", vals: ["1,000", "50,000", "Custom"] },
+      { label: "Data retention", vals: ["7 days", "90 days", "Custom"] },
+      { label: "MCP servers", vals: ["1", "5", "Custom"] },
       { label: "Environments (production, staging)", vals: [false, true, true] },
-      { label: "Team members", vals: ["1", "5", "Unlimited"] },
+      { label: "Team members", vals: ["1", "5", "Custom"] },
     ],
   },
   {
@@ -116,17 +118,15 @@ const compareGroups: { group: string; rows: { label: string; vals: [Cell, Cell, 
       { label: "Failure-spike & anomaly alerts", vals: [false, true, true] },
       { label: "REST API access", vals: [false, true, true] },
       { label: "Data export (CSV, warehouse)", vals: [false, true, true] },
-      { label: "OpenTelemetry / SIEM export", vals: [false, false, true] },
+      { label: "Custom security / SIEM integrations", vals: [false, false, true] },
     ],
   },
   {
     group: "Security & compliance",
     rows: [
-      { label: "SSO / SAML", vals: [false, false, true] },
-      { label: "Role-based access control", vals: [false, false, true] },
-      { label: "Audit logs", vals: [false, false, true] },
-      { label: "Self-hosted or VPC deployment", vals: [false, false, true] },
-      { label: "Custom DPA, HIPAA & BAA", vals: [false, false, true] },
+      { label: "Security review", vals: [false, false, true] },
+      { label: "Custom data-processing terms", vals: [false, false, true] },
+      { label: "Custom deployment requirements", vals: [false, false, true] },
     ],
   },
   {
@@ -134,8 +134,8 @@ const compareGroups: { group: string; rows: { label: string; vals: [Cell, Cell, 
     rows: [
       { label: "Community support", vals: [true, true, true] },
       { label: "Email support", vals: [false, true, true] },
-      { label: "Dedicated Slack & onboarding", vals: [false, false, true] },
-      { label: "Uptime SLA", vals: [false, false, true] },
+      { label: "Priority onboarding", vals: [false, false, true] },
+      { label: "Contracted support terms", vals: [false, false, true] },
     ],
   },
 ];
@@ -160,7 +160,7 @@ const faqs = [
   },
   {
     q: "Where is my data stored?",
-    a: "Data is stored in your region on infrastructure built on ClickHouse. Enterprise plans can self-host or deploy into your own VPC.",
+    a: "TrackMCP currently stores telemetry in managed Postgres infrastructure. Enterprise customers can discuss retention, export, and deployment requirements with us before signing.",
   },
   {
     q: "Can I cancel anytime?",
