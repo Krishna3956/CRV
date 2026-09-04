@@ -69,7 +69,25 @@ export default function Home() {
             <div className="bg-squares dots-mask-top absolute inset-x-0 top-0 h-[440px] opacity-70" />
           </div>
 
-          <div className="mx-auto max-w-6xl px-6 pb-14 pt-16 text-center sm:pb-16 sm:pt-24">
+          <div className="mx-auto max-w-6xl px-6 pb-8 pt-10 text-center sm:pb-10 sm:pt-16">
+            <Reveal delay={0.04}>
+              <a
+                href="https://www.producthunt.com/products/trackmcp?embed=true&utm_source=badge-featured&utm_medium=badge&utm_campaign=badge-trackmcp"
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="TrackMCP on Product Hunt"
+                className="mb-6 inline-flex rounded-lg transition-transform duration-200 hover:scale-[1.02]"
+              >
+                <img
+                  alt="TrackMCP - Google Analytics for MCP Servers | Product Hunt"
+                  width={250}
+                  height={54}
+                  className="h-auto w-[210px]"
+                  src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=1238286&theme=light&t=1788517150066"
+                />
+              </a>
+            </Reveal>
+
             <Reveal delay={0.08}>
               <h1 className="mx-auto max-w-[16ch] text-balance text-[36px] font-medium leading-[1.05] tracking-[-0.03em] text-ink sm:text-[48px]">
                 See how your MCP is being used
@@ -136,9 +154,9 @@ export default function Home() {
           </div>
 
           {/* dashboard — the single central product object, in the mist */}
-          <Reveal y={28} className="relative z-10 mx-auto mt-12 hidden max-w-[1000px] px-6 md:block">
+          <div className="relative z-10 mx-auto mt-0 block max-w-[1000px] px-6 md:mt-8">
             <HeroDashboardScene />
-          </Reveal>
+          </div>
 
           {/* client compatibility */}
           <div className="mx-auto max-w-6xl px-6 pb-20 pt-8 md:pt-16">
