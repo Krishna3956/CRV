@@ -1,4 +1,8 @@
+"use client";
+
 import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { contentSurface, saveContentAttribution, trackMarketingEvent } from "@/lib/marketing-analytics";
 
 type Variant = "primary" | "brand" | "white" | "ghost";
 type Size = "sm" | "md" | "lg";
@@ -28,9 +32,26 @@ export function EarlyAccessButton({
   size?: Size;
   className?: string;
 }) {
+  const pathname = usePathname() || "/";
+  const signupUrl = new URL("https://app.trackmcp.com/signup");
+  signupUrl.searchParams.set("content_path", pathname);
+  signupUrl.searchParams.set("content_cta", label);
+  signupUrl.searchParams.set("content_surface", contentSurface(pathname));
+
+  const handleClick = () => {
+    const attribution = {
+      content_path: pathname,
+      content_cta: label,
+      content_surface: contentSurface(pathname),
+    };
+    saveContentAttribution(attribution);
+    trackMarketingEvent("content_cta_clicked", attribution);
+  };
+
   return (
     <Link
-      href="https://app.trackmcp.com/signup"
+      href={signupUrl.toString()}
+      onClick={handleClick}
       className={`inline-flex items-center justify-center gap-2 rounded-lg font-medium whitespace-nowrap transition duration-150 active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/40 focus-visible:ring-offset-2 focus-visible:ring-offset-white ${sizes[size]} ${variants[variant]} ${className}`}
     >
       {label}

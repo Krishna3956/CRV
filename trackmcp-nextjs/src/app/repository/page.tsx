@@ -7,9 +7,9 @@ import { BrowseClient } from "@/components/repository/BrowseClient";
 import { getTopTools, getToolCount } from "@/lib/repository/queries";
 
 export const metadata: Metadata = pageMeta({
-  title: "MCP Repository — the largest directory of MCP servers | TrackMCP",
+  title: "MCP Server Directory and Repository | TrackMCP",
   description:
-    "Discover and explore thousands of Model Context Protocol tools and servers. Browse the largest MCP repository, then measure your own MCP server with TrackMCP.",
+    "Discover and explore Model Context Protocol tools and servers. Browse the TrackMCP repository, then measure your own MCP server with TrackMCP.",
   path: "/repository",
 });
 

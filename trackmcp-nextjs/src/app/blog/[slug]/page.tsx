@@ -42,6 +42,7 @@ export async function generateMetadata({
   const base = pageMeta({ title: `${post.title} | TrackMCP`, description, path: `/blog/${slug}` });
   return {
     ...base,
+    keywords: post.keywords,
     openGraph: { ...base.openGraph, title: post.title, type: "article" },
   };
 }
@@ -108,6 +109,28 @@ function Blocks({ body }: { body: Block[] }) {
               <p className="mt-1.5 text-[15.5px] leading-relaxed text-body">{b.c}</p>
             </aside>
           );
+        if (b.t === "faq")
+          return (
+            <div key={i} className="rounded-xl border border-line bg-white p-4">
+              <h3 className="text-[16px] font-semibold leading-snug text-ink">{b.q}</h3>
+              <p className="mt-2 text-[15.5px] leading-relaxed text-body">{b.a}</p>
+            </div>
+          );
+        if (b.t === "links")
+          return (
+            <nav key={i} aria-label="Related resources" className="rounded-xl border border-line bg-paper p-4">
+              <div className="text-[12px] font-semibold uppercase tracking-wide text-faint">Related resources</div>
+              <ul className="mt-2 flex flex-col gap-2">
+                {b.items.map((item) => (
+                  <li key={item.href}>
+                    <a href={item.href} className="text-[15px] font-medium text-brand-strong underline underline-offset-2 hover:text-ink">
+                      {item.label}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </nav>
+          );
         return (
           <p
             key={i}
@@ -146,13 +169,48 @@ export default async function BlogPostPage({
     (b): b is Extract<Block, { t: "h2" }> => b.t === "h2"
   );
   const cover = enr?.art ?? "default";
-  const more = posts.filter((p) => p.slug !== post.slug).slice(0, 3);
+  const relatedPosts = (post.related || [])
+    .map((relatedSlug) => getPost(relatedSlug))
+    .filter((related): related is (typeof posts)[number] => Boolean(related));
+  const more = relatedPosts
+    .concat(posts.filter((p) => p.slug !== post.slug && !post.related?.includes(p.slug)))
+    .slice(0, 3);
+  const faqs = body.filter((b): b is Extract<Block, { t: "faq" }> => b.t === "faq");
+  const articleSchema = {
+    "@context": "https://schema.org",
+    "@type": "Article",
+    headline: post.title,
+    description: post.excerpt,
+    datePublished: new Date(post.date).toISOString(),
+    dateModified: new Date(post.updated || post.date).toISOString(),
+    author: { "@type": "Person", name: "Krishna Goyal", url: "https://trackmcp.com" },
+    publisher: { "@type": "Organization", name: "TrackMCP", url: "https://trackmcp.com" },
+    mainEntityOfPage: `https://trackmcp.com/blog/${post.slug}`,
+    keywords: post.keywords,
+  };
+  const faqSchema = faqs.length
+    ? {
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        mainEntity: faqs.map((item) => ({
+          "@type": "Question",
+          name: item.q,
+          acceptedAnswer: { "@type": "Answer", text: item.a },
+        })),
+      }
+    : null;
 
   return (
     <>
       <Nav />
       <main className="flex-1">
         <PageFrame>
+          <script
+            type="application/ld+json"
+            dangerouslySetInnerHTML={{
+              __html: JSON.stringify(faqSchema ? [articleSchema, faqSchema] : articleSchema).replace(/</g, "\\u003c"),
+            }}
+          />
           <div className="mx-auto max-w-5xl px-6 py-12 sm:py-14">
             {/* header */}
             <Reveal>

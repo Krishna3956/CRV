@@ -11,9 +11,9 @@ import { BlogArt } from "./art";
 import { enrichment } from "./enrichment";
 
 export const metadata: Metadata = pageMeta({
-  title: "Blog | TrackMCP",
+  title: "MCP Analytics, Observability, and Production Guides | TrackMCP",
   description:
-    "Notes on the Model Context Protocol, MCP analytics, and building AI tools you can measure.",
+    "Practical guides on MCP server analytics, observability, monitoring, security, tool adoption, and building AI tools you can measure.",
   path: "/blog",
 });
 
@@ -32,11 +32,11 @@ export default function BlogPage() {
                   Blog
                 </span>
                 <h1 className="mt-3 text-[36px] font-medium leading-[1.05] tracking-[-0.03em] text-ink sm:text-[48px]">
-                  Notes on MCP analytics
+                  MCP analytics, explained
                 </h1>
                 <p className="mt-4 max-w-[56ch] text-[16px] leading-[1.5] text-muted sm:text-[18px]">
-                  Playbooks and deep dives on measuring the usage of your MCP
-                  server: adoption, workflows, silent failures, and what to fix.
+                  Practical guides on measuring MCP server usage, debugging agent
+                  workflows, shipping safely, and knowing what to fix next.
                 </p>
               </Reveal>
             </div>

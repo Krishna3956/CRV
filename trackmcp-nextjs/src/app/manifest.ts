@@ -5,7 +5,7 @@ export default function manifest(): MetadataRoute.Manifest {
     name: "TrackMCP",
     short_name: "TrackMCP",
     description:
-      "Analytics for your MCP server, plus the world's largest MCP directory.",
+      "Analytics and observability for your MCP server, plus an MCP server directory.",
     start_url: "/",
     display: "standalone",
     background_color: "#ffffff",

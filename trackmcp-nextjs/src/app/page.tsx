@@ -48,9 +48,16 @@ const jsonLd = {
     },
     {
       "@type": "Organization",
+      "@id": "https://trackmcp.com/#organization",
       name: "TrackMCP",
       url: "https://trackmcp.com",
       logo: "https://trackmcp.com/icon.svg",
+      sameAs: [
+        "https://github.com/trackmcp",
+        "https://www.linkedin.com/company/trackmcp",
+        "https://x.com/trackmcp",
+        "https://www.producthunt.com/products/trackmcp",
+      ],
     },
   ],
 };
@@ -467,8 +474,11 @@ export default withTrackMCP(server, {
                   TrackMCP turns your usage data into a short explanation of what
                   is working and what to improve, with a useful next step
                 </p>
-                <div className="mt-6">
-                  <Button href="/features" variant="primary" size="md">
+                <div className="mt-6 flex flex-wrap gap-3">
+                  <Button href="/mcp-server-analytics" variant="primary" size="md">
+                    Read the analytics guide
+                  </Button>
+                  <Button href="/features" variant="ghost" size="md">
                     See how it works
                   </Button>
                 </div>

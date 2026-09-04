@@ -1,5 +1,4 @@
 import type { MetadataRoute } from "next";
-import { getAllToolNames } from "@/lib/repository/queries";
 import { CATEGORIES, categorySlug } from "@/lib/repository/types";
 import { posts } from "@/app/blog/posts";
 
@@ -11,6 +10,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const staticRoutes: MetadataRoute.Sitemap = [
     { url: `${BASE}/`, changeFrequency: "weekly", priority: 1 },
     { url: `${BASE}/features`, changeFrequency: "monthly", priority: 0.8 },
+    { url: `${BASE}/mcp-server-analytics`, changeFrequency: "monthly", priority: 0.9 },
+    { url: `${BASE}/mcp-server-analytics/quickstart`, changeFrequency: "monthly", priority: 0.8 },
+    { url: `${BASE}/mcp-server-analytics/compare`, changeFrequency: "monthly", priority: 0.7 },
+    { url: `${BASE}/mcp-observability`, changeFrequency: "monthly", priority: 0.8 },
+    { url: `${BASE}/mcp-observability/remote-http`, changeFrequency: "monthly", priority: 0.7 },
+    { url: `${BASE}/mcp-tool-analytics`, changeFrequency: "monthly", priority: 0.7 },
     { url: `${BASE}/pricing`, changeFrequency: "monthly", priority: 0.8 },
     { url: `${BASE}/blog`, changeFrequency: "weekly", priority: 0.6 },
     { url: `${BASE}/docs`, changeFrequency: "monthly", priority: 0.6 },
@@ -24,6 +29,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${BASE}/categories`, changeFrequency: "weekly", priority: 0.6 },
     { url: `${BASE}/submit-mcp`, changeFrequency: "monthly", priority: 0.5 },
     { url: `${BASE}/contact`, changeFrequency: "yearly", priority: 0.3 },
+    { url: `${BASE}/about`, changeFrequency: "yearly", priority: 0.3 },
+    { url: `${BASE}/security`, changeFrequency: "monthly", priority: 0.4 },
     { url: `${BASE}/privacy`, changeFrequency: "yearly", priority: 0.2 },
     { url: `${BASE}/terms`, changeFrequency: "yearly", priority: 0.2 },
   ];
@@ -44,15 +51,5 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.6,
   }));
 
-  // Keep the full directory discoverable. The sitemap protocol supports up to
-  // 50,000 URLs per file; TrackMCP currently has fewer than that.
-  const tools = await getAllToolNames(50000);
-  const toolRoutes: MetadataRoute.Sitemap = tools.map((t) => ({
-    url: `${BASE}/tool/${encodeURIComponent(t.slug)}`,
-    lastModified: t.updated ? new Date(t.updated) : undefined,
-    changeFrequency: "monthly",
-    priority: 0.5,
-  }));
-
-  return [...staticRoutes, ...blogRoutes, ...categoryRoutes, ...toolRoutes];
+  return [...staticRoutes, ...blogRoutes, ...categoryRoutes];
 }

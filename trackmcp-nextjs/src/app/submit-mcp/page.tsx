@@ -6,7 +6,7 @@ import { PageFrame } from "@/components/PageFrame";
 import { SubmitClient } from "@/components/repository/SubmitClient";
 
 export const metadata: Metadata = pageMeta({
-  title: "Submit your MCP server — get discovered by 50,000+ developers | TrackMCP",
+  title: "Submit your MCP Server to the TrackMCP Directory",
   description:
     "Add your Model Context Protocol server to the TrackMCP directory. Free to submit — we fetch stars, language, and topics automatically. Optional Featured placement ($8/mo).",
   path: "/submit-mcp",
@@ -45,7 +45,7 @@ const jsonLd = {
           name: "How long does approval take?",
           acceptedAnswer: {
             "@type": "Answer",
-            text: "Most submissions are reviewed and approved within 24 hours.",
+          text: "Submissions are reviewed before they are listed; timing can vary with the submission and review queue.",
           },
         },
       ],

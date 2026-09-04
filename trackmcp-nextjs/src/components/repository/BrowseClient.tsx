@@ -107,7 +107,7 @@ export function BrowseClient({
   const displayed = q ? filtered : filtered.slice(0, visible);
   const hasMore = !q && visible < filtered.length;
   const activeFilters = (category !== "all" ? 1 : 0) + (q ? 1 : 0);
-  const availableLabel = q || category !== "all" ? filtered.length : totalCount + 10000;
+  const availableLabel = q || category !== "all" ? filtered.length : totalCount;
 
   return (
     <>
@@ -119,15 +119,46 @@ export function BrowseClient({
             <span className="h-1.5 w-1.5 rounded-full bg-brand" /> MCP Repository
           </span>
           <h1 className="mx-auto mt-5 max-w-[18ch] text-balance text-[34px] font-medium leading-[1.05] tracking-[-0.03em] text-ink sm:text-[46px]">
-            The App Store for MCP
+            Browse MCP servers by what they do
           </h1>
           <p className="mx-auto mt-4 max-w-[54ch] text-[16px] leading-[1.5] text-muted sm:text-[18px]">
-            The world&apos;s largest MCP marketplace. Find the servers, clients, and tools
-            you need, and explore what the community is building.
+            Explore the Model Context Protocol: find servers and tools by what they do,
+            inspect their documentation, and see what the community is building.
           </p>
           <div className="mt-7 flex justify-center">
             <SearchBar value={input} onChange={setInput} />
           </div>
+        </div>
+      </section>
+
+      {/* repository sections */}
+      <section className="border-b border-line bg-mist">
+        <div className="mx-auto max-w-6xl px-6 py-4">
+          <nav
+            aria-label="Repository sections"
+            className="flex flex-wrap items-center justify-center gap-2"
+          >
+            {[
+              { label: "Browse all", href: "/repository", active: true },
+              { label: "What's new", href: "/new", active: false },
+              { label: "Popular", href: "/top-mcp", active: false },
+              { label: "Categories", href: "/categories", active: false },
+              { label: "Submit your MCP", href: "/submit-mcp", active: false },
+            ].map(({ label, href, active }) => (
+              <a
+                key={href}
+                href={href}
+                aria-current={active ? "page" : undefined}
+                className={`rounded-full px-4 py-2 text-[13px] font-medium transition-colors ${
+                  active
+                    ? "bg-ink text-white shadow-sm"
+                    : "bg-white text-muted hover:text-ink"
+                }`}
+              >
+                {label}
+              </a>
+            ))}
+          </nav>
         </div>
       </section>
 
@@ -141,7 +172,7 @@ export function BrowseClient({
         <div className="mb-6 flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
           <div className="flex items-center gap-3">
             <p className="text-[18px] font-semibold text-ink">
-              {availableLabel.toLocaleString()} available
+              {activeFilters ? `${availableLabel.toLocaleString()} matching` : "MCP servers and tools"}
             </p>
             {activeFilters > 0 && (
               <button

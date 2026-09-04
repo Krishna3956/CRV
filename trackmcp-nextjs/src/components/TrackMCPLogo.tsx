@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { TrackMCPAppIcon } from "./TrackMCPAppIcon";
 
 /* The TrackMCP wordmark — a calm, typographic lowercase logo.
@@ -72,8 +71,8 @@ export function TrackMCPLogo({
   }
 
   return (
-    <Link href={href} aria-label="TrackMCP home" className={base}>
+    <a href={href} aria-label="TrackMCP home" className={base}>
       {inner}
-    </Link>
+    </a>
   );
 }

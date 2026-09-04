@@ -21,6 +21,186 @@ const note = (title: string, c: string, after: number) => ({
 });
 
 export const enrichment: Record<string, Enrichment> = {
+  "mcp-incident-response-runbook": {
+    art: "errors",
+    takeaways: [
+      "Classify the first broken layer before changing code.",
+      "Use one affected session to find the first failing event and its consequence.",
+      "Close every incident with a regression check and a review of sensitive telemetry.",
+    ],
+    inserts: [
+      fig("errors", "The fastest incident path moves from symptom to first broken event to safe mitigation.", 3),
+      note("Mitigate narrowly", "Rollback, gate one broken tool, or rate-limit a retry loop before applying a broad change.", 10),
+    ],
+  },
+  "mcp-token-passthrough-security": {
+    art: "protocol",
+    takeaways: [
+      "Client tokens must be validated for the MCP resource before a tool runs.",
+      "Downstream APIs need a separate credential or explicit delegated exchange.",
+      "Audit authorization decisions without logging bearer tokens or downstream secrets.",
+    ],
+    inserts: [
+      fig("protocol", "Separate MCP and downstream trust boundaries prevent a server from becoming a confused deputy.", 4),
+      note("Review the code path", "Search for middleware that copies the inbound Authorization header into an upstream request.", 10),
+    ],
+  },
+  "remote-mcp-oauth-guide": {
+    art: "protocol",
+    takeaways: [
+      "Remote MCP authentication is a resource-server problem, not a shared API-key shortcut.",
+      "Bind tokens to the MCP resource and validate issuer, audience, scopes, and expiry.",
+      "Use PKCE, exact redirect URIs, and separate credentials for downstream APIs.",
+    ],
+    inserts: [
+      fig("protocol", "A remote MCP request crosses an authorization boundary before it reaches a tool.", 5),
+      note("Validate every request", "A signed token is not automatically a token intended for this MCP server.", 12),
+    ],
+  },
+  "mcp-authorization-errors": {
+    art: "errors",
+    takeaways: [
+      "Find where the authorization flow stopped before changing server code.",
+      "401 means authentication failed; 403 means policy denied an authenticated identity.",
+      "Capture a sanitized timeline without tokens, authorization codes, or raw user data.",
+    ],
+    inserts: [
+      fig("errors", "The fastest debugging path is to classify the failure before inspecting the tool.", 3),
+      note("Compare clients", "A flow that works in one client may differ in discovery, PKCE, token cache, or resource parameters.", 9),
+    ],
+  },
+  "mcp-tool-schemas": {
+    art: "schema",
+    takeaways: [
+      "A valid schema can still be difficult for an agent to use.",
+      "Safe, unambiguous tolerance can reduce retries; dangerous ambiguity should fail clearly.",
+      "Measure schema changes using validation errors, retries, success, and workflow completion.",
+    ],
+    inserts: [
+      fig("schema", "Tool schemas are an agent-facing interface: clear shapes and errors reduce recovery loops.", 4),
+      note("Test the shape", "Include one value, many values, missing input, invalid enums, and malformed identifiers in a regression fixture.", 11),
+    ],
+  },
+  "mcp-server-slos": {
+    art: "funnel",
+    takeaways: [
+      "An MCP SLO should measure whether important work completes, not only whether an endpoint responds.",
+      "Define every numerator, denominator, exclusion, time window, and owner.",
+      "Use p95 latency and workflow completion to expose user-visible degradation.",
+    ],
+    inserts: [
+      fig("funnel", "Availability is only the first stage; discovery, execution, and completion form the user path.", 4),
+      note("Set a baseline first", "Targets should follow your user promise and measured behavior, not a copied universal number.", 9),
+    ],
+  },
+  "opentelemetry-for-mcp-servers": {
+    art: "latency",
+    takeaways: [
+      "Connect MCP tool spans to the downstream service that determines the result.",
+      "Use low-cardinality MCP dimensions for filtering and metrics.",
+      "Keep payloads minimized, redacted, sampled, and fail-open.",
+    ],
+    inserts: [
+      fig("latency", "A correlated trace shows whether the slow step is MCP, the tool, or a downstream dependency.", 3),
+      note("Trace the outcome", "A completed business result is stronger than assuming a successful tool span was useful.", 9),
+    ],
+  },
+  "mcp-tool-selection-evaluation": {
+    art: "bars",
+    takeaways: [
+      "Evaluate selection, argument validity, execution, recovery, completion, and safety separately.",
+      "Record the client, model, catalog, schema, server, and test versions.",
+      "Publish sample size and limitations so the benchmark remains credible.",
+    ],
+    inserts: [
+      fig("bars", "A scorecard makes it possible to see whether a change improves selection or only increases activity.", 4),
+      note("Keep the baseline", "Change one meaningful variable at a time and compare against a stable intent set.", 10),
+    ],
+  },
+  "mcp-server-analytics-guide": {
+    art: "protocol",
+    takeaways: [
+      "MCP analytics connects client, tool, session, reliability, and outcome signals.",
+      "Workflow completion is more meaningful than raw call volume.",
+      "Capture at the protocol boundary, redact locally, and keep telemetry fail-open.",
+    ],
+    inserts: [
+      fig("protocol", "A single server-boundary wrapper can connect agent calls to tools, sessions, and outcomes.", 6),
+      note("Start with decisions", "Every metric should tell you what to investigate or improve next.", 12),
+    ],
+  },
+  "mcp-observability-guide": {
+    art: "clients",
+    takeaways: [
+      "MCP observability joins protocol health to agent behavior and workflow outcomes.",
+      "A green HTTP status does not prove that a tool call succeeded.",
+      "Dimensions such as client, tool, session, and outcome turn telemetry into an investigation path.",
+    ],
+    inserts: [
+      fig("clients", "The same MCP server can behave differently across clients, tools, and workflow paths.", 4),
+      note("Investigate the path", "Start with the incomplete workflow, identify the first repeated or failed step, and then inspect that tool.", 10),
+    ],
+  },
+  "how-to-monitor-an-mcp-server-in-production": {
+    art: "latency",
+    takeaways: [
+      "Production monitoring must exercise discovery, authorization, execution, recovery, and outcomes.",
+      "Separate page-worthy outages from investigation signals.",
+      "Synthetic workflow checks should be isolated and clearly labeled.",
+    ],
+    inserts: [
+      fig("latency", "The server is only as healthy as the slowest critical step in a representative workflow.", 8),
+      note("Monitor the user path", "An endpoint ping proves reachability. A workflow check proves that an agent can get useful work done.", 13),
+    ],
+  },
+  "mcp-production-readiness-checklist": {
+    art: "schema",
+    takeaways: [
+      "Production readiness spans deployment, catalog quality, security, observability, and testing.",
+      "Separate read, write, destructive, and administrative capabilities.",
+      "Record partial or blocked checklist items with an owner instead of treating readiness as a vague feeling.",
+    ],
+    inserts: [
+      fig("schema", "A reviewed tool catalog is part of the production surface, not just documentation.", 5),
+      note("Make risk explicit", "A read-only server and a server that can mutate production data should not have the same launch bar.", 14),
+    ],
+  },
+  "mcp-server-security-checklist": {
+    art: "errors",
+    takeaways: [
+      "Treat every MCP tool as an action boundary with explicit permissions.",
+      "Never use token passthrough; validate the token for the MCP resource.",
+      "Auditability requires useful metadata, not unrestricted payload collection.",
+    ],
+    inserts: [
+      fig("errors", "A secure MCP deployment distinguishes transport success from authorization and tool-level risk.", 7),
+      note("Minimize what you collect", "Redact secrets and personal data before telemetry leaves the server, and define retention and access.", 15),
+    ],
+  },
+  "mcp-2026-07-28-migration-guide": {
+    art: "protocol",
+    takeaways: [
+      "The 2026-07-28 release makes the protocol core stateless and easier to route across instances.",
+      "Tasks, cache hints, header-based routing, and authorization hardening affect production design.",
+      "Measure deprecated transport and capability usage before removing compatibility.",
+    ],
+    inserts: [
+      fig("protocol", "Stateless requests change the scaling boundary: application state must be explicit and durable.", 5),
+      note("Version everything", "Verify the exact specification, SDK, and client versions you deploy before applying migration advice.", 13),
+    ],
+  },
+  "measure-mcp-tool-adoption-workflow-completion": {
+    art: "funnel",
+    takeaways: [
+      "Adoption includes breadth, depth, quality, and trend—not only call count.",
+      "Read tool usage inside completed and incomplete workflow paths.",
+      "Treat descriptions and schemas as agent-facing UX that can be measured.",
+    ],
+    inserts: [
+      fig("funnel", "The useful question is where a tool path moves from discovery to a completed outcome.", 5),
+      note("Before deleting", "A zero-call tool may be unnecessary—or simply undiscoverable because its description does not match user intent.", 12),
+    ],
+  },
   "why-your-mcp-server-needs-analytics": {
     art: "protocol",
     takeaways: [

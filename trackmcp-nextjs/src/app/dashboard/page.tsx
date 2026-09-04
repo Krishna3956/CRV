@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { DashboardApp } from "@/components/dashboard/DashboardApp";
 import { getSupabaseBrowser } from "@/lib/auth/supabase-browser";
 import type { Analytics } from "@/lib/telemetry/analytics-types";
+import { trackMarketingEvent, trackMarketingEventOnce } from "@/lib/marketing-analytics";
 
 type Workspace = { id: string; name: string; slug: string };
 type Key = { id: string; name: string; key_prefix: string; revoked_at: string | null; created_at: string };
@@ -35,16 +36,17 @@ export function DashboardPageContent({ onboardingMode = false }: { onboardingMod
     const body = await response.json();
     if (!response.ok) throw new Error(body.error || "Could not load analytics.");
     setAnalytics(body);
+    if (body.total_events > 0) trackMarketingEventOnce("first_telemetry_seen", { event_count: body.total_events });
   };
   const createWorkspace = async (details?: SetupDetails) => {
     setWorking(true); setError("");
-    try { const response = await fetch("/api/v1/account/workspace", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(details || {}) }); const body = await response.json(); if (!response.ok) throw new Error(body.error || "Could not create your workspace."); setNewKey(body.api_key); const account = await loadAccount(); if (account.workspace) await loadAnalytics(); }
+    try { const response = await fetch("/api/v1/account/workspace", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(details || {}) }); const body = await response.json(); if (!response.ok) throw new Error(body.error || "Could not create your workspace."); trackMarketingEvent("workspace_created"); setNewKey(body.api_key); const account = await loadAccount(); if (account.workspace) await loadAnalytics(); }
     catch (reason) { setError(reason instanceof Error ? reason.message : "Could not create your workspace."); }
     finally { setWorking(false); }
   };
   const generateKey = async () => {
     setWorking(true); setError("");
-    try { const response = await fetch("/api/v1/account/workspace", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ key_name: `server-${keys.length + 1}` }) }); const body = await response.json(); if (!response.ok) throw new Error(body.error || "Could not create an API key."); setNewKey(body.api_key); await loadAccount(); }
+    try { const response = await fetch("/api/v1/account/workspace", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ key_name: `server-${keys.length + 1}` }) }); const body = await response.json(); if (!response.ok) throw new Error(body.error || "Could not create an API key."); trackMarketingEvent("api_key_created"); setNewKey(body.api_key); await loadAccount(); }
     catch (reason) { setError(reason instanceof Error ? reason.message : "Could not create an API key."); }
     finally { setWorking(false); }
   };

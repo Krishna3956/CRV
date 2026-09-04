@@ -2,19 +2,20 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { getSupabaseBrowser } from "@/lib/auth/supabase-browser";
 import { ArrowRight, Loader2, Check } from "lucide-react";
 import { TrackMCPLogo } from "@/components/TrackMCPLogo";
 import { TrackMCPMark } from "@/components/TrackMCPMark";
 import { sendWeb3Form } from "@/lib/web3forms";
+import { saveContentAttribution, trackMarketingEvent } from "@/lib/marketing-analytics";
 
 export default function SignInPage({ initialMode = "signin" }: { initialMode?: "signin" | "signup" }) {
   const router = useRouter();
   const [status, setStatus] = useState<"idle" | "loading" | "sent" | "error">("idle");
   const [email, setEmail] = useState("");
   const [mode, setMode] = useState<"signin" | "signup">(() => {
-    if (typeof window === "undefined") return "signin";
+    if (typeof window === "undefined") return initialMode;
     return new URLSearchParams(window.location.search).get("mode") === "signup" ? "signup" : initialMode;
   });
   const [firstName, setFirstName] = useState("");
@@ -33,6 +34,17 @@ export default function SignInPage({ initialMode = "signin" }: { initialMode?: "
         : "We couldn’t complete sign-in with that link. Request a new link below and open the newest email.";
   });
 
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const contentPath = params.get("content_path");
+    if (!contentPath) return;
+    saveContentAttribution({
+      content_path: contentPath,
+      content_cta: params.get("content_cta") || undefined,
+      content_surface: params.get("content_surface") || undefined,
+    });
+  }, []);
+
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (status === "loading") return;
@@ -42,6 +54,7 @@ export default function SignInPage({ initialMode = "signin" }: { initialMode?: "
     }
     setStatus("loading");
     setError("");
+    trackMarketingEvent("auth_request_started", { auth_mode: mode });
     const redirectOrigin = "https://app.trackmcp.com";
     const { error: authError } = await getSupabaseBrowser().auth.signInWithOtp({
       email,
@@ -51,6 +64,7 @@ export default function SignInPage({ initialMode = "signin" }: { initialMode?: "
       setError(authError.message);
       setStatus("error");
     } else {
+      trackMarketingEvent(mode === "signup" ? "signup_request_sent" : "signin_request_sent", { auth_mode: mode });
       void sendWeb3Form({ subject: `TrackMCP ${mode} request`, from_name: "TrackMCP · Auth", name: `${firstName} ${lastName}`.trim(), email, company: companyName, intent: mode });
       setStatus("sent");
     }

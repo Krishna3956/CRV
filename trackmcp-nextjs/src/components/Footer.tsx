@@ -1,14 +1,17 @@
-import Link from "next/link";
 import { TrackMCPAppIcon } from "./TrackMCPAppIcon";
 
 const cols = [
   {
     title: "Product",
     links: [
+      { label: "MCP server analytics", href: "/mcp-server-analytics" },
+      { label: "MCP observability", href: "/mcp-observability" },
+      { label: "Remote HTTP observability", href: "/mcp-observability/remote-http" },
+      { label: "Tool usage analytics", href: "/mcp-tool-analytics" },
       { label: "Features", href: "/features" },
       { label: "Pricing", href: "/pricing" },
       { label: "MCP Repository", href: "/repository" },
-      { label: "Changelog", href: "#" },
+      { label: "Quickstart", href: "/mcp-server-analytics/quickstart" },
     ],
   },
   {
@@ -24,12 +27,16 @@ const cols = [
     title: "Company",
     links: [
       { label: "Blog", href: "/blog" },
+      { label: "About", href: "/about" },
+      { label: "Security", href: "/security" },
       { label: "Contact", href: "/contact" },
       { label: "Privacy", href: "/privacy" },
       { label: "Terms", href: "/terms" },
     ],
   },
 ];
+
+const homeHref = "/";
 
 const socials: { label: string; href: string; icon: React.ReactNode }[] = [
   {
@@ -67,8 +74,8 @@ export function Footer() {
       <div className="mx-auto max-w-6xl px-6 py-14">
         <div className="grid grid-cols-2 gap-8 md:grid-cols-[2fr_1fr_1fr_1fr]">
           <div>
-            <Link
-              href="/"
+            <a
+              href={homeHref}
               aria-label="TrackMCP home"
               className="group inline-flex items-center gap-2"
             >
@@ -77,7 +84,7 @@ export function Footer() {
                 <span className="text-[#171717]">track</span>
                 <span className="text-brand">mcp</span>
               </span>
-            </Link>
+            </a>
             <p className="mt-4 max-w-[32ch] text-sm text-muted">
               Analytics for the Model Context Protocol. See how your MCP server is
               being used.
@@ -89,13 +96,13 @@ export function Footer() {
                 {c.title}
               </h5>
               {c.links.map((l) => (
-                <Link
+                <a
                   key={l.label}
                   href={l.href}
                   className="mb-2.5 block text-[14.5px] text-body transition-colors hover:text-ink"
                 >
                   {l.label}
-                </Link>
+                </a>
               ))}
             </div>
           ))}

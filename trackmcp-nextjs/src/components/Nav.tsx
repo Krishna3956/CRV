@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { Menu, X, ChevronDown, LayoutGrid, Sparkles, TrendingUp, Boxes, Plus } from "lucide-react";
+import { Menu, X, ChevronDown, Sparkles, TrendingUp, Boxes, Plus } from "lucide-react";
 import { TrackMCPLogo } from "./TrackMCPLogo";
 import { EarlyAccessButton } from "./EarlyAccessButton";
 
@@ -14,7 +14,6 @@ const links = [
 ];
 
 const repoLinks = [
-  { label: "Browse all", href: "/repository", desc: "Search every MCP server", icon: LayoutGrid, tile: "bg-slate-100 text-slate-600" },
   { label: "What's new", href: "/new", desc: "Latest additions", icon: Sparkles, tile: "bg-sky-100 text-sky-600" },
   { label: "Popular", href: "/top-mcp", desc: "Top by GitHub stars", icon: TrendingUp, tile: "bg-amber-100 text-amber-600" },
   { label: "Categories", href: "/categories", desc: "Browse by what they do", icon: Boxes, tile: "bg-violet-100 text-violet-600" },
@@ -43,28 +42,27 @@ export function Nav() {
 
         <nav className="hidden items-center gap-8 md:flex">
           {links.map((l) => (
-            <Link
+            <a
               key={l.href}
               href={l.href}
               className="text-[15px] text-body transition-colors hover:text-ink"
             >
               {l.label}
-            </Link>
+            </a>
           ))}
 
-          {/* Repository dropdown */}
           <div className="group relative">
-            <Link
+            <a
               href="/repository"
               className="inline-flex items-center gap-1 text-[15px] text-body transition-colors hover:text-ink"
             >
               Repository
               <ChevronDown size={14} className="text-faint transition-transform group-hover:rotate-180" />
-            </Link>
+            </a>
             <div className="invisible absolute left-1/2 top-full z-50 w-[300px] -translate-x-1/2 pt-3 opacity-0 transition-all duration-150 group-hover:visible group-hover:opacity-100 group-focus-within:visible group-focus-within:opacity-100">
               <div className="rounded-xl border border-line bg-white p-1.5 shadow-[0_20px_50px_-20px_rgba(10,10,10,0.35)]">
                 {repoLinks.map((r) => (
-                  <Link
+                  <a
                     key={r.href}
                     href={r.href}
                     className="flex items-center gap-3 rounded-lg px-2.5 py-2 transition-colors hover:bg-mist"
@@ -76,7 +74,7 @@ export function Nav() {
                       <span className="block text-[13.5px] font-medium text-ink">{r.label}</span>
                       <span className="block truncate text-[12px] text-muted">{r.desc}</span>
                     </span>
-                  </Link>
+                  </a>
                 ))}
               </div>
             </div>
@@ -105,21 +103,28 @@ export function Nav() {
         <div className="border-t border-line bg-white px-6 py-4 md:hidden">
           <div className="flex flex-col gap-3">
             {links.map((l) => (
-              <Link
+              <a
                 key={l.href}
                 href={l.href}
                 onClick={() => setOpen(false)}
                 className="py-1 text-[15px] text-body"
               >
                 {l.label}
-              </Link>
+              </a>
             ))}
             <div className="mt-1 border-t border-line pt-3">
-              <span className="text-[11px] font-semibold uppercase tracking-wide text-faint">
+              <a
+                href="/repository"
+                onClick={() => setOpen(false)}
+                className="py-1 text-[15px] font-medium text-ink"
+              >
                 Repository
+              </a>
+              <span className="mt-3 block text-[11px] font-semibold uppercase tracking-wide text-faint">
+                Explore the repository
               </span>
               {repoLinks.map((r) => (
-                <Link
+                <a
                   key={r.href}
                   href={r.href}
                   onClick={() => setOpen(false)}
@@ -129,7 +134,7 @@ export function Nav() {
                     <r.icon size={14} />
                   </span>
                   {r.label}
-                </Link>
+                </a>
               ))}
             </div>
             <EarlyAccessButton size="sm" className="mt-3 w-full" />

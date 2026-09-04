@@ -11,7 +11,7 @@ export function StatsSection({
     n >= 1000 ? `${(n / 1000).toFixed(1).replace(/\.0$/, "")}k` : `${n}`;
 
   const stats = [
-    { icon: Package, label: "MCP tools & servers", value: `${(totalTools + 10000).toLocaleString()}+`, tile: "bg-violet-100 text-violet-600" },
+    { icon: Package, label: "MCP tools & servers", value: `${totalTools.toLocaleString()}`, tile: "bg-violet-100 text-violet-600" },
     { icon: Star, label: "Combined GitHub stars", value: `${fmt(totalStars)}+`, tile: "bg-amber-100 text-amber-600" },
     { icon: Activity, label: "Active projects", value: `${totalTools.toLocaleString()}`, tile: "bg-brand-soft text-brand-strong" },
   ];

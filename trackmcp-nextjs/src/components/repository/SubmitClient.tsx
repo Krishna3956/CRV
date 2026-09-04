@@ -17,35 +17,29 @@ import {
 import { sendWeb3Form } from "@/lib/web3forms";
 
 /* Full submit-a-tool page (ported from the live site): two-column layout with a
-   value prop + community stats + "why submit" on the left, and the form with a
+   value prop + "why submit" on the left, and the form with a
    $8/mo Featured upsell on the right, plus an FAQ. Restyled to ink + green.
    Posts to /api/repository/submit. */
 
-const STATS = [
-  { value: "14,739", label: "Tools listed" },
-  { value: "50,000+", label: "Active developers" },
-  { value: "120+", label: "Countries" },
-];
-
 const WHY = [
-  { icon: Users, title: "Reach active developers", body: "Connect with thousands of MCP users browsing the largest directory." },
-  { icon: Zap, title: "Instant visibility", body: "Listed within 24 hours of approval." },
+  { icon: Users, title: "Reach MCP builders", body: "Give your server a public listing that people can discover, inspect, and share." },
+  { icon: Zap, title: "Keep your listing useful", body: "We pull repository details and documentation so visitors can evaluate the server before installing it." },
   { icon: Trophy, title: "Stand out", body: "Get featured and boost discoverability." },
 ];
 
 const FEATURED_BENEFITS = [
   { icon: Trophy, text: "Top search placement" },
   { icon: Sparkles, text: "Featured badge & highlight" },
-  { icon: Zap, text: "3x more visibility" },
+  { icon: Zap, text: "Featured placement" },
   { icon: Users, text: "Priority support" },
 ];
 
 const FAQS = [
   {
     q: "Why should I submit my MCP tool?",
-    a: "TrackMCP is the largest MCP directory. Submitting gets your tool discovered by thousands of developers worldwide, with its own page and docs pulled from your README.",
+    a: "TrackMCP is an MCP server directory. Submitting gives your server a public page with repository details and documentation pulled from your README.",
   },
-  { q: "How long does approval take?", a: "Most submissions are reviewed and approved within 24 hours. We review every submission to keep quality high." },
+  { q: "How long does approval take?", a: "Submissions are reviewed before they are listed. Timing can vary with the submission and review queue." },
   { q: "Is there a cost to submit?", a: "No — submitting your tool is completely free. The Featured option ($8/mo) is optional and gives you premium placement." },
   { q: "What if my tool is rejected?", a: "We'll explain why and give constructive feedback. Most tools get approved — feel free to resubmit after improvements." },
   { q: "Can I edit after submitting?", a: "Yes. You can edit your submission anytime before approval — just reply to our confirmation email with the changes." },
@@ -101,7 +95,7 @@ export function SubmitClient() {
         </span>
         <h2 className="mt-5 text-[24px] font-medium text-ink">Thank you!</h2>
         <p className="mt-2 text-[15px] leading-relaxed text-muted">
-          Your tool has been submitted. We&apos;ll review it within 24 hours and email you a
+          Your tool has been submitted. We&apos;ll review it and email you a
           confirmation{wantsFeatured ? ", plus details to start your Featured listing" : ""}.
         </p>
         <Link
@@ -124,21 +118,12 @@ export function SubmitClient() {
               <Rocket size={12} /> Join the community
             </span>
             <h1 className="mt-4 text-[28px] font-medium leading-[1.1] tracking-[-0.02em] text-ink sm:text-[34px]">
-              Get discovered by 50,000+ developers
+              List your MCP server in the directory
             </h1>
             <p className="mt-3 text-[15.5px] leading-[1.5] text-muted">
               Share your MCP server or tool and connect with an active, growing community
               building the future of AI.
             </p>
-          </div>
-
-          <div className="grid grid-cols-3 gap-3">
-            {STATS.map((s) => (
-              <div key={s.label} className="rounded-xl border border-line bg-white px-3 py-4 text-center">
-                <div className="text-[20px] font-semibold text-ink">{s.value}</div>
-                <div className="mt-1 text-[11px] leading-tight text-muted">{s.label}</div>
-              </div>
-            ))}
           </div>
 
           <div className="flex flex-col gap-4">

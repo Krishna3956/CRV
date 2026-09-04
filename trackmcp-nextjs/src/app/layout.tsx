@@ -3,11 +3,13 @@ import { Inter, Geist_Mono } from "next/font/google";
 import Script from "next/script";
 import { Analytics } from "@vercel/analytics/react";
 import { SpeedInsights } from "@vercel/speed-insights/react";
+import { ScrollToTop } from "@/components/ScrollToTop";
 import "./globals.css";
 
 // Analytics IDs carried over from the live site.
 const GA_ID = "G-PSZBQBCRQX";
 const CLARITY_ID = "tsoodirahp";
+const ENABLE_CLARITY = process.env.NODE_ENV === "production";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -65,6 +67,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       className={`${inter.variable} ${geistMono.variable} h-full`}
     >
       <body className="min-h-full flex flex-col bg-canvas text-body">
+        <ScrollToTop />
         <link rel="preconnect" href="https://api.fontshare.com" crossOrigin="anonymous" />
         <link
           rel="stylesheet"
@@ -84,15 +87,17 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         </Script>
 
         {/* Microsoft Clarity */}
-        <Script id="clarity" strategy="afterInteractive">
-          {`
-            (function(c,l,a,r,i,t,y){
-              c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
-              t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;
-              y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
-            })(window, document, "clarity", "script", "${CLARITY_ID}");
-          `}
-        </Script>
+        {ENABLE_CLARITY && (
+          <Script id="clarity" strategy="lazyOnload">
+            {`
+              (function(c,l,a,r,i,t,y){
+                c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
+                t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;
+                y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
+              })(window, document, "clarity", "script", "${CLARITY_ID}");
+            `}
+          </Script>
+        )}
 
         {/* Vercel Analytics + Speed Insights */}
         <Analytics />
