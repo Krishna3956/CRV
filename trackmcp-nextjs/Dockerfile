@@ -45,4 +45,7 @@ COPY --from=builder /app/public ./public
 
 USER nextjs
 EXPOSE 8080
-CMD ["node", "server.js"]
+# Force bind to 0.0.0.0: container runtimes auto-set HOSTNAME to the container's
+# own hostname, which would override the ENV above and make Next bind the wrong
+# interface (App Runner health checks then fail). Setting it inline wins.
+CMD ["sh", "-c", "HOSTNAME=0.0.0.0 PORT=${PORT:-8080} node server.js"]

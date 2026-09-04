@@ -76,33 +76,54 @@ if ! aws iam get-role --role-name "$ACCESS_ROLE_NAME" >/dev/null 2>&1; then
 fi
 ACCESS_ROLE_ARN="$(aws iam get-role --role-name "$ACCESS_ROLE_NAME" --query Role.Arn --output text)"
 
+# ---- 3b. (optional) Instance role to read runtime secrets from Secrets Manager.
+# Set SECRETS_ARN in .env.deploy to a Secrets Manager secret IN THE SAME REGION
+# as the service, holding JSON keys GITHUB_TOKEN and SUPABASE_SERVICE_ROLE_KEY. ----
+INSTANCE_ROLE_ARN=""
+if [[ -n "${SECRETS_ARN:-}" ]]; then
+  INSTANCE_ROLE_NAME="AppRunnerInstanceRole"
+  if ! aws iam get-role --role-name "$INSTANCE_ROLE_NAME" >/dev/null 2>&1; then
+    echo "==> Creating IAM instance role $INSTANCE_ROLE_NAME"
+    aws iam create-role --role-name "$INSTANCE_ROLE_NAME" \
+      --assume-role-policy-document '{
+        "Version":"2012-10-17",
+        "Statement":[{"Effect":"Allow","Principal":{"Service":"tasks.apprunner.amazonaws.com"},"Action":"sts:AssumeRole"}]
+      }' >/dev/null
+    sleep 5
+  fi
+  aws iam put-role-policy --role-name "$INSTANCE_ROLE_NAME" --policy-name ReadRuntimeSecrets \
+    --policy-document "{\"Version\":\"2012-10-17\",\"Statement\":[{\"Effect\":\"Allow\",\"Action\":[\"secretsmanager:GetSecretValue\"],\"Resource\":[\"${SECRETS_ARN}\",\"${SECRETS_ARN}*\"]}]}" >/dev/null
+  INSTANCE_ROLE_ARN="$(aws iam get-role --role-name "$INSTANCE_ROLE_NAME" --query Role.Arn --output text)"
+fi
+
 # ---- 4. Build runtime env var JSON (only non-empty values) ----
+# Public (NEXT_PUBLIC_*) values go in plaintext env; sensitive keys come from
+# Secrets Manager below, never as plaintext env vars.
 RUNTIME_ENV="$(python3 - <<'PY'
 import json, os
 keys = [
     "NEXT_PUBLIC_SUPABASE_URL",
     "NEXT_PUBLIC_SUPABASE_ANON_KEY",
     "NEXT_PUBLIC_WEB3FORMS_ACCESS_KEY",
-    "GITHUB_TOKEN",
-    "SUPABASE_SERVICE_ROLE_KEY",
-    "TRACKMCP_ADMIN_KEY",
-    "TRACKMCP_KEY",
 ]
 print(json.dumps({k: os.environ[k] for k in keys if os.environ.get(k)}))
 PY
 )"
 
-SOURCE_CONFIG="$(python3 - "$IMAGE" "$ACCESS_ROLE_ARN" "$RUNTIME_ENV" <<'PY'
+SOURCE_CONFIG="$(python3 - "$IMAGE" "$ACCESS_ROLE_ARN" "$RUNTIME_ENV" "${SECRETS_ARN:-}" <<'PY'
 import json, sys
-image, role_arn, runtime_env = sys.argv[1], sys.argv[2], sys.argv[3]
+image, role_arn, runtime_env, secrets_arn = sys.argv[1], sys.argv[2], sys.argv[3], sys.argv[4]
+img_cfg = {"Port": "8080", "RuntimeEnvironmentVariables": json.loads(runtime_env)}
+if secrets_arn:
+    img_cfg["RuntimeEnvironmentSecrets"] = {
+        "GITHUB_TOKEN": f"{secrets_arn}:GITHUB_TOKEN::",
+        "SUPABASE_SERVICE_ROLE_KEY": f"{secrets_arn}:SUPABASE_SERVICE_ROLE_KEY::",
+    }
 cfg = {
     "ImageRepository": {
         "ImageIdentifier": image,
         "ImageRepositoryType": "ECR",
-        "ImageConfiguration": {
-            "Port": "8080",
-            "RuntimeEnvironmentVariables": json.loads(runtime_env),
-        },
+        "ImageConfiguration": img_cfg,
     },
     "AutoDeploymentsEnabled": False,
     "AuthenticationConfiguration": {"AccessRoleArn": role_arn},
@@ -112,7 +133,14 @@ PY
 )"
 
 HEALTH_CONFIG='{"Protocol":"TCP","Interval":10,"Timeout":5,"HealthyThreshold":1,"UnhealthyThreshold":5}'
-INSTANCE_CONFIG='{"Cpu":"1 vCPU","Memory":"2 GB"}'
+INSTANCE_CONFIG="$(python3 - "${INSTANCE_ROLE_ARN:-}" <<'PY'
+import json, sys
+c = {"Cpu": "1 vCPU", "Memory": "2 GB"}
+if sys.argv[1]:
+    c["InstanceRoleArn"] = sys.argv[1]
+print(json.dumps(c))
+PY
+)"
 
 # ---- 5. Create the service (or tell the user how to update it) ----
 EXISTING_ARN="$(aws apprunner list-services --region "$AWS_REGION" \
@@ -125,13 +153,16 @@ if [[ "$EXISTING_ARN" == "None" || -z "$EXISTING_ARN" ]]; then
     --region "$AWS_REGION" \
     --source-configuration "$SOURCE_CONFIG" \
     --health-check-configuration "$HEALTH_CONFIG" \
-    --instance-configuration "$INSTANCE_CONFIG"
+    --instance-configuration "$INSTANCE_CONFIG" \
+    --query 'Service.[ServiceName,Status,ServiceUrl]' --output text
 else
   echo "==> Service exists ($EXISTING_ARN); deploying new image"
   aws apprunner update-service \
     --service-arn "$EXISTING_ARN" \
     --region "$AWS_REGION" \
-    --source-configuration "$SOURCE_CONFIG"
+    --source-configuration "$SOURCE_CONFIG" \
+    --instance-configuration "$INSTANCE_CONFIG" \
+    --query 'Service.[ServiceName,Status,ServiceUrl]' --output text
 fi
 
 echo ""

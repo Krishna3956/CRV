@@ -73,6 +73,16 @@ bash deploy/apprunner-deploy.sh
 - To trim cost further later: drop to 0.5 vCPU / 1 GB, or move to ECS Fargate +
   CloudFront for CDN caching at scale.
 - Supabase is unchanged and independent of this migration.
-- Secrets are passed as App Runner runtime env vars here. For production hardening,
-  move `GITHUB_TOKEN` / `SUPABASE_SERVICE_ROLE_KEY` into AWS Secrets Manager and
-  reference them via `RuntimeEnvironmentSecrets`.
+
+## Secrets (GITHUB_TOKEN / SUPABASE_SERVICE_ROLE_KEY)
+These are pulled from **AWS Secrets Manager**, not stored as plaintext env vars.
+Set `SECRETS_ARN` in `deploy/.env.deploy` to a secret **in the same region as the
+service** whose value is JSON like `{"GITHUB_TOKEN":"...","SUPABASE_SERVICE_ROLE_KEY":"..."}`.
+The deploy script then:
+- creates an instance role (`AppRunnerInstanceRole`) allowed to `GetSecretValue`, and
+- wires both keys via App Runner `RuntimeEnvironmentSecrets`.
+
+If your secret lives in another region, replicate it into the service region first:
+`aws secretsmanager replicate-secret-to-regions --secret-id <arn> --add-replica-regions Region=<service-region>`.
+To rotate a key, update the secret value in Secrets Manager (replicas sync
+automatically) and redeploy so the running instances pick it up.
