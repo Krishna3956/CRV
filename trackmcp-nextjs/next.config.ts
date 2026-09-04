@@ -12,6 +12,19 @@ const nextConfig: NextConfig = {
       { source: "/directory", destination: "/repository", permanent: true },
     ];
   },
+  async headers() {
+    return [
+      {
+        source: "/tool/:path*",
+        headers: [
+          {
+            key: "Cache-Control",
+            value: "public, s-maxage=21600, stale-while-revalidate=86400",
+          },
+        ],
+      },
+    ];
+  },
 };
 
 export default nextConfig;

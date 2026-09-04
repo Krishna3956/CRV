@@ -2,6 +2,7 @@ import { getSupabase } from "./supabase";
 import { isBlocked } from "./blocked";
 import { githubPathFromToolSlug, toolSlug } from "./types";
 import type { McpTool } from "./types";
+import { unstable_cache } from "next/cache";
 
 /* Drop repos that are blocked from the directory (404/invalid/banned). */
 function keep(tools: McpTool[]): McpTool[] {
@@ -57,31 +58,42 @@ export async function getToolByName(name: string): Promise<McpTool | null> {
   if (/\.(md|txt)$/i.test(decoded) || ["LICENSE", "CONTRIBUTING", "README"].includes(decoded)) {
     return null;
   }
-  let data: McpTool | null = null;
-  const githubPath = githubPathFromToolSlug(decoded);
-  if (githubPath) {
-    const githubUrl = `https://github.com/${githubPath.owner}/${githubPath.repo}`;
-    const escapedPattern = githubUrl.replaceAll("\\", "\\\\").replaceAll("%", "\\%").replaceAll("_", "\\_");
-    const result = await supabase
-      .from("mcp_tools")
-      .select("*")
-      .ilike("github_url", escapedPattern)
-      .limit(1)
-      .maybeSingle();
-    data = (result.data as McpTool) || null;
-  }
-  if (!data && !isBlocked(decoded)) {
-    const result = await supabase
-      .from("mcp_tools")
-      .select("*")
-      .ilike("repo_name", decoded)
-      .limit(1)
-      .maybeSingle();
-    data = (result.data as McpTool) || null;
-  }
-  if (!data || isBlocked(data.repo_name)) return null;
-  return data;
+  return getCachedToolByName(decoded);
 }
+
+const getCachedToolByName = unstable_cache(
+  async (decoded: string): Promise<McpTool | null> => {
+    const supabase = getSupabase();
+    if (!supabase) return null;
+
+    let data: McpTool | null = null;
+    const githubPath = githubPathFromToolSlug(decoded);
+    if (githubPath) {
+      const githubUrl = `https://github.com/${githubPath.owner}/${githubPath.repo}`;
+      const escapedPattern = githubUrl.replaceAll("\\", "\\\\").replaceAll("%", "\\%").replaceAll("_", "\\_");
+      const result = await supabase
+        .from("mcp_tools")
+        .select(FIELDS)
+        .ilike("github_url", escapedPattern)
+        .limit(1)
+        .maybeSingle();
+      data = (result.data as McpTool) || null;
+    }
+    if (!data && !isBlocked(decoded)) {
+      const result = await supabase
+        .from("mcp_tools")
+        .select(FIELDS)
+        .ilike("repo_name", decoded)
+        .limit(1)
+        .maybeSingle();
+      data = (result.data as McpTool) || null;
+    }
+    if (!data || isBlocked(data.repo_name)) return null;
+    return data;
+  },
+  ["repository-tool-by-name"],
+  { revalidate: 21600, tags: ["repository-tools"] },
+);
 
 export async function getToolsByCategory(category: string, limit = 300): Promise<McpTool[]> {
   const supabase = getSupabase();
@@ -161,6 +173,13 @@ export async function getCategoryCounts(): Promise<Record<string, number>> {
 /* Fetch a repo's README markdown server-side (optional GitHub token). */
 export async function getReadme(repoPath: string): Promise<string> {
   if (!/^[\w-]+\/[\w.-]+$/.test(repoPath)) return "";
+  return getCachedReadme(repoPath);
+}
+
+const MAX_README_CHARS = 120_000;
+
+const getCachedReadme = unstable_cache(
+  async (repoPath: string): Promise<string> => {
   const headers: HeadersInit = { Accept: "application/vnd.github.v3.raw" };
   if (process.env.GITHUB_TOKEN) headers.Authorization = `token ${process.env.GITHUB_TOKEN}`;
   try {
@@ -169,11 +188,25 @@ export async function getReadme(repoPath: string): Promise<string> {
       next: { revalidate: 21600 },
     });
     if (!res.ok) return "";
-    return await res.text();
+    if (!res.body) return (await res.text()).slice(0, MAX_README_CHARS);
+
+    const reader = res.body.getReader();
+    const decoder = new TextDecoder();
+    let content = "";
+    while (content.length < MAX_README_CHARS) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      content += decoder.decode(value, { stream: true });
+    }
+    await reader.cancel();
+    return content.slice(0, MAX_README_CHARS);
   } catch {
     return "";
   }
-}
+  },
+  ["repository-readme"],
+  { revalidate: 21600, tags: ["repository-readmes"] },
+);
 
 /* Related tools by language / topic / star similarity (ported heuristic). */
 export function relatedTools(tool: McpTool, pool: McpTool[], limit = 6): McpTool[] {

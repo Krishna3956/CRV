@@ -4,6 +4,8 @@ import { getToolByName } from "@/lib/repository/queries";
 export const alt = "MCP server on TrackMCP";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
+export const revalidate = 21600;
+export const dynamic = "force-static";
 
 export default async function ToolOgImage({ params }: { params: Promise<{ name: string }> }) {
   const { name } = await params;

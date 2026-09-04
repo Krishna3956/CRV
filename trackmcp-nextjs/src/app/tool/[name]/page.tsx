@@ -14,6 +14,7 @@ import { TableOfContents } from "@/components/repository/TableOfContents";
 import { metaDescription } from "@/lib/seo";
 
 export const revalidate = 21600;
+export const dynamic = "force-static";
 
 function fmtDate(s: string) {
   try {
