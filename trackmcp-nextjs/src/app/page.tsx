@@ -26,6 +26,7 @@ import { WorkflowScene } from "@/components/scenes/WorkflowScene";
 import { OutcomeScene } from "@/components/scenes/OutcomeScene";
 import { SilentFailureScene } from "@/components/scenes/SilentFailureScene";
 import { CodeWindow, K, Fn, Str, Cm, Pn } from "@/components/CodeWindow";
+import { ProductHuntBadge } from "@/components/ProductHuntBadge";
 import type { Metadata } from "next";
 import { pageMeta } from "@/lib/seo";
 
@@ -71,21 +72,7 @@ export default function Home() {
 
           <div className="mx-auto max-w-6xl px-6 pb-8 pt-10 text-center sm:pb-10 sm:pt-16">
             <Reveal delay={0.04}>
-              <a
-                href="https://www.producthunt.com/products/trackmcp?embed=true&utm_source=badge-featured&utm_medium=badge&utm_campaign=badge-trackmcp"
-                target="_blank"
-                rel="noopener noreferrer"
-                aria-label="TrackMCP on Product Hunt"
-                className="mb-6 inline-flex rounded-lg transition-transform duration-200 hover:scale-[1.02]"
-              >
-                <img
-                  alt="TrackMCP - Google Analytics for MCP Servers | Product Hunt"
-                  width={250}
-                  height={54}
-                  className="h-auto w-[210px]"
-                  src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=1238286&theme=light&t=1788520956579"
-                />
-              </a>
+              <ProductHuntBadge />
             </Reveal>
 
             <Reveal delay={0.08}>
