@@ -1,0 +1,16 @@
+node_modules
+.next
+.git
+.env*
+npm-debug.log*
+*.md
+outputs
+customer-intelligence-slides
+examples
+scripts
+supabase
+.data
+*.png
+*.svg
+!public/**
+tsconfig.tsbuildinfo
