@@ -83,7 +83,7 @@ export default function Home() {
                   width={250}
                   height={54}
                   className="h-auto w-[210px]"
-                  src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=1238286&theme=light&t=1788517150066"
+                  src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=1238286&theme=light&t=1788520956579"
                 />
               </a>
             </Reveal>
