@@ -61,7 +61,8 @@ export default function McpServerAnalyticsPage() {
           </div>
         </section>
 
-        <section className="relative overflow-hidden border-b border-line bg-mist"><div className="mx-auto max-w-[1040px] px-6 pb-16 pt-10 sm:pb-24 sm:pt-14"><Reveal className="relative z-10"><HeroDashboardScene /></Reveal></div></section>
+        {/* Dashboard visual: hidden on mobile (phones), shown from the md breakpoint up. */}
+        <section className="relative hidden overflow-hidden border-b border-line bg-mist md:block"><div className="mx-auto max-w-[1040px] px-6 pb-16 pt-10 sm:pb-24 sm:pt-14"><Reveal className="relative z-10"><HeroDashboardScene /></Reveal></div></section>
 
         <section className="relative mx-auto max-w-6xl px-6 py-20 sm:py-24">
           <Reveal className="mx-auto max-w-2xl text-center"><span className="text-[12px] font-medium uppercase tracking-[0.04em] text-brand">The questions that matter</span><h2 className="mt-3 text-[30px] font-medium leading-[1.1] tracking-[-0.02em] text-ink sm:text-[36px]">Your server is talking. Start listening.</h2><p className="mx-auto mt-4 max-w-[54ch] text-[16px] leading-[1.5] text-muted">Transport logs tell you that a request happened. MCP analytics tells you whether the agent got where it was going.</p></Reveal>

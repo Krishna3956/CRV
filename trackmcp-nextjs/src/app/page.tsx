@@ -147,8 +147,9 @@ export default function Home() {
             </div>
           </div>
 
-          {/* dashboard — the single central product object, in the mist */}
-          <div className="relative z-10 mx-auto mt-0 block max-w-[1000px] px-6 md:mt-8">
+          {/* dashboard — the single central product object, in the mist.
+              Hidden on mobile (phones), shown from the md breakpoint up. */}
+          <div className="relative z-10 mx-auto mt-0 hidden max-w-[1000px] px-6 md:mt-8 md:block">
             <HeroDashboardScene />
           </div>
 
