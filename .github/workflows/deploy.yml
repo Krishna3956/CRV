@@ -1,0 +1,90 @@
+name: Deploy to App Runner
+
+# Push-to-deploy: every push to main that touches the app rebuilds the Docker
+# image, pushes it to ECR, and rolls it out on AWS App Runner. Auth uses GitHub
+# OIDC (no long-lived AWS keys stored). Manual runs available via "Run workflow".
+on:
+  push:
+    branches: [main]
+    paths:
+      - "trackmcp-nextjs/**"
+      - ".github/workflows/deploy.yml"
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-app-runner
+  cancel-in-progress: false
+
+permissions:
+  id-token: write   # required for OIDC
+  contents: read
+
+env:
+  AWS_REGION: ap-south-1
+  ECR_REPO: trackmcp-web
+  IMAGE_TAG: v2     # the tag the App Runner service tracks (do not change)
+  SERVICE_ARN: arn:aws:apprunner:ap-south-1:872575360367:service/trackmcp-web/5d38155bd23141cabb4546b29a4075c7
+  ROLE_ARN: arn:aws:iam::872575360367:role/GitHubActionsDeployRole
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure AWS credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ env.ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Log in to Amazon ECR
+        id: ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Build and push image
+        env:
+          REGISTRY: ${{ steps.ecr.outputs.registry }}
+        run: |
+          set -euo pipefail
+          IMAGE_BASE="$REGISTRY/$ECR_REPO"
+          # Build for App Runner's architecture (amd64). ubuntu-latest is amd64,
+          # so this is a native build (fast, no emulation).
+          docker build \
+            --platform linux/amd64 \
+            --build-arg NEXT_PUBLIC_SUPABASE_URL="${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}" \
+            --build-arg NEXT_PUBLIC_SUPABASE_ANON_KEY="${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}" \
+            --build-arg NEXT_PUBLIC_WEB3FORMS_ACCESS_KEY="${{ secrets.NEXT_PUBLIC_WEB3FORMS_ACCESS_KEY }}" \
+            -t "$IMAGE_BASE:$IMAGE_TAG" \
+            -t "$IMAGE_BASE:${GITHUB_SHA}" \
+            trackmcp-nextjs
+          # :GITHUB_SHA is the immutable per-commit record; :v2 is the moving tag
+          # the service pulls on deploy.
+          docker push "$IMAGE_BASE:$IMAGE_TAG"
+          docker push "$IMAGE_BASE:${GITHUB_SHA}"
+
+      - name: Trigger App Runner deployment
+        run: |
+          set -euo pipefail
+          OP_ID=$(aws apprunner start-deployment \
+            --service-arn "$SERVICE_ARN" \
+            --region "$AWS_REGION" \
+            --query OperationId --output text)
+          echo "Started App Runner deployment: $OP_ID"
+
+      - name: Wait for deployment to finish
+        run: |
+          set -euo pipefail
+          echo "Waiting for App Runner to become RUNNING..."
+          for i in $(seq 1 40); do
+            STATUS=$(aws apprunner describe-service \
+              --service-arn "$SERVICE_ARN" --region "$AWS_REGION" \
+              --query Service.Status --output text)
+            echo "  [$i] status=$STATUS"
+            case "$STATUS" in
+              RUNNING)  echo "Deployment complete."; exit 0 ;;
+              CREATE_FAILED|DELETE_FAILED|PAUSED) echo "Unexpected status: $STATUS"; exit 1 ;;
+            esac
+            sleep 15
+          done
+          echo "Timed out waiting for RUNNING."; exit 1
