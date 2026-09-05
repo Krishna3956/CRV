@@ -10,7 +10,7 @@ export async function proxy(request: NextRequest) {
   // The app subdomain shares this deployment with the marketing site, but its
   // root should always enter the product instead of rendering the homepage.
   if (process.env.NODE_ENV === "production" && host === APP_HOST && request.nextUrl.pathname === "/") {
-    return NextResponse.redirect(new URL("/signin", request.url), 307);
+    return NextResponse.redirect(new URL("/signin", `https://${APP_HOST}`), 307);
   }
 
   if (process.env.NODE_ENV !== "production" || !MARKETING_HOSTS.has(host)) {
