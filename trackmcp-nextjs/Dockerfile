@@ -43,6 +43,12 @@ COPY --from=builder /app/.next/standalone ./
 COPY --from=builder /app/.next/static ./.next/static
 COPY --from=builder /app/public ./public
 
+# Next.js ISR writes its prerender cache and segment data under .next at runtime.
+# The standalone output is copied as root, so the non-root runtime user cannot
+# write to it -> "EACCES: permission denied, mkdir '/app/.next/cache'" spam and
+# every page re-renders on each request. Make .next writable by the nextjs user.
+RUN mkdir -p /app/.next/cache && chown -R nextjs:nodejs /app/.next
+
 USER nextjs
 EXPOSE 8080
 # Force bind to 0.0.0.0: container runtimes auto-set HOSTNAME to the container's
