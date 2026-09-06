@@ -21,14 +21,21 @@ const options: { name: string; type: string; def: string; desc: string }[] = [
   { name: "service", type: "string", def: '"mcp-server"', desc: "Name shown for this server." },
   { name: "environment", type: "string", def: '"production"', desc: "Splits data by environment." },
   { name: "sampleRate", type: "number", def: "1.0", desc: "Fraction of calls captured (0-1)." },
-  { name: "redact", type: "string[]", def: "[]", desc: "Argument/result paths to strip locally." },
+  { name: "payloadMode", type: '"metadata" | "redacted" | "full"', def: '"redacted"', desc: "Payload capture policy. Full is still bounded." },
+  { name: "redact", type: "string[]", def: "[]", desc: "Existing dotted argument/result paths to replace locally." },
+  { name: "redactKeys", type: "string[]", def: "[]", desc: "Additional case-insensitive sensitive key names." },
+  { name: "maxPayloadBytes", type: "number", def: "32768", desc: "Maximum serialized payload bytes." },
+  { name: "maxPayloadDepth", type: "number", def: "6", desc: "Maximum nested payload depth." },
+  { name: "maxPayloadKeys", type: "number", def: "50", desc: "Maximum keys/items retained per container." },
+  { name: "maxStringLength", type: "number", def: "2048", desc: "Maximum retained string length." },
+  { name: "redactEvent", type: "function", def: "undefined", desc: "Mutate a sanitized event or return null to drop it." },
   { name: "endpoint", type: "string", def: "trackmcp.com/api/v1/ingest", desc: "Override for self-hosted ingest." },
   { name: "disabled", type: "boolean", def: "false", desc: "Turn capture off without removing the wrapper." },
 ];
 
 const captured = [
-  "Tool name and the arguments (after redaction)",
-  "Result payload and whether it carried isError: true",
+  "Tool name and bounded arguments/results (after automatic and configured redaction)",
+  "Capture policy and whether fields were truncated",
   "Client type (Claude, Cursor, ChatGPT, custom)",
   "Duration in milliseconds and transport status",
   "Session id, so calls can be inspected in order",
@@ -76,7 +83,7 @@ export default function ReferenceDocsPage() {
       <DocSection title="What gets captured">
         <Para>
           On every tool call, the wrapper records the following. Arguments and results
-          pass through your <Inline>redact</Inline> rules first, in your process.
+          are sanitized and bounded in your process before transmission.
         </Para>
         <ul className="mt-1 flex flex-col gap-2">
           {captured.map((c) => (
@@ -86,6 +93,29 @@ export default function ReferenceDocsPage() {
             </li>
           ))}
         </ul>
+      </DocSection>
+
+      <DocSection title="Privacy and payload limits">
+        <Para>
+          Payload capture defaults to <Inline>redacted</Inline>. Sensitive keys such as
+          passwords, tokens, API keys, authorization, cookies, private keys, SSNs, and
+          card numbers are replaced recursively before transmission. Data URIs, large
+          base64 strings, bearer tokens, and credentialed resource URLs are scrubbed.
+        </Para>
+        <Para>
+          <Inline>metadata</Inline> sends no arguments or results. <Inline>full</Inline> is
+          opt-in but is never unlimited: every mode is capped at 32 KiB, depth 6, 50
+          keys/items per container, and 2,048 characters per string. Omitted content is
+          represented by a structured truncation marker, and <Inline>payload_size_bytes</Inline>
+          measures the final sanitized payload.
+        </Para>
+        <Para>
+          The <Inline>redactEvent</Inline> hook runs after automatic sanitization. It may
+          mutate the sanitized event or return <Inline>null</Inline> to drop it. Hook
+          failures drop only that telemetry event; they never interrupt the wrapped MCP
+          server. SDK queues are bounded to 500 events or 2 MiB, and failed deliveries
+          are requeued only within those limits.
+        </Para>
       </DocSection>
 
       <DocSection title="Metrics TrackMCP computes">

@@ -20,7 +20,7 @@ const sections: LegalSection[] = [
     h: "Data we collect",
     p: [
       "Account data: your first name, last name, work email, company, and workspace details when you sign up.",
-      "Usage telemetry from your MCP server: the tool called, timing, status, client type, and error details. You control what your server sends. We recommend not sending end-user personal data or secrets in tool arguments; you can redact fields before they reach us.",
+      "Usage telemetry from your MCP server: the tool called, timing, status, client type, and error details. SDK payload capture defaults to bounded redacted mode: common sensitive keys, bearer tokens, credentialed resource URLs, and binary/base64 content are scrubbed locally before transmission. Metadata mode omits arguments and results entirely; full mode is opt-in and remains bounded. You control what your server sends.",
       "Product analytics: how you use the TrackMCP dashboard, so we can improve it.",
     ],
   },

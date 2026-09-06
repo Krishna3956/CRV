@@ -18,6 +18,12 @@ const DIRECTIONS = ["client_to_server", "server_to_client"] as const;
 const TRANSPORTS = ["stdio", "streamable_http", "sse", "custom"] as const;
 const PAYLOAD_POLICIES = ["metadata", "redacted", "full"] as const;
 const SESSION_ID_SOURCES = ["protocol", "transport_generated", "external", "missing"] as const;
+const INGEST_SENSITIVE_KEYS = new Set([
+  "password", "passwd", "secret", "token", "api_key", "apikey", "authorization", "cookie",
+  "set_cookie", "access_token", "refresh_token", "private_key", "client_secret", "ssn",
+  "credit_card", "card_number",
+]);
+const INGEST_BASE64_THRESHOLD = 128;
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const EVENT_ID = /^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$/;
 const ISO_TIMESTAMP = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,9})?(?:Z|[+-]\d{2}:\d{2})$/;
@@ -47,6 +53,56 @@ function byteLength(value: string): number {
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return Boolean(value) && typeof value === "object" && !Array.isArray(value);
+}
+
+function normalizedKey(key: string): string {
+  return key.replace(/([a-z0-9])([A-Z])/g, "$1_$2").replace(/[\s-]+/g, "_").toLowerCase();
+}
+
+function ingestMarker(reason: string, originalType: string, extra: Record<string, unknown> = {}) {
+  return { __trackmcp_truncated: true, reason, original_type: originalType, ...extra };
+}
+
+function scrubIngestValue(value: unknown, depth = 0, seen = new WeakSet<object>()): unknown {
+  if (typeof value === "string") {
+    if (/(?:authorization|api[_-]?key|access[_-]?token|refresh[_-]?token|password|secret)\s*[:=]\s*\S+/i.test(value)) return "[redacted]";
+    if (/\bbearer\s+[A-Za-z0-9._~+/-]+=*/i.test(value)) return "[redacted]";
+    const dataUri = value.match(/^data:([^;,]+)?(?:;base64)?,/i);
+    if (dataUri) return ingestMarker("binary", "string", { media_type: dataUri[1] || "application/octet-stream" });
+    if (value.length >= INGEST_BASE64_THRESHOLD && /^[A-Za-z0-9+/_-]+={0,2}$/.test(value)) return ingestMarker("binary", "string", { original_bytes: Math.floor(value.length * 0.75) });
+    try {
+      const url = new URL(value);
+      if (url.username || url.password || [...url.searchParams.keys()].some((key) => INGEST_SENSITIVE_KEYS.has(normalizedKey(key)))) return ingestMarker("resource_uri", "string");
+    } catch {
+      // Ordinary strings are retained.
+    }
+    return value;
+  }
+  if (value === null || typeof value === "number" || typeof value === "boolean") return value;
+  if (depth >= 20) return ingestMarker("max_payload_depth", Array.isArray(value) ? "array" : "object");
+  if (!value || typeof value !== "object") return ingestMarker("binary", typeof value);
+  if (seen.has(value)) return ingestMarker("circular", Array.isArray(value) ? "array" : "object");
+  seen.add(value);
+  try {
+    if (Array.isArray(value)) return value.map((item) => scrubIngestValue(item, depth + 1, seen));
+    const result: Record<string, unknown> = {};
+    for (const [key, child] of Object.entries(value)) {
+      result[key] = INGEST_SENSITIVE_KEYS.has(normalizedKey(key)) ? "[redacted]" : scrubIngestValue(child, depth + 1, seen);
+    }
+    return result;
+  } finally {
+    seen.delete(value);
+  }
+}
+
+/** Last-line defense for payload fields received from non-SDK clients. */
+export function sanitizeIngestPayload(value: Record<string, unknown>): Record<string, unknown> {
+  try {
+    const sanitized = scrubIngestValue(value);
+    return isRecord(sanitized) ? sanitized : {};
+  } catch {
+    return { __trackmcp_truncated: true, reason: "unsupported", original_type: "object" };
+  }
 }
 
 function isString(value: unknown): value is string {

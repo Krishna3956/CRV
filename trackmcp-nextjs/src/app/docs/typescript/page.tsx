@@ -61,18 +61,36 @@ export default withTrackMCP(server, {
   service: "acme-mcp-server",   // shows up as the server name
   environment: "production",     // production | staging | ...
   sampleRate: 1.0,               // 0-1, fraction of calls captured
+  payloadMode: "redacted",      // metadata | redacted | full (all are bounded)
   redact: ["args.password", "args.token"], // never leaves your process
+  redactKeys: ["customer_id"],  // optional additional case-insensitive keys
+  maxPayloadBytes: 32768,        // final serialized payload budget
   endpoint: "https://trackmcp.com/api/v1/ingest", // self-hosted override
 });`}</Code>
       </DocSection>
 
       <DocSection title="Redacting sensitive fields">
         <Para>
-          Redaction runs in your process before anything is sent. Point{" "}
-          <Inline>redact</Inline> at any argument or result path and TrackMCP stores a{" "}
-          <Inline>[redacted]</Inline> placeholder instead of the value.
+          Redaction runs in your process before anything is sent. The default{" "}
+          <Inline>redacted</Inline> mode recursively removes common sensitive keys,
+          scrubs binary/base64 resources, and bounds depth, breadth, strings, and bytes.
+          Use <Inline>metadata</Inline> when arguments and results must not be captured;
+          <Inline>full</Inline> is opt-in but remains bounded.
         </Para>
-        <Code>{`redact: ["args.email", "args.apiKey", "result.rawResponse"]`}</Code>
+        <Code>{`redact: ["args.email", "args.apiKey", "result.rawResponse"]
+redactKeys: ["customer_id"]
+redactEvent: (event) => event // return null to drop this event
+
+// Truncations use a marker such as:
+// { __trackmcp_truncated: true, reason: "max_payload_bytes", original_type: "object" }`}</Code>
+      </DocSection>
+
+      <DocSection title="Failure and queue behavior">
+        <Para>
+          A hook exception drops only that event. Delivery failures are retried from a
+          bounded queue of 500 events or 2 MiB; oldest queued events are dropped when
+          those limits are reached. Telemetry is fail-open and never blocks tool execution.
+        </Para>
       </DocSection>
 
       <DocSection title="Custom events">

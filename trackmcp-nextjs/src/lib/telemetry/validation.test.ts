@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { deduplicateEvents, MAX_EVENT_BYTES, MAX_PAYLOAD_BYTES, normalizeTrackMCPEvent } from "./validation.ts";
+import { deduplicateEvents, MAX_EVENT_BYTES, MAX_PAYLOAD_BYTES, normalizeTrackMCPEvent, sanitizeIngestPayload } from "./validation.ts";
 
 const baseEvent = (overrides: Record<string, unknown> = {}) => ({
   event_id: "evt_123",
@@ -43,4 +43,19 @@ test("deduplicates within a batch and against stored IDs", () => {
   const result = deduplicateEvents([first.event, first.event, second.event], new Set(["evt_2"]));
   assert.deepEqual(result.events.map((event) => event.event_id), ["evt_1"]);
   assert.equal(result.ignored, 2);
+});
+
+test("ingest scrubs secrets, bearer tokens, credentialed URLs, and resource blobs defensively", () => {
+  const result = sanitizeIngestPayload({
+    nested: { authorization: "Bearer top-secret", apiKey: "secret", publicKey: "keep" },
+    resource: "data:image/png;base64,AAAA",
+    blob: "A".repeat(180),
+    uri: "https://user:password@example.com/resource?access_token=secret",
+  });
+  assert.equal((result.nested as Record<string, unknown>).authorization, "[redacted]");
+  assert.equal((result.nested as Record<string, unknown>).apiKey, "[redacted]");
+  assert.equal((result.nested as Record<string, unknown>).publicKey, "keep");
+  assert.equal((result.resource as Record<string, unknown>).reason, "binary");
+  assert.equal((result.blob as Record<string, unknown>).reason, "binary");
+  assert.equal(result.uri, "[redacted]");
 });

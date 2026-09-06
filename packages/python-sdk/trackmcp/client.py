@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import copy
 import hashlib
 import inspect
 import json
@@ -11,7 +10,19 @@ import time
 import urllib.request
 import uuid
 from dataclasses import dataclass, field
-from typing import Any, Dict, Iterable, List, Optional, TypedDict
+from typing import Any, Callable, Dict, List, Literal, Optional, TypedDict
+
+from .privacy import (
+    DEFAULT_MAX_BATCH_SIZE,
+    DEFAULT_MAX_PAYLOAD_BYTES,
+    DEFAULT_MAX_PAYLOAD_DEPTH,
+    DEFAULT_MAX_PAYLOAD_KEYS,
+    DEFAULT_MAX_QUEUE_BYTES,
+    DEFAULT_MAX_QUEUE_EVENTS,
+    DEFAULT_MAX_STRING_LENGTH,
+    payload_byte_length,
+    sanitize_payload,
+)
 
 
 _active_client: Optional["TrackMCP"] = None
@@ -63,30 +74,22 @@ class TrackMCPOptions:
     endpoint: str = "https://trackmcp.com/api/v1/ingest"
     sample_rate: float = 1.0
     redact: List[str] = field(default_factory=list)
+    redact_keys: List[str] = field(default_factory=list)
+    payload_mode: Literal["metadata", "redacted", "full"] = "redacted"
+    max_payload_bytes: int = DEFAULT_MAX_PAYLOAD_BYTES
+    max_payload_depth: int = DEFAULT_MAX_PAYLOAD_DEPTH
+    max_payload_keys: int = DEFAULT_MAX_PAYLOAD_KEYS
+    max_string_length: int = DEFAULT_MAX_STRING_LENGTH
+    redact_event: Optional[Callable[[Dict[str, Any]], Optional[Dict[str, Any]]]] = None
     disabled: bool = False
     server_version: Optional[str] = None
     sdk_version: Optional[str] = None
     deployment_id: Optional[str] = None
     server_id: Optional[str] = None
     flush_interval_ms: int = 5000
-    max_batch_size: int = 50
-
-
-def _redact(value: Any, paths: Iterable[str]) -> Any:
-    result = copy.deepcopy(value)
-    if not isinstance(result, dict):
-        return result
-    for path in paths:
-        cursor: Any = result
-        parts = path.split(".")
-        for part in parts[:-1]:
-            if not isinstance(cursor, dict) or part not in cursor:
-                cursor = None
-                break
-            cursor = cursor[part]
-        if isinstance(cursor, dict) and parts[-1] in cursor:
-            cursor[parts[-1]] = "[redacted]"
-    return result
+    max_batch_size: int = DEFAULT_MAX_BATCH_SIZE
+    max_queue_events: int = DEFAULT_MAX_QUEUE_EVENTS
+    max_queue_bytes: int = DEFAULT_MAX_QUEUE_BYTES
 
 
 def _canonical_json(value: Any) -> str:
@@ -121,6 +124,8 @@ class TrackMCP:
             raise ValueError("TrackMCP api_key is required")
         self.options = options
         self._events: List[TrackMCPEvent] = []
+        self._queue_bytes = 0
+        self._diagnostics = {"dropped_events": 0, "hook_errors": 0, "privacy_errors": 0}
         self._tool_catalog: Dict[str, Dict[str, Any]] = {}
         self._lock = threading.Lock()
         self._timer = None
@@ -132,26 +137,80 @@ class TrackMCP:
     def capture(self, event: Dict[str, Any]) -> None:
         if self.options.disabled or random.random() > max(0, min(1, self.options.sample_rate)):
             return
-        event = dict(event)
-        event.update({
-            "schema_version": TRACKMCP_SCHEMA_VERSION,
-            "event_id": str(uuid.uuid4()),
-            "service": self.options.service,
-            "environment": self.options.environment,
-            "server_version": self.options.server_version,
-            "sdk_version": self.options.sdk_version,
-            "deployment_id": self.options.deployment_id,
-            "server_id": self.options.server_id,
-        })
-        event["session_id_source"] = event.get("session_id_source") or ("external" if event.get("session_id") else "missing")
-        if "payload" in event:
-            event["payload"] = _redact(event["payload"], self.options.redact)
-            event["payload_size_bytes"] = len(_canonical_json(event["payload"]).encode("utf-8"))
+        try:
+            prepared = self._prepare_event({
+                **event,
+                "schema_version": TRACKMCP_SCHEMA_VERSION,
+                "event_id": str(uuid.uuid4()),
+                "service": self.options.service,
+                "environment": self.options.environment,
+                "server_version": self.options.server_version,
+                "sdk_version": self.options.sdk_version,
+                "deployment_id": self.options.deployment_id,
+                "server_id": self.options.server_id,
+            })
+            if self.options.redact_event:
+                try:
+                    hooked = self.options.redact_event(prepared)
+                    if hooked is None:
+                        self._diagnostics["dropped_events"] += 1
+                        return
+                    prepared = self._prepare_event(hooked)
+                except Exception:
+                    self._diagnostics["hook_errors"] += 1
+                    self._diagnostics["dropped_events"] += 1
+                    return
+            self._enqueue(prepared)
+        except Exception:
+            self._diagnostics["privacy_errors"] += 1
+            self._diagnostics["dropped_events"] += 1
+            return
         with self._lock:
-            self._events.append(event)
-            should_flush = len(self._events) >= self.options.max_batch_size
+            should_flush = len(self._events) >= max(1, int(self.options.max_batch_size))
         if should_flush:
             self.flush()
+
+    def _prepare_event(self, event: Dict[str, Any]) -> TrackMCPEvent:
+        prepared = dict(event)
+        prepared["session_id_source"] = prepared.get("session_id_source") or ("external" if prepared.get("session_id") else "missing")
+        mode = self.options.payload_mode if self.options.payload_mode in ("metadata", "redacted", "full") else "redacted"
+        prepared["payload_policy"] = mode
+        if mode == "metadata":
+            prepared.pop("payload", None)
+            prepared["payload_size_bytes"] = 0
+        elif "payload" in prepared:
+            prepared["payload"] = sanitize_payload(
+                prepared["payload"],
+                mode=mode,
+                explicit_paths=self.options.redact,
+                redact_keys=self.options.redact_keys,
+                max_payload_bytes=self.options.max_payload_bytes,
+                max_payload_depth=self.options.max_payload_depth,
+                max_payload_keys=self.options.max_payload_keys,
+                max_string_length=self.options.max_string_length,
+            )
+            prepared["payload_size_bytes"] = payload_byte_length(prepared["payload"])
+        else:
+            prepared["payload_size_bytes"] = 0
+        return prepared
+
+    def _enqueue(self, event: TrackMCPEvent) -> None:
+        event_bytes = payload_byte_length(event)
+        max_queue_bytes = max(1, int(self.options.max_queue_bytes))
+        if not event_bytes or event_bytes > max_queue_bytes:
+            self._diagnostics["dropped_events"] += 1
+            return
+        with self._lock:
+            self._events.append(event)
+            self._queue_bytes += event_bytes
+            while len(self._events) > max(1, int(self.options.max_queue_events)) or self._queue_bytes > max_queue_bytes:
+                dropped = self._events.pop(0)
+                self._queue_bytes = max(0, self._queue_bytes - payload_byte_length(dropped))
+                self._diagnostics["dropped_events"] += 1
+
+    def get_diagnostics(self) -> Dict[str, int]:
+        with self._lock:
+            return {**self._diagnostics, "queued_events": len(self._events), "queued_bytes": self._queue_bytes}
 
     def track(self, name: str, payload: Optional[Dict[str, Any]] = None) -> None:
         self.capture({"event_type": "custom", "started_at": _iso_now(), "payload": {"name": name, **(payload or {})}})
@@ -172,8 +231,9 @@ class TrackMCP:
 
     def flush(self) -> None:
         with self._lock:
-            events = self._events[: self.options.max_batch_size]
+            events = self._events[: max(1, int(self.options.max_batch_size))]
             del self._events[: len(events)]
+            self._queue_bytes = max(0, self._queue_bytes - sum(payload_byte_length(event) for event in events))
         if not events or self.options.disabled:
             return
         try:
@@ -188,8 +248,8 @@ class TrackMCP:
                 if response.status >= 300:
                     raise RuntimeError(f"TrackMCP ingest returned {response.status}")
         except Exception:
-            with self._lock:
-                self._events[0:0] = events
+            for event in events:
+                self._enqueue(event)
 
     def _scheduled_flush(self) -> None:
         self.flush()
