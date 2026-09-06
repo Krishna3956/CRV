@@ -86,7 +86,8 @@ export interface McpTesterOptions {
   endpoint: string;
   headers?: Readonly<Record<string, string>>;
   limits?: Partial<McpTesterLimits>;
-  fetch?: McpFetch;
+  /** Must be supplied by the browser caller; the engine never reads globalThis.fetch. */
+  fetch: McpFetch;
   signal?: AbortSignal;
   protocolVersion?: string;
   supportedProtocolVersions?: readonly string[];

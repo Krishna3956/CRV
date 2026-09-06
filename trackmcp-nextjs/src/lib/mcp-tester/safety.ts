@@ -6,6 +6,7 @@ import type {
 } from "./types.ts";
 
 const HEADER_NAME_PATTERN = /^[!#$%&'*+\-.^_`|~0-9A-Za-z]+$/;
+const UNSAFE_HEADER_CONTROL_PATTERN = /[\u0000-\u001f\u007f]/;
 const FORBIDDEN_BROWSER_HEADERS = new Set([
   "accept-encoding",
   "access-control-request-headers",
@@ -91,13 +92,13 @@ export function validateMcpHeaders(input: unknown, limits?: Partial<McpTesterLim
   for (const [rawName, rawValue] of Object.entries(input as Record<string, unknown>)) {
     if (entries.length + 4 > effectiveLimits.maxHeaderCount) return { ok: false, code: "too_many_headers", message: "Too many request headers." };
     const name = rawName.trim();
-    if (!HEADER_NAME_PATTERN.test(name)) return { ok: false, code: "header_name_invalid", message: "A request header name is invalid." };
+    if (!HEADER_NAME_PATTERN.test(name) || UNSAFE_HEADER_CONTROL_PATTERN.test(rawName)) return { ok: false, code: "header_name_invalid", message: "A request header name is invalid." };
     if (name.length > effectiveLimits.maxHeaderNameLength) return { ok: false, code: "header_name_too_long", message: "A request header name exceeds the safety limit." };
     const lowerName = name.toLowerCase();
     if (FORBIDDEN_BROWSER_HEADERS.has(lowerName) || lowerName.startsWith("proxy-") || lowerName.startsWith("sec-")) {
       return { ok: false, code: "browser_forbidden_header", message: "A browser-forbidden request header was provided." };
     }
-    if (typeof rawValue !== "string" || /[\r\n\u0000]/.test(rawValue)) return { ok: false, code: "header_value_invalid", message: "A request header value is invalid." };
+    if (typeof rawValue !== "string" || UNSAFE_HEADER_CONTROL_PATTERN.test(rawValue)) return { ok: false, code: "header_value_invalid", message: "A request header value is invalid." };
     if (rawValue.length > effectiveLimits.maxHeaderValueLength) return { ok: false, code: "header_value_too_long", message: "A request header value exceeds the safety limit." };
     totalBytes += utf8Length(name) + utf8Length(rawValue);
     if (totalBytes + 128 > effectiveLimits.maxHeaderBytes) return { ok: false, code: "headers_too_large", message: "The request headers exceed the safety limit." };

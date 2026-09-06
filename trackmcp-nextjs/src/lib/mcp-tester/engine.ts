@@ -2,6 +2,7 @@ import { evaluateHealthDimensions, determineVerdict, type HealthSignals } from "
 import { isRecord } from "./json.ts";
 import { normalizeMcpTesterLimits } from "./limits.ts";
 import { safeEndpointForReport, safeResourceUri, safeString } from "./redaction.ts";
+import { isMcpBrowserRuntime } from "./runtime.ts";
 import { validateMcpEndpoint, validateMcpHeaders } from "./safety.ts";
 import { sendMcpRequest, type TransportFailure, type TransportResult } from "./transport.ts";
 import type {
@@ -52,7 +53,7 @@ interface ProbeState {
   requestId: number;
   endpoint: ValidatedEndpoint;
   headers: readonly [string, string][];
-  fetch: NonNullable<McpTesterOptions["fetch"]>;
+  fetch: McpTesterOptions["fetch"];
   signal?: AbortSignal;
   protocolVersion: string;
   supportedProtocolVersions: readonly string[];
@@ -85,6 +86,7 @@ interface ProbeState {
 }
 
 export async function runMcpTester(options: McpTesterOptions): Promise<McpTesterReport> {
+  if (!isMcpBrowserRuntime()) return buildRuntimeRejectedReport(options.nowIso ?? (() => new Date().toISOString()));
   const limits = normalizeMcpTesterLimits(options.limits);
   const now = options.now ?? (() => typeof performance !== "undefined" ? performance.now() : Date.now());
   const nowIso = options.nowIso ?? (() => new Date().toISOString());
@@ -135,8 +137,8 @@ export async function runMcpTester(options: McpTesterOptions): Promise<McpTester
   }
   finishPhase("validate_headers", headerPhaseStart, "passed", record, phases, timings, now);
 
-  const fetchImplementation = options.fetch ?? globalThis.fetch;
-  if (!fetchImplementation) {
+  const fetchImplementation = options.fetch;
+  if (typeof fetchImplementation !== "function") {
     addFinding("fetch_unavailable", "browser", "error", "This browser does not provide fetch for direct HTTPS testing.", "validate_endpoint");
     return buildEarlyReport(observedAt, startedMs, now, timeline, timelineTruncated, findings, phases, timings, "browser_blocked", limits, endpointValidation.safeEndpoint);
   }
@@ -241,6 +243,48 @@ export async function runMcpTester(options: McpTesterOptions): Promise<McpTester
     addFinding("timeline_limit", "limit", "warning", "The protocol timeline was truncated at the configured event limit.", "finalize", { limit: limits.maxTimelineEvents });
   }
   return finalize(state, observedAt, addFinding);
+}
+
+function buildRuntimeRejectedReport(nowIso: () => string): McpTesterReport {
+  return {
+    schemaVersion: "mcp-tester-report.v1",
+    observedAt: nowIso(),
+    durationMs: 0,
+    verdict: "unsupported",
+    verdictMessage: "The MCP tester can run only in a browser runtime and does not perform server-side URL fetching.",
+    endpoint: { origin: "", pathname: "/", queryPresent: false },
+    transport: { kind: "streamable_http", scheme: "https", browserDirect: true },
+    capabilities: { tools: false, resources: false, prompts: false },
+    healthDimensions: evaluateHealthDimensions({
+      reachable: false,
+      browserBlocked: false,
+      authenticated: false,
+      authenticationRequired: false,
+      protocolPassed: false,
+      identityPassed: false,
+      discoveryPassed: false,
+      paginationPassed: false,
+      paginationTruncated: false,
+      latencyMs: 0,
+      latencyWarningMs: 3_000,
+      catalogWarnings: 0,
+      toolsChecked: false,
+      resourcesAdvertised: false,
+      resourcesPassed: false,
+      promptsAdvertised: false,
+      promptsPassed: false,
+      incomplete: false,
+    }),
+    phases: [{ phase: "validate_endpoint", outcome: "failed", durationMs: 0 }],
+    timings: [{ phase: "total", durationMs: 0 }],
+    timeline: [],
+    timelineTruncated: false,
+    findings: [{ code: "browser_runtime_required", category: "safety", severity: "error", message: "The tester rejected this call because it is not running in a browser runtime." }],
+    tools: emptyCatalog<ToolSummary>(),
+    resources: emptyCatalog<ResourceSummary>(),
+    prompts: emptyCatalog<PromptSummary>(),
+    limitations: ["The tester never uses globalThis.fetch and never performs server-side arbitrary URL fetching.", "Run this probe from a browser context with an explicitly injected fetch function."],
+  };
 }
 
 async function runInitialize(state: ProbeState, addFinding: AddFinding, record: RecordEvent, begin: BeginPhase, finish: FinishPhase): Promise<boolean> {

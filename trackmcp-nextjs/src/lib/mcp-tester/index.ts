@@ -3,4 +3,5 @@ export { DEFAULT_MCP_TESTER_LIMITS, HARD_MCP_TESTER_LIMITS, normalizeMcpTesterLi
 export { validateMcpEndpoint, validateMcpHeaders } from "./safety.ts";
 export { redactHeaders, redactJson, redactText, REDACTED_VALUE, safeEndpointForReport, safeResourceUri, safeString } from "./redaction.ts";
 export { serializeMcpTesterReport } from "./report.ts";
+export { isMcpBrowserRuntime } from "./runtime.ts";
 export type * from "./types.ts";

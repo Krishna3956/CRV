@@ -76,146 +76,181 @@ export async function sendMcpRequest(options: TransportRequestOptions): Promise<
     return { ok: false, kind: "header_limit", code: "request_header_limit", responseReceived: false };
   }
 
+  if (options.signal?.aborted) return { ok: false, kind: "aborted", code: "request_aborted_before_start", responseReceived: false };
+
   const body = JSON.stringify(options.body);
   options.record("request_sent", options.phase, { request_id: options.requestId ?? null, notification: options.requestId === undefined });
   const controller = new AbortController();
   let timedOut = false;
-  let externallyAborted = options.signal?.aborted ?? false;
-  let raceTimer: ReturnType<typeof setTimeout> | undefined;
+  let externallyAborted = false;
+  let activeReader: ReadableStreamDefaultReader<Uint8Array> | undefined;
+  const remainingMs = Math.max(1, Math.floor(options.deadlineMs - options.now()));
+  const cancelActiveReader = () => {
+    if (activeReader) void activeReader.cancel().catch(() => undefined);
+  };
   const onAbort = () => {
     externallyAborted = true;
     controller.abort();
+    cancelActiveReader();
   };
   options.signal?.addEventListener("abort", onAbort, { once: true });
-  const remainingMs = Math.max(1, Math.floor(options.deadlineMs - options.now()));
-  const timeoutHandle = setTimeout(() => {
-    timedOut = true;
-    controller.abort();
-  }, remainingMs);
-
-  let response: Response;
-  try {
-    const request = options.fetch(options.endpoint, {
-      method: "POST",
-      headers,
-      body,
-      redirect: "manual",
-      credentials: "omit",
-      mode: "cors",
-      cache: "no-store",
-      signal: controller.signal,
-    });
-    response = await Promise.race([
-      request,
-      new Promise<Response>((_, reject) => {
-        raceTimer = setTimeout(() => reject(new Error("mcp-tester-timeout")), remainingMs);
-      }),
-    ]);
-  } catch {
-    clearTimeout(timeoutHandle);
-    if (raceTimer !== undefined) clearTimeout(raceTimer);
-    options.signal?.removeEventListener("abort", onAbort);
-    if (timedOut) return { ok: false, kind: "timeout", code: "request_timeout", responseReceived: false };
-    if (externallyAborted) return { ok: false, kind: "aborted", code: "request_aborted", responseReceived: false };
-    return { ok: false, kind: "browser_blocked", code: "browser_network_or_cors_blocked", responseReceived: false };
-  }
-  clearTimeout(timeoutHandle);
-  if (raceTimer !== undefined) clearTimeout(raceTimer);
-  options.signal?.removeEventListener("abort", onAbort);
-
-  if (response.type === "opaque" || response.type === "opaqueredirect" || response.status === 0) {
-    return { ok: false, kind: "browser_blocked", code: "opaque_browser_response", responseReceived: false };
-  }
-  if (response.redirected || (response.status >= 300 && response.status < 400)) {
-    return { ok: false, kind: "browser_blocked", code: "redirect_not_followed", status: response.status, responseReceived: true };
-  }
-  if (response.status === 401 || response.status === 403) {
-    return { ok: false, kind: "auth_required", code: "authentication_required", status: response.status, responseReceived: true };
-  }
-  if (response.status >= 500) {
-    return { ok: false, kind: "unreachable", code: "server_error_response", status: response.status, responseReceived: true };
-  }
-
-  const contentLength = response.headers.get("content-length");
-  if (contentLength && /^\d+$/.test(contentLength) && Number(contentLength) > options.limits.maxResponseBodyBytes) {
-    return { ok: false, kind: "response_too_large", code: "response_body_too_large", status: response.status, responseReceived: true };
-  }
-
-  let bodyText: string;
-  let bodyBytes: number;
-  try {
-    const read = await readResponseBody(response, options.limits.maxResponseBodyBytes);
-    bodyText = read.text;
-    bodyBytes = read.bytes;
-  } catch (error) {
-    if (error instanceof ResponseSizeError) return { ok: false, kind: "response_too_large", code: "response_body_too_large", status: response.status, responseReceived: true };
-    return { ok: false, kind: "protocol_error", code: "response_body_unreadable", status: response.status, responseReceived: true };
-  }
-  options.record("response_received", options.phase, {
-    status: response.status,
-    body_bytes: bodyBytes,
-    content_type: safeContentType(response.headers.get("content-type")),
+  let deadlineTimer: ReturnType<typeof setTimeout> | undefined;
+  const deadlinePromise = new Promise<never>((_, reject) => {
+    deadlineTimer = setTimeout(() => {
+      timedOut = true;
+      controller.abort();
+      cancelActiveReader();
+      reject(new OperationTimeoutError());
+    }, remainingMs);
   });
 
-  if (!options.expectsResponse && bodyText.trim() === "") {
-    if (response.status >= 200 && response.status < 300) return { ok: true, status: response.status, bodyBytes, contentType: response.headers.get("content-type") ?? "" };
-    return { ok: false, kind: "protocol_error", code: "notification_http_error", status: response.status, responseReceived: true };
-  }
-  if (response.status < 200 || response.status >= 300) {
-    return { ok: false, kind: "protocol_error", code: "unexpected_http_status", status: response.status, responseReceived: true };
-  }
-  if (bodyText.trim() === "") return { ok: false, kind: "protocol_error", code: "empty_json_rpc_response", status: response.status, responseReceived: true };
+  try {
+    const response = await Promise.race([
+      options.fetch(options.endpoint, {
+        method: "POST",
+        headers,
+        body,
+        redirect: "manual",
+        credentials: "omit",
+        mode: "cors",
+        cache: "no-store",
+        signal: controller.signal,
+      }),
+      deadlinePromise,
+    ]);
+    if (options.now() >= options.deadlineMs) throw new OperationTimeoutError();
+    if (response.type === "opaque" || response.type === "opaqueredirect" || response.status === 0) {
+      return { ok: false, kind: "browser_blocked", code: "opaque_browser_response", responseReceived: false };
+    }
+    if (response.redirected || (response.status >= 300 && response.status < 400)) {
+      return { ok: false, kind: "browser_blocked", code: "redirect_not_followed", status: response.status, responseReceived: true };
+    }
+    if (response.status === 401 || response.status === 403) {
+      return { ok: false, kind: "auth_required", code: "authentication_required", status: response.status, responseReceived: true };
+    }
+    if (response.status >= 500) {
+      return { ok: false, kind: "unreachable", code: "server_error_response", status: response.status, responseReceived: true };
+    }
 
-  const parsed = parseRpcBody(bodyText, response.headers.get("content-type") ?? "", options.limits, options.requestId);
-  if (!parsed.ok) return { ok: false, kind: parsed.kind, code: parsed.code, status: response.status, responseReceived: true, errorCode: parsed.errorCode };
-  if (parsed.envelope.kind === "error") {
-    if (isAuthRpcError(parsed.envelope)) return { ok: false, kind: "auth_required", code: "authentication_required", status: response.status, responseReceived: true, errorCode: parsed.envelope.errorCode };
-    return { ok: false, kind: "rpc_error", code: "json_rpc_error", status: response.status, responseReceived: true, errorCode: parsed.envelope.errorCode };
+    const contentLength = response.headers.get("content-length");
+    if (contentLength && /^\d+$/.test(contentLength) && Number(contentLength) > options.limits.maxResponseBodyBytes) {
+      return { ok: false, kind: "response_too_large", code: "response_body_too_large", status: response.status, responseReceived: true };
+    }
+
+    const read = await readResponseBody(response, options.limits.maxResponseBodyBytes, controller.signal, (reader) => { activeReader = reader; });
+    if (options.now() >= options.deadlineMs) throw new OperationTimeoutError();
+    const bodyText = read.text;
+    const bodyBytes = read.bytes;
+    options.record("response_received", options.phase, {
+      status: response.status,
+      body_bytes: bodyBytes,
+      content_type: safeContentType(response.headers.get("content-type")),
+    });
+
+    if (!options.expectsResponse && bodyText.trim() === "") {
+      if (response.status >= 200 && response.status < 300) return { ok: true, status: response.status, bodyBytes, contentType: response.headers.get("content-type") ?? "" };
+      return { ok: false, kind: "protocol_error", code: "notification_http_error", status: response.status, responseReceived: true };
+    }
+    if (response.status < 200 || response.status >= 300) {
+      return { ok: false, kind: "protocol_error", code: "unexpected_http_status", status: response.status, responseReceived: true };
+    }
+    if (bodyText.trim() === "") return { ok: false, kind: "protocol_error", code: "empty_json_rpc_response", status: response.status, responseReceived: true };
+
+    const parsed = parseRpcBody(bodyText, response.headers.get("content-type") ?? "", options.limits, options.requestId);
+    if (options.now() >= options.deadlineMs) throw new OperationTimeoutError();
+    if (!parsed.ok) return { ok: false, kind: parsed.kind, code: parsed.code, status: response.status, responseReceived: true, errorCode: parsed.errorCode };
+    if (parsed.envelope.kind === "error") {
+      if (isAuthRpcError(parsed.envelope)) return { ok: false, kind: "auth_required", code: "authentication_required", status: response.status, responseReceived: true, errorCode: parsed.envelope.errorCode };
+      return { ok: false, kind: "rpc_error", code: "json_rpc_error", status: response.status, responseReceived: true, errorCode: parsed.envelope.errorCode };
+    }
+    return {
+      ok: true,
+      status: response.status,
+      bodyBytes,
+      contentType: response.headers.get("content-type") ?? "",
+      envelope: parsed.envelope,
+      sessionId: safeSessionId(response.headers.get("mcp-session-id")),
+    };
+  } catch (error) {
+    if (error instanceof ResponseSizeError) return { ok: false, kind: "response_too_large", code: "response_body_too_large", responseReceived: true };
+    if (error instanceof BodyUnavailableError) return { ok: false, kind: "protocol_error", code: "response_body_stream_unavailable", responseReceived: true };
+    if (error instanceof OperationTimeoutError || timedOut || options.now() >= options.deadlineMs) return { ok: false, kind: "timeout", code: "request_timeout", responseReceived: false };
+    if (error instanceof OperationAbortedError || externallyAborted) return { ok: false, kind: "aborted", code: "request_aborted", responseReceived: false };
+    return { ok: false, kind: "browser_blocked", code: "browser_network_or_cors_blocked", responseReceived: false };
+  } finally {
+    if (deadlineTimer !== undefined) clearTimeout(deadlineTimer);
+    options.signal?.removeEventListener("abort", onAbort);
   }
-  return {
-    ok: true,
-    status: response.status,
-    bodyBytes,
-    contentType: response.headers.get("content-type") ?? "",
-    envelope: parsed.envelope,
-    sessionId: safeSessionId(response.headers.get("mcp-session-id")),
-  };
 }
 
 class ResponseSizeError extends Error {}
+class BodyUnavailableError extends Error {}
+class OperationTimeoutError extends Error {}
+class OperationAbortedError extends Error {}
 
-async function readResponseBody(response: Response, maxBytes: number): Promise<{ text: string; bytes: number }> {
-  if (!response.body) {
-    const text = await response.text();
-    const bytes = utf8Length(text);
-    if (bytes > maxBytes) throw new ResponseSizeError();
-    return { text, bytes };
+async function readResponseBody(response: Response, maxBytes: number, signal: AbortSignal, setReader: (reader: ReadableStreamDefaultReader<Uint8Array> | undefined) => void): Promise<{ text: string; bytes: number }> {
+  if (response.body == null) {
+    const contentLength = response.headers.get("content-length");
+    if (contentLength === "0" || response.status === 202 || response.status === 204) return { text: "", bytes: 0 };
+    if (contentLength && /^\d+$/.test(contentLength) && Number(contentLength) > maxBytes) throw new ResponseSizeError();
+    throw new BodyUnavailableError();
   }
   const reader = response.body.getReader();
+  setReader(reader);
   const decoder = new TextDecoder();
   let text = "";
   let bytes = 0;
   try {
     while (true) {
-      const chunk = await reader.read();
+      const chunk = await readChunk(reader, signal);
       if (chunk.done) break;
       bytes += chunk.value.byteLength;
       if (bytes > maxBytes) {
-        await reader.cancel();
+        await cancelReader(reader);
         throw new ResponseSizeError();
       }
       text += decoder.decode(chunk.value, { stream: true });
     }
     text += decoder.decode();
+  } catch (error) {
+    await cancelReader(reader);
+    if (signal.aborted) throw new OperationAbortedError();
+    throw error;
   } finally {
+    setReader(undefined);
     reader.releaseLock();
   }
   return { text, bytes };
 }
 
+async function readChunk(reader: ReadableStreamDefaultReader<Uint8Array>, signal: AbortSignal): Promise<ReadableStreamReadResult<Uint8Array>> {
+  if (signal.aborted) throw new OperationAbortedError();
+  let abortHandler: (() => void) | undefined;
+  try {
+    return await Promise.race([
+      reader.read(),
+      new Promise<never>((_, reject) => {
+        abortHandler = () => reject(new OperationAbortedError());
+        signal.addEventListener("abort", abortHandler, { once: true });
+      }),
+    ]);
+  } finally {
+    if (abortHandler) signal.removeEventListener("abort", abortHandler);
+  }
+}
+
+async function cancelReader(reader: ReadableStreamDefaultReader<Uint8Array>): Promise<void> {
+  try {
+    await reader.cancel();
+  } catch {
+    // Reader cancellation is best effort after the operation has already failed.
+  }
+}
+
 function parseRpcBody(body: string, contentType: string, limits: McpTesterLimits, expectedId: number | undefined): { ok: true; envelope: RpcEnvelope } | { ok: false; kind: "protocol_error"; code: string; errorCode?: number } {
   const candidates = contentType.toLowerCase().includes("text/event-stream") ? parseSseData(body) : [body.trim()];
   let sawInvalid = false;
+  let matchedEnvelope: RpcEnvelope | undefined;
   for (const candidate of candidates) {
     if (!candidate || candidate === "[DONE]") continue;
     const parsed = parseBoundedJson(candidate, limits);
@@ -223,10 +258,16 @@ function parseRpcBody(body: string, contentType: string, limits: McpTesterLimits
       sawInvalid = true;
       continue;
     }
-    const envelope = normalizeRpcEnvelope(parsed.value, expectedId);
-    if (envelope.ok) return envelope;
-    sawInvalid = true;
+    const envelope = normalizeRpcEnvelope(parsed.value);
+    if (!envelope.ok) {
+      sawInvalid = true;
+      continue;
+    }
+    if (expectedId !== undefined && envelope.envelope.id !== expectedId) continue;
+    if (matchedEnvelope !== undefined) return { ok: false, kind: "protocol_error", code: "duplicate_json_rpc_id" };
+    matchedEnvelope = envelope.envelope;
   }
+  if (matchedEnvelope !== undefined) return { ok: true, envelope: matchedEnvelope };
   return { ok: false, kind: "protocol_error", code: sawInvalid ? "malformed_json_rpc_envelope" : "empty_sse_response" };
 }
 
@@ -245,10 +286,9 @@ function parseSseData(body: string): string[] {
   return candidates;
 }
 
-function normalizeRpcEnvelope(value: unknown, expectedId: number | undefined): { ok: true; envelope: RpcEnvelope } | { ok: false } {
+function normalizeRpcEnvelope(value: unknown): { ok: true; envelope: RpcEnvelope } | { ok: false } {
   if (!isRecord(value) || value.jsonrpc !== "2.0") return { ok: false };
   const id = value.id;
-  if (expectedId !== undefined && id !== expectedId) return { ok: false };
   if ("result" in value && "error" in value) return { ok: false };
   if ("result" in value) return { ok: true, envelope: { kind: "result", id: typeof id === "string" || typeof id === "number" || id === null ? id : null, result: value.result } };
   if (!isRecord(value.error) || typeof value.error.code !== "number" || !Number.isFinite(value.error.code)) return { ok: false };
