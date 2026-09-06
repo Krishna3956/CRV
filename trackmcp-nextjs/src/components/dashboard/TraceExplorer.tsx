@@ -7,6 +7,8 @@ import type { TraceEvent, TraceResponse } from "@/lib/telemetry/analytics-types"
 const qualityLabels = {
   session_id: "Session ID",
   transport_generated: "Transport-generated",
+  external: "External handle",
+  issued: "Issued handle",
   missing: "Missing/degraded",
   mixed: "Mixed correlation",
 } as const;
@@ -71,7 +73,7 @@ function EventCard({ event, index }: { event: TraceEvent; index: number }) {
   </article>;
 }
 
-export function TraceExplorer({ sessionId, sampleMode, onBack }: { sessionId: string; sampleMode: boolean; onBack: () => void }) {
+export function TraceExplorer({ sessionId, correlationHandle, sampleMode, onBack }: { sessionId: string | null; correlationHandle: string | null; sampleMode: boolean; onBack: () => void }) {
   const [response, setResponse] = useState<TraceResponse | null>(null);
   const [loading, setLoading] = useState(!sampleMode);
   const [error, setError] = useState("");
@@ -80,7 +82,8 @@ export function TraceExplorer({ sessionId, sampleMode, onBack }: { sessionId: st
   useEffect(() => {
     if (sampleMode) return;
     const controller = new AbortController();
-    void fetch(`/api/v1/traces?session_id=${encodeURIComponent(sessionId)}&limit=200`, { cache: "no-store", credentials: "include", signal: controller.signal })
+    const query = sessionId ? `session_id=${encodeURIComponent(sessionId)}` : `correlation_handle=${encodeURIComponent(correlationHandle || "")}`;
+    void fetch(`/api/v1/traces?${query}&limit=200`, { cache: "no-store", credentials: "include", signal: controller.signal })
       .then(async (result) => {
         const body = await result.json() as TraceResponse & { error?: string };
         if (!result.ok) throw new Error(body.error || "Could not load this trace.");
@@ -89,17 +92,17 @@ export function TraceExplorer({ sessionId, sampleMode, onBack }: { sessionId: st
       .catch((reason: unknown) => { if (!(reason instanceof DOMException && reason.name === "AbortError")) setError(reason instanceof Error ? reason.message : "Could not load this trace."); })
       .finally(() => setLoading(false));
     return () => controller.abort();
-  }, [sampleMode, sessionId]);
+  }, [sampleMode, sessionId, correlationHandle]);
 
   const copySession = async () => {
-    try { await navigator.clipboard.writeText(sessionId); setCopied(true); window.setTimeout(() => setCopied(false), 1500); } catch { setCopied(false); }
+    try { await navigator.clipboard.writeText(sessionId || correlationHandle || ""); setCopied(true); window.setTimeout(() => setCopied(false), 1500); } catch { setCopied(false); }
   };
 
   return <div>
     <div className="mb-7 flex flex-wrap items-start justify-between gap-4"><div><button onClick={onBack} className="mb-4 inline-flex items-center gap-1.5 text-xs font-medium text-muted hover:text-ink"><ArrowLeft size={14} />Back to sessions</button><p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-brand">Trace explorer</p><h2 className="mt-2 text-2xl font-medium tracking-[-0.03em] text-ink">Server-boundary timeline</h2><p className="mt-2 max-w-2xl text-sm text-muted">One bounded event at a time, in observed order. Payload details remain subject to the capture policy.</p></div><Badge tone={sampleMode ? "neutral" : "good"}>{sampleMode ? "Sample data" : "Live trace"}</Badge></div>
-    <div className="mb-6 flex flex-wrap items-center gap-3 rounded-xl border border-line bg-white px-4 py-3"><div className="min-w-0 flex-1"><p className="text-[10px] uppercase tracking-[0.12em] text-faint">Session ID</p><p className="mt-1 truncate font-mono text-xs text-body">{sessionId}</p></div><button onClick={() => void copySession()} className="inline-flex items-center gap-1.5 border border-line-strong px-3 py-2 text-xs font-medium text-body"><Copy size={13} />{copied ? "Copied" : "Copy ID"}</button></div>
+    <div className="mb-6 flex flex-wrap items-center gap-3 rounded-xl border border-line bg-white px-4 py-3"><div className="min-w-0 flex-1"><p className="text-[10px] uppercase tracking-[0.12em] text-faint">{sessionId ? "Session ID" : "Correlation handle"}</p><p className="mt-1 truncate font-mono text-xs text-body">{sessionId || correlationHandle}</p></div><button onClick={() => void copySession()} className="inline-flex items-center gap-1.5 border border-line-strong px-3 py-2 text-xs font-medium text-body"><Copy size={13} />{copied ? "Copied" : "Copy ID"}</button></div>
     {sampleMode ? <div className="grid min-h-[280px] place-items-center rounded-xl border border-dashed border-line-strong bg-white p-8 text-center"><div><p className="text-sm font-semibold text-ink">Trace details are live-data only</p><p className="mt-2 max-w-md text-sm leading-relaxed text-muted">This session came from the sample dashboard. Switch the dashboard to My data to inspect an authenticated trace from your workspace.</p></div></div> : loading ? <div className="grid min-h-[280px] place-items-center rounded-xl border border-line bg-white text-sm text-muted">Loading trace…</div> : error ? <div className="flex items-center gap-2 rounded-xl border border-red-200 bg-red-50 px-4 py-4 text-sm text-red-700"><AlertTriangle size={16} />{error}</div> : !response?.events.length ? <div className="grid min-h-[280px] place-items-center rounded-xl border border-dashed border-line-strong bg-white p-8 text-center"><div><XCircle size={24} className="mx-auto text-faint" /><p className="mt-3 text-sm font-semibold text-ink">No events found for this session</p><p className="mt-2 text-sm text-muted">The session may have expired, or it may belong to another workspace.</p></div></div> : <>
-      <div className="mb-5 grid gap-3 sm:grid-cols-3"><div className="rounded-xl border border-line bg-white p-4"><p className="text-xs text-muted">Events returned</p><p className="mt-1 text-lg font-semibold text-ink">{response.event_count}{response.truncated ? "+" : ""}</p></div><div className="rounded-xl border border-line bg-white p-4"><p className="text-xs text-muted">Correlation</p><p className="mt-1 text-sm font-semibold text-ink">{qualityLabels[response.correlation_quality]}</p></div><div className="rounded-xl border border-line bg-white p-4"><p className="text-xs text-muted">Completion signal</p><p className="mt-1 text-sm font-semibold text-ink">{completionLabels[response.completion_source]}</p></div></div>
+      <div className="mb-5 grid gap-3 sm:grid-cols-3"><div className="rounded-xl border border-line bg-white p-4"><p className="text-xs text-muted">Events returned</p><p className="mt-1 text-lg font-semibold text-ink">{response.event_count}{response.truncated ? "+" : ""}</p></div><div className="rounded-xl border border-line bg-white p-4"><p className="text-xs text-muted">Correlation</p><p className="mt-1 text-sm font-semibold text-ink">{qualityLabels[response.correlation_quality]}</p>{response.correlation_handle_source && response.correlation_handle_source !== "missing" && <p className="mt-1 text-[11px] text-muted">{response.correlation_handle_source} provenance</p>}</div><div className="rounded-xl border border-line bg-white p-4"><p className="text-xs text-muted">Completion signal</p><p className="mt-1 text-sm font-semibold text-ink">{completionLabels[response.completion_source]}</p></div></div>
       {response.truncated && <div className="mb-5 flex items-center gap-2 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-xs text-amber-800"><FileWarning size={15} />This trace is capped at 200 events. Narrowing controls will be added in a later iteration.</div>}
       <div className="mb-4 flex flex-wrap gap-2"><Badge>{qualityLabels[response.correlation_quality]}</Badge><Badge>{completionLabels[response.completion_source]}</Badge>{response.events.some((event) => event.payload_policy === "redacted") && <Badge><EyeOff size={11} className="mr-1" />Redacted content present</Badge>}{response.events.some((event) => hasTruncation(event.payload)) && <Badge tone="warn"><FileWarning size={11} className="mr-1" />Truncation present</Badge>}</div>
       <div>{response.events.map((event, index) => <EventCard key={`${event.event_id}-${index}`} event={event} index={index} />)}</div>

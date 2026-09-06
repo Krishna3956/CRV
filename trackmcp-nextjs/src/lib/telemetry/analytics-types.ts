@@ -1,7 +1,7 @@
-import type { TrackMCPSessionIdSource } from "./types.ts";
+import type { TrackMCPCorrelationHandleSource, TrackMCPSessionIdSource } from "./types.ts";
 
 export type CompletionSource = "workflow_events" | "session_heuristic" | "none";
-export type CorrelationQuality = "session_id" | "transport_generated" | "missing" | "mixed";
+export type CorrelationQuality = "session_id" | "transport_generated" | "external" | "issued" | "missing" | "mixed";
 
 export type CatalogTool = {
   name: string;
@@ -27,6 +27,8 @@ export type TraceEvent = {
   request_id: string | null;
   session_id: string | null;
   session_id_source: TrackMCPSessionIdSource | null;
+  correlation_handle: string | null;
+  correlation_handle_source: TrackMCPCorrelationHandleSource | null;
   task_id: string | null;
   workflow_id: string | null;
   client_name: string | null;
@@ -48,7 +50,9 @@ export type TraceEvent = {
 };
 
 export type TraceResponse = {
-  session_id: string;
+  session_id: string | null;
+  correlation_handle: string | null;
+  correlation_handle_source: TrackMCPCorrelationHandleSource | null;
   correlation_quality: CorrelationQuality;
   completion_source: CompletionSource;
   event_count: number;
@@ -76,7 +80,8 @@ export type Analytics = {
   tools: { name: string; calls: number; errors: number; error_rate: number; avg_ms: number | null; p50_ms?: number | null; p95_ms?: number | null; latency_sample_count?: number; discovered: boolean; description?: string | null; schema_hash?: string | null }[];
   catalog_tools?: CatalogTool[];
   unused_tools: string[];
-  workflows: { session_id: string; client_name: string; calls: number; tools: (string | null)[]; started_at: string; duration_ms: number; completed: boolean; completion_source?: CompletionSource; correlation_quality?: CorrelationQuality }[];
+  workflows: { session_id: string; correlation_handle?: string | null; correlation_handle_source?: TrackMCPCorrelationHandleSource; client_name: string; calls: number; tools: (string | null)[]; started_at: string; duration_ms: number; completed: boolean; completion_source?: CompletionSource; correlation_quality?: CorrelationQuality }[];
+  correlation_handle_source?: TrackMCPCorrelationHandleSource | null;
   outcomes: { name: string; started: number; completed: number; failed: number }[];
   insights: { level: string; title: string; detail: string; metric: string }[];
 };

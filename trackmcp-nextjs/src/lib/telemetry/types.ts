@@ -7,6 +7,7 @@ export type TrackMCPDirection = "client_to_server" | "server_to_client";
 export type TrackMCPTransport = "stdio" | "streamable_http" | "sse" | "custom";
 export type TrackMCPPayloadPolicy = "metadata" | "redacted" | "full";
 export type TrackMCPSessionIdSource = "protocol" | "transport_generated" | "external" | "missing";
+export type TrackMCPCorrelationHandleSource = "external" | "issued" | "missing";
 
 export type TrackMCPEvent = {
   /** Optional only for legacy input. Newly emitted SDK events always set this to "1". */
@@ -26,6 +27,8 @@ export type TrackMCPEvent = {
   request_id?: string;
   session_id?: string;
   session_id_source?: TrackMCPSessionIdSource;
+  correlation_handle?: string;
+  correlation_handle_source?: TrackMCPCorrelationHandleSource;
   task_id?: string;
   workflow_id?: string;
   client_name?: string;

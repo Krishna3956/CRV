@@ -92,6 +92,8 @@ export function createIngestHandler(getAdmin: typeof getSupabaseAdmin = getSupab
     request_id: event.request_id || null,
     session_id: event.session_id || null,
     session_id_source: event.session_id_source || null,
+    correlation_handle: event.correlation_handle || null,
+    correlation_handle_source: event.correlation_handle_source || "missing",
     task_id: event.task_id || null,
     workflow_id: event.workflow_id || null,
     client_name: event.client_name || null,

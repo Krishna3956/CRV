@@ -31,6 +31,7 @@ const options: { name: string; type: string; def: string; desc: string }[] = [
   { name: "redactEvent", type: "function", def: "undefined", desc: "Mutate a sanitized event or return null to drop it." },
   { name: "endpoint", type: "string", def: "https://trackmcp.com/api/v1/ingest", desc: "Override with a compatible ingest endpoint; TrackMCP does not proxy hosted servers." },
   { name: "disabled", type: "boolean", def: "false", desc: "Turn capture off without removing the wrapper." },
+  { name: "correlation", type: "object", def: "{ mode: 'none' }", desc: "Optional external or compatibility-limited issued correlation mode; disabled by default." },
 ];
 
 const captured = [
@@ -152,6 +153,25 @@ export default function ReferenceDocsPage() {
           and reports <Inline>event_count</Inline> and <Inline>truncated</Inline> so a
           partial trace is visible. TrackMCP observes the MCP server boundary; it does
           not read private model reasoning or host-side turns.
+        </Para>
+      </DocSection>
+
+      <DocSection title="Correlation handles">
+        <Para>
+          Correlation is disabled by default. TrackMCP never overloads <Inline>session_id</Inline>
+          or <Inline>request_id</Inline>. External mode accepts a synchronous application resolver
+          for bounded metadata and records only a validated anonymized opaque handle. Resolver
+          failures and invalid values are fail-open and recorded as missing. Handles are capped at
+          128 UTF-8 bytes and must not contain credentials, URLs, emails, raw user IDs, prompts,
+          completions, or private reasoning.
+        </Para>
+        <Para>
+          TypeScript issued mode is compatibility-limited to compatible object-shaped
+          <Inline>tools/list</Inline> schemas: the optional namespaced field is stripped before the
+          customer handler and only echoed values receive issued provenance. Unsupported schemas
+          and clients that ignore the field remain missing. Python exposes the same option names
+          for parity, but its current middleware reports missing because it has no stable schema
+          rewrite seam.
         </Para>
       </DocSection>
 

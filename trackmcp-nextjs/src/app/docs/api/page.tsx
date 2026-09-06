@@ -20,7 +20,7 @@ export const metadata: Metadata = pageMeta({
 const endpoints: { method: string; path: string; desc: string }[] = [
   { method: "POST", path: "/api/v1/ingest", desc: "Submit a validated telemetry batch" },
   { method: "GET", path: "/api/v1/analytics?days=30", desc: "Workspace metrics, tools, clients, sessions, and insights" },
-  { method: "GET", path: "/api/v1/traces?session_id=...", desc: "Inspect the ordered events for one session" },
+  { method: "GET", path: "/api/v1/traces?session_id=...|correlation_handle=...", desc: "Inspect ordered events for one protocol session or bounded correlation handle" },
 ];
 
 export default function ApiDocsPage() {
@@ -106,12 +106,15 @@ export default function ApiDocsPage() {
 
       <DocSection title="Trace response">
         <Para>
-          <Inline>GET /api/v1/traces</Inline> requires <Inline>session_id</Inline> and
-          returns only events belonging to the authenticated workspace and session.
-          The default limit is 200; callers may request 1–1,000 with <Inline>limit</Inline>.
+          <Inline>GET /api/v1/traces</Inline> requires <Inline>session_id</Inline> or
+          <Inline>correlation_handle</Inline> and returns only events belonging to the
+          authenticated workspace and supplied scope. A handle is never treated as a
+          session ID. The default limit is 200; callers may request 1–1,000 with <Inline>limit</Inline>.
         </Para>
         <Code>{`{
   "session_id": "session-123",
+  "correlation_handle": null,
+  "correlation_handle_source": "missing",
   "event_count": 2,
   "truncated": false,
   "completion_source": "session_heuristic",

@@ -36,7 +36,7 @@ function fakeAdmin(rows) {
         eq(field, value) { filters[field] = value; return this; },
         order() { return this; },
         limit(value) {
-          const scoped = rows.filter((row) => row.workspace_id === filters.workspace_id && row.session_id === filters.session_id);
+            const scoped = rows.filter((row) => row.workspace_id === filters.workspace_id && (filters.session_id === undefined || row.session_id === filters.session_id) && (filters.correlation_handle === undefined || row.correlation_handle === filters.correlation_handle));
           return Promise.resolve({ data: scoped.slice(0, value), error: null });
         },
       };
@@ -88,4 +88,17 @@ test("trace route rejects invalid limits and keeps workspace scoping on guessed 
   assert.deepEqual(isolated.body.events, []);
   assert.equal(isolated.body.event_count, 0);
   assert.equal(isolated.body.correlation_quality, "missing");
+});
+
+test("trace route can query a bounded handle without overloading session_id", async () => {
+  const handler = createTraceHandler(() => fakeAdmin([
+    event({ workspace_id: "workspace-a", event_id: "handle-event", session_id: null, correlation_handle: "job_anon_1", correlation_handle_source: "external" }),
+    event({ workspace_id: "workspace-b", event_id: "foreign-handle", session_id: null, correlation_handle: "job_anon_1", correlation_handle_source: "external" }),
+  ]));
+  const response = await get(handler, "correlation_handle=job_anon_1");
+  assert.equal(response.status, 200);
+  assert.equal(response.body.session_id, null);
+  assert.equal(response.body.correlation_handle, "job_anon_1");
+  assert.equal(response.body.correlation_handle_source, "external");
+  assert.deepEqual(response.body.events.map((row) => row.event_id), ["handle-event"]);
 });
