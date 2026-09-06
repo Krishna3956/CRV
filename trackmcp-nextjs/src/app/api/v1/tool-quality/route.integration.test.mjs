@@ -70,4 +70,7 @@ test("tool-quality marks the bounded source scan when more than 10,000 rows are 
   const body = await response.json();
   assert.equal(body.source_event_count, 10000);
   assert.equal(body.truncated, true);
+  assert.equal(body.tools[0].metrics.tool_call_share, null);
+  assert.equal(body.tools[0].completion_association.status, "insufficient_data");
+  assert.ok(body.tools[0].insufficient_data.includes("bounded_source_scan"));
 });

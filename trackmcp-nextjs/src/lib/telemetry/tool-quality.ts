@@ -206,30 +206,40 @@ function metricsForCalls(calls: readonly ToolQualityEvent[], allowMetrics: boole
   return { metrics, reasons: [...new Set(reasons)], inspectable, empty };
 }
 
-function repeatParticipants(events: readonly ToolQualityEvent[]): Set<ToolQualityEvent> {
+function groupingKey(event: ToolQualityEvent): string | null {
+  return event.session_id ? `session:${event.session_id}` : event.correlation_handle ? `correlation:${event.correlation_handle}` : null;
+}
+
+function repeatParticipants(events: readonly ToolQualityEvent[]): { participants: Set<ToolQualityEvent>; groupable: Set<ToolQualityEvent> } {
   const groups = new Map<string, ToolQualityEvent[]>();
   for (const event of events) {
     if (event.event_type !== "tool_call" || !event.tool_name || (event.retry_number || 0) > 0) continue;
-    const group = event.session_id ? `session:${event.session_id}` : event.correlation_handle ? `correlation:${event.correlation_handle}` : null;
+    const group = groupingKey(event);
     if (!group || timestamp(event) === null) continue;
     groups.set(group, [...(groups.get(group) || []), event]);
   }
   const participants = new Set<ToolQualityEvent>();
+  const groupable = new Set<ToolQualityEvent>();
   for (const calls of groups.values()) {
-    calls.sort((a, b) => (timestamp(a) || 0) - (timestamp(b) || 0));
-    for (let index = 1; index < calls.length; index += 1) {
-      const previous = calls[index - 1];
-      const current = calls[index];
-      if (previous.tool_name === current.tool_name && (timestamp(current)! - timestamp(previous)!) <= TOOL_QUALITY_REPEAT_WINDOW_MS) {
-        participants.add(previous);
-        participants.add(current);
+    const byTool = new Map<string, ToolQualityEvent[]>();
+    for (const call of calls) byTool.set(call.tool_name!, [...(byTool.get(call.tool_name!) || []), call]);
+    for (const toolCalls of byTool.values()) {
+      toolCalls.sort((a, b) => (timestamp(a) || 0) - (timestamp(b) || 0));
+      toolCalls.forEach((call) => groupable.add(call));
+      for (let index = 1; index < toolCalls.length; index += 1) {
+        const previous = toolCalls[index - 1];
+        const current = toolCalls[index];
+        if ((timestamp(current)! - timestamp(previous)!) <= TOOL_QUALITY_REPEAT_WINDOW_MS) {
+          participants.add(previous);
+          participants.add(current);
+        }
       }
     }
   }
-  return participants;
+  return { participants, groupable };
 }
 
-function segmentRows(calls: readonly ToolQualityEvent[], allCalls: number, field: "client_name" | "intent_source"): ToolQualitySegment[] {
+function segmentRows(calls: readonly ToolQualityEvent[], allCalls: number, field: "client_name" | "intent_source", sourceTruncated = false): ToolQualitySegment[] {
   const groups = new Map<string, { calls: ToolQualityEvent[]; sessions: Set<string> }>();
   for (const event of calls) {
     const value = event[field] || (field === "intent_source" ? "missing" : "unknown");
@@ -239,8 +249,10 @@ function segmentRows(calls: readonly ToolQualityEvent[], allCalls: number, field
     groups.set(value, group);
   }
   return [...groups.entries()].map(([value, group]) => {
-    const eligible = group.calls.length >= TOOL_QUALITY_MIN_SEGMENT_CALLS && group.sessions.size >= TOOL_QUALITY_MIN_SEGMENT_SESSIONS;
-    const reasons: ToolQualityInsufficientReason[] = eligible ? [] : ["segment_volume"];
+    const eligible = group.calls.length >= TOOL_QUALITY_MIN_SEGMENT_CALLS && group.sessions.size >= TOOL_QUALITY_MIN_SEGMENT_SESSIONS && !sourceTruncated;
+    const reasons: ToolQualityInsufficientReason[] = [];
+    if (group.calls.length < TOOL_QUALITY_MIN_SEGMENT_CALLS || group.sessions.size < TOOL_QUALITY_MIN_SEGMENT_SESSIONS) reasons.push("segment_volume");
+    if (sourceTruncated) reasons.push("bounded_source_scan");
     const known = group.calls.filter(knownOutcome);
     return {
       value,
@@ -348,16 +360,19 @@ export function analyzeToolQuality(events: readonly ToolQualityEvent[], options:
   const allEligibleCalls = calls.length;
   const tools: ToolQualityTool[] = [...names].map((name) => {
     const toolCalls = calls.filter((event) => event.tool_name === name);
-    const allowMetrics = toolCalls.length >= TOOL_QUALITY_MIN_TOOL_CALLS;
+    const allowMetrics = toolCalls.length >= TOOL_QUALITY_MIN_TOOL_CALLS && !options.truncated;
     const calculated = metricsForCalls(toolCalls, allowMetrics);
     const nonRetryCalls = toolCalls.filter((event) => (event.retry_number || 0) <= 0);
-    const repeatCount = nonRetryCalls.filter((event) => repeat.has(event)).length;
+    const missingGrouping = nonRetryCalls.some((event) => groupingKey(event) === null);
+    const repeatCount = nonRetryCalls.filter((event) => repeat.participants.has(event)).length;
+    const groupableCount = nonRetryCalls.filter((event) => groupingKey(event) !== null).length;
+    const repeatRate = allowMetrics && !missingGrouping && groupableCount ? repeatCount / groupableCount : null;
     const tool = byTool.get(name);
     const completionRate = tool && tool.terminal.size ? tool.completed.size / tool.terminal.size : null;
     const completionReasons: ToolQualityInsufficientReason[] = [];
     if (!tool || tool.terminal.size < TOOL_QUALITY_MIN_WORKFLOW_TERMINALS) completionReasons.push("workflow_volume");
     if (!tool || tool.calls.length < TOOL_QUALITY_MIN_TOOL_CALLS) completionReasons.push("tool_volume");
-    const completionEligible = Boolean(tool && tool.terminal.size >= TOOL_QUALITY_MIN_WORKFLOW_TERMINALS && tool.calls.length >= TOOL_QUALITY_MIN_TOOL_CALLS);
+    const completionEligible = Boolean(tool && tool.terminal.size >= TOOL_QUALITY_MIN_WORKFLOW_TERMINALS && tool.calls.length >= TOOL_QUALITY_MIN_TOOL_CALLS && !options.truncated);
     const lowPathAssociated = paths.some((path) => path.status === "associated_with_low_explicit_completion" && path.path.includes(name));
     const completionStatus: ToolQualityTool["completion_association"]["status"] = lowPathAssociated
       ? "associated_with_low_explicit_completion"
@@ -386,7 +401,7 @@ export function analyzeToolQuality(events: readonly ToolQualityEvent[], options:
       metrics: {
         ...calculated.metrics,
         tool_call_share: allowMetrics && allEligibleCalls ? toolCalls.length / allEligibleCalls : null,
-        observed_repeat_call_rate: allowMetrics && nonRetryCalls.length ? repeatCount / nonRetryCalls.length : null,
+        observed_repeat_call_rate: repeatRate,
       },
       catalog_snapshots: snapshots,
       trace_session_ids: [...(tool?.sessionIds || sessionIds)].slice(0, TOOL_QUALITY_MAX_TRACE_SESSION_IDS),
@@ -397,10 +412,10 @@ export function analyzeToolQuality(events: readonly ToolQualityEvent[], options:
         explicitly_completed_count: tool?.completed.size || 0,
         completion_rate: completionEligible ? completionRate : null,
         status: completionStatus,
-      insufficient_data: [...new Set(completionReasons.concat(sourceLimitReason))],
+        insufficient_data: [...new Set(completionReasons.concat(sourceLimitReason))],
       },
-      breakdowns: { clients: segmentRows(toolCalls, allEligibleCalls, "client_name"), intent_sources: segmentRows(toolCalls, allEligibleCalls, "intent_source") },
-      insufficient_data: [...new Set(calculated.reasons.concat(completionReasons, sourceLimitReason))],
+      breakdowns: { clients: segmentRows(toolCalls, allEligibleCalls, "client_name", options.truncated), intent_sources: segmentRows(toolCalls, allEligibleCalls, "intent_source", options.truncated) },
+      insufficient_data: [...new Set(calculated.reasons.concat(completionReasons, missingGrouping ? ["missing_grouping"] : [], sourceLimitReason))],
     };
   }).sort((a, b) => b.observed.call_count - a.observed.call_count || a.name.localeCompare(b.name));
 
@@ -421,8 +436,8 @@ export function analyzeToolQuality(events: readonly ToolQualityEvent[], options:
       const beforeSnapshot = snapshotOutput(unique[index - 1], toolName, beforeCalls.length);
       const afterSnapshot = snapshotOutput(unique[index], toolName, afterCalls.length);
       if (beforeSnapshot.description_hash === afterSnapshot.description_hash && beforeSnapshot.schema_hash === afterSnapshot.schema_hash) continue;
-      const before = metricsForCalls(beforeCalls, beforeCalls.length >= TOOL_QUALITY_MIN_CATALOG_CALLS);
-      const after = metricsForCalls(afterCalls, afterCalls.length >= TOOL_QUALITY_MIN_CATALOG_CALLS);
+      const before = metricsForCalls(beforeCalls, beforeCalls.length >= TOOL_QUALITY_MIN_CATALOG_CALLS && !options.truncated);
+      const after = metricsForCalls(afterCalls, afterCalls.length >= TOOL_QUALITY_MIN_CATALOG_CALLS && !options.truncated);
       const baseComparisonReasons: ToolQualityInsufficientReason[] = beforeCalls.length < TOOL_QUALITY_MIN_CATALOG_CALLS || afterCalls.length < TOOL_QUALITY_MIN_CATALOG_CALLS ? ["catalog_volume"] : [];
       const comparisonReasons = baseComparisonReasons.concat(sourceLimitReason);
       comparisons.push({

@@ -70,7 +70,7 @@ test("uses observable denominators and excludes metadata-only or truncated empty
 test("computes repeat calls only within a session or correlation group and excludes retries", () => {
   const events = Array.from({ length: TOOL_QUALITY_MIN_TOOL_CALLS }, (_, index) => call({
     started_at: `2026-09-06T03:${String(index).padStart(2, "0")}:00.000Z`,
-    session_id: index < 3 ? "repeat-session" : null,
+    session_id: index < 3 ? "repeat-session" : index < 5 ? null : `session-${index}`,
     correlation_handle: index >= 3 && index < 5 ? "repeat-group" : null,
     retry_number: index === 2 ? 1 : 0,
   }));
@@ -78,6 +78,30 @@ test("computes repeat calls only within a session or correlation group and exclu
   assert.equal(tool.observed.non_retry_call_count, 29);
   assert.equal(tool.observed.observed_repeat_call_count, 4);
   assert.equal(tool.metrics.observed_repeat_call_rate, 4 / 29);
+});
+
+test("finds same-tool repeats separated by another tool in the same group", () => {
+  const events = [
+    call({ started_at: "2026-09-06T07:00:00.000Z", session_id: "interleaved-session" }),
+    call({ started_at: "2026-09-06T07:01:00.000Z", session_id: "interleaved-session", tool_name: "another_tool" }),
+    call({ started_at: "2026-09-06T07:02:00.000Z", session_id: "interleaved-session" }),
+    ...Array.from({ length: 28 }, (_, index) => call({ started_at: `2026-09-06T08:${String(index).padStart(2, "0")}:00.000Z`, session_id: `isolated-${index}` })),
+  ];
+  const tool = analyzeToolQuality(events, { rangeDays: 30 }).tools.find((entry) => entry.name === "search")!;
+  assert.equal(tool.observed.call_count, 30);
+  assert.equal(tool.observed.observed_repeat_call_count, 2);
+  assert.equal(tool.metrics.observed_repeat_call_rate, 2 / 30);
+});
+
+test("does not fabricate repeat-call quality when grouping is missing", () => {
+  const result = analyzeToolQuality(Array.from({ length: TOOL_QUALITY_MIN_TOOL_CALLS }, (_, index) => call({
+    started_at: `2026-09-06T09:${String(index).padStart(2, "0")}:00.000Z`,
+    session_id: null,
+    correlation_handle: null,
+  })), { rangeDays: 30 });
+  const tool = result.tools[0];
+  assert.equal(tool.metrics.observed_repeat_call_rate, null);
+  assert.ok(tool.insufficient_data.includes("missing_grouping"));
 });
 
 test("reconstructs catalog snapshots at the call timestamp and compares changed hashes", () => {
@@ -126,4 +150,18 @@ test("returns insufficient data below tool and segment minimums", () => {
   assert.ok(tool.insufficient_data.includes("tool_volume"));
   assert.equal(tool.breakdowns.clients[0].error_rate, null);
   assert.ok(tool.breakdowns.clients[0].insufficient_data.includes("segment_volume"));
+});
+
+test("marks a bounded source scan partial instead of displaying complete derived metrics", () => {
+  const result = analyzeToolQuality(workflowSet(15), { rangeDays: 30, truncated: true });
+  const tool = result.tools.find((entry) => entry.name === "search")!;
+  assert.equal(result.truncated, true);
+  assert.equal(tool.metrics.tool_call_share, null);
+  assert.equal(tool.metrics.error_rate, null);
+  assert.equal(tool.metrics.retry_rate, null);
+  assert.equal(tool.metrics.observed_repeat_call_rate, null);
+  assert.equal(tool.completion_association.completion_rate, null);
+  assert.equal(tool.completion_association.status, "insufficient_data");
+  assert.ok(tool.insufficient_data.includes("bounded_source_scan"));
+  assert.ok(result.tool_paths.every((path) => path.status === "insufficient_data"));
 });
