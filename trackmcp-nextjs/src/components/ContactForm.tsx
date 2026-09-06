@@ -16,7 +16,7 @@ export function ContactForm() {
     const data = new FormData(form);
     setStatus("loading");
     const { ok } = await sendWeb3Form({
-      subject: "New contact message — TrackMCP",
+      subject: "New contact message, TrackMCP",
       from_name: "TrackMCP · Contact",
       name: String(data.get("name") || ""),
       email: String(data.get("email") || ""),

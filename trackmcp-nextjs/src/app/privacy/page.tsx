@@ -69,7 +69,7 @@ export default function PrivacyPage() {
     <LegalPage
       title="Privacy Policy"
       updated="February 2026"
-      intro="We keep this short and readable. TrackMCP measures how your MCP server is used — not who your end users are."
+      intro="We keep this short and readable. TrackMCP measures how your MCP server is used, not who your end users are."
       sections={sections}
     />
   );

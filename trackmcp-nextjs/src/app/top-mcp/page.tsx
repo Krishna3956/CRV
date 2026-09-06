@@ -7,7 +7,7 @@ import { RepoListing } from "@/components/repository/RepoListing";
 import { getTopTools } from "@/lib/repository/queries";
 
 export const metadata: Metadata = pageMeta({
-  title: "Popular MCP servers — top by GitHub stars | TrackMCP",
+  title: "Popular MCP servers, top by GitHub stars | TrackMCP",
   description:
     "The most popular Model Context Protocol servers and tools, ranked by GitHub stars. Explore the top MCP servers in the TrackMCP directory.",
   path: "/top-mcp",

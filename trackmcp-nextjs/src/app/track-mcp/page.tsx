@@ -9,7 +9,7 @@ import { pageMeta, serializeJsonLd } from "@/lib/seo";
 
 const TITLE = "Track MCP: analytics for Model Context Protocol servers | TrackMCP";
 const DESCRIPTION =
-  "Track MCP—written TrackMCP—is analytics and observability for Model Context Protocol servers. See clients, tools, failures, latency, and workflow outcomes.";
+  "Track MCP, written as TrackMCP, is analytics and observability for Model Context Protocol servers. See clients, tools, failures, latency, and workflow outcomes.";
 
 const features = [
   { icon: Users, title: "See who connects", body: "Identify the MCP clients, environments, and sessions creating real demand." },
@@ -69,7 +69,7 @@ export default function TrackMcpPage() {
                 Track MCP servers from connection to outcome.
               </h1>
               <p className="mt-6 max-w-[60ch] text-[17px] leading-[1.65] text-body sm:text-[19px]">
-                Track MCP—written as TrackMCP—is the analytics and observability layer for teams shipping Model Context Protocol servers. See who connects, what agents call, where a workflow breaks, and what to improve next.
+                Track MCP, written as TrackMCP, is the analytics and observability layer for teams shipping Model Context Protocol servers. See who connects, what agents call, where a workflow breaks, and what to improve next.
               </p>
               <div className="mt-8 flex flex-wrap items-center gap-4">
                 <EarlyAccessButton size="lg" label="Start measuring" />

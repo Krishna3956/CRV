@@ -54,7 +54,7 @@ export function SubmitToolDialog() {
         return;
       }
       void sendWeb3Form({
-        subject: `New MCP submission — ${data.repo_name || url}`,
+        subject: `New MCP submission, ${data.repo_name || url}`,
         from_name: "TrackMCP · MCP Submit",
         repository: url,
         source: "Browse dialog",

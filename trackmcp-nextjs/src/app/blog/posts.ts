@@ -1349,7 +1349,7 @@ export default withTrackMCP(server, {
     title: "What is MCP analytics?",
     tag: "Guide",
     excerpt:
-      "A plain-English definition: MCP analytics is product analytics for your MCP server — who connects, what they call, and whether it works.",
+      "A plain-English definition: MCP analytics is product analytics for your MCP server. It shows who connects, what they call, and whether it works.",
     date: "Sep 24, 2025",
     read: "5 min read",
     body: [
@@ -1430,7 +1430,7 @@ export default withTrackMCP(server, {
     title: "MCP observability: logs, metrics, and traces",
     tag: "Engineering",
     excerpt:
-      "The three pillars of observability, mapped to MCP servers — and the fourth thing agent traffic needs that they don't cover.",
+      "The three pillars of observability mapped to MCP servers, plus the fourth thing agent traffic needs that they don't cover.",
     date: "Aug 28, 2025",
     read: "6 min read",
     body: [
@@ -1450,7 +1450,7 @@ export default withTrackMCP(server, {
     title: "How to debug MCP tool errors",
     tag: "Engineering",
     excerpt:
-      "A practical workflow for finding and fixing the tool calls that fail — including the ones your monitoring calls a success.",
+      "A practical workflow for finding and fixing the tool calls that fail, including the ones your monitoring calls a success.",
     date: "Aug 19, 2025",
     read: "6 min read",
     body: [
@@ -1733,7 +1733,7 @@ export default withTrackMCP(server, {
         "Define the minimum event fields and retention needed to answer them safely.",
         "Estimate the ongoing owner-hours for SDKs, ingestion, dashboards, incidents, and protocol changes.",
         "Instrument one representative server and verify one real workflow end to end.",
-        "Choose the option that produces reliable evidence with the least long-term operational risk—not simply the option with the lowest initial code cost.",
+        "Choose the option that produces reliable evidence with the least long-term operational risk, not simply the option with the lowest initial code cost.",
       ]),
       h("What TrackMCP does and does not replace"),
       p("TrackMCP does not replace application logs, traces, infrastructure monitoring, or a company-wide data platform. It adds MCP-aware context to the stack: which clients connect, which tools are discovered and called, where sessions fail, and whether workflows reach a useful result. If your team already has a strong telemetry platform, the right answer may be to integrate MCP semantics into it. If that work is not prioritized, a purpose-built layer can provide the missing visibility sooner."),

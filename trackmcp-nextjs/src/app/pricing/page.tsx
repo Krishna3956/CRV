@@ -10,7 +10,7 @@ import { PageFrame } from "@/components/PageFrame";
 import { Reveal } from "@/components/Reveal";
 
 export const metadata: Metadata = pageMeta({
-  title: "Pricing — TrackMCP",
+  title: "Pricing | TrackMCP",
   description:
     "Usage-based pricing for MCP analytics: start with 1,000 monthly tool calls free, then upgrade to 50,000 calls on Pro.",
   path: "/pricing",

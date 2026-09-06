@@ -40,9 +40,9 @@ const FAQS = [
     a: "TrackMCP is an MCP server directory. Submitting gives your server a public page with repository details and documentation pulled from your README.",
   },
   { q: "How long does approval take?", a: "Submissions are reviewed before they are listed. Timing can vary with the submission and review queue." },
-  { q: "Is there a cost to submit?", a: "No — submitting your tool is completely free. The Featured option ($8/mo) is optional and gives you premium placement." },
-  { q: "What if my tool is rejected?", a: "We'll explain why and give constructive feedback. Most tools get approved — feel free to resubmit after improvements." },
-  { q: "Can I edit after submitting?", a: "Yes. You can edit your submission anytime before approval — just reply to our confirmation email with the changes." },
+  { q: "Is there a cost to submit?", a: "No, submitting your tool is completely free. The Featured option ($8/mo) is optional and gives you premium placement." },
+  { q: "What if my tool is rejected?", a: "We'll explain why and give constructive feedback. Most tools get approved, so feel free to resubmit after improvements." },
+  { q: "Can I edit after submitting?", a: "Yes. You can edit your submission anytime before approval. Just reply to our confirmation email with the changes." },
   { q: "What makes a good MCP tool?", a: "A well-documented GitHub repo with clear setup, examples, and an active maintenance history." },
 ];
 
@@ -73,7 +73,7 @@ export function SubmitClient() {
         return;
       }
       void sendWeb3Form({
-        subject: `New MCP submission — ${data.repo_name || url}`,
+        subject: `New MCP submission, ${data.repo_name || url}`,
         from_name: "TrackMCP · MCP Submit",
         repository: url,
         email: email || "(not provided)",

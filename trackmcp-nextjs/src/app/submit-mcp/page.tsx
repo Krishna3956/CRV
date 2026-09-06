@@ -8,7 +8,7 @@ import { SubmitClient } from "@/components/repository/SubmitClient";
 export const metadata: Metadata = pageMeta({
   title: "Submit your MCP Server to the TrackMCP Directory",
   description:
-    "Add your Model Context Protocol server to the TrackMCP directory. Free to submit — we fetch stars, language, and topics automatically. Optional Featured placement ($8/mo).",
+    "Add your Model Context Protocol server to the TrackMCP directory. Free to submit. We fetch stars, language, and topics automatically. Optional Featured placement ($8/mo).",
   path: "/submit-mcp",
 });
 
@@ -37,7 +37,7 @@ const jsonLd = {
           name: "Is there a cost to submit?",
           acceptedAnswer: {
             "@type": "Answer",
-            text: "No — submitting your tool is completely free. The Featured option ($8/mo) is optional and gives you premium placement.",
+            text: "No, submitting your tool is completely free. The Featured option ($8/mo) is optional and gives you premium placement.",
           },
         },
         {

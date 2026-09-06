@@ -192,13 +192,13 @@ export const enrichment: Record<string, Enrichment> = {
   "measure-mcp-tool-adoption-workflow-completion": {
     art: "funnel",
     takeaways: [
-      "Adoption includes breadth, depth, quality, and trend—not only call count.",
+      "Adoption includes breadth, depth, quality, and trend, not only call count.",
       "Read tool usage inside completed and incomplete workflow paths.",
       "Treat descriptions and schemas as agent-facing UX that can be measured.",
     ],
     inserts: [
       fig("funnel", "The useful question is where a tool path moves from discovery to a completed outcome.", 5),
-      note("Before deleting", "A zero-call tool may be unnecessary—or simply undiscoverable because its description does not match user intent.", 12),
+      note("Before deleting", "A zero-call tool may be unnecessary, or simply undiscoverable because its description does not match user intent.", 12),
     ],
   },
   "why-your-mcp-server-needs-analytics": {
@@ -222,7 +222,7 @@ export const enrichment: Record<string, Enrichment> = {
     ],
     inserts: [
       fig("errors", "A healthy 200 OK can carry a failed tool call. Status codes never see it.", 3),
-      note("What to watch", "A tool with high call volume and a climbing isError rate is a silent failure — the highest-value thing to fix.", 8),
+      note("What to watch", "A tool with high call volume and a climbing isError rate is a silent failure, and the highest-value thing to fix.", 8),
     ],
   },
   "the-metrics-that-matter-for-an-mcp-server": {
@@ -258,7 +258,7 @@ export const enrichment: Record<string, Enrichment> = {
     ],
     inserts: [
       fig("bars", "Zero-call tools across weeks of traffic are candidates to fix or remove.", 3),
-      note("Before you delete", "Check whether the tool is truly unused or just poorly described — the data looks the same.", 7),
+      note("Before you delete", "Check whether the tool is truly unused or just poorly described. The data looks the same.", 7),
     ],
   },
   "how-to-measure-mcp-tool-adoption": {
@@ -289,12 +289,12 @@ export const enrichment: Record<string, Enrichment> = {
     art: "schema",
     takeaways: [
       "The most common silent failure is a schema/agent shape mismatch.",
-      "Models send what humans write — a string, not an array.",
+      "Models send what humans write, a string rather than an array.",
       "Forgiving schemas convert failed calls into completed ones.",
     ],
     inserts: [
       fig("schema", "Accept both shapes: coerce a string into a single-element array.", 5),
-      note("Where to start", "Find tools with high volume and low success, then read the error text — it names the shape to accept.", 9),
+      note("Where to start", "Find tools with high volume and low success, then read the error text. It names the shape to accept.", 9),
     ],
   },
   "logs-vs-apm-vs-mcp-analytics": {
@@ -305,7 +305,7 @@ export const enrichment: Record<string, Enrichment> = {
       "MCP analytics reads the protocol: clients, tools, and completions.",
     ],
     inserts: [
-      note("Three layers, three jobs", "You likely want all three — but only the analytics layer answers product questions about your server.", 7),
+      note("Three layers, three jobs", "You likely want all three, but only the analytics layer answers product questions about your server.", 7),
     ],
   },
   "understanding-your-mcp-client-mix": {
@@ -317,7 +317,7 @@ export const enrichment: Record<string, Enrichment> = {
     ],
     inserts: [
       fig("clients", "Claude, Cursor, ChatGPT, and custom agents each behave differently.", 3),
-      note("Make it actionable", "'Our server is fine' becomes 'fine for these clients, not those' — the version you can act on.", 7),
+      note("Make it actionable", "'Our server is fine' becomes 'fine for these clients, not those', the version you can act on.", 7),
     ],
   },
   "workflow-completion-rate-the-north-star": {
@@ -352,7 +352,7 @@ export const enrichment: Record<string, Enrichment> = {
       "Fix latency at the tool level, not the server average.",
     ],
     inserts: [
-      fig("latency", "The p95 tail — not the average — is what agents time out on.", 5),
+      fig("latency", "The p95 tail, not the average, is what agents time out on.", 5),
       note("Sort by tail", "Rank tools by p95, not overall latency. The fix is usually one dependency behind one tool.", 8),
     ],
   },
@@ -377,7 +377,7 @@ export const enrichment: Record<string, Enrichment> = {
     ],
     inserts: [
       fig("protocol", "The whole setup: wrap the server, pass your key, ship.", 3),
-      note("First insight in minutes", "The point isn't a perfect pipeline — it's answering real questions the day you launch.", 7),
+      note("First insight in minutes", "The point isn't a perfect pipeline. It is answering real questions the day you launch.", 7),
     ],
   },
   "writing-tool-descriptions-agents-use": {
@@ -423,7 +423,7 @@ export const enrichment: Record<string, Enrichment> = {
     ],
     inserts: [
       fig("protocol", "One wrapper at the request/response boundary sees every call.", 3),
-      note("Watch the tail", "Alert on p95 latency, not the average — the tail is what agents time out on.", 6),
+      note("Watch the tail", "Alert on p95 latency, not the average. The tail is what agents time out on.", 6),
     ],
   },
   "mcp-observability-explained": {
@@ -440,7 +440,7 @@ export const enrichment: Record<string, Enrichment> = {
   "how-to-debug-mcp-tool-errors": {
     art: "errors",
     takeaways: [
-      "Many MCP failures return a 200 OK — read the payload.",
+      "Many MCP failures return a 200 OK. Read the payload.",
       "Rank tools by volume and success to find the worst offender.",
       "Most tool errors are fixed by tolerance, not new features.",
     ],
@@ -469,7 +469,7 @@ export const enrichment: Record<string, Enrichment> = {
       "Fail open: capture must never block a tool call.",
     ],
     inserts: [
-      note("Shape over content", "Which tool, which client, and whether it succeeded is enough — no raw values required.", 4),
+      note("Shape over content", "Which tool, which client, and whether it succeeded is enough. No raw values are required.", 4),
     ],
   },
   "track-which-agents-use-your-mcp-server": {
@@ -520,7 +520,7 @@ export const enrichment: Record<string, Enrichment> = {
   "ab-test-mcp-tool-descriptions": {
     art: "bars",
     takeaways: [
-      "Descriptions are UX for agents — test them, don't guess.",
+      "Descriptions are UX for agents. Test them, don't guess.",
       "Change one description at a time to attribute the effect.",
       "Measure adoption, correctness, and retries.",
     ],

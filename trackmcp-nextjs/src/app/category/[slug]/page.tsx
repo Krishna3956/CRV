@@ -26,7 +26,7 @@ export async function generateMetadata({
     });
   }
   return pageMeta({
-    title: `${category} — MCP servers | TrackMCP`,
+    title: `${category}, MCP servers | TrackMCP`,
     description: `Browse ${category} Model Context Protocol servers and tools in the TrackMCP directory, ranked by GitHub stars.`,
     path: `/category/${slug}`,
   });

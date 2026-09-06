@@ -7,7 +7,7 @@ import { RepoListing } from "@/components/repository/RepoListing";
 import { getNewestTools } from "@/lib/repository/queries";
 
 export const metadata: Metadata = pageMeta({
-  title: "What's New — latest MCP servers | TrackMCP",
+  title: "What's New, latest MCP servers | TrackMCP",
   description:
     "The newest Model Context Protocol servers and tools added to the TrackMCP directory. Discover fresh MCP servers from the community.",
   path: "/new",

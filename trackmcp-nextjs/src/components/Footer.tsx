@@ -86,8 +86,8 @@ export function Footer() {
               </span>
             </a>
             <p className="mt-4 max-w-[32ch] text-sm text-muted">
-              Analytics for the Model Context Protocol. See how your MCP server is
-              being used.
+              TrackMCP, also written Track MCP, is analytics and observability for
+              Model Context Protocol servers.
             </p>
           </div>
           {cols.map((c) => (

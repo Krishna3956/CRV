@@ -8,7 +8,7 @@ export const DEFAULT_IMAGE = {
   url: "/opengraph-image",
   width: 1200,
   height: 630,
-  alt: "TrackMCP — analytics for MCP servers",
+  alt: "TrackMCP, analytics for MCP servers",
 };
 
 /** Shared entities are rendered from the root layout, so every route inherits them. */

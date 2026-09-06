@@ -187,7 +187,7 @@ export function SystemStoryScene() {
           </div>
           <p className="mt-1.5 text-[12.5px] leading-snug text-ink">
             <span className="font-mono font-medium">send_email</span> fails{" "}
-            <span className="font-semibold text-rose-600">94%</span> of the time — agents send a
+            <span className="font-semibold text-rose-600">94%</span> of the time, agents send a
             string, your schema wants an array.
           </p>
           <span className="mt-2 inline-flex items-center gap-1 rounded-md bg-ink px-2 py-1 text-[11px] font-medium text-white">

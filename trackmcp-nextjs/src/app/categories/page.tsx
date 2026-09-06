@@ -10,7 +10,7 @@ import { getCategoryCounts } from "@/lib/repository/queries";
 import { CATEGORIES, categorySlug } from "@/lib/repository/types";
 
 export const metadata: Metadata = pageMeta({
-  title: "MCP categories — browse MCP servers by category | TrackMCP",
+  title: "MCP categories, browse MCP servers by category | TrackMCP",
   description:
     "Browse Model Context Protocol servers by category: AI & ML, developer kits, infrastructure, search, automation, and more.",
   path: "/categories",

@@ -43,17 +43,17 @@ export async function generateMetadata({
   const slug = toolSlug(tool.github_url, repo);
   const desc = metaDescription(
     tool.description ||
-      `${repo} — an MCP server in the TrackMCP directory. Explore its docs, stars, and usage.`,
+      `${repo}, an MCP server in the TrackMCP directory. Explore its docs, stars, and usage.`,
     `${repo} is a Model Context Protocol server listed in the TrackMCP directory. Explore its documentation, GitHub repository, and usage details.`,
   );
   const canonical = `https://trackmcp.com/tool/${encodeURIComponent(slug)}`;
-  const title = `${repo} — MCP server | TrackMCP`;
+  const title = `${repo}, MCP server | TrackMCP`;
   return {
     title,
     description: desc,
     alternates: { canonical },
     openGraph: {
-      title: `${repo} — MCP server`,
+      title: `${repo}, MCP server`,
       description: desc,
       url: canonical,
       type: "website",
@@ -96,7 +96,7 @@ export default async function ToolPage({ params }: { params: Promise<{ name: str
     },
     {
       q: `Is ${tool.repo_name} open source?`,
-      a: `Yes — it is hosted on GitHub at ${tool.github_url}${
+    a: `Yes, it is hosted on GitHub at ${tool.github_url}${
         tool.stars ? ` and has ${tool.stars.toLocaleString()} stars` : ""
       }.`,
     },

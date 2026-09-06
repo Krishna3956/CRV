@@ -192,8 +192,8 @@ function OverviewView({ still }: { still: boolean }) {
     { label: "Needs attention", value: "1", tone: "text-amber-600" },
   ];
   const insights = [
-    { dot: "bg-amber-500", text: "send_email needs attention — 94% failing" },
-    { dot: "bg-ink", text: "Checkout workflow stops early — 38%" },
+    { dot: "bg-amber-500", text: "send_email needs attention, 94% failing" },
+    { dot: "bg-ink", text: "Checkout workflow stops early, 38%" },
     { dot: "bg-brand", text: "Returning usage up 8% this week" },
   ];
   return (

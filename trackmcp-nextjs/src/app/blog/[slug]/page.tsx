@@ -280,6 +280,33 @@ export default async function BlogPostPage({
                   <Blocks body={body} />
                 </Reveal>
 
+                <section
+                  className="mt-12 rounded-2xl border border-line bg-paper p-6 sm:p-7"
+                  aria-labelledby="about-track-mcp"
+                >
+                  <p className="text-[12px] font-semibold uppercase tracking-wide text-brand">
+                    About the publisher
+                  </p>
+                  <h2
+                    id="about-track-mcp"
+                    className="mt-2 text-[20px] font-medium tracking-[-0.02em] text-ink"
+                  >
+                    TrackMCP, also written Track MCP
+                  </h2>
+                  <p className="mt-2 max-w-[65ch] text-[14.5px] leading-[1.7] text-muted">
+                    TrackMCP helps teams understand which clients connect to
+                    their MCP servers, which tools agents use, and where
+                    workflows fail. Learn more about{" "}
+                    <Link
+                      href="/track-mcp"
+                      className="font-medium text-brand-strong underline decoration-brand/30 underline-offset-2 hover:decoration-brand"
+                    >
+                      Track MCP
+                    </Link>
+                    .
+                  </p>
+                </section>
+
                 {/* CTA */}
                 <div className="mt-12 overflow-hidden rounded-2xl border border-line bg-brand-soft/40 p-6 text-center sm:p-8">
                   <h3 className="text-[20px] font-medium tracking-[-0.02em] text-ink">
