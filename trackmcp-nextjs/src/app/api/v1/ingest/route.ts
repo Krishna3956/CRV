@@ -1,8 +1,8 @@
-import { NextResponse } from "next/server";
-import { getSupabaseAdmin } from "@/lib/repository/supabase";
-import { hashTrackMCPKey } from "@/lib/telemetry/keys";
-import type { CanonicalTrackMCPEvent } from "@/lib/telemetry/types";
-import { deduplicateEvents, MAX_BATCH_EVENTS, MAX_REQUEST_BYTES, normalizeTrackMCPEvent } from "@/lib/telemetry/validation";
+import { NextResponse } from "next/server.js";
+import { getSupabaseAdmin } from "../../../../lib/repository/supabase.ts";
+import { hashTrackMCPKey } from "../../../../lib/telemetry/keys.ts";
+import type { CanonicalTrackMCPEvent } from "../../../../lib/telemetry/types.ts";
+import { deduplicateEvents, MAX_BATCH_EVENTS, MAX_REQUEST_BYTES, normalizeTrackMCPEvent, sanitizeIngestPayload } from "../../../../lib/telemetry/validation.ts";
 
 function responseBody(error?: string, rejected = 0) {
   return { accepted: 0, ignored_duplicates: 0, rejected, ...(error ? { error } : {}) };
@@ -16,8 +16,9 @@ function invalidBatchResponse(reason: string, rejected: number, status = 400) {
   return NextResponse.json(responseBody(reason, rejected), { status });
 }
 
-export async function POST(req: Request) {
-  const supabase = getSupabaseAdmin();
+export function createIngestHandler(getAdmin: typeof getSupabaseAdmin = getSupabaseAdmin) {
+  return async function POST(req: Request) {
+  const supabase = getAdmin();
   if (!supabase) return NextResponse.json({ error: "Ingest service is not configured." }, { status: 503 });
 
   const authorization = req.headers.get("authorization") || "";
@@ -69,7 +70,10 @@ export async function POST(req: Request) {
   }
   const existingIds = new Set((existing || []).map((row: { event_id: string }) => row.event_id));
   const deduplicated = deduplicateEvents(normalized, existingIds);
-  const rows = deduplicated.events.map((event) => ({
+  const rows = deduplicated.events.map((event) => {
+    const payload = event.payload ? sanitizeIngestPayload(event.payload) : {};
+    const payloadSize = event.payload ? new TextEncoder().encode(JSON.stringify(payload)).byteLength : event.payload_size_bytes ?? null;
+    return {
     workspace_id: key.workspace_id,
     schema_version: event.schema_version,
     event_id: event.event_id,
@@ -103,10 +107,11 @@ export async function POST(req: Request) {
     error_code: event.error_code ?? null,
     retry_number: event.retry_number ?? 0,
     schema_hash: event.schema_hash || null,
-    payload_size_bytes: event.payload_size_bytes ?? null,
+    payload_size_bytes: payloadSize,
     payload_policy: event.payload_policy || null,
-    payload: event.payload || {},
-  }));
+    payload,
+    };
+  });
 
   if (rows.length) {
     const { error } = await supabase.from("trackmcp_events").upsert(rows, {
@@ -120,4 +125,7 @@ export async function POST(req: Request) {
   }
 
   return NextResponse.json({ accepted: rows.length, ignored_duplicates: deduplicated.ignored, rejected: 0 });
+  };
 }
+
+export const POST = createIngestHandler();

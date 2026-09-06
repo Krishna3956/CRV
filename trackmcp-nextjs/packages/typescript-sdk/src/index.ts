@@ -1,4 +1,17 @@
 import { createHash, randomUUID } from "node:crypto";
+import {
+  DEFAULT_MAX_BATCH_SIZE,
+  DEFAULT_MAX_PAYLOAD_BYTES,
+  DEFAULT_MAX_PAYLOAD_DEPTH,
+  DEFAULT_MAX_PAYLOAD_KEYS,
+  DEFAULT_MAX_QUEUE_BYTES,
+  DEFAULT_MAX_QUEUE_EVENTS,
+  DEFAULT_MAX_STRING_LENGTH,
+  payloadByteLength,
+  sanitizePayload,
+  type PayloadMode,
+} from "./privacy.js";
+export type { PayloadMode } from "./privacy.js";
 
 export type TrackMCPEventType = "protocol" | "tool_call" | "session" | "catalog" | "workflow" | "custom";
 export const TRACKMCP_SCHEMA_VERSION = "1" as const;
@@ -47,6 +60,13 @@ export type TrackMCPOptions = {
   endpoint?: string;
   sampleRate?: number;
   redact?: string[];
+  redactKeys?: string[];
+  payloadMode?: PayloadMode;
+  maxPayloadBytes?: number;
+  maxPayloadDepth?: number;
+  maxPayloadKeys?: number;
+  maxStringLength?: number;
+  redactEvent?: (event: TrackMCPEvent) => TrackMCPEvent | null;
   disabled?: boolean;
   server_version?: string;
   sdk_version?: string;
@@ -54,32 +74,12 @@ export type TrackMCPOptions = {
   server_id?: string;
   flushIntervalMs?: number;
   maxBatchSize?: number;
+  maxQueueEvents?: number;
+  maxQueueBytes?: number;
 };
 
 const DEFAULT_ENDPOINT = "https://trackmcp.com/api/v1/ingest";
 let activeClient: TrackMCPClient | undefined;
-
-function redactValue(value: unknown, paths: string[]): unknown {
-  if (!paths.length || value === null || typeof value !== "object") return value;
-  const copy = structuredClone(value);
-  for (const path of paths) {
-    const parts = path.split(".");
-    let cursor: Record<string, unknown> | unknown[] = copy as Record<string, unknown>;
-    for (let i = 0; i < parts.length - 1; i += 1) {
-      if (cursor && typeof cursor === "object" && parts[i] in cursor) {
-        cursor = (cursor as Record<string, unknown>)[parts[i]] as Record<string, unknown>;
-      } else {
-        cursor = {};
-        break;
-      }
-    }
-    if (cursor && typeof cursor === "object") {
-      const last = parts[parts.length - 1];
-      if (last in cursor) (cursor as Record<string, unknown>)[last] = "[redacted]";
-    }
-  }
-  return copy;
-}
 
 function stableJson(value: unknown): string {
   if (Array.isArray(value)) return `[${value.map(stableJson).join(",")}]`;
@@ -95,6 +95,14 @@ function sha256(value: unknown): string {
 
 type CatalogTool = { name: string; description?: string; tool_description_hash: string; schema_hash: string };
 
+export type TrackMCPDiagnostics = {
+  droppedEvents: number;
+  hookErrors: number;
+  privacyErrors: number;
+  queuedEvents: number;
+  queuedBytes: number;
+};
+
 function catalogTools(result: Record<string, unknown> | undefined): CatalogTool[] {
   if (!result || !Array.isArray(result.tools)) return [];
   return result.tools.flatMap((tool): CatalogTool[] => {
@@ -107,8 +115,10 @@ function catalogTools(result: Record<string, unknown> | undefined): CatalogTool[
 }
 
 class TrackMCPClient {
-  private readonly options: Required<Pick<TrackMCPOptions, "service" | "environment" | "endpoint" | "sampleRate" | "redact" | "flushIntervalMs" | "maxBatchSize" | "disabled">> & Pick<TrackMCPOptions, "apiKey" | "server_id" | "server_version" | "sdk_version" | "deployment_id">;
+  private readonly options: Required<Pick<TrackMCPOptions, "service" | "environment" | "endpoint" | "sampleRate" | "redact" | "redactKeys" | "payloadMode" | "maxPayloadBytes" | "maxPayloadDepth" | "maxPayloadKeys" | "maxStringLength" | "flushIntervalMs" | "maxBatchSize" | "maxQueueEvents" | "maxQueueBytes" | "disabled">> & Pick<TrackMCPOptions, "apiKey" | "server_id" | "server_version" | "sdk_version" | "deployment_id" | "redactEvent">;
   private queue: TrackMCPEvent[] = [];
+  private queueBytes = 0;
+  private readonly diagnosticCounts = { droppedEvents: 0, hookErrors: 0, privacyErrors: 0 };
   private readonly toolCatalog = new Map<string, CatalogTool>();
   private timer?: NodeJS.Timeout;
   private flushing?: Promise<void>;
@@ -126,9 +136,18 @@ class TrackMCPClient {
       endpoint: options.endpoint || DEFAULT_ENDPOINT,
       sampleRate: Math.min(1, Math.max(0, options.sampleRate ?? 1)),
       redact: options.redact || [],
+      redactKeys: options.redactKeys || [],
+      payloadMode: options.payloadMode === "metadata" || options.payloadMode === "full" ? options.payloadMode : "redacted",
+      maxPayloadBytes: options.maxPayloadBytes ?? DEFAULT_MAX_PAYLOAD_BYTES,
+      maxPayloadDepth: options.maxPayloadDepth ?? DEFAULT_MAX_PAYLOAD_DEPTH,
+      maxPayloadKeys: options.maxPayloadKeys ?? DEFAULT_MAX_PAYLOAD_KEYS,
+      maxStringLength: options.maxStringLength ?? DEFAULT_MAX_STRING_LENGTH,
       flushIntervalMs: options.flushIntervalMs ?? 5000,
-      maxBatchSize: options.maxBatchSize ?? 50,
+      maxBatchSize: Math.max(1, Math.floor(options.maxBatchSize ?? DEFAULT_MAX_BATCH_SIZE)),
+      maxQueueEvents: Math.max(1, Math.floor(options.maxQueueEvents ?? DEFAULT_MAX_QUEUE_EVENTS)),
+      maxQueueBytes: Math.max(1, Math.floor(options.maxQueueBytes ?? DEFAULT_MAX_QUEUE_BYTES)),
       disabled: options.disabled ?? false,
+      redactEvent: options.redactEvent,
     };
     if (!this.options.disabled) {
       this.timer = setInterval(() => void this.flush(), this.options.flushIntervalMs);
@@ -138,22 +157,84 @@ class TrackMCPClient {
 
   capture(event: Omit<TrackMCPEvent, "event_id" | "service" | "environment" | "schema_version"> & { schema_version?: string }): void {
     if (this.options.disabled || Math.random() > this.options.sampleRate) return;
-    const payload = redactValue(event.payload, this.options.redact) as Record<string, unknown> | undefined;
-    this.queue.push({
-      ...event,
-      schema_version: TRACKMCP_SCHEMA_VERSION,
-      event_id: randomUUID(),
-      service: this.options.service,
-      environment: this.options.environment,
-      session_id_source: event.session_id_source || (event.session_id ? "external" : "missing"),
-      server_id: this.options.server_id,
-      server_version: this.options.server_version,
-      sdk_version: this.options.sdk_version,
-      deployment_id: this.options.deployment_id,
-      payload,
-      payload_size_bytes: payload ? new TextEncoder().encode(JSON.stringify(payload)).byteLength : event.payload_size_bytes,
-    });
+    try {
+      let prepared = this.prepareEvent({
+        ...event,
+        schema_version: TRACKMCP_SCHEMA_VERSION,
+        event_id: randomUUID(),
+        service: this.options.service,
+        environment: this.options.environment,
+        session_id_source: event.session_id_source || (event.session_id ? "external" : "missing"),
+        server_id: this.options.server_id,
+        server_version: this.options.server_version,
+        sdk_version: this.options.sdk_version,
+        deployment_id: this.options.deployment_id,
+      });
+      if (this.options.redactEvent) {
+        try {
+          const hooked = this.options.redactEvent(prepared);
+          if (!hooked) {
+            this.diagnosticCounts.droppedEvents += 1;
+            return;
+          }
+          prepared = this.prepareEvent(hooked);
+        } catch {
+          this.diagnosticCounts.hookErrors += 1;
+          this.diagnosticCounts.droppedEvents += 1;
+          return;
+        }
+      }
+      this.enqueue(prepared);
+    } catch {
+      this.diagnosticCounts.privacyErrors += 1;
+      this.diagnosticCounts.droppedEvents += 1;
+      return;
+    }
     if (this.queue.length >= this.options.maxBatchSize) void this.flush();
+  }
+
+  private prepareEvent(event: TrackMCPEvent): TrackMCPEvent {
+    const prepared = { ...event, payload_policy: this.options.payloadMode };
+    if (this.options.payloadMode === "metadata") {
+      delete prepared.payload;
+      prepared.payload_size_bytes = 0;
+      return prepared;
+    }
+    if (prepared.payload !== undefined) {
+      prepared.payload = sanitizePayload(prepared.payload, {
+        mode: this.options.payloadMode,
+        explicitPaths: this.options.redact,
+        redactKeys: this.options.redactKeys,
+        maxPayloadBytes: this.options.maxPayloadBytes,
+        maxPayloadDepth: this.options.maxPayloadDepth,
+        maxPayloadKeys: this.options.maxPayloadKeys,
+        maxStringLength: this.options.maxStringLength,
+      }) as Record<string, unknown> | undefined;
+      prepared.payload_size_bytes = payloadByteLength(prepared.payload);
+    } else {
+      prepared.payload_size_bytes = 0;
+    }
+    return prepared;
+  }
+
+  private enqueue(event: TrackMCPEvent): void {
+    const eventBytes = payloadByteLength(event);
+    if (!eventBytes || eventBytes > this.options.maxQueueBytes) {
+      this.diagnosticCounts.droppedEvents += 1;
+      return;
+    }
+    this.queue.push(event);
+    this.queueBytes += eventBytes;
+    while (this.queue.length > this.options.maxQueueEvents || this.queueBytes > this.options.maxQueueBytes) {
+      const dropped = this.queue.shift();
+      if (!dropped) break;
+      this.queueBytes = Math.max(0, this.queueBytes - payloadByteLength(dropped));
+      this.diagnosticCounts.droppedEvents += 1;
+    }
+  }
+
+  getDiagnostics(): TrackMCPDiagnostics {
+    return { ...this.diagnosticCounts, queuedEvents: this.queue.length, queuedBytes: this.queueBytes };
   }
 
   track(name: string, payload: Record<string, unknown> = {}): void {
@@ -181,6 +262,8 @@ class TrackMCPClient {
   async flush(): Promise<void> {
     if (this.options.disabled || this.flushing || this.queue.length === 0) return this.flushing || Promise.resolve();
     const events = this.queue.splice(0, this.options.maxBatchSize);
+    this.queueBytes = Math.max(0, this.queueBytes - events.reduce((total, event) => total + payloadByteLength(event), 0));
+    let delivered = false;
     this.flushing = fetch(this.options.endpoint, {
       method: "POST",
       headers: { "content-type": "application/json", authorization: `Bearer ${this.options.apiKey}` },
@@ -188,14 +271,15 @@ class TrackMCPClient {
     })
       .then((response) => {
         if (!response.ok) throw new Error(`TrackMCP ingest returned ${response.status}`);
+        delivered = true;
       })
       .catch(() => {
-        // Analytics must never affect the user's MCP server. Requeue for the next flush.
-        this.queue.unshift(...events);
+        // Analytics must never affect the user's MCP server. Requeue within the same bounds.
+        for (const event of events) this.enqueue(event);
       })
       .finally(() => {
         this.flushing = undefined;
-        if (this.queue.length >= this.options.maxBatchSize) void this.flush();
+        if (delivered && this.queue.length >= this.options.maxBatchSize) void this.flush();
       });
     return this.flushing;
   }
@@ -348,7 +432,7 @@ export function withTrackMCP<T extends object>(server: T, options: TrackMCPOptio
       }
     };
   }
-  Object.defineProperty(target, "trackmcp", { value: { track: client.track.bind(client), workflow: client.workflow.bind(client), flush: client.flush.bind(client) } });
+  Object.defineProperty(target, "trackmcp", { value: { track: client.track.bind(client), workflow: client.workflow.bind(client), flush: client.flush.bind(client), getDiagnostics: client.getDiagnostics.bind(client) } });
   return target as T & { trackmcp: TrackMCP };
 }
 
@@ -356,4 +440,14 @@ export const track = (name: string, payload?: Record<string, unknown>): void => 
   activeClient?.track(name, payload);
 };
 
-export type TrackMCP = { track(name: string, payload?: Record<string, unknown>): void; workflow(name: string, status: "started" | "completed" | "failed", payload?: Record<string, unknown>): void; flush(): Promise<void> };
+export type TrackMCP = { track(name: string, payload?: Record<string, unknown>): void; workflow(name: string, status: "started" | "completed" | "failed", payload?: Record<string, unknown>): void; flush(): Promise<void>; getDiagnostics(): TrackMCPDiagnostics };
+
+export {
+  DEFAULT_MAX_BATCH_SIZE,
+  DEFAULT_MAX_PAYLOAD_BYTES,
+  DEFAULT_MAX_PAYLOAD_DEPTH,
+  DEFAULT_MAX_PAYLOAD_KEYS,
+  DEFAULT_MAX_QUEUE_BYTES,
+  DEFAULT_MAX_QUEUE_EVENTS,
+  DEFAULT_MAX_STRING_LENGTH,
+} from "./privacy.js";

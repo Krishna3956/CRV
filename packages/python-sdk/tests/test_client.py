@@ -6,6 +6,7 @@ from unittest import TestCase
 
 from trackmcp import TrackMCP, TrackMCPOptions
 from trackmcp.client import _TrackMCPMiddleware
+from trackmcp.privacy import sanitize_payload
 
 
 class Handler(BaseHTTPRequestHandler):
@@ -22,6 +23,79 @@ class Handler(BaseHTTPRequestHandler):
 
 
 class TrackMCPClientTest(TestCase):
+    def test_recursive_redaction_resource_scrubbing_and_markers(self):
+        result = sanitize_payload({
+            "password": "secret",
+            "customerId": "customer-secret",
+            "nested": {"accessToken": "bearer-secret", "publicKey": "useful-metadata", "args": {"email": "person@example.com"}},
+            "image": "data:image/png;base64," + "A" * 180,
+            "blob": "A" * 180,
+            "bytes": bytes([1, 2, 3]),
+            "uri": "https://user:password@example.com/resource?access_token=secret",
+            "deep": {"child": {"value": {"tooDeep": True}}},
+            "many": [1, 2, 3, 4],
+            "long": "x" * 30,
+        }, mode="redacted", explicit_paths=["nested.args.email"], redact_keys=["customer_id"], max_payload_depth=3, max_payload_keys=10, max_string_length=20, max_payload_bytes=10000)
+        self.assertEqual(result["password"], "[redacted]")
+        self.assertEqual(result["customerId"], "[redacted]")
+        self.assertEqual(result["nested"]["accessToken"], "[redacted]")
+        self.assertEqual(result["nested"]["publicKey"], "useful-metadata")
+        self.assertEqual(result["nested"]["args"]["email"], "[redacted]")
+        self.assertEqual(result["image"], {"__trackmcp_truncated": True, "reason": "binary", "original_type": "string", "media_type": "image/png", "original_bytes": 135})
+        self.assertEqual(result["blob"], {"__trackmcp_truncated": True, "reason": "binary", "original_type": "string", "original_bytes": 135})
+        self.assertEqual(result["bytes"], {"__trackmcp_truncated": True, "reason": "binary", "original_type": "binary", "original_bytes": 3})
+        self.assertEqual(result["uri"], {"__trackmcp_truncated": True, "reason": "credential", "original_type": "string"})
+        self.assertEqual(result["deep"], {"child": {"value": {"__trackmcp_truncated": True, "reason": "max_payload_depth", "original_type": "object"}}})
+        breadth = sanitize_payload({"many": [1, 2, 3, 4]}, mode="redacted", max_payload_keys=3)
+        self.assertEqual(breadth["many"][-1], {"__trackmcp_truncated": True, "reason": "max_payload_keys", "original_type": "array"})
+        self.assertEqual(result["long"], {"__trackmcp_truncated": True, "reason": "max_string_length", "original_type": "string"})
+
+    def test_metadata_and_full_modes_are_explicit_and_bounded(self):
+        client = TrackMCP(TrackMCPOptions(api_key="tmcp_test", payload_mode="metadata", disabled=False, flush_interval_ms=60000))
+        client.capture({"event_type": "tool_call", "started_at": "2026-01-01T00:00:00Z", "payload": {"secret": "value"}})
+        self.assertEqual(client._events[0]["payload_policy"], "metadata")
+        self.assertNotIn("payload", client._events[0])
+        client._timer.cancel()
+
+        full = TrackMCP(TrackMCPOptions(api_key="tmcp_test", payload_mode="full", max_payload_bytes=100, disabled=False, flush_interval_ms=60000))
+        full.capture({"event_type": "tool_call", "started_at": "2026-01-01T00:00:00Z", "payload": {"value": "x" * 1000}})
+        self.assertEqual(full._events[0]["payload_policy"], "full")
+        self.assertLessEqual(full._events[0]["payload_size_bytes"], 100)
+        self.assertTrue(full._events[0]["payload"]["__trackmcp_truncated"])
+        full._timer.cancel()
+
+    def test_event_hooks_and_failed_requeues_are_fail_open_and_bounded(self):
+        mutated = TrackMCP(TrackMCPOptions(api_key="tmcp_test", redact_event=lambda event: {**event, "payload": {**event["payload"], "hook": "added", "token": "secret"}}, disabled=False, flush_interval_ms=60000))
+        mutated.capture({"event_type": "custom", "started_at": "2026-01-01T00:00:00Z", "payload": {}})
+        self.assertEqual(mutated._events[0]["payload"]["hook"], "added")
+        self.assertEqual(mutated._events[0]["payload"]["token"], "[redacted]")
+        mutated._timer.cancel()
+
+        dropped = TrackMCP(TrackMCPOptions(api_key="tmcp_test", redact_event=lambda _event: None, disabled=False, flush_interval_ms=60000))
+        dropped.capture({"event_type": "custom", "started_at": "2026-01-01T00:00:00Z", "payload": {}})
+        self.assertEqual(dropped.get_diagnostics()["dropped_events"], 1)
+        dropped._timer.cancel()
+
+        failed_hook = TrackMCP(TrackMCPOptions(api_key="tmcp_test", redact_event=lambda _event: 1 / 0, disabled=False, flush_interval_ms=60000))
+        failed_hook.capture({"event_type": "custom", "started_at": "2026-01-01T00:00:00Z", "payload": {}})
+        self.assertEqual(failed_hook.get_diagnostics()["hook_errors"], 1)
+        failed_hook._timer.cancel()
+
+        queue = TrackMCP(TrackMCPOptions(api_key="tmcp_test", endpoint="http://127.0.0.1:1", max_batch_size=100, max_queue_events=3, disabled=False, flush_interval_ms=60000))
+        for index in range(6):
+            queue.track(f"event-{index}", {"value": index})
+        self.assertEqual(queue.get_diagnostics()["queued_events"], 3)
+        queue.flush()
+        self.assertEqual(queue.get_diagnostics()["queued_events"], 3)
+        self.assertGreaterEqual(queue.get_diagnostics()["dropped_events"], 3)
+        queue._timer.cancel()
+
+        byte_bound = TrackMCP(TrackMCPOptions(api_key="tmcp_test", max_batch_size=100, max_queue_events=100, max_queue_bytes=700, disabled=False, flush_interval_ms=60000))
+        for index in range(8):
+            byte_bound.track(f"byte-event-{index}", {"value": "x" * 20})
+        self.assertLessEqual(byte_bound.get_diagnostics()["queued_bytes"], 700)
+        byte_bound._timer.cancel()
+
     def test_flushes_redacted_event(self):
         server = HTTPServer(("127.0.0.1", 0), Handler)
         thread = threading.Thread(target=server.serve_forever, daemon=True)

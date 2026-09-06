@@ -63,17 +63,36 @@ app = with_trackmcp(
     service="acme-mcp-server",
     environment="production",
     sample_rate=1.0,                 # 0–1, fraction of calls captured
+    payload_mode="redacted",        # metadata | redacted | full (all are bounded)
     redact=["args.password", "args.token"],  # never leaves your process
+    redact_keys=["customer_id"],
+    max_payload_bytes=32768,         # final serialized payload budget
     endpoint="https://trackmcp.com/api/v1/ingest",  # self-hosted override
 )`}</Code>
       </DocSection>
 
       <DocSection title="Redacting sensitive fields">
         <Para>
-          Redaction runs locally before anything is sent. Point{" "}
-          <Inline>redact</Inline> at any argument or result path.
+          Redaction runs locally before anything is sent. The default{" "}
+          <Inline>redacted</Inline> mode recursively removes common sensitive keys,
+          scrubs binary/base64 resources, and bounds depth, breadth, strings, and bytes.
+          Use <Inline>metadata</Inline> when arguments and results must not be captured;
+          <Inline>full</Inline> is opt-in but remains bounded.
         </Para>
-        <Code>{`redact=["args.email", "args.api_key", "result.raw_response"]`}</Code>
+        <Code>{`redact=["args.email", "args.api_key", "result.raw_response"]
+redact_keys=["customer_id"]
+redact_event=lambda event: event  # return None to drop an event
+
+# Truncations use a marker such as:
+#{"__trackmcp_truncated": True, "reason": "max_payload_bytes", "original_type": "object"}`}</Code>
+      </DocSection>
+
+      <DocSection title="Failure and queue behavior">
+        <Para>
+          A hook exception drops only that event. Delivery failures are retried from a
+          bounded queue of 500 events or 2 MiB; oldest queued events are dropped when
+          those limits are reached. Telemetry is fail-open and never blocks tool execution.
+        </Para>
       </DocSection>
 
       <DocSection title="Custom events">
