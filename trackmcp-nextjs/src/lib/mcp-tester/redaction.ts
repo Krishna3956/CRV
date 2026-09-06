@@ -1,0 +1,72 @@
+import type { JsonValue } from "./types.ts";
+
+export const REDACTED_VALUE = "[redacted]" as const;
+
+const SENSITIVE_KEY_PATTERN = /(?:authorization|cookie|set-cookie|password|passwd|secret|token|api[_-]?key|credential|private[_-]?key|client[_-]?secret|access[_-]?key|signature|sig)/i;
+const BEARER_PATTERN = /\b(?:bearer|basic)\s+[^\s,;]+/gi;
+const JWT_PATTERN = /\beyJ[a-zA-Z0-9_-]{8,}\.[a-zA-Z0-9_-]{4,}\.[a-zA-Z0-9_-]{4,}\b/g;
+const QUERY_SECRET_PATTERN = /([?&](?:authorization|access_token|token|api[_-]?key|key|secret|password|credential|signature)=)[^&#\s]*/gi;
+
+export function isSensitiveKey(key: string): boolean {
+  return SENSITIVE_KEY_PATTERN.test(key);
+}
+
+export function redactText(value: string, maxLength = 512): string {
+  let redacted = value.replace(BEARER_PATTERN, REDACTED_VALUE).replace(JWT_PATTERN, REDACTED_VALUE);
+  redacted = redacted.replace(QUERY_SECRET_PATTERN, `$1${REDACTED_VALUE}`);
+  if (redacted.length > maxLength) return `${redacted.slice(0, Math.max(0, maxLength - 1))}…`;
+  return redacted;
+}
+
+export function safeString(value: unknown, maxLength = 512): string | undefined {
+  return typeof value === "string" ? redactText(value, maxLength) : undefined;
+}
+
+export function redactHeaders(headers: Readonly<Record<string, string>>): Record<string, string> {
+  const result: Record<string, string> = {};
+  for (const [name, value] of Object.entries(headers)) {
+    result[name] = isSensitiveKey(name) ? REDACTED_VALUE : redactText(value);
+  }
+  return result;
+}
+
+export function safeEndpointForReport(url: URL, maxLength = 512): { origin: string; pathname: string; queryPresent: boolean } {
+  const origin = redactText(url.origin, maxLength);
+  const pathname = redactText(url.pathname || "/", maxLength);
+  return { origin, pathname, queryPresent: url.search.length > 0 };
+}
+
+export function safeResourceUri(value: unknown, maxLength = 512): string | undefined {
+  if (typeof value !== "string") return undefined;
+  try {
+    const url = new URL(value);
+    if (url.protocol === "https:") return redactText(`${url.origin}${url.pathname || "/"}`, maxLength);
+  } catch {
+    // A resource URI can be a non-URL URI scheme. Keep it bounded and redacted.
+  }
+  return redactText(value, maxLength);
+}
+
+export function redactJson(value: unknown, maxDepth: number, maxNodes: number, maxStringLength: number): JsonValue {
+  let nodes = 0;
+
+  const visit = (current: unknown, depth: number): JsonValue => {
+    nodes += 1;
+    if (nodes > maxNodes || depth > maxDepth) return "[truncated]";
+    if (current === null || typeof current === "boolean" || typeof current === "number") return current;
+    if (typeof current === "string") return redactText(current, maxStringLength);
+    if (Array.isArray(current)) return current.map((item) => visit(item, depth + 1));
+    if (typeof current === "object") {
+      const result: { [key: string]: JsonValue } = {};
+      for (const [key, child] of Object.entries(current as Record<string, unknown>)) {
+        result[redactText(key, maxStringLength)] = isSensitiveKey(key)
+          ? REDACTED_VALUE
+          : visit(child, depth + 1);
+      }
+      return result;
+    }
+    return "[unsupported]";
+  };
+
+  return visit(value, 0);
+}
