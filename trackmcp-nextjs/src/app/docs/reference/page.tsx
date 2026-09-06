@@ -53,6 +53,7 @@ const metrics = [
   "p50 / p95 latency and error rate per tool",
   "Observed MCP tool errors, including errors inside a successful transport response",
   "Ordered server-boundary traces and where observed sessions stop",
+  "Tool call share, observable empty-result rate, explicit retry and repeat-call patterns, and historical catalog comparisons",
 ];
 
 export default function ReferenceDocsPage() {
@@ -155,6 +156,30 @@ export default function ReferenceDocsPage() {
           and reports <Inline>event_count</Inline> and <Inline>truncated</Inline> so a
           partial trace is visible. TrackMCP observes the MCP server boundary; it does
           not read private model reasoning or host-side turns.
+        </Para>
+      </DocSection>
+
+      <DocSection title="Tool-quality semantics">
+        <Para>
+          Tool-quality analytics are exposed at <Inline>/api/v1/tool-quality</Inline> and
+          remain separate from aggregate analytics. <Inline>tool_call_share</Inline> is
+          the observed share of eligible calls for a tool; it does not measure considered
+          but unselected tools. Rates use known outcomes or inspectable payloads only, and
+          missing, metadata-only, or truncated evidence is not treated as an empty result.
+        </Para>
+        <Para>
+          An observed repeat call is the same tool called at least twice within five minutes
+          in the same session or correlation group, excluding explicit retries. It is not a
+          confirmed re-ask. Catalog comparisons use the snapshot effective at each call&apos;s
+          timestamp. Explicit workflow completion uses only workflow IDs, ordered tool paths,
+          and explicit started/completed/failed events.
+        </Para>
+        <Para>
+          “Associated with low explicit completion” is shown only when the explicit completion
+          rate is strictly below <Inline>0.80</Inline>, at least 20 eligible workflows have
+          an explicit completed or failed terminal outcome, and at least 30 associated eligible
+          calls exist. Unknown or missing outcomes are excluded. This is an association for
+          investigation, not a causal claim or a statement about an LLM/model.
         </Para>
       </DocSection>
 

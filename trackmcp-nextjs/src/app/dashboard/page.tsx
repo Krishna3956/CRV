@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { DashboardApp } from "@/components/dashboard/DashboardApp";
 import { getSupabaseBrowser } from "@/lib/auth/supabase-browser";
-import type { Analytics } from "@/lib/telemetry/analytics-types";
+import type { Analytics, ToolQualityResponse } from "@/lib/telemetry/analytics-types";
 import { trackMarketingEvent, trackMarketingEventOnce } from "@/lib/marketing-analytics";
 
 type Workspace = { id: string; name: string; slug: string };
@@ -18,6 +18,7 @@ export function DashboardPageContent({ onboardingMode = false }: { onboardingMod
   const [workspace, setWorkspace] = useState<Workspace | null>(LOCAL_DASHBOARD_BYPASS ? { id: "local-demo", name: "Local demo workspace", slug: "local-demo" } : null);
   const [keys, setKeys] = useState<Key[]>([]);
   const [analytics, setAnalytics] = useState<Analytics | null>(null);
+  const [toolQuality, setToolQuality] = useState<ToolQualityResponse | null>(null);
   const [newKey, setNewKey] = useState("");
   const [loading, setLoading] = useState(!LOCAL_DASHBOARD_BYPASS);
   const [working, setWorking] = useState(false);
@@ -38,9 +39,15 @@ export function DashboardPageContent({ onboardingMode = false }: { onboardingMod
     setAnalytics(body);
     if (body.total_events > 0) trackMarketingEventOnce("first_telemetry_seen", { event_count: body.total_events });
   };
+  const loadToolQuality = async (days = "30") => {
+    const response = await fetch(`/api/v1/tool-quality?days=${days}`, { cache: "no-store" });
+    const body = await response.json();
+    if (!response.ok) throw new Error(body.error || "Could not load tool-quality analytics.");
+    setToolQuality(body);
+  };
   const createWorkspace = async (details?: SetupDetails) => {
     setWorking(true); setError("");
-    try { const response = await fetch("/api/v1/account/workspace", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(details || {}) }); const body = await response.json(); if (!response.ok) throw new Error(body.error || "Could not create your workspace."); trackMarketingEvent("workspace_created"); setNewKey(body.api_key); const account = await loadAccount(); if (account.workspace) await loadAnalytics(); }
+    try { const response = await fetch("/api/v1/account/workspace", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(details || {}) }); const body = await response.json(); if (!response.ok) throw new Error(body.error || "Could not create your workspace."); trackMarketingEvent("workspace_created"); setNewKey(body.api_key); const account = await loadAccount(); if (account.workspace) await Promise.all([loadAnalytics(), loadToolQuality()]); }
     catch (reason) { setError(reason instanceof Error ? reason.message : "Could not create your workspace."); }
     finally { setWorking(false); }
   };
@@ -61,12 +68,12 @@ export function DashboardPageContent({ onboardingMode = false }: { onboardingMod
     if (LOCAL_DASHBOARD_BYPASS) {
       return;
     }
-    void (async () => { const { data } = await getSupabaseBrowser().auth.getUser(); const user = data.user; setEmail(user?.email || null); if (!user) { setLoading(false); return; } setSetupDetails({ first_name: user.user_metadata?.first_name || "", last_name: user.user_metadata?.last_name || "" }); try { const account = await loadAccount(); if (account.workspace) await loadAnalytics(); } catch (reason) { setError(reason instanceof Error ? reason.message : "Could not load your account."); } finally { setLoading(false); } })();
+    void (async () => { const { data } = await getSupabaseBrowser().auth.getUser(); const user = data.user; setEmail(user?.email || null); if (!user) { setLoading(false); return; } setSetupDetails({ first_name: user.user_metadata?.first_name || "", last_name: user.user_metadata?.last_name || "" }); try { const account = await loadAccount(); if (account.workspace) await Promise.all([loadAnalytics(), loadToolQuality()]); } catch (reason) { setError(reason instanceof Error ? reason.message : "Could not load your account."); } finally { setLoading(false); } })();
   }, []);
 
   if (loading) return <main className="mx-auto min-h-screen max-w-6xl px-6 py-20 text-sm text-muted">Loading your workspace…</main>;
   if (!email) return <main className="mx-auto min-h-screen max-w-xl px-6 py-24"><p className="text-xs font-semibold uppercase tracking-wide text-brand">TrackMCP</p><h1 className="mt-3 text-4xl font-medium tracking-tight text-ink">Your workspace is waiting.</h1><p className="mt-4 text-muted">Sign in to create an API key and see how your MCP server is being used.</p><Link href="/signin" className="mt-7 inline-flex rounded-lg bg-ink px-5 py-3 text-sm font-medium text-white">Sign in to continue</Link></main>;
-  return <DashboardApp email={email} workspace={workspace} keys={keys} analytics={analytics} newKey={newKey} working={working} error={error} setupRequired={!LOCAL_DASHBOARD_BYPASS && !workspace} setupDetails={setupDetails} onboardingMode={onboardingMode} onGenerateKey={generateKey} onRevokeKey={revokeKey} onDismissKey={() => setNewKey("")} onRefresh={(days) => { if (!LOCAL_DASHBOARD_BYPASS) void loadAnalytics(days).catch((reason) => setError(reason instanceof Error ? reason.message : "Could not refresh analytics.")); }} onCreateWorkspace={createWorkspace} onSignOut={() => { if (LOCAL_DASHBOARD_BYPASS) window.location.href = "https://trackmcp.com"; else void getSupabaseBrowser().auth.signOut().then(() => { window.location.href = "https://trackmcp.com"; }); }} />;
+  return <DashboardApp email={email} workspace={workspace} keys={keys} analytics={analytics} toolQuality={toolQuality} newKey={newKey} working={working} error={error} setupRequired={!LOCAL_DASHBOARD_BYPASS && !workspace} setupDetails={setupDetails} onboardingMode={onboardingMode} onGenerateKey={generateKey} onRevokeKey={revokeKey} onDismissKey={() => setNewKey("")} onRefresh={(days) => { if (!LOCAL_DASHBOARD_BYPASS) void Promise.all([loadAnalytics(days), loadToolQuality(days)]).catch((reason) => setError(reason instanceof Error ? reason.message : "Could not refresh analytics.")); }} onCreateWorkspace={createWorkspace} onSignOut={() => { if (LOCAL_DASHBOARD_BYPASS) window.location.href = "https://trackmcp.com"; else void getSupabaseBrowser().auth.signOut().then(() => { window.location.href = "https://trackmcp.com"; }); }} />;
 }
 
 export default function DashboardPage() {

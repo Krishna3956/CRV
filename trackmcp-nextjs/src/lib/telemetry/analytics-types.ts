@@ -65,6 +65,102 @@ export type TraceResponse = {
 
 export type IntentSourceCounts = Record<TrackMCPIntentSource, number>;
 export type MissingCapability = { name: string; reports: number };
+export type ToolQualityInsufficientReason = "tool_volume" | "segment_volume" | "workflow_volume" | "catalog_volume" | "missing_grouping" | "uninspectable_result" | "bounded_source_scan";
+export type ToolQualityMetricValues = {
+  tool_call_share: number | null;
+  error_rate: number | null;
+  observable_empty_result_rate: number | null;
+  retry_rate: number | null;
+  observed_repeat_call_rate: number | null;
+};
+export type ToolQualitySegment = {
+  value: string;
+  call_count: number;
+  session_count: number;
+  tool_call_share: number | null;
+  error_rate: number | null;
+  insufficient_data: ToolQualityInsufficientReason[];
+};
+export type ToolQualityCatalogSnapshot = {
+  name: string;
+  description_hash: string | null;
+  schema_hash: string | null;
+  effective_from: string;
+  effective_to: string | null;
+  eligible_call_count: number;
+};
+export type ToolQualityTool = {
+  name: string;
+  observed: {
+    call_count: number;
+    successful_call_count: number;
+    failed_call_count: number;
+    known_outcome_call_count: number;
+    inspectable_successful_result_count: number;
+    empty_result_count: number;
+    known_retry_call_count: number;
+    retry_call_count: number;
+    non_retry_call_count: number;
+    observed_repeat_call_count: number;
+    session_count: number;
+    associated_workflow_call_count: number;
+  };
+  metrics: ToolQualityMetricValues;
+  catalog_snapshots: ToolQualityCatalogSnapshot[];
+  trace_session_ids: string[];
+  completion_association: {
+    explicit_workflow_count: number;
+    terminal_workflow_count: number;
+    explicitly_started_count: number;
+    explicitly_completed_count: number;
+    completion_rate: number | null;
+    status: "associated_with_low_explicit_completion" | "not_flagged" | "insufficient_data";
+    insufficient_data: ToolQualityInsufficientReason[];
+  };
+  breakdowns: { clients: ToolQualitySegment[]; intent_sources: ToolQualitySegment[] };
+  insufficient_data: ToolQualityInsufficientReason[];
+};
+export type ToolQualityPath = {
+  path: string[];
+  associated_call_count: number;
+  started_workflow_count: number;
+  terminal_workflow_count: number;
+  completed_workflow_count: number;
+  completion_rate: number | null;
+  status: "associated_with_low_explicit_completion" | "not_flagged" | "insufficient_data";
+  insufficient_data: ToolQualityInsufficientReason[];
+};
+export type ToolQualityCatalogComparison = {
+  tool_name: string;
+  before: ToolQualityCatalogSnapshot;
+  after: ToolQualityCatalogSnapshot;
+  before_metrics: Pick<ToolQualityMetricValues, "error_rate" | "observable_empty_result_rate" | "retry_rate">;
+  after_metrics: Pick<ToolQualityMetricValues, "error_rate" | "observable_empty_result_rate" | "retry_rate">;
+  insufficient_data: ToolQualityInsufficientReason[];
+};
+export type ToolQualityInsight = {
+  tool_name: string;
+  path: string[];
+  label: "Associated with low explicit completion";
+  detail: string;
+  metric: string;
+  evidence: { workflow_count: number; associated_call_count: number; completion_rate: number };
+};
+export type ToolQualityResponse = {
+  range_days: number;
+  source_event_count: number;
+  truncated: boolean;
+  tools: ToolQualityTool[];
+  tool_paths: ToolQualityPath[];
+  advertised_but_unused: Array<{
+    name: string;
+    description_hash: string | null;
+    schema_hash: string | null;
+    observed_at: string;
+  }>;
+  catalog_comparisons: ToolQualityCatalogComparison[];
+  insights: ToolQualityInsight[];
+};
 
 export type Analytics = {
   range_days: number;

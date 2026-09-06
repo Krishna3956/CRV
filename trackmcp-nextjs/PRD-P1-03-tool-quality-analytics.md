@@ -127,6 +127,15 @@ Session endings, successful tool responses, and inferred sequences are not compl
 
 A tool may be listed as associated with low explicit completion when it appears in explicit workflow paths whose completion rate is below the approved threshold and whose workflow sample meets the minimum-volume rule.
 
+For this implementation the approved threshold is fixed at `0.80` and is not configurable. The exact eligibility rule is:
+
+- explicit completion rate is strictly below `0.80`;
+- at least 20 eligible workflows have an explicit `completed` or `failed` terminal outcome;
+- the tool path has at least 30 associated eligible calls; and
+- missing or unknown workflow outcomes are excluded from the rate.
+
+The response and dashboard label are **Associated with low explicit completion**. This is an association for investigation, never a causal claim or evidence of an LLM/model problem.
+
 This is an association for investigation. It must not imply that the tool caused the incomplete workflow or that the model made an error.
 
 ### 4.10 Client and intent-source breakdowns
@@ -140,6 +149,7 @@ These thresholds are normative:
 - Tool-level metrics: at least 30 eligible calls.
 - Client or intent-source comparisons: at least 30 calls and 10 sessions per segment.
 - Explicit workflow completion: at least 20 explicitly started workflows.
+- Low explicit completion association: at least 20 eligible workflows with an explicit terminal outcome and at least 30 associated eligible calls, with a strictly below `0.80` completion rate.
 - Catalog comparisons: at least 30 eligible calls on each side of the catalog change.
 
 Below a threshold, return `null` for the metric and include `insufficient_data` in the applicable evidence state. Counts may remain visible when useful, but a count must not be formatted as a reliable rate.
@@ -173,6 +183,7 @@ The response is a JSON object with this contract:
 ```json
 {
   "range_days": 30,
+  "source_event_count": 1200,
   "tools": [
     {
       "name": "search_docs",
@@ -195,6 +206,7 @@ The response is a JSON object with this contract:
       },
       "catalog_snapshots": [
         {
+          "name": "search_docs",
           "description_hash": "sha256...",
           "schema_hash": "sha256...",
           "effective_from": "2026-09-01T00:00:00Z",
@@ -207,7 +219,7 @@ The response is a JSON object with this contract:
         "explicitly_started_count": 22,
         "explicitly_completed_count": 18,
         "completion_rate": 0.8182,
-        "status": "associated_low_completion"
+        "status": "associated_with_low_explicit_completion"
       },
       "breakdowns": {
         "clients": [],
@@ -218,16 +230,17 @@ The response is a JSON object with this contract:
   ],
   "tool_paths": [
     {
-      "workflow_id": "workflow-opaque",
       "path": ["search_docs", "create_issue"],
+      "associated_call_count": 30,
       "started_workflow_count": 20,
+      "terminal_workflow_count": 20,
       "completed_workflow_count": 15,
       "completion_rate": 0.75,
+      "status": "associated_with_low_explicit_completion",
       "insufficient_data": []
     }
   ],
   "catalog_comparisons": [],
-  "observed_repeat_calls": [],
   "insights": [],
   "truncated": false
 }
