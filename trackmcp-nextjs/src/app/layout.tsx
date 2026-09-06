@@ -31,6 +31,10 @@ export const metadata: Metadata = {
   description: SITE_DESCRIPTION,
   metadataBase: new URL(SITE_URL),
   alternates: { canonical: "/" },
+  icons: {
+    icon: [{ url: "/favicon.png", type: "image/png", sizes: "96x96" }],
+    apple: [{ url: "/apple-icon", type: "image/png", sizes: "180x180" }],
+  },
   applicationName: "TrackMCP",
   keywords: [
     "MCP",

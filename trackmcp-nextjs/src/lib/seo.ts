@@ -33,7 +33,7 @@ export const SITE_JSON_LD = {
       "@id": `${SITE_URL}/#organization`,
       name: "TrackMCP",
       url: SITE_URL,
-      logo: `${SITE_URL}/icon.svg`,
+      logo: `${SITE_URL}/favicon.png`,
       sameAs: [
         "https://github.com/trackmcp",
         "https://www.linkedin.com/company/trackmcp",

@@ -1,7 +1,7 @@
 import { TrackMCPMark } from "./TrackMCPMark";
 
 /* The TrackMCP app icon — the brand identity lockup: the network mark in white
-   on a TrackMCP-green rounded square. This matches the favicon (app/icon.svg)
+   on a TrackMCP-green rounded square. This matches the favicon (public/favicon.png)
    exactly, so the mark reads the same in the browser tab, the nav, the footer,
    and inside the product. One reusable piece keeps it consistent everywhere. */
 
