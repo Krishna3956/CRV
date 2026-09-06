@@ -10,7 +10,7 @@ import { trackMarketingEvent, trackMarketingEventOnce } from "@/lib/marketing-an
 type Workspace = { id: string; name: string; slug: string };
 type Key = { id: string; name: string; key_prefix: string; revoked_at: string | null; created_at: string };
 type Account = { workspace: Workspace | null; keys: Key[] };
-type SetupDetails = { first_name: string; last_name: string; company_name: string };
+type SetupDetails = { first_name: string; last_name: string };
 const LOCAL_DASHBOARD_BYPASS = process.env.NODE_ENV === "development" && process.env.NEXT_PUBLIC_LOCAL_DASHBOARD_BYPASS === "true";
 
 export function DashboardPageContent({ onboardingMode = false }: { onboardingMode?: boolean }) {
@@ -22,7 +22,7 @@ export function DashboardPageContent({ onboardingMode = false }: { onboardingMod
   const [loading, setLoading] = useState(!LOCAL_DASHBOARD_BYPASS);
   const [working, setWorking] = useState(false);
   const [error, setError] = useState("");
-  const [setupDetails, setSetupDetails] = useState<SetupDetails>(LOCAL_DASHBOARD_BYPASS ? { first_name: "Demo", last_name: "User", company_name: "Local demo" } : { first_name: "", last_name: "", company_name: "" });
+  const [setupDetails, setSetupDetails] = useState<SetupDetails>(LOCAL_DASHBOARD_BYPASS ? { first_name: "Demo", last_name: "User" } : { first_name: "", last_name: "" });
 
   const loadAccount = async (): Promise<Account> => {
     const response = await fetch("/api/v1/account/workspace", { cache: "no-store" });
@@ -61,7 +61,7 @@ export function DashboardPageContent({ onboardingMode = false }: { onboardingMod
     if (LOCAL_DASHBOARD_BYPASS) {
       return;
     }
-    void (async () => { const { data } = await getSupabaseBrowser().auth.getUser(); const user = data.user; setEmail(user?.email || null); if (!user) { setLoading(false); return; } setSetupDetails({ first_name: user.user_metadata?.first_name || "", last_name: user.user_metadata?.last_name || "", company_name: user.user_metadata?.company_name || "" }); try { const account = await loadAccount(); if (account.workspace) await loadAnalytics(); } catch (reason) { setError(reason instanceof Error ? reason.message : "Could not load your account."); } finally { setLoading(false); } })();
+    void (async () => { const { data } = await getSupabaseBrowser().auth.getUser(); const user = data.user; setEmail(user?.email || null); if (!user) { setLoading(false); return; } setSetupDetails({ first_name: user.user_metadata?.first_name || "", last_name: user.user_metadata?.last_name || "" }); try { const account = await loadAccount(); if (account.workspace) await loadAnalytics(); } catch (reason) { setError(reason instanceof Error ? reason.message : "Could not load your account."); } finally { setLoading(false); } })();
   }, []);
 
   if (loading) return <main className="mx-auto min-h-screen max-w-6xl px-6 py-20 text-sm text-muted">Loading your workspace…</main>;
