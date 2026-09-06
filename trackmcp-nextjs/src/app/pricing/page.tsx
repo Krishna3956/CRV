@@ -47,7 +47,7 @@ const tiers = [
       "90-day data retention",
       "Actionable usage insights",
       "Up to 5 MCP servers",
-      "Slack & webhook alerts",
+      "Privacy-aware telemetry and trace inspection",
       "Up to 5 team members",
       "Email support",
     ],
@@ -56,7 +56,7 @@ const tiers = [
     name: "Enterprise",
     price: "Custom",
     note: "let's talk",
-    desc: "For scale, compliance, and self-hosting.",
+    desc: "For scale, compliance, and custom terms.",
     cta: "Contact us",
     variant: "ghost" as const,
     featured: false,
@@ -96,7 +96,7 @@ const compareGroups: { group: string; rows: { label: string; vals: [Cell, Cell, 
       { label: "Latency & error rates (p50 / p95)", vals: [true, true, true] },
       { label: "Errors hidden inside a 200 OK", vals: [true, true, true] },
       { label: "Client breakdown (Claude, Cursor, custom)", vals: [true, true, true] },
-      { label: "Call inspector: arguments, result, timing", vals: [true, true, true] },
+      { label: "Call trace: bounded sanitized payload, result, timing", vals: [true, true, true] },
       { label: "Sessions & funnels", vals: [false, true, true] },
       { label: "Saved views & custom dashboards", vals: [false, true, true] },
     ],
@@ -113,11 +113,11 @@ const compareGroups: { group: string; rows: { label: string; vals: [Cell, Cell, 
   {
     group: "Alerts & integrations",
     rows: [
-      { label: "Email alerts", vals: [false, true, true] },
-      { label: "Slack & webhook alerts", vals: [false, true, true] },
-      { label: "Failure-spike & anomaly alerts", vals: [false, true, true] },
+      { label: "Email alerts (Planned)", vals: ["Planned", "Planned", "Planned"] },
+      { label: "Slack & webhook alerts (Planned)", vals: ["Planned", "Planned", "Planned"] },
+      { label: "Failure-spike & anomaly alerts (Planned)", vals: ["Planned", "Planned", "Planned"] },
       { label: "REST API access", vals: [false, true, true] },
-      { label: "Data export (CSV, warehouse)", vals: [false, true, true] },
+      { label: "Data export (CSV, warehouse) (Planned)", vals: ["Planned", "Planned", "Planned"] },
       { label: "Custom security / SIEM integrations", vals: [false, false, true] },
     ],
   },
@@ -191,6 +191,9 @@ export default function PricingPage() {
                 measuring.
               </p>
             </Reveal>
+            <p className="mx-auto mt-4 max-w-[60ch] text-center text-xs leading-relaxed text-faint">
+              P0 includes privacy-aware server telemetry, analytics, and authenticated trace inspection. Alerts, exports, and other integrations marked Planned are not available on any paid tier yet.
+            </p>
           </div>
         </section>
 

@@ -65,7 +65,7 @@ export default withTrackMCP(server, {
   redact: ["args.password", "args.token"], // never leaves your process
   redactKeys: ["customer_id"],  // optional additional case-insensitive keys
   maxPayloadBytes: 32768,        // final serialized payload budget
-  endpoint: "https://trackmcp.com/api/v1/ingest", // self-hosted override
+  endpoint: "https://trackmcp.com/api/v1/ingest", // compatible ingest endpoint override
 });`}</Code>
       </DocSection>
 
@@ -90,6 +90,20 @@ redactEvent: (event) => event // return null to drop this event
           A hook exception drops only that event. Delivery failures are retried from a
           bounded queue of 500 events or 2 MiB; oldest queued events are dropped when
           those limits are reached. Telemetry is fail-open and never blocks tool execution.
+        </Para>
+      </DocSection>
+
+      <DocSection title="Explicit workflow outcomes">
+        <Para>
+          A workflow event is an application-emitted signal, not an inference about
+          whether an answer was correct. Emit it only where your application knows the
+          user task started, completed, or failed.
+        </Para>
+        <Code>{`server.trackmcp.workflow("issue_resolution", "completed", {
+  issue_type: "bug",
+});`}</Code>
+        <Para>
+          Open the authenticated <a href="https://app.trackmcp.com/dashboard" className="font-medium text-brand-strong underline">dashboard trace explorer</a> to inspect ordered server-boundary events. See the <a href="/docs/api" className="font-medium text-brand-strong underline">API reference</a> for the bounded trace response.
         </Para>
       </DocSection>
 

@@ -35,6 +35,11 @@ export default function DocsPage() {
         boundary, keep your tools unchanged, and turn protocol traffic into usage,
         reliability, and outcome signals.
       </DocLead>
+      <div className="mb-8 rounded-xl border border-brand/20 bg-brand-soft/35 px-4 py-3 text-sm leading-relaxed text-body">
+        TrackMCP observes what your MCP server sees: clients, tools, protocol events,
+        redacted payloads, latency, errors, and explicit workflow outcomes. It does not
+        see a host&apos;s private model turn unless you add a separate client-side integration.
+      </div>
 
       <DocSection id="quickstart" title="Quickstart">
         <Para>
@@ -119,7 +124,7 @@ export default withTrackMCP(server, {
 
       <DocSection title="Privacy and failure behavior">
         <div className="grid gap-3 sm:grid-cols-2">
-          <div className="rounded-xl border border-line bg-white p-4"><ShieldCheck size={18} className="text-brand" /><h3 className="mt-3 text-sm font-semibold text-ink">Redaction happens locally</h3><p className="mt-1.5 text-xs leading-relaxed text-muted">Use redact rules for secrets and personal data. The SDK replaces matching values before sending the batch.</p></div>
+          <div className="rounded-xl border border-line bg-white p-4"><ShieldCheck size={18} className="text-brand" /><h3 className="mt-3 text-sm font-semibold text-ink">Redaction happens locally</h3><p className="mt-1.5 text-xs leading-relaxed text-muted">Payloads default to bounded redacted mode. Use metadata mode to omit arguments/results, or configure explicit rules before the batch leaves your process.</p></div>
           <div className="rounded-xl border border-line bg-white p-4"><Plug size={18} className="text-brand" /><h3 className="mt-3 text-sm font-semibold text-ink">Telemetry is fail-open</h3><p className="mt-1.5 text-xs leading-relaxed text-muted">If TrackMCP is unavailable, the SDK requeues telemetry and does not block the MCP call.</p></div>
         </div>
       </DocSection>

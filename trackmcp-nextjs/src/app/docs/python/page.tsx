@@ -67,7 +67,7 @@ app = with_trackmcp(
     redact=["args.password", "args.token"],  # never leaves your process
     redact_keys=["customer_id"],
     max_payload_bytes=32768,         # final serialized payload budget
-    endpoint="https://trackmcp.com/api/v1/ingest",  # self-hosted override
+    endpoint="https://trackmcp.com/api/v1/ingest",  # compatible ingest endpoint override
 )`}</Code>
       </DocSection>
 
@@ -92,6 +92,20 @@ redact_event=lambda event: event  # return None to drop an event
           A hook exception drops only that event. Delivery failures are retried from a
           bounded queue of 500 events or 2 MiB; oldest queued events are dropped when
           those limits are reached. Telemetry is fail-open and never blocks tool execution.
+        </Para>
+      </DocSection>
+
+      <DocSection title="Explicit workflow outcomes">
+        <Para>
+          Workflow completion is an application-emitted signal. It is separate from a
+          successful tool response and does not tell TrackMCP whether an answer was
+          correct.
+        </Para>
+        <Code>{`app.trackmcp.workflow(
+    "issue_resolution", "completed", {"issue_type": "bug"}
+)`}</Code>
+        <Para>
+          Use the authenticated <a href="https://app.trackmcp.com/dashboard" className="font-medium text-brand-strong underline">dashboard trace explorer</a> for ordered server-boundary events, or see the <a href="/docs/api" className="font-medium text-brand-strong underline">API reference</a> for the bounded trace response.
         </Para>
       </DocSection>
 

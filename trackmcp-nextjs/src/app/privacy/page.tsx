@@ -41,19 +41,19 @@ const sections: LegalSection[] = [
   {
     h: "Retention",
     p: [
-      "Retention follows your plan (for example, 7 days on Hobby, 90 days on Pro, or custom on Enterprise). You can delete a workspace at any time, which removes its telemetry.",
+      "Telemetry is stored in the managed TrackMCP service for the applicable service terms. Confirm current retention and workspace deletion behavior with TrackMCP before relying on a specific period or deletion workflow.",
     ],
   },
   {
     h: "Your rights",
     p: [
-      "You can access, export, correct, or delete your data. Email privacy@trackmcp.com and we will respond within 30 days.",
+      "For privacy questions or a deletion request, email privacy@trackmcp.com. We will explain the currently supported process and respond within 30 days.",
     ],
   },
   {
     h: "Subprocessors & security",
     p: [
-      "We use a small set of infrastructure providers to run the service. Data is encrypted in transit and at rest. Enterprise agreements may include additional security, retention, export, and data-processing terms after review.",
+      "We use a small set of infrastructure providers to run the service. Data is encrypted in transit and at rest. Enterprise agreements may include additional security, retention, and data-processing terms after review; export integrations are planned rather than a current P0 guarantee.",
     ],
   },
   {
