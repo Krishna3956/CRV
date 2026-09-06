@@ -18,6 +18,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${BASE}/mcp-tool-analytics`, changeFrequency: "monthly", priority: 0.7 },
     { url: `${BASE}/pricing`, changeFrequency: "monthly", priority: 0.8 },
     { url: `${BASE}/blog`, changeFrequency: "weekly", priority: 0.6 },
+    { url: `${BASE}/blog/releases`, changeFrequency: "monthly", priority: 0.6 },
     { url: `${BASE}/docs`, changeFrequency: "monthly", priority: 0.6 },
     { url: `${BASE}/docs/typescript`, changeFrequency: "monthly", priority: 0.5 },
     { url: `${BASE}/docs/python`, changeFrequency: "monthly", priority: 0.5 },

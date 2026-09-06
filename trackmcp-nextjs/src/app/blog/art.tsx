@@ -4,6 +4,7 @@
 
 export type ArtKey =
   | "protocol"
+  | "foundation"
   | "errors"
   | "bars"
   | "funnel"
@@ -68,6 +69,37 @@ function Protocol() {
       <path d="M52 120 l-8 -4 v8 z" fill={C.faint} />
       <line x1="428" y1="120" x2="460" y2="120" stroke={C.faint} strokeWidth="2" />
       <path d="M460 120 l-8 -4 v8 z" fill={C.faint} />
+    </>
+  );
+}
+
+function Foundation() {
+  return (
+    <>
+      <Bg />
+      <rect x="44" y="44" width="392" height="152" rx="18" fill={C.white} stroke={C.line} strokeWidth="1.5" />
+      <text x="68" y="70" fontFamily="system-ui" fontSize="12" fill={C.muted}>TrackMCP Foundation Release</text>
+      <g>
+        <rect x="68" y="88" width="102" height="72" rx="10" fill={C.ink} />
+        <text x="119" y="112" textAnchor="middle" fontFamily="monospace" fontSize="11" fill={C.white}>event</text>
+        <text x="119" y="130" textAnchor="middle" fontFamily="monospace" fontSize="11" fill="#86efac">contract v1</text>
+        <text x="119" y="148" textAnchor="middle" fontFamily="monospace" fontSize="10" fill={C.faint}>stable ID</text>
+      </g>
+      <g>
+        <rect x="189" y="88" width="102" height="72" rx="10" fill={C.brandSoft} stroke={C.brand} />
+        <path d="M240 104 l16 7 v13 c0 12-8 20-16 24-8-4-16-12-16-24v-13z" fill={C.brand} />
+        <path d="M232 124 l6 6 11-13" fill="none" stroke={C.white} strokeWidth="2.5" />
+        <text x="240" y="153" textAnchor="middle" fontFamily="monospace" fontSize="10" fill={C.brandStrong}>redacted</text>
+      </g>
+      <g>
+        <rect x="310" y="88" width="102" height="72" rx="10" fill={C.paper} stroke={C.line} />
+        <path d="M326 143 L341 132 L355 137 L370 112 L396 126" fill="none" stroke={C.brand} strokeWidth="2.5" />
+        <circle cx="341" cy="132" r="3" fill={C.ink} />
+        <circle cx="370" cy="112" r="3" fill={C.red} />
+        <text x="361" y="153" textAnchor="middle" fontFamily="monospace" fontSize="10" fill={C.muted}>trace + p95</text>
+      </g>
+      <path d="M171 124 H189 M291 124 H310" stroke={C.faint} strokeWidth="2" />
+      <path d="M185 124 l-7 -4 v8 z M306 124 l-7 -4 v8 z" fill={C.faint} />
     </>
   );
 }
@@ -229,6 +261,7 @@ function Default() {
 
 const SCENES: Record<ArtKey, () => React.ReactElement> = {
   protocol: Protocol,
+  foundation: Foundation,
   errors: Errors,
   bars: Bars,
   funnel: Funnel,
@@ -242,10 +275,12 @@ export function BlogArt({
   art,
   className = "",
   fit = "meet",
+  ariaLabel,
 }: {
   art: ArtKey;
   className?: string;
   fit?: "meet" | "slice";
+  ariaLabel?: string;
 }) {
   const Scene = SCENES[art] ?? Default;
   return (
@@ -253,8 +288,9 @@ export function BlogArt({
       viewBox="0 0 480 240"
       preserveAspectRatio={`xMidYMid ${fit}`}
       className={className}
-      role="img"
-      aria-hidden
+      role={ariaLabel ? "img" : undefined}
+      aria-label={ariaLabel}
+      aria-hidden={ariaLabel ? undefined : true}
     >
       <Scene />
     </svg>

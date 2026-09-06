@@ -15,6 +15,7 @@ export type Post = {
   slug: string;
   title: string;
   tag: string;
+  section?: "releases";
   excerpt: string;
   date: string;
   read: string;
@@ -34,6 +35,133 @@ const links = (items: { label: string; href: string }[]): Block => ({ t: "links"
 const callout = (title: string, c: string): Block => ({ t: "callout", title, c });
 
 export const posts: Post[] = [
+  {
+    slug: "trackmcp-foundation-release",
+    title: "TrackMCP Foundation Release: Safer, More Honest MCP Observability",
+    tag: "Foundation Release",
+    section: "releases",
+    excerpt:
+      "TrackMCP's Foundation Release adds bounded redacted telemetry, observed tool latency, authenticated server-boundary traces, and clearer MCP analytics semantics.",
+    date: "Sep 6, 2026",
+    read: "8 min read",
+    updated: "Sep 6, 2026",
+    keywords: [
+      "MCP observability",
+      "MCP analytics",
+      "MCP server monitoring",
+      "MCP trace explorer",
+      "MCP telemetry",
+      "MCP privacy",
+      "MCP latency",
+      "MCP tool analytics",
+      "MCP production monitoring",
+    ],
+    related: [
+      "mcp-server-analytics-guide",
+      "mcp-observability-guide",
+      "how-to-monitor-an-mcp-server-in-production",
+      "mcp-tool-schemas",
+      "mcp-server-slos",
+    ],
+    body: [
+      p("Today we are releasing the TrackMCP Foundation Release, the first production foundation for observing MCP servers with useful boundaries and honest semantics. The release is live on AWS App Runner at app.trackmcp.com. It gives MCP server teams a reliable way to measure what crosses their server boundary: which clients connect, which tools are discovered and called, how long calls take, where errors appear and whether retry metadata is available on events, and which explicit application-emitted workflow outcomes are recorded."),
+      p("The important part is not a bigger pile of telemetry. It is making the telemetry consistent, bounded, and clear about what it does not know. TrackMCP is designed for teams operating MCP servers in production, where a successful HTTP response can still hide a tool error, a retry loop, or an unfinished workflow."),
+      callout("The short version", "TrackMCP observes the MCP server boundary. It does not claim to see a host's private model reasoning, every client-side turn, or whether a final answer was correct."),
+      h("What shipped today"),
+      h("A canonical MCP event contract"),
+      p("The Foundation Release introduces a versioned canonical event contract with schema version 1. Legacy events are normalized into that shape where possible, but they are not rewritten into history they never contained. Older events can still be missing modern metadata. The contract gives new events stable IDs, validated event types, required-string and timestamp checks, and explicit limits for payloads and batches."),
+      ul([
+        "Invalid negative measurements are rejected instead of entering analytics as plausible-looking values.",
+        "Duplicate events are handled idempotently, so retries do not silently inflate calls, errors, or latency samples.",
+        "Payload and batch limits are enforced before ingestion accepts data.",
+        "Retry metadata is available when an event includes it; the product does not infer a retry loop from arbitrary traffic.",
+        "Event meanings stay consistent across the SDKs, ingestion, traces, and dashboard calculations.",
+      ]),
+      p("This is the foundation for trustworthy MCP analytics. A p95 number is only useful when the events contributing to it mean the same thing, and a trace is only useful when duplicate delivery does not create a second fictional call."),
+      h("TypeScript and Python SDK parity"),
+      p("The TypeScript and Python SDKs now provide matching server-boundary behavior. Each wraps an existing MCP server at the server boundary, so teams do not have to rewrite individual tool handlers. Telemetry is sent asynchronously and remains fail-open: if TrackMCP is unavailable, the MCP call can continue while delivery is retried within bounded queue limits."),
+      code(`import { withTrackMCP } from "@trackmcp/sdk";
+import { server } from "./mcp";
+
+export default withTrackMCP(server, {
+  apiKey: process.env.TRACKMCP_KEY,
+  service: "my-mcp-server",
+});`),
+      code(`import os
+from trackmcp import with_trackmcp
+from mcp.server import server
+
+app = with_trackmcp(
+    server,
+    api_key=os.environ["TRACKMCP_KEY"],
+    service="acme-mcp-server",
+    environment="production",
+)`),
+      h("Privacy and safety controls"),
+      p("Telemetry is privacy-sensitive by default because tool arguments and results can contain customer data, credentials, queries, or documents. The default is redacted payload mode, with metadata-only capture available when arguments and results must not be collected. Full payload capture is opt-in and still bounded. Sanitization happens in the SDK before data leaves the server process, and ingestion applies a second defensive limit."),
+      ul([
+        "Sensitive keys are scrubbed recursively, including dotted paths, bearer tokens, credentialed URLs, binary and data URIs, and base64-like values.",
+        "Depth, breadth, string length, and serialized byte limits prevent one event from becoming an unbounded payload.",
+        "The SDK payload budget is about 32 KiB, with a maximum depth of 6, up to 50 keys or items per container, and strings capped at 2,048 characters.",
+        "Failed deliveries are requeued in a bounded queue of 500 events or 2 MiB, with the oldest events dropped when the queue is full.",
+        "Redaction hooks can mutate or drop events. A hook failure is isolated so telemetry remains fail-open and tool execution is not blocked.",
+      ]),
+      h("Metadata that helps explain behavior"),
+      p("When the handshake or discovery flow exposes it, TrackMCP records client name and version, protocol metadata, tool descriptions, and stable hashes. It also records transport, session, and provenance details where available. These fields make it possible to compare behavior across clients and deployments without pretending that a server-boundary event contains the host's private context."),
+      h("What this lets MCP teams do"),
+      h("Measure real latency and reliability"),
+      p("The dashboard exposes tool-level p50 and p95 latency from event durations, alongside trace and session context and the client or server metadata available for the selected data. These are measurements from the calls TrackMCP received, not fabricated estimates or sample marketing numbers. Teams can investigate a slow tool in the context of the server-boundary events around it and the workflow paths it affects."),
+      h("Separate activity from useful outcomes"),
+      p("The Foundation Release distinguishes tool responses from explicit application-emitted workflow outcomes. A successful tool response is evidence about that call, not proof that the user's task succeeded. When an application emits a completed or failed workflow event, TrackMCP can report that stronger signal. When there is not enough data, the dashboard shows a missing or not-applicable state rather than inventing a conclusion."),
+      h("Explore bounded, authenticated traces"),
+      p("The Trace Explorer provides an ordered view of server-boundary events for an authenticated workspace. It can show protocol and tool events, catalog changes, workflow signals, errors, durations, available client metadata, correlation quality, completion source, and redaction or truncation counts. Session filters are preserved, and the response stays bounded for safe exploration."),
+      callout("What a trace means", "A TrackMCP trace is a bounded, redacted view of events observed at your MCP server boundary. It is an investigation aid, not unrestricted raw replay or a universal agent trace."),
+      h("Privacy is a product feature"),
+      p("The safest telemetry is telemetry that has a clear purpose and a clear boundary. TrackMCP therefore makes metadata-only capture available when arguments and results should never be collected, keeps redacted payload mode as the default, and treats full mode as an explicit choice that remains subject to the same bounds. The SDK also supports additional redaction paths and keys for application-specific data."),
+      p("These controls reduce exposure, but no telemetry system can promise that arbitrary application data contains no personal or confidential information. Teams still own their data classification, retention, access policy, and choice of payload mode."),
+      h("What TrackMCP still cannot see"),
+      p("The Foundation Release is intentionally a server-boundary product. It observes what reaches the instrumented MCP server, not everything that happens around an agent. In particular, TrackMCP does not currently provide:"),
+      ul([
+        "Private model reasoning, hidden chain-of-thought, system prompts, or host-side turns that never reach the server.",
+        "A complete client or desktop-host view when the client does not expose its own events to the server.",
+        "A guarantee that the model selected the best tool or that a final answer was correct.",
+        "Unrestricted raw session replay or a proof of every step in an agent workflow.",
+        "Automatic historical metadata that was not present in a legacy event.",
+      ]),
+      p("This boundary is a product constraint and a safety property. It keeps the current claims testable and gives teams a useful observability layer without requiring access to private model or user context."),
+      h("How to start"),
+      p("Create or open a TrackMCP workspace, create an API key, install the SDK for your runtime, and wrap the existing server. Keep the key in the server environment. The first useful signal is usually a small set of production calls from one service, followed by a check of tool errors, observed latency, client metadata, and any explicit workflow outcomes."),
+      links([
+        { label: "TrackMCP documentation", href: "/docs" },
+        { label: "TypeScript SDK guide", href: "/docs/typescript" },
+        { label: "Python SDK guide", href: "/docs/python" },
+        { label: "Configuration reference", href: "/docs/reference" },
+        { label: "REST API and trace response", href: "/docs/api" },
+        { label: "Open the authenticated dashboard", href: "https://app.trackmcp.com/dashboard" },
+      ]),
+      h("What comes next"),
+      p("The Foundation Release is the boundary, contract, privacy, and truth layer. The following items are future roadmap work, not capabilities shipped in this release:"),
+      ul([
+        "Explicit correlation handles that connect server events to an application job when a deployment opts in safely.",
+        "Intent signals and richer tool-quality analytics for evaluating selection and argument behavior.",
+        "Client-side MCP observation where an appropriate client integration is available.",
+        "Alerts and additional operational workflows built on the canonical event model.",
+      ]),
+      p("We will keep separating measured behavior from inference as those capabilities develop. For now, the Foundation Release is available for teams that want a safer and more honest starting point for MCP production monitoring."),
+      h("Frequently asked questions"),
+      faq("What does TrackMCP observe?", "TrackMCP observes events at an instrumented MCP server boundary, including available client and protocol metadata, tool discovery and calls, durations, errors, sessions, and explicit application-emitted workflow outcomes."),
+      faq("Does TrackMCP capture tool arguments and results by default?", "The default is redacted payload mode. Metadata-only capture is available when payloads should not be collected. Full mode is opt-in and remains bounded and subject to redaction controls."),
+      faq("Are p50 and p95 latency values estimates?", "They are calculated from observed event durations for the selected data. TrackMCP does not fill missing measurements with fabricated values; insufficient data remains missing or not applicable."),
+      faq("Does a successful tool call mean the agent completed its task?", "No. A successful tool response describes that call. A stronger completion signal comes from an explicit application-emitted workflow outcome, and even that signal does not tell TrackMCP whether an answer was correct."),
+      faq("Can anyone access Trace Explorer?", "No. Trace Explorer is authenticated and workspace-scoped. It is available to signed-in users with the required dashboard or API authorization, and it returns bounded trace data rather than unrestricted replay."),
+      faq("How do I install TrackMCP?", "Install the TypeScript package @trackmcp/sdk or the Python package trackmcp, then wrap your existing MCP server and provide TRACKMCP_KEY. The SDK documentation includes runtime-specific options and redaction examples."),
+      links([
+        { label: "Read the MCP server analytics guide", href: "/blog/mcp-server-analytics-guide" },
+        { label: "Read the MCP observability guide", href: "/blog/mcp-observability-guide" },
+        { label: "Start with the TrackMCP docs", href: "/docs" },
+      ]),
+    ],
+  },
   {
     slug: "mcp-incident-response-runbook",
     title: "MCP Server Incident Response Runbook",
