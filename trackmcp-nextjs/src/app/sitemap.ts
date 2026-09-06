@@ -30,6 +30,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${BASE}/submit-mcp`, changeFrequency: "monthly", priority: 0.5 },
     { url: `${BASE}/contact`, changeFrequency: "yearly", priority: 0.3 },
     { url: `${BASE}/about`, changeFrequency: "yearly", priority: 0.3 },
+    { url: `${BASE}/track-mcp`, changeFrequency: "monthly", priority: 0.7 },
     { url: `${BASE}/security`, changeFrequency: "monthly", priority: 0.4 },
     { url: `${BASE}/privacy`, changeFrequency: "yearly", priority: 0.2 },
     { url: `${BASE}/terms`, changeFrequency: "yearly", priority: 0.2 },

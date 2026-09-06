@@ -19,6 +19,7 @@ export const SITE_JSON_LD = {
       "@type": "WebSite",
       "@id": `${SITE_URL}/#website`,
       name: "TrackMCP",
+      alternateName: "Track MCP",
       url: SITE_URL,
       description: SITE_DESCRIPTION,
       inLanguage: "en-US",
@@ -32,6 +33,7 @@ export const SITE_JSON_LD = {
       "@type": "Organization",
       "@id": `${SITE_URL}/#organization`,
       name: "TrackMCP",
+      alternateName: "Track MCP",
       url: SITE_URL,
       logo: `${SITE_URL}/favicon.png`,
       sameAs: [
@@ -45,6 +47,7 @@ export const SITE_JSON_LD = {
       "@type": "WebApplication",
       "@id": `${SITE_URL}/#webapplication`,
       name: "TrackMCP",
+      alternateName: "Track MCP",
       url: SITE_URL,
       description: "Analytics and observability for Model Context Protocol servers.",
       applicationCategory: "DeveloperApplication",

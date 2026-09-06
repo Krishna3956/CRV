@@ -8,6 +8,7 @@ TrackMCP also maintains a directory of MCP servers and tools so builders can dis
 
 ## Product
 
+- [Track MCP](https://trackmcp.com/track-mcp): Learn that Track MCP and TrackMCP refer to the same analytics and observability product for MCP servers.
 - [MCP server analytics](https://trackmcp.com/mcp-server-analytics): Understand clients, connections, tool discovery, sessions, failures, latency, retries, and workflow outcomes.
 - [MCP tool analytics](https://trackmcp.com/mcp-tool-analytics): Measure tool adoption, selection, errors, retries, latency, and completion.
 - [MCP observability](https://trackmcp.com/mcp-observability): Observe the full path from client connection to tool call and workflow result.
