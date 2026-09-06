@@ -34,6 +34,8 @@ test("captures a tool call, redacts args, and delivers a batch", async () => {
   assert.equal(received[0].headers.authorization, "Bearer tmcp_test");
   assert.equal(received[0].body.events[0].tool_name, "lookup");
   assert.equal(received[0].body.events[0].payload.args.password, "[redacted]");
+  assert.equal(received[0].body.events[0].schema_version, "1");
+  assert.equal(received[0].body.events[0].payload_size_bytes, Buffer.byteLength(JSON.stringify(received[0].body.events[0].payload)));
 });
 
 test("captures a real official MCP server transport call", async () => {
@@ -67,7 +69,16 @@ test("captures a real official MCP server transport call", async () => {
   assert.ok(call);
   assert.equal(call.tool_name, "hello");
   assert.equal(call.client_name, "fixture-client");
+  assert.equal(call.client_version, "1.0.0");
+  assert.equal(call.tool_description, "test tool");
+  assert.match(call.tool_description_hash, /^[0-9a-f]{64}$/);
+  assert.match(call.schema_hash, /^[0-9a-f]{64}$/);
   assert.equal(call.success, true);
-  assert.ok(events.some((event) => event.event_type === "session"));
-  assert.ok(events.some((event) => event.payload?.name === "tools_discovered"));
+  const session = events.find((event) => event.event_type === "session");
+  assert.ok(session);
+  assert.equal(session.client_version, "1.0.0");
+  const catalog = events.find((event) => event.payload?.name === "tools_discovered");
+  assert.ok(catalog);
+  assert.equal(catalog.payload.tools[0].description, "test tool");
+  assert.match(catalog.payload.tools[0].schema_hash, /^[0-9a-f]{64}$/);
 });
