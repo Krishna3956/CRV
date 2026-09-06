@@ -37,6 +37,7 @@ type PendingCall = {
 };
 
 const MAX_PENDING_CALLS = 1000;
+const PENDING_CALL_TTL_MS = 30_000;
 const REPEAT_WINDOW_MS = 5 * 60 * 1000;
 const MAX_CLIENT_STRING_LENGTH = 2048;
 
@@ -70,7 +71,8 @@ export class TrackMCPClientAdapter {
   private readonly seenRequestIds = new Set<string>();
   private readonly lastIssued = new Map<string, number>();
   private readonly wrapped = new WeakMap<object, Transport>();
-  private readonly transportDiagnostics = { malformedMessages: 0, unmatchedMessages: 0, duplicateMessages: 0 };
+  private readonly transportDiagnostics = { malformedMessages: 0, unmatchedMessages: 0, duplicateMessages: 0, expiredMessages: 0 };
+  private readonly pendingSweepTimer: NodeJS.Timeout;
   private lifecycleStarted = false;
   private lifecycleEnded = false;
   private lifecycleGeneration = 0;
@@ -94,6 +96,8 @@ export class TrackMCPClientAdapter {
       payloadMode: "metadata",
       correlation: correlation ? { mode: "external", resolve: correlation.resolve } : undefined,
     } as TrackMCPOptions);
+    this.pendingSweepTimer = setInterval(() => this.sweepPending(), Math.min(PENDING_CALL_TTL_MS, 5000));
+    this.pendingSweepTimer.unref?.();
   }
 
   wrapTransport<T extends Transport>(transport: T): T {
@@ -191,6 +195,7 @@ export class TrackMCPClientAdapter {
   }
 
   private observeOutgoing(message: unknown, transport: Transport): void {
+    this.sweepPending();
     const messages = Array.isArray(message) ? message : [message];
     for (const item of messages) {
       if (!isRecord(item)) {
@@ -258,6 +263,7 @@ export class TrackMCPClientAdapter {
   }
 
   private observeIncoming(message: unknown): void {
+    this.sweepPending();
     const messages = Array.isArray(message) ? message : [message];
     for (const item of messages) {
       if (!isRecord(item)) {
@@ -329,7 +335,26 @@ export class TrackMCPClientAdapter {
       const next = list.filter((entry) => entry !== oldest);
       if (next.length) this.pending.set(oldest.idKey, next);
       else this.pending.delete(oldest.idKey);
+      this.markCompleted(oldest.idKey);
     }
+  }
+
+  private sweepPending(now = Date.now()): void {
+    for (const call of [...this.pendingOrder]) {
+      if (now - call.started <= PENDING_CALL_TTL_MS) continue;
+      this.removePending(call);
+      this.markCompleted(call.idKey);
+      this.transportDiagnostics.expiredMessages += 1;
+    }
+  }
+
+  private removePending(call: PendingCall): void {
+    const list = this.pending.get(call.idKey) || [];
+    const next = list.filter((entry) => entry !== call);
+    if (next.length) this.pending.set(call.idKey, next);
+    else this.pending.delete(call.idKey);
+    const index = this.pendingOrder.indexOf(call);
+    if (index >= 0) this.pendingOrder.splice(index, 1);
   }
 
   private repeatFor(toolName: string | undefined, session: ReturnType<TrackMCPClientAdapter["sessionFields"]> & { correlation_handle?: string }, at: number): "session_id" | "correlation_handle" | undefined {

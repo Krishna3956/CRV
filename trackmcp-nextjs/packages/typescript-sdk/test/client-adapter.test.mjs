@@ -1,6 +1,9 @@
 import assert from "node:assert/strict";
-import { readFile } from "node:fs/promises";
+import { mkdir, mkdtemp, readFile, rm, symlink, writeFile } from "node:fs/promises";
 import http from "node:http";
+import { join } from "node:path";
+import { createRequire } from "node:module";
+import { spawnSync } from "node:child_process";
 import test from "node:test";
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { StdioClientTransport } from "@modelcontextprotocol/sdk/client/stdio.js";
@@ -18,6 +21,32 @@ test("pins the MCP dependency and exposes the adapter only through the Node expo
   assert.equal(packageJson.exports["./client-adapter"].node, "./dist/client-adapter.js");
   assert.equal(packageJson.exports["./client-adapter"].browser, undefined);
   assert.equal(packageJson.exports["./client-adapter"].default, null);
+});
+
+test("frontend Next.js build cannot include the Node-only adapter", async () => {
+  const packageDir = new URL("..", import.meta.url).pathname;
+  const tempDir = await mkdtemp(join("/tmp", "trackmcp-browser-bundle-"));
+  const nodeModules = join(tempDir, "node_modules");
+  const scopedModules = join(nodeModules, "@trackmcp");
+  const appDir = join(tempDir, "app");
+  const require = createRequire(import.meta.url);
+  await mkdir(scopedModules, { recursive: true });
+  await mkdir(appDir, { recursive: true });
+  await symlink(packageDir, join(scopedModules, "sdk"), "dir");
+  for (const dependency of ["next", "react", "react-dom"]) {
+    await symlink(require.resolve(dependency + "/package.json").replace(/\/package\.json$/, ""), join(nodeModules, dependency), "dir");
+  }
+  await writeFile(join(tempDir, "package.json"), JSON.stringify({ name: "browser-adapter-fixture", private: true }));
+  await writeFile(join(appDir, "layout.js"), "export default function Layout({ children }) { return <html><body>{children}</body></html>; }");
+  await writeFile(join(appDir, "page.js"), "\"use client\"; import { TrackMCPClientAdapter } from \"@trackmcp/sdk/client-adapter\"; export default function Page() { return <div>{String(TrackMCPClientAdapter)}</div>; }");
+  try {
+    const nextBin = require.resolve("next/dist/bin/next");
+    const result = spawnSync(process.execPath, [nextBin, "build"], { cwd: tempDir, encoding: "utf8" });
+    assert.notEqual(result.status, 0);
+    assert.match(result.stdout + "\n" + result.stderr, /client-adapter|export|browser|resolve|Node\.js/i);
+  } finally {
+    await rm(tempDir, { recursive: true, force: true });
+  }
 });
 
 test("rejects structurally similar unsupported transports", () => {
@@ -235,6 +264,29 @@ test("does not attribute an ambiguous late response to a reused request ID", asy
   await wrapped.send(toolCall("same", "second"));
   raw.onmessage({ jsonrpc: "2.0", id: "same", result: { content: [{ type: "text", text: "late" }] } });
   assert.equal(events.filter((event) => event.payload?._trackmcp?.observation_kind === "result_received").length, 0);
+  assert.equal(adapter.getDiagnostics().unmatchedMessages, 1);
+  assert.equal(adapter.getDiagnostics().duplicateMessages, 1);
+});
+
+test("expires stale pending calls and drops responses that arrive after expiry", async () => {
+  const events = [];
+  const raw = new FakeTransport();
+  const adapter = new TrackMCPClientAdapter({ apiKey: "tmcp_test", service: "adapter-test", transport: "stdio", flushIntervalMs: 60000, onEvent: (event) => events.push(event) });
+  const wrapped = adapter.wrapTransport(raw);
+  await wrapped.start();
+  wrapped.onmessage = () => {};
+  const realNow = Date.now;
+  try {
+    Date.now = () => 1000;
+    await wrapped.send(toolCall("expired", "search"));
+    Date.now = () => 1000 + 30_000 + 1;
+    raw.onmessage({ jsonrpc: "2.0", id: "expired", result: { content: [{ type: "text", text: "late" }] } });
+  } finally {
+    Date.now = realNow;
+  }
+  assert.equal(events.filter((event) => event.payload?._trackmcp?.observation_kind === "result_received").length, 0);
+  assert.equal(adapter.getDiagnostics().pending_request_count, 0);
+  assert.equal(adapter.getDiagnostics().expiredMessages, 1);
   assert.equal(adapter.getDiagnostics().unmatchedMessages, 1);
   assert.equal(adapter.getDiagnostics().duplicateMessages, 1);
 });
