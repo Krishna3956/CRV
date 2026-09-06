@@ -5,7 +5,6 @@ const cols = [
     title: "Product",
     links: [
       { label: "MCP server analytics", href: "/mcp-server-analytics" },
-      { label: "MCP observability", href: "/mcp-observability" },
       { label: "Remote HTTP observability", href: "/mcp-observability/remote-http" },
       { label: "Tool usage analytics", href: "/mcp-tool-analytics" },
       { label: "Features", href: "/features" },
@@ -33,6 +32,15 @@ const cols = [
       { label: "Contact", href: "/contact" },
       { label: "Privacy", href: "/privacy" },
       { label: "Terms", href: "/terms" },
+    ],
+  },
+  {
+    title: "MCP Observability",
+    links: [
+      { label: "MCP Observability", href: "/mcp-observability" },
+      { label: "Best MCP Observability Tools", href: "/blog/best-mcp-observability-tools-for-production-servers" },
+      { label: "TrackMCP vs Sentry", href: "/mcp-observability/compare/trackmcp-vs-sentry" },
+      { label: "TrackMCP vs Datadog", href: "/mcp-observability/compare/trackmcp-vs-datadog" },
     ],
   },
 ];
@@ -73,7 +81,7 @@ export function Footer() {
   return (
     <footer className="mt-20 overflow-hidden border-t border-line">
       <div className="mx-auto max-w-6xl px-6 py-14">
-        <div className="grid grid-cols-2 gap-8 md:grid-cols-[2fr_1fr_1fr_1fr]">
+        <div className="grid grid-cols-2 gap-8 md:grid-cols-[2fr_1fr_1fr_1fr_1fr]">
           <div>
             <a
               href={homeHref}

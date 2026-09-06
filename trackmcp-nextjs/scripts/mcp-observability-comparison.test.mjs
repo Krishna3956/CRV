@@ -8,9 +8,12 @@ const postsSource = read("src/app/blog/posts.ts");
 const enrichmentSource = read("src/app/blog/enrichment.ts");
 const articleSource = read("src/app/blog/[slug]/page.tsx");
 const compareSource = read("src/app/mcp-observability/compare/trackmcp-vs-sentry/page.tsx");
+const datadogSource = read("src/app/mcp-observability/compare/trackmcp-vs-datadog/page.tsx");
+const footerSource = read("src/components/Footer.tsx");
 const sitemapSource = read("src/app/sitemap.ts");
 const pillarSlug = "best-mcp-observability-tools-for-production-servers";
 const comparePath = "/mcp-observability/compare/trackmcp-vs-sentry";
+const datadogPath = "/mcp-observability/compare/trackmcp-vs-datadog";
 const pillarStart = postsSource.indexOf(`    slug: "${pillarSlug}"`);
 const firstExistingPostStart = postsSource.indexOf('  {\n    slug: "trackmcp-foundation-release"');
 const pillarSource = postsSource.slice(pillarStart, firstExistingPostStart);
@@ -97,21 +100,75 @@ test("Sentry comparison has metadata, neutral language, and the requested compar
   assert.doesNotMatch(compareSource, /\u2014/);
 });
 
+test("Datadog comparison has factual metadata, source links, and explicit boundaries", () => {
+  assert.match(datadogSource, /pageMeta\(/);
+  assert.match(datadogSource, /title: "TrackMCP vs Datadog for MCP Observability \| TrackMCP"/);
+  assert.match(datadogSource, /path: PAGE_PATH/);
+  assert.match(datadogSource, /Last verified/);
+  for (const phrase of [
+    "MCP server-side telemetry",
+    "MCP client instrumentation",
+    "Client name and version context",
+    "Tool usage and adoption",
+    "Catalog and tools/list context",
+    "Application errors inside successful transport responses",
+    "Observed MCP tool latency",
+    "Explicit MCP workflow outcome signals",
+    "Authenticated trace exploration",
+    "Local redaction and bounded payload controls",
+    "General infrastructure and application monitoring",
+    "TrackMCP is a better fit when",
+    "Datadog is a better fit when",
+    "Teams may use both",
+    "not documented",
+  ]) {
+    assert.match(datadogSource, new RegExp(phrase.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "i"));
+  }
+  for (const href of [
+    "https://docs.datadoghq.com/llm_observability/instrument/auto_instrumentation/",
+    "https://docs.datadoghq.com/llm_observability/guide/monitor_mcp_client/",
+  ]) {
+    assert.match(datadogSource, new RegExp(`href="${href.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}"`));
+  }
+  assert.doesNotMatch(datadogSource, /Datadog lacks MCP support/i);
+  assert.doesNotMatch(datadogSource, /Datadog MCP Server/i);
+  assert.doesNotMatch(datadogSource, /\u2014/);
+});
+
+test("footer has one dedicated MCP Observability group with published canonical links", () => {
+  assert.match(footerSource, /title: "MCP Observability"/);
+  for (const href of [
+    "/mcp-observability",
+    "/blog/best-mcp-observability-tools-for-production-servers",
+    "/mcp-observability/compare/trackmcp-vs-sentry",
+    "/mcp-observability/compare/trackmcp-vs-datadog",
+  ]) {
+    assert.match(footerSource, new RegExp(`href: "${href.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}"`));
+  }
+  assert.equal((footerSource.match(/href: "\/mcp-observability"/g) || []).length, 1);
+  assert.doesNotMatch(footerSource, /tester|health.?check/i);
+  assert.doesNotMatch(footerSource, /\u2014/);
+});
+
 test("both pages expose BreadcrumbList JSON-LD and the comparison exposes WebPage JSON-LD", () => {
   assert.match(articleSource, /breadcrumbJsonLd\(\[/);
   assert.match(compareSource, /breadcrumbJsonLd\(\[/);
+  assert.match(datadogSource, /breadcrumbJsonLd\(\[/);
   assert.match(compareSource, /"@type": "WebPage"/);
   assert.match(compareSource, /serializeJsonLd\(\[jsonLd, breadcrumbSchema\]\)/);
+  assert.match(datadogSource, /"@type": "WebPage"/);
+  assert.match(datadogSource, /serializeJsonLd\(\[jsonLd, breadcrumbSchema\]\)/);
 });
 
 test("sitemap includes the new blog post through posts and the comparison route", () => {
   assert.match(sitemapSource, /posts\.map\(\(p\) =>/);
   assert.match(sitemapSource, /\$\{BASE\}\/mcp-observability\/compare\/trackmcp-vs-sentry/);
+  assert.match(sitemapSource, /\$\{BASE\}\/mcp-observability\/compare\/trackmcp-vs-datadog/);
 });
 
 const baseUrl = process.env.OBSERVABILITY_COMPARISON_TEST_BASE_URL?.replace(/\/$/, "");
 test("rendered routes expose canonical metadata and valid JSON-LD", { skip: !baseUrl }, async () => {
-  for (const route of [`/blog/${pillarSlug}`, comparePath]) {
+  for (const route of [`/blog/${pillarSlug}`, comparePath, datadogPath]) {
     const response = await fetch(`${baseUrl}${route}`);
     assert.equal(response.status, 200, `${route} returned HTTP ${response.status}`);
     const html = await response.text();
@@ -122,6 +179,6 @@ test("rendered routes expose canonical metadata and valid JSON-LD", { skip: !bas
     const nodes = schemas.flatMap((value) => Array.isArray(value) ? value : [value]);
     assert.ok(nodes.some((value) => value?.["@type"] === "BreadcrumbList"), `${route} missing BreadcrumbList`);
     if (route.startsWith("/blog/")) assert.ok(nodes.some((value) => value?.["@type"] === "Article"), `${route} missing Article`);
-    if (route === comparePath) assert.ok(nodes.some((value) => value?.["@type"] === "WebPage"), `${route} missing WebPage`);
+    if (route === comparePath || route === datadogPath) assert.ok(nodes.some((value) => value?.["@type"] === "WebPage"), `${route} missing WebPage`);
   }
 });
