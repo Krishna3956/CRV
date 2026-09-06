@@ -1,6 +1,7 @@
 "use client";
 
 import { track } from "@vercel/analytics";
+import posthog from "posthog-js";
 
 type MarketingValue = string | number | boolean | null | undefined;
 export type ContentAttribution = {
@@ -44,7 +45,9 @@ export function readContentAttribution(): ContentAttribution {
 
 export function trackMarketingEvent(name: string, properties: Record<string, MarketingValue> = {}) {
   try {
-    track(name, { ...readContentAttribution(), ...properties });
+    const eventProperties = { ...readContentAttribution(), ...properties };
+    track(name, eventProperties);
+    posthog.capture(name, eventProperties);
   } catch {
     // Analytics must remain fail-open.
   }
