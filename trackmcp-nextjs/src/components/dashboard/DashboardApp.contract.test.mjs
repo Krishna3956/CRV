@@ -34,6 +34,26 @@ test("dashboard never silently substitutes sample data or unsupported live claim
   assert.doesNotMatch(source, /Prioritized from sufficient observed evidence/);
 });
 
+test("sample mode clears live trace state and preserves only safe route state", () => {
+  assert.match(source, /const setDataMode = \(nextSample: boolean\) => \{[\s\S]*setTraceSessionId\(null\);[\s\S]*setTraceCorrelationHandle\(null\);[\s\S]*setTraceOrigin\("sessions"\);[\s\S]*writeRouteState\(view, range, nextSample, null, null, "sessions", true\)/);
+  assert.match(source, /const traceSelected = sample !== true/);
+  assert.match(source, /sample === true \? "sessions"/);
+});
+
+test("overview always renders a neutral Needs attention state", () => {
+  assert.match(source, /const hasIssues = analytics\.insights\.length > 0/);
+  assert.match(source, /const insufficientEvidence = analytics\.total_events === 0 \|\| analytics\.tool_calls === 0/);
+  assert.match(source, /title="What needs attention"/);
+  assert.match(source, /No actionable signals yet/);
+  assert.match(source, /Insufficient data to identify an issue/);
+  assert.match(source, /No live data available/);
+  assert.match(source, /Sample mode selected/);
+});
+
+test("overview KPI order matches the dashboard PRD", () => {
+  assert.match(source, /Metric label="Tool calls"[\s\S]*Metric label="Sessions"[\s\S]*Metric label="Errors"[\s\S]*Metric label="Completion"/);
+});
+
 test("trace states preserve privacy, bounds, legacy provenance, and retry behavior", () => {
   assert.match(traceSource, /Legacy\/Unknown/);
   assert.match(traceSource, /Showing a bounded result/);
