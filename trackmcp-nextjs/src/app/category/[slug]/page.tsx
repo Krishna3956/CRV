@@ -6,7 +6,7 @@ import { PageFrame } from "@/components/PageFrame";
 import { RepoListing } from "@/components/repository/RepoListing";
 import { getToolsByCategory } from "@/lib/repository/queries";
 import { categoryFromSlug } from "@/lib/repository/types";
-import { pageMeta } from "@/lib/seo";
+import { breadcrumbJsonLd, pageMeta, serializeJsonLd } from "@/lib/seo";
 
 export const revalidate = 3600;
 
@@ -38,8 +38,14 @@ export default async function CategoryPage({ params }: { params: Promise<{ slug:
   if (!category) notFound();
 
   const tools = await getToolsByCategory(category, 300);
+  const breadcrumbSchema = breadcrumbJsonLd([
+    { name: "Home", path: "/" },
+    { name: "MCP Categories", path: "/categories" },
+    { name: category, path: `/category/${slug}` },
+  ]);
   return (
     <>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeJsonLd(breadcrumbSchema) }} />
       <Nav />
       <main className="flex-1">
         <PageFrame>

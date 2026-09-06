@@ -11,7 +11,7 @@ import { PhotoAvatar } from "@/components/PhotoAvatar";
 import { posts, getPost, type Block } from "../posts";
 import { BlogArt } from "../art";
 import { enrichment } from "../enrichment";
-import { metaDescription, pageMeta } from "@/lib/seo";
+import { breadcrumbJsonLd, metaDescription, pageMeta, serializeJsonLd } from "@/lib/seo";
 
 const slugify = (s: string) =>
   s
@@ -199,6 +199,11 @@ export default async function BlogPostPage({
         })),
       }
     : null;
+  const breadcrumbSchema = breadcrumbJsonLd([
+    { name: "Home", path: "/" },
+    { name: "Blog", path: "/blog" },
+    { name: post.title, path: `/blog/${post.slug}` },
+  ]);
 
   return (
     <>
@@ -208,7 +213,7 @@ export default async function BlogPostPage({
           <script
             type="application/ld+json"
             dangerouslySetInnerHTML={{
-              __html: JSON.stringify(faqSchema ? [articleSchema, faqSchema] : articleSchema).replace(/</g, "\\u003c"),
+              __html: serializeJsonLd([articleSchema, ...(faqSchema ? [faqSchema] : []), breadcrumbSchema]),
             }}
           />
           <div className="mx-auto max-w-5xl px-6 py-12 sm:py-14">

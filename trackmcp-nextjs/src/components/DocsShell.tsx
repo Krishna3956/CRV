@@ -3,6 +3,7 @@ import Link from "next/link";
 import { Nav } from "./Nav";
 import { Footer } from "./Footer";
 import { CopyButton } from "./CopyButton";
+import { breadcrumbJsonLd, serializeJsonLd } from "@/lib/seo";
 
 const groups = [
   {
@@ -38,8 +39,21 @@ export function DocsShell({
   active: string;
   children: ReactNode;
 }) {
+  const labels: Record<string, string> = {
+    "/docs": "Docs",
+    "/docs/typescript": "TypeScript SDK",
+    "/docs/python": "Python SDK",
+    "/docs/api": "REST API",
+    "/docs/reference": "Configuration Reference",
+  };
+  const breadcrumbSchema = breadcrumbJsonLd([
+    { name: "Home", path: "/" },
+    { name: "Docs", path: "/docs" },
+    ...(active === "/docs" ? [] : [{ name: labels[active] || "Documentation", path: active }]),
+  ]);
   return (
     <>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeJsonLd(breadcrumbSchema) }} />
       <Nav />
       <main className="flex-1">
         <div className="mx-auto max-w-6xl px-6 py-12">
