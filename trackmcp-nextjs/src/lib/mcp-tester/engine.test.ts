@@ -12,7 +12,7 @@ import {
   validateMcpEndpoint,
   validateMcpHeaders,
 } from "./index.ts";
-import type { McpFetch } from "./types.ts";
+import type { McpFetch, McpTesterReport } from "./types.ts";
 
 const endpoint = "https://example.com/mcp";
 const nodeRuntimeObserved = isMcpBrowserRuntime();
@@ -587,6 +587,28 @@ test("serialized reports clamp caller limits and never exceed the hard ceiling",
   assert.doesNotThrow(() => JSON.parse(serialized));
   const serializedAtCeiling = serializeMcpTesterReport(oversizedReport, HARD_MCP_TESTER_LIMITS.maxRenderedJsonBytes + 1);
   assert.ok(Buffer.byteLength(serializedAtCeiling) <= HARD_MCP_TESTER_LIMITS.maxRenderedJsonBytes);
+});
+
+test("final report fallback sanitizes a 400 KB caller message and stays bounded", async () => {
+  const fixture = successfulFetch();
+  const report = await runMcpTester({ endpoint, fetch: fixture.fetch });
+  const hostileReport = {
+    ...report,
+    verdictMessage: `${"x".repeat(400_000)} api_key=fallback-api-secret Bearer fallback-bearer ?token=fallback-query-secret`,
+    findings: Array.from({ length: 1_000 }, () => ({ code: "finding", category: "protocol", severity: "error", message: "finding-secret" })),
+    timeline: Array.from({ length: 1_000 }, () => ({ index: 1, atMs: 1, phase: "finalize", kind: "finding", details: { token: "timeline-secret" } })),
+    capabilities: { tools: "oversized-capability", resources: "oversized-capability", prompts: "oversized-capability" },
+    tools: { ...report.tools, items: Array.from({ length: 1_000 }, () => ({ name: "tool", description: "catalog-secret" })) },
+  };
+  const serialized = serializeMcpTesterReport(hostileReport as unknown as McpTesterReport, 1);
+  const parsed = JSON.parse(serialized) as { verdict?: string; verdictMessage?: string };
+  assert.ok(Buffer.byteLength(serialized) <= HARD_MCP_TESTER_LIMITS.maxRenderedJsonBytes);
+  assert.equal(parsed.verdict, "incomplete");
+  assert.match(parsed.verdictMessage ?? "", /bounded metadata/i);
+  for (const secret of ["fallback-api-secret", "fallback-bearer", "fallback-query-secret", "finding-secret", "timeline-secret", "catalog-secret"]) {
+    assert.equal(serialized.includes(secret), false, secret);
+  }
+  assert.ok(serialized.length < 10_000);
 });
 
 test("expired synchronous parsing work is incomplete and never reported as healthy", async () => {
