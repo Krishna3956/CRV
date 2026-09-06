@@ -50,6 +50,9 @@ export type TraceEvent = {
 export type TraceResponse = {
   session_id: string;
   correlation_quality: CorrelationQuality;
+  completion_source: CompletionSource;
+  event_count: number;
+  truncated: boolean;
   events: TraceEvent[];
 };
 
