@@ -1,45 +1,51 @@
 import { NextResponse } from "next/server";
 import { getSupabaseAdmin } from "@/lib/repository/supabase";
 import { hashTrackMCPKey } from "@/lib/telemetry/keys";
-import type { TrackMCPBatch, TrackMCPEvent } from "@/lib/telemetry/types";
+import type { CanonicalTrackMCPEvent } from "@/lib/telemetry/types";
+import { deduplicateEvents, MAX_BATCH_EVENTS, MAX_REQUEST_BYTES, normalizeTrackMCPEvent } from "@/lib/telemetry/validation";
 
-const MAX_EVENTS = 100;
+function responseBody(error?: string, rejected = 0) {
+  return { accepted: 0, ignored_duplicates: 0, rejected, ...(error ? { error } : {}) };
+}
 
-function isEvent(value: unknown): value is TrackMCPEvent {
-  if (!value || typeof value !== "object") return false;
-  const event = value as Partial<TrackMCPEvent>;
-  return (
-    typeof event.event_id === "string" &&
-    typeof event.event_type === "string" &&
-    ["protocol", "tool_call", "session", "catalog", "workflow", "custom"].includes(event.event_type) &&
-    typeof event.service === "string" &&
-    typeof event.environment === "string" &&
-    typeof event.started_at === "string"
-  );
+function uuidOrNull(value: string | undefined): string | null {
+  return value && /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value) ? value : null;
+}
+
+function invalidBatchResponse(reason: string, rejected: number, status = 400) {
+  return NextResponse.json(responseBody(reason, rejected), { status });
 }
 
 export async function POST(req: Request) {
   const supabase = getSupabaseAdmin();
-  if (!supabase) {
-    return NextResponse.json({ error: "Ingest service is not configured." }, { status: 503 });
-  }
+  if (!supabase) return NextResponse.json({ error: "Ingest service is not configured." }, { status: 503 });
 
   const authorization = req.headers.get("authorization") || "";
   const apiKey = authorization.startsWith("Bearer ") ? authorization.slice(7).trim() : "";
   if (!apiKey) return NextResponse.json({ error: "Missing API key." }, { status: 401 });
 
-  let body: TrackMCPBatch;
+  let body: unknown;
   try {
-    body = (await req.json()) as TrackMCPBatch;
+    const rawBody = await req.arrayBuffer();
+    if (rawBody.byteLength > MAX_REQUEST_BYTES) return invalidBatchResponse(`request exceeds ${MAX_REQUEST_BYTES} bytes`, 0, 413);
+    body = JSON.parse(new TextDecoder().decode(rawBody)) as unknown;
   } catch {
     return NextResponse.json({ error: "Invalid JSON." }, { status: 400 });
   }
 
-  if (!Array.isArray(body.events) || body.events.length === 0 || body.events.length > MAX_EVENTS) {
-    return NextResponse.json({ error: `events must contain 1-${MAX_EVENTS} items.` }, { status: 400 });
+  if (!body || typeof body !== "object" || !Array.isArray((body as { events?: unknown }).events)) {
+    return invalidBatchResponse("events must be an array", 0);
   }
-  if (!body.events.every(isEvent)) {
-    return NextResponse.json({ error: "One or more events are invalid." }, { status: 400 });
+  const rawEvents = (body as { events: unknown[] }).events;
+  if (rawEvents.length === 0 || rawEvents.length > MAX_BATCH_EVENTS) {
+    return invalidBatchResponse(`events must contain 1-${MAX_BATCH_EVENTS} items`, rawEvents.length > MAX_BATCH_EVENTS ? rawEvents.length : 0, 413);
+  }
+
+  const normalized: CanonicalTrackMCPEvent[] = [];
+  for (const rawEvent of rawEvents) {
+    const result = normalizeTrackMCPEvent(rawEvent);
+    if (!result.ok) return invalidBatchResponse(result.reason, 1);
+    normalized.push(result.event);
   }
 
   const { data: key, error: keyError } = await supabase
@@ -52,13 +58,26 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Invalid or revoked API key." }, { status: 401 });
   }
 
-  const rows = body.events.map((event) => ({
+  const { data: existing, error: existingError } = await supabase
+    .from("trackmcp_events")
+    .select("event_id")
+    .eq("workspace_id", key.workspace_id)
+    .in("event_id", normalized.map((event) => event.event_id));
+  if (existingError) {
+    console.error("TrackMCP duplicate check failed", { code: existingError.code, message: existingError.message });
+    return NextResponse.json({ error: "Could not store telemetry." }, { status: 500 });
+  }
+  const existingIds = new Set((existing || []).map((row: { event_id: string }) => row.event_id));
+  const deduplicated = deduplicateEvents(normalized, existingIds);
+  const rows = deduplicated.events.map((event) => ({
     workspace_id: key.workspace_id,
+    schema_version: event.schema_version,
     event_id: event.event_id,
     event_type: event.event_type,
     service: event.service,
     environment: event.environment,
-    server_id: event.server_id || null,
+    // server_id is UUID-typed in the existing schema; string resource IDs are intentionally not coerced into UUIDs.
+    server_id: uuidOrNull(event.server_id),
     deployment_id: event.deployment_id || null,
     server_version: event.server_version || null,
     sdk_version: event.sdk_version || null,
@@ -68,10 +87,14 @@ export async function POST(req: Request) {
     mcp_method: event.mcp_method || null,
     request_id: event.request_id || null,
     session_id: event.session_id || null,
+    session_id_source: event.session_id_source || null,
     task_id: event.task_id || null,
     workflow_id: event.workflow_id || null,
     client_name: event.client_name || null,
+    client_version: event.client_version || null,
     tool_name: event.tool_name || null,
+    tool_description: event.tool_description || null,
+    tool_description_hash: event.tool_description_hash || null,
     started_at: event.started_at,
     duration_ms: event.duration_ms ?? null,
     success: event.success ?? null,
@@ -81,17 +104,20 @@ export async function POST(req: Request) {
     retry_number: event.retry_number ?? 0,
     schema_hash: event.schema_hash || null,
     payload_size_bytes: event.payload_size_bytes ?? null,
+    payload_policy: event.payload_policy || null,
     payload: event.payload || {},
   }));
 
-  const { error } = await supabase.from("trackmcp_events").upsert(rows, {
-    onConflict: "workspace_id,event_id",
-    ignoreDuplicates: true,
-  });
-  if (error) {
-    console.error("TrackMCP ingest failed", { code: error.code, message: error.message });
-    return NextResponse.json({ error: "Could not store telemetry." }, { status: 500 });
+  if (rows.length) {
+    const { error } = await supabase.from("trackmcp_events").upsert(rows, {
+      onConflict: "workspace_id,event_id",
+      ignoreDuplicates: true,
+    });
+    if (error) {
+      console.error("TrackMCP ingest failed", { code: error.code, message: error.message });
+      return NextResponse.json({ error: "Could not store telemetry." }, { status: 500 });
+    }
   }
 
-  return NextResponse.json({ accepted: rows.length });
+  return NextResponse.json({ accepted: rows.length, ignored_duplicates: deduplicated.ignored, rejected: 0 });
 }

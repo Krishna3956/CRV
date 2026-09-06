@@ -1,25 +1,32 @@
-import { randomUUID } from "node:crypto";
+import { createHash, randomUUID } from "node:crypto";
 
 export type TrackMCPEventType = "protocol" | "tool_call" | "session" | "catalog" | "workflow" | "custom";
+export const TRACKMCP_SCHEMA_VERSION = "1" as const;
 
 export type TrackMCPEvent = {
+  schema_version?: string;
   event_id: string;
   event_type: TrackMCPEventType;
   service: string;
   environment: string;
+  server_id?: string;
   direction?: "client_to_server" | "server_to_client";
   transport?: "stdio" | "streamable_http" | "sse" | "custom";
   protocol_version?: string;
   mcp_method?: string;
   request_id?: string;
   session_id?: string;
+  session_id_source?: "protocol" | "transport_generated" | "external" | "missing";
   task_id?: string;
   workflow_id?: string;
   deployment_id?: string;
   server_version?: string;
   sdk_version?: string;
   client_name?: string;
+  client_version?: string;
   tool_name?: string;
+  tool_description?: string;
+  tool_description_hash?: string;
   started_at: string;
   duration_ms?: number;
   success?: boolean;
@@ -29,6 +36,7 @@ export type TrackMCPEvent = {
   retry_number?: number;
   schema_hash?: string;
   payload_size_bytes?: number;
+  payload_policy?: "metadata" | "redacted" | "full";
   payload?: Record<string, unknown>;
 };
 
@@ -43,6 +51,7 @@ export type TrackMCPOptions = {
   server_version?: string;
   sdk_version?: string;
   deployment_id?: string;
+  server_id?: string;
   flushIntervalMs?: number;
   maxBatchSize?: number;
 };
@@ -72,9 +81,35 @@ function redactValue(value: unknown, paths: string[]): unknown {
   return copy;
 }
 
+function stableJson(value: unknown): string {
+  if (Array.isArray(value)) return `[${value.map(stableJson).join(",")}]`;
+  if (value && typeof value === "object") {
+    return `{${Object.keys(value as Record<string, unknown>).sort().map((key) => `${JSON.stringify(key)}:${stableJson((value as Record<string, unknown>)[key])}`).join(",")}}`;
+  }
+  return JSON.stringify(value);
+}
+
+function sha256(value: unknown): string {
+  return createHash("sha256").update(stableJson(value), "utf8").digest("hex");
+}
+
+type CatalogTool = { name: string; description?: string; tool_description_hash: string; schema_hash: string };
+
+function catalogTools(result: Record<string, unknown> | undefined): CatalogTool[] {
+  if (!result || !Array.isArray(result.tools)) return [];
+  return result.tools.flatMap((tool): CatalogTool[] => {
+    if (!tool || typeof tool !== "object" || typeof (tool as { name?: unknown }).name !== "string") return [];
+    const value = tool as Record<string, unknown>;
+    const description = typeof value.description === "string" ? value.description : undefined;
+    const inputSchema = value.inputSchema ?? value.input_schema ?? {};
+    return [{ name: value.name as string, ...(description ? { description } : {}), tool_description_hash: sha256(description || ""), schema_hash: sha256(inputSchema) }];
+  });
+}
+
 class TrackMCPClient {
-  private readonly options: Required<Pick<TrackMCPOptions, "service" | "environment" | "endpoint" | "sampleRate" | "redact" | "flushIntervalMs" | "maxBatchSize" | "disabled">> & Pick<TrackMCPOptions, "apiKey" | "server_version" | "sdk_version" | "deployment_id">;
+  private readonly options: Required<Pick<TrackMCPOptions, "service" | "environment" | "endpoint" | "sampleRate" | "redact" | "flushIntervalMs" | "maxBatchSize" | "disabled">> & Pick<TrackMCPOptions, "apiKey" | "server_id" | "server_version" | "sdk_version" | "deployment_id">;
   private queue: TrackMCPEvent[] = [];
+  private readonly toolCatalog = new Map<string, CatalogTool>();
   private timer?: NodeJS.Timeout;
   private flushing?: Promise<void>;
 
@@ -82,6 +117,7 @@ class TrackMCPClient {
     if (!options.apiKey) throw new Error("TrackMCP apiKey is required");
     this.options = {
       apiKey: options.apiKey,
+      server_id: options.server_id,
       server_version: options.server_version,
       sdk_version: options.sdk_version,
       deployment_id: options.deployment_id,
@@ -100,18 +136,22 @@ class TrackMCPClient {
     }
   }
 
-  capture(event: Omit<TrackMCPEvent, "event_id" | "service" | "environment">): void {
+  capture(event: Omit<TrackMCPEvent, "event_id" | "service" | "environment" | "schema_version"> & { schema_version?: string }): void {
     if (this.options.disabled || Math.random() > this.options.sampleRate) return;
+    const payload = redactValue(event.payload, this.options.redact) as Record<string, unknown> | undefined;
     this.queue.push({
       ...event,
+      schema_version: TRACKMCP_SCHEMA_VERSION,
       event_id: randomUUID(),
       service: this.options.service,
       environment: this.options.environment,
+      session_id_source: event.session_id_source || (event.session_id ? "external" : "missing"),
+      server_id: this.options.server_id,
       server_version: this.options.server_version,
       sdk_version: this.options.sdk_version,
       deployment_id: this.options.deployment_id,
-      payload: redactValue(event.payload, this.options.redact) as Record<string, unknown> | undefined,
-      payload_size_bytes: event.payload ? JSON.stringify(event.payload).length : undefined,
+      payload,
+      payload_size_bytes: payload ? new TextEncoder().encode(JSON.stringify(payload)).byteLength : event.payload_size_bytes,
     });
     if (this.queue.length >= this.options.maxBatchSize) void this.flush();
   }
@@ -125,7 +165,17 @@ class TrackMCPClient {
   }
 
   workflow(name: string, status: "started" | "completed" | "failed", payload: Record<string, unknown> = {}): void {
-    this.track("workflow", { workflow_name: name, status, ...payload });
+    this.capture({ event_type: "workflow", started_at: new Date().toISOString(), payload: { name: "workflow", workflow_name: name, status, ...payload } });
+  }
+
+  recordCatalog(result: Record<string, unknown> | undefined): CatalogTool[] {
+    const tools = catalogTools(result);
+    for (const tool of tools) this.toolCatalog.set(tool.name, tool);
+    return tools;
+  }
+
+  toolMetadata(name: string | undefined): CatalogTool | undefined {
+    return name ? this.toolCatalog.get(name) : undefined;
   }
 
   async flush(): Promise<void> {
@@ -165,7 +215,10 @@ function toolCallDetails(args: unknown[]): { toolName?: string; payload: Record<
 function wrapTransport(transport: object, client: TrackMCPClient): object {
   const pending = new Map<string, { method?: string; toolName?: string; payload: Record<string, unknown>; started: number }>();
   const transportSessionId = randomUUID();
+  let activeSessionId: string = transportSessionId;
+  let activeSessionIdSource: "protocol" | "transport_generated" = "transport_generated";
   let clientName: string | undefined;
+  let clientVersion: string | undefined;
   let messageHandler: ((message: unknown, extra?: unknown) => void) | undefined;
   const keyFor = (id: unknown) => `${typeof id}:${String(id)}`;
   return new Proxy(transport, {
@@ -179,15 +232,24 @@ function wrapTransport(transport: object, client: TrackMCPClient): object {
             const result = message.result as Record<string, unknown> | undefined;
             const failed = Boolean(message.error) || Boolean(result?.isError);
             const protocolError = message.error && typeof message.error === "object" ? message.error as { code?: unknown } : undefined;
-            const sessionId = typeof Reflect.get(target, "sessionId") === "string" ? Reflect.get(target, "sessionId") as string : transportSessionId;
+            const transportProvidedSessionId = Reflect.get(target, "sessionId");
+            if (typeof result?.sessionId === "string") {
+              activeSessionId = result.sessionId;
+              activeSessionIdSource = "protocol";
+            } else if (typeof transportProvidedSessionId === "string" && activeSessionIdSource === "transport_generated") {
+              activeSessionId = transportProvidedSessionId;
+              activeSessionIdSource = "protocol";
+            }
+            const sessionId = activeSessionId;
             if (call.method === "tools/call") {
-              client.capture({ event_type: "tool_call", direction: "server_to_client", transport: "stdio", mcp_method: call.method, request_id: String(id), tool_name: call.toolName, client_name: clientName, session_id: sessionId, started_at: new Date(call.started).toISOString(), duration_ms: Date.now() - call.started, success: !failed, is_error: failed, error_class: message.error ? "protocol_error" : result?.isError ? "tool_execution_error" : undefined, error_code: typeof protocolError?.code === "number" ? protocolError.code : undefined, payload: { ...call.payload, result: message.error || result } });
+              const metadata = client.toolMetadata(call.toolName);
+              client.capture({ event_type: "tool_call", direction: "server_to_client", transport: "stdio", mcp_method: call.method, request_id: String(id), tool_name: call.toolName, tool_description: metadata?.description, tool_description_hash: metadata?.tool_description_hash, schema_hash: metadata?.schema_hash, client_name: clientName, client_version: clientVersion, session_id: sessionId, session_id_source: activeSessionIdSource, started_at: new Date(call.started).toISOString(), duration_ms: Date.now() - call.started, success: !failed, is_error: failed, error_class: message.error ? "protocol_error" : result?.isError ? "tool_execution_error" : undefined, error_code: typeof protocolError?.code === "number" ? protocolError.code : undefined, payload: { ...call.payload, result: message.error || result } });
             } else if (call.method === "initialize") {
-              const negotiatedSession = typeof result?.sessionId === "string" ? result.sessionId : transportSessionId;
-              client.capture({ event_type: "session", direction: "server_to_client", transport: "stdio", mcp_method: call.method, request_id: String(id), protocol_version: typeof result?.protocolVersion === "string" ? result.protocolVersion : undefined, client_name: clientName, session_id: negotiatedSession, started_at: new Date(call.started).toISOString(), duration_ms: Date.now() - call.started, success: !failed, is_error: failed, error_class: message.error ? "protocol_error" : undefined, error_code: typeof protocolError?.code === "number" ? protocolError.code : undefined, payload: { result: message.error || result } });
+              client.capture({ event_type: "session", direction: "server_to_client", transport: "stdio", mcp_method: call.method, request_id: String(id), protocol_version: typeof result?.protocolVersion === "string" ? result.protocolVersion : undefined, client_name: clientName, client_version: clientVersion, session_id: sessionId, session_id_source: activeSessionIdSource, started_at: new Date(call.started).toISOString(), duration_ms: Date.now() - call.started, success: !failed, is_error: failed, error_class: message.error ? "protocol_error" : undefined, error_code: typeof protocolError?.code === "number" ? protocolError.code : undefined, payload: { result: message.error || result } });
             } else if (["tools/list", "resources/list", "resources/templates/list", "prompts/list"].includes(call.method || "") && !failed) {
               const catalogType = call.method?.replace("/list", "") || "catalog";
-              client.capture({ event_type: "catalog", direction: "server_to_client", transport: "stdio", mcp_method: call.method, request_id: String(id), client_name: clientName, session_id: sessionId, started_at: new Date(call.started).toISOString(), duration_ms: Date.now() - call.started, success: true, is_error: false, payload: { name: `${catalogType}_discovered`, result } });
+              const tools = client.recordCatalog(result);
+              client.capture({ event_type: "catalog", direction: "server_to_client", transport: "stdio", mcp_method: call.method, request_id: String(id), client_name: clientName, client_version: clientVersion, session_id: sessionId, session_id_source: activeSessionIdSource, started_at: new Date(call.started).toISOString(), duration_ms: Date.now() - call.started, success: true, is_error: false, payload: { name: `${catalogType}_discovered`, tools, result } });
             }
           }
           const send = Reflect.get(target, property) as (message: unknown, options?: unknown) => Promise<void>;
@@ -207,6 +269,7 @@ function wrapTransport(transport: object, client: TrackMCPClient): object {
             const params = record.params as Record<string, unknown> | undefined;
             const info = params?.clientInfo as Record<string, unknown> | undefined;
             if (typeof info?.name === "string") clientName = info.name;
+            if (typeof info?.version === "string") clientVersion = info.version;
           }
           if (record.method === "tools/call" && record.id !== undefined) {
             const params = record.params as Record<string, unknown> | undefined;
@@ -220,7 +283,7 @@ function wrapTransport(transport: object, client: TrackMCPClient): object {
             pending.set(keyFor(record.id), { method: typeof record.method === "string" ? record.method : undefined, payload: {}, started: Date.now() });
           }
           if (typeof record.method === "string" && record.method !== "tools/call") {
-            client.capture({ event_type: "protocol", direction: "client_to_server", transport: "stdio", mcp_method: record.method, request_id: record.id === undefined ? undefined : String(record.id), session_id: transportSessionId, client_name: clientName, started_at: new Date().toISOString(), payload: { params: record.params || {} } });
+            client.capture({ event_type: "protocol", direction: "client_to_server", transport: "stdio", mcp_method: record.method, request_id: record.id === undefined ? undefined : String(record.id), session_id: activeSessionId, session_id_source: activeSessionIdSource, client_name: clientName, client_version: clientVersion, started_at: new Date().toISOString(), payload: { params: record.params || {} } });
           }
           value(record, extra);
         };
@@ -254,9 +317,13 @@ export function withTrackMCP<T extends object>(server: T, options: TrackMCPOptio
       try {
         const result = await (original as (...input: unknown[]) => unknown).apply(this, args);
         const isError = Boolean(result && typeof result === "object" && (result as Record<string, unknown>).isError);
+        const metadata = client.toolMetadata(details.toolName);
         client.capture({
           event_type: "tool_call",
           tool_name: details.toolName,
+          tool_description: metadata?.description,
+          tool_description_hash: metadata?.tool_description_hash,
+          schema_hash: metadata?.schema_hash,
           started_at: new Date(started).toISOString(),
           duration_ms: Date.now() - started,
           success: !isError,
@@ -268,6 +335,9 @@ export function withTrackMCP<T extends object>(server: T, options: TrackMCPOptio
         client.capture({
           event_type: "tool_call",
           tool_name: details.toolName,
+          tool_description: client.toolMetadata(details.toolName)?.description,
+          tool_description_hash: client.toolMetadata(details.toolName)?.tool_description_hash,
+          schema_hash: client.toolMetadata(details.toolName)?.schema_hash,
           started_at: new Date(started).toISOString(),
           duration_ms: Date.now() - started,
           success: false,

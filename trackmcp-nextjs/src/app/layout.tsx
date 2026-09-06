@@ -4,6 +4,7 @@ import Script from "next/script";
 import { Analytics } from "@vercel/analytics/react";
 import { SpeedInsights } from "@vercel/speed-insights/react";
 import { ScrollToTop } from "@/components/ScrollToTop";
+import { PostHogIdentity } from "@/components/PostHogIdentity";
 import { serializeJsonLd, SITE_DESCRIPTION, SITE_JSON_LD, SITE_URL, DEFAULT_IMAGE } from "@/lib/seo";
 import "./globals.css";
 
@@ -74,6 +75,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     >
       <body className="min-h-full flex flex-col bg-canvas text-body">
         <ScrollToTop />
+        <PostHogIdentity />
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeJsonLd(SITE_JSON_LD) }} />
         <link rel="preconnect" href="https://api.fontshare.com" crossOrigin="anonymous" />
         <link
