@@ -230,6 +230,18 @@ export default async function BlogPostPage({
                   {post.tag}
                 </span>
                 <span>{post.date}</span>
+                {post.updated && (
+                  <>
+                    <span>·</span>
+                    <span>Updated {post.updated}</span>
+                  </>
+                )}
+                {post.verified && (
+                  <>
+                    <span>·</span>
+                    <span>Last verified {post.verified}</span>
+                  </>
+                )}
                 <span>·</span>
                 <span>{post.read}</span>
               </div>
