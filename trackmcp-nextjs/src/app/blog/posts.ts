@@ -136,7 +136,7 @@ export const posts: Post[] = [
         "Freshness: which MCP specification and SDK versions are supported, and how quickly does the integration track protocol changes?",
       ]),
       h("The practical answer is usually a layered stack"),
-      p("MCP server observability and broader AI observability answer different questions. A team may use TrackMCP or another MCP-aware layer for server adoption and protocol behavior, Sentry or Datadog for application and infrastructure operations, and Langfuse, LangSmith, Phoenix, or an OpenTelemetry stack for broader agent traces and evaluations. The right architecture depends on the system boundary, data policy, and decisions the team needs to make."),
+      p("MCP server observability and broader AI observability answer different questions. A team may use TrackMCP or another MCP-aware layer for server adoption and protocol behavior, Sentry or Datadog for application and infrastructure operations, and Langfuse, LangSmith, or an OpenTelemetry stack for broader agent traces and evaluations. The right architecture depends on the system boundary, data policy, and decisions the team needs to make."),
       p("Start with one production server and one representative workflow. Confirm that the data answers a real debugging or product question, inspect what is redacted, and record what remains unknown. That evaluation is more useful than choosing a winner from a generic feature-count table."),
       links([
         { label: "Start the MCP observability quickstart", href: "/mcp-server-analytics/quickstart" },

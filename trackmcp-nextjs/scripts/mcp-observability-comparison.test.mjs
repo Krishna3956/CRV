@@ -42,7 +42,7 @@ test("pillar article covers the requested products and accurate boundaries", () 
   ]) {
     assert.match(pillarSource, new RegExp(phrase, "i"));
   }
-  assert.doesNotMatch(pillarSource, /—/);
+  assert.doesNotMatch(pillarSource, /\u2014/);
 });
 
 test("pillar article has internal and first-party documentation links", () => {
@@ -94,7 +94,7 @@ test("Sentry comparison has metadata, neutral language, and the requested compar
     assert.match(compareSource, new RegExp(phrase.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "i"));
   }
   assert.doesNotMatch(compareSource, /Sentry lacks MCP support/i);
-  assert.doesNotMatch(compareSource, /—/);
+  assert.doesNotMatch(compareSource, /\u2014/);
 });
 
 test("both pages expose BreadcrumbList JSON-LD and the comparison exposes WebPage JSON-LD", () => {
