@@ -13,6 +13,39 @@ export default withTrackMCP(server, {
 
 Capture is fail-open: a slow or unavailable TrackMCP endpoint never blocks a tool call. Payload mode defaults to `redacted`; common sensitive keys are recursively replaced, binary/base64 resources are scrubbed, and payloads are bounded to 32 KiB, depth 6, 50 keys/items per container, and 2,048 characters per string. Use `metadata` to omit arguments/results, or opt into `full` knowing it remains bounded. The ingest route independently caps payloads at 128 KiB and requests at 1 MiB as a last-line defense for non-SDK clients.
 
+## Node MCP client adapter
+
+The optional `@trackmcp/sdk/client-adapter` entry point requires Node.js and
+`@modelcontextprotocol/sdk` exactly `1.30.0`. It is not for browsers, Edge
+runtime routes, frontend bundles, Python clients, SSE, or custom transports. The
+caller is responsible for protecting the API key. Wrap one supported transport
+before connecting the MCP client:
+
+```ts
+import { Client } from "@modelcontextprotocol/sdk/client/index.js";
+import { StdioClientTransport } from "@modelcontextprotocol/sdk/client/stdio.js";
+import { TrackMCPClientAdapter } from "@trackmcp/sdk/client-adapter";
+
+const adapter = new TrackMCPClientAdapter({
+  apiKey: process.env.TRACKMCP_KEY!,
+  service: "my-mcp-client",
+  transport: "stdio", // or "streamable_http"
+});
+const transport = new StdioClientTransport({ command: "my-mcp-server" });
+const client = new Client({ name: "my-host", version: "1.0.0" });
+await client.connect(adapter.wrapTransport(transport));
+```
+
+Client capture is metadata-only: it records transport-observed issued calls,
+matched results, observable next calls, repeats, and lifecycle boundaries. It
+does not capture tool arguments/results, prompts, completions, reasoning, token
+costs, timeout/abort/rejection attribution, or hidden HTTP reconnect/auth
+semantics. Client events carry `observation_source: "client"`; server SDK
+events carry `"server"`, and default aggregate/tool-quality metrics use server
+observations only. Missing, malformed, notification, unmatched, and duplicate
+messages are diagnostics-only. The adapter is fail-open and uses the existing
+bounded SDK queue and delivery behavior.
+
 `redact` keeps compatibility with explicit dotted paths, while `redactKeys` adds case-insensitive exact key names. `redactEvent` receives an already sanitized event, may mutate it, or can return `null` to drop it. Hook failures drop only the event. The SDK queue is bounded to 500 events or 2 MiB; failed deliveries are requeued within those limits.
 
 Correlation is disabled by default and never changes MCP schemas. To attach an already anonymized, opaque business handle, opt into external mode; the resolver receives only bounded request metadata and its return value is validated before capture. Issued mode is opt-in and compatibility-limited to the TypeScript transport wrapper: compatible object-shaped `tools/list` schemas receive an optional `__trackmcp_correlation_handle` property, which is stripped before the handler. Strict or unsupported schemas and clients that ignore the field remain missing. Session IDs and request IDs are never used as business handles. Resolvers must not return emails, tokens, URLs, raw user IDs, prompts, completions, or private reasoning.

@@ -4,7 +4,7 @@ import { getSupabaseAdmin } from "../../../../lib/repository/supabase.ts";
 import { hashTrackMCPKey } from "../../../../lib/telemetry/keys.ts";
 import type { CatalogTool, CompletionSource, CorrelationQuality } from "../../../../lib/telemetry/analytics-types.ts";
 import { completedForEvents, completionSourceForEvents, correlationQualityForEvents, isWorkflowLifecycleEvent, percentile } from "../../../../lib/telemetry/analytics.ts";
-import type { TrackMCPCorrelationHandleSource, TrackMCPIntentSource, TrackMCPSessionIdSource } from "../../../../lib/telemetry/types.ts";
+import type { TrackMCPCorrelationHandleSource, TrackMCPIntentSource, TrackMCPObservationSource, TrackMCPSessionIdSource } from "../../../../lib/telemetry/types.ts";
 
 type EventRow = {
   schema_version: string;
@@ -15,6 +15,7 @@ type EventRow = {
   deployment_id: string | null;
   server_version: string | null;
   sdk_version: string | null;
+  observation_source: TrackMCPObservationSource | null;
   direction: string | null;
   transport: string | null;
   protocol_version: string | null;
@@ -92,11 +93,11 @@ export function createAnalyticsHandler(getAdmin: typeof getSupabaseAdmin = getSu
   const days = Number.isFinite(requestedDays) ? Math.min(90, Math.max(1, Math.floor(requestedDays))) : 30;
   const since = new Date(Date.now() - days * 86400000).toISOString();
   const { data, error } = await supabase.from("trackmcp_events")
-    .select("schema_version, event_type, service, environment, server_id, deployment_id, server_version, sdk_version, direction, transport, protocol_version, mcp_method, request_id, session_id, session_id_source, correlation_handle, correlation_handle_source, context, intent_source, missing_capability, task_id, workflow_id, client_name, client_version, tool_name, tool_description, tool_description_hash, duration_ms, success, is_error, error_class, error_code, retry_number, schema_hash, payload_size_bytes, payload_policy, started_at, payload")
+    .select("schema_version, event_type, service, environment, server_id, deployment_id, server_version, sdk_version, observation_source, direction, transport, protocol_version, mcp_method, request_id, session_id, session_id_source, correlation_handle, correlation_handle_source, context, intent_source, missing_capability, task_id, workflow_id, client_name, client_version, tool_name, tool_description, tool_description_hash, duration_ms, success, is_error, error_class, error_code, retry_number, schema_hash, payload_size_bytes, payload_policy, started_at, payload")
     .eq("workspace_id", workspaceId).gte("started_at", since).order("started_at", { ascending: true }).limit(10000);
   if (error) return NextResponse.json({ error: "Could not load analytics." }, { status: 500 });
 
-  const events = (data || []) as EventRow[];
+  const events = ((data || []) as EventRow[]).filter((event) => event.observation_source === "server");
   const intentSources: Record<TrackMCPIntentSource, number> = { context_parameter: 0, external_callback: 0, fallback: 0, missing: 0 };
   const missingCapabilities = new Map<string, number>();
   for (const event of events) {

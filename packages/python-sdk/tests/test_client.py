@@ -53,6 +53,7 @@ class TrackMCPClientTest(TestCase):
     def test_metadata_and_full_modes_are_explicit_and_bounded(self):
         client = TrackMCP(TrackMCPOptions(api_key="tmcp_test", payload_mode="metadata", disabled=False, flush_interval_ms=60000))
         client.capture({"event_type": "tool_call", "started_at": "2026-01-01T00:00:00Z", "payload": {"secret": "value"}})
+        self.assertEqual(client._events[0]["observation_source"], "server")
         self.assertEqual(client._events[0]["payload_policy"], "metadata")
         self.assertNotIn("payload", client._events[0])
         client._timer.cancel()
@@ -224,7 +225,7 @@ class TrackMCPClientTest(TestCase):
         issued._timer.cancel()
 
     def test_event_contract_includes_correlation_fields_for_sdk_parity(self):
-        expected = {"schema_version", "event_id", "event_type", "service", "environment", "request_id", "session_id", "session_id_source", "correlation_handle", "correlation_handle_source", "context", "intent_source", "missing_capability", "tool_name", "started_at", "duration_ms", "payload_size_bytes", "payload_policy", "payload"}
+        expected = {"schema_version", "event_id", "event_type", "service", "environment", "request_id", "session_id", "session_id_source", "correlation_handle", "correlation_handle_source", "observation_source", "context", "intent_source", "missing_capability", "tool_name", "started_at", "duration_ms", "payload_size_bytes", "payload_policy", "payload"}
         self.assertTrue(expected.issubset(set(TrackMCPEvent.__annotations__)))
 
     def test_intent_provenance_is_explicit_bounded_and_missing_reports_keep_correlation(self):

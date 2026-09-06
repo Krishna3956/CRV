@@ -56,6 +56,7 @@ export default function ApiDocsPage() {
     "schema_version":"1",
     "event_id":"unique-id",
     "event_type":"tool_call",
+    "observation_source":"server",
     "service":"my-mcp-server",
     "environment":"production",
     "tool_name":"search",
@@ -128,6 +129,7 @@ export default function ApiDocsPage() {
   "events": [{
     "event_id": "event-1",
     "event_type": "tool_call",
+    "observation_source": "server",
     "mcp_method": "tools/call",
     "tool_name": "search_docs",
     "duration_ms": 42,
@@ -139,6 +141,18 @@ export default function ApiDocsPage() {
           validates event IDs, timestamps, types, numeric fields, and batch/request
           limits; duplicate event IDs are idempotently ignored. Trace and analytics
           endpoints are read-only views of stored server-boundary telemetry.
+        </Para>
+      </DocSection>
+
+      <DocSection title="Client observation provenance">
+        <Para>
+          The optional Node client adapter emits the same canonical event types with
+          <Inline>observation_source: &quot;client&quot;</Inline>; server SDK events are
+          emitted with <Inline>&quot;server&quot;</Inline>. This top-level field is
+          persisted and returned in trace events. Legacy events without the versioned
+          field remain nullable and are documented as <Inline>legacy_unknown</Inline>.
+          Aggregate analytics and Tool Quality exclude client and legacy-unknown events
+          by default, so observing a call at both boundaries does not double count it.
         </Para>
       </DocSection>
 

@@ -36,6 +36,7 @@ test("captures a tool call, redacts args, and delivers a batch", async () => {
   assert.equal(received[0].body.events[0].tool_name, "lookup");
   assert.equal(received[0].body.events[0].payload.args.password, "[redacted]");
   assert.equal(received[0].body.events[0].schema_version, "1");
+  assert.equal(received[0].body.events[0].observation_source, "server");
   assert.equal(received[0].body.events[0].payload_size_bytes, Buffer.byteLength(JSON.stringify(received[0].body.events[0].payload)));
 });
 

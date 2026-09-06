@@ -202,6 +202,27 @@ export default function ReferenceDocsPage() {
         </Para>
       </DocSection>
 
+      <DocSection title="Node client adapter boundary">
+        <Para>
+          <Inline>@trackmcp/sdk/client-adapter</Inline> is a separate Node-only entry
+          point pinned to <Inline>@modelcontextprotocol/sdk 1.30.0</Inline>. It wraps
+          <Inline>StdioClientTransport</Inline> or
+          <Inline>StreamableHTTPClientTransport</Inline> before
+          <Inline>Client.connect(transport)</Inline>. Browser and Edge runtimes,
+          frontend bundles, SSE, custom transports, Python clients, and universal
+          desktop-client support are outside this release.
+        </Para>
+        <Para>
+          Client capture defaults to metadata-only and is limited to transport-observed
+          issued calls, matched results, next observable calls, repeats, and lifecycle
+          boundaries. It does not claim timeout, abort, promise rejection, late-response,
+          or hidden Streamable HTTP reconnect/authentication attribution. Malformed,
+          notification, unmatched, and duplicate messages produce diagnostics only.
+          Client events use <Inline>observation_source: &quot;client&quot;</Inline>;
+          aggregate and Tool Quality metrics remain server-observation-only.
+        </Para>
+      </DocSection>
+
       <DocSection title="Intent and missing capabilities">
         <Para>
           Intent is never inferred. A compatible TypeScript tools list may advertise an

@@ -33,6 +33,40 @@ export default function TypeScriptDocsPage() {
 # or: pnpm add @trackmcp/sdk / yarn add @trackmcp/sdk`}</Code>
       </DocSection>
 
+      <DocSection title="Optional Node MCP client adapter">
+        <Para>
+          The separate <Inline>@trackmcp/sdk/client-adapter</Inline> entry point is
+          Node.js-only and requires <Inline>@modelcontextprotocol/sdk</Inline> exactly
+          <Inline>1.30.0</Inline>. It rejects browser and Edge runtimes and must not be
+          imported by frontend bundles. The caller is responsible for protecting the
+          API key. It supports only <Inline>StdioClientTransport</Inline> and
+          <Inline>StreamableHTTPClientTransport</Inline>.
+        </Para>
+        <Code>{`import { Client } from "@modelcontextprotocol/sdk/client/index.js";
+import { StdioClientTransport } from "@modelcontextprotocol/sdk/client/stdio.js";
+import { TrackMCPClientAdapter } from "@trackmcp/sdk/client-adapter";
+
+const adapter = new TrackMCPClientAdapter({
+  apiKey: process.env.TRACKMCP_KEY!,
+  service: "my-mcp-client",
+  transport: "stdio", // or "streamable_http"
+});
+const transport = new StdioClientTransport({ command: "my-mcp-server" });
+const client = new Client({ name: "my-host", version: "1.0.0" });
+await client.connect(adapter.wrapTransport(transport));`}</Code>
+        <Para>
+          Capture is metadata-only. It records client-observed issued calls, matched
+          transport responses, observable next calls, repeats, and lifecycle boundaries;
+          it does not record tool arguments/results, prompts, completions, private
+          reasoning, token costs, promise outcomes, timeouts, aborts, or hidden HTTP
+          reconnect/authentication behavior. Client events are labeled with
+          <Inline>observation_source: &quot;client&quot;</Inline> and do not inflate the
+          server-only aggregate or Tool Quality metrics. Malformed, notification,
+          unmatched, and duplicate messages produce diagnostics only, and capture stays
+          fail-open.
+        </Para>
+      </DocSection>
+
       <DocSection title="Wrap your server">
         <Para>
           Pass your existing server into <Inline>withTrackMCP</Inline> with your API

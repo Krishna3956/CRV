@@ -25,6 +25,7 @@ function event(overrides = {}) {
   return {
     workspace_id: "workspace-a",
     schema_version: "1",
+    observation_source: "server",
     event_type: "custom",
     service: "analytics-test",
     environment: "test",
@@ -44,6 +45,7 @@ test("analytics response exposes intent provenance and missing capabilities with
     event({ event_id: "external", context: "Resolve the deployment issue", intent_source: "external_callback", missing_capability: "bulk_export", correlation_handle: "job_1", correlation_handle_source: "external" }),
     event({ event_id: "fallback", context: "Find the record", intent_source: "fallback" }),
     event({ event_id: "missing", intent_source: "missing" }),
+    event({ event_id: "client-observation", observation_source: "client", context: "must not inflate aggregate", intent_source: "context_parameter", missing_capability: "hidden-client" }),
     event({ workspace_id: "workspace-b", event_id: "foreign", context: "foreign", intent_source: "context_parameter", missing_capability: "hidden" }),
   ]), async () => ({ auth: { getUser: async () => ({ data: { user: null } }) } }));
   const response = await handler(new Request("http://analytics.test/api/v1/analytics?days=7", { headers: { authorization: "Bearer key" } }));
@@ -52,6 +54,7 @@ test("analytics response exposes intent provenance and missing capabilities with
   assert.deepEqual(body.intent_sources, { context_parameter: 0, external_callback: 1, fallback: 1, missing: 1 });
   assert.deepEqual(body.missing_capabilities, [{ name: "bulk_export", reports: 1 }]);
   assert.equal(JSON.stringify(body).includes("hidden"), false);
+  assert.equal(JSON.stringify(body).includes("must not inflate aggregate"), false);
 });
 
 test("analytics authentication remains required", async () => {

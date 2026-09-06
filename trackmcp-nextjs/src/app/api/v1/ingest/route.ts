@@ -85,6 +85,7 @@ export function createIngestHandler(getAdmin: typeof getSupabaseAdmin = getSupab
     deployment_id: event.deployment_id || null,
     server_version: event.server_version || null,
     sdk_version: event.sdk_version || null,
+    observation_source: event.observation_source || null,
     direction: event.direction || null,
     transport: event.transport || null,
     protocol_version: event.protocol_version || null,
