@@ -95,6 +95,21 @@ test("workflow completion uses only explicit lifecycle outcomes", () => {
   assert.equal(finding.severity, "critical");
 });
 
+test("workflow completion requires the terminal outcome in the same complete UTC window", () => {
+  const events: RegressionEvent[] = [
+    { event_id: "start-yesterday", event_type: "workflow", observation_source: "server", workflow_id: "yesterday", started_at: "2026-09-06T23:59:00.000Z", payload: { name: "workflow", status: "started" } },
+    { event_id: "complete-today", event_type: "workflow", observation_source: "server", workflow_id: "yesterday", started_at: "2026-09-07T00:01:00.000Z", payload: { name: "workflow", status: "completed" } },
+    { event_id: "start-same-day", event_type: "workflow", observation_source: "server", workflow_id: "same-day", started_at: "2026-09-06T10:00:00.000Z", payload: { name: "workflow", status: "started" } },
+    { event_id: "complete-same-day", event_type: "workflow", observation_source: "server", workflow_id: "same-day", started_at: "2026-09-06T10:05:00.000Z", payload: { name: "workflow", status: "completed" } },
+    { event_id: "start-current", event_type: "workflow", observation_source: "server", workflow_id: "current", started_at: "2026-09-07T01:00:00.000Z", payload: { name: "workflow", status: "started" } },
+    { event_id: "complete-current", event_type: "workflow", observation_source: "server", workflow_id: "current", started_at: "2026-09-07T01:05:00.000Z", payload: { name: "workflow", status: "completed" } },
+  ];
+  const finding = evaluateRegressions(events, { now: NOW, metric: "workflow_completion_drop" })[0];
+  assert.equal(finding.baseline.denominator, 0);
+  assert.equal(finding.comparison.denominator, 2);
+  assert.equal(finding.comparison.numerator, 1);
+});
+
 test("client and legacy observations cannot inflate server-only findings", () => {
   const events = baseEvents().concat(baseEvents().map((event) => ({ ...event, event_id: `client-${event.event_id}`, observation_source: "client" as const, is_error: true, success: false })));
   const finding = evaluateRegressions(events, { now: NOW, metric: "tool_error_rate_spike" })[0];

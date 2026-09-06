@@ -41,6 +41,10 @@ where schemaname = 'public'
   and tablename like 'trackmcp_alert_%'
 order by tablename, indexname;
 
+-- The migration guarantees uniqueness, ordered key columns, and predicates.
+-- It does not assert access method, included columns, collation, operator
+-- class, or explicit ASC/DESC/null ordering; inspect exact_definition below
+-- if those properties matter to a deployment.
 select indexrelid::regclass as index_name,
        indisunique,
        pg_get_indexdef(indexrelid) as exact_definition

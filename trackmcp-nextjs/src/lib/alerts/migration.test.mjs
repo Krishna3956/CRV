@@ -14,12 +14,14 @@ test("P1-05 migration is forward-only, transactional, bounded, and workspace sco
   assert.match(migration, /pg_get_constraintdef/);
   assert.doesNotMatch(migration, /pg_get_(?:constraintdef|indexdef)[\s\S]*not like/i);
   assert.match(migration, /pg_get_indexdef/);
+  assert.match(migration, /access method, included columns, collation, operator class/);
   assert.match(migration, /trackmcp_claim_alert_evaluation/);
   assert.match(migration, /trackmcp_validate_alert_ownership/);
   assert.match(migration, /alert destination workspace ownership is immutable/);
   assert.match(migration, /deny_direct/);
   assert.match(manualSql, /begin;[\s\S]*rollback;/i);
   assert.match(manualSql, /pg_get_constraintdef/);
+  assert.match(manualSql, /does not assert access method/);
   assert.match(manualSql, /cross_workspace_destination_links/);
   assert.match(migration, /enable row level security/gi);
   assert.match(migration, /revoke all on public\.trackmcp_alert_deliveries from anon, authenticated/);

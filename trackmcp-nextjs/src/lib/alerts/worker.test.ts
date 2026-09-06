@@ -74,3 +74,12 @@ test("scheduler template is hourly and disabled until explicitly enabled", () =>
   assert.match(template, /Timeout: 60/);
   assert.match(template, /WorkerTokenSecretArn/);
 });
+
+test("scheduler documentation contains reproducible gated operations", () => {
+  const readme = fs.readFileSync(new URL("../../../workers/alerts-scheduler/README.md", import.meta.url), "utf8");
+  for (const phrase of ["sam build", "sam deploy", "AWS_REGION", "STACK_NAME", "EvaluatorUrl", "WorkerTokenSecretArn", "TRACKMCP_ALERT_EVALUATOR_URL", "TRACKMCP_ALERT_WORKER_TOKEN", "EnableSchedule=false", "EnableSchedule=true", "aws lambda invoke", "aws logs tail", "aws sqs get-queue-attributes", "describe-alarms", "sam delete"]) assert.match(readme, new RegExp(phrase.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
+  assert.match(readme, /unauthenticated evaluator request returns `401`/);
+  assert.match(readme, /incorrect worker token returns `401`/);
+  assert.match(readme, /staging shadow evaluation/);
+  assert.match(readme, /keep the Scheduler disabled/);
+});

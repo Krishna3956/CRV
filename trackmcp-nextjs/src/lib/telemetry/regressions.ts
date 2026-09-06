@@ -224,7 +224,7 @@ function workflowSummary(events: readonly RegressionEvent[], window: WindowBound
     const start = lifecycle.filter((event) => event.payload?.status === "started").sort((a, b) => (time(a) || 0) - (time(b) || 0))[0];
     if (!start || !inWindow(start, window)) continue;
     started += 1;
-    const terminal = lifecycle.filter((event) => (event.payload?.status === "completed" || event.payload?.status === "failed") && (time(event) || 0) >= (time(start) || 0)).sort((a, b) => (time(a) || 0) - (time(b) || 0)).at(-1);
+    const terminal = lifecycle.filter((event) => (event.payload?.status === "completed" || event.payload?.status === "failed") && (time(event) || 0) >= (time(start) || 0) && inWindow(event, window)).sort((a, b) => (time(a) || 0) - (time(b) || 0)).at(-1);
     if (terminal) completed += terminal.payload?.status === "completed" ? 1 : 0;
   }
   return summary(window, completed, started, started ? completed / started : null);

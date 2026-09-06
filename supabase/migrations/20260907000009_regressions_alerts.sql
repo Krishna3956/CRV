@@ -182,25 +182,27 @@ begin
   if tg_table_name = 'trackmcp_alert_destinations' and tg_op = 'UPDATE' and new.workspace_id is distinct from old.workspace_id then
     raise exception 'alert destination workspace ownership is immutable';
   end if;
-  if tg_table_name = 'trackmcp_alert_configs' and exists (
-    select 1 from unnest(coalesce(new.destination_ids, '{}'::text[])) as destination_id
-    where not exists (
-      select 1 from public.trackmcp_alert_destinations d
-       where d.id::text = destination_id and d.workspace_id = new.workspace_id
-    )
-  ) then
-    raise exception 'alert destinations must belong to the alert workspace';
-  end if;
-  if tg_table_name = 'trackmcp_alert_incidents' and not exists (
-    select 1 from public.trackmcp_alert_configs c where c.id = new.alert_id and c.workspace_id = new.workspace_id
-  ) then
-    raise exception 'alert incident must belong to the alert workspace';
-  end if;
-  if tg_table_name = 'trackmcp_alert_deliveries' and (
-    not exists (select 1 from public.trackmcp_alert_incidents i where i.id = new.incident_id and i.workspace_id = new.workspace_id)
-    or not exists (select 1 from public.trackmcp_alert_destinations d where d.id = new.destination_id and d.workspace_id = new.workspace_id)
-  ) then
-    raise exception 'alert delivery records must remain workspace scoped';
+  if tg_table_name = 'trackmcp_alert_configs' then
+    if exists (
+      select 1 from unnest(coalesce(new.destination_ids, '{}'::text[])) as destination_id
+      where not exists (
+        select 1 from public.trackmcp_alert_destinations d
+         where d.id::text = destination_id and d.workspace_id = new.workspace_id
+      )
+    ) then
+      raise exception 'alert destinations must belong to the alert workspace';
+    end if;
+  elsif tg_table_name = 'trackmcp_alert_incidents' then
+    if not exists (
+      select 1 from public.trackmcp_alert_configs c where c.id = new.alert_id and c.workspace_id = new.workspace_id
+    ) then
+      raise exception 'alert incident must belong to the alert workspace';
+    end if;
+  elsif tg_table_name = 'trackmcp_alert_deliveries' then
+    if not exists (select 1 from public.trackmcp_alert_incidents i where i.id = new.incident_id and i.workspace_id = new.workspace_id)
+       or not exists (select 1 from public.trackmcp_alert_destinations d where d.id = new.destination_id and d.workspace_id = new.workspace_id) then
+      raise exception 'alert delivery records must remain workspace scoped';
+    end if;
   end if;
   return new;
 end;
@@ -241,8 +243,11 @@ end
 $$;
 
 -- A same-named incompatible constraint or index must not make an idempotent
--- replay appear successful. Existing definitions are compared exactly after
--- PostgreSQL's canonical rendering; a mismatch aborts this transaction.
+-- replay appear successful. CHECK definitions are compared exactly after
+-- PostgreSQL's canonical rendering. Index validation guarantees uniqueness,
+-- ordered key columns, and predicates; it intentionally does not claim to
+-- validate access method, included columns, collation, operator class, or
+-- explicit ASC/DESC/null ordering. A mismatch aborts this transaction.
 do $$
 declare
   definition text;
