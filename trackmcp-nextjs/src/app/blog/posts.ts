@@ -20,6 +20,7 @@ export type Post = {
   date: string;
   read: string;
   updated?: string;
+  verified?: string;
   keywords?: string[];
   related?: string[];
   body: Block[];
@@ -35,6 +36,117 @@ const links = (items: { label: string; href: string }[]): Block => ({ t: "links"
 const callout = (title: string, c: string): Block => ({ t: "callout", title, c });
 
 export const posts: Post[] = [
+  {
+    slug: "best-mcp-observability-tools-for-production-servers",
+    title: "Best MCP Observability Tools for Production Servers",
+    tag: "MCP observability",
+    excerpt:
+      "A practical comparison of MCP server observability tools, from server-boundary analytics to broader agent traces, infrastructure telemetry, and OpenTelemetry stacks.",
+    date: "Sep 7, 2026",
+    read: "10 min read",
+    updated: "Sep 7, 2026",
+    verified: "Sep 7, 2026",
+    keywords: [
+      "MCP observability",
+      "MCP analytics",
+      "MCP server monitoring",
+      "MCP telemetry",
+      "MCP trace explorer",
+      "MCP production monitoring",
+      "AI observability tools",
+      "LLM observability",
+      "agent observability",
+    ],
+    related: [
+      "mcp-observability-guide",
+      "mcp-server-analytics-guide",
+      "how-to-monitor-an-mcp-server-in-production",
+      "mcp-server-slos",
+      "opentelemetry-for-mcp-servers",
+    ],
+    body: [
+      p("MCP observability is the practice of understanding what happens when an AI client connects to an MCP server, discovers its capabilities, calls a tool, and either continues or stops. It is narrower than general LLM observability and broader than an HTTP uptime check. The useful question is not only whether the endpoint responded, but whether the server exposed the right catalog, handled the call, returned an application-level result, and gave the workflow a chance to finish."),
+      callout("Quick answer", "For MCP server owners, start with a tool-aware server-boundary layer. Add broader LLM traces, infrastructure monitoring, and OpenTelemetry when you need visibility outside the server process. The best stack is often complementary, not one universal replacement."),
+      p("This comparison reflects publicly documented capabilities reviewed on September 7, 2026. MCP specifications, SDKs, and product integrations are moving quickly, so verify the current documentation and supported versions before making a production decision."),
+      h("What MCP server observability should measure"),
+      p("An MCP server sits between a client and the tools, resources, or prompts that the server exposes. A production view should make the protocol boundary legible without claiming access to private model reasoning or every event in the host application."),
+      ul([
+        "Connections, transport, protocol version, and available client metadata.",
+        "Catalog discovery, tool names, descriptions, schemas, and catalog changes.",
+        "Tool calls, observed duration, result state, and application errors inside successful transport responses.",
+        "Sessions, retries, repeated calls, and ordered server-boundary events when the product has enough evidence to group them.",
+        "Explicit workflow outcomes when the application emits them, kept separate from the weaker signal of a successful tool response.",
+        "Redaction, payload limits, access controls, and failure behavior for the telemetry system itself.",
+      ]),
+      h("MCP observability versus broader LLM observability"),
+      p("Broader LLM and agent observability platforms usually trace model calls, prompts, retrieval, tool use, feedback, evaluations, token usage, and application spans. That is valuable when the question is why an agent chose a path or whether a response was good. MCP server observability starts at the other side of that boundary: what the server actually received, what it exposed, what it executed, and what it returned."),
+      p("The difference matters because a server can receive a perfectly valid tool call without seeing the model's hidden reasoning, the full user prompt, the provider's internal behavior, or the final answer. A server-side trace is evidence about the server path, not proof of the complete agent run."),
+      h("How the main options fit"),
+      h("TrackMCP"),
+      p("TrackMCP is designed for teams that own and operate MCP servers. Its SDK wraps an existing server at the server boundary and records the MCP-specific signals available there: clients, catalog and schema context, tool usage, observed latency, application-level errors, sessions, and explicit workflow outcomes. Telemetry is bounded and redacted, with metadata-only capture available when arguments and results should not leave the process."),
+      p("TrackMCP is a good fit when the decision is about server adoption, tool reliability, client behavior, or where an observed workflow stopped. It does not claim to see private reasoning, hidden prompts, provider-side token costs, or every client-side event. It is an MCP server observability layer, not a replacement for general infrastructure monitoring or a complete LLM trace."),
+      links([
+        { label: "TrackMCP MCP observability", href: "/mcp-observability" },
+        { label: "TrackMCP documentation", href: "/docs" },
+        { label: "MCP analytics comparison", href: "/mcp-server-analytics/compare" },
+      ]),
+      h("Sentry"),
+      p("Sentry documents generally available MCP monitoring for most server-side JavaScript SDK-based MCP servers. Its documented coverage includes transport usage, client activity, tool calls and resources, arguments and results, latency, throughput, and failures. That makes Sentry one of the closest direct alternatives for JavaScript teams that already use Sentry for application errors and performance."),
+      p("Sentry is a good fit when error tracking and application performance are the center of the team's workflow, especially when the server runs in a supported JavaScript environment. The public MCP monitoring documentation reviewed here does not establish the same TypeScript and Python SDK parity, MCP-specific workflow-outcome model, or TrackMCP's exact redaction semantics. Treat those as verification questions, not assumptions."),
+      links([{ label: "Sentry MCP monitoring documentation", href: "https://sentry.io/changelog/mcp-monitoring---generally-available/" }]),
+      h("Datadog"),
+      p("Datadog approaches MCP observability as part of a broad monitoring platform. Its documentation covers MCP client and server instrumentation, including server-side initialize and tools/call methods, client metadata, and optional tools/list interception for intent capture. The wider platform connects those signals to APM, logs, metrics, infrastructure, security, and Agent Observability workflows."),
+      p("Datadog is a strong fit for organizations that already standardize on Datadog and want MCP data in the same operational system. The tradeoff is product breadth and configuration complexity. Teams evaluating it against TrackMCP should compare the MCP-specific questions they need answered, not only the total number of features in the platform."),
+      links([{ label: "Datadog MCP instrumentation documentation", href: "https://docs.datadoghq.com/llm_observability/instrument/auto_instrumentation/" }]),
+      h("Grafana and OpenTelemetry"),
+      p("Grafana and OpenTelemetry are better understood as an extensible observability stack than as one narrowly defined MCP product. Grafana documents MCP observability dashboards for protocol health, tool performance, sessions, transport, and related signals. Its MCP server documentation also shows Prometheus metrics and OpenTelemetry traces and logs, with transport-specific differences that teams need to understand."),
+      p("This option fits teams that want control over collectors, storage, dashboards, and data routing, or that already operate Prometheus, Tempo, Loki, and Grafana. It can provide broad context, but the team owns more of the semantic model, instrumentation, alerting, and maintenance. A productized MCP layer may still complement it when server-specific analytics should be available without assembling every query and panel in-house."),
+      links([
+        { label: "Grafana MCP observability documentation", href: "https://grafana.com/docs/grafana-cloud/observe-and-act/monitor-applications/ai-observability/mcp-observability/" },
+        { label: "Grafana MCP metrics and tracing documentation", href: "https://grafana.com/docs/grafana/latest/developer-resources/mcp/developer/observability-metrics-and-tracing/" },
+      ]),
+      h("Langfuse"),
+      p("Langfuse focuses on LLM and agent application observability, evaluation, prompt management, and related workflows. Its data model includes traces, observations, and sessions, and its documentation covers tool and retrieval steps, OpenTelemetry, token and cost tracking, and linking MCP client and server operations through trace metadata. It also provides an MCP server for querying Langfuse data from compatible assistants."),
+      p("Langfuse is a good fit when the central question spans the full AI application, especially model calls, evaluations, prompts, feedback, and self-hosted deployment. It can be complementary to TrackMCP when a team needs both application-level traces and a focused view of what its MCP server actually exposes and receives. The public documentation reviewed here should be used to verify the exact server-side MCP coverage for a specific deployment."),
+      links([
+        { label: "Langfuse MCP tracing documentation", href: "https://langfuse.com/docs/observability/features/mcp-tracing" },
+        { label: "Langfuse MCP server documentation", href: "https://langfuse.com/docs/api-and-data-platform/features/mcp-server" },
+      ]),
+      h("LangSmith"),
+      p("LangSmith is centered on tracing, debugging, evaluating, and monitoring LLM applications and agents. Its official tutorial traces individual model calls and complete application pipelines, records metadata and feedback, and exposes monitoring views for trace count, latency, error rate, feedback, and cost. Teams already building with LangChain may benefit from the native ecosystem integration."),
+      p("LangSmith is a good fit when the team needs to understand the agent or application path that leads to an MCP call. It should not automatically be treated as a substitute for MCP server analytics. The public observability documentation reviewed here describes application and agent tracing; verify any MCP server-specific instrumentation separately for the runtime and transport you operate."),
+      links([{ label: "LangSmith observability tutorial", href: "https://docs.langchain.com/langsmith/observability-llm-tutorial" }]),
+      h("Which tool is right for which team?"),
+      ul([
+        "Choose TrackMCP when your primary owner is the MCP server team and you need clients, tools, catalog context, server-boundary errors, latency, sessions, and explicit workflow signals in one focused view.",
+        "Choose Sentry when application errors and performance are central, your MCP server is in a supported JavaScript environment, and you want MCP signals alongside Sentry's existing workflow.",
+        "Choose Datadog when your organization already operates Datadog across infrastructure, APM, logs, security, and agent observability, and MCP data should join that platform.",
+        "Choose Grafana and OpenTelemetry when your team wants composable, vendor-neutral instrumentation and is prepared to operate the collection, storage, dashboards, and semantics.",
+        "Choose Langfuse when model, prompt, evaluation, feedback, and agent traces are the main unit of investigation, with MCP as one part of the wider application.",
+        "Choose LangSmith when your application is closely tied to LangChain or when agent and pipeline tracing is the primary debugging and evaluation workflow.",
+      ]),
+      h("What to evaluate before production"),
+      ul([
+        "Boundary coverage: does the tool observe the MCP server, the client, the host application, or only downstream services?",
+        "Error semantics: can it distinguish transport status from an application error carried inside a successful tool result?",
+        "Dimensions: can you break down behavior by client, tool, protocol version, transport, environment, session, and catalog version?",
+        "Outcome semantics: does it distinguish a successful tool response from an explicit workflow completion signal?",
+        "Privacy: where are arguments and results redacted, how are limits enforced, and what is the default capture mode?",
+        "Operational safety: does telemetry fail open, remain bounded, and avoid blocking the tool call when the observability service is unavailable?",
+        "Freshness: which MCP specification and SDK versions are supported, and how quickly does the integration track protocol changes?",
+      ]),
+      h("The practical answer is usually a layered stack"),
+      p("MCP server observability and broader AI observability answer different questions. A team may use TrackMCP or another MCP-aware layer for server adoption and protocol behavior, Sentry or Datadog for application and infrastructure operations, and Langfuse, LangSmith, Phoenix, or an OpenTelemetry stack for broader agent traces and evaluations. The right architecture depends on the system boundary, data policy, and decisions the team needs to make."),
+      p("Start with one production server and one representative workflow. Confirm that the data answers a real debugging or product question, inspect what is redacted, and record what remains unknown. That evaluation is more useful than choosing a winner from a generic feature-count table."),
+      links([
+        { label: "Start the MCP observability quickstart", href: "/mcp-server-analytics/quickstart" },
+        { label: "Read how to monitor an MCP server in production", href: "/blog/how-to-monitor-an-mcp-server-in-production" },
+        { label: "Read the MCP observability guide", href: "/blog/mcp-observability-guide" },
+        { label: "Explore TrackMCP", href: "/track-mcp" },
+        { label: "Open the TrackMCP dashboard", href: "https://app.trackmcp.com/dashboard" },
+      ]),
+    ],
+  },
   {
     slug: "trackmcp-foundation-release",
     title: "TrackMCP Foundation Release: Safer, More Honest MCP Observability",
