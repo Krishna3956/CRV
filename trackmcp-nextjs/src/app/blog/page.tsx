@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { pageMeta } from "@/lib/seo";
+import { breadcrumbJsonLd, pageMeta, serializeJsonLd } from "@/lib/seo";
 import Link from "next/link";
 import { ArrowUpRight } from "lucide-react";
 import { Nav } from "@/components/Nav";
@@ -19,8 +19,13 @@ export const metadata: Metadata = pageMeta({
 
 export default function BlogPage() {
   const [featured, ...rest] = posts;
+  const breadcrumbSchema = breadcrumbJsonLd([
+    { name: "Home", path: "/" },
+    { name: "Blog", path: "/blog" },
+  ]);
   return (
     <>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeJsonLd(breadcrumbSchema) }} />
       <Nav />
       <main className="flex-1">
         <PageFrame>

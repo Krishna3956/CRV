@@ -8,6 +8,7 @@
     "start": "next start",
     "lint": "eslint",
     "seo:audit": "node scripts/audit-seo.mjs",
+    "test:seo-breadcrumbs": "node --test scripts/breadcrumbs.test.mjs",
     "mcp:import": "node scripts/import-mcp-repository.mjs"
   },
   "dependencies": {
