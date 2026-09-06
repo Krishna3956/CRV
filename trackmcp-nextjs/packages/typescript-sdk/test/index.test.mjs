@@ -145,4 +145,23 @@ test("issued mode augments only compatible tool schemas and strips the echoed fi
   const call = received.flatMap((batch) => batch.events).find((event) => event.event_type === "tool_call");
   assert.equal(call.correlation_handle, handle);
   assert.equal(call.correlation_handle_source, "issued");
+  assert.equal(JSON.stringify(call.payload).includes(field), false);
+});
+
+test("expired pending requests are cleaned up and cannot attach to a later response", async () => {
+  const rawTransport = { async send() {}, onmessage: undefined };
+  const server = { connect(transport) { this.transport = transport; transport.onmessage = () => {}; return Promise.resolve(); } };
+  const wrapped = withTrackMCP(server, { apiKey: "tmcp_test", disabled: false, flushIntervalMs: 60000 });
+  await wrapped.connect(rawTransport);
+  const originalNow = Date.now;
+  try {
+    const firstStarted = originalNow();
+    server.transport.onmessage({ id: "stale", method: "tools/call", params: { name: "lookup", arguments: {} } });
+    Date.now = () => firstStarted + 30001;
+    server.transport.onmessage({ id: "current", method: "tools/call", params: { name: "lookup", arguments: {} } });
+    server.transport.send({ id: "stale", result: { isError: false } });
+    assert.equal(wrapped.trackmcp.getDiagnostics().queuedEvents, 0);
+  } finally {
+    Date.now = originalNow;
+  }
 });

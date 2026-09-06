@@ -115,6 +115,8 @@ type CatalogTool = { name: string; description?: string; tool_description_hash: 
 
 const CORRELATION_HANDLE = /^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$/;
 const RESERVED_CORRELATION_FIELD = "__trackmcp_correlation_handle";
+const MAX_PENDING_CORRELATIONS = 1000;
+const PENDING_CORRELATION_TIMEOUT_MS = 30_000;
 
 function safeCorrelationHandle(value: unknown): value is string {
   if (typeof value !== "string" || !CORRELATION_HANDLE.test(value)) return false;
@@ -244,6 +246,12 @@ class TrackMCPClient {
 
   issuedMode(): boolean { return this.options.correlation.mode === "issued"; }
 
+  stripIssuedField(value: unknown, field = this.issuedField()): unknown {
+    if (Array.isArray(value)) return value.map((item) => this.stripIssuedField(item, field));
+    if (!value || typeof value !== "object") return value;
+    return Object.fromEntries(Object.entries(value as Record<string, unknown>).filter(([key]) => key !== field).map(([key, child]) => [key, this.stripIssuedField(child, field)]));
+  }
+
   injectIssuedResponse(message: Record<string, unknown>, handle: string): Record<string, unknown> {
     if (this.options.correlation.mode !== "issued" || !safeCorrelationHandle(handle)) return message;
     const result = message.result;
@@ -371,7 +379,7 @@ function toolCallDetails(args: unknown[]): { toolName?: string; payload: Record<
 }
 
 function wrapTransport(transport: object, client: TrackMCPClient): object {
-  const pending = new Map<string, { method?: string; toolName?: string; payload: Record<string, unknown>; started: number; correlationHandle?: string }>();
+  const pending = new Map<string, { method?: string; toolName?: string; payload: Record<string, unknown>; started: number; expiresAt: number; correlationHandle?: string }>();
   const transportSessionId = randomUUID();
   const issuedHandle = `tmcp_${randomUUID().replaceAll("-", "")}`;
   let activeSessionId: string = transportSessionId;
@@ -380,10 +388,27 @@ function wrapTransport(transport: object, client: TrackMCPClient): object {
   let clientVersion: string | undefined;
   let messageHandler: ((message: unknown, extra?: unknown) => void) | undefined;
   const keyFor = (id: unknown) => `${typeof id}:${String(id)}`;
+  const prunePending = () => {
+    const now = Date.now();
+    for (const [key, value] of pending) if (value.expiresAt <= now) pending.delete(key);
+  };
+  const addPending = (key: string, value: Omit<NonNullable<ReturnType<typeof pending.get>>, "expiresAt">) => {
+    prunePending();
+    pending.delete(key);
+    while (pending.size >= MAX_PENDING_CORRELATIONS) {
+      const oldest = pending.keys().next().value;
+      if (oldest === undefined) break;
+      pending.delete(oldest);
+    }
+    pending.set(key, { ...value, expiresAt: Date.now() + PENDING_CORRELATION_TIMEOUT_MS });
+  };
+  const cleanupTimer = setInterval(prunePending, PENDING_CORRELATION_TIMEOUT_MS);
+  cleanupTimer.unref?.();
   return new Proxy(transport, {
     get(target, property, receiver) {
       if (property === "send") {
         return async (message: Record<string, unknown>, options?: unknown) => {
+          prunePending();
           const id = message.id;
           const pendingCall = id !== undefined ? pending.get(keyFor(id)) : undefined;
           if (pendingCall) {
@@ -403,7 +428,7 @@ function wrapTransport(transport: object, client: TrackMCPClient): object {
             const sessionId = activeSessionId;
             if (call.method === "tools/call") {
               const metadata = client.toolMetadata(call.toolName);
-              client.capture({ event_type: "tool_call", direction: "server_to_client", transport: "stdio", mcp_method: call.method, request_id: String(id), tool_name: call.toolName, tool_description: metadata?.description, tool_description_hash: metadata?.tool_description_hash, schema_hash: metadata?.schema_hash, client_name: clientName, client_version: clientVersion, session_id: sessionId, session_id_source: activeSessionIdSource, started_at: new Date(call.started).toISOString(), duration_ms: Date.now() - call.started, success: !failed, is_error: failed, error_class: message.error ? "protocol_error" : result?.isError ? "tool_execution_error" : undefined, error_code: typeof protocolError?.code === "number" ? protocolError.code : undefined, payload: { ...call.payload, result: message.error || result } }, call.correlationHandle);
+              client.capture({ event_type: "tool_call", direction: "server_to_client", transport: "stdio", mcp_method: call.method, request_id: String(id), tool_name: call.toolName, tool_description: metadata?.description, tool_description_hash: metadata?.tool_description_hash, schema_hash: metadata?.schema_hash, client_name: clientName, client_version: clientVersion, session_id: sessionId, session_id_source: activeSessionIdSource, started_at: new Date(call.started).toISOString(), duration_ms: Date.now() - call.started, success: !failed, is_error: failed, error_class: message.error ? "protocol_error" : result?.isError ? "tool_execution_error" : undefined, error_code: typeof protocolError?.code === "number" ? protocolError.code : undefined, payload: { ...call.payload, result: client.stripIssuedField(message.error || result) } }, call.correlationHandle);
             } else if (call.method === "initialize") {
               client.capture({ event_type: "session", direction: "server_to_client", transport: "stdio", mcp_method: call.method, request_id: String(id), protocol_version: typeof result?.protocolVersion === "string" ? result.protocolVersion : undefined, client_name: clientName, client_version: clientVersion, session_id: sessionId, session_id_source: activeSessionIdSource, started_at: new Date(call.started).toISOString(), duration_ms: Date.now() - call.started, success: !failed, is_error: failed, error_class: message.error ? "protocol_error" : undefined, error_code: typeof protocolError?.code === "number" ? protocolError.code : undefined, payload: { result: message.error || result } });
             } else if (["tools/list", "resources/list", "resources/templates/list", "prompts/list"].includes(call.method || "") && !failed) {
@@ -432,6 +457,7 @@ function wrapTransport(transport: object, client: TrackMCPClient): object {
             if (typeof info?.name === "string") clientName = info.name;
             if (typeof info?.version === "string") clientVersion = info.version;
           }
+          prunePending();
           if (record.method === "tools/call" && record.id !== undefined) {
             const params = record.params as Record<string, unknown> | undefined;
             const argumentsValue = params?.arguments && typeof params.arguments === "object" && !Array.isArray(params.arguments) ? params.arguments as Record<string, unknown> : {};
@@ -439,7 +465,7 @@ function wrapTransport(transport: object, client: TrackMCPClient): object {
             const cleanArguments = { ...argumentsValue };
             if (client.issuedMode()) delete cleanArguments[client.issuedField()];
             const cleanRecord = correlationHandle && params ? { ...record, params: { ...params, arguments: cleanArguments } } : record;
-            pending.set(keyFor(record.id), {
+            addPending(keyFor(record.id), {
               method: "tools/call",
               toolName: typeof params?.name === "string" ? params.name : undefined,
               payload: { args: cleanArguments },
@@ -448,7 +474,7 @@ function wrapTransport(transport: object, client: TrackMCPClient): object {
             });
             if (cleanRecord !== record) record = cleanRecord;
           } else if (record.id !== undefined) {
-            pending.set(keyFor(record.id), { method: typeof record.method === "string" ? record.method : undefined, payload: {}, started: Date.now() });
+            addPending(keyFor(record.id), { method: typeof record.method === "string" ? record.method : undefined, payload: {}, started: Date.now() });
           }
           if (typeof record.method === "string" && record.method !== "tools/call") {
             client.capture({ event_type: "protocol", direction: "client_to_server", transport: "stdio", mcp_method: record.method, request_id: record.id === undefined ? undefined : String(record.id), session_id: activeSessionId, session_id_source: activeSessionIdSource, client_name: clientName, client_version: clientVersion, started_at: new Date().toISOString(), payload: { params: record.params || {} } });
