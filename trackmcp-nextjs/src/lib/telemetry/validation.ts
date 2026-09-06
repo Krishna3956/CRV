@@ -5,6 +5,7 @@ import {
   type TrackMCPEvent,
   type TrackMCPEventType,
   type TrackMCPCorrelationHandleSource,
+  type TrackMCPIntentSource,
   type TrackMCPSessionIdSource,
 } from "./types.ts";
 
@@ -21,6 +22,7 @@ const TRANSPORTS = ["stdio", "streamable_http", "sse", "custom"] as const;
 const PAYLOAD_POLICIES = ["metadata", "redacted", "full"] as const;
 const SESSION_ID_SOURCES = ["protocol", "transport_generated", "external", "missing"] as const;
 const CORRELATION_HANDLE_SOURCES = ["external", "issued", "missing"] as const;
+const INTENT_SOURCES = ["context_parameter", "external_callback", "fallback", "missing"] as const;
 const INGEST_SENSITIVE_KEYS = new Set([
   "password", "passwd", "secret", "token", "api_key", "apikey", "authorization", "cookie",
   "set_cookie", "access_token", "refresh_token", "private_key", "client_secret", "ssn",
@@ -31,6 +33,7 @@ const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-
 const EVENT_ID = /^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$/;
 const ISO_TIMESTAMP = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,9})?(?:Z|[+-]\d{2}:\d{2})$/;
 const CORRELATION_HANDLE = /^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$/;
+const SENSITIVE_INTENT = /(?:bearer\s+|authorization\s*[:=]|api[_-]?key\s*[:=]|access[_-]?token\s*[:=]|refresh[_-]?token\s*[:=]|password\s*[:=]|secret\s*[:=]|eyJ[A-Za-z0-9_-]+\.|https?:\/\/|\b[^\s@]+@[^\s@]+\.[^\s@]+\b)/i;
 
 export type EventValidationResult =
   | { ok: true; event: CanonicalTrackMCPEvent }
@@ -125,7 +128,7 @@ function checkOptionalStrings(event: Record<string, unknown>): string | undefine
   const fields = [
     "schema_version", "server_id", "deployment_id", "server_version", "sdk_version", "protocol_version",
     "mcp_method", "request_id", "session_id", "task_id", "workflow_id", "client_name", "client_version",
-    "tool_name", "tool_description", "tool_description_hash", "error_class", "schema_hash", "correlation_handle",
+    "tool_name", "tool_description", "tool_description_hash", "error_class", "schema_hash", "correlation_handle", "context", "missing_capability",
   ];
   for (const field of fields) {
     if (event[field] !== undefined && event[field] !== null && !isString(event[field])) return `${field} must be a non-empty string`;
@@ -135,6 +138,14 @@ function checkOptionalStrings(event: Record<string, unknown>): string | undefine
 
 export function isUuid(value: string): boolean {
   return UUID.test(value);
+}
+
+/** Intent is optional context, never a place for credentials or direct identity. */
+export function sanitizeIntentText(value: unknown): string | undefined {
+  if (typeof value !== "string") return undefined;
+  const text = value.trim();
+  if (!text || byteLength(text) > MAX_STRING_LENGTH || SENSITIVE_INTENT.test(text)) return undefined;
+  return text;
 }
 
 export function normalizeTrackMCPEvent(value: unknown): EventValidationResult {
@@ -163,6 +174,12 @@ export function normalizeTrackMCPEvent(value: unknown): EventValidationResult {
     if (typeof event.correlation_handle !== "string" || !CORRELATION_HANDLE.test(event.correlation_handle) || byteLength(event.correlation_handle) > MAX_CORRELATION_HANDLE_BYTES || /(?:bearer(?:\s|[_:-])|eyJ[A-Za-z0-9_-]+\.|@|https?:\/\/|:\/\/|^sk[-_])/i.test(event.correlation_handle)) return { ok: false, reason: "correlation_handle must be a bounded opaque handle", eventId };
     if (event.correlation_handle_source !== "external" && event.correlation_handle_source !== "issued") return { ok: false, reason: "correlation_handle_source is required when correlation_handle is present", eventId };
   }
+  if (event.intent_source !== undefined && event.intent_source !== null && !INTENT_SOURCES.includes(event.intent_source as TrackMCPIntentSource)) return { ok: false, reason: "intent_source is unsupported", eventId };
+  const context = sanitizeIntentText(event.context);
+  if (event.context !== undefined && event.context !== null && !context) return { ok: false, reason: "context must be bounded and privacy-safe", eventId };
+  if (event.intent_source !== undefined && event.intent_source !== null && event.intent_source !== "missing" && !context) return { ok: false, reason: "context is required for intent_source", eventId };
+  if (context && event.intent_source === "missing") return { ok: false, reason: "intent_source cannot be missing when context is present", eventId };
+  if (event.missing_capability !== undefined && event.missing_capability !== null && !sanitizeIntentText(event.missing_capability)) return { ok: false, reason: "missing_capability must be bounded and privacy-safe", eventId };
   if ((event.correlation_handle_source === "external" || event.correlation_handle_source === "issued") && typeof event.correlation_handle !== "string") return { ok: false, reason: "correlation_handle is required for its source", eventId };
   for (const field of ["duration_ms", "retry_number", "payload_size_bytes"] as const) {
     if (event[field] !== undefined && event[field] !== null && !isNonNegativeInteger(event[field])) return { ok: false, reason: `${field} must be a non-negative integer`, eventId };
@@ -173,7 +190,12 @@ export function normalizeTrackMCPEvent(value: unknown): EventValidationResult {
   }
   if (event.payload !== undefined && event.payload !== null && !isRecord(event.payload)) return { ok: false, reason: "payload must be an object", eventId };
 
-  const normalized = { ...event, schema_version: event.schema_version || TRACKMCP_LEGACY_SCHEMA_VERSION } as CanonicalTrackMCPEvent;
+  const normalized = {
+    ...event,
+    ...(context ? { context, intent_source: event.intent_source || "context_parameter" } : { intent_source: "missing" }),
+    ...(event.missing_capability ? { missing_capability: sanitizeIntentText(event.missing_capability) } : {}),
+    schema_version: event.schema_version || TRACKMCP_LEGACY_SCHEMA_VERSION,
+  } as CanonicalTrackMCPEvent;
   const serialized = JSON.stringify(normalized);
   if (!serialized || byteLength(serialized) > MAX_EVENT_BYTES) return { ok: false, reason: `event exceeds ${MAX_EVENT_BYTES} bytes`, eventId };
   if (normalized.payload !== undefined && byteLength(JSON.stringify(normalized.payload)) > MAX_PAYLOAD_BYTES) {

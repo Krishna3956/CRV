@@ -14,6 +14,9 @@ function event(overrides = {}) {
     started_at: "2026-09-06T00:00:00Z",
     session_id: "session-a",
     session_id_source: "protocol",
+    context: null,
+    intent_source: "missing",
+    missing_capability: null,
     duration_ms: 20,
     success: true,
     ...overrides,
@@ -101,4 +104,16 @@ test("trace route can query a bounded handle without overloading session_id", as
   assert.equal(response.body.correlation_handle, "job_anon_1");
   assert.equal(response.body.correlation_handle_source, "external");
   assert.deepEqual(response.body.events.map((row) => row.event_id), ["handle-event"]);
+});
+
+test("trace response preserves intent fields and correlation provenance", async () => {
+  const handler = createTraceHandler(() => fakeAdmin([
+    event({ workspace_id: "workspace-a", event_id: "intent-event", session_id: null, session_id_source: "missing", context: "Find the relevant documentation", intent_source: "context_parameter", missing_capability: "bulk_export", correlation_handle: "job_anon_1", correlation_handle_source: "external" }),
+  ]));
+  const response = await get(handler, "correlation_handle=job_anon_1");
+  assert.equal(response.status, 200);
+  assert.equal(response.body.events[0].context, "Find the relevant documentation");
+  assert.equal(response.body.events[0].intent_source, "context_parameter");
+  assert.equal(response.body.events[0].missing_capability, "bulk_export");
+  assert.equal(response.body.correlation_quality, "external");
 });

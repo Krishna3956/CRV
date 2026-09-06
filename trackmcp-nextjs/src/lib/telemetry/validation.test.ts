@@ -73,3 +73,19 @@ test("validates bounded correlation handles without inferring them from request 
   assert.equal(noHandle.ok, true);
   if (noHandle.ok) assert.equal(noHandle.event.correlation_handle, undefined);
 });
+
+test("validates explicit intent provenance and rejects unsafe context", () => {
+  const context = normalizeTrackMCPEvent(baseEvent({ context: "Find the relevant documentation", intent_source: "context_parameter" }));
+  assert.equal(context.ok, true);
+  const external = normalizeTrackMCPEvent(baseEvent({ context: "Resolve the deployment issue", intent_source: "external_callback" }));
+  assert.equal(external.ok, true);
+  const fallback = normalizeTrackMCPEvent(baseEvent({ context: "Complete the lookup", intent_source: "fallback" }));
+  assert.equal(fallback.ok, true);
+  const missing = normalizeTrackMCPEvent(baseEvent({ intent_source: "missing" }));
+  assert.equal(missing.ok, true);
+  assert.equal(normalizeTrackMCPEvent(baseEvent({ context: "Bearer secret", intent_source: "context_parameter" })).ok, false);
+  assert.equal(normalizeTrackMCPEvent(baseEvent({ context: "x".repeat(2049), intent_source: "context_parameter" })).ok, false);
+  assert.equal(normalizeTrackMCPEvent(baseEvent({ context: "goal", intent_source: "missing" })).ok, false);
+  assert.equal(normalizeTrackMCPEvent(baseEvent({ intent_source: "fallback" })).ok, false);
+  assert.equal(normalizeTrackMCPEvent(baseEvent({ missing_capability: "bulk_export" })).ok, true);
+});

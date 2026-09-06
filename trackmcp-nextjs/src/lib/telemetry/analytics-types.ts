@@ -1,4 +1,4 @@
-import type { TrackMCPCorrelationHandleSource, TrackMCPSessionIdSource } from "./types.ts";
+import type { TrackMCPCorrelationHandleSource, TrackMCPIntentSource, TrackMCPSessionIdSource } from "./types.ts";
 
 export type CompletionSource = "workflow_events" | "session_heuristic" | "none";
 export type CorrelationQuality = "session_id" | "transport_generated" | "external" | "issued" | "missing" | "mixed";
@@ -29,6 +29,9 @@ export type TraceEvent = {
   session_id_source: TrackMCPSessionIdSource | null;
   correlation_handle: string | null;
   correlation_handle_source: TrackMCPCorrelationHandleSource | null;
+  context: string | null;
+  intent_source: TrackMCPIntentSource | null;
+  missing_capability: string | null;
   task_id: string | null;
   workflow_id: string | null;
   client_name: string | null;
@@ -60,6 +63,9 @@ export type TraceResponse = {
   events: TraceEvent[];
 };
 
+export type IntentSourceCounts = Record<TrackMCPIntentSource, number>;
+export type MissingCapability = { name: string; reports: number };
+
 export type Analytics = {
   range_days: number;
   total_events: number;
@@ -82,6 +88,8 @@ export type Analytics = {
   unused_tools: string[];
   workflows: { session_id: string; correlation_handle?: string | null; correlation_handle_source?: TrackMCPCorrelationHandleSource; client_name: string; calls: number; tools: (string | null)[]; started_at: string; duration_ms: number; completed: boolean; completion_source?: CompletionSource; correlation_quality?: CorrelationQuality }[];
   correlation_handle_source?: TrackMCPCorrelationHandleSource | null;
+  intent_sources: IntentSourceCounts;
+  missing_capabilities: MissingCapability[];
   outcomes: { name: string; started: number; completed: number; failed: number }[];
   insights: { level: string; title: string; detail: string; metric: string }[];
 };

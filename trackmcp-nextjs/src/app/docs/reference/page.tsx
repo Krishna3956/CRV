@@ -32,6 +32,7 @@ const options: { name: string; type: string; def: string; desc: string }[] = [
   { name: "endpoint", type: "string", def: "https://trackmcp.com/api/v1/ingest", desc: "Override with a compatible ingest endpoint; TrackMCP does not proxy hosted servers." },
   { name: "disabled", type: "boolean", def: "false", desc: "Turn capture off without removing the wrapper." },
   { name: "correlation", type: "object", def: "{ mode: 'none' }", desc: "Optional external or compatibility-limited issued correlation mode; disabled by default." },
+  { name: "intentFallback", type: "function", def: "undefined", desc: "Optional bounded fallback context for clients that omit the context parameter; labeled fallback." },
 ];
 
 const captured = [
@@ -42,6 +43,7 @@ const captured = [
   "Duration in milliseconds and transport status",
   "Session id, so calls can be inspected in order",
   "Timestamp and environment",
+  "Optional caller context with explicit intent provenance, or an explicit missing-capability report",
 ];
 
 const metrics = [
@@ -172,6 +174,26 @@ export default function ReferenceDocsPage() {
           and clients that ignore the field remain missing. Python exposes the same option names
           for parity, but its current middleware reports missing because it has no stable schema
           rewrite seam.
+        </Para>
+      </DocSection>
+
+      <DocSection title="Intent and missing capabilities">
+        <Para>
+          Intent is never inferred. A compatible TypeScript tools list may advertise an
+          optional <Inline>context</Inline> argument describing the user&apos;s underlying
+          goal; TrackMCP removes that known field before the customer handler runs.
+          Context is labeled <Inline>context_parameter</Inline>. An
+          <Inline>intentFallback</Inline> callback is called only when safe context is
+          absent and its value is labeled <Inline>fallback</Inline>. External systems
+          may submit bounded text with <Inline>intent_source: &quot;external_callback&quot;</Inline>.
+          Otherwise the source is <Inline>missing</Inline>.
+        </Para>
+        <Para>
+          Use <Inline>trackmcp_report_missing</Inline> for an explicit missing tool or
+          capability report. Context and capability values inherit the SDK string and
+          privacy limits; credentials, URLs, emails, and oversized values are omitted.
+          Python keeps handler arguments unchanged and exposes the same event fields and
+          <Inline>report_missing</Inline> method, but does not rewrite tool schemas.
         </Para>
       </DocSection>
 

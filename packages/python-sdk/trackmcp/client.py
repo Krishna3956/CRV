@@ -30,6 +30,7 @@ TRACKMCP_SCHEMA_VERSION = "1"
 CORRELATION_HANDLE_PATTERN = r"^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$"
 TrackMCPCorrelationMode = Literal["none", "external", "issued"]
 TrackMCPCorrelationHandleSource = Literal["external", "issued", "missing"]
+TrackMCPIntentSource = Literal["context_parameter", "external_callback", "fallback", "missing"]
 
 
 class TrackMCPEvent(TypedDict, total=False):
@@ -51,6 +52,9 @@ class TrackMCPEvent(TypedDict, total=False):
     session_id_source: str
     correlation_handle: str
     correlation_handle_source: TrackMCPCorrelationHandleSource
+    context: str
+    intent_source: TrackMCPIntentSource
+    missing_capability: str
     task_id: str
     workflow_id: str
     client_name: str
@@ -98,6 +102,7 @@ class TrackMCPOptions:
     correlation_mode: TrackMCPCorrelationMode = "none"
     correlation_resolver: Optional[Callable[[Dict[str, Any]], Optional[str]]] = None
     issued_handle_field: str = "__trackmcp_correlation_handle"
+    intent_fallback: Optional[Callable[[Dict[str, Any]], Optional[str]]] = None
 
 
 def _canonical_json(value: Any) -> str:
@@ -146,6 +151,7 @@ class TrackMCP:
         if self.options.disabled or random.random() > max(0, min(1, self.options.sample_rate)):
             return
         try:
+            intent = self._intent_for(event)
             prepared = self._prepare_event({
                 **event,
                 "schema_version": TRACKMCP_SCHEMA_VERSION,
@@ -157,6 +163,8 @@ class TrackMCP:
                 "deployment_id": self.options.deployment_id,
                 "server_id": self.options.server_id,
                 **self._correlation_for(event, correlation_handle, correlation_source),
+                "context": intent.get("context"),
+                "intent_source": intent["intent_source"],
             })
             if self.options.redact_event:
                 try:
@@ -194,12 +202,39 @@ class TrackMCP:
                 pass
         return {"correlation_handle_source": "missing"}
 
+    def _intent_for(self, event: Dict[str, Any]) -> Dict[str, Any]:
+        context = event.get("context")
+        source = event.get("intent_source")
+        if _safe_intent_text(context, self.options.max_string_length):
+            return {"context": context.strip(), "intent_source": source if source in ("external_callback", "fallback") else "context_parameter"}
+        if self.options.intent_fallback:
+            try:
+                fallback = self.options.intent_fallback({
+                    "event_type": event.get("event_type", "custom"), "mcp_method": event.get("mcp_method"),
+                    "tool_name": event.get("tool_name"), "request_id": event.get("request_id"),
+                    "session_id": event.get("session_id"), "transport": event.get("transport"),
+                })
+                if _safe_intent_text(fallback, self.options.max_string_length):
+                    return {"context": fallback.strip(), "intent_source": "fallback"}
+            except Exception:
+                pass
+        return {"intent_source": "missing"}
+
     def _prepare_event(self, event: Dict[str, Any]) -> TrackMCPEvent:
         prepared = dict(event)
         prepared["session_id_source"] = prepared.get("session_id_source") or ("external" if prepared.get("session_id") else "missing")
         if not _safe_correlation_handle(prepared.get("correlation_handle")) or prepared.get("correlation_handle_source") not in ("external", "issued"):
             prepared.pop("correlation_handle", None)
             prepared["correlation_handle_source"] = "missing"
+        if _safe_intent_text(prepared.get("context"), self.options.max_string_length):
+            prepared["context"] = prepared["context"].strip()
+            if prepared.get("intent_source") not in ("external_callback", "fallback"):
+                prepared["intent_source"] = "context_parameter"
+        else:
+            prepared.pop("context", None)
+            prepared["intent_source"] = "missing"
+        if not _safe_intent_text(prepared.get("missing_capability"), self.options.max_string_length):
+            prepared.pop("missing_capability", None)
         mode = self.options.payload_mode if self.options.payload_mode in ("metadata", "redacted", "full") else "redacted"
         prepared["payload_policy"] = mode
         if mode == "metadata":
@@ -246,6 +281,12 @@ class TrackMCP:
         if status not in ("started", "completed", "failed"):
             raise ValueError("workflow status must be started, completed, or failed")
         self.capture({"event_type": "workflow", "started_at": _iso_now(), "payload": {"name": "workflow", "workflow_name": name, "status": status, **(payload or {})}})
+
+    def report_missing(self, capability: str, context: Optional[str] = None) -> None:
+        if not _safe_intent_text(capability, self.options.max_string_length):
+            self._diagnostics["dropped_events"] += 1
+            return
+        self.capture({"event_type": "custom", "mcp_method": "trackmcp_report_missing", "missing_capability": capability.strip(), "context": context, "started_at": _iso_now(), "payload": {"name": "trackmcp_report_missing"}})
 
     def record_catalog(self, result: Any) -> List[Dict[str, Any]]:
         tools = _catalog_tools(result)
@@ -343,6 +384,11 @@ def _safe_correlation_handle(value: Any) -> bool:
     return isinstance(value, str) and re.match(CORRELATION_HANDLE_PATTERN, value) is not None and len(value.encode("utf-8")) <= 128 and not re.search(r"(?:bearer(?:\s|[_:-])|eyJ[A-Za-z0-9_-]+\.|@|https?://|://|^sk[-_])", value, re.IGNORECASE)
 
 
+def _safe_intent_text(value: Any, max_length: int) -> bool:
+    import re
+    return isinstance(value, str) and bool(value.strip()) and len(value.strip().encode("utf-8")) <= max_length and not re.search(r"(?:bearer\s+|authorization\s*[:=]|api[_-]?key\s*[:=]|access[_-]?token\s*[:=]|refresh[_-]?token\s*[:=]|password\s*[:=]|secret\s*[:=]|eyJ[A-Za-z0-9_-]+\.|https?://|\b[^\s@]+@[^\s@]+\.[^\s@]+\b)", value, re.IGNORECASE)
+
+
 def _details(args: tuple[Any, ...]) -> tuple[Optional[str], Dict[str, Any]]:
     first = args[0] if args else {}
     if not isinstance(first, dict):
@@ -414,8 +460,13 @@ class _Wrapped:
         return wrapped
 
 
-def _event(tool_name: Optional[str], payload: Dict[str, Any], started: float, result: Any, error: Optional[Exception], client_name: Optional[str] = None, session_id: Optional[str] = None, request_id: Optional[str] = None, client_version: Optional[str] = None, metadata: Optional[Dict[str, Any]] = None, session_id_source: Optional[str] = None) -> Dict[str, Any]:
+def _event(tool_name: Optional[str], payload: Dict[str, Any], started: float, result: Any, error: Optional[Exception], client_name: Optional[str] = None, session_id: Optional[str] = None, request_id: Optional[str] = None, client_version: Optional[str] = None, metadata: Optional[Dict[str, Any]] = None, session_id_source: Optional[str] = None, context: Optional[str] = None) -> Dict[str, Any]:
     is_error = error is not None or bool(isinstance(result, dict) and result.get("isError"))
+    event_payload = dict(payload)
+    args = event_payload.get("args")
+    if context is None and isinstance(args, dict) and "context" in args:
+        context = args.get("context")
+        event_payload["args"] = {key: value for key, value in args.items() if key != "context"}
     return {
         "event_type": "tool_call",
         "tool_name": tool_name,
@@ -428,11 +479,12 @@ def _event(tool_name: Optional[str], payload: Dict[str, Any], started: float, re
         "schema_hash": metadata.get("schema_hash") if metadata else None,
         "session_id": session_id,
         "session_id_source": session_id_source,
+        "context": context,
         "started_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime(started)),
         "duration_ms": round((time.time() - started) * 1000),
         "success": not is_error,
         "is_error": is_error,
-        "payload": {**payload, "result": result, "error": str(error) if error else None},
+        "payload": {**event_payload, "result": result, "error": str(error) if error else None},
     }
 
 
@@ -451,3 +503,8 @@ def with_trackmcp(server: Any, api_key: Optional[str] = None, **kwargs: Any) -> 
 def track(name: str, payload: Optional[Dict[str, Any]] = None) -> None:
     if _active_client:
         _active_client.track(name, payload)
+
+
+def trackmcp_report_missing(capability: str, context: Optional[str] = None) -> None:
+    if _active_client:
+        _active_client.report_missing(capability, context)

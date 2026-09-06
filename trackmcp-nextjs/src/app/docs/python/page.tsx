@@ -124,6 +124,21 @@ correlation_resolver=lambda context: anonymized_job_handle(context),
         </Para>
       </DocSection>
 
+      <DocSection title="Intent and missing capabilities">
+        <Para>
+          Intent is explicit bounded context, never an inference. A safe context value
+          is labeled <Inline>context_parameter</Inline>; an <Inline>intent_fallback</Inline>
+          callback for schema-blind clients is labeled <Inline>fallback</Inline>.
+          Applications may submit externally supplied context with
+          <Inline>intent_source=&quot;external_callback&quot;</Inline>. Missing or unsafe values
+          are labeled <Inline>missing</Inline>. The Python middleware does not rewrite
+          tool schemas and leaves handler arguments unchanged.
+        </Para>
+        <Code>{`app.trackmcp.report_missing("bulk_export", "Export all matching records")
+# The event is custom with mcp_method="trackmcp_report_missing".
+# It retains correlation provenance and the normal privacy limits.`}</Code>
+      </DocSection>
+
       <DocSection title="Custom events">
         <Para>Emit a named event from anywhere in your code.</Para>
         <Code>{`from trackmcp import track

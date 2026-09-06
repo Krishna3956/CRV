@@ -1,10 +1,10 @@
-import { NextResponse } from "next/server";
-import { getSupabaseServer } from "@/lib/auth/supabase-server";
-import { getSupabaseAdmin } from "@/lib/repository/supabase";
-import { hashTrackMCPKey } from "@/lib/telemetry/keys";
-import type { CatalogTool, CompletionSource, CorrelationQuality } from "@/lib/telemetry/analytics-types";
-import { completedForEvents, completionSourceForEvents, correlationQualityForEvents, isWorkflowLifecycleEvent, percentile } from "@/lib/telemetry/analytics";
-import type { TrackMCPCorrelationHandleSource, TrackMCPSessionIdSource } from "@/lib/telemetry/types";
+import { NextResponse } from "next/server.js";
+import { getSupabaseServer } from "../../../../lib/auth/supabase-server.ts";
+import { getSupabaseAdmin } from "../../../../lib/repository/supabase.ts";
+import { hashTrackMCPKey } from "../../../../lib/telemetry/keys.ts";
+import type { CatalogTool, CompletionSource, CorrelationQuality } from "../../../../lib/telemetry/analytics-types.ts";
+import { completedForEvents, completionSourceForEvents, correlationQualityForEvents, isWorkflowLifecycleEvent, percentile } from "../../../../lib/telemetry/analytics.ts";
+import type { TrackMCPCorrelationHandleSource, TrackMCPIntentSource, TrackMCPSessionIdSource } from "../../../../lib/telemetry/types.ts";
 
 type EventRow = {
   schema_version: string;
@@ -24,6 +24,9 @@ type EventRow = {
   session_id_source: TrackMCPSessionIdSource | null;
   correlation_handle: string | null;
   correlation_handle_source: TrackMCPCorrelationHandleSource | null;
+  context: string | null;
+  intent_source: TrackMCPIntentSource | null;
+  missing_capability: string | null;
   task_id: string | null;
   workflow_id: string | null;
   client_name: string | null;
@@ -62,8 +65,9 @@ function catalogFromEvent(event: EventRow): CatalogTool[] {
   });
 }
 
-export async function GET(req: Request) {
-  const supabase = getSupabaseAdmin();
+export function createAnalyticsHandler(getAdmin: typeof getSupabaseAdmin = getSupabaseAdmin, getServer: typeof getSupabaseServer = getSupabaseServer) {
+  return async function GET(req: Request) {
+  const supabase = getAdmin();
   if (!supabase) return NextResponse.json({ error: "Analytics service is not configured." }, { status: 503 });
   const authorization = req.headers.get("authorization") || "";
   const apiKey = authorization.startsWith("Bearer ") ? authorization.slice(7).trim() : "";
@@ -74,7 +78,7 @@ export async function GET(req: Request) {
     if (!key || key.revoked_at) return NextResponse.json({ error: "Invalid or revoked API key." }, { status: 401 });
     workspaceId = key.workspace_id;
   } else {
-    const auth = await getSupabaseServer();
+    const auth = await getServer();
     const { data: userData } = await auth.auth.getUser();
     if (!userData.user) return NextResponse.json({ error: "Sign in or provide a workspace API key." }, { status: 401 });
     const { data: membership, error } = await supabase.from("trackmcp_workspace_members").select("workspace_id").eq("user_id", userData.user.id).limit(1).maybeSingle();
@@ -88,11 +92,17 @@ export async function GET(req: Request) {
   const days = Number.isFinite(requestedDays) ? Math.min(90, Math.max(1, Math.floor(requestedDays))) : 30;
   const since = new Date(Date.now() - days * 86400000).toISOString();
   const { data, error } = await supabase.from("trackmcp_events")
-    .select("schema_version, event_type, service, environment, server_id, deployment_id, server_version, sdk_version, direction, transport, protocol_version, mcp_method, request_id, session_id, session_id_source, correlation_handle, correlation_handle_source, task_id, workflow_id, client_name, client_version, tool_name, tool_description, tool_description_hash, duration_ms, success, is_error, error_class, error_code, retry_number, schema_hash, payload_size_bytes, payload_policy, started_at, payload")
+    .select("schema_version, event_type, service, environment, server_id, deployment_id, server_version, sdk_version, direction, transport, protocol_version, mcp_method, request_id, session_id, session_id_source, correlation_handle, correlation_handle_source, context, intent_source, missing_capability, task_id, workflow_id, client_name, client_version, tool_name, tool_description, tool_description_hash, duration_ms, success, is_error, error_class, error_code, retry_number, schema_hash, payload_size_bytes, payload_policy, started_at, payload")
     .eq("workspace_id", workspaceId).gte("started_at", since).order("started_at", { ascending: true }).limit(10000);
   if (error) return NextResponse.json({ error: "Could not load analytics." }, { status: 500 });
 
   const events = (data || []) as EventRow[];
+  const intentSources: Record<TrackMCPIntentSource, number> = { context_parameter: 0, external_callback: 0, fallback: 0, missing: 0 };
+  const missingCapabilities = new Map<string, number>();
+  for (const event of events) {
+    intentSources[event.intent_source || "missing"] += 1;
+    if (event.missing_capability) missingCapabilities.set(event.missing_capability, (missingCapabilities.get(event.missing_capability) || 0) + 1);
+  }
   const calls = events.filter((event) => event.event_type === "tool_call");
   const sessions = new Map<string, EventRow[]>();
   for (const event of events) if (event.session_id) sessions.set(event.session_id, [...(sessions.get(event.session_id) || []), event]);
@@ -159,5 +169,8 @@ export async function GET(req: Request) {
   const correlationQuality: CorrelationQuality = correlationQualityForEvents(events);
   const handleSources = [...new Set(events.map((event) => event.correlation_handle_source).filter((source): source is TrackMCPCorrelationHandleSource => Boolean(source)))];
   const correlationHandleSource: TrackMCPCorrelationHandleSource | null = handleSources.length === 1 ? handleSources[0] : handleSources.length === 0 ? "missing" : null;
-  return NextResponse.json({ range_days: days, total_events: events.length, protocol_events: protocols.length, catalog_events: catalogs, protocol_versions: protocolVersions, transports, methods, tool_calls: calls.length, sessions: workflowRows.length, errors: calls.filter(failed).length, completion_rate: explicitStarted > 0 ? explicitCompleted / explicitStarted : workflowRows.length ? completed / workflowRows.length : null, completion_source: completionSource, correlation_quality: correlationQuality, correlation_handle_source: correlationHandleSource, funnel: { connections: events.filter((event) => event.event_type === "session").length, discovered_tools: catalog.size, tool_calls: calls.length, successful_calls: calls.filter((event) => !failed(event)).length }, timeline: [...timeline.entries()].map(([date, value]) => ({ date, ...value })), clients: [...clients.entries()].map(([name, value]) => ({ name, calls: value.calls, versions: [...value.versions] })).sort((a, b) => b.calls - a.calls), tools: toolRows, catalog_tools: [...catalog.values()], unused_tools: unusedTools, workflows: workflowRows, outcomes: explicitOutcomes, insights });
+  return NextResponse.json({ range_days: days, total_events: events.length, protocol_events: protocols.length, catalog_events: catalogs, protocol_versions: protocolVersions, transports, methods, tool_calls: calls.length, sessions: workflowRows.length, errors: calls.filter(failed).length, completion_rate: explicitStarted > 0 ? explicitCompleted / explicitStarted : workflowRows.length ? completed / workflowRows.length : null, completion_source: completionSource, correlation_quality: correlationQuality, correlation_handle_source: correlationHandleSource, intent_sources: intentSources, missing_capabilities: [...missingCapabilities.entries()].map(([name, reports]) => ({ name, reports })).sort((a, b) => b.reports - a.reports || a.name.localeCompare(b.name)), funnel: { connections: events.filter((event) => event.event_type === "session").length, discovered_tools: catalog.size, tool_calls: calls.length, successful_calls: calls.filter((event) => !failed(event)).length }, timeline: [...timeline.entries()].map(([date, value]) => ({ date, ...value })), clients: [...clients.entries()].map(([name, value]) => ({ name, calls: value.calls, versions: [...value.versions] })).sort((a, b) => b.calls - a.calls), tools: toolRows, catalog_tools: [...catalog.values()], unused_tools: unusedTools, workflows: workflowRows, outcomes: explicitOutcomes, insights });
+  };
 }
+
+export const GET = createAnalyticsHandler();
