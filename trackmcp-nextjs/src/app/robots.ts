@@ -1,13 +1,25 @@
 import type { MetadataRoute } from "next";
 
 export default function robots(): MetadataRoute.Robots {
-  const base = "https://trackmcp.com";
   return {
     rules: [
       { userAgent: "*", allow: "/", disallow: ["/admin", "/api/"] },
-      { userAgent: "OAI-SearchBot", allow: "/", disallow: ["/admin", "/api/"] },
+      { userAgent: "GPTBot", allow: "/" },
+      { userAgent: "OAI-SearchBot", allow: "/" },
+      { userAgent: "ChatGPT-User", allow: "/" },
+      { userAgent: "ClaudeBot", allow: "/" },
+      { userAgent: "Claude-SearchBot", allow: "/" },
+      { userAgent: "Googlebot", allow: "/" },
+      { userAgent: "Google-Extended", allow: "/" },
+      { userAgent: "PerplexityBot", allow: "/" },
+      { userAgent: "Amazonbot", allow: "/" },
+      { userAgent: "Applebot-Extended", allow: "/" },
+      { userAgent: "CCBot", allow: "/" },
     ],
-    sitemap: [`${base}/sitemap.xml`, `${base}/tool-sitemap.xml`],
-    host: base,
+    sitemap: [
+      "https://trackmcp.com/sitemap.xml",
+      "https://trackmcp.com/tool-sitemap.xml",
+    ],
+    host: "https://trackmcp.com",
   };
 }
