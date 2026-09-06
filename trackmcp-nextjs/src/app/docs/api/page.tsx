@@ -21,6 +21,10 @@ const endpoints: { method: string; path: string; desc: string }[] = [
   { method: "POST", path: "/api/v1/ingest", desc: "Submit a validated telemetry batch" },
   { method: "GET", path: "/api/v1/analytics?days=30", desc: "Workspace metrics, tools, clients, sessions, and insights" },
   { method: "GET", path: "/api/v1/tool-quality?days=30", desc: "Bounded tool-quality metrics, catalog history, workflow associations, and insufficient-data states" },
+  { method: "GET", path: "/api/v1/alerts?limit=50", desc: "List authenticated workspace alert configurations" },
+  { method: "GET", path: "/api/v1/alert-incidents?limit=50", desc: "List bounded regression incidents and their data status" },
+  { method: "GET", path: "/api/v1/alert-incidents/{id}/deliveries", desc: "Inspect bounded webhook delivery attempts without secrets" },
+  { method: "POST", path: "/api/v1/alert-destinations", desc: "Create a generic HTTPS webhook destination using an external secret reference" },
   { method: "GET", path: "/api/v1/traces?session_id=...|correlation_handle=...", desc: "Inspect ordered events for one protocol session or bounded correlation handle" },
 ];
 
@@ -202,6 +206,25 @@ export default function ApiDocsPage() {
           “Associated with low explicit completion” and is an association for investigation,
           never evidence of cause or an LLM/model problem. Below-volume rates are null
           with an insufficient-data reason.
+        </Para>
+      </DocSection>
+
+      <DocSection title="Regression alerts">
+        <Para>
+          Regression alerts are disabled until a workspace explicitly configures them. The evaluator runs hourly using the latest complete UTC day compared with the preceding seven complete UTC days. It requires the metric-specific minimum volume before a finding can fire; insufficient or partial data is returned explicitly and never treated as zero.
+        </Para>
+        <Para>
+          P1-05 evaluates server-observed events only. The fixed v1 metrics are tool error-rate spike, p95 latency regression, observable empty-result spike, retry-loop spike, catalog/description drift, workflow-completion drop, authorization-failure spike, and deployment comparison. Values in alert evidence are bounded aggregate facts and derived comparisons, not causal claims.
+        </Para>
+        <Code>{`{
+  "metric": "tool_error_rate_spike",
+  "tool_name": "search_docs",
+  "environment": "production",
+  "destination_ids": ["destination-id"],
+  "enabled": true
+}`}</Code>
+        <Para>
+          Generic webhook destinations use HTTPS and a secret reference managed outside the API response. Delivery requests are HMAC-SHA-256 signed, include an idempotency key, time out after five seconds, and retry at most three times with bounded exponential backoff. Destination secrets, raw events, payloads, prompts, completions, tokens, and private reasoning are never returned or logged.
         </Para>
       </DocSection>
 
