@@ -6,10 +6,12 @@ import {
   TOOL_QUALITY_MIN_TOOL_CALLS,
   TOOL_QUALITY_MIN_WORKFLOW_TERMINALS,
 } from "./tool-quality.ts";
+import type { ToolQualityEvent } from "./tool-quality.ts";
 
-function call(overrides: Record<string, unknown> = {}) {
+function call(overrides: Record<string, unknown> = {}): ToolQualityEvent {
   return {
     event_type: "tool_call",
+    observation_source: "server",
     service: "quality-test",
     environment: "test",
     tool_name: "search",
@@ -26,9 +28,10 @@ function call(overrides: Record<string, unknown> = {}) {
   };
 }
 
-function catalog(at: string, descriptionHash: string, schemaHash: string) {
+function catalog(at: string, descriptionHash: string, schemaHash: string): ToolQualityEvent {
   return {
     event_type: "catalog",
+    observation_source: "server",
     service: "quality-test",
     environment: "test",
     started_at: at,
@@ -37,18 +40,18 @@ function catalog(at: string, descriptionHash: string, schemaHash: string) {
 }
 
 function workflowSet(completedCount: number) {
-  const events: Record<string, unknown>[] = [];
+  const events: ToolQualityEvent[] = [];
   for (let index = 0; index < TOOL_QUALITY_MIN_WORKFLOW_TERMINALS; index += 1) {
     const workflowId = `workflow-${index}`;
     const startedAt = `2026-09-06T01:${String(index).padStart(2, "0")}:00.000Z`;
-    events.push({ event_type: "workflow", workflow_id: workflowId, started_at: startedAt, payload: { name: "workflow", workflow_name: "job", status: "started" } });
+    events.push({ event_type: "workflow", observation_source: "server", workflow_id: workflowId, started_at: startedAt, payload: { name: "workflow", workflow_name: "job", status: "started" } });
     events.push(call({ workflow_id: workflowId, session_id: `workflow-session-${index}`, started_at: startedAt, tool_name: "search" }));
-    events.push({ event_type: "workflow", workflow_id: workflowId, started_at: `2026-09-06T02:${String(index).padStart(2, "0")}:00.000Z`, payload: { name: "workflow", workflow_name: "job", status: index < completedCount ? "completed" : "failed" } });
+    events.push({ event_type: "workflow", observation_source: "server", workflow_id: workflowId, started_at: `2026-09-06T02:${String(index).padStart(2, "0")}:00.000Z`, payload: { name: "workflow", workflow_name: "job", status: index < completedCount ? "completed" : "failed" } });
     events.push(call({ workflow_id: workflowId, session_id: `workflow-session-${index}`, started_at: `2026-09-06T00:${String(index).padStart(2, "0")}:00.000Z`, tool_name: "search" }));
   }
-  events.push({ event_type: "workflow", workflow_id: "workflow-unknown", started_at: "2026-09-06T03:00:00.000Z", payload: { name: "workflow", workflow_name: "job", status: "started" } });
+  events.push({ event_type: "workflow", observation_source: "server", workflow_id: "workflow-unknown", started_at: "2026-09-06T03:00:00.000Z", payload: { name: "workflow", workflow_name: "job", status: "started" } });
   events.push(call({ workflow_id: "workflow-unknown", session_id: "workflow-session-unknown", started_at: "2026-09-06T03:01:00.000Z", tool_name: "search" }));
-  events.push({ event_type: "workflow", workflow_id: "workflow-unknown", started_at: "2026-09-06T03:02:00.000Z", payload: { name: "workflow", workflow_name: "job", status: "unknown" } });
+  events.push({ event_type: "workflow", observation_source: "server", workflow_id: "workflow-unknown", started_at: "2026-09-06T03:02:00.000Z", payload: { name: "workflow", workflow_name: "job", status: "unknown" } });
   return events;
 }
 
@@ -102,6 +105,20 @@ test("does not fabricate repeat-call quality when grouping is missing", () => {
   const tool = result.tools[0];
   assert.equal(tool.metrics.observed_repeat_call_rate, null);
   assert.ok(tool.insufficient_data.includes("missing_grouping"));
+});
+
+test("client observations do not inflate server-only Tool Quality metrics", () => {
+  const serverCalls = Array.from({ length: TOOL_QUALITY_MIN_TOOL_CALLS }, (_, index) => call({
+    started_at: `2026-09-06T10:${String(index).padStart(2, "0")}:00.000Z`,
+  }));
+  const clientCalls = Array.from({ length: TOOL_QUALITY_MIN_TOOL_CALLS }, (_, index) => call({
+    observation_source: "client",
+    started_at: `2026-09-06T11:${String(index).padStart(2, "0")}:00.000Z`,
+  }));
+  const result = analyzeToolQuality([...serverCalls, ...clientCalls], { rangeDays: 30 });
+  assert.equal(result.source_event_count, TOOL_QUALITY_MIN_TOOL_CALLS);
+  assert.equal(result.tools[0].observed.call_count, TOOL_QUALITY_MIN_TOOL_CALLS);
+  assert.equal(result.tools[0].metrics.tool_call_share, 1);
 });
 
 test("reconstructs catalog snapshots at the call timestamp and compares changed hashes", () => {

@@ -4,6 +4,11 @@ Correlation is disabled by default and does not change MCP schemas. External mod
 
 Observe the MCP server boundary without capturing a host's private model turn.
 
+Events emitted by this server SDK carry `observation_source="server"`. The
+P1-04 Node client adapter is TypeScript-only; Python client transports are not
+supported in that workstream. Legacy events without provenance remain nullable
+and are treated as `legacy_unknown`.
+
 ```python
 import os
 from trackmcp import with_trackmcp

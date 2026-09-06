@@ -64,6 +64,7 @@ export type TrackMCPEvent = {
   deployment_id?: string;
   server_version?: string;
   sdk_version?: string;
+  observation_source?: "client" | "server";
   client_name?: string;
   client_version?: string;
   tool_name?: string;
@@ -161,7 +162,20 @@ function catalogTools(result: Record<string, unknown> | undefined): CatalogTool[
   });
 }
 
-class TrackMCPClient {
+export type TrackMCPEventHook = (event: TrackMCPEvent) => void;
+
+function freezeClone<T>(value: T): T {
+  const clone = JSON.parse(JSON.stringify(value)) as T;
+  const freeze = (item: unknown): unknown => {
+    if (!item || typeof item !== "object" || Object.isFrozen(item)) return item;
+    Object.freeze(item);
+    for (const child of Object.values(item as Record<string, unknown>)) freeze(child);
+    return item;
+  };
+  return freeze(clone) as T;
+}
+
+export class TrackMCPClient {
   private readonly options: Required<Pick<TrackMCPOptions, "service" | "environment" | "endpoint" | "sampleRate" | "redact" | "redactKeys" | "payloadMode" | "maxPayloadBytes" | "maxPayloadDepth" | "maxPayloadKeys" | "maxStringLength" | "flushIntervalMs" | "maxBatchSize" | "maxQueueEvents" | "maxQueueBytes" | "disabled">> & Pick<TrackMCPOptions, "apiKey" | "server_id" | "server_version" | "sdk_version" | "deployment_id" | "redactEvent" | "intentFallback"> & { correlation: Required<Pick<TrackMCPCorrelationOptions, "mode" | "issuedField">> & Pick<TrackMCPCorrelationOptions, "resolve"> };
   private queue: TrackMCPEvent[] = [];
   private queueBytes = 0;
@@ -209,10 +223,22 @@ class TrackMCPClient {
     }
   }
 
-  capture(event: Omit<TrackMCPEvent, "event_id" | "service" | "environment" | "schema_version"> & { schema_version?: string }, issuedHandle?: string): void {
+  capture(event: Omit<TrackMCPEvent, "event_id" | "service" | "environment" | "schema_version" | "observation_source"> & { schema_version?: string; observation_source?: "client" | "server" }, issuedHandle?: string): void {
+    this.captureInternal(event, "server", issuedHandle);
+  }
+
+  captureClient(event: Omit<TrackMCPEvent, "event_id" | "service" | "environment" | "schema_version" | "observation_source"> & { schema_version?: string }, hook?: TrackMCPEventHook, correlationOverride?: { handle?: string; source: TrackMCPCorrelationHandleSource }): void {
+    this.captureInternal(event, "client", undefined, hook, correlationOverride);
+  }
+
+  resolveCorrelation(event: Partial<TrackMCPEvent>): { handle?: string; source: TrackMCPCorrelationHandleSource } {
+    return this.correlationFor(event);
+  }
+
+  private captureInternal(event: Omit<TrackMCPEvent, "event_id" | "service" | "environment" | "schema_version" | "observation_source"> & { schema_version?: string; observation_source?: "client" | "server" }, source: "client" | "server", issuedHandle?: string, hook?: TrackMCPEventHook, correlationOverride?: { handle?: string; source: TrackMCPCorrelationHandleSource }): void {
     if (this.options.disabled || Math.random() > this.options.sampleRate) return;
     try {
-      const correlation = this.correlationFor(event, issuedHandle);
+      const correlation = correlationOverride || this.correlationFor(event, issuedHandle);
       const intent = this.intentFor(event);
       let prepared = this.prepareEvent({
         ...event,
@@ -220,6 +246,7 @@ class TrackMCPClient {
         event_id: randomUUID(),
         service: this.options.service,
         environment: this.options.environment,
+        observation_source: source,
         session_id_source: event.session_id_source || (event.session_id ? "external" : "missing"),
         correlation_handle: correlation.handle,
         correlation_handle_source: correlation.source,
@@ -229,7 +256,7 @@ class TrackMCPClient {
         server_version: this.options.server_version,
         sdk_version: this.options.sdk_version,
         deployment_id: this.options.deployment_id,
-      });
+      }, source);
       if (this.options.redactEvent) {
         try {
           const hooked = this.options.redactEvent(prepared);
@@ -237,14 +264,22 @@ class TrackMCPClient {
             this.diagnosticCounts.droppedEvents += 1;
             return;
           }
-          prepared = this.prepareEvent(hooked);
+          prepared = this.prepareEvent(hooked, source);
         } catch {
           this.diagnosticCounts.hookErrors += 1;
           this.diagnosticCounts.droppedEvents += 1;
           return;
         }
       }
-      this.enqueue(prepared);
+      if (!this.enqueue(prepared)) return;
+      if (hook) {
+        try {
+          hook(freezeClone(prepared));
+        } catch {
+          this.diagnosticCounts.hookErrors += 1;
+          this.removeQueuedEvent(prepared);
+        }
+      }
     } catch {
       this.diagnosticCounts.privacyErrors += 1;
       this.diagnosticCounts.droppedEvents += 1;
@@ -264,6 +299,14 @@ class TrackMCPClient {
       }
     }
     return { source: "missing" };
+  }
+
+  private removeQueuedEvent(event: TrackMCPEvent): void {
+    const index = this.queue.lastIndexOf(event);
+    if (index < 0) return;
+    this.queue.splice(index, 1);
+    this.queueBytes = Math.max(0, this.queueBytes - payloadByteLength(event));
+    this.diagnosticCounts.droppedEvents += 1;
   }
 
   private intentFor(event: Partial<TrackMCPEvent>): { context?: string; source: TrackMCPIntentSource } {
@@ -330,8 +373,8 @@ class TrackMCPClient {
     return { ...message, result: { ...(result as Record<string, unknown>), tools: augmentedTools } };
   }
 
-  private prepareEvent(event: TrackMCPEvent): TrackMCPEvent {
-    const prepared = { ...event, payload_policy: this.options.payloadMode };
+  private prepareEvent(event: TrackMCPEvent, source: "client" | "server" = "server"): TrackMCPEvent {
+    const prepared = { ...event, observation_source: source, payload_policy: this.options.payloadMode };
     if (!safeCorrelationHandle(prepared.correlation_handle) || (prepared.correlation_handle_source !== "external" && prepared.correlation_handle_source !== "issued")) {
       delete prepared.correlation_handle;
       prepared.correlation_handle_source = "missing";
@@ -345,8 +388,23 @@ class TrackMCPClient {
     }
     if (!safeIntentText(prepared.missing_capability, this.options.maxStringLength)) delete prepared.missing_capability;
     if (this.options.payloadMode === "metadata") {
-      delete prepared.payload;
-      prepared.payload_size_bytes = 0;
+      if (source === "client" && prepared.payload && typeof prepared.payload === "object" && !Array.isArray(prepared.payload) && prepared.payload._trackmcp && typeof prepared.payload._trackmcp === "object") {
+        const metadata = prepared.payload._trackmcp as Record<string, unknown>;
+        const observationKinds = new Set(["tool_call_issued", "result_received", "next_tool_selected", "session_started", "session_ended"]);
+        const sanitizedMetadata: Record<string, unknown> = {
+          observation_source: "client",
+          ...(typeof metadata.observation_kind === "string" && observationKinds.has(metadata.observation_kind) ? { observation_kind: metadata.observation_kind } : {}),
+          ...(typeof metadata.repeat_observed === "boolean" ? { repeat_observed: metadata.repeat_observed } : {}),
+          ...(metadata.repeat_group_source === "session_id" || metadata.repeat_group_source === "correlation_handle" ? { repeat_group_source: metadata.repeat_group_source } : {}),
+          ...(typeof metadata.next_tool_selection_observed === "boolean" ? { next_tool_selection_observed: metadata.next_tool_selection_observed } : {}),
+          ...(typeof metadata.preceding_request_id === "string" && metadata.preceding_request_id.length <= DEFAULT_MAX_STRING_LENGTH ? { preceding_request_id: metadata.preceding_request_id } : {}),
+        };
+        prepared.payload = { _trackmcp: sanitizedMetadata };
+        prepared.payload_size_bytes = payloadByteLength(prepared.payload);
+      } else {
+        delete prepared.payload;
+        prepared.payload_size_bytes = 0;
+      }
       return prepared;
     }
     if (prepared.payload !== undefined) {
@@ -366,11 +424,11 @@ class TrackMCPClient {
     return prepared;
   }
 
-  private enqueue(event: TrackMCPEvent): void {
+  private enqueue(event: TrackMCPEvent): boolean {
     const eventBytes = payloadByteLength(event);
     if (!eventBytes || eventBytes > this.options.maxQueueBytes) {
       this.diagnosticCounts.droppedEvents += 1;
-      return;
+      return false;
     }
     this.queue.push(event);
     this.queueBytes += eventBytes;
@@ -380,6 +438,7 @@ class TrackMCPClient {
       this.queueBytes = Math.max(0, this.queueBytes - payloadByteLength(dropped));
       this.diagnosticCounts.droppedEvents += 1;
     }
+    return true;
   }
 
   getDiagnostics(): TrackMCPDiagnostics {

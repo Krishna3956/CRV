@@ -27,6 +27,7 @@ export type ToolQualityEvent = {
   environment?: string | null;
   server_id?: string | null;
   deployment_id?: string | null;
+  observation_source?: "client" | "server" | null;
   session_id?: string | null;
   correlation_handle?: string | null;
   workflow_id?: string | null;
@@ -338,8 +339,9 @@ function snapshotOutput(observation: CatalogObservation, name: string, eligibleC
 
 export function analyzeToolQuality(events: readonly ToolQualityEvent[], options: { rangeDays: number; truncated?: boolean }): ToolQualityResponse {
   const sourceLimitReason: ToolQualityInsufficientReason[] = options.truncated ? ["bounded_source_scan"] : [];
-  const calls = events.filter((event) => event.event_type === "tool_call" && event.tool_name);
-  const observations = buildCatalogObservations(events);
+  const serverEvents = events.filter((event) => event.observation_source === "server");
+  const calls = serverEvents.filter((event) => event.event_type === "tool_call" && event.tool_name);
+  const observations = buildCatalogObservations(serverEvents);
   const repeat = repeatParticipants(calls);
   const callsBySnapshotTool = new Map<string, ToolQualityEvent[]>();
   for (const call of calls) {
@@ -351,7 +353,7 @@ export function analyzeToolQuality(events: readonly ToolQualityEvent[], options:
   }
   const names = new Set(calls.map((event) => event.tool_name!).filter(Boolean));
   observations.forEach((observation) => observation.tools.forEach((tool) => names.add(tool.name)));
-  const workflows = workflowRecords(events);
+  const workflows = workflowRecords(serverEvents);
   const { paths: rawPaths, byTool } = pathRows(workflows);
   const paths = rawPaths.map((path) => {
     if (!sourceLimitReason.length) return path;
@@ -462,7 +464,7 @@ export function analyzeToolQuality(events: readonly ToolQualityEvent[], options:
 
   return {
     range_days: options.rangeDays,
-    source_event_count: events.length,
+    source_event_count: serverEvents.length,
     truncated: options.truncated === true,
     tools,
     tool_paths: paths,

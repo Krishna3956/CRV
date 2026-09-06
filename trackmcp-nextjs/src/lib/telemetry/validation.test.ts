@@ -15,9 +15,11 @@ test("normalizes legacy and accepts versioned events", () => {
   const legacy = normalizeTrackMCPEvent(baseEvent());
   assert.equal(legacy.ok, true);
   if (legacy.ok) assert.equal(legacy.event.schema_version, "legacy");
-  const versioned = normalizeTrackMCPEvent(baseEvent({ schema_version: "1" }));
+  const versioned = normalizeTrackMCPEvent(baseEvent({ schema_version: "1", observation_source: "server" }));
   assert.equal(versioned.ok, true);
   if (versioned.ok) assert.equal(versioned.event.schema_version, "1");
+  assert.equal(normalizeTrackMCPEvent(baseEvent({ schema_version: "1", observation_source: "invalid" })).ok, false);
+  assert.equal(normalizeTrackMCPEvent(baseEvent({ schema_version: "1" })).ok, false);
 });
 
 test("rejects invalid event types, IDs, timestamps, and negative measurements", () => {

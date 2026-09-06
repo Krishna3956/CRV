@@ -6,6 +6,7 @@ import {
   type TrackMCPEventType,
   type TrackMCPCorrelationHandleSource,
   type TrackMCPIntentSource,
+  type TrackMCPObservationSource,
   type TrackMCPSessionIdSource,
 } from "./types.ts";
 
@@ -22,6 +23,7 @@ const TRANSPORTS = ["stdio", "streamable_http", "sse", "custom"] as const;
 const PAYLOAD_POLICIES = ["metadata", "redacted", "full"] as const;
 const SESSION_ID_SOURCES = ["protocol", "transport_generated", "external", "missing"] as const;
 const CORRELATION_HANDLE_SOURCES = ["external", "issued", "missing"] as const;
+const OBSERVATION_SOURCES = ["client", "server"] as const;
 const INTENT_SOURCES = ["context_parameter", "external_callback", "fallback", "missing"] as const;
 const INGEST_SENSITIVE_KEYS = new Set([
   "password", "passwd", "secret", "token", "api_key", "apikey", "authorization", "cookie",
@@ -164,6 +166,12 @@ export function normalizeTrackMCPEvent(value: unknown): EventValidationResult {
   if (optionalStringError) return { ok: false, reason: optionalStringError, eventId };
   if (event.schema_version !== undefined && event.schema_version !== null && event.schema_version !== TRACKMCP_SCHEMA_VERSION && event.schema_version !== TRACKMCP_LEGACY_SCHEMA_VERSION) {
     return { ok: false, reason: "schema_version is unsupported", eventId };
+  }
+  if (event.observation_source !== undefined && event.observation_source !== null && !OBSERVATION_SOURCES.includes(event.observation_source as TrackMCPObservationSource)) {
+    return { ok: false, reason: "observation_source is unsupported", eventId };
+  }
+  if (event.schema_version === TRACKMCP_SCHEMA_VERSION && !OBSERVATION_SOURCES.includes(event.observation_source as TrackMCPObservationSource)) {
+    return { ok: false, reason: "observation_source is required for versioned events", eventId };
   }
   if (event.direction !== undefined && event.direction !== null && !DIRECTIONS.includes(event.direction as typeof DIRECTIONS[number])) return { ok: false, reason: "direction is unsupported", eventId };
   if (event.transport !== undefined && event.transport !== null && !TRANSPORTS.includes(event.transport as typeof TRANSPORTS[number])) return { ok: false, reason: "transport is unsupported", eventId };

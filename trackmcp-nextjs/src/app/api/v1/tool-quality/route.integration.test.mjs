@@ -25,6 +25,7 @@ function call(index, workspaceId = "workspace-a") {
   return {
     workspace_id: workspaceId,
     event_type: "tool_call",
+    observation_source: "server",
     service: "quality-test",
     environment: "test",
     tool_name: "search",

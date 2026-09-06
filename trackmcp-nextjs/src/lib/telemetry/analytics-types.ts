@@ -1,4 +1,4 @@
-import type { TrackMCPCorrelationHandleSource, TrackMCPIntentSource, TrackMCPSessionIdSource } from "./types.ts";
+import type { TrackMCPCorrelationHandleSource, TrackMCPIntentSource, TrackMCPObservationSource, TrackMCPSessionIdSource } from "./types.ts";
 
 export type CompletionSource = "workflow_events" | "session_heuristic" | "none";
 export type CorrelationQuality = "session_id" | "transport_generated" | "external" | "issued" | "missing" | "mixed";
@@ -20,6 +20,7 @@ export type TraceEvent = {
   deployment_id: string | null;
   server_version: string | null;
   sdk_version: string | null;
+  observation_source: TrackMCPObservationSource | null;
   direction: string | null;
   transport: string | null;
   protocol_version: string | null;

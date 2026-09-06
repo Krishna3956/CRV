@@ -7,6 +7,7 @@ const API_KEY = "tmcp_trace_integration_key";
 function event(overrides = {}) {
   return {
     schema_version: "1",
+    observation_source: "server",
     event_id: `event-${Math.random()}`,
     event_type: "tool_call",
     service: "trace-test",
@@ -70,6 +71,7 @@ test("trace route bounds results, preserves event order, and reports completion/
   assert.equal(response.body.correlation_quality, "mixed");
   assert.equal(response.body.completion_source, "session_heuristic");
   assert.equal(response.body.events.some((row) => row.event_id === "foreign"), false);
+  assert.equal(response.body.events[0].observation_source, "server");
 });
 
 test("trace route exposes protocol, transport-generated, and missing quality labels", async () => {

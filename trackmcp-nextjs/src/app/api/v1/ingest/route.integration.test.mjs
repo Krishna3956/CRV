@@ -33,6 +33,7 @@ function fakeAdmin() {
 function event(overrides = {}) {
   return {
     schema_version: "1",
+    observation_source: "server",
     event_id: "integration-event",
     event_type: "tool_call",
     service: "integration",
@@ -152,6 +153,7 @@ test("route integration preserves intent provenance, missing reports, correlatio
   });
   assert.equal(accepted.status, 200);
   assert.equal(state.rows[0].intent_source, "external_callback");
+  assert.equal(state.rows[0].observation_source, "server");
   assert.equal(state.rows[0].context, "Find the relevant documentation");
   assert.equal(state.rows[0].missing_capability, "bulk_export");
   assert.equal(state.rows[0].correlation_handle_source, "external");
@@ -164,4 +166,17 @@ test("route integration preserves intent provenance, missing reports, correlatio
   assert.equal(oversized.status, 400);
   const unauthorized = await postWithHeaders(handler, { events: [event({ event_id: "unauthorized" })] });
   assert.equal(unauthorized.status, 401);
+});
+
+test("legacy events remain source-null while versioned events require provenance", async () => {
+  const { admin, state } = fakeAdmin();
+  const handler = createIngestHandler(() => admin);
+  const legacy = event({ event_id: "legacy-event" });
+  delete legacy.schema_version;
+  delete legacy.observation_source;
+  const accepted = await post(handler, { events: [legacy] });
+  assert.equal(accepted.status, 200);
+  assert.equal(state.rows[0].observation_source, null);
+  const rejected = await post(handler, { events: [event({ event_id: "missing-source", observation_source: undefined })] });
+  assert.equal(rejected.status, 400);
 });

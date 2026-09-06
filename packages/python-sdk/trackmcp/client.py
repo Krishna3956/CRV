@@ -43,6 +43,7 @@ class TrackMCPEvent(TypedDict, total=False):
     deployment_id: str
     server_version: str
     sdk_version: str
+    observation_source: Literal["client", "server"]
     direction: str
     transport: str
     protocol_version: str
@@ -162,6 +163,7 @@ class TrackMCP:
                 "sdk_version": self.options.sdk_version,
                 "deployment_id": self.options.deployment_id,
                 "server_id": self.options.server_id,
+                "observation_source": "server",
                 **self._correlation_for(event, correlation_handle, correlation_source),
                 "context": intent.get("context"),
                 "intent_source": intent["intent_source"],
@@ -222,6 +224,7 @@ class TrackMCP:
 
     def _prepare_event(self, event: Dict[str, Any]) -> TrackMCPEvent:
         prepared = dict(event)
+        prepared["observation_source"] = "server"
         prepared["session_id_source"] = prepared.get("session_id_source") or ("external" if prepared.get("session_id") else "missing")
         if not _safe_correlation_handle(prepared.get("correlation_handle")) or prepared.get("correlation_handle_source") not in ("external", "issued"):
             prepared.pop("correlation_handle", None)

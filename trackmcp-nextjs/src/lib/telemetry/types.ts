@@ -5,6 +5,7 @@ export const TRACKMCP_LEGACY_SCHEMA_VERSION = "legacy" as const;
 
 export type TrackMCPDirection = "client_to_server" | "server_to_client";
 export type TrackMCPTransport = "stdio" | "streamable_http" | "sse" | "custom";
+export type TrackMCPObservationSource = "client" | "server";
 export type TrackMCPPayloadPolicy = "metadata" | "redacted" | "full";
 export type TrackMCPSessionIdSource = "protocol" | "transport_generated" | "external" | "missing";
 export type TrackMCPCorrelationHandleSource = "external" | "issued" | "missing";
@@ -21,6 +22,7 @@ export type TrackMCPEvent = {
   deployment_id?: string;
   server_version?: string;
   sdk_version?: string;
+  observation_source?: TrackMCPObservationSource;
   direction?: TrackMCPDirection;
   transport?: TrackMCPTransport;
   protocol_version?: string;
