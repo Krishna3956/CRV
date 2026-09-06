@@ -14,6 +14,25 @@ function textBetween(html, pattern) {
   return match?.[1]?.replace(/\s+/g, " ").trim() || "";
 }
 
+function hasMeta(html, attribute, value) {
+  const escaped = value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  return new RegExp(`<meta[^>]+${attribute}=["']${escaped}["'][^>]+content=["'][^"']*["']`, "i").test(html);
+}
+
+function hasWebApplicationJsonLd(html) {
+  return [...html.matchAll(/<script[^>]+type=["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/gi)].some(
+    (match) => {
+      try {
+        const value = JSON.parse(match[1]);
+        const nodes = value?.["@graph"] || [value];
+        return nodes.some((node) => node?.["@type"] === "WebApplication");
+      } catch {
+        return false;
+      }
+    },
+  );
+}
+
 function urlsFromSitemap(xml) {
   return [...xml.matchAll(/<loc>([^<]+)<\/loc>/g)].map((match) => match[1].trim());
 }
@@ -51,16 +70,23 @@ let checked = 0;
 for (const path of uniquePaths) {
   const { response, html } = await get(path);
   checked += 1;
+  if (response.status !== 200) {
+    failures.push({ path, issues: [`HTTP ${response.status}`] });
+    continue;
+  }
   const title = textBetween(html, /<title[^>]*>([\s\S]*?)<\/title>/i);
   const description = textBetween(html, /<meta[^>]+name=["']description["'][^>]+content=["']([^"']*)["']/i);
   const canonical = textBetween(html, /<link[^>]+rel=["']canonical["'][^>]+href=["']([^"']*)["']/i);
   const h1Count = [...html.matchAll(/<h1\b/gi)].length;
   const issues = [];
 
-  if (response.status !== 200) issues.push(`HTTP ${response.status}`);
   if (!title) issues.push("missing title");
   if (!description) issues.push("missing description");
   if (!canonical) issues.push("missing canonical");
+  if (!hasMeta(html, "property", "og:title")) issues.push("missing og:title");
+  if (!hasMeta(html, "property", "og:description")) issues.push("missing og:description");
+  if (!hasMeta(html, "property", "og:image")) issues.push("missing og:image");
+  if (!hasWebApplicationJsonLd(html)) issues.push("missing WebApplication JSON-LD");
   if (h1Count !== 1) issues.push(`expected 1 h1, found ${h1Count}`);
 
   if (issues.length) failures.push({ path, issues });

@@ -11,7 +11,7 @@ import { getToolByName, getReadme, getTopTools, relatedTools } from "@/lib/repos
 import { ownerFromUrl, repoPathFromUrl, toolSlug } from "@/lib/repository/types";
 import { extractHeadings, shouldShowToc, generateTocSchema } from "@/lib/repository/toc";
 import { TableOfContents } from "@/components/repository/TableOfContents";
-import { metaDescription } from "@/lib/seo";
+import { metaDescription, pageMeta } from "@/lib/seo";
 
 export const revalidate = 21600;
 export const dynamic = "force-static";
@@ -31,7 +31,14 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { name } = await params;
   const tool = await getToolByName(name);
-  if (!tool) return { title: "Tool not found | TrackMCP" };
+  if (!tool) {
+    return pageMeta({
+      title: "Tool not found | TrackMCP",
+      description: "The requested MCP server could not be found in the TrackMCP directory.",
+      path: `/tool/${encodeURIComponent(name)}`,
+      index: false,
+    });
+  }
   const repo = tool.repo_name || decodeURIComponent(name);
   const slug = toolSlug(tool.github_url, repo);
   const desc = metaDescription(

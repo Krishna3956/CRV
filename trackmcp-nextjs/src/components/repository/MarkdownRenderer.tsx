@@ -149,11 +149,14 @@ export function MarkdownRenderer({ content, githubUrl }: { content: string; gith
     const hMatch = line.match(/^(#{1,6})\s(.+)$/);
     if (hMatch) {
       const level = hMatch[1].length;
-      const Tag = (`h${level}`) as keyof React.JSX.IntrinsicElements;
+      // The surrounding tool page already has the document's H1. README
+      // headings therefore start at H2 to keep one clear H1 per route.
+      const renderedLevel = level === 1 ? 2 : level;
+      const Tag = (`h${renderedLevel}`) as keyof React.JSX.IntrinsicElements;
       // H2-H4 get anchor IDs so the table of contents can link to them.
-      const anchor = level >= 2 && level <= 4 ? headingId(hMatch[2]) : undefined;
+      const anchor = renderedLevel >= 2 && renderedLevel <= 4 ? headingId(hMatch[2]) : undefined;
       els.push(
-        <Tag key={`h-${i}`} id={anchor} className={`${H[level]} scroll-mt-24`}>
+        <Tag key={`h-${i}`} id={anchor} className={`${H[renderedLevel]} scroll-mt-24`}>
           {renderInline(hMatch[2])}
         </Tag>
       );

@@ -28,7 +28,7 @@ import { SilentFailureScene } from "@/components/scenes/SilentFailureScene";
 import { CodeWindow, K, Fn, Str, Cm, Pn } from "@/components/CodeWindow";
 import { ProductHuntBadge } from "@/components/ProductHuntBadge";
 import type { Metadata } from "next";
-import { pageMeta } from "@/lib/seo";
+import { pageMeta, serializeJsonLd } from "@/lib/seo";
 
 const TITLE = "TrackMCP: See how your MCP server is being used";
 const DESCRIPTION =
@@ -38,34 +38,19 @@ export const metadata: Metadata = pageMeta({ title: TITLE, description: DESCRIPT
 
 const jsonLd = {
   "@context": "https://schema.org",
-  "@graph": [
-    {
-      "@type": "WebSite",
-      name: "TrackMCP",
-      url: "https://trackmcp.com",
-      description: DESCRIPTION,
-      inLanguage: "en-US",
-    },
-    {
-      "@type": "Organization",
-      "@id": "https://trackmcp.com/#organization",
-      name: "TrackMCP",
-      url: "https://trackmcp.com",
-      logo: "https://trackmcp.com/icon.svg",
-      sameAs: [
-        "https://github.com/trackmcp",
-        "https://www.linkedin.com/company/trackmcp",
-        "https://x.com/trackmcp",
-        "https://www.producthunt.com/products/trackmcp",
-      ],
-    },
-  ],
+  "@type": "WebPage",
+  "@id": "https://trackmcp.com/#webpage",
+  url: "https://trackmcp.com",
+  name: TITLE,
+  description: DESCRIPTION,
+  isPartOf: { "@id": "https://trackmcp.com/#website" },
+  about: { "@id": "https://trackmcp.com/#organization" },
 };
 
 export default function Home() {
   return (
     <>
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeJsonLd(jsonLd) }} />
       <Nav />
       <main className="flex-1">
        <PageFrame>

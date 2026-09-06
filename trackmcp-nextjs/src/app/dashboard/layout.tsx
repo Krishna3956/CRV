@@ -1,10 +1,12 @@
 import type { Metadata } from "next";
+import { pageMeta } from "@/lib/seo";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = pageMeta({
   title: "Dashboard | TrackMCP",
   description: "Manage your TrackMCP workspace and view MCP server analytics.",
-  robots: { index: false, follow: false },
-};
+  path: "/dashboard",
+  index: false,
+});
 
 export default function DashboardLayout({ children }: LayoutProps<"/dashboard">) {
   return children;

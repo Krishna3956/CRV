@@ -4,6 +4,7 @@ import Script from "next/script";
 import { Analytics } from "@vercel/analytics/react";
 import { SpeedInsights } from "@vercel/speed-insights/react";
 import { ScrollToTop } from "@/components/ScrollToTop";
+import { serializeJsonLd, SITE_DESCRIPTION, SITE_JSON_LD, SITE_URL, DEFAULT_IMAGE } from "@/lib/seo";
 import "./globals.css";
 
 // Analytics IDs carried over from the live site.
@@ -24,13 +25,12 @@ const geistMono = Geist_Mono({
 });
 
 const TITLE = "TrackMCP: See how your MCP server is being used";
-const DESCRIPTION =
-  "TrackMCP shows who is using your MCP server, what they are trying to do, and where to improve. Analytics for MCP servers, one line to install.";
 
 export const metadata: Metadata = {
   title: TITLE,
-  description: DESCRIPTION,
-  metadataBase: new URL("https://trackmcp.com"),
+  description: SITE_DESCRIPTION,
+  metadataBase: new URL(SITE_URL),
+  alternates: { canonical: "/" },
   applicationName: "TrackMCP",
   keywords: [
     "MCP",
@@ -44,15 +44,17 @@ export const metadata: Metadata = {
   authors: [{ name: "TrackMCP" }],
   openGraph: {
     title: TITLE,
-    description: DESCRIPTION,
-    url: "https://trackmcp.com",
+    description: SITE_DESCRIPTION,
+    url: SITE_URL,
     siteName: "TrackMCP",
     type: "website",
+    images: [DEFAULT_IMAGE],
   },
   twitter: {
     card: "summary_large_image",
     title: TITLE,
-    description: DESCRIPTION,
+    description: SITE_DESCRIPTION,
+    images: [DEFAULT_IMAGE.url],
   },
   robots: { index: true, follow: true },
   // Google Search Console verification — replace with the real code when available.
@@ -68,6 +70,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     >
       <body className="min-h-full flex flex-col bg-canvas text-body">
         <ScrollToTop />
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeJsonLd(SITE_JSON_LD) }} />
         <link rel="preconnect" href="https://api.fontshare.com" crossOrigin="anonymous" />
         <link
           rel="stylesheet"
