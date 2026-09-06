@@ -107,7 +107,9 @@ export default function ReferenceDocsPage() {
           opt-in but is never unlimited: every mode is capped at 32 KiB, depth 6, 50
           keys/items per container, and 2,048 characters per string. Omitted content is
           represented by a structured truncation marker, and <Inline>payload_size_bytes</Inline>
-          measures the final sanitized payload.
+          measures the final sanitized payload. The SDK&apos;s 32 KiB payload budget is
+          intentionally lower than the ingest route&apos;s independent 128 KiB payload and
+          1 MiB request limits; the server limits are a last-line defense for non-SDK clients.
         </Para>
         <Para>
           The <Inline>redactEvent</Inline> hook runs after automatic sanitization. It may
