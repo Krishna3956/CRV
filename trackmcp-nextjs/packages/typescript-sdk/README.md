@@ -1,6 +1,6 @@
 # @trackmcp/sdk
 
-Observability for MCP servers. Wrap your existing server once; telemetry is batched and delivered asynchronously.
+Observability for MCP servers. Wrap your existing server once; telemetry is batched and delivered asynchronously at the server boundary. It does not capture a host's private model turn.
 
 ```ts
 import { withTrackMCP } from "@trackmcp/sdk";
@@ -20,3 +20,10 @@ For accurate business outcomes, optionally mark a workflow from your own applica
 ```ts
 server.trackmcp.workflow("issue_resolution", "completed", { issue_type: "bug" });
 ```
+
+Workflow status is an application-emitted signal; a successful tool response does not
+prove that the user's task or answer was correct. Use `payloadMode: "metadata"` to
+omit arguments/results or keep the default bounded `"redacted"` mode. The dashboard
+shows observed p50/p95 latency, authenticated ordered traces, and `N/A` when a tool
+has no duration samples. Start with the [TypeScript docs](https://trackmcp.com/docs/typescript)
+and [API reference](https://trackmcp.com/docs/api).

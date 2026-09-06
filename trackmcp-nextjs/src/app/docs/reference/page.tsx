@@ -29,14 +29,15 @@ const options: { name: string; type: string; def: string; desc: string }[] = [
   { name: "maxPayloadKeys", type: "number", def: "50", desc: "Maximum keys/items retained per container." },
   { name: "maxStringLength", type: "number", def: "2048", desc: "Maximum retained string length." },
   { name: "redactEvent", type: "function", def: "undefined", desc: "Mutate a sanitized event or return null to drop it." },
-  { name: "endpoint", type: "string", def: "trackmcp.com/api/v1/ingest", desc: "Override for self-hosted ingest." },
+  { name: "endpoint", type: "string", def: "https://trackmcp.com/api/v1/ingest", desc: "Override with a compatible ingest endpoint; TrackMCP does not proxy hosted servers." },
   { name: "disabled", type: "boolean", def: "false", desc: "Turn capture off without removing the wrapper." },
 ];
 
 const captured = [
-  "Tool name and bounded arguments/results (after automatic and configured redaction)",
+  "Tool name and bounded sanitized arguments/results (after automatic and configured redaction)",
   "Capture policy and whether fields were truncated",
-  "Client type (Claude, Cursor, ChatGPT, custom)",
+  "Client name and version when the MCP initialize exchange provides them",
+  "Protocol method, transport, catalog descriptions, and schema hashes when observed",
   "Duration in milliseconds and transport status",
   "Session id, so calls can be inspected in order",
   "Timestamp and environment",
@@ -44,11 +45,11 @@ const captured = [
 
 const metrics = [
   "Active clients, new and returning connections",
-  "Completed workflows and completion rate",
+  "Explicit workflow outcomes and a separately labeled session heuristic",
   "Tool call volume, adoption, and week-over-week change",
   "p50 / p95 latency and error rate per tool",
-  "Silent failures (errors inside a 200 OK)",
-  "Most common workflows and where sessions stop",
+  "Observed MCP tool errors, including errors inside a successful transport response",
+  "Ordered server-boundary traces and where observed sessions stop",
 ];
 
 export default function ReferenceDocsPage() {
@@ -95,7 +96,7 @@ export default function ReferenceDocsPage() {
         </ul>
       </DocSection>
 
-      <DocSection title="Privacy and payload limits">
+      <DocSection id="privacy" title="Privacy and payload limits">
         <Para>
           Payload capture defaults to <Inline>redacted</Inline>. Sensitive keys such as
           passwords, tokens, API keys, authorization, cookies, private keys, SSNs, and
@@ -131,11 +132,34 @@ export default function ReferenceDocsPage() {
         </ul>
       </DocSection>
 
+      <DocSection title="Latency, completion, and trace semantics">
+        <Para>
+          Tool latency is calculated from observed non-negative <Inline>duration_ms</Inline>
+          values. p50 and p95 use the nearest-rank method: sort the values and select
+          ranks <Inline>ceil(n × percentile)</Inline>. The dashboard shows <Inline>N/A</Inline>
+          when no duration samples exist; it does not invent or interpolate a value.
+        </Para>
+        <Para>
+          A successful tool response is not proof that the user&apos;s job finished. The
+          completion source is <Inline>workflow_events</Inline> when your application
+          emits an explicit workflow lifecycle event, <Inline>session_heuristic</Inline>
+          when TrackMCP only sees a final successful tool call, or <Inline>none</Inline>
+          when neither signal exists.
+        </Para>
+        <Para>
+          The trace explorer is authenticated and workspace-scoped. Each trace response
+          is capped at 200 events by the dashboard (API callers may request 1–1,000),
+          and reports <Inline>event_count</Inline> and <Inline>truncated</Inline> so a
+          partial trace is visible. TrackMCP observes the MCP server boundary; it does
+          not read private model reasoning or host-side turns.
+        </Para>
+      </DocSection>
+
       <DocSection title="Environment variables">
         <Para>
           Python reads <Inline>TRACKMCP_KEY</Inline> automatically when an API key is
           not passed. TypeScript requires <Inline>apiKey</Inline> in the options. For
-          a self-hosted deployment, pass the ingest URL explicitly as <Inline>endpoint</Inline>;
+          a compatible deployment, pass the ingest URL explicitly as <Inline>endpoint</Inline>;
           <Inline>TRACKMCP_ENDPOINT</Inline> is not read automatically.
         </Para>
       </DocSection>

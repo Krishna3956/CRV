@@ -1,36 +1,53 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# TrackMCP
 
-## Getting Started
+TrackMCP observes what your MCP server sees: clients, tools, protocol events,
+redacted payloads, latency, errors, and explicit workflow outcomes. It observes the
+server boundary; it does not read a host's private model turn unless you add a
+separate client-side integration.
 
-First, run the development server:
+## Quickstart
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+Install the SDK for the process hosting your MCP server, create a workspace key, and
+wrap the existing server:
+
+```ts
+import { withTrackMCP } from "@trackmcp/sdk";
+
+export default withTrackMCP(server, {
+  apiKey: process.env.TRACKMCP_KEY!,
+  service: "my-mcp-server",
+  environment: "production",
+});
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+The Python wrapper has the same server-boundary behavior. See the [TypeScript
+docs](https://trackmcp.com/docs/typescript), [Python docs](https://trackmcp.com/docs/python),
+[configuration reference](https://trackmcp.com/docs/reference), and [API
+docs](https://trackmcp.com/docs/api).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## What is shipped
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- Asynchronous, fail-open telemetry for TypeScript and Python MCP servers.
+- Tool calls, results/errors, timing, retries, protocol/catalog metadata, and client
+  name/version when the initialize exchange provides them.
+- Bounded redacted payload capture by default. Metadata mode omits arguments/results;
+  full mode is opt-in but remains bounded.
+- Authenticated analytics and ordered server-boundary trace inspection.
+- Observed p50/p95 latency using nearest-rank samples; `N/A` is shown when no duration
+  samples exist.
+- Explicit application-emitted workflow outcomes, kept separate from tool success.
 
-## Learn More
+Payloads are sanitized locally with recursive sensitive-key redaction, explicit path
+compatibility, binary/base64/resource scrubbing, depth/breadth/string/byte limits,
+and truncation markers. TrackMCP does not provide model/session replay, alerts,
+exports, gateways, or proxying for arbitrary hosted servers in P0.
 
-To learn more about Next.js, take a look at the following resources:
+## Development
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```bash
+npm install
+npm run dev
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+The Next.js app is in this directory. SDK package READMEs and examples live under
+`packages/`.

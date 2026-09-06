@@ -29,7 +29,7 @@ import { LoopBars, LatencyGauge, ClientDonut } from "@/components/SignalGraphics
 export const metadata: Metadata = pageMeta({
   title: "Features | TrackMCP",
   description:
-    "Tool analytics, latency and error tracking, silent-failure detection, client breakdown, sessions, alerts, and actionable insights for the MCP server you ship.",
+    "Privacy-aware tool analytics, latency and error tracking, client breakdown, sessions, and workflow signals for the MCP server you ship.",
   path: "/features",
 });
 
@@ -47,7 +47,7 @@ function SilentFailureViz() {
         <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[11px] text-amber-700">isError: true</span>
       </div>
       <p className="pt-1 text-[12.5px] leading-relaxed text-faint">
-        Your APM sees the green 200. TrackMCP reads the payload and counts the failure inside it.
+        Your APM sees the green 200. TrackMCP records the observed MCP error signal inside the tool result.
       </p>
     </div>
   );
@@ -202,7 +202,7 @@ const reliability: Detail[] = [
     tile: "bg-amber-100 text-amber-600",
     eyebrow: "Latency & errors",
     title: "Know which tool is slow before your users do",
-    body: "Every tool gets a latency and error-rate profile. p50 for the typical call, p95 for the tail that quietly ruins agent sessions.",
+    body: "Every tool gets an observed latency and error-rate profile. p50 shows a typical observed call; p95 shows the observed tail.",
     points: ["p50 and p95 latency per tool", "Error rate trended over time", "Sort tools by slowest or flakiest"],
     visual: <LatencyViz />,
   },
@@ -223,9 +223,9 @@ const reliability: Detail[] = [
     icon: ScanSearch,
     tile: "bg-sky-100 text-sky-600",
     eyebrow: "Call inspector",
-    title: "Open any call and see everything",
-    body: "Arguments in, result out, timing, client, and the error if there was one. The full record of a single call, without grepping a log file.",
-    points: ["Full arguments and result payloads", "Per-call timing and client", "Jump from a failure straight to its cause"],
+    title: "Inspect any observed call",
+    body: "See bounded sanitized payloads, timing, client metadata, and errors without grepping a log file.",
+    points: ["Bounded sanitized payloads", "Per-call timing and client", "Jump from an observed failure to its trace"],
     visual: <CallInspectorViz />,
   },
 ];
@@ -245,8 +245,8 @@ const adoption: Detail[] = [
     tile: "bg-brand-soft text-brand-strong",
     eyebrow: "Sessions & funnels",
     title: "Follow one agent session end to end",
-    body: "Replay a session in the exact order calls happened, and see the step where agents stall or drop off before they finish the job.",
-    points: ["Full call sequence per session", "Drop-off at each step", "Completed vs failed outcomes"],
+    body: "Inspect a session in the exact observed order and see where calls stop before the job finishes.",
+    points: ["Ordered server-boundary events", "Drop-off at each observed step", "Explicit outcomes vs session heuristics"],
     visual: <FunnelViz />,
   },
   {
@@ -315,10 +315,10 @@ const aiCards = [
 const integrations = [
   { icon: Terminal, tile: "bg-slate-100 text-slate-600", title: "TypeScript SDK", body: "Wrap the official MCP server in one line." },
   { icon: Terminal, tile: "bg-sky-100 text-sky-600", title: "Python SDK", body: "Same one-line wrap for Python servers." },
-  { icon: Bell, tile: "bg-amber-100 text-amber-600", title: "Slack alerts", body: "A message the moment a tool starts failing." },
-  { icon: Webhook, tile: "bg-violet-100 text-violet-600", title: "Webhooks", body: "Push events into anything you already run." },
+  { icon: Bell, tile: "bg-amber-100 text-amber-600", title: "Slack alerts (Planned)", body: "Notifications are planned; P0 provides dashboard evidence instead." },
+  { icon: Webhook, tile: "bg-violet-100 text-violet-600", title: "Webhooks (Planned)", body: "Outbound event delivery is planned; it is not part of P0." },
   { icon: Plug, tile: "bg-teal-100 text-teal-600", title: "REST API", body: "Query your own metrics programmatically." },
-  { icon: Database, tile: "bg-rose-100 text-rose-600", title: "OpenTelemetry export", body: "Send spans to your SIEM or warehouse." },
+  { icon: Database, tile: "bg-rose-100 text-rose-600", title: "OpenTelemetry export (Planned)", body: "External span export is planned; it is not part of P0." },
 ];
 
 export default function FeaturesPage() {
@@ -341,8 +341,8 @@ export default function FeaturesPage() {
             </Reveal>
             <Reveal delay={0.12}>
               <p className="mx-auto mt-5 max-w-[54ch] text-[16px] leading-[1.5] text-muted sm:text-[18px]">
-                See who uses your MCP server, what they are trying to do, whether
-                the work gets done, and what to fix next. All from one line of code.
+                See observed clients, tools, protocol events, errors, latency, and
+                explicit workflow signals at the server boundary. All from one line of code.
               </p>
             </Reveal>
             <Reveal delay={0.16}>
@@ -382,7 +382,7 @@ export default function FeaturesPage() {
               Prove the server is healthy
             </h2>
             <p className="mt-4 text-[16px] leading-[1.5] text-muted">
-              Everything an owner needs to answer one question: is my server doing its job right now?
+              The observed evidence an owner needs to understand how the server is behaving right now.
             </p>
           </Reveal>
           <div className="mt-16 flex flex-col gap-20">
@@ -403,8 +403,8 @@ export default function FeaturesPage() {
                 See who uses it, and how
               </h2>
               <p className="mt-4 text-[16px] leading-[1.5] text-muted">
-                The adoption side of the story: which AI clients call you, where they drop
-                off, and which tools actually matter.
+                The adoption side of the story: which clients call you, where observed
+                sessions stop, and which tools actually matter.
               </p>
             </Reveal>
             <div className="mt-16 flex flex-col gap-20">

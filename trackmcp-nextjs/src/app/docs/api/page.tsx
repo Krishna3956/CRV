@@ -34,8 +34,9 @@ export default function ApiDocsPage() {
 
       <DocSection title="Authentication">
         <Para>
-          Send your API key as a bearer token. Keys are scoped to a workspace and can
-          be read-only.
+          Send your API key as a bearer token. Keys are scoped to a workspace. The
+          dashboard and analytics/trace reads require authentication; keep keys in a
+          secret manager and never put them in tool arguments.
         </Para>
         <Code>{`curl "https://trackmcp.com/api/v1/analytics?days=7" \\
   -H "Authorization: Bearer $TRACKMCP_KEY"`}</Code>
@@ -51,6 +52,7 @@ export default function ApiDocsPage() {
   -H "Authorization: Bearer $TRACKMCP_KEY" \\
   -H "Content-Type: application/json" \\
   -d '{"events":[{
+    "schema_version":"1",
     "event_id":"unique-id",
     "event_type":"tool_call",
     "service":"my-mcp-server",
@@ -60,6 +62,7 @@ export default function ApiDocsPage() {
     "duration_ms":42,
     "success":true,
     "is_error":false,
+    "payload_policy":"redacted",
     "payload":{"args":{}}
   }]}'`}</Code>
       </DocSection>
@@ -99,6 +102,35 @@ export default function ApiDocsPage() {
   "tools": [{ "name": "search_docs", "calls": 14208, "error_rate": 0.002 }],
   "insights": []
 }`}</Code>
+      </DocSection>
+
+      <DocSection title="Trace response">
+        <Para>
+          <Inline>GET /api/v1/traces</Inline> requires <Inline>session_id</Inline> and
+          returns only events belonging to the authenticated workspace and session.
+          The default limit is 200; callers may request 1–1,000 with <Inline>limit</Inline>.
+        </Para>
+        <Code>{`{
+  "session_id": "session-123",
+  "event_count": 2,
+  "truncated": false,
+  "completion_source": "session_heuristic",
+  "correlation_quality": "session_id",
+  "events": [{
+    "event_id": "event-1",
+    "event_type": "tool_call",
+    "mcp_method": "tools/call",
+    "tool_name": "search_docs",
+    "duration_ms": 42,
+    "payload_policy": "redacted"
+  }]
+}`}</Code>
+        <Para>
+          <Inline>POST /api/v1/ingest</Inline> is the canonical write plane. It
+          validates event IDs, timestamps, types, numeric fields, and batch/request
+          limits; duplicate event IDs are idempotently ignored. Trace and analytics
+          endpoints are read-only views of stored server-boundary telemetry.
+        </Para>
       </DocSection>
 
     </DocsShell>
