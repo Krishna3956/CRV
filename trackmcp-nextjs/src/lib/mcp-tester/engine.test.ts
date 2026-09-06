@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { after, test } from "node:test";
 import {
   REDACTED_VALUE,
+  HARD_MCP_TESTER_LIMITS,
   isMcpBrowserRuntime,
   redactHeaders,
   redactText,
@@ -89,6 +90,10 @@ function responseWithoutBody(headers: Record<string, string>, onText: () => void
       return "should not be read";
     },
   } as unknown as Response;
+}
+
+function waitFor(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 function jsonRpc(result: unknown, id: number, headers: Record<string, string> = {}): Response {
@@ -297,20 +302,50 @@ test("pre-aborted signals never invoke fetch and abort during fetch stops the op
 
   const controller = new AbortController();
   let fetchStarted = false;
+  let releaseFetch: ((response: Response) => void) | undefined;
   const duringFetch = await runMcpTester({
     endpoint,
     signal: controller.signal,
     fetch: async (_input, init) => {
       fetchStarted = true;
       setTimeout(() => controller.abort(), 5);
-      return new Promise<Response>((_resolve, reject) => {
-        init?.signal?.addEventListener("abort", () => reject(new DOMException("aborted", "AbortError")), { once: true });
+      return new Promise<Response>((resolve) => {
+        releaseFetch = resolve;
+        assert.equal(init?.signal?.aborted, false);
       });
     },
   });
   assert.equal(fetchStarted, true);
   assert.equal(duringFetch.verdict, "incomplete");
   assert.ok(duringFetch.findings.some((finding) => finding.code === "request_aborted"));
+  assert.equal(duringFetch.timeline.some((event) => event.kind === "response_received"), false);
+  const timelineBeforeLateFetchResolution = JSON.stringify(duringFetch.timeline);
+  releaseFetch?.(jsonRpc({}, 1));
+  await waitFor(0);
+  assert.equal(JSON.stringify(duringFetch.timeline), timelineBeforeLateFetchResolution);
+
+  const cleanupController = new AbortController();
+  let listenerCount = 0;
+  const cleanupSignal = cleanupController.signal as AbortSignal & {
+    addEventListener: AbortSignal["addEventListener"];
+    removeEventListener: AbortSignal["removeEventListener"];
+  };
+  const originalAdd = cleanupSignal.addEventListener.bind(cleanupSignal);
+  const originalRemove = cleanupSignal.removeEventListener.bind(cleanupSignal);
+  cleanupSignal.addEventListener = ((type: "abort", listener: (this: AbortSignal, event: Event) => unknown, options?: boolean | AddEventListenerOptions) => {
+    listenerCount += 1;
+    return originalAdd(type, listener, options);
+  }) as typeof cleanupSignal.addEventListener;
+  cleanupSignal.removeEventListener = ((type: "abort", listener: EventListenerOrEventListenerObject, options?: boolean | EventListenerOptions) => {
+    listenerCount -= 1;
+    return originalRemove(type, listener, options);
+  }) as typeof cleanupSignal.removeEventListener;
+  const cleanupReport = await runMcpTester({ endpoint, signal: cleanupSignal, limits: { maxTotalDurationMs: 10 }, fetch: successfulFetch().fetch });
+  const cleanupSnapshot = JSON.stringify(cleanupReport);
+  assert.equal(listenerCount, 0);
+  await waitFor(25);
+  assert.equal(listenerCount, 0);
+  assert.equal(JSON.stringify(cleanupReport), cleanupSnapshot);
 });
 
 test("abort during body reading cancels the reader and a stalled body is covered by the total deadline", async () => {
@@ -326,6 +361,9 @@ test("abort during body reading cancels the reader and a stalled body is covered
   });
   assert.equal(abortedBody.verdict, "incomplete");
   assert.equal(externallyCancelled, true);
+  const abortedBodySnapshot = JSON.stringify(abortedBody);
+  await waitFor(0);
+  assert.equal(JSON.stringify(abortedBody), abortedBodySnapshot);
 
   let deadlineCancelled = false;
   const deadlineBody = await runMcpTester({
@@ -445,6 +483,20 @@ test("oversized non-streaming bodies do not call text and streaming overflow can
   assert.equal(noBody.verdict, "incomplete");
   assert.equal(textCalled, false);
 
+  let contentLengthCancelled = false;
+  const oversizedStream = new ReadableStream<Uint8Array>({
+    cancel() {
+      contentLengthCancelled = true;
+    },
+  });
+  const contentLengthReport = await runMcpTester({
+    endpoint,
+    limits: { maxResponseBodyBytes: 10 },
+    fetch: async () => new Response(oversizedStream, { status: 200, headers: { "content-length": "100" } }),
+  });
+  assert.equal(contentLengthReport.verdict, "incomplete");
+  assert.equal(contentLengthCancelled, true);
+
   let cancelled = false;
   const overflow = await runMcpTester({
     endpoint,
@@ -481,6 +533,20 @@ test("credential redaction never returns bearer tokens or sensitive header value
     assert.equal(redacted.includes(secret), false, secret);
   }
   assert.equal(safeResourceUri("custom://user:password@example.com/resource?api_key=query-secret"), "custom://example.com/resource");
+
+  const encodedQuerySecrets = redactText([
+    "https://example.com/mcp?access%5Ftoken=encoded-secret",
+    "https://example.com/mcp?ACCESS%255FTOKEN=double-encoded-secret",
+    "https://example.com/mcp?API%2DKEY=api-key-secret",
+    "https://example.com/mcp?ToKeN=encoded%2Dvalue",
+    "https://example.com/mcp?secret=secret%2Fvalue",
+    "https://example.com/mcp?password=password%3Dvalue",
+    "https://example.com/mcp?authorization=authorization%2Dvalue",
+    "https://example.com/mcp?%E0%A4%A=malformed-query-value",
+  ].join(" "));
+  for (const secret of ["encoded-secret", "double-encoded-secret", "api-key-secret", "encoded%2Dvalue", "secret%2Fvalue", "password%3Dvalue", "authorization%2Dvalue", "malformed-query-value"]) {
+    assert.equal(encodedQuerySecrets.includes(secret), false, secret);
+  }
 });
 
 test("serialized reports redact secrets in reports, findings, timelines, and rendered strings", async () => {
@@ -507,6 +573,38 @@ test("serialized reports redact secrets in reports, findings, timelines, and ren
   }
   assert.equal(serialized.includes("<script>"), false);
   assert.equal(serialized.includes("\\u003cscript\\u003e"), true);
+});
+
+test("serialized reports clamp caller limits and never exceed the hard ceiling", async () => {
+  const fixture = successfulFetch();
+  const report = await runMcpTester({ endpoint, fetch: fixture.fetch });
+  const oversizedReport = {
+    ...report,
+    limitations: Array.from({ length: 10_000 }, () => "remote limitation ".repeat(100)),
+  };
+  const serialized = serializeMcpTesterReport(oversizedReport, Number.MAX_SAFE_INTEGER);
+  assert.ok(Buffer.byteLength(serialized) <= HARD_MCP_TESTER_LIMITS.maxRenderedJsonBytes);
+  assert.doesNotThrow(() => JSON.parse(serialized));
+  const serializedAtCeiling = serializeMcpTesterReport(oversizedReport, HARD_MCP_TESTER_LIMITS.maxRenderedJsonBytes + 1);
+  assert.ok(Buffer.byteLength(serializedAtCeiling) <= HARD_MCP_TESTER_LIMITS.maxRenderedJsonBytes);
+});
+
+test("expired synchronous parsing work is incomplete and never reported as healthy", async () => {
+  const report = await runMcpTester({
+    endpoint,
+    limits: { maxTotalDurationMs: 1, maxResponseBodyBytes: 2_000_000 },
+    fetch: async () => jsonRpc({
+      protocolVersion: "2025-06-18",
+      serverInfo: { name: "x".repeat(800_000), version: "1" },
+      capabilities: {},
+    }, 1),
+  });
+  assert.equal(report.verdict, "incomplete");
+  assert.notEqual(report.verdict, "healthy_now");
+  assert.ok(report.findings.some((finding) => finding.code === "request_timeout" || finding.code === "total_duration_limit"));
+  assert.equal(report.phases.at(-1)?.outcome, "incomplete");
+  const serialized = serializeMcpTesterReport(report, Number.MAX_SAFE_INTEGER);
+  assert.ok(Buffer.byteLength(serialized) <= HARD_MCP_TESTER_LIMITS.maxRenderedJsonBytes);
 });
 
 test("default flow executes no tools, reads, or prompts", async () => {

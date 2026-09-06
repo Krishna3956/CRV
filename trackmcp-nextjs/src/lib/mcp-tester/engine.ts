@@ -231,10 +231,14 @@ export async function runMcpTester(options: McpTesterOptions): Promise<McpTester
 
   const qualityStart = beginPhase("catalog_quality", record, now);
   assessCatalogQuality(state, addFinding);
-  finishPhase("catalog_quality", qualityStart, "passed", record, phases, timings, now);
+  if (now() >= state.deadlineMs) {
+    state.incomplete = true;
+    addFinding("total_duration_limit", "limit", "warning", "The test reached its total duration limit while synchronous catalog work was still being evaluated.", "finalize", { limit_ms: limits.maxTotalDurationMs });
+  }
+  finishPhase("catalog_quality", qualityStart, state.incomplete ? "incomplete" : "passed", record, phases, timings, now);
 
   const durationMs = Math.max(0, Math.round(now() - startedMs));
-  if (durationMs > limits.maxTotalDurationMs) {
+  if (durationMs >= limits.maxTotalDurationMs) {
     state.incomplete = true;
     addFinding("total_duration_limit", "limit", "warning", "The test reached its total duration limit before all evidence could be considered.", "finalize", { limit_ms: limits.maxTotalDurationMs });
   }
@@ -593,6 +597,10 @@ function finalize(state: ProbeState, observedAt: string, addFinding: AddFinding)
   state.timelineTruncated ||= state.timeline.length >= state.limits.maxTimelineEvents;
   if (state.timelineTruncated) state.incomplete = true;
   const durationMs = Math.max(0, Math.round(state.now() - state.startedMs));
+  if (durationMs >= state.limits.maxTotalDurationMs) {
+    state.incomplete = true;
+    addFinding("total_duration_limit", "limit", "warning", "The test reached its total duration limit before the report could be finalized as complete.", "finalize", { limit_ms: state.limits.maxTotalDurationMs });
+  }
   const signals: HealthSignals = {
     reachable: state.reachable,
     browserBlocked: state.browserBlocked,
@@ -617,7 +625,7 @@ function finalize(state: ProbeState, observedAt: string, addFinding: AddFinding)
   const verdictMessage = verdictMessageFor(verdict);
   const healthDimensions = evaluateHealthDimensions(signals);
   state.timings.push({ phase: "total", durationMs });
-  state.phases.push({ phase: "finalize", outcome: "passed", durationMs: 0 });
+  state.phases.push({ phase: "finalize", outcome: state.incomplete ? "incomplete" : "passed", durationMs: 0 });
   if (state.timelineTruncated && !state.findings.some((finding) => finding.code === "timeline_limit")) addFinding("timeline_limit", "limit", "warning", "The protocol timeline was truncated at the configured event limit.", "finalize", { limit: state.limits.maxTimelineEvents });
   return {
     schemaVersion: "mcp-tester-report.v1",

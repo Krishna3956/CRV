@@ -5,7 +5,8 @@ export const REDACTED_VALUE = "[redacted]" as const;
 const SENSITIVE_KEY_PATTERN = /(?:authorization|cookie|set-cookie|password|passwd|secret|token|api[_-]?key|credential|private[_-]?key|client[_-]?secret|access[_-]?key|signature|sig)/i;
 const BEARER_PATTERN = /\b(?:bearer|basic)\s+[^\s,;]+/gi;
 const JWT_PATTERN = /\beyJ[a-zA-Z0-9_-]{8,}\.[a-zA-Z0-9_-]{4,}\.[a-zA-Z0-9_-]{4,}\b/g;
-const QUERY_SECRET_PATTERN = /([?&](?:authorization|access[_-]?token|token|api[_-]?key|key|secret|password|credential|signature|sig|private[_-]?key)=)[^&#\s]*/gi;
+const QUERY_COMPONENT_PATTERN = /([?&])([^\s#<>"']*)/g;
+const QUERY_SECRET_NAME_PATTERN = /^(?:authorization|access[_-]?token|token|api[_-]?key|key|secret|password|passwd|credential|signature|sig|private[_-]?key|client[_-]?secret)$/i;
 const PRIVATE_KEY_PATTERN = /-----BEGIN [^-\r\n]*PRIVATE KEY-----[\s\S]*?-----END [^-\r\n]*PRIVATE KEY-----/gi;
 const USERINFO_PATTERN = /\b([a-z][a-z\d+.-]*:\/\/)(?:[^\/@\s:]+(?::[^\/@\s]*)?@)/gi;
 const COOKIE_PATTERN = /\b(?:cookie|set-cookie)\s*[:=]\s*[^\r\n]+/gi;
@@ -23,9 +24,37 @@ export function redactText(value: string, maxLength = 512): string {
     .replace(BEARER_PATTERN, REDACTED_VALUE)
     .replace(JWT_PATTERN, REDACTED_VALUE)
     .replace(ASSIGNMENT_SECRET_PATTERN, `$1=${REDACTED_VALUE}`);
-  redacted = redacted.replace(QUERY_SECRET_PATTERN, `$1${REDACTED_VALUE}`);
+  redacted = redactQuerySecrets(redacted);
   if (redacted.length > maxLength) return `${redacted.slice(0, Math.max(0, maxLength - 1))}…`;
   return redacted;
+}
+
+function redactQuerySecrets(value: string): string {
+  return value.replace(QUERY_COMPONENT_PATTERN, (match, prefix: string, query: string) => {
+    const redactedQuery = query.split("&").map((component) => {
+      const separator = component.indexOf("=");
+      if (separator < 0) return component;
+      const rawName = component.slice(0, separator);
+      const decodedName = decodeQueryName(rawName);
+      if (decodedName.malformed || QUERY_SECRET_NAME_PATTERN.test(decodedName.value)) return `${rawName}=${REDACTED_VALUE}`;
+      return component;
+    }).join("&");
+    return `${prefix}${redactedQuery}`;
+  });
+}
+
+function decodeQueryName(value: string): { value: string; malformed: boolean } {
+  let decoded = value;
+  for (let attempt = 0; attempt < 2; attempt += 1) {
+    try {
+      const next = decodeURIComponent(decoded);
+      if (next === decoded) break;
+      decoded = next;
+    } catch {
+      return { value: decoded, malformed: true };
+    }
+  }
+  return { value: decoded.replaceAll("+", " "), malformed: false };
 }
 
 export function safeString(value: unknown, maxLength = 512): string | undefined {

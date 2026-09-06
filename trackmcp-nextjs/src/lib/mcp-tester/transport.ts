@@ -88,11 +88,16 @@ export async function sendMcpRequest(options: TransportRequestOptions): Promise<
   const cancelActiveReader = () => {
     if (activeReader) void activeReader.cancel().catch(() => undefined);
   };
+  let abortReject: ((reason?: unknown) => void) | undefined;
   const onAbort = () => {
     externallyAborted = true;
     controller.abort();
     cancelActiveReader();
+    abortReject?.(new OperationAbortedError());
   };
+  const abortPromise = new Promise<never>((_, reject) => {
+    abortReject = reject;
+  });
   options.signal?.addEventListener("abort", onAbort, { once: true });
   let deadlineTimer: ReturnType<typeof setTimeout> | undefined;
   const deadlinePromise = new Promise<never>((_, reject) => {
@@ -103,22 +108,28 @@ export async function sendMcpRequest(options: TransportRequestOptions): Promise<
       reject(new OperationTimeoutError());
     }, remainingMs);
   });
+  const throwIfStopped = (): void => {
+    if (externallyAborted) throw new OperationAbortedError();
+    if (timedOut || options.now() >= options.deadlineMs) {
+      timedOut = true;
+      controller.abort();
+      cancelActiveReader();
+      throw new OperationTimeoutError();
+    }
+  };
 
-  try {
-    const response = await Promise.race([
-      options.fetch(options.endpoint, {
-        method: "POST",
-        headers,
-        body,
-        redirect: "manual",
-        credentials: "omit",
-        mode: "cors",
-        cache: "no-store",
-        signal: controller.signal,
-      }),
-      deadlinePromise,
-    ]);
-    if (options.now() >= options.deadlineMs) throw new OperationTimeoutError();
+  const operation = async (): Promise<TransportResult> => {
+    const response = await options.fetch(options.endpoint, {
+      method: "POST",
+      headers,
+      body,
+      redirect: "manual",
+      credentials: "omit",
+      mode: "cors",
+      cache: "no-store",
+      signal: controller.signal,
+    });
+    throwIfStopped();
     if (response.type === "opaque" || response.type === "opaqueredirect" || response.status === 0) {
       return { ok: false, kind: "browser_blocked", code: "opaque_browser_response", responseReceived: false };
     }
@@ -134,11 +145,12 @@ export async function sendMcpRequest(options: TransportRequestOptions): Promise<
 
     const contentLength = response.headers.get("content-length");
     if (contentLength && /^\d+$/.test(contentLength) && Number(contentLength) > options.limits.maxResponseBodyBytes) {
-      return { ok: false, kind: "response_too_large", code: "response_body_too_large", status: response.status, responseReceived: true };
+      await cancelResponseBody(response, (reader) => { activeReader = reader; });
+      throw new ResponseSizeError();
     }
 
     const read = await readResponseBody(response, options.limits.maxResponseBodyBytes, controller.signal, (reader) => { activeReader = reader; });
-    if (options.now() >= options.deadlineMs) throw new OperationTimeoutError();
+    throwIfStopped();
     const bodyText = read.text;
     const bodyBytes = read.bytes;
     options.record("response_received", options.phase, {
@@ -157,7 +169,7 @@ export async function sendMcpRequest(options: TransportRequestOptions): Promise<
     if (bodyText.trim() === "") return { ok: false, kind: "protocol_error", code: "empty_json_rpc_response", status: response.status, responseReceived: true };
 
     const parsed = parseRpcBody(bodyText, response.headers.get("content-type") ?? "", options.limits, options.requestId);
-    if (options.now() >= options.deadlineMs) throw new OperationTimeoutError();
+    throwIfStopped();
     if (!parsed.ok) return { ok: false, kind: parsed.kind, code: parsed.code, status: response.status, responseReceived: true, errorCode: parsed.errorCode };
     if (parsed.envelope.kind === "error") {
       if (isAuthRpcError(parsed.envelope)) return { ok: false, kind: "auth_required", code: "authentication_required", status: response.status, responseReceived: true, errorCode: parsed.envelope.errorCode };
@@ -171,6 +183,14 @@ export async function sendMcpRequest(options: TransportRequestOptions): Promise<
       envelope: parsed.envelope,
       sessionId: safeSessionId(response.headers.get("mcp-session-id")),
     };
+  };
+
+  try {
+    return await Promise.race([
+      operation(),
+      abortPromise,
+      deadlinePromise,
+    ]);
   } catch (error) {
     if (error instanceof ResponseSizeError) return { ok: false, kind: "response_too_large", code: "response_body_too_large", responseReceived: true };
     if (error instanceof BodyUnavailableError) return { ok: false, kind: "protocol_error", code: "response_body_stream_unavailable", responseReceived: true };
@@ -187,6 +207,21 @@ class ResponseSizeError extends Error {}
 class BodyUnavailableError extends Error {}
 class OperationTimeoutError extends Error {}
 class OperationAbortedError extends Error {}
+
+async function cancelResponseBody(response: Response, setReader: (reader: ReadableStreamDefaultReader<Uint8Array> | undefined) => void): Promise<void> {
+  if (response.body == null) return;
+  let reader: ReadableStreamDefaultReader<Uint8Array> | undefined;
+  try {
+    reader = response.body.getReader();
+    setReader(reader);
+    await cancelReader(reader);
+  } catch {
+    // The response is already being rejected for size; cancellation is best effort.
+  } finally {
+    setReader(undefined);
+    reader?.releaseLock();
+  }
+}
 
 async function readResponseBody(response: Response, maxBytes: number, signal: AbortSignal, setReader: (reader: ReadableStreamDefaultReader<Uint8Array> | undefined) => void): Promise<{ text: string; bytes: number }> {
   if (response.body == null) {
