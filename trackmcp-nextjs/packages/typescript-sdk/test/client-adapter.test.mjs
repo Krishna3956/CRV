@@ -9,13 +9,20 @@ import { TrackMCPClientAdapter } from "../dist/client-adapter.js";
 import { TrackMCPClient } from "../dist/index.js";
 
 const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+const REPEAT_WINDOW_MS = 5 * 60 * 1000;
 
 test("pins the MCP dependency and exposes the adapter only through the Node export condition", async () => {
   const packageJson = JSON.parse(await readFile(new URL("../package.json", import.meta.url), "utf8"));
   assert.equal(packageJson.peerDependencies["@modelcontextprotocol/sdk"], "1.30.0");
   assert.equal(packageJson.devDependencies["@modelcontextprotocol/sdk"], "1.30.0");
   assert.equal(packageJson.exports["./client-adapter"].node, "./dist/client-adapter.js");
+  assert.equal(packageJson.exports["./client-adapter"].browser, undefined);
   assert.equal(packageJson.exports["./client-adapter"].default, null);
+});
+
+test("rejects structurally similar unsupported transports", () => {
+  const adapter = new TrackMCPClientAdapter({ apiKey: "tmcp_test", service: "adapter-test", transport: "stdio" });
+  assert.throws(() => adapter.wrapTransport({ start() {}, send() {}, close() {} }), /official StdioClientTransport/);
 });
 
 test("rejects the Edge runtime marker before opening a capture path", () => {
@@ -147,8 +154,12 @@ test("uses a real StreamableHTTPClientTransport and preserves transport-generate
   assert.equal(issued.session_id_source, "transport_generated");
 });
 
-class FakeTransport {
-  constructor() { this.sent = []; this.sessionId = "fake-session"; }
+class FakeTransport extends StdioClientTransport {
+  constructor() {
+    super({ command: process.execPath, args: ["-e", "process.stdin.resume()"], stderr: "ignore" });
+    this.sent = [];
+    this.sessionId = "fake-session";
+  }
   async start() {}
   async send(message) { this.sent.push(message); }
   async close() { this.onclose?.(); }
@@ -164,7 +175,8 @@ function toolCall(id, name = "search") {
 test("handles batches, notifications, malformed/unmatched messages, concurrency, and repeat semantics", async () => {
   const events = [];
   const raw = new FakeTransport();
-  const adapter = new TrackMCPClientAdapter({ apiKey: "tmcp_test", service: "adapter-test", transport: "stdio", disabled: false, flushIntervalMs: 60000, correlation: { mode: "external", resolve: ({ toolName }) => toolName === "search" ? "job_anon_1" : undefined }, onEvent: (event) => events.push(event) });
+  let resolverCalls = 0;
+  const adapter = new TrackMCPClientAdapter({ apiKey: "tmcp_test", service: "adapter-test", transport: "stdio", disabled: false, flushIntervalMs: 60000, correlation: { mode: "external", resolve: ({ toolName }) => toolName === "search" ? `job_anon_${++resolverCalls}` : undefined }, onEvent: (event) => events.push(event) });
   const wrapped = adapter.wrapTransport(raw);
   await wrapped.start();
   let forwarded = 0;
@@ -194,7 +206,7 @@ test("handles batches, notifications, malformed/unmatched messages, concurrency,
   const issued = events.filter((event) => event.payload?._trackmcp?.observation_kind === "tool_call_issued");
   const results = events.filter((event) => event.payload?._trackmcp?.observation_kind === "result_received");
   assert.equal(issued.length, 5);
-  assert.equal(results.length, 5);
+  assert.equal(results.length, 4);
   assert.equal(issued.filter((event) => event.tool_name === "search" && event.payload._trackmcp.repeat_observed).length, 1);
   assert.equal(results.some((event) => event.request_id === "three"), true);
   assert.equal(adapter.getDiagnostics().malformedMessages >= 2, true);
@@ -204,9 +216,50 @@ test("handles batches, notifications, malformed/unmatched messages, concurrency,
   assert.equal(JSON.stringify(adapter.getDiagnostics()).includes("one"), false);
   assert.equal(results.find((event) => event.request_id === "three").tool_name, "search");
   assert.equal(results.find((event) => event.request_id === "two").tool_name, "other");
-  assert.equal(issued.find((event) => event.request_id === "three").correlation_handle, "job_anon_1");
+  assert.equal(resolverCalls, 2);
+  assert.equal(issued.find((event) => event.request_id === "three").correlation_handle, "job_anon_2");
   assert.equal(issued.find((event) => event.request_id === "three").correlation_handle_source, "external");
+  assert.equal(results.find((event) => event.request_id === "three").correlation_handle, "job_anon_2");
+  assert.equal(results.filter((event) => event.request_id === "reuse").length, 1);
   assert.notEqual(issued.find((event) => event.request_id === "three").correlation_handle, issued.find((event) => event.request_id === "three").request_id);
+});
+
+test("does not attribute an ambiguous late response to a reused request ID", async () => {
+  const events = [];
+  const raw = new FakeTransport();
+  const adapter = new TrackMCPClientAdapter({ apiKey: "tmcp_test", service: "adapter-test", transport: "stdio", flushIntervalMs: 60000, onEvent: (event) => events.push(event) });
+  const wrapped = adapter.wrapTransport(raw);
+  await wrapped.start();
+  wrapped.onmessage = () => {};
+  await wrapped.send(toolCall("same", "first"));
+  await wrapped.send(toolCall("same", "second"));
+  raw.onmessage({ jsonrpc: "2.0", id: "same", result: { content: [{ type: "text", text: "late" }] } });
+  assert.equal(events.filter((event) => event.payload?._trackmcp?.observation_kind === "result_received").length, 0);
+  assert.equal(adapter.getDiagnostics().unmatchedMessages, 1);
+  assert.equal(adapter.getDiagnostics().duplicateMessages, 1);
+});
+
+test("bounds pending calls and repeat groups, expires repeat state, and rejects oversized tool names", async () => {
+  const events = [];
+  const raw = new FakeTransport();
+  const adapter = new TrackMCPClientAdapter({ apiKey: "tmcp_test", service: "adapter-test", transport: "stdio", flushIntervalMs: 60000, onEvent: (event) => events.push(event) });
+  const wrapped = adapter.wrapTransport(raw);
+  await wrapped.start();
+  const realNow = Date.now;
+  try {
+    Date.now = () => 1000;
+    await wrapped.send(toolCall("repeat-1", "search"));
+    Date.now = () => 1000 + REPEAT_WINDOW_MS + 1;
+    await wrapped.send(toolCall("repeat-2", "search"));
+    assert.equal(events.filter((event) => event.payload?._trackmcp?.repeat_observed).length, 0);
+    await wrapped.send(toolCall("too-long", "x".repeat(2049)));
+    assert.equal(adapter.getDiagnostics().malformedMessages >= 1, true);
+    for (let index = 0; index < 1100; index += 1) await wrapped.send(toolCall(`pending-${index}`, `tool-${index}`));
+    assert.equal(adapter.getDiagnostics().pending_request_count <= 1000, true);
+    assert.equal(adapter.getDiagnostics().repeat_group_count <= 1000, true);
+  } finally {
+    Date.now = realNow;
+  }
 });
 
 test("deduplicates lifecycle events and gives hooks an immutable finalized copy", async () => {
@@ -250,5 +303,7 @@ test("failed start emits no lifecycle start and transport failures remain fail-o
   await wrapped.send(toolCall("one"));
   assert.doesNotThrow(() => second.onmessage?.({ jsonrpc: "2.0", id: "one", result: {} }));
   assert.equal(throwingHook.getDiagnostics().hookErrors >= 1, true);
+  assert.equal(throwingHook.getDiagnostics().queuedEvents, 0);
+  assert.equal(throwingHook.getDiagnostics().droppedEvents >= 1, true);
   await wrapped.close();
 });

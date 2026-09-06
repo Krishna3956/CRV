@@ -112,7 +112,7 @@ export default function ApiDocsPage() {
         <Para>
           <Inline>GET /api/v1/traces</Inline> requires <Inline>session_id</Inline> or
           <Inline>correlation_handle</Inline> and returns only events belonging to the
-          authenticated workspace and supplied scope. A handle is never treated as a
+          authenticated workspace and session scope supplied by the caller. A handle is never treated as a
           session ID. The default limit is 200; callers may request 1–1,000 with <Inline>limit</Inline>.
         </Para>
         <Code>{`{

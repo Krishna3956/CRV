@@ -277,6 +277,7 @@ export class TrackMCPClient {
           hook(freezeClone(prepared));
         } catch {
           this.diagnosticCounts.hookErrors += 1;
+          this.removeQueuedEvent(prepared);
         }
       }
     } catch {
@@ -298,6 +299,14 @@ export class TrackMCPClient {
       }
     }
     return { source: "missing" };
+  }
+
+  private removeQueuedEvent(event: TrackMCPEvent): void {
+    const index = this.queue.lastIndexOf(event);
+    if (index < 0) return;
+    this.queue.splice(index, 1);
+    this.queueBytes = Math.max(0, this.queueBytes - payloadByteLength(event));
+    this.diagnosticCounts.droppedEvents += 1;
   }
 
   private intentFor(event: Partial<TrackMCPEvent>): { context?: string; source: TrackMCPIntentSource } {

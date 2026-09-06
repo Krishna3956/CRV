@@ -7,16 +7,23 @@ alter table public.trackmcp_events
   add column if not exists observation_source text;
 
 do $$
+declare
+  existing_definition text;
+  expected_definition text := 'CHECK (((observation_source IS NULL) OR (observation_source = ANY (ARRAY[''client''::text, ''server''::text]))))';
 begin
-  if not exists (
-    select 1
+  select pg_get_constraintdef(oid)
+    into existing_definition
     from pg_constraint
-    where conrelid = 'public.trackmcp_events'::regclass
-      and conname = 'trackmcp_events_observation_source_check'
-  ) then
+   where conrelid = 'public.trackmcp_events'::regclass
+     and conname = 'trackmcp_events_observation_source_check';
+
+  if existing_definition is null then
     alter table public.trackmcp_events
       add constraint trackmcp_events_observation_source_check
       check (observation_source is null or observation_source in ('client', 'server'));
+  elsif regexp_replace(lower(existing_definition), '\s+', '', 'g')
+        <> regexp_replace(lower(expected_definition), '\s+', '', 'g') then
+    raise exception 'trackmcp_events_observation_source_check exists with incompatible definition: %', existing_definition;
   end if;
 end
 $$;

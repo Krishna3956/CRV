@@ -1,4 +1,6 @@
 import type { Transport } from "@modelcontextprotocol/sdk/shared/transport.js";
+import { StdioClientTransport } from "@modelcontextprotocol/sdk/client/stdio.js";
+import { StreamableHTTPClientTransport } from "@modelcontextprotocol/sdk/client/streamableHttp.js";
 import {
   TrackMCPClient,
   type TrackMCPEvent,
@@ -25,7 +27,14 @@ export type TrackMCPClientAdapterOptions = Omit<
 };
 
 type Message = Record<string, unknown>;
-type PendingCall = { idKey: string; requestId?: string; toolName?: string; started: number };
+type PendingCall = {
+  idKey: string;
+  requestId?: string;
+  toolName?: string;
+  started: number;
+  correlation: { handle?: string; source: TrackMCPCorrelationHandleSource };
+  ambiguous?: boolean;
+};
 
 const MAX_PENDING_CALLS = 1000;
 const REPEAT_WINDOW_MS = 5 * 60 * 1000;
@@ -58,6 +67,7 @@ export class TrackMCPClientAdapter {
   private readonly pending = new Map<string, PendingCall[]>();
   private readonly pendingOrder: PendingCall[] = [];
   private readonly completedIds = new Set<string>();
+  private readonly seenRequestIds = new Set<string>();
   private readonly lastIssued = new Map<string, number>();
   private readonly wrapped = new WeakMap<object, Transport>();
   private readonly transportDiagnostics = { malformedMessages: 0, unmatchedMessages: 0, duplicateMessages: 0 };
@@ -90,8 +100,11 @@ export class TrackMCPClientAdapter {
     if (!transport || typeof transport !== "object") throw new TypeError("A transport object is required");
     const existing = this.wrapped.get(transport as object);
     if (existing) return existing as T;
-    if (typeof transport.start !== "function" || typeof transport.send !== "function" || typeof transport.close !== "function") {
-      throw new TypeError("Transport must implement start, send, and close");
+    const supported = this.options.transport === "stdio"
+      ? transport instanceof StdioClientTransport
+      : transport instanceof StreamableHTTPClientTransport;
+    if (!supported) {
+      throw new TypeError("Transport must be an official StdioClientTransport or StreamableHTTPClientTransport instance");
     }
 
     let onmessage: Transport["onmessage"];
@@ -113,6 +126,7 @@ export class TrackMCPClientAdapter {
                 adapter.pending.clear();
                 adapter.pendingOrder.length = 0;
                 adapter.completedIds.clear();
+                adapter.seenRequestIds.clear();
                 adapter.protocolSessionId = undefined;
                 adapter.emitSessionBoundary("session_started");
               }
@@ -173,7 +187,7 @@ export class TrackMCPClientAdapter {
   }
 
   getDiagnostics() {
-    return { ...this.client.getDiagnostics(), ...this.transportDiagnostics, lifecycle_generation: this.lifecycleGeneration };
+    return { ...this.client.getDiagnostics(), ...this.transportDiagnostics, lifecycle_generation: this.lifecycleGeneration, pending_request_count: this.pendingOrder.length, repeat_group_count: this.lastIssued.size };
   }
 
   private observeOutgoing(message: unknown, transport: Transport): void {
@@ -191,21 +205,25 @@ export class TrackMCPClientAdapter {
       }
       if (item.method !== "tools/call") {
         const id = requestId(item.id);
-        if (id !== undefined) this.addPending({ idKey: this.keyFor(item.id), requestId: id, started: Date.now() });
+        if (id !== undefined) this.addPending({ idKey: this.keyFor(item.id), requestId: id, started: Date.now(), correlation: { source: "missing" } });
         continue;
       }
       const id = requestId(item.id);
       const params = isRecord(item.params) ? item.params : undefined;
-      const toolName = typeof params?.name === "string" ? params.name : undefined;
+      const toolName = boundedString(params?.name);
       if (id === undefined || !toolName) {
         this.transportDiagnostics.malformedMessages += 1;
         continue;
       }
       const started = Date.now();
-      const pending: PendingCall = { idKey: this.keyFor(item.id), requestId: id, toolName, started };
-      this.addPending(pending);
+      const idKey = this.keyFor(item.id);
       const session = this.sessionFields(transport);
       const correlation = this.client.resolveCorrelation({ event_type: "tool_call", mcp_method: "tools/call", tool_name: toolName, request_id: id, session_id: session.session_id, transport: this.options.transport });
+      const reused = this.seenRequestIds.has(idKey);
+      this.seenRequestIds.add(idKey);
+      while (this.seenRequestIds.size > MAX_PENDING_CALLS) this.seenRequestIds.delete(this.seenRequestIds.values().next().value as string);
+      const pending: PendingCall = { idKey, requestId: id, toolName, started, correlation, ambiguous: reused || (this.pending.get(idKey)?.length || 0) > 0 };
+      this.addPending(pending);
       const repeat = this.repeatFor(toolName, { ...session, correlation_handle: correlation.handle }, started);
       if (this.lastResultRequestId && this.lastResultAt <= started && started - this.lastResultAt <= REPEAT_WINDOW_MS) {
         this.emit({
@@ -254,18 +272,20 @@ export class TrackMCPClientAdapter {
       }
       const key = this.keyFor(item.id);
       const candidates = this.pending.get(key) || [];
-      if (candidates.length !== 1) {
+      if (candidates.length !== 1 || candidates[0].ambiguous) {
         this.transportDiagnostics.unmatchedMessages += 1;
-        if (candidates.length > 1 || this.completedIds.has(key)) this.transportDiagnostics.duplicateMessages += 1;
+        if (candidates.length > 1 || candidates[0]?.ambiguous || this.completedIds.has(key)) this.transportDiagnostics.duplicateMessages += 1;
+        for (const candidate of candidates) {
+          const pendingIndex = this.pendingOrder.indexOf(candidate);
+          if (pendingIndex >= 0) this.pendingOrder.splice(pendingIndex, 1);
+        }
+        this.pending.delete(key);
+        this.markCompleted(key);
         continue;
       }
       const pending = candidates[0];
       this.pending.delete(key);
-      this.completedIds.add(key);
-      if (this.completedIds.size > MAX_PENDING_CALLS) {
-        const oldest = this.completedIds.values().next().value;
-        if (typeof oldest === "string") this.completedIds.delete(oldest);
-      }
+      this.markCompleted(key);
       const index = this.pendingOrder.indexOf(pending);
       if (index >= 0) this.pendingOrder.splice(index, 1);
       const result = isRecord(item.result) ? item.result : undefined;
@@ -275,7 +295,6 @@ export class TrackMCPClientAdapter {
       }
       if (!pending.toolName) continue;
       const session = this.sessionFields();
-      const correlation = this.client.resolveCorrelation({ event_type: "tool_call", mcp_method: "tools/call", tool_name: pending.toolName, request_id: pending.requestId, session_id: session.session_id, transport: this.options.transport });
       this.lastResultRequestId = pending.requestId;
       this.lastResultAt = Date.now();
       this.emit({
@@ -294,7 +313,7 @@ export class TrackMCPClientAdapter {
         client_name: this.clientName,
         client_version: this.clientVersion,
         payload: { _trackmcp: { observation_kind: "result_received", observation_source: "client" } },
-      }, correlation);
+      }, pending.correlation);
     }
   }
 
@@ -315,18 +334,34 @@ export class TrackMCPClientAdapter {
 
   private repeatFor(toolName: string | undefined, session: ReturnType<TrackMCPClientAdapter["sessionFields"]> & { correlation_handle?: string }, at: number): "session_id" | "correlation_handle" | undefined {
     if (!toolName) return undefined;
+    for (const [existingKey, existingAt] of this.lastIssued) {
+      if (at - existingAt > REPEAT_WINDOW_MS) this.lastIssued.delete(existingKey);
+    }
     const groups: Array<["session_id" | "correlation_handle", string | undefined]> = [
       ["session_id", session.session_id],
       ["correlation_handle", session.correlation_handle],
     ];
+    let repeatSource: "session_id" | "correlation_handle" | undefined;
     for (const [source, value] of groups) {
       if (!value) continue;
       const key = `${source}:${value}:${toolName}`;
       const previous = this.lastIssued.get(key);
       this.lastIssued.set(key, at);
-      if (previous !== undefined && at - previous <= REPEAT_WINDOW_MS) return source;
+      if (previous !== undefined && at - previous <= REPEAT_WINDOW_MS) repeatSource ||= source;
     }
-    return undefined;
+    while (this.lastIssued.size > MAX_PENDING_CALLS) {
+      let oldestKey: string | undefined;
+      let oldestAt = Number.POSITIVE_INFINITY;
+      for (const [key, value] of this.lastIssued) if (value < oldestAt) { oldestKey = key; oldestAt = value; }
+      if (!oldestKey) break;
+      this.lastIssued.delete(oldestKey);
+    }
+    return repeatSource;
+  }
+
+  private markCompleted(key: string): void {
+    this.completedIds.add(key);
+    while (this.completedIds.size > MAX_PENDING_CALLS) this.completedIds.delete(this.completedIds.values().next().value as string);
   }
 
   private emitSessionBoundary(kind: "session_started" | "session_ended"): void {

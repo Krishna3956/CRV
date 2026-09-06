@@ -11,4 +11,9 @@ test("observation provenance migration is forward-only, transactional, and idemp
   assert.match(sql, /create index if not exists/i);
   assert.match(sql, /observation_source_check/i);
   assert.match(sql, /observation_source is null or observation_source in \('client', 'server'\)/i);
+  assert.match(sql, /pg_get_constraintdef/i);
+  assert.match(sql, /expected_definition/i);
+  assert.match(sql, /regexp_replace/i);
+  assert.match(sql, /raise exception/i);
+  assert.match(sql, /incompatible definition/i);
 });
