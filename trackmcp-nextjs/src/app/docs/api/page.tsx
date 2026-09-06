@@ -20,6 +20,7 @@ export const metadata: Metadata = pageMeta({
 const endpoints: { method: string; path: string; desc: string }[] = [
   { method: "POST", path: "/api/v1/ingest", desc: "Submit a validated telemetry batch" },
   { method: "GET", path: "/api/v1/analytics?days=30", desc: "Workspace metrics, tools, clients, sessions, and insights" },
+  { method: "GET", path: "/api/v1/tool-quality?days=30", desc: "Bounded tool-quality metrics, catalog history, workflow associations, and insufficient-data states" },
   { method: "GET", path: "/api/v1/traces?session_id=...|correlation_handle=...", desc: "Inspect ordered events for one protocol session or bounded correlation handle" },
 ];
 
@@ -138,6 +139,55 @@ export default function ApiDocsPage() {
           validates event IDs, timestamps, types, numeric fields, and batch/request
           limits; duplicate event IDs are idempotently ignored. Trace and analytics
           endpoints are read-only views of stored server-boundary telemetry.
+        </Para>
+      </DocSection>
+
+      <DocSection title="Tool-quality response">
+        <Para>
+          <Inline>GET /api/v1/tool-quality</Inline> is an authenticated, workspace-scoped
+          read separate from aggregate analytics. <Inline>days</Inline> accepts integer
+          values from 1 through 90 and defaults to 30. The source scan is bounded at
+          10,000 events; <Inline>truncated</Inline> and <Inline>insufficient_data</Inline>
+          make incomplete evidence visible.
+        </Para>
+        <Code>{`{
+  "range_days": 30,
+  "source_event_count": 1200,
+  "truncated": false,
+  "tools": [{
+    "name": "search_docs",
+    "metrics": {
+      "tool_call_share": 0.18,
+      "error_rate": 0.0333,
+      "observable_empty_result_rate": 0.025,
+      "retry_rate": 0.025,
+      "observed_repeat_call_rate": 0.1
+    },
+    "completion_association": {
+      "completion_rate": 0.75,
+      "terminal_workflow_count": 20,
+      "status": "associated_with_low_explicit_completion"
+    },
+    "insufficient_data": []
+  }]
+}`}</Code>
+        <Para>
+          <Inline>tool_call_share</Inline> is the tool&apos;s share of observed eligible
+          tool calls, not a selection rate. Error rate uses failed calls divided by
+          calls with known outcomes. Observable empty-result rate uses only successful,
+          present, inspectable, non-truncated results. Retry rate uses calls with known
+          retry metadata. An observed repeat call is the same tool called at least twice
+          within five minutes in the same session or correlation group, excluding explicit
+          retries; it is not a confirmed re-ask.
+        </Para>
+        <Para>
+          The fixed low-completion association label requires an explicit completion rate
+          strictly below <Inline>0.80</Inline>, at least 20 eligible workflows with an
+          explicit completed or failed terminal outcome, and at least 30 associated
+          eligible calls. Missing or unknown outcomes are excluded. The label means
+          “Associated with low explicit completion” and is an association for investigation,
+          never evidence of cause or an LLM/model problem. Below-volume rates are null
+          with an insufficient-data reason.
         </Para>
       </DocSection>
 
