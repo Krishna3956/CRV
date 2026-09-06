@@ -119,6 +119,7 @@ test("catalog drift and deployment comparisons require bounded server evidence",
   const deployments = [
     ...Array.from({ length: 30 }, (_, index) => call(`deployment-a-${index}`, at("02", index), { deployment_id: "deployment-a" })),
     ...Array.from({ length: 30 }, (_, index) => call(`deployment-b-${index}`, at("06", index), { deployment_id: "deployment-b", is_error: index < 10, success: index >= 10 })),
+    ...Array.from({ length: 40 }, (_, index) => call(`deployment-current-day-${index}`, "2026-09-07T01:00:00.000Z", { deployment_id: "deployment-current-day", is_error: true, success: false })),
   ];
   const deploymentFinding = evaluateRegressions(deployments, { now: NOW, metric: "deployment_comparison", toolName: "search" })[0];
   assert.equal(deploymentFinding.evidence.previous_deployment_id, "deployment-a");

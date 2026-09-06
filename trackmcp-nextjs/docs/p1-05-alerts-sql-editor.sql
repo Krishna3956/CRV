@@ -41,6 +41,17 @@ where schemaname = 'public'
   and tablename like 'trackmcp_alert_%'
 order by tablename, indexname;
 
+select indexrelid::regclass as index_name,
+       indisunique,
+       pg_get_indexdef(indexrelid) as exact_definition
+from pg_index
+where indexrelid::regclass::text in (
+  'public.trackmcp_alert_deliveries_idempotency_idx',
+  'public.trackmcp_alert_incidents_identity_evaluation_idx',
+  'public.trackmcp_alert_deliveries_retry_idx'
+)
+order by index_name;
+
 select relname as table_name, relrowsecurity, relforcerowsecurity
 from pg_class
 where relnamespace = 'public'::regnamespace
@@ -53,6 +64,31 @@ where table_schema = 'public'
   and table_name like 'trackmcp_alert_%'
   and grantee in ('anon', 'authenticated')
 order by grantee, table_name, privilege_type;
+
+select routine_name, privilege_type
+from information_schema.routine_privileges
+where routine_schema = 'public'
+  and routine_name in ('trackmcp_claim_alert_evaluation', 'trackmcp_release_alert_evaluation')
+order by routine_name, grantee, privilege_type;
+
+select tg.tgname as trigger_name,
+       tg.tgrelid::regclass as table_name,
+       pg_get_triggerdef(tg.oid) as exact_definition
+from pg_trigger tg
+where not tg.tgisinternal
+  and tg.tgname in (
+    'trackmcp_alert_configs_ownership_trigger',
+    'trackmcp_alert_incidents_ownership_trigger',
+    'trackmcp_alert_deliveries_ownership_trigger',
+    'trackmcp_alert_destinations_ownership_trigger'
+  )
+order by table_name, trigger_name;
+
+select schemaname, tablename, policyname, permissive, roles, cmd, qual, with_check
+from pg_policies
+where schemaname = 'public'
+  and tablename like 'trackmcp_alert_%'
+order by tablename, policyname;
 
 select count(*) as cross_workspace_destination_links
 from public.trackmcp_alert_configs c

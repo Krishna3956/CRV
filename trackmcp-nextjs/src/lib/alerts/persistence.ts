@@ -2,10 +2,11 @@ import { ALERT_COOLDOWN_MS, stableAlertIdentity, evaluationKey } from "./policy.
 import { transitionIncident } from "./lifecycle.ts";
 import type { AlertIncident } from "./types.ts";
 import type { RegressionFinding } from "../telemetry/regressions.ts";
+import { boundedJsonValue } from "./http.ts";
 
 function boundedEvidence(value: Record<string, unknown>): Record<string, unknown> {
-  const encoded = JSON.stringify(value);
-  return new TextEncoder().encode(encoded).byteLength <= 32 * 1024 ? value : { truncated: true };
+  const bounded = boundedJsonValue(value, 32 * 1024);
+  return bounded && typeof bounded === "object" && !Array.isArray(bounded) ? bounded as Record<string, unknown> : { truncated: true };
 }
 
 export function incidentRow(workspaceId: string, alertId: string, finding: RegressionFinding): Record<string, unknown> {
@@ -36,6 +37,12 @@ export function incidentRow(workspaceId: string, alertId: string, finding: Regre
 
 const INCIDENT_COLUMNS = "id, workspace_id, alert_id, identity, evaluation_key, metric, state, severity, tool_name, environment, data_status, baseline, comparison, threshold, reasons, evidence, first_seen_at, last_seen_at, acknowledged_at, resolved_at, suppressed_reason, recovery, last_delivered_at, revision";
 
+export function incidentPersistenceRow(workspaceId: string, alertId: string, finding: RegressionFinding, existing: AlertIncident | null, now = new Date()): Record<string, unknown> {
+  const transitioned = transitionIncident(workspaceId, alertId, finding, existing, now);
+  const persistedTransition = Object.fromEntries(Object.entries(transitioned).filter(([key]) => key !== "scope"));
+  return { ...incidentRow(workspaceId, alertId, finding), ...persistedTransition, tool_name: finding.scope.tool_name, environment: finding.scope.environment };
+}
+
 type PersistenceQuery = {
   select: (columns: string) => PersistenceQuery;
   eq: (field: string, value: unknown) => PersistenceQuery;
@@ -55,8 +62,7 @@ export async function persistEvaluation(admin: PersistenceAdmin, workspaceId: st
   const previousResult = await admin.from("trackmcp_alert_incidents").select(INCIDENT_COLUMNS).eq("workspace_id", workspaceId).eq("identity", identity).order("last_seen_at", { ascending: false }).limit(1).maybeSingle();
   if (previousResult.error) return { data: null, delivery_due: false, error: previousResult.error };
   const previous = previousResult.data as AlertIncident | null;
-  const transitioned = transitionIncident(workspaceId, alertId, finding, previous);
-  const result = await admin.from("trackmcp_alert_incidents").upsert({ ...incidentRow(workspaceId, alertId, finding), ...transitioned, tool_name: finding.scope.tool_name, environment: finding.scope.environment }, { onConflict: "workspace_id,evaluation_key", ignoreDuplicates: false }).select(INCIDENT_COLUMNS).single();
+  const result = await admin.from("trackmcp_alert_incidents").upsert(incidentPersistenceRow(workspaceId, alertId, finding, previous), { onConflict: "workspace_id,evaluation_key", ignoreDuplicates: false }).select(INCIDENT_COLUMNS).single();
   const current = result.data as AlertIncident | null;
   return { data: current, delivery_due: Boolean(current && deliveryIsDue(previous, current)), error: result.error };
 }

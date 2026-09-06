@@ -13,9 +13,14 @@ Parameters:
     Type: String
     Default: 'false'
     AllowedValues: ['true', 'false']
+  FailureAlarmTopicArn:
+    Type: String
+    Default: ''
+    Description: Optional SNS topic ARN for scheduler/Lambda failure alarms.
 
 Conditions:
   ScheduleEnabled: !Equals [!Ref EnableSchedule, 'true']
+  HasAlarmTopic: !Not [!Equals [!Ref FailureAlarmTopicArn, '']]
 
 Resources:
   AlertsSchedulerFunction:
@@ -30,9 +35,88 @@ Resources:
         Variables:
           TRACKMCP_ALERT_EVALUATOR_URL: !Ref EvaluatorUrl
           TRACKMCP_ALERT_WORKER_TOKEN: !Sub '{{resolve:secretsmanager:${WorkerTokenSecretArn}:SecretString}}'
-      Events:
-        Hourly:
-          Type: Schedule
-          Properties:
-            Schedule: rate(1 hour)
-            Enabled: !If [ScheduleEnabled, true, false]
+  AlertsSchedulerInvokeRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal: { Service: scheduler.amazonaws.com }
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: InvokeAlertsSchedulerLambda
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action: lambda:InvokeFunction
+                Resource: !GetAtt AlertsSchedulerFunction.Arn
+              - Effect: Allow
+                Action: sqs:SendMessage
+                Resource: !GetAtt AlertsSchedulerDLQ.Arn
+
+  AlertsSchedulerDLQ:
+    Type: AWS::SQS::Queue
+    Properties:
+      MessageRetentionPeriod: 1209600
+
+  AlertsSchedulerSchedule:
+    Type: AWS::Scheduler::Schedule
+    Properties:
+      FlexibleTimeWindow: { Mode: 'OFF' }
+      ScheduleExpression: rate(1 hour)
+      State: !If [ScheduleEnabled, ENABLED, DISABLED]
+      Target:
+        Arn: !GetAtt AlertsSchedulerFunction.Arn
+        RoleArn: !GetAtt AlertsSchedulerInvokeRole.Arn
+        Input: '{}'
+        RetryPolicy:
+          MaximumEventAgeInSeconds: 3600
+          MaximumRetryAttempts: 2
+        DeadLetterConfig:
+          Arn: !GetAtt AlertsSchedulerDLQ.Arn
+
+  AlertsSchedulerInvokePermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref AlertsSchedulerFunction
+      Principal: scheduler.amazonaws.com
+      SourceArn: !GetAtt AlertsSchedulerSchedule.Arn
+
+  SchedulerLambdaFailureAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmDescription: TrackMCP alert scheduler Lambda errors.
+      Namespace: AWS/Lambda
+      MetricName: Errors
+      Dimensions:
+        - Name: FunctionName
+          Value: !Ref AlertsSchedulerFunction
+      Statistic: Sum
+      Period: 3600
+      EvaluationPeriods: 1
+      Threshold: 1
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      TreatMissingData: notBreaching
+      ActionsEnabled: !If [HasAlarmTopic, true, false]
+      AlarmActions: !If [HasAlarmTopic, [!Ref FailureAlarmTopicArn], !Ref AWS::NoValue]
+
+  SchedulerDLQAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmDescription: TrackMCP alert scheduler dead-letter messages.
+      Namespace: AWS/SQS
+      MetricName: ApproximateNumberOfMessagesVisible
+      Dimensions:
+        - Name: QueueName
+          Value: !GetAtt AlertsSchedulerDLQ.QueueName
+      Statistic: Maximum
+      Period: 3600
+      EvaluationPeriods: 1
+      Threshold: 1
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      TreatMissingData: notBreaching
+      ActionsEnabled: !If [HasAlarmTopic, true, false]
+      AlarmActions: !If [HasAlarmTopic, [!Ref FailureAlarmTopicArn], !Ref AWS::NoValue]

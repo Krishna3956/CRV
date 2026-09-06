@@ -38,4 +38,19 @@ test("webhooks reject private, internal, encoded, and redirect targets", async (
   const redirect = await sendSignedWebhook({ url: "https://hooks.example.test/trackmcp", secret: "secret", incident, idempotencyKey: "delivery-redirect", validateDestination: allow, fetchImpl: async (_url, init) => { assert.ok(init); assert.equal(init.redirect, "manual"); return new Response(null, { status: 302, headers: { location: "https://127.0.0.1" } }); } });
   assert.equal(redirect.state, "permanent_failure");
   assert.equal(redirect.error_code, "redirect_blocked");
+  const linkLocal = async (): Promise<Array<{ address: string; family: 4 | 6 }>> => [{ address: "fe90::1", family: 6 }];
+  assert.equal((await validateWebhookDestination("https://hooks.example.test/hook", linkLocal)).ok, false);
+});
+
+test("webhook timeout wins even when fetch ignores abort", async () => {
+  const allow = async (url: string): Promise<{ ok: true; url: string }> => ({ ok: true, url });
+  const result = await sendSignedWebhook({ url: "https://hooks.example.test/trackmcp", secret: "secret", incident, idempotencyKey: "delivery-ignored-abort", validateDestination: allow, timeoutMs: 10, fetchImpl: async () => new Promise<Response>(() => {}) });
+  assert.deepEqual(result, { state: "timeout", http_status: null, error_code: "timeout" });
+});
+
+test("webhook bodies bound large values before envelope serialization", () => {
+  const huge = { ...incident, baseline: { ...incident.baseline, window: { start: "x".repeat(500_000), end: "y".repeat(500_000) } }, evidence: { giant: "z".repeat(500_000) } } as AlertIncident;
+  const body = buildWebhookBody(huge);
+  assert.ok(new TextEncoder().encode(body).byteLength <= 32 * 1024);
+  assert.equal(JSON.parse(body).truncated, undefined);
 });

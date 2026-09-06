@@ -100,12 +100,17 @@ function destinationUsable(value: unknown, workspaceId: string): value is Destin
   return typeof row.id === "string" && row.workspace_id === workspaceId && row.kind === "webhook" && typeof row.endpoint_url === "string" && typeof row.secret_ref === "string" && row.enabled === true && row.revoked_at === null;
 }
 
+async function reloadDestination(admin: AlertWorkerAdmin, workspaceId: string, destinationId: string): Promise<Destination | null> {
+  const result = await admin.from("trackmcp_alert_destinations").select(DESTINATION_COLUMNS).eq("workspace_id", workspaceId).eq("id", destinationId).maybeSingle();
+  return result.error || !result.data || !destinationUsable(result.data, workspaceId) ? null : result.data as Destination;
+}
+
 type DestinationValidator = (url: string) => Promise<{ ok: true; url: string } | { ok: false; reason: string }>;
 
 async function recordDelivery(admin: AlertWorkerAdmin, workspaceId: string, incident: AlertIncident, destination: Destination, attemptNumber: number, secretProvider: AlertSecretProvider, now: Date, fetchImpl?: typeof fetch, validateDestination?: DestinationValidator): Promise<{ delivered: boolean; attempted: boolean }> {
-  const latest = await admin.from("trackmcp_alert_destinations").select(DESTINATION_COLUMNS).eq("workspace_id", workspaceId).eq("id", destination.id).maybeSingle();
-  if (latest.error || !latest.data || !destinationUsable(latest.data, workspaceId)) return { delivered: false, attempted: false };
-  destination = latest.data as Destination;
+  const latest = await reloadDestination(admin, workspaceId, destination.id);
+  if (!latest) return { delivered: false, attempted: false };
+  destination = latest;
   const evaluationBoundary = incident.comparison?.window.end || incident.last_seen_at;
   const idempotencyKey = `${incident.id}:${evaluationBoundary}:${incident.state}:${destination.id}`.slice(0, 512);
   const claim = await admin.from("trackmcp_alert_deliveries").insert({ workspace_id: workspaceId, incident_id: incident.id, destination_id: destination.id, idempotency_key: idempotencyKey, state: "in_flight", attempt_number: attemptNumber, started_at: now.toISOString() }).select("id").maybeSingle();
@@ -115,8 +120,13 @@ async function recordDelivery(admin: AlertWorkerAdmin, workspaceId: string, inci
   }
   if (!claim.data) return { delivered: false, attempted: true };
   const secret = await secretProvider(destination.secret_ref);
+  const finalDestination = await reloadDestination(admin, workspaceId, destination.id);
+  if (!finalDestination || finalDestination.endpoint_url !== destination.endpoint_url || finalDestination.secret_ref !== destination.secret_ref) {
+    await admin.from("trackmcp_alert_deliveries").update({ state: "permanent_failure", error_code: "destination_changed", finished_at: new Date().toISOString() }).eq("workspace_id", workspaceId).eq("id", (claim.data as { id: string }).id).select("id").maybeSingle();
+    return { delivered: false, attempted: true };
+  }
   const result: WebhookDeliveryResult = secret
-    ? await sendSignedWebhook({ url: destination.endpoint_url!, secret, incident, idempotencyKey, fetchImpl, validateDestination })
+    ? await sendSignedWebhook({ url: finalDestination.endpoint_url!, secret, incident, idempotencyKey, fetchImpl, validateDestination })
     : { state: "redacted_failure", http_status: null, error_code: "secret_unavailable" };
   const nextAttemptAt = shouldRetry(result, attemptNumber) && retryDelayMs(attemptNumber) !== null ? new Date(now.getTime() + retryDelayMs(attemptNumber)!).toISOString() : null;
   await admin.from("trackmcp_alert_deliveries").update({ state: result.state, http_status: result.http_status, error_code: result.error_code, finished_at: new Date().toISOString(), next_attempt_at: nextAttemptAt }).eq("workspace_id", workspaceId).eq("id", (claim.data as { id: string }).id).select("id").maybeSingle();
@@ -139,7 +149,12 @@ async function processPendingDeliveries(admin: AlertWorkerAdmin, secretProvider:
     const incident = incidentResult.data as AlertIncident;
     const destination = destinationResult.data as Destination;
     const secret = await secretProvider(destination.secret_ref);
-    const result = secret ? await sendSignedWebhook({ url: destination.endpoint_url!, secret, incident, idempotencyKey: String(raw.idempotency_key), fetchImpl, validateDestination }) : { state: "redacted_failure" as const, http_status: null, error_code: "secret_unavailable" };
+    const finalDestination = await reloadDestination(admin, String(raw.workspace_id), String(raw.destination_id));
+    if (!finalDestination || finalDestination.endpoint_url !== destination.endpoint_url || finalDestination.secret_ref !== destination.secret_ref) {
+      await admin.from("trackmcp_alert_deliveries").update({ state: "permanent_failure", error_code: "destination_changed", finished_at: new Date().toISOString() }).eq("workspace_id", String(raw.workspace_id)).eq("id", String(raw.id)).select("id").maybeSingle();
+      continue;
+    }
+    const result = secret ? await sendSignedWebhook({ url: finalDestination.endpoint_url!, secret, incident, idempotencyKey: String(raw.idempotency_key), fetchImpl, validateDestination }) : { state: "redacted_failure" as const, http_status: null, error_code: "secret_unavailable" };
     const nextAttemptAt = shouldRetry(result, attempt) && retryDelayMs(attempt) !== null ? new Date(now.getTime() + retryDelayMs(attempt)!).toISOString() : null;
     await admin.from("trackmcp_alert_deliveries").update({ state: result.state, http_status: result.http_status, error_code: result.error_code, finished_at: new Date().toISOString(), next_attempt_at: nextAttemptAt }).eq("workspace_id", String(raw.workspace_id)).eq("id", String(raw.id)).select("id").maybeSingle();
     if (result.state === "delivered") delivered += 1;

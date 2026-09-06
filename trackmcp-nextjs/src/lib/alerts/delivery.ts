@@ -2,6 +2,7 @@ import { createHmac, timingSafeEqual } from "node:crypto";
 import { lookup } from "node:dns/promises";
 import { isIP } from "node:net";
 import { DELIVERY_BACKOFF_MS, DELIVERY_TIMEOUT_MS, MAX_DELIVERY_ATTEMPTS, MAX_EVIDENCE_BYTES } from "./policy.ts";
+import { boundedJsonValue } from "./http.ts";
 import type { AlertIncident } from "./types.ts";
 
 type LookupFunction = (hostname: string, options: { all: true; verbatim: true }) => Promise<Array<{ address: string; family: number }>>;
@@ -18,33 +19,33 @@ export function retryDelayMs(attemptNumber: number): number | null {
 }
 
 function boundedEvidence(incident: AlertIncident): Record<string, unknown> {
-  const evidence = JSON.stringify({
+  const bounded = boundedJsonValue({
     baseline: incident.baseline,
     comparison: incident.comparison,
     threshold: incident.threshold,
     reasons: incident.reasons.slice(0, 8),
     scope: incident.scope,
-  });
-  if (new TextEncoder().encode(evidence).byteLength <= MAX_EVIDENCE_BYTES) return JSON.parse(evidence) as Record<string, unknown>;
-  return { truncated: true, reasons: incident.reasons.slice(0, 8), scope: incident.scope };
+  }, MAX_EVIDENCE_BYTES);
+  return bounded && typeof bounded === "object" && !Array.isArray(bounded) ? bounded as Record<string, unknown> : { truncated: true };
 }
 
 export function buildWebhookBody(incident: AlertIncident): string {
-  const body = JSON.stringify({
+  const boundedBody = {
     schema_version: "p1-05-v1",
     id: incident.id,
     metric: incident.metric,
     state: incident.state,
     severity: incident.severity,
     data_status: incident.data_status,
-    scope: incident.scope,
-    baseline: incident.baseline,
-    comparison: incident.comparison,
+    scope: boundedJsonValue(incident.scope, 2 * 1024),
+    baseline: boundedJsonValue(incident.baseline, 8 * 1024),
+    comparison: boundedJsonValue(incident.comparison, 8 * 1024),
     evidence: boundedEvidence(incident),
     first_seen_at: incident.first_seen_at,
     last_seen_at: incident.last_seen_at,
     resolved_at: incident.resolved_at,
-  });
+  };
+  const body = JSON.stringify(boundedBody);
   if (new TextEncoder().encode(body).byteLength <= MAX_EVIDENCE_BYTES) return body;
   return JSON.stringify({ schema_version: "p1-05-v1", id: incident.id, metric: incident.metric, state: incident.state, severity: incident.severity, data_status: incident.data_status, truncated: true });
 }
@@ -72,7 +73,8 @@ function privateAddress(value: string): boolean {
   if (isIP(normalized) === 4) return privateIpv4(normalized);
   if (isIP(normalized) !== 6) return true;
   if (normalized.startsWith("::ffff:")) return privateIpv4(normalized.slice("::ffff:".length));
-  return normalized === "::1" || normalized === "::" || normalized.startsWith("fe80:") || normalized.startsWith("fc") || normalized.startsWith("fd");
+  const firstHextet = Number.parseInt(normalized.split(":")[0] || "0", 16);
+  return normalized === "::1" || normalized === "::" || (firstHextet >= 0xfe80 && firstHextet <= 0xfebf) || normalized.startsWith("fc") || normalized.startsWith("fd");
 }
 
 export async function validateWebhookDestination(value: string, lookupImpl: LookupFunction = lookup): Promise<{ ok: true; url: string } | { ok: false; reason: "invalid_url" | "private_target" | "internal_hostname" | "dns_failure" }> {
@@ -98,6 +100,7 @@ export async function sendSignedWebhook(options: {
   idempotencyKey: string;
   fetchImpl?: typeof fetch;
   now?: () => Date;
+  timeoutMs?: number;
   validateDestination?: (url: string) => Promise<{ ok: true; url: string } | { ok: false; reason: string }>;
 }): Promise<WebhookDeliveryResult> {
   const fetchImpl = options.fetchImpl || fetch;
@@ -106,9 +109,10 @@ export async function sendSignedWebhook(options: {
   const validation = await (options.validateDestination || ((url) => validateWebhookDestination(url)))(options.url);
   if (!validation.ok) return { state: "permanent_failure", http_status: null, error_code: "destination_rejected" };
   const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), DELIVERY_TIMEOUT_MS);
+  const timeoutMs = options.timeoutMs || DELIVERY_TIMEOUT_MS;
+  let timeoutHandle: ReturnType<typeof setTimeout> | undefined;
   try {
-    const response = await fetchImpl(validation.url, {
+    const fetchPromise = fetchImpl(validation.url, {
       method: "POST",
       headers: {
         "content-type": "application/json",
@@ -120,6 +124,13 @@ export async function sendSignedWebhook(options: {
       signal: controller.signal,
       redirect: "manual",
     });
+    const timeout = new Promise<Response>((_resolve, reject) => {
+      timeoutHandle = setTimeout(() => {
+        controller.abort();
+        reject(Object.assign(new Error("timeout"), { name: "AbortError" }));
+      }, timeoutMs);
+    });
+    const response = await Promise.race([fetchPromise, timeout]);
     if (response.ok) return { state: "delivered", http_status: response.status, error_code: null };
     if (response.status >= 300 && response.status < 400) return { state: "permanent_failure", http_status: response.status, error_code: "redirect_blocked" };
     if ([408, 425, 429].includes(response.status) || response.status >= 500) return { state: "retryable_failure", http_status: response.status, error_code: "upstream_unavailable" };
@@ -127,7 +138,7 @@ export async function sendSignedWebhook(options: {
   } catch (error) {
     return { state: error instanceof Error && error.name === "AbortError" ? "timeout" : "retryable_failure", http_status: null, error_code: error instanceof Error && error.name === "AbortError" ? "timeout" : "network_failure" };
   } finally {
-    clearTimeout(timeout);
+    if (timeoutHandle) clearTimeout(timeoutHandle);
   }
 }
 

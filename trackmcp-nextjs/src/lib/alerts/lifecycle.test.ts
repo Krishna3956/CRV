@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { transitionIncident } from "./lifecycle.ts";
-import { deliveryIsDue } from "./persistence.ts";
+import { deliveryIsDue, incidentPersistenceRow } from "./persistence.ts";
 import type { AlertIncident } from "./types.ts";
 import type { RegressionFinding } from "../telemetry/regressions.ts";
 
@@ -31,4 +31,11 @@ test("delivery cooldown suppresses duplicate firing and permits recovery", () =>
   assert.equal(deliveryIsDue(firing, { ...firing, last_seen_at: "2026-09-07T08:00:00.000Z" }, new Date("2026-09-07T08:00:00Z")), true);
   const recovered = { ...firing, state: "resolved" } as AlertIncident;
   assert.equal(deliveryIsDue(firing, recovered, new Date("2026-09-07T03:00:00Z")), true);
+});
+
+test("incident persistence omits lifecycle-only scope fields", () => {
+  const row = incidentPersistenceRow("workspace", "alert", finding("warning"), null, new Date("2026-09-07T01:00:00Z"));
+  assert.equal("scope" in row, false);
+  assert.equal(row.tool_name, "search");
+  assert.equal(row.environment, "production");
 });

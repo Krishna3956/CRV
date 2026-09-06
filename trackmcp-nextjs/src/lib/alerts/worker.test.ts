@@ -63,7 +63,13 @@ test("scheduled invoker reports success and failure without logging response bod
 
 test("scheduler template is hourly and disabled until explicitly enabled", () => {
   const template = fs.readFileSync(new URL("../../../workers/alerts-scheduler/template.yaml", import.meta.url), "utf8");
-  assert.match(template, /Schedule: rate\(1 hour\)/);
+  assert.match(template, /Type: AWS::Scheduler::Schedule/);
+  assert.match(template, /ScheduleExpression: rate\(1 hour\)/);
+  assert.match(template, /MaximumEventAgeInSeconds: 3600/);
+  assert.match(template, /MaximumRetryAttempts: 2/);
+  assert.match(template, /DeadLetterConfig:/);
+  assert.match(template, /AWS::Lambda::Permission/);
+  assert.match(template, /AWS\/Lambda/);
   assert.match(template, /Default: 'false'/);
   assert.match(template, /Timeout: 60/);
   assert.match(template, /WorkerTokenSecretArn/);

@@ -179,6 +179,9 @@ security definer
 set search_path = public
 as $$
 begin
+  if tg_table_name = 'trackmcp_alert_destinations' and tg_op = 'UPDATE' and new.workspace_id is distinct from old.workspace_id then
+    raise exception 'alert destination workspace ownership is immutable';
+  end if;
   if tg_table_name = 'trackmcp_alert_configs' and exists (
     select 1 from unnest(coalesce(new.destination_ids, '{}'::text[])) as destination_id
     where not exists (
@@ -212,6 +215,9 @@ for each row execute function public.trackmcp_validate_alert_ownership();
 drop trigger if exists trackmcp_alert_deliveries_ownership_trigger on public.trackmcp_alert_deliveries;
 create trigger trackmcp_alert_deliveries_ownership_trigger before insert or update on public.trackmcp_alert_deliveries
 for each row execute function public.trackmcp_validate_alert_ownership();
+drop trigger if exists trackmcp_alert_destinations_ownership_trigger on public.trackmcp_alert_destinations;
+create trigger trackmcp_alert_destinations_ownership_trigger before update on public.trackmcp_alert_destinations
+for each row execute function public.trackmcp_validate_alert_ownership();
 
 do $$
 begin
@@ -234,20 +240,28 @@ begin
 end
 $$;
 
--- A same-named incompatible constraint must not make an idempotent replay appear
--- successful. Missing constraints are added; existing definitions are checked
--- semantically before the transaction can commit.
+-- A same-named incompatible constraint or index must not make an idempotent
+-- replay appear successful. Existing definitions are compared exactly after
+-- PostgreSQL's canonical rendering; a mismatch aborts this transaction.
 do $$
 declare
   definition text;
+  normalized text;
+  expected record;
+  actual_unique boolean;
+  actual_columns text[];
+  actual_predicate text;
 begin
   select pg_get_constraintdef(oid) into definition from pg_constraint
    where conrelid = 'public.trackmcp_alert_destinations'::regclass
      and conname = 'trackmcp_alert_destinations_kind_check';
   if definition is null then
     alter table public.trackmcp_alert_destinations add constraint trackmcp_alert_destinations_kind_check check (kind in ('webhook', 'email'));
-  elsif lower(regexp_replace(definition, '\s+', '', 'g')) not like '%webhook%' or lower(regexp_replace(definition, '\s+', '', 'g')) not like '%email%' then
+  else
+    normalized := lower(regexp_replace(definition, '\s+', '', 'g'));
+    if normalized not in ('check((kind=any(array[''webhook''::text,''email''::text])))', 'check(((kind=any(array[''webhook''::text,''email''::text]))))') then
     raise exception 'trackmcp_alert_destinations_kind_check exists with incompatible definition: %', definition;
+    end if;
   end if;
 
   select pg_get_constraintdef(oid) into definition from pg_constraint
@@ -255,8 +269,11 @@ begin
      and conname = 'trackmcp_alert_configs_metric_check';
   if definition is null then
     alter table public.trackmcp_alert_configs add constraint trackmcp_alert_configs_metric_check check (metric in ('tool_error_rate_spike', 'p95_latency_regression', 'empty_result_spike', 'retry_loop_spike', 'catalog_description_drift', 'workflow_completion_drop', 'authorization_failure_spike', 'deployment_comparison'));
-  elsif lower(regexp_replace(definition, '\s+', '', 'g')) not like '%tool_error_rate_spike%' or lower(regexp_replace(definition, '\s+', '', 'g')) not like '%deployment_comparison%' then
+  else
+    normalized := lower(regexp_replace(definition, '\s+', '', 'g'));
+    if normalized not in ('check((metric=any(array[''tool_error_rate_spike''::text,''p95_latency_regression''::text,''empty_result_spike''::text,''retry_loop_spike''::text,''catalog_description_drift''::text,''workflow_completion_drop''::text,''authorization_failure_spike''::text,''deployment_comparison''::text])))', 'check(((metric=any(array[''tool_error_rate_spike''::text,''p95_latency_regression''::text,''empty_result_spike''::text,''retry_loop_spike''::text,''catalog_description_drift''::text,''workflow_completion_drop''::text,''authorization_failure_spike''::text,''deployment_comparison''::text]))))') then
     raise exception 'trackmcp_alert_configs_metric_check exists with incompatible definition: %', definition;
+    end if;
   end if;
 
   select pg_get_constraintdef(oid) into definition from pg_constraint
@@ -264,8 +281,11 @@ begin
      and conname = 'trackmcp_alert_incidents_state_check';
   if definition is null then
     alter table public.trackmcp_alert_incidents add constraint trackmcp_alert_incidents_state_check check (state in ('pending', 'firing', 'resolved', 'suppressed', 'insufficient_data', 'invalid_configuration'));
-  elsif lower(regexp_replace(definition, '\s+', '', 'g')) not like '%firing%' or lower(regexp_replace(definition, '\s+', '', 'g')) not like '%invalid_configuration%' then
+  else
+    normalized := lower(regexp_replace(definition, '\s+', '', 'g'));
+    if normalized not in ('check((state=any(array[''pending''::text,''firing''::text,''resolved''::text,''suppressed''::text,''insufficient_data''::text,''invalid_configuration''::text])))', 'check(((state=any(array[''pending''::text,''firing''::text,''resolved''::text,''suppressed''::text,''insufficient_data''::text,''invalid_configuration''::text]))))') then
     raise exception 'trackmcp_alert_incidents_state_check exists with incompatible definition: %', definition;
+    end if;
   end if;
 
   select pg_get_constraintdef(oid) into definition from pg_constraint
@@ -273,11 +293,11 @@ begin
      and conname = 'trackmcp_alert_deliveries_attempt_check';
   if definition is null then
     alter table public.trackmcp_alert_deliveries add constraint trackmcp_alert_deliveries_attempt_check check (attempt_number between 1 and 4);
-  elsif not (
-    lower(regexp_replace(definition, '\s+', '', 'g')) like '%between1and4%'
-    or (lower(regexp_replace(definition, '\s+', '', 'g')) like '%attempt_number>=1%' and lower(regexp_replace(definition, '\s+', '', 'g')) like '%attempt_number<=4%')
-  ) then
+  else
+    normalized := lower(regexp_replace(definition, '\s+', '', 'g'));
+    if normalized not in ('check((attempt_number>=1)and(attempt_number<=4))', 'check(((attempt_number>=1)and(attempt_number<=4)))') then
     raise exception 'trackmcp_alert_deliveries_attempt_check exists with incompatible definition: %', definition;
+    end if;
   end if;
 
   select pg_get_constraintdef(oid) into definition from pg_constraint
@@ -285,23 +305,73 @@ begin
      and conname = 'trackmcp_alert_deliveries_state_check';
   if definition is null then
     alter table public.trackmcp_alert_deliveries add constraint trackmcp_alert_deliveries_state_check check (state in ('in_flight', 'delivered', 'retryable_failure', 'permanent_failure', 'timeout', 'redacted_failure'));
-  elsif lower(regexp_replace(definition, '\s+', '', 'g')) not like '%in_flight%' or lower(regexp_replace(definition, '\s+', '', 'g')) not like '%redacted_failure%' then
+  else
+    normalized := lower(regexp_replace(definition, '\s+', '', 'g'));
+    if normalized not in ('check((state=any(array[''in_flight''::text,''delivered''::text,''retryable_failure''::text,''permanent_failure''::text,''timeout''::text,''redacted_failure''::text])))', 'check(((state=any(array[''in_flight''::text,''delivered''::text,''retryable_failure''::text,''permanent_failure''::text,''timeout''::text,''redacted_failure''::text]))))') then
     raise exception 'trackmcp_alert_deliveries_state_check exists with incompatible definition: %', definition;
+    end if;
   end if;
 
-  definition := null;
-  select pg_get_indexdef(indexrelid) into definition from pg_index
-   where indexrelid = to_regclass('public.trackmcp_alert_deliveries_idempotency_idx');
-  if definition is not null and lower(regexp_replace(definition, '\s+', '', 'g')) not like '%(workspace_id,idempotency_key)%' then
-    raise exception 'trackmcp_alert_deliveries_idempotency_idx exists with incompatible definition: %', definition;
-  end if;
+  for expected in select * from (values
+    ('public', 'trackmcp_alert_configs_workspace_id_idx', true, array['workspace_id','id']::text[], null::text),
+    ('public', 'trackmcp_alert_configs_workspace_enabled_idx', false, array['workspace_id','enabled','paused']::text[], null::text),
+    ('public', 'trackmcp_alert_incidents_workspace_evaluation_idx', true, array['workspace_id','evaluation_key']::text[], null::text),
+    ('public', 'trackmcp_alert_incidents_workspace_state_seen_idx', false, array['workspace_id','state','last_seen_at']::text[], null::text),
+    ('public', 'trackmcp_alert_deliveries_retry_idx', false, array['state','next_attempt_at']::text[], '(state=''retryable_failure''::text)'),
+    ('public', 'trackmcp_alert_deliveries_idempotency_idx', true, array['workspace_id','idempotency_key']::text[], null::text),
+    ('public', 'trackmcp_alert_incidents_identity_evaluation_idx', true, array['workspace_id','identity','evaluation_key']::text[], null::text),
+    ('public', 'trackmcp_alert_destinations_workspace_enabled_idx', false, array['workspace_id','enabled','revoked_at']::text[], null::text),
+    ('public', 'trackmcp_alert_evaluation_runs_started_idx', false, array['started_at']::text[], null::text),
+    ('public', 'trackmcp_alert_evaluation_runs_key_idx', true, array['lock_key','evaluation_key']::text[], null::text)
+  ) as indexes(schema_name, index_name, expected_unique, expected_columns, expected_predicate)
+  loop
+    select i.indisunique, array_agg(a.attname order by key.ord), case when i.indpred is null then null else lower(regexp_replace(pg_get_expr(i.indpred, i.indrelid), '\s+', '', 'g')) end
+      into actual_unique, actual_columns, actual_predicate
+      from pg_index i
+      cross join lateral unnest(i.indkey) with ordinality as key(attnum, ord)
+      left join pg_attribute a on a.attrelid = i.indrelid and a.attnum = key.attnum
+     where i.indexrelid = to_regclass(expected.schema_name || '.' || expected.index_name)
+     group by i.indexrelid, i.indisunique, i.indpred, i.indrelid;
+    if not found or actual_unique is distinct from expected.expected_unique or actual_columns is distinct from expected.expected_columns or actual_predicate is distinct from expected.expected_predicate then
+      raise exception '% exists with incompatible definition: %', expected.schema_name || '.' || expected.index_name, coalesce(pg_get_indexdef(to_regclass(expected.schema_name || '.' || expected.index_name)), '<missing>');
+    end if;
+  end loop;
+end
+$$;
 
-  definition := null;
-  select pg_get_indexdef(indexrelid) into definition from pg_index
-   where indexrelid = to_regclass('public.trackmcp_alert_incidents_identity_evaluation_idx');
-  if definition is not null and lower(regexp_replace(definition, '\s+', '', 'g')) not like '%(workspace_id,identity,evaluation_key)%' then
-    raise exception 'trackmcp_alert_incidents_identity_evaluation_idx exists with incompatible definition: %', definition;
-  end if;
+-- Validate every alert CHECK constraint, including constraints not needed by
+-- the evaluator itself. This prevents a same-named partial or weakened
+-- definition from passing an idempotent replay.
+do $$
+declare
+  expected record;
+  definition text;
+begin
+  for expected in select * from (values
+    ('trackmcp_alert_destinations', 'trackmcp_alert_destinations_endpoint_check', 'check((((kind=''webhook''::text)and(endpoint_urlisnotnull))or(kind=''email''::text)))'),
+    ('trackmcp_alert_destinations', 'trackmcp_alert_destinations_secret_ref_check', 'check(((length(secret_ref)>=1)and(length(secret_ref)<=512)))'),
+    ('trackmcp_alert_configs', 'trackmcp_alert_configs_tool_name_check', 'check(((tool_nameisnull)or((length(tool_name)>=1)and(length(tool_name)<=2048))))'),
+    ('trackmcp_alert_configs', 'trackmcp_alert_configs_environment_check', 'check(((environmentisnull)or((length(environment)>=1)and(length(environment)<=128))))'),
+    ('trackmcp_alert_configs', 'trackmcp_alert_configs_policy_check', 'check((policy_version=''p1-05-v1''::text))'),
+    ('trackmcp_alert_configs', 'trackmcp_alert_configs_destinations_check', 'check(((cardinality(destination_ids)>=0)and(cardinality(destination_ids)<=10)))'),
+    ('trackmcp_alert_incidents', 'trackmcp_alert_incidents_metric_check', 'check((metric=any(array[''tool_error_rate_spike''::text,''p95_latency_regression''::text,''empty_result_spike''::text,''retry_loop_spike''::text,''catalog_description_drift''::text,''workflow_completion_drop''::text,''authorization_failure_spike''::text,''deployment_comparison''::text])))'),
+    ('trackmcp_alert_incidents', 'trackmcp_alert_incidents_data_status_check', 'check((data_status=any(array[''sufficient''::text,''insufficient_data''::text,''partial''::text])))'),
+    ('trackmcp_alert_incidents', 'trackmcp_alert_incidents_severity_check', 'check(((severityisnull)or(severity=any(array[''warning''::text,''critical''::text]))))'),
+    ('trackmcp_alert_incidents', 'trackmcp_alert_incidents_revision_check', 'check((revision>=1))'),
+    ('trackmcp_alert_deliveries', 'trackmcp_alert_deliveries_http_status_check', 'check(((http_statusisnull)or((http_status>=100)and(http_status<=599))))'),
+    ('trackmcp_alert_evaluation_runs', 'trackmcp_alert_evaluation_runs_state_check', 'check((state=any(array[''started''::text,''succeeded''::text,''failed''::text])))'),
+    ('trackmcp_alert_evaluation_runs', 'trackmcp_alert_evaluation_runs_count_check', 'check((((config_count>=0)and(config_count<=1000))and((incident_count>=0)and(incident_count<=10000))))'),
+    ('trackmcp_alert_evaluation_runs', 'trackmcp_alert_evaluation_runs_key_check', 'check((((length(lock_key)>=1)and(length(lock_key)<=2048))and((length(evaluation_key)>=1)and(length(evaluation_key)<=2048))))')
+  ) as checks(table_name, constraint_name, expected_definition)
+  loop
+    select lower(regexp_replace(pg_get_constraintdef(oid), '\s+', '', 'g')) into definition
+      from pg_constraint
+     where conrelid = ('public.' || expected.table_name)::regclass
+       and conname = expected.constraint_name;
+    if not found or definition <> expected.expected_definition then
+      raise exception '% is missing or incompatible: %', expected.constraint_name, coalesce(definition, '<missing>');
+    end if;
+  end loop;
 end
 $$;
 
