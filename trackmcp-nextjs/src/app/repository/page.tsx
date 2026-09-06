@@ -15,14 +15,20 @@ export const metadata: Metadata = pageMeta({
 
 export const revalidate = 3600;
 
-export default async function RepositoryPage() {
+export default async function RepositoryPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ q?: string | string[] }>;
+}) {
   const [tools, count] = await Promise.all([getTopTools(300), getToolCount()]);
+  const params = await searchParams;
+  const initialQuery = typeof params.q === "string" ? params.q : "";
   return (
     <>
       <Nav />
       <main className="flex-1">
         <PageFrame>
-          <BrowseClient initialTools={tools} totalCount={count} />
+          <BrowseClient initialTools={tools} totalCount={count} initialQuery={initialQuery} />
         </PageFrame>
       </main>
       <Footer />

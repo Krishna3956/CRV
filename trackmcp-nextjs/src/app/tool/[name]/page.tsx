@@ -11,7 +11,7 @@ import { getToolByName, getReadme, getTopTools, relatedTools } from "@/lib/repos
 import { ownerFromUrl, repoPathFromUrl, toolSlug } from "@/lib/repository/types";
 import { extractHeadings, shouldShowToc, generateTocSchema } from "@/lib/repository/toc";
 import { TableOfContents } from "@/components/repository/TableOfContents";
-import { metaDescription, pageMeta } from "@/lib/seo";
+import { metaDescription, pageMeta, serializeJsonLd } from "@/lib/seo";
 
 export const revalidate = 21600;
 export const dynamic = "force-static";
@@ -106,6 +106,16 @@ export default async function ToolPage({ params }: { params: Promise<{ name: str
     "@context": "https://schema.org",
     "@graph": [
       {
+        "@type": "SoftwareApplication",
+        "@id": `${toolUrl}#software-application`,
+        name: tool.repo_name,
+        description: tool.description || `${tool.repo_name} is an MCP server listed in the TrackMCP directory.`,
+        url: toolUrl,
+        applicationCategory: "DeveloperTool",
+        operatingSystem: "Cross-platform",
+        provider: { "@id": "https://trackmcp.com/#organization" },
+      },
+      {
         "@type": "SoftwareSourceCode",
         name: tool.repo_name,
         description: tool.description || undefined,
@@ -134,11 +144,11 @@ export default async function ToolPage({ params }: { params: Promise<{ name: str
 
   return (
     <>
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeJsonLd(jsonLd) }} />
       {showToc && (
         <script
           type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(generateTocSchema(toc, toolUrl)) }}
+          dangerouslySetInnerHTML={{ __html: serializeJsonLd(generateTocSchema(toc, toolUrl)) }}
         />
       )}
       <Nav />

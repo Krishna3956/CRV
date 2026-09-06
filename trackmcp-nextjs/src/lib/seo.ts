@@ -22,6 +22,11 @@ export const SITE_JSON_LD = {
       url: SITE_URL,
       description: SITE_DESCRIPTION,
       inLanguage: "en-US",
+      potentialAction: {
+        "@type": "SearchAction",
+        target: `${SITE_URL}/repository?q={query}`,
+        "query-input": "required name=query",
+      },
     },
     {
       "@type": "Organization",

@@ -19,11 +19,13 @@ import { EarlyAccessButton } from "@/components/EarlyAccessButton";
 export function BrowseClient({
   initialTools,
   totalCount,
+  initialQuery = "",
 }: {
   initialTools: McpTool[];
   totalCount: number;
+  initialQuery?: string;
 }) {
-  const [input, setInput] = useState("");
+  const [input, setInput] = useState(initialQuery);
   const [sortBy, setSortBy] = useState("stars");
   const [category, setCategory] = useState("all");
   const [visible, setVisible] = useState(12);
