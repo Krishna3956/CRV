@@ -148,6 +148,64 @@ test("issued mode augments only compatible tool schemas and strips the echoed fi
   assert.equal(JSON.stringify(call.payload).includes(field), false);
 });
 
+test("captures context provenance, uses bounded fallback, and reports missing capabilities", async () => {
+  const received = [];
+  const ingest = http.createServer((request, response) => {
+    let body = "";
+    request.on("data", (chunk) => { body += chunk; });
+    request.on("end", () => { received.push(JSON.parse(body)); response.writeHead(200); response.end(); });
+  });
+  await new Promise((resolve) => ingest.listen(0, resolve));
+  const fallbackContexts = [];
+  const wrapped = withTrackMCP({
+    async request(input) { return { isError: false, input }; },
+  }, {
+    apiKey: "tmcp_test",
+    endpoint: `http://127.0.0.1:${ingest.address().port}`,
+    intentFallback: (context) => fallbackContexts.push(context) && "Complete the lookup",
+    correlation: { mode: "external", resolve: () => "job_anon_1" },
+    flushIntervalMs: 60000,
+  });
+  await wrapped.request({ method: "tools/call", params: { name: "lookup", arguments: { context: "Find the relevant documentation", token: "not telemetry context" } } });
+  await wrapped.request({ method: "tools/call", params: { name: "lookup", arguments: {} } });
+  wrapped.trackmcp.reportMissing("bulk_export", "Export all matching records");
+  wrapped.trackmcp.capture({ event_type: "custom", started_at: new Date().toISOString(), context: "Resolve the deployment issue", intent_source: "external_callback" });
+  wrapped.trackmcp.capture({ event_type: "custom", started_at: new Date().toISOString(), context: "Bearer should not be captured" });
+  await wrapped.trackmcp.flush();
+  await new Promise((resolve) => setTimeout(resolve, 20));
+  ingest.close();
+
+  const events = received.flatMap((batch) => batch.events);
+  const explicit = events.find((event) => event.event_type === "tool_call" && event.context === "Find the relevant documentation");
+  const fallback = events.find((event) => event.context === "Complete the lookup");
+  const missing = events.find((event) => event.mcp_method === "trackmcp_report_missing");
+  const external = events.find((event) => event.intent_source === "external_callback");
+  const unsafe = events.find((event) => event.context === "Bearer should not be captured");
+  assert.equal(explicit.intent_source, "context_parameter");
+  assert.equal(fallback.intent_source, "fallback");
+  assert.equal(missing.missing_capability, "bulk_export");
+  assert.equal(missing.correlation_handle_source, "external");
+  assert.equal(external.intent_source, "external_callback");
+  assert.equal(unsafe, undefined);
+  assert.equal(fallbackContexts[0].toolName, "lookup");
+  assert.equal("args" in fallbackContexts[0], false);
+});
+
+test("injects optional context only when it does not collide with a customer field", async () => {
+  const server = new McpServer({ name: "fixture", version: "1.0.0" });
+  server.registerTool("with_context", { inputSchema: z.object({ context: z.string().optional() }) }, async (args) => ({ content: [{ type: "text", text: args.context || "none" }] }));
+  server.registerTool("without_context", { inputSchema: z.object({ value: z.string().optional() }) }, async (args) => ({ content: [{ type: "text", text: args.value || "none" }] }));
+  const wrapped = withTrackMCP(server, { apiKey: "tmcp_test", disabled: false, flushIntervalMs: 60000 });
+  const [clientTransport, serverTransport] = InMemoryTransport.createLinkedPair();
+  const client = new Client({ name: "context-client", version: "1" });
+  await Promise.all([wrapped.connect(serverTransport), client.connect(clientTransport)]);
+  const listed = await client.listTools();
+  assert.equal(listed.tools.find((tool) => tool.name === "with_context").inputSchema.properties.context.description, undefined);
+  assert.equal(listed.tools.find((tool) => tool.name === "without_context").inputSchema.properties.context.description, "Optional one-sentence description of the user’s underlying goal.");
+  await client.close();
+  await wrapped.close();
+});
+
 test("expired pending requests are cleaned up and cannot attach to a later response", async () => {
   const rawTransport = { async send() {}, onmessage: undefined };
   const server = { connect(transport) { this.transport = transport; transport.onmessage = () => {}; return Promise.resolve(); } };

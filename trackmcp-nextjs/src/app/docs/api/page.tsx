@@ -99,7 +99,9 @@ export default function ApiDocsPage() {
   "sessions": 3120,
   "errors": 412,
   "completion_rate": 0.75,
-  "tools": [{ "name": "search_docs", "calls": 14208, "error_rate": 0.002 }],
+          "intent_sources": { "context_parameter": 24, "external_callback": 8, "fallback": 3, "missing": 107 },
+          "missing_capabilities": [{ "name": "bulk_export", "reports": 4 }],
+          "tools": [{ "name": "search_docs", "calls": 14208, "error_rate": 0.002 }],
   "insights": []
 }`}</Code>
       </DocSection>
@@ -119,6 +121,9 @@ export default function ApiDocsPage() {
   "truncated": false,
   "completion_source": "session_heuristic",
   "correlation_quality": "session_id",
+  "context": "Find the relevant documentation",
+  "intent_source": "context_parameter",
+  "missing_capability": null,
   "events": [{
     "event_id": "event-1",
     "event_type": "tool_call",
@@ -134,6 +139,24 @@ export default function ApiDocsPage() {
           limits; duplicate event IDs are idempotently ignored. Trace and analytics
           endpoints are read-only views of stored server-boundary telemetry.
         </Para>
+      </DocSection>
+
+      <DocSection title="Intent and missing-capability signals">
+        <Para>
+          Events may include bounded <Inline>context</Inline> and an explicit
+          <Inline>intent_source</Inline>: <Inline>context_parameter</Inline>,
+          <Inline>external_callback</Inline>, <Inline>fallback</Inline>, or
+          <Inline>missing</Inline>. Analytics responses include counts by source in
+          <Inline>intent_sources</Inline> and explicit missing-tool reports in
+          <Inline>missing_capabilities</Inline>. These fields never represent private
+          model reasoning or an inferred user goal.
+        </Para>
+        <Code>{`server.trackmcp.reportMissing("bulk_export", "Export all matching records")
+
+// A missing-capability event has:
+// event_type: "custom"
+// mcp_method: "trackmcp_report_missing"
+// missing_capability: "bulk_export"`}</Code>
       </DocSection>
 
     </DocsShell>

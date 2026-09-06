@@ -16,3 +16,21 @@ Telemetry is batched, redacted locally, and fail-open. Payload mode defaults to 
 `redact` keeps compatibility with explicit dotted paths, while `redact_keys` adds case-insensitive exact key names. `redact_event` receives an already sanitized event, may mutate it, or can return `None` to drop it. Hook failures drop only the event. The SDK queue is bounded to 500 events or 2 MiB; failed deliveries are requeued within those limits.
 
 For an explicit business outcome, optionally call `app.trackmcp.workflow("issue_resolution", "completed")` from your application code. This is an application-emitted signal, not proof that an answer was correct. Payloads default to bounded redacted mode; use `payload_mode="metadata"` to omit arguments/results. See the [Python docs](https://trackmcp.com/docs/python), [configuration reference](https://trackmcp.com/docs/reference), and [API docs](https://trackmcp.com/docs/api) for trace and latency semantics.
+
+Intent and capability gaps are explicit, bounded signals. A safe `context` value is
+captured as `intent_source="context_parameter"`; an `intent_fallback` callback is
+labeled `fallback` when it supplies a value. Applications that call `capture` with
+`intent_source="external_callback"` must supply the context themselves. Values
+containing credentials, URLs, emails, or oversized text are omitted and become
+`missing`. Report a missing tool or capability with:
+
+```python
+app.trackmcp.report_missing("bulk_export", "Export all matching records")
+# or: from trackmcp import trackmcp_report_missing
+trackmcp_report_missing("bulk_export")
+```
+
+The report is a bounded `custom` event named `trackmcp_report_missing` and retains
+correlation provenance. The current Python MCP middleware does not rewrite tool
+schemas; it leaves handler arguments unchanged. TrackMCP never infers intent from
+private model reasoning, prompts, completions, or unsuccessful calls.

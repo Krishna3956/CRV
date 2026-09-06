@@ -23,6 +23,31 @@ For accurate business outcomes, optionally mark a workflow from your own applica
 server.trackmcp.workflow("issue_resolution", "completed", { issue_type: "bug" });
 ```
 
+Intent and capability gaps are explicit, bounded signals. Compatible TypeScript
+transports advertise an optional `context` tool argument and remove it before the
+customer handler runs. Captured context is labeled `context_parameter`; clients that
+omit or ignore it can use `intentFallback`, labeled `fallback`. Use `capture` with
+`intent_source: "external_callback"` only when your application supplied the text.
+Values containing credentials, URLs, emails, or oversized text are omitted. Report a
+missing capability with `server.trackmcp.reportMissing("bulk_export", context)`;
+the event is named `trackmcp_report_missing` and retains the normal correlation
+provenance fields.
+
+```ts
+export default withTrackMCP(server, {
+  apiKey: process.env.TRACKMCP_KEY!,
+  intentFallback: ({ toolName }) => toolName ? `Complete the ${toolName} operation` : undefined,
+});
+
+server.trackmcp.reportMissing("bulk_export", "Export all matching records");
+```
+
+Python exposes the same event fields and a `report_missing` method, but its current
+middleware does not rewrite MCP tool schemas; Python applications may provide
+`context` through the public capture/reporting APIs. `intent_source: "missing"` is
+used whenever no safe explicit or fallback context is available. TrackMCP never
+infers intent from private reasoning, prompts, or completions.
+
 Workflow status is an application-emitted signal; a successful tool response does not
 prove that the user's task or answer was correct. Use `payloadMode: "metadata"` to
 omit arguments/results or keep the default bounded `"redacted"` mode. The dashboard

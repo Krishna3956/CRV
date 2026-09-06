@@ -51,7 +51,7 @@ export function createTraceHandler(
     const limit = parseLimit(url);
     if (limit === null) return NextResponse.json({ error: `limit must be an integer from 1 to ${MAX_TRACE_LIMIT}.` }, { status: 400 });
     const scope = traceScope(auth.workspaceId, sessionId || "");
-    let query = auth.admin.from("trackmcp_events").select("schema_version, event_id, event_type, service, environment, server_id, deployment_id, server_version, sdk_version, direction, transport, protocol_version, mcp_method, request_id, session_id, session_id_source, correlation_handle, correlation_handle_source, task_id, workflow_id, client_name, client_version, tool_name, tool_description, tool_description_hash, started_at, duration_ms, success, is_error, error_class, error_code, retry_number, schema_hash, payload_size_bytes, payload_policy, payload").eq("workspace_id", scope.workspaceId);
+    let query = auth.admin.from("trackmcp_events").select("schema_version, event_id, event_type, service, environment, server_id, deployment_id, server_version, sdk_version, direction, transport, protocol_version, mcp_method, request_id, session_id, session_id_source, correlation_handle, correlation_handle_source, context, intent_source, missing_capability, task_id, workflow_id, client_name, client_version, tool_name, tool_description, tool_description_hash, started_at, duration_ms, success, is_error, error_class, error_code, retry_number, schema_hash, payload_size_bytes, payload_policy, payload").eq("workspace_id", scope.workspaceId);
     if (sessionId) query = query.eq("session_id", sessionId);
     if (correlationHandle) query = query.eq("correlation_handle", correlationHandle);
     const { data, error } = await query.order("started_at", { ascending: true }).limit(limit + 1);

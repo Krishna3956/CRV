@@ -2,7 +2,7 @@ import { NextResponse } from "next/server.js";
 import { getSupabaseAdmin } from "../../../../lib/repository/supabase.ts";
 import { hashTrackMCPKey } from "../../../../lib/telemetry/keys.ts";
 import type { CanonicalTrackMCPEvent } from "../../../../lib/telemetry/types.ts";
-import { deduplicateEvents, MAX_BATCH_EVENTS, MAX_REQUEST_BYTES, normalizeTrackMCPEvent, sanitizeIngestPayload } from "../../../../lib/telemetry/validation.ts";
+import { deduplicateEvents, MAX_BATCH_EVENTS, MAX_REQUEST_BYTES, normalizeTrackMCPEvent, sanitizeIngestPayload, sanitizeIntentText } from "../../../../lib/telemetry/validation.ts";
 
 function responseBody(error?: string, rejected = 0) {
   return { accepted: 0, ignored_duplicates: 0, rejected, ...(error ? { error } : {}) };
@@ -94,6 +94,9 @@ export function createIngestHandler(getAdmin: typeof getSupabaseAdmin = getSupab
     session_id_source: event.session_id_source || null,
     correlation_handle: event.correlation_handle || null,
     correlation_handle_source: event.correlation_handle_source || "missing",
+    context: sanitizeIntentText(event.context) || null,
+    intent_source: event.intent_source || "missing",
+    missing_capability: sanitizeIntentText(event.missing_capability) || null,
     task_id: event.task_id || null,
     workflow_id: event.workflow_id || null,
     client_name: event.client_name || null,

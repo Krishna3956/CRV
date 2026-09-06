@@ -4,7 +4,7 @@ import threading
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from unittest import TestCase
 
-from trackmcp import TrackMCP, TrackMCPOptions
+from trackmcp import TrackMCP, TrackMCPOptions, trackmcp_report_missing
 from trackmcp.client import TrackMCPEvent, _TrackMCPMiddleware
 from trackmcp.privacy import sanitize_payload
 
@@ -150,7 +150,10 @@ class TrackMCPClientTest(TestCase):
                 self.session_id = "session-1"
                 self.request_id = "request-1"
 
+        seen_call_params = []
         async def call_next(ctx):
+            if ctx.method == "tools/call":
+                seen_call_params.append(ctx.params)
             if ctx.method == "tools/list":
                 return {"tools": [{"name": "lookup", "description": "Find a record", "inputSchema": {"type": "object", "properties": {"id": {"type": "string"}}}}]}
             return {"isError": False, "content": []}
@@ -160,7 +163,7 @@ class TrackMCPClientTest(TestCase):
         async def exercise():
             await middleware(Context("initialize", {"clientInfo": {"name": "fixture-client", "version": "2.3.4"}}), call_next)
             await middleware(Context("tools/list", {}), call_next)
-            await middleware(Context("tools/call", {"name": "lookup", "arguments": {"id": "1"}}), call_next)
+            await middleware(Context("tools/call", {"name": "lookup", "arguments": {"id": "1", "context": "Find the relevant documentation"}}), call_next)
 
         asyncio.run(exercise())
         client.flush()
@@ -173,6 +176,9 @@ class TrackMCPClientTest(TestCase):
         self.assertEqual(session["session_id_source"], "protocol")
         self.assertEqual(call["session_id_source"], "protocol")
         self.assertEqual(call["tool_description"], "Find a record")
+        self.assertEqual(call["context"], "Find the relevant documentation")
+        self.assertEqual(call["intent_source"], "context_parameter")
+        self.assertEqual(seen_call_params[-1]["arguments"]["context"], "Find the relevant documentation")
         self.assertRegex(call["tool_description_hash"], r"^[0-9a-f]{64}$")
         self.assertRegex(call["schema_hash"], r"^[0-9a-f]{64}$")
         self.assertEqual(catalog["payload"]["tools"][0]["name"], "lookup")
@@ -218,8 +224,43 @@ class TrackMCPClientTest(TestCase):
         issued._timer.cancel()
 
     def test_event_contract_includes_correlation_fields_for_sdk_parity(self):
-        expected = {"schema_version", "event_id", "event_type", "service", "environment", "request_id", "session_id", "session_id_source", "correlation_handle", "correlation_handle_source", "tool_name", "started_at", "duration_ms", "payload_size_bytes", "payload_policy", "payload"}
+        expected = {"schema_version", "event_id", "event_type", "service", "environment", "request_id", "session_id", "session_id_source", "correlation_handle", "correlation_handle_source", "context", "intent_source", "missing_capability", "tool_name", "started_at", "duration_ms", "payload_size_bytes", "payload_policy", "payload"}
         self.assertTrue(expected.issubset(set(TrackMCPEvent.__annotations__)))
+
+    def test_intent_provenance_is_explicit_bounded_and_missing_reports_keep_correlation(self):
+        contexts = []
+        client = TrackMCP(TrackMCPOptions(
+            api_key="tmcp_test",
+            correlation_mode="external",
+            correlation_resolver=lambda context: "job_anon_1",
+            intent_fallback=lambda context: contexts.append(context) or "Complete the lookup",
+            disabled=False,
+            flush_interval_ms=60000,
+        ))
+        client.capture({"event_type": "tool_call", "started_at": "2026-01-01T00:00:00Z", "context": "Find the relevant documentation"})
+        client.capture({"event_type": "tool_call", "started_at": "2026-01-01T00:00:00Z"})
+        client.capture({"event_type": "custom", "started_at": "2026-01-01T00:00:00Z", "context": "Resolve the deployment issue", "intent_source": "external_callback"})
+        client.capture({"event_type": "custom", "started_at": "2026-01-01T00:00:00Z", "context": "Bearer should not persist"})
+        client.report_missing("bulk_export", "Export all matching records")
+        self.assertEqual(client._events[0]["intent_source"], "context_parameter")
+        self.assertEqual(client._events[1]["intent_source"], "fallback")
+        self.assertEqual(client._events[2]["intent_source"], "external_callback")
+        self.assertEqual(client._events[3]["intent_source"], "fallback")
+        report = client._events[4]
+        self.assertEqual(report["mcp_method"], "trackmcp_report_missing")
+        self.assertEqual(report["missing_capability"], "bulk_export")
+        self.assertEqual(report["correlation_handle_source"], "external")
+        self.assertNotIn("Bearer", json.dumps(client._events))
+        self.assertNotIn("args", contexts[0])
+        client._timer.cancel()
+
+        invalid = TrackMCP(TrackMCPOptions(api_key="tmcp_test", disabled=False, flush_interval_ms=60000))
+        invalid.capture({"event_type": "custom", "started_at": "2026-01-01T00:00:00Z", "context": "x" * 2049})
+        self.assertEqual(invalid._events[0]["intent_source"], "missing")
+        invalid._timer.cancel()
+
+    def test_module_missing_report_is_fail_open_when_no_client_exists(self):
+        trackmcp_report_missing("bulk_export")
 
     def test_existing_wrapper_behavior_is_preserved(self):
         class Server:

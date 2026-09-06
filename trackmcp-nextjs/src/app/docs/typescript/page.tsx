@@ -66,6 +66,7 @@ export default withTrackMCP(server, {
   redactKeys: ["customer_id"],  // optional additional case-insensitive keys
   maxPayloadBytes: 32768,        // final serialized payload budget
   endpoint: "https://trackmcp.com/api/v1/ingest", // compatible ingest endpoint override
+  intentFallback: ({ toolName }) => toolName ? "Complete the " + toolName + " operation" : undefined,
 });`}</Code>
       </DocSection>
 
@@ -122,6 +123,26 @@ redactEvent: (event) => event // return null to drop this event
         <Para>
           Open the authenticated <a href="https://app.trackmcp.com/dashboard" className="font-medium text-brand-strong underline">dashboard trace explorer</a> to inspect ordered server-boundary events. See the <a href="/docs/api" className="font-medium text-brand-strong underline">API reference</a> for the bounded trace response.
         </Para>
+      </DocSection>
+
+      <DocSection title="Intent and missing capabilities">
+        <Para>
+          Intent is opt-in context, not an inference. Compatible object-shaped
+          <Inline>tools/list</Inline> schemas receive an optional <Inline>context</Inline>
+          field with a one-sentence description. TrackMCP strips that known field before
+          the customer handler and labels it <Inline>context_parameter</Inline>.
+          Clients that omit or ignore it can use <Inline>intentFallback</Inline>, whose
+          value is labeled <Inline>fallback</Inline>. Values supplied by an external
+          application can be submitted with <Inline>intent_source</Inline> set to
+          <Inline>external_callback</Inline>. Unsafe or absent values are
+          <Inline>missing</Inline>; no private reasoning is inspected.
+        </Para>
+        <Code>{`withTrackMCP(server, {
+  apiKey: process.env.TRACKMCP_KEY!,
+  intentFallback: ({ toolName }) => toolName ? "Find the requested record" : undefined,
+});
+
+server.trackmcp.reportMissing("bulk_export", "Export all matching records");`}</Code>
       </DocSection>
 
       <DocSection title="Custom events">

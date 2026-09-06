@@ -52,6 +52,15 @@ async function post(handler, body) {
   return { status: response.status, body: await response.json() };
 }
 
+async function postWithHeaders(handler, body, headers = {}) {
+  const response = await handler(new Request("http://integration.test/api/v1/ingest", {
+    method: "POST",
+    headers: { "content-type": "application/json", ...headers },
+    body: typeof body === "string" ? body : JSON.stringify(body),
+  }));
+  return { status: response.status, body: await response.json() };
+}
+
 test("route integration scrubs non-SDK payloads, enforces limits, and preserves the SDK byte budget", async () => {
   const { admin, state } = fakeAdmin();
   const handler = createIngestHandler(() => admin);
@@ -120,4 +129,39 @@ test("route integration receives hook-sanitized events within the final SDK payl
   assert.ok(stored.payload_size_bytes <= 100);
   assert.equal(stored.payload.__trackmcp_truncated, true);
   assert.equal(JSON.stringify(stored.payload).includes("hookAddedSecret"), false);
+});
+
+test("route integration preserves intent provenance, missing reports, correlation, and privacy rejection", async () => {
+  const { admin, state } = fakeAdmin();
+  const handler = createIngestHandler(() => admin);
+  const accepted = await post(handler, {
+    events: [event({
+      event_id: "intent-event",
+      context: "Find the relevant documentation",
+      intent_source: "external_callback",
+      missing_capability: "bulk_export",
+      correlation_handle: "job_anon_1",
+      correlation_handle_source: "external",
+    }), event({
+      event_id: "missing-event",
+      event_type: "custom",
+      mcp_method: "trackmcp_report_missing",
+      missing_capability: "repository_search",
+      intent_source: "missing",
+    })],
+  });
+  assert.equal(accepted.status, 200);
+  assert.equal(state.rows[0].intent_source, "external_callback");
+  assert.equal(state.rows[0].context, "Find the relevant documentation");
+  assert.equal(state.rows[0].missing_capability, "bulk_export");
+  assert.equal(state.rows[0].correlation_handle_source, "external");
+  assert.equal(state.rows[1].mcp_method, "trackmcp_report_missing");
+  assert.equal(state.rows[1].intent_source, "missing");
+
+  const unsafe = await post(handler, { events: [event({ event_id: "unsafe-context", context: "Bearer should-not-persist", intent_source: "context_parameter" })] });
+  assert.equal(unsafe.status, 400);
+  const oversized = await post(handler, { events: [event({ event_id: "oversized-context", context: "x".repeat(2049), intent_source: "context_parameter" })] });
+  assert.equal(oversized.status, 400);
+  const unauthorized = await postWithHeaders(handler, { events: [event({ event_id: "unauthorized" })] });
+  assert.equal(unauthorized.status, 401);
 });
