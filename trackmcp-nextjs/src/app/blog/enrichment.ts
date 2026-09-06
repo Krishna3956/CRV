@@ -21,6 +21,19 @@ const note = (title: string, c: string, after: number) => ({
 });
 
 export const enrichment: Record<string, Enrichment> = {
+  "trackmcp-foundation-release": {
+    art: "foundation",
+    takeaways: [
+      "Measure MCP behavior from a versioned, validated event contract with idempotent delivery.",
+      "Keep telemetry bounded and redacted locally, with metadata-only capture available when payloads are out of scope.",
+      "Use observed tool latency, authenticated traces, and explicit workflow outcomes to investigate production behavior honestly.",
+      "Treat the server boundary as a useful limit: TrackMCP does not see private model reasoning or every client-side turn.",
+    ],
+    inserts: [
+      fig("foundation", "A versioned event contract, local redaction, and bounded traces form the production foundation.", 4),
+      note("Bounded by design", "Telemetry is sanitized before it leaves the server process, then constrained again at ingestion.", 13),
+    ],
+  },
   "mcp-incident-response-runbook": {
     art: "errors",
     takeaways: [

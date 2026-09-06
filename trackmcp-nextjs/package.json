@@ -9,6 +9,7 @@
     "lint": "eslint",
     "seo:audit": "node scripts/audit-seo.mjs",
     "test:seo-breadcrumbs": "node --test scripts/breadcrumbs.test.mjs",
+    "test:release-post": "node --test scripts/release-post.test.mjs",
     "mcp:import": "node scripts/import-mcp-repository.mjs"
   },
   "dependencies": {

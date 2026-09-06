@@ -94,7 +94,7 @@ function Blocks({ body }: { body: Block[] }) {
         if (b.t === "figure")
           return (
             <figure key={i} className="my-2 overflow-hidden rounded-xl border border-line">
-              <BlogArt art={b.art} className="block h-auto w-full" />
+              <BlogArt art={b.art} ariaLabel={b.c} className="block h-auto w-full" />
               <figcaption className="border-t border-line bg-paper px-4 py-2.5 text-[13px] leading-relaxed text-muted">
                 {b.c}
               </figcaption>
@@ -254,6 +254,7 @@ export default async function BlogPostPage({
                 <BlogArt
                   art={cover}
                   fit="slice"
+                  ariaLabel={`${post.title} illustration`}
                   className="block h-[220px] w-full sm:h-[300px]"
                 />
               </div>

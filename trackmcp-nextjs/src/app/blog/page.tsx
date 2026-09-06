@@ -43,6 +43,12 @@ export default function BlogPage() {
                   Practical guides on measuring MCP server usage, debugging agent
                   workflows, shipping safely, and knowing what to fix next.
                 </p>
+                <Link
+                  href="/blog/releases"
+                  className="mt-5 inline-flex items-center gap-1 text-[13px] font-medium text-brand-strong underline underline-offset-2 hover:text-ink"
+                >
+                  Product releases <ArrowUpRight size={14} />
+                </Link>
               </Reveal>
             </div>
           </section>
