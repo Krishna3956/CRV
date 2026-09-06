@@ -87,6 +87,7 @@ export async function POST(req: Request) {
     mcp_method: event.mcp_method || null,
     request_id: event.request_id || null,
     session_id: event.session_id || null,
+    session_id_source: event.session_id_source || null,
     task_id: event.task_id || null,
     workflow_id: event.workflow_id || null,
     client_name: event.client_name || null,

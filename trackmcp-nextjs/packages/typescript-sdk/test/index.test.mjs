@@ -70,6 +70,7 @@ test("captures a real official MCP server transport call", async () => {
   assert.equal(call.tool_name, "hello");
   assert.equal(call.client_name, "fixture-client");
   assert.equal(call.client_version, "1.0.0");
+  assert.equal(call.session_id_source, "transport_generated");
   assert.equal(call.tool_description, "test tool");
   assert.match(call.tool_description_hash, /^[0-9a-f]{64}$/);
   assert.match(call.schema_hash, /^[0-9a-f]{64}$/);

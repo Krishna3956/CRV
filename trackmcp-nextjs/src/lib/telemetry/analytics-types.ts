@@ -1,5 +1,7 @@
+import type { TrackMCPSessionIdSource } from "./types.ts";
+
 export type CompletionSource = "workflow_events" | "session_heuristic" | "none";
-export type CorrelationQuality = "session_id" | "transport_generated" | "missing";
+export type CorrelationQuality = "session_id" | "transport_generated" | "missing" | "mixed";
 
 export type CatalogTool = {
   name: string;
@@ -24,6 +26,7 @@ export type TraceEvent = {
   mcp_method: string | null;
   request_id: string | null;
   session_id: string | null;
+  session_id_source: TrackMCPSessionIdSource | null;
   task_id: string | null;
   workflow_id: string | null;
   client_name: string | null;

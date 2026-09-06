@@ -3,6 +3,7 @@ import { getSupabaseServer } from "@/lib/auth/supabase-server";
 import { getSupabaseAdmin } from "@/lib/repository/supabase";
 import { hashTrackMCPKey } from "@/lib/telemetry/keys";
 import type { TraceResponse } from "@/lib/telemetry/analytics-types";
+import { traceResponse, traceScope } from "@/lib/telemetry/trace";
 
 async function workspaceFor(request: Request) {
   const admin = getSupabaseAdmin();
@@ -27,8 +28,9 @@ export async function GET(request: Request) {
   const url = new URL(request.url);
   const sessionId = url.searchParams.get("session_id");
   if (!sessionId) return NextResponse.json({ error: "session_id is required." }, { status: 400 });
-  const { data, error } = await auth.admin.from("trackmcp_events").select("schema_version, event_id, event_type, service, environment, server_id, deployment_id, server_version, sdk_version, direction, transport, protocol_version, mcp_method, request_id, session_id, task_id, workflow_id, client_name, client_version, tool_name, tool_description, tool_description_hash, started_at, duration_ms, success, is_error, error_class, error_code, retry_number, schema_hash, payload_size_bytes, payload_policy, payload").eq("workspace_id", auth.workspaceId).eq("session_id", sessionId).order("started_at", { ascending: true }).limit(1000);
+  const scope = traceScope(auth.workspaceId, sessionId);
+  const { data, error } = await auth.admin.from("trackmcp_events").select("schema_version, event_id, event_type, service, environment, server_id, deployment_id, server_version, sdk_version, direction, transport, protocol_version, mcp_method, request_id, session_id, session_id_source, task_id, workflow_id, client_name, client_version, tool_name, tool_description, tool_description_hash, started_at, duration_ms, success, is_error, error_class, error_code, retry_number, schema_hash, payload_size_bytes, payload_policy, payload").eq("workspace_id", scope.workspaceId).eq("session_id", scope.sessionId).order("started_at", { ascending: true }).limit(1000);
   if (error) return NextResponse.json({ error: "Could not load trace." }, { status: 500 });
-  const response: TraceResponse = { session_id: sessionId, correlation_quality: data?.length ? "session_id" : "missing", events: (data || []) as TraceResponse["events"] };
+  const response: TraceResponse = traceResponse(sessionId, (data || []) as TraceResponse["events"]);
   return NextResponse.json(response);
 }

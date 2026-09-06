@@ -59,6 +59,7 @@ class TrackMCPClientTest(TestCase):
         server.server_close()
         event = Handler.payload["events"][0]
         self.assertEqual(event["schema_version"], "1")
+        self.assertEqual(event["session_id_source"], "missing")
         self.assertEqual(event["payload_size_bytes"], len(json.dumps({"message": "café"}, ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode("utf-8")))
         self.assertEqual(event["event_id"].count("-"), 4)
 
@@ -89,18 +90,27 @@ class TrackMCPClientTest(TestCase):
 
         asyncio.run(exercise())
         client.flush()
-        server.shutdown()
-        server.server_close()
         events = Handler.payload["events"]
         session = next(event for event in events if event["mcp_method"] == "initialize")
         call = next(event for event in events if event["event_type"] == "tool_call")
         catalog = next(event for event in events if event["event_type"] == "catalog")
         self.assertEqual(session["client_name"], "fixture-client")
         self.assertEqual(session["client_version"], "2.3.4")
+        self.assertEqual(session["session_id_source"], "protocol")
+        self.assertEqual(call["session_id_source"], "protocol")
         self.assertEqual(call["tool_description"], "Find a record")
         self.assertRegex(call["tool_description_hash"], r"^[0-9a-f]{64}$")
         self.assertRegex(call["schema_hash"], r"^[0-9a-f]{64}$")
         self.assertEqual(catalog["payload"]["tools"][0]["name"], "lookup")
+
+        fallback_context = Context("tools/call", {"name": "lookup", "arguments": {}},)
+        fallback_context.session_id = None
+        asyncio.run(middleware(fallback_context, call_next))
+        client.flush()
+        self.assertEqual(Handler.payload["events"][-1]["session_id_source"], "transport_generated")
+        self.assertTrue(Handler.payload["events"][-1]["session_id"])
+        server.shutdown()
+        server.server_close()
 
     def test_existing_wrapper_behavior_is_preserved(self):
         class Server:

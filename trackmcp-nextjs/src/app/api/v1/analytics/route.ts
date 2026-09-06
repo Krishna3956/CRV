@@ -3,6 +3,8 @@ import { getSupabaseServer } from "@/lib/auth/supabase-server";
 import { getSupabaseAdmin } from "@/lib/repository/supabase";
 import { hashTrackMCPKey } from "@/lib/telemetry/keys";
 import type { CatalogTool, CompletionSource, CorrelationQuality } from "@/lib/telemetry/analytics-types";
+import { correlationQualityForEvents, percentile } from "@/lib/telemetry/analytics";
+import type { TrackMCPSessionIdSource } from "@/lib/telemetry/types";
 
 type EventRow = {
   schema_version: string;
@@ -19,6 +21,7 @@ type EventRow = {
   mcp_method: string | null;
   request_id: string | null;
   session_id: string | null;
+  session_id_source: TrackMCPSessionIdSource | null;
   task_id: string | null;
   workflow_id: string | null;
   client_name: string | null;
@@ -40,12 +43,6 @@ type EventRow = {
 };
 
 function failed(event: EventRow) { return event.is_error === true || event.success === false; }
-
-function percentile(values: number[], percentileValue: number): number | null {
-  if (!values.length) return null;
-  const sorted = [...values].sort((a, b) => a - b);
-  return sorted[Math.max(0, Math.ceil(sorted.length * percentileValue) - 1)];
-}
 
 function catalogFromEvent(event: EventRow): CatalogTool[] {
   if (event.event_type !== "catalog" && event.event_type !== "custom" || event.payload?.name !== "tools_discovered") return [];
@@ -89,7 +86,7 @@ export async function GET(req: Request) {
   const days = Number.isFinite(requestedDays) ? Math.min(90, Math.max(1, Math.floor(requestedDays))) : 30;
   const since = new Date(Date.now() - days * 86400000).toISOString();
   const { data, error } = await supabase.from("trackmcp_events")
-    .select("schema_version, event_type, service, environment, server_id, deployment_id, server_version, sdk_version, direction, transport, protocol_version, mcp_method, request_id, session_id, task_id, workflow_id, client_name, client_version, tool_name, tool_description, tool_description_hash, duration_ms, success, is_error, error_class, error_code, retry_number, schema_hash, payload_size_bytes, payload_policy, started_at, payload")
+    .select("schema_version, event_type, service, environment, server_id, deployment_id, server_version, sdk_version, direction, transport, protocol_version, mcp_method, request_id, session_id, session_id_source, task_id, workflow_id, client_name, client_version, tool_name, tool_description, tool_description_hash, duration_ms, success, is_error, error_class, error_code, retry_number, schema_hash, payload_size_bytes, payload_policy, started_at, payload")
     .eq("workspace_id", workspaceId).gte("started_at", since).order("started_at", { ascending: true }).limit(10000);
   if (error) return NextResponse.json({ error: "Could not load analytics." }, { status: 500 });
 
@@ -135,7 +132,7 @@ export async function GET(req: Request) {
   const workflowRows = [...sessions.entries()].map(([id, sessionEvents]) => {
     const sessionCalls = sessionEvents.filter((event) => event.event_type === "tool_call");
     const last = sessionCalls[sessionCalls.length - 1];
-    return { session_id: id, client_name: sessionEvents.find((event) => event.client_name)?.client_name || "Unknown client", calls: sessionCalls.length, tools: sessionCalls.map((event) => event.tool_name).filter(Boolean), started_at: sessionEvents[0]?.started_at, duration_ms: sessionEvents.length > 1 ? Math.max(...sessionEvents.map((event) => new Date(event.started_at).getTime())) - new Date(sessionEvents[0].started_at).getTime() : 0, completed: Boolean(last && !failed(last)), completion_source: "session_heuristic" as const, correlation_quality: "session_id" as const };
+    return { session_id: id, client_name: sessionEvents.find((event) => event.client_name)?.client_name || "Unknown client", calls: sessionCalls.length, tools: sessionCalls.map((event) => event.tool_name).filter(Boolean), started_at: sessionEvents[0]?.started_at, duration_ms: sessionEvents.length > 1 ? Math.max(...sessionEvents.map((event) => new Date(event.started_at).getTime())) - new Date(sessionEvents[0].started_at).getTime() : 0, completed: Boolean(last && !failed(last)), completion_source: "session_heuristic" as const, correlation_quality: correlationQualityForEvents(sessionEvents) };
   }).filter((workflow) => workflow.calls > 0).sort((a, b) => b.started_at.localeCompare(a.started_at)).slice(0, 100);
   const completed = workflowRows.filter((workflow) => workflow.completed).length;
   const explicitStarted = explicitOutcomes.reduce((sum, outcome) => sum + outcome.started, 0);
@@ -155,6 +152,6 @@ export async function GET(req: Request) {
   const methods = [...new Set(events.map((event) => event.mcp_method).filter(Boolean))];
   const catalogs = events.filter((event) => event.event_type === "catalog").length;
   const completionSource: CompletionSource = explicitStarted > 0 ? "workflow_events" : workflowRows.length ? "session_heuristic" : "none";
-  const correlationQuality: CorrelationQuality = events.some((event) => event.session_id) ? "session_id" : events.some((event) => event.request_id) ? "transport_generated" : "missing";
+  const correlationQuality: CorrelationQuality = correlationQualityForEvents(events);
   return NextResponse.json({ range_days: days, total_events: events.length, protocol_events: protocols.length, catalog_events: catalogs, protocol_versions: protocolVersions, transports, methods, tool_calls: calls.length, sessions: workflowRows.length, errors: calls.filter(failed).length, completion_rate: explicitStarted > 0 ? explicitCompleted / explicitStarted : workflowRows.length ? completed / workflowRows.length : null, completion_source: completionSource, correlation_quality: correlationQuality, funnel: { connections: events.filter((event) => event.event_type === "session").length, discovered_tools: catalog.size, tool_calls: calls.length, successful_calls: calls.filter((event) => !failed(event)).length }, timeline: [...timeline.entries()].map(([date, value]) => ({ date, ...value })), clients: [...clients.entries()].map(([name, value]) => ({ name, calls: value.calls, versions: [...value.versions] })).sort((a, b) => b.calls - a.calls), tools: toolRows, catalog_tools: [...catalog.values()], unused_tools: unusedTools, workflows: workflowRows, outcomes: explicitOutcomes, insights });
 }

@@ -34,6 +34,7 @@ class TrackMCPEvent(TypedDict, total=False):
     mcp_method: str
     request_id: str
     session_id: str
+    session_id_source: str
     task_id: str
     workflow_id: str
     client_name: str
@@ -142,6 +143,7 @@ class TrackMCP:
             "deployment_id": self.options.deployment_id,
             "server_id": self.options.server_id,
         })
+        event["session_id_source"] = event.get("session_id_source") or ("external" if event.get("session_id") else "missing")
         if "payload" in event:
             event["payload"] = _redact(event["payload"], self.options.redact)
             event["payload_size_bytes"] = len(_canonical_json(event["payload"]).encode("utf-8"))
@@ -204,6 +206,7 @@ class _TrackMCPMiddleware:
         self.client = client
         self.client_name: Optional[str] = None
         self.client_version: Optional[str] = None
+        self.transport_session_id = str(uuid.uuid4())
 
     async def __call__(self, ctx: Any, call_next: Any) -> Any:
         method = getattr(ctx, "method", "")
@@ -213,7 +216,8 @@ class _TrackMCPMiddleware:
             if isinstance(client_info, dict):
                 self.client_name = client_info.get("name")
                 self.client_version = client_info.get("version")
-        session_id = getattr(ctx, "session_id", None)
+        session_id = getattr(ctx, "session_id", None) or self.transport_session_id
+        session_id_source = "protocol" if getattr(ctx, "session_id", None) else "transport_generated"
         request_id = getattr(ctx, "request_id", None)
         tool_name = params.get("name") if isinstance(params, dict) else None
         arguments = params.get("arguments", {}) if isinstance(params, dict) else {}
@@ -224,19 +228,19 @@ class _TrackMCPMiddleware:
             is_error = bool(isinstance(result_data, dict) and result_data.get("isError"))
             if method == "tools/call":
                 metadata = self.client.tool_metadata(tool_name)
-                self.client.capture(_event(tool_name, {"args": arguments}, started, result_data, None, self.client_name, session_id, request_id, self.client_version, metadata))
+                self.client.capture(_event(tool_name, {"args": arguments}, started, result_data, None, self.client_name, session_id, request_id, self.client_version, metadata, session_id_source))
             elif method in ("tools/list", "resources/list", "resources/templates/list", "prompts/list"):
                 catalog_type = method.replace("/list", "")
                 tools = self.client.record_catalog(result_data)
-                self.client.capture({"event_type": "catalog", "mcp_method": method, "request_id": request_id, "session_id": session_id, "client_name": self.client_name, "client_version": self.client_version, "started_at": _iso_from_epoch(started), "duration_ms": round((time.time() - started) * 1000), "success": not is_error, "is_error": is_error, "payload": {"name": f"{catalog_type}_discovered", "tools": tools, "result": result_data}})
+                self.client.capture({"event_type": "catalog", "mcp_method": method, "request_id": request_id, "session_id": session_id, "session_id_source": session_id_source, "client_name": self.client_name, "client_version": self.client_version, "started_at": _iso_from_epoch(started), "duration_ms": round((time.time() - started) * 1000), "success": not is_error, "is_error": is_error, "payload": {"name": f"{catalog_type}_discovered", "tools": tools, "result": result_data}})
             else:
-                self.client.capture({"event_type": "protocol", "mcp_method": method, "request_id": request_id, "session_id": session_id, "client_name": self.client_name, "client_version": self.client_version, "started_at": _iso_from_epoch(started), "duration_ms": round((time.time() - started) * 1000), "success": not is_error, "is_error": is_error, "payload": {"params": params, "result": result_data}})
+                self.client.capture({"event_type": "protocol", "mcp_method": method, "request_id": request_id, "session_id": session_id, "session_id_source": session_id_source, "client_name": self.client_name, "client_version": self.client_version, "started_at": _iso_from_epoch(started), "duration_ms": round((time.time() - started) * 1000), "success": not is_error, "is_error": is_error, "payload": {"params": params, "result": result_data}})
             return result
         except Exception as error:
             if method == "tools/call":
-                self.client.capture(_event(tool_name, {"args": arguments}, started, None, error, self.client_name, session_id, request_id, self.client_version, self.client.tool_metadata(tool_name)))
+                self.client.capture(_event(tool_name, {"args": arguments}, started, None, error, self.client_name, session_id, request_id, self.client_version, self.client.tool_metadata(tool_name), session_id_source))
             else:
-                self.client.capture({"event_type": "protocol", "mcp_method": method, "request_id": request_id, "session_id": session_id, "client_name": self.client_name, "client_version": self.client_version, "started_at": _iso_from_epoch(started), "duration_ms": round((time.time() - started) * 1000), "success": False, "is_error": True, "error_class": "protocol_error", "payload": {"params": params, "error": str(error)}})
+                self.client.capture({"event_type": "protocol", "mcp_method": method, "request_id": request_id, "session_id": session_id, "session_id_source": session_id_source, "client_name": self.client_name, "client_version": self.client_version, "started_at": _iso_from_epoch(started), "duration_ms": round((time.time() - started) * 1000), "success": False, "is_error": True, "error_class": "protocol_error", "payload": {"params": params, "error": str(error)}})
             raise
 
 def _iso_now() -> str:
@@ -273,6 +277,7 @@ class _Wrapped:
         self.trackmcp = client
         self.client_name: Optional[str] = None
         self.client_version: Optional[str] = None
+        self.transport_session_id = str(uuid.uuid4())
 
     def __getattr__(self, name: str) -> Any:
         original = getattr(self._server, name)
@@ -296,28 +301,28 @@ class _Wrapped:
                             if method in ("tools/list", "resources/list", "resources/templates/list", "prompts/list"):
                                 catalog_type = method.replace("/list", "")
                                 tools = client.record_catalog(value)
-                                client.capture({"event_type": "catalog", "mcp_method": method, "client_name": self.client_name, "client_version": self.client_version, "started_at": _iso_from_epoch(started), "duration_ms": round((time.time() - started) * 1000), "success": True, "is_error": False, "payload": {"name": f"{catalog_type}_discovered", "tools": tools, "result": value}})
+                                client.capture({"event_type": "catalog", "mcp_method": method, "session_id": self.transport_session_id, "session_id_source": "transport_generated", "client_name": self.client_name, "client_version": self.client_version, "started_at": _iso_from_epoch(started), "duration_ms": round((time.time() - started) * 1000), "success": True, "is_error": False, "payload": {"name": f"{catalog_type}_discovered", "tools": tools, "result": value}})
                             else:
-                                client.capture(_event(tool_name, payload, started, value, None, self.client_name, None, None, self.client_version, client.tool_metadata(tool_name)))
+                                client.capture(_event(tool_name, payload, started, value, None, self.client_name, self.transport_session_id, None, self.client_version, client.tool_metadata(tool_name), "transport_generated"))
                             return value
                         except Exception as error:
-                            client.capture(_event(tool_name, payload, started, None, error, self.client_name, None, None, self.client_version, client.tool_metadata(tool_name)))
+                            client.capture(_event(tool_name, payload, started, None, error, self.client_name, self.transport_session_id, None, self.client_version, client.tool_metadata(tool_name), "transport_generated"))
                             raise
                     return awaited()
                 if method in ("tools/list", "resources/list", "resources/templates/list", "prompts/list"):
                     catalog_type = method.replace("/list", "")
                     tools = client.record_catalog(result)
-                    client.capture({"event_type": "catalog", "mcp_method": method, "client_name": self.client_name, "client_version": self.client_version, "started_at": _iso_from_epoch(started), "duration_ms": round((time.time() - started) * 1000), "success": True, "is_error": False, "payload": {"name": f"{catalog_type}_discovered", "tools": tools, "result": result}})
+                    client.capture({"event_type": "catalog", "mcp_method": method, "session_id": self.transport_session_id, "session_id_source": "transport_generated", "client_name": self.client_name, "client_version": self.client_version, "started_at": _iso_from_epoch(started), "duration_ms": round((time.time() - started) * 1000), "success": True, "is_error": False, "payload": {"name": f"{catalog_type}_discovered", "tools": tools, "result": result}})
                 else:
-                    client.capture(_event(tool_name, payload, started, result, None, self.client_name, None, None, self.client_version, client.tool_metadata(tool_name)))
+                    client.capture(_event(tool_name, payload, started, result, None, self.client_name, self.transport_session_id, None, self.client_version, client.tool_metadata(tool_name), "transport_generated"))
                 return result
             except Exception as error:
-                client.capture(_event(tool_name, payload, started, None, error, self.client_name, None, None, self.client_version, client.tool_metadata(tool_name)))
+                client.capture(_event(tool_name, payload, started, None, error, self.client_name, self.transport_session_id, None, self.client_version, client.tool_metadata(tool_name), "transport_generated"))
                 raise
         return wrapped
 
 
-def _event(tool_name: Optional[str], payload: Dict[str, Any], started: float, result: Any, error: Optional[Exception], client_name: Optional[str] = None, session_id: Optional[str] = None, request_id: Optional[str] = None, client_version: Optional[str] = None, metadata: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+def _event(tool_name: Optional[str], payload: Dict[str, Any], started: float, result: Any, error: Optional[Exception], client_name: Optional[str] = None, session_id: Optional[str] = None, request_id: Optional[str] = None, client_version: Optional[str] = None, metadata: Optional[Dict[str, Any]] = None, session_id_source: Optional[str] = None) -> Dict[str, Any]:
     is_error = error is not None or bool(isinstance(result, dict) and result.get("isError"))
     return {
         "event_type": "tool_call",
@@ -330,6 +335,7 @@ def _event(tool_name: Optional[str], payload: Dict[str, Any], started: float, re
         "tool_description_hash": metadata.get("tool_description_hash") if metadata else None,
         "schema_hash": metadata.get("schema_hash") if metadata else None,
         "session_id": session_id,
+        "session_id_source": session_id_source,
         "started_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime(started)),
         "duration_ms": round((time.time() - started) * 1000),
         "success": not is_error,

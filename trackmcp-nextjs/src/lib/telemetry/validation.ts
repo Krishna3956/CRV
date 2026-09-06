@@ -4,6 +4,7 @@ import {
   type CanonicalTrackMCPEvent,
   type TrackMCPEvent,
   type TrackMCPEventType,
+  type TrackMCPSessionIdSource,
 } from "./types.ts";
 
 export const MAX_BATCH_EVENTS = 100;
@@ -16,6 +17,7 @@ const EVENT_TYPES: readonly TrackMCPEventType[] = ["protocol", "tool_call", "ses
 const DIRECTIONS = ["client_to_server", "server_to_client"] as const;
 const TRANSPORTS = ["stdio", "streamable_http", "sse", "custom"] as const;
 const PAYLOAD_POLICIES = ["metadata", "redacted", "full"] as const;
+const SESSION_ID_SOURCES = ["protocol", "transport_generated", "external", "missing"] as const;
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const EVENT_ID = /^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$/;
 const ISO_TIMESTAMP = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,9})?(?:Z|[+-]\d{2}:\d{2})$/;
@@ -95,6 +97,7 @@ export function normalizeTrackMCPEvent(value: unknown): EventValidationResult {
   if (event.direction !== undefined && event.direction !== null && !DIRECTIONS.includes(event.direction as typeof DIRECTIONS[number])) return { ok: false, reason: "direction is unsupported", eventId };
   if (event.transport !== undefined && event.transport !== null && !TRANSPORTS.includes(event.transport as typeof TRANSPORTS[number])) return { ok: false, reason: "transport is unsupported", eventId };
   if (event.payload_policy !== undefined && event.payload_policy !== null && !PAYLOAD_POLICIES.includes(event.payload_policy as typeof PAYLOAD_POLICIES[number])) return { ok: false, reason: "payload_policy is unsupported", eventId };
+  if (event.session_id_source !== undefined && event.session_id_source !== null && !SESSION_ID_SOURCES.includes(event.session_id_source as TrackMCPSessionIdSource)) return { ok: false, reason: "session_id_source is unsupported", eventId };
   for (const field of ["duration_ms", "retry_number", "payload_size_bytes"] as const) {
     if (event[field] !== undefined && event[field] !== null && !isNonNegativeInteger(event[field])) return { ok: false, reason: `${field} must be a non-negative integer`, eventId };
   }
