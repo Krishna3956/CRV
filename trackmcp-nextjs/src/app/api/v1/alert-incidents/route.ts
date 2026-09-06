@@ -8,7 +8,7 @@ export async function GET(request: Request) {
   if (!isAuthResult(auth)) return auth.response;
   const url = new URL(request.url);
   const limit = parsePage(url.searchParams.get("limit"));
-  let query = auth.admin.from("trackmcp_alert_incidents").select("*").eq("workspace_id", auth.workspaceId).order("last_seen_at", { ascending: false }).limit(limit);
+  let query = auth.admin.from("trackmcp_alert_incidents").select("id, workspace_id, alert_id, identity, metric, state, severity, tool_name, environment, data_status, baseline, comparison, threshold, reasons, evidence, first_seen_at, last_seen_at, acknowledged_at, resolved_at, suppressed_reason, recovery, revision").eq("workspace_id", auth.workspaceId).order("last_seen_at", { ascending: false }).limit(limit);
   const state = url.searchParams.get("state");
   const metric = url.searchParams.get("metric");
   const toolName = url.searchParams.get("tool_name");

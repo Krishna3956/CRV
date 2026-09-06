@@ -76,6 +76,7 @@ export type RegressionFinding = {
   evidence: { catalog_changed?: boolean; previous_deployment_id?: string | null; comparison_deployment_id?: string | null };
 };
 
+export type RegressionWindows = { baseline: RegressionWindow; comparison: RegressionWindow };
 type WindowBounds = { start: number; end: number; public: RegressionWindow };
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -99,6 +100,11 @@ function bounds(now: Date): { baseline: WindowBounds; comparison: WindowBounds }
     baseline: { start: baselineStart.getTime(), end: comparisonStart.getTime(), public: { start: baselineStart.toISOString(), end: comparisonStart.toISOString() } },
     comparison: { start: comparisonStart.getTime(), end: end.getTime(), public: { start: comparisonStart.toISOString(), end: end.toISOString() } },
   };
+}
+
+export function regressionWindows(now = new Date()): RegressionWindows {
+  const window = bounds(now);
+  return { baseline: window.baseline.public, comparison: window.comparison.public };
 }
 
 function inWindow(event: RegressionEvent, window: WindowBounds): boolean {
@@ -142,6 +148,8 @@ function structurallyEmpty(value: unknown): boolean {
 function inspectableEmpty(event: RegressionEvent): boolean {
   return successful(event)
     && event.payload_policy !== "metadata"
+    && event.payload_policy !== "unavailable"
+    && event.payload_policy !== "truncated"
     && Boolean(event.payload && Object.hasOwn(event.payload, "result"))
     && !isTruncated(event.payload)
     && structurallyEmpty(event.payload?.result);
@@ -150,6 +158,8 @@ function inspectableEmpty(event: RegressionEvent): boolean {
 function inspectableSuccess(event: RegressionEvent): boolean {
   return successful(event)
     && event.payload_policy !== "metadata"
+    && event.payload_policy !== "unavailable"
+    && event.payload_policy !== "truncated"
     && Boolean(event.payload && Object.hasOwn(event.payload, "result"))
     && !isTruncated(event.payload);
 }
@@ -196,9 +206,17 @@ function p95Finding(metric: RegressionMetric, baseline: RegressionSummary, compa
   return { metric, severity, data_status: "sufficient", reasons: [], baseline, comparison, threshold, scope, evidence: {} };
 }
 
-function workflowSummary(events: readonly RegressionEvent[], window: WindowBounds): RegressionSummary {
+function scopedEvent(event: RegressionEvent, scope: RegressionFinding["scope"]): boolean {
+  if (event.observation_source !== "server") return false;
+  if (scope.environment && event.environment !== scope.environment) return false;
+  if (!scope.tool_name) return true;
+  const payloadTool = isRecord(event.payload) && typeof event.payload.tool_name === "string" ? event.payload.tool_name : null;
+  return event.tool_name === scope.tool_name || payloadTool === scope.tool_name;
+}
+
+function workflowSummary(events: readonly RegressionEvent[], window: WindowBounds, scope: RegressionFinding["scope"]): RegressionSummary {
   const groups = new Map<string, RegressionEvent[]>();
-  for (const event of events) if (event.workflow_id) groups.set(event.workflow_id, [...(groups.get(event.workflow_id) || []), event]);
+  for (const event of events) if (event.workflow_id && scopedEvent(event, scope)) groups.set(event.workflow_id, [...(groups.get(event.workflow_id) || []), event]);
   let started = 0;
   let completed = 0;
   for (const group of groups.values()) {
@@ -212,8 +230,8 @@ function workflowSummary(events: readonly RegressionEvent[], window: WindowBound
   return summary(window, completed, started, started ? completed / started : null);
 }
 
-function authorizationSummary(events: readonly RegressionEvent[], window: WindowBounds): RegressionSummary {
-  const attempts = events.filter((event) => inWindow(event, window) && event.observation_source === "server" && knownOutcome(event) && event.payload?.authorization_attempt === true);
+function authorizationSummary(events: readonly RegressionEvent[], window: WindowBounds, scope: RegressionFinding["scope"]): RegressionSummary {
+  const attempts = events.filter((event) => inWindow(event, window) && scopedEvent(event, scope) && knownOutcome(event) && event.payload?.authorization_attempt === true);
   const failures = attempts.filter((event) => event.error_code === 401 || event.error_code === 403 || event.error_class === "authentication_error" || event.error_class === "authorization_error");
   return summary(window, failures.length, attempts.length, attempts.length ? failures.length / attempts.length : null);
 }
@@ -229,7 +247,7 @@ function catalogHashes(event: RegressionEvent): Map<string, { description: strin
 
 function catalogFinding(events: readonly RegressionEvent[], window: { baseline: WindowBounds; comparison: WindowBounds }, scope: RegressionFinding["scope"]): RegressionFinding {
   const threshold = { minimum_side_calls: MIN_CATALOG_SIDE_CALLS };
-  const catalogs = events.filter((event) => event.observation_source === "server" && (event.event_type === "catalog" || event.event_type === "custom") && event.payload?.name === "tools_discovered" && inWindow(event, window.comparison));
+  const catalogs = events.filter((event) => event.observation_source === "server" && (event.event_type === "catalog" || event.event_type === "custom") && event.payload?.name === "tools_discovered" && (!scope.environment || event.environment === scope.environment) && inWindow(event, window.comparison));
   const target = scope.tool_name;
   let changed = false;
   let before = 0;
@@ -237,7 +255,7 @@ function catalogFinding(events: readonly RegressionEvent[], window: { baseline: 
   for (const catalog of catalogs) {
     const currentHashes = catalogHashes(catalog);
     const candidateNames = target ? [target] : [...currentHashes.keys()];
-    const prior = events.filter((event) => event.observation_source === "server" && (event.event_type === "catalog" || event.event_type === "custom") && event.payload?.name === "tools_discovered" && (time(event) || 0) < (time(catalog) || 0)).sort((a, b) => (time(b) || 0) - (time(a) || 0))[0];
+    const prior = events.filter((event) => event.observation_source === "server" && (event.event_type === "catalog" || event.event_type === "custom") && event.payload?.name === "tools_discovered" && (!scope.environment || event.environment === scope.environment) && (time(event) || 0) < (time(catalog) || 0)).sort((a, b) => (time(b) || 0) - (time(a) || 0))[0];
     const previousHashes = prior ? catalogHashes(prior) : new Map<string, { description: string | null; schema: string | null }>();
     for (const candidate of candidateNames) {
       const hashes = currentHashes.get(candidate);
@@ -258,18 +276,19 @@ function catalogFinding(events: readonly RegressionEvent[], window: { baseline: 
 }
 
 function deploymentFinding(events: readonly RegressionEvent[], window: { baseline: WindowBounds; comparison: WindowBounds }, scope: RegressionFinding["scope"]): RegressionFinding {
-  const deployments = [...new Set(events.filter((event) => event.observation_source === "server" && event.event_type === "tool_call" && event.deployment_id && (!scope.tool_name || event.tool_name === scope.tool_name) && (!scope.environment || event.environment === scope.environment)).map((event) => event.deployment_id!))];
-  const ordered = deployments.map((id) => ({ id, at: Math.max(...events.filter((event) => event.deployment_id === id).map((event) => time(event) || 0)) })).sort((a, b) => b.at - a.at);
-  const currentId = ordered[0]?.id;
-  const previousId = ordered[1]?.id;
-  const byDeployment = (deploymentId: string | undefined) => {
-    const calls = events.filter((event) => event.observation_source === "server" && event.event_type === "tool_call" && event.deployment_id === deploymentId && (!scope.tool_name || event.tool_name === scope.tool_name) && (!scope.environment || event.environment === scope.environment));
+  const deploymentAt = (range: WindowBounds) => [...new Set(events.filter((event) => inWindow(event, range) && event.observation_source === "server" && event.event_type === "tool_call" && event.deployment_id && (!scope.tool_name || event.tool_name === scope.tool_name) && (!scope.environment || event.environment === scope.environment)).map((event) => event.deployment_id!))]
+    .map((id) => ({ id, at: Math.max(...events.filter((event) => event.deployment_id === id && inWindow(event, range)).map((event) => time(event) || 0)) }))
+    .sort((a, b) => b.at - a.at);
+  const currentId = deploymentAt(window.comparison)[0]?.id;
+  const previousId = deploymentAt(window.baseline)[0]?.id;
+  const byDeployment = (deploymentId: string | undefined, range: WindowBounds) => {
+    const calls = events.filter((event) => inWindow(event, range) && event.observation_source === "server" && event.event_type === "tool_call" && event.deployment_id === deploymentId && (!scope.tool_name || event.tool_name === scope.tool_name) && (!scope.environment || event.environment === scope.environment));
     const known = calls.filter(knownOutcome);
     const value = known.length ? known.filter(failed).length / known.length : null;
     return { numerator: known.filter(failed).length, denominator: known.length, value };
   };
-  const b = byDeployment(previousId);
-  const c = byDeployment(currentId);
+  const b = byDeployment(previousId, window.baseline);
+  const c = byDeployment(currentId, window.comparison);
   const baseline = summary(window.baseline, b.numerator, b.denominator, b.value);
   const comparison = summary(window.comparison, c.numerator, c.denominator, c.value);
   const finding = rateFinding("deployment_comparison", baseline, comparison, scope, currentId && previousId ? [] : ["missing_deployment_id"]);
@@ -298,15 +317,15 @@ export function evaluateRegressions(events: readonly RegressionEvent[], options:
     return options.truncated ? { ...finding, severity: null, data_status: "partial" as const, reasons: ["truncated_scan" as const] } : finding;
   };
   const makeCompletion = () => {
-    const baseline = workflowSummary(unique, window.baseline);
-    const comparison = workflowSummary(unique, window.comparison);
+    const baseline = workflowSummary(unique, window.baseline, scope);
+    const comparison = workflowSummary(unique, window.comparison, scope);
     const threshold = { warning_delta: 0.1, critical_delta: 0.2, minimum_workflow_starts: MIN_WORKFLOW_STARTS };
     const insufficient = baseline.denominator < MIN_WORKFLOW_STARTS || comparison.denominator < MIN_WORKFLOW_STARTS;
     const finding: RegressionFinding = { metric: "workflow_completion_drop", severity: !insufficient && comparison.value !== null && baseline.value !== null && baseline.value - comparison.value >= 0.2 ? "critical" : !insufficient && comparison.value !== null && baseline.value !== null && baseline.value - comparison.value >= 0.1 ? "warning" : null, data_status: insufficient ? "insufficient_data" : "sufficient", reasons: insufficient ? ["below_minimum_volume"] : [], baseline, comparison, threshold, scope, evidence: {} };
     return options.truncated ? { ...finding, severity: null, data_status: "partial" as const, reasons: ["truncated_scan" as const] } : finding;
   };
   const makeAuth = () => {
-    const finding = rateFinding("authorization_failure_spike", authorizationSummary(unique, window.baseline), authorizationSummary(unique, window.comparison), scope, []);
+    const finding = rateFinding("authorization_failure_spike", authorizationSummary(unique, window.baseline, scope), authorizationSummary(unique, window.comparison, scope), scope, []);
     return options.truncated ? { ...finding, severity: null, data_status: "partial" as const, reasons: ["truncated_scan" as const] } : finding;
   };
   const all: RegressionFinding[] = [

@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server.js";
 import { authenticateAlertRequest, isAuthResult } from "@/lib/alerts/auth.ts";
+import { readBoundedJson } from "@/lib/alerts/http.ts";
+import { validateWebhookDestination } from "@/lib/alerts/delivery.ts";
 
 const MAX_URL_BYTES = 2048;
 const MAX_SECRET_REF_BYTES = 512;
@@ -27,10 +29,13 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   const auth = await authenticateAlertRequest(request);
   if (!isAuthResult(auth)) return auth.response;
-  let body: unknown;
-  try { body = await request.json(); } catch { return NextResponse.json({ error: "Invalid JSON." }, { status: 400 }); }
+  const body = await readBoundedJson(request);
+  if (body && typeof body === "object" && "error" in body && "code" in body) return NextResponse.json({ error: body.error }, { status: body.code === "too_large" ? 413 : 400 });
   const destination = parseDestination(body);
   if ("error" in destination) return NextResponse.json(destination, { status: 400 });
+  const validated = await validateWebhookDestination(destination.endpoint_url);
+  if (!validated.ok) return NextResponse.json({ error: "Webhook endpoint is not an allowed public HTTPS destination." }, { status: 400 });
+  destination.endpoint_url = validated.url;
   const result = await auth.admin.from("trackmcp_alert_destinations").insert({ workspace_id: auth.workspaceId, ...destination }).select("id, workspace_id, kind, endpoint_url, enabled, revoked_at, rotated_at, created_at, updated_at").single();
   if (result.error || !result.data) return NextResponse.json({ error: "Could not create alert destination." }, { status: 500 });
   return NextResponse.json(result.data, { status: 201 });

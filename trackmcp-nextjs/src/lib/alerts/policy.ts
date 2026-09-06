@@ -11,6 +11,11 @@ export const MAX_EVIDENCE_BYTES = 32 * 1024;
 export const MAX_DELIVERY_ATTEMPTS = 4;
 export const DELIVERY_TIMEOUT_MS = 5000;
 export const DELIVERY_BACKOFF_MS = [60_000, 300_000, 1_800_000] as const;
+export const MAX_ACTIVE_ALERT_CONFIGS = 1000;
+export const MAX_PENDING_DELIVERIES = 1000;
+export const WORKER_TIMEOUT_MS = 50_000;
+export const WORKER_LOCK_LEASE_MS = 55_000;
+export const MAX_ALERT_RUN_ERROR_BYTES = 256;
 
 export function isRegressionMetric(value: unknown): value is RegressionMetric {
   return typeof value === "string" && (REGRESSION_METRICS as readonly string[]).includes(value);

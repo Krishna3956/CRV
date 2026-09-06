@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { evaluateRegressions, MIN_ELIGIBLE_CALLS, MIN_WORKFLOW_STARTS, type RegressionEvent } from "./regressions.ts";
+import { evaluateRegressions, MIN_ELIGIBLE_CALLS, MIN_WORKFLOW_STARTS, regressionWindows, type RegressionEvent } from "./regressions.ts";
 
 const NOW = new Date("2026-09-07T12:00:00.000Z");
 
@@ -30,6 +30,17 @@ function baseEvents() {
     ...Array.from({ length: MIN_ELIGIBLE_CALLS }, (_, index) => call(`current-${index}`, at("06", index), { is_error: index < 16, success: index >= 16, duration_ms: 200 })),
   ];
 }
+
+test("uses complete UTC days, includes the full seven-day baseline, and excludes the current day", () => {
+  assert.deepEqual(regressionWindows(NOW), {
+    baseline: { start: "2026-08-30T00:00:00.000Z", end: "2026-09-06T00:00:00.000Z" },
+    comparison: { start: "2026-09-06T00:00:00.000Z", end: "2026-09-07T00:00:00.000Z" },
+  });
+  const events = baseEvents().concat(Array.from({ length: 40 }, (_, index) => call(`partial-${index}`, "2026-09-07T01:00:00.000Z", { is_error: true, success: false })));
+  const finding = evaluateRegressions(events, { now: NOW, metric: "tool_error_rate_spike" })[0];
+  assert.equal(finding.comparison.denominator, 30);
+  assert.equal(finding.comparison.numerator, 16);
+});
 
 test("regression evaluator calculates error, p95, retry, and empty-result comparisons", () => {
   const events = baseEvents().map((event, index) => index === 30 ? { ...event, payload: { result: [] } } : event);
@@ -61,12 +72,13 @@ test("minimum volume and partial scans never produce numeric firing metrics", ()
 });
 
 test("only explicit retry metadata and inspectable payloads are eligible", () => {
-  const events = baseEvents().map((event, index) => index >= 30 && index < 35 ? { ...event, retry_number: 1 } : index === 0 ? { ...event, payload_policy: "metadata", payload: { result: [] } } : event);
+  const events = baseEvents().map((event, index) => index >= 30 && index < 35 ? { ...event, retry_number: 1 } : index === 0 ? { ...event, payload_policy: "metadata", payload: { result: [] } } : index === 1 ? { ...event, payload_policy: "unavailable", payload: { result: [] } } : index === 2 ? { ...event, payload_policy: "truncated", payload: { result: [], truncated: true } } : event);
   const retry = evaluateRegressions(events, { now: NOW, metric: "retry_loop_spike" })[0];
   assert.equal(retry.comparison.numerator, 5);
   assert.equal(retry.comparison.denominator, 30);
   const empty = evaluateRegressions(events, { now: NOW, metric: "empty_result_spike" })[0];
   assert.equal(empty.baseline.numerator, 0);
+  assert.equal(empty.baseline.denominator, 26);
 });
 
 test("workflow completion uses only explicit lifecycle outcomes", () => {
@@ -124,4 +136,16 @@ test("authorization alerts only count explicit authorization attempts and canoni
   assert.equal(finding.baseline.numerator, 2);
   assert.equal(finding.comparison.numerator, 10);
   assert.equal(finding.severity, "critical");
+});
+
+test("workflow and authorization findings honor server, tool, and environment scope", () => {
+  const workflowEvents = [
+    { event_id: "workflow-good-start", event_type: "workflow", observation_source: "server" as const, workflow_id: "good", tool_name: "search", environment: "production", started_at: at("06", 0), payload: { name: "workflow", status: "started", tool_name: "search" } },
+    { event_id: "workflow-good-end", event_type: "workflow", observation_source: "server" as const, workflow_id: "good", tool_name: "search", environment: "production", started_at: at("06", 1), payload: { name: "workflow", status: "completed", tool_name: "search" } },
+    { event_id: "workflow-other-start", event_type: "workflow", observation_source: "server" as const, workflow_id: "other", tool_name: "other", environment: "production", started_at: at("06", 2), payload: { name: "workflow", status: "started", tool_name: "other" } },
+    { event_id: "workflow-other-end", event_type: "workflow", observation_source: "server" as const, workflow_id: "other", tool_name: "other", environment: "production", started_at: at("06", 3), payload: { name: "workflow", status: "failed", tool_name: "other" } },
+  ];
+  const finding = evaluateRegressions(workflowEvents, { now: NOW, metric: "workflow_completion_drop", toolName: "search", environment: "production" })[0];
+  assert.equal(finding.baseline.denominator, 0);
+  assert.equal(finding.comparison.denominator, 1);
 });

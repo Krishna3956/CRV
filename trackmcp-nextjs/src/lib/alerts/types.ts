@@ -43,6 +43,7 @@ export type AlertIncident = {
   resolved_at: string | null;
   suppressed_reason: string | null;
   recovery: { recovered_at: string; value: number | null } | null;
+  last_delivered_at?: string | null;
   revision: number;
 };
 
@@ -51,7 +52,7 @@ export type AlertDeliveryAttempt = {
   workspace_id: string;
   incident_id: string;
   destination_id: string;
-  state: "delivered" | "retryable_failure" | "permanent_failure" | "timeout" | "redacted_failure";
+  state: "in_flight" | "delivered" | "retryable_failure" | "permanent_failure" | "timeout" | "redacted_failure";
   attempt_number: number;
   http_status: number | null;
   error_code: string | null;

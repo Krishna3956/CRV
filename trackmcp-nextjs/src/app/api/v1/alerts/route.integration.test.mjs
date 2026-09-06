@@ -7,7 +7,7 @@ function fakeAdmin() {
   const admin = {
     from(table) {
       if (table === "trackmcp_api_keys") return { select() { return this; }, eq() { return this; }, maybeSingle: async () => ({ data: { workspace_id: "workspace-a", revoked_at: null }, error: null }) };
-      if (table === "trackmcp_alert_destinations") return { select() { return this; }, eq() { return this; }, in() { return this; }, limit: async () => ({ data: [{ id: "destination-a" }], error: null }) };
+      if (table === "trackmcp_alert_destinations") return { select() { return this; }, eq() { return this; }, in() { return this; }, limit: async () => ({ data: [{ id: "destination-a", kind: "webhook", enabled: true, revoked_at: null }], error: null }) };
       const query = {
         filters: {}, action: null, values: null, selected: null,
         select(value) { this.selected = value; return this; },
@@ -60,4 +60,6 @@ test("alerts API rejects unbounded or unsupported configuration input", async ()
   assert.equal(invalidMetric.status, 400);
   const oversized = await handlers.POST(new Request("http://test/api/v1/alerts", { method: "POST", headers: { authorization: "Bearer key" }, body: JSON.stringify({ metric: "tool_error_rate_spike", tool_name: "x".repeat(2049) }) }));
   assert.equal(oversized.status, 400);
+  const oversizedBody = await handlers.POST(new Request("http://test/api/v1/alerts", { method: "POST", headers: { authorization: "Bearer key" }, body: "x".repeat(64 * 1024 + 1) }));
+  assert.equal(oversizedBody.status, 413);
 });

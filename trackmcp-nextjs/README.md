@@ -38,8 +38,9 @@ docs](https://trackmcp.com/docs/api).
 - Explicit application-emitted workflow outcomes, kept separate from tool success.
 - Disabled-by-default regression alert APIs using seven complete UTC baseline days,
   the latest complete UTC day, server-only metrics, durable incident state, and
-  bounded signed webhook delivery. The dashboard Alerts view is intentionally a
-  later increment after the backend contract is reviewed.
+  bounded signed webhook delivery. Hourly evaluation is invoked by the separate
+  disabled-by-default AWS scheduler worker; the dashboard Alerts view is
+  intentionally a later increment after the backend contract is reviewed.
 
 Payloads are sanitized locally with recursive sensitive-key redaction, explicit path
 compatibility, binary/base64/resource scrubbing, depth/breadth/string/byte limits,

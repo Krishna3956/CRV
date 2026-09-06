@@ -1,6 +1,10 @@
 import { createHmac, timingSafeEqual } from "node:crypto";
+import { lookup } from "node:dns/promises";
+import { isIP } from "node:net";
 import { DELIVERY_BACKOFF_MS, DELIVERY_TIMEOUT_MS, MAX_DELIVERY_ATTEMPTS, MAX_EVIDENCE_BYTES } from "./policy.ts";
 import type { AlertIncident } from "./types.ts";
+
+type LookupFunction = (hostname: string, options: { all: true; verbatim: true }) => Promise<Array<{ address: string; family: number }>>;
 
 export type WebhookDeliveryResult = {
   state: "delivered" | "retryable_failure" | "permanent_failure" | "timeout" | "redacted_failure";
@@ -56,6 +60,37 @@ export function verifyWebhookSignature(body: string, secret: string, timestamp: 
   return expectedBuffer.length === providedBuffer.length && timingSafeEqual(expectedBuffer, providedBuffer);
 }
 
+function privateIpv4(value: string): boolean {
+  const parts = value.split(".").map(Number);
+  if (parts.length !== 4 || parts.some((part) => !Number.isInteger(part) || part < 0 || part > 255)) return false;
+  const [a, b] = parts;
+  return a === 10 || a === 127 || a === 0 || a === 100 && b >= 64 && b <= 127 || a === 169 && b === 254 || a === 172 && b >= 16 && b <= 31 || a === 192 && (b === 0 || b === 168) || a === 198 && b >= 18 && b <= 19 || a >= 224;
+}
+
+function privateAddress(value: string): boolean {
+  const normalized = value.toLowerCase();
+  if (isIP(normalized) === 4) return privateIpv4(normalized);
+  if (isIP(normalized) !== 6) return true;
+  if (normalized.startsWith("::ffff:")) return privateIpv4(normalized.slice("::ffff:".length));
+  return normalized === "::1" || normalized === "::" || normalized.startsWith("fe80:") || normalized.startsWith("fc") || normalized.startsWith("fd");
+}
+
+export async function validateWebhookDestination(value: string, lookupImpl: LookupFunction = lookup): Promise<{ ok: true; url: string } | { ok: false; reason: "invalid_url" | "private_target" | "internal_hostname" | "dns_failure" }> {
+  let endpoint: URL;
+  try { endpoint = new URL(value); } catch { return { ok: false, reason: "invalid_url" }; }
+  const hostname = endpoint.hostname.toLowerCase().replace(/^\[|\]$/g, "");
+  if (endpoint.protocol !== "https:" || endpoint.username || endpoint.password || !hostname) return { ok: false, reason: "invalid_url" };
+  if (hostname === "localhost" || hostname.endsWith(".localhost") || hostname.endsWith(".local") || hostname.endsWith(".internal") || hostname.endsWith(".lan") || hostname.endsWith(".home.arpa") || !hostname.includes(".")) return { ok: false, reason: "internal_hostname" };
+  if (/^(?:0x[0-9a-f]+|[0-9]+)$/i.test(hostname) || privateAddress(hostname)) return { ok: false, reason: "private_target" };
+  try {
+    const addresses = await lookupImpl(hostname, { all: true, verbatim: true });
+    if (!addresses.length || addresses.some((address) => privateAddress(address.address))) return { ok: false, reason: "private_target" };
+  } catch {
+    return { ok: false, reason: "dns_failure" };
+  }
+  return { ok: true, url: endpoint.toString() };
+}
+
 export async function sendSignedWebhook(options: {
   url: string;
   secret: string;
@@ -63,14 +98,17 @@ export async function sendSignedWebhook(options: {
   idempotencyKey: string;
   fetchImpl?: typeof fetch;
   now?: () => Date;
+  validateDestination?: (url: string) => Promise<{ ok: true; url: string } | { ok: false; reason: string }>;
 }): Promise<WebhookDeliveryResult> {
   const fetchImpl = options.fetchImpl || fetch;
   const timestamp = (options.now || (() => new Date()))().toISOString();
   const body = buildWebhookBody(options.incident);
+  const validation = await (options.validateDestination || ((url) => validateWebhookDestination(url)))(options.url);
+  if (!validation.ok) return { state: "permanent_failure", http_status: null, error_code: "destination_rejected" };
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), DELIVERY_TIMEOUT_MS);
   try {
-    const response = await fetchImpl(options.url, {
+    const response = await fetchImpl(validation.url, {
       method: "POST",
       headers: {
         "content-type": "application/json",
@@ -80,8 +118,10 @@ export async function sendSignedWebhook(options: {
       },
       body,
       signal: controller.signal,
+      redirect: "manual",
     });
     if (response.ok) return { state: "delivered", http_status: response.status, error_code: null };
+    if (response.status >= 300 && response.status < 400) return { state: "permanent_failure", http_status: response.status, error_code: "redirect_blocked" };
     if ([408, 425, 429].includes(response.status) || response.status >= 500) return { state: "retryable_failure", http_status: response.status, error_code: "upstream_unavailable" };
     return { state: "permanent_failure", http_status: response.status, error_code: "destination_rejected" };
   } catch (error) {

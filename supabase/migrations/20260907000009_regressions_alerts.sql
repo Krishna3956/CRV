@@ -60,6 +60,7 @@ create table if not exists public.trackmcp_alert_incidents (
   resolved_at timestamptz,
   suppressed_reason text,
   recovery jsonb,
+  last_delivered_at timestamptz,
   revision integer not null default 1,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now(),
@@ -83,9 +84,33 @@ create table if not exists public.trackmcp_alert_deliveries (
   started_at timestamptz not null default now(),
   finished_at timestamptz,
   next_attempt_at timestamptz,
-  constraint trackmcp_alert_deliveries_state_check check (state in ('delivered', 'retryable_failure', 'permanent_failure', 'timeout', 'redacted_failure')),
+  constraint trackmcp_alert_deliveries_state_check check (state in ('in_flight', 'delivered', 'retryable_failure', 'permanent_failure', 'timeout', 'redacted_failure')),
   constraint trackmcp_alert_deliveries_attempt_check check (attempt_number between 1 and 4),
   constraint trackmcp_alert_deliveries_http_status_check check (http_status is null or http_status between 100 and 599)
+);
+
+alter table public.trackmcp_alert_incidents add column if not exists last_delivered_at timestamptz;
+
+create table if not exists public.trackmcp_alert_evaluation_locks (
+  lock_key text primary key,
+  owner_id text not null,
+  locked_until timestamptz not null,
+  updated_at timestamptz not null default now()
+);
+
+create table if not exists public.trackmcp_alert_evaluation_runs (
+  id uuid primary key default gen_random_uuid(),
+  lock_key text not null,
+  evaluation_key text not null,
+  state text not null,
+  config_count integer not null default 0,
+  incident_count integer not null default 0,
+  error_code text,
+  started_at timestamptz not null default now(),
+  finished_at timestamptz,
+  constraint trackmcp_alert_evaluation_runs_state_check check (state in ('started', 'succeeded', 'failed')),
+  constraint trackmcp_alert_evaluation_runs_count_check check (config_count between 0 and 1000 and incident_count between 0 and 10000),
+  constraint trackmcp_alert_evaluation_runs_key_check check (length(lock_key) between 1 and 2048 and length(evaluation_key) between 1 and 2048)
 );
 
 create unique index if not exists trackmcp_alert_configs_workspace_id_idx
@@ -101,8 +126,113 @@ create index if not exists trackmcp_alert_deliveries_retry_idx
   where state = 'retryable_failure';
 create unique index if not exists trackmcp_alert_deliveries_idempotency_idx
   on public.trackmcp_alert_deliveries (workspace_id, idempotency_key);
+create unique index if not exists trackmcp_alert_incidents_identity_evaluation_idx
+  on public.trackmcp_alert_incidents (workspace_id, identity, evaluation_key);
 create index if not exists trackmcp_alert_destinations_workspace_enabled_idx
   on public.trackmcp_alert_destinations (workspace_id, enabled, revoked_at);
+create index if not exists trackmcp_alert_evaluation_runs_started_idx
+  on public.trackmcp_alert_evaluation_runs (started_at desc);
+create unique index if not exists trackmcp_alert_evaluation_runs_key_idx
+  on public.trackmcp_alert_evaluation_runs (lock_key, evaluation_key);
+
+create or replace function public.trackmcp_claim_alert_evaluation(
+  p_lock_key text,
+  p_owner_id text,
+  p_now timestamptz,
+  p_lease_until timestamptz
+) returns boolean
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  claimed boolean := false;
+begin
+  insert into public.trackmcp_alert_evaluation_locks (lock_key, owner_id, locked_until, updated_at)
+  values (p_lock_key, p_owner_id, p_lease_until, p_now)
+  on conflict (lock_key) do update
+    set owner_id = excluded.owner_id, locked_until = excluded.locked_until, updated_at = excluded.updated_at
+    where trackmcp_alert_evaluation_locks.locked_until <= p_now
+  returning true into claimed;
+  return coalesce(claimed, false);
+end;
+$$;
+
+create or replace function public.trackmcp_release_alert_evaluation(p_lock_key text, p_owner_id text, p_now timestamptz)
+returns boolean
+language sql
+security definer
+set search_path = public
+as $$
+  with updated as (
+    update public.trackmcp_alert_evaluation_locks
+       set locked_until = p_now, updated_at = p_now
+     where lock_key = p_lock_key and owner_id = p_owner_id
+     returning 1
+  ) select exists(select 1 from updated);
+$$;
+
+create or replace function public.trackmcp_validate_alert_ownership()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  if tg_table_name = 'trackmcp_alert_configs' and exists (
+    select 1 from unnest(coalesce(new.destination_ids, '{}'::text[])) as destination_id
+    where not exists (
+      select 1 from public.trackmcp_alert_destinations d
+       where d.id::text = destination_id and d.workspace_id = new.workspace_id
+    )
+  ) then
+    raise exception 'alert destinations must belong to the alert workspace';
+  end if;
+  if tg_table_name = 'trackmcp_alert_incidents' and not exists (
+    select 1 from public.trackmcp_alert_configs c where c.id = new.alert_id and c.workspace_id = new.workspace_id
+  ) then
+    raise exception 'alert incident must belong to the alert workspace';
+  end if;
+  if tg_table_name = 'trackmcp_alert_deliveries' and (
+    not exists (select 1 from public.trackmcp_alert_incidents i where i.id = new.incident_id and i.workspace_id = new.workspace_id)
+    or not exists (select 1 from public.trackmcp_alert_destinations d where d.id = new.destination_id and d.workspace_id = new.workspace_id)
+  ) then
+    raise exception 'alert delivery records must remain workspace scoped';
+  end if;
+  return new;
+end;
+$$;
+
+drop trigger if exists trackmcp_alert_configs_ownership_trigger on public.trackmcp_alert_configs;
+create trigger trackmcp_alert_configs_ownership_trigger before insert or update on public.trackmcp_alert_configs
+for each row execute function public.trackmcp_validate_alert_ownership();
+drop trigger if exists trackmcp_alert_incidents_ownership_trigger on public.trackmcp_alert_incidents;
+create trigger trackmcp_alert_incidents_ownership_trigger before insert or update on public.trackmcp_alert_incidents
+for each row execute function public.trackmcp_validate_alert_ownership();
+drop trigger if exists trackmcp_alert_deliveries_ownership_trigger on public.trackmcp_alert_deliveries;
+create trigger trackmcp_alert_deliveries_ownership_trigger before insert or update on public.trackmcp_alert_deliveries
+for each row execute function public.trackmcp_validate_alert_ownership();
+
+do $$
+begin
+  if exists (
+    select 1 from public.trackmcp_alert_configs c
+    cross join lateral unnest(coalesce(c.destination_ids, '{}'::text[])) as destination_id
+    join public.trackmcp_alert_destinations d on d.id::text = destination_id
+    where c.workspace_id <> d.workspace_id
+  ) then
+    raise exception 'existing alert configuration contains a cross-workspace destination';
+  end if;
+  if exists (
+    select 1 from public.trackmcp_alert_deliveries d
+    join public.trackmcp_alert_incidents i on i.id = d.incident_id
+    join public.trackmcp_alert_destinations destination on destination.id = d.destination_id
+    where d.workspace_id <> i.workspace_id or d.workspace_id <> destination.workspace_id
+  ) then
+    raise exception 'existing alert delivery contains a cross-workspace reference';
+  end if;
+end
+$$;
 
 -- A same-named incompatible constraint must not make an idempotent replay appear
 -- successful. Missing constraints are added; existing definitions are checked
@@ -143,8 +273,34 @@ begin
      and conname = 'trackmcp_alert_deliveries_attempt_check';
   if definition is null then
     alter table public.trackmcp_alert_deliveries add constraint trackmcp_alert_deliveries_attempt_check check (attempt_number between 1 and 4);
-  elsif lower(regexp_replace(definition, '\s+', '', 'g')) not like '%between1and4%' then
+  elsif not (
+    lower(regexp_replace(definition, '\s+', '', 'g')) like '%between1and4%'
+    or (lower(regexp_replace(definition, '\s+', '', 'g')) like '%attempt_number>=1%' and lower(regexp_replace(definition, '\s+', '', 'g')) like '%attempt_number<=4%')
+  ) then
     raise exception 'trackmcp_alert_deliveries_attempt_check exists with incompatible definition: %', definition;
+  end if;
+
+  select pg_get_constraintdef(oid) into definition from pg_constraint
+   where conrelid = 'public.trackmcp_alert_deliveries'::regclass
+     and conname = 'trackmcp_alert_deliveries_state_check';
+  if definition is null then
+    alter table public.trackmcp_alert_deliveries add constraint trackmcp_alert_deliveries_state_check check (state in ('in_flight', 'delivered', 'retryable_failure', 'permanent_failure', 'timeout', 'redacted_failure'));
+  elsif lower(regexp_replace(definition, '\s+', '', 'g')) not like '%in_flight%' or lower(regexp_replace(definition, '\s+', '', 'g')) not like '%redacted_failure%' then
+    raise exception 'trackmcp_alert_deliveries_state_check exists with incompatible definition: %', definition;
+  end if;
+
+  definition := null;
+  select pg_get_indexdef(indexrelid) into definition from pg_index
+   where indexrelid = to_regclass('public.trackmcp_alert_deliveries_idempotency_idx');
+  if definition is not null and lower(regexp_replace(definition, '\s+', '', 'g')) not like '%(workspace_id,idempotency_key)%' then
+    raise exception 'trackmcp_alert_deliveries_idempotency_idx exists with incompatible definition: %', definition;
+  end if;
+
+  definition := null;
+  select pg_get_indexdef(indexrelid) into definition from pg_index
+   where indexrelid = to_regclass('public.trackmcp_alert_incidents_identity_evaluation_idx');
+  if definition is not null and lower(regexp_replace(definition, '\s+', '', 'g')) not like '%(workspace_id,identity,evaluation_key)%' then
+    raise exception 'trackmcp_alert_incidents_identity_evaluation_idx exists with incompatible definition: %', definition;
   end if;
 end
 $$;
@@ -153,11 +309,43 @@ alter table public.trackmcp_alert_destinations enable row level security;
 alter table public.trackmcp_alert_configs enable row level security;
 alter table public.trackmcp_alert_incidents enable row level security;
 alter table public.trackmcp_alert_deliveries enable row level security;
+alter table public.trackmcp_alert_evaluation_locks enable row level security;
+alter table public.trackmcp_alert_evaluation_runs enable row level security;
 
 revoke all on public.trackmcp_alert_destinations from anon, authenticated;
 revoke all on public.trackmcp_alert_configs from anon, authenticated;
 revoke all on public.trackmcp_alert_incidents from anon, authenticated;
 revoke all on public.trackmcp_alert_deliveries from anon, authenticated;
+revoke all on public.trackmcp_alert_evaluation_locks from anon, authenticated;
+revoke all on public.trackmcp_alert_evaluation_runs from anon, authenticated;
+
+do $$
+begin
+  if not exists (select 1 from pg_policies where schemaname = 'public' and tablename = 'trackmcp_alert_configs' and policyname = 'trackmcp_alert_configs_deny_direct') then
+    create policy trackmcp_alert_configs_deny_direct on public.trackmcp_alert_configs for all to anon, authenticated using (false) with check (false);
+  end if;
+  if not exists (select 1 from pg_policies where schemaname = 'public' and tablename = 'trackmcp_alert_destinations' and policyname = 'trackmcp_alert_destinations_deny_direct') then
+    create policy trackmcp_alert_destinations_deny_direct on public.trackmcp_alert_destinations for all to anon, authenticated using (false) with check (false);
+  end if;
+  if not exists (select 1 from pg_policies where schemaname = 'public' and tablename = 'trackmcp_alert_incidents' and policyname = 'trackmcp_alert_incidents_deny_direct') then
+    create policy trackmcp_alert_incidents_deny_direct on public.trackmcp_alert_incidents for all to anon, authenticated using (false) with check (false);
+  end if;
+  if not exists (select 1 from pg_policies where schemaname = 'public' and tablename = 'trackmcp_alert_deliveries' and policyname = 'trackmcp_alert_deliveries_deny_direct') then
+    create policy trackmcp_alert_deliveries_deny_direct on public.trackmcp_alert_deliveries for all to anon, authenticated using (false) with check (false);
+  end if;
+  if not exists (select 1 from pg_policies where schemaname = 'public' and tablename = 'trackmcp_alert_evaluation_locks' and policyname = 'trackmcp_alert_evaluation_locks_deny_direct') then
+    create policy trackmcp_alert_evaluation_locks_deny_direct on public.trackmcp_alert_evaluation_locks for all to anon, authenticated using (false) with check (false);
+  end if;
+  if not exists (select 1 from pg_policies where schemaname = 'public' and tablename = 'trackmcp_alert_evaluation_runs' and policyname = 'trackmcp_alert_evaluation_runs_deny_direct') then
+    create policy trackmcp_alert_evaluation_runs_deny_direct on public.trackmcp_alert_evaluation_runs for all to anon, authenticated using (false) with check (false);
+  end if;
+end
+$$;
+
+revoke all on function public.trackmcp_claim_alert_evaluation(text, text, timestamptz, timestamptz) from public, anon, authenticated;
+revoke all on function public.trackmcp_release_alert_evaluation(text, text, timestamptz) from public, anon, authenticated;
+grant execute on function public.trackmcp_claim_alert_evaluation(text, text, timestamptz, timestamptz) to service_role;
+grant execute on function public.trackmcp_release_alert_evaluation(text, text, timestamptz) to service_role;
 
 -- The application uses the service-role client after resolving workspace membership.
 -- No public policy is added, so an API client cannot bypass that application boundary.

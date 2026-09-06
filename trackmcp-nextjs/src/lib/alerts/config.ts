@@ -39,12 +39,12 @@ type DestinationQuery = {
   select: (columns: string) => DestinationQuery;
   eq: (field: string, value: unknown) => DestinationQuery;
   in: (field: string, values: string[]) => DestinationQuery;
-  limit: (value: number) => Promise<{ data: Array<{ id: string }> | null; error: unknown }>;
+  limit: (value: number) => Promise<{ data: Array<{ id: string; enabled?: boolean; revoked_at?: string | null; kind?: string }> | null; error: unknown }>;
 };
 
 export async function destinationsBelongToWorkspace(admin: unknown, workspaceId: string, ids: string[]): Promise<boolean> {
   if (!ids.length) return true;
   const queryClient = admin as { from: (table: string) => DestinationQuery };
-  const result = await queryClient.from("trackmcp_alert_destinations").select("id").eq("workspace_id", workspaceId).in("id", ids).limit(ids.length);
-  return !result.error && (result.data || []).length === ids.length;
+  const result = await queryClient.from("trackmcp_alert_destinations").select("id, enabled, revoked_at, kind").eq("workspace_id", workspaceId).in("id", ids).limit(ids.length);
+  return !result.error && (result.data || []).length === ids.length && (result.data || []).every((destination) => destination.kind === "webhook" && destination.enabled !== false && !destination.revoked_at);
 }

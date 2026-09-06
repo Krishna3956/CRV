@@ -224,7 +224,10 @@ export default function ApiDocsPage() {
   "enabled": true
 }`}</Code>
         <Para>
-          Generic webhook destinations use HTTPS and a secret reference managed outside the API response. Delivery requests are HMAC-SHA-256 signed, include an idempotency key, time out after five seconds, and retry at most three times with bounded exponential backoff. Destination secrets, raw events, payloads, prompts, completions, tokens, and private reasoning are never returned or logged.
+          Generic webhook destinations use HTTPS and a secret reference managed outside the API response. Public, non-local destinations are validated at creation and again before delivery; redirects are never followed. Delivery requests are HMAC-SHA-256 signed, include an idempotency key, time out after five seconds, and retry at most three times with bounded exponential backoff. Destination secrets, raw events, payloads, prompts, completions, tokens, and private reasoning are never returned or logged.
+        </Para>
+        <Para>
+          The recurring worker calls the authenticated internal evaluator once per hour. Its AWS SAM schedule is disabled until staging migration, shadow evaluation, delivery, and failure-recovery checks are complete. The SQL Editor migration and read-only verification steps are documented in <Code>docs/p1-05-alerts-migration-apply.md</Code>.
         </Para>
       </DocSection>
 

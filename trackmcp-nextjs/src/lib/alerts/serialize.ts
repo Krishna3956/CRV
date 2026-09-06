@@ -1,4 +1,5 @@
 import type { AlertConfiguration, AlertDeliveryAttempt, AlertIncident } from "./types.ts";
+import { boundedJsonValue } from "./http.ts";
 
 export function serializeConfiguration(row: Record<string, unknown>): AlertConfiguration {
   return {
@@ -21,8 +22,8 @@ export function serializeIncident(row: Record<string, unknown>): AlertIncident {
     id: String(row.id), workspace_id: String(row.workspace_id), alert_id: String(row.alert_id), identity: String(row.identity),
     metric: row.metric as AlertIncident["metric"], state: row.state as AlertIncident["state"], severity: (row.severity as AlertIncident["severity"]) || null,
     scope: { tool_name: typeof row.tool_name === "string" ? row.tool_name : null, environment: typeof row.environment === "string" ? row.environment : null },
-    data_status: row.data_status as AlertIncident["data_status"], baseline: (row.baseline as AlertIncident["baseline"]) || null, comparison: (row.comparison as AlertIncident["comparison"]) || null,
-    threshold: (row.threshold as Record<string, number>) || {}, reasons: Array.isArray(row.reasons) ? row.reasons.slice(0, 8) as AlertIncident["reasons"] : [], evidence: (row.evidence as AlertIncident["evidence"]) || {},
+    data_status: row.data_status as AlertIncident["data_status"], baseline: (boundedJsonValue(row.baseline, 8 * 1024) as AlertIncident["baseline"]) || null, comparison: (boundedJsonValue(row.comparison, 8 * 1024) as AlertIncident["comparison"]) || null,
+    threshold: (boundedJsonValue(row.threshold, 4 * 1024) as Record<string, number>) || {}, reasons: Array.isArray(row.reasons) ? row.reasons.slice(0, 8) as AlertIncident["reasons"] : [], evidence: (boundedJsonValue(row.evidence, 32 * 1024) as AlertIncident["evidence"]) || {},
     first_seen_at: String(row.first_seen_at), last_seen_at: String(row.last_seen_at), acknowledged_at: typeof row.acknowledged_at === "string" ? row.acknowledged_at : null, resolved_at: typeof row.resolved_at === "string" ? row.resolved_at : null,
     suppressed_reason: typeof row.suppressed_reason === "string" ? row.suppressed_reason : null, recovery: (row.recovery as AlertIncident["recovery"]) || null, revision: Number(row.revision || 1),
   };

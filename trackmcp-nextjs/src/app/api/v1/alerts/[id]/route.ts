@@ -2,6 +2,7 @@ import { NextResponse } from "next/server.js";
 import { authenticateAlertRequest, isAuthResult } from "../../../../../lib/alerts/auth.ts";
 import { destinationsBelongToWorkspace, parseAlertConfigInput } from "../../../../../lib/alerts/config.ts";
 import { serializeConfiguration } from "../../../../../lib/alerts/serialize.ts";
+import { readBoundedJson } from "../../../../../lib/alerts/http.ts";
 
 type Context = { params: Promise<{ id: string }> };
 
@@ -19,8 +20,8 @@ export async function PATCH(request: Request, context: Context) {
   const auth = await authenticateAlertRequest(request);
   if (!isAuthResult(auth)) return auth.response;
   const { id } = await context.params;
-  let body: unknown;
-  try { body = await request.json(); } catch { return NextResponse.json({ error: "Invalid JSON." }, { status: 400 }); }
+  const body = await readBoundedJson(request);
+  if (body && typeof body === "object" && "error" in body && "code" in body) return NextResponse.json({ error: body.error }, { status: body.code === "too_large" ? 413 : 400 });
   const input = parseAlertConfigInput(body, true);
   if ("error" in input) return NextResponse.json(input, { status: 400 });
   const bodyRecord = body as Record<string, unknown>;

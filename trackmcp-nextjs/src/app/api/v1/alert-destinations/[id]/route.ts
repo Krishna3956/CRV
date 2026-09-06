@@ -1,12 +1,13 @@
 import { NextResponse } from "next/server.js";
 import { authenticateAlertRequest, isAuthResult } from "@/lib/alerts/auth.ts";
+import { readBoundedJson } from "@/lib/alerts/http.ts";
 
 export async function PATCH(request: Request, context: { params: Promise<{ id: string }> }) {
   const auth = await authenticateAlertRequest(request);
   if (!isAuthResult(auth)) return auth.response;
   const { id } = await context.params;
-  let body: unknown;
-  try { body = await request.json(); } catch { return NextResponse.json({ error: "Invalid JSON." }, { status: 400 }); }
+  const body = await readBoundedJson(request);
+  if (body && typeof body === "object" && "error" in body && "code" in body) return NextResponse.json({ error: body.error }, { status: body.code === "too_large" ? 413 : 400 });
   if (!body || typeof body !== "object" || Array.isArray(body)) return NextResponse.json({ error: "Request body must be an object." }, { status: 400 });
   const value = body as Record<string, unknown>;
   const update: Record<string, unknown> = {};

@@ -4,7 +4,7 @@ import type { AlertIncident, AlertState } from "./types.ts";
 
 function nextState(existing: AlertIncident | null, finding: RegressionFinding): AlertState {
   if (finding.data_status !== "sufficient") return existing?.state === "firing" ? "firing" : finding.data_status === "partial" ? "insufficient_data" : "insufficient_data";
-  if (finding.severity) return "firing";
+  if (finding.severity) return existing?.state === "pending" || existing?.state === "firing" ? "firing" : "pending";
   return existing?.state === "firing" ? "resolved" : "suppressed";
 }
 
@@ -33,6 +33,7 @@ export function transitionIncident(workspaceId: string, alertId: string, finding
     resolved_at: resolved,
     suppressed_reason: state === "suppressed" ? "below firing threshold" : null,
     recovery: resolved ? { recovered_at: resolved, value: finding.comparison.value } : null,
+    last_delivered_at: existing?.last_delivered_at || null,
     revision: (existing?.revision || 0) + 1,
   };
 }
