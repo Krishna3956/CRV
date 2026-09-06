@@ -27,6 +27,9 @@ from .privacy import (
 
 _active_client: Optional["TrackMCP"] = None
 TRACKMCP_SCHEMA_VERSION = "1"
+CORRELATION_HANDLE_PATTERN = r"^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$"
+TrackMCPCorrelationMode = Literal["none", "external", "issued"]
+TrackMCPCorrelationHandleSource = Literal["external", "issued", "missing"]
 
 
 class TrackMCPEvent(TypedDict, total=False):
@@ -46,6 +49,8 @@ class TrackMCPEvent(TypedDict, total=False):
     request_id: str
     session_id: str
     session_id_source: str
+    correlation_handle: str
+    correlation_handle_source: TrackMCPCorrelationHandleSource
     task_id: str
     workflow_id: str
     client_name: str
@@ -90,6 +95,9 @@ class TrackMCPOptions:
     max_batch_size: int = DEFAULT_MAX_BATCH_SIZE
     max_queue_events: int = DEFAULT_MAX_QUEUE_EVENTS
     max_queue_bytes: int = DEFAULT_MAX_QUEUE_BYTES
+    correlation_mode: TrackMCPCorrelationMode = "none"
+    correlation_resolver: Optional[Callable[[Dict[str, Any]], Optional[str]]] = None
+    issued_handle_field: str = "__trackmcp_correlation_handle"
 
 
 def _canonical_json(value: Any) -> str:
@@ -134,7 +142,7 @@ class TrackMCP:
             self._timer.daemon = True
             self._timer.start()
 
-    def capture(self, event: Dict[str, Any]) -> None:
+    def capture(self, event: Dict[str, Any], correlation_handle: Optional[str] = None, correlation_source: Optional[TrackMCPCorrelationHandleSource] = None) -> None:
         if self.options.disabled or random.random() > max(0, min(1, self.options.sample_rate)):
             return
         try:
@@ -148,6 +156,7 @@ class TrackMCP:
                 "sdk_version": self.options.sdk_version,
                 "deployment_id": self.options.deployment_id,
                 "server_id": self.options.server_id,
+                **self._correlation_for(event, correlation_handle, correlation_source),
             })
             if self.options.redact_event:
                 try:
@@ -170,9 +179,27 @@ class TrackMCP:
         if should_flush:
             self.flush()
 
+    def _correlation_for(self, event: Dict[str, Any], supplied_handle: Optional[str], supplied_source: Optional[TrackMCPCorrelationHandleSource]) -> Dict[str, Any]:
+        if self.options.correlation_mode == "issued" and supplied_source == "issued" and _safe_correlation_handle(supplied_handle):
+            return {"correlation_handle": supplied_handle, "correlation_handle_source": "issued"}
+        if self.options.correlation_mode == "external" and self.options.correlation_resolver:
+            try:
+                handle = self.options.correlation_resolver({
+                    "event_type": event.get("event_type", "custom"), "mcp_method": event.get("mcp_method"),
+                    "tool_name": event.get("tool_name"), "request_id": event.get("request_id"),
+                    "session_id": event.get("session_id"), "transport": event.get("transport"),
+                })
+                if _safe_correlation_handle(handle): return {"correlation_handle": handle, "correlation_handle_source": "external"}
+            except Exception:
+                pass
+        return {"correlation_handle_source": "missing"}
+
     def _prepare_event(self, event: Dict[str, Any]) -> TrackMCPEvent:
         prepared = dict(event)
         prepared["session_id_source"] = prepared.get("session_id_source") or ("external" if prepared.get("session_id") else "missing")
+        if not _safe_correlation_handle(prepared.get("correlation_handle")) or prepared.get("correlation_handle_source") not in ("external", "issued"):
+            prepared.pop("correlation_handle", None)
+            prepared["correlation_handle_source"] = "missing"
         mode = self.options.payload_mode if self.options.payload_mode in ("metadata", "redacted", "full") else "redacted"
         prepared["payload_policy"] = mode
         if mode == "metadata":
@@ -309,6 +336,11 @@ def _iso_now() -> str:
 
 def _iso_from_epoch(value: float) -> str:
     return time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime(value))
+
+
+def _safe_correlation_handle(value: Any) -> bool:
+    import re
+    return isinstance(value, str) and re.match(CORRELATION_HANDLE_PATTERN, value) is not None and len(value.encode("utf-8")) <= 128 and not re.search(r"(?:bearer(?:\s|[_:-])|eyJ[A-Za-z0-9_-]+\.|@|https?://|://|^sk[-_])", value, re.IGNORECASE)
 
 
 def _details(args: tuple[Any, ...]) -> tuple[Optional[str], Dict[str, Any]]:

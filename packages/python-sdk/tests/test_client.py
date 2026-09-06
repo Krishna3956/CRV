@@ -5,7 +5,7 @@ from http.server import BaseHTTPRequestHandler, HTTPServer
 from unittest import TestCase
 
 from trackmcp import TrackMCP, TrackMCPOptions
-from trackmcp.client import _TrackMCPMiddleware
+from trackmcp.client import TrackMCPEvent, _TrackMCPMiddleware
 from trackmcp.privacy import sanitize_payload
 
 
@@ -185,6 +185,41 @@ class TrackMCPClientTest(TestCase):
         self.assertTrue(Handler.payload["events"][-1]["session_id"])
         server.shutdown()
         server.server_close()
+
+    def test_correlation_defaults_external_validation_and_python_issued_boundary(self):
+        default = TrackMCP(TrackMCPOptions(api_key="tmcp_test", disabled=False, flush_interval_ms=60000))
+        default.capture({"event_type": "custom", "started_at": "2026-01-01T00:00:00Z", "request_id": "request-not-a-handle"})
+        self.assertEqual(default._events[0]["correlation_handle_source"], "missing")
+        self.assertNotIn("correlation_handle", default._events[0])
+        default._timer.cancel()
+
+        contexts = []
+        external = TrackMCP(TrackMCPOptions(
+            api_key="tmcp_test",
+            correlation_mode="external",
+            correlation_resolver=lambda context: contexts.append(context) or "job_anon_1",
+            disabled=False,
+            flush_interval_ms=60000,
+        ))
+        external.capture({"event_type": "tool_call", "mcp_method": "tools/call", "tool_name": "lookup", "request_id": "request-1", "started_at": "2026-01-01T00:00:00Z"})
+        self.assertEqual(external._events[0]["correlation_handle"], "job_anon_1")
+        self.assertEqual(external._events[0]["correlation_handle_source"], "external")
+        self.assertEqual(contexts[0]["request_id"], "request-1")
+        external._timer.cancel()
+
+        invalid = TrackMCP(TrackMCPOptions(api_key="tmcp_test", correlation_mode="external", correlation_resolver=lambda _context: "Bearer secret", disabled=False, flush_interval_ms=60000))
+        invalid.capture({"event_type": "custom", "started_at": "2026-01-01T00:00:00Z"})
+        self.assertEqual(invalid._events[0]["correlation_handle_source"], "missing")
+        invalid._timer.cancel()
+
+        issued = TrackMCP(TrackMCPOptions(api_key="tmcp_test", correlation_mode="issued", disabled=False, flush_interval_ms=60000))
+        issued.capture({"event_type": "tool_call", "started_at": "2026-01-01T00:00:00Z"}, "tmcp_issued_1", "issued")
+        self.assertEqual(issued._events[0]["correlation_handle_source"], "issued")
+        issued._timer.cancel()
+
+    def test_event_contract_includes_correlation_fields_for_sdk_parity(self):
+        expected = {"schema_version", "event_id", "event_type", "service", "environment", "request_id", "session_id", "session_id_source", "correlation_handle", "correlation_handle_source", "tool_name", "started_at", "duration_ms", "payload_size_bytes", "payload_policy", "payload"}
+        self.assertTrue(expected.issubset(set(TrackMCPEvent.__annotations__)))
 
     def test_existing_wrapper_behavior_is_preserved(self):
         class Server:

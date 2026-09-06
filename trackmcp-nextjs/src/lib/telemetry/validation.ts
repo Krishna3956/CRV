@@ -4,6 +4,7 @@ import {
   type CanonicalTrackMCPEvent,
   type TrackMCPEvent,
   type TrackMCPEventType,
+  type TrackMCPCorrelationHandleSource,
   type TrackMCPSessionIdSource,
 } from "./types.ts";
 
@@ -12,12 +13,14 @@ export const MAX_REQUEST_BYTES = 1024 * 1024;
 export const MAX_EVENT_BYTES = 256 * 1024;
 export const MAX_PAYLOAD_BYTES = 128 * 1024;
 export const MAX_STRING_LENGTH = 2048;
+export const MAX_CORRELATION_HANDLE_BYTES = 128;
 
 const EVENT_TYPES: readonly TrackMCPEventType[] = ["protocol", "tool_call", "session", "catalog", "workflow", "custom"];
 const DIRECTIONS = ["client_to_server", "server_to_client"] as const;
 const TRANSPORTS = ["stdio", "streamable_http", "sse", "custom"] as const;
 const PAYLOAD_POLICIES = ["metadata", "redacted", "full"] as const;
 const SESSION_ID_SOURCES = ["protocol", "transport_generated", "external", "missing"] as const;
+const CORRELATION_HANDLE_SOURCES = ["external", "issued", "missing"] as const;
 const INGEST_SENSITIVE_KEYS = new Set([
   "password", "passwd", "secret", "token", "api_key", "apikey", "authorization", "cookie",
   "set_cookie", "access_token", "refresh_token", "private_key", "client_secret", "ssn",
@@ -27,6 +30,7 @@ const INGEST_BASE64_THRESHOLD = 128;
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const EVENT_ID = /^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$/;
 const ISO_TIMESTAMP = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,9})?(?:Z|[+-]\d{2}:\d{2})$/;
+const CORRELATION_HANDLE = /^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$/;
 
 export type EventValidationResult =
   | { ok: true; event: CanonicalTrackMCPEvent }
@@ -121,7 +125,7 @@ function checkOptionalStrings(event: Record<string, unknown>): string | undefine
   const fields = [
     "schema_version", "server_id", "deployment_id", "server_version", "sdk_version", "protocol_version",
     "mcp_method", "request_id", "session_id", "task_id", "workflow_id", "client_name", "client_version",
-    "tool_name", "tool_description", "tool_description_hash", "error_class", "schema_hash",
+    "tool_name", "tool_description", "tool_description_hash", "error_class", "schema_hash", "correlation_handle",
   ];
   for (const field of fields) {
     if (event[field] !== undefined && event[field] !== null && !isString(event[field])) return `${field} must be a non-empty string`;
@@ -154,6 +158,12 @@ export function normalizeTrackMCPEvent(value: unknown): EventValidationResult {
   if (event.transport !== undefined && event.transport !== null && !TRANSPORTS.includes(event.transport as typeof TRANSPORTS[number])) return { ok: false, reason: "transport is unsupported", eventId };
   if (event.payload_policy !== undefined && event.payload_policy !== null && !PAYLOAD_POLICIES.includes(event.payload_policy as typeof PAYLOAD_POLICIES[number])) return { ok: false, reason: "payload_policy is unsupported", eventId };
   if (event.session_id_source !== undefined && event.session_id_source !== null && !SESSION_ID_SOURCES.includes(event.session_id_source as TrackMCPSessionIdSource)) return { ok: false, reason: "session_id_source is unsupported", eventId };
+  if (event.correlation_handle_source !== undefined && event.correlation_handle_source !== null && !CORRELATION_HANDLE_SOURCES.includes(event.correlation_handle_source as TrackMCPCorrelationHandleSource)) return { ok: false, reason: "correlation_handle_source is unsupported", eventId };
+  if (event.correlation_handle !== undefined && event.correlation_handle !== null) {
+    if (typeof event.correlation_handle !== "string" || !CORRELATION_HANDLE.test(event.correlation_handle) || byteLength(event.correlation_handle) > MAX_CORRELATION_HANDLE_BYTES || /(?:bearer(?:\s|[_:-])|eyJ[A-Za-z0-9_-]+\.|@|https?:\/\/|:\/\/|^sk[-_])/i.test(event.correlation_handle)) return { ok: false, reason: "correlation_handle must be a bounded opaque handle", eventId };
+    if (event.correlation_handle_source !== "external" && event.correlation_handle_source !== "issued") return { ok: false, reason: "correlation_handle_source is required when correlation_handle is present", eventId };
+  }
+  if ((event.correlation_handle_source === "external" || event.correlation_handle_source === "issued") && typeof event.correlation_handle !== "string") return { ok: false, reason: "correlation_handle is required for its source", eventId };
   for (const field of ["duration_ms", "retry_number", "payload_size_bytes"] as const) {
     if (event[field] !== undefined && event[field] !== null && !isNonNegativeInteger(event[field])) return { ok: false, reason: `${field} must be a non-negative integer`, eventId };
   }

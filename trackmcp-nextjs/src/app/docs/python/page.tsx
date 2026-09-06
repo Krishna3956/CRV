@@ -95,6 +95,21 @@ redact_event=lambda event: event  # return None to drop an event
         </Para>
       </DocSection>
 
+      <DocSection title="Optional correlation">
+        <Para>
+          Correlation is off by default and never changes MCP schemas. External mode accepts a
+          synchronous resolver for bounded request metadata and stores only a validated anonymized
+          opaque handle. Issued mode is exposed for TypeScript/Python contract parity, but the
+          current Python middleware reports missing because it cannot safely rewrite and strip tool
+          schemas through a stable official SDK seam.
+        </Para>
+        <Code>{`correlation_mode="external",
+correlation_resolver=lambda context: anonymized_job_handle(context),
+
+# Never return emails, tokens, URLs, raw user IDs, prompts,
+# completions, or private reasoning.`}</Code>
+      </DocSection>
+
       <DocSection title="Explicit workflow outcomes">
         <Para>
           Workflow completion is an application-emitted signal. It is separate from a

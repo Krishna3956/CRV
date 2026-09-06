@@ -1,5 +1,5 @@
 import type { CompletionSource, CorrelationQuality } from "./analytics-types";
-import type { TrackMCPSessionIdSource } from "./types";
+import type { TrackMCPCorrelationHandleSource, TrackMCPSessionIdSource } from "./types";
 
 /**
  * TrackMCP uses the nearest-rank percentile: ceil(n * p), one-indexed, after
@@ -17,12 +17,20 @@ export function percentile(values: readonly number[], percentileValue: number): 
 type SessionSourceEvent = {
   session_id?: string | null;
   session_id_source?: TrackMCPSessionIdSource | null;
+  correlation_handle?: string | null;
+  correlation_handle_source?: TrackMCPCorrelationHandleSource | null;
 };
 
 export function correlationQualityForEvents(events: readonly SessionSourceEvent[]): CorrelationQuality {
   if (!events.length) return "missing";
-  const qualities = new Set<"session_id" | "transport_generated" | "missing">();
+  const hasHandleProvenance = events.some((event) => event.correlation_handle_source !== undefined && event.correlation_handle_source !== null);
+  const qualities = new Set<"session_id" | "transport_generated" | "external" | "issued" | "missing">();
   for (const event of events) {
+    if (hasHandleProvenance) {
+      const source = event.correlation_handle_source || "missing";
+      qualities.add(source);
+      continue;
+    }
     const source = event.session_id_source || "missing";
     if (source === "protocol" || source === "external") qualities.add("session_id");
     else if (source === "transport_generated") qualities.add("transport_generated");

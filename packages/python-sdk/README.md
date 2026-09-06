@@ -1,5 +1,7 @@
 # trackmcp
 
+Correlation is disabled by default and does not change MCP schemas. External mode accepts a synchronous resolver returning an already anonymized opaque handle from bounded request metadata. Invalid, oversized, credential-like, or resolver-failed values are recorded as missing. `correlation_mode="issued"` is exposed for contract parity but is not enabled by the current Python MCP middleware because it has no stable schema-rewrite-and-strip seam; it therefore records missing provenance until a compatible adapter exists. Resolvers must not return emails, tokens, URLs, raw user IDs, prompts, completions, or private reasoning.
+
 Observe the MCP server boundary without capturing a host's private model turn.
 
 ```python

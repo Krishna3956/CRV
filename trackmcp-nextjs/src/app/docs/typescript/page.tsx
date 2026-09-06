@@ -93,6 +93,23 @@ redactEvent: (event) => event // return null to drop this event
         </Para>
       </DocSection>
 
+      <DocSection title="Optional correlation">
+        <Para>
+          Correlation is off by default and does not mutate MCP schemas. External mode accepts a
+          synchronous resolver for bounded request metadata and stores only a validated anonymized
+          opaque handle. Issued mode is opt-in and works only at the TypeScript transport boundary
+          for compatible object-shaped tool schemas; clients may ignore the field, in which case
+          provenance remains missing.
+        </Para>
+        <Code>{`correlation: {
+  mode: "external",
+  resolve: ({ toolName, sessionId }) => toolName ? anonymizedJobHandle(toolName, sessionId) : undefined,
+}
+
+// Never return emails, tokens, URLs, raw user IDs, prompts,
+// completions, or private reasoning.`}</Code>
+      </DocSection>
+
       <DocSection title="Explicit workflow outcomes">
         <Para>
           A workflow event is an application-emitted signal, not an inference about

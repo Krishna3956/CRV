@@ -59,3 +59,17 @@ test("ingest scrubs secrets, bearer tokens, credentialed URLs, and resource blob
   assert.equal((result.blob as Record<string, unknown>).reason, "binary");
   assert.equal(result.uri, "[redacted]");
 });
+
+test("validates bounded correlation handles without inferring them from request IDs", () => {
+  const valid = normalizeTrackMCPEvent(baseEvent({ correlation_handle: "job_anon_1", correlation_handle_source: "external", request_id: "job_anon_1" }));
+  assert.equal(valid.ok, true);
+  const missingSource = normalizeTrackMCPEvent(baseEvent({ correlation_handle: "job_anon_1" }));
+  assert.equal(missingSource.ok, false);
+  const token = normalizeTrackMCPEvent(baseEvent({ correlation_handle: "Bearer_secret", correlation_handle_source: "external" }));
+  assert.equal(token.ok, false);
+  const oversized = normalizeTrackMCPEvent(baseEvent({ correlation_handle: "x".repeat(129), correlation_handle_source: "external" }));
+  assert.equal(oversized.ok, false);
+  const noHandle = normalizeTrackMCPEvent(baseEvent({ request_id: "request-1" }));
+  assert.equal(noHandle.ok, true);
+  if (noHandle.ok) assert.equal(noHandle.event.correlation_handle, undefined);
+});

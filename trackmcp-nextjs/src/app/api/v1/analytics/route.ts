@@ -4,7 +4,7 @@ import { getSupabaseAdmin } from "@/lib/repository/supabase";
 import { hashTrackMCPKey } from "@/lib/telemetry/keys";
 import type { CatalogTool, CompletionSource, CorrelationQuality } from "@/lib/telemetry/analytics-types";
 import { completedForEvents, completionSourceForEvents, correlationQualityForEvents, isWorkflowLifecycleEvent, percentile } from "@/lib/telemetry/analytics";
-import type { TrackMCPSessionIdSource } from "@/lib/telemetry/types";
+import type { TrackMCPCorrelationHandleSource, TrackMCPSessionIdSource } from "@/lib/telemetry/types";
 
 type EventRow = {
   schema_version: string;
@@ -22,6 +22,8 @@ type EventRow = {
   request_id: string | null;
   session_id: string | null;
   session_id_source: TrackMCPSessionIdSource | null;
+  correlation_handle: string | null;
+  correlation_handle_source: TrackMCPCorrelationHandleSource | null;
   task_id: string | null;
   workflow_id: string | null;
   client_name: string | null;
@@ -86,7 +88,7 @@ export async function GET(req: Request) {
   const days = Number.isFinite(requestedDays) ? Math.min(90, Math.max(1, Math.floor(requestedDays))) : 30;
   const since = new Date(Date.now() - days * 86400000).toISOString();
   const { data, error } = await supabase.from("trackmcp_events")
-    .select("schema_version, event_type, service, environment, server_id, deployment_id, server_version, sdk_version, direction, transport, protocol_version, mcp_method, request_id, session_id, session_id_source, task_id, workflow_id, client_name, client_version, tool_name, tool_description, tool_description_hash, duration_ms, success, is_error, error_class, error_code, retry_number, schema_hash, payload_size_bytes, payload_policy, started_at, payload")
+    .select("schema_version, event_type, service, environment, server_id, deployment_id, server_version, sdk_version, direction, transport, protocol_version, mcp_method, request_id, session_id, session_id_source, correlation_handle, correlation_handle_source, task_id, workflow_id, client_name, client_version, tool_name, tool_description, tool_description_hash, duration_ms, success, is_error, error_class, error_code, retry_number, schema_hash, payload_size_bytes, payload_policy, started_at, payload")
     .eq("workspace_id", workspaceId).gte("started_at", since).order("started_at", { ascending: true }).limit(10000);
   if (error) return NextResponse.json({ error: "Could not load analytics." }, { status: 500 });
 
@@ -131,7 +133,10 @@ export async function GET(req: Request) {
   const explicitOutcomes = [...outcomeNames].map((name) => { const matching = outcomeEvents.filter((event) => event.payload?.workflow_name === name); return { name, started: matching.filter((event) => event.payload?.status === "started").length, completed: matching.filter((event) => event.payload?.status === "completed").length, failed: matching.filter((event) => event.payload?.status === "failed").length }; });
   const workflowRows = [...sessions.entries()].map(([id, sessionEvents]) => {
     const sessionCalls = sessionEvents.filter((event) => event.event_type === "tool_call");
-    return { session_id: id, client_name: sessionEvents.find((event) => event.client_name)?.client_name || "Unknown client", calls: sessionCalls.length, tools: sessionCalls.map((event) => event.tool_name).filter(Boolean), started_at: sessionEvents[0]?.started_at, duration_ms: sessionEvents.length > 1 ? Math.max(...sessionEvents.map((event) => new Date(event.started_at).getTime())) - new Date(sessionEvents[0].started_at).getTime() : 0, completed: completedForEvents(sessionEvents, failed), completion_source: completionSourceForEvents(sessionEvents), correlation_quality: correlationQualityForEvents(sessionEvents) };
+    const handle = sessionEvents.find((event) => event.correlation_handle)?.correlation_handle || null;
+    const sessionHandleSources = [...new Set(sessionEvents.map((event) => event.correlation_handle_source).filter((source): source is TrackMCPCorrelationHandleSource => Boolean(source && source !== "missing")))];
+    const handleSource = sessionHandleSources.length === 1 ? sessionHandleSources[0] : sessionHandleSources.length === 0 ? "missing" : null;
+    return { session_id: id, correlation_handle: handle, correlation_handle_source: handleSource, client_name: sessionEvents.find((event) => event.client_name)?.client_name || "Unknown client", calls: sessionCalls.length, tools: sessionCalls.map((event) => event.tool_name).filter(Boolean), started_at: sessionEvents[0]?.started_at, duration_ms: sessionEvents.length > 1 ? Math.max(...sessionEvents.map((event) => new Date(event.started_at).getTime())) - new Date(sessionEvents[0].started_at).getTime() : 0, completed: completedForEvents(sessionEvents, failed), completion_source: completionSourceForEvents(sessionEvents), correlation_quality: correlationQualityForEvents(sessionEvents) };
   }).filter((workflow) => workflow.calls > 0).sort((a, b) => b.started_at.localeCompare(a.started_at)).slice(0, 100);
   const completed = workflowRows.filter((workflow) => workflow.completed).length;
   const explicitStarted = explicitOutcomes.reduce((sum, outcome) => sum + outcome.started, 0);
@@ -152,5 +157,7 @@ export async function GET(req: Request) {
   const catalogs = events.filter((event) => event.event_type === "catalog").length;
   const completionSource: CompletionSource = completionSourceForEvents(events);
   const correlationQuality: CorrelationQuality = correlationQualityForEvents(events);
-  return NextResponse.json({ range_days: days, total_events: events.length, protocol_events: protocols.length, catalog_events: catalogs, protocol_versions: protocolVersions, transports, methods, tool_calls: calls.length, sessions: workflowRows.length, errors: calls.filter(failed).length, completion_rate: explicitStarted > 0 ? explicitCompleted / explicitStarted : workflowRows.length ? completed / workflowRows.length : null, completion_source: completionSource, correlation_quality: correlationQuality, funnel: { connections: events.filter((event) => event.event_type === "session").length, discovered_tools: catalog.size, tool_calls: calls.length, successful_calls: calls.filter((event) => !failed(event)).length }, timeline: [...timeline.entries()].map(([date, value]) => ({ date, ...value })), clients: [...clients.entries()].map(([name, value]) => ({ name, calls: value.calls, versions: [...value.versions] })).sort((a, b) => b.calls - a.calls), tools: toolRows, catalog_tools: [...catalog.values()], unused_tools: unusedTools, workflows: workflowRows, outcomes: explicitOutcomes, insights });
+  const handleSources = [...new Set(events.map((event) => event.correlation_handle_source).filter((source): source is TrackMCPCorrelationHandleSource => Boolean(source)))];
+  const correlationHandleSource: TrackMCPCorrelationHandleSource | null = handleSources.length === 1 ? handleSources[0] : handleSources.length === 0 ? "missing" : null;
+  return NextResponse.json({ range_days: days, total_events: events.length, protocol_events: protocols.length, catalog_events: catalogs, protocol_versions: protocolVersions, transports, methods, tool_calls: calls.length, sessions: workflowRows.length, errors: calls.filter(failed).length, completion_rate: explicitStarted > 0 ? explicitCompleted / explicitStarted : workflowRows.length ? completed / workflowRows.length : null, completion_source: completionSource, correlation_quality: correlationQuality, correlation_handle_source: correlationHandleSource, funnel: { connections: events.filter((event) => event.event_type === "session").length, discovered_tools: catalog.size, tool_calls: calls.length, successful_calls: calls.filter((event) => !failed(event)).length }, timeline: [...timeline.entries()].map(([date, value]) => ({ date, ...value })), clients: [...clients.entries()].map(([name, value]) => ({ name, calls: value.calls, versions: [...value.versions] })).sort((a, b) => b.calls - a.calls), tools: toolRows, catalog_tools: [...catalog.values()], unused_tools: unusedTools, workflows: workflowRows, outcomes: explicitOutcomes, insights });
 }

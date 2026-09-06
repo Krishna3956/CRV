@@ -15,6 +15,21 @@ export type { PayloadMode } from "./privacy.js";
 
 export type TrackMCPEventType = "protocol" | "tool_call" | "session" | "catalog" | "workflow" | "custom";
 export const TRACKMCP_SCHEMA_VERSION = "1" as const;
+export type TrackMCPCorrelationMode = "none" | "external" | "issued";
+export type TrackMCPCorrelationHandleSource = "external" | "issued" | "missing";
+export type TrackMCPCorrelationContext = {
+  eventType: TrackMCPEventType;
+  mcpMethod?: string;
+  toolName?: string;
+  requestId?: string;
+  sessionId?: string;
+  transport?: TrackMCPEvent["transport"];
+};
+export type TrackMCPCorrelationOptions = {
+  mode?: TrackMCPCorrelationMode;
+  resolve?: (context: TrackMCPCorrelationContext) => string | undefined | null;
+  issuedField?: string;
+};
 
 export type TrackMCPEvent = {
   schema_version?: string;
@@ -30,6 +45,8 @@ export type TrackMCPEvent = {
   request_id?: string;
   session_id?: string;
   session_id_source?: "protocol" | "transport_generated" | "external" | "missing";
+  correlation_handle?: string;
+  correlation_handle_source?: TrackMCPCorrelationHandleSource;
   task_id?: string;
   workflow_id?: string;
   deployment_id?: string;
@@ -76,6 +93,7 @@ export type TrackMCPOptions = {
   maxBatchSize?: number;
   maxQueueEvents?: number;
   maxQueueBytes?: number;
+  correlation?: TrackMCPCorrelationOptions;
 };
 
 const DEFAULT_ENDPOINT = "https://trackmcp.com/api/v1/ingest";
@@ -94,6 +112,14 @@ function sha256(value: unknown): string {
 }
 
 type CatalogTool = { name: string; description?: string; tool_description_hash: string; schema_hash: string };
+
+const CORRELATION_HANDLE = /^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$/;
+const RESERVED_CORRELATION_FIELD = "__trackmcp_correlation_handle";
+
+function safeCorrelationHandle(value: unknown): value is string {
+  if (typeof value !== "string" || !CORRELATION_HANDLE.test(value)) return false;
+  return !/(?:bearer(?:\s|[_:-])|eyJ[A-Za-z0-9_-]+\.|@|https?:\/\/|:\/\/|^sk[-_])/i.test(value);
+}
 
 export type TrackMCPDiagnostics = {
   droppedEvents: number;
@@ -115,7 +141,7 @@ function catalogTools(result: Record<string, unknown> | undefined): CatalogTool[
 }
 
 class TrackMCPClient {
-  private readonly options: Required<Pick<TrackMCPOptions, "service" | "environment" | "endpoint" | "sampleRate" | "redact" | "redactKeys" | "payloadMode" | "maxPayloadBytes" | "maxPayloadDepth" | "maxPayloadKeys" | "maxStringLength" | "flushIntervalMs" | "maxBatchSize" | "maxQueueEvents" | "maxQueueBytes" | "disabled">> & Pick<TrackMCPOptions, "apiKey" | "server_id" | "server_version" | "sdk_version" | "deployment_id" | "redactEvent">;
+  private readonly options: Required<Pick<TrackMCPOptions, "service" | "environment" | "endpoint" | "sampleRate" | "redact" | "redactKeys" | "payloadMode" | "maxPayloadBytes" | "maxPayloadDepth" | "maxPayloadKeys" | "maxStringLength" | "flushIntervalMs" | "maxBatchSize" | "maxQueueEvents" | "maxQueueBytes" | "disabled">> & Pick<TrackMCPOptions, "apiKey" | "server_id" | "server_version" | "sdk_version" | "deployment_id" | "redactEvent"> & { correlation: Required<Pick<TrackMCPCorrelationOptions, "mode" | "issuedField">> & Pick<TrackMCPCorrelationOptions, "resolve"> };
   private queue: TrackMCPEvent[] = [];
   private queueBytes = 0;
   private readonly diagnosticCounts = { droppedEvents: 0, hookErrors: 0, privacyErrors: 0 };
@@ -148,6 +174,11 @@ class TrackMCPClient {
       maxQueueBytes: Math.max(1, Math.floor(options.maxQueueBytes ?? DEFAULT_MAX_QUEUE_BYTES)),
       disabled: options.disabled ?? false,
       redactEvent: options.redactEvent,
+      correlation: {
+        mode: options.correlation?.mode === "external" || options.correlation?.mode === "issued" ? options.correlation.mode : "none",
+        resolve: options.correlation?.resolve,
+        issuedField: options.correlation?.issuedField && /^__trackmcp_[A-Za-z0-9_]{1,64}$/.test(options.correlation.issuedField) ? options.correlation.issuedField : RESERVED_CORRELATION_FIELD,
+      },
     };
     if (!this.options.disabled) {
       this.timer = setInterval(() => void this.flush(), this.options.flushIntervalMs);
@@ -155,9 +186,10 @@ class TrackMCPClient {
     }
   }
 
-  capture(event: Omit<TrackMCPEvent, "event_id" | "service" | "environment" | "schema_version"> & { schema_version?: string }): void {
+  capture(event: Omit<TrackMCPEvent, "event_id" | "service" | "environment" | "schema_version"> & { schema_version?: string }, issuedHandle?: string): void {
     if (this.options.disabled || Math.random() > this.options.sampleRate) return;
     try {
+      const correlation = this.correlationFor(event, issuedHandle);
       let prepared = this.prepareEvent({
         ...event,
         schema_version: TRACKMCP_SCHEMA_VERSION,
@@ -165,6 +197,8 @@ class TrackMCPClient {
         service: this.options.service,
         environment: this.options.environment,
         session_id_source: event.session_id_source || (event.session_id ? "external" : "missing"),
+        correlation_handle: correlation.handle,
+        correlation_handle_source: correlation.source,
         server_id: this.options.server_id,
         server_version: this.options.server_version,
         sdk_version: this.options.sdk_version,
@@ -193,8 +227,48 @@ class TrackMCPClient {
     if (this.queue.length >= this.options.maxBatchSize) void this.flush();
   }
 
+  private correlationFor(event: Partial<TrackMCPEvent>, issuedHandle?: string): { handle?: string; source: TrackMCPCorrelationHandleSource } {
+    if (this.options.correlation.mode === "issued" && safeCorrelationHandle(issuedHandle)) return { handle: issuedHandle, source: "issued" };
+    if (this.options.correlation.mode === "external" && this.options.correlation.resolve) {
+      try {
+        const handle = this.options.correlation.resolve({ eventType: event.event_type || "custom", mcpMethod: event.mcp_method, toolName: event.tool_name, requestId: event.request_id, sessionId: event.session_id, transport: event.transport });
+        if (safeCorrelationHandle(handle)) return { handle, source: "external" };
+      } catch {
+        // Correlation is optional telemetry. Resolver failures are fail-open.
+      }
+    }
+    return { source: "missing" };
+  }
+
+  issuedField(): string { return this.options.correlation.issuedField; }
+
+  issuedMode(): boolean { return this.options.correlation.mode === "issued"; }
+
+  injectIssuedResponse(message: Record<string, unknown>, handle: string): Record<string, unknown> {
+    if (this.options.correlation.mode !== "issued" || !safeCorrelationHandle(handle)) return message;
+    const result = message.result;
+    if (!result || typeof result !== "object" || !Array.isArray((result as Record<string, unknown>).tools)) return message;
+    const tools = (result as Record<string, unknown>).tools as unknown[];
+    const augmentedTools = tools.map((tool) => {
+      if (!tool || typeof tool !== "object") return tool;
+      const record = tool as Record<string, unknown>;
+      const schema = record.inputSchema;
+      if (!schema || typeof schema !== "object" || Array.isArray(schema)) return tool;
+      const schemaRecord = schema as Record<string, unknown>;
+      if (schemaRecord.type !== "object") return tool;
+      const properties = schemaRecord.properties && typeof schemaRecord.properties === "object" && !Array.isArray(schemaRecord.properties) ? schemaRecord.properties as Record<string, unknown> : {};
+      if (Object.prototype.hasOwnProperty.call(properties, this.issuedField())) return tool;
+      return { ...record, inputSchema: { ...schemaRecord, properties: { ...properties, [this.issuedField()]: { type: "string", maxLength: 128, default: handle, description: "Opaque TrackMCP correlation handle; echo only when provided." } } } };
+    });
+    return { ...message, result: { ...(result as Record<string, unknown>), tools: augmentedTools } };
+  }
+
   private prepareEvent(event: TrackMCPEvent): TrackMCPEvent {
     const prepared = { ...event, payload_policy: this.options.payloadMode };
+    if (!safeCorrelationHandle(prepared.correlation_handle) || (prepared.correlation_handle_source !== "external" && prepared.correlation_handle_source !== "issued")) {
+      delete prepared.correlation_handle;
+      prepared.correlation_handle_source = "missing";
+    }
     if (this.options.payloadMode === "metadata") {
       delete prepared.payload;
       prepared.payload_size_bytes = 0;
@@ -297,8 +371,9 @@ function toolCallDetails(args: unknown[]): { toolName?: string; payload: Record<
 }
 
 function wrapTransport(transport: object, client: TrackMCPClient): object {
-  const pending = new Map<string, { method?: string; toolName?: string; payload: Record<string, unknown>; started: number }>();
+  const pending = new Map<string, { method?: string; toolName?: string; payload: Record<string, unknown>; started: number; correlationHandle?: string }>();
   const transportSessionId = randomUUID();
+  const issuedHandle = `tmcp_${randomUUID().replaceAll("-", "")}`;
   let activeSessionId: string = transportSessionId;
   let activeSessionIdSource: "protocol" | "transport_generated" = "transport_generated";
   let clientName: string | undefined;
@@ -310,8 +385,9 @@ function wrapTransport(transport: object, client: TrackMCPClient): object {
       if (property === "send") {
         return async (message: Record<string, unknown>, options?: unknown) => {
           const id = message.id;
-          if (id !== undefined && pending.has(keyFor(id))) {
-            const call = pending.get(keyFor(id))!;
+          const pendingCall = id !== undefined ? pending.get(keyFor(id)) : undefined;
+          if (pendingCall) {
+            const call = pendingCall;
             pending.delete(keyFor(id));
             const result = message.result as Record<string, unknown> | undefined;
             const failed = Boolean(message.error) || Boolean(result?.isError);
@@ -327,7 +403,7 @@ function wrapTransport(transport: object, client: TrackMCPClient): object {
             const sessionId = activeSessionId;
             if (call.method === "tools/call") {
               const metadata = client.toolMetadata(call.toolName);
-              client.capture({ event_type: "tool_call", direction: "server_to_client", transport: "stdio", mcp_method: call.method, request_id: String(id), tool_name: call.toolName, tool_description: metadata?.description, tool_description_hash: metadata?.tool_description_hash, schema_hash: metadata?.schema_hash, client_name: clientName, client_version: clientVersion, session_id: sessionId, session_id_source: activeSessionIdSource, started_at: new Date(call.started).toISOString(), duration_ms: Date.now() - call.started, success: !failed, is_error: failed, error_class: message.error ? "protocol_error" : result?.isError ? "tool_execution_error" : undefined, error_code: typeof protocolError?.code === "number" ? protocolError.code : undefined, payload: { ...call.payload, result: message.error || result } });
+              client.capture({ event_type: "tool_call", direction: "server_to_client", transport: "stdio", mcp_method: call.method, request_id: String(id), tool_name: call.toolName, tool_description: metadata?.description, tool_description_hash: metadata?.tool_description_hash, schema_hash: metadata?.schema_hash, client_name: clientName, client_version: clientVersion, session_id: sessionId, session_id_source: activeSessionIdSource, started_at: new Date(call.started).toISOString(), duration_ms: Date.now() - call.started, success: !failed, is_error: failed, error_class: message.error ? "protocol_error" : result?.isError ? "tool_execution_error" : undefined, error_code: typeof protocolError?.code === "number" ? protocolError.code : undefined, payload: { ...call.payload, result: message.error || result } }, call.correlationHandle);
             } else if (call.method === "initialize") {
               client.capture({ event_type: "session", direction: "server_to_client", transport: "stdio", mcp_method: call.method, request_id: String(id), protocol_version: typeof result?.protocolVersion === "string" ? result.protocolVersion : undefined, client_name: clientName, client_version: clientVersion, session_id: sessionId, session_id_source: activeSessionIdSource, started_at: new Date(call.started).toISOString(), duration_ms: Date.now() - call.started, success: !failed, is_error: failed, error_class: message.error ? "protocol_error" : undefined, error_code: typeof protocolError?.code === "number" ? protocolError.code : undefined, payload: { result: message.error || result } });
             } else if (["tools/list", "resources/list", "resources/templates/list", "prompts/list"].includes(call.method || "") && !failed) {
@@ -337,7 +413,8 @@ function wrapTransport(transport: object, client: TrackMCPClient): object {
             }
           }
           const send = Reflect.get(target, property) as (message: unknown, options?: unknown) => Promise<void>;
-          return send.call(target, message, options);
+          const outgoing = pendingCall?.method === "tools/list" ? client.injectIssuedResponse(message, issuedHandle) : message;
+          return send.call(target, outgoing, options);
         };
       }
       if (property === "onmessage") return messageHandler;
@@ -346,9 +423,9 @@ function wrapTransport(transport: object, client: TrackMCPClient): object {
     },
     set(target, property, value) {
       if (property === "onmessage") {
-        messageHandler = (message: unknown, extra?: unknown) => {
+          messageHandler = (message: unknown, extra?: unknown) => {
           if (!message || typeof message !== "object") return;
-          const record = message as Record<string, unknown>;
+          let record = message as Record<string, unknown>;
           if (record.method === "initialize") {
             const params = record.params as Record<string, unknown> | undefined;
             const info = params?.clientInfo as Record<string, unknown> | undefined;
@@ -357,12 +434,19 @@ function wrapTransport(transport: object, client: TrackMCPClient): object {
           }
           if (record.method === "tools/call" && record.id !== undefined) {
             const params = record.params as Record<string, unknown> | undefined;
+            const argumentsValue = params?.arguments && typeof params.arguments === "object" && !Array.isArray(params.arguments) ? params.arguments as Record<string, unknown> : {};
+            const correlationHandle = client.issuedMode() && client.issuedField() in argumentsValue && safeCorrelationHandle(argumentsValue[client.issuedField()]) ? argumentsValue[client.issuedField()] as string : undefined;
+            const cleanArguments = { ...argumentsValue };
+            if (client.issuedMode()) delete cleanArguments[client.issuedField()];
+            const cleanRecord = correlationHandle && params ? { ...record, params: { ...params, arguments: cleanArguments } } : record;
             pending.set(keyFor(record.id), {
               method: "tools/call",
               toolName: typeof params?.name === "string" ? params.name : undefined,
-              payload: { args: params?.arguments ?? {} },
+              payload: { args: cleanArguments },
               started: Date.now(),
+              correlationHandle,
             });
+            if (cleanRecord !== record) record = cleanRecord;
           } else if (record.id !== undefined) {
             pending.set(keyFor(record.id), { method: typeof record.method === "string" ? record.method : undefined, payload: {}, started: Date.now() });
           }

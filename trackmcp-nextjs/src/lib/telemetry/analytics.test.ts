@@ -48,3 +48,15 @@ test("trace responses expose provenance-derived quality labels", () => {
   assert.equal(traceResponse("session-a", [{ session_id_source: "missing" } as never]).correlation_quality, "missing");
   assert.equal(traceResponse("session-a", [], { truncated: true }).truncated, true);
 });
+
+test("correlation handle quality is distinct from protocol and transport session provenance", () => {
+  assert.equal(correlationQualityForEvents([{ session_id: "protocol", session_id_source: "protocol", correlation_handle: "job_1", correlation_handle_source: "external" }]), "external");
+  assert.equal(correlationQualityForEvents([{ session_id: "fallback", session_id_source: "transport_generated", correlation_handle_source: "missing" }]), "missing");
+  assert.equal(correlationQualityForEvents([{ correlation_handle: "tmcp_1", correlation_handle_source: "issued" }]), "issued");
+  assert.equal(correlationQualityForEvents([{ correlation_handle_source: "external" }, { correlation_handle_source: "issued" }]), "mixed");
+  const response = traceResponse(null, [{ correlation_handle: "job_1", correlation_handle_source: "external", event_type: "tool_call" } as never], { correlationHandle: "job_1" });
+  assert.equal(response.session_id, null);
+  assert.equal(response.correlation_handle, "job_1");
+  assert.equal(response.correlation_handle_source, "external");
+  assert.equal(response.correlation_quality, "external");
+});
