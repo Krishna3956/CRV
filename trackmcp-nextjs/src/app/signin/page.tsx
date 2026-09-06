@@ -34,6 +34,8 @@ export default function SignInPage({ initialMode = "signin" }: { initialMode?: "
   const [acceptedTerms, setAcceptedTerms] = useState(false);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
+  const [existingAccount, setExistingAccount] = useState(false);
+  const [emailCheckStatus, setEmailCheckStatus] = useState<"idle" | "checking" | "available" | "registered" | "error">("idle");
   const emailInputRef = useRef<HTMLInputElement>(null);
   const codeInputRef = useRef<HTMLInputElement>(null);
 
@@ -57,6 +59,32 @@ export default function SignInPage({ initialMode = "signin" }: { initialMode?: "
   const finishAuth = (eventName: "signup_completed" | "signin_completed") => {
     trackMarketingEvent(eventName, { auth_mode: mode });
     router.replace("/dashboard/onboarding");
+  };
+
+  const checkSignupEmail = async () => {
+    if (mode !== "signup" || screen !== "credentials") return;
+    const normalizedEmail = email.trim().toLowerCase();
+    if (!normalizedEmail || !emailInputRef.current?.validity.valid) return;
+
+    setEmailCheckStatus("checking");
+    setExistingAccount(false);
+    setError("");
+    try {
+      const response = await fetch("/api/auth/check-email", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ email: normalizedEmail }),
+      });
+      if (!response.ok) {
+        setEmailCheckStatus("error");
+        return;
+      }
+      const result: { exists?: boolean } = await response.json();
+      setExistingAccount(Boolean(result.exists));
+      setEmailCheckStatus(result.exists ? "registered" : "available");
+    } catch {
+      setEmailCheckStatus("error");
+    }
   };
 
   const submitCredentials = async (event: React.FormEvent) => {
@@ -94,6 +122,8 @@ export default function SignInPage({ initialMode = "signin" }: { initialMode?: "
         setError("The passwords do not match.");
         return;
       }
+      setExistingAccount(false);
+      setEmailCheckStatus("checking");
       trackMarketingEvent("auth_request_started", { auth_mode: mode });
       setStatus("requesting");
       setError("");
@@ -104,6 +134,13 @@ export default function SignInPage({ initialMode = "signin" }: { initialMode?: "
       });
       if (authError) {
         setError(authError.message);
+        setStatus("error");
+        return;
+      }
+      if (data.user?.identities && data.user.identities.length === 0) {
+        setExistingAccount(true);
+        setEmailCheckStatus("registered");
+        setError("This email is already registered. Please sign in instead.");
         setStatus("error");
         return;
       }
@@ -128,7 +165,7 @@ export default function SignInPage({ initialMode = "signin" }: { initialMode?: "
     setError("");
     const { error: authError } = await getSupabaseBrowser().auth.signInWithPassword({ email: normalizedEmail, password });
     if (authError) {
-      setError(authError.code === "email_not_confirmed" ? "Please verify your email address before signing in." : "Incorrect email or password. If this is an older passwordless account, use the password reset option below.");
+      setError(authError.code === "email_not_confirmed" ? "Please verify your email address before signing in." : "That email and password combination didn’t work. Reset your password or create an account.");
       setStatus("error");
       return;
     }
@@ -203,6 +240,8 @@ export default function SignInPage({ initialMode = "signin" }: { initialMode?: "
     setCode("");
     setError("");
     setNotice("");
+    setExistingAccount(false);
+    setEmailCheckStatus("idle");
     setResendIn(0);
     window.setTimeout(() => emailInputRef.current?.focus(), 0);
   };
@@ -213,6 +252,8 @@ export default function SignInPage({ initialMode = "signin" }: { initialMode?: "
     setStatus("idle");
     setError("");
     setNotice("");
+    setExistingAccount(false);
+    setEmailCheckStatus("idle");
     setPassword("");
     setConfirmPassword("");
     router.replace(nextMode === "signup" ? "/signup" : "/signin");
@@ -237,16 +278,18 @@ export default function SignInPage({ initialMode = "signin" }: { initialMode?: "
 
         {screen === "credentials" || resetFlow ? <form onSubmit={submitCredentials} className="mt-7 flex flex-col gap-3">
           {screen === "credentials" && mode === "signup" && <div className="grid gap-3 sm:grid-cols-2"><label><span className="mb-1.5 block text-[12px] font-medium text-body">First name</span><input required value={firstName} onChange={(event) => setFirstName(event.target.value)} placeholder="Alex" className={field} /></label><label><span className="mb-1.5 block text-[12px] font-medium text-body">Last name</span><input required value={lastName} onChange={(event) => setLastName(event.target.value)} placeholder="Morgan" className={field} /></label></div>}
-          <label><span className="mb-1.5 block text-[12px] font-medium text-body">Email address</span><input ref={emailInputRef} required type="email" value={email} onChange={(event) => { setEmail(event.target.value); setError(""); }} placeholder="you@example.com" autoComplete="email" className={field} /></label>
+          <label><span className="mb-1.5 block text-[12px] font-medium text-body">Email address</span><input ref={emailInputRef} required type="email" value={email} onChange={(event) => { setEmail(event.target.value); setError(""); setExistingAccount(false); setEmailCheckStatus("idle"); }} onBlur={() => void checkSignupEmail()} placeholder="you@example.com" autoComplete="email" className={field} /></label>
+          {mode === "signup" && screen === "credentials" && emailCheckStatus === "checking" && <p className="-mt-1 text-[12px] text-muted">Checking this email…</p>}
+          {mode === "signup" && screen === "credentials" && existingAccount && <p className="-mt-1 text-[12.5px] leading-relaxed text-amber-900">This email is already registered. <button type="button" onClick={() => switchMode("signin")} className="font-medium underline underline-offset-2">Go to sign in</button></p>}
           {(screen === "credentials" || resetFlow) && <><label><span className="mb-1.5 block text-[12px] font-medium text-body">Password</span><input required type="password" value={password} onChange={(event) => { setPassword(event.target.value); setError(""); }} placeholder={mode === "signup" ? "At least 8 characters" : "Your password"} autoComplete={mode === "signup" ? "new-password" : "current-password"} className={field} /></label>{mode === "signup" && <><label><span className="mb-1.5 block text-[12px] font-medium text-body">Confirm password</span><input required type="password" value={confirmPassword} onChange={(event) => { setConfirmPassword(event.target.value); setError(""); }} placeholder="Repeat your password" autoComplete="new-password" className={field} /></label><p className="text-[12px] leading-relaxed text-muted">Use at least 8 characters. You&apos;ll verify your email before entering the dashboard.</p><label className="flex items-start gap-2 text-[12px] leading-relaxed text-muted"><input required type="checkbox" checked={acceptedTerms} onChange={(event) => setAcceptedTerms(event.target.checked)} className="mt-0.5 h-4 w-4 accent-brand" /><span>I agree to the <Link href="/terms" className="font-medium text-brand-strong hover:underline">Terms of Service</Link> and <Link href="/privacy" className="font-medium text-brand-strong hover:underline">Privacy Policy</Link>.</span></label></>}</>}
-          <button type="submit" disabled={status === "requesting"} className="mt-1 inline-flex items-center justify-center gap-2 rounded-lg bg-ink px-5 py-3 text-[14px] font-medium text-white transition-colors hover:bg-black disabled:opacity-60">{status === "requesting" ? <><Loader2 size={15} className="animate-spin" />Sending</> : <>{mode === "signup" ? "Create account" : "Sign in"}<ArrowRight size={15} /></>}</button>
+          <button type="submit" disabled={status === "requesting" || (mode === "signup" && (existingAccount || emailCheckStatus === "checking"))} className="mt-1 inline-flex items-center justify-center gap-2 rounded-lg bg-ink px-5 py-3 text-[14px] font-medium text-white transition-colors hover:bg-black disabled:opacity-60">{status === "requesting" ? <><Loader2 size={15} className="animate-spin" />Sending</> : <>{mode === "signup" ? "Create account" : "Sign in"}<ArrowRight size={15} /></>}</button>
           {mode === "signin" && <button type="button" onClick={() => resetTo("reset-email")} className="inline-flex items-center justify-center gap-2 text-[12px] font-medium text-muted hover:text-body"><KeyRound size={13} />Forgot or need to set a password?</button>}
         </form> : screen === "reset-password" ? <form onSubmit={updatePassword} className="mt-7 flex flex-col gap-3"><label><span className="mb-1.5 block text-[13px] font-medium text-body">New password</span><input required type="password" value={newPassword} onChange={(event) => { setNewPassword(event.target.value); setError(""); }} placeholder="At least 8 characters" autoComplete="new-password" className={field} /></label><label><span className="mb-1.5 block text-[13px] font-medium text-body">Confirm new password</span><input required type="password" value={confirmNewPassword} onChange={(event) => { setConfirmNewPassword(event.target.value); setError(""); }} placeholder="Repeat your password" autoComplete="new-password" className={field} /></label><p className="text-[13px] leading-relaxed text-muted">After this, you can sign in with your email and password.</p><button type="submit" disabled={status === "updating"} className="mt-1 inline-flex items-center justify-center gap-2 rounded-lg bg-ink px-5 py-3 text-[15px] font-medium text-white transition-colors hover:bg-black disabled:opacity-70">{status === "updating" ? <><Loader2 size={16} className="animate-spin" />Saving</> : <>Set password<ArrowRight size={16} /></>}</button></form> : <form onSubmit={verifyCode} className="mt-7 flex flex-col gap-3"><div className="flex items-start gap-3 rounded-lg border border-brand/30 bg-brand-soft/40 px-3.5 py-2.5 text-[13px] leading-snug text-brand-strong"><span className="grid h-7 w-7 shrink-0 place-items-center rounded-lg bg-white/70"><Mail size={15} /></span><p>Check your inbox and enter the newest code below. You can open the email on your phone and type the code here.</p></div><label><span className="mb-1.5 block text-[13px] font-medium text-body">Verification code</span><input ref={codeInputRef} required inputMode="numeric" pattern="[0-9]{6}" autoComplete="one-time-code" maxLength={6} value={code} onChange={(event) => { setCode(event.target.value.replace(/\D/g, "").slice(0, 6)); setError(""); }} placeholder="000000" className={`${field} text-center font-mono text-[24px] tracking-[0.28em]`} /></label><p className="text-center text-[12px] leading-relaxed text-faint">The code can only be used once.</p><button type="submit" disabled={status === "verifying" || code.length !== 6} className="mt-1 inline-flex items-center justify-center gap-2 rounded-lg bg-ink px-5 py-3 text-[15px] font-medium text-white transition-colors hover:bg-black disabled:opacity-70">{status === "verifying" ? <><Loader2 size={16} className="animate-spin" />Verifying</> : <>Verify and continue<ArrowRight size={16} /></>}</button><div className="flex items-center justify-between border-t border-line pt-4 text-[12px]"><button type="button" onClick={() => resetTo(screen === "signup-code" ? "credentials" : "reset-email")} className="font-medium text-muted hover:text-body">Use a different email</button><button type="button" disabled={resendIn > 0 || status === "verifying" || status === "requesting"} onClick={() => void resendCode()} className="inline-flex items-center gap-1.5 font-medium text-brand-strong disabled:text-faint"><RotateCcw size={12} />{resendIn > 0 ? `Resend in ${resendIn}s` : "Resend code"}</button></div></form>}
 
         {screen === "signup-code" && !error && <p className="mt-4 flex items-start gap-2 rounded-lg border border-brand/30 bg-brand-soft/40 px-3.5 py-2.5 text-[13px] leading-snug text-brand-strong"><Check size={15} className="mt-0.5 shrink-0" />Check spam or promotions if the code does not arrive.</p>}
         {notice && <p className="mt-4 rounded-lg border border-brand/25 bg-brand-soft/35 px-3.5 py-2.5 text-[12px] leading-relaxed text-brand-strong">{notice}</p>}
-        {!resetFlow && error && <div className="mt-4 rounded-lg border border-amber-200 bg-amber-50 px-3.5 py-3 text-[12.5px] leading-relaxed text-amber-900"><p>{error}</p><button type="button" onClick={() => resetTo("credentials")} className="mt-2 font-medium text-amber-950 underline underline-offset-2">Start again</button></div>}
-            {!resetFlow && <p className="mt-6 text-center text-[13px] text-muted">{mode === "signin" ? <>New to TrackMCP? <button type="button" onClick={() => switchMode("signup")} className="font-medium text-brand-strong">Create an account</button></> : <>Already have an account? <button type="button" onClick={() => switchMode("signin")} className="font-medium text-brand-strong">Sign in</button></>}</p>}
+        {!resetFlow && error && <div className="mt-4 rounded-lg border border-amber-200 bg-amber-50 px-3.5 py-3 text-[12.5px] leading-relaxed text-amber-900"><p>{error}</p><div className="mt-3 flex flex-wrap items-center gap-2">{mode === "signin" ? <><button type="button" onClick={() => resetTo("reset-email")} className="rounded-md bg-amber-950 px-3 py-2 font-medium text-white transition-colors hover:bg-amber-900">Reset password</button><button type="button" onClick={() => switchMode("signup")} className="rounded-md border border-amber-300 px-3 py-2 font-medium text-amber-950 transition-colors hover:bg-amber-100">Create an account</button></> : existingAccount && <button type="button" onClick={() => switchMode("signin")} className="rounded-md bg-amber-950 px-3 py-2 font-medium text-white transition-colors hover:bg-amber-900">Go to sign in</button>}</div></div>}
+            {!resetFlow && !error && <p className="mt-6 text-center text-[13px] text-muted">{mode === "signin" ? <>New to TrackMCP? <button type="button" onClick={() => switchMode("signup")} className="font-medium text-brand-strong">Create an account</button></> : <>Already have an account? <button type="button" onClick={() => switchMode("signin")} className="font-medium text-brand-strong">Sign in</button></>}</p>}
           </div>
         </div>
         <p className="text-[12px] text-faint"><Link href="/" className="hover:text-body">← Back to trackmcp.com</Link></p>
