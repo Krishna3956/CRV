@@ -24,11 +24,13 @@ At 1280×800, the proposed Overview uses:
 - 176px attention panel with a clear action;
 - chart content begins below the fold, but its title and decision caption remain visible.
 
+Quality, Issues, and Evidence use the same 240px rail and 32px content gutter. Their main tables never widen the page. The table surface has a contained horizontal scroll region only when needed, with a visible row-count label, a bottom continuation fade, and a `Narrow period or scope` action. The page itself remains `overflow-x: hidden` in the layout contract.
+
 The first viewport must show the product question, data source, selected period, four KPI meanings, and the first issue/action. It must not require the user to scroll through technical setup first.
 
 ## 1440×900 composition
 
-At 1440×900, the proposed Overview uses a 1200px content measure. The attention panel occupies the left 7/12 of the first story and a compact “Who is using it?” ranked list occupies the right 5/12. The activity trend begins below with a visible axis and table affordance. The page reads as one story rather than a grid.
+At 1440×900, the proposed Overview uses a 1200px content measure. The attention panel occupies the left 7/12 of the first story and a compact “Who is using it?” ranked list occupies the right 5/12. The activity trend begins below with a visible axis and table affordance. The page reads as one story rather than a grid. The extra width adds whitespace rather than extra navigation, and the issue action and Evidence return path remain above the fold.
 
 ## Business-to-evidence layout
 
@@ -57,3 +59,5 @@ The proposed set includes rendered wireframes for:
 - Quality with a supported issue and an insufficient-data row;
 - Issues with observed signal and regression-alert placeholders;
 - Evidence with bounded/redacted/truncated details.
+- Adoption, Capabilities, and Setup with a primary action, empty state, detail path, and return path.
+- Default, hover, focus-visible, pressed, disabled, loading, retry, tooltip, keyboard, success, error, empty, insufficient, Live data, and Example data states.

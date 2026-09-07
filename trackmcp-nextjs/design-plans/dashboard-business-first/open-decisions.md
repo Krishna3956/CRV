@@ -1,14 +1,21 @@
-# Unresolved decisions for design review
+# Remaining open decisions
 
-These are intentionally unresolved. They should be decided before the first implementation slice.
+The following are the only decisions still open after applying the SDE3 review. They are intentionally API or product-policy decisions, not unresolved visual choices.
 
-1. **Primary KPI source availability.** Can the live analytics response reliably supply AI clients observed, activity, explicit work completed, and supported attention signals for every workspace? If not, which cards become neutral unavailable states?
-2. **Freshness contract.** The current API does not provide a universal last-observed/stale signal. Should the product add one before showing a freshness timestamp, or should the first implementation omit freshness claims?
-3. **Adoption identity.** Client metadata is not end-user identity. Do product users want a separate client adapter integration before the UI ever uses “returning users” language?
-4. **Issues boundary.** Which observed signals should be promoted to the Issues page, and how will future P1-05 regression alerts remain visually distinct from observational signals?
-5. **Issue ranking.** What is the approved ranking order between evidence strength, affected activity, business impact, and recency when multiple signals qualify?
-6. **Journeys coverage.** What minimum explicit workflow metadata is required before rendering a path view? The fallback should remain “activity visible, outcome unavailable.”
-7. **Custom date ranges.** Is a custom range supported by every dashboard API and bounded scan, or should the design ship with only 7/30/90 days first?
-8. **Evidence presentation.** Should Evidence open as a full page for shareability or as a side panel for comparison? The proposed design assumes a full page with preserved origin and return context.
-9. **Setup placement.** Should a first-time user see Example data before creating a workspace key, or only after the workspace exists? The design assumes both options can be offered without making Example data look live.
-10. **Public site alignment.** The dashboard redesign should borrow the public site's promise, but the marketing site redesign is out of scope for the first implementation slice.
+1. **Explicit outcome availability.** Which workflow outcome event names and payload fields are guaranteed for the first implementation slice, and what minimum source-level contract will make the numerator and denominator renderable?
+2. **Issue promotion policy.** Which observational signals are approved for the Issues page before P1-05 alert contracts are separately reviewed? P1-05 remains outside this package.
+3. **Authenticated evidence retention.** May future design reviews retain an account-redacted production screenshot, or should production evidence remain text-only for privacy?
+4. **Setup completion scope.** Which setup steps can be marked complete from existing API responses, and which require explicit workspace configuration metadata?
+
+## Locked decisions applied
+
+- No freshness timestamp or stale-state claim without API support.
+- `AI clients observed` is the adoption label; identity data is not inferred.
+- Work completed uses explicit workflow outcomes only; sessions cannot become the completion denominator.
+- Date range starts with 7, 30, and 90 days; custom range is deferred until API and bounded scan support it.
+- Evidence is a full page with shareable links and browser history.
+- Issues rank firing regression alerts, confirmed observed issues, lower-confidence signals, then insufficient evidence; within each group use affected work volume, severity, then recency.
+- Green is TrackMCP identity only, never a general health treatment.
+- Legacy/Unknown provenance is neutral.
+- Live mode never falls back silently to Example data.
+- Quality, Issues, and Evidence fit inside the 1280 x 800 and 1440 x 900 page widths; any table overflow is contained inside the table surface.

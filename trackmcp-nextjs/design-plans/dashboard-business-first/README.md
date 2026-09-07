@@ -24,20 +24,24 @@ Make TrackMCP read like product analytics for an MCP-powered product: answer wha
 | [interaction-and-states.md](interaction-and-states.md) | Button, filter, tab, data-source, loading, empty, error, and insufficient-data behavior |
 | [charts-and-metrics.md](charts-and-metrics.md) | Chart recommendations, definitions, axes, denominators, and limitations |
 | [first-time-journey.md](first-time-journey.md) | First-time user journey and business-to-evidence handoff |
+| [qbo-business-journey.md](qbo-business-journey.md) | Complete QBO business-user comprehension journey |
+| [screen-specs.md](screen-specs.md) | Page jobs, primary actions, empty states, detail paths, and URL behavior |
 | [comprehension-checks.md](comprehension-checks.md) | Five-second test, participant prompts, and pass/fail criteria |
 | [implementation-sequence.md](implementation-sequence.md) | Implementation slices, acceptance criteria, and design-only handoff |
 | [evidence/README.md](evidence/README.md) | Source log, audit method, and captured current states |
+| [production-evidence.md](production-evidence.md) | Authenticated production evidence and evidence limits |
+| [ui-skills-guidance.md](ui-skills-guidance.md) | Published UI Skills guidance applied to this product |
+| [browser-verification.md](browser-verification.md) | Local 1280 x 800 and 1440 x 900 browser verification |
 
 ## Rendered artifacts
 
 The package includes annotated SVG wireframes for:
 
-- current and proposed navigation;
-- current and proposed Overview at 1280×800;
-- Overview at 1440×900;
-- Journeys, Quality, Issues, and Evidence;
+- current screenshots and proposed navigation;
+- Overview and Adoption at 1280 x 800 and 1440 x 900;
+- Journeys, Quality, Issues, Evidence, and Setup at both laptop sizes;
 - the business-to-technical progressive-disclosure path;
-- live, Example data, empty, insufficient, and error state strips.
+- default, hover, focus-visible, pressed, disabled, loading, retry, tooltip, keyboard, success, error, empty, insufficient, live, and Example data states.
 
 The SVGs are intentionally static and implementation-neutral. They are review artifacts, not production components.
 
@@ -47,4 +51,4 @@ This branch changes only files under `design-plans/dashboard-business-first/`. I
 
 ## UI Skills availability note
 
-The requested `improve-ui`, `interface-design`, and `create-design-md` UI Skills were not installed or discoverable through the available local skill catalog or CLI in this environment. The package therefore records their cited process ideas from the supplied PRD—state intent before styling, one focal point per screen, deliberate type/density, progressive disclosure, and rendered artifacts—while treating TrackMCP’s truth model and the supplied PRD as the authority for product semantics.
+The requested `improve-ui`, `interface-design`, and `create-design-md` packages were not installed or discoverable through the local skill catalog or CLI. Their published guidance was reviewed and applied; see [ui-skills-guidance.md](ui-skills-guidance.md). TrackMCP's truth model and the supplied PRD remain authoritative for product semantics.
