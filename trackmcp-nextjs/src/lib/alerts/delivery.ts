@@ -64,17 +64,63 @@ export function verifyWebhookSignature(body: string, secret: string, timestamp: 
 function privateIpv4(value: string): boolean {
   const parts = value.split(".").map(Number);
   if (parts.length !== 4 || parts.some((part) => !Number.isInteger(part) || part < 0 || part > 255)) return false;
-  const [a, b] = parts;
-  return a === 10 || a === 127 || a === 0 || a === 100 && b >= 64 && b <= 127 || a === 169 && b === 254 || a === 172 && b >= 16 && b <= 31 || a === 192 && (b === 0 || b === 168) || a === 198 && b >= 18 && b <= 19 || a >= 224;
+  const [a, b, c] = parts;
+  return a === 0 || a === 10 || a === 127 || a === 100 && b >= 64 && b <= 127 || a === 169 && b === 254 || a === 172 && b >= 16 && b <= 31 || a === 192 && (b === 0 || b === 2 || b === 88 || b === 168) || a === 198 && (b >= 18 && b <= 19 || b === 51) || a === 203 && b === 0 && c === 113 || a >= 224;
+}
+
+function ipv6Hextets(value: string): number[] | null {
+  const sections = value.toLowerCase().split("::");
+  if (sections.length > 2) return null;
+  const left = sections[0] ? sections[0].split(":") : [];
+  const right = sections.length === 2 && sections[1] ? sections[1].split(":") : [];
+  if ([...left, ...right].some((part) => !/^[0-9a-f]{1,4}$/.test(part))) return null;
+  if (sections.length === 1 && left.length !== 8) return null;
+  if (sections.length === 2 && left.length + right.length >= 8) return null;
+  const middle = Array.from({ length: sections.length === 2 ? 8 - left.length - right.length : 0 }, () => "0");
+  return [...left, ...middle, ...right].map((part) => Number.parseInt(part, 16));
+}
+
+function ipv6InRange(address: number[], prefix: number[], prefixBits: number): boolean {
+  for (let index = 0; index < prefix.length; index += 1) {
+    const remaining = prefixBits - index * 16;
+    if (remaining <= 0) break;
+    const mask = remaining >= 16 ? 0xffff : (0xffff << (16 - remaining)) & 0xffff;
+    if ((address[index] & mask) !== (prefix[index] & mask)) return false;
+  }
+  return true;
 }
 
 function privateAddress(value: string): boolean {
   const normalized = value.toLowerCase();
   if (isIP(normalized) === 4) return privateIpv4(normalized);
   if (isIP(normalized) !== 6) return true;
-  if (normalized.startsWith("::ffff:")) return privateIpv4(normalized.slice("::ffff:".length));
-  const firstHextet = Number.parseInt(normalized.split(":")[0] || "0", 16);
-  return normalized === "::1" || normalized === "::" || (firstHextet >= 0xfe80 && firstHextet <= 0xfebf) || normalized.startsWith("fc") || normalized.startsWith("fd");
+  if (normalized.startsWith("::ffff:") && isIP(normalized.slice("::ffff:".length)) === 4) return privateIpv4(normalized.slice("::ffff:".length));
+  const address = ipv6Hextets(normalized);
+  if (!address) return true;
+  const embeddedIpv4 = address.slice(0, 6).every((part) => part === 0)
+    || address.slice(0, 5).every((part) => part === 0) && address[5] === 0xffff
+    || ipv6InRange(address, [0x64, 0xff9b, 0, 0, 0, 0, 0, 0], 96)
+    || ipv6InRange(address, [0x2002, 0, 0, 0, 0, 0, 0, 0], 16)
+    || ipv6InRange(address, [0x2001, 0, 0, 0, 0, 0, 0, 0], 32);
+  if (embeddedIpv4) {
+    const embeddedParts = address.slice(6, 8);
+    const embedded = `${embeddedParts[0] >> 8}.${embeddedParts[0] & 0xff}.${embeddedParts[1] >> 8}.${embeddedParts[1] & 0xff}`;
+    if (privateIpv4(embedded)) return true;
+    // IPv4-compatible, mapped, NAT64, 6to4, and Teredo forms remain rejected
+    // even when their normalized embedded address is public.
+    return true;
+  }
+  return ipv6InRange(address, [0, 0, 0, 0, 0, 0, 0, 0], 128)
+    || ipv6InRange(address, [0, 0, 0, 0, 0, 0, 0, 1], 128)
+    || ipv6InRange(address, [0xfe80, 0, 0, 0, 0, 0, 0, 0], 10)
+    || ipv6InRange(address, [0xfc00, 0, 0, 0, 0, 0, 0, 0], 7)
+    || ipv6InRange(address, [0xfec0, 0, 0, 0, 0, 0, 0, 0], 10)
+    || ipv6InRange(address, [0xff00, 0, 0, 0, 0, 0, 0, 0], 8)
+    || ipv6InRange(address, [0x100, 0, 0, 0, 0, 0, 0, 0], 64)
+    || ipv6InRange(address, [0x2001, 0x2, 0, 0, 0, 0, 0, 0], 48)
+    || ipv6InRange(address, [0x2001, 0x10, 0, 0, 0, 0, 0, 0], 28)
+    || ipv6InRange(address, [0x2001, 0x20, 0, 0, 0, 0, 0, 0], 28)
+    || ipv6InRange(address, [0x2001, 0xdb8, 0, 0, 0, 0, 0, 0], 32);
 }
 
 export async function validateWebhookDestination(value: string, lookupImpl: LookupFunction = lookup): Promise<{ ok: true; url: string } | { ok: false; reason: "invalid_url" | "private_target" | "internal_hostname" | "dns_failure" }> {
@@ -83,7 +129,7 @@ export async function validateWebhookDestination(value: string, lookupImpl: Look
   const hostname = endpoint.hostname.toLowerCase().replace(/^\[|\]$/g, "");
   if (endpoint.protocol !== "https:" || endpoint.username || endpoint.password || !hostname) return { ok: false, reason: "invalid_url" };
   if (hostname === "localhost" || hostname.endsWith(".localhost") || hostname.endsWith(".local") || hostname.endsWith(".internal") || hostname.endsWith(".lan") || hostname.endsWith(".home.arpa") || !hostname.includes(".")) return { ok: false, reason: "internal_hostname" };
-  if (/^(?:0x[0-9a-f]+|[0-9]+)$/i.test(hostname) || privateAddress(hostname)) return { ok: false, reason: "private_target" };
+  if (/^(?:0x[0-9a-f]+|[0-9]+)$/i.test(hostname) || (isIP(hostname) !== 0 && privateAddress(hostname))) return { ok: false, reason: "private_target" };
   try {
     const addresses = await lookupImpl(hostname, { all: true, verbatim: true });
     if (!addresses.length || addresses.some((address) => privateAddress(address.address))) return { ok: false, reason: "private_target" };

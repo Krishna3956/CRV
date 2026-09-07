@@ -181,6 +181,8 @@ sam delete --stack-name "$STACK_NAME" --region "$AWS_REGION"
 ```
 
 Revoke or rotate the Secrets Manager value and the matching App Runner token
-after removal. DNS destination validation performs a check-then-fetch with
-redirects disabled; it is not a proof against DNS rebinding, so use normal
-egress controls. Only trusted public HTTPS endpoints are supported.
+after removal. DNS destination validation resolves and checks every A and AAAA
+address before the fetch, and redirects are disabled/rejected. This
+check-then-fetch remains subject to a DNS-rebinding time-of-check/time-of-use
+race; it is not a proof against rebinding, so use normal egress controls. Only
+public HTTPS endpoints are supported.
