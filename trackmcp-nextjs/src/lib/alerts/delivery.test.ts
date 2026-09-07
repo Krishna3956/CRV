@@ -29,17 +29,38 @@ test("webhook timeout and retryable failures are bounded", async () => {
   assert.equal(retryable.state, "retryable_failure");
 });
 
-test("webhooks reject private, internal, encoded, and redirect targets", async () => {
+test("webhooks accept public DNS targets after checking every resolved address", async () => {
+  const publicLookup = async (): Promise<Array<{ address: string; family: 4 | 6 }>> => [{ address: "93.184.216.34", family: 4 }];
+  const lambdaHostname = "doali4pvvdpoqywnjiaerpktga0ryfkb.lambda-url.ap-south-1.on.aws";
+  assert.deepEqual(await validateWebhookDestination(`https://${lambdaHostname}/`, publicLookup), { ok: true, url: `https://${lambdaHostname}/` });
+  const mappedPublicLookup = async (): Promise<Array<{ address: string; family: 4 | 6 }>> => [{ address: "::ffff:5db8:d822", family: 6 }];
+  assert.equal((await validateWebhookDestination("https://mapped.example.test/hook", mappedPublicLookup)).ok, true);
+  const mixedLookup = async (): Promise<Array<{ address: string; family: 4 | 6 }>> => [{ address: "93.184.216.34", family: 4 }, { address: "10.0.0.1", family: 4 }];
+  assert.equal((await validateWebhookDestination("https://mixed.example.test/hook", mixedLookup)).ok, false);
+});
+
+test("webhooks reject private, reserved, metadata, encoded, and link-local targets", async () => {
   const publicLookup = async (): Promise<Array<{ address: string; family: 4 | 6 }>> => [{ address: "93.184.216.34", family: 4 }];
   assert.equal((await validateWebhookDestination("https://127.0.0.1/hook", publicLookup)).ok, false);
+  assert.equal((await validateWebhookDestination("https://10.0.0.1/hook", publicLookup)).ok, false);
+  assert.equal((await validateWebhookDestination("https://169.254.169.254/hook", publicLookup)).ok, false);
+  assert.equal((await validateWebhookDestination("https://192.0.2.1/hook", publicLookup)).ok, false);
+  assert.equal((await validateWebhookDestination("https://198.51.100.1/hook", publicLookup)).ok, false);
   assert.equal((await validateWebhookDestination("https://service.internal/hook", publicLookup)).ok, false);
   assert.equal((await validateWebhookDestination("https://2130706433/hook", publicLookup)).ok, false);
+  assert.equal((await validateWebhookDestination("https://0x7f000001/hook", publicLookup)).ok, false);
+  assert.equal((await validateWebhookDestination("https://0177.0.0.1/hook", publicLookup)).ok, false);
   const allow = async (url: string): Promise<{ ok: true; url: string }> => ({ ok: true, url });
   const redirect = await sendSignedWebhook({ url: "https://hooks.example.test/trackmcp", secret: "secret", incident, idempotencyKey: "delivery-redirect", validateDestination: allow, fetchImpl: async (_url, init) => { assert.ok(init); assert.equal(init.redirect, "manual"); return new Response(null, { status: 302, headers: { location: "https://127.0.0.1" } }); } });
   assert.equal(redirect.state, "permanent_failure");
   assert.equal(redirect.error_code, "redirect_blocked");
   const linkLocal = async (): Promise<Array<{ address: string; family: 4 | 6 }>> => [{ address: "fe90::1", family: 6 }];
   assert.equal((await validateWebhookDestination("https://hooks.example.test/hook", linkLocal)).ok, false);
+  const ipv6Rejected = ["::1", "::", "fc00::1", "fec0::1", "ff02::1", "100::1", "2001:2::1", "2001:10::1", "2001:20::1", "2001:db8::1", "::ffff:127.0.0.1"];
+  for (const address of ipv6Rejected) {
+    const lookup = async (): Promise<Array<{ address: string; family: 4 | 6 }>> => [{ address, family: 6 }];
+    assert.equal((await validateWebhookDestination("https://ipv6.example.test/hook", lookup)).ok, false, address);
+  }
 });
 
 test("webhook timeout wins even when fetch ignores abort", async () => {
