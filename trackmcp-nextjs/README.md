@@ -36,11 +36,18 @@ docs](https://trackmcp.com/docs/api).
 - Observed p50/p95 latency using nearest-rank samples; `N/A` is shown when no duration
   samples exist.
 - Explicit application-emitted workflow outcomes, kept separate from tool success.
+- Disabled-by-default regression alert APIs using seven complete UTC baseline days,
+  the latest complete UTC day, server-only metrics, durable incident state, and
+  bounded signed webhook delivery. Hourly evaluation is invoked by the separate
+  disabled-by-default AWS scheduler worker; the dashboard Alerts view is
+  intentionally a later increment after the backend contract is reviewed.
 
 Payloads are sanitized locally with recursive sensitive-key redaction, explicit path
 compatibility, binary/base64/resource scrubbing, depth/breadth/string/byte limits,
-and truncation markers. TrackMCP does not provide model/session replay, alerts,
-exports, gateways, or proxying for arbitrary hosted servers in P0.
+and truncation markers. Alert evidence contains bounded aggregates only; it never
+contains raw event payloads, secrets, private reasoning, prompts, or completions.
+TrackMCP does not provide model/session replay, exports, gateways, or proxying for
+arbitrary hosted servers.
 
 ## Development
 
