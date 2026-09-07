@@ -1,487 +1,2902 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import {
-  Activity, AlertTriangle, ArrowRight, BarChart3, Check, ChevronDown, ChevronRight, CircleHelp,
-  Clipboard, Clock3, ExternalLink, Gauge, Info, KeyRound, Layers3, LogOut, RefreshCw,
-  Search, Settings, Sparkles, Target, Users, Wrench, X,
+  Activity,
+  AlertTriangle,
+  ArrowRight,
+  BarChart3,
+  CalendarDays,
+  Check,
+  ChevronRight,
+  Clipboard,
+  FileWarning,
+  Gauge,
+  Info,
+  KeyRound,
+  LayoutGrid,
+  ListChecks,
+  LogOut,
+  RefreshCw,
+  Search,
+  Settings2,
+  Users,
+  X,
 } from "lucide-react";
-import type { Analytics, ToolQualityResponse } from "@/lib/telemetry/analytics-types";
+import type { LucideIcon } from "lucide-react";
+import type {
+  Analytics,
+  ToolQualityInsufficientReason,
+  ToolQualityResponse,
+} from "@/lib/telemetry/analytics-types";
+import type { AlertIncident } from "@/lib/alerts/types";
 import { TrackMCPLogo } from "@/components/TrackMCPLogo";
-import { ClientTile, type ClientName } from "@/components/ClientLogos";
-import { IntegrationChecklist } from "@/components/dashboard/IntegrationChecklist";
-import { SetupModal, type SetupDetails } from "@/components/dashboard/SetupModal";
 import { TraceExplorer } from "@/components/dashboard/TraceExplorer";
-import { TOOL_QUALITY_MIN_CATALOG_CALLS, TOOL_QUALITY_MIN_SEGMENT_CALLS, TOOL_QUALITY_MIN_SEGMENT_SESSIONS, TOOL_QUALITY_MIN_TOOL_CALLS, TOOL_QUALITY_MIN_WORKFLOW_TERMINALS } from "@/lib/telemetry/tool-quality";
+import {
+  TOOL_QUALITY_MIN_CATALOG_CALLS,
+  TOOL_QUALITY_MIN_SEGMENT_CALLS,
+  TOOL_QUALITY_MIN_TOOL_CALLS,
+  TOOL_QUALITY_MIN_WORKFLOW_TERMINALS,
+} from "@/lib/telemetry/tool-quality";
 
 type Workspace = { id: string; name: string; slug: string };
-type Key = { id: string; name: string; key_prefix: string; revoked_at: string | null; created_at: string };
-type View = "overview" | "workflows" | "sessions" | "traces" | "tools" | "catalog" | "clients" | "outcomes" | "reliability" | "releases" | "intent" | "tool-quality" | "settings";
-type NavItem = { id: View; label: string; icon: typeof Activity; group?: string; secondary?: boolean };
+type Key = {
+  id: string;
+  name: string;
+  key_prefix: string;
+  revoked_at: string | null;
+  created_at: string;
+};
+type SetupDetails = { first_name: string; last_name: string };
+type DataMode = "my" | "example";
+type AlertLoadState =
+  | "idle"
+  | "loading"
+  | "ready"
+  | "unavailable"
+  | "unauthorized"
+  | "error";
+export type View =
+  | "overview"
+  | "journeys"
+  | "capabilities"
+  | "quality"
+  | "issues"
+  | "clients"
+  | "evidence"
+  | "setup";
 
-const nav: NavItem[] = [
-  { id: "overview", label: "Overview", icon: BarChart3, group: "Home" },
-  { id: "sessions", label: "Sessions", icon: Activity, group: "Observe" },
-  { id: "workflows", label: "Workflows", icon: Layers3 },
-  { id: "traces", label: "Trace Explorer", icon: Search },
-  { id: "tools", label: "Tools", icon: Wrench, group: "Understand" },
-  { id: "tool-quality", label: "Tool quality", icon: Gauge },
-  { id: "catalog", label: "Catalog", icon: Layers3 },
-  { id: "clients", label: "Clients", icon: Users },
-  { id: "reliability", label: "Reliability", icon: AlertTriangle, group: "Improve" },
-  { id: "intent", label: "Intent & Gaps", icon: Sparkles },
-  { id: "outcomes", label: "Outcomes", icon: Target },
-  { id: "releases", label: "Releases", icon: Clock3, group: "Secondary", secondary: true },
+type NavItem = { id: View; label: string; icon: LucideIcon };
+const primaryNav: NavItem[] = [
+  { id: "overview", label: "Overview", icon: BarChart3 },
+  { id: "journeys", label: "Journeys", icon: ListChecks },
+  { id: "capabilities", label: "Capabilities", icon: LayoutGrid },
+  { id: "quality", label: "Quality", icon: Gauge },
+  { id: "issues", label: "Issues", icon: AlertTriangle },
 ];
-
-const viewLabels: Record<View, string> = Object.fromEntries(nav.map((item) => [item.id, item.label]).concat([["settings", "Configure"]])) as Record<View, string>;
-
+const moreNav: NavItem[] = [
+  { id: "clients", label: "AI clients", icon: Users },
+  { id: "evidence", label: "Evidence", icon: Search },
+  { id: "setup", label: "Setup", icon: Settings2 },
+];
+const allNav = primaryNav.concat(moreNav);
+const viewLabels: Record<View, string> = Object.fromEntries(
+  allNav.map((item) => [item.id, item.label]),
+) as Record<View, string>;
+const legacyViewMap: Record<string, View> = {
+  workflows: "journeys",
+  outcomes: "journeys",
+  tools: "capabilities",
+  catalog: "capabilities",
+  "tool-quality": "quality",
+  reliability: "quality",
+  intent: "issues",
+  clients: "clients",
+  traces: "evidence",
+  trace: "evidence",
+  settings: "setup",
+  releases: "setup",
+};
+const validViews = new Set<View>(allNav.map((item) => item.id));
 const fmt = (value: number) => value.toLocaleString();
-const percent = (value: number | null) => value === null ? "N/A" : `${Math.round(value * 100)}%`;
-const clientMark = (name: string): ClientName => {
-  const normalized = name.toLowerCase();
-  if (normalized.includes("claude")) return "Claude";
-  if (normalized.includes("cursor")) return "Cursor";
-  if (normalized.includes("chatgpt") || normalized.includes("openai")) return "ChatGPT";
-  return "Custom";
-};
-const shortDate = (value: string) => new Date(`${value}T00:00:00Z`).toLocaleDateString("en-US", { month: "short", day: "numeric", timeZone: "UTC" });
-const dateTime = (value: string) => new Date(value).toLocaleString("en-US", { month: "short", day: "numeric", year: "numeric", hour: "numeric", minute: "2-digit", timeZone: "UTC" });
+const percent = (value: number | null) =>
+  value === null ? "N/A" : Math.round(value * 100) + "%";
 
-const DEMO_ANALYTICS: Analytics = {
-  range_days: 30, total_events: 12864, protocol_events: 4218, catalog_events: 1124, protocol_versions: ["2025-06-18", "2025-11-25"], transports: ["stdio", "streamable_http", "sse"], methods: ["initialize", "notifications/initialized", "tools/list", "tools/call", "resources/list", "resources/read", "prompts/list", "prompts/get", "ping", "completion/complete"], tool_calls: 8642, sessions: 1248, errors: 286, completion_rate: 0.87, completion_source: "workflow_events",
-  funnel: { connections: 1248, discovered_tools: 18, tool_calls: 8642, successful_calls: 8356 }, intent_sources: { context_parameter: 746, external_callback: 214, fallback: 88, missing: 108 }, missing_capabilities: [{ name: "bulk_export", reports: 42 }, { name: "repository_search", reports: 27 }],
-  timeline: ["2026-08-15", "2026-08-16", "2026-08-17", "2026-08-18", "2026-08-19", "2026-08-20", "2026-08-21", "2026-08-22", "2026-08-23", "2026-08-24", "2026-08-25", "2026-08-26", "2026-08-27", "2026-08-28"].map((date, index) => ({ date, events: 640 + index * 52 + (index % 3) * 80, calls: 410 + index * 36 + (index % 4) * 42, errors: index === 6 || index === 11 ? 31 : 12 + (index % 4) * 3 })),
-  clients: [{ name: "Claude", calls: 3280 }, { name: "Cursor", calls: 2410 }, { name: "ChatGPT", calls: 1680 }, { name: "Internal agent", calls: 740 }, { name: "Claude Desktop", calls: 318 }, { name: "Windsurf", calls: 142 }, { name: "Custom client", calls: 72 }],
-  tools: [{ name: "search_docs", calls: 1682, errors: 18, error_rate: 0.011, avg_ms: 142, p50_ms: 110, p95_ms: 286, latency_sample_count: 1682, discovered: true }, { name: "create_issue", calls: 1248, errors: 34, error_rate: 0.027, avg_ms: 208, p50_ms: 160, p95_ms: 480, latency_sample_count: 1248, discovered: true }, { name: "run_query", calls: 1124, errors: 96, error_rate: 0.085, avg_ms: 640, p50_ms: 520, p95_ms: 1420, latency_sample_count: 1124, discovered: true }, { name: "get_customer", calls: 986, errors: 42, error_rate: 0.043, avg_ms: 380, p50_ms: 302, p95_ms: 880, latency_sample_count: 986, discovered: true }, { name: "list_projects", calls: 864, errors: 21, error_rate: 0.024, avg_ms: 186, p50_ms: 142, p95_ms: 420, latency_sample_count: 864, discovered: true }, { name: "create_pull_request", calls: 712, errors: 29, error_rate: 0.041, avg_ms: 428, p50_ms: 340, p95_ms: 920, latency_sample_count: 712, discovered: true }, { name: "get_deployment_status", calls: 604, errors: 16, error_rate: 0.026, avg_ms: 312, p50_ms: 240, p95_ms: 720, latency_sample_count: 604, discovered: true }, { name: "update_ticket", calls: 498, errors: 18, error_rate: 0.036, avg_ms: 274, p50_ms: 210, p95_ms: 610, latency_sample_count: 498, discovered: true }, { name: "summarize_changes", calls: 386, errors: 12, error_rate: 0.031, avg_ms: 522, p50_ms: 420, p95_ms: 1120, latency_sample_count: 386, discovered: true }, { name: "delete_environment", calls: 0, errors: 0, error_rate: 0, avg_ms: null, p50_ms: null, p95_ms: null, latency_sample_count: 0, discovered: true }], unused_tools: ["delete_environment", "deploy_service"], workflows: [{ session_id: "demo-session-1", client_name: "Claude", calls: 8, tools: ["search_docs", "get_customer", "create_issue"], started_at: "2026-08-28T10:00:00Z", duration_ms: 3680, completed: true }, { session_id: "demo-session-2", client_name: "Cursor", calls: 6, tools: ["run_query", "create_pull_request"], started_at: "2026-08-28T09:42:00Z", duration_ms: 9200, completed: false }, { session_id: "demo-session-3", client_name: "ChatGPT", calls: 11, tools: ["list_projects", "search_docs", "get_deployment_status"], started_at: "2026-08-28T09:18:00Z", duration_ms: 6410, completed: true }, { session_id: "demo-session-4", client_name: "Internal agent", calls: 14, tools: ["run_query", "update_ticket", "summarize_changes"], started_at: "2026-08-28T08:56:00Z", duration_ms: 12480, completed: true }, { session_id: "demo-session-5", client_name: "Claude Desktop", calls: 4, tools: ["search_docs", "list_projects"], started_at: "2026-08-27T16:12:00Z", duration_ms: 2880, completed: true }, { session_id: "demo-session-6", client_name: "Windsurf", calls: 7, tools: ["get_customer", "create_issue", "update_ticket"], started_at: "2026-08-27T14:04:00Z", duration_ms: 7810, completed: false }, { session_id: "demo-session-7", client_name: "Cursor", calls: 9, tools: ["run_query", "create_pull_request", "get_deployment_status"], started_at: "2026-08-27T12:32:00Z", duration_ms: 10240, completed: true }, { session_id: "demo-session-8", client_name: "Internal agent", calls: 5, tools: ["search_docs", "summarize_changes"], started_at: "2026-08-26T11:20:00Z", duration_ms: 4190, completed: true }], outcomes: [{ name: "issue_resolution", started: 168, completed: 142, failed: 26 }, { name: "deployment_check", started: 94, completed: 87, failed: 7 }, { name: "customer_lookup", started: 221, completed: 211, failed: 10 }, { name: "pull_request_review", started: 116, completed: 98, failed: 18 }, { name: "incident_triage", started: 73, completed: 62, failed: 11 }], insights: [{ level: "warn", title: "run_query is slowing down sessions", detail: "Its p95 latency is above the recommended target and appears in 31% of incomplete workflows.", metric: "640ms average" }, { level: "info", title: "Claude drives the broadest adoption", detail: "Claude accounts for the largest share of calls and uses 14 of the 18 discovered tools.", metric: "38% of calls" }, { level: "warn", title: "Two tools are advertised but unused", detail: "Review their descriptions, permissions, and placement in the catalog.", metric: "2 unused tools" }, { level: "error", title: "Pull request reviews have the lowest completion", detail: "18 of 116 observed review workflows did not reach a successful final state.", metric: "84% completion" }],
-};
-
-function sampleTimeline(days: number): Analytics["timeline"] {
-  const end = new Date("2026-08-28T00:00:00Z");
-  return Array.from({ length: days }, (_, index) => {
-    const date = new Date(end);
-    date.setUTCDate(end.getUTCDate() - (days - index - 1));
-    const calls = 360 + index * 14 + (index % 5) * 38;
-    return { date: date.toISOString().slice(0, 10), events: calls + 180 + (index % 3) * 54, calls, errors: 10 + (index % 4) * 4 + (index % 11 === 0 ? 14 : 0) };
-  });
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return Boolean(value && typeof value === "object" && !Array.isArray(value));
 }
 
-function sampleAnalytics(days: number): Analytics {
-  const ratio = days / 30;
-  const count = (value: number) => Math.max(0, Math.round(value * ratio));
-  const workflows = DEMO_ANALYTICS.workflows.slice(days <= 7 ? -5 : days <= 30 ? -7 : 0).map((workflow) => ({ ...workflow, calls: Math.max(1, count(workflow.calls)), duration_ms: Math.max(180, Math.round(workflow.duration_ms * (0.8 + ratio * 0.2))) }));
-  return {
-    ...DEMO_ANALYTICS,
-    range_days: days,
-    total_events: count(DEMO_ANALYTICS.total_events),
-    protocol_events: count(DEMO_ANALYTICS.protocol_events),
-    catalog_events: count(DEMO_ANALYTICS.catalog_events),
-    tool_calls: count(DEMO_ANALYTICS.tool_calls),
-    sessions: count(DEMO_ANALYTICS.sessions),
-    errors: count(DEMO_ANALYTICS.errors),
-    funnel: { connections: count(DEMO_ANALYTICS.funnel.connections), discovered_tools: DEMO_ANALYTICS.funnel.discovered_tools, tool_calls: count(DEMO_ANALYTICS.funnel.tool_calls), successful_calls: count(DEMO_ANALYTICS.funnel.successful_calls) },
-    timeline: sampleTimeline(days),
-    clients: DEMO_ANALYTICS.clients.map((client) => ({ ...client, calls: count(client.calls) })),
-    tools: DEMO_ANALYTICS.tools.map((tool) => ({ ...tool, calls: count(tool.calls), errors: count(tool.errors) })),
-    workflows: workflows.map((workflow) => ({ ...workflow, completion_source: "workflow_events" as const })),
-    outcomes: DEMO_ANALYTICS.outcomes.map((outcome) => ({ ...outcome, started: count(outcome.started), completed: count(outcome.completed), failed: count(outcome.failed) })),
-  };
+function parseAlertIncidents(value: unknown): AlertIncident[] {
+  if (!isRecord(value) || !Array.isArray(value.data)) return [];
+  return value.data.filter(isRecord).slice(0, 100) as AlertIncident[];
 }
 
-const DEMO_TOOL_QUALITY: ToolQualityResponse = {
-  range_days: 30,
-  source_event_count: 12864,
-  truncated: false,
-  tools: [
-    { name: "search_docs", observed: { call_count: 1682, successful_call_count: 1650, failed_call_count: 32, known_outcome_call_count: 1682, inspectable_successful_result_count: 1600, empty_result_count: 84, known_retry_call_count: 1640, retry_call_count: 41, non_retry_call_count: 1641, observed_repeat_call_count: 96, session_count: 740, associated_workflow_call_count: 520 }, metrics: { tool_call_share: 0.195, error_rate: 0.019, observable_empty_result_rate: 0.053, retry_rate: 0.025, observed_repeat_call_rate: 0.059 }, catalog_snapshots: [], trace_session_ids: ["demo-session-1"], completion_association: { explicit_workflow_count: 86, terminal_workflow_count: 86, explicitly_started_count: 92, explicitly_completed_count: 79, completion_rate: 0.919, status: "not_flagged", insufficient_data: [] }, breakdowns: { clients: [], intent_sources: [] }, insufficient_data: [] },
-    { name: "run_query", observed: { call_count: 1124, successful_call_count: 1028, failed_call_count: 96, known_outcome_call_count: 1124, inspectable_successful_result_count: 980, empty_result_count: 182, known_retry_call_count: 1088, retry_call_count: 102, non_retry_call_count: 1022, observed_repeat_call_count: 148, session_count: 610, associated_workflow_call_count: 488 }, metrics: { tool_call_share: 0.13, error_rate: 0.085, observable_empty_result_rate: 0.186, retry_rate: 0.094, observed_repeat_call_rate: 0.145 }, catalog_snapshots: [], trace_session_ids: ["demo-session-2"], completion_association: { explicit_workflow_count: 52, terminal_workflow_count: 52, explicitly_started_count: 61, explicitly_completed_count: 38, completion_rate: 0.731, status: "associated_with_low_explicit_completion", insufficient_data: [] }, breakdowns: { clients: [], intent_sources: [] }, insufficient_data: [] },
-  ],
-  tool_paths: [],
-  advertised_but_unused: [{ name: "delete_environment", description_hash: "demo-description", schema_hash: "demo-schema", observed_at: "2026-08-28T00:00:00Z" }],
-  catalog_comparisons: [],
-  insights: [{ tool_name: "run_query", path: ["run_query", "create_issue"], label: "Associated with low explicit completion", detail: "Observed association for investigation; this does not establish a cause.", metric: "73% explicit completion", evidence: { workflow_count: 52, associated_call_count: 488, completion_rate: 0.731 } }],
-};
-
-function sampleToolQuality(days: number): ToolQualityResponse {
-  const ratio = days / 30;
-  return { ...DEMO_TOOL_QUALITY, range_days: days, source_event_count: Math.max(1, Math.round(DEMO_TOOL_QUALITY.source_event_count * ratio)), tools: DEMO_TOOL_QUALITY.tools.map((tool) => ({ ...tool, observed: { ...tool.observed, call_count: Math.max(1, Math.round(tool.observed.call_count * ratio)) } })) };
+function incidentStateLabel(state: AlertIncident["state"]): string {
+  switch (state) {
+    case "firing":
+      return "Firing regression";
+    case "resolved":
+      return "Resolved";
+    case "insufficient_data":
+      return "Insufficient evidence";
+    case "invalid_configuration":
+      return "Configuration needs attention";
+    case "suppressed":
+      return "Suppressed";
+    default:
+      return "Awaiting confirmation";
+  }
 }
 
-const validViews = new Set<View>(nav.map((item) => item.id).concat("settings"));
-function isView(value: string | null): value is View { return Boolean(value && validViews.has(value as View)); }
-function readRouteState(preferredView: View = "overview") {
+function metricLabel(metric: AlertIncident["metric"]): string {
+  return metric
+    .split("_")
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(" ");
+}
+
+function summaryLabel(summary: AlertIncident["comparison"]): string {
+  if (!summary) return "Unavailable";
+  const value = summary.value === null ? "N/A" : percent(summary.value);
+  return `${summary.numerator}/${summary.denominator} (${value})`;
+}
+
+function thresholdLabel(threshold: AlertIncident["threshold"]): string {
+  const entries = Object.entries(threshold).slice(0, 4);
+  return entries.length
+    ? entries.map(([key, value]) => `${key.replaceAll("_", " ")}: ${value}`).join(" · ")
+    : "Not provided";
+}
+
+function incidentVolumeLabel(incident: AlertIncident): string {
+  const denominator = incident.comparison?.denominator;
+  return typeof denominator === "number"
+    ? `${fmt(denominator)} eligible comparison volume`
+    : "Not provided by the API";
+}
+
+function incidentDateLabel(value: string | null): string {
+  if (!value) return "Unavailable";
+  const date = new Date(value);
+  return Number.isNaN(date.getTime())
+    ? "Unavailable"
+    : date.toLocaleDateString(undefined, { month: "short", day: "numeric" });
+}
+
+function normalizeView(
+  value: string | null,
+  fallback: View = "overview",
+): View {
+  const mapped = value && legacyViewMap[value] ? legacyViewMap[value] : value;
+  return mapped && validViews.has(mapped as View) ? (mapped as View) : fallback;
+}
+
+function readRouteState(preferred: View = "overview") {
   const params = new URLSearchParams(window.location.search);
   const legacyTrace = params.get("view") === "trace";
-  const requestedView = legacyTrace ? "traces" : params.get("view") || (window.location.pathname === "/dashboard/traces" ? "traces" : preferredView);
-  const range = ["7", "30", "90"].includes(params.get("range") || "") ? params.get("range")! : "30";
-  const data = params.get("data");
-  const sample = data === "sample" ? true : data === "live" ? false : null;
-  const view = isView(requestedView) ? requestedView : "overview";
-  const origin = sample === true ? "sessions" : isView(params.get("origin")) && params.get("origin") !== "traces" ? params.get("origin") as View : "sessions";
-  const traceSelected = sample !== true && (legacyTrace || view === "traces");
+  const rawView = legacyTrace
+    ? "evidence"
+    : params.get("view") ||
+      (window.location.pathname === "/dashboard/traces"
+        ? "evidence"
+        : preferred);
+  const rawData = params.get("data");
+  const dataMode: DataMode =
+    rawData === "example" || rawData === "sample" ? "example" : "my";
+  const view = normalizeView(rawView, preferred);
+  const origin = normalizeView(params.get("origin"), "evidence");
+  const selected =
+    dataMode === "my" &&
+    (legacyTrace || view === "evidence") &&
+    Boolean(params.get("session_id") || params.get("correlation_handle"));
   return {
     view,
-    range,
-    sample,
-    sessionId: traceSelected ? params.get("session_id") : null,
-    correlationHandle: traceSelected ? params.get("correlation_handle") : null,
+    range: ["7", "30", "90"].includes(params.get("range") || "")
+      ? params.get("range") || "30"
+      : "30",
+    dataMode,
+    sessionId: selected ? params.get("session_id") : null,
+    correlationHandle: selected ? params.get("correlation_handle") : null,
     origin,
+    incidentId:
+      dataMode === "my" && view === "evidence"
+        ? params.get("incident_id")
+        : null,
   };
 }
 
-function writeRouteState(view: View, range: string, sample: boolean, sessionId: string | null = null, correlationHandle: string | null = null, origin: View = "sessions", replace = false) {
+function writeRouteState(
+  view: View,
+  range: string,
+  dataMode: DataMode,
+  sessionId: string | null = null,
+  correlationHandle: string | null = null,
+  origin: View = "evidence",
+  replace = false,
+  incidentId: string | null = null,
+) {
   const params = new URLSearchParams();
   if (sessionId || correlationHandle) {
     params.set("view", "trace");
     if (sessionId) params.set("session_id", sessionId);
     if (correlationHandle) params.set("correlation_handle", correlationHandle);
-    if (origin !== "sessions") params.set("origin", origin);
-  } else if (view !== "overview") params.set("view", view);
+    if (origin !== "evidence") params.set("origin", origin);
+  } else if (incidentId && view === "evidence" && dataMode === "my") {
+    params.set("view", "evidence");
+    params.set("incident_id", incidentId);
+  } else if (view !== "overview") {
+    params.set("view", view);
+  }
   if (range !== "30") params.set("range", range);
-  params.set("data", sample ? "sample" : "live");
+  params.set("data", dataMode);
+  const path =
+    view === "evidence" && !sessionId && !correlationHandle
+      ? "/dashboard/traces"
+      : "/dashboard";
   const query = params.toString();
-  window.history[replace ? "replaceState" : "pushState"]({}, "", `/dashboard${query ? `?${query}` : ""}`);
+  window.history[replace ? "replaceState" : "pushState"](
+    {},
+    "",
+    path + (query ? "?" + query : ""),
+  );
+}
+
+const EXAMPLE_ANALYTICS: Analytics = {
+  range_days: 30,
+  total_events: 1428,
+  protocol_events: 290,
+  catalog_events: 42,
+  protocol_versions: ["2025-11-25"],
+  transports: ["streamable_http"],
+  methods: ["tools/list", "tools/call"],
+  tool_calls: 1124,
+  sessions: 84,
+  errors: 46,
+  completion_rate: 0.667,
+  completion_source: "workflow_events",
+  correlation_quality: "session_id",
+  correlation_handle_source: "issued",
+  funnel: {
+    connections: 84,
+    discovered_tools: 12,
+    tool_calls: 1124,
+    successful_calls: 1078,
+  },
+  intent_sources: {
+    context_parameter: 48,
+    external_callback: 18,
+    fallback: 7,
+    missing: 11,
+  },
+  missing_capabilities: [{ name: "bulk_export", reports: 12 }],
+  timeline: Array.from({ length: 14 }, (_, i) => ({
+    date: "2026-08-" + String(i + 15).padStart(2, "0"),
+    events: 72 + i * 6,
+    calls: 54 + i * 5,
+    errors: i === 8 ? 9 : 2 + (i % 3),
+  })),
+  clients: [
+    { name: "Claude", calls: 520 },
+    { name: "Cursor", calls: 344 },
+    { name: "ChatGPT", calls: 210 },
+    { name: "Other observed", calls: 50 },
+  ],
+  tools: [
+    {
+      name: "run_query",
+      calls: 412,
+      errors: 28,
+      error_rate: 0.068,
+      avg_ms: 640,
+      p50_ms: 520,
+      p95_ms: 1420,
+      latency_sample_count: 412,
+      discovered: true,
+    },
+    {
+      name: "find_invoice",
+      calls: 318,
+      errors: 7,
+      error_rate: 0.022,
+      avg_ms: 220,
+      p50_ms: 180,
+      p95_ms: 480,
+      latency_sample_count: 318,
+      discovered: true,
+    },
+    {
+      name: "create_report",
+      calls: 196,
+      errors: 11,
+      error_rate: 0.056,
+      avg_ms: 420,
+      p50_ms: 360,
+      p95_ms: 920,
+      latency_sample_count: 196,
+      discovered: true,
+    },
+    {
+      name: "export_csv",
+      calls: 7,
+      errors: 0,
+      error_rate: 0,
+      avg_ms: 300,
+      p50_ms: 260,
+      p95_ms: 610,
+      latency_sample_count: 7,
+      discovered: true,
+    },
+  ],
+  catalog_tools: [],
+  unused_tools: ["bulk_export"],
+  workflows: [
+    {
+      session_id: "example-session-1",
+      client_name: "Claude",
+      calls: 8,
+      tools: ["find_invoice", "create_report"],
+      started_at: "2026-08-28T10:42:00Z",
+      duration_ms: 3680,
+      completed: true,
+      completion_source: "workflow_events",
+      correlation_quality: "session_id",
+    },
+    {
+      session_id: "example-session-2",
+      client_name: "Cursor",
+      calls: 6,
+      tools: ["run_query", "export_csv"],
+      started_at: "2026-08-28T10:18:00Z",
+      duration_ms: 9200,
+      completed: false,
+      completion_source: "workflow_events",
+      correlation_quality: "session_id",
+    },
+    {
+      session_id: "example-session-3",
+      client_name: "ChatGPT",
+      calls: 11,
+      tools: ["find_invoice", "create_report"],
+      started_at: "2026-08-27T16:12:00Z",
+      duration_ms: 6410,
+      completed: true,
+      completion_source: "workflow_events",
+      correlation_quality: "session_id",
+    },
+  ],
+  outcomes: [
+    { name: "invoice_lookup", started: 18, completed: 12, failed: 6 },
+    { name: "report_creation", started: 10, completed: 8, failed: 2 },
+  ],
+  insights: [
+    {
+      level: "warn",
+      title: "run_query is slower than its observed range",
+      detail:
+        "Review returned errors and latency before deciding what to change.",
+      metric: "p95 1.4s",
+    },
+  ],
+};
+
+const EXAMPLE_QUALITY: ToolQualityResponse = {
+  range_days: 30,
+  source_event_count: 1428,
+  truncated: false,
+  tool_paths: [],
+  advertised_but_unused: [],
+  catalog_comparisons: [],
+  insights: [],
+  tools: EXAMPLE_ANALYTICS.tools.map((tool) => ({
+    name: tool.name,
+    observed: {
+      call_count: tool.calls,
+      successful_call_count: tool.calls - tool.errors,
+      failed_call_count: tool.errors,
+      known_outcome_call_count: tool.calls,
+      inspectable_successful_result_count: tool.calls - tool.errors,
+      empty_result_count: 8,
+      known_retry_call_count: tool.calls,
+      retry_call_count: 4,
+      non_retry_call_count: tool.calls - 4,
+      observed_repeat_call_count: 12,
+      session_count: 30,
+      associated_workflow_call_count: 28,
+    },
+    metrics: {
+      tool_call_share: tool.calls / 1124,
+      error_rate: tool.error_rate,
+      observable_empty_result_rate: 0.04,
+      retry_rate: 0.02,
+      observed_repeat_call_rate: 0.05,
+    },
+    catalog_snapshots: [],
+    trace_session_ids: ["example-session-1"],
+    completion_association: {
+      explicit_workflow_count: 12,
+      terminal_workflow_count: 12,
+      explicitly_started_count: 18,
+      explicitly_completed_count: 12,
+      completion_rate: 0.667,
+      status: tool.name === "export_csv" ? "insufficient_data" : "not_flagged",
+      insufficient_data: tool.name === "export_csv" ? ["tool_volume"] : [],
+    },
+    breakdowns: { clients: [], intent_sources: [] },
+    insufficient_data: tool.name === "export_csv" ? ["tool_volume"] : [],
+  })),
+};
+
+function exampleAnalytics(days: number): Analytics {
+  const ratio = days / 30;
+  const scale = (value: number) => Math.max(0, Math.round(value * ratio));
+  return {
+    ...EXAMPLE_ANALYTICS,
+    range_days: days,
+    total_events: scale(EXAMPLE_ANALYTICS.total_events),
+    tool_calls: scale(EXAMPLE_ANALYTICS.tool_calls),
+    sessions: scale(EXAMPLE_ANALYTICS.sessions),
+    errors: scale(EXAMPLE_ANALYTICS.errors),
+    clients: EXAMPLE_ANALYTICS.clients.map((item) => ({
+      ...item,
+      calls: scale(item.calls),
+    })),
+    tools: EXAMPLE_ANALYTICS.tools.map((item) => ({
+      ...item,
+      calls: scale(item.calls),
+      errors: scale(item.errors),
+    })),
+    timeline: EXAMPLE_ANALYTICS.timeline.slice(
+      -Math.min(days, EXAMPLE_ANALYTICS.timeline.length),
+    ),
+    outcomes: EXAMPLE_ANALYTICS.outcomes.map((item) => ({
+      ...item,
+      started: scale(item.started),
+      completed: scale(item.completed),
+      failed: scale(item.failed),
+    })),
+  };
+}
+function exampleQuality(days: number): ToolQualityResponse {
+  return {
+    ...EXAMPLE_QUALITY,
+    range_days: days,
+    source_event_count: Math.round(
+      (EXAMPLE_QUALITY.source_event_count * days) / 30,
+    ),
+  };
 }
 
 export function DashboardApp({
-  email, workspace, keys, analytics, toolQuality, newKey, working, error, setupRequired, setupDetails, onboardingMode = false, initialView = "overview", onGenerateKey, onRevokeKey, onDismissKey, onRefresh, onCreateWorkspace, onSignOut,
+  email,
+  workspace,
+  keys,
+  analytics,
+  toolQuality,
+  newKey,
+  working,
+  error,
+  onboardingMode = false,
+  initialView = "overview",
+  onGenerateKey,
+  onRevokeKey,
+  onDismissKey,
+  onRefresh,
+  onCreateWorkspace,
+  onSignOut,
 }: {
-  email: string; workspace: Workspace | null; keys: Key[]; analytics: Analytics | null; toolQuality: ToolQualityResponse | null; newKey: string; working: boolean; error: string;
-  setupRequired: boolean; setupDetails: SetupDetails; onboardingMode?: boolean; initialView?: View; onGenerateKey: () => void; onRevokeKey: (id: string) => void; onDismissKey: () => void; onRefresh: (days?: string) => void; onCreateWorkspace: (details?: SetupDetails) => void; onSignOut: () => void;
+  email: string;
+  workspace: Workspace | null;
+  keys: Key[];
+  analytics: Analytics | null;
+  toolQuality: ToolQualityResponse | null;
+  newKey: string;
+  working: boolean;
+  error: string;
+  setupRequired: boolean;
+  setupDetails: SetupDetails;
+  onboardingMode?: boolean;
+  initialView?: "overview" | "traces";
+  onGenerateKey: () => void;
+  onRevokeKey: (id: string) => void;
+  onDismissKey: () => void;
+  onRefresh: (days?: string) => void;
+  onCreateWorkspace: (details?: SetupDetails) => void;
+  onSignOut: () => void;
 }) {
-  const [view, setView] = useState<View>(initialView);
-  const [onboarding, setOnboarding] = useState(onboardingMode);
+  const [view, setView] = useState<View>(
+    initialView === "traces" ? "evidence" : "overview",
+  );
   const [range, setRange] = useState("30");
-  const [copied, setCopied] = useState(false);
-  const [sampleMode, setSampleMode] = useState<boolean | null>(null);
-  const [showOnboarding, setShowOnboarding] = useState(true);
-  const [checking, setChecking] = useState(false);
-  const [checkStatus, setCheckStatus] = useState<"idle" | "checking" | "waiting">("idle");
+  const [dataMode, setDataModeState] = useState<DataMode>("my");
   const [traceSessionId, setTraceSessionId] = useState<string | null>(null);
-  const [traceCorrelationHandle, setTraceCorrelationHandle] = useState<string | null>(null);
-  const [traceOrigin, setTraceOrigin] = useState<View>("sessions");
+  const [traceCorrelationHandle, setTraceCorrelationHandle] = useState<
+    string | null
+  >(null);
+  const [traceOrigin, setTraceOrigin] = useState<View>("evidence");
+  const [incidentId, setIncidentId] = useState<string | null>(null);
+  const [alertIncidents, setAlertIncidents] = useState<AlertIncident[]>([]);
+  const [alertLoadState, setAlertLoadState] =
+    useState<AlertLoadState>("idle");
+  const [alertError, setAlertError] = useState("");
+  const [alertLoadedKey, setAlertLoadedKey] = useState<string | null>(null);
+  const [alertReloadToken, setAlertReloadToken] = useState(0);
+  const [copied, setCopied] = useState(false);
   const hasActiveKey = keys.some((key) => !key.revoked_at);
-  const needsIntegration = Boolean(workspace && (!hasActiveKey || !analytics || analytics.total_events === 0));
-  const isSample = sampleMode === true;
-  const displayedAnalytics = isSample ? sampleAnalytics(Number(range)) : analytics;
-  const displayedToolQuality = isSample ? sampleToolQuality(Number(range)) : toolQuality;
+  const isExample = dataMode === "example";
+  const displayedAnalytics = isExample
+    ? exampleAnalytics(Number(range))
+    : analytics;
+  const displayedQuality = isExample
+    ? exampleQuality(Number(range))
+    : toolQuality;
+  const workspaceId = workspace?.id || null;
+  const alertScopeKey = `${dataMode}:${workspaceId || "none"}:${hasActiveKey}:${alertReloadToken}`;
+  const alertsAvailable = dataMode === "my" && workspaceId !== null && hasActiveKey;
+  const alertScopeLoaded = alertsAvailable && alertLoadedKey === alertScopeKey;
+  const visibleAlertIncidents = alertScopeLoaded ? alertIncidents : [];
+  const visibleAlertLoadState: AlertLoadState = !alertsAvailable
+    ? "unavailable"
+    : alertScopeLoaded
+      ? alertLoadState
+      : "loading";
+  const explicitSetupRoute = onboardingMode && (!workspace || !hasActiveKey);
+  const zeroEventState = Boolean(
+    workspace &&
+    hasActiveKey &&
+    !isExample &&
+    analytics &&
+    analytics.total_events === 0,
+  );
+
   useEffect(() => {
     const applyRoute = () => {
-      const state = readRouteState(initialView);
+      const state = readRouteState(
+        initialView === "traces" ? "evidence" : "overview",
+      );
       setView(state.view);
       setRange(state.range);
-      setSampleMode(state.sample);
+      setDataModeState(state.dataMode);
       setTraceSessionId(state.sessionId);
       setTraceCorrelationHandle(state.correlationHandle);
       setTraceOrigin(state.origin);
+      setIncidentId(state.incidentId);
     };
-    // Read after hydration so server-rendered content stays stable, then keep Back/Forward useful.
-    window.setTimeout(applyRoute, 0);
+    const timer = window.setTimeout(applyRoute, 0);
     window.addEventListener("popstate", applyRoute);
-    return () => window.removeEventListener("popstate", applyRoute);
+    return () => {
+      window.clearTimeout(timer);
+      window.removeEventListener("popstate", applyRoute);
+    };
   }, [initialView]);
+
+  useEffect(() => {
+    const controller = new AbortController();
+    if (dataMode === "example" || workspaceId === null || !hasActiveKey) {
+      return () => controller.abort();
+    }
+
+    fetch("/api/v1/alert-incidents?limit=50", {
+      credentials: "same-origin",
+      headers: { Accept: "application/json" },
+      signal: controller.signal,
+    })
+      .then(async (response) => {
+        if (response.status === 401 || response.status === 403) {
+          setAlertIncidents([]);
+          setAlertLoadedKey(alertScopeKey);
+          setAlertLoadState("unauthorized");
+          return;
+        }
+        if (!response.ok) {
+          throw new Error("Could not load regression incidents.");
+        }
+        const payload: unknown = await response.json();
+        setAlertIncidents(parseAlertIncidents(payload));
+        setAlertLoadedKey(alertScopeKey);
+        setAlertLoadState("ready");
+      })
+      .catch((reason: unknown) => {
+        if (controller.signal.aborted) return;
+        setAlertIncidents([]);
+        setAlertError(
+          reason instanceof Error
+            ? reason.message
+            : "Could not load regression incidents.",
+        );
+        setAlertLoadedKey(alertScopeKey);
+        setAlertLoadState("error");
+      });
+
+    return () => controller.abort();
+  }, [alertReloadToken, alertScopeKey, dataMode, hasActiveKey, workspaceId]);
+
+  const setDataMode = (next: DataMode) => {
+    setDataModeState(next);
+    setTraceSessionId(null);
+    setTraceCorrelationHandle(null);
+    setTraceOrigin("evidence");
+    setIncidentId(null);
+    writeRouteState(view, range, next, null, null, "evidence");
+  };
+  const goTo = (next: View) => {
+    setView(next);
+    setTraceSessionId(null);
+    setTraceCorrelationHandle(null);
+    setIncidentId(null);
+    writeRouteState(next, range, dataMode);
+  };
   const openTrace = (sessionId: string, correlationHandle?: string | null) => {
-    const origin = view === "traces" ? "sessions" : view;
+    const origin = view === "evidence" ? "journeys" : view;
     setTraceSessionId(sessionId);
     setTraceCorrelationHandle(correlationHandle || null);
     setTraceOrigin(origin);
-    setView("traces");
-    writeRouteState("traces", range, isSample, sessionId, correlationHandle || null, origin);
+    setIncidentId(null);
+    setView("evidence");
+    writeRouteState(
+      "evidence",
+      range,
+      dataMode,
+      sessionId,
+      correlationHandle || null,
+      origin,
+    );
   };
   const closeTrace = () => {
     setTraceSessionId(null);
     setTraceCorrelationHandle(null);
+    setIncidentId(null);
     setView(traceOrigin);
-    writeRouteState(traceOrigin, range, isSample);
+    writeRouteState(traceOrigin, range, dataMode);
   };
-  const goTo = (next: View) => {
-    setOnboarding(false);
+  const selectRange = (next: string) => {
+    setRange(next);
+    if (dataMode === "my") onRefresh(next);
+    writeRouteState(view, next, dataMode);
+  };
+  const openIncidentEvidence = (nextIncidentId: string) => {
+    setIncidentId(nextIncidentId);
     setTraceSessionId(null);
     setTraceCorrelationHandle(null);
-    setView(next);
-    writeRouteState(next, range, isSample);
+    setTraceOrigin("issues");
+    setView("evidence");
+    writeRouteState(
+      "evidence",
+      range,
+      dataMode,
+      null,
+      null,
+      "issues",
+      false,
+      nextIncidentId,
+    );
   };
-  const openOnboarding = () => {
-    setOnboarding(true);
-    if (window.location.pathname !== "/dashboard/onboarding") window.history.pushState({}, "", "/dashboard/onboarding");
-  };
-  const checkForData = () => {
-    setChecking(true);
-    setCheckStatus("checking");
+  const refreshAll = () => {
+    setAlertReloadToken((value) => value + 1);
     onRefresh(range);
-    window.setTimeout(() => { setChecking(false); setCheckStatus("waiting"); }, 1200);
   };
   const copyKey = async () => {
     if (!newKey) return;
-    let ok = false;
-    try { if (navigator.clipboard?.writeText) { await navigator.clipboard.writeText(newKey); ok = true; } } catch { /* fallback below */ }
-    if (!ok) { const area = document.createElement("textarea"); area.value = newKey; area.style.position = "fixed"; area.style.opacity = "0"; document.body.appendChild(area); area.focus(); area.select(); try { ok = document.execCommand("copy"); } catch { ok = false; } area.remove(); }
-    if (ok) { setCopied(true); window.setTimeout(() => setCopied(false), 1600); }
+    try {
+      await navigator.clipboard.writeText(newKey);
+      setCopied(true);
+      window.setTimeout(() => setCopied(false), 1600);
+    } catch {
+      setCopied(false);
+    }
   };
 
-  const setDataMode = (nextSample: boolean) => {
-    setSampleMode(nextSample);
-    setTraceSessionId(null);
-    setTraceCorrelationHandle(null);
-    setTraceOrigin("sessions");
-    writeRouteState(view, range, nextSample, null, null, "sessions", true);
-  };
-
-  return <div className="min-h-screen bg-[#f7f8f7] font-display text-ink">
-    {!onboarding && setupRequired && <SetupModal initial={setupDetails} working={working} error={error} onSubmit={onCreateWorkspace} />}
-    <aside className="fixed inset-y-0 left-0 z-30 hidden w-[248px] border-r border-[#e2e7e3] bg-[#fbfcfb] lg:flex lg:flex-col">
-      <div className="flex h-[60px] items-center border-b border-[#e2e7e3] px-5"><TrackMCPLogo asLink={false} mark size="footer" variant="mono" /></div>
-      <div className="mx-3 mt-4 flex items-center gap-2 rounded-lg border border-line bg-white px-3 py-2.5 text-left"><span className="grid h-7 w-7 place-items-center rounded-md bg-brand text-xs font-bold text-white">{(workspace?.name || "W").slice(0, 1).toUpperCase()}</span><span className="min-w-0 flex-1"><span className="block truncate text-[12.5px] font-medium text-ink">{workspace?.name || "Workspace"}</span><span className="block text-[11px] text-faint">Workspace</span></span><ChevronDown size={14} className="text-faint" /></div>
-      <nav aria-label="Dashboard navigation" className="mt-6 overflow-y-auto px-3 pb-4">{nav.map((item, index) => <div key={item.id}>{item.group && <p className={`${index ? "mt-5" : ""} mb-2 px-3 text-[10px] font-semibold uppercase tracking-[0.12em] text-faint`}>{item.group}</p>}<button type="button" aria-current={view === item.id ? "page" : undefined} onClick={() => goTo(item.id)} className={`mb-0.5 flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-[13px] transition-colors ${view === item.id ? "bg-ink text-white shadow-sm" : item.secondary ? "text-faint hover:bg-paper hover:text-ink" : "text-muted hover:bg-paper hover:text-ink"}`}><item.icon size={16} strokeWidth={view === item.id ? 2.2 : 1.8} />{item.label}</button></div>)}</nav>
-      <div className="mt-auto border-t border-line p-3"><button type="button" onClick={() => goTo("settings")} aria-current={view === "settings" ? "page" : undefined} className={`flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-[13px] ${view === "settings" ? "bg-ink text-white" : "text-muted hover:bg-paper hover:text-ink"}`}><Settings size={16} />Configure</button><button type="button" onClick={onSignOut} className="mt-1 flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-[13px] text-muted hover:bg-paper hover:text-ink"><LogOut size={16} />Sign out</button><div className="mt-3 flex items-center gap-2 border-t border-line px-2 pt-3"><span className="grid h-7 w-7 place-items-center rounded-full bg-brand text-[10px] font-bold text-white">{email.slice(0, 1).toUpperCase()}</span><span className="min-w-0 truncate text-[11.5px] text-muted">{email}</span></div></div>
-    </aside>
-    <div className="lg:pl-[248px]">
-<header className="sticky top-0 z-20 flex min-h-[60px] items-center justify-between gap-4 border-b border-[#e2e7e3] bg-white/95 px-5 backdrop-blur sm:px-8"><div className="min-w-0"><p className="truncate text-[10px] font-medium uppercase tracking-[0.14em] text-faint">{workspace?.name || "TrackMCP"}</p><h1 className="mt-0.5 truncate text-[19px] font-semibold tracking-[-0.025em] text-ink">{viewLabels[view]}</h1></div><div className="flex shrink-0 items-center gap-2"><label className="sr-only" htmlFor="dashboard-range">Date range</label><select id="dashboard-range" value={range} onChange={(event) => { setRange(event.target.value); onRefresh(event.target.value); writeRouteState(view, event.target.value, isSample, traceSessionId, traceCorrelationHandle, traceOrigin, true); }} className="hidden border border-[#d8dfdb] bg-white px-3 py-2 text-[12px] text-[#4c5550] outline-none sm:block"><option value="7">Last 7 days</option><option value="30">Last 30 days</option><option value="90">Last 90 days</option></select><button type="button" role="switch" aria-checked={isSample} aria-label={isSample ? "Showing sample data. Switch to my data" : "Showing my data. Switch to sample data"} onClick={() => setDataMode(!isSample)} className="inline-flex min-h-9 items-center gap-2 border border-[#d8dfdb] px-2.5 py-2 text-[12px] font-medium text-[#4c5550] hover:bg-[#f6f8f6]"><span aria-hidden="true" className={`relative inline-flex h-4 w-7 shrink-0 rounded-full transition-colors ${isSample ? "bg-[#159b73]" : "bg-[#c9d1cc]"}`}><span className={`absolute top-0.5 left-0 h-3 w-3 rounded-full bg-white shadow-sm transition-transform ${isSample ? "translate-x-3.5" : "translate-x-0.5"}`} /></span><span className="whitespace-nowrap">{isSample ? "Sample data" : "My data"}</span></button><button type="button" onClick={() => onRefresh(range)} aria-label="Refresh dashboard data" title="Refresh data" className="grid h-9 w-9 place-items-center border border-[#d8dfdb] text-[#69736d] hover:bg-[#f6f8f6]"><RefreshCw size={15} /></button></div></header>
-      <div className="border-b border-line bg-white px-5 py-2.5 lg:hidden"><div className="flex gap-1 overflow-x-auto" role="navigation" aria-label="Dashboard navigation">{[...nav, { id: "settings" as View, label: "Configure", icon: Settings }].map((item) => <button type="button" aria-current={view === item.id ? "page" : undefined} key={item.id} onClick={() => goTo(item.id)} className={`shrink-0 rounded-md px-3 py-1.5 text-xs font-medium ${view === item.id ? "bg-ink text-white" : "text-muted hover:bg-paper"}`}>{item.label}</button>)}</div></div>
-<main className="mx-auto max-w-[1440px] px-5 py-7 sm:px-8 sm:py-8">{error && <div className="mb-6 flex items-center gap-2 border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700" role="alert"><AlertTriangle size={16} /><span className="min-w-0 flex-1">{error}</span>{!isSample && <button type="button" onClick={() => onRefresh(range)} className="shrink-0 font-semibold underline">Retry</button>}</div>}{workspace && needsIntegration && showOnboarding && <IntegrationChecklist hasKey={hasActiveKey} working={working} checking={checking} checkStatus={checkStatus} onGenerateKey={onGenerateKey} onRefresh={checkForData} onComplete={openOnboarding} onDismiss={() => setShowOnboarding(false)} />}{newKey && view === "settings" && <div className="mb-6 border border-brand/30 bg-brand-soft/40 p-5"><div className="flex items-start justify-between gap-3"><div><p className="text-xs font-semibold uppercase tracking-[0.1em] text-brand-strong">API key created</p><p className="mt-1 text-sm text-muted">Copy it now. The complete secret will not be shown again.</p></div><button type="button" onClick={onDismissKey} aria-label="Dismiss new API key notice" className="rounded-md p-1 text-muted hover:bg-white/70"><X size={16} /></button></div><div className="mt-4 flex flex-col gap-3 sm:flex-row"><code className="min-w-0 flex-1 overflow-x-auto rounded-lg bg-ink px-4 py-3 font-mono text-sm text-white">{`${newKey.slice(0, 10)}••••••••••••`}</code><button type="button" onClick={copyKey} className="inline-flex items-center justify-center gap-2 rounded-lg border border-line-strong bg-white px-4 py-3 text-sm font-medium text-ink">{copied ? <Check size={15} className="text-brand" /> : <KeyRound size={15} />}{copied ? "Copied" : "Copy key"}</button></div></div>}{onboarding ? <DashboardOnboarding workspace={workspace} setupDetails={setupDetails} working={working} error={error} hasKey={hasActiveKey} newKey={newKey} onCreateWorkspace={onCreateWorkspace} onGenerateKey={onGenerateKey} onOpenDashboard={() => goTo("overview")} /> : !workspace ? <SetupState working={working} onCreateWorkspace={onCreateWorkspace} /> : view === "settings" ? <SettingsView keys={keys} working={working} onGenerateKey={onGenerateKey} onRevokeKey={onRevokeKey} /> : (traceSessionId || traceCorrelationHandle) ? <TraceExplorer key={`${traceSessionId || ""}:${traceCorrelationHandle || ""}:${isSample}`} sessionId={traceSessionId} correlationHandle={traceCorrelationHandle} sampleMode={isSample} originLabel={viewLabels[traceOrigin]} onBack={closeTrace} /> : !displayedAnalytics ? error ? <LiveDataErrorState onRetry={() => onRefresh(range)} /> : <EmptyState onRetry={() => onRefresh(range)} onDemo={() => setDataMode(true)} /> : <ViewContent view={view} analytics={displayedAnalytics} toolQuality={displayedToolQuality} keys={keys} working={working} onGenerateKey={onGenerateKey} onRevokeKey={onRevokeKey} onViewChange={goTo} onViewTrace={openTrace} isSample={isSample} />}</main>
-    </div>
-  </div>;
-}
-
-function DashboardOnboarding({ workspace, setupDetails, working, error, hasKey, newKey, onCreateWorkspace, onGenerateKey, onOpenDashboard }: { workspace: Workspace | null; setupDetails: SetupDetails; working: boolean; error: string; hasKey: boolean; newKey: string; onCreateWorkspace: (details: SetupDetails) => void; onGenerateKey: () => void; onOpenDashboard: () => void }) {
-  const details = setupDetails;
-  const [installed, setInstalled] = useState(false);
-  const [copied, setCopied] = useState(false);
-  const copyKey = async () => { if (!newKey) return; try { await navigator.clipboard.writeText(newKey); setCopied(true); window.setTimeout(() => setCopied(false), 1600); } catch { setCopied(false); } };
-  const completeStepOne = () => { if (workspace) onGenerateKey(); else onCreateWorkspace(details); };
-  return <div className="min-h-[calc(100vh-58px)] bg-white">
-    <div className="mx-auto max-w-[980px] px-5 py-8 sm:px-10 sm:py-12">
-      <div className="max-w-[680px]"><p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-brand">First connection</p><h2 className="mt-3 text-[32px] font-semibold tracking-[-0.035em] text-ink sm:text-[38px]">Connect your first MCP server</h2><p className="mt-3 text-[15px] leading-relaxed text-muted">Complete these steps in your account. You can move around the dashboard at any time and return here when you are ready.</p></div>
-      {!workspace && <section className="mt-8 max-w-[720px] border border-line bg-paper p-5"><p className="text-base font-semibold text-ink">Your account details are ready</p><p className="mt-1 text-sm text-muted">We saved your name and email during signup. Continue below to create your workspace and API key.</p></section>}
-      <div className="mt-10 max-w-[820px] border-l border-line pl-6 sm:pl-8">
-        <OnboardingStep number="01" title="Create your first connection" complete={hasKey} description="Create an API key for the server you want to observe.">{hasKey ? <div className="flex items-center justify-between gap-3 border border-brand/30 bg-brand-soft/40 px-3 py-2.5"><code className="min-w-0 truncate font-mono text-xs text-brand-strong">{newKey ? `${newKey.slice(0, 10)}••••••••••••` : "API key ready in Configure"}</code>{newKey && <button onClick={() => void copyKey()} className="inline-flex shrink-0 items-center gap-1.5 text-xs font-medium text-brand-strong"><Clipboard size={13} />{copied ? "Copied" : "Copy"}</button>}</div> : <button onClick={completeStepOne} disabled={working} className="mt-4 bg-ink px-4 py-2.5 text-sm font-medium text-white disabled:opacity-60">{working ? "Creating key..." : "Add API key"}</button>}</OnboardingStep>
-        <OnboardingStep number="02" title="Install the SDK" complete={installed} description="Add TrackMCP to the existing TypeScript server that you want to measure."><div className="mt-4 flex max-w-[720px] items-center gap-3 border border-line bg-paper px-4 py-3"><code className="font-mono text-xs text-body">npm install @trackmcp/sdk</code><button onClick={async () => { try { await navigator.clipboard.writeText("npm install @trackmcp/sdk"); } catch {} }} className="ml-auto inline-flex items-center gap-1.5 text-xs font-medium text-muted hover:text-ink"><Clipboard size={13} />Copy</button></div><button onClick={() => setInstalled(true)} className="mt-3 border border-line-strong px-3.5 py-2 text-xs font-medium text-body">{installed ? "SDK installed" : "I installed the SDK"}</button></OnboardingStep>
-        <OnboardingStep number="03" title="Send your first event" complete={false} description="Run the server and make one tool call. Your sessions, tools, clients, and workflows will appear automatically."><div className="mt-4 flex flex-wrap gap-3"><button onClick={onOpenDashboard} className="bg-ink px-4 py-2.5 text-sm font-medium text-white">Open dashboard</button><a href="/docs/typescript" target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 border border-line-strong px-4 py-2.5 text-sm font-medium text-body">View SDK guide <ExternalLink size={14} /></a></div></OnboardingStep>
+  return (
+    <div className="min-h-screen bg-[#f7f8f7] font-display text-ink">
+      <aside className="fixed inset-y-0 left-0 z-30 hidden w-[248px] border-r border-line bg-[#fbfcfb] lg:flex lg:flex-col">
+        <div className="flex h-[68px] items-center border-b border-line px-5">
+          <TrackMCPLogo asLink={false} mark size="footer" variant="mono" />
+        </div>
+        <div className="mx-4 mt-5 flex items-center gap-2 rounded-lg border border-line bg-white px-3 py-2.5">
+          <span className="grid h-7 w-7 place-items-center rounded-md bg-brand text-xs font-bold text-white">
+            {(workspace?.name || "W").slice(0, 1).toUpperCase()}
+          </span>
+          <span className="min-w-0 flex-1">
+            <span className="block truncate text-[12.5px] font-semibold text-ink">
+              {workspace?.name || "Workspace"}
+            </span>
+            <span className="block text-[11px] text-faint">
+              Current environment
+            </span>
+          </span>
+        </div>
+        <DashboardNav
+          view={view}
+          items={primaryNav}
+          onNavigate={goTo}
+          label="Primary navigation"
+          groupLabel=""
+        />
+        <DashboardNav
+          view={view}
+          items={moreNav}
+          onNavigate={goTo}
+          label="More dashboard navigation"
+          groupLabel="More"
+        />
+        <div className="mt-auto border-t border-line p-3">
+          <button
+            type="button"
+            onClick={onSignOut}
+            className="flex w-full cursor-pointer items-center gap-3 rounded-lg px-3 py-2.5 text-[13px] text-muted hover:bg-paper hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
+          >
+            <LogOut size={16} />
+            Sign out
+          </button>
+          <div className="mt-3 flex items-center gap-2 border-t border-line px-2 pt-3">
+            <span className="grid h-7 w-7 place-items-center rounded-full bg-[#d7e5db] text-[10px] font-bold text-brand-strong">
+              {email.slice(0, 1).toUpperCase()}
+            </span>
+            <span className="min-w-0 truncate text-[11.5px] text-muted">
+              {email}
+            </span>
+          </div>
+        </div>
+      </aside>
+      <div className="lg:pl-[248px]">
+        <header className="sticky top-0 z-20 flex min-h-[68px] flex-wrap items-center justify-between gap-3 border-b border-line bg-white/95 px-5 py-3 backdrop-blur sm:px-8">
+          <div className="min-w-0">
+            <p className="truncate text-[10px] font-semibold uppercase tracking-[0.14em] text-faint">
+              {workspace?.name || "TrackMCP"}
+            </p>
+            <h1 className="mt-0.5 truncate text-[20px] font-semibold tracking-[-0.025em] text-ink">
+              {viewLabels[view]}
+            </h1>
+          </div>
+          <div className="flex max-w-full shrink-0 flex-wrap items-center justify-end gap-2">
+            <DateRange value={range} onChange={selectRange} />
+            <div
+              className="inline-flex rounded-lg border border-line bg-white p-0.5"
+              role="group"
+              aria-label="Data source"
+            >
+              <button
+                type="button"
+                aria-pressed={dataMode === "my"}
+                onClick={() => setDataMode("my")}
+                className={
+                  "cursor-pointer rounded-md px-3 py-2 text-[12px] font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand " +
+                  (dataMode === "my"
+                    ? "bg-ink text-white"
+                    : "text-muted hover:bg-paper hover:text-ink")
+                }
+              >
+                My data
+              </button>
+              <button
+                type="button"
+                aria-pressed={dataMode === "example"}
+                onClick={() => setDataMode("example")}
+                className={
+                  "cursor-pointer rounded-md px-3 py-2 text-[12px] font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand " +
+                  (dataMode === "example"
+                    ? "bg-[#edf3ff] text-[#4169a5]"
+                    : "text-muted hover:bg-paper hover:text-ink")
+                }
+              >
+                Example data
+              </button>
+            </div>
+            <button
+              type="button"
+              onClick={() => onRefresh(range)}
+              aria-label="Refresh dashboard data"
+              title="Refresh data"
+              className="grid h-9 w-9 cursor-pointer place-items-center rounded-md border border-line text-muted hover:bg-paper hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
+            >
+              <RefreshCw size={15} />
+            </button>
+          </div>
+        </header>
+        <div className="border-b border-line bg-white px-4 py-2.5 lg:hidden">
+          <div
+            className="flex gap-1 overflow-x-auto"
+            role="navigation"
+            aria-label="Dashboard navigation"
+          >
+            {allNav.map((item) => (
+              <button
+                type="button"
+                key={item.id}
+                aria-current={view === item.id ? "page" : undefined}
+                onClick={() => goTo(item.id)}
+                className={
+                  "shrink-0 cursor-pointer rounded-md px-3 py-2 text-xs font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand " +
+                  (view === item.id
+                    ? "bg-ink text-white"
+                    : "text-muted hover:bg-paper hover:text-ink")
+                }
+              >
+                {item.label}
+              </button>
+            ))}
+          </div>
+        </div>
+        <main className="mx-auto max-w-[1440px] px-5 py-6 sm:px-8 sm:py-8">
+          {error && (
+            <ErrorBanner message={error} onRetry={refreshAll} />
+          )}
+          {newKey && view === "setup" && (
+            <div className="mb-6 flex flex-wrap items-center gap-3 border border-brand/30 bg-brand-soft/35 p-4">
+              <div className="min-w-0 flex-1">
+                <p className="text-xs font-semibold uppercase tracking-[0.1em] text-brand-strong">
+                  Connection key created
+                </p>
+                <p className="mt-1 text-xs text-muted">
+                  Copy it now. The complete secret will not be shown again.
+                </p>
+              </div>
+              <code className="max-w-full overflow-x-auto rounded-md bg-ink px-3 py-2 font-mono text-xs text-white">
+                {newKey.slice(0, 10)}••••••••••••
+              </code>
+              <button
+                type="button"
+                onClick={() => void copyKey()}
+                className="inline-flex cursor-pointer items-center gap-1.5 rounded-md border border-line-strong bg-white px-3 py-2 text-xs font-semibold text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
+              >
+                <Clipboard size={13} />
+                {copied ? "Copied" : "Copy key"}
+              </button>
+              <button
+                type="button"
+                onClick={onDismissKey}
+                aria-label="Dismiss connection key notice"
+                className="cursor-pointer rounded-md p-2 text-muted hover:bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
+              >
+                <X size={15} />
+              </button>
+            </div>
+          )}
+          {explicitSetupRoute ? (
+            <DashboardOnboarding
+              workspace={workspace}
+              working={working}
+              error={error}
+              hasKey={hasActiveKey}
+              newKey={newKey}
+              onCreateWorkspace={onCreateWorkspace}
+              onGenerateKey={onGenerateKey}
+              onOpenDashboard={() => {
+                setView("overview");
+                window.history.pushState({}, "", "/dashboard?data=my");
+              }}
+            />
+          ) : !workspace && !isExample ? (
+            <ActivationPanel
+              state="workspace"
+              working={working}
+              onPrimary={onCreateWorkspace}
+              onOpenSetup={() => goTo("setup")}
+            />
+          ) : !hasActiveKey && !isExample ? (
+            <ActivationPanel
+              state="key"
+              working={working}
+              onPrimary={onGenerateKey}
+              onOpenSetup={() => goTo("setup")}
+            />
+          ) : (traceSessionId || traceCorrelationHandle) &&
+            dataMode === "my" ? (
+            <TraceExplorer
+              key={
+                (traceSessionId || "") + ":" + (traceCorrelationHandle || "")
+              }
+              sessionId={traceSessionId}
+              correlationHandle={traceCorrelationHandle}
+              sampleMode={false}
+              originLabel={viewLabels[traceOrigin]}
+              onBack={closeTrace}
+            />
+          ) : zeroEventState ? (
+            <OverviewSetupPanel
+              onCheck={() => onRefresh(range)}
+              onOpenSetup={() => goTo("setup")}
+            />
+          ) : !displayedAnalytics ? (
+            <LiveDataState
+              message={
+                error
+                  ? "Live data could not be loaded"
+                  : "No live data available for this period."
+              }
+              onRetry={refreshAll}
+              permission={/authoriz|permission/i.test(error)}
+            />
+          ) : view === "setup" ? (
+            <SetupView
+              keys={keys}
+              working={working}
+              onGenerateKey={onGenerateKey}
+              onRevokeKey={onRevokeKey}
+            />
+          ) : (
+            <ViewContent
+              view={view}
+              analytics={displayedAnalytics}
+              toolQuality={displayedQuality}
+              dataMode={dataMode}
+              onViewChange={goTo}
+              onViewTrace={openTrace}
+              onViewIncidentEvidence={openIncidentEvidence}
+              incident={
+                incidentId
+                  ? visibleAlertIncidents.find((item) => item.id === incidentId) ||
+                    null
+                  : null
+              }
+              alertIncidents={visibleAlertIncidents}
+              alertLoadState={visibleAlertLoadState}
+              alertError={alertError}
+              onRefresh={refreshAll}
+            />
+          )}
+        </main>
       </div>
-      {error && <p className="mt-5 max-w-[720px] border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{error}</p>}
     </div>
-  </div>;
+  );
 }
 
-function OnboardingStep({ number, title, description, complete, children }: { number: string; title: string; description: string; complete: boolean; children: React.ReactNode }) { return <section className="relative border-b border-line py-7 first:pt-0"><span className={`absolute -left-[41px] top-7 grid h-5 w-5 place-items-center rounded-full border-2 bg-white text-[9px] ${complete ? "border-brand text-brand" : "border-line-strong text-faint"}`}>{complete ? <Check size={11} /> : number}</span><p className="font-mono text-[10px] uppercase tracking-[0.14em] text-faint">Step {number}</p><h3 className="mt-1 text-[21px] font-semibold tracking-[-0.025em] text-ink">{title}{complete && <Check size={17} className="ml-2 inline text-brand" />}</h3><p className="mt-1 text-sm leading-relaxed text-muted">{description}</p>{children}</section>; }
-
-function EmptyState({ onRetry, onDemo }: { onRetry: () => void; onDemo: () => void }) { return <div className="grid min-h-[520px] place-items-center rounded-2xl border border-dashed border-line-strong bg-white"><div className="max-w-lg px-6 text-center"><span className="mx-auto grid h-14 w-14 place-items-center rounded-2xl bg-paper text-muted"><Activity size={24} /></span><h2 className="mt-5 text-2xl font-medium text-ink">No live data available</h2><p className="mt-3 text-sm leading-relaxed text-muted">No events were returned for the selected period. Connect your server or choose sample mode explicitly to explore the dashboard.</p><div className="mt-6 flex flex-col justify-center gap-2 sm:flex-row"><button onClick={onRetry} className="rounded-lg bg-ink px-5 py-3 text-sm font-medium text-white">Retry</button><button onClick={onDemo} className="rounded-lg border border-line-strong px-5 py-3 text-sm font-medium text-ink">Explore sample dashboard</button></div></div></div>; }
-function LiveDataErrorState({ onRetry }: { onRetry: () => void }) { return <div className="grid min-h-[420px] place-items-center rounded-2xl border border-red-200 bg-red-50/40"><div className="max-w-lg px-6 text-center"><span className="mx-auto grid h-14 w-14 place-items-center rounded-2xl bg-red-100 text-red-700"><AlertTriangle size={24} /></span><h2 className="mt-5 text-2xl font-medium text-ink">Live data could not be loaded</h2><p className="mt-3 text-sm leading-relaxed text-muted">The dashboard did not receive a live analytics response. No sample data has been substituted.</p><button onClick={onRetry} className="mt-6 rounded-lg bg-ink px-5 py-3 text-sm font-medium text-white">Retry</button></div></div>; }
-function SetupState({ working, onCreateWorkspace }: { working: boolean; onCreateWorkspace: () => void }) { return <div className="grid min-h-[520px] place-items-center rounded-2xl border border-dashed border-line-strong bg-white"><div className="max-w-md px-6 text-center"><span className="mx-auto grid h-14 w-14 place-items-center rounded-2xl bg-brand-soft text-brand-strong"><KeyRound size={24} /></span><h2 className="mt-5 text-2xl font-medium text-ink">Create your workspace</h2><p className="mt-3 text-sm leading-relaxed text-muted">Your workspace is where TrackMCP keeps your API keys and turns MCP activity into product insights.</p><button disabled={working} onClick={onCreateWorkspace} className="mt-6 rounded-lg bg-ink px-5 py-3 text-sm font-medium text-white disabled:opacity-60">{working ? "Creating..." : "Generate my API key"}</button></div></div>; }
-
-function ViewContent({ view, analytics, toolQuality, keys, working, onGenerateKey, onRevokeKey, onViewChange, onViewTrace, isSample }: { view: View; analytics: Analytics; toolQuality: ToolQualityResponse | null; keys: Key[]; working: boolean; onGenerateKey: () => void; onRevokeKey: (id: string) => void; onViewChange: (view: View) => void; onViewTrace: (sessionId: string, correlationHandle?: string | null) => void; isSample: boolean }) {
-  if (view === "settings") return <SettingsView keys={keys} working={working} onGenerateKey={onGenerateKey} onRevokeKey={onRevokeKey} />;
-  if (view === "tools") return <ToolsView analytics={analytics} />;
-  if (view === "catalog") return <CatalogView analytics={analytics} />;
-  if (view === "traces") return <TraceIndexView analytics={analytics} isSample={isSample} onViewTrace={onViewTrace} onViewSessions={() => onViewChange("sessions")} />;
-  if (view === "workflows" || view === "sessions") return <WorkflowsView analytics={analytics} sessionsOnly={view === "sessions"} onViewTrace={onViewTrace} isSample={isSample} />;
-  if (view === "clients") return <ClientsView analytics={analytics} />;
-  if (view === "outcomes") return <OutcomesView analytics={analytics} />;
-  if (view === "intent") return <IntentView analytics={analytics} />;
-  if (view === "tool-quality") return <ToolQualityView data={toolQuality} onViewTrace={onViewTrace} isSample={isSample} />;
-  if (view === "reliability") return <ReliabilityView analytics={analytics} onViewChange={onViewChange} />;
-  if (view === "releases") return <ReleasesView analytics={analytics} />;
-  return <Overview analytics={analytics} onViewTools={() => onViewChange("tools")} onViewSessions={() => onViewChange("sessions")} onViewTrace={onViewTrace} onViewQuality={() => onViewChange("tool-quality")} onViewIntent={() => onViewChange("intent")} isSample={isSample} />;
+function DashboardNav({
+  view,
+  items,
+  onNavigate,
+  label,
+  groupLabel,
+}: {
+  view: View;
+  items: NavItem[];
+  onNavigate: (view: View) => void;
+  label: string;
+  groupLabel: string;
+}) {
+  return (
+    <nav aria-label={label} className={groupLabel ? "mt-6 px-3" : "mt-7 px-3"}>
+      {groupLabel && (
+        <p className="mb-2 px-3 text-[10px] font-semibold uppercase tracking-[0.14em] text-faint">
+          {groupLabel}
+        </p>
+      )}
+      {items.map((item) => (
+        <button
+          type="button"
+          key={item.id}
+          aria-current={view === item.id ? "page" : undefined}
+          onClick={() => onNavigate(item.id)}
+          className={
+            "mb-1 flex w-full cursor-pointer items-center gap-3 rounded-lg px-3 py-2.5 text-left text-[13px] font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand " +
+            (view === item.id
+              ? "bg-ink text-white"
+              : "text-muted hover:bg-paper hover:text-ink")
+          }
+        >
+          <item.icon size={16} strokeWidth={view === item.id ? 2.2 : 1.8} />
+          {item.label}
+        </button>
+      ))}
+    </nav>
+  );
 }
 
-function Overview({ analytics, onViewTools, onViewSessions, onViewTrace, onViewQuality, onViewIntent, isSample }: { analytics: Analytics; onViewTools: () => void; onViewSessions: () => void; onViewTrace: (sessionId: string, correlationHandle?: string | null) => void; onViewQuality: () => void; onViewIntent: () => void; isSample: boolean }) {
-  const latest = analytics.workflows[0];
-  const hasIssues = analytics.insights.length > 0;
-  const insufficientEvidence = analytics.total_events === 0 || analytics.tool_calls === 0;
-  const explicitCompletion = analytics.completion_source === "workflow_events" && analytics.completion_rate !== null;
-  return <>
-    <PageHeader title="Overview" description="See what happened recently, identify the next investigation, and move from signal to evidence." dataMode={isSample ? "sample" : "live"} meta={`Selected period: last ${analytics.range_days} days`} />
-    <section className={`mb-6 flex flex-wrap items-center justify-between gap-4 border px-4 py-3.5 ${isSample ? "border-sky-200 bg-sky-50/70" : "border-brand/25 bg-brand-soft/35"}`} aria-label="Connection status">
-      <div className="flex items-start gap-3"><span className={`mt-0.5 grid h-8 w-8 place-items-center rounded-full ${isSample ? "bg-sky-100 text-sky-700" : "bg-brand-soft text-brand-strong"}`}>{isSample ? <Info size={16} /> : <Check size={16} />}</span><div><p className="text-sm font-semibold text-ink">{isSample ? "Sample mode selected" : "Live mode selected"}</p><p className="mt-0.5 text-xs text-muted">{isSample ? "Illustrative data is shown by explicit selection. No sample trace is presented as a live event." : "Server-observed events are shown in this view; client adapter observations stay separate."}</p></div></div>
-      <button type="button" onClick={onViewSessions} className="inline-flex items-center gap-1.5 text-xs font-semibold text-brand-strong hover:underline">{isSample ? "Connect your server" : "Inspect sessions"}<ArrowRight size={14} /></button>
+function DateRange({
+  value,
+  onChange,
+}: {
+  value: string;
+  onChange: (value: string) => void;
+}) {
+  return (
+    <div className="flex items-center gap-1.5">
+      <label className="sr-only" htmlFor="dashboard-range">
+        Activity date range
+      </label>
+      <select
+        id="dashboard-range"
+        value={value}
+        onChange={(event) => onChange(event.target.value)}
+        className="h-9 cursor-pointer rounded-md border border-line bg-white px-2.5 text-[12px] font-semibold text-body outline-none focus-visible:ring-2 focus-visible:ring-brand"
+      >
+        <option value="7">Last 7 days</option>
+        <option value="30">Last 30 days</option>
+        <option value="90">Last 90 days</option>
+      </select>
+      <button
+        type="button"
+        disabled
+        title="Custom date ranges require exact bounded-range API support"
+        className="hidden h-9 cursor-not-allowed items-center gap-1 rounded-md border border-line px-2.5 text-[11px] font-semibold text-faint sm:inline-flex"
+      >
+        <CalendarDays size={13} />
+        Custom
+      </button>
+    </div>
+  );
+}
+
+function ErrorBanner({
+  message,
+  onRetry,
+}: {
+  message: string;
+  onRetry: () => void;
+}) {
+  return (
+    <div
+      className="mb-6 flex flex-wrap items-center gap-3 border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800"
+      role="alert"
+    >
+      <AlertTriangle size={16} />
+      <span className="min-w-0 flex-1">{message}</span>
+      <button
+        type="button"
+        onClick={onRetry}
+        className="cursor-pointer font-semibold underline underline-offset-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-600"
+      >
+        Retry
+      </button>
+    </div>
+  );
+}
+
+function ActivationPanel({
+  state,
+  working,
+  onPrimary,
+  onOpenSetup,
+}: {
+  state: "workspace" | "key";
+  working: boolean;
+  onPrimary: () => void;
+  onOpenSetup: () => void;
+}) {
+  const noWorkspace = state === "workspace";
+  return (
+    <section className="mx-auto max-w-3xl border border-line bg-white p-6 shadow-[0_12px_40px_-35px_rgba(23,25,23,.4)] sm:p-8">
+      <div className="flex items-start gap-3">
+        <span className="grid h-10 w-10 shrink-0 place-items-center rounded-lg bg-paper text-muted">
+          {noWorkspace ? <KeyRound size={19} /> : <Settings2 size={19} />}
+        </span>
+        <div>
+          <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-brand-strong">
+            Activate / setup
+          </p>
+          <h2 className="mt-2 text-2xl font-semibold tracking-[-0.03em] text-ink">
+            {noWorkspace ? "Create a workspace" : "Create a connection key"}
+          </h2>
+          <p className="mt-2 max-w-xl text-sm leading-relaxed text-muted">
+            {noWorkspace
+              ? "Create a workspace to connect your server, or explore clearly labeled Example data from the top bar."
+              : "The connection key authenticates server telemetry to this workspace. Keep it in the server environment."}
+          </p>
+        </div>
+      </div>
+      <div className="mt-7 flex flex-wrap gap-3">
+        <button
+          type="button"
+          disabled={working}
+          onClick={onPrimary}
+          className="inline-flex cursor-pointer items-center gap-2 rounded-md bg-ink px-4 py-2.5 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
+        >
+          {working
+            ? "Working…"
+            : noWorkspace
+              ? "Create workspace"
+              : "Create connection key"}
+          <ArrowRight size={15} />
+        </button>
+        <button
+          type="button"
+          onClick={onOpenSetup}
+          className="inline-flex cursor-pointer items-center gap-2 rounded-md border border-line-strong bg-white px-4 py-2.5 text-sm font-semibold text-body hover:bg-paper focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
+        >
+          Open Setup
+        </button>
+      </div>
     </section>
-    <div className="mb-6 grid gap-3 sm:grid-cols-2 xl:grid-cols-4"><Metric label="Tool calls" value={fmt(analytics.tool_calls)} icon={Wrench} /><Metric label="Sessions" value={fmt(analytics.sessions)} icon={Activity} /><Metric label="Errors" value={fmt(analytics.errors)} icon={AlertTriangle} tone={analytics.errors ? "warn" : "normal"} helper={analytics.tool_calls ? `${fmt(analytics.tool_calls)} call denominator` : "No call denominator"} /><Metric label="Completion" value={explicitCompletion ? percent(analytics.completion_rate) : "N/A"} icon={Target} tone={explicitCompletion ? "normal" : "warn"} helper={explicitCompletion ? "Explicit workflow outcome events" : "No explicit workflow outcome data"} /></div>
-    <div className="grid gap-6 xl:grid-cols-[minmax(0,1.65fr)_minmax(300px,0.85fr)]"><Panel title="Usage over time" subtitle="Server-observed tool calls and all events by day" info="Tool calls are the denominator for call-level rates. Client adapter events are excluded from server analytics."><UsageChart timeline={analytics.timeline} /></Panel><AttentionPanel analytics={analytics} hasIssues={hasIssues} insufficientEvidence={insufficientEvidence} isSample={isSample} onViewQuality={onViewQuality} onViewIntent={onViewIntent} onViewTrace={onViewTrace} /></div>
-    <div className="mt-6 grid gap-6 xl:grid-cols-[minmax(0,1.15fr)_minmax(0,0.85fr)]"><Panel title="Recent sessions" subtitle="Choose a bounded trace to investigate" action={{ label: "View all sessions", onClick: onViewSessions }}><div className="mt-2 divide-y divide-line">{analytics.workflows.slice(0, 4).map((workflow) => <div key={workflow.session_id} className="flex items-center justify-between gap-4 py-3"><div className="min-w-0"><p className="truncate font-mono text-xs text-ink">{workflow.session_id}</p><p className="mt-1 text-[11px] text-muted">{workflow.client_name} · {workflow.calls} calls · {correlationLabel(workflow.correlation_quality)}</p></div>{isSample ? <span className="text-[11px] text-faint">Sample only</span> : <button type="button" onClick={() => onViewTrace(workflow.session_id, workflow.correlation_handle)} className="inline-flex shrink-0 items-center gap-1 text-xs font-semibold text-brand-strong hover:underline">View trace <ChevronRight size={13} /></button>}</div>)}{!analytics.workflows.length && <p className="py-7 text-sm text-muted">No sessions have been observed yet.</p>}</div></Panel><Panel title="Top tools" action={{ label: "View tools", onClick: onViewTools }}><div className="mt-2 divide-y divide-line">{analytics.tools.slice(0, 5).map((tool) => <ToolRow key={tool.name} tool={tool} />)}{!analytics.tools.length && <p className="py-7 text-sm text-muted">No tool calls received yet.</p>}</div></Panel></div>
-    {latest && <p className="mt-4 text-[11px] text-faint">Latest observed session: {dateTime(latest.started_at)} UTC · completion source remains explicit only when workflow events were emitted.</p>}
-  </>;
+  );
 }
 
-function UsageChart({ timeline }: { timeline: Analytics["timeline"] }) {
-  const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
-  if (!timeline.length) return <div className="grid h-[280px] place-items-center text-sm text-muted">No daily activity yet.</div>;
-  const width = 760;
-  const height = 250;
-  const left = 46;
-  const right = 14;
-  const top = 18;
-  const bottom = 42;
-  const plotWidth = width - left - right;
-  const plotHeight = height - top - bottom;
-  const maxValue = Math.max(1, ...timeline.flatMap((day) => [day.calls, day.events]));
-  const x = (index: number) => left + (timeline.length === 1 ? plotWidth / 2 : (index / (timeline.length - 1)) * plotWidth);
-  const y = (value: number) => top + plotHeight - (value / maxValue) * plotHeight;
-  const callsPath = timeline.map((day, index) => `${x(index)},${y(day.calls)}`).join(" ");
-  const eventsPath = timeline.map((day, index) => `${x(index)},${y(day.events)}`).join(" ");
-  const labelIndexes = timeline.map((_, index) => index).filter((index) => index === 0 || index === timeline.length - 1 || index === Math.floor((timeline.length - 1) / 2));
-  return <div className="mt-5">
-    <div className="mb-3 flex flex-wrap items-center gap-4 text-[11px] text-muted"><span className="inline-flex items-center gap-1.5"><span className="h-2 w-2 rounded-full bg-brand" />Tool calls</span><span className="inline-flex items-center gap-1.5"><span className="h-2 w-2 rounded-full bg-sky-400" />All events</span><span className="ml-auto">Hover a point for details</span></div>
-    <div className="overflow-x-auto pb-1"><svg viewBox={`0 0 ${width} ${height}`} role="img" aria-label="Usage over time chart" className="h-[280px] min-w-[620px] w-full">
-      {[0, 0.5, 1].map((ratio) => <g key={ratio}><line x1={left} x2={width - right} y1={top + plotHeight * ratio} y2={top + plotHeight * ratio} stroke="#e7ebe8" strokeDasharray="3 4" /><text x={left - 10} y={top + plotHeight * ratio + 4} textAnchor="end" className="fill-[#9a9f9c] text-[10px]">{fmt(Math.round(maxValue * (1 - ratio)))}</text></g>)}
-      <polyline points={eventsPath} fill="none" stroke="#38a8d8" strokeOpacity="0.65" strokeWidth="2" />
-      <polyline points={callsPath} fill="none" stroke="#159b73" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
-      {timeline.map((day, index) => <g key={day.date} onMouseEnter={() => setHoveredIndex(index)} onMouseLeave={() => setHoveredIndex(null)}><title>{`${shortDate(day.date)}: ${fmt(day.calls)} calls, ${fmt(day.events)} events, ${fmt(day.errors)} errors`}</title><rect x={Math.max(left, x(index) - 14)} y={top} width="28" height={plotHeight} fill="transparent" /><circle cx={x(index)} cy={y(day.events)} r="3" fill="white" stroke="#38a8d8" strokeWidth="2" /><circle cx={x(index)} cy={y(day.calls)} r="4" fill="#159b73" stroke="white" strokeWidth="2" /></g>)}
-      {hoveredIndex !== null && <g pointerEvents="none"><rect x={Math.min(width - 164, Math.max(left, x(hoveredIndex) - 82))} y={top + 8} width="164" height="58" rx="6" fill="#151515" /><text x={Math.min(width - 152, Math.max(left + 12, x(hoveredIndex) - 70))} y={top + 26} className="fill-white text-[10px]">{shortDate(timeline[hoveredIndex].date)}</text><text x={Math.min(width - 152, Math.max(left + 12, x(hoveredIndex) - 70))} y={top + 42} className="fill-white/75 text-[9px]">{fmt(timeline[hoveredIndex].calls)} calls · {fmt(timeline[hoveredIndex].events)} events</text><text x={Math.min(width - 152, Math.max(left + 12, x(hoveredIndex) - 70))} y={top + 55} className="fill-rose-200 text-[9px]">{fmt(timeline[hoveredIndex].errors)} errors</text></g>}
-      {labelIndexes.map((index) => <text key={timeline[index].date} x={x(index)} y={height - 12} textAnchor={index === 0 ? "start" : index === timeline.length - 1 ? "end" : "middle"} className="fill-[#7c857f] text-[10px]">{shortDate(timeline[index].date)}</text>)}
-    </svg></div>
-  </div>;
+function OverviewSetupPanel({
+  onCheck,
+  onOpenSetup,
+}: {
+  onCheck: () => void;
+  onOpenSetup: () => void;
+}) {
+  return (
+    <div>
+      <PageIntro
+        title="Overview"
+        description="See activity, explicit work outcomes, and what deserves attention next."
+      />
+      <section className="border border-line bg-white p-6 sm:p-8">
+        <div className="flex items-start gap-3">
+          <span className="grid h-10 w-10 shrink-0 place-items-center rounded-lg bg-paper text-muted">
+            <Info size={19} />
+          </span>
+          <div>
+            <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-brand-strong">
+              My data selected
+            </p>
+            <h2 className="mt-2 text-xl font-semibold tracking-[-0.025em] text-ink">
+              Your server has not sent its first event yet.
+            </h2>
+            <p className="mt-2 max-w-2xl text-sm leading-relaxed text-muted">
+              Install the SDK, make one real tool call, then check again. The
+              selected activity range stays in place, and no Example data is
+              substituted.
+            </p>
+            <div className="mt-5 flex flex-wrap gap-3">
+              <button
+                type="button"
+                onClick={onCheck}
+                className="inline-flex cursor-pointer items-center gap-2 rounded-md bg-ink px-4 py-2.5 text-sm font-semibold text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
+              >
+                <RefreshCw size={15} />
+                Check for first event
+              </button>
+              <button
+                type="button"
+                onClick={onOpenSetup}
+                className="inline-flex cursor-pointer items-center gap-2 rounded-md border border-line-strong bg-white px-4 py-2.5 text-sm font-semibold text-body hover:bg-paper focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
+              >
+                View installation instructions
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+      <section className="mt-6 border border-line bg-white p-5">
+        <h2 className="text-[15px] font-semibold text-ink">Needs attention</h2>
+        <p className="mt-2 text-sm font-semibold text-ink">Insufficient data to identify an issue</p>
+        <p className="mt-1 text-xs text-muted">No actionable signals yet. This is a neutral data-availability state, not confirmed healthy status.</p>
+      </section>
+      <p className="mt-4 text-xs text-faint">
+        Source: workspace, active key, and analytics event count. TrackMCP
+        cannot verify SDK installation or server reachability from the current
+        API.
+      </p>
+    </div>
+  );
 }
 
-function Metric({ label, value, icon: Icon, tone = "normal", helper }: { label: string; value: string; icon: typeof Activity; tone?: "normal" | "warn"; helper?: string }) { return <div className="border border-line bg-white p-4"><div className="flex items-start justify-between gap-2"><span className="text-[10px] font-semibold uppercase tracking-[0.08em] text-faint">{label}</span><Icon size={15} className={tone === "warn" ? "text-amber-600" : "text-brand"} /></div><p className="mt-3 text-[28px] font-semibold tracking-[-0.04em] text-ink">{value}</p>{helper && <p className="mt-1 text-[11px] text-muted">{helper}</p>}</div>; }
-function Panel({ title, subtitle, children, action, info }: { title: string; subtitle?: string; children: React.ReactNode; action?: { label: string; onClick: () => void }; info?: string }) { return <section className="border border-line bg-white p-5 sm:p-6"><div className="flex items-start justify-between gap-4"><div><div className="flex items-center gap-1.5"><h2 className="text-[15px] font-semibold text-ink">{title}</h2>{info && <span title={info} aria-label={info} className="text-faint"><CircleHelp size={14} /></span>}</div>{subtitle && <p className="mt-1 text-xs text-muted">{subtitle}</p>}</div>{action && <button type="button" onClick={action.onClick} className="inline-flex items-center gap-1 text-xs font-semibold text-brand-strong hover:underline">{action.label}<ChevronRight size={13} /></button>}</div>{children}</section>; }
-function PageHeader({ title, description, dataMode, meta }: { title: string; description: string; dataMode?: "live" | "sample"; meta?: string }) { return <div className="mb-6 flex flex-wrap items-start justify-between gap-4"><div><h2 className="text-[26px] font-semibold tracking-[-0.035em] text-ink">{title}</h2><p className="mt-1.5 max-w-2xl text-sm leading-relaxed text-muted">{description}</p>{meta && <p className="mt-2 text-[11px] text-faint">{meta}</p>}</div>{dataMode && <DataModeBadge mode={dataMode} />}</div>; }
-function DataModeBadge({ mode }: { mode: "live" | "sample" }) { return <span className={`inline-flex items-center gap-2 border px-3 py-1.5 text-xs font-semibold ${mode === "live" ? "border-brand/25 bg-brand-soft/45 text-brand-strong" : "border-sky-200 bg-sky-50 text-sky-700"}`}><span className={`h-1.5 w-1.5 rounded-full ${mode === "live" ? "bg-brand" : "bg-sky-500"}`} />{mode === "live" ? "Live data" : "Sample data"}</span>; }
-function AttentionPanel({ analytics, hasIssues, insufficientEvidence, isSample, onViewQuality, onViewIntent, onViewTrace }: { analytics: Analytics; hasIssues: boolean; insufficientEvidence: boolean; isSample: boolean; onViewQuality: () => void; onViewIntent: () => void; onViewTrace: (sessionId: string, correlationHandle?: string | null) => void }) {
-  const issue = analytics.insights[0];
-  return <Panel title="What needs attention" subtitle={hasIssues ? "Observed signal · review this area" : insufficientEvidence ? "Insufficient data to identify an issue" : "No actionable signals yet"}>
-    <div className="mt-3 space-y-2.5">{issue ? <div className="border-l-2 border-amber-400 bg-amber-50/70 p-3.5"><div className="flex items-start gap-2.5"><AlertTriangle size={16} className="mt-0.5 shrink-0 text-amber-700" /><div><p className="text-[10px] font-semibold uppercase tracking-[0.08em] text-amber-800">Observed signal</p><p className="mt-1 text-[13px] font-semibold text-ink">Review this area</p><p className="mt-1 text-xs leading-relaxed text-muted">{issue.detail}</p><p className="mt-2 font-mono text-[11px] text-amber-800">{issue.metric}</p></div></div><button type="button" onClick={issue.title.toLowerCase().includes("intent") ? onViewIntent : onViewQuality} className="mt-3 inline-flex items-center gap-1 text-xs font-semibold text-amber-800 hover:underline">Review evidence <ArrowRight size={13} /></button></div> : <div className="bg-paper p-3.5"><div className="flex items-start gap-2.5"><Info size={16} className="mt-0.5 shrink-0 text-muted" /><p className="text-xs leading-relaxed text-muted">{insufficientEvidence ? "Insufficient data to identify an issue." : "No actionable signals yet. This is not a confirmed healthy status."}</p></div></div>}{analytics.workflows[0] && (isSample ? <div className="flex items-center gap-2 border border-line bg-paper px-3.5 py-3 text-[11px] text-faint"><Info size={14} />Latest trace entry is sample-only</div> : <button type="button" onClick={() => onViewTrace(analytics.workflows[0].session_id, analytics.workflows[0].correlation_handle)} className="flex w-full items-center justify-between border border-line px-3.5 py-3 text-left hover:bg-paper"><span><span className="block text-xs font-semibold text-ink">Inspect latest trace</span><span className="mt-0.5 block text-[11px] text-muted">{correlationLabel(analytics.workflows[0].correlation_quality)} · {analytics.workflows[0].calls} calls</span></span><ChevronRight size={15} className="text-brand-strong" /></button>)}</div>
-  </Panel>;
-}
-function Insights({ analytics }: { analytics: Analytics }) { return <Panel title="What to fix next" subtitle="Signals generated from your actual usage"><div className="mt-3 space-y-2.5">{analytics.insights.length ? analytics.insights.map((insight) => <div key={insight.title} className="rounded-xl border border-line bg-paper p-3.5"><div className="flex items-start gap-3"><span className={`mt-0.5 grid h-7 w-7 shrink-0 place-items-center rounded-lg ${insight.level === "error" ? "bg-rose-100 text-rose-600" : insight.level === "warn" ? "bg-amber-100 text-amber-600" : "bg-sky-100 text-sky-600"}`}><Sparkles size={14} /></span><div className="min-w-0"><div className="flex flex-wrap justify-between gap-x-3 gap-y-1"><p className="text-[13px] font-medium text-ink">{insight.title}</p><span className="font-mono text-[10px] text-brand-strong">{insight.metric}</span></div><p className="mt-1 text-xs leading-relaxed text-muted">{insight.detail}</p></div></div></div>) : <p className="py-6 text-sm text-muted">No issues detected in this period.</p>}</div></Panel>; }
-function ToolRow({ tool }: { tool: Analytics["tools"][number] }) { const status = tool.error_rate >= 0.1 ? "Needs attention" : tool.avg_ms !== null && tool.avg_ms >= 500 ? "Slow" : "Healthy"; return <div className="flex items-center justify-between gap-3 py-3"><div className="flex min-w-0 items-center gap-2.5"><span className={`h-2 w-2 shrink-0 rounded-full ${status === "Healthy" ? "bg-brand" : "bg-amber-500"}`} /><span className="truncate font-mono text-xs text-ink">{tool.name}</span></div><span className="shrink-0 text-right text-[11px] text-muted">{fmt(tool.calls)} calls · p50 {tool.p50_ms == null ? "N/A" : `${tool.p50_ms}ms`} · p95 {tool.p95_ms == null ? "N/A" : `${tool.p95_ms}ms`}</span></div>; }
-function ToolsView({ analytics }: { analytics: Analytics }) { return <><PageIntro title="Tools" desc="Understand which tools agents adopt, where they fail, and what needs attention." /><Panel title="Tool health" subtitle={`${analytics.tools.length} tools called in the selected period`}><div className="mt-5 overflow-x-auto"><table className="w-full min-w-[850px] text-left text-sm"><thead className="border-b border-line text-[10px] font-semibold uppercase tracking-[0.08em] text-faint"><tr><th className="pb-3">Tool</th><th className="pb-3">Calls</th><th className="pb-3">Success</th><th className="pb-3">Avg latency</th><th className="pb-3">p50</th><th className="pb-3">p95</th><th className="pb-3">Samples</th><th className="pb-3">Status</th></tr></thead><tbody className="divide-y divide-line">{analytics.tools.map((tool) => { const bad = tool.error_rate >= 0.1; const slow = !bad && tool.avg_ms !== null && tool.avg_ms >= 500; return <tr key={tool.name}><td className="py-4 font-mono text-xs text-ink">{tool.name}</td><td className="py-4 text-muted">{fmt(tool.calls)}</td><td className="py-4 text-muted">{Math.round((1 - tool.error_rate) * 100)}%</td><td className="py-4 text-muted">{tool.avg_ms === null ? "N/A" : `${tool.avg_ms}ms`}</td><td className="py-4 text-muted">{tool.p50_ms === null || tool.p50_ms === undefined ? "N/A" : `${tool.p50_ms}ms`}</td><td className="py-4 text-muted">{tool.p95_ms === null || tool.p95_ms === undefined ? "N/A" : `${tool.p95_ms}ms`}</td><td className="py-4 text-muted">{fmt(tool.latency_sample_count || 0)}</td><td className="py-4"><span className={`inline-flex rounded-full px-2 py-1 text-[11px] ${bad || slow ? "bg-amber-50 text-amber-700" : "bg-brand-soft text-brand-strong"}`}>{bad ? "Needs attention" : slow ? "Slow" : "Healthy"}</span></td></tr>; })}</tbody></table><p className="mt-3 text-[11px] text-faint">Percentiles use nearest-rank observed durations; sample count is the number of calls with a duration.</p>{analytics.unused_tools.length > 0 && <div className="mt-5 rounded-xl bg-amber-50 p-4 text-xs text-amber-800"><strong>Unused advertised tools:</strong> {analytics.unused_tools.join(", ")}</div>}</div></Panel></>; }
-function correlationLabel(value: Analytics["workflows"][number]["correlation_quality"]): string {
-  if (value === "session_id") return "Protocol session ID";
-  if (value === "transport_generated") return "Transport-only session";
-  if (value === "external") return "External handle";
-  if (value === "issued") return "Issued handle";
-  if (value === "missing") return "Missing/degraded";
-  return "Mixed provenance";
-}
-
-function WorkflowsView({ analytics, sessionsOnly, onViewTrace, isSample }: { analytics: Analytics; sessionsOnly: boolean; onViewTrace: (sessionId: string, correlationHandle?: string | null) => void; isSample: boolean }) {
-  if (sessionsOnly) return <SessionsView analytics={analytics} onViewTrace={onViewTrace} isSample={isSample} />;
-  const outcomes = [...analytics.outcomes].sort((a, b) => (b.started || 0) - (a.started || 0));
-  const explicitCompletion = analytics.completion_source === "workflow_events" && analytics.completion_rate !== null;
-  return <>
-    <PageIntro title="Workflows" desc="Inspect explicit workflow outcomes separately from session-level completion heuristics." />
-    <div className="grid gap-4 sm:grid-cols-3"><Metric label="Workflows started" value={fmt(outcomes.reduce((sum, outcome) => sum + outcome.started, 0))} icon={Layers3} /><Metric label="Explicitly completed" value={fmt(outcomes.reduce((sum, outcome) => sum + outcome.completed, 0))} icon={Check} /><Metric label="Explicit workflow completion" value={explicitCompletion ? percent(analytics.completion_rate) : "N/A"} icon={Target} tone={explicitCompletion ? "normal" : "warn"} helper={explicitCompletion ? "Application-defined outcome events" : "No explicit workflow outcome data"} /></div>
-    <div className="mt-6 grid gap-6 xl:grid-cols-[minmax(0,1.35fr)_minmax(300px,0.65fr)]"><Panel title="Outcome journeys" subtitle="A workflow is the user or agent goal across several tool calls"><div className="mt-3 divide-y divide-line">{outcomes.length ? outcomes.map((outcome) => { const completion = outcome.started ? outcome.completed / outcome.started : 0; return <div key={outcome.name} className="py-4"><div className="flex items-center justify-between gap-4"><div><p className="font-mono text-sm text-ink">{outcome.name}</p><p className="mt-1 text-xs text-muted">{fmt(outcome.started)} started · {fmt(outcome.failed)} failed</p></div><span className="text-sm font-semibold text-brand-strong">{Math.round(completion * 100)}%</span></div><div className="mt-3 h-2 bg-mist"><div className="h-full bg-brand" style={{ width: `${Math.max(2, completion * 100)}%` }} /></div><div className="mt-2 flex gap-4 text-[11px] text-muted"><span>{fmt(outcome.completed)} completed</span><span>{fmt(outcome.failed)} failed</span></div></div>; }) : <p className="py-8 text-sm text-muted">No workflow outcomes have been recorded yet.</p>}</div></Panel><Panel title="How to read this" subtitle="The signal that matters to the business"><div className="mt-5 space-y-5 text-sm leading-relaxed text-muted"><p><strong className="font-medium text-ink">Sessions</strong> tell you whether a connection stayed healthy.</p><p><strong className="font-medium text-ink">Workflows</strong> tell you whether the user reached the intended result.</p><p><strong className="font-medium text-ink">Failures</strong> show where an otherwise valid tool sequence did not finish.</p></div></Panel></div>
-    <div className="mt-6"><Panel title="Observed workflow traces" subtitle="Recent tool sequences attached to a connection"><div className="mt-3 divide-y divide-line">{analytics.workflows.length ? analytics.workflows.slice(0, 8).map((workflow) => <div key={workflow.session_id} className="flex flex-wrap items-center justify-between gap-3 py-3"><div><p className="font-mono text-xs text-ink">{workflow.tools.filter(Boolean).join(" → ") || "No tool sequence"}</p><p className="mt-1 text-[11px] text-muted">{workflow.client_name} · {workflow.calls} calls · {workflow.duration_ms}ms · {correlationLabel(workflow.correlation_quality)}</p></div><div className="flex items-center gap-3"><span className={`text-[11px] font-medium ${workflow.completed ? "text-brand-strong" : "text-amber-700"}`}>{workflow.completion_source === "workflow_events" ? (workflow.completed ? "Explicitly completed" : "Explicitly failed") : workflow.completed ? "Ended after successful call" : "Ended without explicit outcome"}</span>{!isSample && <button onClick={() => onViewTrace(workflow.session_id, workflow.correlation_handle)} className="text-xs font-medium text-brand-strong hover:underline">View trace</button>}</div></div>) : <p className="py-8 text-sm text-muted">No workflow traces have been received yet.</p>}</div></Panel></div>
-  </>;
-}
-
-function TraceIndexView({ analytics, isSample, onViewTrace, onViewSessions }: { analytics: Analytics; isSample: boolean; onViewTrace: (sessionId: string, correlationHandle?: string | null) => void; onViewSessions: () => void }) {
-  return <>
-    <PageHeader title="Trace Explorer" description="Start with a selected session and inspect a bounded, server-observed event timeline. Trace links preserve their origin and scope." dataMode={isSample ? "sample" : "live"} meta="Payload visibility follows the capture policy; traces are capped at 200 events." />
-    <div className="mb-6 grid gap-4 xl:grid-cols-[minmax(0,1fr)_320px]"><section className="border border-brand/25 bg-brand-soft/30 p-5"><div className="flex items-start gap-3"><span className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-brand-soft text-brand-strong"><Search size={18} /></span><div><h3 className="text-[15px] font-semibold text-ink">Choose a session to investigate</h3><p className="mt-1 text-sm leading-relaxed text-muted">Trace Explorer does not guess at correlation from a request ID. Open a trace from Sessions, Workflows, Reliability, or a quality signal with a supported session handle.</p><button type="button" onClick={onViewSessions} className="mt-4 inline-flex items-center gap-1.5 bg-ink px-3.5 py-2.5 text-xs font-semibold text-white">Open sessions <ArrowRight size={14} /></button></div></div></section><Panel title="What a trace shows" subtitle="Evidence, with its limits"><ul className="mt-3 space-y-2 text-xs leading-relaxed text-muted"><li className="flex gap-2"><Check size={14} className="mt-0.5 shrink-0 text-brand" />Ordered events at the server boundary</li><li className="flex gap-2"><Check size={14} className="mt-0.5 shrink-0 text-brand" />Correlation quality and handle provenance</li><li className="flex gap-2"><Info size={14} className="mt-0.5 shrink-0 text-amber-600" />Redaction, missing payload, and truncation states</li></ul></Panel></div>
-    <Panel title="Recent trace entry points" subtitle={isSample ? "Sample sessions are illustrative; switch to My data before inspecting a live trace." : "Recent sessions with an available investigation path"} action={{ label: "View sessions", onClick: onViewSessions }}><div className="mt-2 divide-y divide-line">{analytics.workflows.slice(0, 8).map((workflow) => <div key={workflow.session_id} className="flex flex-wrap items-center justify-between gap-4 py-3.5"><div className="min-w-0"><p className="truncate font-mono text-xs text-ink">{workflow.session_id}</p><p className="mt-1 text-[11px] text-muted">{workflow.client_name} · {workflow.calls} calls · {correlationLabel(workflow.correlation_quality)} · {workflow.completion_source === "workflow_events" ? "Explicit workflow signal" : "No explicit workflow signal"}</p></div>{isSample ? <span className="inline-flex items-center gap-1.5 text-[11px] text-faint"><Info size={13} />Sample only</span> : <button type="button" onClick={() => onViewTrace(workflow.session_id, workflow.correlation_handle)} className="inline-flex items-center gap-1 text-xs font-semibold text-brand-strong hover:underline">View trace <ChevronRight size={14} /></button>}</div>)}{!analytics.workflows.length && <div className="py-8 text-sm text-muted">No trace entry points yet. Send a server-observed event, then return here from Sessions.</div>}</div></Panel>
-  </>;
+function LiveDataState({
+  message,
+  onRetry,
+  permission,
+}: {
+  message: string;
+  onRetry: () => void;
+  permission: boolean;
+}) {
+  return (
+    <section className="grid min-h-[420px] place-items-center border border-line bg-white p-8 text-center">
+      <div className="max-w-lg">
+        <span className="mx-auto grid h-12 w-12 place-items-center rounded-lg bg-paper text-muted">
+          <AlertTriangle size={22} />
+        </span>
+        <h2 className="mt-4 text-xl font-semibold text-ink">
+          {permission ? "You cannot view this workspace" : message}
+        </h2>
+        <p className="mt-2 text-sm leading-relaxed text-muted">
+          {permission
+            ? "Request access or return to your workspace. No other data source was substituted."
+            : "My data could not be shown for this request. Try again or narrow the selected period."}
+        </p>
+        <button
+          type="button"
+          onClick={onRetry}
+          className="mt-5 inline-flex cursor-pointer items-center gap-2 rounded-md bg-ink px-4 py-2.5 text-sm font-semibold text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
+        >
+          <RefreshCw size={15} />
+          Retry
+        </button>
+      </div>
+    </section>
+  );
 }
 
-function SessionsView({ analytics, onViewTrace, isSample }: { analytics: Analytics; onViewTrace: (sessionId: string, correlationHandle?: string | null) => void; isSample: boolean }) {
-  const explicitCompletion = analytics.completion_source === "workflow_events" && analytics.completion_rate !== null;
-  return <><PageIntro title="Sessions" desc="Inspect observed MCP sessions in the selected period: who connected, how long each lasted, and which signals were recorded." /><div className="grid gap-4 sm:grid-cols-3"><Metric label="Sessions in selected period" value={fmt(analytics.sessions)} icon={Activity} /><Metric label="Tool calls" value={fmt(analytics.tool_calls)} icon={Wrench} /><Metric label="Explicit workflow completion" value={explicitCompletion ? percent(analytics.completion_rate) : "N/A"} icon={Check} tone={explicitCompletion ? "normal" : "warn"} helper={explicitCompletion ? "Application-defined outcome events" : "No explicit workflow outcome data"} /></div><div className="mt-6"><Panel title="Session activity" subtitle="One row per observed MCP session in the selected period"><div className="mt-3 overflow-x-auto"><table className="w-full min-w-[860px] text-left text-sm"><thead className="border-b border-line text-[10px] font-semibold uppercase tracking-[0.08em] text-faint"><tr><th className="pb-3">Client</th><th className="pb-3">Session</th><th className="pb-3">Started</th><th className="pb-3">Duration</th><th className="pb-3">Calls</th><th className="pb-3">Correlation</th><th className="pb-3">Status</th><th className="pb-3">Trace</th></tr></thead><tbody className="divide-y divide-line">{analytics.workflows.length ? analytics.workflows.map((session) => <tr key={session.session_id}><td className="py-4"><div className="flex items-center gap-2.5"><ClientTile name={clientMark(session.client_name)} className="h-7 w-7 rounded-full" /><span className="text-ink">{session.client_name}</span></div></td><td className="py-4 font-mono text-xs text-muted">{session.session_id.slice(0, 18)}...</td><td className="py-4 text-xs text-muted">{new Date(session.started_at).toLocaleString()}</td><td className="py-4 text-muted">{session.duration_ms}ms</td><td className="py-4 text-muted">{session.calls}</td><td className="py-4 text-xs text-muted"><span>{correlationLabel(session.correlation_quality)}</span>{session.correlation_handle && <code className="mt-1 block truncate font-mono text-[10px] text-faint">{session.correlation_handle}</code>}</td><td className="py-4"><span className={session.completed && session.completion_source === "workflow_events" ? "text-brand-strong" : "text-amber-700"}>{session.completion_source === "workflow_events" ? (session.completed ? "Explicitly completed" : "Explicitly failed") : session.completed ? "Ended after successful call" : "Ended without explicit outcome"}</span><span className="mt-1 block text-[10px] text-faint">{session.completion_source === "workflow_events" ? "explicit workflow" : session.completion_source === "session_heuristic" ? "session heuristic" : "no signal"}</span></td><td className="py-4">{isSample ? <span className="text-[11px] text-faint">Sample only</span> : <button onClick={() => onViewTrace(session.session_id, session.correlation_handle)} className="text-xs font-medium text-brand-strong hover:underline">View trace</button>}</td></tr>) : <tr><td colSpan={8} className="py-10 text-center text-sm text-muted">No sessions have been received yet.</td></tr>}</tbody></table></div></Panel></div></>;
+function ViewContent({
+  view,
+  analytics,
+  toolQuality,
+  dataMode,
+  incident,
+  alertIncidents,
+  alertLoadState,
+  alertError,
+  onViewChange,
+  onViewTrace,
+  onViewIncidentEvidence,
+  onRefresh,
+}: {
+  view: View;
+  analytics: Analytics;
+  toolQuality: ToolQualityResponse | null;
+  dataMode: DataMode;
+  incident: AlertIncident | null;
+  alertIncidents: AlertIncident[];
+  alertLoadState: AlertLoadState;
+  alertError: string;
+  onViewChange: (view: View) => void;
+  onViewTrace: (sessionId: string, correlationHandle?: string | null) => void;
+  onViewIncidentEvidence: (incidentId: string) => void;
+  onRefresh: () => void;
+}) {
+  if (view === "journeys")
+    return (
+      <JourneysView
+        analytics={analytics}
+        dataMode={dataMode}
+        onViewChange={onViewChange}
+        onViewTrace={onViewTrace}
+      />
+    );
+  if (view === "capabilities")
+    return <CapabilitiesView analytics={analytics} onViewTrace={onViewTrace} />;
+  if (view === "quality")
+    return (
+      <QualityView
+        data={toolQuality}
+        dataMode={dataMode}
+        onViewTrace={onViewTrace}
+        onRefresh={onRefresh}
+      />
+    );
+  if (view === "issues")
+    return (
+      <IssuesView
+        analytics={analytics}
+        toolQuality={toolQuality}
+        dataMode={dataMode}
+        incidents={alertIncidents}
+        alertLoadState={alertLoadState}
+        alertError={alertError}
+        onViewChange={onViewChange}
+        onViewIncidentEvidence={onViewIncidentEvidence}
+        onRefresh={onRefresh}
+      />
+    );
+  if (view === "clients") return <ClientsView analytics={analytics} />;
+  if (view === "evidence")
+    return (
+      <EvidenceView
+        analytics={analytics}
+        dataMode={dataMode}
+        incident={incident}
+        onViewTrace={onViewTrace}
+        onViewChange={onViewChange}
+      />
+    );
+  return (
+    <Overview
+      analytics={analytics}
+      dataMode={dataMode}
+      onViewChange={onViewChange}
+      onViewTrace={onViewTrace}
+    />
+  );
+}
+
+function PageIntro({
+  title,
+  description,
+}: {
+  title: string;
+  description: string;
+}) {
+  return (
+    <div className="mb-6">
+      <h2 className="text-[26px] font-semibold tracking-[-0.035em] text-ink">
+        {title}
+      </h2>
+      <p className="mt-1.5 max-w-3xl text-sm leading-relaxed text-muted">
+        {description}
+      </p>
+      <p className="mt-2 inline-flex items-center gap-1.5 text-[11px] text-faint">
+        <CalendarDays size={13} />
+        Activity range: 7, 30, or 90-day presets · comparison windows remain
+        separate
+      </p>
+    </div>
+  );
+}
+function DataSourceStrip({ dataMode }: { dataMode: DataMode }) {
+  return (
+    <section
+      className="mb-6 flex flex-wrap items-center gap-3 border border-line bg-[#f3f5f3] px-4 py-3.5"
+      aria-label="Data source state"
+    >
+      <span className="grid h-8 w-8 place-items-center rounded-full bg-white text-muted">
+        <Info size={16} />
+      </span>
+      <div>
+        <p className="text-sm font-semibold text-ink">
+          {dataMode === "example"
+            ? "Example data selected"
+            : "My data selected"}
+        </p>
+        <p className="mt-0.5 text-xs text-muted">
+          {dataMode === "example"
+            ? "Illustrative records are shown by explicit selection; they are not workspace telemetry."
+            : "Server-observed events are shown here. This is a data-source state, not a product-health signal."}
+        </p>
+      </div>
+    </section>
+  );
+}
+function Panel({
+  title,
+  subtitle,
+  children,
+  action,
+}: {
+  title: string;
+  subtitle?: string;
+  children: ReactNode;
+  action?: { label: string; onClick: () => void };
+}) {
+  return (
+    <section className="border border-line bg-white p-5 sm:p-6">
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <h2 className="text-[15px] font-semibold text-ink">{title}</h2>
+          {subtitle && (
+            <p className="mt-1 text-xs leading-relaxed text-muted">
+              {subtitle}
+            </p>
+          )}
+        </div>
+        {action && (
+          <button
+            type="button"
+            onClick={action.onClick}
+            className="inline-flex cursor-pointer items-center gap-1 text-xs font-semibold text-brand-strong hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
+          >
+            {action.label}
+            <ChevronRight size={13} />
+          </button>
+        )}
+      </div>
+      {children}
+    </section>
+  );
+}
+function Kpi({
+  label,
+  value,
+  helper,
+  icon: Icon,
+}: {
+  label: string;
+  value: string;
+  helper: string;
+  icon: LucideIcon;
+}) {
+  return (
+    <div className="border border-line bg-white p-4">
+      <div className="flex items-start justify-between gap-2">
+        <span className="text-[10px] font-semibold uppercase tracking-[0.08em] text-faint">
+          {label}
+        </span>
+        <Icon size={16} className="text-brand-strong" />
+      </div>
+      <p className="mt-3 text-[28px] font-semibold tracking-[-0.04em] text-ink">
+        {value}
+      </p>
+      <p className="mt-1 text-[11px] leading-relaxed text-muted">{helper}</p>
+    </div>
+  );
+}
+function ActionButton({
+  label,
+  icon: Icon,
+  onClick,
+}: {
+  label: string;
+  icon: LucideIcon;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="inline-flex cursor-pointer items-center gap-1.5 rounded-md border border-line-strong bg-white px-3 py-2 text-xs font-semibold text-body hover:bg-paper focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
+    >
+      <Icon size={14} />
+      {label}
+    </button>
+  );
+}
+function StateNote({ title, body }: { title: string; body: string }) {
+  return (
+    <div className="border border-line bg-white p-4">
+      <p className="text-xs font-semibold text-ink">{title}</p>
+      <p className="mt-1 text-xs leading-relaxed text-muted">{body}</p>
+    </div>
+  );
+}
+
+function Overview({
+  analytics,
+  dataMode,
+  onViewChange,
+  onViewTrace,
+}: {
+  analytics: Analytics;
+  dataMode: DataMode;
+  onViewChange: (view: View) => void;
+  onViewTrace: (sessionId: string, correlationHandle?: string | null) => void;
+}) {
+  const totals = explicitOutcomeTotals(analytics);
+  return (
+    <div>
+      <PageIntro
+        title="Overview"
+        description="See activity, explicit work outcomes, and what deserves attention next."
+      />
+      <DataSourceStrip dataMode={dataMode} />
+      <div className="mb-6 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        <Kpi
+          label="AI clients"
+          value={
+            analytics.clients.length ? fmt(analytics.clients.length) : "N/A"
+          }
+          icon={Users}
+          helper="Observed at the server boundary"
+        />
+        <Kpi
+          label="Activity"
+          value={fmt(analytics.tool_calls)}
+          icon={Activity}
+          helper="Observed calls in selected period"
+        />
+        <Kpi
+          label="Work completed"
+          value={
+            totals.started
+              ? fmt(totals.completed) + " / " + fmt(totals.started)
+              : "N/A"
+          }
+          icon={Check}
+          helper={
+            totals.started
+              ? "Explicit outcomes · " +
+                percent(totals.completed / totals.started)
+              : "No explicit workflow outcome data"
+          }
+        />
+        <Kpi
+          label="Needs attention"
+          value={fmt(analytics.insights.length)}
+          icon={AlertTriangle}
+          helper={
+            analytics.insights.length
+              ? "Observed signals · confidence not provided"
+              : analytics.total_events === 0
+                ? "Insufficient data to identify an issue"
+                : "No actionable signals yet"
+          }
+        />
+      </div>
+      <div className="grid gap-6 xl:grid-cols-[minmax(0,1.5fr)_minmax(310px,.8fr)]">
+        <Panel
+          title="Activity over time"
+          subtitle="Server-observed tool calls in the selected period"
+        >
+          <UsageChart timeline={analytics.timeline} />
+        </Panel>
+        <AttentionPanel analytics={analytics} onViewChange={onViewChange} />
+      </div>
+      <div className="mt-6 grid gap-6 xl:grid-cols-[minmax(0,1.3fr)_minmax(310px,.7fr)]">
+        <Panel
+          title="Sessions in selected period"
+          subtitle="Observed sessions; open one trace when technical evidence is needed"
+          action={{
+            label: "View Evidence",
+            onClick: () => onViewChange("evidence"),
+          }}
+        >
+          <div className="divide-y divide-line">
+            {analytics.workflows.slice(0, 5).map((workflow) => (
+              <div
+                key={workflow.session_id}
+                className="flex flex-wrap items-center justify-between gap-3 py-3"
+              >
+                <div className="min-w-0">
+                  <p className="truncate font-mono text-xs text-ink">
+                    {workflow.session_id}
+                  </p>
+                  <p className="mt-1 text-[11px] text-muted">
+                    {workflow.client_name} · {workflow.calls} calls ·{" "}
+                    {correlationLabel(workflow.correlation_quality)}
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() =>
+                    onViewTrace(
+                      workflow.session_id,
+                      workflow.correlation_handle,
+                    )
+                  }
+                  className="inline-flex cursor-pointer items-center gap-1 text-xs font-semibold text-brand-strong hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
+                >
+                  Open Evidence <ChevronRight size={13} />
+                </button>
+              </div>
+            ))}
+            {!analytics.workflows.length && (
+              <p className="py-7 text-sm text-muted">
+                No sessions have been observed in this period.
+              </p>
+            )}
+          </div>
+        </Panel>
+        <Panel
+          title="Work completed"
+          subtitle="Explicit workflow outcome events only"
+        >
+          <div className="py-3">
+            <p className="text-3xl font-semibold tracking-[-0.04em] text-ink">
+              {totals.started ? fmt(totals.completed) : "N/A"}
+            </p>
+            <p className="mt-1 text-sm text-muted">
+              {totals.started
+                ? "of " + fmt(totals.started) + " explicit started outcomes"
+                : "No explicit workflow outcome data"}
+            </p>
+            <p className="mt-4 text-xs text-muted">
+              Source: workflow outcome events. No session-based inference.
+            </p>
+          </div>
+        </Panel>
+      </div>
+      <div className="mt-6 border border-line bg-white p-5">
+        <p className="text-sm font-semibold text-ink">
+          Choose the next question
+        </p>
+        <p className="mt-1 text-xs text-muted">
+          Start with the business signal; technical Evidence stays one click
+          away.
+        </p>
+        <div className="mt-4 flex flex-wrap gap-2">
+          <ActionButton
+            label="See Journeys"
+            icon={ListChecks}
+            onClick={() => onViewChange("journeys")}
+          />
+          <ActionButton
+            label="Review Issues"
+            icon={AlertTriangle}
+            onClick={() => onViewChange("issues")}
+          />
+          <ActionButton
+            label="Open Evidence"
+            icon={Search}
+            onClick={() => onViewChange("evidence")}
+          />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function AttentionPanel({
+  analytics,
+  onViewChange,
+}: {
+  analytics: Analytics;
+  onViewChange: (view: View) => void;
+}) {
+  const insufficient =
+    analytics.total_events === 0 || analytics.tool_calls === 0;
+  return (
+    <Panel
+      title="Needs attention"
+      subtitle="Neutral signals are separated from confirmed evidence"
+    >
+      <div className="space-y-3">
+        {analytics.insights.length ? (
+          analytics.insights.map((insight) => (
+            <div
+              key={insight.title}
+              className="border border-amber-200 bg-amber-50/70 p-4"
+            >
+              <div className="flex items-start gap-3">
+                <AlertTriangle
+                  size={17}
+                  className="mt-0.5 shrink-0 text-amber-700"
+                />
+                <div>
+                  <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-amber-800">
+                    Observed signal
+                  </p>
+                  <p className="mt-1 text-sm font-semibold text-ink">
+                    {insight.title}
+                  </p>
+                  <p className="mt-1 text-xs leading-relaxed text-muted">
+                    {insight.detail}
+                  </p>
+                  <p className="mt-2 text-[11px] text-muted">
+                    Evidence basis: API insight · threshold: not provided ·
+                    eligible volume: not provided · confidence: not provided ·{" "}
+                    {insight.metric}
+                  </p>
+                </div>
+              </div>
+            </div>
+          ))
+        ) : (
+          <div className="border border-line bg-paper p-4">
+            <p className="text-sm font-semibold text-ink">
+              {insufficient
+                ? "Insufficient data to identify an issue"
+                : "No actionable signals yet."}
+            </p>
+            <p className="mt-1 text-xs leading-relaxed text-muted">
+              {insufficient
+                ? "More observed activity may be required. This is not a confirmed healthy state."
+                : "No insight was returned for the selected period. This is not a freshness or health claim."}
+            </p>
+          </div>
+        )}
+        <ActionButton
+          label={analytics.insights.length ? "Review Issues" : "See Journeys"}
+          icon={analytics.insights.length ? AlertTriangle : ListChecks}
+          onClick={() =>
+            onViewChange(analytics.insights.length ? "issues" : "journeys")
+          }
+        />
+      </div>
+    </Panel>
+  );
+}
+
+function JourneysView({
+  analytics,
+  dataMode,
+  onViewChange,
+  onViewTrace,
+}: {
+  analytics: Analytics;
+  dataMode: DataMode;
+  onViewChange: (view: View) => void;
+  onViewTrace: (sessionId: string, correlationHandle?: string | null) => void;
+}) {
+  const totals = explicitOutcomeTotals(analytics);
+  return (
+    <div>
+      <PageIntro
+        title="Journeys"
+        description="Understand what work is being attempted and where it stops. Completion uses explicit workflow outcomes only."
+      />
+      <DataSourceStrip dataMode={dataMode} />
+      <Panel
+        title="Explicit workflow outcomes"
+        subtitle={
+          totals.started
+            ? fmt(totals.completed) +
+              " completed of " +
+              fmt(totals.started) +
+              " started · source: workflow outcome events"
+            : "No explicit workflow outcome data"
+        }
+        action={{
+          label: "Open Evidence",
+          onClick: () => onViewChange("evidence"),
+        }}
+      >
+        <div
+          className="overflow-x-auto"
+          role="region"
+          aria-label="Scrollable table"
+        >
+          <p className="mb-3 text-[11px] text-faint">
+            Scroll horizontally to inspect all columns.
+          </p>
+          <table className="w-full min-w-[680px] text-left text-sm">
+            <thead className="border-b border-line text-[10px] font-semibold uppercase tracking-[0.08em] text-faint">
+              <tr>
+                <th className="pb-3">Journey</th>
+                <th className="pb-3">Started</th>
+                <th className="pb-3">Completed</th>
+                <th className="pb-3">Failed</th>
+                <th className="pb-3">Completion</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-line">
+              {analytics.outcomes.map((outcome) => (
+                <tr key={outcome.name}>
+                  <td className="py-4 font-mono text-xs text-ink">
+                    {outcome.name}
+                  </td>
+                  <td className="py-4 text-muted">{fmt(outcome.started)}</td>
+                  <td className="py-4 text-muted">{fmt(outcome.completed)}</td>
+                  <td className="py-4 text-muted">{fmt(outcome.failed)}</td>
+                  <td className="py-4 text-muted">
+                    {outcome.started
+                      ? percent(outcome.completed / outcome.started)
+                      : "N/A"}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          {!analytics.outcomes.length && (
+            <p className="py-8 text-sm text-muted">
+              No explicit workflow outcome data. Sessions are not completion
+              evidence.
+            </p>
+          )}
+        </div>
+      </Panel>
+      <div className="mt-6">
+        <Panel
+          title="Observed work in selected period"
+          subtitle="A session list is not an active-connection count"
+        >
+          <div className="divide-y divide-line">
+            {analytics.workflows.map((workflow) => (
+              <div
+                key={workflow.session_id}
+                className="flex flex-wrap items-center justify-between gap-3 py-3"
+              >
+                <div>
+                  <p className="font-mono text-xs text-ink">
+                    {workflow.session_id}
+                  </p>
+                  <p className="mt-1 text-[11px] text-muted">
+                    {workflow.client_name} · {workflow.calls} calls ·{" "}
+                    {correlationLabel(workflow.correlation_quality)}
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() =>
+                    onViewTrace(
+                      workflow.session_id,
+                      workflow.correlation_handle,
+                    )
+                  }
+                  className="inline-flex cursor-pointer items-center gap-1 text-xs font-semibold text-brand-strong hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
+                >
+                  Open Evidence <ChevronRight size={13} />
+                </button>
+              </div>
+            ))}
+            {!analytics.workflows.length && (
+              <p className="py-8 text-sm text-muted">
+                No observed sessions in this period.
+              </p>
+            )}
+          </div>
+        </Panel>
+      </div>
+    </div>
+  );
+}
+
+function CapabilitiesView({
+  analytics,
+  onViewTrace,
+}: {
+  analytics: Analytics;
+  onViewTrace: (sessionId: string, correlationHandle?: string | null) => void;
+}) {
+  return (
+    <div>
+      <PageIntro
+        title="Capabilities"
+        description="See what the server offers and which capabilities are observed in use."
+      />
+      <div className="grid gap-3 sm:grid-cols-3">
+        <Kpi
+          label="Capabilities observed"
+          value={fmt(analytics.tools.length)}
+          icon={LayoutGrid}
+          helper="Observed tool names"
+        />
+        <Kpi
+          label="Activity"
+          value={fmt(analytics.tool_calls)}
+          icon={Activity}
+          helper="Observed calls"
+        />
+        <Kpi
+          label="Unused advertised"
+          value={fmt(analytics.unused_tools.length)}
+          icon={Info}
+          helper="Catalog comparison"
+        />
+      </div>
+      <div className="mt-6">
+        <Panel
+          title="Capability activity"
+          subtitle="Technical names stay in the detail table; interpretations remain neutral"
+        >
+          <div
+            className="overflow-x-auto"
+            role="region"
+            aria-label="Scrollable table"
+          >
+            <p className="mb-3 text-[11px] text-faint">
+              Scroll horizontally to inspect all columns.
+            </p>
+            <table className="w-full min-w-[780px] text-left text-sm">
+              <thead className="border-b border-line text-[10px] font-semibold uppercase tracking-[0.08em] text-faint">
+                <tr>
+                  <th className="pb-3">Capability</th>
+                  <th className="pb-3">Calls</th>
+                  <th className="pb-3">Errors</th>
+                  <th className="pb-3">Latency</th>
+                  <th className="pb-3">Evidence</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-line">
+                {analytics.tools.map((tool) => (
+                  <tr key={tool.name}>
+                    <td className="py-4 font-mono text-xs text-ink">
+                      {tool.name}
+                    </td>
+                    <td className="py-4 text-muted">{fmt(tool.calls)}</td>
+                    <td className="py-4 text-muted">
+                      {fmt(tool.errors)} · {Math.round(tool.error_rate * 100)}%
+                    </td>
+                    <td className="py-4 text-muted">
+                      {tool.p95_ms == null
+                        ? "Not reported"
+                        : "p95 " + tool.p95_ms + "ms"}
+                    </td>
+                    <td className="py-4">
+                      {analytics.workflows[0] ? (
+                        <button
+                          type="button"
+                          onClick={() =>
+                            onViewTrace(analytics.workflows[0].session_id)
+                          }
+                          className="cursor-pointer text-xs font-semibold text-brand-strong hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
+                        >
+                          Open Evidence
+                        </button>
+                      ) : (
+                        <span className="text-xs text-faint">
+                          Not available
+                        </span>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            {!analytics.tools.length && (
+              <p className="py-8 text-sm text-muted">
+                No capabilities have been observed in this period.
+              </p>
+            )}
+          </div>
+        </Panel>
+      </div>
+    </div>
+  );
+}
+
+function QualityView({
+  data,
+  dataMode,
+  onViewTrace,
+  onRefresh,
+}: {
+  data: ToolQualityResponse | null;
+  dataMode: DataMode;
+  onViewTrace: (sessionId: string, correlationHandle?: string | null) => void;
+  onRefresh: () => void;
+}) {
+  if (!data)
+    return (
+      <div>
+        <PageIntro
+          title="Quality"
+          description="Review observed capability quality without turning insufficient data into a failure."
+        />
+        <LiveDataState
+          message="Quality data could not be loaded"
+          onRetry={onRefresh}
+          permission={false}
+        />
+      </div>
+    );
+  return (
+    <div>
+      <PageIntro
+        title="Quality"
+        description="Review observed capability quality without turning insufficient data into a failure."
+      />
+      <DataSourceStrip dataMode={dataMode} />
+      <Panel
+        title="Tool Quality"
+        subtitle={
+          fmt(data.source_event_count) +
+          " observed source events · selected period" +
+          (data.truncated ? " · bounded result" : "")
+        }
+      >
+        <div
+          className="overflow-x-auto"
+          role="region"
+          aria-label="Scrollable table"
+        >
+          <p className="mb-3 text-[11px] text-faint">
+            Scroll horizontally to inspect all columns.
+          </p>
+          <table className="w-full min-w-[980px] text-left text-sm">
+            <thead className="border-b border-line text-[10px] font-semibold uppercase tracking-[0.08em] text-faint">
+              <tr>
+                <th className="pb-3">Capability</th>
+                <th className="pb-3">Call share</th>
+                <th className="pb-3">Error rate</th>
+                <th className="pb-3">Retry rate</th>
+                <th className="pb-3">Work completed</th>
+                <th className="pb-3">Evidence</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-line">
+              {data.tools.map((tool) => (
+                <tr key={tool.name}>
+                  <td className="py-4 font-mono text-xs text-ink">
+                    {tool.name}
+                    <span className="mt-1 block font-sans text-[10px] text-faint">
+                      {fmt(tool.observed.call_count)} calls ·{" "}
+                      {fmt(tool.observed.session_count)} observed sessions
+                    </span>
+                    {tool.insufficient_data.length > 0 && (
+                      <span className="mt-2 block max-w-[260px] font-sans text-[10px] leading-relaxed text-amber-700">
+                        {insufficientReasons(tool.insufficient_data)}
+                      </span>
+                    )}
+                  </td>
+                  <td className="py-4 text-muted">
+                    {metricValue(tool.metrics.tool_call_share)}
+                  </td>
+                  <td className="py-4 text-muted">
+                    {metricValue(tool.metrics.error_rate)}
+                  </td>
+                  <td className="py-4 text-muted">
+                    {metricValue(tool.metrics.retry_rate)}
+                  </td>
+                  <td className="py-4 text-muted">
+                    {tool.completion_association.insufficient_data.length
+                      ? "Insufficient data · " +
+                        insufficientReasons(
+                          tool.completion_association.insufficient_data,
+                        )
+                      : metricValue(
+                          tool.completion_association.completion_rate,
+                        )}
+                  </td>
+                  <td className="py-4">
+                    {dataMode === "example" ||
+                    !tool.trace_session_ids.length ? (
+                      <span className="text-xs text-faint">
+                        {dataMode === "example"
+                          ? "Example only"
+                          : "Not available"}
+                      </span>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => onViewTrace(tool.trace_session_ids[0])}
+                        className="cursor-pointer text-xs font-semibold text-brand-strong hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
+                      >
+                        Open Evidence
+                      </button>
+                    )}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          {data.truncated && (
+            <p className="mt-3 flex items-center gap-1.5 text-[11px] text-amber-700">
+              <FileWarning size={13} />
+              Showing a bounded result. Some events may be omitted because the
+              source scan is capped. Narrow the time range or scope to inspect
+              more precisely.
+            </p>
+          )}
+          {!data.tools.length && (
+            <p className="py-8 text-sm text-muted">
+              No quality observations in this period.
+            </p>
+          )}
+        </div>
+      </Panel>
+      <div className="mt-6 grid gap-4 sm:grid-cols-3">
+        <StateNote
+          title="Minimum volume"
+          body={
+            "Tool calls need at least " +
+            TOOL_QUALITY_MIN_TOOL_CALLS +
+            " observed calls before call-level metrics are trusted."
+          }
+        />
+        <StateNote
+          title="Explicit outcomes"
+          body={
+            "Workflow associations need at least " +
+            TOOL_QUALITY_MIN_WORKFLOW_TERMINALS +
+            " terminal outcomes before completion is shown."
+          }
+        />
+        <StateNote
+          title="Neutral interpretation"
+          body="An association is an investigation signal, not evidence of cause or product health."
+        />
+      </div>
+    </div>
+  );
+}
+
+function IssuesView({
+  analytics,
+  toolQuality,
+  dataMode,
+  incidents,
+  alertLoadState,
+  alertError,
+  onViewChange,
+  onViewIncidentEvidence,
+  onRefresh,
+}: {
+  analytics: Analytics;
+  toolQuality: ToolQualityResponse | null;
+  dataMode: DataMode;
+  incidents: AlertIncident[];
+  alertLoadState: AlertLoadState;
+  alertError: string;
+  onViewChange: (view: View) => void;
+  onViewIncidentEvidence: (incidentId: string) => void;
+  onRefresh: () => void;
+}) {
+  const insufficient = toolQuality
+    ? toolQuality.tools.filter((tool) => tool.insufficient_data.length)
+    : [];
+  const orderedIncidents = [...incidents].sort((left, right) => {
+    const rank = (state: AlertIncident["state"]) =>
+      state === "firing"
+        ? 0
+        : state === "pending"
+          ? 1
+          : state === "resolved"
+            ? 2
+            : state === "suppressed"
+              ? 3
+              : state === "invalid_configuration"
+                ? 4
+                : 5;
+    return rank(left.state) - rank(right.state);
+  });
+  return (
+    <div>
+      <PageIntro
+        title="Issues"
+        description="Review what deserves attention next, ordered by evidence strength and affected volume."
+      />
+      <Panel
+        title="Regression incidents"
+        subtitle="Workspace-scoped alert results with bounded evidence"
+      >
+        {dataMode === "example" ? (
+          <div className="border border-line bg-paper p-4 text-sm text-muted">
+            Alert incidents are available for My data only. Example data does
+            not represent workspace alert history.
+          </div>
+        ) : alertLoadState === "idle" || alertLoadState === "loading" ? (
+          <div className="flex items-center gap-2 border border-line bg-paper p-4 text-sm text-muted" role="status">
+            <RefreshCw size={15} className="animate-spin" />
+            Loading regression incidents…
+          </div>
+        ) : alertLoadState === "unauthorized" ? (
+          <div className="border border-line bg-paper p-4 text-sm text-muted" role="status">
+            You do not have permission to view regression incidents for this
+            workspace.
+          </div>
+        ) : alertLoadState === "error" ? (
+          <div className="flex flex-wrap items-center gap-3 border border-red-200 bg-red-50 p-4 text-sm text-red-800" role="alert">
+            <AlertTriangle size={16} />
+            <span className="min-w-0 flex-1">{alertError || "Regression incidents could not be loaded."}</span>
+            <button
+              type="button"
+              onClick={onRefresh}
+              className="cursor-pointer font-semibold underline underline-offset-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-600"
+            >
+              Retry
+            </button>
+          </div>
+        ) : alertLoadState === "ready" && !orderedIncidents.length ? (
+          <div className="border border-line bg-paper p-4 text-sm text-muted">
+            No regression incidents were returned for this workspace.
+          </div>
+        ) : (
+          <div className="space-y-3">
+            {orderedIncidents.map((incident) => (
+              <IncidentCard
+                key={incident.id}
+                incident={incident}
+                onViewEvidence={() => onViewIncidentEvidence(incident.id)}
+              />
+            ))}
+          </div>
+        )}
+      </Panel>
+      <Panel
+        title="Needs attention"
+        subtitle="Observed signals and regression incidents remain separate evidence types"
+      >
+        <div className="space-y-3">
+          {analytics.insights.map((insight) => (
+            <div
+              key={insight.title}
+              className="border border-amber-200 bg-amber-50/70 p-4"
+            >
+              <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-amber-800">
+                Observed signal
+              </p>
+              <p className="mt-1 text-sm font-semibold text-ink">
+                {insight.title}
+              </p>
+              <p className="mt-1 text-xs leading-relaxed text-muted">
+                {insight.detail}
+              </p>
+              <p className="mt-3 text-[11px] text-muted">
+                Evidence basis: API insight · threshold: not provided · affected
+                volume: not provided · confidence: not provided · metric:{" "}
+                {insight.metric}
+              </p>
+            </div>
+          ))}
+          {insufficient.map((tool) => (
+            <div
+              key={"insufficient-" + tool.name}
+              className="border border-line bg-paper p-4"
+            >
+              <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-faint">
+                Insufficient evidence
+              </p>
+              <p className="mt-1 text-sm font-semibold text-ink">{tool.name}</p>
+              <p className="mt-1 text-xs text-muted">
+                Specific reason: {insufficientReasons(tool.insufficient_data)}.
+                This is not a confirmed failure.
+              </p>
+            </div>
+          ))}
+          {!analytics.insights.length && !insufficient.length && (
+            <div className="border border-line bg-paper p-4">
+              <p className="text-sm font-semibold text-ink">
+                {analytics.total_events === 0
+                  ? "Insufficient data to identify an issue"
+                  : "No actionable signals yet."}
+              </p>
+              <p className="mt-1 text-xs text-muted">
+                No confirmed issue can be ranked from the current API response.
+              </p>
+            </div>
+          )}
+        </div>
+        <div className="mt-4 flex flex-wrap gap-2">
+          <ActionButton
+            label="Open Evidence"
+            icon={Search}
+            onClick={() => onViewChange("evidence")}
+          />
+          <ActionButton
+            label="Review Quality"
+            icon={Gauge}
+            onClick={() => onViewChange("quality")}
+          />
+        </div>
+      </Panel>
+    </div>
+  );
+}
+
+function IncidentCard({
+  incident,
+  onViewEvidence,
+}: {
+  incident: AlertIncident;
+  onViewEvidence: () => void;
+}) {
+  const isInsufficient =
+    incident.state === "insufficient_data" ||
+    incident.data_status !== "sufficient";
+  const stateTone =
+    incident.state === "firing"
+      ? "border-amber-200 bg-amber-50/60"
+      : incident.state === "resolved"
+        ? "border-line bg-paper"
+        : "border-line bg-white";
+  return (
+    <article className={`border p-4 ${stateTone}`}>
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="text-[10px] font-semibold uppercase tracking-[0.12em] text-muted">
+              {incidentStateLabel(incident.state)}
+            </span>
+            {incident.severity && (
+              <span className="rounded-full border border-line-strong px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.08em] text-muted">
+                {incident.severity}
+              </span>
+            )}
+            {isInsufficient && (
+              <span className="text-[10px] font-semibold text-amber-800">
+                Not a confirmed failure
+              </span>
+            )}
+          </div>
+          <h3 className="mt-2 text-sm font-semibold text-ink">
+            {metricLabel(incident.metric)}
+          </h3>
+        </div>
+        <button
+          type="button"
+          onClick={onViewEvidence}
+          className="inline-flex cursor-pointer items-center gap-1 text-xs font-semibold text-brand-strong hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
+        >
+          Open Evidence <ChevronRight size={13} />
+        </button>
+      </div>
+      <div className="mt-4 grid gap-3 text-xs text-muted sm:grid-cols-2 lg:grid-cols-3">
+        <p>
+          <span className="font-semibold text-ink">Scope:</span>{" "}
+          {incident.scope.tool_name || "All capabilities"}
+          {incident.scope.environment
+            ? ` · ${incident.scope.environment}`
+            : " · all environments"}
+        </p>
+        <p>
+          <span className="font-semibold text-ink">Affected volume:</span>{" "}
+          {incidentVolumeLabel(incident)}
+        </p>
+        <p>
+          <span className="font-semibold text-ink">Threshold:</span>{" "}
+          {thresholdLabel(incident.threshold)}
+        </p>
+        <p>
+          <span className="font-semibold text-ink">Baseline:</span>{" "}
+          {summaryLabel(incident.baseline)}
+        </p>
+        <p>
+          <span className="font-semibold text-ink">Comparison:</span>{" "}
+          {summaryLabel(incident.comparison)}
+        </p>
+        <p>
+          <span className="font-semibold text-ink">Last seen:</span>{" "}
+          {incidentDateLabel(incident.last_seen_at)}
+          {incident.recovery?.recovered_at
+            ? ` · recovered ${incidentDateLabel(incident.recovery.recovered_at)}`
+            : incident.resolved_at
+              ? ` · resolved ${incidentDateLabel(incident.resolved_at)}`
+              : ""}
+        </p>
+      </div>
+      <div className="mt-3 border-t border-line/80 pt-3 text-[11px] text-muted">
+        <p>
+          <span className="font-semibold text-ink">Evidence basis:</span>{" "}
+          {incident.data_status === "sufficient"
+            ? "Regression policy evaluation"
+            : `Data status: ${incident.data_status.replaceAll("_", " ")}`}
+          {incident.reasons.length
+            ? ` · ${incident.reasons.slice(0, 3).join(", ").replaceAll("_", " ")}`
+            : ""}
+        </p>
+        <p className="mt-1">
+          <span className="font-semibold text-ink">Notification status:</span>{" "}
+          {incident.state === "invalid_configuration"
+            ? "Configuration invalid; delivery was not confirmed."
+            : incident.last_delivered_at
+              ? `Delivered ${incidentDateLabel(incident.last_delivered_at)}.`
+              : "Not included in this response."}
+        </p>
+      </div>
+    </article>
+  );
 }
 
 function ClientsView({ analytics }: { analytics: Analytics }) {
-  const total = Math.max(1, analytics.clients.reduce((sum, client) => sum + client.calls, 0));
-  const clients = [...analytics.clients].sort((a, b) => b.calls - a.calls);
-  const topClient = clients[0];
-  return <>
-    <PageIntro title="Clients" desc="Client metadata and adoption: compare the products and internal agents observed connecting to your server." /><div className="mb-6 flex items-start gap-2 border border-sky-200 bg-sky-50/70 px-4 py-3 text-xs leading-relaxed text-sky-800"><Info size={15} className="mt-0.5 shrink-0" /><span>Client observations describe adoption and compatibility context. They do not represent server health and are not included in server Tool Quality metrics.</span></div>
-    <div className="grid gap-4 sm:grid-cols-3"><Metric label="Unique clients" value={fmt(clients.length)} icon={Users} /><Metric label="Total tool calls" value={fmt(total)} icon={Activity} /><Metric label="Leading client" value={topClient?.name || "Waiting"} icon={Target} /></div>
-    <div className="mt-6 grid gap-6 xl:grid-cols-[minmax(0,1.35fr)_minmax(300px,0.65fr)]">
-      <Panel title="Adoption by client" subtitle="Share of tool calls in the selected period"><div className="mt-3 divide-y divide-line">{clients.length ? clients.map((client, index) => { const share = client.calls / total; return <div key={client.name} className="py-4"><div className="flex items-center gap-3"><ClientTile name={clientMark(client.name)} className="h-9 w-9 rounded-full" /><div className="min-w-0 flex-1"><div className="flex items-center justify-between gap-4"><p className="truncate text-sm font-medium text-ink">{client.name}</p><p className="font-mono text-xs text-muted">{Math.round(share * 100)}%</p></div><div className="mt-2 h-2 bg-mist"><div className="h-full bg-ink" style={{ width: `${Math.max(2, share * 100)}%` }} /></div><p className="mt-1.5 text-[11px] text-muted">{fmt(client.calls)} tool calls · rank {index + 1}</p></div></div></div>; }) : <p className="py-8 text-sm text-muted">Client identity appears during MCP initialization.</p>}</div></Panel>
-      <Panel title="What this tells you" subtitle="Turn client traffic into product decisions"><div className="mt-5 space-y-4"><div className="border-l-2 border-brand pl-3"><p className="text-sm font-medium text-ink">Distribution</p><p className="mt-1 text-xs leading-relaxed text-muted">Know whether adoption is broad or dependent on one AI client.</p></div><div className="border-l-2 border-line-strong pl-3"><p className="text-sm font-medium text-ink">Coverage</p><p className="mt-1 text-xs leading-relaxed text-muted">Compare client demand against the tools each client actually uses.</p></div><div className="border-l-2 border-line-strong pl-3"><p className="text-sm font-medium text-ink">Priority</p><p className="mt-1 text-xs leading-relaxed text-muted">Use the largest client segment to prioritize compatibility and reliability work.</p></div></div></Panel>
+  return (
+    <div>
+      <PageIntro
+        title="AI clients"
+        description="See which AI client applications were observed at the server boundary. This is not a count of users or customers."
+      />
+      <Panel
+        title="AI clients observed"
+        subtitle="Activity is grouped by observed client name"
+      >
+        <div
+          className="overflow-x-auto"
+          role="region"
+          aria-label="Scrollable table"
+        >
+          <p className="mb-3 text-[11px] text-faint">
+            Scroll horizontally to inspect all columns.
+          </p>
+          <table className="w-full min-w-[620px] text-left text-sm">
+            <thead className="border-b border-line text-[10px] font-semibold uppercase tracking-[0.08em] text-faint">
+              <tr>
+                <th className="pb-3">AI client</th>
+                <th className="pb-3">Observed calls</th>
+                <th className="pb-3">Share of calls</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-line">
+              {analytics.clients.map((client) => (
+                <tr key={client.name}>
+                  <td className="py-4 font-medium text-ink">{client.name}</td>
+                  <td className="py-4 text-muted">{fmt(client.calls)}</td>
+                  <td className="py-4 text-muted">
+                    {analytics.tool_calls
+                      ? percent(client.calls / analytics.tool_calls)
+                      : "N/A"}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          {!analytics.clients.length && (
+            <p className="py-8 text-sm text-muted">
+              No AI clients were observed in the selected period.
+            </p>
+          )}
+        </div>
+      </Panel>
     </div>
-  </>;
-}
-function OutcomesView({ analytics }: { analytics: Analytics }) { return <><PageIntro title="Outcomes" desc="Measure whether tool calls turn into completed work, not just successful requests." /><Panel title="Business outcomes" subtitle="Explicit workflow signals from your application"><div className="mt-5 overflow-x-auto"><table className="w-full min-w-[560px] text-left text-sm"><thead className="border-b border-line text-[10px] font-semibold uppercase tracking-[0.08em] text-faint"><tr><th className="pb-3">Workflow</th><th className="pb-3">Started</th><th className="pb-3">Completed</th><th className="pb-3">Failed</th><th className="pb-3">Completion</th></tr></thead><tbody className="divide-y divide-line">{analytics.outcomes.map((outcome) => <tr key={outcome.name}><td className="py-4 font-mono text-xs text-ink">{outcome.name}</td><td className="py-4 text-muted">{outcome.started}</td><td className="py-4 text-muted">{outcome.completed}</td><td className="py-4 text-muted">{outcome.failed}</td><td className="py-4 text-brand-strong">{outcome.started ? `${Math.round((outcome.completed / outcome.started) * 100)}%` : "N/A"}</td></tr>)}</tbody></table>{!analytics.outcomes.length && <p className="py-8 text-sm text-muted">No explicit workflow outcomes yet. Add <code className="rounded bg-paper px-1.5 py-0.5 font-mono text-xs">trackmcp.workflow(...)</code> when your application knows the user&apos;s real task finished.</p>}</div></Panel></>; }
-function IntentView({ analytics }: { analytics: Analytics }) {
-  const sourceLabels = { context_parameter: "Caller-provided context", external_callback: "External callback", fallback: "Fallback callback", missing: "No intent supplied" } as const;
-  const total = Object.values(analytics.intent_sources).reduce((sum, value) => sum + value, 0);
-  return <><PageIntro title="Intent & capability gaps" desc="Review explicit caller context and missing-capability reports without turning heuristics into intent." /><div className="grid gap-4 sm:grid-cols-4">{(Object.keys(sourceLabels) as Array<keyof typeof sourceLabels>).map((source) => <Metric key={source} label={sourceLabels[source]} value={fmt(analytics.intent_sources[source])} icon={Sparkles} tone={source === "missing" ? "warn" : "normal"} />)}</div><div className="mt-6 grid gap-6 xl:grid-cols-[minmax(0,1.1fr)_minmax(300px,0.9fr)]"><Panel title="Intent provenance" subtitle="Every context value carries the source that supplied it"><div className="mt-3 space-y-4">{(Object.keys(sourceLabels) as Array<keyof typeof sourceLabels>).map((source) => { const share = total ? analytics.intent_sources[source] / total : 0; return <div key={source}><div className="flex items-center justify-between gap-3 text-sm"><span className="text-body">{sourceLabels[source]}</span><span className="font-mono text-xs text-muted">{Math.round(share * 100)}%</span></div><div className="mt-2 h-2 bg-mist"><div className={`h-full ${source === "missing" ? "bg-amber-500" : "bg-brand"}`} style={{ width: `${Math.max(source === "missing" && share ? 2 : 0, share * 100)}%` }} /></div></div>; })}</div></Panel><Panel title="Missing capabilities" subtitle="Explicit reports from clients or application code"><div className="mt-3 divide-y divide-line">{analytics.missing_capabilities.length ? analytics.missing_capabilities.map((item) => <div key={item.name} className="flex items-center justify-between gap-3 py-3"><code className="font-mono text-xs text-ink">{item.name}</code><span className="text-xs text-muted">{fmt(item.reports)} reports</span></div>) : <p className="py-6 text-sm text-muted">No missing-capability reports yet.</p>}</div><p className="mt-4 border-t border-line pt-4 text-[11px] leading-relaxed text-faint">These are explicit signals only. TrackMCP does not infer a user goal from private model reasoning or an unsuccessful tool call.</p></Panel></div></>;
+  );
 }
 
-type ToolQualityReason = ToolQualityResponse["tools"][number]["insufficient_data"][number];
-function insufficientReason(reason: ToolQualityReason): string {
-  const reasons: Record<ToolQualityReason, string> = {
-    tool_volume: `Fewer than ${TOOL_QUALITY_MIN_TOOL_CALLS} eligible tool calls; metric withheld.`,
-    segment_volume: `Segment needs at least ${TOOL_QUALITY_MIN_SEGMENT_CALLS} calls and ${TOOL_QUALITY_MIN_SEGMENT_SESSIONS} sessions.`,
-    workflow_volume: `Fewer than ${TOOL_QUALITY_MIN_WORKFLOW_TERMINALS} terminal workflow outcomes; completion withheld.`,
-    catalog_volume: `Each catalog side needs at least ${TOOL_QUALITY_MIN_CATALOG_CALLS} eligible calls.`,
-    missing_grouping: "No reliable session or correlation grouping was available.",
-    uninspectable_result: "Result payloads were not sufficiently inspectable.",
-    bounded_source_scan: "The source scan was capped; some events may be omitted.",
-  };
-  return reasons[reason];
-}
-function insufficientReasons(reasons: ToolQualityReason[]): string {
-  return [...new Set(reasons)].map(insufficientReason).join(" ");
+function EvidenceView({
+  analytics,
+  dataMode,
+  incident,
+  onViewTrace,
+  onViewChange,
+}: {
+  analytics: Analytics;
+  dataMode: DataMode;
+  incident: AlertIncident | null;
+  onViewTrace: (sessionId: string, correlationHandle?: string | null) => void;
+  onViewChange: (view: View) => void;
+}) {
+  return (
+    <div>
+      <PageIntro
+        title="Evidence"
+        description="Inspect bounded, redacted records only when the business question needs technical detail."
+      />
+      <DataSourceStrip dataMode={dataMode} />
+      {incident && (
+        <IncidentEvidence incident={incident} onBack={() => onViewChange("issues")} />
+      )}
+      <Panel
+        title="Observed sessions"
+        subtitle="Choose a session to open Trace Explorer. Example data cannot open an authenticated trace."
+        action={{
+          label: "Back to Overview",
+          onClick: () => onViewChange("overview"),
+        }}
+      >
+        <div
+          className="overflow-x-auto"
+          role="region"
+          aria-label="Scrollable table"
+        >
+          <p className="mb-3 text-[11px] text-faint">
+            Scroll horizontally to inspect all columns.
+          </p>
+          <table className="w-full min-w-[720px] text-left text-sm">
+            <thead className="border-b border-line text-[10px] font-semibold uppercase tracking-[0.08em] text-faint">
+              <tr>
+                <th className="pb-3">Session</th>
+                <th className="pb-3">AI client</th>
+                <th className="pb-3">Calls</th>
+                <th className="pb-3">Correlation</th>
+                <th className="pb-3">Action</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-line">
+              {analytics.workflows.map((workflow) => (
+                <tr key={workflow.session_id}>
+                  <td className="py-4 font-mono text-xs text-ink">
+                    {workflow.session_id}
+                  </td>
+                  <td className="py-4 text-muted">{workflow.client_name}</td>
+                  <td className="py-4 text-muted">{fmt(workflow.calls)}</td>
+                  <td className="py-4 text-muted">
+                    {correlationLabel(workflow.correlation_quality)}
+                  </td>
+                  <td className="py-4">
+                    {dataMode === "example" ? (
+                      <span className="text-xs text-faint">Example only</span>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() =>
+                          onViewTrace(
+                            workflow.session_id,
+                            workflow.correlation_handle,
+                          )
+                        }
+                        className="cursor-pointer text-xs font-semibold text-brand-strong hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
+                      >
+                        Open Trace Explorer
+                      </button>
+                    )}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          {!analytics.workflows.length && (
+            <p className="py-8 text-sm text-muted">
+              No observed sessions match the selected period.
+            </p>
+          )}
+        </div>
+        <p className="mt-4 flex items-center gap-1.5 text-[11px] text-muted">
+          <FileWarning size={13} />
+          Results are bounded by the API. Some events may be omitted when the
+          response is capped.
+        </p>
+      </Panel>
+    </div>
+  );
 }
 
-function ToolQualityView({ data, onViewTrace, isSample }: { data: ToolQualityResponse | null; onViewTrace: (sessionId: string, correlationHandle?: string | null) => void; isSample: boolean }) {
-  if (!data) return <><PageIntro title="Tool Quality" desc="Observed tool usage and explicit workflow associations. No tool-selection or causal model claims." /><Panel title="Waiting for tool-quality data"><p className="py-6 text-sm text-muted">Tool-quality analytics are still loading. Try refreshing the dashboard.</p></Panel></>;
-  const value = (metric: number | null, suffix = "%") => metric === null ? "Insufficient data" : suffix === "%" ? `${Math.round(metric * 100)}%` : `${metric}${suffix}`;
-  return <>
-    <PageHeader title="Tool Quality" description="Compare server-observed tool usage with documented denominators, result visibility, retries, and explicit workflow associations." dataMode={isSample ? "sample" : "live"} meta="Client adapter events are excluded from this server-observed scope." />
-    <div className="mb-6 grid gap-3 md:grid-cols-3"><div className="border border-line bg-white p-4"><p className="text-[10px] font-semibold uppercase tracking-[0.08em] text-faint">Observed facts</p><p className="mt-2 text-sm leading-relaxed text-muted">Calls, known outcomes, inspectable results, retries, catalog hashes, and explicit workflow events.</p></div><div className="border border-line bg-white p-4"><p className="text-[10px] font-semibold uppercase tracking-[0.08em] text-faint">Derived metrics</p><p className="mt-2 text-sm leading-relaxed text-muted">Shares and rates use documented denominators and minimum-volume rules; unavailable values remain insufficient.</p></div><div className="border border-line bg-white p-4"><p className="text-[10px] font-semibold uppercase tracking-[0.08em] text-faint">Associations</p><p className="mt-2 text-sm leading-relaxed text-muted">“Associated with low explicit completion” is an investigation signal, never a causal or model-quality claim.</p></div></div>
-    <Panel title="Tool quality signals" subtitle={`${fmt(data.source_event_count)} server-observed source events · last ${data.range_days} days${data.truncated ? " · Showing a bounded result; some events may be omitted" : ""}`}><div className="mt-5 overflow-x-auto"><table className="w-full min-w-[1080px] text-left text-sm"><thead className="border-b border-line text-[10px] font-semibold uppercase tracking-[0.08em] text-faint"><tr><th className="pb-3">Tool</th><th className="pb-3"><span className="inline-flex items-center gap-1">Call share <span title="Share of observed eligible tool calls" aria-label="Share of observed eligible tool calls"><Info size={12} /></span></span></th><th className="pb-3"><span className="inline-flex items-center gap-1">Error rate <span title="Failed calls divided by calls with a known outcome" aria-label="Failed calls divided by calls with a known outcome"><Info size={12} /></span></span></th><th className="pb-3">Observable empty result</th><th className="pb-3">Retry rate</th><th className="pb-3">Observed repeat</th><th className="pb-3">Explicit completion</th><th className="pb-3">Trace</th></tr></thead><tbody className="divide-y divide-line">{data.tools.map((tool) => <tr key={tool.name}><td className="py-4 font-mono text-xs text-ink">{tool.name}<span className="mt-1 block font-sans text-[10px] text-faint">{fmt(tool.observed.call_count)} calls · {fmt(tool.observed.session_count)} sessions</span>{tool.insufficient_data.length > 0 && <span className="mt-2 block max-w-[260px] font-sans text-[10px] leading-relaxed text-amber-700">{insufficientReasons(tool.insufficient_data)}</span>}</td><td className="py-4 text-muted">{value(tool.metrics.tool_call_share)}</td><td className="py-4 text-muted">{value(tool.metrics.error_rate)}</td><td className="py-4 text-muted">{value(tool.metrics.observable_empty_result_rate)}</td><td className="py-4 text-muted">{value(tool.metrics.retry_rate)}</td><td className="py-4 text-muted">{value(tool.metrics.observed_repeat_call_rate)}</td><td className="py-4"><span className={tool.completion_association.status === "associated_with_low_explicit_completion" ? "font-medium text-amber-700" : tool.completion_association.status === "insufficient_data" ? "text-muted" : "text-brand-strong"}>{tool.completion_association.status === "associated_with_low_explicit_completion" ? "Associated with low explicit completion" : tool.completion_association.status === "insufficient_data" ? `Insufficient data · ${insufficientReasons(tool.completion_association.insufficient_data)}` : value(tool.completion_association.completion_rate)}</span></td><td className="py-4">{isSample || !tool.trace_session_ids.length ? <span className="text-[11px] text-faint">{isSample ? "Sample only" : "Not available"}</span> : <button type="button" onClick={() => onViewTrace(tool.trace_session_ids[0])} className="text-xs font-medium text-brand-strong hover:underline">View trace</button>}</td></tr>)}</tbody></table>{data.truncated && <p className="mt-3 flex items-center gap-1.5 text-[11px] text-amber-700"><Info size={13} />Showing a bounded result. Some events may be omitted because the source scan is capped at 10,000 events. Narrow the time range or scope to inspect more precisely.</p>}{!data.tools.length && <p className="py-8 text-sm text-muted">No tool calls received yet.</p>}</div></Panel>
-    <div className="mt-6"><Panel title="Explicit workflow paths" subtitle="Only explicit workflow IDs, ordered timestamps, and completed or failed lifecycle outcomes qualify."><div className="mt-4 overflow-x-auto"><table className="w-full min-w-[760px] text-left text-sm"><thead className="border-b border-line text-[10px] font-semibold uppercase tracking-[0.08em] text-faint"><tr><th className="pb-3">Path</th><th className="pb-3">Terminal workflows</th><th className="pb-3">Associated calls</th><th className="pb-3">Completion</th><th className="pb-3">Status</th></tr></thead><tbody className="divide-y divide-line">{data.tool_paths.map((path) => <tr key={JSON.stringify(path.path)}><td className="py-3 font-mono text-xs text-ink">{path.path.join(" → ")}</td><td className="py-3 text-muted">{fmt(path.terminal_workflow_count)} / {fmt(path.started_workflow_count)} started</td><td className="py-3 text-muted">{fmt(path.associated_call_count)}</td><td className="py-3 text-muted">{value(path.completion_rate)}</td><td className="py-3">{path.status === "associated_with_low_explicit_completion" ? <span className="font-medium text-amber-700">Associated with low explicit completion</span> : path.status === "insufficient_data" ? <span className="text-muted">Insufficient data</span> : <span className="text-brand-strong">Not flagged</span>}</td></tr>)}</tbody></table>{!data.tool_paths.length && <p className="py-6 text-sm text-muted">No explicit workflow paths with a known tool sequence yet.</p>}</div></Panel></div>
-    <div className="mt-6 grid gap-6 xl:grid-cols-2"><Panel title="Advertised but unused" subtitle="A timestamped catalog snapshot advertised the tool, but no eligible call was observed in that interval."><div className="mt-3 divide-y divide-line">{data.advertised_but_unused.length ? data.advertised_but_unused.map((tool) => <div key={`${tool.name}-${tool.observed_at}`} className="flex items-center justify-between gap-3 py-3"><code className="font-mono text-xs text-ink">{tool.name}</code><span className="text-xs text-muted">{new Date(tool.observed_at).toLocaleString()}</span></div>) : <p className="py-6 text-sm text-muted">No unused advertised tools in this period.</p>}</div></Panel><Panel title="Catalog comparisons" subtitle="Before/after comparisons join calls to the catalog snapshot effective at each call timestamp."><div className="mt-3 divide-y divide-line">{data.catalog_comparisons.length ? data.catalog_comparisons.map((comparison) => <div key={`${comparison.tool_name}-${comparison.before.effective_from}`} className="py-3"><div className="flex items-center justify-between gap-3"><code className="font-mono text-xs text-ink">{comparison.tool_name}</code><span className="text-[11px] text-muted">{comparison.before.schema_hash || "N/A"} → {comparison.after.schema_hash || "N/A"}</span></div><p className="mt-1 text-[11px] text-muted">Error {value(comparison.before_metrics.error_rate)} → {value(comparison.after_metrics.error_rate)}{comparison.insufficient_data.length ? " · Insufficient data" : ""}</p></div>) : <p className="py-6 text-sm text-muted">No catalog change has enough eligible calls on both sides.</p>}</div></Panel></div>
-    <Panel title="Interpretation guardrails" subtitle="How to read this view"><div className="mt-4 space-y-3 text-xs leading-relaxed text-muted"><p><strong className="text-ink">tool_call_share</strong> is the tool&apos;s share of observed eligible tool calls. It does not say whether a tool was considered but not selected.</p><p><strong className="text-ink">Observed repeat call</strong> means the same tool appeared at least twice within five minutes in the same session or correlation group, excluding explicit retries. It is not a confirmed re-ask.</p><p><strong className="text-ink">Low completion association</strong> requires a fixed explicit completion rate below 80%, at least 20 terminal workflows, and at least 30 associated eligible calls. It is not evidence of cause.</p></div></Panel>
-  </>;
+function IncidentEvidence({
+  incident,
+  onBack,
+}: {
+  incident: AlertIncident;
+  onBack: () => void;
+}) {
+  return (
+    <Panel
+      title="Incident evidence"
+      subtitle="Bounded regression evidence from the workspace alert contract"
+      action={{ label: "Back to Issues", onClick: onBack }}
+    >
+      <div className="grid gap-3 text-xs text-muted sm:grid-cols-2 lg:grid-cols-3">
+        <p>
+          <span className="font-semibold text-ink">State:</span>{" "}
+          {incidentStateLabel(incident.state)}
+        </p>
+        <p>
+          <span className="font-semibold text-ink">Metric:</span>{" "}
+          {metricLabel(incident.metric)}
+        </p>
+        <p>
+          <span className="font-semibold text-ink">Severity:</span>{" "}
+          {incident.severity || "Not provided"}
+        </p>
+        <p>
+          <span className="font-semibold text-ink">Scope:</span>{" "}
+          {incident.scope.tool_name || "All capabilities"}
+          {incident.scope.environment
+            ? ` · ${incident.scope.environment}`
+            : " · all environments"}
+        </p>
+        <p>
+          <span className="font-semibold text-ink">Baseline:</span>{" "}
+          {summaryLabel(incident.baseline)}
+        </p>
+        <p>
+          <span className="font-semibold text-ink">Comparison:</span>{" "}
+          {summaryLabel(incident.comparison)}
+        </p>
+        <p>
+          <span className="font-semibold text-ink">Threshold:</span>{" "}
+          {thresholdLabel(incident.threshold)}
+        </p>
+        <p>
+          <span className="font-semibold text-ink">Data status:</span>{" "}
+          {incident.data_status.replaceAll("_", " ")}
+        </p>
+        <p>
+          <span className="font-semibold text-ink">Last seen:</span>{" "}
+          {incidentDateLabel(incident.last_seen_at)}
+        </p>
+      </div>
+      {incident.reasons.length > 0 && (
+        <p className="mt-4 border border-line bg-paper p-3 text-xs text-muted">
+          <span className="font-semibold text-ink">Review notes:</span>{" "}
+          {incident.reasons.slice(0, 8).join(", ").replaceAll("_", " ")}.
+        </p>
+      )}
+      <p className="mt-4 text-[11px] text-faint">
+        Webhook secrets, raw delivery payloads, private telemetry, and
+        unbounded JSON are not displayed. Notification delivery is shown only
+        when the incident response provides it.
+      </p>
+    </Panel>
+  );
 }
-function CatalogView({ analytics }: { analytics: Analytics }) { return <><PageIntro title="Protocol catalog" desc="Understand what your server advertises, what clients discover, and what they actually use." /><div className="mb-6 flex flex-wrap items-center justify-between gap-3 border border-line bg-white px-4 py-3"><p className="text-xs text-muted">Want to test a public MCP endpoint before connecting telemetry?</p><a href="https://trackmcp.com/tools/mcp-server-tester" target="_blank" rel="noreferrer" className="inline-flex items-center gap-1.5 text-xs font-semibold text-brand-strong hover:underline">Open MCP Server Tester <ExternalLink size={13} /></a></div><div className="grid gap-4 sm:grid-cols-3"><Metric label="Tools discovered" value={fmt(analytics.funnel.discovered_tools)} icon={Wrench} /><Metric label="MCP methods seen" value={fmt(analytics.methods.length)} icon={Activity} /><Metric label="Protocol versions" value={fmt(analytics.protocol_versions.length)} icon={Layers3} /></div><div className="mt-6 grid gap-6 lg:grid-cols-2"><Panel title="Observed methods" subtitle="Protocol exchanges seen in the selected period"><div className="mt-4 flex flex-wrap gap-2">{analytics.methods.length ? analytics.methods.map((method) => <code key={method} className="rounded-lg border border-line bg-paper px-3 py-2 font-mono text-xs text-body">{method}</code>) : <p className="text-sm text-muted">No protocol method telemetry yet.</p>}</div></Panel><Panel title="Transport and version coverage" subtitle="Compatibility signals from connected clients"><div className="mt-4 space-y-3"><div><p className="text-xs font-medium text-muted">Transports</p><p className="mt-1 text-sm text-ink">{analytics.transports.length ? analytics.transports.join(" · ") : "Not reported yet"}</p></div><div><p className="text-xs font-medium text-muted">Protocol versions</p><p className="mt-1 text-sm text-ink">{analytics.protocol_versions.length ? analytics.protocol_versions.join(" · ") : "Not reported yet"}</p></div></div></Panel></div><Panel title="Tool inventory" subtitle="Discovery and adoption are intentionally separate"><div className="mt-4 overflow-x-auto"><table className="w-full min-w-[900px] text-left text-sm"><thead className="border-b border-line text-[10px] font-semibold uppercase tracking-[0.08em] text-faint"><tr><th className="pb-3">Tool</th><th className="pb-3">Description</th><th className="pb-3">Schema hash</th><th className="pb-3">Discovered</th><th className="pb-3">Calls</th><th className="pb-3">p50</th><th className="pb-3">p95</th></tr></thead><tbody className="divide-y divide-line">{analytics.tools.map((tool) => <tr key={tool.name}><td className="py-3 font-mono text-xs text-ink">{tool.name}</td><td className="max-w-[260px] truncate py-3 text-xs text-muted">{tool.description || "Not reported"}</td><td className="py-3 font-mono text-[10px] text-muted">{tool.schema_hash ? tool.schema_hash.slice(0, 12) : "N/A"}</td><td className="py-3 text-muted">{tool.discovered ? "Yes" : "No"}</td><td className="py-3 text-muted">{fmt(tool.calls)}</td><td className="py-3 text-muted">{tool.p50_ms == null ? "N/A" : `${tool.p50_ms}ms`}</td><td className="py-3 text-muted">{tool.p95_ms == null ? "N/A" : `${tool.p95_ms}ms`}</td></tr>)}</tbody></table><p className="mt-3 text-[11px] text-faint">Descriptions and schema hashes come from observed tools/list catalog events.</p></div></Panel></>; }
-function ReleasesView({ analytics }: { analytics: Analytics }) { return <><PageIntro title="Releases" desc="Make changes observable across environments, server versions, and protocol revisions." /><Panel title="Release comparison is ready for deployment metadata" subtitle="The next SDK event includes environment, deployment, server version, and commit context."><div className="mt-5 grid gap-4 sm:grid-cols-3"><div className="rounded-xl bg-paper p-4"><p className="text-xs text-muted">Transports observed</p><p className="mt-2 text-lg font-semibold text-ink">{analytics.transports.length ? analytics.transports.length : "Waiting"}</p></div><div className="rounded-xl bg-paper p-4"><p className="text-xs text-muted">Protocol surface</p><p className="mt-2 text-lg font-semibold text-ink">{fmt(analytics.methods.length)} methods</p></div><div className="rounded-xl bg-paper p-4"><p className="text-xs text-muted">Current sample</p><p className="mt-2 text-lg font-semibold text-ink">{fmt(analytics.total_events)} events</p></div></div><p className="mt-5 text-sm leading-relaxed text-muted">Add deployment metadata in the SDK configuration to unlock before/after regression comparisons for error rate, latency, catalog changes, and workflow completion.</p></Panel></>; }
-function ReliabilityView({ analytics, onViewChange }: { analytics: Analytics; onViewChange: (view: View) => void }) { const failing = analytics.tools.filter((tool) => tool.error_rate > 0 || (tool.avg_ms || 0) >= 500).sort((a, b) => b.error_rate - a.error_rate); return <><PageIntro title="Reliability" desc="Find the calls that make an agent retry, stall, or abandon a session." /><div className="grid gap-4 sm:grid-cols-3"><Metric label="Error rate" value={analytics.tool_calls ? `${Math.round((analytics.errors / analytics.tool_calls) * 100)}%` : "Insufficient data"} icon={AlertTriangle} tone={analytics.errors ? "warn" : "normal"} helper={analytics.tool_calls ? `${fmt(analytics.tool_calls)} call denominator` : "No call denominator"} /><Metric label="Successful calls" value={fmt(analytics.funnel.successful_calls)} icon={Check} /><Metric label="Tools needing review" value={fmt(failing.length)} icon={Gauge} tone={failing.length ? "warn" : "normal"} /></div><div className="mt-6"><Insights analytics={analytics} /></div><Panel title="Reliability queue" subtitle="Prioritized by observed errors and latency"><div className="mt-3 divide-y divide-line">{failing.length ? failing.map((tool) => <div key={tool.name} className="flex flex-wrap items-center justify-between gap-3 py-3"><ToolRow tool={tool} /><button type="button" onClick={() => onViewChange("tools")} className="inline-flex items-center gap-1 text-xs font-semibold text-brand-strong hover:underline">View tool <ChevronRight size={13} /></button></div>) : <p className="py-6 text-sm text-muted">No reliability issues detected in this period.</p>}</div></Panel></>; }
-function PageIntro({ title, desc }: { title: string; desc: string }) { return <div className="mb-7"><h2 className="text-2xl font-medium tracking-[-0.03em] text-ink">{title}</h2><p className="mt-2 text-sm text-muted">{desc}</p></div>; }
-function SettingsView({ keys, working, onGenerateKey, onRevokeKey }: { keys: Key[]; working: boolean; onGenerateKey: () => void; onRevokeKey: (id: string) => void }) {
-  const [language, setLanguage] = useState<"TypeScript" | "Python" | "Go" | ".NET">("TypeScript");
+
+function SetupView({
+  keys,
+  working,
+  onGenerateKey,
+  onRevokeKey,
+}: {
+  keys: Key[];
+  working: boolean;
+  onGenerateKey: () => void;
+  onRevokeKey: (id: string) => void;
+}) {
+  const [language, setLanguage] = useState<"TypeScript" | "Python">(
+    "TypeScript",
+  );
   const [copied, setCopied] = useState(false);
+
   const snippets = {
-    TypeScript: { install: "npm install @trackmcp/sdk", code: `import { withTrackMCP } from "@trackmcp/sdk";
-import { server } from "./mcp";
-
-export default withTrackMCP(server, {
-  apiKey: process.env.TRACKMCP_KEY!,
-  service: "my-mcp-server",
-  environment: "production",
-});` },
-    Python: { install: "python3 -m pip install trackmcp", code: `import os
-from trackmcp import with_trackmcp
-
-app = with_trackmcp(
-  server,
-  api_key=os.environ["TRACKMCP_KEY"],
-  service="my-mcp-server",
-  environment="production",
-)` },
-    Go: { install: "go get github.com/trackmcp/trackmcp-go", code: `client := trackmcp.New(trackmcp.Options{
-  APIKey: os.Getenv("TRACKMCP_KEY"),
-  Service: "my-mcp-server",
-  Environment: "production",
-})
-
-client.Capture(trackmcp.Event{
-  EventType: "tool_call",
-  MCPMethod: "tools/call",
-  ToolName: "search_docs",
-})
-defer client.Flush()` },
-    ".NET": { install: "dotnet add package TrackMcp", code: `using TrackMcp;
-
-using var client = new TrackMcpClient(new TrackMcpOptions(
-  Environment.GetEnvironmentVariable("TRACKMCP_KEY")!,
-  Service: "my-mcp-server",
-  Environment: "production"));
-
-client.Capture("tool_call", "tools/call",
-  toolName: "search_docs");
-await client.FlushAsync();` },
-  } as const;
-  const snippet = snippets[language];
-  const copySnippet = async () => {
-    let ok = false;
-    try { if (navigator.clipboard?.writeText) { await navigator.clipboard.writeText(`${snippet.install}\n\n${snippet.code}`); ok = true; } } catch { /* fallback below */ }
-    if (!ok) { const area = document.createElement("textarea"); area.value = `${snippet.install}\n\n${snippet.code}`; area.style.position = "fixed"; area.style.opacity = "0"; document.body.appendChild(area); area.focus(); area.select(); try { ok = document.execCommand("copy"); } catch { ok = false; } area.remove(); }
-    if (ok) { setCopied(true); window.setTimeout(() => setCopied(false), 1600); }
+    TypeScript: `npm install @trackmcp/sdk\n\nimport { withTrackMCP } from "@trackmcp/sdk";\nexport default withTrackMCP(server, { apiKey: process.env.TRACKMCP_KEY! });`,
+    Python: `python3 -m pip install trackmcp\n\nfrom trackmcp import with_trackmcp\napp = with_trackmcp(server, api_key=os.environ["TRACKMCP_KEY"])`,
   };
-  return <><PageIntro title="Configure" desc="Connect your MCP server and manage the keys your SDK integrations use." /><div className="grid gap-6 xl:grid-cols-[minmax(0,1.25fr)_minmax(320px,0.75fr)]"><Panel title="SDK integration" subtitle="Choose your language, install the package, and add the wrapper at your server boundary"><div className="mt-4 flex flex-wrap gap-1 border-b border-line pb-2">{(Object.keys(snippets) as Array<keyof typeof snippets>).map((item) => <button key={item} disabled={item === "Go" || item === ".NET"} onClick={() => { setLanguage(item); setCopied(false); }} className={`flex items-center gap-2 px-3 py-2 text-xs font-medium ${language === item ? "border-b-2 border-brand text-brand-strong" : item === "Go" || item === ".NET" ? "cursor-not-allowed text-faint" : "text-muted hover:text-ink"}`}>{item}{(item === "Go" || item === ".NET") && <span className="text-[10px] uppercase tracking-[0.08em]">Coming soon</span>}</button>)}</div><div className="mt-4 border border-[#26332c] bg-[#101713] text-white"><div className="flex items-center justify-between gap-3 border-b border-white/10 px-4 py-3"><span className="font-mono text-[11px] text-white/55">{language} · quickstart</span><button onClick={() => void copySnippet()} className="inline-flex items-center gap-1.5 border border-white/20 px-2.5 py-1.5 text-[11px] text-white/80 hover:bg-white/10"><Clipboard size={13} />{copied ? "Copied" : "Copy"}</button></div><pre className="overflow-x-auto p-5 font-mono text-xs leading-relaxed"><code><span className="text-emerald-300">{snippet.install}</span>{"\n\n"}{snippet.code}</code></pre></div><p className="mt-4 text-xs leading-relaxed text-muted">Telemetry is fail-open: your server keeps working if TrackMCP is unavailable. Keep <code className="font-mono text-ink">TRACKMCP_KEY</code> in your environment and never commit it.</p></Panel><Panel title="API keys" subtitle="Full secrets are shown only at creation"><div className="mt-4 space-y-2">{keys.map((key) => <div key={key.id} className="flex items-center justify-between gap-3 rounded-xl border border-line bg-paper px-3.5 py-3"><div><p className="font-mono text-xs text-ink">{key.key_prefix}••••••</p><p className="mt-1 text-[11px] text-muted">{key.name} · {key.revoked_at ? "Revoked" : "Active"}</p></div>{!key.revoked_at && <button onClick={() => onRevokeKey(key.id)} className="text-xs text-red-700 hover:underline">Revoke</button>}</div>)}{!keys.length && <p className="py-4 text-sm text-muted">No keys created yet.</p>}</div><button onClick={onGenerateKey} disabled={working} className="mt-4 inline-flex items-center gap-2 rounded-lg bg-ink px-4 py-2.5 text-sm font-medium text-white disabled:opacity-60"><KeyRound size={15} />{working ? "Creating..." : "Create new key"}</button></Panel></div></>;
+  const copy = async () => {
+    try {
+      await navigator.clipboard.writeText(snippets[language]);
+      setCopied(true);
+      window.setTimeout(() => setCopied(false), 1600);
+    } catch {
+      setCopied(false);
+    }
+  };
+  return (
+    <div>
+      <PageIntro
+        title="Setup"
+        description="Connect your server and manage the key that authenticates telemetry to this workspace."
+      />
+      <section className="mb-6 flex items-start gap-3 border border-line bg-[#f3f5f3] p-4">
+        <Info size={17} className="mt-0.5 text-muted" />
+        <div>
+          <p className="text-sm font-semibold text-ink">Connection state</p>
+          <p className="mt-1 text-xs text-muted">
+            A connection key authenticates server telemetry. This state does not
+            claim product health, freshness, installation, or reachability.
+          </p>
+        </div>
+      </section>
+      <div className="grid gap-6 xl:grid-cols-[minmax(0,1.2fr)_minmax(320px,.8fr)]">
+        <Panel
+          title="Connect the server"
+          subtitle="Keep the key in your server environment; never commit it"
+        >
+          <div className="mt-4 flex gap-1 border-b border-line pb-2">
+            {(["TypeScript", "Python"] as const).map((item) => (
+              <button
+                type="button"
+                key={item}
+                onClick={() => setLanguage(item)}
+                className={
+                  "cursor-pointer px-3 py-2 text-xs font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand " +
+                  (language === item
+                    ? "border-b-2 border-brand text-brand-strong"
+                    : "text-muted hover:text-ink")
+                }
+              >
+                {item}
+              </button>
+            ))}
+          </div>
+          <pre className="mt-4 overflow-x-auto rounded-md bg-[#101713] p-5 font-mono text-xs leading-relaxed text-white">
+            <code>{snippets[language]}</code>
+          </pre>
+          <button
+            type="button"
+            onClick={() => void copy()}
+            className="mt-3 inline-flex cursor-pointer items-center gap-1.5 rounded-md border border-line-strong bg-white px-3 py-2 text-xs font-semibold text-body focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
+          >
+            <Clipboard size={13} />
+            {copied ? "Copied" : "Copy setup"}
+          </button>
+          <p className="mt-4 text-xs leading-relaxed text-muted">
+            Telemetry is fail-open. Payloads remain subject to the existing
+            privacy and redaction policy.
+          </p>
+        </Panel>
+        <Panel
+          title="Connection keys"
+          subtitle="Full secrets are shown only at creation"
+        >
+          <div className="space-y-2">
+            {keys.map((key) => (
+              <div
+                key={key.id}
+                className="flex items-center justify-between gap-3 border border-line bg-paper px-3.5 py-3"
+              >
+                <div>
+                  <p className="font-mono text-xs text-ink">
+                    {key.key_prefix}••••••
+                  </p>
+                  <p className="mt-1 text-[11px] text-muted">
+                    {key.name} · {key.revoked_at ? "Revoked" : "Active"}
+                  </p>
+                </div>
+                {!key.revoked_at && (
+                  <button
+                    type="button"
+                    onClick={() => onRevokeKey(key.id)}
+                    className="cursor-pointer text-xs font-semibold text-red-700 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-600"
+                  >
+                    Revoke
+                  </button>
+                )}
+              </div>
+            ))}
+            {!keys.length && (
+              <p className="py-4 text-sm text-muted">
+                No connection key exists yet.
+              </p>
+            )}
+          </div>
+          <button
+            type="button"
+            onClick={onGenerateKey}
+            disabled={working}
+            className="mt-4 inline-flex cursor-pointer items-center gap-2 rounded-md bg-ink px-4 py-2.5 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
+          >
+            <KeyRound size={15} />
+            {working ? "Creating…" : "Create connection key"}
+          </button>
+        </Panel>
+      </div>
+    </div>
+  );
+}
+
+function DashboardOnboarding({
+  workspace,
+  working,
+  error,
+  hasKey,
+  newKey,
+  onCreateWorkspace,
+  onGenerateKey,
+  onOpenDashboard,
+}: {
+  workspace: Workspace | null;
+  working: boolean;
+  error: string;
+  hasKey: boolean;
+  newKey: string;
+  onCreateWorkspace: (details?: SetupDetails) => void;
+  onGenerateKey: () => void;
+  onOpenDashboard: () => void;
+}) {
+  const [copied, setCopied] = useState(false);
+  const copy = async () => {
+    if (!newKey) return;
+    try {
+      await navigator.clipboard.writeText(newKey);
+      setCopied(true);
+      window.setTimeout(() => setCopied(false), 1600);
+    } catch {
+      setCopied(false);
+    }
+  };
+  return (
+    <section className="mx-auto max-w-3xl border border-line bg-white p-6 sm:p-8">
+      <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-brand-strong">
+        Activate / setup
+      </p>
+      <h2 className="mt-2 text-2xl font-semibold tracking-[-0.03em] text-ink">
+        {workspace ? "Create a connection key" : "Create your workspace"}
+      </h2>
+      <p className="mt-2 text-sm leading-relaxed text-muted">
+        This route is for a missing workspace or API key. Returning users with
+        an active key open Overview directly.
+      </p>
+      <div className="mt-7 space-y-4">
+        <div className="border border-line bg-paper p-4">
+          <p className="text-sm font-semibold text-ink">
+            {workspace ? "Connection key" : "Workspace"}
+          </p>
+          <p className="mt-1 text-xs text-muted">
+            {workspace
+              ? "The key authenticates telemetry from the server environment to this workspace."
+              : "Create a workspace without asking for first or last name again; signup already collected account details."}
+          </p>
+          {hasKey && newKey ? (
+            <div className="mt-3 flex flex-wrap items-center gap-2">
+              <code className="rounded-md bg-ink px-3 py-2 font-mono text-xs text-white">
+                {newKey.slice(0, 10)}••••••••••••
+              </code>
+              <button
+                type="button"
+                onClick={() => void copy()}
+                className="inline-flex cursor-pointer items-center gap-1 text-xs font-semibold text-brand-strong"
+              >
+                <Clipboard size={13} />
+                {copied ? "Copied" : "Copy key"}
+              </button>
+            </div>
+          ) : (
+            <button
+              type="button"
+              onClick={() =>
+                workspace ? onGenerateKey() : onCreateWorkspace()
+              }
+              disabled={working}
+              className="mt-3 inline-flex cursor-pointer items-center gap-2 rounded-md bg-ink px-4 py-2.5 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
+            >
+              {working
+                ? "Working…"
+                : workspace
+                  ? "Create connection key"
+                  : "Create workspace"}
+              <ArrowRight size={15} />
+            </button>
+          )}
+        </div>
+        <div className="border border-line p-4">
+          <p className="text-sm font-semibold text-ink">Next step</p>
+          <p className="mt-1 text-xs text-muted">
+            Install the SDK, make one real tool call, then return to /dashboard
+            to see the first-event setup panel.
+          </p>
+          <div className="mt-3 flex flex-wrap gap-2">
+            <a
+              href="/docs/typescript"
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex cursor-pointer items-center gap-1.5 rounded-md border border-line-strong bg-white px-3 py-2 text-xs font-semibold text-body focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
+            >
+              View SDK guide <ArrowRight size={13} />
+            </a>
+            <button
+              type="button"
+              onClick={onOpenDashboard}
+              className="inline-flex cursor-pointer items-center gap-1.5 rounded-md bg-ink px-3 py-2 text-xs font-semibold text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
+            >
+              Open Overview <ArrowRight size={13} />
+            </button>
+          </div>
+        </div>
+      </div>
+      {error && (
+        <p
+          className="mt-5 border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800"
+          role="alert"
+        >
+          {error}
+        </p>
+      )}
+    </section>
+  );
+}
+
+function UsageChart({ timeline }: { timeline: Analytics["timeline"] }) {
+  if (!timeline.length)
+    return (
+      <div className="grid h-[250px] place-items-center text-sm text-muted">
+        No activity in the selected period.
+      </div>
+    );
+  const width = 760,
+    height = 250,
+    left = 46,
+    right = 14,
+    top = 18,
+    bottom = 42,
+    plotWidth = width - left - right,
+    plotHeight = height - top - bottom;
+  const max = Math.max(1, ...timeline.map((day) => day.calls));
+  const x = (index: number) =>
+    left +
+    (timeline.length === 1
+      ? plotWidth / 2
+      : (index / (timeline.length - 1)) * plotWidth);
+  const y = (value: number) => top + plotHeight - (value / max) * plotHeight;
+  const points = timeline
+    .map((day, index) => x(index) + "," + y(day.calls))
+    .join(" ");
+  return (
+    <div className="mt-5 overflow-x-auto">
+      <svg
+        viewBox={"0 0 " + width + " " + height}
+        className="min-w-[620px]"
+        role="img"
+        aria-label="Observed tool calls over time"
+      >
+        <line
+          x1={left}
+          y1={height - bottom}
+          x2={width - right}
+          y2={height - bottom}
+          stroke="#dfe6e1"
+        />
+        <polyline
+          fill="none"
+          stroke="#159b73"
+          strokeWidth="3"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          points={points}
+        />
+        {timeline.map((day, index) => (
+          <circle
+            key={day.date}
+            cx={x(index)}
+            cy={y(day.calls)}
+            r="3.5"
+            fill="#159b73"
+          />
+        ))}
+        <text x={left} y={height - 12} fontSize="11" fill="#8b958f">
+          {timeline[0].date}
+        </text>
+        <text
+          x={width - right}
+          y={height - 12}
+          textAnchor="end"
+          fontSize="11"
+          fill="#8b958f"
+        >
+          {timeline[timeline.length - 1].date}
+        </text>
+        <text x={left} y={14} fontSize="11" fill="#64706a">
+          Tool calls
+        </text>
+      </svg>
+    </div>
+  );
+}
+
+function explicitOutcomeTotals(analytics: Analytics) {
+  return analytics.outcomes.reduce(
+    (total, outcome) => ({
+      started: total.started + outcome.started,
+      completed: total.completed + outcome.completed,
+      failed: total.failed + outcome.failed,
+    }),
+    { started: 0, completed: 0, failed: 0 },
+  );
+}
+function metricValue(value: number | null | undefined) {
+  return value === null || value === undefined
+    ? "N/A"
+    : Math.round(value * 100) + "%";
+}
+function correlationLabel(
+  value: Analytics["workflows"][number]["correlation_quality"],
+): string {
+  if (value === "session_id") return "Session ID";
+  if (value === "transport_generated") return "Transport-generated";
+  if (value === "external") return "External handle";
+  if (value === "issued") return "Issued handle";
+  if (value === "mixed") return "Mixed correlation";
+  return "Legacy/Unknown";
+}
+function insufficientReason(reason: ToolQualityInsufficientReason) {
+  const labels: Record<ToolQualityInsufficientReason, string> = {
+    tool_volume: "Minimum " + TOOL_QUALITY_MIN_TOOL_CALLS + " tool calls",
+    segment_volume:
+      "Minimum " + TOOL_QUALITY_MIN_SEGMENT_CALLS + " segment calls",
+    workflow_volume:
+      "Minimum " + TOOL_QUALITY_MIN_WORKFLOW_TERMINALS + " terminal workflows",
+    catalog_volume:
+      "Minimum " + TOOL_QUALITY_MIN_CATALOG_CALLS + " catalog calls",
+    missing_grouping: "Required grouping is unavailable",
+    uninspectable_result: "Successful result is not inspectable",
+    bounded_source_scan: "Source scan is bounded",
+  };
+  return labels[reason];
+}
+function insufficientReasons(reasons: ToolQualityInsufficientReason[]) {
+  return reasons.map(insufficientReason).join(" · ");
 }

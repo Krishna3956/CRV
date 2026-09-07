@@ -12,12 +12,12 @@ async function source(relativePath) {
 
 test("dashboard distinguishes live data and completion evidence", async () => {
   const dashboard = await source("src/components/dashboard/DashboardApp.tsx");
-  assert.match(dashboard, /Sample data/);
+  assert.match(dashboard, /Example data/);
   assert.match(dashboard, /Live data/);
-  assert.match(dashboard, /session heuristic/);
-  assert.match(dashboard, /Ended after successful call/);
-  assert.match(dashboard, /Explicitly completed/);
-  assert.match(dashboard, /View trace/);
+  assert.doesNotMatch(dashboard, /session heuristic/);
+  assert.match(dashboard, /No explicit workflow outcome data/);
+  assert.match(dashboard, /Source: workflow outcome events/);
+  assert.match(dashboard, /Open Evidence/);
 });
 
 test("reference and API docs describe bounded trace responses and latency semantics", async () => {
@@ -59,10 +59,10 @@ test("public website labels sample visuals and qualifies unsupported roadmap cla
     source("src/app/pricing/page.tsx"),
   ]);
   assert.match(pages[0], /server sees/);
-  assert.match(pages[1], /Sample data/);
-  assert.match(pages[2], /Sample data/);
+  assert.match(pages[1], /Example data/);
+  assert.match(pages[2], /Example data/);
   assert.match(pages[3], /does not proxy arbitrary hosted MCP servers/);
-  assert.match(pages[3], /Sample data/);
+  assert.match(pages[3], /Example data/);
   assert.match(pages[4], /Planned/);
   assert.match(pages[5], /Planned/);
 });
@@ -77,7 +77,7 @@ test("onboarding and quickstart make privacy and boundary behavior discoverable"
   }
   assert.match(setup, /fail-open/);
   assert.match(quickstart, /fails open/);
-  assert.match(quickstart, /Sample data/);
+  assert.match(quickstart, /Example data/);
   assert.match(docsHome, /private model turn/);
 });
 
