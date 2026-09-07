@@ -104,3 +104,18 @@ test("preferred Evidence route and legacy trace URLs remain supported", () => {
   assert.match(source, /params\.get\("view"\) === "trace"/);
   assert.match(source, /view === "evidence"[\s\S]*dashboard\/traces/);
 });
+
+test("Issues consumes bounded workspace incidents without adding Alerts navigation", () => {
+  assert.match(source, /\/api\/v1\/alert-incidents\?limit=50/);
+  assert.match(source, /credentials: "same-origin"/);
+  assert.match(source, /Firing regression/);
+  assert.match(source, /Insufficient evidence/);
+  assert.match(source, /Configuration needs attention/);
+  assert.match(source, /Notification status/);
+  assert.match(source, /Not included in this response/);
+  assert.match(source, /You do not have permission to view regression incidents/);
+  assert.match(source, /Regression incidents could not be loaded/);
+  assert.match(source, /onViewIncidentEvidence/);
+  assert.match(source, /Incident evidence/);
+  assert.doesNotMatch(source, /id: "alerts", label: "Alerts"/);
+});

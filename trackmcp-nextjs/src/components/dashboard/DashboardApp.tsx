@@ -29,6 +29,7 @@ import type {
   ToolQualityInsufficientReason,
   ToolQualityResponse,
 } from "@/lib/telemetry/analytics-types";
+import type { AlertIncident } from "@/lib/alerts/types";
 import { TrackMCPLogo } from "@/components/TrackMCPLogo";
 import { TraceExplorer } from "@/components/dashboard/TraceExplorer";
 import {
@@ -48,6 +49,13 @@ type Key = {
 };
 type SetupDetails = { first_name: string; last_name: string };
 type DataMode = "my" | "example";
+type AlertLoadState =
+  | "idle"
+  | "loading"
+  | "ready"
+  | "unavailable"
+  | "unauthorized"
+  | "error";
 export type View =
   | "overview"
   | "journeys"
@@ -94,6 +102,67 @@ const fmt = (value: number) => value.toLocaleString();
 const percent = (value: number | null) =>
   value === null ? "N/A" : Math.round(value * 100) + "%";
 
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return Boolean(value && typeof value === "object" && !Array.isArray(value));
+}
+
+function parseAlertIncidents(value: unknown): AlertIncident[] {
+  if (!isRecord(value) || !Array.isArray(value.data)) return [];
+  return value.data.filter(isRecord).slice(0, 100) as AlertIncident[];
+}
+
+function incidentStateLabel(state: AlertIncident["state"]): string {
+  switch (state) {
+    case "firing":
+      return "Firing regression";
+    case "resolved":
+      return "Resolved";
+    case "insufficient_data":
+      return "Insufficient evidence";
+    case "invalid_configuration":
+      return "Configuration needs attention";
+    case "suppressed":
+      return "Suppressed";
+    default:
+      return "Awaiting confirmation";
+  }
+}
+
+function metricLabel(metric: AlertIncident["metric"]): string {
+  return metric
+    .split("_")
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(" ");
+}
+
+function summaryLabel(summary: AlertIncident["comparison"]): string {
+  if (!summary) return "Unavailable";
+  const value = summary.value === null ? "N/A" : percent(summary.value);
+  return `${summary.numerator}/${summary.denominator} (${value})`;
+}
+
+function thresholdLabel(threshold: AlertIncident["threshold"]): string {
+  const entries = Object.entries(threshold).slice(0, 4);
+  return entries.length
+    ? entries.map(([key, value]) => `${key.replaceAll("_", " ")}: ${value}`).join(" · ")
+    : "Not provided";
+}
+
+function incidentVolumeLabel(incident: AlertIncident): string {
+  const denominator = incident.comparison?.denominator;
+  return typeof denominator === "number"
+    ? `${fmt(denominator)} eligible comparison events`
+    : "Not provided by the API";
+}
+
+function incidentDateLabel(value: string | null): string {
+  if (!value) return "Unavailable";
+  const date = new Date(value);
+  return Number.isNaN(date.getTime())
+    ? "Unavailable"
+    : date.toLocaleDateString(undefined, { month: "short", day: "numeric" });
+}
+
 function normalizeView(
   value: string | null,
   fallback: View = "overview",
@@ -129,6 +198,10 @@ function readRouteState(preferred: View = "overview") {
     sessionId: selected ? params.get("session_id") : null,
     correlationHandle: selected ? params.get("correlation_handle") : null,
     origin,
+    incidentId:
+      dataMode === "my" && view === "evidence"
+        ? params.get("incident_id")
+        : null,
   };
 }
 
@@ -140,6 +213,7 @@ function writeRouteState(
   correlationHandle: string | null = null,
   origin: View = "evidence",
   replace = false,
+  incidentId: string | null = null,
 ) {
   const params = new URLSearchParams();
   if (sessionId || correlationHandle) {
@@ -147,6 +221,9 @@ function writeRouteState(
     if (sessionId) params.set("session_id", sessionId);
     if (correlationHandle) params.set("correlation_handle", correlationHandle);
     if (origin !== "evidence") params.set("origin", origin);
+  } else if (incidentId && view === "evidence" && dataMode === "my") {
+    params.set("view", "evidence");
+    params.set("incident_id", incidentId);
   } else if (view !== "overview") {
     params.set("view", view);
   }
@@ -436,6 +513,13 @@ export function DashboardApp({
     string | null
   >(null);
   const [traceOrigin, setTraceOrigin] = useState<View>("evidence");
+  const [incidentId, setIncidentId] = useState<string | null>(null);
+  const [alertIncidents, setAlertIncidents] = useState<AlertIncident[]>([]);
+  const [alertLoadState, setAlertLoadState] =
+    useState<AlertLoadState>("idle");
+  const [alertError, setAlertError] = useState("");
+  const [alertLoadedKey, setAlertLoadedKey] = useState<string | null>(null);
+  const [alertReloadToken, setAlertReloadToken] = useState(0);
   const [copied, setCopied] = useState(false);
   const hasActiveKey = keys.some((key) => !key.revoked_at);
   const isExample = dataMode === "example";
@@ -445,6 +529,16 @@ export function DashboardApp({
   const displayedQuality = isExample
     ? exampleQuality(Number(range))
     : toolQuality;
+  const workspaceId = workspace?.id || null;
+  const alertScopeKey = `${dataMode}:${workspaceId || "none"}:${hasActiveKey}:${alertReloadToken}`;
+  const alertsAvailable = dataMode === "my" && workspaceId !== null && hasActiveKey;
+  const alertScopeLoaded = alertsAvailable && alertLoadedKey === alertScopeKey;
+  const visibleAlertIncidents = alertScopeLoaded ? alertIncidents : [];
+  const visibleAlertLoadState: AlertLoadState = !alertsAvailable
+    ? "unavailable"
+    : alertScopeLoaded
+      ? alertLoadState
+      : "loading";
   const explicitSetupRoute = onboardingMode && (!workspace || !hasActiveKey);
   const zeroEventState = Boolean(
     workspace &&
@@ -465,6 +559,7 @@ export function DashboardApp({
       setTraceSessionId(state.sessionId);
       setTraceCorrelationHandle(state.correlationHandle);
       setTraceOrigin(state.origin);
+      setIncidentId(state.incidentId);
     };
     const timer = window.setTimeout(applyRoute, 0);
     window.addEventListener("popstate", applyRoute);
@@ -474,17 +569,60 @@ export function DashboardApp({
     };
   }, [initialView]);
 
+  useEffect(() => {
+    const controller = new AbortController();
+    if (dataMode === "example" || workspaceId === null || !hasActiveKey) {
+      return () => controller.abort();
+    }
+
+    fetch("/api/v1/alert-incidents?limit=50", {
+      credentials: "same-origin",
+      headers: { Accept: "application/json" },
+      signal: controller.signal,
+    })
+      .then(async (response) => {
+        if (response.status === 401 || response.status === 403) {
+          setAlertIncidents([]);
+          setAlertLoadedKey(alertScopeKey);
+          setAlertLoadState("unauthorized");
+          return;
+        }
+        if (!response.ok) {
+          throw new Error("Could not load regression incidents.");
+        }
+        const payload: unknown = await response.json();
+        setAlertIncidents(parseAlertIncidents(payload));
+        setAlertLoadedKey(alertScopeKey);
+        setAlertLoadState("ready");
+      })
+      .catch((reason: unknown) => {
+        if (controller.signal.aborted) return;
+        setAlertIncidents([]);
+        setAlertError(
+          reason instanceof Error
+            ? reason.message
+            : "Could not load regression incidents.",
+        );
+        setAlertLoadedKey(alertScopeKey);
+        setAlertLoadState("error");
+      });
+
+    return () => controller.abort();
+  }, [alertReloadToken, alertScopeKey, dataMode, hasActiveKey, workspaceId]);
+
   const setDataMode = (next: DataMode) => {
     setDataModeState(next);
     setTraceSessionId(null);
     setTraceCorrelationHandle(null);
     setTraceOrigin("evidence");
+    setIncidentId(null);
     writeRouteState(view, range, next, null, null, "evidence");
   };
   const goTo = (next: View) => {
     setView(next);
     setTraceSessionId(null);
     setTraceCorrelationHandle(null);
+    setIncidentId(null);
     writeRouteState(next, range, dataMode);
   };
   const openTrace = (sessionId: string, correlationHandle?: string | null) => {
@@ -492,6 +630,7 @@ export function DashboardApp({
     setTraceSessionId(sessionId);
     setTraceCorrelationHandle(correlationHandle || null);
     setTraceOrigin(origin);
+    setIncidentId(null);
     setView("evidence");
     writeRouteState(
       "evidence",
@@ -505,6 +644,7 @@ export function DashboardApp({
   const closeTrace = () => {
     setTraceSessionId(null);
     setTraceCorrelationHandle(null);
+    setIncidentId(null);
     setView(traceOrigin);
     writeRouteState(traceOrigin, range, dataMode);
   };
@@ -512,6 +652,27 @@ export function DashboardApp({
     setRange(next);
     if (dataMode === "my") onRefresh(next);
     writeRouteState(view, next, dataMode);
+  };
+  const openIncidentEvidence = (nextIncidentId: string) => {
+    setIncidentId(nextIncidentId);
+    setTraceSessionId(null);
+    setTraceCorrelationHandle(null);
+    setTraceOrigin("issues");
+    setView("evidence");
+    writeRouteState(
+      "evidence",
+      range,
+      dataMode,
+      null,
+      null,
+      "issues",
+      false,
+      nextIncidentId,
+    );
+  };
+  const refreshAll = () => {
+    setAlertReloadToken((value) => value + 1);
+    onRefresh(range);
   };
   const copyKey = async () => {
     if (!newKey) return;
@@ -657,7 +818,7 @@ export function DashboardApp({
         </div>
         <main className="mx-auto max-w-[1440px] px-5 py-6 sm:px-8 sm:py-8">
           {error && (
-            <ErrorBanner message={error} onRetry={() => onRefresh(range)} />
+            <ErrorBanner message={error} onRetry={refreshAll} />
           )}
           {newKey && view === "setup" && (
             <div className="mb-6 flex flex-wrap items-center gap-3 border border-brand/30 bg-brand-soft/35 p-4">
@@ -742,7 +903,7 @@ export function DashboardApp({
                   ? "Live data could not be loaded"
                   : "No live data available for this period."
               }
-              onRetry={() => onRefresh(range)}
+              onRetry={refreshAll}
               permission={/authoriz|permission/i.test(error)}
             />
           ) : view === "setup" ? (
@@ -760,7 +921,17 @@ export function DashboardApp({
               dataMode={dataMode}
               onViewChange={goTo}
               onViewTrace={openTrace}
-              onRefresh={() => onRefresh(range)}
+              onViewIncidentEvidence={openIncidentEvidence}
+              incident={
+                incidentId
+                  ? visibleAlertIncidents.find((item) => item.id === incidentId) ||
+                    null
+                  : null
+              }
+              alertIncidents={visibleAlertIncidents}
+              alertLoadState={visibleAlertLoadState}
+              alertError={alertError}
+              onRefresh={refreshAll}
             />
           )}
         </main>
@@ -1033,16 +1204,26 @@ function ViewContent({
   analytics,
   toolQuality,
   dataMode,
+  incident,
+  alertIncidents,
+  alertLoadState,
+  alertError,
   onViewChange,
   onViewTrace,
+  onViewIncidentEvidence,
   onRefresh,
 }: {
   view: View;
   analytics: Analytics;
   toolQuality: ToolQualityResponse | null;
   dataMode: DataMode;
+  incident: AlertIncident | null;
+  alertIncidents: AlertIncident[];
+  alertLoadState: AlertLoadState;
+  alertError: string;
   onViewChange: (view: View) => void;
   onViewTrace: (sessionId: string, correlationHandle?: string | null) => void;
+  onViewIncidentEvidence: (incidentId: string) => void;
   onRefresh: () => void;
 }) {
   if (view === "journeys")
@@ -1070,7 +1251,13 @@ function ViewContent({
       <IssuesView
         analytics={analytics}
         toolQuality={toolQuality}
+        dataMode={dataMode}
+        incidents={alertIncidents}
+        alertLoadState={alertLoadState}
+        alertError={alertError}
         onViewChange={onViewChange}
+        onViewIncidentEvidence={onViewIncidentEvidence}
+        onRefresh={onRefresh}
       />
     );
   if (view === "clients") return <ClientsView analytics={analytics} />;
@@ -1079,6 +1266,7 @@ function ViewContent({
       <EvidenceView
         analytics={analytics}
         dataMode={dataMode}
+        incident={incident}
         onViewTrace={onViewTrace}
         onViewChange={onViewChange}
       />
@@ -1855,15 +2043,42 @@ function QualityView({
 function IssuesView({
   analytics,
   toolQuality,
+  dataMode,
+  incidents,
+  alertLoadState,
+  alertError,
   onViewChange,
+  onViewIncidentEvidence,
+  onRefresh,
 }: {
   analytics: Analytics;
   toolQuality: ToolQualityResponse | null;
+  dataMode: DataMode;
+  incidents: AlertIncident[];
+  alertLoadState: AlertLoadState;
+  alertError: string;
   onViewChange: (view: View) => void;
+  onViewIncidentEvidence: (incidentId: string) => void;
+  onRefresh: () => void;
 }) {
   const insufficient = toolQuality
     ? toolQuality.tools.filter((tool) => tool.insufficient_data.length)
     : [];
+  const orderedIncidents = [...incidents].sort((left, right) => {
+    const rank = (state: AlertIncident["state"]) =>
+      state === "firing"
+        ? 0
+        : state === "pending"
+          ? 1
+          : state === "resolved"
+            ? 2
+            : state === "suppressed"
+              ? 3
+              : state === "invalid_configuration"
+                ? 4
+                : 5;
+    return rank(left.state) - rank(right.state);
+  });
   return (
     <div>
       <PageIntro
@@ -1871,8 +2086,55 @@ function IssuesView({
         description="Review what deserves attention next, ordered by evidence strength and affected volume."
       />
       <Panel
+        title="Regression incidents"
+        subtitle="Workspace-scoped alert results with bounded evidence"
+      >
+        {dataMode === "example" ? (
+          <div className="border border-line bg-paper p-4 text-sm text-muted">
+            Alert incidents are available for My data only. Example data does
+            not represent workspace alert history.
+          </div>
+        ) : alertLoadState === "idle" || alertLoadState === "loading" ? (
+          <div className="flex items-center gap-2 border border-line bg-paper p-4 text-sm text-muted" role="status">
+            <RefreshCw size={15} className="animate-spin" />
+            Loading regression incidents…
+          </div>
+        ) : alertLoadState === "unauthorized" ? (
+          <div className="border border-line bg-paper p-4 text-sm text-muted" role="status">
+            You do not have permission to view regression incidents for this
+            workspace.
+          </div>
+        ) : alertLoadState === "error" ? (
+          <div className="flex flex-wrap items-center gap-3 border border-red-200 bg-red-50 p-4 text-sm text-red-800" role="alert">
+            <AlertTriangle size={16} />
+            <span className="min-w-0 flex-1">{alertError || "Regression incidents could not be loaded."}</span>
+            <button
+              type="button"
+              onClick={onRefresh}
+              className="cursor-pointer font-semibold underline underline-offset-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-600"
+            >
+              Retry
+            </button>
+          </div>
+        ) : alertLoadState === "ready" && !orderedIncidents.length ? (
+          <div className="border border-line bg-paper p-4 text-sm text-muted">
+            No regression incidents were returned for this workspace.
+          </div>
+        ) : (
+          <div className="space-y-3">
+            {orderedIncidents.map((incident) => (
+              <IncidentCard
+                key={incident.id}
+                incident={incident}
+                onViewEvidence={() => onViewIncidentEvidence(incident.id)}
+              />
+            ))}
+          </div>
+        )}
+      </Panel>
+      <Panel
         title="Needs attention"
-        subtitle="The current API does not provide firing alerts or confidence metadata"
+        subtitle="Observed signals and regression incidents remain separate evidence types"
       >
         <div className="space-y-3">
           {analytics.insights.map((insight) => (
@@ -1941,6 +2203,110 @@ function IssuesView({
   );
 }
 
+function IncidentCard({
+  incident,
+  onViewEvidence,
+}: {
+  incident: AlertIncident;
+  onViewEvidence: () => void;
+}) {
+  const isInsufficient =
+    incident.state === "insufficient_data" ||
+    incident.data_status !== "sufficient";
+  const stateTone =
+    incident.state === "firing"
+      ? "border-amber-200 bg-amber-50/60"
+      : incident.state === "resolved"
+        ? "border-line bg-paper"
+        : "border-line bg-white";
+  return (
+    <article className={`border p-4 ${stateTone}`}>
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="text-[10px] font-semibold uppercase tracking-[0.12em] text-muted">
+              {incidentStateLabel(incident.state)}
+            </span>
+            {incident.severity && (
+              <span className="rounded-full border border-line-strong px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.08em] text-muted">
+                {incident.severity}
+              </span>
+            )}
+            {isInsufficient && (
+              <span className="text-[10px] font-semibold text-amber-800">
+                Not a confirmed failure
+              </span>
+            )}
+          </div>
+          <h3 className="mt-2 text-sm font-semibold text-ink">
+            {metricLabel(incident.metric)}
+          </h3>
+        </div>
+        <button
+          type="button"
+          onClick={onViewEvidence}
+          className="inline-flex cursor-pointer items-center gap-1 text-xs font-semibold text-brand-strong hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
+        >
+          Open Evidence <ChevronRight size={13} />
+        </button>
+      </div>
+      <div className="mt-4 grid gap-3 text-xs text-muted sm:grid-cols-2 lg:grid-cols-3">
+        <p>
+          <span className="font-semibold text-ink">Scope:</span>{" "}
+          {incident.scope.tool_name || "All capabilities"}
+          {incident.scope.environment
+            ? ` · ${incident.scope.environment}`
+            : " · all environments"}
+        </p>
+        <p>
+          <span className="font-semibold text-ink">Affected volume:</span>{" "}
+          {incidentVolumeLabel(incident)}
+        </p>
+        <p>
+          <span className="font-semibold text-ink">Threshold:</span>{" "}
+          {thresholdLabel(incident.threshold)}
+        </p>
+        <p>
+          <span className="font-semibold text-ink">Baseline:</span>{" "}
+          {summaryLabel(incident.baseline)}
+        </p>
+        <p>
+          <span className="font-semibold text-ink">Comparison:</span>{" "}
+          {summaryLabel(incident.comparison)}
+        </p>
+        <p>
+          <span className="font-semibold text-ink">Last seen:</span>{" "}
+          {incidentDateLabel(incident.last_seen_at)}
+          {incident.recovery?.recovered_at
+            ? ` · recovered ${incidentDateLabel(incident.recovery.recovered_at)}`
+            : incident.resolved_at
+              ? ` · resolved ${incidentDateLabel(incident.resolved_at)}`
+              : ""}
+        </p>
+      </div>
+      <div className="mt-3 border-t border-line/80 pt-3 text-[11px] text-muted">
+        <p>
+          <span className="font-semibold text-ink">Evidence basis:</span>{" "}
+          {incident.data_status === "sufficient"
+            ? "Regression policy evaluation"
+            : `Data status: ${incident.data_status.replaceAll("_", " ")}`}
+          {incident.reasons.length
+            ? ` · ${incident.reasons.slice(0, 3).join(", ").replaceAll("_", " ")}`
+            : ""}
+        </p>
+        <p className="mt-1">
+          <span className="font-semibold text-ink">Notification status:</span>{" "}
+          {incident.state === "invalid_configuration"
+            ? "Configuration invalid; delivery was not confirmed."
+            : incident.last_delivered_at
+              ? `Delivered ${incidentDateLabel(incident.last_delivered_at)}.`
+              : "Not included in this response."}
+        </p>
+      </div>
+    </article>
+  );
+}
+
 function ClientsView({ analytics }: { analytics: Analytics }) {
   return (
     <div>
@@ -1996,11 +2362,13 @@ function ClientsView({ analytics }: { analytics: Analytics }) {
 function EvidenceView({
   analytics,
   dataMode,
+  incident,
   onViewTrace,
   onViewChange,
 }: {
   analytics: Analytics;
   dataMode: DataMode;
+  incident: AlertIncident | null;
   onViewTrace: (sessionId: string, correlationHandle?: string | null) => void;
   onViewChange: (view: View) => void;
 }) {
@@ -2011,6 +2379,9 @@ function EvidenceView({
         description="Inspect bounded, redacted records only when the business question needs technical detail."
       />
       <DataSourceStrip dataMode={dataMode} />
+      {incident && (
+        <IncidentEvidence incident={incident} onBack={() => onViewChange("issues")} />
+      )}
       <Panel
         title="Observed sessions"
         subtitle="Choose a session to open Trace Explorer. Example data cannot open an authenticated trace."
@@ -2083,6 +2454,75 @@ function EvidenceView({
         </p>
       </Panel>
     </div>
+  );
+}
+
+function IncidentEvidence({
+  incident,
+  onBack,
+}: {
+  incident: AlertIncident;
+  onBack: () => void;
+}) {
+  return (
+    <Panel
+      title="Incident evidence"
+      subtitle="Bounded regression evidence from the workspace alert contract"
+      action={{ label: "Back to Issues", onClick: onBack }}
+    >
+      <div className="grid gap-3 text-xs text-muted sm:grid-cols-2 lg:grid-cols-3">
+        <p>
+          <span className="font-semibold text-ink">State:</span>{" "}
+          {incidentStateLabel(incident.state)}
+        </p>
+        <p>
+          <span className="font-semibold text-ink">Metric:</span>{" "}
+          {metricLabel(incident.metric)}
+        </p>
+        <p>
+          <span className="font-semibold text-ink">Severity:</span>{" "}
+          {incident.severity || "Not provided"}
+        </p>
+        <p>
+          <span className="font-semibold text-ink">Scope:</span>{" "}
+          {incident.scope.tool_name || "All capabilities"}
+          {incident.scope.environment
+            ? ` · ${incident.scope.environment}`
+            : " · all environments"}
+        </p>
+        <p>
+          <span className="font-semibold text-ink">Baseline:</span>{" "}
+          {summaryLabel(incident.baseline)}
+        </p>
+        <p>
+          <span className="font-semibold text-ink">Comparison:</span>{" "}
+          {summaryLabel(incident.comparison)}
+        </p>
+        <p>
+          <span className="font-semibold text-ink">Threshold:</span>{" "}
+          {thresholdLabel(incident.threshold)}
+        </p>
+        <p>
+          <span className="font-semibold text-ink">Data status:</span>{" "}
+          {incident.data_status.replaceAll("_", " ")}
+        </p>
+        <p>
+          <span className="font-semibold text-ink">Last seen:</span>{" "}
+          {incidentDateLabel(incident.last_seen_at)}
+        </p>
+      </div>
+      {incident.reasons.length > 0 && (
+        <p className="mt-4 border border-line bg-paper p-3 text-xs text-muted">
+          <span className="font-semibold text-ink">Review notes:</span>{" "}
+          {incident.reasons.slice(0, 8).join(", ").replaceAll("_", " ")}.
+        </p>
+      )}
+      <p className="mt-4 text-[11px] text-faint">
+        Webhook secrets, raw delivery payloads, private telemetry, and
+        unbounded JSON are not displayed. Notification delivery is shown only
+        when the incident response provides it.
+      </p>
+    </Panel>
   );
 }
 
