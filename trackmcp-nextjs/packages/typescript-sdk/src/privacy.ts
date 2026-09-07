@@ -26,6 +26,8 @@ const DEFAULT_SENSITIVE_KEYS = new Set([
   "refresh_token",
   "private_key",
   "client_secret",
+  "email",
+  "e_mail",
   "ssn",
   "credit_card",
   "card_number",
@@ -73,6 +75,15 @@ function safeJson(value: unknown): string | undefined {
   }
 }
 
+const SENSITIVE_TEXT_PATTERNS = [
+  /\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b/i,
+  /\bbearer\s+[A-Za-z0-9._~+\/-]+=*/i,
+  /\bbasic\s+[A-Za-z0-9+/=]{8,}/i,
+  /\beyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\b/,
+  /-----BEGIN [A-Z ]*PRIVATE KEY-----/i,
+  /\b(?:api[_-]?key|access[_-]?token|refresh[_-]?token|client[_-]?secret|password|secret|authorization)\s*[:=]\s*\S+/i,
+];
+
 function likelyBase64(value: string): boolean {
   return value.length >= BASE64_SCRUB_THRESHOLD && /^[A-Za-z0-9+/_-]+={0,2}$/.test(value);
 }
@@ -87,6 +98,7 @@ function resourceMarker(value: string): Record<string, unknown> | undefined {
   }
   if (/(?:authorization|api[_-]?key|access[_-]?token|refresh[_-]?token|password|secret)\s*[:=]\s*\S+/i.test(value)) return marker("credential", "string");
   if (/\bbearer\s+[A-Za-z0-9._~+/-]+=*/i.test(value)) return marker("resource_uri", "string");
+  if (SENSITIVE_TEXT_PATTERNS.some((pattern) => pattern.test(value))) return marker("credential", "string");
   try {
     const url = new URL(value);
     const hasCredentials = Boolean(url.username || url.password);
@@ -166,13 +178,14 @@ export function payloadByteLength(value: unknown): number {
 export function sanitizePayload(value: unknown, options: PayloadPrivacyOptions): unknown {
   if (options.mode === "metadata" || value === undefined) return undefined;
   const limits = {
-    maxPayloadDepth: Math.max(0, Math.floor(options.maxPayloadDepth ?? DEFAULT_MAX_PAYLOAD_DEPTH)),
-    maxPayloadKeys: Math.max(1, Math.floor(options.maxPayloadKeys ?? DEFAULT_MAX_PAYLOAD_KEYS)),
-    maxStringLength: Math.max(1, Math.floor(options.maxStringLength ?? DEFAULT_MAX_STRING_LENGTH)),
+    maxPayloadDepth: Math.min(DEFAULT_MAX_PAYLOAD_DEPTH, Math.max(0, Math.floor(options.maxPayloadDepth ?? DEFAULT_MAX_PAYLOAD_DEPTH))),
+    maxPayloadKeys: Math.min(DEFAULT_MAX_PAYLOAD_KEYS, Math.max(1, Math.floor(options.maxPayloadKeys ?? DEFAULT_MAX_PAYLOAD_KEYS))),
+    maxStringLength: Math.min(DEFAULT_MAX_STRING_LENGTH, Math.max(1, Math.floor(options.maxStringLength ?? DEFAULT_MAX_STRING_LENGTH))),
   };
   const sanitized = sanitizeValue(value, 0, "", limits, pathSet(options.explicitPaths || []), new Set((options.redactKeys || []).map(normalizedKey)), new WeakSet());
-  const maxBytes = Math.max(1, Math.floor(options.maxPayloadBytes ?? DEFAULT_MAX_PAYLOAD_BYTES));
-  if (payloadByteLength(sanitized) <= maxBytes) return sanitized;
+  const maxBytes = Math.min(DEFAULT_MAX_PAYLOAD_BYTES, Math.max(1, Math.floor(options.maxPayloadBytes ?? DEFAULT_MAX_PAYLOAD_BYTES)));
+  const serialized = safeJson(sanitized);
+  if (serialized !== undefined && byteLength(serialized) <= maxBytes) return sanitized;
   const budgetMarker = marker("max_payload_bytes", originalType(value));
   return payloadByteLength(budgetMarker) <= maxBytes ? budgetMarker : {};
 }
