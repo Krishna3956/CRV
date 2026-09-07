@@ -85,6 +85,8 @@ test("completion is explicit-outcome-only and tool quality exposes insufficient 
   assert.match(source, /observed calls before/);
   assert.match(source, /Showing a bounded result/);
   assert.match(source, /Some events may be omitted/);
+  assert.match(source, /eligible comparison volume/);
+  assert.doesNotMatch(source, /eligible comparison events/);
 });
 
 test("trace states preserve retry, loading reset, privacy and legacy provenance", () => {

@@ -296,7 +296,7 @@ export function TraceExplorer({
             remain subject to the capture policy.
           </p>
         </div>
-        <Badge>{sampleMode ? "Sample data" : "Live trace"}</Badge>
+        <Badge>{sampleMode ? "Example data" : "Live trace"}</Badge>
       </div>
       <div className="mb-6 flex flex-wrap items-center gap-3 rounded-xl border border-line bg-white px-4 py-3">
         <div className="min-w-0 flex-1">

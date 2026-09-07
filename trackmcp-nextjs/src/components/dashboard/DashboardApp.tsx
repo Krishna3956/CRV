@@ -151,7 +151,7 @@ function thresholdLabel(threshold: AlertIncident["threshold"]): string {
 function incidentVolumeLabel(incident: AlertIncident): string {
   const denominator = incident.comparison?.denominator;
   return typeof denominator === "number"
-    ? `${fmt(denominator)} eligible comparison events`
+    ? `${fmt(denominator)} eligible comparison volume`
     : "Not provided by the API";
 }
 
