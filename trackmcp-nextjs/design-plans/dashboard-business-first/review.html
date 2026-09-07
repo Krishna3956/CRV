@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>TrackMCP business-first dashboard design review</title>
+    <style>
+      :root { color-scheme: light; font-family: Inter, ui-sans-serif, system-ui, sans-serif; color: #14201a; background: #f7f9f7; }
+      body { margin: 0; padding: 32px; }
+      header { max-width: 1440px; margin: 0 auto 28px; }
+      h1 { margin: 0 0 8px; font-size: 28px; letter-spacing: -0.03em; }
+      p { margin: 0; color: #627169; line-height: 1.5; }
+      h2 { max-width: 1440px; margin: 36px auto 14px; font-size: 18px; }
+      .grid { max-width: 1440px; margin: 0 auto; display: grid; grid-template-columns: repeat(auto-fit, minmax(360px, 1fr)); gap: 20px; }
+      figure { margin: 0; padding: 14px; background: #fff; border: 1px solid #d9e3dc; border-radius: 12px; box-shadow: 0 8px 24px rgba(20,32,26,.06); }
+      img { display: block; width: 100%; height: auto; background: #f7f9f7; border: 1px solid #e4ebe6; }
+      figcaption { padding: 12px 2px 2px; font-size: 13px; font-weight: 650; }
+      .note { max-width: 1440px; margin: 24px auto 0; padding: 14px 16px; background: #eaf1ff; border: 1px solid #a9c2f2; border-radius: 10px; color: #31568f; font-size: 13px; }
+      @media (max-width: 760px) { body { padding: 18px; } .grid { grid-template-columns: 1fr; } }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>TrackMCP business-first dashboard design review</h1>
+      <p>Static design artifacts only. Nothing on this page is production implementation.</p>
+    </header>
+
+    <h2>Proposed SVG screens</h2>
+    <section class="grid">
+      <figure><img src="screens/proposed-navigation.svg" alt="Proposed business-first navigation" /><figcaption>Proposed navigation</figcaption></figure>
+      <figure><img src="screens/proposed-overview-1280.svg" alt="Proposed Overview at 1280 by 800" /><figcaption>Overview · 1280×800</figcaption></figure>
+      <figure><img src="screens/proposed-overview-1440.svg" alt="Proposed Overview at 1440 by 900" /><figcaption>Overview · 1440×900</figcaption></figure>
+      <figure><img src="screens/proposed-journeys.svg" alt="Proposed Journeys screen" /><figcaption>Journeys</figcaption></figure>
+      <figure><img src="screens/proposed-quality.svg" alt="Proposed Quality screen" /><figcaption>Quality</figcaption></figure>
+      <figure><img src="screens/proposed-issues.svg" alt="Proposed Issues screen" /><figcaption>Issues</figcaption></figure>
+      <figure><img src="screens/proposed-evidence.svg" alt="Proposed Evidence screen" /><figcaption>Evidence</figcaption></figure>
+      <figure><img src="screens/state-strip.svg" alt="Proposed loading, empty, insufficient, error, and data-source states" /><figcaption>State language strip</figcaption></figure>
+    </section>
+
+    <h2>Rendered proposed screenshots</h2>
+    <section class="grid">
+      <figure><img src="evidence/proposed-overview-1280.png" alt="Rendered proposed Overview at 1280 by 800" /><figcaption>Rendered Overview · 1280×800</figcaption></figure>
+      <figure><img src="evidence/proposed-overview-1440.png" alt="Rendered proposed Overview at 1440 by 900" /><figcaption>Rendered Overview · 1440×900</figcaption></figure>
+    </section>
+
+    <div class="note">For current-versus-proposed comparison, the current audit screenshots are in <code>evidence/current-overview-1280.png</code>, <code>evidence/current-overview-1440.png</code>, and the corresponding live-empty captures.</div>
+  </body>
+</html>
