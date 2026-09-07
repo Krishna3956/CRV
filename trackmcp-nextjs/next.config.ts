@@ -11,6 +11,7 @@ const nextConfig: NextConfig = {
       { source: "/tools", destination: "/repository", permanent: true },
       { source: "/mcp", destination: "/repository", permanent: true },
       { source: "/directory", destination: "/repository", permanent: true },
+      { source: "/tools/test-mcp-server", destination: "/tools/mcp-server-tester", permanent: true },
     ];
   },
   async headers() {
