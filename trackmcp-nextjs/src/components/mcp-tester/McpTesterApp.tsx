@@ -1,10 +1,10 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { AlertTriangle, Check, ChevronDown, CircleHelp, Copy, LoaderCircle, LockKeyhole, Play, RotateCcw, ShieldCheck, Square, X } from "lucide-react";
 import { EarlyAccessButton } from "@/components/EarlyAccessButton";
 import { DEFAULT_MCP_TESTER_LIMITS, runMcpTester, serializeMcpTesterReport, validateMcpEndpoint, validateMcpHeaders } from "@/lib/mcp-tester";
-import type { HealthDimensionName, McpTesterPhase, McpTesterReport, McpTesterVerdict } from "@/lib/mcp-tester";
+import type { HealthDimensionName, McpTesterPhase, McpTesterProgressStatus, McpTesterReport, McpTesterVerdict } from "@/lib/mcp-tester";
 
 type TesterMode = "tester" | "health" | "inspector";
 type RunState = "idle" | "running" | "complete";
@@ -12,12 +12,14 @@ type HeaderRow = { id: number; name: string; value: string };
 
 const EMPTY_HEADERS: HeaderRow[] = [{ id: 1, name: "", value: "" }];
 const PROGRESS: Array<{ phase: McpTesterPhase; label: string }> = [
-  { phase: "validate_endpoint", label: "Validate endpoint and headers" },
+  { phase: "validate_endpoint", label: "Validate endpoint" },
+  { phase: "validate_headers", label: "Validate request headers" },
   { phase: "initialize", label: "Negotiate MCP protocol" },
   { phase: "initialized_notification", label: "Confirm initialized session" },
   { phase: "tools_list", label: "Discover tools catalog" },
   { phase: "resources_list", label: "Discover resources catalog when advertised" },
   { phase: "prompts_list", label: "Discover prompts catalog when advertised" },
+  { phase: "catalog_quality", label: "Check catalog quality" },
   { phase: "finalize", label: "Assemble bounded health report" },
 ];
 const DIMENSIONS: HealthDimensionName[] = [
@@ -79,13 +81,46 @@ function modeCopy(mode: TesterMode) {
   };
 }
 
-function phaseState(report: McpTesterReport | null, phase: McpTesterPhase, progressIndex: number, index: number, state: RunState): "done" | "active" | "pending" | "failed" {
+function phaseState(report: McpTesterReport | null, progress: Partial<Record<McpTesterPhase, McpTesterProgressStatus>>, phase: McpTesterPhase): "done" | "active" | "pending" | "failed" {
   const reportPhase = report?.phases.find((item) => item.phase === phase);
   if (reportPhase?.outcome === "failed" || reportPhase?.outcome === "blocked" || reportPhase?.outcome === "auth_required") return "failed";
   if (reportPhase?.outcome === "passed" || reportPhase?.outcome === "skipped") return "done";
-  if (state === "running" && index === progressIndex) return "active";
   if (reportPhase?.outcome === "incomplete") return "failed";
+  const progressStatus = progress[phase];
+  if (progressStatus === "started") return "active";
+  if (progressStatus === "failed" || progressStatus === "blocked" || progressStatus === "auth_required" || progressStatus === "incomplete") return "failed";
+  if (progressStatus === "passed" || progressStatus === "skipped") return "done";
   return "pending";
+}
+
+function phaseStatusLabel(status: McpTesterProgressStatus | undefined): string {
+  switch (status) {
+    case "started": return "waiting for response";
+    case "passed": return "completed";
+    case "skipped": return "skipped by capability";
+    case "blocked": return "blocked by browser/CORS";
+    case "auth_required": return "authentication required";
+    case "incomplete": return "incomplete due to timeout or bound";
+    case "failed": return "failed";
+    default: return "";
+  }
+}
+
+function phaseDetail(report: McpTesterReport | null, phase: McpTesterPhase, status: McpTesterProgressStatus | undefined): string {
+  const finding = report?.findings.find((item) => item.phase === phase);
+  if (finding) return finding.message;
+  switch (status) {
+    case "started": return "Waiting for the browser-visible response from this endpoint.";
+    case "blocked": return "The browser could not expose a usable response. This may be CORS or browser network policy, not server downtime.";
+    case "auth_required": return "The endpoint required authentication; the tester did not store or retry credentials.";
+    case "incomplete": return "The bounded test stopped before this phase completed.";
+    case "failed": return "The endpoint returned invalid or unusable MCP data in this phase.";
+    default: return "";
+  }
+}
+
+function formatElapsed(ms: number): string {
+  return ms < 1000 ? `${Math.max(0, Math.round(ms))} ms` : `${(ms / 1000).toFixed(1)} s`;
 }
 
 function Catalog({ title, count, pages, complete, truncated, children }: { title: string; count: number; pages: number; complete: boolean; truncated: boolean; children: React.ReactNode }) {
@@ -116,9 +151,19 @@ export function McpTesterApp({ initialMode = "tester" }: { initialMode?: TesterM
   const [report, setReport] = useState<McpTesterReport | null>(null);
   const [inputError, setInputError] = useState("");
   const [copyState, setCopyState] = useState(false);
-  const [progressIndex, setProgressIndex] = useState(0);
+  const [phaseProgress, setPhaseProgress] = useState<Partial<Record<McpTesterPhase, McpTesterProgressStatus>>>({});
+  const [runStartedAt, setRunStartedAt] = useState<number | null>(null);
+  const [elapsedMs, setElapsedMs] = useState(0);
   const controllerRef = useRef<AbortController | null>(null);
   const endpointRef = useRef<HTMLInputElement | null>(null);
+
+  useEffect(() => {
+    if (runState !== "running" || runStartedAt === null) return;
+    const updateElapsed = () => setElapsedMs(Math.max(0, Date.now() - runStartedAt));
+    updateElapsed();
+    const timer = window.setInterval(updateElapsed, 250);
+    return () => window.clearInterval(timer);
+  }, [runState, runStartedAt]);
 
   const updateHeader = (id: number, field: "name" | "value", value: string) => {
     setHeaders((current) => current.map((row) => row.id === id ? { ...row, [field]: value } : row));
@@ -143,7 +188,9 @@ export function McpTesterApp({ initialMode = "tester" }: { initialMode?: TesterM
     setReport(null);
     setInputError("");
     setRunState("idle");
-    setProgressIndex(0);
+    setPhaseProgress({});
+    setRunStartedAt(null);
+    setElapsedMs(0);
     setCopyState(false);
     endpointRef.current?.focus();
   };
@@ -167,16 +214,17 @@ export function McpTesterApp({ initialMode = "tester" }: { initialMode?: TesterM
     controllerRef.current = controller;
     setReport(null);
     setRunState("running");
-    setProgressIndex(0);
+    setPhaseProgress({});
+    setRunStartedAt(Date.now());
+    setElapsedMs(0);
     try {
-      setProgressIndex(1);
       const nextReport = await runMcpTester({
         endpoint: endpoint.trim(),
         headers: suppliedHeaders,
         fetch: window.fetch.bind(window),
         signal: controller.signal,
+        onProgress: (update) => setPhaseProgress((current) => ({ ...current, [update.phase]: update.status })),
       });
-      setProgressIndex(PROGRESS.length - 1);
       setReport(nextReport);
     } catch {
       setInputError("The browser could not complete the bounded probe. Run it again or inspect the browser network policy.");
@@ -184,6 +232,7 @@ export function McpTesterApp({ initialMode = "tester" }: { initialMode?: TesterM
       controllerRef.current = null;
       setHeaders(EMPTY_HEADERS);
       setRunState("complete");
+      setRunStartedAt(null);
     }
   };
 
@@ -241,10 +290,13 @@ export function McpTesterApp({ initialMode = "tester" }: { initialMode?: TesterM
 
         <section aria-labelledby="progress-title" className="rounded-2xl border border-line bg-paper p-5 sm:p-7">
           <div className="flex items-center justify-between gap-4"><div><p className="font-mono text-[11px] uppercase tracking-[0.08em] text-faint">Live progress</p><h2 id="progress-title" className="mt-2 text-[22px] font-medium tracking-[-0.025em]">Read-only inspection timeline</h2></div>{runState === "running" && <LoaderCircle size={19} className="animate-spin text-brand" />}</div>
+          <div className="mt-5 rounded-xl border border-line bg-white p-3.5 text-[12px] leading-[1.55] text-muted" role="status" aria-live="polite">
+            {runState === "running" ? <><span className="font-medium text-body">Working for {formatElapsed(elapsedMs)}.</span> The browser-direct probe has a 30-second maximum and is currently reporting each phase as it starts and finishes.</> : report ? <><span className="font-medium text-body">Probe finished.</span> The phase marked failed or blocked below identifies where evidence stopped. Read its detail and the findings in the report.</> : <><span className="font-medium text-body">Ready.</span> Run a bounded browser-direct probe to see each phase outcome.</>}
+          </div>
           <ol className="mt-7 space-y-3">
-            {PROGRESS.map((item, index) => { const state = phaseState(report, item.phase, progressIndex, index, runState); return <li key={item.phase} className="flex items-center gap-3 text-[13px]">
-              <span className={`grid h-7 w-7 shrink-0 place-items-center rounded-full border ${state === "done" ? "border-brand bg-brand text-white" : state === "active" ? "border-brand bg-brand-soft text-brand-strong" : state === "failed" ? "border-red-200 bg-red-50 text-red-700" : "border-line-strong bg-white text-faint"}`}>{state === "done" ? <Check size={14} /> : state === "active" ? <LoaderCircle size={14} className="animate-spin" /> : state === "failed" ? <X size={14} /> : <span className="font-mono text-[11px]">{index + 1}</span>}</span>
-              <span className={state === "pending" ? "text-muted" : "text-body"}>{item.label}</span>
+            {PROGRESS.map((item, index) => { const state = phaseState(report, phaseProgress, item.phase); const status = report?.phases.find((phase) => phase.phase === item.phase)?.outcome ?? phaseProgress[item.phase]; const detail = phaseDetail(report, item.phase, status); return <li key={item.phase} className="flex items-start gap-3 text-[13px]">
+              <span className={`mt-0.5 grid h-7 w-7 shrink-0 place-items-center rounded-full border ${state === "done" ? "border-brand bg-brand text-white" : state === "active" ? "border-brand bg-brand-soft text-brand-strong" : state === "failed" ? "border-red-200 bg-red-50 text-red-700" : "border-line-strong bg-white text-faint"}`}>{state === "done" ? <Check size={14} /> : state === "active" ? <LoaderCircle size={14} className="animate-spin" /> : state === "failed" ? <X size={14} /> : <span className="font-mono text-[11px]">{index + 1}</span>}</span>
+              <div className="min-w-0 flex-1"><div className="flex flex-wrap items-center gap-x-2 gap-y-1"><span className={state === "pending" ? "text-muted" : "text-body"}>{item.label}</span>{status && <span className={`font-mono text-[10px] uppercase tracking-wide ${state === "failed" ? "text-red-700" : state === "active" ? "text-brand-strong" : "text-faint"}`}>{phaseStatusLabel(status)}</span>}</div>{detail && <p className={`mt-1 text-[11px] leading-[1.45] ${state === "failed" ? "text-red-700" : "text-muted"}`}>{detail}</p>}</div>
             </li>; })}
           </ol>
           <div className="mt-7 rounded-xl border border-line bg-white p-3.5 text-[12px] leading-[1.55] text-muted"><span className="font-medium text-body">Safety boundary:</span> browser-direct HTTPS only, with bounded response bodies, JSON, timeline events, pagination, and total duration.</div>

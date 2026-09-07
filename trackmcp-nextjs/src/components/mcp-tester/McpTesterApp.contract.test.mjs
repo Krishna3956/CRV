@@ -11,6 +11,8 @@ test("tester UI invokes only the browser-injected fetch and engine", () => {
   assert.match(app, /runMcpTester\(/);
   assert.match(app, /fetch:\s*window\.fetch\.bind\(window\)/);
   assert.match(app, /new AbortController\(\)/);
+  assert.match(app, /onProgress:/);
+  assert.match(app, /30-second maximum/);
   assert.doesNotMatch(app, /globalThis\.fetch/);
   assert.doesNotMatch(app, /dangerouslySetInnerHTML|innerHTML/);
 });
@@ -21,6 +23,7 @@ test("remote report fields are rendered as text, never as navigation targets", (
   assert.match(app, /report\.verdictMessage/);
   assert.match(app, /finding\.message/);
   assert.match(app, /event\.details/);
+  assert.match(app, /phaseDetail\(/);
 });
 
 test("sensitive form state is cleared after completion and cancellation is exposed", () => {

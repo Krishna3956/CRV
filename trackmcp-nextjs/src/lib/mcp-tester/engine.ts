@@ -15,6 +15,7 @@ import type {
   McpTesterOptions,
   McpTesterPhase,
   McpTesterReport,
+  McpTesterProgressStatus,
   PhaseOutcome,
   PhaseReport,
   PhaseTiming,
@@ -98,14 +99,27 @@ export async function runMcpTester(options: McpTesterOptions): Promise<McpTester
   const phases: PhaseReport[] = [];
   const timings: PhaseTiming[] = [];
 
+  const emitProgress = (phase: McpTesterPhase, status: McpTesterProgressStatus, atMs: number) => {
+    try {
+      options.onProgress?.({ phase, status, atMs: Math.max(0, Math.round(atMs)) });
+    } catch {
+      // A presentation callback must never change the probe result or interrupt safety cleanup.
+    }
+  };
+
   const record = (kind: TimelineEventKind, phase: McpTesterPhase, details?: Readonly<Record<string, string | number | boolean | null>>, durationMs?: number) => {
+    const atMs = Math.max(0, Math.round(now() - startedMs));
+    if (kind === "phase_started") emitProgress(phase, "started", atMs);
+    if (kind === "phase_finished" && typeof details?.outcome === "string" && isPhaseOutcome(details.outcome)) {
+      emitProgress(phase, details.outcome, atMs);
+    }
     if (timeline.length >= limits.maxTimelineEvents) {
       timelineTruncated = true;
       return;
     }
     timeline.push({
       index: timeline.length,
-      atMs: Math.max(0, Math.round(now() - startedMs)),
+      atMs,
       phase,
       kind,
       ...(durationMs === undefined ? {} : { durationMs: Math.max(0, Math.round(durationMs)) }),
@@ -756,6 +770,10 @@ function stateRecord(state: ProbeState, kind: TimelineEventKind, phase: McpTeste
     return;
   }
   state.timeline.push({ index: state.timeline.length, atMs: Math.max(0, Math.round(state.now() - state.startedMs)), phase, kind, ...(details === undefined ? {} : { details }) });
+}
+
+function isPhaseOutcome(value: string): value is PhaseOutcome {
+  return value === "passed" || value === "failed" || value === "blocked" || value === "skipped" || value === "incomplete" || value === "auth_required";
 }
 
 function emptyCatalog<T>(): CatalogSummary<T> {
