@@ -33,10 +33,12 @@ test("webhooks accept public DNS targets after checking every resolved address",
   const publicLookup = async (): Promise<Array<{ address: string; family: 4 | 6 }>> => [{ address: "93.184.216.34", family: 4 }];
   const lambdaHostname = "doali4pvvdpoqywnjiaerpktga0ryfkb.lambda-url.ap-south-1.on.aws";
   assert.deepEqual(await validateWebhookDestination(`https://${lambdaHostname}/`, publicLookup), { ok: true, url: `https://${lambdaHostname}/` });
-  const mappedPublicLookup = async (): Promise<Array<{ address: string; family: 4 | 6 }>> => [{ address: "::ffff:5db8:d822", family: 6 }];
-  assert.equal((await validateWebhookDestination("https://mapped.example.test/hook", mappedPublicLookup)).ok, true);
+  const publicIpv6Lookup = async (): Promise<Array<{ address: string; family: 4 | 6 }>> => [{ address: "2606:4700:4700::1111", family: 6 }];
+  assert.equal((await validateWebhookDestination("https://public-v6.example.test/hook", publicIpv6Lookup)).ok, true);
   const mixedLookup = async (): Promise<Array<{ address: string; family: 4 | 6 }>> => [{ address: "93.184.216.34", family: 4 }, { address: "10.0.0.1", family: 4 }];
   assert.equal((await validateWebhookDestination("https://mixed.example.test/hook", mixedLookup)).ok, false);
+  const invalidLookup = async (): Promise<Array<{ address: string; family: 4 | 6 }>> => [{ address: "not-an-ip", family: 4 }];
+  assert.equal((await validateWebhookDestination("https://invalid-resolver.example.test/hook", invalidLookup)).ok, false);
 });
 
 test("webhooks reject private, reserved, metadata, encoded, and link-local targets", async () => {
@@ -56,7 +58,7 @@ test("webhooks reject private, reserved, metadata, encoded, and link-local targe
   assert.equal(redirect.error_code, "redirect_blocked");
   const linkLocal = async (): Promise<Array<{ address: string; family: 4 | 6 }>> => [{ address: "fe90::1", family: 6 }];
   assert.equal((await validateWebhookDestination("https://hooks.example.test/hook", linkLocal)).ok, false);
-  const ipv6Rejected = ["::1", "::", "fc00::1", "fec0::1", "ff02::1", "100::1", "2001:2::1", "2001:10::1", "2001:20::1", "2001:db8::1", "::ffff:127.0.0.1"];
+  const ipv6Rejected = ["::1", "::", "fc00::1", "fec0::1", "ff02::1", "100::1", "2001:2::1", "2001:10::1", "2001:20::1", "2001:db8::1", "::ffff:127.0.0.1", "::ffff:c0a8:0101", "::7f00:0001", "::c0a8:0101", "64:ff9b::c0a8:0101", "2002:c0a8:0101::1", "2001:0000::c0a8:0101"];
   for (const address of ipv6Rejected) {
     const lookup = async (): Promise<Array<{ address: string; family: 4 | 6 }>> => [{ address, family: 6 }];
     assert.equal((await validateWebhookDestination("https://ipv6.example.test/hook", lookup)).ok, false, address);

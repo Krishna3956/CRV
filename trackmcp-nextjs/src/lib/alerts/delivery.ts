@@ -93,13 +93,22 @@ function ipv6InRange(address: number[], prefix: number[], prefixBits: number): b
 function privateAddress(value: string): boolean {
   const normalized = value.toLowerCase();
   if (isIP(normalized) === 4) return privateIpv4(normalized);
-  if (isIP(normalized) !== 6) return false;
+  if (isIP(normalized) !== 6) return true;
   if (normalized.startsWith("::ffff:") && isIP(normalized.slice("::ffff:".length)) === 4) return privateIpv4(normalized.slice("::ffff:".length));
   const address = ipv6Hextets(normalized);
   if (!address) return true;
-  if (address.slice(0, 5).every((part) => part === 0) && address[5] === 0xffff) {
-    const mappedIpv4 = `${address[6] >> 8}.${address[6] & 0xff}.${address[7] >> 8}.${address[7] & 0xff}`;
-    return privateIpv4(mappedIpv4);
+  const embeddedIpv4 = address.slice(0, 6).every((part) => part === 0)
+    || address.slice(0, 5).every((part) => part === 0) && address[5] === 0xffff
+    || ipv6InRange(address, [0x64, 0xff9b, 0, 0, 0, 0, 0, 0], 96)
+    || ipv6InRange(address, [0x2002, 0, 0, 0, 0, 0, 0, 0], 16)
+    || ipv6InRange(address, [0x2001, 0, 0, 0, 0, 0, 0, 0], 32);
+  if (embeddedIpv4) {
+    const embeddedParts = address.slice(6, 8);
+    const embedded = `${embeddedParts[0] >> 8}.${embeddedParts[0] & 0xff}.${embeddedParts[1] >> 8}.${embeddedParts[1] & 0xff}`;
+    if (privateIpv4(embedded)) return true;
+    // IPv4-compatible, mapped, NAT64, 6to4, and Teredo forms remain rejected
+    // even when their normalized embedded address is public.
+    return true;
   }
   return ipv6InRange(address, [0, 0, 0, 0, 0, 0, 0, 0], 128)
     || ipv6InRange(address, [0, 0, 0, 0, 0, 0, 0, 1], 128)
@@ -120,7 +129,7 @@ export async function validateWebhookDestination(value: string, lookupImpl: Look
   const hostname = endpoint.hostname.toLowerCase().replace(/^\[|\]$/g, "");
   if (endpoint.protocol !== "https:" || endpoint.username || endpoint.password || !hostname) return { ok: false, reason: "invalid_url" };
   if (hostname === "localhost" || hostname.endsWith(".localhost") || hostname.endsWith(".local") || hostname.endsWith(".internal") || hostname.endsWith(".lan") || hostname.endsWith(".home.arpa") || !hostname.includes(".")) return { ok: false, reason: "internal_hostname" };
-  if (/^(?:0x[0-9a-f]+|[0-9]+)$/i.test(hostname) || privateAddress(hostname)) return { ok: false, reason: "private_target" };
+  if (/^(?:0x[0-9a-f]+|[0-9]+)$/i.test(hostname) || (isIP(hostname) !== 0 && privateAddress(hostname))) return { ok: false, reason: "private_target" };
   try {
     const addresses = await lookupImpl(hostname, { all: true, verbatim: true });
     if (!addresses.length || addresses.some((address) => privateAddress(address.address))) return { ok: false, reason: "private_target" };
