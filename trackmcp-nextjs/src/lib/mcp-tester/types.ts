@@ -42,6 +42,7 @@ export type McpTesterPhase =
   | "finalize";
 
 export type PhaseOutcome = "passed" | "failed" | "blocked" | "skipped" | "incomplete" | "auth_required";
+export type McpTesterProgressStatus = "started" | PhaseOutcome;
 export type TimelineEventKind = "phase_started" | "request_sent" | "response_received" | "phase_finished" | "finding";
 export type FindingSeverity = "info" | "warning" | "error";
 export type FindingCategory =
@@ -80,6 +81,12 @@ export interface McpTesterClientInfo {
   version: string;
 }
 
+export interface McpTesterProgressUpdate {
+  phase: McpTesterPhase;
+  status: McpTesterProgressStatus;
+  atMs: number;
+}
+
 export type McpFetch = (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
 
 export interface McpTesterOptions {
@@ -88,6 +95,8 @@ export interface McpTesterOptions {
   limits?: Partial<McpTesterLimits>;
   /** Must be supplied by the browser caller; the engine never reads globalThis.fetch. */
   fetch: McpFetch;
+  /** Optional bounded phase updates for a browser UI. Callback failures never affect the probe. */
+  onProgress?: (update: McpTesterProgressUpdate) => void;
   signal?: AbortSignal;
   protocolVersion?: string;
   supportedProtocolVersions?: readonly string[];

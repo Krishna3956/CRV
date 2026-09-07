@@ -174,6 +174,26 @@ test("valid Streamable HTTP handshake discovers advertised read-only catalogs", 
   assert.equal((globalThis as typeof globalThis & { window: { location: { href: string } } }).window.location.href, locationBefore);
 });
 
+test("progress updates identify the failed phase without exposing remote error text", async () => {
+  const updates: Array<{ phase: string; status: string }> = [];
+  const report = await runMcpTester({
+    endpoint,
+    onProgress: (update) => updates.push({ phase: update.phase, status: update.status }),
+    fetch: async () => new Response("not json", { status: 200, headers: { "content-type": "application/json" } }),
+  });
+  assert.deepEqual(updates.map(({ phase, status }) => `${phase}:${status}`), [
+    "validate_endpoint:started",
+    "validate_endpoint:passed",
+    "validate_headers:started",
+    "validate_headers:passed",
+    "initialize:started",
+    "initialize:failed",
+  ]);
+  assert.equal(report.verdict, "protocol_error");
+  assert.equal(report.findings.find((finding) => finding.phase === "initialize")?.code, "malformed_json_rpc_envelope");
+  assert.equal(updates.some(({ status }) => status.includes("not json")), false);
+});
+
 test("browser runtime guard rejects Node and Edge and never invokes injected fetch", async () => {
   assert.equal(nodeRuntimeObserved, false);
   let calls = 0;
