@@ -1,0 +1,21 @@
+export type PayloadMode = "metadata" | "redacted" | "full";
+export declare const DEFAULT_MAX_PAYLOAD_BYTES: number;
+export declare const DEFAULT_MAX_PAYLOAD_DEPTH = 6;
+export declare const DEFAULT_MAX_PAYLOAD_KEYS = 50;
+export declare const DEFAULT_MAX_STRING_LENGTH = 2048;
+export declare const DEFAULT_MAX_QUEUE_EVENTS = 500;
+export declare const DEFAULT_MAX_QUEUE_BYTES: number;
+export declare const DEFAULT_MAX_BATCH_SIZE = 20;
+export declare const REDACTION_MARKER = "[redacted]";
+export declare const TRUNCATION_MARKER_KEY = "__trackmcp_truncated";
+export type PayloadPrivacyOptions = {
+    mode: PayloadMode;
+    explicitPaths?: readonly string[];
+    redactKeys?: readonly string[];
+    maxPayloadBytes?: number;
+    maxPayloadDepth?: number;
+    maxPayloadKeys?: number;
+    maxStringLength?: number;
+};
+export declare function payloadByteLength(value: unknown): number;
+export declare function sanitizePayload(value: unknown, options: PayloadPrivacyOptions): unknown;

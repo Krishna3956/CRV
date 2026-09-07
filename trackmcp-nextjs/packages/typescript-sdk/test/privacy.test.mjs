@@ -38,6 +38,20 @@ test("scrubs resources and emits parity-safe truncation markers", () => {
   assert.deepEqual(result.long, { __trackmcp_truncated: true, reason: "max_string_length", original_type: "string" });
 });
 
+test("default recursive redaction removes sensitive free text and clamps caller limits", () => {
+  const result = privacy({
+    email: "person@example.invalid",
+    message: "Bearer eyJhbGciOiJIUzI1NiJ9.secret.signature",
+    nested: { result: "-----BEGIN PRIVATE KEY-----" },
+    oversized: "secret-oversized-value".repeat(5000),
+  }, { maxPayloadBytes: Number.MAX_SAFE_INTEGER, maxPayloadDepth: 100, maxPayloadKeys: 1000, maxStringLength: 100000 });
+  const serialized = JSON.stringify(result);
+  assert.equal(serialized.includes("person@example.invalid"), false);
+  assert.equal(serialized.includes("eyJhbGciOiJIUzI1NiJ9.secret.signature"), false);
+  assert.equal(serialized.includes("BEGIN PRIVATE KEY"), false);
+  assert.ok(new TextEncoder().encode(serialized).byteLength <= 32 * 1024);
+});
+
 test("metadata mode omits payload values and full mode remains bounded", async () => {
   const received = [];
   const server = await new Promise((resolve) => {

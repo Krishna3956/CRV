@@ -1,6 +1,6 @@
 {
   "name": "@trackmcp/sdk",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Observability SDK for MCP servers",
   "keywords": [
     "mcp",
@@ -15,6 +15,7 @@
   },
   "type": "module",
   "main": "./dist/index.js",
+  "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "exports": {
     ".": {
@@ -32,16 +33,23 @@
     "dist",
     "README.md"
   ],
+  "sideEffects": false,
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "prepublishOnly": "npm run build",
-    "test": "node --test test/*.test.mjs"
+    "test": "node --test test/*.test.mjs",
+    "test:packed-consumer": "npm run build && node --test test/packed-consumer.test.mjs"
   },
   "engines": {
     "node": ">=18"
   },
   "peerDependencies": {
     "@modelcontextprotocol/sdk": "1.30.0"
+  },
+  "peerDependenciesMeta": {
+    "@modelcontextprotocol/sdk": {
+      "optional": true
+    }
   },
   "devDependencies": {
     "@modelcontextprotocol/sdk": "1.30.0",

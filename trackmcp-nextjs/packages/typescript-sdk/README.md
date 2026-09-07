@@ -2,6 +2,10 @@
 
 Observability for MCP servers. Wrap your existing server once; telemetry is batched and delivered asynchronously at the server boundary. It does not capture a host's private model turn.
 
+Install the privacy release with `npm install @trackmcp/sdk@0.1.1`. The package
+is ESM-first, supports Node.js 18 and newer, and exposes the optional Node-only
+client adapter through `@trackmcp/sdk/client-adapter`.
+
 ```ts
 import { withTrackMCP } from "@trackmcp/sdk";
 
@@ -11,7 +15,7 @@ export default withTrackMCP(server, {
 });
 ```
 
-Capture is fail-open: a slow or unavailable TrackMCP endpoint never blocks a tool call. Payload mode defaults to `redacted`; common sensitive keys are recursively replaced, binary/base64 resources are scrubbed, and payloads are bounded to 32 KiB, depth 6, 50 keys/items per container, and 2,048 characters per string. Use `metadata` to omit arguments/results, or opt into `full` knowing it remains bounded. The ingest route independently caps payloads at 128 KiB and requests at 1 MiB as a last-line defense for non-SDK clients.
+Capture is fail-open: a slow or unavailable TrackMCP endpoint never blocks a tool call. Payload mode defaults to `redacted`; every default payload is recursively sanitized in the local process before it can enter the queue or an HTTP body. Common sensitive keys, emails, bearer/basic tokens, JWTs, credential-like text, binary/base64 resources, and credential-bearing URLs are replaced or omitted, and payloads are bounded to 32 KiB, depth 6, 50 keys/items per container, and 2,048 characters per string. Use `metadata` to omit arguments/results entirely, or opt into `full` knowing it remains bounded and still sanitized. The ingest route independently caps payloads at 128 KiB and requests at 1 MiB as a last-line defense for non-SDK clients.
 
 ## Node MCP client adapter
 
