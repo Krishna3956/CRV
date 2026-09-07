@@ -43,6 +43,14 @@ const cols = [
       { label: "TrackMCP vs Datadog", href: "/mcp-observability/compare/trackmcp-vs-datadog" },
     ],
   },
+  {
+    title: "Free tools",
+    links: [
+      { label: "MCP server tester", href: "/tools/mcp-server-tester" },
+      { label: "MCP health check", href: "/tools/mcp-health-check" },
+      { label: "MCP inspector", href: "/tools/mcp-inspector" },
+    ],
+  },
 ];
 
 const homeHref = "/";
@@ -81,7 +89,7 @@ export function Footer() {
   return (
     <footer className="mt-20 overflow-hidden border-t border-line">
       <div className="mx-auto max-w-6xl px-6 py-14">
-        <div className="grid grid-cols-2 gap-8 md:grid-cols-[2fr_1fr_1fr_1fr_1fr]">
+        <div className="grid grid-cols-2 gap-8 md:grid-cols-[2fr_1fr_1fr_1fr_1fr_1fr]">
           <div>
             <a
               href={homeHref}
