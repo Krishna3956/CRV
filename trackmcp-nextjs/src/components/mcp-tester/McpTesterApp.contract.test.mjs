@@ -29,3 +29,11 @@ test("sensitive form state is cleared after completion and cancellation is expos
   assert.match(app, /Cancel test/);
   assert.match(app, /Test another server/);
 });
+
+test("the report exposes timestamped evidence, bounded timing, response size, and monitoring CTA", () => {
+  assert.match(app, /Observed during this test at/);
+  assert.match(app, /report\.observedAt/);
+  assert.match(app, /Response data/);
+  assert.match(app, /body_bytes/);
+  assert.match(app, /Monitor continuously with TrackMCP/);
+});

@@ -2,6 +2,7 @@
 
 import { useRef, useState } from "react";
 import { AlertTriangle, Check, ChevronDown, CircleHelp, Copy, LoaderCircle, LockKeyhole, Play, RotateCcw, ShieldCheck, Square, X } from "lucide-react";
+import { EarlyAccessButton } from "@/components/EarlyAccessButton";
 import { DEFAULT_MCP_TESTER_LIMITS, runMcpTester, serializeMcpTesterReport, validateMcpEndpoint, validateMcpHeaders } from "@/lib/mcp-tester";
 import type { HealthDimensionName, McpTesterPhase, McpTesterReport, McpTesterVerdict } from "@/lib/mcp-tester";
 
@@ -258,9 +259,15 @@ export function McpTesterApp({ initialMode = "tester" }: { initialMode?: TesterM
 function ReportView({ report, onCopy, copyState, onReset }: { report: McpTesterReport; onCopy: () => void; copyState: boolean; onReset: () => void }) {
   const redaction = report.limitations.some((item) => item.toLowerCase().includes("redact") || item.toLowerCase().includes("credential"));
   const bounded = report.timelineTruncated || report.findings.some((finding) => finding.category === "limit") || report.limitations.some((item) => item.toLowerCase().includes("bound"));
+  const observedAt = formatObservedAt(report.observedAt);
+  const responseBytes = report.timeline.reduce((total, event) => total + (typeof event.details?.body_bytes === "number" ? event.details.body_bytes : 0), 0);
+  const initializeMs = timingFor(report, "initialize");
+  const discoveryMs = ["tools_list", "resources_list", "prompts_list"].reduce((total, phase) => total + (timingFor(report, phase as McpTesterPhase) ?? 0), 0);
   return <section aria-labelledby="report-title" className="mx-auto mt-8 max-w-5xl rounded-2xl border border-line bg-white p-5 shadow-[0_24px_70px_-46px_rgba(10,10,10,0.35)] sm:p-7">
-    <div className="flex flex-col justify-between gap-4 border-b border-line pb-5 sm:flex-row sm:items-start"><div><p className="font-mono text-[11px] uppercase tracking-[0.08em] text-faint">Test result</p><div className="mt-2 flex flex-wrap items-center gap-3"><h2 id="report-title" className="text-[26px] font-medium tracking-[-0.03em]">Health verdict</h2><span className={`rounded-full border px-3 py-1 text-[12px] font-semibold ${VERDICT_STYLES[report.verdict]}`}>{VERDICT_LABELS[report.verdict]}</span></div><p className="mt-2 max-w-[70ch] text-[14px] leading-[1.55] text-muted">{report.verdictMessage}</p></div><button type="button" onClick={onCopy} className="inline-flex shrink-0 items-center justify-center gap-2 rounded-lg border border-line-strong px-3.5 py-2.5 text-[13px] font-medium text-body hover:bg-paper"><Copy size={15} /> {copyState ? "Copied" : "Copy bounded report"}</button></div>
-    <div className="mt-5 grid gap-2 sm:grid-cols-3"><Indicator label="Browser-direct" value={report.transport.browserDirect ? "Yes" : "No"} good /><Indicator label="Transport" value="HTTPS Streamable HTTP" /><Indicator label="Duration" value={`${report.durationMs} ms`} /></div>
+    <div className="flex flex-col justify-between gap-4 border-b border-line pb-5 sm:flex-row sm:items-start"><div><p className="font-mono text-[11px] uppercase tracking-[0.08em] text-faint">Test result</p><div className="mt-2 flex flex-wrap items-center gap-3"><h2 id="report-title" className="text-[26px] font-medium tracking-[-0.03em]">Health verdict</h2><span className={`rounded-full border px-3 py-1 text-[12px] font-semibold ${VERDICT_STYLES[report.verdict]}`}>{VERDICT_LABELS[report.verdict]}</span></div><p className="mt-2 max-w-[70ch] text-[14px] leading-[1.55] text-muted">{report.verdictMessage}</p><p className="mt-2 text-[11px] text-faint">Observed during this test at {observedAt}</p></div><div className="flex flex-col items-stretch gap-2 sm:items-end"><button type="button" onClick={onCopy} className="inline-flex shrink-0 items-center justify-center gap-2 rounded-lg border border-line-strong px-3.5 py-2.5 text-[13px] font-medium text-body hover:bg-paper"><Copy size={15} /> {copyState ? "Copied" : "Copy bounded report"}</button><EarlyAccessButton label="Monitor continuously with TrackMCP" variant="brand" size="sm" /></div></div>
+    <div className="mt-5 grid gap-2 sm:grid-cols-3"><Indicator label="Browser-direct" value={report.transport.browserDirect ? "Yes" : "No"} good /><Indicator label="Transport" value="HTTPS Streamable HTTP" /><Indicator label="Protocol" value={report.protocol?.negotiatedVersion ?? "Not negotiated"} /></div>
+    <div className="mt-3 grid gap-2 sm:grid-cols-3"><Indicator label="Total duration" value={`${report.durationMs} ms`} /><Indicator label="Initialize" value={initializeMs === undefined ? "Not measured" : `${initializeMs} ms`} /><Indicator label="Response data" value={formatBytes(responseBytes)} /></div>
+    <p className="mt-2 text-[11px] text-faint">Discovery phases: {discoveryMs ? `${discoveryMs} ms observed` : "not completed"}. Response data is the bounded body-byte total exposed by the protocol timeline.</p>
     <div className="mt-3 flex flex-wrap gap-2"><span className="rounded-full border border-line bg-paper px-2.5 py-1 text-[11px] text-muted">{redaction ? "Sensitive values redacted" : "No credentials reported"}</span><span className="rounded-full border border-line bg-paper px-2.5 py-1 text-[11px] text-muted">{bounded ? "Bounds applied or result incomplete" : "Bounded output"}</span>{report.verdict === "incomplete" && <span className="rounded-full border border-amber-200 bg-amber-50 px-2.5 py-1 text-[11px] text-amber-800">Evidence is incomplete</span>}</div>
 
     <div className="mt-7 grid gap-5 lg:grid-cols-[1.15fr_0.85fr]">
@@ -278,3 +285,18 @@ function ReportView({ report, onCopy, copyState, onReset }: { report: McpTesterR
 
 function Indicator({ label, value, good = false }: { label: string; value: string; good?: boolean }) { return <div className="rounded-lg border border-line bg-paper px-3 py-2.5"><p className="text-[11px] text-faint">{label}</p><p className={`mt-1 font-mono text-[12px] ${good ? "text-brand-strong" : "text-body"}`}>{value}</p></div>; }
 function Row({ label, value }: { label: string; value: string }) { return <div className="flex items-start justify-between gap-4 py-3"><dt className="text-[11px] text-faint">{label}</dt><dd className="max-w-[65%] break-words text-right font-mono text-[11px] text-body">{value}</dd></div>; }
+
+function timingFor(report: McpTesterReport, phase: McpTesterPhase): number | undefined {
+  return report.timings.find((timing) => timing.phase === phase)?.durationMs;
+}
+
+function formatObservedAt(value: string): string {
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? "time unavailable" : date.toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" });
+}
+
+function formatBytes(bytes: number): string {
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+}
