@@ -23,10 +23,17 @@ BASE64_SCRUB_THRESHOLD = 128
 _DEFAULT_SENSITIVE_KEYS = {
     "password", "passwd", "secret", "token", "api_key", "apikey", "authorization",
     "cookie", "set_cookie", "access_token", "refresh_token", "private_key", "client_secret",
+    "email", "e_mail",
     "ssn", "credit_card", "card_number",
 }
 _BASE64_RE = re.compile(r"^[A-Za-z0-9+/_-]+={0,2}$")
 _BEARER_RE = re.compile(r"\bbearer\s+[A-Za-z0-9._~+/-]+=*", re.IGNORECASE)
+_SENSITIVE_TEXT_RES = (
+    re.compile(r"\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b", re.IGNORECASE),
+    re.compile(r"\bbasic\s+[A-Za-z0-9+/=]{8,}", re.IGNORECASE),
+    re.compile(r"\beyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\b"),
+    re.compile(r"-----BEGIN [A-Z ]*PRIVATE KEY-----", re.IGNORECASE),
+)
 _CREDENTIAL_TEXT_RE = re.compile(r"(?:authorization|api[_-]?key|access[_-]?token|refresh[_-]?token|password|secret)\s*[:=]\s*\S+", re.IGNORECASE)
 
 
@@ -82,6 +89,8 @@ def _resource_marker(value: str) -> Optional[Dict[str, Any]]:
         return _marker("credential", "string")
     if _BEARER_RE.search(value):
         return _marker("resource_uri", "string")
+    if any(pattern.search(value) for pattern in _SENSITIVE_TEXT_RES):
+        return _marker("credential", "string")
     try:
         parsed = urlparse(value)
         query_keys = {normalize_key(key) for key, _ in parse_qsl(parsed.query, keep_blank_values=True)}
@@ -161,18 +170,23 @@ def _sanitize_value(
 def sanitize_payload(value: Any, *, mode: str, explicit_paths: Iterable[str] = (), redact_keys: Iterable[str] = (), max_payload_bytes: int = DEFAULT_MAX_PAYLOAD_BYTES, max_payload_depth: int = DEFAULT_MAX_PAYLOAD_DEPTH, max_payload_keys: int = DEFAULT_MAX_PAYLOAD_KEYS, max_string_length: int = DEFAULT_MAX_STRING_LENGTH) -> Any:
     if mode == "metadata" or value is None:
         return None if mode == "metadata" else value
+    bounded_depth = min(DEFAULT_MAX_PAYLOAD_DEPTH, max(0, int(max_payload_depth)))
+    bounded_keys = min(DEFAULT_MAX_PAYLOAD_KEYS, max(1, int(max_payload_keys)))
+    bounded_string_length = min(DEFAULT_MAX_STRING_LENGTH, max(1, int(max_string_length)))
+    bounded_payload_bytes = min(DEFAULT_MAX_PAYLOAD_BYTES, max(1, int(max_payload_bytes)))
     sanitized = _sanitize_value(
         value,
         0,
         "",
-        max(0, int(max_payload_depth)),
-        max(1, int(max_payload_keys)),
-        max(1, int(max_string_length)),
+        bounded_depth,
+        bounded_keys,
+        bounded_string_length,
         {".".join(part for part in path.split(".") if part) for path in explicit_paths if path},
         {normalize_key(key) for key in redact_keys},
         set(),
     )
-    if payload_byte_length(sanitized) <= max(1, int(max_payload_bytes)):
+    serialized = _canonical_json(sanitized)
+    if serialized is not None and len(serialized.encode("utf-8")) <= bounded_payload_bytes:
         return sanitized
     budget_marker = _marker("max_payload_bytes", _original_type(value))
-    return budget_marker if payload_byte_length(budget_marker) <= max(1, int(max_payload_bytes)) else {}
+    return budget_marker if payload_byte_length(budget_marker) <= bounded_payload_bytes else {}

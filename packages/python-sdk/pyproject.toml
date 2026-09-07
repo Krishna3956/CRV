@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "trackmcp"
-version = "0.1.0"
+version = "0.1.1"
 description = "Observability SDK for MCP servers"
 requires-python = ">=3.9"
 readme = "README.md"

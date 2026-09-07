@@ -117,6 +117,51 @@ class TrackMCPClientTest(TestCase):
         server.server_close()
         self.assertEqual(Handler.payload["events"][0]["payload"]["args"]["password"], "[redacted]")
 
+    def test_default_redaction_is_local_recursive_bounded_and_visible_on_wire(self):
+        server = HTTPServer(("127.0.0.1", 0), Handler)
+        thread = threading.Thread(target=server.serve_forever, daemon=True)
+        thread.start()
+        markers = {
+            "password": "PYTHON_PASSWORD_SECRET",
+            "bearer": "Bearer eyJhbGciOiJIUzI1NiJ9.python-secret.signature",
+            "email": "python.person@example.invalid",
+            "credential": "api_key=PYTHON_API_SECRET",
+            "argument": "python-tool-argument@example.invalid",
+            "result": "python-tool-result@example.invalid",
+            "oversized": "PYTHON_OVERSIZED_SECRET",
+        }
+        client = TrackMCP(TrackMCPOptions(
+            api_key="tmcp_test",
+            endpoint=f"http://127.0.0.1:{server.server_port}",
+            flush_interval_ms=60000,
+        ))
+        client.capture({
+            "event_type": "tool_call",
+            "tool_name": "lookup",
+            "started_at": "2026-01-01T00:00:00Z",
+            "payload": {
+                "password": markers["password"],
+                "authorization": markers["bearer"],
+                "email": markers["email"],
+                "free_text": markers["credential"],
+                "args": {"query": markers["argument"]},
+                "result": {"text": markers["result"]},
+                "oversized": markers["oversized"] + "x" * 100000,
+            },
+        })
+        client.flush()
+        server.shutdown()
+        server.server_close()
+        client._timer.cancel()
+
+        serialized = json.dumps(Handler.payload, ensure_ascii=False)
+        for marker in markers.values():
+            self.assertNotIn(marker, serialized)
+        event = Handler.payload["events"][0]
+        self.assertEqual(event["payload_policy"], "redacted")
+        self.assertLessEqual(event["payload_size_bytes"], 32 * 1024)
+        self.assertLess(len(serialized.encode("utf-8")), 64 * 1024)
+
     def test_emits_versioned_event_and_utf8_payload_size(self):
         server = HTTPServer(("127.0.0.1", 0), Handler)
         thread = threading.Thread(target=server.serve_forever, daemon=True)
