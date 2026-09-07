@@ -1,0 +1,31 @@
+import assert from "node:assert/strict";
+import { readFile } from "node:fs/promises";
+import { dirname, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
+import test from "node:test";
+
+const root = resolve(dirname(fileURLToPath(import.meta.url)), "../../..");
+const app = await readFile(resolve(root, "src/components/mcp-tester/McpTesterApp.tsx"), "utf8");
+
+test("tester UI invokes only the browser-injected fetch and engine", () => {
+  assert.match(app, /runMcpTester\(/);
+  assert.match(app, /fetch:\s*window\.fetch\.bind\(window\)/);
+  assert.match(app, /new AbortController\(\)/);
+  assert.doesNotMatch(app, /globalThis\.fetch/);
+  assert.doesNotMatch(app, /dangerouslySetInnerHTML|innerHTML/);
+});
+
+test("remote report fields are rendered as text, never as navigation targets", () => {
+  assert.doesNotMatch(app, /href=\{[^}]*report/);
+  assert.doesNotMatch(app, /window\.location|location\.assign|location\.href/);
+  assert.match(app, /report\.verdictMessage/);
+  assert.match(app, /finding\.message/);
+  assert.match(app, /event\.details/);
+});
+
+test("sensitive form state is cleared after completion and cancellation is exposed", () => {
+  assert.match(app, /setHeaders\(EMPTY_HEADERS\)/);
+  assert.match(app, /controllerRef\.current\?\.abort\(\)/);
+  assert.match(app, /Cancel test/);
+  assert.match(app, /Test another server/);
+});

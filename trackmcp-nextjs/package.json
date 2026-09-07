@@ -8,6 +8,7 @@
     "start": "next start",
     "lint": "eslint",
     "test:mcp-tester": "node --experimental-strip-types --test src/lib/mcp-tester/engine.test.ts",
+    "test:mcp-tester-ui": "node --test src/components/mcp-tester/McpTesterApp.contract.test.mjs src/app/tools/tools.contract.test.mjs",
     "seo:audit": "node scripts/audit-seo.mjs",
     "test:seo-breadcrumbs": "node --test scripts/breadcrumbs.test.mjs",
     "test:seo-comparisons": "node --test scripts/mcp-observability-comparison.test.mjs",

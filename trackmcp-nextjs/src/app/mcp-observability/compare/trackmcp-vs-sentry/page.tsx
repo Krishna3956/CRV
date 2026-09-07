@@ -100,6 +100,9 @@ export default function TrackMcpVsSentryPage() {
                   <Button href="/docs" variant="ghost" size="lg">
                     Read the documentation <ArrowRight size={16} />
                   </Button>
+                  <Link href="/tools/mcp-server-tester" className="inline-flex items-center gap-1.5 px-2 py-2 text-[14px] font-medium text-brand-strong hover:underline">
+                    Run a browser health check <ArrowRight size={15} />
+                  </Link>
                 </div>
               </Reveal>
             </div>
