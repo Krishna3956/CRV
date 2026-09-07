@@ -2,59 +2,92 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
 
-const source = await readFile(new URL("./DashboardApp.tsx", import.meta.url), "utf8");
-const traceSource = await readFile(new URL("./TraceExplorer.tsx", import.meta.url), "utf8");
-const tracesRoute = await readFile(new URL("../../app/dashboard/traces/page.tsx", import.meta.url), "utf8");
+const source = await readFile(
+  new URL("./DashboardApp.tsx", import.meta.url),
+  "utf8",
+);
+const traceSource = await readFile(
+  new URL("./TraceExplorer.tsx", import.meta.url),
+  "utf8",
+);
+const tracesRoute = await readFile(
+  new URL("../../app/dashboard/traces/page.tsx", import.meta.url),
+  "utf8",
+);
 
-test("dashboard exposes Tool Quality under the Quality navigation and labels live/sample data", () => {
-  assert.match(source, /id: "tool-quality", label: "Tool quality"/);
-  assert.match(source, /Tool Quality/);
-  assert.match(source, /Sample data/);
-  assert.match(source, /Live data/);
+test("business-first navigation and KPI hierarchy are explicit", () => {
+  for (const item of [
+    'id: "overview", label: "Overview"',
+    'id: "journeys", label: "Journeys"',
+    'id: "capabilities", label: "Capabilities"',
+    'id: "quality", label: "Quality"',
+    'id: "issues", label: "Issues"',
+  ])
+    assert.match(source, new RegExp(item.replace(/[.*+?^$()|[\]\\]/g, "\\$&")));
+  assert.match(source, /id: "clients", label: "AI clients"/);
+  assert.match(source, /id: "evidence", label: "Evidence"/);
+  assert.match(source, /id: "setup", label: "Setup"/);
+  assert.match(
+    source,
+    /label="AI clients"[\s\S]*label="Activity"[\s\S]*label="Work completed"[\s\S]*label="Needs attention"/,
+  );
+  assert.doesNotMatch(source, /id: "tool-quality"/);
+  assert.doesNotMatch(source, /Open Configure/);
 });
 
-test("dashboard copy preserves observation and non-causal completion semantics", () => {
-  assert.match(source, /tool_call_share/);
-  assert.match(source, /Observed repeat call/);
-  assert.match(source, /Associated with low explicit completion/);
-  assert.match(source, /does not establish a cause/);
-  assert.doesNotMatch(source, /Confirmed re-ask/);
-});
-
-test("dashboard never silently substitutes sample data or unsupported live claims", () => {
+test("data source state is explicit and never silently substituted", () => {
+  assert.match(source, /params\.set\("data", dataMode\)/);
+  assert.match(
+    source,
+    /rawData === "example" \|\| rawData === "sample" \? "example" : "my"/,
+  );
+  assert.match(source, /My data selected/);
+  assert.match(source, /Example data selected/);
+  assert.match(source, /Illustrative records are shown by explicit selection/);
+  assert.match(source, /No other data source was substituted/);
+  assert.match(source, /No live data available/);
+  assert.match(source, /Live data could not be loaded/);
   assert.doesNotMatch(source, /sampleMode \?\? /);
   assert.doesNotMatch(source, /Connected to live telemetry/);
   assert.doesNotMatch(source, /updated just now/);
-  assert.match(source, /Sample mode selected/);
-  assert.match(source, /Live mode selected/);
-  assert.match(source, /No live data available/);
-  assert.match(source, /Live data could not be loaded/);
-  assert.match(source, /No explicit workflow outcome data/);
-  assert.match(source, /Observed signal/);
-  assert.doesNotMatch(source, /Prioritized from sufficient observed evidence/);
 });
 
-test("sample mode clears live trace state and preserves only safe route state", () => {
-  assert.match(source, /const setDataMode = \(nextSample: boolean\) => \{[\s\S]*setTraceSessionId\(null\);[\s\S]*setTraceCorrelationHandle\(null\);[\s\S]*setTraceOrigin\("sessions"\);[\s\S]*writeRouteState\(view, range, nextSample, null, null, "sessions", true\)/);
-  assert.match(source, /const traceSelected = sample !== true/);
-  assert.match(source, /sample === true \? "sessions"/);
+test("zero-event activation remains on Overview with trace state cleared", () => {
+  assert.match(source, /Your server has not sent its first event yet\./);
+  assert.match(
+    source,
+    /zeroEventState = Boolean\([\s\S]*analytics\.total_events === 0/,
+  );
+  assert.match(source, /setTraceSessionId\(null\)/);
+  assert.match(source, /setTraceCorrelationHandle\(null\)/);
+  assert.match(source, /setTraceOrigin\("evidence"\)/);
+  assert.match(source, /writeRouteState\(view, range, next, null, null, "evidence"\)/);
+  assert.match(source, /onOpenDashboard/);
+  assert.match(source, /setView\("overview"\)/);
+  assert.match(source, /!workspace \|\| !hasActiveKey/);
 });
 
-test("overview always renders a neutral Needs attention state", () => {
-  assert.match(source, /const hasIssues = analytics\.insights\.length > 0/);
-  assert.match(source, /const insufficientEvidence = analytics\.total_events === 0 \|\| analytics\.tool_calls === 0/);
-  assert.match(source, /title="What needs attention"/);
-  assert.match(source, /No actionable signals yet/);
+test("Overview always renders Needs attention and preserves uncertainty", () => {
+  assert.ok((source.match(/Needs attention/g) || []).length >= 2);
+  assert.match(source, /No actionable signals yet\./);
   assert.match(source, /Insufficient data to identify an issue/);
-  assert.match(source, /No live data available/);
-  assert.match(source, /Sample mode selected/);
+  assert.match(source, /Evidence basis: API insight/);
+  assert.match(source, /confidence: not provided/);
+  assert.match(source, /This is not a confirmed failure/);
+  assert.doesNotMatch(source, /sufficient observed evidence/);
 });
 
-test("overview KPI order matches the dashboard PRD", () => {
-  assert.match(source, /Metric label="Tool calls"[\s\S]*Metric label="Sessions"[\s\S]*Metric label="Errors"[\s\S]*Metric label="Completion"/);
+test("completion is explicit-outcome-only and tool quality exposes insufficient reasons", () => {
+  assert.match(source, /function explicitOutcomeTotals/);
+  assert.match(source, /Explicit workflow outcome events only/);
+  assert.match(source, /No explicit workflow outcome data/);
+  assert.match(source, /Specific reason:/);
+  assert.match(source, /observed calls before/);
+  assert.match(source, /Showing a bounded result/);
+  assert.match(source, /Some events may be omitted/);
 });
 
-test("trace states preserve privacy, bounds, legacy provenance, and retry behavior", () => {
+test("trace states preserve retry, loading reset, privacy and legacy provenance", () => {
   assert.match(traceSource, /Legacy\/Unknown/);
   assert.match(traceSource, /Showing a bounded result/);
   assert.match(traceSource, /Some events may be omitted/);
@@ -62,11 +95,12 @@ test("trace states preserve privacy, bounds, legacy provenance, and retry behavi
   assert.match(traceSource, /setResponse\(null\)/);
   assert.match(traceSource, /setLoading\(true\)/);
   assert.match(traceSource, /result\.status === 401/);
+  assert.match(source, /TraceExplorer/);
 });
 
-test("dashboard exposes the preferred traces route and one Configure control", () => {
+test("preferred Evidence route and legacy trace URLs remain supported", () => {
   assert.match(tracesRoute, /initialView="traces"/);
-  assert.doesNotMatch(source, /aria-label="Open Configure"/);
-  assert.match(source, /id: "traces", label: "Trace Explorer"/);
+  assert.match(source, /window\.location\.pathname === "\/dashboard\/traces"/);
   assert.match(source, /params\.get\("view"\) === "trace"/);
+  assert.match(source, /view === "evidence"[\s\S]*dashboard\/traces/);
 });
