@@ -58,7 +58,7 @@ export default function SignInPage({ initialMode = "signin" }: { initialMode?: "
 
   const finishAuth = (eventName: "signup_completed" | "signin_completed") => {
     trackMarketingEvent(eventName, { auth_mode: mode });
-    router.replace("/dashboard/onboarding");
+    router.replace("/dashboard");
   };
 
   const checkSignupEmail = async () => {

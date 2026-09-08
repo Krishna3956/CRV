@@ -475,7 +475,6 @@ export function DashboardApp({
   newKey,
   working,
   error,
-  onboardingMode = false,
   initialView = "overview",
   onGenerateKey,
   onRevokeKey,
@@ -492,15 +491,12 @@ export function DashboardApp({
   newKey: string;
   working: boolean;
   error: string;
-  setupRequired: boolean;
-  setupDetails: SetupDetails;
-  onboardingMode?: boolean;
   initialView?: "overview" | "traces";
   onGenerateKey: () => void;
   onRevokeKey: (id: string) => void;
   onDismissKey: () => void;
   onRefresh: (days?: string) => void;
-  onCreateWorkspace: (details?: SetupDetails) => void;
+  onCreateWorkspace: () => void;
   onSignOut: () => void;
 }) {
   const [view, setView] = useState<View>(
@@ -539,7 +535,6 @@ export function DashboardApp({
     : alertScopeLoaded
       ? alertLoadState
       : "loading";
-  const explicitSetupRoute = onboardingMode && (!workspace || !hasActiveKey);
   const zeroEventState = Boolean(
     workspace &&
     hasActiveKey &&
@@ -820,7 +815,7 @@ export function DashboardApp({
           {error && (
             <ErrorBanner message={error} onRetry={refreshAll} />
           )}
-          {newKey && view === "setup" && (
+          {newKey && (
             <div className="mb-6 flex flex-wrap items-center gap-3 border border-brand/30 bg-brand-soft/35 p-4">
               <div className="min-w-0 flex-1">
                 <p className="text-xs font-semibold uppercase tracking-[0.1em] text-brand-strong">
@@ -851,33 +846,27 @@ export function DashboardApp({
               </button>
             </div>
           )}
-          {explicitSetupRoute ? (
-            <DashboardOnboarding
-              workspace={workspace}
+          {view === "setup" ? (
+            <SetupView
+              keys={keys}
               working={working}
-              error={error}
-              hasKey={hasActiveKey}
-              newKey={newKey}
-              onCreateWorkspace={onCreateWorkspace}
               onGenerateKey={onGenerateKey}
-              onOpenDashboard={() => {
-                setView("overview");
-                window.history.pushState({}, "", "/dashboard?data=my");
-              }}
+              onRevokeKey={onRevokeKey}
             />
-          ) : !workspace && !isExample ? (
-            <ActivationPanel
-              state="workspace"
+          ) : !isExample && (!workspace || !hasActiveKey || zeroEventState) ? (
+            <ServerConnectionState
+              view={view}
+              state={!workspace ? "workspace" : !hasActiveKey ? "key" : "events"}
               working={working}
-              onPrimary={onCreateWorkspace}
+              onPrimary={
+                !workspace
+                  ? onCreateWorkspace
+                  : !hasActiveKey
+                    ? onGenerateKey
+                    : () => onRefresh(range)
+              }
               onOpenSetup={() => goTo("setup")}
-            />
-          ) : !hasActiveKey && !isExample ? (
-            <ActivationPanel
-              state="key"
-              working={working}
-              onPrimary={onGenerateKey}
-              onOpenSetup={() => goTo("setup")}
+              onUseExample={() => setDataMode("example")}
             />
           ) : (traceSessionId || traceCorrelationHandle) &&
             dataMode === "my" ? (
@@ -891,11 +880,6 @@ export function DashboardApp({
               originLabel={viewLabels[traceOrigin]}
               onBack={closeTrace}
             />
-          ) : zeroEventState ? (
-            <OverviewSetupPanel
-              onCheck={() => onRefresh(range)}
-              onOpenSetup={() => goTo("setup")}
-            />
           ) : !displayedAnalytics ? (
             <LiveDataState
               message={
@@ -905,13 +889,6 @@ export function DashboardApp({
               }
               onRetry={refreshAll}
               permission={/authoriz|permission/i.test(error)}
-            />
-          ) : view === "setup" ? (
-            <SetupView
-              keys={keys}
-              working={working}
-              onGenerateKey={onGenerateKey}
-              onRevokeKey={onRevokeKey}
             />
           ) : (
             <ViewContent
@@ -1041,123 +1018,161 @@ function ErrorBanner({
   );
 }
 
-function ActivationPanel({
+const emptyPageCopy: Record<
+  View,
+  { description: string; preview: string[] }
+> = {
+  overview: {
+    description:
+      "See activity, explicit work outcomes, and what deserves attention next.",
+    preview: ["AI clients", "Activity", "Work completed", "Needs attention"],
+  },
+  journeys: {
+    description:
+      "Understand what work is being attempted and where it stops.",
+    preview: ["Work attempted", "Completed", "Failed", "Sessions"],
+  },
+  capabilities: {
+    description:
+      "See what the server offers and which capabilities are observed in use.",
+    preview: ["Capabilities observed", "Activity", "Errors", "Evidence"],
+  },
+  quality: {
+    description:
+      "Review observed capability quality without turning insufficient data into a failure.",
+    preview: ["Success", "Errors", "Latency", "Insufficient data"],
+  },
+  issues: {
+    description:
+      "Review what deserves attention next, ordered by evidence strength and affected volume.",
+    preview: ["Issue", "Severity", "Affected volume", "Evidence"],
+  },
+  clients: {
+    description: "See which AI clients are using the connected server.",
+    preview: ["AI clients", "Activity", "Sessions", "Evidence"],
+  },
+  evidence: {
+    description: "Open technical evidence when a business signal needs detail.",
+    preview: ["Sessions", "Timeline", "Correlation", "Bounded events"],
+  },
+  setup: {
+    description: "Connect a server and manage the key for this workspace.",
+    preview: ["Connection key", "SDK setup", "First event", "Data status"],
+  },
+};
+
+function ServerConnectionState({
+  view,
   state,
   working,
   onPrimary,
   onOpenSetup,
+  onUseExample,
 }: {
-  state: "workspace" | "key";
+  view: View;
+  state: "workspace" | "key" | "events";
   working: boolean;
   onPrimary: () => void;
   onOpenSetup: () => void;
+  onUseExample: () => void;
 }) {
-  const noWorkspace = state === "workspace";
-  return (
-    <section className="mx-auto max-w-3xl border border-line bg-white p-6 shadow-[0_12px_40px_-35px_rgba(23,25,23,.4)] sm:p-8">
-      <div className="flex items-start gap-3">
-        <span className="grid h-10 w-10 shrink-0 place-items-center rounded-lg bg-paper text-muted">
-          {noWorkspace ? <KeyRound size={19} /> : <Settings2 size={19} />}
-        </span>
-        <div>
-          <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-brand-strong">
-            Activate / setup
-          </p>
-          <h2 className="mt-2 text-2xl font-semibold tracking-[-0.03em] text-ink">
-            {noWorkspace ? "Create a workspace" : "Create a connection key"}
-          </h2>
-          <p className="mt-2 max-w-xl text-sm leading-relaxed text-muted">
-            {noWorkspace
-              ? "Create a workspace to connect your server, or explore clearly labeled Example data from the top bar."
-              : "The connection key authenticates server telemetry to this workspace. Keep it in the server environment."}
-          </p>
-        </div>
-      </div>
-      <div className="mt-7 flex flex-wrap gap-3">
-        <button
-          type="button"
-          disabled={working}
-          onClick={onPrimary}
-          className="inline-flex cursor-pointer items-center gap-2 rounded-md bg-ink px-4 py-2.5 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
-        >
-          {working
-            ? "Working…"
-            : noWorkspace
-              ? "Create workspace"
-              : "Create connection key"}
-          <ArrowRight size={15} />
-        </button>
-        <button
-          type="button"
-          onClick={onOpenSetup}
-          className="inline-flex cursor-pointer items-center gap-2 rounded-md border border-line-strong bg-white px-4 py-2.5 text-sm font-semibold text-body hover:bg-paper focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
-        >
-          Open Setup
-        </button>
-      </div>
-    </section>
-  );
-}
+  const copy = emptyPageCopy[view];
+  const title = viewLabels[view];
+  const primaryLabel =
+    state === "workspace"
+      ? "Create workspace"
+      : state === "key"
+        ? "Create connection key"
+        : "Check for server activity";
+  const message =
+    state === "events"
+      ? "No server activity is available yet."
+      : "It looks like no server data is connected yet.";
+  const detail =
+    state === "workspace"
+      ? "Create a workspace, then connect your server with a connection key."
+      : state === "key"
+        ? "Create a connection key, add it to your server, and send one real event."
+        : "A key exists, but no events have arrived in the selected period. TrackMCP cannot verify server reachability from this screen.";
 
-function OverviewSetupPanel({
-  onCheck,
-  onOpenSetup,
-}: {
-  onCheck: () => void;
-  onOpenSetup: () => void;
-}) {
   return (
     <div>
-      <PageIntro
-        title="Overview"
-        description="See activity, explicit work outcomes, and what deserves attention next."
-      />
+      <PageIntro title={title} description={copy.description} />
       <section className="border border-line bg-white p-6 sm:p-8">
         <div className="flex items-start gap-3">
           <span className="grid h-10 w-10 shrink-0 place-items-center rounded-lg bg-paper text-muted">
             <Info size={19} />
           </span>
-          <div>
+          <div className="min-w-0">
             <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-brand-strong">
               My data selected
             </p>
             <h2 className="mt-2 text-xl font-semibold tracking-[-0.025em] text-ink">
-              Your server has not sent its first event yet.
+              {message}
             </h2>
             <p className="mt-2 max-w-2xl text-sm leading-relaxed text-muted">
-              Install the SDK, make one real tool call, then check again. The
-              selected activity range stays in place, and no Example data is
-              substituted.
+              {detail}
             </p>
             <div className="mt-5 flex flex-wrap gap-3">
               <button
                 type="button"
-                onClick={onCheck}
-                className="inline-flex cursor-pointer items-center gap-2 rounded-md bg-ink px-4 py-2.5 text-sm font-semibold text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
+                disabled={working}
+                onClick={onPrimary}
+                className="inline-flex cursor-pointer items-center gap-2 rounded-md bg-ink px-4 py-2.5 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
               >
-                <RefreshCw size={15} />
-                Check for first event
+                {working ? "Working…" : primaryLabel}
+                <ArrowRight size={15} />
               </button>
               <button
                 type="button"
                 onClick={onOpenSetup}
                 className="inline-flex cursor-pointer items-center gap-2 rounded-md border border-line-strong bg-white px-4 py-2.5 text-sm font-semibold text-body hover:bg-paper focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
               >
-                View installation instructions
+                View setup instructions
+              </button>
+              <button
+                type="button"
+                onClick={onUseExample}
+                className="inline-flex cursor-pointer items-center gap-2 rounded-md border border-line-strong bg-white px-4 py-2.5 text-sm font-semibold text-body hover:bg-paper focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
+              >
+                See Example data
               </button>
             </div>
           </div>
         </div>
       </section>
-      <section className="mt-6 border border-line bg-white p-5">
-        <h2 className="text-[15px] font-semibold text-ink">Needs attention</h2>
-        <p className="mt-2 text-sm font-semibold text-ink">Insufficient data to identify an issue</p>
-        <p className="mt-1 text-xs text-muted">No actionable signals yet. This is a neutral data-availability state, not confirmed healthy status.</p>
+      <section className="mt-6 border border-line bg-white p-5 sm:p-6">
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div>
+            <h2 className="text-[15px] font-semibold text-ink">
+              What you will see here
+            </h2>
+            <p className="mt-1 text-xs leading-relaxed text-muted">
+              This is a structure preview, not fabricated workspace data.
+              Connect a server or choose Example data to populate it.
+            </p>
+          </div>
+          <span className="rounded-full border border-line bg-paper px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.08em] text-faint">
+            Preview
+          </span>
+        </div>
+        <div className="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+          {copy.preview.map((item) => (
+            <div key={item} className="border border-dashed border-line-strong bg-paper p-4">
+              <p className="text-[10px] font-semibold uppercase tracking-[0.08em] text-faint">
+                {item}
+              </p>
+              <p className="mt-3 text-2xl font-semibold tracking-[-0.04em] text-line-strong">
+                —
+              </p>
+              <p className="mt-1 text-[11px] text-faint">Available after connection</p>
+            </div>
+          ))}
+        </div>
       </section>
       <p className="mt-4 text-xs text-faint">
-        Source: workspace, active key, and analytics event count. TrackMCP
-        cannot verify SDK installation or server reachability from the current
-        API.
+        No Example data is substituted into My data. The selected activity range
+        stays in place when you connect the server or switch data sources.
       </p>
     </div>
   );
@@ -2659,6 +2674,8 @@ function SetupView({
   );
 }
 
+// Kept as an inert compatibility artifact for old worktree references; no route renders it.
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function DashboardOnboarding({
   workspace,
   working,

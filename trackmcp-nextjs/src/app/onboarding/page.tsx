@@ -3,12 +3,12 @@ import type { Metadata } from "next";
 import { pageMeta } from "@/lib/seo";
 
 export const metadata: Metadata = pageMeta({
-  title: "Onboarding | TrackMCP",
-  description: "Complete TrackMCP onboarding to start observing your MCP server.",
-  path: "/onboarding",
+  title: "Dashboard | TrackMCP",
+  description: "Manage your TrackMCP workspace and view MCP server analytics.",
+  path: "/dashboard",
   index: false,
 });
 
 export default function OnboardingPage() {
-  redirect("/dashboard/onboarding");
+  redirect("/dashboard");
 }

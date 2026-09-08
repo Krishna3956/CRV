@@ -25,5 +25,5 @@ export async function GET(request: Request) {
       : "sign_in_failed";
     return NextResponse.redirect(new URL(`/signin?auth_error=${errorCode}`, SITE_ORIGIN));
   }
-  return NextResponse.redirect(new URL("/dashboard/onboarding", SITE_ORIGIN));
+  return NextResponse.redirect(new URL("/dashboard", SITE_ORIGIN));
 }
