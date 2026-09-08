@@ -40,7 +40,7 @@ export async function POST(request: Request) {
   if (!user) return NextResponse.json({ error: "Sign in required." }, { status: 401 });
   if (!admin) return NextResponse.json({ error: "Account service is not configured." }, { status: 503 });
 
-  let body: { name?: string; slug?: string; key_name?: string; full_name?: string; first_name?: string; last_name?: string; company_name?: string; role?: string; use_case?: string; terms_accepted?: boolean } = {};
+  let body: { name?: string; slug?: string; key_name?: string; create_key?: boolean; full_name?: string; first_name?: string; last_name?: string; company_name?: string; role?: string; use_case?: string; terms_accepted?: boolean } = {};
   try { body = await request.json(); } catch { /* defaults are fine */ }
   const existing = await admin.from("trackmcp_workspace_members").select("workspace_id").eq("user_id", user.id).limit(1).maybeSingle();
   if (existing.error) return NextResponse.json({ error: "Could not check your workspace." }, { status: 500 });
@@ -79,8 +79,11 @@ export async function POST(request: Request) {
     workspace = loaded.data;
   }
 
-  const generated = createTrackMCPKey();
-  const createdKey = await admin.from("trackmcp_api_keys").insert({ workspace_id: workspaceId, name: body.key_name?.trim() || "default", key_prefix: generated.prefix, key_hash: generated.hash });
-  if (createdKey.error) return NextResponse.json({ error: "Could not create your API key." }, { status: 500 });
-  return NextResponse.json({ workspace, api_key: generated.key, message: "Copy this key now. It will not be shown again." }, { status: 201 });
+  if (body.create_key !== false) {
+    const generated = createTrackMCPKey();
+    const createdKey = await admin.from("trackmcp_api_keys").insert({ workspace_id: workspaceId, name: body.key_name?.trim() || "default", key_prefix: generated.prefix, key_hash: generated.hash });
+    if (createdKey.error) return NextResponse.json({ error: "Could not create your API key." }, { status: 500 });
+    return NextResponse.json({ workspace, api_key: generated.key, message: "Copy this key now. It will not be shown again." }, { status: 201 });
+  }
+  return NextResponse.json({ workspace, api_key: null, message: "Workspace created. Create a connection key from Setup when you are ready." }, { status: 201 });
 }

@@ -128,6 +128,49 @@
   }
 }
 
+/* Dashboard product typography: Inter for UI, Geist Mono only for code/IDs. */
+.dashboard-shell,
+.dashboard-shell button,
+.dashboard-shell input,
+.dashboard-shell select,
+.dashboard-shell textarea {
+  font-family: var(--font-sans);
+}
+
+.dashboard-shell h1,
+.dashboard-shell h2,
+.dashboard-shell h3,
+.dashboard-shell h4 {
+  font-family: var(--font-sans);
+  line-height: 1.2;
+}
+
+.dashboard-shell .dashboard-page-title {
+  font-size: 1.75rem;
+  font-weight: 600;
+  line-height: 2rem;
+}
+
+.dashboard-shell .dashboard-section-title {
+  font-size: 1rem;
+  font-weight: 600;
+  line-height: 1.25rem;
+}
+
+.dashboard-shell .dashboard-label {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  line-height: 1rem;
+  text-transform: uppercase;
+}
+
+.dashboard-shell .dashboard-metric {
+  font-size: 1.75rem;
+  font-weight: 600;
+  line-height: 2rem;
+}
+
 @layer utilities {
   .text-balance { text-wrap: balance; }
   .hairline { border: 1px solid var(--color-line); }

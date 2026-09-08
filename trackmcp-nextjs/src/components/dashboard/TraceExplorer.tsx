@@ -4,6 +4,7 @@ import { useEffect, useState, type ReactNode } from "react";
 import {
   AlertTriangle,
   ArrowLeft,
+  Check,
   Clock3,
   Copy,
   EyeOff,
@@ -82,6 +83,108 @@ function correlationSourceLabel(
   if (source === "external") return "External handle";
   if (source === "issued") return "Issued handle";
   return "Legacy/Unknown";
+}
+
+function sampleTraceResponse(
+  sessionId: string | null,
+  correlationHandle: string | null,
+): TraceResponse {
+  const selectedSession = sessionId || "example-session-1";
+  const selectedCorrelation = correlationHandle || "example-correlation-1";
+  const base = {
+    schema_version: "1",
+    service: "quickbooks-finance-mcp",
+    environment: "production",
+    server_id: "quickbooks-finance-mcp",
+    deployment_id: "example-deployment-2026-08-28",
+    server_version: "2.4.0",
+    sdk_version: "0.1.1",
+    observation_source: "server" as const,
+    direction: "server_to_client" as const,
+    transport: "streamable_http" as const,
+    protocol_version: "2025-11-25",
+    session_id: selectedSession,
+    session_id_source: "protocol" as const,
+    correlation_handle: selectedCorrelation,
+    correlation_handle_source: "issued" as const,
+    context: "invoice_lookup",
+    intent_source: "context_parameter" as const,
+    missing_capability: null,
+    task_id: null,
+    workflow_id: "example-workflow-invoice-lookup",
+    client_name: "Claude",
+    client_version: "example",
+    tool_description: null,
+    tool_description_hash: null,
+    schema_hash: null,
+    retry_number: null,
+    payload_size_bytes: 128,
+    payload_policy: "redacted" as const,
+  };
+  const event = (
+    values: Partial<TraceEvent>,
+    eventId: string,
+    startedAt: string,
+  ): TraceEvent => ({
+    ...base,
+    event_type: "custom",
+    event_id: eventId,
+    started_at: startedAt,
+    service: base.service,
+    environment: base.environment,
+    server_id: base.server_id,
+    deployment_id: base.deployment_id,
+    server_version: base.server_version,
+    sdk_version: base.sdk_version,
+    observation_source: base.observation_source,
+    direction: base.direction,
+    transport: base.transport,
+    protocol_version: base.protocol_version,
+    session_id: base.session_id,
+    session_id_source: base.session_id_source,
+    correlation_handle: base.correlation_handle,
+    correlation_handle_source: base.correlation_handle_source,
+    context: base.context,
+    intent_source: base.intent_source,
+    task_id: base.task_id,
+    workflow_id: base.workflow_id,
+    client_name: base.client_name,
+    client_version: base.client_version,
+    tool_description: base.tool_description,
+    tool_description_hash: base.tool_description_hash,
+    schema_hash: base.schema_hash,
+    retry_number: base.retry_number,
+    payload_size_bytes: base.payload_size_bytes,
+    payload_policy: base.payload_policy,
+    payload: null,
+    request_id: null,
+    mcp_method: null,
+    tool_name: null,
+    duration_ms: null,
+    success: null,
+    is_error: null,
+    error_class: null,
+    error_code: null,
+    ...values,
+  });
+
+  return {
+    session_id: selectedSession,
+    correlation_handle: selectedCorrelation,
+    correlation_handle_source: "issued",
+    correlation_quality: "session_id",
+    completion_source: "workflow_events",
+    event_count: 6,
+    truncated: false,
+    events: [
+      event({ event_type: "session", mcp_method: "initialize", request_id: "example-request-1", duration_ms: 96, success: true, is_error: false, payload: { phase: "session_started" } }, "example-event-1", "2026-08-28T10:42:00.000Z"),
+      event({ event_type: "protocol", mcp_method: "tools/list", request_id: "example-request-2", duration_ms: 142, success: true, is_error: false, payload: { catalog_size: 8 } }, "example-event-2", "2026-08-28T10:42:00.300Z"),
+      event({ event_type: "tool_call", tool_name: "find_invoice", request_id: "example-request-3", duration_ms: 220, success: true, is_error: false, payload: { result: "redacted", record_count: 1 } }, "example-event-3", "2026-08-28T10:42:01.100Z"),
+      event({ event_type: "tool_call", tool_name: "run_query", request_id: "example-request-4", duration_ms: 1420, success: false, is_error: true, error_class: "upstream_timeout", error_code: -32001, payload: { error: "redacted", retryable: true } }, "example-event-4", "2026-08-28T10:42:02.400Z"),
+      event({ event_type: "tool_call", tool_name: "create_report", request_id: "example-request-5", duration_ms: 420, success: true, is_error: false, payload: { report: "redacted", status: "created" } }, "example-event-5", "2026-08-28T10:42:04.000Z"),
+      event({ event_type: "workflow", mcp_method: "workflow.completed", request_id: "example-request-6", duration_ms: 3680, success: true, is_error: false, payload: { outcome: "invoice_lookup_completed" } }, "example-event-6", "2026-08-28T10:42:04.500Z"),
+    ],
+  };
 }
 
 function EventCard({ event, index }: { event: TraceEvent; index: number }) {
@@ -212,6 +315,9 @@ export function TraceExplorer({
   const [error, setError] = useState("");
   const [copied, setCopied] = useState(false);
   const [retryToken, setRetryToken] = useState(0);
+  const displayedResponse = sampleMode
+    ? sampleTraceResponse(sessionId, correlationHandle)
+    : response;
   const resolvedOriginLabel =
     typeof window === "undefined"
       ? originLabel
@@ -313,23 +419,15 @@ export function TraceExplorer({
           onClick={() => void copySession()}
           className="inline-flex cursor-pointer items-center gap-1.5 border border-line-strong px-3 py-2 text-xs font-medium text-body focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
         >
-          <Copy size={13} />
+          {copied ? (
+            <Check size={13} className="text-brand-strong" aria-hidden="true" />
+          ) : (
+            <Copy size={13} aria-hidden="true" />
+          )}
           {copied ? "Copied" : "Copy ID"}
         </button>
       </div>
-      {sampleMode ? (
-        <div className="grid min-h-[280px] place-items-center rounded-xl border border-dashed border-line-strong bg-white p-8 text-center">
-          <div>
-            <p className="text-sm font-semibold text-ink">
-              Trace details are live-data only
-            </p>
-            <p className="mt-2 max-w-md text-sm leading-relaxed text-muted">
-              This session came from the sample dashboard. Switch the dashboard
-              to My data to inspect an authenticated trace from your workspace.
-            </p>
-          </div>
-        </div>
-      ) : loading ? (
+      {loading ? (
         <div
           className="grid min-h-[280px] place-items-center rounded-xl border border-line bg-white text-sm text-muted"
           role="status"
@@ -351,7 +449,7 @@ export function TraceExplorer({
             Retry
           </button>
         </div>
-      ) : !response?.events.length ? (
+      ) : !displayedResponse?.events.length ? (
         <div className="grid min-h-[280px] place-items-center rounded-xl border border-dashed border-line-strong bg-white p-8 text-center">
           <div>
             <XCircle size={24} className="mx-auto text-faint" />
@@ -370,11 +468,11 @@ export function TraceExplorer({
             <div className="rounded-xl border border-line bg-white p-4">
               <p className="text-xs text-muted">Events returned</p>
               <p className="mt-1 text-lg font-semibold text-ink">
-                {response.event_count}
-                {response.truncated ? "+" : ""}
+                {displayedResponse.event_count}
+                {displayedResponse.truncated ? "+" : ""}
               </p>
               <p className="mt-1 text-[11px] text-muted">
-                {response.truncated
+                {displayedResponse.truncated
                   ? "Showing a bounded result; some events may be omitted"
                   : "Within the trace limit"}
               </p>
@@ -382,30 +480,30 @@ export function TraceExplorer({
             <div className="rounded-xl border border-line bg-white p-4">
               <p className="text-xs text-muted">Correlation</p>
               <p className="mt-1 text-sm font-semibold text-ink">
-                {qualityLabels[response.correlation_quality]}
+                {qualityLabels[displayedResponse.correlation_quality]}
               </p>
               <p className="mt-1 text-[11px] text-muted">
-                {response.correlation_handle_source
-                  ? correlationSourceLabel(response.correlation_handle_source)
+                {displayedResponse.correlation_handle_source
+                  ? correlationSourceLabel(displayedResponse.correlation_handle_source)
                   : "Legacy/Unknown"}
               </p>
             </div>
             <div className="rounded-xl border border-line bg-white p-4">
               <p className="text-xs text-muted">Completion signal</p>
               <p className="mt-1 text-sm font-semibold text-ink">
-                {completionLabels[response.completion_source]}
+                {completionLabels[displayedResponse.completion_source]}
               </p>
               <p className="mt-1 text-[11px] text-muted">
-                {response.completion_source === "workflow_events"
+                {displayedResponse.completion_source === "workflow_events"
                   ? "Application-defined evidence"
-                  : response.completion_source === "session_heuristic"
+                  : displayedResponse.completion_source === "session_heuristic"
                     ? "Not a workflow completion"
                     : "No explicit workflow outcome data"}
               </p>
             </div>
           </div>
-          {(response.correlation_quality === "missing" ||
-            response.correlation_quality === "mixed") && (
+          {(displayedResponse.correlation_quality === "missing" ||
+            displayedResponse.correlation_quality === "mixed") && (
             <div className="mb-5 flex items-start gap-2 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-xs leading-relaxed text-amber-800">
               <Info size={15} className="mt-0.5 shrink-0" />
               <span>
@@ -414,7 +512,7 @@ export function TraceExplorer({
               </span>
             </div>
           )}
-          {response.truncated && (
+          {displayedResponse.truncated && (
             <div className="mb-5 flex flex-wrap items-center gap-2 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-xs text-amber-800">
               <FileWarning size={15} />
               Showing a bounded result. Some events may be omitted because the
@@ -423,9 +521,9 @@ export function TraceExplorer({
             </div>
           )}
           <div className="mb-4 flex flex-wrap gap-2">
-            <Badge>{qualityLabels[response.correlation_quality]}</Badge>
-            <Badge>{completionLabels[response.completion_source]}</Badge>
-            {response.events.some(
+            <Badge>{qualityLabels[displayedResponse.correlation_quality]}</Badge>
+            <Badge>{completionLabels[displayedResponse.completion_source]}</Badge>
+            {displayedResponse.events.some(
               (event) => event.payload_policy === "redacted",
             ) && (
               <Badge>
@@ -433,15 +531,22 @@ export function TraceExplorer({
                 Redacted content present
               </Badge>
             )}
-            {response.events.some((event) => hasTruncation(event.payload)) && (
+            {displayedResponse.events.some((event) => hasTruncation(event.payload)) && (
               <Badge tone="warn">
                 <FileWarning size={11} className="mr-1" />
                 Truncation present
               </Badge>
             )}
           </div>
+          {sampleMode && (
+            <div className="mb-5 rounded-xl border border-[#c9d8ed] bg-[#f3f7fc] px-4 py-3 text-xs leading-relaxed text-[#4169a5]">
+              Illustrative trace: this timeline connects a business task to the
+              tool call that failed and the explicit outcome that followed.
+              Payload content is redacted.
+            </div>
+          )}
           <div>
-            {response.events.map((event, index) => (
+            {displayedResponse.events.map((event, index) => (
               <EventCard
                 key={`${event.event_id}-${index}`}
                 event={event}
