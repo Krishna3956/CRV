@@ -52,19 +52,41 @@ test("data source state is explicit and never silently substituted", () => {
   assert.doesNotMatch(source, /updated just now/);
 });
 
-test("zero-event activation remains on Overview with trace state cleared", () => {
-  assert.match(source, /Your server has not sent its first event yet\./);
+test("zero-event activation uses page-specific connection states", () => {
+  assert.match(source, /No server activity is available yet\./);
   assert.match(
     source,
     /zeroEventState = Boolean\([\s\S]*analytics\.total_events === 0/,
+  );
+  assert.match(source, /function ServerConnectionState\(/);
+  assert.match(source, /See Example data/);
+  assert.match(source, /View setup instructions/);
+  assert.match(
+    source,
+    /!isExample && \(!workspace \|\| !hasActiveKey \|\| zeroEventState\)/,
   );
   assert.match(source, /setTraceSessionId\(null\)/);
   assert.match(source, /setTraceCorrelationHandle\(null\)/);
   assert.match(source, /setTraceOrigin\("evidence"\)/);
   assert.match(source, /writeRouteState\(view, range, next, null, null, "evidence"\)/);
-  assert.match(source, /onOpenDashboard/);
-  assert.match(source, /setView\("overview"\)/);
   assert.match(source, /!workspace \|\| !hasActiveKey/);
+  assert.doesNotMatch(source, /onboardingMode/);
+});
+
+test("Setup remains reachable for My data activation states", () => {
+  const setupBranch = source.indexOf('view === "setup" ? (');
+  const connectionStateBranch = source.indexOf(
+    "!isExample && (!workspace || !hasActiveKey || zeroEventState)",
+  );
+  assert.ok(setupBranch >= 0, "Setup view branch must exist");
+  assert.ok(connectionStateBranch >= 0, "connection state branch must exist");
+  assert.ok(
+    setupBranch < connectionStateBranch,
+    "Setup must win over connection activation state",
+  );
+  assert.match(source, /View setup instructions/);
+  assert.match(source, /onOpenSetup=\{\(\) => goTo\("setup"\)\}/);
+  assert.match(source, /function SetupView\(/);
 });
 
 test("Overview always renders Needs attention and preserves uncertainty", () => {
