@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "test:mcp-tester": "node --experimental-strip-types --test src/lib/mcp-tester/engine.test.ts",
+    "test:mcp-tester": "node --experimental-strip-types --test src/lib/mcp-tester/engine.test.ts src/lib/mcp-tester/notifications.test.ts",
     "test:mcp-tester-ui": "node --test src/components/mcp-tester/McpTesterApp.contract.test.mjs src/app/tools/tools.contract.test.mjs",
     "seo:audit": "node scripts/audit-seo.mjs",
     "test:seo-foundation": "node --test scripts/mcp-foundation-content.test.mjs",

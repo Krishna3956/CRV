@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { AlertTriangle, Check, ChevronDown, CircleHelp, Copy, LoaderCircle, LockKeyhole, Play, RotateCcw, ShieldCheck, Square, X } from "lucide-react";
 import { EarlyAccessButton } from "@/components/EarlyAccessButton";
 import { DEFAULT_MCP_TESTER_LIMITS, runMcpTester, serializeMcpTesterReport, validateMcpEndpoint, validateMcpHeaders } from "@/lib/mcp-tester";
+import { sendMcpTestNotification } from "@/lib/mcp-tester/notifications";
 import type { HealthDimensionName, McpTesterPhase, McpTesterProgressStatus, McpTesterReport, McpTesterVerdict } from "@/lib/mcp-tester";
 
 type TesterMode = "tester" | "health" | "inspector";
@@ -145,6 +146,7 @@ function Catalog({ title, count, pages, complete, truncated, children }: { title
 export function McpTesterApp({ initialMode = "tester" }: { initialMode?: TesterMode }) {
   const copy = modeCopy(initialMode);
   const [endpoint, setEndpoint] = useState("");
+  const [testerEmail, setTesterEmail] = useState("");
   const [headers, setHeaders] = useState<HeaderRow[]>(EMPTY_HEADERS);
   const [showHeaders, setShowHeaders] = useState(false);
   const [runState, setRunState] = useState<RunState>("idle");
@@ -184,6 +186,7 @@ export function McpTesterApp({ initialMode = "tester" }: { initialMode?: TesterM
     controllerRef.current?.abort();
     controllerRef.current = null;
     setEndpoint("");
+    setTesterEmail("");
     setHeaders(EMPTY_HEADERS);
     setReport(null);
     setInputError("");
@@ -209,6 +212,7 @@ export function McpTesterApp({ initialMode = "tester" }: { initialMode?: TesterM
       setInputError(headerValidation.message);
       return;
     }
+    const customHeaderCount = Object.keys(suppliedHeaders).length;
 
     const controller = new AbortController();
     controllerRef.current = controller;
@@ -226,10 +230,12 @@ export function McpTesterApp({ initialMode = "tester" }: { initialMode?: TesterM
         onProgress: (update) => setPhaseProgress((current) => ({ ...current, [update.phase]: update.status })),
       });
       setReport(nextReport);
+      void sendMcpTestNotification({ mode: initialMode, email: testerEmail, customHeaderCount, report: nextReport });
     } catch {
       setInputError("The browser could not complete the bounded probe. Run it again or inspect the browser network policy.");
     } finally {
       controllerRef.current = null;
+      setTesterEmail("");
       setHeaders(EMPTY_HEADERS);
       setRunState("complete");
       setRunStartedAt(null);
@@ -266,6 +272,9 @@ export function McpTesterApp({ initialMode = "tester" }: { initialMode?: TesterM
           <label htmlFor="mcp-endpoint" className="mt-7 block text-[13px] font-medium text-body">HTTPS Streamable HTTP endpoint</label>
           <input ref={endpointRef} id="mcp-endpoint" value={endpoint} onChange={(event) => setEndpoint(event.target.value)} placeholder="https://your-server.example/mcp" spellCheck={false} autoComplete="url" className="mt-2 w-full rounded-lg border border-line-strong bg-paper px-3.5 py-3 font-mono text-[13px] text-ink placeholder:text-faint focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/15" />
           <p className="mt-2 text-[12px] leading-[1.5] text-muted">Only HTTPS endpoints are accepted. Local, private IP, link-local, metadata, credential-bearing, and non-HTTP targets are rejected.</p>
+          <label htmlFor="tester-email" className="mt-5 block text-[13px] font-medium text-body">Your email for test follow-up <span className="font-normal text-faint">(optional)</span></label>
+          <input id="tester-email" value={testerEmail} onChange={(event) => setTesterEmail(event.target.value)} placeholder="you@company.com" type="email" autoComplete="email" className="mt-2 w-full rounded-lg border border-line-strong bg-paper px-3.5 py-3 text-[14px] text-ink placeholder:text-faint focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/15" />
+          <p className="mt-2 text-[12px] leading-[1.5] text-muted">We use this only to identify the test notification. It is not stored in the report and can be left blank.</p>
 
           <div className="mt-6 rounded-xl border border-amber-200 bg-amber-50/70 p-3.5">
             <div className="flex gap-2.5"><LockKeyhole size={17} className="mt-0.5 shrink-0 text-amber-700" /><div><p className="text-[13px] font-semibold text-amber-900">Privacy warning for custom headers</p><p className="mt-1 text-[12px] leading-[1.5] text-amber-900/80">Use a short-lived test credential only. Headers stay in memory for this run, are sent directly by your browser, then cleared. They are never persisted or included in the report.</p></div></div>

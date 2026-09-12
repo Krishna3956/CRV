@@ -33,6 +33,14 @@ test("sensitive form state is cleared after completion and cancellation is expos
   assert.match(app, /Test another server/);
 });
 
+test("completed tests send a sanitized notification with optional tester identity", () => {
+  assert.match(app, /sendMcpTestNotification\(/);
+  assert.match(app, /email: testerEmail/);
+  assert.match(app, /customHeaderCount/);
+  assert.match(app, /id=\"tester-email\"/);
+  assert.match(app, /Your email for test follow-up/);
+});
+
 test("the report exposes timestamped evidence, bounded timing, response size, and monitoring CTA", () => {
   assert.match(app, /Observed during this test at/);
   assert.match(app, /report\.observedAt/);
