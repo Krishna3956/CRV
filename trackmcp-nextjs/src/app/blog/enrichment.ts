@@ -21,6 +21,136 @@ const note = (title: string, c: string, after: number) => ({
 });
 
 export const enrichment: Record<string, Enrichment> = {
+  "mcp-tool-naming-conventions": {
+    art: "schema",
+    takeaways: [
+      "Tool names are stable protocol identifiers, while titles and descriptions serve human and model-readable guidance.",
+      "The current specification recommends unique, case-sensitive names from 1 to 128 characters without spaces.",
+      "A server-local unique name does not eliminate collisions in a host that combines multiple servers.",
+      "Measure catalog changes and call continuity after a rename, while staying honest about what the server boundary cannot see.",
+    ],
+    inserts: [
+      fig("schema", "A stable identifier, a readable title, and an accurate schema are three different parts of one tool contract.", 3),
+      note("Name for the contract", "Keep protocol names stable and put audience-facing explanation in title and description. A rename can change selection, caches, permissions, and analytics continuity.", 10),
+    ],
+  },
+  "mcp-retry-safety-idempotency": {
+    art: "errors",
+    takeaways: [
+      "A retry is a new request, not proof that the previous side effect failed.",
+      "Idempotency must be enforced by the handler and its downstream operation, not only advertised as a hint.",
+      "Non-repeatable tools need confirmation, reconciliation, or a safe status lookup before retrying.",
+      "Server-boundary telemetry can reveal repeated calls and outcomes, but not a private client retry policy or downstream settlement without an emitted signal.",
+    ],
+    inserts: [
+      fig("errors", "A timeout can leave the server in an unknown side-effect state, which is why retry safety needs an explicit operation identity.", 3),
+      note("Retry with evidence", "Classify tools by side effect and return an operation identifier that lets the caller reconcile before repeating a state-changing action.", 10),
+    ],
+  },
+  "mcp-request-timeouts-deadlines": {
+    art: "latency",
+    takeaways: [
+      "A timeout is a caller or server deadline, not a complete diagnosis of what happened.",
+      "Cancellation is cooperative and cannot rewind a side effect that already occurred.",
+      "Progress notifications are optional and request-scoped; tasks are useful for durable long-running work but remain experimental.",
+      "Measure slow tails, cancellations, timeouts, retries, and application outcomes as separate signals.",
+    ],
+    inserts: [
+      fig("latency", "A request timeline needs separate markers for the deadline, cancellation, tool completion, and useful application outcome.", 3),
+      note("Separate waiting from work", "A client can stop waiting while the server keeps running. Record the state transition and make reconciliation safe before adding another retry.", 10),
+    ],
+  },
+  "mcp-server-auth-discovery-protected-resource-metadata": {
+    art: "protocol",
+    takeaways: [
+      "The remote MCP server is the protected resource, not the authorization server that issues tokens.",
+      "Protected Resource Metadata and the WWW-Authenticate challenge help clients discover the right authorization server.",
+      "Resource indicators and audience validation keep tokens bound to the MCP resource.",
+      "Logs should show bounded authorization outcomes without bearer tokens, authorization codes, or sensitive URL state.",
+    ],
+    inserts: [
+      fig("protocol", "Authentication discovery crosses separate boundaries: the MCP resource, protected-resource metadata, and the authorization server.", 3),
+      note("Debug the 401", "Treat a 401 as a discovery checkpoint. Verify the challenge, metadata document, issuer, resource binding, and scopes in that order.", 10),
+    ],
+  },
+  "mcp-tool-catalog-design": {
+    art: "clients",
+    takeaways: [
+      "A large MCP catalog is an interface that competes for context and selection, not just an inventory of backend operations.",
+      "Pagination uses opaque cursors, and a partial page is not a complete catalog.",
+      "Cache freshness, catalog visibility, and authorization are separate decisions.",
+      "Measure discovery, calls, validation, execution, retries, and workflow outcomes as different stages.",
+    ],
+    inserts: [
+      fig("clients", "A usable catalog connects task intent to a small set of clear tools, then measures what happened after discovery.", 3),
+      note("Catalogs need tests", "Test page walks, changing catalogs, stale caches, permissions, schema errors, and representative workflows before shipping a catalog change.", 10),
+    ],
+  },
+  "mcp-pagination-nextcursor": {
+    art: "protocol",
+    takeaways: [
+      "MCP pagination uses opaque cursors for tools, resources, resource templates, and prompts.",
+      "Clients should detect repeated cursors, bound page walks, and report incomplete catalogs clearly.",
+      "Changing catalogs and cache freshness can create gaps or duplicates across pages.",
+      "Server-boundary telemetry can show what was requested, but not what a host displayed or considered.",
+    ],
+    inserts: [
+      fig("protocol", "A paginated catalog is a sequence of bounded server responses connected by an opaque cursor.", 3),
+      note("Keep the cursor opaque", "The server owns the cursor format. A client should pass it back unchanged and never treat it as a page number.", 11),
+    ],
+  },
+  "mcp-tool-list-caching-ttlms-cachescope": {
+    art: "foundation",
+    takeaways: [
+      "ttlMs describes freshness, while cacheScope describes whether a result may be shared.",
+      "listChanged and subscriptions/listen can invalidate a cached catalog before its TTL expires.",
+      "A private catalog must stay isolated by authorization context, even when the endpoint is shared.",
+      "Cache hints do not replace authorization or guarantee a consistent multi-page snapshot.",
+    ],
+    inserts: [
+      fig("foundation", "Freshness, visibility, and invalidation are separate decisions in an MCP catalog cache.", 3),
+      note("Cache conservatively", "If a result may vary by user, tenant, role, or token, do not mark it public just because it came from an authenticated endpoint.", 10),
+    ],
+  },
+  "mcp-progress-notifications": {
+    art: "latency",
+    takeaways: [
+      "Progress notifications require a request-scoped progressToken from the client.",
+      "Clients may omit progress support or choose not to render notifications.",
+      "Rate-limit meaningful milestones and stop updates after completion or cancellation.",
+      "Tasks provide durable state when progress notifications are not enough for long-running work.",
+    ],
+    inserts: [
+      fig("latency", "A progress token correlates optional updates with one active request, not with a complete agent trace.", 3),
+      note("Do not promise visibility", "A server can send a progress notification without knowing whether the host received, rendered, or acted on it.", 10),
+    ],
+  },
+  "mcp-tasks-extension": {
+    art: "funnel",
+    takeaways: [
+      "Tasks turn a long-running tool call into durable state that a client can poll.",
+      "The current extension uses tasks/get, tasks/update, and tasks/cancel.",
+      "Cancellation is cooperative and must be designed around races and external side effects.",
+      "Task status is not the same as a completed business outcome unless the application emits that signal.",
+    ],
+    inserts: [
+      fig("funnel", "A task moves from creation to polling, optional input, and a terminal result or error.", 3),
+      note("Separate status from outcome", "A completed task proves that the protocol operation ended. It does not automatically prove that the customer's goal succeeded.", 11),
+    ],
+  },
+  "mcp-elicitation-form-url-mode": {
+    art: "schema",
+    takeaways: [
+      "Form mode is for structured, non-sensitive input visible to the MCP client.",
+      "URL mode moves sensitive interaction out of band and needs a strong user-binding design.",
+      "Accepting a URL elicitation is consent to open the flow, not proof that the external action completed.",
+      "Modern multi-round requests and legacy server-to-client requests require separate compatibility tests.",
+    ],
+    inserts: [
+      fig("schema", "Form mode keeps structured input in the MCP flow, while URL mode sends sensitive interaction through a separate boundary.", 3),
+      note("Bind the user", "A copied or modified elicitation URL must not let one user complete another user's authorization flow.", 11),
+    ],
+  },
   "best-mcp-observability-tools-for-production-servers": {
     art: "clients",
     takeaways: [

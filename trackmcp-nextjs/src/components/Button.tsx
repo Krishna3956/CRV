@@ -19,13 +19,13 @@ const variants: Record<Variant, string> = {
 };
 
 export function Button({
-  href = "#",
+  href,
   variant = "primary",
   size = "md",
   className = "",
   children,
 }: {
-  href?: string;
+  href: string;
   variant?: Variant;
   size?: Size;
   className?: string;

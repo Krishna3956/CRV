@@ -479,13 +479,13 @@ export function DashboardMock() {
             </span>
           </div>
 
-          <button className="mx-3 mt-3 flex items-center justify-between rounded-lg border border-line bg-white px-2.5 py-2 text-left transition-colors hover:border-line-strong">
+          <div className="mx-3 mt-3 flex items-center justify-between rounded-lg border border-line bg-white px-2.5 py-2 text-left">
             <span className="flex items-center gap-2">
               <span className="grid h-5 w-5 place-items-center rounded bg-ink text-[10px] font-bold text-white">A</span>
               <span className="text-[12.5px] font-medium text-body">acme-corp</span>
             </span>
             <ChevronDown size={13} className="text-faint" />
-          </button>
+          </div>
 
           <nav className="mt-4 flex flex-col gap-0.5 px-3">
             <span className="px-2 pb-1 text-[10px] font-semibold uppercase tracking-wider text-faint">
@@ -505,7 +505,7 @@ export function DashboardMock() {
           </nav>
 
           <div className="mt-auto border-t border-line p-3">
-            <button className="flex w-full items-center gap-2.5 rounded-lg px-2 py-2 transition-colors hover:bg-mist">
+            <div className="flex w-full items-center gap-2.5 rounded-lg px-2 py-2">
               <span className="h-7 w-7 shrink-0 overflow-hidden rounded-full">
                 <svg viewBox="0 0 64 64" className="h-full w-full" role="img" aria-label="Krishna Goyal">
                   <rect width="64" height="64" rx="32" fill="#16a34a" />
@@ -518,7 +518,7 @@ export function DashboardMock() {
                 <span className="block truncate text-[11px] text-faint">Owner</span>
               </span>
               <Settings size={14} className="text-faint" />
-            </button>
+            </div>
           </div>
         </aside>
 
@@ -590,7 +590,7 @@ export function DashboardMock() {
             >
             {view === "overview" && (
               <>
-                <button className="flex w-full items-center gap-2.5 rounded-lg border border-amber-200 bg-amber-50 px-3.5 py-2 text-left transition-colors hover:border-amber-300">
+                <div className="flex w-full items-center gap-2.5 rounded-lg border border-amber-200 bg-amber-50 px-3.5 py-2 text-left">
                   <TriangleAlert size={14} className="shrink-0 text-amber-600" />
                   <span className="truncate text-[12px] leading-snug text-amber-900">
                     <span className="font-semibold">send_email needs attention</span>
@@ -599,7 +599,7 @@ export function DashboardMock() {
                   <span className="ml-auto flex shrink-0 items-center gap-1 text-[11.5px] font-medium text-amber-700">
                     See the fix <ArrowUpRight size={12} />
                   </span>
-                </button>
+                </div>
 
                 <div className="grid grid-cols-2 gap-2.5 lg:grid-cols-4">
                   <KpiCard label="Active clients" value={`${kpis.clients}`} delta="+1" tone="brand" spark={[2, 2, 3, 3, 3, 4, 4]} />
@@ -740,7 +740,7 @@ export function DashboardMock() {
                   <div className="flex items-center gap-2">
                     <span className="font-mono text-[13px] font-semibold text-ink">{active.name}</span>
                     <span className={`text-[11px] font-medium ${STATUS[active.status].text}`}>{STATUS[active.status].label}</span>
-                    <button data-demo="inspect" className="ml-auto flex items-center gap-1 text-[12px] font-medium text-brand">
+                    <button type="button" data-demo="inspect" onClick={() => pickView("sessions")} className="ml-auto flex items-center gap-1 text-[12px] font-medium text-brand">
                       Inspect calls <ArrowUpRight size={12} />
                     </button>
                   </div>
@@ -963,7 +963,7 @@ export function DashboardMock() {
 
             {view === "reliability" && (
               <>
-                <button className="flex w-full items-start gap-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-left">
+                <button type="button" onClick={() => pickView("tools")} className="flex w-full items-start gap-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-left">
                   <TriangleAlert size={16} className="mt-0.5 shrink-0 text-amber-600" />
                   <span className="text-[12.5px] leading-snug text-amber-900">
                     <span className="font-semibold">send_email needs attention.</span>{" "}

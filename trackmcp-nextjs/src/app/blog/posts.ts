@@ -37,6 +37,914 @@ const callout = (title: string, c: string): Block => ({ t: "callout", title, c }
 
 export const posts: Post[] = [
   {
+    slug: "mcp-tool-naming-conventions",
+    title: "MCP Tool Naming Conventions: Names, Titles, and Collisions",
+    tag: "MCP fundamentals",
+    excerpt:
+      "A technical guide to MCP tool names, human-readable titles, collisions, namespaces, and the naming checks that make a large tool catalog easier for clients and agents to use.",
+    date: "Sep 12, 2026",
+    read: "8 min read",
+    updated: "Sep 12, 2026",
+    verified: "Sep 12, 2026",
+    keywords: [
+      "MCP tool naming conventions",
+      "MCP tool names",
+      "MCP tool title",
+      "MCP tool name collision",
+      "MCP server tool catalog",
+    ],
+    related: [
+      "mcp-tool-schemas",
+      "writing-tool-descriptions-agents-use",
+      "mcp-tool-selection-evaluation",
+      "mcp-tools-resources-prompts",
+    ],
+    body: [
+      p("An MCP tool name is a protocol identifier, not a sentence. It is the stable handle a client uses when it lists a server's tools and sends a tools/call request. A title can make that tool readable in a user interface, while the name must remain predictable for software. Treating the two fields as the same thing creates avoidable compatibility and selection problems."),
+      callout("Short answer", "Use a stable, unique, ASCII-friendly name for the protocol contract, then use title and description for the human explanation. Do not put important meaning only in a display label."),
+      h("What the MCP specification says about tool names"),
+      p("The current MCP tools specification says that names should be one to 128 characters, should be treated as case-sensitive, and should use letters, digits, underscores, hyphens, and dots. Names should not contain spaces or commas and should be unique within a server. These are interoperability guidelines, so a server should validate its own catalog before publishing it."),
+      ul([
+        "Use lowercase names when you do not have a strong reason to preserve case. Consistency lowers the chance of client-side lookup mistakes.",
+        "Choose one separator convention, such as snake_case or dotted namespaces, and apply it to the complete catalog.",
+        "Avoid names that differ only by case, punctuation, or an abbreviation that a model will not recognize.",
+        "Keep a name stable after release. If the behavior changes materially, add a new versioned name and document the migration.",
+      ]),
+      h("Name, title, and description have different jobs"),
+      p("The name is for machines. The optional title is for display. The description explains when the tool is useful, what it accepts, what it changes, and what it returns. A name such as search_repositories does not tell a client whether the search is fuzzy, scoped to one organization, or read-only. That meaning belongs in the description and input schema."),
+      code(`{
+  "name": "search_repositories",
+  "title": "Search repositories",
+  "description": "Find repositories visible to the authenticated user. Read-only. Use the organization filter when the account has more than one organization.",
+  "inputSchema": {
+    "type": "object",
+    "properties": { "query": { "type": "string" } },
+    "required": ["query"]
+  }
+}`),
+      h("Why collisions appear in real deployments"),
+      p("A server can avoid duplicate names inside its own list and still encounter collisions when a host combines tools from several servers. The host owns the combined catalog, not the individual server. A client may add its own namespace, but a server should not assume that it will happen or depend on a particular host's display convention."),
+      p("The practical response is to make names specific without making them unreadable. A domain prefix can help when a server exposes several subsystems, such as billing_list_invoices and billing_get_invoice. A prefix is less useful when it repeats the server name that the host already shows beside every tool. Review the final catalog in the clients your users actually run."),
+      h("A catalog review that catches most naming defects"),
+      ul([
+        "List every name and check for duplicates, case-only differences, whitespace, punctuation, and accidental truncation.",
+        "Read the names without the descriptions. If two tools appear interchangeable, make their scope or action more explicit.",
+        "Check the title and description for alignment with the actual handler, authorization rule, side effects, and result shape.",
+        "Call each tool with valid and invalid arguments. A clean name does not compensate for a misleading schema or an opaque error.",
+        "Record the catalog version or deployment identifier so a change in selection can be compared with a known release.",
+      ]),
+      h("What to measure after a rename"),
+      p("A rename changes more than a label. It can change model selection, client caches, saved prompts, allowlists, and the continuity of your analytics. If you must rename a tool, keep the old name during a deprecation window when that is safe, or publish a clear migration. Track calls by the stable name and keep the release or deployment identifier alongside them."),
+      p("TrackMCP measures the server boundary: which tools are listed or called, observed duration, errors, client context, and explicit workflow signals when they are emitted. It cannot tell you every tool a host considered and rejected, so a drop in calls is evidence of changed server-boundary behavior, not a complete explanation of the model's decision."),
+      h("A naming convention for a team"),
+      ul([
+        "Use verb_noun for actions, such as create_ticket or list_repositories.",
+        "Use a domain prefix only when it prevents real ambiguity in the combined catalog.",
+        "Reserve suffixes such as _preview or _v2 for behavior that is intentionally different and documented.",
+        "Never encode secrets, tenant identifiers, or user data in a tool name.",
+      ]),
+      faq("Are MCP tool names case-sensitive?", "The current specification says tool names should be considered case-sensitive. Treat case as significant even if one client normalizes it in its user interface."),
+      faq("Can a tool name contain spaces?", "The current naming guidance says names should not contain spaces. Use a stable identifier for name and put the readable phrase in title and description."),
+      faq("Does a unique tool name prevent all collisions?", "No. It prevents duplicates within one server. A host that combines multiple servers may still need its own display or routing convention."),
+      links([
+        { label: "MCP tool names and tool definitions", href: "https://modelcontextprotocol.io/specification/2025-11-25/server/tools" },
+        { label: "MCP tool schemas", href: "/blog/mcp-tool-schemas" },
+        { label: "Writing tool descriptions agents use", href: "/blog/writing-tool-descriptions-agents-use" },
+        { label: "Measure MCP tool usage with TrackMCP", href: "/mcp-tool-analytics" },
+      ]),
+    ],
+  },
+  {
+    slug: "mcp-retry-safety-idempotency",
+    title: "MCP Retry Safety: Idempotency, Duplicate Calls, and Side Effects",
+    tag: "MCP reliability",
+    excerpt:
+      "Learn how to reason about retries in MCP tool calls, use idempotency deliberately, protect state-changing actions, and tell a safe retry from a dangerous duplicate operation.",
+    date: "Sep 12, 2026",
+    read: "9 min read",
+    updated: "Sep 12, 2026",
+    verified: "Sep 12, 2026",
+    keywords: [
+      "MCP retry safety",
+      "MCP idempotency",
+      "MCP duplicate tool calls",
+      "MCP tool side effects",
+      "MCP server reliability",
+    ],
+    related: [
+      "mcp-incident-response-runbook",
+      "mcp-server-slos",
+      "how-to-cut-agent-retries",
+      "mcp-tool-schemas",
+    ],
+    body: [
+      p("Retries are normal in distributed systems, and MCP servers sit inside a distributed system. A client can retry after a timeout even when the server completed the operation. An agent can call again after receiving an error it did not understand. A proxy or job runner can replay a request. The danger is not the existence of retries. The danger is allowing a duplicate state-changing call to look like a harmless read."),
+      callout("Short answer", "Make read operations safe to repeat, give state-changing operations an idempotency strategy, and record enough server-boundary evidence to distinguish a retry from a new workflow step."),
+      h("Idempotent does not mean successful"),
+      p("An idempotent operation can be applied more than once with the same intended effect. It can still fail, time out, or return an error. Idempotency is a property of repeated execution, not a promise that the first call will finish. For example, deleting an already-deleted record may be safely repeatable but should still report whether the requested state was achieved."),
+      p("The MCP specification exposes tool annotations that can describe behavior such as read-only or idempotent, but the specification treats annotations as hints and clients must not blindly trust them. The server remains responsible for enforcing authorization, validating arguments, and making the handler safe for the behavior it advertises."),
+      h("Classify tools by side effect"),
+      ul([
+        "Read-only tools fetch or compute information without changing external state.",
+        "Conditionally mutating tools change state only when a precondition or version matches.",
+        "Create-style tools can often accept an idempotency key and return the existing result for a duplicate key.",
+        "Non-repeatable tools, such as sending an email or charging a payment method, need a stronger boundary than a client retry loop.",
+      ]),
+      h("Design the idempotency key at the application boundary"),
+      p("An idempotency key is useful only if the handler and its downstream operation honor it. Generate or accept a key that represents one intended operation, store the key with the result for a bounded retention period, and return the original result when the same authorized caller repeats it. Do not use a timestamp alone if two requests can arrive in the same time window, and do not make a key global when tenant or user scope is part of the authorization decision."),
+      code(`const result = await createInvoice({
+  customerId,
+  amount,
+  idempotencyKey: request.headers["x-idempotency-key"],
+});
+
+// The database constraint or downstream API must enforce
+// one effect for one authorized key, not just the handler.
+return result;`),
+      h("Timeouts create the ambiguous result problem"),
+      p("Suppose a client sends create_ticket, the server commits the ticket, and the response is lost. The client sees a timeout and retries. If the second call creates another ticket, the protocol was available but the product outcome is wrong. The server needs a way to connect both attempts to one intended operation, or it must make the action safe to query and reconcile before creating again."),
+      p("This is also why a retry count is not proof of a failed operation. It is evidence that a caller sent another request. A useful incident investigation combines retry metadata, request timing, the tool's side-effect policy, downstream identifiers, and the final application outcome."),
+      h("Return errors that support safe recovery"),
+      ul([
+        "Tell the client whether the operation may have been applied before the error occurred.",
+        "Return a stable error class and a human-readable correction when the input is invalid.",
+        "Include a safe operation identifier that can be used for status lookup, not a secret or bearer token.",
+        "Do not suggest retrying a non-idempotent operation unless the server has a reconciliation path.",
+      ]),
+      h("How to test retry behavior"),
+      p("Write tests that force a response timeout after the side effect, retry the exact request, send two concurrent requests with the same key, reuse a key with different arguments, and retry after the key retention window. Test authorization scope too. The same idempotency key must not let one user retrieve another user's result."),
+      p("At production scale, inspect the rate of repeated calls by tool, client, error class, and deployment. TrackMCP can show observed calls, durations, retry metadata when supplied, and tool-level errors at the server boundary. It does not know whether a client was about to retry, whether a host displayed the error, or whether a downstream payment processor settled a request unless your server emits that outcome."),
+      faq("Should every MCP tool be idempotent?", "No. Read operations are often repeatable, but some useful actions have unavoidable side effects. Those tools need explicit confirmation, idempotency or reconciliation, and careful error semantics."),
+      faq("Does an MCP idempotentHint guarantee safe retries?", "No. It is a behavioral hint. Clients must treat server-provided annotations as untrusted, and the server must make its implementation match the behavior it advertises."),
+      faq("Is a duplicate call always a retry?", "No. It may be a new workflow step, a user request repeated intentionally, or a client recovery attempt. Use timing, request context, retry metadata, and application identifiers rather than call count alone."),
+      links([
+        { label: "MCP tools and behavioral annotations", href: "https://modelcontextprotocol.io/specification/2025-11-25/server/tools" },
+        { label: "MCP incident response runbook", href: "/blog/mcp-incident-response-runbook" },
+        { label: "How to cut agent retries", href: "/blog/how-to-cut-agent-retries" },
+        { label: "MCP server SLOs", href: "/blog/mcp-server-slos" },
+      ]),
+    ],
+  },
+  {
+    slug: "mcp-request-timeouts-deadlines",
+    title: "MCP Request Timeouts: Deadlines, Cancellation, and Long-Running Work",
+    tag: "MCP reliability",
+    excerpt:
+      "A practical guide to MCP request deadlines, cooperative cancellation, progress, durable tasks, and the telemetry needed to explain slow or abandoned tool calls.",
+    date: "Sep 12, 2026",
+    read: "9 min read",
+    updated: "Sep 12, 2026",
+    verified: "Sep 12, 2026",
+    keywords: [
+      "MCP request timeout",
+      "MCP cancellation",
+      "MCP long running tool",
+      "MCP progress notifications",
+      "MCP task polling",
+    ],
+    related: [
+      "mcp-progress-notifications",
+      "mcp-tasks-extension",
+      "mcp-server-slos",
+      "latency-that-matters-for-agents",
+    ],
+    body: [
+      p("A timeout is a boundary decision, not a diagnosis. It says that a caller stopped waiting under a particular policy. The server may still be running, may have completed successfully, or may have been cancelled. MCP teams need to model those states separately because a single timeout number can hide dependency slowness, queueing, client impatience, or work that should have been moved to a durable task."),
+      callout("Short answer", "Set a deadline for every bounded request, make cancellation cooperative, use progress for active feedback, and use tasks when the work must outlive the original request connection."),
+      h("Choose a deadline from the workflow"),
+      p("Start with the user or agent workflow, then allocate time across the MCP call and its dependencies. A search tool may need a short deadline. A report-generation tool may need a longer budget but should not hold a connection open while a job runs for minutes. The correct number depends on the operation, client behavior, dependency limits, and the cost of a partial result."),
+      ul([
+        "Set one server-side maximum so a client cannot create unbounded work.",
+        "Propagate a remaining deadline to downstream calls rather than restarting the clock for every dependency.",
+        "Reserve time for validation, cleanup, and a useful error response.",
+        "Measure the slow tail by tool and outcome. Average latency is not a safe timeout policy.",
+      ]),
+      h("Cancellation is cooperative"),
+      p("MCP supports cancellation notifications. A receiver should stop work when it can, but cancellation does not rewind a side effect that has already happened. A server should check cancellation between expensive stages, pass cancellation to downstream libraries where supported, release resources in a finally path, and make the final state explicit."),
+      code(`async function runReport(input, signal) {
+  await checkCancelled(signal);
+  const rows = await fetchRows(input, { signal });
+  await checkCancelled(signal);
+  const report = await buildReport(rows, { signal });
+  return report;
+}`),
+      h("Progress tells a client that work is alive"),
+      p("A client can include a progress token, and a server can send progress notifications associated with that token. Progress is optional and request-scoped. It does not prove that the host rendered the update, that a user saw it, or that the agent will wait forever. Send meaningful milestones at a bounded rate, and stop sending updates after completion or cancellation."),
+      h("When a task is a better fit"),
+      p("The tasks extension represents durable state for work that should be polled and retrieved later. The current specification describes statuses such as working, input_required, completed, failed, and cancelled, along with task identifiers, TTLs, and suggested poll intervals. Tasks are currently experimental, so document the client support you require and provide a fallback for clients that do not negotiate it."),
+      p("A task does not automatically equal a business success. A completed task means the protocol operation reached its completed state. If the operation creates a deployment, sends a message, or exports a report, emit or store the application outcome that proves the useful result."),
+      h("Avoid the timeout and retry trap"),
+      ul([
+        "Do not retry a state-changing operation simply because the waiting client timed out.",
+        "Give long work a status or reconciliation tool so a caller can query the result safely.",
+        "Keep a timeout error distinct from a tool execution error and a cancellation result.",
+        "Record whether the handler stopped before the side effect, after the side effect, or in an unknown state.",
+      ]),
+      h("Telemetry for slow MCP calls"),
+      p("Capture the tool name, start and end timestamps, outcome class, cancellation or timeout marker, dependency phase when safe, and deployment identifier. Keep payload capture bounded and redacted. A timeline that says a call took 18 seconds is useful; a timeline that also shows it spent 17 seconds waiting on a named dependency is far more actionable, provided the dependency label does not contain sensitive data."),
+      p("TrackMCP observes the server boundary and can connect observed latency, tool errors, retries, and explicit workflow signals. It cannot see a client's private deadline policy or model reasoning unless that information is deliberately emitted by a component you control."),
+      faq("Does cancelling an MCP request guarantee that the work stopped?", "No. Cancellation is cooperative. The server should attempt to stop work, but an external side effect may already have happened and some dependencies may not support immediate cancellation."),
+      faq("Should every long-running MCP tool use tasks?", "No. A bounded operation can use an ordinary request with progress or a clear timeout. Tasks are useful when work must outlive the original request and the client supports the experimental extension."),
+      faq("Is a timeout the same as a server error?", "No. A timeout says a caller stopped waiting. The server may have failed, completed, been cancelled, or reached an unknown side-effect state."),
+      links([
+        { label: "MCP cancellation and transports", href: "https://modelcontextprotocol.io/specification/2025-11-25/basic/transports" },
+        { label: "MCP tasks and durable request state", href: "https://modelcontextprotocol.io/specification/2025-11-25/basic/utilities/tasks" },
+        { label: "MCP progress notifications deep dive", href: "/blog/mcp-progress-notifications" },
+        { label: "MCP server SLOs", href: "/blog/mcp-server-slos" },
+      ]),
+    ],
+  },
+  {
+    slug: "mcp-server-auth-discovery-protected-resource-metadata",
+    title: "MCP Server Authentication Discovery: 401, WWW-Authenticate, and Metadata",
+    tag: "MCP security",
+    excerpt:
+      "Understand how an HTTP MCP server advertises its authorization server, how clients use Protected Resource Metadata, and how to debug discovery without logging secrets.",
+    date: "Sep 12, 2026",
+    read: "9 min read",
+    updated: "Sep 12, 2026",
+    verified: "Sep 12, 2026",
+    keywords: [
+      "MCP authentication discovery",
+      "MCP Protected Resource Metadata",
+      "MCP WWW-Authenticate",
+      "MCP 401 error",
+      "MCP OAuth discovery",
+    ],
+    related: [
+      "remote-mcp-oauth-guide",
+      "mcp-token-passthrough-security",
+      "mcp-authorization-errors",
+      "mcp-server-security-checklist",
+    ],
+    body: [
+      p("Remote MCP authentication has two separate questions: how does a client discover which authorization server to use, and how does the MCP server validate the token it receives? Many integration failures happen before a tool call because discovery is incomplete, the resource identifier is wrong, or the client cannot interpret a 401 response."),
+      callout("Short answer", "An HTTP MCP server must expose Protected Resource Metadata and clients must use it for discovery. A 401 response can point to that metadata with WWW-Authenticate, while a well-known fallback covers clients that do not receive a usable challenge."),
+      h("The protected resource is the MCP server"),
+      p("In the MCP authorization model, the remote MCP server is the protected resource. It is not the authorization server that issues tokens. The client asks the resource for the authorization-server location, obtains a token for the MCP resource, and presents that token to the MCP server. Keeping those roles separate prevents a server from treating an upstream access token as if it were automatically valid for every downstream API."),
+      h("What a 401 challenge should communicate"),
+      p("When the MCP server returns 401 Unauthorized, the WWW-Authenticate header can include a resource_metadata URL. The current authorization specification also describes a scope parameter that can tell the client which scopes are needed for the current request. The header is discovery guidance, not a place for credentials, user data, or a pre-authenticated URL."),
+      code(`HTTP/1.1 401 Unauthorized
+WWW-Authenticate: Bearer resource_metadata="https://mcp.example.com/.well-known/oauth-protected-resource", scope="files:read"`),
+      h("Protected Resource Metadata is a contract"),
+      p("The metadata document tells the client which authorization servers protect the MCP resource. The current specification requires an authorization_servers field with at least one authorization server. A server can expose the document at a well-known URL or make its location available through the 401 challenge. Clients are required to support both discovery mechanisms and use the challenge URL when present."),
+      ul([
+        "Serve the metadata over HTTPS in production.",
+        "Use the canonical MCP resource URI consistently in metadata, authorization requests, token requests, and server validation.",
+        "Publish only the authorization-server locations and scopes that the client needs to discover the flow.",
+        "Test the endpoint without an access token and test the exact path used by the MCP endpoint.",
+      ]),
+      h("Why resource indicators matter"),
+      p("The authorization specification requires clients to include a resource parameter in authorization and token requests. That parameter binds a token to the MCP server it is intended for. The server must validate that the presented token was issued for it and must reject tokens intended for another resource."),
+      h("Debug discovery in layers"),
+      ul([
+        "Transport: confirm DNS, TLS, and the MCP endpoint respond at the expected URL.",
+        "Challenge: confirm an unauthenticated request returns 401 and a useful WWW-Authenticate header when that mechanism is used.",
+        "Metadata: fetch the advertised document and verify authorization_servers and its content type.",
+        "Authorization server: verify the issuer metadata and token endpoint according to the supported discovery mechanism.",
+        "Resource binding: confirm the token audience or resource matches the MCP server before a tool executes.",
+        "Scopes: test missing, valid, and excessive scopes without logging the token value.",
+      ]),
+      h("What not to put in logs"),
+      p("Do not log bearer tokens, authorization codes, refresh tokens, client secrets, or full authorization URLs containing sensitive state. Log the outcome class, issuer host when safe, resource identifier class, scope names if they are non-sensitive, and a stable request correlation identifier. Redact query values before a URL enters an error or telemetry payload."),
+      p("TrackMCP can show server-boundary authorization failures and the tool traffic that follows a successful connection. It does not replace an identity provider audit log, and it does not see a private client redirect or the user's consent screen unless your controlled integration emits that event."),
+      faq("Is WWW-Authenticate the only discovery mechanism for MCP?", "No. It can point to Protected Resource Metadata after a 401. The current specification also defines well-known URI fallback behavior for clients that do not receive a usable challenge."),
+      faq("Does a valid token for another API work for an MCP server?", "Not automatically. The MCP server must validate that the token was issued for the MCP resource. Downstream APIs need their own credential or an explicit, documented exchange."),
+      faq("Should stdio MCP servers implement this OAuth discovery flow?", "The MCP basic specification describes this authorization framework for HTTP-based transports. Stdio deployments typically retrieve credentials from the environment instead."),
+      links([
+        { label: "MCP authorization and Protected Resource Metadata", href: "https://modelcontextprotocol.io/specification/2025-11-25/basic/authorization" },
+        { label: "Remote MCP OAuth guide", href: "/blog/remote-mcp-oauth-guide" },
+        { label: "MCP token passthrough security", href: "/blog/mcp-token-passthrough-security" },
+        { label: "MCP server security checklist", href: "/blog/mcp-server-security-checklist" },
+      ]),
+    ],
+  },
+  {
+    slug: "mcp-tool-catalog-design",
+    title: "MCP Tool Catalog Design: Make Large Server Catalogs Easier to Use",
+    tag: "MCP design",
+    excerpt:
+      "A practical design guide for large MCP tool catalogs, covering grouping, descriptions, pagination, change notifications, schemas, permissions, and selection evidence.",
+    date: "Sep 12, 2026",
+    read: "8 min read",
+    updated: "Sep 12, 2026",
+    verified: "Sep 12, 2026",
+    keywords: [
+      "MCP tool catalog design",
+      "MCP tools list pagination",
+      "large MCP server tool list",
+      "MCP tool discovery",
+      "MCP tool selection",
+    ],
+    related: [
+      "mcp-tool-naming-conventions",
+      "mcp-pagination-nextcursor",
+      "mcp-tool-list-caching-ttlms-cachescope",
+      "mcp-tool-selection-evaluation",
+    ],
+    body: [
+      p("A large MCP catalog is an interface, not an inventory dump. Every extra tool competes for attention, context, and selection. A catalog that is technically complete can still be hard for an agent to use when names overlap, descriptions omit constraints, or the list changes between discovery and execution."),
+      callout("Short answer", "Design the catalog around user tasks, keep each tool contract narrow, paginate without exposing cursor internals, invalidate caches when the catalog changes, and measure selection and execution separately."),
+      h("Start with the tasks users need to complete"),
+      p("Group tools by domain and workflow, then decide whether every action deserves a separate tool. A tool that accepts ten unrelated modes may reduce the number of names but increase schema ambiguity. Several narrow tools may be easier to authorize and explain, while too many near-duplicates can make selection worse. The right boundary is the one that makes intent, permission, and failure behavior clear."),
+      ul([
+        "Give every tool one primary job and one recognizable result shape.",
+        "Put authorization and side-effect information in the description and annotations where appropriate.",
+        "Avoid exposing internal implementation details that do not help a client choose the tool.",
+        "Keep administrative or destructive tools separate from routine read tools in naming and permission policy.",
+      ]),
+      h("Pagination is part of the catalog contract"),
+      p("MCP list operations can return a nextCursor when more results are available. A cursor is opaque. The client should pass it back unchanged and continue until the server omits it. The server owns page size and cursor semantics. Do not make clients parse an offset, assume a stable page length, or silently discard a partial catalog."),
+      code(`let cursor: string | undefined;
+do {
+  const page = await client.listTools(cursor);
+  consume(page.tools);
+  cursor = page.nextCursor;
+} while (cursor);`),
+      p("Production clients should bound the number of pages and detect a repeated cursor. Servers should make a reasonable effort to keep a page walk coherent, but a rapidly changing catalog can still create additions, removals, or duplicates between pages. Document the behavior and include a catalog or deployment identifier in debugging output."),
+      h("Cache freshness is not authorization"),
+      p("A client may cache a tools/list response to avoid repeated discovery. Freshness and visibility are separate decisions. A catalog that varies by user, tenant, role, or token must not be shared merely because it has a TTL. If the server advertises list-change notifications, clients can invalidate or refresh their view before the nominal TTL expires."),
+      h("Descriptions and schemas should agree"),
+      p("The description is the selection guidance and the input schema is the validation contract. If the description says a filter is optional but the schema requires it, agents will retry or abandon the tool. If a field accepts an enum but the description uses different labels, selection will be unreliable. Review the rendered catalog, not only the source code."),
+      h("Discovery is not execution"),
+      p("A tool can be listed, selected, and then rejected by authorization or input validation. It can also be called successfully but fail inside its result with isError true. Measure these stages separately: catalog exposure, selection evidence when available, call attempt, validation outcome, execution outcome, and workflow result."),
+      p("TrackMCP observes what reaches the server boundary. It can help you see which tools are called, which clients connect, where calls fail, how latency changes, and whether explicit workflow outcomes improve. It cannot see tools that a host considered but never sent to the server, and it cannot infer a complete model decision from the absence of a call."),
+      h("A release checklist for catalog changes"),
+      ul([
+        "Check names for uniqueness, allowed characters, and stable meaning.",
+        "Validate every input and output schema, including empty-input tools.",
+        "Test first page, middle page, final page, repeated cursor, and changing-catalog behavior.",
+        "Test permissions against a fresh catalog and a stale cached catalog.",
+        "Run representative workflows with at least two clients and compare selection, errors, retries, and completion.",
+      ]),
+      faq("Should an MCP server expose every backend operation as a tool?", "No. Expose the smallest useful set that maps to real workflows and has clear authorization, schemas, and failure behavior."),
+      faq("Can clients assume that a tools/list response is complete?", "Only after following nextCursor until it is omitted, and only within the limits of the server's catalog consistency behavior. A partial first page is not a complete catalog."),
+      faq("Does a tool call prove that an agent selected the best tool?", "No. It proves that the call reached the server. Evaluation needs a defined intent, expected tool or outcome, and evidence from the host or workflow when that evidence is available."),
+      links([
+        { label: "MCP tools and tool catalogs", href: "https://modelcontextprotocol.io/specification/2025-11-25/server/tools" },
+        { label: "MCP pagination and opaque cursors", href: "/blog/mcp-pagination-nextcursor" },
+        { label: "MCP tool list caching", href: "/blog/mcp-tool-list-caching-ttlms-cachescope" },
+        { label: "MCP tool selection evaluation", href: "/blog/mcp-tool-selection-evaluation" },
+      ]),
+    ],
+  },
+  {
+    slug: "mcp-pagination-nextcursor",
+    title: "MCP Pagination: How nextCursor Works and How to Implement It Safely",
+    tag: "MCP protocol deep dive",
+    excerpt:
+      "A production guide to MCP cursor pagination, including nextCursor handling, empty cursors, invalid cursors, repeated pages, client limits, and cache consistency.",
+    date: "Sep 12, 2026",
+    read: "14 min read",
+    updated: "Sep 12, 2026",
+    verified: "Sep 12, 2026",
+    keywords: [
+      "MCP pagination",
+      "MCP nextCursor",
+      "MCP tools/list pagination",
+      "MCP cursor pagination",
+      "MCP invalid cursor",
+      "MCP pagination example",
+      "MCP server monitoring",
+    ],
+    related: [
+      "mcp-tool-schemas",
+      "mcp-2026-07-28-migration-guide",
+      "mcp-server-analytics-guide",
+      "how-to-monitor-an-mcp-server-in-production",
+    ],
+    body: [
+      p("MCP pagination is a cursor-based protocol utility for list operations that may return more data than one response should carry. A client requests a list such as tools/list, resources/list, resources/templates/list, or prompts/list. The server returns the current page and may include nextCursor. If nextCursor is present, the client sends another list request with that exact value in cursor. The client continues until the server omits nextCursor."),
+      callout("Short answer", "Treat nextCursor as an opaque continuation token. Do not parse it, increment it, compare it to a page number, or replace it with an empty value. Follow it exactly, bound the loop, and make a repeated cursor a visible failure rather than an infinite request loop."),
+      p("This article is verified against the MCP 2025-11-25 pagination specification and the 2026-07-28 tools specification on September 12, 2026. The pagination concept is shared across protocol eras, but modern list results also include cache hints and modern clients can use different discovery and transport envelopes."),
+      h("What MCP pagination covers"),
+      p("MCP defines pagination for four list operations: tools/list, resources/list, resources/templates/list, and prompts/list. The server chooses the page size. The client cannot assume that the first page contains a particular number of tools, that page sizes are stable between requests, or that a cursor encodes an offset."),
+      ul([
+        "tools/list returns the tools currently available to the requesting client.",
+        "resources/list returns concrete resources the server can provide.",
+        "resources/templates/list returns URI templates for dynamic resources.",
+        "prompts/list returns the prompt templates exposed by the server.",
+      ]),
+      h("The wire flow"),
+      code(`{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "method": "tools/list",
+  "params": { "cursor": "opaque-cursor-from-a-previous-page" }
+}`),
+      p("The response contains the page collection and, when more results are available, nextCursor. The name and encoding of the cursor belong to the server. It might be an encoded database position, a signed continuation token, or a value backed by a short-lived snapshot. A client must not need to know which."),
+      code(`{
+  "jsonrpc": "2.0",
+  "id": 2,
+  "result": {
+    "resultType": "complete",
+    "tools": [{ "name": "search", "description": "Search records", "inputSchema": { "type": "object" } }],
+    "nextCursor": "opaque-cursor-for-the-next-page",
+    "ttlMs": 300000,
+    "cacheScope": "public"
+  }
+}`),
+      h("Why cursors are opaque"),
+      p("An offset-based client assumes that the server has a stable ordered array and that a page number has the same meaning later. Production lists often come from a database query, an authorization-filtered catalog, or a changing remote service. An opaque cursor lets the server choose a safe continuation strategy without making its storage design part of the protocol."),
+      p("The client should only make one decision from the value: whether the response contains a nextCursor that the server expects to be sent back. It should not decode a base64-looking string, add one to a numeric string, sort cursors, or store one as a durable bookmark across unrelated sessions."),
+      h("The empty cursor edge case"),
+      p("Older documentation and implementations sometimes treat an empty string as if it meant that pagination is finished. That is unsafe for an opaque protocol value. The robust rule is to distinguish absence from presence. A missing or null nextCursor means there is no next page. If a server emits an empty string as a cursor, the client should preserve it and send it back, unless the implementation has a documented defensive limit and reports the malformed server behavior."),
+      h("A bounded client loop"),
+      code(`let cursor: string | undefined;
+const seen = new Set<string>();
+const allTools = [];
+
+for (let pageNumber = 0; pageNumber < 64; pageNumber += 1) {
+  const page = await client.listTools(cursor ? { cursor } : undefined);
+  allTools.push(...page.tools);
+
+  if (page.nextCursor === undefined) break;
+  if (seen.has(page.nextCursor)) {
+    throw new Error("MCP server repeated a pagination cursor");
+  }
+  seen.add(page.nextCursor);
+  cursor = page.nextCursor;
+}`),
+      p("The page cap is a safety boundary, not a protocol rule. Choose it from the largest catalog your client is meant to handle, the response-size budget, and the time available during discovery. A client should return a clear incomplete-catalog error when the limit is reached. Silently presenting only the first 64 pages makes missing tools look like a server configuration problem."),
+      h("Server implementation rules"),
+      ul([
+        "Return a stable order while the underlying collection is unchanged.",
+        "Validate cursors and return a JSON-RPC invalid-params error for an unknown, expired, or malformed cursor.",
+        "Keep a cursor bound to the query, authorization context, and any snapshot assumptions it depends on.",
+        "Never place secrets, raw customer data, or authorization material directly in a cursor unless it is protected and bounded.",
+        "Make the final page omit nextCursor instead of inventing a sentinel such as done or null-as-a-string.",
+        "Define what happens when the collection changes between page requests. Duplicates and gaps may be unavoidable without a snapshot.",
+      ]),
+      h("Pagination and changing catalogs"),
+      p("A tools/list response is a view of a catalog at a moment in time. If tools are added or removed while a client is walking pages, the client may observe duplicates, gaps, or a cursor that is no longer valid. That is not solved by parsing the cursor. It is solved by a server choosing an appropriate snapshot or by a client detecting that the catalog changed and restarting from the beginning."),
+      p("The 2026-07-28 protocol also gives list results ttlMs and cacheScope hints. These fields tell a client how long a response may be considered fresh and whether it may be shared. They do not create a consistent snapshot across pages. Each page has its own freshness and authorization considerations."),
+      h("Pagination versus streaming"),
+      p("Pagination is client-pulled and discrete. The client decides when to request the next page and can process or discard a page before continuing. Streaming is a delivery mechanism for an ongoing flow. A large tool result may need its own application-level design, but the standard MCP pagination utility does not automatically add nextCursor to arbitrary tools/call results."),
+      h("How to debug missing tools"),
+      ul([
+        "Capture the first tools/list response and check whether nextCursor is present.",
+        "Confirm that the client sends the exact cursor in the next request and does not transform it.",
+        "Compare the number of requested pages with the number of pages returned.",
+        "Check for repeated cursors, invalid-params responses, response-size limits, and client page caps.",
+        "Check whether authorization changes between pages and whether the server binds cursors to the correct caller.",
+        "Record the protocol revision because a 2026 client may also expect cache hints and modern request metadata.",
+      ]),
+      h("What TrackMCP can and cannot tell you"),
+      p("TrackMCP can help an MCP server team inspect server-boundary discovery events, page counts, observed durations, repeated-cursor findings, and truncation when the instrumented server emits those signals. That evidence can show that a server returned a nextCursor or that a client requested only the first page."),
+      p("It cannot prove that a client displayed every tool, that a model considered every tool, or that a client used a cursor correctly after the request left the server. Those are separate host and client behaviors. Keeping that boundary explicit is the difference between useful telemetry and an invented end-to-end claim."),
+      faq("Does MCP pagination use page numbers?", "No. MCP uses opaque cursor tokens. The server chooses the cursor format and page size, while the client sends the nextCursor value back as cursor."),
+      faq("What does a missing nextCursor mean?", "It means the server did not advertise another page. A client should stop. It should not guess that a page is complete from the number of items returned."),
+      faq("Does pagination apply to tools/call results?", "The standard MCP pagination utility applies to list operations. A tool that returns a large dataset can design its own cursor argument and result contract, but that is an application-level tool design unless a future protocol extension standardizes it."),
+      links([
+        { label: "MCP pagination specification", href: "https://modelcontextprotocol.io/specification/2025-11-25/server/utilities/pagination" },
+        { label: "MCP 2026 tools specification", href: "https://modelcontextprotocol.io/specification/2026-07-28/server/tools" },
+        { label: "MCP tool schemas", href: "/blog/mcp-tool-schemas" },
+        { label: "MCP 2026 migration guide", href: "/blog/mcp-2026-07-28-migration-guide" },
+        { label: "MCP server analytics guide", href: "/blog/mcp-server-analytics-guide" },
+      ]),
+    ],
+  },
+  {
+    slug: "mcp-tool-list-caching-ttlms-cachescope",
+    title: "MCP Tool List Caching: ttlMs, cacheScope, and Stale Catalogs Explained",
+    tag: "MCP protocol deep dive",
+    excerpt:
+      "Understand how MCP clients cache tool catalogs, how ttlMs and cacheScope work, how listChanged invalidates stale data, and where authorization boundaries matter.",
+    date: "Sep 12, 2026",
+    read: "15 min read",
+    updated: "Sep 12, 2026",
+    verified: "Sep 12, 2026",
+    keywords: [
+      "MCP ttlMs",
+      "MCP cacheScope",
+      "MCP tools/list caching",
+      "MCP stale tools list",
+      "MCP listChanged notification",
+      "MCP tool cache invalidation",
+      "MCP subscriptions/listen",
+    ],
+    related: [
+      "mcp-pagination-nextcursor",
+      "mcp-2026-07-28-migration-guide",
+      "mcp-tool-schemas",
+      "mcp-server-analytics-guide",
+    ],
+    body: [
+      p("MCP tool-list caching exists to reduce repeated discovery round trips without making freshness or privacy an implicit guess. In the 2026-07-28 protocol revision, cacheable list and resource results carry ttlMs and cacheScope. ttlMs is a freshness hint in milliseconds. cacheScope says whether the response is safe to share broadly or must stay within the requesting authorization context."),
+      callout("Short answer", "Use ttlMs to describe freshness, cacheScope to describe visibility, and listChanged or subscriptions/listen as an invalidation signal when supported. These fields do not replace authorization, guarantee immutable data, or make a changing multi-page catalog a consistent snapshot."),
+      p("This article is verified against the MCP 2026-07-28 documentation and SEP-2549 on September 12, 2026. Older 2025-era servers may omit these fields, and clients must continue to interoperate with that behavior."),
+      h("Why MCP needs its own cache hints"),
+      p("MCP is transport-agnostic. An HTTP server could use HTTP cache headers, but MCP also works over stdio and other transports where HTTP headers do not exist. Embedding the hint in the result keeps the semantic decision with the protocol message. A client can understand the same freshness policy regardless of how the message traveled."),
+      p("The problem is practical. A host may list tools at startup, cache the catalog, and continue using it for many turns. If a server adds a tool, removes a tool, changes a schema, or filters tools differently for a caller, the host needs a way to decide when its copy is stale."),
+      h("ttlMs is a freshness hint"),
+      ul([
+        "ttlMs: 0 means the result should be treated as immediately stale.",
+        "A positive ttlMs tells the client how long it may consider the result fresh after receipt.",
+        "An absent value in an older response should be treated conservatively, not as an infinite lifetime.",
+        "A negative value is invalid and should be treated as zero rather than as a long-lived cache.",
+        "TTL is not a promise that the underlying data cannot change before expiry.",
+      ]),
+      code(`const receivedAt = Date.now();
+const freshUntil = receivedAt + result.ttlMs;
+const isFresh = Date.now() < freshUntil;`),
+      p("The freshness clock begins when the client receives the result. TTL is not automatically a polling interval. A client may re-fetch when it needs the data and discovers that the result is stale. If it chooses to poll, it should use backoff and jitter so a large client population does not create a synchronized discovery spike."),
+      h("cacheScope is a privacy boundary"),
+      p("cacheScope has two important values. public means the response does not contain user-specific data and may be stored or served by a shared intermediary. private means the response belongs to the requesting authorization context and must not be shared across users or tokens."),
+      p("A private tool catalog is common when authorization controls which tools a caller can see. The same endpoint can therefore return different tools to different identities. A shared cache that ignores cacheScope can turn a performance optimization into a cross-user data disclosure. Cache hints are not access control, so the server must still enforce authorization on every request."),
+      h("The interaction with listChanged"),
+      p("A server can advertise that its tools list changes and send notifications/tools/list_changed when it changes. In the modern 2026-07-28 model, the client opts into notification delivery through subscriptions/listen. When a relevant notification arrives, the cached result becomes stale immediately even if its TTL has not expired. The client can then re-fetch tools/list."),
+      code(`{
+  "jsonrpc": "2.0",
+  "method": "subscriptions/listen",
+  "params": {
+    "notifications": { "toolsListChanged": true }
+  }
+}`),
+      p("TTL and notification invalidation solve different parts of the problem. TTL gives a client a bounded freshness window when no push signal arrives. A notification gives an early invalidation signal when the server knows the list changed. Either mechanism can exist without the other."),
+      h("Caching paginated tool lists"),
+      p("Each page of a paginated list is an independently cacheable response. The cursor belongs in the cache key. A client must not reuse page two from one authorization context for another, and it must not assume that a fresh first page makes every later page fresh. If a cursor expires, the safe recovery is to discard the cached pages and restart from the beginning."),
+      p("There is no cross-page consistency guarantee. If the catalog changes between requests, a client can see duplicates or gaps. If an application needs a consistent complete catalog, the server must provide an appropriate snapshot strategy or the client must re-fetch from the beginning and validate the resulting catalog version when one is available."),
+      h("A server decision table"),
+      ul([
+        "A static, identical public catalog can use a positive TTL and public scope.",
+        "A catalog filtered by user, tenant, role, or token should use private scope.",
+        "A rapidly changing catalog should use a short TTL and a reliable change notification path when the transport supports it.",
+        "A result containing user-specific resources should not be marked public merely because the endpoint itself is public.",
+        "If the server cannot prove that a result is safe to share, private or zero TTL is the safer posture.",
+      ]),
+      h("Debugging a stale tools list"),
+      ul([
+        "Record the protocol revision and whether the response contained ttlMs and cacheScope.",
+        "Compare the cached result timestamp with the advertised TTL.",
+        "Check whether the server sent a list-changed notification and whether the client was subscribed.",
+        "Verify that the client invalidated the correct cache key, including authorization context and cursor.",
+        "Compare the re-fetched catalog with the response actually received, not with an assumption about what the server should return.",
+        "Check whether a client-side SDK automatically aggregates pages and hides the raw page boundaries.",
+      ]),
+      h("Modern versus legacy behavior"),
+      p("The 2025-era protocol used the initialize handshake and older notification delivery patterns. The 2026-07-28 revision removes protocol-level sessions, carries request metadata per request, and introduces subscriptions/listen for change notifications. A server that supports both eras needs tests for both. A client that only knows the older era should ignore unknown cache fields and continue using conservative freshness behavior."),
+      h("What TrackMCP can and cannot tell you"),
+      p("TrackMCP can help show when a server exposed a catalog, when tools changed at the server boundary, which client identity and protocol metadata were available, and whether later tool calls reached the server. This can reveal patterns such as a server updating its catalog while a client continues calling an older tool set."),
+      p("TrackMCP cannot invalidate a host's cache, observe an internal cache hit, or prove that a client used the latest catalog. It also cannot make a public cache safe. The server and client remain responsible for choosing and enforcing the correct authorization context."),
+      faq("Does ttlMs guarantee that tools stay unchanged?", "No. ttlMs is a freshness hint. A server may change the underlying data before the TTL expires, and a relevant change notification should invalidate the cached result when one is available."),
+      faq("Can an authenticated tools/list response be public?", "It can be public only when the returned catalog is genuinely safe to share across authorization contexts. Authentication on the endpoint alone does not make a result private or public."),
+      faq("Is listChanged the same as caching?", "No. listChanged is a signal that the catalog changed. ttlMs describes how long a response may be considered fresh. They can work together, but neither replaces authorization or a bounded refresh strategy."),
+      links([
+        { label: "MCP caching specification", href: "https://modelcontextprotocol.io/specification/draft/server/utilities/caching" },
+        { label: "SEP-2549: TTL for list results", href: "https://modelcontextprotocol.org/seps/2549-TTL-for-list-results" },
+        { label: "MCP 2026-07-28 release", href: "https://blog.modelcontextprotocol.io/posts/2026-07-28/" },
+        { label: "MCP pagination deep dive", href: "/blog/mcp-pagination-nextcursor" },
+        { label: "MCP 2026 migration guide", href: "/blog/mcp-2026-07-28-migration-guide" },
+      ]),
+    ],
+  },
+  {
+    slug: "mcp-progress-notifications",
+    title: "MCP Progress Notifications: progressToken, Client Support, and Long-Running Tools",
+    tag: "MCP protocol deep dive",
+    excerpt:
+      "Learn how MCP progressToken and notifications/progress work, why progress may not appear in a client, and how to design long-running tools with honest fallbacks.",
+    date: "Sep 12, 2026",
+    read: "13 min read",
+    updated: "Sep 12, 2026",
+    verified: "Sep 12, 2026",
+    keywords: [
+      "MCP progressToken",
+      "MCP notifications/progress",
+      "MCP progress notifications not working",
+      "MCP long running tool",
+      "MCP tool timeout",
+      "MCP Inspector progress notifications",
+    ],
+    related: [
+      "mcp-tasks-extension",
+      "latency-that-matters-for-agents",
+      "mcp-server-slos",
+      "mcp-json-rpc-messages-explained",
+    ],
+    body: [
+      p("MCP progress notifications are optional, request-scoped updates for long-running work. A client that wants updates includes a progressToken in the request metadata. The receiving side may then send notifications/progress with that token, a progress value, an optional total, and an optional human-readable message. The token connects an update to the request that is still in progress."),
+      callout("The important limitation", "A server must not assume that every client sends a progressToken or renders notifications. If the token is absent, the server has no request-scoped progress channel to use. A final result, a bounded task flow, or an application status endpoint may be a better fallback."),
+      p("This article is verified against the MCP 2025-11-25 progress specification and current SDK and client documentation on September 12, 2026. Support is not uniform across hosts. A successful implementation in MCP Inspector does not prove that another host will request or display progress."),
+      h("The progress flow"),
+      code(`{
+  "jsonrpc": "2.0",
+  "id": 7,
+  "method": "tools/call",
+  "params": {
+    "name": "build_report",
+    "arguments": { "project": "acme" },
+    "_meta": { "progressToken": "request-7-progress" }
+  }
+}`),
+      p("The server may send updates during the operation. Each update repeats the same progressToken. The progress value should increase as work advances. total is optional because the server may not know the total amount of work in advance."),
+      code(`{
+  "jsonrpc": "2.0",
+  "method": "notifications/progress",
+  "params": {
+    "progressToken": "request-7-progress",
+    "progress": 4,
+    "total": 10,
+    "message": "Collected four data sources"
+  }
+}`),
+      h("What progressToken does and does not mean"),
+      ul([
+        "It correlates a progress update with an active request.",
+        "It is not a public job ID, a durable task handle, or proof that the user saw an update.",
+        "It must be unique among active requests from the sender.",
+        "It can be a string or an integer, but the receiver should treat it as a correlation value rather than an encoded instruction.",
+        "A receiver may choose not to send progress even when a token was provided.",
+      ]),
+      h("Why progress does not appear"),
+      p("The most common explanation is that the client did not request progress. The protocol makes the token opt-in. Another explanation is that the client requested it but does not expose or render notifications/progress in its user interface. A third is that a transport or SDK buffered the messages until the final result, or that the server sent updates after the request had already completed."),
+      ul([
+        "Log whether the incoming request contained progressToken before starting work.",
+        "Log the token only in a controlled, non-sensitive form and never confuse it with an authorization credential.",
+        "Send updates from the same request context and stop after completion or cancellation.",
+        "Check the host's documentation or a reproducible client test instead of inferring support from its MCP branding.",
+        "Test with a small deterministic tool before debugging a large external workflow.",
+      ]),
+      h("Progress values and rate limits"),
+      p("Progress is not a log stream. Sending one notification for every row, network retry, or internal function call can flood a client and add work to the same connection that carries the result. Choose meaningful milestones, coalesce frequent updates, and apply a time or count based rate limit."),
+      p("The progress number should increase even when total is unknown. It can represent completed stages, processed records, or an estimated unit of work, but the meaning should be stable within one operation. Do not reset progress to zero when moving between internal phases unless the application clearly defines a different nested progress model."),
+      h("Progress versus task polling"),
+      p("Progress notifications are a best-effort view of an active request. Tasks are a durable asynchronous protocol extension for operations that may outlive the original request or connection. A task can be polled with tasks/get and can expose a final result or error. Progress can supplement a task, but it is not a replacement for durable state."),
+      h("Progress versus cancellation"),
+      p("A progress update tells the receiver how work is advancing. It does not request that work stop. Cancellation has its own semantics, and in the 2025-era protocol the sender can use notifications/cancelled for an in-progress request. A server should connect cancellation to an AbortSignal or equivalent cleanup path and continue to handle the race where cancellation arrives after work has completed."),
+      h("A safe server pattern"),
+      code(`async function buildReport(ctx: { progressToken?: string }) {
+  const steps = ["load", "query", "format", "save"];
+
+  for (let index = 0; index < steps.length; index += 1) {
+    await runStep(steps[index]);
+    if (ctx.progressToken !== undefined) {
+      await sendProgress({
+        progressToken: ctx.progressToken,
+        progress: index + 1,
+        total: steps.length,
+        message: "Completed a report stage",
+      });
+    }
+  }
+
+  return { ok: true };
+}`),
+      p("The example makes progress conditional on the request context. In a real SDK, use its request metadata and notification API rather than inventing a parallel wire format. Keep the progress path non-blocking where possible, because telemetry or UI updates should not turn into a new failure point for the tool itself."),
+      h("Testing matrix"),
+      ul([
+        "No progressToken: the tool completes without sending notifications.",
+        "One token: updates correlate to the correct request.",
+        "Two concurrent tokens: updates never cross between requests.",
+        "Unknown token: the server does not emit an unrelated notification.",
+        "Non-increasing progress: the server or client reports a validation failure in a test fixture.",
+        "Slow client: updates are bounded and the final result remains deliverable.",
+        "Cancellation race: work cleans up whether cancellation arrives before or after the final result.",
+        "Client that ignores notifications: the user still receives an honest final state or task handle.",
+      ]),
+      h("What TrackMCP can and cannot tell you"),
+      p("TrackMCP can correlate observed tool duration, server-side errors, explicit workflow outcomes, and any bounded progress-related event that the instrumented server chooses to emit. This helps answer whether the server spent time in a slow operation and whether it eventually returned a result."),
+      p("TrackMCP cannot tell you that a progress notification was displayed, that a host updated its UI, or that a model used the message to decide what to do next. Those are client and host behaviors outside the server boundary."),
+      faq("Does every MCP client support progress notifications?", "No. Progress is optional, and support varies by client. A client may omit progressToken or may not render notifications even when the server sends them."),
+      faq("What should a server do when progressToken is missing?", "Continue without progress notifications and use a final result, a durable task extension, or an application-specific status flow when the operation needs a longer-lived status channel."),
+      faq("Is progress the same as a task?", "No. Progress is request-scoped and best effort. A task is durable asynchronous state that a client can poll and retrieve after the original request or connection is gone."),
+      links([
+        { label: "MCP progress specification", href: "https://modelcontextprotocol.io/specification/2025-11-25/basic/utilities/progress" },
+        { label: "MCP schema reference", href: "https://modelcontextprotocol.io/specification/2025-11-25/schema" },
+        { label: "MCP tasks extension", href: "https://modelcontextprotocol.io/extensions/tasks/overview" },
+        { label: "Latency that matters for agents", href: "/blog/latency-that-matters-for-agents" },
+        { label: "MCP server SLOs", href: "/blog/mcp-server-slos" },
+      ]),
+    ],
+  },
+  {
+    slug: "mcp-tasks-extension",
+    title: "MCP Tasks Extension: Async Tool Calls, Polling, Input, and Cancellation",
+    tag: "MCP protocol deep dive",
+    excerpt:
+      "A version-aware guide to the MCP Tasks extension, including task handles, tasks/get polling, tasks/update input, TTL, authorization, and cooperative cancellation.",
+    date: "Sep 12, 2026",
+    read: "16 min read",
+    updated: "Sep 12, 2026",
+    verified: "Sep 12, 2026",
+    keywords: [
+      "MCP tasks extension",
+      "MCP tasks/get",
+      "MCP tasks/update",
+      "MCP tasks/cancel",
+      "MCP async tool call",
+      "MCP long running task",
+      "MCP task cancellation",
+    ],
+    related: [
+      "mcp-progress-notifications",
+      "mcp-2026-07-28-migration-guide",
+      "how-to-monitor-an-mcp-server-in-production",
+      "mcp-server-slos",
+    ],
+    body: [
+      p("The MCP Tasks extension gives a server a standard way to turn a long-running tools/call into a durable task handle. Instead of holding one request open until a batch job, approval flow, or external job completes, the server can return a task result. The client then polls tasks/get, follows the suggested interval, supplies mid-flight input through tasks/update when needed, and sends tasks/cancel when the user asks to stop."),
+      callout("Cancellation is cooperative", "A successful tasks/cancel response acknowledges the cancellation request. It does not prove that the worker stopped, that external side effects were rolled back, or that the task will reach cancelled instead of another terminal state."),
+      p("This article is verified against the MCP Tasks extension documentation and SEP-2663 on September 12, 2026. Tasks were experimental in the 2025-11-25 core specification and are an extension in the modern 2026-07-28 ecosystem. Do not mix the two wire models in one implementation without a compatibility plan."),
+      h("When to use a task"),
+      ul([
+        "The operation can take minutes or hours, such as a batch export or build.",
+        "The underlying service already returns a job ID and supports status polling.",
+        "The client may disconnect and still needs to retrieve the final result later.",
+        "The operation pauses for human input or approval.",
+        "The work produces meaningful intermediate status but should not keep one request open.",
+      ]),
+      p("A normal tool result is still the right choice for a short operation. A task adds durable state, storage, authorization, cleanup, polling traffic, and compatibility work. It should not be added only because a tool has several internal function calls."),
+      h("Extension negotiation comes first"),
+      p("A server must check that the client declared support for the Tasks extension before returning a task result. A client that does not understand the extension cannot be expected to poll tasks/get or interpret the task discriminator. A compatible server may use a normal synchronous result as a fallback, reject the operation with a clear error, or expose a separate tool contract depending on the product's needs."),
+      code(`{
+  "_meta": {
+    "io.modelcontextprotocol/clientCapabilities": {
+      "extensions": { "io.modelcontextprotocol/tasks": {} }
+    }
+  }
+}`),
+      h("Creating a task from tools/call"),
+      p("The server responds with a task handle instead of the final tool content. The task should be durably recorded before the response is sent. The task ID must be unguessable, bound to the correct authorization context, and treated as sensitive state because it may grant access to status or results."),
+      code(`{
+  "jsonrpc": "2.0",
+  "id": 10,
+  "result": {
+    "resultType": "task",
+    "task": {
+      "taskId": "task-opaque-9d3f",
+      "status": "working",
+      "createdAt": "2026-09-12T09:00:00Z",
+      "lastUpdatedAt": "2026-09-12T09:00:00Z",
+      "ttlMs": 3600000,
+      "pollIntervalMs": 5000
+    }
+  }
+}`),
+      h("Polling tasks/get"),
+      p("The client polls tasks/get with the task ID and should respect pollIntervalMs rather than creating a tight loop. The server returns the current state. On completed, the result contains the final tool result. On failed, the error contains the failure details. The client must tolerate status changes between polls and should not assume that a single status response is a transactionally complete view of every worker side effect."),
+      code(`{
+  "jsonrpc": "2.0",
+  "id": 11,
+  "method": "tasks/get",
+  "params": { "taskId": "task-opaque-9d3f" }
+}`),
+      ul([
+        "working means the task is still executing.",
+        "input_required means the server needs a response before continuing.",
+        "completed means a final result is available.",
+        "failed means the associated operation ended with an error.",
+        "cancelled means cancellation was recorded as the task's terminal state.",
+      ]),
+      h("Mid-flight input with tasks/update"),
+      p("A task can enter input_required when a tool needs approval or another piece of user information. The client sends the accepted, declined, or cancelled input through tasks/update. The server may accept partial responses and keep the task waiting for the remaining keys. This separates reading state through tasks/get from writing a response through tasks/update."),
+      h("Why tasks/cancel is not a kill switch"),
+      p("Cancellation is cooperative. The server acknowledges intent and should try to stop the work, but the worker may already be finishing, may have committed an external side effect, or may be running in a system that cannot interrupt the current step. A task can therefore remain working briefly after the acknowledgement or reach a different terminal state if completion won the race."),
+      p("The cancellation path must be idempotent from the application's perspective. Repeated user clicks, network retries, or duplicate delivery should not create a second destructive operation. The worker should check cancellation state at safe points, release resources, and record which side effects already happened."),
+      h("Durability, TTL, and authorization"),
+      ul([
+        "Persist task state outside the request process when tasks must survive disconnects or restarts.",
+        "Expire task state according to ttlMs and document whether results are deleted immediately or retained for a bounded period.",
+        "Authorize tasks/get, tasks/update, and tasks/cancel against the caller and task owner on every request.",
+        "Do not treat a task ID as a substitute for authorization. If it acts as a bearer handle, make it high entropy and short-lived.",
+        "Keep the task result bounded and apply the same privacy and redaction rules as a synchronous tool result.",
+        "Use a poll interval that protects the task store and reflects how quickly the underlying work can change.",
+      ]),
+      h("The current extension is not the old task model"),
+      p("The 2025-11-25 experimental task design included a different set of methods and fields. In the current Tasks extension, the core flow is tools/call returning a task, tasks/get for state and results, tasks/update for input, and tasks/cancel for cancellation. The extension documentation does not make every historical method interchangeable with the modern flow. Pin the protocol and extension versions in tests and SDK configuration."),
+      h("Testing a task implementation"),
+      ul([
+        "Client does not advertise the extension: the server returns a synchronous result or a clear unsupported response.",
+        "Task is durably created before the create response is sent.",
+        "Duplicate tasks/get calls are safe and do not advance the underlying job.",
+        "The poll interval is honored and a client handles a delayed or missing poll response.",
+        "Input_required accepts a partial update and resumes only after required input is complete.",
+        "Cancellation races with completion and produces a documented final state.",
+        "Unknown, expired, or cross-tenant task IDs are rejected without revealing task data.",
+        "A worker restart can recover or fail the task according to a documented policy.",
+      ]),
+      h("What TrackMCP can and cannot tell you"),
+      p("TrackMCP can show that a server received the task-creating tool call, returned a task handle, received later polls or updates, and emitted explicit application outcomes when the application reports them. Those events help a server team understand whether the protocol path is being exercised and where observed latency accumulates."),
+      p("TrackMCP cannot inspect a private worker queue, know whether an external provider committed a side effect, or infer that a task's completed status means the customer's business goal succeeded. Emit a deliberate workflow outcome when that stronger claim matters."),
+      faq("Does MCP Tasks replace progress notifications?", "No. Tasks provide durable state and polling for longer-lived work. Progress notifications are optional updates for an active request and can supplement a task when the client supports them."),
+      faq("Does tasks/cancel stop the worker immediately?", "No. Cancellation is cooperative. The server acknowledges the request and should attempt to stop the work, but completion or external side effects may race with cancellation."),
+      faq("Is tasks/list part of the current Tasks extension?", "The current extension centers on tasks/get, tasks/update, and tasks/cancel. Do not assume that methods from the older experimental task model are part of the modern extension."),
+      links([
+        { label: "MCP Tasks extension overview", href: "https://modelcontextprotocol.io/extensions/tasks/overview" },
+        { label: "MCP Tasks extension specification", href: "https://tasks.extensions.modelcontextprotocol.io/specification/draft/tasks" },
+        { label: "SEP-2663: Tasks Extension", href: "https://modelcontextprotocol.org/seps/2663-tasks-extension" },
+        { label: "MCP progress notifications", href: "/blog/mcp-progress-notifications" },
+        { label: "MCP 2026 migration guide", href: "/blog/mcp-2026-07-28-migration-guide" },
+      ]),
+    ],
+  },
+  {
+    slug: "mcp-elicitation-form-url-mode",
+    title: "MCP Elicitation Explained: Form Mode, URL Mode, and Secure User Consent",
+    tag: "MCP protocol deep dive",
+    excerpt:
+      "Understand MCP elicitation form mode, URL mode, multi-round requests, user consent, third-party authorization, and the data each path exposes.",
+    date: "Sep 12, 2026",
+    read: "15 min read",
+    updated: "Sep 12, 2026",
+    verified: "Sep 12, 2026",
+    keywords: [
+      "MCP elicitation",
+      "MCP elicitation form mode",
+      "MCP URL mode elicitation",
+      "MCP elicitation OAuth",
+      "MCP server ask user for input",
+      "MCP user consent",
+    ],
+    related: [
+      "remote-mcp-oauth-guide",
+      "mcp-token-passthrough-security",
+      "mcp-authorization-errors",
+      "mcp-tasks-extension",
+    ],
+    body: [
+      p("MCP elicitation lets a server ask the user for information during a request instead of requiring every value up front. The protocol has two different interaction modes. Form mode collects structured, non-sensitive information through the MCP client. URL mode sends the user to an out-of-band web interaction for sensitive data, third-party authorization, or payment confirmation. The distinction is a privacy and trust boundary, not merely a user-interface preference."),
+      callout("The security rule", "Never use form mode to collect passwords, API keys, access tokens, payment credentials, or other secrets. Use a properly bound URL-mode flow or another out-of-band mechanism, and make sure the user who completes the browser interaction is the user who initiated it."),
+      p("This article is verified against the MCP elicitation specifications, SEP-1036, and the 2026-07-28 multi-round-trip design on September 12, 2026. The wire flow differs between 2025-era and modern protocol revisions, so a production implementation must test the exact client and SDK versions it supports."),
+      h("Form mode"),
+      p("Form mode is an in-band structured request. The server sends a human-readable message and a requested schema. The client presents the fields, validates them according to its own policy, and returns accept, decline, or cancel with structured content when appropriate. The content is visible to the MCP client and can be passed back into the server request."),
+      code(`{
+  "mode": "form",
+  "message": "Choose a deployment region",
+  "requestedSchema": {
+    "type": "object",
+    "properties": {
+      "region": { "type": "string", "enum": ["us", "eu"] }
+    },
+    "required": ["region"]
+  }
+}`),
+      p("Good form-mode inputs include a non-sensitive preference, a date, a project name, or a confirmation that does not itself disclose a credential. The server must still validate the returned value. A client-rendered form is not a replacement for server-side validation or authorization."),
+      h("URL mode"),
+      p("URL mode is for an interaction that should not pass sensitive data through the MCP client. The server provides a valid URL, an elicitationId, and a message explaining why the user needs to open it. The client gives the user context and asks for consent to open the URL. The browser flow then happens outside the MCP message exchange."),
+      code(`{
+  "mode": "url",
+  "elicitationId": "elicit-opaque-2048",
+  "url": "https://mcp.example.com/connect?elicitationId=elicit-opaque-2048",
+  "message": "Authorize access to the selected repository"
+}`),
+      p("URL mode does not authorize the MCP client's access to the MCP server. The MCP bearer token remains the same. URL mode is for the server obtaining user input or authorization from another system on the user's behalf. Confusing those two flows can produce an incomplete security design."),
+      h("Bind the browser flow to the right user"),
+      p("A URL can be copied, modified, opened by another person, or replayed. The server must bind the elicitation to the user who started it and verify that binding again when the browser callback arrives. A common design is a server-owned connect page that checks a user session before redirecting to a third-party authorization provider. The exact mechanism depends on the deployment, but it must resist an attacker changing the elicitation URL or substituting another user's session."),
+      ul([
+        "Use a short-lived, unguessable elicitation identifier.",
+        "Store the initiating user or authorization subject with the elicitation state.",
+        "Do not put secrets or bearer tokens in the URL query string.",
+        "Use an exact callback and state validation strategy for the third-party flow.",
+        "Treat accept as consent to open the interaction, not proof that the external action completed.",
+        "Expire completed, cancelled, and abandoned elicitations.",
+      ]),
+      h("Accept, decline, cancel, and complete"),
+      p("An accepted form contains user-provided content. A declined or cancelled form should let the server stop safely without treating the result as an error caused by the user. In URL mode, accept means the user consented to the client opening the URL. It does not necessarily mean that the external OAuth, payment, or credential step succeeded. The server should communicate completion separately when the out-of-band action finishes."),
+      h("The modern multi-round-trip flow"),
+      p("The 2026-07-28 revision removes the need for a server to send a separate server-to-client JSON-RPC request during a stateless call. Instead, a server can return an input_required result containing an elicitation request. The client fulfills it and retries the original operation with inputResponses and, when present, the opaque requestState. The retried request must use a fresh JSON-RPC ID."),
+      code(`{
+  "result": {
+    "resultType": "input_required",
+    "inputRequests": {
+      "region": {
+        "method": "elicitation/create",
+        "params": { "mode": "form", "message": "Choose a region" }
+      }
+    },
+    "requestState": "opaque-server-state"
+  }
+}`),
+      p("Legacy 2025-era clients may use the older server-to-client request channel and capability negotiation. A server supporting both should keep the semantics aligned while using the wire pattern appropriate to the negotiated revision. Do not assume that a client supporting form mode also supports URL mode."),
+      h("Elicitation and MCP authorization are different"),
+      p("MCP authorization protects access to the MCP server itself. Elicitation can be used after that connection exists when the server needs the user to authorize a third-party service or provide sensitive information through a browser. The two flows may be related in a product, but they have different tokens, endpoints, trust decisions, and completion signals."),
+      h("Client compatibility tests"),
+      ul([
+        "Client declares form support and renders a valid non-sensitive schema.",
+        "Client declines a form and the tool exits without a side effect.",
+        "Client cancels a form and the server cleans up pending state.",
+        "Client supports URL mode and shows the full URL with user consent.",
+        "Client does not support URL mode and receives a safe, actionable fallback.",
+        "The user opens the URL in a different browser session and the server rejects the mismatch.",
+        "The browser flow completes after the original MCP request has timed out.",
+        "A duplicate retry does not create two authorizations or two payments.",
+      ]),
+      h("What TrackMCP can and cannot tell you"),
+      p("TrackMCP can report server-boundary evidence such as an elicitation request, the mode emitted by the application, a subsequent retry, a tool error, or an explicit workflow outcome. It can help a team see where server-side flows stop and which client metadata was available."),
+      p("TrackMCP cannot see a private browser session, validate that a user read a consent screen, or know that a third-party OAuth provider completed unless the application emits a bounded completion event. URL contents and credential values should remain outside telemetry unless a deliberate, compliant data policy says otherwise."),
+      faq("Can form elicitation collect an API key?", "No. Form mode data passes through the MCP client and should be limited to non-sensitive structured input. Use URL mode or another out-of-band secure flow for secrets."),
+      faq("Does URL mode authorize the MCP server?", "No. URL mode is for an out-of-band interaction that the server needs on the user's behalf. MCP client authorization is a separate flow."),
+      faq("Does accepting a URL elicitation mean the OAuth flow succeeded?", "No. Accept means the user consented to the client opening the URL. The server needs a separate, securely bound completion check for the external interaction."),
+      links([
+        { label: "MCP elicitation documentation", href: "https://modelcontextprotocol.io/specification/draft/client/elicitation" },
+        { label: "MCP 2025-11-25 elicitation specification", href: "https://modelcontextprotocol.io/specification/2025-11-25/client/elicitation" },
+        { label: "SEP-1036: URL mode elicitation", href: "https://modelcontextprotocol.org/seps/1036-url-mode-elicitation-for-secure-out-of-band-intera" },
+        { label: "Remote MCP OAuth guide", href: "/blog/remote-mcp-oauth-guide" },
+        { label: "MCP token passthrough security", href: "/blog/mcp-token-passthrough-security" },
+      ]),
+    ],
+  },
+  {
     slug: "what-is-an-mcp-server",
     title: "What Is an MCP Server? A Practical Guide for Beginners",
     tag: "MCP fundamentals",

@@ -467,10 +467,10 @@ export default withTrackMCP(server, {
                   is working and what to improve, with a useful next step
                 </p>
                 <div className="mt-6 flex flex-wrap gap-3">
-                  <Button href="/mcp-server-analytics" variant="primary" size="md">
+                  <Button href="/blog/mcp-server-analytics-guide" variant="primary" size="md">
                     Read the analytics guide
                   </Button>
-                  <Button href="/features" variant="ghost" size="md">
+                  <Button href="/mcp-observability" variant="ghost" size="md">
                     See how it works
                   </Button>
                 </div>
