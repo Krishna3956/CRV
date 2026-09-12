@@ -14,6 +14,7 @@
     "test:seo-deep-dives": "node --test scripts/mcp-protocol-deep-dives.test.mjs",
     "test:seo-breadcrumbs": "node --test scripts/breadcrumbs.test.mjs",
     "test:seo-comparisons": "node --test scripts/mcp-observability-comparison.test.mjs",
+    "test:sitewide-ctas": "node --test scripts/sitewide-cta-audit.test.mjs",
     "test:release-post": "node --test scripts/release-post.test.mjs",
     "mcp:import": "node scripts/import-mcp-repository.mjs"
   },

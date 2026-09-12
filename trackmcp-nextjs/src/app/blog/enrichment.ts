@@ -21,6 +21,71 @@ const note = (title: string, c: string, after: number) => ({
 });
 
 export const enrichment: Record<string, Enrichment> = {
+  "mcp-tool-naming-conventions": {
+    art: "schema",
+    takeaways: [
+      "Tool names are stable protocol identifiers, while titles and descriptions serve human and model-readable guidance.",
+      "The current specification recommends unique, case-sensitive names from 1 to 128 characters without spaces.",
+      "A server-local unique name does not eliminate collisions in a host that combines multiple servers.",
+      "Measure catalog changes and call continuity after a rename, while staying honest about what the server boundary cannot see.",
+    ],
+    inserts: [
+      fig("schema", "A stable identifier, a readable title, and an accurate schema are three different parts of one tool contract.", 3),
+      note("Name for the contract", "Keep protocol names stable and put audience-facing explanation in title and description. A rename can change selection, caches, permissions, and analytics continuity.", 10),
+    ],
+  },
+  "mcp-retry-safety-idempotency": {
+    art: "errors",
+    takeaways: [
+      "A retry is a new request, not proof that the previous side effect failed.",
+      "Idempotency must be enforced by the handler and its downstream operation, not only advertised as a hint.",
+      "Non-repeatable tools need confirmation, reconciliation, or a safe status lookup before retrying.",
+      "Server-boundary telemetry can reveal repeated calls and outcomes, but not a private client retry policy or downstream settlement without an emitted signal.",
+    ],
+    inserts: [
+      fig("errors", "A timeout can leave the server in an unknown side-effect state, which is why retry safety needs an explicit operation identity.", 3),
+      note("Retry with evidence", "Classify tools by side effect and return an operation identifier that lets the caller reconcile before repeating a state-changing action.", 10),
+    ],
+  },
+  "mcp-request-timeouts-deadlines": {
+    art: "latency",
+    takeaways: [
+      "A timeout is a caller or server deadline, not a complete diagnosis of what happened.",
+      "Cancellation is cooperative and cannot rewind a side effect that already occurred.",
+      "Progress notifications are optional and request-scoped; tasks are useful for durable long-running work but remain experimental.",
+      "Measure slow tails, cancellations, timeouts, retries, and application outcomes as separate signals.",
+    ],
+    inserts: [
+      fig("latency", "A request timeline needs separate markers for the deadline, cancellation, tool completion, and useful application outcome.", 3),
+      note("Separate waiting from work", "A client can stop waiting while the server keeps running. Record the state transition and make reconciliation safe before adding another retry.", 10),
+    ],
+  },
+  "mcp-server-auth-discovery-protected-resource-metadata": {
+    art: "protocol",
+    takeaways: [
+      "The remote MCP server is the protected resource, not the authorization server that issues tokens.",
+      "Protected Resource Metadata and the WWW-Authenticate challenge help clients discover the right authorization server.",
+      "Resource indicators and audience validation keep tokens bound to the MCP resource.",
+      "Logs should show bounded authorization outcomes without bearer tokens, authorization codes, or sensitive URL state.",
+    ],
+    inserts: [
+      fig("protocol", "Authentication discovery crosses separate boundaries: the MCP resource, protected-resource metadata, and the authorization server.", 3),
+      note("Debug the 401", "Treat a 401 as a discovery checkpoint. Verify the challenge, metadata document, issuer, resource binding, and scopes in that order.", 10),
+    ],
+  },
+  "mcp-tool-catalog-design": {
+    art: "clients",
+    takeaways: [
+      "A large MCP catalog is an interface that competes for context and selection, not just an inventory of backend operations.",
+      "Pagination uses opaque cursors, and a partial page is not a complete catalog.",
+      "Cache freshness, catalog visibility, and authorization are separate decisions.",
+      "Measure discovery, calls, validation, execution, retries, and workflow outcomes as different stages.",
+    ],
+    inserts: [
+      fig("clients", "A usable catalog connects task intent to a small set of clear tools, then measures what happened after discovery.", 3),
+      note("Catalogs need tests", "Test page walks, changing catalogs, stale caches, permissions, schema errors, and representative workflows before shipping a catalog change.", 10),
+    ],
+  },
   "mcp-pagination-nextcursor": {
     art: "protocol",
     takeaways: [

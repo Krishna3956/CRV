@@ -17,6 +17,14 @@ const deepDiveSlugs = [
   "mcp-elicitation-form-url-mode",
 ];
 
+const productionQuestionSlugs = [
+  "mcp-tool-naming-conventions",
+  "mcp-retry-safety-idempotency",
+  "mcp-request-timeouts-deadlines",
+  "mcp-server-auth-discovery-protected-resource-metadata",
+  "mcp-tool-catalog-design",
+];
+
 function postSource(slug) {
   const start = postsSource.indexOf(`    slug: "${slug}"`);
   const next = postsSource.indexOf("\n  {", start + 1);
@@ -64,4 +72,29 @@ test("the deep-dive batch contains no em dashes or speculative tester links", ()
   const newContent = deepDiveSlugs.map(postSource).join("\n");
   assert.equal(newContent.includes(emDash), false);
   assert.doesNotMatch(newContent, /MCP Tester|Health Check|\/tools\/mcp-/i);
+});
+
+test("the production-question batch has distinct, dated, source-backed content", () => {
+  assert.equal(new Set(productionQuestionSlugs).size, 5);
+  const positions = productionQuestionSlugs.map((slug) => postsSource.indexOf(`    slug: "${slug}"`));
+  assert.ok(positions.every((position) => position > -1));
+  assert.ok(Math.max(...positions) < postsSource.indexOf('    slug: "mcp-pagination-nextcursor"'));
+
+  for (const slug of productionQuestionSlugs) {
+    const source = postSource(slug);
+    assert.match(source, /title: "[^\"]{40,}"/);
+    assert.match(source, /excerpt:\s*\n?\s*"[^\"]{100,}"/);
+    assert.match(source, /date: "Sep 12, 2026"/);
+    assert.match(source, /updated: "Sep 12, 2026"/);
+    assert.match(source, /verified: "Sep 12, 2026"/);
+    assert.match(source, /read: "[89] min read"/);
+    assert.match(source, /keywords: \[/);
+    assert.match(source, /related: \[/);
+    assert.match(source, /faq\(/);
+    assert.match(source, /https:\/\/modelcontextprotocol\.io\//);
+    assert.match(source, /href: "\//);
+    assert.doesNotMatch(source, /MCP Tester|Health Check|\/tools\/mcp-/i);
+    assert.equal(source.includes(emDash), false);
+    assert.match(enrichmentSource, new RegExp(`"${slug}":`));
+  }
 });
