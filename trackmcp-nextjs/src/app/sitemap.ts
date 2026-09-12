@@ -17,6 +17,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${BASE}/mcp-observability/remote-http`, changeFrequency: "monthly", priority: 0.7 },
     { url: `${BASE}/mcp-observability/compare/trackmcp-vs-sentry`, changeFrequency: "monthly", priority: 0.7 },
     { url: `${BASE}/mcp-observability/compare/trackmcp-vs-datadog`, changeFrequency: "monthly", priority: 0.7 },
+    { url: `${BASE}/free-mcp-servers`, changeFrequency: "weekly", priority: 0.8 },
+    { url: `${BASE}/mcp-servers/social-media`, changeFrequency: "weekly", priority: 0.7 },
     { url: `${BASE}/mcp-tool-analytics`, changeFrequency: "monthly", priority: 0.7 },
     { url: `${BASE}/tools/mcp-server-tester`, changeFrequency: "monthly", priority: 0.8 },
     { url: `${BASE}/tools/mcp-health-check`, changeFrequency: "monthly", priority: 0.7 },

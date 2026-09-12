@@ -15,6 +15,7 @@
     "test:seo-breadcrumbs": "node --test scripts/breadcrumbs.test.mjs",
     "test:seo-comparisons": "node --test scripts/mcp-observability-comparison.test.mjs",
     "test:sitewide-ctas": "node --test scripts/sitewide-cta-audit.test.mjs",
+    "test:mcp-discovery": "node --test scripts/mcp-discovery-seo.test.mjs",
     "test:release-post": "node --test scripts/release-post.test.mjs",
     "mcp:import": "node scripts/import-mcp-repository.mjs"
   },

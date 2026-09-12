@@ -51,6 +51,15 @@ const cols = [
       { label: "MCP inspector", href: "/tools/mcp-inspector" },
     ],
   },
+  {
+    title: "MCP Discovery",
+    links: [
+      { label: "Free MCP servers", href: "/free-mcp-servers" },
+      { label: "Social media MCP servers", href: "/mcp-servers/social-media" },
+      { label: "Popular MCP servers", href: "/top-mcp" },
+      { label: "MCP Categories", href: "/categories" },
+    ],
+  },
 ];
 
 const homeHref = "/";

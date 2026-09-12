@@ -151,6 +151,19 @@ export const enrichment: Record<string, Enrichment> = {
       note("Bind the user", "A copied or modified elicitation URL must not let one user complete another user's authorization flow.", 11),
     ],
   },
+  "claude-max-5x-vs-20x-for-mcp-development": {
+    art: "clients",
+    takeaways: [
+      "Claude Max 5x and 20x are usage tiers, not different MCP protocols or server runtimes.",
+      "Session and weekly limits mean the published multiplier is not a guarantee of unlimited or perfectly proportional capacity.",
+      "Separate provider-side usage interruptions from MCP server latency, errors, retries, and incomplete workflows.",
+      "TrackMCP sees the instrumented server boundary, not private reasoning or Claude account quotas.",
+    ],
+    inserts: [
+      fig("clients", "Provider usage limits and server-boundary telemetry answer different questions in an MCP development workflow.", 4),
+      note("Keep the boundaries clear", "A larger model subscription may give a development session more headroom, but it cannot correct a broken schema, slow tool, or unsafe permission boundary.", 11),
+    ],
+  },
   "best-mcp-observability-tools-for-production-servers": {
     art: "clients",
     takeaways: [
