@@ -11,6 +11,7 @@
     "test:mcp-tester-ui": "node --test src/components/mcp-tester/McpTesterApp.contract.test.mjs src/app/tools/tools.contract.test.mjs",
     "seo:audit": "node scripts/audit-seo.mjs",
     "test:seo-foundation": "node --test scripts/mcp-foundation-content.test.mjs",
+    "test:seo-deep-dives": "node --test scripts/mcp-protocol-deep-dives.test.mjs",
     "test:seo-breadcrumbs": "node --test scripts/breadcrumbs.test.mjs",
     "test:seo-comparisons": "node --test scripts/mcp-observability-comparison.test.mjs",
     "test:release-post": "node --test scripts/release-post.test.mjs",

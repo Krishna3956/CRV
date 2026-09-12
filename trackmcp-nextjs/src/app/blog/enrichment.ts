@@ -21,6 +21,71 @@ const note = (title: string, c: string, after: number) => ({
 });
 
 export const enrichment: Record<string, Enrichment> = {
+  "mcp-pagination-nextcursor": {
+    art: "protocol",
+    takeaways: [
+      "MCP pagination uses opaque cursors for tools, resources, resource templates, and prompts.",
+      "Clients should detect repeated cursors, bound page walks, and report incomplete catalogs clearly.",
+      "Changing catalogs and cache freshness can create gaps or duplicates across pages.",
+      "Server-boundary telemetry can show what was requested, but not what a host displayed or considered.",
+    ],
+    inserts: [
+      fig("protocol", "A paginated catalog is a sequence of bounded server responses connected by an opaque cursor.", 3),
+      note("Keep the cursor opaque", "The server owns the cursor format. A client should pass it back unchanged and never treat it as a page number.", 11),
+    ],
+  },
+  "mcp-tool-list-caching-ttlms-cachescope": {
+    art: "foundation",
+    takeaways: [
+      "ttlMs describes freshness, while cacheScope describes whether a result may be shared.",
+      "listChanged and subscriptions/listen can invalidate a cached catalog before its TTL expires.",
+      "A private catalog must stay isolated by authorization context, even when the endpoint is shared.",
+      "Cache hints do not replace authorization or guarantee a consistent multi-page snapshot.",
+    ],
+    inserts: [
+      fig("foundation", "Freshness, visibility, and invalidation are separate decisions in an MCP catalog cache.", 3),
+      note("Cache conservatively", "If a result may vary by user, tenant, role, or token, do not mark it public just because it came from an authenticated endpoint.", 10),
+    ],
+  },
+  "mcp-progress-notifications": {
+    art: "latency",
+    takeaways: [
+      "Progress notifications require a request-scoped progressToken from the client.",
+      "Clients may omit progress support or choose not to render notifications.",
+      "Rate-limit meaningful milestones and stop updates after completion or cancellation.",
+      "Tasks provide durable state when progress notifications are not enough for long-running work.",
+    ],
+    inserts: [
+      fig("latency", "A progress token correlates optional updates with one active request, not with a complete agent trace.", 3),
+      note("Do not promise visibility", "A server can send a progress notification without knowing whether the host received, rendered, or acted on it.", 10),
+    ],
+  },
+  "mcp-tasks-extension": {
+    art: "funnel",
+    takeaways: [
+      "Tasks turn a long-running tool call into durable state that a client can poll.",
+      "The current extension uses tasks/get, tasks/update, and tasks/cancel.",
+      "Cancellation is cooperative and must be designed around races and external side effects.",
+      "Task status is not the same as a completed business outcome unless the application emits that signal.",
+    ],
+    inserts: [
+      fig("funnel", "A task moves from creation to polling, optional input, and a terminal result or error.", 3),
+      note("Separate status from outcome", "A completed task proves that the protocol operation ended. It does not automatically prove that the customer's goal succeeded.", 11),
+    ],
+  },
+  "mcp-elicitation-form-url-mode": {
+    art: "schema",
+    takeaways: [
+      "Form mode is for structured, non-sensitive input visible to the MCP client.",
+      "URL mode moves sensitive interaction out of band and needs a strong user-binding design.",
+      "Accepting a URL elicitation is consent to open the flow, not proof that the external action completed.",
+      "Modern multi-round requests and legacy server-to-client requests require separate compatibility tests.",
+    ],
+    inserts: [
+      fig("schema", "Form mode keeps structured input in the MCP flow, while URL mode sends sensitive interaction through a separate boundary.", 3),
+      note("Bind the user", "A copied or modified elicitation URL must not let one user complete another user's authorization flow.", 11),
+    ],
+  },
   "best-mcp-observability-tools-for-production-servers": {
     art: "clients",
     takeaways: [
