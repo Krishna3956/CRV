@@ -57,7 +57,7 @@ test("Claude Max article captures adjacent intent without misrepresenting TrackM
 
 test("discovery pages are in the sitemap and footer", () => {
   for (const href of ["${BASE}/free-mcp-servers", "${BASE}/mcp-servers/social-media"]) assert.match(sitemap, new RegExp(href.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
-  assert.match(footer, /title: "MCP Discovery"/);
+  assert.match(footer, /title: "Explore"/);
   assert.match(footer, /href: "\/free-mcp-servers"/);
   assert.match(footer, /href: "\/mcp-servers\/social-media"/);
   assert.match(footer, /href: "\/top-mcp"/);

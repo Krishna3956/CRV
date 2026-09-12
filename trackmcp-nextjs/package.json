@@ -16,6 +16,7 @@
     "test:seo-comparisons": "node --test scripts/mcp-observability-comparison.test.mjs",
     "test:sitewide-ctas": "node --test scripts/sitewide-cta-audit.test.mjs",
     "test:mcp-discovery": "node --test scripts/mcp-discovery-seo.test.mjs",
+    "test:footer": "node --test scripts/footer.test.mjs",
     "test:release-post": "node --test scripts/release-post.test.mjs",
     "mcp:import": "node scripts/import-mcp-repository.mjs"
   },
