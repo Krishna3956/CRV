@@ -146,15 +146,19 @@ test("footer has one dedicated MCP Observability group with published canonical 
     assert.match(footerSource, new RegExp(`href: "${href.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}"`));
   }
   assert.equal((footerSource.match(/href: "\/mcp-observability"/g) || []).length, 1);
-  assert.match(footerSource, /title: "Free tools"/);
+  assert.match(footerSource, /title: "Explore"/);
   for (const href of [
-    "/tools/mcp-server-tester",
-    "/tools/mcp-health-check",
-    "/tools/mcp-inspector",
+    "/repository",
+    "/top-mcp",
+    "/categories",
+    "/free-mcp-servers",
+    "/mcp-servers/social-media",
   ]) {
     assert.match(footerSource, new RegExp(`href: "${href.replace(/[.*+?^${}()|[\\]\\\\]/g, "\\\\$&")}"`));
   }
   assert.doesNotMatch(footerSource, /\/tools\/test-mcp-server/);
+  assert.doesNotMatch(footerSource, /\/tools\/mcp-health-check/);
+  assert.doesNotMatch(footerSource, /\/tools\/mcp-inspector/);
   assert.doesNotMatch(footerSource, /\u2014/);
 });
 
