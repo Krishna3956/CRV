@@ -99,11 +99,6 @@ export default function Home() {
               </p>
             </Reveal>
 
-            <Reveal delay={0.28}>
-              <p className="mx-auto mt-5 max-w-[58ch] text-[13px] leading-relaxed text-faint">
-                Track MCP, written TrackMCP, is analytics and observability for teams shipping Model Context Protocol servers.
-              </p>
-            </Reveal>
           </div>
         </section>
 
