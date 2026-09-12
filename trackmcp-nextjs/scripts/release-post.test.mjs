@@ -60,7 +60,7 @@ test("Foundation Release uses new artwork with accessible labels", () => {
 
 test("release discovery links and sitemap entry are present", () => {
   assert.match(blogPageSource, /href="\/blog\/releases"/);
-  assert.match(navSource, /label: "Releases", href: "\/blog\/releases"/);
+  assert.doesNotMatch(navSource, /label: "Releases", href: "\/blog\/releases"/);
   assert.match(footerSource, /label: "Releases", href: "\/blog\/releases"/);
   assert.match(sitemapSource, /\$\{BASE\}\/blog\/releases/);
   for (const relatedSlug of [

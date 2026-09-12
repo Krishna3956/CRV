@@ -565,4 +565,124 @@ export const enrichment: Record<string, Enrichment> = {
       note("The mindset shift", "From 'did the request return 200?' to 'did the agent accomplish the task?'", 7),
     ],
   },
+  "what-is-an-mcp-server": {
+    art: "protocol",
+    takeaways: [
+      "An MCP server exposes tools, resources, or prompts to a compatible host.",
+      "It can run locally over stdio or remotely over Streamable HTTP.",
+      "Production readiness includes schemas, authorization, timeouts, and bounded telemetry.",
+    ],
+    inserts: [
+      fig("protocol", "An MCP server presents a focused capability surface between an AI client and existing systems.", 2),
+      note("Own the boundary", "Validate the request and protect the data path even when a client supplied a schema.", 8),
+    ],
+  },
+  "what-is-an-mcp-client": {
+    art: "clients",
+    takeaways: [
+      "A host usually creates one client for each server connection.",
+      "The client negotiates capabilities and routes JSON-RPC messages.",
+      "Server telemetry is only the part of the agent path that crossed the boundary.",
+    ],
+    inserts: [
+      fig("clients", "A host can manage multiple isolated MCP client connections with different servers.", 2),
+      note("Identity is a signal", "Client metadata helps explain behavior, but it is not automatically verified user identity.", 7),
+    ],
+  },
+  "mcp-host-client-server-architecture": {
+    art: "foundation",
+    takeaways: [
+      "The host coordinates the AI experience and multiple connections.",
+      "The client maintains one server session and negotiated capability set.",
+      "The server owns its tools, resources, validation, and authorization.",
+    ],
+    inserts: [
+      fig("foundation", "Separate host, client, and server roles make permissions and failure boundaries easier to reason about.", 2),
+      note("Observe the right layer", "A server trace can be precise about server behavior without pretending to be the complete agent trace.", 7),
+    ],
+  },
+  "mcp-tools-resources-prompts": {
+    art: "schema",
+    takeaways: [
+      "Tools are callable actions, resources are addressable context, and prompts are reusable templates.",
+      "Their control models differ across model, application, and user decisions.",
+      "Measure discovery separately from use and completion.",
+    ],
+    inserts: [
+      fig("schema", "Clear primitive contracts help a host present the right capability for each user task.", 2),
+      note("Keep the primitive clear", "A tool that mutates data needs a different safety review from a resource that only provides context.", 7),
+    ],
+  },
+  "how-mcp-works-step-by-step": {
+    art: "funnel",
+    takeaways: [
+      "MCP sessions move from initialization to discovery, request, result, and shutdown.",
+      "Errors can occur at protocol, authorization, validation, tool, or workflow layers.",
+      "A successful transport is not the same as a successful task.",
+    ],
+    inserts: [
+      fig("funnel", "Initialization, discovery, execution, and completion are distinct stages in an MCP request path.", 2),
+      note("Find the first broken step", "Classify the failure before changing the server or host configuration.", 8),
+    ],
+  },
+  "mcp-json-rpc-messages-explained": {
+    art: "errors",
+    takeaways: [
+      "Requests use IDs, methods, and parameters; notifications do not expect responses.",
+      "Protocol errors and tool-level errors have different meanings.",
+      "Redaction matters when message exchanges are used for debugging.",
+    ],
+    inserts: [
+      fig("errors", "A valid JSON-RPC response can still contain an application-level tool error.", 3),
+      note("Inspect the result", "HTTP status alone cannot tell you whether the tool produced useful work.", 8),
+    ],
+  },
+  "mcp-capability-negotiation": {
+    art: "protocol",
+    takeaways: [
+      "Initialization establishes a protocol version and optional capabilities.",
+      "Both sides must use only what they negotiated.",
+      "Version and capability dimensions are useful compatibility signals when bounded.",
+    ],
+    inserts: [
+      fig("protocol", "The initialization handshake aligns the client and server before normal MCP operations begin.", 2),
+      note("Version the evidence", "Record the negotiated protocol version instead of inferring compatibility from a client label.", 7),
+    ],
+  },
+  "mcp-transports-stdio-and-streamable-http": {
+    art: "latency",
+    takeaways: [
+      "stdio fits local process communication; Streamable HTTP fits remote services.",
+      "Transport choice changes deployment and authentication concerns.",
+      "Health checks should follow MCP lifecycle stages, not only process or socket status.",
+    ],
+    inserts: [
+      fig("latency", "Transport reachability is one signal inside a broader MCP health path.", 2),
+      note("Keep transport-specific context", "Process exits, authentication results, and tool latency answer different operational questions.", 7),
+    ],
+  },
+  "how-to-build-an-mcp-server": {
+    art: "schema",
+    takeaways: [
+      "Start with one narrow capability and a contract you can test.",
+      "Validate inputs and enforce authorization inside the server.",
+      "Add bounded, redacted telemetry before expanding the surface.",
+    ],
+    inserts: [
+      fig("schema", "A production-minded MCP server starts with a small, tested, agent-facing contract.", 2),
+      note("Make side effects explicit", "Separate read, write, destructive, and administrative tools so permissions stay legible.", 8),
+    ],
+  },
+  "how-to-connect-an-mcp-server-to-an-ai-client": {
+    art: "clients",
+    takeaways: [
+      "Confirm transport, credentials, protocol version, and capabilities before connecting.",
+      "Start with a safe discovery or read-only test.",
+      "Classify the first failed layer instead of treating every error as a server bug.",
+    ],
+    inserts: [
+      fig("clients", "Connecting an MCP server is a negotiated path from host configuration to a specific server session.", 2),
+      note("Test safely", "Review the catalog and start with a known-safe input before enabling actions with side effects.", 8),
+    ],
+  },
 };

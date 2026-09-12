@@ -11,7 +11,6 @@ const links = [
   { label: "Pricing", href: "/pricing" },
   { label: "Docs", href: "/docs" },
   { label: "Blog", href: "/blog" },
-  { label: "Releases", href: "/blog/releases" },
 ];
 
 const repoLinks = [
