@@ -3,7 +3,7 @@ import http from "node:http";
 import test from "node:test";
 import { withTrackMCP } from "../../../../../packages/typescript-sdk/dist/index.js";
 import { DEFAULT_MAX_PAYLOAD_BYTES } from "../../../../../packages/typescript-sdk/dist/privacy.js";
-import { createIngestHandler } from "./route.ts";
+import { createIngestHandler } from "./handlers.ts";
 import { MAX_BATCH_EVENTS, MAX_PAYLOAD_BYTES, MAX_REQUEST_BYTES } from "../../../../lib/telemetry/validation.ts";
 
 const API_KEY = "tmcp_integration_key";

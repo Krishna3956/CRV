@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { createAlertsHandlers } from "./route.ts";
+import { createAlertsHandlers } from "./handlers.ts";
 
 function fakeAdmin() {
   const state = { configs: [] };

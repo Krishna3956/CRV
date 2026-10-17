@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { createToolQualityHandler } from "./route.ts";
+import { createToolQualityHandler } from "./handlers.ts";
 
 function fakeAdmin(rows) {
   return {
