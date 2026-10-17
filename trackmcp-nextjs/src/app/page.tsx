@@ -14,7 +14,6 @@ import { Button } from "@/components/Button";
 import { EarlyAccessButton } from "@/components/EarlyAccessButton";
 import { CopyButton } from "@/components/CopyButton";
 import { Reveal } from "@/components/Reveal";
-import { ClientMark } from "@/components/ClientLogos";
 import { PageFrame } from "@/components/PageFrame";
 import { HeroDashboardScene } from "@/components/HeroDashboardScene";
 import { TrackMCPMark } from "@/components/TrackMCPMark";
@@ -139,29 +138,7 @@ export default function Home() {
             <HeroDashboardScene />
           </div>
 
-          {/* client compatibility */}
-          <div className="mx-auto max-w-6xl px-6 pb-20 pt-8 md:pt-16">
-            <p className="text-center text-[12px] font-medium uppercase tracking-wide text-faint">
-              Works with every MCP client
-            </p>
-            <div className="mt-5 flex flex-wrap items-center justify-center gap-x-8 gap-y-4 text-slate-500">
-              {(
-                [
-                  { name: "Claude", label: "Claude" },
-                  { name: "Cursor", label: "Cursor" },
-                  { name: "ChatGPT", label: "ChatGPT" },
-                  { name: "Custom", label: "Custom agents" },
-                ] as const
-              ).map((c, i) => (
-                <Reveal key={c.name} as="span" y={6} delay={i * 0.08}>
-                  <span className="flex items-center gap-2.5">
-                    <ClientMark name={c.name} size={19} />
-                    <span className="text-[15px] font-medium">{c.label}</span>
-                  </span>
-                </Reveal>
-              ))}
-            </div>
-          </div>
+          <div aria-hidden className="h-14 md:h-20" />
         </section>
 
         {/* ══════════ CHAPTER 5 · MCP ANALYTICS SOFTWARE → TOOL ANALYTICS PROOF ══════════ */}
