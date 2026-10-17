@@ -11,6 +11,8 @@ export type ArtKey =
   | "clients"
   | "latency"
   | "schema"
+  | "layers"
+  | "inventory"
   | "default";
 
 const C = {
@@ -243,6 +245,47 @@ function Schema() {
   );
 }
 
+function Layers() {
+  return (
+    <>
+      <Bg />
+      {[
+        { y: 38, label: "REGISTRY", sub: "find + describe", fill: C.white, stroke: C.line, color: C.ink },
+        { y: 83, label: "GATEWAY", sub: "route + enforce", fill: C.ink, stroke: C.ink, color: C.white },
+        { y: 128, label: "RUNTIME", sub: "host + isolate", fill: C.white, stroke: C.line, color: C.ink },
+        { y: 173, label: "OBSERVABILITY", sub: "measure + explain", fill: C.brandSoft, stroke: C.brand, color: C.brandStrong },
+      ].map((row) => (
+        <g key={row.label}>
+          <rect x="94" y={row.y} width="292" height="32" rx="9" fill={row.fill} stroke={row.stroke} strokeWidth="1.5" />
+          <text x="110" y={row.y + 20} fontFamily="monospace" fontSize="11" fill={row.color}>{row.label}</text>
+          <text x="370" y={row.y + 20} textAnchor="end" fontFamily="system-ui" fontSize="11" fill={row.color}>{row.sub}</text>
+        </g>
+      ))}
+      <path d="M240 70 V80 M240 115 V125 M240 160 V170" stroke={C.faint} strokeWidth="2" />
+      <path d="M240 80 l-4 -6 h8 z M240 125 l-4 -6 h8 z M240 170 l-4 -6 h8 z" fill={C.faint} />
+    </>
+  );
+}
+
+function Inventory() {
+  return (
+    <>
+      <Bg />
+      <rect x="76" y="48" width="328" height="144" rx="14" fill={C.white} stroke={C.line} strokeWidth="1.5" />
+      <text x="96" y="73" fontFamily="system-ui" fontSize="12" fill={C.muted}>Server inventory</text>
+      {["owner: platform-search", "environment: production", "auth: delegated OAuth"].map((label, i) => (
+        <g key={label}>
+          <rect x="96" y={87 + i * 29} width="288" height="22" rx="5" fill={i === 0 ? C.brandSoft : C.mist} />
+          <circle cx="108" cy={98 + i * 29} r="3" fill={i === 0 ? C.brand : C.muted} />
+          <text x="119" y={102 + i * 29} fontFamily="monospace" fontSize="10.5" fill={C.body}>{label}</text>
+        </g>
+      ))}
+      <circle cx="374" cy="61" r="8" fill={C.brandSoft} stroke={C.brand} />
+      <path d="M370 61 l3 3 5 -6" fill="none" stroke={C.brandStrong} strokeWidth="1.5" />
+    </>
+  );
+}
+
 function Default() {
   return (
     <>
@@ -268,6 +311,8 @@ const SCENES: Record<ArtKey, () => React.ReactElement> = {
   clients: Clients,
   latency: Latency,
   schema: Schema,
+  layers: Layers,
+  inventory: Inventory,
   default: Default,
 };
 

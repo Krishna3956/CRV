@@ -21,6 +21,58 @@ const note = (title: string, c: string, after: number) => ({
 });
 
 export const enrichment: Record<string, Enrichment> = {
+  "mcp-protocol-version-negotiation-server-discover": {
+    art: "protocol",
+    takeaways: [
+      "MCP 2026-07-28 removes initialize and protocol sessions; earlier revisions use the handshake-era lifecycle.",
+      "server/discover can advertise supported versions, capabilities, and identity, but SDK probing and fallback behavior vary by version.",
+      "Treat discovery errors, timeouts, auth failures, and legacy-server responses as different outcomes.",
+      "Test real client/server pairs through the production transport and gateway, and record the negotiated behavior.",
+    ],
+    inserts: [
+      fig("protocol", "Modern discovery and legacy initialization are distinct negotiation paths; test the chosen path across the deployed client and server versions.", 3),
+      note("Pin only with evidence", "A pinned protocol revision is a deployment contract. Verify every target server speaks it, and make incompatible servers fail clearly rather than silently downgrading.", 9),
+    ],
+  },
+  "progressive-mcp-tool-discovery-context-cost": {
+    art: "clients",
+    takeaways: [
+      "Keep the complete catalog available to the host but load full tool schemas into model context only when needed.",
+      "Separate discovery, schema inspection, and execution; keep normal authorization and validation on every path.",
+      "Filter by access before ranking, refresh indexes on catalog changes, and keep cache freshness separate from permission.",
+      "Evaluate recall, incorrect selections, latency, context use, and outcomes together; server telemetry alone cannot show unselected tools.",
+    ],
+    inserts: [
+      fig("clients", "A compact search interface can expose candidate tools first, fetch a selected schema on demand, and call it through the normal MCP path.", 3),
+      note("Optimize the full workflow", "Lower context cost is useful only if the right authorized tool remains easy to find and the end-to-end task still succeeds.", 9),
+    ],
+  },
+  "mcp-registry-vs-gateway-vs-runtime-observability": {
+    art: "layers",
+    takeaways: [
+      "A registry makes server records discoverable, a gateway mediates requests, a runtime hosts execution, and observability records behavior.",
+      "Runtime is a market category rather than a single protocol component, so buyers should verify deployment, isolation, identity, and secret-handling details.",
+      "Some products combine functions, so compare coverage, enforcement points, identity flow, and missing traffic paths.",
+      "Server, gateway, application, and client observations describe different parts of a workflow and should retain their provenance.",
+    ],
+    inserts: [
+      fig("layers", "Discovery, request routing, and operational evidence have separate responsibilities. Runtime manages where the server executes.", 3),
+      note("Choose by job", "Start with the unanswered question. Find servers with a registry, control routed requests with a gateway, host execution in a runtime, and understand observed behavior with MCP-aware telemetry.", 10),
+    ],
+  },
+  "mcp-server-governance-inventory-ownership-access": {
+    art: "inventory",
+    takeaways: [
+      "A useful MCP inventory records identity, owner, environment, access model, data reach, tool effects, evidence source, and verification time.",
+      "Declared, discovered, tested, and approved are separate states. Unknown ownership or stale data should stay visible.",
+      "Governance combines discovery, policy enforcement, evidence, review, incident response, and retirement across multiple systems.",
+      "Server telemetry can explain observed use, but it cannot prove complete discovery or another system's policy enforcement.",
+    ],
+    inserts: [
+      fig("inventory", "Inventory fields become useful when each fact has an owner and a source that can be checked.", 3),
+      note("Preserve evidence provenance", "Mark whether a server was declared, discovered, tested, or approved. These states answer different operational questions.", 10),
+    ],
+  },
   "mcp-tool-naming-conventions": {
     art: "schema",
     takeaways: [

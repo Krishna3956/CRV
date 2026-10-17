@@ -123,7 +123,7 @@ function Blocks({ body }: { body: Block[] }) {
               <ul className="mt-2 flex flex-col gap-2">
                 {b.items.map((item) => (
                   <li key={item.href}>
-                    <a href={item.href} className="text-[15px] font-medium text-brand-strong underline underline-offset-2 hover:text-ink">
+                    <a href={item.href} target="_blank" rel="noopener noreferrer" className="text-[15px] font-medium text-brand-strong underline underline-offset-2 hover:text-ink">
                       {item.label}
                     </a>
                   </li>
@@ -245,7 +245,7 @@ export default async function BlogPostPage({
                 <span>·</span>
                 <span>{post.read}</span>
               </div>
-              <h1 className="mt-4 max-w-[20ch] text-[32px] font-medium leading-[1.08] tracking-[-0.03em] text-ink sm:text-[44px]">
+              <h1 className="mt-4 max-w-none text-[30px] font-medium leading-[1.08] tracking-[-0.03em] text-ink sm:text-[42px]">
                 {post.title}
               </h1>
               <p className="mt-4 max-w-[62ch] text-[18px] leading-[1.5] text-muted">
@@ -262,12 +262,12 @@ export default async function BlogPostPage({
 
             {/* cover */}
             <Reveal y={24}>
-              <div className="mt-8 overflow-hidden rounded-2xl border border-line">
+              <div className="mx-auto mt-8 aspect-[2/1] w-full max-w-4xl overflow-hidden rounded-2xl border border-line">
                 <BlogArt
                   art={cover}
-                  fit="slice"
+                  fit="meet"
                   ariaLabel={`${post.title} illustration`}
-                  className="block h-[220px] w-full sm:h-[300px]"
+                  className="block h-full w-full"
                 />
               </div>
             </Reveal>

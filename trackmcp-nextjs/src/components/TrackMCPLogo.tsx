@@ -71,7 +71,11 @@ export function TrackMCPLogo({
   }
 
   return (
-    <a href={href} aria-label="TrackMCP home" className={base}>
+    <a
+      href={href}
+      aria-label="TrackMCP home"
+      className={`${base} focus-visible:outline-none focus-visible:underline focus-visible:underline-offset-4`}
+    >
       {inner}
     </a>
   );
