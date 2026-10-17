@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { createTraceHandler, MAX_TRACE_LIMIT } from "./route.ts";
+import { createTraceHandler, MAX_TRACE_LIMIT } from "./handlers.ts";
 
 const API_KEY = "tmcp_trace_integration_key";
 

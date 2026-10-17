@@ -1,6 +1,10 @@
 import { NextResponse } from "next/server";
 import { revalidatePath } from "next/cache";
+import { syncBrevoRepositorySubmission } from "@/lib/brevo";
 import { getSupabaseAdmin } from "@/lib/repository/supabase";
+import { formatMcpName, toolSlug } from "@/lib/repository/types";
+import { SITE_URL } from "@/lib/seo";
+import { normalizeSubmissionAttribution } from "@/lib/submission-attribution";
 
 /* Validate a GitHub repo URL, fetch its metadata (server-side, optional token),
    and insert it into the mcp_tools table with status "pending". */
@@ -18,11 +22,15 @@ export async function POST(req: Request) {
   let url = "";
   let email = "";
   let wantsFeatured = false;
+  let submissionAttribution: unknown = null;
+  let requestedSubmissionEventId = "";
   try {
     const body = await req.json();
     url = (body.url || "").trim();
     email = (body.email || "").trim();
     wantsFeatured = !!body.wantsFeatured;
+    submissionAttribution = body.submission_attribution;
+    requestedSubmissionEventId = typeof body.submission_event_id === "string" ? body.submission_event_id : "";
   } catch {
     return NextResponse.json({ error: "Invalid request." }, { status: 400 });
   }
@@ -65,6 +73,9 @@ export async function POST(req: Request) {
     );
   }
   const repoData = await ghRes.json();
+  const trackmcpUrl = `${SITE_URL}/tool/${encodeURIComponent(toolSlug(url, repoData.name))}`;
+  const submittedAt = new Date().toISOString();
+  const attribution = normalizeSubmissionAttribution(submissionAttribution as Record<string, unknown> | null, submittedAt, requestedSubmissionEventId);
 
   let error: { code?: string; message?: string; details?: string } | null = null;
   try {
@@ -79,6 +90,7 @@ export async function POST(req: Request) {
       status: "pending",
       submitter_email: email || null,
       wants_featured: wantsFeatured,
+      submission_attribution: attribution,
     }));
   } catch (insertError) {
     console.error("MCP submission insert failed", { url, error: insertError });
@@ -93,8 +105,18 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Could not save the submission." }, { status: 500 });
   }
 
-  // Email notification is sent client-side (Web3Forms free plan is client-only).
-  revalidatePath("/new");
-  revalidatePath("/repository");
-  return NextResponse.json({ ok: true, repo_name: repoData.name, stars: repoData.stargazers_count });
+  // Existing Web3Forms notification is sent client-side (Web3Forms free plan is client-only).
+  // Brevo is a best-effort CRM sync: an outage must never undo a saved listing.
+  if (email) {
+    await syncBrevoRepositorySubmission({
+      email,
+      githubUrl: url,
+      mcpName: formatMcpName(repoData.name),
+      trackmcpUrl,
+    });
+  }
+
+  revalidatePath("/new", "page");
+  revalidatePath("/repository", "page");
+  return NextResponse.json({ ok: true, repo_name: repoData.name, stars: repoData.stargazers_count, submission_event_id: attribution.submission_event_id, submitted_at: submittedAt });
 }

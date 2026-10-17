@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { createAnalyticsHandler } from "./route.ts";
+import { createAnalyticsHandler } from "./handlers.ts";
 
 function fakeAdmin(rows) {
   return {

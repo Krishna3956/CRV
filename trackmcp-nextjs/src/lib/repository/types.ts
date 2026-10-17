@@ -13,6 +13,38 @@ export type McpTool = {
   created_at: string;
 };
 
+const MCP_NAME_OVERRIDES: Record<string, string> = {
+  metabrain: "MetaBrain",
+};
+
+const MCP_ACRONYMS = new Set(["ai", "api", "cli", "eth", "http", "https", "mcp", "qbo", "sdk", "url"]);
+
+function splitKnownCamelAcronym(word: string): string[] {
+  const match = word.match(/^(ai|api|cli|eth|http|https|mcp|qbo|sdk|url)(?=[A-Z]|$)/i);
+  if (!match || match[0].length === word.length) return [word];
+  return [match[0], word.slice(match[0].length)];
+}
+
+/** Format repository names for customer-facing CRM copy without changing the canonical repo name. */
+export function formatMcpName(name: string): string {
+  const normalized = name.trim().replace(/[\s_-]+/g, " ").replace(/\s+/g, " ");
+  if (!normalized) return name;
+
+  const override = MCP_NAME_OVERRIDES[normalized.toLowerCase()];
+  if (override) return override;
+
+  return normalized
+    .split(" ")
+    .flatMap(splitKnownCamelAcronym)
+    .map((word) => {
+      const lower = word.toLowerCase();
+      if (MCP_ACRONYMS.has(lower)) return lower.toUpperCase();
+      if (/[a-z][A-Z]/.test(word)) return word;
+      return `${lower.charAt(0).toUpperCase()}${lower.slice(1)}`;
+    })
+    .join(" ");
+}
+
 /* Directory categories (mirrors the live site). Used for filtering + browsing. */
 export const CATEGORIES: { id: string; label: string }[] = [
   { id: "AI & Machine Learning", label: "AI & ML" },

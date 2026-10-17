@@ -4,11 +4,13 @@ import { useEffect } from "react";
 import posthog from "posthog-js";
 import type { AuthChangeEvent, Session } from "@supabase/supabase-js";
 import { getSupabaseBrowser } from "@/lib/auth/supabase-browser";
+import { captureSubmissionAttribution } from "@/lib/marketing-analytics";
 
 const enabled = Boolean(process.env.NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN);
 
 export function PostHogIdentity() {
   useEffect(() => {
+    captureSubmissionAttribution();
     if (!enabled) return;
 
     let mounted = true;
@@ -21,7 +23,6 @@ export function PostHogIdentity() {
 
       const metadata = user.user_metadata || {};
       posthog.identify(user.id, {
-        email: user.email,
         first_name: metadata.first_name,
         last_name: metadata.last_name,
         company_name: metadata.company_name,

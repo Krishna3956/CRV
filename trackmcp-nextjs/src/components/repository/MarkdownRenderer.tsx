@@ -104,9 +104,19 @@ function renderInline(text: string): ReactNode[] {
 
 export function MarkdownRenderer({ content, githubUrl }: { content: string; githubUrl?: string }) {
   let clean = content;
-  clean = clean.replace(/<div[^>]*>[\s\S]*?<\/div>/gi, "");
-  clean = clean.replace(/<section[^>]*>[\s\S]*?<\/section>/gi, "");
-  clean = clean.replace(/<a[^>]*>[\s\S]*?<\/a>/gi, "");
+  // GitHub READMEs commonly use HTML <img> tags for centered screenshots and
+  // logos. Preserve only their safe image attributes by normalizing them to
+  // the Markdown image syntax handled below before stripping other HTML.
+  clean = clean.replace(/<img\b[^>]*>/gi, (tag) => {
+    const src = tag.match(/\bsrc\s*=\s*["']([^"']+)["']/i)?.[1];
+    if (!src) return "";
+    const alt = tag.match(/\balt\s*=\s*["']([^"']*)["']/i)?.[1] || "";
+    return `![${alt}](${src})`;
+  });
+  // Remove wrapper tags while retaining their normalized image/text content.
+  clean = clean.replace(/<\/?div[^>]*>/gi, "");
+  clean = clean.replace(/<\/?section[^>]*>/gi, "");
+  clean = clean.replace(/<\/?a[^>]*>/gi, "");
   clean = clean.replace(/<[^>]+>/g, "");
   clean = clean.replace(/\n\n\n+/g, "\n\n");
 
@@ -170,9 +180,10 @@ export function MarkdownRenderer({ content, githubUrl }: { content: string; gith
     let im: RegExpExecArray | null;
     while ((im = imageRegex.exec(line)) !== null) {
       let src = im[2];
-      if (src && !src.startsWith("http") && githubUrl) {
+      if (src && !/^https?:\/\//i.test(src) && githubUrl) {
         const repoPath = githubUrl.replace("https://github.com/", "").replace(/\/$/, "");
-        src = `https://raw.githubusercontent.com/${repoPath}/main/${src}`;
+        const repoAssetPath = src.replace(/^\.\//, "");
+        src = `https://raw.githubusercontent.com/${repoPath}/main/${encodeURI(repoAssetPath)}`;
       }
       images.push({ alt: im[1], src });
     }

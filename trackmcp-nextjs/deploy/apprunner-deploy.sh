@@ -109,6 +109,7 @@ keys = [
     "NEXT_PUBLIC_WEB3FORMS_ACCESS_KEY",
     "NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN",
     "NEXT_PUBLIC_POSTHOG_HOST",
+    "BREVO_SUBMIT_FORM_URL",
 ]
 print(json.dumps({k: os.environ[k] for k in keys if os.environ.get(k)}))
 PY
@@ -139,7 +140,9 @@ PY
 HEALTH_CONFIG='{"Protocol":"TCP","Interval":10,"Timeout":5,"HealthyThreshold":1,"UnhealthyThreshold":5}'
 INSTANCE_CONFIG="$(python3 - "${INSTANCE_ROLE_ARN:-}" <<'PY'
 import json, sys
-c = {"Cpu": "1 vCPU", "Memory": "2 GB"}
+# Production App Runner capacity: keep this explicit so a redeploy cannot
+# silently regress the service from its 4 GB production setting.
+c = {"Cpu": "1 vCPU", "Memory": "4 GB"}
 if sys.argv[1]:
     c["InstanceRoleArn"] = sys.argv[1]
 print(json.dumps(c))

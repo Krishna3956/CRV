@@ -13,7 +13,9 @@ export const metadata: Metadata = pageMeta({
   path: "/repository",
 });
 
-export const revalidate = 3600;
+// Keep the initial directory snapshot reasonably fresh. On successful
+// submission, the submit route also invalidates this page explicitly.
+export const revalidate = 60;
 
 export default async function RepositoryPage({
   searchParams,
