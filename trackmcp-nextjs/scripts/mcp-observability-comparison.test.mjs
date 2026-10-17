@@ -66,11 +66,11 @@ test("pillar article has internal and first-party documentation links", () => {
   }
 });
 
-test("pillar article uses existing editorial artwork and displays verification metadata", () => {
+test("pillar article uses existing editorial artwork and keeps verification data in schema metadata", () => {
   assert.match(enrichmentSource, /"best-mcp-observability-tools-for-production-servers":/);
   assert.match(enrichmentSource, /art: "clients"/);
   assert.match(articleSource, /post\.updated/);
-  assert.match(articleSource, /post\.verified/);
+  assert.doesNotMatch(articleSource, /Last verified \{post\.verified\}/);
 });
 
 test("Sentry comparison has metadata, neutral language, and the requested comparison fields", () => {
