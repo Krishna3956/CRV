@@ -2,7 +2,7 @@ import { getSupabase } from "./supabase";
 import { isBlocked } from "./blocked";
 import { githubPathFromToolSlug, toolSlug } from "./types";
 import type { McpTool } from "./types";
-import { unstable_cache } from "next/cache";
+import { unstable_cache, unstable_noStore } from "next/cache";
 
 /* Drop repos that are blocked from the directory (404/invalid/banned). */
 function keep(tools: McpTool[]): McpTool[] {
@@ -109,13 +109,17 @@ export async function getToolsByCategory(category: string, limit = 300): Promise
 }
 
 export async function searchToolsQuery(query: string, limit = 200): Promise<McpTool[]> {
+  // Search must reflect a just-submitted row even when the repository page was
+  // previously rendered from a cached snapshot.
+  unstable_noStore();
   const supabase = getSupabase();
   if (!supabase || !query.trim()) return [];
+  const escapedQuery = query.trim().replaceAll("%", "\\%").replaceAll("_", "\\_");
   const { data } = await supabase
     .from("mcp_tools")
     .select(FIELDS)
     .in("status", ["approved", "pending"])
-    .or(`repo_name.ilike.%${query}%,description.ilike.%${query}%`)
+    .or(`repo_name.ilike.%${escapedQuery}%,description.ilike.%${escapedQuery}%,github_url.ilike.%${escapedQuery}%`)
     .order("stars", { ascending: false })
     .limit(limit);
   return keep((data as McpTool[]) || []);

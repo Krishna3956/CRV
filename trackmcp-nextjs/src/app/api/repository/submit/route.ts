@@ -1,6 +1,9 @@
 import { NextResponse } from "next/server";
 import { revalidatePath } from "next/cache";
+import { syncBrevoRepositorySubmission } from "@/lib/brevo";
 import { getSupabaseAdmin } from "@/lib/repository/supabase";
+import { formatMcpName, toolSlug } from "@/lib/repository/types";
+import { SITE_URL } from "@/lib/seo";
 
 /* Validate a GitHub repo URL, fetch its metadata (server-side, optional token),
    and insert it into the mcp_tools table with status "pending". */
@@ -65,6 +68,7 @@ export async function POST(req: Request) {
     );
   }
   const repoData = await ghRes.json();
+  const trackmcpUrl = `${SITE_URL}/tool/${encodeURIComponent(toolSlug(url, repoData.name))}`;
 
   let error: { code?: string; message?: string; details?: string } | null = null;
   try {
@@ -93,8 +97,18 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Could not save the submission." }, { status: 500 });
   }
 
-  // Email notification is sent client-side (Web3Forms free plan is client-only).
-  revalidatePath("/new");
-  revalidatePath("/repository");
+  // Existing Web3Forms notification is sent client-side (Web3Forms free plan is client-only).
+  // Brevo is a best-effort CRM sync: an outage must never undo a saved listing.
+  if (email) {
+    await syncBrevoRepositorySubmission({
+      email,
+      githubUrl: url,
+      mcpName: formatMcpName(repoData.name),
+      trackmcpUrl,
+    });
+  }
+
+  revalidatePath("/new", "page");
+  revalidatePath("/repository", "page");
   return NextResponse.json({ ok: true, repo_name: repoData.name, stars: repoData.stargazers_count });
 }

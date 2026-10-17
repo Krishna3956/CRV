@@ -109,6 +109,7 @@ keys = [
     "NEXT_PUBLIC_WEB3FORMS_ACCESS_KEY",
     "NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN",
     "NEXT_PUBLIC_POSTHOG_HOST",
+    "BREVO_SUBMIT_FORM_URL",
 ]
 print(json.dumps({k: os.environ[k] for k in keys if os.environ.get(k)}))
 PY

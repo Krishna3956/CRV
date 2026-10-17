@@ -102,7 +102,7 @@ export default function Home() {
         </section>
 
         {/* ══════════ FIRST-FOLD DIVISION — stepped white bridge → tag stack → dashboard ══════════ */}
-        <section className="relative bg-mist">
+        <section className="relative bg-mist pb-14 md:pb-20">
           {/* white bridge: a sharp trapezoid dips from the hero into the mist,
               holding the tag stack */}
           <div className="relative mx-auto hidden w-full max-w-[680px] px-6 md:block">

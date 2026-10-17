@@ -13,7 +13,10 @@ export const metadata: Metadata = pageMeta({
   path: "/new",
 });
 
-export const revalidate = 3600;
+// Keep the listing fresh without querying Supabase on every visit. Successful
+// submissions also invalidate this page explicitly in the submit route, so a
+// newly submitted tool appears on the next visit without waiting 60 seconds.
+export const revalidate = 60;
 
 export default async function NewPage() {
   const tools = await getNewestTools(60);
