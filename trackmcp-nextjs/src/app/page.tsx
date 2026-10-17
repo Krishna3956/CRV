@@ -137,8 +137,6 @@ export default function Home() {
           <div className="relative z-10 mx-auto mt-0 hidden max-w-[1000px] px-6 md:mt-8 md:block">
             <HeroDashboardScene />
           </div>
-
-          <div aria-hidden className="h-14 md:h-20" />
         </section>
 
         {/* ══════════ CHAPTER 5 · MCP ANALYTICS SOFTWARE → TOOL ANALYTICS PROOF ══════════ */}
