@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import {
   Rocket,
@@ -15,6 +15,7 @@ import {
   Loader2,
 } from "lucide-react";
 import { sendWeb3Form } from "@/lib/web3forms";
+import { captureSubmissionAttribution, trackMarketingEvent } from "@/lib/marketing-analytics";
 
 /* Full submit-a-tool page (ported from the live site): two-column layout with a
    value prop + "why submit" on the left, and the form with a
@@ -56,15 +57,21 @@ export function SubmitClient() {
   const [message, setMessage] = useState("");
   const urlValid = URL_RE.test(url);
 
+  useEffect(() => {
+    captureSubmissionAttribution();
+  }, []);
+
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     setStatus("loading");
     setMessage("");
     try {
+      const submissionEventId = crypto.randomUUID();
+      const submissionAttribution = captureSubmissionAttribution();
       const res = await fetch("/api/repository/submit", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ url, email, wantsFeatured }),
+        body: JSON.stringify({ url, email, wantsFeatured, submission_event_id: submissionEventId, submission_attribution: submissionAttribution }),
       });
       const data = await res.json();
       if (!res.ok) {
@@ -72,6 +79,16 @@ export function SubmitClient() {
         setMessage(data.error || "Failed to submit tool.");
         return;
       }
+      trackMarketingEvent("submission_completed", {
+        submission_event_id: data.submission_event_id,
+        first_touch_source: submissionAttribution?.first_touch_source || "unattributed",
+        last_touch_source: submissionAttribution?.last_touch_source || "unattributed",
+        referrer_hostname: submissionAttribution?.referrer_hostname || null,
+        utm_source: submissionAttribution?.utm_source || null,
+        utm_medium: submissionAttribution?.utm_medium || null,
+        utm_campaign: submissionAttribution?.utm_campaign || null,
+        landing_pathname: submissionAttribution?.landing_pathname || null,
+      });
       void sendWeb3Form({
         subject: `New MCP submission, ${data.repo_name || url}`,
         from_name: "TrackMCP · MCP Submit",
