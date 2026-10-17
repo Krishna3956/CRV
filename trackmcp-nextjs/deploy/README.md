@@ -67,7 +67,8 @@ bash deploy/apprunner-deploy.sh
 ---
 
 ## Cost notes
-- App Runner bills for provisioned container memory + active vCPU. At 1 vCPU / 2 GB
+- App Runner bills for provisioned container memory + active vCPU. Production is
+  configured at 1 vCPU / 4 GB
   a low-traffic site runs a few dollars a month; your AWS credits cover it for a
   long time. Unlike Vercel, there is no per-invocation function charge.
 - To trim cost further later: drop to 0.5 vCPU / 1 GB, or move to ECS Fargate +
