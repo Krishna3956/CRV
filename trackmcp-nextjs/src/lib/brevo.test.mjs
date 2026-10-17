@@ -18,13 +18,16 @@ test.afterEach(() => {
   else process.env.BREVO_SUBMIT_FORM_URL = originalEndpoint;
 });
 
-test("Brevo sync is disabled when no hosted-form endpoint is configured", async () => {
+test("Brevo sync uses the built-in hosted-form endpoint by default", async () => {
   delete process.env.BREVO_SUBMIT_FORM_URL;
-  let calls = 0;
-  globalThis.fetch = async () => { calls += 1; return new Response(null, { status: 204 }); };
+  let request;
+  globalThis.fetch = async (input, init) => {
+    request = { input: String(input), init };
+    return new Response(null, { status: 204 });
+  };
 
-  assert.deepEqual(await syncBrevoRepositorySubmission(submission), { configured: false, ok: false });
-  assert.equal(calls, 0);
+  assert.deepEqual(await syncBrevoRepositorySubmission(submission), { configured: true, ok: true });
+  assert.match(request.input, /^https:\/\/de655c2f\.sibforms\.com\/serve\//);
 });
 
 test("Brevo sync sends the expected contact properties when configured", async () => {

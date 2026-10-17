@@ -10,13 +10,16 @@ type BrevoSyncResult = {
   ok: boolean;
 };
 
+const DEFAULT_BREVO_SUBMIT_FORM_URL =
+  "https://de655c2f.sibforms.com/serve/MUIFAJdzHj7M_tGicRfTcQuCoQG6Lc8qilLJoYaxtrQFPDds3yiPDg7s4YGcemiFwf4Z14dSQT_i8NwmrkjZAPGvskN1HNmzzMVgTL19hWL5EJgVbn2WOwB41vWpcC9L9MBONm2XsIfl1Rk9BoSb83nuP5WGzquyrUChpiZd6YWzjXjcuJwam48UoHWUjN1oDe5rHjYPgB-igvPztg==";
+
 /*
  * Relays an accepted repository submission to the Brevo-hosted form. The form
  * URL is deliberately server-only: the customer-facing submission UI remains
  * the TrackMCP form and all existing Supabase/Web3Forms behavior is preserved.
  *
- * Configure BREVO_SUBMIT_FORM_URL with the `action` URL from the Brevo form
- * embed. Brevo must have the GITHUB_REPO_URL, MCP_NAME, and TRACKMCP_URL
+ * BREVO_SUBMIT_FORM_URL can override the built-in `action` URL from the Brevo
+ * form embed. Brevo must have the GITHUB_REPO_URL, MCP_NAME, and TRACKMCP_URL
  * contact attributes and the desired post-submission automation configured.
  */
 export async function syncBrevoRepositorySubmission({
@@ -25,8 +28,7 @@ export async function syncBrevoRepositorySubmission({
   mcpName,
   trackmcpUrl,
 }: BrevoRepositorySubmission): Promise<BrevoSyncResult> {
-  const endpoint = process.env.BREVO_SUBMIT_FORM_URL;
-  if (!endpoint) return { configured: false, ok: false };
+  const endpoint = process.env.BREVO_SUBMIT_FORM_URL || DEFAULT_BREVO_SUBMIT_FORM_URL;
 
   try {
     const form = new URLSearchParams({
