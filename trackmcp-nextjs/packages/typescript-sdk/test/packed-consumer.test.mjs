@@ -9,8 +9,8 @@ import { spawnSync } from "node:child_process";
 const packageRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const npm = process.platform === "win32" ? "npm.cmd" : "npm";
 
-function run(command, args, cwd) {
-  const result = spawnSync(command, args, { cwd, encoding: "utf8", stdio: ["ignore", "pipe", "pipe"] });
+function run(command, args, cwd, env) {
+  const result = spawnSync(command, args, { cwd, env, encoding: "utf8", stdio: ["ignore", "pipe", "pipe"] });
   assert.equal(result.status, 0, `${command} ${args.join(" ")} failed:\n${result.stdout}\n${result.stderr}`);
   return result;
 }
@@ -19,10 +19,11 @@ test("a clean consumer receives the packed 0.1.1 SDK with local default redactio
   const temporaryRoot = await mkdtemp(join(tmpdir(), "trackmcp-sdk-consumer-"));
   const packDirectory = join(temporaryRoot, "pack");
   const consumerDirectory = join(temporaryRoot, "consumer");
+  const npmEnv = { ...process.env, npm_config_cache: join(temporaryRoot, "npm-cache") };
   await Promise.all([mkdir(packDirectory), mkdir(consumerDirectory)]);
 
   try {
-    const packResult = run(npm, ["pack", "--json", "--ignore-scripts", "--pack-destination", packDirectory], packageRoot);
+    const packResult = run(npm, ["pack", "--json", "--ignore-scripts", "--pack-destination", packDirectory], packageRoot, npmEnv);
     const packEntries = JSON.parse(packResult.stdout);
     const tarball = join(packDirectory, packEntries[0].filename);
     const packageJson = JSON.parse(await readFile(join(packageRoot, "package.json"), "utf8"));
@@ -96,8 +97,8 @@ test("a clean consumer receives the packed 0.1.1 SDK with local default redactio
       assert.ok(body.events[0].payload_size_bytes <= 32 * 1024);
     `);
 
-    run(npm, ["install", "--ignore-scripts", "--no-audit", "--no-fund"], consumerDirectory);
-    run(process.execPath, ["consumer.mjs"], consumerDirectory);
+    run(npm, ["install", "--ignore-scripts", "--no-audit", "--no-fund"], consumerDirectory, npmEnv);
+    run(process.execPath, ["consumer.mjs"], consumerDirectory, npmEnv);
   } finally {
     await rm(temporaryRoot, { recursive: true, force: true });
   }

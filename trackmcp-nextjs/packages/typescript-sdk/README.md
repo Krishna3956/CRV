@@ -2,6 +2,32 @@
 
 Observability for MCP servers. Wrap your existing server once; telemetry is batched and delivered asynchronously at the server boundary. It does not capture a host's private model turn.
 
+## Activate from the terminal
+
+Create a free TrackMCP account, create a workspace connection key, set
+`TRACKMCP_KEY` in the server environment, install this package, wrap the MCP
+server, restart it, make one real tool call, and then open the dashboard to
+verify the first event. The direct signup path is
+<https://app.trackmcp.com/signup?source=npm&package=%40trackmcp%2Fsdk>.
+
+For local development, the browser-assisted terminal flow is:
+
+```bash
+npx @trackmcp/cli init
+npx @trackmcp/cli doctor
+```
+
+`init` prints a verification URL and short code before opening a browser. Use
+`--no-browser` or `--browser=false` when the browser is on another device;
+`setup` is a backwards-compatible alias. CI should provision `TRACKMCP_KEY`
+through its secret manager and run `npx @trackmcp/cli doctor --non-interactive`.
+The CLI never asks for a TrackMCP password, accepts a key as a positional
+argument, rewrites source code, or runs from an npm lifecycle script.
+
+`npm install` itself does not open a browser, create an account, send an install
+ping, or make a network request. The manual fallback is to create a connection
+key in the web app and set `TRACKMCP_KEY` before starting the server.
+
 Install the privacy release with `npm install @trackmcp/sdk@0.1.1`. The package
 is ESM-first, supports Node.js 18 and newer, and exposes the optional Node-only
 client adapter through `@trackmcp/sdk/client-adapter`.
@@ -10,10 +36,37 @@ client adapter through `@trackmcp/sdk/client-adapter`.
 import { withTrackMCP } from "@trackmcp/sdk";
 
 export default withTrackMCP(server, {
-  apiKey: process.env.TRACKMCP_KEY!,
+  apiKey: process.env.TRACKMCP_KEY,
   service: "my-mcp-server",
 });
 ```
+
+### Missing or rejected keys
+
+Telemetry is fail-open. If `TRACKMCP_KEY` is missing, telemetry is disabled for
+that client instance and one secret-free actionable diagnostic points to the
+signup/docs URL; MCP calls continue normally. Teams that require enforcement
+may opt into `strict: true` to fail during initialization. Delivery diagnostics
+are rate-limited and can be handled without logging secrets:
+
+```ts
+export default withTrackMCP(server, {
+  apiKey: process.env.TRACKMCP_KEY,
+  service: "my-mcp-server",
+  diagnostics: {
+    onDeliveryError: ({ kind, status, retrying }) => {
+      // Record only these bounded categories in your own logger.
+      console.error({ kind, status, retrying });
+    },
+  },
+});
+```
+
+Kinds include `missing_api_key`, `invalid_key`, `revoked`, `unauthorized`,
+`forbidden`, `rate_limited`, `server_error`, `network_error`, `aborted`, and
+`unknown`. Diagnostics never include the API key, Authorization header, raw
+payload, tool arguments/results, email, or private MCP content, and delivery
+never becomes synchronous with an MCP call.
 
 Capture is fail-open: a slow or unavailable TrackMCP endpoint never blocks a tool call. Payload mode defaults to `redacted`; every default payload is recursively sanitized in the local process before it can enter the queue or an HTTP body. Common sensitive keys, emails, bearer/basic tokens, JWTs, credential-like text, binary/base64 resources, and credential-bearing URLs are replaced or omitted, and payloads are bounded to 32 KiB, depth 6, 50 keys/items per container, and 2,048 characters per string. Use `metadata` to omit arguments/results entirely, or opt into `full` knowing it remains bounded and still sanitized. The ingest route independently caps payloads at 128 KiB and requests at 1 MiB as a last-line defense for non-SDK clients.
 
@@ -31,7 +84,7 @@ import { StdioClientTransport } from "@modelcontextprotocol/sdk/client/stdio.js"
 import { TrackMCPClientAdapter } from "@trackmcp/sdk/client-adapter";
 
 const adapter = new TrackMCPClientAdapter({
-  apiKey: process.env.TRACKMCP_KEY!,
+  apiKey: process.env.TRACKMCP_KEY,
   service: "my-mcp-client",
   transport: "stdio", // or "streamable_http"
 });
@@ -72,7 +125,7 @@ provenance fields.
 
 ```ts
 export default withTrackMCP(server, {
-  apiKey: process.env.TRACKMCP_KEY!,
+  apiKey: process.env.TRACKMCP_KEY,
   intentFallback: ({ toolName }) => toolName ? `Complete the ${toolName} operation` : undefined,
 });
 

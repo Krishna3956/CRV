@@ -1,50 +1,151 @@
 #!/usr/bin/env node
-import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { createInterface } from "node:readline/promises";
 import { stdin as input, stdout as output } from "node:process";
-import { exec } from "node:child_process";
+import { fileURLToPath } from "node:url";
+import { dirname, resolve } from "node:path";
+import { readFile } from "node:fs/promises";
+import { createDeviceClient, createRedeemer, pollDeviceSession } from "../lib/device-client.mjs";
+import { openBrowser } from "../lib/browser.mjs";
+import { findEnvironment, isGitTracked, logout, readConfiguredKey, writeEnvKey } from "../lib/storage.mjs";
 
-const dashboard = process.env.TRACKMCP_DASHBOARD_URL || "https://trackmcp.com/dashboard";
-const envFile = process.env.TRACKMCP_ENV_FILE || ".env.local";
-const command = process.argv[2] || "setup";
+const packageRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 
-function open(url) {
-  const opener = process.platform === "darwin" ? "open" : process.platform === "win32" ? "start" : "xdg-open";
-  exec(`${opener} "${url}"`, () => {});
+function parseArgs(argv) {
+  const [commandArg = "init", ...rest] = argv;
+  const command = commandArg === "setup" ? "init" : commandArg;
+  if (!["init", "doctor", "logout"].includes(command)) throw new Error("Usage: npx @trackmcp/cli init|doctor|logout");
+  const flags = { browser: true, nonInteractive: false, envFile: process.env.TRACKMCP_ENV_FILE || ".env.local" };
+  for (const arg of rest) {
+    if (arg === "--no-browser" || arg === "--browser=false") flags.browser = false;
+    else if (arg === "--browser=true") flags.browser = true;
+    else if (arg === "--non-interactive") flags.nonInteractive = true;
+    else if (arg.startsWith("--env-file=")) flags.envFile = arg.slice("--env-file=".length);
+    else if (arg.startsWith("--")) throw new Error(`Unknown option: ${arg.split("=", 1)[0]}`);
+    else throw new Error("API keys must not be passed as command-line arguments. Use TRACKMCP_KEY or the browser flow.");
+  }
+  return { command, flags };
 }
 
-function saveKey(key) {
-  const line = `TRACKMCP_KEY=${key}`;
-  if (existsSync(envFile)) {
-    const current = readFileSync(envFile, "utf8");
-    const updated = current.match(/^TRACKMCP_KEY=.*$/m) ? current.replace(/^TRACKMCP_KEY=.*$/m, line) : `${current.trimEnd()}\n${line}\n`;
-    writeFileSync(envFile, updated);
-  } else {
-    writeFileSync(envFile, `${line}\n`);
+function isInteractive(flags) {
+  return !flags.nonInteractive && process.env.CI !== "true" && Boolean(input.isTTY && output.isTTY);
+}
+
+async function packageManager(cwd) {
+  for (const [name, file] of [["pnpm", "pnpm-lock.yaml"], ["yarn", "yarn.lock"], ["npm", "package-lock.json"]]) {
+    try { await readFile(resolve(cwd, file)); return name; } catch { /* continue */ }
+  }
+  return "npm";
+}
+
+async function sdkVersion(cwd) {
+  for (const path of [resolve(cwd, "node_modules/@trackmcp/sdk/package.json"), resolve(packageRoot, "../typescript-sdk/package.json")]) {
+    try {
+      const packageJson = JSON.parse(await readFile(path, "utf8"));
+      return typeof packageJson.version === "string" ? packageJson.version : "unknown";
+    } catch { /* continue */ }
+  }
+  return undefined;
+}
+
+export async function runDoctor({ cwd = process.cwd(), envFile, client = createDeviceClient(), env = process.env, outputLog = console.log } = {}) {
+  const files = await findEnvironment({ cwd, envFile });
+  const configured = await readConfiguredKey({ cwd, envFile, env });
+  const checks = {
+    node: process.versions.node,
+    sdk: (await sdkVersion(cwd)) || "not found",
+    packageManager: await packageManager(cwd),
+    environmentFiles: files.map((file) => ({ path: file.path, hasKey: file.hasKey })),
+    key: configured.key ? "present" : env.TRACKMCP_KEY ? "malformed" : "missing",
+  };
+  const reachability = await client.ingestReachability();
+  checks.ingest = reachability.reachable ? "reachable" : "network_error";
+  if (configured.key) checks.keyStatus = (await client.keyStatus(configured.key)).category;
+  else checks.keyStatus = "not_checked";
+  const lines = [
+    `Node.js: ${checks.node}`,
+    `@trackmcp/sdk: ${checks.sdk}`,
+    `Package manager: ${checks.packageManager}`,
+    `Environment files: ${checks.environmentFiles.length ? checks.environmentFiles.map((file) => file.path).join(", ") : "none found"}`,
+    `TRACKMCP_KEY: ${checks.key}`,
+    `Ingest endpoint: ${checks.ingest}`,
+    `Key status: ${checks.keyStatus}`,
+  ];
+  for (const line of lines) outputLog(line);
+  if (configured.key && checks.keyStatus === "no_accepted_telemetry") outputLog("Next step: restart the MCP server and make one real tool call; doctor never sends fake telemetry.");
+  return { checks, lines };
+}
+
+async function askOverwrite() {
+  if (!(input.isTTY && output.isTTY) || process.env.CI === "true") return false;
+  const rl = createInterface({ input, output });
+  try {
+    const answer = await rl.question("TRACKMCP_KEY already exists. Overwrite it? [y/N] ");
+    return /^y(?:es)?$/i.test(answer.trim());
+  } finally { rl.close(); }
+}
+
+export async function runInit({ cwd = process.cwd(), flags = {}, client = createDeviceClient(), env = process.env, outputLog = console.log, errorLog = console.error, sleep, now, interactive, openBrowserImpl = openBrowser, confirmOverwrite } = {}) {
+  const resolvedFlags = { browser: true, envFile: ".env.local", nonInteractive: false, ...flags };
+  const existing = await readConfiguredKey({ cwd, envFile: resolvedFlags.envFile, env });
+  if (existing.key) {
+    outputLog(`TRACKMCP_KEY is already configured (${existing.source}). Nothing was changed.`);
+    return { status: "existing_key", source: existing.source };
+  }
+  if (!(interactive ?? isInteractive(resolvedFlags))) {
+    errorLog("No usable TRACKMCP_KEY was found. init needs an interactive terminal; set TRACKMCP_KEY in CI or run init locally.");
+    return { status: "non_interactive" };
+  }
+  const session = await client.startSession();
+  const verificationUrl = session.verificationUriComplete || session.verificationUri;
+  outputLog(`\nOpen this URL to authorize TrackMCP:\n${verificationUrl}\n\nYour verification code: ${session.userCode}\n`);
+  if (resolvedFlags.browser) {
+    const opened = await openBrowserImpl(verificationUrl);
+    if (!opened) outputLog("The browser could not be opened. Use the URL and code above on another device.");
+  }
+  outputLog("Waiting for browser approval (press Ctrl-C to cancel)…");
+  const result = await pollDeviceSession(client, session, { sleep, now });
+  if (result.status !== "approved") {
+    if (result.status === "denied") errorLog(`TrackMCP authorization was denied (${result.reasonCategory || "user_denied"}). Run npx @trackmcp/cli init to try again.`);
+    else if (result.status === "expired") errorLog("The TrackMCP device session expired. Run npx @trackmcp/cli init to try again.");
+    else if (result.status === "timeout") errorLog("TrackMCP authorization timed out. Run npx @trackmcp/cli init to try again.");
+    else errorLog("TrackMCP authorization was cancelled. No credential was written.");
+    return result;
+  }
+  const redeemed = await createRedeemer(client)(session.deviceCode);
+  if (redeemed.status === "already_redeemed" || !redeemed.apiKey) {
+    errorLog("This TrackMCP device session has already been redeemed. Run init again for a new session.");
+    return { status: "already_redeemed" };
+  }
+  const target = resolve(cwd, resolvedFlags.envFile);
+  const tracked = await isGitTracked(target, { cwd });
+  if (tracked) outputLog(`Warning: ${resolvedFlags.envFile} is tracked by Git. Add it to .gitignore before committing.`);
+  await writeEnvKey(target, redeemed.apiKey, { confirmOverwrite: confirmOverwrite || askOverwrite });
+  outputLog(`Saved TRACKMCP_KEY to ${resolvedFlags.envFile} with restrictive permissions.`);
+  outputLog("Next: install @trackmcp/sdk, wrap your MCP server, restart it, and make one real tool call.");
+  return { status: "completed", path: target, workspace: redeemed.workspace };
+}
+
+export async function main(argv = process.argv.slice(2), dependencies = {}) {
+  const { command, flags } = parseArgs(argv);
+  if (command === "logout") {
+    await logout({ sessionFile: resolve(dependencies.cwd || process.cwd(), ".trackmcp-session.json") });
+    (dependencies.outputLog || console.log)("Removed local TrackMCP CLI session metadata. Environment keys were not changed.");
+    return 0;
+  }
+  const client = dependencies.client || createDeviceClient();
+  if (command === "doctor") {
+    await runDoctor({ ...dependencies, flags, client });
+    return 0;
+  }
+  const result = await runInit({ ...dependencies, flags, client });
+  return result.status === "completed" || result.status === "existing_key" ? 0 : 1;
+}
+
+if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
+  try {
+    process.exitCode = await main();
+  } catch (error) {
+    console.error(error instanceof Error ? error.message : "TrackMCP CLI failed.");
+    process.exitCode = 1;
   }
 }
-
-if (!["setup", "init"].includes(command)) {
-  console.error("Usage: npx @trackmcp/cli setup");
-  process.exit(1);
-}
-
-console.log("\nTrackMCP setup\n==============\n");
-console.log("1. We’ll open your TrackMCP dashboard.");
-console.log("2. Sign in with your email and create a workspace API key.");
-console.log("3. Paste the key here; we’ll save it only in your local environment file.\n");
-open(dashboard);
-const rl = createInterface({ input, output });
-const answer = await rl.question("Paste your TrackMCP API key (or press Enter to finish in the browser): ");
-rl.close();
-if (!answer.trim()) {
-  console.log(`\nFinish setup in the browser: ${dashboard}`);
-  process.exit(0);
-}
-if (!/^tmcp_[A-Za-z0-9_-]{20,}$/.test(answer.trim())) {
-  console.error("That does not look like a TrackMCP key. Keys begin with tmcp_. Nothing was changed.");
-  process.exit(1);
-}
-saveKey(answer.trim());
-console.log(`\nSaved TRACKMCP_KEY to ${envFile}.`);
-console.log("Next, wrap your server:\n\n  import { withTrackMCP } from \"@trackmcp/sdk\";\n  export default withTrackMCP(server, { apiKey: process.env.TRACKMCP_KEY, service: \"my-mcp-server\" });\n");

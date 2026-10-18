@@ -1,0 +1,120 @@
+import test from "node:test";
+import assert from "node:assert/strict";
+import { EventEmitter } from "node:events";
+import { mkdtemp, readFile, stat, writeFile } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+import { createDeviceClient, createRedeemer, pollDeviceSession } from "../lib/device-client.mjs";
+import { openBrowser } from "../lib/browser.mjs";
+import { isUsableKey, readConfiguredKey, writeEnvKey } from "../lib/storage.mjs";
+import { main, runDoctor, runInit } from "../bin/trackmcp.mjs";
+
+const key = "tmcp_cli_test_key_12345678901234567890";
+const response = (body, status = 200) => new Response(JSON.stringify(body), { status, headers: { "content-type": "application/json" } });
+
+test("device start uses bounded non-secret metadata and prints no device code", async () => {
+  let request;
+  const client = createDeviceClient({ apiBaseUrl: "https://app.trackmcp.test", fetchImpl: async (_url, init) => { request = JSON.parse(init.body); return response({ device_code: "opaque-device-secret", user_code: "F7KQ-2M9D", verification_uri: "https://app.trackmcp.test/device", verification_uri_complete: "https://app.trackmcp.test/device?user_code=F7KQ-2M9D", expires_in: 600, interval: 5 }); } });
+  const session = await client.startSession();
+  assert.deepEqual(request, { client_version: "0.1.0", platform: `${process.platform}-${process.arch}`, package_manager: "npm", sdk_package: "@trackmcp/sdk" });
+  assert.equal(session.deviceCode, "opaque-device-secret");
+  assert.equal(session.userCode, "F7KQ-2M9D");
+});
+
+test("browser opener handles success and failure without shell interpolation", async () => {
+  const calls = [];
+  const success = await openBrowser("https://app.trackmcp.test/device?user_code=F7KQ-2M9D", { platform: "linux", spawnImpl: (command, args, options) => { calls.push({ command, args, options }); const child = new EventEmitter(); queueMicrotask(() => child.emit("spawn")); return child; } });
+  assert.equal(success, true);
+  assert.equal(calls[0].command, "xdg-open");
+  assert.equal(calls[0].options.shell, false);
+  assert.equal(calls[0].args[0], "https://app.trackmcp.test/device?user_code=F7KQ-2M9D");
+  const failure = await openBrowser("https://app.trackmcp.test/device", { spawnImpl: () => { const child = new EventEmitter(); queueMicrotask(() => child.emit("error", new Error("blocked"))); return child; } });
+  assert.equal(failure, false);
+});
+
+test("polling follows server-directed intervals, approval, denial, expiry, and slow-down", async () => {
+  let now = 0;
+  const waits = [];
+  const statuses = [{ status: "authorization_pending", interval: 2 }, { status: "slow_down", interval: 4 }, { status: "approved" }];
+  const client = { poll: async () => statuses.shift() };
+  const result = await pollDeviceSession(client, { deviceCode: "opaque", interval: 1, expiresIn: 30 }, { now: () => now, sleep: async (ms) => { waits.push(ms); now += ms; } });
+  assert.equal(result.status, "approved");
+  assert.deepEqual(waits, [1000, 2000, 4000]);
+  for (const terminal of ["denied", "expired", "cancelled"]) {
+    const output = await pollDeviceSession({ poll: async () => ({ status: terminal }) }, { deviceCode: "opaque", interval: 1, expiresIn: 30 }, { now: () => 0, sleep: async () => {} });
+    assert.equal(output.status, terminal);
+  }
+});
+
+test("polling has a local timeout and redemption is replay protected", async () => {
+  let now = 0;
+  const timeout = await pollDeviceSession({ poll: async () => ({ status: "authorization_pending" }) }, { deviceCode: "opaque", interval: 1, expiresIn: 30 }, { now: () => now, sleep: async (ms) => { now += ms; } , maxWaitMs: 1000 });
+  assert.equal(timeout.status, "timeout");
+  let calls = 0;
+  const redeem = createRedeemer({ redeem: async () => { calls += 1; return { status: "approved", apiKey: key }; } });
+  assert.equal((await redeem("opaque")).apiKey, key);
+  assert.equal((await redeem("opaque")).status, "already_redeemed");
+  assert.equal(calls, 1);
+});
+
+test("init prints URL before browser open, supports no-browser, and writes an atomic env file", async () => {
+  const cwd = await mkdtemp(join(tmpdir(), "trackmcp-cli-"));
+  const logs = [];
+  let browserCalls = 0;
+  const client = {
+    startSession: async () => ({ deviceCode: "opaque", userCode: "CODE-1234", verificationUri: "https://app.trackmcp.test/device", expiresIn: 30, interval: 1 }),
+    poll: async () => ({ status: "approved" }),
+    redeem: async () => ({ status: "approved", apiKey: key }),
+  };
+  const result = await runInit({ cwd, client, interactive: true, flags: { browser: false, envFile: ".env.local" }, outputLog: (line) => logs.push(String(line)), errorLog: (line) => logs.push(String(line)), sleep: async () => {}, now: () => 0, openBrowserImpl: async () => { browserCalls += 1; return true; }, confirmOverwrite: async () => false });
+  assert.equal(result.status, "completed");
+  assert.equal(logs.some((line) => line.includes("CODE-1234")), true);
+  assert.equal(logs.some((line) => line.includes("opaque")), false);
+  assert.equal(browserCalls, 0);
+  assert.equal(await readFile(join(cwd, ".env.local"), "utf8"), `TRACKMCP_KEY=${key}\n`);
+  assert.equal((await stat(join(cwd, ".env.local"))).mode & 0o077, 0);
+});
+
+test("existing environment values are preserved and existing keys are protected", async () => {
+  const cwd = await mkdtemp(join(tmpdir(), "trackmcp-cli-"));
+  const path = join(cwd, ".env.local");
+  await writeFile(path, "OTHER=value\nTRACKMCP_KEY=tmcp_old_key_12345678901234567890\n");
+  assert.equal(isUsableKey("tmcp_old_key_12345678901234567890"), true);
+  await assert.rejects(() => writeEnvKey(path, key), /already exists/);
+  await writeEnvKey(path, key, { confirmOverwrite: async () => true });
+  const content = await readFile(path, "utf8");
+  assert.match(content, /OTHER=value/);
+  assert.match(content, new RegExp(`TRACKMCP_KEY=${key}`));
+  assert.equal((await readConfiguredKey({ cwd })).key, key);
+});
+
+test("CI/non-TTY init refuses to start a browser flow and positional keys are rejected", async () => {
+  let started = false;
+  const result = await runInit({ env: {}, flags: { browser: true, nonInteractive: true }, client: { startSession: async () => { started = true; } }, errorLog: () => {} });
+  assert.equal(result.status, "non_interactive");
+  assert.equal(started, false);
+  await assert.rejects(() => main(["init", key]), /must not be passed/);
+});
+
+test("doctor uses key-status and reachability only, never fake telemetry", async () => {
+  const logs = [];
+  const result = await runDoctor({ cwd: await mkdtemp(join(tmpdir(), "trackmcp-cli-")), env: { TRACKMCP_KEY: key }, client: { ingestReachability: async () => ({ reachable: true }), keyStatus: async (value) => { assert.equal(value, key); return { category: "no_accepted_telemetry" }; } }, outputLog: (line) => logs.push(line) });
+  assert.equal(result.checks.keyStatus, "no_accepted_telemetry");
+  assert.equal(logs.some((line) => String(line).includes("fake telemetry")), true);
+});
+
+test("doctor key-status categories cover accepted, revoked, unauthorized, permission, retryable, and network states", async () => {
+  for (const [status, body, expected] of [
+    [200, { status: "valid", accepted_telemetry: true }, "accepted_telemetry"],
+    [200, { status: "revoked" }, "revoked"],
+    [401, {}, "unauthorized"],
+    [403, {}, "permission_denied"],
+    [429, {}, "retryable"],
+    [500, {}, "retryable"],
+  ]) {
+    const client = createDeviceClient({ fetchImpl: async () => response(body, status) });
+    assert.equal((await client.keyStatus(key)).category, expected);
+  }
+  const network = createDeviceClient({ fetchImpl: async () => { throw new Error("network"); } });
+  assert.equal((await network.keyStatus(key)).category, "network_error");
+});

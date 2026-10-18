@@ -4,9 +4,13 @@
   "description": "Set up TrackMCP and connect an MCP server from the terminal",
   "type": "module",
   "bin": { "trackmcp": "./bin/trackmcp.mjs" },
-  "files": ["bin", "README.md"],
+  "files": ["bin", "lib", "README.md"],
   "keywords": ["mcp", "trackmcp", "observability"],
   "license": "MIT",
   "repository": { "type": "git", "url": "https://github.com/Krishna3956/CRV/tree/main/trackmcp-web/packages/cli" },
-  "engines": { "node": ">=18" }
+  "engines": { "node": ">=18" },
+  "scripts": {
+    "test": "node --test test/*.test.mjs",
+    "test:packed-consumer": "node --test test/packed-consumer.test.mjs"
+  }
 }
