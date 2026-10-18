@@ -35,6 +35,11 @@ export default function PythonDocsPage() {
         </Para>
         <Code>{`python3 -m pip install trackmcp
 # or: uv add trackmcp / poetry add trackmcp`}</Code>
+        <Code>{`trackmcp init
+# SSH or CI:
+trackmcp init --no-browser
+# Diagnostics:
+trackmcp doctor`}</Code>
       </DocSection>
 
       <DocSection title="Wrap your server">
