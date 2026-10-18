@@ -29,17 +29,18 @@ export function DeviceApprovalClient({
 }) {
   const normalizedCode = useMemo(() => normalizeDeviceUserCode(userCode), [userCode]);
   const [signedIn, setSignedIn] = useState<boolean | null>(null);
-  const [workspace, setWorkspace] = useState<Workspace | null>(null);
-  const [workspaceState, setWorkspaceState] = useState<"loading" | "ready" | "none" | "error">("loading");
+  const [workspaces, setWorkspaces] = useState<Workspace[]>([]);
+  const [selectedWorkspaceId, setSelectedWorkspaceId] = useState("");
+  const [workspaceState, setWorkspaceState] = useState<"loading" | "ready" | "none" | "select" | "error">("loading");
   const [status, setStatus] = useState<DeviceSessionState>(normalizedCode ? "ready" : "invalid");
   const [working, setWorking] = useState(false);
   const [error, setError] = useState("");
 
   const loadWorkspace = useCallback(async () => {
     setWorkspaceState("loading");
-    setWorkspace(null);
+    setWorkspaces([]);
     try {
-      const response = await fetch("/api/v1/account/workspace", { cache: "no-store" });
+      const response = await fetch("/api/v1/account/workspaces", { cache: "no-store" });
       if (response.status === 401) {
         setSignedIn(false);
         setWorkspaceState("none");
@@ -49,12 +50,18 @@ export function DeviceApprovalClient({
         setWorkspaceState("error");
         return;
       }
-      const body = await response.json() as { workspace?: Workspace | null };
-      if (body.workspace) {
-        setWorkspace(body.workspace);
+      const body = await response.json() as { workspaces?: Workspace[] };
+      const nextWorkspaces = Array.isArray(body.workspaces) ? body.workspaces : [];
+      setWorkspaces(nextWorkspaces);
+      setSelectedWorkspaceId((current) => nextWorkspaces.some((workspace) => workspace.id === current)
+        ? current
+        : nextWorkspaces.length === 1 ? nextWorkspaces[0].id : "");
+      if (nextWorkspaces.length === 0) {
+        setWorkspaceState("none");
+      } else if (nextWorkspaces.length === 1) {
         setWorkspaceState("ready");
       } else {
-        setWorkspaceState("none");
+        setWorkspaceState("select");
       }
     } catch {
       setWorkspaceState("error");
@@ -79,6 +86,7 @@ export function DeviceApprovalClient({
   }, [loadWorkspace, normalizedCode]);
 
   const approve = async () => {
+    const workspace = workspaces.find((item) => item.id === selectedWorkspaceId);
     if (!normalizedCode || !signedIn || !workspace) return;
     setWorking(true);
     setError("");
@@ -133,7 +141,8 @@ export function DeviceApprovalClient({
         setError(body.error || "Could not create your workspace. Please try again.");
         setWorkspaceState("error");
       } else {
-        setWorkspace(body.workspace);
+        setWorkspaces([body.workspace]);
+        setSelectedWorkspaceId(body.workspace.id);
         setWorkspaceState("ready");
         trackActivationEvent("workspace_created");
       }
@@ -166,7 +175,7 @@ export function DeviceApprovalClient({
           {["Authenticate securely", "Choose a workspace", "Approve the CLI session"].map((item) => <div key={item} className="border border-line bg-white p-3 text-xs leading-relaxed text-muted"><ShieldCheck size={15} className="mb-2 text-brand" />{item}</div>)}
         </div>
         {signedIn === false && <div className="mt-6 rounded-xl border border-brand/25 bg-brand-soft/35 p-4"><p className="text-sm font-medium text-ink">Sign in before approving</p><p className="mt-1 text-xs leading-relaxed text-muted">Your existing signup, email verification, SSO, and MFA flow remains in control of identity.</p><div className="mt-3 flex flex-wrap gap-2"><Link href={authLink(normalizedCode!, "signin")} className="inline-flex items-center gap-2 rounded-md bg-ink px-3 py-2 text-xs font-semibold text-white">Sign in <ArrowRight size={13} /></Link><Link href={authLink(normalizedCode!, "signup")} className="inline-flex items-center gap-2 rounded-md border border-line-strong bg-white px-3 py-2 text-xs font-semibold text-body">Create account</Link></div></div>}
-        {signedIn && <div className="mt-6 rounded-xl border border-line bg-paper p-4">{workspaceState === "loading" && <p className="text-sm text-muted">Loading your workspace…</p>}{workspaceState === "error" && <><p className="text-sm font-medium text-ink">Workspace service unavailable</p><p className="mt-1 text-xs leading-relaxed text-muted">We could not load your workspace. No key was created.</p><button type="button" onClick={() => void loadWorkspace()} disabled={working} className="mt-4 inline-flex items-center gap-2 rounded-md border border-line-strong bg-white px-4 py-2.5 text-sm font-semibold text-body disabled:opacity-60">Try again <ArrowRight size={13} /></button></>}{workspaceState === "none" && <><p className="text-sm font-medium text-ink">Workspace setup required</p><p className="mt-1 text-xs leading-relaxed text-muted">Create a workspace first. No connection key is created by this step.</p><button type="button" onClick={() => void createWorkspace()} disabled={working} className="mt-4 inline-flex items-center gap-2 rounded-md bg-ink px-4 py-2.5 text-sm font-semibold text-white disabled:opacity-60">{working ? "Creating workspace…" : "Create workspace to continue"}<ArrowRight size={13} /></button></>}{workspaceState === "ready" && workspace && <><p className="text-sm font-medium text-ink">Workspace: {workspace.name}</p><p className="mt-1 text-xs leading-relaxed text-muted">Approval authorizes the CLI session. The CLI redeems the one-time key.</p><button type="button" onClick={() => void approve()} disabled={working} className="mt-4 inline-flex items-center gap-2 rounded-md bg-ink px-4 py-2.5 text-sm font-semibold text-white disabled:opacity-60"><KeyRound size={15} />{working ? "Approving…" : "Approve CLI connection"}</button></>}{error && <p className="mt-3 text-xs text-amber-700">{error}</p>}</div>}
+        {signedIn && <div className="mt-6 rounded-xl border border-line bg-paper p-4">{workspaceState === "loading" && <p className="text-sm text-muted">Loading your workspaces…</p>}{workspaceState === "error" && <><p className="text-sm font-medium text-ink">Workspace service unavailable</p><p className="mt-1 text-xs leading-relaxed text-muted">We could not load your workspaces. No key was created.</p><button type="button" onClick={() => void loadWorkspace()} disabled={working} className="mt-4 inline-flex items-center gap-2 rounded-md border border-line-strong bg-white px-4 py-2.5 text-sm font-semibold text-body disabled:opacity-60">Try again <ArrowRight size={13} /></button></>}{workspaceState === "none" && <><p className="text-sm font-medium text-ink">Workspace setup required</p><p className="mt-1 text-xs leading-relaxed text-muted">Create a workspace first. No connection key is created by this step.</p><button type="button" onClick={() => void createWorkspace()} disabled={working} className="mt-4 inline-flex items-center gap-2 rounded-md bg-ink px-4 py-2.5 text-sm font-semibold text-white disabled:opacity-60">{working ? "Creating workspace…" : "Create workspace to continue"}<ArrowRight size={13} /></button></>}{workspaceState === "select" && <><label htmlFor="device-workspace" className="text-sm font-medium text-ink">Choose a workspace</label><p className="mt-1 text-xs leading-relaxed text-muted">Select where this CLI connection should send telemetry.</p><select id="device-workspace" value={selectedWorkspaceId} onChange={(event) => setSelectedWorkspaceId(event.target.value)} className="mt-4 w-full rounded-md border border-line-strong bg-white px-3 py-2.5 text-sm text-body"><option value="">Select a workspace…</option>{workspaces.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</select><button type="button" onClick={() => void approve()} disabled={working || !selectedWorkspaceId} className="mt-4 inline-flex items-center gap-2 rounded-md bg-ink px-4 py-2.5 text-sm font-semibold text-white disabled:opacity-60"><KeyRound size={15} />{working ? "Approving…" : "Approve CLI connection"}</button></>}{workspaceState === "ready" && workspaces[0] && <><p className="text-sm font-medium text-ink">Workspace: {workspaces[0].name}</p><p className="mt-1 text-xs leading-relaxed text-muted">Approval authorizes the CLI session. The CLI redeems the one-time key.</p><button type="button" onClick={() => void approve()} disabled={working} className="mt-4 inline-flex items-center gap-2 rounded-md bg-ink px-4 py-2.5 text-sm font-semibold text-white disabled:opacity-60"><KeyRound size={15} />{working ? "Approving…" : "Approve CLI connection"}</button></>}{error && <p className="mt-3 text-xs text-amber-700">{error}</p>}</div>}
         {signedIn === null && <p className="mt-6 text-sm text-muted">Checking your TrackMCP session…</p>}
       </section>
     </main>
