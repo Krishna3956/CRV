@@ -5,6 +5,7 @@ import { test } from "node:test";
 const migration = await readFile(new URL("../../../../supabase/migrations/20261018000001_cli_device_authorization.sql", import.meta.url), "utf8");
 const hardeningMigration = await readFile(new URL("../../../../supabase/migrations/20261018000002_cli_activation_hardening.sql", import.meta.url), "utf8");
 const redeemRoute = await readFile(new URL("../../../../trackmcp-nextjs/src/app/api/v1/cli/device/sessions/redeem/route.ts", import.meta.url), "utf8");
+const approveRoute = await readFile(new URL("../../../../trackmcp-nextjs/src/app/api/v1/cli/device/sessions/approve/route.ts", import.meta.url), "utf8");
 
 test("device migration stores hashes and service-only access", () => {
   assert.match(migration, /device_code_hash text not null unique/);
@@ -47,4 +48,15 @@ test("redemption handles retry, concurrent claim, expiry, replay, and secret bou
   assert.match(redeemRoute, /createDeterministicTrackMCPKey/);
   assert.doesNotMatch(redeemRoute, /console\.(log|error).*generated\.key/);
   assert.doesNotMatch(redeemRoute, /insert\(\{[^}]*api_key:/s);
+});
+
+test("browser approval has an explicit, key-free status contract", () => {
+  for (const status of ["approved", "already_approved", "already_redeemed", "expired", "denied", "invalid"]) assert.match(approveRoute, new RegExp(`status: \\"${status}\\"`));
+  assert.match(approveRoute, /status: "approved"/);
+  assert.match(approveRoute, /status: "already_approved"/);
+  assert.match(approveRoute, /status: "already_redeemed"/);
+  assert.match(approveRoute, /status: "expired"/);
+  assert.match(approveRoute, /status: "denied"/);
+  assert.match(approveRoute, /status: "invalid"/);
+  assert.doesNotMatch(approveRoute, /api_key|createTrackMCPKey|generated\.key/);
 });

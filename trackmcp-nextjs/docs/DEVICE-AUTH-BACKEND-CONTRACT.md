@@ -27,7 +27,26 @@ code is never logged or placed in the browser URL.
 
 Requires the existing Supabase browser session. The body contains
 `user_code` and an explicitly selected `workspace_id`. The user must be a
-workspace member. Returns `{ "status": "approved" }`; it never returns a key.
+workspace member. It never returns a key.
+
+The stable status contract is:
+
+| Condition | HTTP | Body |
+|---|---:|---|
+| normal approval | 200 | `{ "status": "approved" }` |
+| session already approved | 200 | `{ "status": "already_approved" }` |
+| session already redeeming/redeemed | 409 | `{ "status": "already_redeemed" }` |
+| expired | 410 | `{ "status": "expired" }` |
+| denied or workspace not accessible | 403/409 | `{ "status": "denied", "reason_category": "user_denied" }` |
+| malformed or unknown code | 400/404 | `{ "status": "invalid" }` |
+| unexpected service failure | 500 | `{ "error": "..." }` with no secret material |
+
+An unexpired `pending` session with a valid authenticated workspace approval
+request follows the normal-approval row and becomes `approved`.
+
+Approval is idempotent: a repeated approval after the first successful update
+returns `already_approved`. Approval never creates or redeems a key; only the
+CLI redemption endpoint can receive the raw key.
 
 ## Poll
 
