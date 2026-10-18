@@ -19,6 +19,12 @@ test("device approval preserves auth handoff and CLI-only redemption", () => {
   assert.match(device, /CLI redeems the one-time key/);
   assert.match(device, /cli_device_auth_approved/);
   assert.match(device, /already_redeemed/);
+  assert.match(device, /unauthenticated/);
+  assert.match(device, /Workspace service unavailable/);
+  assert.match(device, /cli_device_auth_attempted/);
+  assert.match(device, /cli_device_auth_already_approved/);
+  assert.match(device, /cli_device_auth_already_redeemed/);
+  assert.match(device, /cli_device_auth_unavailable/);
   assert.doesNotMatch(device, /api_key/);
   assert.doesNotMatch(device, /device_code/);
 });

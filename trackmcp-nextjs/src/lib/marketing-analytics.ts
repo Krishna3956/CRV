@@ -24,8 +24,14 @@ const ACTIVATION_EVENT_PROPERTIES: Record<string, readonly string[]> = {
   first_event_check_result: ["result"],
   first_telemetry_seen: ["event_count"],
   cli_device_auth_approved: ["client_version"],
+  cli_device_auth_attempted: ["client_version"],
   cli_device_auth_denied: ["client_version", "reason_category"],
   cli_device_auth_expired: ["client_version"],
+  cli_device_auth_already_approved: ["client_version"],
+  cli_device_auth_already_redeemed: ["client_version"],
+  cli_device_auth_invalid: ["client_version"],
+  cli_device_auth_unauthenticated: ["client_version"],
+  cli_device_auth_unavailable: ["client_version"],
 };
 export type ContentAttribution = {
   content_path?: string;

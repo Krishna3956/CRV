@@ -72,9 +72,9 @@ test("real adapter maps the idempotent already-approved success response", async
   assert.deepEqual(await adapter.approve({ userCode: "F7KQ-2M9D", workspaceId: "workspace-1" }), { status: "already_approved" });
 });
 
-test("unauthenticated approval is denied without creating a key", async () => {
+test("unauthenticated approval is distinguished without creating a key", async () => {
   const adapter = createDeviceAuthAdapter(async () => response(401, { error: "Sign in required." }));
-  assert.deepEqual(await adapter.approve({ userCode: "F7KQ-2M9D", workspaceId: "workspace-1" }), { status: "denied", reason_category: "user_denied" });
+  assert.deepEqual(await adapter.approve({ userCode: "F7KQ-2M9D", workspaceId: "workspace-1" }), { status: "unauthenticated" });
 });
 
 test("real adapter treats network/backend failures as unavailable", async () => {
