@@ -97,7 +97,7 @@ test("activation event ingestion is bounded, authenticated, and rejects arbitrar
 
 test("reporting migration exposes an operator-only, bounded cleanup function", () => {
   assert.match(reportingMigration, /create or replace function public\.trackmcp_cleanup_cli_device_sessions/);
-  assert.match(reportingMigration, /p_before > now\(\)/);
+  assert.match(reportingMigration, /p_before > now\(\) - interval '24 hours'/);
   assert.match(reportingMigration, /status in \('denied', 'redeemed', 'expired'\)/);
   assert.match(reportingMigration, /grant execute on function public\.trackmcp_cleanup_cli_device_sessions\(timestamptz\) to service_role/);
 });

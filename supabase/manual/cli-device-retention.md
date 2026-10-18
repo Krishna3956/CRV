@@ -14,9 +14,9 @@ approved scheduler:
 select public.trackmcp_cleanup_cli_device_sessions();
 ```
 
-The function returns the number of deleted rows and rejects a future cleanup
-boundary. To use a fixed audit boundary, pass an explicit timestamp that is not
-in the future:
+The function returns the number of deleted rows and rejects any cleanup
+boundary newer than the 24-hour retention period. To use a fixed audit
+boundary, pass an explicit timestamp at least 24 hours old:
 
 ```sql
 select public.trackmcp_cleanup_cli_device_sessions('2026-10-17T00:00:00Z'::timestamptz);

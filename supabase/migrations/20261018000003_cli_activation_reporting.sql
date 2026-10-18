@@ -58,8 +58,8 @@ as $$
 declare
   deleted_count bigint;
 begin
-  if p_before > now() then
-    raise exception 'cleanup boundary cannot be in the future';
+  if p_before > now() - interval '24 hours' then
+    raise exception 'cleanup boundary must be at least 24 hours old';
   end if;
 
   delete from public.trackmcp_cli_device_sessions
