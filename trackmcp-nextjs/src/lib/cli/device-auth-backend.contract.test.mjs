@@ -5,6 +5,8 @@ import { test } from "node:test";
 const migration = await readFile(new URL("../../../../supabase/migrations/20261018000001_cli_device_authorization.sql", import.meta.url), "utf8");
 const hardeningMigration = await readFile(new URL("../../../../supabase/migrations/20261018000002_cli_activation_hardening.sql", import.meta.url), "utf8");
 const redeemRoute = await readFile(new URL("../../../../trackmcp-nextjs/src/app/api/v1/cli/device/sessions/redeem/route.ts", import.meta.url), "utf8");
+const redemptionState = await readFile(new URL("../../../../trackmcp-nextjs/src/lib/cli/redemption-state.ts", import.meta.url), "utf8");
+const keySource = await readFile(new URL("../../../../trackmcp-nextjs/src/lib/telemetry/keys.ts", import.meta.url), "utf8");
 const approveRoute = await readFile(new URL("../../../../trackmcp-nextjs/src/app/api/v1/cli/device/sessions/approve/route.ts", import.meta.url), "utf8");
 
 test("device migration stores hashes and service-only access", () => {
@@ -48,6 +50,17 @@ test("redemption handles retry, concurrent claim, expiry, replay, and secret bou
   assert.match(redeemRoute, /createDeterministicTrackMCPKey/);
   assert.doesNotMatch(redeemRoute, /console\.(log|error).*generated\.key/);
   assert.doesNotMatch(redeemRoute, /insert\(\{[^}]*api_key:/s);
+  assert.match(redeemRoute, /recoveringRedeeming/);
+  assert.match(redeemRoute, /redemptionAction\(session\.status, existingRedemptionMatches\)/);
+  assert.match(redemptionState, /status === "redeeming" \|\| status === "redeemed"/);
+  assert.match(redemptionState, /redemptionIdMatches \? "recover" : "already_redeemed"/);
+});
+
+test("deterministic key recovery requires a dedicated production secret", () => {
+  assert.match(keySource, /TRACKMCP_DEVICE_KEY_DERIVATION_SECRET/);
+  assert.match(keySource, /TRACKMCP_ALLOW_SERVICE_ROLE_KEY_FALLBACK === "true"/);
+  assert.match(keySource, /NODE_ENV === "development" \|\| env\.NODE_ENV === "test"/);
+  assert.doesNotMatch(keySource, /TRACKMCP_DEVICE_KEY_DERIVATION_SECRET \|\| process\.env\.SUPABASE_SERVICE_ROLE_KEY/);
 });
 
 test("browser approval has an explicit, key-free status contract", () => {

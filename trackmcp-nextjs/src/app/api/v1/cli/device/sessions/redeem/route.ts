@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getSupabaseAdmin } from "@/lib/repository/supabase";
 import { createDeterministicTrackMCPKey } from "@/lib/telemetry/keys";
 import { hashDeviceCode, isExpired, normalizeBounded } from "@/lib/cli/device-auth";
+import { redemptionAction } from "@/lib/cli/redemption-state";
 
 export async function POST(request: Request) {
   const admin = getSupabaseAdmin();
@@ -19,21 +20,25 @@ export async function POST(request: Request) {
   const effectiveRedemptionId = redemptionId || `legacy:${session.id}`;
   const redemptionHash = hashDeviceCode(effectiveRedemptionId);
   const existingRedemptionMatches = session.redemption_id_hash === redemptionHash;
-  if (session.status === "redeemed" && (!existingRedemptionMatches || !session.created_key_id)) return NextResponse.json({ status: "already_redeemed", message: "This device session has already been redeemed." }, { status: 409 });
-  if (session.status === "redeemed" && session.created_key_id) {
+  const action = redemptionAction(session.status, existingRedemptionMatches);
+  if (action === "already_redeemed" || (session.status === "redeemed" && !session.created_key_id)) return NextResponse.json({ status: "already_redeemed", message: "This device session has already been redeemed." }, { status: 409 });
+  if (session.status === "redeemed" && action === "recover" && session.created_key_id) {
     const generated = createDeterministicTrackMCPKey(session.id, effectiveRedemptionId);
     if (!generated) return NextResponse.json({ error: "Device key recovery is not configured." }, { status: 503 });
     const workspace = await admin.from("trackmcp_workspaces").select("id, name, slug").eq("id", session.approved_workspace_id).single();
     if (workspace.error || !workspace.data) return NextResponse.json({ error: "Workspace is unavailable." }, { status: 500 });
     return NextResponse.json({ status: "redeemed", workspace: workspace.data, api_key: generated.key, message: "Copy or store this key now. It will not be shown again." }, { headers: { "cache-control": "no-store" } });
   }
-  if (session.status === "redeeming" && !existingRedemptionMatches) return NextResponse.json({ status: "already_redeemed", message: "This device session is being redeemed." }, { status: 409 });
-  if (isExpired(session.expires_at)) {
+  // A matching retry may recover a key after the key insert succeeded but the
+  // final status update or HTTP response was lost. Do not expire this state.
+  const recoveringRedeeming = session.status === "redeeming" && action === "recover";
+  if (!recoveringRedeeming && isExpired(session.expires_at)) {
     await admin.from("trackmcp_cli_device_sessions").update({ status: "expired" }).eq("id", session.id).in("status", ["pending", "approved"]);
     return NextResponse.json({ status: "expired" }, { status: 410 });
   }
-  if (session.status !== "approved" || !session.approved_user_id || !session.approved_workspace_id) return NextResponse.json({ status: session.status === "denied" ? "denied" : "authorization_pending" });
-  if (session.status === "approved") {
+  if (!recoveringRedeeming && session.status !== "approved") return NextResponse.json({ status: session.status === "denied" ? "denied" : "authorization_pending" });
+  if (!session.approved_user_id || !session.approved_workspace_id) return NextResponse.json({ error: "Device authorization is incomplete." }, { status: 503 });
+  if (!recoveringRedeeming && session.status === "approved") {
     const claimed = await admin.from("trackmcp_cli_device_sessions").update({ status: "redeeming", redeemed_at: new Date().toISOString(), redemption_id_hash: redemptionHash }).eq("id", session.id).eq("status", "approved").select("id").maybeSingle();
     if (claimed.error || !claimed.data) return NextResponse.json({ status: "already_redeemed", message: "This device session is already being redeemed." }, { status: 409 });
   }
