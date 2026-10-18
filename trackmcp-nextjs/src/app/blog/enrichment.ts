@@ -21,6 +21,66 @@ const note = (title: string, c: string, after: number) => ({
 });
 
 export const enrichment: Record<string, Enrichment> = {
+  "trackmcp-one-command-cli-init": {
+    art: "protocol",
+    takeaways: [
+      "The CLI owns project setup while the browser owns identity, verification, workspace choice, and approval.",
+      "The raw connection key is redeemed by the CLI and never displayed in the browser or placed in a URL.",
+      "A successful setup exchange is not the same as an accepted telemetry event; verify one real tool call.",
+    ],
+    inserts: [
+      fig("protocol", "One explicit terminal command connects a project through a browser-assisted device approval flow.", 2),
+      note("The boundary matters", "The browser approves a short-lived session. The CLI redeems the one-time key and stores it locally.", 7),
+    ],
+  },
+  "mcp-server-conformance-testing-ci": {
+    art: "protocol",
+    takeaways: [
+      "Conformance tests verify scoped protocol requirements, not the correctness or safety of every workflow.",
+      "Run a separate pinned requirement set for each MCP revision you claim to support.",
+      "Add client, authorization, business-contract, and side-effect tests around the conformance suite.",
+    ],
+    inserts: [
+      fig("protocol", "A CI gate combines wire-level conformance with the application contracts and outcomes your users depend on.", 3),
+      note("Report the scope", "A green result is meaningful only alongside its protocol revision, requirements, transport, and test environment.", 9),
+    ],
+  },
+  "mcp-apps-security-observability-boundaries": {
+    art: "layers",
+    takeaways: [
+      "An MCP App crosses host, sandboxed view, and server trust boundaries.",
+      "CSP and iframe isolation reduce risk, but do not replace reviewing UI content or server authorization.",
+      "Server telemetry cannot explain every browser or host rendering failure.",
+    ],
+    inserts: [
+      fig("layers", "Host, iframe view, and MCP server each own different controls and different evidence.", 3),
+      note("Enforce on the server", "UI visibility can guide host routing. Validate identity and authorization again for every tool request.", 9),
+    ],
+  },
+  "mcp-resource-subscriptions-cache-invalidation": {
+    art: "clients",
+    takeaways: [
+      "Resource update notifications are freshness signals; re-read the canonical resource after invalidation.",
+      "The 2026-07-28 subscriptions/listen path differs from legacy subscription behavior.",
+      "A reconnect can leave a notification gap, so refresh data whose freshness matters.",
+    ],
+    inserts: [
+      fig("clients", "A subscription signals stale data; the client then refreshes through the normal resource-read path.", 3),
+      note("Assume gaps are possible", "Re-register after reconnect and refresh uncertain cache entries instead of assuming every update was replayed.", 9),
+    ],
+  },
+  "mcp-tool-annotations-safety-enforcement": {
+    art: "schema",
+    takeaways: [
+      "Tool annotations describe expected behavior; they do not enforce access or prevent side effects.",
+      "Test hints against the handler and downstream behavior whenever the tool changes.",
+      "Use server authorization, host confirmation, and sandbox controls for actual enforcement.",
+    ],
+    inserts: [
+      fig("schema", "A declared safety hint, a tested behavior, and an enforced policy are separate kinds of evidence.", 3),
+      note("Hints are not policy", "Never grant privilege because a remote tool claims it is read-only or idempotent.", 9),
+    ],
+  },
   "mcp-protocol-version-negotiation-server-discover": {
     art: "protocol",
     takeaways: [
