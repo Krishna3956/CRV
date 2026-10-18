@@ -8,7 +8,7 @@ import { TrackMCPLogo } from "@/components/TrackMCPLogo";
 import { TrackMCPMark } from "@/components/TrackMCPMark";
 import { sendWeb3Form } from "@/lib/web3forms";
 import { getSupabaseBrowser } from "@/lib/auth/supabase-browser";
-import { saveContentAttribution, trackMarketingEvent } from "@/lib/marketing-analytics";
+import { identifyMarketingUser, saveContentAttribution, trackMarketingEvent } from "@/lib/marketing-analytics";
 
 type AuthStatus = "idle" | "requesting" | "verifying" | "updating" | "error";
 type AuthScreen = "credentials" | "signup-code" | "reset-email" | "reset-code" | "reset-password";
@@ -56,7 +56,16 @@ export default function SignInPage({ initialMode = "signin" }: { initialMode?: "
     if (screen === "signup-code" || screen === "reset-code") codeInputRef.current?.focus();
   }, [screen]);
 
-  const finishAuth = (eventName: "signup_completed" | "signin_completed") => {
+  const finishAuth = async (eventName: "signup_completed" | "signin_completed") => {
+    const { data: { user } } = await getSupabaseBrowser().auth.getUser();
+    if (user) {
+      const metadata = user.user_metadata || {};
+      identifyMarketingUser(user.id, {
+        first_name: metadata.first_name,
+        last_name: metadata.last_name,
+        company_name: metadata.company_name,
+      });
+    }
     trackMarketingEvent(eventName, { auth_mode: mode });
     router.replace("/dashboard");
   };
@@ -145,7 +154,7 @@ export default function SignInPage({ initialMode = "signin" }: { initialMode?: "
         return;
       }
       if (data.session) {
-        finishAuth("signup_completed");
+        await finishAuth("signup_completed");
         return;
       }
       setEmail(normalizedEmail);
@@ -169,7 +178,7 @@ export default function SignInPage({ initialMode = "signin" }: { initialMode?: "
       setStatus("error");
       return;
     }
-    finishAuth("signin_completed");
+    await finishAuth("signin_completed");
   };
 
   const verifyCode = async (event: React.FormEvent) => {
@@ -191,7 +200,7 @@ export default function SignInPage({ initialMode = "signin" }: { initialMode?: "
       setScreen("reset-password");
       return;
     }
-    finishAuth("signup_completed");
+    await finishAuth("signup_completed");
   };
 
   const updatePassword = async (event: React.FormEvent) => {
@@ -213,7 +222,7 @@ export default function SignInPage({ initialMode = "signin" }: { initialMode?: "
       return;
     }
     trackMarketingEvent("password_set", { auth_mode: "signin" });
-    finishAuth("signin_completed");
+    await finishAuth("signin_completed");
   };
 
   const resendCode = async () => {

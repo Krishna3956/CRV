@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import {
   Rocket,
@@ -55,18 +55,41 @@ export function SubmitClient() {
   const [wantsFeatured, setWantsFeatured] = useState(false);
   const [status, setStatus] = useState<"idle" | "loading" | "done" | "error">("idle");
   const [message, setMessage] = useState("");
+  const formStarted = useRef(false);
+  const formSessionId = useRef<string | null>(null);
   const urlValid = URL_RE.test(url);
+
+  const getFormSessionId = () => {
+    if (!formSessionId.current) formSessionId.current = crypto.randomUUID();
+    return formSessionId.current;
+  };
 
   useEffect(() => {
     captureSubmissionAttribution();
   }, []);
 
+  const markFormStarted = () => {
+    if (formStarted.current) return;
+    formStarted.current = true;
+    trackMarketingEvent("submission_form_started", {
+      form_session_id: getFormSessionId(),
+      landing_pathname: window.location.pathname,
+    });
+  };
+
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
+    markFormStarted();
     setStatus("loading");
     setMessage("");
+    const submissionEventId = crypto.randomUUID();
+    trackMarketingEvent("submission_attempted", {
+      form_session_id: getFormSessionId(),
+      submission_event_id: submissionEventId,
+      has_email: Boolean(email),
+      wants_featured: wantsFeatured,
+    });
     try {
-      const submissionEventId = crypto.randomUUID();
       const submissionAttribution = captureSubmissionAttribution();
       const res = await fetch("/api/repository/submit", {
         method: "POST",
@@ -75,6 +98,11 @@ export function SubmitClient() {
       });
       const data = await res.json();
       if (!res.ok) {
+        trackMarketingEvent("submission_failed", {
+          submission_event_id: submissionEventId,
+          failure_kind: "validation_or_server",
+          status_code: res.status,
+        });
         setStatus("error");
         setMessage(data.error || "Failed to submit tool.");
         return;
@@ -99,6 +127,10 @@ export function SubmitClient() {
       });
       setStatus("done");
     } catch {
+      trackMarketingEvent("submission_failed", {
+        submission_event_id: submissionEventId,
+        failure_kind: "network_or_client",
+      });
       setStatus("error");
       setMessage("Something went wrong. Please try again.");
     }
@@ -171,7 +203,19 @@ export function SubmitClient() {
               Just two fields. Takes two minutes. We handle the rest.
             </p>
 
-            <form onSubmit={submit} className="mt-5 space-y-5">
+            <form
+              onSubmit={submit}
+              onFocusCapture={markFormStarted}
+              onInvalidCapture={(event) => {
+                const target = event.target as HTMLInputElement;
+                trackMarketingEvent("submission_field_error", {
+                  form_session_id: getFormSessionId(),
+                  field: target.id || "unknown",
+                  error_kind: target.validity.typeMismatch ? "invalid_format" : "required",
+                });
+              }}
+              className="mt-5 space-y-5"
+            >
               <div>
                 <label htmlFor="gh" className="mb-1.5 flex items-center gap-1.5 text-[13px] font-medium text-body">
                   <GitBranch size={14} className="text-brand-strong" /> GitHub repository{" "}
