@@ -93,11 +93,16 @@ export async function runInit({ cwd = process.cwd(), flags = {}, client = create
     } catch {
       keyStatus = { category: "network_error" };
     }
-    if (keyStatus.category === "accepted_telemetry" || keyStatus.category === "no_accepted_telemetry") {
+    const validCategories = new Set(["accepted_telemetry", "no_accepted_telemetry"]);
+    const replacementCategories = new Set(["malformed", "invalid", "revoked", "unauthorized", "permission_denied"]);
+    const reusable = validCategories.has(keyStatus.category)
+      && keyStatus.workspaceAvailable !== false
+      && keyStatus.serviceAvailable !== false;
+    if (reusable) {
       outputLog(`TrackMCP is already connected (${existing.source}). No browser authorization was needed.`);
       return { status: "existing_key", source: existing.source, keyStatus: keyStatus.category };
     }
-    if (keyStatus.category !== "invalid" && keyStatus.category !== "revoked") {
+    if (!replacementCategories.has(keyStatus.category)) {
       errorLog(`Could not validate the existing TrackMCP key (${keyStatus.category || "unavailable"}). No key was changed; check your network and run init again.`);
       return { status: "key_status_unavailable", category: keyStatus.category || "unavailable" };
     }

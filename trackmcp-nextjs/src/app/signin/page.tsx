@@ -271,7 +271,9 @@ export default function SignInPage({ initialMode = "signin" }: { initialMode?: "
     setEmailCheckStatus("idle");
     setPassword("");
     setConfirmPassword("");
-    router.replace(nextMode === "signup" ? "/signup" : "/signin");
+    const path = nextMode === "signup" ? "/signup" : "/signin";
+    const next = nextPath.current;
+    router.replace(next === "/dashboard" ? path : `${path}?${new URLSearchParams({ next }).toString()}`);
   };
 
   const codeStep = screen === "signup-code";

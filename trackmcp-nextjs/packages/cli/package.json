@@ -7,10 +7,12 @@
   "files": ["bin", "lib", "README.md"],
   "keywords": ["mcp", "trackmcp", "observability"],
   "license": "MIT",
-  "repository": { "type": "git", "url": "https://github.com/Krishna3956/CRV/tree/main/trackmcp-web/packages/cli" },
+  "repository": { "type": "git", "url": "https://github.com/Krishna3956/CRV/tree/main/trackmcp-nextjs/packages/cli" },
+  "publishConfig": { "access": "public" },
   "engines": { "node": ">=18" },
   "scripts": {
     "test": "node --test test/*.test.mjs",
-    "test:packed-consumer": "node --test test/packed-consumer.test.mjs"
+    "test:packed-consumer": "node --test test/packed-consumer.test.mjs",
+    "prepublishOnly": "npm test"
   }
 }

@@ -14,6 +14,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
+      id-token: write
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -28,13 +29,18 @@ jobs:
         working-directory: trackmcp-nextjs/packages/typescript-sdk
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-        run: npm ci && npm publish --access public
-      - name: Publish TrackMCP CLI
-        if: inputs.package == 'cli'
-        working-directory: trackmcp-nextjs/packages/cli
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-        run: npm publish --access public
+        run: |
+          set -euo pipefail
+          npm ci
+          npm test
+          npm run build
+          npm pack --dry-run --json > /tmp/trackmcp-sdk-pack.json
+          PACKAGE_VERSION=$(node -p 'require("./package.json").version')
+          if npm view "@trackmcp/sdk@${PACKAGE_VERSION}" version --json >/dev/null 2>&1; then
+            echo "@trackmcp/sdk@${PACKAGE_VERSION} already exists on npm; bump the package version before publishing."
+            exit 1
+          fi
+          npm publish --provenance --access public
       - name: Publish Python SDK
         if: inputs.package == 'python'
         working-directory: packages/python-sdk
@@ -42,3 +48,19 @@ jobs:
           TWINE_USERNAME: __token__
           TWINE_PASSWORD: ${{ secrets.PYPI_TOKEN }}
         run: python -m pip install build twine && python -m build && python -m twine upload dist/*
+      - name: Publish TrackMCP CLI
+        if: inputs.package == 'cli'
+        working-directory: trackmcp-nextjs/packages/cli
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          set -euo pipefail
+          npm ci
+          npm test
+          npm pack --dry-run --json > /tmp/trackmcp-cli-pack.json
+          PACKAGE_VERSION=$(node -p 'require("./package.json").version')
+          if npm view "@trackmcp/cli@${PACKAGE_VERSION}" version --json >/dev/null 2>&1; then
+            echo "@trackmcp/cli@${PACKAGE_VERSION} already exists on npm; bump the package version before publishing."
+            exit 1
+          fi
+          npm publish --provenance --access public

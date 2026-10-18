@@ -15,9 +15,10 @@ const response = (body, status = 200, extraHeaders = {}) => new Response(JSON.st
 
 test("device start uses bounded non-secret metadata and prints no device code", async () => {
   let request;
+  const packageJson = JSON.parse(await readFile(new URL("../package.json", import.meta.url), "utf8"));
   const client = createDeviceClient({ apiBaseUrl: "https://app.trackmcp.test", fetchImpl: async (_url, init) => { request = JSON.parse(init.body); return response({ device_code: "opaque-device-secret", user_code: "F7KQ-2M9D", verification_uri: "https://app.trackmcp.test/device", verification_uri_complete: "https://app.trackmcp.test/device?user_code=F7KQ-2M9D", expires_in: 600, interval: 5 }); } });
   const session = await client.startSession();
-  assert.deepEqual(request, { client_version: "0.1.0", platform: `${process.platform}-${process.arch}`, package_manager: "npm", sdk_package: "@trackmcp/sdk" });
+  assert.deepEqual(request, { client_version: packageJson.version, platform: `${process.platform}-${process.arch}`, package_manager: "npm", sdk_package: "@trackmcp/sdk" });
   assert.equal(session.deviceCode, "opaque-device-secret");
   assert.equal(session.userCode, "F7KQ-2M9D");
 });
@@ -174,7 +175,7 @@ test("init installs the SDK, skips the browser for an existing key, and prints t
     cwd,
     env: { TRACKMCP_KEY: key },
     interactive: true,
-    client: { keyStatus: async (value) => { assert.equal(value, key); return { category: "no_accepted_telemetry" }; } },
+    client: { keyStatus: async (value) => { assert.equal(value, key); return { category: "no_accepted_telemetry", workspaceAvailable: true, serviceAvailable: true }; } },
     outputLog: (line) => logs.push(String(line)),
     ensureSdkInstalledImpl: async () => { installed += 1; return { installed: true, alreadyPresent: false, packageManager: "npm" }; },
   });
@@ -254,6 +255,22 @@ test("init does not overwrite an invalid key in non-interactive mode", async () 
   assert.equal(logs.some((line) => line.includes("invalid or revoked")), true);
   assert.equal(logs.some((line) => line.includes("no key was changed")), true);
   assert.equal(logs.some((line) => line.includes(key)), false);
+});
+
+test("init stops without changing a key whose workspace or service is unavailable", async () => {
+  let started = false;
+  const result = await runInit({
+    env: { TRACKMCP_KEY: key },
+    client: {
+      keyStatus: async () => ({ category: "no_accepted_telemetry", workspaceAvailable: false, serviceAvailable: true }),
+      startSession: async () => { started = true; },
+    },
+    interactive: false,
+    ensureSdkInstalledImpl: async () => ({ installed: true }),
+    errorLog: () => {},
+  });
+  assert.equal(result.status, "key_status_unavailable");
+  assert.equal(started, false);
 });
 
 test("SDK installer uses the detected package manager and verifies the package", async () => {

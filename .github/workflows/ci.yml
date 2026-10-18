@@ -26,6 +26,9 @@ jobs:
       - name: Test TypeScript SDK
         working-directory: trackmcp-nextjs/packages/typescript-sdk
         run: npm test
+      - name: Test TrackMCP CLI
+        working-directory: trackmcp-nextjs/packages/cli
+        run: npm ci && npm test
       - name: Test Python SDK
         working-directory: packages/python-sdk
         run: python3 -m unittest discover -s tests -v
