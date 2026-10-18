@@ -8,7 +8,7 @@ import { getSupabaseBrowser } from "@/lib/auth/supabase-browser";
 import { trackActivationEvent } from "@/lib/marketing-analytics";
 import {
   normalizeDeviceUserCode,
-  unavailableDeviceAuthAdapter,
+  createDeviceAuthAdapter,
   type DeviceAuthAdapter,
   type DeviceSessionState,
 } from "@/lib/device-auth";
@@ -22,7 +22,7 @@ function authLink(userCode: string, mode: "signin" | "signup") {
 
 export function DeviceApprovalClient({
   userCode,
-  adapter = unavailableDeviceAuthAdapter,
+  adapter = createDeviceAuthAdapter(),
 }: {
   userCode: string | null;
   adapter?: DeviceAuthAdapter;
@@ -56,8 +56,7 @@ export function DeviceApprovalClient({
     setError("");
     const result = await adapter.approve({
       userCode: normalizedCode,
-      workspaceId: workspace?.id || null,
-      createInitialKey: true,
+      workspaceId: workspace.id,
     });
     if (result.status === "approved") {
       trackActivationEvent("cli_device_auth_approved", { client_version: "browser" });
@@ -67,10 +66,14 @@ export function DeviceApprovalClient({
       setStatus("expired");
     } else if (result.status === "already_redeemed") {
       setStatus("already_redeemed");
+    } else if (result.status === "already_approved") {
+      setStatus("already_approved");
+    } else if (result.status === "invalid") {
+      setStatus("invalid");
     } else {
       trackActivationEvent("cli_device_auth_denied", { client_version: "browser", reason_category: result.reason_category });
       setStatus("denied");
-      if (result.reason_category === "unavailable") setError("The device authorization service is not available yet. Please try again when the CLI backend is enabled.");
+      if (result.reason_category === "unavailable") setError("The device authorization service is temporarily unavailable. Please try again shortly.");
     }
     setWorking(false);
   };
@@ -105,16 +108,16 @@ export function DeviceApprovalClient({
       <section className="mx-auto max-w-xl rounded-2xl border border-line bg-white p-6 shadow-sm sm:p-9">
         <p className="text-xs font-semibold uppercase tracking-[0.12em] text-brand-strong">TrackMCP device setup</p>
         <h1 className="mt-3 text-3xl font-medium tracking-[-0.03em] text-ink">Approve this CLI connection</h1>
-        <p className="mt-3 text-sm leading-relaxed text-muted">The TrackMCP CLI is asking to connect this project to your workspace. Approving creates one initial connection key for the CLI; the raw key is returned only to the terminal and is never shown in this browser page.</p>
+        <p className="mt-3 text-sm leading-relaxed text-muted">The TrackMCP CLI is asking to connect this project to your workspace. Approving authorizes the CLI session; the CLI redeems the one-time key and the raw key is never shown in this browser page.</p>
         <div className="mt-6 rounded-xl border border-line bg-paper p-4 text-center">
           <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-faint">One-time code</p>
           <p className="mt-2 font-mono text-2xl tracking-[0.16em] text-ink">{normalizedCode}</p>
         </div>
         <div className="mt-6 grid gap-3 sm:grid-cols-3">
-          {["Authenticate securely", "Choose a workspace", "Create one connection key"].map((item) => <div key={item} className="border border-line bg-white p-3 text-xs leading-relaxed text-muted"><ShieldCheck size={15} className="mb-2 text-brand" />{item}</div>)}
+          {["Authenticate securely", "Choose a workspace", "Approve the CLI session"].map((item) => <div key={item} className="border border-line bg-white p-3 text-xs leading-relaxed text-muted"><ShieldCheck size={15} className="mb-2 text-brand" />{item}</div>)}
         </div>
         {signedIn === false && <div className="mt-6 rounded-xl border border-brand/25 bg-brand-soft/35 p-4"><p className="text-sm font-medium text-ink">Sign in before approving</p><p className="mt-1 text-xs leading-relaxed text-muted">Your existing signup, email verification, SSO, and MFA flow remains in control of identity.</p><div className="mt-3 flex flex-wrap gap-2"><Link href={authLink(normalizedCode!, "signin")} className="inline-flex items-center gap-2 rounded-md bg-ink px-3 py-2 text-xs font-semibold text-white">Sign in <ArrowRight size={13} /></Link><Link href={authLink(normalizedCode!, "signup")} className="inline-flex items-center gap-2 rounded-md border border-line-strong bg-white px-3 py-2 text-xs font-semibold text-body">Create account</Link></div></div>}
-        {signedIn && <div className="mt-6 rounded-xl border border-line bg-paper p-4"><p className="text-sm font-medium text-ink">{workspace ? `Workspace: ${workspace.name}` : "Workspace setup required"}</p><p className="mt-1 text-xs leading-relaxed text-muted">{workspace ? "The approval action will create one initial key only after you explicitly approve it." : "Create a workspace first. No connection key is created by this step."}</p>{workspace ? <button type="button" onClick={() => void approve()} disabled={working} className="mt-4 inline-flex items-center gap-2 rounded-md bg-ink px-4 py-2.5 text-sm font-semibold text-white disabled:opacity-60"><KeyRound size={15} />{working ? "Approving…" : "Approve and create connection key"}</button> : <button type="button" onClick={() => void createWorkspace()} disabled={working} className="mt-4 inline-flex items-center gap-2 rounded-md bg-ink px-4 py-2.5 text-sm font-semibold text-white disabled:opacity-60">{working ? "Creating workspace…" : "Create workspace to continue"}<ArrowRight size={13} /></button>}{error && <p className="mt-3 text-xs text-amber-700">{error}</p>}</div>}
+        {signedIn && <div className="mt-6 rounded-xl border border-line bg-paper p-4"><p className="text-sm font-medium text-ink">{workspace ? `Workspace: ${workspace.name}` : "Workspace setup required"}</p><p className="mt-1 text-xs leading-relaxed text-muted">{workspace ? "Approval authorizes the CLI session. The CLI redeems the one-time key." : "Create a workspace first. No connection key is created by this step."}</p>{workspace ? <button type="button" onClick={() => void approve()} disabled={working} className="mt-4 inline-flex items-center gap-2 rounded-md bg-ink px-4 py-2.5 text-sm font-semibold text-white disabled:opacity-60"><KeyRound size={15} />{working ? "Approving…" : "Approve CLI connection"}</button> : <button type="button" onClick={() => void createWorkspace()} disabled={working} className="mt-4 inline-flex items-center gap-2 rounded-md bg-ink px-4 py-2.5 text-sm font-semibold text-white disabled:opacity-60">{working ? "Creating workspace…" : "Create workspace to continue"}<ArrowRight size={13} /></button>}{error && <p className="mt-3 text-xs text-amber-700">{error}</p>}</div>}
         {signedIn === null && <p className="mt-6 text-sm text-muted">Checking your TrackMCP session…</p>}
       </section>
     </main>

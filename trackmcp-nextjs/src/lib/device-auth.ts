@@ -9,16 +9,17 @@ export type DeviceSessionState =
   | "unavailable";
 
 export type DeviceApprovalResult =
-  | { status: "approved"; workspace: { id: string; name: string; slug: string } }
+  | { status: "approved" }
   | { status: "denied"; reason_category: "user_denied" | "unavailable" }
+  | { status: "invalid" }
   | { status: "expired" }
+  | { status: "already_approved" }
   | { status: "already_redeemed" };
 
 export type DeviceAuthAdapter = {
   approve: (input: {
     userCode: string;
-    workspaceId: string | null;
-    createInitialKey: boolean;
+    workspaceId: string;
   }) => Promise<DeviceApprovalResult>;
 };
 
@@ -29,16 +30,38 @@ export function normalizeDeviceUserCode(value: string | null | undefined) {
   return USER_CODE_PATTERN.test(normalized) ? normalized : null;
 }
 
-/**
- * The browser approval endpoint is owned by the device-session backend (SDE3).
- * Keep the web flow testable without inventing a second protocol until that
- * endpoint is available.
- */
-export const unavailableDeviceAuthAdapter: DeviceAuthAdapter = {
-  async approve() {
-    return { status: "denied", reason_category: "unavailable" };
-  },
-};
+type DeviceApprovalResponse = { status?: unknown; reason_category?: unknown };
+
+/** The browser approves a session; only the CLI redeems the key. */
+export function createDeviceAuthAdapter(fetchImpl: typeof fetch = fetch): DeviceAuthAdapter {
+  return {
+    async approve({ userCode, workspaceId }) {
+      try {
+        const response = await fetchImpl("/api/v1/cli/device/sessions/approve", {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({ user_code: userCode, workspace_id: workspaceId }),
+          cache: "no-store",
+        });
+        let body: DeviceApprovalResponse = {};
+        try { body = await response.json() as DeviceApprovalResponse; } catch { /* status is authoritative */ }
+        if (response.ok && body.status === "approved") return { status: "approved" };
+        if (response.status === 400 || response.status === 404) return { status: "invalid" };
+        if (response.status === 401 || response.status === 403) return { status: "denied", reason_category: "user_denied" };
+        if (response.status === 410 || body.status === "expired") return { status: "expired" };
+        if (response.status === 409) {
+          if (body.status === "already_approved") return { status: "already_approved" };
+          if (body.status === "already_redeemed") return { status: "already_redeemed" };
+          if (body.status === "denied") return { status: "denied", reason_category: "user_denied" };
+          return { status: "denied", reason_category: "user_denied" };
+        }
+        return { status: "denied", reason_category: "unavailable" };
+      } catch {
+        return { status: "denied", reason_category: "unavailable" };
+      }
+    },
+  };
+}
 
 export function fixtureDeviceAuthAdapter(
   result: DeviceApprovalResult,
