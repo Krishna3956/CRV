@@ -10,7 +10,7 @@ import { isUsableKey, readConfiguredKey, writeEnvKey } from "../lib/storage.mjs"
 import { main, runDoctor, runInit } from "../bin/trackmcp.mjs";
 
 const key = "tmcp_cli_test_key_12345678901234567890";
-const response = (body, status = 200) => new Response(JSON.stringify(body), { status, headers: { "content-type": "application/json" } });
+const response = (body, status = 200, extraHeaders = {}) => new Response(JSON.stringify(body), { status, headers: { "content-type": "application/json", ...extraHeaders } });
 
 test("device start uses bounded non-secret metadata and prints no device code", async () => {
   let request;
@@ -19,6 +19,13 @@ test("device start uses bounded non-secret metadata and prints no device code", 
   assert.deepEqual(request, { client_version: "0.1.0", platform: `${process.platform}-${process.arch}`, package_manager: "npm", sdk_package: "@trackmcp/sdk" });
   assert.equal(session.deviceCode, "opaque-device-secret");
   assert.equal(session.userCode, "F7KQ-2M9D");
+});
+
+test("verification URLs require HTTPS unless explicitly enabled for local tests", async () => {
+  const fetchImpl = async () => response({ device_code: "opaque-device-secret", user_code: "F7KQ-2M9D", verification_uri: "http://localhost:3000/device", expires_in: 600, interval: 5 }, 201);
+  await assert.rejects(() => createDeviceClient({ apiBaseUrl: "https://app.trackmcp.test", fetchImpl }).startSession(), /invalid verification URL/);
+  const local = await createDeviceClient({ apiBaseUrl: "https://app.trackmcp.test", fetchImpl, allowInsecureVerificationUrl: true }).startSession();
+  assert.equal(local.verificationUri, "http://localhost:3000/device");
 });
 
 test("browser opener handles success and failure without shell interpolation", async () => {
@@ -55,6 +62,98 @@ test("polling has a local timeout and redemption is replay protected", async () 
   assert.equal((await redeem("opaque")).apiKey, key);
   assert.equal((await redeem("opaque")).status, "already_redeemed");
   assert.equal(calls, 1);
+});
+
+test("polling parses expiry and retries rate limits and network failures", async () => {
+  const sleeps = [];
+  let calls = 0;
+  const client = createDeviceClient({
+    apiBaseUrl: "https://app.trackmcp.test",
+    maxRetries: 1,
+    retrySleep: async (milliseconds) => sleeps.push(milliseconds),
+    fetchImpl: async () => {
+      calls += 1;
+      if (calls === 1) return response({ error: "slow down" }, 429, { "retry-after": "2" });
+      if (calls === 2) return response({ status: "authorization_pending", interval: 5 });
+      return response({ status: "expired" }, 410);
+    },
+  });
+  assert.equal((await client.poll("opaque-device-secret")).status, "authorization_pending");
+  assert.equal((await client.poll("opaque-device-secret")).status, "expired");
+  assert.deepEqual(sleeps, [2000]);
+
+  let networkCalls = 0;
+  const network = createDeviceClient({
+    apiBaseUrl: "https://app.trackmcp.test",
+    maxRetries: 2,
+    retrySleep: async (milliseconds) => sleeps.push(milliseconds),
+    fetchImpl: async () => {
+      networkCalls += 1;
+      if (networkCalls < 3) throw new Error("offline");
+      return response({ status: "approved" });
+    },
+  });
+  assert.equal((await network.poll("opaque-device-secret")).status, "approved");
+  assert.equal(networkCalls, 3);
+});
+
+test("redemption keeps one identity across lost-response recovery and parses replay statuses", async () => {
+  const requestBodies = [];
+  let calls = 0;
+  const client = createDeviceClient({
+    apiBaseUrl: "https://app.trackmcp.test",
+    maxRetries: 1,
+    retrySleep: async () => {},
+    fetchImpl: async (_url, init) => {
+      requestBodies.push(JSON.parse(init.body));
+      calls += 1;
+      if (calls === 1) throw new Error("lost response");
+      return response({ api_key: key, workspace: { id: "w", name: "Workspace", slug: "workspace" } }, 201);
+    },
+  });
+  const recovered = await client.redeem("opaque-device-secret");
+  assert.equal(recovered.status, "approved");
+  assert.equal(requestBodies.length, 2);
+  assert.equal(requestBodies[0].redemption_id, requestBodies[1].redemption_id);
+  assert.match(requestBodies[0].redemption_id, /^[a-f0-9]{32}$/);
+
+  const replay = createDeviceClient({ apiBaseUrl: "https://app.trackmcp.test", fetchImpl: async () => response({ status: "already_redeemed" }, 409) });
+  assert.deepEqual(await replay.redeem("opaque-device-secret"), { status: "already_redeemed" });
+  const expired = createDeviceClient({ apiBaseUrl: "https://app.trackmcp.test", fetchImpl: async () => response({ status: "expired" }, 410) });
+  assert.deepEqual(await expired.redeem("opaque-device-secret"), { status: "expired" });
+
+  const rateLimitBodies = [];
+  let rateLimitCalls = 0;
+  const rateLimited = createDeviceClient({
+    apiBaseUrl: "https://app.trackmcp.test",
+    maxRetries: 1,
+    retrySleep: async () => {},
+    fetchImpl: async (_url, init) => {
+      rateLimitBodies.push(JSON.parse(init.body));
+      rateLimitCalls += 1;
+      if (rateLimitCalls === 1) return response({ error: "retry" }, 429, { "retry-after": "1" });
+      return response({ api_key: key }, 201);
+    },
+  });
+  assert.equal((await rateLimited.redeem("opaque-device-secret")).status, "approved");
+  assert.equal(rateLimitBodies[0].redemption_id, rateLimitBodies[1].redemption_id);
+});
+
+test("redeemer preserves identity when a caller retries after a lost response", async () => {
+  const calls = [];
+  let attempt = 0;
+  const redeemer = createRedeemer({
+    redeem: async (_deviceCode, _keyName, options) => {
+      calls.push(options.redemptionId);
+      attempt += 1;
+      if (attempt === 1) throw new Error("lost response");
+      return { status: "approved", apiKey: key };
+    },
+  });
+  await assert.rejects(() => redeemer("opaque-device-secret"), /lost response/);
+  assert.equal((await redeemer("opaque-device-secret")).apiKey, key);
+  assert.equal(calls.length, 2);
+  assert.equal(calls[0], calls[1]);
 });
 
 test("init prints URL before browser open, supports no-browser, and writes an atomic env file", async () => {
@@ -98,8 +197,10 @@ test("CI/non-TTY init refuses to start a browser flow and positional keys are re
 
 test("doctor uses key-status and reachability only, never fake telemetry", async () => {
   const logs = [];
-  const result = await runDoctor({ cwd: await mkdtemp(join(tmpdir(), "trackmcp-cli-")), env: { TRACKMCP_KEY: key }, client: { ingestReachability: async () => ({ reachable: true }), keyStatus: async (value) => { assert.equal(value, key); return { category: "no_accepted_telemetry" }; } }, outputLog: (line) => logs.push(line) });
+  const result = await runDoctor({ cwd: await mkdtemp(join(tmpdir(), "trackmcp-cli-")), env: { TRACKMCP_KEY: key }, client: { ingestReachability: async () => ({ reachable: true }), keyStatus: async (value) => { assert.equal(value, key); return { category: "no_accepted_telemetry", workspaceAvailable: true, serviceAvailable: true }; } }, outputLog: (line) => logs.push(line) });
   assert.equal(result.checks.keyStatus, "no_accepted_telemetry");
+  assert.equal(result.checks.workspace, "available");
+  assert.equal(result.checks.service, "available");
   assert.equal(logs.some((line) => String(line).includes("fake telemetry")), true);
 });
 
@@ -117,4 +218,11 @@ test("doctor key-status categories cover accepted, revoked, unauthorized, permis
   }
   const network = createDeviceClient({ fetchImpl: async () => { throw new Error("network"); } });
   assert.equal((await network.keyStatus(key)).category, "network_error");
+});
+
+test("key-status preserves invalid and revoked responses and availability fields", async () => {
+  const invalid = createDeviceClient({ fetchImpl: async () => response({ status: "invalid", workspace_available: false, service_available: true }, 401) });
+  assert.deepEqual(await invalid.keyStatus(key), { category: "invalid", status: "invalid", workspaceAvailable: false, serviceAvailable: true });
+  const revoked = createDeviceClient({ fetchImpl: async () => response({ status: "revoked", workspace_available: false, service_available: true }, 401) });
+  assert.deepEqual(await revoked.keyStatus(key), { category: "revoked", status: "revoked", workspaceAvailable: false, serviceAvailable: true });
 });

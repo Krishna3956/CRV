@@ -59,8 +59,16 @@ export async function runDoctor({ cwd = process.cwd(), envFile, client = createD
   };
   const reachability = await client.ingestReachability();
   checks.ingest = reachability.reachable ? "reachable" : "network_error";
-  if (configured.key) checks.keyStatus = (await client.keyStatus(configured.key)).category;
-  else checks.keyStatus = "not_checked";
+  if (configured.key) {
+    const keyStatus = await client.keyStatus(configured.key);
+    checks.keyStatus = keyStatus.category;
+    checks.workspace = keyStatus.workspaceAvailable ? "available" : "unavailable";
+    checks.service = keyStatus.serviceAvailable ? "available" : "unavailable";
+  } else {
+    checks.keyStatus = "not_checked";
+    checks.workspace = "not_checked";
+    checks.service = "not_checked";
+  }
   const lines = [
     `Node.js: ${checks.node}`,
     `@trackmcp/sdk: ${checks.sdk}`,
@@ -69,6 +77,8 @@ export async function runDoctor({ cwd = process.cwd(), envFile, client = createD
     `TRACKMCP_KEY: ${checks.key}`,
     `Ingest endpoint: ${checks.ingest}`,
     `Key status: ${checks.keyStatus}`,
+    `Workspace: ${checks.workspace}`,
+    `Service: ${checks.service}`,
   ];
   for (const line of lines) outputLog(line);
   if (configured.key && checks.keyStatus === "no_accepted_telemetry") outputLog("Next step: restart the MCP server and make one real tool call; doctor never sends fake telemetry.");
@@ -112,6 +122,18 @@ export async function runInit({ cwd = process.cwd(), flags = {}, client = create
     return result;
   }
   const redeemed = await createRedeemer(client)(session.deviceCode);
+  if (redeemed.status === "retryable") {
+    errorLog("TrackMCP redemption could not be completed after bounded retries. Run init again to retry with a new device session.");
+    return redeemed;
+  }
+  if (redeemed.status === "expired") {
+    errorLog("The TrackMCP device session expired before redemption. Run npx @trackmcp/cli init to try again.");
+    return redeemed;
+  }
+  if (redeemed.status === "denied") {
+    errorLog("TrackMCP authorization was denied. No credential was written.");
+    return redeemed;
+  }
   if (redeemed.status === "already_redeemed" || !redeemed.apiKey) {
     errorLog("This TrackMCP device session has already been redeemed. Run init again for a new session.");
     return { status: "already_redeemed" };
