@@ -8,7 +8,7 @@ import { TrackMCPLogo } from "@/components/TrackMCPLogo";
 import { TrackMCPMark } from "@/components/TrackMCPMark";
 import { sendWeb3Form } from "@/lib/web3forms";
 import { getSupabaseBrowser } from "@/lib/auth/supabase-browser";
-import { identifyMarketingUser, saveContentAttribution, trackMarketingEvent } from "@/lib/marketing-analytics";
+import { identifyMarketingUser, saveContentAttribution, trackActivationEvent, trackMarketingEvent } from "@/lib/marketing-analytics";
 
 type AuthStatus = "idle" | "requesting" | "verifying" | "updating" | "error";
 type AuthScreen = "credentials" | "signup-code" | "reset-email" | "reset-code" | "reset-password";
@@ -49,7 +49,7 @@ export default function SignInPage({ initialMode = "signin" }: { initialMode?: "
     const params = new URLSearchParams(window.location.search);
     const contentPath = params.get("content_path");
     if (!contentPath) return;
-    saveContentAttribution({ content_path: contentPath, content_cta: params.get("content_cta") || undefined, content_surface: params.get("content_surface") || undefined });
+    saveContentAttribution({ content_path: contentPath, content_cta: params.get("content_cta") || undefined, content_surface: params.get("content_surface") || undefined, package_name: params.get("package") || undefined });
   }, []);
 
   useEffect(() => {
@@ -72,7 +72,7 @@ export default function SignInPage({ initialMode = "signin" }: { initialMode?: "
         company_name: metadata.company_name,
       });
     }
-    trackMarketingEvent(eventName, { auth_mode: mode });
+    trackActivationEvent(eventName, { auth_mode: mode });
     router.replace(nextPath.current);
   };
 

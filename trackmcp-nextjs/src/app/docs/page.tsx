@@ -52,7 +52,7 @@ export default function DocsPage() {
 npx @trackmcp/cli init
 npm i @trackmcp/sdk
 # Remote setup: npx @trackmcp/cli init --no-browser
-# Manual fallback: https://app.trackmcp.com/signup?utm_source=npm&utm_medium=sdk_docs&utm_campaign=sdk_setup
+# Manual fallback: https://app.trackmcp.com/signup?utm_source=npm&utm_medium=sdk_docs&utm_campaign=sdk_setup&package=%40trackmcp%2Fsdk&content_path=%2Fdocs
 
           # Python
           python3 -m pip install trackmcp
