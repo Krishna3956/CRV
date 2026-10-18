@@ -75,13 +75,36 @@ bash deploy/apprunner-deploy.sh
   CloudFront for CDN caching at scale.
 - Supabase is unchanged and independent of this migration.
 
-## Secrets (GITHUB_TOKEN / SUPABASE_SERVICE_ROLE_KEY)
+## Runtime secrets (AWS Secrets Manager)
 These are pulled from **AWS Secrets Manager**, not stored as plaintext env vars.
 Set `SECRETS_ARN` in `deploy/.env.deploy` to a secret **in the same region as the
-service** whose value is JSON like `{"GITHUB_TOKEN":"...","SUPABASE_SERVICE_ROLE_KEY":"..."}`.
+service** whose value is JSON with these keys:
+
+```json
+{
+  "GITHUB_TOKEN": "...",
+  "SUPABASE_SERVICE_ROLE_KEY": "...",
+  "TRACKMCP_DEVICE_KEY_DERIVATION_SECRET": "<dedicated-random-secret>",
+  "TRACKMCP_ADMIN_KEY": "<admin-reporting-secret>"
+}
+```
+
+`TRACKMCP_DEVICE_KEY_DERIVATION_SECRET` is required for CLI device-key
+redemption in production. It must be a dedicated random secret; do not reuse
+the Supabase service-role key. `TRACKMCP_ADMIN_KEY` protects the internal
+activation-funnel report endpoint and must never be exposed to the browser.
+
+The deploy script maps all four values via App Runner
+`RuntimeEnvironmentSecrets`.
+
+For an existing App Runner service, run the deploy script once after adding the
+new JSON keys so the service configuration receives the mappings. The GitHub
+Actions workflow's `start-deployment` step only rolls out the already-configured
+service; it does not add new runtime secret mappings.
+
 The deploy script then:
 - creates an instance role (`AppRunnerInstanceRole`) allowed to `GetSecretValue`, and
-- wires both keys via App Runner `RuntimeEnvironmentSecrets`.
+- wires the configured keys via App Runner `RuntimeEnvironmentSecrets`.
 
 If your secret lives in another region, replicate it into the service region first:
 `aws secretsmanager replicate-secret-to-regions --secret-id <arn> --add-replica-regions Region=<service-region>`.
