@@ -3,13 +3,18 @@ import test from "node:test";
 import { readFile } from "node:fs/promises";
 
 const device = await readFile(new URL("./DeviceApprovalClient.tsx", import.meta.url), "utf8");
+const deviceAuth = await readFile(new URL("../lib/device-auth.ts", import.meta.url), "utf8");
 const dashboard = await readFile(new URL("./dashboard/DashboardApp.tsx", import.meta.url), "utf8");
 const docs = await readFile(new URL("./DocsAnalytics.tsx", import.meta.url), "utf8");
 
-test("device approval preserves auth handoff and explicit key consent", () => {
+test("device approval preserves auth handoff and CLI-only redemption", () => {
   assert.match(device, /user_code/);
   assert.match(device, /Sign in before approving/);
-  assert.match(device, /Approve and create connection key/);
+  assert.match(device, /if \(!data\.user\)/);
+  assert.match(deviceAuth, /\/api\/v1\/cli\/device\/sessions\/approve/);
+  assert.match(deviceAuth, /workspace_id/);
+  assert.match(device, /Approve CLI connection/);
+  assert.match(device, /CLI redeems the one-time key/);
   assert.match(device, /cli_device_auth_approved/);
   assert.match(device, /already_redeemed/);
   assert.doesNotMatch(device, /api_key/);
