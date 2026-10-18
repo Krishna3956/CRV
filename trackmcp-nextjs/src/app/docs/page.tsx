@@ -35,12 +35,6 @@ export default function DocsPage() {
         boundary, keep your tools unchanged, and turn protocol traffic into usage,
         reliability, and outcome signals.
       </DocLead>
-      <div className="mb-8 rounded-xl border border-brand/20 bg-brand-soft/35 px-4 py-3 text-sm leading-relaxed text-body">
-        TrackMCP observes what your MCP server sees: clients, tools, protocol events,
-        redacted payloads, latency, errors, and explicit workflow outcomes. It does not
-        see a host&apos;s private model turn unless you add a separate client-side integration.
-      </div>
-
       <DocSection id="quickstart" title="Quickstart">
         <Para>
           The fastest path is one explicit terminal command: run <Inline>npx @trackmcp/cli init</Inline>.
@@ -78,6 +72,12 @@ export default withTrackMCP(server, {
           exchange alone does not create dashboard telemetry.
         </Para>
       </DocSection>
+
+      <div className="mb-8 rounded-xl border border-brand/20 bg-brand-soft/35 px-4 py-3 text-sm leading-relaxed text-body">
+        TrackMCP observes what your MCP server sees: clients, tools, protocol events,
+        redacted payloads, latency, errors, and explicit workflow outcomes. It does not
+        see a host&apos;s private model turn unless you add a separate client-side integration.
+      </div>
 
       <DocSection id="how-it-works" title="How TrackMCP works">
         <Para>

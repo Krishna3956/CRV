@@ -118,5 +118,9 @@ export async function POST(req: Request) {
 
   revalidatePath("/new", "page");
   revalidatePath("/repository", "page");
+  // The tool sitemap is generated from the same mcp_tools rows. Invalidate it
+  // immediately so a successful submission is discoverable on the next crawl
+  // instead of waiting for the hourly route revalidation window.
+  revalidatePath("/tool-sitemap.xml");
   return NextResponse.json({ ok: true, repo_name: repoData.name, stars: repoData.stargazers_count, submission_event_id: attribution.submission_event_id, submitted_at: submittedAt });
 }

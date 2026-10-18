@@ -3017,7 +3017,7 @@ function SetupView({
 
   const snippets = {
     TypeScript: `npx @trackmcp/cli init\n\nimport { withTrackMCP } from "@trackmcp/sdk";\nexport default withTrackMCP(server, { apiKey: process.env.TRACKMCP_KEY! });`,
-    Python: `python3 -m pip install trackmcp\n\nfrom trackmcp import with_trackmcp\napp = with_trackmcp(server, api_key=os.environ["TRACKMCP_KEY"])`,
+    Python: `python3 -m pip install trackmcp\ntrackmcp init\n\nfrom trackmcp import with_trackmcp\napp = with_trackmcp(server, api_key=os.environ["TRACKMCP_KEY"])`,
   };
   const copy = async () => {
     try {
