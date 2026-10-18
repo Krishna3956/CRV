@@ -2,6 +2,7 @@
 import { createInterface } from "node:readline/promises";
 import { stdin as input, stdout as output } from "node:process";
 import { fileURLToPath } from "node:url";
+import { realpathSync } from "node:fs";
 import { resolve } from "node:path";
 import { createDeviceClient, createRedeemer, pollDeviceSession } from "../lib/device-client.mjs";
 import { openBrowser } from "../lib/browser.mjs";
@@ -176,7 +177,10 @@ export async function main(argv = process.argv.slice(2), dependencies = {}) {
   return result.status === "completed" || result.status === "existing_key" ? 0 : 1;
 }
 
-if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
+// npm invokes package binaries through a symlink in node_modules/.bin. Resolve
+// both paths before comparing them, otherwise the CLI exits silently without
+// running when installed as a dependency or invoked via npx.
+if (process.argv[1] && realpathSync(process.argv[1]) === realpathSync(fileURLToPath(import.meta.url))) {
   try {
     process.exitCode = await main();
   } catch (error) {
