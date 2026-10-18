@@ -380,6 +380,7 @@ refresh(uri):
         "Prints a ready-to-adapt withTrackMCP snippet and the next step: make one real tool call.",
       ]),
       code(`npx @trackmcp/cli init`),
+      p("On the first npx run, npm may ask for confirmation before downloading the CLI. That is the package manager’s normal safety prompt; automation can intentionally use `npx --yes @trackmcp/cli init`. After approval, the terminal saves TRACKMCP_KEY, prints the withTrackMCP wrapper, and lists the final steps: restart the server, make one real tool call, and open the dashboard.") ,
       p("The command is intentionally an explicit action. Installing the SDK or CLI package does not open a browser, create an account, send an install ping, or run an authentication flow. This keeps dependency installation predictable in local development, CI, and production builds."),
       h("Browser-assisted authentication without terminal passwords"),
       p("The terminal starts the device session, but it does not collect an email address or password. The browser hands identity to the existing TrackMCP authentication flow, including email verification, SSO, MFA, and account recovery where configured. After authentication, the user explicitly approves the CLI connection for a selected workspace."),

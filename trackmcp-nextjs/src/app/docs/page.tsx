@@ -71,6 +71,12 @@ export default withTrackMCP(server, {
           inside a successful <Inline>200 OK</Inline> are preserved in the captured
           result.
         </Para>
+        <Para>
+          When <Inline>npx</Inline> asks to download the CLI, confirm the prompt or use
+          <Inline>npx --yes @trackmcp/cli init</Inline> in automation. After the browser
+          approval, restart the server and make one real tool call; a successful key
+          exchange alone does not create dashboard telemetry.
+        </Para>
       </DocSection>
 
       <DocSection id="how-it-works" title="How TrackMCP works">

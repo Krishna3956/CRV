@@ -39,6 +39,13 @@ export default function TypeScriptDocsPage() {
         <Code eventName="install_command_copied">{`npx @trackmcp/cli init
 # Remote environments: npx @trackmcp/cli init --no-browser
 # Diagnostics: npx @trackmcp/cli doctor`}</Code>
+        <Para>
+          The first <Inline>npx</Inline> run may ask you to confirm downloading the CLI;
+          that is npm&apos;s normal package-safety prompt. If you intentionally want to
+          skip that confirmation in automation, use <Inline>npx --yes @trackmcp/cli init</Inline>.
+          After approval, the terminal prints the wrapper, saves <Inline>TRACKMCP_KEY</Inline>,
+          and tells you to restart the server and make one real tool call.
+        </Para>
         <Code>{`# Fallback/library-only package-manager install (the CLI above is recommended)
 npm install @trackmcp/sdk
 # npm install is intentionally silent: it never opens a browser or sends an install ping.
