@@ -158,8 +158,8 @@ export function DeviceApprovalClient({
   if (status === "unauthenticated") return <AuthRequiredState userCode={normalizedCode} />;
   if (status === "denied") return <DeviceState icon={<XCircle />} title="Device access was not approved" detail={error || "No key was created. You can safely close this page and restart the CLI when ready."} />;
   if (status === "already_redeemed") return <DeviceState icon={<CheckCircle2 />} title="This device session was already used" detail="Start a new CLI session if you need to connect another project." />;
-  if (status === "already_approved") return <DeviceState icon={<CheckCircle2 />} title="This device session is already approved" detail="Return to your terminal so it can redeem the one-time result." />;
-  if (status === "approved") return <DeviceState icon={<CheckCircle2 />} title="Device approved" detail="Return to your terminal. The CLI can now finish the one-time setup." />;
+  if (status === "already_approved") return <DeviceState icon={<CheckCircle2 />} title="This device session is already approved" detail="Return to your terminal so it can redeem the one-time result." terminalComplete />;
+  if (status === "approved") return <DeviceState icon={<CheckCircle2 />} title="Device approved" detail="Return to your terminal. The CLI is finishing setup now. You can close this tab." terminalComplete />;
 
   return (
     <main className="min-h-screen bg-canvas px-6 py-12 text-body sm:py-20">
@@ -182,8 +182,8 @@ export function DeviceApprovalClient({
   );
 }
 
-function DeviceState({ icon, title, detail }: { icon: React.ReactNode; title: string; detail: string }) {
-  return <main className="grid min-h-screen place-items-center bg-canvas px-6 text-center text-body"><section className="max-w-md rounded-2xl border border-line bg-white p-8"><span className="mx-auto grid h-12 w-12 place-items-center rounded-full bg-brand-soft text-brand-strong">{icon}</span><h1 className="mt-5 text-2xl font-medium text-ink">{title}</h1><p className="mt-3 text-sm leading-relaxed text-muted">{detail}</p><Link href="/" className="mt-6 inline-flex rounded-md bg-ink px-4 py-2.5 text-sm font-semibold text-white">Back to TrackMCP</Link></section></main>;
+function DeviceState({ icon, title, detail, terminalComplete = false }: { icon: React.ReactNode; title: string; detail: string; terminalComplete?: boolean }) {
+  return <main className="grid min-h-screen place-items-center bg-canvas px-6 text-center text-body"><section className="max-w-md rounded-2xl border border-line bg-white p-8"><span className="mx-auto grid h-12 w-12 place-items-center rounded-full bg-brand-soft text-brand-strong">{icon}</span><h1 className="mt-5 text-2xl font-medium text-ink">{title}</h1><p className="mt-3 text-sm leading-relaxed text-muted">{detail}</p>{terminalComplete ? <Link href="/dashboard" className="mt-6 inline-flex rounded-md border border-line-strong bg-white px-4 py-2.5 text-sm font-semibold text-body">Open dashboard</Link> : <Link href="/" className="mt-6 inline-flex rounded-md bg-ink px-4 py-2.5 text-sm font-semibold text-white">Back to TrackMCP</Link>}</section></main>;
 }
 
 function AuthRequiredState({ userCode }: { userCode: string | null }) {
