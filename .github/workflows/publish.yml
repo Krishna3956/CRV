@@ -1,6 +1,11 @@
 name: Publish SDK packages
 
 on:
+  push:
+    branches: [main]
+    paths:
+      - "trackmcp-nextjs/packages/cli/**"
+      - ".github/workflows/publish.yml"
   workflow_dispatch:
     inputs:
       package:
@@ -49,7 +54,7 @@ jobs:
           TWINE_PASSWORD: ${{ secrets.PYPI_TOKEN }}
         run: python -m pip install build twine && python -m build && python -m twine upload dist/*
       - name: Publish TrackMCP CLI
-        if: inputs.package == 'cli'
+        if: inputs.package == 'cli' || github.event_name == 'push'
         working-directory: trackmcp-nextjs/packages/cli
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
@@ -60,6 +65,10 @@ jobs:
           npm pack --dry-run --json > /tmp/trackmcp-cli-pack.json
           PACKAGE_VERSION=$(node -p 'require("./package.json").version')
           if npm view "@trackmcp/cli@${PACKAGE_VERSION}" version --json >/dev/null 2>&1; then
+            if [[ "${{ github.event_name }}" == "push" ]]; then
+              echo "@trackmcp/cli@${PACKAGE_VERSION} already exists on npm; automatic release publish is already complete."
+              exit 0
+            fi
             echo "@trackmcp/cli@${PACKAGE_VERSION} already exists on npm; bump the package version before publishing."
             exit 1
           fi
