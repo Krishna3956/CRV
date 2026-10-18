@@ -55,12 +55,12 @@ export function createDeviceAuthAdapter(fetchImpl: typeof fetch = fetch): Device
         });
         let body: DeviceApprovalResponse = {};
         try { body = await response.json() as DeviceApprovalResponse; } catch { /* status is authoritative */ }
-        if (response.ok && body.status === "approved") return { status: "approved" };
-        if (response.status === 400 || response.status === 404) return { status: "invalid" };
-        if (response.status === 401 || response.status === 403) return { status: "denied", reason_category: "user_denied" };
+        if (response.status === 200 && body.status === "approved") return { status: "approved" };
+        if (response.status === 200 && body.status === "already_approved") return { status: "already_approved" };
+        if (response.status === 400 || response.status === 404 || body.status === "invalid") return { status: "invalid" };
         if (response.status === 410 || body.status === "expired") return { status: "expired" };
+        if (response.status === 403 || response.status === 401 || body.status === "denied") return { status: "denied", reason_category: "user_denied" };
         if (response.status === 409) {
-          if (body.status === "already_approved") return { status: "already_approved" };
           if (body.status === "already_redeemed") return { status: "already_redeemed" };
           if (body.status === "denied") return { status: "denied", reason_category: "user_denied" };
           return { status: "denied", reason_category: "unavailable" };
