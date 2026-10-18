@@ -371,7 +371,7 @@ refresh(uri):
       callout("One explicit command, two trusted surfaces", "The terminal owns project setup and the connection key. The browser owns sign-in, email verification, MFA, workspace choice, and approval. The CLI never asks for your TrackMCP password, and the browser never displays the raw key."),
       h("What the new flow does"),
       ul([
-        "Checks for an existing usable TRACKMCP_KEY before changing anything.",
+        "Validates an existing TRACKMCP_KEY before opening the browser or replacing any credential.",
         "Detects npm, pnpm, or yarn context and installs the SDK unless you opt out with --no-install.",
         "Prints the complete HTTPS verification URL and one-time code before attempting to open the browser.",
         "Lets you sign in or create an account in the existing TrackMCP web authentication flow.",
