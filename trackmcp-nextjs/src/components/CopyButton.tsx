@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Copy, Check } from "lucide-react";
+import { trackActivationEvent } from "@/lib/marketing-analytics";
 
 /* Working copy-to-clipboard button. Copies `text`, shows a check for ~1.5s. */
 
@@ -11,12 +12,16 @@ export function CopyButton({
   className = "",
   label = "Copy",
   showLabel = false,
+  eventName,
+  eventProperties,
 }: {
   text: string;
   size?: number;
   className?: string;
   label?: string;
   showLabel?: boolean;
+  eventName?: "install_command_copied" | "setup_snippet_copied";
+  eventProperties?: Record<string, string>;
 }) {
   const [done, setDone] = useState(false);
 
@@ -43,6 +48,7 @@ export function CopyButton({
       ta.remove();
     }
     if (!copied) return;
+    if (eventName) trackActivationEvent(eventName, eventProperties);
     setDone(true);
     window.setTimeout(() => setDone(false), 1500);
   };

@@ -42,6 +42,7 @@ import {
   TOOL_QUALITY_MIN_TOOL_CALLS,
   TOOL_QUALITY_MIN_WORKFLOW_TERMINALS,
 } from "@/lib/telemetry/tool-quality";
+import { trackActivationEvent } from "@/lib/marketing-analytics";
 
 type Workspace = { id: string; name: string; slug: string };
 type Key = {
@@ -905,9 +906,11 @@ export function DashboardApp({
     if (!newKey) return;
     try {
       await navigator.clipboard.writeText(newKey);
+      trackActivationEvent("api_key_copied", { copy_method: "clipboard" });
       setCopied(true);
       window.setTimeout(() => setCopied(false), 1600);
     } catch {
+      trackActivationEvent("api_key_copy_failed", { copy_method: "clipboard" });
       setCopied(false);
     }
   };
@@ -3019,6 +3022,7 @@ function SetupView({
   const copy = async () => {
     try {
       await navigator.clipboard.writeText(snippets[language]);
+      trackActivationEvent("setup_snippet_copied", { language, package: language === "TypeScript" ? "@trackmcp/sdk" : "trackmcp" });
       setCopied(true);
       window.setTimeout(() => setCopied(false), 1600);
     } catch {

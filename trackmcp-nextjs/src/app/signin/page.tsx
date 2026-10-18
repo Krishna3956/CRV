@@ -38,6 +38,12 @@ export default function SignInPage({ initialMode = "signin" }: { initialMode?: "
   const [emailCheckStatus, setEmailCheckStatus] = useState<"idle" | "checking" | "available" | "registered" | "error">("idle");
   const emailInputRef = useRef<HTMLInputElement>(null);
   const codeInputRef = useRef<HTMLInputElement>(null);
+  const nextPath = useRef<string>("/dashboard");
+
+  useEffect(() => {
+    const next = new URLSearchParams(window.location.search).get("next");
+    if (next && next.startsWith("/") && !next.startsWith("//")) nextPath.current = next;
+  }, []);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -67,7 +73,7 @@ export default function SignInPage({ initialMode = "signin" }: { initialMode?: "
       });
     }
     trackMarketingEvent(eventName, { auth_mode: mode });
-    router.replace("/dashboard");
+    router.replace(nextPath.current);
   };
 
   const checkSignupEmail = async () => {

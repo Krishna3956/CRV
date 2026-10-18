@@ -43,12 +43,16 @@ export default function DocsPage() {
 
       <DocSection id="quickstart" title="Quickstart">
         <Para>
-          Install the SDK, create a workspace key, wrap your server, and deploy. Data
-          appears in your dashboard after the first telemetry flush.
+          The fastest path is terminal-first: run <Inline>npx @trackmcp/cli init</Inline>,
+          approve the connection in the browser, set the returned key in your server,
+          and make one real tool call. The npm package itself remains intentionally
+          silent and never opens a browser during installation.
         </Para>
         <Code>{`# TypeScript
+npx @trackmcp/cli init
 npm i @trackmcp/sdk
-# Create a key at https://app.trackmcp.com/dashboard
+# Remote setup: npx @trackmcp/cli init --no-browser
+# Manual fallback: https://app.trackmcp.com/signup?utm_source=npm&utm_medium=sdk_docs&utm_campaign=sdk_setup
 
           # Python
           python3 -m pip install trackmcp

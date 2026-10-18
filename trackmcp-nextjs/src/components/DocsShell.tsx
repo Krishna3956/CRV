@@ -4,6 +4,7 @@ import { Nav } from "./Nav";
 import { Footer } from "./Footer";
 import { CopyButton } from "./CopyButton";
 import { breadcrumbJsonLd, serializeJsonLd } from "@/lib/seo";
+import { DocsAnalytics } from "./DocsAnalytics";
 
 const groups = [
   {
@@ -53,6 +54,7 @@ export function DocsShell({
   ]);
   return (
     <>
+      <DocsAnalytics />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeJsonLd(breadcrumbSchema) }} />
       <Nav />
       <main className="flex-1">
@@ -126,7 +128,15 @@ export function Para({ children }: { children: ReactNode }) {
   return <p className="text-[15px] leading-[1.65] text-body">{children}</p>;
 }
 
-export function Code({ children }: { children: ReactNode }) {
+export function Code({
+  children,
+  eventName = "setup_snippet_copied",
+  eventProperties = { language: "TypeScript", package: "@trackmcp/sdk" },
+}: {
+  children: ReactNode;
+  eventName?: "install_command_copied" | "setup_snippet_copied";
+  eventProperties?: Record<string, string>;
+}) {
   const text = typeof children === "string" ? children : "";
   return (
     <div className="relative">
@@ -134,6 +144,8 @@ export function Code({ children }: { children: ReactNode }) {
         <CopyButton
           text={text}
           size={14}
+          eventName={eventName}
+          eventProperties={eventProperties}
           className="absolute right-2.5 top-2.5 z-10 border border-code-line bg-code-panel p-1.5 text-code-dim hover:text-code-text"
         />
       )}

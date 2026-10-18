@@ -9,6 +9,24 @@ import {
 } from "./submission-attribution";
 
 type MarketingValue = string | number | boolean | null | undefined;
+const ACTIVATION_EVENT_PROPERTIES: Record<string, readonly string[]> = {
+  sdk_docs_viewed: ["path", "source"],
+  signup_cta_clicked: ["source", "content_path", "content_cta"],
+  signup_request_started: ["auth_mode"],
+  signup_completed: ["auth_mode"],
+  workspace_created: [],
+  api_key_created: ["key_name_category"],
+  api_key_copied: ["copy_method"],
+  api_key_copy_failed: ["copy_method"],
+  install_command_copied: ["language", "package"],
+  setup_snippet_copied: ["language", "package"],
+  first_event_check_started: ["data_mode"],
+  first_event_check_result: ["result"],
+  first_telemetry_seen: ["event_count"],
+  cli_device_auth_approved: ["client_version"],
+  cli_device_auth_denied: ["client_version", "reason_category"],
+  cli_device_auth_expired: ["client_version"],
+};
 export type ContentAttribution = {
   content_path?: string;
   content_cta?: string;
@@ -67,6 +85,23 @@ export function trackMarketingEvent(name: string, properties: Record<string, Mar
   } catch {
     // Analytics must remain fail-open.
   }
+}
+
+/** Emit only the bounded, non-secret browser activation contract from the PRD. */
+export function trackActivationEvent(
+  name: keyof typeof ACTIVATION_EVENT_PROPERTIES,
+  properties: Record<string, MarketingValue> = {},
+) {
+  const allowed = new Set(ACTIVATION_EVENT_PROPERTIES[name]);
+  const bounded = Object.fromEntries(
+    Object.entries(properties)
+      .filter(([key]) => allowed.has(key))
+      .map(([key, value]) => [
+        key,
+        typeof value === "string" ? value.slice(0, 128) : value,
+      ]),
+  );
+  trackMarketingEvent(name, bounded);
 }
 
 function attributionProperties(snapshot: SubmissionAttributionSnapshot | null) {

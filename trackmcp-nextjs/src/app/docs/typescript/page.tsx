@@ -28,8 +28,20 @@ export default function TypeScriptDocsPage() {
       </DocLead>
 
       <DocSection title="Install">
+        <Para>
+          The fastest setup path is <Inline>npx @trackmcp/cli init</Inline>. It opens a
+          secure browser approval flow, creates one connection key after explicit
+          consent, and writes it to your local environment. For SSH or CI, use
+          <Inline>--no-browser</Inline> or provide <Inline>TRACKMCP_KEY</Inline> through
+          your secret manager.
+        </Para>
+        <Code eventName="install_command_copied">{`npx @trackmcp/cli init
+# Remote environments: npx @trackmcp/cli init --no-browser
+# Diagnostics: npx @trackmcp/cli doctor`}</Code>
         <Code>{`npm i @trackmcp/sdk
-# Create a key at https://app.trackmcp.com/dashboard
+# npm install is intentionally silent: it never opens a browser or sends an install ping.
+# Manual fallback:
+# https://app.trackmcp.com/signup?utm_source=npm&utm_medium=sdk_docs&utm_campaign=sdk_setup
 # or: pnpm add @trackmcp/sdk / yarn add @trackmcp/sdk`}</Code>
       </DocSection>
 
@@ -80,6 +92,15 @@ export default withTrackMCP(server, {
   service: "acme-mcp-server",
   environment: process.env.NODE_ENV,
 });`}</Code>
+      </DocSection>
+
+      <DocSection id="verify-first-event" title="Verify your first event">
+        <Para>
+          Set <Inline>TRACKMCP_KEY</Inline> in the same process that runs your MCP
+          server, restart it, and make one real tool call. Then run
+          <Inline>npx @trackmcp/cli doctor</Inline> or open the dashboard and choose
+          “Check for server activity”. The check never sends fake telemetry.
+        </Para>
       </DocSection>
 
       <DocSection title="Options">
