@@ -23,11 +23,21 @@ export type DeviceAuthAdapter = {
   }) => Promise<DeviceApprovalResult>;
 };
 
-const USER_CODE_PATTERN = /^[A-Z0-9]{4}-[A-Z0-9]{4}$/;
+const USER_CODE_PATTERN = /^[A-Z2-9]{4}-[A-Z2-9]{4}$/;
 
 export function normalizeDeviceUserCode(value: string | null | undefined) {
-  const normalized = (value || "").trim().toUpperCase();
+  const normalized = (value || "").trim();
   return USER_CODE_PATTERN.test(normalized) ? normalized : null;
+}
+
+export function isAllowedVerificationUrl(value: string, options: { allowLocalDevelopment?: boolean } = {}) {
+  try {
+    const url = new URL(value);
+    if (url.protocol === "https:") return true;
+    return Boolean(options.allowLocalDevelopment && url.protocol === "http:" && ["localhost", "127.0.0.1", "[::1]"].includes(url.hostname));
+  } catch {
+    return false;
+  }
 }
 
 type DeviceApprovalResponse = { status?: unknown; reason_category?: unknown };
@@ -53,7 +63,7 @@ export function createDeviceAuthAdapter(fetchImpl: typeof fetch = fetch): Device
           if (body.status === "already_approved") return { status: "already_approved" };
           if (body.status === "already_redeemed") return { status: "already_redeemed" };
           if (body.status === "denied") return { status: "denied", reason_category: "user_denied" };
-          return { status: "denied", reason_category: "user_denied" };
+          return { status: "denied", reason_category: "unavailable" };
         }
         return { status: "denied", reason_category: "unavailable" };
       } catch {
