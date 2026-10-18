@@ -98,6 +98,19 @@ email, membership lists, or the key.
 
 `GET /api/v1/activation/funnel` is read-only and requires the service admin
 header. Browser activation facts are accepted through the authenticated,
-bounded `POST /api/v1/activation/events` endpoint. The report combines those
-facts with device sessions and first accepted ingest milestones. NPM downloads
-remain separate aggregate data and are never treated as unique users.
+bounded `POST /api/v1/activation/events` endpoint. Its body is limited to
+`event_id`, `event_type`, `source`, optional `workspace_id`,
+`package_name`, `package_version`, `content_path`, and `result_category`.
+Unknown fields—including email, API keys, tokens, and arbitrary payloads—are
+rejected. The event types are `signup_completed`, `workspace_created`,
+`api_key_created`, `api_key_copied`, `setup_snippet_copied`,
+`first_event_check_started`, `first_event_check_result`, and
+`first_telemetry_seen`. The report uses the server-side SQL aggregation
+function created by `20261018000003_cli_activation_reporting.sql`, so counts do
+not depend on Supabase REST page limits. NPM downloads remain separate
+aggregate data and are never treated as unique users.
+
+Expired, denied, redeemed, and abandoned device sessions are cleaned by the
+operator-only function
+`public.trackmcp_cleanup_cli_device_sessions()` after the approved retention
+period. No scheduler is assumed by this contract.

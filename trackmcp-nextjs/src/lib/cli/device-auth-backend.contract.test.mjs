@@ -7,6 +7,9 @@ const hardeningMigration = await readFile(new URL("../../../../supabase/migratio
 const redeemRoute = await readFile(new URL("../../../../trackmcp-nextjs/src/app/api/v1/cli/device/sessions/redeem/route.ts", import.meta.url), "utf8");
 const redemptionState = await readFile(new URL("../../../../trackmcp-nextjs/src/lib/cli/redemption-state.ts", import.meta.url), "utf8");
 const keySource = await readFile(new URL("../../../../trackmcp-nextjs/src/lib/telemetry/keys.ts", import.meta.url), "utf8");
+const reportingMigration = await readFile(new URL("../../../../supabase/migrations/20261018000003_cli_activation_reporting.sql", import.meta.url), "utf8");
+const funnelRoute = await readFile(new URL("../../../../trackmcp-nextjs/src/app/api/v1/activation/funnel/route.ts", import.meta.url), "utf8");
+const activationEventsRoute = await readFile(new URL("../../../../trackmcp-nextjs/src/app/api/v1/activation/events/route.ts", import.meta.url), "utf8");
 const approveRoute = await readFile(new URL("../../../../trackmcp-nextjs/src/app/api/v1/cli/device/sessions/approve/route.ts", import.meta.url), "utf8");
 
 test("device migration stores hashes and service-only access", () => {
@@ -72,4 +75,29 @@ test("browser approval has an explicit, key-free status contract", () => {
   assert.match(approveRoute, /status: "denied"/);
   assert.match(approveRoute, /status: "invalid"/);
   assert.doesNotMatch(approveRoute, /api_key|createTrackMCPKey|generated\.key/);
+});
+
+test("funnel aggregation is server-side and not subject to Supabase page limits", () => {
+  assert.match(reportingMigration, /create or replace function public\.trackmcp_activation_funnel_report/);
+  assert.match(reportingMigration, /group by event_type, source/);
+  assert.match(reportingMigration, /group by status/);
+  assert.match(reportingMigration, /group by observation_source/);
+  assert.match(funnelRoute, /rpc\("trackmcp_activation_funnel_report"/);
+  assert.doesNotMatch(funnelRoute, /from\("trackmcp_activation_funnel_events"\)/);
+  assert.doesNotMatch(funnelRoute, /\.reduce<.*eventCounts/);
+});
+
+test("activation event ingestion is bounded, authenticated, and rejects arbitrary fields", () => {
+  assert.match(activationEventsRoute, /getUser\(\)/);
+  assert.match(activationEventsRoute, /MAX_EVENT_BODY_BYTES/);
+  assert.match(activationEventsRoute, /validateActivationEventBody/);
+  assert.match(activationEventsRoute, /trackmcp_workspace_members/);
+  assert.match(activationEventsRoute, /retry-after/);
+});
+
+test("reporting migration exposes an operator-only, bounded cleanup function", () => {
+  assert.match(reportingMigration, /create or replace function public\.trackmcp_cleanup_cli_device_sessions/);
+  assert.match(reportingMigration, /p_before > now\(\)/);
+  assert.match(reportingMigration, /status in \('denied', 'redeemed', 'expired'\)/);
+  assert.match(reportingMigration, /grant execute on function public\.trackmcp_cleanup_cli_device_sessions\(timestamptz\) to service_role/);
 });
