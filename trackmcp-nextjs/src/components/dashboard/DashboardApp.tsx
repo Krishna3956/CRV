@@ -3085,6 +3085,11 @@ function SetupView({
               Recommended: run <code className="font-mono text-ink">npx @trackmcp/cli init</code> first. Use a manual package-manager install only as a library-only fallback.
             </p>
           )}
+          {language === "Python" && (
+            <p className="mt-3 text-xs leading-relaxed text-muted">
+              Python uses the package manager plus a workspace connection key. Install <code className="font-mono text-ink">trackmcp</code>, then create or copy a key from the Connection keys panel below and keep it in the server environment.
+            </p>
+          )}
           <p className="mt-3 text-xs leading-relaxed text-muted">
             After creating a key, set <code className="font-mono text-ink">TRACKMCP_KEY</code> in your server environment, restart the server, and make one real tool call. Your data appears after the first telemetry flush.
           </p>

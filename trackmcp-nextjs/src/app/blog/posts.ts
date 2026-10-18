@@ -398,6 +398,7 @@ npx @trackmcp/cli init --browser=false`),
       code(`npx @trackmcp/cli doctor
 npx @trackmcp/cli logout`),
       p("The first product activation milestone is still a real accepted telemetry event. Restart the MCP server, make one real tool call, and then open the dashboard to verify the observed data. A successful key exchange alone is not evidence that an application has sent telemetry."),
+      p("The one-command CLI currently targets the TypeScript/Node.js SDK. Python projects use `python3 -m pip install trackmcp` and a connection key created or copied from the authenticated workspace dashboard; the Python wrapper and key behavior are otherwise the same."),
       h("What this release does not do"),
       ul([
         "It does not run from npm install, postinstall, prepare, or another lifecycle hook.",
