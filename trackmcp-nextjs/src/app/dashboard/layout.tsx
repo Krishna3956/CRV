@@ -1,5 +1,8 @@
 import type { Metadata } from "next";
+import type { ReactNode } from "react";
 import { pageMeta } from "@/lib/seo";
+
+type DashboardLayoutProps = { children: ReactNode };
 
 export const metadata: Metadata = pageMeta({
   title: "Dashboard | TrackMCP",
@@ -8,6 +11,6 @@ export const metadata: Metadata = pageMeta({
   index: false,
 });
 
-export default function DashboardLayout({ children }: LayoutProps<"/dashboard">) {
+export default function DashboardLayout({ children }: DashboardLayoutProps) {
   return children;
 }
