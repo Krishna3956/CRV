@@ -43,14 +43,14 @@ export default function DocsPage() {
 
       <DocSection id="quickstart" title="Quickstart">
         <Para>
-          The fastest path is terminal-first: run <Inline>npx @trackmcp/cli init</Inline>,
-          approve the connection in the browser, set the returned key in your server,
-          and make one real tool call. The npm package itself remains intentionally
-          silent and never opens a browser during installation.
+          The fastest path is one explicit terminal command: run <Inline>npx @trackmcp/cli init</Inline>.
+          It installs the SDK when needed, reuses a valid local key, or opens the secure
+          browser approval flow when no key is available. Then wrap your server and make
+          one real tool call. The npm package itself remains intentionally silent and
+          never opens a browser during installation.
         </Para>
-        <Code>{`# TypeScript
+        <Code>{`# TypeScript — one-command setup
 npx @trackmcp/cli init
-npm i @trackmcp/sdk
 # Remote setup: npx @trackmcp/cli init --no-browser
 # Manual fallback: https://app.trackmcp.com/signup?utm_source=npm&utm_medium=sdk_docs&utm_campaign=sdk_setup&package=%40trackmcp%2Fsdk&content_path=%2Fdocs
 

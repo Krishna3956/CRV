@@ -40,7 +40,7 @@ const measures = [
 ];
 
 function InstallPill() {
-  return <div className="inline-flex items-center gap-3 rounded-lg border border-line bg-paper px-4 py-2.5 font-mono text-[13px] text-body"><span className="text-faint">$</span><span>npm i <span className="text-brand">@trackmcp/sdk</span></span><CopyButton text="npm i @trackmcp/sdk" size={14} className="text-faint hover:text-ink" /></div>;
+  return <div className="inline-flex items-center gap-3 rounded-lg border border-line bg-paper px-4 py-2.5 font-mono text-[13px] text-body"><span className="text-faint">$</span><span>npx @trackmcp/cli init</span><CopyButton text="npx @trackmcp/cli init" size={14} className="text-faint hover:text-ink" /></div>;
 }
 
 export default function McpServerAnalyticsPage() {

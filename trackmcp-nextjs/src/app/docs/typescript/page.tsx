@@ -29,16 +29,18 @@ export default function TypeScriptDocsPage() {
 
       <DocSection title="Install">
         <Para>
-          The fastest setup path is <Inline>npx @trackmcp/cli init</Inline>. It opens a
-          secure browser approval flow, creates one connection key after explicit
-          consent, and writes it to your local environment. For SSH or CI, use
+          The fastest setup path is <Inline>npx @trackmcp/cli init</Inline>. It installs
+          <Inline>@trackmcp/sdk</Inline> when needed, reuses a valid local key, or opens
+          a secure browser approval flow when no key is available. After explicit
+          consent it writes the key to your local environment. For SSH or CI, use
           <Inline>--no-browser</Inline> or provide <Inline>TRACKMCP_KEY</Inline> through
           your secret manager.
         </Para>
         <Code eventName="install_command_copied">{`npx @trackmcp/cli init
 # Remote environments: npx @trackmcp/cli init --no-browser
 # Diagnostics: npx @trackmcp/cli doctor`}</Code>
-        <Code>{`npm i @trackmcp/sdk
+        <Code>{`# Manual package-manager install (the CLI above does this automatically when needed)
+npm i @trackmcp/sdk
 # npm install is intentionally silent: it never opens a browser or sends an install ping.
 # Manual fallback:
 # https://app.trackmcp.com/signup?utm_source=npm&utm_medium=sdk_docs&utm_campaign=sdk_setup&package=%40trackmcp%2Fsdk&content_path=%2Fdocs%2Ftypescript

@@ -1,11 +1,12 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { EventEmitter } from "node:events";
-import { mkdtemp, readFile, stat, writeFile } from "node:fs/promises";
+import { mkdir, mkdtemp, readFile, stat, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { createDeviceClient, createRedeemer, pollDeviceSession } from "../lib/device-client.mjs";
 import { openBrowser } from "../lib/browser.mjs";
+import { ensureSdkInstalled } from "../lib/sdk-installer.mjs";
 import { isUsableKey, readConfiguredKey, writeEnvKey } from "../lib/storage.mjs";
 import { main, runDoctor, runInit } from "../bin/trackmcp.mjs";
 
@@ -165,7 +166,43 @@ test("redeemer preserves identity when a caller retries after a lost response", 
   assert.equal(calls[0], calls[1]);
 });
 
-test("init prints URL before browser open, supports no-browser, and writes an atomic env file", async () => {
+test("init installs the SDK, skips the browser for an existing key, and prints the next step", async () => {
+  const cwd = await mkdtemp(join(tmpdir(), "trackmcp-cli-"));
+  const logs = [];
+  let installed = 0;
+  const result = await runInit({
+    cwd,
+    env: { TRACKMCP_KEY: key },
+    interactive: true,
+    outputLog: (line) => logs.push(String(line)),
+    ensureSdkInstalledImpl: async () => { installed += 1; return { installed: true, alreadyPresent: false, packageManager: "npm" }; },
+  });
+  assert.equal(result.status, "existing_key");
+  assert.equal(installed, 1);
+  assert.equal(logs.some((line) => line.includes("No browser authorization was needed")), true);
+});
+
+test("SDK installer uses the detected package manager and verifies the package", async () => {
+  const cwd = await mkdtemp(join(tmpdir(), "trackmcp-cli-"));
+  await writeFile(join(cwd, "pnpm-lock.yaml"), "lockfileVersion: 9\n");
+  let call;
+  const result = await ensureSdkInstalled({
+    cwd,
+    execFileImpl: async (command, args, options) => {
+      call = { command, args, options };
+      await mkdir(join(cwd, "node_modules", "@trackmcp", "sdk"), { recursive: true });
+      await writeFile(join(cwd, "node_modules", "@trackmcp", "sdk", "package.json"), JSON.stringify({ name: "@trackmcp/sdk", version: "0.1.1" }));
+    },
+    outputLog: () => {},
+  });
+  assert.equal(result.installed, true);
+  assert.equal(result.alreadyPresent, false);
+  assert.equal(call.command, "pnpm");
+  assert.deepEqual(call.args, ["add", "@trackmcp/sdk"]);
+  assert.equal(call.options.cwd, cwd);
+});
+
+test("init prints URL before browser open, supports no-browser, writes an atomic env file, and prints the SDK snippet", async () => {
   const cwd = await mkdtemp(join(tmpdir(), "trackmcp-cli-"));
   const logs = [];
   let browserCalls = 0;
@@ -174,11 +211,12 @@ test("init prints URL before browser open, supports no-browser, and writes an at
     poll: async () => ({ status: "approved" }),
     redeem: async () => ({ status: "approved", apiKey: key }),
   };
-  const result = await runInit({ cwd, client, interactive: true, flags: { browser: false, envFile: ".env.local" }, outputLog: (line) => logs.push(String(line)), errorLog: (line) => logs.push(String(line)), sleep: async () => {}, now: () => 0, openBrowserImpl: async () => { browserCalls += 1; return true; }, confirmOverwrite: async () => false });
+  const result = await runInit({ cwd, client, interactive: true, flags: { browser: false, installSdk: false, envFile: ".env.local" }, outputLog: (line) => logs.push(String(line)), errorLog: (line) => logs.push(String(line)), sleep: async () => {}, now: () => 0, openBrowserImpl: async () => { browserCalls += 1; return true; }, confirmOverwrite: async () => false });
   assert.equal(result.status, "completed");
   assert.equal(logs.some((line) => line.includes("CODE-1234")), true);
   assert.equal(logs.some((line) => line.includes("opaque")), false);
   assert.equal(browserCalls, 0);
+  assert.equal(logs.some((line) => line.includes("withTrackMCP")), true);
   assert.equal(await readFile(join(cwd, ".env.local"), "utf8"), `TRACKMCP_KEY=${key}\n`);
   assert.equal((await stat(join(cwd, ".env.local"))).mode & 0o077, 0);
 });
@@ -198,7 +236,7 @@ test("existing environment values are preserved and existing keys are protected"
 
 test("CI/non-TTY init refuses to start a browser flow and positional keys are rejected", async () => {
   let started = false;
-  const result = await runInit({ env: {}, flags: { browser: true, nonInteractive: true }, client: { startSession: async () => { started = true; } }, errorLog: () => {} });
+  const result = await runInit({ env: {}, flags: { browser: true, installSdk: false, nonInteractive: true }, client: { startSession: async () => { started = true; } }, errorLog: () => {} });
   assert.equal(result.status, "non_interactive");
   assert.equal(started, false);
   await assert.rejects(() => main(["init", key]), /must not be passed/);
@@ -206,7 +244,7 @@ test("CI/non-TTY init refuses to start a browser flow and positional keys are re
 
 test("setup remains an alias for init in non-interactive environments", async () => {
   let started = false;
-  const result = await main(["setup", "--non-interactive"], {
+  const result = await main(["setup", "--non-interactive", "--no-install"], {
     env: {},
     client: { startSession: async () => { started = true; } },
     errorLog: () => {},

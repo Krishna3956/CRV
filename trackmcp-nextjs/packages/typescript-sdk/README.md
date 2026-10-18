@@ -4,10 +4,17 @@ Observability for MCP servers. Wrap your existing server once; telemetry is batc
 
 ## Activate from the terminal
 
-Create a free TrackMCP account, create a workspace connection key, set
-`TRACKMCP_KEY` in the server environment, install this package, wrap the MCP
-server, restart it, make one real tool call, and then open the dashboard to
-verify the first event. The direct signup path is
+The fastest first-time setup is one explicit terminal command:
+
+```bash
+npx @trackmcp/cli init
+```
+
+The CLI installs `@trackmcp/sdk` when it is missing, reuses an existing valid
+`TRACKMCP_KEY`, or opens the browser approval flow when no key is available.
+After approval it writes the key to `.env.local` and prints the next SDK
+snippet. You then wrap the MCP server, restart it, make one real tool call,
+and open the dashboard to verify the first event. The direct signup path is
 <https://app.trackmcp.com/signup?utm_source=npm&utm_medium=sdk&utm_campaign=sdk_setup>.
 
 For local development, the browser-assisted terminal flow is:
@@ -24,9 +31,11 @@ through its secret manager and run `npx @trackmcp/cli doctor --non-interactive`.
 The CLI never asks for a TrackMCP password, accepts a key as a positional
 argument, rewrites source code, or runs from an npm lifecycle script.
 
-`npm install` itself does not open a browser, create an account, send an install
-ping, or make a network request. The manual fallback is to create a connection
-key in the web app and set `TRACKMCP_KEY` before starting the server.
+`npm install` itself remains silent: it does not open a browser, create an
+account, send an install ping, or make a network request. Use the explicit CLI
+command above for the one-command interactive setup. The manual fallback is
+to create a connection key in the web app and set `TRACKMCP_KEY` before
+starting the server.
 
 Install the privacy release with `npm install @trackmcp/sdk@0.1.1`. The package
 is ESM-first, supports Node.js 18 and newer, and exposes the optional Node-only

@@ -13,15 +13,22 @@ From an interactive local terminal, run:
 npx @trackmcp/cli init
 ```
 
-The CLI prints a verification URL and short code before opening the browser.
-Sign up or sign in, approve the workspace key, and the one-time key is written
-to `.env.local` with restrictive permissions. The URL and code can be completed
-on another device:
+`init` detects the project package manager and installs `@trackmcp/sdk` when it
+is missing. It then checks for a usable `TRACKMCP_KEY`; existing valid keys are
+reused without opening a browser. When no key is available, the CLI prints a
+verification URL and short code before opening the browser. Sign up or sign
+in, approve the workspace key, and the one-time key is written to `.env.local`
+with restrictive permissions. The URL and code can be completed on another
+device:
 
 ```bash
 npx @trackmcp/cli init --no-browser
 npx @trackmcp/cli init --browser=false
 ```
+
+Use `--no-install` when the SDK must already be present (for example, in a
+restricted environment). The default one-command setup is intentionally an
+explicit CLI action; the SDK never launches authentication from `npm install`.
 
 `setup` remains a backwards-compatible alias for `init`. The CLI polls only the
 short-lived device session, honors server-directed intervals, and stops on
@@ -31,7 +38,9 @@ puts a secret in a URL or shell argument, or rewrites application source code.
 If a usable `TRACKMCP_KEY` already exists in the process environment or the
 selected environment file, `init` leaves it unchanged. Existing keys are never
 overwritten without confirmation. If `.env.local` is tracked by Git, the CLI
-warns so it can be ignored before committing.
+warns so it can be ignored before committing. On successful activation, `init`
+prints the next `withTrackMCP` snippet so the user can connect the server
+without returning to the dashboard.
 
 For CI and other non-interactive environments, provision the key through the
 environment or a secret manager:

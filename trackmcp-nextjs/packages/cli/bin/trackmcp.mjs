@@ -2,22 +2,21 @@
 import { createInterface } from "node:readline/promises";
 import { stdin as input, stdout as output } from "node:process";
 import { fileURLToPath } from "node:url";
-import { dirname, resolve } from "node:path";
-import { readFile } from "node:fs/promises";
+import { resolve } from "node:path";
 import { createDeviceClient, createRedeemer, pollDeviceSession } from "../lib/device-client.mjs";
 import { openBrowser } from "../lib/browser.mjs";
 import { findEnvironment, isGitTracked, logout, readConfiguredKey, writeEnvKey } from "../lib/storage.mjs";
-
-const packageRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
+import { detectPackageManager, ensureSdkInstalled, findInstalledSdkPackage } from "../lib/sdk-installer.mjs";
 
 function parseArgs(argv) {
   const [commandArg = "init", ...rest] = argv;
   const command = commandArg === "setup" ? "init" : commandArg;
   if (!["init", "doctor", "logout"].includes(command)) throw new Error("Usage: npx @trackmcp/cli init|doctor|logout");
-  const flags = { browser: true, nonInteractive: false, envFile: process.env.TRACKMCP_ENV_FILE || ".env.local" };
+  const flags = { browser: true, installSdk: true, nonInteractive: false, envFile: process.env.TRACKMCP_ENV_FILE || ".env.local" };
   for (const arg of rest) {
     if (arg === "--no-browser" || arg === "--browser=false") flags.browser = false;
     else if (arg === "--browser=true") flags.browser = true;
+    else if (arg === "--no-install") flags.installSdk = false;
     else if (arg === "--non-interactive") flags.nonInteractive = true;
     else if (arg.startsWith("--env-file=")) flags.envFile = arg.slice("--env-file=".length);
     else if (arg.startsWith("--")) throw new Error(`Unknown option: ${arg.split("=", 1)[0]}`);
@@ -30,21 +29,9 @@ function isInteractive(flags) {
   return !flags.nonInteractive && process.env.CI !== "true" && Boolean(input.isTTY && output.isTTY);
 }
 
-async function packageManager(cwd) {
-  for (const [name, file] of [["pnpm", "pnpm-lock.yaml"], ["yarn", "yarn.lock"], ["npm", "package-lock.json"]]) {
-    try { await readFile(resolve(cwd, file)); return name; } catch { /* continue */ }
-  }
-  return "npm";
-}
-
 async function sdkVersion(cwd) {
-  for (const path of [resolve(cwd, "node_modules/@trackmcp/sdk/package.json"), resolve(packageRoot, "../typescript-sdk/package.json")]) {
-    try {
-      const packageJson = JSON.parse(await readFile(path, "utf8"));
-      return typeof packageJson.version === "string" ? packageJson.version : "unknown";
-    } catch { /* continue */ }
-  }
-  return undefined;
+  const packageJson = await findInstalledSdkPackage({ cwd });
+  return typeof packageJson?.version === "string" ? packageJson.version : undefined;
 }
 
 export async function runDoctor({ cwd = process.cwd(), envFile, client = createDeviceClient(), env = process.env, outputLog = console.log } = {}) {
@@ -53,7 +40,7 @@ export async function runDoctor({ cwd = process.cwd(), envFile, client = createD
   const checks = {
     node: process.versions.node,
     sdk: (await sdkVersion(cwd)) || "not found",
-    packageManager: await packageManager(cwd),
+    packageManager: await detectPackageManager(cwd),
     environmentFiles: files.map((file) => ({ path: file.path, hasKey: file.hasKey })),
     key: configured.key ? "present" : env.TRACKMCP_KEY ? "malformed" : "missing",
   };
@@ -94,11 +81,12 @@ async function askOverwrite() {
   } finally { rl.close(); }
 }
 
-export async function runInit({ cwd = process.cwd(), flags = {}, client = createDeviceClient(), env = process.env, outputLog = console.log, errorLog = console.error, sleep, now, interactive, openBrowserImpl = openBrowser, confirmOverwrite } = {}) {
-  const resolvedFlags = { browser: true, envFile: ".env.local", nonInteractive: false, ...flags };
+export async function runInit({ cwd = process.cwd(), flags = {}, client = createDeviceClient(), env = process.env, outputLog = console.log, errorLog = console.error, sleep, now, interactive, openBrowserImpl = openBrowser, confirmOverwrite, ensureSdkInstalledImpl = ensureSdkInstalled } = {}) {
+  const resolvedFlags = { browser: true, installSdk: true, envFile: ".env.local", nonInteractive: false, ...flags };
+  await ensureSdkInstalledImpl({ cwd, install: resolvedFlags.installSdk, outputLog, env });
   const existing = await readConfiguredKey({ cwd, envFile: resolvedFlags.envFile, env });
   if (existing.key) {
-    outputLog(`TRACKMCP_KEY is already configured (${existing.source}). Nothing was changed.`);
+    outputLog(`TrackMCP is already connected (${existing.source}). No browser authorization was needed.`);
     return { status: "existing_key", source: existing.source };
   }
   if (!(interactive ?? isInteractive(resolvedFlags))) {
@@ -143,7 +131,8 @@ export async function runInit({ cwd = process.cwd(), flags = {}, client = create
   if (tracked) outputLog(`Warning: ${resolvedFlags.envFile} is tracked by Git. Add it to .gitignore before committing.`);
   await writeEnvKey(target, redeemed.apiKey, { confirmOverwrite: confirmOverwrite || askOverwrite });
   outputLog(`Saved TRACKMCP_KEY to ${resolvedFlags.envFile} with restrictive permissions.`);
-  outputLog("Next: install @trackmcp/sdk, wrap your MCP server, restart it, and make one real tool call.");
+  outputLog("\nTrackMCP is ready. Next, wrap your MCP server and make one real tool call:");
+  outputLog('import { withTrackMCP } from "@trackmcp/sdk";\n\nexport default withTrackMCP(server, {\n  apiKey: process.env.TRACKMCP_KEY,\n  service: "my-mcp-server",\n});');
   return { status: "completed", path: target, workspace: redeemed.workspace };
 }
 
