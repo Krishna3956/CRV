@@ -66,14 +66,21 @@ export async function writeEnvKey(path, key, { confirmOverwrite = async () => fa
   const updated = hasExistingKey ? existing.replace(/^\s*TRACKMCP_KEY\s*=.*$/m, line) : `${existing.trimEnd()}${existing.trimEnd() ? "\n" : ""}${line}\n`;
   await mkdir(dirname(target), { recursive: true });
   const temporary = `${target}.${process.pid}.${randomBytes(6).toString("hex")}.tmp`;
-  const handle = await open(temporary, "wx", 0o600);
+  let committed = false;
   try {
-    await handle.writeFile(updated, "utf8");
-    await handle.chmod(0o600);
+    const handle = await open(temporary, "wx", 0o600);
+    try {
+      await handle.writeFile(updated, "utf8");
+      await handle.chmod(0o600);
+    } finally {
+      await handle.close();
+    }
+    await rename(temporary, target);
+    committed = true;
   } finally {
-    await handle.close();
+    // A failed write must not leave a secret-bearing temporary file behind.
+    if (!committed) await rm(temporary, { force: true }).catch(() => {});
   }
-  await rename(temporary, target);
   await chmod(target, 0o600).catch(() => {});
   return target;
 }

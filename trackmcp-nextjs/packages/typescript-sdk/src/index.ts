@@ -142,7 +142,9 @@ export type TrackMCPOptions = {
 };
 
 const DEFAULT_ENDPOINT = "https://trackmcp.com/api/v1/ingest";
-export const TRACKMCP_SETUP_URL = "https://app.trackmcp.com/signup?source=npm&package=%40trackmcp%2Fsdk";
+// Keep this URL fixed and bounded so the actionable missing-key diagnostic never
+// reflects caller-controlled values or accidentally includes a secret.
+export const TRACKMCP_SETUP_URL = "https://app.trackmcp.com/signup?utm_source=npm&utm_medium=sdk&utm_campaign=sdk_setup";
 const DIAGNOSTIC_INTERVAL_MS = 60_000;
 let activeClient: TrackMCPClient | undefined;
 

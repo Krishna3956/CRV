@@ -8,7 +8,7 @@ Create a free TrackMCP account, create a workspace connection key, set
 `TRACKMCP_KEY` in the server environment, install this package, wrap the MCP
 server, restart it, make one real tool call, and then open the dashboard to
 verify the first event. The direct signup path is
-<https://app.trackmcp.com/signup?source=npm&package=%40trackmcp%2Fsdk>.
+<https://app.trackmcp.com/signup?utm_source=npm&utm_medium=sdk&utm_campaign=sdk_setup>.
 
 For local development, the browser-assisted terminal flow is:
 

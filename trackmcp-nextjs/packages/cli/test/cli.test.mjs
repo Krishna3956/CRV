@@ -204,6 +204,17 @@ test("CI/non-TTY init refuses to start a browser flow and positional keys are re
   await assert.rejects(() => main(["init", key]), /must not be passed/);
 });
 
+test("setup remains an alias for init in non-interactive environments", async () => {
+  let started = false;
+  const result = await main(["setup", "--non-interactive"], {
+    env: {},
+    client: { startSession: async () => { started = true; } },
+    errorLog: () => {},
+  });
+  assert.equal(result, 1);
+  assert.equal(started, false);
+});
+
 test("doctor uses key-status and reachability only, never fake telemetry", async () => {
   const logs = [];
   const result = await runDoctor({ cwd: await mkdtemp(join(tmpdir(), "trackmcp-cli-")), env: { TRACKMCP_KEY: key }, client: { ingestReachability: async () => ({ reachable: true }), keyStatus: async (value) => { assert.equal(value, key); return { category: "no_accepted_telemetry", workspaceAvailable: true, serviceAvailable: true }; } }, outputLog: (line) => logs.push(line) });

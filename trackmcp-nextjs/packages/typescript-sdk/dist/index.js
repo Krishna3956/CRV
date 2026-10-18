@@ -2,7 +2,9 @@ import { createHash, randomUUID } from "node:crypto";
 import { DEFAULT_MAX_BATCH_SIZE, DEFAULT_MAX_PAYLOAD_BYTES, DEFAULT_MAX_PAYLOAD_DEPTH, DEFAULT_MAX_PAYLOAD_KEYS, DEFAULT_MAX_QUEUE_BYTES, DEFAULT_MAX_QUEUE_EVENTS, DEFAULT_MAX_STRING_LENGTH, payloadByteLength, sanitizePayload, } from "./privacy.js";
 export const TRACKMCP_SCHEMA_VERSION = "1";
 const DEFAULT_ENDPOINT = "https://trackmcp.com/api/v1/ingest";
-export const TRACKMCP_SETUP_URL = "https://app.trackmcp.com/signup?source=npm&package=%40trackmcp%2Fsdk";
+// Keep this URL fixed and bounded so the actionable missing-key diagnostic never
+// reflects caller-controlled values or accidentally includes a secret.
+export const TRACKMCP_SETUP_URL = "https://app.trackmcp.com/signup?utm_source=npm&utm_medium=sdk&utm_campaign=sdk_setup";
 const DIAGNOSTIC_INTERVAL_MS = 60_000;
 let activeClient;
 async function responseErrorKind(response) {

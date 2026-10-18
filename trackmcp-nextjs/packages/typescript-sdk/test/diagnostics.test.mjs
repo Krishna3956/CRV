@@ -78,3 +78,39 @@ test("delivery diagnostics are rate-limited without changing the bounded queue",
     globalThis.fetch = originalFetch;
   }
 });
+
+test("unknown and aborted delivery diagnostics stay bounded and secret-free", async () => {
+  const originalFetch = globalThis.fetch;
+  try {
+    const unknown = [];
+    globalThis.fetch = async () => new Response(JSON.stringify({
+      error: "unexpected failure",
+      email: "user@example.com",
+      api_key: "tmcp_secret_should_not_escape",
+      next: "https://app.trackmcp.com/private?token=secret",
+    }), { status: 418 });
+    const unknownClient = withTrackMCP({ async request() { return { ok: true }; } }, {
+      apiKey: "tmcp_diagnostic_test_key_123456789",
+      flushIntervalMs: 60000,
+      onDeliveryError: (error) => unknown.push(error),
+    });
+    await unknownClient.request({ method: "tools/call", params: { name: "safe", arguments: { password: "not-a-diagnostic" } } });
+    await unknownClient.trackmcp.flush();
+    assert.deepEqual(unknown[0], { kind: "unknown", status: 418, retrying: false });
+    assert.doesNotMatch(JSON.stringify(unknown), /tmcp_secret_should_not_escape|user@example\.com|https:\/\/|password/);
+
+    const aborted = [];
+    globalThis.fetch = async () => { const error = new Error("aborted bearer=tmcp_secret"); error.name = "AbortError"; throw error; };
+    const abortedClient = withTrackMCP({ async request() { return { ok: true }; } }, {
+      apiKey: "tmcp_diagnostic_test_key_123456789",
+      flushIntervalMs: 60000,
+      onDeliveryError: (error) => aborted.push(error),
+    });
+    await abortedClient.request({ method: "tools/call", params: { name: "safe" } });
+    await abortedClient.trackmcp.flush();
+    assert.deepEqual(aborted[0], { kind: "aborted", retrying: true });
+    assert.doesNotMatch(JSON.stringify(aborted), /tmcp_secret|bearer|https:\/\//i);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});

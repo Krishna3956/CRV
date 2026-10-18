@@ -112,7 +112,7 @@ export type TrackMCPOptions = {
     /** Compatibility shorthand for diagnostics.debug. */
     debug?: boolean;
 };
-export declare const TRACKMCP_SETUP_URL = "https://app.trackmcp.com/signup?source=npm&package=%40trackmcp%2Fsdk";
+export declare const TRACKMCP_SETUP_URL = "https://app.trackmcp.com/signup?utm_source=npm&utm_medium=sdk&utm_campaign=sdk_setup";
 type CatalogTool = {
     name: string;
     description?: string;

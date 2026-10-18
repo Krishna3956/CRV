@@ -95,6 +95,20 @@ test("a clean consumer receives the packed 0.1.1 SDK with local default redactio
       for (const marker of Object.values(markers)) assert.equal(serialized.includes(marker), false, \`leaked marker: \${marker}\`);
       assert.equal(body.events[0].payload_policy, "redacted");
       assert.ok(body.events[0].payload_size_bytes <= 32 * 1024);
+
+      const warnings = [];
+      const originalWarn = console.warn;
+      console.warn = (message) => warnings.push(String(message));
+      try {
+        const missingKey = withTrackMCP({ async request() { return { ok: true }; } });
+        assert.deepEqual(await missingKey.request({ method: "tools/call", params: { name: "still_available" } }), { ok: true });
+        assert.equal(missingKey.trackmcp.getDiagnostics().queuedEvents, 0);
+      } finally {
+        console.warn = originalWarn;
+      }
+      assert.equal(warnings.length, 1);
+      assert.match(warnings[0], /TRACKMCP_KEY/);
+      assert.doesNotMatch(warnings[0], /consumer-test-key|Bearer|email|payload/i);
     `);
 
     run(npm, ["install", "--ignore-scripts", "--no-audit", "--no-fund"], consumerDirectory, npmEnv);
