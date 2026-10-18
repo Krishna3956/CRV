@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server.js";
 import { getSupabaseAdmin } from "../../../../lib/repository/supabase.ts";
 import { hashTrackMCPKey } from "../../../../lib/telemetry/keys.ts";
+import { recordFirstAcceptedIngest } from "../../../../lib/activation/milestones.ts";
 import type { CanonicalTrackMCPEvent } from "../../../../lib/telemetry/types.ts";
 import { deduplicateEvents, MAX_BATCH_EVENTS, MAX_REQUEST_BYTES, normalizeTrackMCPEvent, sanitizeIngestPayload, sanitizeIntentText } from "../../../../lib/telemetry/validation.ts";
 
@@ -51,7 +52,7 @@ export function createIngestHandler(getAdmin: typeof getSupabaseAdmin = getSupab
 
   const { data: key, error: keyError } = await supabase
     .from("trackmcp_api_keys")
-    .select("workspace_id, revoked_at")
+    .select("id, workspace_id, revoked_at")
     .eq("key_hash", hashTrackMCPKey(apiKey))
     .maybeSingle();
   if (keyError || !key || key.revoked_at) {
@@ -128,6 +129,11 @@ export function createIngestHandler(getAdmin: typeof getSupabaseAdmin = getSupab
       console.error("TrackMCP ingest failed", { code: error.code, message: error.message });
       return NextResponse.json({ error: "Could not store telemetry." }, { status: 500 });
     }
+  }
+
+  if (rows.length) {
+    const milestone = await recordFirstAcceptedIngest(supabase, key.workspace_id, key.id, rows[0]);
+    if (milestone.error) console.error("TrackMCP activation milestone failed", { code: milestone.error.code, message: milestone.error.message });
   }
 
   return NextResponse.json({ accepted: rows.length, ignored_duplicates: deduplicated.ignored, rejected: 0 });
