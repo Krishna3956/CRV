@@ -13,11 +13,14 @@ test("device approval preserves auth handoff and CLI-only redemption", () => {
   assert.match(device, /if \(!data\.user\)/);
   assert.match(deviceAuth, /\/api\/v1\/cli\/device\/sessions\/approve/);
   assert.match(deviceAuth, /workspace_id/);
+  assert.match(deviceAuth, /A-Z2-9/);
+  assert.match(deviceAuth, /isAllowedVerificationUrl/);
   assert.match(device, /Approve CLI connection/);
   assert.match(device, /CLI redeems the one-time key/);
   assert.match(device, /cli_device_auth_approved/);
   assert.match(device, /already_redeemed/);
   assert.doesNotMatch(device, /api_key/);
+  assert.doesNotMatch(device, /device_code/);
 });
 
 test("activation UI emits bounded copy and first-event events", () => {
