@@ -156,8 +156,13 @@ export async function runInit({ cwd = process.cwd(), flags = {}, client = create
   if (tracked) outputLog(`Warning: ${resolvedFlags.envFile} is tracked by Git. Add it to .gitignore before committing.`);
   await writeEnvKey(target, redeemed.apiKey, { confirmOverwrite: confirmOverwrite || askOverwrite });
   outputLog(`Saved TRACKMCP_KEY to ${resolvedFlags.envFile} with restrictive permissions.`);
-  outputLog("\nTrackMCP is ready. Next, wrap your MCP server and make one real tool call:");
+  outputLog("\nTrackMCP is connected. Next steps:");
+  outputLog("1. Add the wrapper below to your MCP server.");
+  outputLog("2. Restart the server so it loads TRACKMCP_KEY.");
+  outputLog("3. Make one real tool call to send the first telemetry event.");
+  outputLog("4. Open https://app.trackmcp.com/dashboard to view the result.");
   outputLog('import { withTrackMCP } from "@trackmcp/sdk";\n\nexport default withTrackMCP(server, {\n  apiKey: process.env.TRACKMCP_KEY,\n  service: "my-mcp-server",\n});');
+  outputLog("\nRun `npx @trackmcp/cli doctor` any time to check the SDK, key, workspace, and ingest connection.");
   return { status: "completed", path: target, workspace: redeemed.workspace };
 }
 

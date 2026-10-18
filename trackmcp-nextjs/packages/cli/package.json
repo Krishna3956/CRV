@@ -1,6 +1,6 @@
 {
   "name": "@trackmcp/cli",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "Set up TrackMCP and connect an MCP server from the terminal",
   "type": "module",
   "bin": {
