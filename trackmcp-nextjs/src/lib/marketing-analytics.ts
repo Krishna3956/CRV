@@ -69,6 +69,36 @@ export function trackMarketingEvent(name: string, properties: Record<string, Mar
   }
 }
 
+function attributionProperties(snapshot: SubmissionAttributionSnapshot | null) {
+  if (!snapshot) return {};
+  return {
+    first_touch_source: snapshot.first_touch_source,
+    last_touch_source: snapshot.last_touch_source,
+    referrer_hostname: snapshot.referrer_hostname,
+    utm_source: snapshot.utm_source,
+    utm_medium: snapshot.utm_medium,
+    utm_campaign: snapshot.utm_campaign,
+    landing_pathname: snapshot.landing_pathname,
+  } satisfies Record<string, MarketingValue>;
+}
+
+/** Identify an authenticated user without sending email or other direct identifiers. */
+export function identifyMarketingUser(userId: string, properties: Record<string, MarketingValue> = {}) {
+  if (!userId) return;
+  try {
+    const snapshot = captureSubmissionAttribution();
+    const identityProperties = { ...attributionProperties(snapshot), ...properties };
+    posthog.identify(userId, identityProperties);
+    posthog.register(attributionProperties(snapshot));
+  } catch {
+    // Analytics must remain fail-open.
+  }
+}
+
+export function marketingAttributionProperties(snapshot: SubmissionAttributionSnapshot | null) {
+  return attributionProperties(snapshot);
+}
+
 export function trackMarketingEventOnce(name: string, properties: Record<string, MarketingValue> = {}) {
   const storage = browserStorage();
   const marker = `${ATTRIBUTION_KEY}:${name}`;
