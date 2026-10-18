@@ -174,12 +174,86 @@ test("init installs the SDK, skips the browser for an existing key, and prints t
     cwd,
     env: { TRACKMCP_KEY: key },
     interactive: true,
+    client: { keyStatus: async (value) => { assert.equal(value, key); return { category: "no_accepted_telemetry" }; } },
     outputLog: (line) => logs.push(String(line)),
     ensureSdkInstalledImpl: async () => { installed += 1; return { installed: true, alreadyPresent: false, packageManager: "npm" }; },
   });
   assert.equal(result.status, "existing_key");
   assert.equal(installed, 1);
   assert.equal(logs.some((line) => line.includes("No browser authorization was needed")), true);
+});
+
+test("init validates existing keys, replaces only invalid or revoked keys, and never logs the key", async () => {
+  for (const category of ["invalid", "revoked"]) {
+    const cwd = await mkdtemp(join(tmpdir(), "trackmcp-cli-"));
+    const logs = [];
+    let started = false;
+    const result = await runInit({
+      cwd,
+      env: { TRACKMCP_KEY: key },
+      interactive: true,
+      flags: { browser: false, installSdk: false },
+      client: {
+        keyStatus: async () => ({ category }),
+        startSession: async () => { started = true; return { deviceCode: "opaque", userCode: "CODE-1234", verificationUri: "https://app.trackmcp.test/device", expiresIn: 30, interval: 1 }; },
+        poll: async () => ({ status: "approved" }),
+        redeem: async () => ({ status: "approved", apiKey: "tmcp_replacement_key_12345678901234567890" }),
+      },
+      outputLog: (line) => logs.push(String(line)),
+      errorLog: (line) => logs.push(String(line)),
+      ensureSdkInstalledImpl: async () => {},
+      sleep: async () => {},
+      now: () => 0,
+      confirmOverwrite: async () => true,
+    });
+    assert.equal(result.status, "completed");
+    assert.equal(started, true);
+    assert.equal(logs.some((line) => line.includes(key)), false);
+  }
+});
+
+test("init stops clearly when an existing key cannot be validated", async () => {
+  const cwd = await mkdtemp(join(tmpdir(), "trackmcp-cli-"));
+  const logs = [];
+  let started = false;
+  const result = await runInit({
+    cwd,
+    env: { TRACKMCP_KEY: key },
+    interactive: true,
+    flags: { installSdk: false },
+    client: { keyStatus: async () => ({ category: "network_error" }), startSession: async () => { started = true; } },
+    outputLog: (line) => logs.push(String(line)),
+    errorLog: (line) => logs.push(String(line)),
+    ensureSdkInstalledImpl: async () => {},
+  });
+  assert.equal(result.status, "key_status_unavailable");
+  assert.equal(started, false);
+  assert.equal(logs.some((line) => line.includes("No key was changed")), true);
+  assert.equal(logs.some((line) => line.includes(key)), false);
+});
+
+test("init does not overwrite an invalid key in non-interactive mode", async () => {
+  const cwd = await mkdtemp(join(tmpdir(), "trackmcp-cli-"));
+  const logs = [];
+  let started = false;
+  const result = await runInit({
+    cwd,
+    env: { TRACKMCP_KEY: key },
+    interactive: false,
+    flags: { installSdk: false },
+    client: {
+      keyStatus: async () => ({ category: "revoked" }),
+      startSession: async () => { started = true; },
+    },
+    outputLog: (line) => logs.push(String(line)),
+    errorLog: (line) => logs.push(String(line)),
+    ensureSdkInstalledImpl: async () => {},
+  });
+  assert.equal(result.status, "non_interactive");
+  assert.equal(started, false);
+  assert.equal(logs.some((line) => line.includes("invalid or revoked")), true);
+  assert.equal(logs.some((line) => line.includes("no key was changed")), true);
+  assert.equal(logs.some((line) => line.includes(key)), false);
 });
 
 test("SDK installer uses the detected package manager and verifies the package", async () => {
@@ -199,6 +273,26 @@ test("SDK installer uses the detected package manager and verifies the package",
   assert.equal(result.alreadyPresent, false);
   assert.equal(call.command, "pnpm");
   assert.deepEqual(call.args, ["add", "@trackmcp/sdk"]);
+  assert.equal(call.options.cwd, cwd);
+});
+
+test("SDK installer can bootstrap a fresh empty directory without a package manifest", async () => {
+  const cwd = await mkdtemp(join(tmpdir(), "trackmcp-cli-empty-"));
+  let call;
+  const result = await ensureSdkInstalled({
+    cwd,
+    packageManager: "npm",
+    execFileImpl: async (command, args, options) => {
+      call = { command, args, options };
+      await mkdir(join(cwd, "node_modules", "@trackmcp", "sdk"), { recursive: true });
+      await writeFile(join(cwd, "node_modules", "@trackmcp", "sdk", "package.json"), JSON.stringify({ name: "@trackmcp/sdk", version: "0.1.1" }));
+    },
+    outputLog: () => {},
+  });
+  assert.equal(result.installed, true);
+  assert.equal(result.alreadyPresent, false);
+  assert.equal(call.command, process.platform === "win32" ? "npm.cmd" : "npm");
+  assert.deepEqual(call.args, ["install", "@trackmcp/sdk"]);
   assert.equal(call.options.cwd, cwd);
 });
 

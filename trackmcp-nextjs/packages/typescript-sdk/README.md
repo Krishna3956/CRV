@@ -37,9 +37,10 @@ command above for the one-command interactive setup. The manual fallback is
 to create a connection key in the web app and set `TRACKMCP_KEY` before
 starting the server.
 
-Install the privacy release with `npm install @trackmcp/sdk@0.1.1`. The package
-is ESM-first, supports Node.js 18 and newer, and exposes the optional Node-only
-client adapter through `@trackmcp/sdk/client-adapter`.
+For a library-only fallback, install the privacy release with
+`npm install @trackmcp/sdk@0.1.1`. The package is ESM-first, supports Node.js 18
+and newer, and exposes the optional Node-only client adapter through
+`@trackmcp/sdk/client-adapter`.
 
 ```ts
 import { withTrackMCP } from "@trackmcp/sdk";

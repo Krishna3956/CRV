@@ -3016,7 +3016,7 @@ function SetupView({
   const [copied, setCopied] = useState(false);
 
   const snippets = {
-    TypeScript: `npm install @trackmcp/sdk\n\nimport { withTrackMCP } from "@trackmcp/sdk";\nexport default withTrackMCP(server, { apiKey: process.env.TRACKMCP_KEY! });`,
+    TypeScript: `npx @trackmcp/cli init\n\nimport { withTrackMCP } from "@trackmcp/sdk";\nexport default withTrackMCP(server, { apiKey: process.env.TRACKMCP_KEY! });`,
     Python: `python3 -m pip install trackmcp\n\nfrom trackmcp import with_trackmcp\napp = with_trackmcp(server, api_key=os.environ["TRACKMCP_KEY"])`,
   };
   const copy = async () => {
@@ -3080,6 +3080,11 @@ function SetupView({
             Telemetry is fail-open. Payloads remain subject to the existing
             privacy and redaction policy.
           </p>
+          {language === "TypeScript" && (
+            <p className="mt-3 text-xs leading-relaxed text-muted">
+              Recommended: run <code className="font-mono text-ink">npx @trackmcp/cli init</code> first. Use a manual package-manager install only as a library-only fallback.
+            </p>
+          )}
           <p className="mt-3 text-xs leading-relaxed text-muted">
             After creating a key, set <code className="font-mono text-ink">TRACKMCP_KEY</code> in your server environment, restart the server, and make one real tool call. Your data appears after the first telemetry flush.
           </p>

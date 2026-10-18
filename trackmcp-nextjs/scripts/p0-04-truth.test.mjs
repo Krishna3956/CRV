@@ -81,6 +81,21 @@ test("onboarding and quickstart make privacy and boundary behavior discoverable"
   assert.match(docsHome, /private model turn/);
 });
 
+test("public TypeScript setup leads with CLI init and labels package install as fallback", async () => {
+  const homepage = await source("src/app/page.tsx");
+  const quickstart = await source("src/app/mcp-server-analytics/quickstart/page.tsx");
+  const dashboard = await source("src/components/dashboard/DashboardApp.tsx");
+  const docs = await source("src/app/docs/typescript/page.tsx");
+  const sdk = await source("packages/typescript-sdk/README.md");
+  const cli = await source("packages/cli/README.md");
+  for (const content of [homepage, quickstart, dashboard, docs, sdk, cli]) assert.match(content, /npx @trackmcp\/cli init/);
+  assert.match(quickstart, /library-only fallback/i);
+  assert.match(dashboard, /TypeScript: `npx @trackmcp\/cli init/);
+  assert.match(docs, /Fallback\/library-only package-manager install/);
+  assert.match(sdk, /library-only fallback/i);
+  assert.match(cli, /manual\/library-only fallback/i);
+});
+
 test("trust pages avoid promising unshipped retention and export controls", async () => {
   const security = await source("src/app/security/page.tsx");
   const privacy = await source("src/app/privacy/page.tsx");

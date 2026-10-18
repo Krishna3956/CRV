@@ -39,8 +39,8 @@ export default function TypeScriptDocsPage() {
         <Code eventName="install_command_copied">{`npx @trackmcp/cli init
 # Remote environments: npx @trackmcp/cli init --no-browser
 # Diagnostics: npx @trackmcp/cli doctor`}</Code>
-        <Code>{`# Manual package-manager install (the CLI above does this automatically when needed)
-npm i @trackmcp/sdk
+        <Code>{`# Fallback/library-only package-manager install (the CLI above is recommended)
+npm install @trackmcp/sdk
 # npm install is intentionally silent: it never opens a browser or sends an install ping.
 # Manual fallback:
 # https://app.trackmcp.com/signup?utm_source=npm&utm_medium=sdk_docs&utm_campaign=sdk_setup&package=%40trackmcp%2Fsdk&content_path=%2Fdocs%2Ftypescript

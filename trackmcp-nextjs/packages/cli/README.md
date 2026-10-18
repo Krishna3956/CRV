@@ -49,10 +49,10 @@ environment or a secret manager:
 TRACKMCP_KEY=tmcp_... npx @trackmcp/cli doctor --non-interactive
 ```
 
-The CLI never accepts an API key as a positional argument. The manual fallback
-is to create a connection key in the TrackMCP web app, set `TRACKMCP_KEY` in
-the MCP server environment, install `@trackmcp/sdk`, and make one real tool
-call.
+The CLI never accepts an API key as a positional argument. The
+manual/library-only fallback is to create a connection key in the TrackMCP web
+app, set `TRACKMCP_KEY` in the MCP server environment, install `@trackmcp/sdk`,
+and make one real tool call.
 
 ## Doctor and logout
 

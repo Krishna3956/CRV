@@ -85,12 +85,31 @@ export async function runInit({ cwd = process.cwd(), flags = {}, client = create
   const resolvedFlags = { browser: true, installSdk: true, envFile: ".env.local", nonInteractive: false, ...flags };
   await ensureSdkInstalledImpl({ cwd, install: resolvedFlags.installSdk, outputLog, env });
   const existing = await readConfiguredKey({ cwd, envFile: resolvedFlags.envFile, env });
+  let replacingInvalidKey = false;
   if (existing.key) {
-    outputLog(`TrackMCP is already connected (${existing.source}). No browser authorization was needed.`);
-    return { status: "existing_key", source: existing.source };
+    let keyStatus;
+    try {
+      keyStatus = typeof client.keyStatus === "function" ? await client.keyStatus(existing.key) : { category: "unavailable" };
+    } catch {
+      keyStatus = { category: "network_error" };
+    }
+    if (keyStatus.category === "accepted_telemetry" || keyStatus.category === "no_accepted_telemetry") {
+      outputLog(`TrackMCP is already connected (${existing.source}). No browser authorization was needed.`);
+      return { status: "existing_key", source: existing.source, keyStatus: keyStatus.category };
+    }
+    if (keyStatus.category !== "invalid" && keyStatus.category !== "revoked") {
+      errorLog(`Could not validate the existing TrackMCP key (${keyStatus.category || "unavailable"}). No key was changed; check your network and run init again.`);
+      return { status: "key_status_unavailable", category: keyStatus.category || "unavailable" };
+    }
+    replacingInvalidKey = true;
+    outputLog("The existing TrackMCP key is no longer valid. Starting browser authorization for a replacement key.");
   }
   if (!(interactive ?? isInteractive(resolvedFlags))) {
-    errorLog("No usable TRACKMCP_KEY was found. init needs an interactive terminal; set TRACKMCP_KEY in CI or run init locally.");
+    if (replacingInvalidKey) {
+      errorLog("The existing TRACKMCP_KEY is invalid or revoked. init needs an interactive terminal to authorize a replacement; no key was changed.");
+    } else {
+      errorLog("No usable TRACKMCP_KEY was found. init needs an interactive terminal; set TRACKMCP_KEY in CI or run init locally.");
+    }
     return { status: "non_interactive" };
   }
   const session = await client.startSession();
