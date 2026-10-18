@@ -372,7 +372,7 @@ refresh(uri):
       h("What the new flow does"),
       ul([
         "Validates an existing TRACKMCP_KEY before opening the browser or replacing any credential.",
-        "Detects npm, pnpm, or yarn context and installs the SDK unless you opt out with --no-install.",
+        "Detects npm, pnpm, yarn, or bun context and installs the SDK unless you opt out with --no-install.",
         "Prints the complete HTTPS verification URL and one-time code before attempting to open the browser.",
         "Lets you sign in or create an account in the existing TrackMCP web authentication flow.",
         "Lets you choose the workspace that should receive this project’s telemetry.",
