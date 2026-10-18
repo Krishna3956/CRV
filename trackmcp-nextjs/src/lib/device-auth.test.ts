@@ -44,10 +44,12 @@ test("real adapter posts only bounded approval fields and handles approval", asy
 
 test("real adapter maps invalid, expired, denied, and unavailable responses", async () => {
   for (const [status, body, expected] of [
-    [400, { error: "Invalid device approval request." }, { status: "invalid" }],
+    [400, { status: "invalid" }, { status: "invalid" }],
+    [404, { status: "invalid" }, { status: "invalid" }],
     [410, { status: "expired" }, { status: "expired" }],
-    [403, { error: "Workspace access denied." }, { status: "denied", reason_category: "user_denied" }],
-    [503, { error: "Device authorization is not configured." }, { status: "denied", reason_category: "unavailable" }],
+    [403, { status: "denied", reason_category: "user_denied" }, { status: "denied", reason_category: "user_denied" }],
+    [409, { status: "denied", reason_category: "user_denied" }, { status: "denied", reason_category: "user_denied" }],
+    [500, { error: "Could not approve device session." }, { status: "denied", reason_category: "unavailable" }],
   ] as const) {
     const adapter = createDeviceAuthAdapter(async () => response(status, body));
     assert.deepEqual(await adapter.approve({ userCode: "F7KQ-2M9D", workspaceId: "workspace-1" }), expected);
@@ -56,7 +58,6 @@ test("real adapter maps invalid, expired, denied, and unavailable responses", as
 
 test("real adapter preserves explicit terminal states and makes generic conflicts safe", async () => {
   for (const [body, expected] of [
-    [{ status: "already_approved" }, { status: "already_approved" }],
     [{ status: "already_redeemed" }, { status: "already_redeemed" }],
     [{ status: "denied" }, { status: "denied", reason_category: "user_denied" }],
     [{ error: "Device session is no longer active." }, { status: "denied", reason_category: "unavailable" }],
@@ -64,6 +65,11 @@ test("real adapter preserves explicit terminal states and makes generic conflict
     const adapter = createDeviceAuthAdapter(async () => response(409, body));
     assert.deepEqual(await adapter.approve({ userCode: "F7KQ-2M9D", workspaceId: "workspace-1" }), expected);
   }
+});
+
+test("real adapter maps the idempotent already-approved success response", async () => {
+  const adapter = createDeviceAuthAdapter(async () => response(200, { status: "already_approved" }));
+  assert.deepEqual(await adapter.approve({ userCode: "F7KQ-2M9D", workspaceId: "workspace-1" }), { status: "already_approved" });
 });
 
 test("unauthenticated approval is denied without creating a key", async () => {
