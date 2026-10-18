@@ -1,0 +1,31 @@
+name: Publish Python SDK
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "packages/python-sdk/**"
+      - ".github/workflows/publish-python.yml"
+  workflow_dispatch:
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Build and publish Python SDK
+        working-directory: packages/python-sdk
+        env:
+          TWINE_USERNAME: __token__
+          TWINE_PASSWORD: ${{ secrets.PYPI_TOKEN }}
+        run: |
+          set -euo pipefail
+          python -m pip install build twine
+          python -m unittest discover -s tests -p 'test*.py'
+          python -m build
+          python -m twine upload dist/*
