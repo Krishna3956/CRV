@@ -12,7 +12,7 @@ import {
   type DeviceAuthAdapter,
   type DeviceSessionState,
 } from "@/lib/device-auth";
-import { TrackMCPMark } from "@/components/TrackMCPMark";
+import { TrackMCPLogo } from "@/components/TrackMCPLogo";
 
 type Workspace = { id: string; name: string; slug: string };
 
@@ -165,7 +165,7 @@ export function DeviceApprovalClient({
   return (
     <main className="min-h-screen bg-canvas px-6 py-10 text-body sm:py-16">
       <section className="mx-auto max-w-lg rounded-2xl border border-line bg-white p-6 shadow-sm sm:p-8">
-        <div className="flex items-center gap-2 text-brand-strong"><TrackMCPMark size={26} /><span className="text-sm font-semibold tracking-[-0.02em] text-ink">TrackMCP</span></div>
+        <TrackMCPLogo mark className="text-[21px]" />
         <h1 className="mt-8 text-3xl font-medium tracking-[-0.04em] text-ink">Approve CLI connection</h1>
         <p className="mt-3 text-sm leading-relaxed text-muted">Connect this project to your TrackMCP workspace. The CLI will finish setup in your terminal.</p>
         <div className="mt-6 rounded-xl border border-line bg-paper p-4 text-center">
