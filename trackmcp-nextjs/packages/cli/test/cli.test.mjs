@@ -28,6 +28,15 @@ test("verification URLs require HTTPS unless explicitly enabled for local tests"
   assert.equal(local.verificationUri, "http://localhost:3000/device");
 });
 
+test("API base and browser opener require HTTPS outside localhost development", async () => {
+  assert.throws(() => createDeviceClient({ apiBaseUrl: "http://app.trackmcp.test", fetchImpl: async () => response({}) }), /must use HTTPS/);
+  assert.doesNotThrow(() => createDeviceClient({ apiBaseUrl: "http://localhost:3000", allowInsecureLocalDevelopment: true, fetchImpl: async () => response({}) }));
+  assert.equal(await openBrowser("http://app.trackmcp.test/device", { spawnImpl: () => { throw new Error("must not spawn"); } }), false);
+  const child = new EventEmitter();
+  const local = await openBrowser("http://localhost:3000/device", { allowLocalDevelopment: true, spawnImpl: () => { queueMicrotask(() => child.emit("spawn")); return child; } });
+  assert.equal(local, true);
+});
+
 test("browser opener handles success and failure without shell interpolation", async () => {
   const calls = [];
   const success = await openBrowser("https://app.trackmcp.test/device?user_code=F7KQ-2M9D", { platform: "linux", spawnImpl: (command, args, options) => { calls.push({ command, args, options }); const child = new EventEmitter(); queueMicrotask(() => child.emit("spawn")); return child; } });

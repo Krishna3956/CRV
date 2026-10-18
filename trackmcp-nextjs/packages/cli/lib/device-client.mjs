@@ -9,11 +9,18 @@ const DEFAULT_MAX_RETRIES = 3;
 const DEFAULT_RETRY_DELAY_MS = 1000;
 const MAX_RETRY_DELAY_MS = 10_000;
 const RETRYABLE_HTTP_STATUSES = new Set([408, 425, 429, 500, 502, 503, 504]);
+const LOCAL_DEVELOPMENT_HOSTS = new Set(["localhost", "127.0.0.1", "[::1]"]);
 
 export const DEVICE_TERMINAL_STATUSES = new Set(["approved", "denied", "expired", "cancelled"]);
 
 function boundedString(value, maximum = 512) {
   return typeof value === "string" && value.trim().length > 0 && value.length <= maximum ? value.trim() : undefined;
+}
+
+function isAllowedUrl(url, { allowLocalHttp = false } = {}) {
+  if (url.username || url.password) return false;
+  if (url.protocol === "https:") return true;
+  return allowLocalHttp && url.protocol === "http:" && LOCAL_DEVELOPMENT_HOSTS.has(url.hostname);
 }
 
 function safeVerificationUrl(value, { allowHttp = false } = {}) {
@@ -25,8 +32,7 @@ function safeVerificationUrl(value, { allowHttp = false } = {}) {
   } catch {
     throw new Error("TrackMCP returned an invalid verification URL.");
   }
-  if (allowHttp && url.protocol === "http:" && !url.username && !url.password) return url.toString();
-  if (!allowHttp && url.protocol !== "https:") throw new Error("TrackMCP returned an invalid verification URL.");
+  if (!isAllowedUrl(url, { allowLocalHttp: allowHttp })) throw new Error("TrackMCP returned an invalid verification URL.");
   if (!(["https:", "http:"].includes(url.protocol)) || url.username || url.password) throw new Error("TrackMCP returned an invalid verification URL.");
   return url.toString();
 }
@@ -82,10 +88,16 @@ export function createDeviceClient({
   allowInsecureVerificationUrl = false,
   retrySleep = (milliseconds) => new Promise((resolve) => setTimeout(resolve, milliseconds)),
   maxRetries = DEFAULT_MAX_RETRIES,
+  allowInsecureLocalDevelopment = false,
 } = {}) {
   if (typeof fetchImpl !== "function") throw new Error("A fetch implementation is required.");
-  const base = new URL(apiBaseUrl);
-  if (!["https:", "http:"].includes(base.protocol)) throw new Error("TrackMCP API URL must use HTTP(S).");
+  let base;
+  try {
+    base = new URL(apiBaseUrl);
+  } catch {
+    throw new Error("TrackMCP API URL must be a valid HTTPS URL.");
+  }
+  if (!isAllowedUrl(base, { allowLocalHttp: allowInsecureLocalDevelopment })) throw new Error("TrackMCP API URL must use HTTPS.");
   const endpoint = (path) => new URL(path, base).toString();
 
   const requestJson = async (path, init = {}, { retry = false } = {}) => {

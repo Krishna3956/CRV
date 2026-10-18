@@ -1,5 +1,7 @@
 import { spawn } from "node:child_process";
 
+const LOCAL_DEVELOPMENT_HOSTS = new Set(["localhost", "127.0.0.1", "[::1]"]);
+
 export function browserCommand(platform = process.platform) {
   if (platform === "darwin") return { command: "open", args: [] };
   if (platform === "win32") return { command: "rundll32", args: ["url.dll,FileProtocolHandler"] };
@@ -7,14 +9,15 @@ export function browserCommand(platform = process.platform) {
 }
 
 /** Open a trusted HTTPS device URL without shell interpolation. */
-export function openBrowser(url, { platform = process.platform, spawnImpl = spawn } = {}) {
+export function openBrowser(url, { platform = process.platform, spawnImpl = spawn, allowLocalDevelopment = false } = {}) {
   let parsed;
   try {
     parsed = new URL(url);
   } catch {
     return Promise.resolve(false);
   }
-  if (!["https:", "http:"].includes(parsed.protocol) || parsed.username || parsed.password) return Promise.resolve(false);
+  const localHttp = allowLocalDevelopment && parsed.protocol === "http:" && LOCAL_DEVELOPMENT_HOSTS.has(parsed.hostname);
+  if ((parsed.protocol !== "https:" && !localHttp) || parsed.username || parsed.password) return Promise.resolve(false);
   const { command, args } = browserCommand(platform);
   return new Promise((resolve) => {
     let settled = false;
