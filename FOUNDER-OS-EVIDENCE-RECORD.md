@@ -74,3 +74,15 @@ or private URLs into it.
 | result | pass |
 | evidence_reference | `/Users/krishna/Documents/Codex/2026-10-17/okay-x20/CRV/docs/evidence/production-registry-integrity-2026-10-19.json`; 14 checks passed and all four expected checksums matched registry metadata. |
 | caveat_or_scope | This verifies metadata/checksum identity only. It does not prove registry provenance attestations, package publication ownership, or a customer installation. |
+
+| Field | Value |
+| --- | --- |
+| gate_id | production-smoke-runner-deployment |
+| owner | Head of Engineering |
+| timestamp_utc | 2026-10-19T13:21:00Z |
+| command_or_probe | GitHub Actions deploy run [39258226144](https://github.com/Krishna3956/CRV/actions/runs/39258226144) for commit `8510e00`; inspected the completed App Runner workflow result |
+| environment | CI / App Runner production |
+| candidate_sha | 8510e00 |
+| result | pass |
+| evidence_reference | Hosted CI run `39258226230` passed and App Runner deployment run `39258226144` completed successfully after the smoke-runner image was built, pushed, deployed, and health-checked. |
+| caveat_or_scope | Proves the production smoke-runner code was deployed successfully. It does not itself perform an authenticated write smoke, cross-workspace test, scheduler run, rollback rehearsal, or package provenance attestation. |
