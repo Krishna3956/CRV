@@ -38,3 +38,15 @@ or private URLs into it.
 | result | pass |
 | evidence_reference | Redacted browser accessibility evidence: navigation exposed Overview, The journey, What they’re doing, Did it work, What’s broken, Who’s using it, Evidence, and Setup. Setup exposed connection status, first-event checks, server/environment scope, SDK setup, key management, and privacy controls. Did it work exposed the no-event state and explicit-outcome preview. |
 | caveat_or_scope | Proves the production dashboard exposes the intended information architecture and honest empty-state copy for this authenticated workspace. It does not prove responsive/mobile layout, every device-auth state, or that this workspace has received a first event. |
+
+| Field | Value |
+| --- | --- |
+| gate_id | production-dashboard-setup-labels |
+| owner | Head of Engineering |
+| timestamp_utc | 2026-10-19T13:08:00Z |
+| command_or_probe | Authenticated Chrome browser refresh at `app.trackmcp.com/dashboard?view=setup&data=my`; inspected the Setup accessibility tree after App Runner run 84 completed successfully |
+| environment | production |
+| candidate_sha | cbb3a03732160bcbb74e1d4b053f37b8f39a2f56 |
+| result | pass |
+| evidence_reference | Redacted browser accessibility evidence exposed bounded `Server name` and `Environment` fields and a generated TypeScript snippet containing `service` and `environment`; the page also displayed the existing first-event waiting state and key/privacy controls. Hosted CI runs 384 and 385 passed; App Runner deploy run 84 (`39256158329`) completed successfully. |
+| caveat_or_scope | Proves the latest setup-label change is live and readable in the authenticated production dashboard. The labels are telemetry scope hints, not deployment or identity proof. This does not close responsive/mobile evidence, cross-workspace authorization, scheduler, rollback, or 100-customer capacity gates. |
