@@ -44,8 +44,6 @@ export class TrackMCPClientAdapter {
     protocolSessionId;
     constructor(options) {
         nodeOnlyGuard();
-        if (typeof options.apiKey !== "string" || options.apiKey.trim() === "")
-            throw new Error("TrackMCP apiKey is required");
         if (!boundedString(options.service))
             throw new Error("TrackMCP service is required and must be bounded");
         if (options.transport !== "stdio" && options.transport !== "streamable_http")

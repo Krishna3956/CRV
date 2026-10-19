@@ -1,5 +1,8 @@
 import type { Metadata } from "next";
+import type { ReactNode } from "react";
 import { pageMeta } from "@/lib/seo";
+
+type SignupLayoutProps = { children: ReactNode };
 
 export const metadata: Metadata = pageMeta({
   title: "Create your TrackMCP account",
@@ -8,6 +11,6 @@ export const metadata: Metadata = pageMeta({
   index: false,
 });
 
-export default function SignupLayout({ children }: LayoutProps<"/signup">) {
+export default function SignupLayout({ children }: SignupLayoutProps) {
   return children;
 }

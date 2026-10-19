@@ -103,8 +103,31 @@ export type TrackMCPEvent = {
   payload?: Record<string, unknown>;
 };
 
+export type TrackMCPDeliveryErrorKind =
+  | "missing_api_key"
+  | "invalid_key"
+  | "revoked"
+  | "unauthorized"
+  | "forbidden"
+  | "rate_limited"
+  | "server_error"
+  | "network_error"
+  | "aborted"
+  | "unknown";
+
+export type TrackMCPDeliveryError = {
+  kind: TrackMCPDeliveryErrorKind;
+  status?: number;
+  retrying: boolean;
+};
+
+export type TrackMCPDiagnosticsOptions = {
+  onDeliveryError?: (error: TrackMCPDeliveryError) => void;
+  debug?: boolean;
+};
+
 export type TrackMCPOptions = {
-  apiKey: string;
+  apiKey?: string;
   service?: string;
   environment?: string;
   endpoint?: string;
@@ -133,7 +156,38 @@ export type TrackMCPOptions = {
 };
 
 const DEFAULT_ENDPOINT = "https://trackmcp.com/api/v1/ingest";
+// Keep this URL fixed and bounded so the actionable missing-key diagnostic never
+// reflects caller-controlled values or accidentally includes a secret.
+export const TRACKMCP_SETUP_URL = "https://app.trackmcp.com/signup?utm_source=npm&utm_medium=sdk&utm_campaign=sdk_setup";
+const DIAGNOSTIC_INTERVAL_MS = 60_000;
 let activeClient: TrackMCPClient | undefined;
+
+async function responseErrorKind(response: Response): Promise<TrackMCPDeliveryErrorKind> {
+  const keyStatus = response.headers.get("x-trackmcp-key-status")?.toLowerCase();
+  if (keyStatus === "revoked") return "revoked";
+  if (keyStatus === "invalid") return "invalid_key";
+  try {
+    const text = await response.clone().text();
+    if (text.length <= 4096) {
+      const body = JSON.parse(text) as Record<string, unknown>;
+      const marker = [body.code, body.status, body.reason, body.error].find((value): value is string => typeof value === "string")?.toLowerCase();
+      if (marker === "revoked" || marker === "key_revoked") return "revoked";
+      if (marker === "invalid" || marker === "invalid_key" || marker === "invalid_api_key") return "invalid_key";
+    }
+  } catch {
+    // Response bodies are diagnostic input only and are never logged.
+  }
+  if (response.status === 400) return "invalid_key";
+  if (response.status === 401) return "unauthorized";
+  if (response.status === 403) return "forbidden";
+  if (response.status === 429) return "rate_limited";
+  if (response.status >= 500 && response.status <= 599) return "server_error";
+  return "unknown";
+}
+
+function shouldRetry(kind: TrackMCPDeliveryErrorKind): boolean {
+  return kind === "rate_limited" || kind === "server_error" || kind === "network_error" || kind === "aborted";
+}
 
 function stableJson(value: unknown): string {
   if (Array.isArray(value)) return `[${value.map(stableJson).join(",")}]`;
@@ -244,9 +298,11 @@ export class TrackMCPClient {
   private flushing?: Promise<void>;
 
   constructor(options: TrackMCPOptions) {
-    if (!options.apiKey) throw new Error("TrackMCP apiKey is required");
+    const apiKey = typeof options.apiKey === "string" && options.apiKey.trim() ? options.apiKey.trim() : undefined;
+    if (!apiKey && options.strict) throw new Error(`TrackMCP telemetry is disabled because TRACKMCP_KEY is missing. Create a connection key: ${TRACKMCP_SETUP_URL}`);
+    const diagnostics = { ...options.diagnostics, onDeliveryError: options.onDeliveryError || options.diagnostics?.onDeliveryError, debug: options.debug ?? options.diagnostics?.debug ?? false };
     this.options = {
-      apiKey: options.apiKey,
+      apiKey,
       server_id: options.server_id,
       server_version: options.server_version,
       sdk_version: options.sdk_version,
@@ -266,7 +322,7 @@ export class TrackMCPClient {
       maxBatchSize: Math.max(1, Math.floor(options.maxBatchSize ?? DEFAULT_MAX_BATCH_SIZE)),
       maxQueueEvents: Math.max(1, Math.floor(options.maxQueueEvents ?? DEFAULT_MAX_QUEUE_EVENTS)),
       maxQueueBytes: Math.max(1, Math.floor(options.maxQueueBytes ?? DEFAULT_MAX_QUEUE_BYTES)),
-      disabled: options.disabled ?? false,
+      disabled: options.disabled === true || !apiKey,
       redactEvent: options.redactEvent,
       correlation: {
         mode: options.correlation?.mode === "external" || options.correlation?.mode === "issued" ? options.correlation.mode : "none",
@@ -276,9 +332,28 @@ export class TrackMCPClient {
       intentFallback: options.intentFallback,
       accountIdResolver: options.accountIdResolver,
     };
+    if (!apiKey) this.emitDiagnostic({ kind: "missing_api_key", retrying: false });
     if (!this.options.disabled) {
       this.timer = setInterval(() => void this.flush(), this.options.flushIntervalMs);
       this.timer.unref?.();
+    }
+  }
+
+  private emitDiagnostic(error: TrackMCPDeliveryError): void {
+    const now = Date.now();
+    const previous = this.options.diagnosticTimes.get(error.kind) || 0;
+    if (this.options.diagnosticTimes.has(error.kind) && now - previous < DIAGNOSTIC_INTERVAL_MS) return;
+    this.options.diagnosticTimes.set(error.kind, now);
+    try {
+      this.options.diagnostics.onDeliveryError?.({ ...error });
+    } catch {
+      // Diagnostics must never affect an MCP call or delivery attempt.
+    }
+    if (error.kind === "missing_api_key") {
+      console.warn(`TrackMCP telemetry is disabled because TRACKMCP_KEY is missing. Create a connection key: ${TRACKMCP_SETUP_URL}`);
+    } else if (this.options.diagnostics.debug) {
+      const status = error.status ? ` (HTTP ${error.status})` : "";
+      console.warn(`TrackMCP telemetry delivery failed: ${error.kind}${status}. MCP calls remain unaffected.`);
     }
   }
 
@@ -553,11 +628,19 @@ export class TrackMCPClient {
       headers: { "content-type": "application/json", authorization: `Bearer ${this.options.apiKey}` },
       body: JSON.stringify({ events }),
     })
-      .then((response) => {
-        if (!response.ok) throw new Error(`TrackMCP ingest returned ${response.status}`);
-        delivered = true;
+      .then(async (response) => {
+        if (response.ok) {
+          delivered = true;
+          return;
+        }
+        const kind = await responseErrorKind(response);
+        const retrying = shouldRetry(kind);
+        this.emitDiagnostic({ kind, status: response.status, retrying });
+        if (retrying) for (const event of events) this.enqueue(event);
       })
-      .catch(() => {
+      .catch((error: unknown) => {
+        const kind: TrackMCPDeliveryErrorKind = error && typeof error === "object" && "name" in error && (error as { name?: unknown }).name === "AbortError" ? "aborted" : "network_error";
+        this.emitDiagnostic({ kind, retrying: true });
         // Analytics must never affect the user's MCP server. Requeue within the same bounds.
         for (const event of events) this.enqueue(event);
       })

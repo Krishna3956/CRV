@@ -85,7 +85,6 @@ export class TrackMCPClientAdapter {
 
   constructor(options: TrackMCPClientAdapterOptions) {
     nodeOnlyGuard();
-    if (typeof options.apiKey !== "string" || options.apiKey.trim() === "") throw new Error("TrackMCP apiKey is required");
     if (!boundedString(options.service)) throw new Error("TrackMCP service is required and must be bounded");
     if (options.transport !== "stdio" && options.transport !== "streamable_http") throw new Error("Unsupported TrackMCP client transport");
     if (options.session && (!boundedString(options.session.id) || !["protocol", "transport_generated", "external"].includes(options.session.source))) throw new Error("Session identity must be bounded and include explicit provenance");

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import type { ReactNode } from "react";
 import { Inter, Geist_Mono } from "next/font/google";
 import Script from "next/script";
 import { Analytics } from "@vercel/analytics/react";
@@ -27,6 +28,7 @@ const geistMono = Geist_Mono({
 });
 
 const TITLE = "TrackMCP: See how your MCP server is being used";
+type RootLayoutProps = { children: ReactNode };
 
 export const metadata: Metadata = {
   title: TITLE,
@@ -67,7 +69,7 @@ export const metadata: Metadata = {
   // verification: { google: "your-google-verification-code" },
 };
 
-export default function RootLayout({ children }: LayoutProps<"/">) {
+export default function RootLayout({ children }: RootLayoutProps) {
   return (
     <html
       lang="en"

@@ -88,8 +88,18 @@ export type TrackMCPEvent = {
     payload_policy?: "metadata" | "redacted" | "full";
     payload?: Record<string, unknown>;
 };
+export type TrackMCPDeliveryErrorKind = "missing_api_key" | "invalid_key" | "revoked" | "unauthorized" | "forbidden" | "rate_limited" | "server_error" | "network_error" | "aborted" | "unknown";
+export type TrackMCPDeliveryError = {
+    kind: TrackMCPDeliveryErrorKind;
+    status?: number;
+    retrying: boolean;
+};
+export type TrackMCPDiagnosticsOptions = {
+    onDeliveryError?: (error: TrackMCPDeliveryError) => void;
+    debug?: boolean;
+};
 export type TrackMCPOptions = {
-    apiKey: string;
+    apiKey?: string;
     service?: string;
     environment?: string;
     endpoint?: string;
@@ -116,6 +126,7 @@ export type TrackMCPOptions = {
     /** Resolve an already-validated customer account/tenant claim. Resolver failures are fail-open. */
     accountIdResolver?: (context: TrackMCPAccountIdentityContext) => string | undefined | null;
 };
+export declare const TRACKMCP_SETUP_URL = "https://app.trackmcp.com/signup?utm_source=npm&utm_medium=sdk&utm_campaign=sdk_setup";
 type CatalogTool = {
     name: string;
     description?: string;
@@ -150,6 +161,7 @@ export declare class TrackMCPClient {
     private timer?;
     private flushing?;
     constructor(options: TrackMCPOptions);
+    private emitDiagnostic;
     capture(event: Omit<TrackMCPEvent, "event_id" | "service" | "environment" | "schema_version" | "observation_source"> & {
         schema_version?: string;
         observation_source?: "client" | "server";

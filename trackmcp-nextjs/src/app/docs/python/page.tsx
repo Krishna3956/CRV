@@ -28,8 +28,18 @@ export default function PythonDocsPage() {
       </DocLead>
 
       <DocSection title="Install">
+        <Para>
+          Python uses the package manager and a workspace connection key. The TrackMCP
+          CLI currently bootstraps the TypeScript SDK; for Python, create or copy a key
+          from your authenticated <a href="https://app.trackmcp.com/dashboard" className="font-medium text-brand-strong underline">workspace dashboard</a> and keep it in the same environment that runs your server.
+        </Para>
         <Code>{`python3 -m pip install trackmcp
 # or: uv add trackmcp / poetry add trackmcp`}</Code>
+        <Code>{`trackmcp init
+# SSH or CI:
+trackmcp init --no-browser
+# Diagnostics:
+trackmcp doctor`}</Code>
       </DocSection>
 
       <DocSection title="Wrap your server">

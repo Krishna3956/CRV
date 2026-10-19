@@ -38,9 +38,8 @@ export async function GET(request: Request) {
   const rows = sessions.data || [];
   const statusCounts = rows.reduce<Record<string, number>>((acc, row) => { acc[row.status] = (acc[row.status] || 0) + 1; return acc; }, {});
   return NextResponse.json({
+    ...report.data,
     range: { from, to },
-    device_sessions: { started: rows.length, by_status: statusCounts, approved: statusCounts.approved || 0, redeemed: statusCounts.redeemed || 0 },
-    first_accepted_ingest: { count: milestones.count || 0, by_observation_source: (milestones.data || []).reduce<Record<string, number>>((acc, row) => { acc[row.observation_source] = (acc[row.observation_source] || 0) + 1; return acc; }, {}) },
     npm_downloads: { value: null, label: "aggregate downloads; not unique users" },
   }, { headers: { "cache-control": "no-store" } });
 }

@@ -94,7 +94,7 @@ export default function Home() {
 
             <Reveal delay={0.24}>
               <p className="mt-4 text-[13.5px] text-faint">
-                Add one line. Start learning
+                One command. Start learning
               </p>
             </Reveal>
 
@@ -239,14 +239,14 @@ export default function Home() {
             <div className="grid items-center gap-12 lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)]">
               <Reveal>
                 <span className="text-[12px] font-medium uppercase tracking-[0.04em] text-brand">
-                  One line of code
+                  One-command setup
                 </span>
                 <h2 className="mt-3 text-[30px] font-medium leading-[1.1] tracking-[-0.02em] text-ink sm:text-[36px]">
-                  Add one line. That&apos;s it
+                  Connect your project in one command
                 </h2>
                 <p className="mt-4 max-w-[46ch] text-[16px] leading-[1.5] text-muted">
-                  Add one line to your server. TrackMCP takes care of the rest,
-                  and your data shows up in the dashboard right away
+                  Run one setup command. TrackMCP installs the SDK, connects your
+                  workspace, and gets your server ready for the dashboard.
                 </p>
                 <ul className="mt-6 flex flex-col gap-3">
                   {[

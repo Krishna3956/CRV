@@ -17,5 +17,8 @@ Documentation = "https://trackmcp.com/docs/python"
 Repository = "https://github.com/Krishna3956/CRV/tree/main/packages/python-sdk"
 Issues = "https://github.com/Krishna3956/CRV/issues"
 
+[project.scripts]
+trackmcp = "trackmcp.cli:main"
+
 [tool.setuptools.packages.find]
 include = ["trackmcp*"]
