@@ -12,5 +12,7 @@ test("versioned people route refuses to claim unique identities", async () => {
   assert.match(handlers, /not a verified person identity/);
   assert.match(handlers, /identity_coverage/);
   assert.match(handlers, /identity_source_counts/);
+  assert.match(handlers, /activity_signals/);
+  assert.match(handlers, /active_account_signals_7d/);
   assert.match(handlers, /createAnalyticsHandler/);
 });

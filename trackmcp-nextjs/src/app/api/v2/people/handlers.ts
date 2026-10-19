@@ -14,6 +14,7 @@ export function createPeopleHandler(analytics = createAnalyticsHandler()) {
     const body = await response.json() as {
       range_days?: unknown;
       clients?: unknown;
+      account_summary?: { active_account_keys?: unknown; active_account_keys_7d?: unknown; returning_account_keys?: unknown; account_activity_bands?: unknown };
       founder_os?: { identity_coverage?: unknown; identity_source_counts?: unknown };
       data_trust?: unknown;
     };
@@ -22,6 +23,12 @@ export function createPeopleHandler(analytics = createAnalyticsHandler()) {
       identity_coverage: body.founder_os?.identity_coverage ?? null,
       identity_source_counts: body.founder_os?.identity_source_counts ?? { resolver: 0, unresolved: 0 },
       client_observations: Array.isArray(body.clients) ? body.clients.slice(0, 100) : [],
+      activity_signals: {
+        active_account_signals: typeof body.account_summary?.active_account_keys === "number" ? body.account_summary.active_account_keys : null,
+        active_account_signals_7d: typeof body.account_summary?.active_account_keys_7d === "number" ? body.account_summary.active_account_keys_7d : null,
+        returning_account_signals: typeof body.account_summary?.returning_account_keys === "number" ? body.account_summary.returning_account_keys : null,
+        account_activity_bands: body.account_summary?.account_activity_bands ?? null,
+      },
       unique_people: null,
       unique_organizations: null,
       data_trust: body.data_trust ?? null,
