@@ -1,10 +1,11 @@
 {
-  "generated_at": "2026-10-19T13:12:18Z",
+  "generated_at": "2026-10-19T13:26:00Z",
   "base_url": "https://trackmcp.com",
   "candidate_sha": "cbb3a03732160bcbb74e1d4b053f37b8f39a2f56",
   "write_enabled": false,
   "key_supplied": false,
   "revoked_key_supplied": false,
+  "exact_expected_checksums_supplied": true,
   "checks": [
     { "label": "public pages and sitemaps", "status": 200, "count": 8 },
     { "label": "npm @trackmcp/sdk@0.1.2", "status": 200, "integrity_present": true, "tarball_origin_verified": true },
@@ -17,7 +18,7 @@
   "total_checks": 14,
   "caveats": [
     "Read-only public and registry evidence; no key, workspace mutation, or telemetry event was used.",
-    "Provenance attestations and an operator-retained checksum archive remain separate acceptance gates.",
+    "The exact reviewed npm and PyPI checksums matched the registry metadata. Provenance attestations remain a separate acceptance gate.",
     "No raw API key, device code, workspace ID, event ID, response body, or credential is recorded."
   ]
 }

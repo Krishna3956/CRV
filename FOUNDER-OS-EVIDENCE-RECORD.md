@@ -62,3 +62,15 @@ or private URLs into it.
 | result | pass |
 | evidence_reference | Redacted report `/tmp/trackmcp-production-smoke.json`; 14 checks passed. Registry checks verified exact expected npm/PyPI versions, npm SHA-512 integrity fields and tarball origin, and PyPI wheel/sdist SHA-256 fields. |
 | caveat_or_scope | Read-only registry and public-surface evidence only. No API key, write event, workspace mutation, or package publication occurred. Provenance attestation and operator-retained checksum archive remain open acceptance items. |
+
+| Field | Value |
+| --- | --- |
+| gate_id | production-registry-exact-checksum-smoke |
+| owner | Head of Engineering |
+| timestamp_utc | 2026-10-19T13:26:00Z |
+| command_or_probe | Production smoke with the reviewed npm SHA-512 integrity values and PyPI wheel/sdist SHA-256 values supplied through `TRACKMCP_EXPECTED_*` comparison variables |
+| environment | production / public registries |
+| candidate_sha | cbb3a03732160bcbb74e1d4b053f37b8f39a2f56 |
+| result | pass |
+| evidence_reference | `/Users/krishna/Documents/Codex/2026-10-17/okay-x20/CRV/docs/evidence/production-registry-integrity-2026-10-19.json`; 14 checks passed and all four expected checksums matched registry metadata. |
+| caveat_or_scope | This verifies metadata/checksum identity only. It does not prove registry provenance attestations, package publication ownership, or a customer installation. |
