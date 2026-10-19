@@ -126,6 +126,6 @@ export async function POST(req: Request) {
   // Keep the machine-readable directory index in sync with accepted
   // submissions instead of waiting for its hourly ISR window to expire.
   revalidatePath("/tool-sitemap.xml");
-  revalidatePath("/tool-sitemap/[shard].xml", "page");
+  revalidatePath("/tool-sitemap/[shard]", "page");
   return NextResponse.json({ ok: true, repo_name: repoData.name, stars: repoData.stargazers_count, submission_event_id: attribution.submission_event_id, submitted_at: submittedAt });
 }

@@ -24,6 +24,13 @@ const nextConfig: NextConfig = {
       { source: "/tools/test-mcp-server", destination: "/tools/mcp-server-tester", permanent: true },
     ];
   },
+  async rewrites() {
+    return [
+      // Keep the public XML sitemap URL while routing the dynamic segment
+      // through a Next-supported path parameter.
+      { source: "/tool-sitemap/:shard.xml", destination: "/tool-sitemap/:shard" },
+    ];
+  },
   async headers() {
     return [
       {

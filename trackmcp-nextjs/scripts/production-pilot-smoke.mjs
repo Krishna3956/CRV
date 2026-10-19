@@ -77,6 +77,26 @@ async function expect(path, expected, options, label = path) {
   return { label, status: response.status };
 }
 
+async function expectToolSitemap() {
+  const response = await fetch(endpoint("/tool-sitemap.xml"), {
+    redirect: "manual",
+    signal: AbortSignal.timeout(15_000),
+    headers: { accept: "application/xml,text/xml" },
+  });
+  if (response.status !== 200) fail(`tool sitemap index: expected HTTP 200, received HTTP ${response.status}`);
+  const index = await response.text();
+  if (!index.includes("<sitemapindex") || !index.includes("/tool-sitemap/0.xml")) fail("tool sitemap index: missing XML index or first shard");
+  const shard = await fetch(endpoint("/tool-sitemap/0.xml"), {
+    redirect: "manual",
+    signal: AbortSignal.timeout(15_000),
+    headers: { accept: "application/xml,text/xml" },
+  });
+  if (shard.status !== 200) fail(`tool sitemap first shard: expected HTTP 200, received HTTP ${shard.status}`);
+  const xml = await shard.text();
+  if (!xml.includes("<urlset") || !xml.includes("<loc>")) fail("tool sitemap first shard: missing URL entries");
+  return { label: "tool sitemap index and first shard", status: 200, first_shard_has_urls: true };
+}
+
 async function registryChecks() {
   const checks = [];
   const npmPackage = process.env.TRACKMCP_EXPECTED_NPM_SDK || "@trackmcp/sdk@0.1.2";
@@ -128,6 +148,7 @@ async function main() {
   for (const path of ["/", "/docs", "/docs/typescript", "/docs/python", "/device", "/support", "/sitemap.xml", "/tool-sitemap.xml"]) {
     checks.push(await expect(path, 200, undefined, `browser ${path}`));
   }
+  checks.push(await expectToolSitemap());
   checks.push(...await registryChecks());
 
   const unauthenticated = await request("/api/v1/cli/key-status");
