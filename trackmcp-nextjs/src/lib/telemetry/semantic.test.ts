@@ -92,3 +92,14 @@ test("models MCP multi-round-trip result states without conflating stalls and er
   const errored = classifyTrackMCPOutcome(event({ mcp_method: "resources/read", result_type: "input_required", is_error: true }));
   assert.equal(errored.outcome, "failed");
 });
+
+test("models explicit task lifecycle states without inferring abandonment", () => {
+  const working = classifyTrackMCPOutcome(event({ event_type: "protocol", task_id: "task_1", mcp_method: "tasks/get", payload: { status: "working" } }));
+  assert.deepEqual({ scope: working.scope, outcome: working.outcome, reason: working.reason, task_status: working.task_status }, { scope: "task", outcome: "pending", reason: "task_pending", task_status: "working" });
+  const complete = classifyTrackMCPOutcome(event({ event_type: "protocol", task_id: "task_1", mcp_method: "tasks/get", payload: { status: "completed" } }));
+  assert.equal(complete.outcome, "completed");
+  assert.equal(complete.reason, "task_completed");
+  const cancelled = classifyTrackMCPOutcome(event({ event_type: "protocol", task_id: "task_1", mcp_method: "tasks/cancel", payload: { status: "cancelled" } }));
+  assert.equal(cancelled.outcome, "unknown");
+  assert.equal(cancelled.reason, "task_cancelled");
+});

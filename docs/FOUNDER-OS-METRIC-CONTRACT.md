@@ -11,6 +11,9 @@ source explicitly says it is an outcome event.
 | `activity` | Activity | Observed `tool_call` count | Tool-call telemetry | Instrumented traffic only |
 | `work_completed` | Work completed | Explicit completed / explicit started | Workflow outcome events | No session inference |
 | `work_unresolved` | Unresolved workflows | Explicit started - completed - failed (bounded at zero) | Workflow outcome events | Missing terminal evidence; never labeled as abandonment |
+| `task_pending` | Explicit task still in progress | Allowlisted task status (`working` or `input_required`) | Task event with a task ID | Pending is observed state; it is not abandonment |
+| `task_completed` | Explicit task completion | Allowlisted task status (`completed`) | Task event with a task ID | Task completion is not proof of the customer's business outcome |
+| `task_cancelled` | Explicit cancellation request/state | Allowlisted task status (`cancelled`) | Task event with a task ID | Cancellation is observed protocol state; worker shutdown and side-effect rollback are not inferred |
 | `error_rate` | Error rate | Failed known-outcome calls / known calls | Tool-call telemetry | Unknown outcomes are not failures |
 | `needs_attention` | Needs attention | Count of fired insight rules | Bounded analytics rules | Signals, not diagnoses |
 | `identity_coverage` | Verified account coverage | Events with `account_identity_source=resolver` / eligible events | Resolver-labeled server telemetry | Event-weighted coverage; not unique organizations |

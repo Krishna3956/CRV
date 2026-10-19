@@ -85,7 +85,7 @@ business outcome.
 | Elicitation | Semantic fixtures and TypeScript server-wrapper metadata-only response observation for explicit bounded result types; accept/decline/cancel details remain unmodeled | **Partial** | Add capability-aware event vectors, durable outcome states, and dashboard evidence |
 | Progress/cancellation | Not a complete persisted model | **Missing** | Add progress, cancellation race, disconnect, and late-result fixtures |
 | Subscriptions/list-changed | Not a complete persisted model | **Missing** | Add subscription lifecycle and catalog-version events |
-| Task lifecycle | No durable task/outcome model matching the PDF's async-task caveats | **Missing** | Add task IDs, state transitions, expiry, and late completion rules |
+| Task lifecycle | Semantic classification now recognizes explicit task IDs and allowlisted working/input-required/completed/failed/cancelled states without inferring abandonment | **Partial** | Persist task state transitions with expiry and late-completion rules, then add task drill-down evidence; the current contract remains metadata-only |
 | Conservative outcomes | Explicit workflow events and insufficient-data states exist | **Implemented locally** | Expand for protocol-specific outcomes; never infer abandonment from inactivity |
 | Journeys | v2 route and bounded correlation fields exist | **Partial** | Durable correlation across requests/tasks and evidence drill-down |
 | Reliability | v2 route and bounded projections exist | **Partial** | Transport/process failures, baselines, and sufficient-data policy |
