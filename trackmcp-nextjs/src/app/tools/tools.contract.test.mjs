@@ -34,6 +34,33 @@ test("sitemap includes only the approved public tester routes", async () => {
   assert.doesNotMatch(sitemap, /\/mcp-tester["`]/);
 });
 
+test("repository submissions invalidate the dynamic tool sitemap", async () => {
+  const route = await readFile(resolve(root, "src/app/api/repository/submit/route.ts"), "utf8");
+  assert.match(route, /revalidatePath\("\/tool-sitemap\.xml"\)/);
+  assert.match(route, /revalidatePath\("\/tool-sitemap\/\[shard\]\.xml", "page"\)/);
+});
+
+test("tool sitemap is an index of bounded shards", async () => {
+  const route = await readFile(resolve(root, "src/app/tool-sitemap.xml/route.ts"), "utf8");
+  assert.match(route, /getToolCount/);
+  assert.match(route, /sitemapindex/);
+  assert.match(route, /TOOL_SITEMAP_PAGE_SIZE/);
+  assert.match(route, /application\/xml/);
+  const shard = await readFile(resolve(root, "src/app/tool-sitemap/[shard].xml/route.ts"), "utf8");
+  assert.match(shard, /getToolNamesPage/);
+  assert.match(shard, /TOOL_SITEMAP_PAGE_SIZE/);
+  assert.match(shard, /urlset/);
+  assert.match(shard, /shard > 49_999/);
+  const queries = await readFile(resolve(root, "src/lib/repository/queries.ts"), "utf8");
+  assert.match(queries, /getToolCount/);
+  assert.match(queries, /getToolNamesPage/);
+  assert.match(queries, /getAllToolNames[\s\S]*?\.in\("status", \["approved", "pending"\]\)/);
+  assert.match(queries, /getAllToolNames[\s\S]*?\.order\("stars",[\s\S]*?\.order\("id", \{ ascending: true \}\)/);
+  assert.match(queries, /getCategoryCounts[\s\S]*?\.range\(offset, offset \+ batch - 1\)/);
+  assert.match(queries, /getCategoryCounts[\s\S]*?\.order\("id", \{ ascending: true \}\)/);
+  assert.doesNotMatch(queries, /getCategoryCounts[\s\S]*?\.limit\(10000\)/);
+});
+
 test("the retired fixture route is a permanent redirect to the primary tester", async () => {
   const config = await readFile(resolve(root, "next.config.ts"), "utf8");
   assert.match(config, /source:\s*"\/tools\/test-mcp-server"/);

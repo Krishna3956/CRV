@@ -2,6 +2,8 @@ import { timingSafeEqual } from "node:crypto";
 import { NextResponse } from "next/server";
 import { getSupabaseAdmin } from "@/lib/repository/supabase";
 
+const MAX_REPORT_WINDOW_MS = 31 * 86400_000;
+
 function matchesSecret(provided: string, expected: string): boolean {
   const a = Buffer.from(provided);
   const b = Buffer.from(expected);
@@ -22,6 +24,11 @@ export async function GET(request: Request) {
   const url = new URL(request.url);
   const from = boundedDate(url.searchParams.get("from"), new Date(Date.now() - 30 * 86400_000).toISOString());
   const to = boundedDate(url.searchParams.get("to"), new Date().toISOString());
+  const fromMs = Date.parse(from);
+  const toMs = Date.parse(to);
+  if (!Number.isFinite(fromMs) || !Number.isFinite(toMs) || toMs <= fromMs || toMs - fromMs > MAX_REPORT_WINDOW_MS) {
+    return NextResponse.json({ error: "The report window must be positive and no longer than 31 days." }, { status: 400 });
+  }
   const sessionQuery = () => admin.from("trackmcp_cli_device_sessions").select("id, status, client_version, sdk_package, package_manager, platform, created_at, approved_workspace_id, created_key_id", { count: "exact" }).gte("created_at", from).lt("created_at", to);
   const [sessions, milestones] = await Promise.all([
     sessionQuery(),

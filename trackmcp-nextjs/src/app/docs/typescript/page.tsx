@@ -13,7 +13,7 @@ import {
 export const metadata: Metadata = pageMeta({
   title: "TypeScript SDK | TrackMCP Docs",
   description:
-    "Install @trackmcp/sdk and wrap your Node MCP server in one line to capture every tool call, session, and client.",
+    "Install @trackmcp/sdk and wrap your Node MCP server to capture bounded server-side tool, session, and client observations.",
   path: "/docs/typescript",
 });
 
@@ -22,23 +22,25 @@ export default function TypeScriptDocsPage() {
     <DocsShell active="/docs/typescript">
       <DocTitle eyebrow="SDKs">TypeScript SDK</DocTitle>
       <DocLead>
-        <Inline>@trackmcp/sdk</Inline> wraps the official MCP server so every call,
-        result, and client is captured automatically. Works with Node 18+ and any
-        transport.
+        <Inline>@trackmcp/sdk</Inline> wraps the official MCP server to capture
+        bounded server-side tool, session, result, and client observations. Works
+        with Node 18+ and any transport.
       </DocLead>
 
       <DocSection title="Install">
         <Para>
-          The fastest setup path is <Inline>npx @trackmcp/cli init</Inline>. It opens a
-          secure browser approval flow, creates one connection key after explicit
-          consent, and writes it to your local environment. For SSH or CI, use
-          <Inline>--no-browser</Inline> or provide <Inline>TRACKMCP_KEY</Inline> through
-          your secret manager.
+          The fastest setup path is <Inline>npx @trackmcp/cli init</Inline>. It installs
+          <Inline>@trackmcp/sdk</Inline> when missing, reuses a valid local key, or opens
+          a secure browser approval flow and writes the resulting key to your local
+          environment. For SSH or CI, use <Inline>--no-browser</Inline> or provide
+          <Inline>TRACKMCP_KEY</Inline> through your secret manager.
         </Para>
         <Code eventName="install_command_copied">{`npx @trackmcp/cli init
 # Remote environments: npx @trackmcp/cli init --no-browser
+# Restricted environments: npx @trackmcp/cli init --no-install
 # Diagnostics: npx @trackmcp/cli doctor`}</Code>
         <Code>{`npm i @trackmcp/sdk
+# Optional manual install. The init command installs this automatically when missing.
 # npm install is intentionally silent: it never opens a browser or sends an install ping.
 # Manual fallback:
 # https://app.trackmcp.com/signup?utm_source=npm&utm_medium=sdk_docs&utm_campaign=sdk_setup&package=%40trackmcp%2Fsdk&content_path=%2Fdocs%2Ftypescript
@@ -49,7 +51,7 @@ export default function TypeScriptDocsPage() {
         <Para>
           The separate <Inline>@trackmcp/sdk/client-adapter</Inline> entry point is
           Node.js-only and requires <Inline>@modelcontextprotocol/sdk</Inline> exactly
-          <Inline>1.30.0</Inline>. It rejects browser and Edge runtimes and must not be
+          <Inline>1.32.1</Inline>. It rejects browser and Edge runtimes and must not be
           imported by frontend bundles. The caller is responsible for protecting the
           API key. It supports only <Inline>StdioClientTransport</Inline> and
           <Inline>StreamableHTTPClientTransport</Inline>.
@@ -76,6 +78,12 @@ await client.connect(adapter.wrapTransport(transport));`}</Code>
           server-only aggregate or Tool Quality metrics. Malformed, notification,
           unmatched, and duplicate messages produce diagnostics only, and capture stays
           fail-open.
+        </Para>
+        <Para>
+          For Streamable HTTP, configure the final HTTPS endpoint directly. The pinned
+          MCP SDK follows redirects only within the same origin by default; a deliberate
+          cross-origin redirect needs the official transport&apos;s explicit redirect policy.
+          Do not rely on a browser-style redirect to reach an MCP server.
         </Para>
       </DocSection>
 

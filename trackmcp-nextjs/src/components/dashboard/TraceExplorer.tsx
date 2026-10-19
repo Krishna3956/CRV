@@ -300,12 +300,14 @@ function EventCard({ event, index }: { event: TraceEvent; index: number }) {
 export function TraceExplorer({
   sessionId,
   correlationHandle,
+  workspaceId,
   sampleMode,
   onBack,
   originLabel = "sessions",
 }: {
   sessionId: string | null;
   correlationHandle: string | null;
+  workspaceId: string | null;
   sampleMode: boolean;
   onBack: () => void;
   originLabel?: string;
@@ -331,7 +333,8 @@ export function TraceExplorer({
     const query = sessionId
       ? `session_id=${encodeURIComponent(sessionId)}`
       : `correlation_handle=${encodeURIComponent(correlationHandle || "")}`;
-    void fetch(`/api/v1/traces?${query}&limit=200`, {
+    const scopedQuery = `${query}&workspace_id=${encodeURIComponent(workspaceId || "")}`;
+    void fetch(`/api/v1/traces?${scopedQuery}&limit=200`, {
       cache: "no-store",
       credentials: "include",
       signal: controller.signal,
@@ -358,7 +361,7 @@ export function TraceExplorer({
       })
       .finally(() => setLoading(false));
     return () => controller.abort();
-  }, [sampleMode, sessionId, correlationHandle, retryToken]);
+  }, [sampleMode, sessionId, correlationHandle, workspaceId, retryToken]);
 
   const retry = () => {
     setLoading(true);

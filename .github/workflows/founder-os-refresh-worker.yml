@@ -1,0 +1,44 @@
+name: Founder OS refresh worker
+
+on:
+  schedule:
+    - cron: "*/5 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# A scheduled run must not overlap a manually dispatched run. The worker is
+# lease-fenced, but serializing the trigger avoids avoidable contention and
+# makes operator retries predictable.
+concurrency:
+  group: founder-os-refresh-worker
+  cancel-in-progress: false
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      - name: Run bounded refresh batch
+        env:
+          WORKER_URL: ${{ secrets.TRACKMCP_REFRESH_WORKER_URL }}
+          WORKER_SECRET: ${{ secrets.TRACKMCP_REFRESH_WORKER_SECRET }}
+        run: |
+          set -euo pipefail
+          if [ -z "$WORKER_URL" ] || [ -z "$WORKER_SECRET" ]; then
+            echo "::error::Refresh worker secrets are not configured; the scheduled refresh did not run."
+            exit 1
+          fi
+          curl --fail-with-body --silent --show-error \
+            --connect-timeout 5 \
+            --retry 3 \
+            --retry-delay 2 \
+            --retry-all-errors \
+            --retry-max-time 45 \
+            --max-time 55 \
+            -X POST \
+            -H "authorization: Bearer $WORKER_SECRET" \
+            -H "content-type: application/json" \
+            --data '{"max_jobs":100}' \
+            "$WORKER_URL"

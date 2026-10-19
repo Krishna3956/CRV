@@ -45,7 +45,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   ];
 
   const blogRoutes: MetadataRoute.Sitemap = posts.map((p) => {
-    const d = new Date(p.date);
+    // Keep sitemap freshness consistent with Article.dateModified on the blog page.
+    const d = new Date(p.updated || p.date);
     return {
       url: `${BASE}/blog/${p.slug}`,
       lastModified: Number.isNaN(d.getTime()) ? undefined : d,

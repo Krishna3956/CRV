@@ -1,5 +1,12 @@
 @import "tailwindcss";
 
+/* Keep this selector in authored CSS rather than a Tailwind arbitrary variant.
+ * Turbopack can emit malformed control-character escapes for the latter. */
+.hide-details-marker::-webkit-details-marker,
+.hide-details-marker::marker {
+  display: none;
+}
+
 @theme {
   /* Surfaces */
   --color-canvas: #ffffff;

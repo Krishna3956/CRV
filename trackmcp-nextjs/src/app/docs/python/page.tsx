@@ -13,7 +13,7 @@ import {
 export const metadata: Metadata = pageMeta({
   title: "Python SDK | TrackMCP Docs",
   description:
-    "Install the trackmcp package and wrap your Python MCP server in one line to capture every tool call, session, and client.",
+    "Install the trackmcp package and wrap your Python MCP server to capture bounded server-side tool, session, and client observations.",
   path: "/docs/python",
 });
 
@@ -22,9 +22,9 @@ export default function PythonDocsPage() {
     <DocsShell active="/docs/python">
       <DocTitle eyebrow="SDKs">Python SDK</DocTitle>
       <DocLead>
-        The <Inline>trackmcp</Inline> package wraps your MCP server so every call,
-        result, and client is captured automatically. Works with Python 3.9+ and the
-        official MCP SDK.
+        The <Inline>trackmcp</Inline> package wraps an MCP server at its server
+        boundary to capture bounded tool, session, catalog, and client observations.
+        It works with Python 3.9+ and the official MCP SDK.
       </DocLead>
 
       <DocSection title="Install">
@@ -38,15 +38,30 @@ export default function PythonDocsPage() {
           API key. Your tools stay exactly as they are.
         </Para>
         <Code>{`import os
+from mcp.server.fastmcp import FastMCP
 from trackmcp import with_trackmcp
-from mcp.server import server
+
+server = FastMCP("acme-mcp-server")
 
 app = with_trackmcp(
     server,
     api_key=os.environ["TRACKMCP_KEY"],
     service="acme-mcp-server",
     environment="production",
+    transport="stdio",  # state the transport your server actually uses
 )`}</Code>
+      </DocSection>
+
+      <DocSection title="Coverage boundary">
+        <Para>
+          This is server-side instrumentation. It observes supported MCP requests
+          reaching the wrapped server; it does not inspect a host application&apos;s private
+          model turns or instrument Python MCP client transports. Set
+          <Inline>transport</Inline> when your application knows it
+          (<Inline>stdio</Inline>, <Inline>streamable_http</Inline>,
+          <Inline>sse</Inline>, or <Inline>custom</Inline>). When omitted, transport is
+          recorded as unknown instead of guessed.
+        </Para>
       </DocSection>
 
       <DocSection title="Options">
@@ -67,6 +82,7 @@ app = with_trackmcp(
     redact=["args.password", "args.token"],  # never leaves your process
     redact_keys=["customer_id"],
     max_payload_bytes=32768,         # final serialized payload budget
+    transport="streamable_http",     # stdio | streamable_http | sse | custom
     endpoint="https://trackmcp.com/api/v1/ingest",  # compatible ingest endpoint override
 )`}</Code>
       </DocSection>

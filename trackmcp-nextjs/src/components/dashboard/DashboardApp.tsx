@@ -61,6 +61,15 @@ type AlertLoadState =
   | "unavailable"
   | "unauthorized"
   | "error";
+type ActionQueueLoadState = "idle" | "loading" | "ready" | "unauthorized" | "error";
+type ActionQueueItem = {
+  id: string;
+  status: "open" | "acknowledged" | "snoozed" | "resolved";
+  severity: "info" | "warn" | "error";
+  title: string;
+  rule_key: string;
+  evidence: Record<string, unknown>;
+};
 export type View =
   | "overview"
   | "journeys"
@@ -392,6 +401,7 @@ const EXAMPLE_ANALYTICS: Analytics = {
   protocol_events: 290,
   catalog_events: 42,
   protocol_versions: ["2025-11-25"],
+  protocol_signals: { notification: 4, progress: 8, catalog_changed: 6, subscription_started: 2, subscription_stopped: 1, observed_events: 21 },
   transports: ["streamable_http"],
   methods: ["tools/list", "tools/call"],
   tool_calls: 1293,
@@ -696,6 +706,7 @@ function exampleQuality(days: number): ToolQualityResponse {
 export function DashboardApp({
   displayName,
   workspace,
+  workspaces,
   keys,
   analytics,
   toolQuality,
@@ -708,10 +719,12 @@ export function DashboardApp({
   onDismissKey,
   onRefresh,
   onCreateWorkspace,
+  onSelectWorkspace,
   onSignOut,
 }: {
   displayName: string;
   workspace: Workspace | null;
+  workspaces: Workspace[];
   keys: Key[];
   analytics: Analytics | null;
   toolQuality: ToolQualityResponse | null;
@@ -724,6 +737,7 @@ export function DashboardApp({
   onDismissKey: () => void;
   onRefresh: (days?: string) => void;
   onCreateWorkspace: () => void;
+  onSelectWorkspace: (workspaceId: string) => void;
   onSignOut: () => void;
 }) {
   const [view, setView] = useState<View>(
@@ -743,6 +757,10 @@ export function DashboardApp({
   const [alertError, setAlertError] = useState("");
   const [alertLoadedKey, setAlertLoadedKey] = useState<string | null>(null);
   const [alertReloadToken, setAlertReloadToken] = useState(0);
+  const [actionQueue, setActionQueue] = useState<ActionQueueItem[]>([]);
+  const [actionQueueLoadState, setActionQueueLoadState] = useState<ActionQueueLoadState>("idle");
+  const [actionQueueError, setActionQueueError] = useState("");
+  const [actionQueueMutation, setActionQueueMutation] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
   const hasActiveKey = keys.some((key) => !key.revoked_at);
   const isExample = dataMode === "example";
@@ -803,7 +821,7 @@ export function DashboardApp({
       return () => controller.abort();
     }
 
-    fetch("/api/v1/alert-incidents?limit=50", {
+    fetch(`/api/v1/alert-incidents?limit=50&workspace_id=${encodeURIComponent(workspaceId)}`, {
       credentials: "same-origin",
       headers: { Accept: "application/json" },
       signal: controller.signal,
@@ -837,6 +855,39 @@ export function DashboardApp({
 
     return () => controller.abort();
   }, [alertReloadToken, alertScopeKey, dataMode, hasActiveKey, workspaceId]);
+
+  useEffect(() => {
+    const controller = new AbortController();
+    if (dataMode === "example" || workspaceId === null) {
+      return () => controller.abort();
+    }
+    queueMicrotask(() => {
+      if (!controller.signal.aborted) setActionQueueLoadState("loading");
+    });
+    fetch(`/api/v1/action-queue?status=open&limit=20&workspace_id=${encodeURIComponent(workspaceId)}`, {
+      credentials: "same-origin",
+      headers: { Accept: "application/json" },
+      signal: controller.signal,
+    })
+      .then(async (response) => {
+        if (response.status === 401 || response.status === 403) {
+          setActionQueue([]);
+          setActionQueueLoadState("unauthorized");
+          return;
+        }
+        if (!response.ok) throw new Error("Could not load the action queue.");
+        const payload = (await response.json()) as { data?: ActionQueueItem[] };
+        setActionQueue(Array.isArray(payload.data) ? payload.data : []);
+        setActionQueueLoadState("ready");
+      })
+      .catch((reason: unknown) => {
+        if (controller.signal.aborted) return;
+        setActionQueue([]);
+        setActionQueueError(reason instanceof Error ? reason.message : "Could not load the action queue.");
+        setActionQueueLoadState("error");
+      });
+    return () => controller.abort();
+  }, [alertReloadToken, dataMode, workspaceId]);
 
   const setDataMode = (next: DataMode) => {
     setDataModeState(next);
@@ -960,9 +1011,24 @@ export function DashboardApp({
           </div>
         </div>
       </aside>
-      <div className="pt-[52px] lg:pl-[248px]">
-        <header className="fixed left-0 right-0 top-0 z-40 flex h-[52px] items-center justify-between gap-3 border-b border-line bg-white px-5 backdrop-blur sm:px-8">
-          <TrackMCPLogo asLink={false} mark size="footer" variant="mono" />
+      <div className="pt-[96px] lg:pl-[248px] lg:pt-[52px]">
+        <header className="fixed left-0 right-0 top-0 z-40 flex min-h-[52px] flex-wrap items-center justify-between gap-2 border-b border-line bg-white px-4 py-2 backdrop-blur sm:px-8 lg:h-[52px] lg:flex-nowrap lg:py-0">
+          <div className="flex min-w-0 flex-1 items-center gap-2">
+            <TrackMCPLogo asLink={false} mark size="footer" variant="mono" />
+            {workspaces.length > 1 && (
+              <label className="flex min-w-0 items-center gap-2 text-[11px] text-muted">
+                <span className="sr-only">Workspace</span>
+                <select
+                  aria-label="Workspace"
+                  value={workspace?.id || ""}
+                  onChange={(event) => onSelectWorkspace(event.target.value)}
+                  className="w-[35vw] max-w-[180px] min-w-0 rounded-md border border-line bg-white px-2 py-1.5 text-xs font-medium text-ink outline-none focus:ring-2 focus:ring-brand"
+                >
+                  {workspaces.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}
+                </select>
+              </label>
+            )}
+          </div>
           <DataModeToggle dataMode={dataMode} onChange={setDataMode} />
         </header>
         <div className="border-b border-line bg-white px-4 py-2.5 lg:hidden">
@@ -1027,9 +1093,13 @@ export function DashboardApp({
           {view === "setup" ? (
             <SetupView
               keys={keys}
+              workspaceId={workspace?.id || null}
+              analytics={analytics}
+              error={error}
               working={working}
               onGenerateKey={onGenerateKey}
               onRevokeKey={onRevokeKey}
+              onRefresh={() => onRefresh(range)}
             />
           ) : !isExample && (!workspace || !hasActiveKey || zeroEventState) ? (
             <ServerConnectionState
@@ -1053,6 +1123,7 @@ export function DashboardApp({
               }
               sessionId={traceSessionId}
               correlationHandle={traceCorrelationHandle}
+              workspaceId={workspaceId}
               sampleMode={dataMode === "example"}
               originLabel={viewLabels[traceOrigin]}
               onBack={closeTrace}
@@ -1085,6 +1156,30 @@ export function DashboardApp({
               alertIncidents={visibleAlertIncidents}
               alertLoadState={visibleAlertLoadState}
               alertError={alertError}
+              actionQueue={isExample ? [] : actionQueue}
+              actionQueueLoadState={isExample ? "ready" : actionQueueLoadState}
+              actionQueueError={actionQueueError}
+              actionQueueMutation={actionQueueMutation}
+              onActionQueueMutation={async (id, action) => {
+                setActionQueueMutation(id);
+                try {
+                  const body = action === "snooze"
+                    ? { action, until: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString() }
+                    : { action };
+                  const response = await fetch(`/api/v1/action-queue/${encodeURIComponent(id)}?workspace_id=${encodeURIComponent(workspaceId || "")}`, {
+                    method: "PATCH",
+                    credentials: "same-origin",
+                    headers: { "Content-Type": "application/json", Accept: "application/json" },
+                    body: JSON.stringify(body),
+                  });
+                  if (!response.ok) throw new Error(response.status === 409 ? "This signal changed. Refresh and try again." : "Could not update this signal.");
+                  setAlertReloadToken((value) => value + 1);
+                } catch (reason) {
+                  setActionQueueError(reason instanceof Error ? reason.message : "Could not update this signal.");
+                } finally {
+                  setActionQueueMutation(null);
+                }
+              }}
               onRefresh={refreshAll}
               pageControls={pageControls}
               hasMyData={Boolean(analytics && analytics.total_events > 0)}
@@ -1524,6 +1619,11 @@ function ViewContent({
   alertIncidents,
   alertLoadState,
   alertError,
+  actionQueue,
+  actionQueueLoadState,
+  actionQueueError,
+  actionQueueMutation,
+  onActionQueueMutation,
   onViewChange,
   onViewTrace,
   onViewIncidentEvidence,
@@ -1539,6 +1639,11 @@ function ViewContent({
   alertIncidents: AlertIncident[];
   alertLoadState: AlertLoadState;
   alertError: string;
+  actionQueue: ActionQueueItem[];
+  actionQueueLoadState: ActionQueueLoadState;
+  actionQueueError: string;
+  actionQueueMutation: string | null;
+  onActionQueueMutation: (id: string, action: "acknowledge" | "snooze" | "resolve") => Promise<void>;
   onViewChange: (view: View) => void;
   onViewTrace: (sessionId: string, correlationHandle?: string | null) => void;
   onViewIncidentEvidence: (incidentId: string) => void;
@@ -1588,6 +1693,11 @@ function ViewContent({
         incidents={alertIncidents}
         alertLoadState={alertLoadState}
         alertError={alertError}
+        actionQueue={actionQueue}
+        actionQueueLoadState={actionQueueLoadState}
+        actionQueueError={actionQueueError}
+        actionQueueMutation={actionQueueMutation}
+        onActionQueueMutation={onActionQueueMutation}
         onViewChange={onViewChange}
         onViewIncidentEvidence={onViewIncidentEvidence}
         onRefresh={onRefresh}
@@ -1853,6 +1963,9 @@ function Overview({
         actions={pageControls}
       />
       <DataSourceStrip dataMode={dataMode} hasMyData={hasMyData} view="overview" />
+      {analytics.data_trust && (
+        <DataTrustPanel dataTrust={analytics.data_trust} refreshStatus={analytics.refresh_status} identitySourceCounts={analytics.founder_os?.identity_source_counts} />
+      )}
       <div className="mb-6 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
         <Kpi
           label="AI clients"
@@ -1896,6 +2009,17 @@ function Overview({
           }
         />
       </div>
+      {analytics.founder_os && (
+        <div className="mb-6">
+          <FounderOSSignalPanel aggregate={analytics.founder_os.facts} dataTrust={analytics.data_trust} />
+        </div>
+      )}
+      {analytics.interaction_surfaces && (
+        <InteractionSurfacePanel surfaces={analytics.interaction_surfaces} />
+      )}
+      {analytics.protocol_signals && (
+        <ProtocolSignalPanel signals={analytics.protocol_signals} />
+      )}
       <div className="grid items-start gap-6 xl:grid-cols-[minmax(0,1.5fr)_minmax(310px,.8fr)]">
         <Panel
           title="Activity over time"
@@ -1996,6 +2120,237 @@ function Overview({
         </div>
       </div>
     </div>
+  );
+}
+
+function DataTrustPanel({
+  dataTrust,
+  refreshStatus,
+  identitySourceCounts,
+}: {
+  dataTrust: NonNullable<Analytics["data_trust"]>;
+  refreshStatus?: Analytics["refresh_status"];
+  identitySourceCounts?: NonNullable<Analytics["founder_os"]>["identity_source_counts"];
+}) {
+  const observedThrough = dataTrust.observed_through
+    ? dataTrust.observed_through.slice(0, 10)
+    : "not available";
+  return (
+    <section
+      className="mb-6 border border-line bg-white p-4 sm:p-5"
+      aria-label="Data trust"
+    >
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <p className="dashboard-label text-faint">Data trust</p>
+          <p className="mt-1 text-sm font-semibold text-ink">
+            {dataTrust.truncated ? "Bounded scan; results may be incomplete" : "Bounded scan complete"}
+          </p>
+          <p className="mt-1 text-xs leading-relaxed text-muted">
+            This describes the evidence returned by the selected query. It is not a claim that all activity was observed.
+          </p>
+        </div>
+        <span className="inline-flex items-center gap-1.5 border border-line bg-paper px-2.5 py-1.5 text-[11px] font-semibold text-muted">
+          <Info size={13} /> {fmt(dataTrust.returned_event_count)} events returned
+        </span>
+      </div>
+      <dl className="mt-4 grid gap-3 text-xs sm:grid-cols-3">
+        <div>
+          <dt className="text-faint">Evidence window</dt>
+          <dd className="mt-1 font-medium text-ink">
+            {dataTrust.query_since.slice(0, 10)} → {dataTrust.query_until.slice(0, 10)}
+          </dd>
+        </div>
+        <div>
+          <dt className="text-faint">Source events</dt>
+          <dd className="mt-1 font-medium text-ink">{fmt(dataTrust.source_event_count)}</dd>
+        </div>
+        <div>
+          <dt className="text-faint">Observed through</dt>
+          <dd className="mt-1 font-medium text-ink">{observedThrough}</dd>
+        </div>
+      </dl>
+      {identitySourceCounts && (
+        <div className="mt-4 border-t border-line pt-4" aria-label="Identity evidence">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <p className="text-xs font-semibold text-ink">Identity evidence</p>
+            <span className="text-[11px] text-faint">event-weighted, not unique people</span>
+          </div>
+          <div className="mt-2 grid gap-2 text-[11px] text-muted sm:grid-cols-2">
+            <span>Resolver-derived {fmt(identitySourceCounts.resolver)}</span>
+            <span>Unresolved {fmt(identitySourceCounts.unresolved)}</span>
+          </div>
+        </div>
+      )}
+      {refreshStatus && (
+        <div className="mt-4 border-t border-line pt-4" aria-label="Refresh worker status">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <p className="text-xs font-semibold text-ink">Derived data refresh</p>
+            <span className={`text-[11px] font-semibold ${refreshStatus.status === "degraded" ? "text-amber-700" : "text-muted"}`}>{refreshStatus.status.replaceAll("_", " ")}</span>
+          </div>
+          <div className="mt-2 grid gap-2 text-[11px] text-muted sm:grid-cols-4">
+            <span>Queued {fmt(refreshStatus.queued)}</span>
+            <span>Retryable {fmt(refreshStatus.retryable)}</span>
+            <span>Failed {fmt(refreshStatus.failed)}</span>
+            <span>Max lag {refreshStatus.max_queue_lag_ms ? `${Math.round(refreshStatus.max_queue_lag_ms / 1000)}s` : "0s"}</span>
+          </div>
+          {refreshStatus.status === "degraded" && <p className="mt-2 text-[11px] text-amber-700">Some derived-data jobs are queued, retrying, running, or failed. These metrics may be stale until the worker catches up.</p>}
+          <p className="mt-2 text-[11px] text-faint">Worker metrics are bounded to the latest 100 workspace jobs; no job is evidence of no customer activity.</p>
+        </div>
+      )}
+    </section>
+  );
+}
+
+function FounderOSSignalPanel({
+  aggregate,
+  dataTrust,
+}: {
+  aggregate: NonNullable<Analytics["founder_os"]>["facts"];
+  dataTrust?: Analytics["data_trust"];
+}) {
+  const outcomeLabels = [
+    ["completed", "Completed"],
+    ["failed", "Failed"],
+    ["pending", "Pending"],
+    ["unknown", "Unknown"],
+    ["not_observable", "Not observable"],
+  ] as const;
+  const qualityLabels = [
+    ["observed", "Observed"],
+    ["inferred", "Inferred"],
+    ["insufficient_data", "Insufficient data"],
+    ["conflicting", "Conflicting"],
+  ] as const;
+  return (
+    <Panel
+      title="Outcome evidence"
+      subtitle="Semantic facts are separated from activity. Unknown or missing outcomes are never counted as success."
+    >
+      <div className="grid gap-5 lg:grid-cols-[1.2fr_1fr]">
+        <div>
+          <p className="dashboard-label text-faint">Outcome state</p>
+          <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-5">
+            {outcomeLabels.map(([key, label]) => (
+              <div key={key} className="border border-line bg-paper p-3">
+                <p className="text-lg font-semibold tracking-[-0.03em] text-ink">
+                  {fmt(aggregate.outcomes[key])}
+                </p>
+                <p className="mt-1 text-[11px] leading-tight text-muted">{label}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+        <div>
+          <p className="dashboard-label text-faint">Evidence quality</p>
+          <div className="mt-3 grid grid-cols-2 gap-x-4 gap-y-2">
+            {qualityLabels.map(([key, label]) => (
+              <div key={key} className="flex items-center justify-between gap-3 border-b border-line py-2 text-xs">
+                <span className="text-muted">{label}</span>
+                <span className="font-semibold text-ink">{fmt(aggregate.evidence_quality[key])}</span>
+              </div>
+            ))}
+          </div>
+          <p className="mt-3 text-[11px] leading-relaxed text-muted">
+            {aggregate.unresolved_facts
+              ? `${fmt(aggregate.unresolved_facts)} fact${aggregate.unresolved_facts === 1 ? "" : "s"} still need a definitive outcome.`
+              : "No unresolved facts in the selected period."}
+          </p>
+          {dataTrust && (
+            <p className="mt-3 border-t border-line pt-3 text-[11px] leading-relaxed text-muted">
+              Evidence window: {dataTrust.query_since.slice(0, 10)} to {dataTrust.query_until.slice(0, 10)} · {fmt(dataTrust.returned_event_count)} events returned
+              {dataTrust.truncated ? " · scan limit reached; results may be incomplete" : " · bounded scan complete"}.
+            </p>
+          )}
+        </div>
+      </div>
+    </Panel>
+  );
+}
+
+function ProtocolSignalPanel({
+  signals,
+}: {
+  signals: NonNullable<Analytics["protocol_signals"]>;
+}) {
+  const rows = [
+    ["Progress", signals.progress],
+    ["Catalog changed", signals.catalog_changed],
+    ["Subscriptions started", signals.subscription_started],
+    ["Subscriptions stopped", signals.subscription_stopped],
+    ["Other notifications", signals.notification],
+  ] as const;
+  return (
+    <section className="mb-6 border border-line bg-white p-4 sm:p-5" aria-label="Protocol lifecycle signals">
+      <div>
+        <p className="dashboard-label text-faint">Protocol lifecycle</p>
+        <h3 className="mt-1 text-sm font-semibold text-ink">Signals observed at the server boundary</h3>
+        <p className="mt-1 max-w-3xl text-xs leading-relaxed text-muted">
+          Notifications and subscriptions describe protocol activity. They are not tool success, workflow completion, or uptime evidence.
+        </p>
+      </div>
+      <div className="mt-4 grid gap-2 sm:grid-cols-5">
+        {rows.map(([label, value]) => (
+          <div key={label} className="border border-line bg-paper p-3">
+            <p className="text-[11px] text-muted">{label}</p>
+            <p className="mt-1 text-lg font-semibold text-ink">{fmt(value)}</p>
+          </div>
+        ))}
+      </div>
+      <p className="mt-3 text-[11px] text-muted">{fmt(signals.observed_events)} lifecycle signals in the selected window · bounded metadata only</p>
+    </section>
+  );
+}
+
+function InteractionSurfacePanel({
+  surfaces,
+}: {
+  surfaces: NonNullable<Analytics["interaction_surfaces"]>;
+}) {
+  const rows = [
+    ["Resources", surfaces.resources],
+    ["Prompts", surfaces.prompts],
+  ] as const;
+  return (
+    <section className="mb-6 border border-line bg-white p-4 sm:p-5" aria-label="Protocol interaction surfaces">
+      <div>
+        <p className="dashboard-label text-faint">Protocol surfaces</p>
+        <h3 className="mt-1 text-sm font-semibold text-ink">Observed resources and prompts</h3>
+        <p className="mt-1 max-w-3xl text-xs leading-relaxed text-muted">
+          These are server-boundary method observations. They are not unique resources,
+          prompts, completions, or uptime claims; identifiers and prompt arguments stay redacted.
+        </p>
+      </div>
+      <div className="mt-4 grid gap-3 sm:grid-cols-2">
+        {rows.map(([label, value]) => (
+          <div key={label} className="border border-line bg-paper p-3">
+            <div className="flex items-center justify-between gap-3">
+              <span className="text-xs font-semibold text-ink">{label}</span>
+              <span className="font-mono text-xs text-brand-strong">{fmt(value.events)} events</span>
+            </div>
+            <p className="mt-2 text-[11px] text-muted">
+              {value.methods.length ? value.methods.join(", ") : "No observed methods in this window."}
+            </p>
+            <p className="mt-2 text-[11px] text-muted">
+              {fmt(value.entity_count)} bounded hashed entit{value.entity_count === 1 ? "y" : "ies"} observed
+            </p>
+            <div className="mt-3 grid grid-cols-2 gap-x-3 gap-y-1 border-t border-line pt-2 text-[11px] text-muted">
+              <span>Reads</span><span className="text-right font-medium text-ink">{fmt(value.entity_analytics.read_events)}</span>
+              <span>Successful</span><span className="text-right font-medium text-ink">{fmt(value.entity_analytics.successful_reads)}</span>
+              <span>Failed</span><span className="text-right font-medium text-ink">{fmt(value.entity_analytics.failed_reads)}</span>
+              <span>Needs input</span><span className="text-right font-medium text-ink">{fmt(value.entity_analytics.input_required_reads)}</span>
+            </div>
+            <p className="mt-2 text-[10px] uppercase tracking-[0.08em] text-faint">
+              {value.entity_analytics.status === "available"
+                ? "Durable read projection"
+                : value.entity_analytics.status === "no_rows"
+                  ? "No durable reads in this window"
+                  : "Durable read schema unavailable"}
+            </p>
+          </div>
+        ))}
+      </div>
+    </section>
   );
 }
 
@@ -2247,6 +2602,10 @@ function CapabilitiesView({
           helper="Catalog comparison"
         />
       </div>
+      <CatalogHistoryPanel
+        versions={analytics.catalog_versions || []}
+        status={analytics.catalog_version_status || "no_snapshot_rows"}
+      />
       <div className="mt-6">
         <Panel
           title="Capability activity"
@@ -2314,6 +2673,67 @@ function CapabilitiesView({
           </div>
         </Panel>
       </div>
+    </div>
+  );
+}
+
+function CatalogHistoryPanel({
+  versions,
+  status,
+}: {
+  versions: NonNullable<Analytics["catalog_versions"]>;
+  status: string;
+}) {
+  const rows = versions.slice(0, 5);
+  return (
+    <div className="mt-6">
+      <Panel
+        title="Catalog history"
+        subtitle="Hash-only snapshots show when the advertised capability surface changed. Names and URIs are never returned here."
+      >
+        {status === "schema_unavailable" ? (
+          <StateNote
+            title="Catalog history is unavailable"
+            body="The workspace-scoped snapshot schema is not available to this request. Current observed capability activity remains separate and is not presented as historical catalog evidence."
+          />
+        ) : rows.length ? (
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-[620px] text-left text-sm">
+              <thead className="border-b border-line text-[10px] font-semibold uppercase tracking-[0.08em] text-faint">
+                <tr>
+                  <th className="pb-3">Observed</th>
+                  <th className="pb-3">Kind</th>
+                  <th className="pb-3">Items</th>
+                  <th className="pb-3">Change evidence</th>
+                  <th className="pb-3">Completeness</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-line">
+                {rows.map((version, index) => {
+                  const diffStatus = typeof version.diff.status === "string" ? version.diff.status : "not comparable";
+                  const added = typeof version.diff.added_name_count === "number" ? version.diff.added_name_count : null;
+                  const removed = typeof version.diff.removed_name_count === "number" ? version.diff.removed_name_count : null;
+                  return (
+                    <tr key={`${version.id || version.snapshot_hash || version.discovered_at || "snapshot"}-${index}`}>
+                      <td className="py-3 text-xs text-muted">{version.discovered_at ? new Date(version.discovered_at).toLocaleDateString() : "Unavailable"}</td>
+                      <td className="py-3 text-xs text-muted">{version.catalog_kind || "Unknown"}</td>
+                      <td className="py-3 text-xs text-muted">{version.item_count == null ? "N/A" : fmt(version.item_count)}</td>
+                      <td className="py-3 text-xs text-muted">{diffStatus === "computed" ? `+${added ?? 0} / −${removed ?? 0}` : diffStatus}</td>
+                      <td className="py-3 text-xs text-muted">{version.truncated ? "Truncated" : version.complete ? "Complete" : "Partial"}</td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+            <p className="mt-3 text-[11px] text-faint">Comparison uses bounded SHA-256 hashes. A partial or truncated scan is not evidence that an item was removed.</p>
+          </div>
+        ) : (
+          <StateNote
+            title="No historical snapshots yet"
+            body="The worker has not written a workspace catalog snapshot in this period. Current capability activity is still shown separately above."
+          />
+        )}
+      </Panel>
     </div>
   );
 }
@@ -2485,6 +2905,11 @@ function IssuesView({
   incidents,
   alertLoadState,
   alertError,
+  actionQueue,
+  actionQueueLoadState,
+  actionQueueError,
+  actionQueueMutation,
+  onActionQueueMutation,
   onViewChange,
   onViewIncidentEvidence,
   onRefresh,
@@ -2496,6 +2921,11 @@ function IssuesView({
   incidents: AlertIncident[];
   alertLoadState: AlertLoadState;
   alertError: string;
+  actionQueue: ActionQueueItem[];
+  actionQueueLoadState: ActionQueueLoadState;
+  actionQueueError: string;
+  actionQueueMutation: string | null;
+  onActionQueueMutation: (id: string, action: "acknowledge" | "snooze" | "resolve") => Promise<void>;
   onViewChange: (view: View) => void;
   onViewIncidentEvidence: (incidentId: string) => void;
   onRefresh: () => void;
@@ -2650,6 +3080,58 @@ function IssuesView({
           />
         </div>
       </Panel>
+      <Panel
+        title="Action queue"
+        subtitle="Bounded investigation signals generated from server-observed evidence"
+      >
+        {actionQueueLoadState === "loading" ? (
+          <div className="flex items-center gap-2 border border-line bg-paper p-4 text-sm text-muted" role="status">
+            <RefreshCw size={15} className="animate-spin" /> Loading action queue…
+          </div>
+        ) : actionQueueLoadState === "unauthorized" ? (
+          <div className="border border-line bg-paper p-4 text-sm text-muted" role="status">
+            Sign in with a workspace account to review action-queue signals.
+          </div>
+        ) : actionQueueLoadState === "error" ? (
+          <div className="border border-red-200 bg-red-50 p-4 text-sm text-red-800" role="alert">
+            {actionQueueError || "Action queue could not be loaded."}
+          </div>
+        ) : !actionQueue.length ? (
+          <div className="border border-line bg-paper p-4 text-sm text-muted">
+            No open action-queue signals were returned for this workspace.
+          </div>
+        ) : (
+          <div className="space-y-3">
+            {actionQueue.map((item) => (
+              <div key={item.id} className="border border-line bg-paper p-4">
+                <div className="flex flex-wrap items-start justify-between gap-3">
+                  <div>
+                    <p className="text-sm font-semibold text-ink">{item.title}</p>
+                    <p className="mt-1 text-xs text-muted">Rule: {item.rule_key}</p>
+                  </div>
+                  <span className="dashboard-label text-faint">{item.severity}</span>
+                </div>
+                <p className="mt-3 text-[11px] leading-relaxed text-muted">
+                  This is an investigation signal, not a diagnosis or proof of cause.
+                </p>
+                <div className="mt-3 flex flex-wrap gap-2">
+                  {(["acknowledge", "snooze", "resolve"] as const).map((action) => (
+                    <button
+                      key={action}
+                      type="button"
+                      disabled={actionQueueMutation === item.id}
+                      onClick={() => onActionQueueMutation(item.id, action)}
+                      className="cursor-pointer border border-line px-3 py-1.5 text-xs font-semibold text-ink hover:bg-white disabled:cursor-wait disabled:opacity-60"
+                    >
+                      {action === "acknowledge" ? "Acknowledge" : action === "snooze" ? "Snooze 24h" : "Resolve"}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </Panel>
     </div>
   );
 }
@@ -2783,6 +3265,12 @@ function ClientsView({
         title="AI clients observed"
         subtitle="Activity is grouped by observed client name"
       >
+        <p className="mb-4 border border-brand/20 bg-brand-soft/30 px-3 py-2.5 text-xs leading-relaxed text-body">
+          Client names come from optional MCP client metadata and are self-reported,
+          not verified identities. <strong>Unknown client</strong> means the server
+          did not receive a client name; it remains visible so the chart does not
+          overstate certainty.
+        </p>
         <div
           className="overflow-x-auto"
           role="region"
@@ -3001,24 +3489,107 @@ function IncidentEvidence({
 
 function SetupView({
   keys,
+  workspaceId,
+  analytics,
+  error,
   working,
   onGenerateKey,
   onRevokeKey,
+  onRefresh,
 }: {
   keys: Key[];
+  workspaceId: string | null;
+  analytics: Analytics | null;
+  error: string;
   working: boolean;
   onGenerateKey: () => void;
   onRevokeKey: (id: string) => void;
+  onRefresh: () => void;
 }) {
+  type SetupContract = {
+    setup?: {
+      state?: string;
+      checks?: {
+        connection_key_ready?: boolean;
+        sdk_event_recognized?: boolean;
+        mcp_method_observed?: boolean;
+        transport_observed?: boolean;
+        event_persisted?: boolean;
+        privacy_policy_applied?: boolean;
+        account_resolver_observed?: boolean | null;
+      };
+      first_event?: { observed_at?: string | null; ingestion_lag_seconds?: number | null } | null;
+      caveat?: string;
+      next_steps?: string[];
+    };
+  };
   const [language, setLanguage] = useState<"TypeScript" | "Python">(
     "TypeScript",
   );
   const [copied, setCopied] = useState(false);
+  const [setupContract, setSetupContract] = useState<SetupContract | null>(null);
 
   const snippets = {
     TypeScript: `npm install @trackmcp/sdk\n\nimport { withTrackMCP } from "@trackmcp/sdk";\nexport default withTrackMCP(server, { apiKey: process.env.TRACKMCP_KEY! });`,
-    Python: `python3 -m pip install trackmcp\n\nfrom trackmcp import with_trackmcp\napp = with_trackmcp(server, api_key=os.environ["TRACKMCP_KEY"])`,
+    Python: `python3 -m pip install trackmcp\n\nimport os\nfrom trackmcp import with_trackmcp\napp = with_trackmcp(server, api_key=os.environ["TRACKMCP_KEY"])`,
   };
+  const hasActiveKey = keys.some((key) => !key.revoked_at);
+  useEffect(() => {
+    if (!workspaceId) {
+      setSetupContract(null);
+      return;
+    }
+    let cancelled = false;
+    void fetch(`/api/v2/setup?workspace_id=${encodeURIComponent(workspaceId)}&days=30`, { cache: "no-store" })
+      .then(async (response) => {
+        if (!response.ok) throw new Error("setup status unavailable");
+        return response.json() as Promise<SetupContract>;
+      })
+      .then((body) => { if (!cancelled) setSetupContract(body); })
+      .catch(() => { if (!cancelled) setSetupContract(null); });
+    return () => { cancelled = true; };
+  }, [workspaceId]);
+  const contractChecks = setupContract?.setup?.checks;
+  const contractIdentity = contractChecks?.account_resolver_observed;
+  const identityUnresolved = contractIdentity !== undefined && contractIdentity !== null
+    ? contractIdentity === false
+    : Boolean(
+      analytics?.founder_os?.identity_coverage &&
+      analytics.founder_os.identity_coverage.denominator > 0 &&
+      analytics.founder_os.identity_coverage.value === 0,
+    );
+  const limitedCoverage = Boolean(analytics?.data_trust?.truncated);
+  const contractState = setupContract?.setup?.state;
+  const connectionState: "no-key" | "checking" | "waiting" | "limited" | "identity" | "verified" | "error" = error
+    ? "error"
+    : contractState === "server_created" || !hasActiveKey
+      ? "no-key"
+      : contractState === "waiting_for_first_event"
+        ? "waiting"
+        : contractState === "connected_limited_coverage" || limitedCoverage
+          ? "limited"
+          : contractState === "connected" || (analytics !== null && analytics.total_events > 0)
+            ? identityUnresolved ? "identity" : "verified"
+            : "checking";
+  const stateCopy = {
+    "no-key": ["Create a connection key to begin", "TrackMCP cannot verify an integration until a scoped key is configured and your server sends an event.", "Not connected", "border-line bg-paper text-muted", "bg-slate-400"],
+    checking: ["Checking for your first event", "Your key is ready. We are checking the selected period for telemetry from your server.", "Checking", "border-sky-200 bg-sky-50 text-sky-800", "bg-sky-500"],
+    waiting: ["Waiting for your first event", "The key is ready, but key creation alone does not prove that an MCP event arrived. Configure TRACKMCP_KEY, restart the server, make one real tool call, then check again.", "Waiting for event", "border-amber-200 bg-amber-50 text-amber-800", "bg-amber-500"],
+    limited: ["Telemetry is arriving, but the scan is bounded", "TrackMCP observed activity, but the selected query reached its safety limit. Counts and comparisons may be incomplete; narrow the date range before drawing conclusions.", "Limited coverage", "border-amber-200 bg-amber-50 text-amber-800", "bg-amber-500"],
+    identity: ["Telemetry is verified; identity is unresolved", "The first event is confirmed, but the observed account identity could not be resolved. TrackMCP will not present this as a unique person or organization.", "Identity unresolved", "border-sky-200 bg-sky-50 text-sky-800", "bg-sky-500"],
+    verified: ["First event verified", "TrackMCP has observed activity from this workspace. Open Overview to inspect the evidence window, clients, capabilities, and outcomes.", "First event verified", "border-brand/30 bg-brand-soft/40 text-brand-strong", "bg-brand"],
+    error: ["We could not check your connection", "Your key was not changed. Retry the check, then confirm the server is running and can reach the TrackMCP ingest URL.", "Check failed", "border-red-200 bg-red-50 text-red-800", "bg-red-500"],
+  }[connectionState] as unknown as readonly [string, string, string, string, string];
+  const identityResolved = contractIdentity !== undefined && contractIdentity !== null
+    ? contractIdentity === true
+    : Boolean(analytics?.founder_os?.identity_coverage?.value);
+  const checks = [
+    ["Connection key ready", contractChecks?.connection_key_ready ?? hasActiveKey],
+    ["SDK/event recognized", contractChecks?.sdk_event_recognized ?? (connectionState === "verified" || connectionState === "limited" || connectionState === "identity")],
+    ["MCP method observed", contractChecks?.mcp_method_observed ?? Boolean(analytics?.tool_calls)],
+    ["Identity resolved", identityResolved],
+    ["Privacy policy applied", contractChecks?.privacy_policy_applied ?? Boolean(analytics?.total_events)],
+  ] as const;
   const copy = async () => {
     try {
       await navigator.clipboard.writeText(snippets[language]);
@@ -3035,6 +3606,59 @@ function SetupView({
         title="Setup"
         description="Connect your server and manage the key that authenticates telemetry to this workspace."
       />
+      <section className="mb-6 border border-line bg-white p-5 sm:p-6" aria-labelledby="setup-status-title">
+        <div className="flex flex-wrap items-start justify-between gap-4">
+          <div>
+            <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-brand-strong">Connection status</p>
+            <h2 id="setup-status-title" className="mt-1 text-lg font-semibold text-ink">
+              {stateCopy[0]}
+            </h2>
+            <p className="mt-1 max-w-2xl text-xs leading-relaxed text-muted">
+              {stateCopy[1]}
+            </p>
+            {setupContract?.setup?.caveat && (
+              <p className="mt-3 max-w-2xl border-l-2 border-line-strong pl-3 text-[11px] leading-relaxed text-muted">
+                Evidence note: {setupContract.setup.caveat}
+              </p>
+            )}
+            {setupContract?.setup?.next_steps?.length ? (
+              <ol className="mt-3 list-decimal space-y-1 pl-5 text-[11px] leading-relaxed text-muted">
+                {setupContract.setup.next_steps.slice(0, 4).map((step) => <li key={step}>{step}</li>)}
+              </ol>
+            ) : null}
+            {typeof setupContract?.setup?.first_event?.ingestion_lag_seconds === "number" && (
+              <p className="mt-3 text-[11px] text-faint">
+                Last observed event lag: {setupContract.setup.first_event.ingestion_lag_seconds < 60
+                  ? `${setupContract.setup.first_event.ingestion_lag_seconds}s`
+                  : `${Math.floor(setupContract.setup.first_event.ingestion_lag_seconds / 60)}m`}
+              </p>
+            )}
+          </div>
+          <span className={"inline-flex items-center gap-2 border px-3 py-2 text-xs font-semibold " + stateCopy[3]}>
+            <span className={"h-2 w-2 rounded-full " + stateCopy[4]} aria-hidden="true" />
+            {stateCopy[2]}
+          </span>
+        </div>
+        <div className="mt-5 grid gap-2 text-xs sm:grid-cols-4">
+          {checks.map(([label, done]) => (
+            <div key={label} className="flex items-center gap-2 border border-line bg-paper px-3 py-2 text-muted">
+              <span className={"grid h-5 w-5 place-items-center rounded-full text-[10px] font-bold " + (done ? "bg-brand-soft text-brand-strong" : "bg-white text-faint")} aria-hidden="true">
+                {done ? "✓" : "—"}
+              </span>
+              {label}
+            </div>
+          ))}
+        </div>
+        {connectionState === "error" && (
+          <button
+            type="button"
+            onClick={onRefresh}
+            className="mt-4 inline-flex items-center gap-1.5 border border-red-200 bg-white px-3 py-2 text-xs font-semibold text-red-800 hover:bg-red-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-600"
+          >
+            <RefreshCw size={13} /> Retry connection check
+          </button>
+        )}
+      </section>
       <div className="grid gap-6 xl:grid-cols-[minmax(0,1.2fr)_minmax(320px,.8fr)]">
         <Panel
           title="Connect the server"
@@ -3186,7 +3810,71 @@ function SetupView({
           Never put secrets in custom telemetry fields.
         </p>
       </section>
+      <PrivacyControls workspaceId={workspaceId} />
+      <details className="mt-6 border border-line bg-white p-5 sm:p-6">
+        <summary className="cursor-pointer text-sm font-semibold text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand">
+          Other connection methods
+        </summary>
+        <div className="mt-4 grid gap-3 md:grid-cols-2">
+          <div className="border border-line bg-paper p-4">
+            <p className="text-sm font-semibold text-ink">OpenTelemetry</p>
+            <p className="mt-1 text-xs leading-relaxed text-muted">
+              TrackMCP provides a bounded, privacy-safe OTLP/HTTP JSON receiver (protobuf and gRPC are not enabled). Native SDK instrumentation remains the recommended path for complete MCP semantics; unsupported spans are reported rather than silently treated as successes.
+            </p>
+          </div>
+          <div className="border border-line bg-paper p-4">
+            <p className="text-sm font-semibold text-ink">Proxy or stdio launcher</p>
+            <p className="mt-1 text-xs leading-relaxed text-muted">
+              A proxy or launcher is not a replacement for native instrumentation today. It can provide limited transport coverage only after a separate integration is configured.
+            </p>
+          </div>
+        </div>
+      </details>
     </div>
+  );
+}
+
+function PrivacyControls({ workspaceId }: { workspaceId: string | null }) {
+  const [state, setState] = useState<"idle" | "submitting" | "submitted" | "error">("idle");
+  const [message, setMessage] = useState("");
+  const exportHref = workspaceId
+    ? `/api/v1/account/export?workspace_id=${encodeURIComponent(workspaceId)}&limit=1000`
+    : "/api/v1/account/export?limit=1000";
+  const requestDeletion = async () => {
+    if (!window.confirm("Submit a privacy deletion request for this workspace? TrackMCP will record the request for review; it will not delete data immediately.")) return;
+    setState("submitting");
+    setMessage("");
+    try {
+      const response = await fetch("/api/v1/account/privacy-request", {
+        method: "POST",
+        credentials: "same-origin",
+        headers: { "Content-Type": "application/json", Accept: "application/json" },
+        body: JSON.stringify({ request_type: "delete", workspace_id: workspaceId, idempotency_key: crypto.randomUUID(), reason_category: "user_requested" }),
+      });
+      const body = await response.json() as { request?: { id?: string; status?: string }; error?: string };
+      if (!response.ok) throw new Error(body.error || "Could not submit the privacy request.");
+      setState("submitted");
+      setMessage(body.request?.id ? `Request recorded: ${body.request.id}` : "Request recorded for review.");
+    } catch (reason) {
+      setState("error");
+      setMessage(reason instanceof Error ? reason.message : "Could not submit the privacy request.");
+    }
+  };
+  return (
+    <section className="mt-6 border border-line bg-white p-5 sm:p-6" aria-labelledby="privacy-controls-title">
+      <div className="flex items-start gap-3">
+        <span className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-paper text-muted"><ShieldCheck size={17} /></span>
+        <div className="min-w-0">
+          <h2 id="privacy-controls-title" className="text-[15px] font-semibold text-ink">Your data controls</h2>
+          <p className="mt-1 text-xs leading-relaxed text-muted">Download a bounded, secret-free export or submit a deletion request for review. A request is not an immediate destructive operation.</p>
+        </div>
+      </div>
+      <div className="mt-4 flex flex-wrap items-center gap-3">
+        <a href={exportHref} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1.5 border border-line-strong bg-white px-3 py-2 text-xs font-semibold text-body hover:bg-paper focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"><ExternalLink size={13} /> Download data export</a>
+        <button type="button" onClick={() => void requestDeletion()} disabled={state === "submitting"} className="inline-flex items-center gap-1.5 border border-red-200 bg-white px-3 py-2 text-xs font-semibold text-red-700 hover:bg-red-50 disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-600">{state === "submitting" ? "Submitting…" : "Request deletion review"}</button>
+      </div>
+      {message && <p className={"mt-3 text-xs " + (state === "error" ? "text-red-700" : "text-muted")} role={state === "error" ? "alert" : "status"}>{message}</p>}
+    </section>
   );
 }
 

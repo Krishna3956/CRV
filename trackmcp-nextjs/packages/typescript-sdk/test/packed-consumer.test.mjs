@@ -15,7 +15,7 @@ function run(command, args, cwd) {
   return result;
 }
 
-test("a clean consumer receives the packed 0.1.1 SDK with local default redaction", async () => {
+test("a clean consumer receives the packed SDK with local default redaction", async () => {
   const temporaryRoot = await mkdtemp(join(tmpdir(), "trackmcp-sdk-consumer-"));
   const packDirectory = join(temporaryRoot, "pack");
   const consumerDirectory = join(temporaryRoot, "consumer");
@@ -27,7 +27,7 @@ test("a clean consumer receives the packed 0.1.1 SDK with local default redactio
     const tarball = join(packDirectory, packEntries[0].filename);
     const packageJson = JSON.parse(await readFile(join(packageRoot, "package.json"), "utf8"));
     assert.equal(packageJson.name, "@trackmcp/sdk");
-    assert.equal(packageJson.version, "0.1.1");
+    assert.match(packageJson.version, /^0\.\d+\.\d+$/);
 
     await writeFile(join(consumerDirectory, "package.json"), JSON.stringify({
       name: "trackmcp-sdk-consumer-fixture",

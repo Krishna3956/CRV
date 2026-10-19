@@ -2,8 +2,9 @@
 
 Observability for MCP servers. Wrap your existing server once; telemetry is batched and delivered asynchronously at the server boundary. It does not capture a host's private model turn.
 
-Install the privacy release with `npm install @trackmcp/sdk@0.1.1`. The package
-is ESM-first, supports Node.js 18 and newer, and exposes the optional Node-only
+Install the current published package with `npm install @trackmcp/sdk`. Pin an
+exact version in your application lockfile when you need reproducible builds.
+The package is ESM-first, supports Node.js 18 and newer, and exposes the optional Node-only
 client adapter through `@trackmcp/sdk/client-adapter`.
 
 ```ts
@@ -20,7 +21,7 @@ Capture is fail-open: a slow or unavailable TrackMCP endpoint never blocks a too
 ## Node MCP client adapter
 
 The optional `@trackmcp/sdk/client-adapter` entry point requires Node.js and
-`@modelcontextprotocol/sdk` exactly `1.30.0`. It is not for browsers, Edge
+`@modelcontextprotocol/sdk` exactly `1.32.1`. It is not for browsers, Edge
 runtime routes, frontend bundles, Python clients, SSE, or custom transports. The
 caller is responsible for protecting the API key. Wrap one supported transport
 before connecting the MCP client:
@@ -53,6 +54,8 @@ bounded SDK queue and delivery behavior.
 `redact` keeps compatibility with explicit dotted paths, while `redactKeys` adds case-insensitive exact key names. `redactEvent` receives an already sanitized event, may mutate it, or can return `null` to drop it. Hook failures drop only the event. The SDK queue is bounded to 500 events or 2 MiB; failed deliveries are requeued within those limits.
 
 Correlation is disabled by default and never changes MCP schemas. To attach an already anonymized, opaque business handle, opt into external mode; the resolver receives only bounded request metadata and its return value is validated before capture. Issued mode is opt-in and compatibility-limited to the TypeScript transport wrapper: compatible object-shaped `tools/list` schemas receive an optional `__trackmcp_correlation_handle` property, which is stripped before the handler. Strict or unsupported schemas and clients that ignore the field remain missing. Session IDs and request IDs are never used as business handles. Resolvers must not return emails, tokens, URLs, raw user IDs, prompts, completions, or private reasoning.
+
+For verified organization/account reporting, provide `accountIdResolver`. It must read an account or tenant claim that your application has already authenticated; TrackMCP does not parse bearer tokens or treat MCP `clientInfo` as identity. The bounded resolver result is hashed locally into `account_key` and labeled `account_identity_source: "resolver"`. Resolver errors, unsafe values, or an omitted resolver remain `unresolved` and never affect the MCP request.
 
 For accurate business outcomes, optionally mark a workflow from your own application code:
 

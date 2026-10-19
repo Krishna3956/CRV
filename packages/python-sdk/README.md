@@ -1,20 +1,38 @@
 # trackmcp
 
-Install the privacy release with `pip install trackmcp==0.1.1`.
+Install the current published package with `python3 -m pip install trackmcp`.
+Pin an exact version in your requirements or lockfile when you need
+reproducible builds.
 
 Correlation is disabled by default and does not change MCP schemas. External mode accepts a synchronous resolver returning an already anonymized opaque handle from bounded request metadata. Invalid, oversized, credential-like, or resolver-failed values are recorded as missing. `correlation_mode="issued"` is exposed for contract parity but is not enabled by the current Python MCP middleware because it has no stable schema-rewrite-and-strip seam; it therefore records missing provenance until a compatible adapter exists. Resolvers must not return emails, tokens, URLs, raw user IDs, prompts, completions, or private reasoning.
 
+For optional verified organization/account reporting, set `account_id_resolver` to read an account or tenant claim already validated by your application. The SDK hashes the bounded result locally into `account_key`; it never parses bearer tokens or uses MCP `clientInfo` as identity. Resolver failures and unsafe values are fail-open and are labeled `account_identity_source="unresolved"`.
+
 Observe the MCP server boundary without capturing a host's private model turn.
 
+Resource and prompt reads are represented as bounded protocol observations. For
+`resources/read`, the SDK sends only a SHA-256 hash of the requested URI; for
+`prompts/get`, it sends only a SHA-256 hash of the prompt name. The raw URI,
+prompt name, arguments, and returned content are not included in these events.
+This supports privacy-safe unique-read counts while the dashboard continues to
+label entity-level history and read outcomes as limited until durable joins are
+available.
+
 Events emitted by this server SDK carry `observation_source="server"`. The
-P1-04 Node client adapter is TypeScript-only; Python client transports are not
-supported in that workstream. Legacy events without provenance remain nullable
-and are treated as `legacy_unknown`.
+P1-04 Node client transport wrapping is TypeScript-only. The Python server
+wrapper cannot infer whether the host is stdio or Streamable HTTP, so pass the
+known transport explicitly when configuring it (for example,
+`transport="stdio"`). That bounded value is copied to emitted events; when it
+is omitted, transport remains unknown rather than being guessed. Python client
+transports are not supported in that workstream. Legacy events without
+provenance remain nullable and are treated as `legacy_unknown`.
 
 ```python
 import os
+from mcp.server.fastmcp import FastMCP
 from trackmcp import with_trackmcp
 
+server = FastMCP("my-mcp-server")
 app = with_trackmcp(server, api_key=os.environ["TRACKMCP_KEY"], service="my-mcp-server")
 ```
 

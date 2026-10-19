@@ -1,6 +1,6 @@
 {
   "name": "@trackmcp/sdk",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Observability SDK for MCP servers",
   "keywords": [
     "mcp",
@@ -13,6 +13,8 @@
     "type": "git",
     "url": "https://github.com/Krishna3956/CRV/tree/main/trackmcp-nextjs/packages/typescript-sdk"
   },
+  "homepage": "https://trackmcp.com/docs/typescript",
+  "bugs": { "url": "https://github.com/Krishna3956/CRV/issues" },
   "type": "module",
   "main": "./dist/index.js",
   "module": "./dist/index.js",
@@ -44,7 +46,7 @@
     "node": ">=18"
   },
   "peerDependencies": {
-    "@modelcontextprotocol/sdk": "1.30.0"
+    "@modelcontextprotocol/sdk": "1.32.1"
   },
   "peerDependenciesMeta": {
     "@modelcontextprotocol/sdk": {
@@ -52,7 +54,7 @@
     }
   },
   "devDependencies": {
-    "@modelcontextprotocol/sdk": "1.30.0",
+    "@modelcontextprotocol/sdk": "1.32.1",
     "@types/node": "^22.20.1",
     "typescript": "^5.0.0"
   }

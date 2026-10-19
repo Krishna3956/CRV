@@ -1,0 +1,41 @@
+name: Founder OS rate-limit cleanup
+
+on:
+  schedule:
+    - cron: "17 3 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: founder-os-rate-limit-cleanup
+  cancel-in-progress: false
+
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      - name: Remove expired rate-limit buckets
+        env:
+          CLEANUP_URL: ${{ secrets.TRACKMCP_RATE_LIMIT_CLEANUP_URL }}
+          WORKER_SECRET: ${{ secrets.TRACKMCP_REFRESH_WORKER_SECRET }}
+        run: |
+          set -euo pipefail
+          if [ -z "$CLEANUP_URL" ] || [ -z "$WORKER_SECRET" ]; then
+            echo "::error::Rate-limit cleanup secrets are not configured; cleanup did not run."
+            exit 1
+          fi
+          curl --fail-with-body --silent --show-error \
+            --connect-timeout 5 \
+            --retry 3 \
+            --retry-delay 2 \
+            --retry-all-errors \
+            --retry-max-time 45 \
+            --max-time 55 \
+            -X POST \
+            -H "authorization: Bearer $WORKER_SECRET" \
+            -H "content-type: application/json" \
+            --data '{"max_age_seconds":86400,"max_rows":10000}' \
+            "$CLEANUP_URL"

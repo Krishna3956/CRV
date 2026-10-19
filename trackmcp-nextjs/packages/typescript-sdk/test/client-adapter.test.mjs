@@ -16,8 +16,8 @@ const REPEAT_WINDOW_MS = 5 * 60 * 1000;
 
 test("pins the MCP dependency and exposes the adapter only through the Node export condition", async () => {
   const packageJson = JSON.parse(await readFile(new URL("../package.json", import.meta.url), "utf8"));
-  assert.equal(packageJson.peerDependencies["@modelcontextprotocol/sdk"], "1.30.0");
-  assert.equal(packageJson.devDependencies["@modelcontextprotocol/sdk"], "1.30.0");
+  assert.equal(packageJson.peerDependencies["@modelcontextprotocol/sdk"], "1.32.1");
+  assert.equal(packageJson.devDependencies["@modelcontextprotocol/sdk"], "1.32.1");
   assert.equal(packageJson.exports["./client-adapter"].node, "./dist/client-adapter.js");
   assert.equal(packageJson.exports["./client-adapter"].browser, undefined);
   assert.equal(packageJson.exports["./client-adapter"].default, null);
@@ -85,7 +85,7 @@ async function closeServer(server) {
   await new Promise((resolve) => server.close(resolve));
 }
 
-test("uses MCP SDK 1.30.0 with a real StdioClientTransport and captures protocol identity", async () => {
+test("uses MCP SDK 1.32.1 with a real StdioClientTransport and captures protocol identity", async () => {
   const received = [];
   const ingest = http.createServer((request, response) => {
     let body = "";
@@ -337,6 +337,8 @@ test("deduplicates lifecycle events and gives hooks an immutable finalized copy"
   const ends = events.filter((event) => event.payload?._trackmcp?.observation_kind === "session_ended");
   assert.equal(starts.length, 2);
   assert.equal(ends.length, 2);
+  assert.equal(starts.every((event) => event.duration_ms === 0), true);
+  assert.equal(ends.every((event) => Number.isInteger(event.duration_ms) && event.duration_ms >= 0 && event.duration_ms <= 86_400_000), true);
   assert.equal(events.some((event) => JSON.stringify(event).includes("raw-secret")), false);
   assert.equal(events.some((event) => JSON.stringify(event).includes("replacement")), false);
 });
@@ -358,4 +360,23 @@ test("failed start emits no lifecycle start and transport failures remain fail-o
   assert.equal(throwingHook.getDiagnostics().queuedEvents, 0);
   assert.equal(throwingHook.getDiagnostics().droppedEvents >= 1, true);
   await wrapped.close();
+});
+
+test("transport errors close the lifecycle as a bounded failed session", async () => {
+  const events = [];
+  const raw = new FakeTransport();
+  let forwardedError;
+  const adapter = new TrackMCPClientAdapter({ apiKey: "tmcp_test", service: "adapter-test", transport: "stdio", flushIntervalMs: 60000, onEvent: (event) => events.push(event) });
+  const wrapped = adapter.wrapTransport(raw);
+  wrapped.onerror = (error) => { forwardedError = error; };
+  await wrapped.start();
+  raw.onerror?.(new Error("connection dropped"));
+  raw.onclose?.();
+  assert.equal(forwardedError?.message, "connection dropped");
+  const ends = events.filter((event) => event.payload?._trackmcp?.observation_kind === "session_ended");
+  assert.equal(ends.length, 1);
+  assert.equal(ends[0].success, false);
+  assert.equal(ends[0].is_error, true);
+  assert.equal(ends[0].error_class, "transport_error");
+  assert.equal(JSON.stringify(ends).includes("connection dropped"), false);
 });

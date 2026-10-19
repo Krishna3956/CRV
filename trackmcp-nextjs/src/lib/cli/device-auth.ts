@@ -5,6 +5,7 @@ export const DEVICE_POLL_INTERVAL_SECONDS = 5;
 export const DEVICE_SLOW_POLL_INTERVAL_SECONDS = 10;
 export const DEVICE_POLL_MIN_INTERVAL_MS = 3_000;
 export const DEVICE_MAX_POLLS = 120;
+export const DEVICE_REQUEST_BODY_MAX_BYTES = 4096;
 
 export type DeviceStatus = "pending" | "approved" | "denied" | "redeeming" | "redeemed" | "expired";
 
@@ -27,6 +28,21 @@ export function normalizeBounded(value: unknown, max: number, fallback: string):
   if (typeof value !== "string") return fallback;
   const normalized = value.trim();
   return normalized && normalized.length <= max ? normalized : fallback;
+}
+
+export async function readBoundedJsonObject(request: Request): Promise<
+  { ok: true; value: Record<string, unknown> } |
+  { ok: false; status: 400 | 413; error: string }
+> {
+  try {
+    const raw = await request.arrayBuffer();
+    if (raw.byteLength > DEVICE_REQUEST_BODY_MAX_BYTES) return { ok: false, status: 413, error: "Request body is too large." };
+    const parsed: unknown = JSON.parse(new TextDecoder().decode(raw));
+    if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) return { ok: false, status: 400, error: "JSON body must be an object." };
+    return { ok: true, value: parsed as Record<string, unknown> };
+  } catch {
+    return { ok: false, status: 400, error: "Invalid JSON." };
+  }
 }
 
 export function normalizePackageManager(value: unknown): "npm" | "pnpm" | "yarn" | "bun" | "unknown" {

@@ -18,7 +18,19 @@ export const TRACKMCP_SCHEMA_VERSION = "1" as const;
 export type TrackMCPCorrelationMode = "none" | "external" | "issued";
 export type TrackMCPCorrelationHandleSource = "external" | "issued" | "missing";
 export type TrackMCPIntentSource = "context_parameter" | "external_callback" | "fallback" | "missing";
+export type TrackMCPCatalogKind = "tools" | "resources" | "resource_templates" | "prompts";
 export type TrackMCPIntentContext = {
+  eventType: TrackMCPEventType;
+  mcpMethod?: string;
+  toolName?: string;
+  requestId?: string;
+  sessionId?: string;
+  transport?: TrackMCPEvent["transport"];
+};
+/** Context passed to the optional customer-owned identity resolver. The resolver
+ * should read an already-authenticated tenant/account claim; it must not parse
+ * bearer tokens or identify users from MCP clientInfo. */
+export type TrackMCPAccountIdentityContext = {
   eventType: TrackMCPEventType;
   mcpMethod?: string;
   toolName?: string;
@@ -67,6 +79,9 @@ export type TrackMCPEvent = {
   observation_source?: "client" | "server";
   client_name?: string;
   client_version?: string;
+  /** One-way, bounded identifier derived from a customer resolver. */
+  account_key?: string;
+  account_identity_source?: "resolver" | "unresolved";
   tool_name?: string;
   tool_description?: string;
   tool_description_hash?: string;
@@ -77,7 +92,12 @@ export type TrackMCPEvent = {
   error_class?: string;
   error_code?: number;
   retry_number?: number;
+  result_type?: "complete" | "input_required";
   schema_hash?: string;
+  catalog_kind?: TrackMCPCatalogKind;
+  catalog_item_count?: number;
+  catalog_item_name_hashes?: string[];
+  catalog_item_uri_hashes?: string[];
   payload_size_bytes?: number;
   payload_policy?: "metadata" | "redacted" | "full";
   payload?: Record<string, unknown>;
@@ -108,6 +128,8 @@ export type TrackMCPOptions = {
   maxQueueBytes?: number;
   correlation?: TrackMCPCorrelationOptions;
   intentFallback?: (context: TrackMCPIntentContext) => string | undefined | null;
+  /** Resolve an already-validated customer account/tenant claim. Resolver failures are fail-open. */
+  accountIdResolver?: (context: TrackMCPAccountIdentityContext) => string | undefined | null;
 };
 
 const DEFAULT_ENDPOINT = "https://trackmcp.com/api/v1/ingest";
@@ -126,6 +148,35 @@ function sha256(value: unknown): string {
 }
 
 type CatalogTool = { name: string; description?: string; tool_description_hash: string; schema_hash: string };
+type EntityObservation = { kind: "resources" | "prompts"; hash: string };
+
+/** Accept only the two bounded result semantics understood by Founder OS. */
+export function protocolResultType(result: Record<string, unknown> | undefined): TrackMCPEvent["result_type"] {
+  const value = result?.resultType ?? result?.result_type;
+  return value === "complete" || value === "input_required" ? value : undefined;
+}
+
+/** Build bounded, one-way catalog metadata without sending names, URIs, or arguments. */
+export function catalogObservation(kind: TrackMCPCatalogKind, result: Record<string, unknown> | undefined): Pick<TrackMCPEvent, "catalog_kind" | "catalog_item_count" | "catalog_item_name_hashes" | "catalog_item_uri_hashes"> {
+  const items = result && Array.isArray(result[kind === "resource_templates" ? "resourceTemplates" : kind]) ? result[kind === "resource_templates" ? "resourceTemplates" : kind] as unknown[] : [];
+  const names: string[] = [];
+  const uris: string[] = [];
+  for (const item of items.slice(0, 128)) {
+    if (!item || typeof item !== "object") continue;
+    const record = item as Record<string, unknown>;
+    if (typeof record.name === "string") names.push(sha256(record.name));
+    if (typeof record.uri === "string" || typeof record.uriTemplate === "string") uris.push(sha256(record.uri ?? record.uriTemplate));
+  }
+  return { catalog_kind: kind, catalog_item_count: items.length, catalog_item_name_hashes: names, catalog_item_uri_hashes: uris };
+}
+
+/** Hash a single resource/prompt read identity without retaining its value. */
+export function interactionEntityObservation(method: string | undefined, params: Record<string, unknown> | undefined): EntityObservation | undefined {
+  const value = method === "resources/read" ? params?.uri : method === "prompts/get" ? params?.name : undefined;
+  return typeof value === "string" && value.length > 0
+    ? { kind: method === "resources/read" ? "resources" : "prompts", hash: sha256(value) }
+    : undefined;
+}
 
 const CORRELATION_HANDLE = /^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$/;
 const RESERVED_CORRELATION_FIELD = "__trackmcp_correlation_handle";
@@ -133,6 +184,7 @@ const MAX_PENDING_CORRELATIONS = 1000;
 const PENDING_CORRELATION_TIMEOUT_MS = 30_000;
 const INTENT_FIELD = "context";
 const INTENT_SENSITIVE = /(?:bearer\s+|authorization\s*[:=]|api[_-]?key\s*[:=]|access[_-]?token\s*[:=]|refresh[_-]?token\s*[:=]|password\s*[:=]|secret\s*[:=]|eyJ[A-Za-z0-9_-]+\.|https?:\/\/|\b[^\s@]+@[^\s@]+\.[^\s@]+\b)/i;
+const ACCOUNT_ID_PATTERN = /^[A-Za-z0-9][A-Za-z0-9._:/-]{0,255}$/;
 
 function safeCorrelationHandle(value: unknown): value is string {
   if (typeof value !== "string" || !CORRELATION_HANDLE.test(value)) return false;
@@ -150,6 +202,12 @@ export type TrackMCPDiagnostics = {
   queuedEvents: number;
   queuedBytes: number;
 };
+
+function safeAccountId(value: unknown): value is string {
+  return typeof value === "string"
+    && ACCOUNT_ID_PATTERN.test(value.trim())
+    && !/(?:bearer(?:\s|[_:-])|eyJ[A-Za-z0-9_-]+\.|@|https?:\/\/|:\/\/|^sk[-_]|^tmcp_)/i.test(value);
+}
 
 function catalogTools(result: Record<string, unknown> | undefined): CatalogTool[] {
   if (!result || !Array.isArray(result.tools)) return [];
@@ -176,7 +234,7 @@ function freezeClone<T>(value: T): T {
 }
 
 export class TrackMCPClient {
-  private readonly options: Required<Pick<TrackMCPOptions, "service" | "environment" | "endpoint" | "sampleRate" | "redact" | "redactKeys" | "payloadMode" | "maxPayloadBytes" | "maxPayloadDepth" | "maxPayloadKeys" | "maxStringLength" | "flushIntervalMs" | "maxBatchSize" | "maxQueueEvents" | "maxQueueBytes" | "disabled">> & Pick<TrackMCPOptions, "apiKey" | "server_id" | "server_version" | "sdk_version" | "deployment_id" | "redactEvent" | "intentFallback"> & { correlation: Required<Pick<TrackMCPCorrelationOptions, "mode" | "issuedField">> & Pick<TrackMCPCorrelationOptions, "resolve"> };
+  private readonly options: Required<Pick<TrackMCPOptions, "service" | "environment" | "endpoint" | "sampleRate" | "redact" | "redactKeys" | "payloadMode" | "maxPayloadBytes" | "maxPayloadDepth" | "maxPayloadKeys" | "maxStringLength" | "flushIntervalMs" | "maxBatchSize" | "maxQueueEvents" | "maxQueueBytes" | "disabled">> & Pick<TrackMCPOptions, "apiKey" | "server_id" | "server_version" | "sdk_version" | "deployment_id" | "redactEvent" | "intentFallback" | "accountIdResolver"> & { correlation: Required<Pick<TrackMCPCorrelationOptions, "mode" | "issuedField">> & Pick<TrackMCPCorrelationOptions, "resolve"> };
   private queue: TrackMCPEvent[] = [];
   private queueBytes = 0;
   private readonly diagnosticCounts = { droppedEvents: 0, hookErrors: 0, privacyErrors: 0 };
@@ -216,6 +274,7 @@ export class TrackMCPClient {
         issuedField: options.correlation?.issuedField && /^__trackmcp_[A-Za-z0-9_]{1,64}$/.test(options.correlation.issuedField) ? options.correlation.issuedField : RESERVED_CORRELATION_FIELD,
       },
       intentFallback: options.intentFallback,
+      accountIdResolver: options.accountIdResolver,
     };
     if (!this.options.disabled) {
       this.timer = setInterval(() => void this.flush(), this.options.flushIntervalMs);
@@ -240,6 +299,7 @@ export class TrackMCPClient {
     try {
       const correlation = correlationOverride || this.correlationFor(event, issuedHandle);
       const intent = this.intentFor(event);
+      const account = this.accountFor(event);
       let prepared = this.prepareEvent({
         ...event,
         schema_version: TRACKMCP_SCHEMA_VERSION,
@@ -252,6 +312,8 @@ export class TrackMCPClient {
         correlation_handle_source: correlation.source,
         context: intent.context,
         intent_source: intent.source,
+        account_key: account.key,
+        account_identity_source: account.source,
         server_id: this.options.server_id,
         server_version: this.options.server_version,
         sdk_version: this.options.sdk_version,
@@ -264,7 +326,10 @@ export class TrackMCPClient {
             this.diagnosticCounts.droppedEvents += 1;
             return;
           }
-          prepared = this.prepareEvent(hooked, source);
+          // Identity is derived by the SDK resolver, not customer event hooks.
+          // Re-apply the bounded result after the hook so a hook cannot replace it
+          // with a raw account claim or arbitrary identity field.
+          prepared = this.prepareEvent({ ...hooked, account_key: account.key, account_identity_source: account.source }, source);
         } catch {
           this.diagnosticCounts.hookErrors += 1;
           this.diagnosticCounts.droppedEvents += 1;
@@ -286,6 +351,17 @@ export class TrackMCPClient {
       return;
     }
     if (this.queue.length >= this.options.maxBatchSize) void this.flush();
+  }
+
+  private accountFor(event: Partial<TrackMCPEvent>): { key?: string; source: "resolver" | "unresolved" } {
+    if (!this.options.accountIdResolver) return { source: "unresolved" };
+    try {
+      const value = this.options.accountIdResolver({ eventType: event.event_type || "custom", mcpMethod: event.mcp_method, toolName: event.tool_name, requestId: event.request_id, sessionId: event.session_id, transport: event.transport });
+      if (safeAccountId(value)) return { key: sha256(value.trim()), source: "resolver" };
+    } catch {
+      // Account identity is enrichment only; resolver failures must never affect MCP behavior.
+    }
+    return { source: "unresolved" };
   }
 
   private correlationFor(event: Partial<TrackMCPEvent>, issuedHandle?: string): { handle?: string; source: TrackMCPCorrelationHandleSource } {
@@ -506,7 +582,7 @@ function toolCallDetails(args: unknown[]): { toolName?: string; payload: Record<
 }
 
 function wrapTransport(transport: object, client: TrackMCPClient): object {
-  const pending = new Map<string, { method?: string; toolName?: string; payload: Record<string, unknown>; started: number; expiresAt: number; correlationHandle?: string; intentContext?: string }>();
+  const pending = new Map<string, { method?: string; toolName?: string; payload: Record<string, unknown>; started: number; expiresAt: number; correlationHandle?: string; intentContext?: string; entity?: EntityObservation }>();
   const transportSessionId = randomUUID();
   const issuedHandle = `tmcp_${randomUUID().replaceAll("-", "")}`;
   let activeSessionId: string = transportSessionId;
@@ -562,6 +638,48 @@ function wrapTransport(transport: object, client: TrackMCPClient): object {
               const catalogType = call.method?.replace("/list", "") || "catalog";
               const tools = client.recordCatalog(result);
               client.capture({ event_type: "catalog", direction: "server_to_client", transport: "stdio", mcp_method: call.method, request_id: String(id), client_name: clientName, client_version: clientVersion, session_id: sessionId, session_id_source: activeSessionIdSource, started_at: new Date(call.started).toISOString(), duration_ms: Date.now() - call.started, success: true, is_error: false, payload: { name: `${catalogType}_discovered`, tools, result } });
+            } else if (call.entity && !failed) {
+              const catalogKind = call.entity.kind === "resources" ? "resources" : "prompts";
+              client.capture({
+                event_type: "protocol",
+                direction: "server_to_client",
+                transport: "stdio",
+                mcp_method: call.method,
+                request_id: String(id),
+                client_name: clientName,
+                client_version: clientVersion,
+                session_id: sessionId,
+                session_id_source: activeSessionIdSource,
+                started_at: new Date(call.started).toISOString(),
+                duration_ms: Date.now() - call.started,
+                success: true,
+                is_error: false,
+                ...(protocolResultType(result) ? { result_type: protocolResultType(result) } : {}),
+                catalog_kind: catalogKind,
+                ...(catalogKind === "resources" ? { catalog_item_uri_hashes: [call.entity.hash] } : { catalog_item_name_hashes: [call.entity.hash] }),
+                payload: { name: `${catalogKind}_read_observed` },
+              });
+            } else {
+              const resultType = protocolResultType(result);
+              client.capture({
+                event_type: "protocol",
+                direction: "server_to_client",
+                transport: "stdio",
+                mcp_method: call.method,
+                request_id: String(id),
+                client_name: clientName,
+                client_version: clientVersion,
+                session_id: sessionId,
+                session_id_source: activeSessionIdSource,
+                started_at: new Date(call.started).toISOString(),
+                duration_ms: Date.now() - call.started,
+                success: !failed,
+                is_error: failed,
+                ...(resultType ? { result_type: resultType } : {}),
+                error_class: message.error ? "protocol_error" : result?.isError ? "protocol_error" : undefined,
+                error_code: typeof protocolError?.code === "number" ? protocolError.code : undefined,
+                payload: { name: "protocol_response_observed" },
+              });
             }
           }
           const send = Reflect.get(target, property) as (message: unknown, options?: unknown) => Promise<void>;
@@ -604,7 +722,10 @@ function wrapTransport(transport: object, client: TrackMCPClient): object {
             });
             if (cleanRecord !== record) record = cleanRecord;
           } else if (record.id !== undefined) {
-            addPending(keyFor(record.id), { method: typeof record.method === "string" ? record.method : undefined, payload: {}, started: Date.now() });
+            const method = typeof record.method === "string" ? record.method : undefined;
+            const params = record.params && typeof record.params === "object" ? record.params as Record<string, unknown> : {};
+            const entity = interactionEntityObservation(method, params);
+            addPending(keyFor(record.id), { method, payload: {}, started: Date.now(), entity });
           }
           if (typeof record.method === "string" && record.method !== "tools/call") {
             client.capture({ event_type: "protocol", direction: "client_to_server", transport: "stdio", mcp_method: record.method, request_id: record.id === undefined ? undefined : String(record.id), session_id: activeSessionId, session_id_source: activeSessionIdSource, client_name: clientName, client_version: clientVersion, started_at: new Date().toISOString(), payload: { params: record.params || {} } });

@@ -106,12 +106,32 @@ test("zero-event activation uses page-specific connection states", () => {
   assert.doesNotMatch(source, /onboardingMode/);
 });
 
+test("Setup exposes truthful first-event and coverage states", () => {
+  assert.match(source, /First event verified/);
+  assert.match(source, /Limited coverage/);
+  assert.match(source, /Identity unresolved/);
+  assert.match(source, /selected query reached its safety limit/);
+  assert.match(source, /observed account identity could not be resolved/);
+  assert.match(source, /analytics\?\.data_trust\?\.truncated/);
+  assert.match(source, /identity_coverage\.denominator > 0/);
+  assert.match(source, /account_resolver_observed/);
+  assert.match(source, /contractIdentity !== undefined && contractIdentity !== null/);
+  assert.match(source, /Identity resolved/);
+});
+
 test("connection keys are explicitly created from Setup and shown once in full", () => {
   assert.match(source, /Complete setup/);
   assert.match(source, /className="max-w-full break-all overflow-x-auto/);
   assert.match(source, /\{newKey\}/);
   assert.match(source, /\{key\.key_prefix\}••••••/);
   assert.match(source, /onClick=\{onGenerateKey\}/);
+});
+
+test("mobile dashboard header wraps without clipping workspace or data controls", () => {
+  assert.match(source, /pt-\[96px\] lg:pl-\[248px\] lg:pt-\[52px\]/);
+  assert.match(source, /min-h-\[52px\] flex-wrap/);
+  assert.match(source, /w-\[35vw\] max-w-\[180px\] min-w-0/);
+  assert.match(source, /overflow-x-auto.*role=\"navigation\" aria-label=\"Dashboard navigation\"/s);
 });
 
 test("workspace provisioning does not mint a connection key", () => {
@@ -150,6 +170,37 @@ test("Setup documentation link is external and the connection steps are explicit
   assert.match(source, /Metadata mode to omit tool arguments\s+and results entirely/);
   assert.match(source, /No proxying or tool execution is involved/);
   assert.doesNotMatch(source, /Connection state/);
+});
+
+test("Python setup snippet is copy-paste complete", () => {
+  const setupStart = source.indexOf("function SetupView(");
+  const setupEnd = source.indexOf("// Kept as an inert compatibility artifact", setupStart);
+  const setupSource = source.slice(setupStart, setupEnd);
+  assert.match(setupSource, /\/api\/v2\/setup\?workspace_id=/);
+  assert.match(setupSource, /waiting_for_first_event/);
+  assert.match(setupSource, /Privacy policy applied/);
+  assert.match(setupSource, /next_steps/);
+  assert.match(setupSource, /ingestion_lag_seconds/);
+  assert.match(setupSource, /Python: `python3 -m pip install trackmcp\\n\\nimport os\\nfrom trackmcp import with_trackmcp/);
+  assert.match(setupSource, /os\.environ\["TRACKMCP_KEY"\]/);
+});
+
+test("Setup exposes bounded export and non-destructive deletion controls", () => {
+  assert.match(source, /function PrivacyControls\(/);
+  assert.match(source, /\/api\/v1\/account\/export\?workspace_id=/);
+  assert.match(source, /Download data export/);
+  assert.match(source, /Request deletion review/);
+  assert.match(source, /will record the request for review; it will not delete data immediately/);
+  assert.match(source, /request_type: "delete"/);
+  assert.match(source, /crypto\.randomUUID\(\)/);
+  assert.match(source, /privacy-request/);
+});
+
+test("protocol surface cards disclose durable entity-read coverage", () => {
+  assert.match(source, /Observed resources and prompts/);
+  assert.match(source, /Durable read projection/);
+  assert.match(source, /Durable read schema unavailable/);
+  assert.match(source, /Needs input/);
 });
 
 test("example data offers a clear setup path and Setup keeps trust below the setup cards", () => {
@@ -200,6 +251,53 @@ test("Overview always renders Needs attention and preserves uncertainty", () => 
   assert.match(source, /confidence: not provided/);
   assert.match(source, /This is not a confirmed failure/);
   assert.doesNotMatch(source, /sufficient observed evidence/);
+});
+
+test("Overview exposes Founder OS outcome and evidence-quality states", () => {
+  assert.match(source, /analytics\.founder_os/);
+  assert.match(source, /function FounderOSSignalPanel/);
+  assert.match(source, /function DataTrustPanel/);
+  assert.match(source, /Identity evidence/);
+  assert.match(source, /event-weighted, not unique people/);
+  assert.match(source, /aria-label="Data trust"/);
+  assert.match(source, /title="Outcome evidence"/);
+  assert.match(source, /Semantic facts are separated from activity/);
+  for (const label of ["Completed", "Failed", "Pending", "Unknown", "Not observable", "Observed", "Inferred", "Insufficient data", "Conflicting"]) {
+    assert.match(source, new RegExp(label));
+  }
+  assert.match(source, /still need a definitive outcome/);
+  assert.match(source, /never counted as success/);
+  assert.match(source, /Evidence window:/);
+  assert.match(source, /bounded scan complete/);
+  assert.match(source, /scan limit reached; results may be incomplete/);
+});
+
+test("Data trust exposes bounded derived-refresh health without implying activity", () => {
+  assert.match(source, /refreshStatus=\{analytics\.refresh_status\}/);
+  assert.match(source, /aria-label="Refresh worker status"/);
+  assert.match(source, /Worker metrics are bounded to the latest 100 workspace jobs/);
+  assert.match(source, /no job is evidence of no customer activity/);
+  assert.match(source, /Max lag/);
+  assert.match(source, /Some derived-data jobs are queued, retrying, running, or failed/);
+});
+
+test("Overview exposes protocol lifecycle signals with an explicit non-outcome caveat", () => {
+  assert.match(source, /protocol_signals/);
+  assert.match(source, /function ProtocolSignalPanel/);
+  assert.match(source, /Signals observed at the server boundary/);
+  assert.match(source, /They are not tool success, workflow completion, or uptime evidence/);
+  assert.match(source, /aria-label="Protocol lifecycle signals"/);
+});
+
+test("Capabilities exposes truthful catalog history states", () => {
+  assert.match(source, /function CatalogHistoryPanel\(/);
+  assert.match(source, /Hash-only snapshots show when the advertised capability surface changed/);
+  assert.match(source, /Catalog history is unavailable/);
+  assert.match(source, /No historical snapshots yet/);
+  assert.match(source, /A partial or truncated scan is not evidence that an item was removed/);
+  assert.match(source, /version\.diff\.added_name_count/);
+  assert.match(source, /version\.diff\.removed_name_count/);
+  assert.doesNotMatch(source, /version\.payload/);
 });
 
 test("Overview session actions clearly open traces", () => {

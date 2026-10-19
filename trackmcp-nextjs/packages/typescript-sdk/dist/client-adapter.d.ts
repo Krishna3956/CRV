@@ -29,6 +29,7 @@ export declare class TrackMCPClientAdapter {
     private readonly pendingSweepTimer;
     private lifecycleStarted;
     private lifecycleEnded;
+    private lifecycleStartedAt;
     private lifecycleGeneration;
     private lastResultRequestId;
     private lastResultAt;

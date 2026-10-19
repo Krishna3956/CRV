@@ -85,9 +85,9 @@ export default function Home() {
                 <EarlyAccessButton size="lg" />
                 <div className="flex items-center justify-between gap-3 rounded-lg border border-line bg-paper px-4 py-[13px] font-mono text-[13.5px]">
                   <span className="text-body">
-                    <Pn>$</Pn> npm i <span className="text-brand">@trackmcp/sdk</span>
+                    <Pn>$</Pn> npx <span className="text-brand">@trackmcp/cli init</span>
                   </span>
-                  <CopyButton text="npm i @trackmcp/sdk" size={15} className="text-faint hover:text-ink" />
+                  <CopyButton text="npx @trackmcp/cli init" size={15} className="text-faint hover:text-ink" />
                 </div>
               </div>
             </Reveal>
@@ -263,8 +263,8 @@ export default function Home() {
                   ))}
                 </ul>
                 <div className="mt-7 inline-flex items-center gap-2 rounded-full border border-line bg-white px-3.5 py-1.5 font-mono text-[12.5px] text-body">
-                  <Pn>$</Pn> npm i <span className="text-brand">@trackmcp/sdk</span>
-                  <CopyButton text="npm i @trackmcp/sdk" size={13} className="ml-1 text-faint hover:text-ink" />
+                  <Pn>$</Pn> npx <span className="text-brand">@trackmcp/cli init</span>
+                  <CopyButton text="npx @trackmcp/cli init" size={13} className="ml-1 text-faint hover:text-ink" />
                 </div>
               </Reveal>
 

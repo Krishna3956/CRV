@@ -31,6 +31,8 @@ CORRELATION_HANDLE_PATTERN = r"^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$"
 TrackMCPCorrelationMode = Literal["none", "external", "issued"]
 TrackMCPCorrelationHandleSource = Literal["external", "issued", "missing"]
 TrackMCPIntentSource = Literal["context_parameter", "external_callback", "fallback", "missing"]
+TrackMCPAccountIdentitySource = Literal["resolver", "unresolved"]
+TrackMCPTransport = Literal["stdio", "streamable_http", "sse", "custom"]
 
 
 class TrackMCPEvent(TypedDict, total=False):
@@ -60,6 +62,8 @@ class TrackMCPEvent(TypedDict, total=False):
     workflow_id: str
     client_name: str
     client_version: str
+    account_key: str
+    account_identity_source: TrackMCPAccountIdentitySource
     tool_name: str
     tool_description: str
     tool_description_hash: str
@@ -71,6 +75,10 @@ class TrackMCPEvent(TypedDict, total=False):
     error_code: int
     retry_number: int
     schema_hash: str
+    catalog_kind: Literal["tools", "resources", "resource_templates", "prompts"]
+    catalog_item_count: int
+    catalog_item_name_hashes: List[str]
+    catalog_item_uri_hashes: List[str]
     payload_size_bytes: int
     payload_policy: str
     payload: Dict[str, Any]
@@ -82,6 +90,9 @@ class TrackMCPOptions:
     service: str = "mcp-server"
     environment: str = field(default_factory=lambda: os.getenv("NODE_ENV", "production"))
     endpoint: str = "https://trackmcp.com/api/v1/ingest"
+    # The server wrapper cannot infer its host transport. Set this explicitly
+    # when the application knows it; omitted transport remains unknown.
+    transport: Optional[TrackMCPTransport] = None
     sample_rate: float = 1.0
     redact: List[str] = field(default_factory=list)
     redact_keys: List[str] = field(default_factory=list)
@@ -104,6 +115,8 @@ class TrackMCPOptions:
     correlation_resolver: Optional[Callable[[Dict[str, Any]], Optional[str]]] = None
     issued_handle_field: str = "__trackmcp_correlation_handle"
     intent_fallback: Optional[Callable[[Dict[str, Any]], Optional[str]]] = None
+    # Resolve an already-validated tenant/account claim. Failures are fail-open.
+    account_id_resolver: Optional[Callable[[Dict[str, Any]], Optional[str]]] = None
 
 
 def _canonical_json(value: Any) -> str:
@@ -132,10 +145,76 @@ def _catalog_tools(result: Any) -> List[Dict[str, Any]]:
     return tools
 
 
+def _catalog_observation(kind: str, result: Any) -> Dict[str, Any]:
+    """Return bounded one-way catalog metadata; never retain names, URIs, or arguments."""
+    key = "resourceTemplates" if kind == "resource_templates" else kind
+    items = result.get(key) if isinstance(result, dict) and isinstance(result.get(key), list) else []
+    names: List[str] = []
+    uris: List[str] = []
+    for item in items[:128]:
+        if not isinstance(item, dict):
+            continue
+        if isinstance(item.get("name"), str):
+            names.append(hashlib.sha256(item["name"].encode("utf-8")).hexdigest())
+        uri = item.get("uri", item.get("uriTemplate"))
+        if isinstance(uri, str):
+            uris.append(hashlib.sha256(uri.encode("utf-8")).hexdigest())
+    return {"catalog_kind": kind, "catalog_item_count": len(items), "catalog_item_name_hashes": names, "catalog_item_uri_hashes": uris}
+
+
+def interaction_entity_observation(method: Optional[str], params: Any) -> Optional[Dict[str, str]]:
+    """Hash one resource/prompt identity without retaining its value or result."""
+    if not isinstance(params, dict):
+        return None
+    if method == "resources/read":
+        value = params.get("uri")
+        kind = "resources"
+    elif method == "prompts/get":
+        value = params.get("name")
+        kind = "prompts"
+    else:
+        return None
+    if not isinstance(value, str) or not value:
+        return None
+    return {"kind": kind, "hash": hashlib.sha256(value.encode("utf-8")).hexdigest()}
+
+
+def _entity_protocol_event(method: Optional[str], entity: Optional[Dict[str, str]], *, request_id: Optional[str] = None,
+                           session_id: Optional[str] = None, session_id_source: Optional[str] = None,
+                           client_name: Optional[str] = None, client_version: Optional[str] = None,
+                           started: Optional[float] = None, success: bool = True,
+                           error_class: Optional[str] = None) -> Optional[Dict[str, Any]]:
+    if not entity:
+        return None
+    kind = entity["kind"]
+    observation: Dict[str, Any] = {
+        "event_type": "protocol",
+        "mcp_method": method,
+        "request_id": request_id,
+        "session_id": session_id,
+        "session_id_source": session_id_source,
+        "client_name": client_name,
+        "client_version": client_version,
+        "started_at": _iso_from_epoch(started) if started is not None else _iso_now(),
+        "success": success,
+        "is_error": not success,
+        "catalog_kind": kind,
+        "catalog_item_count": 1,
+        "catalog_item_name_hashes": [entity["hash"]] if kind == "prompts" else [],
+        "catalog_item_uri_hashes": [entity["hash"]] if kind == "resources" else [],
+        "payload": {"name": f"{kind}_read_observed"},
+    }
+    if error_class:
+        observation["error_class"] = error_class
+    return observation
+
+
 class TrackMCP:
     def __init__(self, options: TrackMCPOptions):
         if not options.api_key:
             raise ValueError("TrackMCP api_key is required")
+        if options.transport not in (None, "stdio", "streamable_http", "sse", "custom"):
+            raise ValueError("TrackMCP transport must be stdio, streamable_http, sse, custom, or omitted")
         self.options = options
         self._events: List[TrackMCPEvent] = []
         self._queue_bytes = 0
@@ -153,6 +232,7 @@ class TrackMCP:
             return
         try:
             intent = self._intent_for(event)
+            account_identity = self._account_for(event)
             prepared = self._prepare_event({
                 **event,
                 "schema_version": TRACKMCP_SCHEMA_VERSION,
@@ -163,10 +243,12 @@ class TrackMCP:
                 "sdk_version": self.options.sdk_version,
                 "deployment_id": self.options.deployment_id,
                 "server_id": self.options.server_id,
+                **({"transport": self.options.transport} if self.options.transport else {}),
                 "observation_source": "server",
                 **self._correlation_for(event, correlation_handle, correlation_source),
                 "context": intent.get("context"),
                 "intent_source": intent["intent_source"],
+                **account_identity,
             })
             if self.options.redact_event:
                 try:
@@ -174,7 +256,9 @@ class TrackMCP:
                     if hooked is None:
                         self._diagnostics["dropped_events"] += 1
                         return
-                    prepared = self._prepare_event(hooked)
+                    # Identity is derived by the SDK resolver, not customer event
+                    # hooks. Re-apply the bounded result after the hook.
+                    prepared = self._prepare_event({**hooked, **account_identity})
                 except Exception:
                     self._diagnostics["hook_errors"] += 1
                     self._diagnostics["dropped_events"] += 1
@@ -203,6 +287,25 @@ class TrackMCP:
             except Exception:
                 pass
         return {"correlation_handle_source": "missing"}
+
+    def _account_for(self, event: Dict[str, Any]) -> Dict[str, Any]:
+        resolver = self.options.account_id_resolver
+        if not resolver:
+            return {"account_identity_source": "unresolved"}
+        try:
+            value = resolver({
+                "event_type": event.get("event_type", "custom"),
+                "mcp_method": event.get("mcp_method"),
+                "tool_name": event.get("tool_name"),
+                "request_id": event.get("request_id"),
+                "session_id": event.get("session_id"),
+                "transport": event.get("transport"),
+            })
+            if _safe_account_id(value):
+                return {"account_key": hashlib.sha256(value.strip().encode("utf-8")).hexdigest(), "account_identity_source": "resolver"}
+        except Exception:
+            pass
+        return {"account_identity_source": "unresolved"}
 
     def _intent_for(self, event: Dict[str, Any]) -> Dict[str, Any]:
         context = event.get("context")
@@ -338,6 +441,23 @@ class _TrackMCPMiddleware:
         self.client_name: Optional[str] = None
         self.client_version: Optional[str] = None
         self.transport_session_id = str(uuid.uuid4())
+        self.lifecycle_started = False
+        self.lifecycle_ended = False
+
+    def _emit_session_boundary(self, kind: str, session_id: str, session_id_source: str, success: bool, duration_ms: int = 0) -> None:
+        self.client.capture({
+            "event_type": "session",
+            "mcp_method": "initialize" if kind == "session_started" else "shutdown",
+            "session_id": session_id,
+            "session_id_source": session_id_source,
+            "client_name": self.client_name,
+            "client_version": self.client_version,
+            "started_at": _iso_now(),
+            "duration_ms": max(0, min(86_400_000, int(duration_ms))),
+            "success": success,
+            "is_error": not success,
+            "payload": {"_trackmcp": {"observation_kind": kind, "observation_source": "middleware"}},
+        })
 
     async def __call__(self, ctx: Any, call_next: Any) -> Any:
         method = getattr(ctx, "method", "")
@@ -357,19 +477,34 @@ class _TrackMCPMiddleware:
             result = await call_next(ctx)
             result_data = result.model_dump(mode="json") if hasattr(result, "model_dump") else result
             is_error = bool(isinstance(result_data, dict) and result_data.get("isError"))
+            if method == "initialize" and not self.lifecycle_started:
+                self._emit_session_boundary("session_started", session_id, session_id_source, not is_error, round((time.time() - started) * 1000))
+                self.lifecycle_started = True
+            if method == "shutdown" and self.lifecycle_started and not self.lifecycle_ended:
+                self._emit_session_boundary("session_ended", session_id, session_id_source, not is_error, round((time.time() - started) * 1000))
+                self.lifecycle_ended = True
             if method == "tools/call":
                 metadata = self.client.tool_metadata(tool_name)
                 self.client.capture(_event(tool_name, {"args": arguments}, started, result_data, None, self.client_name, session_id, request_id, self.client_version, metadata, session_id_source))
             elif method in ("tools/list", "resources/list", "resources/templates/list", "prompts/list"):
                 catalog_type = method.replace("/list", "")
                 tools = self.client.record_catalog(result_data)
-                self.client.capture({"event_type": "catalog", "mcp_method": method, "request_id": request_id, "session_id": session_id, "session_id_source": session_id_source, "client_name": self.client_name, "client_version": self.client_version, "started_at": _iso_from_epoch(started), "duration_ms": round((time.time() - started) * 1000), "success": not is_error, "is_error": is_error, "payload": {"name": f"{catalog_type}_discovered", "tools": tools, "result": result_data}})
+                observation = _catalog_observation(catalog_type, result_data)
+                payload = {"name": f"{catalog_type}_discovered", "tools": tools} if catalog_type == "tools" else {"name": f"{catalog_type}_discovered"}
+                self.client.capture({"event_type": "catalog", "mcp_method": method, "request_id": request_id, "session_id": session_id, "session_id_source": session_id_source, "client_name": self.client_name, "client_version": self.client_version, "started_at": _iso_from_epoch(started), "duration_ms": round((time.time() - started) * 1000), "success": not is_error, "is_error": is_error, **observation, "payload": payload})
+            elif (entity := interaction_entity_observation(method, params)):
+                self.client.capture(_entity_protocol_event(method, entity, request_id=request_id, session_id=session_id, session_id_source=session_id_source, client_name=self.client_name, client_version=self.client_version, started=started, success=not is_error))
             else:
                 self.client.capture({"event_type": "protocol", "mcp_method": method, "request_id": request_id, "session_id": session_id, "session_id_source": session_id_source, "client_name": self.client_name, "client_version": self.client_version, "started_at": _iso_from_epoch(started), "duration_ms": round((time.time() - started) * 1000), "success": not is_error, "is_error": is_error, "payload": {"params": params, "result": result_data}})
             return result
         except Exception as error:
+            if method == "shutdown" and self.lifecycle_started and not self.lifecycle_ended:
+                self._emit_session_boundary("session_ended", session_id, session_id_source, False, round((time.time() - started) * 1000))
+                self.lifecycle_ended = True
             if method == "tools/call":
                 self.client.capture(_event(tool_name, {"args": arguments}, started, None, error, self.client_name, session_id, request_id, self.client_version, self.client.tool_metadata(tool_name), session_id_source))
+            elif (entity := interaction_entity_observation(method, params)):
+                self.client.capture(_entity_protocol_event(method, entity, request_id=request_id, session_id=session_id, session_id_source=session_id_source, client_name=self.client_name, client_version=self.client_version, started=started, success=False, error_class="protocol_error"))
             else:
                 self.client.capture({"event_type": "protocol", "mcp_method": method, "request_id": request_id, "session_id": session_id, "session_id_source": session_id_source, "client_name": self.client_name, "client_version": self.client_version, "started_at": _iso_from_epoch(started), "duration_ms": round((time.time() - started) * 1000), "success": False, "is_error": True, "error_class": "protocol_error", "payload": {"params": params, "error": str(error)}})
             raise
@@ -385,6 +520,11 @@ def _iso_from_epoch(value: float) -> str:
 def _safe_correlation_handle(value: Any) -> bool:
     import re
     return isinstance(value, str) and re.match(CORRELATION_HANDLE_PATTERN, value) is not None and len(value.encode("utf-8")) <= 128 and not re.search(r"(?:bearer(?:\s|[_:-])|eyJ[A-Za-z0-9_-]+\.|@|https?://|://|^sk[-_])", value, re.IGNORECASE)
+
+
+def _safe_account_id(value: Any) -> bool:
+    import re
+    return isinstance(value, str) and re.match(r"^[A-Za-z0-9][A-Za-z0-9._:/-]{0,255}$", value.strip()) is not None and not re.search(r"(?:bearer(?:\s|[_:-])|eyJ[A-Za-z0-9_-]+\.|@|https?://|://|^sk[-_]|^tmcp_)", value, re.IGNORECASE)
 
 
 def _safe_intent_text(value: Any, max_length: int) -> bool:
@@ -419,6 +559,23 @@ class _Wrapped:
         self.client_name: Optional[str] = None
         self.client_version: Optional[str] = None
         self.transport_session_id = str(uuid.uuid4())
+        self.lifecycle_started = False
+        self.lifecycle_ended = False
+
+    def _emit_session_boundary(self, kind: str, success: bool, duration_ms: int = 0) -> None:
+        self.trackmcp.capture({
+            "event_type": "session",
+            "mcp_method": "initialize" if kind == "session_started" else "shutdown",
+            "session_id": self.transport_session_id,
+            "session_id_source": "transport_generated",
+            "client_name": self.client_name,
+            "client_version": self.client_version,
+            "started_at": _iso_now(),
+            "duration_ms": max(0, min(86_400_000, int(duration_ms))),
+            "success": success,
+            "is_error": not success,
+            "payload": {"_trackmcp": {"observation_kind": kind, "observation_source": "wrapper"}},
+        })
 
     def __getattr__(self, name: str) -> Any:
         original = getattr(self._server, name)
@@ -439,26 +596,66 @@ class _Wrapped:
                     async def awaited() -> Any:
                         try:
                             value = await result
+                            if method == "initialize" and not self.lifecycle_started:
+                                self._emit_session_boundary("session_started", True, round((time.time() - started) * 1000))
+                                self.lifecycle_started = True
+                            if method == "shutdown" and self.lifecycle_started and not self.lifecycle_ended:
+                                self._emit_session_boundary("session_ended", True, round((time.time() - started) * 1000))
+                                self.lifecycle_ended = True
                             if method in ("tools/list", "resources/list", "resources/templates/list", "prompts/list"):
                                 catalog_type = method.replace("/list", "")
                                 tools = client.record_catalog(value)
-                                client.capture({"event_type": "catalog", "mcp_method": method, "session_id": self.transport_session_id, "session_id_source": "transport_generated", "client_name": self.client_name, "client_version": self.client_version, "started_at": _iso_from_epoch(started), "duration_ms": round((time.time() - started) * 1000), "success": True, "is_error": False, "payload": {"name": f"{catalog_type}_discovered", "tools": tools, "result": value}})
+                                observation = _catalog_observation(catalog_type, value)
+                                payload = {"name": f"{catalog_type}_discovered", "tools": tools} if catalog_type == "tools" else {"name": f"{catalog_type}_discovered"}
+                                client.capture({"event_type": "catalog", "mcp_method": method, "session_id": self.transport_session_id, "session_id_source": "transport_generated", "client_name": self.client_name, "client_version": self.client_version, "started_at": _iso_from_epoch(started), "duration_ms": round((time.time() - started) * 1000), "success": True, "is_error": False, **observation, "payload": payload})
+                            elif (entity := interaction_entity_observation(method, params)):
+                                client.capture(_entity_protocol_event(method, entity, session_id=self.transport_session_id, session_id_source="transport_generated", client_name=self.client_name, client_version=self.client_version, started=started))
                             else:
                                 client.capture(_event(tool_name, payload, started, value, None, self.client_name, self.transport_session_id, None, self.client_version, client.tool_metadata(tool_name), "transport_generated"))
                             return value
                         except Exception as error:
-                            client.capture(_event(tool_name, payload, started, None, error, self.client_name, self.transport_session_id, None, self.client_version, client.tool_metadata(tool_name), "transport_generated"))
+                            if method == "shutdown" and self.lifecycle_started and not self.lifecycle_ended:
+                                self._emit_session_boundary("session_ended", False, round((time.time() - started) * 1000))
+                                self.lifecycle_ended = True
+                            entity = interaction_entity_observation(method, params)
+                            if entity:
+                                client.capture(_entity_protocol_event(method, entity, session_id=self.transport_session_id, session_id_source="transport_generated", client_name=self.client_name, client_version=self.client_version, started=started, success=False, error_class="protocol_error"))
+                            else:
+                                client.capture(_event(tool_name, payload, started, None, error, self.client_name, self.transport_session_id, None, self.client_version, client.tool_metadata(tool_name), "transport_generated"))
                             raise
                     return awaited()
                 if method in ("tools/list", "resources/list", "resources/templates/list", "prompts/list"):
+                    if method == "initialize" and not self.lifecycle_started:
+                        self._emit_session_boundary("session_started", True, round((time.time() - started) * 1000))
+                        self.lifecycle_started = True
+                    if method == "shutdown" and self.lifecycle_started and not self.lifecycle_ended:
+                        self._emit_session_boundary("session_ended", True, round((time.time() - started) * 1000))
+                        self.lifecycle_ended = True
                     catalog_type = method.replace("/list", "")
                     tools = client.record_catalog(result)
-                    client.capture({"event_type": "catalog", "mcp_method": method, "session_id": self.transport_session_id, "session_id_source": "transport_generated", "client_name": self.client_name, "client_version": self.client_version, "started_at": _iso_from_epoch(started), "duration_ms": round((time.time() - started) * 1000), "success": True, "is_error": False, "payload": {"name": f"{catalog_type}_discovered", "tools": tools, "result": result}})
+                    observation = _catalog_observation(catalog_type, result)
+                    payload = {"name": f"{catalog_type}_discovered", "tools": tools} if catalog_type == "tools" else {"name": f"{catalog_type}_discovered"}
+                    client.capture({"event_type": "catalog", "mcp_method": method, "session_id": self.transport_session_id, "session_id_source": "transport_generated", "client_name": self.client_name, "client_version": self.client_version, "started_at": _iso_from_epoch(started), "duration_ms": round((time.time() - started) * 1000), "success": True, "is_error": False, **observation, "payload": payload})
+                elif (entity := interaction_entity_observation(method, params)):
+                    client.capture(_entity_protocol_event(method, entity, session_id=self.transport_session_id, session_id_source="transport_generated", client_name=self.client_name, client_version=self.client_version, started=started))
                 else:
+                    if method == "initialize" and not self.lifecycle_started:
+                        self._emit_session_boundary("session_started", True, round((time.time() - started) * 1000))
+                        self.lifecycle_started = True
+                    if method == "shutdown" and self.lifecycle_started and not self.lifecycle_ended:
+                        self._emit_session_boundary("session_ended", True, round((time.time() - started) * 1000))
+                        self.lifecycle_ended = True
                     client.capture(_event(tool_name, payload, started, result, None, self.client_name, self.transport_session_id, None, self.client_version, client.tool_metadata(tool_name), "transport_generated"))
                 return result
             except Exception as error:
-                client.capture(_event(tool_name, payload, started, None, error, self.client_name, self.transport_session_id, None, self.client_version, client.tool_metadata(tool_name), "transport_generated"))
+                if method == "shutdown" and self.lifecycle_started and not self.lifecycle_ended:
+                    self._emit_session_boundary("session_ended", False, round((time.time() - started) * 1000))
+                    self.lifecycle_ended = True
+                entity = interaction_entity_observation(method, params)
+                if entity:
+                    client.capture(_entity_protocol_event(method, entity, session_id=self.transport_session_id, session_id_source="transport_generated", client_name=self.client_name, client_version=self.client_version, started=started, success=False, error_class="protocol_error"))
+                else:
+                    client.capture(_event(tool_name, payload, started, None, error, self.client_name, self.transport_session_id, None, self.client_version, client.tool_metadata(tool_name), "transport_generated"))
                 raise
         return wrapped
 

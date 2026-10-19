@@ -47,13 +47,14 @@ const sections: LegalSection[] = [
   {
     h: "Your rights",
     p: [
-      "For privacy questions or a deletion request, email privacy@trackmcp.com. We will explain the currently supported process and respond within 30 days.",
+      "Signed-in workspace members can request a bounded account export from the account export endpoint. It includes profile, workspace, bounded telemetry dimensions, derived facts, and action-queue records; it never includes raw payloads, API keys, device codes, or auth tokens.",
+      "For privacy questions or a deletion request, email privacy@trackmcp.com. Deletion is handled through a reviewed operator workflow while workspace-scoped retention and audit controls are being finalized. We will explain the currently supported process and respond within 30 days.",
     ],
   },
   {
     h: "Subprocessors & security",
     p: [
-      "We use a small set of infrastructure providers to run the service. Data is encrypted in transit and at rest. Enterprise agreements may include additional security, retention, and data-processing terms after review; export integrations are planned rather than a current P0 guarantee.",
+      "We use a small set of infrastructure providers to run the service. Data is encrypted in transit and at rest. Enterprise agreements may include additional security, retention, and data-processing terms after review. Export is bounded and privacy-safe; self-service deletion remains a reviewed workflow rather than an immediate destructive API.",
     ],
   },
   {

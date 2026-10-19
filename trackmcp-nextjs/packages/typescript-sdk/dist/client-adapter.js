@@ -35,6 +35,7 @@ export class TrackMCPClientAdapter {
     pendingSweepTimer;
     lifecycleStarted = false;
     lifecycleEnded = false;
+    lifecycleStartedAt = 0;
     lifecycleGeneration = 0;
     lastResultRequestId;
     lastResultAt = 0;
@@ -91,6 +92,7 @@ export class TrackMCPClientAdapter {
                                 adapter.lifecycleGeneration += 1;
                                 adapter.lifecycleStarted = true;
                                 adapter.lifecycleEnded = false;
+                                adapter.lifecycleStartedAt = Date.now();
                                 adapter.pending.clear();
                                 adapter.pendingOrder.length = 0;
                                 adapter.completedIds.clear();
@@ -137,7 +139,10 @@ export class TrackMCPClientAdapter {
                 }
                 if (property === "onerror") {
                     onerror = value;
-                    return Reflect.set(target, property, ((error) => onerror?.(error)), target);
+                    return Reflect.set(target, property, ((error) => {
+                        adapter.endLifecycle(false, "transport_error");
+                        onerror?.(error);
+                    }), target);
                 }
                 if (property === "onclose") {
                     onclose = value;
@@ -370,7 +375,7 @@ export class TrackMCPClientAdapter {
         while (this.completedIds.size > MAX_PENDING_CALLS)
             this.completedIds.delete(this.completedIds.values().next().value);
     }
-    emitSessionBoundary(kind) {
+    emitSessionBoundary(kind, durationMs = 0, success = true, errorClass) {
         this.emit({
             event_type: "session",
             transport: this.options.transport,
@@ -378,14 +383,19 @@ export class TrackMCPClientAdapter {
             ...this.sessionFields(),
             client_name: this.clientName,
             client_version: this.clientVersion,
+            duration_ms: Math.max(0, Math.min(86_400_000, Math.round(durationMs))),
+            success,
+            is_error: !success,
+            ...(errorClass ? { error_class: errorClass } : {}),
             payload: { _trackmcp: { observation_kind: kind, observation_source: "client" } },
         });
     }
-    endLifecycle() {
+    endLifecycle(success = true, errorClass) {
         if (!this.lifecycleStarted || this.lifecycleEnded)
             return;
         this.lifecycleEnded = true;
-        this.emitSessionBoundary("session_ended");
+        const duration = this.lifecycleStartedAt > 0 ? Date.now() - this.lifecycleStartedAt : 0;
+        this.emitSessionBoundary("session_ended", duration, success, errorClass);
     }
     sessionFields(transport) {
         if (this.options.session?.id && this.options.session.source)

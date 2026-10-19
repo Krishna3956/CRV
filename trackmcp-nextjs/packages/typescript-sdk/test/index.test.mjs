@@ -1,11 +1,33 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import http from "node:http";
-import { withTrackMCP } from "../dist/index.js";
+import { withTrackMCP, catalogObservation, interactionEntityObservation } from "../dist/index.js";
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { InMemoryTransport } from "@modelcontextprotocol/sdk/inMemory.js";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
+
+test("catalog observation hashes resource identities without retaining URI or prompt arguments", () => {
+  const resource = catalogObservation("resources", { resources: [{ name: "docs", uri: "secret://user:pass/private" }] });
+  assert.equal(resource.catalog_item_count, 1);
+  assert.equal(resource.catalog_item_name_hashes.length, 1);
+  assert.equal(resource.catalog_item_uri_hashes.length, 1);
+  assert.ok(!JSON.stringify(resource).includes("secret"));
+  const prompt = catalogObservation("prompts", { prompts: [{ name: "summarize", arguments: [{ name: "private" }] }] });
+  assert.equal(prompt.catalog_kind, "prompts");
+  assert.ok(!JSON.stringify(prompt).includes("private"));
+});
+
+test("single resource and prompt reads emit only bounded identity hashes", () => {
+  const resource = interactionEntityObservation("resources/read", { uri: "secret://user:pass/private" });
+  assert.equal(resource.kind, "resources");
+  assert.match(resource.hash, /^[0-9a-f]{64}$/);
+  assert.ok(!JSON.stringify(resource).includes("secret"));
+  const prompt = interactionEntityObservation("prompts/get", { name: "private-prompt" });
+  assert.equal(prompt.kind, "prompts");
+  assert.match(prompt.hash, /^[0-9a-f]{64}$/);
+  assert.equal(interactionEntityObservation("tools/call", { uri: "not-observed" }), undefined);
+});
 
 test("captures a tool call, redacts args, and delivers a batch", async () => {
   const received = [];
@@ -112,6 +134,34 @@ test("correlation is disabled by default and external provenance is explicit", a
   await disabled.request({ method: "tools/call", params: { name: "lookup", arguments: {} } });
   assert.equal(disabled.trackmcp.getDiagnostics().queuedEvents, 1);
   disabled.trackmcp.flush();
+});
+
+test("account resolver emits a one-way account key and fails open", async () => {
+  const received = [];
+  const ingest = http.createServer((request, response) => {
+    let body = "";
+    request.on("data", (chunk) => { body += chunk; });
+    request.on("end", () => { received.push(JSON.parse(body)); response.writeHead(200); response.end(); });
+  });
+  await new Promise((resolve) => ingest.listen(0, resolve));
+  const wrapped = withTrackMCP({ async request() { return { isError: false }; } }, {
+    apiKey: "tmcp_test",
+    endpoint: `http://127.0.0.1:${ingest.address().port}`,
+    accountIdResolver: () => "workspace:acme-123",
+    flushIntervalMs: 60000,
+  });
+  await wrapped.request({ method: "tools/call", params: { name: "lookup", arguments: {} } });
+  await wrapped.trackmcp.flush();
+  await new Promise((resolve) => setTimeout(resolve, 20));
+  ingest.close();
+  const event = received[0].events[0];
+  assert.equal(event.account_identity_source, "resolver");
+  assert.match(event.account_key, /^[0-9a-f]{64}$/);
+  assert.equal(event.account_key.includes("acme"), false);
+
+  const failing = withTrackMCP({ async request() { return {}; } }, { apiKey: "tmcp_test", accountIdResolver: () => { throw new Error("resolver unavailable"); }, flushIntervalMs: 60000 });
+  await failing.request({ method: "tools/call", params: { name: "lookup", arguments: {} } });
+  assert.equal(failing.trackmcp.getDiagnostics().queuedEvents, 1);
 });
 
 test("issued mode augments only compatible tool schemas and strips the echoed field", async () => {
@@ -223,4 +273,31 @@ test("expired pending requests are cleaned up and cannot attach to a later respo
   } finally {
     Date.now = originalNow;
   }
+});
+
+test("captures bounded semantic results for non-tool protocol requests without response bodies", async () => {
+  const received = [];
+  const ingest = http.createServer((request, response) => {
+    let body = "";
+    request.on("data", (chunk) => { body += chunk; });
+    request.on("end", () => { received.push(JSON.parse(body)); response.writeHead(200); response.end(); });
+  });
+  await new Promise((resolve) => ingest.listen(0, resolve));
+  const rawTransport = { async send() {}, onmessage: undefined };
+  const server = { connect(transport) { this.transport = transport; transport.onmessage = () => {}; return Promise.resolve(); } };
+  const wrapped = withTrackMCP(server, { apiKey: "tmcp_test", endpoint: `http://127.0.0.1:${ingest.address().port}`, flushIntervalMs: 60000 });
+  await wrapped.connect(rawTransport);
+  server.transport.onmessage({ id: "sampling-1", method: "sampling/createMessage", params: { private_prompt: "do not persist" } });
+  await server.transport.send({ id: "sampling-1", result: { resultType: "input_required", private_result: "do not persist" } });
+  await wrapped.trackmcp.flush();
+  await new Promise((resolve) => setTimeout(resolve, 20));
+  ingest.close();
+  const events = received.flatMap((batch) => batch.events);
+  const response = events.find((event) => event.mcp_method === "sampling/createMessage" && event.direction === "server_to_client");
+  assert.ok(response);
+  assert.equal(response.event_type, "protocol");
+  assert.equal(response.result_type, "input_required");
+  assert.equal(response.success, true);
+  assert.deepEqual(response.payload, { name: "protocol_response_observed" });
+  assert.equal(JSON.stringify(response).includes("private_"), false);
 });

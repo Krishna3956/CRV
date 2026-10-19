@@ -25,6 +25,7 @@ export function createToolQualityHandler(
 
     const authorization = request.headers.get("authorization") || "";
     const apiKey = authorization.startsWith("Bearer ") ? authorization.slice(7).trim() : "";
+    const requestedWorkspaceId = new URL(request.url).searchParams.get("workspace_id")?.trim() || "";
     let workspaceId: string | undefined;
     if (apiKey) {
       const { data: key, error } = await supabase.from("trackmcp_api_keys").select("workspace_id, revoked_at").eq("key_hash", hashTrackMCPKey(apiKey)).maybeSingle();
@@ -35,9 +36,12 @@ export function createToolQualityHandler(
       const auth = await getServer();
       const { data: userData } = await auth.auth.getUser();
       if (!userData.user) return NextResponse.json({ error: "Sign in or provide a workspace API key." }, { status: 401 });
-      const { data: membership, error } = await supabase.from("trackmcp_workspace_members").select("workspace_id").eq("user_id", userData.user.id).limit(1).maybeSingle();
+      if (!requestedWorkspaceId || requestedWorkspaceId.length > 128) return NextResponse.json({ error: "workspace_id is required." }, { status: 400 });
+      const membershipQuery = supabase.from("trackmcp_workspace_members").select("workspace_id").eq("user_id", userData.user.id);
+      if (requestedWorkspaceId) membershipQuery.eq("workspace_id", requestedWorkspaceId);
+      const { data: membership, error } = await membershipQuery.limit(1).maybeSingle();
       if (error) return NextResponse.json({ error: "Could not authenticate dashboard request." }, { status: 500 });
-      if (!membership) return NextResponse.json({ error: "Create a workspace first." }, { status: 404 });
+      if (!membership) return NextResponse.json({ error: requestedWorkspaceId ? "You do not have access to that workspace." : "Create a workspace first." }, { status: 404 });
       workspaceId = membership.workspace_id;
     }
 

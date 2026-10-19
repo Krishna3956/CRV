@@ -5,7 +5,7 @@ from http.server import BaseHTTPRequestHandler, HTTPServer
 from unittest import TestCase
 
 from trackmcp import TrackMCP, TrackMCPOptions, trackmcp_report_missing
-from trackmcp.client import TrackMCPEvent, _TrackMCPMiddleware
+from trackmcp.client import TrackMCPEvent, _TrackMCPMiddleware, _catalog_observation, interaction_entity_observation
 from trackmcp.privacy import sanitize_payload
 
 
@@ -23,6 +23,90 @@ class Handler(BaseHTTPRequestHandler):
 
 
 class TrackMCPClientTest(TestCase):
+    def test_interaction_entity_observation_is_hash_only(self):
+        resource = interaction_entity_observation("resources/read", {"uri": "secret://user:pass/private"})
+        self.assertEqual(resource["kind"], "resources")
+        self.assertRegex(resource["hash"], r"^[0-9a-f]{64}$")
+        self.assertNotIn("secret", json.dumps(resource))
+        prompt = interaction_entity_observation("prompts/get", {"name": "private-prompt"})
+        self.assertEqual(prompt["kind"], "prompts")
+        self.assertRegex(prompt["hash"], r"^[0-9a-f]{64}$")
+        self.assertIsNone(interaction_entity_observation("tools/call", {"uri": "not-observed"}))
+
+    def test_resource_and_prompt_reads_emit_hash_only_protocol_events(self):
+        client = TrackMCP(TrackMCPOptions(api_key="tmcp_test", disabled=False, flush_interval_ms=60000))
+
+        class Context:
+            def __init__(self, method, params):
+                self.method = method
+                self.params = params
+                self.session_id = "session-read"
+                self.request_id = f"request-{method}"
+
+        async def call_next(ctx):
+            if ctx.method == "resources/read":
+                return {"contents": [{"uri": ctx.params["uri"], "text": "private result"}]}
+            if ctx.method == "prompts/get":
+                return {"messages": [{"role": "user", "content": {"text": "private result"}}]}
+            raise AssertionError(ctx.method)
+
+        middleware = _TrackMCPMiddleware(client)
+
+        async def exercise():
+            await middleware(Context("resources/read", {"uri": "secret://user:pass/private"}), call_next)
+            await middleware(Context("prompts/get", {"name": "private-prompt"}), call_next)
+
+        asyncio.run(exercise())
+        self.assertEqual(len(client._events), 2)
+        serialized = json.dumps(client._events)
+        self.assertNotIn("secret://", serialized)
+        self.assertNotIn("private-prompt", serialized)
+        self.assertNotIn("private result", serialized)
+        resource = next(event for event in client._events if event["mcp_method"] == "resources/read")
+        prompt = next(event for event in client._events if event["mcp_method"] == "prompts/get")
+        self.assertEqual(resource["catalog_kind"], "resources")
+        self.assertEqual(len(resource["catalog_item_uri_hashes"]), 1)
+        self.assertEqual(prompt["catalog_kind"], "prompts")
+        self.assertEqual(len(prompt["catalog_item_name_hashes"]), 1)
+        client._timer.cancel()
+
+    def test_middleware_emits_bounded_initialize_and_shutdown_boundaries(self):
+        client = TrackMCP(TrackMCPOptions(api_key="tmcp_test", disabled=False, flush_interval_ms=60000))
+
+        class Context:
+            def __init__(self, method, params=None):
+                self.method = method
+                self.params = params or {}
+                self.session_id = "session-lifecycle"
+                self.request_id = f"request-{method}"
+
+        async def call_next(_ctx):
+            return {"protocolVersion": "2025-06-18"}
+
+        middleware = _TrackMCPMiddleware(client)
+
+        async def exercise():
+            await middleware(Context("initialize", {"clientInfo": {"name": "client", "version": "1"}}), call_next)
+            await middleware(Context("shutdown"), call_next)
+
+        asyncio.run(exercise())
+        boundaries = [event for event in client._events if event.get("event_type") == "session"]
+        self.assertEqual([event["payload"]["_trackmcp"]["observation_kind"] for event in boundaries], ["session_started", "session_ended"])
+        self.assertTrue(all(event["session_id_source"] == "protocol" for event in boundaries))
+        self.assertNotIn("protocolVersion", json.dumps(boundaries))
+        client._timer.cancel()
+
+    def test_resource_and_prompt_catalog_metadata_is_hashed_and_payload_free(self):
+        resource = _catalog_observation("resources", {"resources": [{"name": "docs", "uri": "secret://user:pass/private"}]})
+        self.assertEqual(resource["catalog_kind"], "resources")
+        self.assertEqual(resource["catalog_item_count"], 1)
+        self.assertEqual(len(resource["catalog_item_name_hashes"]), 1)
+        self.assertEqual(len(resource["catalog_item_uri_hashes"]), 1)
+        self.assertNotIn("secret", json.dumps(resource))
+        prompt = _catalog_observation("prompts", {"prompts": [{"name": "summarize", "arguments": [{"name": "private"}]}]})
+        self.assertEqual(prompt["catalog_kind"], "prompts")
+        self.assertNotIn("private", json.dumps(prompt))
+
     def test_recursive_redaction_resource_scrubbing_and_markers(self):
         result = sanitize_payload({
             "password": "secret",
@@ -187,7 +271,7 @@ class TrackMCPClientTest(TestCase):
         server = HTTPServer(("127.0.0.1", 0), Handler)
         thread = threading.Thread(target=server.serve_forever, daemon=True)
         thread.start()
-        client = TrackMCP(TrackMCPOptions(api_key="tmcp_test", endpoint=f"http://127.0.0.1:{server.server_port}"))
+        client = TrackMCP(TrackMCPOptions(api_key="tmcp_test", endpoint=f"http://127.0.0.1:{server.server_port}", transport="stdio"))
 
         class Context:
             def __init__(self, method, params):
@@ -220,6 +304,7 @@ class TrackMCPClientTest(TestCase):
         self.assertEqual(session["client_name"], "fixture-client")
         self.assertEqual(session["client_version"], "2.3.4")
         self.assertEqual(session["session_id_source"], "protocol")
+        self.assertEqual(session["transport"], "stdio")
         self.assertEqual(call["session_id_source"], "protocol")
         self.assertEqual(call["tool_description"], "Find a record")
         self.assertEqual(call["context"], "Find the relevant documentation")
@@ -273,6 +358,28 @@ class TrackMCPClientTest(TestCase):
         expected = {"schema_version", "event_id", "event_type", "service", "environment", "request_id", "session_id", "session_id_source", "correlation_handle", "correlation_handle_source", "observation_source", "context", "intent_source", "missing_capability", "tool_name", "started_at", "duration_ms", "payload_size_bytes", "payload_policy", "payload"}
         self.assertTrue(expected.issubset(set(TrackMCPEvent.__annotations__)))
 
+    def test_account_identity_resolver_is_hashed_and_fail_open(self):
+        client = TrackMCP(TrackMCPOptions(
+            api_key="tmcp_test",
+            account_id_resolver=lambda _context: "workspace:acme-123",
+            flush_interval_ms=60000,
+        ))
+        client.capture({"event_type": "custom", "started_at": "2026-01-01T00:00:00Z"})
+        event = client._events[0]
+        self.assertEqual(event["account_identity_source"], "resolver")
+        self.assertRegex(event["account_key"], r"^[0-9a-f]{64}$")
+        self.assertNotIn("acme", event["account_key"])
+        client._timer.cancel()
+
+        failed = TrackMCP(TrackMCPOptions(
+            api_key="tmcp_test",
+            account_id_resolver=lambda _context: (_ for _ in ()).throw(RuntimeError("unavailable")),
+            flush_interval_ms=60000,
+        ))
+        failed.capture({"event_type": "custom", "started_at": "2026-01-01T00:00:00Z"})
+        self.assertEqual(failed._events[0]["account_identity_source"], "unresolved")
+        failed._timer.cancel()
+
     def test_intent_provenance_is_explicit_bounded_and_missing_reports_keep_correlation(self):
         contexts = []
         client = TrackMCP(TrackMCPOptions(
@@ -322,6 +429,28 @@ class TrackMCPClientTest(TestCase):
         self.assertEqual(len(client._events), 1)
         self.assertEqual(client._events[0]["event_type"], "tool_call")
         client._timer.cancel()
+
+    def test_wrapper_emits_bounded_initialize_and_shutdown_boundaries(self):
+        class Server:
+            def request(self, request):
+                return {"isError": False, "result": request.get("method")}
+
+        client = TrackMCP(TrackMCPOptions(api_key="tmcp_test", disabled=False, flush_interval_ms=60000))
+        from trackmcp.client import _Wrapped
+        wrapped_server = _Wrapped(Server(), client)
+        wrapped_server.request({"method": "initialize", "params": {"clientInfo": {"name": "wrapper", "version": "1"}}})
+        wrapped_server.request({"method": "shutdown", "params": {}})
+        boundaries = [event for event in client._events if event.get("event_type") == "session"]
+        self.assertEqual([event["mcp_method"] for event in boundaries], ["initialize", "shutdown"])
+        self.assertEqual(boundaries[0]["payload"]["_trackmcp"]["observation_kind"], "session_started")
+        self.assertEqual(boundaries[1]["payload"]["_trackmcp"]["observation_kind"], "session_ended")
+        self.assertLessEqual(boundaries[0]["duration_ms"], 86_400_000)
+        self.assertNotIn("protocolVersion", json.dumps(boundaries))
+        client._timer.cancel()
+
+    def test_transport_metadata_is_explicit_and_rejects_unknown_values(self):
+        with self.assertRaises(ValueError):
+            TrackMCP(TrackMCPOptions(api_key="tmcp_test", transport="websocket"))
 
 
 if __name__ == "__main__":

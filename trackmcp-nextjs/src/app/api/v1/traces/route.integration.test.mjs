@@ -108,6 +108,27 @@ test("trace route can query a bounded handle without overloading session_id", as
   assert.deepEqual(response.body.events.map((row) => row.event_id), ["handle-event"]);
 });
 
+test("browser trace reads require the explicitly selected workspace", async () => {
+  const rows = [event({ workspace_id: "workspace-a", event_id: "browser-event" })];
+  const baseAdmin = fakeAdmin(rows);
+  const browserAdmin = {
+    ...baseAdmin,
+    from(table) {
+      if (table === "trackmcp_workspace_members") {
+        return { select() { return this; }, eq() { return this; }, maybeSingle: async () => ({ data: { workspace_id: "workspace-a" }, error: null }) };
+      }
+      return baseAdmin.from(table);
+    },
+  };
+  const server = async () => ({ auth: { getUser: async () => ({ data: { user: { id: "user-a" } } }) } });
+  const handler = createTraceHandler(() => browserAdmin, server);
+  const missing = await handler(new Request("http://trace.test/api/v1/traces?session_id=session-a"));
+  assert.equal(missing.status, 400);
+  const scoped = await handler(new Request("http://trace.test/api/v1/traces?session_id=session-a&workspace_id=workspace-a"));
+  assert.equal(scoped.status, 200);
+  assert.deepEqual((await scoped.json()).events.map((row) => row.event_id), ["browser-event"]);
+});
+
 test("trace response preserves intent fields and correlation provenance", async () => {
   const handler = createTraceHandler(() => fakeAdmin([
     event({ workspace_id: "workspace-a", event_id: "intent-event", session_id: null, session_id_source: "missing", context: "Find the relevant documentation", intent_source: "context_parameter", missing_capability: "bulk_export", correlation_handle: "job_anon_1", correlation_handle_source: "external" }),

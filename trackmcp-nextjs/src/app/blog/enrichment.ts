@@ -21,6 +21,54 @@ const note = (title: string, c: string, after: number) => ({
 });
 
 export const enrichment: Record<string, Enrichment> = {
+  "mcp-server-conformance-testing-ci": {
+    art: "protocol",
+    takeaways: [
+      "Conformance tests verify scoped protocol requirements, not the correctness or safety of every workflow.",
+      "Run a separate pinned requirement set for each MCP revision you claim to support.",
+      "Add client, authorization, business-contract, and side-effect tests around the conformance suite.",
+    ],
+    inserts: [
+      fig("protocol", "A CI gate combines wire-level conformance with the application contracts and outcomes your users depend on.", 3),
+      note("Report the scope", "A green result is meaningful only alongside its protocol revision, requirements, transport, and test environment.", 9),
+    ],
+  },
+  "mcp-apps-security-observability-boundaries": {
+    art: "layers",
+    takeaways: [
+      "An MCP App crosses host, sandboxed view, and server trust boundaries.",
+      "CSP and iframe isolation reduce risk, but do not replace reviewing UI content or server authorization.",
+      "Server telemetry cannot explain every browser or host rendering failure.",
+    ],
+    inserts: [
+      fig("layers", "Host, iframe view, and MCP server each own different controls and different evidence.", 3),
+      note("Enforce on the server", "UI visibility can guide host routing. Validate identity and authorization again for every tool request.", 9),
+    ],
+  },
+  "mcp-resource-subscriptions-cache-invalidation": {
+    art: "clients",
+    takeaways: [
+      "Resource update notifications are freshness signals; re-read the canonical resource after invalidation.",
+      "The 2026-07-28 subscriptions/listen path differs from legacy subscription behavior.",
+      "A reconnect can leave a notification gap, so refresh data whose freshness matters.",
+    ],
+    inserts: [
+      fig("clients", "A subscription signals stale data; the client then refreshes through the normal resource-read path.", 3),
+      note("Assume gaps are possible", "Re-register after reconnect and refresh uncertain cache entries instead of assuming every update was replayed.", 9),
+    ],
+  },
+  "mcp-tool-annotations-safety-enforcement": {
+    art: "schema",
+    takeaways: [
+      "Tool annotations describe expected behavior; they do not enforce access or prevent side effects.",
+      "Test hints against the handler and downstream behavior whenever the tool changes.",
+      "Use server authorization, host confirmation, and sandbox controls for actual enforcement.",
+    ],
+    inserts: [
+      fig("schema", "A declared safety hint, a tested behavior, and an enforced policy are separate kinds of evidence.", 3),
+      note("Hints are not policy", "Never grant privilege because a remote tool claims it is read-only or idempotent.", 9),
+    ],
+  },
   "mcp-protocol-version-negotiation-server-discover": {
     art: "protocol",
     takeaways: [
@@ -353,13 +401,14 @@ export const enrichment: Record<string, Enrichment> = {
   "mcp-observability-guide": {
     art: "clients",
     takeaways: [
-      "MCP observability joins protocol health to agent behavior and workflow outcomes.",
+      "Server-side evidence explains MCP requests and tool execution, not the host's private reasoning or complete user task.",
       "A green HTTP status does not prove that a tool call succeeded.",
-      "Dimensions such as client, tool, session, and outcome turn telemetry into an investigation path.",
+      "Separate transport, protocol, tool-result, and explicit application-outcome signals.",
+      "Minimize and redact telemetry before export, and keep observability fail-open.",
     ],
     inserts: [
       fig("clients", "The same MCP server can behave differently across clients, tools, and workflow paths.", 4),
-      note("Investigate the path", "Start with the incomplete workflow, identify the first repeated or failed step, and then inspect that tool.", 10),
+      note("Investigate the path", "Start with a reproducible failed request, identify the first failing boundary, and verify the fix with a regression test.", 22),
     ],
   },
   "how-to-monitor-an-mcp-server-in-production": {

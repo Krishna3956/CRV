@@ -73,7 +73,7 @@ export type RegressionFinding = {
   comparison: RegressionSummary;
   threshold: Record<string, number>;
   scope: { tool_name: string | null; environment: string | null };
-  evidence: { catalog_changed?: boolean; previous_deployment_id?: string | null; comparison_deployment_id?: string | null };
+  evidence: { catalog_changed?: boolean; previous_deployment_id?: string | null; comparison_deployment_id?: string | null; action_queue_fingerprint?: string };
 };
 
 export type RegressionWindows = { baseline: RegressionWindow; comparison: RegressionWindow };

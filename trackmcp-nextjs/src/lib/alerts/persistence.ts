@@ -3,6 +3,7 @@ import { transitionIncident } from "./lifecycle.ts";
 import type { AlertIncident } from "./types.ts";
 import type { RegressionFinding } from "../telemetry/regressions.ts";
 import { boundedJsonValue } from "./http.ts";
+import { relatedActionQueueFingerprint } from "../telemetry/issue-identity.ts";
 
 function boundedEvidence(value: Record<string, unknown>): Record<string, unknown> {
   const bounded = boundedJsonValue(value, 32 * 1024);
@@ -12,7 +13,11 @@ function boundedEvidence(value: Record<string, unknown>): Record<string, unknown
 export function incidentRow(workspaceId: string, alertId: string, finding: RegressionFinding): Record<string, unknown> {
   const start = finding.comparison.window.start;
   const end = finding.comparison.window.end;
-  return {
+  const actionQueueLink = relatedActionQueueFingerprint(workspaceId, finding.metric, finding.scope.tool_name);
+  const evidence = actionQueueLink
+    ? { ...finding.evidence, action_queue_fingerprint: actionQueueLink }
+    : finding.evidence;
+  const row: Record<string, unknown> = {
     workspace_id: workspaceId,
     alert_id: alertId,
     identity: stableAlertIdentity(workspaceId, alertId, finding.metric, finding.scope.tool_name, finding.scope.environment),
@@ -27,12 +32,19 @@ export function incidentRow(workspaceId: string, alertId: string, finding: Regre
     comparison: finding.comparison,
     threshold: finding.threshold,
     reasons: finding.reasons.slice(0, 8),
-    evidence: boundedEvidence(finding.evidence),
+    evidence: boundedEvidence(evidence),
     first_seen_at: end,
     last_seen_at: end,
     revision: 1,
     updated_at: new Date().toISOString(),
   };
+  // The column is introduced by a review-only migration. Keep the durable
+  // write disabled until its production postflight has been recorded; the
+  // bounded evidence link remains available in the meantime.
+  if (process.env.TRACKMCP_ENABLE_ALERT_ACTION_QUEUE_LINK === "true" && actionQueueLink) {
+    row.action_queue_fingerprint = actionQueueLink;
+  }
+  return row;
 }
 
 const INCIDENT_COLUMNS = "id, workspace_id, alert_id, identity, evaluation_key, metric, state, severity, tool_name, environment, data_status, baseline, comparison, threshold, reasons, evidence, first_seen_at, last_seen_at, acknowledged_at, resolved_at, suppressed_reason, recovery, last_delivered_at, revision";

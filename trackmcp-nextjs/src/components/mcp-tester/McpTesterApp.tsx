@@ -127,7 +127,7 @@ function formatElapsed(ms: number): string {
 function Catalog({ title, count, pages, complete, truncated, children }: { title: string; count: number; pages: number; complete: boolean; truncated: boolean; children: React.ReactNode }) {
   return (
     <details className="group rounded-xl border border-line bg-white" open={count > 0}>
-      <summary className="flex cursor-pointer list-none items-center justify-between gap-4 px-4 py-3.5 [&::-webkit-details-marker]:hidden">
+      <summary className="hide-details-marker flex cursor-pointer list-none items-center justify-between gap-4 px-4 py-3.5">
         <span className="flex items-center gap-2 text-[14px] font-semibold text-ink"><ChevronDown size={15} className="transition-transform group-open:rotate-180" /> {title}</span>
         <span className="font-mono text-[12px] text-muted">{count} item{count === 1 ? "" : "s"}</span>
       </summary>

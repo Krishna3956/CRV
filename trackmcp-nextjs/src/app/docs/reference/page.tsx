@@ -205,7 +205,7 @@ export default function ReferenceDocsPage() {
       <DocSection title="Node client adapter boundary">
         <Para>
           <Inline>@trackmcp/sdk/client-adapter</Inline> is a separate Node-only entry
-          point pinned to <Inline>@modelcontextprotocol/sdk 1.30.0</Inline>. It wraps
+          point pinned to <Inline>@modelcontextprotocol/sdk 1.32.1</Inline>. It wraps
           <Inline>StdioClientTransport</Inline> or
           <Inline>StreamableHTTPClientTransport</Inline> before
           <Inline>Client.connect(transport)</Inline>. Browser and Edge runtimes,
@@ -220,6 +220,12 @@ export default function ReferenceDocsPage() {
           notification, unmatched, and duplicate messages produce diagnostics only.
           Client events use <Inline>observation_source: &quot;client&quot;</Inline>;
           aggregate and Tool Quality metrics remain server-observation-only.
+        </Para>
+        <Para>
+          Configure the final HTTPS URL for Streamable HTTP transports. The pinned MCP
+          SDK follows redirects only within the same origin by default; a cross-origin
+          redirect requires an explicit official transport redirect policy and should
+          never be assumed to behave like a browser navigation.
         </Para>
       </DocSection>
 

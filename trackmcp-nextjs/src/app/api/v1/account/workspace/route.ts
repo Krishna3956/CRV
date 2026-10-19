@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getSupabaseServer } from "@/lib/auth/supabase-server";
 import { getSupabaseAdmin } from "@/lib/repository/supabase";
 import { createTrackMCPKey } from "@/lib/telemetry/keys";
+import { publicWorkspaceMemberships } from "@/lib/workspace-memberships";
 
 async function getUser() {
   const auth = await getSupabaseServer();
@@ -9,29 +10,38 @@ async function getUser() {
   return error ? null : data.user;
 }
 
-export async function GET() {
+const MAX_WORKSPACE_BODY_BYTES = 8192;
+const boundedText = (value: unknown, max: number): string =>
+  typeof value === "string" ? value.trim().slice(0, max) : "";
+
+export async function GET(request: Request) {
   const user = await getUser();
   const admin = getSupabaseAdmin();
   if (!user) return NextResponse.json({ error: "Sign in required." }, { status: 401 });
   if (!admin) return NextResponse.json({ error: "Account service is not configured." }, { status: 503 });
 
-  const { data: membership, error: membershipError } = await admin
+  const { data: memberships, error: membershipError } = await admin
     .from("trackmcp_workspace_members")
     .select("workspace_id, role, trackmcp_workspaces(id, name, slug)")
     .eq("user_id", user.id)
-    .order("created_at", { ascending: true })
-    .limit(1)
-    .maybeSingle();
+    .order("created_at", { ascending: true });
   if (membershipError) return NextResponse.json({ error: "Could not load your workspace." }, { status: 500 });
-  if (!membership) return NextResponse.json({ workspace: null, keys: [] });
+  const workspaces = publicWorkspaceMemberships(memberships || [], user.id);
+  const requestedWorkspaceId = new URL(request.url).searchParams.get("workspace_id")?.trim() || "";
+  const workspace = requestedWorkspaceId
+    ? workspaces.find((candidate) => candidate.id === requestedWorkspaceId) || null
+    : workspaces[0] || null;
+  if (requestedWorkspaceId && !workspace) return NextResponse.json({ error: "You do not have access to that workspace." }, { status: 404 });
+  if (!workspace) return NextResponse.json({ workspace: null, workspaces: [], keys: [] }, { headers: { "cache-control": "no-store" } });
+  const membership = (memberships || []).find((candidate: { workspace_id?: unknown }) => candidate.workspace_id === workspace.id) as { role?: unknown } | undefined;
 
   const { data: keys, error: keyError } = await admin
     .from("trackmcp_api_keys")
     .select("id, name, key_prefix, revoked_at, created_at")
-    .eq("workspace_id", membership.workspace_id)
+    .eq("workspace_id", workspace.id)
     .order("created_at", { ascending: false });
   if (keyError) return NextResponse.json({ error: "Could not load API keys." }, { status: 500 });
-  return NextResponse.json({ workspace: membership.trackmcp_workspaces, role: membership.role, keys: keys || [] });
+  return NextResponse.json({ workspace, workspaces, role: membership?.role || null, keys: keys || [] }, { headers: { "cache-control": "no-store" } });
 }
 
 export async function POST(request: Request) {
@@ -40,31 +50,42 @@ export async function POST(request: Request) {
   if (!user) return NextResponse.json({ error: "Sign in required." }, { status: 401 });
   if (!admin) return NextResponse.json({ error: "Account service is not configured." }, { status: 503 });
 
-  let body: { name?: string; slug?: string; key_name?: string; create_key?: boolean; full_name?: string; first_name?: string; last_name?: string; company_name?: string; role?: string; use_case?: string; terms_accepted?: boolean } = {};
-  try { body = await request.json(); } catch { /* defaults are fine */ }
-  const existing = await admin.from("trackmcp_workspace_members").select("workspace_id").eq("user_id", user.id).limit(1).maybeSingle();
-  if (existing.error) return NextResponse.json({ error: "Could not check your workspace." }, { status: 500 });
+  let body: { name?: unknown; slug?: unknown; key_name?: unknown; workspace_id?: unknown; create_key?: unknown; full_name?: unknown; first_name?: unknown; last_name?: unknown; company_name?: unknown; role?: unknown; use_case?: unknown; terms_accepted?: unknown } = {};
+  try {
+    const raw = await request.arrayBuffer();
+    if (raw.byteLength > MAX_WORKSPACE_BODY_BYTES) return NextResponse.json({ error: "Request body is too large." }, { status: 413 });
+    const parsed: unknown = JSON.parse(new TextDecoder().decode(raw));
+    if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) return NextResponse.json({ error: "JSON body must be an object." }, { status: 400 });
+    body = parsed as typeof body;
+  } catch { return NextResponse.json({ error: "Invalid JSON body." }, { status: 400 }); }
+  const membershipsResult = await admin.from("trackmcp_workspace_members").select("workspace_id").eq("user_id", user.id);
+  if (membershipsResult.error) return NextResponse.json({ error: "Could not check your workspace." }, { status: 500 });
+  const memberships = (membershipsResult.data || []) as Array<{ workspace_id: string }>;
+  const requestedWorkspaceId = boundedText(body.workspace_id, 128);
+  if (requestedWorkspaceId && requestedWorkspaceId.length > 128) return NextResponse.json({ error: "workspace_id is invalid." }, { status: 400 });
+  if (requestedWorkspaceId && !memberships.some((membership) => membership.workspace_id === requestedWorkspaceId)) return NextResponse.json({ error: "You do not have access to that workspace." }, { status: 404 });
+  if (!requestedWorkspaceId && memberships.length > 1) return NextResponse.json({ error: "workspace_id is required when you belong to multiple workspaces." }, { status: 400 });
 
   const profile = await admin.from("trackmcp_profiles").upsert({
     user_id: user.id,
-    first_name: body.first_name?.trim() || user.user_metadata?.first_name || null,
-    last_name: body.last_name?.trim() || user.user_metadata?.last_name || null,
-    full_name: body.full_name?.trim() || [body.first_name, body.last_name].filter(Boolean).join(" ").trim() || user.user_metadata?.full_name || null,
-    company_name: body.company_name?.trim() || null,
-    role: body.role?.trim() || null,
-    use_case: body.use_case?.trim() || null,
-    terms_accepted_at: body.terms_accepted ? new Date().toISOString() : null,
+    first_name: boundedText(body.first_name, 120) || user.user_metadata?.first_name || null,
+    last_name: boundedText(body.last_name, 120) || user.user_metadata?.last_name || null,
+    full_name: boundedText(body.full_name, 200) || [boundedText(body.first_name, 120), boundedText(body.last_name, 120)].filter(Boolean).join(" ").trim() || user.user_metadata?.full_name || null,
+    company_name: boundedText(body.company_name, 200) || null,
+    role: boundedText(body.role, 120) || null,
+    use_case: boundedText(body.use_case, 1000) || null,
+    terms_accepted_at: body.terms_accepted === true ? new Date().toISOString() : null,
     onboarding_completed_at: new Date().toISOString(),
     updated_at: new Date().toISOString(),
   }, { onConflict: "user_id" });
   if (profile.error) return NextResponse.json({ error: "Could not save your onboarding details." }, { status: 500 });
 
-  let workspaceId = existing.data?.workspace_id;
+  let workspaceId = requestedWorkspaceId || memberships[0]?.workspace_id;
   let workspace: { id: string; name: string; slug: string } | null = null;
   if (!workspaceId) {
     const emailName = user.email?.split("@")[0] || "your workspace";
-    const name = body.name?.trim() || `${emailName} workspace`;
-    const slug = body.slug?.trim().toLowerCase() || `workspace-${user.id.slice(0, 8)}`;
+    const name = boundedText(body.name, 160) || `${emailName} workspace`;
+    const slug = boundedText(body.slug, 120).toLowerCase() || `workspace-${user.id.slice(0, 8)}`;
     const created = await admin.from("trackmcp_workspaces").insert({ name, slug }).select("id, name, slug").single();
     if (created.error || !created.data) return NextResponse.json({ error: "Could not create your workspace." }, { status: created.error?.code === "23505" ? 409 : 500 });
     workspace = created.data;
@@ -81,9 +102,9 @@ export async function POST(request: Request) {
 
   if (body.create_key !== false) {
     const generated = createTrackMCPKey();
-    const createdKey = await admin.from("trackmcp_api_keys").insert({ workspace_id: workspaceId, name: body.key_name?.trim() || "default", key_prefix: generated.prefix, key_hash: generated.hash });
+    const createdKey = await admin.from("trackmcp_api_keys").insert({ workspace_id: workspaceId, name: boundedText(body.key_name, 128) || "default", key_prefix: generated.prefix, key_hash: generated.hash });
     if (createdKey.error) return NextResponse.json({ error: "Could not create your API key." }, { status: 500 });
-    return NextResponse.json({ workspace, api_key: generated.key, message: "Copy this key now. It will not be shown again." }, { status: 201 });
+    return NextResponse.json({ workspace, api_key: generated.key, message: "Copy this key now. It will not be shown again." }, { status: 201, headers: { "cache-control": "no-store" } });
   }
-  return NextResponse.json({ workspace, api_key: null, message: "Workspace created. Create a connection key from Setup when you are ready." }, { status: 201 });
+  return NextResponse.json({ workspace, api_key: null, message: "Workspace created. Create a connection key from Setup when you are ready." }, { status: 201, headers: { "cache-control": "no-store" } });
 }
