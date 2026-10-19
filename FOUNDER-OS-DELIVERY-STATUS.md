@@ -73,7 +73,7 @@ tests. The highest-risk remaining dependencies are:
 - `origin/main` currently resolves to `66e4348` (`Merge production public smoke evidence`).
 - The application release was merged through PR #43 and deployed by the
   existing GitHub Actions/App Runner workflow.
-- `@trackmcp/sdk@0.1.2`, `@trackmcp/cli@0.1.4`, and `trackmcp==0.1.3` are
+- `@trackmcp/sdk@0.1.2`, `@trackmcp/cli@0.1.4`, and `trackmcp==0.1.4` are
   published; clean external npm and Python consumer installs passed.
 - Supabase SQL was intentionally not executed by the agent; operator-run
   postflight evidence remains a separate gate.

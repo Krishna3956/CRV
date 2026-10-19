@@ -250,7 +250,7 @@ export type Analytics = {
   correlation_handle_source?: TrackMCPCorrelationHandleSource | null;
   intent_sources: IntentSourceCounts;
   missing_capabilities: MissingCapability[];
-  outcomes: { name: string; started: number; completed: number; failed: number }[];
+  outcomes: { name: string; started: number; completed: number; failed: number; unresolved: number }[];
   insights: { level: string; title: string; detail: string; metric: string; affected_volume?: number | null; confidence?: "high" | "medium" | "low" | null; suggested_action?: string | null }[];
   /** Versioned, uncertainty-aware facts exposed by the Founder OS read model. */
   founder_os?: {

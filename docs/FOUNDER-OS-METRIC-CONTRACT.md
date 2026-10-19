@@ -10,6 +10,7 @@ source explicitly says it is an outcome event.
 | `ai_clients` | AI clients | Distinct observed `client_name` | Server telemetry | Not unique end users |
 | `activity` | Activity | Observed `tool_call` count | Tool-call telemetry | Instrumented traffic only |
 | `work_completed` | Work completed | Explicit completed / explicit started | Workflow outcome events | No session inference |
+| `work_unresolved` | Unresolved workflows | Explicit started - completed - failed (bounded at zero) | Workflow outcome events | Missing terminal evidence; never labeled as abandonment |
 | `error_rate` | Error rate | Failed known-outcome calls / known calls | Tool-call telemetry | Unknown outcomes are not failures |
 | `needs_attention` | Needs attention | Count of fired insight rules | Bounded analytics rules | Signals, not diagnoses |
 | `identity_coverage` | Verified account coverage | Events with `account_identity_source=resolver` / eligible events | Resolver-labeled server telemetry | Event-weighted coverage; not unique organizations |

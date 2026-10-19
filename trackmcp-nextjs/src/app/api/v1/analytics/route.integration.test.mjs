@@ -118,6 +118,19 @@ test("analytics keeps missing client identity as an explicit Unknown client buck
   assert.deepEqual(body.clients.map((client) => [client.name, client.calls]), [["Claude", 1], ["Unknown client", 1]]);
 });
 
+test("analytics exposes unresolved explicit journeys without crashing on unnamed lifecycle rows", async () => {
+  const handler = createAnalyticsHandler(() => fakeAdmin([
+    event({ event_id: "journey-start", event_type: "workflow", workflow_id: "wf-1", payload: { name: "workflow", workflow_name: "checkout", status: "started" } }),
+    event({ event_id: "journey-start-2", event_type: "workflow", workflow_id: "wf-4", payload: { name: "workflow", workflow_name: "checkout", status: "started" } }),
+    event({ event_id: "unnamed-start", event_type: "workflow", workflow_id: "wf-2", payload: { name: "workflow", status: "started" } }),
+    event({ event_id: "journey-failed", event_type: "workflow", workflow_id: "wf-3", payload: { name: "workflow", workflow_name: "checkout", status: "failed" } }),
+  ]));
+  const response = await handler(new Request("http://analytics.test/api/v1/analytics?days=7", { headers: { authorization: "Bearer key" } }));
+  assert.equal(response.status, 200);
+  const body = await response.json();
+  assert.deepEqual(body.outcomes, [{ name: "checkout", started: 2, completed: 0, failed: 1, unresolved: 1 }]);
+});
+
 test("tool aggregation matches an independent reference reducer", async () => {
   const rows = [
     event({ event_id: "lookup-success", event_type: "tool_call", tool_name: "lookup", success: true, duration_ms: 100 }),

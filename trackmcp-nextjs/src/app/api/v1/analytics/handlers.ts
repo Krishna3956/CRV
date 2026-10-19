@@ -293,8 +293,21 @@ export function createAnalyticsHandler(getAdmin: typeof getSupabaseAdmin = getSu
   })).sort((a, b) => b.calls - a.calls);
   const unusedTools = [...catalog.keys()].filter((name) => !tools.has(name));
   const outcomeEvents = events.filter(isWorkflowLifecycleEvent);
-  const outcomeNames = new Set(outcomeEvents.map((event) => event.payload?.workflow_name as string));
-  const explicitOutcomes = [...outcomeNames].map((name) => { const matching = outcomeEvents.filter((event) => event.payload?.workflow_name === name); return { name: name.slice(0, 256), started: matching.filter((event) => event.payload?.status === "started").length, completed: matching.filter((event) => event.payload?.status === "completed").length, failed: matching.filter((event) => event.payload?.status === "failed").length }; });
+  // Only named workflow outcomes can be grouped. Older SDKs may emit a
+  // lifecycle event without workflow_name; do not let that malformed or
+  // legacy row crash analytics (or become a fake "undefined" journey).
+  const outcomeNames = new Set(
+    outcomeEvents
+      .map((event) => event.payload?.workflow_name)
+      .filter((name): name is string => typeof name === "string" && name.trim().length > 0),
+  );
+  const explicitOutcomes = [...outcomeNames].map((name) => {
+    const matching = outcomeEvents.filter((event) => event.payload?.workflow_name === name);
+    const started = matching.filter((event) => event.payload?.status === "started").length;
+    const completed = matching.filter((event) => event.payload?.status === "completed").length;
+    const failed = matching.filter((event) => event.payload?.status === "failed").length;
+    return { name: name.slice(0, 256), started, completed, failed, unresolved: Math.max(0, started - completed - failed) };
+  });
   const workflowRows = [...sessions.entries()].map(([id, sessionEvents]) => {
     const sessionCalls = sessionEvents.filter((event) => event.event_type === "tool_call");
     const handle = sessionEvents.find((event) => event.correlation_handle)?.correlation_handle || null;

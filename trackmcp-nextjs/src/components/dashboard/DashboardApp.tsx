@@ -603,10 +603,10 @@ const EXAMPLE_ANALYTICS: Analytics = {
     },
   ],
   outcomes: [
-    { name: "invoice_lookup", started: 18, completed: 12, failed: 6 },
-    { name: "report_creation", started: 10, completed: 8, failed: 2 },
-    { name: "account_balance", started: 14, completed: 11, failed: 3 },
-    { name: "finance_export", started: 8, completed: 6, failed: 2 },
+    { name: "invoice_lookup", started: 18, completed: 12, failed: 6, unresolved: 0 },
+    { name: "report_creation", started: 10, completed: 8, failed: 2, unresolved: 0 },
+    { name: "account_balance", started: 14, completed: 11, failed: 3, unresolved: 0 },
+    { name: "finance_export", started: 8, completed: 6, failed: 2, unresolved: 0 },
   ],
   insights: [
     {
@@ -2533,6 +2533,7 @@ function JourneysView({
                 <th className="pb-3">Started</th>
                 <th className="pb-3">Completed</th>
                 <th className="pb-3">Failed</th>
+                <th className="pb-3">Unresolved</th>
                 <th className="pb-3">Completion</th>
               </tr>
             </thead>
@@ -2546,6 +2547,9 @@ function JourneysView({
                   <td className="py-4 text-muted">{fmt(outcome.completed)}</td>
                   <td className="py-4 text-muted">{fmt(outcome.failed)}</td>
                   <td className="py-4 text-muted">
+                    {fmt(outcome.unresolved)}
+                  </td>
+                  <td className="py-4 text-muted">
                     {outcome.started
                       ? percent(outcome.completed / outcome.started)
                       : "N/A"}
@@ -2558,6 +2562,13 @@ function JourneysView({
             <p className="py-8 text-sm text-muted">
               No explicit workflow outcome data. Sessions are not completion
               evidence.
+            </p>
+          )}
+          {analytics.outcomes.length > 0 && totals.unresolved > 0 && (
+            <p className="mt-3 text-[11px] leading-relaxed text-muted">
+              Unresolved means an explicit workflow start has no matching
+              completed or failed terminal event. It is not abandonment and
+              does not infer why a workflow stopped.
             </p>
           )}
         </div>
@@ -4513,8 +4524,9 @@ function explicitOutcomeTotals(analytics: Analytics) {
       started: total.started + outcome.started,
       completed: total.completed + outcome.completed,
       failed: total.failed + outcome.failed,
+      unresolved: total.unresolved + outcome.unresolved,
     }),
-    { started: 0, completed: 0, failed: 0 },
+    { started: 0, completed: 0, failed: 0, unresolved: 0 },
   );
 }
 function metricValue(value: number | null | undefined) {
