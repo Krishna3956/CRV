@@ -4,8 +4,8 @@ Date: 2026-10-19
 Review mode: post-release evidence reconciliation
 Repository: `Krishna3956/CRV`
 Current checkout: `codex/founder-os-evidence-refresh`
-Review baseline: `origin/main` at `07b9d31`
-Application deployment: `07b9d31fa613a6446c7cf63f20d5c4a6b85961ab`
+Review baseline: `origin/main` at `66e4348`
+Application deployment: `a026d1fd222b37a599c92aca4e7af8b0ac6014fd`
 
 This document is the delivery ledger for the Founder OS programme. It is an
 engineering status record, not an instruction to merge, deploy, publish a
@@ -60,18 +60,18 @@ tests. The highest-risk remaining dependencies are:
 
 ### Current review baseline
 
-- `origin/main` review baseline: `07b9d31fa613a6446c7cf63f20d5c4a6b85961ab`.
-- Application code deployed by App Runner: `07b9d31fa613a6446c7cf63f20d5c4a6b85961ab`.
-- App Runner deployment run: [39234245573](https://github.com/Krishna3956/CRV/actions/runs/39234245573).
-- Application container digest: `sha256:ef61e4bf8b9ea6c5630f37105def98c92c8206ea64eed518692f9e1a4da8245b`.
+- `origin/main` review baseline: `66e4348da49f98ab89fc2a212846ac6a170979f7`.
+- Application code deployed by App Runner: `a026d1fd222b37a599c92aca4e7af8b0ac6014fd`.
+- App Runner deployment run: [39236970873](https://github.com/Krishna3956/CRV/actions/runs/39236970873).
+- The deployed public surface passed the guarded read-only smoke with 14 checks; the redacted report is `/tmp/trackmcp-production-smoke.json`.
 - Rollback candidate digest: `sha256:ff8221e6eda6ce105ccf406ea79b5e06848a3a4757d708e1a75e29d9cd607563`.
 - This checkout is documentation-only reconciliation; the unrelated local
   `trackmcp-nextjs/AGENTS.md` edit is intentionally excluded.
 
 ### What is known
 
-- `origin/main` currently resolves to `07b9d31` (`Merge clean Python artifact gate`).
-- The application release was merged through PR #34 and deployed by the
+- `origin/main` currently resolves to `66e4348` (`Merge production public smoke evidence`).
+- The application release was merged through PR #43 and deployed by the
   existing GitHub Actions/App Runner workflow.
 - `@trackmcp/sdk@0.1.2`, `@trackmcp/cli@0.1.4`, and `trackmcp==0.1.3` are
   published; clean external npm and Python consumer installs passed.
