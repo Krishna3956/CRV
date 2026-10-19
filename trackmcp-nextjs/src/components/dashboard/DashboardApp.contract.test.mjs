@@ -151,6 +151,13 @@ test("Setup keeps deployment linkage count-only and non-health claiming", () => 
   assert.match(source, /not deployment health or release status/);
 });
 
+test("The journey renders bounded task evidence without claiming business completion", () => {
+  assert.match(source, /Async task evidence/);
+  assert.match(source, /opaque handles protect task identifiers/);
+  assert.match(source, /Missing task events are not classified as abandonment/);
+  assert.match(source, /does not prove that a customer.*business goal succeeded/);
+});
+
 test("Needs attention renders bounded action context", () => {
   assert.match(source, /affected volume:/);
   assert.match(source, /confidence:/);

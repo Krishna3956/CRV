@@ -117,6 +117,10 @@ const legacyViewMap: Record<string, View> = {
 };
 const validViews = new Set<View>(allNav.map((item) => item.id));
 const fmt = (value: number) => value.toLocaleString();
+const fmtObservedAt = (value: string) => {
+  const parsed = Date.parse(value);
+  return Number.isFinite(parsed) ? new Date(parsed).toLocaleString(undefined, { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" }) : "unknown";
+};
 const percent = (value: number | null) =>
   value === null ? "N/A" : Math.round(value * 100) + "%";
 
@@ -2622,6 +2626,47 @@ function JourneysView({
               </p>
             )}
           </div>
+        </Panel>
+      </div>
+      <div className="mt-6">
+        <Panel
+          title="Async task evidence"
+          subtitle="Explicit task states observed by the server; opaque handles protect task identifiers"
+        >
+          {analytics.founder_os?.tasks?.length ? (
+            <div className="overflow-x-auto" role="region" aria-label="Async task evidence">
+              <table className="w-full min-w-[720px] text-left text-sm">
+                <thead className="border-b border-line text-[10px] font-semibold uppercase tracking-[0.08em] text-faint">
+                  <tr>
+                    <th className="pb-3">Task handle</th>
+                    <th className="pb-3">Latest state</th>
+                    <th className="pb-3">Observations</th>
+                    <th className="pb-3">Evidence</th>
+                    <th className="pb-3">Last observed</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-line">
+                  {analytics.founder_os.tasks.map((task) => (
+                    <tr key={task.task_id_hash}>
+                      <td className="py-3 font-mono text-xs text-ink">{task.task_id_hash.slice(0, 12)}…</td>
+                      <td className="py-3 capitalize text-muted">{task.state.replaceAll("_", " ")}</td>
+                      <td className="py-3 text-muted">{fmt(task.observations)}</td>
+                      <td className="py-3 capitalize text-muted">{task.evidence_quality.replaceAll("_", " ")}</td>
+                      <td className="py-3 text-muted">{fmtObservedAt(task.last_observed_at)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+              <p className="mt-3 text-[11px] leading-relaxed text-muted">
+                A task reaching a protocol terminal state does not prove that a customer&apos;s business goal succeeded. Missing task events are not classified as abandonment.
+              </p>
+            </div>
+          ) : (
+            <StateNote
+              title="No explicit task evidence"
+              body="TrackMCP will show a task here only when the server emits a bounded task identifier and an explicit state. No task row does not mean that work was abandoned."
+            />
+          )}
         </Panel>
       </div>
     </div>
