@@ -25,7 +25,7 @@ because a check box exists; it is done only with the stated acceptance evidence.
 | --- | --- | --- |
 | Tab 1 Who's using it | implemented locally and pushed in `bc1b645` | Requires production workspace evidence before pilot claim |
 | Tab 2 What they're doing | implemented locally and pushed in `1506630` | Requires production workspace evidence before pilot claim |
-| Tabs 3 through 6 | partially implemented vertical slices | Each must be reconciled to the PDF's data contract before completion |
+| Tabs 3 through 6 | implemented locally, with privacy-bounded v2 contracts | Each still requires the listed disposable-production evidence before a pilot claim |
 | Build and regression suite | locally passed on the earlier candidate | Re-run from a clean checkout of the final release SHA |
 | Schema/migrations | code and reviewed SQL exist | Production execution and postflight are still open |
 | Auth and tenant isolation | local tests exist | Disposable production negative tests are still open |
@@ -336,15 +336,21 @@ keeping resource URI/content and prompt names/arguments private by default?
 
 ## Workstream 11 Performance, failure recovery, and rollback
 
-- [ ] Set explicit pilot traffic/load assumptions: active customers, events per
-  server, batch sizes, dashboard reads, activation concurrency, and recovery
-  objective.
+- [x] Document the initial pilot traffic/load envelope and local acceptance
+  budgets in `FOUNDER-OS-LOAD-VALIDATION.md`. This is an engineering target,
+  not evidence that the deployed environment can sustain the target.
+- [ ] The release owner approves or revises that envelope for the actual
+  cohort, host sizing, and selected data region before an external run.
 - [ ] Run deployment-class load evidence, not just local fixture tests.
 - [ ] Capture p50/p95/p99, timeout, 4xx/5xx, memory, and queue behavior.
 - [ ] Exercise transient ingest/database/worker failure and recover safely.
 - [ ] Identify the prior approved image/commit and test rollback against the
   additive schema.
-- [ ] Record a customer-impact communication path and an operator stop rule.
+- [x] Document the operator stop rule, recovery evidence requirements, and
+  customer-impact communication path in the incident and load-validation
+  runbooks.
+- [ ] The release owner records the actual customer contact and rollback owner
+  in the go/no-go record before invitations are sent.
 
 ## Workstream 12 Packages and public claims
 

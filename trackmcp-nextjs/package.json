@@ -48,6 +48,7 @@
     "test:operational-anomalies": "node --experimental-strip-types --test src/lib/telemetry/operational-anomalies.test.ts",
     "test:worker-health": "node --experimental-strip-types --test src/lib/telemetry/worker-health.test.ts",
     "test:activation-load-harness": "node --test scripts/activation-load-harness.test.mjs",
+    "test:load-validation": "node --test scripts/load-validation.contract.test.mjs",
     "test:incident-runbook": "node --test scripts/incident-runbook.contract.test.mjs",
     "test:pilot-support": "node --test scripts/pilot-support.contract.test.mjs",
     "test:pilot-support-page": "node --test scripts/pilot-support-page.contract.test.mjs",
