@@ -1000,6 +1000,9 @@ export function DashboardApp({
 
   return (
     <div className="dashboard-shell min-h-screen bg-[#f7f8f7] font-sans text-ink">
+      <div className="border-b border-amber-200 bg-amber-50 px-4 py-3 text-center text-xs leading-relaxed text-amber-900 lg:hidden" role="status">
+        Founder OS is supported on desktop browsers for this pilot. For the full dashboard navigation and data tables, open TrackMCP on a desktop-sized browser window.
+      </div>
       <aside className="fixed bottom-0 left-0 top-[52px] z-30 hidden w-[248px] border-r border-line bg-[#fbfcfb] lg:flex lg:flex-col">
         <DashboardNav
           view={view}

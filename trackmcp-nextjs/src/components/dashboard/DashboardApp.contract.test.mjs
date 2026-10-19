@@ -51,6 +51,11 @@ test("business-first navigation and KPI hierarchy are explicit", () => {
   assert.doesNotMatch(source, /Open Configure/);
 });
 
+test("desktop-only pilot boundary is visible on narrow dashboard viewports", () => {
+  assert.match(source, /Founder OS is supported on desktop browsers for this pilot/);
+  assert.match(source, /className="border-b border-amber-200 bg-amber-50[^\"]*lg:hidden/);
+});
+
 test("resources and prompts have a dedicated evidence-bounded surface", () => {
   assert.match(source, /function ResourcesPromptsView/);
   assert.match(source, /title=\"Resources & prompts\"/);
