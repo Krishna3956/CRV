@@ -415,7 +415,15 @@ class TrackMCP:
             request = urllib.request.Request(
                 self.options.endpoint,
                 data=body,
-                headers={"Content-Type": "application/json", "Authorization": f"Bearer {self.options.api_key}"},
+                # Keep the request identifiable as a normal SDK client. Some
+                # managed edge/WAF configurations reject urllib's default
+                # `Python-urllib/...` user agent before the request reaches
+                # the ingestion handler.
+                headers={
+                    "Content-Type": "application/json",
+                    "Authorization": f"Bearer {self.options.api_key}",
+                    "User-Agent": "Mozilla/5.0",
+                },
                 method="POST",
             )
             with urllib.request.urlopen(request, timeout=3) as response:

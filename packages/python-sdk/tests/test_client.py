@@ -11,8 +11,10 @@ from trackmcp.privacy import sanitize_payload
 
 class Handler(BaseHTTPRequestHandler):
     payload = None
+    user_agent = None
 
     def do_POST(self):
+        Handler.user_agent = self.headers.get("user-agent")
         length = int(self.headers["content-length"])
         Handler.payload = json.loads(self.rfile.read(length))
         self.send_response(200)
@@ -266,6 +268,18 @@ class TrackMCPClientTest(TestCase):
         self.assertEqual(event["session_id_source"], "missing")
         self.assertEqual(event["payload_size_bytes"], len(json.dumps({"message": "café"}, ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode("utf-8")))
         self.assertEqual(event["event_id"].count("-"), 4)
+
+    def test_uses_edge_compatible_user_agent_for_ingest(self):
+        server = HTTPServer(("127.0.0.1", 0), Handler)
+        thread = threading.Thread(target=server.serve_forever, daemon=True)
+        thread.start()
+        client = TrackMCP(TrackMCPOptions(api_key="tmcp_test", endpoint=f"http://127.0.0.1:{server.server_port}"))
+        client.track("user_agent_probe", {"source": "test"})
+        client.flush()
+        server.shutdown()
+        server.server_close()
+        client._timer.cancel()
+        self.assertEqual(Handler.user_agent, "Mozilla/5.0")
 
     def test_catalog_metadata_and_client_identity_are_captured(self):
         server = HTTPServer(("127.0.0.1", 0), Handler)

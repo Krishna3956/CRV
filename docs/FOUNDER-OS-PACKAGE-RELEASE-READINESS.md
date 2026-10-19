@@ -12,7 +12,7 @@ used here and no package is published automatically.
 | `trackmcp` | `packages/python-sdk/pyproject.toml` | unittest suite and build metadata audit | `.github/workflows/publish.yml`, `python` |
 
 The current local source manifests are deliberately distinct candidate versions:
-`@trackmcp/sdk` `0.1.2`, `@trackmcp/cli` `0.1.4`, and `trackmcp` `0.1.3`.
+`@trackmcp/sdk` `0.1.2`, `@trackmcp/cli` `0.1.4`, and `trackmcp` `0.1.4`.
 They were selected after a registry preflight found the immediately preceding
 versions already published. These are **not publication claims**: the publish
 workflow must re-check the exact selected version immediately before upload.
