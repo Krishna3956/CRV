@@ -7,6 +7,7 @@ const EXCLUDED = [
   /(^|\/)(?:campaigns|node_modules|build|\.next(?:-[^/]+)?)(\/|$)/,
   /(?:^|\/)(?:[^/]+\.(?:csv|tsbuildinfo))$/i,
   /(?:^|\/)(?:\.env(?:\.|$)|deploy\/\.env\.deploy$)/,
+  /(?:^|\/)AGENTS\.md$/i,
 ];
 
 const INTENDED = [
