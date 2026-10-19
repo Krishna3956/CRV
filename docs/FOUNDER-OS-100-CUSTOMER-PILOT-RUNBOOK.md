@@ -54,15 +54,11 @@ npm run build
 npm run smoke:local
 ```
 
-The current local baseline is a clean 104-suite release gate and a 169-page
-production build. Rerun these commands for every candidate; these results do
-not substitute for production evidence.
-
-Record the actual results for the candidate. The current local baseline is a
-clean detached 102-suite gate, a 169-page isolated production build, TypeScript
-success, lint with one pre-existing `ProductHuntBadge.tsx` image warning, and
-production-shaped local smoke. These numbers must still be rerun for any new
-release candidate.
+Record the actual command output, candidate SHA, UTC timestamp, environment,
+and any warning in the evidence ledger. Do not copy a historical suite count,
+page count, or lint result into a new candidate record: the test suite and
+application surface legitimately change over time. A local pass never
+substitutes for production evidence.
 
 ## 3. Schema and runtime configuration gate
 
@@ -139,7 +135,8 @@ key-lifecycle gates below.
 
 ## 8. Worker, scheduler, and rate-limit gate
 
-Run one authenticated refresh batch and cleanup run. Verify lease fencing,
+Run one authenticated **non-empty disposable** refresh batch and cleanup run.
+Verify lease fencing,
 expired-lease recovery, bounded retry/backoff, terminal failure behavior,
 non-2xx unhealthy batch results, serialized GitHub schedules, two-minute job
 timeouts, distributed counters across two App Runner instances, bounded
@@ -159,7 +156,9 @@ versions, checksums, provenance, and consumer results without recording keys.
 ## 10. Load and failure recovery
 
 Agree numeric availability, latency, ingest, worker-lag, rate-limit, App Runner,
-and database thresholds before the run. Exercise ingest/database timeouts,
+and database thresholds before the run. Retain p50/p95/p99, timeout count,
+4xx/5xx/transport split, host memory/resource metrics, queue depth/oldest age,
+retry count, and terminal failure count. Exercise ingest/database timeouts,
 worker crash, expired lease, duplicate event, lost redeem response, and revoked
 key. Verify fail-open SDK behavior, idempotent redemption, bounded retries, and
 no duplicate keys or facts.
@@ -178,3 +177,18 @@ Approve the first 100 customers only when every P0/P1 row in
 missing, launch only the explicitly documented limited scope and label the
 capability unverified or unsupported. “No failures observed” is not a
 completed gate.
+
+## Open-gate ledger mapping
+
+Use this table to make sure every currently unchecked queue item receives a
+redacted evidence row. It is a routing aid, not evidence by itself.
+
+| Queue items | Runbook step | Required evidence shape |
+| --- | --- | --- |
+| 020, 259–260 | 0, 1, 12 | Named release owner, approved limited scope, candidate/deployed SHA, exception decision, incident contact, and rollback owner. |
+| 045–049, 051–054 | 5 | Browser evidence for pending, invalid, expired, denied, approved/redeemed, one/multiple workspace, creation, and unauthenticated-control states; never retain codes or keys. |
+| 141–148, 156–157 | 3, 4, 11 | Executed migration reference, each read-only postflight, region/backup/restoration contact, immutable image digests, and additive-schema rollback decision. |
+| 178–179, 257–258 | 8, 10 | Worker/trigger configuration reference, non-empty disposable batch, lag/retry/terminal evidence, and two-instance distributed rate-limit result if claimed. |
+| 249–250 | 5–7 | Disposable activation/ingest plus cross-workspace and key-lifecycle negative authorization results. |
+| 251, 255 | 9 | Version-uniqueness preflight, registry URL/checksum/provenance, and exact published-package clean-consumer result. |
+| 256 | 11 | Approved-window rollback rehearsal with old-image compatibility and post-rollback smoke evidence. |

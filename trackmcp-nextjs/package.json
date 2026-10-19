@@ -53,6 +53,7 @@
     "test:pilot-support": "node --test scripts/pilot-support.contract.test.mjs",
     "test:pilot-support-page": "node --test scripts/pilot-support-page.contract.test.mjs",
     "test:pilot-status-template": "node --test scripts/pilot-status-template.contract.test.mjs",
+    "test:pilot-runbook": "node --test scripts/pilot-runbook.contract.test.mjs",
     "test:pilot-scope": "node --test scripts/pilot-scope.contract.test.mjs",
     "test:accessibility-contract": "node --test scripts/accessibility.contract.test.mjs",
     "test:brand-reference-review": "node --test scripts/brand-reference-review.contract.test.mjs",
