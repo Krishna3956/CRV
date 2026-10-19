@@ -55,6 +55,7 @@
     "test:pilot-status-template": "node --test scripts/pilot-status-template.contract.test.mjs",
     "test:pilot-scope": "node --test scripts/pilot-scope.contract.test.mjs",
     "test:accessibility-contract": "node --test scripts/accessibility.contract.test.mjs",
+    "test:brand-reference-review": "node --test scripts/brand-reference-review.contract.test.mjs",
     "test:privacy-deletion-batches": "node --test src/lib/account/privacy-deletion-batches-migration.test.mjs",
     "test:key-revocation-authz": "node --test src/app/api/v1/account/keys/route.contract.test.mjs",
     "test:workspace-selection": "node --test src/app/api/v1/account/workspace/route.contract.test.mjs src/lib/alerts/auth.contract.test.mjs src/lib/alerts/auth.integration.test.mjs src/lib/alerts/action-queue-link-migration.test.mjs",

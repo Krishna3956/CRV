@@ -367,8 +367,11 @@ keeping resource URI/content and prompt names/arguments private by default?
   capability boundary.
 - [ ] Repeat the public-claim review against the final published package
   versions and deployed candidate before inviting customers.
-- [ ] Review the Traccp/Founder OS visual identity against the approved Word
-  reference before a branding release; do not mix unapproved marks.
+- [x] Inspect the supplied Word reference and record the visual-identity
+  boundary. It has no stand-alone, unambiguous approved logo asset, so no mark
+  was recreated or changed by inference.
+- [ ] Obtain an approved source asset or named owner decision before any
+  Traccp/Founder OS branding release; do not mix unapproved marks.
 
 ## Required go/no-go record
 
