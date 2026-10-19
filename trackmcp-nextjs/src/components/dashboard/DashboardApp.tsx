@@ -3594,13 +3594,37 @@ function SetupView({
   const [language, setLanguage] = useState<"TypeScript" | "Python">(
     "TypeScript",
   );
+  const [serviceName, setServiceName] = useState("");
+  const [environmentName, setEnvironmentName] = useState("production");
   const [copied, setCopied] = useState(false);
   const [setupContract, setSetupContract] = useState<SetupContract | null>(null);
   const [setupContractWorkspaceId, setSetupContractWorkspaceId] = useState<string | null>(null);
 
+  useEffect(() => {
+    try {
+      const savedService = window.localStorage.getItem("trackmcp.setup.service");
+      const savedEnvironment = window.localStorage.getItem("trackmcp.setup.environment");
+      if (savedService) setServiceName(savedService.slice(0, 100));
+      if (savedEnvironment) setEnvironmentName(savedEnvironment.slice(0, 64));
+    } catch {
+      // Setup remains usable when browser storage is unavailable.
+    }
+  }, []);
+  const boundedService = serviceName.replace(/[^a-zA-Z0-9._ -]/g, "").trim().slice(0, 100);
+  const boundedEnvironment = environmentName.replace(/[^a-zA-Z0-9._ -]/g, "").trim().slice(0, 64) || "production";
+  const updateService = (value: string) => {
+    const next = value.slice(0, 100);
+    setServiceName(next);
+    try { window.localStorage.setItem("trackmcp.setup.service", next); } catch { /* best effort */ }
+  };
+  const updateEnvironment = (value: string) => {
+    const next = value.slice(0, 64);
+    setEnvironmentName(next);
+    try { window.localStorage.setItem("trackmcp.setup.environment", next); } catch { /* best effort */ }
+  };
   const snippets = {
-    TypeScript: `npm install @trackmcp/sdk\n\nimport { withTrackMCP } from "@trackmcp/sdk";\nexport default withTrackMCP(server, { apiKey: process.env.TRACKMCP_KEY! });`,
-    Python: `python3 -m pip install trackmcp\n\nimport os\nfrom trackmcp import with_trackmcp\napp = with_trackmcp(server, api_key=os.environ["TRACKMCP_KEY"])`,
+    TypeScript: `npm install @trackmcp/sdk\n\nimport { withTrackMCP } from "@trackmcp/sdk";\nexport default withTrackMCP(server, {\n  apiKey: process.env.TRACKMCP_KEY!,\n  service: "${boundedService || "my-mcp-server"}",\n  environment: "${boundedEnvironment}",\n});`,
+    Python: `python3 -m pip install trackmcp\n\nimport os\nfrom trackmcp import with_trackmcp\napp = with_trackmcp(server, api_key=os.environ["TRACKMCP_KEY"], service="${boundedService || "my-mcp-server"}", environment="${boundedEnvironment}")`,
   };
   const hasActiveKey = keys.some((key) => !key.revoked_at);
   useEffect(() => {
@@ -3767,6 +3791,31 @@ function SetupView({
             href: "https://trackmcp.com/docs",
           }}
         >
+          <div className="mt-4 grid gap-3 sm:grid-cols-2">
+            <label className="text-xs font-semibold text-ink">
+              Server name
+              <input
+                value={serviceName}
+                onChange={(event) => updateService(event.target.value)}
+                maxLength={100}
+                placeholder="my-mcp-server"
+                className="mt-1.5 block w-full rounded-md border border-line-strong bg-white px-3 py-2 text-sm font-normal text-body focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
+              />
+              <span className="mt-1 block text-[11px] font-normal text-faint">Used as a bounded telemetry label.</span>
+            </label>
+            <label className="text-xs font-semibold text-ink">
+              Environment
+              <input
+                value={environmentName}
+                onChange={(event) => updateEnvironment(event.target.value)}
+                maxLength={64}
+                placeholder="production"
+                className="mt-1.5 block w-full rounded-md border border-line-strong bg-white px-3 py-2 text-sm font-normal text-body focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
+              />
+              <span className="mt-1 block text-[11px] font-normal text-faint">For example: production, staging, or local.</span>
+            </label>
+          </div>
+          <p className="mt-3 text-[11px] leading-relaxed text-faint">These labels are supplied by your server. They are not a TrackMCP deployment record and do not identify a person or customer.</p>
           <div className="mt-4 flex gap-1 border-b border-line pb-2">
             {(["TypeScript", "Python"] as const).map((item) => (
               <button
