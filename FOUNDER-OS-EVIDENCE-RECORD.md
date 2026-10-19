@@ -146,3 +146,15 @@ or private URLs into it.
 | result | pass |
 | evidence_reference | Local release gate completed all 103 suites. Hosted CI runs 410 and 411 completed successfully. App Runner deployment run 87 completed successfully. |
 | caveat_or_scope | This refresh confirms internal and deployment workflow health; it does not close cross-workspace authorization, scheduler execution, rollback rehearsal, distributed rate-limit, or package provenance publication gates. |
+
+| Field | Value |
+| --- | --- |
+| gate_id | production-public-smoke-refresh |
+| owner | Head of Engineering |
+| timestamp_utc | 2026-10-19T14:02:00Z |
+| command_or_probe | `TRACKMCP_PRODUCTION_SMOKE_CONFIRM=I_UNDERSTAND_PRODUCTION_SMOKE TRACKMCP_SMOKE_BASE_URL=https://trackmcp.com npm run smoke:production-pilot -- --candidate-sha 775169b` |
+| environment | production public endpoints; read-only smoke |
+| candidate_sha | `775169b` |
+| result | pass |
+| evidence_reference | Production pilot smoke completed 14 checks and wrote a redacted report at `/tmp/trackmcp-production-smoke.json`. |
+| caveat_or_scope | This validates public availability, sitemap/registry metadata, and package integrity metadata only. It does not perform authenticated writes or prove tenant isolation, worker execution, rollback, or provenance attestations. |
