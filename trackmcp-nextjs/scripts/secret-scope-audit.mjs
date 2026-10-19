@@ -3,7 +3,10 @@ import fs from "node:fs";
 import path from "node:path";
 
 const repoRoot = path.resolve(process.cwd(), "..");
-const scope = JSON.parse(execFileSync(process.execPath, ["scripts/release-scope-audit.mjs", "--json"], { encoding: "utf8" }));
+// Scan the complete tracked release scope when explicitly invoked. This keeps
+// the audit useful in a clean checkout as well as in a mixed worktree; the
+// release-scope audit still defaults to changed paths for release review.
+const scope = JSON.parse(execFileSync(process.execPath, ["scripts/release-scope-audit.mjs", "--json", "--all-tracked"], { encoding: "utf8" }));
 const findings = [];
 const fixtures = [];
 

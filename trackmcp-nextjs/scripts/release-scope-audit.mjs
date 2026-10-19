@@ -43,7 +43,15 @@ function changedPaths() {
   }).flat();
 }
 
-const rows = changedPaths().map((file) => ({ file, classification: classifyPath(file) }));
+function trackedPaths() {
+  return execFileSync("git", ["ls-files", "-z"], {
+    cwd: repoRoot,
+    encoding: "utf8",
+  }).split("\0").filter(Boolean);
+}
+
+const paths = process.argv.includes("--all-tracked") ? trackedPaths() : changedPaths();
+const rows = paths.map((file) => ({ file, classification: classifyPath(file) }));
 const summary = rows.reduce((counts, row) => {
   counts[row.classification] = (counts[row.classification] || 0) + 1;
   return counts;
