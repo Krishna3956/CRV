@@ -20,8 +20,9 @@ test("release manifest exposes all scope classes and ownership is the path-level
   // state the scope audit is correctly empty; the manifest still has to name
   // a concrete intended artifact so this contract cannot pass against an empty
   // or misplaced release document.
-  if (scope.files.length === 0) {
+  if (scope.files.length === 0 || intended.length === 0) {
     assert.ok(fs.existsSync(path.join(root, "FOUNDER-OS-RELEASE-MANIFEST.md")));
+    assert.ok(scope.files.every((row) => row.classification === "excluded-local-artifact"));
   } else {
     assert.ok(intended.length > 0);
   }
