@@ -51,6 +51,7 @@ const groups = [
       { label: "Releases", href: "/blog/releases" },
       { label: "About", href: "/about" },
       { label: "Security", href: "/security" },
+      { label: "Pilot support", href: "/support" },
       { label: "Contact", href: "/contact" },
       { label: "Privacy", href: "/privacy" },
       { label: "Terms", href: "/terms" },
