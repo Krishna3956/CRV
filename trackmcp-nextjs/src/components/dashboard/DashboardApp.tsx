@@ -83,13 +83,13 @@ export type View =
 type NavItem = { id: View; label: string; icon: LucideIcon };
 const primaryNav: NavItem[] = [
   { id: "overview", label: "Overview", icon: BarChart3 },
-  { id: "journeys", label: "Journeys", icon: Route },
-  { id: "capabilities", label: "Capabilities", icon: Blocks },
-  { id: "quality", label: "Quality", icon: ShieldCheck },
-  { id: "issues", label: "Issues", icon: AlertTriangle },
+  { id: "journeys", label: "The journey", icon: Route },
+  { id: "capabilities", label: "What they're doing", icon: Blocks },
+  { id: "quality", label: "Did it work", icon: ShieldCheck },
+  { id: "issues", label: "What's broken", icon: AlertTriangle },
 ];
 const moreNav: NavItem[] = [
-  { id: "clients", label: "AI clients", icon: Users },
+  { id: "clients", label: "Who's using it", icon: Users },
   { id: "evidence", label: "Evidence", icon: Search },
   { id: "setup", label: "Setup", icon: Settings2 },
 ];
@@ -2452,7 +2452,7 @@ function JourneysView({
   return (
     <div>
       <PageIntro
-        title="Journeys"
+        title="The journey"
         description="Understand what work is being attempted and where it stops. Completion uses explicit workflow outcomes only."
         actions={pageControls}
       />
@@ -2578,7 +2578,7 @@ function CapabilitiesView({
   return (
     <div>
       <PageIntro
-        title="Capabilities"
+        title="What they're doing"
         description="See what the server offers and which capabilities are observed in use."
         actions={pageControls}
       />
@@ -2758,7 +2758,7 @@ function QualityView({
     return (
       <div>
         <PageIntro
-          title="Quality"
+          title="Did it work"
           description="Review observed capability quality without turning insufficient data into a failure."
           actions={pageControls}
         />
@@ -2772,7 +2772,7 @@ function QualityView({
   return (
     <div>
       <PageIntro
-        title="Quality"
+          title="Did it work"
         description="Review observed capability quality without turning insufficient data into a failure."
         actions={pageControls}
       />
@@ -2952,7 +2952,7 @@ function IssuesView({
   return (
     <div>
       <PageIntro
-        title="Issues"
+        title="What's broken"
         description="Review what deserves attention next, ordered by evidence strength and affected volume."
       />
       <DataSourceStrip dataMode={dataMode} hasMyData={hasMyData} view="issues" />
@@ -3257,8 +3257,8 @@ function ClientsView({
   return (
     <div>
       <PageIntro
-        title="AI clients"
-        description="See which AI client applications were observed at the server boundary. This is not a count of users or customers."
+        title="Who's using it"
+        description="See which AI client applications and privacy-safe account signals were observed at the server boundary. This is not a count of users or customers."
         actions={pageControls}
       />
       <DataSourceStrip dataMode={dataMode} hasMyData={hasMyData} view="clients" />

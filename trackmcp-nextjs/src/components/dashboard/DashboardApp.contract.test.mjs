@@ -30,16 +30,16 @@ const globalsSource = await readFile(
 test("business-first navigation and KPI hierarchy are explicit", () => {
   for (const item of [
     'id: "overview", label: "Overview"',
-    'id: "journeys", label: "Journeys"',
-    'id: "capabilities", label: "Capabilities"',
-    'id: "quality", label: "Quality"',
-    'id: "issues", label: "Issues"',
+    'id: "journeys", label: "The journey"',
+    'id: "capabilities", label: "What they\'re doing"',
+    'id: "quality", label: "Did it work"',
+    'id: "issues", label: "What\'s broken"',
   ])
     assert.match(source, new RegExp(item.replace(/[.*+?^$()|[\]\\]/g, "\\$&")));
-  assert.match(source, /id: "journeys", label: "Journeys", icon: Route/);
-  assert.match(source, /id: "capabilities", label: "Capabilities", icon: Blocks/);
-  assert.match(source, /id: "quality", label: "Quality", icon: ShieldCheck/);
-  assert.match(source, /id: "clients", label: "AI clients"/);
+  assert.match(source, /id: "journeys", label: "The journey", icon: Route/);
+  assert.match(source, /id: "capabilities", label: "What they're doing", icon: Blocks/);
+  assert.match(source, /id: "quality", label: "Did it work", icon: ShieldCheck/);
+  assert.match(source, /id: "clients", label: "Who's using it"/);
   assert.match(source, /id: "evidence", label: "Evidence"/);
   assert.match(source, /id: "setup", label: "Setup"/);
   assert.match(
