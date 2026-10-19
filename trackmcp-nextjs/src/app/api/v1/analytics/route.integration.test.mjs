@@ -91,6 +91,10 @@ test("analytics exposes conservative Founder OS outcome aggregates", async () =>
     limitation: "Event-weighted coverage; not a count of unique organizations or end users.",
   });
   assert.deepEqual(body.founder_os.identity_source_counts, { resolver: 1, unresolved: 0 });
+  assert.deepEqual(body.account_summary.account_activity_bands, { one_event: 1, repeat: 0, high_activity: 0 });
+  assert.equal(body.account_summary.active_account_keys, 1);
+  assert.equal(body.account_summary.returning_account_keys, 0);
+  assert.deepEqual(body.tool_adoption, { advertised: 0, observed: 1, breadth: null, unused: 0 });
   assert.equal(body.data_trust.returned_event_count, 4);
   assert.equal(body.data_trust.truncated, false);
   assert.equal(body.data_trust.observed_through, "2026-09-06T00:00:00Z");
@@ -132,6 +136,7 @@ test("tool aggregation matches an independent reference reducer", async () => {
   const expected = Object.fromEntries([...reference.entries()].map(([name, value]) => [name, { calls: value.calls, errors: value.errors, error_rate: value.errors / value.calls, avg_ms: Math.round(value.durations.reduce((sum, duration) => sum + duration, 0) / value.durations.length) }]));
   assert.deepEqual(actual, expected);
   assert.deepEqual(body.unused_tools, ["unused"]);
+  assert.deepEqual(body.tool_adoption, { advertised: 3, observed: 2, breadth: 2 / 3, unused: 1 });
 });
 
 test("analytics marks queued and failed refresh work as degraded instead of available", async () => {
