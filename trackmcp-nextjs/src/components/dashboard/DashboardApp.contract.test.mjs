@@ -135,6 +135,9 @@ test("Setup exposes truthful first-event and coverage states", () => {
   assert.match(source, /done === null \? "\?"/);
   assert.match(source, /Transport observed/);
   assert.match(source, /Event persisted/);
+  assert.match(source, /First event scope:/);
+  assert.match(source, /service not reported/);
+  assert.match(source, /environment not reported/);
 });
 
 test("Setup renders the server readiness contract without making identity mandatory", () => {
