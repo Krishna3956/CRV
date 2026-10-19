@@ -134,3 +134,15 @@ or private URLs into it.
 | result | pass |
 | evidence_reference | Hosted CI run `39258226230` passed and App Runner deployment run `39258226144` completed successfully after the smoke-runner image was built, pushed, deployed, and health-checked. |
 | caveat_or_scope | Proves the production smoke-runner code was deployed successfully. It does not itself perform an authenticated write smoke, cross-workspace test, scheduler run, rollback rehearsal, or package provenance attestation. |
+
+| Field | Value |
+| --- | --- |
+| gate_id | workflow-and-release-gate-refresh |
+| owner | Head of Engineering |
+| timestamp_utc | 2026-10-19T13:55:00Z |
+| command_or_probe | `npm run test:release-gate`; GitHub Actions API checks for runs `39260619837`, `39260616175`, and App Runner run `39260389835` |
+| environment | local / GitHub Actions / App Runner production |
+| candidate_sha | `098c173` for the evidence-only queue update; deployed run `87` resolved commit `fd8c33e` |
+| result | pass |
+| evidence_reference | Local release gate completed all 103 suites. Hosted CI runs 410 and 411 completed successfully. App Runner deployment run 87 completed successfully. |
+| caveat_or_scope | This refresh confirms internal and deployment workflow health; it does not close cross-workspace authorization, scheduler execution, rollback rehearsal, distributed rate-limit, or package provenance publication gates. |
