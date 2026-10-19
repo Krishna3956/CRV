@@ -40,11 +40,11 @@ export function createSetupHandler(getAdmin: typeof getSupabaseAdmin = getSupaba
     const since = new Date(Date.now() - days * 86_400_000).toISOString();
     const [keyResult, eventResult] = await Promise.all([
       admin!.from("trackmcp_api_keys").select("id").eq("workspace_id", scope.workspaceId).is("revoked_at", null).limit(1),
-      admin!.from("trackmcp_events").select("event_id, started_at, event_type, mcp_method, transport, payload_policy, account_identity_source, account_key").eq("workspace_id", scope.workspaceId).gte("started_at", since).order("started_at", { ascending: false }).limit(1),
+      admin!.from("trackmcp_events").select("event_id, started_at, event_type, mcp_method, transport, payload_policy, deployment_id, account_identity_source, account_key").eq("workspace_id", scope.workspaceId).gte("started_at", since).order("started_at", { ascending: false }).limit(1),
     ]);
     if (keyResult.error || eventResult.error) return NextResponse.json({ error: "Could not load setup status." }, { status: 500 });
     const hasKey = Boolean(keyResult.data?.length);
-    const latest = eventResult.data?.[0] as { event_id?: unknown; started_at?: unknown; event_type?: unknown; mcp_method?: unknown; transport?: unknown; payload_policy?: unknown; account_identity_source?: unknown; account_key?: unknown } | undefined;
+    const latest = eventResult.data?.[0] as { event_id?: unknown; started_at?: unknown; event_type?: unknown; mcp_method?: unknown; transport?: unknown; payload_policy?: unknown; deployment_id?: unknown; account_identity_source?: unknown; account_key?: unknown } | undefined;
     const hasEvent = Boolean(latest);
     const mcpMethodObserved = hasEvent && typeof latest?.mcp_method === "string";
     const transportObserved = hasEvent && typeof latest?.transport === "string";
@@ -74,6 +74,7 @@ export function createSetupHandler(getAdmin: typeof getSupabaseAdmin = getSupaba
           // Missing legacy fields are unknown; an explicit unresolved source
           // is a truthful negative rather than a missing-data guess.
           account_resolver_observed: accountResolverObservation(latest?.account_identity_source),
+          deployment_linked: typeof latest?.deployment_id === "string" && /^[a-zA-Z0-9_-]{1,128}$/.test(latest.deployment_id),
         },
         readiness: {
           required_completed: requiredCompleted,

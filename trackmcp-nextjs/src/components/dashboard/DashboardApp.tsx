@@ -3726,6 +3726,7 @@ function SetupView({
         event_persisted?: boolean;
         privacy_policy_applied?: boolean;
         account_resolver_observed?: boolean | null;
+        deployment_linked?: boolean;
       };
       readiness?: {
         required_completed?: number;
@@ -3834,6 +3835,7 @@ function SetupView({
     ["Event persisted", contractChecks?.event_persisted ?? (analytics ? analytics.total_events > 0 : null)],
     ["Privacy policy applied", contractChecks?.privacy_policy_applied ?? (analytics ? analytics.total_events > 0 : null)],
     ["Identity resolved", identityResolved],
+    ["Deployment linkage observed", contractChecks?.deployment_linked ?? null],
   ] as const;
   const copy = async () => {
     try {

@@ -21,6 +21,8 @@ test("setup contract is authenticated, workspace-scoped, bounded, and privacy-sa
   assert.match(handlers, /payload_policy/);
   assert.match(handlers, /account_identity_source/);
   assert.match(handlers, /accountResolverObservation\(latest\?\.account_identity_source\)/);
+  assert.match(handlers, /deployment_linked/);
+  assert.match(handlers, /deployment_id/);
   assert.match(handlers, /business-workflow completion/);
   assert.match(handlers, /next_steps/);
   assert.match(handlers, /TRACKMCP_KEY/);
