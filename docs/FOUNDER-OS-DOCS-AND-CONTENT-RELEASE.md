@@ -1,6 +1,6 @@
 # Founder OS documentation and website release contract
 
-Version: `2026-10-19`  
+Version: `2026-10-19`
 Status: review-ready documentation contract; this file does not publish content,
 run SQL, or authorize a deployment.
 
@@ -174,4 +174,3 @@ change:
 The authoritative pilot gate remains
 `FOUNDER-OS-LAUNCH-READINESS-AUDIT.md`; this document makes the website and
 documentation claims conform to that gate.
-
