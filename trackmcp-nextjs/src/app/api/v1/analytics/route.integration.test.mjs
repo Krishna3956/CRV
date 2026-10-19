@@ -348,16 +348,14 @@ test("analytics outcome activity keeps latest explicit task state separate from 
 });
 
 test("analytics exposes bounded What is broken signal evidence", async () => {
-  const handler = createAnalyticsHandler(() => fakeAdmin([
-    event({ event_id: "error-1", event_type: "tool_call", tool_name: "lookup", is_error: true, success: false }),
-    event({ event_id: "error-2", event_type: "tool_call", tool_name: "lookup", is_error: true, success: false }),
-    event({ event_id: "slow-1", event_type: "tool_call", tool_name: "slow", duration_ms: 900 }),
-  ]));
+  const rows = Array.from({ length: 30 }, (_, index) => event({ event_id: `lookup-${index}`, event_type: "tool_call", tool_name: "lookup", is_error: index < 6, success: index >= 6 }));
+  rows.push(...Array.from({ length: 30 }, (_, index) => event({ event_id: `slow-${index}`, event_type: "tool_call", tool_name: "slow", duration_ms: 900, success: true })));
+  const handler = createAnalyticsHandler(() => fakeAdmin(rows));
   const response = await handler(new Request("http://analytics.test/api/v1/analytics?days=7", { headers: { authorization: "Bearer key" } }));
   assert.equal(response.status, 200);
   const body = await response.json();
   assert.ok(body.issue_activity.actionable_signals >= 1);
-  assert.ok(body.issue_activity.affected_volume >= 2);
+  assert.ok(body.issue_activity.affected_volume >= 6);
   assert.equal(body.issue_activity.limitation.includes("not diagnoses"), true);
 });
 
@@ -377,20 +375,31 @@ test("analytics exposes bounded protocol lifecycle signals without treating them
 });
 
 test("analytics insights carry bounded action context only when evidence supports it", async () => {
-  const rows = Array.from({ length: 10 }, (_, index) => event({
+  const rows = Array.from({ length: 30 }, (_, index) => event({
     event_id: `failed-${index}`,
     event_type: "tool_call",
     tool_name: "unstable_tool",
-    success: index < 2,
-    is_error: index >= 2,
+    success: index < 6,
+    is_error: index >= 6,
   }));
   const handler = createAnalyticsHandler(() => fakeAdmin(rows));
   const response = await handler(new Request("http://analytics.test/api/v1/analytics?days=7", { headers: { authorization: "Bearer key" } }));
   assert.equal(response.status, 200);
   const body = await response.json();
   const insight = body.insights.find((item) => item.title.includes("unstable_tool"));
-  assert.equal(insight.affected_volume, 8);
+  assert.equal(insight.affected_volume, 24);
   assert.equal(insight.confidence, "high");
   assert.match(insight.suggested_action, /error classes/);
   assert.equal(JSON.stringify(insight).includes("failed-"), false);
+});
+
+test("analytics does not promote low-volume tool observations into broken-product signals", async () => {
+  const handler = createAnalyticsHandler(() => fakeAdmin([
+    event({ event_id: "one-off-error", event_type: "tool_call", tool_name: "rare_tool", is_error: true, success: false }),
+    event({ event_id: "one-off-slow", event_type: "tool_call", tool_name: "rare_slow", duration_ms: 900, success: true }),
+  ]));
+  const response = await handler(new Request("http://analytics.test/api/v1/analytics?days=7", { headers: { authorization: "Bearer key" } }));
+  const body = await response.json();
+  assert.equal(body.insights.some((item) => item.title.includes("rare_")), false);
+  assert.equal(body.issue_activity.actionable_signals, 0);
 });

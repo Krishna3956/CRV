@@ -72,6 +72,10 @@ type EventRow = {
 
 const MAX_PUBLIC_LIST_ITEMS = 500;
 const MAX_PUBLIC_DIMENSION_ITEMS = 100;
+// A single failed call is useful trace evidence, not a product-wide issue.
+// Match the quality surface's minimum before ranking a tool as broken.
+const MIN_ISSUE_TOOL_CALLS = 30;
+const MIN_ISSUE_WORKFLOW_STARTS = 10;
 const boundedText = (value: unknown, max: number): string | null =>
   typeof value === "string" ? value.slice(0, max) : null;
 
@@ -664,17 +668,20 @@ export function createAnalyticsHandler(getAdmin: typeof getSupabaseAdmin = getSu
   const timeline = new Map<string, { events: number; calls: number; errors: number }>();
   for (const event of events) { const day = event.started_at.slice(0, 10); const item = timeline.get(day) || { events: 0, calls: 0, errors: 0 }; item.events += 1; if (event.event_type === "tool_call") { item.calls += 1; if (failed(event)) item.errors += 1; } timeline.set(day, item); }
   const insights = [
-    ...toolRows.filter((tool) => tool.error_rate >= 0.1).slice(0, 3).map((tool) => ({ level: "error", title: `${tool.name} is failing ${Math.round(tool.error_rate * 100)}% of calls`, detail: `${tool.errors} failed calls in the selected period. Inspect its arguments and returned errors first.`, metric: `${tool.errors} errors`, affected_volume: tool.errors, confidence: "high" as const, suggested_action: "Inspect representative error classes and the failing tool inputs." })),
-    ...toolRows.filter((tool) => tool.avg_ms !== null && tool.avg_ms >= 500).sort((a, b) => (b.avg_ms || 0) - (a.avg_ms || 0)).slice(0, 2).map((tool) => ({ level: "warn", title: `${tool.name} is slowing down sessions`, detail: `Average duration is ${tool.avg_ms}ms. Slow tools compound when agents chain several calls.`, metric: `${tool.avg_ms}ms average`, affected_volume: tool.calls, confidence: "medium" as const, suggested_action: "Compare p95 latency and downstream dependencies before changing the tool." })),
+    ...toolRows.filter((tool) => tool.calls >= MIN_ISSUE_TOOL_CALLS && tool.error_rate >= 0.1).slice(0, 3).map((tool) => ({ level: "error", title: `${tool.name} has elevated observed errors`, detail: `${tool.errors} failed calls across ${tool.calls} observed calls in the selected period. Inspect bounded error evidence before deciding what to change.`, metric: `${tool.errors}/${tool.calls} calls · ${Math.round(tool.error_rate * 100)}% error rate`, affected_volume: tool.errors, confidence: "high" as const, suggested_action: "Open the bounded evidence and compare error classes before changing the capability." })),
+    ...toolRows.filter((tool) => tool.calls >= MIN_ISSUE_TOOL_CALLS && tool.avg_ms !== null && tool.avg_ms >= 500).sort((a, b) => (b.avg_ms || 0) - (a.avg_ms || 0)).slice(0, 2).map((tool) => ({ level: "warn", title: `${tool.name} has elevated observed latency`, detail: `Average duration is ${tool.avg_ms}ms across ${tool.calls} observed calls. This is a performance signal, not a root-cause diagnosis.`, metric: `${tool.avg_ms}ms average · ${tool.calls} calls`, affected_volume: tool.calls, confidence: "medium" as const, suggested_action: "Compare p95 latency and bounded dependency evidence before changing the capability." })),
     ...(unusedTools.length ? [{ level: "info", title: `${unusedTools.length} discovered tool${unusedTools.length === 1 ? " is" : "s are"} unused`, detail: `${unusedTools.slice(0, 3).join(", ")}${unusedTools.length > 3 ? " and more" : ""} were advertised but not called in this period.`, metric: "Review descriptions", affected_volume: unusedTools.length, confidence: "medium" as const, suggested_action: "Review discoverability and descriptions; do not infer that unused means unwanted." }] : []),
-    ...(explicitStarted > 0 && explicitCompleted / explicitStarted < 0.8 ? [{ level: "warn", title: "Some tracked workflows are not completing", detail: "Compare the failing workflow steps with their tool sequences to find the point where users get stuck.", metric: `${Math.round((explicitCompleted / explicitStarted) * 100)}% complete`, affected_volume: explicitStarted - explicitCompleted, confidence: "high" as const, suggested_action: "Open the journey evidence and inspect unresolved terminal states." }] : []),
-  ].slice(0, 5);
+    ...(explicitStarted >= MIN_ISSUE_WORKFLOW_STARTS && explicitCompleted / explicitStarted < 0.8 ? [{ level: "warn", title: "Tracked workflows have low observed completion", detail: `${explicitCompleted} completed of ${explicitStarted} explicitly started workflows. This is an investigation signal, not a causal conclusion.`, metric: `${Math.round((explicitCompleted / explicitStarted) * 100)}% complete · ${explicitStarted} starts`, affected_volume: explicitStarted - explicitCompleted, confidence: "high" as const, suggested_action: "Open journey and outcome evidence to inspect explicit terminal states." }] : []),
+  ].sort((left, right) => {
+    const confidence = (value: "high" | "medium" | "low") => value === "high" ? 0 : value === "medium" ? 1 : 2;
+    return confidence(left.confidence) - confidence(right.confidence) || (right.affected_volume || 0) - (left.affected_volume || 0) || left.title.localeCompare(right.title);
+  }).slice(0, 5);
   const issueActivity = {
     actionable_signals: insights.length,
     high_confidence_signals: insights.filter((item) => item.confidence === "high").length,
     affected_volume: insights.some((item) => typeof item.affected_volume === "number") ? insights.reduce((sum, item) => sum + (typeof item.affected_volume === "number" ? item.affected_volume : 0), 0) : null,
     suggested_actions: insights.filter((item) => typeof item.suggested_action === "string" && item.suggested_action.length > 0).length,
-    limitation: "Signals are bounded evidence-based prompts for investigation, not diagnoses. Affected volume is the sum of reported signal volume and may overlap across rules.",
+    limitation: `Signals require at least ${MIN_ISSUE_TOOL_CALLS} observed tool calls or ${MIN_ISSUE_WORKFLOW_STARTS} explicit workflow starts. They are bounded prompts for investigation, not diagnoses. Affected volume is the sum of reported signal volume and may overlap across rules.`,
   };
 
   const protocols = events.filter((event) => event.event_type === "protocol");

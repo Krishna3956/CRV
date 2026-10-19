@@ -289,10 +289,11 @@ keeping resource URI/content and prompt names/arguments private by default?
 
 ### Tab 6 What's broken
 
-- [ ] Rank observed issue signals with affected volume and confidence.
-- [ ] Link to bounded evidence, not raw request/response content.
-- [ ] Describe recommendations as signals, not root-cause diagnoses.
-- [ ] Verify queue action state transitions and operator visibility are
+- [x] Rank observed issue signals with affected volume and confidence, only
+  after the minimum evidence volume is reached.
+- [x] Link to bounded evidence, not raw request/response content.
+- [x] Describe recommendations as signals, not root-cause diagnoses.
+- [x] Verify queue action state transitions and operator visibility are
   workspace-scoped.
 
 ## Workstream 9 Setup, support, and customer understanding
