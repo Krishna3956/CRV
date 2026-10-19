@@ -145,7 +145,6 @@ export function createAnalyticsHandler(getAdmin: typeof getSupabaseAdmin = getSu
     .select("account_key, account_identity_source, started_at")
     .eq("workspace_id", workspaceId)
     .eq("observation_source", "server")
-    .not("account_key", "is", null)
     .order("started_at", { ascending: true })
     .limit(historyLimit);
   const historyRows = historyResult.error ? [] : ((historyResult.data || []) as Array<{ account_key?: unknown; account_identity_source?: unknown; started_at?: unknown }>);
