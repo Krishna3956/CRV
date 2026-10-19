@@ -259,6 +259,17 @@ export type Analytics = {
     trend: Array<{ period_start: string; kind: "resource" | "prompt"; name: string; calls: number }>;
     limitation: string;
   };
+  /** Founder OS "The journey" read model. Journeys are bounded server-side
+   * interaction paths, not claims about a customer's whole business task. */
+  journey_activity?: {
+    interaction_count: number;
+    typical_journey_length: number | null;
+    stalled_interactions: number;
+    resumed_after_stall: number;
+    common_paths: Array<{ path: string[]; interactions: number; share: number | null }>;
+    drop_off: Array<{ path: string[]; interactions: number; terminal_evidence: "explicit_error" | "input_required" | "unknown" }>;
+    limitation: string;
+  };
   /** Privacy-safe account activity signals. Keys are never exposed to the UI. */
   account_summary?: {
     observed_account_keys: number;

@@ -43,6 +43,8 @@ source explicitly says it is an outcome event.
 | `prompt_calls` | Prompt calls | Count of observed `prompts/get` events | Protocol telemetry | Raw prompt names and arguments are never exposed; a call is not completion |
 | `prompt_completion_rate` | Prompt completion rate | Explicit complete prompt outcomes / observed prompt calls | Prompt protocol telemetry | `N/A` with no calls; unknown outcomes are not completion or failure |
 | `prompt_stall_rate` | Prompt needs-input rate | Explicit `input_required` prompt outcomes / observed prompt calls | Prompt protocol telemetry | Needs-input is friction evidence, not abandonment |
+| `typical_journey_length` | Typical journey length | Median observed tool steps per bounded interaction | Interaction-linked tool telemetry | Multi-server work and missing terminal events are not visible |
+| `journey_stall_rate` | Journey waiting-for-input rate | Interactions with explicit `input_required` / observed interactions | Interaction-linked protocol telemetry | Needs-input is not abandonment or business failure |
 
 ## Read-model rules
 

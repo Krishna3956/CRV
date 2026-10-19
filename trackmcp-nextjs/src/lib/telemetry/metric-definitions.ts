@@ -181,6 +181,22 @@ export const METRIC_DEFINITIONS = [
     interpretation: "Explicit prompt calls that require more input.",
     limitations: ["Needs-input is friction evidence, not abandonment or failure."],
   },
+  {
+    key: "typical_journey_length",
+    label: "Typical journey length",
+    formula: "median observed tool steps per bounded interaction",
+    source: "Interaction-linked tool telemetry",
+    interpretation: "Typical length of the visible server-side path.",
+    limitations: ["N/A with no interactions.", "Multi-server work and missing terminal events are not visible."],
+  },
+  {
+    key: "journey_stall_rate",
+    label: "Journey waiting-for-input rate",
+    formula: "interactions with explicit input_required / observed interactions",
+    source: "Interaction-linked protocol telemetry",
+    interpretation: "Observed friction where the server requested more input.",
+    limitations: ["Needs-input is not abandonment or business failure.", "Only explicit protocol evidence is counted."],
+  },
 ] as const satisfies readonly MetricDefinition[];
 
 export type MetricKey = (typeof METRIC_DEFINITIONS)[number]["key"];

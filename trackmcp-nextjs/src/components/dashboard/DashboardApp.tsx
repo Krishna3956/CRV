@@ -2520,6 +2520,23 @@ function JourneysView({
         actions={pageControls}
       />
       <DataSourceStrip dataMode={dataMode} hasMyData={hasMyData} view="journeys" />
+      {analytics.journey_activity && <>
+        <div className="mb-6 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+          <Kpi label="Interactions" value={fmt(analytics.journey_activity.interaction_count)} icon={Route} helper="Bounded observed paths" />
+          <Kpi label="Typical journey length" value={analytics.journey_activity.typical_journey_length == null ? "N/A" : fmt(analytics.journey_activity.typical_journey_length)} icon={ListChecks} helper="Median observed tool steps" />
+          <Kpi label="Waiting for input" value={fmt(analytics.journey_activity.stalled_interactions)} icon={Info} helper="Explicit input-required states" />
+          <Kpi label="Resumed after stall" value={fmt(analytics.journey_activity.resumed_after_stall)} icon={RotateCcw} helper="Observed retry evidence" />
+        </div>
+        <div className="mb-6 grid gap-6 xl:grid-cols-2">
+          <Panel title="Common paths" subtitle="Observed tool sequences, not a complete multi-server business journey">
+            <div className="divide-y divide-line">{analytics.journey_activity.common_paths.length ? analytics.journey_activity.common_paths.map((path) => <div key={path.path.join("|")} className="py-3"><div className="flex items-center justify-between gap-3"><p className="text-xs text-ink">{path.path.join(" → ")}</p><span className="text-xs text-muted">{fmt(path.interactions)} · {path.share == null ? "N/A" : `${Math.round(path.share * 100)}%`}</span></div></div>) : <StateNote title="No common paths yet" body="No multi-step tool interactions were observed in this period." />}</div>
+          </Panel>
+          <Panel title="Where paths stop" subtitle="Only explicit error or input-required evidence is classified">
+            <div className="divide-y divide-line">{analytics.journey_activity.drop_off.length ? analytics.journey_activity.drop_off.map((path) => <div key={path.path.join("|")} className="py-3"><p className="text-xs text-ink">{path.path.join(" → ")}</p><p className="mt-1 text-[11px] capitalize text-muted">{path.terminal_evidence.replaceAll("_", " ")} · {fmt(path.interactions)} interactions</p></div>) : <StateNote title="No path-stop evidence yet" body="A missing terminal event is not treated as abandonment." />}</div>
+          </Panel>
+        </div>
+        <p className="mb-6 text-[11px] leading-relaxed text-faint">{analytics.journey_activity.limitation}</p>
+      </>}
       <Panel
         title="Explicit workflow outcomes"
         subtitle={

@@ -240,6 +240,24 @@ test("analytics exposes the Resources and Prompts vertical-slice read model", as
   assert.equal(body.resource_prompt_activity.prompt_breakdown[0].completion_rate, 0.5);
 });
 
+test("analytics exposes bounded Journey path and stall evidence", async () => {
+  const handler = createAnalyticsHandler(() => fakeAdmin([
+    event({ event_id: "journey-a", event_type: "tool_call", tool_name: "search", interaction_id: "i-1", success: true }),
+    event({ event_id: "journey-b", event_type: "tool_call", tool_name: "details", interaction_id: "i-1", result_type: "input_required" }),
+    event({ event_id: "journey-c", event_type: "tool_call", tool_name: "details", interaction_id: "i-1", retry_number: 1, success: true }),
+    event({ event_id: "journey-d", event_type: "tool_call", tool_name: "search", interaction_id: "i-2", success: true }),
+  ]));
+  const response = await handler(new Request("http://analytics.test/api/v1/analytics?days=7", { headers: { authorization: "Bearer key" } }));
+  assert.equal(response.status, 200);
+  const body = await response.json();
+  assert.equal(body.journey_activity.interaction_count, 2);
+  assert.equal(body.journey_activity.typical_journey_length, 1);
+  assert.equal(body.journey_activity.stalled_interactions, 1);
+  assert.equal(body.journey_activity.resumed_after_stall, 1);
+  assert.deepEqual(body.journey_activity.common_paths[0].path, ["search", "details", "details"]);
+  assert.equal(body.journey_activity.drop_off[0].terminal_evidence, "input_required");
+});
+
 test("analytics exposes bounded protocol lifecycle signals without treating them as outcomes", async () => {
   const handler = createAnalyticsHandler(() => fakeAdmin([
     event({ event_id: "signal-progress", event_type: "protocol", mcp_method: "notifications/progress" }),

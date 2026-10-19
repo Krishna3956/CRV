@@ -469,6 +469,37 @@ export function createAnalyticsHandler(getAdmin: typeof getSupabaseAdmin = getSu
     trend: [...surfaceTrend.entries()].sort(([a], [b]) => a.localeCompare(b)).slice(-500).map(([key, calls]) => { const [period_start, kind, name] = key.split("|"); return { period_start, kind: kind as "resource" | "prompt", name, calls }; }),
     limitation: historyCapped || historyResult.error ? "Resource and prompt activity is current-period complete, but previous-period comparison is bounded by the available history scan. Names are represented by safe protocol methods; raw URIs, prompt names, arguments, and contents are never exposed." : "Names are represented by safe protocol methods; raw URIs, prompt names, arguments, and contents are never exposed.",
   };
+  const interactions = new Map<string, { path: string[]; stalled: boolean; retried: boolean; error: boolean }>();
+  for (const event of calls) {
+    const key = (event.interaction_id || event.session_id || event.event_id).slice(0, 128);
+    const current = interactions.get(key) || { path: [], stalled: false, retried: false, error: false };
+    if (event.tool_name && current.path.length < 50) current.path.push(event.tool_name.slice(0, 128));
+    if (event.result_type === "input_required") current.stalled = true;
+    if (event.retry_number != null || event.retry_of_event_id) current.retried = true;
+    if (event.is_error === true || event.success === false) current.error = true;
+    interactions.set(key, current);
+  }
+  const pathGroups = new Map<string, { path: string[]; interactions: number; error: number; stalled: number }>();
+  for (const item of interactions.values()) {
+    if (!item.path.length) continue;
+    const path = item.path.slice(0, 8);
+    const key = path.join(" → ");
+    const current = pathGroups.get(key) || { path, interactions: 0, error: 0, stalled: 0 };
+    current.interactions += 1;
+    if (item.error) current.error += 1;
+    if (item.stalled) current.stalled += 1;
+    pathGroups.set(key, current);
+  }
+  const journeyGroups = [...pathGroups.values()].sort((a, b) => b.interactions - a.interactions);
+  const journeyActivity = {
+    interaction_count: interactions.size,
+    typical_journey_length: interactions.size ? [...interactions.values()].map((item) => item.path.length).sort((a, b) => a - b)[Math.floor((interactions.size - 1) * 0.5)] || null : null,
+    stalled_interactions: [...interactions.values()].filter((item) => item.stalled).length,
+    resumed_after_stall: [...interactions.values()].filter((item) => item.stalled && item.retried).length,
+    common_paths: journeyGroups.slice(0, 10).map((item) => ({ path: item.path, interactions: item.interactions, share: interactions.size ? item.interactions / interactions.size : null })),
+    drop_off: journeyGroups.slice(0, 10).map((item) => ({ path: item.path, interactions: item.interactions, terminal_evidence: item.error ? "explicit_error" as const : item.stalled ? "input_required" as const : "unknown" as const })),
+    limitation: "Paths are bounded sequences of observed tool calls grouped by interaction or session identity. Missing terminal events are unknown, not abandonment; multi-server journeys outside this workspace are not visible.",
+  };
   const outcomeEvents = events.filter(isWorkflowLifecycleEvent);
   // Only named workflow outcomes can be grouped. Older SDKs may emit a
   // lifecycle event without workflow_name; do not let that malformed or
@@ -606,6 +637,7 @@ export function createAnalyticsHandler(getAdmin: typeof getSupabaseAdmin = getSu
         : "Tool activity is observed at the instrumented server boundary; calls that never reach the server are not included.",
     },
     resource_prompt_activity: resourcePromptActivity,
+    journey_activity: journeyActivity,
     tools: toolRows.slice(0, MAX_PUBLIC_LIST_ITEMS), catalog_tools: [...catalog.values()].slice(0, MAX_PUBLIC_LIST_ITEMS),
     unused_tools: unusedTools.slice(0, MAX_PUBLIC_LIST_ITEMS), workflows: workflowRows.slice(0, 100), outcomes: explicitOutcomes.slice(0, MAX_PUBLIC_DIMENSION_ITEMS),
     founder_os: { facts: aggregateTrackMCPFacts(facts), groups: outcomeGroups, identity_coverage: identityCoverage, identity_source_counts: identitySourceCounts, tasks: aggregateTaskLifecycles(facts, taskTransitions) },
