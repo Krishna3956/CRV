@@ -439,6 +439,7 @@ const EXAMPLE_ANALYTICS: Analytics = {
     tool_calls: 1293,
     successful_calls: 1232,
   },
+  tool_adoption: { advertised: 8, observed: 5, breadth: 0.625, unused: 3 },
   intent_sources: {
     context_parameter: 48,
     external_callback: 18,
@@ -2644,6 +2645,20 @@ function CapabilitiesView({
           helper="Catalog comparison"
         />
       </div>
+      {analytics.tool_adoption && (
+        <section className="mt-4 border border-line bg-white p-4 sm:p-5" aria-label="Capability adoption breadth">
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div>
+              <p className="dashboard-label text-faint">Capability breadth</p>
+              <h3 className="mt-1 text-sm font-semibold text-ink">How much of the advertised surface was observed in use</h3>
+              <p className="mt-1 text-xs leading-relaxed text-muted">This compares bounded catalog observations with observed tool names. It is not a user adoption or business demand score.</p>
+            </div>
+            <span className="text-2xl font-semibold text-ink">{analytics.tool_adoption.breadth === null ? "N/A" : percent(analytics.tool_adoption.breadth)}</span>
+          </div>
+          <div className="mt-4 h-2 overflow-hidden bg-paper"><div className="h-full bg-brand" style={{ width: `${Math.min(100, Math.max(0, (analytics.tool_adoption.breadth || 0) * 100))}%` }} /></div>
+          <p className="mt-2 text-[11px] text-faint">{fmt(analytics.tool_adoption.observed)} of {fmt(analytics.tool_adoption.advertised)} advertised capabilities observed · {fmt(analytics.tool_adoption.unused)} not observed</p>
+        </section>
+      )}
       <CatalogHistoryPanel
         versions={analytics.catalog_versions || []}
         status={analytics.catalog_version_status || "no_snapshot_rows"}

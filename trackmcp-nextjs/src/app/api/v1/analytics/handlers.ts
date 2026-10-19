@@ -358,6 +358,7 @@ export function createAnalyticsHandler(getAdmin: typeof getSupabaseAdmin = getSu
     intent_sources: intentSources,
     missing_capabilities: [...missingCapabilities.entries()].map(([name, reports]) => ({ name: name.slice(0, 256), reports })).sort((a, b) => b.reports - a.reports || a.name.localeCompare(b.name)).slice(0, MAX_PUBLIC_DIMENSION_ITEMS),
     funnel: { connections: events.filter((event) => event.event_type === "session").length, discovered_tools: catalog.size, tool_calls: calls.length, successful_calls: calls.filter((event) => !failed(event)).length },
+    tool_adoption: { advertised: catalog.size, observed: toolRows.filter((tool) => tool.calls > 0).length, breadth: catalog.size ? toolRows.filter((tool) => tool.calls > 0).length / catalog.size : null, unused: unusedTools.length },
     timeline: [...timeline.entries()].map(([date, value]) => ({ date, ...value })).slice(-366),
     account_summary: {
       observed_account_keys: observedAccountKeys.size,

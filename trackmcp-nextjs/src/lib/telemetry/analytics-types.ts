@@ -212,6 +212,7 @@ export type Analytics = {
   completion_source?: CompletionSource;
   correlation_quality?: CorrelationQuality;
   funnel: { connections: number; discovered_tools: number; tool_calls: number; successful_calls: number };
+  tool_adoption?: { advertised: number; observed: number; breadth: number | null; unused: number };
   timeline: { date: string; events: number; calls: number; errors: number }[];
   clients: { name: string; calls: number; versions?: string[] }[];
   /** Privacy-safe account activity signals. Keys are never exposed to the UI. */
