@@ -1676,6 +1676,7 @@ function ViewContent({
   if (view === "quality")
     return (
       <QualityView
+        analytics={analytics}
         data={toolQuality}
         dataMode={dataMode}
         hasMyData={hasMyData}
@@ -2745,6 +2746,7 @@ function CatalogHistoryPanel({
 }
 
 function QualityView({
+  analytics,
   data,
   dataMode,
   hasMyData,
@@ -2752,6 +2754,7 @@ function QualityView({
   onViewTrace,
   onRefresh,
 }: {
+  analytics: Analytics;
   data: ToolQualityResponse | null;
   dataMode: DataMode;
   hasMyData: boolean;
@@ -2782,6 +2785,7 @@ function QualityView({
         actions={pageControls}
       />
       <DataSourceStrip dataMode={dataMode} hasMyData={hasMyData} view="quality" />
+      <OutcomeEvidencePanel analytics={analytics} />
       <Panel
         title="Tool Quality"
         subtitle={
@@ -2900,6 +2904,38 @@ function QualityView({
         />
       </div>
     </div>
+  );
+}
+
+function OutcomeEvidencePanel({ analytics }: { analytics: Analytics }) {
+  const totals = analytics.outcomes.reduce(
+    (summary, outcome) => ({
+      started: summary.started + outcome.started,
+      completed: summary.completed + outcome.completed,
+      failed: summary.failed + outcome.failed,
+    }),
+    { started: 0, completed: 0, failed: 0 },
+  );
+  const hasExplicitOutcomes = totals.started > 0;
+  return (
+    <Panel
+      title="Did the work complete?"
+      subtitle="Only explicit workflow outcome events count as completion evidence. Tool activity alone is not a business outcome."
+    >
+      <div className="grid gap-3 sm:grid-cols-3">
+        <Kpi
+          label="Completion rate"
+          value={hasExplicitOutcomes && analytics.completion_rate !== null ? percent(analytics.completion_rate) : "N/A"}
+          icon={Check}
+          helper={hasExplicitOutcomes ? "Explicit workflow denominator" : "No explicit workflow starts"}
+        />
+        <Kpi label="Work started" value={fmt(totals.started)} icon={Route} helper="Explicit workflow events" />
+        <Kpi label="Work failed" value={fmt(totals.failed)} icon={AlertTriangle} helper="Explicit failed outcomes" />
+      </div>
+      <p className="mt-4 border-t border-line pt-3 text-[11px] leading-relaxed text-muted">
+        Evidence source: {analytics.completion_source === "workflow_events" ? "explicit workflow events" : analytics.completion_source === "session_heuristic" ? "session heuristic (not used for the completion KPI)" : "no explicit outcome events"}. Unknown and not-observable outcomes remain separate from failure.
+      </p>
+    </Panel>
   );
 }
 
