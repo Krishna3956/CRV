@@ -27,18 +27,20 @@ The source vision names these business-facing dashboard tabs:
 
 The current product navigation is:
 
-`Overview`, `Capabilities`, `Quality`, `Issues`, `Evidence`, and `Setup`.
+`Overview`, `Journeys`, `Capabilities`, `Quality`, `Issues`, `AI clients`, `Evidence`, and `Setup`.
 
 This is not a simple naming mismatch. It is a partial business-first reinterpretation:
 
 - `Overview` is a summary layer, not the full “Who’s Using It” tab.
+- `AI clients` is the closest current surface to “Who’s Using It,” but identity remains bounded/self-reported and it is not yet the full account-level product in the PDF.
 - `Capabilities` covers catalog observations, but is not yet the complete “What They’re Doing” experience.
+- `Journeys` is the current partial implementation of “The Journey,” with bounded workflow evidence rather than the PDF’s complete durable journey model.
 - `Quality` and `Issues` partially cover “What’s Broken.”
 - `Evidence` is a technical drill-down layer that the PDF intentionally places below the business views.
 - `Setup` is onboarding and connection management, not one of the six analytical tabs.
 - There is not yet a complete, first-class `Resources & Prompts` experience.
 - There is not yet a complete, first-class `The Journey` experience matching the PDF’s workflow model.
-- `Did It Work` is represented by outcome/read-model work but is not yet a complete customer-facing tab with the PDF’s full semantics.
+- `Did It Work` is represented by outcome/read-model work within Overview and Journeys, but is not yet a complete customer-facing tab with the PDF’s full semantics.
 
 Therefore the current UI should not be described as the completed Founder OS dashboard. It is the first business-first slice plus technical evidence and setup foundations.
 
@@ -62,7 +64,7 @@ These gates must be completed before the first 100-customer invitation:
 
 Before pilot messaging, freeze the supported dashboard promise:
 
-1. Keep the current six navigation items only where each has a truthful, tested state.
+1. Keep the current eight navigation items only where each has a truthful, tested state.
 2. Add explicit product mapping from current views to the six Founder OS questions.
 3. Decide whether the pilot exposes `Resources & Prompts`, `The Journey`, and `Did It Work` now or labels them as limited/coming later.
 4. Do not rename tabs only for cosmetic similarity; change names only with a corresponding data contract and customer value.
