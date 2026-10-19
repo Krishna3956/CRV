@@ -101,6 +101,18 @@ or private URLs into it.
 
 | Field | Value |
 | --- | --- |
+| gate_id | registry-provenance-attestation-audit |
+| owner | Head of Engineering |
+| timestamp_utc | 2026-10-19T13:29:00Z |
+| command_or_probe | Read-only GitHub attestations page for `Krishna3956/CRV` and the successful publish workflow `39230924269` |
+| environment | GitHub production metadata |
+| candidate_sha | 1458735d7091ffbf45f3a3ad820779dd0c4fe547 |
+| result | blocked |
+| evidence_reference | GitHub repository attestations page reports `No attestations`; the publish workflow is successful and uses npm `--provenance`, but no repository-retained build attestation is currently visible. |
+| caveat_or_scope | This is an explicit provenance gap, not a package-integrity failure. Queue item 255 remains open until provenance evidence is retained or the release owner explicitly narrows the pilot claim. |
+
+| Field | Value |
+| --- | --- |
 | gate_id | production-smoke-runner-deployment |
 | owner | Head of Engineering |
 | timestamp_utc | 2026-10-19T13:21:00Z |
