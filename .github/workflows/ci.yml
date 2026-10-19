@@ -23,6 +23,12 @@ jobs:
       - name: Audit web production dependencies
         working-directory: trackmcp-nextjs
         run: npm audit --omit=dev --audit-level=high
+      - name: Build and validate Python SDK artifacts
+        working-directory: packages/python-sdk
+        run: |
+          python3 -m pip install build twine
+          python3 -m build
+          python3 -m twine check dist/*
       - name: Run web release gate
         working-directory: trackmcp-nextjs
         run: npm run test:release-gate
@@ -53,12 +59,6 @@ jobs:
       - name: Test Python SDK
         working-directory: packages/python-sdk
         run: python3 -m unittest discover -s tests -v
-      - name: Build and validate Python SDK artifacts
-        working-directory: packages/python-sdk
-        run: |
-          python3 -m pip install build twine
-          python3 -m build
-          python3 -m twine check dist/*
 
   go:
     runs-on: ubuntu-latest
