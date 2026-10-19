@@ -7,6 +7,12 @@ on:
 jobs:
   web-and-javascript:
     runs-on: ubuntu-latest
+    env:
+      # Keep the sequential release gate below the hosted runner's memory
+      # ceiling. Individual package tests are bounded and do not need the
+      # default multi-gigabyte V8 heap.
+      NODE_OPTIONS: --max-old-space-size=2048
+      NPM_CONFIG_FUND: "false"
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
