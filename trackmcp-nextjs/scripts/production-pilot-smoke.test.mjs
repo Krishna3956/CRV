@@ -23,4 +23,10 @@ test("production pilot smoke records redacted evidence and covers pilot endpoint
     assert.match(source, new RegExp(marker.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")), marker);
   }
   assert.match(source, /mode: 0o600/);
+  assert.match(source, /TRACKMCP_EXPECTED_NPM_SDK_INTEGRITY/);
+  assert.match(source, /TRACKMCP_EXPECTED_NPM_CLI_INTEGRITY/);
+  assert.match(source, /TRACKMCP_EXPECTED_PYPI_WHEEL_SHA256/);
+  assert.match(source, /TRACKMCP_EXPECTED_PYPI_SDIST_SHA256/);
+  assert.match(source, /integrity_present/);
+  assert.match(source, /wheel_sha256_present/);
 });

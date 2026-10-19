@@ -50,3 +50,15 @@ or private URLs into it.
 | result | pass |
 | evidence_reference | Redacted browser accessibility evidence exposed bounded `Server name` and `Environment` fields and a generated TypeScript snippet containing `service` and `environment`; the page also displayed the existing first-event waiting state and key/privacy controls. Hosted CI runs 384 and 385 passed; App Runner deploy run 84 (`39256158329`) completed successfully. |
 | caveat_or_scope | Proves the latest setup-label change is live and readable in the authenticated production dashboard. The labels are telemetry scope hints, not deployment or identity proof. This does not close responsive/mobile evidence, cross-workspace authorization, scheduler, rollback, or 100-customer capacity gates. |
+
+| Field | Value |
+| --- | --- |
+| gate_id | production-registry-integrity-smoke |
+| owner | Head of Engineering |
+| timestamp_utc | 2026-10-19T13:18:00Z |
+| command_or_probe | `TRACKMCP_PRODUCTION_SMOKE_CONFIRM=I_UNDERSTAND_PRODUCTION_SMOKE TRACKMCP_SMOKE_BASE_URL=https://trackmcp.com TRACKMCP_SMOKE_CANDIDATE_SHA=cbb3a03732160bcbb74e1d4b053f37b8f39a2f56 npm run smoke:production-pilot` |
+| environment | production / public registries |
+| candidate_sha | cbb3a03732160bcbb74e1d4b053f37b8f39a2f56 |
+| result | pass |
+| evidence_reference | Redacted report `/tmp/trackmcp-production-smoke.json`; 14 checks passed. Registry checks verified exact expected npm/PyPI versions, npm SHA-512 integrity fields and tarball origin, and PyPI wheel/sdist SHA-256 fields. |
+| caveat_or_scope | Read-only registry and public-surface evidence only. No API key, write event, workspace mutation, or package publication occurred. Provenance attestation and operator-retained checksum archive remain open acceptance items. |

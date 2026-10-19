@@ -82,6 +82,10 @@ async function registryChecks() {
   const npmPackage = process.env.TRACKMCP_EXPECTED_NPM_SDK || "@trackmcp/sdk@0.1.2";
   const cliPackage = process.env.TRACKMCP_EXPECTED_NPM_CLI || "@trackmcp/cli@0.1.4";
   const pythonPackage = process.env.TRACKMCP_EXPECTED_PYPI || "trackmcp@0.1.3";
+  const expectedNpmIntegrity = {
+    [npmPackage]: process.env.TRACKMCP_EXPECTED_NPM_SDK_INTEGRITY || "",
+    [cliPackage]: process.env.TRACKMCP_EXPECTED_NPM_CLI_INTEGRITY || "",
+  };
   for (const spec of [npmPackage, cliPackage]) {
     const at = spec.lastIndexOf("@");
     const name = spec.slice(0, at);
@@ -90,7 +94,14 @@ async function registryChecks() {
     if (!response.ok) fail(`npm registry check failed for ${name}@${version}: HTTP ${response.status}`);
     const metadata = await response.json();
     if (metadata.name !== name || metadata.version !== version) fail(`npm registry metadata mismatch for ${name}@${version}`);
-    checks.push({ label: `npm ${name}@${version}`, status: response.status });
+    const integrity = metadata.dist?.integrity || "";
+    if (!/^sha512-[A-Za-z0-9+/=]+$/.test(integrity)) fail(`npm registry integrity missing for ${name}@${version}`);
+    if (expectedNpmIntegrity[spec] && integrity !== expectedNpmIntegrity[spec]) fail(`npm registry integrity mismatch for ${name}@${version}`);
+    const tarball = metadata.dist?.tarball || "";
+    let tarballUrl;
+    try { tarballUrl = new URL(tarball); } catch { fail(`npm registry tarball URL invalid for ${name}@${version}`); }
+    if (tarballUrl.origin !== "https://registry.npmjs.org" || !tarballUrl.pathname.startsWith(`/${name}/`)) fail(`npm registry tarball origin mismatch for ${name}@${version}`);
+    checks.push({ label: `npm ${name}@${version}`, status: response.status, integrity_present: true, tarball_origin_verified: true });
   }
   const at = pythonPackage.lastIndexOf("@");
   const name = pythonPackage.slice(0, at);
@@ -99,7 +110,15 @@ async function registryChecks() {
   if (!response.ok) fail(`PyPI registry check failed for ${name}==${version}: HTTP ${response.status}`);
   const metadata = await response.json();
   if (metadata.info?.name !== name || metadata.info?.version !== version) fail(`PyPI registry metadata mismatch for ${name}==${version}`);
-  checks.push({ label: `PyPI ${name}==${version}`, status: response.status });
+  const files = Array.isArray(metadata.urls) ? metadata.urls : [];
+  const wheel = files.find((file) => file.packagetype === "bdist_wheel");
+  const sdist = files.find((file) => file.packagetype === "sdist");
+  if (!wheel?.digests?.sha256 || !sdist?.digests?.sha256) fail(`PyPI checksums missing for ${name}==${version}`);
+  const expectedWheel = process.env.TRACKMCP_EXPECTED_PYPI_WHEEL_SHA256 || "";
+  const expectedSdist = process.env.TRACKMCP_EXPECTED_PYPI_SDIST_SHA256 || "";
+  if (expectedWheel && wheel.digests.sha256 !== expectedWheel) fail(`PyPI wheel checksum mismatch for ${name}==${version}`);
+  if (expectedSdist && sdist.digests.sha256 !== expectedSdist) fail(`PyPI sdist checksum mismatch for ${name}==${version}`);
+  checks.push({ label: `PyPI ${name}==${version}`, status: response.status, wheel_sha256_present: true, sdist_sha256_present: true });
   return checks;
 }
 
