@@ -55,8 +55,10 @@ npm run smoke:local
 ```
 
 Record the actual results for the candidate. The current local baseline is a
-76-suite gate, a 166-page isolated production build, warning-free lint, and
-production-shaped local smoke; those numbers must be rerun for the release.
+clean detached 102-suite gate, a 169-page isolated production build, TypeScript
+success, lint with one pre-existing `ProductHuntBadge.tsx` image warning, and
+production-shaped local smoke. These numbers must still be rerun for any new
+release candidate.
 
 ## 3. Schema and runtime configuration gate
 
@@ -122,7 +124,9 @@ and rate-limit false positives.
 
 ## 9. Package publication and clean consumers
 
-Publish only the reviewed versions after duplicate-version preflight passes.
+The currently published reviewed versions are `@trackmcp/sdk@0.1.2`,
+`@trackmcp/cli@0.1.4`, and `trackmcp==0.1.3`. Publish only a new reviewed
+version after duplicate-version preflight passes.
 Install those exact registry versions in clean temporary npm and Python
 consumers, then run the first-event/key-status smoke. Record registry URLs,
 versions, checksums, provenance, and consumer results without recording keys.
