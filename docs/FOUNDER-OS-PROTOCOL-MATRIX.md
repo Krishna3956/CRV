@@ -21,7 +21,7 @@ protocol operation.
 | completions | semantic fixtures plus TypeScript server-wrapper response observation when a bounded result type is present | Partial | Completion read model, broader runtime fixtures, and dashboard evidence |
 | sampling | semantic fixtures plus TypeScript server-wrapper response observation for bounded `complete` / `input_required` results | Partial | Capability-aware durable request/result persistence, broader runtime fixtures, and privacy policy |
 | elicitation | semantic fixtures plus TypeScript server-wrapper response observation for bounded `complete` / `input_required` results | Partial | User-input lifecycle persistence, broader runtime fixtures, and dashboard outcome evidence |
-| tasks / workflows | workflow and correlation fields exist | Partial | Durable task state, terminal evidence, and journey joins |
+| tasks / workflows | bounded task IDs, explicit task-state classification, `/api/v2/tasks`, and workflow correlation fields exist | Partial | Durable task expiry/late-completion history and cross-server journey joins |
 | streamable HTTP | transport enum, browser tester boundary, and bounded TypeScript failed-session evidence on transport errors | Partial | Disconnect, reconnect, stream termination, and proxy fixtures |
 | stdio | transport enum and SDK documentation; TypeScript/Python initialize/shutdown boundaries, bounded TypeScript session duration, and explicit Python transport metadata | Partial | Process-start/exit/crash fixtures, disconnect evidence, and local consumer evidence |
 | OTLP/HTTP JSON | bounded authenticated receiver | Partial | Clean exporter-to-ingest smoke with a real key |
