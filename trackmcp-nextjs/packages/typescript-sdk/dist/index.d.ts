@@ -146,6 +146,8 @@ type EntityObservation = {
 export declare function protocolResultType(result: Record<string, unknown> | undefined): TrackMCPEvent["result_type"];
 /** Count MRTR input requests without retaining request contents. */
 export declare function protocolInputRequestCount(result: Record<string, unknown> | undefined): number | undefined;
+/** Count MRTR input responses without retaining response contents. */
+export declare function protocolInputResponseCount(result: Record<string, unknown> | undefined): number | undefined;
 export declare function catalogObservation(kind: TrackMCPCatalogKind, result: Record<string, unknown> | undefined): Pick<TrackMCPEvent, "catalog_kind" | "catalog_item_count" | "catalog_item_name_hashes" | "catalog_item_uri_hashes">;
 export declare function interactionEntityObservation(method: string | undefined, params: Record<string, unknown> | undefined): EntityObservation | undefined;
 export type TrackMCPDiagnostics = {
