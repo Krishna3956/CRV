@@ -2935,7 +2935,7 @@ function OutcomeEvidencePanel({ analytics }: { analytics: Analytics }) {
         <Kpi label="Work failed" value={fmt(totals.failed)} icon={AlertTriangle} helper="Explicit failed outcomes" />
       </div>
       <p className="mt-4 border-t border-line pt-3 text-[11px] leading-relaxed text-muted">
-        Evidence source: {analytics.completion_source === "workflow_events" ? "explicit workflow events" : analytics.completion_source === "session_heuristic" ? "session heuristic (not used for the completion KPI)" : "no explicit outcome events"}. Unknown and not-observable outcomes remain separate from failure.
+        Evidence source: {analytics.completion_source === "workflow_events" ? "explicit workflow events" : analytics.completion_source === "session_heuristic" ? "session-derived activity (not used for the completion KPI)" : "no explicit outcome events"}. Unknown and not-observable outcomes remain separate from failure.
       </p>
     </Panel>
   );
