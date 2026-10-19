@@ -298,14 +298,14 @@ keeping resource URI/content and prompt names/arguments private by default?
 
 ## Workstream 9 Setup, support, and customer understanding
 
-- [ ] Reconcile the CLI activation path and dashboard Setup surface into one
+- [x] Reconcile the CLI activation path and dashboard Setup surface into one
   coherent customer story: server/environment, connection method, scoped key,
   optional identity resolver, privacy, first event, and data trust.
-- [ ] Keep the browser as approval/setup surface and CLI as key redemption
+- [x] Keep the browser as approval/setup surface and CLI as key redemption
   surface.
-- [ ] State that identity resolution is optional and must consume already
+- [x] State that identity resolution is optional and must consume already
   validated server context, not raw credentials.
-- [ ] Test setup no-workspace/no-key/no-event/limited-coverage/error states.
+- [x] Test setup no-workspace/no-key/no-event/limited-coverage/error states.
 - [ ] Publish customer-facing limitations, support path, incident expectations,
   and desktop-only boundary after scope approval.
 
