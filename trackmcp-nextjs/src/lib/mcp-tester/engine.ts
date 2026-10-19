@@ -236,7 +236,25 @@ export async function runMcpTester(options: McpTesterOptions): Promise<McpTester
     } else {
       skipPhase(state, "tools_list", record, beginPhase, finishPhase);
     }
-    addFinding("modern_discovery_partial", "protocol", "warning", "Modern server discovery and bounded tools/list completed where advertised. Resources, prompts, cache hints, subscriptions, and multi-round-trip checks are not yet implemented for this revision, so this report is incomplete.", "modern_discover", { protocolVersion: MODERN_MCP_PROTOCOL_VERSION });
+    if (state.capabilities.resources) {
+      const resourcesResult = await discoverCatalog<ResourceSummary>(state, "resources", "resources/list", "resources_list", true, addFinding, record, beginPhase, finishPhase);
+      state.resources = resourcesResult.summary;
+      state.resourcesPassed = !resourcesResult.failure && resourcesResult.summary.complete && !resourcesResult.invalidResponse;
+      if (resourcesResult.failure) applyFailure(state, resourcesResult.failure, "resources_list", addFinding);
+      if (resourcesResult.invalidResponse) state.protocolError = true;
+    } else {
+      skipPhase(state, "resources_list", record, beginPhase, finishPhase);
+    }
+    if (state.capabilities.prompts) {
+      const promptsResult = await discoverCatalog<PromptSummary>(state, "prompts", "prompts/list", "prompts_list", true, addFinding, record, beginPhase, finishPhase);
+      state.prompts = promptsResult.summary;
+      state.promptsPassed = !promptsResult.failure && promptsResult.summary.complete && !promptsResult.invalidResponse;
+      if (promptsResult.failure) applyFailure(state, promptsResult.failure, "prompts_list", addFinding);
+      if (promptsResult.invalidResponse) state.protocolError = true;
+    } else {
+      skipPhase(state, "prompts_list", record, beginPhase, finishPhase);
+    }
+    addFinding("modern_discovery_partial", "protocol", "warning", "Modern server discovery and bounded tools, resources, and prompts catalogs completed where advertised. Cache hints, subscriptions, and multi-round-trip checks are not yet implemented for this revision, so this report is incomplete.", "modern_discover", { protocolVersion: MODERN_MCP_PROTOCOL_VERSION });
     finishPhase("modern_discover", modernStart, "incomplete", record, phases, timings, now);
     return finalize(state, observedAt, addFinding);
   }

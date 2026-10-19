@@ -285,11 +285,13 @@ test("modern 2026-07-28 requests use bounded discovery instead of a legacy hands
       const body = JSON.parse(String(init?.body));
       if (body.method === "server/discover") {
         assert.equal(new Headers(init?.headers).get("mcp-method"), "server/discover");
-        return jsonRpc({ serverInfo: { name: "Modern fixture", version: "1" }, capabilities: { tools: {} } }, 1);
+        return jsonRpc({ serverInfo: { name: "Modern fixture", version: "1" }, capabilities: { tools: {}, resources: {}, prompts: {} } }, 1);
       }
-      assert.equal(body.method, "tools/list");
-      assert.equal(new Headers(init?.headers).get("mcp-method"), "tools/list");
-      return jsonRpc({ tools: [{ name: "search", description: "bounded fixture", inputSchema: { type: "object", properties: {} } }] }, body.id);
+      assert.equal(new Headers(init?.headers).get("mcp-method"), body.method);
+      if (body.method === "tools/list") return jsonRpc({ tools: [{ name: "search", description: "bounded fixture", inputSchema: { type: "object", properties: {} } }] }, body.id);
+      if (body.method === "resources/list") return jsonRpc({ resources: [{ uri: "urn:fixture:resource", name: "fixture" }] }, body.id);
+      assert.equal(body.method, "prompts/list");
+      return jsonRpc({ prompts: [{ name: "fixture", description: "bounded fixture" }] }, body.id);
     },
   });
   assert.equal(report.protocol?.negotiatedVersion, "2026-07-28");
