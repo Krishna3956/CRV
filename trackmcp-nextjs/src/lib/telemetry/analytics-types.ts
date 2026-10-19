@@ -302,6 +302,8 @@ export type Analytics = {
     not_observable: number;
     completion_rate: number | null;
     error_rate: number | null;
+    /** Latest state per opaque task handle, from explicit task evidence only. */
+    task_states: { working: number; input_required: number; completed: number; failed: number; cancelled: number; expired: number; unknown: number };
     trend: Array<{ period_start: string; completed: number; failed: number; unknown: number; pending: number }>;
     limitation: string;
   };

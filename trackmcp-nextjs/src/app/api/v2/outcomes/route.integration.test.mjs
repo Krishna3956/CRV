@@ -8,6 +8,7 @@ test("outcomes prefers explicit shared workflow facts over generic activity", as
     outcomes: [{ name: "generic", completed: 99, failed: 1 }],
     completion_rate: 1,
     completion_source: "session_heuristic",
+    outcome_activity: { completed: 2, failed: 2, pending: 1, unknown: 3, not_observable: 4, completion_rate: 0.5, error_rate: 0.5, task_states: { working: 1, input_required: 0, completed: 1, failed: 0, cancelled: 0, expired: 0, unknown: 0 } },
     founder_os: {
       facts: {
         workflow_completion_rate: 0.5,
@@ -27,5 +28,6 @@ test("outcomes prefers explicit shared workflow facts over generic activity", as
   assert.equal(body.completion.terminal_denominator, 4);
   assert.equal(body.completion.terminal_completed, 2);
   assert.equal(body.completion.unresolved_facts, 3);
+  assert.deepEqual(body.semantic_outcomes.task_states, { working: 1, input_required: 0, completed: 1, failed: 0, cancelled: 0, expired: 0, unknown: 0 });
   assert.match(body.caveats.join(" "), /explicit terminal workflow facts/);
 });

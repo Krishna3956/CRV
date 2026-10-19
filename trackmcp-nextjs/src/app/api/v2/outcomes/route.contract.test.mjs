@@ -11,6 +11,8 @@ test("versioned outcomes route preserves unknown evidence", async () => {
   assert.match(handlers, /evidence_state/);
   assert.match(handlers, /terminal_denominator/);
   assert.match(handlers, /terminal_completed/);
+  assert.match(handlers, /semantic_outcomes/);
+  assert.match(handlers, /task_states/);
   assert.match(handlers, /terminal_workflow_outcomes/);
   assert.match(handlers, /explicit terminal workflow facts/);
   assert.match(handlers, /remains unknown/);

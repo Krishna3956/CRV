@@ -3166,7 +3166,8 @@ function OutcomeEvidencePanel({ analytics }: { analytics: Analytics }) {
     }),
     { started: 0, completed: 0, failed: 0 },
   );
-  const hasExplicitOutcomes = totals.started > 0;
+  const activity = analytics.outcome_activity;
+  const hasWorkflowTerminalEvidence = activity?.completion_rate != null;
   return (
     <Panel
       title="Did the work complete?"
@@ -3175,9 +3176,9 @@ function OutcomeEvidencePanel({ analytics }: { analytics: Analytics }) {
       <div className="grid gap-3 sm:grid-cols-3">
         <Kpi
           label="Completion rate"
-          value={hasExplicitOutcomes && analytics.completion_rate !== null ? percent(analytics.completion_rate) : "N/A"}
+          value={hasWorkflowTerminalEvidence ? percent(activity.completion_rate) : "N/A"}
           icon={Check}
-          helper={hasExplicitOutcomes ? "Explicit workflow denominator" : "No explicit workflow starts"}
+          helper={hasWorkflowTerminalEvidence ? "Explicit workflow terminal denominator" : "No explicit workflow terminals"}
         />
         <Kpi label="Work started" value={fmt(totals.started)} icon={Route} helper="Explicit workflow events" />
         <Kpi label="Work failed" value={fmt(totals.failed)} icon={AlertTriangle} helper="Explicit failed outcomes" />
@@ -3185,15 +3186,16 @@ function OutcomeEvidencePanel({ analytics }: { analytics: Analytics }) {
       <p className="mt-4 border-t border-line pt-3 text-[11px] leading-relaxed text-muted">
         Evidence source: {analytics.completion_source === "workflow_events" ? "explicit workflow events" : analytics.completion_source === "session_heuristic" ? "session-derived activity (not used for the completion KPI)" : "no explicit outcome events"}. Unknown and not-observable outcomes remain separate from failure.
       </p>
-      {analytics.outcome_activity && <div className="mt-5 border-t border-line pt-5">
+      {activity && <div className="mt-5 border-t border-line pt-5">
         <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-          <Kpi label="Completed" value={fmt(analytics.outcome_activity.completed)} icon={Check} helper="Explicit semantic evidence" />
-          <Kpi label="Failed" value={fmt(analytics.outcome_activity.failed)} icon={AlertTriangle} helper="Explicit semantic evidence" />
-          <Kpi label="Pending" value={fmt(analytics.outcome_activity.pending)} icon={Info} helper="Explicitly still in progress" />
-          <Kpi label="Unknown" value={fmt(analytics.outcome_activity.unknown + analytics.outcome_activity.not_observable)} icon={Info} helper="Not silently classified" />
+          <Kpi label="Completed" value={fmt(activity.completed)} icon={Check} helper="Explicit semantic evidence" />
+          <Kpi label="Failed" value={fmt(activity.failed)} icon={AlertTriangle} helper="Explicit semantic evidence" />
+          <Kpi label="Pending" value={fmt(activity.pending)} icon={Info} helper="Explicitly still in progress" />
+          <Kpi label="Unknown" value={fmt(activity.unknown + activity.not_observable)} icon={Info} helper="Not silently classified" />
         </div>
-        <div className="mt-4 grid gap-2 sm:grid-cols-2 lg:grid-cols-4">{analytics.outcome_activity.trend.slice(-8).map((item) => <div key={item.period_start} className="border border-line bg-paper p-3"><p className="text-[10px] uppercase tracking-[0.08em] text-faint">{item.period_start}</p><p className="mt-1 text-xs text-ink">{fmt(item.completed)} complete · {fmt(item.failed)} failed</p><p className="mt-1 text-[11px] text-muted">{fmt(item.pending)} pending · {fmt(item.unknown)} unknown</p></div>)}</div>
-        <p className="mt-3 text-[11px] leading-relaxed text-faint">{analytics.outcome_activity.limitation}</p>
+        <div className="mt-4 grid gap-2 sm:grid-cols-2 lg:grid-cols-4">{activity.trend.slice(-8).map((item) => <div key={item.period_start} className="border border-line bg-paper p-3"><p className="text-[10px] uppercase tracking-[0.08em] text-faint">{item.period_start}</p><p className="mt-1 text-xs text-ink">{fmt(item.completed)} complete · {fmt(item.failed)} failed</p><p className="mt-1 text-[11px] text-muted">{fmt(item.pending)} pending · {fmt(item.unknown)} unknown</p></div>)}</div>
+        <div className="mt-4 border border-line bg-paper p-3"><p className="text-[10px] font-semibold uppercase tracking-[0.08em] text-faint">Latest explicit task states</p><div className="mt-2 grid grid-cols-2 gap-2 text-xs sm:grid-cols-4 lg:grid-cols-7">{[["Working", activity.task_states.working], ["Needs input", activity.task_states.input_required], ["Completed", activity.task_states.completed], ["Failed", activity.task_states.failed], ["Cancelled", activity.task_states.cancelled], ["Expired", activity.task_states.expired], ["Unknown", activity.task_states.unknown]].map(([label, value]) => <div key={String(label)}><p className="text-muted">{label}</p><p className="mt-1 font-semibold text-ink">{fmt(Number(value))}</p></div>)}</div><p className="mt-2 text-[11px] text-faint">Latest state per opaque task handle; task identifiers are never shown.</p></div>
+        <p className="mt-3 text-[11px] leading-relaxed text-faint">{activity.limitation}</p>
       </div>}
     </Panel>
   );

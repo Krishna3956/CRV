@@ -600,10 +600,21 @@ export function createAnalyticsHandler(getAdmin: typeof getSupabaseAdmin = getSu
     drop_off: journeyGroups.slice(0, 10).map((item) => ({ path: item.path, interactions: item.interactions, terminal_evidence: item.terminal_evidence })),
     limitation: "Paths are bounded sequences of observed tool calls scoped to an observed server and grouped by interaction or session identity. Terminal evidence is the latest observed event; missing terminal events are unknown, not abandonment. Cross-server journeys outside this workspace are not visible.",
   };
-  const aggregate = aggregateTrackMCPFacts(facts);
+  // The product outcome surface is intentionally narrower than the general
+  // fact stream: a successful tool transport is not evidence that customer
+  // work completed. Retain only explicit workflow lifecycle and task-state
+  // facts here; tool reliability remains on the capability-quality surface.
+  const outcomeEvidenceFacts = facts.filter((fact) =>
+    fact.semantic.task_status !== undefined
+    || (fact.event_type === "workflow" && (fact.semantic.reason === "workflow_completed" || fact.semantic.reason === "workflow_failed" || fact.semantic.reason === "workflow_pending")),
+  );
+  const aggregate = aggregateTrackMCPFacts(outcomeEvidenceFacts);
+  const allFactsAggregate = aggregateTrackMCPFacts(facts);
+  const taskLifecycles = aggregateTaskLifecycles(facts, taskTransitions);
+  const taskStates = { working: 0, input_required: 0, completed: 0, failed: 0, cancelled: 0, expired: 0, unknown: 0 };
+  for (const task of taskLifecycles) taskStates[task.state] += 1;
   const outcomeTrend = new Map<string, { completed: number; failed: number; unknown: number; pending: number }>();
-  for (const fact of facts) {
-    if (fact.fact_type !== "outcome") continue;
+  for (const fact of outcomeEvidenceFacts) {
     const day = fact.observed_at.slice(0, 10);
     const current = outcomeTrend.get(day) || { completed: 0, failed: 0, unknown: 0, pending: 0 };
     if (fact.semantic.outcome === "completed") current.completed += 1;
@@ -620,6 +631,7 @@ export function createAnalyticsHandler(getAdmin: typeof getSupabaseAdmin = getSu
     not_observable: aggregate.outcomes.not_observable,
     completion_rate: aggregate.workflow_completion_rate,
     error_rate: aggregate.error_rate,
+    task_states: taskStates,
     trend: [...outcomeTrend.entries()].sort(([a], [b]) => a.localeCompare(b)).slice(-366).map(([period_start, value]) => ({ period_start, ...value })),
     limitation: "Completion and error rates use explicit semantic outcome evidence only. Unknown and not-observable states are retained; missing events are never converted into success, failure, or abandonment.",
   };
@@ -773,7 +785,7 @@ export function createAnalyticsHandler(getAdmin: typeof getSupabaseAdmin = getSu
     issue_activity: issueActivity,
     tools: toolRows.slice(0, MAX_PUBLIC_LIST_ITEMS), catalog_tools: [...catalog.values()].slice(0, MAX_PUBLIC_LIST_ITEMS),
     unused_tools: unusedTools.slice(0, MAX_PUBLIC_LIST_ITEMS), workflows: workflowRows.slice(0, 100), outcomes: explicitOutcomes.slice(0, MAX_PUBLIC_DIMENSION_ITEMS),
-    founder_os: { facts: aggregateTrackMCPFacts(facts), groups: outcomeGroups, identity_coverage: identityCoverage, identity_source_counts: identitySourceCounts, tasks: aggregateTaskLifecycles(facts, taskTransitions) },
+    founder_os: { facts: allFactsAggregate, groups: outcomeGroups, identity_coverage: identityCoverage, identity_source_counts: identitySourceCounts, tasks: taskLifecycles },
     catalog_versions: catalogVersions,
     catalog_next_cursor: catalogHasMore ? catalogVersions.at(-1)?.discovered_at || null : null,
     catalog_version_status: catalogVersionStatus,

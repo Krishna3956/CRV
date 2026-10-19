@@ -281,11 +281,11 @@ keeping resource URI/content and prompt names/arguments private by default?
 
 ### Tab 5 Did it work
 
-- [ ] Use explicit workflow/task/semantic outcome evidence only.
-- [ ] Keep completed, failed, pending, unknown, and not-observable separate.
-- [ ] Do not translate a successful tool response into business completion.
-- [ ] Verify a later explicit completion supersedes an earlier expiry where the
-  task-lifecycle contract supports it.
+- [x] Use explicit workflow/task/semantic outcome evidence only.
+- [x] Keep completed, failed, pending, unknown, and not-observable separate.
+- [x] Do not translate a successful tool response into business completion.
+- [x] Verify a later explicit completion supersedes an earlier expiry where the
+  task-lifecycle contract supports it, without exposing a raw task handle.
 
 ### Tab 6 What's broken
 

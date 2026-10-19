@@ -332,6 +332,21 @@ test("analytics keeps Did It Work outcomes explicit and uncertainty separate", a
   assert.equal(body.outcome_activity.limitation.includes("never converted"), true);
 });
 
+test("analytics outcome activity keeps latest explicit task state separate from tool success", async () => {
+  const handler = createAnalyticsHandler(() => fakeAdmin([
+    event({ event_id: "task-expired", event_type: "protocol", task_id: "raw-task-handle", mcp_method: "tasks/get", payload: { status: "expired" }, success: true, started_at: "2026-09-06T00:00:00Z" }),
+    event({ event_id: "task-complete", event_type: "protocol", task_id: "raw-task-handle", mcp_method: "tasks/get", payload: { status: "completed" }, success: true, started_at: "2026-09-06T00:05:00Z" }),
+    event({ event_id: "tool-success", event_type: "tool_call", tool_name: "lookup", success: true }),
+  ]));
+  const response = await handler(new Request("http://analytics.test/api/v1/analytics?days=7", { headers: { authorization: "Bearer key" } }));
+  assert.equal(response.status, 200);
+  const body = await response.json();
+  assert.deepEqual(body.outcome_activity.task_states, { working: 0, input_required: 0, completed: 1, failed: 0, cancelled: 0, expired: 0, unknown: 0 });
+  assert.equal(body.outcome_activity.completed, 1);
+  assert.equal(body.outcome_activity.failed, 0);
+  assert.equal(JSON.stringify(body).includes("raw-task-handle"), false);
+});
+
 test("analytics exposes bounded What is broken signal evidence", async () => {
   const handler = createAnalyticsHandler(() => fakeAdmin([
     event({ event_id: "error-1", event_type: "tool_call", tool_name: "lookup", is_error: true, success: false }),
