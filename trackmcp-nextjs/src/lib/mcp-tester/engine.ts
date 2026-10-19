@@ -473,6 +473,12 @@ async function discoverCatalog<T extends CatalogItem>(state: ProbeState, kind: C
       return { summary: { items, count: items.length, pages, complete: false, truncated }, invalidResponse: true } as CatalogDiscovery<T>;
     }
     state.catalogWarnings += page.warnings;
+    if (page.cacheTtlMs !== undefined || page.cacheScope !== undefined) {
+      addFinding("catalog_cache_hint_observed", "discovery", "info", "The catalog response supplied bounded cache hints. They are observational only and do not change authorization or freshness guarantees.", phase, {
+        ...(page.cacheTtlMs === undefined ? {} : { ttl_ms: page.cacheTtlMs }),
+        ...(page.cacheScope === undefined ? {} : { cache_scope: page.cacheScope }),
+      });
+    }
     if (page.truncated) {
       truncated = true;
       state.incomplete = true;
@@ -531,7 +537,7 @@ function normalizeInitializeResult(value: unknown, maxStringLength: number): { o
   };
 }
 
-function normalizeCatalogPage(kind: CatalogKind, value: unknown, limits: McpTesterLimits): { ok: true; items: CatalogItem[]; nextCursor?: string; warnings: number; truncated: boolean } | { ok: false; code: string; message: string } {
+function normalizeCatalogPage(kind: CatalogKind, value: unknown, limits: McpTesterLimits): { ok: true; items: CatalogItem[]; nextCursor?: string; warnings: number; truncated: boolean; cacheTtlMs?: number; cacheScope?: string } | { ok: false; code: string; message: string } {
   if (!isRecord(value)) return { ok: false, code: `malformed_${kind}_list_result`, message: `The endpoint returned an invalid ${kind}/list result.` };
   const key = kind === "tools" ? "tools" : kind;
   if (!Array.isArray(value[key])) return { ok: false, code: `malformed_${kind}_list_result`, message: `The endpoint returned an invalid ${kind}/list result.` };
@@ -547,7 +553,9 @@ function normalizeCatalogPage(kind: CatalogKind, value: unknown, limits: McpTest
     items.push(normalized);
   }
   if (value[key].length > limits.maxCatalogItems) warnings += 1;
-  return { ok: true, items, nextCursor: typeof value.nextCursor === "string" ? value.nextCursor : undefined, warnings, truncated: value[key].length > limits.maxCatalogItems };
+  const cacheTtlMs = typeof value.ttlMs === "number" && Number.isFinite(value.ttlMs) ? Math.min(Math.max(0, Math.round(value.ttlMs)), 7 * 24 * 60 * 60 * 1000) : undefined;
+  const cacheScope = safeString(value.cacheScope, 32);
+  return { ok: true, items, nextCursor: typeof value.nextCursor === "string" ? value.nextCursor : undefined, warnings, truncated: value[key].length > limits.maxCatalogItems, ...(cacheTtlMs === undefined ? {} : { cacheTtlMs }), ...(cacheScope ? { cacheScope } : {}) };
 }
 
 function normalizeTool(value: unknown, limits: McpTesterLimits): ToolSummary | undefined {

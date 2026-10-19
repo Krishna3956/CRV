@@ -288,16 +288,17 @@ test("modern 2026-07-28 requests use bounded discovery instead of a legacy hands
         return jsonRpc({ serverInfo: { name: "Modern fixture", version: "1" }, capabilities: { tools: {}, resources: {}, prompts: {} } }, 1);
       }
       assert.equal(new Headers(init?.headers).get("mcp-method"), body.method);
-      if (body.method === "tools/list") return jsonRpc({ tools: [{ name: "search", description: "bounded fixture", inputSchema: { type: "object", properties: {} } }] }, body.id);
-      if (body.method === "resources/list") return jsonRpc({ resources: [{ uri: "urn:fixture:resource", name: "fixture" }] }, body.id);
+      if (body.method === "tools/list") return jsonRpc({ tools: [{ name: "search", description: "bounded fixture", inputSchema: { type: "object", properties: {} } }], ttlMs: 60_000, cacheScope: "private" }, body.id);
+      if (body.method === "resources/list") return jsonRpc({ resources: [{ uri: "urn:fixture:resource", name: "fixture" }], ttlMs: 60_000, cacheScope: "private" }, body.id);
       assert.equal(body.method, "prompts/list");
-      return jsonRpc({ prompts: [{ name: "fixture", description: "bounded fixture" }] }, body.id);
+      return jsonRpc({ prompts: [{ name: "fixture", description: "bounded fixture" }], ttlMs: 60_000, cacheScope: "private" }, body.id);
     },
   });
   assert.equal(report.protocol?.negotiatedVersion, "2026-07-28");
   assert.equal(report.protocol?.sessionIdPresent, false);
   assert.equal(report.verdict, "incomplete");
   assert.ok(report.findings.some((finding) => finding.code === "modern_discovery_partial"));
+  assert.ok(report.findings.some((finding) => finding.code === "catalog_cache_hint_observed"));
 });
 
 test("failed initialization and authentication are distinct", async () => {
