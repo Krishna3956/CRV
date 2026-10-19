@@ -1,0 +1,23 @@
+{
+  "generated_at": "2026-10-19T13:12:18Z",
+  "base_url": "https://trackmcp.com",
+  "candidate_sha": "cbb3a03732160bcbb74e1d4b053f37b8f39a2f56",
+  "write_enabled": false,
+  "key_supplied": false,
+  "revoked_key_supplied": false,
+  "checks": [
+    { "label": "public pages and sitemaps", "status": 200, "count": 8 },
+    { "label": "npm @trackmcp/sdk@0.1.2", "status": 200, "integrity_present": true, "tarball_origin_verified": true },
+    { "label": "npm @trackmcp/cli@0.1.4", "status": 200, "integrity_present": true, "tarball_origin_verified": true },
+    { "label": "PyPI trackmcp==0.1.3", "status": 200, "wheel_sha256_present": true, "sdist_sha256_present": true },
+    { "label": "unauthenticated key-status", "status": 401 },
+    { "label": "authenticated key-status", "status": "skipped" },
+    { "label": "first-ingest smoke", "status": "skipped" }
+  ],
+  "total_checks": 14,
+  "caveats": [
+    "Read-only public and registry evidence; no key, workspace mutation, or telemetry event was used.",
+    "Provenance attestations and an operator-retained checksum archive remain separate acceptance gates.",
+    "No raw API key, device code, workspace ID, event ID, response body, or credential is recorded."
+  ]
+}
