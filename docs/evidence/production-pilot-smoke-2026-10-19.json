@@ -1,0 +1,27 @@
+{
+  "generated_at": "2026-10-19T14:07:36.231Z",
+  "base_url": "https://trackmcp.com",
+  "candidate_sha": "not-supplied",
+  "key_supplied": false,
+  "revoked_key_supplied": false,
+  "checks_passed": 25,
+  "public_routes": ["/", "/docs", "/docs/typescript", "/docs/python", "/device", "/support", "/sitemap.xml", "/tool-sitemap.xml"],
+  "registry_checks": ["@trackmcp/sdk@0.1.2", "@trackmcp/cli@0.1.4", "trackmcp==0.1.4"],
+  "protected_route_statuses": {
+    "/api/v2/overview": 401,
+    "/api/v2/data-trust": 401,
+    "/api/v1/analytics": 401,
+    "/api/v1/ingest": 405,
+    "/api/v1/otel/v1/traces": 405,
+    "/api/v1/cli/device/sessions": 405,
+    "/api/v1/cli/key-status": 401,
+    "/api/internal/refresh/run": 401,
+    "/api/internal/rate-limit/cleanup": 401,
+    "/api/internal/privacy/review": 401
+  },
+  "write_enabled": false,
+  "caveats": [
+    "HTTP and registry observations only; no authenticated dashboard, workspace, tenant-isolation, or first-ingest claim.",
+    "No credential, API key, device code, workspace ID, event ID, or response body is stored."
+  ]
+}
