@@ -1,7 +1,11 @@
 # Founder OS local release manifest
 
 Date: 2026-10-19  
-Status: local review only; intentionally uncommitted. Not a deployment claim.
+Status: post-release evidence reconciliation; documentation changes are reviewed separately from the deployed application.
+
+The earlier `local review only; intentionally uncommitted` classification has
+been superseded for the application release; this document remains a scope and
+evidence aid for follow-up work.
 
 This manifest separates the intended Founder OS release from unrelated local
 work. It is a review aid, not a commit instruction.
@@ -20,10 +24,12 @@ the current out-of-scope disposition is maintained in
 - Versioned read-only overview, data-trust, tools, and tool-detail APIs.
 - CLI/SDK activation flow, tests, and packed-consumer validation.
 - Deployment-template wiring for `TRACKMCP_ENABLE_FACT_WRITES`.
-- Publication workflow preflight for npm provenance and PyPI artifact checks.
+- Publication workflow preflight for npm provenance and PyPI artifact checks;
+  immutable packages are published (`@trackmcp/sdk@0.1.2`,
+  `@trackmcp/cli@0.1.4`, `trackmcp==0.1.3`).
 - Architecture, retention, metric, standards, and lifecycle documentation.
 - Supabase migrations and read-only postflight SQL (application reported by
-  the operator; this checkout never executed SQL).
+  the operator; this checkout never executes production SQL).
 - Service-role-only refresh-worker RPC migration and read-only RPC postflight;
   no SQL execution is implied by this checkout.
 - Secret-authenticated refresh trigger route and a scheduled workflow that
@@ -70,8 +76,9 @@ website/content release rather than silently mixed into the telemetry release:
 - Production credentials and local environment files.
 - Campaign HTML, email templates, CRM exports, and CSV files.
 - Generated `.next` output and `node_modules`.
-- Supabase execution, production deployment, package publication, and Git
-  history operations.
+- Supabase execution and production credentials. Git history and deployment
+  operations are allowed for the reviewed application scope; this manifest
+  does not authorize unrelated files.
 
 ## Release checks completed
 
@@ -80,11 +87,15 @@ website/content release rather than silently mixed into the telemetry release:
   repository tree.
 - TypeScript, lint, focused tests, and isolated Webpack production builds pass
   in the current local checkout.
-- The local release gate passes 101 suites, including the versioned setup state contract, ingest replay, protocol-semantic signals, dashboard contract, the TypeScript, CLI, and Python package-consumer gate plus global security-header, worker-health and operations contracts, manual-SQL safety, public-claim truth checks, OTel and Python documentation boundaries, package artifact/license checks, release-scope, release-instruction, file-ownership, secret-scope, rollback-readiness, evidence-record, review-boundary, and manifest-reconciliation contracts, and framework/MCP dependency-pin checks; isolated production smoke covers 8 public routes
-  and 10 protected/API checks.
-- The current isolated production build after the privacy review boundary
-  generated 166 pages and collected the sitemap index, dynamic shard, and
-  privacy-review routes successfully.
+- The local release gate passes 102 suites, TypeScript, lint with one existing
+  image warning, and an isolated production build generating 169 pages.
+- The application release was merged and deployed through App Runner from
+  `583e7411d4c9213990dd42c0d0cd1f88f52cf80f`; deployment run
+  [39230899137](https://github.com/Krishna3956/CRV/actions/runs/39230899137)
+  completed successfully.
+- Clean external npm consumers installed the exact SDK/CLI versions and a
+  clean Python target installed `trackmcp==0.1.3`. No production telemetry
+  event was emitted during those checks.
 
 ## 100-customer pilot gate
 
@@ -105,25 +116,29 @@ scope is required.
 
 The detailed acceptance matrix is maintained in
 `FOUNDER-OS-LAUNCH-READINESS-AUDIT.md`. The release is not pilot-ready until
-the owner records evidence for every blocking row, including a clean published
-package consumer run, cross-workspace negative authorization tests, first-event
-browser/CLI smoke, worker/rate-limit runtime evidence, and an explicit decision
-on whether OTel is a launch claim. Local fixture/load results must not be
-represented as production capacity or availability evidence.
+the owner records evidence for every remaining blocking row; it is not yet
+proven pilot-ready until that evidence includes
+including a disposable production workspace CLI activation, first-event
+browser/CLI smoke, cross-workspace negative authorization tests,
+worker/rate-limit runtime evidence, rollback rehearsal, and an explicit
+decision on whether OTel is a launch claim. Local fixture/load results must not
+be represented as production capacity or availability evidence.
 
 The executable evidence sequence is maintained in
 `docs/FOUNDER-OS-100-CUSTOMER-PILOT-RUNBOOK.md`.
 
 The following are known non-green at this review point:
 
-- current worktree is mixed and uncommitted;
+- this documentation refresh is intentionally separate from the deployed
+  application and the user-owned `trackmcp-nextjs/AGENTS.md` edit remains
+  uncommitted;
 - OTel has a bounded OTLP/HTTP JSON receiver; there is still no OTLP/gRPC receiver, exporter, or clean customer end-to-end evidence;
 - no production scheduler/queue trigger is proven for refresh jobs (the reviewed
   route and GitHub Actions schedule exist locally, but production secrets and a
   live run have not been evidenced);
 - no distributed rate-limit provider is proven;
-- package registry publication and clean published-consumer verification are
-  not evidenced by this checkout;
+- production safe-event and complete registry provenance evidence remain
+  separate from the clean published-consumer verification;
 - the deletion-request worker is not executing approved deletions;
 - the CLI activation lifecycle has a local start/approve/poll/redeem/replay
   fixture; full production customer smoke evidence remains required.

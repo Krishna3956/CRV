@@ -6,11 +6,11 @@ Scope: whether the current checkout is safe to offer to 100 independent customer
 
 ## Verdict
 
-**Not yet ready to promise a smooth 100-customer launch.** The repository has a
-strong, locally tested foundation, but local tests are not proof of production
-readiness. The current checkout is also uncommitted and therefore cannot be the
-code running in production. The launch gate should remain closed until the
-blockers below have owners, evidence, and a recorded release commit.
+**Not yet ready to promise a smooth 100-customer launch.** The application
+release is merged and deployed, and the exact npm/PyPI artifacts are published.
+However, local tests and a successful deployment are not proof of production
+readiness. The launch gate should remain closed until the environment-specific
+pilot evidence below has owners, artifacts, and a recorded go/no-go decision.
 
 This is not a statement that the product is unusable. It is a distinction
 between “the core request path works in tests” and “100 external customers can
@@ -18,22 +18,22 @@ reliably operate it with safe isolation, observability, recovery, and support.�
 
 ## Blocking issues
 
-The local implementation has now passed the 101-suite release gate, TypeScript,
-lint with one pre-existing image warning, and an isolated production build with
-166 generated pages. Those are necessary release checks, not proof that the
-currently uncommitted checkout is deployed or that production capacity and
-runtime configuration have been verified.
+The reviewed release passed the 102-suite local gate, TypeScript, lint with one
+pre-existing image warning, and an isolated production build with 169 generated
+pages. It was deployed through App Runner from
+`583e7411d4c9213990dd42c0d0cd1f88f52cf80f`. These are necessary release checks,
+not proof of production capacity or complete pilot behavior.
 
 | Severity | Area | Evidence | Why it blocks a 100-customer claim | Exit evidence |
 | --- | --- | --- | --- | --- |
-| P0 | Release state | Founder OS work is uncommitted in a mixed checkout | Nothing in this checkout is live; accidental `git add .` could include unrelated artifacts | Clean release branch, reviewed PR, deployed SHA, smoke test |
+| P0 | Release state | Application release is merged and deployed (`583e7411...`, App Runner run 39230899137) | Deployment is real, but production behavior still needs the pilot smoke sequence | Deployed-SHA confirmation plus production CLI/browser smoke |
 | P0 | Schema compatibility | Operator public-schema audits confirm the core Founder OS tables, columns, indexes, constraints, refresh RPCs, and the `00014` rate-limit table/RPCs with RLS and service-role-only execution | Ingest, workers, catalog history, and distributed rate-limit routes depend on the additive schema; runtime configuration and deployed-SHA evidence are still separate gates | Retain the operator's SQL run record, run paired read-only postflights, and verify the deployed runtime is configured intentionally |
 | P0 | OTel | A bounded authenticated OTLP/HTTP JSON receiver has route-level fixtures proving supported spans reach authenticated ingest without raw attributes; there is no OTLP/gRPC receiver, exporter, or clean customer end-to-end evidence | OTel is only launchable as the explicitly documented JSON metadata path; protobuf/export claims remain unsupported | Run a clean external JSON exporter-to-ingest smoke, or keep OTel out of broad launch promises |
 | P0 | Background work | A secret-authenticated refresh trigger, scheduled workflow, fact/action handlers, and bounded catalog snapshot handler now exist locally, but production secrets, migration postflight, and live scheduler evidence are not present | Derived facts, Action Queue, and catalog version rows can be automated only after the trigger is configured; retention still fails closed | Configure the reviewed secrets after migration postflight, run a live batch, and record worker lag/retry evidence |
 | P1 | Rate limits | Limits now use an explicit provider boundary and bounded in-memory fallback, but no distributed provider is configured | Multiple App Runner instances do not share counters; clients can bypass limits across instances/restarts | Shared limiter or gateway policy, load test across instances, alerting |
 | P1 | Production smoke | Local production-shaped harness covers ingest and v2 reads, and a local HTTP fixture covers CLI start, approval, polling, redemption, and replay; no complete post-deploy test covers CLI approval, redeem, dashboard, and privacy controls | A local fixture pass cannot detect DNS, env, cookie, migration, or runtime wiring errors | Disposable workspace/key smoke run with redacted evidence |
 | P1 | Tenant isolation | Local fixtures now exercise every analytics-backed v2 projection plus catalogs, Action Queue, tool-quality, and explicit workspace key revocation across two workspaces; no production-shaped cross-workspace integration suite exists | A single query missing `.eq(workspace_id, ...)` could expose customer telemetry | Run the same matrix against a disposable production workspace and retain the RLS/service-role review |
-| P1 | Package distribution | Package dry-run audit, metadata checks, and packed consumers pass locally; registry publication/provenance is still pending | Customers cannot reliably install the exact reviewed artifacts until packages are published and consumed from a clean project | Published immutable versions, clean npm/PyPI consumer tests, rollback instructions |
+| P1 | Package distribution | `@trackmcp/sdk@0.1.2`, `@trackmcp/cli@0.1.4`, and `trackmcp==0.1.3` are published; clean external npm/Python consumer installs passed | Production safe-event and complete registry provenance evidence remain separate | Retain immutable registry metadata, safe-event decision, and rollback instructions |
 | P1 | Data volume | Analytics performs bounded-but-heavy reads (up to 10,000 events) and computes projections in request memory; latest local fixture harness passes 120 requests at p95 14.24 ms with 0 timeouts | Fixture timing is not App Runner/Supabase capacity evidence | Production-shaped load test against a disposable workspace, query plans, rollups/cursors, timeout and alert policy |
 | P1 | Identity semantics | Resolver-derived identity is explicitly a claim, not verified identity | Dashboard must not present event-weighted resolver coverage as unique people/orgs | Keep null/unknown labels or add server-attested identity contract and tests |
 | P2 | Product completeness | Resources/prompts are method-family summaries, not entity-level catalog analytics; journeys/reliability are bounded | Users may interpret empty/partial views as “no usage” | UI caveats, fixture coverage, and an explicit limited-coverage launch scope |

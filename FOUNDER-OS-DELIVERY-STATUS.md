@@ -1,10 +1,11 @@
 # Founder OS delivery status and remaining work
 
-Date: 2026-10-19  
-Review mode: local, read-only from a release perspective  
-Repository: `Krishna3956/CRV`  
-Current checkout: `codex/device-auth-web-activation`  
-Baseline used for comparison: `origin/main` at `71cc304`  
+Date: 2026-10-19
+Review mode: post-release evidence reconciliation
+Repository: `Krishna3956/CRV`
+Current checkout: `codex/founder-os-evidence-refresh`
+Review baseline: `origin/main` at `eaaf4e9`
+Application deployment: `583e7411d4c9213990dd42c0d0cd1f88f52cf80f`
 
 This document is the delivery ledger for the Founder OS programme. It is an
 engineering status record, not an instruction to merge, deploy, publish a
@@ -36,11 +37,12 @@ covering 8 public routes and 10 protected/API checks. The original PDF audit als
 protocol gap around multi-round-trip outcomes and added a truthful Setup status
 surface.
 
-It is not yet the complete Founder OS product. The work is local and
-uncommitted. The highest-risk release dependencies are:
+It is not yet the complete Founder OS product. The reviewed application and
+package changes have been merged and deployed, but the pilot evidence ledger
+still contains environment-specific gates that cannot be inferred from local
+tests. The highest-risk remaining dependencies are:
 
-1. Explicitly classify the mixed worktree and assemble a review branch.
-2. Confirm every required Supabase migration with read-only postflight checks.
+1. Confirm every required Supabase migration with read-only postflight checks.
    The operator has reported that the earlier migrations were applied; this
    checkout has not independently verified production.
 3. Apply and verify the catalog-observation migration before enabling code that
@@ -50,29 +52,31 @@ uncommitted. The highest-risk release dependencies are:
 5. Complete the missing semantic capabilities: catalog history joins,
    entity-level resources/prompts, verified identity, durable scheduling,
    export/delete controls, and the Founder OS dashboard information architecture.
-6. Re-run the clean isolated release gate, merge through the normal PR process,
-   deploy through the approved GitHub workflow, and perform production smoke
-   tests. None of those release actions is performed by this checkout.
+6. Complete the production-shaped pilot evidence sequence: CLI activation,
+   first ingest, dashboard export, negative authorization, key lifecycle,
+   worker/rate-limit behavior, rollback rehearsal, and final go/no-go review.
 
 ## Production and repository state
 
 ### Current review baseline
 
-- Review baseline SHA: `3f7a4017912763dc1944c936ded023ec818fdc0b`.
-- Baseline recorded: `2026-10-19T08:21:02Z` UTC.
-- This is a local review reference only; the worktree remains mixed and
-  uncommitted, so it is not a release candidate or deployed-SHA claim.
+- `origin/main` review baseline: `eaaf4e9466ed722609fc006f85a1761aef212041`.
+- Application code deployed by App Runner: `583e7411d4c9213990dd42c0d0cd1f88f52cf80f`.
+- App Runner deployment run: [39230899137](https://github.com/Krishna3956/CRV/actions/runs/39230899137).
+- Application container digest: `sha256:694717e4ce3914adfde1a3cd7c5dffe39c3af0ccda9225a10707e953035db8ea`.
+- Rollback candidate digest: `sha256:ff8221e6eda6ce105ccf406ea79b5e06848a3a4757d708e1a75e29d9cd607563`.
+- This checkout is documentation-only reconciliation; the unrelated local
+  `trackmcp-nextjs/AGENTS.md` edit is intentionally excluded.
 
 ### What is known
 
-- `origin/main` currently resolves to `71cc304` (`feat: improve submission
-  attribution and identity stitching`).
-- The checkout is on `codex/device-auth-web-activation`; it is not a clean
-  release branch.
-- The local tree contains both Founder OS implementation and separate website,
-  SDK, activation, and content work. It must not be committed with `git add .`.
-- No deployment command, package publication, Supabase SQL execution, merge, or
-  push was performed during this audit.
+- `origin/main` currently resolves to `eaaf4e9` (`Close evidenced release-owner gates`).
+- The application release was merged through PR #34 and deployed by the
+  existing GitHub Actions/App Runner workflow.
+- `@trackmcp/sdk@0.1.2`, `@trackmcp/cli@0.1.4`, and `trackmcp==0.1.3` are
+  published; clean external npm and Python consumer installs passed.
+- Supabase SQL was intentionally not executed by the agent; operator-run
+  postflight evidence remains a separate gate.
 - Local verification has covered the web release gate, SDK/CLI packed consumers,
   Python tests, TypeScript, lint, migration contract tests, and sequential
   Webpack builds. The default Turbopack limitation observed previously is an
@@ -80,8 +84,8 @@ uncommitted. The highest-risk release dependencies are:
 
 ### What is not proven locally
 
-- Whether the App Runner service is currently serving exactly `71cc304` or a
-  later commit.
+- Whether the production browser/CLI smoke sequence has been completed for a
+  disposable pilot workspace.
 - Whether production contains every migration listed below.
 - Whether the production deployment has `TRACKMCP_ENABLE_FACT_WRITES=true`.
 - Whether production data has enough accepted events for meaningful outcome,
