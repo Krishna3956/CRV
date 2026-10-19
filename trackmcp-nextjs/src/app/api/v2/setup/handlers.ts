@@ -40,11 +40,11 @@ export function createSetupHandler(getAdmin: typeof getSupabaseAdmin = getSupaba
     const since = new Date(Date.now() - days * 86_400_000).toISOString();
     const [keyResult, eventResult] = await Promise.all([
       admin!.from("trackmcp_api_keys").select("id").eq("workspace_id", scope.workspaceId).is("revoked_at", null).limit(1),
-      admin!.from("trackmcp_events").select("event_id, started_at, event_type, mcp_method, transport, payload_policy, deployment_id, account_identity_source, account_key").eq("workspace_id", scope.workspaceId).gte("started_at", since).order("started_at", { ascending: false }).limit(1),
+      admin!.from("trackmcp_events").select("event_id, started_at, event_type, service, environment, mcp_method, transport, payload_policy, deployment_id, account_identity_source, account_key").eq("workspace_id", scope.workspaceId).gte("started_at", since).order("started_at", { ascending: false }).limit(1),
     ]);
     if (keyResult.error || eventResult.error) return NextResponse.json({ error: "Could not load setup status." }, { status: 500 });
     const hasKey = Boolean(keyResult.data?.length);
-    const latest = eventResult.data?.[0] as { event_id?: unknown; started_at?: unknown; event_type?: unknown; mcp_method?: unknown; transport?: unknown; payload_policy?: unknown; deployment_id?: unknown; account_identity_source?: unknown; account_key?: unknown } | undefined;
+    const latest = eventResult.data?.[0] as { event_id?: unknown; started_at?: unknown; event_type?: unknown; service?: unknown; environment?: unknown; mcp_method?: unknown; transport?: unknown; payload_policy?: unknown; deployment_id?: unknown; account_identity_source?: unknown; account_key?: unknown } | undefined;
     const hasEvent = Boolean(latest);
     const mcpMethodObserved = hasEvent && typeof latest?.mcp_method === "string";
     const transportObserved = hasEvent && typeof latest?.transport === "string";
@@ -89,6 +89,8 @@ export function createSetupHandler(getAdmin: typeof getSupabaseAdmin = getSupaba
           event_id_present: typeof latest?.event_id === "string",
           observed_at: typeof latest?.started_at === "string" ? latest.started_at : null,
           event_type: typeof latest?.event_type === "string" ? latest.event_type : null,
+          service: typeof latest?.service === "string" ? latest.service.slice(0, 100) : null,
+          environment: typeof latest?.environment === "string" ? latest.environment.slice(0, 64) : null,
           ingestion_lag_seconds: typeof latest?.started_at === "string" && Number.isFinite(Date.parse(latest.started_at))
             ? Math.min(7_776_000, Math.max(0, Math.floor((Date.now() - Date.parse(latest.started_at)) / 1000)))
             : null,

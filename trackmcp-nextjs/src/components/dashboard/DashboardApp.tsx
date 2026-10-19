@@ -3754,7 +3754,7 @@ function SetupView({
         optional_identity?: boolean | null;
         identity_required?: boolean;
       };
-      first_event?: { observed_at?: string | null; ingestion_lag_seconds?: number | null } | null;
+      first_event?: { observed_at?: string | null; event_id_present?: boolean; event_type?: string | null; service?: string | null; environment?: string | null; ingestion_lag_seconds?: number | null } | null;
       caveat?: string;
       next_steps?: string[];
     };
@@ -3897,6 +3897,11 @@ function SetupView({
                 Last observed event lag: {activeSetupContract.setup.first_event.ingestion_lag_seconds < 60
                   ? `${activeSetupContract.setup.first_event.ingestion_lag_seconds}s`
                   : `${Math.floor(activeSetupContract.setup.first_event.ingestion_lag_seconds / 60)}m`}
+              </p>
+            )}
+            {activeSetupContract?.setup?.first_event && (
+              <p className="mt-2 text-[11px] text-faint">
+                First event scope: {activeSetupContract.setup.first_event.service || "service not reported"} · {activeSetupContract.setup.first_event.environment || "environment not reported"}
               </p>
             )}
           </div>
