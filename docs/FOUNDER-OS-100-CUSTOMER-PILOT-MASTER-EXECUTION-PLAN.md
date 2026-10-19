@@ -356,12 +356,17 @@ keeping resource URI/content and prompt names/arguments private by default?
 
 ## Workstream 12 Packages and public claims
 
-- [ ] Reconcile local source commits with immutable npm/PyPI versions.
+- [x] Reconcile the current local package paths with immutable npm/PyPI
+  artifact evidence. The TypeScript and Python SDK source paths differ from
+  the installed registry artifacts; the CLI path does not.
 - [ ] Publish changed package code only under a new approved version.
 - [ ] Install each exact published package into a clean consumer project and
   repeat the customer activation/first-event path.
-- [ ] Ensure public docs, website, SDK READMEs, release notes, CLI output, and
-  dashboard copy state the same supported/limited/deferred capabilities.
+- [x] Locally contract-test public docs, website, SDK READMEs, release notes,
+  CLI boundary copy, and dashboard wording for the supported/limited/deferred
+  capability boundary.
+- [ ] Repeat the public-claim review against the final published package
+  versions and deployed candidate before inviting customers.
 - [ ] Review the Traccp/Founder OS visual identity against the approved Word
   reference before a branding release; do not mix unapproved marks.
 
