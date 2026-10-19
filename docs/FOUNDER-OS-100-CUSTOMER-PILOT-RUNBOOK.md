@@ -54,6 +54,10 @@ npm run build
 npm run smoke:local
 ```
 
+The current local baseline is a clean 103-suite release gate and a 169-page
+production build. Rerun these commands for every candidate; these results do
+not substitute for production evidence.
+
 Record the actual results for the candidate. The current local baseline is a
 clean detached 102-suite gate, a 169-page isolated production build, TypeScript
 success, lint with one pre-existing `ProductHuntBadge.tsx` image warning, and
@@ -111,6 +115,25 @@ the v1/v2 authorization matrix with the wrong key and wrong workspace. Pass
 requires zero cross-workspace reads or mutations, stable 401/403/404 semantics,
 API keys denied human Action Queue mutations, and ambiguous browser workspace
 selection rejected rather than guessed.
+
+For the read-only key-scope portion, use the bounded harness with two
+disposable workspace keys. It intentionally ignores a conflicting
+`workspace_id` query parameter and records only status categories:
+
+```bash
+cd trackmcp-nextjs
+TRACKMCP_AUTH_SMOKE_CONFIRM=I_UNDERSTAND_PRODUCTION_AUTH_SMOKE \
+TRACKMCP_AUTH_SMOKE_BASE_URL=https://trackmcp.com \
+TRACKMCP_AUTH_SMOKE_KEY_A='(operator supplies disposable key A)' \
+TRACKMCP_AUTH_SMOKE_KEY_B='(operator supplies disposable key B)' \
+TRACKMCP_AUTH_SMOKE_WORKSPACE_A='(workspace A)' \
+TRACKMCP_AUTH_SMOKE_WORKSPACE_B='(workspace B)' \
+npm run smoke:production-auth
+```
+
+The harness is read-only and never writes keys, workspace IDs, response bodies,
+or authorization material to its report. It does not replace the full RLS and
+key-lifecycle gates below.
 
 ## 8. Worker, scheduler, and rate-limit gate
 
