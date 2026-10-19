@@ -5,6 +5,7 @@ import test from "node:test";
 const source = await readFile(new URL("./route.ts", import.meta.url), "utf8");
 
 test("workspace account route returns all memberships and validates explicit selection", () => {
+  assert.match(source, /select\("user_id, workspace_id, role, trackmcp_workspaces\(id, name, slug\)"\)/);
   assert.match(source, /publicWorkspaceMemberships/);
   assert.match(source, /new URL\(request\.url\)\.searchParams\.get\("workspace_id"\)/);
   assert.match(source, /workspaces\.find\(\(candidate\) => candidate\.id === requestedWorkspaceId\)/);

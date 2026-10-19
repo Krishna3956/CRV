@@ -22,7 +22,7 @@ export async function GET(request: Request) {
 
   const { data: memberships, error: membershipError } = await admin
     .from("trackmcp_workspace_members")
-    .select("workspace_id, role, trackmcp_workspaces(id, name, slug)")
+    .select("user_id, workspace_id, role, trackmcp_workspaces(id, name, slug)")
     .eq("user_id", user.id)
     .order("created_at", { ascending: true });
   if (membershipError) return NextResponse.json({ error: "Could not load your workspace." }, { status: 500 });
