@@ -2241,6 +2241,15 @@ function DataTrustPanel({
             <span>Failed {fmt(refreshStatus.failed)}</span>
             <span>Max lag {refreshStatus.max_queue_lag_ms ? `${Math.round(refreshStatus.max_queue_lag_ms / 1000)}s` : "0s"}</span>
           </div>
+          {refreshStatus.worker_health && (
+            <div className="mt-3 grid gap-2 text-[11px] text-muted sm:grid-cols-4" aria-label="Worker health findings">
+              {refreshStatus.worker_health.map((finding) => {
+                const tone = finding.state === "critical" ? "text-red-700" : finding.state === "warning" ? "text-amber-700" : finding.state === "normal" ? "text-emerald-700" : "text-faint";
+                const value = finding.value === null ? "N/A" : finding.unit === "ratio" ? `${Math.round(finding.value * 100)}%` : finding.unit === "minutes" ? `${Math.round(finding.value * 10) / 10}m` : fmt(finding.value);
+                return <span key={finding.metric} className={tone}>{finding.metric.replaceAll("_", " ")}: {finding.state.replaceAll("_", " ")} · {value}</span>;
+              })}
+            </div>
+          )}
           {refreshStatus.status === "degraded" && <p className="mt-2 text-[11px] text-amber-700">Some derived-data jobs are queued, retrying, running, or failed. These metrics may be stale until the worker catches up.</p>}
           <p className="mt-2 text-[11px] text-faint">Worker metrics are bounded to the latest 100 workspace jobs; no job is evidence of no customer activity.</p>
         </div>

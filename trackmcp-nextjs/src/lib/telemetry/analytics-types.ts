@@ -244,6 +244,15 @@ export type Analytics = {
     max_queue_lag_ms: number;
     max_attempt_count: number;
     last_successful_run: string | null;
+    worker_health?: {
+      metric: "backlog" | "lag" | "dead_letter" | "success_rate";
+      state: "insufficient_data" | "normal" | "warning" | "critical";
+      sample_count: number;
+      value: number | null;
+      threshold: { warning: number; critical: number };
+      unit: "jobs" | "minutes" | "ratio";
+      reasons: string[];
+    }[];
   };
   unused_tools: string[];
   workflows: { session_id: string; correlation_handle?: string | null; correlation_handle_source?: TrackMCPCorrelationHandleSource; client_name: string; calls: number; tools: (string | null)[]; started_at: string; duration_ms: number; completed: boolean; completion_source?: CompletionSource; correlation_quality?: CorrelationQuality }[];

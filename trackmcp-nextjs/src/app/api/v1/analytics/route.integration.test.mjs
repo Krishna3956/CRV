@@ -105,6 +105,7 @@ test("analytics exposes conservative Founder OS outcome aggregates", async () =>
   assert.equal(body.data_trust.observed_through, "2026-09-06T00:00:00Z");
   assert.equal(body.refresh_status.status, "no_jobs");
   assert.equal(body.refresh_status.max_queue_lag_ms, 0);
+  assert.deepEqual(body.refresh_status.worker_health.map((finding) => finding.state), ["insufficient_data", "insufficient_data", "insufficient_data", "insufficient_data"]);
 });
 
 test("analytics keeps missing client identity as an explicit Unknown client bucket", async () => {

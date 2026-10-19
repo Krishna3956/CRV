@@ -21,6 +21,7 @@ source explicitly says it is an outcome event.
 | `tool_adoption_breadth` | Capability breadth | Distinct observed tool names / bounded advertised catalog tools | Tool-call and catalog telemetry | A usage-surface ratio; not a customer adoption or demand score |
 | `deployment_observations` | Deployment linkage | Distinct bounded deployment IDs observed in telemetry | Server telemetry | Count-only linkage; not deployment health, release status, or an inventory of deployments |
 | `actionable_insights` | Needs attention | Bounded rule signals with affected volume, confidence, and suggested action when the evidence supports them | Analytics rule evaluation | Signals are not diagnoses; missing fields remain explicitly unavailable |
+| `worker_health` | Derived-data worker health | Bounded backlog, queue lag, dead-letter count, and terminal success ratio findings | Latest workspace refresh-job projection | `insufficient_data` is not healthy; this is queue/read-model health, not customer activity or application uptime |
 | `resource_events` | Resource activity | Observed resource method events | Protocol telemetry | Method observations; no resource content or URI is exposed |
 | `prompt_events` | Prompt activity | Observed prompt method events | Protocol telemetry | Method observations; no prompt arguments or completion is inferred |
 | `resource_entities` | Resources observed | Count of bounded hashed resource identities | Durable entity-read projection | Hash counts are not unique people or readable resource identities |

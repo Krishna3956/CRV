@@ -9,6 +9,7 @@ import { projectTrackMCPFact } from "../../../../lib/telemetry/facts.ts";
 import { aggregateTrackMCPFacts, aggregateTrackMCPFactsBy, type TrackMCPOutcomeGroupBy } from "../../../../lib/telemetry/outcomes.ts";
 import { buildTrackMCPDataTrust } from "../../../../lib/telemetry/data-trust.ts";
 import { classifyTrackMCPProtocolSignal, type TrackMCPProtocolSignal } from "../../../../lib/telemetry/semantic.ts";
+import { evaluateWorkerHealth } from "../../../../lib/telemetry/worker-health.ts";
 
 type EventRow = {
   event_id: string;
@@ -197,6 +198,12 @@ export function createAnalyticsHandler(getAdmin: typeof getSupabaseAdmin = getSu
       : refreshCounts.failed > 0 || refreshCounts.retryable > 0 || refreshCounts.queued > 0 || refreshCounts.running > 0
         ? "degraded"
         : "available";
+  const workerHealth = evaluateWorkerHealth(refreshJobs.map((job) => ({
+    state: job.state === "succeeded" ? "completed" : job.state,
+    queued_at: job.created_at,
+    completed_at: job.completed_at,
+    attempts: job.attempt_count,
+  })));
 
   const events = ((data || []) as EventRow[]).filter((event) => event.observation_source === "server");
   const facts = events.map(canonicalEventFromRow).map(projectTrackMCPFact);
@@ -409,7 +416,7 @@ export function createAnalyticsHandler(getAdmin: typeof getSupabaseAdmin = getSu
     catalog_versions: catalogVersions,
     catalog_next_cursor: catalogHasMore ? catalogVersions.at(-1)?.discovered_at || null : null,
     catalog_version_status: catalogVersionStatus,
-    refresh_status: { status: refreshStatus, ...refreshCounts, max_queue_lag_ms: maxQueueLagMs, max_attempt_count: maxAttemptCount, last_successful_run: lastSuccessfulRun },
+    refresh_status: { status: refreshStatus, ...refreshCounts, max_queue_lag_ms: maxQueueLagMs, max_attempt_count: maxAttemptCount, last_successful_run: lastSuccessfulRun, worker_health: workerHealth },
     data_trust: buildTrackMCPDataTrust({ generatedAt, querySince: since, sourceEventCount: events.length, returnedEventCount: data?.length || 0, queryLimit: analyticsQueryLimit, observedThrough: events.length ? events[events.length - 1].started_at : null }), insights });
   };
 }

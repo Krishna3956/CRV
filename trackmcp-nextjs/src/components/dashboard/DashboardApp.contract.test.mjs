@@ -325,6 +325,8 @@ test("Data trust exposes bounded derived-refresh health without implying activit
   assert.match(source, /Worker metrics are bounded to the latest 100 workspace jobs/);
   assert.match(source, /no job is evidence of no customer activity/);
   assert.match(source, /Max lag/);
+  assert.match(source, /worker_health/);
+  assert.match(source, /insufficient_data/);
   assert.match(source, /Some derived-data jobs are queued, retrying, running, or failed/);
 });
 
