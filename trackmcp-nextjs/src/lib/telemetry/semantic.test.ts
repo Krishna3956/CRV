@@ -102,4 +102,8 @@ test("models explicit task lifecycle states without inferring abandonment", () =
   const cancelled = classifyTrackMCPOutcome(event({ event_type: "protocol", task_id: "task_1", mcp_method: "tasks/cancel", payload: { status: "cancelled" } }));
   assert.equal(cancelled.outcome, "unknown");
   assert.equal(cancelled.reason, "task_cancelled");
+  const expired = classifyTrackMCPOutcome(event({ event_type: "protocol", task_id: "task_1", mcp_method: "tasks/get", payload: { status: "expired" } }));
+  assert.equal(expired.outcome, "unknown");
+  assert.equal(expired.reason, "task_expired");
+  assert.equal(expired.task_status, "expired");
 });

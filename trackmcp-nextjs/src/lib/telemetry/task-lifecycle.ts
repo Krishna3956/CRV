@@ -2,7 +2,7 @@ import type { TrackMCPFact } from "./facts.ts";
 
 export const TRACKMCP_TASK_READ_MODEL_VERSION = "1" as const;
 
-export type TrackMCPTaskState = "working" | "input_required" | "completed" | "failed" | "cancelled" | "unknown";
+export type TrackMCPTaskState = "working" | "input_required" | "completed" | "failed" | "cancelled" | "expired" | "unknown";
 
 export type TrackMCPTaskLifecycle = {
   task_id_hash: string;
@@ -14,7 +14,7 @@ export type TrackMCPTaskLifecycle = {
   evidence_quality: "observed" | "insufficient_data" | "conflicting";
 };
 
-const states = new Set<TrackMCPTaskState>(["working", "input_required", "completed", "failed", "cancelled"]);
+const states = new Set<TrackMCPTaskState>(["working", "input_required", "completed", "failed", "cancelled", "expired"]);
 
 function taskState(fact: TrackMCPFact): TrackMCPTaskState {
   const value = fact.semantic.task_status;
@@ -45,7 +45,7 @@ export function aggregateTaskLifecycles(facts: readonly TrackMCPFact[]): TrackMC
       first_observed_at: ordered[0]!.observed_at,
       last_observed_at: latest.observed_at,
       observations: Math.min(100, ordered.length),
-      terminal: state === "completed" || state === "failed" || state === "cancelled",
+      terminal: state === "completed" || state === "failed" || state === "cancelled" || state === "expired",
       evidence_quality,
     };
   }).sort((a, b) => b.last_observed_at.localeCompare(a.last_observed_at)).slice(0, 100);

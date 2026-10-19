@@ -273,7 +273,7 @@ export type Analytics = {
       limitation: string;
     };
     identity_source_counts?: { resolver: number; unresolved: number };
-    tasks?: { task_id_hash: string; state: "working" | "input_required" | "completed" | "failed" | "cancelled" | "unknown"; first_observed_at: string; last_observed_at: string; observations: number; terminal: boolean; evidence_quality: "observed" | "insufficient_data" | "conflicting" }[];
+    tasks?: { task_id_hash: string; state: "working" | "input_required" | "completed" | "failed" | "cancelled" | "expired" | "unknown"; first_observed_at: string; last_observed_at: string; observations: number; terminal: boolean; evidence_quality: "observed" | "insufficient_data" | "conflicting" }[];
   };
   /** Query provenance and bounded-scan disclosure for every dashboard result. */
   data_trust?: TrackMCPDataTrust;

@@ -25,3 +25,16 @@ test("missing task status remains unknown and no inactivity is inferred", () => 
   assert.equal(task?.state, "unknown");
   assert.equal(task?.terminal, false);
 });
+
+test("explicit expiry is terminal, while a later explicit completion remains authoritative", () => {
+  const facts = [
+    projectTrackMCPFact(event("expired", "2026-10-19T00:00:00Z")),
+    projectTrackMCPFact(event("completed", "2026-10-19T00:05:00Z")),
+  ];
+  const [task] = aggregateTaskLifecycles(facts);
+  assert.equal(task?.state, "completed");
+  assert.equal(task?.terminal, true);
+  const [expired] = aggregateTaskLifecycles([facts[0]!]);
+  assert.equal(expired?.state, "expired");
+  assert.equal(expired?.terminal, true);
+});

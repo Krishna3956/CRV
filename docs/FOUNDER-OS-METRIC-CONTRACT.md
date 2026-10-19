@@ -14,6 +14,7 @@ source explicitly says it is an outcome event.
 | `task_pending` | Explicit task still in progress | Allowlisted task status (`working` or `input_required`) | Task event with a task ID | Pending is observed state; it is not abandonment |
 | `task_completed` | Explicit task completion | Allowlisted task status (`completed`) | Task event with a task ID | Task completion is not proof of the customer's business outcome |
 | `task_cancelled` | Explicit cancellation request/state | Allowlisted task status (`cancelled`) | Task event with a task ID | Cancellation is observed protocol state; worker shutdown and side-effect rollback are not inferred |
+| `task_expired` | Explicit task expiry/timeout state | Allowlisted task status (`expired`) | Task event with a task ID | Expiry is observed protocol state; it is not inferred from inactivity, and a later explicit completion remains visible as the latest state |
 | `error_rate` | Error rate | Failed known-outcome calls / known calls | Tool-call telemetry | Unknown outcomes are not failures |
 | `needs_attention` | Needs attention | Count of fired insight rules | Bounded analytics rules | Signals, not diagnoses |
 | `identity_coverage` | Verified account coverage | Events with `account_identity_source=resolver` / eligible events | Resolver-labeled server telemetry | Event-weighted coverage; not unique organizations |

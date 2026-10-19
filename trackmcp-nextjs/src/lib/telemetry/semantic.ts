@@ -22,6 +22,7 @@ export type TrackMCPOutcomeReason =
   | "task_failed"
   | "task_pending"
   | "task_cancelled"
+  | "task_expired"
   | "conflicting_signals"
   | "missing_terminal_signal"
   | "input_required"
@@ -58,7 +59,7 @@ export type TrackMCPSemanticOutcome = {
   evidence_quality: TrackMCPEvidenceQuality;
   reason: TrackMCPOutcomeReason;
   /** Explicit task state when the event carries a task identifier; never inferred from silence. */
-  task_status?: "working" | "input_required" | "completed" | "failed" | "cancelled";
+  task_status?: "working" | "input_required" | "completed" | "failed" | "cancelled" | "expired";
   protocol_signal?: TrackMCPProtocolSignal;
   data_quality: TrackMCPDataQuality;
 };
@@ -91,10 +92,10 @@ function scopeForEvent(event: CanonicalTrackMCPEvent): TrackMCPSemanticScope {
   return "event";
 }
 
-function taskStatus(event: CanonicalTrackMCPEvent): "working" | "input_required" | "completed" | "failed" | "cancelled" | undefined {
+function taskStatus(event: CanonicalTrackMCPEvent): "working" | "input_required" | "completed" | "failed" | "cancelled" | "expired" | undefined {
   if (!event.task_id) return undefined;
   const value = event.payload?.task_status ?? event.payload?.status;
-  return value === "working" || value === "input_required" || value === "completed" || value === "failed" || value === "cancelled" ? value : undefined;
+  return value === "working" || value === "input_required" || value === "completed" || value === "failed" || value === "cancelled" || value === "expired" ? value : undefined;
 }
 
 function workflowStatus(event: CanonicalTrackMCPEvent): string | undefined {
@@ -154,6 +155,10 @@ export function classifyTrackMCPOutcome(event: CanonicalTrackMCPEvent): TrackMCP
     outcome = "unknown";
     evidence_quality = "observed";
     reason = "task_cancelled";
+  } else if (task === "expired") {
+    outcome = "unknown";
+    evidence_quality = "observed";
+    reason = "task_expired";
   } else if (task === "working" || task === "input_required") {
     outcome = "pending";
     evidence_quality = "observed";
