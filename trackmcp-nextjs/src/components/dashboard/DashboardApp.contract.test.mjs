@@ -158,6 +158,18 @@ test("Setup remains reachable for My data activation states", () => {
   assert.match(source, /function SetupView\(/);
 });
 
+test("Setup breaks the no-workspace connection-key loop", () => {
+  const setupStart = source.indexOf("function SetupView(");
+  const setupEnd = source.indexOf("// Kept as an inert compatibility artifact", setupStart);
+  const setupSource = source.slice(setupStart, setupEnd);
+  assert.match(source, /onCreateWorkspace=\{onCreateWorkspace\}/);
+  assert.match(setupSource, /onCreateWorkspace: \(\) => void/);
+  assert.match(setupSource, /!workspaceId \? \(/);
+  assert.match(setupSource, /Create your workspace/);
+  assert.match(setupSource, /onClick=\{onCreateWorkspace\}/);
+  assert.match(setupSource, /workspaceId \? "Create a connection key to begin" : "Create your workspace to begin"/);
+});
+
 test("Setup documentation link is external and the connection steps are explicit", () => {
   assert.match(source, /label: "Read documentation"/);
   assert.match(source, /href: "https:\/\/trackmcp\.com\/docs"/);
