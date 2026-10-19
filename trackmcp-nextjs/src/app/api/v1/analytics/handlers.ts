@@ -142,12 +142,12 @@ export function createAnalyticsHandler(getAdmin: typeof getSupabaseAdmin = getSu
   // marks the classification as insufficient rather than inventing a trend.
   const historyLimit = 100_000;
   const historyResult = await supabase.from("trackmcp_events")
-    .select("account_key, account_identity_source, started_at, event_type, mcp_method, tool_name, is_error, success, result_type, duration_ms")
+    .select("event_id, account_key, account_identity_source, started_at, event_type, mcp_method, tool_name, is_error, success, result_type, duration_ms, interaction_id, request_state_hash, retry_number, retry_of_event_id")
     .eq("workspace_id", workspaceId)
     .eq("observation_source", "server")
     .order("started_at", { ascending: true })
     .limit(historyLimit);
-  const historyRows = historyResult.error ? [] : ((historyResult.data || []) as Array<{ account_key?: unknown; account_identity_source?: unknown; started_at?: unknown; event_type?: unknown; mcp_method?: unknown; tool_name?: unknown; is_error?: unknown; success?: unknown; result_type?: unknown; duration_ms?: unknown }>);
+  const historyRows = historyResult.error ? [] : ((historyResult.data || []) as Array<{ event_id?: unknown; account_key?: unknown; account_identity_source?: unknown; started_at?: unknown; event_type?: unknown; mcp_method?: unknown; tool_name?: unknown; is_error?: unknown; success?: unknown; result_type?: unknown; duration_ms?: unknown; interaction_id?: unknown; request_state_hash?: unknown; retry_number?: unknown; retry_of_event_id?: unknown }>);
   const historyCapped = historyRows.length >= historyLimit;
 
   // Snapshot rows are service-written and explicitly workspace-scoped by the
@@ -468,24 +468,71 @@ export function createAnalyticsHandler(getAdmin: typeof getSupabaseAdmin = getSu
   });
   const resourceEvents = events.filter((event) => event.mcp_method?.startsWith("resources/"));
   const promptEvents = events.filter((event) => event.mcp_method?.startsWith("prompts/"));
+  // A catalog/list/subscribe observation is useful telemetry, but it is not a
+  // resource read or prompt invocation. Keep it in interaction_surfaces while
+  // excluding it from this product-use read model.
   const resourceReadEvents = resourceEvents.filter((event) => event.mcp_method === "resources/read");
   const promptCallEvents = promptEvents.filter((event) => event.mcp_method === "prompts/get");
-  const previousResourceReads = historyRows.filter((row) => row.event_type === "protocol" && row.mcp_method?.toString().startsWith("resources/") && typeof row.started_at === "string" && Date.parse(row.started_at) >= previousPeriodStartMs && Date.parse(row.started_at) < periodStartMs).length;
-  const previousPromptCalls = historyRows.filter((row) => row.event_type === "protocol" && row.mcp_method?.toString().startsWith("prompts/") && typeof row.started_at === "string" && Date.parse(row.started_at) >= previousPeriodStartMs && Date.parse(row.started_at) < periodStartMs).length;
-  const groupSurface = (items: typeof resourceEvents, kind: "resource" | "prompt") => {
-    const grouped = new Map<string, { calls: number; complete: number; stalled: number }>();
-    for (const event of items) {
-      const name = event.mcp_method || `${kind === "resource" ? "Resource" : "Prompt"} (hashed identity)`;
-      const current = grouped.get(name) || { calls: 0, complete: 0, stalled: 0 };
-      current.calls += 1;
-      if (event.result_type === "complete" || event.success === true) current.complete += 1;
-      if (event.result_type === "input_required") current.stalled += 1;
-      grouped.set(name, current);
-    }
-    return [...grouped.entries()].sort((a, b) => b[1].calls - a[1].calls).slice(0, MAX_PUBLIC_LIST_ITEMS).map(([name, value]) => ({ name: name.slice(0, 128), calls: value.calls, share: items.length ? value.calls / items.length : null, completion_rate: kind === "prompt" ? (value.calls ? value.complete / value.calls : null) : undefined, stall_rate: kind === "prompt" ? (value.calls ? value.stalled / value.calls : null) : undefined }));
+  type SurfaceEvent = { event_id?: unknown; mcp_method?: unknown; started_at?: unknown; is_error?: unknown; success?: unknown; result_type?: unknown; interaction_id?: unknown; request_state_hash?: unknown; retry_number?: unknown; retry_of_event_id?: unknown };
+  type SurfaceOutcome = "complete" | "stalled" | "errored" | "unknown";
+  type SurfaceSummary = { interactions: number; observations: number; complete: number; stalled: number; errored: number; unknown: number; linked_retry_count: number; by_method: Map<string, { interactions: number; complete: number; stalled: number; errored: number; unknown: number }> };
+  const surfaceOutcome = (event: SurfaceEvent): SurfaceOutcome => {
+    // Do not let success:true turn an explicit input request into completion.
+    // A missing result type remains unknown: it is never an inferred success
+    // and never an error merely because the outcome was not inspectable.
+    if (event.is_error === true || event.success === false) return "errored";
+    if (event.result_type === "input_required") return "stalled";
+    if (event.result_type === "complete") return "complete";
+    return "unknown";
   };
+  const surfaceSummary = (items: SurfaceEvent[]): SurfaceSummary => {
+    const interactions = new Map<string, { method: string; outcome: SurfaceOutcome; observations: number }>();
+    for (const [index, event] of items.entries()) {
+      const interactionId = typeof event.interaction_id === "string" && event.interaction_id ? event.interaction_id : null;
+      const requestState = typeof event.request_state_hash === "string" && event.request_state_hash ? event.request_state_hash : null;
+      // Collapse only evidence that carries a correlation handle. Never group
+      // unlinked same-method events, since doing so would invent retry linkage.
+      const eventId = typeof event.event_id === "string" && event.event_id ? event.event_id : String(index);
+      const key = interactionId ? `interaction:${interactionId}` : requestState ? `request:${requestState}` : `event:${eventId}`;
+      const current = interactions.get(key);
+      const method = typeof event.mcp_method === "string" && event.mcp_method ? event.mcp_method : "safe method unavailable";
+      if (current) {
+        current.outcome = surfaceOutcome(event);
+        current.observations += 1;
+      } else interactions.set(key, { method, outcome: surfaceOutcome(event), observations: 1 });
+    }
+    const by_method = new Map<string, { interactions: number; complete: number; stalled: number; errored: number; unknown: number }>();
+    let complete = 0; let stalled = 0; let errored = 0; let unknown = 0; let linked_retry_count = 0;
+    for (const interaction of interactions.values()) {
+      if (interaction.outcome === "complete") complete += 1;
+      if (interaction.outcome === "stalled") stalled += 1;
+      if (interaction.outcome === "errored") errored += 1;
+      if (interaction.outcome === "unknown") unknown += 1;
+      linked_retry_count += Math.max(0, interaction.observations - 1);
+      const method = by_method.get(interaction.method) || { interactions: 0, complete: 0, stalled: 0, errored: 0, unknown: 0 };
+      method.interactions += 1;
+      method[interaction.outcome] += 1;
+      by_method.set(interaction.method, method);
+    }
+    return { interactions: interactions.size, observations: items.length, complete, stalled, errored, unknown, linked_retry_count, by_method };
+  };
+  const resourceSummary = surfaceSummary(resourceReadEvents);
+  const promptSummary = surfaceSummary(promptCallEvents);
+  const previousSurfaceEvents = historyRows.filter((row) => row.event_type === "protocol" && typeof row.started_at === "string" && Date.parse(row.started_at) >= previousPeriodStartMs && Date.parse(row.started_at) < periodStartMs);
+  const previousResourceReads = surfaceSummary(previousSurfaceEvents.filter((row) => row.mcp_method === "resources/read")).interactions;
+  const previousPromptCalls = surfaceSummary(previousSurfaceEvents.filter((row) => row.mcp_method === "prompts/get")).interactions;
+  const groupSurface = (summary: SurfaceSummary) =>
+    [...summary.by_method.entries()].sort((a, b) => b[1].interactions - a[1].interactions).slice(0, MAX_PUBLIC_LIST_ITEMS).map(([name, value]) => ({
+      name: name.slice(0, 128),
+      calls: value.interactions,
+      share: summary.interactions ? value.interactions / summary.interactions : null,
+      completion_rate: value.interactions ? value.complete / value.interactions : null,
+      stall_rate: value.interactions ? value.stalled / value.interactions : null,
+      error_rate: value.interactions ? value.errored / value.interactions : null,
+      unknown_rate: value.interactions ? value.unknown / value.interactions : null,
+    }));
   const surfaceTrend = new Map<string, number>();
-  for (const event of [...resourceEvents, ...promptEvents]) {
+  for (const event of [...resourceReadEvents, ...promptCallEvents]) {
     const timestamp = Date.parse(event.started_at);
     if (!Number.isFinite(timestamp)) continue;
     const bucket = new Date(timestamp); bucket.setUTCDate(bucket.getUTCDate() - bucket.getUTCDay()); bucket.setUTCHours(0, 0, 0, 0);
@@ -495,16 +542,26 @@ export function createAnalyticsHandler(getAdmin: typeof getSupabaseAdmin = getSu
     surfaceTrend.set(key, (surfaceTrend.get(key) || 0) + 1);
   }
   const resourcePromptActivity = {
-    resource_reads: resourceReadEvents.length,
-    prompt_calls: promptCallEvents.length,
+    resource_reads: resourceSummary.interactions,
+    prompt_calls: promptSummary.interactions,
+    resource_observations: resourceSummary.observations,
+    prompt_observations: promptSummary.observations,
     previous_period_resource_reads: previousResourceReads,
     previous_period_prompt_calls: previousPromptCalls,
-    prompt_completion_rate: promptCallEvents.length ? promptCallEvents.filter((event) => event.result_type === "complete" || event.success === true).length / promptCallEvents.length : null,
-    prompt_stall_rate: promptCallEvents.length ? promptCallEvents.filter((event) => event.result_type === "input_required").length / promptCallEvents.length : null,
-    resource_breakdown: groupSurface(resourceEvents, "resource"),
-    prompt_breakdown: groupSurface(promptEvents, "prompt"),
+    resource_completion_rate: resourceSummary.interactions ? resourceSummary.complete / resourceSummary.interactions : null,
+    resource_stall_rate: resourceSummary.interactions ? resourceSummary.stalled / resourceSummary.interactions : null,
+    resource_error_rate: resourceSummary.interactions ? resourceSummary.errored / resourceSummary.interactions : null,
+    prompt_completion_rate: promptSummary.interactions ? promptSummary.complete / promptSummary.interactions : null,
+    prompt_stall_rate: promptSummary.interactions ? promptSummary.stalled / promptSummary.interactions : null,
+    prompt_error_rate: promptSummary.interactions ? promptSummary.errored / promptSummary.interactions : null,
+    outcomes: [
+      { kind: "resource" as const, interactions: resourceSummary.interactions, complete: resourceSummary.complete, stalled: resourceSummary.stalled, errored: resourceSummary.errored, unknown: resourceSummary.unknown, linked_retry_count: resourceSummary.linked_retry_count },
+      { kind: "prompt" as const, interactions: promptSummary.interactions, complete: promptSummary.complete, stalled: promptSummary.stalled, errored: promptSummary.errored, unknown: promptSummary.unknown, linked_retry_count: promptSummary.linked_retry_count },
+    ],
+    resource_breakdown: groupSurface(resourceSummary),
+    prompt_breakdown: groupSurface(promptSummary),
     trend: [...surfaceTrend.entries()].sort(([a], [b]) => a.localeCompare(b)).slice(-500).map(([key, calls]) => { const [period_start, kind, name] = key.split("|"); return { period_start, kind: kind as "resource" | "prompt", name, calls }; }),
-    limitation: historyCapped || historyResult.error ? "Resource and prompt activity is current-period complete, but previous-period comparison is bounded by the available history scan. Names are represented by safe protocol methods; raw URIs, prompt names, arguments, and contents are never exposed." : "Names are represented by safe protocol methods; raw URIs, prompt names, arguments, and contents are never exposed.",
+    limitation: `${historyCapped || historyResult.error ? "Current-period activity is complete, but previous-period comparison is bounded by the available history scan. " : ""}Only resources/read and prompts/get are product-use interactions; list, catalog, and subscription methods remain separate protocol evidence. Missing result type remains unknown rather than success or error. Explicitly linked retries are collapsed to one interaction; unlinked repeats remain distinct observations. Names are represented by safe protocol methods; raw URIs, prompt names, arguments, and contents are never exposed.`,
   };
   const interactions = new Map<string, { path: string[]; stalled: boolean; retried: boolean; error: boolean }>();
   for (const event of calls) {

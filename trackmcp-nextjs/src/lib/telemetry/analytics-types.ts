@@ -260,14 +260,25 @@ export type Analytics = {
    * protocol methods/hashed identities because raw catalog names and inputs
    * are not safe dashboard dimensions. */
   resource_prompt_activity?: {
+    /** Logical reads/calls, with only explicitly linked retries collapsed. */
     resource_reads: number;
     prompt_calls: number;
+    /** Physical protocol observations remain visible so retry collapse is not hidden. */
+    resource_observations: number;
+    prompt_observations: number;
     previous_period_resource_reads: number;
     previous_period_prompt_calls: number;
+    resource_completion_rate: number | null;
+    resource_stall_rate: number | null;
+    resource_error_rate: number | null;
     prompt_completion_rate: number | null;
     prompt_stall_rate: number | null;
-    resource_breakdown: Array<{ name: string; calls: number; share: number | null }>;
-    prompt_breakdown: Array<{ name: string; calls: number; share: number | null; completion_rate: number | null; stall_rate: number | null }>;
+    prompt_error_rate: number | null;
+    /** Last explicit outcome per safely-linked interaction. Missing result_type
+     * is not converted into an error; failed transport/server evidence is. */
+    outcomes: Array<{ kind: "resource" | "prompt"; interactions: number; complete: number; stalled: number; errored: number; unknown: number; linked_retry_count: number }>;
+    resource_breakdown: Array<{ name: string; calls: number; share: number | null; completion_rate: number | null; stall_rate: number | null; error_rate: number | null; unknown_rate: number | null }>;
+    prompt_breakdown: Array<{ name: string; calls: number; share: number | null; completion_rate: number | null; stall_rate: number | null; error_rate: number | null; unknown_rate: number | null }>;
     trend: Array<{ period_start: string; kind: "resource" | "prompt"; name: string; calls: number }>;
     limitation: string;
   };

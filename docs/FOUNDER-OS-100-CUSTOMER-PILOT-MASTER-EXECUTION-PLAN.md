@@ -244,28 +244,27 @@ keeping resource URI/content and prompt names/arguments private by default?
 
 ### Required engineering decisions before claiming completion
 
-- [ ] Define whether customers can opt into safe display labels. Default remains
+- [x] Pilot decision: no customer opt-in label display yet. Default remains
   hash-only/method-family because raw URI and prompt identifiers are sensitive.
-- [ ] Use three truthful states for resource/prompt interactions: explicit
-  completion, input-required, and explicit error; never use missing result type
-  as an error.
-- [ ] Apply the same input-required possibility to `resources/read` and
+- [x] Use explicit completion, input-required, explicit error, and unknown
+  evidence states. Missing result type is never converted to success or error.
+- [x] Apply the same input-required possibility to `resources/read` and
   `prompts/get`; resource reads are not automatically successful by absence of
   an error.
-- [ ] Preserve retry linkage (`interaction_id`, request-state/retry evidence)
+- [x] Preserve retry linkage (`interaction_id`, request-state/retry evidence)
   so a stall then retry is not reported as unrelated customer journeys.
-- [ ] Keep subscription/list-change/catalog signals separate from one-time
+- [x] Keep subscription/list-change/catalog signals separate from one-time
   reads/calls.
-- [ ] Include resource templates/catalog versions only with bounded/hash-safe
+- [x] Include resource templates/catalog versions only with bounded/hash-safe
   identity and an explicit completeness state.
-- [ ] Add UI detail only when its data contract has a safe bounded identity;
+- [x] Add UI detail only when its data contract has a safe bounded identity;
   otherwise show aggregate evidence and explain the restriction.
 
 ### Acceptance evidence
 
-- [ ] Fixtures cover resource read complete, input-required, error, retry,
+- [x] Fixtures cover resource read complete, input-required, error, retry,
   unknown/missing type, prompt complete, prompt input-required, and prompt error.
-- [ ] Dashboard renders resource/prompt aggregates without content or inputs.
+- [x] Dashboard renders resource/prompt aggregates without content or inputs.
 - [ ] Production disposable evidence proves at least one supported surface or
   the tab is labelled limited before the pilot.
 

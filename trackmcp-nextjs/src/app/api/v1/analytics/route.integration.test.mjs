@@ -249,9 +249,39 @@ test("analytics exposes the Resources and Prompts vertical-slice read model", as
   assert.equal(body.resource_prompt_activity.prompt_calls, 2);
   assert.equal(body.resource_prompt_activity.prompt_completion_rate, 0.5);
   assert.equal(body.resource_prompt_activity.prompt_stall_rate, 0.5);
-  assert.deepEqual(body.resource_prompt_activity.resource_breakdown[0], { name: "resources/read", calls: 1, share: 1 });
+  assert.equal(body.resource_prompt_activity.prompt_error_rate, 0);
+  assert.deepEqual(body.resource_prompt_activity.resource_breakdown[0], { name: "resources/read", calls: 1, share: 1, completion_rate: 0, stall_rate: 0, error_rate: 0, unknown_rate: 1 });
+  assert.deepEqual(body.resource_prompt_activity.outcomes[0], { kind: "resource", interactions: 1, complete: 0, stalled: 0, errored: 0, unknown: 1, linked_retry_count: 0 });
   assert.equal(body.resource_prompt_activity.prompt_breakdown[0].name, "prompts/get");
   assert.equal(body.resource_prompt_activity.prompt_breakdown[0].completion_rate, 0.5);
+});
+
+test("Resources and Prompts keeps explicit outcomes separate and collapses only linked retries", async () => {
+  const handler = createAnalyticsHandler(() => fakeAdmin([
+    event({ event_id: "resource-needs-input", event_type: "protocol", mcp_method: "resources/read", interaction_id: "resource-1", result_type: "input_required", success: true }),
+    event({ event_id: "resource-complete-retry", event_type: "protocol", mcp_method: "resources/read", interaction_id: "resource-1", retry_number: 1, result_type: "complete", success: true }),
+    event({ event_id: "resource-error", event_type: "protocol", mcp_method: "resources/read", success: false, is_error: true }),
+    event({ event_id: "resource-list", event_type: "protocol", mcp_method: "resources/list", success: true }),
+    event({ event_id: "prompt-input", event_type: "protocol", mcp_method: "prompts/get", result_type: "input_required", success: true }),
+    event({ event_id: "prompt-error", event_type: "protocol", mcp_method: "prompts/get", success: false, is_error: true }),
+    event({ event_id: "prompt-list", event_type: "protocol", mcp_method: "prompts/list", success: true }),
+  ]));
+  const response = await handler(new Request("http://analytics.test/api/v1/analytics?days=7", { headers: { authorization: "Bearer key" } }));
+  assert.equal(response.status, 200);
+  const body = await response.json();
+  assert.equal(body.resource_prompt_activity.resource_reads, 2);
+  assert.equal(body.resource_prompt_activity.resource_observations, 3);
+  assert.equal(body.resource_prompt_activity.prompt_calls, 2);
+  assert.equal(body.resource_prompt_activity.prompt_observations, 2);
+  assert.deepEqual(body.resource_prompt_activity.outcomes, [
+    { kind: "resource", interactions: 2, complete: 1, stalled: 0, errored: 1, unknown: 0, linked_retry_count: 1 },
+    { kind: "prompt", interactions: 2, complete: 0, stalled: 1, errored: 1, unknown: 0, linked_retry_count: 0 },
+  ]);
+  assert.equal(body.resource_prompt_activity.resource_completion_rate, 0.5);
+  assert.equal(body.resource_prompt_activity.prompt_completion_rate, 0);
+  assert.equal(body.resource_prompt_activity.prompt_stall_rate, 0.5);
+  assert.equal(body.resource_prompt_activity.prompt_error_rate, 0.5);
+  assert.equal(body.resource_prompt_activity.trend.every((item) => item.name === "resources/read" || item.name === "prompts/get"), true);
 });
 
 test("analytics exposes bounded Journey path and stall evidence", async () => {
