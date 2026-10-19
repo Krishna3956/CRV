@@ -189,6 +189,8 @@ export type Analytics = {
   protocol_events: number;
   catalog_events: number;
   protocol_versions: string[];
+  services: string[];
+  environments: string[];
   transports: string[];
   methods: string[];
   interaction_surfaces?: {

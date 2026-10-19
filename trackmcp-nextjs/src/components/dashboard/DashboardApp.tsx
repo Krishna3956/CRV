@@ -401,6 +401,8 @@ const EXAMPLE_ANALYTICS: Analytics = {
   protocol_events: 290,
   catalog_events: 42,
   protocol_versions: ["2025-11-25"],
+  services: ["quickbooks-finance-mcp"],
+  environments: ["production"],
   protocol_signals: { notification: 4, progress: 8, catalog_changed: 6, subscription_started: 2, subscription_stopped: 1, observed_events: 21 },
   transports: ["streamable_http"],
   methods: ["tools/list", "tools/call"],
@@ -3740,6 +3742,22 @@ function SetupView({
           </button>
         )}
       </section>
+      <Panel
+        title="Server and environment"
+        subtitle="Observed scope comes from bounded telemetry; it is not proof that a named customer or deployment exists."
+      >
+        {analytics?.services?.length || analytics?.environments?.length ? (
+          <div className="grid gap-3 sm:grid-cols-2">
+            <ScopeValue label="Observed server" values={analytics.services} empty="No service name observed yet" />
+            <ScopeValue label="Observed environment" values={analytics.environments} empty="No environment observed yet" />
+          </div>
+        ) : (
+          <StateNote
+            title="Waiting for a server event"
+            body="After the SDK sends its first event, TrackMCP will show the bounded service and environment labels observed from the server. It will not infer them from the workspace or connection key."
+          />
+        )}
+      </Panel>
       <div className="grid gap-6 xl:grid-cols-[minmax(0,1.2fr)_minmax(320px,.8fr)]">
         <Panel
           title="Connect the server"
@@ -3938,6 +3956,16 @@ function SetupView({
           </div>
         </div>
       </details>
+    </div>
+  );
+}
+
+function ScopeValue({ label, values, empty }: { label: string; values: string[]; empty: string }) {
+  return (
+    <div className="border border-line bg-paper p-3">
+      <p className="dashboard-label text-faint">{label}</p>
+      <p className="mt-2 text-sm font-semibold text-ink">{values.length ? values.join(", ") : empty}</p>
+      <p className="mt-2 text-[11px] leading-relaxed text-muted">Bounded labels only; raw payloads are not displayed.</p>
     </div>
   );
 }

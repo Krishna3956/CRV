@@ -295,6 +295,8 @@ export function createAnalyticsHandler(getAdmin: typeof getSupabaseAdmin = getSu
 
   const protocols = events.filter((event) => event.event_type === "protocol");
   const protocolVersions = [...new Set(events.map((event) => event.protocol_version).filter(Boolean))];
+  const services = [...new Set(events.map((event) => event.service?.trim()).filter((value): value is string => Boolean(value)))];
+  const environments = [...new Set(events.map((event) => event.environment?.trim()).filter((value): value is string => Boolean(value)))];
   const transports = [...new Set(events.map((event) => event.transport).filter(Boolean))];
   const methods = [...new Set(events.map((event) => event.mcp_method).filter(Boolean))];
   const protocolSignalCounts: Record<TrackMCPProtocolSignal, number> = { notification: 0, progress: 0, catalog_changed: 0, subscription_started: 0, subscription_stopped: 0 };
@@ -328,6 +330,8 @@ export function createAnalyticsHandler(getAdmin: typeof getSupabaseAdmin = getSu
   const correlationHandleSource: TrackMCPCorrelationHandleSource | null = handleSources.length === 1 ? handleSources[0] : handleSources.length === 0 ? "missing" : null;
   return NextResponse.json({ range_days: days, total_events: events.length, protocol_events: protocols.length, catalog_events: catalogs,
     protocol_versions: protocolVersions.slice(0, MAX_PUBLIC_DIMENSION_ITEMS),
+    services: services.slice(0, MAX_PUBLIC_DIMENSION_ITEMS),
+    environments: environments.slice(0, MAX_PUBLIC_DIMENSION_ITEMS),
     interaction_surfaces: {
       resources: { events: resourceEvents.length, methods: [...new Set(resourceEvents.map((event) => event.mcp_method).filter(Boolean))].slice(0, MAX_PUBLIC_DIMENSION_ITEMS), entity_count: resourceEntityHashes.size, entity_identity: "sha256_hash_count", entity_analytics: entityReadAnalytics("resources") },
       prompts: { events: promptEvents.length, methods: [...new Set(promptEvents.map((event) => event.mcp_method).filter(Boolean))].slice(0, MAX_PUBLIC_DIMENSION_ITEMS), entity_count: promptEntityHashes.size, entity_identity: "sha256_hash_count", entity_analytics: entityReadAnalytics("prompts") },
