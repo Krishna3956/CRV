@@ -13,19 +13,32 @@ import {
 export const metadata: Metadata = pageMeta({
   title: "REST API | TrackMCP Docs",
   description:
-    "Query your MCP analytics programmatically: tools, sessions, clients, and outcomes over a simple REST API.",
+    "Send bounded MCP telemetry or query workspace analytics programmatically over a simple REST API.",
   path: "/docs/api",
 });
 
 const endpoints: { method: string; path: string; desc: string }[] = [
   { method: "POST", path: "/api/v1/ingest", desc: "Submit a validated telemetry batch" },
-  { method: "GET", path: "/api/v1/analytics?days=30", desc: "Workspace metrics, tools, clients, sessions, and insights" },
-  { method: "GET", path: "/api/v1/tool-quality?days=30", desc: "Bounded tool-quality metrics, catalog history, workflow associations, and insufficient-data states" },
-  { method: "GET", path: "/api/v1/alerts?limit=50", desc: "List authenticated workspace alert configurations" },
-  { method: "GET", path: "/api/v1/alert-incidents?limit=50", desc: "List bounded regression incidents and their data status" },
+  { method: "POST", path: "/api/v1/otel/v1/traces", desc: "Accept bounded OTLP/HTTP JSON MCP span metadata; protobuf and gRPC are unsupported" },
+  { method: "GET", path: "/api/v1/analytics?days=30[&workspace_id=...]", desc: "Workspace metrics, tools, clients, sessions, and insights" },
+  { method: "GET", path: "/api/v1/tool-quality?days=30[&workspace_id=...]", desc: "Bounded tool-quality metrics, catalog history, workflow associations, and insufficient-data states" },
+  { method: "GET", path: "/api/v1/alerts?limit=50[&workspace_id=...]", desc: "List authenticated workspace alert configurations" },
+  { method: "GET", path: "/api/v1/alert-incidents?limit=50[&workspace_id=...]", desc: "List bounded regression incidents and their data status" },
   { method: "GET", path: "/api/v1/alert-incidents/{id}/deliveries", desc: "Inspect bounded webhook delivery attempts without secrets" },
   { method: "POST", path: "/api/v1/alert-destinations", desc: "Create a generic HTTPS webhook destination using an external secret reference" },
-  { method: "GET", path: "/api/v1/traces?session_id=...|correlation_handle=...", desc: "Inspect ordered events for one protocol session or bounded correlation handle" },
+  { method: "GET", path: "/api/v1/traces?session_id=...|correlation_handle=...[&workspace_id=...]", desc: "Inspect ordered events for one protocol session or bounded correlation handle" },
+  { method: "GET", path: "/api/v2/overview?days=30", desc: "Versioned Founder OS overview with data-trust metadata" },
+  { method: "GET", path: "/api/v2/tools?days=30[&limit=50&cursor=...]", desc: "Bounded tool performance and catalog projection with optional cursor pagination" },
+  { method: "GET", path: "/api/v2/tools/{name}?days=30", desc: "One tool's observed calls, errors, and latency" },
+  { method: "GET", path: "/api/v2/catalogs?days=30", desc: "Current bounded catalog snapshot projection" },
+  { method: "GET", path: "/api/v2/reliability?days=30", desc: "Conservative observed reliability evidence, not uptime" },
+  { method: "GET", path: "/api/v2/outcomes?days=30", desc: "Evidence-backed outcomes with unknown states preserved" },
+  { method: "GET", path: "/api/v2/journeys?days=30", desc: "Bounded correlated sessions, not unique people" },
+  { method: "GET", path: "/api/v2/action-queue?status=open", desc: "Workspace-scoped action items; lifecycle mutations remain protected" },
+  { method: "GET", path: "/api/v2/data-trust?days=30", desc: "Query window, freshness, counts, and truncation provenance" },
+  { method: "GET", path: "/api/v2/people?days=30", desc: "Resolver coverage and client observations; no unique-user claims" },
+  { method: "GET", path: "/api/v2/resources?days=30", desc: "Observed resource protocol methods; entities are not inferred" },
+  { method: "GET", path: "/api/v2/prompts?days=30", desc: "Observed prompt protocol methods; arguments are not exposed" },
 ];
 
 export default function ApiDocsPage() {
@@ -33,15 +46,16 @@ export default function ApiDocsPage() {
     <DocsShell active="/docs/api">
       <DocTitle eyebrow="Reference">REST API</DocTitle>
       <DocLead>
-          Query the analytics currently exposed by your workspace. Requests use the
-          same TrackMCP domain as the dashboard.
+          Send bounded MCP telemetry or query the analytics currently exposed by your
+          workspace. Requests use the same TrackMCP domain as the dashboard.
       </DocLead>
 
       <DocSection title="Authentication">
         <Para>
-          Send your API key as a bearer token. Keys are scoped to a workspace. The
-          dashboard and analytics/trace reads require authentication; keep keys in a
-          secret manager and never put them in tool arguments.
+          Send your API key as a bearer token. Keys are scoped to a workspace. Browser
+          dashboard requests must include the selected <Inline>workspace_id</Inline>;
+          API-key requests derive the workspace from the key. Keep keys in a secret
+          manager and never put them in tool arguments.
         </Para>
         <Code>{`curl "https://trackmcp.com/api/v1/analytics?days=7" \\
   -H "Authorization: Bearer $TRACKMCP_KEY"`}</Code>
@@ -71,6 +85,47 @@ export default function ApiDocsPage() {
     "payload_policy":"redacted",
     "payload":{"args":{}}
   }]}'`}</Code>
+      </DocSection>
+
+      <DocSection title="OpenTelemetry JSON interoperability">
+        <Para>
+          If you already emit OpenTelemetry spans, TrackMCP accepts a narrow
+          <Inline>OTLP/HTTP JSON</Inline> adapter at
+          <Inline>/api/v1/otel/v1/traces</Inline>. Send the same workspace bearer key
+          and only MCP-relevant metadata is mapped: operation, tool name, protocol,
+          transport, session/request identifiers, client metadata, timing, and status.
+          Span attributes, exception bodies, trace IDs, logs, baggage, arguments, and
+          results are not retained by this endpoint.
+        </Para>
+        <Code>{`curl https://trackmcp.com/api/v1/otel/v1/traces \\
+  -H "Authorization: Bearer $TRACKMCP_KEY" \\
+  -H "Content-Type: application/json" \\
+  -d '{
+    "resourceSpans": [{
+      "resource": {"attributes": [
+        {"key": "service.name", "value": {"stringValue": "my-mcp-server"}},
+        {"key": "deployment.environment.name", "value": {"stringValue": "production"}}
+      ]},
+      "scopeSpans": [{"spans": [{
+        "name": "tools/call",
+        "startTimeUnixNano": "1760832000000000000",
+        "endTimeUnixNano": "1760832000042000000",
+        "attributes": [
+          {"key": "mcp.method.name", "value": {"stringValue": "tools/call"}},
+          {"key": "gen_ai.tool.name", "value": {"stringValue": "search"}},
+          {"key": "mcp.transport", "value": {"stringValue": "stdio"}}
+        ]
+      }]}]
+    }]
+  }'`}</Code>
+        <Para>
+          This is not a general-purpose trace archive and it is not a full OTel
+          integration. The endpoint accepts JSON only, up to 256 KiB and 100 spans per
+          request. Protobuf receives <Inline>415 Unsupported Media Type</Inline>; OTLP/gRPC
+          and TrackMCP-managed external OTel export are not supported. The response
+          reports accepted and rejected span counts—verify a first accepted event in the
+          dashboard before relying on the integration.
+        </Para>
       </DocSection>
 
       <DocSection title="Endpoints">
@@ -112,11 +167,30 @@ export default function ApiDocsPage() {
 }`}</Code>
       </DocSection>
 
+      <DocSection title="Versioned Founder OS reads">
+        <Para>
+          The <Inline>/api/v2</Inline> family is the forward-compatible read plane for
+          the Founder OS dashboard. Every endpoint is workspace-scoped and read-only;
+          responses include <Inline>data_trust</Inline> so consumers can see the query
+          window, source count, truncation state, and observed watermark. Unknown or
+          ambiguous evidence remains unknown. In particular, client metadata is not a
+          verified person identity, and resources/prompts currently expose protocol
+          observations rather than inferred entities.
+        </Para>
+        <Para>
+          Tool projections remain bounded for predictable response sizes. Add
+          <Inline>limit</Inline> (1–100) to opt into paging; follow the opaque
+          <Inline>page.next_cursor</Inline> until it is <Inline>null</Inline>. Existing
+          requests without <Inline>limit</Inline> retain the original response shape.
+        </Para>
+      </DocSection>
+
       <DocSection title="Trace response">
         <Para>
           <Inline>GET /api/v1/traces</Inline> requires <Inline>session_id</Inline> or
           <Inline>correlation_handle</Inline> and returns only events belonging to the
-          authenticated workspace and session scope supplied by the caller. A handle is never treated as a
+          authenticated workspace and session scope supplied by the caller. Browser
+          sessions must also provide <Inline>workspace_id</Inline>; a handle is never treated as a
           session ID. The default limit is 200; callers may request 1–1,000 with <Inline>limit</Inline>.
         </Para>
         <Code>{`{

@@ -125,7 +125,34 @@ export async function searchToolsQuery(query: string, limit = 200): Promise<McpT
   return keep((data as McpTool[]) || []);
 }
 
-/* All tool names (for the sitemap). Batched to work around row limits. */
+export const TOOL_SITEMAP_PAGE_SIZE = 45000;
+
+/** One deterministic sitemap page, kept below the protocol URL ceiling. */
+export async function getToolNamesPage(offset = 0, limit = TOOL_SITEMAP_PAGE_SIZE): Promise<{ name: string; slug: string; updated: string | null }[]> {
+  const supabase = getSupabase();
+  if (!supabase || !Number.isInteger(offset) || offset < 0 || !Number.isInteger(limit) || limit < 1 || limit > TOOL_SITEMAP_PAGE_SIZE) return [];
+  const { data, error } = await supabase
+    .from("mcp_tools")
+    .select("id, repo_name, github_url, last_updated")
+    .in("status", ["approved", "pending"])
+    .order("stars", { ascending: false, nullsFirst: false })
+    .order("id", { ascending: true })
+    .range(offset, offset + limit - 1);
+  if (error || !data) return [];
+  const seen = new Set<string>();
+  const out: { name: string; slug: string; updated: string | null }[] = [];
+  for (const r of data as { repo_name: string | null; github_url: string; last_updated: string | null }[]) {
+    if (!r.repo_name || isBlocked(r.repo_name)) continue;
+    const slug = toolSlug(r.github_url, r.repo_name);
+    if (!seen.has(slug)) {
+      seen.add(slug);
+      out.push({ name: r.repo_name, slug, updated: r.last_updated });
+    }
+  }
+  return out;
+}
+
+/* All tool names (for callers that need one bounded list). */
 export async function getAllToolNames(max = 50000): Promise<{ name: string; slug: string; updated: string | null }[]> {
   const supabase = getSupabase();
   if (!supabase) return [];
@@ -136,9 +163,14 @@ export async function getAllToolNames(max = 50000): Promise<{ name: string; slug
   while (out.length < max) {
     const { data, error } = await supabase
       .from("mcp_tools")
-      .select("repo_name, github_url, last_updated")
+      .select("id, repo_name, github_url, last_updated")
       .in("status", ["approved", "pending"])
-      .order("stars", { ascending: false })
+      // Offset pagination is only safe when the ordering is deterministic.
+      // `stars` alone has many ties, so use the immutable row id as a stable
+      // secondary key to prevent skipped/duplicated sitemap URLs between
+      // batches.
+      .order("stars", { ascending: false, nullsFirst: false })
+      .order("id", { ascending: true })
       .range(offset, offset + batch - 1);
     if (error || !data || data.length === 0) break;
     for (const r of data as { repo_name: string | null; github_url: string; last_updated: string | null }[]) {
@@ -158,18 +190,26 @@ export async function getAllToolNames(max = 50000): Promise<{ name: string; slug
 
 export async function getCategoryCounts(): Promise<Record<string, number>> {
   const supabase = getSupabase();
-  if (!supabase) return {};
-  // one row per tool, category only — cheap enough for a few thousand rows
-  const { data } = await supabase
-    .from("mcp_tools")
-    .select("category, repo_name")
-    .in("status", ["approved", "pending"])
-    .limit(10000);
   const counts: Record<string, number> = {};
-  for (const row of (data as { category: string | null; repo_name: string | null }[]) || []) {
-    if (isBlocked(row.repo_name)) continue;
-    const c = row.category || "Others";
-    counts[c] = (counts[c] || 0) + 1;
+  if (!supabase) return counts;
+  // Category totals must cover the full directory. Batch the read so the
+  // Supabase row limit cannot silently undercount larger catalogs.
+  const batch = 1000;
+  const max = 50000;
+  for (let offset = 0; offset < max; offset += batch) {
+    const { data, error } = await supabase
+      .from("mcp_tools")
+      .select("id, category, repo_name")
+      .in("status", ["approved", "pending"])
+      .order("id", { ascending: true })
+      .range(offset, offset + batch - 1);
+    if (error || !data || data.length === 0) break;
+    for (const row of data as { id: string; category: string | null; repo_name: string | null }[]) {
+      if (isBlocked(row.repo_name)) continue;
+      const c = row.category || "Others";
+      counts[c] = (counts[c] || 0) + 1;
+    }
+    if (data.length < batch) break;
   }
   return counts;
 }

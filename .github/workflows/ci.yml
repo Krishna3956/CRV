@@ -7,28 +7,61 @@ on:
 jobs:
   web-and-javascript:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: trackmcp-nextjs
+    env:
+      # Keep the sequential release gate below the hosted runner's memory
+      # ceiling. Individual package tests are bounded and do not need the
+      # default multi-gigabyte V8 heap.
+      NODE_OPTIONS: --max-old-space-size=2048
+      NPM_CONFIG_FUND: "false"
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
           cache: npm
           cache-dependency-path: trackmcp-nextjs/package-lock.json
-      - run: npm ci
-      - run: npm run lint
-      - run: npm run build
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install web dependencies
+        working-directory: trackmcp-nextjs
+        run: npm ci
+      - name: Audit web production dependencies
+        working-directory: trackmcp-nextjs
+        run: npm audit --omit=dev --audit-level=high
+      - name: Build and validate Python SDK artifacts
+        working-directory: packages/python-sdk
+        run: |
+          python3 -m pip install build twine
+          python3 -m build
+          python3 -m twine check dist/*
+      - name: Run web release gate
+        working-directory: trackmcp-nextjs
+        run: npm run test:release-gate
+      - name: Lint web application
+        working-directory: trackmcp-nextjs
+        run: npm run lint
+      - name: Build web application
+        working-directory: trackmcp-nextjs
+        run: npm run build
       - name: Build TypeScript SDK
         working-directory: trackmcp-nextjs/packages/typescript-sdk
         run: npm ci && npm run build
+      - name: Audit TypeScript SDK dependencies
+        working-directory: trackmcp-nextjs/packages/typescript-sdk
+        run: npm audit --audit-level=high
       - name: Test TypeScript SDK
         working-directory: trackmcp-nextjs/packages/typescript-sdk
         run: npm test
+      - name: Test TypeScript SDK packed consumer
+        working-directory: trackmcp-nextjs/packages/typescript-sdk
+        run: npm run test:packed-consumer
       - name: Test TrackMCP CLI
         working-directory: trackmcp-nextjs/packages/cli
         run: npm ci && npm test
+      - name: Test TrackMCP CLI packed consumer
+        working-directory: trackmcp-nextjs/packages/cli
+        run: npm run test:packed-consumer
       - name: Test Python SDK
         working-directory: packages/python-sdk
         run: python3 -m unittest discover -s tests -v

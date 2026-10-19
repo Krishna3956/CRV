@@ -2,7 +2,6 @@
 import { createInterface } from "node:readline/promises";
 import { stdin as input, stdout as output } from "node:process";
 import { fileURLToPath } from "node:url";
-import { realpathSync } from "node:fs";
 import { resolve } from "node:path";
 import { createDeviceClient, createRedeemer, pollDeviceSession } from "../lib/device-client.mjs";
 import { openBrowser } from "../lib/browser.mjs";
@@ -86,36 +85,22 @@ export async function runInit({ cwd = process.cwd(), flags = {}, client = create
   const resolvedFlags = { browser: true, installSdk: true, envFile: ".env.local", nonInteractive: false, ...flags };
   await ensureSdkInstalledImpl({ cwd, install: resolvedFlags.installSdk, outputLog, env });
   const existing = await readConfiguredKey({ cwd, envFile: resolvedFlags.envFile, env });
-  let replacingInvalidKey = false;
   if (existing.key) {
     let keyStatus;
-    try {
-      keyStatus = typeof client.keyStatus === "function" ? await client.keyStatus(existing.key) : { category: "unavailable" };
-    } catch {
-      keyStatus = { category: "network_error" };
-    }
-    const validCategories = new Set(["accepted_telemetry", "no_accepted_telemetry"]);
-    const replacementCategories = new Set(["malformed", "invalid", "revoked", "unauthorized", "permission_denied"]);
-    const reusable = validCategories.has(keyStatus.category)
-      && keyStatus.workspaceAvailable !== false
-      && keyStatus.serviceAvailable !== false;
-    if (reusable) {
+    try { keyStatus = await client.keyStatus(existing.key); } catch { keyStatus = { category: "network_error" }; }
+    const valid = keyStatus?.category === "accepted_telemetry" || keyStatus?.category === "no_accepted_telemetry";
+    if (valid && keyStatus.workspaceAvailable !== false && keyStatus.serviceAvailable !== false) {
       outputLog(`TrackMCP is already connected (${existing.source}). No browser authorization was needed.`);
       return { status: "existing_key", source: existing.source, keyStatus: keyStatus.category };
     }
-    if (!replacementCategories.has(keyStatus.category)) {
-      errorLog(`Could not validate the existing TrackMCP key (${keyStatus.category || "unavailable"}). No key was changed; check your network and run init again.`);
-      return { status: "key_status_unavailable", category: keyStatus.category || "unavailable" };
+    if (!["invalid", "revoked", "malformed", "unauthorized"].includes(keyStatus?.category)) {
+      errorLog(`TrackMCP could not verify the existing key (${keyStatus?.category || "unknown"}). No credential was changed; retry when the service is reachable.`);
+      return { status: "key_unverified", source: existing.source, keyStatus: keyStatus?.category || "unknown" };
     }
-    replacingInvalidKey = true;
-    outputLog("The existing TrackMCP key is no longer valid. Starting browser authorization for a replacement key.");
+    outputLog("The existing TrackMCP key is not valid anymore. Starting a new browser authorization.");
   }
   if (!(interactive ?? isInteractive(resolvedFlags))) {
-    if (replacingInvalidKey) {
-      errorLog("The existing TRACKMCP_KEY is invalid or revoked. init needs an interactive terminal to authorize a replacement; no key was changed.");
-    } else {
-      errorLog("No usable TRACKMCP_KEY was found. init needs an interactive terminal; set TRACKMCP_KEY in CI or run init locally.");
-    }
+    errorLog("No usable TRACKMCP_KEY was found. init needs an interactive terminal; set TRACKMCP_KEY in CI or run init locally.");
     return { status: "non_interactive" };
   }
   const session = await client.startSession();
@@ -156,13 +141,8 @@ export async function runInit({ cwd = process.cwd(), flags = {}, client = create
   if (tracked) outputLog(`Warning: ${resolvedFlags.envFile} is tracked by Git. Add it to .gitignore before committing.`);
   await writeEnvKey(target, redeemed.apiKey, { confirmOverwrite: confirmOverwrite || askOverwrite });
   outputLog(`Saved TRACKMCP_KEY to ${resolvedFlags.envFile} with restrictive permissions.`);
-  outputLog("\nTrackMCP is connected. Next steps:");
-  outputLog("1. Add the wrapper below to your MCP server.");
-  outputLog("2. Restart the server so it loads TRACKMCP_KEY.");
-  outputLog("3. Make one real tool call to send the first telemetry event.");
-  outputLog("4. Open https://app.trackmcp.com/dashboard to view the result.");
+  outputLog("\nTrackMCP is ready. Next, wrap your MCP server and make one real tool call:");
   outputLog('import { withTrackMCP } from "@trackmcp/sdk";\n\nexport default withTrackMCP(server, {\n  apiKey: process.env.TRACKMCP_KEY,\n  service: "my-mcp-server",\n});');
-  outputLog("\nRun `npx @trackmcp/cli doctor` any time to check the SDK, key, workspace, and ingest connection.");
   return { status: "completed", path: target, workspace: redeemed.workspace };
 }
 
@@ -182,10 +162,7 @@ export async function main(argv = process.argv.slice(2), dependencies = {}) {
   return result.status === "completed" || result.status === "existing_key" ? 0 : 1;
 }
 
-// npm invokes package binaries through a symlink in node_modules/.bin. Resolve
-// both paths before comparing them, otherwise the CLI exits silently without
-// running when installed as a dependency or invoked via npx.
-if (process.argv[1] && realpathSync(process.argv[1]) === realpathSync(fileURLToPath(import.meta.url))) {
+if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
   try {
     process.exitCode = await main();
   } catch (error) {

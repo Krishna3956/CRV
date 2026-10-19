@@ -6,13 +6,13 @@ import { ArrowRight, CheckCircle2, Clock3, KeyRound, ShieldCheck, XCircle } from
 import type { User } from "@supabase/supabase-js";
 import { getSupabaseBrowser } from "@/lib/auth/supabase-browser";
 import { trackActivationEvent } from "@/lib/marketing-analytics";
+import { TrackMCPLogo } from "@/components/TrackMCPLogo";
 import {
   normalizeDeviceUserCode,
   createDeviceAuthAdapter,
   type DeviceAuthAdapter,
   type DeviceSessionState,
 } from "@/lib/device-auth";
-import { TrackMCPLogo } from "@/components/TrackMCPLogo";
 
 type Workspace = { id: string; name: string; slug: string };
 
@@ -159,20 +159,23 @@ export function DeviceApprovalClient({
   if (status === "unauthenticated") return <AuthRequiredState userCode={normalizedCode} />;
   if (status === "denied") return <DeviceState icon={<XCircle />} title="Device access was not approved" detail={error || "No key was created. You can safely close this page and restart the CLI when ready."} />;
   if (status === "already_redeemed") return <DeviceState icon={<CheckCircle2 />} title="This device session was already used" detail="Start a new CLI session if you need to connect another project." />;
-  if (status === "already_approved") return <DeviceState icon={<CheckCircle2 />} title="This device session is already approved" detail="Return to your terminal so it can redeem the one-time result." terminalComplete />;
-  if (status === "approved") return <DeviceState icon={<CheckCircle2 />} title="Device approved" detail="Return to your terminal. The CLI is finishing setup now. You can close this tab." terminalComplete />;
+  if (status === "already_approved") return <DeviceState icon={<CheckCircle2 />} title="This device session is already approved" detail="Return to your terminal so it can redeem the one-time result." />;
+  if (status === "approved") return <DeviceState icon={<CheckCircle2 />} title="Device approved" detail="Return to your terminal. The CLI can now finish the one-time setup." />;
 
   return (
-    <main className="min-h-screen bg-canvas px-6 py-10 text-body sm:py-16">
-      <section className="mx-auto max-w-lg rounded-2xl border border-line bg-white p-6 shadow-sm sm:p-8">
-        <TrackMCPLogo mark className="text-[21px]" />
-        <h1 className="mt-8 text-3xl font-medium tracking-[-0.04em] text-ink">Approve CLI connection</h1>
-        <p className="mt-3 text-sm leading-relaxed text-muted">Connect this project to your TrackMCP workspace. The CLI will finish setup in your terminal.</p>
+    <main className="min-h-screen bg-canvas px-6 py-8 text-body sm:py-12">
+      <div className="mx-auto mb-8 flex max-w-xl items-center justify-between">
+        <TrackMCPLogo mark size="nav" />
+        <span className="text-[11px] font-medium text-muted">Secure CLI connection</span>
+      </div>
+      <section className="mx-auto max-w-xl rounded-2xl border border-line bg-white p-6 shadow-sm sm:p-9">
+        <h1 className="mt-3 text-3xl font-medium tracking-[-0.03em] text-ink">Approve this CLI connection</h1>
+        <p className="mt-3 text-sm leading-relaxed text-muted">The TrackMCP CLI is asking to connect this project to your workspace. Approving lets the CLI finish setup; your connection key is never shown in this browser.</p>
         <div className="mt-6 rounded-xl border border-line bg-paper p-4 text-center">
           <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-faint">One-time code</p>
           <p className="mt-2 font-mono text-2xl tracking-[0.16em] text-ink">{normalizedCode}</p>
         </div>
-        {signedIn === false && <div className="mt-6 rounded-xl border border-brand/25 bg-brand-soft/35 p-4"><p className="text-sm font-medium text-ink">Sign in to continue</p><div className="mt-3 flex flex-wrap gap-2"><Link href={authLink(normalizedCode!, "signin")} className="inline-flex items-center gap-2 rounded-md bg-ink px-3 py-2 text-xs font-semibold text-white">Sign in <ArrowRight size={13} /></Link><Link href={authLink(normalizedCode!, "signup")} className="inline-flex items-center gap-2 rounded-md border border-line-strong bg-white px-3 py-2 text-xs font-semibold text-body">Create account</Link></div></div>}
+        {signedIn === false && <div className="mt-6 rounded-xl border border-brand/25 bg-brand-soft/35 p-4"><p className="text-sm font-medium text-ink">Sign in before approving</p><p className="mt-1 text-xs leading-relaxed text-muted">Your existing signup, email verification, SSO, and MFA flow remains in control of identity.</p><div className="mt-3 flex flex-wrap gap-2"><Link href={authLink(normalizedCode!, "signin")} className="inline-flex items-center gap-2 rounded-md bg-ink px-3 py-2 text-xs font-semibold text-white">Sign in <ArrowRight size={13} /></Link><Link href={authLink(normalizedCode!, "signup")} className="inline-flex items-center gap-2 rounded-md border border-line-strong bg-white px-3 py-2 text-xs font-semibold text-body">Create account</Link></div></div>}
         {signedIn && <div className="mt-6 rounded-xl border border-line bg-paper p-4">{workspaceState === "loading" && <p className="text-sm text-muted">Loading your workspaces…</p>}{workspaceState === "error" && <><p className="text-sm font-medium text-ink">Workspace service unavailable</p><p className="mt-1 text-xs leading-relaxed text-muted">We could not load your workspaces. No key was created.</p><button type="button" onClick={() => void loadWorkspace()} disabled={working} className="mt-4 inline-flex items-center gap-2 rounded-md border border-line-strong bg-white px-4 py-2.5 text-sm font-semibold text-body disabled:opacity-60">Try again <ArrowRight size={13} /></button></>}{workspaceState === "none" && <><p className="text-sm font-medium text-ink">Workspace setup required</p><p className="mt-1 text-xs leading-relaxed text-muted">Create a workspace first. No connection key is created by this step.</p><button type="button" onClick={() => void createWorkspace()} disabled={working} className="mt-4 inline-flex items-center gap-2 rounded-md bg-ink px-4 py-2.5 text-sm font-semibold text-white disabled:opacity-60">{working ? "Creating workspace…" : "Create workspace to continue"}<ArrowRight size={13} /></button></>}{workspaceState === "select" && <><label htmlFor="device-workspace" className="text-sm font-medium text-ink">Choose a workspace</label><p className="mt-1 text-xs leading-relaxed text-muted">Select where this CLI connection should send telemetry.</p><select id="device-workspace" value={selectedWorkspaceId} onChange={(event) => setSelectedWorkspaceId(event.target.value)} className="mt-4 w-full rounded-md border border-line-strong bg-white px-3 py-2.5 text-sm text-body"><option value="">Select a workspace…</option>{workspaces.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</select><button type="button" onClick={() => void approve()} disabled={working || !selectedWorkspaceId} className="mt-4 inline-flex items-center gap-2 rounded-md bg-ink px-4 py-2.5 text-sm font-semibold text-white disabled:opacity-60"><KeyRound size={15} />{working ? "Approving…" : "Approve CLI connection"}</button></>}{workspaceState === "ready" && workspaces[0] && <><p className="text-sm font-medium text-ink">Workspace: {workspaces[0].name}</p><p className="mt-1 text-xs leading-relaxed text-muted">Approval authorizes the CLI session. The CLI redeems the one-time key.</p><button type="button" onClick={() => void approve()} disabled={working} className="mt-4 inline-flex items-center gap-2 rounded-md bg-ink px-4 py-2.5 text-sm font-semibold text-white disabled:opacity-60"><KeyRound size={15} />{working ? "Approving…" : "Approve CLI connection"}</button></>}{error && <p className="mt-3 text-xs text-amber-700">{error}</p>}</div>}
         {signedIn === null && <p className="mt-6 text-sm text-muted">Checking your TrackMCP session…</p>}
       </section>
@@ -180,8 +183,8 @@ export function DeviceApprovalClient({
   );
 }
 
-function DeviceState({ icon, title, detail, terminalComplete = false }: { icon: React.ReactNode; title: string; detail: string; terminalComplete?: boolean }) {
-  return <main className="grid min-h-screen place-items-center bg-canvas px-6 text-center text-body"><section className="max-w-md rounded-2xl border border-line bg-white p-8"><span className="mx-auto grid h-12 w-12 place-items-center rounded-full bg-brand-soft text-brand-strong">{icon}</span><h1 className="mt-5 text-2xl font-medium text-ink">{title}</h1><p className="mt-3 text-sm leading-relaxed text-muted">{detail}</p>{terminalComplete ? <Link href="/dashboard" className="mt-6 inline-flex rounded-md border border-line-strong bg-white px-4 py-2.5 text-sm font-semibold text-body">Open dashboard</Link> : <Link href="/" className="mt-6 inline-flex rounded-md bg-ink px-4 py-2.5 text-sm font-semibold text-white">Back to TrackMCP</Link>}</section></main>;
+function DeviceState({ icon, title, detail }: { icon: React.ReactNode; title: string; detail: string }) {
+  return <main className="grid min-h-screen place-items-center bg-canvas px-6 text-center text-body"><section className="max-w-md rounded-2xl border border-line bg-white p-8"><span className="mx-auto grid h-12 w-12 place-items-center rounded-full bg-brand-soft text-brand-strong">{icon}</span><h1 className="mt-5 text-2xl font-medium text-ink">{title}</h1><p className="mt-3 text-sm leading-relaxed text-muted">{detail}</p><Link href="/" className="mt-6 inline-flex rounded-md bg-ink px-4 py-2.5 text-sm font-semibold text-white">Back to TrackMCP</Link></section></main>;
 }
 
 function AuthRequiredState({ userCode }: { userCode: string | null }) {

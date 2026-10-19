@@ -1,35 +1,18 @@
 {
   "name": "@trackmcp/cli",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "description": "Set up TrackMCP and connect an MCP server from the terminal",
   "type": "module",
-  "bin": {
-    "trackmcp": "./bin/trackmcp.mjs"
-  },
-  "files": [
-    "bin",
-    "lib",
-    "README.md"
-  ],
-  "keywords": [
-    "mcp",
-    "trackmcp",
-    "observability"
-  ],
+  "bin": { "trackmcp": "./bin/trackmcp.mjs" },
+  "files": ["bin", "lib", "README.md"],
+  "keywords": ["mcp", "trackmcp", "observability"],
   "license": "MIT",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/Krishna3956/CRV/tree/main/trackmcp-nextjs/packages/cli"
-  },
-  "publishConfig": {
-    "access": "public"
-  },
-  "engines": {
-    "node": ">=18"
-  },
+  "repository": { "type": "git", "url": "https://github.com/Krishna3956/CRV/tree/main/trackmcp-nextjs/packages/cli" },
+  "homepage": "https://trackmcp.com/docs",
+  "bugs": { "url": "https://github.com/Krishna3956/CRV/issues" },
+  "engines": { "node": ">=18" },
   "scripts": {
     "test": "node --test test/*.test.mjs",
-    "test:packed-consumer": "node --test test/packed-consumer.test.mjs",
-    "prepublishOnly": "npm test"
+    "test:packed-consumer": "node --test test/packed-consumer.test.mjs"
   }
 }

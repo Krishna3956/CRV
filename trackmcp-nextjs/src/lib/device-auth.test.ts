@@ -1,6 +1,16 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { createDeviceAuthAdapter, isAllowedVerificationUrl, normalizeDeviceUserCode, fixtureDeviceAuthAdapter } from "./device-auth.ts";
+import { readBoundedJsonObject } from "./cli/device-auth.ts";
+
+test("device lifecycle JSON bodies are bounded and object-only", async () => {
+  const valid = await readBoundedJsonObject(new Request("https://app.test", { method: "POST", body: JSON.stringify({ device_code: "x" }) }));
+  assert.deepEqual(valid, { ok: true, value: { device_code: "x" } });
+  const array = await readBoundedJsonObject(new Request("https://app.test", { method: "POST", body: "[]" }));
+  assert.deepEqual(array, { ok: false, status: 400, error: "JSON body must be an object." });
+  const oversized = await readBoundedJsonObject(new Request("https://app.test", { method: "POST", body: "x".repeat(4097) }));
+  assert.deepEqual(oversized, { ok: false, status: 413, error: "Request body is too large." });
+});
 
 test("device user codes are normalized only when they match the bounded format", () => {
   assert.equal(normalizeDeviceUserCode(" F7KQ-2M9D "), "F7KQ-2M9D");

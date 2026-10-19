@@ -17,6 +17,7 @@ const BANNED = [
 const URL_RE = /^https?:\/\/(www\.)?github\.com\/[\w-]+\/[\w.-]+\/?$/;
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const MAX_SUBMISSION_BODY_BYTES = 8192;
 
 export async function POST(req: Request) {
   let url = "";
@@ -25,12 +26,16 @@ export async function POST(req: Request) {
   let submissionAttribution: unknown = null;
   let requestedSubmissionEventId = "";
   try {
-    const body = await req.json();
-    url = (body.url || "").trim();
-    email = (body.email || "").trim();
-    wantsFeatured = !!body.wantsFeatured;
-    submissionAttribution = body.submission_attribution;
-    requestedSubmissionEventId = typeof body.submission_event_id === "string" ? body.submission_event_id : "";
+    const raw = await req.arrayBuffer();
+    if (raw.byteLength > MAX_SUBMISSION_BODY_BYTES) return NextResponse.json({ error: "Request body is too large." }, { status: 413 });
+    const body: unknown = JSON.parse(new TextDecoder().decode(raw));
+    if (!body || typeof body !== "object" || Array.isArray(body)) return NextResponse.json({ error: "Invalid request." }, { status: 400 });
+    const input = body as Record<string, unknown>;
+    url = (typeof input.url === "string" ? input.url : "").trim();
+    email = (typeof input.email === "string" ? input.email : "").trim();
+    wantsFeatured = input.wantsFeatured === true;
+    submissionAttribution = input.submission_attribution;
+    requestedSubmissionEventId = typeof input.submission_event_id === "string" ? input.submission_event_id : "";
   } catch {
     return NextResponse.json({ error: "Invalid request." }, { status: 400 });
   }
@@ -118,9 +123,9 @@ export async function POST(req: Request) {
 
   revalidatePath("/new", "page");
   revalidatePath("/repository", "page");
-  // The tool sitemap is generated from the same mcp_tools rows. Invalidate it
-  // immediately so a successful submission is discoverable on the next crawl
-  // instead of waiting for the hourly route revalidation window.
+  // Keep the machine-readable directory index in sync with accepted
+  // submissions instead of waiting for its hourly ISR window to expire.
   revalidatePath("/tool-sitemap.xml");
+  revalidatePath("/tool-sitemap/[shard].xml", "page");
   return NextResponse.json({ ok: true, repo_name: repoData.name, stars: repoData.stargazers_count, submission_event_id: attribution.submission_event_id, submitted_at: submittedAt });
 }

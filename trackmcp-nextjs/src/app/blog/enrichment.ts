@@ -21,18 +21,6 @@ const note = (title: string, c: string, after: number) => ({
 });
 
 export const enrichment: Record<string, Enrichment> = {
-  "trackmcp-one-command-cli-init": {
-    art: "protocol",
-    takeaways: [
-      "The CLI owns project setup while the browser owns identity, verification, workspace choice, and approval.",
-      "The raw connection key is redeemed by the CLI and never displayed in the browser or placed in a URL.",
-      "A successful setup exchange is not the same as an accepted telemetry event; verify one real tool call.",
-    ],
-    inserts: [
-      fig("protocol", "One explicit terminal command connects a project through a browser-assisted device approval flow.", 2),
-      note("The boundary matters", "The browser approves a short-lived session. The CLI redeems the one-time key and stores it locally.", 7),
-    ],
-  },
   "mcp-server-conformance-testing-ci": {
     art: "protocol",
     takeaways: [
@@ -413,13 +401,14 @@ export const enrichment: Record<string, Enrichment> = {
   "mcp-observability-guide": {
     art: "clients",
     takeaways: [
-      "MCP observability joins protocol health to agent behavior and workflow outcomes.",
+      "Server-side evidence explains MCP requests and tool execution, not the host's private reasoning or complete user task.",
       "A green HTTP status does not prove that a tool call succeeded.",
-      "Dimensions such as client, tool, session, and outcome turn telemetry into an investigation path.",
+      "Separate transport, protocol, tool-result, and explicit application-outcome signals.",
+      "Minimize and redact telemetry before export, and keep observability fail-open.",
     ],
     inserts: [
       fig("clients", "The same MCP server can behave differently across clients, tools, and workflow paths.", 4),
-      note("Investigate the path", "Start with the incomplete workflow, identify the first repeated or failed step, and then inspect that tool.", 10),
+      note("Investigate the path", "Start with a reproducible failed request, identify the first failing boundary, and verify the fix with a regression test.", 22),
     ],
   },
   "how-to-monitor-an-mcp-server-in-production": {

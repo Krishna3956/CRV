@@ -37,19 +37,21 @@ export default function DocsPage() {
       </DocLead>
       <DocSection id="quickstart" title="Quickstart">
         <Para>
-          The fastest path is one explicit terminal command: run <Inline>npx @trackmcp/cli init</Inline>.
-          It installs the SDK when needed, reuses a valid local key, or opens the secure
-          browser approval flow when no key is available. Then wrap your server and make
-          one real tool call. The npm package itself remains intentionally silent and
-          never opens a browser during installation.
+          The fastest path is terminal-first: run <Inline>npx @trackmcp/cli init</Inline>.
+          It installs the SDK if needed, reuses an existing key, or opens the browser
+          approval flow only when no key is configured. After approval it writes the key
+          locally and prints the next server snippet. The npm package itself remains
+          intentionally silent and never opens a browser during installation.
         </Para>
-        <Code>{`# TypeScript — one-command setup
+        <Code eventName="install_command_copied" eventProperties={{ language: "shell", package: "@trackmcp/cli" }}>{`# TypeScript / Node.js (one command)
 npx @trackmcp/cli init
 # Remote setup: npx @trackmcp/cli init --no-browser
+# Restricted environment: npx @trackmcp/cli init --no-install
+# Diagnostics: npx @trackmcp/cli doctor
 # Manual fallback: https://app.trackmcp.com/signup?utm_source=npm&utm_medium=sdk_docs&utm_campaign=sdk_setup&package=%40trackmcp%2Fsdk&content_path=%2Fdocs
 
-          # Python
-          python3 -m pip install trackmcp
+# Python
+python3 -m pip install trackmcp
 # Create your key at https://app.trackmcp.com/dashboard`}</Code>
         <Code>{`import { withTrackMCP } from "@trackmcp/sdk";
 import { server } from "./mcp";

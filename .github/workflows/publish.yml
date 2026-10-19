@@ -19,7 +19,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
-      id-token: write
+      id-token: write # npm provenance attestation
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -29,20 +29,37 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
+      - name: Audit all release artifacts before publishing
+        working-directory: trackmcp-nextjs
+        run: npm run test:package-release-audit
       - name: Publish TypeScript SDK
         if: inputs.package == 'typescript'
         working-directory: trackmcp-nextjs/packages/typescript-sdk
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: |
-          set -euo pipefail
           npm ci
+          npm audit --audit-level=high
           npm test
-          npm run build
-          npm pack --dry-run --json > /tmp/trackmcp-sdk-pack.json
-          PACKAGE_VERSION=$(node -p 'require("./package.json").version')
+          npm run test:packed-consumer
+          PACKAGE_VERSION=$(node -p "require('./package.json').version")
           if npm view "@trackmcp/sdk@${PACKAGE_VERSION}" version --json >/dev/null 2>&1; then
             echo "@trackmcp/sdk@${PACKAGE_VERSION} already exists on npm; bump the package version before publishing."
+            exit 1
+          fi
+          npm publish --provenance --access public
+      - name: Publish TrackMCP CLI
+        if: inputs.package == 'cli'
+        working-directory: trackmcp-nextjs/packages/cli
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          npm ci
+          npm test
+          npm run test:packed-consumer
+          PACKAGE_VERSION=$(node -p "require('./package.json').version")
+          if npm view "@trackmcp/cli@${PACKAGE_VERSION}" version --json >/dev/null 2>&1; then
+            echo "@trackmcp/cli@${PACKAGE_VERSION} already exists on npm; bump the package version before publishing."
             exit 1
           fi
           npm publish --provenance --access public
@@ -52,24 +69,14 @@ jobs:
         env:
           TWINE_USERNAME: __token__
           TWINE_PASSWORD: ${{ secrets.PYPI_TOKEN }}
-        run: python -m pip install build twine && python -m build && python -m twine upload dist/*
-      - name: Publish TrackMCP CLI
-        if: inputs.package == 'cli' || github.event_name == 'push'
-        working-directory: trackmcp-nextjs/packages/cli
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: |
-          set -euo pipefail
-          npm ci
-          npm test
-          npm pack --dry-run --json > /tmp/trackmcp-cli-pack.json
-          PACKAGE_VERSION=$(node -p 'require("./package.json").version')
-          if npm view "@trackmcp/cli@${PACKAGE_VERSION}" version --json >/dev/null 2>&1; then
-            if [[ "${{ github.event_name }}" == "push" ]]; then
-              echo "@trackmcp/cli@${PACKAGE_VERSION} already exists on npm; automatic release publish is already complete."
-              exit 0
-            fi
-            echo "@trackmcp/cli@${PACKAGE_VERSION} already exists on npm; bump the package version before publishing."
+          python -m pip install build twine
+          python -m unittest discover -s tests -v
+          python -m build
+          python -m twine check dist/*
+          PACKAGE_VERSION=$(python -c 'import tomllib; print(tomllib.load(open("pyproject.toml", "rb"))["project"]["version"])')
+          if curl --fail --silent --show-error "https://pypi.org/pypi/trackmcp/${PACKAGE_VERSION}/json" >/dev/null; then
+            echo "trackmcp==${PACKAGE_VERSION} already exists on PyPI; bump the package version before publishing."
             exit 1
           fi
-          npm publish --provenance --access public
+          python -m twine upload dist/*

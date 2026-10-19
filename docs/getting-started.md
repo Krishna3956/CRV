@@ -4,13 +4,14 @@ TrackMCP is an analytics layer for an MCP server. It does not replace the server
 
 ## The user journey
 
-1. A server owner opens `/signin` and enters their work email.
-2. Supabase sends a one-time sign-in link. There is no password to remember.
-3. The first visit to `/dashboard` creates a private TrackMCP workspace and an API key.
-4. The owner copies the key into the server's environment as `TRACKMCP_KEY`.
-5. They install one SDK and wrap the existing MCP server with `withTrackMCP(...)`.
-6. The server continues serving tools normally. The SDK batches telemetry in the background.
-7. The owner returns to `/dashboard` to see tool calls, sessions, clients, errors, and latency.
+1. From the MCP server project, run `npx @trackmcp/cli init` for the terminal-first setup.
+2. The CLI installs `@trackmcp/sdk` when needed, reuses a valid local key, or opens the browser device-authorization flow when no key exists.
+3. Sign in or sign up in the browser, select or create a workspace, and approve the CLI session. The CLI redeems and stores the key locally; it never prints the raw key.
+4. Wrap the existing MCP server with `withTrackMCP(...)` and make one real tool call.
+5. The server continues serving tools normally. The SDK batches telemetry in the background.
+6. Return to `/dashboard` to see tool calls, sessions, clients, errors, and latency.
+
+For remote or restricted terminals, use `npx @trackmcp/cli init --no-browser` and open the printed URL on another device. The manual dashboard setup remains available when a team cannot use the CLI.
 
 ## What an API key means
 
@@ -21,6 +22,10 @@ TrackMCP shows the full key only when it is created. The database stores a one-w
 ## TypeScript setup
 
 ```bash
+# Recommended: one-command setup (installs the SDK and provisions a key)
+npx @trackmcp/cli init
+
+# Manual package-only setup
 npm install @trackmcp/sdk
 ```
 

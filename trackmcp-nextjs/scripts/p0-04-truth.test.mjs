@@ -38,6 +38,9 @@ test("reference and API docs describe bounded trace responses and latency semant
 test("SDK docs explain boundary, privacy defaults, workflow semantics, and fail-open behavior", async () => {
   const typescript = await source("packages/typescript-sdk/README.md");
   const python = await source("../packages/python-sdk/README.md");
+  const typescriptWeb = await source("src/app/docs/typescript/page.tsx");
+  assert.match(typescriptWeb, /bounded server-side tool, session, result, and client observations/);
+  assert.doesNotMatch(typescriptWeb, /every call,?\s*result,?\s*and client is captured automatically/i);
   for (const docs of [typescript, python]) {
     assert.match(docs, /server boundary/i);
     assert.match(docs, /redact/i);
@@ -81,19 +84,28 @@ test("onboarding and quickstart make privacy and boundary behavior discoverable"
   assert.match(docsHome, /private model turn/);
 });
 
-test("public TypeScript setup leads with CLI init and labels package install as fallback", async () => {
+test("homepage presents the terminal-first CLI as the primary setup action", async () => {
   const homepage = await source("src/app/page.tsx");
-  const quickstart = await source("src/app/mcp-server-analytics/quickstart/page.tsx");
-  const dashboard = await source("src/components/dashboard/DashboardApp.tsx");
-  const docs = await source("src/app/docs/typescript/page.tsx");
-  const sdk = await source("packages/typescript-sdk/README.md");
-  const cli = await source("packages/cli/README.md");
-  for (const content of [homepage, quickstart, dashboard, docs, sdk, cli]) assert.match(content, /npx @trackmcp\/cli init/);
-  assert.match(quickstart, /library-only fallback/i);
-  assert.match(dashboard, /TypeScript: `npx @trackmcp\/cli init/);
-  assert.match(docs, /Fallback\/library-only package-manager install/);
-  assert.match(sdk, /library-only fallback/i);
-  assert.match(cli, /manual\/library-only fallback/i);
+  const firstSetup = homepage.indexOf("npx @trackmcp/cli init");
+  assert.notEqual(firstSetup, -1);
+  assert.match(homepage, /CopyButton text="npx @trackmcp\/cli init"/);
+  assert.ok(firstSetup < homepage.indexOf("@trackmcp\/sdk"), "the setup command should appear before the SDK implementation example");
+});
+
+test("release notes describe the CLI activation boundary without claiming browser key handling", async () => {
+  const posts = await source("src/app/blog/posts.ts");
+  assert.match(posts, /slug: "trackmcp-cli-activation-release"/);
+  assert.match(posts, /npx @trackmcp\/cli init/);
+  assert.match(posts, /browser never receives or displays the connection key/);
+  assert.match(posts, /Does npm install start the browser flow\?/);
+  assert.doesNotMatch(posts, /Create or open a TrackMCP workspace, create an API key, install the SDK for your runtime/i);
+});
+
+test("brand logo links remove decoration while retaining a visible keyboard focus ring", async () => {
+  const logo = await source("src/components/TrackMCPLogo.tsx");
+  assert.match(logo, /no-underline/);
+  assert.match(logo, /focus-visible:ring-2/);
+  assert.doesNotMatch(logo, /focus-visible:underline/);
 });
 
 test("trust pages avoid promising unshipped retention and export controls", async () => {
@@ -102,5 +114,6 @@ test("trust pages avoid promising unshipped retention and export controls", asyn
   assert.match(security, /confirm them with the TrackMCP team/);
   assert.match(security, /not represented as shipped functionality/);
   assert.match(privacy, /Confirm current retention/);
-  assert.match(privacy, /export integrations are planned/);
+  assert.match(privacy, /Export is bounded and privacy-safe/);
+  assert.match(privacy, /self-service deletion remains a reviewed workflow/);
 });

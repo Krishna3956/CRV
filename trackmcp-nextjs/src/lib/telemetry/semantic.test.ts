@@ -1,0 +1,94 @@
+import assert from "node:assert/strict";
+import test from "node:test";
+import { classifyTrackMCPOutcome, classifyTrackMCPProtocolSignal, toTrackMCPSemanticEvent } from "./semantic.ts";
+import type { CanonicalTrackMCPEvent } from "./types.ts";
+
+const event = (overrides: Partial<CanonicalTrackMCPEvent> = {}): CanonicalTrackMCPEvent => ({
+  schema_version: "1", event_id: "evt_semantic_1", event_type: "tool_call", service: "fixture", environment: "test",
+  observation_source: "server", session_id: "session_1", started_at: "2026-10-18T00:00:00Z", ...overrides,
+});
+
+test("classifies explicit tool outcomes without guessing from missing errors", () => {
+  assert.equal(classifyTrackMCPOutcome(event({ success: true })).outcome, "completed");
+  assert.equal(classifyTrackMCPOutcome(event({ is_error: true })).outcome, "failed");
+  const unknown = classifyTrackMCPOutcome(event());
+  assert.equal(unknown.outcome, "unknown");
+  assert.equal(unknown.evidence_quality, "insufficient_data");
+  assert.ok(unknown.data_quality.flags.includes("missing_terminal_signal"));
+});
+
+test("classifies workflow lifecycle events as observed semantic outcomes", () => {
+  const completed = classifyTrackMCPOutcome(event({ event_type: "workflow", workflow_id: "wf_1", payload: { name: "workflow", workflow_name: "sync", status: "completed" } }));
+  assert.deepEqual({ outcome: completed.outcome, scope: completed.scope, reason: completed.reason }, { outcome: "completed", scope: "workflow", reason: "workflow_completed" });
+  assert.equal(classifyTrackMCPOutcome(event({ event_type: "workflow", payload: { name: "workflow", workflow_name: "sync", status: "started" } })).outcome, "pending");
+});
+
+test("marks conflicting result signals as untrustworthy", () => {
+  const result = classifyTrackMCPOutcome(event({ success: true, is_error: true }));
+  assert.equal(result.outcome, "unknown");
+  assert.equal(result.evidence_quality, "conflicting");
+  assert.equal(result.data_quality.score, "insufficient");
+  assert.ok(result.data_quality.flags.includes("conflicting_result_signals"));
+});
+
+test("semantic event carries version and source identity", () => {
+  const result = toTrackMCPSemanticEvent(event({ event_id: "evt_source" }));
+  assert.equal(result.contract_version, "1");
+  assert.equal(result.classifier_version, "1");
+  assert.equal(result.source_event_id, "evt_source");
+  assert.equal(result.outcome.scope, "tool_call");
+});
+
+test("legacy and uncorrelated input is degraded but still interpretable", () => {
+  const result = classifyTrackMCPOutcome(event({ schema_version: "legacy", observation_source: undefined, session_id: undefined, success: true }));
+  assert.equal(result.outcome, "completed");
+  assert.equal(result.data_quality.score, "degraded");
+  assert.ok(result.data_quality.flags.includes("legacy_schema"));
+  assert.ok(result.data_quality.flags.includes("missing_observation_source"));
+  assert.ok(result.data_quality.flags.includes("missing_correlation"));
+});
+
+test("does not treat generic protocol or custom success as a business outcome", () => {
+  const source = event({ event_type: "protocol", success: true });
+  const result = classifyTrackMCPOutcome(source);
+  assert.equal(result.outcome, "not_observable");
+  assert.equal(result.reason, "not_an_outcome_event");
+});
+
+test("classifies protocol notifications and subscriptions as lifecycle signals, not outcomes", () => {
+  const changed = classifyTrackMCPOutcome(event({ event_type: "protocol", mcp_method: "notifications/tools/list_changed", success: true }));
+  assert.equal(changed.protocol_signal, "catalog_changed");
+  assert.equal(changed.outcome, "not_observable");
+
+  const progress = classifyTrackMCPOutcome(event({ event_type: "protocol", mcp_method: "notifications/progress" }));
+  assert.equal(progress.protocol_signal, "progress");
+  assert.equal(progress.outcome, "not_observable");
+
+  const started = classifyTrackMCPOutcome(event({ event_type: "protocol", mcp_method: "resources/subscribe" }));
+  assert.equal(started.protocol_signal, "subscription_started");
+  assert.equal(started.outcome, "not_observable");
+
+  const stopped = classifyTrackMCPOutcome(event({ event_type: "protocol", mcp_method: "resources/unsubscribe" }));
+  assert.equal(stopped.protocol_signal, "subscription_stopped");
+  assert.equal(stopped.outcome, "not_observable");
+});
+
+test("protocol signal classifier is safe for unknown methods", () => {
+  assert.equal(classifyTrackMCPProtocolSignal({ mcp_method: "experimental/custom" }), undefined);
+  assert.equal(classifyTrackMCPProtocolSignal({ mcp_method: undefined }), undefined);
+});
+
+test("models MCP multi-round-trip result states without conflating stalls and errors", () => {
+  const stalled = classifyTrackMCPOutcome(event({ mcp_method: "prompts/get", result_type: "input_required", interaction_id: "interaction_1", interaction_link_source: "issued" }));
+  assert.equal(stalled.outcome, "pending");
+  assert.equal(stalled.reason, "input_required");
+
+  const complete = classifyTrackMCPOutcome(event({ mcp_method: "resources/read", result_type: "complete" }));
+  assert.equal(complete.outcome, "completed");
+
+  const legacyComplete = classifyTrackMCPOutcome(event({ mcp_method: "resources/read" }));
+  assert.equal(legacyComplete.outcome, "completed");
+
+  const errored = classifyTrackMCPOutcome(event({ mcp_method: "resources/read", result_type: "input_required", is_error: true }));
+  assert.equal(errored.outcome, "failed");
+});

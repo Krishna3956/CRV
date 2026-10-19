@@ -36,8 +36,11 @@ approval, denial, expiry, cancellation, or timeout. It never prints the key,
 puts a secret in a URL or shell argument, or rewrites application source code.
 
 If a usable `TRACKMCP_KEY` already exists in the process environment or the
-selected environment file, `init` leaves it unchanged. Existing keys are never
-overwritten without confirmation. If `.env.local` is tracked by Git, the CLI
+selected environment file, `init` checks its live key-status before deciding
+that setup is complete. Valid keys are reused without opening a browser;
+revoked or invalid keys start a fresh authorization; a network or service
+failure stops without overwriting the existing credential. Existing keys are
+never overwritten without confirmation. If `.env.local` is tracked by Git, the CLI
 warns so it can be ignored before committing. On successful activation, `init`
 prints the next `withTrackMCP` snippet so the user can connect the server
 without returning to the dashboard.
@@ -49,10 +52,10 @@ environment or a secret manager:
 TRACKMCP_KEY=tmcp_... npx @trackmcp/cli doctor --non-interactive
 ```
 
-The CLI never accepts an API key as a positional argument. The
-manual/library-only fallback is to create a connection key in the TrackMCP web
-app, set `TRACKMCP_KEY` in the MCP server environment, install `@trackmcp/sdk`,
-and make one real tool call.
+The CLI never accepts an API key as a positional argument. The manual fallback
+is to create a connection key in the TrackMCP web app, set `TRACKMCP_KEY` in
+the MCP server environment, install `@trackmcp/sdk`, and make one real tool
+call.
 
 ## Doctor and logout
 

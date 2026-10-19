@@ -4,30 +4,47 @@ import test from "node:test";
 import { withTrackMCP } from "../../../../../packages/typescript-sdk/dist/index.js";
 import { DEFAULT_MAX_PAYLOAD_BYTES } from "../../../../../packages/typescript-sdk/dist/privacy.js";
 import { createIngestHandler } from "./handlers.ts";
+import { hashTrackMCPKey } from "../../../../lib/telemetry/keys.ts";
 import { MAX_BATCH_EVENTS, MAX_PAYLOAD_BYTES, MAX_REQUEST_BYTES } from "../../../../lib/telemetry/validation.ts";
 
 const API_KEY = "tmcp_integration_key";
+const WORKSPACE_A_KEY = "tmcp_workspace_a_key";
+const WORKSPACE_B_KEY = "tmcp_workspace_b_key";
+const WORKSPACE_A_ROTATED_KEY = "tmcp_workspace_a_rotated_key";
 
 function fakeAdmin() {
   const state = { rows: [] };
+  const keys = new Map([
+    [hashTrackMCPKey(API_KEY), { id: "key-workspace-integration", workspace_id: "workspace-integration", revoked_at: null }],
+    [hashTrackMCPKey(WORKSPACE_A_KEY), { id: "key-workspace-a", workspace_id: "workspace-a", revoked_at: null }],
+    [hashTrackMCPKey(WORKSPACE_A_ROTATED_KEY), { id: "key-workspace-a-rotated", workspace_id: "workspace-a", revoked_at: null }],
+    [hashTrackMCPKey(WORKSPACE_B_KEY), { id: "key-workspace-b", workspace_id: "workspace-b", revoked_at: null }],
+  ]);
   const admin = {
     from(table) {
       if (table === "trackmcp_api_keys") {
         return {
+          filters: {},
           select() { return this; },
-          eq() { return this; },
-          maybeSingle: async () => ({ data: { workspace_id: "workspace-integration", revoked_at: null }, error: null }),
+          eq(column, value) { this.filters[column] = value; return this; },
+          async maybeSingle() {
+            return { data: keys.get(this.filters.key_hash) ?? null, error: null };
+          },
         };
       }
       return {
         select() { return this; },
         eq() { return this; },
-        in() { return Promise.resolve({ data: [], error: null }); },
+        in(_column, values) {
+          const ids = new Set(values);
+          return Promise.resolve({ data: state.rows.filter((row) => ids.has(row.event_id)).map((row) => ({ event_id: row.event_id })), error: null });
+        },
+        insert() { return Promise.resolve({ error: null }); },
         upsert(rows) { state.rows.push(...rows); return Promise.resolve({ error: null }); },
       };
     },
   };
-  return { admin, state };
+  return { admin, state, keys };
 }
 
 function event(overrides = {}) {
@@ -49,6 +66,15 @@ async function post(handler, body) {
     method: "POST",
     headers: { authorization: `Bearer ${API_KEY}`, "content-type": "application/json" },
     body: typeof body === "string" ? body : JSON.stringify(body),
+  }));
+  return { status: response.status, body: await response.json() };
+}
+
+async function postWithKey(handler, key, body) {
+  const response = await handler(new Request("http://integration.test/api/v1/ingest", {
+    method: "POST",
+    headers: { authorization: `Bearer ${key}`, "content-type": "application/json" },
+    body: JSON.stringify(body),
   }));
   return { status: response.status, body: await response.json() };
 }
@@ -78,6 +104,11 @@ test("route integration scrubs non-SDK payloads, enforces limits, and preserves 
   assert.equal(scrubbed.body.accepted, 1);
   const stored = state.rows[0];
   const storedText = JSON.stringify(stored.payload);
+  // The bearer credential is authentication material, never telemetry data.
+  // Keep this assertion at the route boundary so a future mapper change
+  // cannot accidentally persist headers or the raw key.
+  assert.equal(JSON.stringify(stored).includes(API_KEY), false);
+  assert.equal("authorization" in stored, false);
   assert.equal(stored.payload.password, "[redacted]");
   assert.equal(stored.payload.nested.apiKey, "[redacted]");
   assert.equal(stored.payload.nested.authorization, "[redacted]");
@@ -168,6 +199,27 @@ test("route integration preserves intent provenance, missing reports, correlatio
   assert.equal(unauthorized.status, 401);
 });
 
+test("route integration persists only the hashed account identity contract", async () => {
+  const { admin, state } = fakeAdmin();
+  const handler = createIngestHandler(() => admin);
+  const accountKey = "a".repeat(64);
+  const accepted = await post(handler, { events: [event({
+    event_id: "account-event",
+    account_key: accountKey,
+    account_identity_source: "resolver",
+  })] });
+  assert.equal(accepted.status, 200);
+  assert.equal(state.rows[0].account_key, accountKey);
+  assert.equal(state.rows[0].account_identity_source, "resolver");
+
+  const rawAccount = await post(handler, { events: [event({
+    event_id: "raw-account-event",
+    account_key: "workspace:acme",
+    account_identity_source: "resolver",
+  })] });
+  assert.equal(rawAccount.status, 400);
+});
+
 test("legacy events remain source-null while versioned events require provenance", async () => {
   const { admin, state } = fakeAdmin();
   const handler = createIngestHandler(() => admin);
@@ -179,4 +231,100 @@ test("legacy events remain source-null while versioned events require provenance
   assert.equal(state.rows[0].observation_source, null);
   const rejected = await post(handler, { events: [event({ event_id: "missing-source", observation_source: undefined })] });
   assert.equal(rejected.status, 400);
+});
+
+test("mixed valid and invalid batches are rejected atomically before persistence", async () => {
+  const { admin, state } = fakeAdmin();
+  const handler = createIngestHandler(() => admin);
+  const response = await post(handler, {
+    events: [
+      event({ event_id: "mixed-valid-event" }),
+      event({ event_id: "mixed-invalid-event", started_at: "not-a-timestamp" }),
+    ],
+  });
+  assert.equal(response.status, 400);
+  assert.equal(response.body.accepted, 0);
+  assert.equal(response.body.rejected, 1);
+  assert.equal(state.rows.length, 0, "a rejected batch must not partially persist valid events");
+});
+
+test("replaying the same workspace event is durably idempotent at the ingest boundary", async () => {
+  const { admin, state } = fakeAdmin();
+  const handler = createIngestHandler(() => admin);
+  const first = await post(handler, { events: [event({ event_id: "replay-safe-event" })] });
+  assert.equal(first.status, 200);
+  assert.equal(first.body.accepted, 1);
+  assert.equal(first.body.ignored_duplicates, 0);
+  const storedCount = state.rows.filter((row) => row.event_id === "replay-safe-event").length;
+
+  const replay = await post(handler, { events: [event({ event_id: "replay-safe-event" })] });
+  assert.equal(replay.status, 200);
+  assert.equal(replay.body.accepted, 0);
+  assert.equal(replay.body.ignored_duplicates, 1);
+  assert.equal(state.rows.filter((row) => row.event_id === "replay-safe-event").length, storedCount);
+});
+
+test("feature-flagged Founder OS writes remain best-effort and fail-open", async () => {
+  const { admin, state } = fakeAdmin();
+  const previous = process.env.TRACKMCP_ENABLE_FACT_WRITES;
+  process.env.TRACKMCP_ENABLE_FACT_WRITES = "true";
+  try {
+    const handler = createIngestHandler(() => admin);
+    const accepted = await post(handler, { events: [event({ event_id: "fact-write-event", success: true })] });
+    assert.equal(accepted.status, 200);
+    assert.equal(accepted.body.accepted, 1);
+    assert.ok(state.rows.length >= 2, "raw event and derived fact should be attempted");
+  } finally {
+    if (previous === undefined) delete process.env.TRACKMCP_ENABLE_FACT_WRITES;
+    else process.env.TRACKMCP_ENABLE_FACT_WRITES = previous;
+  }
+});
+
+test("derived fact writes are disabled by default", async () => {
+  const { admin, state } = fakeAdmin();
+  const previous = process.env.TRACKMCP_ENABLE_FACT_WRITES;
+  delete process.env.TRACKMCP_ENABLE_FACT_WRITES;
+  try {
+    const handler = createIngestHandler(() => admin);
+    const accepted = await post(handler, { events: [event({ event_id: "fact-writes-disabled" })] });
+    assert.equal(accepted.status, 200);
+    assert.equal(accepted.body.accepted, 1);
+    assert.equal(state.rows.length, 1, "the disabled flag must not create derived fact rows");
+  } finally {
+    if (previous === undefined) delete process.env.TRACKMCP_ENABLE_FACT_WRITES;
+    else process.env.TRACKMCP_ENABLE_FACT_WRITES = previous;
+  }
+});
+
+test("ingest derives tenant scope from the authenticated key and ignores caller workspace claims", async () => {
+  const { admin, state } = fakeAdmin();
+  const handler = createIngestHandler(() => admin);
+  const response = await postWithKey(handler, WORKSPACE_A_KEY, {
+    events: [event({ event_id: "workspace-a-event", workspace_id: "workspace-b", service: "tenant-a" })],
+  });
+  assert.equal(response.status, 200);
+  assert.equal(response.body.accepted, 1);
+  assert.equal(state.rows.at(-1).workspace_id, "workspace-a");
+  assert.equal(state.rows.some((row) => row.workspace_id === "workspace-b"), false);
+});
+
+test("revocation is enforced on the next ingest and rotation supports explicit overlap", async () => {
+  const { admin, state, keys } = fakeAdmin();
+  const handler = createIngestHandler(() => admin);
+  const beforeRevoke = await postWithKey(handler, WORKSPACE_A_KEY, { events: [event({ event_id: "before-revoke" })] });
+  assert.equal(beforeRevoke.status, 200);
+
+  // A new key can overlap briefly while the service is rotated.
+  const overlap = await postWithKey(handler, WORKSPACE_A_ROTATED_KEY, { events: [event({ event_id: "during-overlap" })] });
+  assert.equal(overlap.status, 200);
+  assert.equal(state.rows.at(-1).workspace_id, "workspace-a");
+
+  keys.get(hashTrackMCPKey(WORKSPACE_A_KEY)).revoked_at = new Date().toISOString();
+  const oldKeyAfterRevoke = await postWithKey(handler, WORKSPACE_A_KEY, { events: [event({ event_id: "old-after-revoke" })] });
+  assert.equal(oldKeyAfterRevoke.status, 401);
+  assert.equal(state.rows.some((row) => row.event_id === "old-after-revoke"), false);
+
+  const newKeyAfterRotation = await postWithKey(handler, WORKSPACE_A_ROTATED_KEY, { events: [event({ event_id: "new-after-rotation" })] });
+  assert.equal(newKeyAfterRotation.status, 200);
+  assert.equal(state.rows.at(-1).workspace_id, "workspace-a");
 });

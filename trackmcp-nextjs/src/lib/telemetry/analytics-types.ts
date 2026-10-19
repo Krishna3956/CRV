@@ -1,4 +1,6 @@
 import type { TrackMCPCorrelationHandleSource, TrackMCPIntentSource, TrackMCPObservationSource, TrackMCPSessionIdSource } from "./types.ts";
+import type { TrackMCPOutcomeAggregate } from "./outcomes.ts";
+import type { TrackMCPDataTrust } from "./data-trust.ts";
 
 export type CompletionSource = "workflow_events" | "session_heuristic" | "none";
 export type CorrelationQuality = "session_id" | "transport_generated" | "external" | "issued" | "missing" | "mixed";
@@ -8,6 +10,24 @@ export type CatalogTool = {
   description: string | null;
   tool_description_hash: string | null;
   schema_hash: string | null;
+};
+
+/** Privacy-safe catalog lineage exposed to the dashboard. Names, URIs, and
+ * catalog payloads never leave the server; hashes are only for comparison. */
+export type CatalogVersion = {
+  id: string | null;
+  server_id: string | null;
+  environment_id: string | null;
+  catalog_kind: string | null;
+  item_count: number | null;
+  item_name_hashes: string[];
+  item_uri_hashes: string[];
+  snapshot_hash: string | null;
+  previous_snapshot_id: string | null;
+  complete: boolean;
+  truncated: boolean;
+  diff: Record<string, unknown>;
+  discovered_at: string | null;
 };
 
 export type TraceEvent = {
@@ -171,6 +191,18 @@ export type Analytics = {
   protocol_versions: string[];
   transports: string[];
   methods: string[];
+  interaction_surfaces?: {
+    resources: { events: number; methods: string[]; entity_count: number; entity_identity: "sha256_hash_count"; entity_analytics: EntityReadAnalytics };
+    prompts: { events: number; methods: string[]; entity_count: number; entity_identity: "sha256_hash_count"; entity_analytics: EntityReadAnalytics };
+  };
+  protocol_signals?: {
+    notification: number;
+    progress: number;
+    catalog_changed: number;
+    subscription_started: number;
+    subscription_stopped: number;
+    observed_events: number;
+  };
   tool_calls: number;
   sessions: number;
   errors: number;
@@ -182,6 +214,20 @@ export type Analytics = {
   clients: { name: string; calls: number; versions?: string[] }[];
   tools: { name: string; calls: number; errors: number; error_rate: number; avg_ms: number | null; p50_ms?: number | null; p95_ms?: number | null; latency_sample_count?: number; discovered: boolean; description?: string | null; schema_hash?: string | null }[];
   catalog_tools?: CatalogTool[];
+  catalog_versions?: CatalogVersion[];
+  catalog_next_cursor?: string | null;
+  catalog_version_status?: "available" | "no_snapshot_rows" | "schema_unavailable" | string;
+  refresh_status?: {
+    status: "available" | "degraded" | "no_jobs" | "schema_unavailable" | string;
+    queued: number;
+    running: number;
+    retryable: number;
+    failed: number;
+    succeeded: number;
+    max_queue_lag_ms: number;
+    max_attempt_count: number;
+    last_successful_run: string | null;
+  };
   unused_tools: string[];
   workflows: { session_id: string; correlation_handle?: string | null; correlation_handle_source?: TrackMCPCorrelationHandleSource; client_name: string; calls: number; tools: (string | null)[]; started_at: string; duration_ms: number; completed: boolean; completion_source?: CompletionSource; correlation_quality?: CorrelationQuality }[];
   correlation_handle_source?: TrackMCPCorrelationHandleSource | null;
@@ -189,4 +235,27 @@ export type Analytics = {
   missing_capabilities: MissingCapability[];
   outcomes: { name: string; started: number; completed: number; failed: number }[];
   insights: { level: string; title: string; detail: string; metric: string }[];
+  /** Versioned, uncertainty-aware facts exposed by the Founder OS read model. */
+  founder_os?: {
+    facts: TrackMCPOutcomeAggregate;
+    groups: Record<string, TrackMCPOutcomeAggregate[]>;
+    identity_coverage?: {
+      numerator: number;
+      denominator: number;
+      value: number | null;
+      source: "account_identity_source=resolver";
+      limitation: string;
+    };
+    identity_source_counts?: { resolver: number; unresolved: number };
+  };
+  /** Query provenance and bounded-scan disclosure for every dashboard result. */
+  data_trust?: TrackMCPDataTrust;
+};
+
+export type EntityReadAnalytics = {
+  status: "available" | "no_rows" | "schema_unavailable";
+  read_events: number;
+  successful_reads: number;
+  failed_reads: number;
+  input_required_reads: number;
 };

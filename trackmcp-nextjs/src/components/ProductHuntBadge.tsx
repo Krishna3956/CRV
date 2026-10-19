@@ -27,6 +27,9 @@ export function ProductHuntBadge() {
       aria-label="TrackMCP on Product Hunt"
       className="mb-6 inline-flex rounded-lg transition-transform duration-200 hover:scale-[1.02]"
     >
+      {/* Product Hunt's widget URL is dynamic and served as a third-party SVG;
+          next/image optimization would require proxying a marketing asset. */}
+      {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
         alt="TrackMCP - Google Analytics for MCP Servers | Product Hunt"
         width={250}

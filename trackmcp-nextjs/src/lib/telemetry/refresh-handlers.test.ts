@@ -1,0 +1,93 @@
+import assert from "node:assert/strict";
+import test from "node:test";
+import { createRefreshJob } from "./refresh-jobs.ts";
+import { createRefreshJobHandlers } from "./refresh-handlers.ts";
+
+const workspace = "11111111-1111-4111-8111-111111111111";
+const baseJob = (kind: "fact_projection" | "action_queue_refresh") => {
+  const result = createRefreshJob({ id: `${kind}-job`, workspace_id: workspace, kind, dedupe_key: `${kind}:1`, now: new Date("2026-01-01T00:00:00.000Z") });
+  assert.equal(result.ok, true);
+  if (!result.ok) throw new Error("fixture job could not be created");
+  return result.job;
+};
+
+function fakeAdmin(eventRows: unknown[] = [], semanticRows: unknown[] = []) {
+  const writes: Array<{ table: string; rows: unknown[]; onConflict?: string }> = [];
+  const admin = {
+    from(table: string) {
+      const rows = table === "trackmcp_events" ? eventRows : semanticRows;
+      const query = {
+        select() { return query; },
+        eq() { return query; },
+        order() { return query; },
+        limit: async () => ({ data: rows, error: null }),
+        upsert: async (values: unknown[], options?: { onConflict?: string }) => { writes.push({ table, rows: values, onConflict: options?.onConflict }); return { error: null }; },
+      };
+      return query;
+    },
+  };
+  return { admin, writes };
+}
+
+test("fact projection selects bounded metadata and persists semantic facts", async () => {
+  const { admin, writes } = fakeAdmin([{ event_id: "evt-1", event_type: "tool_call", service: "demo", environment: "prod", started_at: "2026-01-01T00:00:00.000Z", success: true, is_error: false, tool_name: "search", transport: "stdio" }]);
+  const handler = createRefreshJobHandlers(admin as never).fact_projection;
+  assert.ok(handler);
+  const result = await handler({ job: baseJob("fact_projection"), now: new Date(), signal: undefined });
+  assert.deepEqual(result, { outcome: "succeeded" });
+  assert.equal(writes.length, 1);
+  assert.equal(writes[0]?.table, "trackmcp_semantic_facts");
+  assert.equal((writes[0]?.rows[0] as { payload?: unknown }).payload, undefined);
+});
+
+test("action queue refresh fails closed on cancellation", async () => {
+  const { admin } = fakeAdmin();
+  const handler = createRefreshJobHandlers(admin as never).action_queue_refresh;
+  assert.ok(handler);
+  const controller = new AbortController();
+  controller.abort();
+  assert.deepEqual(await handler({ job: baseJob("action_queue_refresh"), now: new Date(), signal: controller.signal }), {
+    outcome: "retryable", error_code: "cancelled", detail: "worker was cancelled",
+  });
+});
+
+test("catalog refresh is a bounded no-op without observations and retention remains fail-closed", async () => {
+  const { admin } = fakeAdmin();
+  const handlers = createRefreshJobHandlers(admin as never);
+  assert.deepEqual(await handlers.catalog_recompute?.({ job: baseJob("fact_projection"), now: new Date() }), { outcome: "succeeded" });
+  assert.deepEqual(await handlers.retention_cleanup?.({ job: baseJob("fact_projection"), now: new Date() }), { outcome: "failed", error_code: "approval_required", detail: "retention cleanup requires an approved dry-run batch" });
+});
+
+test("catalog refresh writes only hash-based version rows", async () => {
+  const { admin, writes } = fakeAdmin([{ server_id: "11111111-1111-4111-8111-111111111111", catalog_kind: "tools", catalog_item_count: 1, catalog_item_name_hashes: ["a".repeat(64)], started_at: "2026-01-01T00:00:00Z" }]);
+  const handler = createRefreshJobHandlers(admin as never).catalog_recompute;
+  assert.ok(handler);
+  assert.deepEqual(await handler({ job: baseJob("fact_projection"), now: new Date() }), { outcome: "succeeded" });
+  const catalogWrite = writes.find((write) => write.table === "trackmcp_catalog_versions");
+  assert.ok(catalogWrite);
+  assert.equal((catalogWrite.rows[0] as { catalog?: unknown }).catalog, undefined);
+  assert.equal((catalogWrite.rows[0] as { workspace_id?: unknown }).workspace_id, workspace);
+  assert.equal((catalogWrite.rows[0] as { snapshot_hash?: unknown }).snapshot_hash?.toString().length, 64);
+  assert.equal(catalogWrite.onConflict, "workspace_id,server_id,environment_id,catalog_kind,snapshot_hash");
+});
+
+test("catalog entity refresh writes idempotent hash-only read rows", async () => {
+  const { admin, writes } = fakeAdmin([{
+    event_id: "resource-read-1",
+    server_id: "server-1",
+    environment: "production",
+    mcp_method: "resources/read",
+    catalog_kind: "resources",
+    catalog_item_uri_hashes: ["a".repeat(64)],
+    started_at: "2026-01-01T00:00:00Z",
+    success: true,
+    is_error: false,
+  }]);
+  const handler = createRefreshJobHandlers(admin as never).catalog_entity_recompute;
+  assert.ok(handler);
+  assert.deepEqual(await handler({ job: baseJob("fact_projection"), now: new Date() }), { outcome: "succeeded" });
+  const entityWrite = writes.find((write) => write.table === "trackmcp_catalog_entity_reads");
+  assert.ok(entityWrite);
+  assert.equal((entityWrite.rows[0] as { entity_hash?: string }).entity_hash, "a".repeat(64));
+  assert.equal((entityWrite.rows[0] as { payload?: unknown }).payload, undefined);
+});

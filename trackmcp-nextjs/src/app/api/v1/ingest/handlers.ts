@@ -4,6 +4,9 @@ import { hashTrackMCPKey } from "../../../../lib/telemetry/keys.ts";
 import { recordFirstAcceptedIngest } from "../../../../lib/activation/milestones.ts";
 import type { CanonicalTrackMCPEvent } from "../../../../lib/telemetry/types.ts";
 import { deduplicateEvents, MAX_BATCH_EVENTS, MAX_REQUEST_BYTES, normalizeTrackMCPEvent, sanitizeIngestPayload, sanitizeIntentText } from "../../../../lib/telemetry/validation.ts";
+import { projectTrackMCPFact } from "../../../../lib/telemetry/facts.ts";
+import { persistTrackMCPFacts } from "../../../../lib/telemetry/fact-writer.ts";
+import { evaluateTrackMCPActionQueue, persistTrackMCPActionQueue } from "../../../../lib/telemetry/action-queue.ts";
 
 function responseBody(error?: string, rejected = 0) {
   return { accepted: 0, ignored_duplicates: 0, rejected, ...(error ? { error } : {}) };
@@ -103,6 +106,8 @@ export function createIngestHandler(getAdmin: typeof getSupabaseAdmin = getSupab
     workflow_id: event.workflow_id || null,
     client_name: event.client_name || null,
     client_version: event.client_version || null,
+    account_key: event.account_key || null,
+    account_identity_source: event.account_identity_source || "unresolved",
     tool_name: event.tool_name || null,
     tool_description: event.tool_description || null,
     tool_description_hash: event.tool_description_hash || null,
@@ -113,7 +118,19 @@ export function createIngestHandler(getAdmin: typeof getSupabaseAdmin = getSupab
     error_class: event.error_class || null,
     error_code: event.error_code ?? null,
     retry_number: event.retry_number ?? 0,
+    result_type: event.result_type || null,
+    interaction_id: event.interaction_id || null,
+    interaction_link_source: event.interaction_link_source || "missing",
+    retry_of_event_id: event.retry_of_event_id || null,
+    request_state_hash: event.request_state_hash || null,
+    input_response_count: event.input_response_count ?? null,
+    resource_audience: event.resource_audience || null,
+    resource_priority: event.resource_priority ?? null,
     schema_hash: event.schema_hash || null,
+    catalog_kind: event.catalog_kind || null,
+    catalog_item_count: event.catalog_item_count ?? null,
+    catalog_item_name_hashes: event.catalog_item_name_hashes || [],
+    catalog_item_uri_hashes: event.catalog_item_uri_hashes || [],
     payload_size_bytes: payloadSize,
     payload_policy: event.payload_policy || null,
     payload,
@@ -129,6 +146,21 @@ export function createIngestHandler(getAdmin: typeof getSupabaseAdmin = getSupab
       console.error("TrackMCP ingest failed", { code: error.code, message: error.message });
       return NextResponse.json({ error: "Could not store telemetry." }, { status: 500 });
     }
+  }
+
+  // The derived fact table is opt-in until its reviewed migration is applied.
+  // Fact persistence is best-effort and must never turn accepted telemetry into
+  // a failed ingest response.
+  if (rows.length && process.env.TRACKMCP_ENABLE_FACT_WRITES === "true") {
+    const facts = deduplicated.events.map(projectTrackMCPFact);
+    const factResult = await persistTrackMCPFacts(
+      supabase,
+      key.workspace_id,
+      facts,
+    );
+    if (factResult.error) console.error("TrackMCP semantic fact persistence failed", { code: factResult.error.code, message: factResult.error.message });
+    const queueResult = await persistTrackMCPActionQueue(supabase, evaluateTrackMCPActionQueue(key.workspace_id, facts));
+    if (queueResult.error) console.error("TrackMCP action queue persistence failed", { code: queueResult.error.code, message: queueResult.error.message });
   }
 
   if (rows.length) {

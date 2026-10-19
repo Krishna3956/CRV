@@ -1,0 +1,66 @@
+import { execFileSync } from "node:child_process";
+import path from "node:path";
+
+const repoRoot = path.resolve(process.cwd(), "..");
+
+const EXCLUDED = [
+  /(^|\/)(?:campaigns|node_modules|build|\.next(?:-[^/]+)?)(\/|$)/,
+  /(?:^|\/)(?:[^/]+\.(?:csv|tsbuildinfo))$/i,
+  /(?:^|\/)(?:\.env(?:\.|$)|deploy\/\.env\.deploy$)/,
+];
+
+const INTENDED = [
+  /^\.github\/workflows\//,
+  /^\.gitignore$/,
+  /^FOUNDER-OS-[^/]+\.md$/,
+  /^docs\/FOUNDER-OS-/,
+  /^supabase\/(?:migrations|manual)\//,
+  /^packages\/python-sdk\//,
+  /^docs\/(?:architecture|getting-started)\.md$/,
+  // The web lockfile is release scope only because the dependency-pin contract
+  // test verifies its direct framework/MCP entries against package manifests
+  // and customer documentation. Other lockfiles still require explicit review.
+  /^trackmcp-nextjs\/(?:\.gitignore|eslint\.config\.mjs|next\.config\.ts|package(?:-lock)?\.json)$/,
+  /^trackmcp-nextjs\/(?:src|packages|deploy|docs|scripts)\//,
+];
+
+export function classifyPath(relativePath) {
+  const normalized = relativePath.replaceAll("\\", "/");
+  if (EXCLUDED.some((pattern) => pattern.test(normalized))) return "excluded-local-artifact";
+  if (INTENDED.some((pattern) => pattern.test(normalized))) return "intended-release-scope";
+  return "review-required";
+}
+
+function changedPaths() {
+  const output = execFileSync("git", ["status", "--porcelain=v1", "--untracked-files=all"], {
+    cwd: repoRoot,
+    encoding: "utf8",
+  });
+  return output.split(/\r?\n/).filter(Boolean).map((line) => {
+    // Porcelain v1 uses two status columns followed by a space. For renames,
+    // keep both paths visible rather than silently dropping the old location.
+    return line.slice(3).split(" -> ").map((value) => value.trim());
+  }).flat();
+}
+
+const rows = changedPaths().map((file) => ({ file, classification: classifyPath(file) }));
+const summary = rows.reduce((counts, row) => {
+  counts[row.classification] = (counts[row.classification] || 0) + 1;
+  return counts;
+}, {});
+
+if (process.argv.includes("--json")) {
+  console.log(JSON.stringify({ repository: repoRoot, summary, files: rows }, null, 2));
+} else {
+  console.log("Founder OS release-scope audit (read-only)");
+  console.log(`Repository: ${repoRoot}`);
+  for (const classification of ["intended-release-scope", "review-required", "excluded-local-artifact"]) {
+    const group = rows.filter((row) => row.classification === classification);
+    console.log(`\n${classification}: ${group.length}`);
+    for (const row of group) console.log(`  ${row.file}`);
+  }
+}
+
+if (process.argv.includes("--strict") && (summary["review-required"] || summary["excluded-local-artifact"])) {
+  process.exitCode = 1;
+}

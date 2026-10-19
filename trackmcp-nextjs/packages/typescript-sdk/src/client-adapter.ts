@@ -75,6 +75,7 @@ export class TrackMCPClientAdapter {
   private readonly pendingSweepTimer: NodeJS.Timeout;
   private lifecycleStarted = false;
   private lifecycleEnded = false;
+  private lifecycleStartedAt = 0;
   private lifecycleGeneration = 0;
   private lastResultRequestId: string | undefined;
   private lastResultAt = 0;
@@ -126,6 +127,7 @@ export class TrackMCPClientAdapter {
                 adapter.lifecycleGeneration += 1;
                 adapter.lifecycleStarted = true;
                 adapter.lifecycleEnded = false;
+                adapter.lifecycleStartedAt = Date.now();
                 adapter.pending.clear();
                 adapter.pendingOrder.length = 0;
                 adapter.completedIds.clear();
@@ -169,7 +171,10 @@ export class TrackMCPClientAdapter {
         }
         if (property === "onerror") {
           onerror = value as Transport["onerror"];
-          return Reflect.set(target, property, ((error: Error) => onerror?.(error)) as Transport["onerror"], target);
+          return Reflect.set(target, property, ((error: Error) => {
+            adapter.endLifecycle(false, "transport_error");
+            onerror?.(error);
+          }) as Transport["onerror"], target);
         }
         if (property === "onclose") {
           onclose = value as Transport["onclose"];
@@ -388,7 +393,7 @@ export class TrackMCPClientAdapter {
     while (this.completedIds.size > MAX_PENDING_CALLS) this.completedIds.delete(this.completedIds.values().next().value as string);
   }
 
-  private emitSessionBoundary(kind: "session_started" | "session_ended"): void {
+  private emitSessionBoundary(kind: "session_started" | "session_ended", durationMs = 0, success = true, errorClass?: string): void {
     this.emit({
       event_type: "session",
       transport: this.options.transport,
@@ -396,14 +401,19 @@ export class TrackMCPClientAdapter {
       ...this.sessionFields(),
       client_name: this.clientName,
       client_version: this.clientVersion,
+      duration_ms: Math.max(0, Math.min(86_400_000, Math.round(durationMs))),
+      success,
+      is_error: !success,
+      ...(errorClass ? { error_class: errorClass } : {}),
       payload: { _trackmcp: { observation_kind: kind, observation_source: "client" } },
     });
   }
 
-  private endLifecycle(): void {
+  private endLifecycle(success = true, errorClass?: string): void {
     if (!this.lifecycleStarted || this.lifecycleEnded) return;
     this.lifecycleEnded = true;
-    this.emitSessionBoundary("session_ended");
+    const duration = this.lifecycleStartedAt > 0 ? Date.now() - this.lifecycleStartedAt : 0;
+    this.emitSessionBoundary("session_ended", duration, success, errorClass);
   }
 
   private sessionFields(transport?: Transport): { session_id?: string; session_id_source: "protocol" | "transport_generated" | "external" | "missing" } {

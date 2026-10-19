@@ -2,14 +2,18 @@ import { NextResponse } from "next/server";
 import { getSupabaseAdmin } from "@/lib/repository/supabase";
 
 export async function POST(request: Request) {
-  let body: { email?: string } = {};
+  let body: { email?: unknown } = {};
   try {
-    body = await request.json();
+    const raw = await request.arrayBuffer();
+    if (raw.byteLength > 1024) return NextResponse.json({ error: "Request body is too large." }, { status: 413 });
+    const parsed: unknown = JSON.parse(new TextDecoder().decode(raw));
+    if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) return NextResponse.json({ error: "A valid email is required." }, { status: 400 });
+    body = parsed as typeof body;
   } catch {
     return NextResponse.json({ error: "A valid email is required." }, { status: 400 });
   }
 
-  const email = body.email?.trim().toLowerCase() || "";
+  const email = typeof body.email === "string" ? body.email.trim().toLowerCase() : "";
   if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
     return NextResponse.json({ error: "A valid email is required." }, { status: 400 });
   }

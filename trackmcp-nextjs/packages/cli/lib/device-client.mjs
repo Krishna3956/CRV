@@ -1,8 +1,4 @@
 import { randomBytes } from "node:crypto";
-import { createRequire } from "node:module";
-
-const require = createRequire(import.meta.url);
-const { version: CLI_VERSION } = require("../package.json");
 
 const DEFAULT_API_BASE_URL = "https://app.trackmcp.com";
 const DEFAULT_INGEST_URL = "https://trackmcp.com/api/v1/ingest";
@@ -85,7 +81,7 @@ export function createDeviceClient({
   apiBaseUrl = process.env.TRACKMCP_API_URL || DEFAULT_API_BASE_URL,
   ingestUrl = process.env.TRACKMCP_INGEST_URL || DEFAULT_INGEST_URL,
   fetchImpl = globalThis.fetch,
-  clientVersion = CLI_VERSION,
+  clientVersion = "0.1.0",
   platform = `${process.platform}-${process.arch}`,
   packageManager = "npm",
   sdkPackage = "@trackmcp/sdk",

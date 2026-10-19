@@ -22,6 +22,7 @@ const groups = [
       { label: "TypeScript SDK", href: "/docs/typescript" },
       { label: "Python SDK", href: "/docs/python" },
       { label: "API reference", href: "/docs/api" },
+      { label: "MCP server tester", href: "/tools/mcp-server-tester" },
     ],
   },
   {

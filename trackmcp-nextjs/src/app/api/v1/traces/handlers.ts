@@ -24,7 +24,9 @@ async function workspaceFor(request: Request, getAdmin: () => AdminClient | null
   const auth = await getServer();
   const { data } = await auth.auth.getUser();
   if (!data.user) return { admin, workspaceId: null, status: 401 } as const;
-  const membership = await admin.from("trackmcp_workspace_members").select("workspace_id").eq("user_id", data.user.id).limit(1).maybeSingle();
+  const requestedWorkspaceId = new URL(request.url).searchParams.get("workspace_id")?.trim() || "";
+  if (!requestedWorkspaceId || requestedWorkspaceId.length > 128) return { admin, workspaceId: null, status: 400 } as const;
+  const membership = await admin.from("trackmcp_workspace_members").select("workspace_id").eq("user_id", data.user.id).eq("workspace_id", requestedWorkspaceId).maybeSingle();
   if (membership.error) return { admin, workspaceId: null, status: 500 } as const;
   return { admin, workspaceId: membership.data?.workspace_id || null, status: membership.data ? 200 : 404 } as const;
 }

@@ -6,6 +6,7 @@ import test from "node:test";
 const read = (path) => readFileSync(resolve(path), "utf8");
 const postsSource = read("src/app/blog/posts.ts");
 const enrichmentSource = read("src/app/blog/enrichment.ts");
+const emDash = String.fromCharCode(0x2014);
 
 const slugs = [
   "mcp-server-conformance-testing-ci",
@@ -21,12 +22,15 @@ function postSource(slug) {
   return postsSource.slice(start, next > -1 ? next : undefined);
 }
 
-test("the current operator batch has four distinct published posts", () => {
+test("the current operator batch has four distinct posts featured first", () => {
   assert.equal(new Set(slugs).size, 4);
-  for (const slug of slugs) assert.ok(postsSource.includes(`    slug: "${slug}"`));
+  const positions = slugs.map((slug) => postsSource.indexOf(`    slug: "${slug}"`));
+  assert.ok(positions.every((position) => position > -1));
+  assert.ok(positions.every((position, index) => index === 0 || position > positions[index - 1]));
+  assert.ok(Math.max(...positions) < postsSource.indexOf('    slug: "mcp-registry-vs-gateway-vs-runtime-observability"'));
 });
 
-test("each guide has reviewed metadata, sources, internal links, FAQs, and enrichment", () => {
+test("each post has reviewed metadata, primary sources, internal links, and FAQs", () => {
   for (const slug of slugs) {
     const source = postSource(slug);
     assert.match(source, /title: "[^"]{40,}"/);
@@ -34,12 +38,14 @@ test("each guide has reviewed metadata, sources, internal links, FAQs, and enric
     assert.match(source, /date: "Oct 18, 2026"/);
     assert.match(source, /updated: "Oct 18, 2026"/);
     assert.match(source, /verified: "Oct 18, 2026"/);
+    assert.match(source, /read: "[1-9][0-9]? min read"/);
     assert.match(source, /keywords: \[/);
     assert.match(source, /related: \[/);
     assert.match(source, /faq\(/);
     assert.match(source, /https:\/\//);
     assert.match(source, /href: "\//);
     assert.match(enrichmentSource, new RegExp(`"${slug}":`));
+    assert.equal(source.includes(emDash), false);
   }
 });
 

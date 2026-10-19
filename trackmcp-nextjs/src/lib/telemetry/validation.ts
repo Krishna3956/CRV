@@ -7,6 +7,8 @@ import {
   type TrackMCPCorrelationHandleSource,
   type TrackMCPIntentSource,
   type TrackMCPObservationSource,
+  type TrackMCPInteractionLinkSource,
+  type TrackMCPResultType,
   type TrackMCPSessionIdSource,
 } from "./types.ts";
 
@@ -25,6 +27,9 @@ const SESSION_ID_SOURCES = ["protocol", "transport_generated", "external", "miss
 const CORRELATION_HANDLE_SOURCES = ["external", "issued", "missing"] as const;
 const OBSERVATION_SOURCES = ["client", "server"] as const;
 const INTENT_SOURCES = ["context_parameter", "external_callback", "fallback", "missing"] as const;
+const ACCOUNT_IDENTITY_SOURCES = ["resolver", "unresolved"] as const;
+const RESULT_TYPES = ["complete", "input_required"] as const;
+const INTERACTION_LINK_SOURCES = ["request_id", "external", "issued", "missing"] as const;
 const INGEST_SENSITIVE_KEYS = new Set([
   "password", "passwd", "secret", "token", "api_key", "apikey", "authorization", "cookie",
   "set_cookie", "access_token", "refresh_token", "private_key", "client_secret", "ssn",
@@ -131,6 +136,7 @@ function checkOptionalStrings(event: Record<string, unknown>): string | undefine
     "schema_version", "server_id", "deployment_id", "server_version", "sdk_version", "protocol_version",
     "mcp_method", "request_id", "session_id", "task_id", "workflow_id", "client_name", "client_version",
     "tool_name", "tool_description", "tool_description_hash", "error_class", "schema_hash", "correlation_handle", "context", "missing_capability",
+    "interaction_id", "interaction_link_source", "retry_of_event_id", "request_state_hash",
   ];
   for (const field of fields) {
     if (event[field] !== undefined && event[field] !== null && !isString(event[field])) return `${field} must be a non-empty string`;
@@ -183,6 +189,9 @@ export function normalizeTrackMCPEvent(value: unknown): EventValidationResult {
     if (event.correlation_handle_source !== "external" && event.correlation_handle_source !== "issued") return { ok: false, reason: "correlation_handle_source is required when correlation_handle is present", eventId };
   }
   if (event.intent_source !== undefined && event.intent_source !== null && !INTENT_SOURCES.includes(event.intent_source as TrackMCPIntentSource)) return { ok: false, reason: "intent_source is unsupported", eventId };
+  if (event.account_identity_source !== undefined && event.account_identity_source !== null && !ACCOUNT_IDENTITY_SOURCES.includes(event.account_identity_source as "resolver" | "unresolved")) return { ok: false, reason: "account_identity_source is unsupported", eventId };
+  if (event.account_key !== undefined && event.account_key !== null && (typeof event.account_key !== "string" || !/^[0-9a-f]{64}$/.test(event.account_key))) return { ok: false, reason: "account_key must be a SHA-256 hex identifier", eventId };
+  if (event.account_key && event.account_identity_source !== "resolver") return { ok: false, reason: "account_identity_source is required for account_key", eventId };
   const context = sanitizeIntentText(event.context);
   if (event.context !== undefined && event.context !== null && !context) return { ok: false, reason: "context must be bounded and privacy-safe", eventId };
   if (event.intent_source !== undefined && event.intent_source !== null && event.intent_source !== "missing" && !context) return { ok: false, reason: "context is required for intent_source", eventId };
@@ -193,10 +202,24 @@ export function normalizeTrackMCPEvent(value: unknown): EventValidationResult {
     if (event[field] !== undefined && event[field] !== null && !isNonNegativeInteger(event[field])) return { ok: false, reason: `${field} must be a non-negative integer`, eventId };
   }
   if (event.error_code !== undefined && event.error_code !== null && (!Number.isInteger(event.error_code) || !Number.isFinite(event.error_code))) return { ok: false, reason: "error_code must be an integer", eventId };
+  if (event.result_type !== undefined && event.result_type !== null && !RESULT_TYPES.includes(event.result_type as TrackMCPResultType)) return { ok: false, reason: "result_type is unsupported", eventId };
+  if (event.interaction_link_source !== undefined && event.interaction_link_source !== null && !INTERACTION_LINK_SOURCES.includes(event.interaction_link_source as TrackMCPInteractionLinkSource)) return { ok: false, reason: "interaction_link_source is unsupported", eventId };
+  if (event.interaction_id !== undefined && event.interaction_id !== null && event.interaction_link_source === "missing") return { ok: false, reason: "interaction_link_source cannot be missing when interaction_id is present", eventId };
+  if (event.interaction_link_source !== undefined && event.interaction_link_source !== null && event.interaction_link_source !== "missing" && typeof event.interaction_id !== "string") return { ok: false, reason: "interaction_id is required for interaction_link_source", eventId };
+  if (event.retry_of_event_id !== undefined && event.retry_of_event_id !== null && (typeof event.retry_of_event_id !== "string" || !EVENT_ID.test(event.retry_of_event_id))) return { ok: false, reason: "retry_of_event_id must be a valid event identifier", eventId };
+  if (event.request_state_hash !== undefined && event.request_state_hash !== null && (typeof event.request_state_hash !== "string" || !/^[0-9a-f]{64}$/.test(event.request_state_hash))) return { ok: false, reason: "request_state_hash must be a SHA-256 hex hash", eventId };
+  if (event.input_response_count !== undefined && event.input_response_count !== null && (!isNonNegativeInteger(event.input_response_count) || event.input_response_count > 100)) return { ok: false, reason: "input_response_count must be between 0 and 100", eventId };
+  if (event.resource_audience !== undefined && event.resource_audience !== null && event.resource_audience !== "user" && event.resource_audience !== "assistant") return { ok: false, reason: "resource_audience is unsupported", eventId };
+  if (event.resource_priority !== undefined && event.resource_priority !== null && (typeof event.resource_priority !== "number" || !Number.isFinite(event.resource_priority) || event.resource_priority < 0 || event.resource_priority > 1)) return { ok: false, reason: "resource_priority must be between 0 and 1", eventId };
   for (const field of ["success", "is_error"] as const) {
     if (event[field] !== undefined && event[field] !== null && typeof event[field] !== "boolean") return { ok: false, reason: `${field} must be a boolean`, eventId };
   }
   if (event.payload !== undefined && event.payload !== null && !isRecord(event.payload)) return { ok: false, reason: "payload must be an object", eventId };
+  if (event.catalog_kind !== undefined && event.catalog_kind !== null && !["tools", "resources", "resource_templates", "prompts"].includes(event.catalog_kind as string)) return { ok: false, reason: "catalog_kind is unsupported", eventId };
+  if (event.catalog_item_count !== undefined && event.catalog_item_count !== null && !isNonNegativeInteger(event.catalog_item_count)) return { ok: false, reason: "catalog_item_count must be a non-negative integer", eventId };
+  for (const field of ["catalog_item_name_hashes", "catalog_item_uri_hashes"] as const) {
+    if (event[field] !== undefined && event[field] !== null && (!Array.isArray(event[field]) || event[field].length > 128 || event[field].some((hash) => typeof hash !== "string" || !/^[0-9a-f]{64}$/.test(hash)))) return { ok: false, reason: `${field} must contain at most 128 SHA-256 hashes`, eventId };
+  }
 
   const normalized = {
     ...event,

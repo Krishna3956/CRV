@@ -7,17 +7,20 @@ import {
   DEVICE_SLOW_POLL_INTERVAL_SECONDS,
   hashDeviceCode,
   isExpired,
+  readBoundedJsonObject,
 } from "@/lib/cli/device-auth";
-import { consumeRateLimit } from "@/lib/cli/rate-limit";
+import { consumeRateLimitDetailedAsync, rateLimitHeaders } from "@/lib/cli/rate-limit";
 
 export async function POST(request: Request) {
   const admin = getSupabaseAdmin();
   if (!admin) return NextResponse.json({ error: "Device authorization is not configured." }, { status: 503 });
-  let body: { device_code?: unknown };
-  try { body = await request.json(); } catch { return NextResponse.json({ error: "Invalid JSON." }, { status: 400 }); }
+  const parsed = await readBoundedJsonObject(request);
+  if (!parsed.ok) return NextResponse.json({ error: parsed.error }, { status: parsed.status });
+  const body = parsed.value;
   const deviceCode = typeof body.device_code === "string" ? body.device_code : "";
   if (deviceCode.length < 32 || deviceCode.length > 128) return NextResponse.json({ error: "Invalid device code." }, { status: 400 });
-  if (!consumeRateLimit(`device-poll:${hashDeviceCode(deviceCode)}`, 120, 10 * 60_000)) return NextResponse.json({ error: "Too many polling attempts." }, { status: 429, headers: { "retry-after": "60" } });
+  const decision = await consumeRateLimitDetailedAsync({ key: `device-poll:${hashDeviceCode(deviceCode)}`, limit: 120, windowMs: 10 * 60_000 });
+  if (!decision.allowed) return NextResponse.json({ error: "Too many polling attempts." }, { status: 429, headers: rateLimitHeaders(decision) });
   const result = await admin.from("trackmcp_cli_device_sessions").select("id, status, expires_at, last_polled_at, poll_count, last_slow_down_at").eq("device_code_hash", hashDeviceCode(deviceCode)).maybeSingle();
   if (result.error || !result.data) return NextResponse.json({ error: "Invalid or expired device session." }, { status: 400 });
   const session = result.data as { id: string; status: string; expires_at: string; last_polled_at: string | null; poll_count: number; last_slow_down_at: string | null };

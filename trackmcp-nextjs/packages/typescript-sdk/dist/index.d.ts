@@ -5,7 +5,16 @@ export declare const TRACKMCP_SCHEMA_VERSION: "1";
 export type TrackMCPCorrelationMode = "none" | "external" | "issued";
 export type TrackMCPCorrelationHandleSource = "external" | "issued" | "missing";
 export type TrackMCPIntentSource = "context_parameter" | "external_callback" | "fallback" | "missing";
+export type TrackMCPCatalogKind = "tools" | "resources" | "resource_templates" | "prompts";
 export type TrackMCPIntentContext = {
+    eventType: TrackMCPEventType;
+    mcpMethod?: string;
+    toolName?: string;
+    requestId?: string;
+    sessionId?: string;
+    transport?: TrackMCPEvent["transport"];
+};
+export type TrackMCPAccountIdentityContext = {
     eventType: TrackMCPEventType;
     mcpMethod?: string;
     toolName?: string;
@@ -53,6 +62,8 @@ export type TrackMCPEvent = {
     observation_source?: "client" | "server";
     client_name?: string;
     client_version?: string;
+    account_key?: string;
+    account_identity_source?: "resolver" | "unresolved";
     tool_name?: string;
     tool_description?: string;
     tool_description_hash?: string;
@@ -63,7 +74,12 @@ export type TrackMCPEvent = {
     error_class?: string;
     error_code?: number;
     retry_number?: number;
+    result_type?: "complete" | "input_required";
     schema_hash?: string;
+    catalog_kind?: TrackMCPCatalogKind;
+    catalog_item_count?: number;
+    catalog_item_name_hashes?: string[];
+    catalog_item_uri_hashes?: string[];
     payload_size_bytes?: number;
     payload_policy?: "metadata" | "redacted" | "full";
     payload?: Record<string, unknown>;
@@ -103,6 +119,8 @@ export type TrackMCPOptions = {
     maxQueueBytes?: number;
     correlation?: TrackMCPCorrelationOptions;
     intentFallback?: (context: TrackMCPIntentContext) => string | undefined | null;
+    /** Resolve an already-validated customer account claim; failures are fail-open. */
+    accountIdResolver?: (context: TrackMCPAccountIdentityContext) => string | undefined | null;
     /** Throw during initialization when TRACKMCP_KEY is absent. Defaults to false. */
     strict?: boolean;
     /** Structured, rate-limited delivery diagnostics. */
@@ -119,6 +137,13 @@ type CatalogTool = {
     tool_description_hash: string;
     schema_hash: string;
 };
+type EntityObservation = {
+    kind: "resources" | "prompts";
+    hash: string;
+};
+export declare function protocolResultType(result: Record<string, unknown> | undefined): TrackMCPEvent["result_type"];
+export declare function catalogObservation(kind: TrackMCPCatalogKind, result: Record<string, unknown> | undefined): Pick<TrackMCPEvent, "catalog_kind" | "catalog_item_count" | "catalog_item_name_hashes" | "catalog_item_uri_hashes">;
+export declare function interactionEntityObservation(method: string | undefined, params: Record<string, unknown> | undefined): EntityObservation | undefined;
 export type TrackMCPDiagnostics = {
     droppedEvents: number;
     hookErrors: number;
@@ -153,6 +178,7 @@ export declare class TrackMCPClient {
         source: TrackMCPCorrelationHandleSource;
     };
     private captureInternal;
+    private accountFor;
     private correlationFor;
     private removeQueuedEvent;
     private intentFor;
