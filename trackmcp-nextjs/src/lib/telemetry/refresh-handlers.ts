@@ -4,6 +4,7 @@ import { persistTrackMCPFacts } from "./fact-writer.ts";
 import { evaluateTrackMCPActionQueue, persistTrackMCPActionQueue } from "./action-queue.ts";
 import { buildCatalogVersionWrites, type CatalogObservationRow, type ExistingCatalogVersion } from "./catalog-refresh.ts";
 import { buildCatalogEntityReadWrites } from "./catalog-entities.ts";
+import { buildTaskTransitionWrites, persistTrackMCPTaskTransitions } from "./task-transitions.ts";
 import type { RefreshJobHandlerRegistry } from "./refresh-worker.ts";
 
 const MAX_ROWS = 500;
@@ -12,6 +13,7 @@ const EVENT_COLUMNS = "event_id,event_type,service,environment,started_at,client
 type QueryResult<T> = { data: T[] | null; error: { code?: string; message: string } | null };
 type Query = { select(columns: string): Query; eq(column: string, value: string): Query; order(column: string, options: { ascending: boolean }): Query; limit(value: number): PromiseLike<QueryResult<unknown>> };
 type RefreshAdmin = { from(table: string): Query & { upsert(rows: unknown[], options: { onConflict: string; ignoreDuplicates: boolean }): PromiseLike<{ error: { code?: string; message: string } | null }> } };
+type RefreshHandlerOptions = { taskTransitionsEnabled?: boolean };
 
 function retryable(error: unknown) {
   const message = error instanceof Error ? error.message : "refresh handler failed";
@@ -23,7 +25,8 @@ function factsFromRows(rows: unknown[]): TrackMCPFact[] {
     .map((row) => projectTrackMCPFact(row));
 }
 
-export function createRefreshJobHandlers(admin: RefreshAdmin): RefreshJobHandlerRegistry {
+export function createRefreshJobHandlers(admin: RefreshAdmin, options: RefreshHandlerOptions = {}): RefreshJobHandlerRegistry {
+  const taskTransitionsEnabled = options.taskTransitionsEnabled ?? process.env.TRACKMCP_TASK_TRANSITIONS_ENABLED === "true";
   return {
     async fact_projection({ job, signal }) {
       if (signal?.aborted) return { outcome: "retryable", error_code: "cancelled", detail: "worker was cancelled" };
@@ -32,7 +35,12 @@ export function createRefreshJobHandlers(admin: RefreshAdmin): RefreshJobHandler
         if (result.error) return retryable(result.error.message);
         const facts = factsFromRows(result.data || []);
         const persisted = await persistTrackMCPFacts(admin as never, job.workspace_id, facts);
-        return persisted.error ? retryable(persisted.error.message) : { outcome: "succeeded" as const };
+        if (persisted.error) return retryable(persisted.error.message);
+        if (taskTransitionsEnabled) {
+          const transitions = await persistTrackMCPTaskTransitions(admin as never, buildTaskTransitionWrites(job.workspace_id, facts));
+          if (transitions.error) return retryable(transitions.error.message);
+        }
+        return { outcome: "succeeded" as const };
       } catch (error) {
         return retryable(error);
       }

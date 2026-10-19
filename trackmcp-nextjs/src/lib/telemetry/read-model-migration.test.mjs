@@ -3,6 +3,7 @@ import { readFile } from "node:fs/promises";
 import test from "node:test";
 
 const migrationPath = new URL("../../../../supabase/migrations/20261018000003_founder_os_read_model.sql", import.meta.url);
+const taskTransitionMigrationPath = new URL("../../../../supabase/migrations/20261019000005_task_transition_history.sql", import.meta.url);
 
 test("Founder OS read-model migration is additive and bounded", async () => {
   const sql = await readFile(migrationPath, "utf8");
@@ -13,6 +14,18 @@ test("Founder OS read-model migration is additive and bounded", async () => {
   assert.match(sql, /enable row level security/i);
   assert.match(sql, /revoke all on public\.trackmcp_semantic_facts/i);
   assert.match(sql, /revoke all on public\.trackmcp_action_queue/i);
+  assert.doesNotMatch(sql, /\b(drop|truncate|delete)\s+(table|schema|from|database)\b/i);
+  assert.doesNotMatch(sql, /\b(insert|update)\s+into\b/i);
+});
+
+test("task transition migration is additive, bounded, and service-role-only", async () => {
+  const sql = await readFile(taskTransitionMigrationPath, "utf8");
+  assert.match(sql, /create table if not exists public\.trackmcp_task_transitions/i);
+  assert.match(sql, /unique \(workspace_id, source_event_id\)/i);
+  assert.match(sql, /task_id_hash.*\^\[a-f0-9\].*\{64\}/i);
+  assert.match(sql, /enable row level security/i);
+  assert.match(sql, /revoke all on public\.trackmcp_task_transitions from anon, authenticated/i);
+  assert.match(sql, /grant select, insert, update, delete on public\.trackmcp_task_transitions to service_role/i);
   assert.doesNotMatch(sql, /\b(drop|truncate|delete)\s+(table|schema|from|database)\b/i);
   assert.doesNotMatch(sql, /\b(insert|update)\s+into\b/i);
 });
