@@ -328,8 +328,9 @@ keeping resource URI/content and prompt names/arguments private by default?
 
 - [x] Lease fencing, retry bounds, idempotency, and fail-closed cleanup paths
   have local tests.
-- [ ] Confirm there is a real production enqueue path for every refresh job
-  class; if not, implement and test it before relying on worker claims.
+- [x] Implement and test a feature-gated ingest enqueue path for every
+  non-destructive refresh job class. Production enablement remains gated on the
+  migration, RPC postflight, and an external worker configuration.
 - [ ] Verify operational dashboards/alerts for queue depth, lag, failures,
   ingest errors, authorization anomalies, and rate-limit spikes.
 

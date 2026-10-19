@@ -73,7 +73,9 @@ a blanket migration command from this runbook.
 Before enabling derived writes or distributed rate limiting, verify the required
 tables, columns, indexes, constraints, service-role-only RPC privileges,
 runtime `SECRETS_ARN`, and worker secrets. `TRACKMCP_ENABLE_FACT_WRITES=true`
-requires the read-model postflight; `TRACKMCP_RATE_LIMIT_MODE=supabase`
+requires the read-model postflight; `TRACKMCP_ENABLE_REFRESH_JOBS=true`
+requires the refresh-job migration, worker RPC postflight, and configured
+external worker; `TRACKMCP_RATE_LIMIT_MODE=supabase`
 requires the rate-limit postflight. The deployment script must fail before AWS
 changes when these relationships are invalid.
 
