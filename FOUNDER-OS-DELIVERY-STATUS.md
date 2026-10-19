@@ -363,6 +363,9 @@ The Setup view also distinguishes waiting for a first event, first-event
 verified, limited/bounded coverage, and unresolved identity. These states are
 derived from API evidence and data-trust fields; they do not claim a unique
 person, organization, or complete telemetry history.
+When an event is present, Setup also shows the bounded server and environment
+labels carried by that event; missing labels remain explicit rather than being
+inferred from the workspace or connection key.
 
 The Protocol surfaces dashboard cards now disclose durable entity-read coverage
 for resources and prompts: total reads, successful/failed reads, reads that
@@ -609,11 +612,11 @@ catalog snapshot migrations, worker trigger, or current deployed frontend.
 - A versioned read-only `GET /api/v2/setup` contract now exposes the
   workspace-scoped setup state, first-event checks, bounded observation
   metadata, truthful no-event caveats, bounded state-specific next steps, and
-  capped first-event freshness without returning keys or payloads. Its identity
+  capped first-event freshness and bounded server/environment scope without returning keys or payloads. Its identity
   check is tri-state (`true` resolver, `false` explicit unresolved, `null`
   legacy unknown); the
-  dashboard renders those steps and freshness note, and its contract is
-  included in the 76-suite release gate.
+  dashboard renders those steps, freshness, and first-event scope; its contract
+  is included in the 104-suite release gate.
 - The v2 Action Queue projection now requests an optional, workspace-scoped
   `linked_alerts` relationship using the hash-only alert link. Missing or
   unpostflighted link schema degrades to an empty relationship without
