@@ -196,14 +196,15 @@ test("analytics exposes bounded protocol lifecycle signals without treating them
   const handler = createAnalyticsHandler(() => fakeAdmin([
     event({ event_id: "signal-progress", event_type: "protocol", mcp_method: "notifications/progress" }),
     event({ event_id: "signal-change", event_type: "protocol", mcp_method: "notifications/tools/list_changed" }),
+    event({ event_id: "signal-resource-change", event_type: "protocol", mcp_method: "notifications/resources/updated" }),
     event({ event_id: "signal-subscribe", event_type: "protocol", mcp_method: "resources/subscribe" }),
     event({ event_id: "signal-unsubscribe", event_type: "protocol", mcp_method: "resources/unsubscribe" }),
   ]));
   const response = await handler(new Request("http://analytics.test/api/v1/analytics?days=7", { headers: { authorization: "Bearer key" } }));
   assert.equal(response.status, 200);
   const body = await response.json();
-  assert.deepEqual(body.protocol_signals, { notification: 0, progress: 1, catalog_changed: 1, subscription_started: 1, subscription_stopped: 1, observed_events: 4 });
-  assert.equal(body.founder_os.facts.outcomes.not_observable, 4);
+  assert.deepEqual(body.protocol_signals, { notification: 0, progress: 1, catalog_changed: 1, resource_changed: 1, subscription_started: 1, subscription_stopped: 1, observed_events: 5 });
+  assert.equal(body.founder_os.facts.outcomes.not_observable, 5);
 });
 
 test("analytics insights carry bounded action context only when evidence supports it", async () => {

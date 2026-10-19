@@ -202,6 +202,7 @@ export type Analytics = {
     notification: number;
     progress: number;
     catalog_changed: number;
+    resource_changed: number;
     subscription_started: number;
     subscription_stopped: number;
     observed_events: number;

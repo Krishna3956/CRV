@@ -63,6 +63,8 @@ test("classifies protocol notifications and subscriptions as lifecycle signals, 
   const progress = classifyTrackMCPOutcome(event({ event_type: "protocol", mcp_method: "notifications/progress" }));
   assert.equal(progress.protocol_signal, "progress");
   assert.equal(progress.outcome, "not_observable");
+  const resourceChanged = classifyTrackMCPOutcome(event({ event_type: "protocol", mcp_method: "notifications/resources/updated" }));
+  assert.equal(resourceChanged.protocol_signal, "resource_changed");
 
   const started = classifyTrackMCPOutcome(event({ event_type: "protocol", mcp_method: "resources/subscribe" }));
   assert.equal(started.protocol_signal, "subscription_started");
