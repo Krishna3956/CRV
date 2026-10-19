@@ -212,6 +212,9 @@ export async function runMcpTester(options: McpTesterOptions): Promise<McpTester
     const result = isRecord(discovery.envelope?.result) ? discovery.envelope.result : undefined;
     const serverInfo = result && isRecord(result.serverInfo) ? result.serverInfo : undefined;
     const capabilities = result && isRecord(result.capabilities) ? result.capabilities : undefined;
+    const supportedVersions = result && Array.isArray(result.supportedVersions)
+      ? [...new Set(result.supportedVersions.filter((version): version is string => typeof version === "string" && version.length > 0 && version.length <= 32).map((version) => safeString(version, 32)).filter((version): version is string => Boolean(version)))].slice(0, 16)
+      : undefined;
     if (!result) {
       addFinding("modern_discovery_invalid", "protocol", "error", "The server/discover result was not a bounded MCP object.", "modern_discover");
       finishPhase("modern_discover", modernStart, "failed", record, phases, timings, now);
@@ -219,9 +222,18 @@ export async function runMcpTester(options: McpTesterOptions): Promise<McpTester
     }
     state.reachable = true;
     state.authenticated = true;
-    state.protocolPassed = true;
+    state.protocolPassed = Boolean(supportedVersions?.includes(MODERN_MCP_PROTOCOL_VERSION));
     state.incomplete = true;
-    state.protocol = { requestedVersion: MODERN_MCP_PROTOCOL_VERSION, negotiatedVersion: MODERN_MCP_PROTOCOL_VERSION, clientName: state.clientName, clientVersion: state.clientVersion, sessionIdPresent: false };
+    state.protocol = { requestedVersion: MODERN_MCP_PROTOCOL_VERSION, ...(state.protocolPassed ? { negotiatedVersion: MODERN_MCP_PROTOCOL_VERSION } : {}), ...(supportedVersions === undefined ? {} : { supportedVersions }), clientName: state.clientName, clientVersion: state.clientVersion, sessionIdPresent: false };
+    if (supportedVersions === undefined) {
+      addFinding("modern_discovery_versions_missing", "protocol", "warning", "The server/discover response did not advertise supported protocol versions, so this probe cannot claim version negotiation.", "modern_discover");
+    } else if (!state.protocolPassed) {
+      state.protocolError = true;
+      addFinding("modern_version_not_advertised", "protocol", "error", "The server/discover response did not advertise the requested 2026-07-28 protocol revision.", "modern_discover", { requested_version: MODERN_MCP_PROTOCOL_VERSION });
+      finishPhase("modern_discover", modernStart, "failed", record, phases, timings, now);
+      state.incomplete = false;
+      return finalize(state, observedAt, addFinding);
+    }
     state.server = { name: typeof serverInfo?.name === "string" ? safeString(serverInfo.name, limits.maxRenderedStringLength) : undefined, version: typeof serverInfo?.version === "string" ? safeString(serverInfo.version, limits.maxRenderedStringLength) : undefined };
     state.identityPassed = Boolean(state.server.name && state.server.version);
     state.capabilities = { tools: Boolean(capabilities?.tools), resources: Boolean(capabilities?.resources), prompts: Boolean(capabilities?.prompts) };

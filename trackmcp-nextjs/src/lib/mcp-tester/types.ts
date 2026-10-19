@@ -202,6 +202,7 @@ export interface ServerIdentity {
 export interface ProtocolSummary {
   requestedVersion: string;
   negotiatedVersion?: string;
+  supportedVersions?: string[];
   clientName: string;
   clientVersion: string;
   sessionIdPresent: boolean;
