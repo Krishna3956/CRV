@@ -331,8 +331,10 @@ keeping resource URI/content and prompt names/arguments private by default?
 - [x] Implement and test a feature-gated ingest enqueue path for every
   non-destructive refresh job class. Production enablement remains gated on the
   migration, RPC postflight, and an external worker configuration.
-- [ ] Verify operational dashboards/alerts for queue depth, lag, failures,
-  ingest errors, authorization anomalies, and rate-limit spikes.
+- [x] Define and locally test secret-free findings for queue depth, lag,
+  failures, ingest errors, authorization anomalies, and rate-limit spikes.
+- [ ] Verify the production dashboard/alert adapter, source freshness,
+  deduplication/cooldown, and approved notification delivery for those findings.
 
 ## Workstream 11 Performance, failure recovery, and rollback
 
