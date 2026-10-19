@@ -102,7 +102,7 @@ function workflowStatus(event: CanonicalTrackMCPEvent): string | undefined {
   return event.payload?.name === "workflow" && typeof event.payload.status === "string" ? event.payload.status : undefined;
 }
 
-function protocolResultType(event: CanonicalTrackMCPEvent): "complete" | "input_required" | undefined {
+function protocolResultType(event: CanonicalTrackMCPEvent): "complete" | "input_required" | "task" | undefined {
   if (event.result_type) return event.result_type;
   // MCP resultType was added after earlier protocol versions. For the two
   // request/response families where it is defined, absent means complete for
@@ -160,6 +160,12 @@ export function classifyTrackMCPOutcome(event: CanonicalTrackMCPEvent): TrackMCP
     evidence_quality = "observed";
     reason = "task_expired";
   } else if (task === "working" || task === "input_required") {
+    outcome = "pending";
+    evidence_quality = "observed";
+    reason = "task_pending";
+  } else if (resultType === "task") {
+    // A task result is a durable handle, not a completed tool result. The
+    // eventual outcome must come from tasks/get or a task notification.
     outcome = "pending";
     evidence_quality = "observed";
     reason = "task_pending";
