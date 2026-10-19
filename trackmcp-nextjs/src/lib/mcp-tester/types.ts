@@ -212,6 +212,8 @@ export interface CapabilitySummary {
   tools: boolean;
   resources: boolean;
   prompts: boolean;
+  /** Server-advertised modern Tasks extension; this is not a conformance claim. */
+  tasks?: boolean;
 }
 
 export interface ToolSummary {

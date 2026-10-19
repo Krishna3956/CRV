@@ -236,7 +236,13 @@ export async function runMcpTester(options: McpTesterOptions): Promise<McpTester
     }
     state.server = { name: typeof serverInfo?.name === "string" ? safeString(serverInfo.name, limits.maxRenderedStringLength) : undefined, version: typeof serverInfo?.version === "string" ? safeString(serverInfo.version, limits.maxRenderedStringLength) : undefined };
     state.identityPassed = Boolean(state.server.name && state.server.version);
-    state.capabilities = { tools: Boolean(capabilities?.tools), resources: Boolean(capabilities?.resources), prompts: Boolean(capabilities?.prompts) };
+    const extensions = capabilities && isRecord(capabilities.extensions) ? capabilities.extensions : undefined;
+    state.capabilities = {
+      tools: Boolean(capabilities?.tools),
+      resources: Boolean(capabilities?.resources),
+      prompts: Boolean(capabilities?.prompts),
+      tasks: Boolean(extensions && isRecord(extensions["io.modelcontextprotocol/tasks"])),
+    };
     state.resourcesAdvertised = state.capabilities.resources;
     state.promptsAdvertised = state.capabilities.prompts;
     if (state.capabilities.tools) {
@@ -266,7 +272,7 @@ export async function runMcpTester(options: McpTesterOptions): Promise<McpTester
     } else {
       skipPhase(state, "prompts_list", record, beginPhase, finishPhase);
     }
-    addFinding("modern_discovery_partial", "protocol", "warning", "Modern server discovery and bounded tools, resources, and prompts catalogs completed where advertised. Cache hints, subscriptions, and multi-round-trip checks are not yet implemented for this revision, so this report is incomplete.", "modern_discover", { protocolVersion: MODERN_MCP_PROTOCOL_VERSION });
+    addFinding("modern_discovery_partial", "protocol", "warning", "Modern server discovery and bounded tools, resources, and prompts catalogs completed where advertised. Advertised Tasks capability is recorded, but task negotiation, subscriptions, cache invalidation, and multi-round-trip checks are not implemented for this revision, so this report is incomplete.", "modern_discover", { protocolVersion: MODERN_MCP_PROTOCOL_VERSION, tasksAdvertised: state.capabilities.tasks === true });
     finishPhase("modern_discover", modernStart, "incomplete", record, phases, timings, now);
     return finalize(state, observedAt, addFinding);
   }
@@ -545,6 +551,7 @@ function normalizeInitializeResult(value: unknown, maxStringLength: number): { o
       tools: isRecord(capabilities.tools),
       resources: isRecord(capabilities.resources),
       prompts: isRecord(capabilities.prompts),
+      ...(isRecord(capabilities.tasks) ? { tasks: true } : {}),
     },
   };
 }

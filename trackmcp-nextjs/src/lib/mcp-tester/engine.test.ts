@@ -285,7 +285,7 @@ test("modern 2026-07-28 requests use bounded discovery instead of a legacy hands
       const body = JSON.parse(String(init?.body));
       if (body.method === "server/discover") {
         assert.equal(new Headers(init?.headers).get("mcp-method"), "server/discover");
-        return jsonRpc({ supportedVersions: ["2026-07-28"], serverInfo: { name: "Modern fixture", version: "1" }, capabilities: { tools: {}, resources: {}, prompts: {} } }, 1);
+        return jsonRpc({ supportedVersions: ["2026-07-28"], serverInfo: { name: "Modern fixture", version: "1" }, capabilities: { tools: {}, resources: {}, prompts: {}, extensions: { "io.modelcontextprotocol/tasks": {} } } }, 1);
       }
       assert.equal(new Headers(init?.headers).get("mcp-method"), body.method);
       if (body.method === "tools/list") return jsonRpc({ tools: [{ name: "search", description: "bounded fixture", inputSchema: { type: "object", properties: {} } }], ttlMs: 60_000, cacheScope: "private" }, body.id);
@@ -296,6 +296,7 @@ test("modern 2026-07-28 requests use bounded discovery instead of a legacy hands
   });
   assert.equal(report.protocol?.negotiatedVersion, "2026-07-28");
   assert.deepEqual(report.protocol?.supportedVersions, ["2026-07-28"]);
+  assert.equal(report.capabilities.tasks, true);
   assert.equal(report.protocol?.sessionIdPresent, false);
   assert.equal(report.verdict, "incomplete");
   assert.ok(report.findings.some((finding) => finding.code === "modern_discovery_partial"));
