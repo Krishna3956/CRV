@@ -19,6 +19,11 @@ source explicitly says it is an outcome event.
 | `needs_attention` | Needs attention | Count of fired insight rules | Bounded analytics rules | Signals, not diagnoses |
 | `identity_coverage` | Verified account coverage | Events with `account_identity_source=resolver` / eligible events | Resolver-labeled server telemetry | Event-weighted coverage; not unique organizations |
 | `active_account_signals` | Active account signals | Distinct resolver-linked account keys with at least one event in the selected range | Resolver-labeled server telemetry | Privacy-safe dimensions; not unique people or customers |
+| `active_accounts` | Active accounts this period | Distinct resolver-linked account keys in the selected period | Server telemetry with resolver identity | Account signals, not people or verified end users |
+| `new_accounts` | New accounts | Active resolver-linked accounts whose first observed timestamp is in the selected period | Bounded historical server telemetry scan | `N/A` when history is incomplete; first observed is not signup |
+| `returning_accounts` | Returning accounts | Active resolver-linked accounts first observed before the selected period | Bounded historical server telemetry scan | `N/A` when history is incomplete; not a retention claim |
+| `account_growth` | Growth over time | Distinct resolver-linked accounts grouped by UTC day | Server telemetry with resolver identity | Observed activity only; no identity means no count |
+| `top_account_activity` | Top accounts by activity | Ranked resolver-linked account signals by observed event count | Server telemetry with resolver identity | Raw keys and account names never leave the server |
 | `active_account_signals_7d` | Active in last 7 days | Distinct resolver-linked account keys observed in the trailing seven days | Resolver-labeled server telemetry | Only available inside the selected range; not a weekly active-user claim |
 | `returning_account_signals` | Returning account signals | Distinct resolver-linked account keys observed on more than one calendar day | Resolver-labeled server telemetry | Repeat activity, not retention or account identity proof |
 | `account_activity_bands` | Account activity shape | Counts of resolver-linked keys with 1, 2–9, or 10+ observed events | Resolver-labeled server telemetry | Bounded bands; no raw keys or account names are exposed |
@@ -51,7 +56,10 @@ contract. Update the registry and its tests before adding a new product metric.
 
 Analytics reads are intentionally bounded and must disclose when the source
 scan reaches a safety limit. The v1 projection accepts a maximum 90-day window
-and scans at most 10,000 telemetry rows per request. Catalog history reads at
+and scans at most 10,000 telemetry rows for the selected-period projection.
+The "Who's using it" first-seen side scan reads only the narrow account/timestamp
+columns and is capped at 100,000 rows; if that cap is reached, new/returning
+classification is `insufficient_data` rather than an inferred result. Catalog history reads at
 most 100 rows after fetching one sentinel row, catalog entity observations use
 the same bounded source pattern, and the versioned tools endpoint returns at
 most 100 projected rows per page using an opaque cursor. Catalog projections

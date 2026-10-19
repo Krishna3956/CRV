@@ -217,6 +217,21 @@ export type Analytics = {
   tool_adoption?: { advertised: number; observed: number; breadth: number | null; unused: number };
   timeline: { date: string; events: number; calls: number; errors: number }[];
   clients: { name: string; calls: number; versions?: string[] }[];
+  /** Founder OS "Who's using it" read model. Account labels are deliberately
+   * omitted because MCP does not define customer identity and resolver keys
+   * must never be exposed to the browser. */
+  who_is_using_it?: {
+    active_accounts: number;
+    previous_period_active_accounts: number;
+    new_accounts: number | null;
+    returning_accounts: number | null;
+    classification_status: "available" | "insufficient_data";
+    growth: Array<{ period_start: string; active_accounts: number }>;
+    client_breakdown: Array<{ name: string; calls: number; share: number | null; identity_source: "self_reported" | "unrecognized" }>;
+    top_accounts: Array<{ rank: number; activity_count: number; active_days: number; identity_source: "resolver" }>;
+    identity_coverage: number | null;
+    limitation: string;
+  };
   /** Privacy-safe account activity signals. Keys are never exposed to the UI. */
   account_summary?: {
     observed_account_keys: number;

@@ -21,10 +21,13 @@ import {
   ListChecks,
   LogOut,
   RefreshCw,
+  RotateCcw,
   Route,
   Search,
   ShieldCheck,
   Settings2,
+  Sparkles,
+  TrendingUp,
   Users,
   X,
 } from "lucide-react";
@@ -3473,6 +3476,75 @@ function ClientsView({
         actions={pageControls}
       />
       <DataSourceStrip dataMode={dataMode} hasMyData={hasMyData} view="clients" />
+      {analytics.who_is_using_it && (
+        <>
+          <div className="mb-6 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+            <Kpi
+              label="Active accounts this period"
+              value={fmt(analytics.who_is_using_it.active_accounts)}
+              icon={Users}
+              helper={`${analytics.range_days} day window`}
+            />
+            <Kpi
+              label="New accounts"
+              value={analytics.who_is_using_it.new_accounts === null ? "N/A" : fmt(analytics.who_is_using_it.new_accounts)}
+              icon={Sparkles}
+              helper="First observed in this window"
+            />
+            <Kpi
+              label="Returning accounts"
+              value={analytics.who_is_using_it.returning_accounts === null ? "N/A" : fmt(analytics.who_is_using_it.returning_accounts)}
+              icon={RotateCcw}
+              helper="Observed before this window"
+            />
+            <Kpi
+              label="Previous period"
+              value={fmt(analytics.who_is_using_it.previous_period_active_accounts)}
+              icon={TrendingUp}
+              helper="Same-length comparison window"
+            />
+          </div>
+          <div className="mb-6 grid gap-4 xl:grid-cols-[1.25fr_0.75fr]">
+            <Panel title="Growth over time" subtitle="Distinct resolver-linked accounts observed per day">
+              {analytics.who_is_using_it.growth.length ? (
+                <div className="grid grid-cols-2 gap-2 sm:grid-cols-4 lg:grid-cols-7">
+                  {analytics.who_is_using_it.growth.slice(-14).map((point) => (
+                    <div key={point.period_start} className="border border-line bg-surface px-3 py-3">
+                      <p className="text-[10px] text-faint">{point.period_start.slice(5)}</p>
+                      <p className="mt-1 text-xl font-semibold text-ink">{fmt(point.active_accounts)}</p>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="py-6 text-sm text-muted">No account activity was observed in this period.</p>
+              )}
+              <p className="mt-4 text-xs leading-relaxed text-faint">This is account activity, not a count of people. Accounts are only counted when the server supplied a resolver-linked identity.</p>
+            </Panel>
+            <Panel title="Who’s connecting" subtitle="Optional client metadata reported by the AI tool">
+              <div className="space-y-3">
+                {analytics.who_is_using_it.client_breakdown.map((client) => (
+                  <div key={client.name} className="flex items-center justify-between gap-3 text-sm">
+                    <span className="truncate text-ink">{client.name}</span>
+                    <span className="shrink-0 text-muted">{client.share === null ? "N/A" : percent(client.share)} · {fmt(client.calls)}</span>
+                  </div>
+                ))}
+                {!analytics.who_is_using_it.client_breakdown.length && <p className="py-4 text-sm text-muted">No client metadata was observed.</p>}
+              </div>
+              <p className="mt-4 border border-brand/20 bg-brand-soft/30 px-3 py-2.5 text-xs leading-relaxed text-body">Client names are self-reported by the AI tool. Unknown client remains visible when it has volume.</p>
+            </Panel>
+          </div>
+          <Panel title="Top accounts by activity" subtitle="Ranked resolver-linked activity; account names are intentionally not exposed">
+            {analytics.who_is_using_it.top_accounts.length ? (
+              <table className="w-full text-left text-sm">
+                <thead className="border-b border-line text-[10px] font-semibold uppercase tracking-[0.08em] text-faint"><tr><th className="pb-3">Rank</th><th className="pb-3">Activity</th><th className="pb-3">Active days</th><th className="pb-3">Identity</th></tr></thead>
+                <tbody className="divide-y divide-line">{analytics.who_is_using_it.top_accounts.map((account) => <tr key={account.rank}><td className="py-3 font-medium text-ink">#{account.rank}</td><td className="py-3 text-muted">{fmt(account.activity_count)} events</td><td className="py-3 text-muted">{fmt(account.active_days)}</td><td className="py-3 text-muted">Resolver-linked</td></tr>)}</tbody>
+              </table>
+            ) : <p className="py-6 text-sm text-muted">No resolver-linked accounts were observed in this period.</p>}
+            <p className="mt-4 text-xs leading-relaxed text-faint">MCP does not define customer accounts. Names can only be shown when a customer configures a verified identity resolver; raw resolver keys never leave the server.</p>
+          </Panel>
+          {analytics.who_is_using_it.classification_status === "insufficient_data" && <p className="mt-3 text-xs text-warning">New versus returning account counts are unavailable because the bounded history scan was incomplete.</p>}
+        </>
+      )}
       {analytics.account_summary && (
         <div className="mb-6 grid gap-3 sm:grid-cols-3 xl:grid-cols-5">
           <Kpi

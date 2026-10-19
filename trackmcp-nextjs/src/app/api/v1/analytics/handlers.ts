@@ -135,6 +135,22 @@ export function createAnalyticsHandler(getAdmin: typeof getSupabaseAdmin = getSu
     .eq("workspace_id", workspaceId).gte("started_at", since).order("started_at", { ascending: true }).limit(analyticsQueryLimit);
   if (error) return NextResponse.json({ error: "Could not load analytics." }, { status: 500 });
 
+  // The first Founder OS slice needs a lifetime-first-seen signal to
+  // distinguish new from returning accounts. Keep this side query narrow:
+  // it contains no payloads and no identifiers other than the already hashed
+  // resolver key. If the bounded scan is capped, the response explicitly
+  // marks the classification as insufficient rather than inventing a trend.
+  const historyLimit = 100_000;
+  const historyResult = await supabase.from("trackmcp_events")
+    .select("account_key, account_identity_source, started_at")
+    .eq("workspace_id", workspaceId)
+    .eq("observation_source", "server")
+    .not("account_key", "is", null)
+    .order("started_at", { ascending: true })
+    .limit(historyLimit);
+  const historyRows = historyResult.error ? [] : ((historyResult.data || []) as Array<{ account_key?: unknown; account_identity_source?: unknown; started_at?: unknown }>);
+  const historyCapped = historyRows.length >= historyLimit;
+
   // Snapshot rows are service-written and explicitly workspace-scoped by the
   // additive catalog migration. If an operator has not applied that migration
   // yet, preserve the current analytics response and expose a truthful status
@@ -323,6 +339,58 @@ export function createAnalyticsHandler(getAdmin: typeof getSupabaseAdmin = getSu
     schema_hash: catalog.get(name)?.schema_hash || null,
   })).sort((a, b) => b.calls - a.calls);
   const unusedTools = [...catalog.keys()].filter((name) => !tools.has(name));
+
+  const periodStartMs = Date.parse(since);
+  const periodEndMs = Date.now();
+  const periodLengthMs = Math.max(86_400_000, days * 86_400_000);
+  const previousPeriodStartMs = periodStartMs - periodLengthMs;
+  const currentAccountActivity = new Map<string, { count: number; days: Set<string> }>();
+  for (const event of events) {
+    if (event.account_identity_source !== "resolver" || !event.account_key) continue;
+    const existing = currentAccountActivity.get(event.account_key) || { count: 0, days: new Set<string>() };
+    existing.count += 1;
+    existing.days.add(event.started_at.slice(0, 10));
+    currentAccountActivity.set(event.account_key, existing);
+  }
+  const historicalAccountFirstSeen = new Map<string, number>();
+  const previousPeriodAccounts = new Set<string>();
+  const growthBuckets = new Map<string, Set<string>>();
+  for (const row of historyRows) {
+    if (row.account_identity_source !== "resolver" || typeof row.account_key !== "string" || typeof row.started_at !== "string") continue;
+    const timestamp = Date.parse(row.started_at);
+    if (!Number.isFinite(timestamp)) continue;
+    const existing = historicalAccountFirstSeen.get(row.account_key);
+    if (existing === undefined || timestamp < existing) historicalAccountFirstSeen.set(row.account_key, timestamp);
+    if (timestamp >= previousPeriodStartMs && timestamp < periodStartMs) previousPeriodAccounts.add(row.account_key);
+    if (timestamp >= periodStartMs && timestamp <= periodEndMs) {
+      const bucket = new Date(timestamp);
+      bucket.setUTCHours(0, 0, 0, 0);
+      const bucketKey = bucket.toISOString().slice(0, 10);
+      const set = growthBuckets.get(bucketKey) || new Set<string>();
+      set.add(row.account_key);
+      growthBuckets.set(bucketKey, set);
+    }
+  }
+  const currentAccountKeys = new Set(currentAccountActivity.keys());
+  const newAccounts = historyCapped ? null : [...currentAccountKeys].filter((key) => {
+    const firstSeen = historicalAccountFirstSeen.get(key);
+    return firstSeen !== undefined && firstSeen >= periodStartMs;
+  }).length;
+  const returningAccounts = historyCapped ? null : [...currentAccountKeys].filter((key) => {
+    const firstSeen = historicalAccountFirstSeen.get(key);
+    return firstSeen !== undefined && firstSeen < periodStartMs;
+  }).length;
+  const clientBreakdown = [...clients.entries()].map(([name, value]) => ({
+    name: name.slice(0, 256),
+    calls: value.calls,
+    share: calls.length ? value.calls / calls.length : null,
+    identity_source: name === "Unknown client" ? "unrecognized" as const : "self_reported" as const,
+  })).sort((a, b) => b.calls - a.calls).slice(0, MAX_PUBLIC_DIMENSION_ITEMS);
+  const topAccounts = [...currentAccountActivity.values()]
+    .sort((a, b) => b.count - a.count || b.days.size - a.days.size)
+    .slice(0, 20)
+    .map((value, index) => ({ rank: index + 1, activity_count: value.count, active_days: value.days.size, identity_source: "resolver" as const }));
+  const growth = [...growthBuckets.entries()].sort(([a], [b]) => a.localeCompare(b)).slice(-366).map(([period_start, accounts]) => ({ period_start, active_accounts: accounts.size }));
   const outcomeEvents = events.filter(isWorkflowLifecycleEvent);
   // Only named workflow outcomes can be grouped. Older SDKs may emit a
   // lifecycle event without workflow_name; do not let that malformed or
@@ -434,6 +502,20 @@ export function createAnalyticsHandler(getAdmin: typeof getSupabaseAdmin = getSu
       limitation: "Observed resolver-linked account keys are privacy-safe dimensions, not named customers or unique people.",
     },
     clients: [...clients.entries()].map(([name, value]) => ({ name: name.slice(0, 256), calls: value.calls, versions: [...value.versions].slice(0, 20) })).sort((a, b) => b.calls - a.calls).slice(0, MAX_PUBLIC_DIMENSION_ITEMS),
+    who_is_using_it: {
+      active_accounts: currentAccountKeys.size,
+      previous_period_active_accounts: previousPeriodAccounts.size,
+      new_accounts: newAccounts,
+      returning_accounts: returningAccounts,
+      classification_status: historyCapped || historyResult.error ? "insufficient_data" : "available",
+      growth,
+      client_breakdown: clientBreakdown,
+      top_accounts: topAccounts,
+      identity_coverage: eligibleAccountEvents ? resolverLinkedEvents / eligibleAccountEvents : null,
+      limitation: historyCapped || historyResult.error
+        ? "New versus returning classification is unavailable because the bounded history scan was incomplete."
+        : "Account identity is resolver-linked and privacy-safe; MCP client names are optional self-reported metadata. Account names are not available from MCP itself.",
+    },
     tools: toolRows.slice(0, MAX_PUBLIC_LIST_ITEMS), catalog_tools: [...catalog.values()].slice(0, MAX_PUBLIC_LIST_ITEMS),
     unused_tools: unusedTools.slice(0, MAX_PUBLIC_LIST_ITEMS), workflows: workflowRows.slice(0, 100), outcomes: explicitOutcomes.slice(0, MAX_PUBLIC_DIMENSION_ITEMS),
     founder_os: { facts: aggregateTrackMCPFacts(facts), groups: outcomeGroups, identity_coverage: identityCoverage, identity_source_counts: identitySourceCounts, tasks: aggregateTaskLifecycles(facts, taskTransitions) },

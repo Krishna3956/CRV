@@ -15,6 +15,7 @@ function fakeAdmin(rows, refreshRows = []) {
       const query = {
         select() { return this; },
         eq(field, value) { filters[field] = value; return this; },
+        not() { return this; },
         gte() { return this; },
         lt() { return this; },
         order() { return this; },
@@ -117,6 +118,31 @@ test("analytics keeps missing client identity as an explicit Unknown client buck
   assert.equal(response.status, 200);
   const body = await response.json();
   assert.deepEqual(body.clients.map((client) => [client.name, client.calls]), [["Claude", 1], ["Unknown client", 1]]);
+});
+
+test("analytics exposes the complete Who's using it vertical-slice read model", async () => {
+  const now = Date.now();
+  const iso = (offsetDays) => new Date(now - offsetDays * 86400000).toISOString();
+  const accountA = "a".repeat(64);
+  const accountB = "b".repeat(64);
+  const handler = createAnalyticsHandler(() => fakeAdmin([
+    event({ event_id: "old-a", event_type: "tool_call", tool_name: "lookup", account_key: accountA, account_identity_source: "resolver", client_name: "Claude", started_at: iso(14) }),
+    event({ event_id: "current-a", event_type: "tool_call", tool_name: "lookup", account_key: accountA, account_identity_source: "resolver", client_name: "Claude", started_at: iso(2) }),
+    event({ event_id: "current-b", event_type: "tool_call", tool_name: "lookup", account_key: accountB, account_identity_source: "resolver", client_name: null, started_at: iso(1) }),
+  ]));
+  const response = await handler(new Request("http://analytics.test/api/v1/analytics?days=7", { headers: { authorization: "Bearer key" } }));
+  assert.equal(response.status, 200);
+  const body = await response.json();
+  assert.equal(body.who_is_using_it.active_accounts, 2);
+  assert.equal(body.who_is_using_it.new_accounts, 1);
+  assert.equal(body.who_is_using_it.returning_accounts, 1);
+  assert.equal(body.who_is_using_it.classification_status, "available");
+  assert.deepEqual(body.who_is_using_it.client_breakdown.map((item) => item.name), ["Claude", "Unknown client"]);
+  // The fixture query intentionally does not emulate Supabase's time filter;
+  // the production projection is time-bounded before this reducer runs.
+  assert.deepEqual(body.who_is_using_it.top_accounts.map((item) => item.activity_count), [2, 1]);
+  assert.equal(JSON.stringify(body).includes(accountA), false);
+  assert.equal(JSON.stringify(body).includes(accountB), false);
 });
 
 test("analytics exposes unresolved explicit journeys without crashing on unnamed lifecycle rows", async () => {

@@ -83,6 +83,39 @@ export const METRIC_DEFINITIONS = [
       "The resolver must be configured by the customer; TrackMCP does not infer identity from clientInfo or raw credentials.",
     ],
   },
+  {
+    key: "active_accounts",
+    label: "Active accounts this period",
+    formula: "count(distinct resolver-linked account keys in selected period)",
+    source: "Server telemetry with account_identity_source=resolver",
+    interpretation: "The number of privacy-safe account signals observed in the selected window.",
+    limitations: [
+      "MCP does not define customer accounts; the customer's resolver supplies this dimension.",
+      "This is not a count of people, companies, or verified end users.",
+    ],
+  },
+  {
+    key: "new_accounts",
+    label: "New accounts",
+    formula: "active resolver-linked accounts whose first observed timestamp falls in the selected period",
+    source: "Bounded historical server telemetry scan",
+    interpretation: "Resolver-linked accounts first observed during the selected window.",
+    limitations: [
+      "N/A is returned when the bounded historical scan is incomplete.",
+      "First observed is not the same as account creation or customer signup.",
+    ],
+  },
+  {
+    key: "returning_accounts",
+    label: "Returning accounts",
+    formula: "active resolver-linked accounts first observed before the selected period",
+    source: "Bounded historical server telemetry scan",
+    interpretation: "Resolver-linked activity that predates the selected window.",
+    limitations: [
+      "N/A is returned when the bounded historical scan is incomplete.",
+      "Repeat activity is not a retention or revenue claim.",
+    ],
+  },
 ] as const satisfies readonly MetricDefinition[];
 
 export type MetricKey = (typeof METRIC_DEFINITIONS)[number]["key"];
