@@ -90,9 +90,12 @@ website/content release rather than silently mixed into the telemetry release:
 - The local release gate passes 102 suites, TypeScript, lint with one existing
   image warning, and an isolated production build generating 169 pages.
 - The application release was merged and deployed through App Runner from
-  `583e7411d4c9213990dd42c0d0cd1f88f52cf80f`; deployment run
-  [39230899137](https://github.com/Krishna3956/CRV/actions/runs/39230899137)
+  `07b9d31fa613a6446c7cf63f20d5c4a6b85961ab`; deployment run
+  [39234245573](https://github.com/Krishna3956/CRV/actions/runs/39234245573)
   completed successfully.
+- A clean detached checkout now passes the complete 102-suite release gate;
+  generated Python wheel/sdist artifacts are built automatically before their
+  contract checks and are not tracked in Git.
 - Clean external npm consumers installed the exact SDK/CLI versions and a
   clean Python target installed `trackmcp==0.1.3`. No production telemetry
   event was emitted during those checks.
