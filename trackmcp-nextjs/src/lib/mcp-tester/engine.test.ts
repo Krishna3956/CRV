@@ -277,14 +277,21 @@ test("unsupported protocol and malformed envelopes are protocol errors", async (
   assert.equal(excessiveNodes.verdict, "protocol_error");
 });
 
-test("modern 2026-07-28 requests fail closed instead of running a legacy handshake", async () => {
+test("modern 2026-07-28 requests use bounded discovery instead of a legacy handshake", async () => {
   const report = await runMcpTester({
     endpoint,
     protocolVersion: "2026-07-28",
-    fetch: async () => { throw new Error("must not call legacy fetch"); },
+    fetch: async (_input, init) => {
+      const body = JSON.parse(String(init?.body));
+      assert.equal(body.method, "server/discover");
+      assert.equal(new Headers(init?.headers).get("mcp-method"), "server/discover");
+      return jsonRpc({ serverInfo: { name: "Modern fixture", version: "1" }, capabilities: { tools: {}, resources: {} } }, 1);
+    },
   });
-  assert.equal(report.verdict, "unsupported");
-  assert.ok(report.findings.some((finding) => finding.code === "modern_protocol_limited"));
+  assert.equal(report.protocol?.negotiatedVersion, "2026-07-28");
+  assert.equal(report.protocol?.sessionIdPresent, false);
+  assert.equal(report.verdict, "incomplete");
+  assert.ok(report.findings.some((finding) => finding.code === "modern_discovery_partial"));
 });
 
 test("failed initialization and authentication are distinct", async () => {

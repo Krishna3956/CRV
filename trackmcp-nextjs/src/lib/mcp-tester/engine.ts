@@ -152,20 +152,8 @@ export async function runMcpTester(options: McpTesterOptions): Promise<McpTester
     return buildEarlyReport(observedAt, startedMs, now, timeline, timelineTruncated, findings, phases, timings, "unsupported", limits, endpointValidation.safeEndpoint);
   }
   finishPhase("validate_headers", headerPhaseStart, "passed", record, phases, timings, now);
-
-  if (options.protocolVersion === MODERN_MCP_PROTOCOL_VERSION) {
-    addFinding(
-      "modern_protocol_limited",
-      "protocol",
-      "warning",
-      "The 2026-07-28 stateless MCP flow is documented but is not executed by this handshake-era browser tester yet. No compatibility pass is reported.",
-      "validate_headers",
-      { protocolVersion: MODERN_MCP_PROTOCOL_VERSION },
-    );
-    return buildEarlyReport(observedAt, startedMs, now, timeline, timelineTruncated, findings, phases, timings, "unsupported", limits, endpointValidation.safeEndpoint);
-  }
-
   const fetchImplementation = options.fetch;
+
   if (typeof fetchImplementation !== "function") {
     addFinding("fetch_unavailable", "browser", "error", "This browser does not provide fetch for direct HTTPS testing.", "validate_endpoint");
     return buildEarlyReport(observedAt, startedMs, now, timeline, timelineTruncated, findings, phases, timings, "browser_blocked", limits, endpointValidation.safeEndpoint);
@@ -212,6 +200,37 @@ export async function runMcpTester(options: McpTesterOptions): Promise<McpTester
     resources: emptyCatalog<ResourceSummary>(),
     prompts: emptyCatalog<PromptSummary>(),
   };
+
+  if (options.protocolVersion === MODERN_MCP_PROTOCOL_VERSION) {
+    const modernStart = beginPhase("modern_discover", record, now);
+    const discovery = await sendMcpRequest({ fetch: fetchImplementation, endpoint: endpointValidation.requestUrl, customHeaders: [...headerValidation.entries, ["mcp-method", "server/discover"]], protocolVersion: MODERN_MCP_PROTOCOL_VERSION, requestId: 1, body: { jsonrpc: "2.0", id: 1, method: "server/discover", params: {} }, expectsResponse: true, limits, deadlineMs: startedMs + limits.maxTotalDurationMs, signal: options.signal, now, record, phase: "modern_discover" });
+    if (!discovery.ok) {
+      addFinding("modern_discovery_failed", "protocol", "error", "The endpoint did not complete the bounded 2026-07-28 server/discover request.", "modern_discover");
+      finishPhase("modern_discover", modernStart, "failed", record, phases, timings, now);
+      return buildEarlyReport(observedAt, startedMs, now, timeline, timelineTruncated, findings, phases, timings, "unsupported", limits, endpointValidation.safeEndpoint);
+    }
+    const result = isRecord(discovery.envelope?.result) ? discovery.envelope.result : undefined;
+    const serverInfo = result && isRecord(result.serverInfo) ? result.serverInfo : undefined;
+    const capabilities = result && isRecord(result.capabilities) ? result.capabilities : undefined;
+    if (!result) {
+      addFinding("modern_discovery_invalid", "protocol", "error", "The server/discover result was not a bounded MCP object.", "modern_discover");
+      finishPhase("modern_discover", modernStart, "failed", record, phases, timings, now);
+      return buildEarlyReport(observedAt, startedMs, now, timeline, timelineTruncated, findings, phases, timings, "protocol_error", limits, endpointValidation.safeEndpoint);
+    }
+    state.reachable = true;
+    state.authenticated = true;
+    state.protocolPassed = true;
+    state.incomplete = true;
+    state.protocol = { requestedVersion: MODERN_MCP_PROTOCOL_VERSION, negotiatedVersion: MODERN_MCP_PROTOCOL_VERSION, clientName: state.clientName, clientVersion: state.clientVersion, sessionIdPresent: false };
+    state.server = { name: typeof serverInfo?.name === "string" ? safeString(serverInfo.name, limits.maxRenderedStringLength) : undefined, version: typeof serverInfo?.version === "string" ? safeString(serverInfo.version, limits.maxRenderedStringLength) : undefined };
+    state.identityPassed = Boolean(state.server.name && state.server.version);
+    state.capabilities = { tools: Boolean(capabilities?.tools), resources: Boolean(capabilities?.resources), prompts: Boolean(capabilities?.prompts) };
+    state.resourcesAdvertised = state.capabilities.resources;
+    state.promptsAdvertised = state.capabilities.prompts;
+    addFinding("modern_discovery_partial", "protocol", "warning", "Modern server discovery succeeded. Catalog and multi-round-trip checks are not yet implemented for this revision, so this report is incomplete.", "modern_discover", { protocolVersion: MODERN_MCP_PROTOCOL_VERSION });
+    finishPhase("modern_discover", modernStart, "incomplete", record, phases, timings, now);
+    return finalize(state, observedAt, addFinding);
+  }
 
   const initResult = await runInitialize(state, addFinding, record, beginPhase, finishPhase);
   if (!initResult) return finalize(state, observedAt, addFinding);

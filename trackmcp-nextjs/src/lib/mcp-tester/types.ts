@@ -33,6 +33,7 @@ export type HealthDimensionStatus =
 export type McpTesterPhase =
   | "validate_endpoint"
   | "validate_headers"
+  | "modern_discover"
   | "initialize"
   | "initialized_notification"
   | "tools_list"
