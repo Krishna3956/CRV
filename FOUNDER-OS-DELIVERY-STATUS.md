@@ -31,9 +31,10 @@ bounded event contract, conservative facts/outcomes, privacy-safe resolver
 identity, catalog observation metadata, data-trust disclosures, an Action Queue
 lifecycle, versioned v2 read surfaces, SDK/CLI activation work, and a dashboard
 signal surface. The local release gate and a clean production build have passed
-in the latest verification cycle. The latest cycle passed all 101 release-gate
-suites, TypeScript, lint with one pre-existing image warning, and local runtime smoke
-covering 8 public routes and 10 protected/API checks. The original PDF audit also closed the first high-priority
+in the latest verification cycle. The latest cycle passed all 104 release-gate
+suites, TypeScript, lint with one pre-existing image warning, and a read-only
+production smoke covering 25 public, registry, security-header, and protected/API
+checks. The original PDF audit also closed the first high-priority
 protocol gap around multi-round-trip outcomes and added a truthful Setup status
 surface.
 

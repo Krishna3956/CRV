@@ -18,11 +18,15 @@ reliably operate it with safe isolation, observability, recovery, and support.â€
 
 ## Blocking issues
 
-The reviewed release passed the 102-suite local gate, TypeScript, lint with one
+The reviewed release passed the 104-suite local gate, TypeScript, lint with one
 pre-existing image warning, and an isolated production build with 169 generated
-pages. It was deployed through App Runner from
+pages. The current review cycle also ran a read-only production smoke against
+`https://trackmcp.com` with 25 checks, including public routes, sitemap
+index/shard, registry metadata, required security headers, and unauthenticated
+protected-route boundaries. It was deployed through App Runner from
 `a026d1fd222b37a599c92aca4e7af8b0ac6014fd`; the guarded read-only production
-smoke passed 14 public-surface and registry checks. These are necessary release
+smoke passed 25 public-surface, registry, security-header, and protected-route
+checks. These are necessary release
 checks, not proof of production capacity or complete pilot behavior.
 
 | Severity | Area | Evidence | Why it blocks a 100-customer claim | Exit evidence |
