@@ -170,3 +170,15 @@ or private URLs into it.
 | result | fixed locally; deployment pending |
 | evidence_reference | Commit `a98e261`; route moved to `[shard]`, public `.xml` URL rewrites through `next.config.ts`, and the smoke runner now checks the index plus first shard. |
 | caveat_or_scope | The fix is pushed to `codex/founder-os-evidence-refresh` but has not been merged/deployed; the public production endpoint remains unverified until the reviewed SHA is deployed. |
+
+| Field | Value |
+| --- | --- |
+| gate_id | production-tool-sitemap-shard |
+| owner | Head of Engineering |
+| timestamp_utc | 2026-10-19T14:20:00Z |
+| command_or_probe | App Runner run `39262235006`; `TRACKMCP_PRODUCTION_SMOKE_CONFIRM=I_UNDERSTAND_PRODUCTION_SMOKE TRACKMCP_SMOKE_BASE_URL=https://trackmcp.com npm run smoke:production-pilot -- --candidate-sha 1b3a461` |
+| environment | production App Runner and public HTTPS endpoints |
+| candidate_sha | `1b3a461` |
+| result | pass |
+| evidence_reference | App Runner deployment completed successfully; production smoke passed 15 checks and wrote a redacted report to `/tmp/trackmcp-production-smoke.json`, including the index and first tool-sitemap shard. |
+| caveat_or_scope | The smoke is read-only because no production key or write flag was supplied. It does not prove cross-workspace authorization, key rotation, worker execution, rollback, or package provenance. |
