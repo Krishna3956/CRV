@@ -67,6 +67,18 @@ export async function sendMcpRequest(options: TransportRequestOptions): Promise<
     headers.set("content-type", "application/json");
     if (options.sessionId) headers.set("mcp-session-id", options.sessionId);
     if (options.protocolVersion) headers.set("mcp-protocol-version", options.protocolVersion);
+    if (options.protocolVersion === "2026-07-28" && typeof options.body.method === "string") {
+      headers.set("mcp-method", options.body.method.slice(0, 128));
+      const params = isRecord(options.body.params) ? options.body.params : undefined;
+      const name = options.body.method === "tools/call" || options.body.method === "prompts/get"
+        ? params?.name
+        : options.body.method === "resources/read"
+          ? params?.uri
+          : options.body.method.startsWith("tasks/")
+            ? params?.taskId
+            : undefined;
+      if (typeof name === "string" && name.length > 0 && name.length <= 256 && !/[\u0000-\u001f\u007f]/.test(name)) headers.set("mcp-name", name);
+    }
   } catch {
     return { ok: false, kind: "protocol_error", code: "request_headers_invalid", responseReceived: false };
   }
