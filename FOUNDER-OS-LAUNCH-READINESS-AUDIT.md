@@ -21,12 +21,12 @@ reliably operate it with safe isolation, observability, recovery, and support.â€
 The reviewed release passed the 102-suite local gate, TypeScript, lint with one
 pre-existing image warning, and an isolated production build with 169 generated
 pages. It was deployed through App Runner from
-`583e7411d4c9213990dd42c0d0cd1f88f52cf80f`. These are necessary release checks,
+`07b9d31fa613a6446c7cf63f20d5c4a6b85961ab`. These are necessary release checks,
 not proof of production capacity or complete pilot behavior.
 
 | Severity | Area | Evidence | Why it blocks a 100-customer claim | Exit evidence |
 | --- | --- | --- | --- | --- |
-| P0 | Release state | Application release is merged and deployed (`583e7411...`, App Runner run 39230899137) | Deployment is real, but production behavior still needs the pilot smoke sequence | Deployed-SHA confirmation plus production CLI/browser smoke |
+| P0 | Release state | Application release is merged and deployed (`07b9d31...`, App Runner run 39234245573) | Deployment is real, but production behavior still needs the pilot smoke sequence | Deployed-SHA confirmation plus production CLI/browser smoke |
 | P0 | Schema compatibility | Operator public-schema audits confirm the core Founder OS tables, columns, indexes, constraints, refresh RPCs, and the `00014` rate-limit table/RPCs with RLS and service-role-only execution | Ingest, workers, catalog history, and distributed rate-limit routes depend on the additive schema; runtime configuration and deployed-SHA evidence are still separate gates | Retain the operator's SQL run record, run paired read-only postflights, and verify the deployed runtime is configured intentionally |
 | P0 | OTel | A bounded authenticated OTLP/HTTP JSON receiver has route-level fixtures proving supported spans reach authenticated ingest without raw attributes; there is no OTLP/gRPC receiver, exporter, or clean customer end-to-end evidence | OTel is only launchable as the explicitly documented JSON metadata path; protobuf/export claims remain unsupported | Run a clean external JSON exporter-to-ingest smoke, or keep OTel out of broad launch promises |
 | P0 | Background work | A secret-authenticated refresh trigger, scheduled workflow, fact/action handlers, and bounded catalog snapshot handler now exist locally, but production secrets, migration postflight, and live scheduler evidence are not present | Derived facts, Action Queue, and catalog version rows can be automated only after the trigger is configured; retention still fails closed | Configure the reviewed secrets after migration postflight, run a live batch, and record worker lag/retry evidence |
