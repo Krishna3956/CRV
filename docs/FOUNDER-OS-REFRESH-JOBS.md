@@ -83,11 +83,25 @@ route and the review-ready `.github/workflows/founder-os-refresh-worker.yml`
   a non-2xx response when the batch contains retryable or failed jobs (or is
   aborted), so the external scheduler cannot mark degraded work as successful
   and suppress the next retry. Idle and fully successful batches remain 2xx.
-  The workflow fails loudly when either secret is absent (so a green scheduled run cannot mask
+  The workflow fails loudly when the worker URL or token is absent (so a green scheduled run cannot mask
   a worker that never ran), serializes scheduled/manual runs, and retries transient
   curl failures within the bounded request deadline. Configure
-  `TRACKMCP_REFRESH_WORKER_URL` and `TRACKMCP_REFRESH_WORKER_SECRET` only after
-  the migrations and postflight checks pass.
+  `TRACKMCP_REFRESH_WORKER_SECRET` only after the migrations and postflight checks pass.
+  The workflow uses the existing GitHub AWS OIDC deployment role to read only
+  the App Runner service hostname and constructs the HTTPS refresh URL itself.
+  `TRACKMCP_REFRESH_WORKER_URL` is no longer read by this workflow. Calling the
+  service origin avoids Cloudflare browser protection on the public website;
+  the route still requires the same Bearer secret. No runtime secret values
+  are retrieved from AWS by the scheduler.
+
+## Production verification — 2026-10-20
+
+Run `39311211929` failed with curl exit 22 and a Cloudflare HTTP 403 block
+page. This confirmed that the GitHub runner passed the missing-secret guard
+but could not reach the application. Commit `f2528cc` changed origin discovery;
+run `39311968261` passed AWS authentication, service discovery, and the refresh
+batch. This verifies scheduler connectivity and authentication; an idle batch
+does not establish that every projection handler has processed real work.
 
 The App Runner deployment template now maps
 `TRACKMCP_REFRESH_WORKER_SECRET` from the same Secrets Manager JSON object into
