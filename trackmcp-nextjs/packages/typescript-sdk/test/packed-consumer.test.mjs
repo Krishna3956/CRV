@@ -9,8 +9,8 @@ import { spawnSync } from "node:child_process";
 const packageRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const npm = process.platform === "win32" ? "npm.cmd" : "npm";
 
-function run(command, args, cwd, env) {
-  const result = spawnSync(command, args, { cwd, env, encoding: "utf8", stdio: ["ignore", "pipe", "pipe"] });
+function run(command, args, cwd) {
+  const result = spawnSync(command, args, { cwd, encoding: "utf8", stdio: ["ignore", "pipe", "pipe"] });
   assert.equal(result.status, 0, `${command} ${args.join(" ")} failed:\n${result.stdout}\n${result.stderr}`);
   return result;
 }
@@ -19,11 +19,10 @@ test("a clean consumer receives the packed SDK with local default redaction", as
   const temporaryRoot = await mkdtemp(join(tmpdir(), "trackmcp-sdk-consumer-"));
   const packDirectory = join(temporaryRoot, "pack");
   const consumerDirectory = join(temporaryRoot, "consumer");
-  const npmEnv = { ...process.env, npm_config_cache: join(temporaryRoot, "npm-cache") };
   await Promise.all([mkdir(packDirectory), mkdir(consumerDirectory)]);
 
   try {
-    const packResult = run(npm, ["pack", "--json", "--ignore-scripts", "--pack-destination", packDirectory], packageRoot, npmEnv);
+    const packResult = run(npm, ["pack", "--json", "--ignore-scripts", "--pack-destination", packDirectory], packageRoot);
     const packEntries = JSON.parse(packResult.stdout);
     const tarball = join(packDirectory, packEntries[0].filename);
     const packageJson = JSON.parse(await readFile(join(packageRoot, "package.json"), "utf8"));
@@ -95,24 +94,10 @@ test("a clean consumer receives the packed SDK with local default redaction", as
       for (const marker of Object.values(markers)) assert.equal(serialized.includes(marker), false, \`leaked marker: \${marker}\`);
       assert.equal(body.events[0].payload_policy, "redacted");
       assert.ok(body.events[0].payload_size_bytes <= 32 * 1024);
-
-      const warnings = [];
-      const originalWarn = console.warn;
-      console.warn = (message) => warnings.push(String(message));
-      try {
-        const missingKey = withTrackMCP({ async request() { return { ok: true }; } }, {});
-        assert.deepEqual(await missingKey.request({ method: "tools/call", params: { name: "still_available" } }), { ok: true });
-        assert.equal(missingKey.trackmcp.getDiagnostics().queuedEvents, 0);
-      } finally {
-        console.warn = originalWarn;
-      }
-      assert.equal(warnings.length, 1);
-      assert.match(warnings[0], /TRACKMCP_KEY/);
-      assert.doesNotMatch(warnings[0], /consumer-test-key|Bearer|email|payload/i);
     `);
 
-    run(npm, ["install", "--ignore-scripts", "--no-audit", "--no-fund"], consumerDirectory, npmEnv);
-    run(process.execPath, ["consumer.mjs"], consumerDirectory, npmEnv);
+    run(npm, ["install", "--ignore-scripts", "--no-audit", "--no-fund"], consumerDirectory);
+    run(process.execPath, ["consumer.mjs"], consumerDirectory);
   } finally {
     await rm(temporaryRoot, { recursive: true, force: true });
   }

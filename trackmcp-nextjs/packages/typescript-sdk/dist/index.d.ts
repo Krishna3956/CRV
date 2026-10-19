@@ -14,9 +14,6 @@ export type TrackMCPIntentContext = {
     sessionId?: string;
     transport?: TrackMCPEvent["transport"];
 };
-/** Context passed to the optional customer-owned identity resolver. The resolver
- * should read an already-authenticated tenant/account claim; it must not parse
- * bearer tokens or identify users from MCP clientInfo. */
 export type TrackMCPAccountIdentityContext = {
     eventType: TrackMCPEventType;
     mcpMethod?: string;
@@ -65,7 +62,6 @@ export type TrackMCPEvent = {
     observation_source?: "client" | "server";
     client_name?: string;
     client_version?: string;
-    /** One-way, bounded identifier derived from a customer resolver. */
     account_key?: string;
     account_identity_source?: "resolver" | "unresolved";
     tool_name?: string;
@@ -123,8 +119,16 @@ export type TrackMCPOptions = {
     maxQueueBytes?: number;
     correlation?: TrackMCPCorrelationOptions;
     intentFallback?: (context: TrackMCPIntentContext) => string | undefined | null;
-    /** Resolve an already-validated customer account/tenant claim. Resolver failures are fail-open. */
+    /** Resolve an already-validated customer account claim; failures are fail-open. */
     accountIdResolver?: (context: TrackMCPAccountIdentityContext) => string | undefined | null;
+    /** Throw during initialization when TRACKMCP_KEY is absent. Defaults to false. */
+    strict?: boolean;
+    /** Structured, rate-limited delivery diagnostics. */
+    diagnostics?: TrackMCPDiagnosticsOptions;
+    /** Compatibility shorthand for diagnostics.onDeliveryError. */
+    onDeliveryError?: TrackMCPDiagnosticsOptions["onDeliveryError"];
+    /** Compatibility shorthand for diagnostics.debug. */
+    debug?: boolean;
 };
 export declare const TRACKMCP_SETUP_URL = "https://app.trackmcp.com/signup?utm_source=npm&utm_medium=sdk&utm_campaign=sdk_setup";
 type CatalogTool = {
@@ -137,11 +141,8 @@ type EntityObservation = {
     kind: "resources" | "prompts";
     hash: string;
 };
-/** Accept only the two bounded result semantics understood by Founder OS. */
 export declare function protocolResultType(result: Record<string, unknown> | undefined): TrackMCPEvent["result_type"];
-/** Build bounded, one-way catalog metadata without sending names, URIs, or arguments. */
 export declare function catalogObservation(kind: TrackMCPCatalogKind, result: Record<string, unknown> | undefined): Pick<TrackMCPEvent, "catalog_kind" | "catalog_item_count" | "catalog_item_name_hashes" | "catalog_item_uri_hashes">;
-/** Hash a single resource/prompt read identity without retaining its value. */
 export declare function interactionEntityObservation(method: string | undefined, params: Record<string, unknown> | undefined): EntityObservation | undefined;
 export type TrackMCPDiagnostics = {
     droppedEvents: number;

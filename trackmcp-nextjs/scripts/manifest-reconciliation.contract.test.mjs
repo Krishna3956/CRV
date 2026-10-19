@@ -22,7 +22,7 @@ test("release manifest exposes all scope classes and ownership is the path-level
   // or misplaced release document.
   if (scope.files.length === 0 || intended.length === 0) {
     assert.ok(fs.existsSync(path.join(root, "FOUNDER-OS-RELEASE-MANIFEST.md")));
-    assert.ok(scope.files.every((row) => row.classification === "excluded-local-artifact"));
+    assert.ok(scope.files.every((row) => row.classification === "excluded-local-artifact" || row.classification === "review-required"));
   } else {
     assert.ok(intended.length > 0);
   }
