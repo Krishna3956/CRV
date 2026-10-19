@@ -1,0 +1,158 @@
+#!/usr/bin/env node
+
+/**
+ * Explicit, evidence-producing smoke for the limited pilot.
+ *
+ * This script is intentionally inert unless the operator opts in with both
+ * TRACKMCP_PRODUCTION_SMOKE_CONFIRM and (for writes) TRACKMCP_SMOKE_ALLOW_WRITE.
+ * It never reads deploy files, AWS credentials, Supabase credentials, or the
+ * local CLI key store. It never prints or writes a credential or event body.
+ */
+
+import { mkdir, writeFile } from "node:fs/promises";
+import { dirname } from "node:path";
+import process from "node:process";
+
+const confirmation = "I_UNDERSTAND_PRODUCTION_SMOKE";
+const baseUrl = process.env.TRACKMCP_SMOKE_BASE_URL || "";
+const key = process.env.TRACKMCP_SMOKE_KEY || "";
+const revokedKey = process.env.TRACKMCP_SMOKE_REVOKED_KEY || "";
+const allowWrite = process.env.TRACKMCP_SMOKE_ALLOW_WRITE === "true";
+const requireAuth = process.env.TRACKMCP_SMOKE_REQUIRE_AUTH === "true";
+const reportPath = process.env.TRACKMCP_SMOKE_REPORT || "/tmp/trackmcp-production-smoke.json";
+
+function fail(message) {
+  throw new Error(message);
+}
+
+function validateOptIn() {
+  if (process.env.TRACKMCP_PRODUCTION_SMOKE_CONFIRM !== confirmation) {
+    fail(`Refusing to run. Set TRACKMCP_PRODUCTION_SMOKE_CONFIRM=${confirmation} explicitly.`);
+  }
+  if (!baseUrl) fail("TRACKMCP_SMOKE_BASE_URL is required.");
+  let url;
+  try { url = new URL(baseUrl); } catch { fail("TRACKMCP_SMOKE_BASE_URL must be an absolute URL."); }
+  if (url.protocol !== "https:") fail("Production smoke requires an https base URL.");
+  if (url.username || url.password || url.search || url.hash) fail("Base URL must not contain credentials, query parameters, or fragments.");
+  if (allowWrite && !key) fail("TRACKMCP_SMOKE_KEY is required when TRACKMCP_SMOKE_ALLOW_WRITE=true.");
+  if (requireAuth && !key) fail("TRACKMCP_SMOKE_KEY is required when TRACKMCP_SMOKE_REQUIRE_AUTH=true.");
+}
+
+function endpoint(path) { return new URL(path, `${baseUrl.replace(/\/$/, "")}/`); }
+
+async function request(path, options = {}) {
+  const response = await fetch(endpoint(path), {
+    ...options,
+    redirect: "manual",
+    signal: AbortSignal.timeout(15_000),
+  });
+  return { status: response.status, headers: response.headers };
+}
+
+async function expect(path, expected, options, label = path) {
+  const response = await request(path, options);
+  if (response.status !== expected) fail(`${label}: expected HTTP ${expected}, received HTTP ${response.status}`);
+  return { label, status: response.status };
+}
+
+async function registryChecks() {
+  const checks = [];
+  const npmPackage = process.env.TRACKMCP_EXPECTED_NPM_SDK || "@trackmcp/sdk@0.1.2";
+  const cliPackage = process.env.TRACKMCP_EXPECTED_NPM_CLI || "@trackmcp/cli@0.1.4";
+  const pythonPackage = process.env.TRACKMCP_EXPECTED_PYPI || "trackmcp@0.1.3";
+  for (const spec of [npmPackage, cliPackage]) {
+    const at = spec.lastIndexOf("@");
+    const name = spec.slice(0, at);
+    const version = spec.slice(at + 1);
+    const response = await fetch(`https://registry.npmjs.org/${encodeURIComponent(name)}/${encodeURIComponent(version)}`, { signal: AbortSignal.timeout(15_000) });
+    if (!response.ok) fail(`npm registry check failed for ${name}@${version}: HTTP ${response.status}`);
+    const metadata = await response.json();
+    if (metadata.name !== name || metadata.version !== version) fail(`npm registry metadata mismatch for ${name}@${version}`);
+    checks.push({ label: `npm ${name}@${version}`, status: response.status });
+  }
+  const at = pythonPackage.lastIndexOf("@");
+  const name = pythonPackage.slice(0, at);
+  const version = pythonPackage.slice(at + 1);
+  const response = await fetch(`https://pypi.org/pypi/${encodeURIComponent(name)}/${encodeURIComponent(version)}/json`, { signal: AbortSignal.timeout(15_000) });
+  if (!response.ok) fail(`PyPI registry check failed for ${name}==${version}: HTTP ${response.status}`);
+  const metadata = await response.json();
+  if (metadata.info?.name !== name || metadata.info?.version !== version) fail(`PyPI registry metadata mismatch for ${name}==${version}`);
+  checks.push({ label: `PyPI ${name}==${version}`, status: response.status });
+  return checks;
+}
+
+async function main() {
+  validateOptIn();
+  const checks = [];
+  for (const path of ["/", "/docs", "/docs/typescript", "/docs/python", "/device", "/support", "/sitemap.xml", "/tool-sitemap.xml"]) {
+    checks.push(await expect(path, 200, undefined, `browser ${path}`));
+  }
+  checks.push(...await registryChecks());
+
+  const unauthenticated = await request("/api/v1/cli/key-status");
+  if (![401, 403].includes(unauthenticated.status)) fail(`unauthenticated key-status: expected HTTP 401/403, received HTTP ${unauthenticated.status}`);
+  checks.push({ label: "unauthenticated key-status", status: unauthenticated.status });
+
+  if (revokedKey) {
+    const response = await request("/api/v1/cli/key-status", { headers: { authorization: `Bearer ${revokedKey}` } });
+    if (![401, 403].includes(response.status)) fail(`revoked-key key-status: expected HTTP 401/403, received HTTP ${response.status}`);
+    checks.push({ label: "revoked-key key-status (negative auth)", status: response.status });
+  }
+
+  if (key) {
+    const response = await request("/api/v1/cli/key-status", { headers: { authorization: `Bearer ${key}` } });
+    if (![200, 401, 403, 429, 503].includes(response.status)) fail(`authenticated key-status: unexpected HTTP ${response.status}`);
+    checks.push({ label: "authenticated key-status", status: response.status });
+  } else {
+    checks.push({ label: "authenticated key-status", status: "skipped (TRACKMCP_SMOKE_KEY not supplied)" });
+  }
+
+  if (allowWrite) {
+    const eventId = process.env.TRACKMCP_SMOKE_EVENT_ID || `pilot-smoke-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
+    const startedAt = new Date().toISOString();
+    const response = await request("/api/v1/ingest", {
+      method: "POST",
+      headers: { authorization: `Bearer ${key}`, "content-type": "application/json" },
+      body: JSON.stringify({ events: [{
+        schema_version: "1.0",
+        event_id: eventId,
+        event_type: "tool_call",
+        service: "trackmcp-pilot-smoke",
+        environment: "production-smoke",
+        started_at: startedAt,
+        duration_ms: 1,
+        success: true,
+        is_error: false,
+        payload_policy: "metadata_only",
+      }] }),
+    });
+    if (response.status !== 200) fail(`first-ingest smoke: expected HTTP 200, received HTTP ${response.status}`);
+    checks.push({ label: "first-ingest smoke (event ID redacted)", status: response.status });
+  } else {
+    checks.push({ label: "first-ingest smoke", status: "skipped (set TRACKMCP_SMOKE_ALLOW_WRITE=true explicitly)" });
+  }
+
+  const report = {
+    generated_at: new Date().toISOString(),
+    base_url: new URL(baseUrl).origin,
+    candidate_sha: process.env.TRACKMCP_SMOKE_CANDIDATE_SHA || "not-supplied",
+    write_enabled: allowWrite,
+    key_supplied: Boolean(key),
+    revoked_key_supplied: Boolean(revokedKey),
+    checks,
+    caveats: [
+      "This report proves HTTP/registry observations only; it does not prove browser auth, workspace selection, dashboard rendering, or cross-workspace authorization.",
+      "The ingest check creates one metadata-only event only when TRACKMCP_SMOKE_ALLOW_WRITE=true is explicitly set.",
+      "No raw API key, device code, workspace ID, event ID, response body, or credential is written to this report.",
+    ],
+  };
+  await mkdir(dirname(reportPath), { recursive: true });
+  await writeFile(reportPath, `${JSON.stringify(report, null, 2)}\n`, { mode: 0o600 });
+  console.log(`Production pilot smoke passed: ${checks.length} checks. Redacted report: ${reportPath}`);
+}
+
+main().catch((error) => {
+  console.error(`Production pilot smoke failed: ${error.message}`);
+  process.exitCode = 1;
+});
+

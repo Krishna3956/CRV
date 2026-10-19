@@ -116,6 +116,8 @@
     "test:publish-workflow": "node --test scripts/publish-workflow.contract.test.mjs",
     "load:production-shape": "node scripts/production-load-harness.mjs",
     "smoke:local": "node scripts/local-runtime-smoke.mjs",
+    "smoke:production-pilot": "node scripts/production-pilot-smoke.mjs",
+    "test:production-pilot-smoke": "node --test scripts/production-pilot-smoke.test.mjs",
     "mcp:import": "node scripts/import-mcp-repository.mjs"
   },
   "dependencies": {
