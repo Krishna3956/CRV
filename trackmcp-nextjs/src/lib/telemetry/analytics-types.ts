@@ -232,6 +232,18 @@ export type Analytics = {
     identity_coverage: number | null;
     limitation: string;
   };
+  /** Founder OS "What they're doing" read model. */
+  capability_activity?: {
+    total_calls: number;
+    previous_period_calls: number;
+    overall_error_rate: number | null;
+    avg_tools_used_per_account: number | null;
+    advertised_tools: number;
+    adoption_distribution: Array<{ bucket: "1 tool" | "2-3 tools" | "4-6 tools" | "7+ tools"; accounts: number }>;
+    trend: Array<{ period_start: string; tool_name: string; calls: number }>;
+    reliability: Array<{ tool_name: string; calls: number; error_rate: number | null; input_required_rate: number | null; p95_ms: number | null }>;
+    limitation: string;
+  };
   /** Privacy-safe account activity signals. Keys are never exposed to the UI. */
   account_summary?: {
     observed_account_keys: number;

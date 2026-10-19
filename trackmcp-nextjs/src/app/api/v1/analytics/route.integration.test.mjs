@@ -182,6 +182,10 @@ test("tool aggregation matches an independent reference reducer", async () => {
   assert.deepEqual(actual, expected);
   assert.deepEqual(body.unused_tools, ["unused"]);
   assert.deepEqual(body.tool_adoption, { advertised: 3, observed: 2, breadth: 2 / 3, unused: 1 });
+  assert.equal(body.capability_activity.total_calls, 3);
+  assert.equal(body.capability_activity.overall_error_rate, 1 / 3);
+  assert.equal(body.capability_activity.adoption_distribution.every((item) => item.accounts === 0), true);
+  assert.deepEqual(body.capability_activity.reliability[0], { tool_name: "lookup", calls: 2, error_rate: 0.5, input_required_rate: 0, p95_ms: 300 });
 });
 
 test("analytics marks queued and failed refresh work as degraded instead of available", async () => {

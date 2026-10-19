@@ -116,6 +116,39 @@ export const METRIC_DEFINITIONS = [
       "Repeat activity is not a retention or revenue claim.",
     ],
   },
+  {
+    key: "tool_call_volume",
+    label: "Total tool calls",
+    formula: "count(observed tools/call events)",
+    source: "Tool-call telemetry",
+    interpretation: "Observed feature activity in the selected period.",
+    limitations: [
+      "Calls that never reach the instrumented server are not observable.",
+      "Retries count as calls and should be interpreted with the reliability table.",
+    ],
+  },
+  {
+    key: "tool_error_rate",
+    label: "Overall error rate",
+    formula: "count(explicitly failed tool calls) / count(observed tool calls)",
+    source: "Tool-call telemetry",
+    interpretation: "The share of observed tool calls with an explicit error state.",
+    limitations: [
+      "Unknown outcomes are not silently treated as errors.",
+      "An error-free tool call does not prove a successful business outcome.",
+    ],
+  },
+  {
+    key: "tool_adoption_breadth",
+    label: "Average tools per account",
+    formula: "average(distinct observed tools per resolver-linked account)",
+    source: "Tool-call telemetry with resolver-linked account identity",
+    interpretation: "Observed breadth of capability use among accounts with a configured resolver.",
+    limitations: [
+      "Accounts without a resolver are excluded rather than guessed.",
+      "This is a usage-surface metric, not a demand, retention, or expansion score.",
+    ],
+  },
 ] as const satisfies readonly MetricDefinition[];
 
 export type MetricKey = (typeof METRIC_DEFINITIONS)[number]["key"];

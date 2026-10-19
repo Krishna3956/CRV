@@ -24,6 +24,10 @@ source explicitly says it is an outcome event.
 | `returning_accounts` | Returning accounts | Active resolver-linked accounts first observed before the selected period | Bounded historical server telemetry scan | `N/A` when history is incomplete; not a retention claim |
 | `account_growth` | Growth over time | Distinct resolver-linked accounts grouped by UTC day | Server telemetry with resolver identity | Observed activity only; no identity means no count |
 | `top_account_activity` | Top accounts by activity | Ranked resolver-linked account signals by observed event count | Server telemetry with resolver identity | Raw keys and account names never leave the server |
+| `tool_call_volume` | Total tool calls | Count of observed `tools/call` events | Tool-call telemetry | Instrumented traffic only; retries count as calls |
+| `tool_error_rate` | Overall error rate | Explicitly failed tool calls / observed tool calls | Tool-call telemetry | Unknown outcomes are not errors; no business outcome is inferred |
+| `tool_adoption_breadth` | Average tools per account | Average distinct observed tools per resolver-linked account | Tool-call telemetry with resolver identity | Unresolved accounts are excluded; not a demand or retention score |
+| `tool_reliability` | Reliability by tool | Per-tool explicit error and `input_required` rates | Tool-call telemetry | `input_required` is friction evidence, not failure |
 | `active_account_signals_7d` | Active in last 7 days | Distinct resolver-linked account keys observed in the trailing seven days | Resolver-labeled server telemetry | Only available inside the selected range; not a weekly active-user claim |
 | `returning_account_signals` | Returning account signals | Distinct resolver-linked account keys observed on more than one calendar day | Resolver-labeled server telemetry | Repeat activity, not retention or account identity proof |
 | `account_activity_bands` | Account activity shape | Counts of resolver-linked keys with 1, 2–9, or 10+ observed events | Resolver-labeled server telemetry | Bounded bands; no raw keys or account names are exposed |

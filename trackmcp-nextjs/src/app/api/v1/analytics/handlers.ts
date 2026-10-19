@@ -142,12 +142,12 @@ export function createAnalyticsHandler(getAdmin: typeof getSupabaseAdmin = getSu
   // marks the classification as insufficient rather than inventing a trend.
   const historyLimit = 100_000;
   const historyResult = await supabase.from("trackmcp_events")
-    .select("account_key, account_identity_source, started_at")
+    .select("account_key, account_identity_source, started_at, event_type, tool_name, is_error, success, result_type, duration_ms")
     .eq("workspace_id", workspaceId)
     .eq("observation_source", "server")
     .order("started_at", { ascending: true })
     .limit(historyLimit);
-  const historyRows = historyResult.error ? [] : ((historyResult.data || []) as Array<{ account_key?: unknown; account_identity_source?: unknown; started_at?: unknown }>);
+  const historyRows = historyResult.error ? [] : ((historyResult.data || []) as Array<{ account_key?: unknown; account_identity_source?: unknown; started_at?: unknown; event_type?: unknown; tool_name?: unknown; is_error?: unknown; success?: unknown; result_type?: unknown; duration_ms?: unknown }>);
   const historyCapped = historyRows.length >= historyLimit;
 
   // Snapshot rows are service-written and explicitly workspace-scoped by the
@@ -390,6 +390,45 @@ export function createAnalyticsHandler(getAdmin: typeof getSupabaseAdmin = getSu
     .slice(0, 20)
     .map((value, index) => ({ rank: index + 1, activity_count: value.count, active_days: value.days.size, identity_source: "resolver" as const }));
   const growth = [...growthBuckets.entries()].sort(([a], [b]) => a.localeCompare(b)).slice(-366).map(([period_start, accounts]) => ({ period_start, active_accounts: accounts.size }));
+  const currentToolAccounts = new Map<string, Set<string>>();
+  for (const event of calls) {
+    if (!event.tool_name || event.account_identity_source !== "resolver" || !event.account_key) continue;
+    const accountsForTool = currentToolAccounts.get(event.account_key) || new Set<string>();
+    accountsForTool.add(event.tool_name);
+    currentToolAccounts.set(event.account_key, accountsForTool);
+  }
+  const adoptionBuckets = { "1 tool": 0, "2-3 tools": 0, "4-6 tools": 0, "7+ tools": 0 } as Record<"1 tool" | "2-3 tools" | "4-6 tools" | "7+ tools", number>;
+  for (const toolSet of currentToolAccounts.values()) {
+    const count = toolSet.size;
+    if (count === 1) adoptionBuckets["1 tool"] += 1;
+    else if (count <= 3) adoptionBuckets["2-3 tools"] += 1;
+    else if (count <= 6) adoptionBuckets["4-6 tools"] += 1;
+    else adoptionBuckets["7+ tools"] += 1;
+  }
+  const averageToolsUsed = currentToolAccounts.size
+    ? [...currentToolAccounts.values()].reduce((total, toolSet) => total + toolSet.size, 0) / currentToolAccounts.size
+    : null;
+  const previousPeriodCalls = historyRows.filter((row) => row.event_type === "tool_call" && typeof row.started_at === "string" && Date.parse(row.started_at) >= previousPeriodStartMs && Date.parse(row.started_at) < periodStartMs).length;
+  const trendBuckets = new Map<string, Map<string, number>>();
+  for (const event of calls) {
+    if (!event.tool_name) continue;
+    const timestamp = Date.parse(event.started_at);
+    if (!Number.isFinite(timestamp)) continue;
+    const bucket = new Date(timestamp);
+    bucket.setUTCDate(bucket.getUTCDate() - bucket.getUTCDay());
+    bucket.setUTCHours(0, 0, 0, 0);
+    const period = bucket.toISOString().slice(0, 10);
+    const byTool = trendBuckets.get(period) || new Map<string, number>();
+    byTool.set(event.tool_name, (byTool.get(event.tool_name) || 0) + 1);
+    trendBuckets.set(period, byTool);
+  }
+  const topTrendTools = new Set(toolRows.slice(0, 6).map((tool) => tool.name));
+  const capabilityTrend = [...trendBuckets.entries()].sort(([a], [b]) => a.localeCompare(b)).flatMap(([period_start, byTool]) => [...byTool.entries()].map(([tool_name, count]) => ({ period_start, tool_name: topTrendTools.has(tool_name) ? tool_name : "Other", calls: count }))).slice(-500);
+  const capabilityReliability = toolRows.slice(0, MAX_PUBLIC_LIST_ITEMS).map((tool) => {
+    const matching = calls.filter((event) => event.tool_name === tool.name);
+    const inputRequired = matching.filter((event) => event.result_type === "input_required").length;
+    return { tool_name: tool.name, calls: tool.calls, error_rate: tool.calls ? tool.errors / tool.calls : null, input_required_rate: tool.calls ? inputRequired / tool.calls : null, p95_ms: tool.p95_ms };
+  });
   const outcomeEvents = events.filter(isWorkflowLifecycleEvent);
   // Only named workflow outcomes can be grouped. Older SDKs may emit a
   // lifecycle event without workflow_name; do not let that malformed or
@@ -514,6 +553,19 @@ export function createAnalyticsHandler(getAdmin: typeof getSupabaseAdmin = getSu
       limitation: historyCapped || historyResult.error
         ? "New versus returning classification is unavailable because the bounded history scan was incomplete."
         : "Account identity is resolver-linked and privacy-safe; MCP client names are optional self-reported metadata. Account names are not available from MCP itself.",
+    },
+    capability_activity: {
+      total_calls: calls.length,
+      previous_period_calls: previousPeriodCalls,
+      overall_error_rate: calls.length ? calls.filter(failed).length / calls.length : null,
+      avg_tools_used_per_account: averageToolsUsed,
+      advertised_tools: catalog.size,
+      adoption_distribution: Object.entries(adoptionBuckets).map(([bucket, accounts]) => ({ bucket: bucket as keyof typeof adoptionBuckets, accounts })),
+      trend: capabilityTrend,
+      reliability: capabilityReliability,
+      limitation: historyCapped || historyResult.error
+        ? "The selected-period tool view is complete, but previous-period comparison is limited by the bounded history scan."
+        : "Tool activity is observed at the instrumented server boundary; calls that never reach the server are not included.",
     },
     tools: toolRows.slice(0, MAX_PUBLIC_LIST_ITEMS), catalog_tools: [...catalog.values()].slice(0, MAX_PUBLIC_LIST_ITEMS),
     unused_tools: unusedTools.slice(0, MAX_PUBLIC_LIST_ITEMS), workflows: workflowRows.slice(0, 100), outcomes: explicitOutcomes.slice(0, MAX_PUBLIC_DIMENSION_ITEMS),
