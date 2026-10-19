@@ -14,6 +14,11 @@ test("web CI blocks high-severity production dependency advisories", () => {
 
 test("npm publication requires provenance and package preflight tests", () => {
   assert.match(workflow, /id-token:\s*write/);
+  assert.match(workflow, /attestations:\s*write/);
+  assert.match(workflow, /actions\/attest-build-provenance@v2/);
+  assert.match(workflow, /Attest TypeScript SDK artifact/);
+  assert.match(workflow, /Attest TrackMCP CLI artifact/);
+  assert.match(workflow, /npm pack --pack-destination "\$RUNNER_TEMP"/);
   assert.match(workflow, /Audit all release artifacts before publishing/);
   assert.match(workflow, /npm run test:package-release-audit/);
   assert.match(workflow, /npm test/);
@@ -29,4 +34,6 @@ test("PyPI publication runs tests and validates built artifacts", () => {
   assert.match(workflow, /python -m build/);
   assert.match(workflow, /python -m twine check dist\/\*/);
   assert.match(workflow, /https:\/\/pypi\.org\/pypi\/trackmcp\/\$\{PACKAGE_VERSION\}\/json/);
+  assert.match(workflow, /Attest Python SDK artifacts/);
+  assert.match(workflow, /packages\/python-sdk\/dist\/\*/);
 });
