@@ -61,6 +61,18 @@ No package is considered customer-ready merely because a local packed-consumer
 test passes; that test proves packaging shape, not registry publication or
 production endpoint compatibility.
 
+## Provenance status
+
+The currently published versions have verified registry metadata and checksums,
+but the repository's read-only GitHub attestations view did not expose a build
+attestation for those historical publications. The publish workflow now requests
+`attestations: write`, packs npm subjects outside the package tree, and attaches
+`actions/attest-build-provenance@v2` subjects for npm and Python artifacts. This
+remediates future publications; it is not retroactive evidence for the versions
+already in the registries. Queue item 255 therefore remains open until a new,
+uniquely versioned package publication completes and its attestation URL or
+equivalent retained evidence is recorded.
+
 ## Dependency security evidence (2026-10-19)
 
 The TypeScript SDK was upgraded from `@modelcontextprotocol/sdk` 1.30.0 to
