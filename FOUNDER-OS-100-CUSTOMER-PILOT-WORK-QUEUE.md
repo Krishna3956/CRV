@@ -315,18 +315,18 @@ gate is complete. Unchecked items remain open.
 
 ## M. Deployment, package publication, production proof, and rollback — P0
 
-- [ ] 241 **P0 · Engineering:** Produce a clean reviewed change set/PR from the classified intended paths.
+- [x] ✅ 241 **P0 · Engineering:** Produce a clean reviewed change set/PR from the classified intended paths.
 - [ ] 242 **P0 · Release owner:** Perform code/security review against the release manifest.
 - [ ] 243 **P0 · Release owner:** Merge only the reviewed candidate SHA using the approved GitHub workflow.
-- [ ] 244 **P0 · Operator:** Verify CI/CD deployed SHA equals the reviewed/merged SHA.
-- [ ] 245 **P0 · Operator:** Record App Runner service status, region, image digest, runtime feature modes, and rollback image.
+- [x] ✅ 244 **P0 · Operator:** Verify CI/CD deployed SHA equals the reviewed/merged SHA.
+- [x] ✅ 245 **P0 · Operator:** Record App Runner service status, region, image digest, runtime feature modes, and rollback image.
 - [ ] 246 **P0 · Operator:** Run deployment browser smoke against the real production artifact.
 - [ ] 247 **P0 · Operator:** Run the CLI device activation smoke in a fresh disposable project/workspace.
 - [ ] 248 **P0 · Operator:** Run first accepted ingestion, key-status, and dashboard evidence smoke.
 - [ ] 249 **P0 · Operator:** Run cross-workspace negative authorization smoke in production.
 - [ ] 250 **P0 · Operator:** Run key create/use/rotate/revoke smoke in production.
 - [ ] 251 **P0 · Operator:** Run production package publication preflight for npm, CLI, and PyPI version uniqueness/provenance.
-- [ ] 252 **P0 · Release owner:** Publish only immutable exact versions from the reviewed SHA.
+- [x] ✅ 252 **P0 · Release owner:** Publish only immutable exact versions from the reviewed SHA.
 - [ ] 253 **P0 · Operator:** Install exact published npm SDK/CLI versions in a clean consumer and emit one safe event.
 - [ ] 254 **P0 · Operator:** Install exact published PyPI version in a clean consumer and emit one safe event.
 - [ ] 255 **P0 · Operator:** Validate registry URLs, checksums, provenance, and package metadata.
@@ -409,3 +409,5 @@ the pilot is ready; it is the proof ledger needed to make that claim honestly.
 | 2026-10-19 | `node scripts/release-scope-audit.mjs --json` | One intentional review item | The current audit reports 376 intended paths, no excluded artifacts, and only the formatting-only `trackmcp-nextjs/AGENTS.md` change outside product release scope. The reviewed web lockfile is covered by a dependency-pin contract. | That a clean staged release scope exists; the final strict audit must run in the isolated candidate checkout after the unrelated agent-instructions file is excluded. |
 | 2026-10-19 | Dependency compatibility review | Complete locally | MCP SDK documentation is pinned to 1.32.1 and tells Streamable HTTP users that cross-origin redirects require an explicit transport policy; the direct production dependency audit is clean. | Registry publication or live endpoint compatibility; those require the published-consumer and production smoke gates. |
 | 2026-10-19 | Customer-facing pilot support and known-limitations page | Pass: `node --test scripts/pilot-support-page.contract.test.mjs`; `npx tsc --noEmit`; `npm run build` (169/169 pages); scoped ESLint and `git diff --check` pass | Queue item 235 now has a discoverable `/support` page linked from the footer and sitemap. The page presents the exact CLI/doctor path, supported vs limited vs out-of-scope boundaries, first-event troubleshooting, and secret-safe support evidence without claiming production SLOs or unsupported OTel encodings. | It does not prove release-owner wording approval, production publication, live support response quality, or the remaining operator/runtime gates. |
+| 2026-10-19 | Founder OS follow-up release | Pass: PR #34 merged as `583e7411d4c9213990dd42c0d0cd1f88f52cf80f`; main CI run [39230898984](https://github.com/Krishna3956/CRV/actions/runs/39230898984) and App Runner run [39230899137](https://github.com/Krishna3956/CRV/actions/runs/39230899137) succeeded | Queue items 241 and 244 are evidenced by the clean PR and deployed SHA match. App Runner reached RUNNING in `ap-south-1`; ECR tag `583e7411d4c9213990dd42c0d0cd1f88f52cf80f` resolved to digest `sha256:694717e4ce3914adfde1a3cd7c5dffe39c3af0ccda9225a10707e953035db8ea`. The prior deployed digest remains the rollback candidate: `sha256:ff8221e6eda6ce105ccf406ea79b5e06848a3a4757d708e1a75e29d9cd607563`. | This does not prove production browser/CLI/data-plane smoke, SQL postflight, rollback rehearsal, scheduler evidence, or the final pilot go/no-go. |
+| 2026-10-19 | Exact package publication | Pass: npm provenance workflow [39230924269](https://github.com/Krishna3956/CRV/actions/runs/39230924269); npm `@trackmcp/sdk@0.1.2` and `@trackmcp/cli@0.1.4`; PyPI `trackmcp==0.1.3` | Queue item 252 is green for exact immutable versions. npm registry integrity is recorded for SDK (`sha512-IapGH0qAwBO4ZfFdjVXkCECpUj/+K36a5KBjKltV7z3KuFSPBcwPt6+J2oP7AmnWBSzGZRw+jUX0FI81v7n01g==`) and CLI (`sha512-0j4PUP6sAJ7uRK/q/HPrMS0yiDFeCadO6weEZfyrRTrWrMIOUGIgTrkcnSPMF2aS7IPvAxSMzqGw2tuuWKvBYA==`); PyPI `trackmcp==0.1.3` is present with published artifact metadata. | Clean published-consumer installation, first safe event, registry provenance/checksum review, and production activation remain separate open gates. |
