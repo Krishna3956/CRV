@@ -3574,6 +3574,14 @@ function SetupView({
   onRevokeKey: (id: string) => void;
   onRefresh: () => void;
 }) {
+  const readSetupValue = (key: string, fallback: string, maxLength: number) => {
+    if (typeof window === "undefined") return fallback;
+    try {
+      return window.localStorage.getItem(key)?.slice(0, maxLength) || fallback;
+    } catch {
+      return fallback;
+    }
+  };
   type SetupContract = {
     setup?: {
       state?: string;
@@ -3594,22 +3602,12 @@ function SetupView({
   const [language, setLanguage] = useState<"TypeScript" | "Python">(
     "TypeScript",
   );
-  const [serviceName, setServiceName] = useState("");
-  const [environmentName, setEnvironmentName] = useState("production");
+  const [serviceName, setServiceName] = useState(() => readSetupValue("trackmcp.setup.service", "", 100));
+  const [environmentName, setEnvironmentName] = useState(() => readSetupValue("trackmcp.setup.environment", "production", 64));
   const [copied, setCopied] = useState(false);
   const [setupContract, setSetupContract] = useState<SetupContract | null>(null);
   const [setupContractWorkspaceId, setSetupContractWorkspaceId] = useState<string | null>(null);
 
-  useEffect(() => {
-    try {
-      const savedService = window.localStorage.getItem("trackmcp.setup.service");
-      const savedEnvironment = window.localStorage.getItem("trackmcp.setup.environment");
-      if (savedService) setServiceName(savedService.slice(0, 100));
-      if (savedEnvironment) setEnvironmentName(savedEnvironment.slice(0, 64));
-    } catch {
-      // Setup remains usable when browser storage is unavailable.
-    }
-  }, []);
   const boundedService = serviceName.replace(/[^a-zA-Z0-9._ -]/g, "").trim().slice(0, 100);
   const boundedEnvironment = environmentName.replace(/[^a-zA-Z0-9._ -]/g, "").trim().slice(0, 64) || "production";
   const updateService = (value: string) => {
