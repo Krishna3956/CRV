@@ -299,7 +299,20 @@ test("analytics exposes bounded Journey path and stall evidence", async () => {
   assert.equal(body.journey_activity.stalled_interactions, 1);
   assert.equal(body.journey_activity.resumed_after_stall, 1);
   assert.deepEqual(body.journey_activity.common_paths[0].path, ["search", "details", "details"]);
-  assert.equal(body.journey_activity.drop_off[0].terminal_evidence, "input_required");
+  assert.equal(body.journey_activity.drop_off[0].terminal_evidence, "unknown");
+});
+
+test("journey terminal evidence comes from the latest event and is server-scoped", async () => {
+  const handler = createAnalyticsHandler(() => fakeAdmin([
+    event({ event_id: "server-a-error", event_type: "tool_call", tool_name: "search", interaction_id: "same-id", server_id: "server-a", success: false, is_error: true }),
+    event({ event_id: "server-a-retry", event_type: "tool_call", tool_name: "search", interaction_id: "same-id", server_id: "server-a", retry_number: 1, success: true }),
+    event({ event_id: "server-b-input", event_type: "tool_call", tool_name: "search", interaction_id: "same-id", server_id: "server-b", result_type: "input_required" }),
+  ]));
+  const response = await handler(new Request("http://analytics.test/api/v1/analytics?days=7", { headers: { authorization: "Bearer key" } }));
+  const body = await response.json();
+  assert.equal(body.journey_activity.interaction_count, 2);
+  assert.equal(body.journey_activity.resumed_after_stall, 0);
+  assert.deepEqual(body.journey_activity.drop_off.map((path) => path.terminal_evidence).sort(), ["input_required", "unknown"]);
 });
 
 test("analytics keeps Did It Work outcomes explicit and uncertainty separate", async () => {

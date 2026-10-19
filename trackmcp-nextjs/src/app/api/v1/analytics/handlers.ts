@@ -563,25 +563,31 @@ export function createAnalyticsHandler(getAdmin: typeof getSupabaseAdmin = getSu
     trend: [...surfaceTrend.entries()].sort(([a], [b]) => a.localeCompare(b)).slice(-500).map(([key, calls]) => { const [period_start, kind, name] = key.split("|"); return { period_start, kind: kind as "resource" | "prompt", name, calls }; }),
     limitation: `${historyCapped || historyResult.error ? "Current-period activity is complete, but previous-period comparison is bounded by the available history scan. " : ""}Only resources/read and prompts/get are product-use interactions; list, catalog, and subscription methods remain separate protocol evidence. Missing result type remains unknown rather than success or error. Explicitly linked retries are collapsed to one interaction; unlinked repeats remain distinct observations. Names are represented by safe protocol methods; raw URIs, prompt names, arguments, and contents are never exposed.`,
   };
-  const interactions = new Map<string, { path: string[]; stalled: boolean; retried: boolean; error: boolean }>();
+  const interactions = new Map<string, { path: string[]; stalled: boolean; retried: boolean; terminal_evidence: "explicit_error" | "input_required" | "unknown" }>();
   for (const event of calls) {
-    const key = (event.interaction_id || event.session_id || event.event_id).slice(0, 128);
-    const current = interactions.get(key) || { path: [], stalled: false, retried: false, error: false };
+    // Interaction/session IDs may be reused by independent servers. Scope the
+    // bounded path to the observed server before grouping; a missing server ID
+    // is deliberately treated as its own limited-evidence scope.
+    const scope = event.server_id || "server-unavailable";
+    const key = `${scope.slice(0, 128)}:${(event.interaction_id || event.session_id || event.event_id).slice(0, 128)}`;
+    const current = interactions.get(key) || { path: [], stalled: false, retried: false, terminal_evidence: "unknown" as const };
     if (event.tool_name && current.path.length < 50) current.path.push(event.tool_name.slice(0, 128));
     if (event.result_type === "input_required") current.stalled = true;
     if (event.retry_number != null || event.retry_of_event_id) current.retried = true;
-    if (event.is_error === true || event.success === false) current.error = true;
+    // Terminal evidence describes the last observed event. An earlier failure
+    // followed by a later retry is not presented as where the path stopped.
+    current.terminal_evidence = failed(event) ? "explicit_error" : event.result_type === "input_required" ? "input_required" : "unknown";
     interactions.set(key, current);
   }
-  const pathGroups = new Map<string, { path: string[]; interactions: number; error: number; stalled: number }>();
+  const pathGroups = new Map<string, { path: string[]; interactions: number; terminal_evidence: "explicit_error" | "input_required" | "unknown" }>();
   for (const item of interactions.values()) {
     if (!item.path.length) continue;
     const path = item.path.slice(0, 8);
-    const key = path.join(" → ");
-    const current = pathGroups.get(key) || { path, interactions: 0, error: 0, stalled: 0 };
+    const key = `${path.join(" → ")}\u0000${item.terminal_evidence}`;
+    const current = pathGroups.get(key) || { path, interactions: 0, terminal_evidence: item.terminal_evidence };
     current.interactions += 1;
-    if (item.error) current.error += 1;
-    if (item.stalled) current.stalled += 1;
+    // Do not merge differing terminal states under the same visual path.
+    // Including the state in the grouping key keeps their evidence distinct.
     pathGroups.set(key, current);
   }
   const journeyGroups = [...pathGroups.values()].sort((a, b) => b.interactions - a.interactions);
@@ -591,8 +597,8 @@ export function createAnalyticsHandler(getAdmin: typeof getSupabaseAdmin = getSu
     stalled_interactions: [...interactions.values()].filter((item) => item.stalled).length,
     resumed_after_stall: [...interactions.values()].filter((item) => item.stalled && item.retried).length,
     common_paths: journeyGroups.slice(0, 10).map((item) => ({ path: item.path, interactions: item.interactions, share: interactions.size ? item.interactions / interactions.size : null })),
-    drop_off: journeyGroups.slice(0, 10).map((item) => ({ path: item.path, interactions: item.interactions, terminal_evidence: item.error ? "explicit_error" as const : item.stalled ? "input_required" as const : "unknown" as const })),
-    limitation: "Paths are bounded sequences of observed tool calls grouped by interaction or session identity. Missing terminal events are unknown, not abandonment; multi-server journeys outside this workspace are not visible.",
+    drop_off: journeyGroups.slice(0, 10).map((item) => ({ path: item.path, interactions: item.interactions, terminal_evidence: item.terminal_evidence })),
+    limitation: "Paths are bounded sequences of observed tool calls scoped to an observed server and grouped by interaction or session identity. Terminal evidence is the latest observed event; missing terminal events are unknown, not abandonment. Cross-server journeys outside this workspace are not visible.",
   };
   const aggregate = aggregateTrackMCPFacts(facts);
   const outcomeTrend = new Map<string, { completed: number; failed: number; unknown: number; pending: number }>();

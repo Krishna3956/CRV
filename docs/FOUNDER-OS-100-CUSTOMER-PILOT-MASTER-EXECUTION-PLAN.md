@@ -272,11 +272,12 @@ keeping resource URI/content and prompt names/arguments private by default?
 
 ### Tab 4 The journey
 
-- [ ] Use only bounded server-observed interaction/session paths.
-- [ ] Present stalls and retries as evidence, never as abandonment.
-- [ ] Distinguish explicit error, input-required, and unknown terminal state.
-- [ ] Verify correlation collisions, late responses, reused IDs, and
-  cross-server limitations.
+- [x] Use only bounded server-observed interaction/session paths.
+- [x] Present stalls and retries as evidence, never as abandonment.
+- [x] Distinguish explicit error, input-required, and unknown terminal state.
+- [x] Verify correlation collisions, late responses, reused IDs, and
+  cross-server limitations in fixtures; paths are server-scoped and terminal
+  evidence is the latest observed event.
 
 ### Tab 5 Did it work
 
