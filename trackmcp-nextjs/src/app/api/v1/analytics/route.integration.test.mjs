@@ -170,6 +170,9 @@ test("analytics marks queued and failed refresh work as degraded instead of avai
   assert.equal(body.refresh_status.queued, 1);
   assert.equal(body.refresh_status.failed, 1);
   assert.ok(body.refresh_status.max_queue_lag_ms > 0);
+  assert.equal(body.refresh_status.worker_health.length, 4);
+  assert.equal(body.refresh_status.worker_health.find((finding) => finding.metric === "backlog").value, 1);
+  assert.equal(body.refresh_status.worker_health.find((finding) => finding.metric === "lag").unit, "minutes");
 });
 
 test("analytics exposes only bounded hashed entity counts for resources and prompts", async () => {
