@@ -39,6 +39,11 @@ gate is complete. Unchecked items remain open.
 
 ## A. Release control and scope — P0
 
+- [x] ✅ **Founder OS cross-slice integration contract:** six vertical slices
+  now share explicit source, read-model, privacy, and uncertainty rules. Local
+  contract, TypeScript, lint, and release-gate evidence recorded in the commit;
+  production runtime evidence remains an operator gate.
+
 - [x] ✅ 001 **P0 · Today · Engineering:** Record candidate baseline SHA and UTC start time in the release record.
 - [x] ✅ 002 **P0 · Today · Engineering:** Run `npm run audit:release-scope` from the web workspace and retain its redacted output.
 - [x] ✅ 003 **P0 · Today · Engineering:** Run the strict scope audit in an isolated candidate checkout.

@@ -51,6 +51,39 @@ test("business-first navigation and KPI hierarchy are explicit", () => {
   assert.doesNotMatch(source, /Open Configure/);
 });
 
+test("Founder OS vertical slices share one data-trust contract", () => {
+  for (const view of ["clients", "capabilities", "resources", "journeys", "quality", "issues"]) {
+    assert.match(
+      source,
+      new RegExp(`DataSourceStrip[\\s\\S]*view=\\\"${view}\\\"`),
+      `${view} must expose its explicit data source`,
+    );
+  }
+  for (const readModel of [
+    "who_is_using_it",
+    "capability_activity",
+    "resource_prompt_activity",
+    "journey_activity",
+    "outcome_activity",
+    "issue_activity",
+  ]) {
+    assert.match(source, new RegExp(`analytics\\.${readModel}`));
+  }
+  for (const noEvidence of [
+    "No resource or prompt evidence yet",
+    "No common paths yet",
+    "No quality observations in this period",
+    "No actionable signals yet.",
+  ]) {
+    assert.match(source, new RegExp(noEvidence.replace(/[.*+?^$()|[\\]\\\\]/g, "\\\\$&")));
+  }
+  assert.match(source, /N\/A/);
+  assert.match(source, /signal, not a diagnosis/);
+  assert.match(source, /Missing task events are not classified as abandonment/);
+  assert.match(source, /insufficient data/i);
+  assert.match(source, /This is a guided example, not workspace telemetry/);
+});
+
 test("desktop-only pilot boundary is visible on narrow dashboard viewports", () => {
   assert.match(source, /Founder OS is supported on desktop browsers for this pilot/);
   assert.match(source, /className="border-b border-amber-200 bg-amber-50[^\"]*lg:hidden/);
