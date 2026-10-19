@@ -182,10 +182,27 @@ def interaction_entity_observation(method: Optional[str], params: Any) -> Option
     return {"kind": kind, "hash": hashlib.sha256(value.encode("utf-8")).hexdigest()}
 
 
+def _protocol_result_metadata(result: Any) -> Dict[str, Any]:
+    """Extract bounded MCP result discriminators without retaining result data."""
+    if not isinstance(result, dict):
+        return {}
+    result_type = result.get("resultType", result.get("result_type"))
+    metadata: Dict[str, Any] = {}
+    if result_type in ("complete", "input_required", "task"):
+        metadata["result_type"] = result_type
+    requests = result.get("inputRequests", result.get("input_requests"))
+    responses = result.get("inputResponses", result.get("input_responses"))
+    if isinstance(requests, list):
+        metadata["input_request_count"] = min(100, len(requests))
+    if isinstance(responses, list):
+        metadata["input_response_count"] = min(100, len(responses))
+    return metadata
+
+
 def _entity_protocol_event(method: Optional[str], entity: Optional[Dict[str, str]], *, request_id: Optional[str] = None,
                            session_id: Optional[str] = None, session_id_source: Optional[str] = None,
                            client_name: Optional[str] = None, client_version: Optional[str] = None,
-                           started: Optional[float] = None, success: bool = True,
+                           started: Optional[float] = None, success: bool = True, result: Any = None,
                            error_class: Optional[str] = None) -> Optional[Dict[str, Any]]:
     if not entity:
         return None
@@ -207,6 +224,7 @@ def _entity_protocol_event(method: Optional[str], entity: Optional[Dict[str, str
         "catalog_item_uri_hashes": [entity["hash"]] if kind == "resources" else [],
         "payload": {"name": f"{kind}_read_observed"},
     }
+    observation.update(_protocol_result_metadata(result))
     if error_class:
         observation["error_class"] = error_class
     return observation
@@ -504,9 +522,9 @@ class _TrackMCPMiddleware:
                 payload = {"name": f"{catalog_type}_discovered", "tools": tools} if catalog_type == "tools" else {"name": f"{catalog_type}_discovered"}
                 self.client.capture({"event_type": "catalog", "mcp_method": method, "request_id": request_id, "session_id": session_id, "session_id_source": session_id_source, "client_name": self.client_name, "client_version": self.client_version, "started_at": _iso_from_epoch(started), "duration_ms": round((time.time() - started) * 1000), "success": not is_error, "is_error": is_error, **observation, "payload": payload})
             elif (entity := interaction_entity_observation(method, params)):
-                self.client.capture(_entity_protocol_event(method, entity, request_id=request_id, session_id=session_id, session_id_source=session_id_source, client_name=self.client_name, client_version=self.client_version, started=started, success=not is_error))
+                self.client.capture(_entity_protocol_event(method, entity, request_id=request_id, session_id=session_id, session_id_source=session_id_source, client_name=self.client_name, client_version=self.client_version, started=started, success=not is_error, result=result_data))
             else:
-                self.client.capture({"event_type": "protocol", "mcp_method": method, "request_id": request_id, "session_id": session_id, "session_id_source": session_id_source, "client_name": self.client_name, "client_version": self.client_version, "started_at": _iso_from_epoch(started), "duration_ms": round((time.time() - started) * 1000), "success": not is_error, "is_error": is_error, "payload": {"params": params, "result": result_data}})
+                self.client.capture({"event_type": "protocol", "mcp_method": method, "request_id": request_id, "session_id": session_id, "session_id_source": session_id_source, "client_name": self.client_name, "client_version": self.client_version, "started_at": _iso_from_epoch(started), "duration_ms": round((time.time() - started) * 1000), "success": not is_error, "is_error": is_error, **_protocol_result_metadata(result_data), "payload": {"params": params, "result": result_data}})
             return result
         except Exception as error:
             if method == "shutdown" and self.lifecycle_started and not self.lifecycle_ended:
@@ -620,7 +638,7 @@ class _Wrapped:
                                 payload = {"name": f"{catalog_type}_discovered", "tools": tools} if catalog_type == "tools" else {"name": f"{catalog_type}_discovered"}
                                 client.capture({"event_type": "catalog", "mcp_method": method, "session_id": self.transport_session_id, "session_id_source": "transport_generated", "client_name": self.client_name, "client_version": self.client_version, "started_at": _iso_from_epoch(started), "duration_ms": round((time.time() - started) * 1000), "success": True, "is_error": False, **observation, "payload": payload})
                             elif (entity := interaction_entity_observation(method, params)):
-                                client.capture(_entity_protocol_event(method, entity, session_id=self.transport_session_id, session_id_source="transport_generated", client_name=self.client_name, client_version=self.client_version, started=started))
+                                client.capture(_entity_protocol_event(method, entity, session_id=self.transport_session_id, session_id_source="transport_generated", client_name=self.client_name, client_version=self.client_version, started=started, result=value))
                             else:
                                 client.capture(_event(tool_name, payload, started, value, None, self.client_name, self.transport_session_id, None, self.client_version, client.tool_metadata(tool_name), "transport_generated"))
                             return value
@@ -648,7 +666,7 @@ class _Wrapped:
                     payload = {"name": f"{catalog_type}_discovered", "tools": tools} if catalog_type == "tools" else {"name": f"{catalog_type}_discovered"}
                     client.capture({"event_type": "catalog", "mcp_method": method, "session_id": self.transport_session_id, "session_id_source": "transport_generated", "client_name": self.client_name, "client_version": self.client_version, "started_at": _iso_from_epoch(started), "duration_ms": round((time.time() - started) * 1000), "success": True, "is_error": False, **observation, "payload": payload})
                 elif (entity := interaction_entity_observation(method, params)):
-                    client.capture(_entity_protocol_event(method, entity, session_id=self.transport_session_id, session_id_source="transport_generated", client_name=self.client_name, client_version=self.client_version, started=started))
+                    client.capture(_entity_protocol_event(method, entity, session_id=self.transport_session_id, session_id_source="transport_generated", client_name=self.client_name, client_version=self.client_version, started=started, result=result))
                 else:
                     if method == "initialize" and not self.lifecycle_started:
                         self._emit_session_boundary("session_started", True, round((time.time() - started) * 1000))
@@ -695,6 +713,7 @@ def _event(tool_name: Optional[str], payload: Dict[str, Any], started: float, re
         "duration_ms": round((time.time() - started) * 1000),
         "success": not is_error,
         "is_error": is_error,
+        **_protocol_result_metadata(result),
         "payload": {**event_payload, "result": result, "error": str(error) if error else None},
     }
 
