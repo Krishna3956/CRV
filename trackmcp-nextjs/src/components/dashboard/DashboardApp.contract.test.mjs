@@ -81,6 +81,8 @@ test("Founder OS vertical slices share one data-trust contract", () => {
   assert.match(source, /Growth over time[\s\S]*observed each week/);
   assert.match(source, /function AccountGrowthChart/);
   assert.match(source, /Unrecognized tool/);
+  assert.match(source, /function CapabilityTrendChart/);
+  assert.match(source, /function ToolDetailPanel/);
   assert.match(source, /signal, not a diagnosis/);
   assert.match(source, /Missing task events are not classified as abandonment/);
   assert.match(source, /insufficient data/i);

@@ -244,6 +244,16 @@ export type Analytics = {
     adoption_distribution: Array<{ bucket: "1 tool" | "2-3 tools" | "4-6 tools" | "7+ tools"; accounts: number }>;
     trend: Array<{ period_start: string; tool_name: string; calls: number }>;
     reliability: Array<{ tool_name: string; calls: number; error_rate: number | null; input_required_rate: number | null; p95_ms: number | null }>;
+    /** Tool drill-downs deliberately contain ranked activity only: resolver
+     * keys and customer names never cross the browser boundary. */
+    tool_details: Array<{
+      tool_name: string;
+      calls: number;
+      error_rate: number | null;
+      p95_ms: number | null;
+      top_accounts: Array<{ rank: number; calls: number }>;
+      trend: Array<{ period_start: string; calls: number; errors: number }>;
+    }>;
     limitation: string;
   };
   /** Founder OS "Resources & Prompts" read model. Names remain bounded to

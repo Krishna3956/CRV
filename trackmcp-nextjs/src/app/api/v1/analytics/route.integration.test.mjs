@@ -141,8 +141,22 @@ test("analytics exposes the complete Who's using it vertical-slice read model", 
   // The fixture query intentionally does not emulate Supabase's time filter;
   // the production projection is time-bounded before this reducer runs.
   assert.deepEqual(body.who_is_using_it.top_accounts.map((item) => item.activity_count), [2, 1]);
+  assert.ok(body.who_is_using_it.growth.every((item) => new Date(`${item.period_start}T00:00:00Z`).getUTCDay() === 1));
   assert.equal(JSON.stringify(body).includes(accountA), false);
   assert.equal(JSON.stringify(body).includes(accountB), false);
+});
+
+test("capability drill-down keeps account identifiers private and sorts reliability by risk", async () => {
+  const account = "c".repeat(64);
+  const handler = createAnalyticsHandler(() => fakeAdmin([
+    event({ event_id: "healthy", event_type: "tool_call", tool_name: "healthy", account_key: account, account_identity_source: "resolver", success: true }),
+    event({ event_id: "broken", event_type: "tool_call", tool_name: "broken", account_key: account, account_identity_source: "resolver", success: false, is_error: true }),
+  ]));
+  const response = await handler(new Request("http://analytics.test/api/v1/analytics?days=7", { headers: { authorization: "Bearer key" } }));
+  const body = await response.json();
+  assert.equal(body.capability_activity.reliability[0].tool_name, "broken");
+  assert.equal(body.capability_activity.tool_details.find((item) => item.tool_name === "broken").top_accounts[0].calls, 1);
+  assert.equal(JSON.stringify(body.capability_activity.tool_details).includes(account), false);
 });
 
 test("analytics exposes unresolved explicit journeys without crashing on unnamed lifecycle rows", async () => {

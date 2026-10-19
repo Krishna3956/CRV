@@ -427,11 +427,44 @@ export function createAnalyticsHandler(getAdmin: typeof getSupabaseAdmin = getSu
     trendBuckets.set(period, byTool);
   }
   const topTrendTools = new Set(toolRows.slice(0, 6).map((tool) => tool.name));
-  const capabilityTrend = [...trendBuckets.entries()].sort(([a], [b]) => a.localeCompare(b)).flatMap(([period_start, byTool]) => [...byTool.entries()].map(([tool_name, count]) => ({ period_start, tool_name: topTrendTools.has(tool_name) ? tool_name : "Other", calls: count }))).slice(-500);
+  const capabilityTrend = [...trendBuckets.entries()].sort(([a], [b]) => a.localeCompare(b)).flatMap(([period_start, byTool]) => {
+    const summarized = new Map<string, number>();
+    for (const [toolName, count] of byTool) {
+      const name = topTrendTools.has(toolName) ? toolName : "Other";
+      summarized.set(name, (summarized.get(name) || 0) + count);
+    }
+    return [...summarized.entries()].map(([tool_name, calls]) => ({ period_start, tool_name, calls }));
+  }).slice(-500);
   const capabilityReliability = toolRows.slice(0, MAX_PUBLIC_LIST_ITEMS).map((tool) => {
     const matching = calls.filter((event) => event.tool_name === tool.name);
     const inputRequired = matching.filter((event) => event.result_type === "input_required").length;
     return { tool_name: tool.name, calls: tool.calls, error_rate: tool.calls ? tool.errors / tool.calls : null, input_required_rate: tool.calls ? inputRequired / tool.calls : null, p95_ms: tool.p95_ms };
+  }).sort((a, b) => (b.error_rate || 0) - (a.error_rate || 0) || b.calls - a.calls);
+  const toolDetails = toolRows.slice(0, MAX_PUBLIC_DIMENSION_ITEMS).map((tool) => {
+    const matching = calls.filter((event) => event.tool_name === tool.name);
+    const accountCalls = new Map<string, number>();
+    const weekly = new Map<string, { calls: number; errors: number }>();
+    for (const event of matching) {
+      if (event.account_identity_source === "resolver" && event.account_key) accountCalls.set(event.account_key, (accountCalls.get(event.account_key) || 0) + 1);
+      const timestamp = Date.parse(event.started_at);
+      if (!Number.isFinite(timestamp)) continue;
+      const bucket = new Date(timestamp);
+      bucket.setUTCDate(bucket.getUTCDate() - bucket.getUTCDay());
+      bucket.setUTCHours(0, 0, 0, 0);
+      const key = bucket.toISOString().slice(0, 10);
+      const current = weekly.get(key) || { calls: 0, errors: 0 };
+      current.calls += 1;
+      if (failed(event)) current.errors += 1;
+      weekly.set(key, current);
+    }
+    return {
+      tool_name: tool.name,
+      calls: tool.calls,
+      error_rate: tool.calls ? tool.errors / tool.calls : null,
+      p95_ms: tool.p95_ms,
+      top_accounts: [...accountCalls.values()].sort((a, b) => b - a).slice(0, 10).map((count, index) => ({ rank: index + 1, calls: count })),
+      trend: [...weekly.entries()].sort(([a], [b]) => a.localeCompare(b)).slice(-14).map(([period_start, value]) => ({ period_start, ...value })),
+    };
   });
   const resourceEvents = events.filter((event) => event.mcp_method?.startsWith("resources/"));
   const promptEvents = events.filter((event) => event.mcp_method?.startsWith("prompts/"));
@@ -666,6 +699,7 @@ export function createAnalyticsHandler(getAdmin: typeof getSupabaseAdmin = getSu
       adoption_distribution: Object.entries(adoptionBuckets).map(([bucket, accounts]) => ({ bucket: bucket as keyof typeof adoptionBuckets, accounts })),
       trend: capabilityTrend,
       reliability: capabilityReliability,
+      tool_details: toolDetails,
       limitation: historyCapped || historyResult.error
         ? "The selected-period tool view is complete, but previous-period comparison is limited by the bounded history scan."
         : "Tool activity is observed at the instrumented server boundary; calls that never reach the server are not included.",

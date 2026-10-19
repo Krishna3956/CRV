@@ -2707,6 +2707,9 @@ function CapabilitiesView({
   pageControls: ReactNode;
   onViewTrace: (sessionId: string, correlationHandle?: string | null) => void;
 }) {
+  const [selectedToolName, setSelectedToolName] = useState<string | null>(null);
+  const activity = analytics.capability_activity;
+  const selectedTool = activity?.tool_details.find((tool) => tool.tool_name === selectedToolName) || null;
   return (
     <div>
       <PageIntro
@@ -2715,40 +2718,41 @@ function CapabilitiesView({
         actions={pageControls}
       />
       <DataSourceStrip dataMode={dataMode} hasMyData={hasMyData} view="capabilities" />
-      {analytics.capability_activity && (
+      {activity && (
         <>
           <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-            <Kpi label="Total tool calls" value={fmt(analytics.capability_activity.total_calls)} icon={Activity} helper={`${analytics.range_days} day window`} />
-            <Kpi label="Previous period" value={fmt(analytics.capability_activity.previous_period_calls)} icon={TrendingUp} helper="Same-length comparison" />
-            <Kpi label="Overall error rate" value={analytics.capability_activity.overall_error_rate === null ? "N/A" : percent(analytics.capability_activity.overall_error_rate)} icon={ShieldCheck} helper="Explicit call errors" />
-            <Kpi label="Avg tools per account" value={analytics.capability_activity.avg_tools_used_per_account === null ? "N/A" : analytics.capability_activity.avg_tools_used_per_account.toFixed(1)} icon={Blocks} helper={`of ${fmt(analytics.capability_activity.advertised_tools)} advertised`} />
+            <Kpi label="Total tool calls" value={fmt(activity.total_calls)} icon={Activity} helper={`${analytics.range_days} day window`} />
+            <Kpi label="Previous period" value={fmt(activity.previous_period_calls)} icon={TrendingUp} helper="Same-length comparison" />
+            <Kpi label="Overall error rate" value={activity.overall_error_rate === null ? "N/A" : percent(activity.overall_error_rate)} icon={ShieldCheck} helper="Explicit call errors" />
+            <Kpi label="Avg tools per account" value={activity.avg_tools_used_per_account === null ? "N/A" : activity.avg_tools_used_per_account.toFixed(1)} icon={Blocks} helper={`of ${fmt(activity.advertised_tools)} advertised`} />
           </div>
           <div className="mt-4 grid gap-4 xl:grid-cols-[1.1fr_0.9fr]">
             <Panel title="Feature leaderboard" subtitle="Which capabilities are carrying the observed activity">
               <div className="space-y-3">
                 {analytics.tools.slice(0, 8).map((tool) => {
                   const share = analytics.tool_calls ? tool.calls / analytics.tool_calls : 0;
-                  return <div key={tool.name} className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3"><div className="min-w-0"><div className="flex justify-between gap-3 text-sm"><span className="truncate font-mono text-xs text-ink">{tool.name}</span><span className="text-muted">{fmt(tool.calls)}</span></div><div className="mt-1 h-2 bg-paper"><div className="h-full bg-brand" style={{ width: `${Math.min(100, share * 100)}%` }} /></div></div><span className="text-xs text-faint">{percent(share)}</span></div>;
+                  return <button type="button" key={tool.name} onClick={() => setSelectedToolName(tool.name)} className="grid w-full cursor-pointer grid-cols-[minmax(0,1fr)_auto] items-center gap-3 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"><div className="min-w-0"><div className="flex justify-between gap-3 text-sm"><span className="truncate font-mono text-xs text-ink">{tool.name}</span><span className="text-muted">{fmt(tool.calls)}</span></div><div className="mt-1 h-2 bg-paper"><div className="h-full bg-brand" style={{ width: `${Math.min(100, share * 100)}%` }} /></div></div><span className="text-xs text-faint">{percent(share)}</span></button>;
                 })}
                 {!analytics.tools.length && <p className="py-6 text-sm text-muted">No tool calls were observed in this period.</p>}
               </div>
             </Panel>
             <Panel title="Adoption breadth" subtitle="How many distinct tools resolver-linked accounts used">
               <div className="space-y-3">
-                {analytics.capability_activity.adoption_distribution.map((item) => <div key={item.bucket} className="flex items-center justify-between border-b border-line pb-2 text-sm"><span className="text-ink">{item.bucket}</span><span className="text-muted">{fmt(item.accounts)} accounts</span></div>)}
+                {activity.adoption_distribution.map((item) => <div key={item.bucket} className="flex items-center justify-between border-b border-line pb-2 text-sm"><span className="text-ink">{item.bucket}</span><span className="text-muted">{fmt(item.accounts)} accounts</span></div>)}
               </div>
               <p className="mt-4 text-xs leading-relaxed text-faint">Accounts without a configured resolver are excluded from this distribution rather than grouped into a fabricated customer.</p>
             </Panel>
           </div>
           <div className="mt-4 grid gap-4 xl:grid-cols-[1.1fr_0.9fr]">
             <Panel title="Trend by feature" subtitle="Weekly observed calls for the highest-volume tools">
-              {analytics.capability_activity.trend.length ? <div className="grid grid-cols-2 gap-2 sm:grid-cols-4 lg:grid-cols-7">{analytics.capability_activity.trend.slice(-14).map((point, index) => <div key={`${point.period_start}-${point.tool_name}-${index}`} className="border border-line bg-surface px-3 py-3"><p className="text-[10px] text-faint">{point.period_start.slice(5)}</p><p className="mt-1 truncate font-mono text-[10px] text-ink">{point.tool_name}</p><p className="mt-1 text-xl font-semibold text-ink">{fmt(point.calls)}</p></div>)}</div> : <p className="py-6 text-sm text-muted">No trend evidence is available.</p>}
+              {activity.trend.length ? <CapabilityTrendChart points={activity.trend} /> : <p className="py-6 text-sm text-muted">No trend evidence is available.</p>}
             </Panel>
             <Panel title="Reliability by tool" subtitle="Errors and input-required responses are separate signals">
-              <div className="max-h-64 overflow-y-auto"><table className="w-full text-left text-xs"><thead className="border-b border-line text-[10px] uppercase tracking-[0.08em] text-faint"><tr><th className="pb-2">Tool</th><th className="pb-2">Error</th><th className="pb-2">Input required</th></tr></thead><tbody className="divide-y divide-line">{analytics.capability_activity.reliability.slice(0, 12).map((item) => <tr key={item.tool_name}><td className="max-w-[150px] truncate py-2 font-mono text-ink">{item.tool_name}</td><td className="py-2 text-muted">{item.error_rate === null ? "N/A" : percent(item.error_rate)}</td><td className="py-2 text-muted">{item.input_required_rate === null ? "N/A" : percent(item.input_required_rate)}</td></tr>)}</tbody></table></div>
+              <div className="max-h-64 overflow-y-auto"><table className="w-full text-left text-xs"><thead className="border-b border-line text-[10px] uppercase tracking-[0.08em] text-faint"><tr><th className="pb-2">Tool</th><th className="pb-2">Volume</th><th className="pb-2">Error</th><th className="pb-2">Input required</th></tr></thead><tbody className="divide-y divide-line">{activity.reliability.slice(0, 12).map((item) => <tr key={item.tool_name}><td className="max-w-[150px] truncate py-2 font-mono text-ink"><button type="button" onClick={() => setSelectedToolName(item.tool_name)} className="cursor-pointer hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand">{item.tool_name}</button></td><td className="py-2 text-muted">{fmt(item.calls)}</td><td className="py-2 text-muted">{item.error_rate === null ? "N/A" : percent(item.error_rate)}</td><td className="py-2 text-muted">{item.input_required_rate === null ? "N/A" : percent(item.input_required_rate)}</td></tr>)}</tbody></table></div>
             </Panel>
           </div>
-          <p className="mt-3 text-xs leading-relaxed text-faint">{analytics.capability_activity.limitation}</p>
+          {selectedTool && <ToolDetailPanel tool={selectedTool} metadata={analytics.tools.find((tool) => tool.name === selectedTool.tool_name)} onClose={() => setSelectedToolName(null)} />}
+          <p className="mt-3 text-xs leading-relaxed text-faint">{activity.limitation}</p>
         </>
       )}
       <div className="grid gap-3 sm:grid-cols-3">
@@ -3661,6 +3665,31 @@ function AccountGrowthChart({ points }: { points: NonNullable<Analytics["who_is_
       <span>{latest?.period_start}</span>
     </div>
   </div>;
+}
+
+function CapabilityTrendChart({ points }: { points: NonNullable<Analytics["capability_activity"]>["trend"] }) {
+  const periods = [...new Set(points.map((point) => point.period_start))].slice(-12);
+  const names = [...new Set(points.map((point) => point.tool_name))];
+  const colors = ["bg-brand", "bg-brand-strong", "bg-sky-500", "bg-amber-500", "bg-violet-500", "bg-rose-500", "bg-slate-400"];
+  const byPeriod = new Map(periods.map((period) => [period, points.filter((point) => point.period_start === period)]));
+  const max = Math.max(1, ...periods.map((period) => (byPeriod.get(period) || []).reduce((sum, point) => sum + point.calls, 0)));
+  return <div>
+    <div className="flex h-48 items-end gap-2" role="img" aria-label="Weekly tool-call volume, stacked by feature.">
+      {periods.map((period) => <div key={period} className="flex h-full min-w-0 flex-1 flex-col justify-end overflow-hidden rounded-sm bg-paper" title={period}>
+        {(byPeriod.get(period) || []).map((point) => <div key={point.tool_name} className={colors[Math.max(0, names.indexOf(point.tool_name)) % colors.length]} style={{ height: `${(point.calls / max) * 100}%` }} title={`${point.tool_name}: ${point.calls} calls`} />)}
+      </div>)}
+    </div>
+    <div className="mt-3 flex flex-wrap gap-x-3 gap-y-1 text-[10px] text-faint">{names.map((name, index) => <span key={name} className="inline-flex items-center gap-1"><i className={`h-2 w-2 rounded-full ${colors[index % colors.length]}`} />{name}</span>)}</div>
+  </div>;
+}
+
+function ToolDetailPanel({ tool, metadata, onClose }: { tool: NonNullable<Analytics["capability_activity"]>["tool_details"][number]; metadata: Analytics["tools"][number] | undefined; onClose: () => void }) {
+  const maxAccounts = Math.max(1, ...tool.top_accounts.map((account) => account.calls));
+  return <section className="mt-4 border border-brand/30 bg-brand-soft/20 p-4 sm:p-5" aria-label={`${tool.tool_name} tool detail`}>
+    <div className="flex flex-wrap items-start justify-between gap-3"><div><p className="dashboard-label text-faint">Tool detail</p><h3 className="mt-1 font-mono text-base font-semibold text-ink">{tool.tool_name}</h3>{metadata?.description && <p className="mt-2 max-w-3xl text-xs leading-relaxed text-muted">{metadata.description}</p>}</div><button type="button" onClick={onClose} className="cursor-pointer rounded-md border border-line-strong bg-white px-3 py-1.5 text-xs font-semibold text-body focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand">Close</button></div>
+    <div className="mt-4 grid gap-3 sm:grid-cols-3"><Kpi label="Volume" value={fmt(tool.calls)} icon={Activity} helper="Observed calls" /><Kpi label="Error rate" value={tool.error_rate === null ? "N/A" : percent(tool.error_rate)} icon={AlertTriangle} helper="Explicit errors only" /><Kpi label="p95 latency" value={tool.p95_ms === null ? "N/A" : `${tool.p95_ms}ms`} icon={Gauge} helper="Reported duration samples" /></div>
+    <div className="mt-4 grid gap-4 lg:grid-cols-2"><div><p className="text-sm font-semibold text-ink">Top resolver-linked account activity</p><p className="mt-1 text-xs text-muted">Ranks and counts are shown; raw resolver keys and customer names never leave the server.</p><div className="mt-3 space-y-2">{tool.top_accounts.map((account) => <div key={account.rank}><div className="flex justify-between text-xs"><span className="text-ink">Account #{account.rank}</span><span className="text-muted">{fmt(account.calls)} calls</span></div><div className="mt-1 h-2 bg-white"><div className="h-full bg-brand" style={{ width: `${(account.calls / maxAccounts) * 100}%` }} /></div></div>)}{!tool.top_accounts.length && <p className="py-3 text-sm text-muted">No resolver-linked account activity is available for this tool.</p>}</div></div><div><p className="text-sm font-semibold text-ink">Error and volume trend</p><div className="mt-3 space-y-2">{tool.trend.map((point) => <div key={point.period_start} className="flex justify-between border-b border-line pb-2 text-xs"><span className="text-muted">{point.period_start}</span><span className="text-ink">{fmt(point.calls)} calls · {point.calls ? percent(point.errors / point.calls) : "N/A"} errors</span></div>)}{!tool.trend.length && <p className="py-3 text-sm text-muted">No trend evidence is available.</p>}</div></div></div>
+  </section>;
 }
 
 function EvidenceView({
