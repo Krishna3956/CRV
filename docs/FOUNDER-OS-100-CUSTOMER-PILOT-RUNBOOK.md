@@ -54,7 +54,7 @@ npm run build
 npm run smoke:local
 ```
 
-The current local baseline is a clean 103-suite release gate and a 169-page
+The current local baseline is a clean 104-suite release gate and a 169-page
 production build. Rerun these commands for every candidate; these results do
 not substitute for production evidence.
 
