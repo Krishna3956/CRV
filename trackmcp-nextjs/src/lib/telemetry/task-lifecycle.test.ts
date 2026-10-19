@@ -38,3 +38,11 @@ test("explicit expiry is terminal, while a later explicit completion remains aut
   assert.equal(expired?.state, "expired");
   assert.equal(expired?.terminal, true);
 });
+
+test("durable transitions extend the bounded event window without exposing raw handles", () => {
+  const [task] = aggregateTaskLifecycles([], [{ task_id_hash: "b".repeat(64), state: "expired", observed_at: "2026-10-19T00:00:00Z", evidence_quality: "observed" }]);
+  assert.equal(task?.task_id_hash, "b".repeat(64));
+  assert.equal(task?.state, "expired");
+  assert.equal(task?.terminal, true);
+  assert.equal(task?.observations, 1);
+});

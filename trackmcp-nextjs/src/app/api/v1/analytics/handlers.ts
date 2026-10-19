@@ -7,7 +7,7 @@ import { completedForEvents, completionSourceForEvents, correlationQualityForEve
 import type { CanonicalTrackMCPEvent, TrackMCPCorrelationHandleSource, TrackMCPIntentSource, TrackMCPObservationSource, TrackMCPSessionIdSource } from "../../../../lib/telemetry/types.ts";
 import { projectTrackMCPFact } from "../../../../lib/telemetry/facts.ts";
 import { aggregateTrackMCPFacts, aggregateTrackMCPFactsBy, type TrackMCPOutcomeGroupBy } from "../../../../lib/telemetry/outcomes.ts";
-import { aggregateTaskLifecycles } from "../../../../lib/telemetry/task-lifecycle.ts";
+import { aggregateTaskLifecycles, type TrackMCPTaskTransitionObservation } from "../../../../lib/telemetry/task-lifecycle.ts";
 import { buildTrackMCPDataTrust } from "../../../../lib/telemetry/data-trust.ts";
 import { classifyTrackMCPProtocolSignal, type TrackMCPProtocolSignal } from "../../../../lib/telemetry/semantic.ts";
 import { evaluateWorkerHealth } from "../../../../lib/telemetry/worker-health.ts";
@@ -217,6 +217,20 @@ export function createAnalyticsHandler(getAdmin: typeof getSupabaseAdmin = getSu
 
   const events = ((data || []) as EventRow[]).filter((event) => event.observation_source === "server");
   const facts = events.map(canonicalEventFromRow).map(projectTrackMCPFact);
+  // The transition table is additive and may not exist on older deployments.
+  // A missing schema must not break analytics; when present it extends the
+  // bounded event-window projection so late completion/expiry remains visible.
+  const transitionResult = await supabase.from("trackmcp_task_transitions")
+    .select("task_id_hash,state,observed_at,evidence_quality")
+    .eq("workspace_id", workspaceId).gte("observed_at", since).order("observed_at", { ascending: true }).limit(10000);
+  const taskTransitions = transitionResult.error ? [] : ((transitionResult.data || []) as Array<Record<string, unknown>>).flatMap((row): TrackMCPTaskTransitionObservation[] => {
+    const state = row.state;
+    const quality = row.evidence_quality;
+    if (typeof row.task_id_hash !== "string" || !/^[a-f0-9]{64}$/i.test(row.task_id_hash) || typeof row.observed_at !== "string") return [];
+    if (state !== "working" && state !== "input_required" && state !== "completed" && state !== "failed" && state !== "cancelled" && state !== "expired") return [];
+    if (quality !== "observed" && quality !== "insufficient_data" && quality !== "conflicting") return [];
+    return [{ task_id_hash: row.task_id_hash.toLowerCase(), state, observed_at: row.observed_at.slice(0, 80), evidence_quality: quality }];
+  });
   const identityEligible = events.filter((event) => event.account_identity_source === "resolver" || event.account_identity_source === "unresolved").length;
   const identityResolved = events.filter((event) => event.account_identity_source === "resolver" && Boolean(event.account_key)).length;
   const identityCoverage = {
@@ -422,7 +436,7 @@ export function createAnalyticsHandler(getAdmin: typeof getSupabaseAdmin = getSu
     clients: [...clients.entries()].map(([name, value]) => ({ name: name.slice(0, 256), calls: value.calls, versions: [...value.versions].slice(0, 20) })).sort((a, b) => b.calls - a.calls).slice(0, MAX_PUBLIC_DIMENSION_ITEMS),
     tools: toolRows.slice(0, MAX_PUBLIC_LIST_ITEMS), catalog_tools: [...catalog.values()].slice(0, MAX_PUBLIC_LIST_ITEMS),
     unused_tools: unusedTools.slice(0, MAX_PUBLIC_LIST_ITEMS), workflows: workflowRows.slice(0, 100), outcomes: explicitOutcomes.slice(0, MAX_PUBLIC_DIMENSION_ITEMS),
-    founder_os: { facts: aggregateTrackMCPFacts(facts), groups: outcomeGroups, identity_coverage: identityCoverage, identity_source_counts: identitySourceCounts, tasks: aggregateTaskLifecycles(facts) },
+    founder_os: { facts: aggregateTrackMCPFacts(facts), groups: outcomeGroups, identity_coverage: identityCoverage, identity_source_counts: identitySourceCounts, tasks: aggregateTaskLifecycles(facts, taskTransitions) },
     catalog_versions: catalogVersions,
     catalog_next_cursor: catalogHasMore ? catalogVersions.at(-1)?.discovered_at || null : null,
     catalog_version_status: catalogVersionStatus,
