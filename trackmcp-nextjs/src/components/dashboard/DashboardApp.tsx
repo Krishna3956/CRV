@@ -1097,6 +1097,7 @@ export function DashboardApp({
               analytics={analytics}
               error={error}
               working={working}
+              onCreateWorkspace={onCreateWorkspace}
               onGenerateKey={onGenerateKey}
               onRevokeKey={onRevokeKey}
               onRefresh={() => onRefresh(range)}
@@ -3493,6 +3494,7 @@ function SetupView({
   analytics,
   error,
   working,
+  onCreateWorkspace,
   onGenerateKey,
   onRevokeKey,
   onRefresh,
@@ -3502,6 +3504,7 @@ function SetupView({
   analytics: Analytics | null;
   error: string;
   working: boolean;
+  onCreateWorkspace: () => void;
   onGenerateKey: () => void;
   onRevokeKey: (id: string) => void;
   onRefresh: () => void;
@@ -3581,7 +3584,7 @@ function SetupView({
             ? identityUnresolved ? "identity" : "verified"
             : "checking";
   const stateCopy = {
-    "no-key": ["Create a connection key to begin", "TrackMCP cannot verify an integration until a scoped key is configured and your server sends an event.", "Not connected", "border-line bg-paper text-muted", "bg-slate-400"],
+    "no-key": [workspaceId ? "Create a connection key to begin" : "Create your workspace to begin", workspaceId ? "TrackMCP cannot verify an integration until a scoped key is configured and your server sends an event." : "Your account is ready. Create a workspace first, then create a connection key for your server.", "Not connected", "border-line bg-paper text-muted", "bg-slate-400"],
     checking: ["Checking for your first event", "Your key is ready. We are checking the selected period for telemetry from your server.", "Checking", "border-sky-200 bg-sky-50 text-sky-800", "bg-sky-500"],
     waiting: ["Waiting for your first event", "The key is ready, but key creation alone does not prove that an MCP event arrived. Configure TRACKMCP_KEY, restart the server, make one real tool call, then check again.", "Waiting for event", "border-amber-200 bg-amber-50 text-amber-800", "bg-amber-500"],
     limited: ["Telemetry is arriving, but the scan is bounded", "TrackMCP observed activity, but the selected query reached its safety limit. Counts and comparisons may be incomplete; narrow the date range before drawing conclusions.", "Limited coverage", "border-amber-200 bg-amber-50 text-amber-800", "bg-amber-500"],
@@ -3728,49 +3731,66 @@ function SetupView({
           </p>
         </Panel>
         <Panel
-          title="Connection keys"
-          subtitle="Full secrets are shown only at creation"
+          title={workspaceId ? "Connection keys" : "Create your workspace"}
+          subtitle={workspaceId ? "Full secrets are shown only at creation" : "A workspace is required before you can create a connection key"}
         >
-          <div className="max-h-64 space-y-2 overflow-y-auto pr-1">
-            {keys.map((key) => (
-              <div
-                key={key.id}
-                className="flex items-center justify-between gap-3 border border-line bg-paper px-3.5 py-3"
+          {!workspaceId ? (
+            <div>
+              <p className="text-sm leading-relaxed text-muted">Create a workspace to organize your server connections and analytics. You can create a connection key immediately afterward.</p>
+              <button
+                type="button"
+                onClick={onCreateWorkspace}
+                disabled={working}
+                className="mt-4 inline-flex cursor-pointer items-center gap-2 rounded-md bg-ink px-4 py-2.5 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
               >
-                <div>
-                  <p className="font-mono text-xs text-ink">
-                    {key.key_prefix}••••••
-                  </p>
-                  <p className="mt-1 text-[11px] text-muted">
-                    {key.name} · {key.revoked_at ? "Revoked" : "Active"}
-                  </p>
-                </div>
-                {!key.revoked_at && (
-                  <button
-                    type="button"
-                    onClick={() => onRevokeKey(key.id)}
-                    className="cursor-pointer text-xs font-semibold text-red-700 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-600"
+                <KeyRound size={15} />
+                {working ? "Creating workspace…" : "Create workspace"}
+              </button>
+            </div>
+          ) : (
+            <>
+              <div className="max-h-64 space-y-2 overflow-y-auto pr-1">
+                {keys.map((key) => (
+                  <div
+                    key={key.id}
+                    className="flex items-center justify-between gap-3 border border-line bg-paper px-3.5 py-3"
                   >
-                    Revoke
-                  </button>
+                    <div>
+                      <p className="font-mono text-xs text-ink">
+                        {key.key_prefix}••••••
+                      </p>
+                      <p className="mt-1 text-[11px] text-muted">
+                        {key.name} · {key.revoked_at ? "Revoked" : "Active"}
+                      </p>
+                    </div>
+                    {!key.revoked_at && (
+                      <button
+                        type="button"
+                        onClick={() => onRevokeKey(key.id)}
+                        className="cursor-pointer text-xs font-semibold text-red-700 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-600"
+                      >
+                        Revoke
+                      </button>
+                    )}
+                  </div>
+                ))}
+                {!keys.length && (
+                  <p className="py-4 text-sm text-muted">
+                    No connection key exists yet.
+                  </p>
                 )}
               </div>
-            ))}
-            {!keys.length && (
-              <p className="py-4 text-sm text-muted">
-                No connection key exists yet.
-              </p>
-            )}
-          </div>
-          <button
-            type="button"
-            onClick={onGenerateKey}
-            disabled={working}
-            className="mt-4 inline-flex cursor-pointer items-center gap-2 rounded-md bg-ink px-4 py-2.5 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
-          >
-            <KeyRound size={15} />
-            {working ? "Creating…" : "Create connection key"}
-          </button>
+              <button
+                type="button"
+                onClick={onGenerateKey}
+                disabled={working}
+                className="mt-4 inline-flex cursor-pointer items-center gap-2 rounded-md bg-ink px-4 py-2.5 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
+              >
+                <KeyRound size={15} />
+                {working ? "Creating…" : "Create connection key"}
+              </button>
+            </>
+          )}
         </Panel>
       </div>
       <section
