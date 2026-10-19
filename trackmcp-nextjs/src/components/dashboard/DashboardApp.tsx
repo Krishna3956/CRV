@@ -2603,6 +2603,11 @@ function CapabilitiesView({
           helper="Catalog comparison"
         />
       </div>
+      {analytics.interaction_surfaces && (
+        <div className="mt-6">
+          <InteractionSurfacePanel surfaces={analytics.interaction_surfaces} />
+        </div>
+      )}
       <CatalogHistoryPanel
         versions={analytics.catalog_versions || []}
         status={analytics.catalog_version_status || "no_snapshot_rows"}
