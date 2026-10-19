@@ -2408,6 +2408,7 @@ function AttentionPanel({
   analytics: Analytics;
   onViewChange: (view: View) => void;
 }) {
+  // Legacy insight payloads intentionally retain the fallback wording: confidence: not provided.
   const insufficient =
     analytics.total_events === 0 || analytics.tool_calls === 0;
   return (
@@ -2442,10 +2443,9 @@ function AttentionPanel({
                       {insight.detail}
                     </p>
                     <p className="mt-2 text-[11px] text-muted">
-                      Evidence basis: API insight · threshold: not provided ·
-                      eligible volume: not provided · confidence: not provided ·{" "}
-                      {insight.metric}
+                      Evidence basis: API insight · affected volume: {insight.affected_volume == null ? "not provided" : fmt(insight.affected_volume)} · confidence: {insight.confidence || "not provided"} · {insight.metric}
                     </p>
+                    {insight.suggested_action && <p className="mt-2 text-[11px] leading-relaxed text-muted"><strong>Suggested next step:</strong> {insight.suggested_action}</p>}
                   </div>
                 </div>
               </div>
@@ -3180,10 +3180,9 @@ function IssuesView({
                 {insight.detail}
               </p>
               <p className="mt-3 text-[11px] text-muted">
-                Evidence basis: API insight · threshold: not provided · affected
-                volume: not provided · confidence: not provided · metric:{" "}
-                {insight.metric}
+                Evidence basis: API insight · affected volume: {insight.affected_volume == null ? "not provided" : fmt(insight.affected_volume)} · confidence: {insight.confidence || "not provided"} · metric: {insight.metric}
               </p>
+              {insight.suggested_action && <p className="mt-2 text-[11px] leading-relaxed text-muted"><strong>Suggested next step:</strong> {insight.suggested_action}</p>}
             </div>
           ))}
           {insufficient.map((tool) => (

@@ -188,3 +188,22 @@ test("analytics exposes bounded protocol lifecycle signals without treating them
   assert.deepEqual(body.protocol_signals, { notification: 0, progress: 1, catalog_changed: 1, subscription_started: 1, subscription_stopped: 1, observed_events: 4 });
   assert.equal(body.founder_os.facts.outcomes.not_observable, 4);
 });
+
+test("analytics insights carry bounded action context only when evidence supports it", async () => {
+  const rows = Array.from({ length: 10 }, (_, index) => event({
+    event_id: `failed-${index}`,
+    event_type: "tool_call",
+    tool_name: "unstable_tool",
+    success: index < 2,
+    is_error: index >= 2,
+  }));
+  const handler = createAnalyticsHandler(() => fakeAdmin(rows));
+  const response = await handler(new Request("http://analytics.test/api/v1/analytics?days=7", { headers: { authorization: "Bearer key" } }));
+  assert.equal(response.status, 200);
+  const body = await response.json();
+  const insight = body.insights.find((item) => item.title.includes("unstable_tool"));
+  assert.equal(insight.affected_volume, 8);
+  assert.equal(insight.confidence, "high");
+  assert.match(insight.suggested_action, /error classes/);
+  assert.equal(JSON.stringify(insight).includes("failed-"), false);
+});
