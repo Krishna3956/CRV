@@ -14,6 +14,10 @@ import "./globals.css";
 const GA_ID = "G-PSZBQBCRQX";
 const CLARITY_ID = "tsoodirahp";
 const ENABLE_CLARITY = process.env.NODE_ENV === "production";
+// App Runner does not serve Vercel's reserved /_vercel/* endpoints. Keep
+// these optional integrations disabled unless the deployment explicitly
+// provides a Vercel-compatible runtime.
+const ENABLE_VERCEL_OBSERVABILITY = process.env.NEXT_PUBLIC_ENABLE_VERCEL_OBSERVABILITY === "true";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -112,9 +116,13 @@ export default function RootLayout({ children }: RootLayoutProps) {
           </Script>
         )}
 
-        {/* Vercel Analytics + Speed Insights */}
-        <Analytics />
-        <SpeedInsights />
+        {/* Vercel Analytics + Speed Insights (opt-in for Vercel-compatible hosts) */}
+        {ENABLE_VERCEL_OBSERVABILITY && (
+          <>
+            <Analytics />
+            <SpeedInsights />
+          </>
+        )}
       </body>
     </html>
   );
