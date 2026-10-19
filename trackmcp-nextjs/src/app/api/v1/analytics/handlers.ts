@@ -221,6 +221,18 @@ export function createAnalyticsHandler(getAdmin: typeof getSupabaseAdmin = getSu
     if (event.missing_capability) missingCapabilities.set(event.missing_capability, (missingCapabilities.get(event.missing_capability) || 0) + 1);
   }
   const calls = events.filter((event) => event.event_type === "tool_call");
+  const observedAccountKeys = new Set<string>();
+  let resolverLinkedEvents = 0;
+  let unresolvedEvents = 0;
+  for (const event of calls) {
+    if (event.account_identity_source === "resolver" && event.account_key) {
+      observedAccountKeys.add(event.account_key);
+      resolverLinkedEvents += 1;
+    } else if (event.account_identity_source === "unresolved") {
+      unresolvedEvents += 1;
+    }
+  }
+  const eligibleAccountEvents = resolverLinkedEvents + unresolvedEvents;
   const sessions = new Map<string, EventRow[]>();
   for (const event of events) if (event.session_id) sessions.set(event.session_id, [...(sessions.get(event.session_id) || []), event]);
   const clients = new Map<string, { calls: number; versions: Set<string> }>();
@@ -330,6 +342,14 @@ export function createAnalyticsHandler(getAdmin: typeof getSupabaseAdmin = getSu
     missing_capabilities: [...missingCapabilities.entries()].map(([name, reports]) => ({ name: name.slice(0, 256), reports })).sort((a, b) => b.reports - a.reports || a.name.localeCompare(b.name)).slice(0, MAX_PUBLIC_DIMENSION_ITEMS),
     funnel: { connections: events.filter((event) => event.event_type === "session").length, discovered_tools: catalog.size, tool_calls: calls.length, successful_calls: calls.filter((event) => !failed(event)).length },
     timeline: [...timeline.entries()].map(([date, value]) => ({ date, ...value })).slice(-366),
+    account_summary: {
+      observed_account_keys: observedAccountKeys.size,
+      eligible_events: eligibleAccountEvents,
+      resolver_linked_events: resolverLinkedEvents,
+      unresolved_events: unresolvedEvents,
+      resolver_coverage: eligibleAccountEvents ? resolverLinkedEvents / eligibleAccountEvents : null,
+      limitation: "Observed resolver-linked account keys are privacy-safe dimensions, not named customers or unique people.",
+    },
     clients: [...clients.entries()].map(([name, value]) => ({ name: name.slice(0, 256), calls: value.calls, versions: [...value.versions].slice(0, 20) })).sort((a, b) => b.calls - a.calls).slice(0, MAX_PUBLIC_DIMENSION_ITEMS),
     tools: toolRows.slice(0, MAX_PUBLIC_LIST_ITEMS), catalog_tools: [...catalog.values()].slice(0, MAX_PUBLIC_LIST_ITEMS),
     unused_tools: unusedTools.slice(0, MAX_PUBLIC_LIST_ITEMS), workflows: workflowRows.slice(0, 100), outcomes: explicitOutcomes.slice(0, MAX_PUBLIC_DIMENSION_ITEMS),

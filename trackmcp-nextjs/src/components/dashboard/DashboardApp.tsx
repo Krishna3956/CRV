@@ -3262,6 +3262,28 @@ function ClientsView({
         actions={pageControls}
       />
       <DataSourceStrip dataMode={dataMode} hasMyData={hasMyData} view="clients" />
+      {analytics.account_summary && (
+        <div className="mb-6 grid gap-3 sm:grid-cols-3">
+          <Kpi
+            label="Observed account signals"
+            value={fmt(analytics.account_summary.observed_account_keys)}
+            icon={Users}
+            helper="Distinct resolver-linked keys"
+          />
+          <Kpi
+            label="Identity coverage"
+            value={analytics.account_summary.resolver_coverage === null ? "N/A" : percent(analytics.account_summary.resolver_coverage)}
+            icon={ShieldCheck}
+            helper="Resolver-linked eligible events"
+          />
+          <Kpi
+            label="Unknown identity events"
+            value={fmt(analytics.account_summary.unresolved_events)}
+            icon={Search}
+            helper="Kept visible; not classified as customers"
+          />
+        </div>
+      )}
       <Panel
         title="AI clients observed"
         subtitle="Activity is grouped by observed client name"

@@ -212,6 +212,15 @@ export type Analytics = {
   funnel: { connections: number; discovered_tools: number; tool_calls: number; successful_calls: number };
   timeline: { date: string; events: number; calls: number; errors: number }[];
   clients: { name: string; calls: number; versions?: string[] }[];
+  /** Privacy-safe account activity signals. Keys are never exposed to the UI. */
+  account_summary?: {
+    observed_account_keys: number;
+    eligible_events: number;
+    resolver_linked_events: number;
+    unresolved_events: number;
+    resolver_coverage: number | null;
+    limitation: string;
+  };
   tools: { name: string; calls: number; errors: number; error_rate: number; avg_ms: number | null; p50_ms?: number | null; p95_ms?: number | null; latency_sample_count?: number; discovered: boolean; description?: string | null; schema_hash?: string | null }[];
   catalog_tools?: CatalogTool[];
   catalog_versions?: CatalogVersion[];
