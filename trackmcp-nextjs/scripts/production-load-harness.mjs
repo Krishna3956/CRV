@@ -78,8 +78,14 @@ export function summarize(samples, startedAt, thresholds) {
   const errors = samples.filter((s) => s.error || s.status < 200 || s.status >= 300);
   const timeouts = samples.filter((s) => s.timedOut === true);
   const isolationFailures = samples.filter((s) => s.isolation === false);
+  const statusClasses = { successful: 0, clientErrors: 0, serverErrors: 0, otherHttp: 0, transportErrors: 0 };
   const byRoute = {};
   for (const sample of samples) {
+    if (sample.error || sample.status === 0) statusClasses.transportErrors += 1;
+    else if (sample.status >= 200 && sample.status < 300) statusClasses.successful += 1;
+    else if (sample.status >= 400 && sample.status < 500) statusClasses.clientErrors += 1;
+    else if (sample.status >= 500 && sample.status < 600) statusClasses.serverErrors += 1;
+    else statusClasses.otherHttp += 1;
     const route = sample.route;
     byRoute[route] ??= { requests: 0, errors: 0, latenciesMs: [] };
     byRoute[route].requests += 1;
@@ -109,6 +115,7 @@ export function summarize(samples, startedAt, thresholds) {
     errors: errors.length,
     timeouts: timeouts.length,
     errorRate,
+    statusClasses,
     latencyMs: { p50: percentile(latencies, 50), p95: p95Ms, p99: percentile(latencies, 99), max: Math.max(...latencies, 0) },
     tenantIsolationFailures: isolationFailures.length,
     thresholds,

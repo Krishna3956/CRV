@@ -16,8 +16,9 @@ read as App Runner or Supabase capacity evidence.
 
 The latest repeat run on 2026-10-19 UTC used the documented 120-request,
 concurrency-8 shape with the 10-second timeout: 0 errors, 0 timeouts, p50
-2.10 ms, p95 13.89 ms, p99 23.54 ms, maximum 28.00 ms, and zero
-tenant-isolation failures. It remains fixture evidence only.
+2.17 ms, p95 16.06 ms, p99 25.34 ms, maximum 29.86 ms, zero 4xx/5xx and
+transport failures, and zero tenant-isolation failures. It remains fixture
+evidence only.
 
 The default budgets are p95 ≤ 750 ms and error rate ≤ 1%. The report also fails if a tenant response contains the other tenant's marker. Exit code `0` means all budgets passed; `1` means a measured budget failed; `2` means invalid invocation.
 
@@ -83,6 +84,9 @@ Only explicitly supplied local test keys are used. The harness does not read `.e
 
 - `latencyMs` reports p50/p95/p99/max overall and per route.
 - `errorRate` includes transport failures and all non-2xx responses.
+- `statusClasses` splits successful responses, 4xx, 5xx, other HTTP responses,
+  and transport failures. A 4xx/5xx split is required in the retained
+  deployment-class report; never use the aggregate error rate to hide it.
 - Every request is bounded by `--timeout-ms` (default 10 seconds, maximum 120 seconds). A timeout is reported separately and fails the run even when the error-rate budget would otherwise allow it.
 - `tenantIsolationFailures` counts bodies containing the opposite fixture tenant marker.
 - Read routes are sampled evenly; every fifth request is an ingest request. This is intentionally a smoke/load shape, not a capacity claim.
