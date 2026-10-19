@@ -77,6 +77,18 @@ or private URLs into it.
 
 | Field | Value |
 | --- | --- |
+| gate_id | production-registry-current-package-check |
+| owner | Head of Engineering |
+| timestamp_utc | 2026-10-19T13:27:00Z |
+| command_or_probe | Read-only production smoke with exact package expectations: npm SDK `0.1.2`, npm CLI `0.1.4`, PyPI `trackmcp==0.1.4`, plus all four reviewed checksum comparison variables |
+| environment | production / public registries |
+| candidate_sha | d28540140c2004bc9d75713ed5a4b4d4dd7ff21e |
+| result | pass |
+| evidence_reference | [current registry evidence](docs/evidence/production-registry-integrity-2026-10-19-current.json); exact npm integrity and PyPI SHA-256 values matched current registry metadata. |
+| caveat_or_scope | Corrects the superseded Python `0.1.3` smoke default. This remains read-only and does not prove provenance attestation, customer installation, or production telemetry. |
+
+| Field | Value |
+| --- | --- |
 | gate_id | production-smoke-runner-deployment |
 | owner | Head of Engineering |
 | timestamp_utc | 2026-10-19T13:21:00Z |
