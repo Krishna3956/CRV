@@ -48,11 +48,6 @@ export const DEFAULT_WORKER_HEALTH_THRESHOLDS: WorkerHealthThresholds = {
   minimumSample: 10,
 };
 
-const boundedCount = (value: unknown): number => {
-  const number = typeof value === "number" ? value : typeof value === "string" && /^\d+$/.test(value) ? Number(value) : NaN;
-  return Number.isSafeInteger(number) && number >= 0 ? Math.min(number, 1_000_000) : 0;
-};
-
 const timestamp = (value: unknown): number | null => {
   if (typeof value !== "string") return null;
   const parsed = Date.parse(value);
