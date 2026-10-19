@@ -71,6 +71,11 @@ test("classifies protocol notifications and subscriptions as lifecycle signals, 
   const stopped = classifyTrackMCPOutcome(event({ event_type: "protocol", mcp_method: "resources/unsubscribe" }));
   assert.equal(stopped.protocol_signal, "subscription_stopped");
   assert.equal(stopped.outcome, "not_observable");
+
+  const modern = classifyTrackMCPOutcome(event({ event_type: "protocol", mcp_method: "subscriptions/listen", success: true }));
+  assert.equal(modern.protocol_signal, "subscription_started");
+  const acknowledged = classifyTrackMCPOutcome(event({ event_type: "protocol", mcp_method: "notifications/subscriptions/acknowledged" }));
+  assert.equal(acknowledged.protocol_signal, "subscription_started");
 });
 
 test("protocol signal classifier is safe for unknown methods", () => {

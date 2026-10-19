@@ -116,6 +116,11 @@ export function classifyTrackMCPProtocolSignal(event: { mcp_method?: string | nu
   if (!method) return undefined;
   if (method === "resources/subscribe") return "subscription_started";
   if (method === "resources/unsubscribe") return "subscription_stopped";
+  // Modern 2026-07-28 subscriptions replace the legacy subscribe RPC with a
+  // long-lived listen request and an acknowledgement notification. The
+  // stream's eventual close is represented by its terminal response event;
+  // it must never be inferred from silence.
+  if (method === "subscriptions/listen" || method === "notifications/subscriptions/acknowledged") return "subscription_started";
   if (method === "notifications/progress") return "progress";
   if (method === "notifications/tools/list_changed" || method === "notifications/resources/list_changed" || method === "notifications/prompts/list_changed") return "catalog_changed";
   if (method.startsWith("notifications/")) return "notification";
