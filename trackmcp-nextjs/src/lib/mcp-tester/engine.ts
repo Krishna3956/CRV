@@ -227,7 +227,16 @@ export async function runMcpTester(options: McpTesterOptions): Promise<McpTester
     state.capabilities = { tools: Boolean(capabilities?.tools), resources: Boolean(capabilities?.resources), prompts: Boolean(capabilities?.prompts) };
     state.resourcesAdvertised = state.capabilities.resources;
     state.promptsAdvertised = state.capabilities.prompts;
-    addFinding("modern_discovery_partial", "protocol", "warning", "Modern server discovery succeeded. Catalog and multi-round-trip checks are not yet implemented for this revision, so this report is incomplete.", "modern_discover", { protocolVersion: MODERN_MCP_PROTOCOL_VERSION });
+    if (state.capabilities.tools) {
+      const toolsResult = await discoverCatalog<ToolSummary>(state, "tools", "tools/list", "tools_list", true, addFinding, record, beginPhase, finishPhase);
+      state.tools = toolsResult.summary;
+      state.toolsPassed = !toolsResult.failure && toolsResult.summary.complete && !toolsResult.invalidResponse;
+      if (toolsResult.failure) applyFailure(state, toolsResult.failure, "tools_list", addFinding);
+      if (toolsResult.invalidResponse) state.protocolError = true;
+    } else {
+      skipPhase(state, "tools_list", record, beginPhase, finishPhase);
+    }
+    addFinding("modern_discovery_partial", "protocol", "warning", "Modern server discovery and bounded tools/list completed where advertised. Resources, prompts, cache hints, subscriptions, and multi-round-trip checks are not yet implemented for this revision, so this report is incomplete.", "modern_discover", { protocolVersion: MODERN_MCP_PROTOCOL_VERSION });
     finishPhase("modern_discover", modernStart, "incomplete", record, phases, timings, now);
     return finalize(state, observedAt, addFinding);
   }
