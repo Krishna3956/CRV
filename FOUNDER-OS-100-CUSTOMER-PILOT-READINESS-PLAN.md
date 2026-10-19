@@ -29,6 +29,13 @@ The current product navigation is:
 
 `Overview`, `Journeys`, `Capabilities`, `Quality`, `Issues`, `AI clients`, `Evidence`, and `Setup`.
 
+The public homepage also contains an illustrative dashboard preview with labels
+such as `Analytics`, `Overview`, `Tools`, `Sessions`, `Workflows`, `Clients`,
+`Outcomes`, and `Reliability`. That preview is explicitly example content; it is
+not evidence that the authenticated dashboard has the same navigation or the
+same underlying data contracts. Pilot acceptance must therefore validate the
+authenticated dashboard separately from the marketing preview.
+
 This is not a simple naming mismatch. It is a partial business-first reinterpretation:
 
 - `Overview` is a summary layer, not the full “Who’s Using It” tab.
