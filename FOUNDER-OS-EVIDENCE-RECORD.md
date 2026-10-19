@@ -113,6 +113,18 @@ or private URLs into it.
 
 | Field | Value |
 | --- | --- |
+| gate_id | package-provenance-remediation |
+| owner | Head of Engineering |
+| timestamp_utc | 2026-10-19T13:32:00Z |
+| command_or_probe | Reviewed `.github/workflows/publish.yml` and passed `scripts/publish-workflow.contract.test.mjs` after adding `actions/attest-build-provenance@v2`, `attestations: write`, and isolated npm pack subjects |
+| environment | local / GitHub Actions workflow definition |
+| candidate_sha | bf5fbd6 |
+| result | pass-preparation |
+| evidence_reference | Commit `bf5fbd6`; the workflow now creates npm package subjects in `$RUNNER_TEMP`, builds Python subjects in `dist/`, and requests GitHub build attestations for each package path. |
+| caveat_or_scope | This prepares future publications but does not retroactively create an attestation for already-published artifacts. Queue item 255 remains open until a package publication workflow run produces and retains the attestation. |
+
+| Field | Value |
+| --- | --- |
 | gate_id | production-smoke-runner-deployment |
 | owner | Head of Engineering |
 | timestamp_utc | 2026-10-19T13:21:00Z |
