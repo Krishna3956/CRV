@@ -288,7 +288,7 @@ test("captures bounded semantic results for non-tool protocol requests without r
   const wrapped = withTrackMCP(server, { apiKey: "tmcp_test", endpoint: `http://127.0.0.1:${ingest.address().port}`, flushIntervalMs: 60000 });
   await wrapped.connect(rawTransport);
   server.transport.onmessage({ id: "sampling-1", method: "sampling/createMessage", params: { private_prompt: "do not persist" } });
-  await server.transport.send({ id: "sampling-1", result: { resultType: "input_required", private_result: "do not persist" } });
+  await server.transport.send({ id: "sampling-1", result: { resultType: "input_required", inputRequests: ["private-request", "private-request-2"], inputResponses: ["private-response"], private_result: "do not persist" } });
   await wrapped.trackmcp.flush();
   await new Promise((resolve) => setTimeout(resolve, 20));
   ingest.close();
@@ -297,6 +297,8 @@ test("captures bounded semantic results for non-tool protocol requests without r
   assert.ok(response);
   assert.equal(response.event_type, "protocol");
   assert.equal(response.result_type, "input_required");
+  assert.equal(response.input_request_count, 2);
+  assert.equal(response.input_response_count, 1);
   assert.equal(response.success, true);
   assert.deepEqual(response.payload, { name: "protocol_response_observed" });
   assert.equal(JSON.stringify(response).includes("private_"), false);
