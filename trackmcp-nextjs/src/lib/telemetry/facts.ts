@@ -1,3 +1,4 @@
+import { createHash } from "node:crypto";
 import { classifyTrackMCPOutcome, type TrackMCPSemanticOutcome } from "./semantic.ts";
 import type { CanonicalTrackMCPEvent } from "./types.ts";
 
@@ -29,6 +30,8 @@ export type TrackMCPFact = {
     resource_audience?: CanonicalTrackMCPEvent["resource_audience"];
     resource_priority?: number;
     interaction_id?: string;
+    /** One-way task handle; raw task IDs are never stored in the fact projection. */
+    task_id_hash?: string;
   };
   measures: {
     duration_ms?: number;
@@ -64,6 +67,7 @@ function factTypeFor(event: CanonicalTrackMCPEvent): TrackMCPFactType {
  */
 export function projectTrackMCPFact(event: CanonicalTrackMCPEvent): TrackMCPFact {
   const semantic = classifyTrackMCPOutcome(event);
+  const taskId = bounded(event.task_id, 256);
   const fact: TrackMCPFact = {
     fact_version: TRACKMCP_FACT_CONTRACT_VERSION,
     fact_type: factTypeFor(event),
@@ -83,6 +87,7 @@ export function projectTrackMCPFact(event: CanonicalTrackMCPEvent): TrackMCPFact
       ...(event.resource_audience ? { resource_audience: event.resource_audience } : {}),
       ...(boundedNonNegative(event.resource_priority, 1) !== undefined ? { resource_priority: boundedNonNegative(event.resource_priority, 1) } : {}),
       ...(bounded(event.interaction_id, 128) ? { interaction_id: bounded(event.interaction_id, 128) } : {}),
+      ...(taskId ? { task_id_hash: createHash("sha256").update(taskId, "utf8").digest("hex") } : {}),
     },
     measures: {
       duration_ms: boundedNonNegative(event.duration_ms, 86_400_000),

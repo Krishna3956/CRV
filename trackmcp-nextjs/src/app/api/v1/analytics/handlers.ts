@@ -7,6 +7,7 @@ import { completedForEvents, completionSourceForEvents, correlationQualityForEve
 import type { CanonicalTrackMCPEvent, TrackMCPCorrelationHandleSource, TrackMCPIntentSource, TrackMCPObservationSource, TrackMCPSessionIdSource } from "../../../../lib/telemetry/types.ts";
 import { projectTrackMCPFact } from "../../../../lib/telemetry/facts.ts";
 import { aggregateTrackMCPFacts, aggregateTrackMCPFactsBy, type TrackMCPOutcomeGroupBy } from "../../../../lib/telemetry/outcomes.ts";
+import { aggregateTaskLifecycles } from "../../../../lib/telemetry/task-lifecycle.ts";
 import { buildTrackMCPDataTrust } from "../../../../lib/telemetry/data-trust.ts";
 import { classifyTrackMCPProtocolSignal, type TrackMCPProtocolSignal } from "../../../../lib/telemetry/semantic.ts";
 import { evaluateWorkerHealth } from "../../../../lib/telemetry/worker-health.ts";
@@ -412,7 +413,7 @@ export function createAnalyticsHandler(getAdmin: typeof getSupabaseAdmin = getSu
     clients: [...clients.entries()].map(([name, value]) => ({ name: name.slice(0, 256), calls: value.calls, versions: [...value.versions].slice(0, 20) })).sort((a, b) => b.calls - a.calls).slice(0, MAX_PUBLIC_DIMENSION_ITEMS),
     tools: toolRows.slice(0, MAX_PUBLIC_LIST_ITEMS), catalog_tools: [...catalog.values()].slice(0, MAX_PUBLIC_LIST_ITEMS),
     unused_tools: unusedTools.slice(0, MAX_PUBLIC_LIST_ITEMS), workflows: workflowRows.slice(0, 100), outcomes: explicitOutcomes.slice(0, MAX_PUBLIC_DIMENSION_ITEMS),
-    founder_os: { facts: aggregateTrackMCPFacts(facts), groups: outcomeGroups, identity_coverage: identityCoverage, identity_source_counts: identitySourceCounts },
+    founder_os: { facts: aggregateTrackMCPFacts(facts), groups: outcomeGroups, identity_coverage: identityCoverage, identity_source_counts: identitySourceCounts, tasks: aggregateTaskLifecycles(facts) },
     catalog_versions: catalogVersions,
     catalog_next_cursor: catalogHasMore ? catalogVersions.at(-1)?.discovered_at || null : null,
     catalog_version_status: catalogVersionStatus,
