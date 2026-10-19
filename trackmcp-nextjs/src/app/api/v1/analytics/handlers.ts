@@ -221,6 +221,19 @@ export function createAnalyticsHandler(getAdmin: typeof getSupabaseAdmin = getSu
     if (event.missing_capability) missingCapabilities.set(event.missing_capability, (missingCapabilities.get(event.missing_capability) || 0) + 1);
   }
   const calls = events.filter((event) => event.event_type === "tool_call");
+  const accountEventCounts = new Map<string, number>();
+  const accountEventDays = new Map<string, Set<string>>();
+  const recentAccountKeys = new Set<string>();
+  const sevenDaysAgo = Date.now() - 7 * 86400000;
+  for (const event of events) {
+    if (event.account_identity_source !== "resolver" || !event.account_key) continue;
+    const key = event.account_key;
+    accountEventCounts.set(key, (accountEventCounts.get(key) || 0) + 1);
+    const days = accountEventDays.get(key) || new Set<string>();
+    days.add(event.started_at.slice(0, 10));
+    accountEventDays.set(key, days);
+    if (Date.parse(event.started_at) >= sevenDaysAgo) recentAccountKeys.add(key);
+  }
   const observedAccountKeys = new Set<string>();
   let resolverLinkedEvents = 0;
   let unresolvedEvents = 0;
@@ -348,6 +361,14 @@ export function createAnalyticsHandler(getAdmin: typeof getSupabaseAdmin = getSu
     timeline: [...timeline.entries()].map(([date, value]) => ({ date, ...value })).slice(-366),
     account_summary: {
       observed_account_keys: observedAccountKeys.size,
+      active_account_keys: accountEventCounts.size,
+      active_account_keys_7d: recentAccountKeys.size,
+      returning_account_keys: [...accountEventDays.values()].filter((days) => days.size > 1).length,
+      account_activity_bands: {
+        one_event: [...accountEventCounts.values()].filter((count) => count === 1).length,
+        repeat: [...accountEventCounts.values()].filter((count) => count >= 2 && count < 10).length,
+        high_activity: [...accountEventCounts.values()].filter((count) => count >= 10).length,
+      },
       eligible_events: eligibleAccountEvents,
       resolver_linked_events: resolverLinkedEvents,
       unresolved_events: unresolvedEvents,

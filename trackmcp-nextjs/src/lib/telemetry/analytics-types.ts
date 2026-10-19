@@ -217,6 +217,10 @@ export type Analytics = {
   /** Privacy-safe account activity signals. Keys are never exposed to the UI. */
   account_summary?: {
     observed_account_keys: number;
+    active_account_keys: number;
+    active_account_keys_7d: number;
+    returning_account_keys: number;
+    account_activity_bands: { one_event: number; repeat: number; high_activity: number };
     eligible_events: number;
     resolver_linked_events: number;
     unresolved_events: number;

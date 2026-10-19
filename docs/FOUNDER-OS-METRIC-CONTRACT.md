@@ -13,6 +13,10 @@ source explicitly says it is an outcome event.
 | `error_rate` | Error rate | Failed known-outcome calls / known calls | Tool-call telemetry | Unknown outcomes are not failures |
 | `needs_attention` | Needs attention | Count of fired insight rules | Bounded analytics rules | Signals, not diagnoses |
 | `identity_coverage` | Verified account coverage | Events with `account_identity_source=resolver` / eligible events | Resolver-labeled server telemetry | Event-weighted coverage; not unique organizations |
+| `active_account_signals` | Active account signals | Distinct resolver-linked account keys with at least one event in the selected range | Resolver-labeled server telemetry | Privacy-safe dimensions; not unique people or customers |
+| `active_account_signals_7d` | Active in last 7 days | Distinct resolver-linked account keys observed in the trailing seven days | Resolver-labeled server telemetry | Only available inside the selected range; not a weekly active-user claim |
+| `returning_account_signals` | Returning account signals | Distinct resolver-linked account keys observed on more than one calendar day | Resolver-labeled server telemetry | Repeat activity, not retention or account identity proof |
+| `account_activity_bands` | Account activity shape | Counts of resolver-linked keys with 1, 2–9, or 10+ observed events | Resolver-labeled server telemetry | Bounded bands; no raw keys or account names are exposed |
 | `resource_events` | Resource activity | Observed resource method events | Protocol telemetry | Method observations; no resource content or URI is exposed |
 | `prompt_events` | Prompt activity | Observed prompt method events | Protocol telemetry | Method observations; no prompt arguments or completion is inferred |
 | `resource_entities` | Resources observed | Count of bounded hashed resource identities | Durable entity-read projection | Hash counts are not unique people or readable resource identities |

@@ -407,6 +407,18 @@ const EXAMPLE_ANALYTICS: Analytics = {
   protocol_versions: ["2025-11-25"],
   services: ["quickbooks-finance-mcp"],
   environments: ["production"],
+  account_summary: {
+    observed_account_keys: 18,
+    active_account_keys: 18,
+    active_account_keys_7d: 11,
+    returning_account_keys: 9,
+    account_activity_bands: { one_event: 5, repeat: 8, high_activity: 5 },
+    eligible_events: 148,
+    resolver_linked_events: 132,
+    unresolved_events: 16,
+    resolver_coverage: 132 / 148,
+    limitation: "Observed resolver-linked account keys are privacy-safe dimensions, not named customers or unique people.",
+  },
   protocol_signals: { notification: 4, progress: 8, catalog_changed: 6, subscription_started: 2, subscription_stopped: 1, observed_events: 21 },
   interaction_surfaces: {
     resources: { events: 42, methods: ["resources/list", "resources/read"], entity_count: 12, entity_identity: "sha256_hash_count", entity_analytics: { status: "available", read_events: 31, successful_reads: 28, failed_reads: 2, input_required_reads: 1 } },
@@ -3378,7 +3390,7 @@ function ClientsView({
       />
       <DataSourceStrip dataMode={dataMode} hasMyData={hasMyData} view="clients" />
       {analytics.account_summary && (
-        <div className="mb-6 grid gap-3 sm:grid-cols-3">
+        <div className="mb-6 grid gap-3 sm:grid-cols-3 xl:grid-cols-5">
           <Kpi
             label="Observed account signals"
             value={fmt(analytics.account_summary.observed_account_keys)}
@@ -3397,7 +3409,37 @@ function ClientsView({
             icon={Search}
             helper="Kept visible; not classified as customers"
           />
+          <Kpi
+            label="Active in last 7 days"
+            value={fmt(analytics.account_summary.active_account_keys_7d)}
+            icon={Activity}
+            helper="Observed resolver-linked keys"
+          />
+          <Kpi
+            label="Returning account signals"
+            value={fmt(analytics.account_summary.returning_account_keys)}
+            icon={Route}
+            helper="Seen on more than one day"
+          />
         </div>
+      )}
+      {analytics.account_summary && (
+        <Panel title="Account activity shape" subtitle="Privacy-safe usage bands; no account names or raw identifiers are shown">
+          <div className="grid gap-3 sm:grid-cols-3">
+            {[
+              ["One-event signals", analytics.account_summary.account_activity_bands.one_event, "Accounts observed once"],
+              ["Repeat signals", analytics.account_summary.account_activity_bands.repeat, "2–9 observed events"],
+              ["High-activity signals", analytics.account_summary.account_activity_bands.high_activity, "10+ observed events"],
+            ].map(([label, value, helper]) => (
+              <div key={String(label)} className="border border-line bg-surface px-4 py-3">
+                <p className="text-xs font-medium text-muted">{label}</p>
+                <p className="mt-1 text-2xl font-semibold tracking-tight text-ink">{fmt(Number(value))}</p>
+                <p className="mt-1 text-[11px] text-faint">{helper}</p>
+              </div>
+            ))}
+          </div>
+          <p className="mt-4 text-xs leading-relaxed text-muted">These are bounded activity signals, not unique people, companies, or verified customers. Resolver coverage and the selected date range limit what can be inferred.</p>
+        </Panel>
       )}
       <Panel
         title="AI clients observed"
