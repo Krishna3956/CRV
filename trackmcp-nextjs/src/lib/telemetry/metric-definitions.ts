@@ -197,6 +197,22 @@ export const METRIC_DEFINITIONS = [
     interpretation: "Observed friction where the server requested more input.",
     limitations: ["Needs-input is not abandonment or business failure.", "Only explicit protocol evidence is counted."],
   },
+  {
+    key: "explicit_completion_rate",
+    label: "Explicit completion rate",
+    formula: "completed workflow outcomes / terminal completed-or-failed workflow outcomes",
+    source: "Semantic workflow outcome facts",
+    interpretation: "Observed completion evidence from explicit application events.",
+    limitations: ["Unknown, pending, and not-observable states remain outside the denominator.", "This is not proof of the customer's business result."],
+  },
+  {
+    key: "outcome_error_rate",
+    label: "Outcome error rate",
+    formula: "failed known outcomes / completed-or-failed known outcomes",
+    source: "Semantic outcome facts",
+    interpretation: "Explicit failure share among known terminal outcomes.",
+    limitations: ["Missing events are not failures.", "Unknown and pending evidence stays visible separately."],
+  },
 ] as const satisfies readonly MetricDefinition[];
 
 export type MetricKey = (typeof METRIC_DEFINITIONS)[number]["key"];

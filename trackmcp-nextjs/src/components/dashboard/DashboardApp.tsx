@@ -3176,6 +3176,16 @@ function OutcomeEvidencePanel({ analytics }: { analytics: Analytics }) {
       <p className="mt-4 border-t border-line pt-3 text-[11px] leading-relaxed text-muted">
         Evidence source: {analytics.completion_source === "workflow_events" ? "explicit workflow events" : analytics.completion_source === "session_heuristic" ? "session-derived activity (not used for the completion KPI)" : "no explicit outcome events"}. Unknown and not-observable outcomes remain separate from failure.
       </p>
+      {analytics.outcome_activity && <div className="mt-5 border-t border-line pt-5">
+        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+          <Kpi label="Completed" value={fmt(analytics.outcome_activity.completed)} icon={Check} helper="Explicit semantic evidence" />
+          <Kpi label="Failed" value={fmt(analytics.outcome_activity.failed)} icon={AlertTriangle} helper="Explicit semantic evidence" />
+          <Kpi label="Pending" value={fmt(analytics.outcome_activity.pending)} icon={Info} helper="Explicitly still in progress" />
+          <Kpi label="Unknown" value={fmt(analytics.outcome_activity.unknown + analytics.outcome_activity.not_observable)} icon={Info} helper="Not silently classified" />
+        </div>
+        <div className="mt-4 grid gap-2 sm:grid-cols-2 lg:grid-cols-4">{analytics.outcome_activity.trend.slice(-8).map((item) => <div key={item.period_start} className="border border-line bg-paper p-3"><p className="text-[10px] uppercase tracking-[0.08em] text-faint">{item.period_start}</p><p className="mt-1 text-xs text-ink">{fmt(item.completed)} complete · {fmt(item.failed)} failed</p><p className="mt-1 text-[11px] text-muted">{fmt(item.pending)} pending · {fmt(item.unknown)} unknown</p></div>)}</div>
+        <p className="mt-3 text-[11px] leading-relaxed text-faint">{analytics.outcome_activity.limitation}</p>
+      </div>}
     </Panel>
   );
 }

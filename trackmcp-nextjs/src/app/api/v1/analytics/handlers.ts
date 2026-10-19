@@ -500,6 +500,29 @@ export function createAnalyticsHandler(getAdmin: typeof getSupabaseAdmin = getSu
     drop_off: journeyGroups.slice(0, 10).map((item) => ({ path: item.path, interactions: item.interactions, terminal_evidence: item.error ? "explicit_error" as const : item.stalled ? "input_required" as const : "unknown" as const })),
     limitation: "Paths are bounded sequences of observed tool calls grouped by interaction or session identity. Missing terminal events are unknown, not abandonment; multi-server journeys outside this workspace are not visible.",
   };
+  const aggregate = aggregateTrackMCPFacts(facts);
+  const outcomeTrend = new Map<string, { completed: number; failed: number; unknown: number; pending: number }>();
+  for (const fact of facts) {
+    if (fact.fact_type !== "outcome") continue;
+    const day = fact.observed_at.slice(0, 10);
+    const current = outcomeTrend.get(day) || { completed: 0, failed: 0, unknown: 0, pending: 0 };
+    if (fact.semantic.outcome === "completed") current.completed += 1;
+    else if (fact.semantic.outcome === "failed") current.failed += 1;
+    else if (fact.semantic.outcome === "pending") current.pending += 1;
+    else current.unknown += 1;
+    outcomeTrend.set(day, current);
+  }
+  const outcomeActivity = {
+    completed: aggregate.outcomes.completed,
+    failed: aggregate.outcomes.failed,
+    pending: aggregate.outcomes.pending,
+    unknown: aggregate.outcomes.unknown,
+    not_observable: aggregate.outcomes.not_observable,
+    completion_rate: aggregate.workflow_completion_rate,
+    error_rate: aggregate.error_rate,
+    trend: [...outcomeTrend.entries()].sort(([a], [b]) => a.localeCompare(b)).slice(-366).map(([period_start, value]) => ({ period_start, ...value })),
+    limitation: "Completion and error rates use explicit semantic outcome evidence only. Unknown and not-observable states are retained; missing events are never converted into success, failure, or abandonment.",
+  };
   const outcomeEvents = events.filter(isWorkflowLifecycleEvent);
   // Only named workflow outcomes can be grouped. Older SDKs may emit a
   // lifecycle event without workflow_name; do not let that malformed or
@@ -638,6 +661,7 @@ export function createAnalyticsHandler(getAdmin: typeof getSupabaseAdmin = getSu
     },
     resource_prompt_activity: resourcePromptActivity,
     journey_activity: journeyActivity,
+    outcome_activity: outcomeActivity,
     tools: toolRows.slice(0, MAX_PUBLIC_LIST_ITEMS), catalog_tools: [...catalog.values()].slice(0, MAX_PUBLIC_LIST_ITEMS),
     unused_tools: unusedTools.slice(0, MAX_PUBLIC_LIST_ITEMS), workflows: workflowRows.slice(0, 100), outcomes: explicitOutcomes.slice(0, MAX_PUBLIC_DIMENSION_ITEMS),
     founder_os: { facts: aggregateTrackMCPFacts(facts), groups: outcomeGroups, identity_coverage: identityCoverage, identity_source_counts: identitySourceCounts, tasks: aggregateTaskLifecycles(facts, taskTransitions) },

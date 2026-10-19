@@ -270,6 +270,18 @@ export type Analytics = {
     drop_off: Array<{ path: string[]; interactions: number; terminal_evidence: "explicit_error" | "input_required" | "unknown" }>;
     limitation: string;
   };
+  /** Founder OS "Did it work" read model, keeping unknown evidence visible. */
+  outcome_activity?: {
+    completed: number;
+    failed: number;
+    pending: number;
+    unknown: number;
+    not_observable: number;
+    completion_rate: number | null;
+    error_rate: number | null;
+    trend: Array<{ period_start: string; completed: number; failed: number; unknown: number; pending: number }>;
+    limitation: string;
+  };
   /** Privacy-safe account activity signals. Keys are never exposed to the UI. */
   account_summary?: {
     observed_account_keys: number;

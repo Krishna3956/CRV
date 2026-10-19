@@ -258,6 +258,23 @@ test("analytics exposes bounded Journey path and stall evidence", async () => {
   assert.equal(body.journey_activity.drop_off[0].terminal_evidence, "input_required");
 });
 
+test("analytics keeps Did It Work outcomes explicit and uncertainty separate", async () => {
+  const handler = createAnalyticsHandler(() => fakeAdmin([
+    event({ event_id: "outcome-complete", event_type: "workflow", payload: { name: "workflow", workflow_name: "sync", status: "completed" } }),
+    event({ event_id: "outcome-failed", event_type: "workflow", payload: { name: "workflow", workflow_name: "sync", status: "failed" } }),
+    event({ event_id: "outcome-pending", event_type: "workflow", payload: { name: "workflow", workflow_name: "sync", status: "started" } }),
+  ]));
+  const response = await handler(new Request("http://analytics.test/api/v1/analytics?days=7", { headers: { authorization: "Bearer key" } }));
+  assert.equal(response.status, 200);
+  const body = await response.json();
+  assert.equal(body.outcome_activity.completed, 1);
+  assert.equal(body.outcome_activity.failed, 1);
+  assert.ok(body.outcome_activity.pending >= 1);
+  assert.equal(body.outcome_activity.completion_rate, 0.5);
+  assert.equal(body.outcome_activity.error_rate, 0.5);
+  assert.equal(body.outcome_activity.limitation.includes("never converted"), true);
+});
+
 test("analytics exposes bounded protocol lifecycle signals without treating them as outcomes", async () => {
   const handler = createAnalyticsHandler(() => fakeAdmin([
     event({ event_id: "signal-progress", event_type: "protocol", mcp_method: "notifications/progress" }),
