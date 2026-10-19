@@ -7,6 +7,7 @@ on:
 
 permissions:
   contents: read
+  id-token: write
 
 # A scheduled run must not overlap a manually dispatched run. The worker is
 # lease-fenced, but serializing the trigger avoids avoidable contention and
@@ -20,9 +21,27 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 2
     steps:
+      - name: Authenticate to AWS to discover the worker origin
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::872575360367:role/GitHubActionsDeployRole
+          aws-region: ap-south-1
+
+      - name: Resolve App Runner worker endpoint
+        run: |
+          set -euo pipefail
+          # ServiceUrl is public metadata. Never read runtime environment values.
+          ORIGIN=$(aws apprunner describe-service \
+            --service-arn arn:aws:apprunner:ap-south-1:872575360367:service/trackmcp-web/5d38155bd23141cabb4546b29a4075c7 \
+            --query 'Service.ServiceUrl' --output text)
+          if [[ ! "$ORIGIN" =~ ^[a-z0-9.-]+\.awsapprunner\.com$ ]]; then
+            echo "::error::App Runner did not return a valid service hostname."
+            exit 1
+          fi
+          echo "WORKER_URL=https://$ORIGIN/api/internal/refresh/run" >> "$GITHUB_ENV"
+
       - name: Run bounded refresh batch
         env:
-          WORKER_URL: ${{ secrets.TRACKMCP_REFRESH_WORKER_URL }}
           WORKER_SECRET: ${{ secrets.TRACKMCP_REFRESH_WORKER_SECRET }}
         run: |
           set -euo pipefail
