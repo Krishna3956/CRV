@@ -87,6 +87,25 @@ export function DocsShell({
                 ))}
               </nav>
             </aside>
+            <nav
+              aria-label="Documentation navigation"
+              className="-mx-6 mb-2 flex gap-2 overflow-x-auto px-6 pb-1 lg:hidden"
+            >
+              {groups.flatMap((group) => group.items).map((item) => (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  aria-current={active === item.href ? "page" : undefined}
+                  className={`shrink-0 rounded-full border px-3 py-1.5 text-xs font-medium transition-colors ${
+                    active === item.href
+                      ? "border-brand bg-brand-soft text-brand-strong"
+                      : "border-line bg-white text-muted hover:border-line-strong hover:text-body"
+                  }`}
+                >
+                  {item.t}
+                </Link>
+              ))}
+            </nav>
             <div className="min-w-0 max-w-[720px]">{children}</div>
           </div>
         </div>

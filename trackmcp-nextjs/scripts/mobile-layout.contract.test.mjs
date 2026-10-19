@@ -15,18 +15,22 @@ const [home, docs, device, dashboard, docsShell] = await Promise.all([
 test("homepage keeps primary actions stacked before the small-screen breakpoint", () => {
   assert.match(home, /flex flex-col items-center justify-center gap-3 sm:flex-row/);
   assert.match(home, /max-w-\[58ch\]/);
+  assert.match(home, /w-full min-w-0 max-w-full[\s\S]*sm:w-auto/);
+  assert.match(home, /min-w-0 truncate text-body/);
 });
 
 test("docs overview uses responsive grids and overflow-safe code blocks", () => {
   assert.match(docs, /grid gap-3 sm:grid-cols-3/);
   assert.match(docs, /grid gap-3 sm:grid-cols-2/);
   assert.match(docsShell, /pre className="overflow-x-auto/);
+  assert.match(docsShell, /aria-label="Documentation navigation"/);
+  assert.match(docsShell, /overflow-x-auto[\s\S]*lg:hidden/);
 });
 
 test("device approval keeps actions and authentication controls wrap-safe", () => {
   assert.match(device, /min-h-screen bg-canvas px-6/);
-  assert.match(device, /flex flex-wrap justify-center gap-2/);
-  assert.match(device, /max-w-xl rounded-2xl/);
+  assert.match(device, /flex flex-col justify-center gap-2 sm:flex-row/);
+  assert.match(device, /w-full max-w-md rounded-2xl/);
 });
 
 test("dashboard mobile navigation and data controls remain bounded", () => {

@@ -83,8 +83,8 @@ export default function Home() {
             <Reveal delay={0.2}>
               <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
                 <EarlyAccessButton size="lg" />
-                <div className="flex items-center justify-between gap-3 rounded-lg border border-line bg-paper px-4 py-[13px] font-mono text-[13.5px]">
-                  <span className="text-body">
+                <div className="flex w-full min-w-0 max-w-full items-center justify-between gap-3 rounded-lg border border-line bg-paper px-4 py-[13px] font-mono text-[13.5px] sm:w-auto">
+                  <span className="min-w-0 truncate text-body">
                     <Pn>$</Pn> npx <span className="text-brand">@trackmcp/cli init</span>
                   </span>
                   <CopyButton text="npx @trackmcp/cli init" size={15} className="text-faint hover:text-ink" />

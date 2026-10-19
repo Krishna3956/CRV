@@ -49,6 +49,7 @@
     "test:activation-load-harness": "node --test scripts/activation-load-harness.test.mjs",
     "test:incident-runbook": "node --test scripts/incident-runbook.contract.test.mjs",
     "test:pilot-support": "node --test scripts/pilot-support.contract.test.mjs",
+    "test:pilot-support-page": "node --test scripts/pilot-support-page.contract.test.mjs",
     "test:pilot-status-template": "node --test scripts/pilot-status-template.contract.test.mjs",
     "test:pilot-scope": "node --test scripts/pilot-scope.contract.test.mjs",
     "test:accessibility-contract": "node --test scripts/accessibility.contract.test.mjs",

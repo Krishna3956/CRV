@@ -38,6 +38,10 @@ jobs:
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: |
+          # The SDK's Node/Next boundary test resolves the web app's pinned
+          # Next.js dependency from the parent workspace. Install that clean
+          # dependency set before running the package gate.
+          npm --prefix ../.. ci
           npm ci
           npm audit --audit-level=high
           npm test

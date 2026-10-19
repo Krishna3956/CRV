@@ -166,7 +166,7 @@ export function DeviceApprovalClient({
     <main className="min-h-screen bg-canvas px-6 py-8 text-body sm:py-12">
       <div className="mx-auto mb-8 flex max-w-xl items-center justify-between">
         <TrackMCPLogo mark size="nav" />
-        <span className="text-[11px] font-medium text-muted">Secure CLI connection</span>
+        <span className="hidden text-[11px] font-medium text-muted sm:inline">Secure CLI connection</span>
       </div>
       <section className="mx-auto max-w-xl rounded-2xl border border-line bg-white p-6 shadow-sm sm:p-9">
         <h1 className="mt-3 text-3xl font-medium tracking-[-0.03em] text-ink">Approve this CLI connection</h1>
@@ -184,10 +184,10 @@ export function DeviceApprovalClient({
 }
 
 function DeviceState({ icon, title, detail }: { icon: React.ReactNode; title: string; detail: string }) {
-  return <main className="grid min-h-screen place-items-center bg-canvas px-6 text-center text-body"><section className="max-w-md rounded-2xl border border-line bg-white p-8"><span className="mx-auto grid h-12 w-12 place-items-center rounded-full bg-brand-soft text-brand-strong">{icon}</span><h1 className="mt-5 text-2xl font-medium text-ink">{title}</h1><p className="mt-3 text-sm leading-relaxed text-muted">{detail}</p><Link href="/" className="mt-6 inline-flex rounded-md bg-ink px-4 py-2.5 text-sm font-semibold text-white">Back to TrackMCP</Link></section></main>;
+  return <main className="grid min-h-screen place-items-center bg-canvas px-4 py-6 text-center text-body sm:px-6"><section className="w-full max-w-md rounded-2xl border border-line bg-white p-6 sm:p-8"><span className="mx-auto grid h-12 w-12 place-items-center rounded-full bg-brand-soft text-brand-strong">{icon}</span><h1 className="mt-5 text-2xl font-medium text-ink">{title}</h1><p className="mt-3 text-sm leading-relaxed text-muted">{detail}</p><Link href="/" className="mt-6 inline-flex rounded-md bg-ink px-4 py-2.5 text-sm font-semibold text-white">Back to TrackMCP</Link></section></main>;
 }
 
 function AuthRequiredState({ userCode }: { userCode: string | null }) {
   if (!userCode) return <DeviceState icon={<XCircle />} title="Sign in required" detail="Sign in and restart the device setup from your terminal." />;
-  return <main className="grid min-h-screen place-items-center bg-canvas px-6 text-center text-body"><section className="max-w-md rounded-2xl border border-line bg-white p-8"><span className="mx-auto grid h-12 w-12 place-items-center rounded-full bg-brand-soft text-brand-strong"><ShieldCheck /></span><h1 className="mt-5 text-2xl font-medium text-ink">Sign in to approve this device</h1><p className="mt-3 text-sm leading-relaxed text-muted">Your device code will be preserved while you authenticate.</p><div className="mt-6 flex flex-wrap justify-center gap-2"><Link href={authLink(userCode, "signin")} className="inline-flex items-center gap-2 rounded-md bg-ink px-4 py-2.5 text-sm font-semibold text-white">Sign in <ArrowRight size={13} /></Link><Link href={authLink(userCode, "signup")} className="inline-flex items-center gap-2 rounded-md border border-line-strong bg-white px-4 py-2.5 text-sm font-semibold text-body">Create account</Link></div></section></main>;
+  return <main className="grid min-h-screen place-items-center bg-canvas px-4 py-6 text-center text-body sm:px-6"><section className="w-full max-w-md rounded-2xl border border-line bg-white p-6 sm:p-8"><span className="mx-auto grid h-12 w-12 place-items-center rounded-full bg-brand-soft text-brand-strong"><ShieldCheck /></span><h1 className="mt-5 text-2xl font-medium text-ink">Sign in to approve this device</h1><p className="mt-3 text-sm leading-relaxed text-muted">Your device code will be preserved while you authenticate.</p><div className="mt-6 flex flex-col justify-center gap-2 sm:flex-row"><Link href={authLink(userCode, "signin")} className="inline-flex items-center justify-center gap-2 rounded-md bg-ink px-4 py-2.5 text-sm font-semibold text-white">Sign in <ArrowRight size={13} /></Link><Link href={authLink(userCode, "signup")} className="inline-flex items-center justify-center gap-2 rounded-md border border-line-strong bg-white px-4 py-2.5 text-sm font-semibold text-body">Create account</Link></div></section></main>;
 }
