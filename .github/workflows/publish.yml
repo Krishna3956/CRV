@@ -20,7 +20,7 @@ jobs:
     permissions:
       contents: read
       id-token: write # npm provenance attestation
-  attestations: write # GitHub build provenance for package artifacts
+      attestations: write # GitHub build provenance for package artifacts
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
