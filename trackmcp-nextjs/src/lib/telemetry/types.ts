@@ -13,7 +13,7 @@ export type TrackMCPIntentSource = "context_parameter" | "external_callback" | "
 export type TrackMCPAccountIdentitySource = "resolver" | "unresolved";
 export type TrackMCPCatalogKind = "tools" | "resources" | "resource_templates" | "prompts";
 /** Protocol-level result state. Missing values remain backward-compatible and are treated as complete. */
-export type TrackMCPResultType = "complete" | "input_required";
+export type TrackMCPResultType = "complete" | "input_required" | "task";
 /** Bounded, privacy-safe linkage for multi-round-trip requests; never raw inputResponses/requestState. */
 export type TrackMCPInteractionLinkSource = "request_id" | "external" | "issued" | "missing";
 
@@ -64,6 +64,8 @@ export type TrackMCPEvent = {
   interaction_link_source?: TrackMCPInteractionLinkSource;
   retry_of_event_id?: string;
   request_state_hash?: string;
+  /** Bounded count of server input requests; raw requests are never stored. */
+  input_request_count?: number;
   input_response_count?: number;
   resource_audience?: "user" | "assistant";
   resource_priority?: number;

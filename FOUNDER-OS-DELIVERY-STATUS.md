@@ -31,9 +31,10 @@ bounded event contract, conservative facts/outcomes, privacy-safe resolver
 identity, catalog observation metadata, data-trust disclosures, an Action Queue
 lifecycle, versioned v2 read surfaces, SDK/CLI activation work, and a dashboard
 signal surface. The local release gate and a clean production build have passed
-in the latest verification cycle. The latest cycle passed all 101 release-gate
-suites, TypeScript, lint with one pre-existing image warning, and local runtime smoke
-covering 8 public routes and 10 protected/API checks. The original PDF audit also closed the first high-priority
+in the latest verification cycle. The latest cycle passed all 104 release-gate
+suites, TypeScript, lint with one pre-existing image warning, and a read-only
+production smoke covering 25 public, registry, security-header, and protected/API
+checks. The original PDF audit also closed the first high-priority
 protocol gap around multi-round-trip outcomes and added a truthful Setup status
 surface.
 
@@ -73,7 +74,7 @@ tests. The highest-risk remaining dependencies are:
 - `origin/main` currently resolves to `66e4348` (`Merge production public smoke evidence`).
 - The application release was merged through PR #43 and deployed by the
   existing GitHub Actions/App Runner workflow.
-- `@trackmcp/sdk@0.1.2`, `@trackmcp/cli@0.1.4`, and `trackmcp==0.1.3` are
+- `@trackmcp/sdk@0.1.2`, `@trackmcp/cli@0.1.4`, and `trackmcp==0.1.4` are
   published; clean external npm and Python consumer installs passed.
 - Supabase SQL was intentionally not executed by the agent; operator-run
   postflight evidence remains a separate gate.
@@ -362,6 +363,9 @@ The Setup view also distinguishes waiting for a first event, first-event
 verified, limited/bounded coverage, and unresolved identity. These states are
 derived from API evidence and data-trust fields; they do not claim a unique
 person, organization, or complete telemetry history.
+When an event is present, Setup also shows the bounded server and environment
+labels carried by that event; missing labels remain explicit rather than being
+inferred from the workspace or connection key.
 
 The Protocol surfaces dashboard cards now disclose durable entity-read coverage
 for resources and prompts: total reads, successful/failed reads, reads that
@@ -608,11 +612,11 @@ catalog snapshot migrations, worker trigger, or current deployed frontend.
 - A versioned read-only `GET /api/v2/setup` contract now exposes the
   workspace-scoped setup state, first-event checks, bounded observation
   metadata, truthful no-event caveats, bounded state-specific next steps, and
-  capped first-event freshness without returning keys or payloads. Its identity
+  capped first-event freshness and bounded server/environment scope without returning keys or payloads. Its identity
   check is tri-state (`true` resolver, `false` explicit unresolved, `null`
   legacy unknown); the
-  dashboard renders those steps and freshness note, and its contract is
-  included in the 76-suite release gate.
+  dashboard renders those steps, freshness, and first-event scope; its contract
+  is included in the 104-suite release gate.
 - The v2 Action Queue projection now requests an optional, workspace-scoped
   `linked_alerts` relationship using the hash-only alert link. Missing or
   unpostflighted link schema degrades to an empty relationship without

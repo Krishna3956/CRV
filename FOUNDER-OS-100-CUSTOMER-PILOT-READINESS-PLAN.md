@@ -98,7 +98,8 @@ Already evidenced:
 - App Runner deployment workflow: successful for the current application commit.
 - Local release gate: 103 suites passed.
 - CLI package `@trackmcp/cli@0.1.4` and SDK `@trackmcp/sdk@0.1.2` are published.
-- Python package `trackmcp==0.1.3` is published.
+- Python package `trackmcp==0.1.4` is published. The earlier `0.1.3`
+  candidate is historical and must not be used for a pilot install.
 - CLI device flow, browser approval contract, workspace-selection contract, privacy boundaries, OTel boundary, rate-limit contracts, and worker lifecycle contracts have local evidence.
 - Full tracked-source credential-shaped-value audit: 643 intended paths scanned, zero unexpected findings.
 

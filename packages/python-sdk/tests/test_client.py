@@ -5,7 +5,7 @@ from http.server import BaseHTTPRequestHandler, HTTPServer
 from unittest import TestCase
 
 from trackmcp import TrackMCP, TrackMCPOptions, trackmcp_report_missing
-from trackmcp.client import TrackMCPEvent, _TrackMCPMiddleware, _catalog_observation, interaction_entity_observation
+from trackmcp.client import TrackMCPEvent, _TrackMCPMiddleware, _catalog_observation, _protocol_result_metadata, interaction_entity_observation
 from trackmcp.privacy import sanitize_payload
 
 
@@ -25,6 +25,18 @@ class Handler(BaseHTTPRequestHandler):
 
 
 class TrackMCPClientTest(TestCase):
+    def test_protocol_result_metadata_is_bounded_and_discriminator_parity_safe(self):
+        metadata = _protocol_result_metadata({
+            "resultType": "task",
+            "inputRequests": list(range(150)),
+            "inputResponses": list(range(120)),
+            "taskId": "raw-task-handle",
+        })
+        self.assertEqual(metadata, {"result_type": "task", "input_request_count": 100, "input_response_count": 100})
+        self.assertNotIn("raw-task-handle", json.dumps(metadata))
+        self.assertEqual(_protocol_result_metadata({"result_type": "input_required", "input_requests": [1]}), {"result_type": "input_required", "input_request_count": 1})
+        self.assertEqual(_protocol_result_metadata({"resultType": "unsupported", "inputRequests": "not-a-list"}), {})
+
     def test_interaction_entity_observation_is_hash_only(self):
         resource = interaction_entity_observation("resources/read", {"uri": "secret://user:pass/private"})
         self.assertEqual(resource["kind"], "resources")

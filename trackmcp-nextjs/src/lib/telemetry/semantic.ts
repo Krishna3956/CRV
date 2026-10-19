@@ -9,7 +9,7 @@ import type { CanonicalTrackMCPEvent } from "./types.ts";
 export const TRACKMCP_SEMANTIC_CONTRACT_VERSION = "1" as const;
 export const TRACKMCP_CLASSIFIER_VERSION = "1" as const;
 
-export type TrackMCPSemanticScope = "tool_call" | "workflow" | "session" | "transport" | "event";
+export type TrackMCPSemanticScope = "tool_call" | "workflow" | "task" | "session" | "transport" | "event";
 export type TrackMCPOutcome = "completed" | "failed" | "pending" | "unknown" | "not_observable";
 export type TrackMCPEvidenceQuality = "observed" | "inferred" | "insufficient_data" | "conflicting";
 export type TrackMCPOutcomeReason =
@@ -18,6 +18,11 @@ export type TrackMCPOutcomeReason =
   | "workflow_completed"
   | "workflow_failed"
   | "workflow_pending"
+  | "task_completed"
+  | "task_failed"
+  | "task_pending"
+  | "task_cancelled"
+  | "task_expired"
   | "conflicting_signals"
   | "missing_terminal_signal"
   | "input_required"
@@ -28,6 +33,7 @@ export type TrackMCPProtocolSignal =
   | "notification"
   | "progress"
   | "catalog_changed"
+  | "resource_changed"
   | "subscription_started"
   | "subscription_stopped";
 
@@ -53,6 +59,8 @@ export type TrackMCPSemanticOutcome = {
   outcome: TrackMCPOutcome;
   evidence_quality: TrackMCPEvidenceQuality;
   reason: TrackMCPOutcomeReason;
+  /** Explicit task state when the event carries a task identifier; never inferred from silence. */
+  task_status?: "working" | "input_required" | "completed" | "failed" | "cancelled" | "expired";
   protocol_signal?: TrackMCPProtocolSignal;
   data_quality: TrackMCPDataQuality;
 };
@@ -77,6 +85,7 @@ function qualityForEvent(event: CanonicalTrackMCPEvent, extra: TrackMCPDataQuali
 }
 
 function scopeForEvent(event: CanonicalTrackMCPEvent): TrackMCPSemanticScope {
+  if (event.task_id && (event.mcp_method?.startsWith("tasks/") || event.event_type === "protocol")) return "task";
   if (event.event_type === "tool_call") return "tool_call";
   if (event.event_type === "workflow") return "workflow";
   if (event.event_type === "session") return "session";
@@ -84,11 +93,17 @@ function scopeForEvent(event: CanonicalTrackMCPEvent): TrackMCPSemanticScope {
   return "event";
 }
 
+function taskStatus(event: CanonicalTrackMCPEvent): "working" | "input_required" | "completed" | "failed" | "cancelled" | "expired" | undefined {
+  if (!event.task_id) return undefined;
+  const value = event.payload?.task_status ?? event.payload?.status;
+  return value === "working" || value === "input_required" || value === "completed" || value === "failed" || value === "cancelled" || value === "expired" ? value : undefined;
+}
+
 function workflowStatus(event: CanonicalTrackMCPEvent): string | undefined {
   return event.payload?.name === "workflow" && typeof event.payload.status === "string" ? event.payload.status : undefined;
 }
 
-function protocolResultType(event: CanonicalTrackMCPEvent): "complete" | "input_required" | undefined {
+function protocolResultType(event: CanonicalTrackMCPEvent): "complete" | "input_required" | "task" | undefined {
   if (event.result_type) return event.result_type;
   // MCP resultType was added after earlier protocol versions. For the two
   // request/response families where it is defined, absent means complete for
@@ -102,7 +117,13 @@ export function classifyTrackMCPProtocolSignal(event: { mcp_method?: string | nu
   if (!method) return undefined;
   if (method === "resources/subscribe") return "subscription_started";
   if (method === "resources/unsubscribe") return "subscription_stopped";
+  // Modern 2026-07-28 subscriptions replace the legacy subscribe RPC with a
+  // long-lived listen request and an acknowledgement notification. The
+  // stream's eventual close is represented by its terminal response event;
+  // it must never be inferred from silence.
+  if (method === "subscriptions/listen" || method === "notifications/subscriptions/acknowledged") return "subscription_started";
   if (method === "notifications/progress") return "progress";
+  if (method === "notifications/resources/updated") return "resource_changed";
   if (method === "notifications/tools/list_changed" || method === "notifications/resources/list_changed" || method === "notifications/prompts/list_changed") return "catalog_changed";
   if (method.startsWith("notifications/")) return "notification";
   return undefined;
@@ -112,6 +133,7 @@ export function classifyTrackMCPProtocolSignal(event: { mcp_method?: string | nu
 export function classifyTrackMCPOutcome(event: CanonicalTrackMCPEvent): TrackMCPSemanticOutcome {
   const scope = scopeForEvent(event);
   const status = workflowStatus(event);
+  const task = taskStatus(event);
   const resultType = protocolResultType(event);
   const conflicting = event.success === true && event.is_error === true;
   let outcome: TrackMCPOutcome = "not_observable";
@@ -128,6 +150,32 @@ export function classifyTrackMCPOutcome(event: CanonicalTrackMCPEvent): TrackMCP
     outcome = "failed";
     evidence_quality = "observed";
     reason = "explicit_error";
+  } else if (task === "completed") {
+    outcome = "completed";
+    evidence_quality = "observed";
+    reason = "task_completed";
+  } else if (task === "failed") {
+    outcome = "failed";
+    evidence_quality = "observed";
+    reason = "task_failed";
+  } else if (task === "cancelled") {
+    outcome = "unknown";
+    evidence_quality = "observed";
+    reason = "task_cancelled";
+  } else if (task === "expired") {
+    outcome = "unknown";
+    evidence_quality = "observed";
+    reason = "task_expired";
+  } else if (task === "working" || task === "input_required") {
+    outcome = "pending";
+    evidence_quality = "observed";
+    reason = "task_pending";
+  } else if (resultType === "task") {
+    // A task result is a durable handle, not a completed tool result. The
+    // eventual outcome must come from tasks/get or a task notification.
+    outcome = "pending";
+    evidence_quality = "observed";
+    reason = "task_pending";
   } else if (resultType === "input_required") {
     outcome = "pending";
     evidence_quality = "observed";
@@ -173,6 +221,7 @@ export function classifyTrackMCPOutcome(event: CanonicalTrackMCPEvent): TrackMCP
     evidence_quality,
     reason,
     ...(signal ? { protocol_signal: signal } : {}),
+    ...(task ? { task_status: task } : {}),
     data_quality,
   };
 }

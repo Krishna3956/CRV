@@ -191,6 +191,7 @@ export type Analytics = {
   protocol_versions: string[];
   services: string[];
   environments: string[];
+  deployment_summary?: { observed_deployments: number; linked_events: number; limitation: string };
   transports: string[];
   methods: string[];
   interaction_surfaces?: {
@@ -201,6 +202,7 @@ export type Analytics = {
     notification: number;
     progress: number;
     catalog_changed: number;
+    resource_changed: number;
     subscription_started: number;
     subscription_stopped: number;
     observed_events: number;
@@ -212,11 +214,89 @@ export type Analytics = {
   completion_source?: CompletionSource;
   correlation_quality?: CorrelationQuality;
   funnel: { connections: number; discovered_tools: number; tool_calls: number; successful_calls: number };
+  tool_adoption?: { advertised: number; observed: number; breadth: number | null; unused: number };
   timeline: { date: string; events: number; calls: number; errors: number }[];
   clients: { name: string; calls: number; versions?: string[] }[];
+  /** Founder OS "Who's using it" read model. Account labels are deliberately
+   * omitted because MCP does not define customer identity and resolver keys
+   * must never be exposed to the browser. */
+  who_is_using_it?: {
+    active_accounts: number;
+    previous_period_active_accounts: number;
+    new_accounts: number | null;
+    returning_accounts: number | null;
+    classification_status: "available" | "insufficient_data";
+    growth: Array<{ period_start: string; active_accounts: number }>;
+    client_breakdown: Array<{ name: string; calls: number; share: number | null; identity_source: "self_reported" | "unrecognized" }>;
+    top_accounts: Array<{ rank: number; activity_count: number; active_days: number; identity_source: "resolver" }>;
+    identity_coverage: number | null;
+    limitation: string;
+  };
+  /** Founder OS "What they're doing" read model. */
+  capability_activity?: {
+    total_calls: number;
+    previous_period_calls: number;
+    overall_error_rate: number | null;
+    avg_tools_used_per_account: number | null;
+    advertised_tools: number;
+    adoption_distribution: Array<{ bucket: "1 tool" | "2-3 tools" | "4-6 tools" | "7+ tools"; accounts: number }>;
+    trend: Array<{ period_start: string; tool_name: string; calls: number }>;
+    reliability: Array<{ tool_name: string; calls: number; error_rate: number | null; input_required_rate: number | null; p95_ms: number | null }>;
+    limitation: string;
+  };
+  /** Founder OS "Resources & Prompts" read model. Names remain bounded to
+   * protocol methods/hashed identities because raw catalog names and inputs
+   * are not safe dashboard dimensions. */
+  resource_prompt_activity?: {
+    resource_reads: number;
+    prompt_calls: number;
+    previous_period_resource_reads: number;
+    previous_period_prompt_calls: number;
+    prompt_completion_rate: number | null;
+    prompt_stall_rate: number | null;
+    resource_breakdown: Array<{ name: string; calls: number; share: number | null }>;
+    prompt_breakdown: Array<{ name: string; calls: number; share: number | null; completion_rate: number | null; stall_rate: number | null }>;
+    trend: Array<{ period_start: string; kind: "resource" | "prompt"; name: string; calls: number }>;
+    limitation: string;
+  };
+  /** Founder OS "The journey" read model. Journeys are bounded server-side
+   * interaction paths, not claims about a customer's whole business task. */
+  journey_activity?: {
+    interaction_count: number;
+    typical_journey_length: number | null;
+    stalled_interactions: number;
+    resumed_after_stall: number;
+    common_paths: Array<{ path: string[]; interactions: number; share: number | null }>;
+    drop_off: Array<{ path: string[]; interactions: number; terminal_evidence: "explicit_error" | "input_required" | "unknown" }>;
+    limitation: string;
+  };
+  /** Founder OS "Did it work" read model, keeping unknown evidence visible. */
+  outcome_activity?: {
+    completed: number;
+    failed: number;
+    pending: number;
+    unknown: number;
+    not_observable: number;
+    completion_rate: number | null;
+    error_rate: number | null;
+    trend: Array<{ period_start: string; completed: number; failed: number; unknown: number; pending: number }>;
+    limitation: string;
+  };
+  /** Founder OS "What's broken" signal summary. */
+  issue_activity?: {
+    actionable_signals: number;
+    high_confidence_signals: number;
+    affected_volume: number | null;
+    suggested_actions: number;
+    limitation: string;
+  };
   /** Privacy-safe account activity signals. Keys are never exposed to the UI. */
   account_summary?: {
     observed_account_keys: number;
+    active_account_keys: number;
+    active_account_keys_7d: number;
+    returning_account_keys: number;
+    account_activity_bands: { one_event: number; repeat: number; high_activity: number };
     eligible_events: number;
     resolver_linked_events: number;
     unresolved_events: number;
@@ -238,14 +318,23 @@ export type Analytics = {
     max_queue_lag_ms: number;
     max_attempt_count: number;
     last_successful_run: string | null;
+    worker_health?: {
+      metric: "backlog" | "lag" | "dead_letter" | "success_rate";
+      state: "insufficient_data" | "normal" | "warning" | "critical";
+      sample_count: number;
+      value: number | null;
+      threshold: { warning: number; critical: number };
+      unit: "jobs" | "minutes" | "ratio";
+      reasons: string[];
+    }[];
   };
   unused_tools: string[];
   workflows: { session_id: string; correlation_handle?: string | null; correlation_handle_source?: TrackMCPCorrelationHandleSource; client_name: string; calls: number; tools: (string | null)[]; started_at: string; duration_ms: number; completed: boolean; completion_source?: CompletionSource; correlation_quality?: CorrelationQuality }[];
   correlation_handle_source?: TrackMCPCorrelationHandleSource | null;
   intent_sources: IntentSourceCounts;
   missing_capabilities: MissingCapability[];
-  outcomes: { name: string; started: number; completed: number; failed: number }[];
-  insights: { level: string; title: string; detail: string; metric: string }[];
+  outcomes: { name: string; started: number; completed: number; failed: number; unresolved: number }[];
+  insights: { level: string; title: string; detail: string; metric: string; affected_volume?: number | null; confidence?: "high" | "medium" | "low" | null; suggested_action?: string | null }[];
   /** Versioned, uncertainty-aware facts exposed by the Founder OS read model. */
   founder_os?: {
     facts: TrackMCPOutcomeAggregate;
@@ -258,6 +347,7 @@ export type Analytics = {
       limitation: string;
     };
     identity_source_counts?: { resolver: number; unresolved: number };
+    tasks?: { task_id_hash: string; state: "working" | "input_required" | "completed" | "failed" | "cancelled" | "expired" | "unknown"; first_observed_at: string; last_observed_at: string; observations: number; terminal: boolean; evidence_quality: "observed" | "insufficient_data" | "conflicting" }[];
   };
   /** Query provenance and bounded-scan disclosure for every dashboard result. */
   data_trust?: TrackMCPDataTrust;

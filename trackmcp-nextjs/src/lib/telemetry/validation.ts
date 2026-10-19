@@ -28,7 +28,7 @@ const CORRELATION_HANDLE_SOURCES = ["external", "issued", "missing"] as const;
 const OBSERVATION_SOURCES = ["client", "server"] as const;
 const INTENT_SOURCES = ["context_parameter", "external_callback", "fallback", "missing"] as const;
 const ACCOUNT_IDENTITY_SOURCES = ["resolver", "unresolved"] as const;
-const RESULT_TYPES = ["complete", "input_required"] as const;
+const RESULT_TYPES = ["complete", "input_required", "task"] as const;
 const INTERACTION_LINK_SOURCES = ["request_id", "external", "issued", "missing"] as const;
 const INGEST_SENSITIVE_KEYS = new Set([
   "password", "passwd", "secret", "token", "api_key", "apikey", "authorization", "cookie",
@@ -203,12 +203,15 @@ export function normalizeTrackMCPEvent(value: unknown): EventValidationResult {
   }
   if (event.error_code !== undefined && event.error_code !== null && (!Number.isInteger(event.error_code) || !Number.isFinite(event.error_code))) return { ok: false, reason: "error_code must be an integer", eventId };
   if (event.result_type !== undefined && event.result_type !== null && !RESULT_TYPES.includes(event.result_type as TrackMCPResultType)) return { ok: false, reason: "result_type is unsupported", eventId };
+  if (event.result_type === "task" && (typeof event.task_id !== "string" || !event.task_id)) return { ok: false, reason: "task result_type requires task_id", eventId };
   if (event.interaction_link_source !== undefined && event.interaction_link_source !== null && !INTERACTION_LINK_SOURCES.includes(event.interaction_link_source as TrackMCPInteractionLinkSource)) return { ok: false, reason: "interaction_link_source is unsupported", eventId };
   if (event.interaction_id !== undefined && event.interaction_id !== null && event.interaction_link_source === "missing") return { ok: false, reason: "interaction_link_source cannot be missing when interaction_id is present", eventId };
   if (event.interaction_link_source !== undefined && event.interaction_link_source !== null && event.interaction_link_source !== "missing" && typeof event.interaction_id !== "string") return { ok: false, reason: "interaction_id is required for interaction_link_source", eventId };
   if (event.retry_of_event_id !== undefined && event.retry_of_event_id !== null && (typeof event.retry_of_event_id !== "string" || !EVENT_ID.test(event.retry_of_event_id))) return { ok: false, reason: "retry_of_event_id must be a valid event identifier", eventId };
   if (event.request_state_hash !== undefined && event.request_state_hash !== null && (typeof event.request_state_hash !== "string" || !/^[0-9a-f]{64}$/.test(event.request_state_hash))) return { ok: false, reason: "request_state_hash must be a SHA-256 hex hash", eventId };
-  if (event.input_response_count !== undefined && event.input_response_count !== null && (!isNonNegativeInteger(event.input_response_count) || event.input_response_count > 100)) return { ok: false, reason: "input_response_count must be between 0 and 100", eventId };
+  for (const field of ["input_request_count", "input_response_count"] as const) {
+    if (event[field] !== undefined && event[field] !== null && (!isNonNegativeInteger(event[field]) || event[field] > 100)) return { ok: false, reason: `${field} must be between 0 and 100`, eventId };
+  }
   if (event.resource_audience !== undefined && event.resource_audience !== null && event.resource_audience !== "user" && event.resource_audience !== "assistant") return { ok: false, reason: "resource_audience is unsupported", eventId };
   if (event.resource_priority !== undefined && event.resource_priority !== null && (typeof event.resource_priority !== "number" || !Number.isFinite(event.resource_priority) || event.resource_priority < 0 || event.resource_priority > 1)) return { ok: false, reason: "resource_priority must be between 0 and 1", eventId };
   for (const field of ["success", "is_error"] as const) {

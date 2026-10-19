@@ -17,6 +17,11 @@ select
       and column_name = 'request_state_hash'
   ) as has_request_state_hash,
   exists (
+    select 1 from information_schema.columns
+    where table_schema = 'public' and table_name = 'trackmcp_events'
+      and column_name = 'input_request_count'
+  ) as has_input_request_count,
+  exists (
     select 1 from pg_indexes
     where schemaname = 'public'
       and tablename = 'trackmcp_events'
@@ -30,6 +35,7 @@ where conrelid = 'public.trackmcp_events'::regclass
     'trackmcp_events_result_type_check',
     'trackmcp_events_interaction_id_check',
     'trackmcp_events_request_state_hash_check',
+    'trackmcp_events_input_request_count_check',
     'trackmcp_events_input_response_count_check',
     'trackmcp_events_resource_audience_check',
     'trackmcp_events_resource_priority_check'

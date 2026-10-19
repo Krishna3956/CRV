@@ -18,11 +18,15 @@ reliably operate it with safe isolation, observability, recovery, and support.�
 
 ## Blocking issues
 
-The reviewed release passed the 102-suite local gate, TypeScript, lint with one
+The reviewed release passed the 104-suite local gate, TypeScript, lint with one
 pre-existing image warning, and an isolated production build with 169 generated
-pages. It was deployed through App Runner from
+pages. The current review cycle also ran a read-only production smoke against
+`https://trackmcp.com` with 25 checks, including public routes, sitemap
+index/shard, registry metadata, required security headers, and unauthenticated
+protected-route boundaries. It was deployed through App Runner from
 `a026d1fd222b37a599c92aca4e7af8b0ac6014fd`; the guarded read-only production
-smoke passed 14 public-surface and registry checks. These are necessary release
+smoke passed 25 public-surface, registry, security-header, and protected-route
+checks. These are necessary release
 checks, not proof of production capacity or complete pilot behavior.
 
 | Severity | Area | Evidence | Why it blocks a 100-customer claim | Exit evidence |
@@ -34,7 +38,7 @@ checks, not proof of production capacity or complete pilot behavior.
 | P1 | Rate limits | Limits now use an explicit provider boundary and bounded in-memory fallback, but no distributed provider is configured | Multiple App Runner instances do not share counters; clients can bypass limits across instances/restarts | Shared limiter or gateway policy, load test across instances, alerting |
 | P1 | Production smoke | Local production-shaped harness covers ingest and v2 reads, and a local HTTP fixture covers CLI start, approval, polling, redemption, and replay; no complete post-deploy test covers CLI approval, redeem, dashboard, and privacy controls | A local fixture pass cannot detect DNS, env, cookie, migration, or runtime wiring errors | Disposable workspace/key smoke run with redacted evidence |
 | P1 | Tenant isolation | Local fixtures now exercise every analytics-backed v2 projection plus catalogs, Action Queue, tool-quality, and explicit workspace key revocation across two workspaces; no production-shaped cross-workspace integration suite exists | A single query missing `.eq(workspace_id, ...)` could expose customer telemetry | Run the same matrix against a disposable production workspace and retain the RLS/service-role review |
-| P1 | Package distribution | `@trackmcp/sdk@0.1.2`, `@trackmcp/cli@0.1.4`, and `trackmcp==0.1.3` are published; clean external npm/Python consumer installs passed | Production safe-event and complete registry provenance evidence remain separate | Retain immutable registry metadata, safe-event decision, and rollback instructions |
+| P1 | Package distribution | `@trackmcp/sdk@0.1.2`, `@trackmcp/cli@0.1.4`, and `trackmcp==0.1.4` are published; clean external npm/Python consumer installs passed | Production safe-event and complete registry provenance evidence remain separate | Retain immutable registry metadata, safe-event decision, and rollback instructions |
 | P1 | Data volume | Analytics performs bounded-but-heavy reads (up to 10,000 events) and computes projections in request memory; latest local fixture harness passes 120 requests at p95 14.24 ms with 0 timeouts | Fixture timing is not App Runner/Supabase capacity evidence | Production-shaped load test against a disposable workspace, query plans, rollups/cursors, timeout and alert policy |
 | P1 | Identity semantics | Resolver-derived identity is explicitly a claim, not verified identity | Dashboard must not present event-weighted resolver coverage as unique people/orgs | Keep null/unknown labels or add server-attested identity contract and tests |
 | P2 | Product completeness | Resources/prompts are method-family summaries, not entity-level catalog analytics; journeys/reliability are bounded | Users may interpret empty/partial views as “no usage” | UI caveats, fixture coverage, and an explicit limited-coverage launch scope |

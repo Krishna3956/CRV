@@ -88,7 +88,9 @@ export type TrackMCPEvent = {
   error_class?: string;
   error_code?: number;
   retry_number?: number;
-  result_type?: "complete" | "input_required";
+  result_type?: "complete" | "input_required" | "task";
+  input_request_count?: number;
+  input_response_count?: number;
   schema_hash?: string;
   catalog_kind?: TrackMCPCatalogKind;
   catalog_item_count?: number;
@@ -211,7 +213,19 @@ type EntityObservation = { kind: "resources" | "prompts"; hash: string };
 
 export function protocolResultType(result: Record<string, unknown> | undefined): TrackMCPEvent["result_type"] {
   const value = result?.resultType ?? result?.result_type;
-  return value === "complete" || value === "input_required" ? value : undefined;
+  return value === "complete" || value === "input_required" || value === "task" ? value : undefined;
+}
+
+/** Count MRTR input requests without retaining request contents. */
+export function protocolInputRequestCount(result: Record<string, unknown> | undefined): number | undefined {
+  const requests = result?.inputRequests ?? result?.input_requests;
+  return Array.isArray(requests) ? Math.min(100, requests.length) : undefined;
+}
+
+/** Count MRTR input responses without retaining response contents. */
+export function protocolInputResponseCount(result: Record<string, unknown> | undefined): number | undefined {
+  const responses = result?.inputResponses ?? result?.input_responses;
+  return Array.isArray(responses) ? Math.min(100, responses.length) : undefined;
 }
 
 export function catalogObservation(kind: TrackMCPCatalogKind, result: Record<string, unknown> | undefined): Pick<TrackMCPEvent, "catalog_kind" | "catalog_item_count" | "catalog_item_name_hashes" | "catalog_item_uri_hashes"> {
@@ -720,9 +734,9 @@ function wrapTransport(transport: object, client: TrackMCPClient): object {
               client.capture({ event_type: "catalog", direction: "server_to_client", transport: "stdio", mcp_method: call.method, request_id: String(id), client_name: clientName, client_version: clientVersion, session_id: sessionId, session_id_source: activeSessionIdSource, started_at: new Date(call.started).toISOString(), duration_ms: Date.now() - call.started, success: true, is_error: false, payload: { name: `${catalogType}_discovered`, tools, result } });
             } else if (call.entity && !failed) {
               const catalogKind = call.entity.kind;
-              client.capture({ event_type: "protocol", direction: "server_to_client", transport: "stdio", mcp_method: call.method, request_id: String(id), client_name: clientName, client_version: clientVersion, session_id: sessionId, session_id_source: activeSessionIdSource, started_at: new Date(call.started).toISOString(), duration_ms: Date.now() - call.started, success: true, is_error: false, ...(protocolResultType(result) ? { result_type: protocolResultType(result) } : {}), catalog_kind: catalogKind, ...(catalogKind === "resources" ? { catalog_item_uri_hashes: [call.entity.hash] } : { catalog_item_name_hashes: [call.entity.hash] }), payload: { name: `${catalogKind}_read_observed` } });
+              client.capture({ event_type: "protocol", direction: "server_to_client", transport: "stdio", mcp_method: call.method, request_id: String(id), client_name: clientName, client_version: clientVersion, session_id: sessionId, session_id_source: activeSessionIdSource, started_at: new Date(call.started).toISOString(), duration_ms: Date.now() - call.started, success: true, is_error: false, ...(protocolResultType(result) ? { result_type: protocolResultType(result) } : {}), ...(protocolInputRequestCount(result) !== undefined ? { input_request_count: protocolInputRequestCount(result) } : {}), ...(protocolInputResponseCount(result) !== undefined ? { input_response_count: protocolInputResponseCount(result) } : {}), catalog_kind: catalogKind, ...(catalogKind === "resources" ? { catalog_item_uri_hashes: [call.entity.hash] } : { catalog_item_name_hashes: [call.entity.hash] }), payload: { name: `${catalogKind}_read_observed` } });
             } else if (call.method && call.method !== "tools/call" && call.method !== "initialize") {
-              client.capture({ event_type: "protocol", direction: "server_to_client", transport: "stdio", mcp_method: call.method, request_id: String(id), client_name: clientName, client_version: clientVersion, session_id: sessionId, session_id_source: activeSessionIdSource, started_at: new Date(call.started).toISOString(), duration_ms: Date.now() - call.started, success: !failed, is_error: failed, ...(protocolResultType(result) ? { result_type: protocolResultType(result) } : {}), error_class: message.error ? "protocol_error" : result?.isError ? "protocol_error" : undefined, error_code: typeof protocolError?.code === "number" ? protocolError.code : undefined, payload: { name: "protocol_response_observed" } });
+              client.capture({ event_type: "protocol", direction: "server_to_client", transport: "stdio", mcp_method: call.method, request_id: String(id), client_name: clientName, client_version: clientVersion, session_id: sessionId, session_id_source: activeSessionIdSource, started_at: new Date(call.started).toISOString(), duration_ms: Date.now() - call.started, success: !failed, is_error: failed, ...(protocolResultType(result) ? { result_type: protocolResultType(result) } : {}), ...(protocolInputRequestCount(result) !== undefined ? { input_request_count: protocolInputRequestCount(result) } : {}), ...(protocolInputResponseCount(result) !== undefined ? { input_response_count: protocolInputResponseCount(result) } : {}), error_class: message.error ? "protocol_error" : result?.isError ? "protocol_error" : undefined, error_code: typeof protocolError?.code === "number" ? protocolError.code : undefined, payload: { name: "protocol_response_observed" } });
             }
           }
           const send = Reflect.get(target, property) as (message: unknown, options?: unknown) => Promise<void>;

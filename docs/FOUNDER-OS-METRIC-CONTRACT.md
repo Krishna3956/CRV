@@ -10,9 +10,44 @@ source explicitly says it is an outcome event.
 | `ai_clients` | AI clients | Distinct observed `client_name` | Server telemetry | Not unique end users |
 | `activity` | Activity | Observed `tool_call` count | Tool-call telemetry | Instrumented traffic only |
 | `work_completed` | Work completed | Explicit completed / explicit started | Workflow outcome events | No session inference |
+| `work_unresolved` | Unresolved workflows | Explicit started - completed - failed (bounded at zero) | Workflow outcome events | Missing terminal evidence; never labeled as abandonment |
+| `task_pending` | Explicit task still in progress | Allowlisted task status (`working` or `input_required`) | Task event with a task ID | Pending is observed state; it is not abandonment |
+| `task_completed` | Explicit task completion | Allowlisted task status (`completed`) | Task event with a task ID | Task completion is not proof of the customer's business outcome |
+| `task_cancelled` | Explicit cancellation request/state | Allowlisted task status (`cancelled`) | Task event with a task ID | Cancellation is observed protocol state; worker shutdown and side-effect rollback are not inferred |
+| `task_expired` | Explicit task expiry/timeout state | Allowlisted task status (`expired`) | Task event with a task ID | Expiry is observed protocol state; it is not inferred from inactivity, and a later explicit completion remains visible as the latest state |
 | `error_rate` | Error rate | Failed known-outcome calls / known calls | Tool-call telemetry | Unknown outcomes are not failures |
 | `needs_attention` | Needs attention | Count of fired insight rules | Bounded analytics rules | Signals, not diagnoses |
 | `identity_coverage` | Verified account coverage | Events with `account_identity_source=resolver` / eligible events | Resolver-labeled server telemetry | Event-weighted coverage; not unique organizations |
+| `active_account_signals` | Active account signals | Distinct resolver-linked account keys with at least one event in the selected range | Resolver-labeled server telemetry | Privacy-safe dimensions; not unique people or customers |
+| `active_accounts` | Active accounts this period | Distinct resolver-linked account keys in the selected period | Server telemetry with resolver identity | Account signals, not people or verified end users |
+| `new_accounts` | New accounts | Active resolver-linked accounts whose first observed timestamp is in the selected period | Bounded historical server telemetry scan | `N/A` when history is incomplete; first observed is not signup |
+| `returning_accounts` | Returning accounts | Active resolver-linked accounts first observed before the selected period | Bounded historical server telemetry scan | `N/A` when history is incomplete; not a retention claim |
+| `account_growth` | Growth over time | Distinct resolver-linked accounts grouped by UTC day | Server telemetry with resolver identity | Observed activity only; no identity means no count |
+| `top_account_activity` | Top accounts by activity | Ranked resolver-linked account signals by observed event count | Server telemetry with resolver identity | Raw keys and account names never leave the server |
+| `tool_call_volume` | Total tool calls | Count of observed `tools/call` events | Tool-call telemetry | Instrumented traffic only; retries count as calls |
+| `tool_error_rate` | Overall error rate | Explicitly failed tool calls / observed tool calls | Tool-call telemetry | Unknown outcomes are not errors; no business outcome is inferred |
+| `tool_adoption_breadth` | Average tools per account | Average distinct observed tools per resolver-linked account | Tool-call telemetry with resolver identity | Unresolved accounts are excluded; not a demand or retention score |
+| `tool_reliability` | Reliability by tool | Per-tool explicit error and `input_required` rates | Tool-call telemetry | `input_required` is friction evidence, not failure |
+| `active_account_signals_7d` | Active in last 7 days | Distinct resolver-linked account keys observed in the trailing seven days | Resolver-labeled server telemetry | Only available inside the selected range; not a weekly active-user claim |
+| `returning_account_signals` | Returning account signals | Distinct resolver-linked account keys observed on more than one calendar day | Resolver-labeled server telemetry | Repeat activity, not retention or account identity proof |
+| `account_activity_bands` | Account activity shape | Counts of resolver-linked keys with 1, 2–9, or 10+ observed events | Resolver-labeled server telemetry | Bounded bands; no raw keys or account names are exposed |
+| `tool_adoption_breadth` | Capability breadth | Distinct observed tool names / bounded advertised catalog tools | Tool-call and catalog telemetry | A usage-surface ratio; not a customer adoption or demand score |
+| `deployment_observations` | Deployment linkage | Distinct bounded deployment IDs observed in telemetry | Server telemetry | Count-only linkage; not deployment health, release status, or an inventory of deployments |
+| `actionable_insights` | Needs attention | Bounded rule signals with affected volume, confidence, and suggested action when the evidence supports them | Analytics rule evaluation | Signals are not diagnoses; missing fields remain explicitly unavailable |
+| `worker_health` | Derived-data worker health | Bounded backlog, queue lag, dead-letter count, and terminal success ratio findings | Latest workspace refresh-job projection | `insufficient_data` is not healthy; this is queue/read-model health, not customer activity or application uptime |
+| `resource_events` | Resource activity | Observed resource method events | Protocol telemetry | Method observations; no resource content or URI is exposed |
+| `prompt_events` | Prompt activity | Observed prompt method events | Protocol telemetry | Method observations; no prompt arguments or completion is inferred |
+| `resource_entities` | Resources observed | Count of bounded hashed resource identities | Durable entity-read projection | Hash counts are not unique people or readable resource identities |
+| `prompt_entities` | Prompts observed | Count of bounded hashed prompt identities | Durable entity-read projection | Hash counts are not unique people or prompt content |
+| `resource_reads` | Resource reads | Count of observed `resources/read` events | Protocol telemetry | Raw URIs and resource contents are never exposed; instrumented traffic only |
+| `prompt_calls` | Prompt calls | Count of observed `prompts/get` events | Protocol telemetry | Raw prompt names and arguments are never exposed; a call is not completion |
+| `prompt_completion_rate` | Prompt completion rate | Explicit complete prompt outcomes / observed prompt calls | Prompt protocol telemetry | `N/A` with no calls; unknown outcomes are not completion or failure |
+| `prompt_stall_rate` | Prompt needs-input rate | Explicit `input_required` prompt outcomes / observed prompt calls | Prompt protocol telemetry | Needs-input is friction evidence, not abandonment |
+| `typical_journey_length` | Typical journey length | Median observed tool steps per bounded interaction | Interaction-linked tool telemetry | Multi-server work and missing terminal events are not visible |
+| `journey_stall_rate` | Journey waiting-for-input rate | Interactions with explicit `input_required` / observed interactions | Interaction-linked protocol telemetry | Needs-input is not abandonment or business failure |
+| `explicit_completion_rate` | Explicit completion rate | Completed workflow outcomes / terminal completed-or-failed workflow outcomes | Semantic workflow outcome facts | Unknown, pending, and not-observable states remain outside the denominator |
+| `outcome_error_rate` | Outcome error rate | Failed known outcomes / completed-or-failed known outcomes | Semantic outcome facts | Missing events are not failures; unknown states remain visible |
+| `actionable_signals` | Actionable signals | Count of bounded analytics rules with supporting evidence | Analytics insight rules | Signals are not diagnoses; affected volumes may overlap |
 
 ## Read-model rules
 
@@ -34,7 +69,10 @@ contract. Update the registry and its tests before adding a new product metric.
 
 Analytics reads are intentionally bounded and must disclose when the source
 scan reaches a safety limit. The v1 projection accepts a maximum 90-day window
-and scans at most 10,000 telemetry rows per request. Catalog history reads at
+and scans at most 10,000 telemetry rows for the selected-period projection.
+The "Who's using it" first-seen side scan reads only the narrow account/timestamp
+columns and is capped at 100,000 rows; if that cap is reached, new/returning
+classification is `insufficient_data` rather than an inferred result. Catalog history reads at
 most 100 rows after fetching one sentinel row, catalog entity observations use
 the same bounded source pattern, and the versioned tools endpoint returns at
 most 100 projected rows per page using an opaque cursor. Catalog projections

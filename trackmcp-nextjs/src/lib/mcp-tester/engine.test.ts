@@ -277,6 +277,43 @@ test("unsupported protocol and malformed envelopes are protocol errors", async (
   assert.equal(excessiveNodes.verdict, "protocol_error");
 });
 
+test("modern 2026-07-28 requests use bounded discovery instead of a legacy handshake", async () => {
+  const report = await runMcpTester({
+    endpoint,
+    protocolVersion: "2026-07-28",
+    fetch: async (_input, init) => {
+      const body = JSON.parse(String(init?.body));
+      if (body.method === "server/discover") {
+        assert.equal(new Headers(init?.headers).get("mcp-method"), "server/discover");
+        return jsonRpc({ supportedVersions: ["2026-07-28"], serverInfo: { name: "Modern fixture", version: "1" }, capabilities: { tools: {}, resources: {}, prompts: {}, extensions: { "io.modelcontextprotocol/tasks": {} } } }, 1);
+      }
+      assert.equal(new Headers(init?.headers).get("mcp-method"), body.method);
+      if (body.method === "tools/list") return jsonRpc({ tools: [{ name: "search", description: "bounded fixture", inputSchema: { type: "object", properties: {} } }], ttlMs: 60_000, cacheScope: "private" }, body.id);
+      if (body.method === "resources/list") return jsonRpc({ resources: [{ uri: "urn:fixture:resource", name: "fixture" }], ttlMs: 60_000, cacheScope: "private" }, body.id);
+      assert.equal(body.method, "prompts/list");
+      return jsonRpc({ prompts: [{ name: "fixture", description: "bounded fixture" }], ttlMs: 60_000, cacheScope: "private" }, body.id);
+    },
+  });
+  assert.equal(report.protocol?.negotiatedVersion, "2026-07-28");
+  assert.deepEqual(report.protocol?.supportedVersions, ["2026-07-28"]);
+  assert.equal(report.capabilities.tasks, true);
+  assert.equal(report.protocol?.sessionIdPresent, false);
+  assert.equal(report.verdict, "incomplete");
+  assert.ok(report.findings.some((finding) => finding.code === "modern_discovery_partial"));
+  assert.ok(report.findings.some((finding) => finding.code === "catalog_cache_hint_observed"));
+});
+
+test("modern discovery does not claim an unadvertised protocol version", async () => {
+  const report = await runMcpTester({
+    endpoint,
+    protocolVersion: "2026-07-28",
+    fetch: async () => jsonRpc({ supportedVersions: ["2025-06-18"], serverInfo: { name: "Legacy fixture", version: "1" }, capabilities: {} }, 1),
+  });
+  assert.equal(report.protocol?.negotiatedVersion, undefined);
+  assert.equal(report.verdict, "protocol_error");
+  assert.ok(report.findings.some((finding) => finding.code === "modern_version_not_advertised"));
+});
+
 test("failed initialization and authentication are distinct", async () => {
   const failed = await runMcpTester({ endpoint, fetch: async () => jsonRpcError(-32602, "invalid params") });
   assert.equal(failed.verdict, "protocol_error");

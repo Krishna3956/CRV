@@ -123,6 +123,7 @@ export function createIngestHandler(getAdmin: typeof getSupabaseAdmin = getSupab
     interaction_link_source: event.interaction_link_source || "missing",
     retry_of_event_id: event.retry_of_event_id || null,
     request_state_hash: event.request_state_hash || null,
+    input_request_count: event.input_request_count ?? null,
     input_response_count: event.input_response_count ?? null,
     resource_audience: event.resource_audience || null,
     resource_priority: event.resource_priority ?? null,

@@ -49,6 +49,19 @@ async function request(path, options = {}) {
   return { status: response.status, headers: response.headers };
 }
 
+const requiredSecurityHeaders = {
+  "x-content-type-options": "nosniff",
+  "referrer-policy": "strict-origin-when-cross-origin",
+  "x-frame-options": "SAMEORIGIN",
+  "permissions-policy": "camera=(), microphone=(), geolocation=()",
+};
+
+function assertSecurityHeaders(headers, label) {
+  for (const [name, expected] of Object.entries(requiredSecurityHeaders)) {
+    if (headers.get(name) !== expected) fail(`${label}: missing or incorrect ${name} header`);
+  }
+}
+
 async function keyStatusRequest(apiKey) {
   const response = await fetch(endpoint("/api/v1/cli/key-status"), {
     method: "GET",
@@ -71,9 +84,10 @@ async function keyStatusRequest(apiKey) {
   };
 }
 
-async function expect(path, expected, options, label = path) {
+async function expect(path, expected, options, label = path, { securityHeaders = false } = {}) {
   const response = await request(path, options);
   if (response.status !== expected) fail(`${label}: expected HTTP ${expected}, received HTTP ${response.status}`);
+  if (securityHeaders) assertSecurityHeaders(response.headers, label);
   return { label, status: response.status };
 }
 
@@ -146,10 +160,32 @@ async function main() {
   validateOptIn();
   const checks = [];
   for (const path of ["/", "/docs", "/docs/typescript", "/docs/python", "/device", "/support", "/sitemap.xml", "/tool-sitemap.xml"]) {
-    checks.push(await expect(path, 200, undefined, `browser ${path}`));
+    checks.push(await expect(path, 200, undefined, `browser ${path}`, { securityHeaders: true }));
   }
   checks.push(await expectToolSitemap());
   checks.push(...await registryChecks());
+
+  // Keep the production smoke honest about the protected surface. These are
+  // deliberately unauthenticated method/status probes: they never mutate
+  // data, but catch a public route accidentally becoming callable.
+  const protectedApiChecks = [
+    ["/api/v2/overview", 401],
+    ["/api/v2/data-trust", 401],
+    ["/api/v1/analytics", 401],
+    ["/api/v1/ingest", 405],
+    ["/api/v1/otel/v1/traces", 405],
+    ["/api/v1/cli/device/sessions", 405],
+    ["/api/v1/cli/key-status", 401],
+    ["/api/internal/refresh/run", 401],
+    ["/api/internal/rate-limit/cleanup", 401],
+    ["/api/internal/privacy/review", 401],
+  ];
+  for (const [path, status] of protectedApiChecks) {
+    const options = path.startsWith("/api/internal/")
+      ? { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ max_jobs: 1 }) }
+      : undefined;
+    checks.push(await expect(path, status, options, `unauthenticated ${path}`));
+  }
 
   const unauthenticated = await request("/api/v1/cli/key-status");
   if (![401, 403].includes(unauthenticated.status)) fail(`unauthenticated key-status: expected HTTP 401/403, received HTTP ${unauthenticated.status}`);
@@ -218,6 +254,7 @@ async function main() {
       "This report proves HTTP/registry observations only; it does not prove browser auth, workspace selection, dashboard rendering, or cross-workspace authorization.",
       "The ingest check creates one metadata-only event only when TRACKMCP_SMOKE_ALLOW_WRITE=true is explicitly set.",
       "No raw API key, device code, workspace ID, event ID, response body, or credential is written to this report.",
+      "Protected API checks are unauthenticated status probes; they do not prove authenticated authorization or tenant isolation.",
     ],
   };
   await mkdir(dirname(reportPath), { recursive: true });

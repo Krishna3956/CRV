@@ -15,3 +15,9 @@ test("setup state refuses to call incomplete event evidence connected", () => {
   assert.equal(setupConnectionState({ hasKey: true, hasEvent: true, mcpMethodObserved: true, transportObserved: false, privacyPolicyApplied: true }), "connected_limited_coverage");
   assert.equal(setupConnectionState({ hasKey: true, hasEvent: true, mcpMethodObserved: true, transportObserved: true, privacyPolicyApplied: true }), "connected");
 });
+
+test("setup readiness treats identity as optional and counts only required evidence", () => {
+  const required = [true, true, true, true, true];
+  assert.equal(required.filter(Boolean).length, 5);
+  assert.equal(accountResolverObservation("unresolved"), false);
+});

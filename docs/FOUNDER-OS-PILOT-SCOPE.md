@@ -14,6 +14,7 @@ production/operator evidence required in the work queue.
 | OTLP interoperability | limited | OTLP/HTTP JSON only, with bounded MCP mapping and local redaction | Production JSON smoke if included in the launch scope |
 | Ingest | supported | Authenticated, workspace-derived key scope, bounded payloads, atomic batches, revocation checks | Production first-ingest and cross-workspace negative test |
 | Dashboard analytics | limited | Bounded windows/pages/scans; partial or truncated evidence is disclosed | Production dashboard smoke and query-cost/latency evidence |
+| Setup readiness contract | supported with bounded coverage | The dashboard reports required key, first-event, MCP-method, transport, and privacy-policy evidence; identity resolution is optional and never blocks connection | Production setup response and first-event evidence |
 | Catalog history and tool projections | limited | Hash-based, bounded observations; incomplete observations do not imply removals | Production refresh and catalog evidence |
 | Action Queue and alert signals | limited | Bounded, workspace-scoped reads and human lifecycle transitions; worker/scheduler evidence remains required | Production worker batch and alert delivery evidence |
 | Privacy export/request | supported as review-only | Bounded export and auditable request/review states; destructive completion remains closed | Reviewed deletion worker and postflight, or explicit exclusion from scope |

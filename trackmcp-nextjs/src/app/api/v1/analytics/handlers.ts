@@ -7,8 +7,10 @@ import { completedForEvents, completionSourceForEvents, correlationQualityForEve
 import type { CanonicalTrackMCPEvent, TrackMCPCorrelationHandleSource, TrackMCPIntentSource, TrackMCPObservationSource, TrackMCPSessionIdSource } from "../../../../lib/telemetry/types.ts";
 import { projectTrackMCPFact } from "../../../../lib/telemetry/facts.ts";
 import { aggregateTrackMCPFacts, aggregateTrackMCPFactsBy, type TrackMCPOutcomeGroupBy } from "../../../../lib/telemetry/outcomes.ts";
+import { aggregateTaskLifecycles, type TrackMCPTaskTransitionObservation } from "../../../../lib/telemetry/task-lifecycle.ts";
 import { buildTrackMCPDataTrust } from "../../../../lib/telemetry/data-trust.ts";
 import { classifyTrackMCPProtocolSignal, type TrackMCPProtocolSignal } from "../../../../lib/telemetry/semantic.ts";
+import { evaluateWorkerHealth } from "../../../../lib/telemetry/worker-health.ts";
 
 type EventRow = {
   event_id: string;
@@ -48,6 +50,15 @@ type EventRow = {
   error_class: string | null;
   error_code: number | null;
   retry_number: number | null;
+  result_type: "complete" | "input_required" | "task" | null;
+  interaction_id: string | null;
+  interaction_link_source: string | null;
+  retry_of_event_id: string | null;
+  request_state_hash: string | null;
+  input_request_count: number | null;
+  input_response_count: number | null;
+  resource_audience: "user" | "assistant" | null;
+  resource_priority: number | null;
   schema_hash: string | null;
   catalog_kind: "tools" | "resources" | "resource_templates" | "prompts" | null;
   catalog_item_count: number | null;
@@ -120,9 +131,24 @@ export function createAnalyticsHandler(getAdmin: typeof getSupabaseAdmin = getSu
   const analyticsQueryLimit = 10000;
   const generatedAt = new Date().toISOString();
   const { data, error } = await supabase.from("trackmcp_events")
-    .select("event_id, schema_version, event_type, service, environment, server_id, deployment_id, server_version, sdk_version, observation_source, direction, transport, protocol_version, mcp_method, request_id, session_id, session_id_source, correlation_handle, correlation_handle_source, context, intent_source, missing_capability, task_id, workflow_id, client_name, client_version, account_key, account_identity_source, tool_name, tool_description, tool_description_hash, duration_ms, success, is_error, error_class, error_code, retry_number, schema_hash, catalog_kind, catalog_item_count, catalog_item_name_hashes, catalog_item_uri_hashes, payload_size_bytes, payload_policy, started_at, payload")
+    .select("event_id, schema_version, event_type, service, environment, server_id, deployment_id, server_version, sdk_version, observation_source, direction, transport, protocol_version, mcp_method, request_id, session_id, session_id_source, correlation_handle, correlation_handle_source, context, intent_source, missing_capability, task_id, workflow_id, client_name, client_version, account_key, account_identity_source, tool_name, tool_description, tool_description_hash, duration_ms, success, is_error, error_class, error_code, retry_number, result_type, interaction_id, interaction_link_source, retry_of_event_id, request_state_hash, input_request_count, input_response_count, resource_audience, resource_priority, schema_hash, catalog_kind, catalog_item_count, catalog_item_name_hashes, catalog_item_uri_hashes, payload_size_bytes, payload_policy, started_at, payload")
     .eq("workspace_id", workspaceId).gte("started_at", since).order("started_at", { ascending: true }).limit(analyticsQueryLimit);
   if (error) return NextResponse.json({ error: "Could not load analytics." }, { status: 500 });
+
+  // The first Founder OS slice needs a lifetime-first-seen signal to
+  // distinguish new from returning accounts. Keep this side query narrow:
+  // it contains no payloads and no identifiers other than the already hashed
+  // resolver key. If the bounded scan is capped, the response explicitly
+  // marks the classification as insufficient rather than inventing a trend.
+  const historyLimit = 100_000;
+  const historyResult = await supabase.from("trackmcp_events")
+    .select("account_key, account_identity_source, started_at, event_type, mcp_method, tool_name, is_error, success, result_type, duration_ms")
+    .eq("workspace_id", workspaceId)
+    .eq("observation_source", "server")
+    .order("started_at", { ascending: true })
+    .limit(historyLimit);
+  const historyRows = historyResult.error ? [] : ((historyResult.data || []) as Array<{ account_key?: unknown; account_identity_source?: unknown; started_at?: unknown; event_type?: unknown; mcp_method?: unknown; tool_name?: unknown; is_error?: unknown; success?: unknown; result_type?: unknown; duration_ms?: unknown }>);
+  const historyCapped = historyRows.length >= historyLimit;
 
   // Snapshot rows are service-written and explicitly workspace-scoped by the
   // additive catalog migration. If an operator has not applied that migration
@@ -197,9 +223,29 @@ export function createAnalyticsHandler(getAdmin: typeof getSupabaseAdmin = getSu
       : refreshCounts.failed > 0 || refreshCounts.retryable > 0 || refreshCounts.queued > 0 || refreshCounts.running > 0
         ? "degraded"
         : "available";
+  const workerHealth = evaluateWorkerHealth(refreshJobs.map((job) => ({
+    state: job.state === "succeeded" ? "completed" : job.state,
+    queued_at: job.created_at,
+    completed_at: job.completed_at,
+    attempts: job.attempt_count,
+  })));
 
   const events = ((data || []) as EventRow[]).filter((event) => event.observation_source === "server");
   const facts = events.map(canonicalEventFromRow).map(projectTrackMCPFact);
+  // The transition table is additive and may not exist on older deployments.
+  // A missing schema must not break analytics; when present it extends the
+  // bounded event-window projection so late completion/expiry remains visible.
+  const transitionResult = await supabase.from("trackmcp_task_transitions")
+    .select("task_id_hash,state,observed_at,evidence_quality")
+    .eq("workspace_id", workspaceId).gte("observed_at", since).order("observed_at", { ascending: true }).limit(10000);
+  const taskTransitions = transitionResult.error ? [] : ((transitionResult.data || []) as Array<Record<string, unknown>>).flatMap((row): TrackMCPTaskTransitionObservation[] => {
+    const state = row.state;
+    const quality = row.evidence_quality;
+    if (typeof row.task_id_hash !== "string" || !/^[a-f0-9]{64}$/i.test(row.task_id_hash) || typeof row.observed_at !== "string") return [];
+    if (state !== "working" && state !== "input_required" && state !== "completed" && state !== "failed" && state !== "cancelled" && state !== "expired") return [];
+    if (quality !== "observed" && quality !== "insufficient_data" && quality !== "conflicting") return [];
+    return [{ task_id_hash: row.task_id_hash.toLowerCase(), state, observed_at: row.observed_at.slice(0, 80), evidence_quality: quality }];
+  });
   const identityEligible = events.filter((event) => event.account_identity_source === "resolver" || event.account_identity_source === "unresolved").length;
   const identityResolved = events.filter((event) => event.account_identity_source === "resolver" && Boolean(event.account_key)).length;
   const identityCoverage = {
@@ -221,6 +267,27 @@ export function createAnalyticsHandler(getAdmin: typeof getSupabaseAdmin = getSu
     if (event.missing_capability) missingCapabilities.set(event.missing_capability, (missingCapabilities.get(event.missing_capability) || 0) + 1);
   }
   const calls = events.filter((event) => event.event_type === "tool_call");
+  const accountEventCounts = new Map<string, number>();
+  const accountEventDays = new Map<string, Set<string>>();
+  const recentAccountKeys = new Set<string>();
+  const sevenDaysAgo = Date.now() - 7 * 86400000;
+  for (const event of events) {
+    if (event.account_identity_source !== "resolver" || !event.account_key) continue;
+    const key = event.account_key;
+    accountEventCounts.set(key, (accountEventCounts.get(key) || 0) + 1);
+    const days = accountEventDays.get(key) || new Set<string>();
+    days.add(event.started_at.slice(0, 10));
+    accountEventDays.set(key, days);
+    if (Date.parse(event.started_at) >= sevenDaysAgo) recentAccountKeys.add(key);
+  }
+  const deploymentIds = new Set<string>();
+  let deploymentLinkedEvents = 0;
+  for (const event of events) {
+    if (event.deployment_id && /^[a-zA-Z0-9_-]{1,128}$/.test(event.deployment_id)) {
+      deploymentIds.add(event.deployment_id);
+      deploymentLinkedEvents += 1;
+    }
+  }
   const observedAccountKeys = new Set<string>();
   let resolverLinkedEvents = 0;
   let unresolvedEvents = 0;
@@ -271,9 +338,207 @@ export function createAnalyticsHandler(getAdmin: typeof getSupabaseAdmin = getSu
     schema_hash: catalog.get(name)?.schema_hash || null,
   })).sort((a, b) => b.calls - a.calls);
   const unusedTools = [...catalog.keys()].filter((name) => !tools.has(name));
+
+  const periodStartMs = Date.parse(since);
+  const periodEndMs = Date.now();
+  const periodLengthMs = Math.max(86_400_000, days * 86_400_000);
+  const previousPeriodStartMs = periodStartMs - periodLengthMs;
+  const currentAccountActivity = new Map<string, { count: number; days: Set<string> }>();
+  for (const event of events) {
+    if (event.account_identity_source !== "resolver" || !event.account_key) continue;
+    const existing = currentAccountActivity.get(event.account_key) || { count: 0, days: new Set<string>() };
+    existing.count += 1;
+    existing.days.add(event.started_at.slice(0, 10));
+    currentAccountActivity.set(event.account_key, existing);
+  }
+  const historicalAccountFirstSeen = new Map<string, number>();
+  const previousPeriodAccounts = new Set<string>();
+  const growthBuckets = new Map<string, Set<string>>();
+  for (const row of historyRows) {
+    if (row.account_identity_source !== "resolver" || typeof row.account_key !== "string" || typeof row.started_at !== "string") continue;
+    const timestamp = Date.parse(row.started_at);
+    if (!Number.isFinite(timestamp)) continue;
+    const existing = historicalAccountFirstSeen.get(row.account_key);
+    if (existing === undefined || timestamp < existing) historicalAccountFirstSeen.set(row.account_key, timestamp);
+    if (timestamp >= previousPeriodStartMs && timestamp < periodStartMs) previousPeriodAccounts.add(row.account_key);
+    if (timestamp >= periodStartMs && timestamp <= periodEndMs) {
+      const bucket = new Date(timestamp);
+      bucket.setUTCHours(0, 0, 0, 0);
+      const bucketKey = bucket.toISOString().slice(0, 10);
+      const set = growthBuckets.get(bucketKey) || new Set<string>();
+      set.add(row.account_key);
+      growthBuckets.set(bucketKey, set);
+    }
+  }
+  const currentAccountKeys = new Set(currentAccountActivity.keys());
+  const newAccounts = historyCapped ? null : [...currentAccountKeys].filter((key) => {
+    const firstSeen = historicalAccountFirstSeen.get(key);
+    return firstSeen !== undefined && firstSeen >= periodStartMs;
+  }).length;
+  const returningAccounts = historyCapped ? null : [...currentAccountKeys].filter((key) => {
+    const firstSeen = historicalAccountFirstSeen.get(key);
+    return firstSeen !== undefined && firstSeen < periodStartMs;
+  }).length;
+  const clientBreakdown = [...clients.entries()].map(([name, value]) => ({
+    name: name.slice(0, 256),
+    calls: value.calls,
+    share: calls.length ? value.calls / calls.length : null,
+    identity_source: name === "Unknown client" ? "unrecognized" as const : "self_reported" as const,
+  })).sort((a, b) => b.calls - a.calls).slice(0, MAX_PUBLIC_DIMENSION_ITEMS);
+  const topAccounts = [...currentAccountActivity.values()]
+    .sort((a, b) => b.count - a.count || b.days.size - a.days.size)
+    .slice(0, 20)
+    .map((value, index) => ({ rank: index + 1, activity_count: value.count, active_days: value.days.size, identity_source: "resolver" as const }));
+  const growth = [...growthBuckets.entries()].sort(([a], [b]) => a.localeCompare(b)).slice(-366).map(([period_start, accounts]) => ({ period_start, active_accounts: accounts.size }));
+  const currentToolAccounts = new Map<string, Set<string>>();
+  for (const event of calls) {
+    if (!event.tool_name || event.account_identity_source !== "resolver" || !event.account_key) continue;
+    const accountsForTool = currentToolAccounts.get(event.account_key) || new Set<string>();
+    accountsForTool.add(event.tool_name);
+    currentToolAccounts.set(event.account_key, accountsForTool);
+  }
+  const adoptionBuckets = { "1 tool": 0, "2-3 tools": 0, "4-6 tools": 0, "7+ tools": 0 } as Record<"1 tool" | "2-3 tools" | "4-6 tools" | "7+ tools", number>;
+  for (const toolSet of currentToolAccounts.values()) {
+    const count = toolSet.size;
+    if (count === 1) adoptionBuckets["1 tool"] += 1;
+    else if (count <= 3) adoptionBuckets["2-3 tools"] += 1;
+    else if (count <= 6) adoptionBuckets["4-6 tools"] += 1;
+    else adoptionBuckets["7+ tools"] += 1;
+  }
+  const averageToolsUsed = currentToolAccounts.size
+    ? [...currentToolAccounts.values()].reduce((total, toolSet) => total + toolSet.size, 0) / currentToolAccounts.size
+    : null;
+  const previousPeriodCalls = historyRows.filter((row) => row.event_type === "tool_call" && typeof row.started_at === "string" && Date.parse(row.started_at) >= previousPeriodStartMs && Date.parse(row.started_at) < periodStartMs).length;
+  const trendBuckets = new Map<string, Map<string, number>>();
+  for (const event of calls) {
+    if (!event.tool_name) continue;
+    const timestamp = Date.parse(event.started_at);
+    if (!Number.isFinite(timestamp)) continue;
+    const bucket = new Date(timestamp);
+    bucket.setUTCDate(bucket.getUTCDate() - bucket.getUTCDay());
+    bucket.setUTCHours(0, 0, 0, 0);
+    const period = bucket.toISOString().slice(0, 10);
+    const byTool = trendBuckets.get(period) || new Map<string, number>();
+    byTool.set(event.tool_name, (byTool.get(event.tool_name) || 0) + 1);
+    trendBuckets.set(period, byTool);
+  }
+  const topTrendTools = new Set(toolRows.slice(0, 6).map((tool) => tool.name));
+  const capabilityTrend = [...trendBuckets.entries()].sort(([a], [b]) => a.localeCompare(b)).flatMap(([period_start, byTool]) => [...byTool.entries()].map(([tool_name, count]) => ({ period_start, tool_name: topTrendTools.has(tool_name) ? tool_name : "Other", calls: count }))).slice(-500);
+  const capabilityReliability = toolRows.slice(0, MAX_PUBLIC_LIST_ITEMS).map((tool) => {
+    const matching = calls.filter((event) => event.tool_name === tool.name);
+    const inputRequired = matching.filter((event) => event.result_type === "input_required").length;
+    return { tool_name: tool.name, calls: tool.calls, error_rate: tool.calls ? tool.errors / tool.calls : null, input_required_rate: tool.calls ? inputRequired / tool.calls : null, p95_ms: tool.p95_ms };
+  });
+  const resourceEvents = events.filter((event) => event.mcp_method?.startsWith("resources/"));
+  const promptEvents = events.filter((event) => event.mcp_method?.startsWith("prompts/"));
+  const resourceReadEvents = resourceEvents.filter((event) => event.mcp_method === "resources/read");
+  const promptCallEvents = promptEvents.filter((event) => event.mcp_method === "prompts/get");
+  const previousResourceReads = historyRows.filter((row) => row.event_type === "protocol" && row.mcp_method?.toString().startsWith("resources/") && typeof row.started_at === "string" && Date.parse(row.started_at) >= previousPeriodStartMs && Date.parse(row.started_at) < periodStartMs).length;
+  const previousPromptCalls = historyRows.filter((row) => row.event_type === "protocol" && row.mcp_method?.toString().startsWith("prompts/") && typeof row.started_at === "string" && Date.parse(row.started_at) >= previousPeriodStartMs && Date.parse(row.started_at) < periodStartMs).length;
+  const groupSurface = (items: typeof resourceEvents, kind: "resource" | "prompt") => {
+    const grouped = new Map<string, { calls: number; complete: number; stalled: number }>();
+    for (const event of items) {
+      const name = event.mcp_method || `${kind === "resource" ? "Resource" : "Prompt"} (hashed identity)`;
+      const current = grouped.get(name) || { calls: 0, complete: 0, stalled: 0 };
+      current.calls += 1;
+      if (event.result_type === "complete" || event.success === true) current.complete += 1;
+      if (event.result_type === "input_required") current.stalled += 1;
+      grouped.set(name, current);
+    }
+    return [...grouped.entries()].sort((a, b) => b[1].calls - a[1].calls).slice(0, MAX_PUBLIC_LIST_ITEMS).map(([name, value]) => ({ name: name.slice(0, 128), calls: value.calls, share: items.length ? value.calls / items.length : null, completion_rate: kind === "prompt" ? (value.calls ? value.complete / value.calls : null) : undefined, stall_rate: kind === "prompt" ? (value.calls ? value.stalled / value.calls : null) : undefined }));
+  };
+  const surfaceTrend = new Map<string, number>();
+  for (const event of [...resourceEvents, ...promptEvents]) {
+    const timestamp = Date.parse(event.started_at);
+    if (!Number.isFinite(timestamp)) continue;
+    const bucket = new Date(timestamp); bucket.setUTCDate(bucket.getUTCDate() - bucket.getUTCDay()); bucket.setUTCHours(0, 0, 0, 0);
+    const kind = event.mcp_method?.startsWith("prompts/") ? "prompt" : "resource";
+    const name = event.mcp_method || `${kind} (hashed identity)`;
+    const key = `${bucket.toISOString().slice(0, 10)}|${kind}|${name}`;
+    surfaceTrend.set(key, (surfaceTrend.get(key) || 0) + 1);
+  }
+  const resourcePromptActivity = {
+    resource_reads: resourceReadEvents.length,
+    prompt_calls: promptCallEvents.length,
+    previous_period_resource_reads: previousResourceReads,
+    previous_period_prompt_calls: previousPromptCalls,
+    prompt_completion_rate: promptCallEvents.length ? promptCallEvents.filter((event) => event.result_type === "complete" || event.success === true).length / promptCallEvents.length : null,
+    prompt_stall_rate: promptCallEvents.length ? promptCallEvents.filter((event) => event.result_type === "input_required").length / promptCallEvents.length : null,
+    resource_breakdown: groupSurface(resourceEvents, "resource"),
+    prompt_breakdown: groupSurface(promptEvents, "prompt"),
+    trend: [...surfaceTrend.entries()].sort(([a], [b]) => a.localeCompare(b)).slice(-500).map(([key, calls]) => { const [period_start, kind, name] = key.split("|"); return { period_start, kind: kind as "resource" | "prompt", name, calls }; }),
+    limitation: historyCapped || historyResult.error ? "Resource and prompt activity is current-period complete, but previous-period comparison is bounded by the available history scan. Names are represented by safe protocol methods; raw URIs, prompt names, arguments, and contents are never exposed." : "Names are represented by safe protocol methods; raw URIs, prompt names, arguments, and contents are never exposed.",
+  };
+  const interactions = new Map<string, { path: string[]; stalled: boolean; retried: boolean; error: boolean }>();
+  for (const event of calls) {
+    const key = (event.interaction_id || event.session_id || event.event_id).slice(0, 128);
+    const current = interactions.get(key) || { path: [], stalled: false, retried: false, error: false };
+    if (event.tool_name && current.path.length < 50) current.path.push(event.tool_name.slice(0, 128));
+    if (event.result_type === "input_required") current.stalled = true;
+    if (event.retry_number != null || event.retry_of_event_id) current.retried = true;
+    if (event.is_error === true || event.success === false) current.error = true;
+    interactions.set(key, current);
+  }
+  const pathGroups = new Map<string, { path: string[]; interactions: number; error: number; stalled: number }>();
+  for (const item of interactions.values()) {
+    if (!item.path.length) continue;
+    const path = item.path.slice(0, 8);
+    const key = path.join(" → ");
+    const current = pathGroups.get(key) || { path, interactions: 0, error: 0, stalled: 0 };
+    current.interactions += 1;
+    if (item.error) current.error += 1;
+    if (item.stalled) current.stalled += 1;
+    pathGroups.set(key, current);
+  }
+  const journeyGroups = [...pathGroups.values()].sort((a, b) => b.interactions - a.interactions);
+  const journeyActivity = {
+    interaction_count: interactions.size,
+    typical_journey_length: interactions.size ? [...interactions.values()].map((item) => item.path.length).sort((a, b) => a - b)[Math.floor((interactions.size - 1) * 0.5)] || null : null,
+    stalled_interactions: [...interactions.values()].filter((item) => item.stalled).length,
+    resumed_after_stall: [...interactions.values()].filter((item) => item.stalled && item.retried).length,
+    common_paths: journeyGroups.slice(0, 10).map((item) => ({ path: item.path, interactions: item.interactions, share: interactions.size ? item.interactions / interactions.size : null })),
+    drop_off: journeyGroups.slice(0, 10).map((item) => ({ path: item.path, interactions: item.interactions, terminal_evidence: item.error ? "explicit_error" as const : item.stalled ? "input_required" as const : "unknown" as const })),
+    limitation: "Paths are bounded sequences of observed tool calls grouped by interaction or session identity. Missing terminal events are unknown, not abandonment; multi-server journeys outside this workspace are not visible.",
+  };
+  const aggregate = aggregateTrackMCPFacts(facts);
+  const outcomeTrend = new Map<string, { completed: number; failed: number; unknown: number; pending: number }>();
+  for (const fact of facts) {
+    if (fact.fact_type !== "outcome") continue;
+    const day = fact.observed_at.slice(0, 10);
+    const current = outcomeTrend.get(day) || { completed: 0, failed: 0, unknown: 0, pending: 0 };
+    if (fact.semantic.outcome === "completed") current.completed += 1;
+    else if (fact.semantic.outcome === "failed") current.failed += 1;
+    else if (fact.semantic.outcome === "pending") current.pending += 1;
+    else current.unknown += 1;
+    outcomeTrend.set(day, current);
+  }
+  const outcomeActivity = {
+    completed: aggregate.outcomes.completed,
+    failed: aggregate.outcomes.failed,
+    pending: aggregate.outcomes.pending,
+    unknown: aggregate.outcomes.unknown,
+    not_observable: aggregate.outcomes.not_observable,
+    completion_rate: aggregate.workflow_completion_rate,
+    error_rate: aggregate.error_rate,
+    trend: [...outcomeTrend.entries()].sort(([a], [b]) => a.localeCompare(b)).slice(-366).map(([period_start, value]) => ({ period_start, ...value })),
+    limitation: "Completion and error rates use explicit semantic outcome evidence only. Unknown and not-observable states are retained; missing events are never converted into success, failure, or abandonment.",
+  };
   const outcomeEvents = events.filter(isWorkflowLifecycleEvent);
-  const outcomeNames = new Set(outcomeEvents.map((event) => event.payload?.workflow_name as string));
-  const explicitOutcomes = [...outcomeNames].map((name) => { const matching = outcomeEvents.filter((event) => event.payload?.workflow_name === name); return { name: name.slice(0, 256), started: matching.filter((event) => event.payload?.status === "started").length, completed: matching.filter((event) => event.payload?.status === "completed").length, failed: matching.filter((event) => event.payload?.status === "failed").length }; });
+  // Only named workflow outcomes can be grouped. Older SDKs may emit a
+  // lifecycle event without workflow_name; do not let that malformed or
+  // legacy row crash analytics (or become a fake "undefined" journey).
+  const outcomeNames = new Set(
+    outcomeEvents
+      .map((event) => event.payload?.workflow_name)
+      .filter((name): name is string => typeof name === "string" && name.trim().length > 0),
+  );
+  const explicitOutcomes = [...outcomeNames].map((name) => {
+    const matching = outcomeEvents.filter((event) => event.payload?.workflow_name === name);
+    const started = matching.filter((event) => event.payload?.status === "started").length;
+    const completed = matching.filter((event) => event.payload?.status === "completed").length;
+    const failed = matching.filter((event) => event.payload?.status === "failed").length;
+    return { name: name.slice(0, 256), started, completed, failed, unresolved: Math.max(0, started - completed - failed) };
+  });
   const workflowRows = [...sessions.entries()].map(([id, sessionEvents]) => {
     const sessionCalls = sessionEvents.filter((event) => event.event_type === "tool_call");
     const handle = sessionEvents.find((event) => event.correlation_handle)?.correlation_handle || null;
@@ -287,11 +552,18 @@ export function createAnalyticsHandler(getAdmin: typeof getSupabaseAdmin = getSu
   const timeline = new Map<string, { events: number; calls: number; errors: number }>();
   for (const event of events) { const day = event.started_at.slice(0, 10); const item = timeline.get(day) || { events: 0, calls: 0, errors: 0 }; item.events += 1; if (event.event_type === "tool_call") { item.calls += 1; if (failed(event)) item.errors += 1; } timeline.set(day, item); }
   const insights = [
-    ...toolRows.filter((tool) => tool.error_rate >= 0.1).slice(0, 3).map((tool) => ({ level: "error", title: `${tool.name} is failing ${Math.round(tool.error_rate * 100)}% of calls`, detail: `${tool.errors} failed calls in the selected period. Inspect its arguments and returned errors first.`, metric: `${tool.errors} errors` })),
-    ...toolRows.filter((tool) => tool.avg_ms !== null && tool.avg_ms >= 500).sort((a, b) => (b.avg_ms || 0) - (a.avg_ms || 0)).slice(0, 2).map((tool) => ({ level: "warn", title: `${tool.name} is slowing down sessions`, detail: `Average duration is ${tool.avg_ms}ms. Slow tools compound when agents chain several calls.`, metric: `${tool.avg_ms}ms average` })),
-    ...(unusedTools.length ? [{ level: "info", title: `${unusedTools.length} discovered tool${unusedTools.length === 1 ? " is" : "s are"} unused`, detail: `${unusedTools.slice(0, 3).join(", ")}${unusedTools.length > 3 ? " and more" : ""} were advertised but not called in this period.`, metric: "Review descriptions" }] : []),
-    ...(explicitStarted > 0 && explicitCompleted / explicitStarted < 0.8 ? [{ level: "warn", title: "Some tracked workflows are not completing", detail: "Compare the failing workflow steps with their tool sequences to find the point where users get stuck.", metric: `${Math.round((explicitCompleted / explicitStarted) * 100)}% complete` }] : []),
+    ...toolRows.filter((tool) => tool.error_rate >= 0.1).slice(0, 3).map((tool) => ({ level: "error", title: `${tool.name} is failing ${Math.round(tool.error_rate * 100)}% of calls`, detail: `${tool.errors} failed calls in the selected period. Inspect its arguments and returned errors first.`, metric: `${tool.errors} errors`, affected_volume: tool.errors, confidence: "high" as const, suggested_action: "Inspect representative error classes and the failing tool inputs." })),
+    ...toolRows.filter((tool) => tool.avg_ms !== null && tool.avg_ms >= 500).sort((a, b) => (b.avg_ms || 0) - (a.avg_ms || 0)).slice(0, 2).map((tool) => ({ level: "warn", title: `${tool.name} is slowing down sessions`, detail: `Average duration is ${tool.avg_ms}ms. Slow tools compound when agents chain several calls.`, metric: `${tool.avg_ms}ms average`, affected_volume: tool.calls, confidence: "medium" as const, suggested_action: "Compare p95 latency and downstream dependencies before changing the tool." })),
+    ...(unusedTools.length ? [{ level: "info", title: `${unusedTools.length} discovered tool${unusedTools.length === 1 ? " is" : "s are"} unused`, detail: `${unusedTools.slice(0, 3).join(", ")}${unusedTools.length > 3 ? " and more" : ""} were advertised but not called in this period.`, metric: "Review descriptions", affected_volume: unusedTools.length, confidence: "medium" as const, suggested_action: "Review discoverability and descriptions; do not infer that unused means unwanted." }] : []),
+    ...(explicitStarted > 0 && explicitCompleted / explicitStarted < 0.8 ? [{ level: "warn", title: "Some tracked workflows are not completing", detail: "Compare the failing workflow steps with their tool sequences to find the point where users get stuck.", metric: `${Math.round((explicitCompleted / explicitStarted) * 100)}% complete`, affected_volume: explicitStarted - explicitCompleted, confidence: "high" as const, suggested_action: "Open the journey evidence and inspect unresolved terminal states." }] : []),
   ].slice(0, 5);
+  const issueActivity = {
+    actionable_signals: insights.length,
+    high_confidence_signals: insights.filter((item) => item.confidence === "high").length,
+    affected_volume: insights.some((item) => typeof item.affected_volume === "number") ? insights.reduce((sum, item) => sum + (typeof item.affected_volume === "number" ? item.affected_volume : 0), 0) : null,
+    suggested_actions: insights.filter((item) => typeof item.suggested_action === "string" && item.suggested_action.length > 0).length,
+    limitation: "Signals are bounded evidence-based prompts for investigation, not diagnoses. Affected volume is the sum of reported signal volume and may overlap across rules.",
+  };
 
   const protocols = events.filter((event) => event.event_type === "protocol");
   const protocolVersions = [...new Set(events.map((event) => event.protocol_version).filter(Boolean))];
@@ -299,7 +571,7 @@ export function createAnalyticsHandler(getAdmin: typeof getSupabaseAdmin = getSu
   const environments = [...new Set(events.map((event) => event.environment?.trim()).filter((value): value is string => Boolean(value)))];
   const transports = [...new Set(events.map((event) => event.transport).filter(Boolean))];
   const methods = [...new Set(events.map((event) => event.mcp_method).filter(Boolean))];
-  const protocolSignalCounts: Record<TrackMCPProtocolSignal, number> = { notification: 0, progress: 0, catalog_changed: 0, subscription_started: 0, subscription_stopped: 0 };
+  const protocolSignalCounts: Record<TrackMCPProtocolSignal, number> = { notification: 0, progress: 0, catalog_changed: 0, resource_changed: 0, subscription_started: 0, subscription_stopped: 0 };
   let protocolSignalEvents = 0;
   for (const event of events) {
     const signal = classifyTrackMCPProtocolSignal(event);
@@ -308,8 +580,6 @@ export function createAnalyticsHandler(getAdmin: typeof getSupabaseAdmin = getSu
       protocolSignalEvents += 1;
     }
   }
-  const resourceEvents = events.filter((event) => event.mcp_method?.startsWith("resources/"));
-  const promptEvents = events.filter((event) => event.mcp_method?.startsWith("prompts/"));
   // Catalog observations already contain bounded SHA-256 identity hashes. We
   // expose only unique counts here; raw resource URIs, prompt names, and
   // arguments never leave the server.
@@ -332,6 +602,11 @@ export function createAnalyticsHandler(getAdmin: typeof getSupabaseAdmin = getSu
     protocol_versions: protocolVersions.slice(0, MAX_PUBLIC_DIMENSION_ITEMS),
     services: services.slice(0, MAX_PUBLIC_DIMENSION_ITEMS),
     environments: environments.slice(0, MAX_PUBLIC_DIMENSION_ITEMS),
+    deployment_summary: {
+      observed_deployments: deploymentIds.size,
+      linked_events: deploymentLinkedEvents,
+      limitation: "Count-only deployment linkage derived from telemetry; deployment names, IDs, and release health are not exposed here.",
+    },
     interaction_surfaces: {
       resources: { events: resourceEvents.length, methods: [...new Set(resourceEvents.map((event) => event.mcp_method).filter(Boolean))].slice(0, MAX_PUBLIC_DIMENSION_ITEMS), entity_count: resourceEntityHashes.size, entity_identity: "sha256_hash_count", entity_analytics: entityReadAnalytics("resources") },
       prompts: { events: promptEvents.length, methods: [...new Set(promptEvents.map((event) => event.mcp_method).filter(Boolean))].slice(0, MAX_PUBLIC_DIMENSION_ITEMS), entity_count: promptEntityHashes.size, entity_identity: "sha256_hash_count", entity_analytics: entityReadAnalytics("prompts") },
@@ -345,9 +620,18 @@ export function createAnalyticsHandler(getAdmin: typeof getSupabaseAdmin = getSu
     intent_sources: intentSources,
     missing_capabilities: [...missingCapabilities.entries()].map(([name, reports]) => ({ name: name.slice(0, 256), reports })).sort((a, b) => b.reports - a.reports || a.name.localeCompare(b.name)).slice(0, MAX_PUBLIC_DIMENSION_ITEMS),
     funnel: { connections: events.filter((event) => event.event_type === "session").length, discovered_tools: catalog.size, tool_calls: calls.length, successful_calls: calls.filter((event) => !failed(event)).length },
+    tool_adoption: { advertised: catalog.size, observed: toolRows.filter((tool) => tool.calls > 0).length, breadth: catalog.size ? toolRows.filter((tool) => tool.calls > 0).length / catalog.size : null, unused: unusedTools.length },
     timeline: [...timeline.entries()].map(([date, value]) => ({ date, ...value })).slice(-366),
     account_summary: {
       observed_account_keys: observedAccountKeys.size,
+      active_account_keys: accountEventCounts.size,
+      active_account_keys_7d: recentAccountKeys.size,
+      returning_account_keys: [...accountEventDays.values()].filter((days) => days.size > 1).length,
+      account_activity_bands: {
+        one_event: [...accountEventCounts.values()].filter((count) => count === 1).length,
+        repeat: [...accountEventCounts.values()].filter((count) => count >= 2 && count < 10).length,
+        high_activity: [...accountEventCounts.values()].filter((count) => count >= 10).length,
+      },
       eligible_events: eligibleAccountEvents,
       resolver_linked_events: resolverLinkedEvents,
       unresolved_events: unresolvedEvents,
@@ -355,13 +639,44 @@ export function createAnalyticsHandler(getAdmin: typeof getSupabaseAdmin = getSu
       limitation: "Observed resolver-linked account keys are privacy-safe dimensions, not named customers or unique people.",
     },
     clients: [...clients.entries()].map(([name, value]) => ({ name: name.slice(0, 256), calls: value.calls, versions: [...value.versions].slice(0, 20) })).sort((a, b) => b.calls - a.calls).slice(0, MAX_PUBLIC_DIMENSION_ITEMS),
+    who_is_using_it: {
+      active_accounts: currentAccountKeys.size,
+      previous_period_active_accounts: previousPeriodAccounts.size,
+      new_accounts: newAccounts,
+      returning_accounts: returningAccounts,
+      classification_status: historyCapped || historyResult.error ? "insufficient_data" : "available",
+      growth,
+      client_breakdown: clientBreakdown,
+      top_accounts: topAccounts,
+      identity_coverage: eligibleAccountEvents ? resolverLinkedEvents / eligibleAccountEvents : null,
+      limitation: historyCapped || historyResult.error
+        ? "New versus returning classification is unavailable because the bounded history scan was incomplete."
+        : "Account identity is resolver-linked and privacy-safe; MCP client names are optional self-reported metadata. Account names are not available from MCP itself.",
+    },
+    capability_activity: {
+      total_calls: calls.length,
+      previous_period_calls: previousPeriodCalls,
+      overall_error_rate: calls.length ? calls.filter(failed).length / calls.length : null,
+      avg_tools_used_per_account: averageToolsUsed,
+      advertised_tools: catalog.size,
+      adoption_distribution: Object.entries(adoptionBuckets).map(([bucket, accounts]) => ({ bucket: bucket as keyof typeof adoptionBuckets, accounts })),
+      trend: capabilityTrend,
+      reliability: capabilityReliability,
+      limitation: historyCapped || historyResult.error
+        ? "The selected-period tool view is complete, but previous-period comparison is limited by the bounded history scan."
+        : "Tool activity is observed at the instrumented server boundary; calls that never reach the server are not included.",
+    },
+    resource_prompt_activity: resourcePromptActivity,
+    journey_activity: journeyActivity,
+    outcome_activity: outcomeActivity,
+    issue_activity: issueActivity,
     tools: toolRows.slice(0, MAX_PUBLIC_LIST_ITEMS), catalog_tools: [...catalog.values()].slice(0, MAX_PUBLIC_LIST_ITEMS),
     unused_tools: unusedTools.slice(0, MAX_PUBLIC_LIST_ITEMS), workflows: workflowRows.slice(0, 100), outcomes: explicitOutcomes.slice(0, MAX_PUBLIC_DIMENSION_ITEMS),
-    founder_os: { facts: aggregateTrackMCPFacts(facts), groups: outcomeGroups, identity_coverage: identityCoverage, identity_source_counts: identitySourceCounts },
+    founder_os: { facts: aggregateTrackMCPFacts(facts), groups: outcomeGroups, identity_coverage: identityCoverage, identity_source_counts: identitySourceCounts, tasks: aggregateTaskLifecycles(facts, taskTransitions) },
     catalog_versions: catalogVersions,
     catalog_next_cursor: catalogHasMore ? catalogVersions.at(-1)?.discovered_at || null : null,
     catalog_version_status: catalogVersionStatus,
-    refresh_status: { status: refreshStatus, ...refreshCounts, max_queue_lag_ms: maxQueueLagMs, max_attempt_count: maxAttemptCount, last_successful_run: lastSuccessfulRun },
+    refresh_status: { status: refreshStatus, ...refreshCounts, max_queue_lag_ms: maxQueueLagMs, max_attempt_count: maxAttemptCount, last_successful_run: lastSuccessfulRun, worker_health: workerHealth },
     data_trust: buildTrackMCPDataTrust({ generatedAt, querySince: since, sourceEventCount: events.length, returnedEventCount: data?.length || 0, queryLimit: analyticsQueryLimit, observedThrough: events.length ? events[events.length - 1].started_at : null }), insights });
   };
 }

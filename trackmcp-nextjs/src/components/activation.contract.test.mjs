@@ -34,6 +34,27 @@ test("device approval preserves auth handoff and CLI-only redemption", () => {
   assert.doesNotMatch(device, /device_code/);
 });
 
+test("device approval states are explicit and recoverable", () => {
+  for (const phrase of [
+    "That device code is not valid",
+    "This device session expired",
+    "Device access was not approved",
+    "This device session was already used",
+    "This device session is already approved",
+    "Device approved",
+    "Return to your terminal",
+    "No key was created",
+    "Start npx @trackmcp/cli init again",
+  ]) {
+    assert.match(device, new RegExp(phrase.replace(/[.*+?^${}()|[\\]\\]/g, "\\\\$&")));
+  }
+  assert.match(device, /next = `\/device\?user_code=\$\{encodeURIComponent\(userCode\)\}`/);
+  assert.match(device, /source=device_auth/);
+  assert.match(device, /Create workspace to continue/);
+  assert.match(device, /body: JSON\.stringify\(\{ create_key: false \}\)/);
+  assert.match(device, /The CLI redeems the one-time key/);
+});
+
 test("activation UI emits bounded copy and first-event events", () => {
   assert.match(dashboard, /api_key_copied/);
   assert.match(dashboard, /api_key_copy_failed/);

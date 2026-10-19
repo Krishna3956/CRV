@@ -32,3 +32,17 @@ test("production pilot smoke records redacted evidence and covers pilot endpoint
   assert.match(source, /expectToolSitemap/);
   assert.match(source, /first_shard_has_urls/);
 });
+
+test("production pilot smoke verifies security headers and protected API boundaries", () => {
+  for (const marker of [
+    "x-content-type-options",
+    "strict-origin-when-cross-origin",
+    "permissions-policy",
+    "/api/v2/overview",
+    "/api/internal/refresh/run",
+    "Protected API checks are unauthenticated status probes",
+  ]) {
+    assert.match(source, new RegExp(marker.replace(/[.*+?^${}()|[\\]\\]/g, "\\\\$&")), marker);
+  }
+  assert.match(source, /securityHeaders: true/);
+});

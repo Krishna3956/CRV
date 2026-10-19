@@ -40,6 +40,27 @@ test("fact projection selects bounded metadata and persists semantic facts", asy
   assert.equal((writes[0]?.rows[0] as { payload?: unknown }).payload, undefined);
 });
 
+test("task transition projection is opt-in and writes only explicit task evidence", async () => {
+  const event = {
+    event_id: "task-event-1", event_type: "protocol", service: "demo", environment: "prod", started_at: "2026-01-01T00:00:00.000Z",
+    task_id: "secret-task-handle", mcp_method: "tasks/get", payload: { task_status: "completed" }, success: true, is_error: false, transport: "streamable_http",
+  };
+  const disabled = fakeAdmin([event]);
+  const disabledHandler = createRefreshJobHandlers(disabled.admin as never, { taskTransitionsEnabled: false }).fact_projection;
+  assert.ok(disabledHandler);
+  assert.deepEqual(await disabledHandler({ job: baseJob("fact_projection"), now: new Date() }), { outcome: "succeeded" });
+  assert.equal(disabled.writes.some((write) => write.table === "trackmcp_task_transitions"), false);
+
+  const enabled = fakeAdmin([event]);
+  const enabledHandler = createRefreshJobHandlers(enabled.admin as never, { taskTransitionsEnabled: true }).fact_projection;
+  assert.ok(enabledHandler);
+  assert.deepEqual(await enabledHandler({ job: baseJob("fact_projection"), now: new Date() }), { outcome: "succeeded" });
+  const transition = enabled.writes.find((write) => write.table === "trackmcp_task_transitions");
+  assert.ok(transition);
+  assert.equal((transition.rows[0] as { state?: string }).state, "completed");
+  assert.equal(JSON.stringify(transition.rows).includes("secret-task-handle"), false);
+});
+
 test("action queue refresh fails closed on cancellation", async () => {
   const { admin } = fakeAdmin();
   const handler = createRefreshJobHandlers(admin as never).action_queue_refresh;

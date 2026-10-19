@@ -100,6 +100,7 @@ test("accepts bounded protocol result and retry linkage without accepting reques
     interaction_link_source: "issued",
     retry_of_event_id: "evt_previous",
     request_state_hash: "a".repeat(64),
+    input_request_count: 3,
     input_response_count: 2,
     resource_audience: "assistant",
     resource_priority: 0.75,
@@ -108,5 +109,13 @@ test("accepts bounded protocol result and retry linkage without accepting reques
   assert.equal(normalizeTrackMCPEvent(baseEvent({ result_type: "paused" })).ok, false);
   assert.equal(normalizeTrackMCPEvent(baseEvent({ interaction_id: "x", interaction_link_source: "missing" })).ok, false);
   assert.equal(normalizeTrackMCPEvent(baseEvent({ request_state_hash: "secret" })).ok, false);
+  assert.equal(normalizeTrackMCPEvent(baseEvent({ input_request_count: 101 })).ok, false);
   assert.equal(normalizeTrackMCPEvent(baseEvent({ resource_priority: 2 })).ok, false);
+});
+
+test("accepts task result handles only when a task id is present", () => {
+  assert.equal(normalizeTrackMCPEvent(baseEvent({ result_type: "task", task_id: "task_1" })).ok, true);
+  const invalid = normalizeTrackMCPEvent(baseEvent({ result_type: "task" }));
+  assert.equal(invalid.ok, false);
+  if (!invalid.ok) assert.equal(invalid.reason, "task result_type requires task_id");
 });

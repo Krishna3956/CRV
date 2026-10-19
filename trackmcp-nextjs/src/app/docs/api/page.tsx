@@ -34,6 +34,7 @@ const endpoints: { method: string; path: string; desc: string }[] = [
   { method: "GET", path: "/api/v2/reliability?days=30", desc: "Conservative observed reliability evidence, not uptime" },
   { method: "GET", path: "/api/v2/outcomes?days=30", desc: "Evidence-backed outcomes with unknown states preserved" },
   { method: "GET", path: "/api/v2/journeys?days=30", desc: "Bounded correlated sessions, not unique people" },
+  { method: "GET", path: "/api/v2/tasks?days=30", desc: "Opaque task lifecycle evidence with explicit state and no abandonment inference" },
   { method: "GET", path: "/api/v2/action-queue?status=open", desc: "Workspace-scoped action items; lifecycle mutations remain protected" },
   { method: "GET", path: "/api/v2/data-trust?days=30", desc: "Query window, freshness, counts, and truncation provenance" },
   { method: "GET", path: "/api/v2/people?days=30", desc: "Resolver coverage and client observations; no unique-user claims" },
@@ -182,6 +183,13 @@ export default function ApiDocsPage() {
           <Inline>limit</Inline> (1–100) to opt into paging; follow the opaque
           <Inline>page.next_cursor</Inline> until it is <Inline>null</Inline>. Existing
           requests without <Inline>limit</Inline> retain the original response shape.
+        </Para>
+        <Para>
+          <Inline>GET /api/v2/tasks</Inline> reports only task IDs that were observed
+          in bounded telemetry. Handles are one-way hashes, and the latest state is
+          taken from an explicit task status. Missing events are not labeled as
+          abandonment, and a completed protocol task is not treated as proof of a
+          customer business outcome.
         </Para>
       </DocSection>
 

@@ -15,6 +15,7 @@ function fakeAdmin(rows, refreshRows = []) {
       const query = {
         select() { return this; },
         eq(field, value) { filters[field] = value; return this; },
+        not() { return this; },
         gte() { return this; },
         lt() { return this; },
         order() { return this; },
@@ -91,11 +92,21 @@ test("analytics exposes conservative Founder OS outcome aggregates", async () =>
     limitation: "Event-weighted coverage; not a count of unique organizations or end users.",
   });
   assert.deepEqual(body.founder_os.identity_source_counts, { resolver: 1, unresolved: 0 });
+  assert.deepEqual(body.account_summary.account_activity_bands, { one_event: 1, repeat: 0, high_activity: 0 });
+  assert.equal(body.account_summary.active_account_keys, 1);
+  assert.equal(body.account_summary.returning_account_keys, 0);
+  assert.deepEqual(body.tool_adoption, { advertised: 0, observed: 1, breadth: null, unused: 0 });
+  assert.deepEqual(body.deployment_summary, {
+    observed_deployments: 0,
+    linked_events: 0,
+    limitation: "Count-only deployment linkage derived from telemetry; deployment names, IDs, and release health are not exposed here.",
+  });
   assert.equal(body.data_trust.returned_event_count, 4);
   assert.equal(body.data_trust.truncated, false);
   assert.equal(body.data_trust.observed_through, "2026-09-06T00:00:00Z");
   assert.equal(body.refresh_status.status, "no_jobs");
   assert.equal(body.refresh_status.max_queue_lag_ms, 0);
+  assert.deepEqual(body.refresh_status.worker_health.map((finding) => finding.state), ["insufficient_data", "insufficient_data", "insufficient_data", "insufficient_data"]);
 });
 
 test("analytics keeps missing client identity as an explicit Unknown client bucket", async () => {
@@ -107,6 +118,44 @@ test("analytics keeps missing client identity as an explicit Unknown client buck
   assert.equal(response.status, 200);
   const body = await response.json();
   assert.deepEqual(body.clients.map((client) => [client.name, client.calls]), [["Claude", 1], ["Unknown client", 1]]);
+});
+
+test("analytics exposes the complete Who's using it vertical-slice read model", async () => {
+  const now = Date.now();
+  const iso = (offsetDays) => new Date(now - offsetDays * 86400000).toISOString();
+  const accountA = "a".repeat(64);
+  const accountB = "b".repeat(64);
+  const handler = createAnalyticsHandler(() => fakeAdmin([
+    event({ event_id: "old-a", event_type: "tool_call", tool_name: "lookup", account_key: accountA, account_identity_source: "resolver", client_name: "Claude", started_at: iso(14) }),
+    event({ event_id: "current-a", event_type: "tool_call", tool_name: "lookup", account_key: accountA, account_identity_source: "resolver", client_name: "Claude", started_at: iso(2) }),
+    event({ event_id: "current-b", event_type: "tool_call", tool_name: "lookup", account_key: accountB, account_identity_source: "resolver", client_name: null, started_at: iso(1) }),
+  ]));
+  const response = await handler(new Request("http://analytics.test/api/v1/analytics?days=7", { headers: { authorization: "Bearer key" } }));
+  assert.equal(response.status, 200);
+  const body = await response.json();
+  assert.equal(body.who_is_using_it.active_accounts, 2);
+  assert.equal(body.who_is_using_it.new_accounts, 1);
+  assert.equal(body.who_is_using_it.returning_accounts, 1);
+  assert.equal(body.who_is_using_it.classification_status, "available");
+  assert.deepEqual(body.who_is_using_it.client_breakdown.map((item) => item.name), ["Claude", "Unknown client"]);
+  // The fixture query intentionally does not emulate Supabase's time filter;
+  // the production projection is time-bounded before this reducer runs.
+  assert.deepEqual(body.who_is_using_it.top_accounts.map((item) => item.activity_count), [2, 1]);
+  assert.equal(JSON.stringify(body).includes(accountA), false);
+  assert.equal(JSON.stringify(body).includes(accountB), false);
+});
+
+test("analytics exposes unresolved explicit journeys without crashing on unnamed lifecycle rows", async () => {
+  const handler = createAnalyticsHandler(() => fakeAdmin([
+    event({ event_id: "journey-start", event_type: "workflow", workflow_id: "wf-1", payload: { name: "workflow", workflow_name: "checkout", status: "started" } }),
+    event({ event_id: "journey-start-2", event_type: "workflow", workflow_id: "wf-4", payload: { name: "workflow", workflow_name: "checkout", status: "started" } }),
+    event({ event_id: "unnamed-start", event_type: "workflow", workflow_id: "wf-2", payload: { name: "workflow", status: "started" } }),
+    event({ event_id: "journey-failed", event_type: "workflow", workflow_id: "wf-3", payload: { name: "workflow", workflow_name: "checkout", status: "failed" } }),
+  ]));
+  const response = await handler(new Request("http://analytics.test/api/v1/analytics?days=7", { headers: { authorization: "Bearer key" } }));
+  assert.equal(response.status, 200);
+  const body = await response.json();
+  assert.deepEqual(body.outcomes, [{ name: "checkout", started: 2, completed: 0, failed: 1, unresolved: 1 }]);
 });
 
 test("tool aggregation matches an independent reference reducer", async () => {
@@ -132,6 +181,11 @@ test("tool aggregation matches an independent reference reducer", async () => {
   const expected = Object.fromEntries([...reference.entries()].map(([name, value]) => [name, { calls: value.calls, errors: value.errors, error_rate: value.errors / value.calls, avg_ms: Math.round(value.durations.reduce((sum, duration) => sum + duration, 0) / value.durations.length) }]));
   assert.deepEqual(actual, expected);
   assert.deepEqual(body.unused_tools, ["unused"]);
+  assert.deepEqual(body.tool_adoption, { advertised: 3, observed: 2, breadth: 2 / 3, unused: 1 });
+  assert.equal(body.capability_activity.total_calls, 3);
+  assert.equal(body.capability_activity.overall_error_rate, 1 / 3);
+  assert.equal(body.capability_activity.adoption_distribution.every((item) => item.accounts === 0), true);
+  assert.deepEqual(body.capability_activity.reliability[0], { tool_name: "lookup", calls: 2, error_rate: 0.5, input_required_rate: 0, p95_ms: 300 });
 });
 
 test("analytics marks queued and failed refresh work as degraded instead of available", async () => {
@@ -146,6 +200,9 @@ test("analytics marks queued and failed refresh work as degraded instead of avai
   assert.equal(body.refresh_status.queued, 1);
   assert.equal(body.refresh_status.failed, 1);
   assert.ok(body.refresh_status.max_queue_lag_ms > 0);
+  assert.equal(body.refresh_status.worker_health.length, 4);
+  assert.equal(body.refresh_status.worker_health.find((finding) => finding.metric === "backlog").value, 1);
+  assert.equal(body.refresh_status.worker_health.find((finding) => finding.metric === "lag").unit, "minutes");
 });
 
 test("analytics exposes only bounded hashed entity counts for resources and prompts", async () => {
@@ -165,16 +222,103 @@ test("analytics exposes only bounded hashed entity counts for resources and prom
   assert.equal(JSON.stringify(body).includes(hashA), false);
 });
 
+test("analytics exposes the Resources and Prompts vertical-slice read model", async () => {
+  const handler = createAnalyticsHandler(() => fakeAdmin([
+    event({ event_id: "resource-read", event_type: "protocol", mcp_method: "resources/read", success: true }),
+    event({ event_id: "prompt-complete", event_type: "protocol", mcp_method: "prompts/get", result_type: "complete", success: true }),
+    event({ event_id: "prompt-input", event_type: "protocol", mcp_method: "prompts/get", result_type: "input_required" }),
+  ]));
+  const response = await handler(new Request("http://analytics.test/api/v1/analytics?days=7", { headers: { authorization: "Bearer key" } }));
+  assert.equal(response.status, 200);
+  const body = await response.json();
+  assert.equal(body.resource_prompt_activity.resource_reads, 1);
+  assert.equal(body.resource_prompt_activity.prompt_calls, 2);
+  assert.equal(body.resource_prompt_activity.prompt_completion_rate, 0.5);
+  assert.equal(body.resource_prompt_activity.prompt_stall_rate, 0.5);
+  assert.deepEqual(body.resource_prompt_activity.resource_breakdown[0], { name: "resources/read", calls: 1, share: 1 });
+  assert.equal(body.resource_prompt_activity.prompt_breakdown[0].name, "prompts/get");
+  assert.equal(body.resource_prompt_activity.prompt_breakdown[0].completion_rate, 0.5);
+});
+
+test("analytics exposes bounded Journey path and stall evidence", async () => {
+  const handler = createAnalyticsHandler(() => fakeAdmin([
+    event({ event_id: "journey-a", event_type: "tool_call", tool_name: "search", interaction_id: "i-1", success: true }),
+    event({ event_id: "journey-b", event_type: "tool_call", tool_name: "details", interaction_id: "i-1", result_type: "input_required" }),
+    event({ event_id: "journey-c", event_type: "tool_call", tool_name: "details", interaction_id: "i-1", retry_number: 1, success: true }),
+    event({ event_id: "journey-d", event_type: "tool_call", tool_name: "search", interaction_id: "i-2", success: true }),
+  ]));
+  const response = await handler(new Request("http://analytics.test/api/v1/analytics?days=7", { headers: { authorization: "Bearer key" } }));
+  assert.equal(response.status, 200);
+  const body = await response.json();
+  assert.equal(body.journey_activity.interaction_count, 2);
+  assert.equal(body.journey_activity.typical_journey_length, 1);
+  assert.equal(body.journey_activity.stalled_interactions, 1);
+  assert.equal(body.journey_activity.resumed_after_stall, 1);
+  assert.deepEqual(body.journey_activity.common_paths[0].path, ["search", "details", "details"]);
+  assert.equal(body.journey_activity.drop_off[0].terminal_evidence, "input_required");
+});
+
+test("analytics keeps Did It Work outcomes explicit and uncertainty separate", async () => {
+  const handler = createAnalyticsHandler(() => fakeAdmin([
+    event({ event_id: "outcome-complete", event_type: "workflow", payload: { name: "workflow", workflow_name: "sync", status: "completed" } }),
+    event({ event_id: "outcome-failed", event_type: "workflow", payload: { name: "workflow", workflow_name: "sync", status: "failed" } }),
+    event({ event_id: "outcome-pending", event_type: "workflow", payload: { name: "workflow", workflow_name: "sync", status: "started" } }),
+  ]));
+  const response = await handler(new Request("http://analytics.test/api/v1/analytics?days=7", { headers: { authorization: "Bearer key" } }));
+  assert.equal(response.status, 200);
+  const body = await response.json();
+  assert.equal(body.outcome_activity.completed, 1);
+  assert.equal(body.outcome_activity.failed, 1);
+  assert.ok(body.outcome_activity.pending >= 1);
+  assert.equal(body.outcome_activity.completion_rate, 0.5);
+  assert.equal(body.outcome_activity.error_rate, 0.5);
+  assert.equal(body.outcome_activity.limitation.includes("never converted"), true);
+});
+
+test("analytics exposes bounded What is broken signal evidence", async () => {
+  const handler = createAnalyticsHandler(() => fakeAdmin([
+    event({ event_id: "error-1", event_type: "tool_call", tool_name: "lookup", is_error: true, success: false }),
+    event({ event_id: "error-2", event_type: "tool_call", tool_name: "lookup", is_error: true, success: false }),
+    event({ event_id: "slow-1", event_type: "tool_call", tool_name: "slow", duration_ms: 900 }),
+  ]));
+  const response = await handler(new Request("http://analytics.test/api/v1/analytics?days=7", { headers: { authorization: "Bearer key" } }));
+  assert.equal(response.status, 200);
+  const body = await response.json();
+  assert.ok(body.issue_activity.actionable_signals >= 1);
+  assert.ok(body.issue_activity.affected_volume >= 2);
+  assert.equal(body.issue_activity.limitation.includes("not diagnoses"), true);
+});
+
 test("analytics exposes bounded protocol lifecycle signals without treating them as outcomes", async () => {
   const handler = createAnalyticsHandler(() => fakeAdmin([
     event({ event_id: "signal-progress", event_type: "protocol", mcp_method: "notifications/progress" }),
     event({ event_id: "signal-change", event_type: "protocol", mcp_method: "notifications/tools/list_changed" }),
+    event({ event_id: "signal-resource-change", event_type: "protocol", mcp_method: "notifications/resources/updated" }),
     event({ event_id: "signal-subscribe", event_type: "protocol", mcp_method: "resources/subscribe" }),
     event({ event_id: "signal-unsubscribe", event_type: "protocol", mcp_method: "resources/unsubscribe" }),
   ]));
   const response = await handler(new Request("http://analytics.test/api/v1/analytics?days=7", { headers: { authorization: "Bearer key" } }));
   assert.equal(response.status, 200);
   const body = await response.json();
-  assert.deepEqual(body.protocol_signals, { notification: 0, progress: 1, catalog_changed: 1, subscription_started: 1, subscription_stopped: 1, observed_events: 4 });
-  assert.equal(body.founder_os.facts.outcomes.not_observable, 4);
+  assert.deepEqual(body.protocol_signals, { notification: 0, progress: 1, catalog_changed: 1, resource_changed: 1, subscription_started: 1, subscription_stopped: 1, observed_events: 5 });
+  assert.equal(body.founder_os.facts.outcomes.not_observable, 5);
+});
+
+test("analytics insights carry bounded action context only when evidence supports it", async () => {
+  const rows = Array.from({ length: 10 }, (_, index) => event({
+    event_id: `failed-${index}`,
+    event_type: "tool_call",
+    tool_name: "unstable_tool",
+    success: index < 2,
+    is_error: index >= 2,
+  }));
+  const handler = createAnalyticsHandler(() => fakeAdmin(rows));
+  const response = await handler(new Request("http://analytics.test/api/v1/analytics?days=7", { headers: { authorization: "Bearer key" } }));
+  assert.equal(response.status, 200);
+  const body = await response.json();
+  const insight = body.insights.find((item) => item.title.includes("unstable_tool"));
+  assert.equal(insight.affected_volume, 8);
+  assert.equal(insight.confidence, "high");
+  assert.match(insight.suggested_action, /error classes/);
+  assert.equal(JSON.stringify(insight).includes("failed-"), false);
 });

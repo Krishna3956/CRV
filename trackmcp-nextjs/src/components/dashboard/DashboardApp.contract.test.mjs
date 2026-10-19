@@ -38,6 +38,7 @@ test("business-first navigation and KPI hierarchy are explicit", () => {
     assert.match(source, new RegExp(item.replace(/[.*+?^$()|[\]\\]/g, "\\$&")));
   assert.match(source, /id: "journeys", label: "The journey", icon: Route/);
   assert.match(source, /id: "capabilities", label: "What they're doing", icon: Blocks/);
+  assert.match(source, /id: "resources", label: "Resources & prompts", icon: FileText/);
   assert.match(source, /id: "quality", label: "Did it work", icon: ShieldCheck/);
   assert.match(source, /id: "clients", label: "Who's using it"/);
   assert.match(source, /id: "evidence", label: "Evidence"/);
@@ -48,6 +49,52 @@ test("business-first navigation and KPI hierarchy are explicit", () => {
   );
   assert.doesNotMatch(source, /id: "tool-quality"/);
   assert.doesNotMatch(source, /Open Configure/);
+});
+
+test("Founder OS vertical slices share one data-trust contract", () => {
+  for (const view of ["clients", "capabilities", "resources", "journeys", "quality", "issues"]) {
+    assert.match(
+      source,
+      new RegExp(`DataSourceStrip[\\s\\S]*view=\\\"${view}\\\"`),
+      `${view} must expose its explicit data source`,
+    );
+  }
+  for (const readModel of [
+    "who_is_using_it",
+    "capability_activity",
+    "resource_prompt_activity",
+    "journey_activity",
+    "outcome_activity",
+    "issue_activity",
+  ]) {
+    assert.match(source, new RegExp(`analytics\\.${readModel}`));
+  }
+  for (const noEvidence of [
+    "No resource or prompt evidence yet",
+    "No common paths yet",
+    "No quality observations in this period",
+    "No actionable signals yet.",
+  ]) {
+    assert.match(source, new RegExp(noEvidence.replace(/[.*+?^$()|[\\]\\\\]/g, "\\\\$&")));
+  }
+  assert.match(source, /N\/A/);
+  assert.match(source, /signal, not a diagnosis/);
+  assert.match(source, /Missing task events are not classified as abandonment/);
+  assert.match(source, /insufficient data/i);
+  assert.match(source, /This is a guided example, not workspace telemetry/);
+});
+
+test("desktop-only pilot boundary is visible on narrow dashboard viewports", () => {
+  assert.match(source, /Founder OS is supported on desktop browsers for this pilot/);
+  assert.match(source, /className="border-b border-amber-200 bg-amber-50[^\"]*lg:hidden/);
+});
+
+test("resources and prompts have a dedicated evidence-bounded surface", () => {
+  assert.match(source, /function ResourcesPromptsView/);
+  assert.match(source, /title=\"Resources & prompts\"/);
+  assert.match(source, /Hashed entities/);
+  assert.match(source, /No resource or prompt evidence yet/);
+  assert.match(source, /does not expose resource contents, prompt arguments/);
 });
 
 test("dashboard typography uses the product type system", () => {
@@ -121,6 +168,33 @@ test("Setup exposes truthful first-event and coverage states", () => {
   assert.match(source, /done === null \? "\?"/);
   assert.match(source, /Transport observed/);
   assert.match(source, /Event persisted/);
+  assert.match(source, /First event scope:/);
+  assert.match(source, /service not reported/);
+  assert.match(source, /environment not reported/);
+});
+
+test("Setup renders the server readiness contract without making identity mandatory", () => {
+  assert.match(source, /Required setup evidence/);
+  assert.match(source, /Identity resolution is optional and does not block a connected state/);
+  assert.match(source, /aria-label="Setup readiness"/);
+});
+
+test("Setup keeps deployment linkage count-only and non-health claiming", () => {
+  assert.match(source, /Deployment linkage/);
+  assert.match(source, /not deployment health or release status/);
+});
+
+test("The journey renders bounded task evidence without claiming business completion", () => {
+  assert.match(source, /Async task evidence/);
+  assert.match(source, /opaque handles protect task identifiers/);
+  assert.match(source, /Missing task events are not classified as abandonment/);
+  assert.match(source, /does not prove that a customer.*business goal succeeded/);
+});
+
+test("Needs attention renders bounded action context", () => {
+  assert.match(source, /affected volume:/);
+  assert.match(source, /confidence:/);
+  assert.match(source, /Suggested next step:/);
 });
 
 test("connection keys are explicitly created from Setup and shown once in full", () => {
@@ -294,6 +368,8 @@ test("Data trust exposes bounded derived-refresh health without implying activit
   assert.match(source, /Worker metrics are bounded to the latest 100 workspace jobs/);
   assert.match(source, /no job is evidence of no customer activity/);
   assert.match(source, /Max lag/);
+  assert.match(source, /worker_health/);
+  assert.match(source, /insufficient_data/);
   assert.match(source, /Some derived-data jobs are queued, retrying, running, or failed/);
 });
 

@@ -27,6 +27,14 @@ is omitted, transport remains unknown rather than being guessed. Python client
 transports are not supported in that workstream. Legacy events without
 provenance remain nullable and are treated as `legacy_unknown`.
 
+For MCP 2026-07-28 task and multi-round-trip responses, Python observations
+also emit the bounded `result_type` discriminator (`complete`,
+`input_required`, or `task`) and capped `input_request_count` /
+`input_response_count` values when the response exposes them. The SDK never
+stores task handles, request values, response content, or private reasoning.
+This is evidence for analytics, not a claim that the Python middleware
+implements the full Tasks wire lifecycle.
+
 ```python
 import os
 from mcp.server.fastmcp import FastMCP

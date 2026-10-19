@@ -26,7 +26,7 @@ the current out-of-scope disposition is maintained in
 - Deployment-template wiring for `TRACKMCP_ENABLE_FACT_WRITES`.
 - Publication workflow preflight for npm provenance and PyPI artifact checks;
   immutable packages are published (`@trackmcp/sdk@0.1.2`,
-  `@trackmcp/cli@0.1.4`, `trackmcp==0.1.3`).
+  `@trackmcp/cli@0.1.4`, `trackmcp==0.1.4`).
 - Architecture, retention, metric, standards, and lifecycle documentation.
 - Supabase migrations and read-only postflight SQL (application reported by
   the operator; this checkout never executes production SQL).
@@ -101,7 +101,7 @@ website/content release rather than silently mixed into the telemetry release:
   generated Python wheel/sdist artifacts are built automatically before their
   contract checks and are not tracked in Git.
 - Clean external npm consumers installed the exact SDK/CLI versions and a
-  clean Python target installed `trackmcp==0.1.3`. No production telemetry
+  clean Python target installed `trackmcp==0.1.4`. No production telemetry
   event was emitted during those checks.
 
 ## 100-customer pilot gate

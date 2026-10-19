@@ -1,0 +1,35 @@
+{
+  "generated_at": "2026-10-19T14:07:36.231Z",
+  "base_url": "https://trackmcp.com",
+  "candidate_sha": "not-supplied",
+  "key_supplied": false,
+  "revoked_key_supplied": false,
+  "checks_passed": 25,
+  "public_routes": ["/", "/docs", "/docs/typescript", "/docs/python", "/device", "/support", "/sitemap.xml", "/tool-sitemap.xml"],
+  "registry_checks": {
+    "npm": [
+      {"name": "@trackmcp/sdk", "version": "0.1.2", "integrity": "sha512-IapGH0qAwBO4ZfFdjVXkCECpUj/+K36a5KBjKltV7z3KuFSPBcwPt6+J2oP7AmnWBSzGZRw+jUX0FI81v7n01g==", "tarball_origin_verified": true, "provenance_metadata_present": false},
+      {"name": "@trackmcp/cli", "version": "0.1.4", "integrity": "sha512-0j4PUP6sAJ7uRK/q/HPrMS0yiDFeCadO6weEZfyrRTrWrMIOUGIgTrkcnSPMF2aS7IPvAxSMzqGw2tuuWKvBYA==", "tarball_origin_verified": true, "provenance_metadata_present": false}
+    ],
+    "pypi": [
+      {"name": "trackmcp", "version": "0.1.4", "wheel_sha256": "0ab1a9780450b7ee811884eeebc98969993c1d093b67628c899617bfb36ba0e0", "sdist_sha256": "b264922d39d4281f5c0a347e72516207761d80720dbd64f14f13dd03696ce22a"}
+    ]
+  },
+  "protected_route_statuses": {
+    "/api/v2/overview": 401,
+    "/api/v2/data-trust": 401,
+    "/api/v1/analytics": 401,
+    "/api/v1/ingest": 405,
+    "/api/v1/otel/v1/traces": 405,
+    "/api/v1/cli/device/sessions": 405,
+    "/api/v1/cli/key-status": 401,
+    "/api/internal/refresh/run": 401,
+    "/api/internal/rate-limit/cleanup": 401,
+    "/api/internal/privacy/review": 401
+  },
+  "write_enabled": false,
+  "caveats": [
+    "HTTP and registry observations only; no authenticated dashboard, workspace, tenant-isolation, or first-ingest claim.",
+    "No credential, API key, device code, workspace ID, event ID, or response body is stored."
+  ]
+}

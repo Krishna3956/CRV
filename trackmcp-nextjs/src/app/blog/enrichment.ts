@@ -152,7 +152,7 @@ export const enrichment: Record<string, Enrichment> = {
     takeaways: [
       "A timeout is a caller or server deadline, not a complete diagnosis of what happened.",
       "Cancellation is cooperative and cannot rewind a side effect that already occurred.",
-      "Progress notifications are optional and request-scoped; tasks are useful for durable long-running work but remain experimental.",
+      "Progress notifications are optional and request-scoped; the 2026-07-28 Tasks extension is a separate durable-work contract that requires explicit capability negotiation.",
       "Measure slow tails, cancellations, timeouts, retries, and application outcomes as separate signals.",
     ],
     inserts: [

@@ -33,6 +33,7 @@ export type HealthDimensionStatus =
 export type McpTesterPhase =
   | "validate_endpoint"
   | "validate_headers"
+  | "modern_discover"
   | "initialize"
   | "initialized_notification"
   | "tools_list"
@@ -201,6 +202,7 @@ export interface ServerIdentity {
 export interface ProtocolSummary {
   requestedVersion: string;
   negotiatedVersion?: string;
+  supportedVersions?: string[];
   clientName: string;
   clientVersion: string;
   sessionIdPresent: boolean;
@@ -210,6 +212,8 @@ export interface CapabilitySummary {
   tools: boolean;
   resources: boolean;
   prompts: boolean;
+  /** Server-advertised modern Tasks extension; this is not a conformance claim. */
+  tasks?: boolean;
 }
 
 export interface ToolSummary {

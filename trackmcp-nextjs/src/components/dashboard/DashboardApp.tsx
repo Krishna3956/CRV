@@ -12,6 +12,7 @@ import {
   ChevronRight,
   Clipboard,
   ExternalLink,
+  FileText,
   FileWarning,
   Gauge,
   Info,
@@ -20,10 +21,13 @@ import {
   ListChecks,
   LogOut,
   RefreshCw,
+  RotateCcw,
   Route,
   Search,
   ShieldCheck,
   Settings2,
+  Sparkles,
+  TrendingUp,
   Users,
   X,
 } from "lucide-react";
@@ -74,6 +78,7 @@ export type View =
   | "overview"
   | "journeys"
   | "capabilities"
+  | "resources"
   | "quality"
   | "issues"
   | "clients"
@@ -89,6 +94,7 @@ const primaryNav: NavItem[] = [
   { id: "issues", label: "What's broken", icon: AlertTriangle },
 ];
 const moreNav: NavItem[] = [
+  { id: "resources", label: "Resources & prompts", icon: FileText },
   { id: "clients", label: "Who's using it", icon: Users },
   { id: "evidence", label: "Evidence", icon: Search },
   { id: "setup", label: "Setup", icon: Settings2 },
@@ -102,6 +108,7 @@ const legacyViewMap: Record<string, View> = {
   outcomes: "journeys",
   tools: "capabilities",
   catalog: "capabilities",
+  resources: "resources",
   "tool-quality": "quality",
   reliability: "quality",
   intent: "issues",
@@ -113,6 +120,10 @@ const legacyViewMap: Record<string, View> = {
 };
 const validViews = new Set<View>(allNav.map((item) => item.id));
 const fmt = (value: number) => value.toLocaleString();
+const fmtObservedAt = (value: string) => {
+  const parsed = Date.parse(value);
+  return Number.isFinite(parsed) ? new Date(parsed).toLocaleString(undefined, { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" }) : "unknown";
+};
 const percent = (value: number | null) =>
   value === null ? "N/A" : Math.round(value * 100) + "%";
 
@@ -403,7 +414,24 @@ const EXAMPLE_ANALYTICS: Analytics = {
   protocol_versions: ["2025-11-25"],
   services: ["quickbooks-finance-mcp"],
   environments: ["production"],
-  protocol_signals: { notification: 4, progress: 8, catalog_changed: 6, subscription_started: 2, subscription_stopped: 1, observed_events: 21 },
+  deployment_summary: { observed_deployments: 2, linked_events: 118, limitation: "Count-only deployment linkage derived from telemetry; deployment names, IDs, and release health are not exposed here." },
+  account_summary: {
+    observed_account_keys: 18,
+    active_account_keys: 18,
+    active_account_keys_7d: 11,
+    returning_account_keys: 9,
+    account_activity_bands: { one_event: 5, repeat: 8, high_activity: 5 },
+    eligible_events: 148,
+    resolver_linked_events: 132,
+    unresolved_events: 16,
+    resolver_coverage: 132 / 148,
+    limitation: "Observed resolver-linked account keys are privacy-safe dimensions, not named customers or unique people.",
+  },
+  protocol_signals: { notification: 4, progress: 8, catalog_changed: 6, resource_changed: 2, subscription_started: 2, subscription_stopped: 1, observed_events: 23 },
+  interaction_surfaces: {
+    resources: { events: 42, methods: ["resources/list", "resources/read"], entity_count: 12, entity_identity: "sha256_hash_count", entity_analytics: { status: "available", read_events: 31, successful_reads: 28, failed_reads: 2, input_required_reads: 1 } },
+    prompts: { events: 19, methods: ["prompts/list", "prompts/get"], entity_count: 5, entity_identity: "sha256_hash_count", entity_analytics: { status: "available", read_events: 16, successful_reads: 14, failed_reads: 1, input_required_reads: 1 } },
+  },
   transports: ["streamable_http"],
   methods: ["tools/list", "tools/call"],
   tool_calls: 1293,
@@ -419,6 +447,7 @@ const EXAMPLE_ANALYTICS: Analytics = {
     tool_calls: 1293,
     successful_calls: 1232,
   },
+  tool_adoption: { advertised: 8, observed: 5, breadth: 0.625, unused: 3 },
   intent_sources: {
     context_parameter: 48,
     external_callback: 18,
@@ -581,10 +610,10 @@ const EXAMPLE_ANALYTICS: Analytics = {
     },
   ],
   outcomes: [
-    { name: "invoice_lookup", started: 18, completed: 12, failed: 6 },
-    { name: "report_creation", started: 10, completed: 8, failed: 2 },
-    { name: "account_balance", started: 14, completed: 11, failed: 3 },
-    { name: "finance_export", started: 8, completed: 6, failed: 2 },
+    { name: "invoice_lookup", started: 18, completed: 12, failed: 6, unresolved: 0 },
+    { name: "report_creation", started: 10, completed: 8, failed: 2, unresolved: 0 },
+    { name: "account_balance", started: 14, completed: 11, failed: 3, unresolved: 0 },
+    { name: "finance_export", started: 8, completed: 6, failed: 2, unresolved: 0 },
   ],
   insights: [
     {
@@ -979,6 +1008,9 @@ export function DashboardApp({
 
   return (
     <div className="dashboard-shell min-h-screen bg-[#f7f8f7] font-sans text-ink">
+      <div className="border-b border-amber-200 bg-amber-50 px-4 py-3 text-center text-xs leading-relaxed text-amber-900 lg:hidden" role="status">
+        Founder OS is supported on desktop browsers for this pilot. For the full dashboard navigation and data tables, open TrackMCP on a desktop-sized browser window.
+      </div>
       <aside className="fixed bottom-0 left-0 top-[52px] z-30 hidden w-[248px] border-r border-line bg-[#fbfcfb] lg:flex lg:flex-col">
         <DashboardNav
           view={view}
@@ -1419,6 +1451,15 @@ const emptyPageCopy: Record<
       { label: "Evidence", detail: "A trace to inspect when a capability needs context." },
     ],
   },
+  resources: {
+    description: "See bounded resource and prompt method observations without exposing content or inputs.",
+    preview: [
+      { label: "Resource activity", detail: "Method events and hashed entity counts." },
+      { label: "Prompt activity", detail: "Prompt methods observed at the server boundary." },
+      { label: "Read outcomes", detail: "Successful, failed, and input-required read states." },
+      { label: "Privacy boundary", detail: "No resource content, URI, or prompt argument is shown." },
+    ],
+  },
   quality: {
     description:
       "Review observed capability quality without turning insufficient data into a failure.",
@@ -1673,6 +1714,15 @@ function ViewContent({
         hasMyData={hasMyData}
         pageControls={pageControls}
         onViewTrace={onViewTrace}
+      />
+    );
+  if (view === "resources")
+    return (
+      <ResourcesPromptsView
+        analytics={analytics}
+        dataMode={dataMode}
+        hasMyData={hasMyData}
+        pageControls={pageControls}
       />
     );
   if (view === "quality")
@@ -2198,6 +2248,15 @@ function DataTrustPanel({
             <span>Failed {fmt(refreshStatus.failed)}</span>
             <span>Max lag {refreshStatus.max_queue_lag_ms ? `${Math.round(refreshStatus.max_queue_lag_ms / 1000)}s` : "0s"}</span>
           </div>
+          {refreshStatus.worker_health && (
+            <div className="mt-3 grid gap-2 text-[11px] text-muted sm:grid-cols-4" aria-label="Worker health findings">
+              {refreshStatus.worker_health.map((finding) => {
+                const tone = finding.state === "critical" ? "text-red-700" : finding.state === "warning" ? "text-amber-700" : finding.state === "normal" ? "text-emerald-700" : "text-faint";
+                const value = finding.value === null ? "N/A" : finding.unit === "ratio" ? `${Math.round(finding.value * 100)}%` : finding.unit === "minutes" ? `${Math.round(finding.value * 10) / 10}m` : fmt(finding.value);
+                return <span key={finding.metric} className={tone}>{finding.metric.replaceAll("_", " ")}: {finding.state.replaceAll("_", " ")} · {value}</span>;
+              })}
+            </div>
+          )}
           {refreshStatus.status === "degraded" && <p className="mt-2 text-[11px] text-amber-700">Some derived-data jobs are queued, retrying, running, or failed. These metrics may be stale until the worker catches up.</p>}
           <p className="mt-2 text-[11px] text-faint">Worker metrics are bounded to the latest 100 workspace jobs; no job is evidence of no customer activity.</p>
         </div>
@@ -2280,6 +2339,7 @@ function ProtocolSignalPanel({
   const rows = [
     ["Progress", signals.progress],
     ["Catalog changed", signals.catalog_changed],
+    ["Resource changed", signals.resource_changed],
     ["Subscriptions started", signals.subscription_started],
     ["Subscriptions stopped", signals.subscription_stopped],
     ["Other notifications", signals.notification],
@@ -2365,6 +2425,7 @@ function AttentionPanel({
   analytics: Analytics;
   onViewChange: (view: View) => void;
 }) {
+  // Legacy insight payloads intentionally retain the fallback wording: confidence: not provided.
   const insufficient =
     analytics.total_events === 0 || analytics.tool_calls === 0;
   return (
@@ -2399,10 +2460,9 @@ function AttentionPanel({
                       {insight.detail}
                     </p>
                     <p className="mt-2 text-[11px] text-muted">
-                      Evidence basis: API insight · threshold: not provided ·
-                      eligible volume: not provided · confidence: not provided ·{" "}
-                      {insight.metric}
+                      Evidence basis: API insight · affected volume: {insight.affected_volume == null ? "not provided" : fmt(insight.affected_volume)} · confidence: {insight.confidence || "not provided"} · {insight.metric}
                     </p>
+                    {insight.suggested_action && <p className="mt-2 text-[11px] leading-relaxed text-muted"><strong>Suggested next step:</strong> {insight.suggested_action}</p>}
                   </div>
                 </div>
               </div>
@@ -2460,6 +2520,23 @@ function JourneysView({
         actions={pageControls}
       />
       <DataSourceStrip dataMode={dataMode} hasMyData={hasMyData} view="journeys" />
+      {analytics.journey_activity && <>
+        <div className="mb-6 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+          <Kpi label="Interactions" value={fmt(analytics.journey_activity.interaction_count)} icon={Route} helper="Bounded observed paths" />
+          <Kpi label="Typical journey length" value={analytics.journey_activity.typical_journey_length == null ? "N/A" : fmt(analytics.journey_activity.typical_journey_length)} icon={ListChecks} helper="Median observed tool steps" />
+          <Kpi label="Waiting for input" value={fmt(analytics.journey_activity.stalled_interactions)} icon={Info} helper="Explicit input-required states" />
+          <Kpi label="Resumed after stall" value={fmt(analytics.journey_activity.resumed_after_stall)} icon={RotateCcw} helper="Observed retry evidence" />
+        </div>
+        <div className="mb-6 grid gap-6 xl:grid-cols-2">
+          <Panel title="Common paths" subtitle="Observed tool sequences, not a complete multi-server business journey">
+            <div className="divide-y divide-line">{analytics.journey_activity.common_paths.length ? analytics.journey_activity.common_paths.map((path) => <div key={path.path.join("|")} className="py-3"><div className="flex items-center justify-between gap-3"><p className="text-xs text-ink">{path.path.join(" → ")}</p><span className="text-xs text-muted">{fmt(path.interactions)} · {path.share == null ? "N/A" : `${Math.round(path.share * 100)}%`}</span></div></div>) : <StateNote title="No common paths yet" body="No multi-step tool interactions were observed in this period." />}</div>
+          </Panel>
+          <Panel title="Where paths stop" subtitle="Only explicit error or input-required evidence is classified">
+            <div className="divide-y divide-line">{analytics.journey_activity.drop_off.length ? analytics.journey_activity.drop_off.map((path) => <div key={path.path.join("|")} className="py-3"><p className="text-xs text-ink">{path.path.join(" → ")}</p><p className="mt-1 text-[11px] capitalize text-muted">{path.terminal_evidence.replaceAll("_", " ")} · {fmt(path.interactions)} interactions</p></div>) : <StateNote title="No path-stop evidence yet" body="A missing terminal event is not treated as abandonment." />}</div>
+          </Panel>
+        </div>
+        <p className="mb-6 text-[11px] leading-relaxed text-faint">{analytics.journey_activity.limitation}</p>
+      </>}
       <Panel
         title="Explicit workflow outcomes"
         subtitle={
@@ -2490,6 +2567,7 @@ function JourneysView({
                 <th className="pb-3">Started</th>
                 <th className="pb-3">Completed</th>
                 <th className="pb-3">Failed</th>
+                <th className="pb-3">Unresolved</th>
                 <th className="pb-3">Completion</th>
               </tr>
             </thead>
@@ -2503,6 +2581,9 @@ function JourneysView({
                   <td className="py-4 text-muted">{fmt(outcome.completed)}</td>
                   <td className="py-4 text-muted">{fmt(outcome.failed)}</td>
                   <td className="py-4 text-muted">
+                    {fmt(outcome.unresolved)}
+                  </td>
+                  <td className="py-4 text-muted">
                     {outcome.started
                       ? percent(outcome.completed / outcome.started)
                       : "N/A"}
@@ -2515,6 +2596,13 @@ function JourneysView({
             <p className="py-8 text-sm text-muted">
               No explicit workflow outcome data. Sessions are not completion
               evidence.
+            </p>
+          )}
+          {analytics.outcomes.length > 0 && totals.unresolved > 0 && (
+            <p className="mt-3 text-[11px] leading-relaxed text-muted">
+              Unresolved means an explicit workflow start has no matching
+              completed or failed terminal event. It is not abandonment and
+              does not infer why a workflow stopped.
             </p>
           )}
         </div>
@@ -2561,6 +2649,47 @@ function JourneysView({
           </div>
         </Panel>
       </div>
+      <div className="mt-6">
+        <Panel
+          title="Async task evidence"
+          subtitle="Explicit task states observed by the server; opaque handles protect task identifiers"
+        >
+          {analytics.founder_os?.tasks?.length ? (
+            <div className="overflow-x-auto" role="region" aria-label="Async task evidence">
+              <table className="w-full min-w-[720px] text-left text-sm">
+                <thead className="border-b border-line text-[10px] font-semibold uppercase tracking-[0.08em] text-faint">
+                  <tr>
+                    <th className="pb-3">Task handle</th>
+                    <th className="pb-3">Latest state</th>
+                    <th className="pb-3">Observations</th>
+                    <th className="pb-3">Evidence</th>
+                    <th className="pb-3">Last observed</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-line">
+                  {analytics.founder_os.tasks.map((task) => (
+                    <tr key={task.task_id_hash}>
+                      <td className="py-3 font-mono text-xs text-ink">{task.task_id_hash.slice(0, 12)}…</td>
+                      <td className="py-3 capitalize text-muted">{task.state.replaceAll("_", " ")}</td>
+                      <td className="py-3 text-muted">{fmt(task.observations)}</td>
+                      <td className="py-3 capitalize text-muted">{task.evidence_quality.replaceAll("_", " ")}</td>
+                      <td className="py-3 text-muted">{fmtObservedAt(task.last_observed_at)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+              <p className="mt-3 text-[11px] leading-relaxed text-muted">
+                A task reaching a protocol terminal state does not prove that a customer&apos;s business goal succeeded. Missing task events are not classified as abandonment.
+              </p>
+            </div>
+          ) : (
+            <StateNote
+              title="No explicit task evidence"
+              body="TrackMCP will show a task here only when the server emits a bounded task identifier and an explicit state. No task row does not mean that work was abandoned."
+            />
+          )}
+        </Panel>
+      </div>
     </div>
   );
 }
@@ -2586,6 +2715,42 @@ function CapabilitiesView({
         actions={pageControls}
       />
       <DataSourceStrip dataMode={dataMode} hasMyData={hasMyData} view="capabilities" />
+      {analytics.capability_activity && (
+        <>
+          <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+            <Kpi label="Total tool calls" value={fmt(analytics.capability_activity.total_calls)} icon={Activity} helper={`${analytics.range_days} day window`} />
+            <Kpi label="Previous period" value={fmt(analytics.capability_activity.previous_period_calls)} icon={TrendingUp} helper="Same-length comparison" />
+            <Kpi label="Overall error rate" value={analytics.capability_activity.overall_error_rate === null ? "N/A" : percent(analytics.capability_activity.overall_error_rate)} icon={ShieldCheck} helper="Explicit call errors" />
+            <Kpi label="Avg tools per account" value={analytics.capability_activity.avg_tools_used_per_account === null ? "N/A" : analytics.capability_activity.avg_tools_used_per_account.toFixed(1)} icon={Blocks} helper={`of ${fmt(analytics.capability_activity.advertised_tools)} advertised`} />
+          </div>
+          <div className="mt-4 grid gap-4 xl:grid-cols-[1.1fr_0.9fr]">
+            <Panel title="Feature leaderboard" subtitle="Which capabilities are carrying the observed activity">
+              <div className="space-y-3">
+                {analytics.tools.slice(0, 8).map((tool) => {
+                  const share = analytics.tool_calls ? tool.calls / analytics.tool_calls : 0;
+                  return <div key={tool.name} className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3"><div className="min-w-0"><div className="flex justify-between gap-3 text-sm"><span className="truncate font-mono text-xs text-ink">{tool.name}</span><span className="text-muted">{fmt(tool.calls)}</span></div><div className="mt-1 h-2 bg-paper"><div className="h-full bg-brand" style={{ width: `${Math.min(100, share * 100)}%` }} /></div></div><span className="text-xs text-faint">{percent(share)}</span></div>;
+                })}
+                {!analytics.tools.length && <p className="py-6 text-sm text-muted">No tool calls were observed in this period.</p>}
+              </div>
+            </Panel>
+            <Panel title="Adoption breadth" subtitle="How many distinct tools resolver-linked accounts used">
+              <div className="space-y-3">
+                {analytics.capability_activity.adoption_distribution.map((item) => <div key={item.bucket} className="flex items-center justify-between border-b border-line pb-2 text-sm"><span className="text-ink">{item.bucket}</span><span className="text-muted">{fmt(item.accounts)} accounts</span></div>)}
+              </div>
+              <p className="mt-4 text-xs leading-relaxed text-faint">Accounts without a configured resolver are excluded from this distribution rather than grouped into a fabricated customer.</p>
+            </Panel>
+          </div>
+          <div className="mt-4 grid gap-4 xl:grid-cols-[1.1fr_0.9fr]">
+            <Panel title="Trend by feature" subtitle="Weekly observed calls for the highest-volume tools">
+              {analytics.capability_activity.trend.length ? <div className="grid grid-cols-2 gap-2 sm:grid-cols-4 lg:grid-cols-7">{analytics.capability_activity.trend.slice(-14).map((point, index) => <div key={`${point.period_start}-${point.tool_name}-${index}`} className="border border-line bg-surface px-3 py-3"><p className="text-[10px] text-faint">{point.period_start.slice(5)}</p><p className="mt-1 truncate font-mono text-[10px] text-ink">{point.tool_name}</p><p className="mt-1 text-xl font-semibold text-ink">{fmt(point.calls)}</p></div>)}</div> : <p className="py-6 text-sm text-muted">No trend evidence is available.</p>}
+            </Panel>
+            <Panel title="Reliability by tool" subtitle="Errors and input-required responses are separate signals">
+              <div className="max-h-64 overflow-y-auto"><table className="w-full text-left text-xs"><thead className="border-b border-line text-[10px] uppercase tracking-[0.08em] text-faint"><tr><th className="pb-2">Tool</th><th className="pb-2">Error</th><th className="pb-2">Input required</th></tr></thead><tbody className="divide-y divide-line">{analytics.capability_activity.reliability.slice(0, 12).map((item) => <tr key={item.tool_name}><td className="max-w-[150px] truncate py-2 font-mono text-ink">{item.tool_name}</td><td className="py-2 text-muted">{item.error_rate === null ? "N/A" : percent(item.error_rate)}</td><td className="py-2 text-muted">{item.input_required_rate === null ? "N/A" : percent(item.input_required_rate)}</td></tr>)}</tbody></table></div>
+            </Panel>
+          </div>
+          <p className="mt-3 text-xs leading-relaxed text-faint">{analytics.capability_activity.limitation}</p>
+        </>
+      )}
       <div className="grid gap-3 sm:grid-cols-3">
         <Kpi
           label="Capabilities observed"
@@ -2606,10 +2771,19 @@ function CapabilitiesView({
           helper="Catalog comparison"
         />
       </div>
-      {analytics.interaction_surfaces && (
-        <div className="mt-6">
-          <InteractionSurfacePanel surfaces={analytics.interaction_surfaces} />
-        </div>
+      {analytics.tool_adoption && (
+        <section className="mt-4 border border-line bg-white p-4 sm:p-5" aria-label="Capability adoption breadth">
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div>
+              <p className="dashboard-label text-faint">Capability breadth</p>
+              <h3 className="mt-1 text-sm font-semibold text-ink">How much of the advertised surface was observed in use</h3>
+              <p className="mt-1 text-xs leading-relaxed text-muted">This compares bounded catalog observations with observed tool names. It is not a user adoption or business demand score.</p>
+            </div>
+            <span className="text-2xl font-semibold text-ink">{analytics.tool_adoption.breadth === null ? "N/A" : percent(analytics.tool_adoption.breadth)}</span>
+          </div>
+          <div className="mt-4 h-2 overflow-hidden bg-paper"><div className="h-full bg-brand" style={{ width: `${Math.min(100, Math.max(0, (analytics.tool_adoption.breadth || 0) * 100))}%` }} /></div>
+          <p className="mt-2 text-[11px] text-faint">{fmt(analytics.tool_adoption.observed)} of {fmt(analytics.tool_adoption.advertised)} advertised capabilities observed · {fmt(analytics.tool_adoption.unused)} not observed</p>
+        </section>
       )}
       <CatalogHistoryPanel
         versions={analytics.catalog_versions || []}
@@ -2682,6 +2856,71 @@ function CapabilitiesView({
           </div>
         </Panel>
       </div>
+    </div>
+  );
+}
+
+function ResourcesPromptsView({
+  analytics,
+  dataMode,
+  hasMyData,
+  pageControls,
+}: {
+  analytics: Analytics;
+  dataMode: DataMode;
+  hasMyData: boolean;
+  pageControls: ReactNode;
+}) {
+  const surfaces = analytics.interaction_surfaces;
+  const activity = analytics.resource_prompt_activity;
+  const rows = surfaces ? ([
+    ["Resources", surfaces.resources],
+    ["Prompts", surfaces.prompts],
+  ] as const) : [];
+  const observedEvents = rows.reduce((total, [, surface]) => total + surface.events, 0);
+  const observedEntities = rows.reduce((total, [, surface]) => total + surface.entity_count, 0);
+  const successfulReads = rows.reduce((total, [, surface]) => total + surface.entity_analytics.successful_reads, 0);
+  return (
+    <div>
+      <PageIntro title="Resources & prompts" description="See the non-tool surfaces your MCP exposes and the reads observed at its server boundary." actions={pageControls} />
+      <DataSourceStrip dataMode={dataMode} hasMyData={hasMyData} view="resources" />
+      <section className="mb-6 border border-line bg-white p-4 sm:p-5" aria-label="Resources and prompts evidence boundary">
+        <p className="dashboard-label text-faint">Evidence boundary</p>
+        <p className="mt-1 max-w-3xl text-xs leading-relaxed text-muted">TrackMCP reports bounded method observations and hashed entity counts. It does not expose resource contents, prompt arguments, unique people, or business completion from these signals.</p>
+      </section>
+      <div className="grid gap-3 sm:grid-cols-3">
+        <Kpi label="Resource reads" value={activity ? fmt(activity.resource_reads) : "N/A"} icon={FileText} helper={activity ? `${fmt(activity.previous_period_resource_reads)} previous period` : "Awaiting evidence"} />
+        <Kpi label="Prompt calls" value={activity ? fmt(activity.prompt_calls) : "N/A"} icon={Activity} helper={activity ? `${fmt(activity.previous_period_prompt_calls)} previous period` : "Awaiting evidence"} />
+        <Kpi label="Prompt completion" value={activity?.prompt_completion_rate == null ? "N/A" : `${Math.round(activity.prompt_completion_rate * 100)}%`} icon={Check} helper={activity?.prompt_stall_rate == null ? "Explicit outcome evidence only" : `${Math.round(activity.prompt_stall_rate * 100)}% needs input`} />
+      </div>
+      <div className="mt-3 grid gap-3 sm:grid-cols-3">
+        <Kpi label="Observed events" value={surfaces ? fmt(observedEvents) : "N/A"} icon={Activity} helper="Resource and prompt method events" />
+        <Kpi label="Hashed entities" value={surfaces ? fmt(observedEntities) : "N/A"} icon={FileText} helper="Bounded, non-reversible identities" />
+        <Kpi label="Read success" value={surfaces ? fmt(successfulReads) : "N/A"} icon={Check} helper="Durable read projection only" />
+      </div>
+      {activity && <div className="mt-6 grid gap-6 xl:grid-cols-2">
+        {[["Top resources", activity.resource_breakdown, "Resource method"], ["Top prompts", activity.prompt_breakdown, "Prompt method"]].map(([title, items, label]) => (
+          <Panel key={String(title)} title={String(title)} subtitle="Safe method dimensions only; raw names and inputs are never shown">
+            <div className="space-y-3">{(items as Array<{ name: string; calls: number; share: number | null; completion_rate?: number | null; stall_rate?: number | null }>).length ? (items as Array<{ name: string; calls: number; share: number | null; completion_rate?: number | null; stall_rate?: number | null }>).map((item) => <div key={item.name} className="border border-line bg-paper p-3"><div className="flex items-center justify-between gap-3"><span className="text-xs font-medium text-ink">{item.name}</span><span className="text-xs text-muted">{fmt(item.calls)} calls</span></div><div className="mt-2 h-1.5 bg-line"><div className="h-full bg-brand" style={{ width: `${Math.max(4, Math.round((item.share || 0) * 100))}%` }} /></div>{item.completion_rate != null && <p className="mt-2 text-[11px] text-muted">{Math.round(item.completion_rate * 100)}% complete · {Math.round((item.stall_rate || 0) * 100)}% needs input</p>}</div>) : <StateNote title={`No ${String(label).toLowerCase()} evidence yet`} body="No qualifying events were observed in this period." />}</div>
+          </Panel>
+        ))}
+      </div>}
+      {activity && <Panel title="Activity trend" subtitle="Weekly observed calls; a missing week is not evidence of abandonment"><div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">{activity.trend.slice(-12).map((item) => <div key={`${item.period_start}-${item.kind}-${item.name}`} className="border border-line bg-paper p-3"><p className="text-[10px] uppercase tracking-[0.08em] text-faint">{item.period_start} · {item.kind}</p><p className="mt-1 text-xs text-ink">{item.name}</p><p className="mt-1 text-lg font-semibold text-ink">{fmt(item.calls)}</p></div>)}</div><p className="mt-3 text-[11px] text-faint">{activity.limitation}</p></Panel>}
+      <div className="mt-6 grid gap-6 xl:grid-cols-2">
+        {rows.map(([label, surface]) => (
+          <Panel key={label} title={label} subtitle="Method and read evidence, never content">
+            <div className="grid gap-3 sm:grid-cols-2">
+              <div className="border border-line bg-paper p-3"><p className="text-xs text-muted">Method events</p><p className="mt-1 text-2xl font-semibold text-ink">{fmt(surface.events)}</p><p className="mt-1 text-[11px] text-muted">{surface.methods.length ? surface.methods.join(", ") : "No methods observed in this window."}</p></div>
+              <div className="border border-line bg-paper p-3"><p className="text-xs text-muted">Hashed entities</p><p className="mt-1 text-2xl font-semibold text-ink">{fmt(surface.entity_count)}</p><p className="mt-1 text-[11px] text-muted">SHA-256 hash counts; no URI, content, or input is shown.</p></div>
+            </div>
+            <div className="mt-4 grid grid-cols-2 gap-2 text-xs sm:grid-cols-4">
+              {[["Reads", surface.entity_analytics.read_events], ["Successful", surface.entity_analytics.successful_reads], ["Failed", surface.entity_analytics.failed_reads], ["Needs input", surface.entity_analytics.input_required_reads]].map(([metric, value]) => <div key={String(metric)} className="border border-line bg-white p-3"><p className="text-muted">{metric}</p><p className="mt-1 font-semibold text-ink">{fmt(Number(value))}</p></div>)}
+            </div>
+            <p className="mt-3 text-[10px] uppercase tracking-[0.08em] text-faint">{surface.entity_analytics.status === "available" ? "Durable read projection" : surface.entity_analytics.status === "no_rows" ? "No durable reads in this window" : "Durable read schema unavailable"}</p>
+          </Panel>
+        ))}
+      </div>
+      {!rows.length && <StateNote title="No resource or prompt evidence yet" body="This workspace has not reported resource or prompt methods in the selected period. That is an evidence state, not proof that the server has no resources or prompts." />}
     </div>
   );
 }
@@ -2937,6 +3176,16 @@ function OutcomeEvidencePanel({ analytics }: { analytics: Analytics }) {
       <p className="mt-4 border-t border-line pt-3 text-[11px] leading-relaxed text-muted">
         Evidence source: {analytics.completion_source === "workflow_events" ? "explicit workflow events" : analytics.completion_source === "session_heuristic" ? "session-derived activity (not used for the completion KPI)" : "no explicit outcome events"}. Unknown and not-observable outcomes remain separate from failure.
       </p>
+      {analytics.outcome_activity && <div className="mt-5 border-t border-line pt-5">
+        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+          <Kpi label="Completed" value={fmt(analytics.outcome_activity.completed)} icon={Check} helper="Explicit semantic evidence" />
+          <Kpi label="Failed" value={fmt(analytics.outcome_activity.failed)} icon={AlertTriangle} helper="Explicit semantic evidence" />
+          <Kpi label="Pending" value={fmt(analytics.outcome_activity.pending)} icon={Info} helper="Explicitly still in progress" />
+          <Kpi label="Unknown" value={fmt(analytics.outcome_activity.unknown + analytics.outcome_activity.not_observable)} icon={Info} helper="Not silently classified" />
+        </div>
+        <div className="mt-4 grid gap-2 sm:grid-cols-2 lg:grid-cols-4">{analytics.outcome_activity.trend.slice(-8).map((item) => <div key={item.period_start} className="border border-line bg-paper p-3"><p className="text-[10px] uppercase tracking-[0.08em] text-faint">{item.period_start}</p><p className="mt-1 text-xs text-ink">{fmt(item.completed)} complete · {fmt(item.failed)} failed</p><p className="mt-1 text-[11px] text-muted">{fmt(item.pending)} pending · {fmt(item.unknown)} unknown</p></div>)}</div>
+        <p className="mt-3 text-[11px] leading-relaxed text-faint">{analytics.outcome_activity.limitation}</p>
+      </div>}
     </Panel>
   );
 }
@@ -2999,6 +3248,12 @@ function IssuesView({
         description="Review what deserves attention next, ordered by evidence strength and affected volume."
       />
       <DataSourceStrip dataMode={dataMode} hasMyData={hasMyData} view="issues" />
+      {analytics.issue_activity && <div className="mb-6 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        <Kpi label="Actionable signals" value={fmt(analytics.issue_activity.actionable_signals)} icon={AlertTriangle} helper="Bounded rules with evidence" />
+        <Kpi label="High confidence" value={fmt(analytics.issue_activity.high_confidence_signals)} icon={ShieldCheck} helper="Evidence strength, not certainty" />
+        <Kpi label="Affected volume" value={analytics.issue_activity.affected_volume == null ? "N/A" : fmt(analytics.issue_activity.affected_volume)} icon={Users} helper="May overlap across signals" />
+        <Kpi label="Suggested actions" value={fmt(analytics.issue_activity.suggested_actions)} icon={ArrowRight} helper="Investigation next steps" />
+      </div>}
       <Panel
         title="Regression incidents"
         subtitle={
@@ -3057,6 +3312,7 @@ function IssuesView({
           </div>
         )}
       </Panel>
+      {analytics.issue_activity && <p className="mt-4 text-[11px] leading-relaxed text-faint">{analytics.issue_activity.limitation}</p>}
       <Panel
         title="Needs attention"
         subtitle="Observed signals and regression incidents remain separate evidence types"
@@ -3077,10 +3333,9 @@ function IssuesView({
                 {insight.detail}
               </p>
               <p className="mt-3 text-[11px] text-muted">
-                Evidence basis: API insight · threshold: not provided · affected
-                volume: not provided · confidence: not provided · metric:{" "}
-                {insight.metric}
+                Evidence basis: API insight · affected volume: {insight.affected_volume == null ? "not provided" : fmt(insight.affected_volume)} · confidence: {insight.confidence || "not provided"} · metric: {insight.metric}
               </p>
+              {insight.suggested_action && <p className="mt-2 text-[11px] leading-relaxed text-muted"><strong>Suggested next step:</strong> {insight.suggested_action}</p>}
             </div>
           ))}
           {insufficient.map((tool) => (
@@ -3305,8 +3560,77 @@ function ClientsView({
         actions={pageControls}
       />
       <DataSourceStrip dataMode={dataMode} hasMyData={hasMyData} view="clients" />
+      {analytics.who_is_using_it && (
+        <>
+          <div className="mb-6 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+            <Kpi
+              label="Active accounts this period"
+              value={fmt(analytics.who_is_using_it.active_accounts)}
+              icon={Users}
+              helper={`${analytics.range_days} day window`}
+            />
+            <Kpi
+              label="New accounts"
+              value={analytics.who_is_using_it.new_accounts === null ? "N/A" : fmt(analytics.who_is_using_it.new_accounts)}
+              icon={Sparkles}
+              helper="First observed in this window"
+            />
+            <Kpi
+              label="Returning accounts"
+              value={analytics.who_is_using_it.returning_accounts === null ? "N/A" : fmt(analytics.who_is_using_it.returning_accounts)}
+              icon={RotateCcw}
+              helper="Observed before this window"
+            />
+            <Kpi
+              label="Previous period"
+              value={fmt(analytics.who_is_using_it.previous_period_active_accounts)}
+              icon={TrendingUp}
+              helper="Same-length comparison window"
+            />
+          </div>
+          <div className="mb-6 grid gap-4 xl:grid-cols-[1.25fr_0.75fr]">
+            <Panel title="Growth over time" subtitle="Distinct resolver-linked accounts observed per day">
+              {analytics.who_is_using_it.growth.length ? (
+                <div className="grid grid-cols-2 gap-2 sm:grid-cols-4 lg:grid-cols-7">
+                  {analytics.who_is_using_it.growth.slice(-14).map((point) => (
+                    <div key={point.period_start} className="border border-line bg-surface px-3 py-3">
+                      <p className="text-[10px] text-faint">{point.period_start.slice(5)}</p>
+                      <p className="mt-1 text-xl font-semibold text-ink">{fmt(point.active_accounts)}</p>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="py-6 text-sm text-muted">No account activity was observed in this period.</p>
+              )}
+              <p className="mt-4 text-xs leading-relaxed text-faint">This is account activity, not a count of people. Accounts are only counted when the server supplied a resolver-linked identity.</p>
+            </Panel>
+            <Panel title="Who’s connecting" subtitle="Optional client metadata reported by the AI tool">
+              <div className="space-y-3">
+                {analytics.who_is_using_it.client_breakdown.map((client) => (
+                  <div key={client.name} className="flex items-center justify-between gap-3 text-sm">
+                    <span className="truncate text-ink">{client.name}</span>
+                    <span className="shrink-0 text-muted">{client.share === null ? "N/A" : percent(client.share)} · {fmt(client.calls)}</span>
+                  </div>
+                ))}
+                {!analytics.who_is_using_it.client_breakdown.length && <p className="py-4 text-sm text-muted">No client metadata was observed.</p>}
+              </div>
+              <p className="mt-4 border border-brand/20 bg-brand-soft/30 px-3 py-2.5 text-xs leading-relaxed text-body">Client names are self-reported by the AI tool. Unknown client remains visible when it has volume.</p>
+            </Panel>
+          </div>
+          <Panel title="Top accounts by activity" subtitle="Ranked resolver-linked activity; account names are intentionally not exposed">
+            {analytics.who_is_using_it.top_accounts.length ? (
+              <table className="w-full text-left text-sm">
+                <thead className="border-b border-line text-[10px] font-semibold uppercase tracking-[0.08em] text-faint"><tr><th className="pb-3">Rank</th><th className="pb-3">Activity</th><th className="pb-3">Active days</th><th className="pb-3">Identity</th></tr></thead>
+                <tbody className="divide-y divide-line">{analytics.who_is_using_it.top_accounts.map((account) => <tr key={account.rank}><td className="py-3 font-medium text-ink">#{account.rank}</td><td className="py-3 text-muted">{fmt(account.activity_count)} events</td><td className="py-3 text-muted">{fmt(account.active_days)}</td><td className="py-3 text-muted">Resolver-linked</td></tr>)}</tbody>
+              </table>
+            ) : <p className="py-6 text-sm text-muted">No resolver-linked accounts were observed in this period.</p>}
+            <p className="mt-4 text-xs leading-relaxed text-faint">MCP does not define customer accounts. Names can only be shown when a customer configures a verified identity resolver; raw resolver keys never leave the server.</p>
+          </Panel>
+          {analytics.who_is_using_it.classification_status === "insufficient_data" && <p className="mt-3 text-xs text-warning">New versus returning account counts are unavailable because the bounded history scan was incomplete.</p>}
+        </>
+      )}
       {analytics.account_summary && (
-        <div className="mb-6 grid gap-3 sm:grid-cols-3">
+        <div className="mb-6 grid gap-3 sm:grid-cols-3 xl:grid-cols-5">
           <Kpi
             label="Observed account signals"
             value={fmt(analytics.account_summary.observed_account_keys)}
@@ -3325,7 +3649,37 @@ function ClientsView({
             icon={Search}
             helper="Kept visible; not classified as customers"
           />
+          <Kpi
+            label="Active in last 7 days"
+            value={fmt(analytics.account_summary.active_account_keys_7d)}
+            icon={Activity}
+            helper="Observed resolver-linked keys"
+          />
+          <Kpi
+            label="Returning account signals"
+            value={fmt(analytics.account_summary.returning_account_keys)}
+            icon={Route}
+            helper="Seen on more than one day"
+          />
         </div>
+      )}
+      {analytics.account_summary && (
+        <Panel title="Account activity shape" subtitle="Privacy-safe usage bands; no account names or raw identifiers are shown">
+          <div className="grid gap-3 sm:grid-cols-3">
+            {[
+              ["One-event signals", analytics.account_summary.account_activity_bands.one_event, "Accounts observed once"],
+              ["Repeat signals", analytics.account_summary.account_activity_bands.repeat, "2–9 observed events"],
+              ["High-activity signals", analytics.account_summary.account_activity_bands.high_activity, "10+ observed events"],
+            ].map(([label, value, helper]) => (
+              <div key={String(label)} className="border border-line bg-surface px-4 py-3">
+                <p className="text-xs font-medium text-muted">{label}</p>
+                <p className="mt-1 text-2xl font-semibold tracking-tight text-ink">{fmt(Number(value))}</p>
+                <p className="mt-1 text-[11px] text-faint">{helper}</p>
+              </div>
+            ))}
+          </div>
+          <p className="mt-4 text-xs leading-relaxed text-muted">These are bounded activity signals, not unique people, companies, or verified customers. Resolver coverage and the selected date range limit what can be inferred.</p>
+        </Panel>
       )}
       <Panel
         title="AI clients observed"
@@ -3593,8 +3947,16 @@ function SetupView({
         event_persisted?: boolean;
         privacy_policy_applied?: boolean;
         account_resolver_observed?: boolean | null;
+        deployment_linked?: boolean;
       };
-      first_event?: { observed_at?: string | null; ingestion_lag_seconds?: number | null } | null;
+      readiness?: {
+        required_completed?: number;
+        required_total?: number;
+        required_percentage?: number;
+        optional_identity?: boolean | null;
+        identity_required?: boolean;
+      };
+      first_event?: { observed_at?: string | null; event_id_present?: boolean; event_type?: string | null; service?: string | null; environment?: string | null; ingestion_lag_seconds?: number | null } | null;
       caveat?: string;
       next_steps?: string[];
     };
@@ -3694,6 +4056,7 @@ function SetupView({
     ["Event persisted", contractChecks?.event_persisted ?? (analytics ? analytics.total_events > 0 : null)],
     ["Privacy policy applied", contractChecks?.privacy_policy_applied ?? (analytics ? analytics.total_events > 0 : null)],
     ["Identity resolved", identityResolved],
+    ["Deployment linkage observed", contractChecks?.deployment_linked ?? null],
   ] as const;
   const copy = async () => {
     try {
@@ -3738,6 +4101,11 @@ function SetupView({
                   : `${Math.floor(activeSetupContract.setup.first_event.ingestion_lag_seconds / 60)}m`}
               </p>
             )}
+            {activeSetupContract?.setup?.first_event && (
+              <p className="mt-2 text-[11px] text-faint">
+                First event scope: {activeSetupContract.setup.first_event.service || "service not reported"} · {activeSetupContract.setup.first_event.environment || "environment not reported"}
+              </p>
+            )}
           </div>
           <span className={"inline-flex items-center gap-2 border px-3 py-2 text-xs font-semibold " + stateCopy[3]}>
             <span className={"h-2 w-2 rounded-full " + stateCopy[4]} aria-hidden="true" />
@@ -3754,6 +4122,22 @@ function SetupView({
             </div>
           ))}
         </div>
+        {activeSetupContract?.setup?.readiness && (
+          <div className="mt-5 border-t border-line pt-4" aria-label="Setup readiness">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <p className="text-xs font-semibold text-ink">Required setup evidence</p>
+              <p className="text-xs font-medium text-muted">
+                {activeSetupContract.setup.readiness.required_completed ?? 0}/{activeSetupContract.setup.readiness.required_total ?? 0} checks · {activeSetupContract.setup.readiness.required_percentage ?? 0}%
+              </p>
+            </div>
+            <div className="mt-2 h-2 overflow-hidden bg-paper" role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={activeSetupContract.setup.readiness.required_percentage ?? 0}>
+              <div className="h-full bg-brand transition-[width]" style={{ width: `${Math.min(100, Math.max(0, activeSetupContract.setup.readiness.required_percentage ?? 0))}%` }} />
+            </div>
+            <p className="mt-2 text-[11px] leading-relaxed text-muted">
+              Identity resolution is optional and does not block a connected state. The percentage reflects only key, event, MCP method, transport, and privacy-policy evidence.
+            </p>
+          </div>
+        )}
         {connectionState === "error" && (
           <button
             type="button"
@@ -3772,6 +4156,15 @@ function SetupView({
           <div className="grid gap-3 sm:grid-cols-2">
             <ScopeValue label="Observed server" values={analytics.services} empty="No service name observed yet" />
             <ScopeValue label="Observed environment" values={analytics.environments} empty="No environment observed yet" />
+            <div className="border border-line bg-paper p-3 sm:col-span-2">
+              <p className="dashboard-label text-faint">Deployment linkage</p>
+              <p className="mt-2 text-sm font-semibold text-ink">
+                {analytics.deployment_summary ? `${fmt(analytics.deployment_summary.observed_deployments)} observed deployment signals` : "No deployment linkage observed yet"}
+              </p>
+              <p className="mt-2 text-[11px] leading-relaxed text-muted">
+                {analytics.deployment_summary ? `${fmt(analytics.deployment_summary.linked_events)} events carried bounded deployment linkage. This is not deployment health or release status.` : "The server has not supplied a bounded deployment identifier in this window."}
+              </p>
+            </div>
           </div>
         ) : (
           <StateNote
@@ -4347,8 +4740,9 @@ function explicitOutcomeTotals(analytics: Analytics) {
       started: total.started + outcome.started,
       completed: total.completed + outcome.completed,
       failed: total.failed + outcome.failed,
+      unresolved: total.unresolved + outcome.unresolved,
     }),
-    { started: 0, completed: 0, failed: 0 },
+    { started: 0, completed: 0, failed: 0, unresolved: 0 },
   );
 }
 function metricValue(value: number | null | undefined) {

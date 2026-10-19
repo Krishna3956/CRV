@@ -10,7 +10,7 @@ test("every Founder OS v2 read surface uses the shared provenance envelope", asy
   const expected = [
     "action-queue/handlers.ts", "catalogs/handlers.ts", "data-trust/handlers.ts", "journeys/handlers.ts",
     "outcomes/handlers.ts", "overview/handlers.ts", "people/handlers.ts", "prompts/handlers.ts",
-    "reliability/handlers.ts", "resources/handlers.ts", "setup/handlers.ts", "tools/[name]/handlers.ts", "tools/handlers.ts",
+    "reliability/handlers.ts", "resources/handlers.ts", "setup/handlers.ts", "tasks/handlers.ts", "tools/[name]/handlers.ts", "tools/handlers.ts",
   ];
   assert.deepEqual(files.map((file) => file.replace(/^src\/app\/api\/v2\//, "")), expected);
   for (const file of files) {

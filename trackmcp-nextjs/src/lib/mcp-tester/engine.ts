@@ -29,6 +29,8 @@ import type {
 } from "./types.ts";
 
 export const DEFAULT_MCP_PROTOCOL_VERSION = "2025-06-18";
+/** The current MCP revision uses a stateless/discover flow that this legacy handshake tester does not execute yet. */
+export const MODERN_MCP_PROTOCOL_VERSION = "2026-07-28";
 export const DEFAULT_MCP_CLIENT_INFO = Object.freeze({ name: "TrackMCP Tester", version: "1.0.0" });
 export const DEFAULT_SUPPORTED_MCP_PROTOCOL_VERSIONS = Object.freeze(["2025-06-18", "2025-03-26", "2024-11-05"]);
 
@@ -150,8 +152,8 @@ export async function runMcpTester(options: McpTesterOptions): Promise<McpTester
     return buildEarlyReport(observedAt, startedMs, now, timeline, timelineTruncated, findings, phases, timings, "unsupported", limits, endpointValidation.safeEndpoint);
   }
   finishPhase("validate_headers", headerPhaseStart, "passed", record, phases, timings, now);
-
   const fetchImplementation = options.fetch;
+
   if (typeof fetchImplementation !== "function") {
     addFinding("fetch_unavailable", "browser", "error", "This browser does not provide fetch for direct HTTPS testing.", "validate_endpoint");
     return buildEarlyReport(observedAt, startedMs, now, timeline, timelineTruncated, findings, phases, timings, "browser_blocked", limits, endpointValidation.safeEndpoint);
@@ -198,6 +200,82 @@ export async function runMcpTester(options: McpTesterOptions): Promise<McpTester
     resources: emptyCatalog<ResourceSummary>(),
     prompts: emptyCatalog<PromptSummary>(),
   };
+
+  if (options.protocolVersion === MODERN_MCP_PROTOCOL_VERSION) {
+    const modernStart = beginPhase("modern_discover", record, now);
+    const discovery = await sendMcpRequest({ fetch: fetchImplementation, endpoint: endpointValidation.requestUrl, customHeaders: [...headerValidation.entries, ["mcp-method", "server/discover"]], protocolVersion: MODERN_MCP_PROTOCOL_VERSION, requestId: 1, body: { jsonrpc: "2.0", id: 1, method: "server/discover", params: {} }, expectsResponse: true, limits, deadlineMs: startedMs + limits.maxTotalDurationMs, signal: options.signal, now, record, phase: "modern_discover" });
+    if (!discovery.ok) {
+      addFinding("modern_discovery_failed", "protocol", "error", "The endpoint did not complete the bounded 2026-07-28 server/discover request.", "modern_discover");
+      finishPhase("modern_discover", modernStart, "failed", record, phases, timings, now);
+      return buildEarlyReport(observedAt, startedMs, now, timeline, timelineTruncated, findings, phases, timings, "unsupported", limits, endpointValidation.safeEndpoint);
+    }
+    const result = isRecord(discovery.envelope?.result) ? discovery.envelope.result : undefined;
+    const serverInfo = result && isRecord(result.serverInfo) ? result.serverInfo : undefined;
+    const capabilities = result && isRecord(result.capabilities) ? result.capabilities : undefined;
+    const supportedVersions = result && Array.isArray(result.supportedVersions)
+      ? [...new Set(result.supportedVersions.filter((version): version is string => typeof version === "string" && version.length > 0 && version.length <= 32).map((version) => safeString(version, 32)).filter((version): version is string => Boolean(version)))].slice(0, 16)
+      : undefined;
+    if (!result) {
+      addFinding("modern_discovery_invalid", "protocol", "error", "The server/discover result was not a bounded MCP object.", "modern_discover");
+      finishPhase("modern_discover", modernStart, "failed", record, phases, timings, now);
+      return buildEarlyReport(observedAt, startedMs, now, timeline, timelineTruncated, findings, phases, timings, "protocol_error", limits, endpointValidation.safeEndpoint);
+    }
+    state.reachable = true;
+    state.authenticated = true;
+    state.protocolPassed = Boolean(supportedVersions?.includes(MODERN_MCP_PROTOCOL_VERSION));
+    state.incomplete = true;
+    state.protocol = { requestedVersion: MODERN_MCP_PROTOCOL_VERSION, ...(state.protocolPassed ? { negotiatedVersion: MODERN_MCP_PROTOCOL_VERSION } : {}), ...(supportedVersions === undefined ? {} : { supportedVersions }), clientName: state.clientName, clientVersion: state.clientVersion, sessionIdPresent: false };
+    if (supportedVersions === undefined) {
+      addFinding("modern_discovery_versions_missing", "protocol", "warning", "The server/discover response did not advertise supported protocol versions, so this probe cannot claim version negotiation.", "modern_discover");
+    } else if (!state.protocolPassed) {
+      state.protocolError = true;
+      addFinding("modern_version_not_advertised", "protocol", "error", "The server/discover response did not advertise the requested 2026-07-28 protocol revision.", "modern_discover", { requested_version: MODERN_MCP_PROTOCOL_VERSION });
+      finishPhase("modern_discover", modernStart, "failed", record, phases, timings, now);
+      state.incomplete = false;
+      return finalize(state, observedAt, addFinding);
+    }
+    state.server = { name: typeof serverInfo?.name === "string" ? safeString(serverInfo.name, limits.maxRenderedStringLength) : undefined, version: typeof serverInfo?.version === "string" ? safeString(serverInfo.version, limits.maxRenderedStringLength) : undefined };
+    state.identityPassed = Boolean(state.server.name && state.server.version);
+    const extensions = capabilities && isRecord(capabilities.extensions) ? capabilities.extensions : undefined;
+    state.capabilities = {
+      tools: Boolean(capabilities?.tools),
+      resources: Boolean(capabilities?.resources),
+      prompts: Boolean(capabilities?.prompts),
+      tasks: Boolean(extensions && isRecord(extensions["io.modelcontextprotocol/tasks"])),
+    };
+    state.resourcesAdvertised = state.capabilities.resources;
+    state.promptsAdvertised = state.capabilities.prompts;
+    if (state.capabilities.tools) {
+      const toolsResult = await discoverCatalog<ToolSummary>(state, "tools", "tools/list", "tools_list", true, addFinding, record, beginPhase, finishPhase);
+      state.tools = toolsResult.summary;
+      state.toolsPassed = !toolsResult.failure && toolsResult.summary.complete && !toolsResult.invalidResponse;
+      if (toolsResult.failure) applyFailure(state, toolsResult.failure, "tools_list", addFinding);
+      if (toolsResult.invalidResponse) state.protocolError = true;
+    } else {
+      skipPhase(state, "tools_list", record, beginPhase, finishPhase);
+    }
+    if (state.capabilities.resources) {
+      const resourcesResult = await discoverCatalog<ResourceSummary>(state, "resources", "resources/list", "resources_list", true, addFinding, record, beginPhase, finishPhase);
+      state.resources = resourcesResult.summary;
+      state.resourcesPassed = !resourcesResult.failure && resourcesResult.summary.complete && !resourcesResult.invalidResponse;
+      if (resourcesResult.failure) applyFailure(state, resourcesResult.failure, "resources_list", addFinding);
+      if (resourcesResult.invalidResponse) state.protocolError = true;
+    } else {
+      skipPhase(state, "resources_list", record, beginPhase, finishPhase);
+    }
+    if (state.capabilities.prompts) {
+      const promptsResult = await discoverCatalog<PromptSummary>(state, "prompts", "prompts/list", "prompts_list", true, addFinding, record, beginPhase, finishPhase);
+      state.prompts = promptsResult.summary;
+      state.promptsPassed = !promptsResult.failure && promptsResult.summary.complete && !promptsResult.invalidResponse;
+      if (promptsResult.failure) applyFailure(state, promptsResult.failure, "prompts_list", addFinding);
+      if (promptsResult.invalidResponse) state.protocolError = true;
+    } else {
+      skipPhase(state, "prompts_list", record, beginPhase, finishPhase);
+    }
+    addFinding("modern_discovery_partial", "protocol", "warning", "Modern server discovery and bounded tools, resources, and prompts catalogs completed where advertised. Advertised Tasks capability is recorded, but task negotiation, subscriptions, cache invalidation, and multi-round-trip checks are not implemented for this revision, so this report is incomplete.", "modern_discover", { protocolVersion: MODERN_MCP_PROTOCOL_VERSION, tasksAdvertised: state.capabilities.tasks === true });
+    finishPhase("modern_discover", modernStart, "incomplete", record, phases, timings, now);
+    return finalize(state, observedAt, addFinding);
+  }
 
   const initResult = await runInitialize(state, addFinding, record, beginPhase, finishPhase);
   if (!initResult) return finalize(state, observedAt, addFinding);
@@ -413,6 +491,12 @@ async function discoverCatalog<T extends CatalogItem>(state: ProbeState, kind: C
       return { summary: { items, count: items.length, pages, complete: false, truncated }, invalidResponse: true } as CatalogDiscovery<T>;
     }
     state.catalogWarnings += page.warnings;
+    if (page.cacheTtlMs !== undefined || page.cacheScope !== undefined) {
+      addFinding("catalog_cache_hint_observed", "discovery", "info", "The catalog response supplied bounded cache hints. They are observational only and do not change authorization or freshness guarantees.", phase, {
+        ...(page.cacheTtlMs === undefined ? {} : { ttl_ms: page.cacheTtlMs }),
+        ...(page.cacheScope === undefined ? {} : { cache_scope: page.cacheScope }),
+      });
+    }
     if (page.truncated) {
       truncated = true;
       state.incomplete = true;
@@ -467,11 +551,12 @@ function normalizeInitializeResult(value: unknown, maxStringLength: number): { o
       tools: isRecord(capabilities.tools),
       resources: isRecord(capabilities.resources),
       prompts: isRecord(capabilities.prompts),
+      ...(isRecord(capabilities.tasks) ? { tasks: true } : {}),
     },
   };
 }
 
-function normalizeCatalogPage(kind: CatalogKind, value: unknown, limits: McpTesterLimits): { ok: true; items: CatalogItem[]; nextCursor?: string; warnings: number; truncated: boolean } | { ok: false; code: string; message: string } {
+function normalizeCatalogPage(kind: CatalogKind, value: unknown, limits: McpTesterLimits): { ok: true; items: CatalogItem[]; nextCursor?: string; warnings: number; truncated: boolean; cacheTtlMs?: number; cacheScope?: string } | { ok: false; code: string; message: string } {
   if (!isRecord(value)) return { ok: false, code: `malformed_${kind}_list_result`, message: `The endpoint returned an invalid ${kind}/list result.` };
   const key = kind === "tools" ? "tools" : kind;
   if (!Array.isArray(value[key])) return { ok: false, code: `malformed_${kind}_list_result`, message: `The endpoint returned an invalid ${kind}/list result.` };
@@ -487,7 +572,9 @@ function normalizeCatalogPage(kind: CatalogKind, value: unknown, limits: McpTest
     items.push(normalized);
   }
   if (value[key].length > limits.maxCatalogItems) warnings += 1;
-  return { ok: true, items, nextCursor: typeof value.nextCursor === "string" ? value.nextCursor : undefined, warnings, truncated: value[key].length > limits.maxCatalogItems };
+  const cacheTtlMs = typeof value.ttlMs === "number" && Number.isFinite(value.ttlMs) ? Math.min(Math.max(0, Math.round(value.ttlMs)), 7 * 24 * 60 * 60 * 1000) : undefined;
+  const cacheScope = safeString(value.cacheScope, 32);
+  return { ok: true, items, nextCursor: typeof value.nextCursor === "string" ? value.nextCursor : undefined, warnings, truncated: value[key].length > limits.maxCatalogItems, ...(cacheTtlMs === undefined ? {} : { cacheTtlMs }), ...(cacheScope ? { cacheScope } : {}) };
 }
 
 function normalizeTool(value: unknown, limits: McpTesterLimits): ToolSummary | undefined {

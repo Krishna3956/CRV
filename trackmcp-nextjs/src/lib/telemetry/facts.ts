@@ -1,3 +1,4 @@
+import { createHash } from "node:crypto";
 import { classifyTrackMCPOutcome, type TrackMCPSemanticOutcome } from "./semantic.ts";
 import type { CanonicalTrackMCPEvent } from "./types.ts";
 
@@ -29,11 +30,14 @@ export type TrackMCPFact = {
     resource_audience?: CanonicalTrackMCPEvent["resource_audience"];
     resource_priority?: number;
     interaction_id?: string;
+    /** One-way task handle; raw task IDs are never stored in the fact projection. */
+    task_id_hash?: string;
   };
   measures: {
     duration_ms?: number;
     payload_size_bytes?: number;
     retry_number?: number;
+    input_request_count?: number;
     input_response_count?: number;
   };
   error?: {
@@ -64,6 +68,7 @@ function factTypeFor(event: CanonicalTrackMCPEvent): TrackMCPFactType {
  */
 export function projectTrackMCPFact(event: CanonicalTrackMCPEvent): TrackMCPFact {
   const semantic = classifyTrackMCPOutcome(event);
+  const taskId = bounded(event.task_id, 256);
   const fact: TrackMCPFact = {
     fact_version: TRACKMCP_FACT_CONTRACT_VERSION,
     fact_type: factTypeFor(event),
@@ -83,11 +88,13 @@ export function projectTrackMCPFact(event: CanonicalTrackMCPEvent): TrackMCPFact
       ...(event.resource_audience ? { resource_audience: event.resource_audience } : {}),
       ...(boundedNonNegative(event.resource_priority, 1) !== undefined ? { resource_priority: boundedNonNegative(event.resource_priority, 1) } : {}),
       ...(bounded(event.interaction_id, 128) ? { interaction_id: bounded(event.interaction_id, 128) } : {}),
+      ...(taskId ? { task_id_hash: createHash("sha256").update(taskId, "utf8").digest("hex") } : {}),
     },
     measures: {
       duration_ms: boundedNonNegative(event.duration_ms, 86_400_000),
       payload_size_bytes: boundedNonNegative(event.payload_size_bytes, 100_000_000),
       retry_number: boundedNonNegative(event.retry_number, 1_000),
+      ...(boundedNonNegative(event.input_request_count, 100) !== undefined ? { input_request_count: boundedNonNegative(event.input_request_count, 100) } : {}),
       ...(boundedNonNegative(event.input_response_count, 100) !== undefined ? { input_response_count: boundedNonNegative(event.input_response_count, 100) } : {}),
     },
   };
