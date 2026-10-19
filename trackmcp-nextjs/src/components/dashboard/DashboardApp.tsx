@@ -3248,6 +3248,12 @@ function IssuesView({
         description="Review what deserves attention next, ordered by evidence strength and affected volume."
       />
       <DataSourceStrip dataMode={dataMode} hasMyData={hasMyData} view="issues" />
+      {analytics.issue_activity && <div className="mb-6 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        <Kpi label="Actionable signals" value={fmt(analytics.issue_activity.actionable_signals)} icon={AlertTriangle} helper="Bounded rules with evidence" />
+        <Kpi label="High confidence" value={fmt(analytics.issue_activity.high_confidence_signals)} icon={ShieldCheck} helper="Evidence strength, not certainty" />
+        <Kpi label="Affected volume" value={analytics.issue_activity.affected_volume == null ? "N/A" : fmt(analytics.issue_activity.affected_volume)} icon={Users} helper="May overlap across signals" />
+        <Kpi label="Suggested actions" value={fmt(analytics.issue_activity.suggested_actions)} icon={ArrowRight} helper="Investigation next steps" />
+      </div>}
       <Panel
         title="Regression incidents"
         subtitle={
@@ -3306,6 +3312,7 @@ function IssuesView({
           </div>
         )}
       </Panel>
+      {analytics.issue_activity && <p className="mt-4 text-[11px] leading-relaxed text-faint">{analytics.issue_activity.limitation}</p>}
       <Panel
         title="Needs attention"
         subtitle="Observed signals and regression incidents remain separate evidence types"

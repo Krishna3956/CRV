@@ -557,6 +557,13 @@ export function createAnalyticsHandler(getAdmin: typeof getSupabaseAdmin = getSu
     ...(unusedTools.length ? [{ level: "info", title: `${unusedTools.length} discovered tool${unusedTools.length === 1 ? " is" : "s are"} unused`, detail: `${unusedTools.slice(0, 3).join(", ")}${unusedTools.length > 3 ? " and more" : ""} were advertised but not called in this period.`, metric: "Review descriptions", affected_volume: unusedTools.length, confidence: "medium" as const, suggested_action: "Review discoverability and descriptions; do not infer that unused means unwanted." }] : []),
     ...(explicitStarted > 0 && explicitCompleted / explicitStarted < 0.8 ? [{ level: "warn", title: "Some tracked workflows are not completing", detail: "Compare the failing workflow steps with their tool sequences to find the point where users get stuck.", metric: `${Math.round((explicitCompleted / explicitStarted) * 100)}% complete`, affected_volume: explicitStarted - explicitCompleted, confidence: "high" as const, suggested_action: "Open the journey evidence and inspect unresolved terminal states." }] : []),
   ].slice(0, 5);
+  const issueActivity = {
+    actionable_signals: insights.length,
+    high_confidence_signals: insights.filter((item) => item.confidence === "high").length,
+    affected_volume: insights.some((item) => typeof item.affected_volume === "number") ? insights.reduce((sum, item) => sum + (typeof item.affected_volume === "number" ? item.affected_volume : 0), 0) : null,
+    suggested_actions: insights.filter((item) => typeof item.suggested_action === "string" && item.suggested_action.length > 0).length,
+    limitation: "Signals are bounded evidence-based prompts for investigation, not diagnoses. Affected volume is the sum of reported signal volume and may overlap across rules.",
+  };
 
   const protocols = events.filter((event) => event.event_type === "protocol");
   const protocolVersions = [...new Set(events.map((event) => event.protocol_version).filter(Boolean))];
@@ -662,6 +669,7 @@ export function createAnalyticsHandler(getAdmin: typeof getSupabaseAdmin = getSu
     resource_prompt_activity: resourcePromptActivity,
     journey_activity: journeyActivity,
     outcome_activity: outcomeActivity,
+    issue_activity: issueActivity,
     tools: toolRows.slice(0, MAX_PUBLIC_LIST_ITEMS), catalog_tools: [...catalog.values()].slice(0, MAX_PUBLIC_LIST_ITEMS),
     unused_tools: unusedTools.slice(0, MAX_PUBLIC_LIST_ITEMS), workflows: workflowRows.slice(0, 100), outcomes: explicitOutcomes.slice(0, MAX_PUBLIC_DIMENSION_ITEMS),
     founder_os: { facts: aggregateTrackMCPFacts(facts), groups: outcomeGroups, identity_coverage: identityCoverage, identity_source_counts: identitySourceCounts, tasks: aggregateTaskLifecycles(facts, taskTransitions) },

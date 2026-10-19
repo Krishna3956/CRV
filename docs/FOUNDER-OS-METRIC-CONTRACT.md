@@ -47,6 +47,7 @@ source explicitly says it is an outcome event.
 | `journey_stall_rate` | Journey waiting-for-input rate | Interactions with explicit `input_required` / observed interactions | Interaction-linked protocol telemetry | Needs-input is not abandonment or business failure |
 | `explicit_completion_rate` | Explicit completion rate | Completed workflow outcomes / terminal completed-or-failed workflow outcomes | Semantic workflow outcome facts | Unknown, pending, and not-observable states remain outside the denominator |
 | `outcome_error_rate` | Outcome error rate | Failed known outcomes / completed-or-failed known outcomes | Semantic outcome facts | Missing events are not failures; unknown states remain visible |
+| `actionable_signals` | Actionable signals | Count of bounded analytics rules with supporting evidence | Analytics insight rules | Signals are not diagnoses; affected volumes may overlap |
 
 ## Read-model rules
 

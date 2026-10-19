@@ -213,6 +213,14 @@ export const METRIC_DEFINITIONS = [
     interpretation: "Explicit failure share among known terminal outcomes.",
     limitations: ["Missing events are not failures.", "Unknown and pending evidence stays visible separately."],
   },
+  {
+    key: "actionable_signals",
+    label: "Actionable signals",
+    formula: "count(bounded analytics rules with supporting evidence)",
+    source: "Analytics insight rules",
+    interpretation: "Investigation prompts ranked from observed evidence.",
+    limitations: ["Signals are not diagnoses or proof of causality.", "Affected volumes can overlap across rules."],
+  },
 ] as const satisfies readonly MetricDefinition[];
 
 export type MetricKey = (typeof METRIC_DEFINITIONS)[number]["key"];

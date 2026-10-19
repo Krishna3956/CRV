@@ -282,6 +282,14 @@ export type Analytics = {
     trend: Array<{ period_start: string; completed: number; failed: number; unknown: number; pending: number }>;
     limitation: string;
   };
+  /** Founder OS "What's broken" signal summary. */
+  issue_activity?: {
+    actionable_signals: number;
+    high_confidence_signals: number;
+    affected_volume: number | null;
+    suggested_actions: number;
+    limitation: string;
+  };
   /** Privacy-safe account activity signals. Keys are never exposed to the UI. */
   account_summary?: {
     observed_account_keys: number;

@@ -275,6 +275,20 @@ test("analytics keeps Did It Work outcomes explicit and uncertainty separate", a
   assert.equal(body.outcome_activity.limitation.includes("never converted"), true);
 });
 
+test("analytics exposes bounded What is broken signal evidence", async () => {
+  const handler = createAnalyticsHandler(() => fakeAdmin([
+    event({ event_id: "error-1", event_type: "tool_call", tool_name: "lookup", is_error: true, success: false }),
+    event({ event_id: "error-2", event_type: "tool_call", tool_name: "lookup", is_error: true, success: false }),
+    event({ event_id: "slow-1", event_type: "tool_call", tool_name: "slow", duration_ms: 900 }),
+  ]));
+  const response = await handler(new Request("http://analytics.test/api/v1/analytics?days=7", { headers: { authorization: "Bearer key" } }));
+  assert.equal(response.status, 200);
+  const body = await response.json();
+  assert.ok(body.issue_activity.actionable_signals >= 1);
+  assert.ok(body.issue_activity.affected_volume >= 2);
+  assert.equal(body.issue_activity.limitation.includes("not diagnoses"), true);
+});
+
 test("analytics exposes bounded protocol lifecycle signals without treating them as outcomes", async () => {
   const handler = createAnalyticsHandler(() => fakeAdmin([
     event({ event_id: "signal-progress", event_type: "protocol", mcp_method: "notifications/progress" }),
