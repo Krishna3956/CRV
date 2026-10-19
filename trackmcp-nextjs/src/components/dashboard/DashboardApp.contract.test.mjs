@@ -143,6 +143,11 @@ test("Setup renders the server readiness contract without making identity mandat
   assert.match(source, /aria-label="Setup readiness"/);
 });
 
+test("Setup keeps deployment linkage count-only and non-health claiming", () => {
+  assert.match(source, /Deployment linkage/);
+  assert.match(source, /not deployment health or release status/);
+});
+
 test("connection keys are explicitly created from Setup and shown once in full", () => {
   assert.match(source, /Complete setup/);
   assert.match(source, /className="max-w-full break-all overflow-x-auto/);

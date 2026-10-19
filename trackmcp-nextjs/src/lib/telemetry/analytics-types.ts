@@ -191,6 +191,7 @@ export type Analytics = {
   protocol_versions: string[];
   services: string[];
   environments: string[];
+  deployment_summary?: { observed_deployments: number; linked_events: number; limitation: string };
   transports: string[];
   methods: string[];
   interaction_surfaces?: {

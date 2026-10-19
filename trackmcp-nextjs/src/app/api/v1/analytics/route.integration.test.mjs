@@ -95,6 +95,11 @@ test("analytics exposes conservative Founder OS outcome aggregates", async () =>
   assert.equal(body.account_summary.active_account_keys, 1);
   assert.equal(body.account_summary.returning_account_keys, 0);
   assert.deepEqual(body.tool_adoption, { advertised: 0, observed: 1, breadth: null, unused: 0 });
+  assert.deepEqual(body.deployment_summary, {
+    observed_deployments: 0,
+    linked_events: 0,
+    limitation: "Count-only deployment linkage derived from telemetry; deployment names, IDs, and release health are not exposed here.",
+  });
   assert.equal(body.data_trust.returned_event_count, 4);
   assert.equal(body.data_trust.truncated, false);
   assert.equal(body.data_trust.observed_through, "2026-09-06T00:00:00Z");

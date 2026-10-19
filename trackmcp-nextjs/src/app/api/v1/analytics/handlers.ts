@@ -234,6 +234,14 @@ export function createAnalyticsHandler(getAdmin: typeof getSupabaseAdmin = getSu
     accountEventDays.set(key, days);
     if (Date.parse(event.started_at) >= sevenDaysAgo) recentAccountKeys.add(key);
   }
+  const deploymentIds = new Set<string>();
+  let deploymentLinkedEvents = 0;
+  for (const event of events) {
+    if (event.deployment_id && /^[a-zA-Z0-9_-]{1,128}$/.test(event.deployment_id)) {
+      deploymentIds.add(event.deployment_id);
+      deploymentLinkedEvents += 1;
+    }
+  }
   const observedAccountKeys = new Set<string>();
   let resolverLinkedEvents = 0;
   let unresolvedEvents = 0;
@@ -345,6 +353,11 @@ export function createAnalyticsHandler(getAdmin: typeof getSupabaseAdmin = getSu
     protocol_versions: protocolVersions.slice(0, MAX_PUBLIC_DIMENSION_ITEMS),
     services: services.slice(0, MAX_PUBLIC_DIMENSION_ITEMS),
     environments: environments.slice(0, MAX_PUBLIC_DIMENSION_ITEMS),
+    deployment_summary: {
+      observed_deployments: deploymentIds.size,
+      linked_events: deploymentLinkedEvents,
+      limitation: "Count-only deployment linkage derived from telemetry; deployment names, IDs, and release health are not exposed here.",
+    },
     interaction_surfaces: {
       resources: { events: resourceEvents.length, methods: [...new Set(resourceEvents.map((event) => event.mcp_method).filter(Boolean))].slice(0, MAX_PUBLIC_DIMENSION_ITEMS), entity_count: resourceEntityHashes.size, entity_identity: "sha256_hash_count", entity_analytics: entityReadAnalytics("resources") },
       prompts: { events: promptEvents.length, methods: [...new Set(promptEvents.map((event) => event.mcp_method).filter(Boolean))].slice(0, MAX_PUBLIC_DIMENSION_ITEMS), entity_count: promptEntityHashes.size, entity_identity: "sha256_hash_count", entity_analytics: entityReadAnalytics("prompts") },

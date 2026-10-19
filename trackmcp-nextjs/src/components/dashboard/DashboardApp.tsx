@@ -407,6 +407,7 @@ const EXAMPLE_ANALYTICS: Analytics = {
   protocol_versions: ["2025-11-25"],
   services: ["quickbooks-finance-mcp"],
   environments: ["production"],
+  deployment_summary: { observed_deployments: 2, linked_events: 118, limitation: "Count-only deployment linkage derived from telemetry; deployment names, IDs, and release health are not exposed here." },
   account_summary: {
     observed_account_keys: 18,
     active_account_keys: 18,
@@ -3927,6 +3928,15 @@ function SetupView({
           <div className="grid gap-3 sm:grid-cols-2">
             <ScopeValue label="Observed server" values={analytics.services} empty="No service name observed yet" />
             <ScopeValue label="Observed environment" values={analytics.environments} empty="No environment observed yet" />
+            <div className="border border-line bg-paper p-3 sm:col-span-2">
+              <p className="dashboard-label text-faint">Deployment linkage</p>
+              <p className="mt-2 text-sm font-semibold text-ink">
+                {analytics.deployment_summary ? `${fmt(analytics.deployment_summary.observed_deployments)} observed deployment signals` : "No deployment linkage observed yet"}
+              </p>
+              <p className="mt-2 text-[11px] leading-relaxed text-muted">
+                {analytics.deployment_summary ? `${fmt(analytics.deployment_summary.linked_events)} events carried bounded deployment linkage. This is not deployment health or release status.` : "The server has not supplied a bounded deployment identifier in this window."}
+              </p>
+            </div>
           </div>
         ) : (
           <StateNote
