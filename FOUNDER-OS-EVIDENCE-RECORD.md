@@ -89,6 +89,18 @@ or private URLs into it.
 
 | Field | Value |
 | --- | --- |
+| gate_id | current-registry-smoke-runner-deployment |
+| owner | Head of Engineering |
+| timestamp_utc | 2026-10-19T13:26:00Z |
+| command_or_probe | GitHub Actions CI runs [39259362636](https://github.com/Krishna3956/CRV/actions/runs/39259362636) and [39259356603](https://github.com/Krishna3956/CRV/actions/runs/39259356603), followed by App Runner run [39259362655](https://github.com/Krishna3956/CRV/actions/runs/39259362655) for `fb62e27` |
+| environment | CI / App Runner production |
+| candidate_sha | fb62e27e54910329a9a5311ab06103fd83d91846 |
+| result | pass |
+| evidence_reference | Both CI runs and the App Runner deployment completed successfully; the production smoke runner now defaults to the currently published Python package `trackmcp==0.1.4`. |
+| caveat_or_scope | Proves deployment of the corrected smoke-runner default and supporting documentation. It does not close authenticated customer-flow, scheduler, rollback, distributed-rate-limit, or final pilot-go/no-go gates. |
+
+| Field | Value |
+| --- | --- |
 | gate_id | production-smoke-runner-deployment |
 | owner | Head of Engineering |
 | timestamp_utc | 2026-10-19T13:21:00Z |
