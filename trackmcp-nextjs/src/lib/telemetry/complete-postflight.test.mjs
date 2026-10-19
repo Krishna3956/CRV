@@ -63,9 +63,9 @@ test("complete Founder OS postflight is read-only", async () => {
 });
 
 test("round-trip postflight is included in the same reviewed migration family", async () => {
-  const migration = await readFile(new URL("20261018000009_mcp_round_trip_outcomes.sql", migrationRoot), "utf8");
+  const migration = `${await readFile(new URL("20261018000009_mcp_round_trip_outcomes.sql", migrationRoot), "utf8")}\n${await readFile(new URL("20261019000004_mcp_mrtr_request_counts.sql", migrationRoot), "utf8")}`;
   const postflight = await readFile(new URL("../../../../supabase/manual/founder-os-round-trip-outcomes-postflight.sql", import.meta.url), "utf8");
-  for (const column of ["result_type", "interaction_id", "request_state_hash", "resource_priority"]) {
+  for (const column of ["result_type", "interaction_id", "request_state_hash", "input_request_count", "resource_priority"]) {
     assert.match(migration, new RegExp(`add column if not exists ${column}`));
     assert.match(postflight, new RegExp(column));
   }

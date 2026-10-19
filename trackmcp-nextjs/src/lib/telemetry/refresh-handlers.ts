@@ -7,7 +7,7 @@ import { buildCatalogEntityReadWrites } from "./catalog-entities.ts";
 import type { RefreshJobHandlerRegistry } from "./refresh-worker.ts";
 
 const MAX_ROWS = 500;
-const EVENT_COLUMNS = "event_id,event_type,service,environment,started_at,client_name,client_version,transport,account_key,account_identity_source,tool_name,duration_ms,payload_size_bytes,retry_number,result_type,interaction_id,input_response_count,resource_audience,resource_priority,is_error,success,error_class,error_code";
+const EVENT_COLUMNS = "event_id,event_type,service,environment,started_at,client_name,client_version,transport,account_key,account_identity_source,tool_name,duration_ms,payload_size_bytes,retry_number,result_type,interaction_id,input_request_count,input_response_count,resource_audience,resource_priority,is_error,success,error_class,error_code";
 
 type QueryResult<T> = { data: T[] | null; error: { code?: string; message: string } | null };
 type Query = { select(columns: string): Query; eq(column: string, value: string): Query; order(column: string, options: { ascending: boolean }): Query; limit(value: number): PromiseLike<QueryResult<unknown>> };

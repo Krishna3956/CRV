@@ -85,7 +85,7 @@ function projectFactMeasures(value: unknown): JsonRecord {
   if (!value || typeof value !== "object" || Array.isArray(value)) return {};
   const input = value as JsonRecord;
   const output: JsonRecord = {};
-  for (const [key, max] of [["duration_ms", 86_400_000], ["payload_size_bytes", 100_000_000], ["retry_number", 1_000], ["input_response_count", 100]] as const) {
+  for (const [key, max] of [["duration_ms", 86_400_000], ["payload_size_bytes", 100_000_000], ["retry_number", 1_000], ["input_request_count", 100], ["input_response_count", 100]] as const) {
     const result = boundedNumber(input[key], max);
     if (result !== null) output[key] = result;
   }

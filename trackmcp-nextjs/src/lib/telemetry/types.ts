@@ -64,6 +64,8 @@ export type TrackMCPEvent = {
   interaction_link_source?: TrackMCPInteractionLinkSource;
   retry_of_event_id?: string;
   request_state_hash?: string;
+  /** Bounded count of server input requests; raw requests are never stored. */
+  input_request_count?: number;
   input_response_count?: number;
   resource_audience?: "user" | "assistant";
   resource_priority?: number;

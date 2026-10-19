@@ -74,7 +74,9 @@ export type TrackMCPEvent = {
     error_class?: string;
     error_code?: number;
     retry_number?: number;
-    result_type?: "complete" | "input_required";
+    result_type?: "complete" | "input_required" | "task";
+    input_request_count?: number;
+    input_response_count?: number;
     schema_hash?: string;
     catalog_kind?: TrackMCPCatalogKind;
     catalog_item_count?: number;
@@ -142,6 +144,8 @@ type EntityObservation = {
     hash: string;
 };
 export declare function protocolResultType(result: Record<string, unknown> | undefined): TrackMCPEvent["result_type"];
+/** Count MRTR input requests without retaining request contents. */
+export declare function protocolInputRequestCount(result: Record<string, unknown> | undefined): number | undefined;
 export declare function catalogObservation(kind: TrackMCPCatalogKind, result: Record<string, unknown> | undefined): Pick<TrackMCPEvent, "catalog_kind" | "catalog_item_count" | "catalog_item_name_hashes" | "catalog_item_uri_hashes">;
 export declare function interactionEntityObservation(method: string | undefined, params: Record<string, unknown> | undefined): EntityObservation | undefined;
 export type TrackMCPDiagnostics = {

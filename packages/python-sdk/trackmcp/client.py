@@ -74,6 +74,9 @@ class TrackMCPEvent(TypedDict, total=False):
     error_class: str
     error_code: int
     retry_number: int
+    result_type: Literal["complete", "input_required", "task"]
+    input_request_count: int
+    input_response_count: int
     schema_hash: str
     catalog_kind: Literal["tools", "resources", "resource_templates", "prompts"]
     catalog_item_count: int

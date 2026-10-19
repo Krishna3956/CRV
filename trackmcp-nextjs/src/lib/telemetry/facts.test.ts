@@ -53,6 +53,12 @@ test("bounds dimensions and numeric measures", () => {
   assert.equal(fact.dimensions.account_key?.length, 64);
 });
 
+test("projects bounded MRTR request counts without request contents", () => {
+  const fact = projectTrackMCPFact(event({ input_request_count: 101, input_response_count: 2 }));
+  assert.equal(fact.measures.input_request_count, 100);
+  assert.equal(fact.measures.input_response_count, 2);
+});
+
 test("keeps only the bounded account key and never raw event payload", () => {
   const fact = projectTrackMCPFact(event({ account_key: "a".repeat(64), payload: { email: "person@example.com", token: "secret" } }));
   assert.equal(fact.dimensions.account_key, "a".repeat(64));

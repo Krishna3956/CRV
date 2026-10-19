@@ -56,7 +56,12 @@ function sha256(value) {
 }
 export function protocolResultType(result) {
     const value = result?.resultType ?? result?.result_type;
-    return value === "complete" || value === "input_required" ? value : undefined;
+    return value === "complete" || value === "input_required" || value === "task" ? value : undefined;
+}
+/** Count MRTR input requests without retaining request contents. */
+export function protocolInputRequestCount(result) {
+    const requests = result?.inputRequests;
+    return Array.isArray(requests) ? Math.min(100, requests.length) : undefined;
 }
 export function catalogObservation(kind, result) {
     const key = kind === "resource_templates" ? "resourceTemplates" : kind;
@@ -576,10 +581,10 @@ function wrapTransport(transport, client) {
                         }
                         else if (call.entity && !failed) {
                             const catalogKind = call.entity.kind;
-                            client.capture({ event_type: "protocol", direction: "server_to_client", transport: "stdio", mcp_method: call.method, request_id: String(id), client_name: clientName, client_version: clientVersion, session_id: sessionId, session_id_source: activeSessionIdSource, started_at: new Date(call.started).toISOString(), duration_ms: Date.now() - call.started, success: true, is_error: false, ...(protocolResultType(result) ? { result_type: protocolResultType(result) } : {}), catalog_kind: catalogKind, ...(catalogKind === "resources" ? { catalog_item_uri_hashes: [call.entity.hash] } : { catalog_item_name_hashes: [call.entity.hash] }), payload: { name: `${catalogKind}_read_observed` } });
+                            client.capture({ event_type: "protocol", direction: "server_to_client", transport: "stdio", mcp_method: call.method, request_id: String(id), client_name: clientName, client_version: clientVersion, session_id: sessionId, session_id_source: activeSessionIdSource, started_at: new Date(call.started).toISOString(), duration_ms: Date.now() - call.started, success: true, is_error: false, ...(protocolResultType(result) ? { result_type: protocolResultType(result) } : {}), ...(protocolInputRequestCount(result) !== undefined ? { input_request_count: protocolInputRequestCount(result) } : {}), catalog_kind: catalogKind, ...(catalogKind === "resources" ? { catalog_item_uri_hashes: [call.entity.hash] } : { catalog_item_name_hashes: [call.entity.hash] }), payload: { name: `${catalogKind}_read_observed` } });
                         }
                         else if (call.method && call.method !== "tools/call" && call.method !== "initialize") {
-                            client.capture({ event_type: "protocol", direction: "server_to_client", transport: "stdio", mcp_method: call.method, request_id: String(id), client_name: clientName, client_version: clientVersion, session_id: sessionId, session_id_source: activeSessionIdSource, started_at: new Date(call.started).toISOString(), duration_ms: Date.now() - call.started, success: !failed, is_error: failed, ...(protocolResultType(result) ? { result_type: protocolResultType(result) } : {}), error_class: message.error ? "protocol_error" : result?.isError ? "protocol_error" : undefined, error_code: typeof protocolError?.code === "number" ? protocolError.code : undefined, payload: { name: "protocol_response_observed" } });
+                            client.capture({ event_type: "protocol", direction: "server_to_client", transport: "stdio", mcp_method: call.method, request_id: String(id), client_name: clientName, client_version: clientVersion, session_id: sessionId, session_id_source: activeSessionIdSource, started_at: new Date(call.started).toISOString(), duration_ms: Date.now() - call.started, success: !failed, is_error: failed, ...(protocolResultType(result) ? { result_type: protocolResultType(result) } : {}), ...(protocolInputRequestCount(result) !== undefined ? { input_request_count: protocolInputRequestCount(result) } : {}), error_class: message.error ? "protocol_error" : result?.isError ? "protocol_error" : undefined, error_code: typeof protocolError?.code === "number" ? protocolError.code : undefined, payload: { name: "protocol_response_observed" } });
                         }
                     }
                     const send = Reflect.get(target, property);

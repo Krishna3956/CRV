@@ -37,6 +37,7 @@ export type TrackMCPFact = {
     duration_ms?: number;
     payload_size_bytes?: number;
     retry_number?: number;
+    input_request_count?: number;
     input_response_count?: number;
   };
   error?: {
@@ -93,6 +94,7 @@ export function projectTrackMCPFact(event: CanonicalTrackMCPEvent): TrackMCPFact
       duration_ms: boundedNonNegative(event.duration_ms, 86_400_000),
       payload_size_bytes: boundedNonNegative(event.payload_size_bytes, 100_000_000),
       retry_number: boundedNonNegative(event.retry_number, 1_000),
+      ...(boundedNonNegative(event.input_request_count, 100) !== undefined ? { input_request_count: boundedNonNegative(event.input_request_count, 100) } : {}),
       ...(boundedNonNegative(event.input_response_count, 100) !== undefined ? { input_response_count: boundedNonNegative(event.input_response_count, 100) } : {}),
     },
   };
