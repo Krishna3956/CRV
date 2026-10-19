@@ -277,6 +277,16 @@ test("unsupported protocol and malformed envelopes are protocol errors", async (
   assert.equal(excessiveNodes.verdict, "protocol_error");
 });
 
+test("modern 2026-07-28 requests fail closed instead of running a legacy handshake", async () => {
+  const report = await runMcpTester({
+    endpoint,
+    protocolVersion: "2026-07-28",
+    fetch: async () => { throw new Error("must not call legacy fetch"); },
+  });
+  assert.equal(report.verdict, "unsupported");
+  assert.ok(report.findings.some((finding) => finding.code === "modern_protocol_limited"));
+});
+
 test("failed initialization and authentication are distinct", async () => {
   const failed = await runMcpTester({ endpoint, fetch: async () => jsonRpcError(-32602, "invalid params") });
   assert.equal(failed.verdict, "protocol_error");

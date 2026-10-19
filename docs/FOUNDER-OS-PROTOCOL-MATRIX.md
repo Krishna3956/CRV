@@ -10,6 +10,7 @@ protocol operation.
 | Surface | Current evidence | Product status | Required evidence before claiming full coverage |
 | --- | --- | --- | --- |
 | `initialize` / negotiated protocol version | protocol event fields and versioned validation | Observed | Versioned fixtures for supported revisions |
+| protocol revision boundary | Browser tester supports the legacy handshake revisions listed in its contract; a requested `2026-07-28` revision fails closed instead of being sent through the legacy handshake | Partial | Implement and conformance-test modern stateless `server/discover`, per-request metadata, `subscriptions/listen`, and the Tasks extension before claiming modern compatibility |
 | `tools/list` | catalog metadata and bounded tool projections | Partial | Complete snapshot rows, pagination fixtures, historical joins; workspace-scoped timestamp cursor now exists for catalog history |
 | `tools/call` | tool-call events, outcomes, latency, errors | Observed | Transport lifecycle and representative client fixtures |
 | `resources/list` / `resources/read` | method-family counts, SDK-emitted SHA-256 resource-read identity counts, and a review-ready idempotent entity-read projection | Partial | Apply and postflight the entity-read migration, then verify durable read-outcome joins; raw URI identities remain unavailable by design |

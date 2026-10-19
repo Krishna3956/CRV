@@ -29,6 +29,8 @@ import type {
 } from "./types.ts";
 
 export const DEFAULT_MCP_PROTOCOL_VERSION = "2025-06-18";
+/** The current MCP revision uses a stateless/discover flow that this legacy handshake tester does not execute yet. */
+export const MODERN_MCP_PROTOCOL_VERSION = "2026-07-28";
 export const DEFAULT_MCP_CLIENT_INFO = Object.freeze({ name: "TrackMCP Tester", version: "1.0.0" });
 export const DEFAULT_SUPPORTED_MCP_PROTOCOL_VERSIONS = Object.freeze(["2025-06-18", "2025-03-26", "2024-11-05"]);
 
@@ -150,6 +152,18 @@ export async function runMcpTester(options: McpTesterOptions): Promise<McpTester
     return buildEarlyReport(observedAt, startedMs, now, timeline, timelineTruncated, findings, phases, timings, "unsupported", limits, endpointValidation.safeEndpoint);
   }
   finishPhase("validate_headers", headerPhaseStart, "passed", record, phases, timings, now);
+
+  if (options.protocolVersion === MODERN_MCP_PROTOCOL_VERSION) {
+    addFinding(
+      "modern_protocol_limited",
+      "protocol",
+      "warning",
+      "The 2026-07-28 stateless MCP flow is documented but is not executed by this handshake-era browser tester yet. No compatibility pass is reported.",
+      "validate_headers",
+      { protocolVersion: MODERN_MCP_PROTOCOL_VERSION },
+    );
+    return buildEarlyReport(observedAt, startedMs, now, timeline, timelineTruncated, findings, phases, timings, "unsupported", limits, endpointValidation.safeEndpoint);
+  }
 
   const fetchImplementation = options.fetch;
   if (typeof fetchImplementation !== "function") {
