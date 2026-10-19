@@ -13,6 +13,10 @@ source explicitly says it is an outcome event.
 | `error_rate` | Error rate | Failed known-outcome calls / known calls | Tool-call telemetry | Unknown outcomes are not failures |
 | `needs_attention` | Needs attention | Count of fired insight rules | Bounded analytics rules | Signals, not diagnoses |
 | `identity_coverage` | Verified account coverage | Events with `account_identity_source=resolver` / eligible events | Resolver-labeled server telemetry | Event-weighted coverage; not unique organizations |
+| `resource_events` | Resource activity | Observed resource method events | Protocol telemetry | Method observations; no resource content or URI is exposed |
+| `prompt_events` | Prompt activity | Observed prompt method events | Protocol telemetry | Method observations; no prompt arguments or completion is inferred |
+| `resource_entities` | Resources observed | Count of bounded hashed resource identities | Durable entity-read projection | Hash counts are not unique people or readable resource identities |
+| `prompt_entities` | Prompts observed | Count of bounded hashed prompt identities | Durable entity-read projection | Hash counts are not unique people or prompt content |
 
 ## Read-model rules
 

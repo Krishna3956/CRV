@@ -38,6 +38,7 @@ test("business-first navigation and KPI hierarchy are explicit", () => {
     assert.match(source, new RegExp(item.replace(/[.*+?^$()|[\]\\]/g, "\\$&")));
   assert.match(source, /id: "journeys", label: "The journey", icon: Route/);
   assert.match(source, /id: "capabilities", label: "What they're doing", icon: Blocks/);
+  assert.match(source, /id: "resources", label: "Resources & prompts", icon: FileText/);
   assert.match(source, /id: "quality", label: "Did it work", icon: ShieldCheck/);
   assert.match(source, /id: "clients", label: "Who's using it"/);
   assert.match(source, /id: "evidence", label: "Evidence"/);
@@ -48,6 +49,14 @@ test("business-first navigation and KPI hierarchy are explicit", () => {
   );
   assert.doesNotMatch(source, /id: "tool-quality"/);
   assert.doesNotMatch(source, /Open Configure/);
+});
+
+test("resources and prompts have a dedicated evidence-bounded surface", () => {
+  assert.match(source, /function ResourcesPromptsView/);
+  assert.match(source, /title=\"Resources & prompts\"/);
+  assert.match(source, /Hashed entities/);
+  assert.match(source, /No resource or prompt evidence yet/);
+  assert.match(source, /does not expose resource contents, prompt arguments/);
 });
 
 test("dashboard typography uses the product type system", () => {

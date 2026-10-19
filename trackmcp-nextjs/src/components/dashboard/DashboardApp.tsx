@@ -12,6 +12,7 @@ import {
   ChevronRight,
   Clipboard,
   ExternalLink,
+  FileText,
   FileWarning,
   Gauge,
   Info,
@@ -74,6 +75,7 @@ export type View =
   | "overview"
   | "journeys"
   | "capabilities"
+  | "resources"
   | "quality"
   | "issues"
   | "clients"
@@ -89,6 +91,7 @@ const primaryNav: NavItem[] = [
   { id: "issues", label: "What's broken", icon: AlertTriangle },
 ];
 const moreNav: NavItem[] = [
+  { id: "resources", label: "Resources & prompts", icon: FileText },
   { id: "clients", label: "Who's using it", icon: Users },
   { id: "evidence", label: "Evidence", icon: Search },
   { id: "setup", label: "Setup", icon: Settings2 },
@@ -102,6 +105,7 @@ const legacyViewMap: Record<string, View> = {
   outcomes: "journeys",
   tools: "capabilities",
   catalog: "capabilities",
+  resources: "resources",
   "tool-quality": "quality",
   reliability: "quality",
   intent: "issues",
@@ -404,6 +408,10 @@ const EXAMPLE_ANALYTICS: Analytics = {
   services: ["quickbooks-finance-mcp"],
   environments: ["production"],
   protocol_signals: { notification: 4, progress: 8, catalog_changed: 6, subscription_started: 2, subscription_stopped: 1, observed_events: 21 },
+  interaction_surfaces: {
+    resources: { events: 42, methods: ["resources/list", "resources/read"], entity_count: 12, entity_identity: "sha256_hash_count", entity_analytics: { status: "available", read_events: 31, successful_reads: 28, failed_reads: 2, input_required_reads: 1 } },
+    prompts: { events: 19, methods: ["prompts/list", "prompts/get"], entity_count: 5, entity_identity: "sha256_hash_count", entity_analytics: { status: "available", read_events: 16, successful_reads: 14, failed_reads: 1, input_required_reads: 1 } },
+  },
   transports: ["streamable_http"],
   methods: ["tools/list", "tools/call"],
   tool_calls: 1293,
@@ -1419,6 +1427,15 @@ const emptyPageCopy: Record<
       { label: "Evidence", detail: "A trace to inspect when a capability needs context." },
     ],
   },
+  resources: {
+    description: "See bounded resource and prompt method observations without exposing content or inputs.",
+    preview: [
+      { label: "Resource activity", detail: "Method events and hashed entity counts." },
+      { label: "Prompt activity", detail: "Prompt methods observed at the server boundary." },
+      { label: "Read outcomes", detail: "Successful, failed, and input-required read states." },
+      { label: "Privacy boundary", detail: "No resource content, URI, or prompt argument is shown." },
+    ],
+  },
   quality: {
     description:
       "Review observed capability quality without turning insufficient data into a failure.",
@@ -1673,6 +1690,15 @@ function ViewContent({
         hasMyData={hasMyData}
         pageControls={pageControls}
         onViewTrace={onViewTrace}
+      />
+    );
+  if (view === "resources")
+    return (
+      <ResourcesPromptsView
+        analytics={analytics}
+        dataMode={dataMode}
+        hasMyData={hasMyData}
+        pageControls={pageControls}
       />
     );
   if (view === "quality")
@@ -2606,11 +2632,6 @@ function CapabilitiesView({
           helper="Catalog comparison"
         />
       </div>
-      {analytics.interaction_surfaces && (
-        <div className="mt-6">
-          <InteractionSurfacePanel surfaces={analytics.interaction_surfaces} />
-        </div>
-      )}
       <CatalogHistoryPanel
         versions={analytics.catalog_versions || []}
         status={analytics.catalog_version_status || "no_snapshot_rows"}
@@ -2682,6 +2703,57 @@ function CapabilitiesView({
           </div>
         </Panel>
       </div>
+    </div>
+  );
+}
+
+function ResourcesPromptsView({
+  analytics,
+  dataMode,
+  hasMyData,
+  pageControls,
+}: {
+  analytics: Analytics;
+  dataMode: DataMode;
+  hasMyData: boolean;
+  pageControls: ReactNode;
+}) {
+  const surfaces = analytics.interaction_surfaces;
+  const rows = surfaces ? ([
+    ["Resources", surfaces.resources],
+    ["Prompts", surfaces.prompts],
+  ] as const) : [];
+  const observedEvents = rows.reduce((total, [, surface]) => total + surface.events, 0);
+  const observedEntities = rows.reduce((total, [, surface]) => total + surface.entity_count, 0);
+  const successfulReads = rows.reduce((total, [, surface]) => total + surface.entity_analytics.successful_reads, 0);
+  return (
+    <div>
+      <PageIntro title="Resources & prompts" description="See the non-tool surfaces your MCP exposes and the reads observed at its server boundary." actions={pageControls} />
+      <DataSourceStrip dataMode={dataMode} hasMyData={hasMyData} view="resources" />
+      <section className="mb-6 border border-line bg-white p-4 sm:p-5" aria-label="Resources and prompts evidence boundary">
+        <p className="dashboard-label text-faint">Evidence boundary</p>
+        <p className="mt-1 max-w-3xl text-xs leading-relaxed text-muted">TrackMCP reports bounded method observations and hashed entity counts. It does not expose resource contents, prompt arguments, unique people, or business completion from these signals.</p>
+      </section>
+      <div className="grid gap-3 sm:grid-cols-3">
+        <Kpi label="Observed events" value={surfaces ? fmt(observedEvents) : "N/A"} icon={Activity} helper="Resource and prompt method events" />
+        <Kpi label="Hashed entities" value={surfaces ? fmt(observedEntities) : "N/A"} icon={FileText} helper="Bounded, non-reversible identities" />
+        <Kpi label="Read success" value={surfaces ? fmt(successfulReads) : "N/A"} icon={Check} helper="Durable read projection only" />
+      </div>
+      <div className="mt-6 grid gap-6 xl:grid-cols-2">
+        {rows.map(([label, surface]) => (
+          <Panel key={label} title={label} subtitle="Method and read evidence, never content">
+            <div className="grid gap-3 sm:grid-cols-2">
+              <div className="border border-line bg-paper p-3"><p className="text-xs text-muted">Method events</p><p className="mt-1 text-2xl font-semibold text-ink">{fmt(surface.events)}</p><p className="mt-1 text-[11px] text-muted">{surface.methods.length ? surface.methods.join(", ") : "No methods observed in this window."}</p></div>
+              <div className="border border-line bg-paper p-3"><p className="text-xs text-muted">Hashed entities</p><p className="mt-1 text-2xl font-semibold text-ink">{fmt(surface.entity_count)}</p><p className="mt-1 text-[11px] text-muted">SHA-256 hash counts; no URI, content, or input is shown.</p></div>
+            </div>
+            <div className="mt-4 grid grid-cols-2 gap-2 text-xs sm:grid-cols-4">
+              {[["Reads", surface.entity_analytics.read_events], ["Successful", surface.entity_analytics.successful_reads], ["Failed", surface.entity_analytics.failed_reads], ["Needs input", surface.entity_analytics.input_required_reads]].map(([metric, value]) => <div key={String(metric)} className="border border-line bg-white p-3"><p className="text-muted">{metric}</p><p className="mt-1 font-semibold text-ink">{fmt(Number(value))}</p></div>)}
+            </div>
+            <p className="mt-3 text-[10px] uppercase tracking-[0.08em] text-faint">{surface.entity_analytics.status === "available" ? "Durable read projection" : surface.entity_analytics.status === "no_rows" ? "No durable reads in this window" : "Durable read schema unavailable"}</p>
+          </Panel>
+        ))}
+      </div>
+      {!rows.length && <StateNote title="No resource or prompt evidence yet" body="This workspace has not reported resource or prompt methods in the selected period. That is an evidence state, not proof that the server has no resources or prompts." />}
     </div>
   );
 }
