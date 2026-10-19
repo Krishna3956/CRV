@@ -70,7 +70,34 @@ export function DashboardPageContent({ initialView = "overview" }: { initialView
   }, []);
   const createWorkspace = useCallback(async () => {
     setWorking(true); setError("");
-    try { const response = await fetch("/api/v1/account/workspace", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ create_key: false }) }); const body = await response.json(); if (!response.ok) throw new Error(body.error || "Could not create your workspace."); trackActivationEvent("workspace_created"); setNewKey(body.api_key || ""); const account = await loadAccount(); if (account.workspace) await Promise.all([loadAnalytics(), loadToolQuality()]); }
+    try {
+      const response = await fetch("/api/v1/account/workspace", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ create_key: false }) });
+      const body = await response.json();
+      if (!response.ok) throw new Error(body.error || "Could not create your workspace.");
+      trackActivationEvent("workspace_created");
+      setNewKey(body.api_key || "");
+
+      // Hydrate from the successful write before doing the read-after-write
+      // refresh. This prevents a brief replica/read lag from making a newly
+      // created workspace appear to have disappeared.
+      const createdWorkspace = body.workspace as Workspace | null | undefined;
+      if (createdWorkspace?.id) {
+        setWorkspace(createdWorkspace);
+        setWorkspaces([createdWorkspace]);
+        setSelectedWorkspaceId(createdWorkspace.id);
+        window.localStorage.setItem("trackmcp.selected_workspace_id", createdWorkspace.id);
+      }
+      let account: Account | null = null;
+      try {
+        account = await loadAccount(createdWorkspace?.id);
+      } catch (reason) {
+        // The write response is authoritative for this request. Keep the
+        // workspace visible if a read replica has not caught up yet.
+        if (!createdWorkspace) throw reason;
+      }
+      const activeWorkspace = account?.workspace || createdWorkspace || null;
+      if (activeWorkspace) await Promise.all([loadAnalytics("30", activeWorkspace.id), loadToolQuality("30", activeWorkspace.id)]);
+    }
     catch (reason) { setError(reason instanceof Error ? reason.message : "Could not create your workspace."); }
     finally { setWorking(false); }
   }, [loadAccount, loadAnalytics, loadToolQuality]);
