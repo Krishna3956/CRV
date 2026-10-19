@@ -158,3 +158,15 @@ or private URLs into it.
 | result | pass |
 | evidence_reference | Production pilot smoke completed 14 checks and wrote a redacted report at `/tmp/trackmcp-production-smoke.json`. |
 | caveat_or_scope | This validates public availability, sitemap/registry metadata, and package integrity metadata only. It does not perform authenticated writes or prove tenant isolation, worker execution, rollback, or provenance attestations. |
+
+| Field | Value |
+| --- | --- |
+| gate_id | tool-sitemap-shard-routing-fix |
+| owner | Head of Engineering |
+| timestamp_utc | 2026-10-19T13:36:00Z |
+| command_or_probe | Production smoke discovered `/tool-sitemap/0.xml` returning 404; local clean build and server then verified the rewritten route returns HTTP 200 XML with URL entries. |
+| environment | local clean Next.js production build; production pre-fix observation |
+| candidate_sha | `a98e261` |
+| result | fixed locally; deployment pending |
+| evidence_reference | Commit `a98e261`; route moved to `[shard]`, public `.xml` URL rewrites through `next.config.ts`, and the smoke runner now checks the index plus first shard. |
+| caveat_or_scope | The fix is pushed to `codex/founder-os-evidence-refresh` but has not been merged/deployed; the public production endpoint remains unverified until the reviewed SHA is deployed. |
