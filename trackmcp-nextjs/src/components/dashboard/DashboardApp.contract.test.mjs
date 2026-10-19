@@ -117,6 +117,10 @@ test("Setup exposes truthful first-event and coverage states", () => {
   assert.match(source, /account_resolver_observed/);
   assert.match(source, /contractIdentity !== undefined && contractIdentity !== null/);
   assert.match(source, /Identity resolved/);
+  assert.match(source, /identityResolved: boolean \| null/);
+  assert.match(source, /done === null \? "\?"/);
+  assert.match(source, /Transport observed/);
+  assert.match(source, /Event persisted/);
 });
 
 test("connection keys are explicitly created from Setup and shown once in full", () => {

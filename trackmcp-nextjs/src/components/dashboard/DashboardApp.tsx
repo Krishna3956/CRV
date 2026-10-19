@@ -3592,15 +3592,21 @@ function SetupView({
     verified: ["First event verified", "TrackMCP has observed activity from this workspace. Open Overview to inspect the evidence window, clients, capabilities, and outcomes.", "First event verified", "border-brand/30 bg-brand-soft/40 text-brand-strong", "bg-brand"],
     error: ["We could not check your connection", "Your key was not changed. Retry the check, then confirm the server is running and can reach the TrackMCP ingest URL.", "Check failed", "border-red-200 bg-red-50 text-red-800", "bg-red-500"],
   }[connectionState] as unknown as readonly [string, string, string, string, string];
-  const identityResolved = contractIdentity !== undefined && contractIdentity !== null
-    ? contractIdentity === true
-    : Boolean(analytics?.founder_os?.identity_coverage?.value);
+  const identityResolved: boolean | null = contractIdentity !== undefined
+    ? contractIdentity
+    : analytics?.founder_os?.identity_coverage && analytics.founder_os.identity_coverage.denominator > 0
+      ? analytics.founder_os.identity_coverage.value === null
+        ? null
+        : analytics.founder_os.identity_coverage.value > 0
+      : null;
   const checks = [
     ["Connection key ready", contractChecks?.connection_key_ready ?? hasActiveKey],
     ["SDK/event recognized", contractChecks?.sdk_event_recognized ?? (connectionState === "verified" || connectionState === "limited" || connectionState === "identity")],
     ["MCP method observed", contractChecks?.mcp_method_observed ?? Boolean(analytics?.tool_calls)],
+    ["Transport observed", contractChecks?.transport_observed ?? null],
+    ["Event persisted", contractChecks?.event_persisted ?? (analytics ? analytics.total_events > 0 : null)],
+    ["Privacy policy applied", contractChecks?.privacy_policy_applied ?? (analytics ? analytics.total_events > 0 : null)],
     ["Identity resolved", identityResolved],
-    ["Privacy policy applied", contractChecks?.privacy_policy_applied ?? Boolean(analytics?.total_events)],
   ] as const;
   const copy = async () => {
     try {
@@ -3654,8 +3660,8 @@ function SetupView({
         <div className="mt-5 grid gap-2 text-xs sm:grid-cols-4">
           {checks.map(([label, done]) => (
             <div key={label} className="flex items-center gap-2 border border-line bg-paper px-3 py-2 text-muted">
-              <span className={"grid h-5 w-5 place-items-center rounded-full text-[10px] font-bold " + (done ? "bg-brand-soft text-brand-strong" : "bg-white text-faint")} aria-hidden="true">
-                {done ? "✓" : "—"}
+              <span className={"grid h-5 w-5 place-items-center rounded-full text-[10px] font-bold " + (done === null ? "bg-white text-faint" : done ? "bg-brand-soft text-brand-strong" : "bg-white text-faint")} aria-hidden="true">
+              {done === null ? "?" : done ? "✓" : "—"}
               </span>
               {label}
             </div>
