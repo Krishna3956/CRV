@@ -363,6 +363,10 @@ export function createAnalyticsHandler(getAdmin: typeof getSupabaseAdmin = getSu
     if (timestamp >= previousPeriodStartMs && timestamp < periodStartMs) previousPeriodAccounts.add(row.account_key);
     if (timestamp >= periodStartMs && timestamp <= periodEndMs) {
       const bucket = new Date(timestamp);
+      // Founder OS adoption is intentionally reported as a weekly signal.
+      // Week starts on Monday in UTC so the server result is stable for every
+      // viewer and does not silently depend on a browser's local timezone.
+      bucket.setUTCDate(bucket.getUTCDate() - ((bucket.getUTCDay() + 6) % 7));
       bucket.setUTCHours(0, 0, 0, 0);
       const bucketKey = bucket.toISOString().slice(0, 10);
       const set = growthBuckets.get(bucketKey) || new Set<string>();

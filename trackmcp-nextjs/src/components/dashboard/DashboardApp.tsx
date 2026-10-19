@@ -3552,6 +3552,15 @@ function ClientsView({
   hasMyData: boolean;
   pageControls: ReactNode;
 }) {
+  const people = analytics.who_is_using_it;
+  const periodDelta = people && people.previous_period_active_accounts > 0
+    ? (people.active_accounts - people.previous_period_active_accounts) / people.previous_period_active_accounts
+    : null;
+  const periodComparison = periodDelta === null
+    ? people?.previous_period_active_accounts === 0 && people.active_accounts > 0
+      ? "No prior-period account activity"
+      : "No change from the prior period"
+    : `${periodDelta > 0 ? "↑" : periodDelta < 0 ? "↓" : "→"} ${Math.abs(Math.round(periodDelta * 100))}% vs. prior period`;
   return (
     <div>
       <PageIntro
@@ -3560,45 +3569,38 @@ function ClientsView({
         actions={pageControls}
       />
       <DataSourceStrip dataMode={dataMode} hasMyData={hasMyData} view="clients" />
-      {analytics.who_is_using_it && (
+      {people && (
         <>
           <div className="mb-6 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
             <Kpi
-              label="Active accounts this period"
-              value={fmt(analytics.who_is_using_it.active_accounts)}
+              label="Active accounts"
+              value={fmt(people.active_accounts)}
               icon={Users}
-              helper={`${analytics.range_days} day window`}
+              helper={`${periodComparison} · ${analytics.range_days}-day window`}
             />
             <Kpi
-              label="New accounts"
-              value={analytics.who_is_using_it.new_accounts === null ? "N/A" : fmt(analytics.who_is_using_it.new_accounts)}
+              label="New this period"
+              value={people.new_accounts === null ? "N/A" : fmt(people.new_accounts)}
               icon={Sparkles}
               helper="First observed in this window"
             />
             <Kpi
-              label="Returning accounts"
-              value={analytics.who_is_using_it.returning_accounts === null ? "N/A" : fmt(analytics.who_is_using_it.returning_accounts)}
+              label="Returning this period"
+              value={people.returning_accounts === null ? "N/A" : fmt(people.returning_accounts)}
               icon={RotateCcw}
               helper="Observed before this window"
             />
             <Kpi
-              label="Previous period"
-              value={fmt(analytics.who_is_using_it.previous_period_active_accounts)}
+              label="Prior-period active"
+              value={fmt(people.previous_period_active_accounts)}
               icon={TrendingUp}
               helper="Same-length comparison window"
             />
           </div>
           <div className="mb-6 grid gap-4 xl:grid-cols-[1.25fr_0.75fr]">
-            <Panel title="Growth over time" subtitle="Distinct resolver-linked accounts observed per day">
-              {analytics.who_is_using_it.growth.length ? (
-                <div className="grid grid-cols-2 gap-2 sm:grid-cols-4 lg:grid-cols-7">
-                  {analytics.who_is_using_it.growth.slice(-14).map((point) => (
-                    <div key={point.period_start} className="border border-line bg-surface px-3 py-3">
-                      <p className="text-[10px] text-faint">{point.period_start.slice(5)}</p>
-                      <p className="mt-1 text-xl font-semibold text-ink">{fmt(point.active_accounts)}</p>
-                    </div>
-                  ))}
-                </div>
+            <Panel title="Growth over time" subtitle="Distinct resolver-linked accounts observed each week">
+              {people.growth.length ? (
+                <AccountGrowthChart points={people.growth} />
               ) : (
                 <p className="py-6 text-sm text-muted">No account activity was observed in this period.</p>
               )}
@@ -3606,130 +3608,59 @@ function ClientsView({
             </Panel>
             <Panel title="Who’s connecting" subtitle="Optional client metadata reported by the AI tool">
               <div className="space-y-3">
-                {analytics.who_is_using_it.client_breakdown.map((client) => (
-                  <div key={client.name} className="flex items-center justify-between gap-3 text-sm">
-                    <span className="truncate text-ink">{client.name}</span>
-                    <span className="shrink-0 text-muted">{client.share === null ? "N/A" : percent(client.share)} · {fmt(client.calls)}</span>
+                {people.client_breakdown.map((client) => (
+                  <div key={client.name} className="text-sm">
+                    <div className="flex items-center justify-between gap-3">
+                      <span className="truncate text-ink">{client.identity_source === "unrecognized" ? "Unrecognized tool" : client.name}</span>
+                      <span className="shrink-0 text-muted">{client.share === null ? "N/A" : percent(client.share)} · {fmt(client.calls)} calls</span>
+                    </div>
+                    <div className="mt-1.5 h-2 overflow-hidden rounded-full bg-paper" aria-hidden="true">
+                      <div className="h-full rounded-full bg-brand" style={{ width: `${Math.max(0, Math.min(100, (client.share || 0) * 100))}%` }} />
+                    </div>
                   </div>
                 ))}
-                {!analytics.who_is_using_it.client_breakdown.length && <p className="py-4 text-sm text-muted">No client metadata was observed.</p>}
+                {!people.client_breakdown.length && <p className="py-4 text-sm text-muted">No client metadata was observed.</p>}
               </div>
               <p className="mt-4 border border-brand/20 bg-brand-soft/30 px-3 py-2.5 text-xs leading-relaxed text-body">Client names are self-reported by the AI tool. Unknown client remains visible when it has volume.</p>
             </Panel>
           </div>
           <Panel title="Top accounts by activity" subtitle="Ranked resolver-linked activity; account names are intentionally not exposed">
-            {analytics.who_is_using_it.top_accounts.length ? (
+            {people.top_accounts.length ? (
               <table className="w-full text-left text-sm">
                 <thead className="border-b border-line text-[10px] font-semibold uppercase tracking-[0.08em] text-faint"><tr><th className="pb-3">Rank</th><th className="pb-3">Activity</th><th className="pb-3">Active days</th><th className="pb-3">Identity</th></tr></thead>
-                <tbody className="divide-y divide-line">{analytics.who_is_using_it.top_accounts.map((account) => <tr key={account.rank}><td className="py-3 font-medium text-ink">#{account.rank}</td><td className="py-3 text-muted">{fmt(account.activity_count)} events</td><td className="py-3 text-muted">{fmt(account.active_days)}</td><td className="py-3 text-muted">Resolver-linked</td></tr>)}</tbody>
+                <tbody className="divide-y divide-line">{people.top_accounts.map((account) => <tr key={account.rank}><td className="py-3 font-medium text-ink">#{account.rank}</td><td className="py-3 text-muted">{fmt(account.activity_count)} events</td><td className="py-3 text-muted">{fmt(account.active_days)}</td><td className="py-3 text-muted">Resolver-linked</td></tr>)}</tbody>
               </table>
             ) : <p className="py-6 text-sm text-muted">No resolver-linked accounts were observed in this period.</p>}
             <p className="mt-4 text-xs leading-relaxed text-faint">MCP does not define customer accounts. Names can only be shown when a customer configures a verified identity resolver; raw resolver keys never leave the server.</p>
           </Panel>
-          {analytics.who_is_using_it.classification_status === "insufficient_data" && <p className="mt-3 text-xs text-warning">New versus returning account counts are unavailable because the bounded history scan was incomplete.</p>}
+          {people.classification_status === "insufficient_data" && <p className="mt-3 text-xs text-warning">New versus returning account counts are unavailable because the bounded history scan was incomplete.</p>}
         </>
       )}
-      {analytics.account_summary && (
-        <div className="mb-6 grid gap-3 sm:grid-cols-3 xl:grid-cols-5">
-          <Kpi
-            label="Observed account signals"
-            value={fmt(analytics.account_summary.observed_account_keys)}
-            icon={Users}
-            helper="Distinct resolver-linked keys"
-          />
-          <Kpi
-            label="Identity coverage"
-            value={analytics.account_summary.resolver_coverage === null ? "N/A" : percent(analytics.account_summary.resolver_coverage)}
-            icon={ShieldCheck}
-            helper="Resolver-linked eligible events"
-          />
-          <Kpi
-            label="Unknown identity events"
-            value={fmt(analytics.account_summary.unresolved_events)}
-            icon={Search}
-            helper="Kept visible; not classified as customers"
-          />
-          <Kpi
-            label="Active in last 7 days"
-            value={fmt(analytics.account_summary.active_account_keys_7d)}
-            icon={Activity}
-            helper="Observed resolver-linked keys"
-          />
-          <Kpi
-            label="Returning account signals"
-            value={fmt(analytics.account_summary.returning_account_keys)}
-            icon={Route}
-            helper="Seen on more than one day"
-          />
-        </div>
-      )}
-      {analytics.account_summary && (
-        <Panel title="Account activity shape" subtitle="Privacy-safe usage bands; no account names or raw identifiers are shown">
-          <div className="grid gap-3 sm:grid-cols-3">
-            {[
-              ["One-event signals", analytics.account_summary.account_activity_bands.one_event, "Accounts observed once"],
-              ["Repeat signals", analytics.account_summary.account_activity_bands.repeat, "2–9 observed events"],
-              ["High-activity signals", analytics.account_summary.account_activity_bands.high_activity, "10+ observed events"],
-            ].map(([label, value, helper]) => (
-              <div key={String(label)} className="border border-line bg-surface px-4 py-3">
-                <p className="text-xs font-medium text-muted">{label}</p>
-                <p className="mt-1 text-2xl font-semibold tracking-tight text-ink">{fmt(Number(value))}</p>
-                <p className="mt-1 text-[11px] text-faint">{helper}</p>
-              </div>
-            ))}
-          </div>
-          <p className="mt-4 text-xs leading-relaxed text-muted">These are bounded activity signals, not unique people, companies, or verified customers. Resolver coverage and the selected date range limit what can be inferred.</p>
-        </Panel>
-      )}
-      <Panel
-        title="AI clients observed"
-        subtitle="Activity is grouped by observed client name"
-      >
-        <p className="mb-4 border border-brand/20 bg-brand-soft/30 px-3 py-2.5 text-xs leading-relaxed text-body">
-          Client names come from optional MCP client metadata and are self-reported,
-          not verified identities. <strong>Unknown client</strong> means the server
-          did not receive a client name; it remains visible so the chart does not
-          overstate certainty.
-        </p>
-        <div
-          className="overflow-x-auto"
-          role="region"
-          aria-label="Scrollable table"
-        >
-          <p className="mb-3 text-[11px] text-faint">
-            Scroll horizontally to inspect all columns.
-          </p>
-          <table className="w-full min-w-[620px] text-left text-sm">
-            <thead className="border-b border-line text-[10px] font-semibold uppercase tracking-[0.08em] text-faint">
-              <tr>
-                <th className="pb-3">AI client</th>
-                <th className="pb-3">Observed calls</th>
-                <th className="pb-3">Share of calls</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-line">
-              {analytics.clients.map((client) => (
-                <tr key={client.name}>
-                  <td className="py-4 font-medium text-ink">{client.name}</td>
-                  <td className="py-4 text-muted">{fmt(client.calls)}</td>
-                  <td className="py-4 text-muted">
-                    {analytics.tool_calls
-                      ? percent(client.calls / analytics.tool_calls)
-                      : "N/A"}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-          {!analytics.clients.length && (
-            <p className="py-8 text-sm text-muted">
-              No AI clients were observed in the selected period.
-            </p>
-          )}
-        </div>
-      </Panel>
     </div>
   );
+}
+
+function AccountGrowthChart({ points }: { points: NonNullable<Analytics["who_is_using_it"]>["growth"] }) {
+  const shown = points.slice(-14);
+  const width = 560;
+  const height = 184;
+  const padding = 22;
+  const max = Math.max(1, ...shown.map((point) => point.active_accounts));
+  const x = (index: number) => shown.length <= 1 ? width / 2 : padding + (index * (width - padding * 2)) / (shown.length - 1);
+  const y = (value: number) => height - padding - ((value / max) * (height - padding * 2));
+  const path = shown.map((point, index) => `${index === 0 ? "M" : "L"}${x(index)} ${y(point.active_accounts)}`).join(" ");
+  const latest = shown.at(-1);
+  return <div>
+    <svg viewBox={`0 0 ${width} ${height}`} role="img" aria-label={`Weekly active account growth. Latest: ${latest?.active_accounts ?? 0} accounts.`} className="h-48 w-full overflow-visible" preserveAspectRatio="none">
+      <line x1={padding} x2={width - padding} y1={height - padding} y2={height - padding} stroke="currentColor" className="text-line" />
+      <path d={path} fill="none" stroke="currentColor" strokeWidth="3" vectorEffect="non-scaling-stroke" className="text-brand-strong" />
+      {shown.map((point, index) => <circle key={point.period_start} cx={x(index)} cy={y(point.active_accounts)} r="4" fill="currentColor" className="text-brand-strong" />)}
+    </svg>
+    <div className="mt-2 flex justify-between gap-3 text-[10px] text-faint">
+      <span>{shown[0]?.period_start}</span>
+      <span>{latest?.period_start}</span>
+    </div>
+  </div>;
 }
 
 function EvidenceView({

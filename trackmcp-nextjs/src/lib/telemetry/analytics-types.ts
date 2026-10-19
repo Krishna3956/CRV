@@ -226,6 +226,8 @@ export type Analytics = {
     new_accounts: number | null;
     returning_accounts: number | null;
     classification_status: "available" | "insufficient_data";
+    /** ISO week starts, in UTC. The People surface never presents this as a
+     * daily retention series because account adoption is a weekly signal. */
     growth: Array<{ period_start: string; active_accounts: number }>;
     client_breakdown: Array<{ name: string; calls: number; share: number | null; identity_source: "self_reported" | "unrecognized" }>;
     top_accounts: Array<{ rank: number; activity_count: number; active_days: number; identity_source: "resolver" }>;

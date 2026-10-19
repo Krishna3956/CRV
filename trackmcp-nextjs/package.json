@@ -28,7 +28,7 @@
     "test:outcomes-route": "node --test src/app/api/v2/outcomes/route.contract.test.mjs src/app/api/v2/outcomes/route.integration.test.mjs",
     "test:journeys-route": "node --test src/app/api/v2/journeys/route.contract.test.mjs src/app/api/v2/journeys/route.integration.test.mjs",
     "test:tasks-route": "node --test src/app/api/v2/tasks/route.contract.test.mjs",
-    "test:people-route": "node --test src/app/api/v2/people/route.contract.test.mjs",
+    "test:people-route": "node --test src/app/api/v2/people/route.contract.test.mjs src/app/api/v2/people/route.integration.test.mjs",
     "test:resources-route": "node --test src/app/api/v2/resources/route.contract.test.mjs",
     "test:prompts-route": "node --test src/app/api/v2/prompts/route.contract.test.mjs",
     "test:catalog-observation-migration": "node --test src/lib/telemetry/catalog-observation-migration.test.mjs",
