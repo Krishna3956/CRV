@@ -49,6 +49,28 @@ async function request(path, options = {}) {
   return { status: response.status, headers: response.headers };
 }
 
+async function keyStatusRequest(apiKey) {
+  const response = await fetch(endpoint("/api/v1/cli/key-status"), {
+    method: "GET",
+    headers: { accept: "application/json", authorization: `Bearer ${apiKey}` },
+    redirect: "manual",
+    signal: AbortSignal.timeout(15_000),
+  });
+  let body = {};
+  try {
+    const parsed = await response.json();
+    if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) body = parsed;
+  } catch {
+    // The evidence report records only the status code and bounded booleans.
+  }
+  return {
+    status: response.status,
+    acceptedTelemetry: body.accepted_telemetry === true || body.first_event_accepted === true,
+    workspaceAvailable: body.workspace_available === true,
+    serviceAvailable: body.service_available === true,
+  };
+}
+
 async function expect(path, expected, options, label = path) {
   const response = await request(path, options);
   if (response.status !== expected) fail(`${label}: expected HTTP ${expected}, received HTTP ${response.status}`);
@@ -100,9 +122,10 @@ async function main() {
   }
 
   if (key) {
-    const response = await request("/api/v1/cli/key-status", { headers: { authorization: `Bearer ${key}` } });
+    const response = await keyStatusRequest(key);
     if (![200, 401, 403, 429, 503].includes(response.status)) fail(`authenticated key-status: unexpected HTTP ${response.status}`);
-    checks.push({ label: "authenticated key-status", status: response.status });
+    if (response.status === 200 && (!response.workspaceAvailable || !response.serviceAvailable)) fail("authenticated key-status: workspace or service is unavailable");
+    checks.push({ label: "authenticated key-status", status: response.status, accepted_telemetry: response.acceptedTelemetry, workspace_available: response.workspaceAvailable, service_available: response.serviceAvailable });
   } else {
     checks.push({ label: "authenticated key-status", status: "skipped (TRACKMCP_SMOKE_KEY not supplied)" });
   }
@@ -128,6 +151,17 @@ async function main() {
     });
     if (response.status !== 200) fail(`first-ingest smoke: expected HTTP 200, received HTTP ${response.status}`);
     checks.push({ label: "first-ingest smoke (event ID redacted)", status: response.status });
+    let accepted = false;
+    for (let attempt = 0; attempt < 5; attempt += 1) {
+      const status = await keyStatusRequest(key);
+      if (status.status === 200 && status.workspaceAvailable && status.serviceAvailable && status.acceptedTelemetry) {
+        accepted = true;
+        break;
+      }
+      await new Promise((resolve) => setTimeout(resolve, 1_000));
+    }
+    if (!accepted) fail("first-ingest smoke: key-status did not observe the accepted-ingest milestone within the bounded wait");
+    checks.push({ label: "first-ingest milestone", status: "observed" });
   } else {
     checks.push({ label: "first-ingest smoke", status: "skipped (set TRACKMCP_SMOKE_ALLOW_WRITE=true explicitly)" });
   }
