@@ -20,6 +20,25 @@ This checks the public pages, sitemap endpoints, unauthenticated key-status
 boundary, and exact npm/PyPI registry metadata. It writes a `0600` redacted
 JSON report to `/tmp/trackmcp-production-smoke.json` by default.
 
+The registry portion also verifies that npm metadata exposes a SHA-512 integrity
+value and a tarball hosted by the npm registry, and that PyPI exposes SHA-256
+digests for both a wheel and an sdist. For a release archive, provide the
+reviewed values as optional comparisons:
+
+```bash
+TRACKMCP_EXPECTED_NPM_SDK_INTEGRITY='sha512-...' \
+TRACKMCP_EXPECTED_NPM_CLI_INTEGRITY='sha512-...' \
+TRACKMCP_EXPECTED_PYPI_WHEEL_SHA256='...' \
+TRACKMCP_EXPECTED_PYPI_SDIST_SHA256='...' \
+TRACKMCP_PRODUCTION_SMOKE_CONFIRM=I_UNDERSTAND_PRODUCTION_SMOKE \
+TRACKMCP_SMOKE_BASE_URL=https://trackmcp.com \
+npm run smoke:production-pilot
+```
+
+These comparisons validate registry metadata and artifact checksums. They do
+not, by themselves, prove npm provenance attestations; retain the publication
+workflow's provenance result separately.
+
 ## Authenticated disposable-key check
 
 Only after an operator has created a disposable pilot key and is intentionally
