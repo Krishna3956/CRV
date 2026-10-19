@@ -3726,6 +3726,13 @@ function SetupView({
         privacy_policy_applied?: boolean;
         account_resolver_observed?: boolean | null;
       };
+      readiness?: {
+        required_completed?: number;
+        required_total?: number;
+        required_percentage?: number;
+        optional_identity?: boolean | null;
+        identity_required?: boolean;
+      };
       first_event?: { observed_at?: string | null; ingestion_lag_seconds?: number | null } | null;
       caveat?: string;
       next_steps?: string[];
@@ -3886,6 +3893,22 @@ function SetupView({
             </div>
           ))}
         </div>
+        {activeSetupContract?.setup?.readiness && (
+          <div className="mt-5 border-t border-line pt-4" aria-label="Setup readiness">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <p className="text-xs font-semibold text-ink">Required setup evidence</p>
+              <p className="text-xs font-medium text-muted">
+                {activeSetupContract.setup.readiness.required_completed ?? 0}/{activeSetupContract.setup.readiness.required_total ?? 0} checks · {activeSetupContract.setup.readiness.required_percentage ?? 0}%
+              </p>
+            </div>
+            <div className="mt-2 h-2 overflow-hidden bg-paper" role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={activeSetupContract.setup.readiness.required_percentage ?? 0}>
+              <div className="h-full bg-brand transition-[width]" style={{ width: `${Math.min(100, Math.max(0, activeSetupContract.setup.readiness.required_percentage ?? 0))}%` }} />
+            </div>
+            <p className="mt-2 text-[11px] leading-relaxed text-muted">
+              Identity resolution is optional and does not block a connected state. The percentage reflects only key, event, MCP method, transport, and privacy-policy evidence.
+            </p>
+          </div>
+        )}
         {connectionState === "error" && (
           <button
             type="button"

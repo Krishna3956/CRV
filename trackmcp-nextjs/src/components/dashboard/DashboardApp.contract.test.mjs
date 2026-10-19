@@ -137,6 +137,12 @@ test("Setup exposes truthful first-event and coverage states", () => {
   assert.match(source, /Event persisted/);
 });
 
+test("Setup renders the server readiness contract without making identity mandatory", () => {
+  assert.match(source, /Required setup evidence/);
+  assert.match(source, /Identity resolution is optional and does not block a connected state/);
+  assert.match(source, /aria-label="Setup readiness"/);
+});
+
 test("connection keys are explicitly created from Setup and shown once in full", () => {
   assert.match(source, /Complete setup/);
   assert.match(source, /className="max-w-full break-all overflow-x-auto/);

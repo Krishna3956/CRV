@@ -50,6 +50,9 @@ export function createSetupHandler(getAdmin: typeof getSupabaseAdmin = getSupaba
     const transportObserved = hasEvent && typeof latest?.transport === "string";
     const privacyPolicyApplied = hasEvent && typeof latest?.payload_policy === "string";
     const state = setupConnectionState({ hasKey, hasEvent, mcpMethodObserved, transportObserved, privacyPolicyApplied });
+    const requiredChecks = [hasKey, hasEvent, mcpMethodObserved, transportObserved, privacyPolicyApplied];
+    const requiredCompleted = requiredChecks.filter(Boolean).length;
+    const accountIdentity = accountResolverObservation(latest?.account_identity_source);
     const nextSteps = !hasKey
       ? ["Create a workspace connection key.", "Keep the key in your server environment; never commit it."]
       : !hasEvent
@@ -71,6 +74,15 @@ export function createSetupHandler(getAdmin: typeof getSupabaseAdmin = getSupaba
           // Missing legacy fields are unknown; an explicit unresolved source
           // is a truthful negative rather than a missing-data guess.
           account_resolver_observed: accountResolverObservation(latest?.account_identity_source),
+        },
+        readiness: {
+          required_completed: requiredCompleted,
+          required_total: requiredChecks.length,
+          required_percentage: Math.round((requiredCompleted / requiredChecks.length) * 100),
+          optional_identity: accountIdentity,
+          // Identity resolution is an optional signal and must not block a
+          // customer from reaching a connected state.
+          identity_required: false,
         },
         first_event: hasEvent ? {
           event_id_present: typeof latest?.event_id === "string",
