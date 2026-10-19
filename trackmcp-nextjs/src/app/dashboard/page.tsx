@@ -38,7 +38,11 @@ export function DashboardPageContent({ initialView = "overview" }: { initialView
     const query = workspaceId ? `?workspace_id=${encodeURIComponent(workspaceId)}` : "";
     const response = await fetch(`/api/v1/account/workspace${query}`, { cache: "no-store" });
     const body = await response.json();
-    if (!response.ok) throw new Error(body.error || "Could not load your workspace.");
+    if (!response.ok) {
+      const error = new Error(body.error || "Could not load your workspace.") as Error & { status?: number };
+      error.status = response.status;
+      throw error;
+    }
     setWorkspace(body.workspace); setWorkspaces(Array.isArray(body.workspaces) ? body.workspaces : body.workspace ? [body.workspace] : []); setKeys(body.keys || []);
     return body;
   }, []);
@@ -89,7 +93,23 @@ export function DashboardPageContent({ initialView = "overview" }: { initialView
     if (LOCAL_DASHBOARD_BYPASS) {
       return;
     }
-    void (async () => { const { data } = await getSupabaseBrowser().auth.getUser(); const user = data.user; setEmail(user?.email || null); setDisplayName(userDisplayName(user)); if (!user) { setLoading(false); return; } try { const preferred = window.localStorage.getItem("trackmcp.selected_workspace_id") || undefined; const account = await loadAccount(preferred); const activeWorkspaceId = account.workspace?.id || null; if (activeWorkspaceId) { setSelectedWorkspaceId(activeWorkspaceId); window.localStorage.setItem("trackmcp.selected_workspace_id", activeWorkspaceId); } if (!account.workspace && !autoProvisionAttempted.current) { autoProvisionAttempted.current = true; await createWorkspace(); } else if (account.workspace) { await Promise.all([loadAnalytics("30", activeWorkspaceId || undefined), loadToolQuality("30", activeWorkspaceId || undefined)]); } } catch (reason) { setError(reason instanceof Error ? reason.message : "Could not load your account."); } finally { setLoading(false); } })();
+    void (async () => { const { data } = await getSupabaseBrowser().auth.getUser(); const user = data.user; setEmail(user?.email || null); setDisplayName(userDisplayName(user)); if (!user) { setLoading(false); return; } try {
+      const preferred = window.localStorage.getItem("trackmcp.selected_workspace_id") || undefined;
+      let account: Account;
+      try {
+        account = await loadAccount(preferred);
+      } catch (reason) {
+        const status = reason instanceof Error ? (reason as Error & { status?: number }).status : undefined;
+        if (!preferred || status !== 404) throw reason;
+        // A deleted or inaccessible workspace can remain in localStorage after
+        // membership changes. Recover from the user's current memberships.
+        window.localStorage.removeItem("trackmcp.selected_workspace_id");
+        account = await loadAccount();
+      }
+      const activeWorkspaceId = account.workspace?.id || null;
+      if (activeWorkspaceId) { setSelectedWorkspaceId(activeWorkspaceId); window.localStorage.setItem("trackmcp.selected_workspace_id", activeWorkspaceId); }
+      if (!account.workspace && !autoProvisionAttempted.current) { autoProvisionAttempted.current = true; await createWorkspace(); } else if (account.workspace) { await Promise.all([loadAnalytics("30", activeWorkspaceId || undefined), loadToolQuality("30", activeWorkspaceId || undefined)]); }
+    } catch (reason) { setError(reason instanceof Error ? reason.message : "Could not load your account."); } finally { setLoading(false); } })();
   }, [createWorkspace, loadAccount, loadAnalytics, loadToolQuality]);
 
   if (loading) return <main className="mx-auto min-h-screen max-w-6xl px-6 py-20 text-sm text-muted">Loading your workspace…</main>;
