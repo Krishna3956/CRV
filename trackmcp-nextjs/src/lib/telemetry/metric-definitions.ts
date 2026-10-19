@@ -149,6 +149,38 @@ export const METRIC_DEFINITIONS = [
       "This is a usage-surface metric, not a demand, retention, or expansion score.",
     ],
   },
+  {
+    key: "resource_reads",
+    label: "Resource reads",
+    formula: "count(observed resources/read events)",
+    source: "Protocol telemetry",
+    interpretation: "Observed resource reads reaching the instrumented server.",
+    limitations: ["Resource contents and raw URIs are never exposed.", "Calls that never reach the server are not observable."],
+  },
+  {
+    key: "prompt_calls",
+    label: "Prompt calls",
+    formula: "count(observed prompts/get events)",
+    source: "Protocol telemetry",
+    interpretation: "Observed prompt retrieval calls reaching the instrumented server.",
+    limitations: ["Prompt arguments and raw names are never exposed.", "A call is not proof that a user completed the resulting work."],
+  },
+  {
+    key: "prompt_completion_rate",
+    label: "Prompt completion rate",
+    formula: "explicit complete prompt outcomes / observed prompt calls",
+    source: "Prompt protocol telemetry",
+    interpretation: "Explicitly reported prompt completion evidence.",
+    limitations: ["N/A when no prompt calls exist.", "Unknown outcomes are not treated as completion or failure."],
+  },
+  {
+    key: "prompt_stall_rate",
+    label: "Prompt needs-input rate",
+    formula: "input_required prompt outcomes / observed prompt calls",
+    source: "Prompt protocol telemetry",
+    interpretation: "Explicit prompt calls that require more input.",
+    limitations: ["Needs-input is friction evidence, not abandonment or failure."],
+  },
 ] as const satisfies readonly MetricDefinition[];
 
 export type MetricKey = (typeof METRIC_DEFINITIONS)[number]["key"];

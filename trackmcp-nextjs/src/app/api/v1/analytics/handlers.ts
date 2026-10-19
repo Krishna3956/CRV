@@ -142,12 +142,12 @@ export function createAnalyticsHandler(getAdmin: typeof getSupabaseAdmin = getSu
   // marks the classification as insufficient rather than inventing a trend.
   const historyLimit = 100_000;
   const historyResult = await supabase.from("trackmcp_events")
-    .select("account_key, account_identity_source, started_at, event_type, tool_name, is_error, success, result_type, duration_ms")
+    .select("account_key, account_identity_source, started_at, event_type, mcp_method, tool_name, is_error, success, result_type, duration_ms")
     .eq("workspace_id", workspaceId)
     .eq("observation_source", "server")
     .order("started_at", { ascending: true })
     .limit(historyLimit);
-  const historyRows = historyResult.error ? [] : ((historyResult.data || []) as Array<{ account_key?: unknown; account_identity_source?: unknown; started_at?: unknown; event_type?: unknown; tool_name?: unknown; is_error?: unknown; success?: unknown; result_type?: unknown; duration_ms?: unknown }>);
+  const historyRows = historyResult.error ? [] : ((historyResult.data || []) as Array<{ account_key?: unknown; account_identity_source?: unknown; started_at?: unknown; event_type?: unknown; mcp_method?: unknown; tool_name?: unknown; is_error?: unknown; success?: unknown; result_type?: unknown; duration_ms?: unknown }>);
   const historyCapped = historyRows.length >= historyLimit;
 
   // Snapshot rows are service-written and explicitly workspace-scoped by the
@@ -429,6 +429,46 @@ export function createAnalyticsHandler(getAdmin: typeof getSupabaseAdmin = getSu
     const inputRequired = matching.filter((event) => event.result_type === "input_required").length;
     return { tool_name: tool.name, calls: tool.calls, error_rate: tool.calls ? tool.errors / tool.calls : null, input_required_rate: tool.calls ? inputRequired / tool.calls : null, p95_ms: tool.p95_ms };
   });
+  const resourceEvents = events.filter((event) => event.mcp_method?.startsWith("resources/"));
+  const promptEvents = events.filter((event) => event.mcp_method?.startsWith("prompts/"));
+  const resourceReadEvents = resourceEvents.filter((event) => event.mcp_method === "resources/read");
+  const promptCallEvents = promptEvents.filter((event) => event.mcp_method === "prompts/get");
+  const previousResourceReads = historyRows.filter((row) => row.event_type === "protocol" && row.mcp_method?.toString().startsWith("resources/") && typeof row.started_at === "string" && Date.parse(row.started_at) >= previousPeriodStartMs && Date.parse(row.started_at) < periodStartMs).length;
+  const previousPromptCalls = historyRows.filter((row) => row.event_type === "protocol" && row.mcp_method?.toString().startsWith("prompts/") && typeof row.started_at === "string" && Date.parse(row.started_at) >= previousPeriodStartMs && Date.parse(row.started_at) < periodStartMs).length;
+  const groupSurface = (items: typeof resourceEvents, kind: "resource" | "prompt") => {
+    const grouped = new Map<string, { calls: number; complete: number; stalled: number }>();
+    for (const event of items) {
+      const name = event.mcp_method || `${kind === "resource" ? "Resource" : "Prompt"} (hashed identity)`;
+      const current = grouped.get(name) || { calls: 0, complete: 0, stalled: 0 };
+      current.calls += 1;
+      if (event.result_type === "complete" || event.success === true) current.complete += 1;
+      if (event.result_type === "input_required") current.stalled += 1;
+      grouped.set(name, current);
+    }
+    return [...grouped.entries()].sort((a, b) => b[1].calls - a[1].calls).slice(0, MAX_PUBLIC_LIST_ITEMS).map(([name, value]) => ({ name: name.slice(0, 128), calls: value.calls, share: items.length ? value.calls / items.length : null, completion_rate: kind === "prompt" ? (value.calls ? value.complete / value.calls : null) : undefined, stall_rate: kind === "prompt" ? (value.calls ? value.stalled / value.calls : null) : undefined }));
+  };
+  const surfaceTrend = new Map<string, number>();
+  for (const event of [...resourceEvents, ...promptEvents]) {
+    const timestamp = Date.parse(event.started_at);
+    if (!Number.isFinite(timestamp)) continue;
+    const bucket = new Date(timestamp); bucket.setUTCDate(bucket.getUTCDate() - bucket.getUTCDay()); bucket.setUTCHours(0, 0, 0, 0);
+    const kind = event.mcp_method?.startsWith("prompts/") ? "prompt" : "resource";
+    const name = event.mcp_method || `${kind} (hashed identity)`;
+    const key = `${bucket.toISOString().slice(0, 10)}|${kind}|${name}`;
+    surfaceTrend.set(key, (surfaceTrend.get(key) || 0) + 1);
+  }
+  const resourcePromptActivity = {
+    resource_reads: resourceReadEvents.length,
+    prompt_calls: promptCallEvents.length,
+    previous_period_resource_reads: previousResourceReads,
+    previous_period_prompt_calls: previousPromptCalls,
+    prompt_completion_rate: promptCallEvents.length ? promptCallEvents.filter((event) => event.result_type === "complete" || event.success === true).length / promptCallEvents.length : null,
+    prompt_stall_rate: promptCallEvents.length ? promptCallEvents.filter((event) => event.result_type === "input_required").length / promptCallEvents.length : null,
+    resource_breakdown: groupSurface(resourceEvents, "resource"),
+    prompt_breakdown: groupSurface(promptEvents, "prompt"),
+    trend: [...surfaceTrend.entries()].sort(([a], [b]) => a.localeCompare(b)).slice(-500).map(([key, calls]) => { const [period_start, kind, name] = key.split("|"); return { period_start, kind: kind as "resource" | "prompt", name, calls }; }),
+    limitation: historyCapped || historyResult.error ? "Resource and prompt activity is current-period complete, but previous-period comparison is bounded by the available history scan. Names are represented by safe protocol methods; raw URIs, prompt names, arguments, and contents are never exposed." : "Names are represented by safe protocol methods; raw URIs, prompt names, arguments, and contents are never exposed.",
+  };
   const outcomeEvents = events.filter(isWorkflowLifecycleEvent);
   // Only named workflow outcomes can be grouped. Older SDKs may emit a
   // lifecycle event without workflow_name; do not let that malformed or
@@ -479,8 +519,6 @@ export function createAnalyticsHandler(getAdmin: typeof getSupabaseAdmin = getSu
       protocolSignalEvents += 1;
     }
   }
-  const resourceEvents = events.filter((event) => event.mcp_method?.startsWith("resources/"));
-  const promptEvents = events.filter((event) => event.mcp_method?.startsWith("prompts/"));
   // Catalog observations already contain bounded SHA-256 identity hashes. We
   // expose only unique counts here; raw resource URIs, prompt names, and
   // arguments never leave the server.
@@ -567,6 +605,7 @@ export function createAnalyticsHandler(getAdmin: typeof getSupabaseAdmin = getSu
         ? "The selected-period tool view is complete, but previous-period comparison is limited by the bounded history scan."
         : "Tool activity is observed at the instrumented server boundary; calls that never reach the server are not included.",
     },
+    resource_prompt_activity: resourcePromptActivity,
     tools: toolRows.slice(0, MAX_PUBLIC_LIST_ITEMS), catalog_tools: [...catalog.values()].slice(0, MAX_PUBLIC_LIST_ITEMS),
     unused_tools: unusedTools.slice(0, MAX_PUBLIC_LIST_ITEMS), workflows: workflowRows.slice(0, 100), outcomes: explicitOutcomes.slice(0, MAX_PUBLIC_DIMENSION_ITEMS),
     founder_os: { facts: aggregateTrackMCPFacts(facts), groups: outcomeGroups, identity_coverage: identityCoverage, identity_source_counts: identitySourceCounts, tasks: aggregateTaskLifecycles(facts, taskTransitions) },

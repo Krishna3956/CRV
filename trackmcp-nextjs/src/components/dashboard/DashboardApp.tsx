@@ -2855,6 +2855,7 @@ function ResourcesPromptsView({
   pageControls: ReactNode;
 }) {
   const surfaces = analytics.interaction_surfaces;
+  const activity = analytics.resource_prompt_activity;
   const rows = surfaces ? ([
     ["Resources", surfaces.resources],
     ["Prompts", surfaces.prompts],
@@ -2871,10 +2872,23 @@ function ResourcesPromptsView({
         <p className="mt-1 max-w-3xl text-xs leading-relaxed text-muted">TrackMCP reports bounded method observations and hashed entity counts. It does not expose resource contents, prompt arguments, unique people, or business completion from these signals.</p>
       </section>
       <div className="grid gap-3 sm:grid-cols-3">
+        <Kpi label="Resource reads" value={activity ? fmt(activity.resource_reads) : "N/A"} icon={FileText} helper={activity ? `${fmt(activity.previous_period_resource_reads)} previous period` : "Awaiting evidence"} />
+        <Kpi label="Prompt calls" value={activity ? fmt(activity.prompt_calls) : "N/A"} icon={Activity} helper={activity ? `${fmt(activity.previous_period_prompt_calls)} previous period` : "Awaiting evidence"} />
+        <Kpi label="Prompt completion" value={activity?.prompt_completion_rate == null ? "N/A" : `${Math.round(activity.prompt_completion_rate * 100)}%`} icon={Check} helper={activity?.prompt_stall_rate == null ? "Explicit outcome evidence only" : `${Math.round(activity.prompt_stall_rate * 100)}% needs input`} />
+      </div>
+      <div className="mt-3 grid gap-3 sm:grid-cols-3">
         <Kpi label="Observed events" value={surfaces ? fmt(observedEvents) : "N/A"} icon={Activity} helper="Resource and prompt method events" />
         <Kpi label="Hashed entities" value={surfaces ? fmt(observedEntities) : "N/A"} icon={FileText} helper="Bounded, non-reversible identities" />
         <Kpi label="Read success" value={surfaces ? fmt(successfulReads) : "N/A"} icon={Check} helper="Durable read projection only" />
       </div>
+      {activity && <div className="mt-6 grid gap-6 xl:grid-cols-2">
+        {[["Top resources", activity.resource_breakdown, "Resource method"], ["Top prompts", activity.prompt_breakdown, "Prompt method"]].map(([title, items, label]) => (
+          <Panel key={String(title)} title={String(title)} subtitle="Safe method dimensions only; raw names and inputs are never shown">
+            <div className="space-y-3">{(items as Array<{ name: string; calls: number; share: number | null; completion_rate?: number | null; stall_rate?: number | null }>).length ? (items as Array<{ name: string; calls: number; share: number | null; completion_rate?: number | null; stall_rate?: number | null }>).map((item) => <div key={item.name} className="border border-line bg-paper p-3"><div className="flex items-center justify-between gap-3"><span className="text-xs font-medium text-ink">{item.name}</span><span className="text-xs text-muted">{fmt(item.calls)} calls</span></div><div className="mt-2 h-1.5 bg-line"><div className="h-full bg-brand" style={{ width: `${Math.max(4, Math.round((item.share || 0) * 100))}%` }} /></div>{item.completion_rate != null && <p className="mt-2 text-[11px] text-muted">{Math.round(item.completion_rate * 100)}% complete · {Math.round((item.stall_rate || 0) * 100)}% needs input</p>}</div>) : <StateNote title={`No ${String(label).toLowerCase()} evidence yet`} body="No qualifying events were observed in this period." />}</div>
+          </Panel>
+        ))}
+      </div>}
+      {activity && <Panel title="Activity trend" subtitle="Weekly observed calls; a missing week is not evidence of abandonment"><div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">{activity.trend.slice(-12).map((item) => <div key={`${item.period_start}-${item.kind}-${item.name}`} className="border border-line bg-paper p-3"><p className="text-[10px] uppercase tracking-[0.08em] text-faint">{item.period_start} · {item.kind}</p><p className="mt-1 text-xs text-ink">{item.name}</p><p className="mt-1 text-lg font-semibold text-ink">{fmt(item.calls)}</p></div>)}</div><p className="mt-3 text-[11px] text-faint">{activity.limitation}</p></Panel>}
       <div className="mt-6 grid gap-6 xl:grid-cols-2">
         {rows.map(([label, surface]) => (
           <Panel key={label} title={label} subtitle="Method and read evidence, never content">

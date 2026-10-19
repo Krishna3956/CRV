@@ -244,6 +244,21 @@ export type Analytics = {
     reliability: Array<{ tool_name: string; calls: number; error_rate: number | null; input_required_rate: number | null; p95_ms: number | null }>;
     limitation: string;
   };
+  /** Founder OS "Resources & Prompts" read model. Names remain bounded to
+   * protocol methods/hashed identities because raw catalog names and inputs
+   * are not safe dashboard dimensions. */
+  resource_prompt_activity?: {
+    resource_reads: number;
+    prompt_calls: number;
+    previous_period_resource_reads: number;
+    previous_period_prompt_calls: number;
+    prompt_completion_rate: number | null;
+    prompt_stall_rate: number | null;
+    resource_breakdown: Array<{ name: string; calls: number; share: number | null }>;
+    prompt_breakdown: Array<{ name: string; calls: number; share: number | null; completion_rate: number | null; stall_rate: number | null }>;
+    trend: Array<{ period_start: string; kind: "resource" | "prompt"; name: string; calls: number }>;
+    limitation: string;
+  };
   /** Privacy-safe account activity signals. Keys are never exposed to the UI. */
   account_summary?: {
     observed_account_keys: number;

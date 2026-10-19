@@ -39,6 +39,10 @@ source explicitly says it is an outcome event.
 | `prompt_events` | Prompt activity | Observed prompt method events | Protocol telemetry | Method observations; no prompt arguments or completion is inferred |
 | `resource_entities` | Resources observed | Count of bounded hashed resource identities | Durable entity-read projection | Hash counts are not unique people or readable resource identities |
 | `prompt_entities` | Prompts observed | Count of bounded hashed prompt identities | Durable entity-read projection | Hash counts are not unique people or prompt content |
+| `resource_reads` | Resource reads | Count of observed `resources/read` events | Protocol telemetry | Raw URIs and resource contents are never exposed; instrumented traffic only |
+| `prompt_calls` | Prompt calls | Count of observed `prompts/get` events | Protocol telemetry | Raw prompt names and arguments are never exposed; a call is not completion |
+| `prompt_completion_rate` | Prompt completion rate | Explicit complete prompt outcomes / observed prompt calls | Prompt protocol telemetry | `N/A` with no calls; unknown outcomes are not completion or failure |
+| `prompt_stall_rate` | Prompt needs-input rate | Explicit `input_required` prompt outcomes / observed prompt calls | Prompt protocol telemetry | Needs-input is friction evidence, not abandonment |
 
 ## Read-model rules
 

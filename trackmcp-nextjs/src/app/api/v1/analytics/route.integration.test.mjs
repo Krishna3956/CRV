@@ -222,6 +222,24 @@ test("analytics exposes only bounded hashed entity counts for resources and prom
   assert.equal(JSON.stringify(body).includes(hashA), false);
 });
 
+test("analytics exposes the Resources and Prompts vertical-slice read model", async () => {
+  const handler = createAnalyticsHandler(() => fakeAdmin([
+    event({ event_id: "resource-read", event_type: "protocol", mcp_method: "resources/read", success: true }),
+    event({ event_id: "prompt-complete", event_type: "protocol", mcp_method: "prompts/get", result_type: "complete", success: true }),
+    event({ event_id: "prompt-input", event_type: "protocol", mcp_method: "prompts/get", result_type: "input_required" }),
+  ]));
+  const response = await handler(new Request("http://analytics.test/api/v1/analytics?days=7", { headers: { authorization: "Bearer key" } }));
+  assert.equal(response.status, 200);
+  const body = await response.json();
+  assert.equal(body.resource_prompt_activity.resource_reads, 1);
+  assert.equal(body.resource_prompt_activity.prompt_calls, 2);
+  assert.equal(body.resource_prompt_activity.prompt_completion_rate, 0.5);
+  assert.equal(body.resource_prompt_activity.prompt_stall_rate, 0.5);
+  assert.deepEqual(body.resource_prompt_activity.resource_breakdown[0], { name: "resources/read", calls: 1, share: 1 });
+  assert.equal(body.resource_prompt_activity.prompt_breakdown[0].name, "prompts/get");
+  assert.equal(body.resource_prompt_activity.prompt_breakdown[0].completion_rate, 0.5);
+});
+
 test("analytics exposes bounded protocol lifecycle signals without treating them as outcomes", async () => {
   const handler = createAnalyticsHandler(() => fakeAdmin([
     event({ event_id: "signal-progress", event_type: "protocol", mcp_method: "notifications/progress" }),
