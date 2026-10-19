@@ -50,6 +50,15 @@ type EventRow = {
   error_class: string | null;
   error_code: number | null;
   retry_number: number | null;
+  result_type: "complete" | "input_required" | "task" | null;
+  interaction_id: string | null;
+  interaction_link_source: string | null;
+  retry_of_event_id: string | null;
+  request_state_hash: string | null;
+  input_request_count: number | null;
+  input_response_count: number | null;
+  resource_audience: "user" | "assistant" | null;
+  resource_priority: number | null;
   schema_hash: string | null;
   catalog_kind: "tools" | "resources" | "resource_templates" | "prompts" | null;
   catalog_item_count: number | null;
@@ -122,7 +131,7 @@ export function createAnalyticsHandler(getAdmin: typeof getSupabaseAdmin = getSu
   const analyticsQueryLimit = 10000;
   const generatedAt = new Date().toISOString();
   const { data, error } = await supabase.from("trackmcp_events")
-    .select("event_id, schema_version, event_type, service, environment, server_id, deployment_id, server_version, sdk_version, observation_source, direction, transport, protocol_version, mcp_method, request_id, session_id, session_id_source, correlation_handle, correlation_handle_source, context, intent_source, missing_capability, task_id, workflow_id, client_name, client_version, account_key, account_identity_source, tool_name, tool_description, tool_description_hash, duration_ms, success, is_error, error_class, error_code, retry_number, schema_hash, catalog_kind, catalog_item_count, catalog_item_name_hashes, catalog_item_uri_hashes, payload_size_bytes, payload_policy, started_at, payload")
+    .select("event_id, schema_version, event_type, service, environment, server_id, deployment_id, server_version, sdk_version, observation_source, direction, transport, protocol_version, mcp_method, request_id, session_id, session_id_source, correlation_handle, correlation_handle_source, context, intent_source, missing_capability, task_id, workflow_id, client_name, client_version, account_key, account_identity_source, tool_name, tool_description, tool_description_hash, duration_ms, success, is_error, error_class, error_code, retry_number, result_type, interaction_id, interaction_link_source, retry_of_event_id, request_state_hash, input_request_count, input_response_count, resource_audience, resource_priority, schema_hash, catalog_kind, catalog_item_count, catalog_item_name_hashes, catalog_item_uri_hashes, payload_size_bytes, payload_policy, started_at, payload")
     .eq("workspace_id", workspaceId).gte("started_at", since).order("started_at", { ascending: true }).limit(analyticsQueryLimit);
   if (error) return NextResponse.json({ error: "Could not load analytics." }, { status: 500 });
 
