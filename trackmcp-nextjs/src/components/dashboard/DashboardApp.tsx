@@ -3528,6 +3528,7 @@ function SetupView({
   );
   const [copied, setCopied] = useState(false);
   const [setupContract, setSetupContract] = useState<SetupContract | null>(null);
+  const [setupContractWorkspaceId, setSetupContractWorkspaceId] = useState<string | null>(null);
 
   const snippets = {
     TypeScript: `npm install @trackmcp/sdk\n\nimport { withTrackMCP } from "@trackmcp/sdk";\nexport default withTrackMCP(server, { apiKey: process.env.TRACKMCP_KEY! });`,
@@ -3535,21 +3536,29 @@ function SetupView({
   };
   const hasActiveKey = keys.some((key) => !key.revoked_at);
   useEffect(() => {
-    if (!workspaceId) {
-      setSetupContract(null);
-      return;
-    }
+    if (!workspaceId) return;
     let cancelled = false;
     void fetch(`/api/v2/setup?workspace_id=${encodeURIComponent(workspaceId)}&days=30`, { cache: "no-store" })
       .then(async (response) => {
         if (!response.ok) throw new Error("setup status unavailable");
         return response.json() as Promise<SetupContract>;
       })
-      .then((body) => { if (!cancelled) setSetupContract(body); })
-      .catch(() => { if (!cancelled) setSetupContract(null); });
+      .then((body) => {
+        if (!cancelled) {
+          setSetupContractWorkspaceId(workspaceId);
+          setSetupContract(body);
+        }
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setSetupContractWorkspaceId(workspaceId);
+          setSetupContract(null);
+        }
+      });
     return () => { cancelled = true; };
   }, [workspaceId]);
-  const contractChecks = setupContract?.setup?.checks;
+  const activeSetupContract = setupContractWorkspaceId === workspaceId ? setupContract : null;
+  const contractChecks = activeSetupContract?.setup?.checks;
   const contractIdentity = contractChecks?.account_resolver_observed;
   const identityUnresolved = contractIdentity !== undefined && contractIdentity !== null
     ? contractIdentity === false
@@ -3559,7 +3568,7 @@ function SetupView({
       analytics.founder_os.identity_coverage.value === 0,
     );
   const limitedCoverage = Boolean(analytics?.data_trust?.truncated);
-  const contractState = setupContract?.setup?.state;
+  const contractState = activeSetupContract?.setup?.state;
   const connectionState: "no-key" | "checking" | "waiting" | "limited" | "identity" | "verified" | "error" = error
     ? "error"
     : contractState === "server_created" || !hasActiveKey
@@ -3616,21 +3625,21 @@ function SetupView({
             <p className="mt-1 max-w-2xl text-xs leading-relaxed text-muted">
               {stateCopy[1]}
             </p>
-            {setupContract?.setup?.caveat && (
+            {activeSetupContract?.setup?.caveat && (
               <p className="mt-3 max-w-2xl border-l-2 border-line-strong pl-3 text-[11px] leading-relaxed text-muted">
-                Evidence note: {setupContract.setup.caveat}
+                Evidence note: {activeSetupContract.setup.caveat}
               </p>
             )}
-            {setupContract?.setup?.next_steps?.length ? (
+            {activeSetupContract?.setup?.next_steps?.length ? (
               <ol className="mt-3 list-decimal space-y-1 pl-5 text-[11px] leading-relaxed text-muted">
-                {setupContract.setup.next_steps.slice(0, 4).map((step) => <li key={step}>{step}</li>)}
+                {activeSetupContract.setup.next_steps.slice(0, 4).map((step) => <li key={step}>{step}</li>)}
               </ol>
             ) : null}
-            {typeof setupContract?.setup?.first_event?.ingestion_lag_seconds === "number" && (
+            {typeof activeSetupContract?.setup?.first_event?.ingestion_lag_seconds === "number" && (
               <p className="mt-3 text-[11px] text-faint">
-                Last observed event lag: {setupContract.setup.first_event.ingestion_lag_seconds < 60
-                  ? `${setupContract.setup.first_event.ingestion_lag_seconds}s`
-                  : `${Math.floor(setupContract.setup.first_event.ingestion_lag_seconds / 60)}m`}
+                Last observed event lag: {activeSetupContract.setup.first_event.ingestion_lag_seconds < 60
+                  ? `${activeSetupContract.setup.first_event.ingestion_lag_seconds}s`
+                  : `${Math.floor(activeSetupContract.setup.first_event.ingestion_lag_seconds / 60)}m`}
               </p>
             )}
           </div>
