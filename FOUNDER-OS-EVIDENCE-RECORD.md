@@ -182,3 +182,15 @@ or private URLs into it.
 | result | pass |
 | evidence_reference | App Runner deployment completed successfully; production smoke passed 15 checks and wrote a redacted report to `/tmp/trackmcp-production-smoke.json`, including the index and first tool-sitemap shard. |
 | caveat_or_scope | The smoke is read-only because no production key or write flag was supplied. It does not prove cross-workspace authorization, key rotation, worker execution, rollback, or package provenance. |
+
+| Field | Value |
+| --- | --- |
+| gate_id | full-release-gate-after-sitemap-fix |
+| owner | Head of Engineering |
+| timestamp_utc | 2026-10-19T14:28:00Z |
+| command_or_probe | `npm run test:release-gate` after the dynamic sitemap route/rewrite correction |
+| environment | local clean generated state |
+| candidate_sha | `1b3a461` |
+| result | pass |
+| evidence_reference | Release gate completed all 103 suites successfully, including sitemap contracts, package consumers, CLI lifecycle, dashboard contracts, authorization, refresh workers, and release audits. |
+| caveat_or_scope | The gate proves repository consistency, not the remaining operator-only cross-workspace, scheduler, rollback, distributed-rate-limit, or provenance gates. |
