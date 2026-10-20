@@ -94,6 +94,7 @@
     "pretest:python-package-artifact": "node scripts/ensure-python-package-artifact.mjs",
     "test:python-package-artifact": "node --test scripts/python-package-artifact.contract.test.mjs",
     "test:license-obligations": "node --test scripts/license-obligations.contract.test.mjs",
+    "test:launch-audit-currentness": "node --test scripts/launch-audit-currentness.contract.test.mjs",
     "test:release-instructions": "node --test scripts/release-instructions-immutability.contract.test.mjs",
     "test:file-ownership": "node --test scripts/file-ownership.contract.test.mjs",
     "test:secret-scope-audit": "node --test scripts/secret-scope-audit.contract.test.mjs",
