@@ -4,6 +4,16 @@ on:
   push:
   pull_request:
 
+# A branch push and the corresponding pull_request event can otherwise start
+# two identical full release gates. Keep one authoritative run per ref so
+# hosted-runner capacity is not consumed by duplicate work and stale jobs do
+# not obscure the candidate's real result.
+concurrency:
+  # Pull-request and push events use different refs; key PR runs by number so
+  # the two event types still collapse to one authoritative candidate.
+  group: trackmcp-ci-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 jobs:
   web-and-javascript:
     runs-on: ubuntu-latest
@@ -41,7 +51,9 @@ jobs:
           python3 -m twine check dist/*
       - name: Run web release gate
         working-directory: trackmcp-nextjs
-        run: npm run test:release-gate
+        # Keep the suite bounded even if the hosted runner fails to enforce
+        # the job-level timeout or loses its log stream.
+        run: timeout --signal=TERM --kill-after=30s 20m npm run test:release-gate
       - name: Lint web application
         working-directory: trackmcp-nextjs
         run: npm run lint
