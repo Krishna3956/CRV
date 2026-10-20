@@ -76,6 +76,7 @@
     "test:refresh-trigger": "node --test src/app/api/internal/refresh/run/route.contract.test.mjs",
     "test:rate-limit-cleanup": "node --test src/app/api/internal/rate-limit/cleanup/route.contract.test.mjs",
     "test:deploy-contract": "node --test deploy/apprunner-deploy.test.mjs src/app/api/internal/refresh/run/route.contract.test.mjs",
+    "test:deploy-workflow-smoke": "node --test scripts/deploy-workflow-smoke.contract.test.mjs",
     "test:dependency-pins": "node --test scripts/dependency-pins.contract.test.mjs",
     "test:otel-interoperability": "node --experimental-strip-types --test src/lib/telemetry/otel.test.ts src/lib/telemetry/otel-http.test.ts src/app/api/v1/otel/v1/traces/route.contract.test.mjs src/app/api/v1/otel/v1/traces/route.integration.test.mjs",
     "test:otel-docs": "node --test scripts/otel-docs.contract.test.mjs",

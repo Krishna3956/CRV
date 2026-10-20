@@ -32,6 +32,16 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: trackmcp-nextjs/package-lock.json
+
+      - name: Install production-smoke dependencies
+        working-directory: trackmcp-nextjs
+        run: npm ci
+
       - name: Configure AWS credentials (OIDC)
         uses: aws-actions/configure-aws-credentials@v4
         with:
@@ -90,3 +100,28 @@ jobs:
             sleep 15
           done
           echo "Timed out waiting for RUNNING."; exit 1
+
+      - name: Run read-only production smoke
+        working-directory: trackmcp-nextjs
+        run: |
+          set -euo pipefail
+          ORIGIN=$(aws apprunner describe-service \
+            --service-arn "$SERVICE_ARN" --region "$AWS_REGION" \
+            --query 'Service.ServiceUrl' --output text)
+          if [[ ! "$ORIGIN" =~ ^https://[a-z0-9.-]+\.awsapprunner\.com$ ]]; then
+            echo "::error::App Runner did not return a valid HTTPS service URL."
+            exit 1
+          fi
+          TRACKMCP_PRODUCTION_SMOKE_CONFIRM=I_UNDERSTAND_PRODUCTION_SMOKE \
+          TRACKMCP_SMOKE_BASE_URL="$ORIGIN" \
+          TRACKMCP_SMOKE_CANDIDATE_SHA="$GITHUB_SHA" \
+          TRACKMCP_SMOKE_REPORT="$RUNNER_TEMP/trackmcp-production-smoke.json" \
+          npm run smoke:production-pilot
+
+      - name: Upload redacted production smoke evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: production-smoke-${{ github.sha }}
+          path: ${{ runner.temp }}/trackmcp-production-smoke.json
+          if-no-files-found: warn
