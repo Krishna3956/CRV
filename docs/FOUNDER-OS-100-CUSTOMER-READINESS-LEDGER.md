@@ -17,7 +17,7 @@ This ledger is the operational source of truth for the autonomous readiness goal
 | Example/live data parity | Merged and deployed | PR #57 merged; all Founder OS read models now have bounded example fixtures |
 | Privacy and tenant isolation | Verified locally | Privacy review, tenant isolation, security headers, accessibility contracts pass |
 | CI/CD deployment | Verified | PRs #58–#61 repaired the release gate, ECR digest verification, opaque App Runner IDs, and hostname normalization |
-| Production deployment | Verified for current release | Run #95 (main `c5d3748`) completed in 7m40s through App Runner and read-only production smoke |
+| Production deployment | Verified for current release | Run #95 (main `c5d3748`) completed in 7m40s through App Runner and read-only production smoke; readiness ledger merged as main `f7eea31` |
 | Supabase production schema | Read-only verified | Required tables/functions and RLS checks pass; no unsafe blanket migration run |
 
 ### Progress calculation
@@ -110,7 +110,7 @@ Current estimate: **6/10 gates complete (60%)**. The deployed path is healthy, b
 
 - `codex/founder-os-example-parity-clean`: example/live parity and Tab 1/2 UI fixes.
 - `codex/deploy-release-gate-python-build`: deploy workflow prerequisite hotfix.
-- `main` currently points to merged release `c5d3748`; run #95 is the first fully passing App Runner production smoke for the Founder OS parity release.
+- `main` currently points to merged release `f7eea31` (the deployed product artifact remains `c5d3748` plus this readiness record); run #95 is the first fully passing App Runner production smoke for the Founder OS parity release.
 
 Open pull requests:
 
@@ -119,3 +119,4 @@ Open pull requests:
 - [PR #59 — Verify ECR tags without repository read access](https://github.com/Krishna3956/CRV/pull/59)
 - [PR #60 — Accept opaque App Runner operation IDs](https://github.com/Krishna3956/CRV/pull/60)
 - [PR #61 — Normalize App Runner service hostname for production smoke](https://github.com/Krishna3956/CRV/pull/61)
+- [PR #62 — Record passing production pilot deployment evidence](https://github.com/Krishna3956/CRV/pull/62)
