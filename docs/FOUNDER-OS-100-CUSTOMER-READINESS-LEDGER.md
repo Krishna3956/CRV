@@ -1,6 +1,6 @@
 # Founder OS 100 Customer Readiness Ledger
 
-Last updated: 2026-10-21 (fresh Supabase postflight after trusted-main worker run 39492040859)
+Last updated: 2026-10-21 (live release check: PR #132 web gate still running; five-slice worker checkpoint remains green)
 Owner: Codex engineering execution
 Pilot target: 100 customers
 
@@ -19,7 +19,7 @@ This ledger is the operational source of truth for the autonomous readiness goal
 | CI/CD deployment | Verified | PRs #58–#61 repaired the release gate, ECR digest verification, opaque App Runner IDs, and hostname normalization; PRs #64–#65 added and rendered safe MCP resource-template discovery; PR #67 routes scheduled cleanup through App Runner using AWS OIDC; PR #69 adds authenticated Founder OS read-model smoke coverage; PR #80 adds a SHA-only `deploy_ref` path for rollback rehearsal without widening AWS trust to arbitrary branches |
 | Production deployment | Verified for current release | Run `39474489090` deployed merged main `3bd3178` successfully through App Runner deployment, readiness, HTTPS origin, and read-only production smoke |
 | Bounded production load | Passed at pilot budget | Direct App Runner run on 2026-10-20: 120 requests at concurrency 8 across 9 authenticated read models plus ingest, 120/120 successful, zero errors/timeouts, tenant isolation passed, p95 2.11s against a 3s pilot budget; two disposable workspaces were deleted and verified absent |
-| Refresh worker | Transport and retry-state recovery verified; freshness still open | PR #109 merged as `3a2271f`, PR #111 merged as `9db56b0` (deferred cancellation), PR #112 merged as `f792418` (timeout-tolerant scheduler), and PR #114 merged as `9f727ba` (Supabase adapter preserves deferred outcomes). Fresh deployment run `39470996281` succeeded; corrected worker run `39472093696` processed four bounded batches with zero failures/retryables; production postflight observed `243` queued, `0` retryable, `0` running, `12` catalog versions, and `0` catalog entity reads. Queue freshness and entity-read coverage remain pilot gates. |
+| Refresh worker | Five-slice transport, timeout recovery, and freshness checkpoint verified; continued monitoring open | PRs #109, #111, #112, #114, #123–#130 are merged. Trusted-main run `39494080043` processed five bounded slices (`39`, `37`, `42`, `38`, `39`) with zero retryable/failed results; postflight observed `0` queued, `0` running, `0` retryable, and no oldest queued job. Continued scheduled-run monitoring and richer entity/prompt coverage remain pilot gates. |
 | Supabase production schema | Additive pilot migration applied | `trackmcp_catalog_entity_reads` was missing in production; the reviewed additive migration was applied, then verified present with RLS enabled and anon/authenticated `SELECT` denied |
 
 ### Progress calculation
@@ -37,7 +37,7 @@ The readiness percentage is based on 10 gates, not lines of code:
 9. Production smoke/load/rollback evidence
 10. Pilot operations and documentation
 
-Current estimate: **6/10 gates complete (60%)**. The deployed application path and bounded load evidence are healthy, but the readiness claim is deliberately reduced until the refresh worker is stable again and Tabs 3–6, production privacy/retention evidence, and pilot operations are closed. Tab 1/2 code is deployed; their final production-data assertions remain open.
+Current estimate: **6/10 gates complete (60%)**. The deployed application path, bounded load/rollback evidence, and the five-slice refresh checkpoint are healthy. The readiness claim remains deliberately below pilot-ready until Tabs 3–6 have feature-level production assertions, production privacy/retention evidence exists, stale reliability data is reviewed, and the final pilot operations record is complete. Tab 1/2 code is deployed; their final production-data assertions remain open.
 
 ## Latest checkpoint — 2026-10-20
 
