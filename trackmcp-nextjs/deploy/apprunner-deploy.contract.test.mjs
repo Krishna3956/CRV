@@ -5,6 +5,13 @@ import { test } from "node:test";
 const script = await readFile(new URL("./apprunner-deploy.sh", import.meta.url), "utf8");
 const template = await readFile(new URL("./env.deploy.template", import.meta.url), "utf8");
 const readme = await readFile(new URL("./README.md", import.meta.url), "utf8");
+const dockerfile = await readFile(new URL("../Dockerfile", import.meta.url), "utf8");
+
+test("deployment guide names the standalone server the container actually runs", () => {
+  assert.match(dockerfile, /node server\.js/);
+  assert.match(readme, /standalone `server\.js`/);
+  assert.doesNotMatch(readme, /standard `next start` server/);
+});
 
 test("App Runner maps required backend runtime secrets without embedding values", () => {
   for (const name of ["GITHUB_TOKEN", "SUPABASE_SERVICE_ROLE_KEY", "TRACKMCP_DEVICE_KEY_DERIVATION_SECRET", "TRACKMCP_ADMIN_KEY"]) {

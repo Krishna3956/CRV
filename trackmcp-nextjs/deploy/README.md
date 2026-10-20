@@ -5,8 +5,9 @@ This ships the app as a container (Next.js standalone server) to **AWS App Runne
 
 ## Why App Runner (container) and not Amplify / OpenNext
 Next.js 16 is very new; the OpenNext and Amplify SSR adapters often lag new Next
-versions. A container just runs the standard `next start` server, so middleware,
-dynamic OG images, ISR, and the React Compiler all work exactly as they do locally.
+versions. The image runs Next's generated standalone `server.js`, so middleware,
+dynamic OG images, ISR, and the React Compiler run in the same production shape
+that App Runner starts.
 
 ---
 
