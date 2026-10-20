@@ -17,7 +17,7 @@ This ledger is the operational source of truth for the autonomous readiness goal
 | Example/live data parity | Merged and deployed | PR #57 merged; all Founder OS read models now have bounded example fixtures |
 | Privacy and tenant isolation | Verified locally | Privacy review, tenant isolation, security headers, accessibility contracts pass |
 | CI/CD deployment | Verified | PRs #58–#61 repaired the release gate, ECR digest verification, opaque App Runner IDs, and hostname normalization; PRs #64–#65 added and rendered safe MCP resource-template discovery; PR #67 routes scheduled cleanup through App Runner using AWS OIDC; PR #69 adds authenticated Founder OS read-model smoke coverage |
-| Production deployment | Verified for current release | Run #100 (main `d120437`) completed successfully through App Runner deployment, readiness, HTTPS origin, and read-only production smoke; redacted artifact `production-smoke-d120437891083fe8c3a67ea2069597b0d22c8337` uploaded |
+| Production deployment | Verified for current release | Run #102 (main `554d970`) completed successfully through App Runner deployment, readiness, HTTPS origin, and read-only production smoke; the release includes the finite incident display and millisecond latency-unit fixes |
 | Bounded production load | Passed at pilot budget | Direct App Runner run on 2026-10-20: 120 requests at concurrency 8 across 9 authenticated read models plus ingest, 120/120 successful, zero errors/timeouts, tenant isolation passed, p95 2.11s against a 3s pilot budget; two disposable workspaces were deleted and verified absent |
 | Refresh worker | Non-empty job passed | Workflow dispatch run `39405118947` claimed one disposable `catalog_entity_recompute` job and recorded `succeeded` on attempt 1 with no error; the workspace was deleted and verified absent |
 | Supabase production schema | Additive pilot migration applied | `trackmcp_catalog_entity_reads` was missing in production; the reviewed additive migration was applied, then verified present with RLS enabled and anon/authenticated `SELECT` denied |
@@ -80,6 +80,7 @@ Current estimate: **7/10 gates complete (70%)**. The deployed path is healthy th
 - Production deployment run #100 succeeded for main `d120437`: release gate, ECR build/push, candidate digest verification, App Runner deployment/readiness, HTTPS origin, read-only production smoke, and redacted artifact upload all passed.
 - Direct App Runner key-lifecycle smoke passed on 2026-10-20 with a disposable workspace: key-status returned HTTP 200 before revocation and HTTP 401 after service-role revocation; the workspace was deleted and verified absent. Response bodies were not persisted because the endpoint uses bounded status flags rather than a public secret-bearing payload.
 - Direct App Runner failure/recovery smoke passed on 2026-10-20 with a disposable workspace: missing ingest auth `401`, malformed empty batch `413`, invalid worker auth `401`, API-key Action Queue boundary `403`, followed by a valid metadata-only ingest `200`; cleanup verification found zero remaining workspace rows.
+- Authenticated dashboard session verification on the deployed release confirmed the primary Founder OS views render against My data: Overview, Journey, What they're doing, Did it work, and What's broken. The Issues view now renders zero-denominator incident comparisons as `N/A`; p95 latency regression summaries render in milliseconds. This is UI evidence for the deployed semantic fixes, not evidence that the underlying telemetry is populated for every tab.
 - The first scheduled cleanup run (#1) failed at the Cloudflare edge with an HTML 403 challenge; the fix is merged and deployed. A subsequent scheduled execution remains an operational follow-up rather than a guessed success.
 
 ## In progress
@@ -131,7 +132,7 @@ Current estimate: **7/10 gates complete (70%)**. The deployed path is healthy th
 
 - `codex/founder-os-example-parity-clean`: example/live parity and Tab 1/2 UI fixes.
 - `codex/deploy-release-gate-python-build`: deploy workflow prerequisite hotfix.
-- `main` currently points to merged release `d120437`; run #100 is the latest fully passing App Runner production smoke for the Founder OS release.
+- `main` currently points to merged release `554d970`; run #102 is the latest fully passing App Runner production smoke for the Founder OS release.
 
 Open pull requests:
 
