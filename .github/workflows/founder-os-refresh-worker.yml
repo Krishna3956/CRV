@@ -61,7 +61,10 @@ jobs:
           for batch in 1 2 3 4; do
             echo "Running bounded refresh batch $batch/4"
             set +e
-            curl --fail-with-body --silent --show-error \
+            # Keep a process-level kill boundary in addition to curl's own
+            # retry timers. This protects the runner if curl or a transport
+            # layer stops honoring its internal deadline.
+            timeout --signal=TERM --kill-after=10s 70s curl --fail-with-body --silent --show-error \
               --connect-timeout 5 \
               --retry 3 \
               --retry-delay 2 \
@@ -75,7 +78,7 @@ jobs:
               "$WORKER_URL"
             status=$?
             set -e
-            if [ "$status" -eq 28 ]; then
+            if [ "$status" -eq 28 ] || [ "$status" -eq 124 ] || [ "$status" -eq 137 ]; then
               # The application owns the 45s lease/deadline. A client-side
               # timeout is an expected incomplete slice, not proof that the
               # bounded worker failed; the next serialized batch continues.

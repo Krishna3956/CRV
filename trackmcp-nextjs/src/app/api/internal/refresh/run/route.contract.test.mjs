@@ -34,8 +34,9 @@ test("scheduled refresh trigger is serialized and distinguishes bounded timeouts
   assert.match(workflow, /--connect-timeout 5/);
   assert.match(workflow, /--retry-max-time 45/);
   assert.match(workflow, /--max-time 55/);
+  assert.match(workflow, /timeout --signal=TERM --kill-after=10s 70s curl/);
   assert.match(workflow, /status=\$\?/);
-  assert.match(workflow, /\[ "\$status" -eq 28 \]/);
+  assert.match(workflow, /\[ "\$status" -eq 28 \] \|\| \[ "\$status" -eq 124 \] \|\| \[ "\$status" -eq 137 \]/);
   assert.match(workflow, /client timeout; continuing/);
   assert.match(workflow, /timed_out=\$timed_out/);
   assert.match(workflow, /for batch in 1 2 3 4/);
