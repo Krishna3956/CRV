@@ -78,6 +78,8 @@ Current estimate: **7/10 gates complete (70%)**. The deployed path is healthy th
 - Live authenticated two-workspace smoke passed on the direct App Runner origin after main `6bc0423`: 28 redacted checks, two metadata-only ingests accepted, every Founder OS v2 read model returned the authenticated workspace envelope, conflicting workspace parameters were ignored, and API-key Action Queue access correctly returned `403`. Disposable workspaces were removed and a service-role count confirmed zero remaining `Codex pilot smoke` workspaces.
 - Direct App Runner bounded production load passed on 2026-10-20 using two disposable workspaces and API keys: 120/120 requests succeeded across ingest and all supported API-key read models at concurrency 8; p95 latency was 2.11s against the explicit 3s pilot budget, with zero errors, zero timeouts, and no cross-tenant response markers. Cleanup verification found zero remaining `Codex load smoke` workspaces. The load harness now sends the documented `{events:[...]}` ingest envelope and leaves the human-session-only Action Queue boundary to the authenticated smoke.
 - Production deployment run #100 succeeded for main `d120437`: release gate, ECR build/push, candidate digest verification, App Runner deployment/readiness, HTTPS origin, read-only production smoke, and redacted artifact upload all passed.
+- Direct App Runner key-lifecycle smoke passed on 2026-10-20 with a disposable workspace: key-status returned HTTP 200 before revocation and HTTP 401 after service-role revocation; the workspace was deleted and verified absent. Response bodies were not persisted because the endpoint uses bounded status flags rather than a public secret-bearing payload.
+- Direct App Runner failure/recovery smoke passed on 2026-10-20 with a disposable workspace: missing ingest auth `401`, malformed empty batch `413`, invalid worker auth `401`, API-key Action Queue boundary `403`, followed by a valid metadata-only ingest `200`; cleanup verification found zero remaining workspace rows.
 - The first scheduled cleanup run (#1) failed at the Cloudflare edge with an HTML 403 challenge; the fix is merged and deployed. A subsequent scheduled execution remains an operational follow-up rather than a guessed success.
 
 ## In progress
@@ -108,10 +110,10 @@ Current estimate: **7/10 gates complete (70%)**. The deployed path is healthy th
 - [ ] Complete Tab 4 Journey parity, retry/stall caveats, and correlation boundaries.
 - [ ] Complete Tab 5 Outcomes parity, explicit terminal evidence, task lifecycle, and unknown states.
 - [ ] Complete Tab 6 Reliability parity, incident clustering, silent-failure estimates, data trust, and action queue.
-- [x] Run deployment-class load test against production; fixture-only evidence is insufficient and failure/recovery testing remains open.
+- [x] Run deployment-class load and failure/recovery tests against production; rollback of a deployed revision remains open.
 - [x] Verify Supabase refresh worker with a non-empty production job; queue lag, retry/dead-letter behavior, rate-limit persistence, and retention dry-run evidence remain open.
 - [x] Execute the authenticated two-workspace Founder OS read-model smoke against production with disposable keys; schema availability and live route behavior are now evidenced, while dashboard human-session rendering remains a separate gate.
-- [ ] Verify CLI activation, key revocation, cross-workspace authorization, export, privacy review, and deletion-request boundaries.
+- [x] Verify production API-key status and revocation boundary with a disposable workspace; CLI activation, cross-workspace authorization, export, privacy review, and deletion-request boundaries remain open or locally verified only.
 - [ ] Reconcile public website/docs claims with shipped behavior and canonical URLs.
 - [ ] Produce the final 100-customer pilot release record with known limitations and rollback instructions.
 
