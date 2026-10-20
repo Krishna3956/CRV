@@ -12,8 +12,8 @@ commit and the operator accepts the listed limitations.
 | --- | --- |
 | Pilot scope | First 100 customers, desktop dashboard boundary |
 | Production hosts | `trackmcp.com`, `app.trackmcp.com` |
-| Last deployed application commit | `4dd7b80` |
-| Last successful App Runner deployment | `39509874414` |
+| Last deployed application commit | `683404b` |
+| Last successful App Runner deployment | `39512209436` |
 | Readiness ledger | `docs/FOUNDER-OS-100-CUSTOMER-READINESS-LEDGER.md` |
 | Current release-record change | PR #141 (ledger and postflight evidence) |
 
@@ -38,9 +38,9 @@ commit and the operator accepts the listed limitations.
 
 ## Open gates before GO
 
-- [ ] PR #141 is merged and the resulting main commit has a fresh green CI
+- [x] PR #141 is merged and the resulting main commit has a fresh green CI
   run.
-- [ ] The final release commit has a fresh App Runner deployment and the
+- [x] The final release commit has a fresh App Runner deployment and the
   production smoke artifact is attached to this record.
 - [ ] Privacy lifecycle behavior is reviewed for the pilot: export remains
   bounded and secret-free; deletion requests are review-only; destructive
@@ -51,7 +51,9 @@ commit and the operator accepts the listed limitations.
 - [ ] Rollback rehearsal and the release-specific rollback target are linked
   to this exact release.
 - [ ] A final operator go/no-go decision is recorded with UTC timestamp and
-  accepted limitations.
+  accepted limitations. The engineering recommendation remains **HOLD**
+  until the Supabase quota/grace-period risk is resolved or explicitly
+  accepted for the entire pilot window.
 
 ## Known limitations to disclose
 

@@ -40,7 +40,7 @@ The readiness percentage is based on 10 gates, not lines of code:
 9. Production smoke/load/rollback evidence
 10. Pilot operations and documentation
 
-Current estimate: **8/10 gates complete (80%)**. The deployed application path, bounded load/rollback evidence, five-slice refresh checkpoint, and all six Founder OS tabs now have production assertions. The readiness claim remains deliberately below pilot-ready until production privacy/retention execution evidence exists, stale reliability data is reviewed/accepted as synthetic, and the final pilot operations record is complete.
+Current estimate: **9/10 gates complete (90%)**. The deployed application path, bounded load/rollback evidence, five-slice refresh checkpoint, all six Founder OS tabs, production privacy/retention boundary checks, and the final release record now have evidence. The readiness claim remains deliberately below pilot-ready until the Supabase quota/grace-period risk is resolved or explicitly accepted for the 100-customer window.
 
 ## Latest checkpoint — 2026-10-20
 
@@ -53,6 +53,7 @@ Current estimate: **8/10 gates complete (80%)**. The deployed application path, 
 - Authenticated production inspection of Tab 6 found historical `p1-05-canary-probe` rows, including two sufficient critical synthetic regressions and many insufficient-data rows. Commit `5daf9ac` adds an explicit synthetic-canary evidence banner and badge so these retained test records cannot be mistaken for customer failures; production verification of that correction remains open until deployment.
 - Deployment run `39509874414` completed successfully for merged main `4dd7b80`. Fresh authenticated production inspection now confirms Tab 6 shows the synthetic-canary banner and badges on all retained canary rows; the two sufficient critical rows remain visible as test evidence and are not counted as customer health claims. This closes the Tab 6 production assertion while preserving the data-hygiene review item.
 - Read-only production privacy postflight on 2026-10-21 found zero retention-dry-run candidates in `trackmcp_events`, `trackmcp_semantic_facts`, and `trackmcp_action_queue`. The privacy-request and deletion-batch tables exist; both deny `anon` and `authenticated` `SELECT`, and both deletion-batch indexes are present. No deletion request or batch was created, and destructive deletion remains closed by policy.
+- PR #141 merged as `683404b`. Explicit deployment run `39512209436` then passed the release gate, image build/push, immutable App Runner rollout, readiness, HTTPS origin, and read-only production smoke for that exact merged SHA. The final release record is now tied to the deployed commit rather than an earlier application revision.
 
 - Fresh read-only Supabase postflight confirms the production deferred-result RPC is deployed: `trackmcp_record_refresh_job_result` accepts `deferred`, returns the job to `queued`, clears its lease, and does not manufacture a retryable failure. This validates the timeout-recovery migration at the database function-definition level, not only in source tests.
 - The same fresh postflight observed `0` catalog entity-read rows, `0` privacy requests, `0` privacy deletion batches, `0` retryable refresh jobs, and `0` running refresh jobs. These are boundary/coverage facts, not proof that the corresponding pilot workflows are exercised.
@@ -200,7 +201,7 @@ Current estimate: **8/10 gates complete (80%)**. The deployed application path, 
 - [x] Execute the authenticated two-workspace Founder OS read-model smoke against production with disposable keys; schema availability and live route behavior are now evidenced, while dashboard human-session rendering remains a separate gate.
 - [x] Verify production API-key status and revocation boundary with a disposable workspace; CLI activation, cross-workspace authorization, export, privacy review, and deletion-request boundaries remain open or locally verified only.
 - [ ] Reconcile public website/docs claims with shipped behavior and canonical URLs.
-- [ ] Produce the final 100-customer pilot release record with known limitations and rollback instructions.
+- [x] Produce the final 100-customer pilot release record with known limitations and rollback instructions.
 
 ## Rules for updates
 
