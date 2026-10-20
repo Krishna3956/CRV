@@ -19,10 +19,10 @@ concurrency:
 jobs:
   refresh:
     runs-on: ubuntu-latest
-    # Three bounded requests can each spend up to the application's 45s
+    # Four bounded requests can each spend up to the application's 45s
     # deadline plus curl retry/connection overhead. Keep the job ceiling above
     # that serialized envelope while retaining a finite scheduler boundary.
-    timeout-minutes: 4
+    timeout-minutes: 5
     steps:
       - name: Authenticate to AWS to discover the worker origin
         uses: aws-actions/configure-aws-credentials@v4
@@ -53,12 +53,12 @@ jobs:
             exit 1
           fi
           # Each request is independently bounded by the application’s 45s
-          # lease/deadline and this workflow’s 55s curl timeout. Three
+          # lease/deadline and this workflow’s 55s curl timeout. Four
           # serialized calls let a pilot backlog catch up without allowing
           # overlapping workers or an unbounded request to hold a lease.
           failed=0
-          for batch in 1 2 3; do
-            echo "Running bounded refresh batch $batch/3"
+          for batch in 1 2 3 4; do
+            echo "Running bounded refresh batch $batch/4"
             if ! curl --fail-with-body --silent --show-error \
               --connect-timeout 5 \
               --retry 3 \
