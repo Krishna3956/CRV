@@ -13,7 +13,7 @@ const WORKSPACE_B_KEY = "tmcp_workspace_b_key";
 const WORKSPACE_A_ROTATED_KEY = "tmcp_workspace_a_rotated_key";
 
 function fakeAdmin() {
-  const state = { rows: [] };
+  const state = { rows: [], refreshRows: [] };
   const keys = new Map([
     [hashTrackMCPKey(API_KEY), { id: "key-workspace-integration", workspace_id: "workspace-integration", revoked_at: null }],
     [hashTrackMCPKey(WORKSPACE_A_KEY), { id: "key-workspace-a", workspace_id: "workspace-a", revoked_at: null }],
@@ -30,6 +30,11 @@ function fakeAdmin() {
           async maybeSingle() {
             return { data: keys.get(this.filters.key_hash) ?? null, error: null };
           },
+        };
+      }
+      if (table === "trackmcp_refresh_jobs") {
+        return {
+          upsert(rows) { state.refreshRows.push(...rows); return Promise.resolve({ error: null }); },
         };
       }
       return {
@@ -246,6 +251,18 @@ test("mixed valid and invalid batches are rejected atomically before persistence
   assert.equal(response.body.accepted, 0);
   assert.equal(response.body.rejected, 1);
   assert.equal(state.rows.length, 0, "a rejected batch must not partially persist valid events");
+});
+
+test("accepted telemetry enqueues bounded derived work without exposing or depending on raw event data", async () => {
+  const { admin, state } = fakeAdmin();
+  const handler = createIngestHandler(() => admin, { refreshJobsEnabled: true });
+  const response = await post(handler, { events: [event({ event_id: "refresh-enqueue-event", payload: { secret: "never-in-queue" } })] });
+  assert.equal(response.status, 200);
+  assert.equal(response.body.accepted, 1);
+  assert.deepEqual(state.refreshRows.map((row) => row.kind).sort(), ["action_queue_refresh", "catalog_entity_recompute", "catalog_recompute", "fact_projection"]);
+  assert.equal(state.refreshRows.every((row) => row.workspace_id === "workspace-integration" && row.dedupe_key.startsWith("ingest-window:")), true);
+  assert.equal(JSON.stringify(state.refreshRows).includes("never-in-queue"), false);
+  assert.equal(JSON.stringify(state.refreshRows).includes("refresh-enqueue-event"), false);
 });
 
 test("replaying the same workspace event is durably idempotent at the ingest boundary", async () => {

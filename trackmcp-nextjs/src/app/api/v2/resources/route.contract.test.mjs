@@ -9,6 +9,8 @@ test("resources route reports observed protocol methods without inventing entiti
   assert.doesNotMatch(route, /POST|PATCH|DELETE/);
   assert.match(handlers, /interaction_surfaces/);
   assert.match(handlers, /resources: \[\]/);
+  assert.match(handlers, /resource_prompt_activity/);
+  assert.match(handlers, /Explicitly linked retries are collapsed/);
   assert.match(handlers, /entity_analytics: "bounded_read_projection"/);
   assert.match(handlers, /Raw URIs are never returned/);
 });

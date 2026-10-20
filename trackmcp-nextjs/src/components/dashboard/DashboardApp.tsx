@@ -2707,6 +2707,9 @@ function CapabilitiesView({
   pageControls: ReactNode;
   onViewTrace: (sessionId: string, correlationHandle?: string | null) => void;
 }) {
+  const [selectedToolName, setSelectedToolName] = useState<string | null>(null);
+  const activity = analytics.capability_activity;
+  const selectedTool = activity?.tool_details.find((tool) => tool.tool_name === selectedToolName) || null;
   return (
     <div>
       <PageIntro
@@ -2715,40 +2718,41 @@ function CapabilitiesView({
         actions={pageControls}
       />
       <DataSourceStrip dataMode={dataMode} hasMyData={hasMyData} view="capabilities" />
-      {analytics.capability_activity && (
+      {activity && (
         <>
           <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-            <Kpi label="Total tool calls" value={fmt(analytics.capability_activity.total_calls)} icon={Activity} helper={`${analytics.range_days} day window`} />
-            <Kpi label="Previous period" value={fmt(analytics.capability_activity.previous_period_calls)} icon={TrendingUp} helper="Same-length comparison" />
-            <Kpi label="Overall error rate" value={analytics.capability_activity.overall_error_rate === null ? "N/A" : percent(analytics.capability_activity.overall_error_rate)} icon={ShieldCheck} helper="Explicit call errors" />
-            <Kpi label="Avg tools per account" value={analytics.capability_activity.avg_tools_used_per_account === null ? "N/A" : analytics.capability_activity.avg_tools_used_per_account.toFixed(1)} icon={Blocks} helper={`of ${fmt(analytics.capability_activity.advertised_tools)} advertised`} />
+            <Kpi label="Total tool calls" value={fmt(activity.total_calls)} icon={Activity} helper={`${analytics.range_days} day window`} />
+            <Kpi label="Previous period" value={fmt(activity.previous_period_calls)} icon={TrendingUp} helper="Same-length comparison" />
+            <Kpi label="Overall error rate" value={activity.overall_error_rate === null ? "N/A" : percent(activity.overall_error_rate)} icon={ShieldCheck} helper="Explicit call errors" />
+            <Kpi label="Avg tools per account" value={activity.avg_tools_used_per_account === null ? "N/A" : activity.avg_tools_used_per_account.toFixed(1)} icon={Blocks} helper={`of ${fmt(activity.advertised_tools)} advertised`} />
           </div>
           <div className="mt-4 grid gap-4 xl:grid-cols-[1.1fr_0.9fr]">
             <Panel title="Feature leaderboard" subtitle="Which capabilities are carrying the observed activity">
               <div className="space-y-3">
                 {analytics.tools.slice(0, 8).map((tool) => {
                   const share = analytics.tool_calls ? tool.calls / analytics.tool_calls : 0;
-                  return <div key={tool.name} className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3"><div className="min-w-0"><div className="flex justify-between gap-3 text-sm"><span className="truncate font-mono text-xs text-ink">{tool.name}</span><span className="text-muted">{fmt(tool.calls)}</span></div><div className="mt-1 h-2 bg-paper"><div className="h-full bg-brand" style={{ width: `${Math.min(100, share * 100)}%` }} /></div></div><span className="text-xs text-faint">{percent(share)}</span></div>;
+                  return <button type="button" key={tool.name} onClick={() => setSelectedToolName(tool.name)} className="grid w-full cursor-pointer grid-cols-[minmax(0,1fr)_auto] items-center gap-3 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"><div className="min-w-0"><div className="flex justify-between gap-3 text-sm"><span className="truncate font-mono text-xs text-ink">{tool.name}</span><span className="text-muted">{fmt(tool.calls)}</span></div><div className="mt-1 h-2 bg-paper"><div className="h-full bg-brand" style={{ width: `${Math.min(100, share * 100)}%` }} /></div></div><span className="text-xs text-faint">{percent(share)}</span></button>;
                 })}
                 {!analytics.tools.length && <p className="py-6 text-sm text-muted">No tool calls were observed in this period.</p>}
               </div>
             </Panel>
             <Panel title="Adoption breadth" subtitle="How many distinct tools resolver-linked accounts used">
               <div className="space-y-3">
-                {analytics.capability_activity.adoption_distribution.map((item) => <div key={item.bucket} className="flex items-center justify-between border-b border-line pb-2 text-sm"><span className="text-ink">{item.bucket}</span><span className="text-muted">{fmt(item.accounts)} accounts</span></div>)}
+                {activity.adoption_distribution.map((item) => <div key={item.bucket} className="flex items-center justify-between border-b border-line pb-2 text-sm"><span className="text-ink">{item.bucket}</span><span className="text-muted">{fmt(item.accounts)} accounts</span></div>)}
               </div>
               <p className="mt-4 text-xs leading-relaxed text-faint">Accounts without a configured resolver are excluded from this distribution rather than grouped into a fabricated customer.</p>
             </Panel>
           </div>
           <div className="mt-4 grid gap-4 xl:grid-cols-[1.1fr_0.9fr]">
             <Panel title="Trend by feature" subtitle="Weekly observed calls for the highest-volume tools">
-              {analytics.capability_activity.trend.length ? <div className="grid grid-cols-2 gap-2 sm:grid-cols-4 lg:grid-cols-7">{analytics.capability_activity.trend.slice(-14).map((point, index) => <div key={`${point.period_start}-${point.tool_name}-${index}`} className="border border-line bg-surface px-3 py-3"><p className="text-[10px] text-faint">{point.period_start.slice(5)}</p><p className="mt-1 truncate font-mono text-[10px] text-ink">{point.tool_name}</p><p className="mt-1 text-xl font-semibold text-ink">{fmt(point.calls)}</p></div>)}</div> : <p className="py-6 text-sm text-muted">No trend evidence is available.</p>}
+              {activity.trend.length ? <CapabilityTrendChart points={activity.trend} /> : <p className="py-6 text-sm text-muted">No trend evidence is available.</p>}
             </Panel>
             <Panel title="Reliability by tool" subtitle="Errors and input-required responses are separate signals">
-              <div className="max-h-64 overflow-y-auto"><table className="w-full text-left text-xs"><thead className="border-b border-line text-[10px] uppercase tracking-[0.08em] text-faint"><tr><th className="pb-2">Tool</th><th className="pb-2">Error</th><th className="pb-2">Input required</th></tr></thead><tbody className="divide-y divide-line">{analytics.capability_activity.reliability.slice(0, 12).map((item) => <tr key={item.tool_name}><td className="max-w-[150px] truncate py-2 font-mono text-ink">{item.tool_name}</td><td className="py-2 text-muted">{item.error_rate === null ? "N/A" : percent(item.error_rate)}</td><td className="py-2 text-muted">{item.input_required_rate === null ? "N/A" : percent(item.input_required_rate)}</td></tr>)}</tbody></table></div>
+              <div className="max-h-64 overflow-y-auto"><table className="w-full text-left text-xs"><thead className="border-b border-line text-[10px] uppercase tracking-[0.08em] text-faint"><tr><th className="pb-2">Tool</th><th className="pb-2">Volume</th><th className="pb-2">Error</th><th className="pb-2">Input required</th></tr></thead><tbody className="divide-y divide-line">{activity.reliability.slice(0, 12).map((item) => <tr key={item.tool_name}><td className="max-w-[150px] truncate py-2 font-mono text-ink"><button type="button" onClick={() => setSelectedToolName(item.tool_name)} className="cursor-pointer hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand">{item.tool_name}</button></td><td className="py-2 text-muted">{fmt(item.calls)}</td><td className="py-2 text-muted">{item.error_rate === null ? "N/A" : percent(item.error_rate)}</td><td className="py-2 text-muted">{item.input_required_rate === null ? "N/A" : percent(item.input_required_rate)}</td></tr>)}</tbody></table></div>
             </Panel>
           </div>
-          <p className="mt-3 text-xs leading-relaxed text-faint">{analytics.capability_activity.limitation}</p>
+          {selectedTool && <ToolDetailPanel tool={selectedTool} metadata={analytics.tools.find((tool) => tool.name === selectedTool.tool_name)} onClose={() => setSelectedToolName(null)} />}
+          <p className="mt-3 text-xs leading-relaxed text-faint">{activity.limitation}</p>
         </>
       )}
       <div className="grid gap-3 sm:grid-cols-3">
@@ -2886,13 +2890,18 @@ function ResourcesPromptsView({
       <DataSourceStrip dataMode={dataMode} hasMyData={hasMyData} view="resources" />
       <section className="mb-6 border border-line bg-white p-4 sm:p-5" aria-label="Resources and prompts evidence boundary">
         <p className="dashboard-label text-faint">Evidence boundary</p>
-        <p className="mt-1 max-w-3xl text-xs leading-relaxed text-muted">TrackMCP reports bounded method observations and hashed entity counts. It does not expose resource contents, prompt arguments, unique people, or business completion from these signals.</p>
+        <p className="mt-1 max-w-3xl text-xs leading-relaxed text-muted">TrackMCP reports bounded method observations and hashed entity counts. Linked retries are collapsed only when protocol correlation evidence exists. It does not expose resource contents, prompt arguments, unique people, or business completion from these signals.</p>
       </section>
       <div className="grid gap-3 sm:grid-cols-3">
-        <Kpi label="Resource reads" value={activity ? fmt(activity.resource_reads) : "N/A"} icon={FileText} helper={activity ? `${fmt(activity.previous_period_resource_reads)} previous period` : "Awaiting evidence"} />
-        <Kpi label="Prompt calls" value={activity ? fmt(activity.prompt_calls) : "N/A"} icon={Activity} helper={activity ? `${fmt(activity.previous_period_prompt_calls)} previous period` : "Awaiting evidence"} />
-        <Kpi label="Prompt completion" value={activity?.prompt_completion_rate == null ? "N/A" : `${Math.round(activity.prompt_completion_rate * 100)}%`} icon={Check} helper={activity?.prompt_stall_rate == null ? "Explicit outcome evidence only" : `${Math.round(activity.prompt_stall_rate * 100)}% needs input`} />
+        <Kpi label="Resource interactions" value={activity ? fmt(activity.resource_reads) : "N/A"} icon={FileText} helper={activity ? `${fmt(activity.previous_period_resource_reads)} previous period · ${fmt(activity.resource_observations)} observed` : "Awaiting evidence"} />
+        <Kpi label="Prompt interactions" value={activity ? fmt(activity.prompt_calls) : "N/A"} icon={Activity} helper={activity ? `${fmt(activity.previous_period_prompt_calls)} previous period · ${fmt(activity.prompt_observations)} observed` : "Awaiting evidence"} />
+        <Kpi label="Prompt completion" value={activity?.prompt_completion_rate == null ? "N/A" : `${Math.round(activity.prompt_completion_rate * 100)}%`} icon={Check} helper={activity?.prompt_stall_rate == null ? "Explicit outcome evidence only" : `${Math.round(activity.prompt_stall_rate * 100)}% needs input · ${Math.round((activity.prompt_error_rate || 0) * 100)}% error`} />
       </div>
+      {activity && <div className="mt-6"><Panel title="Interaction outcomes" subtitle="One terminal evidence state per safely linked interaction; an input request is not a completion">
+        <div className="grid gap-3 sm:grid-cols-2">
+          {activity.outcomes.map((outcome) => <div key={outcome.kind} className="border border-line bg-paper p-4"><div className="flex items-center justify-between gap-3"><p className="text-sm font-medium text-ink">{outcome.kind === "resource" ? "Resources/read" : "Prompts/get"}</p><p className="text-xs text-muted">{fmt(outcome.interactions)} interactions</p></div><div className="mt-3 grid grid-cols-2 gap-2 text-xs sm:grid-cols-4"><div><p className="text-muted">Complete</p><p className="mt-1 font-semibold text-ink">{fmt(outcome.complete)}</p></div><div><p className="text-muted">Needs input</p><p className="mt-1 font-semibold text-ink">{fmt(outcome.stalled)}</p></div><div><p className="text-muted">Error</p><p className="mt-1 font-semibold text-ink">{fmt(outcome.errored)}</p></div><div><p className="text-muted">Unknown</p><p className="mt-1 font-semibold text-ink">{fmt(outcome.unknown)}</p></div></div><p className="mt-3 text-[11px] text-faint">{fmt(outcome.linked_retry_count)} linked retry {outcome.linked_retry_count === 1 ? "observation" : "observations"} collapsed</p></div>)}
+        </div>
+      </Panel></div>}
       <div className="mt-3 grid gap-3 sm:grid-cols-3">
         <Kpi label="Observed events" value={surfaces ? fmt(observedEvents) : "N/A"} icon={Activity} helper="Resource and prompt method events" />
         <Kpi label="Hashed entities" value={surfaces ? fmt(observedEntities) : "N/A"} icon={FileText} helper="Bounded, non-reversible identities" />
@@ -2901,7 +2910,7 @@ function ResourcesPromptsView({
       {activity && <div className="mt-6 grid gap-6 xl:grid-cols-2">
         {[["Top resources", activity.resource_breakdown, "Resource method"], ["Top prompts", activity.prompt_breakdown, "Prompt method"]].map(([title, items, label]) => (
           <Panel key={String(title)} title={String(title)} subtitle="Safe method dimensions only; raw names and inputs are never shown">
-            <div className="space-y-3">{(items as Array<{ name: string; calls: number; share: number | null; completion_rate?: number | null; stall_rate?: number | null }>).length ? (items as Array<{ name: string; calls: number; share: number | null; completion_rate?: number | null; stall_rate?: number | null }>).map((item) => <div key={item.name} className="border border-line bg-paper p-3"><div className="flex items-center justify-between gap-3"><span className="text-xs font-medium text-ink">{item.name}</span><span className="text-xs text-muted">{fmt(item.calls)} calls</span></div><div className="mt-2 h-1.5 bg-line"><div className="h-full bg-brand" style={{ width: `${Math.max(4, Math.round((item.share || 0) * 100))}%` }} /></div>{item.completion_rate != null && <p className="mt-2 text-[11px] text-muted">{Math.round(item.completion_rate * 100)}% complete · {Math.round((item.stall_rate || 0) * 100)}% needs input</p>}</div>) : <StateNote title={`No ${String(label).toLowerCase()} evidence yet`} body="No qualifying events were observed in this period." />}</div>
+            <div className="space-y-3">{(items as Array<{ name: string; calls: number; share: number | null; completion_rate?: number | null; stall_rate?: number | null; error_rate?: number | null; unknown_rate?: number | null }>).length ? (items as Array<{ name: string; calls: number; share: number | null; completion_rate?: number | null; stall_rate?: number | null; error_rate?: number | null; unknown_rate?: number | null }>).map((item) => <div key={item.name} className="border border-line bg-paper p-3"><div className="flex items-center justify-between gap-3"><span className="text-xs font-medium text-ink">{item.name}</span><span className="text-xs text-muted">{fmt(item.calls)} interactions</span></div><div className="mt-2 h-1.5 bg-line"><div className="h-full bg-brand" style={{ width: `${Math.max(4, Math.round((item.share || 0) * 100))}%` }} /></div>{item.completion_rate != null && <p className="mt-2 text-[11px] text-muted">{Math.round(item.completion_rate * 100)}% complete · {Math.round((item.stall_rate || 0) * 100)}% needs input · {Math.round((item.error_rate || 0) * 100)}% error · {Math.round((item.unknown_rate || 0) * 100)}% unknown</p>}</div>) : <StateNote title={`No ${String(label).toLowerCase()} evidence yet`} body="No qualifying events were observed in this period." />}</div>
           </Panel>
         ))}
       </div>}
@@ -3157,7 +3166,8 @@ function OutcomeEvidencePanel({ analytics }: { analytics: Analytics }) {
     }),
     { started: 0, completed: 0, failed: 0 },
   );
-  const hasExplicitOutcomes = totals.started > 0;
+  const activity = analytics.outcome_activity;
+  const hasWorkflowTerminalEvidence = activity?.completion_rate != null;
   return (
     <Panel
       title="Did the work complete?"
@@ -3166,9 +3176,9 @@ function OutcomeEvidencePanel({ analytics }: { analytics: Analytics }) {
       <div className="grid gap-3 sm:grid-cols-3">
         <Kpi
           label="Completion rate"
-          value={hasExplicitOutcomes && analytics.completion_rate !== null ? percent(analytics.completion_rate) : "N/A"}
+          value={hasWorkflowTerminalEvidence ? percent(activity.completion_rate) : "N/A"}
           icon={Check}
-          helper={hasExplicitOutcomes ? "Explicit workflow denominator" : "No explicit workflow starts"}
+          helper={hasWorkflowTerminalEvidence ? "Explicit workflow terminal denominator" : "No explicit workflow terminals"}
         />
         <Kpi label="Work started" value={fmt(totals.started)} icon={Route} helper="Explicit workflow events" />
         <Kpi label="Work failed" value={fmt(totals.failed)} icon={AlertTriangle} helper="Explicit failed outcomes" />
@@ -3176,15 +3186,16 @@ function OutcomeEvidencePanel({ analytics }: { analytics: Analytics }) {
       <p className="mt-4 border-t border-line pt-3 text-[11px] leading-relaxed text-muted">
         Evidence source: {analytics.completion_source === "workflow_events" ? "explicit workflow events" : analytics.completion_source === "session_heuristic" ? "session-derived activity (not used for the completion KPI)" : "no explicit outcome events"}. Unknown and not-observable outcomes remain separate from failure.
       </p>
-      {analytics.outcome_activity && <div className="mt-5 border-t border-line pt-5">
+      {activity && <div className="mt-5 border-t border-line pt-5">
         <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-          <Kpi label="Completed" value={fmt(analytics.outcome_activity.completed)} icon={Check} helper="Explicit semantic evidence" />
-          <Kpi label="Failed" value={fmt(analytics.outcome_activity.failed)} icon={AlertTriangle} helper="Explicit semantic evidence" />
-          <Kpi label="Pending" value={fmt(analytics.outcome_activity.pending)} icon={Info} helper="Explicitly still in progress" />
-          <Kpi label="Unknown" value={fmt(analytics.outcome_activity.unknown + analytics.outcome_activity.not_observable)} icon={Info} helper="Not silently classified" />
+          <Kpi label="Completed" value={fmt(activity.completed)} icon={Check} helper="Explicit semantic evidence" />
+          <Kpi label="Failed" value={fmt(activity.failed)} icon={AlertTriangle} helper="Explicit semantic evidence" />
+          <Kpi label="Pending" value={fmt(activity.pending)} icon={Info} helper="Explicitly still in progress" />
+          <Kpi label="Unknown" value={fmt(activity.unknown + activity.not_observable)} icon={Info} helper="Not silently classified" />
         </div>
-        <div className="mt-4 grid gap-2 sm:grid-cols-2 lg:grid-cols-4">{analytics.outcome_activity.trend.slice(-8).map((item) => <div key={item.period_start} className="border border-line bg-paper p-3"><p className="text-[10px] uppercase tracking-[0.08em] text-faint">{item.period_start}</p><p className="mt-1 text-xs text-ink">{fmt(item.completed)} complete · {fmt(item.failed)} failed</p><p className="mt-1 text-[11px] text-muted">{fmt(item.pending)} pending · {fmt(item.unknown)} unknown</p></div>)}</div>
-        <p className="mt-3 text-[11px] leading-relaxed text-faint">{analytics.outcome_activity.limitation}</p>
+        <div className="mt-4 grid gap-2 sm:grid-cols-2 lg:grid-cols-4">{activity.trend.slice(-8).map((item) => <div key={item.period_start} className="border border-line bg-paper p-3"><p className="text-[10px] uppercase tracking-[0.08em] text-faint">{item.period_start}</p><p className="mt-1 text-xs text-ink">{fmt(item.completed)} complete · {fmt(item.failed)} failed</p><p className="mt-1 text-[11px] text-muted">{fmt(item.pending)} pending · {fmt(item.unknown)} unknown</p></div>)}</div>
+        <div className="mt-4 border border-line bg-paper p-3"><p className="text-[10px] font-semibold uppercase tracking-[0.08em] text-faint">Latest explicit task states</p><div className="mt-2 grid grid-cols-2 gap-2 text-xs sm:grid-cols-4 lg:grid-cols-7">{[["Working", activity.task_states.working], ["Needs input", activity.task_states.input_required], ["Completed", activity.task_states.completed], ["Failed", activity.task_states.failed], ["Cancelled", activity.task_states.cancelled], ["Expired", activity.task_states.expired], ["Unknown", activity.task_states.unknown]].map(([label, value]) => <div key={String(label)}><p className="text-muted">{label}</p><p className="mt-1 font-semibold text-ink">{fmt(Number(value))}</p></div>)}</div><p className="mt-2 text-[11px] text-faint">Latest state per opaque task handle; task identifiers are never shown.</p></div>
+        <p className="mt-3 text-[11px] leading-relaxed text-faint">{activity.limitation}</p>
       </div>}
     </Panel>
   );
@@ -3552,6 +3563,15 @@ function ClientsView({
   hasMyData: boolean;
   pageControls: ReactNode;
 }) {
+  const people = analytics.who_is_using_it;
+  const periodDelta = people && people.previous_period_active_accounts > 0
+    ? (people.active_accounts - people.previous_period_active_accounts) / people.previous_period_active_accounts
+    : null;
+  const periodComparison = periodDelta === null
+    ? people?.previous_period_active_accounts === 0 && people.active_accounts > 0
+      ? "No prior-period account activity"
+      : "No change from the prior period"
+    : `${periodDelta > 0 ? "↑" : periodDelta < 0 ? "↓" : "→"} ${Math.abs(Math.round(periodDelta * 100))}% vs. prior period`;
   return (
     <div>
       <PageIntro
@@ -3560,45 +3580,38 @@ function ClientsView({
         actions={pageControls}
       />
       <DataSourceStrip dataMode={dataMode} hasMyData={hasMyData} view="clients" />
-      {analytics.who_is_using_it && (
+      {people && (
         <>
           <div className="mb-6 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
             <Kpi
-              label="Active accounts this period"
-              value={fmt(analytics.who_is_using_it.active_accounts)}
+              label="Active accounts"
+              value={fmt(people.active_accounts)}
               icon={Users}
-              helper={`${analytics.range_days} day window`}
+              helper={`${periodComparison} · ${analytics.range_days}-day window`}
             />
             <Kpi
-              label="New accounts"
-              value={analytics.who_is_using_it.new_accounts === null ? "N/A" : fmt(analytics.who_is_using_it.new_accounts)}
+              label="New this period"
+              value={people.new_accounts === null ? "N/A" : fmt(people.new_accounts)}
               icon={Sparkles}
               helper="First observed in this window"
             />
             <Kpi
-              label="Returning accounts"
-              value={analytics.who_is_using_it.returning_accounts === null ? "N/A" : fmt(analytics.who_is_using_it.returning_accounts)}
+              label="Returning this period"
+              value={people.returning_accounts === null ? "N/A" : fmt(people.returning_accounts)}
               icon={RotateCcw}
               helper="Observed before this window"
             />
             <Kpi
-              label="Previous period"
-              value={fmt(analytics.who_is_using_it.previous_period_active_accounts)}
+              label="Prior-period active"
+              value={fmt(people.previous_period_active_accounts)}
               icon={TrendingUp}
               helper="Same-length comparison window"
             />
           </div>
           <div className="mb-6 grid gap-4 xl:grid-cols-[1.25fr_0.75fr]">
-            <Panel title="Growth over time" subtitle="Distinct resolver-linked accounts observed per day">
-              {analytics.who_is_using_it.growth.length ? (
-                <div className="grid grid-cols-2 gap-2 sm:grid-cols-4 lg:grid-cols-7">
-                  {analytics.who_is_using_it.growth.slice(-14).map((point) => (
-                    <div key={point.period_start} className="border border-line bg-surface px-3 py-3">
-                      <p className="text-[10px] text-faint">{point.period_start.slice(5)}</p>
-                      <p className="mt-1 text-xl font-semibold text-ink">{fmt(point.active_accounts)}</p>
-                    </div>
-                  ))}
-                </div>
+            <Panel title="Growth over time" subtitle="Distinct resolver-linked accounts observed each week">
+              {people.growth.length ? (
+                <AccountGrowthChart points={people.growth} />
               ) : (
                 <p className="py-6 text-sm text-muted">No account activity was observed in this period.</p>
               )}
@@ -3606,130 +3619,84 @@ function ClientsView({
             </Panel>
             <Panel title="Who’s connecting" subtitle="Optional client metadata reported by the AI tool">
               <div className="space-y-3">
-                {analytics.who_is_using_it.client_breakdown.map((client) => (
-                  <div key={client.name} className="flex items-center justify-between gap-3 text-sm">
-                    <span className="truncate text-ink">{client.name}</span>
-                    <span className="shrink-0 text-muted">{client.share === null ? "N/A" : percent(client.share)} · {fmt(client.calls)}</span>
+                {people.client_breakdown.map((client) => (
+                  <div key={client.name} className="text-sm">
+                    <div className="flex items-center justify-between gap-3">
+                      <span className="truncate text-ink">{client.identity_source === "unrecognized" ? "Unrecognized tool" : client.name}</span>
+                      <span className="shrink-0 text-muted">{client.share === null ? "N/A" : percent(client.share)} · {fmt(client.calls)} calls</span>
+                    </div>
+                    <div className="mt-1.5 h-2 overflow-hidden rounded-full bg-paper" aria-hidden="true">
+                      <div className="h-full rounded-full bg-brand" style={{ width: `${Math.max(0, Math.min(100, (client.share || 0) * 100))}%` }} />
+                    </div>
                   </div>
                 ))}
-                {!analytics.who_is_using_it.client_breakdown.length && <p className="py-4 text-sm text-muted">No client metadata was observed.</p>}
+                {!people.client_breakdown.length && <p className="py-4 text-sm text-muted">No client metadata was observed.</p>}
               </div>
               <p className="mt-4 border border-brand/20 bg-brand-soft/30 px-3 py-2.5 text-xs leading-relaxed text-body">Client names are self-reported by the AI tool. Unknown client remains visible when it has volume.</p>
             </Panel>
           </div>
           <Panel title="Top accounts by activity" subtitle="Ranked resolver-linked activity; account names are intentionally not exposed">
-            {analytics.who_is_using_it.top_accounts.length ? (
+            {people.top_accounts.length ? (
               <table className="w-full text-left text-sm">
                 <thead className="border-b border-line text-[10px] font-semibold uppercase tracking-[0.08em] text-faint"><tr><th className="pb-3">Rank</th><th className="pb-3">Activity</th><th className="pb-3">Active days</th><th className="pb-3">Identity</th></tr></thead>
-                <tbody className="divide-y divide-line">{analytics.who_is_using_it.top_accounts.map((account) => <tr key={account.rank}><td className="py-3 font-medium text-ink">#{account.rank}</td><td className="py-3 text-muted">{fmt(account.activity_count)} events</td><td className="py-3 text-muted">{fmt(account.active_days)}</td><td className="py-3 text-muted">Resolver-linked</td></tr>)}</tbody>
+                <tbody className="divide-y divide-line">{people.top_accounts.map((account) => <tr key={account.rank}><td className="py-3 font-medium text-ink">#{account.rank}</td><td className="py-3 text-muted">{fmt(account.activity_count)} events</td><td className="py-3 text-muted">{fmt(account.active_days)}</td><td className="py-3 text-muted">Resolver-linked</td></tr>)}</tbody>
               </table>
             ) : <p className="py-6 text-sm text-muted">No resolver-linked accounts were observed in this period.</p>}
             <p className="mt-4 text-xs leading-relaxed text-faint">MCP does not define customer accounts. Names can only be shown when a customer configures a verified identity resolver; raw resolver keys never leave the server.</p>
           </Panel>
-          {analytics.who_is_using_it.classification_status === "insufficient_data" && <p className="mt-3 text-xs text-warning">New versus returning account counts are unavailable because the bounded history scan was incomplete.</p>}
+          {people.classification_status === "insufficient_data" && <p className="mt-3 text-xs text-warning">New versus returning account counts are unavailable because the bounded history scan was incomplete.</p>}
         </>
       )}
-      {analytics.account_summary && (
-        <div className="mb-6 grid gap-3 sm:grid-cols-3 xl:grid-cols-5">
-          <Kpi
-            label="Observed account signals"
-            value={fmt(analytics.account_summary.observed_account_keys)}
-            icon={Users}
-            helper="Distinct resolver-linked keys"
-          />
-          <Kpi
-            label="Identity coverage"
-            value={analytics.account_summary.resolver_coverage === null ? "N/A" : percent(analytics.account_summary.resolver_coverage)}
-            icon={ShieldCheck}
-            helper="Resolver-linked eligible events"
-          />
-          <Kpi
-            label="Unknown identity events"
-            value={fmt(analytics.account_summary.unresolved_events)}
-            icon={Search}
-            helper="Kept visible; not classified as customers"
-          />
-          <Kpi
-            label="Active in last 7 days"
-            value={fmt(analytics.account_summary.active_account_keys_7d)}
-            icon={Activity}
-            helper="Observed resolver-linked keys"
-          />
-          <Kpi
-            label="Returning account signals"
-            value={fmt(analytics.account_summary.returning_account_keys)}
-            icon={Route}
-            helper="Seen on more than one day"
-          />
-        </div>
-      )}
-      {analytics.account_summary && (
-        <Panel title="Account activity shape" subtitle="Privacy-safe usage bands; no account names or raw identifiers are shown">
-          <div className="grid gap-3 sm:grid-cols-3">
-            {[
-              ["One-event signals", analytics.account_summary.account_activity_bands.one_event, "Accounts observed once"],
-              ["Repeat signals", analytics.account_summary.account_activity_bands.repeat, "2–9 observed events"],
-              ["High-activity signals", analytics.account_summary.account_activity_bands.high_activity, "10+ observed events"],
-            ].map(([label, value, helper]) => (
-              <div key={String(label)} className="border border-line bg-surface px-4 py-3">
-                <p className="text-xs font-medium text-muted">{label}</p>
-                <p className="mt-1 text-2xl font-semibold tracking-tight text-ink">{fmt(Number(value))}</p>
-                <p className="mt-1 text-[11px] text-faint">{helper}</p>
-              </div>
-            ))}
-          </div>
-          <p className="mt-4 text-xs leading-relaxed text-muted">These are bounded activity signals, not unique people, companies, or verified customers. Resolver coverage and the selected date range limit what can be inferred.</p>
-        </Panel>
-      )}
-      <Panel
-        title="AI clients observed"
-        subtitle="Activity is grouped by observed client name"
-      >
-        <p className="mb-4 border border-brand/20 bg-brand-soft/30 px-3 py-2.5 text-xs leading-relaxed text-body">
-          Client names come from optional MCP client metadata and are self-reported,
-          not verified identities. <strong>Unknown client</strong> means the server
-          did not receive a client name; it remains visible so the chart does not
-          overstate certainty.
-        </p>
-        <div
-          className="overflow-x-auto"
-          role="region"
-          aria-label="Scrollable table"
-        >
-          <p className="mb-3 text-[11px] text-faint">
-            Scroll horizontally to inspect all columns.
-          </p>
-          <table className="w-full min-w-[620px] text-left text-sm">
-            <thead className="border-b border-line text-[10px] font-semibold uppercase tracking-[0.08em] text-faint">
-              <tr>
-                <th className="pb-3">AI client</th>
-                <th className="pb-3">Observed calls</th>
-                <th className="pb-3">Share of calls</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-line">
-              {analytics.clients.map((client) => (
-                <tr key={client.name}>
-                  <td className="py-4 font-medium text-ink">{client.name}</td>
-                  <td className="py-4 text-muted">{fmt(client.calls)}</td>
-                  <td className="py-4 text-muted">
-                    {analytics.tool_calls
-                      ? percent(client.calls / analytics.tool_calls)
-                      : "N/A"}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-          {!analytics.clients.length && (
-            <p className="py-8 text-sm text-muted">
-              No AI clients were observed in the selected period.
-            </p>
-          )}
-        </div>
-      </Panel>
     </div>
   );
+}
+
+function AccountGrowthChart({ points }: { points: NonNullable<Analytics["who_is_using_it"]>["growth"] }) {
+  const shown = points.slice(-14);
+  const width = 560;
+  const height = 184;
+  const padding = 22;
+  const max = Math.max(1, ...shown.map((point) => point.active_accounts));
+  const x = (index: number) => shown.length <= 1 ? width / 2 : padding + (index * (width - padding * 2)) / (shown.length - 1);
+  const y = (value: number) => height - padding - ((value / max) * (height - padding * 2));
+  const path = shown.map((point, index) => `${index === 0 ? "M" : "L"}${x(index)} ${y(point.active_accounts)}`).join(" ");
+  const latest = shown.at(-1);
+  return <div>
+    <svg viewBox={`0 0 ${width} ${height}`} role="img" aria-label={`Weekly active account growth. Latest: ${latest?.active_accounts ?? 0} accounts.`} className="h-48 w-full overflow-visible" preserveAspectRatio="none">
+      <line x1={padding} x2={width - padding} y1={height - padding} y2={height - padding} stroke="currentColor" className="text-line" />
+      <path d={path} fill="none" stroke="currentColor" strokeWidth="3" vectorEffect="non-scaling-stroke" className="text-brand-strong" />
+      {shown.map((point, index) => <circle key={point.period_start} cx={x(index)} cy={y(point.active_accounts)} r="4" fill="currentColor" className="text-brand-strong" />)}
+    </svg>
+    <div className="mt-2 flex justify-between gap-3 text-[10px] text-faint">
+      <span>{shown[0]?.period_start}</span>
+      <span>{latest?.period_start}</span>
+    </div>
+  </div>;
+}
+
+function CapabilityTrendChart({ points }: { points: NonNullable<Analytics["capability_activity"]>["trend"] }) {
+  const periods = [...new Set(points.map((point) => point.period_start))].slice(-12);
+  const names = [...new Set(points.map((point) => point.tool_name))];
+  const colors = ["bg-brand", "bg-brand-strong", "bg-sky-500", "bg-amber-500", "bg-violet-500", "bg-rose-500", "bg-slate-400"];
+  const byPeriod = new Map(periods.map((period) => [period, points.filter((point) => point.period_start === period)]));
+  const max = Math.max(1, ...periods.map((period) => (byPeriod.get(period) || []).reduce((sum, point) => sum + point.calls, 0)));
+  return <div>
+    <div className="flex h-48 items-end gap-2" role="img" aria-label="Weekly tool-call volume, stacked by feature.">
+      {periods.map((period) => <div key={period} className="flex h-full min-w-0 flex-1 flex-col justify-end overflow-hidden rounded-sm bg-paper" title={period}>
+        {(byPeriod.get(period) || []).map((point) => <div key={point.tool_name} className={colors[Math.max(0, names.indexOf(point.tool_name)) % colors.length]} style={{ height: `${(point.calls / max) * 100}%` }} title={`${point.tool_name}: ${point.calls} calls`} />)}
+      </div>)}
+    </div>
+    <div className="mt-3 flex flex-wrap gap-x-3 gap-y-1 text-[10px] text-faint">{names.map((name, index) => <span key={name} className="inline-flex items-center gap-1"><i className={`h-2 w-2 rounded-full ${colors[index % colors.length]}`} />{name}</span>)}</div>
+  </div>;
+}
+
+function ToolDetailPanel({ tool, metadata, onClose }: { tool: NonNullable<Analytics["capability_activity"]>["tool_details"][number]; metadata: Analytics["tools"][number] | undefined; onClose: () => void }) {
+  const maxAccounts = Math.max(1, ...tool.top_accounts.map((account) => account.calls));
+  return <section className="mt-4 border border-brand/30 bg-brand-soft/20 p-4 sm:p-5" aria-label={`${tool.tool_name} tool detail`}>
+    <div className="flex flex-wrap items-start justify-between gap-3"><div><p className="dashboard-label text-faint">Tool detail</p><h3 className="mt-1 font-mono text-base font-semibold text-ink">{tool.tool_name}</h3>{metadata?.description && <p className="mt-2 max-w-3xl text-xs leading-relaxed text-muted">{metadata.description}</p>}</div><button type="button" onClick={onClose} className="cursor-pointer rounded-md border border-line-strong bg-white px-3 py-1.5 text-xs font-semibold text-body focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand">Close</button></div>
+    <div className="mt-4 grid gap-3 sm:grid-cols-3"><Kpi label="Volume" value={fmt(tool.calls)} icon={Activity} helper="Observed calls" /><Kpi label="Error rate" value={tool.error_rate === null ? "N/A" : percent(tool.error_rate)} icon={AlertTriangle} helper="Explicit errors only" /><Kpi label="p95 latency" value={tool.p95_ms === null ? "N/A" : `${tool.p95_ms}ms`} icon={Gauge} helper="Reported duration samples" /></div>
+    <div className="mt-4 grid gap-4 lg:grid-cols-2"><div><p className="text-sm font-semibold text-ink">Top resolver-linked account activity</p><p className="mt-1 text-xs text-muted">Ranks and counts are shown; raw resolver keys and customer names never leave the server.</p><div className="mt-3 space-y-2">{tool.top_accounts.map((account) => <div key={account.rank}><div className="flex justify-between text-xs"><span className="text-ink">Account #{account.rank}</span><span className="text-muted">{fmt(account.calls)} calls</span></div><div className="mt-1 h-2 bg-white"><div className="h-full bg-brand" style={{ width: `${(account.calls / maxAccounts) * 100}%` }} /></div></div>)}{!tool.top_accounts.length && <p className="py-3 text-sm text-muted">No resolver-linked account activity is available for this tool.</p>}</div></div><div><p className="text-sm font-semibold text-ink">Error and volume trend</p><div className="mt-3 space-y-2">{tool.trend.map((point) => <div key={point.period_start} className="flex justify-between border-b border-line pb-2 text-xs"><span className="text-muted">{point.period_start}</span><span className="text-ink">{fmt(point.calls)} calls · {point.calls ? percent(point.errors / point.calls) : "N/A"} errors</span></div>)}{!tool.trend.length && <p className="py-3 text-sm text-muted">No trend evidence is available.</p>}</div></div></div>
+  </section>;
 }
 
 function EvidenceView({

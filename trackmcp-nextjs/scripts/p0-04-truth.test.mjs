@@ -39,8 +39,11 @@ test("SDK docs explain boundary, privacy defaults, workflow semantics, and fail-
   const typescript = await source("packages/typescript-sdk/README.md");
   const python = await source("../packages/python-sdk/README.md");
   const typescriptWeb = await source("src/app/docs/typescript/page.tsx");
+  const reference = await source("src/app/docs/reference/page.tsx");
   assert.match(typescriptWeb, /bounded server-side tool, session, result, and client observations/);
   assert.doesNotMatch(typescriptWeb, /every call,?\s*result,?\s*and client is captured automatically/i);
+  assert.match(reference, /supported tool calls observed at the configured server boundary/);
+  assert.doesNotMatch(reference, /On every tool call, the wrapper records/i);
   for (const docs of [typescript, python]) {
     assert.match(docs, /server boundary/i);
     assert.match(docs, /redact/i);
@@ -68,6 +71,8 @@ test("public website labels sample visuals and qualifies unsupported roadmap cla
   assert.match(pages[3], /Example data/);
   assert.match(pages[4], /Planned/);
   assert.match(pages[5], /Planned/);
+  assert.match(pages[4], /Observed calls, ranked and trended/);
+  assert.doesNotMatch(pages[4], /Every call, ranked and trended/);
 });
 
 test("onboarding and quickstart make privacy and boundary behavior discoverable", async () => {
@@ -86,10 +91,20 @@ test("onboarding and quickstart make privacy and boundary behavior discoverable"
 
 test("homepage presents the terminal-first CLI as the primary setup action", async () => {
   const homepage = await source("src/app/page.tsx");
+  const systemStory = await source("src/components/scenes/SystemStoryScene.tsx");
+  const howItWorks = await source("src/components/HowItWorksFlow.tsx");
   const firstSetup = homepage.indexOf("npx @trackmcp/cli init");
   assert.notEqual(firstSetup, -1);
   assert.match(homepage, /CopyButton text="npx @trackmcp\/cli init"/);
   assert.ok(firstSetup < homepage.indexOf("@trackmcp\/sdk"), "the setup command should appear before the SDK implementation example");
+  assert.match(homepage, /configured server-boundary observations/);
+  assert.match(homepage, /Accepted observations appear after processing/);
+  assert.doesNotMatch(homepage, /captures every call|dashboard in real time|Track and analyze who uses your MCP server/i);
+  assert.match(systemStory, /Illustrative flow/);
+  assert.match(systemStory, /configured observations/);
+  assert.match(systemStory, /observes and summarizes/);
+  assert.doesNotMatch(systemStory, /captures every call|captures and synthesizes/);
+  assert.match(howItWorks, /after processing/);
 });
 
 test("release notes describe the CLI activation boundary without claiming browser key handling", async () => {

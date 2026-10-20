@@ -112,7 +112,7 @@ function AnalyzeStep() {
   ];
   return (
     <div>
-      <StepHeading sub="real time">Dashboards update everywhere</StepHeading>
+      <StepHeading sub="after processing">Dashboards reflect accepted observations</StepHeading>
       <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-4">
         {tiles.map((t) => (
           <div

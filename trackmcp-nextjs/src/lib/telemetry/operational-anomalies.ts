@@ -4,9 +4,9 @@
  * This is an application-side signal contract. It does not persist incidents,
  * send notifications, or decide a customer-facing outage by itself.
  */
-export type OperationalEvent = { status_code?: unknown; error_code?: unknown; started_at?: unknown };
+export type OperationalEvent = { status_code?: unknown; error_code?: unknown; started_at?: unknown; route?: unknown };
 export type OperationalAnomalyFinding = {
-  metric: "rate_limit_spike" | "authorization_anomaly";
+  metric: "rate_limit_spike" | "authorization_anomaly" | "ingest_error_spike";
   state: "insufficient_data" | "normal" | "warning" | "critical";
   sample_count: number;
   failure_count: number;
@@ -23,10 +23,11 @@ const boundedStatus = (value: unknown): number | null => {
 };
 const eventTime = (event: OperationalEvent) => typeof event.started_at === "string" ? Date.parse(event.started_at) : NaN;
 
-function evaluate(events: readonly OperationalEvent[], now: Date, metric: OperationalAnomalyFinding["metric"], statuses: readonly number[], warningRate: number, criticalRate: number, warningCount: number, criticalCount: number): OperationalAnomalyFinding {
+function evaluate(events: readonly OperationalEvent[], now: Date, metric: OperationalAnomalyFinding["metric"], statuses: readonly number[] | ((status: number) => boolean), warningRate: number, criticalRate: number, warningCount: number, criticalCount: number, include: (event: OperationalEvent) => boolean = () => true): OperationalAnomalyFinding {
   const end = now.getTime();
-  const inWindow = events.filter((event) => { const at = eventTime(event); return Number.isFinite(at) && at >= end - WINDOW_MS && at <= end; });
-  const failures = inWindow.filter((event) => statuses.includes(boundedStatus(event.status_code ?? event.error_code) ?? -1));
+  const inWindow = events.filter((event) => { const at = eventTime(event); return include(event) && Number.isFinite(at) && at >= end - WINDOW_MS && at <= end; });
+  const matchesStatus = typeof statuses === "function" ? statuses : (status: number) => statuses.includes(status);
+  const failures = inWindow.filter((event) => matchesStatus(boundedStatus(event.status_code ?? event.error_code) ?? -1));
   const sample_count = inWindow.length;
   const failure_count = failures.length;
   const failure_rate = sample_count ? failure_count / sample_count : null;
@@ -41,4 +42,23 @@ export function evaluateRateLimitAnomaly(events: readonly OperationalEvent[], no
 
 export function evaluateAuthorizationAnomaly(events: readonly OperationalEvent[], now = new Date()): OperationalAnomalyFinding {
   return evaluate(events, now, "authorization_anomaly", [401, 403], 0.1, 0.25, 5, 20);
+}
+
+/**
+ * Keeps ingest availability distinct from authorization and rate-limit signals.
+ * Only a normalized route and status class are consumed; callers must never
+ * attach event IDs, headers, keys, payloads, or error bodies to this input.
+ */
+export function evaluateIngestErrorAnomaly(events: readonly OperationalEvent[], now = new Date()): OperationalAnomalyFinding {
+  return evaluate(
+    events,
+    now,
+    "ingest_error_spike",
+    (status) => status >= 500 && status <= 599,
+    0.05,
+    0.2,
+    5,
+    20,
+    (event) => event.route === "/api/v1/ingest",
+  );
 }

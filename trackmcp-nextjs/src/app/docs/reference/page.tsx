@@ -87,8 +87,9 @@ export default function ReferenceDocsPage() {
 
       <DocSection title="What gets captured">
         <Para>
-          On every tool call, the wrapper records the following. Arguments and results
-          are sanitized and bounded in your process before transmission.
+          For supported tool calls observed at the configured server boundary, the
+          wrapper records the following. Arguments and results are sanitized and
+          bounded in your process before transmission.
         </Para>
         <ul className="mt-1 flex flex-col gap-2">
           {captured.map((c) => (

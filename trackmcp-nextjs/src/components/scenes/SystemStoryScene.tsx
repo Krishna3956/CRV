@@ -126,10 +126,10 @@ export function SystemStoryScene() {
           </div>
         </div>
 
-        <Connector flowing={flowing} label="captures every call" tone="brand" />
+        <Connector flowing={flowing} label="configured observations" tone="brand" />
 
         {/* ── Layer 3 · TrackMCP ── */}
-        <LayerLabel index="3" text="TrackMCP captures and synthesizes" />
+        <LayerLabel index="3" text="TrackMCP observes and summarizes" />
         <div className="relative overflow-hidden rounded-xl border border-brand/40 bg-brand-soft/40 p-3 shadow-[0_16px_40px_-24px_rgba(22,163,74,0.5)]">
           {flowing && (
             <motion.span
@@ -152,11 +152,11 @@ export function SystemStoryScene() {
                 </span>
               </div>
               <div className="mt-0.5 text-[11px] leading-tight text-body">
-                Groups calls into sessions, attributes clients, finds failures
+                Groups observed calls into sessions and surfaces bounded evidence
               </div>
             </div>
-            <span className="hidden shrink-0 items-center gap-1 rounded-full bg-white px-2 py-0.5 text-[10px] font-medium text-brand-strong ring-1 ring-brand/20 sm:inline-flex">
-              <span className="h-1.5 w-1.5 animate-pulse-dot rounded-full bg-brand" /> Live
+              <span className="hidden shrink-0 items-center gap-1 rounded-full bg-white px-2 py-0.5 text-[10px] font-medium text-brand-strong ring-1 ring-brand/20 sm:inline-flex">
+              <span className="h-1.5 w-1.5 animate-pulse-dot rounded-full bg-brand" /> Observed
             </span>
           </div>
         </div>
@@ -194,6 +194,7 @@ export function SystemStoryScene() {
             Fix the schema <ArrowRight size={11} />
           </span>
         </div>
+        <p className="mt-3 text-center text-[10px] leading-relaxed text-muted">Illustrative flow — displayed results depend on configured, accepted server-boundary observations.</p>
       </div>
     </div>
   );

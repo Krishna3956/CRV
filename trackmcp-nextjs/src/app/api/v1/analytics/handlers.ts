@@ -72,6 +72,10 @@ type EventRow = {
 
 const MAX_PUBLIC_LIST_ITEMS = 500;
 const MAX_PUBLIC_DIMENSION_ITEMS = 100;
+// A single failed call is useful trace evidence, not a product-wide issue.
+// Match the quality surface's minimum before ranking a tool as broken.
+const MIN_ISSUE_TOOL_CALLS = 30;
+const MIN_ISSUE_WORKFLOW_STARTS = 10;
 const boundedText = (value: unknown, max: number): string | null =>
   typeof value === "string" ? value.slice(0, max) : null;
 
@@ -142,12 +146,12 @@ export function createAnalyticsHandler(getAdmin: typeof getSupabaseAdmin = getSu
   // marks the classification as insufficient rather than inventing a trend.
   const historyLimit = 100_000;
   const historyResult = await supabase.from("trackmcp_events")
-    .select("account_key, account_identity_source, started_at, event_type, mcp_method, tool_name, is_error, success, result_type, duration_ms")
+    .select("event_id, account_key, account_identity_source, started_at, event_type, mcp_method, tool_name, is_error, success, result_type, duration_ms, interaction_id, request_state_hash, retry_number, retry_of_event_id")
     .eq("workspace_id", workspaceId)
     .eq("observation_source", "server")
     .order("started_at", { ascending: true })
     .limit(historyLimit);
-  const historyRows = historyResult.error ? [] : ((historyResult.data || []) as Array<{ account_key?: unknown; account_identity_source?: unknown; started_at?: unknown; event_type?: unknown; mcp_method?: unknown; tool_name?: unknown; is_error?: unknown; success?: unknown; result_type?: unknown; duration_ms?: unknown }>);
+  const historyRows = historyResult.error ? [] : ((historyResult.data || []) as Array<{ event_id?: unknown; account_key?: unknown; account_identity_source?: unknown; started_at?: unknown; event_type?: unknown; mcp_method?: unknown; tool_name?: unknown; is_error?: unknown; success?: unknown; result_type?: unknown; duration_ms?: unknown; interaction_id?: unknown; request_state_hash?: unknown; retry_number?: unknown; retry_of_event_id?: unknown }>);
   const historyCapped = historyRows.length >= historyLimit;
 
   // Snapshot rows are service-written and explicitly workspace-scoped by the
@@ -363,6 +367,10 @@ export function createAnalyticsHandler(getAdmin: typeof getSupabaseAdmin = getSu
     if (timestamp >= previousPeriodStartMs && timestamp < periodStartMs) previousPeriodAccounts.add(row.account_key);
     if (timestamp >= periodStartMs && timestamp <= periodEndMs) {
       const bucket = new Date(timestamp);
+      // Founder OS adoption is intentionally reported as a weekly signal.
+      // Week starts on Monday in UTC so the server result is stable for every
+      // viewer and does not silently depend on a browser's local timezone.
+      bucket.setUTCDate(bucket.getUTCDate() - ((bucket.getUTCDay() + 6) % 7));
       bucket.setUTCHours(0, 0, 0, 0);
       const bucketKey = bucket.toISOString().slice(0, 10);
       const set = growthBuckets.get(bucketKey) || new Set<string>();
@@ -423,32 +431,112 @@ export function createAnalyticsHandler(getAdmin: typeof getSupabaseAdmin = getSu
     trendBuckets.set(period, byTool);
   }
   const topTrendTools = new Set(toolRows.slice(0, 6).map((tool) => tool.name));
-  const capabilityTrend = [...trendBuckets.entries()].sort(([a], [b]) => a.localeCompare(b)).flatMap(([period_start, byTool]) => [...byTool.entries()].map(([tool_name, count]) => ({ period_start, tool_name: topTrendTools.has(tool_name) ? tool_name : "Other", calls: count }))).slice(-500);
+  const capabilityTrend = [...trendBuckets.entries()].sort(([a], [b]) => a.localeCompare(b)).flatMap(([period_start, byTool]) => {
+    const summarized = new Map<string, number>();
+    for (const [toolName, count] of byTool) {
+      const name = topTrendTools.has(toolName) ? toolName : "Other";
+      summarized.set(name, (summarized.get(name) || 0) + count);
+    }
+    return [...summarized.entries()].map(([tool_name, calls]) => ({ period_start, tool_name, calls }));
+  }).slice(-500);
   const capabilityReliability = toolRows.slice(0, MAX_PUBLIC_LIST_ITEMS).map((tool) => {
     const matching = calls.filter((event) => event.tool_name === tool.name);
     const inputRequired = matching.filter((event) => event.result_type === "input_required").length;
     return { tool_name: tool.name, calls: tool.calls, error_rate: tool.calls ? tool.errors / tool.calls : null, input_required_rate: tool.calls ? inputRequired / tool.calls : null, p95_ms: tool.p95_ms };
+  }).sort((a, b) => (b.error_rate || 0) - (a.error_rate || 0) || b.calls - a.calls);
+  const toolDetails = toolRows.slice(0, MAX_PUBLIC_DIMENSION_ITEMS).map((tool) => {
+    const matching = calls.filter((event) => event.tool_name === tool.name);
+    const accountCalls = new Map<string, number>();
+    const weekly = new Map<string, { calls: number; errors: number }>();
+    for (const event of matching) {
+      if (event.account_identity_source === "resolver" && event.account_key) accountCalls.set(event.account_key, (accountCalls.get(event.account_key) || 0) + 1);
+      const timestamp = Date.parse(event.started_at);
+      if (!Number.isFinite(timestamp)) continue;
+      const bucket = new Date(timestamp);
+      bucket.setUTCDate(bucket.getUTCDate() - bucket.getUTCDay());
+      bucket.setUTCHours(0, 0, 0, 0);
+      const key = bucket.toISOString().slice(0, 10);
+      const current = weekly.get(key) || { calls: 0, errors: 0 };
+      current.calls += 1;
+      if (failed(event)) current.errors += 1;
+      weekly.set(key, current);
+    }
+    return {
+      tool_name: tool.name,
+      calls: tool.calls,
+      error_rate: tool.calls ? tool.errors / tool.calls : null,
+      p95_ms: tool.p95_ms,
+      top_accounts: [...accountCalls.values()].sort((a, b) => b - a).slice(0, 10).map((count, index) => ({ rank: index + 1, calls: count })),
+      trend: [...weekly.entries()].sort(([a], [b]) => a.localeCompare(b)).slice(-14).map(([period_start, value]) => ({ period_start, ...value })),
+    };
   });
   const resourceEvents = events.filter((event) => event.mcp_method?.startsWith("resources/"));
   const promptEvents = events.filter((event) => event.mcp_method?.startsWith("prompts/"));
+  // A catalog/list/subscribe observation is useful telemetry, but it is not a
+  // resource read or prompt invocation. Keep it in interaction_surfaces while
+  // excluding it from this product-use read model.
   const resourceReadEvents = resourceEvents.filter((event) => event.mcp_method === "resources/read");
   const promptCallEvents = promptEvents.filter((event) => event.mcp_method === "prompts/get");
-  const previousResourceReads = historyRows.filter((row) => row.event_type === "protocol" && row.mcp_method?.toString().startsWith("resources/") && typeof row.started_at === "string" && Date.parse(row.started_at) >= previousPeriodStartMs && Date.parse(row.started_at) < periodStartMs).length;
-  const previousPromptCalls = historyRows.filter((row) => row.event_type === "protocol" && row.mcp_method?.toString().startsWith("prompts/") && typeof row.started_at === "string" && Date.parse(row.started_at) >= previousPeriodStartMs && Date.parse(row.started_at) < periodStartMs).length;
-  const groupSurface = (items: typeof resourceEvents, kind: "resource" | "prompt") => {
-    const grouped = new Map<string, { calls: number; complete: number; stalled: number }>();
-    for (const event of items) {
-      const name = event.mcp_method || `${kind === "resource" ? "Resource" : "Prompt"} (hashed identity)`;
-      const current = grouped.get(name) || { calls: 0, complete: 0, stalled: 0 };
-      current.calls += 1;
-      if (event.result_type === "complete" || event.success === true) current.complete += 1;
-      if (event.result_type === "input_required") current.stalled += 1;
-      grouped.set(name, current);
-    }
-    return [...grouped.entries()].sort((a, b) => b[1].calls - a[1].calls).slice(0, MAX_PUBLIC_LIST_ITEMS).map(([name, value]) => ({ name: name.slice(0, 128), calls: value.calls, share: items.length ? value.calls / items.length : null, completion_rate: kind === "prompt" ? (value.calls ? value.complete / value.calls : null) : undefined, stall_rate: kind === "prompt" ? (value.calls ? value.stalled / value.calls : null) : undefined }));
+  type SurfaceEvent = { event_id?: unknown; mcp_method?: unknown; started_at?: unknown; is_error?: unknown; success?: unknown; result_type?: unknown; interaction_id?: unknown; request_state_hash?: unknown; retry_number?: unknown; retry_of_event_id?: unknown };
+  type SurfaceOutcome = "complete" | "stalled" | "errored" | "unknown";
+  type SurfaceSummary = { interactions: number; observations: number; complete: number; stalled: number; errored: number; unknown: number; linked_retry_count: number; by_method: Map<string, { interactions: number; complete: number; stalled: number; errored: number; unknown: number }> };
+  const surfaceOutcome = (event: SurfaceEvent): SurfaceOutcome => {
+    // Do not let success:true turn an explicit input request into completion.
+    // A missing result type remains unknown: it is never an inferred success
+    // and never an error merely because the outcome was not inspectable.
+    if (event.is_error === true || event.success === false) return "errored";
+    if (event.result_type === "input_required") return "stalled";
+    if (event.result_type === "complete") return "complete";
+    return "unknown";
   };
+  const surfaceSummary = (items: SurfaceEvent[]): SurfaceSummary => {
+    const interactions = new Map<string, { method: string; outcome: SurfaceOutcome; observations: number }>();
+    for (const [index, event] of items.entries()) {
+      const interactionId = typeof event.interaction_id === "string" && event.interaction_id ? event.interaction_id : null;
+      const requestState = typeof event.request_state_hash === "string" && event.request_state_hash ? event.request_state_hash : null;
+      // Collapse only evidence that carries a correlation handle. Never group
+      // unlinked same-method events, since doing so would invent retry linkage.
+      const eventId = typeof event.event_id === "string" && event.event_id ? event.event_id : String(index);
+      const key = interactionId ? `interaction:${interactionId}` : requestState ? `request:${requestState}` : `event:${eventId}`;
+      const current = interactions.get(key);
+      const method = typeof event.mcp_method === "string" && event.mcp_method ? event.mcp_method : "safe method unavailable";
+      if (current) {
+        current.outcome = surfaceOutcome(event);
+        current.observations += 1;
+      } else interactions.set(key, { method, outcome: surfaceOutcome(event), observations: 1 });
+    }
+    const by_method = new Map<string, { interactions: number; complete: number; stalled: number; errored: number; unknown: number }>();
+    let complete = 0; let stalled = 0; let errored = 0; let unknown = 0; let linked_retry_count = 0;
+    for (const interaction of interactions.values()) {
+      if (interaction.outcome === "complete") complete += 1;
+      if (interaction.outcome === "stalled") stalled += 1;
+      if (interaction.outcome === "errored") errored += 1;
+      if (interaction.outcome === "unknown") unknown += 1;
+      linked_retry_count += Math.max(0, interaction.observations - 1);
+      const method = by_method.get(interaction.method) || { interactions: 0, complete: 0, stalled: 0, errored: 0, unknown: 0 };
+      method.interactions += 1;
+      method[interaction.outcome] += 1;
+      by_method.set(interaction.method, method);
+    }
+    return { interactions: interactions.size, observations: items.length, complete, stalled, errored, unknown, linked_retry_count, by_method };
+  };
+  const resourceSummary = surfaceSummary(resourceReadEvents);
+  const promptSummary = surfaceSummary(promptCallEvents);
+  const previousSurfaceEvents = historyRows.filter((row) => row.event_type === "protocol" && typeof row.started_at === "string" && Date.parse(row.started_at) >= previousPeriodStartMs && Date.parse(row.started_at) < periodStartMs);
+  const previousResourceReads = surfaceSummary(previousSurfaceEvents.filter((row) => row.mcp_method === "resources/read")).interactions;
+  const previousPromptCalls = surfaceSummary(previousSurfaceEvents.filter((row) => row.mcp_method === "prompts/get")).interactions;
+  const groupSurface = (summary: SurfaceSummary) =>
+    [...summary.by_method.entries()].sort((a, b) => b[1].interactions - a[1].interactions).slice(0, MAX_PUBLIC_LIST_ITEMS).map(([name, value]) => ({
+      name: name.slice(0, 128),
+      calls: value.interactions,
+      share: summary.interactions ? value.interactions / summary.interactions : null,
+      completion_rate: value.interactions ? value.complete / value.interactions : null,
+      stall_rate: value.interactions ? value.stalled / value.interactions : null,
+      error_rate: value.interactions ? value.errored / value.interactions : null,
+      unknown_rate: value.interactions ? value.unknown / value.interactions : null,
+    }));
   const surfaceTrend = new Map<string, number>();
-  for (const event of [...resourceEvents, ...promptEvents]) {
+  for (const event of [...resourceReadEvents, ...promptCallEvents]) {
     const timestamp = Date.parse(event.started_at);
     if (!Number.isFinite(timestamp)) continue;
     const bucket = new Date(timestamp); bucket.setUTCDate(bucket.getUTCDate() - bucket.getUTCDay()); bucket.setUTCHours(0, 0, 0, 0);
@@ -458,36 +546,52 @@ export function createAnalyticsHandler(getAdmin: typeof getSupabaseAdmin = getSu
     surfaceTrend.set(key, (surfaceTrend.get(key) || 0) + 1);
   }
   const resourcePromptActivity = {
-    resource_reads: resourceReadEvents.length,
-    prompt_calls: promptCallEvents.length,
+    resource_reads: resourceSummary.interactions,
+    prompt_calls: promptSummary.interactions,
+    resource_observations: resourceSummary.observations,
+    prompt_observations: promptSummary.observations,
     previous_period_resource_reads: previousResourceReads,
     previous_period_prompt_calls: previousPromptCalls,
-    prompt_completion_rate: promptCallEvents.length ? promptCallEvents.filter((event) => event.result_type === "complete" || event.success === true).length / promptCallEvents.length : null,
-    prompt_stall_rate: promptCallEvents.length ? promptCallEvents.filter((event) => event.result_type === "input_required").length / promptCallEvents.length : null,
-    resource_breakdown: groupSurface(resourceEvents, "resource"),
-    prompt_breakdown: groupSurface(promptEvents, "prompt"),
+    resource_completion_rate: resourceSummary.interactions ? resourceSummary.complete / resourceSummary.interactions : null,
+    resource_stall_rate: resourceSummary.interactions ? resourceSummary.stalled / resourceSummary.interactions : null,
+    resource_error_rate: resourceSummary.interactions ? resourceSummary.errored / resourceSummary.interactions : null,
+    prompt_completion_rate: promptSummary.interactions ? promptSummary.complete / promptSummary.interactions : null,
+    prompt_stall_rate: promptSummary.interactions ? promptSummary.stalled / promptSummary.interactions : null,
+    prompt_error_rate: promptSummary.interactions ? promptSummary.errored / promptSummary.interactions : null,
+    outcomes: [
+      { kind: "resource" as const, interactions: resourceSummary.interactions, complete: resourceSummary.complete, stalled: resourceSummary.stalled, errored: resourceSummary.errored, unknown: resourceSummary.unknown, linked_retry_count: resourceSummary.linked_retry_count },
+      { kind: "prompt" as const, interactions: promptSummary.interactions, complete: promptSummary.complete, stalled: promptSummary.stalled, errored: promptSummary.errored, unknown: promptSummary.unknown, linked_retry_count: promptSummary.linked_retry_count },
+    ],
+    resource_breakdown: groupSurface(resourceSummary),
+    prompt_breakdown: groupSurface(promptSummary),
     trend: [...surfaceTrend.entries()].sort(([a], [b]) => a.localeCompare(b)).slice(-500).map(([key, calls]) => { const [period_start, kind, name] = key.split("|"); return { period_start, kind: kind as "resource" | "prompt", name, calls }; }),
-    limitation: historyCapped || historyResult.error ? "Resource and prompt activity is current-period complete, but previous-period comparison is bounded by the available history scan. Names are represented by safe protocol methods; raw URIs, prompt names, arguments, and contents are never exposed." : "Names are represented by safe protocol methods; raw URIs, prompt names, arguments, and contents are never exposed.",
+    limitation: `${historyCapped || historyResult.error ? "Current-period activity is complete, but previous-period comparison is bounded by the available history scan. " : ""}Only resources/read and prompts/get are product-use interactions; list, catalog, and subscription methods remain separate protocol evidence. Missing result type remains unknown rather than success or error. Explicitly linked retries are collapsed to one interaction; unlinked repeats remain distinct observations. Names are represented by safe protocol methods; raw URIs, prompt names, arguments, and contents are never exposed.`,
   };
-  const interactions = new Map<string, { path: string[]; stalled: boolean; retried: boolean; error: boolean }>();
+  const interactions = new Map<string, { path: string[]; stalled: boolean; retried: boolean; terminal_evidence: "explicit_error" | "input_required" | "unknown" }>();
   for (const event of calls) {
-    const key = (event.interaction_id || event.session_id || event.event_id).slice(0, 128);
-    const current = interactions.get(key) || { path: [], stalled: false, retried: false, error: false };
+    // Interaction/session IDs may be reused by independent servers. Scope the
+    // bounded path to the observed server before grouping; a missing server ID
+    // is deliberately treated as its own limited-evidence scope.
+    const scope = event.server_id || "server-unavailable";
+    const key = `${scope.slice(0, 128)}:${(event.interaction_id || event.session_id || event.event_id).slice(0, 128)}`;
+    const current = interactions.get(key) || { path: [], stalled: false, retried: false, terminal_evidence: "unknown" as const };
     if (event.tool_name && current.path.length < 50) current.path.push(event.tool_name.slice(0, 128));
     if (event.result_type === "input_required") current.stalled = true;
     if (event.retry_number != null || event.retry_of_event_id) current.retried = true;
-    if (event.is_error === true || event.success === false) current.error = true;
+    // Terminal evidence describes the last observed event. An earlier failure
+    // followed by a later retry is not presented as where the path stopped.
+    current.terminal_evidence = failed(event) ? "explicit_error" : event.result_type === "input_required" ? "input_required" : "unknown";
     interactions.set(key, current);
   }
-  const pathGroups = new Map<string, { path: string[]; interactions: number; error: number; stalled: number }>();
+  const pathGroups = new Map<string, { path: string[]; interactions: number; terminal_evidence: "explicit_error" | "input_required" | "unknown" }>();
   for (const item of interactions.values()) {
     if (!item.path.length) continue;
     const path = item.path.slice(0, 8);
-    const key = path.join(" → ");
-    const current = pathGroups.get(key) || { path, interactions: 0, error: 0, stalled: 0 };
+    const key = `${path.join(" → ")}\u0000${item.terminal_evidence}`;
+    const current = pathGroups.get(key) || { path, interactions: 0, terminal_evidence: item.terminal_evidence };
     current.interactions += 1;
-    if (item.error) current.error += 1;
-    if (item.stalled) current.stalled += 1;
+    // Do not merge differing terminal states under the same visual path.
+    // Including the state in the grouping key keeps their evidence distinct.
     pathGroups.set(key, current);
   }
   const journeyGroups = [...pathGroups.values()].sort((a, b) => b.interactions - a.interactions);
@@ -497,13 +601,24 @@ export function createAnalyticsHandler(getAdmin: typeof getSupabaseAdmin = getSu
     stalled_interactions: [...interactions.values()].filter((item) => item.stalled).length,
     resumed_after_stall: [...interactions.values()].filter((item) => item.stalled && item.retried).length,
     common_paths: journeyGroups.slice(0, 10).map((item) => ({ path: item.path, interactions: item.interactions, share: interactions.size ? item.interactions / interactions.size : null })),
-    drop_off: journeyGroups.slice(0, 10).map((item) => ({ path: item.path, interactions: item.interactions, terminal_evidence: item.error ? "explicit_error" as const : item.stalled ? "input_required" as const : "unknown" as const })),
-    limitation: "Paths are bounded sequences of observed tool calls grouped by interaction or session identity. Missing terminal events are unknown, not abandonment; multi-server journeys outside this workspace are not visible.",
+    drop_off: journeyGroups.slice(0, 10).map((item) => ({ path: item.path, interactions: item.interactions, terminal_evidence: item.terminal_evidence })),
+    limitation: "Paths are bounded sequences of observed tool calls scoped to an observed server and grouped by interaction or session identity. Terminal evidence is the latest observed event; missing terminal events are unknown, not abandonment. Cross-server journeys outside this workspace are not visible.",
   };
-  const aggregate = aggregateTrackMCPFacts(facts);
+  // The product outcome surface is intentionally narrower than the general
+  // fact stream: a successful tool transport is not evidence that customer
+  // work completed. Retain only explicit workflow lifecycle and task-state
+  // facts here; tool reliability remains on the capability-quality surface.
+  const outcomeEvidenceFacts = facts.filter((fact) =>
+    fact.semantic.task_status !== undefined
+    || (fact.event_type === "workflow" && (fact.semantic.reason === "workflow_completed" || fact.semantic.reason === "workflow_failed" || fact.semantic.reason === "workflow_pending")),
+  );
+  const aggregate = aggregateTrackMCPFacts(outcomeEvidenceFacts);
+  const allFactsAggregate = aggregateTrackMCPFacts(facts);
+  const taskLifecycles = aggregateTaskLifecycles(facts, taskTransitions);
+  const taskStates = { working: 0, input_required: 0, completed: 0, failed: 0, cancelled: 0, expired: 0, unknown: 0 };
+  for (const task of taskLifecycles) taskStates[task.state] += 1;
   const outcomeTrend = new Map<string, { completed: number; failed: number; unknown: number; pending: number }>();
-  for (const fact of facts) {
-    if (fact.fact_type !== "outcome") continue;
+  for (const fact of outcomeEvidenceFacts) {
     const day = fact.observed_at.slice(0, 10);
     const current = outcomeTrend.get(day) || { completed: 0, failed: 0, unknown: 0, pending: 0 };
     if (fact.semantic.outcome === "completed") current.completed += 1;
@@ -520,6 +635,7 @@ export function createAnalyticsHandler(getAdmin: typeof getSupabaseAdmin = getSu
     not_observable: aggregate.outcomes.not_observable,
     completion_rate: aggregate.workflow_completion_rate,
     error_rate: aggregate.error_rate,
+    task_states: taskStates,
     trend: [...outcomeTrend.entries()].sort(([a], [b]) => a.localeCompare(b)).slice(-366).map(([period_start, value]) => ({ period_start, ...value })),
     limitation: "Completion and error rates use explicit semantic outcome evidence only. Unknown and not-observable states are retained; missing events are never converted into success, failure, or abandonment.",
   };
@@ -552,17 +668,20 @@ export function createAnalyticsHandler(getAdmin: typeof getSupabaseAdmin = getSu
   const timeline = new Map<string, { events: number; calls: number; errors: number }>();
   for (const event of events) { const day = event.started_at.slice(0, 10); const item = timeline.get(day) || { events: 0, calls: 0, errors: 0 }; item.events += 1; if (event.event_type === "tool_call") { item.calls += 1; if (failed(event)) item.errors += 1; } timeline.set(day, item); }
   const insights = [
-    ...toolRows.filter((tool) => tool.error_rate >= 0.1).slice(0, 3).map((tool) => ({ level: "error", title: `${tool.name} is failing ${Math.round(tool.error_rate * 100)}% of calls`, detail: `${tool.errors} failed calls in the selected period. Inspect its arguments and returned errors first.`, metric: `${tool.errors} errors`, affected_volume: tool.errors, confidence: "high" as const, suggested_action: "Inspect representative error classes and the failing tool inputs." })),
-    ...toolRows.filter((tool) => tool.avg_ms !== null && tool.avg_ms >= 500).sort((a, b) => (b.avg_ms || 0) - (a.avg_ms || 0)).slice(0, 2).map((tool) => ({ level: "warn", title: `${tool.name} is slowing down sessions`, detail: `Average duration is ${tool.avg_ms}ms. Slow tools compound when agents chain several calls.`, metric: `${tool.avg_ms}ms average`, affected_volume: tool.calls, confidence: "medium" as const, suggested_action: "Compare p95 latency and downstream dependencies before changing the tool." })),
+    ...toolRows.filter((tool) => tool.calls >= MIN_ISSUE_TOOL_CALLS && tool.error_rate >= 0.1).slice(0, 3).map((tool) => ({ level: "error", title: `${tool.name} has elevated observed errors`, detail: `${tool.errors} failed calls across ${tool.calls} observed calls in the selected period. Inspect bounded error evidence before deciding what to change.`, metric: `${tool.errors}/${tool.calls} calls · ${Math.round(tool.error_rate * 100)}% error rate`, affected_volume: tool.errors, confidence: "high" as const, suggested_action: "Open the bounded evidence and compare error classes before changing the capability." })),
+    ...toolRows.filter((tool) => tool.calls >= MIN_ISSUE_TOOL_CALLS && tool.avg_ms !== null && tool.avg_ms >= 500).sort((a, b) => (b.avg_ms || 0) - (a.avg_ms || 0)).slice(0, 2).map((tool) => ({ level: "warn", title: `${tool.name} has elevated observed latency`, detail: `Average duration is ${tool.avg_ms}ms across ${tool.calls} observed calls. This is a performance signal, not a root-cause diagnosis.`, metric: `${tool.avg_ms}ms average · ${tool.calls} calls`, affected_volume: tool.calls, confidence: "medium" as const, suggested_action: "Compare p95 latency and bounded dependency evidence before changing the capability." })),
     ...(unusedTools.length ? [{ level: "info", title: `${unusedTools.length} discovered tool${unusedTools.length === 1 ? " is" : "s are"} unused`, detail: `${unusedTools.slice(0, 3).join(", ")}${unusedTools.length > 3 ? " and more" : ""} were advertised but not called in this period.`, metric: "Review descriptions", affected_volume: unusedTools.length, confidence: "medium" as const, suggested_action: "Review discoverability and descriptions; do not infer that unused means unwanted." }] : []),
-    ...(explicitStarted > 0 && explicitCompleted / explicitStarted < 0.8 ? [{ level: "warn", title: "Some tracked workflows are not completing", detail: "Compare the failing workflow steps with their tool sequences to find the point where users get stuck.", metric: `${Math.round((explicitCompleted / explicitStarted) * 100)}% complete`, affected_volume: explicitStarted - explicitCompleted, confidence: "high" as const, suggested_action: "Open the journey evidence and inspect unresolved terminal states." }] : []),
-  ].slice(0, 5);
+    ...(explicitStarted >= MIN_ISSUE_WORKFLOW_STARTS && explicitCompleted / explicitStarted < 0.8 ? [{ level: "warn", title: "Tracked workflows have low observed completion", detail: `${explicitCompleted} completed of ${explicitStarted} explicitly started workflows. This is an investigation signal, not a causal conclusion.`, metric: `${Math.round((explicitCompleted / explicitStarted) * 100)}% complete · ${explicitStarted} starts`, affected_volume: explicitStarted - explicitCompleted, confidence: "high" as const, suggested_action: "Open journey and outcome evidence to inspect explicit terminal states." }] : []),
+  ].sort((left, right) => {
+    const confidence = (value: "high" | "medium" | "low") => value === "high" ? 0 : value === "medium" ? 1 : 2;
+    return confidence(left.confidence) - confidence(right.confidence) || (right.affected_volume || 0) - (left.affected_volume || 0) || left.title.localeCompare(right.title);
+  }).slice(0, 5);
   const issueActivity = {
     actionable_signals: insights.length,
     high_confidence_signals: insights.filter((item) => item.confidence === "high").length,
     affected_volume: insights.some((item) => typeof item.affected_volume === "number") ? insights.reduce((sum, item) => sum + (typeof item.affected_volume === "number" ? item.affected_volume : 0), 0) : null,
     suggested_actions: insights.filter((item) => typeof item.suggested_action === "string" && item.suggested_action.length > 0).length,
-    limitation: "Signals are bounded evidence-based prompts for investigation, not diagnoses. Affected volume is the sum of reported signal volume and may overlap across rules.",
+    limitation: `Signals require at least ${MIN_ISSUE_TOOL_CALLS} observed tool calls or ${MIN_ISSUE_WORKFLOW_STARTS} explicit workflow starts. They are bounded prompts for investigation, not diagnoses. Affected volume is the sum of reported signal volume and may overlap across rules.`,
   };
 
   const protocols = events.filter((event) => event.event_type === "protocol");
@@ -662,6 +781,7 @@ export function createAnalyticsHandler(getAdmin: typeof getSupabaseAdmin = getSu
       adoption_distribution: Object.entries(adoptionBuckets).map(([bucket, accounts]) => ({ bucket: bucket as keyof typeof adoptionBuckets, accounts })),
       trend: capabilityTrend,
       reliability: capabilityReliability,
+      tool_details: toolDetails,
       limitation: historyCapped || historyResult.error
         ? "The selected-period tool view is complete, but previous-period comparison is limited by the bounded history scan."
         : "Tool activity is observed at the instrumented server boundary; calls that never reach the server are not included.",
@@ -672,7 +792,7 @@ export function createAnalyticsHandler(getAdmin: typeof getSupabaseAdmin = getSu
     issue_activity: issueActivity,
     tools: toolRows.slice(0, MAX_PUBLIC_LIST_ITEMS), catalog_tools: [...catalog.values()].slice(0, MAX_PUBLIC_LIST_ITEMS),
     unused_tools: unusedTools.slice(0, MAX_PUBLIC_LIST_ITEMS), workflows: workflowRows.slice(0, 100), outcomes: explicitOutcomes.slice(0, MAX_PUBLIC_DIMENSION_ITEMS),
-    founder_os: { facts: aggregateTrackMCPFacts(facts), groups: outcomeGroups, identity_coverage: identityCoverage, identity_source_counts: identitySourceCounts, tasks: aggregateTaskLifecycles(facts, taskTransitions) },
+    founder_os: { facts: allFactsAggregate, groups: outcomeGroups, identity_coverage: identityCoverage, identity_source_counts: identitySourceCounts, tasks: taskLifecycles },
     catalog_versions: catalogVersions,
     catalog_next_cursor: catalogHasMore ? catalogVersions.at(-1)?.discovered_at || null : null,
     catalog_version_status: catalogVersionStatus,

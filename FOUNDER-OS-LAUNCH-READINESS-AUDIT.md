@@ -1,8 +1,25 @@
 # Founder OS launch-readiness audit
 
-Date: 2026-10-19  
-Audience: engineering release owner  
-Scope: whether the current checkout is safe to offer to 100 independent customer workspaces
+Date: 2026-10-19 (historical release snapshot)
+Audience: engineering release owner
+Scope: whether the release candidate reviewed on that date was safe to offer to 100 independent customer workspaces
+
+## Current-candidate reconciliation
+
+This audit preserves evidence about the 2026-10-19 release candidate. It is not
+approval for a later branch, package source change, image, schema state, or
+runtime configuration. The current control document is
+`docs/FOUNDER-OS-100-CUSTOMER-PILOT-MASTER-EXECUTION-PLAN.md`; use its open
+gates and the evidence record/runbook for the candidate actually being
+considered.
+
+In particular, the exact commit SHAs, suite/page counts, fixture timings,
+registry versions, and App Runner run references below are historical evidence.
+They must not be copied into a current release record. The current TypeScript
+and Python SDK source paths differ from their published registry artifacts; see
+`docs/FOUNDER-OS-PACKAGE-RELEASE-READINESS.md`. A fresh candidate needs its own
+clean-checkout gate, immutable package reconciliation, deployed SHA/image,
+production postflights, disposable smoke, and release-owner decision.
 
 ## Verdict
 
@@ -18,9 +35,9 @@ reliably operate it with safe isolation, observability, recovery, and support.�
 
 ## Blocking issues
 
-The reviewed release passed the 104-suite local gate, TypeScript, lint with one
-pre-existing image warning, and an isolated production build with 169 generated
-pages. The current review cycle also ran a read-only production smoke against
+The historical reviewed release passed its local gate, TypeScript, lint with one
+pre-existing image warning, and an isolated production build. The historical
+review cycle also ran a read-only production smoke against
 `https://trackmcp.com` with 25 checks, including public routes, sitemap
 index/shard, registry metadata, required security headers, and unauthenticated
 protected-route boundaries. It was deployed through App Runner from
@@ -39,7 +56,7 @@ checks, not proof of production capacity or complete pilot behavior.
 | P1 | Production smoke | Local production-shaped harness covers ingest and v2 reads, and a local HTTP fixture covers CLI start, approval, polling, redemption, and replay; no complete post-deploy test covers CLI approval, redeem, dashboard, and privacy controls | A local fixture pass cannot detect DNS, env, cookie, migration, or runtime wiring errors | Disposable workspace/key smoke run with redacted evidence |
 | P1 | Tenant isolation | Local fixtures now exercise every analytics-backed v2 projection plus catalogs, Action Queue, tool-quality, and explicit workspace key revocation across two workspaces; no production-shaped cross-workspace integration suite exists | A single query missing `.eq(workspace_id, ...)` could expose customer telemetry | Run the same matrix against a disposable production workspace and retain the RLS/service-role review |
 | P1 | Package distribution | `@trackmcp/sdk@0.1.2`, `@trackmcp/cli@0.1.4`, and `trackmcp==0.1.4` are published; clean external npm/Python consumer installs passed | Production safe-event and complete registry provenance evidence remain separate | Retain immutable registry metadata, safe-event decision, and rollback instructions |
-| P1 | Data volume | Analytics performs bounded-but-heavy reads (up to 10,000 events) and computes projections in request memory; latest local fixture harness passes 120 requests at p95 14.24 ms with 0 timeouts | Fixture timing is not App Runner/Supabase capacity evidence | Production-shaped load test against a disposable workspace, query plans, rollups/cursors, timeout and alert policy |
+| P1 | Data volume | Analytics performs bounded-but-heavy reads (up to 10,000 events) and computes projections in request memory; historical fixture timing is recorded in the load-validation ledger | Fixture timing is not App Runner/Supabase capacity evidence | Production-shaped load test against a disposable workspace, query plans, rollups/cursors, timeout and alert policy |
 | P1 | Identity semantics | Resolver-derived identity is explicitly a claim, not verified identity | Dashboard must not present event-weighted resolver coverage as unique people/orgs | Keep null/unknown labels or add server-attested identity contract and tests |
 | P2 | Product completeness | Resources/prompts are method-family summaries, not entity-level catalog analytics; journeys/reliability are bounded | Users may interpret empty/partial views as “no usage” | UI caveats, fixture coverage, and an explicit limited-coverage launch scope |
 | P2 | Privacy deletion | Requests are recorded, and a secret-authenticated non-destructive review queue plus dry-run preview worker exist; no approved asynchronous deletion worker exists | The product cannot claim that a customer deletion request has been fulfilled | Reviewed destructive worker, legal-hold/retention policy, audit trail, and completion evidence |

@@ -141,8 +141,22 @@ test("analytics exposes the complete Who's using it vertical-slice read model", 
   // The fixture query intentionally does not emulate Supabase's time filter;
   // the production projection is time-bounded before this reducer runs.
   assert.deepEqual(body.who_is_using_it.top_accounts.map((item) => item.activity_count), [2, 1]);
+  assert.ok(body.who_is_using_it.growth.every((item) => new Date(`${item.period_start}T00:00:00Z`).getUTCDay() === 1));
   assert.equal(JSON.stringify(body).includes(accountA), false);
   assert.equal(JSON.stringify(body).includes(accountB), false);
+});
+
+test("capability drill-down keeps account identifiers private and sorts reliability by risk", async () => {
+  const account = "c".repeat(64);
+  const handler = createAnalyticsHandler(() => fakeAdmin([
+    event({ event_id: "healthy", event_type: "tool_call", tool_name: "healthy", account_key: account, account_identity_source: "resolver", success: true }),
+    event({ event_id: "broken", event_type: "tool_call", tool_name: "broken", account_key: account, account_identity_source: "resolver", success: false, is_error: true }),
+  ]));
+  const response = await handler(new Request("http://analytics.test/api/v1/analytics?days=7", { headers: { authorization: "Bearer key" } }));
+  const body = await response.json();
+  assert.equal(body.capability_activity.reliability[0].tool_name, "broken");
+  assert.equal(body.capability_activity.tool_details.find((item) => item.tool_name === "broken").top_accounts[0].calls, 1);
+  assert.equal(JSON.stringify(body.capability_activity.tool_details).includes(account), false);
 });
 
 test("analytics exposes unresolved explicit journeys without crashing on unnamed lifecycle rows", async () => {
@@ -235,9 +249,39 @@ test("analytics exposes the Resources and Prompts vertical-slice read model", as
   assert.equal(body.resource_prompt_activity.prompt_calls, 2);
   assert.equal(body.resource_prompt_activity.prompt_completion_rate, 0.5);
   assert.equal(body.resource_prompt_activity.prompt_stall_rate, 0.5);
-  assert.deepEqual(body.resource_prompt_activity.resource_breakdown[0], { name: "resources/read", calls: 1, share: 1 });
+  assert.equal(body.resource_prompt_activity.prompt_error_rate, 0);
+  assert.deepEqual(body.resource_prompt_activity.resource_breakdown[0], { name: "resources/read", calls: 1, share: 1, completion_rate: 0, stall_rate: 0, error_rate: 0, unknown_rate: 1 });
+  assert.deepEqual(body.resource_prompt_activity.outcomes[0], { kind: "resource", interactions: 1, complete: 0, stalled: 0, errored: 0, unknown: 1, linked_retry_count: 0 });
   assert.equal(body.resource_prompt_activity.prompt_breakdown[0].name, "prompts/get");
   assert.equal(body.resource_prompt_activity.prompt_breakdown[0].completion_rate, 0.5);
+});
+
+test("Resources and Prompts keeps explicit outcomes separate and collapses only linked retries", async () => {
+  const handler = createAnalyticsHandler(() => fakeAdmin([
+    event({ event_id: "resource-needs-input", event_type: "protocol", mcp_method: "resources/read", interaction_id: "resource-1", result_type: "input_required", success: true }),
+    event({ event_id: "resource-complete-retry", event_type: "protocol", mcp_method: "resources/read", interaction_id: "resource-1", retry_number: 1, result_type: "complete", success: true }),
+    event({ event_id: "resource-error", event_type: "protocol", mcp_method: "resources/read", success: false, is_error: true }),
+    event({ event_id: "resource-list", event_type: "protocol", mcp_method: "resources/list", success: true }),
+    event({ event_id: "prompt-input", event_type: "protocol", mcp_method: "prompts/get", result_type: "input_required", success: true }),
+    event({ event_id: "prompt-error", event_type: "protocol", mcp_method: "prompts/get", success: false, is_error: true }),
+    event({ event_id: "prompt-list", event_type: "protocol", mcp_method: "prompts/list", success: true }),
+  ]));
+  const response = await handler(new Request("http://analytics.test/api/v1/analytics?days=7", { headers: { authorization: "Bearer key" } }));
+  assert.equal(response.status, 200);
+  const body = await response.json();
+  assert.equal(body.resource_prompt_activity.resource_reads, 2);
+  assert.equal(body.resource_prompt_activity.resource_observations, 3);
+  assert.equal(body.resource_prompt_activity.prompt_calls, 2);
+  assert.equal(body.resource_prompt_activity.prompt_observations, 2);
+  assert.deepEqual(body.resource_prompt_activity.outcomes, [
+    { kind: "resource", interactions: 2, complete: 1, stalled: 0, errored: 1, unknown: 0, linked_retry_count: 1 },
+    { kind: "prompt", interactions: 2, complete: 0, stalled: 1, errored: 1, unknown: 0, linked_retry_count: 0 },
+  ]);
+  assert.equal(body.resource_prompt_activity.resource_completion_rate, 0.5);
+  assert.equal(body.resource_prompt_activity.prompt_completion_rate, 0);
+  assert.equal(body.resource_prompt_activity.prompt_stall_rate, 0.5);
+  assert.equal(body.resource_prompt_activity.prompt_error_rate, 0.5);
+  assert.equal(body.resource_prompt_activity.trend.every((item) => item.name === "resources/read" || item.name === "prompts/get"), true);
 });
 
 test("analytics exposes bounded Journey path and stall evidence", async () => {
@@ -255,7 +299,20 @@ test("analytics exposes bounded Journey path and stall evidence", async () => {
   assert.equal(body.journey_activity.stalled_interactions, 1);
   assert.equal(body.journey_activity.resumed_after_stall, 1);
   assert.deepEqual(body.journey_activity.common_paths[0].path, ["search", "details", "details"]);
-  assert.equal(body.journey_activity.drop_off[0].terminal_evidence, "input_required");
+  assert.equal(body.journey_activity.drop_off[0].terminal_evidence, "unknown");
+});
+
+test("journey terminal evidence comes from the latest event and is server-scoped", async () => {
+  const handler = createAnalyticsHandler(() => fakeAdmin([
+    event({ event_id: "server-a-error", event_type: "tool_call", tool_name: "search", interaction_id: "same-id", server_id: "server-a", success: false, is_error: true }),
+    event({ event_id: "server-a-retry", event_type: "tool_call", tool_name: "search", interaction_id: "same-id", server_id: "server-a", retry_number: 1, success: true }),
+    event({ event_id: "server-b-input", event_type: "tool_call", tool_name: "search", interaction_id: "same-id", server_id: "server-b", result_type: "input_required" }),
+  ]));
+  const response = await handler(new Request("http://analytics.test/api/v1/analytics?days=7", { headers: { authorization: "Bearer key" } }));
+  const body = await response.json();
+  assert.equal(body.journey_activity.interaction_count, 2);
+  assert.equal(body.journey_activity.resumed_after_stall, 0);
+  assert.deepEqual(body.journey_activity.drop_off.map((path) => path.terminal_evidence).sort(), ["input_required", "unknown"]);
 });
 
 test("analytics keeps Did It Work outcomes explicit and uncertainty separate", async () => {
@@ -275,17 +332,30 @@ test("analytics keeps Did It Work outcomes explicit and uncertainty separate", a
   assert.equal(body.outcome_activity.limitation.includes("never converted"), true);
 });
 
-test("analytics exposes bounded What is broken signal evidence", async () => {
+test("analytics outcome activity keeps latest explicit task state separate from tool success", async () => {
   const handler = createAnalyticsHandler(() => fakeAdmin([
-    event({ event_id: "error-1", event_type: "tool_call", tool_name: "lookup", is_error: true, success: false }),
-    event({ event_id: "error-2", event_type: "tool_call", tool_name: "lookup", is_error: true, success: false }),
-    event({ event_id: "slow-1", event_type: "tool_call", tool_name: "slow", duration_ms: 900 }),
+    event({ event_id: "task-expired", event_type: "protocol", task_id: "raw-task-handle", mcp_method: "tasks/get", payload: { status: "expired" }, success: true, started_at: "2026-09-06T00:00:00Z" }),
+    event({ event_id: "task-complete", event_type: "protocol", task_id: "raw-task-handle", mcp_method: "tasks/get", payload: { status: "completed" }, success: true, started_at: "2026-09-06T00:05:00Z" }),
+    event({ event_id: "tool-success", event_type: "tool_call", tool_name: "lookup", success: true }),
   ]));
   const response = await handler(new Request("http://analytics.test/api/v1/analytics?days=7", { headers: { authorization: "Bearer key" } }));
   assert.equal(response.status, 200);
   const body = await response.json();
+  assert.deepEqual(body.outcome_activity.task_states, { working: 0, input_required: 0, completed: 1, failed: 0, cancelled: 0, expired: 0, unknown: 0 });
+  assert.equal(body.outcome_activity.completed, 1);
+  assert.equal(body.outcome_activity.failed, 0);
+  assert.equal(JSON.stringify(body).includes("raw-task-handle"), false);
+});
+
+test("analytics exposes bounded What is broken signal evidence", async () => {
+  const rows = Array.from({ length: 30 }, (_, index) => event({ event_id: `lookup-${index}`, event_type: "tool_call", tool_name: "lookup", is_error: index < 6, success: index >= 6 }));
+  rows.push(...Array.from({ length: 30 }, (_, index) => event({ event_id: `slow-${index}`, event_type: "tool_call", tool_name: "slow", duration_ms: 900, success: true })));
+  const handler = createAnalyticsHandler(() => fakeAdmin(rows));
+  const response = await handler(new Request("http://analytics.test/api/v1/analytics?days=7", { headers: { authorization: "Bearer key" } }));
+  assert.equal(response.status, 200);
+  const body = await response.json();
   assert.ok(body.issue_activity.actionable_signals >= 1);
-  assert.ok(body.issue_activity.affected_volume >= 2);
+  assert.ok(body.issue_activity.affected_volume >= 6);
   assert.equal(body.issue_activity.limitation.includes("not diagnoses"), true);
 });
 
@@ -305,20 +375,31 @@ test("analytics exposes bounded protocol lifecycle signals without treating them
 });
 
 test("analytics insights carry bounded action context only when evidence supports it", async () => {
-  const rows = Array.from({ length: 10 }, (_, index) => event({
+  const rows = Array.from({ length: 30 }, (_, index) => event({
     event_id: `failed-${index}`,
     event_type: "tool_call",
     tool_name: "unstable_tool",
-    success: index < 2,
-    is_error: index >= 2,
+    success: index < 6,
+    is_error: index >= 6,
   }));
   const handler = createAnalyticsHandler(() => fakeAdmin(rows));
   const response = await handler(new Request("http://analytics.test/api/v1/analytics?days=7", { headers: { authorization: "Bearer key" } }));
   assert.equal(response.status, 200);
   const body = await response.json();
   const insight = body.insights.find((item) => item.title.includes("unstable_tool"));
-  assert.equal(insight.affected_volume, 8);
+  assert.equal(insight.affected_volume, 24);
   assert.equal(insight.confidence, "high");
   assert.match(insight.suggested_action, /error classes/);
   assert.equal(JSON.stringify(insight).includes("failed-"), false);
+});
+
+test("analytics does not promote low-volume tool observations into broken-product signals", async () => {
+  const handler = createAnalyticsHandler(() => fakeAdmin([
+    event({ event_id: "one-off-error", event_type: "tool_call", tool_name: "rare_tool", is_error: true, success: false }),
+    event({ event_id: "one-off-slow", event_type: "tool_call", tool_name: "rare_slow", duration_ms: 900, success: true }),
+  ]));
+  const response = await handler(new Request("http://analytics.test/api/v1/analytics?days=7", { headers: { authorization: "Bearer key" } }));
+  const body = await response.json();
+  assert.equal(body.insights.some((item) => item.title.includes("rare_")), false);
+  assert.equal(body.issue_activity.actionable_signals, 0);
 });

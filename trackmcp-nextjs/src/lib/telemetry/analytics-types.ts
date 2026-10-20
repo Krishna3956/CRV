@@ -226,6 +226,8 @@ export type Analytics = {
     new_accounts: number | null;
     returning_accounts: number | null;
     classification_status: "available" | "insufficient_data";
+    /** ISO week starts, in UTC. The People surface never presents this as a
+     * daily retention series because account adoption is a weekly signal. */
     growth: Array<{ period_start: string; active_accounts: number }>;
     client_breakdown: Array<{ name: string; calls: number; share: number | null; identity_source: "self_reported" | "unrecognized" }>;
     top_accounts: Array<{ rank: number; activity_count: number; active_days: number; identity_source: "resolver" }>;
@@ -242,20 +244,41 @@ export type Analytics = {
     adoption_distribution: Array<{ bucket: "1 tool" | "2-3 tools" | "4-6 tools" | "7+ tools"; accounts: number }>;
     trend: Array<{ period_start: string; tool_name: string; calls: number }>;
     reliability: Array<{ tool_name: string; calls: number; error_rate: number | null; input_required_rate: number | null; p95_ms: number | null }>;
+    /** Tool drill-downs deliberately contain ranked activity only: resolver
+     * keys and customer names never cross the browser boundary. */
+    tool_details: Array<{
+      tool_name: string;
+      calls: number;
+      error_rate: number | null;
+      p95_ms: number | null;
+      top_accounts: Array<{ rank: number; calls: number }>;
+      trend: Array<{ period_start: string; calls: number; errors: number }>;
+    }>;
     limitation: string;
   };
   /** Founder OS "Resources & Prompts" read model. Names remain bounded to
    * protocol methods/hashed identities because raw catalog names and inputs
    * are not safe dashboard dimensions. */
   resource_prompt_activity?: {
+    /** Logical reads/calls, with only explicitly linked retries collapsed. */
     resource_reads: number;
     prompt_calls: number;
+    /** Physical protocol observations remain visible so retry collapse is not hidden. */
+    resource_observations: number;
+    prompt_observations: number;
     previous_period_resource_reads: number;
     previous_period_prompt_calls: number;
+    resource_completion_rate: number | null;
+    resource_stall_rate: number | null;
+    resource_error_rate: number | null;
     prompt_completion_rate: number | null;
     prompt_stall_rate: number | null;
-    resource_breakdown: Array<{ name: string; calls: number; share: number | null }>;
-    prompt_breakdown: Array<{ name: string; calls: number; share: number | null; completion_rate: number | null; stall_rate: number | null }>;
+    prompt_error_rate: number | null;
+    /** Last explicit outcome per safely-linked interaction. Missing result_type
+     * is not converted into an error; failed transport/server evidence is. */
+    outcomes: Array<{ kind: "resource" | "prompt"; interactions: number; complete: number; stalled: number; errored: number; unknown: number; linked_retry_count: number }>;
+    resource_breakdown: Array<{ name: string; calls: number; share: number | null; completion_rate: number | null; stall_rate: number | null; error_rate: number | null; unknown_rate: number | null }>;
+    prompt_breakdown: Array<{ name: string; calls: number; share: number | null; completion_rate: number | null; stall_rate: number | null; error_rate: number | null; unknown_rate: number | null }>;
     trend: Array<{ period_start: string; kind: "resource" | "prompt"; name: string; calls: number }>;
     limitation: string;
   };
@@ -279,6 +302,8 @@ export type Analytics = {
     not_observable: number;
     completion_rate: number | null;
     error_rate: number | null;
+    /** Latest state per opaque task handle, from explicit task evidence only. */
+    task_states: { working: number; input_required: number; completed: number; failed: number; cancelled: number; expired: number; unknown: number };
     trend: Array<{ period_start: string; completed: number; failed: number; unknown: number; pending: number }>;
     limitation: string;
   };

@@ -19,6 +19,25 @@ workflow must re-check the exact selected version immediately before upload.
 Never reuse an already-published version, and bump each package with its
 lockfile/artifact metadata together.
 
+## Source-to-registry reconciliation snapshot (2026-10-19 UTC)
+
+This read-only snapshot prevents a local packed-consumer pass from being
+mistaken for an installable pilot release. It used the package registry metadata
+and a path-scoped diff from each npm artifact's recorded source commit to the
+candidate branch. A registry commit being an ancestor is not enough: the
+package path itself must be unchanged, or a new version must be published.
+
+| Package | Published evidence inspected | Candidate comparison | Release decision |
+| --- | --- | --- | --- |
+| `@trackmcp/sdk@0.1.2` | npm `gitHead` `583e7411d4c9213990dd42c0d0cd1f88f52cf80f`; npm integrity retained by the registry | `packages/typescript-sdk` has changed since that commit, including runtime source and tests | Must receive a new approved version, publication, provenance, and exact-registry consumer test before pilot use. |
+| `@trackmcp/cli@0.1.4` | npm `gitHead` `4d704173d807ff2aded8e5bb6c0051e9df0a093a`; npm integrity retained by the registry | No files under `packages/cli` changed since that commit | The published CLI may be used only after its separate disposable production activation proof; do not imply the whole product is released. |
+| `trackmcp==0.1.4` | PyPI wheel SHA-256 `0ab1a9780450b7ee811884eeebc98969993c1d093b67628c899617bfb36ba0e0`; sdist SHA-256 `b264922d39d4281f5c0a347e72516207761d80720dbd64f14f13dd03696ce22a` | The local Python runtime source, tests, and packaging metadata have changed after the reviewed baseline | Must receive a new approved version, PyPI upload, artifact check, and exact-registry consumer test before pilot use. |
+
+The checksums above identify the currently inspected 0.1.4 Python artifacts;
+they do not attest to a future candidate. Re-run this reconciliation against
+the final candidate SHA immediately before publication and record the new
+immutable versions and checksums in the release manifest.
+
 ## Consumer-facing installation rule
 
 Documentation uses unpinned install commands so it does not silently direct a

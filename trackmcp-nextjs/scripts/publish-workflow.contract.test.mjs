@@ -6,6 +6,9 @@ const workflow = await readFile(new URL("../../.github/workflows/publish.yml", i
 const ciWorkflow = await readFile(new URL("../../.github/workflows/ci.yml", import.meta.url), "utf8");
 
 test("web CI blocks high-severity production dependency advisories", () => {
+  assert.match(ciWorkflow, /web-and-javascript:[\s\S]*?timeout-minutes:\s*30/);
+  assert.match(ciWorkflow, /go:[\s\S]*?timeout-minutes:\s*10/);
+  assert.match(ciWorkflow, /dotnet:[\s\S]*?timeout-minutes:\s*10/);
   assert.match(ciWorkflow, /npm audit --omit=dev --audit-level=high/);
   assert.match(ciWorkflow, /actions\/setup-python@v5/);
   assert.match(ciWorkflow, /python3 -m build/);

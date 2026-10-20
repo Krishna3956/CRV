@@ -7,6 +7,7 @@ import { deduplicateEvents, MAX_BATCH_EVENTS, MAX_REQUEST_BYTES, normalizeTrackM
 import { projectTrackMCPFact } from "../../../../lib/telemetry/facts.ts";
 import { persistTrackMCPFacts } from "../../../../lib/telemetry/fact-writer.ts";
 import { evaluateTrackMCPActionQueue, persistTrackMCPActionQueue } from "../../../../lib/telemetry/action-queue.ts";
+import { enqueueTrackMCPRefreshJobs } from "../../../../lib/telemetry/refresh-enqueue.ts";
 
 function responseBody(error?: string, rejected = 0) {
   return { accepted: 0, ignored_duplicates: 0, rejected, ...(error ? { error } : {}) };
@@ -20,7 +21,8 @@ function invalidBatchResponse(reason: string, rejected: number, status = 400) {
   return NextResponse.json(responseBody(reason, rejected), { status });
 }
 
-export function createIngestHandler(getAdmin: typeof getSupabaseAdmin = getSupabaseAdmin) {
+export function createIngestHandler(getAdmin: typeof getSupabaseAdmin = getSupabaseAdmin, options: { refreshJobsEnabled?: boolean } = {}) {
+  const refreshJobsEnabled = options.refreshJobsEnabled ?? process.env.TRACKMCP_ENABLE_REFRESH_JOBS === "true";
   return async function POST(req: Request) {
   const supabase = getAdmin();
   if (!supabase) return NextResponse.json({ error: "Ingest service is not configured." }, { status: 503 });
@@ -162,6 +164,14 @@ export function createIngestHandler(getAdmin: typeof getSupabaseAdmin = getSupab
     if (factResult.error) console.error("TrackMCP semantic fact persistence failed", { code: factResult.error.code, message: factResult.error.message });
     const queueResult = await persistTrackMCPActionQueue(supabase, evaluateTrackMCPActionQueue(key.workspace_id, facts));
     if (queueResult.error) console.error("TrackMCP action queue persistence failed", { code: queueResult.error.code, message: queueResult.error.message });
+  }
+
+  // Derived work is opt-in until the reviewed queue migration and external
+  // worker are deployed. Never turn accepted telemetry into a failed ingest
+  // response merely because a downstream projection is unavailable.
+  if (rows.length && refreshJobsEnabled) {
+    const queued = await enqueueTrackMCPRefreshJobs(supabase, key.workspace_id);
+    if (queued.error) console.error("TrackMCP derived refresh enqueue failed", { code: queued.error.code, message: queued.error.message });
   }
 
   if (rows.length) {

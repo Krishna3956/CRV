@@ -188,7 +188,7 @@ const reliability: Detail[] = [
     icon: BarChart3,
     tile: "bg-violet-100 text-violet-600",
     eyebrow: "Tool analytics",
-    title: "Every call, ranked and trended",
+    title: "Observed calls, ranked and trended",
     body: "See which tools get called, how often, and how that shifts week over week. The ones pulling weight and the ones just sitting there both surface immediately.",
     points: ["Call volume and share per tool", "Trends across any time range", "Break any metric down by tool"],
     visual: (

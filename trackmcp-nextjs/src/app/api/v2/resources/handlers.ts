@@ -6,15 +6,28 @@ export function createResourcesHandler(analytics = createAnalyticsHandler()) {
   return async function GET(request: Request) {
     const response = await analytics(request);
     if (!response.ok) return response;
-    const body = await response.json() as { range_days?: unknown; interaction_surfaces?: { resources?: unknown }; data_trust?: unknown };
+    const body = await response.json() as { range_days?: unknown; interaction_surfaces?: { resources?: unknown }; resource_prompt_activity?: { resource_reads?: unknown; resource_observations?: unknown; previous_period_resource_reads?: unknown; resource_completion_rate?: unknown; resource_stall_rate?: unknown; resource_error_rate?: unknown; outcomes?: Array<{ kind?: unknown }>; resource_breakdown?: unknown; trend?: Array<{ kind?: unknown }> }; data_trust?: unknown };
     const observed = body.interaction_surfaces?.resources ?? { events: 0, methods: [], entity_analytics: { status: "schema_unavailable" } };
+    const source = body.resource_prompt_activity;
+    const activity = source ? {
+      interactions: source.resource_reads ?? 0,
+      observations: source.resource_observations ?? 0,
+      previous_period_interactions: source.previous_period_resource_reads ?? 0,
+      completion_rate: source.resource_completion_rate ?? null,
+      input_required_rate: source.resource_stall_rate ?? null,
+      error_rate: source.resource_error_rate ?? null,
+      outcomes: (source.outcomes || []).filter((outcome) => outcome.kind === "resource"),
+      method_breakdown: source.resource_breakdown ?? [],
+      trend: (source.trend || []).filter((item) => item.kind === "resource"),
+    } : null;
     return NextResponse.json(withTrackMCPV2Envelope({
       range_days: typeof body.range_days === "number" ? body.range_days : null,
       observed,
+      activity,
       resources: [],
       coverage: { level: "method_family", entity_analytics: "bounded_read_projection" },
       data_trust: body.data_trust ?? null,
-      caveats: ["Resource entity_count is a unique count of bounded SHA-256 URI hashes; durable read analytics are available only after the entity-read projection is applied and refreshed. Raw URIs are never returned.", "Observed counts do not represent server uptime or complete resource availability."],
+      caveats: ["Resource entity_count is a unique count of bounded SHA-256 URI hashes; durable read analytics are available only after the entity-read projection is applied and refreshed. Raw URIs are never returned.", "Only resources/read is counted as product-use activity. Explicitly linked retries are collapsed; unlinked repeats remain separate observations.", "Observed counts do not represent server uptime or complete resource availability."],
     }, request));
   };
 }
