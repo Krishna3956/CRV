@@ -193,6 +193,11 @@ jobs:
             exit 1
           fi
           ORIGIN="https://${SERVICE_HOST}"
+          # The App Runner hostname is provider-owned routing metadata, not a
+          # credential. Preserve it as a small diagnostic artifact so
+          # operators can run direct-origin checks when the public edge blocks
+          # authenticated pilot traffic.
+          printf '%s\n' "$SERVICE_HOST" > "$RUNNER_TEMP/trackmcp-app-runner-host.txt"
           TRACKMCP_PRODUCTION_SMOKE_CONFIRM=I_UNDERSTAND_PRODUCTION_SMOKE \
           TRACKMCP_SMOKE_BASE_URL="$ORIGIN" \
           TRACKMCP_SMOKE_CANDIDATE_SHA="$TRACKMCP_DEPLOY_SHA" \
@@ -206,4 +211,12 @@ jobs:
         with:
           name: production-smoke-${{ github.sha }}
           path: ${{ runner.temp }}/trackmcp-production-smoke.json
+          if-no-files-found: warn
+
+      - name: Upload App Runner host evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-runner-host-${{ github.sha }}
+          path: ${{ runner.temp }}/trackmcp-app-runner-host.txt
           if-no-files-found: warn
