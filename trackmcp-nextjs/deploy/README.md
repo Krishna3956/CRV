@@ -99,14 +99,25 @@ bash deploy/apprunner-deploy.sh
   CloudFront for CDN caching at scale.
 - Supabase is unchanged and independent of this migration.
 
-## Secrets (GITHUB_TOKEN / Supabase / worker / privacy review)
+## Secrets (GitHub / Supabase / device approval / admin / workers)
 These are pulled from **AWS Secrets Manager**, not stored as plaintext env vars.
 Set `SECRETS_ARN` in `deploy/.env.deploy` to a secret **in the same region as the
 service** whose value is JSON containing the required keys, for example
-`{"GITHUB_TOKEN":"...","SUPABASE_SERVICE_ROLE_KEY":"...","TRACKMCP_REFRESH_WORKER_SECRET":"...","TRACKMCP_PRIVACY_REVIEW_SECRET":"..."}`.
+`{"GITHUB_TOKEN":"...","SUPABASE_SERVICE_ROLE_KEY":"...","TRACKMCP_DEVICE_KEY_DERIVATION_SECRET":"...","TRACKMCP_ADMIN_KEY":"...","TRACKMCP_REFRESH_WORKER_SECRET":"...","TRACKMCP_PRIVACY_REVIEW_SECRET":"..."}`.
 The deploy script then:
 - creates an instance role (`AppRunnerInstanceRole`) allowed to `GetSecretValue`, and
 - wires the configured secret fields via App Runner `RuntimeEnvironmentSecrets`.
+
+For an existing service, add the new JSON keys to the same regional Secrets
+Manager secret, then run the deploy script once after adding the new JSON keys.
+That deployment updates the service's secret mapping. Later
+`aws apprunner start-deployment` only rolls out the already-configured service;
+it does not add a newly named secret field to its runtime configuration.
+
+`TRACKMCP_DEVICE_KEY_DERIVATION_SECRET` is a dedicated, high-entropy secret for
+hashing device authorization values. `TRACKMCP_ADMIN_KEY` protects internal
+operator endpoints. Neither is a browser value, a public build argument, or a
+substitute for `SUPABASE_SERVICE_ROLE_KEY`.
 
 `TRACKMCP_PRIVACY_REVIEW_SECRET` is only used by the internal, non-destructive
 privacy review queue. It is never exposed to the browser or included in public

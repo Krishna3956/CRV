@@ -12,6 +12,7 @@
     "test:metric-contract": "node --experimental-strip-types --test src/lib/telemetry/metric-definitions.test.ts",
     "test:semantic-contract": "node --experimental-strip-types --test src/lib/telemetry/semantic.test.ts",
     "test:account-identity-migration": "node --test src/lib/telemetry/account-identity-migration.test.mjs",
+    "test:apprunner-deploy-contract": "node --test deploy/apprunner-deploy.contract.test.mjs",
     "test:privacy-export": "node --experimental-strip-types --test src/lib/account/privacy-export.test.ts src/lib/account/privacy-request.test.ts src/app/api/v1/account/export/route.contract.test.mjs src/app/api/v1/account/privacy-request/route.contract.test.mjs src/app/api/v1/account/privacy-request/route.integration.test.mjs",
     "test:privacy-review": "node --test src/app/api/internal/privacy/review/route.contract.test.mjs src/app/api/internal/privacy/review/route.integration.test.mjs",
     "test:tenant-isolation": "node --experimental-strip-types --test src/lib/tenant-isolation.contract.test.mjs",

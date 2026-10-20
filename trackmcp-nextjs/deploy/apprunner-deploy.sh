@@ -107,6 +107,7 @@ ACCESS_ROLE_ARN="$(aws iam get-role --role-name "$ACCESS_ROLE_NAME" --query Role
 # ---- 3b. (optional) Instance role to read runtime secrets from Secrets Manager.
 # Set SECRETS_ARN in .env.deploy to a Secrets Manager secret IN THE SAME REGION
 # as the service, holding JSON keys GITHUB_TOKEN, SUPABASE_SERVICE_ROLE_KEY,
+# TRACKMCP_DEVICE_KEY_DERIVATION_SECRET, TRACKMCP_ADMIN_KEY,
 # TRACKMCP_REFRESH_WORKER_SECRET, and TRACKMCP_PRIVACY_REVIEW_SECRET. ----
 INSTANCE_ROLE_ARN=""
 if [[ -n "${SECRETS_ARN:-}" ]]; then
@@ -153,6 +154,8 @@ if secrets_arn:
     img_cfg["RuntimeEnvironmentSecrets"] = {
         "GITHUB_TOKEN": f"{secrets_arn}:GITHUB_TOKEN::",
         "SUPABASE_SERVICE_ROLE_KEY": f"{secrets_arn}:SUPABASE_SERVICE_ROLE_KEY::",
+        "TRACKMCP_DEVICE_KEY_DERIVATION_SECRET": f"{secrets_arn}:TRACKMCP_DEVICE_KEY_DERIVATION_SECRET::",
+        "TRACKMCP_ADMIN_KEY": f"{secrets_arn}:TRACKMCP_ADMIN_KEY::",
         "TRACKMCP_REFRESH_WORKER_SECRET": f"{secrets_arn}:TRACKMCP_REFRESH_WORKER_SECRET::",
         "TRACKMCP_PRIVACY_REVIEW_SECRET": f"{secrets_arn}:TRACKMCP_PRIVACY_REVIEW_SECRET::",
     }
