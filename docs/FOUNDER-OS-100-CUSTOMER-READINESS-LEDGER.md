@@ -18,6 +18,7 @@ This ledger is the operational source of truth for the autonomous readiness goal
 | Privacy and tenant isolation | Verified locally | Privacy review, tenant isolation, security headers, accessibility contracts pass |
 | CI/CD deployment | Verified | PRs #58–#61 repaired the release gate, ECR digest verification, opaque App Runner IDs, and hostname normalization; PRs #64–#65 added and rendered safe MCP resource-template discovery; PR #67 routes scheduled cleanup through App Runner using AWS OIDC; PR #69 adds authenticated Founder OS read-model smoke coverage |
 | Production deployment | Verified for current release | Run #98 (main `2dcad4a`) completed in 7m01s for the deploy job through App Runner and read-only production smoke; the redacted `production-smoke-2dcad4a06a4e5574cae96ba671d5c5b278f4d533` artifact was uploaded |
+| Bounded production load | Passed at pilot budget | Direct App Runner run on 2026-10-20: 120 requests at concurrency 8 across 9 authenticated read models plus ingest, 120/120 successful, zero errors/timeouts, tenant isolation passed, p95 2.11s against a 3s pilot budget; two disposable workspaces were deleted and verified absent |
 | Supabase production schema | Additive pilot migration applied | `trackmcp_catalog_entity_reads` was missing in production; the reviewed additive migration was applied, then verified present with RLS enabled and anon/authenticated `SELECT` denied |
 
 ### Progress calculation
@@ -35,7 +36,7 @@ The readiness percentage is based on 10 gates, not lines of code:
 9. Production smoke/load/rollback evidence
 10. Pilot operations and documentation
 
-Current estimate: **6/10 gates complete (60%)**. The deployed path is healthy through `2dcad4a`; tab-specific live-data assertions, load/failure/recovery evidence, retention-worker evidence, and pilot operations remain open.
+Current estimate: **7/10 gates complete (70%)**. The deployed path is healthy through `2dcad4a`; bounded load now passes at the pilot budget. Tab-specific live-data assertions, failure/recovery evidence, retention-worker evidence, and pilot operations remain open.
 
 ## Completed evidence
 
@@ -74,6 +75,7 @@ Current estimate: **6/10 gates complete (60%)**. The deployed path is healthy th
 - Production Supabase postflight on 2026-10-20 found `trackmcp_catalog_entity_reads` absent; the reviewed additive hash-only migration was applied through the authenticated SQL editor. A follow-up query verified `relrowsecurity = true`, `anon_select = false`, and `authenticated_select = false`; the table currently contains zero rows.
 - Rate-limit cleanup workflow dispatch run #2 (`39401612958`) passed on main `fb0d7fc` in 16 seconds after the App Runner/OIDC fix; the previous Cloudflare-challenge failure remains retained as historical evidence.
 - Live authenticated two-workspace smoke passed on the direct App Runner origin after main `6bc0423`: 28 redacted checks, two metadata-only ingests accepted, every Founder OS v2 read model returned the authenticated workspace envelope, conflicting workspace parameters were ignored, and API-key Action Queue access correctly returned `403`. Disposable workspaces were removed and a service-role count confirmed zero remaining `Codex pilot smoke` workspaces.
+- Direct App Runner bounded production load passed on 2026-10-20 using two disposable workspaces and API keys: 120/120 requests succeeded across ingest and all supported API-key read models at concurrency 8; p95 latency was 2.11s against the explicit 3s pilot budget, with zero errors, zero timeouts, and no cross-tenant response markers. Cleanup verification found zero remaining `Codex load smoke` workspaces. The load harness now sends the documented `{events:[...]}` ingest envelope and leaves the human-session-only Action Queue boundary to the authenticated smoke.
 - The first scheduled cleanup run (#1) failed at the Cloudflare edge with an HTML 403 challenge; the fix is merged and deployed. A subsequent scheduled execution remains an operational follow-up rather than a guessed success.
 
 ## In progress
@@ -85,7 +87,7 @@ Current estimate: **6/10 gates complete (60%)**. The deployed path is healthy th
 - [x] Capture App Runner operation, service readiness, and production smoke evidence in run #95.
 - [x] Capture post-resource-template deployment evidence in run #97.
 - [x] Capture post-rate-limit-cleanup deployment evidence in run #98.
-- [ ] Add rollback/recovery evidence and a bounded deployment-class load test.
+- [x] Add bounded deployment-class load evidence against the direct App Runner origin; failure/recovery and rollback evidence remain open.
 
 ### Product audit
 
@@ -104,7 +106,7 @@ Current estimate: **6/10 gates complete (60%)**. The deployed path is healthy th
 - [ ] Complete Tab 4 Journey parity, retry/stall caveats, and correlation boundaries.
 - [ ] Complete Tab 5 Outcomes parity, explicit terminal evidence, task lifecycle, and unknown states.
 - [ ] Complete Tab 6 Reliability parity, incident clustering, silent-failure estimates, data trust, and action queue.
-- [ ] Run deployment-class load/failure/recovery tests; fixture-only evidence is insufficient.
+- [x] Run deployment-class load test against production; fixture-only evidence is insufficient and failure/recovery testing remains open.
 - [ ] Verify Supabase refresh worker, queue lag, retry/dead-letter behavior, rate-limit persistence, and retention dry-run evidence.
 - [x] Execute the authenticated two-workspace Founder OS read-model smoke against production with disposable keys; schema availability and live route behavior are now evidenced, while dashboard human-session rendering remains a separate gate.
 - [ ] Verify CLI activation, key revocation, cross-workspace authorization, export, privacy review, and deletion-request boundaries.
