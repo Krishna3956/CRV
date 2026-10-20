@@ -1,6 +1,6 @@
 # Founder OS 100 Customer Readiness Ledger
 
-Last updated: 2026-10-20 (latest evidence pass; worker outage checkpoint)
+Last updated: 2026-10-20 (latest evidence pass; deferred-outcome recovery verified)
 Owner: Codex engineering execution
 Pilot target: 100 customers
 
@@ -19,7 +19,7 @@ This ledger is the operational source of truth for the autonomous readiness goal
 | CI/CD deployment | Verified | PRs #58–#61 repaired the release gate, ECR digest verification, opaque App Runner IDs, and hostname normalization; PRs #64–#65 added and rendered safe MCP resource-template discovery; PR #67 routes scheduled cleanup through App Runner using AWS OIDC; PR #69 adds authenticated Founder OS read-model smoke coverage; PR #80 adds a SHA-only `deploy_ref` path for rollback rehearsal without widening AWS trust to arbitrary branches |
 | Production deployment | Verified for current release | Run `39446086329` deployed current main `c86a562` successfully through App Runner deployment, readiness, HTTPS origin, and read-only production smoke |
 | Bounded production load | Passed at pilot budget | Direct App Runner run on 2026-10-20: 120 requests at concurrency 8 across 9 authenticated read models plus ingest, 120/120 successful, zero errors/timeouts, tenant isolation passed, p95 2.11s against a 3s pilot budget; two disposable workspaces were deleted and verified absent |
-| Refresh worker | Blocked by App Runner availability | PR #109 merged as `3a2271f`, PR #111 merged as `9db56b0` (deferred cancellation), and PR #112 merged as `f792418` (timeout-tolerant scheduler). Latest run `39467045273` still failed because batch 1 timed out and batches 2–4 received repeated App Runner 502/503 upstream connection failures. This is an infrastructure availability failure, not a retry/dead-letter failure; production postflight during the run showed `273` queued, `0` retryable, `2` running, `12` catalog versions, and `0` catalog entity reads. Queue freshness remains a pilot gate. |
+| Refresh worker | Transport and retry-state recovery verified; freshness still open | PR #109 merged as `3a2271f`, PR #111 merged as `9db56b0` (deferred cancellation), PR #112 merged as `f792418` (timeout-tolerant scheduler), and PR #114 merged as `9f727ba` (Supabase adapter preserves deferred outcomes). Fresh deployment run `39470996281` succeeded; corrected worker run `39472093696` processed four bounded batches with zero failures/retryables; production postflight observed `243` queued, `0` retryable, `0` running, `12` catalog versions, and `0` catalog entity reads. Queue freshness and entity-read coverage remain pilot gates. |
 | Supabase production schema | Additive pilot migration applied | `trackmcp_catalog_entity_reads` was missing in production; the reviewed additive migration was applied, then verified present with RLS enabled and anon/authenticated `SELECT` denied |
 
 ### Progress calculation
@@ -44,6 +44,8 @@ Current estimate: **6/10 gates complete (60%)**. The deployed application path a
 - The apparent hour-long `sleep` was bounded polling/waiting on remote GitHub/App Runner workflow state; no uncontrolled local process is intentionally sleeping now.
 - PR #111 (deferred cancellation) and PR #112 (timeout-tolerant worker scheduler) are merged and deployed.
 - Run `39467045273` exposed the next concrete blocker: App Runner returned 502/503 upstream connection failures after the first batch timeout. The workflow recorded the failure correctly; it did not silently claim success.
+- Fresh deployment run `39470996281` succeeded after the stale deployment waiter was cancelled. Worker run `39472093696` then completed four bounded batches with `0` failed, `0` retryable, and `0` transport errors.
+- PR #114 (`9f727ba`) fixed the production adapter defect that converted deferred deadline work into retryable rows. Postflight after the corrected deployment showed `243` queued, `0` retryable, `0` running, `12` catalog versions, and `0` catalog entity reads.
 - No raw credentials or payloads were written to this ledger. User-owned `docs/codex-handoff/`, `tmp/`, and `trackmcp-nextjs/AGENTS.md` remain untouched and unstaged.
 - Next engineering action: restore/verify App Runner worker availability, rerun the bounded worker, then re-run production queue/postflight evidence before treating refresh freshness as pilot-ready.
 
