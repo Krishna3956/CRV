@@ -1,6 +1,6 @@
 # Founder OS 100 Customer Readiness Ledger
 
-Last updated: 2026-10-20
+Last updated: 2026-10-20 (latest evidence pass)
 Owner: Codex engineering execution
 Pilot target: 100 customers
 
@@ -17,9 +17,9 @@ This ledger is the operational source of truth for the autonomous readiness goal
 | Example/live data parity | Merged and deployed | PR #57 merged; all Founder OS read models now have bounded example fixtures |
 | Privacy and tenant isolation | Verified locally | Privacy review, tenant isolation, security headers, accessibility contracts pass |
 | CI/CD deployment | Verified | PRs #58–#61 repaired the release gate, ECR digest verification, opaque App Runner IDs, and hostname normalization; PRs #64–#65 added and rendered safe MCP resource-template discovery; PR #67 routes scheduled cleanup through App Runner using AWS OIDC; PR #69 adds authenticated Founder OS read-model smoke coverage; PR #80 adds a SHA-only `deploy_ref` path for rollback rehearsal without widening AWS trust to arbitrary branches |
-| Production deployment | Verified for current release | Run #110 deployed current main `cbb9248` successfully through App Runner deployment, readiness, HTTPS origin, and read-only production smoke; redacted artifact `production-smoke-cbb9248c78737fa79bb3d66a8be364b729370c5d` uploaded (GitHub artifact `12264572256`) |
+| Production deployment | Verified for current release | Run `39446086329` deployed current main `c86a562` successfully through App Runner deployment, readiness, HTTPS origin, and read-only production smoke |
 | Bounded production load | Passed at pilot budget | Direct App Runner run on 2026-10-20: 120 requests at concurrency 8 across 9 authenticated read models plus ingest, 120/120 successful, zero errors/timeouts, tenant isolation passed, p95 2.11s against a 3s pilot budget; two disposable workspaces were deleted and verified absent |
-| Refresh worker | Non-empty job passed | Workflow dispatch run `39423359981` succeeded after claiming the production queue; aggregate postflight observed queued `0`, succeeded `12`, terminal failures `0`, and semantic facts `551` (up from `500` before the run) |
+| Refresh worker | Non-empty job passed | Workflow dispatch run `39448327533` succeeded on `c86a562`; the bounded worker processed its claimed batch successfully. A follow-up aggregate check confirmed catalog registry recovery and projection (`trackmcp_servers` rows `4`, `trackmcp_catalog_versions` rows `4`) without a destructive migration |
 | Supabase production schema | Additive pilot migration applied | `trackmcp_catalog_entity_reads` was missing in production; the reviewed additive migration was applied, then verified present with RLS enabled and anon/authenticated `SELECT` denied |
 
 ### Progress calculation
@@ -37,7 +37,7 @@ The readiness percentage is based on 10 gates, not lines of code:
 9. Production smoke/load/rollback evidence
 10. Pilot operations and documentation
 
-Current estimate: **8/10 gates complete (80%)**. The deployed path is healthy through current main `cbb9248`; bounded load, failure/recovery, rollback rehearsal, and the latest production smoke now have evidence. Tab-specific live-data assertions, retention-worker evidence, privacy production evidence, and pilot operations remain open.
+Current estimate: **8/10 gates complete (80%)**. The deployed path is healthy through current main `c86a562`; bounded load, failure/recovery, rollback rehearsal, the latest production smoke, and catalog registry/projection recovery now have evidence. Tab-specific live-data assertions, retention-worker evidence, privacy production evidence, and pilot operations remain open.
 
 ## Completed evidence
 
@@ -87,6 +87,12 @@ Current estimate: **8/10 gates complete (80%)**. The deployed path is healthy th
 - Deployment run #109 for main `259b92e` (PR #84) passed the release workflow, ECR build/push, App Runner readiness, HTTPS origin, and read-only production smoke. The smoke artifact is `production-smoke-259b92ec7ece766fef190fe2e2f7e80abb7775a0` (GitHub artifact `12262418541`). The production runner now enables refresh-job enqueueing.
 - Deployment run #110 for main `cbb9248` (PR #86) passed the release workflow, ECR build/push, App Runner readiness, HTTPS origin, and read-only production smoke. The smoke artifact is `production-smoke-cbb9248c78737fa79bb3d66a8be364b729370c5d` (GitHub artifact `12264572256`). The release includes bounded recovery of typed catalog kind/count metadata for legacy catalog methods; this affects newly ingested events and does not backfill historical rows.
 - Refresh worker run `39423359981` succeeded on main `81c3abc4`; aggregate-only production postflight before the run observed 8 queued, 4 succeeded, 0 terminal failures, 0 catalog versions/entities, and 500 semantic facts. The post-run query observed 0 queued, 12 succeeded, 0 terminal failures, 0 catalog versions/entities, and 551 semantic facts. This is evidence that the queue drains and fact projection advances; catalog projections remain absent because historical catalog events still lack typed metadata and the recovery path applies only to newly ingested events.
+- PR #95 merged as `f43f178`: structured refresh errors now preserve bounded database error code/message/details/hint context.
+- PR #96 merged as `c11e660`: Supabase refresh failures retain structured error context in worker evidence.
+- PR #97 merged as `a152a72`: a bounded all-success worker slice returns HTTP 200 even when the worker stops at its time budget (`aborted=true`).
+- PR #98 merged as `c86a562`: catalog refresh registers valid observed server IDs inside the owning workspace before writing foreign-keyed catalog versions and filters observations by that ownership set.
+- Deployment run `39446086329` for `c86a562` passed build/push, ECR digest verification, App Runner readiness, HTTPS origin, and production smoke.
+- Worker run `39448327533` succeeded after the catalog-registry fix. Production SQL postflight immediately afterward observed four owned registry rows for the typed catalog workspace and four `trackmcp_catalog_versions` rows; catalog entity rows remain zero for those events because the test observations contain no entity-level read history. This closes the prior zero-version finding without claiming entity coverage.
 - A disposable production catalog-ingest attempt was sent with a newly created connection key and metadata-only `resources/list` event, but the public `app.trackmcp.com` path returned the Cloudflare 403 block page before App Runner. The disposable key was revoked immediately afterward. This is recorded as an edge-path limitation; it is not evidence that the catalog handler accepted or rejected the event. Direct App Runner-origin write validation remains a release gate.
 - Post-deployment aggregate-only Supabase verification observed 61,277 raw events, four queued refresh jobs, and 500 semantic facts after the worker run `39420542290` succeeded. The catalog worker completed successfully but wrote zero catalog projections because all 18,054 production `catalog` events lack typed `catalog_kind` and `catalog_item_count` fields; resource/prompt event types were absent. This is a truthful data-coverage limitation, not a projection success claim.
 - The first scheduled cleanup run (#1) failed at the Cloudflare edge with an HTML 403 challenge; the fix is merged and deployed. A subsequent scheduled execution remains an operational follow-up rather than a guessed success.
