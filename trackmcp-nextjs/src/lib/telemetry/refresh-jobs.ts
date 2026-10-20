@@ -37,6 +37,8 @@ export type TrackMCPRefreshJob = {
 
 export type TrackMCPRefreshJobResult =
   | { outcome: "succeeded" }
+  /** The bounded worker deadline stopped before this job ran to completion. */
+  | { outcome: "deferred"; detail?: string }
   | { outcome: "retryable"; error_code: string; detail?: string }
   | { outcome: "failed"; error_code: string; detail?: string };
 
@@ -117,6 +119,7 @@ export function recordRefreshJobResult(current: TrackMCPRefreshJob, result: Trac
   if (current.state !== "running") return { ok: false, code: "invalid_transition", message: "Only a running job can record a result." };
   const timestamp = now.toISOString();
   if (result.outcome === "succeeded") return { ok: true, changed: true, job: { ...current, state: "succeeded", lease_owner: null, lease_until: null, last_error_code: null, last_error_detail: null, completed_at: timestamp, updated_at: timestamp } };
+  if (result.outcome === "deferred") return { ok: true, changed: true, job: { ...current, state: "queued", available_at: timestamp, lease_owner: null, lease_until: null, last_error_code: null, last_error_detail: errorDetail(result.detail), completed_at: null, updated_at: timestamp } };
   const code = errorCode(result.error_code);
   const detail = errorDetail(result.detail);
   const exhausted = result.outcome === "failed" || current.attempt_count >= current.max_attempts || refreshJobBackoffMs(current.attempt_count) === null;

@@ -50,6 +50,24 @@ test("retryable results schedule bounded exponential backoff and redact details"
   }
 });
 
+test("deferred results return work to the queue without manufacturing a retry", () => {
+  const now = new Date("2026-01-01T00:00:00.000Z");
+  const created = createRefreshJob({ id: "job-deferred", workspace_id: "workspace-1", kind: "catalog_recompute", dedupe_key: "window:deferred", now });
+  assert.equal(created.ok, true);
+  if (!created.ok) return;
+  const claimed = claimRefreshJob(created.job, "worker-1", now);
+  assert.equal(claimed.ok, true);
+  if (!claimed.ok) return;
+  const deferred = recordRefreshJobResult(claimed.job, { outcome: "deferred", detail: "worker deadline deferred this job" }, new Date("2026-01-01T00:00:01.000Z"));
+  assert.equal(deferred.ok, true);
+  if (!deferred.ok) return;
+  assert.equal(deferred.job.state, "queued");
+  assert.equal(deferred.job.attempt_count, 1);
+  assert.equal(deferred.job.last_error_code, null);
+  assert.equal(deferred.job.completed_at, null);
+  assert.equal(deferred.job.available_at, "2026-01-01T00:00:01.000Z");
+});
+
 test("permanent failures and exhausted retries become terminal", () => {
   const claimed = claimRefreshJob(job(), "worker-a", now);
   assert.equal(claimed.ok, true);

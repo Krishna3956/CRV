@@ -65,14 +65,14 @@ test("task transition projection is opt-in and writes only explicit task evidenc
   assert.equal(JSON.stringify(transition.rows).includes("secret-task-handle"), false);
 });
 
-test("action queue refresh fails closed on cancellation", async () => {
+test("action queue refresh defers cleanly on cancellation", async () => {
   const { admin } = fakeAdmin();
   const handler = createRefreshJobHandlers(admin as never).action_queue_refresh;
   assert.ok(handler);
   const controller = new AbortController();
   controller.abort();
   assert.deepEqual(await handler({ job: baseJob("action_queue_refresh"), now: new Date(), signal: controller.signal }), {
-    outcome: "retryable", error_code: "cancelled", detail: "worker was cancelled",
+    outcome: "deferred", detail: "worker deadline deferred this job",
   });
 });
 
