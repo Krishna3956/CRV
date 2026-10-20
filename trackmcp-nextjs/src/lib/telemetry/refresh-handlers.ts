@@ -20,8 +20,14 @@ function retryable(error: unknown) {
     ? error.message
     : typeof error === "string"
       ? error
-      : error && typeof error === "object" && "message" in error
-        ? String((error as { message?: unknown }).message || "refresh handler failed")
+      : error && typeof error === "object"
+        ? ["code", "message", "details", "hint"]
+          .map((field) => {
+            const value = (error as Record<string, unknown>)[field];
+            return value === undefined || value === null || value === "" ? null : `${field}=${String(value)}`;
+          })
+          .filter((value): value is string => Boolean(value))
+          .join("; ") || "refresh handler failed"
         : "refresh handler failed";
   return { outcome: "retryable" as const, error_code: "handler_failure", detail: message.slice(0, 200) };
 }

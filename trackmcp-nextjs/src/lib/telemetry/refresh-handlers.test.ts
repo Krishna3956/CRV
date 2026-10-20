@@ -92,6 +92,28 @@ test("catalog refresh writes only hash-based version rows", async () => {
   assert.equal(catalogWrite.onConflict, "workspace_id,server_id,environment_id,catalog_kind,snapshot_hash");
 });
 
+test("catalog refresh preserves structured database error context", async () => {
+  const admin = {
+    from() {
+      const query = {
+        select() { return query; },
+        eq() { return query; },
+        order() { return query; },
+        limit: async () => ({ data: null, error: { code: "42P10", message: "no unique or exclusion constraint matching the ON CONFLICT specification", details: "constraint mismatch", hint: "create a matching unique index" } }),
+      };
+      return query;
+    },
+  };
+  const handler = createRefreshJobHandlers(admin as never).catalog_recompute;
+  assert.ok(handler);
+  const result = await handler({ job: baseJob("fact_projection"), now: new Date() });
+  assert.deepEqual(result, {
+    outcome: "retryable",
+    error_code: "handler_failure",
+    detail: "code=42P10; message=no unique or exclusion constraint matching the ON CONFLICT specification; details=constraint mismatch; hint=create a matching unique index",
+  });
+});
+
 test("catalog entity refresh writes idempotent hash-only read rows", async () => {
   const { admin, writes } = fakeAdmin([{
     event_id: "resource-read-1",
