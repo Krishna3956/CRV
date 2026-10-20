@@ -19,9 +19,9 @@ concurrency:
 jobs:
   refresh:
     runs-on: ubuntu-latest
-    # Four bounded requests can each spend up to the application's 45s
-    # deadline plus curl retry/connection overhead. Keep the job ceiling above
-    # that serialized envelope while retaining a finite scheduler boundary.
+    # Four bounded requests run concurrently. Each can spend up to the
+    # application's 45s deadline plus curl retry/connection overhead; keeping
+    # the job ceiling finite prevents a stuck scheduler from running forever.
     timeout-minutes: 5
     steps:
       - name: Authenticate to AWS to discover the worker origin
@@ -54,34 +54,43 @@ jobs:
           fi
           # Each request is independently bounded by the application’s 45s
           # lease/deadline and this workflow’s 55s curl timeout. Four
-          # serialized calls let a pilot backlog catch up without allowing
-          # overlapping workers or an unbounded request to hold a lease.
+          # concurrent calls increase drain throughput while the database
+          # claim RPC's skip-locked lease boundary prevents duplicate claims.
           failed=0
           timed_out=0
+          batch_dir=$(mktemp -d)
+          pids=()
           for batch in 1 2 3 4; do
-            echo "Running bounded refresh batch $batch/4"
+            (
+              echo "Running bounded refresh batch $batch/4"
+              # Keep a process-level kill boundary in addition to curl's own
+              # retry timers. This protects the runner if curl or a transport
+              # layer stops honoring its internal deadline.
+              timeout --signal=TERM --kill-after=10s 70s curl --fail-with-body --silent --show-error \
+                --connect-timeout 5 \
+                --retry 3 \
+                --retry-delay 2 \
+                --retry-all-errors \
+                --retry-max-time 45 \
+                --max-time 55 \
+                -X POST \
+                -H "authorization: Bearer $WORKER_SECRET" \
+                -H "content-type: application/json" \
+                --data '{"max_jobs":100}' \
+                "$WORKER_URL"
+            ) >"$batch_dir/$batch.log" 2>&1 &
+            pids+=("$!")
+          done
+          for batch in 1 2 3 4; do
             set +e
-            # Keep a process-level kill boundary in addition to curl's own
-            # retry timers. This protects the runner if curl or a transport
-            # layer stops honoring its internal deadline.
-            timeout --signal=TERM --kill-after=10s 70s curl --fail-with-body --silent --show-error \
-              --connect-timeout 5 \
-              --retry 3 \
-              --retry-delay 2 \
-              --retry-all-errors \
-              --retry-max-time 45 \
-              --max-time 55 \
-              -X POST \
-              -H "authorization: Bearer $WORKER_SECRET" \
-              -H "content-type: application/json" \
-              --data '{"max_jobs":100}' \
-              "$WORKER_URL"
+            wait "${pids[$((batch - 1))]}"
             status=$?
             set -e
+            cat "$batch_dir/$batch.log"
             if [ "$status" -eq 28 ] || [ "$status" -eq 124 ] || [ "$status" -eq 137 ]; then
               # The application owns the 45s lease/deadline. A client-side
               # timeout is an expected incomplete slice, not proof that the
-              # bounded worker failed; the next serialized batch continues.
+              # bounded worker failed; the next scheduled tick continues.
               timed_out=1
               echo "Batch $batch reached the client timeout; continuing with the next bounded slice."
             elif [ "$status" -ne 0 ]; then
