@@ -9,6 +9,7 @@ const dockerfile = await readFile(new URL("../Dockerfile", import.meta.url), "ut
 
 test("deployment guide names the standalone server the container actually runs", () => {
   assert.match(dockerfile, /node server\.js/);
+  assert.match(dockerfile, /ENV TRACKMCP_ENABLE_REFRESH_JOBS=true/);
   assert.match(readme, /standalone `server\.js`/);
   assert.doesNotMatch(readme, /standard `next start` server/);
 });
