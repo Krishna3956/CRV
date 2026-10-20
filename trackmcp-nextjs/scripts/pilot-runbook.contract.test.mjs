@@ -23,4 +23,6 @@ test("pilot runbook does not relabel a changing local baseline as release eviden
   assert.doesNotMatch(runbook, /clean 102-suite gate|clean 104-suite release gate/i);
   assert.match(runbook, /Record the actual command output, candidate SHA, UTC timestamp/);
   assert.match(runbook, /A local pass never\s+substitutes for production evidence/);
+  assert.match(runbook, /`outcome`, `checks_total`, `checks_executed`, and `checks_skipped`/);
+  assert.match(runbook, /`not-supplied` is not\s+deployment-linkage evidence/);
 });

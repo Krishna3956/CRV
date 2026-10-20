@@ -88,6 +88,11 @@ after App Runner reports `RUNNING`, runs the credential-free
 workflow artifact with the deployment evidence. That artifact proves public and
 unauthenticated HTTP boundaries only; it does not replace the authenticated,
 tenant-isolation, first-ingest, migration, worker, load, or rollback gates below.
+Review its `outcome`, `checks_total`, `checks_executed`, and `checks_skipped`
+fields rather than inferring success from individual statuses. For a deployment
+run, its `candidate_sha` and `image_digest` must be populated and reconciled
+with the reviewed commit and the actual App Runner image; `not-supplied` is not
+deployment-linkage evidence.
 
 ## 5. CLI activation smoke
 
