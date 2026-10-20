@@ -167,7 +167,7 @@ async function run() {
     const path = ingest ? "/api/v1/ingest" : READ_ROUTES[index % READ_ROUTES.length];
     const url = `${baseUrl}${path}`;
     const started = performance.now();
-    let status = 0; let error = ""; let isolation = true; let timedOut = false;
+    let status = 0; let error = ""; let errorDetail = ""; let isolation = true; let timedOut = false;
     let timeout;
     try {
       const controller = new AbortController();
@@ -188,6 +188,7 @@ async function run() {
       });
       status = response.status;
       const text = await response.text();
+      if (status < 200 || status >= 300) errorDetail = text.slice(0, 240);
       if (tenant === "a" && text.includes("tenant-b")) isolation = false;
       if (tenant === "b" && text.includes("tenant-a")) isolation = false;
     } catch (cause) {
@@ -196,7 +197,7 @@ async function run() {
     } finally {
       clearTimeout(timeout);
     }
-    samples.push({ route: safeRoute(url), status, latencyMs: Math.round((performance.now() - started) * 100) / 100, error: error || undefined, isolation, timedOut });
+    samples.push({ route: safeRoute(url), status, latencyMs: Math.round((performance.now() - started) * 100) / 100, error: error || undefined, errorDetail: errorDetail || undefined, isolation, timedOut });
   }
   async function worker() { while (true) { const index = cursor++; if (index >= options.requests) return; await one(index); } }
   await Promise.all(Array.from({ length: options.concurrency }, worker));
