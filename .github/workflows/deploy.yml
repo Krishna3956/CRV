@@ -97,24 +97,46 @@ jobs:
             --service-arn "$SERVICE_ARN" \
             --region "$AWS_REGION" \
             --query OperationId --output text)
+          if [[ ! "$OP_ID" =~ ^[0-9a-fA-F-]{36}$ ]]; then
+            echo "::error::App Runner did not return a valid deployment operation ID."
+            exit 1
+          fi
+          echo "TRACKMCP_DEPLOYMENT_OPERATION_ID=$OP_ID" >> "$GITHUB_ENV"
           echo "Started App Runner deployment: $OP_ID"
 
       - name: Wait for deployment to finish
         run: |
           set -euo pipefail
-          echo "Waiting for App Runner to become RUNNING..."
+          echo "Waiting for App Runner deployment operation $TRACKMCP_DEPLOYMENT_OPERATION_ID to succeed..."
           for i in $(seq 1 40); do
-            STATUS=$(aws apprunner describe-service \
-              --service-arn "$SERVICE_ARN" --region "$AWS_REGION" \
-              --query Service.Status --output text)
-            echo "  [$i] status=$STATUS"
-            case "$STATUS" in
-              RUNNING)  echo "Deployment complete."; exit 0 ;;
-              CREATE_FAILED|DELETE_FAILED|PAUSED) echo "Unexpected status: $STATUS"; exit 1 ;;
+            OP_STATUS=$(aws apprunner list-operations \
+              --service-arn "$SERVICE_ARN" --region "$AWS_REGION" --max-results 20 \
+              --query "OperationSummaryList[?Id=='$TRACKMCP_DEPLOYMENT_OPERATION_ID'].Status | [0]" --output text)
+            echo "  [$i] deployment_operation=$OP_STATUS"
+            case "$OP_STATUS" in
+              SUCCEEDED)
+                STATUS=$(aws apprunner describe-service \
+                  --service-arn "$SERVICE_ARN" --region "$AWS_REGION" \
+                  --query Service.Status --output text)
+                if [[ "$STATUS" == "RUNNING" ]]; then
+                  echo "Deployment operation succeeded and service is RUNNING."
+                  exit 0
+                fi
+                echo "Deployment operation succeeded but service status is $STATUS."
+                ;;
+              PENDING|IN_PROGRESS|None) ;;
+              FAILED|ROLLBACK_IN_PROGRESS|ROLLBACK_FAILED|ROLLBACK_SUCCEEDED)
+                echo "Deployment operation ended unexpectedly: $OP_STATUS"
+                exit 1
+                ;;
+              *)
+                echo "Unknown deployment operation status: $OP_STATUS"
+                exit 1
+                ;;
             esac
             sleep 15
           done
-          echo "Timed out waiting for RUNNING."; exit 1
+          echo "Timed out waiting for deployment operation $TRACKMCP_DEPLOYMENT_OPERATION_ID to succeed and service to become RUNNING."; exit 1
 
       - name: Run read-only production smoke
         working-directory: trackmcp-nextjs

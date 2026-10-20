@@ -12,6 +12,12 @@ test("App Runner deployment performs a redacted read-only smoke after RUNNING", 
   assert.match(workflow, /Verify deployment tag resolves to the candidate image/);
   assert.match(workflow, /TRACKMCP_DEPLOYED_IMAGE_DIGEST/);
   assert.match(workflow, /TRACKMCP_SMOKE_IMAGE_DIGEST/);
+  assert.match(workflow, /TRACKMCP_DEPLOYMENT_OPERATION_ID=\$OP_ID/);
+  assert.match(workflow, /TRACKMCP_DEPLOYMENT_OPERATION_ID/);
+  assert.match(workflow, /list-operations/);
+  assert.match(workflow, /OperationSummaryList\[\?Id=='\$TRACKMCP_DEPLOYMENT_OPERATION_ID'\]\.Status/);
+  assert.match(workflow, /SUCCEEDED/);
+  assert.match(workflow, /ROLLBACK_FAILED/);
   assert.match(workflow, /Run read-only production smoke/);
   assert.match(workflow, /TRACKMCP_PRODUCTION_SMOKE_CONFIRM=I_UNDERSTAND_PRODUCTION_SMOKE/);
   assert.match(workflow, /TRACKMCP_SMOKE_CANDIDATE_SHA="\$GITHUB_SHA"/);
