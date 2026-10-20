@@ -13,7 +13,7 @@ const WORKSPACE_B_KEY = "tmcp_workspace_b_key";
 const WORKSPACE_A_ROTATED_KEY = "tmcp_workspace_a_rotated_key";
 
 function fakeAdmin() {
-  const state = { rows: [], refreshRows: [] };
+  const state = { rows: [], refreshRows: [], registryRows: [] };
   const keys = new Map([
     [hashTrackMCPKey(API_KEY), { id: "key-workspace-integration", workspace_id: "workspace-integration", revoked_at: null }],
     [hashTrackMCPKey(WORKSPACE_A_KEY), { id: "key-workspace-a", workspace_id: "workspace-a", revoked_at: null }],
@@ -35,6 +35,11 @@ function fakeAdmin() {
       if (table === "trackmcp_refresh_jobs") {
         return {
           upsert(rows) { state.refreshRows.push(...rows); return Promise.resolve({ error: null }); },
+        };
+      }
+      if (table === "trackmcp_servers") {
+        return {
+          upsert(rows) { state.registryRows.push(...rows); return Promise.resolve({ error: null }); },
         };
       }
       return {
@@ -132,6 +137,21 @@ test("route integration scrubs non-SDK payloads, enforces limits, and preserves 
   assert.equal(DEFAULT_MAX_PAYLOAD_BYTES, 32 * 1024);
   assert.equal(MAX_PAYLOAD_BYTES, 128 * 1024);
   assert.ok(DEFAULT_MAX_PAYLOAD_BYTES < MAX_PAYLOAD_BYTES);
+});
+
+test("route integration materializes a tenant-scoped server registry row for catalog projection", async () => {
+  const { admin, state } = fakeAdmin();
+  const handler = createIngestHandler(() => admin);
+  const serverId = "11111111-1111-4111-8111-111111111111";
+  const result = await post(handler, { events: [event({ event_id: "registry-event", server_id: serverId, catalog_kind: "tools", catalog_item_count: 1 })] });
+  assert.equal(result.status, 200);
+  assert.equal(state.registryRows.length, 1);
+  assert.deepEqual(state.registryRows[0], {
+    id: serverId,
+    workspace_id: "workspace-integration",
+    name: "MCP server 11111111",
+    slug: `server-${serverId}`,
+  });
 });
 
 test("route integration receives hook-sanitized events within the final SDK payload budget", async () => {
