@@ -43,6 +43,7 @@ Current estimate: **6/10 gates complete (60%)**. The deployed application path a
 
 ### 2026-10-21 status check
 
+- At the time of this check, worker dispatch `39479147302` is actively running on merged main `ae15bb1`; its single `refresh` job is still in progress. PR #121 is open with Go and .NET checks green and the web/JavaScript gate still running. No readiness percentage is advanced until these terminal results and the next Supabase postflight are recorded.
 - Fresh read-only Supabase production postflight observed `0` catalog entity-read rows, `0` privacy requests, `0` privacy deletion batches, `539` queued refresh jobs, and `0` retryable refresh jobs. This confirms transport/retry health but leaves freshness, entity-read coverage, and end-to-end privacy lifecycle execution open.
 - Main CI for merge `ae15bb1` passed after PR #120. The merge changed only CI/docs paths, so no App Runner deployment was triggered; the previously deployed application release remains the production runtime under evidence.
 - The previous apparent hour-long `sleep` was bounded polling of remote GitHub/App Runner state, not an uncontrolled local process. Current work is active and uses short, inspectable API calls.
