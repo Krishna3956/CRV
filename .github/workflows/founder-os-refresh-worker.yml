@@ -40,24 +40,36 @@ jobs:
           fi
           echo "WORKER_URL=https://$ORIGIN/api/internal/refresh/run" >> "$GITHUB_ENV"
 
-      - name: Run bounded refresh batch
+      - name: Run bounded refresh batches
         env:
           WORKER_SECRET: ${{ secrets.TRACKMCP_REFRESH_WORKER_SECRET }}
         run: |
-          set -euo pipefail
+          set -uo pipefail
           if [ -z "$WORKER_URL" ] || [ -z "$WORKER_SECRET" ]; then
             echo "::error::Refresh worker secrets are not configured; the scheduled refresh did not run."
             exit 1
           fi
-          curl --fail-with-body --silent --show-error \
-            --connect-timeout 5 \
-            --retry 3 \
-            --retry-delay 2 \
-            --retry-all-errors \
-            --retry-max-time 45 \
-            --max-time 55 \
-            -X POST \
-            -H "authorization: Bearer $WORKER_SECRET" \
-            -H "content-type: application/json" \
-            --data '{"max_jobs":100}' \
-            "$WORKER_URL"
+          # Each request is independently bounded by the application’s 45s
+          # lease/deadline and this workflow’s 55s curl timeout. Two
+          # serialized calls let a pilot backlog catch up without allowing
+          # overlapping workers or an unbounded request to hold a lease.
+          failed=0
+          for batch in 1 2; do
+            echo "Running bounded refresh batch $batch/2"
+            if ! curl --fail-with-body --silent --show-error \
+              --connect-timeout 5 \
+              --retry 3 \
+              --retry-delay 2 \
+              --retry-all-errors \
+              --retry-max-time 45 \
+              --max-time 55 \
+              -X POST \
+              -H "authorization: Bearer $WORKER_SECRET" \
+              -H "content-type: application/json" \
+              --data '{"max_jobs":100}' \
+              "$WORKER_URL"; then
+              failed=1
+              echo "Batch $batch reported an unhealthy result; continuing to the next bounded batch."
+            fi
+          done
+          exit "$failed"
