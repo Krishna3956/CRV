@@ -49,7 +49,9 @@ jobs:
           python3 -m twine check dist/*
       - name: Run web release gate
         working-directory: trackmcp-nextjs
-        run: npm run test:release-gate
+        # Keep the suite bounded even if the hosted runner fails to enforce
+        # the job-level timeout or loses its log stream.
+        run: timeout --signal=TERM --kill-after=30s 20m npm run test:release-gate
       - name: Lint web application
         working-directory: trackmcp-nextjs
         run: npm run lint
