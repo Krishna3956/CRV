@@ -20,6 +20,7 @@ const revokedKey = process.env.TRACKMCP_SMOKE_REVOKED_KEY || "";
 const allowWrite = process.env.TRACKMCP_SMOKE_ALLOW_WRITE === "true";
 const requireAuth = process.env.TRACKMCP_SMOKE_REQUIRE_AUTH === "true";
 const reportPath = process.env.TRACKMCP_SMOKE_REPORT || "/tmp/trackmcp-production-smoke.json";
+const imageDigest = process.env.TRACKMCP_SMOKE_IMAGE_DIGEST || "not-supplied";
 
 function fail(message) {
   throw new Error(message);
@@ -246,6 +247,7 @@ async function main() {
     generated_at: new Date().toISOString(),
     base_url: new URL(baseUrl).origin,
     candidate_sha: process.env.TRACKMCP_SMOKE_CANDIDATE_SHA || "not-supplied",
+    image_digest: imageDigest,
     write_enabled: allowWrite,
     key_supplied: Boolean(key),
     revoked_key_supplied: Boolean(revokedKey),

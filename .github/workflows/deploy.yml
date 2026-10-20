@@ -79,6 +79,17 @@ jobs:
           docker push "$IMAGE_BASE:$IMAGE_TAG"
           docker push "$IMAGE_BASE:${GITHUB_SHA}"
 
+      - name: Verify deployment tag resolves to the candidate image
+        run: |
+          set -euo pipefail
+          CANDIDATE_DIGEST=$(aws ecr describe-images --repository-name "$ECR_REPO" --region "$AWS_REGION" --image-ids imageTag="$GITHUB_SHA" --query 'imageDetails[0].imageDigest' --output text)
+          DEPLOY_TAG_DIGEST=$(aws ecr describe-images --repository-name "$ECR_REPO" --region "$AWS_REGION" --image-ids imageTag="$IMAGE_TAG" --query 'imageDetails[0].imageDigest' --output text)
+          if [[ ! "$CANDIDATE_DIGEST" =~ ^sha256:[a-f0-9]{64}$ ]] || [[ "$CANDIDATE_DIGEST" != "$DEPLOY_TAG_DIGEST" ]]; then
+            echo "::error::The mutable deployment tag does not resolve to the candidate image digest."
+            exit 1
+          fi
+          echo "TRACKMCP_DEPLOYED_IMAGE_DIGEST=$CANDIDATE_DIGEST" >> "$GITHUB_ENV"
+
       - name: Trigger App Runner deployment
         run: |
           set -euo pipefail
@@ -119,6 +130,7 @@ jobs:
           TRACKMCP_PRODUCTION_SMOKE_CONFIRM=I_UNDERSTAND_PRODUCTION_SMOKE \
           TRACKMCP_SMOKE_BASE_URL="$ORIGIN" \
           TRACKMCP_SMOKE_CANDIDATE_SHA="$GITHUB_SHA" \
+          TRACKMCP_SMOKE_IMAGE_DIGEST="$TRACKMCP_DEPLOYED_IMAGE_DIGEST" \
           TRACKMCP_SMOKE_REPORT="$RUNNER_TEMP/trackmcp-production-smoke.json" \
           npm run smoke:production-pilot
 
