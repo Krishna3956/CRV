@@ -4,14 +4,21 @@ These are external actions that cannot be completed safely from the repository. 
 
 ## Current status
 
-The repository-side SEO/AEO work is implemented and passes local checks. Production is not yet serving that version: as of 4 September 2026, the canonical analytics page returns HTTP 404 on both `trackmcp.com` and `www.trackmcp.com`, and the live sitemap/robots output is from an older deployment. Deploy the current repository before interpreting production search visibility.
+The repository-side SEO/AEO work is implemented and passes local checks. The
+September 4, 2026 observation below is historical evidence from an older
+deployment; it is not the current production state. The current release has a
+passing guarded production smoke record in
+`docs/evidence/production-pilot-smoke-2026-10-19.json`, including the public
+analytics pages, sitemap, robots output, and required security headers. Re-run
+the smoke against the release under review before making a new production
+search-visibility claim.
 
 ## Do first: access and crawlability
 
 - Verify `trackmcp.com` in [Google Search Console](https://search.google.com/search-console) and submit `https://trackmcp.com/sitemap.xml`.
 - Verify the domain in [Bing Webmaster Tools](https://www.bing.com/webmasters/about) and inspect the AI Performance report when data becomes available.
 - Ask whoever controls the CDN, WAF, DNS, or bot protection to confirm that Googlebot, Bingbot, and `OAI-SearchBot` receive HTTP 200 responses for public pages and are not challenged by CAPTCHA or JavaScript verification.
-- Confirm that `https://trackmcp.com/mcp-server-analytics`, `/mcp-observability`, `/docs`, `/pricing`, `/security`, and `/about` are publicly reachable in production.
+- Confirm that `https://trackmcp.com/mcp-server-analytics`, `/mcp-observability`, `/docs`, `/pricing`, `/security`, and `/about` remain publicly reachable in the release under review.
 - Confirm the production sitemap finishes quickly and contains the new canonical pages.
 
 ## Do next: entity and profile consistency
