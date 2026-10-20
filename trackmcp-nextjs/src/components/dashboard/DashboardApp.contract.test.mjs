@@ -418,6 +418,11 @@ test("Capabilities exposes truthful catalog history states", () => {
   assert.doesNotMatch(source, /version\.payload/);
 });
 
+test("Capabilities preserves tool-call activity when capability identity is missing", () => {
+  assert.match(source, /analytics\.tool_calls > 0/);
+  assert.match(source, /no capability name was reported/);
+});
+
 test("Overview session actions clearly open traces", () => {
   assert.match(source, /title="Sessions in selected period"[\s\S]*label: "View traces"/);
   assert.match(source, /Open trace <ChevronRight/);

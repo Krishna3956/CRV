@@ -2887,7 +2887,7 @@ function CapabilitiesView({
                   const share = analytics.tool_calls ? tool.calls / analytics.tool_calls : 0;
                   return <button type="button" key={tool.name} onClick={() => setSelectedToolName(tool.name)} className="grid w-full cursor-pointer grid-cols-[minmax(0,1fr)_auto] items-center gap-3 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"><div className="min-w-0"><div className="flex justify-between gap-3 text-sm"><span className="truncate font-mono text-xs text-ink">{tool.name}</span><span className="text-muted">{fmt(tool.calls)}</span></div>{tool.description && <p className="mt-1 truncate text-[11px] text-faint">{tool.description}</p>}<div className="mt-1 h-2 bg-paper"><div className="h-full bg-brand" style={{ width: `${Math.min(100, share * 100)}%` }} /></div></div><span className="text-xs text-faint">{percent(share)}</span></button>;
                 })}
-                {!analytics.tools.length && <p className="py-6 text-sm text-muted">No tool calls were observed in this period.</p>}
+                {!analytics.tools.length && <p className="py-6 text-sm text-muted">{analytics.tool_calls > 0 ? `${fmt(analytics.tool_calls)} tool-call events were observed, but no capability name was reported.` : "No tool calls were observed in this period."}</p>}
               </div>
             </Panel>
             <Panel title="Adoption breadth" subtitle="How many distinct tools resolver-linked accounts used">
