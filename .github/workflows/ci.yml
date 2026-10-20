@@ -4,6 +4,14 @@ on:
   push:
   pull_request:
 
+# A branch push and the corresponding pull_request event can otherwise start
+# two identical full release gates. Keep one authoritative run per ref so
+# hosted-runner capacity is not consumed by duplicate work and stale jobs do
+# not obscure the candidate's real result.
+concurrency:
+  group: trackmcp-ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   web-and-javascript:
     runs-on: ubuntu-latest
