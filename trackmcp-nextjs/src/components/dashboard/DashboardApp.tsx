@@ -3726,7 +3726,7 @@ function ClientsView({
         actions={pageControls}
       />
       <DataSourceStrip dataMode={dataMode} hasMyData={hasMyData} view="clients" />
-      {people && (
+      {people ? (
         <>
           <div className="mb-6 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
             <Kpi
@@ -3792,6 +3792,11 @@ function ClientsView({
           </Panel>
           {people.classification_status === "insufficient_data" && <p className="mt-3 text-xs text-warning">New versus returning account counts are unavailable because the bounded history scan was incomplete.</p>}
         </>
+      ) : (
+        <StateNote
+          title="Account activity is unavailable"
+          body="The current analytics response did not include the privacy-safe account read model. Client activity and server evidence remain separate; no example or inferred account data is substituted."
+        />
       )}
     </div>
   );
