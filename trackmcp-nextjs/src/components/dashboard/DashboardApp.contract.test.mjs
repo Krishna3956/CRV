@@ -489,6 +489,12 @@ test("Issues orders confirmed critical evidence before insufficient-data noise",
   assert.match(source, /Date\.parse\(right\.last_seen_at\) - Date\.parse\(left\.last_seen_at\)/);
 });
 
+test("Issues labels retained synthetic canary evidence instead of presenting it as customer failure", () => {
+  assert.match(source, /synthetic canary incident/);
+  assert.match(source, /Synthetic canary evidence/);
+  assert.match(source, /not customer failures or pilot health claims/);
+});
+
 test("Issues never renders non-finite regression percentages as NaN", () => {
   assert.match(source, /value === null \|\| !Number\.isFinite\(value\) \? "N\/A"/);
 });
