@@ -45,6 +45,7 @@ Current estimate: **6/10 gates complete (60%)**. The deployed application path a
 
 - The previous apparent hour-long `sleep` was bounded polling of remote GitHub/App Runner state, not an uncontrolled local process. Current work is active and uses short, inspectable API calls.
 - PR #119 (`docs: record authenticated dashboard runtime evidence`) was merged as `7e3725a`. Its GitHub CI checks passed; the Vercel status was non-required and failed because the provider reported a deployment rate limit, not because of an application test failure.
+- PR #120's original GitHub web CI jobs remained non-terminal for more than a day despite the workflow's 30-minute timeout; those stale runs were cancelled and a fresh CI run will be created from the next ledger commit. This is recorded as a CI-runner-state issue, not an application test result.
 - The latest deployed main release remains healthy: App Runner deployment run `39474489090` passed production smoke. This does not make the pilot gate complete because entity-read coverage, production privacy lifecycle execution, and Tabs 3–6 feature-level assertions remain open.
 - Current readiness remains **6/10 gates (60%)**. A credible pilot-ready estimate is not a clock-time promise until the remaining production evidence is closed; the fastest path is several focused engineering/verification passes, not waiting on the current Vercel rate limit.
 
