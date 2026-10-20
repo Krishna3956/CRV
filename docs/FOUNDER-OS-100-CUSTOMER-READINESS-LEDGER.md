@@ -1,6 +1,6 @@
 # Founder OS 100 Customer Readiness Ledger
 
-Last updated: 2026-10-20 (latest evidence pass; worker outage checkpoint)
+Last updated: 2026-10-20 (latest evidence pass; deferred-outcome recovery verified)
 Owner: Codex engineering execution
 Pilot target: 100 customers
 
@@ -13,13 +13,13 @@ This ledger is the operational source of truth for the autonomous readiness goal
 | Founder OS specification audit | In progress | PDF/DOCX requirements extracted; tab/data contract reconciliation continues; MCP tester and authenticated production smoke now cover the bounded resource-template/read-model contract |
 | Tab 1 — Who's using it | Implemented and deployed | Live and example read models, privacy caveats, account-unavailable state; production route/security smoke passed |
 | Tab 2 — What they're doing | Implemented and deployed | Leaderboard, adoption, trend, reliability, detail, descriptions; production route/security smoke passed |
-| Tabs 3–6 | Authenticated read-model routes verified; feature-level evidence pending | Two-workspace live smoke passed all read models; Resources & Prompts durable projection is present with RLS verified; dashboard-level session rendering and richer production telemetry remain open |
+| Tabs 3–6 | Authenticated read-model routes verified; production telemetry now observed, feature-level assertions still pending | Production event audit observed `resources/list` (4,933), `resources/templates/list` (3,869), `prompts/list` (3,405), `workflow` (150), `completion/complete` (8), and `tools/call` (1,567); dashboard-level session rendering, outcome correlation, and richer reliability assertions remain open |
 | Example/live data parity | Merged and deployed | PR #57 merged; all Founder OS read models now have bounded example fixtures |
 | Privacy and tenant isolation | Verified locally | Privacy review, tenant isolation, security headers, accessibility contracts pass |
 | CI/CD deployment | Verified | PRs #58–#61 repaired the release gate, ECR digest verification, opaque App Runner IDs, and hostname normalization; PRs #64–#65 added and rendered safe MCP resource-template discovery; PR #67 routes scheduled cleanup through App Runner using AWS OIDC; PR #69 adds authenticated Founder OS read-model smoke coverage; PR #80 adds a SHA-only `deploy_ref` path for rollback rehearsal without widening AWS trust to arbitrary branches |
 | Production deployment | Verified for current release | Run `39446086329` deployed current main `c86a562` successfully through App Runner deployment, readiness, HTTPS origin, and read-only production smoke |
 | Bounded production load | Passed at pilot budget | Direct App Runner run on 2026-10-20: 120 requests at concurrency 8 across 9 authenticated read models plus ingest, 120/120 successful, zero errors/timeouts, tenant isolation passed, p95 2.11s against a 3s pilot budget; two disposable workspaces were deleted and verified absent |
-| Refresh worker | Blocked by App Runner availability | PR #109 merged as `3a2271f`, PR #111 merged as `9db56b0` (deferred cancellation), and PR #112 merged as `f792418` (timeout-tolerant scheduler). Latest run `39467045273` still failed because batch 1 timed out and batches 2–4 received repeated App Runner 502/503 upstream connection failures. This is an infrastructure availability failure, not a retry/dead-letter failure; production postflight during the run showed `273` queued, `0` retryable, `2` running, `12` catalog versions, and `0` catalog entity reads. Queue freshness remains a pilot gate. |
+| Refresh worker | Transport and retry-state recovery verified; freshness still open | PR #109 merged as `3a2271f`, PR #111 merged as `9db56b0` (deferred cancellation), PR #112 merged as `f792418` (timeout-tolerant scheduler), and PR #114 merged as `9f727ba` (Supabase adapter preserves deferred outcomes). Fresh deployment run `39470996281` succeeded; corrected worker run `39472093696` processed four bounded batches with zero failures/retryables; production postflight observed `243` queued, `0` retryable, `0` running, `12` catalog versions, and `0` catalog entity reads. Queue freshness and entity-read coverage remain pilot gates. |
 | Supabase production schema | Additive pilot migration applied | `trackmcp_catalog_entity_reads` was missing in production; the reviewed additive migration was applied, then verified present with RLS enabled and anon/authenticated `SELECT` denied |
 
 ### Progress calculation
@@ -44,8 +44,14 @@ Current estimate: **6/10 gates complete (60%)**. The deployed application path a
 - The apparent hour-long `sleep` was bounded polling/waiting on remote GitHub/App Runner workflow state; no uncontrolled local process is intentionally sleeping now.
 - PR #111 (deferred cancellation) and PR #112 (timeout-tolerant worker scheduler) are merged and deployed.
 - Run `39467045273` exposed the next concrete blocker: App Runner returned 502/503 upstream connection failures after the first batch timeout. The workflow recorded the failure correctly; it did not silently claim success.
+- Fresh deployment run `39470996281` succeeded after the stale deployment waiter was cancelled. Worker run `39472093696` then completed four bounded batches with `0` failed, `0` retryable, and `0` transport errors.
+- PR #114 (`9f727ba`) fixed the production adapter defect that converted deferred deadline work into retryable rows. Postflight after the corrected deployment showed `243` queued, `0` retryable, `0` running, `12` catalog versions, and `0` catalog entity reads.
+- Production telemetry coverage audit observed live MCP lifecycle/catalog/outcome signals: `initialize` 19,453; `notifications/initialized` 19,445; `resources/list` 4,933; `resources/templates/list` 3,869; `prompts/list` 3,405; `tools/call` 1,567; workflow 150; and explicit `completion/complete` 8. These counts support Tab 3–5 evidence but do not by themselves prove business outcomes or entity-read coverage.
+- Reliability audit observed `tools/call` 1,568 events with 139 `is_error` rows and p95 duration 31,514.5 ms; `completion/complete` has 8 rows, all marked error. This is a real Tab 6/Outcome risk that must be surfaced in the dashboard and investigated before a 100-customer claim; it is not smoothed away by aggregate success counts.
+- Error classes are now classified from production metadata-only rows: `MESSAGE_TOO_LONG` 24, `DECISION_NOT_READY` 19, `FEATURE_NOT_AVAILABLE` 14, `CALLABLE_HTTP_ERROR` 11, `INVALID_FIELD` 8, `protocol_error` 8, `PERSONAS_NOT_READY` 7, and `INTERNAL_ERROR` 6. Payloads were not queried or recorded.
+- Production actionability postflight observed one open `trackmcp_action_queue` item and 42 firing alert incidents: 2 `p95_latency_regression` incidents are `critical`/`sufficient`, while 40 are explicitly `insufficient_data`. This verifies that Tab 6 has live action and uncertainty states rather than only static charts.
 - No raw credentials or payloads were written to this ledger. User-owned `docs/codex-handoff/`, `tmp/`, and `trackmcp-nextjs/AGENTS.md` remain untouched and unstaged.
-- Next engineering action: restore/verify App Runner worker availability, rerun the bounded worker, then re-run production queue/postflight evidence before treating refresh freshness as pilot-ready.
+- Next engineering action: surface and investigate the observed reliability/error evidence in Tabs 5–6, close entity-read coverage and privacy/retention production gates, then produce the final pilot release record.
 
 ## Completed evidence
 
