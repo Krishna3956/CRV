@@ -6,7 +6,10 @@ const workflow = await readFile(new URL("../../.github/workflows/deploy.yml", im
 
 test("App Runner deployment performs a redacted read-only smoke after RUNNING", () => {
   assert.match(workflow, /actions\/setup-node@v4/);
+  assert.match(workflow, /actions\/setup-python@v5/);
   assert.match(workflow, /Install production-smoke dependencies/);
+  assert.match(workflow, /Install Python package build dependency/);
+  assert.match(workflow, /python3 -m pip install build/);
   assert.match(workflow, /Run release gate before deployment/);
   assert.match(workflow, /npm run test:release-gate/);
   assert.match(workflow, /Verify deployment tag resolves to the candidate image/);
