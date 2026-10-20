@@ -32,6 +32,33 @@ function retryable(error: unknown) {
   return { outcome: "retryable" as const, error_code: "handler_failure", detail: message.slice(0, 200) };
 }
 
+function uuid(value: unknown): value is string {
+  return typeof value === "string" && /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value);
+}
+
+async function ensureCatalogServerRegistryRows(admin: RefreshAdmin, workspaceId: string, serverIds: readonly unknown[]) {
+  const existing = await admin.from("trackmcp_servers").select("id").eq("workspace_id", workspaceId).limit(MAX_ROWS);
+  if (existing.error) return { error: existing.error, owned: new Set<string>() };
+  const owned = new Set((existing.data || []).map((row) => (row && typeof row === "object" ? (row as { id?: unknown }).id : null)).filter(uuid));
+  const candidates = [...new Set(serverIds.filter(uuid))].filter((serverId) => !owned.has(serverId));
+  if (candidates.length) {
+    const inserted = await admin.from("trackmcp_servers").upsert(candidates.map((serverId) => ({
+      id: serverId,
+      workspace_id: workspaceId,
+      name: `MCP server ${serverId.slice(0, 8)}`,
+      slug: `server-${serverId}`,
+    })), { onConflict: "id", ignoreDuplicates: true });
+    if (inserted.error) return { error: inserted.error, owned };
+    const refreshed = await admin.from("trackmcp_servers").select("id").eq("workspace_id", workspaceId).limit(MAX_ROWS);
+    if (refreshed.error) return { error: refreshed.error, owned };
+    for (const row of refreshed.data || []) {
+      const id = row && typeof row === "object" ? (row as { id?: unknown }).id : null;
+      if (uuid(id)) owned.add(id);
+    }
+  }
+  return { error: null, owned };
+}
+
 function factsFromRows(rows: unknown[]): TrackMCPFact[] {
   return rows.filter((row): row is CanonicalTrackMCPEvent => Boolean(row && typeof row === "object" && typeof (row as { event_id?: unknown }).event_id === "string"))
     .map((row) => projectTrackMCPFact(row));
@@ -75,9 +102,12 @@ export function createRefreshJobHandlers(admin: RefreshAdmin, options: RefreshHa
         const result = await admin.from("trackmcp_events").select("server_id,environment_id,session_id,protocol_version,catalog_kind,catalog_item_count,catalog_item_name_hashes,catalog_item_uri_hashes,started_at").eq("workspace_id", job.workspace_id).order("started_at", { ascending: false }).limit(MAX_ROWS);
         if (result.error) return retryable(result.error);
         const observations = (result.data || []) as CatalogObservationRow[];
+        const registry = await ensureCatalogServerRegistryRows(admin, job.workspace_id, observations.map((observation) => observation.server_id));
+        if (registry.error) return retryable(registry.error);
+        const ownedObservations = observations.filter((observation) => registry.owned.has(observation.server_id || ""));
         const existing = await admin.from("trackmcp_catalog_versions").select("id,server_id,environment_id,catalog_kind,item_count,item_name_hashes,item_uri_hashes,snapshot_hash,complete,truncated,discovered_at").eq("workspace_id", job.workspace_id).order("discovered_at", { ascending: false }).limit(MAX_ROWS);
         if (existing.error) return retryable(existing.error);
-        const writes = buildCatalogVersionWrites(job.workspace_id, observations, (existing.data || []) as ExistingCatalogVersion[]);
+        const writes = buildCatalogVersionWrites(job.workspace_id, ownedObservations, (existing.data || []) as ExistingCatalogVersion[]);
         if (!writes.length) return { outcome: "succeeded" as const };
         const persisted = await admin.from("trackmcp_catalog_versions").upsert(writes, { onConflict: "workspace_id,server_id,environment_id,catalog_kind,snapshot_hash", ignoreDuplicates: true });
         return persisted.error ? retryable(persisted.error) : { outcome: "succeeded" as const };

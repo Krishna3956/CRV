@@ -15,7 +15,11 @@ function fakeAdmin(eventRows: unknown[] = [], semanticRows: unknown[] = []) {
   const writes: Array<{ table: string; rows: unknown[]; onConflict?: string }> = [];
   const admin = {
     from(table: string) {
-      const rows = table === "trackmcp_events" ? eventRows : semanticRows;
+      const rows = table === "trackmcp_events"
+        ? eventRows
+        : table === "trackmcp_servers"
+          ? eventRows.map((row) => ({ id: row && typeof row === "object" ? (row as { server_id?: unknown }).server_id : null }))
+          : semanticRows;
       const query = {
         select() { return query; },
         eq() { return query; },
