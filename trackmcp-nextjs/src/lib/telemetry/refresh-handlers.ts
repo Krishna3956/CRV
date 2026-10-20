@@ -11,9 +11,42 @@ const MAX_ROWS = 500;
 const EVENT_COLUMNS = "event_id,event_type,service,environment,started_at,client_name,client_version,transport,account_key,account_identity_source,tool_name,duration_ms,payload_size_bytes,retry_number,result_type,interaction_id,input_request_count,input_response_count,resource_audience,resource_priority,is_error,success,error_class,error_code";
 
 type QueryResult<T> = { data: T[] | null; error: { code?: string; message: string } | null };
-type Query = { select(columns: string): Query; eq(column: string, value: string): Query; order(column: string, options: { ascending: boolean }): Query; limit(value: number): PromiseLike<QueryResult<unknown>> };
+type Query = {
+  select(columns: string): Query;
+  eq(column: string, value: string): Query;
+  gte?(column: string, value: string): Query;
+  lt?(column: string, value: string): Query;
+  order(column: string, options: { ascending: boolean }): Query;
+  limit(value: number): PromiseLike<QueryResult<unknown>>;
+};
 type RefreshAdmin = { from(table: string): Query & { upsert(rows: unknown[], options: { onConflict: string; ignoreDuplicates: boolean }): PromiseLike<{ error: { code?: string; message: string } | null }> } };
 type RefreshHandlerOptions = { taskTransitionsEnabled?: boolean };
+
+const REFRESH_WINDOW_MS = 15 * 60 * 1000;
+
+/**
+ * Ingest-created jobs carry their 15-minute source window in the dedupe key.
+ * Restricting projection reads to that window avoids rescanning the newest 500
+ * events for every job. Legacy/manual jobs keep the bounded latest-500 query.
+ */
+function jobWindow(job: { dedupe_key: string }): { start: string; end: string } | null {
+  const match = /^ingest-window:(\d+):[a-f0-9]{64}:[a-z_]+$/i.exec(job.dedupe_key);
+  if (!match) return null;
+  const window = Number(match[1]);
+  if (!Number.isSafeInteger(window) || window < 0) return null;
+  const start = new Date(window * REFRESH_WINDOW_MS);
+  const end = new Date((window + 1) * REFRESH_WINDOW_MS);
+  if (!Number.isFinite(start.getTime()) || !Number.isFinite(end.getTime())) return null;
+  return { start: start.toISOString(), end: end.toISOString() };
+}
+
+function applyJobWindow(query: Query, job: { dedupe_key: string }, column: string): Query {
+  const range = jobWindow(job);
+  const gte = query.gte;
+  const lt = query.lt;
+  if (!range || typeof gte !== "function" || typeof lt !== "function") return query;
+  return lt.call(gte.call(query, column, range.start), column, range.end);
+}
 
 function retryable(error: unknown) {
   const message = error instanceof Error
@@ -70,7 +103,8 @@ export function createRefreshJobHandlers(admin: RefreshAdmin, options: RefreshHa
     async fact_projection({ job, signal }) {
       if (signal?.aborted) return { outcome: "deferred", detail: "worker deadline deferred this job" };
       try {
-        const result = await admin.from("trackmcp_events").select(EVENT_COLUMNS).eq("workspace_id", job.workspace_id).order("started_at", { ascending: false }).limit(MAX_ROWS);
+        const query = applyJobWindow(admin.from("trackmcp_events").select(EVENT_COLUMNS).eq("workspace_id", job.workspace_id), job, "started_at");
+        const result = await query.order("started_at", { ascending: false }).limit(MAX_ROWS);
         if (result.error) return retryable(result.error);
         const facts = factsFromRows(result.data || []);
         const persisted = await persistTrackMCPFacts(admin as never, job.workspace_id, facts);
@@ -99,7 +133,8 @@ export function createRefreshJobHandlers(admin: RefreshAdmin, options: RefreshHa
     async catalog_recompute({ job, signal }) {
       if (signal?.aborted) return { outcome: "deferred", detail: "worker deadline deferred this job" };
       try {
-        const result = await admin.from("trackmcp_events").select("server_id,environment_id,session_id,protocol_version,catalog_kind,catalog_item_count,catalog_item_name_hashes,catalog_item_uri_hashes,started_at").eq("workspace_id", job.workspace_id).order("started_at", { ascending: false }).limit(MAX_ROWS);
+        const query = applyJobWindow(admin.from("trackmcp_events").select("server_id,environment_id,session_id,protocol_version,catalog_kind,catalog_item_count,catalog_item_name_hashes,catalog_item_uri_hashes,started_at").eq("workspace_id", job.workspace_id), job, "started_at");
+        const result = await query.order("started_at", { ascending: false }).limit(MAX_ROWS);
         if (result.error) return retryable(result.error);
         const observations = (result.data || []) as CatalogObservationRow[];
         const registry = await ensureCatalogServerRegistryRows(admin, job.workspace_id, observations.map((observation) => observation.server_id));
@@ -118,7 +153,8 @@ export function createRefreshJobHandlers(admin: RefreshAdmin, options: RefreshHa
     async catalog_entity_recompute({ job, signal }) {
       if (signal?.aborted) return { outcome: "deferred", detail: "worker deadline deferred this job" };
       try {
-        const result = await admin.from("trackmcp_events").select("event_id,server_id,environment,catalog_kind,catalog_item_name_hashes,catalog_item_uri_hashes,mcp_method,started_at,success,is_error,result_type").eq("workspace_id", job.workspace_id).order("started_at", { ascending: false }).limit(MAX_ROWS);
+        const query = applyJobWindow(admin.from("trackmcp_events").select("event_id,server_id,environment,catalog_kind,catalog_item_name_hashes,catalog_item_uri_hashes,mcp_method,started_at,success,is_error,result_type").eq("workspace_id", job.workspace_id), job, "started_at");
+        const result = await query.order("started_at", { ascending: false }).limit(MAX_ROWS);
         if (result.error) return retryable(result.error);
         const writes = buildCatalogEntityReadWrites(job.workspace_id, (result.data || []) as CatalogObservationRow[]);
         if (!writes.length) return { outcome: "succeeded" as const };

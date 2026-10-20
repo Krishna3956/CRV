@@ -11,7 +11,7 @@ const baseJob = (kind: "fact_projection" | "action_queue_refresh") => {
   return result.job;
 };
 
-function fakeAdmin(eventRows: unknown[] = [], semanticRows: unknown[] = []) {
+function fakeAdmin(eventRows: unknown[] = [], semanticRows: unknown[] = [], queryLog: string[] = []) {
   const writes: Array<{ table: string; rows: unknown[]; onConflict?: string }> = [];
   const admin = {
     from(table: string) {
@@ -23,6 +23,8 @@ function fakeAdmin(eventRows: unknown[] = [], semanticRows: unknown[] = []) {
       const query = {
         select() { return query; },
         eq() { return query; },
+        gte(column: string, value: string) { queryLog.push(`gte:${table}:${column}:${value}`); return query; },
+        lt(column: string, value: string) { queryLog.push(`lt:${table}:${column}:${value}`); return query; },
         order() { return query; },
         limit: async () => ({ data: rows, error: null }),
         upsert: async (values: unknown[], options?: { onConflict?: string }) => { writes.push({ table, rows: values, onConflict: options?.onConflict }); return { error: null }; },
@@ -32,6 +34,23 @@ function fakeAdmin(eventRows: unknown[] = [], semanticRows: unknown[] = []) {
   };
   return { admin, writes };
 }
+
+test("windowed ingest jobs restrict event projections to their source window", async () => {
+  const queryLog: string[] = [];
+  const { admin } = fakeAdmin([], [], queryLog);
+  const result = createRefreshJob({
+    id: "windowed-job",
+    workspace_id: workspace,
+    kind: "catalog_recompute",
+    dedupe_key: `ingest-window:1965696:${"a".repeat(64)}:catalog_recompute`,
+    now: new Date("2026-01-01T00:00:00.000Z"),
+  });
+  assert.equal(result.ok, true);
+  if (!result.ok) return;
+  await createRefreshJobHandlers(admin as never).catalog_recompute?.({ job: result.job, now: new Date() });
+  assert.equal(queryLog.filter((entry) => entry.startsWith("gte:trackmcp_events:started_at:")).length, 1);
+  assert.equal(queryLog.filter((entry) => entry.startsWith("lt:trackmcp_events:started_at:")).length, 1);
+});
 
 test("fact projection selects bounded metadata and persists semantic facts", async () => {
   const { admin, writes } = fakeAdmin([{ event_id: "evt-1", event_type: "tool_call", service: "demo", environment: "prod", started_at: "2026-01-01T00:00:00.000Z", success: true, is_error: false, tool_name: "search", transport: "stdio" }]);
