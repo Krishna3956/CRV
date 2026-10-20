@@ -39,8 +39,11 @@ test("SDK docs explain boundary, privacy defaults, workflow semantics, and fail-
   const typescript = await source("packages/typescript-sdk/README.md");
   const python = await source("../packages/python-sdk/README.md");
   const typescriptWeb = await source("src/app/docs/typescript/page.tsx");
+  const reference = await source("src/app/docs/reference/page.tsx");
   assert.match(typescriptWeb, /bounded server-side tool, session, result, and client observations/);
   assert.doesNotMatch(typescriptWeb, /every call,?\s*result,?\s*and client is captured automatically/i);
+  assert.match(reference, /supported tool calls observed at the configured server boundary/);
+  assert.doesNotMatch(reference, /On every tool call, the wrapper records/i);
   for (const docs of [typescript, python]) {
     assert.match(docs, /server boundary/i);
     assert.match(docs, /redact/i);
@@ -68,6 +71,8 @@ test("public website labels sample visuals and qualifies unsupported roadmap cla
   assert.match(pages[3], /Example data/);
   assert.match(pages[4], /Planned/);
   assert.match(pages[5], /Planned/);
+  assert.match(pages[4], /Observed calls, ranked and trended/);
+  assert.doesNotMatch(pages[4], /Every call, ranked and trended/);
 });
 
 test("onboarding and quickstart make privacy and boundary behavior discoverable", async () => {
