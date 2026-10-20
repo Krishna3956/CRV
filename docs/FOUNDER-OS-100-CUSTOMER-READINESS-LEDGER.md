@@ -1,6 +1,6 @@
 # Founder OS 100 Customer Readiness Ledger
 
-Last updated: 2026-10-20 (latest evidence pass; deferred-outcome recovery verified)
+Last updated: 2026-10-21 (PR #119 CI status checked; no blind local wait active)
 Owner: Codex engineering execution
 Pilot target: 100 customers
 
@@ -40,6 +40,13 @@ The readiness percentage is based on 10 gates, not lines of code:
 Current estimate: **6/10 gates complete (60%)**. The deployed application path and bounded load evidence are healthy, but the readiness claim is deliberately reduced until the refresh worker is stable again and Tabs 3–6, production privacy/retention evidence, and pilot operations are closed. Tab 1/2 code is deployed; their final production-data assertions remain open.
 
 ## Latest checkpoint — 2026-10-20
+
+### 2026-10-21 status check
+
+- The previous apparent hour-long `sleep` was bounded polling of remote GitHub/App Runner state, not an uncontrolled local process. Current work is active and uses short, inspectable API calls.
+- PR #119 (`docs: record authenticated dashboard runtime evidence`) remains open and mergeable. Its GitHub CI checks are passing or still completing; the Vercel status is failing because the provider reports a deployment rate limit (`retry in 24 hours`), not because of an application test failure.
+- The latest deployed main release remains healthy: App Runner deployment run `39474489090` passed production smoke. This does not make the pilot gate complete because entity-read coverage, production privacy lifecycle execution, and Tabs 3–6 feature-level assertions remain open.
+- Current readiness remains **6/10 gates (60%)**. A credible pilot-ready estimate is not a clock-time promise until the remaining production evidence is closed; the fastest path is several focused engineering/verification passes, not waiting on the current Vercel rate limit.
 
 - The apparent hour-long `sleep` was bounded polling/waiting on remote GitHub/App Runner workflow state; no uncontrolled local process is intentionally sleeping now.
 - PR #111 (deferred cancellation) and PR #112 (timeout-tolerant worker scheduler) are merged and deployed.
