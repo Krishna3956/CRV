@@ -104,7 +104,7 @@ export function createRefreshJobHandlers(admin: RefreshAdmin, options: RefreshHa
         const observations = (result.data || []) as CatalogObservationRow[];
         const registry = await ensureCatalogServerRegistryRows(admin, job.workspace_id, observations.map((observation) => observation.server_id));
         if (registry.error) return retryable(registry.error);
-        const ownedObservations = observations.filter((observation) => registry.owned.has(observation.server_id || ""));
+        const ownedObservations = observations.filter((observation) => registry.owned.has(typeof observation.server_id === "string" ? observation.server_id : ""));
         const existing = await admin.from("trackmcp_catalog_versions").select("id,server_id,environment_id,catalog_kind,item_count,item_name_hashes,item_uri_hashes,snapshot_hash,complete,truncated,discovered_at").eq("workspace_id", job.workspace_id).order("discovered_at", { ascending: false }).limit(MAX_ROWS);
         if (existing.error) return retryable(existing.error);
         const writes = buildCatalogVersionWrites(job.workspace_id, ownedObservations, (existing.data || []) as ExistingCatalogVersion[]);
