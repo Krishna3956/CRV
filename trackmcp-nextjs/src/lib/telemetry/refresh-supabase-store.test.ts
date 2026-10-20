@@ -31,3 +31,25 @@ test("Supabase refresh adapter calls only the lease-fenced RPC contract", async 
     { name: "trackmcp_record_refresh_job_result", args: { p_id: "job-1", p_owner: "worker-a", p_outcome: "succeeded", p_error_code: null, p_error_detail: null } },
   ]);
 });
+
+test("Supabase refresh adapter preserves deferred deadline work as deferred", async () => {
+  const calls: Array<{ name: string; args: Record<string, unknown> }> = [];
+  const store = createSupabaseRefreshJobStore({
+    async rpc(name, args) {
+      calls.push({ name, args });
+      return { data: [fixture], error: null };
+    },
+  });
+  await store.saveResult({
+    previous: fixture,
+    next: {
+      ...fixture,
+      state: "queued",
+      lease_owner: null,
+      lease_until: null,
+      last_error_code: null,
+      last_error_detail: "worker deadline deferred this job",
+    },
+  });
+  assert.equal(calls[0]?.args.p_outcome, "deferred");
+});
