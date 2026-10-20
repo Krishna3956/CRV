@@ -92,6 +92,23 @@ async function expect(path, expected, options, label = path, { securityHeaders =
   return { label, status: response.status };
 }
 
+// Public copy is part of the pilot's safety boundary. Verify the deployed
+// document has the bounded wording, but retain only booleans in the report—
+// never a page body or a customer-facing page snapshot.
+async function expectPublicClaim(path, requiredText, prohibitedText, label) {
+  const response = await fetch(endpoint(path), {
+    redirect: "manual",
+    signal: AbortSignal.timeout(15_000),
+    headers: { accept: "text/html" },
+  });
+  if (response.status !== 200) fail(`${label}: expected HTTP 200, received HTTP ${response.status}`);
+  assertSecurityHeaders(response.headers, label);
+  const text = (await response.text()).replace(/\s+/g, " ");
+  if (!text.includes(requiredText)) fail(`${label}: required bounded claim was not rendered`);
+  if (prohibitedText && text.includes(prohibitedText)) fail(`${label}: prohibited overclaim was rendered`);
+  return { label, status: response.status, bounded_claim_present: true, prohibited_overclaim_absent: true };
+}
+
 async function expectToolSitemap() {
   const response = await fetch(endpoint("/tool-sitemap.xml"), {
     redirect: "manual",
@@ -163,6 +180,18 @@ async function main() {
   for (const path of ["/", "/docs", "/docs/typescript", "/docs/python", "/device", "/support", "/sitemap.xml", "/tool-sitemap.xml"]) {
     checks.push(await expect(path, 200, undefined, `browser ${path}`, { securityHeaders: true }));
   }
+  checks.push(await expectPublicClaim(
+    "/features",
+    "Observed calls, ranked and trended",
+    "Every call, ranked and trended",
+    "public feature-claim boundary",
+  ));
+  checks.push(await expectPublicClaim(
+    "/docs/reference",
+    "supported tool calls observed at the configured server boundary",
+    "On every tool call, the wrapper records",
+    "public reference-claim boundary",
+  ));
   checks.push(await expectToolSitemap());
   checks.push(...await registryChecks());
 

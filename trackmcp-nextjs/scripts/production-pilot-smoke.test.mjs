@@ -31,6 +31,10 @@ test("production pilot smoke records redacted evidence and covers pilot endpoint
   assert.match(source, /wheel_sha256_present/);
   assert.match(source, /expectToolSitemap/);
   assert.match(source, /first_shard_has_urls/);
+  assert.match(source, /expectPublicClaim/);
+  assert.match(source, /Observed calls, ranked and trended/);
+  assert.match(source, /Every call, ranked and trended/);
+  assert.match(source, /configured server boundary/);
 });
 
 test("production pilot smoke verifies security headers and protected API boundaries", () => {
