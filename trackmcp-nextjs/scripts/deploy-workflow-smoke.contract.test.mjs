@@ -26,6 +26,9 @@ test("App Runner deployment performs a redacted read-only smoke after RUNNING", 
   assert.match(workflow, /SUCCEEDED/);
   assert.match(workflow, /ROLLBACK_FAILED/);
   assert.match(workflow, /Run read-only production smoke/);
+  assert.match(workflow, /SERVICE_HOST=\$\(aws apprunner describe-service[\s\S]*Service\.ServiceUrl/);
+  assert.match(workflow, /ORIGIN=\"https:\/\/\$\{SERVICE_HOST\}\"/);
+  assert.match(workflow, /valid service hostname/);
   assert.match(workflow, /TRACKMCP_PRODUCTION_SMOKE_CONFIRM=I_UNDERSTAND_PRODUCTION_SMOKE/);
   assert.match(workflow, /TRACKMCP_SMOKE_CANDIDATE_SHA="\$GITHUB_SHA"/);
   assert.match(workflow, /npm run smoke:production-pilot/);
