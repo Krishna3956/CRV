@@ -112,7 +112,10 @@ jobs:
             --service-arn "$SERVICE_ARN" \
             --region "$AWS_REGION" \
             --query OperationId --output text)
-          if [[ ! "$OP_ID" =~ ^[0-9a-fA-F-]{36}$ ]]; then
+          # App Runner operation IDs are opaque service identifiers (and are
+          # not guaranteed to be UUIDs). Keep the validation bounded without
+          # rejecting a valid provider-generated format.
+          if [[ "$OP_ID" == "None" || ! "$OP_ID" =~ ^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$ ]]; then
             echo "::error::App Runner did not return a valid deployment operation ID."
             exit 1
           fi

@@ -19,6 +19,7 @@ test("App Runner deployment performs a redacted read-only smoke after RUNNING", 
   assert.match(workflow, /TRACKMCP_DEPLOYED_IMAGE_DIGEST/);
   assert.match(workflow, /TRACKMCP_SMOKE_IMAGE_DIGEST/);
   assert.match(workflow, /TRACKMCP_DEPLOYMENT_OPERATION_ID=\$OP_ID/);
+  assert.match(workflow, /App Runner operation IDs are opaque service identifiers/);
   assert.match(workflow, /TRACKMCP_DEPLOYMENT_OPERATION_ID/);
   assert.match(workflow, /list-operations/);
   assert.match(workflow, /OperationSummaryList\[\?Id=='\$TRACKMCP_DEPLOYMENT_OPERATION_ID'\]\.Status/);
