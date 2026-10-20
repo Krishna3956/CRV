@@ -14,7 +14,7 @@ concurrency:
   # Push and pull_request events for the same commit must share one group;
   # using the PR number for one event and the branch ref for the other starts
   # duplicate release gates and starves the runner pool.
-  group: trackmcp-ci-${{ github.workflow }}-${{ github.sha }}
+  group: trackmcp-ci-${{ github.workflow }}-${{ github.event.pull_request.head.sha || github.sha }}
   cancel-in-progress: true
 
 jobs:
