@@ -7,6 +7,7 @@ const migration = await readFile(resolve(process.cwd(), "../supabase/migrations/
 const postflight = await readFile(resolve(process.cwd(), "../supabase/manual/founder-os-refresh-jobs-postflight.sql"), "utf8");
 const workerMigration = await readFile(resolve(process.cwd(), "../supabase/migrations/20261018000010_refresh_job_worker_rpc.sql"), "utf8");
 const workerPostflight = await readFile(resolve(process.cwd(), "../supabase/manual/founder-os-refresh-worker-rpc-postflight.sql"), "utf8");
+const retryPriorityMigration = await readFile(resolve(process.cwd(), "../supabase/migrations/20261020000011_prioritize_due_refresh_retries.sql"), "utf8");
 
 test("refresh-job migration is additive, bounded, and worker-only", () => {
   assert.match(migration, /create table if not exists public\.trackmcp_refresh_jobs/);
@@ -36,4 +37,12 @@ test("worker RPC migration is service-role-only and lease-fenced", () => {
   assert.doesNotMatch(workerMigration, /delete from|truncate /i);
   assert.match(workerPostflight, /has_function_privilege/);
   assert.doesNotMatch(workerPostflight, /insert into|update |delete from|truncate /i);
+});
+
+test("retry-priority migration prevents due retries from starving", () => {
+  assert.match(retryPriorityMigration, /create or replace function public\.trackmcp_claim_refresh_job/);
+  assert.match(retryPriorityMigration, /state = 'retryable' then 0 else 1/);
+  assert.match(retryPriorityMigration, /for update skip locked/);
+  assert.match(retryPriorityMigration, /grant execute on function public\.trackmcp_claim_refresh_job\(text, integer\) to service_role/);
+  assert.doesNotMatch(retryPriorityMigration, /delete from|truncate |drop table/i);
 });
