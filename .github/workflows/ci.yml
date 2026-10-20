@@ -7,6 +7,10 @@ on:
 jobs:
   web-and-javascript:
     runs-on: ubuntu-latest
+    # The full release gate, build, and packed-consumer tests are intentionally
+    # comprehensive. Bound the runner so a hung dependency or test fails
+    # visibly instead of leaving a candidate indefinitely indeterminate.
+    timeout-minutes: 30
     env:
       # Keep the sequential release gate below the hosted runner's memory
       # ceiling. Individual package tests are bounded and do not need the
@@ -68,6 +72,7 @@ jobs:
 
   go:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     defaults:
       run:
         working-directory: trackmcp-nextjs/packages/go-sdk
@@ -81,6 +86,7 @@ jobs:
 
   dotnet:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     defaults:
       run:
         working-directory: trackmcp-nextjs/packages/dotnet-sdk
