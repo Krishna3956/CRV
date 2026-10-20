@@ -13,7 +13,7 @@ This ledger is the operational source of truth for the autonomous readiness goal
 | Founder OS specification audit | In progress | PDF/DOCX requirements extracted; tab/data contract reconciliation continues; MCP tester and authenticated production smoke now cover the bounded resource-template/read-model contract |
 | Tab 1 — Who's using it | Implemented and deployed | Live and example read models, privacy caveats, account-unavailable state; production route/security smoke passed |
 | Tab 2 — What they're doing | Implemented and deployed | Leaderboard, adoption, trend, reliability, detail, descriptions; production route/security smoke passed |
-| Tabs 3–6 | Existing foundation; runtime evidence pending | Resources & prompts durable hash-only projection is now present in production with RLS verified; journey, outcomes, and reliability still need authenticated telemetry evidence |
+| Tabs 3–6 | Authenticated read-model routes verified; feature-level evidence pending | Two-workspace live smoke passed all read models; Resources & Prompts durable projection is present with RLS verified; dashboard-level session rendering and richer production telemetry remain open |
 | Example/live data parity | Merged and deployed | PR #57 merged; all Founder OS read models now have bounded example fixtures |
 | Privacy and tenant isolation | Verified locally | Privacy review, tenant isolation, security headers, accessibility contracts pass |
 | CI/CD deployment | Verified | PRs #58–#61 repaired the release gate, ECR digest verification, opaque App Runner IDs, and hostname normalization; PRs #64–#65 added and rendered safe MCP resource-template discovery; PR #67 routes scheduled cleanup through App Runner using AWS OIDC; PR #69 adds authenticated Founder OS read-model smoke coverage |
@@ -73,6 +73,7 @@ Current estimate: **6/10 gates complete (60%)**. The deployed path is healthy th
 - PR #69 merged as `e488fde`: authenticated two-workspace smoke now exercises every Founder OS v2 read model and verifies the authenticated workspace envelope without recording secrets or workspace IDs.
 - Production Supabase postflight on 2026-10-20 found `trackmcp_catalog_entity_reads` absent; the reviewed additive hash-only migration was applied through the authenticated SQL editor. A follow-up query verified `relrowsecurity = true`, `anon_select = false`, and `authenticated_select = false`; the table currently contains zero rows.
 - Rate-limit cleanup workflow dispatch run #2 (`39401612958`) passed on main `fb0d7fc` in 16 seconds after the App Runner/OIDC fix; the previous Cloudflare-challenge failure remains retained as historical evidence.
+- Live authenticated two-workspace smoke passed on the direct App Runner origin after main `6bc0423`: 28 redacted checks, two metadata-only ingests accepted, every Founder OS v2 read model returned the authenticated workspace envelope, conflicting workspace parameters were ignored, and API-key Action Queue access correctly returned `403`. Disposable workspaces were removed and a service-role count confirmed zero remaining `Codex pilot smoke` workspaces.
 - The first scheduled cleanup run (#1) failed at the Cloudflare edge with an HTML 403 challenge; the fix is merged and deployed. A subsequent scheduled execution remains an operational follow-up rather than a guessed success.
 
 ## In progress
@@ -105,7 +106,7 @@ Current estimate: **6/10 gates complete (60%)**. The deployed path is healthy th
 - [ ] Complete Tab 6 Reliability parity, incident clustering, silent-failure estimates, data trust, and action queue.
 - [ ] Run deployment-class load/failure/recovery tests; fixture-only evidence is insufficient.
 - [ ] Verify Supabase refresh worker, queue lag, retry/dead-letter behavior, rate-limit persistence, and retention dry-run evidence.
-- [ ] Execute the new authenticated two-workspace Founder OS read-model smoke against production with disposable keys; schema availability alone does not prove live data correctness.
+- [x] Execute the authenticated two-workspace Founder OS read-model smoke against production with disposable keys; schema availability and live route behavior are now evidenced, while dashboard human-session rendering remains a separate gate.
 - [ ] Verify CLI activation, key revocation, cross-workspace authorization, export, privacy review, and deletion-request boundaries.
 - [ ] Reconcile public website/docs claims with shipped behavior and canonical URLs.
 - [ ] Produce the final 100-customer pilot release record with known limitations and rollback instructions.
