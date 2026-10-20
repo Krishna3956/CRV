@@ -17,7 +17,7 @@ This ledger is the operational source of truth for the autonomous readiness goal
 | Example/live data parity | Merged and deployed | PR #57 merged; all Founder OS read models now have bounded example fixtures |
 | Privacy and tenant isolation | Verified locally | Privacy review, tenant isolation, security headers, accessibility contracts pass |
 | CI/CD deployment | Verified | PRs #58–#61 repaired the release gate, ECR digest verification, opaque App Runner IDs, and hostname normalization; PRs #64–#65 added and rendered safe MCP resource-template discovery; PR #67 routes scheduled cleanup through App Runner using AWS OIDC; PR #69 adds authenticated Founder OS read-model smoke coverage; PR #80 adds a SHA-only `deploy_ref` path for rollback rehearsal without widening AWS trust to arbitrary branches |
-| Production deployment | Verified for current release | Run #109 deployed current main `259b92e` successfully through App Runner deployment, readiness, HTTPS origin, and read-only production smoke; redacted artifact `production-smoke-259b92ec7ece766fef190fe2e2f7e80abb7775a0` uploaded |
+| Production deployment | Verified for current release | Run #110 deployed current main `cbb9248` successfully through App Runner deployment, readiness, HTTPS origin, and read-only production smoke; redacted artifact `production-smoke-cbb9248c78737fa79bb3d66a8be364b729370c5d` uploaded (GitHub artifact `12264572256`) |
 | Bounded production load | Passed at pilot budget | Direct App Runner run on 2026-10-20: 120 requests at concurrency 8 across 9 authenticated read models plus ingest, 120/120 successful, zero errors/timeouts, tenant isolation passed, p95 2.11s against a 3s pilot budget; two disposable workspaces were deleted and verified absent |
 | Refresh worker | Non-empty job passed | Workflow dispatch run `39405118947` claimed one disposable `catalog_entity_recompute` job and recorded `succeeded` on attempt 1 with no error; the workspace was deleted and verified absent |
 | Supabase production schema | Additive pilot migration applied | `trackmcp_catalog_entity_reads` was missing in production; the reviewed additive migration was applied, then verified present with RLS enabled and anon/authenticated `SELECT` denied |
@@ -37,7 +37,7 @@ The readiness percentage is based on 10 gates, not lines of code:
 9. Production smoke/load/rollback evidence
 10. Pilot operations and documentation
 
-Current estimate: **8/10 gates complete (80%)**. The deployed path is healthy through current main `563aa93`; bounded load, failure/recovery, and rollback rehearsal now have production evidence. Tab-specific live-data assertions, retention-worker evidence, privacy production evidence, and pilot operations remain open.
+Current estimate: **8/10 gates complete (80%)**. The deployed path is healthy through current main `cbb9248`; bounded load, failure/recovery, rollback rehearsal, and the latest production smoke now have evidence. Tab-specific live-data assertions, retention-worker evidence, privacy production evidence, and pilot operations remain open.
 
 ## Completed evidence
 
@@ -85,6 +85,7 @@ Current estimate: **8/10 gates complete (80%)**. The deployed path is healthy th
 - Rollback rehearsal completed through the trusted main workflow: run #106 checked out immutable `554d970fd23316bd7bd48c355379fc295103c647`, built image digest `sha256:d6287e2f8c9793108658096230f6bf82fc6050c8968165c0766fb3381c5e183b`, reached App Runner `RUNNING`, and passed the 27-check read-only production smoke. Run #107 then restored current main `563aa93` and passed the same deployment/readiness/smoke path. The rollback artifact is run #106 artifact `12260732223`; the restore artifact is run #107 artifact `12261367292`.
 - Deployment run #108 for main `d17a122` (PR #82) passed the release workflow, ECR build/push, App Runner readiness, HTTPS origin, and read-only production smoke. The smoke artifact is `production-smoke-d17a12248e2e14e3a6228e8964d75ed77881d17c` (GitHub artifact `12263185269`). The release includes the recursive privacy projection check for authenticated Founder OS read models.
 - Deployment run #109 for main `259b92e` (PR #84) passed the release workflow, ECR build/push, App Runner readiness, HTTPS origin, and read-only production smoke. The smoke artifact is `production-smoke-259b92ec7ece766fef190fe2e2f7e80abb7775a0` (GitHub artifact `12262418541`). The production runner now enables refresh-job enqueueing.
+- Deployment run #110 for main `cbb9248` (PR #86) passed the release workflow, ECR build/push, App Runner readiness, HTTPS origin, and read-only production smoke. The smoke artifact is `production-smoke-cbb9248c78737fa79bb3d66a8be364b729370c5d` (GitHub artifact `12264572256`). The release includes bounded recovery of typed catalog kind/count metadata for legacy catalog methods; this affects newly ingested events and does not backfill historical rows.
 - Post-deployment aggregate-only Supabase verification observed 61,277 raw events, four queued refresh jobs, and 500 semantic facts after the worker run `39420542290` succeeded. The catalog worker completed successfully but wrote zero catalog projections because all 18,054 production `catalog` events lack typed `catalog_kind` and `catalog_item_count` fields; resource/prompt event types were absent. This is a truthful data-coverage limitation, not a projection success claim.
 - The first scheduled cleanup run (#1) failed at the Cloudflare edge with an HTML 403 challenge; the fix is merged and deployed. A subsequent scheduled execution remains an operational follow-up rather than a guessed success.
 
@@ -137,7 +138,7 @@ Current estimate: **8/10 gates complete (80%)**. The deployed path is healthy th
 
 - `codex/founder-os-example-parity-clean`: example/live parity and Tab 1/2 UI fixes.
 - `codex/deploy-release-gate-python-build`: deploy workflow prerequisite hotfix.
-- `main` currently points to merged release `259b92e`; run #109 is the latest fully passing App Runner production smoke for the Founder OS release, after rollback rehearsal run #106 and restore run #107.
+- `main` currently points to merged release `cbb9248`; run #110 is the latest fully passing App Runner production smoke for the Founder OS release, after rollback rehearsal run #106 and restore run #107.
 
 Open pull requests:
 
