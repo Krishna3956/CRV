@@ -9,7 +9,9 @@ on:
 # hosted-runner capacity is not consumed by duplicate work and stale jobs do
 # not obscure the candidate's real result.
 concurrency:
-  group: trackmcp-ci-${{ github.workflow }}-${{ github.ref }}
+  # Pull-request and push events use different refs; key PR runs by number so
+  # the two event types still collapse to one authoritative candidate.
+  group: trackmcp-ci-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
 jobs:
