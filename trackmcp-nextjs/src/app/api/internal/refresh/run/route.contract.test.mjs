@@ -25,7 +25,7 @@ test("refresh trigger is secret-authenticated, bounded, and uses the lease worke
   assert.doesNotMatch(source, /secret:\s*undefined/);
 });
 
-test("scheduled refresh trigger is serialized and retries transient transport failures", () => {
+test("scheduled refresh trigger is serialized and distinguishes bounded timeouts from failures", () => {
   assert.match(workflow, /runs-on: ubuntu-latest\n(?:\s+#.*\n)*\s+timeout-minutes: 5/);
   assert.match(workflow, /concurrency:\s*\n\s+group: founder-os-refresh-worker/);
   assert.match(workflow, /cancel-in-progress: false/);
@@ -34,6 +34,10 @@ test("scheduled refresh trigger is serialized and retries transient transport fa
   assert.match(workflow, /--connect-timeout 5/);
   assert.match(workflow, /--retry-max-time 45/);
   assert.match(workflow, /--max-time 55/);
+  assert.match(workflow, /status=\$\?/);
+  assert.match(workflow, /\[ "\$status" -eq 28 \]/);
+  assert.match(workflow, /client timeout; continuing/);
+  assert.match(workflow, /timed_out=\$timed_out/);
   assert.match(workflow, /for batch in 1 2 3 4/);
   assert.match(workflow, /::error::Refresh worker secrets are not configured/);
   assert.match(workflow, /secrets are not configured[\s\S]*?exit 1/);

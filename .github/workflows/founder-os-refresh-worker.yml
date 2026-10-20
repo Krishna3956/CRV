@@ -57,9 +57,11 @@ jobs:
           # serialized calls let a pilot backlog catch up without allowing
           # overlapping workers or an unbounded request to hold a lease.
           failed=0
+          timed_out=0
           for batch in 1 2 3 4; do
             echo "Running bounded refresh batch $batch/4"
-            if ! curl --fail-with-body --silent --show-error \
+            set +e
+            curl --fail-with-body --silent --show-error \
               --connect-timeout 5 \
               --retry 3 \
               --retry-delay 2 \
@@ -70,9 +72,19 @@ jobs:
               -H "authorization: Bearer $WORKER_SECRET" \
               -H "content-type: application/json" \
               --data '{"max_jobs":100}' \
-              "$WORKER_URL"; then
+              "$WORKER_URL"
+            status=$?
+            set -e
+            if [ "$status" -eq 28 ]; then
+              # The application owns the 45s lease/deadline. A client-side
+              # timeout is an expected incomplete slice, not proof that the
+              # bounded worker failed; the next serialized batch continues.
+              timed_out=1
+              echo "Batch $batch reached the client timeout; continuing with the next bounded slice."
+            elif [ "$status" -ne 0 ]; then
               failed=1
               echo "Batch $batch reported an unhealthy result; continuing to the next bounded batch."
             fi
           done
+          echo "Bounded refresh summary: failed=$failed timed_out=$timed_out"
           exit "$failed"
