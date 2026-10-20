@@ -125,7 +125,7 @@ const fmtObservedAt = (value: string) => {
   return Number.isFinite(parsed) ? new Date(parsed).toLocaleString(undefined, { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" }) : "unknown";
 };
 const percent = (value: number | null) =>
-  value === null ? "N/A" : Math.round(value * 100) + "%";
+  value === null || !Number.isFinite(value) ? "N/A" : Math.round(value * 100) + "%";
 
 const EXAMPLE_SERVER = {
   name: "QuickBooks Finance MCP",

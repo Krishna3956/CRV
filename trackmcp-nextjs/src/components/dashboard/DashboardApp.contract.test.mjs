@@ -478,6 +478,10 @@ test("Issues consumes bounded workspace incidents without adding Alerts navigati
   assert.doesNotMatch(source, /id: "alerts", label: "Alerts"/);
 });
 
+test("Issues never renders non-finite regression percentages as NaN", () => {
+  assert.match(source, /value === null \|\| !Number\.isFinite\(value\) \? "N\/A"/);
+});
+
 test("Example Issues shows illustrative incident lifecycles", () => {
   assert.match(source, /EXAMPLE_ALERT_INCIDENTS: AlertIncident\[\]/);
   assert.match(source, /Illustrative alert lifecycle examples with bounded evidence/);
