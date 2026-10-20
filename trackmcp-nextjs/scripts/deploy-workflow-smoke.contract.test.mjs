@@ -5,7 +5,8 @@ import test from "node:test";
 const workflow = await readFile(new URL("../../.github/workflows/deploy.yml", import.meta.url), "utf8");
 
 test("App Runner deployment performs a redacted read-only smoke after RUNNING", () => {
-  assert.match(workflow, /timeout-minutes: 20/);
+  assert.match(workflow, /timeout-minutes: 35/);
+  assert.match(workflow, /for i in \$\(seq 1 80\)/);
   assert.match(workflow, /timeout 30s aws apprunner start-deployment/);
   assert.match(workflow, /timeout 30s aws apprunner list-operations/);
   assert.match(workflow, /timeout 30s aws apprunner describe-service/);
