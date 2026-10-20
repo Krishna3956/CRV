@@ -1,6 +1,6 @@
 # Founder OS 100 Customer Readiness Ledger
 
-Last updated: 2026-10-21 (PR #132 merged; fresh read-only Supabase entity postflight)
+Last updated: 2026-10-21 (PR #134 merged; deployment and trusted-main worker evidence reconciled)
 Owner: Codex engineering execution
 Pilot target: 100 customers
 
@@ -42,6 +42,9 @@ Current estimate: **6/10 gates complete (60%)**. The deployed application path, 
 ## Latest checkpoint — 2026-10-20
 
 ### 2026-10-21 status check
+
+- PR #134 (`fix: preserve legacy refresh source windows`) merged as `ab87873782ad4e2c35be7ee0590c1505a3ce370f`. The fix preserves the source ingest window for legacy job keys that include a 64-character batch fingerprint; the refresh regression suite is 41/41 passing, and the merged commit passed CI, App Runner deployment `39500357494`, production smoke, and trusted-main worker dispatch `39501400942`.
+- The production dashboard’s protocol cards were reconciled against the analytics handler. `entity_count` is an observed unique count of bounded SHA-256 URI/name hashes from telemetry; `entity_analytics` is a separate durable read projection from `trackmcp_catalog_entity_reads`. A prompt hash appearing with zero durable read rows is therefore an observed prompt entity without a durable prompt-read event, not contradictory data. The UI and API caveats retain this distinction and no raw names, URIs, arguments, or contents are exposed.
 
 - Fresh read-only Supabase postflight confirms the production deferred-result RPC is deployed: `trackmcp_record_refresh_job_result` accepts `deferred`, returns the job to `queued`, clears its lease, and does not manufacture a retryable failure. This validates the timeout-recovery migration at the database function-definition level, not only in source tests.
 - The same fresh postflight observed `0` catalog entity-read rows, `0` privacy requests, `0` privacy deletion batches, `0` retryable refresh jobs, and `0` running refresh jobs. These are boundary/coverage facts, not proof that the corresponding pilot workflows are exercised.
