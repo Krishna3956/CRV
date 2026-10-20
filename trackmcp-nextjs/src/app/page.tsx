@@ -74,9 +74,9 @@ export default function Home() {
 
             <Reveal delay={0.14}>
               <p className="mx-auto mt-5 max-w-[58ch] text-[16px] leading-[1.5] text-muted sm:text-[18px]">
-                Track and analyze who uses your MCP server, what they are trying to
-                do, whether the work gets done, and what to fix next. All from one
-                line of code.
+                Track configured server-boundary observations: which AI clients
+                connect, which tools they use, explicit workflow outcomes, and
+                evidence worth investigating. Start with one integration line.
               </p>
             </Reveal>
 
@@ -245,14 +245,14 @@ export default function Home() {
                   Connect your project in one command
                 </h2>
                 <p className="mt-4 max-w-[46ch] text-[16px] leading-[1.5] text-muted">
-                  Run one setup command. TrackMCP installs the SDK, connects your
-                  workspace, and gets your server ready for the dashboard.
+                  Run one setup command. TrackMCP installs the SDK when needed,
+                  connects your workspace, and guides the server-boundary setup.
                 </p>
                 <ul className="mt-6 flex flex-col gap-3">
                   {[
                     "Works with the official TypeScript and Python SDKs",
                     "No manual event tagging",
-                    "Data shows up in your dashboard in real time",
+                    "Accepted observations appear after processing",
                   ].map((t) => (
                     <li key={t} className="flex items-center gap-3 text-[15px] text-body">
                       <span className="grid h-5 w-5 place-items-center rounded-full bg-mint">
@@ -339,9 +339,9 @@ export default withTrackMCP(server, {
                 What happens after one line of code
               </h2>
               <p className="mx-auto mt-4 max-w-[56ch] text-[16px] leading-[1.5] text-muted">
-                Agents call tools on your MCP server. TrackMCP captures every call,
-                turns it into sessions and outcomes, then writes you the answer in
-                plain English
+                TrackMCP records configured server-boundary observations, groups
+                them into sessions, and reports only explicit outcome evidence in
+                your dashboard.
               </p>
             </Reveal>
             <Reveal y={28} className="relative mx-auto max-w-[720px]">

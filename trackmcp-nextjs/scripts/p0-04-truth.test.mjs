@@ -86,10 +86,20 @@ test("onboarding and quickstart make privacy and boundary behavior discoverable"
 
 test("homepage presents the terminal-first CLI as the primary setup action", async () => {
   const homepage = await source("src/app/page.tsx");
+  const systemStory = await source("src/components/scenes/SystemStoryScene.tsx");
+  const howItWorks = await source("src/components/HowItWorksFlow.tsx");
   const firstSetup = homepage.indexOf("npx @trackmcp/cli init");
   assert.notEqual(firstSetup, -1);
   assert.match(homepage, /CopyButton text="npx @trackmcp\/cli init"/);
   assert.ok(firstSetup < homepage.indexOf("@trackmcp\/sdk"), "the setup command should appear before the SDK implementation example");
+  assert.match(homepage, /configured server-boundary observations/);
+  assert.match(homepage, /Accepted observations appear after processing/);
+  assert.doesNotMatch(homepage, /captures every call|dashboard in real time|Track and analyze who uses your MCP server/i);
+  assert.match(systemStory, /Illustrative flow/);
+  assert.match(systemStory, /configured observations/);
+  assert.match(systemStory, /observes and summarizes/);
+  assert.doesNotMatch(systemStory, /captures every call|captures and synthesizes/);
+  assert.match(howItWorks, /after processing/);
 });
 
 test("release notes describe the CLI activation boundary without claiming browser key handling", async () => {
