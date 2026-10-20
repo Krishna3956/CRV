@@ -16,7 +16,13 @@ type RefreshAdmin = { from(table: string): Query & { upsert(rows: unknown[], opt
 type RefreshHandlerOptions = { taskTransitionsEnabled?: boolean };
 
 function retryable(error: unknown) {
-  const message = error instanceof Error ? error.message : "refresh handler failed";
+  const message = error instanceof Error
+    ? error.message
+    : typeof error === "string"
+      ? error
+      : error && typeof error === "object" && "message" in error
+        ? String((error as { message?: unknown }).message || "refresh handler failed")
+        : "refresh handler failed";
   return { outcome: "retryable" as const, error_code: "handler_failure", detail: message.slice(0, 200) };
 }
 
