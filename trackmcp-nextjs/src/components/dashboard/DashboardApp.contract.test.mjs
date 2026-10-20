@@ -130,6 +130,27 @@ test("data source state is explicit and never silently substituted", () => {
   assert.doesNotMatch(source, /updated just now/);
 });
 
+test("example mode supplies every Founder OS vertical-slice read model", () => {
+  for (const readModel of [
+    "examplePeople",
+    "exampleCapabilityActivity",
+    "exampleResourcePromptActivity",
+    "journey_activity:",
+    "outcome_activity:",
+    "issue_activity:",
+  ]) {
+    assert.match(source, new RegExp(readModel.replace(/[.*+?^${}()|[\\]\\]/g, "\\\\$&")));
+  }
+  assert.match(source, /Unrecognized.*identity_source: "unrecognized"/s);
+  assert.match(source, /resource_reads: scale\(/);
+  assert.match(source, /interaction_count: scale\(/);
+  assert.match(source, /completion_rate: 37 \/ 50/);
+  assert.match(source, /tool\.description &&/);
+  assert.match(source, /Run a bounded finance query/);
+  assert.match(source, /Account activity is unavailable/);
+  assert.match(source, /no example or inferred account data is substituted/);
+});
+
 test("zero-event activation uses page-specific connection states", () => {
   assert.match(source, /Your MCP server has not sent its first event yet\./);
   assert.match(source, /Your MCP server is not connected yet\./);

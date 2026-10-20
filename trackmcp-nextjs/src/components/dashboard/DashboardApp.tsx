@@ -474,6 +474,7 @@ const EXAMPLE_ANALYTICS: Analytics = {
   tools: [
     {
       name: "run_query",
+      description: "Run a bounded finance query against the connected ledger.",
       calls: 412,
       errors: 28,
       error_rate: 0.068,
@@ -485,6 +486,7 @@ const EXAMPLE_ANALYTICS: Analytics = {
     },
     {
       name: "find_invoice",
+      description: "Find an invoice by customer, reference, or date.",
       calls: 318,
       errors: 7,
       error_rate: 0.022,
@@ -496,6 +498,7 @@ const EXAMPLE_ANALYTICS: Analytics = {
     },
     {
       name: "create_report",
+      description: "Create an accounts-receivable summary report.",
       calls: 196,
       errors: 11,
       error_rate: 0.056,
@@ -507,6 +510,7 @@ const EXAMPLE_ANALYTICS: Analytics = {
     },
     {
       name: "export_csv",
+      description: "Export the selected report rows as CSV.",
       calls: 7,
       errors: 0,
       error_rate: 0,
@@ -518,6 +522,7 @@ const EXAMPLE_ANALYTICS: Analytics = {
     },
     {
       name: "get_customer_balance",
+      description: "Retrieve the current balance for a customer account.",
       calls: 236,
       errors: 9,
       error_rate: 0.038,
@@ -529,6 +534,7 @@ const EXAMPLE_ANALYTICS: Analytics = {
     },
     {
       name: "list_accounts",
+      description: "List customer accounts available to the connected user.",
       calls: 124,
       errors: 6,
       error_rate: 0.048,
@@ -697,6 +703,111 @@ const EXAMPLE_QUALITY: ToolQualityResponse = {
 function exampleAnalytics(days: number): Analytics {
   const ratio = days / 30;
   const scale = (value: number) => Math.max(0, Math.round(value * ratio));
+  const scaleGrowth = EXAMPLE_ANALYTICS.who_is_using_it?.growth.map((item) => ({
+    ...item,
+    active_accounts: scale(item.active_accounts),
+  })) || [];
+  const examplePeople: NonNullable<Analytics["who_is_using_it"]> = {
+    active_accounts: scale(18),
+    previous_period_active_accounts: scale(14),
+    new_accounts: scale(7),
+    returning_accounts: scale(11),
+    classification_status: "available",
+    growth: scaleGrowth,
+    client_breakdown: [
+      { name: "Claude", calls: scale(520), share: 520 / 1293, identity_source: "self_reported" },
+      { name: "Cursor", calls: scale(344), share: 344 / 1293, identity_source: "self_reported" },
+      { name: "ChatGPT", calls: scale(210), share: 210 / 1293, identity_source: "self_reported" },
+      { name: "Gemini", calls: scale(130), share: 130 / 1293, identity_source: "self_reported" },
+      { name: "Unrecognized", calls: scale(89), share: 89 / 1293, identity_source: "unrecognized" },
+    ],
+    top_accounts: [
+      { rank: 1, activity_count: scale(184), active_days: Math.min(days, 26), identity_source: "resolver" },
+      { rank: 2, activity_count: scale(143), active_days: Math.min(days, 21), identity_source: "resolver" },
+      { rank: 3, activity_count: scale(118), active_days: Math.min(days, 18), identity_source: "resolver" },
+      { rank: 4, activity_count: scale(96), active_days: Math.min(days, 15), identity_source: "resolver" },
+      { rank: 5, activity_count: scale(74), active_days: Math.min(days, 12), identity_source: "resolver" },
+    ],
+    identity_coverage: 132 / 148,
+    limitation: "Illustrative account activity is resolver-linked and privacy-safe; it is not a count of people or named customers.",
+  };
+  const exampleCapabilityActivity: NonNullable<Analytics["capability_activity"]> = {
+    total_calls: scale(1293),
+    previous_period_calls: scale(1104),
+    overall_error_rate: 61 / 1293,
+    avg_tools_used_per_account: 3.2,
+    advertised_tools: 8,
+    adoption_distribution: [
+      { bucket: "1 tool", accounts: scale(5) },
+      { bucket: "2-3 tools", accounts: scale(7) },
+      { bucket: "4-6 tools", accounts: scale(4) },
+      { bucket: "7+ tools", accounts: scale(2) },
+    ],
+    trend: [
+      { period_start: "2026-08-05", tool_name: "run_query", calls: scale(180) },
+      { period_start: "2026-08-05", tool_name: "find_invoice", calls: scale(120) },
+      { period_start: "2026-08-12", tool_name: "run_query", calls: scale(242) },
+      { period_start: "2026-08-12", tool_name: "find_invoice", calls: scale(158) },
+      { period_start: "2026-08-19", tool_name: "run_query", calls: scale(310) },
+      { period_start: "2026-08-19", tool_name: "find_invoice", calls: scale(212) },
+      { period_start: "2026-08-26", tool_name: "run_query", calls: scale(412) },
+      { period_start: "2026-08-26", tool_name: "find_invoice", calls: scale(318) },
+    ],
+    reliability: EXAMPLE_ANALYTICS.tools.map((tool) => ({
+      tool_name: tool.name,
+      calls: scale(tool.calls),
+      error_rate: tool.error_rate,
+      input_required_rate: tool.name === "run_query" ? 0.08 : 0.03,
+      p95_ms: tool.p95_ms || null,
+    })),
+    tool_details: EXAMPLE_ANALYTICS.tools.map((tool) => ({
+      tool_name: tool.name,
+      calls: scale(tool.calls),
+      error_rate: tool.error_rate,
+      p95_ms: tool.p95_ms || null,
+      top_accounts: [
+        { rank: 1, calls: scale(Math.max(1, Math.round(tool.calls * 0.31))) },
+        { rank: 2, calls: scale(Math.max(1, Math.round(tool.calls * 0.22))) },
+        { rank: 3, calls: scale(Math.max(1, Math.round(tool.calls * 0.14))) },
+      ],
+      trend: [
+        { period_start: "2026-08-19", calls: scale(Math.round(tool.calls * 0.32)), errors: scale(Math.round(tool.errors * 0.32)) },
+        { period_start: "2026-08-26", calls: scale(Math.round(tool.calls * 0.68)), errors: scale(Math.round(tool.errors * 0.68)) },
+      ],
+    })),
+    limitation: "Illustrative tool activity is a bounded example, not workspace telemetry; account rankings are intentionally anonymous.",
+  };
+  const exampleResourcePromptActivity: NonNullable<Analytics["resource_prompt_activity"]> = {
+    resource_reads: scale(31),
+    prompt_calls: scale(16),
+    resource_observations: scale(42),
+    prompt_observations: scale(19),
+    previous_period_resource_reads: scale(24),
+    previous_period_prompt_calls: scale(12),
+    resource_completion_rate: 28 / 31,
+    resource_stall_rate: 1 / 31,
+    resource_error_rate: 2 / 31,
+    prompt_completion_rate: 14 / 16,
+    prompt_stall_rate: 1 / 16,
+    prompt_error_rate: 1 / 16,
+    outcomes: [
+      { kind: "resource", interactions: scale(31), complete: scale(28), stalled: scale(1), errored: scale(2), unknown: 0, linked_retry_count: scale(3) },
+      { kind: "prompt", interactions: scale(16), complete: scale(14), stalled: scale(1), errored: scale(1), unknown: 0, linked_retry_count: scale(2) },
+    ],
+    resource_breakdown: [
+      { name: "resources/read", calls: scale(31), share: 1, completion_rate: 28 / 31, stall_rate: 1 / 31, error_rate: 2 / 31, unknown_rate: 0 },
+    ],
+    prompt_breakdown: [
+      { name: "prompts/get", calls: scale(16), share: 1, completion_rate: 14 / 16, stall_rate: 1 / 16, error_rate: 1 / 16, unknown_rate: 0 },
+    ],
+    trend: [
+      { period_start: "2026-08-19", kind: "resource", name: "resources/read", calls: scale(13) },
+      { period_start: "2026-08-19", kind: "prompt", name: "prompts/get", calls: scale(7) },
+      { period_start: "2026-08-26", kind: "resource", name: "resources/read", calls: scale(18) },
+      { period_start: "2026-08-26", kind: "prompt", name: "prompts/get", calls: scale(9) },
+    ],
+    limitation: "Illustrative resource and prompt observations expose method-level evidence only; content and arguments are not shown.",
+  };
   return {
     ...EXAMPLE_ANALYTICS,
     range_days: days,
@@ -722,6 +833,47 @@ function exampleAnalytics(days: number): Analytics {
       completed: scale(item.completed),
       failed: scale(item.failed),
     })),
+    who_is_using_it: examplePeople,
+    capability_activity: exampleCapabilityActivity,
+    resource_prompt_activity: exampleResourcePromptActivity,
+    journey_activity: {
+      interaction_count: scale(96),
+      typical_journey_length: 4,
+      stalled_interactions: scale(14),
+      resumed_after_stall: scale(8),
+      common_paths: [
+        { path: ["find_invoice", "create_report"], interactions: scale(38), share: 0.396 },
+        { path: ["run_query", "export_csv"], interactions: scale(24), share: 0.25 },
+        { path: ["get_customer_balance", "list_accounts"], interactions: scale(18), share: 0.188 },
+      ],
+      drop_off: [
+        { path: ["run_query", "export_csv"], interactions: scale(8), terminal_evidence: "input_required" },
+        { path: ["find_invoice", "create_report"], interactions: scale(5), terminal_evidence: "explicit_error" },
+      ],
+      limitation: "Illustrative journeys are bounded server-observed interaction paths, not claims about a customer’s complete business task.",
+    },
+    outcome_activity: {
+      completed: scale(37),
+      failed: scale(13),
+      pending: scale(8),
+      unknown: scale(6),
+      not_observable: scale(32),
+      completion_rate: 37 / 50,
+      error_rate: 13 / 50,
+      task_states: { working: scale(8), input_required: scale(6), completed: scale(37), failed: scale(13), cancelled: scale(2), expired: scale(1), unknown: scale(4) },
+      trend: [
+        { period_start: "2026-08-19", completed: scale(16), failed: scale(5), unknown: scale(3), pending: scale(4) },
+        { period_start: "2026-08-26", completed: scale(21), failed: scale(8), unknown: scale(3), pending: scale(4) },
+      ],
+      limitation: "Only explicit outcome evidence counts as completion; unknown and not-observable states remain visible.",
+    },
+    issue_activity: {
+      actionable_signals: 3,
+      high_confidence_signals: 1,
+      affected_volume: scale(42),
+      suggested_actions: 3,
+      limitation: "Illustrative signals are examples of investigation prompts, not confirmed failures in your workspace.",
+    },
   };
 }
 function exampleQuality(days: number): ToolQualityResponse {
@@ -2731,7 +2883,7 @@ function CapabilitiesView({
               <div className="space-y-3">
                 {analytics.tools.slice(0, 8).map((tool) => {
                   const share = analytics.tool_calls ? tool.calls / analytics.tool_calls : 0;
-                  return <button type="button" key={tool.name} onClick={() => setSelectedToolName(tool.name)} className="grid w-full cursor-pointer grid-cols-[minmax(0,1fr)_auto] items-center gap-3 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"><div className="min-w-0"><div className="flex justify-between gap-3 text-sm"><span className="truncate font-mono text-xs text-ink">{tool.name}</span><span className="text-muted">{fmt(tool.calls)}</span></div><div className="mt-1 h-2 bg-paper"><div className="h-full bg-brand" style={{ width: `${Math.min(100, share * 100)}%` }} /></div></div><span className="text-xs text-faint">{percent(share)}</span></button>;
+                  return <button type="button" key={tool.name} onClick={() => setSelectedToolName(tool.name)} className="grid w-full cursor-pointer grid-cols-[minmax(0,1fr)_auto] items-center gap-3 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"><div className="min-w-0"><div className="flex justify-between gap-3 text-sm"><span className="truncate font-mono text-xs text-ink">{tool.name}</span><span className="text-muted">{fmt(tool.calls)}</span></div>{tool.description && <p className="mt-1 truncate text-[11px] text-faint">{tool.description}</p>}<div className="mt-1 h-2 bg-paper"><div className="h-full bg-brand" style={{ width: `${Math.min(100, share * 100)}%` }} /></div></div><span className="text-xs text-faint">{percent(share)}</span></button>;
                 })}
                 {!analytics.tools.length && <p className="py-6 text-sm text-muted">No tool calls were observed in this period.</p>}
               </div>
@@ -3580,7 +3732,7 @@ function ClientsView({
         actions={pageControls}
       />
       <DataSourceStrip dataMode={dataMode} hasMyData={hasMyData} view="clients" />
-      {people && (
+      {people ? (
         <>
           <div className="mb-6 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
             <Kpi
@@ -3646,6 +3798,11 @@ function ClientsView({
           </Panel>
           {people.classification_status === "insufficient_data" && <p className="mt-3 text-xs text-warning">New versus returning account counts are unavailable because the bounded history scan was incomplete.</p>}
         </>
+      ) : (
+        <StateNote
+          title="Account activity is unavailable"
+          body="The current analytics response did not include the privacy-safe account read model. Client activity and server evidence remain separate; no example or inferred account data is substituted."
+        />
       )}
     </div>
   );
