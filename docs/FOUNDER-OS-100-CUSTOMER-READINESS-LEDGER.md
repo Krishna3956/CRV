@@ -10,13 +10,13 @@ This ledger is the operational source of truth for the autonomous readiness goal
 
 | Area | Status | Evidence / next gate |
 | --- | --- | --- |
-| Founder OS specification audit | In progress | PDF/DOCX requirements extracted; tab/data contract reconciliation continues; MCP tester now exposes bounded resource-template metadata |
+| Founder OS specification audit | In progress | PDF/DOCX requirements extracted; tab/data contract reconciliation continues; MCP tester and authenticated production smoke now cover the bounded resource-template/read-model contract |
 | Tab 1 — Who's using it | Implemented and deployed | Live and example read models, privacy caveats, account-unavailable state; production route/security smoke passed |
 | Tab 2 — What they're doing | Implemented and deployed | Leaderboard, adoption, trend, reliability, detail, descriptions; production route/security smoke passed |
 | Tabs 3–6 | Existing foundation; audit pending | Resources & prompts, journey, outcomes, reliability need full specification evidence review |
 | Example/live data parity | Merged and deployed | PR #57 merged; all Founder OS read models now have bounded example fixtures |
 | Privacy and tenant isolation | Verified locally | Privacy review, tenant isolation, security headers, accessibility contracts pass |
-| CI/CD deployment | Verified | PRs #58–#61 repaired the release gate, ECR digest verification, opaque App Runner IDs, and hostname normalization; PRs #64–#65 added and rendered safe MCP resource-template discovery; PR #67 routes scheduled cleanup through App Runner using AWS OIDC |
+| CI/CD deployment | Verified | PRs #58–#61 repaired the release gate, ECR digest verification, opaque App Runner IDs, and hostname normalization; PRs #64–#65 added and rendered safe MCP resource-template discovery; PR #67 routes scheduled cleanup through App Runner using AWS OIDC; PR #69 adds authenticated Founder OS read-model smoke coverage |
 | Production deployment | Verified for current release | Run #98 (main `2dcad4a`) completed in 7m01s for the deploy job through App Runner and read-only production smoke; the redacted `production-smoke-2dcad4a06a4e5574cae96ba671d5c5b278f4d533` artifact was uploaded |
 | Supabase production schema | Read-only verified | Required tables/functions and RLS checks pass; no unsafe blanket migration run |
 
@@ -69,6 +69,8 @@ Current estimate: **6/10 gates complete (60%)**. The deployed path is healthy th
 - Production deployment run #97 succeeded end-to-end in 9m57s for main `796d403`, including the MCP resource-template UI release.
 - Production deployment run #98 succeeded end-to-end in 7m01s for main `2dcad4a`: release gate, ECR build/push, digest check, App Runner operation, RUNNING service, HTTPS origin, 27-check read-only smoke, and redacted evidence upload.
 - PR #67 merged as `2dcad4a`: scheduled rate-limit cleanup resolves the App Runner hostname through AWS OIDC and calls the authenticated route directly, avoiding Cloudflare edge challenges.
+- PR #68 merged as `e3351db`: records run #98 deployment evidence and makes terminal/API GitHub delivery the default operating path.
+- PR #69 merged as `e488fde`: authenticated two-workspace smoke now exercises every Founder OS v2 read model and verifies the authenticated workspace envelope without recording secrets or workspace IDs.
 - The first scheduled cleanup run (#1) failed at the Cloudflare edge with an HTML 403 challenge; the fix is merged and deployed. A subsequent scheduled execution remains an operational follow-up rather than a guessed success.
 
 ## In progress
@@ -132,3 +134,5 @@ Open pull requests:
 - [PR #64 — Discover MCP resource templates safely](https://github.com/Krishna3956/CRV/pull/64)
 - [PR #65 — Render MCP resource template discovery](https://github.com/Krishna3956/CRV/pull/65)
 - [PR #67 — Route scheduled cleanup through App Runner](https://github.com/Krishna3956/CRV/pull/67)
+- [PR #68 — Record App Runner run 98 readiness evidence](https://github.com/Krishna3956/CRV/pull/68)
+- [PR #69 — Smoke test authenticated Founder OS read models](https://github.com/Krishna3956/CRV/pull/69)
