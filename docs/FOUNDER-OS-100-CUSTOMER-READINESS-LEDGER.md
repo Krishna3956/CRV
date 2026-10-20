@@ -1,6 +1,6 @@
 # Founder OS 100 Customer Readiness Ledger
 
-Last updated: 2026-10-21 (live release check: PR #132 web gate still running; five-slice worker checkpoint remains green)
+Last updated: 2026-10-21 (PR #132 merged; fresh read-only Supabase entity postflight)
 Owner: Codex engineering execution
 Pilot target: 100 customers
 
@@ -55,6 +55,7 @@ Current estimate: **6/10 gates complete (60%)**. The deployed application path, 
 - PR #130 merged as `200ff20b` after Go, .NET, and web CI checks passed. Trusted-main worker run `39494080043` then completed with five healthy bounded slices: `39`, `37`, `42`, `38`, and `39` successful jobs, with zero retryable/failed results and no 502/503 responses. The Supabase postflight at `20:42:34 UTC` observed `0` queued, `0` running, and `0` retryable jobs (`oldest_queued = NULL`). Five-slice fan-out is now the proven production scheduler configuration; freshness is closed at this checkpoint, subject to continued scheduled-run monitoring.
 - Authenticated production dashboard runtime evidence after the metadata-only smoke now shows `11` source events, `resources/list` plus `resources/read`, one successful durable resource read, and a nonzero hash-only `trackmcp_catalog_entity_reads` projection. The prompt event is visible as `prompts/get` activity while the current durable prompt-entity count remains zero; the dashboard correctly keeps that absence explicit rather than inventing prompt reads. Production postflight still shows `0` queued and `0` retryable refresh jobs after the projection run `39495077228`.
 - Authenticated live-tab inspection confirms Tab 5 (`Did it work`) renders `N/A` for completion with zero explicit workflow terminals, keeps pending/unknown/task states at zero, and explains the minimum-volume boundary instead of inferring success from the 12 source events. Tab 6 (`What's broken`) orders two high-confidence historical p95-latency regression incidents before insufficient-data records and labels the latter as “Not a confirmed failure”; the stale canary incidents remain an open pilot-data hygiene/review item rather than being silently discarded.
+- PR #132 (`docs: record live outcome and reliability tab evidence`) merged as `47afea1` after the fresh web/JavaScript, Go, and .NET checks passed. A subsequent read-only Supabase entity postflight still reports one `resources` entity row and no `prompts` entity row; the accepted prompt activity therefore remains visible as activity without an invented durable prompt entity, and prompt-entity coverage stays open.
 - The full Founder OS route/dashboard contract pass was rerun after the worker changes: People `2/2`, Capabilities `4/4`, Resources `2/2`, Prompts `2/2`, Journey `2/2`, Outcomes `2/2`, Reliability `3/3`, Action Queue `3/3`, Tasks `1/1`, and Dashboard `43/43` passed.
 
 - At the time of this check, worker dispatch `39479147302` is actively running on merged main `ae15bb1`; its single `refresh` job is still in progress. PR #121 is open with Go and .NET checks green and the web/JavaScript gate still running. No readiness percentage is advanced until these terminal results and the next Supabase postflight are recorded.
