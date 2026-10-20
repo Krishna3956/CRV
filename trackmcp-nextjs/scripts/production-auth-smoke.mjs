@@ -85,7 +85,6 @@ const founderOsReadModels = [
   "/api/v2/reliability",
   "/api/v2/catalogs",
   "/api/v2/tasks",
-  "/api/v2/action-queue",
   "/api/v2/data-trust",
 ];
 
@@ -110,6 +109,12 @@ async function verifyFounderOsReadModels(key, keyLabel) {
   return checks;
 }
 
+async function verifyApiKeyActionQueueBoundary(key, keyLabel) {
+  const response = await request("/api/v2/action-queue", key);
+  if (response.status !== 403) fail(`${keyLabel} action queue expected API-key denial HTTP 403, received HTTP ${response.status}`);
+  return { label: `${keyLabel} action queue API-key denial`, status: response.status, human_session_required: true };
+}
+
 async function main() {
   validate();
   const checks = [];
@@ -119,6 +124,8 @@ async function main() {
   checks.push(await verifyKeyScope(keyB, "workspace B", workspaceB, workspaceA));
   checks.push(...await verifyFounderOsReadModels(keyA, "workspace A"));
   checks.push(...await verifyFounderOsReadModels(keyB, "workspace B"));
+  checks.push(await verifyApiKeyActionQueueBoundary(keyA, "workspace A"));
+  checks.push(await verifyApiKeyActionQueueBoundary(keyB, "workspace B"));
   if (revokedKey) {
     const response = await request("/api/v1/cli/key-status", revokedKey);
     if (![401, 403].includes(response.status)) fail(`revoked key expected HTTP 401/403, received HTTP ${response.status}`);

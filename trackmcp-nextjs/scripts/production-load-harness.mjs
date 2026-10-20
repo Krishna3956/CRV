@@ -16,7 +16,8 @@ const READ_ROUTES = [
   "/api/v2/overview", "/api/v2/tools", "/api/v2/catalogs",
   "/api/v2/reliability", "/api/v2/outcomes", "/api/v2/journeys",
   "/api/v2/data-trust", "/api/v2/resources", "/api/v2/prompts",
-  "/api/v2/action-queue",
+  // Action Queue intentionally requires a signed-in human session; ingest
+  // API keys must receive 403 and are covered by the authenticated auth smoke.
 ];
 
 export function parseArgs(argv = process.argv.slice(2)) {
@@ -166,7 +167,7 @@ async function run() {
     const path = ingest ? "/api/v1/ingest" : READ_ROUTES[index % READ_ROUTES.length];
     const url = `${baseUrl}${path}`;
     const started = performance.now();
-    let status = 0; let error = ""; let isolation = true; let timedOut = false;
+    let status = 0; let error = ""; let errorDetail = ""; let isolation = true; let timedOut = false;
     let timeout;
     try {
       const controller = new AbortController();
@@ -174,11 +175,21 @@ async function run() {
       const response = await fetch(url, {
         method: ingest ? "POST" : "GET",
         headers: { authorization: `Bearer ${key}`, "content-type": "application/json" },
-        body: ingest ? JSON.stringify({ schema_version: "2", event_type: "tool_call", service: "load-harness", started_at: new Date().toISOString(), success: true }) : undefined,
+        body: ingest ? JSON.stringify({ events: [{
+          schema_version: "1",
+          observation_source: "server",
+          event_id: `load-harness-${tenant}-${index}-${Date.now()}`,
+          event_type: "tool_call",
+          service: "load-harness",
+          environment: "production",
+          started_at: new Date().toISOString(),
+          success: true,
+        }] }) : undefined,
         signal: controller.signal,
       });
       status = response.status;
       const text = await response.text();
+      if (status < 200 || status >= 300) errorDetail = text.slice(0, 240);
       if (tenant === "a" && text.includes("tenant-b")) isolation = false;
       if (tenant === "b" && text.includes("tenant-a")) isolation = false;
     } catch (cause) {
@@ -187,7 +198,7 @@ async function run() {
     } finally {
       clearTimeout(timeout);
     }
-    samples.push({ route: safeRoute(url), status, latencyMs: Math.round((performance.now() - started) * 100) / 100, error: error || undefined, isolation, timedOut });
+    samples.push({ route: safeRoute(url), status, latencyMs: Math.round((performance.now() - started) * 100) / 100, error: error || undefined, errorDetail: errorDetail || undefined, isolation, timedOut });
   }
   async function worker() { while (true) { const index = cursor++; if (index >= options.requests) return; await one(index); } }
   await Promise.all(Array.from({ length: options.concurrency }, worker));
