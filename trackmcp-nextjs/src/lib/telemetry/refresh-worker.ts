@@ -92,6 +92,7 @@ function safeError(error: unknown): { code: string; detail: string | undefined }
 function resultFromHandler(value: TrackMCPRefreshJobResult | void): TrackMCPRefreshJobResult {
   if (!value) return { outcome: "succeeded" };
   if (value.outcome === "succeeded") return value;
+  if (value.outcome === "deferred") return value;
   // Handler-provided diagnostics are treated as untrusted, just like thrown
   // errors. Keep the durable lifecycle row limited to safe labels.
   const safe = safeError(`${value.error_code}${value.detail ? `: ${value.detail}` : ""}`);

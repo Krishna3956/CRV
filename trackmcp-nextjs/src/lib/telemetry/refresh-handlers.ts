@@ -68,7 +68,7 @@ export function createRefreshJobHandlers(admin: RefreshAdmin, options: RefreshHa
   const taskTransitionsEnabled = options.taskTransitionsEnabled ?? process.env.TRACKMCP_TASK_TRANSITIONS_ENABLED === "true";
   return {
     async fact_projection({ job, signal }) {
-      if (signal?.aborted) return { outcome: "retryable", error_code: "cancelled", detail: "worker was cancelled" };
+      if (signal?.aborted) return { outcome: "deferred", detail: "worker deadline deferred this job" };
       try {
         const result = await admin.from("trackmcp_events").select(EVENT_COLUMNS).eq("workspace_id", job.workspace_id).order("started_at", { ascending: false }).limit(MAX_ROWS);
         if (result.error) return retryable(result.error);
@@ -85,7 +85,7 @@ export function createRefreshJobHandlers(admin: RefreshAdmin, options: RefreshHa
       }
     },
     async action_queue_refresh({ job, signal }) {
-      if (signal?.aborted) return { outcome: "retryable", error_code: "cancelled", detail: "worker was cancelled" };
+      if (signal?.aborted) return { outcome: "deferred", detail: "worker deadline deferred this job" };
       try {
         const result = await admin.from("trackmcp_semantic_facts").select("source_event_id,fact_version,fact_type,event_type,service,environment,observed_at,semantic,dimensions,measures,error").eq("workspace_id", job.workspace_id).order("observed_at", { ascending: false }).limit(MAX_ROWS);
         if (result.error) return retryable(result.error);
@@ -97,7 +97,7 @@ export function createRefreshJobHandlers(admin: RefreshAdmin, options: RefreshHa
       }
     },
     async catalog_recompute({ job, signal }) {
-      if (signal?.aborted) return { outcome: "retryable", error_code: "cancelled", detail: "worker was cancelled" };
+      if (signal?.aborted) return { outcome: "deferred", detail: "worker deadline deferred this job" };
       try {
         const result = await admin.from("trackmcp_events").select("server_id,environment_id,session_id,protocol_version,catalog_kind,catalog_item_count,catalog_item_name_hashes,catalog_item_uri_hashes,started_at").eq("workspace_id", job.workspace_id).order("started_at", { ascending: false }).limit(MAX_ROWS);
         if (result.error) return retryable(result.error);
@@ -116,7 +116,7 @@ export function createRefreshJobHandlers(admin: RefreshAdmin, options: RefreshHa
       }
     },
     async catalog_entity_recompute({ job, signal }) {
-      if (signal?.aborted) return { outcome: "retryable", error_code: "cancelled", detail: "worker was cancelled" };
+      if (signal?.aborted) return { outcome: "deferred", detail: "worker deadline deferred this job" };
       try {
         const result = await admin.from("trackmcp_events").select("event_id,server_id,environment,catalog_kind,catalog_item_name_hashes,catalog_item_uri_hashes,mcp_method,started_at,success,is_error,result_type").eq("workspace_id", job.workspace_id).order("started_at", { ascending: false }).limit(MAX_ROWS);
         if (result.error) return retryable(result.error);

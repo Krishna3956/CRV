@@ -8,6 +8,7 @@ const postflight = await readFile(resolve(process.cwd(), "../supabase/manual/fou
 const workerMigration = await readFile(resolve(process.cwd(), "../supabase/migrations/20261018000010_refresh_job_worker_rpc.sql"), "utf8");
 const workerPostflight = await readFile(resolve(process.cwd(), "../supabase/manual/founder-os-refresh-worker-rpc-postflight.sql"), "utf8");
 const retryPriorityMigration = await readFile(resolve(process.cwd(), "../supabase/migrations/20261020000011_prioritize_due_refresh_retries.sql"), "utf8");
+const deferredMigration = await readFile(resolve(process.cwd(), "../supabase/migrations/20261020000012_defer_cancelled_refresh_jobs.sql"), "utf8");
 
 test("refresh-job migration is additive, bounded, and worker-only", () => {
   assert.match(migration, /create table if not exists public\.trackmcp_refresh_jobs/);
@@ -45,4 +46,13 @@ test("retry-priority migration prevents due retries from starving", () => {
   assert.match(retryPriorityMigration, /for update skip locked/);
   assert.match(retryPriorityMigration, /grant execute on function public\.trackmcp_claim_refresh_job\(text, integer\) to service_role/);
   assert.doesNotMatch(retryPriorityMigration, /delete from|truncate |drop table/i);
+});
+
+test("deferred cancellation migration requeues bounded deadline work", () => {
+  assert.match(deferredMigration, /create or replace function public\.trackmcp_record_refresh_job_result/);
+  assert.match(deferredMigration, /when p_outcome = 'deferred' then 'queued'/);
+  assert.match(deferredMigration, /when p_outcome = 'deferred' then now\(\)/);
+  assert.match(deferredMigration, /p_outcome in \('succeeded', 'deferred', 'retryable', 'failed'\)/);
+  assert.match(deferredMigration, /grant execute on function public\.trackmcp_record_refresh_job_result/);
+  assert.doesNotMatch(deferredMigration, /delete from|truncate |drop table/i);
 });
