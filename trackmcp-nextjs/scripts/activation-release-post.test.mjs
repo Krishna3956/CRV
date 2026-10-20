@@ -5,13 +5,13 @@ import test from "node:test";
 
 const read = (path) => readFileSync(resolve(path), "utf8");
 const postsSource = read("src/app/blog/posts.ts");
-const releaseSlug = "trackmcp-one-command-cli-init";
+const releaseSlug = "trackmcp-cli-activation-release";
 const start = postsSource.indexOf(`    slug: "${releaseSlug}"`);
 const next = postsSource.indexOf("\n  {", start + 1);
 const releaseSource = postsSource.slice(start, next > -1 ? next : undefined);
 
-test("the one-command activation release is published as a release note", () => {
-  assert.ok(start > -1, "missing one-command activation release post");
+test("the current CLI activation release is published as a release note", () => {
+  assert.ok(start > -1, "missing CLI activation release post");
   assert.match(releaseSource, /section: "releases"/);
   assert.match(releaseSource, /npx @trackmcp\/cli init/);
   assert.match(releaseSource, /--no-browser/);
@@ -19,10 +19,10 @@ test("the one-command activation release is published as a release note", () => 
 });
 
 test("the release note states the credential and npm-install safety boundaries", () => {
-  assert.match(releaseSource, /CLI never asks for your TrackMCP password/);
-  assert.match(releaseSource, /browser never displays the raw key/);
-  assert.match(releaseSource, /does not run from npm install/);
-  assert.match(releaseSource, /does not claim that an npm download identifies a person/);
+  assert.match(releaseSource, /browser never receives or displays the connection key/);
+  assert.match(releaseSource, /Package installation itself does not send an activation event or start an authorization flow/);
+  assert.match(releaseSource, /Install is silent\. Setup is explicit/);
+  assert.match(releaseSource, /key alone proves a real event was ingested/);
 });
 
 test("release listing and sitemap derive the new route from the shared post inventory", () => {
