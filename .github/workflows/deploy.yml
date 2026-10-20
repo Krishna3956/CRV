@@ -38,9 +38,16 @@ jobs:
           cache: npm
           cache-dependency-path: trackmcp-nextjs/package-lock.json
 
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
       - name: Install production-smoke dependencies
         working-directory: trackmcp-nextjs
         run: npm ci
+
+      - name: Install Python package build dependency
+        run: python3 -m pip install build
 
       - name: Run release gate before deployment
         working-directory: trackmcp-nextjs
