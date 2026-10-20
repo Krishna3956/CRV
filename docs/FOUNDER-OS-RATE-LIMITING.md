@@ -70,8 +70,11 @@ worker grant before distributed mode is enabled.
 
 The repository also includes a secret-authenticated cleanup route and the
 serialized daily workflow `.github/workflows/founder-os-rate-limit-cleanup.yml`.
-It requires `TRACKMCP_RATE_LIMIT_CLEANUP_URL` and the existing worker secret;
-missing secrets fail loudly instead of reporting a false successful cleanup.
+The workflow uses GitHub OIDC to resolve the current App Runner service
+hostname and calls that service directly, avoiding Cloudflare edge challenges
+on scheduled maintenance traffic. It requires the existing worker secret;
+missing secrets or an invalid provider hostname fail loudly instead of
+reporting a false successful cleanup.
 
 ## Secret-free anomaly signal contract
 
