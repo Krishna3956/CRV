@@ -11,8 +11,8 @@ This ledger is the operational source of truth for the autonomous readiness goal
 | Area | Status | Evidence / next gate |
 | --- | --- | --- |
 | Founder OS specification audit | In progress | PDF/DOCX requirements extracted; tab/data contract reconciliation continues; MCP tester and authenticated production smoke now cover the bounded resource-template/read-model contract |
-| Tab 1 — Who's using it | Implemented and deployed | Live and example read models, privacy caveats, account-unavailable state; production route/security smoke passed |
-| Tab 2 — What they're doing | Implemented and deployed | Leaderboard, adoption, trend, reliability, detail, descriptions; production route/security smoke passed |
+| Tab 1 — Who's using it | Implemented and production-verified | Live and example read models, privacy caveats, account-unavailable state; authenticated production inspection verified resolver-linked, unresolved, and unknown-client states |
+| Tab 2 — What they're doing | Implemented and production-verified | Leaderboard, adoption, trend, reliability, detail, descriptions; authenticated production inspection verified named and unnamed capability evidence without inventing identities |
 | Tabs 3–6 | Authenticated read-model routes verified; production telemetry now observed, feature-level assertions still pending | Production event audit observed `resources/list` (4,933), `resources/templates/list` (3,869), `prompts/list` (3,405), `workflow` (150), `completion/complete` (8), and `tools/call` (1,567); dashboard-level session rendering, outcome correlation, and richer reliability assertions remain open |
 | Example/live data parity | Merged and deployed | PR #57 merged; all Founder OS read models now have bounded example fixtures |
 | Privacy and tenant isolation | Verified locally | Privacy review, tenant isolation, security headers, accessibility contracts pass |
@@ -183,8 +183,8 @@ Current estimate: **6/10 gates complete (60%)**. The deployed application path, 
 
 - [x] Create/merge the deployment PRs and attach them to this task (#57–#61).
 - [x] Deploy the merged release and run read-only production pilot smoke (run #95).
-- [ ] Verify Tab 1 against production telemetry, including new/returning classification, unknown clients, resolver coverage, and top-account privacy behavior.
-- [ ] Verify Tab 2 against production telemetry, including catalog denominator, tool descriptions, reliability rates, p95 latency, and detail drill-down.
+- [x] Verify Tab 1 against production telemetry, including new/returning classification, unknown clients, resolver coverage, and top-account privacy behavior.
+- [x] Verify Tab 2 against production telemetry, including catalog denominator, tool descriptions, reliability rates, p95 latency, and detail drill-down.
 - [ ] Complete Tab 3 Resources & Prompts parity and runtime evidence; the standalone MCP tester resource-template surface is now merged, but Founder OS dashboard runtime evidence is still open.
 - [ ] Complete Tab 4 Journey parity, retry/stall caveats, and correlation boundaries.
 - [ ] Complete Tab 5 Outcomes parity, explicit terminal evidence, task lifecycle, and unknown states.
