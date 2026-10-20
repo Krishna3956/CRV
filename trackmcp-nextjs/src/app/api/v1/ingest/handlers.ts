@@ -7,7 +7,7 @@ import { deduplicateEvents, MAX_BATCH_EVENTS, MAX_REQUEST_BYTES, normalizeTrackM
 import { projectTrackMCPFact } from "../../../../lib/telemetry/facts.ts";
 import { persistTrackMCPFacts } from "../../../../lib/telemetry/fact-writer.ts";
 import { evaluateTrackMCPActionQueue, persistTrackMCPActionQueue } from "../../../../lib/telemetry/action-queue.ts";
-import { enqueueTrackMCPRefreshJobs } from "../../../../lib/telemetry/refresh-enqueue.ts";
+import { enqueueTrackMCPRefreshJobs, refreshBatchFingerprint } from "../../../../lib/telemetry/refresh-enqueue.ts";
 
 function responseBody(error?: string, rejected = 0) {
   return { accepted: 0, ignored_duplicates: 0, rejected, ...(error ? { error } : {}) };
@@ -170,7 +170,7 @@ export function createIngestHandler(getAdmin: typeof getSupabaseAdmin = getSupab
   // worker are deployed. Never turn accepted telemetry into a failed ingest
   // response merely because a downstream projection is unavailable.
   if (rows.length && refreshJobsEnabled) {
-    const queued = await enqueueTrackMCPRefreshJobs(supabase, key.workspace_id);
+    const queued = await enqueueTrackMCPRefreshJobs(supabase, key.workspace_id, new Date(), refreshBatchFingerprint(deduplicated.events.map((event) => event.event_id)));
     if (queued.error) console.error("TrackMCP derived refresh enqueue failed", { code: queued.error.code, message: queued.error.message });
   }
 
