@@ -13,6 +13,9 @@ test("App Runner deployment performs a redacted read-only smoke after RUNNING", 
   assert.match(workflow, /Run release gate before deployment/);
   assert.match(workflow, /npm run test:release-gate/);
   assert.match(workflow, /Verify deployment tag resolves to the candidate image/);
+  assert.match(workflow, /deploy-tag-push\.log/);
+  assert.match(workflow, /candidate-tag-push\.log/);
+  assert.doesNotMatch(workflow, /ecr describe-images/);
   assert.match(workflow, /TRACKMCP_DEPLOYED_IMAGE_DIGEST/);
   assert.match(workflow, /TRACKMCP_SMOKE_IMAGE_DIGEST/);
   assert.match(workflow, /TRACKMCP_DEPLOYMENT_OPERATION_ID=\$OP_ID/);
