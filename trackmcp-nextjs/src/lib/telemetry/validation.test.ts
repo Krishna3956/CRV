@@ -113,6 +113,20 @@ test("accepts bounded protocol result and retry linkage without accepting reques
   assert.equal(normalizeTrackMCPEvent(baseEvent({ resource_priority: 2 })).ok, false);
 });
 
+test("recovers typed catalog metadata from bounded legacy method and hash fields", () => {
+  const result = normalizeTrackMCPEvent(baseEvent({
+    event_type: "catalog",
+    mcp_method: "tools/list",
+    catalog_item_name_hashes: ["a".repeat(64), "b".repeat(64)],
+    payload: { name: "tools_discovered" },
+  }));
+  assert.equal(result.ok, true);
+  if (result.ok) {
+    assert.equal(result.event.catalog_kind, "tools");
+    assert.equal(result.event.catalog_item_count, 2);
+  }
+});
+
 test("accepts task result handles only when a task id is present", () => {
   assert.equal(normalizeTrackMCPEvent(baseEvent({ result_type: "task", task_id: "task_1" })).ok, true);
   const invalid = normalizeTrackMCPEvent(baseEvent({ result_type: "task" }));
