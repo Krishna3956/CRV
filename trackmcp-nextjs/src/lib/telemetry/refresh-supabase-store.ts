@@ -28,7 +28,10 @@ export function createSupabaseRefreshJobStore(client: RefreshRpcClient): Refresh
       return firstRow(result.data);
     },
     async saveResult({ previous, next }) {
-      const outcome = next.state === "succeeded" ? "succeeded" : next.state === "failed" ? "failed" : "retryable";
+      // A claimed job can only return to `queued` when its bounded handler
+      // deadline was reached. Preserve that explicit deferred outcome in the
+      // RPC instead of manufacturing a retryable failure and backoff entry.
+      const outcome = next.state === "succeeded" ? "succeeded" : next.state === "failed" ? "failed" : next.state === "queued" ? "deferred" : "retryable";
       const result = await client.rpc("trackmcp_record_refresh_job_result", {
         p_id: previous.id,
         p_owner: previous.lease_owner,
