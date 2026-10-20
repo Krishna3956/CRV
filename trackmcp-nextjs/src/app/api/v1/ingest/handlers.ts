@@ -13,8 +13,27 @@ function responseBody(error?: string, rejected = 0) {
   return { accepted: 0, ignored_duplicates: 0, rejected, ...(error ? { error } : {}) };
 }
 
-function uuidOrNull(value: string | undefined): string | null {
+function uuidOrNull(value: string | null | undefined): string | null {
   return value && /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value) ? value : null;
+}
+
+/**
+ * Catalog projections reference the server registry. Telemetry clients are
+ * allowed to send a stable server UUID before a dashboard user has manually
+ * created a registry entry, so materialize the minimal tenant-scoped record
+ * here. This is idempotent, contains no payload data, and deliberately does
+ * not create environments from untrusted labels.
+ */
+async function ensureServerRegistryRows(supabase: NonNullable<ReturnType<typeof getSupabaseAdmin>>, workspaceId: string, serverIds: readonly (string | null | undefined)[]) {
+  const rows = [...new Set(serverIds.map(uuidOrNull).filter((value): value is string => Boolean(value)))].map((serverId) => ({
+    id: serverId,
+    workspace_id: workspaceId,
+    name: `MCP server ${serverId.slice(0, 8)}`,
+    slug: `server-${serverId}`,
+  }));
+  if (!rows.length) return;
+  const { error } = await supabase.from("trackmcp_servers").upsert(rows, { onConflict: "id", ignoreDuplicates: false });
+  if (error) console.error("TrackMCP server registry upsert failed", { code: error.code, message: error.message });
 }
 
 function invalidBatchResponse(reason: string, rejected: number, status = 400) {
@@ -149,6 +168,9 @@ export function createIngestHandler(getAdmin: typeof getSupabaseAdmin = getSupab
       console.error("TrackMCP ingest failed", { code: error.code, message: error.message });
       return NextResponse.json({ error: "Could not store telemetry." }, { status: 500 });
     }
+    // Keep catalog refreshes referentially valid without making registry
+    // availability a reason to reject otherwise accepted telemetry.
+    await ensureServerRegistryRows(supabase, key.workspace_id, rows.map((row) => row.server_id));
   }
 
   // The derived fact table is opt-in until its reviewed migration is applied.
