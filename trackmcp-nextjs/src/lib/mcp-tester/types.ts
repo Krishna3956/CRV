@@ -38,6 +38,7 @@ export type McpTesterPhase =
   | "initialized_notification"
   | "tools_list"
   | "resources_list"
+  | "resource_templates_list"
   | "prompts_list"
   | "catalog_quality"
   | "finalize";
@@ -230,6 +231,13 @@ export interface ResourceSummary {
   mimeType?: string;
 }
 
+export interface ResourceTemplateSummary {
+  uriTemplate: string;
+  name?: string;
+  description?: string;
+  mimeType?: string;
+}
+
 export interface PromptSummary {
   name: string;
   description?: string;
@@ -267,6 +275,7 @@ export interface McpTesterReport {
   findings: readonly Finding[];
   tools: CatalogSummary<ToolSummary>;
   resources: CatalogSummary<ResourceSummary>;
+  resourceTemplates: CatalogSummary<ResourceTemplateSummary>;
   prompts: CatalogSummary<PromptSummary>;
   limitations: readonly string[];
 }
