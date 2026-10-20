@@ -17,10 +17,14 @@ test("rate-limit cleanup is secret-authenticated and bounded", () => {
 });
 
 test("scheduled cleanup is serialized, retried, and fails when secrets are absent", () => {
+  assert.match(workflow, /id-token: write/);
+  assert.match(workflow, /configure-aws-credentials@v4/);
+  assert.match(workflow, /aws apprunner describe-service/);
+  assert.match(workflow, /awsapprunner/);
   assert.match(workflow, /runs-on: ubuntu-latest\n\s+timeout-minutes: 2/);
   assert.match(workflow, /concurrency:\s*\n\s+group: founder-os-rate-limit-cleanup/);
   assert.match(workflow, /cancel-in-progress: false/);
   assert.match(workflow, /--retry 3/);
   assert.match(workflow, /--max-time 55/);
-  assert.match(workflow, /secrets are not configured[\s\S]*?exit 1/);
+  assert.match(workflow, /TRACKMCP_REFRESH_WORKER_SECRET is not configured[\s\S]*?exit 1/);
 });

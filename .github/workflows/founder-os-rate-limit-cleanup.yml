@@ -6,6 +6,7 @@ on:
   workflow_dispatch:
 
 permissions:
+  id-token: write
   contents: read
 
 concurrency:
@@ -17,16 +18,29 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 2
     steps:
+      - name: Configure AWS credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::872575360367:role/GitHubActionsDeployRole
+          aws-region: ap-south-1
       - name: Remove expired rate-limit buckets
         env:
-          CLEANUP_URL: ${{ secrets.TRACKMCP_RATE_LIMIT_CLEANUP_URL }}
           WORKER_SECRET: ${{ secrets.TRACKMCP_REFRESH_WORKER_SECRET }}
         run: |
           set -euo pipefail
-          if [ -z "$CLEANUP_URL" ] || [ -z "$WORKER_SECRET" ]; then
-            echo "::error::Rate-limit cleanup secrets are not configured; cleanup did not run."
+          if [ -z "$WORKER_SECRET" ]; then
+            echo "::error::TRACKMCP_REFRESH_WORKER_SECRET is not configured; cleanup did not run."
             exit 1
           fi
+          SERVICE_HOST=$(aws apprunner describe-service \
+            --service-arn arn:aws:apprunner:ap-south-1:872575360367:service/trackmcp-web/5d38155bd23141cabb4546b29a4075c7 \
+            --region ap-south-1 \
+            --query 'Service.ServiceUrl' --output text)
+          if [[ "$SERVICE_HOST" == "None" || ! "$SERVICE_HOST" =~ ^[a-z0-9][a-z0-9.-]*\.awsapprunner\.com$ ]]; then
+            echo "::error::App Runner did not return a valid service hostname; cleanup did not run."
+            exit 1
+          fi
+          CLEANUP_URL="https://${SERVICE_HOST}/api/internal/rate-limit/cleanup"
           curl --fail-with-body --silent --show-error \
             --connect-timeout 5 \
             --retry 3 \
