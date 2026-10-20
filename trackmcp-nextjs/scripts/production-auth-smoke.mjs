@@ -74,6 +74,42 @@ async function verifyKeyScope(key, keyLabel, expectedWorkspace, conflictingWorks
   return { label: `${keyLabel} key scope ignores conflicting workspace query`, status: response.status, workspace_scope_verified: true };
 }
 
+const founderOsReadModels = [
+  "/api/v2/overview",
+  "/api/v2/people",
+  "/api/v2/tools",
+  "/api/v2/resources",
+  "/api/v2/prompts",
+  "/api/v2/journeys",
+  "/api/v2/outcomes",
+  "/api/v2/reliability",
+  "/api/v2/catalogs",
+  "/api/v2/tasks",
+  "/api/v2/action-queue",
+  "/api/v2/data-trust",
+];
+
+async function verifyFounderOsReadModels(key, keyLabel) {
+  const checks = [];
+  for (const path of founderOsReadModels) {
+    const response = await request(`${path}?days=30`, key);
+    if (response.status !== 200) fail(`${keyLabel} ${path} expected HTTP 200, received HTTP ${response.status}`);
+    let body = {};
+    try {
+      const parsed = await response.json();
+      if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) body = parsed;
+    } catch {
+      fail(`${keyLabel} ${path} did not return JSON.`);
+    }
+    const scope = body.scope && typeof body.scope === "object" ? body.scope : null;
+    if (scope?.type !== "workspace" || scope?.value !== "authenticated") {
+      fail(`${keyLabel} ${path} did not return an authenticated workspace envelope.`);
+    }
+    checks.push({ label: `${keyLabel} ${path} authenticated read model`, status: response.status, workspace_scope_verified: true });
+  }
+  return checks;
+}
+
 async function main() {
   validate();
   const checks = [];
@@ -81,6 +117,8 @@ async function main() {
   checks.push(await keyStatus(keyB, "workspace B"));
   checks.push(await verifyKeyScope(keyA, "workspace A", workspaceA, workspaceB));
   checks.push(await verifyKeyScope(keyB, "workspace B", workspaceB, workspaceA));
+  checks.push(...await verifyFounderOsReadModels(keyA, "workspace A"));
+  checks.push(...await verifyFounderOsReadModels(keyB, "workspace B"));
   if (revokedKey) {
     const response = await request("/api/v1/cli/key-status", revokedKey);
     if (![401, 403].includes(response.status)) fail(`revoked key expected HTTP 401/403, received HTTP ${response.status}`);
