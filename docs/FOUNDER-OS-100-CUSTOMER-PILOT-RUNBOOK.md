@@ -82,6 +82,13 @@ URL, deployed commit SHA, App Runner status and region, image digest, runtime
 feature modes, and a known-good rollback image before smoke begins. A green
 workflow is insufficient unless the deployed SHA equals the reviewed SHA.
 
+The reviewed deployment workflow runs `test:release-gate` before building and,
+after App Runner reports `RUNNING`, runs the credential-free
+`smoke:production-pilot` against the App Runner service URL. Retain its redacted
+workflow artifact with the deployment evidence. That artifact proves public and
+unauthenticated HTTP boundaries only; it does not replace the authenticated,
+tenant-isolation, first-ingest, migration, worker, load, or rollback gates below.
+
 ## 5. CLI activation smoke
 
 Use a clean temporary project with no existing TrackMCP key:
