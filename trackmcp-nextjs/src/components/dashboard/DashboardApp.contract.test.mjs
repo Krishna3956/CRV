@@ -145,6 +145,8 @@ test("example mode supplies every Founder OS vertical-slice read model", () => {
   assert.match(source, /resource_reads: scale\(/);
   assert.match(source, /interaction_count: scale\(/);
   assert.match(source, /completion_rate: 37 \/ 50/);
+  assert.match(source, /tool\.description &&/);
+  assert.match(source, /Run a bounded finance query/);
   assert.match(source, /Account activity is unavailable/);
   assert.match(source, /no example or inferred account data is substituted/);
 });

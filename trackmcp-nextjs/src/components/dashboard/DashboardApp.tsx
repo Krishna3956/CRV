@@ -474,6 +474,7 @@ const EXAMPLE_ANALYTICS: Analytics = {
   tools: [
     {
       name: "run_query",
+      description: "Run a bounded finance query against the connected ledger.",
       calls: 412,
       errors: 28,
       error_rate: 0.068,
@@ -485,6 +486,7 @@ const EXAMPLE_ANALYTICS: Analytics = {
     },
     {
       name: "find_invoice",
+      description: "Find an invoice by customer, reference, or date.",
       calls: 318,
       errors: 7,
       error_rate: 0.022,
@@ -496,6 +498,7 @@ const EXAMPLE_ANALYTICS: Analytics = {
     },
     {
       name: "create_report",
+      description: "Create an accounts-receivable summary report.",
       calls: 196,
       errors: 11,
       error_rate: 0.056,
@@ -507,6 +510,7 @@ const EXAMPLE_ANALYTICS: Analytics = {
     },
     {
       name: "export_csv",
+      description: "Export the selected report rows as CSV.",
       calls: 7,
       errors: 0,
       error_rate: 0,
@@ -518,6 +522,7 @@ const EXAMPLE_ANALYTICS: Analytics = {
     },
     {
       name: "get_customer_balance",
+      description: "Retrieve the current balance for a customer account.",
       calls: 236,
       errors: 9,
       error_rate: 0.038,
@@ -529,6 +534,7 @@ const EXAMPLE_ANALYTICS: Analytics = {
     },
     {
       name: "list_accounts",
+      description: "List customer accounts available to the connected user.",
       calls: 124,
       errors: 6,
       error_rate: 0.048,
@@ -2877,7 +2883,7 @@ function CapabilitiesView({
               <div className="space-y-3">
                 {analytics.tools.slice(0, 8).map((tool) => {
                   const share = analytics.tool_calls ? tool.calls / analytics.tool_calls : 0;
-                  return <button type="button" key={tool.name} onClick={() => setSelectedToolName(tool.name)} className="grid w-full cursor-pointer grid-cols-[minmax(0,1fr)_auto] items-center gap-3 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"><div className="min-w-0"><div className="flex justify-between gap-3 text-sm"><span className="truncate font-mono text-xs text-ink">{tool.name}</span><span className="text-muted">{fmt(tool.calls)}</span></div><div className="mt-1 h-2 bg-paper"><div className="h-full bg-brand" style={{ width: `${Math.min(100, share * 100)}%` }} /></div></div><span className="text-xs text-faint">{percent(share)}</span></button>;
+                  return <button type="button" key={tool.name} onClick={() => setSelectedToolName(tool.name)} className="grid w-full cursor-pointer grid-cols-[minmax(0,1fr)_auto] items-center gap-3 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"><div className="min-w-0"><div className="flex justify-between gap-3 text-sm"><span className="truncate font-mono text-xs text-ink">{tool.name}</span><span className="text-muted">{fmt(tool.calls)}</span></div>{tool.description && <p className="mt-1 truncate text-[11px] text-faint">{tool.description}</p>}<div className="mt-1 h-2 bg-paper"><div className="h-full bg-brand" style={{ width: `${Math.min(100, share * 100)}%` }} /></div></div><span className="text-xs text-faint">{percent(share)}</span></button>;
                 })}
                 {!analytics.tools.length && <p className="py-6 text-sm text-muted">No tool calls were observed in this period.</p>}
               </div>
