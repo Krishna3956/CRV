@@ -6,6 +6,10 @@ const workflow = await readFile(new URL("../../.github/workflows/deploy.yml", im
 
 test("App Runner deployment performs a redacted read-only smoke after RUNNING", () => {
   assert.match(workflow, /actions\/setup-node@v4/);
+  assert.match(workflow, /deploy_ref:/);
+  assert.match(workflow, /deploy_ref must be a full immutable 40-character commit SHA/);
+  assert.match(workflow, /ref: \$\{\{ inputs\.deploy_ref \|\| github\.sha \}\}/);
+  assert.match(workflow, /TRACKMCP_DEPLOY_SHA=\$DEPLOY_SHA/);
   assert.match(workflow, /actions\/setup-python@v5/);
   assert.match(workflow, /Install production-smoke dependencies/);
   assert.match(workflow, /Install Python package build dependency/);
@@ -30,7 +34,7 @@ test("App Runner deployment performs a redacted read-only smoke after RUNNING", 
   assert.match(workflow, /ORIGIN=\"https:\/\/\$\{SERVICE_HOST\}\"/);
   assert.match(workflow, /valid service hostname/);
   assert.match(workflow, /TRACKMCP_PRODUCTION_SMOKE_CONFIRM=I_UNDERSTAND_PRODUCTION_SMOKE/);
-  assert.match(workflow, /TRACKMCP_SMOKE_CANDIDATE_SHA="\$GITHUB_SHA"/);
+  assert.match(workflow, /TRACKMCP_SMOKE_CANDIDATE_SHA="\$TRACKMCP_DEPLOY_SHA"/);
   assert.match(workflow, /npm run smoke:production-pilot/);
   assert.match(workflow, /Upload redacted production smoke evidence/);
   assert.doesNotMatch(workflow, /TRACKMCP_SMOKE_ALLOW_WRITE=true/);

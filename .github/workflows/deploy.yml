@@ -10,6 +10,11 @@ on:
       - "trackmcp-nextjs/**"
       - ".github/workflows/deploy.yml"
   workflow_dispatch:
+    inputs:
+      deploy_ref:
+        description: "Optional immutable 40-character commit SHA to deploy for a rollback rehearsal"
+        required: false
+        type: string
 
 concurrency:
   group: deploy-app-runner
@@ -31,6 +36,24 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.deploy_ref || github.sha }}
+
+      - name: Resolve immutable deployment SHA
+        env:
+          REQUESTED_DEPLOY_REF: ${{ inputs.deploy_ref }}
+        run: |
+          set -euo pipefail
+          if [[ -n "$REQUESTED_DEPLOY_REF" && ! "$REQUESTED_DEPLOY_REF" =~ ^[0-9a-f]{40}$ ]]; then
+            echo "::error::deploy_ref must be a full immutable 40-character commit SHA."
+            exit 1
+          fi
+          DEPLOY_SHA=$(git rev-parse HEAD)
+          if [[ ! "$DEPLOY_SHA" =~ ^[0-9a-f]{40}$ ]]; then
+            echo "::error::Checked-out deployment revision is not an immutable full SHA."
+            exit 1
+          fi
+          echo "TRACKMCP_DEPLOY_SHA=$DEPLOY_SHA" >> "$GITHUB_ENV"
 
       - uses: actions/setup-node@v4
         with:
@@ -79,7 +102,7 @@ jobs:
             --build-arg NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN="${{ secrets.NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN }}" \
             --build-arg NEXT_PUBLIC_POSTHOG_HOST="${{ secrets.NEXT_PUBLIC_POSTHOG_HOST || 'https://us.i.posthog.com' }}" \
             -t "$IMAGE_BASE:$IMAGE_TAG" \
-            -t "$IMAGE_BASE:${GITHUB_SHA}" \
+            -t "$IMAGE_BASE:${TRACKMCP_DEPLOY_SHA}" \
             trackmcp-nextjs
           # :GITHUB_SHA is the immutable per-commit record; :v2 is the moving tag
           # the service pulls on deploy.
@@ -87,7 +110,7 @@ jobs:
           # GitHub OIDC role is intentionally scoped to deployment operations
           # and does not need read access to enumerate the entire ECR repo.
           docker push "$IMAGE_BASE:$IMAGE_TAG" 2>&1 | tee "$RUNNER_TEMP/deploy-tag-push.log"
-          docker push "$IMAGE_BASE:${GITHUB_SHA}" 2>&1 | tee "$RUNNER_TEMP/candidate-tag-push.log"
+          docker push "$IMAGE_BASE:${TRACKMCP_DEPLOY_SHA}" 2>&1 | tee "$RUNNER_TEMP/candidate-tag-push.log"
 
       - name: Verify deployment tag resolves to the candidate image
         run: |
@@ -172,7 +195,7 @@ jobs:
           ORIGIN="https://${SERVICE_HOST}"
           TRACKMCP_PRODUCTION_SMOKE_CONFIRM=I_UNDERSTAND_PRODUCTION_SMOKE \
           TRACKMCP_SMOKE_BASE_URL="$ORIGIN" \
-          TRACKMCP_SMOKE_CANDIDATE_SHA="$GITHUB_SHA" \
+          TRACKMCP_SMOKE_CANDIDATE_SHA="$TRACKMCP_DEPLOY_SHA" \
           TRACKMCP_SMOKE_IMAGE_DIGEST="$TRACKMCP_DEPLOYED_IMAGE_DIGEST" \
           TRACKMCP_SMOKE_REPORT="$RUNNER_TEMP/trackmcp-production-smoke.json" \
           npm run smoke:production-pilot
