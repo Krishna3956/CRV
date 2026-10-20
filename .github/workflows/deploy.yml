@@ -83,14 +83,22 @@ jobs:
             trackmcp-nextjs
           # :GITHUB_SHA is the immutable per-commit record; :v2 is the moving tag
           # the service pulls on deploy.
-          docker push "$IMAGE_BASE:$IMAGE_TAG"
-          docker push "$IMAGE_BASE:${GITHUB_SHA}"
+          # Keep the push output as the source of truth for both digests. The
+          # GitHub OIDC role is intentionally scoped to deployment operations
+          # and does not need read access to enumerate the entire ECR repo.
+          docker push "$IMAGE_BASE:$IMAGE_TAG" 2>&1 | tee "$RUNNER_TEMP/deploy-tag-push.log"
+          docker push "$IMAGE_BASE:${GITHUB_SHA}" 2>&1 | tee "$RUNNER_TEMP/candidate-tag-push.log"
 
       - name: Verify deployment tag resolves to the candidate image
         run: |
           set -euo pipefail
-          CANDIDATE_DIGEST=$(aws ecr describe-images --repository-name "$ECR_REPO" --region "$AWS_REGION" --image-ids imageTag="$GITHUB_SHA" --query 'imageDetails[0].imageDigest' --output text)
-          DEPLOY_TAG_DIGEST=$(aws ecr describe-images --repository-name "$ECR_REPO" --region "$AWS_REGION" --image-ids imageTag="$IMAGE_TAG" --query 'imageDetails[0].imageDigest' --output text)
+          # Read the digest returned by each successful push instead of calling
+          # ecr:DescribeImages, which is deliberately not granted to the deploy
+          # role. Both tags are pushed from the same locally-built image, and
+          # comparing the registry's returned digests still proves that the
+          # mutable deployment tag and immutable candidate tag resolve alike.
+          DEPLOY_TAG_DIGEST=$(sed -nE 's/.*digest: (sha256:[a-f0-9]{64}).*/\1/p' "$RUNNER_TEMP/deploy-tag-push.log" | tail -n 1)
+          CANDIDATE_DIGEST=$(sed -nE 's/.*digest: (sha256:[a-f0-9]{64}).*/\1/p' "$RUNNER_TEMP/candidate-tag-push.log" | tail -n 1)
           if [[ ! "$CANDIDATE_DIGEST" =~ ^sha256:[a-f0-9]{64}$ ]] || [[ "$CANDIDATE_DIGEST" != "$DEPLOY_TAG_DIGEST" ]]; then
             echo "::error::The mutable deployment tag does not resolve to the candidate image digest."
             exit 1
