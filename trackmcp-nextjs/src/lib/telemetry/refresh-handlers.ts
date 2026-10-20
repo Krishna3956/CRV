@@ -30,7 +30,11 @@ const REFRESH_WINDOW_MS = 15 * 60 * 1000;
  * events for every job. Legacy/manual jobs keep the bounded latest-500 query.
  */
 function jobWindow(job: { dedupe_key: string }): { start: string; end: string } | null {
-  const match = /^ingest-window:(\d+):[a-z_]+$/i.exec(job.dedupe_key);
+  // Older accepted ingests included a batch fingerprint between the UTC
+  // window and job kind. Preserve that source window when replaying those
+  // rows; falling back to the latest bounded rows can silently omit an event
+  // once a busy workspace has more than MAX_ROWS observations.
+  const match = /^ingest-window:(\d+)(?::[a-f0-9]{64})?:[a-z_]+$/i.exec(job.dedupe_key);
   if (!match) return null;
   const window = Number(match[1]);
   if (!Number.isSafeInteger(window) || window < 0) return null;
