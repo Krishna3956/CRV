@@ -69,6 +69,18 @@ commit and the operator accepts the listed limitations.
 - Supabase quota/billing status must be monitored before inviting the full
   pilot cohort.
 
+## Infrastructure capacity evidence
+
+Read-only inspection of the Supabase billing and usage pages on 2026-10-21
+found the organization on the Free Plan with the grace period ended. Current
+cycle usage was approximately: log ingestion `0.803 / 1 GB` (80%), egress
+`2.988 / 5 GB` (60%), database size `148.55 / 500 MB` (31%), and `4 / 50,000`
+monthly active users. There is no current overage, but the log-ingestion
+headroom is only about 20%; the observed rate could cross the included quota
+during the pilot window. The application deployment passed, but this is a
+real availability risk because Supabase states that over-quota projects may
+return HTTP 402 or become restricted.
+
 ## Go/no-go rule
 
 `GO` requires every open gate above to be checked with release-specific
