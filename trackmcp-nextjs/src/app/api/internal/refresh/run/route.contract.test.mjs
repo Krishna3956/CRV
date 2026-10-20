@@ -18,7 +18,8 @@ test("refresh trigger is secret-authenticated, bounded, and uses the lease worke
   assert.match(source, /cache-control.*no-store/);
   assert.match(source, /result\.retryable > 0/);
   assert.match(source, /result\.failed > 0/);
-  assert.match(source, /result\.aborted/);
+  assert.match(source, /aborted batch can be a healthy bounded slice/);
+  assert.doesNotMatch(source, /\|\| result\.aborted/);
   assert.match(source, /hasUnhealthyWork/);
   assert.doesNotMatch(source, /console\.log\(.*secret|api_key|payload/);
   assert.doesNotMatch(source, /secret:\s*undefined/);

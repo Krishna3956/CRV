@@ -37,10 +37,13 @@ export async function POST(request: Request) {
   const timeout = setTimeout(() => controller.abort(), 45_000);
   try {
     const result = await runRefreshJobBatch({ store: createSupabaseRefreshJobStore(admin as never), handlers: createRefreshJobHandlers(admin as never), owner, signal: controller.signal }, { maxJobs: requested, signal: controller.signal });
-    // A batch with retryable/failed work must fail the external scheduler. A
-    // 200 here would make GitHub Actions mark a degraded run as successful and
-    // suppress the next retry even though durable jobs remain unhealthy.
-    const hasUnhealthyWork = result.errors.length > 0 || result.retryable > 0 || result.failed > 0 || result.aborted;
+    // A batch with retryable/failed work must fail the external scheduler. An
+    // aborted batch can be a healthy bounded slice: the 45-second deadline
+    // stops more work from being claimed, while every processed job may still
+    // have succeeded. Keep that state visible in the body so the next
+    // invocation continues draining without turning normal bounded batching
+    // into a false incident.
+    const hasUnhealthyWork = result.errors.length > 0 || result.retryable > 0 || result.failed > 0;
     return NextResponse.json({ ...result, owner }, { status: hasUnhealthyWork ? 500 : 200, headers: { "cache-control": "no-store" } });
   } finally {
     clearTimeout(timeout);
