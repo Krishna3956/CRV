@@ -88,6 +88,30 @@ const founderOsReadModels = [
   "/api/v2/data-trust",
 ];
 
+// Read models are intentionally safe projections. Keep this check at the
+// production boundary so a route cannot pass the tenant-scope smoke while
+// accidentally returning credential material or customer content. We inspect
+// keys only; values and response bodies are never persisted in evidence.
+const forbiddenReadModelKeys = new Set([
+  "api_key", "apikey", "access_token", "refresh_token", "authorization",
+  "secret", "resolver_key", "resolver_secret", "account_name", "email",
+  "prompt_arguments", "prompt_args", "resource_contents", "resource_content",
+]);
+
+function assertPrivacySafe(value, path = "$", depth = 0) {
+  if (depth > 12) fail(`read model exceeded bounded privacy inspection depth at ${path}`);
+  if (Array.isArray(value)) {
+    if (value.length > 5000) fail(`read model exceeded bounded privacy inspection array size at ${path}`);
+    value.forEach((item, index) => assertPrivacySafe(item, `${path}[${index}]`, depth + 1));
+    return;
+  }
+  if (!value || typeof value !== "object") return;
+  for (const [key, child] of Object.entries(value)) {
+    if (forbiddenReadModelKeys.has(key.toLowerCase())) fail(`read model returned forbidden field ${key} at ${path}`);
+    assertPrivacySafe(child, `${path}.${key}`, depth + 1);
+  }
+}
+
 async function verifyFounderOsReadModels(key, keyLabel) {
   const checks = [];
   for (const path of founderOsReadModels) {
@@ -104,7 +128,8 @@ async function verifyFounderOsReadModels(key, keyLabel) {
     if (scope?.type !== "workspace" || scope?.value !== "authenticated") {
       fail(`${keyLabel} ${path} did not return an authenticated workspace envelope.`);
     }
-    checks.push({ label: `${keyLabel} ${path} authenticated read model`, status: response.status, workspace_scope_verified: true });
+    assertPrivacySafe(body);
+    checks.push({ label: `${keyLabel} ${path} authenticated read model`, status: response.status, workspace_scope_verified: true, privacy_projection_verified: true });
   }
   return checks;
 }
