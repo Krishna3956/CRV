@@ -52,6 +52,23 @@ test("windowed ingest jobs restrict event projections to their source window", a
   assert.equal(queryLog.filter((entry) => entry.startsWith("lt:trackmcp_events:started_at:")).length, 1);
 });
 
+test("legacy fingerprinted ingest jobs still restrict projections to their source window", async () => {
+  const queryLog: string[] = [];
+  const { admin } = fakeAdmin([], [], queryLog);
+  const result = createRefreshJob({
+    id: "legacy-windowed-job",
+    workspace_id: workspace,
+    kind: "catalog_entity_recompute",
+    dedupe_key: `ingest-window:1965696:${"a".repeat(64)}:catalog_entity_recompute`,
+    now: new Date("2026-01-01T00:00:00.000Z"),
+  });
+  assert.equal(result.ok, true);
+  if (!result.ok) return;
+  await createRefreshJobHandlers(admin as never).catalog_entity_recompute?.({ job: result.job, now: new Date() });
+  assert.equal(queryLog.filter((entry) => entry.startsWith("gte:trackmcp_events:started_at:")).length, 1);
+  assert.equal(queryLog.filter((entry) => entry.startsWith("lt:trackmcp_events:started_at:")).length, 1);
+});
+
 test("fact projection selects bounded metadata and persists semantic facts", async () => {
   const { admin, writes } = fakeAdmin([{ event_id: "evt-1", event_type: "tool_call", service: "demo", environment: "prod", started_at: "2026-01-01T00:00:00.000Z", success: true, is_error: false, tool_name: "search", transport: "stdio" }]);
   const handler = createRefreshJobHandlers(admin as never).fact_projection;
