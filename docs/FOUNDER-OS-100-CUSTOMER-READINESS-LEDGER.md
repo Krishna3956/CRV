@@ -10,14 +10,14 @@ This ledger is the operational source of truth for the autonomous readiness goal
 
 | Area | Status | Evidence / next gate |
 | --- | --- | --- |
-| Founder OS specification audit | In progress | PDF/DOCX requirements extracted; tab/data contract reconciliation continues |
+| Founder OS specification audit | In progress | PDF/DOCX requirements extracted; tab/data contract reconciliation continues; MCP tester now exposes bounded resource-template metadata |
 | Tab 1 — Who's using it | Implemented and deployed | Live and example read models, privacy caveats, account-unavailable state; production route/security smoke passed |
 | Tab 2 — What they're doing | Implemented and deployed | Leaderboard, adoption, trend, reliability, detail, descriptions; production route/security smoke passed |
 | Tabs 3–6 | Existing foundation; audit pending | Resources & prompts, journey, outcomes, reliability need full specification evidence review |
 | Example/live data parity | Merged and deployed | PR #57 merged; all Founder OS read models now have bounded example fixtures |
 | Privacy and tenant isolation | Verified locally | Privacy review, tenant isolation, security headers, accessibility contracts pass |
-| CI/CD deployment | Verified | PRs #58–#61 repaired the release gate, ECR digest verification, opaque App Runner IDs, and hostname normalization |
-| Production deployment | Verified for current release | Run #95 (main `c5d3748`) completed in 7m40s through App Runner and read-only production smoke; readiness ledger merged as main `f7eea31` |
+| CI/CD deployment | Verified | PRs #58–#61 repaired the release gate, ECR digest verification, opaque App Runner IDs, and hostname normalization; PRs #64–#65 added and rendered safe MCP resource-template discovery |
+| Production deployment | Verified for current release | Run #95 (main `c5d3748`) completed in 7m40s through App Runner and read-only production smoke; current main is `796d403`; post-#65 production redeploy evidence remains required |
 | Supabase production schema | Read-only verified | Required tables/functions and RLS checks pass; no unsafe blanket migration run |
 
 ### Progress calculation
@@ -63,6 +63,8 @@ Current estimate: **6/10 gates complete (60%)**. The deployed path is healthy, b
 - PR #59 merged as `840118e`: verifies ECR tag parity from push digests without widening the OIDC role with `ecr:DescribeImages`.
 - PR #60 merged as `5ce6031`: accepts bounded opaque App Runner operation IDs.
 - PR #61 merged as `c5d3748`: treats `Service.ServiceUrl` as the hostname returned by AWS and constructs the HTTPS smoke origin.
+- PR #64 merged as `fa87246`: discovers `resources/templates/list` safely, bounds URI-template metadata, and preserves the optional-method limitation.
+- PR #65 merged as `796d403`: renders resource-template discovery in the public tester progress timeline, timing summary, and catalog report with an explicit no-expansion/no-read boundary.
 - Production deployment run #95 succeeded end-to-end in 7m40s: release gate, ECR build/push, digest check, App Runner operation, RUNNING service, HTTPS origin, read-only smoke, and redacted evidence upload.
 
 ## In progress
@@ -87,7 +89,7 @@ Current estimate: **6/10 gates complete (60%)**. The deployed path is healthy, b
 - [x] Deploy the merged release and run read-only production pilot smoke (run #95).
 - [ ] Verify Tab 1 against production telemetry, including new/returning classification, unknown clients, resolver coverage, and top-account privacy behavior.
 - [ ] Verify Tab 2 against production telemetry, including catalog denominator, tool descriptions, reliability rates, p95 latency, and detail drill-down.
-- [ ] Complete Tab 3 Resources & Prompts parity and runtime evidence.
+- [ ] Complete Tab 3 Resources & Prompts parity and runtime evidence; the standalone MCP tester resource-template surface is now merged, but Founder OS dashboard runtime evidence is still open.
 - [ ] Complete Tab 4 Journey parity, retry/stall caveats, and correlation boundaries.
 - [ ] Complete Tab 5 Outcomes parity, explicit terminal evidence, task lifecycle, and unknown states.
 - [ ] Complete Tab 6 Reliability parity, incident clustering, silent-failure estimates, data trust, and action queue.
@@ -110,7 +112,7 @@ Current estimate: **6/10 gates complete (60%)**. The deployed path is healthy, b
 
 - `codex/founder-os-example-parity-clean`: example/live parity and Tab 1/2 UI fixes.
 - `codex/deploy-release-gate-python-build`: deploy workflow prerequisite hotfix.
-- `main` currently points to merged release `f7eea31` (the deployed product artifact remains `c5d3748` plus this readiness record); run #95 is the first fully passing App Runner production smoke for the Founder OS parity release.
+- `main` currently points to merged release `796d403` (the last fully passing App Runner production smoke was run #95 on `c5d3748`; a post-#65 production redeploy is still required); run #95 is the first fully passing App Runner production smoke for the Founder OS parity release.
 
 Open pull requests:
 
@@ -120,3 +122,5 @@ Open pull requests:
 - [PR #60 — Accept opaque App Runner operation IDs](https://github.com/Krishna3956/CRV/pull/60)
 - [PR #61 — Normalize App Runner service hostname for production smoke](https://github.com/Krishna3956/CRV/pull/61)
 - [PR #62 — Record passing production pilot deployment evidence](https://github.com/Krishna3956/CRV/pull/62)
+- [PR #64 — Discover MCP resource templates safely](https://github.com/Krishna3956/CRV/pull/64)
+- [PR #65 — Render MCP resource template discovery](https://github.com/Krishna3956/CRV/pull/65)
