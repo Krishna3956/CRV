@@ -19,6 +19,7 @@ This ledger is the operational source of truth for the autonomous readiness goal
 | CI/CD deployment | Verified | PRs #58–#61 repaired the release gate, ECR digest verification, opaque App Runner IDs, and hostname normalization; PRs #64–#65 added and rendered safe MCP resource-template discovery; PR #67 routes scheduled cleanup through App Runner using AWS OIDC; PR #69 adds authenticated Founder OS read-model smoke coverage |
 | Production deployment | Verified for current release | Run #100 (main `d120437`) completed successfully through App Runner deployment, readiness, HTTPS origin, and read-only production smoke; redacted artifact `production-smoke-d120437891083fe8c3a67ea2069597b0d22c8337` uploaded |
 | Bounded production load | Passed at pilot budget | Direct App Runner run on 2026-10-20: 120 requests at concurrency 8 across 9 authenticated read models plus ingest, 120/120 successful, zero errors/timeouts, tenant isolation passed, p95 2.11s against a 3s pilot budget; two disposable workspaces were deleted and verified absent |
+| Refresh worker | Non-empty job passed | Workflow dispatch run `39405118947` claimed one disposable `catalog_entity_recompute` job and recorded `succeeded` on attempt 1 with no error; the workspace was deleted and verified absent |
 | Supabase production schema | Additive pilot migration applied | `trackmcp_catalog_entity_reads` was missing in production; the reviewed additive migration was applied, then verified present with RLS enabled and anon/authenticated `SELECT` denied |
 
 ### Progress calculation
@@ -108,7 +109,7 @@ Current estimate: **7/10 gates complete (70%)**. The deployed path is healthy th
 - [ ] Complete Tab 5 Outcomes parity, explicit terminal evidence, task lifecycle, and unknown states.
 - [ ] Complete Tab 6 Reliability parity, incident clustering, silent-failure estimates, data trust, and action queue.
 - [x] Run deployment-class load test against production; fixture-only evidence is insufficient and failure/recovery testing remains open.
-- [ ] Verify Supabase refresh worker, queue lag, retry/dead-letter behavior, rate-limit persistence, and retention dry-run evidence.
+- [x] Verify Supabase refresh worker with a non-empty production job; queue lag, retry/dead-letter behavior, rate-limit persistence, and retention dry-run evidence remain open.
 - [x] Execute the authenticated two-workspace Founder OS read-model smoke against production with disposable keys; schema availability and live route behavior are now evidenced, while dashboard human-session rendering remains a separate gate.
 - [ ] Verify CLI activation, key revocation, cross-workspace authorization, export, privacy review, and deletion-request boundaries.
 - [ ] Reconcile public website/docs claims with shipped behavior and canonical URLs.
