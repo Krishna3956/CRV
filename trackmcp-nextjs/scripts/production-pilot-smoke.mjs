@@ -243,7 +243,9 @@ async function main() {
     checks.push({ label: "first-ingest smoke", status: "skipped (set TRACKMCP_SMOKE_ALLOW_WRITE=true explicitly)" });
   }
 
+  const skippedChecks = checks.filter(({ status }) => typeof status === "string" && status.startsWith("skipped")).length;
   const report = {
+    outcome: "passed",
     generated_at: new Date().toISOString(),
     base_url: new URL(baseUrl).origin,
     candidate_sha: process.env.TRACKMCP_SMOKE_CANDIDATE_SHA || "not-supplied",
@@ -251,6 +253,9 @@ async function main() {
     write_enabled: allowWrite,
     key_supplied: Boolean(key),
     revoked_key_supplied: Boolean(revokedKey),
+    checks_total: checks.length,
+    checks_executed: checks.length - skippedChecks,
+    checks_skipped: skippedChecks,
     checks,
     caveats: [
       "This report proves HTTP/registry observations only; it does not prove browser auth, workspace selection, dashboard rendering, or cross-workspace authorization.",

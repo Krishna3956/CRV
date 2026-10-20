@@ -19,7 +19,7 @@ test("production pilot smoke does not read credentials or emit secrets", () => {
 });
 
 test("production pilot smoke records redacted evidence and covers pilot endpoints", () => {
-  for (const marker of ["/api/v1/cli/key-status", "/api/v1/ingest", "/sitemap.xml", "registry.npmjs.org", "pypi.org", "candidate_sha", "image_digest", "TRACKMCP_SMOKE_IMAGE_DIGEST"]) {
+  for (const marker of ["/api/v1/cli/key-status", "/api/v1/ingest", "/sitemap.xml", "registry.npmjs.org", "pypi.org", "outcome: \"passed\"", "checks_total", "checks_executed", "checks_skipped", "candidate_sha", "image_digest", "TRACKMCP_SMOKE_IMAGE_DIGEST"]) {
     assert.match(source, new RegExp(marker.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")), marker);
   }
   assert.match(source, /mode: 0o600/);
