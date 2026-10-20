@@ -11,13 +11,13 @@ This ledger is the operational source of truth for the autonomous readiness goal
 | Area | Status | Evidence / next gate |
 | --- | --- | --- |
 | Founder OS specification audit | In progress | PDF/DOCX requirements extracted; tab/data contract reconciliation continues |
-| Tab 1 — Who's using it | Implemented locally | Live and example read models, privacy caveats, account-unavailable state; merge/deploy verification pending |
-| Tab 2 — What they're doing | Implemented locally | Leaderboard, adoption, trend, reliability, detail, descriptions; merge/deploy verification pending |
+| Tab 1 — Who's using it | Implemented and deployed | Live and example read models, privacy caveats, account-unavailable state; production route/security smoke passed |
+| Tab 2 — What they're doing | Implemented and deployed | Leaderboard, adoption, trend, reliability, detail, descriptions; production route/security smoke passed |
 | Tabs 3–6 | Existing foundation; audit pending | Resources & prompts, journey, outcomes, reliability need full specification evidence review |
-| Example/live data parity | Fixed in branch | All Founder OS read models now have bounded example fixtures; PR pending/awaiting checks |
+| Example/live data parity | Merged and deployed | PR #57 merged; all Founder OS read models now have bounded example fixtures |
 | Privacy and tenant isolation | Verified locally | Privacy review, tenant isolation, security headers, accessibility contracts pass |
-| CI/CD deployment | Hotfix prepared | Deploy gate failed because Python `build` was missing; hotfix branch and PR preparation complete |
-| Production deployment | Not yet verified after hotfix | Must pass CI, deploy, App Runner smoke, and rollback evidence |
+| CI/CD deployment | Verified | PRs #58–#61 repaired the release gate, ECR digest verification, opaque App Runner IDs, and hostname normalization |
+| Production deployment | Verified for current release | Run #95 (main `c5d3748`) completed in 7m40s through App Runner and read-only production smoke |
 | Supabase production schema | Read-only verified | Required tables/functions and RLS checks pass; no unsafe blanket migration run |
 
 ### Progress calculation
@@ -35,7 +35,7 @@ The readiness percentage is based on 10 gates, not lines of code:
 9. Production smoke/load/rollback evidence
 10. Pilot operations and documentation
 
-Current estimate: **4/10 gates complete (40%)**. Tabs 1 and 2 are implemented locally but remain deployment-gated, so this estimate will not be raised until their merged production path is verified.
+Current estimate: **6/10 gates complete (60%)**. The deployed path is healthy, but tab-specific live-data assertions, load/failure/recovery evidence, retention-worker evidence, and pilot operations remain open.
 
 ## Completed evidence
 
@@ -59,15 +59,20 @@ Current estimate: **4/10 gates complete (40%)**. Tabs 1 and 2 are implemented lo
   - `npm run build`
 - Supabase read-only production checks: all required pilot tables exist, required RPCs exist, and all checked service tables have RLS without anon/authenticated table grants.
 - Merged release `6238761` passed CI but its App Runner deployment stopped at the release gate because Python module `build` was unavailable.
+- PR #58 merged as `4756113`: installs the Python `build` dependency before the release gate.
+- PR #59 merged as `840118e`: verifies ECR tag parity from push digests without widening the OIDC role with `ecr:DescribeImages`.
+- PR #60 merged as `5ce6031`: accepts bounded opaque App Runner operation IDs.
+- PR #61 merged as `c5d3748`: treats `Service.ServiceUrl` as the hostname returned by AWS and constructs the HTTPS smoke origin.
+- Production deployment run #95 succeeded end-to-end in 7m40s: release gate, ECR build/push, digest check, App Runner operation, RUNNING service, HTTPS origin, read-only smoke, and redacted evidence upload.
 
 ## In progress
 
 ### Release path
 
-- Submit and merge the deployment release-gate hotfix from `codex/deploy-release-gate-python-build`.
-- Submit and merge the example-parity branch `codex/founder-os-example-parity-clean`.
-- Re-run deployment from the merged release.
-- Capture App Runner operation, image digest, health, and production smoke evidence.
+- [x] Merge the release-gate, ECR verification, operation-ID, and smoke-origin fixes.
+- [x] Re-run deployment from the merged release.
+- [x] Capture App Runner operation, service readiness, and production smoke evidence in run #95.
+- [ ] Add rollback/recovery evidence and a bounded deployment-class load test.
 
 ### Product audit
 
@@ -78,8 +83,8 @@ Current estimate: **4/10 gates complete (40%)**. Tabs 1 and 2 are implemented lo
 
 ## Pending work, ordered by dependency
 
-- [ ] Create/merge the two prepared PRs and attach them to this task.
-- [ ] Deploy the merged release and run authenticated production pilot smoke.
+- [x] Create/merge the deployment PRs and attach them to this task (#57–#61).
+- [x] Deploy the merged release and run read-only production pilot smoke (run #95).
 - [ ] Verify Tab 1 against production telemetry, including new/returning classification, unknown clients, resolver coverage, and top-account privacy behavior.
 - [ ] Verify Tab 2 against production telemetry, including catalog denominator, tool descriptions, reliability rates, p95 latency, and detail drill-down.
 - [ ] Complete Tab 3 Resources & Prompts parity and runtime evidence.
@@ -105,9 +110,12 @@ Current estimate: **4/10 gates complete (40%)**. Tabs 1 and 2 are implemented lo
 
 - `codex/founder-os-example-parity-clean`: example/live parity and Tab 1/2 UI fixes.
 - `codex/deploy-release-gate-python-build`: deploy workflow prerequisite hotfix.
-- `main` currently points to merged release `6238761`; its deployment failed before AWS execution at the Python artifact gate.
+- `main` currently points to merged release `c5d3748`; run #95 is the first fully passing App Runner production smoke for the Founder OS parity release.
 
 Open pull requests:
 
 - [PR #57 — Keep Founder OS example tabs data-complete](https://github.com/Krishna3956/CRV/pull/57)
-- Deployment hotfix PR: prepared locally; submit after the GitHub branch comparison is refreshed.
+- [PR #58 — Install Python build dependency before deploy gate](https://github.com/Krishna3956/CRV/pull/58)
+- [PR #59 — Verify ECR tags without repository read access](https://github.com/Krishna3956/CRV/pull/59)
+- [PR #60 — Accept opaque App Runner operation IDs](https://github.com/Krishna3956/CRV/pull/60)
+- [PR #61 — Normalize App Runner service hostname for production smoke](https://github.com/Krishna3956/CRV/pull/61)
