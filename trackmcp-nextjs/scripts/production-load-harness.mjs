@@ -181,6 +181,7 @@ async function run() {
           event_id: `load-harness-${tenant}-${index}-${Date.now()}`,
           event_type: "tool_call",
           service: "load-harness",
+          environment: "production",
           started_at: new Date().toISOString(),
           success: true,
         }] }) : undefined,
