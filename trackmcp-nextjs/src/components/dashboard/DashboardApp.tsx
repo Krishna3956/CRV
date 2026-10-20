@@ -300,9 +300,11 @@ function metricLabel(metric: AlertIncident["metric"]): string {
     .join(" ");
 }
 
-function summaryLabel(summary: AlertIncident["comparison"]): string {
+function summaryLabel(summary: AlertIncident["comparison"], metric?: AlertIncident["metric"]): string {
   if (!summary) return "Unavailable";
-  const value = summary.value === null ? "N/A" : percent(summary.value);
+  const value = metric === "p95_latency_regression"
+    ? summary.value === null || !Number.isFinite(summary.value) ? "N/A" : `${fmt(summary.value)} ms`
+    : summary.value === null || !Number.isFinite(summary.value) ? "N/A" : percent(summary.value);
   return `${summary.numerator}/${summary.denominator} (${value})`;
 }
 
@@ -3665,11 +3667,11 @@ function IncidentCard({
         </p>
         <p>
           <span className="font-semibold text-ink">Baseline:</span>{" "}
-          {summaryLabel(incident.baseline)}
+          {summaryLabel(incident.baseline, incident.metric)}
         </p>
         <p>
           <span className="font-semibold text-ink">Comparison:</span>{" "}
-          {summaryLabel(incident.comparison)}
+          {summaryLabel(incident.comparison, incident.metric)}
         </p>
         <p>
           <span className="font-semibold text-ink">Last seen:</span>{" "}
@@ -3997,11 +3999,11 @@ function IncidentEvidence({
         </p>
         <p>
           <span className="font-semibold text-ink">Baseline:</span>{" "}
-          {summaryLabel(incident.baseline)}
+          {summaryLabel(incident.baseline, incident.metric)}
         </p>
         <p>
           <span className="font-semibold text-ink">Comparison:</span>{" "}
-          {summaryLabel(incident.comparison)}
+          {summaryLabel(incident.comparison, incident.metric)}
         </p>
         <p>
           <span className="font-semibold text-ink">Threshold:</span>{" "}

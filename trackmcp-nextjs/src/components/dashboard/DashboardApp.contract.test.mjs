@@ -482,6 +482,12 @@ test("Issues never renders non-finite regression percentages as NaN", () => {
   assert.match(source, /value === null \|\| !Number\.isFinite\(value\) \? "N\/A"/);
 });
 
+test("Issues renders latency regression summaries in milliseconds, not percentages", () => {
+  assert.match(source, /metric === "p95_latency_regression"/);
+  assert.match(source, /\$\{fmt\(summary\.value\)\} ms/);
+  assert.match(source, /summaryLabel\(incident\.baseline, incident\.metric\)/);
+});
+
 test("Example Issues shows illustrative incident lifecycles", () => {
   assert.match(source, /EXAMPLE_ALERT_INCIDENTS: AlertIncident\[\]/);
   assert.match(source, /Illustrative alert lifecycle examples with bounded evidence/);
