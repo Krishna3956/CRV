@@ -5,6 +5,10 @@ import test from "node:test";
 const workflow = await readFile(new URL("../../.github/workflows/deploy.yml", import.meta.url), "utf8");
 
 test("App Runner deployment performs a redacted read-only smoke after RUNNING", () => {
+  assert.match(workflow, /timeout-minutes: 20/);
+  assert.match(workflow, /timeout 30s aws apprunner start-deployment/);
+  assert.match(workflow, /timeout 30s aws apprunner list-operations/);
+  assert.match(workflow, /timeout 30s aws apprunner describe-service/);
   assert.match(workflow, /actions\/setup-node@v4/);
   assert.match(workflow, /deploy_ref:/);
   assert.match(workflow, /deploy_ref must be a full immutable 40-character commit SHA/);
@@ -30,7 +34,7 @@ test("App Runner deployment performs a redacted read-only smoke after RUNNING", 
   assert.match(workflow, /SUCCEEDED/);
   assert.match(workflow, /ROLLBACK_FAILED/);
   assert.match(workflow, /Run read-only production smoke/);
-  assert.match(workflow, /SERVICE_HOST=\$\(aws apprunner describe-service[\s\S]*Service\.ServiceUrl/);
+  assert.match(workflow, /SERVICE_HOST=\$\(timeout 30s aws apprunner describe-service[\s\S]*Service\.ServiceUrl/);
   assert.match(workflow, /ORIGIN=\"https:\/\/\$\{SERVICE_HOST\}\"/);
   assert.match(workflow, /valid service hostname/);
   assert.match(workflow, /TRACKMCP_PRODUCTION_SMOKE_CONFIRM=I_UNDERSTAND_PRODUCTION_SMOKE/);

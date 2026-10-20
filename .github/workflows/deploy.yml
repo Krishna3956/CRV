@@ -34,6 +34,7 @@ env:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
         with:
@@ -131,7 +132,7 @@ jobs:
       - name: Trigger App Runner deployment
         run: |
           set -euo pipefail
-          OP_ID=$(aws apprunner start-deployment \
+          OP_ID=$(timeout 30s aws apprunner start-deployment \
             --service-arn "$SERVICE_ARN" \
             --region "$AWS_REGION" \
             --query OperationId --output text)
@@ -150,13 +151,13 @@ jobs:
           set -euo pipefail
           echo "Waiting for App Runner deployment operation $TRACKMCP_DEPLOYMENT_OPERATION_ID to succeed..."
           for i in $(seq 1 40); do
-            OP_STATUS=$(aws apprunner list-operations \
+            OP_STATUS=$(timeout 30s aws apprunner list-operations \
               --service-arn "$SERVICE_ARN" --region "$AWS_REGION" --max-results 20 \
               --query "OperationSummaryList[?Id=='$TRACKMCP_DEPLOYMENT_OPERATION_ID'].Status | [0]" --output text)
             echo "  [$i] deployment_operation=$OP_STATUS"
             case "$OP_STATUS" in
               SUCCEEDED)
-                STATUS=$(aws apprunner describe-service \
+                STATUS=$(timeout 30s aws apprunner describe-service \
                   --service-arn "$SERVICE_ARN" --region "$AWS_REGION" \
                   --query Service.Status --output text)
                 if [[ "$STATUS" == "RUNNING" ]]; then
@@ -183,7 +184,7 @@ jobs:
         working-directory: trackmcp-nextjs
         run: |
           set -euo pipefail
-          SERVICE_HOST=$(aws apprunner describe-service \
+          SERVICE_HOST=$(timeout 30s aws apprunner describe-service \
             --service-arn "$SERVICE_ARN" --region "$AWS_REGION" \
             --query 'Service.ServiceUrl' --output text)
           # App Runner's ServiceUrl API field is a hostname. Add the scheme
