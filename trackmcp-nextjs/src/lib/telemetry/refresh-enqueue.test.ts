@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { buildTrackMCPRefreshEnqueueRows, enqueueTrackMCPRefreshJobs, TRACKMCP_INGEST_REFRESH_KINDS } from "./refresh-enqueue.ts";
+import { buildTrackMCPRefreshEnqueueRows, enqueueTrackMCPRefreshJobs, refreshBatchFingerprint, TRACKMCP_INGEST_REFRESH_KINDS } from "./refresh-enqueue.ts";
 
 const workspace = "workspace_1";
 const now = new Date("2026-10-20T00:01:00.000Z");
@@ -28,4 +28,11 @@ test("refresh enqueue rejects malformed workspace scope before a write", async (
   const result = await enqueueTrackMCPRefreshJobs(client as never, "bad\nworkspace", now);
   assert.deepEqual(result, { attempted: 0, error: null });
   assert.equal(called, false);
+});
+
+test("new accepted batches in the same window receive distinct privacy-safe dedupe fingerprints", () => {
+  const first = buildTrackMCPRefreshEnqueueRows(workspace, now, refreshBatchFingerprint(["event-a"]));
+  const second = buildTrackMCPRefreshEnqueueRows(workspace, now, refreshBatchFingerprint(["event-b"]));
+  assert.notEqual(first[0].dedupe_key, second[0].dedupe_key);
+  assert.match(first[0].dedupe_key, /[a-f0-9]{64}/);
 });
