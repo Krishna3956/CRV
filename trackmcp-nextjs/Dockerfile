@@ -37,6 +37,10 @@ ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV PORT=8080
 ENV HOSTNAME=0.0.0.0
+# Derived Founder OS read models are populated by the bounded refresh worker.
+# Keep enqueueing enabled in the production runner; the worker remains
+# service-role-only and fails closed when its queue is unavailable.
+ENV TRACKMCP_ENABLE_REFRESH_JOBS=true
 
 RUN addgroup --system --gid 1001 nodejs \
   && adduser --system --uid 1001 nextjs
