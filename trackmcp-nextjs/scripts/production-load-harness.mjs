@@ -176,7 +176,8 @@ async function run() {
         method: ingest ? "POST" : "GET",
         headers: { authorization: `Bearer ${key}`, "content-type": "application/json" },
         body: ingest ? JSON.stringify({ events: [{
-          schema_version: "2",
+          schema_version: "1",
+          observation_source: "server",
           event_id: `load-harness-${tenant}-${index}-${Date.now()}`,
           event_type: "tool_call",
           service: "load-harness",
