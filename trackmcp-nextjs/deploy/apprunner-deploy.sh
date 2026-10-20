@@ -24,6 +24,7 @@ source "$SCRIPT_DIR/.env.deploy"
 : "${ECR_REPO:?set ECR_REPO in .env.deploy}"
 : "${SERVICE_NAME:?set SERVICE_NAME in .env.deploy}"
 : "${IMAGE_TAG:=v1}"
+: "${SECRETS_ARN:?set SECRETS_ARN in .env.deploy; the production service requires its runtime secret bundle}"
 
 # Fail before touching ECR/App Runner when the selected Founder OS features
 # cannot work with the runtime configuration this script would publish. The
@@ -104,27 +105,24 @@ if ! aws iam get-role --role-name "$ACCESS_ROLE_NAME" >/dev/null 2>&1; then
 fi
 ACCESS_ROLE_ARN="$(aws iam get-role --role-name "$ACCESS_ROLE_NAME" --query Role.Arn --output text)"
 
-# ---- 3b. (optional) Instance role to read runtime secrets from Secrets Manager.
+# ---- 3b. Instance role to read required runtime secrets from Secrets Manager.
 # Set SECRETS_ARN in .env.deploy to a Secrets Manager secret IN THE SAME REGION
 # as the service, holding JSON keys GITHUB_TOKEN, SUPABASE_SERVICE_ROLE_KEY,
 # TRACKMCP_DEVICE_KEY_DERIVATION_SECRET, TRACKMCP_ADMIN_KEY,
 # TRACKMCP_REFRESH_WORKER_SECRET, and TRACKMCP_PRIVACY_REVIEW_SECRET. ----
-INSTANCE_ROLE_ARN=""
-if [[ -n "${SECRETS_ARN:-}" ]]; then
-  INSTANCE_ROLE_NAME="AppRunnerInstanceRole"
-  if ! aws iam get-role --role-name "$INSTANCE_ROLE_NAME" >/dev/null 2>&1; then
-    echo "==> Creating IAM instance role $INSTANCE_ROLE_NAME"
-    aws iam create-role --role-name "$INSTANCE_ROLE_NAME" \
-      --assume-role-policy-document '{
-        "Version":"2012-10-17",
-        "Statement":[{"Effect":"Allow","Principal":{"Service":"tasks.apprunner.amazonaws.com"},"Action":"sts:AssumeRole"}]
-      }' >/dev/null
-    sleep 5
-  fi
-  aws iam put-role-policy --role-name "$INSTANCE_ROLE_NAME" --policy-name ReadRuntimeSecrets \
-    --policy-document "{\"Version\":\"2012-10-17\",\"Statement\":[{\"Effect\":\"Allow\",\"Action\":[\"secretsmanager:GetSecretValue\"],\"Resource\":[\"${SECRETS_ARN}\",\"${SECRETS_ARN}*\"]}]}" >/dev/null
-  INSTANCE_ROLE_ARN="$(aws iam get-role --role-name "$INSTANCE_ROLE_NAME" --query Role.Arn --output text)"
+INSTANCE_ROLE_NAME="AppRunnerInstanceRole"
+if ! aws iam get-role --role-name "$INSTANCE_ROLE_NAME" >/dev/null 2>&1; then
+  echo "==> Creating IAM instance role $INSTANCE_ROLE_NAME"
+  aws iam create-role --role-name "$INSTANCE_ROLE_NAME" \
+    --assume-role-policy-document '{
+      "Version":"2012-10-17",
+      "Statement":[{"Effect":"Allow","Principal":{"Service":"tasks.apprunner.amazonaws.com"},"Action":"sts:AssumeRole"}]
+    }' >/dev/null
+  sleep 5
 fi
+aws iam put-role-policy --role-name "$INSTANCE_ROLE_NAME" --policy-name ReadRuntimeSecrets \
+  --policy-document "{\"Version\":\"2012-10-17\",\"Statement\":[{\"Effect\":\"Allow\",\"Action\":[\"secretsmanager:GetSecretValue\"],\"Resource\":[\"${SECRETS_ARN}\",\"${SECRETS_ARN}*\"]}]}" >/dev/null
+INSTANCE_ROLE_ARN="$(aws iam get-role --role-name "$INSTANCE_ROLE_NAME" --query Role.Arn --output text)"
 
 # ---- 4. Build runtime env var JSON (only non-empty values) ----
 # Public (NEXT_PUBLIC_*) values go in plaintext env; sensitive keys come from
@@ -146,7 +144,7 @@ print(json.dumps({k: os.environ[k] for k in keys if os.environ.get(k)}))
 PY
 )"
 
-SOURCE_CONFIG="$(python3 - "$IMAGE" "$ACCESS_ROLE_ARN" "$RUNTIME_ENV" "${SECRETS_ARN:-}" <<'PY'
+SOURCE_CONFIG="$(python3 - "$IMAGE" "$ACCESS_ROLE_ARN" "$RUNTIME_ENV" "$SECRETS_ARN" <<'PY'
 import json, sys
 image, role_arn, runtime_env, secrets_arn = sys.argv[1], sys.argv[2], sys.argv[3], sys.argv[4]
 img_cfg = {"Port": "8080", "RuntimeEnvironmentVariables": json.loads(runtime_env)}

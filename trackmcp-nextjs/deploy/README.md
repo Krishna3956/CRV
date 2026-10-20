@@ -108,6 +108,10 @@ The deploy script then:
 - creates an instance role (`AppRunnerInstanceRole`) allowed to `GetSecretValue`, and
 - wires the configured secret fields via App Runner `RuntimeEnvironmentSecrets`.
 
+`SECRETS_ARN` is required for this production deployment path. Without it,
+the service would start without the server-only capabilities that protect and
+complete device authorization, ingestion, and internal operations.
+
 For an existing service, add the new JSON keys to the same regional Secrets
 Manager secret, then run the deploy script once after adding the new JSON keys.
 That deployment updates the service's secret mapping. Later

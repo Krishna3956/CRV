@@ -16,6 +16,12 @@ test("App Runner maps required backend runtime secrets without embedding values"
   assert.doesNotMatch(script, /TRACKMCP_ADMIN_KEY":\s*"[^$]/);
 });
 
+test("pilot deployment fails before AWS work when the runtime secret bundle is absent", () => {
+  assert.match(script, /SECRETS_ARN:\?set SECRETS_ARN in \.env\.deploy; the production service requires its runtime secret bundle/);
+  assert.match(template, /pilot deployment fails fast if this is blank/i);
+  assert.match(readme, /SECRETS_ARN.*required for this production deployment path/i);
+});
+
 test("deployment docs distinguish one-time secret mapping from GitHub rollout", () => {
   assert.match(readme, /run the deploy script once after adding the\s+new JSON keys/i);
   assert.match(readme, /start-deployment[\s\S]*only rolls out the already-configured[\s\S]*service/i);
