@@ -3392,7 +3392,7 @@ function IssuesView({
     ? toolQuality.tools.filter((tool) => tool.insufficient_data.length)
     : [];
   const orderedIncidents = [...incidents].sort((left, right) => {
-    const rank = (state: AlertIncident["state"]) =>
+    const stateRank = (state: AlertIncident["state"]) =>
       state === "firing"
         ? 0
         : state === "pending"
@@ -3404,7 +3404,13 @@ function IssuesView({
               : state === "invalid_configuration"
                 ? 4
                 : 5;
-    return rank(left.state) - rank(right.state);
+    const evidenceRank = (incident: AlertIncident) =>
+      incident.data_status === "sufficient" && incident.severity === "critical" ? 0
+        : incident.data_status === "sufficient" ? 1
+          : 2;
+    return stateRank(left.state) - stateRank(right.state)
+      || evidenceRank(left) - evidenceRank(right)
+      || Date.parse(right.last_seen_at) - Date.parse(left.last_seen_at);
   });
   return (
     <div>

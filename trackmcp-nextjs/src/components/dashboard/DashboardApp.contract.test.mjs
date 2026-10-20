@@ -478,6 +478,12 @@ test("Issues consumes bounded workspace incidents without adding Alerts navigati
   assert.doesNotMatch(source, /id: "alerts", label: "Alerts"/);
 });
 
+test("Issues orders confirmed critical evidence before insufficient-data noise", () => {
+  assert.match(source, /incident\.data_status === "sufficient" && incident\.severity === "critical"/);
+  assert.match(source, /evidenceRank\(left\) - evidenceRank\(right\)/);
+  assert.match(source, /Date\.parse\(right\.last_seen_at\) - Date\.parse\(left\.last_seen_at\)/);
+});
+
 test("Issues never renders non-finite regression percentages as NaN", () => {
   assert.match(source, /value === null \|\| !Number\.isFinite\(value\) \? "N\/A"/);
 });
