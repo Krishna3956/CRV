@@ -16,7 +16,8 @@ const READ_ROUTES = [
   "/api/v2/overview", "/api/v2/tools", "/api/v2/catalogs",
   "/api/v2/reliability", "/api/v2/outcomes", "/api/v2/journeys",
   "/api/v2/data-trust", "/api/v2/resources", "/api/v2/prompts",
-  "/api/v2/action-queue",
+  // Action Queue intentionally requires a signed-in human session; ingest
+  // API keys must receive 403 and are covered by the authenticated auth smoke.
 ];
 
 export function parseArgs(argv = process.argv.slice(2)) {
