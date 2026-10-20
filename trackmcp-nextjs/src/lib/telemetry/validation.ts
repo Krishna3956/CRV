@@ -224,8 +224,24 @@ export function normalizeTrackMCPEvent(value: unknown): EventValidationResult {
     if (event[field] !== undefined && event[field] !== null && (!Array.isArray(event[field]) || event[field].length > 128 || event[field].some((hash) => typeof hash !== "string" || !/^[0-9a-f]{64}$/.test(hash)))) return { ok: false, reason: `${field} must contain at most 128 SHA-256 hashes`, eventId };
   }
 
+  // Older clients sometimes emitted catalog hashes without the newer typed
+  // catalog fields. Recover only from the bounded MCP method and hash arrays;
+  // never inspect or infer names, URIs, payloads, or business meaning.
+  const inferredCatalogKind = event.event_type === "catalog" && !event.catalog_kind
+    ? ({
+      "tools/list": "tools",
+      "resources/list": "resources",
+      "resources/templates/list": "resource_templates",
+      "prompts/list": "prompts",
+    } as const)[event.mcp_method as "tools/list" | "resources/list" | "resources/templates/list" | "prompts/list"]
+    : undefined;
+  const inferredCatalogCount = event.event_type === "catalog" && event.catalog_item_count === undefined
+    ? Math.max(Array.isArray(event.catalog_item_name_hashes) ? event.catalog_item_name_hashes.length : 0, Array.isArray(event.catalog_item_uri_hashes) ? event.catalog_item_uri_hashes.length : 0)
+    : undefined;
   const normalized = {
     ...event,
+    ...(inferredCatalogKind ? { catalog_kind: inferredCatalogKind } : {}),
+    ...(inferredCatalogCount !== undefined ? { catalog_item_count: inferredCatalogCount } : {}),
     ...(context ? { context, intent_source: event.intent_source || "context_parameter" } : { intent_source: "missing" }),
     ...(event.missing_capability ? { missing_capability: sanitizeIntentText(event.missing_capability) } : {}),
     schema_version: event.schema_version || TRACKMCP_LEGACY_SCHEMA_VERSION,
