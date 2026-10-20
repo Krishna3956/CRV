@@ -139,7 +139,8 @@ function successfulFetch(options: { resources?: boolean; prompts?: boolean; pagi
       return jsonRpc({ tools: [{ name: options.paginated ? "second" : "only", description: "Second", inputSchema: { type: "object" } }] }, options.paginated ? 3 : 2);
     }
     if (method === "resources/list") return jsonRpc({ resources: [{ name: "docs", uri: "https://example.com/docs", description: "Docs" }] }, options.paginated ? 4 : 3);
-    if (method === "prompts/list") return jsonRpc({ prompts: [{ name: "summarize", description: "Summarize" }] }, options.paginated ? 5 : 4);
+    if (method === "resources/templates/list") return jsonRpc({ resourceTemplates: [{ uriTemplate: "https://example.com/{id}", name: "document", description: "A document template" }] }, JSON.parse(body).id);
+    if (method === "prompts/list") return jsonRpc({ prompts: [{ name: "summarize", description: "Summarize" }] }, JSON.parse(body).id);
     throw new Error(`unexpected method ${method}`);
   };
   return { fetch, methods };
@@ -157,11 +158,12 @@ test("valid Streamable HTTP handshake discovers advertised read-only catalogs", 
     },
   });
   assert.equal(report.verdict, "healthy_now");
-  assert.deepEqual(fixture.methods, ["initialize", "notifications/initialized", "tools/list", "resources/list", "prompts/list"]);
+  assert.deepEqual(fixture.methods, ["initialize", "notifications/initialized", "tools/list", "resources/list", "resources/templates/list", "prompts/list"]);
   assert.equal(report.protocol?.negotiatedVersion, "2025-06-18");
   assert.deepEqual(report.server, { name: "Fixture MCP", version: "1.2.3" });
   assert.equal(report.tools.count, 1);
   assert.equal(report.resources.count, 1);
+  assert.equal(report.resourceTemplates.count, 1);
   assert.equal(report.prompts.count, 1);
   assert.equal(report.healthDimensions.reachability.status, "pass");
   assert.equal(report.healthDimensions.protocol_negotiation.status, "pass");
@@ -290,6 +292,7 @@ test("modern 2026-07-28 requests use bounded discovery instead of a legacy hands
       assert.equal(new Headers(init?.headers).get("mcp-method"), body.method);
       if (body.method === "tools/list") return jsonRpc({ tools: [{ name: "search", description: "bounded fixture", inputSchema: { type: "object", properties: {} } }], ttlMs: 60_000, cacheScope: "private" }, body.id);
       if (body.method === "resources/list") return jsonRpc({ resources: [{ uri: "urn:fixture:resource", name: "fixture" }], ttlMs: 60_000, cacheScope: "private" }, body.id);
+      if (body.method === "resources/templates/list") return jsonRpc({ resourceTemplates: [{ uriTemplate: "urn:fixture:{id}", name: "fixture-template" }], ttlMs: 60_000, cacheScope: "private" }, body.id);
       assert.equal(body.method, "prompts/list");
       return jsonRpc({ prompts: [{ name: "fixture", description: "bounded fixture" }], ttlMs: 60_000, cacheScope: "private" }, body.id);
     },
@@ -692,6 +695,6 @@ test("default flow executes no tools, reads, or prompts", async () => {
   assert.equal(report.verdict, "healthy_now");
   assert.ok(fixture.methods.every((method) => method === "initialize" || method === "notifications/initialized" || method.endsWith("/list")));
   assert.ok(!fixture.methods.some((method) => method === "tools/call" || method === "resources/read" || method === "prompts/get"));
-  assert.deepEqual(fixture.methods, ["initialize", "notifications/initialized", "tools/list", "resources/list", "prompts/list"]);
+  assert.deepEqual(fixture.methods, ["initialize", "notifications/initialized", "tools/list", "resources/list", "resources/templates/list", "prompts/list"]);
   assert.doesNotMatch(JSON.stringify(report), /Bearer one-time|authorization:\s*Bearer/i);
 });

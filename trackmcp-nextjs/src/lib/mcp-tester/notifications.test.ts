@@ -22,6 +22,7 @@ const report = {
   findings: [{ code: "example", category: "catalog", severity: "warning", message: "example" }],
   tools: { items: [], count: 2, pages: 1, complete: true, truncated: false },
   resources: { items: [], count: 0, pages: 0, complete: true, truncated: false },
+  resourceTemplates: { items: [], count: 0, pages: 0, complete: true, truncated: false },
   prompts: { items: [], count: 1, pages: 1, complete: true, truncated: false },
   limitations: [],
 } as unknown as McpTesterReport;

@@ -4,7 +4,7 @@ This module is a browser-only, read-only MCP health tester. Browser-runtime dete
 
 The supported transport is HTTPS MCP Streamable HTTP over browser-direct `fetch`, with CORS mode, `redirect: "manual"`, and `credentials: "omit"`. STDIO, WebSockets, standalone SSE, OAuth registration, proxying, and server-side arbitrary-URL fetching are outside the boundary.
 
-Catalog discovery is intentionally non-invasive: the default flow may call `tools/list`, `resources/list`, and `prompts/list` when advertised, but it never calls `tools/call`, `resources/read`, or `prompts/get`.
+Catalog discovery is intentionally non-invasive: the default flow may call `tools/list`, `resources/list`, `resources/templates/list`, and `prompts/list` when the resource capability is advertised, but it never calls `tools/call`, `resources/read`, or `prompts/get`. Resource templates are reported as bounded URI-template metadata; the tester never expands or dereferences them.
 
 Hostname and URL validation reject non-HTTPS, local, private, link-local, cloud-metadata, credential-bearing, and credential-query targets. Browser-direct testing avoids creating a server-side SSRF primitive, but hostname validation cannot guarantee the IP resolved by the browser at request time and therefore cannot fully prevent DNS rebinding. Users should test only endpoints they trust. No server-side proxy is used.
 

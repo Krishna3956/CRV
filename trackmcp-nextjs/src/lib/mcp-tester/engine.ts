@@ -21,6 +21,7 @@ import type {
   PhaseTiming,
   PromptSummary,
   ResourceSummary,
+  ResourceTemplateSummary,
   ServerIdentity,
   TimelineEvent,
   TimelineEventKind,
@@ -34,8 +35,8 @@ export const MODERN_MCP_PROTOCOL_VERSION = "2026-07-28";
 export const DEFAULT_MCP_CLIENT_INFO = Object.freeze({ name: "TrackMCP Tester", version: "1.0.0" });
 export const DEFAULT_SUPPORTED_MCP_PROTOCOL_VERSIONS = Object.freeze(["2025-06-18", "2025-03-26", "2024-11-05"]);
 
-type CatalogKind = "tools" | "resources" | "prompts";
-type CatalogItem = ToolSummary | ResourceSummary | PromptSummary;
+type CatalogKind = "tools" | "resources" | "resource_templates" | "prompts";
+type CatalogItem = ToolSummary | ResourceSummary | ResourceTemplateSummary | PromptSummary;
 
 interface CatalogDiscovery<T extends CatalogItem> {
   summary: CatalogSummary<T>;
@@ -85,6 +86,7 @@ interface ProbeState {
   catalogWarnings: number;
   tools: CatalogSummary<ToolSummary>;
   resources: CatalogSummary<ResourceSummary>;
+  resourceTemplates: CatalogSummary<ResourceTemplateSummary>;
   prompts: CatalogSummary<PromptSummary>;
 }
 
@@ -198,6 +200,7 @@ export async function runMcpTester(options: McpTesterOptions): Promise<McpTester
     catalogWarnings: 0,
     tools: emptyCatalog<ToolSummary>(),
     resources: emptyCatalog<ResourceSummary>(),
+    resourceTemplates: emptyCatalog<ResourceTemplateSummary>(),
     prompts: emptyCatalog<PromptSummary>(),
   };
 
@@ -260,6 +263,10 @@ export async function runMcpTester(options: McpTesterOptions): Promise<McpTester
       state.resourcesPassed = !resourcesResult.failure && resourcesResult.summary.complete && !resourcesResult.invalidResponse;
       if (resourcesResult.failure) applyFailure(state, resourcesResult.failure, "resources_list", addFinding);
       if (resourcesResult.invalidResponse) state.protocolError = true;
+      const templatesResult = await discoverCatalog<ResourceTemplateSummary>(state, "resource_templates", "resources/templates/list", "resource_templates_list", true, addFinding, record, beginPhase, finishPhase);
+      state.resourceTemplates = templatesResult.summary;
+      if (templatesResult.failure) applyFailure(state, templatesResult.failure, "resource_templates_list", addFinding);
+      if (templatesResult.invalidResponse) state.protocolError = true;
     } else {
       skipPhase(state, "resources_list", record, beginPhase, finishPhase);
     }
@@ -300,6 +307,14 @@ export async function runMcpTester(options: McpTesterOptions): Promise<McpTester
     if (resourcesResult.failure) applyFailure(state, resourcesResult.failure, "resources_list", addFinding);
     if (resourcesResult.invalidResponse) state.protocolError = true;
     if (resourcesResult.summary.truncated) {
+      state.paginationTruncated = true;
+      state.incomplete = true;
+    }
+    const templatesResult = await discoverCatalog<ResourceTemplateSummary>(state, "resource_templates", "resources/templates/list", "resource_templates_list", true, addFinding, record, beginPhase, finishPhase);
+    state.resourceTemplates = templatesResult.summary as CatalogSummary<ResourceTemplateSummary>;
+    if (templatesResult.failure) applyFailure(state, templatesResult.failure, "resource_templates_list", addFinding);
+    if (templatesResult.invalidResponse) state.protocolError = true;
+    if (templatesResult.summary.truncated) {
       state.paginationTruncated = true;
       state.incomplete = true;
     }
@@ -378,6 +393,7 @@ function buildRuntimeRejectedReport(nowIso: () => string): McpTesterReport {
     findings: [{ code: "browser_runtime_required", category: "safety", severity: "error", message: "The tester rejected this call because it is not running in a browser runtime." }],
     tools: emptyCatalog<ToolSummary>(),
     resources: emptyCatalog<ResourceSummary>(),
+    resourceTemplates: emptyCatalog<ResourceTemplateSummary>(),
     prompts: emptyCatalog<PromptSummary>(),
     limitations: ["The tester never uses globalThis.fetch and never performs server-side arbitrary URL fetching.", "Run this probe from a browser context with an explicitly injected fetch function."],
   };
@@ -475,8 +491,8 @@ async function discoverCatalog<T extends CatalogItem>(state: ProbeState, kind: C
       params,
     }, true, phase);
     if (!response.ok) {
-      if (kind === "tools" && !advertised && response.kind === "rpc_error" && response.errorCode === -32601) {
-        addFinding("tools_list_not_advertised", "discovery", "info", "The server did not advertise tools and reported tools/list as unavailable.", phase);
+      if (((kind === "tools" && !advertised) || kind === "resource_templates") && response.kind === "rpc_error" && response.errorCode === -32601) {
+        addFinding(kind === "tools" ? "tools_list_not_advertised" : "resource_templates_not_supported", "discovery", "info", "The server reported this optional catalog method as unavailable; no catalog items were assumed.", phase);
         finish(phase, start, "passed", record, state.phases, state.timings, state.now);
         return { summary: { items, count: 0, pages, complete: true, truncated: false }, invalidResponse: false } as CatalogDiscovery<T>;
       }
@@ -558,13 +574,13 @@ function normalizeInitializeResult(value: unknown, maxStringLength: number): { o
 
 function normalizeCatalogPage(kind: CatalogKind, value: unknown, limits: McpTesterLimits): { ok: true; items: CatalogItem[]; nextCursor?: string; warnings: number; truncated: boolean; cacheTtlMs?: number; cacheScope?: string } | { ok: false; code: string; message: string } {
   if (!isRecord(value)) return { ok: false, code: `malformed_${kind}_list_result`, message: `The endpoint returned an invalid ${kind}/list result.` };
-  const key = kind === "tools" ? "tools" : kind;
+  const key = kind === "tools" ? "tools" : kind === "resource_templates" ? "resourceTemplates" : kind;
   if (!Array.isArray(value[key])) return { ok: false, code: `malformed_${kind}_list_result`, message: `The endpoint returned an invalid ${kind}/list result.` };
   if (value.nextCursor !== undefined && value.nextCursor !== null && (typeof value.nextCursor !== "string" || value.nextCursor.length === 0 || value.nextCursor.length > 512)) return { ok: false, code: "invalid_pagination_cursor", message: "The endpoint returned an invalid pagination cursor." };
   let warnings = 0;
   const items: CatalogItem[] = [];
   for (const item of value[key].slice(0, limits.maxCatalogItems)) {
-    const normalized = kind === "tools" ? normalizeTool(item, limits) : kind === "resources" ? normalizeResource(item, limits) : normalizePrompt(item, limits);
+    const normalized = kind === "tools" ? normalizeTool(item, limits) : kind === "resources" ? normalizeResource(item, limits) : kind === "resource_templates" ? normalizeResourceTemplate(item, limits) : normalizePrompt(item, limits);
     if (!normalized) {
       warnings += 1;
       continue;
@@ -598,6 +614,18 @@ function normalizeResource(value: unknown, limits: McpTesterLimits): ResourceSum
   return {
     name,
     ...(safeResourceUri(value.uri, limits.maxRenderedStringLength) ? { uri: safeResourceUri(value.uri, limits.maxRenderedStringLength) } : {}),
+    ...(safeString(value.description, limits.maxRenderedStringLength) ? { description: safeString(value.description, limits.maxRenderedStringLength) } : {}),
+    ...(safeString(value.mimeType, 128) ? { mimeType: safeString(value.mimeType, 128) } : {}),
+  };
+}
+
+function normalizeResourceTemplate(value: unknown, limits: McpTesterLimits): ResourceTemplateSummary | undefined {
+  if (!isRecord(value)) return undefined;
+  const uriTemplate = safeString(value.uriTemplate, limits.maxRenderedStringLength);
+  if (!uriTemplate || !uriTemplate.includes("{")) return undefined;
+  return {
+    uriTemplate,
+    ...(safeString(value.name, limits.maxRenderedStringLength) ? { name: safeString(value.name, limits.maxRenderedStringLength) } : {}),
     ...(safeString(value.description, limits.maxRenderedStringLength) ? { description: safeString(value.description, limits.maxRenderedStringLength) } : {}),
     ...(safeString(value.mimeType, 128) ? { mimeType: safeString(value.mimeType, 128) } : {}),
   };
@@ -747,6 +775,7 @@ function finalize(state: ProbeState, observedAt: string, addFinding: AddFinding)
     findings: state.findings,
     tools: state.tools,
     resources: state.resources,
+    resourceTemplates: state.resourceTemplates,
     prompts: state.prompts,
     limitations: buildLimitations(state),
   };
@@ -791,6 +820,7 @@ function buildEarlyReport(observedAt: string, startedMs: number, now: () => numb
     findings,
     tools: emptyCatalog<ToolSummary>(),
     resources: emptyCatalog<ResourceSummary>(),
+    resourceTemplates: emptyCatalog<ResourceTemplateSummary>(),
     prompts: emptyCatalog<PromptSummary>(),
     limitations: ["This was a browser-direct HTTPS Streamable HTTP probe.", "No tools were executed, resources were read, or prompts were retrieved.", "The tester does not proxy arbitrary URLs or persist headers and credentials."],
   };
@@ -803,7 +833,7 @@ function buildLimitations(state: ProbeState): string[] {
     "STDIO, non-HTTPS transports, private targets, browser-inaccessible targets, and arbitrary-URL server proxies are outside this tester.",
     "Bearer tokens and custom headers are used only for this in-memory request and are not included in the report.",
   ];
-  if (!state.resourcesAdvertised) limitations.push("The server did not advertise resources, so resources/list was not requested.");
+  if (!state.resourcesAdvertised) limitations.push("The server did not advertise resources, so resources/list and resources/templates/list were not requested.");
   if (!state.promptsAdvertised) limitations.push("The server did not advertise prompts, so prompts/list was not requested.");
   if (state.paginationTruncated) limitations.push("At least one catalog stopped at the configured pagination boundary.");
   return limitations;
