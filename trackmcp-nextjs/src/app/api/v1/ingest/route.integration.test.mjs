@@ -281,7 +281,7 @@ test("accepted telemetry enqueues bounded derived work without exposing or depen
   assert.equal(response.body.accepted, 1);
   assert.deepEqual(state.refreshRows.map((row) => row.kind).sort(), ["action_queue_refresh", "catalog_entity_recompute", "catalog_recompute", "fact_projection"]);
   assert.equal(state.refreshRows.every((row) => row.workspace_id === "workspace-integration" && row.dedupe_key.startsWith("ingest-window:")), true);
-  assert.equal(state.refreshRows.every((row) => /ingest-window:\d+:[a-f0-9]{64}:/.test(row.dedupe_key)), true);
+  assert.equal(state.refreshRows.every((row) => /ingest-window:\d+:[a-z_]+$/.test(row.dedupe_key)), true);
   assert.equal(JSON.stringify(state.refreshRows).includes("never-in-queue"), false);
   assert.equal(JSON.stringify(state.refreshRows).includes("refresh-enqueue-event"), false);
 });

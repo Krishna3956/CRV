@@ -28,8 +28,9 @@ export type RefreshEnqueueClient = {
 
 /** Build a small, idempotent batch of worker requests. The queue has no raw
  * event payload, key, identifier, or customer data—only workspace, bounded
- * job kind, a 15-minute UTC ingest window, and a hash of the accepted batch's
- * event IDs so later batches in the same window are not left unprojected. */
+ * job kind, and a 15-minute UTC ingest window. Projection handlers read that
+ * window directly, so batches in the same window intentionally coalesce to a
+ * single job instead of repeatedly rescanning the same bounded rows. */
 export function refreshBatchFingerprint(eventIds: readonly string[]): string {
   return createHash("sha256").update([...new Set(eventIds.filter((eventId) => typeof eventId === "string" && eventId.length > 0))].sort().join("\n")).digest("hex");
 }
@@ -41,7 +42,7 @@ export function buildTrackMCPRefreshEnqueueRows(workspaceId: string, now = new D
   return TRACKMCP_INGEST_REFRESH_KINDS.slice(0, MAX_ENQUEUED_KINDS).map((kind) => ({
     workspace_id: workspaceId,
     kind,
-    dedupe_key: `ingest-window:${window}:${batchFingerprint}:${kind}`,
+    dedupe_key: `ingest-window:${window}:${kind}`,
   }));
 }
 
