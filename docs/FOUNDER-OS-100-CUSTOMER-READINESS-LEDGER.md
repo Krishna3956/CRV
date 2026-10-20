@@ -1,6 +1,6 @@
 # Founder OS 100 Customer Readiness Ledger
 
-Last updated: 2026-10-21 (PR #119 CI status checked; no blind local wait active)
+Last updated: 2026-10-21 (fresh Supabase postflight after PR #120 merge)
 Owner: Codex engineering execution
 Pilot target: 100 customers
 
@@ -43,6 +43,8 @@ Current estimate: **6/10 gates complete (60%)**. The deployed application path a
 
 ### 2026-10-21 status check
 
+- Fresh read-only Supabase production postflight observed `0` catalog entity-read rows, `0` privacy requests, `0` privacy deletion batches, `539` queued refresh jobs, and `0` retryable refresh jobs. This confirms transport/retry health but leaves freshness, entity-read coverage, and end-to-end privacy lifecycle execution open.
+- Main CI for merge `ae15bb1` passed after PR #120. The merge changed only CI/docs paths, so no App Runner deployment was triggered; the previously deployed application release remains the production runtime under evidence.
 - The previous apparent hour-long `sleep` was bounded polling of remote GitHub/App Runner state, not an uncontrolled local process. Current work is active and uses short, inspectable API calls.
 - PR #119 (`docs: record authenticated dashboard runtime evidence`) was merged as `7e3725a`. Its GitHub CI checks passed; the Vercel status was non-required and failed because the provider reported a deployment rate limit, not because of an application test failure.
 - PR #120's original GitHub web CI jobs remained non-terminal for more than a day despite the workflow's 30-minute timeout; those stale runs were cancelled and a fresh CI run will be created from the next ledger commit. This is recorded as a CI-runner-state issue, not an application test result.
