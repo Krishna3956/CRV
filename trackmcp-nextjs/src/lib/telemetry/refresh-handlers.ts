@@ -38,13 +38,13 @@ export function createRefreshJobHandlers(admin: RefreshAdmin, options: RefreshHa
       if (signal?.aborted) return { outcome: "retryable", error_code: "cancelled", detail: "worker was cancelled" };
       try {
         const result = await admin.from("trackmcp_events").select(EVENT_COLUMNS).eq("workspace_id", job.workspace_id).order("started_at", { ascending: false }).limit(MAX_ROWS);
-        if (result.error) return retryable(result.error.message);
+        if (result.error) return retryable(result.error);
         const facts = factsFromRows(result.data || []);
         const persisted = await persistTrackMCPFacts(admin as never, job.workspace_id, facts);
-        if (persisted.error) return retryable(persisted.error.message);
+        if (persisted.error) return retryable(persisted.error);
         if (taskTransitionsEnabled) {
           const transitions = await persistTrackMCPTaskTransitions(admin as never, buildTaskTransitionWrites(job.workspace_id, facts));
-          if (transitions.error) return retryable(transitions.error.message);
+          if (transitions.error) return retryable(transitions.error);
         }
         return { outcome: "succeeded" as const };
       } catch (error) {
@@ -55,10 +55,10 @@ export function createRefreshJobHandlers(admin: RefreshAdmin, options: RefreshHa
       if (signal?.aborted) return { outcome: "retryable", error_code: "cancelled", detail: "worker was cancelled" };
       try {
         const result = await admin.from("trackmcp_semantic_facts").select("source_event_id,fact_version,fact_type,event_type,service,environment,observed_at,semantic,dimensions,measures,error").eq("workspace_id", job.workspace_id).order("observed_at", { ascending: false }).limit(MAX_ROWS);
-        if (result.error) return retryable(result.error.message);
+        if (result.error) return retryable(result.error);
         const facts = (result.data || []) as TrackMCPFact[];
         const persisted = await persistTrackMCPActionQueue(admin as never, evaluateTrackMCPActionQueue(job.workspace_id, facts));
-        return persisted.error ? retryable(persisted.error.message) : { outcome: "succeeded" as const };
+        return persisted.error ? retryable(persisted.error) : { outcome: "succeeded" as const };
       } catch (error) {
         return retryable(error);
       }
@@ -67,14 +67,14 @@ export function createRefreshJobHandlers(admin: RefreshAdmin, options: RefreshHa
       if (signal?.aborted) return { outcome: "retryable", error_code: "cancelled", detail: "worker was cancelled" };
       try {
         const result = await admin.from("trackmcp_events").select("server_id,environment_id,session_id,protocol_version,catalog_kind,catalog_item_count,catalog_item_name_hashes,catalog_item_uri_hashes,started_at").eq("workspace_id", job.workspace_id).order("started_at", { ascending: false }).limit(MAX_ROWS);
-        if (result.error) return retryable(result.error.message);
+        if (result.error) return retryable(result.error);
         const observations = (result.data || []) as CatalogObservationRow[];
         const existing = await admin.from("trackmcp_catalog_versions").select("id,server_id,environment_id,catalog_kind,item_count,item_name_hashes,item_uri_hashes,snapshot_hash,complete,truncated,discovered_at").eq("workspace_id", job.workspace_id).order("discovered_at", { ascending: false }).limit(MAX_ROWS);
-        if (existing.error) return retryable(existing.error.message);
+        if (existing.error) return retryable(existing.error);
         const writes = buildCatalogVersionWrites(job.workspace_id, observations, (existing.data || []) as ExistingCatalogVersion[]);
         if (!writes.length) return { outcome: "succeeded" as const };
         const persisted = await admin.from("trackmcp_catalog_versions").upsert(writes, { onConflict: "workspace_id,server_id,environment_id,catalog_kind,snapshot_hash", ignoreDuplicates: true });
-        return persisted.error ? retryable(persisted.error.message) : { outcome: "succeeded" as const };
+        return persisted.error ? retryable(persisted.error) : { outcome: "succeeded" as const };
       } catch (error) {
         return retryable(error);
       }
@@ -83,11 +83,11 @@ export function createRefreshJobHandlers(admin: RefreshAdmin, options: RefreshHa
       if (signal?.aborted) return { outcome: "retryable", error_code: "cancelled", detail: "worker was cancelled" };
       try {
         const result = await admin.from("trackmcp_events").select("event_id,server_id,environment,catalog_kind,catalog_item_name_hashes,catalog_item_uri_hashes,mcp_method,started_at,success,is_error,result_type").eq("workspace_id", job.workspace_id).order("started_at", { ascending: false }).limit(MAX_ROWS);
-        if (result.error) return retryable(result.error.message);
+        if (result.error) return retryable(result.error);
         const writes = buildCatalogEntityReadWrites(job.workspace_id, (result.data || []) as CatalogObservationRow[]);
         if (!writes.length) return { outcome: "succeeded" as const };
         const persisted = await admin.from("trackmcp_catalog_entity_reads").upsert(writes, { onConflict: "workspace_id,source_event_id,catalog_kind,entity_hash", ignoreDuplicates: true });
-        return persisted.error ? retryable(persisted.error.message) : { outcome: "succeeded" as const };
+        return persisted.error ? retryable(persisted.error) : { outcome: "succeeded" as const };
       } catch (error) {
         return retryable(error);
       }
