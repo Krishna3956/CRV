@@ -3391,6 +3391,7 @@ function IssuesView({
   const insufficient = toolQuality
     ? toolQuality.tools.filter((tool) => tool.insufficient_data.length)
     : [];
+  const syntheticIncidents = incidents.filter(isSyntheticCanaryIncident);
   const orderedIncidents = [...incidents].sort((left, right) => {
     const stateRank = (state: AlertIncident["state"]) =>
       state === "firing"
@@ -3433,6 +3434,11 @@ function IssuesView({
             : "Workspace-scoped alert results with bounded evidence"
         }
       >
+        {dataMode === "my" && syntheticIncidents.length > 0 && (
+          <div className="mb-3 border border-sky-200 bg-sky-50/70 p-3 text-xs leading-relaxed text-sky-900">
+            {syntheticIncidents.length} synthetic canary incident{syntheticIncidents.length === 1 ? " is" : "s are"} retained as test evidence. These rows are not customer failures or pilot health claims.
+          </div>
+        )}
         {dataMode === "example" && (
           <div className="mb-3 border border-blue-200 bg-blue-50/60 p-3 text-xs leading-relaxed text-blue-900">
             These are illustrative examples so you can understand how firing,
@@ -3642,6 +3648,9 @@ function IncidentCard({
                 Not a confirmed failure
               </span>
             )}
+            {isSyntheticCanaryIncident(incident) && (
+              <span className="text-[10px] font-semibold text-sky-800">Synthetic canary evidence</span>
+            )}
           </div>
           <h3 className="mt-2 text-sm font-semibold text-ink">
             {metricLabel(incident.metric)}
@@ -3710,6 +3719,10 @@ function IncidentCard({
       </div>
     </article>
   );
+}
+
+function isSyntheticCanaryIncident(incident: AlertIncident): boolean {
+  return incident.scope.environment === "canary" || incident.identity.startsWith("p1-05-canary-probe");
 }
 
 function ClientsView({
