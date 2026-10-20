@@ -50,7 +50,7 @@ Current estimate: **6/10 gates complete (60%)**. The deployed application path a
 - Reliability audit observed `tools/call` 1,568 events with 139 `is_error` rows and p95 duration 31,514.5 ms; `completion/complete` has 8 rows, all marked error. This is a real Tab 6/Outcome risk that must be surfaced in the dashboard and investigated before a 100-customer claim; it is not smoothed away by aggregate success counts.
 - Error classes are now classified from production metadata-only rows: `MESSAGE_TOO_LONG` 24, `DECISION_NOT_READY` 19, `FEATURE_NOT_AVAILABLE` 14, `CALLABLE_HTTP_ERROR` 11, `INVALID_FIELD` 8, `protocol_error` 8, `PERSONAS_NOT_READY` 7, and `INTERNAL_ERROR` 6. Payloads were not queried or recorded.
 - No raw credentials or payloads were written to this ledger. User-owned `docs/codex-handoff/`, `tmp/`, and `trackmcp-nextjs/AGENTS.md` remain untouched and unstaged.
-- Next engineering action: restore/verify App Runner worker availability, rerun the bounded worker, then re-run production queue/postflight evidence before treating refresh freshness as pilot-ready.
+- Next engineering action: surface and investigate the observed reliability/error evidence in Tabs 5–6, close entity-read coverage and privacy/retention production gates, then produce the final pilot release record.
 
 ## Completed evidence
 
