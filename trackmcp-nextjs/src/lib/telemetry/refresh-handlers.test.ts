@@ -42,7 +42,7 @@ test("windowed ingest jobs restrict event projections to their source window", a
     id: "windowed-job",
     workspace_id: workspace,
     kind: "catalog_recompute",
-    dedupe_key: `ingest-window:1965696:${"a".repeat(64)}:catalog_recompute`,
+    dedupe_key: "ingest-window:1965696:catalog_recompute",
     now: new Date("2026-01-01T00:00:00.000Z"),
   });
   assert.equal(result.ok, true);

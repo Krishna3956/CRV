@@ -30,9 +30,9 @@ test("refresh enqueue rejects malformed workspace scope before a write", async (
   assert.equal(called, false);
 });
 
-test("new accepted batches in the same window receive distinct privacy-safe dedupe fingerprints", () => {
+test("accepted batches in the same window coalesce to one bounded job per kind", () => {
   const first = buildTrackMCPRefreshEnqueueRows(workspace, now, refreshBatchFingerprint(["event-a"]));
   const second = buildTrackMCPRefreshEnqueueRows(workspace, now, refreshBatchFingerprint(["event-b"]));
-  assert.notEqual(first[0].dedupe_key, second[0].dedupe_key);
-  assert.match(first[0].dedupe_key, /[a-f0-9]{64}/);
+  assert.equal(first[0].dedupe_key, second[0].dedupe_key);
+  assert.match(first[0].dedupe_key, /^ingest-window:\d+:fact_projection$/);
 });

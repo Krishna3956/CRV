@@ -30,7 +30,7 @@ const REFRESH_WINDOW_MS = 15 * 60 * 1000;
  * events for every job. Legacy/manual jobs keep the bounded latest-500 query.
  */
 function jobWindow(job: { dedupe_key: string }): { start: string; end: string } | null {
-  const match = /^ingest-window:(\d+):[a-f0-9]{64}:[a-z_]+$/i.exec(job.dedupe_key);
+  const match = /^ingest-window:(\d+):[a-z_]+$/i.exec(job.dedupe_key);
   if (!match) return null;
   const window = Number(match[1]);
   if (!Number.isSafeInteger(window) || window < 0) return null;
