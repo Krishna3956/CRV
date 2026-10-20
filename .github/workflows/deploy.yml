@@ -42,6 +42,10 @@ jobs:
         working-directory: trackmcp-nextjs
         run: npm ci
 
+      - name: Run release gate before deployment
+        working-directory: trackmcp-nextjs
+        run: npm run test:release-gate
+
       - name: Configure AWS credentials (OIDC)
         uses: aws-actions/configure-aws-credentials@v4
         with:
