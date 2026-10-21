@@ -30,6 +30,9 @@ await telemetry.FlushAsync();`}</Code>
     <DocSection title="Coverage and limits">
       <Para>The .NET package is a transport-neutral primitive, not an automatic MCP server wrapper. Your middleware supplies protocol and transport fields. Account identity comes only from an application-validated claim and is hashed before storage. TrackMCP does not implement OAuth or parse bearer tokens.</Para>
     </DocSection>
+    <DocSection id="account-identity" title="Optional account identity">
+      <Para>Resolve a stable, non-secret tenant or account handle in your own authenticated middleware and pass only that bounded handle in the event. Do not send an email, access token, URL, prompt, result, or raw user identifier. If your middleware cannot verify identity, omit it; the dashboard will keep the activity in an unresolved bucket.</Para>
+    </DocSection>
     <DocSection id="verify-first-event" title="Verify your first event">
       <Para>Configure the key, make one real MCP tool call, flush during shutdown or after a bounded batch, then use Setup to confirm the event. Key creation alone never counts as telemetry.</Para>
     </DocSection>

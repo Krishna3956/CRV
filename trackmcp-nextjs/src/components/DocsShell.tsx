@@ -31,6 +31,7 @@ const groups = [
       { t: "REST API", href: "/docs/api" },
       { t: "Configuration", href: "/docs/reference" },
       { t: "OpenTelemetry", href: "/docs/opentelemetry" },
+      { t: "MCP protocol support", href: "/docs/protocol" },
       { t: "Authentication & OAuth", href: "/docs/authentication" },
       { t: "Troubleshooting", href: "/docs#troubleshooting" },
     ],
@@ -54,6 +55,7 @@ export function DocsShell({
     "/docs/go": "Go SDK",
     "/docs/dotnet": ".NET SDK",
     "/docs/authentication": "Authentication & OAuth",
+    "/docs/protocol": "MCP protocol support",
   };
   const breadcrumbSchema = breadcrumbJsonLd([
     { name: "Home", path: "/" },
