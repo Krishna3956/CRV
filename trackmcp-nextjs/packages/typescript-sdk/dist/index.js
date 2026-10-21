@@ -403,6 +403,11 @@ export class TrackMCPClient {
                     ...(metadata.repeat_group_source === "session_id" || metadata.repeat_group_source === "correlation_handle" ? { repeat_group_source: metadata.repeat_group_source } : {}),
                     ...(typeof metadata.next_tool_selection_observed === "boolean" ? { next_tool_selection_observed: metadata.next_tool_selection_observed } : {}),
                     ...(typeof metadata.preceding_request_id === "string" && metadata.preceding_request_id.length <= DEFAULT_MAX_STRING_LENGTH ? { preceding_request_id: metadata.preceding_request_id } : {}),
+                    ...(typeof metadata.next_cursor_present === "boolean" ? { next_cursor_present: metadata.next_cursor_present } : {}),
+                    ...(typeof metadata.cache_ttl_ms === "number" && Number.isInteger(metadata.cache_ttl_ms) && metadata.cache_ttl_ms >= 0 && metadata.cache_ttl_ms <= 86_400_000 ? { cache_ttl_ms: metadata.cache_ttl_ms } : {}),
+                    ...(metadata.cache_scope === "public" || metadata.cache_scope === "private" ? { cache_scope: metadata.cache_scope } : {}),
+                    ...(metadata.subscription_action === "listen_requested" || metadata.subscription_action === "subscription_started" ? { subscription_action: metadata.subscription_action } : {}),
+                    ...(metadata.protocol_signal === "progress" || metadata.protocol_signal === "cancelled" || metadata.protocol_signal === "catalog_changed" || metadata.protocol_signal === "resource_changed" || metadata.protocol_signal === "prompt_changed" ? { protocol_signal: metadata.protocol_signal } : {}),
                 };
                 prepared.payload = { _trackmcp: sanitizedMetadata };
                 prepared.payload_size_bytes = payloadByteLength(prepared.payload);
