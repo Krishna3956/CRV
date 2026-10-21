@@ -18,6 +18,8 @@ test("primary pilot flows retain keyboard focus and reduced-motion contracts", (
   assert.match(device, /id="device-workspace"/);
   assert.match(dashboard, /aria-label="Copy TrackMCP setup command"/);
   assert.match(logo, /focus-visible:ring/);
+  assert.match(css, /button:not\(:disabled\)[\s\S]*cursor:\s*pointer/);
+  assert.match(css, /button:disabled\s*\{[\s\S]*cursor:\s*not-allowed/);
 });
 
 test("accessibility audit does not hide focus or use inaccessible placeholder controls", () => {
