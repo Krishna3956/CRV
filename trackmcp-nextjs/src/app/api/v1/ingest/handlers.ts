@@ -41,7 +41,11 @@ function invalidBatchResponse(reason: string, rejected: number, status = 400) {
 }
 
 export function createIngestHandler(getAdmin: typeof getSupabaseAdmin = getSupabaseAdmin, options: { refreshJobsEnabled?: boolean } = {}) {
-  const refreshJobsEnabled = options.refreshJobsEnabled ?? process.env.TRACKMCP_ENABLE_REFRESH_JOBS === "true";
+  // Refresh enqueue is part of the supported ingest path now that the queue
+  // migration and fail-open worker boundary are shipped. Keep an explicit
+  // opt-out for rollback/maintenance, but do not silently disable derived
+  // read-model freshness when the environment variable is absent.
+  const refreshJobsEnabled = options.refreshJobsEnabled ?? process.env.TRACKMCP_ENABLE_REFRESH_JOBS !== "false";
   return async function POST(req: Request) {
   const supabase = getAdmin();
   if (!supabase) return NextResponse.json({ error: "Ingest service is not configured." }, { status: 503 });

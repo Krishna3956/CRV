@@ -552,7 +552,7 @@ export class TrackMCPClient {
     if (this.options.payloadMode === "metadata") {
       if (source === "client" && prepared.payload && typeof prepared.payload === "object" && !Array.isArray(prepared.payload) && prepared.payload._trackmcp && typeof prepared.payload._trackmcp === "object") {
         const metadata = prepared.payload._trackmcp as Record<string, unknown>;
-        const observationKinds = new Set(["tool_call_issued", "result_received", "next_tool_selected", "session_started", "session_ended"]);
+        const observationKinds = new Set(["tool_call_issued", "result_received", "next_tool_selected", "session_started", "session_ended", "protocol_request", "protocol_response", "protocol_notification"]);
         const sanitizedMetadata: Record<string, unknown> = {
           observation_source: "client",
           ...(typeof metadata.observation_kind === "string" && observationKinds.has(metadata.observation_kind) ? { observation_kind: metadata.observation_kind } : {}),
