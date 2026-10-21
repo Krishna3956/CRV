@@ -80,7 +80,7 @@ test("fact projection selects bounded metadata and persists semantic facts", asy
   assert.equal((writes[0]?.rows[0] as { payload?: unknown }).payload, undefined);
 });
 
-test("task transition projection is opt-in and writes only explicit task evidence", async () => {
+test("task transition projection is enabled by default and writes only explicit task evidence", async () => {
   const event = {
     event_id: "task-event-1", event_type: "protocol", service: "demo", environment: "prod", started_at: "2026-01-01T00:00:00.000Z",
     task_id: "secret-task-handle", mcp_method: "tasks/get", payload: { task_status: "completed" }, success: true, is_error: false, transport: "streamable_http",
@@ -99,6 +99,12 @@ test("task transition projection is opt-in and writes only explicit task evidenc
   assert.ok(transition);
   assert.equal((transition.rows[0] as { state?: string }).state, "completed");
   assert.equal(JSON.stringify(transition.rows).includes("secret-task-handle"), false);
+
+  const defaultEnabled = fakeAdmin([event]);
+  const defaultHandler = createRefreshJobHandlers(defaultEnabled.admin as never).fact_projection;
+  assert.ok(defaultHandler);
+  await defaultHandler({ job: baseJob("fact_projection"), now: new Date() });
+  assert.equal(defaultEnabled.writes.some((write) => write.table === "trackmcp_task_transitions"), true);
 });
 
 test("action queue refresh defers cleanly on cancellation", async () => {

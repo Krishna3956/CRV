@@ -102,7 +102,10 @@ function factsFromRows(rows: unknown[]): TrackMCPFact[] {
 }
 
 export function createRefreshJobHandlers(admin: RefreshAdmin, options: RefreshHandlerOptions = {}): RefreshJobHandlerRegistry {
-  const taskTransitionsEnabled = options.taskTransitionsEnabled ?? process.env.TRACKMCP_TASK_TRANSITIONS_ENABLED === "true";
+  // The transition-history migration is additive and service-role-only. Keep
+  // it enabled by default so explicit task evidence is not silently discarded;
+  // operators retain an explicit opt-out for rollback or migration windows.
+  const taskTransitionsEnabled = options.taskTransitionsEnabled ?? process.env.TRACKMCP_TASK_TRANSITIONS_ENABLED !== "false";
   return {
     async fact_projection({ job, signal }) {
       if (signal?.aborted) return { outcome: "deferred", detail: "worker deadline deferred this job" };
