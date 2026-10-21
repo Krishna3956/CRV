@@ -16,6 +16,7 @@ test("web CI blocks high-severity production dependency advisories", () => {
 });
 
 test("npm publication requires provenance and package preflight tests", () => {
+  assert.doesNotMatch(workflow, /^\s*push:/m, "package publication must be deliberate, not push-triggered");
   assert.match(workflow, /id-token:\s*write/);
   assert.match(workflow, /attestations:\s*write/);
   assert.match(workflow, /actions\/attest-build-provenance@v2/);
@@ -35,6 +36,14 @@ test("npm publication requires provenance and package preflight tests", () => {
   assert.match(workflow, /sha512-\[A-Za-z0-9\+\/=/);
   assert.match(workflow, /registry\.npmjs\.org/);
   assert.match(workflow, /Registry propagation pending/);
+});
+
+test("Python publication is deliberate and confirmation-gated", async () => {
+  const pythonWorkflow = await readFile(new URL("../../.github/workflows/publish-python.yml", import.meta.url), "utf8");
+  assert.match(pythonWorkflow, /workflow_dispatch:/);
+  assert.match(pythonWorkflow, /description:.*PUBLISH/);
+  assert.match(pythonWorkflow, /if: inputs\.confirm == 'PUBLISH'/);
+  assert.doesNotMatch(pythonWorkflow, /^\s*push:/m);
 });
 
 test("PyPI publication runs tests and validates built artifacts", () => {

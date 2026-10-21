@@ -70,8 +70,8 @@ export function DocsShell({
       <main className="flex-1">
         <div className="mx-auto max-w-6xl px-6 py-12">
           <div className="grid gap-10 lg:grid-cols-[210px_minmax(0,1fr)]">
-            <aside className="hidden lg:block">
-              <nav className="sticky top-24 flex flex-col gap-6">
+            <aside className="relative z-10 hidden pointer-events-auto lg:block">
+              <nav aria-label="Documentation sections" className="sticky top-24 flex flex-col gap-6">
                 {groups.map((g) => (
                   <div key={g.label}>
                     <p className="mb-2 px-2.5 text-[11px] font-semibold uppercase tracking-wide text-faint">
@@ -82,6 +82,8 @@ export function DocsShell({
                         <li key={it.href}>
                           <Link
                             href={it.href}
+                            aria-current={active === it.href ? "page" : undefined}
+                            data-doc-nav="sidebar"
                             className={`block cursor-pointer rounded-md px-2.5 py-1.5 text-[13.5px] transition-colors ${
                               active === it.href
                                 ? "bg-brand-soft/50 font-medium text-brand-strong"

@@ -135,6 +135,14 @@
   }
 }
 
+/* The wordmark is a link, but it is not a decorated text link. Keep this
+ * explicit so global anchor styles or future utility ordering cannot paint a
+ * border/underline around the brand mark. The focus ring remains visible. */
+.trackmcp-logo {
+  border: 0 !important;
+  text-decoration: none !important;
+}
+
 /* Dashboard product typography: Inter for UI, Geist Mono only for code/IDs. */
 .dashboard-shell,
 .dashboard-shell button,
