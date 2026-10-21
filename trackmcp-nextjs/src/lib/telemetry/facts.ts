@@ -1,5 +1,5 @@
 import { createHash } from "node:crypto";
-import { classifyTrackMCPOutcome, type TrackMCPSemanticOutcome } from "./semantic.ts";
+import { classifyTrackMCPOutcome, protocolFamilyForMethod, type TrackMCPSemanticOutcome } from "./semantic.ts";
 import type { CanonicalTrackMCPEvent } from "./types.ts";
 
 /**
@@ -32,6 +32,8 @@ export type TrackMCPFact = {
     interaction_id?: string;
     /** One-way task handle; raw task IDs are never stored in the fact projection. */
     task_id_hash?: string;
+    /** Coarse protocol family; raw method names remain in the source event only. */
+    protocol_family?: ReturnType<typeof protocolFamilyForMethod>;
   };
   measures: {
     duration_ms?: number;
@@ -89,6 +91,7 @@ export function projectTrackMCPFact(event: CanonicalTrackMCPEvent): TrackMCPFact
       ...(boundedNonNegative(event.resource_priority, 1) !== undefined ? { resource_priority: boundedNonNegative(event.resource_priority, 1) } : {}),
       ...(bounded(event.interaction_id, 128) ? { interaction_id: bounded(event.interaction_id, 128) } : {}),
       ...(taskId ? { task_id_hash: createHash("sha256").update(taskId, "utf8").digest("hex") } : {}),
+      ...(protocolFamilyForMethod(event.mcp_method) ? { protocol_family: protocolFamilyForMethod(event.mcp_method) } : {}),
     },
     measures: {
       duration_ms: boundedNonNegative(event.duration_ms, 86_400_000),

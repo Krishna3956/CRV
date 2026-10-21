@@ -24,6 +24,12 @@ test("projects tool calls as bounded activity facts", () => {
   assert.equal("payload" in fact, false);
 });
 
+test("persists only a coarse protocol family in durable facts", () => {
+  const fact = projectTrackMCPFact(event({ event_type: "protocol", mcp_method: "elicitation/create", result_type: "input_required" }));
+  assert.equal(fact.dimensions.protocol_family, "elicitation");
+  assert.equal(JSON.stringify(fact).includes("elicitation/create"), false);
+});
+
 test("projects workflow outcomes without treating missing evidence as success", () => {
   const fact = projectTrackMCPFact(event({ event_type: "workflow", workflow_id: "wf_private" }));
   assert.equal(fact.fact_type, "outcome");
