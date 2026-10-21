@@ -42,12 +42,15 @@ package path itself must be unchanged, or a new version must be published.
 | `@trackmcp/sdk@0.1.9` | npm publication, provenance, exact integrity, and clean consumer export check verified by publish workflow `39678943076`; integrity `sha512-v0tigxc0bmHLEn+cPnjop+AkpFRkIuz0Hw9yuic63TUY+lqObAU80bkxKH8XB+9eiMGgxIj4ax/29HWnYDsJ4w==` | Merged candidate `9b01c4f769606acd7cde3eeaaeb7a56de01a9b11` adds the server-directed task lifecycle fixture and task-producing response metadata | Current published SDK source line; authenticated production UAT and first-event evidence remain open. |
 | `@trackmcp/cli@0.1.4` | npm `gitHead` `4d704173d807ff2aded8e5bb6c0051e9df0a093a`; npm integrity retained by the registry | No files under `packages/cli` changed since that commit | The published CLI may be used only after its separate disposable production activation proof; do not imply the whole product is released. |
 | `trackmcp==0.1.4` | PyPI wheel SHA-256 `0ab1a9780450b7ee811884eeebc98969993c1d093b67628c899617bfb36ba0e0`; sdist SHA-256 `b264922d39d4281f5c0a347e72516207761d80720dbd64f14f13dd03696ce22a` | Historical artifact; source changed materially after this publication | Do not use as the current pilot candidate. |
-| `trackmcp==0.1.5` | Deliberate candidate version for the current Python source; not published yet | Local tests/build and package audit required before dispatch | Publish once through the manual provenance workflow, then record the PyPI upload, artifact check, and exact-registry consumer test with exact hashes. |
+| `trackmcp==0.1.5` | PyPI publication workflow `39690522301` completed with provenance; wheel SHA-256 `b79ffa8ad638d744ecab121139028ea1a108adf5f48c16fc402bfc0e49724925`; sdist SHA-256 `b3a9070d2116c0d81c1c9c9e53ebea8911866907f668f09dbd08a16bb4268c50`; clean consumer verified version and exports | Current Python source candidate | Publication and artifact gate closed; disposable production activation and first-event evidence remain open. |
 
 The checksums above identify the currently inspected 0.1.4 Python artifacts;
 they do not attest to a future candidate. Re-run this reconciliation against
 the final candidate SHA immediately before publication and record the new
 immutable versions and checksums in the release manifest.
+
+For the 0.1.5 candidate, the PyPI upload, artifact check, and exact-registry
+consumer test are recorded in workflow `39690522301` and the evidence ledger.
 
 ## Consumer-facing installation rule
 
