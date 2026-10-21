@@ -125,7 +125,7 @@ function scopeForEvent(event: CanonicalTrackMCPEvent): TrackMCPSemanticScope {
 
 function taskStatus(event: CanonicalTrackMCPEvent): "working" | "input_required" | "completed" | "failed" | "cancelled" | "expired" | undefined {
   if (!event.task_id) return undefined;
-  const value = event.payload?.task_status ?? event.payload?.status;
+  const value = event.task_status ?? event.payload?.task_status ?? event.payload?.status;
   return value === "working" || value === "input_required" || value === "completed" || value === "failed" || value === "cancelled" || value === "expired" ? value : undefined;
 }
 

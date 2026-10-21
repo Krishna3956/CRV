@@ -133,3 +133,10 @@ test("accepts task result handles only when a task id is present", () => {
   assert.equal(invalid.ok, false);
   if (!invalid.ok) assert.equal(invalid.reason, "task result_type requires task_id");
 });
+
+test("accepts bounded explicit task states and rejects unknown states", () => {
+  assert.equal(normalizeTrackMCPEvent(baseEvent({ task_id: "task_1", task_status: "working" })).ok, true);
+  const invalid = normalizeTrackMCPEvent(baseEvent({ task_id: "task_1", task_status: "running" }));
+  assert.equal(invalid.ok, false);
+  if (!invalid.ok) assert.equal(invalid.reason, "task_status is unsupported");
+});
