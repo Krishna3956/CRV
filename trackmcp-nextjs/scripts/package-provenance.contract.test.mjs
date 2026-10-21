@@ -6,6 +6,7 @@ import test from "node:test";
 const root = resolve(process.cwd(), "..");
 const readiness = await readFile(resolve(root, "docs/FOUNDER-OS-PACKAGE-RELEASE-READINESS.md"), "utf8");
 const plan = await readFile(resolve(root, "docs/FOUNDER-OS-100-CUSTOMER-PILOT-MASTER-EXECUTION-PLAN.md"), "utf8");
+const normalizedReadiness = readiness.replace(/\s+/g, " ");
 
 test("package readiness distinguishes local package checks from registry publication", () => {
   for (const term of [
@@ -16,7 +17,7 @@ test("package readiness distinguishes local package checks from registry publica
     "`trackmcp==0.1.4`",
     "PyPI upload, artifact check, and exact-registry consumer test",
     "not attest to a future candidate",
-  ]) assert.match(readiness, new RegExp(term.replace(/[()[\].+?^$|{}\\]/g, "\\$&")));
+  ]) assert.match(normalizedReadiness, new RegExp(term.replace(/[()[\].+?^$|{}\\]/g, "\\$&")));
 });
 
 test("master plan closes verified SDK publication but keeps activation gates open", () => {
