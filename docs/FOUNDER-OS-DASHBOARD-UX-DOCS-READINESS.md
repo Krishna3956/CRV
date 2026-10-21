@@ -38,9 +38,9 @@ short labels; longer explanations belong in an expandable detail region.
 - [ ] Setup has a direct OTLP/HTTP JSON integration path with copyable endpoint,
       headers/key guidance, supported/unsupported protocol disclosure, and a
       test/verification action.
-- [ ] Setup explains where optional identity resolver configuration happens,
+- [x] Setup explains where optional identity resolver configuration happens,
       what it enables, and how to validate it without exposing resolver keys.
-- [ ] Documentation has a first-class OpenTelemetry page linked from Setup,
+- [x] Documentation has a first-class OpenTelemetry page linked from Setup,
       API docs, and the feature page, with working examples and boundaries.
 - [ ] Public feature and documentation pages match shipped dashboard tabs,
       privacy behavior, supported protocols, and current package versions.
@@ -60,6 +60,21 @@ short labels; longer explanations belong in an expandable detail region.
 5. Run visual/runtime audit, contract suites, full release gate, deployment,
    and production smoke; record evidence here and in the customer-readiness
    ledger.
+
+## Evidence log
+
+- 2026-10-21: PR #146 merged the shared panel information affordance, universal
+  pointer cursor rule, progressive disclosure for Overview/Issues, and the
+  actionable OTLP/HTTP JSON Setup card. Its App Runner deployment passed the
+  release gate and production smoke workflow (`39555750135`).
+- 2026-10-21: PR #147 merged per-incident progressive disclosure so Issues
+  shows summary-first cards rather than repeating full evidence in the first
+  viewport. Deployment workflow `39557149745` is running the release gate and
+  smoke checks.
+- 2026-10-21: PR #148 adds the missing server-side account identity resolver
+  path to Setup, TypeScript/Python examples, and a first-class OpenTelemetry
+  navigation item. Local dashboard contracts pass 50/50, lint passes, and the
+  production build generates 171 routes. PR is awaiting CI and deployment.
 
 ## Research-derived acceptance criteria
 
