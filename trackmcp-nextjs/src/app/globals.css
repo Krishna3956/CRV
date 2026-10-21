@@ -152,6 +152,19 @@
   line-height: 1.2;
 }
 
+/* Interactive affordances are consistent across every dashboard surface. */
+.dashboard-shell button:not(:disabled),
+.dashboard-shell a[href],
+.dashboard-shell summary {
+  cursor: pointer;
+}
+
+.dashboard-shell button:not(:disabled),
+.dashboard-shell a[href] {
+  transition: color 140ms ease, background-color 140ms ease, border-color 140ms ease,
+    opacity 140ms ease, box-shadow 140ms ease;
+}
+
 .dashboard-shell .dashboard-page-title {
   font-size: 1.75rem;
   font-weight: 600;

@@ -318,7 +318,7 @@ const integrations = [
   { icon: Bell, tile: "bg-amber-100 text-amber-600", title: "Slack alerts (Planned)", body: "Notifications are planned; P0 provides dashboard evidence instead." },
   { icon: Webhook, tile: "bg-violet-100 text-violet-600", title: "Webhooks (Planned)", body: "Outbound event delivery is planned; it is not part of P0." },
   { icon: Plug, tile: "bg-teal-100 text-teal-600", title: "REST API", body: "Query your own metrics programmatically." },
-  { icon: Database, tile: "bg-rose-100 text-rose-600", title: "OpenTelemetry export (Planned)", body: "External span export is planned; it is not part of P0." },
+  { icon: Database, tile: "bg-rose-100 text-rose-600", title: "OpenTelemetry receiver", body: "Use the bounded OTLP/HTTP JSON endpoint when an existing collector already emits compatible MCP spans. Native SDK coverage remains recommended." },
 ];
 
 export default function FeaturesPage() {
