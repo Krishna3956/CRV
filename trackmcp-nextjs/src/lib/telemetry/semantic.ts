@@ -32,6 +32,7 @@ export type TrackMCPOutcomeReason =
 export type TrackMCPProtocolSignal =
   | "notification"
   | "progress"
+  | "cancelled"
   | "catalog_changed"
   | "resource_changed"
   | "subscription_started"
@@ -152,6 +153,7 @@ export function classifyTrackMCPProtocolSignal(event: { mcp_method?: string | nu
   // it must never be inferred from silence.
   if (method === "subscriptions/listen" || method === "notifications/subscriptions/acknowledged") return "subscription_started";
   if (method === "notifications/progress") return "progress";
+  if (method === "notifications/cancelled") return "cancelled";
   if (method === "notifications/resources/updated") return "resource_changed";
   if (method === "notifications/tools/list_changed" || method === "notifications/resources/list_changed" || method === "notifications/prompts/list_changed") return "catalog_changed";
   if (method.startsWith("notifications/")) return "notification";

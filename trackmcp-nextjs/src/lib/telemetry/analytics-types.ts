@@ -201,6 +201,7 @@ export type Analytics = {
   protocol_signals?: {
     notification: number;
     progress: number;
+    cancelled: number;
     catalog_changed: number;
     resource_changed: number;
     subscription_started: number;
