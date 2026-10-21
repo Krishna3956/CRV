@@ -8,7 +8,7 @@ import test from "node:test";
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { StdioClientTransport } from "@modelcontextprotocol/sdk/client/stdio.js";
 import { StreamableHTTPClientTransport } from "@modelcontextprotocol/sdk/client/streamableHttp.js";
-import { TrackMCPClientAdapter } from "../dist/client-adapter.js";
+import { TrackMCPClientAdapter, protocolResponseMetadata } from "../dist/client-adapter.js";
 import { TrackMCPClient } from "../dist/index.js";
 
 const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -107,7 +107,7 @@ test("uses MCP SDK 1.32.1 with a real StdioClientTransport and captures protocol
         const message = JSON.parse(buffer.slice(0, newline));
         buffer = buffer.slice(newline + 1);
         let result = {};
-        if (message.method === "initialize") result = { protocolVersion: "2025-06-18", capabilities: {}, serverInfo: { name: "stdio-fixture", version: "1" }, sessionId: "stdio-protocol-session" };
+        if (message.method === "initialize") result = { protocolVersion: "2025-06-18", capabilities: { tools: {}, resources: { subscribe: true }, "private capability": {} }, serverInfo: { name: "stdio-fixture", version: "1" }, sessionId: "stdio-protocol-session" };
         if (message.method === "tools/call") result = { content: [{ type: "text", text: "ok" }] };
         process.stdout.write(JSON.stringify({ jsonrpc: "2.0", id: message.id, result }) + "\\n");
       }
@@ -127,8 +127,11 @@ test("uses MCP SDK 1.32.1 with a real StdioClientTransport and captures protocol
   const all = received.flatMap((batch) => batch.events);
   const issued = all.find((event) => event.payload?._trackmcp?.observation_kind === "tool_call_issued");
   const result = all.find((event) => event.payload?._trackmcp?.observation_kind === "result_received");
+  const initialize = events.find((event) => event.mcp_method === "initialize" && event.direction === "server_to_client");
   assert.ok(issued);
   assert.ok(result);
+  assert.ok(initialize);
+  assert.deepEqual(protocolResponseMetadata("initialize", { capabilities: { tools: {}, resources: {}, "private capability": {} } }), { capability_names: "resources,tools" });
   assert.equal(issued.observation_source, "client");
   assert.equal(result.observation_source, "client");
   assert.equal(issued.client_name, "stdio-client");
