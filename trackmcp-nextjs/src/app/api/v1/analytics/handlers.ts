@@ -9,7 +9,7 @@ import { projectTrackMCPFact } from "../../../../lib/telemetry/facts.ts";
 import { aggregateTrackMCPFacts, aggregateTrackMCPFactsBy, type TrackMCPOutcomeGroupBy } from "../../../../lib/telemetry/outcomes.ts";
 import { aggregateTaskLifecycles, type TrackMCPTaskTransitionObservation } from "../../../../lib/telemetry/task-lifecycle.ts";
 import { buildTrackMCPDataTrust } from "../../../../lib/telemetry/data-trust.ts";
-import { classifyTrackMCPProtocolSignal, type TrackMCPProtocolSignal } from "../../../../lib/telemetry/semantic.ts";
+import { classifyTrackMCPProtocolSignal, protocolFamilyForMethod, type TrackMCPProtocolFamily, type TrackMCPProtocolSignal } from "../../../../lib/telemetry/semantic.ts";
 import { evaluateWorkerHealth } from "../../../../lib/telemetry/worker-health.ts";
 
 type EventRow = {
@@ -235,6 +235,15 @@ export function createAnalyticsHandler(getAdmin: typeof getSupabaseAdmin = getSu
   })));
 
   const events = ((data || []) as EventRow[]).filter((event) => event.observation_source === "server");
+  const protocolFamilyCounts = new Map<string, number>();
+  const protocolFamilyEvents = (data || []) as EventRow[];
+  for (const event of protocolFamilyEvents) {
+    const hintedFamily = event.payload && typeof event.payload === "object" && !Array.isArray(event.payload)
+      ? (event.payload._trackmcp && typeof event.payload._trackmcp === "object" && !Array.isArray(event.payload._trackmcp) ? (event.payload._trackmcp as Record<string, unknown>).protocol_family : undefined)
+      : undefined;
+    const family = typeof hintedFamily === "string" ? hintedFamily : protocolFamilyForMethod(event.mcp_method);
+    if (family === "sampling" || family === "elicitation" || family === "completion" || family === "tasks" || family === "control_signal") protocolFamilyCounts.set(family, (protocolFamilyCounts.get(family) || 0) + 1);
+  }
   const facts = events.map(canonicalEventFromRow).map(projectTrackMCPFact);
   // The transition table is additive and may not exist on older deployments.
   // A missing schema must not break analytics; when present it extends the
@@ -731,6 +740,7 @@ export function createAnalyticsHandler(getAdmin: typeof getSupabaseAdmin = getSu
       prompts: { events: promptEvents.length, methods: [...new Set(promptEvents.map((event) => event.mcp_method).filter(Boolean))].slice(0, MAX_PUBLIC_DIMENSION_ITEMS), entity_count: promptEntityHashes.size, entity_identity: "sha256_hash_count", entity_analytics: entityReadAnalytics("prompts") },
     },
     protocol_signals: { ...protocolSignalCounts, observed_events: protocolSignalEvents },
+    protocol_family_activity: [...protocolFamilyCounts.entries()].map(([family, observations]) => ({ family: family as TrackMCPProtocolFamily, observations })).sort((a, b) => b.observations - a.observations || a.family.localeCompare(b.family)),
     transports: transports.slice(0, MAX_PUBLIC_DIMENSION_ITEMS),
     methods: methods.slice(0, MAX_PUBLIC_DIMENSION_ITEMS),
     tool_calls: calls.length, sessions: workflowRows.length, errors: calls.filter(failed).length,

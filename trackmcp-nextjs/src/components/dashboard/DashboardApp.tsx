@@ -436,6 +436,7 @@ const EXAMPLE_ANALYTICS: Analytics = {
     limitation: "Observed resolver-linked account keys are privacy-safe dimensions, not named customers or unique people.",
   },
   protocol_signals: { notification: 4, progress: 8, catalog_changed: 6, resource_changed: 2, subscription_started: 2, subscription_stopped: 1, observed_events: 23 },
+  protocol_family_activity: [{ family: "tasks", observations: 12 }, { family: "sampling", observations: 7 }, { family: "completion", observations: 4 }],
   interaction_surfaces: {
     resources: { events: 42, methods: ["resources/list", "resources/read"], entity_count: 12, entity_identity: "sha256_hash_count", entity_analytics: { status: "available", read_events: 31, successful_reads: 28, failed_reads: 2, input_required_reads: 1 } },
     prompts: { events: 19, methods: ["prompts/list", "prompts/get"], entity_count: 5, entity_identity: "sha256_hash_count", entity_analytics: { status: "available", read_events: 16, successful_reads: 14, failed_reads: 1, input_required_reads: 1 } },
@@ -2934,6 +2935,7 @@ function CapabilitiesView({
               <p className="mt-4 text-xs leading-relaxed text-faint">Accounts without a configured resolver are excluded from this distribution rather than grouped into a fabricated customer.</p>
             </Panel>
           </div>
+          {analytics.protocol_family_activity?.length ? <div className="mt-4"><Panel title="Modern protocol activity" subtitle="Bounded observations by MCP capability family"><div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-5">{analytics.protocol_family_activity.map((item) => <div key={item.family} className="border border-line bg-paper px-3 py-3"><p className="text-[11px] uppercase tracking-[0.08em] text-faint">{item.family.replace("_", " ")}</p><p className="mt-1 text-xl font-semibold text-ink">{fmt(item.observations)}</p><p className="mt-1 text-[11px] text-muted">bounded observations</p></div>)}</div><p className="mt-3 text-xs leading-relaxed text-faint">Counts describe observed protocol metadata, not customer demand or successful business outcomes.</p></Panel></div> : null}
           <div className="mt-4 grid gap-4 xl:grid-cols-[1.1fr_0.9fr]">
             <Panel title="Trend by feature" subtitle="Weekly observed calls for the highest-volume tools">
               {activity.trend.length ? <CapabilityTrendChart points={activity.trend} /> : <p className="py-6 text-sm text-muted">No trend evidence is available.</p>}

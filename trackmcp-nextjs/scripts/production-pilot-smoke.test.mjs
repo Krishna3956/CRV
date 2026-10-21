@@ -43,6 +43,7 @@ test("production pilot smoke verifies security headers and protected API boundar
     "strict-origin-when-cross-origin",
     "permissions-policy",
     "/api/v2/overview",
+    "/api/v2/protocol-activity",
     "/api/internal/refresh/run",
     "Protected API checks are unauthenticated status probes",
   ]) {

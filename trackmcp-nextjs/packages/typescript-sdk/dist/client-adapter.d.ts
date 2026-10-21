@@ -16,6 +16,15 @@ export type TrackMCPClientAdapterOptions = Omit<TrackMCPOptions, "payloadMode" |
     correlation?: TrackMCPClientCorrelation;
     onEvent?: TrackMCPEventHook;
 };
+type Message = Record<string, unknown>;
+type ProtocolMetadata = Record<string, boolean | number | string>;
+/**
+ * Keep modern MCP freshness and subscription signals observable without
+ * copying cursors, subscription identifiers, or any response body. These
+ * values are deliberately metadata-only so a private cursor cannot become a
+ * cross-tenant cache key in the telemetry store.
+ */
+export declare function protocolResponseMetadata(method: string | undefined, result: Message | undefined): ProtocolMetadata;
 export declare class TrackMCPClientAdapter {
     private readonly client;
     private readonly options;
@@ -73,3 +82,4 @@ export declare class TrackMCPClientAdapter {
     private emit;
     private keyFor;
 }
+export {};

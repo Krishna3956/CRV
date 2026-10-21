@@ -115,3 +115,28 @@ membership and should also be covered by the deployment edge before a broad
 pilot. Owner review must confirm the thresholds against expected pilot
 concurrency, false-positive tolerance, and the support escalation path. Any
 change must update the route contract tests and this table together.
+
+## Production schema postflight — 2026-10-21
+
+The production Supabase SQL editor read-only postflight found the
+`trackmcp_rate_limit_buckets` table and both
+`trackmcp_consume_rate_limit(text, integer, integer)` and
+`trackmcp_cleanup_rate_limit_buckets(integer, integer)` functions. Routine
+privileges were present for `service_role` and the database owner only; no
+`anon` or `authenticated` execution grants were present. This proves that the
+distributed provider's database contract is applied and publicly closed.
+
+The postflight did not inspect or change App Runner runtime values, so it does
+not prove that `TRACKMCP_RATE_LIMIT_MODE=supabase` is enabled in production.
+Until that runtime setting and a two-instance behavior test are recorded, the
+pilot must continue to describe rate limiting as memory-degraded rather than
+distributed.
+
+The controlled enablement workflow is
+`.github/workflows/enable-distributed-rate-limit.yml`. Its first production
+attempt on 2026-10-21 read the existing service configuration successfully but
+was rejected before any mutation because the configured GitHub OIDC role lacks
+`apprunner:UpdateService` on the production service. Granting that narrowly
+scoped action to the deploy role (or performing the equivalent reviewed AWS
+change) is an external IAM prerequisite; the workflow does not bypass it or
+fall back to an unverified mode.

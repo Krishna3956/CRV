@@ -3,6 +3,7 @@ import { readFile } from "node:fs/promises";
 import test from "node:test";
 
 const workflow = await readFile(new URL("../../.github/workflows/deploy.yml", import.meta.url), "utf8");
+const distributedWorkflow = await readFile(new URL("../../.github/workflows/enable-distributed-rate-limit.yml", import.meta.url), "utf8");
 
 test("App Runner deployment performs a redacted read-only smoke after RUNNING", () => {
   assert.match(workflow, /timeout-minutes: 35/);
@@ -41,6 +42,25 @@ test("App Runner deployment performs a redacted read-only smoke after RUNNING", 
   assert.match(workflow, /TRACKMCP_PRODUCTION_SMOKE_CONFIRM=I_UNDERSTAND_PRODUCTION_SMOKE/);
   assert.match(workflow, /TRACKMCP_SMOKE_CANDIDATE_SHA="\$TRACKMCP_DEPLOY_SHA"/);
   assert.match(workflow, /npm run smoke:production-pilot/);
+  assert.match(workflow, /Audit runtime safety flags/);
+  assert.match(workflow, /RuntimeEnvironmentVariables/);
+  assert.match(workflow, /TRACKMCP_RATE_LIMIT_MODE is invalid/);
+  assert.match(workflow, /fact writes require TRACKMCP_RATE_LIMIT_MODE=supabase/);
+  assert.match(workflow, /trackmcp-runtime-flags\.json/);
   assert.match(workflow, /Upload redacted production smoke evidence/);
   assert.doesNotMatch(workflow, /TRACKMCP_SMOKE_ALLOW_WRITE=true/);
+});
+
+test("distributed rate-limit enablement preserves and verifies the App Runner configuration", () => {
+  assert.match(distributedWorkflow, /workflow_dispatch/);
+  assert.match(distributedWorkflow, /configure-aws-credentials@v4/);
+  assert.match(distributedWorkflow, /describe-service/);
+  assert.match(distributedWorkflow, /RuntimeEnvironmentVariables/);
+  assert.match(distributedWorkflow, /TRACKMCP_RATE_LIMIT_MODE = \"supabase\"/);
+  assert.match(distributedWorkflow, /update-service/);
+  assert.match(distributedWorkflow, /narrowly scoped apprunner:UpdateService grant/);
+  assert.match(distributedWorkflow, /list-operations/);
+  assert.match(distributedWorkflow, /TRACKMCP_RATE_LIMIT_MODE=supabase/);
+  assert.match(distributedWorkflow, /distributed-rate-limit-mode/);
+  assert.doesNotMatch(distributedWorkflow, /SUPABASE_SERVICE_ROLE_KEY|TRACKMCP_REFRESH_WORKER_SECRET/);
 });

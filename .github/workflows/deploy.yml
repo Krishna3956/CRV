@@ -209,6 +209,29 @@ jobs:
           TRACKMCP_SMOKE_REPORT="$RUNNER_TEMP/trackmcp-production-smoke.json" \
           npm run smoke:production-pilot
 
+      - name: Audit runtime safety flags
+        run: |
+          set -euo pipefail
+          # These are non-secret feature flags. Read them from the deployed
+          # App Runner configuration so a successful rollout cannot silently
+          # combine durable derived writes with process-local rate limiting.
+          RUNTIME_FLAGS=$(timeout 30s aws apprunner describe-service \
+            --service-arn "$SERVICE_ARN" --region "$AWS_REGION" \
+            --query 'Service.SourceConfiguration.ImageRepository.ImageConfiguration.RuntimeEnvironmentVariables' \
+            --output json)
+          RATE_LIMIT_MODE=$(printf '%s' "$RUNTIME_FLAGS" | jq -r '.TRACKMCP_RATE_LIMIT_MODE // ""')
+          FACT_WRITES=$(printf '%s' "$RUNTIME_FLAGS" | jq -r '.TRACKMCP_ENABLE_FACT_WRITES // "false"')
+          if [[ "$RATE_LIMIT_MODE" != "" && "$RATE_LIMIT_MODE" != "memory" && "$RATE_LIMIT_MODE" != "supabase" ]]; then
+            echo "::error::Deployed TRACKMCP_RATE_LIMIT_MODE is invalid: $RATE_LIMIT_MODE"
+            exit 1
+          fi
+          if [[ "$FACT_WRITES" == "true" && "$RATE_LIMIT_MODE" != "supabase" ]]; then
+            echo "::error::Deployed fact writes require TRACKMCP_RATE_LIMIT_MODE=supabase."
+            exit 1
+          fi
+          printf '{"rate_limit_mode":"%s","fact_writes":"%s"}\n' "$RATE_LIMIT_MODE" "$FACT_WRITES" > "$RUNNER_TEMP/trackmcp-runtime-flags.json"
+          echo "Runtime flags: rate_limit_mode=$RATE_LIMIT_MODE fact_writes=$FACT_WRITES"
+
       - name: Upload redacted production smoke evidence
         if: always()
         uses: actions/upload-artifact@v4
@@ -223,4 +246,12 @@ jobs:
         with:
           name: app-runner-host-${{ github.sha }}
           path: ${{ runner.temp }}/trackmcp-app-runner-host.txt
+          if-no-files-found: warn
+
+      - name: Upload redacted runtime flag evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: runtime-flags-${{ github.sha }}
+          path: ${{ runner.temp }}/trackmcp-runtime-flags.json
           if-no-files-found: warn

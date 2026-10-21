@@ -8,11 +8,19 @@ import test from "node:test";
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { StdioClientTransport } from "@modelcontextprotocol/sdk/client/stdio.js";
 import { StreamableHTTPClientTransport } from "@modelcontextprotocol/sdk/client/streamableHttp.js";
-import { TrackMCPClientAdapter } from "../dist/client-adapter.js";
+import { TrackMCPClientAdapter, protocolResponseMetadata } from "../dist/client-adapter.js";
 import { TrackMCPClient } from "../dist/index.js";
 
 const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 const REPEAT_WINDOW_MS = 5 * 60 * 1000;
+
+test("protocol family metadata classifies bounded modern MCP methods", () => {
+  assert.equal(protocolResponseMetadata("sampling/createMessage", { resultType: "input_required" }).protocol_family, "sampling");
+  assert.equal(protocolResponseMetadata("elicitation/create", { resultType: "complete" }).protocol_family, "elicitation");
+  assert.equal(protocolResponseMetadata("completion/complete", {}).protocol_family, "completion");
+  assert.equal(protocolResponseMetadata("tasks/get", { status: "working" }).protocol_family, "tasks");
+  assert.equal(protocolResponseMetadata("private/method", {}).protocol_family, undefined);
+});
 
 test("pins the MCP dependency and exposes the adapter only through the Node export condition", async () => {
   const packageJson = JSON.parse(await readFile(new URL("../package.json", import.meta.url), "utf8"));
@@ -107,7 +115,7 @@ test("uses MCP SDK 1.32.1 with a real StdioClientTransport and captures protocol
         const message = JSON.parse(buffer.slice(0, newline));
         buffer = buffer.slice(newline + 1);
         let result = {};
-        if (message.method === "initialize") result = { protocolVersion: "2025-06-18", capabilities: {}, serverInfo: { name: "stdio-fixture", version: "1" }, sessionId: "stdio-protocol-session" };
+        if (message.method === "initialize") result = { protocolVersion: "2025-06-18", capabilities: { tools: {}, resources: { subscribe: true }, "private capability": {} }, serverInfo: { name: "stdio-fixture", version: "1" }, sessionId: "stdio-protocol-session" };
         if (message.method === "tools/call") result = { content: [{ type: "text", text: "ok" }] };
         process.stdout.write(JSON.stringify({ jsonrpc: "2.0", id: message.id, result }) + "\\n");
       }
@@ -127,8 +135,11 @@ test("uses MCP SDK 1.32.1 with a real StdioClientTransport and captures protocol
   const all = received.flatMap((batch) => batch.events);
   const issued = all.find((event) => event.payload?._trackmcp?.observation_kind === "tool_call_issued");
   const result = all.find((event) => event.payload?._trackmcp?.observation_kind === "result_received");
+  const initialize = events.find((event) => event.mcp_method === "initialize" && event.direction === "server_to_client");
   assert.ok(issued);
   assert.ok(result);
+  assert.ok(initialize);
+  assert.deepEqual(protocolResponseMetadata("initialize", { capabilities: { tools: {}, resources: {}, "private capability": {} } }), { capability_names: "resources,tools" });
   assert.equal(issued.observation_source, "client");
   assert.equal(result.observation_source, "client");
   assert.equal(issued.client_name, "stdio-client");
@@ -380,6 +391,8 @@ test("deduplicates lifecycle events and gives hooks an immutable finalized copy"
   const ends = events.filter((event) => event.payload?._trackmcp?.observation_kind === "session_ended");
   assert.equal(starts.length, 2);
   assert.equal(ends.length, 2);
+  assert.deepEqual(starts.map((event) => event.payload._trackmcp.lifecycle_generation), [1, 2]);
+  assert.deepEqual(ends.map((event) => event.payload._trackmcp.lifecycle_generation), [1, 2]);
   assert.equal(starts.every((event) => event.duration_ms === 0), true);
   assert.equal(ends.every((event) => Number.isInteger(event.duration_ms) && event.duration_ms >= 0 && event.duration_ms <= 86_400_000), true);
   assert.equal(events.some((event) => JSON.stringify(event).includes("raw-secret")), false);

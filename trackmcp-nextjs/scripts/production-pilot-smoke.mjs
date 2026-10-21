@@ -201,6 +201,7 @@ async function main() {
   const protectedApiChecks = [
     ["/api/v2/overview", 401],
     ["/api/v2/data-trust", 401],
+    ["/api/v2/protocol-activity", 401],
     ["/api/v1/analytics", 401],
     ["/api/v1/ingest", 405],
     ["/api/v1/otel/v1/traces", 405],

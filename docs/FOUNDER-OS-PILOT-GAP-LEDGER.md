@@ -8,9 +8,9 @@ just because a README or marketing page mentions it.
 
 | Surface | Current evidence | Status | Next proof |
 | --- | --- | --- | --- |
-| TypeScript server SDK | `packages/typescript-sdk`, consumer gate, release package `0.1.2` | Implemented | Keep release and compatibility checks green |
+| TypeScript server SDK | `packages/typescript-sdk`, consumer gate, release package `0.1.2`; task lifecycle handles are now one-way hashed and explicit task state is captured for `tasks/*` responses | Implemented and merged in PR #170; package tests 40 passing and full release gate 116 suites passing | Keep release and compatibility checks green; publish the package only with release provenance |
 | Python server SDK | `packages/python-sdk`, package consumer gate, release package `0.1.4` | Implemented | Keep release and compatibility checks green |
-| Transport observer / Node client adapter | `@trackmcp/sdk/client-adapter`; Node-only wrapper for Stdio and Streamable HTTP; metadata-only and fail-open; dedicated adapter tests | Implemented, now explicitly documented | Run production-like client fixtures when a pilot server is available |
+| Transport observer / Node client adapter | `@trackmcp/sdk/client-adapter`; Node-only wrapper for Stdio and Streamable HTTP; metadata-only and fail-open; bounded capability-family metadata, lifecycle generations for reconnect correlation, and dedicated adapter tests | Implemented and merged through PRs #173–#175 | Run production-like client fixtures when a pilot server is available |
 | Go SDK | `packages/go-sdk/trackmcp.go`; transport-neutral primitive, source package only | Implemented with source-only distribution boundary | Publish only after package provenance/release work is approved |
 | .NET SDK | `packages/dotnet-sdk/TrackMcp.cs`; transport-neutral primitive, source package only | Implemented with source-only distribution boundary | Publish only after NuGet/provenance work is approved |
 | OTLP/HTTP JSON | Authenticated bounded receiver at `/api/v1/otel/v1/traces`; parser and interoperability tests; production smoke accepted a current-time OTLP/HTTP JSON span for a scoped key and the authenticated export returned the mapped event | Implemented, protobuf/gRPC intentionally unsupported | Keep the smoke fixture in the recurring release gate; do not market protobuf/gRPC support |
@@ -18,9 +18,9 @@ just because a README or marketing page mentions it.
 | Dashboard/session auth | Workspace membership, connection-key scope, revocation, tenant-isolation contracts | Implemented | Repeat production smoke after releases |
 | Setup density | Secondary privacy/data-flow and export/deletion explanations moved behind accessible disclosures; primary setup actions remain visible | Implemented in current change | Live browser audit after deployment |
 | Public docs parity | Added Go, .NET, Authentication/OAuth, and clearly named Transport Observer documentation paths | Implemented in current change | Check links, snippets, and package-version claims in CI |
-| Node client protocol observer | Client adapter now emits bounded request/response/notification observations for every identified non-tool MCP request, including catalog counts, task/MRTR result discriminators, and list-changed/progress signals; arguments, URIs, prompt names, and result bodies remain excluded | Implemented locally with regression coverage | Deploy the SDK package and run a production-like client fixture before claiming live coverage |
+| Node client protocol observer | Client adapter now emits bounded request/response/notification observations for every identified non-tool MCP request, including catalog counts, task/MRTR result discriminators, list-changed/progress signals, modern protocol-family labels, and reconnect lifecycle generations; arguments, URIs, prompt names, and result bodies remain excluded | Implemented and merged through PRs #173–#175 with 42 SDK tests passing; authenticated analytics now exposes bounded protocol-family counts through PR #177; a production-like TypeScript SDK fixture completed against the deployed App Runner ingest origin and Supabase read-back verified `initialize`, `notifications/initialized`, and `tools/call` (`pilot_probe`) rows under the scoped production service | Keep the fixture in recurring release validation; broader transport and package-publication coverage remains pending |
 | Modern cache and subscription metadata | TypeScript client adapter emits bounded `next_cursor_present`, `cache_ttl_ms`, `cache_scope`, `subscriptions/listen` request/acknowledgement markers, and list-change/progress/cancellation signal metadata without retaining cursor or subscription values | Implemented locally with regression coverage | Publish the SDK package and capture the metadata through a real modern-protocol fixture |
-| Refresh and task transition projection | Accepted ingest now enqueues bounded refresh work by default; explicit task transition history is persisted by the service-role worker by default, with explicit `false` rollback flags; the bounded projection now selects `task_id` and `payload` required to derive hashed transitions | Implemented and production-verified for a non-empty worker batch | Keep the worker smoke in recurring release validation; complete end-to-end ingest-key fixture coverage |
+| Refresh and task transition projection | Accepted ingest now enqueues bounded refresh work by default; explicit task transition history is persisted by the service-role worker by default, with explicit `false` rollback flags; the bounded projection now selects `task_id` and `payload` required to derive hashed transitions; the TypeScript server wrapper records hashed task handles and explicit lifecycle state for `tasks/get`, `tasks/update`, and `tasks/cancel` | Implemented and production-verified for a non-empty worker batch; SDK lifecycle/privacy regression is merged in PR #170 with the full release gate green | Keep the worker and ingest smoke fixtures in recurring release validation; complete capability-negotiation and cross-server workflow fixtures |
 | Transport disconnect evidence | Node client adapter now drains in-flight tool and non-tool requests on transport error/close into bounded `transport_error` observations before ending the session | Implemented locally with regression coverage | Run production-like Stdio and Streamable HTTP disconnect/reconnect fixtures |
 | Connection-key scope | API keys can carry optional bounded service/environment scopes; ingest rejects mismatched labels with a tenant-safe 403 while legacy NULL-scoped keys remain workspace-wide | Implemented and deployed; migration applied, read-only postflight added, release-gate/tenant-isolation coverage passed; production postflight observed 49 active workspace-wide keys, 0 invalid scopes; live smoke accepted a matching event, rejected a mismatched label with 403, and the authenticated export showed the matching event | Keep scope behavior in the recurring release smoke and rotate/revoke the temporary pilot key under the operator’s key-retention policy |
 
@@ -69,7 +69,16 @@ just because a README or marketing page mentions it.
   `3b209533988d4ef913120e0e46d0c65abd0d5930` succeeded, and worker run
   `39587728104` processed a directly queued production test event. The
   read-only postflight returned `transitions=1`, `working=1`, `hashed=true`
-  for `task-postdeploy-direct-20261021`. The direct database fixture proves the
-  deployed worker/read-model path; an authenticated ingest-key fixture remains
-  a separate follow-up because the current clipboard key was rejected by the
-  deployed ingest boundary.
+  for `task-postdeploy-direct-20261021`. The direct database fixture proved the
+  deployed worker/read-model path. A fresh bounded scoped fixture then sent a
+  real authenticated task event to the App Runner origin and received HTTP 200
+  with one accepted event; worker run `39588635256` produced one `working`
+  transition with a non-null hash at `2026-10-21T10:59:34.941Z`. This closes the
+  ingest-to-transition proof without retaining the fixture secret.
+- 2026-10-21: Refresh worker run `39600868382` completed five concurrent
+  bounded batches against the production App Runner origin. It processed 32
+  queued jobs (`7+6+6+6+7`), with 32 succeeded, 0 retryable, 0 failed, 0
+  timed out, and max attempt count 1. Reported maximum queue lag was
+  4,858,742–5,708,193 ms across the slices. This closes non-empty processing
+  and failure/retry evidence for the run; an agreed pilot lag SLO and a
+  multi-run cadence baseline remain open.

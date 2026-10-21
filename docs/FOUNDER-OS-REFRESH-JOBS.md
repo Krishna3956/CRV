@@ -100,8 +100,11 @@ Run `39311211929` failed with curl exit 22 and a Cloudflare HTTP 403 block
 page. This confirmed that the GitHub runner passed the missing-secret guard
 but could not reach the application. Commit `f2528cc` changed origin discovery;
 run `39311968261` passed AWS authentication, service discovery, and the refresh
-batch. This verifies scheduler connectivity and authentication; an idle batch
-does not establish that every projection handler has processed real work.
+batch. A later read-only production audit on 2026-10-21 found 5,717 refresh
+jobs: 5,689 `succeeded` and 28 `queued`, alongside 68,711 events, 5,040
+semantic facts, and 3 task-transition rows. This proves the queue is non-empty
+and the worker/read-model path has durable production output; it does not by
+itself prove retry, terminal-failure, lag-SLO, or scheduler-cadence behavior.
 
 The App Runner deployment template now maps
 `TRACKMCP_REFRESH_WORKER_SECRET` from the same Secrets Manager JSON object into

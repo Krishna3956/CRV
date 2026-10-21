@@ -29,7 +29,7 @@ because a check box exists; it is done only with the stated acceptance evidence.
 | Build and regression suite | locally passed on the earlier candidate | Re-run from a clean checkout of the final release SHA |
 | Schema/migrations | code and reviewed SQL exist | Production execution and postflight are still open |
 | Auth and tenant isolation | local tests exist | Disposable production negative tests are still open |
-| Worker and rate limits | code/tests exist; last worker run was idle | Non-empty production evidence is still open |
+| Worker and rate limits | code/tests exist; production queue read-back shows 5,689 succeeded and 28 queued jobs | Retry/terminal-failure detail, scheduler SLOs, and distributed rate-limit evidence remain open |
 | Deployment | main-only GitHub Action | Feature-branch commits are not production deployments |
 
 ## Non-negotiable constraints
@@ -319,8 +319,11 @@ keeping resource URI/content and prompt names/arguments private by default?
   queue links, and privacy paths.
 - [ ] Confirm database region, backup/recovery posture, and restoration owner.
 - [ ] Confirm worker secret and scheduler configuration after postflight.
-- [ ] Process a non-empty disposable refresh batch; retain lag, retry, success,
-  terminal-failure, and redacted-error evidence.
+- [x] Process a non-empty production refresh queue: run `39600868382` drained
+  32 queued jobs across five bounded batches with 32 succeeded, 0 retryable,
+  0 failed, 0 timed out, and max attempt count 1. This closes the processing,
+  retry, terminal-failure, and redacted-error evidence for that run; an agreed
+  pilot lag SLO and multi-run scheduler cadence baseline remain required.
 - [ ] Confirm rate-limit mode is distributed if the pilot claims it; otherwise
   expose the memory-degraded limitation and do not make the claim.
 
