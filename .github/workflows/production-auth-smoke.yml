@@ -32,14 +32,13 @@ jobs:
       TRACKMCP_AUTH_SMOKE_WORKSPACE_A: ${{ secrets.TRACKMCP_AUTH_SMOKE_WORKSPACE_A }}
       TRACKMCP_AUTH_SMOKE_WORKSPACE_B: ${{ secrets.TRACKMCP_AUTH_SMOKE_WORKSPACE_B }}
       TRACKMCP_AUTH_SMOKE_REVOKED_KEY: ${{ secrets.TRACKMCP_AUTH_SMOKE_REVOKED_KEY }}
-      TRACKMCP_AUTH_SMOKE_REPORT: ${{ runner.temp }}/trackmcp-production-auth-smoke.json
     steps:
       - name: Check out exact release source
         uses: actions/checkout@v4
 
       - name: Run read-only authenticated smoke
         working-directory: trackmcp-nextjs
-        run: node scripts/production-auth-smoke.mjs
+        run: TRACKMCP_AUTH_SMOKE_REPORT="$RUNNER_TEMP/trackmcp-production-auth-smoke.json" node scripts/production-auth-smoke.mjs
 
       - name: Upload redacted authenticated smoke evidence
         if: always()
