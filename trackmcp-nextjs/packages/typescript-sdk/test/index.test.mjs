@@ -303,3 +303,31 @@ test("captures bounded semantic results for non-tool protocol requests without r
   assert.deepEqual(response.payload, { name: "protocol_response_observed" });
   assert.equal(JSON.stringify(response).includes("private_"), false);
 });
+
+test("hashes task handles and records explicit task state for lifecycle methods", async () => {
+  const received = [];
+  const ingest = http.createServer((request, response) => {
+    let body = "";
+    request.on("data", (chunk) => { body += chunk; });
+    request.on("end", () => { received.push(JSON.parse(body)); response.writeHead(200); response.end(); });
+  });
+  await new Promise((resolve) => ingest.listen(0, resolve));
+  const rawTransport = { async send() {}, onmessage: undefined };
+  const server = { connect(transport) { this.transport = transport; transport.onmessage = () => {}; return Promise.resolve(); } };
+  const wrapped = withTrackMCP(server, { apiKey: "tmcp_test", endpoint: `http://127.0.0.1:${ingest.address().port}`, flushIntervalMs: 60000 });
+  await wrapped.connect(rawTransport);
+  server.transport.onmessage({ id: "task-get-1", method: "tasks/get", params: { taskId: "private-task-handle" } });
+  await server.transport.send({ id: "task-get-1", result: { status: "working", taskId: "private-task-handle" } });
+  await wrapped.trackmcp.flush();
+  await new Promise((resolve) => setTimeout(resolve, 20));
+  ingest.close();
+  const events = received.flatMap((batch) => batch.events);
+  const request = events.find((event) => event.mcp_method === "tasks/get" && event.direction === "client_to_server");
+  const response = events.find((event) => event.mcp_method === "tasks/get" && event.direction === "server_to_client");
+  assert.ok(request);
+  assert.ok(response);
+  assert.match(request.task_id, /^[a-f0-9]{64}$/);
+  assert.equal(response.task_id, request.task_id);
+  assert.equal(response.payload.task_status, "working");
+  assert.equal(JSON.stringify(events).includes("private-task-handle"), false);
+});

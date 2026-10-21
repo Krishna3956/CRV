@@ -148,6 +148,14 @@ export declare function protocolResultType(result: Record<string, unknown> | und
 export declare function protocolInputRequestCount(result: Record<string, unknown> | undefined): number | undefined;
 /** Count MRTR input responses without retaining response contents. */
 export declare function protocolInputResponseCount(result: Record<string, unknown> | undefined): number | undefined;
+/**
+ * Return a one-way task handle for protocol telemetry. Raw task IDs are not
+ * sent over the wire; hashing here keeps server-side task lifecycle events
+ * correlatable while preserving the SDK's metadata-only privacy boundary.
+ */
+export declare function protocolTaskIdHash(value: Record<string, unknown> | undefined): string | undefined;
+/** Extract only the explicit, bounded task state from a protocol result. */
+export declare function protocolTaskStatus(value: Record<string, unknown> | undefined): "working" | "input_required" | "completed" | "failed" | "cancelled" | "expired" | undefined;
 export declare function catalogObservation(kind: TrackMCPCatalogKind, result: Record<string, unknown> | undefined): Pick<TrackMCPEvent, "catalog_kind" | "catalog_item_count" | "catalog_item_name_hashes" | "catalog_item_uri_hashes">;
 export declare function interactionEntityObservation(method: string | undefined, params: Record<string, unknown> | undefined): EntityObservation | undefined;
 export type TrackMCPDiagnostics = {
