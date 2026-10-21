@@ -30,8 +30,8 @@ just because a README or marketing page mentions it.
 - [x] Go and .NET docs do not claim registry publication before it exists.
 - [x] OAuth documentation separates customer authorization from TrackMCP
       ingestion and refuses token collection claims.
-- [ ] Run full release gate and production smoke for this change.
-- [ ] Verify all new docs routes in the deployed browser after rollout.
+- [x] Run full release gate and production smoke for this change.
+- [x] Verify all new docs routes in the deployed browser after rollout.
 
 ## Evidence log
 
@@ -41,3 +41,7 @@ just because a README or marketing page mentions it.
   observation semantics.
 - Previous full release gate passed 115 suites. This change requires a fresh
   release-gate run before its deployment is considered complete.
+- 2026-10-21: PR #150 passed Go, .NET, and web CI; App Runner deployment
+  `39560665525` completed successfully with its release gate and production
+  smoke steps. Live browser QA confirmed Setup disclosures, the resolver card,
+  the Go SDK docs route, and the expanded SDK/OAuth navigation.
