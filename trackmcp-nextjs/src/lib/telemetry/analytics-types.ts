@@ -208,7 +208,7 @@ export type Analytics = {
     observed_events: number;
   };
   /** Counts of bounded modern protocol families observed by the SDK observer. */
-  protocol_family_activity?: Array<{ family: "sampling" | "elicitation" | "completion" | "tasks" | "control_signal"; observations: number }>;
+  protocol_family_activity?: Array<{ family: "sampling" | "elicitation" | "completion" | "tasks" | "control_signal" | "resources" | "prompts" | "tools" | "subscriptions" | "notifications"; observations: number }>;
   tool_calls: number;
   sessions: number;
   errors: number;
