@@ -4200,6 +4200,7 @@ function SetupView({
     ".NET": `dotnet add ./YourMcpServer.csproj reference ./packages/dotnet-sdk/TrackMcp.csproj\n\nvar telemetry = new TrackMcpClient(new TrackMcpOptions(\n    Environment.GetEnvironmentVariable("TRACKMCP_KEY") ?? "",\n    "${boundedService || "my-mcp-server"}",\n    "${boundedEnvironment}"));`,
   };
   const otelEndpoint = "https://trackmcp.com/api/v1/otel/v1/traces";
+  const documentationHref = `https://trackmcp.com/docs/${language === "TypeScript" ? "typescript" : language === "Python" ? "python" : language === "Go" ? "go" : "dotnet"}`;
   const hasActiveKey = keys.some((key) => !key.revoked_at);
   useEffect(() => {
     if (!workspaceId) return;
@@ -4365,7 +4366,7 @@ function SetupView({
           <button
             type="button"
             onClick={onRefresh}
-            className="mt-4 inline-flex items-center gap-1.5 border border-red-200 bg-white px-3 py-2 text-xs font-semibold text-red-800 hover:bg-red-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-600"
+            className="mt-4 inline-flex cursor-pointer items-center gap-1.5 border border-red-200 bg-white px-3 py-2 text-xs font-semibold text-red-800 hover:bg-red-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-600"
           >
             <RefreshCw size={13} /> Retry connection check
           </button>
@@ -4402,7 +4403,7 @@ function SetupView({
           subtitle="Keep the key in your server environment; never commit it"
           action={{
             label: "Read documentation",
-            href: "https://trackmcp.com/docs",
+            href: documentationHref,
           }}
         >
           <div className="mt-4 grid gap-3 sm:grid-cols-2">
