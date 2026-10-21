@@ -319,10 +319,11 @@ keeping resource URI/content and prompt names/arguments private by default?
   queue links, and privacy paths.
 - [ ] Confirm database region, backup/recovery posture, and restoration owner.
 - [ ] Confirm worker secret and scheduler configuration after postflight.
-- [x] Read back a non-empty production refresh queue: 5,717 jobs total, with
-  5,689 succeeded and 28 queued at the 2026-10-21 production audit. This closes
-  the existence/non-empty portion of the gate; retry, terminal-failure, lag,
-  and redacted-error evidence remain required before go/no-go.
+- [x] Process a non-empty production refresh queue: run `39600868382` drained
+  32 queued jobs across five bounded batches with 32 succeeded, 0 retryable,
+  0 failed, 0 timed out, and max attempt count 1. This closes the processing,
+  retry, terminal-failure, and redacted-error evidence for that run; an agreed
+  pilot lag SLO and multi-run scheduler cadence baseline remain required.
 - [ ] Confirm rate-limit mode is distributed if the pilot claims it; otherwise
   expose the memory-degraded limitation and do not make the claim.
 
