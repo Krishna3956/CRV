@@ -10,6 +10,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"os"
+	"strings"
 	"sync"
 	"time"
 )
@@ -48,6 +49,50 @@ type Event struct {
 
 type Client struct { options Options; mu sync.Mutex; queue []Event }
 
+const (
+	maxPayloadDepth = 3
+	maxPayloadKeys = 24
+	maxPayloadString = 256
+)
+
+var sensitivePayloadKeys = map[string]bool{
+	"password": true, "passwd": true, "secret": true, "token": true,
+	"access_token": true, "refresh_token": true, "authorization": true,
+	"cookie": true, "set-cookie": true, "api_key": true, "apikey": true,
+}
+
+// sanitizePayload keeps the Go SDK metadata-first: arbitrary caller payloads
+// are copied into a small, depth-limited shape and sensitive keys are replaced
+// before they can enter the queue or cross the network boundary.
+func sanitizePayload(value any, depth int) any {
+	if depth > maxPayloadDepth { return map[string]any{"__trackmcp_truncated": true, "reason": "max_payload_depth"} }
+	switch typed := value.(type) {
+	case nil, bool, float64, float32, int, int8, int16, int32, int64, uint, uint8, uint16, uint32, uint64:
+		return typed
+	case string:
+		if len(typed) > maxPayloadString { return typed[:maxPayloadString] }
+		return typed
+	case map[string]any:
+		result := make(map[string]any)
+		count := 0
+		for key, item := range typed {
+			if count >= maxPayloadKeys { result["__trackmcp_truncated"] = true; break }
+			if sensitivePayloadKeys[strings.ToLower(key)] { result[key] = "[redacted]" } else { result[key] = sanitizePayload(item, depth+1) }
+			count++
+		}
+		return result
+	case []any:
+		result := make([]any, 0, min(len(typed), maxPayloadKeys))
+		for index, item := range typed {
+			if index >= maxPayloadKeys { result = append(result, map[string]any{"__trackmcp_truncated": true, "reason": "max_payload_keys"}); break }
+			result = append(result, sanitizePayload(item, depth+1))
+		}
+		return result
+	default:
+		return "[omitted]"
+	}
+}
+
 func New(options Options) *Client {
 	if options.Service == "" { options.Service = "mcp-server" }
 	if options.Environment == "" { options.Environment = "production" }
@@ -61,6 +106,7 @@ func (c *Client) Capture(event Event) {
 	if event.EventID == "" { event.EventID = id() }
 	event.Service, event.Environment = c.options.Service, c.options.Environment
 	if event.StartedAt == "" { event.StartedAt = time.Now().UTC().Format(time.RFC3339) }
+	if event.Payload != nil { event.Payload = sanitizePayload(event.Payload, 0).(map[string]any) }
 	c.mu.Lock(); c.queue = append(c.queue, event); flush := len(c.queue) >= c.options.MaxBatchSize; c.mu.Unlock()
 	if flush { go c.Flush() }
 }
