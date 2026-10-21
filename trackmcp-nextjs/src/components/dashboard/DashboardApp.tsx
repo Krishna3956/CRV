@@ -4366,7 +4366,7 @@ function SetupView({
           <button
             type="button"
             onClick={onRefresh}
-            className="mt-4 inline-flex items-center gap-1.5 border border-red-200 bg-white px-3 py-2 text-xs font-semibold text-red-800 hover:bg-red-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-600"
+            className="mt-4 inline-flex cursor-pointer items-center gap-1.5 border border-red-200 bg-white px-3 py-2 text-xs font-semibold text-red-800 hover:bg-red-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-600"
           >
             <RefreshCw size={13} /> Retry connection check
           </button>
