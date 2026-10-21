@@ -597,6 +597,7 @@ export class TrackMCPClient {
           ...(metadata.cache_scope === "public" || metadata.cache_scope === "private" ? { cache_scope: metadata.cache_scope } : {}),
           ...(metadata.subscription_action === "listen_requested" || metadata.subscription_action === "subscription_started" ? { subscription_action: metadata.subscription_action } : {}),
           ...(metadata.protocol_signal === "progress" || metadata.protocol_signal === "cancelled" || metadata.protocol_signal === "catalog_changed" || metadata.protocol_signal === "resource_changed" || metadata.protocol_signal === "prompt_changed" ? { protocol_signal: metadata.protocol_signal } : {}),
+          ...(metadata.protocol_family === "sampling" || metadata.protocol_family === "elicitation" || metadata.protocol_family === "completion" || metadata.protocol_family === "tasks" || metadata.protocol_family === "control_signal" ? { protocol_family: metadata.protocol_family } : {}),
           ...(typeof metadata.lifecycle_generation === "number" && Number.isInteger(metadata.lifecycle_generation) && metadata.lifecycle_generation >= 1 && metadata.lifecycle_generation <= 1_000_000 ? { lifecycle_generation: metadata.lifecycle_generation } : {}),
         };
         prepared.payload = { _trackmcp: sanitizedMetadata };
