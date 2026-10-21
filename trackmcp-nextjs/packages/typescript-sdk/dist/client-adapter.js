@@ -177,8 +177,22 @@ export class TrackMCPClientAdapter {
             }
             if (item.method !== "tools/call") {
                 const id = requestId(item.id);
-                if (id !== undefined) {
-                    const method = boundedString(item.method);
+                const method = boundedString(item.method);
+                if (method && id === undefined) {
+                    const session = this.sessionFields(transport);
+                    this.emit({
+                        event_type: "protocol",
+                        transport: this.options.transport,
+                        mcp_method: method,
+                        direction: "client_to_server",
+                        started_at: new Date().toISOString(),
+                        ...session,
+                        client_name: this.clientName,
+                        client_version: this.clientVersion,
+                        payload: { _trackmcp: { observation_kind: "protocol_notification", observation_source: "client" } },
+                    });
+                }
+                else if (method && id !== undefined) {
                     const started = Date.now();
                     const session = this.sessionFields(transport);
                     const correlation = this.client.resolveCorrelation({ event_type: "protocol", mcp_method: method, request_id: id, session_id: session.session_id, transport: this.options.transport });
@@ -255,8 +269,24 @@ export class TrackMCPClientAdapter {
                 this.transportDiagnostics.malformedMessages += 1;
                 continue;
             }
-            if (!Object.prototype.hasOwnProperty.call(item, "result") && !Object.prototype.hasOwnProperty.call(item, "error"))
+            if (!Object.prototype.hasOwnProperty.call(item, "result") && !Object.prototype.hasOwnProperty.call(item, "error")) {
+                const method = boundedString(item.method);
+                if (method) {
+                    const session = this.sessionFields();
+                    this.emit({
+                        event_type: "protocol",
+                        transport: this.options.transport,
+                        mcp_method: method,
+                        direction: "server_to_client",
+                        started_at: new Date().toISOString(),
+                        ...session,
+                        client_name: this.clientName,
+                        client_version: this.clientVersion,
+                        payload: { _trackmcp: { observation_kind: "protocol_notification", observation_source: "client" } },
+                    });
+                }
                 continue;
+            }
             const id = requestId(item.id);
             if (id === undefined) {
                 this.transportDiagnostics.malformedMessages += 1;
