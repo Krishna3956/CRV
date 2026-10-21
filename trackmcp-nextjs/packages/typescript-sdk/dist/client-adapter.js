@@ -1,7 +1,7 @@
 import { StdioClientTransport } from "@modelcontextprotocol/sdk/client/stdio.js";
 import { StreamableHTTPClientTransport } from "@modelcontextprotocol/sdk/client/streamableHttp.js";
 import { SSEClientTransport } from "@modelcontextprotocol/sdk/client/sse.js";
-import { TrackMCPClient, catalogObservation, protocolInputRequestCount, protocolInputResponseCount, protocolResultType, } from "./index.js";
+import { TrackMCPClient, catalogObservation, protocolInputRequestCount, protocolInputResponseCount, protocolResultType, protocolTaskIdHash, protocolTaskStatus, } from "./index.js";
 const MAX_PENDING_CALLS = 1000;
 const PENDING_CALL_TTL_MS = 30_000;
 const REPEAT_WINDOW_MS = 5 * 60 * 1000;
@@ -411,6 +411,8 @@ export class TrackMCPClientAdapter {
             }
             const session = this.sessionFields();
             if (!pending.toolName) {
+                const taskIdHash = protocolTaskIdHash(result);
+                const taskStatus = protocolTaskStatus(result);
                 this.emit({
                     event_type: "protocol",
                     transport: this.options.transport,
@@ -423,13 +425,15 @@ export class TrackMCPClientAdapter {
                     is_error: failed,
                     error_code: isRecord(item.error) && typeof item.error.code === "number" ? item.error.code : undefined,
                     result_type: protocolResultType(result),
+                    ...(taskIdHash ? { task_id: taskIdHash } : {}),
+                    ...(taskStatus ? { task_status: taskStatus } : {}),
                     input_request_count: protocolInputRequestCount(result),
                     input_response_count: protocolInputResponseCount(result),
                     ...(pending.method && ["tools/list", "resources/list", "resources/templates/list", "prompts/list"].includes(pending.method) ? catalogObservation(pending.method === "tools/list" ? "tools" : pending.method === "resources/list" ? "resources" : pending.method === "resources/templates/list" ? "resource_templates" : "prompts", result) : {}),
                     ...session,
                     client_name: this.clientName,
                     client_version: this.clientVersion,
-                    payload: { _trackmcp: { observation_kind: "protocol_response", observation_source: "client", ...protocolResponseMetadata(pending.method, result) } },
+                    payload: { _trackmcp: { observation_kind: "protocol_response", observation_source: "client", ...protocolResponseMetadata(pending.method, result), ...(taskStatus ? { task_status: taskStatus } : {}) } },
                 }, pending.correlation);
                 continue;
             }

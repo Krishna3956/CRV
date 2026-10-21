@@ -284,7 +284,7 @@ test("emits bounded request and response observations for non-tool MCP methods",
   await wrapped.send({ jsonrpc: "2.0", id: "catalog-1", method: "resources/list", params: { private_filter: "do-not-capture" } });
   raw.onmessage({ jsonrpc: "2.0", id: "catalog-1", result: { resources: [{ uri: "secret://private", name: "customer-private" }], nextCursor: "private-cursor", ttlMs: 90000, cacheScope: "private" } });
   await wrapped.send({ jsonrpc: "2.0", id: "task-1", method: "tasks/get", params: { taskId: "task-secret" } });
-  raw.onmessage({ jsonrpc: "2.0", id: "task-1", result: { resultType: "task", inputRequests: ["private"], private_result: "do-not-capture" } });
+  raw.onmessage({ jsonrpc: "2.0", id: "task-1", result: { resultType: "task", status: "working", taskId: "task-secret", inputRequests: ["private"], private_result: "do-not-capture" } });
   await wrapped.send({ jsonrpc: "2.0", method: "notifications/resources/list_changed", params: { private_state: "do-not-capture" } });
   raw.onmessage({ jsonrpc: "2.0", method: "notifications/progress", params: { progress: 99, private_state: "do-not-capture" } });
   await wrapped.send({ jsonrpc: "2.0", id: "subscription-1", method: "subscriptions/listen", params: { private_filter: "do-not-capture" } });
@@ -302,6 +302,8 @@ test("emits bounded request and response observations for non-tool MCP methods",
   assert.equal(responses.find((event) => event.mcp_method === "resources/list").payload._trackmcp.cache_ttl_ms, 90000);
   assert.equal(responses.find((event) => event.mcp_method === "resources/list").payload._trackmcp.cache_scope, "private");
   assert.equal(responses.find((event) => event.mcp_method === "tasks/get").result_type, "task");
+  assert.equal(responses.find((event) => event.mcp_method === "tasks/get").task_status, "working");
+  assert.equal(responses.find((event) => event.mcp_method === "tasks/get").task_id.length, 64);
   assert.equal(responses.find((event) => event.mcp_method === "tasks/get").input_request_count, 1);
   assert.equal(requests.find((event) => event.mcp_method === "subscriptions/listen").payload._trackmcp.subscription_action, "listen_requested");
   assert.equal(responses.find((event) => event.mcp_method === "subscriptions/listen").payload._trackmcp.subscription_action, "subscription_started");

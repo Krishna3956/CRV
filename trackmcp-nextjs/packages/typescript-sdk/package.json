@@ -1,6 +1,6 @@
 {
   "name": "@trackmcp/sdk",
-  "version": "0.1.7",
+  "version": "0.1.8",
   "description": "Observability SDK for MCP servers",
   "keywords": [
     "mcp",
@@ -14,7 +14,9 @@
     "url": "https://github.com/Krishna3956/CRV/tree/main/trackmcp-nextjs/packages/typescript-sdk"
   },
   "homepage": "https://trackmcp.com/docs/typescript",
-  "bugs": { "url": "https://github.com/Krishna3956/CRV/issues" },
+  "bugs": {
+    "url": "https://github.com/Krishna3956/CRV/issues"
+  },
   "type": "module",
   "main": "./dist/index.js",
   "module": "./dist/index.js",

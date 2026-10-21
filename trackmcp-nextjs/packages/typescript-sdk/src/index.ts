@@ -89,6 +89,8 @@ export type TrackMCPEvent = {
   error_code?: number;
   retry_number?: number;
   result_type?: "complete" | "input_required" | "task";
+  /** Explicit task state; raw task handles are never stored. */
+  task_status?: "working" | "input_required" | "completed" | "failed" | "cancelled" | "expired";
   input_request_count?: number;
   input_response_count?: number;
   schema_hash?: string;
