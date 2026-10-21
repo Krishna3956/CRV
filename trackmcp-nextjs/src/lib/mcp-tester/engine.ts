@@ -325,7 +325,7 @@ export async function runMcpTester(options: McpTesterOptions): Promise<McpTester
     } else {
       skipPhase(state, "prompts_list", record, beginPhase, finishPhase);
     }
-    addFinding("modern_discovery_partial", "protocol", "warning", "Modern server discovery and bounded tools, resources, and prompts catalogs completed where advertised. Advertised Tasks capability is recorded, but task negotiation, subscriptions, cache invalidation, and multi-round-trip checks are not implemented for this revision, so this report is incomplete.", "modern_discover", { protocolVersion: MODERN_MCP_PROTOCOL_VERSION, tasksAdvertised: state.capabilities.tasks === true });
+    addFinding("modern_discovery_partial", "protocol", "warning", "Modern server discovery and bounded tools, resources, prompts, and Tasks probes completed where advertised. This report remains intentionally bounded: task creation, cancellation, completion transitions, subscriptions, cache invalidation, and other multi-round-trip lifecycle checks are not asserted by this probe.", "modern_discover", { protocolVersion: MODERN_MCP_PROTOCOL_VERSION, tasksAdvertised: state.capabilities.tasks === true });
     finishPhase("modern_discover", modernStart, "incomplete", record, phases, timings, now);
     return finalize(state, observedAt, addFinding);
   }
