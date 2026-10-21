@@ -36,3 +36,11 @@ test("workspace writes bound JSON input and profile fields", () => {
   assert.match(source, /boundedText\(body\.use_case, 1000\)/);
   assert.match(source, /boundedText\(body\.key_name, 128\)/);
 });
+
+test("connection-key creation exposes optional service and environment scopes", () => {
+  assert.match(source, /service_scope/);
+  assert.match(source, /environment_scope/);
+  assert.match(source, /boundedScope\(body\.service_scope, 100\)/);
+  assert.match(source, /boundedScope\(body\.environment_scope, 64\)/);
+  assert.match(source, /service_scope, environment_scope/);
+});

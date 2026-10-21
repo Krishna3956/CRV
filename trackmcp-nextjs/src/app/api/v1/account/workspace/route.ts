@@ -13,6 +13,10 @@ async function getUser() {
 const MAX_WORKSPACE_BODY_BYTES = 8192;
 const boundedText = (value: unknown, max: number): string =>
   typeof value === "string" ? value.trim().slice(0, max) : "";
+const boundedScope = (value: unknown, max: number): string | null => {
+  const normalized = boundedText(value, max);
+  return normalized && !/[\u0000-\u001f\u007f]/.test(normalized) ? normalized : null;
+};
 
 export async function GET(request: Request) {
   const user = await getUser();
@@ -37,7 +41,7 @@ export async function GET(request: Request) {
 
   const { data: keys, error: keyError } = await admin
     .from("trackmcp_api_keys")
-    .select("id, name, key_prefix, revoked_at, created_at")
+    .select("id, name, key_prefix, service_scope, environment_scope, revoked_at, created_at")
     .eq("workspace_id", workspace.id)
     .order("created_at", { ascending: false });
   if (keyError) return NextResponse.json({ error: "Could not load API keys." }, { status: 500 });
@@ -50,7 +54,7 @@ export async function POST(request: Request) {
   if (!user) return NextResponse.json({ error: "Sign in required." }, { status: 401 });
   if (!admin) return NextResponse.json({ error: "Account service is not configured." }, { status: 503 });
 
-  let body: { name?: unknown; slug?: unknown; key_name?: unknown; workspace_id?: unknown; create_key?: unknown; full_name?: unknown; first_name?: unknown; last_name?: unknown; company_name?: unknown; role?: unknown; use_case?: unknown; terms_accepted?: unknown } = {};
+  let body: { name?: unknown; slug?: unknown; key_name?: unknown; service_scope?: unknown; environment_scope?: unknown; workspace_id?: unknown; create_key?: unknown; full_name?: unknown; first_name?: unknown; last_name?: unknown; company_name?: unknown; role?: unknown; use_case?: unknown; terms_accepted?: unknown } = {};
   try {
     const raw = await request.arrayBuffer();
     if (raw.byteLength > MAX_WORKSPACE_BODY_BYTES) return NextResponse.json({ error: "Request body is too large." }, { status: 413 });
@@ -102,7 +106,12 @@ export async function POST(request: Request) {
 
   if (body.create_key !== false) {
     const generated = createTrackMCPKey();
-    const createdKey = await admin.from("trackmcp_api_keys").insert({ workspace_id: workspaceId, name: boundedText(body.key_name, 128) || "default", key_prefix: generated.prefix, key_hash: generated.hash });
+    const serviceScope = boundedScope(body.service_scope, 100);
+    const environmentScope = boundedScope(body.environment_scope, 64);
+    if ((body.service_scope !== undefined && serviceScope === null && boundedText(body.service_scope, 100)) || (body.environment_scope !== undefined && environmentScope === null && boundedText(body.environment_scope, 64))) {
+      return NextResponse.json({ error: "Key scope contains invalid control characters." }, { status: 400 });
+    }
+    const createdKey = await admin.from("trackmcp_api_keys").insert({ workspace_id: workspaceId, name: boundedText(body.key_name, 128) || "default", service_scope: serviceScope, environment_scope: environmentScope, key_prefix: generated.prefix, key_hash: generated.hash });
     if (createdKey.error) return NextResponse.json({ error: "Could not create your API key." }, { status: 500 });
     return NextResponse.json({ workspace, api_key: generated.key, message: "Copy this key now. It will not be shown again." }, { status: 201, headers: { "cache-control": "no-store" } });
   }

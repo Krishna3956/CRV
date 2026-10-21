@@ -55,6 +55,12 @@ type Key = {
   key_prefix: string;
   revoked_at: string | null;
   created_at: string;
+  service_scope?: string | null;
+  environment_scope?: string | null;
+};
+type KeyCreationOptions = {
+  serviceScope?: string;
+  environmentScope?: string;
 };
 type SetupDetails = { first_name: string; last_name: string };
 type DataMode = "my" | "example";
@@ -917,7 +923,7 @@ export function DashboardApp({
   working: boolean;
   error: string;
   initialView?: "overview" | "traces";
-  onGenerateKey: () => void;
+  onGenerateKey: (options?: KeyCreationOptions) => void;
   onRevokeKey: (id: string) => void;
   onDismissKey: () => void;
   onRefresh: (days?: string) => void;
@@ -4125,7 +4131,7 @@ function SetupView({
   error: string;
   working: boolean;
   onCreateWorkspace: () => void;
-  onGenerateKey: () => void;
+  onGenerateKey: (options?: KeyCreationOptions) => void;
   onRevokeKey: (id: string) => void;
   onRefresh: () => void;
 }) {
@@ -4167,6 +4173,7 @@ function SetupView({
   );
   const [serviceName, setServiceName] = useState(() => readSetupValue("trackmcp.setup.service", "", 100));
   const [environmentName, setEnvironmentName] = useState(() => readSetupValue("trackmcp.setup.environment", "production", 64));
+  const [scopeNewKey, setScopeNewKey] = useState(false);
   const [copied, setCopied] = useState(false);
   const [otelCopied, setOtelCopied] = useState(false);
   const [setupContract, setSetupContract] = useState<SetupContract | null>(null);
@@ -4512,6 +4519,9 @@ function SetupView({
                       </p>
                       <p className="mt-1 text-[11px] text-muted">
                         {key.name} · {key.revoked_at ? "Revoked" : "Active"}
+                        {(key.service_scope || key.environment_scope) && (
+                          <span className="text-faint"> · {key.service_scope || "any service"} / {key.environment_scope || "any environment"}</span>
+                        )}
                       </p>
                     </div>
                     {!key.revoked_at && (
@@ -4531,9 +4541,47 @@ function SetupView({
                   </p>
                 )}
               </div>
+              <div className="mt-4 border-t border-line pt-4">
+                <label className="flex cursor-pointer items-start gap-2 text-xs font-semibold text-ink">
+                  <input
+                    type="checkbox"
+                    checked={scopeNewKey}
+                    onChange={(event) => setScopeNewKey(event.target.checked)}
+                    className="mt-0.5 h-4 w-4 cursor-pointer rounded border-line-strong text-brand focus:ring-brand"
+                  />
+                  Limit this key to a server and environment
+                </label>
+                <p className="mt-1 pl-6 text-[11px] leading-relaxed text-faint">
+                  Scoped keys reject telemetry with different labels. Leave this off for a workspace-wide key.
+                </p>
+                {scopeNewKey && (
+                  <div className="mt-3 grid gap-3 pl-6 sm:grid-cols-2">
+                    <label className="text-[11px] font-semibold text-ink">
+                      Service scope
+                      <input
+                        value={serviceName}
+                        onChange={(event) => updateService(event.target.value)}
+                        maxLength={100}
+                        placeholder="my-mcp-server"
+                        className="mt-1 block w-full rounded-md border border-line-strong bg-white px-2.5 py-2 text-xs font-normal text-body focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
+                      />
+                    </label>
+                    <label className="text-[11px] font-semibold text-ink">
+                      Environment scope
+                      <input
+                        value={environmentName}
+                        onChange={(event) => updateEnvironment(event.target.value)}
+                        maxLength={64}
+                        placeholder="production"
+                        className="mt-1 block w-full rounded-md border border-line-strong bg-white px-2.5 py-2 text-xs font-normal text-body focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
+                      />
+                    </label>
+                  </div>
+                )}
+              </div>
               <button
                 type="button"
-                onClick={onGenerateKey}
+                onClick={() => onGenerateKey(scopeNewKey ? { serviceScope: boundedService, environmentScope: boundedEnvironment } : undefined)}
                 disabled={working}
                 className="mt-4 inline-flex cursor-pointer items-center gap-2 rounded-md bg-ink px-4 py-2.5 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
               >
