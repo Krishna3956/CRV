@@ -13,7 +13,7 @@ used here and no package is published automatically.
 
 The current local source manifests are deliberately distinct candidate versions:
 `@trackmcp/sdk` `0.1.9`, `@trackmcp/cli` `0.1.4`, and
-`trackmcp` `0.1.4`.
+`trackmcp` `0.1.5`.
 They were selected after a registry preflight found the immediately preceding
 versions already published. The SDK 0.1.5 publication completed with
 provenance and an exact clean-consumer check in publish workflow
@@ -41,7 +41,8 @@ package path itself must be unchanged, or a new version must be published.
 | `@trackmcp/sdk@0.1.6` | npm publication, provenance, exact integrity, and clean consumer export check verified by publish workflow `39661187163`; integrity `sha512-ecKpqhOQu1Qkk8uikMyHFnLypbv5z0amUk54bxwI7ps9UWFlAG0Si5wRY5PCzPephlEzrBQvjGAAqWKmNTr4tQ==` | Merged candidate `372603ad468c58a6ddae61ec98970967fd0cc137` adds official `SSEClientTransport` support | SDK publication gate closed for this source change; disposable production activation and first-event evidence remain open. |
 | `@trackmcp/sdk@0.1.9` | npm publication, provenance, exact integrity, and clean consumer export check verified by publish workflow `39678943076`; integrity `sha512-v0tigxc0bmHLEn+cPnjop+AkpFRkIuz0Hw9yuic63TUY+lqObAU80bkxKH8XB+9eiMGgxIj4ax/29HWnYDsJ4w==` | Merged candidate `9b01c4f769606acd7cde3eeaaeb7a56de01a9b11` adds the server-directed task lifecycle fixture and task-producing response metadata | Current published SDK source line; authenticated production UAT and first-event evidence remain open. |
 | `@trackmcp/cli@0.1.4` | npm `gitHead` `4d704173d807ff2aded8e5bb6c0051e9df0a093a`; npm integrity retained by the registry | No files under `packages/cli` changed since that commit | The published CLI may be used only after its separate disposable production activation proof; do not imply the whole product is released. |
-| `trackmcp==0.1.4` | PyPI wheel SHA-256 `0ab1a9780450b7ee811884eeebc98969993c1d093b67628c899617bfb36ba0e0`; sdist SHA-256 `b264922d39d4281f5c0a347e72516207761d80720dbd64f14f13dd03696ce22a` | The local Python runtime source, tests, and packaging metadata have changed after the reviewed baseline | Must receive a new approved version, PyPI upload, artifact check, and exact-registry consumer test before pilot use. |
+| `trackmcp==0.1.4` | PyPI wheel SHA-256 `0ab1a9780450b7ee811884eeebc98969993c1d093b67628c899617bfb36ba0e0`; sdist SHA-256 `b264922d39d4281f5c0a347e72516207761d80720dbd64f14f13dd03696ce22a` | Historical artifact; source changed materially after this publication | Do not use as the current pilot candidate. |
+| `trackmcp==0.1.5` | Deliberate candidate version for the current Python source; not published yet | Local tests/build and package audit required before dispatch | Publish once through the manual provenance workflow, then record the PyPI upload, artifact check, and exact-registry consumer test with exact hashes. |
 
 The checksums above identify the currently inspected 0.1.4 Python artifacts;
 they do not attest to a future candidate. Re-run this reconciliation against

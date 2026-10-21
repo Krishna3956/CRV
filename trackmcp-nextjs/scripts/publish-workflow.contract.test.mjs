@@ -47,6 +47,7 @@ test("Python publication is deliberate and confirmation-gated", async () => {
 });
 
 test("PyPI publication runs tests and validates built artifacts", () => {
+  assert.match(workflow, /working-directory: packages\/python-sdk[\s\S]*?python -m unittest discover -s tests -v/);
   assert.match(workflow, /python -m unittest discover -s tests -v/);
   assert.match(workflow, /python -m build/);
   assert.match(workflow, /python -m twine check dist\/\*/);
