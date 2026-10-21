@@ -489,6 +489,18 @@ test("Issues orders confirmed critical evidence before insufficient-data noise",
   assert.match(source, /Date\.parse\(right\.last_seen_at\) - Date\.parse\(left\.last_seen_at\)/);
 });
 
+test("Issues collapses lower-priority incident volume until requested", () => {
+  assert.match(source, /const visibleIncidents = showAllIncidents \? orderedIncidents : orderedIncidents\.slice\(0, 5\)/);
+  assert.match(source, /Show all \$\{orderedIncidents\.length\}/);
+  assert.match(source, /lower-priority or insufficient-data incident signals are collapsed/);
+});
+
+test("Overview keeps decision KPIs above expandable evidence detail", () => {
+  assert.match(source, /Evidence quality and protocol detail/);
+  assert.match(source, /<details>/);
+  assert.match(source, /Expand details/);
+});
+
 test("Issues labels retained synthetic canary evidence instead of presenting it as customer failure", () => {
   assert.match(source, /synthetic canary incident/);
   assert.match(source, /Synthetic canary evidence/);
