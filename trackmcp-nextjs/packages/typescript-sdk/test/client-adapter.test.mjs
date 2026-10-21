@@ -307,6 +307,28 @@ test("emits bounded request and response observations for non-tool MCP methods",
   await wrapped.close();
 });
 
+test("records bounded subscription metadata for resource subscribe and unsubscribe", async () => {
+  const events = [];
+  const raw = new FakeTransport();
+  const adapter = new TrackMCPClientAdapter({ apiKey: "tmcp_test", service: "adapter-test", transport: "stdio", flushIntervalMs: 60000, onEvent: (event) => events.push(event) });
+  const wrapped = adapter.wrapTransport(raw);
+  await wrapped.start();
+  wrapped.onmessage = () => {};
+  wrapped.onerror = () => {};
+  await wrapped.send({ jsonrpc: "2.0", id: "subscribe-1", method: "resources/subscribe", params: { uri: "secret://resource" } });
+  raw.onmessage({ jsonrpc: "2.0", id: "subscribe-1", result: {} });
+  await wrapped.send({ jsonrpc: "2.0", id: "unsubscribe-1", method: "resources/unsubscribe", params: { uri: "secret://resource" } });
+  raw.onmessage({ jsonrpc: "2.0", id: "unsubscribe-1", result: {} });
+  const requests = events.filter((event) => event.payload?._trackmcp?.observation_kind === "protocol_request");
+  const responses = events.filter((event) => event.payload?._trackmcp?.observation_kind === "protocol_response");
+  assert.equal(requests.find((event) => event.mcp_method === "resources/subscribe").payload._trackmcp.subscription_action, "subscribe_requested");
+  assert.equal(requests.find((event) => event.mcp_method === "resources/unsubscribe").payload._trackmcp.subscription_action, "unsubscribe_requested");
+  assert.equal(responses.find((event) => event.mcp_method === "resources/subscribe").payload._trackmcp.subscription_action, "subscription_started");
+  assert.equal(responses.find((event) => event.mcp_method === "resources/unsubscribe").payload._trackmcp.subscription_action, "subscription_stopped");
+  assert.equal(JSON.stringify(events).includes("secret://resource"), false);
+  await wrapped.close();
+});
+
 test("does not attribute an ambiguous late response to a reused request ID", async () => {
   const events = [];
   const raw = new FakeTransport();

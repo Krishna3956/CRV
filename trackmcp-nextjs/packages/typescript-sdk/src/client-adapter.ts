@@ -94,7 +94,8 @@ export function protocolResponseMetadata(method: string | undefined, result: Mes
   if (typeof ttl === "number" && Number.isFinite(ttl) && ttl >= 0 && ttl <= 86_400_000) metadata.cache_ttl_ms = Math.round(ttl);
   const scope = result.cacheScope ?? result.cache_scope;
   if (scope === "public" || scope === "private") metadata.cache_scope = scope;
-  if (method === "subscriptions/listen") metadata.subscription_action = "subscription_started";
+  if (method === "subscriptions/listen" || method === "resources/subscribe") metadata.subscription_action = "subscription_started";
+  if (method === "resources/unsubscribe") metadata.subscription_action = "subscription_stopped";
   return metadata;
 }
 
@@ -103,6 +104,8 @@ function protocolRequestMetadata(method: string | undefined): ProtocolMetadata {
   const family = protocolFamily(method);
   if (family) metadata.protocol_family = family;
   if (method === "subscriptions/listen") metadata.subscription_action = "listen_requested";
+  if (method === "resources/subscribe") metadata.subscription_action = "subscribe_requested";
+  if (method === "resources/unsubscribe") metadata.subscription_action = "unsubscribe_requested";
   return metadata;
 }
 
