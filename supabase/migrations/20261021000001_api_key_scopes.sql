@@ -11,9 +11,9 @@ alter table public.trackmcp_api_keys
 
 alter table public.trackmcp_api_keys
   add constraint trackmcp_api_keys_service_scope_check
-    check (service_scope is null or char_length(service_scope) between 1 and 100),
+    check (service_scope is null or (char_length(service_scope) between 1 and 100 and service_scope !~ '[[:cntrl:]]')),
   add constraint trackmcp_api_keys_environment_scope_check
-    check (environment_scope is null or char_length(environment_scope) between 1 and 64);
+    check (environment_scope is null or (char_length(environment_scope) between 1 and 64 and environment_scope !~ '[[:cntrl:]]'));
 
 create index if not exists trackmcp_api_keys_workspace_scope_idx
   on public.trackmcp_api_keys (workspace_id, service_scope, environment_scope)
