@@ -4162,7 +4162,7 @@ function SetupView({
       next_steps?: string[];
     };
   };
-  const [language, setLanguage] = useState<"TypeScript" | "Python">(
+  const [language, setLanguage] = useState<"TypeScript" | "Python" | "Go" | ".NET">(
     "TypeScript",
   );
   const [serviceName, setServiceName] = useState(() => readSetupValue("trackmcp.setup.service", "", 100));
@@ -4187,6 +4187,8 @@ function SetupView({
   const snippets = {
     TypeScript: `npm install @trackmcp/sdk\n\nimport { withTrackMCP } from "@trackmcp/sdk";\nexport default withTrackMCP(server, {\n  apiKey: process.env.TRACKMCP_KEY!,\n  service: "${boundedService || "my-mcp-server"}",\n  environment: "${boundedEnvironment}",\n});`,
     Python: `python3 -m pip install trackmcp\n\nimport os\nfrom trackmcp import with_trackmcp\napp = with_trackmcp(server, api_key=os.environ["TRACKMCP_KEY"], service="${boundedService || "my-mcp-server"}", environment="${boundedEnvironment}")`,
+    Go: `git clone --filter=blob:none --no-checkout https://github.com/Krishna3956/CRV.git\ncd CRV\ngit sparse-checkout set packages/go-sdk\n\n// Use the reviewed source package until a registry release is published.\nclient := trackmcp.New(trackmcp.Options{\n  APIKey: os.Getenv("TRACKMCP_KEY"),\n  Service: "${boundedService || "my-mcp-server"}",\n  Environment: "${boundedEnvironment}",\n})`,
+    ".NET": `dotnet add ./YourMcpServer.csproj reference ./packages/dotnet-sdk/TrackMcp.csproj\n\nvar telemetry = new TrackMcpClient(new TrackMcpOptions(\n    Environment.GetEnvironmentVariable("TRACKMCP_KEY") ?? "",\n    "${boundedService || "my-mcp-server"}",\n    "${boundedEnvironment}"));`,
   };
   const otelEndpoint = "https://trackmcp.com/api/v1/otel/v1/traces";
   const hasActiveKey = keys.some((key) => !key.revoked_at);
@@ -4420,7 +4422,7 @@ function SetupView({
           </div>
           <p className="mt-3 text-[11px] leading-relaxed text-faint">These labels are supplied by your server. They are not a TrackMCP deployment record and do not identify a person or customer.</p>
           <div className="mt-4 flex gap-1 border-b border-line pb-2">
-            {(["TypeScript", "Python"] as const).map((item) => (
+            {(["TypeScript", "Python", "Go", ".NET"] as const).map((item) => (
               <button
                 type="button"
                 key={item}
@@ -4463,6 +4465,16 @@ function SetupView({
           {language === "Python" && (
             <p className="mt-3 text-xs leading-relaxed text-muted">
               Python uses the package manager plus a workspace connection key. Install <code className="font-mono text-ink">trackmcp</code>, then create or copy a key from the Connection keys panel below and keep it in the server environment.
+            </p>
+          )}
+          {language === "Go" && (
+            <p className="mt-3 text-xs leading-relaxed text-muted">
+              Go is currently distributed as a reviewed source package rather than a registry release. <a href="/docs/go" className="cursor-pointer font-semibold text-brand-strong hover:underline">Open the Go guide</a> for the pinned checkout, middleware capture, and first-event verification steps.
+            </p>
+          )}
+          {language === ".NET" && (
+            <p className="mt-3 text-xs leading-relaxed text-muted">
+              .NET is currently distributed as a reviewed source package rather than a NuGet release. <a href="/docs/dotnet" className="cursor-pointer font-semibold text-brand-strong hover:underline">Open the .NET guide</a> for the project reference, middleware capture, and first-event verification steps.
             </p>
           )}
           <p className="mt-3 text-xs leading-relaxed text-muted">
@@ -4541,13 +4553,17 @@ function SetupView({
               Configure this in the server-side SDK, not in the browser. Return an already-validated tenant or account handle; TrackMCP hashes it before storage and never displays the raw value.
             </p>
           </div>
-          <a href={language === "TypeScript" ? "/docs/typescript#account-identity" : "/docs/python#account-identity"} className="inline-flex cursor-pointer items-center gap-1 text-xs font-semibold text-brand-strong hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand">
+              <a href={language === "TypeScript" ? "/docs/typescript#account-identity" : language === "Python" ? "/docs/python#account-identity" : language === "Go" ? "/docs/go#account-identity" : "/docs/dotnet#account-identity"} className="inline-flex cursor-pointer items-center gap-1 text-xs font-semibold text-brand-strong hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand">
             View {language} example <ArrowRight size={12} aria-hidden="true" />
           </a>
         </div>
         <pre className="mt-4 overflow-x-auto rounded-md bg-[#101713] p-4 font-mono text-[11px] leading-relaxed text-white"><code>{language === "TypeScript"
           ? `withTrackMCP(server, {\n  apiKey: process.env.TRACKMCP_KEY!,\n  accountIdResolver: ({ sessionId }) => verifiedTenantForSession(sessionId),\n});`
-          : `with_trackmcp(server,\n    api_key=os.environ["TRACKMCP_KEY"],\n    account_id_resolver=lambda context: context.get("tenant_id"),\n)`}</code></pre>
+          : language === "Python"
+            ? `with_trackmcp(server,\n    api_key=os.environ["TRACKMCP_KEY"],\n    account_id_resolver=lambda context: context.get("tenant_id"),\n)`
+            : language === "Go"
+              ? `client := trackmcp.New(trackmcp.Options{\n  APIKey: os.Getenv("TRACKMCP_KEY"),\n  ResolveAccount: func(ctx trackmcp.Context) string {\n    return verifiedTenantForContext(ctx)\n  },\n})`
+              : `var telemetry = new TrackMcpClient(new TrackMcpOptions(\n    Environment.GetEnvironmentVariable("TRACKMCP_KEY") ?? "",\n    "${boundedService || "my-mcp-server"}",\n    "${boundedEnvironment}"));`}</code></pre>
         <p className="mt-3 text-[11px] leading-relaxed text-faint">Only use a stable, non-secret identifier already verified by your application. Do not return emails, tokens, URLs, prompts, completions, or raw user IDs. Without a resolver, activity remains visible but is counted as unresolved.</p>
       </section>
       <details className="mt-6 border border-line bg-white p-5 sm:p-6">

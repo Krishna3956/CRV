@@ -301,6 +301,14 @@ test("Python setup snippet is copy-paste complete", () => {
   assert.match(setupSource, /os\.environ\["TRACKMCP_KEY"\]/);
 });
 
+test("Setup exposes every documented SDK path without implying publication", () => {
+  assert.match(source, /\["TypeScript", "Python", "Go", "\.NET"\]/);
+  assert.match(source, /language === "Go"[\s\S]*\/docs\/go/);
+  assert.match(source, /language === "\.NET"[\s\S]*\/docs\/dotnet/);
+  assert.match(source, /reviewed source package rather than a registry release/);
+  assert.match(source, /reviewed source package rather than a NuGet release/);
+});
+
 test("Setup exposes bounded export and non-destructive deletion controls", () => {
   assert.match(source, /function PrivacyControls\(/);
   assert.match(source, /\/api\/v1\/account\/export\?workspace_id=/);

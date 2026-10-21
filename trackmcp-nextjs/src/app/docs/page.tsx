@@ -28,6 +28,7 @@ const cards = [
   { icon: SlidersHorizontal, t: "Configuration", d: "Every option, event, and metric.", href: "/docs/reference" },
   { icon: Activity, t: "OpenTelemetry", d: "Configure the bounded OTLP/HTTP JSON integration.", href: "/docs/opentelemetry" },
   { icon: LockKeyhole, t: "Authentication & OAuth", d: "Understand dashboard keys, MCP OAuth boundaries, and what is tested.", href: "/docs/authentication" },
+  { icon: Activity, t: "MCP protocol support", d: "See the 2026-07-28 compatibility boundary, legacy support, and transport coverage.", href: "/docs/protocol" },
 ];
 
 export default function DocsPage() {
@@ -124,6 +125,18 @@ export default withTrackMCP(server, {
           <Link href="/docs/python" className="rounded-xl border border-line bg-white p-4 hover:border-line-strong">
             <span className="flex items-center gap-2 text-sm font-medium text-ink"><Braces size={16} className="text-brand" /> Python</span>
             <p className="mt-2 text-xs leading-relaxed text-muted">For Python MCP servers. Install the published package and wrap your server object.</p>
+          </Link>
+          <Link href="/docs/go" className="rounded-xl border border-line bg-white p-4 hover:border-line-strong">
+            <span className="flex items-center gap-2 text-sm font-medium text-ink"><Code2 size={16} className="text-brand" /> Go</span>
+            <p className="mt-2 text-xs leading-relaxed text-muted">Use the reviewed source package at the middleware or transport boundary.</p>
+          </Link>
+          <Link href="/docs/dotnet" className="rounded-xl border border-line bg-white p-4 hover:border-line-strong">
+            <span className="flex items-center gap-2 text-sm font-medium text-ink"><Code2 size={16} className="text-brand" /> .NET</span>
+            <p className="mt-2 text-xs leading-relaxed text-muted">Reference the reviewed project from an ASP.NET or .NET MCP server.</p>
+          </Link>
+          <Link href="/docs/opentelemetry" className="rounded-xl border border-line bg-white p-4 hover:border-line-strong">
+            <span className="flex items-center gap-2 text-sm font-medium text-ink"><Activity size={16} className="text-brand" /> OpenTelemetry</span>
+            <p className="mt-2 text-xs leading-relaxed text-muted">Use the bounded OTLP/HTTP JSON receiver when your collector is already in place.</p>
           </Link>
         </div>
       </DocSection>
