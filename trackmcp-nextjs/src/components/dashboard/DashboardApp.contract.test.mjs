@@ -537,6 +537,12 @@ test("Setup exposes an actionable OTLP endpoint and guide", () => {
   assert.match(source, /Copy endpoint/);
 });
 
+test("Setup exposes a direct MCP server tester CTA with a bounded scope", () => {
+  assert.match(source, /href="\/tools\/mcp-server-tester"/);
+  assert.match(source, /bounded, read-only discovery check/);
+  assert.match(source, /does not replace SDK instrumentation/);
+});
+
 test("Issues labels retained synthetic canary evidence instead of presenting it as customer failure", () => {
   assert.match(source, /synthetic canary incident/);
   assert.match(source, /Synthetic canary evidence/);
