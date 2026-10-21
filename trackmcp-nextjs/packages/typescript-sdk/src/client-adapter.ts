@@ -195,6 +195,7 @@ export class TrackMCPClientAdapter {
           return (...args: unknown[]) => {
             const start = Reflect.get(target, property, target) as (...input: unknown[]) => Promise<void>;
             return Promise.resolve(start.apply(target, args)).then((result) => {
+              const reconnecting = adapter.lifecycleGeneration > 0 && adapter.lifecycleEnded;
               if (!adapter.lifecycleStarted || adapter.lifecycleEnded) {
                 adapter.lifecycleGeneration += 1;
                 adapter.lifecycleStarted = true;
@@ -206,6 +207,7 @@ export class TrackMCPClientAdapter {
                 adapter.seenRequestIds.clear();
                 adapter.protocolSessionId = undefined;
                 adapter.emitSessionBoundary("session_started");
+                if (reconnecting) adapter.emitSessionBoundary("session_reconnected");
               }
               return result;
             });
@@ -538,7 +540,7 @@ export class TrackMCPClientAdapter {
     while (this.completedIds.size > MAX_PENDING_CALLS) this.completedIds.delete(this.completedIds.values().next().value as string);
   }
 
-  private emitSessionBoundary(kind: "session_started" | "session_ended", durationMs = 0, success = true, errorClass?: string): void {
+  private emitSessionBoundary(kind: "session_started" | "session_reconnected" | "session_ended", durationMs = 0, success = true, errorClass?: string): void {
     this.emit({
       event_type: "session",
       transport: this.options.transport,
