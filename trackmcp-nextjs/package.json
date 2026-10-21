@@ -132,6 +132,7 @@
     "smoke:production-pilot": "node scripts/production-pilot-smoke.mjs",
     "smoke:production-auth": "node scripts/production-auth-smoke.mjs",
     "test:production-auth-smoke": "node --test scripts/production-auth-smoke.test.mjs",
+    "test:production-auth-workflow": "node --test scripts/production-auth-workflow.contract.test.mjs",
     "test:production-pilot-smoke": "node --test scripts/production-pilot-smoke.test.mjs",
     "mcp:import": "node scripts/import-mcp-repository.mjs"
   },
