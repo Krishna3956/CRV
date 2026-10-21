@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
+    "test:nonpublished-sdk-docs": "node --test scripts/nonpublished-sdk-docs.contract.test.mjs",
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
