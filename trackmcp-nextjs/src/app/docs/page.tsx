@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { pageMeta } from "@/lib/seo";
 import Link from "next/link";
-import { ArrowRight, Terminal, Braces, Plug, SlidersHorizontal, Check, ShieldCheck } from "lucide-react";
+import { ArrowRight, Terminal, Braces, Plug, SlidersHorizontal, Activity, Check, ShieldCheck } from "lucide-react";
 import {
   DocsShell,
   DocTitle,
@@ -24,6 +24,7 @@ const cards = [
   { icon: Braces, t: "Python SDK", d: "Wrap a Python MCP server and capture calls, sessions, and clients.", href: "/docs/python" },
   { icon: Plug, t: "REST API", d: "Query your own metrics programmatically.", href: "/docs/api" },
   { icon: SlidersHorizontal, t: "Configuration", d: "Every option, event, and metric.", href: "/docs/reference" },
+  { icon: Activity, t: "OpenTelemetry", d: "Configure the bounded OTLP/HTTP JSON integration.", href: "/docs/opentelemetry" },
 ];
 
 export default function DocsPage() {

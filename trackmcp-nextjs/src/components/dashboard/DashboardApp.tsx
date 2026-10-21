@@ -2059,13 +2059,9 @@ function Panel({
   return (
     <section className="border border-line bg-white p-5 sm:p-6">
       <div className="flex items-start justify-between gap-4">
-        <div>
+        <div className="flex min-w-0 items-center gap-2">
           <h2 className="dashboard-section-title text-ink">{title}</h2>
-          {subtitle && (
-            <p className="mt-1 text-xs leading-relaxed text-muted">
-              {subtitle}
-            </p>
-          )}
+          {subtitle && <InfoHint label={`About ${title}`} text={subtitle} />}
         </div>
         {action?.href ? (
           <a
@@ -2090,6 +2086,27 @@ function Panel({
       </div>
       {children}
     </section>
+  );
+}
+
+function InfoHint({ label, text }: { label: string; text: string }) {
+  return (
+    <span className="group relative inline-flex shrink-0">
+      <button
+        type="button"
+        aria-label={label}
+        title={text}
+        className="grid h-5 w-5 cursor-pointer place-items-center rounded-full border border-line-strong bg-paper text-[11px] font-bold text-muted transition-colors hover:border-brand hover:text-brand-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
+      >
+        i
+      </button>
+      <span
+        role="tooltip"
+        className="pointer-events-none absolute left-0 top-7 z-20 hidden w-64 rounded-md border border-line-strong bg-ink px-3 py-2 text-left text-[11px] font-normal leading-relaxed text-white shadow-lg group-hover:block group-focus-within:block"
+      >
+        {text}
+      </span>
+    </span>
   );
 }
 function Kpi({
@@ -4146,6 +4163,7 @@ function SetupView({
   const [serviceName, setServiceName] = useState(() => readSetupValue("trackmcp.setup.service", "", 100));
   const [environmentName, setEnvironmentName] = useState(() => readSetupValue("trackmcp.setup.environment", "production", 64));
   const [copied, setCopied] = useState(false);
+  const [otelCopied, setOtelCopied] = useState(false);
   const [setupContract, setSetupContract] = useState<SetupContract | null>(null);
   const [setupContractWorkspaceId, setSetupContractWorkspaceId] = useState<string | null>(null);
 
@@ -4165,6 +4183,7 @@ function SetupView({
     TypeScript: `npm install @trackmcp/sdk\n\nimport { withTrackMCP } from "@trackmcp/sdk";\nexport default withTrackMCP(server, {\n  apiKey: process.env.TRACKMCP_KEY!,\n  service: "${boundedService || "my-mcp-server"}",\n  environment: "${boundedEnvironment}",\n});`,
     Python: `python3 -m pip install trackmcp\n\nimport os\nfrom trackmcp import with_trackmcp\napp = with_trackmcp(server, api_key=os.environ["TRACKMCP_KEY"], service="${boundedService || "my-mcp-server"}", environment="${boundedEnvironment}")`,
   };
+  const otelEndpoint = "https://trackmcp.com/api/v1/otel/v1/traces";
   const hasActiveKey = keys.some((key) => !key.revoked_at);
   useEffect(() => {
     if (!workspaceId) return;
@@ -4245,6 +4264,15 @@ function SetupView({
       window.setTimeout(() => setCopied(false), 1600);
     } catch {
       setCopied(false);
+    }
+  };
+  const copyOtelEndpoint = async () => {
+    try {
+      await navigator.clipboard.writeText(otelEndpoint);
+      setOtelCopied(true);
+      window.setTimeout(() => setOtelCopied(false), 1600);
+    } catch {
+      setOtelCopied(false);
     }
   };
   return (
@@ -4562,10 +4590,20 @@ function SetupView({
         </summary>
         <div className="mt-4 grid gap-3 md:grid-cols-2">
           <div className="border border-line bg-paper p-4">
-            <p className="text-sm font-semibold text-ink">OpenTelemetry</p>
+            <div className="flex items-center justify-between gap-3">
+              <p className="text-sm font-semibold text-ink">OpenTelemetry</p>
+              <a href="/docs/opentelemetry" className="cursor-pointer text-xs font-semibold text-brand-strong hover:underline">Open guide <ArrowRight size={12} className="inline" /></a>
+            </div>
             <p className="mt-1 text-xs leading-relaxed text-muted">
               TrackMCP provides a bounded, privacy-safe OTLP/HTTP JSON receiver (protobuf and gRPC are not enabled). Native SDK instrumentation remains the recommended path for complete MCP semantics; unsupported spans are reported rather than silently treated as successes.
             </p>
+            <code className="mt-3 block overflow-x-auto rounded bg-ink px-3 py-2 text-[11px] text-white">{otelEndpoint}</code>
+            <div className="mt-3 flex flex-wrap items-center gap-2">
+              <button type="button" onClick={() => void copyOtelEndpoint()} className="inline-flex cursor-pointer items-center gap-1.5 rounded-md border border-line-strong bg-white px-3 py-2 text-xs font-semibold text-body hover:bg-paper focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand">
+                <Clipboard size={13} /> {otelCopied ? "Copied" : "Copy endpoint"}
+              </button>
+              <span className="text-[11px] text-faint">POST JSON · auth with a workspace connection key</span>
+            </div>
           </div>
           <div className="border border-line bg-paper p-4">
             <p className="text-sm font-semibold text-ink">Proxy or stdio launcher</p>

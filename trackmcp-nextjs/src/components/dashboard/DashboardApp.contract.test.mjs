@@ -501,6 +501,19 @@ test("Overview keeps decision KPIs above expandable evidence detail", () => {
   assert.match(source, /Expand details/);
 });
 
+test("dashboard panels expose concise information hints and universal pointer affordances", () => {
+  assert.match(source, /function InfoHint\(/);
+  assert.match(source, /role="tooltip"/);
+  assert.match(source, /About \$\{title\}/);
+  assert.match(globalsSource, /\.dashboard-shell button:not\(:disabled\)/);
+});
+
+test("Setup exposes an actionable OTLP endpoint and guide", () => {
+  assert.match(source, /https:\/\/trackmcp\.com\/api\/v1\/otel\/v1\/traces/);
+  assert.match(source, /href="\/docs\/opentelemetry"/);
+  assert.match(source, /Copy endpoint/);
+});
+
 test("Issues labels retained synthetic canary evidence instead of presenting it as customer failure", () => {
   assert.match(source, /synthetic canary incident/);
   assert.match(source, /Synthetic canary evidence/);
