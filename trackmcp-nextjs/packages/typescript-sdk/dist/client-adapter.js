@@ -58,8 +58,10 @@ export function protocolResponseMetadata(method, result) {
     const scope = result.cacheScope ?? result.cache_scope;
     if (scope === "public" || scope === "private")
         metadata.cache_scope = scope;
-    if (method === "subscriptions/listen")
+    if (method === "subscriptions/listen" || method === "resources/subscribe")
         metadata.subscription_action = "subscription_started";
+    if (method === "resources/unsubscribe")
+        metadata.subscription_action = "subscription_stopped";
     return metadata;
 }
 function protocolRequestMetadata(method) {
@@ -69,6 +71,10 @@ function protocolRequestMetadata(method) {
         metadata.protocol_family = family;
     if (method === "subscriptions/listen")
         metadata.subscription_action = "listen_requested";
+    if (method === "resources/subscribe")
+        metadata.subscription_action = "subscribe_requested";
+    if (method === "resources/unsubscribe")
+        metadata.subscription_action = "unsubscribe_requested";
     return metadata;
 }
 function protocolNotificationMetadata(method) {

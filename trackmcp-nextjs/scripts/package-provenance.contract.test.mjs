@@ -9,7 +9,7 @@ const plan = await readFile(resolve(root, "docs/FOUNDER-OS-100-CUSTOMER-PILOT-MA
 
 test("package readiness distinguishes local package checks from registry publication", () => {
   for (const term of [
-    "`@trackmcp/sdk@0.1.3`",
+    "`@trackmcp/sdk@0.1.4`",
     "Must receive a new approved version, publication, provenance, and exact-registry consumer test",
     "`@trackmcp/cli@0.1.4`",
     "disposable production activation proof",
