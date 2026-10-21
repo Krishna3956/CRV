@@ -161,7 +161,7 @@ and rate-limit false positives.
 
 The currently reviewed TypeScript SDK release candidate is `@trackmcp/sdk@0.1.9`
 (publication must be verified before pilot use),
-`@trackmcp/cli@0.1.4`, and `trackmcp==0.1.4`. Publish only a new reviewed
+`@trackmcp/cli@0.1.4`, and `trackmcp==0.1.5`. Publish only a new reviewed
 version after duplicate-version preflight passes.
 Install those exact registry versions in clean temporary npm and Python
 consumers, then run the first-event/key-status smoke. Record registry URLs,
