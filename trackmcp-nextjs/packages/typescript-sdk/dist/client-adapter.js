@@ -460,8 +460,43 @@ export class TrackMCPClientAdapter {
         if (!this.lifecycleStarted || this.lifecycleEnded)
             return;
         this.lifecycleEnded = true;
+        if (!success)
+            this.failPending(errorClass || "transport_error");
         const duration = this.lifecycleStartedAt > 0 ? Date.now() - this.lifecycleStartedAt : 0;
         this.emitSessionBoundary("session_ended", duration, success, errorClass);
+    }
+    /**
+     * A transport can close before the server sends a JSON-RPC response. Keep
+     * that request visible as an explicit transport failure instead of silently
+     * dropping it or treating it as business failure. Only bounded metadata is
+     * emitted; request params and result bodies never cross this boundary.
+     */
+    failPending(errorClass) {
+        const pending = [...this.pendingOrder];
+        this.pending.clear();
+        this.pendingOrder.length = 0;
+        for (const call of pending) {
+            this.markCompleted(call.idKey);
+            const session = this.sessionFields();
+            const eventType = call.toolName ? "tool_call" : "protocol";
+            this.emit({
+                event_type: eventType,
+                transport: this.options.transport,
+                mcp_method: call.method || (call.toolName ? "tools/call" : undefined),
+                request_id: call.requestId,
+                tool_name: call.toolName,
+                direction: "server_to_client",
+                started_at: new Date(call.started).toISOString(),
+                duration_ms: Math.max(0, Date.now() - call.started),
+                success: false,
+                is_error: true,
+                error_class: errorClass,
+                ...session,
+                client_name: this.clientName,
+                client_version: this.clientVersion,
+                payload: { _trackmcp: { observation_kind: call.toolName ? "result_received" : "protocol_response", observation_source: "client" } },
+            }, call.correlation);
+        }
     }
     sessionFields(transport) {
         if (this.options.session?.id && this.options.session.source)

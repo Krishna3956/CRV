@@ -62,6 +62,13 @@ export declare class TrackMCPClientAdapter {
     private markCompleted;
     private emitSessionBoundary;
     private endLifecycle;
+    /**
+     * A transport can close before the server sends a JSON-RPC response. Keep
+     * that request visible as an explicit transport failure instead of silently
+     * dropping it or treating it as business failure. Only bounded metadata is
+     * emitted; request params and result bodies never cross this boundary.
+     */
+    private failPending;
     private sessionFields;
     private emit;
     private keyFor;
