@@ -177,7 +177,15 @@ async function registryChecks() {
 async function main() {
   validateOptIn();
   const checks = [];
-  for (const path of ["/", "/docs", "/docs/typescript", "/docs/python", "/device", "/support", "/sitemap.xml", "/tool-sitemap.xml"]) {
+  // Keep every public documentation destination in the smoke. A docs link is
+  // part of the activation path, so checking only the hub and two SDK pages
+  // can let a broken Go/.NET/reference/OAuth link reach a pilot user.
+  const publicRoutes = [
+    "/", "/docs", "/docs/typescript", "/docs/python", "/docs/go", "/docs/dotnet",
+    "/docs/api", "/docs/reference", "/docs/opentelemetry", "/docs/protocol",
+    "/docs/authentication", "/device", "/support", "/sitemap.xml", "/tool-sitemap.xml",
+  ];
+  for (const path of publicRoutes) {
     checks.push(await expect(path, 200, undefined, `browser ${path}`, { securityHeaders: true }));
   }
   checks.push(await expectPublicClaim(
