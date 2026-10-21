@@ -59,6 +59,40 @@ function boundedString(value: unknown): string | undefined {
   return typeof value === "string" && value.trim().length > 0 && new TextEncoder().encode(value).byteLength <= MAX_CLIENT_STRING_LENGTH ? value : undefined;
 }
 
+type ProtocolMetadata = Record<string, boolean | number | string>;
+
+/**
+ * Keep modern MCP freshness and subscription signals observable without
+ * copying cursors, subscription identifiers, or any response body. These
+ * values are deliberately metadata-only so a private cursor cannot become a
+ * cross-tenant cache key in the telemetry store.
+ */
+function protocolResponseMetadata(method: string | undefined, result: Message | undefined): ProtocolMetadata {
+  const metadata: ProtocolMetadata = {};
+  if (!result) return metadata;
+  if (typeof result.nextCursor === "string" || typeof result.next_cursor === "string") metadata.next_cursor_present = true;
+  const ttl = result.ttlMs ?? result.ttl_ms;
+  if (typeof ttl === "number" && Number.isFinite(ttl) && ttl >= 0 && ttl <= 86_400_000) metadata.cache_ttl_ms = Math.round(ttl);
+  const scope = result.cacheScope ?? result.cache_scope;
+  if (scope === "public" || scope === "private") metadata.cache_scope = scope;
+  if (method === "subscriptions/listen") metadata.subscription_action = "subscription_started";
+  return metadata;
+}
+
+function protocolRequestMetadata(method: string | undefined): ProtocolMetadata {
+  if (method === "subscriptions/listen") return { subscription_action: "listen_requested" };
+  return {};
+}
+
+function protocolNotificationMetadata(method: string): ProtocolMetadata {
+  if (method === "notifications/progress") return { protocol_signal: "progress" };
+  if (method === "notifications/cancelled") return { protocol_signal: "cancelled" };
+  if (/^notifications\/(tools|resources|prompts)\/list_changed$/.test(method)) return { protocol_signal: "catalog_changed" };
+  if (method === "notifications/resources/updated") return { protocol_signal: "resource_changed" };
+  if (method === "notifications/prompts/updated") return { protocol_signal: "prompt_changed" };
+  return {};
+}
+
 function nodeOnlyGuard(): void {
   const nodeProcess = typeof process !== "undefined" ? process : undefined;
   const edgeRuntime = typeof globalThis === "object" && "EdgeRuntime" in globalThis;
@@ -231,7 +265,7 @@ export class TrackMCPClientAdapter {
             ...session,
             client_name: this.clientName,
             client_version: this.clientVersion,
-            payload: { _trackmcp: { observation_kind: "protocol_notification", observation_source: "client" } },
+            payload: { _trackmcp: { observation_kind: "protocol_notification", observation_source: "client", ...protocolNotificationMetadata(method) } },
           });
         } else if (method && id !== undefined) {
           const started = Date.now();
@@ -248,7 +282,7 @@ export class TrackMCPClientAdapter {
             ...session,
             client_name: this.clientName,
             client_version: this.clientVersion,
-            payload: { _trackmcp: { observation_kind: "protocol_request", observation_source: "client" } },
+            payload: { _trackmcp: { observation_kind: "protocol_request", observation_source: "client", ...protocolRequestMetadata(method) } },
           }, correlation);
         }
         continue;
@@ -323,7 +357,7 @@ export class TrackMCPClientAdapter {
             ...session,
             client_name: this.clientName,
             client_version: this.clientVersion,
-            payload: { _trackmcp: { observation_kind: "protocol_notification", observation_source: "client" } },
+            payload: { _trackmcp: { observation_kind: "protocol_notification", observation_source: "client", ...protocolNotificationMetadata(method) } },
           });
         }
         continue;
@@ -379,7 +413,7 @@ export class TrackMCPClientAdapter {
           ...session,
           client_name: this.clientName,
           client_version: this.clientVersion,
-          payload: { _trackmcp: { observation_kind: "protocol_response", observation_source: "client" } },
+          payload: { _trackmcp: { observation_kind: "protocol_response", observation_source: "client", ...protocolResponseMetadata(pending.method, result) } },
         }, pending.correlation);
         continue;
       }

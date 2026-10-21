@@ -13,12 +13,13 @@ just because a README or marketing page mentions it.
 | Transport observer / Node client adapter | `@trackmcp/sdk/client-adapter`; Node-only wrapper for Stdio and Streamable HTTP; metadata-only and fail-open; dedicated adapter tests | Implemented, now explicitly documented | Run production-like client fixtures when a pilot server is available |
 | Go SDK | `packages/go-sdk/trackmcp.go`; transport-neutral primitive, source package only | Implemented with source-only distribution boundary | Publish only after package provenance/release work is approved |
 | .NET SDK | `packages/dotnet-sdk/TrackMcp.cs`; transport-neutral primitive, source package only | Implemented with source-only distribution boundary | Publish only after NuGet/provenance work is approved |
-| OTLP/HTTP JSON | Authenticated bounded receiver at `/api/v1/otel/v1/traces`; parser and interoperability tests | Implemented, protobuf/gRPC intentionally unsupported | Continue smoke coverage with a real collector fixture |
+| OTLP/HTTP JSON | Authenticated bounded receiver at `/api/v1/otel/v1/traces`; parser and interoperability tests; production smoke accepted a current-time OTLP/HTTP JSON span for a scoped key and the authenticated export returned the mapped event | Implemented, protobuf/gRPC intentionally unsupported | Keep the smoke fixture in the recurring release gate; do not market protobuf/gRPC support |
 | MCP OAuth | TrackMCP does not issue, exchange, or parse customer OAuth credentials | Explicitly unsupported by design | Customer-owned OAuth integration must emit explicit bounded outcomes |
 | Dashboard/session auth | Workspace membership, connection-key scope, revocation, tenant-isolation contracts | Implemented | Repeat production smoke after releases |
 | Setup density | Secondary privacy/data-flow and export/deletion explanations moved behind accessible disclosures; primary setup actions remain visible | Implemented in current change | Live browser audit after deployment |
 | Public docs parity | Added Go, .NET, Authentication/OAuth, and clearly named Transport Observer documentation paths | Implemented in current change | Check links, snippets, and package-version claims in CI |
 | Node client protocol observer | Client adapter now emits bounded request/response/notification observations for every identified non-tool MCP request, including catalog counts, task/MRTR result discriminators, and list-changed/progress signals; arguments, URIs, prompt names, and result bodies remain excluded | Implemented locally with regression coverage | Deploy the SDK package and run a production-like client fixture before claiming live coverage |
+| Modern cache and subscription metadata | TypeScript client adapter emits bounded `next_cursor_present`, `cache_ttl_ms`, `cache_scope`, `subscriptions/listen` request/acknowledgement markers, and list-change/progress/cancellation signal metadata without retaining cursor or subscription values | Implemented locally with regression coverage | Publish the SDK package and capture the metadata through a real modern-protocol fixture |
 | Refresh and task transition projection | Accepted ingest now enqueues bounded refresh work by default; explicit task transition history is persisted by the service-role worker by default, with explicit `false` rollback flags | Implemented locally with worker-handler coverage | Apply/postflight migrations and capture a non-empty production worker batch |
 | Transport disconnect evidence | Node client adapter now drains in-flight tool and non-tool requests on transport error/close into bounded `transport_error` observations before ending the session | Implemented locally with regression coverage | Run production-like Stdio and Streamable HTTP disconnect/reconnect fixtures |
 | Connection-key scope | API keys can carry optional bounded service/environment scopes; ingest rejects mismatched labels with a tenant-safe 403 while legacy NULL-scoped keys remain workspace-wide | Implemented and deployed; migration applied, read-only postflight added, release-gate/tenant-isolation coverage passed; production postflight observed 49 active workspace-wide keys, 0 invalid scopes; live smoke accepted a matching event, rejected a mismatched label with 403, and the authenticated export showed the matching event | Keep scope behavior in the recurring release smoke and rotate/revoke the temporary pilot key under the operator’s key-retention policy |
@@ -36,6 +37,8 @@ just because a README or marketing page mentions it.
       ingestion and refuses token collection claims.
 - [x] Run full release gate and production smoke for this change.
 - [x] Verify all new docs routes in the deployed browser after rollout.
+- [x] Run a production OTLP/HTTP JSON smoke with a scoped connection key and
+      verify the mapped event in the authenticated export.
 
 ## Evidence log
 
@@ -54,3 +57,8 @@ just because a README or marketing page mentions it.
   catalog, task, subscription, progress, cancellation, completion, sampling,
   elicitation, and other identified MCP methods. The SDK build and all 38
   package tests pass; deployment and published-package evidence remain open.
+- 2026-10-21: A production OTLP/HTTP JSON smoke sent a current-time
+  `tools/call` span through the authenticated receiver with a scoped key. The
+  endpoint returned HTTP 200 with `accepted_spans: 1`, and the authenticated
+  export returned the mapped `otel-json-pilot`/`current_lookup` event. The
+  receiver continues to advertise protobuf/gRPC as unsupported.
