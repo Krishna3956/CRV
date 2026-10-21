@@ -1,15 +1,16 @@
 name: Publish Python SDK
 
 on:
-  push:
-    branches: [main]
-    paths:
-      - "packages/python-sdk/**"
-      - ".github/workflows/publish-python.yml"
   workflow_dispatch:
+    inputs:
+      confirm:
+        description: "Type PUBLISH to confirm a deliberate Python SDK publication"
+        required: true
+        type: string
 
 jobs:
   publish:
+    if: inputs.confirm == 'PUBLISH'
     runs-on: ubuntu-latest
     permissions:
       id-token: write

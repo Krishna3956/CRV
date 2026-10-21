@@ -1,13 +1,6 @@
 name: Publish SDK packages
 
 on:
-  push:
-    branches: [main]
-    paths:
-      - "trackmcp-nextjs/packages/cli/**"
-      - "trackmcp-nextjs/packages/typescript-sdk/**"
-      - "packages/python-sdk/**"
-      - ".github/workflows/publish.yml"
   workflow_dispatch:
     inputs:
       package:
