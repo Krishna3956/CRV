@@ -74,7 +74,13 @@ short labels; longer explanations belong in an expandable detail region.
 - 2026-10-21: PR #148 adds the missing server-side account identity resolver
   path to Setup, TypeScript/Python examples, and a first-class OpenTelemetry
   navigation item. Local dashboard contracts pass 50/50, lint passes, and the
-  production build generates 171 routes. PR is awaiting CI and deployment.
+  production build generates 171 routes. CI passed all three jobs; the merged
+  App Runner deployment `39557881736` completed successfully, including the
+  configured production smoke checks.
+- 2026-10-21: Full local release gate passed all 115 suites, including
+  accessibility, tenant isolation, OTLP/HTTP mapping, account identity,
+  package-consumer, privacy, and production-smoke contracts. Live browser QA
+  confirmed Setup identity/OTEL affordances and summary-first Issues cards.
 
 ## Research-derived acceptance criteria
 
