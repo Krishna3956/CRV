@@ -68,6 +68,11 @@ function protocolFamily(method: string | undefined): string | undefined {
   if (method.startsWith("completion/")) return "completion";
   if (method.startsWith("tasks/")) return "tasks";
   if (method === "notifications/progress" || method === "notifications/cancelled") return "control_signal";
+  if (method.startsWith("resources/")) return "resources";
+  if (method.startsWith("prompts/")) return "prompts";
+  if (method.startsWith("tools/")) return "tools";
+  if (method.startsWith("subscriptions/")) return "subscriptions";
+  if (method.startsWith("notifications/")) return "notifications";
   return undefined;
 }
 
