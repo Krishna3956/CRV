@@ -276,7 +276,8 @@ test("Setup breaks the no-workspace connection-key loop", () => {
 
 test("Setup documentation link is external and the connection steps are explicit", () => {
   assert.match(source, /label: "Read documentation"/);
-  assert.match(source, /href: "https:\/\/trackmcp\.com\/docs"/);
+  assert.match(source, /const documentationHref = `https:\/\/trackmcp\.com\/docs\/\$\{/);
+  assert.match(source, /documentationHref/);
   assert.match(source, /target="_blank"/);
   assert.match(source, /TRACKMCP_KEY/);
   assert.match(source, /make one real tool call/);
