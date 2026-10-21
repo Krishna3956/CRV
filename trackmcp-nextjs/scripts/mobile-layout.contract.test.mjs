@@ -25,6 +25,12 @@ test("docs overview uses responsive grids and overflow-safe code blocks", () => 
   assert.match(docsShell, /pre className="overflow-x-auto/);
   assert.match(docsShell, /aria-label="Documentation navigation"/);
   assert.match(docsShell, /overflow-x-auto[\s\S]*lg:hidden/);
+  assert.match(docsShell, /block cursor-pointer rounded-md/);
+  assert.match(docsShell, /shrink-0 cursor-pointer rounded-full/);
+  assert.match(docsShell, /href: "\/docs#quickstart"/);
+  assert.match(docsShell, /href: "\/docs#how-it-works"/);
+  assert.match(docsShell, /href: "\/docs#verify-data"/);
+  assert.match(docsShell, /href: "\/docs#troubleshooting"/);
 });
 
 test("device approval keeps actions and authentication controls wrap-safe", () => {

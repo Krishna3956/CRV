@@ -82,7 +82,7 @@ export function DocsShell({
                         <li key={it.href}>
                           <Link
                             href={it.href}
-                            className={`block rounded-md px-2.5 py-1.5 text-[13.5px] transition-colors ${
+                            className={`block cursor-pointer rounded-md px-2.5 py-1.5 text-[13.5px] transition-colors ${
                               active === it.href
                                 ? "bg-brand-soft/50 font-medium text-brand-strong"
                                 : "text-muted hover:bg-mist hover:text-body"
@@ -106,7 +106,7 @@ export function DocsShell({
                   key={item.href}
                   href={item.href}
                   aria-current={active === item.href ? "page" : undefined}
-                  className={`shrink-0 rounded-full border px-3 py-1.5 text-xs font-medium transition-colors ${
+                  className={`shrink-0 cursor-pointer rounded-full border px-3 py-1.5 text-xs font-medium transition-colors ${
                     active === item.href
                       ? "border-brand bg-brand-soft text-brand-strong"
                       : "border-line bg-white text-muted hover:border-line-strong hover:text-body"
