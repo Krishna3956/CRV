@@ -56,6 +56,29 @@ jobs:
             exit 1
           fi
           npm publish --provenance --access public
+      - name: Verify TypeScript SDK registry publication
+        if: inputs.package == 'typescript'
+        working-directory: trackmcp-nextjs/packages/typescript-sdk
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          set -euo pipefail
+          PACKAGE_VERSION=$(node -p "require('./package.json').version")
+          for attempt in $(seq 1 12); do
+            if METADATA=$(npm view "@trackmcp/sdk@${PACKAGE_VERSION}" --json 2>/dev/null); then
+              VERSION=$(printf '%s' "$METADATA" | jq -r '.version // ""')
+              INTEGRITY=$(printf '%s' "$METADATA" | jq -r '.dist.integrity // ""')
+              TARBALL=$(printf '%s' "$METADATA" | jq -r '.dist.tarball // ""')
+              if [[ "$VERSION" == "$PACKAGE_VERSION" && "$INTEGRITY" =~ ^sha512-[A-Za-z0-9+/=]+$ && "$TARBALL" == https://registry.npmjs.org/* ]]; then
+                echo "Verified @trackmcp/sdk@${PACKAGE_VERSION} on the public registry with integrity ${INTEGRITY}."
+                exit 0
+              fi
+            fi
+            echo "Registry propagation pending for @trackmcp/sdk@${PACKAGE_VERSION} (attempt ${attempt}/12)."
+            sleep 15
+          done
+          echo "::error::npm publication succeeded but @trackmcp/sdk@${PACKAGE_VERSION} did not become verifiable within the bounded propagation window."
+          exit 1
       - name: Attest TypeScript SDK artifact
         if: inputs.package == 'typescript'
         uses: actions/attest-build-provenance@v2

@@ -30,6 +30,11 @@ test("npm publication requires provenance and package preflight tests", () => {
   assert.match(workflow, /npm view "@trackmcp\/sdk@\$\{PACKAGE_VERSION\}" version/);
   assert.match(workflow, /npm view "@trackmcp\/cli@\$\{PACKAGE_VERSION\}" version/);
   assert.match(workflow, /npm publish --provenance --access public/);
+  assert.match(workflow, /Verify TypeScript SDK registry publication/);
+  assert.match(workflow, /npm view "@trackmcp\/sdk@\$\{PACKAGE_VERSION\}" --json/);
+  assert.match(workflow, /sha512-\[A-Za-z0-9\+\/=/);
+  assert.match(workflow, /registry\.npmjs\.org/);
+  assert.match(workflow, /Registry propagation pending/);
 });
 
 test("PyPI publication runs tests and validates built artifacts", () => {
