@@ -21,6 +21,8 @@ const groups = [
     items: [
       { t: "TypeScript", href: "/docs/typescript" },
       { t: "Python", href: "/docs/python" },
+      { t: "Go", href: "/docs/go" },
+      { t: ".NET", href: "/docs/dotnet" },
     ],
   },
   {
@@ -29,6 +31,7 @@ const groups = [
       { t: "REST API", href: "/docs/api" },
       { t: "Configuration", href: "/docs/reference" },
       { t: "OpenTelemetry", href: "/docs/opentelemetry" },
+      { t: "Authentication & OAuth", href: "/docs/authentication" },
       { t: "Troubleshooting", href: "/docs#troubleshooting" },
     ],
   },
@@ -48,6 +51,9 @@ export function DocsShell({
     "/docs/api": "REST API",
     "/docs/reference": "Configuration Reference",
     "/docs/opentelemetry": "OpenTelemetry",
+    "/docs/go": "Go SDK",
+    "/docs/dotnet": ".NET SDK",
+    "/docs/authentication": "Authentication & OAuth",
   };
   const breadcrumbSchema = breadcrumbJsonLd([
     { name: "Home", path: "/" },
