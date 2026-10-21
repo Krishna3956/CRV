@@ -318,6 +318,34 @@ test("emits bounded request and response observations for non-tool MCP methods",
   await wrapped.close();
 });
 
+test("tracks a server-directed task lifecycle without retaining the raw handle", async () => {
+  const events = [];
+  const raw = new FakeTransport();
+  const adapter = new TrackMCPClientAdapter({ apiKey: "tmcp_test", service: "adapter-test", transport: "stdio", flushIntervalMs: 60000, onEvent: (event) => events.push(event) });
+  const wrapped = adapter.wrapTransport(raw);
+  await wrapped.start();
+  wrapped.onmessage = () => {};
+
+  await wrapped.send(toolCall("create-task", "long_running"));
+  raw.onmessage({ jsonrpc: "2.0", id: "create-task", result: { resultType: "task", taskId: "secret-task", status: "working" } });
+  await wrapped.send({ jsonrpc: "2.0", id: "get-task", method: "tasks/get", params: { taskId: "secret-task" } });
+  raw.onmessage({ jsonrpc: "2.0", id: "get-task", result: { taskId: "secret-task", status: "working" } });
+  await wrapped.send({ jsonrpc: "2.0", id: "update-task", method: "tasks/update", params: { taskId: "secret-task", input: { private: "value" } } });
+  raw.onmessage({ jsonrpc: "2.0", id: "update-task", result: { taskId: "secret-task", status: "input_required" } });
+  await wrapped.send({ jsonrpc: "2.0", id: "cancel-task", method: "tasks/cancel", params: { taskId: "secret-task" } });
+  raw.onmessage({ jsonrpc: "2.0", id: "cancel-task", result: {} });
+  await wrapped.send({ jsonrpc: "2.0", id: "final-task", method: "tasks/get", params: { taskId: "secret-task" } });
+  raw.onmessage({ jsonrpc: "2.0", id: "final-task", result: { taskId: "secret-task", status: "cancelled" } });
+
+  const lifecycle = events.filter((event) => event.task_id);
+  assert.equal(lifecycle.length, 4);
+  assert.equal(new Set(lifecycle.map((event) => event.task_id)).size, 1);
+  assert.deepEqual(lifecycle.map((event) => event.task_status), ["working", "working", "input_required", "cancelled"]);
+  assert.equal(JSON.stringify(events).includes("secret-task"), false);
+  assert.equal(JSON.stringify(events).includes("private"), false);
+  await wrapped.close();
+});
+
 test("records bounded subscription metadata for resource subscribe and unsubscribe", async () => {
   const events = [];
   const raw = new FakeTransport();

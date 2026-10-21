@@ -439,6 +439,8 @@ export class TrackMCPClientAdapter {
             }
             this.lastResultRequestId = pending.requestId;
             this.lastResultAt = Date.now();
+            const taskIdHash = protocolTaskIdHash(result);
+            const taskStatus = protocolTaskStatus(result);
             this.emit({
                 event_type: "tool_call",
                 transport: this.options.transport,
@@ -451,10 +453,12 @@ export class TrackMCPClientAdapter {
                 success: !failed,
                 is_error: failed,
                 retry_number: 0,
+                ...(taskIdHash ? { task_id: taskIdHash } : {}),
+                ...(taskStatus ? { task_status: taskStatus } : {}),
                 ...session,
                 client_name: this.clientName,
                 client_version: this.clientVersion,
-                payload: { _trackmcp: { observation_kind: "result_received", observation_source: "client" } },
+                payload: { _trackmcp: { observation_kind: "result_received", observation_source: "client", ...(taskStatus ? { task_status: taskStatus } : {}) } },
             }, pending.correlation);
         }
     }
