@@ -249,50 +249,13 @@ export async function runMcpTester(options: McpTesterOptions): Promise<McpTester
     state.resourcesAdvertised = state.capabilities.resources;
     state.promptsAdvertised = state.capabilities.prompts;
     if (state.capabilities.tasks) {
-      const tasksProbe = await sendMcpRequest({
-        fetch: fetchImplementation,
-        endpoint: endpointValidation.requestUrl,
-        customHeaders: [...headerValidation.entries, ["mcp-method", "tasks/list"]],
-        protocolVersion: MODERN_MCP_PROTOCOL_VERSION,
-        requestId: 2,
-        body: { jsonrpc: "2.0", id: 2, method: "tasks/list", params: { limit: 1 } },
-        expectsResponse: true,
-        limits,
-        deadlineMs: startedMs + limits.maxTotalDurationMs,
-        signal: options.signal,
-        now,
-        record,
-        phase: "modern_discover",
-      });
-      const tasksResult = tasksProbe.ok && isRecord(tasksProbe.envelope?.result) ? tasksProbe.envelope.result : undefined;
-      if (!tasksResult || (tasksResult.tasks !== undefined && !Array.isArray(tasksResult.tasks))) {
-        addFinding("modern_tasks_probe_failed", "protocol", "warning", "The server advertised Tasks, but its bounded tasks/list response was unavailable or malformed; task lifecycle support remains unverified.", "modern_discover");
-      } else {
-        const firstTask = Array.isArray(tasksResult.tasks) && isRecord(tasksResult.tasks[0]) ? tasksResult.tasks[0] : undefined;
-        const taskId = firstTask && (typeof firstTask.taskId === "string" ? firstTask.taskId : typeof firstTask.task_id === "string" ? firstTask.task_id : undefined);
-        if (taskId && taskId.length <= limits.maxRenderedStringLength) {
-          const taskGet = await sendMcpRequest({
-            fetch: fetchImplementation,
-            endpoint: endpointValidation.requestUrl,
-            customHeaders: [...headerValidation.entries, ["mcp-method", "tasks/get"]],
-            protocolVersion: MODERN_MCP_PROTOCOL_VERSION,
-            requestId: 3,
-            body: { jsonrpc: "2.0", id: 3, method: "tasks/get", params: { taskId } },
-            expectsResponse: true,
-            limits,
-            deadlineMs: startedMs + limits.maxTotalDurationMs,
-            signal: options.signal,
-            now,
-            record,
-            phase: "modern_discover",
-          });
-          const taskGetResult = taskGet.ok && isRecord(taskGet.envelope?.result) ? taskGet.envelope.result : undefined;
-          const taskStatus = taskGetResult && typeof taskGetResult.status === "string" ? taskGetResult.status : undefined;
-          if (!taskGetResult || !taskStatus) addFinding("modern_tasks_get_invalid", "protocol", "warning", "The bounded task handle was listed, but tasks/get did not return an explicit status.", "modern_discover");
-          else addFinding("modern_tasks_get_observed", "protocol", "info", "The bounded task handle returned an explicit status from tasks/get. Cancellation and completion transitions remain outside this probe.", "modern_discover");
-        }
-        addFinding("modern_tasks_probe_observed", "protocol", "info", "The advertised Tasks capability accepted a bounded tasks/list probe. Task creation, cancellation, and completion transitions remain outside this probe.", "modern_discover");
-      }
+      // The 2026-07-28 Tasks extension intentionally has no discovery/list
+      // operation: task IDs are scoped to the request that created them.
+      // Without a server-directed task handle from a real tools/call, issuing
+      // tasks/list would be both non-conformant and capable of exposing other
+      // callers' task IDs. Record the advertised extension and keep lifecycle
+      // verification bounded until an explicit task fixture is supplied.
+      addFinding("modern_tasks_extension_observed", "protocol", "info", "The server advertised the 2026-07-28 Tasks extension. Task handles are server-directed; this discovery probe does not issue the removed tasks/list operation or invent a task ID.", "modern_discover");
     }
     if (state.capabilities.tools) {
       const toolsResult = await discoverCatalog<ToolSummary>(state, "tools", "tools/list", "tools_list", true, addFinding, record, beginPhase, finishPhase);
@@ -325,7 +288,7 @@ export async function runMcpTester(options: McpTesterOptions): Promise<McpTester
     } else {
       skipPhase(state, "prompts_list", record, beginPhase, finishPhase);
     }
-    addFinding("modern_discovery_partial", "protocol", "warning", "Modern server discovery and bounded tools, resources, prompts, and Tasks probes completed where advertised. This report remains intentionally bounded: task creation, cancellation, completion transitions, subscriptions, cache invalidation, and other multi-round-trip lifecycle checks are not asserted by this probe.", "modern_discover", { protocolVersion: MODERN_MCP_PROTOCOL_VERSION, tasksAdvertised: state.capabilities.tasks === true });
+    addFinding("modern_discovery_partial", "protocol", "warning", "Modern server discovery and bounded tools, resources, prompts, and advertised Tasks capabilities completed where available. This report remains intentionally bounded: server-directed task creation, polling, update/cancellation transitions, subscriptions, cache invalidation, and other multi-round-trip lifecycle checks are not asserted by this probe.", "modern_discover", { protocolVersion: MODERN_MCP_PROTOCOL_VERSION, tasksAdvertised: state.capabilities.tasks === true });
     finishPhase("modern_discover", modernStart, "incomplete", record, phases, timings, now);
     return finalize(state, observedAt, addFinding);
   }
