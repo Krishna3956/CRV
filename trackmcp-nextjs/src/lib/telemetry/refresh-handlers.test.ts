@@ -21,7 +21,7 @@ function fakeAdmin(eventRows: unknown[] = [], semanticRows: unknown[] = [], quer
           ? eventRows.map((row) => ({ id: row && typeof row === "object" ? (row as { server_id?: unknown }).server_id : null }))
           : semanticRows;
       const query = {
-        select() { return query; },
+        select(columns: string) { queryLog.push(`select:${table}:${columns}`); return query; },
         eq() { return query; },
         gte(column: string, value: string) { queryLog.push(`gte:${table}:${column}:${value}`); return query; },
         lt(column: string, value: string) { queryLog.push(`lt:${table}:${column}:${value}`); return query; },
@@ -105,6 +105,25 @@ test("task transition projection is enabled by default and writes only explicit 
   assert.ok(defaultHandler);
   await defaultHandler({ job: baseJob("fact_projection"), now: new Date() });
   assert.equal(defaultEnabled.writes.some((write) => write.table === "trackmcp_task_transitions"), true);
+});
+
+test("fact projection selects task identity and payload required for transition history", async () => {
+  const event = {
+    event_id: "task-event-columns", event_type: "protocol", service: "demo", environment: "prod", started_at: "2026-01-01T00:00:00.000Z",
+    task_id: "task-columns", payload: { task_status: "working" }, success: true, is_error: false, transport: "streamable_http",
+  };
+  const queryLog: string[] = [];
+  const { admin, writes } = fakeAdmin([event], [], queryLog);
+  const handler = createRefreshJobHandlers(admin as never).fact_projection;
+  assert.ok(handler);
+  await handler({ job: baseJob("fact_projection"), now: new Date() });
+  const select = queryLog.find((entry) => entry.startsWith("select:trackmcp_events:"));
+  assert.ok(select);
+  assert.match(select, /task_id/);
+  assert.match(select, /payload/);
+  const transition = writes.find((write) => write.table === "trackmcp_task_transitions");
+  assert.ok(transition);
+  assert.equal((transition.rows[0] as { state?: string }).state, "working");
 });
 
 test("action queue refresh defers cleanly on cancellation", async () => {
