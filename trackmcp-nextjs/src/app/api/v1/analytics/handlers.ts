@@ -242,7 +242,7 @@ export function createAnalyticsHandler(getAdmin: typeof getSupabaseAdmin = getSu
       ? (event.payload._trackmcp && typeof event.payload._trackmcp === "object" && !Array.isArray(event.payload._trackmcp) ? (event.payload._trackmcp as Record<string, unknown>).protocol_family : undefined)
       : undefined;
     const family = typeof hintedFamily === "string" ? hintedFamily : protocolFamilyForMethod(event.mcp_method);
-    if (family === "sampling" || family === "elicitation" || family === "completion" || family === "tasks" || family === "control_signal") protocolFamilyCounts.set(family, (protocolFamilyCounts.get(family) || 0) + 1);
+    if (family === "sampling" || family === "elicitation" || family === "completion" || family === "tasks" || family === "control_signal" || family === "resources" || family === "prompts" || family === "tools" || family === "subscriptions" || family === "notifications") protocolFamilyCounts.set(family, (protocolFamilyCounts.get(family) || 0) + 1);
   }
   const facts = events.map(canonicalEventFromRow).map(projectTrackMCPFact);
   // The transition table is additive and may not exist on older deployments.

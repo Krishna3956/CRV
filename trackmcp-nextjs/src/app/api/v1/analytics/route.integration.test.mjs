@@ -368,13 +368,15 @@ test("analytics exposes bounded protocol lifecycle signals without treating them
     event({ event_id: "signal-unsubscribe", event_type: "protocol", mcp_method: "resources/unsubscribe" }),
     event({ event_id: "family-sampling", observation_source: "client", event_type: "protocol", mcp_method: "sampling/createMessage", payload: { _trackmcp: { protocol_family: "sampling" } } }),
     event({ event_id: "family-tasks", observation_source: "client", event_type: "protocol", mcp_method: "tasks/get", payload: { _trackmcp: { protocol_family: "tasks" } } }),
+    event({ event_id: "family-resources", observation_source: "client", event_type: "protocol", mcp_method: "resources/list", payload: { _trackmcp: { protocol_family: "resources" } } }),
+    event({ event_id: "family-subscriptions", observation_source: "client", event_type: "protocol", mcp_method: "subscriptions/subscribe", payload: { _trackmcp: { protocol_family: "subscriptions" } } }),
     event({ event_id: "family-completion-method-only", observation_source: "server", event_type: "protocol", mcp_method: "completion/complete" }),
   ]));
   const response = await handler(new Request("http://analytics.test/api/v1/analytics?days=7", { headers: { authorization: "Bearer key" } }));
   assert.equal(response.status, 200);
   const body = await response.json();
   assert.deepEqual(body.protocol_signals, { notification: 0, progress: 1, catalog_changed: 1, resource_changed: 1, subscription_started: 1, subscription_stopped: 1, observed_events: 5 });
-  assert.deepEqual(body.protocol_family_activity, [{ family: "completion", observations: 1 }, { family: "sampling", observations: 1 }, { family: "tasks", observations: 1 }]);
+  assert.deepEqual(body.protocol_family_activity, [{ family: "notifications", observations: 3 }, { family: "resources", observations: 3 }, { family: "completion", observations: 1 }, { family: "sampling", observations: 1 }, { family: "subscriptions", observations: 1 }, { family: "tasks", observations: 1 }]);
   assert.equal(body.founder_os.facts.outcomes.not_observable, 6);
 });
 
