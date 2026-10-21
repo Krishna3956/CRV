@@ -36,6 +36,22 @@ jobs:
       - name: Check out exact release source
         uses: actions/checkout@v4
 
+      - name: Verify authenticated smoke inputs are configured
+        env:
+          TRACKMCP_AUTH_SMOKE_KEY_A: ${{ secrets.TRACKMCP_AUTH_SMOKE_KEY_A }}
+          TRACKMCP_AUTH_SMOKE_KEY_B: ${{ secrets.TRACKMCP_AUTH_SMOKE_KEY_B }}
+          TRACKMCP_AUTH_SMOKE_WORKSPACE_A: ${{ secrets.TRACKMCP_AUTH_SMOKE_WORKSPACE_A }}
+          TRACKMCP_AUTH_SMOKE_WORKSPACE_B: ${{ secrets.TRACKMCP_AUTH_SMOKE_WORKSPACE_B }}
+        run: |
+          missing=()
+          for name in TRACKMCP_AUTH_SMOKE_KEY_A TRACKMCP_AUTH_SMOKE_KEY_B TRACKMCP_AUTH_SMOKE_WORKSPACE_A TRACKMCP_AUTH_SMOKE_WORKSPACE_B; do
+            if [ -z "${!name}" ]; then missing+=("$name"); fi
+          done
+          if [ "${#missing[@]}" -gt 0 ]; then
+            printf '::error::Authenticated production smoke is not configured. Missing required repository secrets: %s\n' "${missing[*]}"
+            exit 1
+          fi
+
       - name: Run read-only authenticated smoke
         working-directory: trackmcp-nextjs
         run: TRACKMCP_AUTH_SMOKE_REPORT="$RUNNER_TEMP/trackmcp-production-auth-smoke.json" node scripts/production-auth-smoke.mjs

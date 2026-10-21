@@ -12,6 +12,10 @@ test("authenticated production smoke is manual, read-only, and secret-bounded", 
   for (const secret of ["TRACKMCP_AUTH_SMOKE_KEY_A", "TRACKMCP_AUTH_SMOKE_KEY_B", "TRACKMCP_AUTH_SMOKE_WORKSPACE_A", "TRACKMCP_AUTH_SMOKE_WORKSPACE_B", "TRACKMCP_AUTH_SMOKE_REVOKED_KEY"]) {
     assert.match(workflow, new RegExp(`secrets\\.${secret}`));
   }
+  assert.match(workflow, /Verify authenticated smoke inputs are configured/);
+  assert.match(workflow, /missing=\(\)/);
+  assert.match(workflow, /Missing required repository secrets/);
+  assert.match(workflow, /if \[ "\$\{#missing\[@\]\}" -gt 0 \]/);
   assert.match(workflow, /node scripts\/production-auth-smoke\.mjs/);
   assert.match(workflow, /production-auth-smoke-\$\{\{ github\.sha \}\}/);
   assert.doesNotMatch(workflow, /TRACKMCP_SMOKE_ALLOW_WRITE/);
