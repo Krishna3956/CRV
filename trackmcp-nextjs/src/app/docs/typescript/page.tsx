@@ -47,9 +47,9 @@ export default function TypeScriptDocsPage() {
 # or: pnpm add @trackmcp/sdk / yarn add @trackmcp/sdk`}</Code>
       </DocSection>
 
-      <DocSection title="Optional Node MCP client adapter">
+      <DocSection id="transport-observer" title="Transport observer (Node MCP client adapter)">
         <Para>
-          The separate <Inline>@trackmcp/sdk/client-adapter</Inline> entry point is
+          The transport observer is the separate <Inline>@trackmcp/sdk/client-adapter</Inline> entry point. It is
           Node.js-only and requires <Inline>@modelcontextprotocol/sdk</Inline> exactly
           <Inline>1.32.1</Inline>. It rejects browser and Edge runtimes and must not be
           imported by frontend bundles. The caller is responsible for protecting the

@@ -4550,24 +4550,12 @@ function SetupView({
           : `with_trackmcp(server,\n    api_key=os.environ["TRACKMCP_KEY"],\n    account_id_resolver=lambda context: context.get("tenant_id"),\n)`}</code></pre>
         <p className="mt-3 text-[11px] leading-relaxed text-faint">Only use a stable, non-secret identifier already verified by your application. Do not return emails, tokens, URLs, prompts, completions, or raw user IDs. Without a resolver, activity remains visible but is counted as unresolved.</p>
       </section>
-      <section
-        className="mt-6 border border-line bg-white p-5 sm:p-6"
-        aria-labelledby="setup-data-flow"
-      >
-        <div className="flex items-start gap-3">
-          <span className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-paper text-muted">
-            <Info size={17} />
-          </span>
-          <div className="min-w-0">
-            <h2 id="setup-data-flow" className="text-[15px] font-semibold text-ink">
-              Know what you are sharing
-            </h2>
-            <p className="mt-1 text-xs leading-relaxed text-muted">
-              TrackMCP receives bounded telemetry to explain how your MCP is
-              used, where work succeeds, and where it needs attention.
-            </p>
-          </div>
-        </div>
+      <details className="mt-6 border border-line bg-white p-5 sm:p-6">
+        <summary className="flex cursor-pointer list-none items-center gap-3 text-[15px] font-semibold text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand">
+          <span className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-paper text-muted"><Info size={17} /></span>
+          <span>Know what you are sharing <span className="ml-2 text-xs font-normal text-muted">Privacy and data flow</span></span>
+        </summary>
+        <p className="mt-3 text-xs leading-relaxed text-muted">TrackMCP receives bounded telemetry to explain how your MCP is used, where work succeeds, and where it needs attention.</p>
         <div className="mt-5 grid gap-3 md:grid-cols-3">
           <div className="border border-line bg-paper p-4">
             <p className="text-[10px] font-semibold uppercase tracking-[0.08em] text-faint">
@@ -4605,7 +4593,7 @@ function SetupView({
           any time; your server controls which optional context it reports.
           Never put secrets in custom telemetry fields.
         </p>
-      </section>
+      </details>
       <PrivacyControls workspaceId={workspaceId} />
       <details className="mt-6 border border-line bg-white p-5 sm:p-6">
         <summary className="cursor-pointer text-sm font-semibold text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand">
@@ -4677,20 +4665,18 @@ function PrivacyControls({ workspaceId }: { workspaceId: string | null }) {
     }
   };
   return (
-    <section className="mt-6 border border-line bg-white p-5 sm:p-6" aria-labelledby="privacy-controls-title">
-      <div className="flex items-start gap-3">
+    <details className="mt-6 border border-line bg-white p-5 sm:p-6">
+      <summary className="flex cursor-pointer list-none items-center gap-3 text-[15px] font-semibold text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand">
         <span className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-paper text-muted"><ShieldCheck size={17} /></span>
-        <div className="min-w-0">
-          <h2 id="privacy-controls-title" className="text-[15px] font-semibold text-ink">Your data controls</h2>
-          <p className="mt-1 text-xs leading-relaxed text-muted">Download a bounded, secret-free export or submit a deletion request for review. A request is not an immediate destructive operation.</p>
-        </div>
-      </div>
+        <span>Your data controls <span className="ml-2 text-xs font-normal text-muted">Export and deletion requests</span></span>
+      </summary>
+      <p className="mt-3 text-xs leading-relaxed text-muted">Download a bounded, secret-free export or submit a deletion request for review. A request is not an immediate destructive operation.</p>
       <div className="mt-4 flex flex-wrap items-center gap-3">
         <a href={exportHref} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1.5 border border-line-strong bg-white px-3 py-2 text-xs font-semibold text-body hover:bg-paper focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"><ExternalLink size={13} /> Download data export</a>
         <button type="button" onClick={() => void requestDeletion()} disabled={state === "submitting"} className="inline-flex items-center gap-1.5 border border-red-200 bg-white px-3 py-2 text-xs font-semibold text-red-700 hover:bg-red-50 disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-600">{state === "submitting" ? "Submitting…" : "Request deletion review"}</button>
       </div>
       {message && <p className={"mt-3 text-xs " + (state === "error" ? "text-red-700" : "text-muted")} role={state === "error" ? "alert" : "status"}>{message}</p>}
-    </section>
+    </details>
   );
 }
 

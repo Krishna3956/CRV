@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { pageMeta } from "@/lib/seo";
 import Link from "next/link";
-import { ArrowRight, Terminal, Braces, Plug, SlidersHorizontal, Activity, Check, ShieldCheck } from "lucide-react";
+import { ArrowRight, Terminal, Braces, Plug, SlidersHorizontal, Activity, Check, ShieldCheck, Code2, LockKeyhole } from "lucide-react";
 import {
   DocsShell,
   DocTitle,
@@ -22,9 +22,12 @@ export const metadata: Metadata = pageMeta({
 const cards = [
   { icon: Terminal, t: "TypeScript SDK", d: "Wrap a Node MCP server in one line.", href: "/docs/typescript" },
   { icon: Braces, t: "Python SDK", d: "Wrap a Python MCP server and capture calls, sessions, and clients.", href: "/docs/python" },
+  { icon: Code2, t: "Go SDK", d: "Capture bounded events from Go MCP middleware and flush on shutdown.", href: "/docs/go" },
+  { icon: Code2, t: ".NET SDK", d: "Capture fail-open events from ASP.NET and .NET MCP middleware.", href: "/docs/dotnet" },
   { icon: Plug, t: "REST API", d: "Query your own metrics programmatically.", href: "/docs/api" },
   { icon: SlidersHorizontal, t: "Configuration", d: "Every option, event, and metric.", href: "/docs/reference" },
   { icon: Activity, t: "OpenTelemetry", d: "Configure the bounded OTLP/HTTP JSON integration.", href: "/docs/opentelemetry" },
+  { icon: LockKeyhole, t: "Authentication & OAuth", d: "Understand dashboard keys, MCP OAuth boundaries, and what is tested.", href: "/docs/authentication" },
 ];
 
 export default function DocsPage() {
