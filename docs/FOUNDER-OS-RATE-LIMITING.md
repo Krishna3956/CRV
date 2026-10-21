@@ -131,3 +131,12 @@ not prove that `TRACKMCP_RATE_LIMIT_MODE=supabase` is enabled in production.
 Until that runtime setting and a two-instance behavior test are recorded, the
 pilot must continue to describe rate limiting as memory-degraded rather than
 distributed.
+
+The controlled enablement workflow is
+`.github/workflows/enable-distributed-rate-limit.yml`. Its first production
+attempt on 2026-10-21 read the existing service configuration successfully but
+was rejected before any mutation because the configured GitHub OIDC role lacks
+`apprunner:UpdateService` on the production service. Granting that narrowly
+scoped action to the deploy role (or performing the equivalent reviewed AWS
+change) is an external IAM prerequisite; the workflow does not bypass it or
+fall back to an unverified mode.
