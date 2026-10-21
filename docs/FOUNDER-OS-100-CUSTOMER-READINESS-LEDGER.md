@@ -233,3 +233,28 @@ Open pull requests:
 - [PR #67 — Route scheduled cleanup through App Runner](https://github.com/Krishna3956/CRV/pull/67)
 - [PR #68 — Record App Runner run 98 readiness evidence](https://github.com/Krishna3956/CRV/pull/68)
 - [PR #69 — Smoke test authenticated Founder OS read models](https://github.com/Krishna3956/CRV/pull/69)
+
+## 2026-10-21 autonomous QA refresh
+
+- [x] Re-ran the complete repository release gate after the Supabase warning was
+  explicitly treated as non-blocking: all 115 suites passed.
+- [x] Re-ran OTLP/HTTP interoperability coverage: bounded JSON batches,
+  authenticated ingest delegation, unsupported-span reporting, malformed-input
+  rejection, metadata-only mapping, and raw-attribute non-retention all pass.
+- [x] Improved dashboard consumability: Overview keeps decision KPIs above an
+  expandable evidence/protocol detail section; Issues presents the five
+  strongest incident signals first and makes the rest opt-in.
+- [x] Added dashboard contracts for both hierarchy changes.
+- [x] Corrected release-scope classification so preserved `docs/codex-handoff/`
+  and `tmp/` inspection artifacts remain excluded local material instead of
+  blocking review-boundary checks. No user-owned handoff or temporary files
+  were staged, changed, or removed.
+- [x] Production build passed locally; PR #144 was merged as `d79d0d3`.
+- [x] Main CI run `39545214431` passed.
+- [x] App Runner deployment run `39545214437` passed immutable image build,
+  deployment readiness, read-only production smoke, redacted smoke evidence,
+  and App Runner host evidence.
+
+Current release candidate: `main@d79d0d3`. The remaining pilot follow-up is
+operational observation of real customer traffic and refresh backlog; it is not
+a failed product gate or a Supabase plan warning.
