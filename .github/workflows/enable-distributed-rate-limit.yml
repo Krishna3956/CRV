@@ -1,0 +1,102 @@
+name: Enable distributed rate limiting
+
+on:
+  workflow_dispatch:
+
+permissions:
+  id-token: write
+  contents: read
+
+concurrency:
+  group: enable-distributed-rate-limit
+  cancel-in-progress: false
+
+env:
+  AWS_REGION: ap-south-1
+  SERVICE_ARN: arn:aws:apprunner:ap-south-1:872575360367:service/trackmcp-web/5d38155bd23141cabb4546b29a4075c7
+  ROLE_ARN: arn:aws:iam::872575360367:role/GitHubActionsDeployRole
+
+jobs:
+  enable:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Configure AWS credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ env.ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Preserve service configuration and set distributed mode
+        run: |
+          set -euo pipefail
+          timeout 30s aws apprunner describe-service \
+            --service-arn "$SERVICE_ARN" --region "$AWS_REGION" \
+            --query 'Service.SourceConfiguration' --output json \
+            | jq '.ImageRepository.ImageConfiguration.RuntimeEnvironmentVariables.TRACKMCP_RATE_LIMIT_MODE = "supabase"' \
+            > "$RUNNER_TEMP/source-configuration.json"
+          MODE=$(jq -r '.ImageRepository.ImageConfiguration.RuntimeEnvironmentVariables.TRACKMCP_RATE_LIMIT_MODE // ""' "$RUNNER_TEMP/source-configuration.json")
+          if [[ "$MODE" != "supabase" ]]; then
+            echo "::error::Failed to prepare the distributed rate-limit configuration."
+            exit 1
+          fi
+          OP_ID=$(timeout 30s aws apprunner update-service \
+            --service-arn "$SERVICE_ARN" --region "$AWS_REGION" \
+            --source-configuration "file://$RUNNER_TEMP/source-configuration.json" \
+            --query OperationId --output text)
+          if [[ "$OP_ID" == "None" || ! "$OP_ID" =~ ^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$ ]]; then
+            echo "::error::App Runner returned an invalid update operation ID."
+            exit 1
+          fi
+          echo "TRACKMCP_RATE_LIMIT_OPERATION_ID=$OP_ID" >> "$GITHUB_ENV"
+          echo "Started App Runner configuration update: $OP_ID"
+
+      - name: Wait for configuration update
+        run: |
+          set -euo pipefail
+          for i in $(seq 1 70); do
+            STATUS=$(timeout 30s aws apprunner list-operations \
+              --service-arn "$SERVICE_ARN" --region "$AWS_REGION" --max-results 20 \
+              --query "OperationSummaryList[?Id=='$TRACKMCP_RATE_LIMIT_OPERATION_ID'].Status | [0]" --output text)
+            echo "[$i] operation=$STATUS"
+            case "$STATUS" in
+              SUCCEEDED)
+                SERVICE_STATUS=$(timeout 30s aws apprunner describe-service \
+                  --service-arn "$SERVICE_ARN" --region "$AWS_REGION" \
+                  --query Service.Status --output text)
+                [[ "$SERVICE_STATUS" == "RUNNING" ]] && exit 0
+                ;;
+              FAILED|ROLLBACK_FAILED|ROLLBACK_SUCCEEDED)
+                echo "::error::App Runner configuration update ended with $STATUS."
+                exit 1
+                ;;
+              PENDING|IN_PROGRESS|None) ;;
+              *) echo "::error::Unknown App Runner operation status: $STATUS"; exit 1 ;;
+            esac
+            sleep 15
+          done
+          echo "::error::Timed out waiting for App Runner configuration update."
+          exit 1
+
+      - name: Verify distributed mode is live
+        run: |
+          set -euo pipefail
+          FLAGS=$(timeout 30s aws apprunner describe-service \
+            --service-arn "$SERVICE_ARN" --region "$AWS_REGION" \
+            --query 'Service.SourceConfiguration.ImageRepository.ImageConfiguration.RuntimeEnvironmentVariables' \
+            --output json)
+          MODE=$(printf '%s' "$FLAGS" | jq -r '.TRACKMCP_RATE_LIMIT_MODE // ""')
+          if [[ "$MODE" != "supabase" ]]; then
+            echo "::error::App Runner did not retain TRACKMCP_RATE_LIMIT_MODE=supabase."
+            exit 1
+          fi
+          printf '{"rate_limit_mode":"%s"}\n' "$MODE" > "$RUNNER_TEMP/distributed-rate-limit-mode.json"
+          echo "Distributed rate limiting is enabled in the live App Runner configuration."
+
+      - name: Upload redacted mode evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: distributed-rate-limit-mode-${{ github.run_id }}
+          path: ${{ runner.temp }}/distributed-rate-limit-mode.json
+          if-no-files-found: warn
