@@ -67,9 +67,16 @@ type ProtocolMetadata = Record<string, boolean | number | string>;
  * values are deliberately metadata-only so a private cursor cannot become a
  * cross-tenant cache key in the telemetry store.
  */
-function protocolResponseMetadata(method: string | undefined, result: Message | undefined): ProtocolMetadata {
+export function protocolResponseMetadata(method: string | undefined, result: Message | undefined): ProtocolMetadata {
   const metadata: ProtocolMetadata = {};
   if (!result) return metadata;
+  if (method === "initialize" && isRecord(result.capabilities)) {
+    metadata.capability_names = Object.keys(result.capabilities)
+      .filter((name) => /^[A-Za-z][A-Za-z0-9_.-]{0,63}$/.test(name))
+      .sort()
+      .slice(0, 32)
+      .join(",");
+  }
   if (typeof result.nextCursor === "string" || typeof result.next_cursor === "string") metadata.next_cursor_present = true;
   const ttl = result.ttlMs ?? result.ttl_ms;
   if (typeof ttl === "number" && Number.isFinite(ttl) && ttl >= 0 && ttl <= 86_400_000) metadata.cache_ttl_ms = Math.round(ttl);

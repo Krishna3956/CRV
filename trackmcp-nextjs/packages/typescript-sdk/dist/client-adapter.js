@@ -21,10 +21,17 @@ function boundedString(value) {
  * values are deliberately metadata-only so a private cursor cannot become a
  * cross-tenant cache key in the telemetry store.
  */
-function protocolResponseMetadata(method, result) {
+export function protocolResponseMetadata(method, result) {
     const metadata = {};
     if (!result)
         return metadata;
+    if (method === "initialize" && isRecord(result.capabilities)) {
+        metadata.capability_names = Object.keys(result.capabilities)
+            .filter((name) => /^[A-Za-z][A-Za-z0-9_.-]{0,63}$/.test(name))
+            .sort()
+            .slice(0, 32)
+            .join(",");
+    }
     if (typeof result.nextCursor === "string" || typeof result.next_cursor === "string")
         metadata.next_cursor_present = true;
     const ttl = result.ttlMs ?? result.ttl_ms;
