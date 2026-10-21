@@ -18,6 +18,10 @@ concurrency:
 
 jobs:
   smoke:
+    # Keep the workflow harmless if the repository's default event policy
+    # schedules a newly-added workflow on push; only an explicit dispatch may
+    # consume operator-supplied production credentials.
+    if: github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     env:

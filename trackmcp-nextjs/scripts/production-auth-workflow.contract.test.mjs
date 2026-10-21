@@ -6,6 +6,7 @@ const workflow = await readFile(new URL("../../.github/workflows/production-auth
 
 test("authenticated production smoke is manual, read-only, and secret-bounded", () => {
   assert.match(workflow, /workflow_dispatch:/);
+  assert.match(workflow, /if:\s+github\.event_name\s*==\s*'workflow_dispatch'/);
   assert.match(workflow, /timeout-minutes: 10/);
   assert.match(workflow, /TRACKMCP_AUTH_SMOKE_CONFIRM: I_UNDERSTAND_PRODUCTION_AUTH_SMOKE/);
   for (const secret of ["TRACKMCP_AUTH_SMOKE_KEY_A", "TRACKMCP_AUTH_SMOKE_KEY_B", "TRACKMCP_AUTH_SMOKE_WORKSPACE_A", "TRACKMCP_AUTH_SMOKE_WORKSPACE_B", "TRACKMCP_AUTH_SMOKE_REVOKED_KEY"]) {
