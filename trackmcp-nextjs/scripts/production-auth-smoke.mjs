@@ -86,6 +86,7 @@ const founderOsReadModels = [
   "/api/v2/catalogs",
   "/api/v2/tasks",
   "/api/v2/data-trust",
+  "/api/v2/protocol-activity",
 ];
 
 // Read models are intentionally safe projections. Keep this check at the
