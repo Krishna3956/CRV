@@ -264,11 +264,15 @@ test("emits bounded request and response observations for non-tool MCP methods",
   raw.onmessage({ jsonrpc: "2.0", id: "catalog-1", result: { resources: [{ uri: "secret://private", name: "customer-private" }] } });
   await wrapped.send({ jsonrpc: "2.0", id: "task-1", method: "tasks/get", params: { taskId: "task-secret" } });
   raw.onmessage({ jsonrpc: "2.0", id: "task-1", result: { resultType: "task", inputRequests: ["private"], private_result: "do-not-capture" } });
+  await wrapped.send({ jsonrpc: "2.0", method: "notifications/resources/list_changed", params: { private_state: "do-not-capture" } });
+  raw.onmessage({ jsonrpc: "2.0", method: "notifications/progress", params: { progress: 99, private_state: "do-not-capture" } });
 
   const requests = events.filter((event) => event.event_type === "protocol" && event.payload?._trackmcp?.observation_kind === "protocol_request");
   const responses = events.filter((event) => event.event_type === "protocol" && event.payload?._trackmcp?.observation_kind === "protocol_response");
+  const notifications = events.filter((event) => event.event_type === "protocol" && event.payload?._trackmcp?.observation_kind === "protocol_notification");
   assert.equal(requests.length, 2);
   assert.equal(responses.length, 2);
+  assert.equal(notifications.length, 2);
   assert.equal(responses.find((event) => event.mcp_method === "resources/list").catalog_kind, "resources");
   assert.equal(responses.find((event) => event.mcp_method === "resources/list").catalog_item_count, 1);
   assert.equal(responses.find((event) => event.mcp_method === "tasks/get").result_type, "task");
@@ -276,6 +280,7 @@ test("emits bounded request and response observations for non-tool MCP methods",
   assert.equal(JSON.stringify(events).includes("private_filter"), false);
   assert.equal(JSON.stringify(events).includes("secret://private"), false);
   assert.equal(JSON.stringify(events).includes("task-secret"), false);
+  assert.equal(JSON.stringify(events).includes("private_state"), false);
   await wrapped.close();
 });
 
