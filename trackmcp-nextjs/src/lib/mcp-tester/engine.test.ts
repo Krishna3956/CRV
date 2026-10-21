@@ -290,6 +290,10 @@ test("modern 2026-07-28 requests use bounded discovery instead of a legacy hands
         return jsonRpc({ supportedVersions: ["2026-07-28"], serverInfo: { name: "Modern fixture", version: "1" }, capabilities: { tools: {}, resources: {}, prompts: {}, extensions: { "io.modelcontextprotocol/tasks": {} } } }, 1);
       }
       assert.equal(new Headers(init?.headers).get("mcp-method"), body.method);
+      if (body.method === "tasks/list") {
+        assert.deepEqual(body.params, { limit: 1 });
+        return jsonRpc({ tasks: [] }, body.id);
+      }
       if (body.method === "tools/list") return jsonRpc({ tools: [{ name: "search", description: "bounded fixture", inputSchema: { type: "object", properties: {} } }], ttlMs: 60_000, cacheScope: "private" }, body.id);
       if (body.method === "resources/list") return jsonRpc({ resources: [{ uri: "urn:fixture:resource", name: "fixture" }], ttlMs: 60_000, cacheScope: "private" }, body.id);
       if (body.method === "resources/templates/list") return jsonRpc({ resourceTemplates: [{ uriTemplate: "urn:fixture:{id}", name: "fixture-template" }], ttlMs: 60_000, cacheScope: "private" }, body.id);
@@ -302,6 +306,7 @@ test("modern 2026-07-28 requests use bounded discovery instead of a legacy hands
   assert.equal(report.capabilities.tasks, true);
   assert.equal(report.protocol?.sessionIdPresent, false);
   assert.equal(report.verdict, "incomplete");
+  assert.ok(report.findings.some((finding) => finding.code === "modern_tasks_probe_observed"));
   assert.ok(report.findings.some((finding) => finding.code === "modern_discovery_partial"));
   assert.ok(report.findings.some((finding) => finding.code === "catalog_cache_hint_observed"));
 });
