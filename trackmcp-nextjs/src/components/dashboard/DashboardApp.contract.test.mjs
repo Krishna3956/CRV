@@ -431,6 +431,12 @@ test("Capabilities preserves tool-call activity when capability identity is miss
   assert.match(source, /no capability name was reported/);
 });
 
+test("Capabilities presents bounded modern protocol family activity", () => {
+  assert.match(source, /Modern protocol activity/);
+  assert.match(source, /protocol_family_activity/);
+  assert.match(source, /bounded observations/);
+});
+
 test("Overview session actions clearly open traces", () => {
   assert.match(source, /title="Sessions in selected period"[\s\S]*label: "View traces"/);
   assert.match(source, /Open trace <ChevronRight/);
