@@ -368,6 +368,42 @@ test("records bounded subscription metadata for resource subscribe and unsubscri
   await wrapped.close();
 });
 
+test("re-establishes modern subscriptions after a transport reconnect without retaining subscription secrets", async () => {
+  const events = [];
+  const raw = new FakeTransport();
+  const adapter = new TrackMCPClientAdapter({ apiKey: "tmcp_test", service: "adapter-test", transport: "stdio", flushIntervalMs: 60000, onEvent: (event) => events.push(event) });
+  const wrapped = adapter.wrapTransport(raw);
+  await wrapped.start();
+  wrapped.onmessage = () => {};
+  wrapped.onerror = () => {};
+
+  const listen = async (requestId, subscriptionId) => {
+    await wrapped.send({ jsonrpc: "2.0", id: requestId, method: "subscriptions/listen", params: { types: ["resources/updated"], private_filter: "do-not-capture" } });
+    raw.onmessage({ jsonrpc: "2.0", id: requestId, result: { subscriptionId, types: ["resources/updated"], ttlMs: 5000, cacheScope: "private" } });
+    raw.onmessage({ jsonrpc: "2.0", method: "notifications/resources/updated", params: { uri: "secret://customer-resource" } });
+  };
+
+  await listen("listen-1", "secret-subscription-1");
+  await wrapped.close();
+  await wrapped.start();
+  await listen("listen-2", "secret-subscription-2");
+
+  const responses = events.filter((event) => event.mcp_method === "subscriptions/listen" && event.payload?._trackmcp?.observation_kind === "protocol_response");
+  const updates = events.filter((event) => event.mcp_method === "notifications/resources/updated");
+  const starts = events.filter((event) => event.payload?._trackmcp?.observation_kind === "session_started");
+  const reconnects = events.filter((event) => event.payload?._trackmcp?.observation_kind === "session_reconnected");
+  assert.equal(responses.length, 2);
+  assert.equal(updates.length, 2);
+  assert.equal(reconnects.length, 1);
+  assert.deepEqual(starts.map((event) => event.payload._trackmcp.lifecycle_generation), [1, 2]);
+  assert.equal(responses.every((event) => event.payload._trackmcp.subscription_action === "subscription_started"), true);
+  assert.equal(updates.every((event) => event.payload._trackmcp.protocol_signal === "resource_changed"), true);
+  assert.equal(JSON.stringify(events).includes("secret-subscription"), false);
+  assert.equal(JSON.stringify(events).includes("secret://customer-resource"), false);
+  assert.equal(JSON.stringify(events).includes("private_filter"), false);
+  await wrapped.close();
+});
+
 test("does not attribute an ambiguous late response to a reused request ID", async () => {
   const events = [];
   const raw = new FakeTransport();
