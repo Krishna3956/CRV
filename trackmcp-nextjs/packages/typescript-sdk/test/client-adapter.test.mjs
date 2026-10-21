@@ -260,6 +260,7 @@ test("emits bounded request and response observations for non-tool MCP methods",
   const wrapped = adapter.wrapTransport(raw);
   await wrapped.start();
   wrapped.onmessage = () => {};
+  wrapped.onerror = () => {};
   await wrapped.send({ jsonrpc: "2.0", id: "catalog-1", method: "resources/list", params: { private_filter: "do-not-capture" } });
   raw.onmessage({ jsonrpc: "2.0", id: "catalog-1", result: { resources: [{ uri: "secret://private", name: "customer-private" }] } });
   await wrapped.send({ jsonrpc: "2.0", id: "task-1", method: "tasks/get", params: { taskId: "task-secret" } });
@@ -410,4 +411,24 @@ test("transport errors close the lifecycle as a bounded failed session", async (
   assert.equal(ends[0].is_error, true);
   assert.equal(ends[0].error_class, "transport_error");
   assert.equal(JSON.stringify(ends).includes("connection dropped"), false);
+});
+
+test("transport disconnect drains pending tool and protocol calls as bounded failures", async () => {
+  const events = [];
+  const raw = new FakeTransport();
+  const adapter = new TrackMCPClientAdapter({ apiKey: "tmcp_test", service: "adapter-test", transport: "stdio", flushIntervalMs: 60000, onEvent: (event) => events.push(event) });
+  const wrapped = adapter.wrapTransport(raw);
+  await wrapped.start();
+  wrapped.onmessage = () => {};
+  wrapped.onerror = () => {};
+  await wrapped.send(toolCall("pending-tool", "lookup"));
+  await wrapped.send({ jsonrpc: "2.0", id: "pending-protocol", method: "tasks/get", params: { taskId: "secret-task" } });
+  raw.onerror?.(new Error("connection dropped"));
+
+  const failures = events.filter((event) => event.success === false && event.error_class === "transport_error");
+  assert.equal(failures.filter((event) => event.event_type === "tool_call").length, 1);
+  assert.equal(failures.filter((event) => event.event_type === "protocol").length, 1);
+  assert.equal(failures.every((event) => event.is_error === true && event.payload_policy === "metadata"), true);
+  assert.equal(JSON.stringify(events).includes("secret-task"), false);
+  assert.equal(adapter.getDiagnostics().pending_request_count, 0);
 });
