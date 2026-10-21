@@ -96,6 +96,7 @@
     "test:mcp-tester-ui": "node --test src/components/mcp-tester/McpTesterApp.contract.test.mjs src/app/tools/tools.contract.test.mjs",
     "test:dashboard-contract": "node --test src/components/dashboard/DashboardApp.contract.test.mjs",
     "test:mobile-layout": "node --test scripts/mobile-layout.contract.test.mjs",
+    "test:docs-version": "node --test scripts/docs-version.contract.test.mjs",
     "test:release-scope-audit": "node --test scripts/release-scope-audit.contract.test.mjs",
     "pretest:python-package-artifact": "node scripts/ensure-python-package-artifact.mjs",
     "test:python-package-artifact": "node --test scripts/python-package-artifact.contract.test.mjs",

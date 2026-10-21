@@ -1,0 +1,19 @@
+import assert from "node:assert/strict";
+import { readFile } from "node:fs/promises";
+import { resolve } from "node:path";
+import test from "node:test";
+
+const root = resolve(process.cwd(), "..");
+const read = (relative) => readFile(resolve(root, relative), "utf8");
+const [docs, sdkManifest, cliManifest] = await Promise.all([
+  read("trackmcp-nextjs/src/app/docs/page.tsx"),
+  read("trackmcp-nextjs/packages/typescript-sdk/package.json"),
+  read("trackmcp-nextjs/packages/cli/package.json"),
+]);
+const sdkVersion = JSON.parse(sdkManifest).version;
+const cliVersion = JSON.parse(cliManifest).version;
+
+test("public quickstart names the currently published CLI and TypeScript SDK versions", () => {
+  assert.match(docs, new RegExp(`current CLI is ${cliVersion}`));
+  assert.match(docs, new RegExp(`current TypeScript SDK is ${sdkVersion}`));
+});
