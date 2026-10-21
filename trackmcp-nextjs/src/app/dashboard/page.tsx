@@ -8,7 +8,8 @@ import type { Analytics, ToolQualityResponse } from "@/lib/telemetry/analytics-t
 import { trackActivationEvent } from "@/lib/marketing-analytics";
 
 type Workspace = { id: string; name: string; slug: string };
-type Key = { id: string; name: string; key_prefix: string; revoked_at: string | null; created_at: string };
+type Key = { id: string; name: string; key_prefix: string; revoked_at: string | null; created_at: string; service_scope?: string | null; environment_scope?: string | null };
+type KeyCreationOptions = { serviceScope?: string; environmentScope?: string };
 type Account = { workspace: Workspace | null; workspaces: Workspace[]; keys: Key[] };
 const LOCAL_DASHBOARD_BYPASS = process.env.NODE_ENV === "development" && process.env.NEXT_PUBLIC_LOCAL_DASHBOARD_BYPASS === "true";
 function userDisplayName(user: { email?: string | null; user_metadata?: Record<string, unknown> } | null) {
@@ -101,9 +102,9 @@ export function DashboardPageContent({ initialView = "overview" }: { initialView
     catch (reason) { setError(reason instanceof Error ? reason.message : "Could not create your workspace."); }
     finally { setWorking(false); }
   }, [loadAccount, loadAnalytics, loadToolQuality]);
-  const generateKey = async () => {
+  const generateKey = async (options?: KeyCreationOptions) => {
     setWorking(true); setError("");
-    try { const workspaceId = selectedWorkspaceId || workspace?.id; if (!workspaceId) throw new Error("Select a workspace before creating a key."); const response = await fetch("/api/v1/account/workspace", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ workspace_id: workspaceId, key_name: `server-${keys.length + 1}` }) }); const body = await response.json(); if (!response.ok) throw new Error(body.error || "Could not create an API key."); trackActivationEvent("api_key_created", { key_name_category: "server" }); setNewKey(body.api_key); await loadAccount(workspaceId); }
+    try { const workspaceId = selectedWorkspaceId || workspace?.id; if (!workspaceId) throw new Error("Select a workspace before creating a key."); const response = await fetch("/api/v1/account/workspace", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ workspace_id: workspaceId, key_name: `server-${keys.length + 1}`, service_scope: options?.serviceScope || undefined, environment_scope: options?.environmentScope || undefined }) }); const body = await response.json(); if (!response.ok) throw new Error(body.error || "Could not create an API key."); trackActivationEvent("api_key_created", { key_name_category: "server" }); setNewKey(body.api_key); await loadAccount(workspaceId); }
     catch (reason) { setError(reason instanceof Error ? reason.message : "Could not create an API key."); }
     finally { setWorking(false); }
   };

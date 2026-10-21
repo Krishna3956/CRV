@@ -21,6 +21,7 @@ just because a README or marketing page mentions it.
 | Node client protocol observer | Client adapter now emits bounded request/response/notification observations for every identified non-tool MCP request, including catalog counts, task/MRTR result discriminators, and list-changed/progress signals; arguments, URIs, prompt names, and result bodies remain excluded | Implemented locally with regression coverage | Deploy the SDK package and run a production-like client fixture before claiming live coverage |
 | Refresh and task transition projection | Accepted ingest now enqueues bounded refresh work by default; explicit task transition history is persisted by the service-role worker by default, with explicit `false` rollback flags | Implemented locally with worker-handler coverage | Apply/postflight migrations and capture a non-empty production worker batch |
 | Transport disconnect evidence | Node client adapter now drains in-flight tool and non-tool requests on transport error/close into bounded `transport_error` observations before ending the session | Implemented locally with regression coverage | Run production-like Stdio and Streamable HTTP disconnect/reconnect fixtures |
+| Connection-key scope | API keys can carry optional bounded service/environment scopes; ingest rejects mismatched labels with a tenant-safe 403 while legacy NULL-scoped keys remain workspace-wide | Implemented locally with migration and integration coverage | Apply/postflight the additive migration and expose scope selection in the deployed Setup UI |
 
 ## Acceptance gates
 

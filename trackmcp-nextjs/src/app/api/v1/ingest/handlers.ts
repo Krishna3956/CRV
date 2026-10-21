@@ -17,6 +17,10 @@ function uuidOrNull(value: string | null | undefined): string | null {
   return value && /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value) ? value : null;
 }
 
+function scopeMatches(value: string, scope: unknown): boolean {
+  return typeof scope !== "string" || scope.length === 0 || scope === value;
+}
+
 /**
  * Catalog projections reference the server registry. Telemetry clients are
  * allowed to send a stable server UUID before a dashboard user has manually
@@ -80,12 +84,15 @@ export function createIngestHandler(getAdmin: typeof getSupabaseAdmin = getSupab
 
   const { data: key, error: keyError } = await supabase
     .from("trackmcp_api_keys")
-    .select("id, workspace_id, revoked_at")
+    .select("id, workspace_id, service_scope, environment_scope, revoked_at")
     .eq("key_hash", hashTrackMCPKey(apiKey))
     .maybeSingle();
   if (keyError || !key || key.revoked_at) {
     if (keyError) console.error("TrackMCP API key lookup failed", { code: keyError.code, message: keyError.message });
     return NextResponse.json({ error: "Invalid or revoked API key." }, { status: 401 });
+  }
+  if (normalized.some((event) => !scopeMatches(event.service, key.service_scope) || !scopeMatches(event.environment, key.environment_scope))) {
+    return NextResponse.json({ error: "Telemetry does not match this connection key scope." }, { status: 403 });
   }
 
   const { data: existing, error: existingError } = await supabase

@@ -228,7 +228,7 @@ test("connection keys are explicitly created from Setup and shown once in full",
   assert.match(source, /className="max-w-full break-all overflow-x-auto/);
   assert.match(source, /\{newKey\}/);
   assert.match(source, /\{key\.key_prefix\}••••••/);
-  assert.match(source, /onClick=\{onGenerateKey\}/);
+  assert.match(source, /onClick=\{\(\) => onGenerateKey/);
 });
 
 test("mobile dashboard header wraps without clipping workspace or data controls", () => {

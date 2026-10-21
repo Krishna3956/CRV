@@ -11,6 +11,7 @@ const API_KEY = "tmcp_integration_key";
 const WORKSPACE_A_KEY = "tmcp_workspace_a_key";
 const WORKSPACE_B_KEY = "tmcp_workspace_b_key";
 const WORKSPACE_A_ROTATED_KEY = "tmcp_workspace_a_rotated_key";
+const SCOPED_KEY = "tmcp_scoped_key";
 
 function fakeAdmin() {
   const state = { rows: [], refreshRows: [], registryRows: [] };
@@ -18,6 +19,7 @@ function fakeAdmin() {
     [hashTrackMCPKey(API_KEY), { id: "key-workspace-integration", workspace_id: "workspace-integration", revoked_at: null }],
     [hashTrackMCPKey(WORKSPACE_A_KEY), { id: "key-workspace-a", workspace_id: "workspace-a", revoked_at: null }],
     [hashTrackMCPKey(WORKSPACE_A_ROTATED_KEY), { id: "key-workspace-a-rotated", workspace_id: "workspace-a", revoked_at: null }],
+    [hashTrackMCPKey(SCOPED_KEY), { id: "key-scoped", workspace_id: "workspace-a", service_scope: "scoped-service", environment_scope: "production", revoked_at: null }],
     [hashTrackMCPKey(WORKSPACE_B_KEY), { id: "key-workspace-b", workspace_id: "workspace-b", revoked_at: null }],
   ]);
   const admin = {
@@ -344,6 +346,18 @@ test("ingest derives tenant scope from the authenticated key and ignores caller 
   assert.equal(response.body.accepted, 1);
   assert.equal(state.rows.at(-1).workspace_id, "workspace-a");
   assert.equal(state.rows.some((row) => row.workspace_id === "workspace-b"), false);
+});
+
+test("scoped connection keys reject mismatched service or environment labels", async () => {
+  const { admin, state } = fakeAdmin();
+  const handler = createIngestHandler(() => admin);
+  const accepted = await postWithKey(handler, SCOPED_KEY, { events: [event({ event_id: "scoped-accepted", service: "scoped-service", environment: "production" })] });
+  assert.equal(accepted.status, 200);
+  const rejectedService = await postWithKey(handler, SCOPED_KEY, { events: [event({ event_id: "scoped-wrong-service", service: "other-service", environment: "production" })] });
+  assert.equal(rejectedService.status, 403);
+  const rejectedEnvironment = await postWithKey(handler, SCOPED_KEY, { events: [event({ event_id: "scoped-wrong-environment", service: "scoped-service", environment: "staging" })] });
+  assert.equal(rejectedEnvironment.status, 403);
+  assert.equal(state.rows.some((row) => row.event_id === "scoped-wrong-service" || row.event_id === "scoped-wrong-environment"), false);
 });
 
 test("revocation is enforced on the next ingest and rotation supports explicit overlap", async () => {
