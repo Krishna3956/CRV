@@ -37,6 +37,20 @@ export type TrackMCPProtocolSignal =
   | "subscription_started"
   | "subscription_stopped";
 
+/** Stable method-family labels used by durable facts and bounded analytics.
+ * These are intentionally coarser than the raw MCP method name. */
+export type TrackMCPProtocolFamily =
+  | "sampling"
+  | "elicitation"
+  | "completion"
+  | "tasks"
+  | "control_signal"
+  | "resources"
+  | "prompts"
+  | "tools"
+  | "subscriptions"
+  | "notifications";
+
 export type TrackMCPDataQualityFlag =
   | "legacy_schema"
   | "missing_observation_source"
@@ -50,6 +64,21 @@ export type TrackMCPDataQuality = {
   flags: TrackMCPDataQualityFlag[];
   score: "good" | "degraded" | "insufficient";
 };
+
+export function protocolFamilyForMethod(method: string | null | undefined): TrackMCPProtocolFamily | undefined {
+  if (!method) return undefined;
+  if (method.startsWith("sampling/")) return "sampling";
+  if (method.startsWith("elicitation/")) return "elicitation";
+  if (method.startsWith("completion/")) return "completion";
+  if (method.startsWith("tasks/")) return "tasks";
+  if (method.startsWith("notifications/")) return "notifications";
+  if (method.startsWith("subscriptions/")) return "subscriptions";
+  if (method.startsWith("resources/")) return "resources";
+  if (method.startsWith("prompts/")) return "prompts";
+  if (method.startsWith("tools/")) return "tools";
+  if (method === "ping" || method === "initialize" || method === "logging/setLevel") return "control_signal";
+  return undefined;
+}
 
 export type TrackMCPSemanticOutcome = {
   contract_version: typeof TRACKMCP_SEMANTIC_CONTRACT_VERSION;
