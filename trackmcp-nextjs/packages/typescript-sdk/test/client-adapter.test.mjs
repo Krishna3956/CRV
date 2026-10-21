@@ -346,6 +346,34 @@ test("tracks a server-directed task lifecycle without retaining the raw handle",
   await wrapped.close();
 });
 
+test("round-trips completion, sampling, and elicitation responses as bounded protocol metadata", async () => {
+  const events = [];
+  const raw = new FakeTransport();
+  const adapter = new TrackMCPClientAdapter({ apiKey: "tmcp_test", service: "adapter-test", transport: "stdio", flushIntervalMs: 60000, onEvent: (event) => events.push(event) });
+  const wrapped = adapter.wrapTransport(raw);
+  await wrapped.start();
+  wrapped.onmessage = () => {};
+
+  await wrapped.send({ jsonrpc: "2.0", id: "completion-1", method: "completion/complete", params: { argument: { value: "private-search" }, private_context: "do-not-capture" } });
+  raw.onmessage({ jsonrpc: "2.0", id: "completion-1", result: { completion: { values: ["private-result"], total: 1, hasMore: false } } });
+  await wrapped.send({ jsonrpc: "2.0", id: "sampling-1", method: "sampling/createMessage", params: { messages: [{ role: "user", content: { type: "text", text: "private-prompt" } }] } });
+  raw.onmessage({ jsonrpc: "2.0", id: "sampling-1", result: { model: "private-model", role: "assistant", content: { type: "text", text: "private-response" } } });
+  await wrapped.send({ jsonrpc: "2.0", id: "elicitation-1", method: "elicitation/create", params: { message: "private-question", requestedSchema: { type: "object" } } });
+  raw.onmessage({ jsonrpc: "2.0", id: "elicitation-1", result: { action: "accept", content: { secret_answer: "private-answer" } } });
+
+  const responses = events.filter((event) => event.payload?._trackmcp?.observation_kind === "protocol_response");
+  assert.equal(responses.length, 3);
+  assert.deepEqual(responses.map((event) => event.payload._trackmcp.protocol_family), ["completion", "sampling", "elicitation"]);
+  assert.equal(responses.every((event) => event.event_type === "protocol"), true);
+  assert.equal(JSON.stringify(events).includes("private-search"), false);
+  assert.equal(JSON.stringify(events).includes("private-result"), false);
+  assert.equal(JSON.stringify(events).includes("private-prompt"), false);
+  assert.equal(JSON.stringify(events).includes("private-response"), false);
+  assert.equal(JSON.stringify(events).includes("private-question"), false);
+  assert.equal(JSON.stringify(events).includes("private-answer"), false);
+  await wrapped.close();
+});
+
 test("records bounded subscription metadata for resource subscribe and unsubscribe", async () => {
   const events = [];
   const raw = new FakeTransport();
