@@ -40,10 +40,22 @@ jobs:
             echo "::error::Failed to prepare the distributed rate-limit configuration."
             exit 1
           fi
-          OP_ID=$(timeout 30s aws apprunner update-service \
+          set +e
+          UPDATE_OUTPUT=$(timeout 30s aws apprunner update-service \
             --service-arn "$SERVICE_ARN" --region "$AWS_REGION" \
             --source-configuration "file://$RUNNER_TEMP/source-configuration.json" \
-            --query OperationId --output text)
+            --query OperationId --output text 2>&1)
+          UPDATE_STATUS=$?
+          set -e
+          if [[ "$UPDATE_STATUS" -ne 0 ]]; then
+            if grep -q "not authorized to perform: apprunner:UpdateService" <<<"$UPDATE_OUTPUT"; then
+              echo "::error::The GitHub OIDC role needs a narrowly scoped apprunner:UpdateService grant before distributed mode can be enabled. No production mutation was applied."
+            else
+              echo "$UPDATE_OUTPUT"
+            fi
+            exit "$UPDATE_STATUS"
+          fi
+          OP_ID="$UPDATE_OUTPUT"
           if [[ "$OP_ID" == "None" || ! "$OP_ID" =~ ^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$ ]]; then
             echo "::error::App Runner returned an invalid update operation ID."
             exit 1

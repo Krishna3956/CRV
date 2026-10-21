@@ -58,6 +58,7 @@ test("distributed rate-limit enablement preserves and verifies the App Runner co
   assert.match(distributedWorkflow, /RuntimeEnvironmentVariables/);
   assert.match(distributedWorkflow, /TRACKMCP_RATE_LIMIT_MODE = \"supabase\"/);
   assert.match(distributedWorkflow, /update-service/);
+  assert.match(distributedWorkflow, /narrowly scoped apprunner:UpdateService grant/);
   assert.match(distributedWorkflow, /list-operations/);
   assert.match(distributedWorkflow, /TRACKMCP_RATE_LIMIT_MODE=supabase/);
   assert.match(distributedWorkflow, /distributed-rate-limit-mode/);
