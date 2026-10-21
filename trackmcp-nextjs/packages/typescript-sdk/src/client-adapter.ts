@@ -1,6 +1,7 @@
 import type { Transport } from "@modelcontextprotocol/sdk/shared/transport.js";
 import { StdioClientTransport } from "@modelcontextprotocol/sdk/client/stdio.js";
 import { StreamableHTTPClientTransport } from "@modelcontextprotocol/sdk/client/streamableHttp.js";
+import { SSEClientTransport } from "@modelcontextprotocol/sdk/client/sse.js";
 import {
   TrackMCPClient,
   type TrackMCPEvent,
@@ -14,7 +15,7 @@ import {
   protocolResultType,
 } from "./index.js";
 
-export type TrackMCPClientTransportLabel = "stdio" | "streamable_http";
+export type TrackMCPClientTransportLabel = "stdio" | "streamable_http" | "sse";
 export type TrackMCPClientSessionSource = "protocol" | "transport_generated" | "external";
 export type TrackMCPClientSession = { id: string; source: TrackMCPClientSessionSource };
 export type TrackMCPClientCorrelation = Pick<TrackMCPCorrelationOptions, "resolve"> & { mode: "external" };
@@ -155,7 +156,7 @@ export class TrackMCPClientAdapter {
   constructor(options: TrackMCPClientAdapterOptions) {
     nodeOnlyGuard();
     if (!boundedString(options.service)) throw new Error("TrackMCP service is required and must be bounded");
-    if (options.transport !== "stdio" && options.transport !== "streamable_http") throw new Error("Unsupported TrackMCP client transport");
+    if (options.transport !== "stdio" && options.transport !== "streamable_http" && options.transport !== "sse") throw new Error("Unsupported TrackMCP client transport");
     if (options.session && (!boundedString(options.session.id) || !["protocol", "transport_generated", "external"].includes(options.session.source))) throw new Error("Session identity must be bounded and include explicit provenance");
     if (options.correlation?.mode === "external" && typeof options.correlation.resolve !== "function") throw new Error("External correlation requires a resolver");
     this.options = options;
@@ -175,9 +176,11 @@ export class TrackMCPClientAdapter {
     if (existing) return existing as T;
     const supported = this.options.transport === "stdio"
       ? transport instanceof StdioClientTransport
-      : transport instanceof StreamableHTTPClientTransport;
+      : this.options.transport === "streamable_http"
+        ? transport instanceof StreamableHTTPClientTransport
+        : transport instanceof SSEClientTransport;
     if (!supported) {
-      throw new TypeError("Transport must be an official StdioClientTransport or StreamableHTTPClientTransport instance");
+      throw new TypeError("Transport must match the selected official StdioClientTransport, StreamableHTTPClientTransport, or SSEClientTransport");
     }
 
     let onmessage: Transport["onmessage"];

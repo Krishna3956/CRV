@@ -1,5 +1,6 @@
 import { StdioClientTransport } from "@modelcontextprotocol/sdk/client/stdio.js";
 import { StreamableHTTPClientTransport } from "@modelcontextprotocol/sdk/client/streamableHttp.js";
+import { SSEClientTransport } from "@modelcontextprotocol/sdk/client/sse.js";
 import { TrackMCPClient, catalogObservation, protocolInputRequestCount, protocolInputResponseCount, protocolResultType, } from "./index.js";
 const MAX_PENDING_CALLS = 1000;
 const PENDING_CALL_TTL_MS = 30_000;
@@ -131,7 +132,7 @@ export class TrackMCPClientAdapter {
         nodeOnlyGuard();
         if (!boundedString(options.service))
             throw new Error("TrackMCP service is required and must be bounded");
-        if (options.transport !== "stdio" && options.transport !== "streamable_http")
+        if (options.transport !== "stdio" && options.transport !== "streamable_http" && options.transport !== "sse")
             throw new Error("Unsupported TrackMCP client transport");
         if (options.session && (!boundedString(options.session.id) || !["protocol", "transport_generated", "external"].includes(options.session.source)))
             throw new Error("Session identity must be bounded and include explicit provenance");
@@ -155,9 +156,11 @@ export class TrackMCPClientAdapter {
             return existing;
         const supported = this.options.transport === "stdio"
             ? transport instanceof StdioClientTransport
-            : transport instanceof StreamableHTTPClientTransport;
+            : this.options.transport === "streamable_http"
+                ? transport instanceof StreamableHTTPClientTransport
+                : transport instanceof SSEClientTransport;
         if (!supported) {
-            throw new TypeError("Transport must be an official StdioClientTransport or StreamableHTTPClientTransport instance");
+            throw new TypeError("Transport must match the selected official StdioClientTransport, StreamableHTTPClientTransport, or SSEClientTransport");
         }
         let onmessage;
         let onerror;
