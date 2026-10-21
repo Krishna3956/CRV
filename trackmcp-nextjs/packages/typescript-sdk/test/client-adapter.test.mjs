@@ -419,10 +419,13 @@ test("deduplicates lifecycle events and gives hooks an immutable finalized copy"
   await wrapped.start();
   await wrapped.close();
   const starts = events.filter((event) => event.payload?._trackmcp?.observation_kind === "session_started");
+  const reconnects = events.filter((event) => event.payload?._trackmcp?.observation_kind === "session_reconnected");
   const ends = events.filter((event) => event.payload?._trackmcp?.observation_kind === "session_ended");
   assert.equal(starts.length, 2);
+  assert.equal(reconnects.length, 1);
   assert.equal(ends.length, 2);
   assert.deepEqual(starts.map((event) => event.payload._trackmcp.lifecycle_generation), [1, 2]);
+  assert.deepEqual(reconnects.map((event) => event.payload._trackmcp.lifecycle_generation), [2]);
   assert.deepEqual(ends.map((event) => event.payload._trackmcp.lifecycle_generation), [1, 2]);
   assert.equal(starts.every((event) => event.duration_ms === 0), true);
   assert.equal(ends.every((event) => Number.isInteger(event.duration_ms) && event.duration_ms >= 0 && event.duration_ms <= 86_400_000), true);
