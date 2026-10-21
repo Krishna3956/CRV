@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import http from "node:http";
-import { withTrackMCP, catalogObservation, interactionEntityObservation } from "../dist/index.js";
+import { withTrackMCP, catalogObservation, interactionEntityObservation, protocolCapabilities } from "../dist/index.js";
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { InMemoryTransport } from "@modelcontextprotocol/sdk/inMemory.js";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
@@ -27,6 +27,13 @@ test("single resource and prompt reads emit only bounded identity hashes", () =>
   assert.equal(prompt.kind, "prompts");
   assert.match(prompt.hash, /^[0-9a-f]{64}$/);
   assert.equal(interactionEntityObservation("tools/call", { uri: "not-observed" }), undefined);
+});
+
+test("capability negotiation metadata is bounded and does not retain initialize bodies", () => {
+  const capabilities = protocolCapabilities({ capabilities: { tools: {}, resources: { subscribe: true }, "server.example": {}, "unsafe key": {}, nested: { secret: "private" } } });
+  assert.deepEqual(capabilities, ["nested", "resources", "server.example", "tools"]);
+  assert.equal(JSON.stringify(capabilities).includes("private"), false);
+  assert.deepEqual(protocolCapabilities({ capabilities: ["tools"] }), []);
 });
 
 test("captures a tool call, redacts args, and delivers a batch", async () => {

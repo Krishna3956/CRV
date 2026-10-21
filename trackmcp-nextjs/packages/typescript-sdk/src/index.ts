@@ -250,6 +250,16 @@ export function protocolTaskStatus(value: Record<string, unknown> | undefined): 
   return typeof candidate === "string" && TASK_STATES.has(candidate) ? candidate as "working" | "input_required" | "completed" | "failed" | "cancelled" | "expired" : undefined;
 }
 
+/** Return only bounded capability names from an initialize result. */
+export function protocolCapabilities(value: Record<string, unknown> | undefined): string[] {
+  const capabilities = value?.capabilities;
+  if (!capabilities || typeof capabilities !== "object" || Array.isArray(capabilities)) return [];
+  return Object.keys(capabilities as Record<string, unknown>)
+    .filter((name) => /^[A-Za-z][A-Za-z0-9_.-]{0,63}$/.test(name))
+    .sort()
+    .slice(0, 32);
+}
+
 export function catalogObservation(kind: TrackMCPCatalogKind, result: Record<string, unknown> | undefined): Pick<TrackMCPEvent, "catalog_kind" | "catalog_item_count" | "catalog_item_name_hashes" | "catalog_item_uri_hashes"> {
   const key = kind === "resource_templates" ? "resourceTemplates" : kind;
   const items = result && Array.isArray(result[key]) ? result[key] as unknown[] : [];
@@ -756,7 +766,8 @@ function wrapTransport(transport: object, client: TrackMCPClient): object {
               const metadata = client.toolMetadata(call.toolName);
               client.capture({ event_type: "tool_call", direction: "server_to_client", transport: "stdio", mcp_method: call.method, request_id: String(id), tool_name: call.toolName, ...(taskIdHash ? { task_id: taskIdHash } : {}), tool_description: metadata?.description, tool_description_hash: metadata?.tool_description_hash, schema_hash: metadata?.schema_hash, client_name: clientName, client_version: clientVersion, session_id: sessionId, session_id_source: activeSessionIdSource, context: call.intentContext, started_at: new Date(call.started).toISOString(), duration_ms: Date.now() - call.started, success: !failed, is_error: failed, error_class: message.error ? "protocol_error" : result?.isError ? "tool_execution_error" : undefined, error_code: typeof protocolError?.code === "number" ? protocolError.code : undefined, payload: { ...call.payload, ...(taskStatus ? { task_status: taskStatus } : {}), result: client.stripIssuedField(message.error || result) } }, call.correlationHandle);
             } else if (call.method === "initialize") {
-              client.capture({ event_type: "session", direction: "server_to_client", transport: "stdio", mcp_method: call.method, request_id: String(id), protocol_version: typeof result?.protocolVersion === "string" ? result.protocolVersion : undefined, client_name: clientName, client_version: clientVersion, session_id: sessionId, session_id_source: activeSessionIdSource, started_at: new Date(call.started).toISOString(), duration_ms: Date.now() - call.started, success: !failed, is_error: failed, error_class: message.error ? "protocol_error" : undefined, error_code: typeof protocolError?.code === "number" ? protocolError.code : undefined, payload: { result: message.error || result } });
+              const serverInfo = result?.serverInfo && typeof result.serverInfo === "object" && !Array.isArray(result.serverInfo) ? result.serverInfo as Record<string, unknown> : undefined;
+              client.capture({ event_type: "session", direction: "server_to_client", transport: "stdio", mcp_method: call.method, request_id: String(id), protocol_version: typeof result?.protocolVersion === "string" ? result.protocolVersion : undefined, client_name: clientName, client_version: clientVersion, session_id: sessionId, session_id_source: activeSessionIdSource, started_at: new Date(call.started).toISOString(), duration_ms: Date.now() - call.started, success: !failed, is_error: failed, error_class: message.error ? "protocol_error" : undefined, error_code: typeof protocolError?.code === "number" ? protocolError.code : undefined, payload: { name: "session_initialized", ...(protocolCapabilities(result).length ? { capability_names: protocolCapabilities(result) } : {}), ...(typeof serverInfo?.name === "string" ? { server_name: serverInfo.name.slice(0, DEFAULT_MAX_STRING_LENGTH) } : {}), ...(typeof serverInfo?.version === "string" ? { server_version: serverInfo.version.slice(0, DEFAULT_MAX_STRING_LENGTH) } : {}) } });
             } else if (["tools/list", "resources/list", "resources/templates/list", "prompts/list"].includes(call.method || "") && !failed) {
               const catalogType = call.method?.replace("/list", "") || "catalog";
               const tools = client.recordCatalog(result);
