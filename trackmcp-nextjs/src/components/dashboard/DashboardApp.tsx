@@ -4689,6 +4689,15 @@ function SetupView({
               A proxy or launcher is not a replacement for native instrumentation today. It can provide limited transport coverage only after a separate integration is configured.
             </p>
           </div>
+          <div className="border border-line bg-paper p-4">
+            <div className="flex items-center justify-between gap-3">
+              <p className="text-sm font-semibold text-ink">MCP server tester</p>
+              <a href="/tools/mcp-server-tester" className="cursor-pointer text-xs font-semibold text-brand-strong hover:underline">Open tester <ArrowRight size={12} className="inline" /></a>
+            </div>
+            <p className="mt-1 text-xs leading-relaxed text-muted">
+              Run a bounded, read-only discovery check against a reachable MCP endpoint. The tester does not replace SDK instrumentation or prove customer authorization.
+            </p>
+          </div>
         </div>
       </details>
     </div>
