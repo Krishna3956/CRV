@@ -75,3 +75,10 @@ just because a README or marketing page mentions it.
   with one accepted event; worker run `39588635256` produced one `working`
   transition with a non-null hash at `2026-10-21T10:59:34.941Z`. This closes the
   ingest-to-transition proof without retaining the fixture secret.
+- 2026-10-21: Refresh worker run `39600868382` completed five concurrent
+  bounded batches against the production App Runner origin. It processed 32
+  queued jobs (`7+6+6+6+7`), with 32 succeeded, 0 retryable, 0 failed, 0
+  timed out, and max attempt count 1. Reported maximum queue lag was
+  4,858,742–5,708,193 ms across the slices. This closes non-empty processing
+  and failure/retry evidence for the run; an agreed pilot lag SLO and a
+  multi-run cadence baseline remain open.
