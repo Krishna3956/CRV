@@ -2,7 +2,7 @@ import { NextResponse } from "next/server.js";
 import { createAnalyticsHandler } from "../../v1/analytics/handlers.ts";
 import { withTrackMCPV2Envelope } from "../../../../lib/api/v2-envelope.ts";
 
-const FAMILIES = new Set(["sampling", "elicitation", "completion", "tasks", "control_signal"]);
+const FAMILIES = new Set(["sampling", "elicitation", "completion", "tasks", "control_signal", "resources", "prompts", "tools", "subscriptions", "notifications"]);
 
 /**
  * Exposes the bounded modern-protocol family projection as a stable v2 read
@@ -20,7 +20,7 @@ export function createProtocolActivityHandler(analytics = createAnalyticsHandler
         .filter((value) => FAMILIES.has(value.family))
         .map((value) => ({ family: value.family, observations: Math.max(0, Math.min(100_000, Math.floor(value.observations))) }))
         .sort((a, b) => b.observations - a.observations || a.family.localeCompare(b.family))
-        .slice(0, 5)
+        .slice(0, 10)
       : [];
     return NextResponse.json(withTrackMCPV2Envelope({
       range_days: typeof body.range_days === "number" ? body.range_days : null,
