@@ -1,6 +1,6 @@
 import { StdioClientTransport } from "@modelcontextprotocol/sdk/client/stdio.js";
 import { StreamableHTTPClientTransport } from "@modelcontextprotocol/sdk/client/streamableHttp.js";
-import { TrackMCPClient, } from "./index.js";
+import { TrackMCPClient, catalogObservation, protocolInputRequestCount, protocolInputResponseCount, protocolResultType, } from "./index.js";
 const MAX_PENDING_CALLS = 1000;
 const PENDING_CALL_TTL_MS = 30_000;
 const REPEAT_WINDOW_MS = 5 * 60 * 1000;
@@ -177,8 +177,25 @@ export class TrackMCPClientAdapter {
             }
             if (item.method !== "tools/call") {
                 const id = requestId(item.id);
-                if (id !== undefined)
-                    this.addPending({ idKey: this.keyFor(item.id), requestId: id, started: Date.now(), correlation: { source: "missing" } });
+                if (id !== undefined) {
+                    const method = boundedString(item.method);
+                    const started = Date.now();
+                    const session = this.sessionFields(transport);
+                    const correlation = this.client.resolveCorrelation({ event_type: "protocol", mcp_method: method, request_id: id, session_id: session.session_id, transport: this.options.transport });
+                    this.addPending({ idKey: this.keyFor(item.id), requestId: id, method, started, correlation });
+                    this.emit({
+                        event_type: "protocol",
+                        transport: this.options.transport,
+                        mcp_method: method,
+                        request_id: id,
+                        direction: "client_to_server",
+                        started_at: new Date(started).toISOString(),
+                        ...session,
+                        client_name: this.clientName,
+                        client_version: this.clientVersion,
+                        payload: { _trackmcp: { observation_kind: "protocol_request", observation_source: "client" } },
+                    }, correlation);
+                }
                 continue;
             }
             const id = requestId(item.id);
@@ -271,9 +288,30 @@ export class TrackMCPClientAdapter {
             if (typeof result?.protocolVersion === "string" && boundedString(result.sessionId)) {
                 this.protocolSessionId = boundedString(result.sessionId);
             }
-            if (!pending.toolName)
-                continue;
             const session = this.sessionFields();
+            if (!pending.toolName) {
+                this.emit({
+                    event_type: "protocol",
+                    transport: this.options.transport,
+                    mcp_method: pending.method,
+                    request_id: pending.requestId,
+                    direction: "server_to_client",
+                    started_at: new Date(pending.started).toISOString(),
+                    duration_ms: Math.max(0, Date.now() - pending.started),
+                    success: !failed,
+                    is_error: failed,
+                    error_code: isRecord(item.error) && typeof item.error.code === "number" ? item.error.code : undefined,
+                    result_type: protocolResultType(result),
+                    input_request_count: protocolInputRequestCount(result),
+                    input_response_count: protocolInputResponseCount(result),
+                    ...(pending.method && ["tools/list", "resources/list", "resources/templates/list", "prompts/list"].includes(pending.method) ? catalogObservation(pending.method === "tools/list" ? "tools" : pending.method === "resources/list" ? "resources" : pending.method === "resources/templates/list" ? "resource_templates" : "prompts", result) : {}),
+                    ...session,
+                    client_name: this.clientName,
+                    client_version: this.clientVersion,
+                    payload: { _trackmcp: { observation_kind: "protocol_response", observation_source: "client" } },
+                }, pending.correlation);
+                continue;
+            }
             this.lastResultRequestId = pending.requestId;
             this.lastResultAt = Date.now();
             this.emit({

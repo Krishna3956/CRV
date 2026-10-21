@@ -18,6 +18,7 @@ just because a README or marketing page mentions it.
 | Dashboard/session auth | Workspace membership, connection-key scope, revocation, tenant-isolation contracts | Implemented | Repeat production smoke after releases |
 | Setup density | Secondary privacy/data-flow and export/deletion explanations moved behind accessible disclosures; primary setup actions remain visible | Implemented in current change | Live browser audit after deployment |
 | Public docs parity | Added Go, .NET, Authentication/OAuth, and clearly named Transport Observer documentation paths | Implemented in current change | Check links, snippets, and package-version claims in CI |
+| Node client protocol observer | Client adapter now emits bounded request/response observations for every identified non-tool MCP request, including catalog counts and task/MRTR result discriminators; arguments, URIs, prompt names, and result bodies remain excluded | Implemented locally with regression coverage | Deploy the SDK package and run a production-like client fixture before claiming live coverage |
 
 ## Acceptance gates
 
@@ -45,3 +46,8 @@ just because a README or marketing page mentions it.
   `39560665525` completed successfully with its release gate and production
   smoke steps. Live browser QA confirmed Setup disclosures, the resolver card,
   the Go SDK docs route, and the expanded SDK/OAuth navigation.
+- 2026-10-21: The Node client adapter protocol observer was extended beyond
+  `tools/call`. It now emits metadata-only request/response observations for
+  catalog, task, subscription, progress, cancellation, completion, sampling,
+  elicitation, and other identified MCP methods. The SDK build and all 38
+  package tests pass; deployment and published-package evidence remain open.
