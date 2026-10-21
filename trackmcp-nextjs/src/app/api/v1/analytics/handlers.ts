@@ -699,7 +699,7 @@ export function createAnalyticsHandler(getAdmin: typeof getSupabaseAdmin = getSu
   const environments = [...new Set(events.map((event) => event.environment?.trim()).filter((value): value is string => Boolean(value)))];
   const transports = [...new Set(events.map((event) => event.transport).filter(Boolean))];
   const methods = [...new Set(events.map((event) => event.mcp_method).filter(Boolean))];
-  const protocolSignalCounts: Record<TrackMCPProtocolSignal, number> = { notification: 0, progress: 0, catalog_changed: 0, resource_changed: 0, subscription_started: 0, subscription_stopped: 0 };
+  const protocolSignalCounts: Record<TrackMCPProtocolSignal, number> = { notification: 0, progress: 0, cancelled: 0, catalog_changed: 0, resource_changed: 0, subscription_started: 0, subscription_stopped: 0 };
   let protocolSignalEvents = 0;
   for (const event of events) {
     const signal = classifyTrackMCPProtocolSignal(event);

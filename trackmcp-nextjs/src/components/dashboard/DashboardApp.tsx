@@ -435,7 +435,7 @@ const EXAMPLE_ANALYTICS: Analytics = {
     resolver_coverage: 132 / 148,
     limitation: "Observed resolver-linked account keys are privacy-safe dimensions, not named customers or unique people.",
   },
-  protocol_signals: { notification: 4, progress: 8, catalog_changed: 6, resource_changed: 2, subscription_started: 2, subscription_stopped: 1, observed_events: 23 },
+  protocol_signals: { notification: 4, progress: 8, cancelled: 1, catalog_changed: 6, resource_changed: 2, subscription_started: 2, subscription_stopped: 1, observed_events: 24 },
   protocol_family_activity: [{ family: "tasks", observations: 12 }, { family: "sampling", observations: 7 }, { family: "completion", observations: 4 }],
   interaction_surfaces: {
     resources: { events: 42, methods: ["resources/list", "resources/read"], entity_count: 12, entity_identity: "sha256_hash_count", entity_analytics: { status: "available", read_events: 31, successful_reads: 28, failed_reads: 2, input_required_reads: 1 } },
@@ -2530,6 +2530,7 @@ function ProtocolSignalPanel({
 }) {
   const rows = [
     ["Progress", signals.progress],
+    ["Cancelled", signals.cancelled],
     ["Catalog changed", signals.catalog_changed],
     ["Resource changed", signals.resource_changed],
     ["Subscriptions started", signals.subscription_started],
