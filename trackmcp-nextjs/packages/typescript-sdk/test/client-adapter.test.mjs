@@ -383,6 +383,8 @@ test("deduplicates lifecycle events and gives hooks an immutable finalized copy"
   const ends = events.filter((event) => event.payload?._trackmcp?.observation_kind === "session_ended");
   assert.equal(starts.length, 2);
   assert.equal(ends.length, 2);
+  assert.deepEqual(starts.map((event) => event.payload._trackmcp.lifecycle_generation), [1, 2]);
+  assert.deepEqual(ends.map((event) => event.payload._trackmcp.lifecycle_generation), [1, 2]);
   assert.equal(starts.every((event) => event.duration_ms === 0), true);
   assert.equal(ends.every((event) => Number.isInteger(event.duration_ms) && event.duration_ms >= 0 && event.duration_ms <= 86_400_000), true);
   assert.equal(events.some((event) => JSON.stringify(event).includes("raw-secret")), false);

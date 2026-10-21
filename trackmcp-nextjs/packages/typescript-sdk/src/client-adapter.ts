@@ -524,7 +524,7 @@ export class TrackMCPClientAdapter {
       success,
       is_error: !success,
       ...(errorClass ? { error_class: errorClass } : {}),
-      payload: { _trackmcp: { observation_kind: kind, observation_source: "client" } },
+      payload: { _trackmcp: { observation_kind: kind, observation_source: "client", lifecycle_generation: this.lifecycleGeneration } },
     });
   }
 
