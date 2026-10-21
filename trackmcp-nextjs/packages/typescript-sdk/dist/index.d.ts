@@ -156,8 +156,6 @@ export declare function protocolInputResponseCount(result: Record<string, unknow
 export declare function protocolTaskIdHash(value: Record<string, unknown> | undefined): string | undefined;
 /** Extract only the explicit, bounded task state from a protocol result. */
 export declare function protocolTaskStatus(value: Record<string, unknown> | undefined): "working" | "input_required" | "completed" | "failed" | "cancelled" | "expired" | undefined;
-/** Return only bounded capability names from an initialize result. */
-export declare function protocolCapabilities(value: Record<string, unknown> | undefined): string[];
 export declare function catalogObservation(kind: TrackMCPCatalogKind, result: Record<string, unknown> | undefined): Pick<TrackMCPEvent, "catalog_kind" | "catalog_item_count" | "catalog_item_name_hashes" | "catalog_item_uri_hashes">;
 export declare function interactionEntityObservation(method: string | undefined, params: Record<string, unknown> | undefined): EntityObservation | undefined;
 export type TrackMCPDiagnostics = {

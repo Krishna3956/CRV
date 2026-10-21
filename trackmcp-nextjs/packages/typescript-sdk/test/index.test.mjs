@@ -282,6 +282,34 @@ test("expired pending requests are cleaned up and cannot attach to a later respo
   }
 });
 
+test("transport observer preserves Streamable HTTP, SSE, stdio, and custom kinds", async () => {
+  const received = [];
+  const ingest = http.createServer((request, response) => {
+    let body = "";
+    request.on("data", (chunk) => { body += chunk; });
+    request.on("end", () => { received.push(JSON.parse(body)); response.writeHead(200); response.end(); });
+  });
+  await new Promise((resolve) => ingest.listen(0, resolve));
+  class StdioClientTransport { async send() {} }
+  class StreamableHTTPClientTransport { async send() {} }
+  class SSEClientTransport { async send() {} }
+  class VendorTransport { async send() {} }
+  try {
+    for (const [Transport, expected] of [[StdioClientTransport, "stdio"], [StreamableHTTPClientTransport, "streamable_http"], [SSEClientTransport, "sse"], [VendorTransport, "custom"]]) {
+      const rawTransport = new Transport();
+      const server = { connect(transport) { this.transport = transport; transport.onmessage = () => {}; return Promise.resolve(); } };
+      const wrapped = withTrackMCP(server, { apiKey: "tmcp_test", endpoint: `http://127.0.0.1:${ingest.address().port}`, flushIntervalMs: 60000 });
+      await wrapped.connect(rawTransport);
+      server.transport.onmessage({ id: "transport-1", method: "initialize", params: { clientInfo: { name: "transport-test", version: "1" } } });
+      await server.transport.send({ id: "transport-1", result: { protocolVersion: "2025-06-18" } });
+      await wrapped.trackmcp.flush();
+      assert.equal(received.at(-1).events.at(-1).transport, expected);
+    }
+  } finally {
+    ingest.close();
+  }
+});
+
 test("captures bounded semantic results for non-tool protocol requests without response bodies", async () => {
   const received = [];
   const ingest = http.createServer((request, response) => {
