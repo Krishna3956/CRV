@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { classifyTrackMCPOutcome, classifyTrackMCPProtocolSignal, toTrackMCPSemanticEvent } from "./semantic.ts";
+import { classifyTrackMCPOutcome, classifyTrackMCPProtocolSignal, protocolFamilyForMethod, toTrackMCPSemanticEvent } from "./semantic.ts";
 import type { CanonicalTrackMCPEvent } from "./types.ts";
 
 const event = (overrides: Partial<CanonicalTrackMCPEvent> = {}): CanonicalTrackMCPEvent => ({
@@ -83,6 +83,15 @@ test("classifies protocol notifications and subscriptions as lifecycle signals, 
 test("protocol signal classifier is safe for unknown methods", () => {
   assert.equal(classifyTrackMCPProtocolSignal({ mcp_method: "experimental/custom" }), undefined);
   assert.equal(classifyTrackMCPProtocolSignal({ mcp_method: undefined }), undefined);
+});
+
+test("protocol family projection is coarse, explicit, and safe for unknown methods", () => {
+  assert.equal(protocolFamilyForMethod("sampling/createMessage"), "sampling");
+  assert.equal(protocolFamilyForMethod("elicitation/create"), "elicitation");
+  assert.equal(protocolFamilyForMethod("completion/complete"), "completion");
+  assert.equal(protocolFamilyForMethod("tasks/get"), "tasks");
+  assert.equal(protocolFamilyForMethod("notifications/progress"), "notifications");
+  assert.equal(protocolFamilyForMethod("experimental/custom"), undefined);
 });
 
 test("models MCP multi-round-trip result states without conflating stalls and errors", () => {
