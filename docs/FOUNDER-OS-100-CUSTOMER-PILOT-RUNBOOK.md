@@ -159,7 +159,8 @@ and rate-limit false positives.
 
 ## 9. Package publication and clean consumers
 
-The currently published reviewed versions are `@trackmcp/sdk@0.1.2`,
+The currently reviewed TypeScript SDK release candidate is `@trackmcp/sdk@0.1.3`
+(publication must be verified before pilot use),
 `@trackmcp/cli@0.1.4`, and `trackmcp==0.1.4`. Publish only a new reviewed
 version after duplicate-version preflight passes.
 Install those exact registry versions in clean temporary npm and Python
