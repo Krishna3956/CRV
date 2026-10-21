@@ -137,8 +137,9 @@ Before publishing a website/docs/blog change, the release owner records:
 
 - reviewed release SHA and deployment run;
 - pages and routes changed, including redirects and canonical metadata;
-- package versions shown in examples (`@trackmcp/sdk@0.1.2`,
-  `@trackmcp/cli@0.1.4`, `trackmcp==0.1.4` at this review point);
+- package versions shown in examples (`@trackmcp/sdk@0.1.9`,
+  `@trackmcp/cli@0.1.4`, `trackmcp==0.1.5` for the current reviewed release
+  line); historical evidence must be labeled as historical;
 - command validation from a clean consumer where a command is new or changed;
 - screenshot/browser review for desktop setup, docs, device approval, and empty,
   loading, error, and partial-data states;

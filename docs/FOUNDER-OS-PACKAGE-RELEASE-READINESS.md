@@ -44,8 +44,9 @@ package path itself must be unchanged, or a new version must be published.
 | `trackmcp==0.1.4` | PyPI wheel SHA-256 `0ab1a9780450b7ee811884eeebc98969993c1d093b67628c899617bfb36ba0e0`; sdist SHA-256 `b264922d39d4281f5c0a347e72516207761d80720dbd64f14f13dd03696ce22a` | Historical artifact; source changed materially after this publication | Do not use as the current pilot candidate. |
 | `trackmcp==0.1.5` | PyPI publication workflow `39690522301` completed with provenance; wheel SHA-256 `b79ffa8ad638d744ecab121139028ea1a108adf5f48c16fc402bfc0e49724925`; sdist SHA-256 `b3a9070d2116c0d81c1c9c9e53ebea8911866907f668f09dbd08a16bb4268c50`; clean consumer verified version and exports | Current Python source candidate | Publication and artifact gate closed; disposable production activation and first-event evidence remain open. |
 
-The checksums above identify the currently inspected 0.1.4 Python artifacts;
-they do not attest to a future candidate. Re-run this reconciliation against
+The historical 0.1.4 checksums above identify an older Python artifact;
+the current 0.1.5 checksums are recorded in the following row and do not attest
+to a future candidate. Re-run this reconciliation against
 the final candidate SHA immediately before publication and record the new
 immutable versions and checksums in the release manifest.
 
