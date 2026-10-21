@@ -59,6 +59,8 @@ export type TrackMCPEvent = {
   error_code?: number;
   retry_number?: number;
   result_type?: TrackMCPResultType;
+  /** Explicit task lifecycle state; raw task handles remain hash-only. */
+  task_status?: "working" | "input_required" | "completed" | "failed" | "cancelled" | "expired";
   /** Hash/opaque handle linking a stalled request to a retry without storing input values. */
   interaction_id?: string;
   interaction_link_source?: TrackMCPInteractionLinkSource;

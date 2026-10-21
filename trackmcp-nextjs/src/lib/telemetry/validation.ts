@@ -203,6 +203,7 @@ export function normalizeTrackMCPEvent(value: unknown): EventValidationResult {
   }
   if (event.error_code !== undefined && event.error_code !== null && (!Number.isInteger(event.error_code) || !Number.isFinite(event.error_code))) return { ok: false, reason: "error_code must be an integer", eventId };
   if (event.result_type !== undefined && event.result_type !== null && !RESULT_TYPES.includes(event.result_type as TrackMCPResultType)) return { ok: false, reason: "result_type is unsupported", eventId };
+  if (event.task_status !== undefined && event.task_status !== null && !["working", "input_required", "completed", "failed", "cancelled", "expired"].includes(event.task_status as string)) return { ok: false, reason: "task_status is unsupported", eventId };
   if (event.result_type === "task" && (typeof event.task_id !== "string" || !event.task_id)) return { ok: false, reason: "task result_type requires task_id", eventId };
   if (event.interaction_link_source !== undefined && event.interaction_link_source !== null && !INTERACTION_LINK_SOURCES.includes(event.interaction_link_source as TrackMCPInteractionLinkSource)) return { ok: false, reason: "interaction_link_source is unsupported", eventId };
   if (event.interaction_id !== undefined && event.interaction_id !== null && event.interaction_link_source === "missing") return { ok: false, reason: "interaction_link_source cannot be missing when interaction_id is present", eventId };
