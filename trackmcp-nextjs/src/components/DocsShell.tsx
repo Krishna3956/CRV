@@ -28,6 +28,7 @@ const groups = [
     items: [
       { t: "REST API", href: "/docs/api" },
       { t: "Configuration", href: "/docs/reference" },
+      { t: "OpenTelemetry", href: "/docs/opentelemetry" },
       { t: "Troubleshooting", href: "/docs#troubleshooting" },
     ],
   },
@@ -46,6 +47,7 @@ export function DocsShell({
     "/docs/python": "Python SDK",
     "/docs/api": "REST API",
     "/docs/reference": "Configuration Reference",
+    "/docs/opentelemetry": "OpenTelemetry",
   };
   const breadcrumbSchema = breadcrumbJsonLd([
     { name: "Home", path: "/" },

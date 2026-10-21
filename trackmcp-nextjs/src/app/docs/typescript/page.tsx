@@ -157,6 +157,22 @@ redactEvent: (event) => event // return null to drop this event
         </Para>
       </DocSection>
 
+      <DocSection id="account-identity" title="Optional account identity">
+        <Para>
+          If your server has already verified a tenant or account claim, pass a synchronous
+          <Inline>accountIdResolver</Inline>. TrackMCP hashes the bounded result locally into
+          <Inline>account_key</Inline>; it never parses bearer tokens or infers identity from
+          MCP client metadata. Resolver failures are fail-open and remain unresolved.
+        </Para>
+        <Code>{`withTrackMCP(server, {
+  apiKey: process.env.TRACKMCP_KEY!,
+  accountIdResolver: ({ sessionId }) => verifiedTenantForSession(sessionId),
+})
+
+// Return only a verified, stable tenant/account handle.
+// Never return emails, tokens, URLs, prompts, completions, or raw user IDs.`}</Code>
+      </DocSection>
+
       <DocSection title="Optional correlation">
         <Para>
           Correlation is off by default and does not mutate MCP schemas. External mode accepts a

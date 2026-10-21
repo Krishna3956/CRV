@@ -508,6 +508,14 @@ test("dashboard panels expose concise information hints and universal pointer af
   assert.match(globalsSource, /\.dashboard-shell button:not\(:disabled\)/);
 });
 
+test("Setup makes server-side account identity configuration discoverable", () => {
+  assert.match(source, /Show resolver-linked account activity/);
+  assert.match(source, /accountIdResolver/);
+  assert.match(source, /account_id_resolver/);
+  assert.match(source, /docs\/typescript#account-identity/);
+  assert.match(source, /Without a resolver, activity remains visible but is counted as unresolved/);
+});
+
 test("Setup exposes an actionable OTLP endpoint and guide", () => {
   assert.match(source, /https:\/\/trackmcp\.com\/api\/v1\/otel\/v1\/traces/);
   assert.match(source, /href="\/docs\/opentelemetry"/);

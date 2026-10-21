@@ -4532,6 +4532,24 @@ function SetupView({
           )}
         </Panel>
       </div>
+      <section className="mt-6 border border-line bg-white p-5 sm:p-6" aria-labelledby="setup-identity-title">
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div>
+            <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-brand-strong">Optional identity</p>
+            <h2 id="setup-identity-title" className="mt-1 text-[15px] font-semibold text-ink">Show resolver-linked account activity</h2>
+            <p className="mt-1 max-w-2xl text-xs leading-relaxed text-muted">
+              Configure this in the server-side SDK, not in the browser. Return an already-validated tenant or account handle; TrackMCP hashes it before storage and never displays the raw value.
+            </p>
+          </div>
+          <a href={language === "TypeScript" ? "/docs/typescript#account-identity" : "/docs/python#account-identity"} className="inline-flex cursor-pointer items-center gap-1 text-xs font-semibold text-brand-strong hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand">
+            View {language} example <ArrowRight size={12} aria-hidden="true" />
+          </a>
+        </div>
+        <pre className="mt-4 overflow-x-auto rounded-md bg-[#101713] p-4 font-mono text-[11px] leading-relaxed text-white"><code>{language === "TypeScript"
+          ? `withTrackMCP(server, {\n  apiKey: process.env.TRACKMCP_KEY!,\n  accountIdResolver: ({ sessionId }) => verifiedTenantForSession(sessionId),\n});`
+          : `with_trackmcp(server,\n    api_key=os.environ["TRACKMCP_KEY"],\n    account_id_resolver=lambda context: context.get("tenant_id"),\n)`}</code></pre>
+        <p className="mt-3 text-[11px] leading-relaxed text-faint">Only use a stable, non-secret identifier already verified by your application. Do not return emails, tokens, URLs, prompts, completions, or raw user IDs. Without a resolver, activity remains visible but is counted as unresolved.</p>
+      </section>
       <section
         className="mt-6 border border-line bg-white p-5 sm:p-6"
         aria-labelledby="setup-data-flow"
