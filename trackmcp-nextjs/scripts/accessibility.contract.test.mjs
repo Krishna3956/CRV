@@ -27,3 +27,7 @@ test("accessibility audit does not hide focus or use inaccessible placeholder co
   assert.doesNotMatch(device, /href="#"/);
   assert.doesNotMatch(dashboard, /href="#"/);
 });
+
+test("all navigable links expose the pointer affordance", () => {
+  assert.match(css, /button:not\(:disabled\),\s*\[href\],\s*\[role="button"\],\s*summary\s*\{[\s\S]*cursor:\s*pointer/);
+});
