@@ -5,6 +5,10 @@ const repoRoot = path.resolve(process.cwd(), "..");
 
 const EXCLUDED = [
   /(^|\/)(?:campaigns|node_modules|build|\.next(?:-[^/]+)?)(\/|$)/,
+  // Local handoff notes and inspection output are deliberately kept outside
+  // the product candidate. They may be present in a working checkout while a
+  // release is being audited and must never become review-required by accident.
+  /^(?:docs\/codex-handoff|tmp)(\/|$)/,
   /(?:^|\/)(?:[^/]+\.(?:csv|tsbuildinfo))$/i,
   /(?:^|\/)(?:\.env(?:\.|$)|deploy\/\.env\.deploy$)/,
   /(?:^|\/)AGENTS\.md$/i,
