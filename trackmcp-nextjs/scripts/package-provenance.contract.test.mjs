@@ -10,7 +10,7 @@ const plan = await readFile(resolve(root, "docs/FOUNDER-OS-100-CUSTOMER-PILOT-MA
 test("package readiness distinguishes local package checks from registry publication", () => {
   for (const term of [
     "`@trackmcp/sdk@0.1.4`",
-    "Must receive a new approved version, publication, provenance, and exact-registry consumer test",
+    "SDK publication gate closed; disposable production activation and first-event evidence remain open",
     "`@trackmcp/cli@0.1.4`",
     "disposable production activation proof",
     "`trackmcp==0.1.4`",
@@ -19,8 +19,9 @@ test("package readiness distinguishes local package checks from registry publica
   ]) assert.match(readiness, new RegExp(term.replace(/[()[\].+?^$|{}\\]/g, "\\$&")));
 });
 
-test("master plan keeps changed SDK publication and final claims as open gates", () => {
+test("master plan closes verified SDK publication but keeps activation gates open", () => {
   assert.match(plan, /TypeScript and Python SDK source paths differ/);
-  assert.match(plan, /\[ \] Publish changed package code only under a new approved version\./);
+  assert.match(plan, /\[x\] Publish changed TypeScript SDK code only under a new approved version/);
+  assert.match(plan, /disposable production activation\/first-event/);
   assert.match(plan, /\[ \] Repeat the public-claim review against the final published package/);
 });
