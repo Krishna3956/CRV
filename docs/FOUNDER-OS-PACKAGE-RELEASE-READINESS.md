@@ -17,8 +17,9 @@ The current local source manifests are deliberately distinct candidate versions:
 They were selected after a registry preflight found the immediately preceding
 versions already published. The SDK 0.1.4 publication is verified below; the
 The SDK 0.1.5 publication completed with provenance and an exact clean-consumer
-check in publish workflow `39655313001`; the current source candidate is 0.1.6
-and must be published before this release line is customer-ready. The publish workflow must re-check any
+check in publish workflow `39655313001`. The SDK 0.1.6 publication completed
+with provenance and an exact clean-consumer check in publish workflow
+`39661187163`; the publish workflow must re-check any
 newly selected version immediately before upload.
 Never reuse an already-published version, and bump each package with its
 lockfile/artifact metadata together.
@@ -34,7 +35,7 @@ package path itself must be unchanged, or a new version must be published.
 | Package | Published evidence inspected | Candidate comparison | Release decision |
 | --- | --- | --- | --- |
 | `@trackmcp/sdk@0.1.5` | npm publication, provenance, exact integrity, and clean consumer export check verified by publish workflow `39655313001`; integrity `sha512-jFcqNL1HQP3JO1fHnHOK7j0XIkh93H8vOkakis+NtYYb9nMzS3xe6d6Bq9F2hZWixGo1AfqvAR6cN6+Uu6d5Eg==` | Historical release; current source adds official SSE adapter support and requires 0.1.6 | Historical publication remains verified; do not use it as the current source candidate. |
-| `@trackmcp/sdk@0.1.6` | Pending publication after CI and exact clean-consumer check | Current source candidate adds official `SSEClientTransport` support | Must receive provenance publication and registry consumer evidence before pilot use. |
+| `@trackmcp/sdk@0.1.6` | npm publication, provenance, exact integrity, and clean consumer export check verified by publish workflow `39661187163`; integrity `sha512-ecKpqhOQu1Qkk8uikMyHFnLypbv5z0amUk54bxwI7ps9UWFlAG0Si5wRY5PCzPephlEzrBQvjGAAqWKmNTr4tQ==` | Merged candidate `372603ad468c58a6ddae61ec98970967fd0cc137` adds official `SSEClientTransport` support | SDK publication gate closed for this source change; disposable production activation and first-event evidence remain open. |
 | `@trackmcp/cli@0.1.4` | npm `gitHead` `4d704173d807ff2aded8e5bb6c0051e9df0a093a`; npm integrity retained by the registry | No files under `packages/cli` changed since that commit | The published CLI may be used only after its separate disposable production activation proof; do not imply the whole product is released. |
 | `trackmcp==0.1.4` | PyPI wheel SHA-256 `0ab1a9780450b7ee811884eeebc98969993c1d093b67628c899617bfb36ba0e0`; sdist SHA-256 `b264922d39d4281f5c0a347e72516207761d80720dbd64f14f13dd03696ce22a` | The local Python runtime source, tests, and packaging metadata have changed after the reviewed baseline | Must receive a new approved version, PyPI upload, artifact check, and exact-registry consumer test before pilot use. |
 
