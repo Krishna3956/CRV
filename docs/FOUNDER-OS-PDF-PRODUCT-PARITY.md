@@ -57,3 +57,5 @@ Source of truth: `/Users/krishna/Downloads/Founder OS.pdf` (134 rendered pages; 
 | 2026-10-21 | Created an authorized non-revoked UAT key in workspace `504e6aca-9558-47e8-bfe1-0d8a6accf9c5`; synthetic fixture accepted 6 legacy/client events and 3 server-bound events through the ingest route. Key value is intentionally not recorded. |
 | 2026-10-21 | Live dashboard UAT verified server-bound tool counts (4 calls, 25% error rate), feature rows (`search_account`, `create_opportunity`), latency, bounded Journey paths, outcome insufficiency guards, and Resources & Prompts evidence. |
 | 2026-10-21 | Official MCP release research verified `2026-07-28` as current; added explicit protocol compatibility docs and called out the pinned TypeScript v1/legacy adapter boundary rather than implying modern v2 support. |
+| 2026-10-21 | PR #152 merged; main CI passed Go, .NET, and web/JavaScript lanes; App Runner deployment run `39568395729` completed successfully. |
+| 2026-10-21 | Live production smoke verified `/docs/protocol`, its navigation/CTAs, Setup’s TypeScript/Python/Go/.NET selectors, Go and .NET identity links, and the existing OTLP guide path. |
