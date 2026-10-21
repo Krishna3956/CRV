@@ -61,6 +61,16 @@ function boundedString(value: unknown): string | undefined {
 
 type ProtocolMetadata = Record<string, boolean | number | string>;
 
+function protocolFamily(method: string | undefined): string | undefined {
+  if (!method) return undefined;
+  if (method.startsWith("sampling/")) return "sampling";
+  if (method.startsWith("elicitation/")) return "elicitation";
+  if (method.startsWith("completion/")) return "completion";
+  if (method.startsWith("tasks/")) return "tasks";
+  if (method === "notifications/progress" || method === "notifications/cancelled") return "control_signal";
+  return undefined;
+}
+
 /**
  * Keep modern MCP freshness and subscription signals observable without
  * copying cursors, subscription identifiers, or any response body. These
@@ -69,6 +79,8 @@ type ProtocolMetadata = Record<string, boolean | number | string>;
  */
 export function protocolResponseMetadata(method: string | undefined, result: Message | undefined): ProtocolMetadata {
   const metadata: ProtocolMetadata = {};
+  const family = protocolFamily(method);
+  if (family) metadata.protocol_family = family;
   if (!result) return metadata;
   if (method === "initialize" && isRecord(result.capabilities)) {
     metadata.capability_names = Object.keys(result.capabilities)
@@ -87,8 +99,11 @@ export function protocolResponseMetadata(method: string | undefined, result: Mes
 }
 
 function protocolRequestMetadata(method: string | undefined): ProtocolMetadata {
-  if (method === "subscriptions/listen") return { subscription_action: "listen_requested" };
-  return {};
+  const metadata: ProtocolMetadata = {};
+  const family = protocolFamily(method);
+  if (family) metadata.protocol_family = family;
+  if (method === "subscriptions/listen") metadata.subscription_action = "listen_requested";
+  return metadata;
 }
 
 function protocolNotificationMetadata(method: string): ProtocolMetadata {

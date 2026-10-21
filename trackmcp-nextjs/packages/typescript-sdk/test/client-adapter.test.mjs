@@ -14,6 +14,14 @@ import { TrackMCPClient } from "../dist/index.js";
 const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 const REPEAT_WINDOW_MS = 5 * 60 * 1000;
 
+test("protocol family metadata classifies bounded modern MCP methods", () => {
+  assert.equal(protocolResponseMetadata("sampling/createMessage", { resultType: "input_required" }).protocol_family, "sampling");
+  assert.equal(protocolResponseMetadata("elicitation/create", { resultType: "complete" }).protocol_family, "elicitation");
+  assert.equal(protocolResponseMetadata("completion/complete", {}).protocol_family, "completion");
+  assert.equal(protocolResponseMetadata("tasks/get", { status: "working" }).protocol_family, "tasks");
+  assert.equal(protocolResponseMetadata("private/method", {}).protocol_family, undefined);
+});
+
 test("pins the MCP dependency and exposes the adapter only through the Node export condition", async () => {
   const packageJson = JSON.parse(await readFile(new URL("../package.json", import.meta.url), "utf8"));
   assert.equal(packageJson.peerDependencies["@modelcontextprotocol/sdk"], "1.32.1");
