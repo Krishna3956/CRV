@@ -268,7 +268,30 @@ export async function runMcpTester(options: McpTesterOptions): Promise<McpTester
       if (!tasksResult || (tasksResult.tasks !== undefined && !Array.isArray(tasksResult.tasks))) {
         addFinding("modern_tasks_probe_failed", "protocol", "warning", "The server advertised Tasks, but its bounded tasks/list response was unavailable or malformed; task lifecycle support remains unverified.", "modern_discover");
       } else {
-        addFinding("modern_tasks_probe_observed", "protocol", "info", "The advertised Tasks capability accepted a bounded tasks/list probe. Task creation, polling, cancellation, and completion remain outside this probe.", "modern_discover");
+        const firstTask = Array.isArray(tasksResult.tasks) && isRecord(tasksResult.tasks[0]) ? tasksResult.tasks[0] : undefined;
+        const taskId = firstTask && (typeof firstTask.taskId === "string" ? firstTask.taskId : typeof firstTask.task_id === "string" ? firstTask.task_id : undefined);
+        if (taskId && taskId.length <= limits.maxRenderedStringLength) {
+          const taskGet = await sendMcpRequest({
+            fetch: fetchImplementation,
+            endpoint: endpointValidation.requestUrl,
+            customHeaders: [...headerValidation.entries, ["mcp-method", "tasks/get"]],
+            protocolVersion: MODERN_MCP_PROTOCOL_VERSION,
+            requestId: 3,
+            body: { jsonrpc: "2.0", id: 3, method: "tasks/get", params: { taskId } },
+            expectsResponse: true,
+            limits,
+            deadlineMs: startedMs + limits.maxTotalDurationMs,
+            signal: options.signal,
+            now,
+            record,
+            phase: "modern_discover",
+          });
+          const taskGetResult = taskGet.ok && isRecord(taskGet.envelope?.result) ? taskGet.envelope.result : undefined;
+          const taskStatus = taskGetResult && typeof taskGetResult.status === "string" ? taskGetResult.status : undefined;
+          if (!taskGetResult || !taskStatus) addFinding("modern_tasks_get_invalid", "protocol", "warning", "The bounded task handle was listed, but tasks/get did not return an explicit status.", "modern_discover");
+          else addFinding("modern_tasks_get_observed", "protocol", "info", "The bounded task handle returned an explicit status from tasks/get. Cancellation and completion transitions remain outside this probe.", "modern_discover");
+        }
+        addFinding("modern_tasks_probe_observed", "protocol", "info", "The advertised Tasks capability accepted a bounded tasks/list probe. Task creation, cancellation, and completion transitions remain outside this probe.", "modern_discover");
       }
     }
     if (state.capabilities.tools) {
