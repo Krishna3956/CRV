@@ -13,6 +13,8 @@ import {
   protocolInputRequestCount,
   protocolInputResponseCount,
   protocolResultType,
+  protocolTaskIdHash,
+  protocolTaskStatus,
 } from "./index.js";
 
 export type TrackMCPClientTransportLabel = "stdio" | "streamable_http" | "sse";
@@ -427,6 +429,8 @@ export class TrackMCPClientAdapter {
       }
       const session = this.sessionFields();
       if (!pending.toolName) {
+        const taskIdHash = protocolTaskIdHash(result);
+        const taskStatus = protocolTaskStatus(result);
         this.emit({
           event_type: "protocol",
           transport: this.options.transport,
@@ -439,6 +443,8 @@ export class TrackMCPClientAdapter {
           is_error: failed,
           error_code: isRecord(item.error) && typeof item.error.code === "number" ? item.error.code : undefined,
           result_type: protocolResultType(result),
+          ...(taskIdHash ? { task_id: taskIdHash } : {}),
+          ...(taskStatus ? { task_status: taskStatus } : {}),
           input_request_count: protocolInputRequestCount(result),
           input_response_count: protocolInputResponseCount(result),
           ...(pending.method && ["tools/list", "resources/list", "resources/templates/list", "prompts/list"].includes(pending.method) ? catalogObservation(
@@ -448,7 +454,7 @@ export class TrackMCPClientAdapter {
           ...session,
           client_name: this.clientName,
           client_version: this.clientVersion,
-          payload: { _trackmcp: { observation_kind: "protocol_response", observation_source: "client", ...protocolResponseMetadata(pending.method, result) } },
+          payload: { _trackmcp: { observation_kind: "protocol_response", observation_source: "client", ...protocolResponseMetadata(pending.method, result), ...(taskStatus ? { task_status: taskStatus } : {}) } },
         }, pending.correlation);
         continue;
       }
