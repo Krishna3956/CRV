@@ -41,6 +41,11 @@ test("App Runner deployment performs a redacted read-only smoke after RUNNING", 
   assert.match(workflow, /TRACKMCP_PRODUCTION_SMOKE_CONFIRM=I_UNDERSTAND_PRODUCTION_SMOKE/);
   assert.match(workflow, /TRACKMCP_SMOKE_CANDIDATE_SHA="\$TRACKMCP_DEPLOY_SHA"/);
   assert.match(workflow, /npm run smoke:production-pilot/);
+  assert.match(workflow, /Audit runtime safety flags/);
+  assert.match(workflow, /RuntimeEnvironmentVariables/);
+  assert.match(workflow, /TRACKMCP_RATE_LIMIT_MODE is invalid/);
+  assert.match(workflow, /fact writes require TRACKMCP_RATE_LIMIT_MODE=supabase/);
+  assert.match(workflow, /trackmcp-runtime-flags\.json/);
   assert.match(workflow, /Upload redacted production smoke evidence/);
   assert.doesNotMatch(workflow, /TRACKMCP_SMOKE_ALLOW_WRITE=true/);
 });
