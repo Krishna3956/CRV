@@ -20,7 +20,7 @@ just because a README or marketing page mentions it.
 | Public docs parity | Added Go, .NET, Authentication/OAuth, and clearly named Transport Observer documentation paths | Implemented in current change | Check links, snippets, and package-version claims in CI |
 | Node client protocol observer | Client adapter now emits bounded request/response/notification observations for every identified non-tool MCP request, including catalog counts, task/MRTR result discriminators, and list-changed/progress signals; arguments, URIs, prompt names, and result bodies remain excluded | Implemented locally with regression coverage | Deploy the SDK package and run a production-like client fixture before claiming live coverage |
 | Modern cache and subscription metadata | TypeScript client adapter emits bounded `next_cursor_present`, `cache_ttl_ms`, `cache_scope`, `subscriptions/listen` request/acknowledgement markers, and list-change/progress/cancellation signal metadata without retaining cursor or subscription values | Implemented locally with regression coverage | Publish the SDK package and capture the metadata through a real modern-protocol fixture |
-| Refresh and task transition projection | Accepted ingest now enqueues bounded refresh work by default; explicit task transition history is persisted by the service-role worker by default, with explicit `false` rollback flags | Implemented locally with worker-handler coverage | Apply/postflight migrations and capture a non-empty production worker batch |
+| Refresh and task transition projection | Accepted ingest now enqueues bounded refresh work by default; explicit task transition history is persisted by the service-role worker by default, with explicit `false` rollback flags; the bounded projection now selects `task_id` and `payload` required to derive hashed transitions | Implemented and production-verified for a non-empty worker batch | Keep the worker smoke in recurring release validation; complete end-to-end ingest-key fixture coverage |
 | Transport disconnect evidence | Node client adapter now drains in-flight tool and non-tool requests on transport error/close into bounded `transport_error` observations before ending the session | Implemented locally with regression coverage | Run production-like Stdio and Streamable HTTP disconnect/reconnect fixtures |
 | Connection-key scope | API keys can carry optional bounded service/environment scopes; ingest rejects mismatched labels with a tenant-safe 403 while legacy NULL-scoped keys remain workspace-wide | Implemented and deployed; migration applied, read-only postflight added, release-gate/tenant-isolation coverage passed; production postflight observed 49 active workspace-wide keys, 0 invalid scopes; live smoke accepted a matching event, rejected a mismatched label with 403, and the authenticated export showed the matching event | Keep scope behavior in the recurring release smoke and rotate/revoke the temporary pilot key under the operator’s key-retention policy |
 
@@ -62,3 +62,14 @@ just because a README or marketing page mentions it.
   endpoint returned HTTP 200 with `accepted_spans: 1`, and the authenticated
   export returned the mapped `otel-json-pilot`/`current_lookup` event. The
   receiver continues to advertise protobuf/gRPC as unsupported.
+- 2026-10-21: PR #165 fixed a production projection omission: the refresh
+  handler had not selected `task_id` or `payload`, so valid task evidence was
+  reduced to a pending transport fact and no transition row could be written.
+  The full 116-suite release gate passed, CI and App Runner deployment for
+  `3b209533988d4ef913120e0e46d0c65abd0d5930` succeeded, and worker run
+  `39587728104` processed a directly queued production test event. The
+  read-only postflight returned `transitions=1`, `working=1`, `hashed=true`
+  for `task-postdeploy-direct-20261021`. The direct database fixture proves the
+  deployed worker/read-model path; an authenticated ingest-key fixture remains
+  a separate follow-up because the current clipboard key was rejected by the
+  deployed ingest boundary.
