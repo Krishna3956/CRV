@@ -166,8 +166,10 @@ async function registryChecks() {
   const wheel = files.find((file) => file.packagetype === "bdist_wheel");
   const sdist = files.find((file) => file.packagetype === "sdist");
   if (!wheel?.digests?.sha256 || !sdist?.digests?.sha256) fail(`PyPI checksums missing for ${name}==${version}`);
-  const expectedWheel = process.env.TRACKMCP_EXPECTED_PYPI_WHEEL_SHA256 || "";
-  const expectedSdist = process.env.TRACKMCP_EXPECTED_PYPI_SDIST_SHA256 || "";
+  const expectedWheel = process.env.TRACKMCP_EXPECTED_PYPI_WHEEL_SHA256
+    || (pythonPackage === "trackmcp@0.1.5" ? "b79ffa8ad638d744ecab121139028ea1a108adf5f48c16fc402bfc0e49724925" : "");
+  const expectedSdist = process.env.TRACKMCP_EXPECTED_PYPI_SDIST_SHA256
+    || (pythonPackage === "trackmcp@0.1.5" ? "b3a9070d2116c0d81c1c9c9e53ebea8911866907f668f09dbd08a16bb4268c50" : "");
   if (expectedWheel && wheel.digests.sha256 !== expectedWheel) fail(`PyPI wheel checksum mismatch for ${name}==${version}`);
   if (expectedSdist && sdist.digests.sha256 !== expectedSdist) fail(`PyPI sdist checksum mismatch for ${name}==${version}`);
   checks.push({ label: `PyPI ${name}==${version}`, status: response.status, wheel_sha256_present: true, sdist_sha256_present: true });
