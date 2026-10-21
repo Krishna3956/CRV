@@ -3715,7 +3715,11 @@ function IncidentCard({
           {example ? "View sample evidence" : "Open Evidence"} <ChevronRight size={13} />
         </button>
       </div>
-      <div className="mt-4 grid gap-3 text-xs text-muted sm:grid-cols-2 lg:grid-cols-3">
+      <details className="mt-3 border-t border-line/80 pt-3">
+        <summary className="cursor-pointer text-xs font-semibold text-brand-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand">
+          Show incident detail <span className="ml-1 font-normal text-faint">· {incidentVolumeLabel(incident)} affected</span>
+        </summary>
+        <div className="mt-3 grid gap-3 text-xs text-muted sm:grid-cols-2 lg:grid-cols-3">
         <p>
           <span className="font-semibold text-ink">Scope:</span>{" "}
           {incident.scope.tool_name || "All capabilities"}
@@ -3748,8 +3752,8 @@ function IncidentCard({
               ? ` · resolved ${incidentDateLabel(incident.resolved_at)}`
               : ""}
         </p>
-      </div>
-      <div className="mt-3 border-t border-line/80 pt-3 text-[11px] text-muted">
+        </div>
+        <div className="mt-3 border-t border-line/80 pt-3 text-[11px] text-muted">
         <p>
           <span className="font-semibold text-ink">Evidence basis:</span>{" "}
           {incident.data_status === "sufficient"
@@ -3767,7 +3771,8 @@ function IncidentCard({
               ? `Delivered ${incidentDateLabel(incident.last_delivered_at)}.`
               : "Not included in this response."}
         </p>
-      </div>
+        </div>
+      </details>
     </article>
   );
 }
