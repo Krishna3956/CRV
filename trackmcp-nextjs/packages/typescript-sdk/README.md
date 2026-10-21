@@ -34,7 +34,7 @@ import { TrackMCPClientAdapter } from "@trackmcp/sdk/client-adapter";
 const adapter = new TrackMCPClientAdapter({
   apiKey: process.env.TRACKMCP_KEY!,
   service: "my-mcp-client",
-  transport: "stdio", // or "streamable_http"
+  transport: "stdio", // or "streamable_http" or "sse"
 });
 const transport = new StdioClientTransport({ command: "my-mcp-server" });
 const client = new Client({ name: "my-host", version: "1.0.0" });

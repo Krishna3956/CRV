@@ -31,7 +31,7 @@ Authorization: Bearer $TRACKMCP_KEY
       <Para>The MCP tester can issue a bounded 2026-07-28 discovery request and report the negotiated version. The published TypeScript SDK currently pins the official v1 SDK and therefore remains a legacy/2025-era wrapper; use the tester and the direct ingest contract for modern protocol verification until a v2 SDK adapter is released.</Para>
     </DocSection>
     <DocSection title="Transport matrix">
-      <Para>Native server instrumentation is recommended for complete semantics. The Node client adapter supports only <Inline>StdioClientTransport</Inline> and <Inline>StreamableHTTPClientTransport</Inline> from the pinned v1 SDK. OTLP/HTTP JSON is supported as an interoperability path. Protobuf/gRPC OTLP, arbitrary browser/Edge interception, and generic proxying are not supported in this release.</Para>
+      <Para>Native server instrumentation is recommended for complete semantics. The Node client adapter supports the official <Inline>StdioClientTransport</Inline>, <Inline>StreamableHTTPClientTransport</Inline>, and <Inline>SSEClientTransport</Inline> classes from the pinned v1 SDK. OTLP/HTTP JSON is supported as an interoperability path. Protobuf/gRPC OTLP, arbitrary browser/Edge interception, and generic proxying are not supported in this release.</Para>
     </DocSection>
     <DocSection title="What is not inferred">
       <Para>TrackMCP does not infer a customer from clientInfo, does not parse customer OAuth bearer tokens, does not infer workflow completion from sessions, and does not classify a missing event as abandonment. Configure a resolver for already-verified tenant identity and emit explicit workflow/task outcomes when those semantics matter.</Para>

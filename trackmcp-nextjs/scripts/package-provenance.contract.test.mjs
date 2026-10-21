@@ -10,7 +10,8 @@ const normalizedReadiness = readiness.replace(/\s+/g, " ");
 
 test("package readiness distinguishes local package checks from registry publication", () => {
   for (const term of [
-    "`@trackmcp/sdk@0.1.5`",
+    "`@trackmcp/sdk@0.1.6`",
+    "current source candidate is 0.1.6",
     "SDK 0.1.5 publication completed with provenance and an exact clean-consumer check",
     "`@trackmcp/cli@0.1.4`",
     "disposable production activation proof",

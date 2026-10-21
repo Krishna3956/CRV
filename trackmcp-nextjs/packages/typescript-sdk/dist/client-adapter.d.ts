@@ -1,6 +1,6 @@
 import type { Transport } from "@modelcontextprotocol/sdk/shared/transport.js";
 import { type TrackMCPEventHook, type TrackMCPOptions, type TrackMCPCorrelationOptions } from "./index.js";
-export type TrackMCPClientTransportLabel = "stdio" | "streamable_http";
+export type TrackMCPClientTransportLabel = "stdio" | "streamable_http" | "sse";
 export type TrackMCPClientSessionSource = "protocol" | "transport_generated" | "external";
 export type TrackMCPClientSession = {
     id: string;

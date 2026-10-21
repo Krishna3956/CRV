@@ -8,6 +8,7 @@ import test from "node:test";
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { StdioClientTransport } from "@modelcontextprotocol/sdk/client/stdio.js";
 import { StreamableHTTPClientTransport } from "@modelcontextprotocol/sdk/client/streamableHttp.js";
+import { SSEClientTransport } from "@modelcontextprotocol/sdk/client/sse.js";
 import { TrackMCPClientAdapter, protocolResponseMetadata } from "../dist/client-adapter.js";
 import { TrackMCPClient } from "../dist/index.js";
 
@@ -62,9 +63,12 @@ test("frontend Next.js build cannot include the Node-only adapter", async () => 
   }
 });
 
-test("rejects structurally similar unsupported transports", () => {
+test("accepts the selected official SSE transport and rejects mismatches", () => {
   const adapter = new TrackMCPClientAdapter({ apiKey: "tmcp_test", service: "adapter-test", transport: "stdio" });
-  assert.throws(() => adapter.wrapTransport({ start() {}, send() {}, close() {} }), /official StdioClientTransport/);
+  assert.throws(() => adapter.wrapTransport(new SSEClientTransport(new URL("https://example.test/mcp"))), /selected official/);
+  const sseAdapter = new TrackMCPClientAdapter({ apiKey: "tmcp_test", service: "adapter-test", transport: "sse" });
+  const raw = new SSEClientTransport(new URL("https://example.test/mcp"));
+  assert.equal(sseAdapter.wrapTransport(raw), sseAdapter.wrapTransport(raw));
 });
 
 test("rejects the Edge runtime marker before opening a capture path", () => {
