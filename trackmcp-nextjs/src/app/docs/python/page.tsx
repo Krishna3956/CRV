@@ -121,6 +121,23 @@ redact_event=lambda event: event  # return None to drop an event
         </Para>
       </DocSection>
 
+      <DocSection id="account-identity" title="Optional account identity">
+        <Para>
+          If your application has already verified a tenant or account claim, pass
+          <Inline>account_id_resolver</Inline>. TrackMCP hashes the bounded result locally
+          before storage and labels failures as unresolved; it never parses bearer tokens or
+          infers identity from MCP client metadata.
+        </Para>
+        <Code>{`with_trackmcp(
+    server,
+    api_key=os.environ["TRACKMCP_KEY"],
+    account_id_resolver=lambda context: context.get("tenant_id"),
+)
+
+# Return only a verified, stable tenant/account handle.
+# Never return emails, tokens, URLs, prompts, completions, or raw user IDs.`}</Code>
+      </DocSection>
+
       <DocSection title="Optional correlation">
         <Para>
           Correlation is off by default and never changes MCP schemas. External mode accepts a
