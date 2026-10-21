@@ -1,0 +1,46 @@
+name: Authenticated production smoke
+
+on:
+  workflow_dispatch:
+    inputs:
+      base_url:
+        description: "HTTPS App Runner or app origin to verify"
+        required: true
+        default: "https://app.trackmcp.com"
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: authenticated-production-smoke
+  cancel-in-progress: false
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      TRACKMCP_AUTH_SMOKE_CONFIRM: I_UNDERSTAND_PRODUCTION_AUTH_SMOKE
+      TRACKMCP_AUTH_SMOKE_BASE_URL: ${{ inputs.base_url }}
+      TRACKMCP_AUTH_SMOKE_KEY_A: ${{ secrets.TRACKMCP_AUTH_SMOKE_KEY_A }}
+      TRACKMCP_AUTH_SMOKE_KEY_B: ${{ secrets.TRACKMCP_AUTH_SMOKE_KEY_B }}
+      TRACKMCP_AUTH_SMOKE_WORKSPACE_A: ${{ secrets.TRACKMCP_AUTH_SMOKE_WORKSPACE_A }}
+      TRACKMCP_AUTH_SMOKE_WORKSPACE_B: ${{ secrets.TRACKMCP_AUTH_SMOKE_WORKSPACE_B }}
+      TRACKMCP_AUTH_SMOKE_REVOKED_KEY: ${{ secrets.TRACKMCP_AUTH_SMOKE_REVOKED_KEY }}
+      TRACKMCP_AUTH_SMOKE_REPORT: ${{ runner.temp }}/trackmcp-production-auth-smoke.json
+    steps:
+      - name: Check out exact release source
+        uses: actions/checkout@v4
+
+      - name: Run read-only authenticated smoke
+        working-directory: trackmcp-nextjs
+        run: node scripts/production-auth-smoke.mjs
+
+      - name: Upload redacted authenticated smoke evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: production-auth-smoke-${{ github.sha }}
+          path: ${{ runner.temp }}/trackmcp-production-auth-smoke.json
+          if-no-files-found: warn
