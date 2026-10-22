@@ -118,9 +118,14 @@ test("release notes describe the CLI activation boundary without claiming browse
 
 test("brand logo links remove decoration while retaining a visible keyboard focus ring", async () => {
   const logo = await source("src/components/TrackMCPLogo.tsx");
+  const css = await source("src/app/globals.css");
   assert.match(logo, /no-underline/);
   assert.match(logo, /focus-visible:ring-2/);
   assert.doesNotMatch(logo, /focus-visible:underline/);
+  assert.match(css, /\.trackmcp-logo:hover/);
+  assert.match(css, /\.trackmcp-logo:active/);
+  assert.match(css, /\.trackmcp-logo:visited/);
+  assert.match(css, /text-decoration: none !important/);
 });
 
 test("trust pages avoid promising unshipped retention and export controls", async () => {
