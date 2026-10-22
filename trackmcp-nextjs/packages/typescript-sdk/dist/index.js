@@ -496,6 +496,20 @@ export class TrackMCPClient {
     workflow(name, status, payload = {}) {
         this.capture({ event_type: "workflow", started_at: new Date().toISOString(), payload: { name: "workflow", workflow_name: name, status, ...payload } });
     }
+    /** Record an allowlisted protocol notification without payload values. */
+    recordProtocolSignal(signal, method, sessionId) {
+        if (!/^[A-Za-z0-9_./-]{1,128}$/.test(method))
+            return;
+        this.capture({
+            event_type: "protocol",
+            mcp_method: method,
+            session_id: sessionId || "transport-session",
+            started_at: new Date().toISOString(),
+            success: true,
+            is_error: false,
+            payload: { _trackmcp: { observation_kind: "protocol_notification", protocol_signal: signal } },
+        });
+    }
     recordCatalog(result) {
         const tools = catalogTools(result);
         for (const tool of tools)
@@ -768,7 +782,7 @@ export function withTrackMCP(server, options) {
             }
         };
     }
-    Object.defineProperty(target, "trackmcp", { value: { capture: client.capture.bind(client), track: client.track.bind(client), workflow: client.workflow.bind(client), reportMissing: client.reportMissing.bind(client), trackmcp_report_missing: client.reportMissing.bind(client), flush: client.flush.bind(client), getDiagnostics: client.getDiagnostics.bind(client) } });
+    Object.defineProperty(target, "trackmcp", { value: { capture: client.capture.bind(client), track: client.track.bind(client), workflow: client.workflow.bind(client), recordProtocolSignal: client.recordProtocolSignal.bind(client), reportMissing: client.reportMissing.bind(client), trackmcp_report_missing: client.reportMissing.bind(client), flush: client.flush.bind(client), getDiagnostics: client.getDiagnostics.bind(client) } });
     return target;
 }
 export const track = (name, payload) => {
