@@ -17,7 +17,7 @@ const snapshot = {
   previous_snapshot_id: "snapshot-1",
   complete: true,
   truncated: false,
-  diff: { status: "computed", added_name_count: 1, removed_name_count: 0 },
+  diff: { status: "computed", changed: true, added_name_count: 1, removed_name_count: 0, added_name_hashes: ["d".repeat(64), "raw-tool-name"], private_diff: "should-never-leave-storage" },
   discovered_at: "2026-01-02T00:00:00Z",
   payload: { should_never_leave_storage: true },
 };
@@ -50,6 +50,9 @@ test("catalog API exposes bounded historical metadata without raw payloads", asy
   assert.equal(body.versioning.historical_versions, true);
   assert.equal(body.catalogs[1].version, referenceVersion);
   assert.equal(body.catalogs[1].diff.added_name_count, referenceAdded);
+  assert.deepEqual(body.catalogs[1].diff.added_name_hashes, ["d".repeat(64)]);
+  assert.equal(JSON.stringify(body).includes("should-never-leave-storage"), false);
+  assert.equal(JSON.stringify(body).includes("raw-tool-name"), false);
   assert.equal(JSON.stringify(body).includes("should_never_leave_storage"), false);
   assert.equal(Object.prototype.hasOwnProperty.call(body.catalogs[1], "payload"), false);
   assert.equal(Object.prototype.hasOwnProperty.call(body.catalogs[1], "workspace_id"), false);

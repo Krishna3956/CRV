@@ -3,6 +3,34 @@ import { createAnalyticsHandler } from "../../v1/analytics/handlers.ts";
 import { withTrackMCPV2Envelope } from "../../../../lib/api/v2-envelope.ts";
 
 const MAX_TOOLS = 500;
+const HASH = /^[a-f0-9]{64}$/i;
+const DIFF_STATUS = new Set(["computed", "unchanged", "not_comparable"]);
+
+function boundedHashes(value: unknown): string[] {
+  return Array.isArray(value) ? value.filter((item): item is string => typeof item === "string" && HASH.test(item)).map((item) => item.toLowerCase()).slice(0, 128) : [];
+}
+
+function boundedCount(value: unknown): number {
+  return typeof value === "number" && Number.isSafeInteger(value) ? Math.max(0, Math.min(1000000, value)) : 0;
+}
+
+function projectDiff(value: unknown): Record<string, unknown> {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return {};
+  const diff = value as Record<string, unknown>;
+  return {
+    status: typeof diff.status === "string" && DIFF_STATUS.has(diff.status) ? diff.status : "not_comparable",
+    changed: diff.changed === true,
+    added_name_count: boundedCount(diff.added_name_count),
+    removed_name_count: boundedCount(diff.removed_name_count),
+    added_uri_count: boundedCount(diff.added_uri_count),
+    removed_uri_count: boundedCount(diff.removed_uri_count),
+    added_name_hashes: boundedHashes(diff.added_name_hashes),
+    removed_name_hashes: boundedHashes(diff.removed_name_hashes),
+    added_uri_hashes: boundedHashes(diff.added_uri_hashes),
+    removed_uri_hashes: boundedHashes(diff.removed_uri_hashes),
+    bounded: diff.bounded === true,
+  };
+}
 
 /**
  * Returns the latest bounded catalog projection available to the workspace.
@@ -30,16 +58,16 @@ export function createCatalogsHandler(analytics = createAnalyticsHandler()) {
     const versions = Array.isArray(body.catalog_versions) ? body.catalog_versions.filter((value): value is Record<string, unknown> => Boolean(value && typeof value === "object")).slice(0, 100) : [];
     const historical = versions.map((version) => ({
       id: typeof version.id === "string" ? version.id : null,
-      version: typeof version.snapshot_hash === "string" ? version.snapshot_hash : null,
+      version: typeof version.snapshot_hash === "string" && HASH.test(version.snapshot_hash) ? version.snapshot_hash.toLowerCase() : null,
       observed_at: typeof version.discovered_at === "string" ? version.discovered_at : null,
       catalog_kind: typeof version.catalog_kind === "string" ? version.catalog_kind : null,
-      item_count: typeof version.item_count === "number" ? version.item_count : null,
-      item_name_hashes: Array.isArray(version.item_name_hashes) ? version.item_name_hashes.slice(0, 128) : [],
-      item_uri_hashes: Array.isArray(version.item_uri_hashes) ? version.item_uri_hashes.slice(0, 128) : [],
+      item_count: typeof version.item_count === "number" && Number.isSafeInteger(version.item_count) ? Math.max(0, Math.min(1000000, version.item_count)) : null,
+      item_name_hashes: boundedHashes(version.item_name_hashes),
+      item_uri_hashes: boundedHashes(version.item_uri_hashes),
       complete: version.complete === true,
       truncated: version.truncated === true,
       previous_snapshot_id: typeof version.previous_snapshot_id === "string" ? version.previous_snapshot_id : null,
-      diff: version.diff && typeof version.diff === "object" ? version.diff : {},
+      diff: projectDiff(version.diff),
     }));
     return NextResponse.json(withTrackMCPV2Envelope({
       range_days: body.range_days ?? null,

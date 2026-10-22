@@ -123,3 +123,10 @@ just because a README or marketing page mentions it.
   The route now allowlists a bounded task hash, state, timestamps, observation
   count, terminal flag, and evidence quality; raw handles and arbitrary payload
   fields are discarded. Contract and integration coverage both pass.
+
+- 2026-10-22: Hardened the `/api/v2/catalogs` projection after the privacy
+  audit found that stored snapshot arrays and diff objects were not fully
+  allowlisted. Catalog versions now emit only valid SHA-256 hashes, bounded
+  counts, allowlisted diff statuses/counts, and bounded diff hash arrays.
+  Integration coverage injects raw names and a private diff field and verifies
+  neither reaches the response.
