@@ -539,6 +539,7 @@ test("round-trips completion, sampling, and elicitation responses as bounded pro
   const responses = events.filter((event) => event.payload?._trackmcp?.observation_kind === "protocol_response");
   assert.equal(responses.length, 3);
   assert.deepEqual(responses.map((event) => event.payload._trackmcp.protocol_family), ["completion", "sampling", "elicitation"]);
+  assert.deepEqual(responses[0].payload._trackmcp, { observation_kind: "protocol_response", observation_source: "client", protocol_family: "completion", completion_value_count: 1, completion_total: 1, completion_has_more: false });
   assert.equal(responses.every((event) => event.event_type === "protocol"), true);
   assert.equal(JSON.stringify(events).includes("private-search"), false);
   assert.equal(JSON.stringify(events).includes("private-result"), false);

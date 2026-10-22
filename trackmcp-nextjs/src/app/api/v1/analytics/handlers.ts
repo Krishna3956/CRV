@@ -278,6 +278,38 @@ export function createAnalyticsHandler(getAdmin: typeof getSupabaseAdmin = getSu
     else current.unknown += 1;
     protocolFamilyOutcomes.set(family, current);
   }
+  const completionResponses = protocolFamilyEvents.filter((event) => {
+    if (event.mcp_method !== "completion/complete" || !event.payload || typeof event.payload !== "object" || Array.isArray(event.payload)) return false;
+    const metadata = (event.payload as Record<string, unknown>)._trackmcp;
+    return Boolean(metadata && typeof metadata === "object" && !Array.isArray(metadata) && (metadata as Record<string, unknown>).observation_kind === "protocol_response");
+  });
+  const completionRequests = protocolFamilyEvents.filter((event) => {
+    if (event.mcp_method !== "completion/complete" || !event.payload || typeof event.payload !== "object" || Array.isArray(event.payload)) return false;
+    const metadata = (event.payload as Record<string, unknown>)._trackmcp;
+    return Boolean(metadata && typeof metadata === "object" && !Array.isArray(metadata) && (metadata as Record<string, unknown>).observation_kind === "protocol_request");
+  });
+  let completionWithMetadata = 0;
+  let completionWithSuggestions = 0;
+  let completionEmpty = 0;
+  let completionPartial = 0;
+  for (const event of completionResponses) {
+    const metadata = (event.payload as Record<string, unknown>)._trackmcp as Record<string, unknown>;
+    const count = metadata.completion_value_count;
+    const hasMore = metadata.completion_has_more === true;
+    if (typeof count !== "number" && typeof metadata.completion_total !== "number" && typeof metadata.completion_has_more !== "boolean") continue;
+    completionWithMetadata += 1;
+    if (typeof count === "number" && count > 0) completionWithSuggestions += 1;
+    else if (count === 0) completionEmpty += 1;
+    if (hasMore) completionPartial += 1;
+  }
+  const completionActivity = {
+    requests: completionRequests.length,
+    responses_with_metadata: completionWithMetadata,
+    with_suggestions: completionWithSuggestions,
+    empty_suggestions: completionEmpty,
+    partial: completionPartial,
+    limitation: "Suggestion values, prompt/resource references, and argument contents are never returned. Older events without bounded completion metadata remain in protocol-family outcomes but are not classified as empty or partial.",
+  };
   const facts = events.map(canonicalEventFromRow).map(projectTrackMCPFact);
   // The transition table is additive and may not exist on older deployments.
   // A missing schema must not break analytics; when present it extends the
@@ -639,8 +671,12 @@ export function createAnalyticsHandler(getAdmin: typeof getSupabaseAdmin = getSu
   }
   const journeyGroups = [...pathGroups.values()].sort((a, b) => b.interactions - a.interactions);
   const topPath = journeyGroups[0]?.path || [];
+  const topTerminalEvidence = journeyGroups[0]?.terminal_evidence;
   const funnel = topPath.map((step, index) => {
-    const reached = [...interactions.values()].filter((item) => item.path.slice(0, index + 1).join("\u0000") === topPath.slice(0, index + 1).join("\u0000")).length;
+    // Keep the funnel cohort aligned with the winning path/evidence group.
+    // Otherwise identical tool paths from different servers or terminal
+    // states would be merged into a misleading reach count.
+    const reached = [...interactions.values()].filter((item) => item.terminal_evidence === topTerminalEvidence && item.path.slice(0, index + 1).join("\u0000") === topPath.slice(0, index + 1).join("\u0000")).length;
     return { step, reached, share: interactions.size ? reached / interactions.size : null };
   });
   const stallRetryGroups = new Map<string, { step: string; interactions: number; resumed: number }>();
@@ -798,6 +834,7 @@ export function createAnalyticsHandler(getAdmin: typeof getSupabaseAdmin = getSu
     protocol_family_activity: [...protocolFamilyCounts.entries()].map(([family, observations]) => ({ family: family as TrackMCPProtocolFamily, observations })).sort((a, b) => b.observations - a.observations || a.family.localeCompare(b.family)),
     protocol_family_outcomes: [...protocolFamilyOutcomes.entries()].map(([family, outcome]) => ({ family: family as TrackMCPProtocolFamily, ...outcome })).sort((a, b) => b.observations - a.observations || a.family.localeCompare(b.family)),
     protocol_family_outcome_source: familySource,
+    completion_activity: completionActivity,
     transports: transports.slice(0, MAX_PUBLIC_DIMENSION_ITEMS),
     methods: methods.slice(0, MAX_PUBLIC_DIMENSION_ITEMS),
     tool_calls: calls.length, sessions: workflowRows.length, errors: calls.filter(failed).length,

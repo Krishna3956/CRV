@@ -213,6 +213,9 @@ export type Analytics = {
   protocol_family_activity?: Array<{ family: "sampling" | "elicitation" | "completion" | "tasks" | "control_signal" | "resources" | "prompts" | "tools" | "subscriptions" | "notifications"; observations: number }>;
   protocol_family_outcomes?: Array<{ family: "sampling" | "elicitation" | "completion" | "tasks" | "control_signal" | "resources" | "prompts" | "tools" | "subscriptions" | "notifications"; observations: number; completed: number; errors: number; input_required: number; unknown: number }>;
   protocol_family_outcome_source?: "durable_facts" | "event_window";
+  /** Bounded completion suggestion metadata. Values and argument contents are
+   * never returned; empty/partial results remain distinct signals. */
+  completion_activity?: { requests: number; responses_with_metadata: number; with_suggestions: number; empty_suggestions: number; partial: number; limitation: string };
   tool_calls: number;
   sessions: number;
   errors: number;

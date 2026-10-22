@@ -102,6 +102,13 @@ export function protocolResponseMetadata(method: string | undefined, result: Mes
   if (typeof ttl === "number" && Number.isFinite(ttl) && ttl >= 0 && ttl <= 86_400_000) metadata.cache_ttl_ms = Math.round(ttl);
   const scope = result.cacheScope ?? result.cache_scope;
   if (scope === "public" || scope === "private") metadata.cache_scope = scope;
+  if (method === "completion/complete" && isRecord(result.completion)) {
+    const values = result.completion.values;
+    if (Array.isArray(values)) metadata.completion_value_count = Math.min(32, values.length);
+    const total = result.completion.total;
+    if (typeof total === "number" && Number.isSafeInteger(total) && total >= 0 && total <= 1_000_000) metadata.completion_total = total;
+    if (typeof result.completion.hasMore === "boolean") metadata.completion_has_more = result.completion.hasMore;
+  }
   if (method === "subscriptions/listen" || method === "resources/subscribe") metadata.subscription_action = "subscription_started";
   if (method === "resources/unsubscribe") metadata.subscription_action = "subscription_stopped";
   return metadata;

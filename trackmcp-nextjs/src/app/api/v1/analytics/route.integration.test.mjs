@@ -50,14 +50,17 @@ test("analytics response exposes intent provenance and missing capabilities with
     event({ event_id: "external", context: "Resolve the deployment issue", intent_source: "external_callback", missing_capability: "bulk_export", correlation_handle: "job_1", correlation_handle_source: "external" }),
     event({ event_id: "fallback", context: "Find the record", intent_source: "fallback" }),
     event({ event_id: "missing", intent_source: "missing" }),
+    event({ event_id: "completion-request", event_type: "protocol", mcp_method: "completion/complete", intent_source: "context_parameter", payload: { _trackmcp: { observation_kind: "protocol_request", protocol_family: "completion" } } }),
+    event({ event_id: "completion-response", event_type: "protocol", mcp_method: "completion/complete", intent_source: "context_parameter", payload: { _trackmcp: { observation_kind: "protocol_response", protocol_family: "completion", completion_value_count: 0, completion_total: 0, completion_has_more: true } } }),
     event({ event_id: "client-observation", observation_source: "client", context: "must not inflate aggregate", intent_source: "context_parameter", missing_capability: "hidden-client" }),
     event({ workspace_id: "workspace-b", event_id: "foreign", context: "foreign", intent_source: "context_parameter", missing_capability: "hidden" }),
   ]), async () => ({ auth: { getUser: async () => ({ data: { user: null } }) } }));
   const response = await handler(new Request("http://analytics.test/api/v1/analytics?days=7", { headers: { authorization: "Bearer key" } }));
   assert.equal(response.status, 200);
   const body = await response.json();
-  assert.deepEqual(body.intent_sources, { context_parameter: 0, external_callback: 1, fallback: 1, missing: 1 });
+  assert.deepEqual(body.intent_sources, { context_parameter: 2, external_callback: 1, fallback: 1, missing: 1 });
   assert.deepEqual(body.missing_capabilities, [{ name: "bulk_export", reports: 1 }]);
+  assert.deepEqual(body.completion_activity, { requests: 1, responses_with_metadata: 1, with_suggestions: 0, empty_suggestions: 1, partial: 1, limitation: "Suggestion values, prompt/resource references, and argument contents are never returned. Older events without bounded completion metadata remain in protocol-family outcomes but are not classified as empty or partial." });
   assert.equal(JSON.stringify(body).includes("hidden"), false);
   assert.equal(JSON.stringify(body).includes("must not inflate aggregate"), false);
 });
@@ -315,7 +318,7 @@ test("journey terminal evidence comes from the latest event and is server-scoped
   assert.deepEqual(body.journey_activity.drop_off.map((path) => path.terminal_evidence).sort(), ["input_required", "unknown"]);
   assert.equal(body.journey_activity.funnel[0].step, "search");
   assert.equal(body.journey_activity.funnel[0].reached, 1);
-  assert.equal(body.journey_activity.stall_retry[0].status, "resumed");
+  assert.equal(body.journey_activity.stall_retry[0].status, "not_observed");
 });
 
 test("analytics keeps Did It Work outcomes explicit and uncertainty separate", async () => {
