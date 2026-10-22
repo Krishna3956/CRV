@@ -7,6 +7,8 @@ const MAX_CAPABILITIES = 32;
 const MAX_TOOLS = 128;
 const MAX_RESOURCES = 128;
 const MAX_PROMPTS = 128;
+const MAX_COLLECTION_PAGES = 16;
+const MAX_COLLECTION_ITEMS = 512;
 
 export type ModernMcpDiscovery = {
   protocolVersion: typeof MODERN_MCP_PROTOCOL_VERSION;
@@ -54,6 +56,11 @@ export type ModernMcpPrompt = {
 export type ModernMcpPromptPage = {
   prompts: ModernMcpPrompt[];
   nextCursor?: string;
+};
+
+export type ModernMcpBoundedCollection<T> = {
+  items: T[];
+  truncated: boolean;
 };
 
 export type ModernMcpTask = {
@@ -137,6 +144,23 @@ export class ModernMcpClient {
     return { tools, ...(nextCursor ? { nextCursor } : {}) };
   }
 
+  /** Follow opaque tools/list cursors within a bounded page and item budget. */
+  async listAllTools(): Promise<ModernMcpBoundedCollection<ModernMcpTool>> {
+    const items: ModernMcpTool[] = [];
+    const seen = new Set<string>();
+    let cursor: string | undefined;
+    for (let page = 0; page < MAX_COLLECTION_PAGES; page += 1) {
+      const result = await this.listTools(cursor);
+      items.push(...result.tools.slice(0, Math.max(0, MAX_COLLECTION_ITEMS - items.length)));
+      const nextCursor = result.nextCursor;
+      const bounded = items.length >= MAX_COLLECTION_ITEMS || (nextCursor !== undefined && seen.has(nextCursor));
+      if (!nextCursor || bounded) return { items, truncated: nextCursor !== undefined && bounded };
+      seen.add(nextCursor);
+      cursor = nextCursor;
+    }
+    return { items, truncated: Boolean(cursor) };
+  }
+
   /** Retrieve one bounded, cursor-based resources/list catalog page. Raw
    * resource contents and read arguments are never requested or retained. */
   async listResources(cursor?: string): Promise<ModernMcpResourcePage> {
@@ -153,6 +177,23 @@ export class ModernMcpClient {
     });
     const nextCursor = boundedString(result.nextCursor);
     return { resources, ...(nextCursor ? { nextCursor } : {}) };
+  }
+
+  /** Follow opaque resources/list cursors without reading resource contents. */
+  async listAllResources(): Promise<ModernMcpBoundedCollection<ModernMcpResource>> {
+    const items: ModernMcpResource[] = [];
+    const seen = new Set<string>();
+    let cursor: string | undefined;
+    for (let page = 0; page < MAX_COLLECTION_PAGES; page += 1) {
+      const result = await this.listResources(cursor);
+      items.push(...result.resources.slice(0, Math.max(0, MAX_COLLECTION_ITEMS - items.length)));
+      const nextCursor = result.nextCursor;
+      const bounded = items.length >= MAX_COLLECTION_ITEMS || (nextCursor !== undefined && seen.has(nextCursor));
+      if (!nextCursor || bounded) return { items, truncated: nextCursor !== undefined && bounded };
+      seen.add(nextCursor);
+      cursor = nextCursor;
+    }
+    return { items, truncated: Boolean(cursor) };
   }
 
   /** Retrieve one bounded, cursor-based prompts/list catalog page. Prompt
@@ -173,6 +214,23 @@ export class ModernMcpClient {
     });
     const nextCursor = boundedString(result.nextCursor);
     return { prompts, ...(nextCursor ? { nextCursor } : {}) };
+  }
+
+  /** Follow opaque prompts/list cursors without requesting prompt arguments. */
+  async listAllPrompts(): Promise<ModernMcpBoundedCollection<ModernMcpPrompt>> {
+    const items: ModernMcpPrompt[] = [];
+    const seen = new Set<string>();
+    let cursor: string | undefined;
+    for (let page = 0; page < MAX_COLLECTION_PAGES; page += 1) {
+      const result = await this.listPrompts(cursor);
+      items.push(...result.prompts.slice(0, Math.max(0, MAX_COLLECTION_ITEMS - items.length)));
+      const nextCursor = result.nextCursor;
+      const bounded = items.length >= MAX_COLLECTION_ITEMS || (nextCursor !== undefined && seen.has(nextCursor));
+      if (!nextCursor || bounded) return { items, truncated: nextCursor !== undefined && bounded };
+      seen.add(nextCursor);
+      cursor = nextCursor;
+    }
+    return { items, truncated: Boolean(cursor) };
   }
 
   /**
