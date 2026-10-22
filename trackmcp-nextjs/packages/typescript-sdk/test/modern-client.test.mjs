@@ -75,6 +75,36 @@ test("modern client rejects malformed resource and prompt catalog envelopes", as
   await assert.rejects(() => client.listPrompts(), (error) => error instanceof ModernMcpProtocolError && error.code === "invalid_response");
 });
 
+test("modern client follows opaque catalog cursors and discloses truncation", async () => {
+  const methods = [];
+  const client = new ModernMcpClient({ endpoint: "https://mcp.example.test", fetch: async (_input, init) => {
+    const body = JSON.parse(init.body);
+    methods.push({ method: body.method, params: body.params });
+    const cursor = body.params?.cursor;
+    if (body.method === "tools/list") return response({ result: cursor ? { tools: [{ name: "second" }] } : { tools: [{ name: "first" }], nextCursor: "tools-2" } });
+    if (body.method === "resources/list") return response({ result: cursor ? { resources: [{ uri: "file:///second" }] } : { resources: [{ uri: "file:///first" }], nextCursor: "resources-2" } });
+    return response({ result: cursor ? { prompts: [{ name: "second" }] } : { prompts: [{ name: "first" }], nextCursor: "prompts-2" } });
+  } });
+  assert.deepEqual(await client.listAllTools(), { items: [{ name: "first" }, { name: "second" }], truncated: false });
+  assert.deepEqual(await client.listAllResources(), { items: [{ uri: "file:///first" }, { uri: "file:///second" }], truncated: false });
+  assert.deepEqual(await client.listAllPrompts(), { items: [{ name: "first", argumentNames: [] }, { name: "second", argumentNames: [] }], truncated: false });
+  assert.deepEqual(methods.map(({ method, params }) => ({ method, params })), [
+    { method: "tools/list", params: {} }, { method: "tools/list", params: { cursor: "tools-2" } },
+    { method: "resources/list", params: {} }, { method: "resources/list", params: { cursor: "resources-2" } },
+    { method: "prompts/list", params: {} }, { method: "prompts/list", params: { cursor: "prompts-2" } },
+  ]);
+});
+
+test("modern client stops on a repeated cursor instead of looping", async () => {
+  let requests = 0;
+  const client = new ModernMcpClient({ endpoint: "https://mcp.example.test", fetch: async () => {
+    requests += 1;
+    return response({ result: { tools: [{ name: `tool-${requests}` }], nextCursor: "same" } });
+  } });
+  assert.deepEqual(await client.listAllTools(), { items: [{ name: "tool-1" }, { name: "tool-2" }], truncated: true });
+  assert.equal(requests, 2);
+});
+
 test("modern client refuses the removed tasks/list operation and observes an explicit task status", async () => {
   const requests = [];
   const client = new ModernMcpClient({ endpoint: "https://mcp.example.test", fetch: async (_input, init) => {

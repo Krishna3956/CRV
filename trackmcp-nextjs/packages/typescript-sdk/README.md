@@ -80,6 +80,12 @@ contents, while `listPrompts` returns prompt names and argument names without
 requesting or retaining argument values. Both methods support opaque cursors
 and remain observation-only.
 
+For bounded historical discovery, `listAllTools`, `listAllResources`, and
+`listAllPrompts` follow opaque cursors up to a fixed page/item budget and return
+`truncated: true` when the server continues beyond that budget or repeats a
+cursor. A `false` value means the bounded traversal reached an explicit end;
+it is not a claim that an unbounded catalog exists outside the adapter budget.
+
 Task state can be observed without mutating the server when the server returns
 an opaque task handle as part of a supported request. `getTask` reads one
 bounded status:
