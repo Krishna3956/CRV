@@ -109,3 +109,11 @@ just because a README or marketing page mentions it.
   a bounded metadata-only `transport_error` tool observation without leaking
   result content. The adapter package now has 25 passing tests; authenticated
   production disconnect UAT and transport-owned reconnect policy remain open.
+
+- 2026-10-22: Added a real Streamable HTTP task lifecycle fixture. It returns a
+  server-directed task from `tools/call`, then exercises `tasks/get`,
+  `tasks/update`, `tasks/cancel`, and a final `tasks/get`. The fixture verifies
+  four bounded lifecycle states, shared hashed task identity, exact method
+  ordering, and that the raw handle/input never appears in telemetry. The Node
+  adapter suite now has 26 passing tests; capability-aware task creation,
+  cross-server joins, and authenticated production interoperability remain open.

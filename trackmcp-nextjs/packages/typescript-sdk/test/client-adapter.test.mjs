@@ -229,6 +229,54 @@ test("uses a real StreamableHTTPClientTransport and preserves transport-generate
   assert.equal(issued.session_id_source, "transport_generated");
 });
 
+test("real Streamable HTTP task lifecycle keeps handles hashed", async () => {
+  const requests = [];
+  const server = http.createServer((request, response) => {
+    let body = "";
+    request.on("data", (chunk) => { body += chunk; });
+    request.on("end", () => {
+      const message = JSON.parse(body);
+      requests.push(message);
+      const result = message.method === "tools/call"
+        ? { resultType: "task", taskId: "secret-task", status: "working" }
+        : message.method === "tasks/get" && message.id === "get-task"
+          ? { taskId: "secret-task", status: "working" }
+          : message.method === "tasks/update"
+            ? { taskId: "secret-task", status: "input_required" }
+            : message.method === "tasks/get"
+              ? { taskId: "secret-task", status: "cancelled" }
+              : {};
+      response.writeHead(200, { "content-type": "application/json", "mcp-session-id": "task-http-session" });
+      response.end(JSON.stringify({ jsonrpc: "2.0", id: message.id, result }));
+    });
+  });
+  const endpoint = await listen(server);
+  const events = [];
+  const adapter = new TrackMCPClientAdapter({ apiKey: "tmcp_test", service: "adapter-test", transport: "streamable_http", flushIntervalMs: 60000, onEvent: (event) => events.push(event) });
+  const raw = new StreamableHTTPClientTransport(new URL(endpoint));
+  const wrapped = adapter.wrapTransport(raw);
+  wrapped.onmessage = () => {};
+  wrapped.onerror = () => {};
+  try {
+    await wrapped.start();
+    await wrapped.send(toolCall("create-task", "long_running"));
+    await wrapped.send({ jsonrpc: "2.0", id: "get-task", method: "tasks/get", params: { taskId: "secret-task" } });
+    await wrapped.send({ jsonrpc: "2.0", id: "update-task", method: "tasks/update", params: { taskId: "secret-task", input: { private: "value" } } });
+    await wrapped.send({ jsonrpc: "2.0", id: "cancel-task", method: "tasks/cancel", params: { taskId: "secret-task" } });
+    await wrapped.send({ jsonrpc: "2.0", id: "final-task", method: "tasks/get", params: { taskId: "secret-task" } });
+    const lifecycle = events.filter((event) => event.task_id);
+    assert.equal(lifecycle.length, 4);
+    assert.deepEqual(lifecycle.map((event) => event.task_status), ["working", "working", "input_required", "cancelled"]);
+    assert.equal(new Set(lifecycle.map((event) => event.task_id)).size, 1);
+    assert.deepEqual(requests.map((message) => message.method), ["tools/call", "tasks/get", "tasks/update", "tasks/cancel", "tasks/get"]);
+    assert.equal(JSON.stringify(events).includes("secret-task"), false);
+    assert.equal(JSON.stringify(events).includes("private"), false);
+  } finally {
+    await wrapped.close().catch(() => {});
+    await closeServer(server);
+  }
+});
+
 test("real Streamable HTTP server disconnect emits bounded transport failure evidence", async () => {
   const server = http.createServer((request) => { request.socket.destroy(); });
   const endpoint = await listen(server);
