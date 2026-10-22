@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server.js";
 import { createAnalyticsHandler } from "../../v1/analytics/handlers.ts";
 import { withTrackMCPV2Envelope } from "../../../../lib/api/v2-envelope.ts";
+import { projectTrackMCPDataTrust } from "../../../../lib/telemetry/data-trust.ts";
 
 const MAX_TEXT = 128;
 const boundedText = (value: unknown) => typeof value === "string" ? value.slice(0, MAX_TEXT) : null;
@@ -71,7 +72,7 @@ export function createPeopleHandler(analytics = createAnalyticsHandler()) {
       },
       unique_people: null,
       unique_organizations: null,
-      data_trust: body.data_trust ?? null,
+      data_trust: projectTrackMCPDataTrust(body.data_trust),
       caveats: [
         "Client metadata is self-reported protocol context, not a verified person identity.",
         "TrackMCP does not infer unique people or organizations from event counts.",

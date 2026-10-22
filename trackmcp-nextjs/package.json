@@ -28,6 +28,7 @@
     "test:catalogs-route": "node --test src/app/api/v2/catalogs/route.contract.test.mjs src/app/api/v2/catalogs/route.integration.test.mjs",
     "test:action-queue-v2-route": "node --test src/app/api/v2/action-queue/route.contract.test.mjs src/app/api/v2/action-queue/route.integration.test.mjs",
     "test:v2-envelope-consistency": "node --test src/app/api/v2/envelope-consistency.contract.test.mjs",
+    "test:v2-data-trust-projection": "node --test scripts/v2-data-trust-projection.contract.test.mjs",
     "test:reliability-route": "node --test src/app/api/v2/reliability/route.contract.test.mjs src/app/api/v2/reliability/route.integration.test.mjs",
     "test:protocol-activity-route": "node --test src/app/api/v2/protocol-activity/route.contract.test.mjs src/app/api/v2/protocol-activity/route.integration.test.mjs",
     "test:outcomes-route": "node --test src/app/api/v2/outcomes/route.contract.test.mjs src/app/api/v2/outcomes/route.integration.test.mjs",

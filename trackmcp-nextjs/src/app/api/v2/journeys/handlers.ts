@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server.js";
 import { createAnalyticsHandler } from "../../v1/analytics/handlers.ts";
 import { withTrackMCPV2Envelope } from "../../../../lib/api/v2-envelope.ts";
+import { projectTrackMCPDataTrust } from "../../../../lib/telemetry/data-trust.ts";
 
 const MAX_TEXT = 256;
 const boundedText = (value: unknown) => typeof value === "string" ? value.slice(0, MAX_TEXT) : null;
@@ -68,7 +69,7 @@ export function createJourneysHandler(analytics = createAnalyticsHandler()) {
       journey_count: workflows.length,
       journey_summary: journeySummary(workflows),
       correlation_quality: body.correlation_quality ?? "unknown",
-      data_trust: body.data_trust ?? null,
+      data_trust: projectTrackMCPDataTrust(body.data_trust),
       caveats: [
         "A journey is a correlated observed session, not a unique person or organization.",
         "Sessions without a stable protocol correlation handle may be incomplete or ambiguous.",

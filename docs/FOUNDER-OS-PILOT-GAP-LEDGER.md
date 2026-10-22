@@ -173,3 +173,9 @@ just because a README or marketing page mentions it.
   provenance contract instead of forwarding arbitrary analytics metadata.
   Protocol-family activity now has an adversarial integration test, and the
   reliability fixture verifies private provenance fields are discarded.
+
+- 2026-10-22: Applied the same bounded provenance projection to the remaining
+  public v2 analytics surfaces: catalogs, people, journeys, tasks, outcomes,
+  resources, prompts, tools, and tool detail. A release-gate contract now
+  checks every public v2 analytics handler for the shared projection and
+  rejects raw `data_trust` forwarding.

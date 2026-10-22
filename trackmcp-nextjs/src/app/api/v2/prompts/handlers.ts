@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server.js";
 import { createAnalyticsHandler } from "../../v1/analytics/handlers.ts";
 import { withTrackMCPV2Envelope } from "../../../../lib/api/v2-envelope.ts";
+import { projectTrackMCPDataTrust } from "../../../../lib/telemetry/data-trust.ts";
 import { projectObservedSurface, projectReadActivity } from "../read-model-projections.ts";
 
 export function createPromptsHandler(analytics = createAnalyticsHandler()) {
@@ -16,7 +17,7 @@ export function createPromptsHandler(analytics = createAnalyticsHandler()) {
       activity,
       prompts: [],
       coverage: { level: "method_family", entity_analytics: "bounded_read_projection" },
-      data_trust: body.data_trust ?? null,
+      data_trust: projectTrackMCPDataTrust(body.data_trust),
       caveats: ["Prompt entity_count is a unique count of bounded SHA-256 name hashes; durable read analytics are available only after the entity-read projection is applied and refreshed. Raw names/arguments are never returned.", "Only prompts/get is counted as product-use activity. Explicitly linked retries are collapsed; unlinked repeats remain separate observations.", "Observed counts do not represent unique business completions or successful prompt execution."],
     }, request));
   };

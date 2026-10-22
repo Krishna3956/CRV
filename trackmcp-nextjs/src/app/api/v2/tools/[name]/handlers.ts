@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server.js";
 import { createAnalyticsHandler } from "../../../v1/analytics/handlers.ts";
 import { withTrackMCPV2Envelope } from "../../../../../lib/api/v2-envelope.ts";
+import { projectTrackMCPDataTrust } from "../../../../../lib/telemetry/data-trust.ts";
 
 type ToolRow = {
   name?: unknown;
@@ -48,7 +49,7 @@ export function createToolDetailHandler() {
     const body = await response.json() as { range_days?: unknown; tools?: unknown; data_trust?: unknown };
     const row = Array.isArray(body.tools) ? body.tools.find((item) => item && typeof item === "object" && (item as ToolRow).name === name) as ToolRow | undefined : undefined;
     if (!row) return NextResponse.json({ error: "Tool not found." }, { status: 404 });
-    return NextResponse.json(withTrackMCPV2Envelope({ range_days: typeof body.range_days === "number" ? body.range_days : null, tool: boundedTool(row), data_trust: body.data_trust ?? null }, request));
+    return NextResponse.json(withTrackMCPV2Envelope({ range_days: typeof body.range_days === "number" ? body.range_days : null, tool: boundedTool(row), data_trust: projectTrackMCPDataTrust(body.data_trust) }, request));
   };
 }
 

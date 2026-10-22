@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server.js";
 import { createAnalyticsHandler } from "../../v1/analytics/handlers.ts";
 import { withTrackMCPV2Envelope } from "../../../../lib/api/v2-envelope.ts";
+import { projectTrackMCPDataTrust } from "../../../../lib/telemetry/data-trust.ts";
 
 const MAX_PAGE_SIZE = 100;
 const HASH = /^[a-f0-9]{64}$/i;
@@ -87,7 +88,7 @@ export function createToolsHandler(analytics = createAnalyticsHandler()) {
       insights: Array.isArray(body.insights) ? body.insights.map(projectInsight).filter((insight): insight is Record<string, unknown> => insight !== null).slice(0, 100) : [],
       filter: { tool_name: toolName },
       ...(hasPaging ? { page: { limit, next_cursor: pageHasMore ? encodeCursor(offset + limit) : null } } : {}),
-      data_trust: body.data_trust ?? null,
+      data_trust: projectTrackMCPDataTrust(body.data_trust),
     }, request));
   };
 }

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server.js";
 import { createAnalyticsHandler } from "../../v1/analytics/handlers.ts";
 import { withTrackMCPV2Envelope } from "../../../../lib/api/v2-envelope.ts";
+import { projectTrackMCPDataTrust } from "../../../../lib/telemetry/data-trust.ts";
 
 const TASK_HASH = /^[a-f0-9]{64}$/i;
 const TASK_STATES = new Set(["working", "input_required", "completed", "failed", "cancelled", "expired", "unknown"]);
@@ -28,7 +29,7 @@ export function createTasksHandler(analytics = createAnalyticsHandler()) {
       range_days: typeof body.range_days === "number" ? body.range_days : null,
       tasks,
       task_count: tasks.length,
-      data_trust: body.data_trust ?? null,
+      data_trust: projectTrackMCPDataTrust(body.data_trust),
       caveats: [
         "Tasks are shown only when a bounded task ID was observed in telemetry.",
         "State is the latest explicit task status in the selected window; missing events are not treated as abandonment.",

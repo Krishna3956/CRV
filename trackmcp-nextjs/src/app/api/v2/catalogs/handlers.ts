@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server.js";
 import { createAnalyticsHandler } from "../../v1/analytics/handlers.ts";
 import { withTrackMCPV2Envelope } from "../../../../lib/api/v2-envelope.ts";
+import { projectTrackMCPDataTrust } from "../../../../lib/telemetry/data-trust.ts";
 
 const MAX_TOOLS = 500;
 const HASH = /^[a-f0-9]{64}$/i;
@@ -92,7 +93,7 @@ export function createCatalogsHandler(analytics = createAnalyticsHandler()) {
         cursor_parameter: "catalog_before",
         caveat: "The cursor is an opaque bounded observation timestamp; it remains workspace-scoped and does not expose catalog payloads.",
       },
-      data_trust: body.data_trust ?? null,
+      data_trust: projectTrackMCPDataTrust(body.data_trust),
       catalog_version_status: body.catalog_version_status ?? "unknown",
     }, request, { caveats: historical.length ? ["Historical rows contain bounded hashes and counts; raw catalog names and URIs are never returned."] : ["No workspace snapshot rows are available; this is the current bounded analytics projection."] }));
   };

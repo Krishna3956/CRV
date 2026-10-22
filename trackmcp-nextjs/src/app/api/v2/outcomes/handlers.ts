@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server.js";
 import { createAnalyticsHandler } from "../../v1/analytics/handlers.ts";
 import { withTrackMCPV2Envelope } from "../../../../lib/api/v2-envelope.ts";
+import { projectTrackMCPDataTrust } from "../../../../lib/telemetry/data-trust.ts";
 
 const OUTCOME_KEYS = ["completed", "failed", "pending", "unknown", "not_observable"] as const;
 const QUALITY_KEYS = ["observed", "inferred", "insufficient_data", "conflicting"] as const;
@@ -92,7 +93,7 @@ export function createOutcomesHandler(analytics = createAnalyticsHandler()) {
       groups: body.founder_os?.groups && typeof body.founder_os.groups === "object" && !Array.isArray(body.founder_os.groups)
         ? Object.fromEntries(Object.entries(body.founder_os.groups).slice(0, 8).map(([key, value]) => [key.slice(0, 64), Array.isArray(value) ? value.slice(0, 100).map(projectAggregate).filter((aggregate): aggregate is Record<string, unknown> => aggregate !== null) : []]))
         : {},
-      data_trust: body.data_trust ?? null,
+      data_trust: projectTrackMCPDataTrust(body.data_trust),
       caveats: [
         "An outcome is reported only when the selected protocol evidence supports it.",
         "Missing or ambiguous terminal evidence remains unknown; it is not counted as success.",
