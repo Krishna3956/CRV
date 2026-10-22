@@ -30,6 +30,13 @@ test("persists only a coarse protocol family in durable facts", () => {
   assert.equal(JSON.stringify(fact).includes("elicitation/create"), false);
 });
 
+test("persists an allowlisted family hint when the method name is unavailable", () => {
+  const fact = projectTrackMCPFact(event({ event_type: "protocol", payload: { _trackmcp: { protocol_family: "sampling", prompt: "private" } }, result_type: "complete" }));
+  assert.equal(fact.dimensions.protocol_family, "sampling");
+  assert.equal(JSON.stringify(fact).includes("private"), false);
+  assert.equal(JSON.stringify(fact).includes("protocol_family"), true);
+});
+
 test("projects workflow outcomes without treating missing evidence as success", () => {
   const fact = projectTrackMCPFact(event({ event_type: "workflow", workflow_id: "wf_private" }));
   assert.equal(fact.fact_type, "outcome");

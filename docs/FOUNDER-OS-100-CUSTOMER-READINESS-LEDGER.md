@@ -555,3 +555,18 @@ a failed product gate or a Supabase plan warning.
 - [ ] Production browser UAT for authenticated durable-fact evidence remains
   an external gate; the UI does not present example or event-window data as
   durable production evidence.
+
+## 2026-10-22 durable family-hint projection checkpoint
+
+- [x] Semantic fact projection now preserves an allowlisted protocol-family
+  hint from `_trackmcp.protocol_family` when a source event has no method name.
+  The hint is coarse metadata only; arbitrary payload fields and values remain
+  excluded from durable facts. This prevents durable analytics from silently
+  losing sampling, elicitation, or completion observations emitted through
+  wrapper metadata.
+- [x] Added privacy-focused fact tests for the hinted-family path; focused fact
+  and dashboard suites pass. Full release-gate, lint, and build verification is
+  pending for this checkpoint.
+- [x] Full verification is now complete: the 124-suite release gate passed,
+  `npm run lint` passed, and `npm run build` generated all 176 routes. This
+  checkpoint changes no package version and requires no migration.

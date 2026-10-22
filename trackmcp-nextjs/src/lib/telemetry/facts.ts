@@ -1,5 +1,5 @@
 import { createHash } from "node:crypto";
-import { classifyTrackMCPOutcome, protocolFamilyForMethod, type TrackMCPSemanticOutcome } from "./semantic.ts";
+import { classifyTrackMCPOutcome, protocolFamilyForMethod, type TrackMCPProtocolFamily, type TrackMCPSemanticOutcome } from "./semantic.ts";
 import type { CanonicalTrackMCPEvent } from "./types.ts";
 
 /**
@@ -56,6 +56,15 @@ const bounded = (value: string | undefined, max: number): string | undefined => 
 const boundedNonNegative = (value: number | undefined, max: number): number | undefined =>
   typeof value === "number" && Number.isFinite(value) ? Math.min(max, Math.max(0, value)) : undefined;
 
+const protocolFamilyForEvent = (event: CanonicalTrackMCPEvent): TrackMCPProtocolFamily | undefined => {
+  const fromMethod = protocolFamilyForMethod(event.mcp_method);
+  if (fromMethod) return fromMethod;
+  const payload = event.payload;
+  const metadata = payload && typeof payload === "object" && !Array.isArray(payload) ? payload._trackmcp : undefined;
+  const hinted = metadata && typeof metadata === "object" && !Array.isArray(metadata) ? (metadata as Record<string, unknown>).protocol_family : undefined;
+  return hinted === "sampling" || hinted === "elicitation" || hinted === "completion" || hinted === "tasks" || hinted === "control_signal" || hinted === "resources" || hinted === "prompts" || hinted === "tools" || hinted === "subscriptions" || hinted === "notifications" ? hinted : undefined;
+};
+
 function factTypeFor(event: CanonicalTrackMCPEvent): TrackMCPFactType {
   if (event.event_type === "tool_call") return "activity";
   if (event.event_type === "workflow" || event.event_type === "session") return "outcome";
@@ -91,7 +100,7 @@ export function projectTrackMCPFact(event: CanonicalTrackMCPEvent): TrackMCPFact
       ...(boundedNonNegative(event.resource_priority, 1) !== undefined ? { resource_priority: boundedNonNegative(event.resource_priority, 1) } : {}),
       ...(bounded(event.interaction_id, 128) ? { interaction_id: bounded(event.interaction_id, 128) } : {}),
       ...(taskId ? { task_id_hash: createHash("sha256").update(taskId, "utf8").digest("hex") } : {}),
-      ...(protocolFamilyForMethod(event.mcp_method) ? { protocol_family: protocolFamilyForMethod(event.mcp_method) } : {}),
+      ...(protocolFamilyForEvent(event) ? { protocol_family: protocolFamilyForEvent(event) } : {}),
     },
     measures: {
       duration_ms: boundedNonNegative(event.duration_ms, 86_400_000),
