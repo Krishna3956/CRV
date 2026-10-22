@@ -309,3 +309,21 @@ a failed product gate or a Supabase plan warning.
   that stalled. Its contract test is included in the gate.
 - [x] The bounded release gate, lint, and 176-route production build passed
   for this milestone; the gate now reports 122 suites. Pushed as `239eeb9`.
+
+## 2026-10-22 package publication policy clarification
+
+- [x] Confirmed that package publication is not part of ordinary development:
+  changes may merge and deploy through CI without consuming a registry version.
+- [x] The pilot release unit is one reviewed release train covering the
+  TypeScript SDK, CLI, and Python SDK together. The `all` workflow scope runs
+  the complete audit, performs npm/PyPI version-absence preflight before the
+  first upload, and then publishes sequentially with provenance and clean
+  consumer verification.
+- [x] Single-package dispatch remains available only for a documented
+  production/security hotfix or an intentionally independent package change;
+  it must still use the same release confirmation, audit, duplicate-version,
+  and registry-verification gates.
+- [x] No package was published or version-bumped for this policy clarification.
+- [ ] The next train remains intentionally undispatched until the unreleased
+  SDK/source deltas and the external authenticated-production gates are closed
+  or explicitly accepted by the release owner.
