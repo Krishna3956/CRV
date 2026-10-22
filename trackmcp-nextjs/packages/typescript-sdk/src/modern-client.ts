@@ -9,6 +9,7 @@ const MAX_RESOURCES = 128;
 const MAX_PROMPTS = 128;
 const MAX_COLLECTION_PAGES = 16;
 const MAX_COLLECTION_ITEMS = 512;
+const MAX_TASK_INPUT_BYTES = 64 * 1024;
 
 export type ModernMcpDiscovery = {
   protocolVersion: typeof MODERN_MCP_PROTOCOL_VERSION;
@@ -68,8 +69,10 @@ export type ModernMcpTask = {
   status: string;
 };
 
+export type ModernMcpTaskInputResponses = Record<string, unknown>;
+
 export class ModernMcpProtocolError extends Error {
-  readonly code: "invalid_endpoint" | "timeout" | "http_error" | "invalid_response" | "response_too_large" | "network_error" | "unsupported_method";
+  readonly code: "invalid_endpoint" | "timeout" | "http_error" | "invalid_response" | "response_too_large" | "request_too_large" | "network_error" | "unsupported_method";
   readonly status?: number;
   constructor(code: ModernMcpProtocolError["code"], message: string, status?: number) {
     super(message); this.name = "ModernMcpProtocolError"; this.code = code; this.status = status;
@@ -130,7 +133,7 @@ export class ModernMcpClient {
     return this.requestSequence;
   }
 
-  private async request(method: string, params: Record<string, unknown>): Promise<Record<string, unknown>> {
+  private async request(method: string, params: Record<string, unknown>, routingName?: string): Promise<Record<string, unknown>> {
     let endpoint: URL;
     try {
       endpoint = new URL(this.options.endpoint);
@@ -145,9 +148,12 @@ export class ModernMcpClient {
     headers.set("content-type", "application/json");
     headers.set("mcp-protocol-version", MODERN_MCP_PROTOCOL_VERSION);
     headers.set("mcp-method", method);
+    if (routingName) headers.set("mcp-name", routingName);
     const requestId = this.nextRequestId();
+    const requestBody = JSON.stringify({ jsonrpc: "2.0", id: requestId, method, params });
+    if (new TextEncoder().encode(requestBody).byteLength > MAX_TASK_INPUT_BYTES) throw new ModernMcpProtocolError("request_too_large", `Modern MCP ${method} request exceeded the bounded request limit.`);
     try {
-      const response = await (this.options.fetch ?? globalThis.fetch)(endpoint, { method: "POST", headers, body: JSON.stringify({ jsonrpc: "2.0", id: requestId, method, params }), redirect: "manual", credentials: "omit", signal: controller.signal });
+      const response = await (this.options.fetch ?? globalThis.fetch)(endpoint, { method: "POST", headers, body: requestBody, redirect: "manual", credentials: "omit", signal: controller.signal });
       if (!response.ok) throw new ModernMcpProtocolError("http_error", `Modern MCP ${method} returned a non-success status.`, response.status);
       const contentLength = response.headers.get("content-length");
       if (contentLength && /^\d+$/.test(contentLength) && Number(contentLength) > MAX_BODY_BYTES) throw new ModernMcpProtocolError("response_too_large", `Modern MCP ${method} response exceeded the bounded response limit.`);
@@ -286,10 +292,28 @@ export class ModernMcpClient {
   /** Retrieve one task's bounded status. This is observation only. */
   async getTask(taskId: string): Promise<ModernMcpTask> {
     if (!/^[A-Za-z0-9_.:-]{1,256}$/.test(taskId)) throw new ModernMcpProtocolError("invalid_response", "Modern MCP tasks/get requires a bounded opaque task identifier.");
-    const result = await this.request("tasks/get", { taskId: taskId.slice(0, MAX_STRING_LENGTH) });
-    const boundedTaskId = boundedString(result.taskId);
+    const boundedTaskId = taskId.slice(0, MAX_STRING_LENGTH);
+    const result = await this.request("tasks/get", { taskId: boundedTaskId }, boundedTaskId);
+    const returnedTaskId = boundedString(result.taskId);
     const status = boundedString(result.status);
-    if (!boundedTaskId || !status || !/^[A-Za-z0-9_.:-]{1,256}$/.test(boundedTaskId)) throw new ModernMcpProtocolError("invalid_response", "Modern MCP tasks/get returned an invalid task status.");
-    return { taskId: boundedTaskId, status };
+    if (!returnedTaskId || !status || !/^[A-Za-z0-9_.:-]{1,256}$/.test(returnedTaskId)) throw new ModernMcpProtocolError("invalid_response", "Modern MCP tasks/get returned an invalid task status.");
+    return { taskId: returnedTaskId, status };
+  }
+
+  /** Provide bounded responses to outstanding task input requests. Values are
+   * sent directly to the server and are never retained by this client. */
+  async updateTask(taskId: string, inputResponses: ModernMcpTaskInputResponses): Promise<void> {
+    if (!/^[A-Za-z0-9_.:-]{1,256}$/.test(taskId) || !boundedObject(inputResponses)) throw new ModernMcpProtocolError("invalid_response", "Modern MCP tasks/update requires a bounded task identifier and object input responses.");
+    const keys = Object.keys(inputResponses).filter((key) => /^[A-Za-z0-9_.:-]{1,128}$/.test(key)).slice(0, MAX_CAPABILITIES);
+    if (keys.length !== Object.keys(inputResponses).length) throw new ModernMcpProtocolError("invalid_response", "Modern MCP tasks/update contains an invalid or oversized input response key.");
+    const boundedResponses = Object.fromEntries(keys.map((key) => [key, inputResponses[key]]));
+    await this.request("tasks/update", { taskId: taskId.slice(0, MAX_STRING_LENGTH), inputResponses: boundedResponses }, taskId.slice(0, MAX_STRING_LENGTH));
+  }
+
+  /** Signal cooperative cancellation; the server may acknowledge before its
+   * observable task status changes. */
+  async cancelTask(taskId: string): Promise<void> {
+    if (!/^[A-Za-z0-9_.:-]{1,256}$/.test(taskId)) throw new ModernMcpProtocolError("invalid_response", "Modern MCP tasks/cancel requires a bounded opaque task identifier.");
+    await this.request("tasks/cancel", { taskId: taskId.slice(0, MAX_STRING_LENGTH) }, taskId.slice(0, MAX_STRING_LENGTH));
   }
 }

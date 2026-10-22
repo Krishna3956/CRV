@@ -179,3 +179,11 @@ just because a README or marketing page mentions it.
   resources, prompts, tools, and tool detail. A release-gate contract now
   checks every public v2 analytics handler for the shared projection and
   rejects raw `data_trust` forwarding.
+
+- 2026-10-22: Extended the modern TypeScript client with explicit Tasks
+  `tasks/update` and `tasks/cancel` methods. Task IDs are sent in the required
+  `Mcp-Name` routing header, input-response keys are bounded, request bodies
+  have a 64 KiB limit, and cancellation is documented as cooperative rather
+  than an asserted terminal state. The client still fails closed for the
+  removed `tasks/list` operation and does not create tasks or subscribe to
+  notifications. SDK tests now pass 68/68 plus the packed consumer check.

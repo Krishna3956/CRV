@@ -92,24 +92,35 @@ For bounded historical discovery, `listAllTools`, `listAllResources`, and
 cursor. A `false` value means the bounded traversal reached an explicit end;
 it is not a claim that an unbounded catalog exists outside the adapter budget.
 
-Task state can be observed without mutating the server when the server returns
-an opaque task handle as part of a supported request. `getTask` reads one
-bounded status:
+Task state can be observed when the server returns an opaque task handle as
+part of a supported request. `getTask` reads one bounded status. For servers
+that surface `inputRequests`, `updateTask` sends bounded `inputResponses`; the
+caller must validate user input and must not place secrets in it. `cancelTask`
+sends the cooperative cancellation signal and does not claim that the server
+has already reached `cancelled`:
 
 ```ts
 const status = await client.getTask(taskIdFromYourServerResponse);
+await client.updateTask(taskIdFromYourServerResponse, {
+  name: { action: "accept", content: { input: "Luca" } },
+});
+await client.cancelTask(taskIdFromYourServerResponse);
 ```
 
 The modern Tasks extension does not define `tasks/list`; the compatibility
 shaped `listTasks()` method therefore fails closed without sending a request.
-The observer never creates, cancels, completes, or subscribes to tasks. Task
-status is diagnostic evidence only; callers must own the task lifecycle and
-should treat missing or malformed state as unknown.
+The observer never creates or subscribes to tasks. Task input is sent only
+when the caller explicitly invokes `updateTask`; request bodies are bounded
+and task IDs are sent in the required `Mcp-Name` routing header. Task status is
+diagnostic evidence; callers own authorization, user consent, and lifecycle
+policy and should treat missing or malformed state as unknown.
 
 This is intentionally a bounded discovery/catalog/status surface, not a claim
 of complete modern client lifecycle support. Tool execution, task mutation,
 subscriptions, and other multi-round-trip operations remain explicit boundaries
-until their fixtures and privacy contracts are complete.
+until their fixtures and privacy contracts are complete. Task update and
+cooperative cancellation are available as explicit caller-controlled methods;
+task creation and notification subscriptions remain outside this adapter.
 
 `redact` keeps compatibility with explicit dotted paths, while `redactKeys` adds case-insensitive exact key names. `redactEvent` receives an already sanitized event, may mutate it, or can return `null` to drop it. Hook failures drop only the event. The SDK queue is bounded to 500 events or 2 MiB; failed deliveries are requeued within those limits.
 

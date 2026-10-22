@@ -160,3 +160,24 @@ test("modern client rejects malformed task status and unsafe task identifiers", 
   await assert.rejects(() => client.getTask("task-1"), (error) => error instanceof ModernMcpProtocolError && error.code === "invalid_response");
   await assert.rejects(() => client.getTask("task id"), (error) => error instanceof ModernMcpProtocolError && error.code === "invalid_response");
 });
+
+test("modern client updates and cancels tasks with routing headers and no task/list request", async () => {
+  const requests = [];
+  const client = new ModernMcpClient({ endpoint: "https://mcp.example.test", fetch: async (_input, init) => {
+    requests.push({ headers: init.headers, body: JSON.parse(init.body) });
+    return response({ result: {} });
+  } });
+  await client.updateTask("task-1", { name: { action: "accept", content: { input: "Luca" } } });
+  await client.cancelTask("task-1");
+  assert.deepEqual(requests.map(({ headers, body }) => ({ method: body.method, params: body.params, mcpName: headers.get("mcp-name") })), [
+    { method: "tasks/update", params: { taskId: "task-1", inputResponses: { name: { action: "accept", content: { input: "Luca" } } } }, mcpName: "task-1" },
+    { method: "tasks/cancel", params: { taskId: "task-1" }, mcpName: "task-1" },
+  ]);
+});
+
+test("modern client bounds task update keys and request size", async () => {
+  const client = new ModernMcpClient({ endpoint: "https://mcp.example.test", fetch: async () => response({ result: {} }) });
+  await assert.rejects(() => client.updateTask("task-1", { "bad key!": true }), (error) => error instanceof ModernMcpProtocolError && error.code === "invalid_response");
+  await assert.rejects(() => client.updateTask("task-1", { answer: "x".repeat(70_000) }), (error) => error instanceof ModernMcpProtocolError && error.code === "request_too_large");
+  await assert.rejects(() => client.cancelTask("task id"), (error) => error instanceof ModernMcpProtocolError && error.code === "invalid_response");
+});
