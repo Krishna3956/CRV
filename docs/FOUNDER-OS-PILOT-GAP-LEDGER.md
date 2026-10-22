@@ -117,3 +117,9 @@ just because a README or marketing page mentions it.
   ordering, and that the raw handle/input never appears in telemetry. The Node
   adapter suite now has 26 passing tests; capability-aware task creation,
   cross-server joins, and authenticated production interoperability remain open.
+
+- 2026-10-22: Hardened the `/api/v2/tasks` projection after an integration test
+  demonstrated that unexpected upstream fields could otherwise be forwarded.
+  The route now allowlists a bounded task hash, state, timestamps, observation
+  count, terminal flag, and evidence quality; raw handles and arbitrary payload
+  fields are discarded. Contract and integration coverage both pass.
