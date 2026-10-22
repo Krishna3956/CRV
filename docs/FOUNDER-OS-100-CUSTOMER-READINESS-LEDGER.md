@@ -739,3 +739,15 @@ a failed product gate or a Supabase plan warning.
 - [x] The follow-up ledger commit `6baf1cc` also passed the complete hosted
   matrix in run `39769193207`; the release train remains intentionally
   unpublished because no SDK source or public API changed.
+
+## 2026-10-22 Founder OS PDF tab-model reconciliation
+
+- [x] The original 134-page Founder OS PDF defines six core analytical tabs:
+  Who's Using It, What They're Doing, Resources & Prompts, The Journey, Did
+  It Work, and What's Broken. The current dashboard exposes those same six
+  analytical surfaces under the business-friendly labels, while Overview,
+  Evidence, and Setup remain utility surfaces.
+- [x] This resolves the suspected Journey drift: Journey is part of the
+  original product specification, not an unplanned extra tab. No removal or
+  renaming is warranted; future work should focus on parity of the specified
+  journey evidence and its documented caveats.
