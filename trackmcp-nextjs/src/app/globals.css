@@ -155,6 +155,7 @@
 /* Every enabled interactive control exposes the same pointer affordance,
    including public tools, auth, docs, and repository surfaces. */
 button:not(:disabled),
+[href],
 [role="button"],
 summary {
   cursor: pointer;
