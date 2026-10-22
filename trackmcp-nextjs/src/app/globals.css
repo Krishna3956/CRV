@@ -143,6 +143,17 @@
   text-decoration: none !important;
 }
 
+/* Keep the brand mark visually undecorated in every pointer state. The only
+ * permitted emphasis is the keyboard focus ring, which is applied separately
+ * by the shared :focus-visible rule above. */
+.trackmcp-logo:hover,
+.trackmcp-logo:active,
+.trackmcp-logo:visited {
+  border: 0 !important;
+  box-shadow: none;
+  text-decoration: none !important;
+}
+
 /* Dashboard product typography: Inter for UI, Geist Mono only for code/IDs. */
 .dashboard-shell,
 .dashboard-shell button,
