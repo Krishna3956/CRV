@@ -4,6 +4,7 @@ const MAX_BODY_BYTES = 256 * 1024;
 const MAX_STRING_LENGTH = 256;
 const MAX_VERSIONS = 16;
 const MAX_CAPABILITIES = 32;
+const MAX_TOOLS = 128;
 
 export type ModernMcpDiscovery = {
   protocolVersion: typeof MODERN_MCP_PROTOCOL_VERSION;
@@ -17,6 +18,17 @@ export type ModernMcpClientOptions = {
   fetch?: typeof globalThis.fetch;
   headers?: Readonly<Record<string, string>>;
   timeoutMs?: number;
+};
+
+export type ModernMcpTool = {
+  name: string;
+  description?: string;
+  inputSchema?: Record<string, unknown>;
+};
+
+export type ModernMcpToolPage = {
+  tools: ModernMcpTool[];
+  nextCursor?: string;
 };
 
 export class ModernMcpProtocolError extends Error {
@@ -38,7 +50,7 @@ function boundedObject(value: unknown): value is Record<string, unknown> {
 export class ModernMcpClient {
   constructor(private readonly options: ModernMcpClientOptions) {}
 
-  async discover(): Promise<ModernMcpDiscovery> {
+  private async request(method: string, params: Record<string, unknown>): Promise<Record<string, unknown>> {
     let endpoint: URL;
     try {
       endpoint = new URL(this.options.endpoint);
@@ -52,26 +64,46 @@ export class ModernMcpClient {
     headers.set("accept", "application/json, text/event-stream");
     headers.set("content-type", "application/json");
     headers.set("mcp-protocol-version", MODERN_MCP_PROTOCOL_VERSION);
-    headers.set("mcp-method", "server/discover");
+    headers.set("mcp-method", method);
     try {
-      const response = await (this.options.fetch ?? globalThis.fetch)(endpoint, { method: "POST", headers, body: JSON.stringify({ jsonrpc: "2.0", id: 1, method: "server/discover", params: {} }), redirect: "manual", credentials: "omit", signal: controller.signal });
-      if (!response.ok) throw new ModernMcpProtocolError("http_error", "Modern MCP discovery returned a non-success status.", response.status);
+      const response = await (this.options.fetch ?? globalThis.fetch)(endpoint, { method: "POST", headers, body: JSON.stringify({ jsonrpc: "2.0", id: 1, method, params }), redirect: "manual", credentials: "omit", signal: controller.signal });
+      if (!response.ok) throw new ModernMcpProtocolError("http_error", `Modern MCP ${method} returned a non-success status.`, response.status);
       const contentLength = response.headers.get("content-length");
-      if (contentLength && /^\d+$/.test(contentLength) && Number(contentLength) > MAX_BODY_BYTES) throw new ModernMcpProtocolError("response_too_large", "Modern MCP discovery response exceeded the bounded response limit.");
+      if (contentLength && /^\d+$/.test(contentLength) && Number(contentLength) > MAX_BODY_BYTES) throw new ModernMcpProtocolError("response_too_large", `Modern MCP ${method} response exceeded the bounded response limit.`);
       const text = await response.text();
-      if (new TextEncoder().encode(text).byteLength > MAX_BODY_BYTES) throw new ModernMcpProtocolError("response_too_large", "Modern MCP discovery response exceeded the bounded response limit.");
+      if (new TextEncoder().encode(text).byteLength > MAX_BODY_BYTES) throw new ModernMcpProtocolError("response_too_large", `Modern MCP ${method} response exceeded the bounded response limit.`);
       let envelope: unknown;
-      try { envelope = JSON.parse(text); } catch { throw new ModernMcpProtocolError("invalid_response", "Modern MCP discovery returned invalid JSON."); }
-      if (!boundedObject(envelope) || !boundedObject(envelope.result)) throw new ModernMcpProtocolError("invalid_response", "Modern MCP discovery returned an invalid result envelope.");
-      const result = envelope.result;
+      try { envelope = JSON.parse(text); } catch { throw new ModernMcpProtocolError("invalid_response", `Modern MCP ${method} returned invalid JSON.`); }
+      if (!boundedObject(envelope) || !boundedObject(envelope.result)) throw new ModernMcpProtocolError("invalid_response", `Modern MCP ${method} returned an invalid result envelope.`);
+      return envelope.result;
+    } catch (error) {
+      if (error instanceof ModernMcpProtocolError) throw error;
+      if (error instanceof DOMException && error.name === "AbortError") throw new ModernMcpProtocolError("timeout", `Modern MCP ${method} timed out.`);
+      throw new ModernMcpProtocolError("network_error", `Modern MCP ${method} could not reach the endpoint.`);
+    } finally { clearTimeout(timer); }
+  }
+
+  async discover(): Promise<ModernMcpDiscovery> {
+    const result = await this.request("server/discover", {});
       const supportedVersions = Array.isArray(result.supportedVersions) ? [...new Set(result.supportedVersions.map(boundedString).filter((value): value is string => Boolean(value)))].slice(0, MAX_VERSIONS) : undefined;
       const serverInfo = boundedObject(result.serverInfo) ? { name: boundedString(result.serverInfo.name), version: boundedString(result.serverInfo.version) } : undefined;
       const capabilityNames = boundedObject(result.capabilities) ? Object.keys(result.capabilities).filter((name) => /^[A-Za-z][A-Za-z0-9_.-]{0,63}$/.test(name)).slice(0, MAX_CAPABILITIES) : [];
       return { protocolVersion: MODERN_MCP_PROTOCOL_VERSION, ...(supportedVersions?.length ? { supportedVersions } : {}), ...(serverInfo ? { serverInfo } : {}), capabilityNames };
-    } catch (error) {
-      if (error instanceof ModernMcpProtocolError) throw error;
-      if (error instanceof DOMException && error.name === "AbortError") throw new ModernMcpProtocolError("timeout", "Modern MCP discovery timed out.");
-      throw new ModernMcpProtocolError("network_error", "Modern MCP discovery could not reach the endpoint.");
-    } finally { clearTimeout(timer); }
+  }
+
+  /** Retrieve one bounded, cursor-based tools/list catalog page. */
+  async listTools(cursor?: string): Promise<ModernMcpToolPage> {
+    const result = await this.request("tools/list", cursor ? { cursor: cursor.slice(0, MAX_STRING_LENGTH) } : {});
+    if (!Array.isArray(result.tools)) throw new ModernMcpProtocolError("invalid_response", "Modern MCP tools/list returned no tools array.");
+    const tools = result.tools.slice(0, MAX_TOOLS).flatMap((value): ModernMcpTool[] => {
+      if (!boundedObject(value)) return [];
+      const name = boundedString(value.name);
+      if (!name || !/^[A-Za-z0-9_.-]{1,128}$/.test(name)) return [];
+      const description = boundedString(value.description);
+      const inputSchema = boundedObject(value.inputSchema) ? value.inputSchema : undefined;
+      return [{ name, ...(description ? { description } : {}), ...(inputSchema ? { inputSchema } : {}) }];
+    });
+    const nextCursor = boundedString(result.nextCursor);
+    return { tools, ...(nextCursor ? { nextCursor } : {}) };
   }
 }
