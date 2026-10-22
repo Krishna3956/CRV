@@ -285,3 +285,9 @@ just because a README or marketing page mentions it.
   Progress values, cancellation reasons, URIs, and caller payloads are not
   accepted; Python regression coverage passes. Dashboard timeline and
   transport-specific runtime fixtures remain explicitly open.
+
+- 2026-10-22: Added the same `recordProtocolSignal` contract to the TypeScript
+  server SDK and its `withTrackMCP` surface. The signal set is allowlisted and
+  payload-free; SDK regression coverage now passes 78/78 plus the packed
+  consumer check. No package version was changed; this remains part of the
+  next coordinated release train.

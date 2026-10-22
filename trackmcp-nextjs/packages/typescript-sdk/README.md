@@ -162,6 +162,12 @@ For accurate business outcomes, optionally mark a workflow from your own applica
 server.trackmcp.workflow("issue_resolution", "completed", { issue_type: "bug" });
 ```
 
+Protocol notifications can be recorded without values through
+`server.trackmcp.recordProtocolSignal(signal, method, sessionId)`. Signals are
+limited to `progress`, `cancelled`, `catalog_changed`, `resource_changed`, and
+`prompt_changed`; progress values, cancellation reasons, URIs, and payloads
+are not accepted.
+
 Intent and capability gaps are explicit, bounded signals. Compatible TypeScript
 transports advertise an optional `context` tool argument and remove it before the
 customer handler runs. Captured context is labeled `context_parameter`; clients that

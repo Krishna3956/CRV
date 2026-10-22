@@ -69,6 +69,26 @@ test("captures a tool call, redacts args, and delivers a batch", async () => {
   assert.equal(received[0].body.events[0].payload_size_bytes, Buffer.byteLength(JSON.stringify(received[0].body.events[0].payload)));
 });
 
+test("records allowlisted protocol signals without notification payloads", async () => {
+  const received = [];
+  const server = http.createServer((request, response) => {
+    let body = "";
+    request.on("data", (chunk) => { body += chunk; });
+    request.on("end", () => { received.push(JSON.parse(body)); response.writeHead(200); response.end("{}"); });
+  });
+  await new Promise((resolve) => server.listen(0, resolve));
+  const wrapped = withTrackMCP({ async request() { return {}; } }, { apiKey: "tmcp_test", endpoint: `http://127.0.0.1:${server.address().port}`, disabled: false, flushIntervalMs: 60000 });
+  wrapped.trackmcp.recordProtocolSignal("progress", "notifications/progress", "session-1");
+  wrapped.trackmcp.recordProtocolSignal("cancelled", "notifications/cancelled", "session-1");
+  await wrapped.trackmcp.flush();
+  await new Promise((resolve) => setTimeout(resolve, 20));
+  server.close();
+  const events = received.flatMap((batch) => batch.events);
+  assert.deepEqual(events.map((event) => event.payload._trackmcp.protocol_signal), ["progress", "cancelled"]);
+  assert.equal(JSON.stringify(events).includes("progress_value"), false);
+  assert.equal(JSON.stringify(events).includes("reason"), false);
+});
+
 test("captures a real official MCP server transport call", async () => {
   const received = [];
   const ingest = http.createServer((request, response) => {
