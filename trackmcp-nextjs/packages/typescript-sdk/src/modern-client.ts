@@ -226,7 +226,9 @@ export class ModernMcpClient {
     headers.set("mcp-method", method);
     if (routingName) headers.set("mcp-name", routingName);
     const requestId = this.nextRequestId();
-    const requestBody = JSON.stringify({ jsonrpc: "2.0", id: requestId, method, params });
+    let requestBody: string;
+    try { requestBody = JSON.stringify({ jsonrpc: "2.0", id: requestId, method, params }); }
+    catch { throw new ModernMcpProtocolError("invalid_response", `Modern MCP ${method} request contained a non-serializable value.`); }
     if (new TextEncoder().encode(requestBody).byteLength > MAX_TASK_INPUT_BYTES) throw new ModernMcpProtocolError("request_too_large", `Modern MCP ${method} request exceeded the bounded request limit.`);
     try {
       const response = await (this.options.fetch ?? globalThis.fetch)(endpoint, { method: "POST", headers, body: requestBody, redirect: "manual", credentials: "omit", signal: controller.signal });

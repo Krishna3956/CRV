@@ -244,3 +244,8 @@ just because a README or marketing page mentions it.
   metadata. Tool arguments, content, errors, and task result payloads are never
   returned or retained. SDK tests now pass 76/76 plus the packed consumer
   check.
+
+- 2026-10-22: Hardened modern request serialization. Non-serializable tool
+  arguments now fail closed as a typed bounded protocol error instead of
+  escaping as a raw JSON runtime exception. Regression coverage is included;
+  SDK tests now pass 77/77 plus the packed consumer check.

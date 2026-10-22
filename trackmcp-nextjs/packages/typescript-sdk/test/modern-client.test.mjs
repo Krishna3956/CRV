@@ -98,6 +98,12 @@ test("modern client projects complete tool result metadata without payloads", as
   assert.deepEqual(await client.callTool("lookup"), { resultType: "complete", isError: false, contentItemCount: 1, inputRequestKeys: ["ask"] });
 });
 
+test("modern client fails closed on non-serializable tool arguments", async () => {
+  const client = new ModernMcpClient({ endpoint: "https://mcp.example.test", fetch: async () => response({ result: {} }) });
+  const cyclic = {}; cyclic.self = cyclic;
+  await assert.rejects(() => client.callTool("lookup", cyclic), (error) => error instanceof ModernMcpProtocolError && error.code === "invalid_response");
+});
+
 test("modern client rejects a tools/list response without an array", async () => {
   const client = new ModernMcpClient({ endpoint: "https://mcp.example.test", fetch: async () => response({ result: {} }) });
   await assert.rejects(() => client.listTools(), (error) => error instanceof ModernMcpProtocolError && error.code === "invalid_response");
