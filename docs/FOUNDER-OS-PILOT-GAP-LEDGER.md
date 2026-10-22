@@ -102,3 +102,10 @@ just because a README or marketing page mentions it.
   unsupported browser or proxy path. A real SSE disconnect fixture and
   authenticated production disconnect UAT remain open, so SSE lifecycle parity
   is still marked partial.
+
+- 2026-10-22: Added a real local SSE lifecycle fixture to the Node adapter
+  suite. It starts an official SSE transport, completes an initialize exchange,
+  holds an in-flight `tools/call`, destroys the server event stream, and verifies
+  a bounded metadata-only `transport_error` tool observation without leaking
+  result content. The adapter package now has 25 passing tests; authenticated
+  production disconnect UAT and transport-owned reconnect policy remain open.

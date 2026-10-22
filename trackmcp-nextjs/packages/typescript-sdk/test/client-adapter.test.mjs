@@ -252,6 +252,66 @@ test("real Streamable HTTP server disconnect emits bounded transport failure evi
   }
 });
 
+test("real SSE server disconnect emits bounded transport failure evidence", async () => {
+  let sseResponse;
+  let endpointPath;
+  let toolPost;
+  const server = http.createServer((request, response) => {
+    if (request.method === "GET" && request.url === "/sse") {
+      sseResponse = response;
+      response.writeHead(200, { "content-type": "text/event-stream", "cache-control": "no-cache", connection: "keep-alive" });
+      endpointPath = "/messages";
+      response.write(`event: endpoint\ndata: ${endpointPath}\n\n`);
+      return;
+    }
+    if (request.method === "POST" && request.url === "/messages") {
+      let body = "";
+      request.on("data", (chunk) => { body += chunk; });
+      request.on("end", () => {
+        const message = JSON.parse(body);
+        response.writeHead(202);
+        response.end();
+        if (message.method === "initialize") {
+          sseResponse.write(`data: ${JSON.stringify({ jsonrpc: "2.0", id: message.id, result: { protocolVersion: "2025-06-18", capabilities: {}, serverInfo: { name: "sse-fixture", version: "1" } } })}\n\n`);
+        } else if (message.method === "tools/call") {
+          toolPost = message;
+        }
+      });
+      return;
+    }
+    response.writeHead(404);
+    response.end();
+  });
+  const endpoint = await listen(server);
+  const events = [];
+  const adapter = new TrackMCPClientAdapter({ apiKey: "tmcp_test", service: "adapter-test", transport: "sse", flushIntervalMs: 60000, onEvent: (event) => events.push(event) });
+  const raw = new SSEClientTransport(new URL(`${endpoint}/sse`));
+  const wrapped = adapter.wrapTransport(raw);
+  wrapped.onerror = () => {};
+  wrapped.onclose = () => {};
+  let pendingSend;
+  try {
+    await wrapped.start();
+    await wrapped.send({ jsonrpc: "2.0", id: 1, method: "initialize", params: { protocolVersion: "2025-06-18", capabilities: {}, clientInfo: { name: "sse-client", version: "1" } } });
+    pendingSend = wrapped.send(toolCall("sse-disconnect", "lookup"));
+    await wait(20);
+    assert.equal(toolPost?.method, "tools/call");
+    sseResponse.destroy();
+    await wait(100);
+    const failure = events.find((event) => event.event_type === "tool_call" && event.error_class === "transport_error");
+    assert.ok(failure);
+    assert.equal(failure.transport, "sse");
+    assert.equal(failure.success, false);
+    assert.equal(failure.is_error, true);
+    assert.equal(failure.payload_policy, "metadata");
+    assert.equal(JSON.stringify(events).includes("private-sse-result"), false);
+  } finally {
+    await wrapped.close().catch(() => {});
+    await pendingSend?.catch(() => {});
+    await closeServer(server);
+  }
+});
+
 class FakeTransport extends StdioClientTransport {
   constructor() {
     super({ command: process.execPath, args: ["-e", "process.stdin.resume()"], stderr: "ignore" });
