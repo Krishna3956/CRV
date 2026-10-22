@@ -676,3 +676,15 @@ a failed product gate or a Supabase plan warning.
   suites, lint passed, and the production build generated all 176 routes.
 - [ ] Transport-owned reconnect policy, proxy behavior, and authenticated
   production disconnect UAT remain external/transport-specific evidence gates.
+
+## 2026-10-22 opt-in task-stream reconnect checkpoint
+
+- [x] Task-status streams now have the same explicit bounded reconnect wrapper
+  as catalog/resource streams. It retries only network/non-graceful failures,
+  caps attempts/backoff/events, honors cancellation, and leaves task
+  reconciliation to bounded `getTask` polling.
+- [x] Added a fail-then-reconnect privacy-safe fixture. TypeScript SDK tests
+  passed 81/81; the complete release gate passed 125 suites; lint passed; and
+  the production build generated all 176 routes.
+- [ ] Automatic durable task subscriptions, replay semantics, and production
+  transport disconnect UAT remain outside the local adapter boundary.

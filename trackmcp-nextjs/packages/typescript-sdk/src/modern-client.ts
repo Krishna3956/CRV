@@ -89,6 +89,8 @@ export type ModernMcpTaskInputResponses = Record<string, unknown>;
 export type ModernMcpTaskWaitOptions = { maxPolls?: number; maxWaitMs?: number; signal?: AbortSignal };
 export type ModernMcpTaskWaitResult = { task: ModernMcpTask; complete: boolean; timedOut: boolean; polls: number };
 export type ModernMcpTaskListenerOptions = { signal?: AbortSignal; timeoutMs?: number; maxEvents?: number; onTask?: (task: ModernMcpTask) => void };
+export type ModernMcpTaskReconnectOptions = ModernMcpTaskListenerOptions & { maxAttempts?: number; backoffMs?: number };
+export type ModernMcpTaskReconnectResult = ModernMcpTaskListenerResult & { attempts: number; reconnects: number };
 export type ModernMcpTaskListenerResult = { events: ModernMcpTask[]; truncated: boolean };
 export type ModernMcpToolCallResult = { resultType: "complete" | "input_required" | "task"; task?: ModernMcpTask; isError?: boolean; contentItemCount?: number; inputRequestKeys?: string[] };
 export type ModernMcpSubscriptionFilter = {
@@ -536,6 +538,50 @@ export class ModernMcpClient {
       if (options.signal?.aborted || timedOut || (error instanceof DOMException && error.name === "AbortError")) return { events, truncated: true };
       throw new ModernMcpProtocolError("network_error", "Modern MCP subscriptions/listen could not reach the endpoint.");
     } finally { clearTimeout(timer); options.signal?.removeEventListener("abort", abort); }
+  }
+
+  /** Opt-in bounded reconnect wrapper for task-status streams. The stream is
+   * not durable: reconnects can miss or duplicate notifications, and callers
+   * should reconcile by polling `getTask` for each known handle. */
+  async listenForTaskUpdatesWithReconnect(taskIds: string[], options: ModernMcpTaskReconnectOptions = {}): Promise<ModernMcpTaskReconnectResult> {
+    const maxAttempts = typeof options.maxAttempts === "number" && Number.isInteger(options.maxAttempts) ? Math.min(5, Math.max(1, options.maxAttempts)) : 3;
+    const backoffMs = typeof options.backoffMs === "number" && Number.isFinite(options.backoffMs) ? Math.min(5_000, Math.max(0, Math.floor(options.backoffMs))) : 250;
+    const maxEvents = typeof options.maxEvents === "number" && Number.isInteger(options.maxEvents) ? Math.min(MAX_TASK_STREAM_EVENTS, Math.max(1, options.maxEvents)) : MAX_TASK_STREAM_EVENTS;
+    const events: ModernMcpTask[] = [];
+    let attempts = 0;
+    let reconnects = 0;
+    let last: ModernMcpTaskListenerResult = { events: [], truncated: true };
+    while (attempts < maxAttempts && !options.signal?.aborted && events.length < maxEvents) {
+      attempts += 1;
+      let result: ModernMcpTaskListenerResult;
+      try {
+        result = await this.listenForTaskUpdates(taskIds, {
+          signal: options.signal,
+          timeoutMs: options.timeoutMs,
+          maxEvents: maxEvents - events.length,
+          onTask: options.onTask,
+        });
+      } catch (error) {
+        if (!(error instanceof ModernMcpProtocolError) || error.code !== "network_error") throw error;
+        result = { events: [], truncated: true };
+      }
+      last = result;
+      events.push(...result.events);
+      if (!result.truncated || options.signal?.aborted || events.length >= maxEvents) break;
+      if (attempts >= maxAttempts) break;
+      reconnects += 1;
+      const delay = Math.min(5_000, backoffMs * (2 ** Math.min(3, reconnects - 1)));
+      if (delay > 0) await new Promise<void>((resolve) => {
+        const timer = setTimeout(resolve, delay);
+        options.signal?.addEventListener("abort", () => { clearTimeout(timer); resolve(); }, { once: true });
+      });
+    }
+    return {
+      events: events.slice(0, maxEvents),
+      truncated: Boolean(options.signal?.aborted) || events.length >= maxEvents ? events.length >= maxEvents : last.truncated,
+      attempts,
+      reconnects,
+    };
   }
 
   /** Listen to bounded 2026-07-28 catalog/resource change notifications.

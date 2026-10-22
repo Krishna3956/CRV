@@ -290,6 +290,23 @@ test("modern client bounds task notification streams and rejects unsafe filters"
   await assert.rejects(() => client.listenForTaskUpdates(["task id"]), (error) => error instanceof ModernMcpProtocolError && error.code === "invalid_response");
 });
 
+test("modern client can opt into bounded task-stream reconnects", async () => {
+  let calls = 0;
+  const client = new ModernMcpClient({ endpoint: "https://mcp.example.test", fetch: async () => {
+    calls += 1;
+    if (calls === 1) throw new TypeError("socket closed");
+    return new Response(new ReadableStream({ start(controller) {
+      controller.enqueue(new TextEncoder().encode(`data: ${JSON.stringify({ method: "notifications/tasks", params: { taskId: "task-1", status: "completed" } })}\n\n`));
+      controller.close();
+    } }), { status: 200, headers: { "content-type": "text/event-stream" } });
+  } });
+  const result = await client.listenForTaskUpdatesWithReconnect(["task-1"], { maxAttempts: 3, backoffMs: 0 });
+  assert.equal(calls, 2);
+  assert.equal(result.attempts, 2);
+  assert.equal(result.reconnects, 1);
+  assert.deepEqual(result.events, [{ taskId: "task-1", status: "completed" }]);
+});
+
 test("modern client listens to bounded catalog/resource changes without retaining URIs", async () => {
   let request;
   const client = new ModernMcpClient({ endpoint: "https://mcp.example.test", fetch: async (_input, init) => {
