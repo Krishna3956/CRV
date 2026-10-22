@@ -275,7 +275,7 @@ export class ModernMcpClient {
    * its sanitized task handle and lifecycle metadata. */
   async callTool(name: string, args: Record<string, unknown> = {}): Promise<ModernMcpToolCallResult> {
     if (!/^[A-Za-z0-9_.-]{1,128}$/.test(name) || !boundedObject(args)) throw new ModernMcpProtocolError("invalid_response", "Modern MCP tools/call requires a bounded tool name and object arguments.");
-    const result = await this.request("tools/call", taskParams({ name, arguments: args }));
+    const result = await this.request("tools/call", taskParams({ name, arguments: args }), name);
     const resultTypeValue = result.resultType === undefined ? "complete" : boundedString(result.resultType);
     if (resultTypeValue !== "complete" && resultTypeValue !== "input_required" && resultTypeValue !== "task") throw new ModernMcpProtocolError("invalid_response", "Modern MCP tools/call returned an unsupported result type.");
     if (resultTypeValue === "task") {

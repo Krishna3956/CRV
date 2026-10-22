@@ -82,13 +82,14 @@ test("modern client lists a bounded, cursor-based tool catalog", async () => {
 test("modern client invokes tools with task capability and projects task results", async () => {
   const requests = [];
   const client = new ModernMcpClient({ endpoint: "https://mcp.example.test", fetch: async (_input, init) => {
-    requests.push(JSON.parse(init.body));
+    requests.push({ body: JSON.parse(init.body), mcpName: init.headers.get("mcp-name") });
     return response({ result: { resultType: "task", taskId: "task-call-1", status: "working", createdAt: "2026-10-22T00:00:00Z", result: { secret: "omit" }, private: "omit" } });
   } });
   const result = await client.callTool("lookup", { query: "private input" });
   assert.deepEqual(result, { resultType: "task", task: { taskId: "task-call-1", status: "working", createdAt: "2026-10-22T00:00:00Z" } });
-  assert.equal(requests[0].method, "tools/call");
-  assert.deepEqual(requests[0].params._meta, { "io.modelcontextprotocol/clientCapabilities": { extensions: { "io.modelcontextprotocol/tasks": {} } } });
+  assert.equal(requests[0].body.method, "tools/call");
+  assert.equal(requests[0].mcpName, "lookup");
+  assert.deepEqual(requests[0].body.params._meta, { "io.modelcontextprotocol/clientCapabilities": { extensions: { "io.modelcontextprotocol/tasks": {} } } });
   assert.equal(JSON.stringify(result).includes("omit"), false);
   await assert.rejects(() => client.callTool("bad name", {}), (error) => error instanceof ModernMcpProtocolError && error.code === "invalid_response");
 });

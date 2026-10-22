@@ -273,3 +273,8 @@ just because a README or marketing page mentions it.
   affordance and keyboard focus, and every sidebar destination resolves to a
   real route or section. No speculative UI change was made where executable
   evidence already passed.
+
+- 2026-10-22: Corrected modern `tools/call` Streamable HTTP routing so the
+  metadata-only SDK path sends the required `Mcp-Name` header matching the
+  requested tool. Wire-level coverage now asserts the header while preserving
+  the bounded task/result projection; SDK tests remain green.
