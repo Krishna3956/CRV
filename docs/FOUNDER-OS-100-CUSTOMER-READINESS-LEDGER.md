@@ -341,3 +341,18 @@ a failed product gate or a Supabase plan warning.
 - [x] Pushed as the next main-branch milestone after review of the release
   policy; the user-owned `docs/codex-handoff/` and `tmp/` directories remain
   untracked and untouched.
+
+## 2026-10-22 cross-language transport metadata bounds
+
+- [x] Go and .NET `RecordTransportFailure` now trim/default and cap caller
+  session IDs at 256 characters, matching the existing TypeScript bounded
+  session contract. The observer still accepts only `transport_error` and
+  `transport_closed`, and never accepts exception text, URLs, headers, or
+  payloads.
+- [x] Go regression coverage now verifies defaulting and the 256-character
+  session bound. The source remains fail-open and metadata-only.
+- [x] Web lint, 176-route production build, and all 122 web release-gate
+  suites passed after the change; `git diff --check` passed.
+- [ ] Local Go and .NET compilers are not installed in this environment; the
+  hosted Go/.NET CI checks remain the authoritative compile evidence for this
+  cross-language source change.

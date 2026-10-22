@@ -34,4 +34,6 @@ func TestRecordTransportFailureIsMetadataOnlyAndBounded(t *testing.T) {
 	if len(client.queue) != 1 { t.Fatalf("invalid kind should be ignored") }
 	client.RecordTransportFailure("transport_error", "", 999999999)
 	if client.queue[1].DurationMS != 86400000 || client.queue[1].SessionID != "transport-session" { t.Fatalf("bounds/defaults not applied: %#v", client.queue[1]) }
+	client.RecordTransportFailure("transport_closed", "  "+string(make([]byte, 300)), 1)
+	if len(client.queue[2].SessionID) != maxSessionIDLength { t.Fatalf("session id was not bounded: %d", len(client.queue[2].SessionID)) }
 }

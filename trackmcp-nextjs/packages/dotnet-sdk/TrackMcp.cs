@@ -9,6 +9,7 @@ public sealed record TrackMcpOptions(string ApiKey, string Service = "mcp-server
 
 public sealed class TrackMcpClient : IDisposable
 {
+	private const int MaxSessionIdLength = 256;
     private readonly TrackMcpOptions _options;
     private readonly HttpClient _http;
     private readonly List<Dictionary<string, object?>> _queue = new();
@@ -82,7 +83,14 @@ public sealed class TrackMcpClient : IDisposable
                 ["observation_kind"] = kind,
                 ["observation_source"] = "transport"
             }
-        }, string.IsNullOrWhiteSpace(sessionId) ? "transport-session" : sessionId, false, boundedDuration);
+        }, BoundSessionId(sessionId), false, boundedDuration);
+    }
+
+    private static string BoundSessionId(string? sessionId)
+    {
+        var value = sessionId?.Trim();
+        if (string.IsNullOrEmpty(value)) return "transport-session";
+        return value.Length <= MaxSessionIdLength ? value : value[..MaxSessionIdLength];
     }
 
     public async Task FlushAsync(CancellationToken cancellationToken = default)

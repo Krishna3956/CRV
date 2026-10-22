@@ -53,6 +53,7 @@ const (
 	maxPayloadDepth = 3
 	maxPayloadKeys = 24
 	maxPayloadString = 256
+	maxSessionIDLength = 256
 )
 
 var sensitivePayloadKeys = map[string]bool{
@@ -118,7 +119,7 @@ func (c *Client) Track(name string, payload map[string]any) { if payload == nil 
 // URLs, headers, and payloads are never captured.
 func (c *Client) RecordTransportFailure(kind string, sessionID string, durationMS int64) {
 	if kind != "transport_error" && kind != "transport_closed" { return }
-	if sessionID == "" { sessionID = "transport-session" }
+	sessionID = boundedSessionID(sessionID)
 	if durationMS < 0 { durationMS = 0 }
 	if durationMS > 86400000 { durationMS = 86400000 }
 	c.Capture(Event{
@@ -127,6 +128,13 @@ func (c *Client) RecordTransportFailure(kind string, sessionID string, durationM
 		ErrorClass: kind,
 		Payload: map[string]any{"_trackmcp": map[string]any{"observation_kind": kind, "observation_source": "transport"}},
 	})
+}
+
+func boundedSessionID(value string) string {
+	value = strings.TrimSpace(value)
+	if value == "" { return "transport-session" }
+	if len(value) > maxSessionIDLength { return value[:maxSessionIDLength] }
+	return value
 }
 
 func boolPtr(value bool) *bool { return &value }
