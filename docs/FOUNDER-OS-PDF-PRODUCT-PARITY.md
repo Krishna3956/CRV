@@ -28,7 +28,7 @@ Source of truth: `/Users/krishna/Downloads/Founder OS.pdf` (134 rendered pages; 
 | Outcome | 53–67 | Implemented with evidence-based completion/stall/error states | UAT response-state calculations |
 | Reliability | 68–111 | Partially implemented through Quality/Issues/Evidence surfaces | Map each classifier to code and mark gaps |
 | Hybrid SDK/OTel/proxy architecture | 112–123 | SDK and OTLP/HTTP JSON implemented; proxy is not a full alternative | Keep claims honest and link every route |
-| Setup and first-event experience | 124–131 | Implemented with TypeScript, Python, Go, .NET, OTLP guidance and first-event evidence | Live deployment verification pending this change |
+| Setup and first-event experience | 124–131 | Implemented with TypeScript, Python, Go, .NET, OTLP guidance and first-event evidence | Deployment smoke and setup/docs contracts verified; authenticated workspace UAT remains open |
 
 ## Initial gaps to verify before implementation
 
