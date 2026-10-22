@@ -503,3 +503,7 @@ a failed product gate or a Supabase plan warning.
   singular `capability` and `issue` aliases land on “What they're doing” and
   “What's broken” respectively, with their bounded metrics, caveats, and
   evidence actions rendered.
+- [x] Added a privacy-safe `prompts/get` durable-projection fixture covering a
+  hashed prompt identity and explicit `input_required` result state; raw prompt
+  names are asserted absent. The focused refresh-handler suite and full
+  124-suite release gate pass. Production prompt-read exercise remains open.

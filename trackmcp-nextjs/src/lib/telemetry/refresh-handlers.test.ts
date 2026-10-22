@@ -199,3 +199,28 @@ test("catalog entity refresh writes idempotent hash-only read rows", async () =>
   assert.equal((entityWrite.rows[0] as { entity_hash?: string }).entity_hash, "a".repeat(64));
   assert.equal((entityWrite.rows[0] as { payload?: unknown }).payload, undefined);
 });
+
+test("catalog entity refresh writes bounded prompt reads with explicit result state", async () => {
+  const { admin, writes } = fakeAdmin([{
+    event_id: "prompt-read-1",
+    server_id: "server-1",
+    environment: "production",
+    mcp_method: "prompts/get",
+    catalog_kind: "prompts",
+    catalog_item_name_hashes: ["b".repeat(64)],
+    started_at: "2026-01-01T00:00:01Z",
+    success: false,
+    is_error: false,
+    result_type: "input_required",
+    prompt_name: "secret-prompt-name",
+  }]);
+  const handler = createRefreshJobHandlers(admin as never).catalog_entity_recompute;
+  assert.ok(handler);
+  assert.deepEqual(await handler({ job: baseJob("fact_projection"), now: new Date() }), { outcome: "succeeded" });
+  const entityWrite = writes.find((write) => write.table === "trackmcp_catalog_entity_reads");
+  assert.ok(entityWrite);
+  assert.equal((entityWrite.rows[0] as { catalog_kind?: string }).catalog_kind, "prompts");
+  assert.equal((entityWrite.rows[0] as { entity_hash?: string }).entity_hash, "b".repeat(64));
+  assert.equal((entityWrite.rows[0] as { result_type?: string }).result_type, "input_required");
+  assert.equal(JSON.stringify(entityWrite.rows).includes("secret-prompt-name"), false);
+});
