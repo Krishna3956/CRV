@@ -144,3 +144,9 @@ just because a README or marketing page mentions it.
   properties are discarded. The journey integration fixture injects a private
   field and verifies it is not returned while explicit terminal accounting is
   unchanged.
+
+- 2026-10-22: Hardened the `/api/v2/outcomes` projection. Outcome rows,
+  semantic task states, evidence-quality counts, and grouped aggregates now
+  use bounded numeric/rate fields and allowlisted keys; arbitrary outcome or
+  aggregate properties are discarded. The integration fixture injects private
+  fields into both shapes and verifies they do not reach the response.

@@ -5,7 +5,7 @@ import { createOutcomesHandler } from "./handlers.ts";
 test("outcomes prefers explicit shared workflow facts over generic activity", async () => {
   const handler = createOutcomesHandler(async () => new Response(JSON.stringify({
     range_days: 30,
-    outcomes: [{ name: "generic", completed: 99, failed: 1 }],
+    outcomes: [{ name: "generic", completed: 99, failed: 1, private_payload: "do-not-return" }],
     completion_rate: 1,
     completion_source: "session_heuristic",
     outcome_activity: { completed: 2, failed: 2, pending: 1, unknown: 3, not_observable: 4, completion_rate: 0.5, error_rate: 0.5, task_states: { working: 1, input_required: 0, completed: 1, failed: 0, cancelled: 0, expired: 0, unknown: 0 } },
@@ -17,7 +17,7 @@ test("outcomes prefers explicit shared workflow facts over generic activity", as
         unresolved_facts: 3,
         evidence_quality: { observed: 4, inferred: 0, insufficient_data: 3, conflicting: 0 },
       },
-      groups: {},
+      groups: { service: [{ group_key: "demo", total_facts: 4, private_payload: "do-not-return" }] },
     },
     data_trust: { source_count: 4 },
   }), { status: 200, headers: { "content-type": "application/json" } }));
@@ -30,4 +30,5 @@ test("outcomes prefers explicit shared workflow facts over generic activity", as
   assert.equal(body.completion.unresolved_facts, 3);
   assert.deepEqual(body.semantic_outcomes.task_states, { working: 1, input_required: 0, completed: 1, failed: 0, cancelled: 0, expired: 0, unknown: 0 });
   assert.match(body.caveats.join(" "), /explicit terminal workflow facts/);
+  assert.equal(JSON.stringify(body).includes("private_payload"), false);
 });
