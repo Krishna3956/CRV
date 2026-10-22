@@ -239,6 +239,29 @@ test("modern client bounds task notification streams and rejects unsafe filters"
   await assert.rejects(() => client.listenForTaskUpdates(["task id"]), (error) => error instanceof ModernMcpProtocolError && error.code === "invalid_response");
 });
 
+test("modern client listens to bounded catalog/resource changes without retaining URIs", async () => {
+  let request;
+  const client = new ModernMcpClient({ endpoint: "https://mcp.example.test", fetch: async (_input, init) => {
+    request = init;
+    return sseResponse([
+      { jsonrpc: "2.0", method: "notifications/subscriptions/acknowledged", params: { notifications: { toolsListChanged: true, resourceSubscriptions: ["file:///private/config"] }, subscriptionId: "omit" } },
+      { jsonrpc: "2.0", method: "notifications/tools/list_changed", params: { private: "omit" } },
+      { jsonrpc: "2.0", method: "notifications/resources/updated", params: { uri: "file:///private/config", private: "omit" } },
+      { jsonrpc: "2.0", id: 1, result: {} },
+    ]);
+  } });
+  const result = await client.listenForUpdates({ toolsListChanged: true, resourceSubscriptions: ["file:///private/config"] });
+  assert.deepEqual(JSON.parse(request.body).params.notifications, { toolsListChanged: true, resourceSubscriptions: ["file:///private/config"] });
+  assert.equal(result.honored.toolsListChanged, true);
+  assert.equal(result.honored.resourceSubscriptionHashes.length, 1);
+  assert.equal(result.events[0].type, "tools_list_changed");
+  assert.equal(result.events[1].type, "resource_updated");
+  assert.equal(result.events[1].resourceUriHash?.length, 64);
+  assert.equal(JSON.stringify(result).includes("private/config"), false);
+  assert.equal(result.graceful, true);
+  await assert.rejects(() => client.listenForUpdates({}), (error) => error instanceof ModernMcpProtocolError && error.code === "invalid_response");
+});
+
 test("modern client bounds task update keys and request size", async () => {
   const client = new ModernMcpClient({ endpoint: "https://mcp.example.test", fetch: async () => response({ result: {} }) });
   await assert.rejects(() => client.updateTask("task-1", { "bad key!": true }), (error) => error instanceof ModernMcpProtocolError && error.code === "invalid_response");

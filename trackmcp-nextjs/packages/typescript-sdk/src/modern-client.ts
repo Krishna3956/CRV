@@ -12,6 +12,8 @@ const MAX_COLLECTION_ITEMS = 512;
 const MAX_TASK_INPUT_BYTES = 64 * 1024;
 const MAX_TASK_STREAM_BYTES = 256 * 1024;
 const MAX_TASK_STREAM_EVENTS = 64;
+const MAX_SUBSCRIPTION_RESOURCE_URIS = 128;
+const MAX_SUBSCRIPTION_URI_BYTES = 64 * 1024;
 const TASK_EXTENSION_META = { "io.modelcontextprotocol/clientCapabilities": { extensions: { "io.modelcontextprotocol/tasks": {} } } } as const;
 
 export type ModernMcpDiscovery = {
@@ -83,6 +85,16 @@ export type ModernMcpTaskWaitOptions = { maxPolls?: number; maxWaitMs?: number; 
 export type ModernMcpTaskWaitResult = { task: ModernMcpTask; complete: boolean; timedOut: boolean; polls: number };
 export type ModernMcpTaskListenerOptions = { signal?: AbortSignal; timeoutMs?: number; maxEvents?: number; onTask?: (task: ModernMcpTask) => void };
 export type ModernMcpTaskListenerResult = { events: ModernMcpTask[]; truncated: boolean };
+export type ModernMcpSubscriptionFilter = {
+  toolsListChanged?: boolean;
+  promptsListChanged?: boolean;
+  resourcesListChanged?: boolean;
+  resourceSubscriptions?: string[];
+};
+export type ModernMcpSubscriptionEvent = { type: "tools_list_changed" | "prompts_list_changed" | "resources_list_changed" | "resource_updated"; resourceUriHash?: string };
+export type ModernMcpSubscriptionOptions = { signal?: AbortSignal; timeoutMs?: number; maxEvents?: number; onEvent?: (event: ModernMcpSubscriptionEvent) => void };
+export type ModernMcpSubscriptionHonoredFilter = Omit<ModernMcpSubscriptionFilter, "resourceSubscriptions"> & { resourceSubscriptionHashes?: string[] };
+export type ModernMcpSubscriptionResult = { events: ModernMcpSubscriptionEvent[]; honored?: ModernMcpSubscriptionHonoredFilter; graceful: boolean; truncated: boolean };
 
 export class ModernMcpProtocolError extends Error {
   readonly code: "invalid_endpoint" | "timeout" | "http_error" | "invalid_response" | "response_too_large" | "request_too_large" | "network_error" | "unsupported_method";
@@ -123,6 +135,30 @@ function projectTask(value: unknown): ModernMcpTask | null {
 
 function taskParams(params: Record<string, unknown>): Record<string, unknown> {
   return { ...params, _meta: TASK_EXTENSION_META };
+}
+
+function boundedSubscriptionFilter(filter: ModernMcpSubscriptionFilter): ModernMcpSubscriptionFilter {
+  if (!filter || typeof filter !== "object") throw new ModernMcpProtocolError("invalid_response", "Modern MCP subscriptions/listen requires a bounded notification filter.");
+  const resourceSubscriptions = filter.resourceSubscriptions;
+  if (resourceSubscriptions !== undefined && (!Array.isArray(resourceSubscriptions) || resourceSubscriptions.length > MAX_SUBSCRIPTION_RESOURCE_URIS)) throw new ModernMcpProtocolError("invalid_response", "Modern MCP subscriptions/listen resource filters exceeded the bounded limit.");
+  const boundedUris = resourceSubscriptions?.map((uri) => {
+    if (typeof uri !== "string" || uri.length === 0 || uri.length > MAX_STRING_LENGTH || /[\u0000-\u001f\u007f]/.test(uri)) throw new ModernMcpProtocolError("invalid_response", "Modern MCP subscriptions/listen resource filters must be bounded URI strings.");
+    return uri;
+  });
+  if (boundedUris && new TextEncoder().encode(boundedUris.join("\n")).byteLength > MAX_SUBSCRIPTION_URI_BYTES) throw new ModernMcpProtocolError("request_too_large", "Modern MCP subscriptions/listen resource filters exceeded the bounded byte limit.");
+  const result: ModernMcpSubscriptionFilter = {
+    ...(filter.toolsListChanged === true ? { toolsListChanged: true } : {}),
+    ...(filter.promptsListChanged === true ? { promptsListChanged: true } : {}),
+    ...(filter.resourcesListChanged === true ? { resourcesListChanged: true } : {}),
+    ...(boundedUris?.length ? { resourceSubscriptions: boundedUris } : {}),
+  };
+  if (!Object.keys(result).length) throw new ModernMcpProtocolError("invalid_response", "Modern MCP subscriptions/listen requires at least one supported notification filter.");
+  return result;
+}
+
+async function hashSubscriptionUri(uri: string): Promise<string> {
+  const digest = await globalThis.crypto.subtle.digest("SHA-256", new TextEncoder().encode(uri));
+  return Array.from(new Uint8Array(digest), (byte) => byte.toString(16).padStart(2, "0")).join("");
 }
 
 function parseJsonRpcEnvelope(text: string, contentType: string, requestId: number, method: string): Record<string, unknown> {
@@ -439,6 +475,94 @@ export class ModernMcpClient {
     } catch (error) {
       if (error instanceof ModernMcpProtocolError) throw error;
       if (options.signal?.aborted || timedOut || (error instanceof DOMException && error.name === "AbortError")) return { events, truncated: true };
+      throw new ModernMcpProtocolError("network_error", "Modern MCP subscriptions/listen could not reach the endpoint.");
+    } finally { clearTimeout(timer); options.signal?.removeEventListener("abort", abort); }
+  }
+
+  /** Listen to bounded 2026-07-28 catalog/resource change notifications.
+   * Raw resource URIs, subscription IDs, acknowledgement metadata, and
+   * notification payloads are never returned; resource updates are identified
+   * by a one-way SHA-256 URI hash. This is a single bounded stream, not a
+   * durable subscription or reconnect manager. */
+  async listenForUpdates(filter: ModernMcpSubscriptionFilter, options: ModernMcpSubscriptionOptions = {}): Promise<ModernMcpSubscriptionResult> {
+    const boundedFilter = boundedSubscriptionFilter(filter);
+    const maxEvents = typeof options.maxEvents === "number" && Number.isInteger(options.maxEvents) ? Math.min(MAX_TASK_STREAM_EVENTS, Math.max(1, options.maxEvents)) : MAX_TASK_STREAM_EVENTS;
+    const timeoutMs = typeof options.timeoutMs === "number" && Number.isFinite(options.timeoutMs) ? Math.min(30_000, Math.max(250, Math.floor(options.timeoutMs))) : 10_000;
+    if (options.signal?.aborted) return { events: [], graceful: false, truncated: true };
+    let endpoint: URL;
+    try {
+      endpoint = new URL(this.options.endpoint);
+      if (endpoint.protocol !== "https:" && endpoint.hostname !== "localhost" && endpoint.hostname !== "127.0.0.1") throw new Error("unsupported scheme");
+      if (endpoint.username || endpoint.password) throw new Error("credentials in URL");
+    } catch { throw new ModernMcpProtocolError("invalid_endpoint", "Modern MCP endpoint must be HTTPS or localhost without URL credentials."); }
+    const controller = new AbortController();
+    let timedOut = false;
+    const timer = setTimeout(() => { timedOut = true; controller.abort(); }, timeoutMs);
+    const abort = () => controller.abort();
+    options.signal?.addEventListener("abort", abort, { once: true });
+    const headers = new Headers(this.options.headers);
+    headers.set("accept", "text/event-stream"); headers.set("content-type", "application/json");
+    headers.set("mcp-protocol-version", MODERN_MCP_PROTOCOL_VERSION); headers.set("mcp-method", "subscriptions/listen");
+    const body = JSON.stringify({ jsonrpc: "2.0", id: this.nextRequestId(), method: "subscriptions/listen", params: taskParams({ notifications: boundedFilter }) });
+    const events: ModernMcpSubscriptionEvent[] = [];
+    let honored: ModernMcpSubscriptionHonoredFilter | undefined;
+    let graceful = false;
+    try {
+      const response = await (this.options.fetch ?? globalThis.fetch)(endpoint, { method: "POST", headers, body, redirect: "manual", credentials: "omit", signal: controller.signal });
+      if (!response.ok) throw new ModernMcpProtocolError("http_error", "Modern MCP subscriptions/listen returned a non-success status.", response.status);
+      if (!response.body) throw new ModernMcpProtocolError("invalid_response", "Modern MCP subscriptions/listen returned no stream body.");
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = ""; let bytes = 0; let truncated = false;
+      const consume = async (chunk: string) => {
+        buffer += chunk;
+        const frames = buffer.split(/\r?\n\r?\n/); buffer = frames.pop() || "";
+        for (const frame of frames) {
+          const data = frame.split(/\r?\n/).filter((line) => line.startsWith("data:")).map((line) => line.slice(5).trimStart()).join("\n");
+          if (!data) continue;
+          let envelope: unknown; try { envelope = JSON.parse(data); } catch { continue; }
+          if (!boundedObject(envelope)) continue;
+          if (envelope.method === "notifications/subscriptions/acknowledged") {
+            const notificationFilter = boundedObject(envelope.params) && boundedObject(envelope.params.notifications) ? envelope.params.notifications : undefined;
+            if (notificationFilter) {
+              const acknowledgedUris = Array.isArray(notificationFilter.resourceSubscriptions)
+                ? notificationFilter.resourceSubscriptions.filter((uri): uri is string => typeof uri === "string" && uri.length > 0 && uri.length <= MAX_STRING_LENGTH && !/[\u0000-\u001f\u007f]/.test(uri)).slice(0, MAX_SUBSCRIPTION_RESOURCE_URIS)
+                : [];
+              honored = {
+                ...(notificationFilter.toolsListChanged === true ? { toolsListChanged: true } : {}),
+                ...(notificationFilter.promptsListChanged === true ? { promptsListChanged: true } : {}),
+                ...(notificationFilter.resourcesListChanged === true ? { resourcesListChanged: true } : {}),
+                ...(acknowledgedUris.length ? { resourceSubscriptionHashes: await Promise.all(acknowledgedUris.map(hashSubscriptionUri)) } : {}),
+              };
+            }
+            continue;
+          }
+          if ("id" in envelope && boundedObject(envelope.result)) { graceful = true; continue; }
+          const type = envelope.method === "notifications/tools/list_changed" ? "tools_list_changed"
+            : envelope.method === "notifications/prompts/list_changed" ? "prompts_list_changed"
+              : envelope.method === "notifications/resources/list_changed" ? "resources_list_changed"
+                : envelope.method === "notifications/resources/updated" ? "resource_updated" : undefined;
+          if (!type || events.length >= maxEvents) { if (type) truncated = true; continue; }
+          const event: ModernMcpSubscriptionEvent = { type };
+          if (type === "resource_updated") {
+            const uri = boundedObject(envelope.params) ? boundedString(envelope.params.uri) : undefined;
+            if (!uri) continue;
+            event.resourceUriHash = await hashSubscriptionUri(uri);
+          }
+          events.push(event); options.onEvent?.(event);
+        }
+      };
+      while (!truncated && !graceful) {
+        const { value, done } = await reader.read();
+        if (done) { await consume(decoder.decode()); break; }
+        bytes += value.byteLength;
+        if (bytes > MAX_TASK_STREAM_BYTES) { truncated = true; await reader.cancel(); break; }
+        await consume(decoder.decode(value, { stream: true }));
+      }
+      return { events, ...(honored ? { honored } : {}), graceful, truncated: truncated || Boolean(options.signal?.aborted) };
+    } catch (error) {
+      if (error instanceof ModernMcpProtocolError) throw error;
+      if (options.signal?.aborted || timedOut || (error instanceof DOMException && error.name === "AbortError")) return { events, ...(honored ? { honored } : {}), graceful, truncated: true };
       throw new ModernMcpProtocolError("network_error", "Modern MCP subscriptions/listen could not reach the endpoint.");
     } finally { clearTimeout(timer); options.signal?.removeEventListener("abort", abort); }
   }

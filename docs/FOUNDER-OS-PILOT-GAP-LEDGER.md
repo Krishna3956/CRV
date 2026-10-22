@@ -228,3 +228,11 @@ just because a README or marketing page mentions it.
   truncated, and duplicate task filters are normalized rather than rejected.
   Unsafe identifiers still fail closed and stream/event/byte bounds remain
   enforced; SDK tests cover normalized filters and bounded delivery.
+
+- 2026-10-22: Added a bounded `listenForUpdates` API for the 2026-07-28
+  `subscriptions/listen` catalog/resource filters. It supports tools, prompts,
+  resources list-change notifications, and resource updates; returns only event
+  kinds plus one-way SHA-256 URI hashes; projects the server's honored filter
+  without raw URIs or subscription IDs; and recognizes graceful stream close.
+  Fixed byte/event/time bounds, abort handling, and no replay/reconnect policy
+  remain explicit. SDK tests now pass 74/74 plus the packed consumer check.
