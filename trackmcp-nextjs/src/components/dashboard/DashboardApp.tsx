@@ -2130,15 +2130,15 @@ function Kpi({
   return (
     <div className="border border-line bg-white p-4">
       <div className="flex items-start justify-between gap-2">
-        <span className="dashboard-label text-faint">
-          {label}
+        <span className="flex items-center gap-1.5">
+          <span className="dashboard-label text-faint">{label}</span>
+          <InfoHint label={`About ${label}`} text={helper} />
         </span>
         <Icon size={16} className="text-brand-strong" />
       </div>
       <p className="dashboard-metric mt-3 tracking-[-0.04em] text-ink">
         {value}
       </p>
-      <p className="mt-1 text-[11px] leading-relaxed text-muted">{helper}</p>
     </div>
   );
 }
