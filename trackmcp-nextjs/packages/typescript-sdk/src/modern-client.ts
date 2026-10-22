@@ -12,6 +12,7 @@ const MAX_COLLECTION_ITEMS = 512;
 const MAX_TASK_INPUT_BYTES = 64 * 1024;
 const MAX_TASK_STREAM_BYTES = 256 * 1024;
 const MAX_TASK_STREAM_EVENTS = 64;
+const TASK_EXTENSION_META = { "io.modelcontextprotocol/clientCapabilities": { extensions: { "io.modelcontextprotocol/tasks": {} } } } as const;
 
 export type ModernMcpDiscovery = {
   protocolVersion: typeof MODERN_MCP_PROTOCOL_VERSION;
@@ -106,6 +107,10 @@ function projectTask(value: unknown): ModernMcpTask | null {
     ? Object.keys(value.inputRequests).filter((key) => /^[A-Za-z0-9_.:-]{1,128}$/.test(key)).slice(0, MAX_CAPABILITIES)
     : undefined;
   return { taskId, status, ...(pollIntervalMs !== undefined ? { pollIntervalMs } : {}), ...(ttlMs !== undefined ? { ttlMs } : {}), ...(inputRequestKeys?.length ? { inputRequestKeys } : {}) };
+}
+
+function taskParams(params: Record<string, unknown>): Record<string, unknown> {
+  return { ...params, _meta: TASK_EXTENSION_META };
 }
 
 function parseJsonRpcEnvelope(text: string, contentType: string, requestId: number, method: string): Record<string, unknown> {
@@ -315,7 +320,7 @@ export class ModernMcpClient {
   async getTask(taskId: string): Promise<ModernMcpTask> {
     if (!/^[A-Za-z0-9_.:-]{1,256}$/.test(taskId)) throw new ModernMcpProtocolError("invalid_response", "Modern MCP tasks/get requires a bounded opaque task identifier.");
     const boundedTaskId = taskId.slice(0, MAX_STRING_LENGTH);
-    const result = await this.request("tasks/get", { taskId: boundedTaskId }, boundedTaskId);
+    const result = await this.request("tasks/get", taskParams({ taskId: boundedTaskId }), boundedTaskId);
     const task = projectTask(result);
     if (!task) throw new ModernMcpProtocolError("invalid_response", "Modern MCP tasks/get returned an invalid task status.");
     return task;
@@ -354,14 +359,14 @@ export class ModernMcpClient {
     const keys = Object.keys(inputResponses).filter((key) => /^[A-Za-z0-9_.:-]{1,128}$/.test(key)).slice(0, MAX_CAPABILITIES);
     if (keys.length !== Object.keys(inputResponses).length) throw new ModernMcpProtocolError("invalid_response", "Modern MCP tasks/update contains an invalid or oversized input response key.");
     const boundedResponses = Object.fromEntries(keys.map((key) => [key, inputResponses[key]]));
-    await this.request("tasks/update", { taskId: taskId.slice(0, MAX_STRING_LENGTH), inputResponses: boundedResponses }, taskId.slice(0, MAX_STRING_LENGTH));
+    await this.request("tasks/update", taskParams({ taskId: taskId.slice(0, MAX_STRING_LENGTH), inputResponses: boundedResponses }), taskId.slice(0, MAX_STRING_LENGTH));
   }
 
   /** Signal cooperative cancellation; the server may acknowledge before its
    * observable task status changes. */
   async cancelTask(taskId: string): Promise<void> {
     if (!/^[A-Za-z0-9_.:-]{1,256}$/.test(taskId)) throw new ModernMcpProtocolError("invalid_response", "Modern MCP tasks/cancel requires a bounded opaque task identifier.");
-    await this.request("tasks/cancel", { taskId: taskId.slice(0, MAX_STRING_LENGTH) }, taskId.slice(0, MAX_STRING_LENGTH));
+    await this.request("tasks/cancel", taskParams({ taskId: taskId.slice(0, MAX_STRING_LENGTH) }), taskId.slice(0, MAX_STRING_LENGTH));
   }
 
   /** Listen to a bounded Streamable HTTP task-status stream. Only sanitized
@@ -386,7 +391,7 @@ export class ModernMcpClient {
     const headers = new Headers(this.options.headers);
     headers.set("accept", "text/event-stream"); headers.set("content-type", "application/json");
     headers.set("mcp-protocol-version", MODERN_MCP_PROTOCOL_VERSION); headers.set("mcp-method", "subscriptions/listen");
-    const body = JSON.stringify({ jsonrpc: "2.0", id: this.nextRequestId(), method: "subscriptions/listen", params: { notifications: { taskIds: ids } } });
+    const body = JSON.stringify({ jsonrpc: "2.0", id: this.nextRequestId(), method: "subscriptions/listen", params: taskParams({ notifications: { taskIds: ids } }) });
     try {
       const response = await (this.options.fetch ?? globalThis.fetch)(endpoint, { method: "POST", headers, body, redirect: "manual", credentials: "omit", signal: controller.signal });
       if (!response.ok) throw new ModernMcpProtocolError("http_error", "Modern MCP subscriptions/listen returned a non-success status.", response.status);

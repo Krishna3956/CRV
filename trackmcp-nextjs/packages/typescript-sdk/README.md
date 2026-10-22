@@ -132,8 +132,9 @@ Streamable HTTP `subscriptions/listen` request for task IDs and emits
 sanitized task metadata through an optional callback; it stops at fixed
 event/byte/time bounds and reports truncation. It is not a durable
 subscription or reconnect manager, and it does not expose task result or input
-payloads. Task update and cooperative cancellation remain explicit
-caller-controlled methods.
+payloads. Task-related requests advertise the `io.modelcontextprotocol/tasks`
+client extension required by the 2026-07-28 Tasks specification. Task update
+and cooperative cancellation remain explicit caller-controlled methods.
 
 `redact` keeps compatibility with explicit dotted paths, while `redactKeys` adds case-insensitive exact key names. `redactEvent` receives an already sanitized event, may mutate it, or can return `null` to drop it. Hook failures drop only the event. The SDK queue is bounded to 500 events or 2 MiB; failed deliveries are requeued within those limits.
 

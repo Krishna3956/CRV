@@ -209,3 +209,10 @@ just because a README or marketing page mentions it.
   truncation and supports caller abort/timeout signals and sanitized callbacks;
   it is intentionally not a durable reconnect/subscription manager. SDK tests
   now pass 72/72 plus the packed consumer check.
+
+- 2026-10-22: Corrected modern Tasks extension negotiation in the TypeScript
+  client. `tasks/get`, `tasks/update`, `tasks/cancel`, and
+  `subscriptions/listen` now advertise `io.modelcontextprotocol/tasks` through
+  the required per-request client-capability metadata, while preserving bounded
+  task routing and payload projection. Regression tests assert the exact
+  capability envelope; SDK tests remain 72/72 plus the packed consumer check.

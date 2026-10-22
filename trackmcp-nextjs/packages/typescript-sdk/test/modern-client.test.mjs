@@ -150,7 +150,7 @@ test("modern client refuses the removed tasks/list operation and observes an exp
   await assert.rejects(() => client.listTasks(), (error) => error instanceof ModernMcpProtocolError && error.code === "unsupported_method");
   const task = await client.getTask("task-1");
   assert.deepEqual(requests.map(({ method, params }) => ({ method, params })), [
-    { method: "tasks/get", params: { taskId: "task-1" } },
+    { method: "tasks/get", params: { taskId: "task-1", _meta: { "io.modelcontextprotocol/clientCapabilities": { extensions: { "io.modelcontextprotocol/tasks": {} } } } } },
   ]);
   assert.deepEqual(task, { taskId: "task-1", status: "completed" });
 });
@@ -170,8 +170,8 @@ test("modern client updates and cancels tasks with routing headers and no task/l
   await client.updateTask("task-1", { name: { action: "accept", content: { input: "Luca" } } });
   await client.cancelTask("task-1");
   assert.deepEqual(requests.map(({ headers, body }) => ({ method: body.method, params: body.params, mcpName: headers.get("mcp-name") })), [
-    { method: "tasks/update", params: { taskId: "task-1", inputResponses: { name: { action: "accept", content: { input: "Luca" } } } }, mcpName: "task-1" },
-    { method: "tasks/cancel", params: { taskId: "task-1" }, mcpName: "task-1" },
+    { method: "tasks/update", params: { taskId: "task-1", inputResponses: { name: { action: "accept", content: { input: "Luca" } } }, _meta: { "io.modelcontextprotocol/clientCapabilities": { extensions: { "io.modelcontextprotocol/tasks": {} } } } }, mcpName: "task-1" },
+    { method: "tasks/cancel", params: { taskId: "task-1", _meta: { "io.modelcontextprotocol/clientCapabilities": { extensions: { "io.modelcontextprotocol/tasks": {} } } } }, mcpName: "task-1" },
   ]);
 });
 
@@ -213,7 +213,7 @@ test("modern client listens to bounded task notifications without retaining payl
   assert.deepEqual(result, { events: [{ taskId: "task-1", status: "working", inputRequestKeys: ["secret"] }], truncated: false });
   assert.deepEqual(seen, result.events);
   assert.equal(request.headers.get("mcp-method"), "subscriptions/listen");
-  assert.deepEqual(JSON.parse(request.body).params, { notifications: { taskIds: ["task-1"] } });
+  assert.deepEqual(JSON.parse(request.body).params, { notifications: { taskIds: ["task-1"] }, _meta: { "io.modelcontextprotocol/clientCapabilities": { extensions: { "io.modelcontextprotocol/tasks": {} } } } });
   assert.equal(JSON.stringify(result).includes("omit"), false);
 });
 
