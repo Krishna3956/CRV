@@ -1,6 +1,6 @@
 {
   "name": "@trackmcp/sdk",
-  "version": "0.1.9",
+  "version": "0.1.10",
   "description": "Observability SDK for MCP servers",
   "keywords": [
     "mcp",
@@ -31,6 +31,11 @@
       "types": "./dist/client-adapter.d.ts",
       "node": "./dist/client-adapter.js",
       "default": null
+    },
+    "./modern-client": {
+      "types": "./dist/modern-client.d.ts",
+      "import": "./dist/modern-client.js",
+      "default": "./dist/modern-client.js"
     }
   },
   "files": [
@@ -40,6 +45,7 @@
   "sideEffects": false,
   "scripts": {
     "build": "tsc -p tsconfig.json",
+    "pretest": "npm run build",
     "prepublishOnly": "npm run build",
     "test": "node --test test/*.test.mjs",
     "test:packed-consumer": "npm run build && node --test test/packed-consumer.test.mjs"

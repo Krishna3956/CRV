@@ -39,7 +39,7 @@ test("production pilot smoke records redacted evidence and covers pilot endpoint
   assert.match(source, /Observed calls, ranked and trended/);
   assert.match(source, /Every call, ranked and trended/);
   assert.match(source, /configured server boundary/);
-  assert.match(source, /@trackmcp\/sdk@0\.1\.9/);
+  assert.match(source, /@trackmcp\/sdk@0\.1\.10/);
 });
 
 test("production pilot smoke verifies security headers and protected API boundaries", () => {

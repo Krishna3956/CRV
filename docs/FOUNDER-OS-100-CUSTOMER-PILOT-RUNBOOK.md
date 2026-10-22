@@ -159,7 +159,7 @@ and rate-limit false positives.
 
 ## 9. Package publication and clean consumers
 
-The currently reviewed TypeScript SDK release candidate is `@trackmcp/sdk@0.1.9`
+The currently reviewed TypeScript SDK release candidate is `@trackmcp/sdk@0.1.10`
 (publication must be verified before pilot use),
 `@trackmcp/cli@0.1.4`, and `trackmcp==0.1.6`. Publish only a new reviewed
 version after duplicate-version preflight passes.

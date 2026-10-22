@@ -51,6 +51,25 @@ observations only. Missing, malformed, notification, unmatched, and duplicate
 messages are diagnostics-only. The adapter is fail-open and uses the existing
 bounded SDK queue and delivery behavior.
 
+## Modern MCP discovery client
+
+The `@trackmcp/sdk/modern-client` entry point provides a bounded stateless
+`server/discover` request for the `2026-07-28` MCP revision. It sends the
+required protocol headers, rejects credential-bearing endpoints, bounds the
+response to 256 KiB, and returns only sanitized protocol versions, server
+identity, and capability names:
+
+```ts
+import { ModernMcpClient } from "@trackmcp/sdk/modern-client";
+
+const discovery = await new ModernMcpClient({ endpoint: process.env.MCP_ENDPOINT! }).discover();
+```
+
+This is intentionally a discovery surface, not a claim of complete modern
+client lifecycle support. Tools, tasks, subscriptions, and other
+multi-round-trip operations remain explicit boundaries until their fixtures and
+privacy contracts are complete.
+
 `redact` keeps compatibility with explicit dotted paths, while `redactKeys` adds case-insensitive exact key names. `redactEvent` receives an already sanitized event, may mutate it, or can return `null` to drop it. Hook failures drop only the event. The SDK queue is bounded to 500 events or 2 MiB; failed deliveries are requeued within those limits.
 
 Correlation is disabled by default and never changes MCP schemas. To attach an already anonymized, opaque business handle, opt into external mode; the resolver receives only bounded request metadata and its return value is validated before capture. Issued mode is opt-in and compatibility-limited to the TypeScript transport wrapper: compatible object-shaped `tools/list` schemas receive an optional `__trackmcp_correlation_handle` property, which is stripped before the handler. Strict or unsupported schemas and clients that ignore the field remain missing. Session IDs and request IDs are never used as business handles. Resolvers must not return emails, tokens, URLs, raw user IDs, prompts, completions, or private reasoning.
