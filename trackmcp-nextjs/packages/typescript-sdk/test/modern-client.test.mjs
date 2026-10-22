@@ -161,6 +161,17 @@ test("modern client rejects malformed task status and unsafe task identifiers", 
   await assert.rejects(() => client.getTask("task id"), (error) => error instanceof ModernMcpProtocolError && error.code === "invalid_response");
 });
 
+test("modern client keeps bounded task lifecycle metadata and rejects unknown states", async () => {
+  const client = new ModernMcpClient({ endpoint: "https://mcp.example.test", fetch: async () => response({ result: {
+    taskId: "task-1", status: "working", statusMessage: "still running", createdAt: "2026-10-22T00:00:00Z", lastUpdatedAt: "2026-10-22T00:00:01Z", result: { secret: "omit" }, error: { detail: "omit" }, private: "omit",
+  } }) });
+  assert.deepEqual(await client.getTask("task-1"), {
+    taskId: "task-1", status: "working", statusMessage: "still running", createdAt: "2026-10-22T00:00:00Z", lastUpdatedAt: "2026-10-22T00:00:01Z",
+  });
+  const invalid = new ModernMcpClient({ endpoint: "https://mcp.example.test", fetch: async () => response({ result: { taskId: "task-1", status: "unknown" } }) });
+  await assert.rejects(() => invalid.getTask("task-1"), (error) => error instanceof ModernMcpProtocolError && error.code === "invalid_response");
+});
+
 test("modern client updates and cancels tasks with routing headers and no task/list request", async () => {
   const requests = [];
   const client = new ModernMcpClient({ endpoint: "https://mcp.example.test", fetch: async (_input, init) => {

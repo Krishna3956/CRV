@@ -216,3 +216,9 @@ just because a README or marketing page mentions it.
   the required per-request client-capability metadata, while preserving bounded
   task routing and payload projection. Regression tests assert the exact
   capability envelope; SDK tests remain 72/72 plus the packed consumer check.
+
+- 2026-10-22: Tightened the modern task read model to the Tasks extension's
+  bounded lifecycle contract. Task status is now allowlisted, valid lifecycle
+  timestamps and status messages are retained for operational UX, and result,
+  error, input-request, and arbitrary private fields remain excluded. Unknown
+  task states fail closed; SDK tests cover metadata retention and rejection.

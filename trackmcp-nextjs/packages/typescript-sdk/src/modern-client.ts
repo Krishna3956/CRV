@@ -69,7 +69,10 @@ export type ModernMcpBoundedCollection<T> = {
 
 export type ModernMcpTask = {
   taskId: string;
-  status: string;
+  status: "working" | "input_required" | "completed" | "failed" | "cancelled" | "expired";
+  statusMessage?: string;
+  createdAt?: string;
+  lastUpdatedAt?: string;
   pollIntervalMs?: number;
   ttlMs?: number;
   inputRequestKeys?: string[];
@@ -100,13 +103,22 @@ function projectTask(value: unknown): ModernMcpTask | null {
   if (!boundedObject(value)) return null;
   const taskId = boundedString(value.taskId);
   const status = boundedString(value.status);
-  if (!taskId || !status || !/^[A-Za-z0-9_.:-]{1,256}$/.test(taskId)) return null;
+  const allowedStatuses = new Set(["working", "input_required", "completed", "failed", "cancelled", "expired"]);
+  if (!taskId || !status || !allowedStatuses.has(status) || !/^[A-Za-z0-9_.:-]{1,256}$/.test(taskId)) return null;
+  const taskStatus = status as ModernMcpTask["status"];
+  const statusMessage = boundedString(value.statusMessage);
+  const timestamp = (candidate: unknown): string | undefined => {
+    const bounded = typeof candidate === "string" && candidate.length <= 64 && !/[\u0000-\u001f\u007f]/.test(candidate) ? candidate : undefined;
+    return bounded && Number.isFinite(Date.parse(bounded)) ? bounded : undefined;
+  };
+  const createdAt = timestamp(value.createdAt);
+  const lastUpdatedAt = timestamp(value.lastUpdatedAt);
   const pollIntervalMs = typeof value.pollIntervalMs === "number" && Number.isSafeInteger(value.pollIntervalMs) ? Math.min(60_000, Math.max(0, value.pollIntervalMs)) : undefined;
   const ttlMs = typeof value.ttlMs === "number" && Number.isSafeInteger(value.ttlMs) ? Math.min(7 * 24 * 60 * 60 * 1000, Math.max(0, value.ttlMs)) : undefined;
   const inputRequestKeys = boundedObject(value.inputRequests)
     ? Object.keys(value.inputRequests).filter((key) => /^[A-Za-z0-9_.:-]{1,128}$/.test(key)).slice(0, MAX_CAPABILITIES)
     : undefined;
-  return { taskId, status, ...(pollIntervalMs !== undefined ? { pollIntervalMs } : {}), ...(ttlMs !== undefined ? { ttlMs } : {}), ...(inputRequestKeys?.length ? { inputRequestKeys } : {}) };
+  return { taskId, status: taskStatus, ...(statusMessage ? { statusMessage } : {}), ...(createdAt ? { createdAt } : {}), ...(lastUpdatedAt ? { lastUpdatedAt } : {}), ...(pollIntervalMs !== undefined ? { pollIntervalMs } : {}), ...(ttlMs !== undefined ? { ttlMs } : {}), ...(inputRequestKeys?.length ? { inputRequestKeys } : {}) };
 }
 
 function taskParams(params: Record<string, unknown>): Record<string, unknown> {

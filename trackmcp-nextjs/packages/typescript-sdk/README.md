@@ -122,8 +122,9 @@ policy and should treat missing or malformed state as unknown.
 `waitForTask` is a bounded polling convenience: it respects the server's
 `pollIntervalMs`, stops only on an explicit terminal status, and returns
 `timedOut: true` when its poll or time budget ends. It never returns task
-result or input payloads; use the server's own authorized task client for
-those contents.
+result or input payloads; it retains only allowlisted status, lifecycle
+timestamps, status message, polling, TTL, and input-request key metadata. Use
+the server's own authorized task client for task contents.
 
 This is intentionally a bounded discovery/catalog/status surface, not a claim
 of complete modern client lifecycle support. Tool execution and task creation
