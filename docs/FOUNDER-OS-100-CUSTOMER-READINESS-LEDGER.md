@@ -442,9 +442,17 @@ a failed product gate or a Supabase plan warning.
   timeline, and the Overview lifecycle panel renders the last 14 days without
   exposing event payloads or identifiers. Analytics integration and dashboard
   contract tests pass; the full web release gate passes 124 suites.
-- [ ] GitHub CI and App Runner deployment for the current main SHA are still
-  in progress. No production deployment or browser UAT claim is advanced until
-  those remote runs reach a terminal success state.
+- [x] GitHub CI and App Runner deployment for the application SHA `9d158dc`
+  reached terminal success. The deploy workflow completed its release gate,
+  image/tag verification, immutable App Runner rollout, read-only production
+  smoke, and runtime-safety audit in run `39752177226` (12m37s). The later
+  ledger-only commit does not change application code and did not require a
+  second deployment.
 - [ ] The next coordinated package train remains undispatched. Existing npm,
   PyPI, and CLI versions are unchanged; registry authentication and explicit
   release-owner approval remain external publication gates.
+
+- [x] Local public-surface audits now pass for all documented CTA destinations,
+  docs navigation, published-version claims, non-published Go/.NET package
+  disclosures, OTLP boundaries, and Python coverage. Production browser
+  verification remains intentionally separate from these source contracts.
