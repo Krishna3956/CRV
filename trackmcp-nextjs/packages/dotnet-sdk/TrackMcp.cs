@@ -88,15 +88,23 @@ public sealed class TrackMcpClient : IDisposable
     {
         foreach (var key in keys)
         {
-            var value = result[key]?.GetValue<string>();
-            if (value is not null && allowed.Contains(value, StringComparer.Ordinal)) return value;
+            try
+            {
+                var value = result[key]?.GetValue<string>();
+                if (value is not null && allowed.Contains(value, StringComparer.Ordinal)) return value;
+            }
+            catch (InvalidOperationException) { }
         }
         return null;
     }
 
     private static bool? ReadBool(JsonObject result, params string[] keys)
     {
-        foreach (var key in keys) if (result[key] is JsonNode node) return node.GetValue<bool>();
+        foreach (var key in keys)
+        {
+            try { if (result[key] is JsonNode node) return node.GetValue<bool>(); }
+            catch (InvalidOperationException) { }
+        }
         return null;
     }
 

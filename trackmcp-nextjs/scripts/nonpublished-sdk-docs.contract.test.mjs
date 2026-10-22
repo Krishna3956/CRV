@@ -37,6 +37,8 @@ test("Go and .NET source expose bounded MRTR/task result metadata", () => {
   assert.match(dotnetSource, /inputResponseCount/);
   assert.match(dotnetSource, /ReadAllowlisted/);
   assert.match(dotnetSource, /BoundedCount/);
+  assert.match(dotnetSource, /catch \(InvalidOperationException\)/);
+  assert.match(dotnetSource, /ReadBool/);
 });
 
 test("Go and .NET package READMEs carry the same privacy and lifecycle boundary", () => {
