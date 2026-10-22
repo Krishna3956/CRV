@@ -613,3 +613,18 @@ a failed product gate or a Supabase plan warning.
 - [ ] Production authenticated route UAT and nonzero entity-read coverage
   remain external evidence gates; raw resource URIs and prompt names are never
   returned by these routes.
+
+## 2026-10-22 resources/prompts bounded analytics checkpoint
+
+- [x] The v2 resources and prompts projections now expose a strict, bounded
+  entity-analytics shape: status, read events, successful reads, failed reads,
+  and input-required reads. Unknown fields are stripped before the response is
+  returned, so identifiers, names, URIs, arguments, and payload content cannot
+  leak through this projection.
+- [x] Added integration fixtures and contract assertions for the counters on
+  both routes. The package-consumer gate passed for the TypeScript SDK, CLI,
+  and Python SDK; the complete release gate passed all 125 suites; lint passed;
+  and the production Next.js build generated all 176 routes.
+- [ ] Production authenticated UAT and nonzero counter validation remain
+  external evidence gates. This checkpoint changes no package version and
+  requires no database migration.

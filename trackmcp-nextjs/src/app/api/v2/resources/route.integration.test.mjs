@@ -5,7 +5,7 @@ import { createResourcesHandler } from "./handlers.ts";
 test("resources v2 publishes only the resource-safe activity projection", async () => {
   const analytics = async () => new Response(JSON.stringify({
     range_days: 7,
-    interaction_surfaces: { resources: { events: 4, methods: ["resources/read", "resources/list"], entity_count: 2, private_payload: "do-not-return" } },
+    interaction_surfaces: { resources: { events: 4, methods: ["resources/read", "resources/list"], entity_count: 2, entity_analytics: { status: "available", read_events: 3, successful_reads: 2, failed_reads: 1, input_required_reads: 0, private_payload: "do-not-return" }, private_payload: "do-not-return" } },
     resource_prompt_activity: {
       resource_reads: 2, resource_observations: 3, previous_period_resource_reads: 1,
       resource_completion_rate: 0.5, resource_stall_rate: 0, resource_error_rate: 0.5,
@@ -18,7 +18,8 @@ test("resources v2 publishes only the resource-safe activity projection", async 
   assert.equal(response.status, 200);
   const body = await response.json();
   assert.equal(body.activity.interactions, 2);
-  assert.equal(body.coverage.level, "method_family");
+  assert.equal(body.coverage.level, "entity_read_projection");
+  assert.deepEqual(body.observed.entity_analytics, { status: "available", read_events: 3, successful_reads: 2, failed_reads: 1, input_required_reads: 0 });
   assert.equal(body.activity.observations, 3);
   assert.deepEqual(body.activity.outcomes, [{ kind: "resource", interactions: 2, complete: 1, stalled: 0, errored: 1, unknown: 0, linked_retry_count: 1 }]);
   assert.deepEqual(body.activity.trend, [{ kind: "resource", name: "resources/read", calls: 3 }]);
@@ -27,7 +28,7 @@ test("resources v2 publishes only the resource-safe activity projection", async 
 });
 
 test("resources v2 advertises entity-read coverage only when the projection is available", async () => {
-  const analytics = async () => new Response(JSON.stringify({ range_days: 7, interaction_surfaces: { resources: { events: 4, methods: ["resources/read"], entity_count: 2, entity_analytics: { status: "available" } } } }), { status: 200 });
+  const analytics = async () => new Response(JSON.stringify({ range_days: 7, interaction_surfaces: { resources: { events: 4, methods: ["resources/read"], entity_count: 2, entity_analytics: { status: "available", read_events: 3, successful_reads: 2, failed_reads: 1, input_required_reads: 0 } } } }), { status: 200 });
   const response = await createResourcesHandler(analytics)(new Request("https://trackmcp.test/api/v2/resources"));
   const body = await response.json();
   assert.equal(body.coverage.level, "entity_read_projection");

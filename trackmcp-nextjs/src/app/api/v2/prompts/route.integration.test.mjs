@@ -5,7 +5,7 @@ import { createPromptsHandler } from "./handlers.ts";
 test("prompts v2 publishes only the prompt-safe activity projection", async () => {
   const analytics = async () => new Response(JSON.stringify({
     range_days: 7,
-    interaction_surfaces: { prompts: { events: 3, methods: ["prompts/get", "prompts/list"], entity_count: 2, private_payload: "do-not-return" } },
+    interaction_surfaces: { prompts: { events: 3, methods: ["prompts/get", "prompts/list"], entity_count: 2, entity_analytics: { status: "available", read_events: 2, successful_reads: 1, failed_reads: 1, input_required_reads: 0, private_payload: "do-not-return" }, private_payload: "do-not-return" } },
     resource_prompt_activity: {
       prompt_calls: 2, prompt_observations: 2, previous_period_prompt_calls: 1,
       prompt_completion_rate: 0, prompt_stall_rate: 0.5, prompt_error_rate: 0.5,
@@ -18,7 +18,8 @@ test("prompts v2 publishes only the prompt-safe activity projection", async () =
   assert.equal(response.status, 200);
   const body = await response.json();
   assert.equal(body.activity.interactions, 2);
-  assert.equal(body.coverage.level, "method_family");
+  assert.equal(body.coverage.level, "entity_read_projection");
+  assert.deepEqual(body.observed.entity_analytics, { status: "available", read_events: 2, successful_reads: 1, failed_reads: 1, input_required_reads: 0 });
   assert.equal(body.activity.input_required_rate, 0.5);
   assert.deepEqual(body.activity.outcomes, [{ kind: "prompt", interactions: 2, complete: 0, stalled: 1, errored: 1, unknown: 0, linked_retry_count: 0 }]);
   assert.deepEqual(body.activity.trend, [{ kind: "prompt", name: "prompts/get", calls: 2 }]);
@@ -27,7 +28,7 @@ test("prompts v2 publishes only the prompt-safe activity projection", async () =
 });
 
 test("prompts v2 advertises entity-read coverage only when the projection is available", async () => {
-  const analytics = async () => new Response(JSON.stringify({ range_days: 7, interaction_surfaces: { prompts: { events: 3, methods: ["prompts/get"], entity_count: 2, entity_analytics: { status: "available" } } } }), { status: 200 });
+  const analytics = async () => new Response(JSON.stringify({ range_days: 7, interaction_surfaces: { prompts: { events: 3, methods: ["prompts/get"], entity_count: 2, entity_analytics: { status: "available", read_events: 2, successful_reads: 1, failed_reads: 1, input_required_reads: 0 } } } }), { status: 200 });
   const response = await createPromptsHandler(analytics)(new Request("https://trackmcp.test/api/v2/prompts"));
   const body = await response.json();
   assert.equal(body.coverage.level, "entity_read_projection");

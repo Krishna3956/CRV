@@ -2,15 +2,25 @@ const boundedInt = (value: unknown, max = 1000000) => typeof value === "number" 
 const boundedRate = (value: unknown) => typeof value === "number" && Number.isFinite(value) ? Math.max(0, Math.min(1, value)) : null;
 const boundedText = (value: unknown, max = 128) => typeof value === "string" ? value.slice(0, max) : null;
 
+function projectEntityAnalytics(value: unknown) {
+  const row = value && typeof value === "object" && !Array.isArray(value) ? value as Record<string, unknown> : {};
+  const status = boundedText(row.status, 32) || "schema_unavailable";
+  return {
+    status,
+    read_events: boundedInt(row.read_events),
+    successful_reads: boundedInt(row.successful_reads),
+    failed_reads: boundedInt(row.failed_reads),
+    input_required_reads: boundedInt(row.input_required_reads),
+  };
+}
+
 export function projectObservedSurface(value: unknown, fallback: Record<string, unknown>) {
   const row = value && typeof value === "object" && !Array.isArray(value) ? value as Record<string, unknown> : fallback;
   return {
     events: boundedInt(row.events),
     methods: Array.isArray(row.methods) ? row.methods.filter((method): method is string => typeof method === "string").map((method) => method.slice(0, 64)).slice(0, 32) : [],
     entity_count: boundedInt(row.entity_count),
-    entity_analytics: row.entity_analytics && typeof row.entity_analytics === "object" && !Array.isArray(row.entity_analytics)
-      ? { status: boundedText((row.entity_analytics as Record<string, unknown>).status, 32) }
-      : { status: "schema_unavailable" },
+    entity_analytics: projectEntityAnalytics(row.entity_analytics),
   };
 }
 
