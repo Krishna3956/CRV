@@ -557,6 +557,9 @@ test("Setup exposes an actionable OTLP endpoint and guide", () => {
   assert.match(source, /https:\/\/trackmcp\.com\/api\/v1\/otel\/v1\/traces/);
   assert.match(source, /href="\/docs\/opentelemetry"/);
   assert.match(source, /Copy endpoint/);
+  assert.match(source, /OTLP\/HTTP JSON or protobuf receiver \(gRPC is not enabled\)/);
+  assert.match(source, /POST JSON or protobuf/);
+  assert.doesNotMatch(source, /protobuf and gRPC are not enabled/);
 });
 
 test("Setup exposes a direct MCP server tester CTA with a bounded scope", () => {
