@@ -86,6 +86,11 @@ short labels; longer explanations belong in an expandable detail region.
   hints, pointer/focus affordances, actionable OTLP endpoint copy, and real
   documentation destinations. The complete release gate passed 124 suites;
   remaining UX work is visual/browser UAT across representative viewports.
+- 2026-10-22: Read-only production pilot smoke against `https://app.trackmcp.com`
+  passed all 35 checks. It verified the public docs, API, feature,
+  authentication, protocol, OpenTelemetry, Go, .NET, sitemap, security-header,
+  bounded-claim, npm, and PyPI surfaces without using credentials or mutating
+  production. The redacted report was written to `/tmp/trackmcp-public-smoke.json`.
 
 ## Research-derived acceptance criteria
 

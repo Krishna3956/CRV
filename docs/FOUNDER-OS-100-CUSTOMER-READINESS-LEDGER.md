@@ -475,3 +475,8 @@ a failed product gate or a Supabase plan warning.
   published for this policy-only change.
 - [x] Single-package exception reasons are bounded to 240 characters and are
   never echoed into CI logs; the workflow records presence only.
+- [x] Read-only production pilot smoke against `https://app.trackmcp.com`
+  passed 35 checks for public routes, security headers, bounded public claims,
+  sitemaps, and the current npm/PyPI artifacts. No credentials were read and
+  no production mutation was performed; authenticated workspace UAT remains a
+  separate gate.
