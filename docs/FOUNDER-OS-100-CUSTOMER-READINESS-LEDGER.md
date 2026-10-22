@@ -499,3 +499,7 @@ a failed product gate or a Supabase plan warning.
   cache-busted browser session against `/dashboard?view=journey&data=example`
   now renders “The journey” directly and exposes bounded path, stop, explicit
   outcome, and async-task evidence instead of falling back to Overview.
+- [x] Follow-up browser UAT against the deployed release confirmed the
+  singular `capability` and `issue` aliases land on “What they're doing” and
+  “What's broken” respectively, with their bounded metrics, caveats, and
+  evidence actions rendered.
