@@ -16,6 +16,19 @@ test("modern client sends bounded server/discover request and sanitizes metadata
   assert.deepEqual(discovery, { protocolVersion: MODERN_MCP_PROTOCOL_VERSION, supportedVersions: [MODERN_MCP_PROTOCOL_VERSION, "2025-06-18"], serverInfo: { name: "Fixture", version: "1.2" }, capabilityNames: ["tools", "resources"] });
 });
 
+test("modern client assigns distinct JSON-RPC ids to concurrent requests", async () => {
+  const ids = [];
+  const client = new ModernMcpClient({ endpoint: "https://mcp.example.test", fetch: async (_input, init) => {
+    ids.push(JSON.parse(init.body).id);
+    await new Promise((resolve) => setTimeout(resolve, 1));
+    return response({ result: { tools: [] } });
+  } });
+  await Promise.all([client.listTools(), client.listTools()]);
+  assert.equal(ids.length, 2);
+  assert.equal(new Set(ids).size, 2);
+  assert.deepEqual(ids, [1, 2]);
+});
+
 test("modern client rejects credentials, oversized responses, and non-success statuses", async () => {
   await assert.rejects(() => new ModernMcpClient({ endpoint: "https://user:secret@mcp.example.test", fetch: async () => response({}) }).discover(), (error) => error instanceof ModernMcpProtocolError && error.code === "invalid_endpoint");
   await assert.rejects(() => new ModernMcpClient({ endpoint: "https://mcp.example.test", fetch: async () => response({ error: "no" }, 401) }).discover(), (error) => error instanceof ModernMcpProtocolError && error.code === "http_error" && error.status === 401);

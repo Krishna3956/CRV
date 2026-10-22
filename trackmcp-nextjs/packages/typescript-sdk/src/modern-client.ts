@@ -83,9 +83,21 @@ function boundedObject(value: unknown): value is Record<string, unknown> {
   return Boolean(value) && typeof value === "object" && !Array.isArray(value);
 }
 
-/** Minimal modern MCP surface: stateless server/discover only. */
+/** Bounded modern MCP request client. It exposes read-only catalog/task
+ * operations and keeps JSON-RPC request identifiers unique per instance so
+ * concurrent calls cannot be confused by a shared constant id. */
 export class ModernMcpClient {
+  private requestSequence = 0;
+
   constructor(private readonly options: ModernMcpClientOptions) {}
+
+  private nextRequestId(): number {
+    // Keep identifiers positive and bounded. Wrapping is safe because this
+    // client resolves each request before returning its result; the value is
+    // still unique for the active request set, including concurrent calls.
+    this.requestSequence = this.requestSequence >= 2_000_000_000 ? 1 : this.requestSequence + 1;
+    return this.requestSequence;
+  }
 
   private async request(method: string, params: Record<string, unknown>): Promise<Record<string, unknown>> {
     let endpoint: URL;
@@ -102,8 +114,9 @@ export class ModernMcpClient {
     headers.set("content-type", "application/json");
     headers.set("mcp-protocol-version", MODERN_MCP_PROTOCOL_VERSION);
     headers.set("mcp-method", method);
+    const requestId = this.nextRequestId();
     try {
-      const response = await (this.options.fetch ?? globalThis.fetch)(endpoint, { method: "POST", headers, body: JSON.stringify({ jsonrpc: "2.0", id: 1, method, params }), redirect: "manual", credentials: "omit", signal: controller.signal });
+      const response = await (this.options.fetch ?? globalThis.fetch)(endpoint, { method: "POST", headers, body: JSON.stringify({ jsonrpc: "2.0", id: requestId, method, params }), redirect: "manual", credentials: "omit", signal: controller.signal });
       if (!response.ok) throw new ModernMcpProtocolError("http_error", `Modern MCP ${method} returned a non-success status.`, response.status);
       const contentLength = response.headers.get("content-length");
       if (contentLength && /^\d+$/.test(contentLength) && Number(contentLength) > MAX_BODY_BYTES) throw new ModernMcpProtocolError("response_too_large", `Modern MCP ${method} response exceeded the bounded response limit.`);
