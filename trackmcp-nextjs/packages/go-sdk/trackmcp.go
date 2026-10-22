@@ -5,6 +5,7 @@ package trackmcp
 
 import (
 	"bytes"
+	"crypto/sha256"
 	"crypto/rand"
 	"encoding/hex"
 	"encoding/json"
@@ -24,6 +25,9 @@ type Options struct {
 	SDKVersion string
 	DeploymentID string
 	MaxBatchSize int
+	// AccountIDResolver returns an already-validated tenant/account handle.
+	// The value is hashed locally and never enters an Event or request body.
+	AccountIDResolver func() string
 }
 
 type Event struct {
@@ -44,6 +48,8 @@ type Event struct {
 	IsError *bool `json:"is_error,omitempty"`
 	ErrorClass string `json:"error_class,omitempty"`
 	ErrorCode *int `json:"error_code,omitempty"`
+	AccountKey string `json:"account_key,omitempty"`
+	AccountIdentitySource string `json:"account_identity_source,omitempty"`
 	ResultType string `json:"result_type,omitempty"`
 	TaskStatus string `json:"task_status,omitempty"`
 	InputRequestCount *int `json:"input_request_count,omitempty"`
@@ -116,6 +122,12 @@ func New(options Options) *Client {
 
 func (c *Client) Capture(event Event) {
 	if c.options.APIKey == "" { return }
+	if event.AccountKey == "" && c.options.AccountIDResolver != nil {
+		if value := resolveAccountID(c.options.AccountIDResolver); value != "" {
+			event.AccountKey = hashAccountID(value)
+			event.AccountIdentitySource = "resolver"
+		} else { event.AccountIdentitySource = "unresolved" }
+	}
 	if event.EventID == "" { event.EventID = id() }
 	event.Service, event.Environment = c.options.Service, c.options.Environment
 	if event.StartedAt == "" { event.StartedAt = time.Now().UTC().Format(time.RFC3339) }
@@ -227,6 +239,21 @@ func boundedSessionID(value string) string {
 	if len(value) > maxSessionIDLength { return value[:maxSessionIDLength] }
 	return value
 }
+
+func safeAccountID(value string) string {
+	value = strings.TrimSpace(value)
+	if value == "" || len(value) > 256 || strings.IndexFunc(value, func(r rune) bool { return r < 0x20 || r == 0x7f || r == '@' }) >= 0 { return "" }
+	lower := strings.ToLower(value)
+	if strings.Contains(lower, "://") || strings.Contains(lower, "bearer ") || strings.HasPrefix(lower, "eyj") || strings.HasPrefix(lower, "tmcp_") || strings.HasPrefix(lower, "sk-") { return "" }
+	return value
+}
+
+func resolveAccountID(resolver func() string) (value string) {
+	defer func() { if recover() != nil { value = "" } }()
+	return safeAccountID(resolver())
+}
+
+func hashAccountID(value string) string { sum := sha256.Sum256([]byte(value)); return hex.EncodeToString(sum[:]) }
 
 func boolPtr(value bool) *bool { return &value }
 

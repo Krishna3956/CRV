@@ -97,3 +97,18 @@ func TestRecordCompletionMetadataIsBoundedAndValueFree(t *testing.T) {
 	if _, ok := metadata["values"]; ok { t.Fatal("completion values were retained") }
 	if _, ok := metadata["secret"]; ok { t.Fatal("completion secret was retained") }
 }
+
+func TestAccountIdentityResolverHashesLocallyAndFailsClosed(t *testing.T) {
+	client := New(Options{APIKey: "tmcp_test", AccountIDResolver: func() string { return "tenant-42" }})
+	client.Capture(Event{EventType: "tool_call", MCPMethod: "tools/call"})
+	if len(client.queue) != 1 { t.Fatalf("expected one event, got %d", len(client.queue)) }
+	event := client.queue[0]
+	if event.AccountIdentitySource != "resolver" || len(event.AccountKey) != 64 { t.Fatalf("unexpected identity metadata: %#v", event) }
+	if event.AccountKey == "tenant-42" { t.Fatalf("resolver identity was not isolated: %#v", event) }
+	unsafeClient := New(Options{APIKey: "tmcp_test", AccountIDResolver: func() string { return "user@example.com" }})
+	unsafeClient.Capture(Event{EventType: "tool_call"})
+	if unsafeClient.queue[0].AccountIdentitySource != "unresolved" || unsafeClient.queue[0].AccountKey != "" { t.Fatalf("unsafe identity was accepted: %#v", unsafeClient.queue[0]) }
+	panicClient := New(Options{APIKey: "tmcp_test", AccountIDResolver: func() string { panic("resolver failure") }})
+	panicClient.Capture(Event{EventType: "tool_call"})
+	if panicClient.queue[0].AccountIdentitySource != "unresolved" { t.Fatalf("resolver panic did not fail open: %#v", panicClient.queue[0]) }
+}

@@ -11,6 +11,11 @@ application-validated claim and is hashed before persistence. TrackMCP does not
 implement OAuth or parse bearer tokens. Capture and delivery are fail-open so
 telemetry failures do not block MCP requests.
 
+Pass `AccountIdResolver` in `TrackMcpOptions` to enable resolver-linked
+account analytics. Return only a stable, already validated tenant/account
+handle; the SDK rejects credential-like values, hashes accepted values locally,
+and records only `account_identity_source` (`resolver` or `unresolved`).
+
 For disconnects outside an MCP request, call
 `client.RecordTransportFailure("transport_closed", sessionId, durationMs)` or
 `client.RecordTransportFailure("transport_error", sessionId, durationMs)`. The

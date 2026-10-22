@@ -7,7 +7,8 @@ release. Keep `TRACKMCP_KEY` in your secret manager and use the pinned source
 checkout documented at `/docs/go`. Capture only bounded, privacy-safe metadata:
 never send API keys, OAuth tokens, prompts, results, URLs, or raw customer
 identifiers. Account identity is optional and must be an application-validated
-claim; the service hashes it before persistence. TrackMCP does not implement
+claim; set `Options.AccountIDResolver` to return that claim and the SDK hashes
+it locally before queueing. TrackMCP does not implement
 OAuth or inspect bearer tokens. Delivery is asynchronous and fail-open, so a
 telemetry failure must not block an MCP request.
 
@@ -31,6 +32,11 @@ For `completion/complete`, the same call also records bounded friction
 metadata (`completion_value_count` up to 32, `completion_total` up to
 1,000,000, and `completion_has_more`). Completion suggestion values and
 arguments are never queued.
+
+To enable resolver-linked account analytics, return only a stable, already
+validated tenant/account handle. The SDK rejects credential-like values,
+hashes accepted values locally, and records `account_identity_source` as
+`resolver` or `unresolved`; the raw handle is never queued.
 
 After configuring the key, make one real tool call, flush, and confirm the
 event in Setup. Key acceptance alone is not proof that telemetry arrived.

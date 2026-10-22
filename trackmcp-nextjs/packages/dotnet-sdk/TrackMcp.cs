@@ -1,11 +1,12 @@
 using System.Net.Http.Headers;
+using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 
 namespace TrackMcp;
 
-public sealed record TrackMcpOptions(string ApiKey, string Service = "mcp-server", string Environment = "production", string Endpoint = "https://trackmcp.com/api/v1/ingest", string? ServerVersion = null, string? SdkVersion = null, string? DeploymentId = null);
+public sealed record TrackMcpOptions(string ApiKey, string Service = "mcp-server", string Environment = "production", string Endpoint = "https://trackmcp.com/api/v1/ingest", string? ServerVersion = null, string? SdkVersion = null, string? DeploymentId = null, Func<string?>? AccountIdResolver = null);
 
 public sealed class TrackMcpClient : IDisposable
 {
@@ -70,8 +71,20 @@ public sealed class TrackMcpClient : IDisposable
     public void Capture(string eventType, string method, object? payload = null, string? sessionId = null, bool? success = null, long? durationMs = null, string? toolName = null, string? resultType = null, string? taskStatus = null, int? inputRequestCount = null, int? inputResponseCount = null)
     {
         if (string.IsNullOrWhiteSpace(_options.ApiKey)) return;
-        var item = new Dictionary<string, object?> { ["event_id"] = Guid.NewGuid().ToString(), ["event_type"] = eventType, ["service"] = _options.Service, ["environment"] = _options.Environment, ["mcp_method"] = method, ["session_id"] = sessionId, ["tool_name"] = toolName, ["started_at"] = DateTimeOffset.UtcNow.ToString("O"), ["duration_ms"] = durationMs, ["success"] = success, ["is_error"] = success is false, ["result_type"] = resultType, ["task_status"] = taskStatus, ["input_request_count"] = inputRequestCount, ["input_response_count"] = inputResponseCount, ["payload"] = SanitizePayload(payload), ["server_version"] = _options.ServerVersion, ["sdk_version"] = _options.SdkVersion, ["deployment_id"] = _options.DeploymentId };
+        var account = ResolveAccount();
+        var item = new Dictionary<string, object?> { ["event_id"] = Guid.NewGuid().ToString(), ["event_type"] = eventType, ["service"] = _options.Service, ["environment"] = _options.Environment, ["mcp_method"] = method, ["session_id"] = sessionId, ["tool_name"] = toolName, ["started_at"] = DateTimeOffset.UtcNow.ToString("O"), ["duration_ms"] = durationMs, ["success"] = success, ["is_error"] = success is false, ["result_type"] = resultType, ["task_status"] = taskStatus, ["input_request_count"] = inputRequestCount, ["input_response_count"] = inputResponseCount, ["account_key"] = account.Key, ["account_identity_source"] = account.Source, ["payload"] = SanitizePayload(payload), ["server_version"] = _options.ServerVersion, ["sdk_version"] = _options.SdkVersion, ["deployment_id"] = _options.DeploymentId };
         lock (_gate) { _queue.Add(item); }
+    }
+
+    private (string? Key, string? Source) ResolveAccount()
+    {
+        if (_options.AccountIdResolver is null) return (null, null);
+        string? value;
+        try { value = _options.AccountIdResolver(); } catch { return (null, "unresolved"); }
+        var bounded = value?.Trim();
+        if (string.IsNullOrEmpty(bounded) || bounded.Length > 256 || bounded.Any(char.IsControl) || bounded.Contains('@') || bounded.Contains("://", StringComparison.Ordinal) || bounded.StartsWith("eyJ", StringComparison.OrdinalIgnoreCase) || bounded.StartsWith("tmcp_", StringComparison.OrdinalIgnoreCase) || bounded.StartsWith("sk-", StringComparison.OrdinalIgnoreCase) || bounded.StartsWith("bearer ", StringComparison.OrdinalIgnoreCase)) return (null, "unresolved");
+        var hash = Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(bounded))).ToLowerInvariant();
+        return (hash, "resolver");
     }
 
     /// <summary>Records allowlisted MRTR/task result metadata without result content.</summary>
