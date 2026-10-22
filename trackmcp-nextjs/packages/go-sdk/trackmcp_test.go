@@ -21,3 +21,17 @@ func TestSanitizePayloadTruncatesDepth(t *testing.T) {
 		t.Fatalf("deep payload was not truncated: %#v", value)
 	}
 }
+
+func TestRecordTransportFailureIsMetadataOnlyAndBounded(t *testing.T) {
+	client := New(Options{APIKey: "tmcp_test"})
+	client.RecordTransportFailure("transport_closed", "session-1", 12)
+	if len(client.queue) != 1 { t.Fatalf("expected one event, got %d", len(client.queue)) }
+	event := client.queue[0]
+	if event.EventType != "session" || event.MCPMethod != "transport" { t.Fatalf("unexpected event: %#v", event) }
+	if event.ErrorClass != "transport_closed" || event.Success == nil || *event.Success { t.Fatalf("unexpected failure metadata: %#v", event) }
+	if event.Payload["_trackmcp"].(map[string]any)["observation_kind"] != "transport_closed" { t.Fatalf("missing observation kind: %#v", event.Payload) }
+	client.RecordTransportFailure("raw_exception", "session-2", 12)
+	if len(client.queue) != 1 { t.Fatalf("invalid kind should be ignored") }
+	client.RecordTransportFailure("transport_error", "", 999999999)
+	if client.queue[1].DurationMS != 86400000 || client.queue[1].SessionID != "transport-session" { t.Fatalf("bounds/defaults not applied: %#v", client.queue[1]) }
+}

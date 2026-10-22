@@ -69,6 +69,22 @@ public sealed class TrackMcpClient : IDisposable
         lock (_gate) { _queue.Add(item); }
     }
 
+    /// <summary>Records a bounded, metadata-only transport disconnect or error.</summary>
+    /// <remarks>Exception text, URLs, headers, and payloads are never accepted.</remarks>
+    public void RecordTransportFailure(string kind = "transport_error", string? sessionId = null, long durationMs = 0)
+    {
+        if (kind is not ("transport_error" or "transport_closed")) return;
+        var boundedDuration = Math.Clamp(durationMs, 0, 86_400_000);
+        Capture("session", "transport", new Dictionary<string, object?>
+        {
+            ["_trackmcp"] = new Dictionary<string, object?>
+            {
+                ["observation_kind"] = kind,
+                ["observation_source"] = "transport"
+            }
+        }, string.IsNullOrWhiteSpace(sessionId) ? "transport-session" : sessionId, false, boundedDuration);
+    }
+
     public async Task FlushAsync(CancellationToken cancellationToken = default)
     {
         List<Dictionary<string, object?>> events;

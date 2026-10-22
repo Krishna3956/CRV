@@ -26,6 +26,10 @@ export default function DotnetDocsPage() {
 telemetry.Capture("tool_call", "tools/call", toolName: "lookup", success: true);
 await telemetry.FlushAsync();`}</Code>
       <Para>Capture and delivery are fail-open. Keep fields bounded and do not send API keys, OAuth tokens, prompts, results, or raw customer identifiers.</Para>
+      <Code>{`// When the server process or stream fails outside a request:
+telemetry.RecordTransportFailure("transport_closed", sessionId, durationMs);
+// or: telemetry.RecordTransportFailure("transport_error", sessionId, durationMs);`}</Code>
+      <Para>The transport observer records only bounded session metadata. It never accepts exception text, URLs, headers, or payloads.</Para>
     </DocSection>
     <DocSection title="Coverage and limits">
       <Para>The .NET package is a transport-neutral primitive, not an automatic MCP server wrapper. Your middleware supplies protocol and transport fields. Account identity comes only from an application-validated claim and is hashed before storage. TrackMCP does not implement OAuth or parse bearer tokens.</Para>
