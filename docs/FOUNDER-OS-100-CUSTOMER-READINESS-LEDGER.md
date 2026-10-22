@@ -283,3 +283,7 @@ a failed product gate or a Supabase plan warning.
 - [ ] No release train has been dispatched; the current registry versions and
   the unreleased SDK source delta remain unchanged until the pilot release
   owner approves one coherent candidate.
+- [x] The `all` scope now performs a complete npm/PyPI version-absence
+  preflight before the first upload, reducing the chance of a partially
+  published train caused by a late duplicate-version discovery. Contract,
+  release-gate, lint, and build checks passed for `794e189`.
