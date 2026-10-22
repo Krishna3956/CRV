@@ -255,7 +255,8 @@ Open pull requests:
   deployment readiness, read-only production smoke, redacted smoke evidence,
   and App Runner host evidence.
 
-Current release candidate: `main@3e45bc1`. The remaining pilot follow-up is
+Current release candidate: the pushed `main` branch (see the latest commit in
+the repository). The remaining pilot follow-up is
 operational observation of real customer traffic and refresh backlog; it is not
 a failed product gate or a Supabase plan warning.
 
