@@ -456,3 +456,9 @@ a failed product gate or a Supabase plan warning.
   docs navigation, published-version claims, non-published Go/.NET package
   disclosures, OTLP boundaries, and Python coverage. Production browser
   verification remains intentionally separate from these source contracts.
+
+- [x] The current application batch `cb6beca` adds bounded outcome states for
+  modern protocol families and passes the full 124-suite release gate.
+- [ ] CI and App Runner deployment for `cb6beca` are still remote in-progress
+  runs; no production claim is advanced until the exact SHA reaches terminal
+  success and its production smoke completes.
