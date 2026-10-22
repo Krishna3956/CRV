@@ -9,4 +9,7 @@ test("package consumer commands have a bounded child-process lifetime", () => {
   assert.match(source, /killSignal:\s*["']SIGTERM["']/);
   assert.match(source, /result\.error\.code === ["']ETIMEDOUT["']/);
   assert.match(source, /timed out after 180 seconds/);
+  assert.match(source, /--prefer-offline/);
+  assert.match(source, /--fetch-retries=1/);
+  assert.match(source, /--fetch-timeout=30000/);
 });

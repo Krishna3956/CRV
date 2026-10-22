@@ -3,6 +3,7 @@ import path from "node:path";
 
 const appRoot = process.cwd();
 const repoRoot = path.resolve(appRoot, "..");
+const npmInstallArgs = ["ci", "--prefer-offline", "--fetch-retries=1", "--fetch-timeout=30000"];
 
 function run(label, command, args, cwd) {
   console.log(`\n▶ ${label}`);
@@ -28,8 +29,8 @@ const typescript = path.join(appRoot, "packages/typescript-sdk");
 const cli = path.join(appRoot, "packages/cli");
 const python = path.join(repoRoot, "packages/python-sdk");
 
-run("Install TypeScript SDK dependencies", "npm", ["ci"], typescript);
-run("Install CLI dependencies", "npm", ["ci"], cli);
+run("Install TypeScript SDK dependencies", "npm", npmInstallArgs, typescript);
+run("Install CLI dependencies", "npm", npmInstallArgs, cli);
 run("TypeScript SDK unit tests", "npm", ["test"], typescript);
 run("TypeScript SDK packed consumer", "npm", ["run", "test:packed-consumer"], typescript);
 run("CLI unit and lifecycle tests", "npm", ["test"], cli);

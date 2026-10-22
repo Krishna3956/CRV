@@ -400,3 +400,18 @@ a failed product gate or a Supabase plan warning.
   suites after the change. Lint and the 176-route production build also passed.
 - [ ] Hosted Go/.NET compile evidence and authenticated production disconnect
   UAT remain external gates; this milestone does not claim them closed.
+
+## 2026-10-22 transport ledger reconciliation and package-install bounds
+
+- [x] Reconciled `FOUNDER-OS-PILOT-GAP-LEDGER.md` and
+  `FOUNDER-OS-PROTOCOL-MATRIX.md` with the new real Stdio child-exit and
+  Streamable HTTP socket-disconnect evidence. The remaining reconnect-policy,
+  hosted cross-language, and production-UAT boundaries remain explicitly open.
+- [x] Package-consumer npm installs now use `--prefer-offline`, one registry
+  retry, and a 30-second fetch timeout in addition to the existing 180-second
+  child bound. This prevents a registry stall from silently consuming the
+  release gate budget.
+- [x] Contract tests, package-consumer gate, lint, 176-route build, and full
+  122-suite release gate passed after these changes.
+- [x] No package was published or version-bumped; user-owned handoff and temp
+  directories remain untracked and untouched.
