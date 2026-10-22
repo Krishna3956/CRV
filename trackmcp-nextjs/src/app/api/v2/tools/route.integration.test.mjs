@@ -5,10 +5,10 @@ import { createToolsHandler } from "./handlers.ts";
 test("tools projection filters a bounded capability without changing the envelope contract", async () => {
   const analytics = async () => new Response(JSON.stringify({
     range_days: 7,
-    tools: [{ name: "lookup", calls: 3 }, { name: "write", calls: 1 }],
+    tools: [{ name: "lookup", calls: 3, private_payload: "do-not-return" }, { name: "write", calls: 1 }],
     catalog_tools: [{ name: "lookup" }, { name: "write" }],
     unused_tools: ["write"],
-    insights: [{ title: "bounded" }],
+    insights: [{ title: "bounded", private_payload: "do-not-return" }],
     data_trust: { generated_at: "2026-10-18T00:00:00.000Z", query_since: "2026-10-11T00:00:00.000Z", observed_through: "2026-10-18T00:00:00.000Z", source_event_count: 4, returned_event_count: 4, truncated: false },
   }), { status: 200, headers: { "content-type": "application/json" } });
   const response = await createToolsHandler(analytics)(new Request("https://trackmcp.test/api/v2/tools?tool_name=lookup"));
@@ -19,6 +19,7 @@ test("tools projection filters a bounded capability without changing the envelop
   assert.deepEqual(body.catalog_tools.map((tool) => tool.name), ["lookup"]);
   assert.deepEqual(body.unused_tools, []);
   assert.equal(body.scope.value, "authenticated");
+  assert.equal(JSON.stringify(body).includes("private_payload"), false);
 });
 
 test("tools projection exposes additive opaque cursor pagination", async () => {

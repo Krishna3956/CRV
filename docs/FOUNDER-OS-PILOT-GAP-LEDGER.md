@@ -155,3 +155,9 @@ just because a README or marketing page mentions it.
   `/api/v2/data-trust`. Provenance now exposes only bounded timestamps, counts,
   the truncation flag, and the observed watermark; arbitrary upstream fields
   are discarded. Unit, contract, and adversarial route integration tests pass.
+
+- 2026-10-22: Hardened the `/api/v2/tools` Capabilities projection. Tool
+  metrics, catalog metadata, unused-tool names, and insight cards now use
+  bounded field-by-field projections with hash validation and explicit page
+  limits; arbitrary tool/insight properties are discarded. Existing filter,
+  opaque-cursor, malformed-cursor, and malicious-field integration tests pass.
