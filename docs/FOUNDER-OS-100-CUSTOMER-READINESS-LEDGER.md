@@ -415,3 +415,16 @@ a failed product gate or a Supabase plan warning.
   122-suite release gate passed after these changes.
 - [x] No package was published or version-bumped; user-owned handoff and temp
   directories remain untracked and untouched.
+
+## 2026-10-22 cancellation notification evidence
+
+- [x] Added a TypeScript client-adapter fixture for outbound and inbound
+  `notifications/cancelled` messages. It verifies the protocol signal is
+  visible as metadata-only activity while request IDs and cancellation reasons
+  are excluded from telemetry.
+- [x] TypeScript SDK package tests passed (64 tests), web lint passed, the
+  176-route production build passed, and the full release gate passed all 122
+  suites.
+- [ ] Python/Go/.NET exporter parity, per-transport cancellation fixtures, and
+  a dashboard timeline remain explicit follow-up scope; no broader cancellation
+  conformance claim is made.

@@ -367,6 +367,24 @@ test("emits bounded request and response observations for non-tool MCP methods",
   await wrapped.close();
 });
 
+test("observes cancellation notifications in both directions without retaining request IDs", async () => {
+  const events = [];
+  const raw = new FakeTransport();
+  const adapter = new TrackMCPClientAdapter({ apiKey: "tmcp_test", service: "adapter-test", transport: "stdio", flushIntervalMs: 60000, onEvent: (event) => events.push(event) });
+  const wrapped = adapter.wrapTransport(raw);
+  await wrapped.start();
+  wrapped.onmessage = () => {};
+  await wrapped.send({ jsonrpc: "2.0", method: "notifications/cancelled", params: { requestId: "private-request-id", reason: "private-reason" } });
+  raw.onmessage({ jsonrpc: "2.0", method: "notifications/cancelled", params: { requestId: "private-server-request-id", reason: "private-server-reason" } });
+  const cancellations = events.filter((event) => event.event_type === "protocol" && event.payload?._trackmcp?.protocol_signal === "cancelled");
+  assert.equal(cancellations.length, 2);
+  assert.equal(cancellations.every((event) => event.mcp_method === "notifications/cancelled"), true);
+  assert.equal(cancellations.every((event) => event.payload_policy === "metadata"), true);
+  assert.equal(JSON.stringify(cancellations).includes("private-request-id"), false);
+  assert.equal(JSON.stringify(cancellations).includes("private-reason"), false);
+  await wrapped.close();
+});
+
 test("tracks a server-directed task lifecycle without retaining the raw handle", async () => {
   const events = [];
   const raw = new FakeTransport();
