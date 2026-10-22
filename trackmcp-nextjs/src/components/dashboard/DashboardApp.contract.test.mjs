@@ -51,6 +51,14 @@ test("business-first navigation and KPI hierarchy are explicit", () => {
   assert.doesNotMatch(source, /Open Configure/);
 });
 
+test("dashboard deep links normalize singular and legacy view aliases", () => {
+  assert.match(source, /journey: "journeys"/);
+  assert.match(source, /capability: "capabilities"/);
+  assert.match(source, /issue: "issues"/);
+  assert.match(source, /people: "clients"/);
+  assert.match(source, /["']resource-prompts["']: "resources"/);
+});
+
 test("Founder OS vertical slices share one data-trust contract", () => {
   for (const view of ["clients", "capabilities", "resources", "journeys", "quality", "issues"]) {
     assert.match(

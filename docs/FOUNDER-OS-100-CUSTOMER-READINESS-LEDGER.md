@@ -490,3 +490,8 @@ a failed product gate or a Supabase plan warning.
   live Setup page renders the corrected OTLP/HTTP JSON-or-protobuf wording,
   the explicit gRPC boundary, the copyable endpoint, and the transport observer
   and MCP tester CTAs.
+- [x] Browser UAT found that the singular deep link
+  `/dashboard?view=journey` silently fell back to Overview. The dashboard now
+  normalizes singular and legacy aliases (`journey`, `capability`, `issue`,
+  `people`, and `resource-prompts`) to their canonical tabs; 57 dashboard
+  contracts and the complete 124-suite release gate pass.
