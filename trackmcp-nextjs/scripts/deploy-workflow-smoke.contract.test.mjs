@@ -14,7 +14,10 @@ test("App Runner deployment performs a redacted read-only smoke after RUNNING", 
   assert.match(workflow, /actions\/setup-node@v4/);
   assert.match(workflow, /deploy_ref:/);
   assert.match(workflow, /deploy_ref must be a full immutable 40-character commit SHA/);
-  assert.match(workflow, /ref: \$\{\{ inputs\.deploy_ref \|\| github\.sha \}\}/);
+  assert.match(workflow, /ref: \$\{\{ github\.sha \}\}/);
+  assert.match(workflow, /Select immutable rollback revision/);
+  assert.match(workflow, /git fetch --no-tags --depth=1 origin "\$REQUESTED_DEPLOY_REF"/);
+  assert.match(workflow, /git checkout --detach "\$REQUESTED_DEPLOY_REF"/);
   assert.match(workflow, /TRACKMCP_DEPLOY_SHA=\$DEPLOY_SHA/);
   assert.match(workflow, /actions\/setup-python@v5/);
   assert.match(workflow, /Install production-smoke dependencies/);
