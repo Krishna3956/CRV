@@ -35,6 +35,8 @@ just because a README or marketing page mentions it.
 - [x] Go and .NET docs do not claim registry publication before it exists.
 - [x] OAuth documentation separates customer authorization from TrackMCP
       ingestion and refuses token collection claims.
+- [x] Node client transport documentation and tests include the official SSE
+      transport alongside stdio and Streamable HTTP.
 - [x] Run full release gate and production smoke for this change.
 - [x] Verify all new docs routes in the deployed browser after rollout.
 - [x] Run a production OTLP/HTTP JSON smoke with a scoped connection key and
@@ -93,3 +95,10 @@ just because a README or marketing page mentions it.
   test, 14 modern-client tests, lint, 176-route build, and full 122-suite
   release gate passed. No package was published and no package version was
   bumped; this remains part of the coordinated release train.
+
+- 2026-10-22: Transport documentation was reconciled with the shipped Node
+  adapter. `SSEClientTransport` is an explicitly supported Node client-adapter
+  transport with selection/mismatch regression coverage; it is not an
+  unsupported browser or proxy path. A real SSE disconnect fixture and
+  authenticated production disconnect UAT remain open, so SSE lifecycle parity
+  is still marked partial.
