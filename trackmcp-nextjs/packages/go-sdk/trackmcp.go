@@ -113,6 +113,24 @@ func (c *Client) Capture(event Event) {
 
 func (c *Client) Track(name string, payload map[string]any) { if payload == nil { payload = map[string]any{} }; payload["name"] = name; c.Capture(Event{EventType: "custom", Payload: payload}) }
 
+// RecordTransportFailure records a disconnect or transport error outside an
+// MCP request boundary. It accepts only bounded metadata; exception text,
+// URLs, headers, and payloads are never captured.
+func (c *Client) RecordTransportFailure(kind string, sessionID string, durationMS int64) {
+	if kind != "transport_error" && kind != "transport_closed" { return }
+	if sessionID == "" { sessionID = "transport-session" }
+	if durationMS < 0 { durationMS = 0 }
+	if durationMS > 86400000 { durationMS = 86400000 }
+	c.Capture(Event{
+		EventType: "session", MCPMethod: "transport", SessionID: sessionID,
+		DurationMS: durationMS, Success: boolPtr(false), IsError: boolPtr(true),
+		ErrorClass: kind,
+		Payload: map[string]any{"_trackmcp": map[string]any{"observation_kind": kind, "observation_source": "transport"}},
+	})
+}
+
+func boolPtr(value bool) *bool { return &value }
+
 func (c *Client) Flush() {
 	c.mu.Lock(); if len(c.queue) == 0 { c.mu.Unlock(); return }; count := c.options.MaxBatchSize; if count > len(c.queue) { count = len(c.queue) }; events := append([]Event(nil), c.queue[:count]...); c.queue = c.queue[count:]; c.mu.Unlock()
 	body, err := json.Marshal(map[string]any{"events": events}); if err != nil { return }

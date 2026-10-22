@@ -11,5 +11,11 @@ claim; the service hashes it before persistence. TrackMCP does not implement
 OAuth or inspect bearer tokens. Delivery is asynchronous and fail-open, so a
 telemetry failure must not block an MCP request.
 
+For disconnects outside an MCP request, call
+`client.RecordTransportFailure("transport_closed", sessionID, durationMS)` or
+`client.RecordTransportFailure("transport_error", sessionID, durationMS)`. The
+hook records bounded session metadata only and remains fail-open; exception
+text, URLs, headers, and payloads are never accepted.
+
 After configuring the key, make one real tool call, flush, and confirm the
 event in Setup. Key acceptance alone is not proof that telemetry arrived.

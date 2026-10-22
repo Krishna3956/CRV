@@ -18,6 +18,9 @@ test("Go and .NET docs disclose source-package status and first-event verificati
     assert.match(source, /Verify your first event/);
     assert.match(source, /account-identity/);
     assert.match(source, /does not implement OAuth/);
+    assert.match(source, /RecordTransportFailure/);
+    assert.match(source, /transport_closed/);
+    assert.match(source, /transport_error/);
   }
 });
 
@@ -29,5 +32,8 @@ test("Go and .NET package READMEs carry the same privacy and lifecycle boundary"
     assert.match(source, /TRACKMCP_KEY/);
     assert.match(source, /OAuth/i);
     assert.match(source, /redact|privacy|sensitive/i);
+    assert.match(source, /RecordTransportFailure/);
+    assert.match(source, /transport_closed/);
+    assert.match(source, /transport_error/);
   }
 });

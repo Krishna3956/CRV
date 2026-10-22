@@ -31,6 +31,10 @@ client.Capture(trackmcp.Event{
     Success: true,
 })`}</Code>
       <Para>Telemetry is asynchronous and fail-open: delivery errors do not block the MCP request. Keep captures bounded and never put API keys, OAuth tokens, prompts, results, or raw customer identifiers in event fields.</Para>
+      <Code>{`// When the server process or stream fails outside a request:
+client.RecordTransportFailure("transport_closed", sessionID, durationMS)
+// or: client.RecordTransportFailure("transport_error", sessionID, durationMS)`}</Code>
+      <Para>The transport observer records only bounded session metadata. It never accepts exception text, URLs, headers, or payloads.</Para>
     </DocSection>
     <DocSection title="Coverage and limits">
       <Para>The Go package is a primitive rather than an automatic MCP transport wrapper. Your middleware supplies the protocol method, tool, transport, and outcome fields. Account identity must come from an already-validated application claim and is hashed before storage. TrackMCP does not implement OAuth or inspect bearer tokens.</Para>
