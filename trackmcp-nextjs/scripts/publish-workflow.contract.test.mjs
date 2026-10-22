@@ -44,9 +44,13 @@ test("npm publication requires provenance and package preflight tests", () => {
 test("Python publication is deliberate and confirmation-gated", async () => {
   const pythonWorkflow = await readFile(new URL("../../.github/workflows/publish-python.yml", import.meta.url), "utf8");
   assert.match(pythonWorkflow, /workflow_dispatch:/);
-  assert.match(pythonWorkflow, /description:.*PUBLISH/);
-  assert.match(pythonWorkflow, /if: inputs\.confirm == 'PUBLISH'/);
+  assert.match(pythonWorkflow, /description:.*RELEASE_TRAIN_APPROVED/);
+  assert.match(pythonWorkflow, /if: inputs\.confirm == 'RELEASE_TRAIN_APPROVED'/);
   assert.doesNotMatch(pythonWorkflow, /^\s*push:/m);
+  assert.match(pythonWorkflow, /Audit all release artifacts before publishing/);
+  assert.match(pythonWorkflow, /npm run test:package-release-audit/);
+  assert.match(pythonWorkflow, /attestations:\s*write/);
+  assert.match(pythonWorkflow, /actions\/attest-build-provenance@v2/);
 });
 
 test("PyPI publication runs tests and validates built artifacts", () => {
@@ -57,4 +61,11 @@ test("PyPI publication runs tests and validates built artifacts", () => {
   assert.match(workflow, /https:\/\/pypi\.org\/pypi\/trackmcp\/\$\{PACKAGE_VERSION\}\/json/);
   assert.match(workflow, /Attest Python SDK artifacts/);
   assert.match(workflow, /packages\/python-sdk\/dist\/\*/);
+});
+
+test("Python publication refuses an immutable duplicate version", async () => {
+  const pythonWorkflow = await readFile(new URL("../../.github/workflows/publish-python.yml", import.meta.url), "utf8");
+  assert.match(pythonWorkflow, /https:\/\/pypi\.org\/pypi\/trackmcp\/\$\{PACKAGE_VERSION\}\/json/);
+  assert.match(pythonWorkflow, /already exists on PyPI; bump the package version before publishing/);
+  assert.match(pythonWorkflow, /python -m twine check dist\/\*/);
 });

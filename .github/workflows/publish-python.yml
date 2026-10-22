@@ -4,21 +4,36 @@ on:
   workflow_dispatch:
     inputs:
       confirm:
-        description: "Type PUBLISH to confirm a deliberate Python SDK publication"
+        description: "Type RELEASE_TRAIN_APPROVED only for a reviewed, batched release"
         required: true
         type: string
 
 jobs:
   publish:
-    if: inputs.confirm == 'PUBLISH'
+    if: inputs.confirm == 'RELEASE_TRAIN_APPROVED'
     runs-on: ubuntu-latest
     permissions:
+      contents: read
       id-token: write
+      attestations: write
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Require reviewed release-train confirmation
+        run: |
+          set -euo pipefail
+          if [[ "${{ inputs.confirm }}" != "RELEASE_TRAIN_APPROVED" ]]; then
+            echo "::error::Package publication is release-train gated."
+            exit 1
+          fi
+      - name: Audit all release artifacts before publishing
+        working-directory: trackmcp-nextjs
+        run: npm ci && npm run test:package-release-audit
       - name: Build and publish Python SDK
         working-directory: packages/python-sdk
         env:
@@ -29,4 +44,14 @@ jobs:
           python -m pip install build twine
           python -m unittest discover -s tests -p 'test*.py'
           python -m build
+          python -m twine check dist/*
+          PACKAGE_VERSION=$(python -c 'import tomllib; print(tomllib.load(open("pyproject.toml", "rb"))["project"]["version"])')
+          if curl --fail --silent --show-error "https://pypi.org/pypi/trackmcp/${PACKAGE_VERSION}/json" >/dev/null; then
+            echo "trackmcp==${PACKAGE_VERSION} already exists on PyPI; bump the package version before publishing."
+            exit 1
+          fi
           python -m twine upload dist/*
+      - name: Attest Python SDK artifacts
+        uses: actions/attest-build-provenance@v2
+        with:
+          subject-path: packages/python-sdk/dist/*
