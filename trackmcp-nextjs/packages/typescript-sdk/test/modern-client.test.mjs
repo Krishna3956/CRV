@@ -313,6 +313,25 @@ test("modern client listens to bounded catalog/resource changes without retainin
   await assert.rejects(() => client.listenForUpdates({}), (error) => error instanceof ModernMcpProtocolError && error.code === "invalid_response");
 });
 
+test("modern client can opt into bounded stream reconnects without replay ownership", async () => {
+  let calls = 0;
+  const client = new ModernMcpClient({ endpoint: "https://mcp.example.test", fetch: async () => {
+    calls += 1;
+    if (calls === 1) throw new TypeError("socket closed");
+    return new Response(new ReadableStream({ start(controller) {
+      controller.enqueue(new TextEncoder().encode(`data: ${JSON.stringify({ method: "notifications/tools/list_changed" })}\n\n`));
+      controller.enqueue(new TextEncoder().encode(`data: ${JSON.stringify({ jsonrpc: "2.0", id: 1, result: {} })}\n\n`));
+      controller.close();
+    } }), { status: 200, headers: { "content-type": "text/event-stream" } });
+  } });
+  const result = await client.listenForUpdatesWithReconnect({ toolsListChanged: true }, { maxAttempts: 3, backoffMs: 0 });
+  assert.equal(calls, 2);
+  assert.equal(result.attempts, 2);
+  assert.equal(result.reconnects, 1);
+  assert.equal(result.graceful, true);
+  assert.deepEqual(result.events, [{ type: "tools_list_changed" }]);
+});
+
 test("modern client bounds task update keys and request size", async () => {
   const client = new ModernMcpClient({ endpoint: "https://mcp.example.test", fetch: async () => response({ result: {} }) });
   await assert.rejects(() => client.updateTask("task-1", { "bad key!": true }), (error) => error instanceof ModernMcpProtocolError && error.code === "invalid_response");

@@ -99,6 +99,8 @@ export type ModernMcpSubscriptionFilter = {
 };
 export type ModernMcpSubscriptionEvent = { type: "tools_list_changed" | "prompts_list_changed" | "resources_list_changed" | "resource_updated"; resourceUriHash?: string };
 export type ModernMcpSubscriptionOptions = { signal?: AbortSignal; timeoutMs?: number; maxEvents?: number; onEvent?: (event: ModernMcpSubscriptionEvent) => void };
+export type ModernMcpReconnectOptions = ModernMcpSubscriptionOptions & { maxAttempts?: number; backoffMs?: number };
+export type ModernMcpReconnectResult = ModernMcpSubscriptionResult & { attempts: number; reconnects: number };
 export type ModernMcpSubscriptionHonoredFilter = Omit<ModernMcpSubscriptionFilter, "resourceSubscriptions"> & { resourceSubscriptionHashes?: string[] };
 export type ModernMcpSubscriptionResult = { events: ModernMcpSubscriptionEvent[]; honored?: ModernMcpSubscriptionHonoredFilter; graceful: boolean; truncated: boolean };
 
@@ -622,5 +624,57 @@ export class ModernMcpClient {
       if (options.signal?.aborted || timedOut || (error instanceof DOMException && error.name === "AbortError")) return { events, ...(honored ? { honored } : {}), graceful, truncated: true };
       throw new ModernMcpProtocolError("network_error", "Modern MCP subscriptions/listen could not reach the endpoint.");
     } finally { clearTimeout(timer); options.signal?.removeEventListener("abort", abort); }
+  }
+
+  /**
+   * Opt-in, caller-controlled reconnect wrapper for a bounded notification
+   * stream. It never replays or persists events, so a reconnect may duplicate
+   * notifications or miss events between streams; callers must reconcile by
+   * re-reading their catalogs. HTTP/authentication failures are surfaced
+   * immediately, while only network failures and non-graceful stream closes
+   * consume the bounded retry budget.
+   */
+  async listenForUpdatesWithReconnect(filter: ModernMcpSubscriptionFilter, options: ModernMcpReconnectOptions = {}): Promise<ModernMcpReconnectResult> {
+    const maxAttempts = typeof options.maxAttempts === "number" && Number.isInteger(options.maxAttempts) ? Math.min(5, Math.max(1, options.maxAttempts)) : 3;
+    const backoffMs = typeof options.backoffMs === "number" && Number.isFinite(options.backoffMs) ? Math.min(5_000, Math.max(0, Math.floor(options.backoffMs))) : 250;
+    const maxEvents = typeof options.maxEvents === "number" && Number.isInteger(options.maxEvents) ? Math.min(MAX_TASK_STREAM_EVENTS, Math.max(1, options.maxEvents)) : MAX_TASK_STREAM_EVENTS;
+    const events: ModernMcpSubscriptionEvent[] = [];
+    let honored: ModernMcpSubscriptionHonoredFilter | undefined;
+    let attempts = 0;
+    let reconnects = 0;
+    let last: ModernMcpSubscriptionResult = { events: [], graceful: false, truncated: true };
+    while (attempts < maxAttempts && !options.signal?.aborted && events.length < maxEvents) {
+      attempts += 1;
+      try {
+        const result = await this.listenForUpdates(filter, {
+          signal: options.signal,
+          timeoutMs: options.timeoutMs,
+          maxEvents: maxEvents - events.length,
+          onEvent: options.onEvent,
+        });
+        last = result;
+        events.push(...result.events);
+        honored = result.honored || honored;
+        if (result.graceful || !result.truncated || options.signal?.aborted || events.length >= maxEvents) break;
+      } catch (error) {
+        if (!(error instanceof ModernMcpProtocolError) || error.code !== "network_error") throw error;
+        last = { events: [], graceful: false, truncated: true };
+      }
+      if (attempts >= maxAttempts || options.signal?.aborted) break;
+      reconnects += 1;
+      const delay = Math.min(5_000, backoffMs * (2 ** Math.min(3, reconnects - 1)));
+      if (delay > 0) await new Promise<void>((resolve) => {
+        const timer = setTimeout(resolve, delay);
+        options.signal?.addEventListener("abort", () => { clearTimeout(timer); resolve(); }, { once: true });
+      });
+    }
+    return {
+      events: events.slice(0, maxEvents),
+      ...(honored ? { honored } : last.honored ? { honored: last.honored } : {}),
+      graceful: last.graceful,
+      truncated: Boolean(options.signal?.aborted) || events.length >= maxEvents ? events.length >= maxEvents : !last.graceful,
+      attempts,
+      reconnects,
+    };
   }
 }

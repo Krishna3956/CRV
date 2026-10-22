@@ -661,3 +661,18 @@ a failed product gate or a Supabase plan warning.
   payload retrieval, durable lifecycle ownership, replay, and automatic stream
   reconnect are not claimed. Docs navigation, truth, and version contracts
   passed alongside the full release gate.
+
+## 2026-10-22 opt-in modern stream reconnect checkpoint
+
+- [x] The Node modern client now offers an explicit
+  `listenForUpdatesWithReconnect` wrapper with bounded attempts and exponential
+  backoff. It retries only network/non-graceful stream failures, fails through
+  HTTP/authentication errors, honors abort signals, and caps events and delay.
+- [x] The API documents that reconnect is caller-controlled and does not replay,
+  persist, or guarantee delivery; callers must re-read catalogs after a stream
+  reconnect. A privacy-safe fixture covers a failed first stream followed by a
+  successful notification stream.
+- [x] TypeScript SDK tests passed 80/80, the complete release gate passed 125
+  suites, lint passed, and the production build generated all 176 routes.
+- [ ] Transport-owned reconnect policy, proxy behavior, and authenticated
+  production disconnect UAT remain external/transport-specific evidence gates.
