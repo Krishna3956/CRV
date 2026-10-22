@@ -484,5 +484,9 @@ a failed product gate or a Supabase plan warning.
   protobuf was disabled even though bounded OTLP/HTTP protobuf support is
   shipped. The source contract now requires “JSON or protobuf” and explicitly
   excludes only gRPC; the full 124-suite release gate passed before push
-  `4cec2b4`. App Runner rollout and a repeat browser check remain pending for
-  the exact SHA.
+  `4cec2b4`.
+- [x] App Runner deployment `39755964841` for the exact source SHA `3b8bb3a`
+  reached success. A fresh cache-busted browser session then confirmed the
+  live Setup page renders the corrected OTLP/HTTP JSON-or-protobuf wording,
+  the explicit gRPC boundary, the copyable endpoint, and the transport observer
+  and MCP tester CTAs.
