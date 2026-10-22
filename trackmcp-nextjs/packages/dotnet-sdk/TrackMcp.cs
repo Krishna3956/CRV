@@ -78,22 +78,35 @@ public sealed class TrackMcpClient : IDisposable
     public void RecordProtocolResult(string method, JsonObject result, string? sessionId = null)
     {
         if (string.IsNullOrWhiteSpace(method) || method.Length > 128 || method.Any(char.IsControl)) return;
-        var resultType = ReadAllowlisted(result, "resultType", "complete", "input_required", "task");
-        var taskStatus = ReadAllowlisted(result, "taskStatus", "working", "input_required", "completed", "failed", "cancelled", "expired");
-        var isError = result["isError"]?.GetValue<bool?>();
-        Capture("protocol", method, new Dictionary<string, object?> { ["_trackmcp"] = new Dictionary<string, object?> { ["observation_kind"] = "protocol_response", ["observation_source"] = "server" } }, BoundSessionId(sessionId), isError is true ? false : true, resultType: resultType, taskStatus: taskStatus, inputRequestCount: BoundedCount(result["inputRequests"]), inputResponseCount: BoundedCount(result["inputResponses"]));
+        var resultType = ReadAllowlisted(result, new[] { "resultType", "result_type" }, "complete", "input_required", "task");
+        var taskStatus = ReadAllowlisted(result, new[] { "taskStatus", "task_status" }, "working", "input_required", "completed", "failed", "cancelled", "expired");
+        var isError = ReadBool(result, "isError", "is_error");
+        Capture("protocol", method, new Dictionary<string, object?> { ["_trackmcp"] = new Dictionary<string, object?> { ["observation_kind"] = "protocol_response", ["observation_source"] = "server" } }, BoundSessionId(sessionId), isError is true ? false : true, resultType: resultType, taskStatus: taskStatus, inputRequestCount: BoundedCount(result, "inputRequests", "input_requests"), inputResponseCount: BoundedCount(result, "inputResponses", "input_responses"));
     }
 
-    private static string? ReadAllowlisted(JsonObject result, string key, params string[] allowed)
+    private static string? ReadAllowlisted(JsonObject result, string[] keys, params string[] allowed)
     {
-        var value = result[key]?.GetValue<string>();
-        return value is not null && allowed.Contains(value, StringComparer.Ordinal) ? value : null;
+        foreach (var key in keys)
+        {
+            var value = result[key]?.GetValue<string>();
+            if (value is not null && allowed.Contains(value, StringComparer.Ordinal)) return value;
+        }
+        return null;
     }
 
-    private static int? BoundedCount(JsonNode? value)
+    private static bool? ReadBool(JsonObject result, params string[] keys)
     {
-        if (value is JsonArray array) return Math.Min(100, array.Count);
-        if (value is JsonObject obj) return Math.Min(100, obj.Count);
+        foreach (var key in keys) if (result[key] is JsonNode node) return node.GetValue<bool>();
+        return null;
+    }
+
+    private static int? BoundedCount(JsonObject result, params string[] keys)
+    {
+        foreach (var key in keys)
+        {
+            if (result[key] is JsonArray array) return Math.Min(100, array.Count);
+            if (result[key] is JsonObject obj) return Math.Min(100, obj.Count);
+        }
         return null;
     }
 

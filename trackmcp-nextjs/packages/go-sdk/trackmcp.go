@@ -162,13 +162,18 @@ func (c *Client) RecordProtocolSignal(signal string, method string, sessionID st
 func (c *Client) RecordProtocolResult(method string, result map[string]any, sessionID string) {
 	if len(method) == 0 || len(method) > 128 || strings.IndexFunc(method, func(r rune) bool { return r < 0x20 || r == 0x7f }) >= 0 { return }
 	event := Event{EventType: "protocol", Direction: "server_to_client", MCPMethod: method, SessionID: boundedSessionID(sessionID), Success: boolPtr(true), IsError: boolPtr(false)}
-	if value, ok := result["resultType"].(string); ok && protocolResultTypes[value] { event.ResultType = value }
-	if value, ok := result["taskStatus"].(string); ok && taskStatuses[value] { event.TaskStatus = value }
-	if value, ok := result["isError"].(bool); ok { event.IsError, event.Success = boolPtr(value), boolPtr(!value) }
-	if count, ok := boundedCount(result["inputRequests"]); ok { event.InputRequestCount = &count }
-	if count, ok := boundedCount(result["inputResponses"]); ok { event.InputResponseCount = &count }
+	if value, ok := firstString(result, "resultType", "result_type"); ok && protocolResultTypes[value] { event.ResultType = value }
+	if value, ok := firstString(result, "taskStatus", "task_status"); ok && taskStatuses[value] { event.TaskStatus = value }
+	if value, ok := firstBool(result, "isError", "is_error"); ok { event.IsError, event.Success = boolPtr(value), boolPtr(!value) }
+	if count, ok := boundedCountFrom(result, "inputRequests", "input_requests"); ok { event.InputRequestCount = &count }
+	if count, ok := boundedCountFrom(result, "inputResponses", "input_responses"); ok { event.InputResponseCount = &count }
 	event.Payload = map[string]any{"_trackmcp": map[string]any{"observation_kind": "protocol_response", "observation_source": "server"}}
 	c.Capture(event)
+}
+
+func boundedCountFrom(result map[string]any, keys ...string) (int, bool) {
+	for _, key := range keys { if value, ok := result[key]; ok { return boundedCount(value) } }
+	return 0, false
 }
 
 func boundedCount(value any) (int, bool) {
@@ -180,6 +185,16 @@ func boundedCount(value any) (int, bool) {
 	default:
 		return 0, false
 	}
+}
+
+func firstString(result map[string]any, keys ...string) (string, bool) {
+	for _, key := range keys { if value, ok := result[key].(string); ok { return value, true } }
+	return "", false
+}
+
+func firstBool(result map[string]any, keys ...string) (bool, bool) {
+	for _, key := range keys { if value, ok := result[key].(bool); ok { return value, true } }
+	return false, false
 }
 
 func minInt(a int, b int) int { if a < b { return a }; return b }

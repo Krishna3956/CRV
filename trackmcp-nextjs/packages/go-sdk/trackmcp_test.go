@@ -71,3 +71,15 @@ func TestRecordProtocolResultIsBoundedAndMetadataOnly(t *testing.T) {
 	if len(client.queue) != 2 { t.Fatal("invalid method should be ignored while bounded unknown metadata remains observable") }
 	if client.queue[1].ResultType != "" || client.queue[1].TaskStatus != "" { t.Fatal("unknown result metadata was retained") }
 }
+
+func TestRecordProtocolResultAcceptsNormalizedSnakeCaseMetadata(t *testing.T) {
+	client := New(Options{APIKey: "tmcp_test"})
+	client.RecordProtocolResult("tasks/get", map[string]any{
+		"result_type": "task", "task_status": "completed", "is_error": true,
+		"input_requests": []any{1, 2}, "input_responses": map[string]any{"a": 1},
+	}, "session-1")
+	if len(client.queue) != 1 { t.Fatalf("expected one event, got %d", len(client.queue)) }
+	event := client.queue[0]
+	if event.ResultType != "task" || event.TaskStatus != "completed" || event.Success == nil || *event.Success || event.IsError == nil || !*event.IsError { t.Fatalf("unexpected normalized metadata: %#v", event) }
+	if event.InputRequestCount == nil || *event.InputRequestCount != 2 || event.InputResponseCount == nil || *event.InputResponseCount != 1 { t.Fatalf("unexpected normalized counts: %#v", event) }
+}
