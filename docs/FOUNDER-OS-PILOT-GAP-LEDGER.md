@@ -161,3 +161,9 @@ just because a README or marketing page mentions it.
   bounded field-by-field projections with hash validation and explicit page
   limits; arbitrary tool/insight properties are discarded. Existing filter,
   opaque-cursor, malformed-cursor, and malicious-field integration tests pass.
+
+- 2026-10-22: Added shared bounded projections for `/api/v2/resources` and
+  `/api/v2/prompts`. Observed methods/entity counts, activity metrics, outcome
+  rows, breakdowns, and trend points now use allowlisted fields with bounded
+  numbers/text and protocol-specific filtering. Integration tests inject
+  private nested payloads and verify they cannot cross the public envelope.
