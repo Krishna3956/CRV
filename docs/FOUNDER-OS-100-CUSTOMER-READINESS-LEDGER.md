@@ -304,3 +304,8 @@ a failed product gate or a Supabase plan warning.
   contract test covers the timeout/kill behavior; package consumers passed and
   the full release gate passed with 121 suites for the change.
 - [x] Pushed as `a6805d6`; no package publication or version bump occurred.
+- [x] The top-level release-gate runner now bounds each npm suite process to
+  five minutes, terminates timed-out children, and reports the exact suite
+  that stalled. Its contract test is included in the gate.
+- [x] The bounded release gate, lint, and 176-route production build passed
+  for this milestone; the gate now reports 122 suites. Pushed as `239eeb9`.
