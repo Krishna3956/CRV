@@ -542,3 +542,16 @@ a failed product gate or a Supabase plan warning.
   `npm run build` compiled and generated all 176 static pages/routes, and the
   complete `npm run test:release-gate` passed all 124 suites. Commit `472b623`
   is pushed to `main`; no package version was changed or published.
+
+## 2026-10-22 protocol outcomes dashboard checkpoint
+
+- [x] Capabilities now renders the explicit `Completed` protocol-outcome
+  column and states that it is a protocol result, not business completion.
+  It also shows whether evidence came from durable semantic facts or the
+  bounded event window, and example mode includes representative values.
+- [x] Dashboard contract coverage remains green (57 tests), including the
+  new completed/source assertions. The full 124-suite release gate passed;
+  lint passed; and the Next.js production build generated all 176 routes.
+- [ ] Production browser UAT for authenticated durable-fact evidence remains
+  an external gate; the UI does not present example or event-window data as
+  durable production evidence.

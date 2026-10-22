@@ -443,7 +443,9 @@ test("Overview exposes protocol lifecycle signals with an explicit non-outcome c
 test("Capabilities exposes bounded modern protocol outcome states", () => {
   assert.match(source, /protocol_family_outcomes/);
   assert.match(source, /Modern protocol outcomes/);
+  assert.match(source, />Completed</);
   assert.match(source, /Unknown is retained when no explicit terminal result exists/);
+  assert.match(source, /Evidence source:/);
 });
 
 test("Capabilities exposes truthful catalog history states", () => {
