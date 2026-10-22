@@ -10,6 +10,12 @@ test("protocol activity keeps family counts and provenance bounded", async () =>
       { family: "private", observations: 999 },
       { family: "tasks", observations: 3, private_payload: "do-not-return" },
     ],
+    protocol_family_outcomes: [
+      { family: "sampling", observations: 2, completed: 1, errors: 0, input_required: 1, unknown: 0 },
+      { family: "private", observations: 999, completed: 999, errors: 0, input_required: 0, unknown: 0 },
+      { family: "tasks", observations: 3, completed: 1, errors: 1, input_required: 0, unknown: 1, private_payload: "do-not-return" },
+    ],
+    protocol_family_outcome_source: "durable_facts",
     data_trust: { generated_at: "2026-01-02T00:00:00.000Z", source_event_count: 4, private_payload: "do-not-return" },
   }), { status: 200 }));
   const response = await handler(new Request("https://example.test/api/v2/protocol-activity"));
@@ -19,6 +25,12 @@ test("protocol activity keeps family counts and provenance bounded", async () =>
     { family: "tasks", observations: 3 },
     { family: "sampling", observations: 2 },
   ]);
+  assert.deepEqual(body.protocol_family_outcomes, [
+    { family: "tasks", observations: 3, completed: 1, errors: 1, input_required: 0, unknown: 1 },
+    { family: "sampling", observations: 2, completed: 1, errors: 0, input_required: 1, unknown: 0 },
+  ]);
+  assert.equal(body.protocol_family_outcome_source, "durable_facts");
+  assert.ok(body.caveats.some((caveat) => caveat.includes("Completed is an explicit protocol result")));
   assert.equal(body.data_trust.source_event_count, 4);
   assert.equal("private_payload" in body.data_trust, false);
 });

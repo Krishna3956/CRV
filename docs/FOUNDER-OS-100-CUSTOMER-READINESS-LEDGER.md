@@ -584,3 +584,18 @@ a failed product gate or a Supabase plan warning.
 - [ ] This hardens TrackMCP dashboard authentication only. TrackMCP still does
   not issue or exchange customer MCP OAuth tokens; that boundary remains
   intentionally unsupported and documented.
+
+## 2026-10-22 v2 protocol-activity parity checkpoint
+
+- [x] `/api/v2/protocol-activity` now exposes the same bounded protocol-family
+  outcome breakdown consumed by the dashboard: completed, errors,
+  input-required, and unknown, plus the durable-facts/event-window evidence
+  source. It validates the family vocabulary, clamps counts, strips unknown
+  fields, and preserves the shared v2 provenance envelope.
+- [x] Added integration and contract coverage for the outcome projection and
+  caveat text, and documented the endpoint in the REST API reference.
+- [ ] Authenticated production UAT for this v2 route remains part of the
+  external release gate; local route evidence does not claim production data.
+- [x] Full verification passed after the v2 parity change: release gate 125
+  suites, lint, and the production Next.js build (176 generated routes). No
+  package release or schema migration was triggered.

@@ -38,6 +38,7 @@ const endpoints: { method: string; path: string; desc: string }[] = [
   { method: "GET", path: "/api/v2/action-queue?status=open", desc: "Workspace-scoped action items; lifecycle mutations remain protected" },
   { method: "GET", path: "/api/v2/data-trust?days=30", desc: "Query window, freshness, counts, and truncation provenance" },
   { method: "GET", path: "/api/v2/people?days=30", desc: "Resolver coverage and client observations; no unique-user claims" },
+  { method: "GET", path: "/api/v2/protocol-activity?days=30", desc: "Bounded protocol-family activity and explicit outcome states with evidence source" },
   { method: "GET", path: "/api/v2/resources?days=30", desc: "Observed resource protocol methods; entities are not inferred" },
   { method: "GET", path: "/api/v2/prompts?days=30", desc: "Observed prompt protocol methods; arguments are not exposed" },
 ];
