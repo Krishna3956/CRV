@@ -158,18 +158,29 @@ async function registryChecks() {
   const at = pythonPackage.lastIndexOf("@");
   const name = pythonPackage.slice(0, at);
   const version = pythonPackage.slice(at + 1);
-  const response = await fetch(`https://pypi.org/pypi/${encodeURIComponent(name)}/${encodeURIComponent(version)}/json`, { signal: AbortSignal.timeout(15_000) });
-  if (!response.ok) fail(`PyPI registry check failed for ${name}==${version}: HTTP ${response.status}`);
-  const metadata = await response.json();
-  if (metadata.info?.name !== name || metadata.info?.version !== version) fail(`PyPI registry metadata mismatch for ${name}==${version}`);
-  const files = Array.isArray(metadata.urls) ? metadata.urls : [];
-  const wheel = files.find((file) => file.packagetype === "bdist_wheel");
-  const sdist = files.find((file) => file.packagetype === "sdist");
-  if (!wheel?.digests?.sha256 || !sdist?.digests?.sha256) fail(`PyPI checksums missing for ${name}==${version}`);
   const expectedWheel = process.env.TRACKMCP_EXPECTED_PYPI_WHEEL_SHA256
     || (pythonPackage === "trackmcp@0.1.6" ? "4898b68d5a02825bfef3b2cd2b8ba91467464754d1dc755f932ccda53a4c284c" : "");
   const expectedSdist = process.env.TRACKMCP_EXPECTED_PYPI_SDIST_SHA256
     || (pythonPackage === "trackmcp@0.1.6" ? "3fec6e02a78b54ca14a3478d1f32623f44e6d1ea8fc3b4be3b88c57a7419226b" : "");
+  // PyPI can briefly expose the version before its file list and digests have
+  // propagated to every edge. Retry that narrow condition, but never weaken
+  // the exact checksum comparison once the files are visible.
+  let response;
+  let metadata;
+  let wheel;
+  let sdist;
+  for (let attempt = 1; attempt <= 6; attempt += 1) {
+    response = await fetch(`https://pypi.org/pypi/${encodeURIComponent(name)}/${encodeURIComponent(version)}/json`, { signal: AbortSignal.timeout(15_000) });
+    if (!response.ok) fail(`PyPI registry check failed for ${name}==${version}: HTTP ${response.status}`);
+    metadata = await response.json();
+    if (metadata.info?.name !== name || metadata.info?.version !== version) fail(`PyPI registry metadata mismatch for ${name}==${version}`);
+    const files = Array.isArray(metadata.urls) ? metadata.urls : [];
+    wheel = files.find((file) => file.packagetype === "bdist_wheel");
+    sdist = files.find((file) => file.packagetype === "sdist");
+    if (wheel?.digests?.sha256 && sdist?.digests?.sha256) break;
+    if (attempt < 6) await new Promise((resolve) => setTimeout(resolve, 5_000));
+  }
+  if (!wheel?.digests?.sha256 || !sdist?.digests?.sha256) fail(`PyPI checksums missing for ${name}==${version} after bounded propagation wait`);
   if (expectedWheel && wheel.digests.sha256 !== expectedWheel) fail(`PyPI wheel checksum mismatch for ${name}==${version}`);
   if (expectedSdist && sdist.digests.sha256 !== expectedSdist) fail(`PyPI sdist checksum mismatch for ${name}==${version}`);
   checks.push({ label: `PyPI ${name}==${version}`, status: response.status, wheel_sha256_present: true, sdist_sha256_present: true });
