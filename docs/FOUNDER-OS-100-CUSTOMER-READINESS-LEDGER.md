@@ -641,3 +641,18 @@ a failed product gate or a Supabase plan warning.
   release gate passed 125 suites, lint passed, and the production build
   generated all 176 routes.
 - [x] No package version changed and no registry publication was triggered.
+
+## 2026-10-22 modern Tasks terminal-result metadata checkpoint
+
+- [x] The Node modern MCP client now projects bounded metadata when
+  `tasks/get` returns a terminal result: result type, error discriminator,
+  content-item count, and input-request key count/names. It never returns the
+  result content, task payload, raw handles beyond the caller-supplied bounded
+  handle, or arbitrary task fields.
+- [x] Added a privacy regression test proving terminal result content and
+  private fields are absent from the projected task. The TypeScript SDK suite
+  passed 79/79, the complete release gate passed 125 suites, lint passed, and
+  the production build generated all 176 routes.
+- [ ] The source change is queued for the next coordinated SDK release train;
+  the published `@trackmcp/sdk@0.1.12` artifact was intentionally not changed
+  or republished in this milestone.

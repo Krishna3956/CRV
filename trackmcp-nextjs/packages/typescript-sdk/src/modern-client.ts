@@ -78,6 +78,11 @@ export type ModernMcpTask = {
   pollIntervalMs?: number;
   ttlMs?: number;
   inputRequestKeys?: string[];
+  /** Metadata about a terminal result; result content is never returned. */
+  resultType?: "complete" | "input_required";
+  resultIsError?: boolean;
+  resultContentItemCount?: number;
+  resultInputRequestKeys?: string[];
 };
 
 export type ModernMcpTaskInputResponses = Record<string, unknown>;
@@ -131,7 +136,35 @@ function projectTask(value: unknown): ModernMcpTask | null {
   const inputRequestKeys = boundedObject(value.inputRequests)
     ? Object.keys(value.inputRequests).filter((key) => /^[A-Za-z0-9_.:-]{1,128}$/.test(key)).slice(0, MAX_CAPABILITIES)
     : undefined;
-  return { taskId, status: taskStatus, ...(statusMessage ? { statusMessage } : {}), ...(createdAt ? { createdAt } : {}), ...(lastUpdatedAt ? { lastUpdatedAt } : {}), ...(pollIntervalMs !== undefined ? { pollIntervalMs } : {}), ...(ttlMs !== undefined ? { ttlMs } : {}), ...(inputRequestKeys?.length ? { inputRequestKeys } : {}) };
+  const result = boundedObject(value.result) ? value.result : undefined;
+  const resultTypeValue = result?.resultType;
+  const hasResultMetadata = Boolean(result && (
+    resultTypeValue === "complete" || resultTypeValue === "input_required" ||
+    typeof result.isError === "boolean" || Array.isArray(result.content) ||
+    boundedObject(result.inputRequests)
+  ));
+  const resultType = hasResultMetadata
+    ? (resultTypeValue === "input_required" ? "input_required" : "complete")
+    : undefined;
+  const resultIsError = hasResultMetadata && result && typeof result.isError === "boolean" ? result.isError : undefined;
+  const resultContentItemCount = hasResultMetadata && result && Array.isArray(result.content) ? Math.min(MAX_CAPABILITIES, result.content.length) : undefined;
+  const resultInputRequestKeys = hasResultMetadata && result && boundedObject(result.inputRequests)
+    ? Object.keys(result.inputRequests).filter((key) => /^[A-Za-z0-9_.:-]{1,128}$/.test(key)).slice(0, MAX_CAPABILITIES)
+    : undefined;
+  return {
+    taskId,
+    status: taskStatus,
+    ...(statusMessage ? { statusMessage } : {}),
+    ...(createdAt ? { createdAt } : {}),
+    ...(lastUpdatedAt ? { lastUpdatedAt } : {}),
+    ...(pollIntervalMs !== undefined ? { pollIntervalMs } : {}),
+    ...(ttlMs !== undefined ? { ttlMs } : {}),
+    ...(inputRequestKeys?.length ? { inputRequestKeys } : {}),
+    ...(resultType ? { resultType } : {}),
+    ...(resultIsError !== undefined ? { resultIsError } : {}),
+    ...(resultContentItemCount !== undefined ? { resultContentItemCount } : {}),
+    ...(resultInputRequestKeys?.length ? { resultInputRequestKeys } : {}),
+  };
 }
 
 function taskParams(params: Record<string, unknown>): Record<string, unknown> {

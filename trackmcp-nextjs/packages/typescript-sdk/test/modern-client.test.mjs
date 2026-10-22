@@ -226,6 +226,31 @@ test("modern client polls bounded task status and stops at an explicit terminal 
   assert.equal(calls, 2);
 });
 
+test("modern client projects terminal task result metadata without returning result content", async () => {
+  const client = new ModernMcpClient({ endpoint: "https://mcp.example.test", fetch: async () => response({ result: {
+    taskId: "task-1",
+    status: "completed",
+    result: {
+      resultType: "complete",
+      isError: true,
+      content: [{ text: "private result" }, { data: "private bytes" }],
+      inputRequests: { follow_up: { params: { secret: "omit" } } },
+    },
+    secret: "omit",
+  } }) });
+  const task = await client.getTask("task-1");
+  assert.deepEqual(task, {
+    taskId: "task-1",
+    status: "completed",
+    resultType: "complete",
+    resultIsError: true,
+    resultContentItemCount: 2,
+    resultInputRequestKeys: ["follow_up"],
+  });
+  assert.equal(JSON.stringify(task).includes("private result"), false);
+  assert.equal(JSON.stringify(task).includes("private bytes"), false);
+});
+
 test("modern client waitForTask is abortable before another request", async () => {
   const controller = new AbortController();
   controller.abort();
