@@ -258,3 +258,15 @@ Open pull requests:
 Current release candidate: `main@d79d0d3`. The remaining pilot follow-up is
 operational observation of real customer traffic and refresh backlog; it is not
 a failed product gate or a Supabase plan warning.
+
+## 2026-10-22 autonomous release-train verification
+
+- [x] Deployment run `39734002264` for `e5a7351` completed successfully after
+  the App Runner readiness wait and read-only production smoke.
+- [x] A fresh direct-origin production pilot smoke passed all 35 checks and
+  produced a redacted report at `/tmp/trackmcp-pilot-smoke-e5a7351.json`.
+- [x] Docs-navigation, publication-workflow, and package-release-audit
+  contracts passed locally; no package publication was triggered.
+- [ ] Authenticated two-workspace production UAT, worker enablement, and the
+  remaining external operator gates stay open and are not inferred from the
+  public smoke.
