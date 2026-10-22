@@ -428,3 +428,23 @@ a failed product gate or a Supabase plan warning.
 - [ ] Python/Go/.NET exporter parity, per-transport cancellation fixtures, and
   a dashboard timeline remain explicit follow-up scope; no broader cancellation
   conformance claim is made.
+
+## 2026-10-22 latest autonomous release-train checkpoint
+
+- [x] Cross-language protocol-signal parity is now implemented in the
+  TypeScript, Python, Go, and .NET source SDKs. Each helper accepts only the
+  bounded signals `progress`, `cancelled`, `catalog_changed`,
+  `resource_changed`, and `prompt_changed`; values, reasons, URIs, and payloads
+  are rejected or omitted. Python and TypeScript runtime suites pass; Go/.NET
+  source changes are covered by hosted CI because native toolchains are not
+  installed in this workspace.
+- [x] Authenticated analytics now returns a bounded daily protocol-signal
+  timeline, and the Overview lifecycle panel renders the last 14 days without
+  exposing event payloads or identifiers. Analytics integration and dashboard
+  contract tests pass; the full web release gate passes 124 suites.
+- [ ] GitHub CI and App Runner deployment for the current main SHA are still
+  in progress. No production deployment or browser UAT claim is advanced until
+  those remote runs reach a terminal success state.
+- [ ] The next coordinated package train remains undispatched. Existing npm,
+  PyPI, and CLI versions are unchanged; registry authentication and explicit
+  release-owner approval remain external publication gates.
