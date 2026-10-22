@@ -721,3 +721,15 @@ a failed product gate or a Supabase plan warning.
   runtime-safety audit, and redacted evidence uploads all completed
   successfully. This verifies deployment execution for the source fix; it does
   not close the separately documented authenticated production UAT gates.
+
+## 2026-10-22 public-claim reconciliation checkpoint
+
+- [x] Re-ran the public truth and navigation contracts against the current
+  source: P0 truth (9/9), docs navigation (3/3), site-wide CTA/link audit
+  (4/4), SEO foundation (5/5), and release-scope audit (2/2) all passed.
+  These checks verify that public pages label example data, qualify partial or
+  planned behavior, expose canonical documentation destinations, and avoid
+  placeholder/hash CTAs.
+- [ ] Rendered production browser inspection and authenticated dashboard UAT
+  remain separate evidence gates; source contracts do not substitute for
+  those runtime checks.
