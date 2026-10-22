@@ -5,6 +5,8 @@ const MAX_STRING_LENGTH = 256;
 const MAX_VERSIONS = 16;
 const MAX_CAPABILITIES = 32;
 const MAX_TOOLS = 128;
+const MAX_RESOURCES = 128;
+const MAX_PROMPTS = 128;
 const MAX_TASKS = 32;
 
 export type ModernMcpDiscovery = {
@@ -29,6 +31,29 @@ export type ModernMcpTool = {
 
 export type ModernMcpToolPage = {
   tools: ModernMcpTool[];
+  nextCursor?: string;
+};
+
+export type ModernMcpResource = {
+  uri: string;
+  name?: string;
+  description?: string;
+  mimeType?: string;
+};
+
+export type ModernMcpResourcePage = {
+  resources: ModernMcpResource[];
+  nextCursor?: string;
+};
+
+export type ModernMcpPrompt = {
+  name: string;
+  description?: string;
+  argumentNames: string[];
+};
+
+export type ModernMcpPromptPage = {
+  prompts: ModernMcpPrompt[];
   nextCursor?: string;
 };
 
@@ -116,6 +141,44 @@ export class ModernMcpClient {
     });
     const nextCursor = boundedString(result.nextCursor);
     return { tools, ...(nextCursor ? { nextCursor } : {}) };
+  }
+
+  /** Retrieve one bounded, cursor-based resources/list catalog page. Raw
+   * resource contents and read arguments are never requested or retained. */
+  async listResources(cursor?: string): Promise<ModernMcpResourcePage> {
+    const result = await this.request("resources/list", cursor ? { cursor: cursor.slice(0, MAX_STRING_LENGTH) } : {});
+    if (!Array.isArray(result.resources)) throw new ModernMcpProtocolError("invalid_response", "Modern MCP resources/list returned no resources array.");
+    const resources = result.resources.slice(0, MAX_RESOURCES).flatMap((value): ModernMcpResource[] => {
+      if (!boundedObject(value)) return [];
+      const uri = boundedString(value.uri);
+      if (!uri) return [];
+      const name = boundedString(value.name);
+      const description = boundedString(value.description);
+      const mimeType = boundedString(value.mimeType);
+      return [{ uri, ...(name ? { name } : {}), ...(description ? { description } : {}), ...(mimeType ? { mimeType } : {}) }];
+    });
+    const nextCursor = boundedString(result.nextCursor);
+    return { resources, ...(nextCursor ? { nextCursor } : {}) };
+  }
+
+  /** Retrieve one bounded, cursor-based prompts/list catalog page. Prompt
+   * argument values are never requested or retained; only argument names are
+   * returned for catalog display. */
+  async listPrompts(cursor?: string): Promise<ModernMcpPromptPage> {
+    const result = await this.request("prompts/list", cursor ? { cursor: cursor.slice(0, MAX_STRING_LENGTH) } : {});
+    if (!Array.isArray(result.prompts)) throw new ModernMcpProtocolError("invalid_response", "Modern MCP prompts/list returned no prompts array.");
+    const prompts = result.prompts.slice(0, MAX_PROMPTS).flatMap((value): ModernMcpPrompt[] => {
+      if (!boundedObject(value)) return [];
+      const name = boundedString(value.name);
+      if (!name || !/^[A-Za-z0-9_.-]{1,128}$/.test(name)) return [];
+      const description = boundedString(value.description);
+      const argumentNames = Array.isArray(value.arguments)
+        ? value.arguments.slice(0, MAX_CAPABILITIES).flatMap((argument): string[] => boundedObject(argument) ? [boundedString(argument.name)].filter((item): item is string => Boolean(item)) : [])
+        : [];
+      return [{ name, ...(description ? { description } : {}), argumentNames }];
+    });
+    const nextCursor = boundedString(result.nextCursor);
+    return { prompts, ...(nextCursor ? { nextCursor } : {}) };
   }
 
   /** Retrieve one bounded, cursor-based task status page. This observes task
