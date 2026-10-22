@@ -39,6 +39,27 @@ jobs:
       - name: Audit all release artifacts before publishing
         working-directory: trackmcp-nextjs
         run: npm run test:package-release-audit
+      - name: Preflight all release-train registry versions
+        if: inputs.package == 'all'
+        working-directory: trackmcp-nextjs
+        run: |
+          set -euo pipefail
+          sdk_version=$(node -p "require('./packages/typescript-sdk/package.json').version")
+          cli_version=$(node -p "require('./packages/cli/package.json').version")
+          python_version=$(python -c 'import tomllib; print(tomllib.load(open("../packages/python-sdk/pyproject.toml", "rb"))["project"]["version"])')
+          if npm view "@trackmcp/sdk@${sdk_version}" version --json >/dev/null 2>&1; then
+            echo "@trackmcp/sdk@${sdk_version} already exists on npm; reconcile the release train before publishing."
+            exit 1
+          fi
+          if npm view "@trackmcp/cli@${cli_version}" version --json >/dev/null 2>&1; then
+            echo "@trackmcp/cli@${cli_version} already exists on npm; reconcile the release train before publishing."
+            exit 1
+          fi
+          if curl --fail --silent --show-error "https://pypi.org/pypi/trackmcp/${python_version}/json" >/dev/null; then
+            echo "trackmcp==${python_version} already exists on PyPI; reconcile the release train before publishing."
+            exit 1
+          fi
+          echo "All release-train versions are absent from npm/PyPI; package uploads may proceed sequentially."
       - name: Publish TypeScript SDK
         if: inputs.package == 'typescript' || inputs.package == 'all'
         working-directory: trackmcp-nextjs/packages/typescript-sdk

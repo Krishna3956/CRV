@@ -43,6 +43,9 @@ test("npm publication requires provenance and package preflight tests", () => {
   assert.match(workflow, /inputs\.package == 'typescript' \|\| inputs\.package == 'all'/);
   assert.match(workflow, /inputs\.package == 'cli' \|\| inputs\.package == 'all'/);
   assert.match(workflow, /inputs\.package == 'python' \|\| inputs\.package == 'all'/);
+  assert.match(workflow, /Preflight all release-train registry versions/);
+  assert.match(workflow, /if: inputs\.package == 'all'/);
+  assert.match(workflow, /All release-train versions are absent from npm\/PyPI/);
 });
 
 test("Python publication is deliberate and confirmation-gated", async () => {
