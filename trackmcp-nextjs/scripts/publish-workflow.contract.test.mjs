@@ -36,6 +36,9 @@ test("npm publication requires provenance and package preflight tests", () => {
   assert.match(workflow, /sha512-\[A-Za-z0-9\+\/=/);
   assert.match(workflow, /registry\.npmjs\.org/);
   assert.match(workflow, /Registry propagation pending/);
+  assert.match(workflow, /confirm:[\s\S]*?RELEASE_TRAIN_APPROVED/);
+  assert.match(workflow, /Require reviewed release-train confirmation/);
+  assert.match(workflow, /inputs\.confirm.*RELEASE_TRAIN_APPROVED/);
 });
 
 test("Python publication is deliberate and confirmation-gated", async () => {
