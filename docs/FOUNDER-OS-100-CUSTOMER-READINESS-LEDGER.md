@@ -656,3 +656,8 @@ a failed product gate or a Supabase plan warning.
 - [ ] The source change is queued for the next coordinated SDK release train;
   the published `@trackmcp/sdk@0.1.12` artifact was intentionally not changed
   or republished in this milestone.
+- [x] The protocol matrix and public protocol guide now describe this bounded
+  metadata evidence while preserving the explicit boundary that task result
+  payload retrieval, durable lifecycle ownership, replay, and automatic stream
+  reconnect are not claimed. Docs navigation, truth, and version contracts
+  passed alongside the full release gate.
