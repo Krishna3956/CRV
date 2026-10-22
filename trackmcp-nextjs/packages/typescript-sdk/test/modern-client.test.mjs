@@ -136,6 +136,30 @@ test("modern client rejects malformed resource and prompt catalog envelopes", as
   await assert.rejects(() => client.listPrompts(), (error) => error instanceof ModernMcpProtocolError && error.code === "invalid_response");
 });
 
+test("modern client requests completion and returns metadata without suggestions", async () => {
+  let request;
+  const client = new ModernMcpClient({ endpoint: "https://mcp.example.test", fetch: async (_input, init) => {
+    request = init;
+    return response({ result: { completion: { values: ["private-one", "private-two"], total: 7, hasMore: true, secret: "omit" } } });
+  } });
+  const result = await client.complete({ type: "ref/prompt", name: "summarize" }, { name: "format", value: "mar" });
+  assert.equal(request.headers.get("mcp-method"), "completion/complete");
+  assert.deepEqual(JSON.parse(request.body).params, {
+    ref: { type: "ref/prompt", name: "summarize" },
+    argument: { name: "format", value: "mar" },
+  });
+  assert.deepEqual(result, { valueCount: 2, total: 7, hasMore: true });
+  assert.equal(JSON.stringify(result).includes("private"), false);
+});
+
+test("modern client bounds completion references, arguments, and response envelopes", async () => {
+  const client = new ModernMcpClient({ endpoint: "https://mcp.example.test", fetch: async () => response({ result: { completion: { values: [] } } }) });
+  await assert.rejects(() => client.complete({ type: "ref/prompt", name: "bad name" }, { name: "format", value: "x" }), (error) => error instanceof ModernMcpProtocolError && error.code === "invalid_response");
+  await assert.rejects(() => client.complete({ type: "ref/resource", uri: "file:///safe" }, { name: "format", value: "x\u0000" }), (error) => error instanceof ModernMcpProtocolError && error.code === "invalid_response");
+  const malformed = new ModernMcpClient({ endpoint: "https://mcp.example.test", fetch: async () => response({ result: { completion: { values: "not-an-array" } } }) });
+  await assert.rejects(() => malformed.complete({ type: "ref/resource", uri: "file:///safe" }, { name: "format", value: "x" }), (error) => error instanceof ModernMcpProtocolError && error.code === "invalid_response");
+});
+
 test("modern client follows opaque catalog cursors and discloses truncation", async () => {
   const methods = [];
   const client = new ModernMcpClient({ endpoint: "https://mcp.example.test", fetch: async (_input, init) => {

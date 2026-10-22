@@ -80,6 +80,19 @@ contents, while `listPrompts` returns prompt names and argument names without
 requesting or retaining argument values. Both methods support opaque cursors
 and remain observation-only.
 
+Completion requests are also bounded and metadata-only. `complete` sends the
+caller-selected prompt or resource reference and argument to
+`completion/complete`, then returns only the number of suggestions and the
+server's bounded `total`/`hasMore` metadata; suggestion values are never
+returned by this adapter:
+
+```ts
+const completion = await client.complete(
+  { type: "ref/prompt", name: "summarize" },
+  { name: "format", value: "mar" },
+);
+```
+
 The modern client accepts both JSON and bounded Streamable HTTP
 `text/event-stream` responses. SSE notifications are ignored until the
 matching result is received; a response ID, when present, must match the

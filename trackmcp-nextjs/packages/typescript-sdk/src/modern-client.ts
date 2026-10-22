@@ -64,6 +64,18 @@ export type ModernMcpPromptPage = {
   nextCursor?: string;
 };
 
+export type ModernMcpCompletionReference =
+  | { type: "ref/prompt"; name: string }
+  | { type: "ref/resource"; uri: string };
+
+/** Completion metadata only. Suggested values are intentionally never
+ * returned by this adapter because they may contain user or document data. */
+export type ModernMcpCompletionResult = {
+  valueCount: number;
+  total?: number;
+  hasMore?: boolean;
+};
+
 export type ModernMcpBoundedCollection<T> = {
   items: T[];
   truncated: boolean;
@@ -119,6 +131,22 @@ function boundedString(value: unknown): string | undefined {
 }
 function boundedObject(value: unknown): value is Record<string, unknown> {
   return Boolean(value) && typeof value === "object" && !Array.isArray(value);
+}
+
+function boundedCompletionReference(reference: ModernMcpCompletionReference): ModernMcpCompletionReference {
+  if (!boundedObject(reference) || (reference.type !== "ref/prompt" && reference.type !== "ref/resource")) {
+    throw new ModernMcpProtocolError("invalid_response", "Modern MCP completion requires a supported prompt or resource reference.");
+  }
+  if (reference.type === "ref/prompt") {
+    if (!boundedString(reference.name) || !/^[A-Za-z0-9_.-]{1,128}$/.test(reference.name)) {
+      throw new ModernMcpProtocolError("invalid_response", "Modern MCP completion prompt references must use a bounded name.");
+    }
+    return { type: "ref/prompt", name: reference.name };
+  }
+  if (!boundedString(reference.uri)) {
+    throw new ModernMcpProtocolError("invalid_response", "Modern MCP completion resource references must use a bounded URI.");
+  }
+  return { type: "ref/resource", uri: reference.uri };
 }
 
 function projectTask(value: unknown): ModernMcpTask | null {
@@ -414,6 +442,33 @@ export class ModernMcpClient {
       cursor = nextCursor;
     }
     return { items, truncated: Boolean(cursor) };
+  }
+
+  /** Request one bounded completion result without returning suggested values.
+   * The argument value is sent to the caller-selected server but is never
+   * retained by this adapter. Completion metadata remains useful for
+   * observability while keeping potentially sensitive suggestions private. */
+  async complete(
+    reference: ModernMcpCompletionReference,
+    argument: { name: string; value: string },
+  ): Promise<ModernMcpCompletionResult> {
+    const boundedReference = boundedCompletionReference(reference);
+    if (!boundedObject(argument) || !/^[A-Za-z0-9_.:-]{1,128}$/.test(argument.name) || typeof argument.value !== "string" || argument.value.length > MAX_STRING_LENGTH || /[\u0000-\u001f\u007f]/.test(argument.value)) {
+      throw new ModernMcpProtocolError("invalid_response", "Modern MCP completion requires bounded argument metadata and a bounded value.");
+    }
+    const result = await this.request("completion/complete", {
+      ref: boundedReference,
+      argument: { name: argument.name, value: argument.value },
+    });
+    if (!boundedObject(result.completion) || !Array.isArray(result.completion.values)) {
+      throw new ModernMcpProtocolError("invalid_response", "Modern MCP completion returned no bounded completion values array.");
+    }
+    const valueCount = Math.min(MAX_CAPABILITIES, result.completion.values.length);
+    const total = typeof result.completion.total === "number" && Number.isSafeInteger(result.completion.total)
+      ? Math.max(0, Math.min(MAX_COLLECTION_ITEMS, result.completion.total))
+      : undefined;
+    const hasMore = typeof result.completion.hasMore === "boolean" ? result.completion.hasMore : undefined;
+    return { valueCount, ...(total !== undefined ? { total } : {}), ...(hasMore !== undefined ? { hasMore } : {}) };
   }
 
   /**
