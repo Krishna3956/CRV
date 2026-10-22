@@ -6,12 +6,12 @@ const encoder = new TextEncoder();
 function varint(value: bigint | number): number[] {
   let current = BigInt(value);
   const output: number[] = [];
-  do { const next = Number(current & 0x7fn); current >>= 7n; output.push(next | (current ? 0x80 : 0)); } while (current);
+  do { const next = Number(current & BigInt(0x7f)); current >>= BigInt(7); output.push(next | (current ? 0x80 : 0)); } while (current);
   return output;
 }
 function field(number: number, wire: number, value: number[] | bigint): number[] {
   const bytes = Array.isArray(value) ? value : varint(value);
-  return [...varint((BigInt(number) << 3n) | BigInt(wire)), ...(wire === 2 ? [...varint(bytes.length), ...bytes] : bytes)];
+  return [...varint((BigInt(number) << BigInt(3)) | BigInt(wire)), ...(wire === 2 ? [...varint(bytes.length), ...bytes] : bytes)];
 }
 function message(...fields: number[][]): Uint8Array { return Uint8Array.from(fields.flat()); }
 function stringField(number: number, value: string): number[] { return field(number, 2, [...encoder.encode(value)]); }
@@ -23,7 +23,7 @@ function sampleBatch(): Uint8Array {
   const resource = message(nestedField(1, service), nestedField(1, environment));
   const method = message(stringField(1, "mcp.method.name"), nestedField(2, message(stringField(1, "tools/call"))));
   const transport = message(stringField(1, "mcp.transport"), nestedField(2, message(stringField(1, "streamable_http"))));
-  const span = message(stringField(5, "tools/call"), field(7, 0, 1_700_000_000_000_000_000n), field(8, 0, 1_700_000_000_100_000_000n), nestedField(9, method), nestedField(9, transport));
+  const span = message(stringField(5, "tools/call"), field(7, 0, BigInt("1700000000000000000")), field(8, 0, BigInt("1700000000100000000")), nestedField(9, method), nestedField(9, transport));
   const scope = message(nestedField(2, span));
   const resourceSpans = message(nestedField(1, resource), nestedField(2, scope));
   return message(nestedField(1, resourceSpans));

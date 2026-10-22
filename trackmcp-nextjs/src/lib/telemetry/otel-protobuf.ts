@@ -35,8 +35,8 @@ class WireReader {
   }
 
   varint(): bigint {
-    let value = 0n;
-    for (let shift = 0n; shift <= 63n; shift += 7n) {
+    let value = BigInt(0);
+    for (let shift = BigInt(0); shift <= BigInt(63); shift += BigInt(7)) {
       const byte = this.byte();
       value |= BigInt(byte & 0x7f) << shift;
       if ((byte & 0x80) === 0) return value;
@@ -46,7 +46,7 @@ class WireReader {
 
   field(): { number: number; wire: number } {
     const key = this.varint();
-    return { number: Number(key >> 3n), wire: Number(key & 7n) };
+    return { number: Number(key >> BigInt(3)), wire: Number(key & BigInt(7)) };
   }
 
   bytesField(length: number): Uint8Array {
@@ -82,7 +82,7 @@ function anyValue(bytes: Uint8Array, depth = 0): unknown {
   while (!reader.done) {
     const field = reader.field();
     if (field.wire === 2 && field.number === 1) return reader.string();
-    if (field.wire === 0 && field.number === 2) return reader.varint() !== 0n;
+    if (field.wire === 0 && field.number === 2) return reader.varint() !== BigInt(0);
     if (field.wire === 0 && field.number === 3) return asNumber(reader.varint());
     if (field.wire === 1 && field.number === 4) { reader.bytesField(8); return undefined; }
     if (field.wire === 2 && field.number === 5) { reader.message(); return undefined; }
