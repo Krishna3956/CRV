@@ -495,3 +495,7 @@ a failed product gate or a Supabase plan warning.
   normalizes singular and legacy aliases (`journey`, `capability`, `issue`,
   `people`, and `resource-prompts`) to their canonical tabs; 57 dashboard
   contracts and the complete 124-suite release gate pass.
+- [x] App Runner deployment `39757232217` for `2aef631` reached success. A
+  cache-busted browser session against `/dashboard?view=journey&data=example`
+  now renders “The journey” directly and exposes bounded path, stop, explicit
+  outcome, and async-task evidence instead of falling back to Overview.
