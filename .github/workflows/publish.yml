@@ -8,6 +8,10 @@ on:
         required: true
         type: choice
         options: [typescript, python, cli]
+      confirm:
+        description: "Type RELEASE_TRAIN_APPROVED only for a reviewed, batched release"
+        required: true
+        type: string
 
 jobs:
   publish:
@@ -25,6 +29,13 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
+      - name: Require reviewed release-train confirmation
+        run: |
+          if [[ "${{ inputs.confirm }}" != "RELEASE_TRAIN_APPROVED" ]]; then
+            echo "::error::Package publication is release-train gated. Review and batch the package changes, then rerun with confirm=RELEASE_TRAIN_APPROVED."
+            exit 1
+          fi
+          echo "Release-train confirmation accepted for the selected package."
       - name: Audit all release artifacts before publishing
         working-directory: trackmcp-nextjs
         run: npm run test:package-release-audit
