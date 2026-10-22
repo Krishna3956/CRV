@@ -27,6 +27,16 @@ newly selected version immediately before upload.
 Never reuse an already-published version, and bump each package with its
 lockfile/artifact metadata together.
 
+## Current source delta after the registry baseline
+
+The source after the published `@trackmcp/sdk@0.1.12` baseline now includes
+bounded modern-client request correlation and Streamable HTTP/SSE response
+handling (`1f81952`, `a3ed675`), plus aligned SDK documentation (`c64e603`).
+These changes are verified locally but are intentionally **not** described as
+part of the public registry artifact. They must be batched into the next
+reviewed release train and published only after the complete package audit,
+packed-consumer checks, provenance, and clean registry reconciliation pass.
+
 ## Source-to-registry reconciliation snapshot (2026-10-19 UTC)
 
 This read-only snapshot prevents a local packed-consumer pass from being
