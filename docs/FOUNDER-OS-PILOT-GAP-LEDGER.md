@@ -264,3 +264,12 @@ just because a README or marketing page mentions it.
   `sha512-xSGDkNtdFNkUKZp459Sesu04nKkjAL6KrBH41TKoBqX8jooh0S11IuZgDnqbA6t1rMJq7soeAybGFqtnyFzdqg==`.
   Build and clean packed-consumer verification passed. This is local artifact
   evidence only, not registry publication or provenance evidence.
+
+- 2026-10-22: Re-ran the product-surface readiness contracts after the modern
+  client changes. Dashboard behavior coverage passed 55/55 checks, including
+  Setup first-event states, OTel and transport links, example/live data
+  separation, mobile header behavior, and info disclosures. Accessibility and
+  docs-navigation contracts also passed; enabled controls retain pointer
+  affordance and keyboard focus, and every sidebar destination resolves to a
+  real route or section. No speculative UI change was made where executable
+  evidence already passed.
