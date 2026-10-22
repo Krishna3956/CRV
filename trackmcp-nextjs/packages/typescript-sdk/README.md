@@ -74,11 +74,13 @@ const page = await new ModernMcpClient({ endpoint: process.env.MCP_ENDPOINT! }).
 for (const tool of page.tools) console.log(tool.name);
 ```
 
-The same bounded catalog surface exposes `resources/list` and `prompts/list`:
-`listResources` returns sanitized resource metadata without reading resource
-contents, while `listPrompts` returns prompt names and argument names without
-requesting or retaining argument values. Both methods support opaque cursors
-and remain observation-only.
+The same bounded catalog surface exposes `resources/list`,
+`resources/templates/list`, and `prompts/list`: `listResources` returns
+sanitized resource metadata without reading resource contents,
+`listResourceTemplates` returns URI-template metadata without expanding or
+dereferencing templates, and `listPrompts` returns prompt names and argument
+names without requesting or retaining argument values. All three methods
+support opaque cursors and remain observation-only.
 
 Completion requests are also bounded and metadata-only. `complete` sends the
 caller-selected prompt or resource reference and argument to

@@ -160,6 +160,31 @@ test("modern client bounds completion references, arguments, and response envelo
   await assert.rejects(() => malformed.complete({ type: "ref/resource", uri: "file:///safe" }, { name: "format", value: "x" }), (error) => error instanceof ModernMcpProtocolError && error.code === "invalid_response");
 });
 
+test("modern client lists bounded resource templates without expanding or dereferencing them", async () => {
+  const requests = [];
+  const client = new ModernMcpClient({ endpoint: "https://mcp.example.test", fetch: async (_input, init) => {
+    const body = JSON.parse(init.body);
+    requests.push(body);
+    return response({ result: { resourceTemplates: [{ uriTemplate: "file:///reports/{id}", name: "report", description: "Report template", mimeType: "text/plain" }, { uriTemplate: "\u0000bad" }], nextCursor: "template-2" } });
+  } });
+  const page = await client.listResourceTemplates("template-1");
+  assert.equal(requests[0].method, "resources/templates/list");
+  assert.deepEqual(requests[0].params, { cursor: "template-1" });
+  assert.deepEqual(page, { resourceTemplates: [{ uriTemplate: "file:///reports/{id}", name: "report", description: "Report template", mimeType: "text/plain" }], nextCursor: "template-2" });
+  assert.equal(JSON.stringify(page).includes("secret"), false);
+});
+
+test("modern client follows resource-template cursors and stops on a repeated cursor", async () => {
+  let requests = 0;
+  const client = new ModernMcpClient({ endpoint: "https://mcp.example.test", fetch: async (_input, init) => {
+    requests += 1;
+    const cursor = JSON.parse(init.body).params.cursor;
+    return response({ result: { resourceTemplates: [{ uriTemplate: `file:///reports/${requests}/{id}` }], nextCursor: cursor ? "same" : "same" } });
+  } });
+  assert.deepEqual(await client.listAllResourceTemplates(), { items: [{ uriTemplate: "file:///reports/1/{id}" }, { uriTemplate: "file:///reports/2/{id}" }], truncated: true });
+  assert.equal(requests, 2);
+});
+
 test("modern client follows opaque catalog cursors and discloses truncation", async () => {
   const methods = [];
   const client = new ModernMcpClient({ endpoint: "https://mcp.example.test", fetch: async (_input, init) => {

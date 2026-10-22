@@ -53,6 +53,18 @@ export type ModernMcpResourcePage = {
   nextCursor?: string;
 };
 
+export type ModernMcpResourceTemplate = {
+  uriTemplate: string;
+  name?: string;
+  description?: string;
+  mimeType?: string;
+};
+
+export type ModernMcpResourceTemplatePage = {
+  resourceTemplates: ModernMcpResourceTemplate[];
+  nextCursor?: string;
+};
+
 export type ModernMcpPrompt = {
   name: string;
   description?: string;
@@ -398,6 +410,42 @@ export class ModernMcpClient {
     for (let page = 0; page < MAX_COLLECTION_PAGES; page += 1) {
       const result = await this.listResources(cursor);
       items.push(...result.resources.slice(0, Math.max(0, MAX_COLLECTION_ITEMS - items.length)));
+      const nextCursor = result.nextCursor;
+      const bounded = items.length >= MAX_COLLECTION_ITEMS || (nextCursor !== undefined && seen.has(nextCursor));
+      if (!nextCursor || bounded) return { items, truncated: nextCursor !== undefined && bounded };
+      seen.add(nextCursor);
+      cursor = nextCursor;
+    }
+    return { items, truncated: Boolean(cursor) };
+  }
+
+  /** Retrieve one bounded, cursor-based resources/templates/list catalog page.
+   * URI templates are metadata only; this method never expands or dereferences
+   * a template. */
+  async listResourceTemplates(cursor?: string): Promise<ModernMcpResourceTemplatePage> {
+    const result = await this.request("resources/templates/list", cursor ? { cursor: cursor.slice(0, MAX_STRING_LENGTH) } : {});
+    if (!Array.isArray(result.resourceTemplates)) throw new ModernMcpProtocolError("invalid_response", "Modern MCP resources/templates/list returned no resourceTemplates array.");
+    const resourceTemplates = result.resourceTemplates.slice(0, MAX_RESOURCES).flatMap((value): ModernMcpResourceTemplate[] => {
+      if (!boundedObject(value)) return [];
+      const uriTemplate = boundedString(value.uriTemplate);
+      if (!uriTemplate) return [];
+      const name = boundedString(value.name);
+      const description = boundedString(value.description);
+      const mimeType = boundedString(value.mimeType);
+      return [{ uriTemplate, ...(name ? { name } : {}), ...(description ? { description } : {}), ...(mimeType ? { mimeType } : {}) }];
+    });
+    const nextCursor = boundedString(result.nextCursor);
+    return { resourceTemplates, ...(nextCursor ? { nextCursor } : {}) };
+  }
+
+  /** Follow opaque resources/templates/list cursors within fixed budgets. */
+  async listAllResourceTemplates(): Promise<ModernMcpBoundedCollection<ModernMcpResourceTemplate>> {
+    const items: ModernMcpResourceTemplate[] = [];
+    const seen = new Set<string>();
+    let cursor: string | undefined;
+    for (let page = 0; page < MAX_COLLECTION_PAGES; page += 1) {
+      const result = await this.listResourceTemplates(cursor);
+      items.push(...result.resourceTemplates.slice(0, Math.max(0, MAX_COLLECTION_ITEMS - items.length)));
       const nextCursor = result.nextCursor;
       const bounded = items.length >= MAX_COLLECTION_ITEMS || (nextCursor !== undefined && seen.has(nextCursor));
       if (!nextCursor || bounded) return { items, truncated: nextCursor !== undefined && bounded };
