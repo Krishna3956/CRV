@@ -4677,6 +4677,15 @@ function SetupView({
         <div className="mt-4 grid gap-3 md:grid-cols-2">
           <div className="border border-line bg-paper p-4">
             <div className="flex items-center justify-between gap-3">
+              <p className="text-sm font-semibold text-ink">Node client transport observer</p>
+              <a href="/docs/typescript#transport-observer" className="cursor-pointer text-xs font-semibold text-brand-strong hover:underline">Open guide <ArrowRight size={12} className="inline" /></a>
+            </div>
+            <p className="mt-1 text-xs leading-relaxed text-muted">
+              Observe client-side MCP traffic from Node with the metadata-only adapter. It supports official stdio, Streamable HTTP, and SSE transports and stays fail-open.
+            </p>
+          </div>
+          <div className="border border-line bg-paper p-4">
+            <div className="flex items-center justify-between gap-3">
               <p className="text-sm font-semibold text-ink">OpenTelemetry</p>
               <a href="/docs/opentelemetry" className="cursor-pointer text-xs font-semibold text-brand-strong hover:underline">Open guide <ArrowRight size={12} className="inline" /></a>
             </div>

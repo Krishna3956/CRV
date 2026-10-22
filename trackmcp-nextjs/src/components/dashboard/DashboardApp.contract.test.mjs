@@ -353,6 +353,14 @@ test("example data offers a clear setup path and Setup keeps trust below the set
   );
 });
 
+test("Setup exposes a direct transport observer documentation CTA", () => {
+  const setupStart = source.indexOf("function SetupView(");
+  const setupEnd = source.indexOf("// Kept as an inert compatibility artifact", setupStart);
+  const setupSource = source.slice(setupStart, setupEnd);
+  assert.match(setupSource, /Node client transport observer/);
+  assert.match(setupSource, /\/docs\/typescript#transport-observer/);
+});
+
 test("empty page previews explain each product area instead of repeating generic placeholders", () => {
   for (const phrase of [
     "The business tasks users start",
