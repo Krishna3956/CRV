@@ -38,7 +38,23 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: ${{ inputs.deploy_ref || github.sha }}
+          # Checkout the event revision first. A raw SHA supplied through the
+          # manual rollback input is fetched explicitly below; actions/checkout
+          # can otherwise interpret the SHA as a branch name on workflow_dispatch.
+          ref: ${{ github.sha }}
+
+      - name: Select immutable rollback revision
+        if: ${{ inputs.deploy_ref != '' }}
+        env:
+          REQUESTED_DEPLOY_REF: ${{ inputs.deploy_ref }}
+        run: |
+          set -euo pipefail
+          if [[ ! "$REQUESTED_DEPLOY_REF" =~ ^[0-9a-f]{40}$ ]]; then
+            echo "::error::deploy_ref must be a full immutable 40-character commit SHA."
+            exit 1
+          fi
+          git fetch --no-tags --depth=1 origin "$REQUESTED_DEPLOY_REF"
+          git checkout --detach "$REQUESTED_DEPLOY_REF"
 
       - name: Resolve immutable deployment SHA
         env:
