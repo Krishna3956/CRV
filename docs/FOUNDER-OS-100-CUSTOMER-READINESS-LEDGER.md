@@ -288,3 +288,14 @@ a failed product gate or a Supabase plan warning.
   preflight before the first upload, reducing the chance of a partially
   published train caused by a late duplicate-version discovery. Contract,
   release-gate, lint, and build checks passed for `794e189`.
+
+## 2026-10-22 package-consumer gate hardening
+
+- [x] The packed CLI consumer test now passes `--no-install` for its explicit
+  noninteractive-boundary assertion and has a 15-second child timeout. This
+  prevents a registry/network stall in the optional SDK installer from hanging
+  the release gate while testing a deterministic local failure path.
+- [x] Focused packed consumer, complete package-consumer gate, and full release
+  gate passed; the release gate reported 120 suites passed.
+- [x] The fix was pushed as `7871e1e`; no package publication or version bump
+  occurred.
