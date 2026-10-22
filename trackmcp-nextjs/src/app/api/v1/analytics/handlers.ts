@@ -249,6 +249,7 @@ export function createAnalyticsHandler(getAdmin: typeof getSupabaseAdmin = getSu
     const measures = record.measures;
     if (!semantic || typeof semantic !== "object" || Array.isArray(semantic) || !dimensions || typeof dimensions !== "object" || Array.isArray(dimensions)) return [];
     const outcome = (semantic as Record<string, unknown>).outcome;
+    const signal = (semantic as Record<string, unknown>).protocol_signal;
     const family = (dimensions as Record<string, unknown>).protocol_family;
     if (typeof family !== "string" || typeof outcome !== "string") return [];
     if (!["sampling", "elicitation", "completion", "tasks", "control_signal", "resources", "prompts", "tools", "subscriptions", "notifications"].includes(family)) return [];
@@ -258,6 +259,8 @@ export function createAnalyticsHandler(getAdmin: typeof getSupabaseAdmin = getSu
     return [{
       family,
       outcome,
+      signal: signal === "notification" || signal === "progress" || signal === "cancelled" || signal === "catalog_changed" || signal === "resource_changed" || signal === "subscription_started" || signal === "subscription_stopped" ? signal : undefined,
+      observed_at: typeof record.observed_at === "string" ? record.observed_at : undefined,
       observation_kind: safeDimensions.protocol_observation_kind === "protocol_request" || safeDimensions.protocol_observation_kind === "protocol_response" ? safeDimensions.protocol_observation_kind : undefined,
       completion_value_count: typeof safeMeasures.completion_value_count === "number" ? safeMeasures.completion_value_count : undefined,
       completion_total: typeof safeMeasures.completion_total === "number" ? safeMeasures.completion_total : undefined,
@@ -810,12 +813,19 @@ export function createAnalyticsHandler(getAdmin: typeof getSupabaseAdmin = getSu
   const protocolSignalCounts: Record<TrackMCPProtocolSignal, number> = { notification: 0, progress: 0, cancelled: 0, catalog_changed: 0, resource_changed: 0, subscription_started: 0, subscription_stopped: 0 };
   const protocolSignalTimeline = new Map<string, Record<TrackMCPProtocolSignal, number>>();
   let protocolSignalEvents = 0;
-  for (const event of events) {
-    const signal = classifyTrackMCPProtocolSignal(event);
+  const durableSignalRows = durableFamilyRows.filter((row) => row.signal !== undefined);
+  const signalRows = durableSignalRows.length
+    ? durableSignalRows.map((row) => ({ signal: row.signal as TrackMCPProtocolSignal, started_at: row.observed_at }))
+    : events.flatMap((event) => {
+      const signal = classifyTrackMCPProtocolSignal(event);
+      return signal ? [{ signal, started_at: event.started_at }] : [];
+    });
+  for (const row of signalRows) {
+    const signal = row.signal;
     if (signal) {
       protocolSignalCounts[signal] += 1;
       protocolSignalEvents += 1;
-      const day = event.started_at.slice(0, 10);
+      const day = typeof row.started_at === "string" ? row.started_at.slice(0, 10) : "unknown";
       const dayCounts = protocolSignalTimeline.get(day) || { notification: 0, progress: 0, cancelled: 0, catalog_changed: 0, resource_changed: 0, subscription_started: 0, subscription_stopped: 0 };
       dayCounts[signal] += 1;
       protocolSignalTimeline.set(day, dayCounts);

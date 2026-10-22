@@ -30,6 +30,12 @@ test("persists only a coarse protocol family in durable facts", () => {
   assert.equal(JSON.stringify(fact).includes("elicitation/create"), false);
 });
 
+test("persists allowlisted lifecycle signals in the durable semantic fact", () => {
+  const fact = projectTrackMCPFact(event({ event_type: "protocol", mcp_method: "subscriptions/listen", success: true }));
+  assert.equal(fact.semantic.protocol_signal, "subscription_started");
+  assert.equal(JSON.stringify(fact).includes("subscriptions/listen"), false);
+});
+
 test("persists an allowlisted family hint when the method name is unavailable", () => {
   const fact = projectTrackMCPFact(event({ event_type: "protocol", payload: { _trackmcp: { protocol_family: "sampling", prompt: "private" } }, result_type: "complete" }));
   assert.equal(fact.dimensions.protocol_family, "sampling");
