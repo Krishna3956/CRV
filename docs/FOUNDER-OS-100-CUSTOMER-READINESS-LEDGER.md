@@ -299,3 +299,8 @@ a failed product gate or a Supabase plan warning.
   gate passed; the release gate reported 120 suites passed.
 - [x] The fix was pushed as `7871e1e`; no package publication or version bump
   occurred.
+- [x] The package-consumer harness itself now bounds every child command to
+  180 seconds and reports a clear timeout failure instead of hanging. A new
+  contract test covers the timeout/kill behavior; package consumers passed and
+  the full release gate passed with 121 suites for the change.
+- [x] Pushed as `a6805d6`; no package publication or version bump occurred.
