@@ -38,7 +38,7 @@ The migration is additive, has no backfill, and stores no raw protocol input.
 These are deliberately not represented as complete merely because a route or field exists:
 
 1. Resource subscriptions (`resources/subscribe`, `notifications/resources/updated`) need a dedicated lifecycle fact rather than being counted as ordinary reads.
-2. `resources/templates/list` needs a distinct catalog-observation path. A `resource_templates` catalog kind exists, but production SDK/server adapters must emit it.
+2. `resources/templates/list` now has a distinct bounded catalog-observation path: the tester and TypeScript modern client emit/consume `resource_templates` metadata with cursor traversal, without expanding or dereferencing templates. Cross-transport production UAT and durable history evidence remain open.
 3. `resources/list_changed` and `prompts/list_changed` need snapshot version events. Snapshot storage exists, but no protocol adapter can claim complete change coverage yet.
 4. Completion suggestions (`completion/complete`) need a separate friction event and dashboard metric.
 5. JSON-RPC errors, `isError`, `input_required`, and cancellation are separate states. A single success/failure ratio is not sufficient.
