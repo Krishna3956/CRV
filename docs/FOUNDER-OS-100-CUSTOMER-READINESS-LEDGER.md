@@ -736,3 +736,6 @@ a failed product gate or a Supabase plan warning.
 - [x] Hosted TrackMCP CI run `39768614817` passed the Go, .NET, web, CLI,
   Python, and packed-consumer lanes for the ledger checkpoint. No package
   publication or SDK version change was triggered.
+- [x] The follow-up ledger commit `6baf1cc` also passed the complete hosted
+  matrix in run `39769193207`; the release train remains intentionally
+  unpublished because no SDK source or public API changed.
