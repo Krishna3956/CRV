@@ -6,6 +6,10 @@ function response(body, status = 200, headers = {}) {
   return new Response(JSON.stringify(body), { status, headers: { "content-type": "application/json", ...headers } });
 }
 
+function sseResponse(events, status = 200) {
+  return new Response(events.map((event) => `data: ${JSON.stringify(event)}\n\n`).join(""), { status, headers: { "content-type": "text/event-stream" } });
+}
+
 test("modern client sends bounded server/discover request and sanitizes metadata", async () => {
   let request;
   const client = new ModernMcpClient({ endpoint: "https://mcp.example.test", fetch: async (_input, init) => { request = init; return response({ jsonrpc: "2.0", id: 1, result: { supportedVersions: [MODERN_MCP_PROTOCOL_VERSION, "2025-06-18", "\u0000bad"], serverInfo: { name: "Fixture", version: "1.2", secret: "omit" }, capabilities: { tools: {}, resources: {}, "not safe": {} } } }); } });
@@ -37,6 +41,19 @@ test("modern client rejects credentials, oversized responses, and non-success st
 
 test("modern client rejects a response whose JSON-RPC id does not correlate", async () => {
   const client = new ModernMcpClient({ endpoint: "https://mcp.example.test", fetch: async () => response({ jsonrpc: "2.0", id: 99, result: { tools: [] } }) });
+  await assert.rejects(() => client.listTools(), (error) => error instanceof ModernMcpProtocolError && error.code === "invalid_response");
+});
+
+test("modern client resolves a bounded Streamable HTTP SSE response after notifications", async () => {
+  const client = new ModernMcpClient({ endpoint: "https://mcp.example.test", fetch: async () => sseResponse([
+    { jsonrpc: "2.0", method: "notifications/progress", params: { progress: 1 } },
+    { jsonrpc: "2.0", id: 1, result: { tools: [{ name: "search" }] } },
+  ]) });
+  assert.deepEqual(await client.listTools(), { tools: [{ name: "search" }] });
+});
+
+test("modern client rejects an SSE stream without a matching result", async () => {
+  const client = new ModernMcpClient({ endpoint: "https://mcp.example.test", fetch: async () => sseResponse([{ jsonrpc: "2.0", id: 9, result: { tools: [] } }]) });
   await assert.rejects(() => client.listTools(), (error) => error instanceof ModernMcpProtocolError && error.code === "invalid_response");
 });
 

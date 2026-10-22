@@ -83,6 +83,37 @@ function boundedObject(value: unknown): value is Record<string, unknown> {
   return Boolean(value) && typeof value === "object" && !Array.isArray(value);
 }
 
+function parseJsonRpcEnvelope(text: string, contentType: string, requestId: number, method: string): Record<string, unknown> {
+  const candidates: string[] = [];
+  if (contentType.toLowerCase().includes("text/event-stream")) {
+    // Streamable HTTP may return notifications before the response. Keep only
+    // bounded data fields and inspect each complete SSE event until the
+    // matching result is found; event payloads are never retained afterward.
+    let dataLines: string[] = [];
+    const flush = () => {
+      if (dataLines.length) {
+        candidates.push(dataLines.join("\n"));
+        dataLines = [];
+      }
+    };
+    for (const line of text.split(/\r?\n/)) {
+      if (line === "") { flush(); continue; }
+      if (line.startsWith("data:")) dataLines.push(line.slice(5).trimStart());
+    }
+    flush();
+  } else {
+    candidates.push(text);
+  }
+  for (const candidate of candidates) {
+    let envelope: unknown;
+    try { envelope = JSON.parse(candidate); } catch { continue; }
+    if (!boundedObject(envelope)) continue;
+    if ("id" in envelope && envelope.id !== requestId) continue;
+    if (boundedObject(envelope.result)) return envelope.result;
+  }
+  throw new ModernMcpProtocolError("invalid_response", `Modern MCP ${method} returned an invalid or unrelated response.`);
+}
+
 /** Bounded modern MCP request client. It exposes read-only catalog/task
  * operations and keeps JSON-RPC request identifiers unique per instance so
  * concurrent calls cannot be confused by a shared constant id. */
@@ -122,15 +153,7 @@ export class ModernMcpClient {
       if (contentLength && /^\d+$/.test(contentLength) && Number(contentLength) > MAX_BODY_BYTES) throw new ModernMcpProtocolError("response_too_large", `Modern MCP ${method} response exceeded the bounded response limit.`);
       const text = await response.text();
       if (new TextEncoder().encode(text).byteLength > MAX_BODY_BYTES) throw new ModernMcpProtocolError("response_too_large", `Modern MCP ${method} response exceeded the bounded response limit.`);
-      let envelope: unknown;
-      try { envelope = JSON.parse(text); } catch { throw new ModernMcpProtocolError("invalid_response", `Modern MCP ${method} returned invalid JSON.`); }
-      if (!boundedObject(envelope) || !boundedObject(envelope.result)) throw new ModernMcpProtocolError("invalid_response", `Modern MCP ${method} returned an invalid result envelope.`);
-      // Some deployments omit JSON-RPC metadata in compatibility responses;
-      // when an id is present, however, it must correlate to this request.
-      // Failing closed here prevents a late or cross-request response from
-      // being presented as the result of the current operation.
-      if ("id" in envelope && envelope.id !== requestId) throw new ModernMcpProtocolError("invalid_response", `Modern MCP ${method} returned a mismatched response id.`);
-      return envelope.result;
+      return parseJsonRpcEnvelope(text, response.headers.get("content-type") ?? "", requestId, method);
     } catch (error) {
       if (error instanceof ModernMcpProtocolError) throw error;
       if (error instanceof DOMException && error.name === "AbortError") throw new ModernMcpProtocolError("timeout", `Modern MCP ${method} timed out.`);
