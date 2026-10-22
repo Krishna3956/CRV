@@ -599,3 +599,17 @@ a failed product gate or a Supabase plan warning.
 - [x] Full verification passed after the v2 parity change: release gate 125
   suites, lint, and the production Next.js build (176 generated routes). No
   package release or schema migration was triggered.
+
+## 2026-10-22 resources/prompts coverage-truth checkpoint
+
+- [x] The v2 resources and prompts projections now derive `coverage.level`
+  from the actual entity-read status: `entity_read_projection` only when the
+  durable hash-only projection is available, otherwise `method_family`.
+  This prevents the API from overstating entity evidence while avoiding an
+  under-report when the projection has been refreshed successfully.
+- [x] Added available/unavailable integration cases and contract assertions
+  for both routes. The full 125-suite release gate passed, lint passed, and
+  the Next.js build generated all 176 routes.
+- [ ] Production authenticated route UAT and nonzero entity-read coverage
+  remain external evidence gates; raw resource URIs and prompt names are never
+  returned by these routes.

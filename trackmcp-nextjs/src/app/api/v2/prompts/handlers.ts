@@ -16,7 +16,7 @@ export function createPromptsHandler(analytics = createAnalyticsHandler()) {
       observed,
       activity,
       prompts: [],
-      coverage: { level: "method_family", entity_analytics: "bounded_read_projection" },
+      coverage: { level: observed.entity_analytics.status === "available" ? "entity_read_projection" : "method_family", entity_analytics: "bounded_read_projection" },
       data_trust: projectTrackMCPDataTrust(body.data_trust),
       caveats: ["Prompt entity_count is a unique count of bounded SHA-256 name hashes; durable read analytics are available only after the entity-read projection is applied and refreshed. Raw names/arguments are never returned.", "Only prompts/get is counted as product-use activity. Explicitly linked retries are collapsed; unlinked repeats remain separate observations.", "Observed counts do not represent unique business completions or successful prompt execution."],
     }, request));

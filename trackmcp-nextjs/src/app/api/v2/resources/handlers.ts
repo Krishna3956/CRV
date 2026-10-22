@@ -16,7 +16,7 @@ export function createResourcesHandler(analytics = createAnalyticsHandler()) {
       observed,
       activity,
       resources: [],
-      coverage: { level: "method_family", entity_analytics: "bounded_read_projection" },
+      coverage: { level: observed.entity_analytics.status === "available" ? "entity_read_projection" : "method_family", entity_analytics: "bounded_read_projection" },
       data_trust: projectTrackMCPDataTrust(body.data_trust),
       caveats: ["Resource entity_count is a unique count of bounded SHA-256 URI hashes; durable read analytics are available only after the entity-read projection is applied and refreshed. Raw URIs are never returned.", "Only resources/read is counted as product-use activity. Explicitly linked retries are collapsed; unlinked repeats remain separate observations.", "Observed counts do not represent server uptime or complete resource availability."],
     }, request));

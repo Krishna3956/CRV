@@ -12,5 +12,6 @@ test("prompts route reports observed protocol methods without inventing entities
   assert.match(handlers, /resource_prompt_activity/);
   assert.match(handlers, /Explicitly linked retries are collapsed/);
   assert.match(handlers, /entity_analytics: "bounded_read_projection"/);
+  assert.match(handlers, /entity_read_projection/);
   assert.match(handlers, /Raw names\/arguments are never returned/);
 });

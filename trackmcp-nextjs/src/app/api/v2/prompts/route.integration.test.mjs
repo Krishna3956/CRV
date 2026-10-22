@@ -18,9 +18,17 @@ test("prompts v2 publishes only the prompt-safe activity projection", async () =
   assert.equal(response.status, 200);
   const body = await response.json();
   assert.equal(body.activity.interactions, 2);
+  assert.equal(body.coverage.level, "method_family");
   assert.equal(body.activity.input_required_rate, 0.5);
   assert.deepEqual(body.activity.outcomes, [{ kind: "prompt", interactions: 2, complete: 0, stalled: 1, errored: 1, unknown: 0, linked_retry_count: 0 }]);
   assert.deepEqual(body.activity.trend, [{ kind: "prompt", name: "prompts/get", calls: 2 }]);
   assert.equal(JSON.stringify(body).includes("resources/read"), false);
   assert.equal(JSON.stringify(body).includes("private_payload"), false);
+});
+
+test("prompts v2 advertises entity-read coverage only when the projection is available", async () => {
+  const analytics = async () => new Response(JSON.stringify({ range_days: 7, interaction_surfaces: { prompts: { events: 3, methods: ["prompts/get"], entity_count: 2, entity_analytics: { status: "available" } } } }), { status: 200 });
+  const response = await createPromptsHandler(analytics)(new Request("https://trackmcp.test/api/v2/prompts"));
+  const body = await response.json();
+  assert.equal(body.coverage.level, "entity_read_projection");
 });
