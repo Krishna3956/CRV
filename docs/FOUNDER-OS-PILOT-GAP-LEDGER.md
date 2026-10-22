@@ -82,3 +82,14 @@ just because a README or marketing page mentions it.
   4,858,742–5,708,193 ms across the slices. This closes non-empty processing
   and failure/retry evidence for the run; an agreed pilot lag SLO and a
   multi-run cadence baseline remain open.
+
+- 2026-10-22: Protocol pagination evidence was reconciled with the executable
+  fixtures. The modern TypeScript client now has cursor-following coverage for
+  tools, resources, and prompts, including repeated-cursor termination and
+  explicit truncation; the v2 tools route covers opaque cursor pages and
+  malformed-cursor bounds. The protocol matrix now records these as verified
+  local evidence while retaining durable catalog snapshot/history joins and
+  cross-language exporter pagination as open boundaries. The protocol-matrix
+  test, 14 modern-client tests, lint, 176-route build, and full 122-suite
+  release gate passed. No package was published and no package version was
+  bumped; this remains part of the coordinated release train.
