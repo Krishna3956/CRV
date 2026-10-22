@@ -80,6 +80,12 @@ contents, while `listPrompts` returns prompt names and argument names without
 requesting or retaining argument values. Both methods support opaque cursors
 and remain observation-only.
 
+The modern client accepts both JSON and bounded Streamable HTTP
+`text/event-stream` responses. SSE notifications are ignored until the
+matching result is received; a response ID, when present, must match the
+request. The stream is still observation-only and is not a general-purpose
+subscription or proxy implementation.
+
 For bounded historical discovery, `listAllTools`, `listAllResources`, and
 `listAllPrompts` follow opaque cursors up to a fixed page/item budget and return
 `truncated: true` when the server continues beyond that budget or repeats a
