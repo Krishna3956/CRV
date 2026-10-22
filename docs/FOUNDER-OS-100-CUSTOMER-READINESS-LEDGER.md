@@ -270,3 +270,16 @@ a failed product gate or a Supabase plan warning.
 - [ ] Authenticated two-workspace production UAT, worker enablement, and the
   remaining external operator gates stay open and are not inferred from the
   public smoke.
+
+## 2026-10-22 package release-train control
+
+- [x] The manual package workflow now supports an explicitly reviewed `all`
+  scope, allowing TypeScript, CLI, and Python artifacts to be audited and
+  published sequentially from one release-train dispatch.
+- [x] Existing confirmation, duplicate-version, provenance, packed-consumer,
+  and registry-verification gates remain required for every artifact.
+- [x] Contract tests, package-release audit, lint, full release gate, and the
+  176-route production build passed for commit `5df2730`.
+- [ ] No release train has been dispatched; the current registry versions and
+  the unreleased SDK source delta remain unchanged until the pilot release
+  owner approves one coherent candidate.
