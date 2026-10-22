@@ -297,6 +297,7 @@ export type Analytics = {
     resumed_after_stall: number;
     common_paths: Array<{ path: string[]; interactions: number; share: number | null }>;
     drop_off: Array<{ path: string[]; interactions: number; terminal_evidence: "explicit_error" | "input_required" | "unknown" }>;
+    funnel: Array<{ step: string; reached: number; share: number | null }>;
     limitation: string;
   };
   /** Founder OS "Did it work" read model, keeping unknown evidence visible. */

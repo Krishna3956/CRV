@@ -870,6 +870,10 @@ function exampleAnalytics(days: number): Analytics {
         { path: ["run_query", "export_csv"], interactions: scale(8), terminal_evidence: "input_required" },
         { path: ["find_invoice", "create_report"], interactions: scale(5), terminal_evidence: "explicit_error" },
       ],
+      funnel: [
+        { step: "find_invoice", reached: scale(38), share: 0.396 },
+        { step: "create_report", reached: scale(32), share: 0.333 },
+      ],
       limitation: "Illustrative journeys are bounded server-observed interaction paths, not claims about a customer’s complete business task.",
     },
     outcome_activity: {
@@ -2746,6 +2750,9 @@ function JourneysView({
           </Panel>
           <Panel title="Where paths stop" subtitle="Only explicit error or input-required evidence is classified">
             <div className="divide-y divide-line">{analytics.journey_activity.drop_off.length ? analytics.journey_activity.drop_off.map((path) => <div key={path.path.join("|")} className="py-3"><p className="text-xs text-ink">{path.path.join(" → ")}</p><p className="mt-1 text-[11px] capitalize text-muted">{path.terminal_evidence.replaceAll("_", " ")} · {fmt(path.interactions)} interactions</p></div>) : <StateNote title="No path-stop evidence yet" body="A missing terminal event is not treated as abandonment." />}</div>
+          </Panel>
+          <Panel title="Top-path funnel" subtitle="Observed reach by step; a missing next step is not abandonment">
+            <div className="space-y-3">{analytics.journey_activity.funnel.length ? analytics.journey_activity.funnel.map((step) => <div key={step.step}><div className="mb-1 flex items-center justify-between gap-3"><p className="text-xs text-ink">{step.step}</p><span className="text-xs text-muted">{fmt(step.reached)} · {step.share == null ? "N/A" : `${Math.round(step.share * 100)}%`}</span></div><div className="h-2 overflow-hidden rounded-full bg-mist"><div className="h-full rounded-full bg-brand" style={{ width: `${Math.max(0, Math.min(100, (step.share || 0) * 100))}%` }} /></div></div>) : <StateNote title="No funnel evidence yet" body="A funnel is shown only when an observed path has bounded interaction evidence." />}</div>
           </Panel>
         </div>
         <p className="mb-6 text-[11px] leading-relaxed text-faint">{analytics.journey_activity.limitation}</p>

@@ -638,6 +638,11 @@ export function createAnalyticsHandler(getAdmin: typeof getSupabaseAdmin = getSu
     pathGroups.set(key, current);
   }
   const journeyGroups = [...pathGroups.values()].sort((a, b) => b.interactions - a.interactions);
+  const topPath = journeyGroups[0]?.path || [];
+  const funnel = topPath.map((step, index) => {
+    const reached = [...interactions.values()].filter((item) => item.path.slice(0, index + 1).join("\u0000") === topPath.slice(0, index + 1).join("\u0000")).length;
+    return { step, reached, share: interactions.size ? reached / interactions.size : null };
+  });
   const journeyActivity = {
     interaction_count: interactions.size,
     typical_journey_length: interactions.size ? [...interactions.values()].map((item) => item.path.length).sort((a, b) => a - b)[Math.floor((interactions.size - 1) * 0.5)] || null : null,
@@ -645,6 +650,7 @@ export function createAnalyticsHandler(getAdmin: typeof getSupabaseAdmin = getSu
     resumed_after_stall: [...interactions.values()].filter((item) => item.stalled && item.retried).length,
     common_paths: journeyGroups.slice(0, 10).map((item) => ({ path: item.path, interactions: item.interactions, share: interactions.size ? item.interactions / interactions.size : null })),
     drop_off: journeyGroups.slice(0, 10).map((item) => ({ path: item.path, interactions: item.interactions, terminal_evidence: item.terminal_evidence })),
+    funnel,
     limitation: "Paths are bounded sequences of observed tool calls scoped to an observed server and grouped by interaction or session identity. Terminal evidence is the latest observed event; missing terminal events are unknown, not abandonment. Cross-server journeys outside this workspace are not visible.",
   };
   // The product outcome surface is intentionally narrower than the general
