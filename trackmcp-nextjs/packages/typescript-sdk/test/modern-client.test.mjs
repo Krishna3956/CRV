@@ -35,6 +35,11 @@ test("modern client rejects credentials, oversized responses, and non-success st
   await assert.rejects(() => new ModernMcpClient({ endpoint: "https://mcp.example.test", fetch: async () => response({ result: { blob: "x" } }, 200, { "content-length": "300000" }) }).discover(), (error) => error instanceof ModernMcpProtocolError && error.code === "response_too_large");
 });
 
+test("modern client rejects a response whose JSON-RPC id does not correlate", async () => {
+  const client = new ModernMcpClient({ endpoint: "https://mcp.example.test", fetch: async () => response({ jsonrpc: "2.0", id: 99, result: { tools: [] } }) });
+  await assert.rejects(() => client.listTools(), (error) => error instanceof ModernMcpProtocolError && error.code === "invalid_response");
+});
+
 test("modern client lists a bounded, cursor-based tool catalog", async () => {
   let request;
   const client = new ModernMcpClient({ endpoint: "https://mcp.example.test", fetch: async (_input, init) => {

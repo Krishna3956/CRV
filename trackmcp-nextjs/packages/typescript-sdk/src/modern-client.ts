@@ -125,6 +125,11 @@ export class ModernMcpClient {
       let envelope: unknown;
       try { envelope = JSON.parse(text); } catch { throw new ModernMcpProtocolError("invalid_response", `Modern MCP ${method} returned invalid JSON.`); }
       if (!boundedObject(envelope) || !boundedObject(envelope.result)) throw new ModernMcpProtocolError("invalid_response", `Modern MCP ${method} returned an invalid result envelope.`);
+      // Some deployments omit JSON-RPC metadata in compatibility responses;
+      // when an id is present, however, it must correlate to this request.
+      // Failing closed here prevents a late or cross-request response from
+      // being presented as the result of the current operation.
+      if ("id" in envelope && envelope.id !== requestId) throw new ModernMcpProtocolError("invalid_response", `Modern MCP ${method} returned a mismatched response id.`);
       return envelope.result;
     } catch (error) {
       if (error instanceof ModernMcpProtocolError) throw error;
