@@ -74,7 +74,7 @@ freshness, coverage, and a short caveat in the same surface as each status.
 Keep these collapsed under “Other connection methods”:
 
 - **TrackMCP SDK through an existing OTel pipeline**: available through the
-  bounded authenticated OTLP/HTTP JSON receiver; OTLP/gRPC and external export
+  bounded authenticated OTLP/HTTP JSON or protobuf receiver; OTLP/gRPC and external export
   remain unsupported until separately implemented and verified.
 - **Generic OTel**: limited MCP semantics; requires customer instrumentation
   conventions and does not automatically provide account identity.

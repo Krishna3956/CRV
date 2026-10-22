@@ -103,8 +103,9 @@ Explain the boundary plainly:
 - Local redaction occurs before telemetry leaves the customer's process.
 - Raw API keys, device codes, email addresses, IP addresses, and unbounded
   request/response bodies are not support evidence.
-- OTel support in the pilot is bounded OTLP/HTTP JSON interoperability only;
-  do not promise OTLP/gRPC, protobuf, or external export.
+- OTel support in the pilot is bounded OTLP/HTTP JSON or protobuf
+  interoperability with metadata-only mapping; do not promise OTLP/gRPC or
+  external export.
 - Analytics and catalog reads are bounded and may disclose partial/truncated
   data where the UI says so.
 

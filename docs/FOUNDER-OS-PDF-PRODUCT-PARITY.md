@@ -27,7 +27,7 @@ Source of truth: `/Users/krishna/Downloads/Founder OS.pdf` (134 rendered pages; 
 | Journey | 40–52 | Implemented as bounded observed interaction paths | PDF does contain a Journey component; make its limitation and entry point obvious |
 | Outcome | 53–67 | Implemented with evidence-based completion/stall/error states | UAT response-state calculations |
 | Reliability | 68–111 | Partially implemented through Quality/Issues/Evidence surfaces | Map each classifier to code and mark gaps |
-| Hybrid SDK/OTel/proxy architecture | 112–123 | SDK and OTLP/HTTP JSON implemented; proxy is not a full alternative | Keep claims honest and link every route |
+| Hybrid SDK/OTel/proxy architecture | 112–123 | SDK and bounded OTLP/HTTP JSON or protobuf implemented; proxy is not a full alternative | Keep claims honest and link every route |
 | Setup and first-event experience | 124–131 | Implemented with TypeScript, Python, Go, .NET, OTLP guidance and first-event evidence | Deployment smoke and setup/docs contracts verified; authenticated workspace UAT remains open |
 
 ## Initial gaps to verify before implementation
@@ -35,7 +35,7 @@ Source of truth: `/Users/krishna/Downloads/Founder OS.pdf` (134 rendered pages; 
 - Setup currently offers TypeScript and Python snippets in the primary install control; Go and .NET need direct, honest routes there.
 - The PDF’s “Journey” requirement is present in the source (pages 40–52), so the product must not remove it; it must explain that it is a bounded server-observed path rather than a claim about a complete business task.
 - The PDF calls for explicit transport, protocol-version, client, outcome, identity, and data-quality evidence. Every dashboard surface must either display those fields or link to the evidence surface.
-- OpenTelemetry is a supported OTLP/HTTP JSON ingestion path. Protobuf/gRPC, arbitrary proxying, and customer OAuth exchange are not silently implied and must remain clearly marked unsupported.
+- OpenTelemetry is a supported bounded OTLP/HTTP JSON and protobuf ingestion path. OTLP/gRPC, arbitrary proxying, and customer OAuth exchange are not silently implied and must remain clearly marked unsupported.
 - Installation CTAs must land on the exact language/integration page, not only the docs home.
 
 ## Acceptance gates

@@ -19,7 +19,7 @@ production/operator evidence required in the work queue.
 | Action Queue and alert signals | limited | Bounded, workspace-scoped reads and human lifecycle transitions; worker/scheduler evidence remains required | Production worker batch and alert delivery evidence |
 | Privacy export/request | supported as review-only | Bounded export and auditable request/review states; destructive completion remains closed | Reviewed deletion worker and postflight, or explicit exclusion from scope |
 | Automatic package-install authentication | out of scope | `npm install`/`pip install` remains silent; activation is an explicit CLI action | Do not advertise lifecycle-hook authentication |
-| Arbitrary OTel encodings and external export | out of scope | No promise of OTLP/gRPC, protobuf, or external exporter support | Separate reviewed feature scope |
+| Arbitrary OTel encodings and external export | out of scope | No promise of OTLP/gRPC, arbitrary encodings, or external exporter support; bounded OTLP/HTTP protobuf is supported | Separate reviewed feature scope |
 | Production scheduler SLOs | not yet evidenced | Local worker contracts exist; live cadence, lag, retries, and alert SLOs are not claimed | Operator batch and lag evidence |
 
 ## Release wording rule

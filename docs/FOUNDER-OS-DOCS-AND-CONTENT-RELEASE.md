@@ -71,7 +71,7 @@ snippets:
 | Docs overview | TypeScript/Python choices, silent install rule, privacy/failure behavior, first-event verification | All commands and package names match current manifests |
 | TypeScript docs | `npx ... init`, manual fallback, wrapper, redaction, queue limits, supported transport boundary | Packed-consumer and SDK contract tests |
 | Python docs | `python3 -m pip install trackmcp`, `trackmcp init`, `doctor`, wrapper, no client-side claim | Clean PyPI consumer and Python tests |
-| API docs | Auth, workspace scope, bounded limits, OTLP/HTTP JSON-only boundary | API route contracts and auth tests |
+| API docs | Auth, workspace scope, bounded limits, OTLP/HTTP JSON/protobuf boundary | API route contracts and auth tests |
 | Release notes/blog | Explain user-visible changes and limitations; link to docs | Content review, dates, metadata, no unsupported promises |
 | Sitemap/SEO | Include public docs/blog/tool surfaces only | Public sitemap smoke; no authenticated URLs or secrets |
 
@@ -158,7 +158,8 @@ Keep these statements stable until the implementation and production evidence
 change:
 
 - OTel support means authenticated OTLP/HTTP JSON metadata interoperability;
-  protobuf, gRPC, and an external exporter are not supported claims.
+  gRPC and an external exporter are not supported claims; OTLP/HTTP protobuf is
+  supported only as bounded metadata-only ingestion.
 - Identity is bounded resolver/self-reported activity. Do not label it as
   verified unique people or organizations.
 - Resources/prompts use privacy-safe observations and do not expose content

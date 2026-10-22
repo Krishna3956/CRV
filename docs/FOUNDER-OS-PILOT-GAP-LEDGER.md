@@ -13,7 +13,7 @@ just because a README or marketing page mentions it.
 | Transport observer / Node client adapter | `@trackmcp/sdk/client-adapter`; Node-only wrapper for Stdio and Streamable HTTP; metadata-only and fail-open; bounded capability-family metadata, lifecycle generations for reconnect correlation, and dedicated adapter tests | Implemented and merged through PRs #173–#175 | Run production-like client fixtures when a pilot server is available |
 | Go SDK | `packages/go-sdk/trackmcp.go`; transport-neutral primitive, source package only | Implemented with source-only distribution boundary | Publish only after package provenance/release work is approved |
 | .NET SDK | `packages/dotnet-sdk/TrackMcp.cs`; transport-neutral primitive, source package only | Implemented with source-only distribution boundary | Publish only after NuGet/provenance work is approved |
-| OTLP/HTTP JSON | Authenticated bounded receiver at `/api/v1/otel/v1/traces`; parser and interoperability tests; production smoke accepted a current-time OTLP/HTTP JSON span for a scoped key and the authenticated export returned the mapped event | Implemented, protobuf/gRPC intentionally unsupported | Keep the smoke fixture in the recurring release gate; do not market protobuf/gRPC support |
+| OTLP/HTTP JSON or protobuf | Authenticated bounded receiver at `/api/v1/otel/v1/traces`; JSON/protobuf parsers and interoperability tests; production smoke passed for the deployed release | Implemented as metadata-only, pilot-key protobuf UAT still open; gRPC intentionally unsupported | Keep the smoke fixture in the recurring release gate; do not market OTLP/gRPC or external export |
 | MCP OAuth | TrackMCP does not issue, exchange, or parse customer OAuth credentials | Explicitly unsupported by design | Customer-owned OAuth integration must emit explicit bounded outcomes |
 | Dashboard/session auth | Workspace membership, connection-key scope, revocation, tenant-isolation contracts | Implemented | Repeat production smoke after releases |
 | Setup density | Secondary privacy/data-flow and export/deletion explanations moved behind accessible disclosures; primary setup actions remain visible | Implemented in current change | Live browser audit after deployment |
@@ -61,7 +61,7 @@ just because a README or marketing page mentions it.
   `tools/call` span through the authenticated receiver with a scoped key. The
   endpoint returned HTTP 200 with `accepted_spans: 1`, and the authenticated
   export returned the mapped `otel-json-pilot`/`current_lookup` event. The
-  receiver continues to advertise protobuf/gRPC as unsupported.
+  receiver advertises bounded protobuf metadata support while OTLP/gRPC remains unsupported.
 - 2026-10-21: PR #165 fixed a production projection omission: the refresh
   handler had not selected `task_id` or `payload`, so valid task evidence was
   reduced to a pending transport fact and no transition row could be written.
