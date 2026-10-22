@@ -364,7 +364,7 @@ keeping resource URI/content and prompt names/arguments private by default?
   the installed registry artifacts; the CLI path does not.
 - [x] Publish changed SDK code only under a new approved version; the current
   reviewed line is `@trackmcp/sdk@0.1.9`, `@trackmcp/cli@0.1.4`, and
-  `trackmcp==0.1.5`, each reconciled against its registry evidence. Historical
+  `trackmcp==0.1.6`, each reconciled against its registry evidence. Historical
   versions remain explicitly labeled in the package readiness record.
 - [ ] Install each exact published package into a clean consumer project and
   repeat the customer activation/first-event path; the TypeScript SDK consumer
