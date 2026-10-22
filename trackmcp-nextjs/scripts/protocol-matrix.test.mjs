@@ -22,3 +22,10 @@ test("matrix keeps absence separate from success", () => {
   assert.match(matrix, /missing observation is never interpreted as a successful or failed/);
   assert.match(matrix, /unknown.*insufficient evidence/i);
 });
+
+test("public protocol docs do not claim the published SDK is a complete v2 client", async () => {
+  const docs = await readFile(new URL("../src/app/docs/protocol/page.tsx", import.meta.url), "utf8");
+  assert.match(docs, /observability adapter/i);
+  assert.match(docs, /not a claim that the SDK implements every modern client lifecycle/i);
+  assert.doesNotMatch(docs, /until a v2 SDK adapter is released/i);
+});
