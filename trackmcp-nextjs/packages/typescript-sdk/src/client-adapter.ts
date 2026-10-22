@@ -149,6 +149,7 @@ export class TrackMCPClientAdapter {
   private lifecycleEnded = false;
   private lifecycleStartedAt = 0;
   private lifecycleGeneration = 0;
+  private intentionalClose = false;
   private lastResultRequestId: string | undefined;
   private lastResultAt = 0;
   private clientName: string | undefined;
@@ -218,9 +219,15 @@ export class TrackMCPClientAdapter {
         if (property === "close") {
           return (...args: unknown[]) => {
             const close = Reflect.get(target, property, target) as (...input: unknown[]) => Promise<void>;
+            adapter.intentionalClose = true;
             return Promise.resolve(close.apply(target, args)).then((result) => {
               adapter.endLifecycle();
+              adapter.intentionalClose = false;
               return result;
+            }, (error) => {
+              adapter.intentionalClose = false;
+              adapter.endLifecycle(false, "transport_error");
+              throw error;
             });
           };
         }
@@ -255,7 +262,7 @@ export class TrackMCPClientAdapter {
         if (property === "onclose") {
           onclose = value as Transport["onclose"];
           return Reflect.set(target, property, (() => {
-            adapter.endLifecycle();
+            adapter.endLifecycle(adapter.intentionalClose, adapter.intentionalClose ? undefined : "transport_error");
             onclose?.();
           }) as Transport["onclose"], target);
         }

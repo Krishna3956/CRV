@@ -169,6 +169,26 @@ test("uses MCP SDK 1.32.1 with a real StdioClientTransport and captures protocol
   assert.equal(events.filter((event) => event.payload?._trackmcp?.observation_kind === "session_ended").length, 1);
 });
 
+test("real Stdio child exit emits bounded transport failure evidence", async () => {
+  const events = [];
+  const child = `process.stdin.resume(); setTimeout(() => process.exit(1), 40);`;
+  const raw = new StdioClientTransport({ command: process.execPath, args: ["-e", child], stderr: "ignore" });
+  const adapter = new TrackMCPClientAdapter({ apiKey: "tmcp_test", service: "adapter-test", transport: "stdio", flushIntervalMs: 60000, onEvent: (event) => events.push(event) });
+  const wrapped = adapter.wrapTransport(raw);
+  wrapped.onerror = () => {};
+  wrapped.onclose = () => {};
+  await wrapped.start();
+  await wrapped.send(toolCall("process-exit", "lookup"));
+  await new Promise((resolve) => setTimeout(resolve, 160));
+  const failure = events.find((event) => event.event_type === "session" && event.error_class === "transport_error");
+  assert.ok(failure);
+  assert.equal(failure.success, false);
+  assert.equal(failure.is_error, true);
+  assert.equal(failure.payload_policy, "metadata");
+  assert.equal(JSON.stringify(events).includes("process.exit"), false);
+  await wrapped.close().catch(() => {});
+});
+
 test("uses a real StreamableHTTPClientTransport and preserves transport-generated sessions", async () => {
   const requests = [];
   const server = http.createServer((request, response) => {

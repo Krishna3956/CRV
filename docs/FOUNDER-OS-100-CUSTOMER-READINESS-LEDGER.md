@@ -369,3 +369,19 @@ a failed product gate or a Supabase plan warning.
   passed after the fixture was added.
 - [ ] A separate authenticated pilot-key protobuf UAT remains an external
   production gate; local route fixtures do not substitute for it.
+
+## 2026-10-22 real Stdio process-exit evidence
+
+- [x] Added a fixture using the official MCP `StdioClientTransport` whose child
+  process exits unexpectedly. The adapter now distinguishes an unsolicited
+  `onclose` from an explicit caller-requested `close()` and emits a bounded,
+  metadata-only failed session for the former.
+- [x] The fixture verifies `transport_error`, failed-session state, metadata
+  payload policy, and absence of process/source text. Existing intentional
+  close and reconnect lifecycle tests remain green.
+- [x] TypeScript SDK tests passed (22 adapter tests; 62 package tests), web
+  lint passed, the 176-route production build passed, and the full release
+  gate passed all 122 suites.
+- [ ] Streamable HTTP proxy/server-abrupt-close fixtures and production-like
+  cross-language transport fixtures remain separate follow-up evidence; no
+  unsupported reconnect policy is being claimed.
