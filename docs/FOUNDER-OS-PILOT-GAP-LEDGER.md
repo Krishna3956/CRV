@@ -137,3 +137,10 @@ just because a README or marketing page mentions it.
   metrics, ranked activity counts, and explicit identity coverage fields only;
   raw account keys and arbitrary client/model properties are discarded. The
   contract and malicious-field integration test pass.
+
+- 2026-10-22: Hardened the `/api/v2/journeys` projection. Correlated session
+  rows now expose only bounded session/correlation labels, client/tool counts,
+  timing, and allowlisted completion/correlation states; arbitrary workflow
+  properties are discarded. The journey integration fixture injects a private
+  field and verifies it is not returned while explicit terminal accounting is
+  unchanged.

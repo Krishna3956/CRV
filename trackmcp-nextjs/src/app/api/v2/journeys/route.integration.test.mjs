@@ -6,7 +6,7 @@ test("journeys counts only explicit workflow terminals and leaves unresolved ses
   const handler = createJourneysHandler(async () => new Response(JSON.stringify({
     range_days: 30,
     workflows: [
-      { session_id: "a", completed: true, completion_source: "workflow_events" },
+      { session_id: "a", completed: true, completion_source: "workflow_events", private_payload: "do-not-return", tools: ["lookup"], calls: 1 },
       { session_id: "b", completed: false, completion_source: "workflow_events" },
       { session_id: "c", completed: false, completion_source: "session_heuristic" },
     ],
@@ -25,4 +25,5 @@ test("journeys counts only explicit workflow terminals and leaves unresolved ses
     evidence_state: "observed",
   });
   assert.match(body.caveats.join(" "), /not counted as abandoned/);
+  assert.equal(JSON.stringify(body).includes("private_payload"), false);
 });

@@ -2,6 +2,31 @@ import { NextResponse } from "next/server.js";
 import { createAnalyticsHandler } from "../../v1/analytics/handlers.ts";
 import { withTrackMCPV2Envelope } from "../../../../lib/api/v2-envelope.ts";
 
+const MAX_TEXT = 256;
+const boundedText = (value: unknown) => typeof value === "string" ? value.slice(0, MAX_TEXT) : null;
+const boundedInt = (value: unknown, max = 1000000) => typeof value === "number" && Number.isSafeInteger(value) ? Math.max(0, Math.min(max, value)) : 0;
+const COMPLETION_SOURCES = new Set(["workflow_events", "explicit_outcome", "none", "session_heuristic"]);
+const CORRELATION_SOURCES = new Set(["external", "issued", "missing"]);
+const CORRELATION_QUALITY = new Set(["session_id", "external", "transport_generated", "missing", "mixed"]);
+
+function projectJourney(value: unknown): Record<string, unknown> | null {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return null;
+  const row = value as Record<string, unknown>;
+  return {
+    session_id: boundedText(row.session_id),
+    correlation_handle: boundedText(row.correlation_handle),
+    correlation_handle_source: typeof row.correlation_handle_source === "string" && CORRELATION_SOURCES.has(row.correlation_handle_source) ? row.correlation_handle_source : null,
+    client_name: boundedText(row.client_name),
+    calls: boundedInt(row.calls),
+    tools: Array.isArray(row.tools) ? row.tools.filter((tool): tool is string => typeof tool === "string").map((tool) => tool.slice(0, MAX_TEXT)).slice(0, 200) : [],
+    started_at: boundedText(row.started_at),
+    duration_ms: boundedInt(row.duration_ms, 86_400_000),
+    completed: row.completed === true,
+    completion_source: typeof row.completion_source === "string" && COMPLETION_SOURCES.has(row.completion_source) ? row.completion_source : "none",
+    correlation_quality: typeof row.correlation_quality === "string" && CORRELATION_QUALITY.has(row.correlation_quality) ? row.correlation_quality : "missing",
+  };
+}
+
 function journeySummary(workflows: readonly unknown[]) {
   let explicitlyCompleted = 0;
   let explicitlyFailed = 0;
@@ -36,7 +61,7 @@ export function createJourneysHandler(analytics = createAnalyticsHandler()) {
     const response = await analytics(request);
     if (!response.ok) return response;
     const body = await response.json() as { range_days?: unknown; workflows?: unknown; correlation_quality?: unknown; data_trust?: unknown };
-    const workflows = Array.isArray(body.workflows) ? body.workflows.slice(0, 100) : [];
+    const workflows = Array.isArray(body.workflows) ? body.workflows.slice(0, 100).map(projectJourney).filter((journey): journey is Record<string, unknown> => journey !== null) : [];
     return NextResponse.json(withTrackMCPV2Envelope({
       range_days: typeof body.range_days === "number" ? body.range_days : null,
       journeys: workflows,
