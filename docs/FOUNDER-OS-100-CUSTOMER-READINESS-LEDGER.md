@@ -688,3 +688,17 @@ a failed product gate or a Supabase plan warning.
   the production build generated all 176 routes.
 - [ ] Automatic durable task subscriptions, replay semantics, and production
   transport disconnect UAT remain outside the local adapter boundary.
+
+## 2026-10-22 cross-language MRTR metadata checkpoint
+
+- [x] Go and .NET now expose `RecordProtocolResult` alongside their existing
+  protocol-signal hooks. The helpers emit only allowlisted result/task
+  discriminators and bounded input-request/input-response counts; arbitrary
+  result content, input values, and unknown fields are never queued.
+- [x] Go source tests cover redaction and bounds; the release contract checks
+  both source implementations and their onboarding documentation. The complete
+  JavaScript release gate passed 125 suites, lint passed, and the production
+  build generated all 176 routes.
+- [ ] Go/.NET compiler and runtime interoperability evidence depends on the
+  hosted language CI lanes because the local environment has neither toolchain;
+  full cross-transport MRTR fixtures and production UAT remain open.

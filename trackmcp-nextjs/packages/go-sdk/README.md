@@ -22,5 +22,10 @@ For protocol notifications, call `client.RecordProtocolSignal` with one of
 `prompt_changed`. Only the allowlisted signal and method metadata are sent;
 progress values, cancellation reasons, URIs, and payloads are not accepted.
 
+For MRTR/task responses, call `client.RecordProtocolResult` with the response
+map. It emits only the allowlisted result discriminator, task status, and
+bounded request/response counts; result content and input values are never
+queued.
+
 After configuring the key, make one real tool call, flush, and confirm the
 event in Setup. Key acceptance alone is not proof that telemetry arrived.

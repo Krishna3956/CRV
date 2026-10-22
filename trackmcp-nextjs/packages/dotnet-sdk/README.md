@@ -23,6 +23,11 @@ allowlisted signals (`progress`, `cancelled`, `catalog_changed`,
 method metadata; progress values, cancellation reasons, URIs, and payloads
 are never accepted.
 
+For MRTR/task responses, call `RecordProtocolResult` with the bounded
+`JsonObject` result. It emits only the allowlisted result discriminator, task
+status, and request/response counts; result content and input values are never
+queued.
+
 After configuring the key, make one real MCP tool call, flush during shutdown
 or after a bounded batch, and confirm the event in Setup. Key creation alone
 never counts as telemetry.

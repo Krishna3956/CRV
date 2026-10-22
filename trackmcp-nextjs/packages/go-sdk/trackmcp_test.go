@@ -51,3 +51,23 @@ func TestRecordProtocolSignalIsAllowlistedAndMetadataOnly(t *testing.T) {
 	client.RecordProtocolSignal("cancelled", "bad\nmethod", "session-3")
 	if len(client.queue) != 1 { t.Fatal("invalid signal or method should be ignored") }
 }
+
+func TestRecordProtocolResultIsBoundedAndMetadataOnly(t *testing.T) {
+	client := New(Options{APIKey: "tmcp_test"})
+	client.RecordProtocolResult("tools/call", map[string]any{
+		"resultType": "input_required",
+		"inputRequests": []any{map[string]any{"secret": "omit"}},
+		"inputResponses": map[string]any{"answer": map[string]any{"private": "omit"}},
+		"taskStatus": "working",
+		"content": "private result",
+	}, "session-1")
+	if len(client.queue) != 1 { t.Fatalf("expected one event, got %d", len(client.queue)) }
+	event := client.queue[0]
+	if event.ResultType != "input_required" || event.TaskStatus != "working" { t.Fatalf("unexpected result metadata: %#v", event) }
+	if event.InputRequestCount == nil || *event.InputRequestCount != 1 || event.InputResponseCount == nil || *event.InputResponseCount != 1 { t.Fatalf("unexpected MRTR counts: %#v", event) }
+	if event.Payload["content"] != nil || event.Payload["_trackmcp"] == nil { t.Fatalf("result content was retained: %#v", event.Payload) }
+	client.RecordProtocolResult("bad\nmethod", map[string]any{"resultType": "complete"}, "session-2")
+	client.RecordProtocolResult("tools/call", map[string]any{"resultType": "unknown", "taskStatus": "secret"}, "session-3")
+	if len(client.queue) != 2 { t.Fatal("invalid method should be ignored while bounded unknown metadata remains observable") }
+	if client.queue[1].ResultType != "" || client.queue[1].TaskStatus != "" { t.Fatal("unknown result metadata was retained") }
+}

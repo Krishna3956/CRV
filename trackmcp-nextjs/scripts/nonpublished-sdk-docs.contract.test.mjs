@@ -2,11 +2,13 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
 
-const [goDocs, dotnetDocs, goReadme, dotnetReadme] = await Promise.all([
+const [goDocs, dotnetDocs, goReadme, dotnetReadme, goSource, dotnetSource] = await Promise.all([
   readFile(new URL("../src/app/docs/go/page.tsx", import.meta.url), "utf8"),
   readFile(new URL("../src/app/docs/dotnet/page.tsx", import.meta.url), "utf8"),
   readFile(new URL("../packages/go-sdk/README.md", import.meta.url), "utf8"),
   readFile(new URL("../packages/dotnet-sdk/README.md", import.meta.url), "utf8"),
+  readFile(new URL("../packages/go-sdk/trackmcp.go", import.meta.url), "utf8"),
+  readFile(new URL("../packages/dotnet-sdk/TrackMcp.cs", import.meta.url), "utf8"),
 ]);
 
 test("Go and .NET docs disclose source-package status and first-event verification", () => {
@@ -22,6 +24,19 @@ test("Go and .NET docs disclose source-package status and first-event verificati
     assert.match(source, /transport_closed/);
     assert.match(source, /transport_error/);
   }
+});
+
+test("Go and .NET source expose bounded MRTR/task result metadata", () => {
+  assert.match(goSource, /RecordProtocolResult/);
+  assert.match(goSource, /ResultType/);
+  assert.match(goSource, /InputRequestCount/);
+  assert.match(goSource, /InputResponseCount/);
+  assert.match(goSource, /protocolResultTypes/);
+  assert.match(dotnetSource, /RecordProtocolResult/);
+  assert.match(dotnetSource, /inputRequestCount/);
+  assert.match(dotnetSource, /inputResponseCount/);
+  assert.match(dotnetSource, /ReadAllowlisted/);
+  assert.match(dotnetSource, /BoundedCount/);
 });
 
 test("Go and .NET package READMEs carry the same privacy and lifecycle boundary", () => {

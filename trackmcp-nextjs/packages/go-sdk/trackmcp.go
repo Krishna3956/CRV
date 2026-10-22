@@ -44,6 +44,10 @@ type Event struct {
 	IsError *bool `json:"is_error,omitempty"`
 	ErrorClass string `json:"error_class,omitempty"`
 	ErrorCode *int `json:"error_code,omitempty"`
+	ResultType string `json:"result_type,omitempty"`
+	TaskStatus string `json:"task_status,omitempty"`
+	InputRequestCount *int `json:"input_request_count,omitempty"`
+	InputResponseCount *int `json:"input_response_count,omitempty"`
 	Payload map[string]any `json:"payload,omitempty"`
 }
 
@@ -60,6 +64,9 @@ var protocolSignals = map[string]bool{
 	"progress": true, "cancelled": true, "catalog_changed": true,
 	"resource_changed": true, "prompt_changed": true,
 }
+
+var protocolResultTypes = map[string]bool{"complete": true, "input_required": true, "task": true}
+var taskStatuses = map[string]bool{"working": true, "input_required": true, "completed": true, "failed": true, "cancelled": true, "expired": true}
 
 var sensitivePayloadKeys = map[string]bool{
 	"password": true, "passwd": true, "secret": true, "token": true,
@@ -148,6 +155,34 @@ func (c *Client) RecordProtocolSignal(signal string, method string, sessionID st
 		}},
 	})
 }
+
+// RecordProtocolResult records only allowlisted MRTR/task result metadata.
+// Result content, input values, and arbitrary response fields never enter the
+// event or queue. This keeps Go parity with the TypeScript and Python SDKs.
+func (c *Client) RecordProtocolResult(method string, result map[string]any, sessionID string) {
+	if len(method) == 0 || len(method) > 128 || strings.IndexFunc(method, func(r rune) bool { return r < 0x20 || r == 0x7f }) >= 0 { return }
+	event := Event{EventType: "protocol", Direction: "server_to_client", MCPMethod: method, SessionID: boundedSessionID(sessionID), Success: boolPtr(true), IsError: boolPtr(false)}
+	if value, ok := result["resultType"].(string); ok && protocolResultTypes[value] { event.ResultType = value }
+	if value, ok := result["taskStatus"].(string); ok && taskStatuses[value] { event.TaskStatus = value }
+	if value, ok := result["isError"].(bool); ok { event.IsError, event.Success = boolPtr(value), boolPtr(!value) }
+	if count, ok := boundedCount(result["inputRequests"]); ok { event.InputRequestCount = &count }
+	if count, ok := boundedCount(result["inputResponses"]); ok { event.InputResponseCount = &count }
+	event.Payload = map[string]any{"_trackmcp": map[string]any{"observation_kind": "protocol_response", "observation_source": "server"}}
+	c.Capture(event)
+}
+
+func boundedCount(value any) (int, bool) {
+	switch typed := value.(type) {
+	case []any:
+		return minInt(len(typed), 100), true
+	case map[string]any:
+		return minInt(len(typed), 100), true
+	default:
+		return 0, false
+	}
+}
+
+func minInt(a int, b int) int { if a < b { return a }; return b }
 
 func boundedSessionID(value string) string {
 	value = strings.TrimSpace(value)

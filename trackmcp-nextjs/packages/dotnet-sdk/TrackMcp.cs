@@ -67,11 +67,34 @@ public sealed class TrackMcpClient : IDisposable
 
     public TrackMcpClient(TrackMcpOptions options, HttpClient? httpClient = null) { _options = options; _http = httpClient ?? new HttpClient(); }
 
-    public void Capture(string eventType, string method, object? payload = null, string? sessionId = null, bool? success = null, long? durationMs = null, string? toolName = null)
+    public void Capture(string eventType, string method, object? payload = null, string? sessionId = null, bool? success = null, long? durationMs = null, string? toolName = null, string? resultType = null, string? taskStatus = null, int? inputRequestCount = null, int? inputResponseCount = null)
     {
         if (string.IsNullOrWhiteSpace(_options.ApiKey)) return;
-        var item = new Dictionary<string, object?> { ["event_id"] = Guid.NewGuid().ToString(), ["event_type"] = eventType, ["service"] = _options.Service, ["environment"] = _options.Environment, ["mcp_method"] = method, ["session_id"] = sessionId, ["tool_name"] = toolName, ["started_at"] = DateTimeOffset.UtcNow.ToString("O"), ["duration_ms"] = durationMs, ["success"] = success, ["is_error"] = success is false, ["payload"] = SanitizePayload(payload), ["server_version"] = _options.ServerVersion, ["sdk_version"] = _options.SdkVersion, ["deployment_id"] = _options.DeploymentId };
+        var item = new Dictionary<string, object?> { ["event_id"] = Guid.NewGuid().ToString(), ["event_type"] = eventType, ["service"] = _options.Service, ["environment"] = _options.Environment, ["mcp_method"] = method, ["session_id"] = sessionId, ["tool_name"] = toolName, ["started_at"] = DateTimeOffset.UtcNow.ToString("O"), ["duration_ms"] = durationMs, ["success"] = success, ["is_error"] = success is false, ["result_type"] = resultType, ["task_status"] = taskStatus, ["input_request_count"] = inputRequestCount, ["input_response_count"] = inputResponseCount, ["payload"] = SanitizePayload(payload), ["server_version"] = _options.ServerVersion, ["sdk_version"] = _options.SdkVersion, ["deployment_id"] = _options.DeploymentId };
         lock (_gate) { _queue.Add(item); }
+    }
+
+    /// <summary>Records allowlisted MRTR/task result metadata without result content.</summary>
+    public void RecordProtocolResult(string method, JsonObject result, string? sessionId = null)
+    {
+        if (string.IsNullOrWhiteSpace(method) || method.Length > 128 || method.Any(char.IsControl)) return;
+        var resultType = ReadAllowlisted(result, "resultType", "complete", "input_required", "task");
+        var taskStatus = ReadAllowlisted(result, "taskStatus", "working", "input_required", "completed", "failed", "cancelled", "expired");
+        var isError = result["isError"]?.GetValue<bool?>();
+        Capture("protocol", method, new Dictionary<string, object?> { ["_trackmcp"] = new Dictionary<string, object?> { ["observation_kind"] = "protocol_response", ["observation_source"] = "server" } }, BoundSessionId(sessionId), isError is true ? false : true, resultType: resultType, taskStatus: taskStatus, inputRequestCount: BoundedCount(result["inputRequests"]), inputResponseCount: BoundedCount(result["inputResponses"]));
+    }
+
+    private static string? ReadAllowlisted(JsonObject result, string key, params string[] allowed)
+    {
+        var value = result[key]?.GetValue<string>();
+        return value is not null && allowed.Contains(value, StringComparer.Ordinal) ? value : null;
+    }
+
+    private static int? BoundedCount(JsonNode? value)
+    {
+        if (value is JsonArray array) return Math.Min(100, array.Count);
+        if (value is JsonObject obj) return Math.Min(100, obj.Count);
+        return null;
     }
 
     /// <summary>Records a bounded, metadata-only transport disconnect or error.</summary>
