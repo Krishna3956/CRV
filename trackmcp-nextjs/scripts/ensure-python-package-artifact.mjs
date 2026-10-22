@@ -18,10 +18,13 @@ if (hasWheel && hasSourceDistribution) {
 const result = spawnSync(
   process.env.PYTHON ?? "python3",
   ["-m", "build", "--wheel", "--sdist", "--outdir", dist, packageRoot],
-  { stdio: "inherit" },
+  { stdio: "inherit", timeout: 180_000, killSignal: "SIGTERM" },
 );
 
-if (result.error) throw result.error;
+if (result.error) {
+  console.error(`Python package artifact build could not complete: ${result.error.message}`);
+  process.exit(1);
+}
 if (result.status !== 0) {
   console.error("Python package artifact build failed. Install the Python `build` package and retry.");
   process.exit(result.status || 1);

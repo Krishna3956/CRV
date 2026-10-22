@@ -10,7 +10,16 @@ const packageRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const npm = process.platform === "win32" ? "npm.cmd" : "npm";
 
 function run(command, args, cwd) {
-  const result = spawnSync(command, args, { cwd, encoding: "utf8", stdio: ["ignore", "pipe", "pipe"] });
+  const result = spawnSync(command, args, {
+    cwd,
+    encoding: "utf8",
+    stdio: ["ignore", "pipe", "pipe"],
+    timeout: 180_000,
+    killSignal: "SIGTERM",
+  });
+  if (result.error) {
+    assert.fail(`${command} ${args.join(" ")} could not complete: ${result.error.message}`);
+  }
   assert.equal(result.status, 0, `${command} ${args.join(" ")} failed:\n${result.stdout}\n${result.stderr}`);
   return result;
 }

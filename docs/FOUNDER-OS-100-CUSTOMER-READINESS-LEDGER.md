@@ -327,3 +327,17 @@ a failed product gate or a Supabase plan warning.
 - [ ] The next train remains intentionally undispatched until the unreleased
   SDK/source deltas and the external authenticated-production gates are closed
   or explicitly accepted by the release owner.
+
+## 2026-10-22 release-gate child-process hardening
+
+- [x] Added 180-second termination bounds to TypeScript packed-consumer npm
+  install/build/test children, the Node-only client-adapter bundle check, and
+  Python package artifact generation. A child error now fails with an explicit
+  diagnostic instead of leaving the release gate waiting indefinitely.
+- [x] TypeScript packed-consumer and client-adapter suites passed (22 tests).
+- [x] Lint passed, the production build generated all 176 routes, and the full
+  release gate passed all 122 suites after the hardening.
+- [x] `git diff --check` passed; no package was published or version-bumped.
+- [x] Pushed as the next main-branch milestone after review of the release
+  policy; the user-owned `docs/codex-handoff/` and `tmp/` directories remain
+  untracked and untouched.

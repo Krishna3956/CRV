@@ -55,7 +55,13 @@ test("frontend Next.js build cannot include the Node-only adapter", async () => 
   await writeFile(join(appDir, "page.js"), "\"use client\"; import { TrackMCPClientAdapter } from \"@trackmcp/sdk/client-adapter\"; export default function Page() { return <div>{String(TrackMCPClientAdapter)}</div>; }");
   try {
     const nextBin = require.resolve("next/dist/bin/next");
-    const result = spawnSync(process.execPath, [nextBin, "build"], { cwd: tempDir, encoding: "utf8" });
+    const result = spawnSync(process.execPath, [nextBin, "build"], {
+      cwd: tempDir,
+      encoding: "utf8",
+      timeout: 180_000,
+      killSignal: "SIGTERM",
+    });
+    assert.equal(result.error, undefined, result.error?.message);
     assert.notEqual(result.status, 0);
     assert.match(result.stdout + "\n" + result.stderr, /client-adapter|export|browser|resolve|Node\.js/i);
   } finally {
