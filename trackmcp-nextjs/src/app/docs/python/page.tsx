@@ -121,6 +121,25 @@ redact_event=lambda event: event  # return None to drop an event
         </Para>
       </DocSection>
 
+      <DocSection id="transport-failures" title="Transport disconnects and exits">
+        <Para>
+          A process exit or stream disconnect can happen outside an MCP request. If your
+          server owns that lifecycle callback, record the bounded failure without passing
+          exception text or transport details into telemetry. This is optional and remains
+          fail-open.
+        </Para>
+        <Code>{`# Call from your process/transport shutdown or error callback.
+app.trackmcp.record_transport_failure("transport_closed")
+# For an unexpected transport crash:
+app.trackmcp.record_transport_failure("transport_error")`}</Code>
+        <Para>
+          The helper emits metadata-only session evidence with a fixed failure category;
+          arbitrary labels, URLs, headers, credentials, and payloads are rejected or
+          omitted. It complements the wrapper&apos;s initialize/shutdown observations and
+          does not instrument Python MCP client transports.
+        </Para>
+      </DocSection>
+
       <DocSection id="account-identity" title="Optional account identity">
         <Para>
           If your application has already verified a tenant or account claim, pass
