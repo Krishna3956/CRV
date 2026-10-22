@@ -14,4 +14,6 @@ test("Python docs state the supported server-boundary coverage without overclaim
   assert.match(pythonDocs, /transport="stdio"/);
   assert.match(pythonDocs, /streamable_http/);
   assert.match(pythonDocs, /recorded as unknown instead of guessed/);
+  assert.match(pythonDocs, /record_transport_failure/);
+  assert.match(pythonDocs, /metadata-only session evidence/);
 });
