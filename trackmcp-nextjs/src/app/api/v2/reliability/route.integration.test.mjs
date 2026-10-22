@@ -12,7 +12,7 @@ function analytics(timeline) {
     correlation_quality: "missing",
     correlation_handle_source: "missing",
     timeline,
-    data_trust: { source_count: 1, returned_count: 1 },
+    data_trust: { source_count: 1, returned_count: 1, private_payload: "do-not-return", generated_at: "2026-01-02T00:00:00.000Z" },
   }), { status: 200, headers: { "content-type": "application/json" } });
 }
 
@@ -32,6 +32,8 @@ test("reliability returns a sufficient bounded baseline comparison", async () =>
   assert.equal(body.baseline_comparison.comparison.errors, 10);
   assert.equal(body.baseline_comparison.comparison.error_rate, 10 / 50);
   assert.ok(Math.abs(body.baseline_comparison.delta - 0.15) < 1e-9);
+  assert.equal(body.data_trust.generated_at, "2026-01-02T00:00:00.000Z");
+  assert.equal("private_payload" in body.data_trust, false);
 });
 
 test("reliability refuses to claim a comparison with sparse daily volume", async () => {

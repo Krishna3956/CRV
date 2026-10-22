@@ -167,3 +167,9 @@ just because a README or marketing page mentions it.
   rows, breakdowns, and trend points now use allowlisted fields with bounded
   numbers/text and protocol-specific filtering. Integration tests inject
   private nested payloads and verify they cannot cross the public envelope.
+
+- 2026-10-22: Hardened the `/api/v2/protocol-activity` and
+  `/api/v2/reliability` projections to use the shared bounded `data_trust`
+  provenance contract instead of forwarding arbitrary analytics metadata.
+  Protocol-family activity now has an adversarial integration test, and the
+  reliability fixture verifies private provenance fields are discarded.

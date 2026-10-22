@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server.js";
 import { createAnalyticsHandler } from "../../v1/analytics/handlers.ts";
 import { withTrackMCPV2Envelope } from "../../../../lib/api/v2-envelope.ts";
+import { projectTrackMCPDataTrust } from "../../../../lib/telemetry/data-trust.ts";
 
 const FAMILIES = new Set(["sampling", "elicitation", "completion", "tasks", "control_signal", "resources", "prompts", "tools", "subscriptions", "notifications"]);
 
@@ -26,7 +27,7 @@ export function createProtocolActivityHandler(analytics = createAnalyticsHandler
       range_days: typeof body.range_days === "number" ? body.range_days : null,
       protocol_family_activity: activity,
       family_count: activity.length,
-      data_trust: body.data_trust ?? null,
+      data_trust: projectTrackMCPDataTrust(body.data_trust),
     }, request, { caveats: ["Counts are bounded protocol metadata observations at the server boundary, not customer demand, successful outcomes, or feature support claims."] }));
   };
 }

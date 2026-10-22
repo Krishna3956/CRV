@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server.js";
 import { createAnalyticsHandler } from "../../v1/analytics/handlers.ts";
 import { withTrackMCPV2Envelope } from "../../../../lib/api/v2-envelope.ts";
+import { projectTrackMCPDataTrust } from "../../../../lib/telemetry/data-trust.ts";
 
 const MIN_COMPARISON_CALLS = 30;
 
@@ -84,7 +85,7 @@ export function createReliabilityHandler(analytics = createAnalyticsHandler()) {
         limitation: comparisonReady ? "Observed timeline has at least two tool-call days; this is not infrastructure uptime." : "A baseline comparison needs at least two observed days with tool-call evidence.",
       },
       baseline_comparison: comparison,
-      data_trust: body.data_trust ?? null,
+      data_trust: projectTrackMCPDataTrust(body.data_trust),
       caveats: [
         "Reliability describes observed telemetry, not infrastructure uptime.",
         "Completion is null when the selected evidence does not support an outcome claim.",
