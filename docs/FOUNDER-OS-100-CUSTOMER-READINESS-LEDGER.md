@@ -704,3 +704,20 @@ a failed product gate or a Supabase plan warning.
   successfully, including rollout, read-only production smoke, and redacted
   evidence upload. This closes compiler/deployment evidence for the source
   change; full cross-transport MRTR fixtures and production UAT remain open.
+
+## 2026-10-22 cross-language malformed-metadata hardening checkpoint
+
+- [x] The .NET `RecordProtocolResult` helper now ignores malformed JSON
+  metadata rather than throwing. Allowlisted discriminators and booleans are
+  parsed defensively, while bounded counts and metadata-only payloads remain
+  unchanged. The source contract explicitly covers the fail-closed parser
+  boundary.
+- [x] Local cross-language contract tests passed 3/3; the complete release
+  gate passed 125 suites; lint passed; and the production build completed
+  successfully. The fix was pushed as `078d3bc` without changing a package
+  version.
+- [x] Hosted TrackMCP CI run `39767331389` passed. App Runner deployment run
+  `39767331379` completed successfully; its read-only production smoke,
+  runtime-safety audit, and redacted evidence uploads all completed
+  successfully. This verifies deployment execution for the source fix; it does
+  not close the separately documented authenticated production UAT gates.
