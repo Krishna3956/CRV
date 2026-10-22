@@ -462,3 +462,14 @@ a failed product gate or a Supabase plan warning.
 - [ ] CI and App Runner deployment for `cb6beca` are still remote in-progress
   runs; no production claim is advanced until the exact SHA reaches terminal
   success and its production smoke completes.
+
+## 2026-10-22 package publication policy checkpoint
+
+- [x] The manual package workflow now defaults to the coordinated `all` release
+  train. Publishing only TypeScript, Python, or CLI requires an explicit
+  `single_package_reason` exception, while the existing reviewed confirmation,
+  artifact audit, provenance, duplicate-version preflight, packed-consumer,
+  and registry verification gates remain mandatory.
+- [x] The publish-workflow contract suite and the complete repository release
+  gate pass (124 suites). No package version was changed and no package was
+  published for this policy-only change.

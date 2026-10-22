@@ -4,13 +4,18 @@ on:
   workflow_dispatch:
     inputs:
       package:
-        description: "Package to publish"
+        description: "Package to publish (all is the standard release train)"
         required: true
         type: choice
-        options: [typescript, python, cli, all]
+        default: all
+        options: [all, typescript, python, cli]
       confirm:
         description: "Type RELEASE_TRAIN_APPROVED only for a reviewed, batched release"
         required: true
+        type: string
+      single_package_reason:
+        description: "Required only for an explicitly approved single-package emergency release"
+        required: false
         type: string
 
 jobs:
@@ -36,6 +41,17 @@ jobs:
             exit 1
           fi
           echo "Release-train confirmation accepted for the selected package."
+      - name: Require an explicit exception for single-package publication
+        if: inputs.package != 'all'
+        env:
+          SINGLE_PACKAGE_REASON: ${{ inputs.single_package_reason }}
+        run: |
+          set -euo pipefail
+          if [[ -z "${SINGLE_PACKAGE_REASON//[[:space:]]/}" ]]; then
+            echo "::error::Single-package publication is an exception. Use package=all, or provide a non-empty single_package_reason after emergency review."
+            exit 1
+          fi
+          echo "Single-package exception recorded: ${SINGLE_PACKAGE_REASON}"
       - name: Audit all release artifacts before publishing
         working-directory: trackmcp-nextjs
         run: npm run test:package-release-audit

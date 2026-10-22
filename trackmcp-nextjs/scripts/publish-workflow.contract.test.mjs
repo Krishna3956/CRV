@@ -39,7 +39,13 @@ test("npm publication requires provenance and package preflight tests", () => {
   assert.match(workflow, /confirm:[\s\S]*?RELEASE_TRAIN_APPROVED/);
   assert.match(workflow, /Require reviewed release-train confirmation/);
   assert.match(workflow, /inputs\.confirm.*RELEASE_TRAIN_APPROVED/);
-  assert.match(workflow, /options: \[typescript, python, cli, all\]/);
+  assert.match(workflow, /default: all/);
+  assert.match(workflow, /options: \[all, typescript, python, cli\]/);
+  assert.match(workflow, /single_package_reason:/);
+  assert.match(workflow, /Require an explicit exception for single-package publication/);
+  assert.match(workflow, /inputs\.package != 'all'/);
+  assert.match(workflow, /SINGLE_PACKAGE_REASON/);
+  assert.match(workflow, /Single-package publication is an exception/);
   assert.match(workflow, /inputs\.package == 'typescript' \|\| inputs\.package == 'all'/);
   assert.match(workflow, /inputs\.package == 'cli' \|\| inputs\.package == 'all'/);
   assert.match(workflow, /inputs\.package == 'python' \|\| inputs\.package == 'all'/);
