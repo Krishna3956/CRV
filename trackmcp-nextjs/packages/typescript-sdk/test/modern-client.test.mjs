@@ -200,6 +200,31 @@ test("modern client waitForTask is abortable before another request", async () =
   assert.equal(calls, 1);
 });
 
+test("modern client listens to bounded task notifications without retaining payloads", async () => {
+  let request;
+  const seen = [];
+  const stream = new ReadableStream({ start(controller) {
+    controller.enqueue(new TextEncoder().encode(`data: ${JSON.stringify({ jsonrpc: "2.0", method: "notifications/subscriptions/acknowledged", params: { private: "omit" } })}\n\n`));
+    controller.enqueue(new TextEncoder().encode(`data: ${JSON.stringify({ jsonrpc: "2.0", method: "notifications/tasks", params: { taskId: "task-1", status: "working", inputRequests: { secret: { params: { value: "omit" } } } } })}\n\n`));
+    controller.close();
+  } });
+  const client = new ModernMcpClient({ endpoint: "https://mcp.example.test", fetch: async (_input, init) => { request = init; return new Response(stream, { status: 200, headers: { "content-type": "text/event-stream" } }); } });
+  const result = await client.listenForTaskUpdates(["task-1"], { onTask: (task) => seen.push(task) });
+  assert.deepEqual(result, { events: [{ taskId: "task-1", status: "working", inputRequestKeys: ["secret"] }], truncated: false });
+  assert.deepEqual(seen, result.events);
+  assert.equal(request.headers.get("mcp-method"), "subscriptions/listen");
+  assert.deepEqual(JSON.parse(request.body).params, { notifications: { taskIds: ["task-1"] } });
+  assert.equal(JSON.stringify(result).includes("omit"), false);
+});
+
+test("modern client bounds task notification streams and rejects unsafe filters", async () => {
+  const client = new ModernMcpClient({ endpoint: "https://mcp.example.test", fetch: async () => new Response(new ReadableStream({ start(controller) { controller.enqueue(new TextEncoder().encode(`data: ${JSON.stringify({ method: "notifications/tasks", params: { taskId: "task-1", status: "working" } })}\n\n`.repeat(3))); controller.close(); } }), { status: 200, headers: { "content-type": "text/event-stream" } }) });
+  const result = await client.listenForTaskUpdates(["task-1"], { maxEvents: 2 });
+  assert.equal(result.events.length, 2);
+  assert.equal(result.truncated, true);
+  await assert.rejects(() => client.listenForTaskUpdates(["task id"]), (error) => error instanceof ModernMcpProtocolError && error.code === "invalid_response");
+});
+
 test("modern client bounds task update keys and request size", async () => {
   const client = new ModernMcpClient({ endpoint: "https://mcp.example.test", fetch: async () => response({ result: {} }) });
   await assert.rejects(() => client.updateTask("task-1", { "bad key!": true }), (error) => error instanceof ModernMcpProtocolError && error.code === "invalid_response");

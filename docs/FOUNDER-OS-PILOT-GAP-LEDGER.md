@@ -200,3 +200,12 @@ just because a README or marketing page mentions it.
   and cooperative cancellation from unsupported task creation, notification
   subscriptions, and result-payload retrieval; a protocol-matrix contract
   prevents the old "never mutates task state" wording from returning.
+
+- 2026-10-22: Added bounded modern task-status stream support to the TypeScript
+  client through Streamable HTTP `subscriptions/listen`. The adapter validates
+  task filters, enforces HTTPS/localhost and request/response/time/event bounds,
+  accepts only task notification envelopes, and projects task metadata without
+  returning result or input payload values. The listener reports explicit
+  truncation and supports caller abort/timeout signals and sanitized callbacks;
+  it is intentionally not a durable reconnect/subscription manager. SDK tests
+  now pass 72/72 plus the packed consumer check.
