@@ -19,3 +19,9 @@ test("public quickstart names the currently published CLI and TypeScript SDK ver
   assert.match(docs, new RegExp(`current TypeScript SDK is ${sdkVersion}`));
   assert.match(traceExplorer, new RegExp(`sdk_version: "${sdkVersion}"`));
 });
+
+test("public quickstart explains the release-train boundary", () => {
+  assert.match(docs, /Source fixes are grouped\s+into reviewed release trains/);
+  assert.match(docs, /does\s+not consume an npm or PyPI version/);
+  assert.match(docs, /coherent SDK\/CLI\/Python milestone/);
+});

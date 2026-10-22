@@ -628,3 +628,16 @@ a failed product gate or a Supabase plan warning.
 - [ ] Production authenticated UAT and nonzero counter validation remain
   external evidence gates. This checkpoint changes no package version and
   requires no database migration.
+
+## 2026-10-22 public release-cadence documentation checkpoint
+
+- [x] The public quickstart now explains that source fixes are grouped into
+  reviewed release trains. Dashboard or documentation changes do not consume
+  npm/PyPI versions; publication is reserved for a coherent SDK/CLI/Python
+  milestone, with independent releases limited to documented security or
+  production hotfixes.
+- [x] The docs-version contract asserts both the published package versions and
+  the release-train boundary. The focused contract passed, the complete
+  release gate passed 125 suites, lint passed, and the production build
+  generated all 176 routes.
+- [x] No package version changed and no registry publication was triggered.

@@ -49,7 +49,11 @@ export default function DocsPage() {
           intentionally silent and never opens a browser during installation.
           The CLI and SDK are versioned independently: the current CLI is 0.1.4 and the
           current TypeScript SDK is 0.1.12; the one-command setup always uses the latest
-          published CLI unless you intentionally pin a version.
+          published CLI unless you intentionally pin a version. Source fixes are grouped
+          into reviewed release trains; a small dashboard or documentation change does
+          not consume an npm or PyPI version. Package publication is reserved for a
+          coherent SDK/CLI/Python milestone, with clean consumer and provenance checks,
+          while urgent security or production fixes may be released independently.
         </Para>
         <Code eventName="install_command_copied" eventProperties={{ language: "shell", package: "@trackmcp/cli" }}>{`# TypeScript / Node.js (one command)
 npx @trackmcp/cli init
