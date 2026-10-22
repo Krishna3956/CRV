@@ -356,3 +356,16 @@ a failed product gate or a Supabase plan warning.
 - [ ] Local Go and .NET compilers are not installed in this environment; the
   hosted Go/.NET CI checks remain the authoritative compile evidence for this
   cross-language source change.
+
+## 2026-10-22 OTLP protobuf route evidence
+
+- [x] Added an authenticated route-level OTLP/HTTP protobuf fixture covering
+  content negotiation, metadata mapping, forwarded authorization, protocol
+  response headers, and exclusion of raw attribute names/values.
+- [x] The protobuf route integration, OTLP documentation contract, and protocol
+  matrix tests passed. This closes the local route-evidence gap without
+  expanding the explicitly bounded OTLP/gRPC boundary.
+- [x] Lint, the 176-route production build, and the full 122-suite release gate
+  passed after the fixture was added.
+- [ ] A separate authenticated pilot-key protobuf UAT remains an external
+  production gate; local route fixtures do not substitute for it.
