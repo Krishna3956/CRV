@@ -700,12 +700,17 @@ export function createAnalyticsHandler(getAdmin: typeof getSupabaseAdmin = getSu
   const transports = [...new Set(events.map((event) => event.transport).filter(Boolean))];
   const methods = [...new Set(events.map((event) => event.mcp_method).filter(Boolean))];
   const protocolSignalCounts: Record<TrackMCPProtocolSignal, number> = { notification: 0, progress: 0, cancelled: 0, catalog_changed: 0, resource_changed: 0, subscription_started: 0, subscription_stopped: 0 };
+  const protocolSignalTimeline = new Map<string, Record<TrackMCPProtocolSignal, number>>();
   let protocolSignalEvents = 0;
   for (const event of events) {
     const signal = classifyTrackMCPProtocolSignal(event);
     if (signal) {
       protocolSignalCounts[signal] += 1;
       protocolSignalEvents += 1;
+      const day = event.started_at.slice(0, 10);
+      const dayCounts = protocolSignalTimeline.get(day) || { notification: 0, progress: 0, cancelled: 0, catalog_changed: 0, resource_changed: 0, subscription_started: 0, subscription_stopped: 0 };
+      dayCounts[signal] += 1;
+      protocolSignalTimeline.set(day, dayCounts);
     }
   }
   // Catalog observations already contain bounded SHA-256 identity hashes. We
@@ -739,7 +744,7 @@ export function createAnalyticsHandler(getAdmin: typeof getSupabaseAdmin = getSu
       resources: { events: resourceEvents.length, methods: [...new Set(resourceEvents.map((event) => event.mcp_method).filter(Boolean))].slice(0, MAX_PUBLIC_DIMENSION_ITEMS), entity_count: resourceEntityHashes.size, entity_identity: "sha256_hash_count", entity_analytics: entityReadAnalytics("resources") },
       prompts: { events: promptEvents.length, methods: [...new Set(promptEvents.map((event) => event.mcp_method).filter(Boolean))].slice(0, MAX_PUBLIC_DIMENSION_ITEMS), entity_count: promptEntityHashes.size, entity_identity: "sha256_hash_count", entity_analytics: entityReadAnalytics("prompts") },
     },
-    protocol_signals: { ...protocolSignalCounts, observed_events: protocolSignalEvents },
+    protocol_signals: { ...protocolSignalCounts, observed_events: protocolSignalEvents, timeline: [...protocolSignalTimeline.entries()].sort(([a], [b]) => a.localeCompare(b)).slice(-366).map(([date, counts]) => ({ date, ...counts, observed_events: Object.values(counts).reduce((sum, value) => sum + value, 0) })) },
     protocol_family_activity: [...protocolFamilyCounts.entries()].map(([family, observations]) => ({ family: family as TrackMCPProtocolFamily, observations })).sort((a, b) => b.observations - a.observations || a.family.localeCompare(b.family)),
     transports: transports.slice(0, MAX_PUBLIC_DIMENSION_ITEMS),
     methods: methods.slice(0, MAX_PUBLIC_DIMENSION_ITEMS),

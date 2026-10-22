@@ -428,6 +428,8 @@ test("Overview exposes protocol lifecycle signals with an explicit non-outcome c
   assert.match(source, /Signals observed at the server boundary/);
   assert.match(source, /They are not tool success, workflow completion, or uptime evidence/);
   assert.match(source, /aria-label="Protocol lifecycle signals"/);
+  assert.match(source, /Daily signal timeline/);
+  assert.match(source, /aria-label="Daily protocol signal timeline"/);
 });
 
 test("Capabilities exposes truthful catalog history states", () => {

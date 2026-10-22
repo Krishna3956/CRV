@@ -291,3 +291,9 @@ just because a README or marketing page mentions it.
   payload-free; SDK regression coverage now passes 78/78 plus the packed
   consumer check. No package version was changed; this remains part of the
   next coordinated release train.
+
+- 2026-10-22: Added a bounded daily protocol-signal timeline to authenticated
+  analytics and the Overview lifecycle panel. The projection includes only
+  allowlisted signal counts, is capped to the selected window, and never
+  forwards event payloads or identifiers. Analytics integration and dashboard
+  contracts pass; transport-specific and production UAT remain separate gates.

@@ -375,7 +375,11 @@ test("analytics exposes bounded protocol lifecycle signals without treating them
   const response = await handler(new Request("http://analytics.test/api/v1/analytics?days=7", { headers: { authorization: "Bearer key" } }));
   assert.equal(response.status, 200);
   const body = await response.json();
-  assert.deepEqual(body.protocol_signals, { notification: 0, progress: 1, cancelled: 0, catalog_changed: 1, resource_changed: 1, subscription_started: 1, subscription_stopped: 1, observed_events: 5 });
+  assert.deepEqual(body.protocol_signals, {
+    notification: 0, progress: 1, cancelled: 0, catalog_changed: 1, resource_changed: 1,
+    subscription_started: 1, subscription_stopped: 1, observed_events: 5,
+    timeline: [{ date: "2026-09-06", notification: 0, progress: 1, cancelled: 0, catalog_changed: 1, resource_changed: 1, subscription_started: 1, subscription_stopped: 1, observed_events: 5 }],
+  });
   assert.deepEqual(body.protocol_family_activity, [{ family: "notifications", observations: 3 }, { family: "resources", observations: 3 }, { family: "completion", observations: 1 }, { family: "sampling", observations: 1 }, { family: "subscriptions", observations: 1 }, { family: "tasks", observations: 1 }]);
   assert.equal(body.founder_os.facts.outcomes.not_observable, 6);
 });

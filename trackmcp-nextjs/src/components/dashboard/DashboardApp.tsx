@@ -2554,6 +2554,15 @@ function ProtocolSignalPanel({
           </div>
         ))}
       </div>
+      {signals.timeline && signals.timeline.length > 0 && (
+        <div className="mt-4 overflow-x-auto border-t border-line pt-4">
+          <p className="text-[11px] font-medium text-muted">Daily signal timeline</p>
+          <table className="mt-2 min-w-full text-left text-[11px]" aria-label="Daily protocol signal timeline">
+            <thead className="text-faint"><tr><th className="px-2 py-1 font-medium">Date</th><th className="px-2 py-1 font-medium">Progress</th><th className="px-2 py-1 font-medium">Cancelled</th><th className="px-2 py-1 font-medium">Catalog/resource</th><th className="px-2 py-1 font-medium">Subscriptions</th><th className="px-2 py-1 font-medium">Total</th></tr></thead>
+            <tbody>{signals.timeline.slice(-14).map((day) => <tr key={day.date} className="border-t border-line"><td className="px-2 py-1 font-mono text-faint">{day.date}</td><td className="px-2 py-1 text-body">{fmt(day.progress)}</td><td className="px-2 py-1 text-body">{fmt(day.cancelled)}</td><td className="px-2 py-1 text-body">{fmt(day.catalog_changed + day.resource_changed)}</td><td className="px-2 py-1 text-body">{fmt(day.subscription_started + day.subscription_stopped)}</td><td className="px-2 py-1 font-medium text-ink">{fmt(day.observed_events)}</td></tr>)}</tbody>
+          </table>
+        </div>
+      )}
       <p className="mt-3 text-[11px] text-muted">{fmt(signals.observed_events)} lifecycle signals in the selected window · bounded metadata only</p>
     </section>
   );
