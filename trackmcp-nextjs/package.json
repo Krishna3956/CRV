@@ -63,6 +63,7 @@
     "test:pilot-runbook": "node --test scripts/pilot-runbook.contract.test.mjs",
     "test:pilot-scope": "node --test scripts/pilot-scope.contract.test.mjs",
     "test:accessibility-contract": "node --test scripts/accessibility.contract.test.mjs",
+    "test:auth-callback": "node --test src/app/auth/callback/route.contract.test.mjs",
     "test:brand-reference-review": "node --test scripts/brand-reference-review.contract.test.mjs",
     "test:privacy-deletion-batches": "node --test src/lib/account/privacy-deletion-batches-migration.test.mjs",
     "test:key-revocation-authz": "node --test src/app/api/v1/account/keys/route.contract.test.mjs",

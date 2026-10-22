@@ -6,16 +6,22 @@ import { getSupabaseServer } from "@/lib/auth/supabase-server";
 // the container's internal bind address (http://0.0.0.0:8080), which would leak
 // into redirect URLs. Override with NEXT_PUBLIC_SITE_URL for local dev.
 const SITE_ORIGIN = process.env.NEXT_PUBLIC_SITE_URL || "https://app.trackmcp.com";
+const AUTH_ERROR_CODES = new Set(["access_denied", "provider_error"]);
+
+function redirectToSignIn(errorCode: string) {
+  const safeCode = AUTH_ERROR_CODES.has(errorCode) ? errorCode : "provider_error";
+  return NextResponse.redirect(new URL(`/signin?auth_error=${safeCode}`, SITE_ORIGIN));
+}
 
 export async function GET(request: Request) {
   const url = new URL(request.url);
   const code = url.searchParams.get("code");
-  const providerError = url.searchParams.get("error_description") || url.searchParams.get("error");
+  const providerError = url.searchParams.get("error");
   if (providerError) {
-    return NextResponse.redirect(new URL(`/signin?auth_error=${encodeURIComponent(providerError)}`, SITE_ORIGIN));
+    return redirectToSignIn(providerError === "access_denied" ? "access_denied" : "provider_error");
   }
   if (!code) {
-    return NextResponse.redirect(new URL("/signin?auth_error=missing_link_code", SITE_ORIGIN));
+    return redirectToSignIn("provider_error");
   }
   const { error } = await (await getSupabaseServer()).auth.exchangeCodeForSession(code);
   if (error) {
@@ -23,7 +29,7 @@ export async function GET(request: Request) {
     const errorCode = message.includes("code verifier") || message.includes("pkce")
       ? "link_unavailable"
       : "sign_in_failed";
-    return NextResponse.redirect(new URL(`/signin?auth_error=${errorCode}`, SITE_ORIGIN));
+    return redirectToSignIn(errorCode);
   }
   return NextResponse.redirect(new URL("/dashboard", SITE_ORIGIN));
 }

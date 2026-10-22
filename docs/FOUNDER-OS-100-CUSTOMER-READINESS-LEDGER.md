@@ -570,3 +570,17 @@ a failed product gate or a Supabase plan warning.
 - [x] Full verification is now complete: the 124-suite release gate passed,
   `npm run lint` passed, and `npm run build` generated all 176 routes. This
   checkpoint changes no package version and requires no migration.
+
+## 2026-10-22 OAuth callback hardening checkpoint
+
+- [x] The Supabase OAuth callback now maps provider failures to the bounded
+  `access_denied`/`provider_error` vocabulary instead of copying arbitrary
+  `error_description` text into the sign-in URL. Missing authorization codes
+  and PKCE/exchange failures remain non-session-forming and redirect to the
+  canonical site origin.
+- [x] Added the callback contract to the release gate. The auth suite passes;
+  the complete gate now covers 125 suites, with lint passing and the Next.js
+  build generating all 176 routes.
+- [ ] This hardens TrackMCP dashboard authentication only. TrackMCP still does
+  not issue or exchange customer MCP OAuth tokens; that boundary remains
+  intentionally unsupported and documented.
