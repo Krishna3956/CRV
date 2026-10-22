@@ -229,10 +229,13 @@ test("modern client listens to bounded task notifications without retaining payl
 });
 
 test("modern client bounds task notification streams and rejects unsafe filters", async () => {
-  const client = new ModernMcpClient({ endpoint: "https://mcp.example.test", fetch: async () => new Response(new ReadableStream({ start(controller) { controller.enqueue(new TextEncoder().encode(`data: ${JSON.stringify({ method: "notifications/tasks", params: { taskId: "task-1", status: "working" } })}\n\n`.repeat(3))); controller.close(); } }), { status: 200, headers: { "content-type": "text/event-stream" } }) });
+  let requestBody;
+  const client = new ModernMcpClient({ endpoint: "https://mcp.example.test", fetch: async (_input, init) => { requestBody = JSON.parse(init.body); return new Response(new ReadableStream({ start(controller) { controller.enqueue(new TextEncoder().encode(`data: ${JSON.stringify({ method: "notifications/tasks", params: { taskId: "task-1", status: "working" } })}\n\n`.repeat(3))); controller.close(); } }), { status: 200, headers: { "content-type": "text/event-stream" } }); } });
   const result = await client.listenForTaskUpdates(["task-1"], { maxEvents: 2 });
   assert.equal(result.events.length, 2);
   assert.equal(result.truncated, true);
+  await client.listenForTaskUpdates(["task-1", "task-1"]);
+  assert.deepEqual(requestBody.params.notifications.taskIds, ["task-1"]);
   await assert.rejects(() => client.listenForTaskUpdates(["task id"]), (error) => error instanceof ModernMcpProtocolError && error.code === "invalid_response");
 });
 

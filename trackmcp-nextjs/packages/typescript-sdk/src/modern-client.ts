@@ -385,8 +385,9 @@ export class ModernMcpClient {
    * `notifications/tasks` metadata is surfaced; acknowledgements, cursors,
    * stream identifiers, and task payloads are discarded. */
   async listenForTaskUpdates(taskIds: string[], options: ModernMcpTaskListenerOptions = {}): Promise<ModernMcpTaskListenerResult> {
-    const ids = [...new Set(taskIds.filter((id) => /^[A-Za-z0-9_.:-]{1,256}$/.test(id)).map((id) => id.slice(0, MAX_STRING_LENGTH)))].slice(0, MAX_CAPABILITIES);
-    if (!ids.length || ids.length !== taskIds.length) throw new ModernMcpProtocolError("invalid_response", "Modern MCP subscriptions/listen requires bounded task identifiers.");
+    const validIds = taskIds.map((id) => typeof id === "string" && /^[A-Za-z0-9_.:-]{1,256}$/.test(id));
+    const ids = [...new Set(taskIds.map((id) => id.slice(0, MAX_STRING_LENGTH)))].slice(0, MAX_CAPABILITIES);
+    if (!ids.length || validIds.some((valid) => !valid)) throw new ModernMcpProtocolError("invalid_response", "Modern MCP subscriptions/listen requires bounded task identifiers.");
     const maxEvents = typeof options.maxEvents === "number" && Number.isInteger(options.maxEvents) ? Math.min(MAX_TASK_STREAM_EVENTS, Math.max(1, options.maxEvents)) : MAX_TASK_STREAM_EVENTS;
     const timeoutMs = typeof options.timeoutMs === "number" && Number.isFinite(options.timeoutMs) ? Math.min(30_000, Math.max(250, Math.floor(options.timeoutMs))) : 10_000;
     if (options.signal?.aborted) return { events: [], truncated: true };
@@ -397,13 +398,15 @@ export class ModernMcpClient {
       if (endpoint.username || endpoint.password) throw new Error("credentials in URL");
     } catch { throw new ModernMcpProtocolError("invalid_endpoint", "Modern MCP endpoint must be HTTPS or localhost without URL credentials."); }
     const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), timeoutMs);
+    let timedOut = false;
+    const timer = setTimeout(() => { timedOut = true; controller.abort(); }, timeoutMs);
     const abort = () => controller.abort();
     options.signal?.addEventListener("abort", abort, { once: true });
     const headers = new Headers(this.options.headers);
     headers.set("accept", "text/event-stream"); headers.set("content-type", "application/json");
     headers.set("mcp-protocol-version", MODERN_MCP_PROTOCOL_VERSION); headers.set("mcp-method", "subscriptions/listen");
     const body = JSON.stringify({ jsonrpc: "2.0", id: this.nextRequestId(), method: "subscriptions/listen", params: taskParams({ notifications: { taskIds: ids } }) });
+    const events: ModernMcpTask[] = [];
     try {
       const response = await (this.options.fetch ?? globalThis.fetch)(endpoint, { method: "POST", headers, body, redirect: "manual", credentials: "omit", signal: controller.signal });
       if (!response.ok) throw new ModernMcpProtocolError("http_error", "Modern MCP subscriptions/listen returned a non-success status.", response.status);
@@ -411,7 +414,6 @@ export class ModernMcpClient {
       const reader = response.body.getReader();
       const decoder = new TextDecoder();
       let buffer = ""; let bytes = 0; let truncated = false;
-      const events: ModernMcpTask[] = [];
       const consume = (chunk: string) => {
         buffer += chunk;
         const frames = buffer.split(/\r?\n\r?\n/); buffer = frames.pop() || "";
@@ -436,7 +438,7 @@ export class ModernMcpClient {
       return { events, truncated: truncated || Boolean(options.signal?.aborted) };
     } catch (error) {
       if (error instanceof ModernMcpProtocolError) throw error;
-      if (options.signal?.aborted || (error instanceof DOMException && error.name === "AbortError")) return { events: [], truncated: true };
+      if (options.signal?.aborted || timedOut || (error instanceof DOMException && error.name === "AbortError")) return { events, truncated: true };
       throw new ModernMcpProtocolError("network_error", "Modern MCP subscriptions/listen could not reach the endpoint.");
     } finally { clearTimeout(timer); options.signal?.removeEventListener("abort", abort); }
   }

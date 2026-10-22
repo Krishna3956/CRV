@@ -222,3 +222,9 @@ just because a README or marketing page mentions it.
   timestamps and status messages are retained for operational UX, and result,
   error, input-request, and arbitrary private fields remain excluded. Unknown
   task states fail closed; SDK tests cover metadata retention and rejection.
+
+- 2026-10-22: Hardened bounded task-status subscriptions. Listener timeouts and
+  caller aborts now preserve already-sanitized events while marking the result
+  truncated, and duplicate task filters are normalized rather than rejected.
+  Unsafe identifiers still fail closed and stream/event/byte bounds remain
+  enforced; SDK tests cover normalized filters and bounded delivery.
