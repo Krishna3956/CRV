@@ -56,6 +56,11 @@ const (
 	maxSessionIDLength = 256
 )
 
+var protocolSignals = map[string]bool{
+	"progress": true, "cancelled": true, "catalog_changed": true,
+	"resource_changed": true, "prompt_changed": true,
+}
+
 var sensitivePayloadKeys = map[string]bool{
 	"password": true, "passwd": true, "secret": true, "token": true,
 	"access_token": true, "refresh_token": true, "authorization": true,
@@ -127,6 +132,20 @@ func (c *Client) RecordTransportFailure(kind string, sessionID string, durationM
 		DurationMS: durationMS, Success: boolPtr(false), IsError: boolPtr(true),
 		ErrorClass: kind,
 		Payload: map[string]any{"_trackmcp": map[string]any{"observation_kind": kind, "observation_source": "transport"}},
+	})
+}
+
+// RecordProtocolSignal records an allowlisted protocol notification without
+// accepting progress values, cancellation reasons, resource URIs, or any
+// other caller payload. It is intentionally metadata-only and fail-closed.
+func (c *Client) RecordProtocolSignal(signal string, method string, sessionID string) {
+	if !protocolSignals[signal] || len(method) == 0 || len(method) > 128 || strings.IndexFunc(method, func(r rune) bool { return r < 0x20 || r == 0x7f }) >= 0 { return }
+	c.Capture(Event{
+		EventType: "protocol", Direction: "server_to_client", MCPMethod: method,
+		SessionID: boundedSessionID(sessionID), Success: boolPtr(true), IsError: boolPtr(false),
+		Payload: map[string]any{"_trackmcp": map[string]any{
+			"observation_kind": "protocol_notification", "protocol_signal": signal,
+		}},
 	})
 }
 

@@ -20,6 +20,10 @@ public sealed class TrackMcpClient : IDisposable
         "password", "passwd", "secret", "token", "access_token", "refresh_token",
         "authorization", "cookie", "set-cookie", "api_key", "apikey"
     };
+    private static readonly HashSet<string> ProtocolSignals = new(StringComparer.Ordinal)
+    {
+        "progress", "cancelled", "catalog_changed", "resource_changed", "prompt_changed"
+    };
 
     private static JsonNode? SanitizePayload(object? payload, int depth = 0)
     {
@@ -84,6 +88,21 @@ public sealed class TrackMcpClient : IDisposable
                 ["observation_source"] = "transport"
             }
         }, BoundSessionId(sessionId), false, boundedDuration);
+    }
+
+    /// <summary>Records one allowlisted protocol notification without payload values.</summary>
+    /// <remarks>Progress values, cancellation reasons, URIs, and caller data are never accepted.</remarks>
+    public void RecordProtocolSignal(string signal, string method, string? sessionId = null)
+    {
+        if (!ProtocolSignals.Contains(signal) || string.IsNullOrWhiteSpace(method) || method.Length > 128 || method.Any(char.IsControl)) return;
+        Capture("protocol", method, new Dictionary<string, object?>
+        {
+            ["_trackmcp"] = new Dictionary<string, object?>
+            {
+                ["observation_kind"] = "protocol_notification",
+                ["protocol_signal"] = signal
+            }
+        }, BoundSessionId(sessionId), true);
     }
 
     private static string BoundSessionId(string? sessionId)

@@ -325,6 +325,27 @@ class TrackMCP:
             "payload": {"_trackmcp": {"observation_kind": kind, "observation_source": "transport"}},
         })
 
+    def record_protocol_signal(
+        self,
+        signal: str,
+        method: str,
+        *,
+        session_id: Optional[str] = None,
+    ) -> None:
+        """Record an allowlisted protocol notification without payload values."""
+        allowed = {"progress", "cancelled", "catalog_changed", "resource_changed", "prompt_changed"}
+        if signal not in allowed or not isinstance(method, str) or not method or len(method) > 128 or any(ord(char) < 32 or ord(char) == 127 for char in method):
+            return
+        self.capture({
+            "event_type": "protocol",
+            "mcp_method": method,
+            "session_id": session_id or "transport-session",
+            "started_at": _iso_now(),
+            "success": True,
+            "is_error": False,
+            "payload": {"_trackmcp": {"observation_kind": "protocol_notification", "protocol_signal": signal}},
+        })
+
     def _correlation_for(self, event: Dict[str, Any], supplied_handle: Optional[str], supplied_source: Optional[TrackMCPCorrelationHandleSource]) -> Dict[str, Any]:
         if self.options.correlation_mode == "issued" and supplied_source == "issued" and _safe_correlation_handle(supplied_handle):
             return {"correlation_handle": supplied_handle, "correlation_handle_source": "issued"}

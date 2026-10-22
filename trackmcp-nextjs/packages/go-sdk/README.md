@@ -17,5 +17,10 @@ For disconnects outside an MCP request, call
 hook records bounded session metadata only and remains fail-open; exception
 text, URLs, headers, and payloads are never accepted.
 
+For protocol notifications, call `client.RecordProtocolSignal` with one of
+`progress`, `cancelled`, `catalog_changed`, `resource_changed`, or
+`prompt_changed`. Only the allowlisted signal and method metadata are sent;
+progress values, cancellation reasons, URIs, and payloads are not accepted.
+
 After configuring the key, make one real tool call, flush, and confirm the
 event in Setup. Key acceptance alone is not proof that telemetry arrived.

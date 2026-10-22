@@ -278,3 +278,10 @@ just because a README or marketing page mentions it.
   metadata-only SDK path sends the required `Mcp-Name` header matching the
   requested tool. Wire-level coverage now asserts the header while preserving
   the bounded task/result projection; SDK tests remain green.
+
+- 2026-10-22: Added cross-language parity for bounded protocol notifications.
+  Python, Go, and .NET SDKs now expose an allowlisted metadata-only signal
+  helper for progress, cancellation, and catalog/resource/prompt changes.
+  Progress values, cancellation reasons, URIs, and caller payloads are not
+  accepted; Python regression coverage passes. Dashboard timeline and
+  transport-specific runtime fixtures remain explicitly open.

@@ -37,3 +37,17 @@ func TestRecordTransportFailureIsMetadataOnlyAndBounded(t *testing.T) {
 	client.RecordTransportFailure("transport_closed", "  "+string(make([]byte, 300)), 1)
 	if len(client.queue[2].SessionID) != maxSessionIDLength { t.Fatalf("session id was not bounded: %d", len(client.queue[2].SessionID)) }
 }
+
+func TestRecordProtocolSignalIsAllowlistedAndMetadataOnly(t *testing.T) {
+	client := New(Options{APIKey: "tmcp_test"})
+	client.RecordProtocolSignal("progress", "notifications/progress", "session-1")
+	if len(client.queue) != 1 { t.Fatalf("expected one signal, got %d", len(client.queue)) }
+	event := client.queue[0]
+	if event.EventType != "protocol" || event.MCPMethod != "notifications/progress" || event.Direction != "server_to_client" { t.Fatalf("unexpected signal: %#v", event) }
+	metadata := event.Payload["_trackmcp"].(map[string]any)
+	if metadata["protocol_signal"] != "progress" || metadata["observation_kind"] != "protocol_notification" { t.Fatalf("unexpected metadata: %#v", metadata) }
+	if event.Payload["progress_value"] != nil { t.Fatal("signal unexpectedly retained a value") }
+	client.RecordProtocolSignal("raw", "notifications/progress", "session-2")
+	client.RecordProtocolSignal("cancelled", "bad\nmethod", "session-3")
+	if len(client.queue) != 1 { t.Fatal("invalid signal or method should be ignored") }
+}

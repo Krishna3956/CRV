@@ -124,6 +124,20 @@ class TrackMCPClientTest(TestCase):
             client.record_transport_failure("raw_exception")
         client._timer.cancel()
 
+    def test_protocol_signal_is_allowlisted_and_metadata_only(self):
+        client = TrackMCP(TrackMCPOptions(api_key="tmcp_test", disabled=False, flush_interval_ms=60000))
+        client.record_protocol_signal("progress", "notifications/progress", session_id="session-1")
+        event = client._events[-1]
+        self.assertEqual(event["event_type"], "protocol")
+        self.assertEqual(event["mcp_method"], "notifications/progress")
+        self.assertEqual(event["payload"]["_trackmcp"]["protocol_signal"], "progress")
+        self.assertNotIn("progress_value", json.dumps(event))
+        count = len(client._events)
+        client.record_protocol_signal("raw", "notifications/progress")
+        client.record_protocol_signal("cancelled", "bad\nmethod")
+        self.assertEqual(len(client._events), count)
+        client._timer.cancel()
+
     def test_resource_and_prompt_catalog_metadata_is_hashed_and_payload_free(self):
         resource = _catalog_observation("resources", {"resources": [{"name": "docs", "uri": "secret://user:pass/private"}]})
         self.assertEqual(resource["catalog_kind"], "resources")

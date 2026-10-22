@@ -17,6 +17,12 @@ For disconnects outside an MCP request, call
 observer emits bounded session metadata only; exception text, URLs, headers,
 and payloads are never accepted.
 
+For protocol notifications, call `RecordProtocolSignal` with one of the
+allowlisted signals (`progress`, `cancelled`, `catalog_changed`,
+`resource_changed`, or `prompt_changed`). It records only the signal and
+method metadata; progress values, cancellation reasons, URIs, and payloads
+are never accepted.
+
 After configuring the key, make one real MCP tool call, flush during shutdown
 or after a bounded batch, and confirm the event in Setup. Key creation alone
 never counts as telemetry.
