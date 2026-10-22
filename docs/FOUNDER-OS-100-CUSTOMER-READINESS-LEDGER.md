@@ -165,7 +165,7 @@ Current estimate: **9/10 gates complete (90%)**. The deployed application path, 
 - Subsequent successful worker runs `39452634471` and `39452959789` increased successful counts and advanced the oldest queued work. The latest compact production postflight observed 532 queued jobs across all four derived kinds, four retryable jobs (maximum attempt count four), four catalog versions, and no destructive SQL. The queue is moving but remains outside the pilot freshness budget.
 - The release-scope audit was run in a clean detached worktree for `main` and passed with zero changed paths. The local mixed checkout intentionally remains unsuitable for strict release-scope approval because it preserves the user-owned `trackmcp-nextjs/AGENTS.md`, `docs/codex-handoff/`, and `tmp/` files; none were staged or removed.
 - A disposable production catalog-ingest attempt was sent with a newly created connection key and metadata-only `resources/list` event, but the public `app.trackmcp.com` path returned the Cloudflare 403 block page before App Runner. The disposable key was revoked immediately afterward. This is recorded as an edge-path limitation; it is not evidence that the catalog handler accepted or rejected the event. Direct App Runner-origin write validation remains a release gate.
-- Local route, refresh-worker, retention, privacy, and tenant-isolation contract suites pass; the repository-wide release gate remains intentionally blocked in this mixed checkout by preserved user-owned handoff and temporary files, while a clean detached release-scope audit remains the authoritative check.
+- Historical note: local route, refresh-worker, retention, privacy, and tenant-isolation suites were once evaluated in a mixed checkout containing preserved user-owned handoff and temporary files. That state was not treated as release evidence; subsequent clean release-scope audits and the current full release gate are authoritative.
 - Post-deployment aggregate-only Supabase verification observed 61,277 raw events, four queued refresh jobs, and 500 semantic facts after the worker run `39420542290` succeeded. The catalog worker completed successfully but wrote zero catalog projections because all 18,054 production `catalog` events lack typed `catalog_kind` and `catalog_item_count` fields; resource/prompt event types were absent. This is a truthful data-coverage limitation, not a projection success claim.
 - The first scheduled cleanup run (#1) failed at the Cloudflare edge with an HTML 403 challenge; the fix is merged and deployed. A subsequent scheduled execution remains an operational follow-up rather than a guessed success.
 
@@ -255,7 +255,7 @@ Open pull requests:
   deployment readiness, read-only production smoke, redacted smoke evidence,
   and App Runner host evidence.
 
-Current release candidate: `main@d79d0d3`. The remaining pilot follow-up is
+Current release candidate: `main@7ec9c92`. The remaining pilot follow-up is
 operational observation of real customer traffic and refresh backlog; it is not
 a failed product gate or a Supabase plan warning.
 
