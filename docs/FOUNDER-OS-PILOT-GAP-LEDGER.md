@@ -130,3 +130,10 @@ just because a README or marketing page mentions it.
   counts, allowlisted diff statuses/counts, and bounded diff hash arrays.
   Integration coverage injects raw names and a private diff field and verifies
   neither reaches the response.
+
+- 2026-10-22: Hardened the `/api/v2/people` projection after the same privacy
+  audit found broad client and Founder OS identity-model passthrough. The route
+  now emits bounded client labels/call counts, bounded growth and account-band
+  metrics, ranked activity counts, and explicit identity coverage fields only;
+  raw account keys and arbitrary client/model properties are discarded. The
+  contract and malicious-field integration test pass.

@@ -5,7 +5,7 @@ import { createPeopleHandler } from "./handlers.ts";
 test("people returns the complete privacy-safe Founder OS read model", async () => {
   const analytics = async () => new Response(JSON.stringify({
     range_days: 7,
-    clients: [{ name: "Claude", calls: 3 }],
+    clients: [{ name: "Claude", calls: 3, account_key: "secret-client-key", private_note: "do-not-return" }],
     who_is_using_it: {
       active_accounts: 2,
       previous_period_active_accounts: 1,
@@ -17,6 +17,7 @@ test("people returns the complete privacy-safe Founder OS read model", async () 
       top_accounts: [{ rank: 1, activity_count: 3, active_days: 2, identity_source: "resolver" }],
       identity_coverage: 1,
       limitation: "Account identity is resolver-linked and privacy-safe.",
+      raw_account_key: "secret-account-key",
     },
     account_summary: { active_account_keys: 2, active_account_keys_7d: 2, returning_account_keys: 1, account_activity_bands: { one_event: 0, repeat: 1, high_activity: 1 } },
     founder_os: { identity_coverage: { value: 1 }, identity_source_counts: { resolver: 3, unresolved: 0 } },
@@ -30,4 +31,6 @@ test("people returns the complete privacy-safe Founder OS read model", async () 
   assert.equal(body.who_is_using_it.top_accounts[0].activity_count, 3);
   assert.equal(body.scope.value, "authenticated");
   assert.equal(JSON.stringify(body).includes("account_key"), false);
+  assert.equal(JSON.stringify(body).includes("private_note"), false);
+  assert.equal(JSON.stringify(body).includes("secret-account-key"), false);
 });
