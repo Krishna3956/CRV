@@ -764,3 +764,15 @@ a failed product gate or a Supabase plan warning.
 - [x] Hosted CI for `a6c3525` passed and App Runner deployment `39770050297`
   completed successfully. Authenticated production Journey UAT remains a
   separate external evidence gate.
+
+## 2026-10-22 Journey stall-retry checkpoint
+
+- [x] The Journey surface now exposes bounded stall-to-retry evidence by
+  observed step. It distinguishes an observed retry from “No retry observed”
+  and never infers abandonment from missing continuation data.
+- [x] Local Journey/dashboard contracts, the 125-suite release gate, lint, and
+  production build passed. The source change was pushed as `408ea09` without
+  a package version change.
+- [x] Hosted CI run `39771313664` passed and App Runner deployment
+  `39771313720` completed successfully. Authenticated production Journey UAT
+  and cross-transport retry fixtures remain separately documented gates.
