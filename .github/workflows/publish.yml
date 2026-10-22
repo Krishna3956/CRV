@@ -7,7 +7,7 @@ on:
         description: "Package to publish"
         required: true
         type: choice
-        options: [typescript, python, cli]
+        options: [typescript, python, cli, all]
       confirm:
         description: "Type RELEASE_TRAIN_APPROVED only for a reviewed, batched release"
         required: true
@@ -40,7 +40,7 @@ jobs:
         working-directory: trackmcp-nextjs
         run: npm run test:package-release-audit
       - name: Publish TypeScript SDK
-        if: inputs.package == 'typescript'
+        if: inputs.package == 'typescript' || inputs.package == 'all'
         working-directory: trackmcp-nextjs/packages/typescript-sdk
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
@@ -76,7 +76,7 @@ jobs:
           fi
           npm publish --provenance --access public
       - name: Verify TypeScript SDK registry publication
-        if: inputs.package == 'typescript'
+        if: inputs.package == 'typescript' || inputs.package == 'all'
         working-directory: trackmcp-nextjs/packages/typescript-sdk
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
@@ -99,12 +99,12 @@ jobs:
           echo "::error::npm publication succeeded but @trackmcp/sdk@${PACKAGE_VERSION} did not become verifiable within the bounded propagation window."
           exit 1
       - name: Attest TypeScript SDK artifact
-        if: inputs.package == 'typescript'
+        if: inputs.package == 'typescript' || inputs.package == 'all'
         uses: actions/attest-build-provenance@v2
         with:
           subject-path: ${{ runner.temp }}/*.tgz
       - name: Publish TrackMCP CLI
-        if: inputs.package == 'cli'
+        if: inputs.package == 'cli' || inputs.package == 'all'
         working-directory: trackmcp-nextjs/packages/cli
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
@@ -120,12 +120,12 @@ jobs:
           fi
           npm publish --provenance --access public
       - name: Attest TrackMCP CLI artifact
-        if: inputs.package == 'cli'
+        if: inputs.package == 'cli' || inputs.package == 'all'
         uses: actions/attest-build-provenance@v2
         with:
           subject-path: ${{ runner.temp }}/*.tgz
       - name: Publish Python SDK
-        if: inputs.package == 'python'
+        if: inputs.package == 'python' || inputs.package == 'all'
         working-directory: packages/python-sdk
         env:
           TWINE_USERNAME: __token__
@@ -142,7 +142,7 @@ jobs:
           fi
           python -m twine upload dist/*
       - name: Attest Python SDK artifacts
-        if: inputs.package == 'python'
+        if: inputs.package == 'python' || inputs.package == 'all'
         uses: actions/attest-build-provenance@v2
         with:
           subject-path: packages/python-sdk/dist/*

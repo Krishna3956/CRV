@@ -99,10 +99,16 @@ Before dispatching the workflow for a selected package:
    rollback/install command in the release manifest.
 
 The manual GitHub Actions workflow now runs the repository-wide
-`test:package-release-audit` before any package-specific publish step. This
-preflight checks all three package manifests, package tarball shape, generated
-SDK metadata, install documentation, and version format even when only one
-package is selected for publication.
+`test:package-release-audit` before any package-specific publish step. It can
+publish one selected package or the `all` release-train scope in one reviewed
+dispatch; the latter runs the same preflight and package checks sequentially
+for TypeScript, CLI, and Python without requiring three separate publication
+triggers. The train is deliberately sequential rather than falsely atomic:
+if one registry rejects a later artifact, stop, record the already-published
+immutable versions, and reconcile the remaining candidates before retrying.
+This preflight checks all three package manifests, package tarball
+shape, generated SDK metadata, install documentation, and version format even
+when only one package is selected for publication.
 
 No package is considered customer-ready merely because a local packed-consumer
 test passes; that test proves packaging shape, not registry publication or

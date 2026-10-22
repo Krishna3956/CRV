@@ -39,6 +39,10 @@ test("npm publication requires provenance and package preflight tests", () => {
   assert.match(workflow, /confirm:[\s\S]*?RELEASE_TRAIN_APPROVED/);
   assert.match(workflow, /Require reviewed release-train confirmation/);
   assert.match(workflow, /inputs\.confirm.*RELEASE_TRAIN_APPROVED/);
+  assert.match(workflow, /options: \[typescript, python, cli, all\]/);
+  assert.match(workflow, /inputs\.package == 'typescript' \|\| inputs\.package == 'all'/);
+  assert.match(workflow, /inputs\.package == 'cli' \|\| inputs\.package == 'all'/);
+  assert.match(workflow, /inputs\.package == 'python' \|\| inputs\.package == 'all'/);
 });
 
 test("Python publication is deliberate and confirmation-gated", async () => {
