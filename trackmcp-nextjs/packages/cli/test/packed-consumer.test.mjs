@@ -16,8 +16,12 @@ test("packed CLI installs cleanly and exposes init, setup, doctor, and logout", 
     const tarball = join(packDir, result.filename);
     await writeFile(join(consumer, "package.json"), JSON.stringify({ name: "trackmcp-cli-consumer", private: true, type: "module", dependencies: { "@trackmcp/cli": `file:${tarball}` } }));
     execFileSync("npm", ["install", "--ignore-scripts", "--no-audit", "--no-fund"], { cwd: consumer, env: npmEnv, stdio: "pipe" });
-    const resultRun = spawnSync("node", ["node_modules/@trackmcp/cli/bin/trackmcp.mjs", "init", "--non-interactive"], { cwd: consumer, env: { ...process.env }, encoding: "utf8" });
+    // This consumer check validates the packed CLI's deterministic
+    // non-interactive boundary. Disable the optional SDK installer so a
+    // registry outage cannot hang the release gate before that assertion.
+    const resultRun = spawnSync("node", ["node_modules/@trackmcp/cli/bin/trackmcp.mjs", "init", "--non-interactive", "--no-install"], { cwd: consumer, env: { ...process.env }, encoding: "utf8", timeout: 15_000 });
     assert.equal(resultRun.status, 1);
+    assert.equal(resultRun.error, undefined);
     assert.match(resultRun.stderr, /No usable TRACKMCP_KEY/);
   } finally {
     await rm(root, { recursive: true, force: true });
