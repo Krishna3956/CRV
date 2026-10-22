@@ -751,3 +751,16 @@ a failed product gate or a Supabase plan warning.
   original product specification, not an unplanned extra tab. No removal or
   renaming is warranted; future work should focus on parity of the specified
   journey evidence and its documented caveats.
+
+## 2026-10-22 bounded Journey funnel checkpoint
+
+- [x] The Journey surface now includes a bounded top-path funnel derived from
+  observed interaction prefixes. It reports step reach and share without
+  exposing identifiers, payloads, or raw customer content, and explicitly does
+  not classify a missing next step as abandonment.
+- [x] Journey/API and dashboard contracts passed; the complete local release
+  gate passed 125 suites, lint passed, and the production build passed. The
+  source change was pushed as `a6c3525` without a package version change.
+- [x] Hosted CI for `a6c3525` passed and App Runner deployment `39770050297`
+  completed successfully. Authenticated production Journey UAT remains a
+  separate external evidence gate.
