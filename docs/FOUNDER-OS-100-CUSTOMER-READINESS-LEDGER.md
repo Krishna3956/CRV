@@ -473,3 +473,5 @@ a failed product gate or a Supabase plan warning.
 - [x] The publish-workflow contract suite and the complete repository release
   gate pass (124 suites). No package version was changed and no package was
   published for this policy-only change.
+- [x] Single-package exception reasons are bounded to 240 characters and are
+  never echoed into CI logs; the workflow records presence only.

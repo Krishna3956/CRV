@@ -46,6 +46,9 @@ test("npm publication requires provenance and package preflight tests", () => {
   assert.match(workflow, /inputs\.package != 'all'/);
   assert.match(workflow, /SINGLE_PACKAGE_REASON/);
   assert.match(workflow, /Single-package publication is an exception/);
+  assert.match(workflow, /240 characters or fewer/);
+  assert.match(workflow, /content intentionally omitted from logs/);
+  assert.doesNotMatch(workflow, /Single-package exception recorded: \$\{SINGLE_PACKAGE_REASON\}/);
   assert.match(workflow, /inputs\.package == 'typescript' \|\| inputs\.package == 'all'/);
   assert.match(workflow, /inputs\.package == 'cli' \|\| inputs\.package == 'all'/);
   assert.match(workflow, /inputs\.package == 'python' \|\| inputs\.package == 'all'/);

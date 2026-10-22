@@ -47,11 +47,16 @@ jobs:
           SINGLE_PACKAGE_REASON: ${{ inputs.single_package_reason }}
         run: |
           set -euo pipefail
-          if [[ -z "${SINGLE_PACKAGE_REASON//[[:space:]]/}" ]]; then
+          normalized_reason="${SINGLE_PACKAGE_REASON//[[:space:]]/}"
+          if [[ -z "$normalized_reason" ]]; then
             echo "::error::Single-package publication is an exception. Use package=all, or provide a non-empty single_package_reason after emergency review."
             exit 1
           fi
-          echo "Single-package exception recorded: ${SINGLE_PACKAGE_REASON}"
+          if (( ${#SINGLE_PACKAGE_REASON} > 240 )); then
+            echo "::error::single_package_reason must be 240 characters or fewer."
+            exit 1
+          fi
+          echo "Single-package exception reason supplied (content intentionally omitted from logs)."
       - name: Audit all release artifacts before publishing
         working-directory: trackmcp-nextjs
         run: npm run test:package-release-audit
