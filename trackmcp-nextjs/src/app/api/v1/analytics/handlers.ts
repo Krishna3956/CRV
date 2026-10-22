@@ -239,20 +239,30 @@ export function createAnalyticsHandler(getAdmin: typeof getSupabaseAdmin = getSu
   const protocolFamilyOutcomes = new Map<string, { observations: number; completed: number; errors: number; input_required: number; unknown: number }>();
   const protocolFamilyEvents = (data || []) as EventRow[];
   const durableFactsResult = await supabase.from("trackmcp_semantic_facts")
-    .select("semantic,dimensions,event_type,observed_at")
+    .select("semantic,dimensions,measures,event_type,observed_at")
     .eq("workspace_id", workspaceId).gte("observed_at", since).limit(analyticsQueryLimit);
   const durableFamilyRows = durableFactsResult.error ? [] : ((durableFactsResult.data || []) as unknown[]).flatMap((row) => {
     if (!row || typeof row !== "object") return [];
     const record = row as Record<string, unknown>;
     const semantic = record.semantic;
     const dimensions = record.dimensions;
+    const measures = record.measures;
     if (!semantic || typeof semantic !== "object" || Array.isArray(semantic) || !dimensions || typeof dimensions !== "object" || Array.isArray(dimensions)) return [];
     const outcome = (semantic as Record<string, unknown>).outcome;
     const family = (dimensions as Record<string, unknown>).protocol_family;
     if (typeof family !== "string" || typeof outcome !== "string") return [];
     if (!["sampling", "elicitation", "completion", "tasks", "control_signal", "resources", "prompts", "tools", "subscriptions", "notifications"].includes(family)) return [];
     if (!["completed", "failed", "pending", "unknown", "not_observable"].includes(outcome)) return [];
-    return [{ family, outcome }];
+    const safeMeasures = measures && typeof measures === "object" && !Array.isArray(measures) ? measures as Record<string, unknown> : {};
+    const safeDimensions = dimensions as Record<string, unknown>;
+    return [{
+      family,
+      outcome,
+      observation_kind: safeDimensions.protocol_observation_kind === "protocol_request" || safeDimensions.protocol_observation_kind === "protocol_response" ? safeDimensions.protocol_observation_kind : undefined,
+      completion_value_count: typeof safeMeasures.completion_value_count === "number" ? safeMeasures.completion_value_count : undefined,
+      completion_total: typeof safeMeasures.completion_total === "number" ? safeMeasures.completion_total : undefined,
+      completion_has_more: typeof safeMeasures.completion_has_more === "boolean" ? safeMeasures.completion_has_more : undefined,
+    }];
   });
   // Semantic facts are the durable projection when the refresh worker has
   // materialized them. Older deployments may not have rows yet, so retain the
@@ -278,32 +288,44 @@ export function createAnalyticsHandler(getAdmin: typeof getSupabaseAdmin = getSu
     else current.unknown += 1;
     protocolFamilyOutcomes.set(family, current);
   }
-  const completionResponses = protocolFamilyEvents.filter((event) => {
+  const durableCompletionRows = durableFamilyRows.filter((row) => row.family === "completion");
+  const durableCompletionEvidence = durableCompletionRows.some((row) => row.observation_kind === "protocol_request" || row.observation_kind === "protocol_response");
+  const completionResponses = durableCompletionEvidence
+    ? []
+    : protocolFamilyEvents.filter((event) => {
     if (event.mcp_method !== "completion/complete" || !event.payload || typeof event.payload !== "object" || Array.isArray(event.payload)) return false;
     const metadata = (event.payload as Record<string, unknown>)._trackmcp;
     return Boolean(metadata && typeof metadata === "object" && !Array.isArray(metadata) && (metadata as Record<string, unknown>).observation_kind === "protocol_response");
-  });
-  const completionRequests = protocolFamilyEvents.filter((event) => {
+    });
+  const completionRequests = durableCompletionEvidence
+    ? []
+    : protocolFamilyEvents.filter((event) => {
     if (event.mcp_method !== "completion/complete" || !event.payload || typeof event.payload !== "object" || Array.isArray(event.payload)) return false;
     const metadata = (event.payload as Record<string, unknown>)._trackmcp;
     return Boolean(metadata && typeof metadata === "object" && !Array.isArray(metadata) && (metadata as Record<string, unknown>).observation_kind === "protocol_request");
-  });
+    });
   let completionWithMetadata = 0;
   let completionWithSuggestions = 0;
   let completionEmpty = 0;
   let completionPartial = 0;
-  for (const event of completionResponses) {
-    const metadata = (event.payload as Record<string, unknown>)._trackmcp as Record<string, unknown>;
-    const count = metadata.completion_value_count;
-    const hasMore = metadata.completion_has_more === true;
-    if (typeof count !== "number" && typeof metadata.completion_total !== "number" && typeof metadata.completion_has_more !== "boolean") continue;
+  const completionRows = durableCompletionEvidence
+    ? durableCompletionRows.map((row) => ({ observation_kind: row.observation_kind, count: row.completion_value_count, total: row.completion_total, hasMore: row.completion_has_more === true }))
+    : completionResponses.map((event) => {
+      const metadata = (event.payload as Record<string, unknown>)._trackmcp as Record<string, unknown>;
+      return { observation_kind: metadata.observation_kind, count: metadata.completion_value_count, total: metadata.completion_total, hasMore: metadata.completion_has_more === true };
+    });
+  for (const row of completionRows) {
+    if (row.observation_kind !== "protocol_response" || (typeof row.count !== "number" && typeof row.total !== "number" && typeof row.hasMore !== "boolean")) continue;
     completionWithMetadata += 1;
-    if (typeof count === "number" && count > 0) completionWithSuggestions += 1;
-    else if (count === 0) completionEmpty += 1;
-    if (hasMore) completionPartial += 1;
+    if (typeof row.count === "number" && row.count > 0) completionWithSuggestions += 1;
+    else if (row.count === 0) completionEmpty += 1;
+    if (row.hasMore) completionPartial += 1;
   }
+  const completionRequestCount = durableCompletionEvidence
+    ? durableCompletionRows.filter((row) => row.observation_kind === "protocol_request").length
+    : completionRequests.length;
   const completionActivity = {
-    requests: completionRequests.length,
+    requests: completionRequestCount,
     responses_with_metadata: completionWithMetadata,
     with_suggestions: completionWithSuggestions,
     empty_suggestions: completionEmpty,

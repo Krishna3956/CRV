@@ -72,6 +72,27 @@ test("projects bounded MRTR request counts without request contents", () => {
   assert.equal(fact.measures.input_response_count, 2);
 });
 
+test("projects bounded completion friction metadata without suggestion values", () => {
+  const fact = projectTrackMCPFact(event({
+    event_type: "protocol",
+    mcp_method: "completion/complete",
+    payload: { _trackmcp: {
+      observation_kind: "protocol_response",
+      protocol_family: "completion",
+      completion_value_count: 99,
+      completion_total: 2_000_000,
+      completion_has_more: true,
+      values: [{ value: "private" }],
+    } },
+  }));
+  assert.equal(fact.dimensions.protocol_family, "completion");
+  assert.equal(fact.dimensions.protocol_observation_kind, "protocol_response");
+  assert.equal(fact.measures.completion_value_count, 32);
+  assert.equal(fact.measures.completion_total, 1_000_000);
+  assert.equal(fact.measures.completion_has_more, true);
+  assert.equal(JSON.stringify(fact).includes("private"), false);
+});
+
 test("keeps only the bounded account key and never raw event payload", () => {
   const fact = projectTrackMCPFact(event({ account_key: "a".repeat(64), payload: { email: "person@example.com", token: "secret" } }));
   assert.equal(fact.dimensions.account_key, "a".repeat(64));

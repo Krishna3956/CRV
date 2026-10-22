@@ -34,6 +34,8 @@ export type TrackMCPFact = {
     task_id_hash?: string;
     /** Coarse protocol family; raw method names remain in the source event only. */
     protocol_family?: ReturnType<typeof protocolFamilyForMethod>;
+    /** Allowlisted protocol request/response role for durable friction metrics. */
+    protocol_observation_kind?: "protocol_request" | "protocol_response";
   };
   measures: {
     duration_ms?: number;
@@ -41,6 +43,9 @@ export type TrackMCPFact = {
     retry_number?: number;
     input_request_count?: number;
     input_response_count?: number;
+    completion_value_count?: number;
+    completion_total?: number;
+    completion_has_more?: boolean;
   };
   error?: {
     class?: string;
@@ -80,6 +85,16 @@ function factTypeFor(event: CanonicalTrackMCPEvent): TrackMCPFactType {
 export function projectTrackMCPFact(event: CanonicalTrackMCPEvent): TrackMCPFact {
   const semantic = classifyTrackMCPOutcome(event);
   const taskId = bounded(event.task_id, 256);
+  const payloadMetadata = event.payload && typeof event.payload === "object" && !Array.isArray(event.payload)
+    && event.payload._trackmcp && typeof event.payload._trackmcp === "object" && !Array.isArray(event.payload._trackmcp)
+    ? event.payload._trackmcp as Record<string, unknown>
+    : undefined;
+  const observationKind = payloadMetadata?.observation_kind === "protocol_request" || payloadMetadata?.observation_kind === "protocol_response"
+    ? payloadMetadata.observation_kind
+    : undefined;
+  const completionValueCount = boundedNonNegative(typeof payloadMetadata?.completion_value_count === "number" ? payloadMetadata.completion_value_count : undefined, 32);
+  const completionTotal = boundedNonNegative(typeof payloadMetadata?.completion_total === "number" ? payloadMetadata.completion_total : undefined, 1_000_000);
+  const completionHasMore = typeof payloadMetadata?.completion_has_more === "boolean" ? payloadMetadata.completion_has_more : undefined;
   const fact: TrackMCPFact = {
     fact_version: TRACKMCP_FACT_CONTRACT_VERSION,
     fact_type: factTypeFor(event),
@@ -101,6 +116,7 @@ export function projectTrackMCPFact(event: CanonicalTrackMCPEvent): TrackMCPFact
       ...(bounded(event.interaction_id, 128) ? { interaction_id: bounded(event.interaction_id, 128) } : {}),
       ...(taskId ? { task_id_hash: createHash("sha256").update(taskId, "utf8").digest("hex") } : {}),
       ...(protocolFamilyForEvent(event) ? { protocol_family: protocolFamilyForEvent(event) } : {}),
+      ...(observationKind ? { protocol_observation_kind: observationKind } : {}),
     },
     measures: {
       duration_ms: boundedNonNegative(event.duration_ms, 86_400_000),
@@ -108,6 +124,9 @@ export function projectTrackMCPFact(event: CanonicalTrackMCPEvent): TrackMCPFact
       retry_number: boundedNonNegative(event.retry_number, 1_000),
       ...(boundedNonNegative(event.input_request_count, 100) !== undefined ? { input_request_count: boundedNonNegative(event.input_request_count, 100) } : {}),
       ...(boundedNonNegative(event.input_response_count, 100) !== undefined ? { input_response_count: boundedNonNegative(event.input_response_count, 100) } : {}),
+      ...(completionValueCount !== undefined ? { completion_value_count: completionValueCount } : {}),
+      ...(completionTotal !== undefined ? { completion_total: completionTotal } : {}),
+      ...(completionHasMore !== undefined ? { completion_has_more: completionHasMore } : {}),
     },
   };
 
