@@ -480,3 +480,9 @@ a failed product gate or a Supabase plan warning.
   sitemaps, and the current npm/PyPI artifacts. No credentials were read and
   no production mutation was performed; authenticated workspace UAT remains a
   separate gate.
+- [x] Browser UAT found and closed a stale deployed Setup sentence that said
+  protobuf was disabled even though bounded OTLP/HTTP protobuf support is
+  shipped. The source contract now requires “JSON or protobuf” and explicitly
+  excludes only gRPC; the full 124-suite release gate passed before push
+  `4cec2b4`. App Runner rollout and a repeat browser check remain pending for
+  the exact SHA.
