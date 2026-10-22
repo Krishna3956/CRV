@@ -5,6 +5,7 @@ const MAX_STRING_LENGTH = 256;
 const MAX_VERSIONS = 16;
 const MAX_CAPABILITIES = 32;
 const MAX_TOOLS = 128;
+const MAX_TASKS = 32;
 
 export type ModernMcpDiscovery = {
   protocolVersion: typeof MODERN_MCP_PROTOCOL_VERSION;
@@ -28,6 +29,16 @@ export type ModernMcpTool = {
 
 export type ModernMcpToolPage = {
   tools: ModernMcpTool[];
+  nextCursor?: string;
+};
+
+export type ModernMcpTask = {
+  taskId: string;
+  status: string;
+};
+
+export type ModernMcpTaskPage = {
+  tasks: ModernMcpTask[];
   nextCursor?: string;
 };
 
@@ -105,5 +116,31 @@ export class ModernMcpClient {
     });
     const nextCursor = boundedString(result.nextCursor);
     return { tools, ...(nextCursor ? { nextCursor } : {}) };
+  }
+
+  /** Retrieve one bounded, cursor-based task status page. This observes task
+   * state only; it never creates, cancels, or completes a task. */
+  async listTasks(cursor?: string): Promise<ModernMcpTaskPage> {
+    const result = await this.request("tasks/list", cursor ? { cursor: cursor.slice(0, MAX_STRING_LENGTH), limit: MAX_TASKS } : { limit: MAX_TASKS });
+    if (!Array.isArray(result.tasks)) throw new ModernMcpProtocolError("invalid_response", "Modern MCP tasks/list returned no tasks array.");
+    const tasks = result.tasks.slice(0, MAX_TASKS).flatMap((value): ModernMcpTask[] => {
+      if (!boundedObject(value)) return [];
+      const taskId = boundedString(value.taskId);
+      const status = boundedString(value.status);
+      if (!taskId || !status || !/^[A-Za-z0-9_.:-]{1,256}$/.test(taskId)) return [];
+      return [{ taskId, status }];
+    });
+    const nextCursor = boundedString(result.nextCursor);
+    return { tasks, ...(nextCursor ? { nextCursor } : {}) };
+  }
+
+  /** Retrieve one task's bounded status. This is observation only. */
+  async getTask(taskId: string): Promise<ModernMcpTask> {
+    if (!/^[A-Za-z0-9_.:-]{1,256}$/.test(taskId)) throw new ModernMcpProtocolError("invalid_response", "Modern MCP tasks/get requires a bounded opaque task identifier.");
+    const result = await this.request("tasks/get", { taskId: taskId.slice(0, MAX_STRING_LENGTH) });
+    const boundedTaskId = boundedString(result.taskId);
+    const status = boundedString(result.status);
+    if (!boundedTaskId || !status || !/^[A-Za-z0-9_.:-]{1,256}$/.test(boundedTaskId)) throw new ModernMcpProtocolError("invalid_response", "Modern MCP tasks/get returned an invalid task status.");
+    return { taskId: boundedTaskId, status };
   }
 }
