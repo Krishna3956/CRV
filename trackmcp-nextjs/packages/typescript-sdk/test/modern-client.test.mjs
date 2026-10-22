@@ -49,6 +49,32 @@ test("modern client rejects a tools/list response without an array", async () =>
   await assert.rejects(() => client.listTools(), (error) => error instanceof ModernMcpProtocolError && error.code === "invalid_response");
 });
 
+test("modern client lists bounded resource and prompt catalogs without reading contents", async () => {
+  const requests = [];
+  const client = new ModernMcpClient({ endpoint: "https://mcp.example.test", fetch: async (_input, init) => {
+    const body = JSON.parse(init.body);
+    requests.push(body);
+    return body.method === "resources/list"
+      ? response({ result: { resources: [{ uri: "file:///safe/report", name: "Report", description: "A report", mimeType: "text/plain" }, { uri: "\u0000bad" }], nextCursor: "resource-cursor" } })
+      : response({ result: { prompts: [{ name: "summarize", description: "Summarize", arguments: [{ name: "format", description: "ignored", required: true }, { name: "secret", default: "never returned" }] }, { name: "bad name!" }], nextCursor: "prompt-cursor" } });
+  } });
+  const resources = await client.listResources("resource-page");
+  const prompts = await client.listPrompts();
+  assert.deepEqual(requests.map(({ method, params }) => ({ method, params })), [
+    { method: "resources/list", params: { cursor: "resource-page" } },
+    { method: "prompts/list", params: {} },
+  ]);
+  assert.deepEqual(resources, { resources: [{ uri: "file:///safe/report", name: "Report", description: "A report", mimeType: "text/plain" }], nextCursor: "resource-cursor" });
+  assert.deepEqual(prompts, { prompts: [{ name: "summarize", description: "Summarize", argumentNames: ["format", "secret"] }], nextCursor: "prompt-cursor" });
+  assert.equal(JSON.stringify(prompts).includes("never returned"), false);
+});
+
+test("modern client rejects malformed resource and prompt catalog envelopes", async () => {
+  const client = new ModernMcpClient({ endpoint: "https://mcp.example.test", fetch: async (_input, init) => response({ result: { [JSON.parse(init.body).method === "resources/list" ? "prompts" : "resources"]: [] } }) });
+  await assert.rejects(() => client.listResources(), (error) => error instanceof ModernMcpProtocolError && error.code === "invalid_response");
+  await assert.rejects(() => client.listPrompts(), (error) => error instanceof ModernMcpProtocolError && error.code === "invalid_response");
+});
+
 test("modern client observes bounded task pages and status without mutation", async () => {
   const requests = [];
   const client = new ModernMcpClient({ endpoint: "https://mcp.example.test", fetch: async (_input, init) => {

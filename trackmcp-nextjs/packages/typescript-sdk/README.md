@@ -74,6 +74,12 @@ const page = await new ModernMcpClient({ endpoint: process.env.MCP_ENDPOINT! }).
 for (const tool of page.tools) console.log(tool.name);
 ```
 
+The same bounded catalog surface exposes `resources/list` and `prompts/list`:
+`listResources` returns sanitized resource metadata without reading resource
+contents, while `listPrompts` returns prompt names and argument names without
+requesting or retaining argument values. Both methods support opaque cursors
+and remain observation-only.
+
 Task state can be observed without mutating the server. `listTasks` returns a
 bounded page of opaque task identifiers and statuses, and `getTask` reads one
 bounded status:
