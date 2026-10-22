@@ -19,7 +19,7 @@ export const metadata: Metadata = pageMeta({
 
 const endpoints: { method: string; path: string; desc: string }[] = [
   { method: "POST", path: "/api/v1/ingest", desc: "Submit a validated telemetry batch" },
-  { method: "POST", path: "/api/v1/otel/v1/traces", desc: "Accept bounded OTLP/HTTP JSON MCP span metadata; protobuf and gRPC are unsupported" },
+  { method: "POST", path: "/api/v1/otel/v1/traces", desc: "Accept bounded OTLP/HTTP JSON or protobuf MCP span metadata; gRPC is unsupported" },
   { method: "GET", path: "/api/v1/analytics?days=30[&workspace_id=...]", desc: "Workspace metrics, tools, clients, sessions, and insights" },
   { method: "GET", path: "/api/v1/tool-quality?days=30[&workspace_id=...]", desc: "Bounded tool-quality metrics, catalog history, workflow associations, and insufficient-data states" },
   { method: "GET", path: "/api/v1/alerts?limit=50[&workspace_id=...]", desc: "List authenticated workspace alert configurations" },
@@ -88,10 +88,10 @@ export default function ApiDocsPage() {
   }]}'`}</Code>
       </DocSection>
 
-      <DocSection title="OpenTelemetry JSON interoperability">
+      <DocSection title="OpenTelemetry interoperability">
         <Para>
           If you already emit OpenTelemetry spans, TrackMCP accepts a narrow
-          <Inline>OTLP/HTTP JSON</Inline> adapter at
+          <Inline>OTLP/HTTP JSON or protobuf</Inline> adapter at
           <Inline>/api/v1/otel/v1/traces</Inline>. Send the same workspace bearer key
           and only MCP-relevant metadata is mapped: operation, tool name, protocol,
           transport, session/request identifiers, client metadata, timing, and status.
@@ -121,8 +121,8 @@ export default function ApiDocsPage() {
   }'`}</Code>
         <Para>
           This is not a general-purpose trace archive and it is not a full OTel
-          integration. The endpoint accepts JSON only, up to 256 KiB and 100 spans per
-          request. Protobuf receives <Inline>415 Unsupported Media Type</Inline>; OTLP/gRPC
+          integration. The endpoint accepts either JSON or protobuf, up to 256 KiB and
+          100 spans per request. Protobuf is metadata-only, like JSON; OTLP/gRPC
           and TrackMCP-managed external OTel export are not supported. The response
           reports accepted and rejected span counts—verify a first accepted event in the
           dashboard before relying on the integration.

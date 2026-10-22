@@ -7,7 +7,7 @@ const root = path.resolve(process.cwd(), "..");
 const doc = fs.readFileSync(path.join(root, "docs/FOUNDER-OS-PILOT-SCOPE.md"), "utf8");
 
 test("pilot scope classifies supported, limited, and out-of-scope capabilities", () => {
-  for (const phrase of ["supported", "limited", "out of scope", "Terminal-first CLI activation", "Python SDK", "OTLP/HTTP JSON only", "Production scheduler SLOs"]) {
+  for (const phrase of ["supported", "limited", "out of scope", "Terminal-first CLI activation", "Python SDK", "OTLP/HTTP JSON or protobuf", "Production scheduler SLOs"]) {
     assert.ok(doc.toLowerCase().includes(phrase.toLowerCase()), `missing scope classification: ${phrase}`);
   }
 });

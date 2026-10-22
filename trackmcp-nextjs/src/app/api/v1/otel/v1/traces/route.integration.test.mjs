@@ -39,7 +39,7 @@ test("clean customer-like OTLP/HTTP JSON emitter reaches authenticated ingest wi
   assert.deepEqual(await response.json(), {
     accepted: 1,
     rejected: 0,
-    otel: { accepted_spans: 1, rejected_spans: 0, protocol: "otlp-http-json", protobuf: "unsupported" },
+    otel: { accepted_spans: 1, rejected_spans: 0, protocol: "otlp-http-json", protobuf: "supported_metadata_only" },
   });
   assert.equal(response.headers.get("x-trackmcp-otel-protocol"), "otlp-http-json");
   assert.equal(forwarded.authorization, "Bearer tmcp_fixture_key");
@@ -66,11 +66,11 @@ test("OTLP route reports spans that are structurally valid but outside the MCP m
     accepted_spans: 1,
     rejected_spans: 1,
     protocol: "otlp-http-json",
-    protobuf: "unsupported",
+    protobuf: "supported_metadata_only",
   });
 });
 
-test("OTLP route rejects non-JSON input before calling ingest", async () => {
+test("OTLP route rejects malformed unsupported input before calling ingest", async () => {
   let called = false;
   const handler = createOtelTracesHandler(async () => {
     called = true;
@@ -78,7 +78,7 @@ test("OTLP route rejects non-JSON input before calling ingest", async () => {
   });
   const response = await handler(new Request("https://trackmcp.test/api/v1/otel/v1/traces", {
     method: "POST",
-    headers: { "content-type": "application/x-protobuf" },
+    headers: { "content-type": "text/plain" },
     body: "protobuf",
   }));
   assert.equal(response.status, 415);

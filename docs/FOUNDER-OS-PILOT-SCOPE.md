@@ -11,7 +11,7 @@ production/operator evidence required in the work queue.
 | Existing-key reuse and diagnostics | supported | `init` reuses a valid key; `doctor` reports bounded status without printing it | Clean consumer run with a real key |
 | TypeScript/Node.js SDK | supported | Server-boundary capture, local redaction, bounded fail-open delivery | Exact published package and first accepted event |
 | Python SDK | supported with bounded coverage | Server-boundary capture and documented setup; no claim of client-side instrumentation | Exact published package and first accepted event |
-| OTLP interoperability | limited | OTLP/HTTP JSON only, with bounded MCP mapping and local redaction | Production JSON smoke if included in the launch scope |
+| OTLP interoperability | limited | OTLP/HTTP JSON or protobuf, with bounded MCP mapping and local redaction; OTLP/gRPC remains out of scope | Production OTLP/HTTP smoke if included in the launch scope |
 | Ingest | supported | Authenticated, workspace-derived key scope, bounded payloads, atomic batches, revocation checks | Production first-ingest and cross-workspace negative test |
 | Dashboard analytics | limited | Bounded windows/pages/scans; partial or truncated evidence is disclosed | Production dashboard smoke and query-cost/latency evidence |
 | Setup readiness contract | supported with bounded coverage | The dashboard reports required key, first-event, MCP-method, transport, and privacy-policy evidence; identity resolution is optional and never blocks connection | Production setup response and first-event evidence |
