@@ -16,7 +16,7 @@ test("package readiness distinguishes local package checks from registry publica
     "`@trackmcp/cli@0.1.4`",
     "disposable production activation proof",
     "`trackmcp==0.1.4`",
-    "`trackmcp==0.1.5`",
+    "`trackmcp==0.1.6`",
     "PyPI upload, artifact check, and exact-registry consumer test",
     "historical 0.1.4 checksums",
   ]) assert.match(normalizedReadiness, new RegExp(term.replace(/[()[\].+?^$|{}\\]/g, "\\$&")));

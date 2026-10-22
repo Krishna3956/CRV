@@ -133,7 +133,7 @@ async function registryChecks() {
   const checks = [];
   const npmPackage = process.env.TRACKMCP_EXPECTED_NPM_SDK || "@trackmcp/sdk@0.1.9";
   const cliPackage = process.env.TRACKMCP_EXPECTED_NPM_CLI || "@trackmcp/cli@0.1.4";
-  const pythonPackage = process.env.TRACKMCP_EXPECTED_PYPI || "trackmcp@0.1.5";
+  const pythonPackage = process.env.TRACKMCP_EXPECTED_PYPI || "trackmcp@0.1.6";
   const expectedNpmIntegrity = {
     [npmPackage]: process.env.TRACKMCP_EXPECTED_NPM_SDK_INTEGRITY || "",
     [cliPackage]: process.env.TRACKMCP_EXPECTED_NPM_CLI_INTEGRITY || "",
@@ -167,9 +167,9 @@ async function registryChecks() {
   const sdist = files.find((file) => file.packagetype === "sdist");
   if (!wheel?.digests?.sha256 || !sdist?.digests?.sha256) fail(`PyPI checksums missing for ${name}==${version}`);
   const expectedWheel = process.env.TRACKMCP_EXPECTED_PYPI_WHEEL_SHA256
-    || (pythonPackage === "trackmcp@0.1.5" ? "b79ffa8ad638d744ecab121139028ea1a108adf5f48c16fc402bfc0e49724925" : "");
+    || (pythonPackage === "trackmcp@0.1.6" ? "f68c9421d92cc43a735b9e1ca9060130d351780b82fa8a3df9e43b34177a77c2" : "");
   const expectedSdist = process.env.TRACKMCP_EXPECTED_PYPI_SDIST_SHA256
-    || (pythonPackage === "trackmcp@0.1.5" ? "b3a9070d2116c0d81c1c9c9e53ebea8911866907f668f09dbd08a16bb4268c50" : "");
+    || (pythonPackage === "trackmcp@0.1.6" ? "17bf699fa42ce317de982d0588c9c7135037f3eefe9add8727fc65a40ea611c1" : "");
   if (expectedWheel && wheel.digests.sha256 !== expectedWheel) fail(`PyPI wheel checksum mismatch for ${name}==${version}`);
   if (expectedSdist && sdist.digests.sha256 !== expectedSdist) fail(`PyPI sdist checksum mismatch for ${name}==${version}`);
   checks.push({ label: `PyPI ${name}==${version}`, status: response.status, wheel_sha256_present: true, sdist_sha256_present: true });

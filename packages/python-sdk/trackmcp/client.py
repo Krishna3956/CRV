@@ -294,6 +294,37 @@ class TrackMCP:
         if should_flush:
             self.flush()
 
+    def record_transport_failure(
+        self,
+        kind: Literal["transport_error", "transport_closed"] = "transport_error",
+        *,
+        session_id: Optional[str] = None,
+        session_id_source: str = "transport_generated",
+        duration_ms: int = 0,
+    ) -> None:
+        """Record a transport-level disconnect or crash without capturing details.
+
+        This hook is for failures that happen outside an MCP request boundary
+        (for example, a stdio process exiting or an HTTP stream closing). It
+        deliberately accepts only a bounded kind and emits metadata-only
+        session evidence; exception text, URLs, headers, and payloads never
+        enter the event.
+        """
+        if kind not in ("transport_error", "transport_closed"):
+            raise ValueError("transport failure kind must be transport_error or transport_closed")
+        self.capture({
+            "event_type": "session",
+            "mcp_method": "transport",
+            "session_id": session_id or "transport-session",
+            "session_id_source": session_id_source if session_id_source in ("protocol", "transport_generated", "external") else "transport_generated",
+            "started_at": _iso_now(),
+            "duration_ms": max(0, min(86_400_000, int(duration_ms))),
+            "success": False,
+            "is_error": True,
+            "error_class": kind,
+            "payload": {"_trackmcp": {"observation_kind": kind, "observation_source": "transport"}},
+        })
+
     def _correlation_for(self, event: Dict[str, Any], supplied_handle: Optional[str], supplied_source: Optional[TrackMCPCorrelationHandleSource]) -> Dict[str, Any]:
         if self.options.correlation_mode == "issued" and supplied_source == "issued" and _safe_correlation_handle(supplied_handle):
             return {"correlation_handle": supplied_handle, "correlation_handle_source": "issued"}
