@@ -28,6 +28,11 @@ For MRTR/task responses, call `RecordProtocolResult` with the bounded
 status, and request/response counts; result content and input values are never
 queued.
 
+For `completion/complete`, it additionally emits bounded friction metadata
+(`completion_value_count` up to 32, `completion_total` up to 1,000,000, and
+`completion_has_more`). Completion suggestion values and arguments are never
+queued.
+
 After configuring the key, make one real MCP tool call, flush during shutdown
 or after a bounded batch, and confirm the event in Setup. Key creation alone
 never counts as telemetry.

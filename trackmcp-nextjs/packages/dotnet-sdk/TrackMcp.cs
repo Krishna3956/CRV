@@ -81,7 +81,16 @@ public sealed class TrackMcpClient : IDisposable
         var resultType = ReadAllowlisted(result, new[] { "resultType", "result_type" }, "complete", "input_required", "task");
         var taskStatus = ReadAllowlisted(result, new[] { "taskStatus", "task_status" }, "working", "input_required", "completed", "failed", "cancelled", "expired");
         var isError = ReadBool(result, "isError", "is_error");
-        Capture("protocol", method, new Dictionary<string, object?> { ["_trackmcp"] = new Dictionary<string, object?> { ["observation_kind"] = "protocol_response", ["observation_source"] = "server" } }, BoundSessionId(sessionId), isError is true ? false : true, resultType: resultType, taskStatus: taskStatus, inputRequestCount: BoundedCount(result, "inputRequests", "input_requests"), inputResponseCount: BoundedCount(result, "inputResponses", "input_responses"));
+        var metadata = new Dictionary<string, object?> { ["observation_kind"] = "protocol_response", ["observation_source"] = "server" };
+        if (method == "completion/complete" && result["completion"] is JsonObject completion)
+        {
+            metadata["protocol_family"] = "completion";
+            if (completion["values"] is JsonArray values) metadata["completion_value_count"] = Math.Min(32, values.Count);
+            if (completion["total"] is JsonValue total && total.TryGetValue<int>(out var totalValue) && totalValue is >= 0 and <= 1_000_000) metadata["completion_total"] = totalValue;
+            if (completion["hasMore"] is JsonValue hasMore && hasMore.TryGetValue<bool>(out var more)) metadata["completion_has_more"] = more;
+            else if (completion["has_more"] is JsonValue snakeMore && snakeMore.TryGetValue<bool>(out var snake)) metadata["completion_has_more"] = snake;
+        }
+        Capture("protocol", method, new Dictionary<string, object?> { ["_trackmcp"] = metadata }, BoundSessionId(sessionId), isError is true ? false : true, resultType: resultType, taskStatus: taskStatus, inputRequestCount: BoundedCount(result, "inputRequests", "input_requests"), inputResponseCount: BoundedCount(result, "inputResponses", "input_responses"));
     }
 
     private static string? ReadAllowlisted(JsonObject result, string[] keys, params string[] allowed)

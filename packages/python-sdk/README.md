@@ -35,6 +35,12 @@ stores task handles, request values, response content, or private reasoning.
 This is evidence for analytics, not a claim that the Python middleware
 implements the full Tasks wire lifecycle.
 
+For `completion/complete`, the middleware records only bounded completion
+friction metadata: returned value count (capped at 32), optional total
+(capped at 1,000,000), and the `hasMore` flag. Suggestion values, arguments,
+and completion content are never queued; analytics uses these fields only to
+distinguish empty and partial responses.
+
 ```python
 import os
 from mcp.server.fastmcp import FastMCP

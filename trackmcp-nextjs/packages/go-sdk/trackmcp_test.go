@@ -83,3 +83,17 @@ func TestRecordProtocolResultAcceptsNormalizedSnakeCaseMetadata(t *testing.T) {
 	if event.ResultType != "task" || event.TaskStatus != "completed" || event.Success == nil || *event.Success || event.IsError == nil || !*event.IsError { t.Fatalf("unexpected normalized metadata: %#v", event) }
 	if event.InputRequestCount == nil || *event.InputRequestCount != 2 || event.InputResponseCount == nil || *event.InputResponseCount != 1 { t.Fatalf("unexpected normalized counts: %#v", event) }
 }
+
+func TestRecordCompletionMetadataIsBoundedAndValueFree(t *testing.T) {
+	client := New(Options{APIKey: "tmcp_test"})
+	values := make([]any, 40)
+	for index := range values { values[index] = map[string]any{"value": "private-suggestion"} }
+	client.RecordProtocolResult("completion/complete", map[string]any{
+		"completion": map[string]any{"values": values, "total": 99, "hasMore": true, "secret": "omit"},
+	}, "session-completion")
+	if len(client.queue) != 1 { t.Fatalf("expected one event, got %d", len(client.queue)) }
+	metadata := client.queue[0].Payload["_trackmcp"].(map[string]any)
+	if metadata["protocol_family"] != "completion" || metadata["completion_value_count"] != 32 || metadata["completion_total"] != 99 || metadata["completion_has_more"] != true { t.Fatalf("unexpected completion metadata: %#v", metadata) }
+	if _, ok := metadata["values"]; ok { t.Fatal("completion values were retained") }
+	if _, ok := metadata["secret"]; ok { t.Fatal("completion secret was retained") }
+}

@@ -167,8 +167,30 @@ func (c *Client) RecordProtocolResult(method string, result map[string]any, sess
 	if value, ok := firstBool(result, "isError", "is_error"); ok { event.IsError, event.Success = boolPtr(value), boolPtr(!value) }
 	if count, ok := boundedCountFrom(result, "inputRequests", "input_requests"); ok { event.InputRequestCount = &count }
 	if count, ok := boundedCountFrom(result, "inputResponses", "input_responses"); ok { event.InputResponseCount = &count }
-	event.Payload = map[string]any{"_trackmcp": map[string]any{"observation_kind": "protocol_response", "observation_source": "server"}}
+	metadata := map[string]any{"observation_kind": "protocol_response", "observation_source": "server"}
+	if method == "completion/complete" {
+		if completion, ok := result["completion"].(map[string]any); ok {
+			metadata["protocol_family"] = "completion"
+			if values, ok := completion["values"].([]any); ok { metadata["completion_value_count"] = minInt(len(values), 32) }
+			if total, ok := boundedCompletionTotal(completion["total"]); ok { metadata["completion_total"] = total }
+			if hasMore, ok := completion["hasMore"].(bool); ok { metadata["completion_has_more"] = hasMore }
+			if hasMore, ok := completion["has_more"].(bool); ok { metadata["completion_has_more"] = hasMore }
+		}
+	}
+	event.Payload = map[string]any{"_trackmcp": metadata}
 	c.Capture(event)
+}
+
+func boundedCompletionTotal(value any) (int, bool) {
+	switch typed := value.(type) {
+	case int:
+		if typed >= 0 && typed <= 1000000 { return typed, true }
+	case int64:
+		if typed >= 0 && typed <= 1000000 { return int(typed), true }
+	case float64:
+		if typed >= 0 && typed <= 1000000 && typed == float64(int(typed)) { return int(typed), true }
+	}
+	return 0, false
 }
 
 func boundedCountFrom(result map[string]any, keys ...string) (int, bool) {

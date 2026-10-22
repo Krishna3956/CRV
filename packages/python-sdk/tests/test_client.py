@@ -5,7 +5,7 @@ from http.server import BaseHTTPRequestHandler, HTTPServer
 from unittest import TestCase
 
 from trackmcp import TrackMCP, TrackMCPOptions, trackmcp_report_missing
-from trackmcp.client import TrackMCPEvent, _TrackMCPMiddleware, _catalog_observation, _protocol_result_metadata, interaction_entity_observation
+from trackmcp.client import TrackMCPEvent, _TrackMCPMiddleware, _catalog_observation, _protocol_metadata_payload, _protocol_result_metadata, interaction_entity_observation
 from trackmcp.privacy import sanitize_payload
 
 
@@ -36,6 +36,16 @@ class TrackMCPClientTest(TestCase):
         self.assertNotIn("raw-task-handle", json.dumps(metadata))
         self.assertEqual(_protocol_result_metadata({"result_type": "input_required", "input_requests": [1]}), {"result_type": "input_required", "input_request_count": 1})
         self.assertEqual(_protocol_result_metadata({"resultType": "unsupported", "inputRequests": "not-a-list"}), {})
+
+    def test_completion_metadata_is_bounded_and_value_free(self):
+        result = {"completion": {"values": [{"value": "private"}] * 40, "total": 99, "hasMore": True, "secret": "omit"}}
+        metadata = _protocol_result_metadata(result)
+        self.assertEqual(metadata, {"completion_value_count": 32, "completion_total": 99, "completion_has_more": True})
+        payload = _protocol_metadata_payload("completion/complete", result)
+        serialized = json.dumps(payload)
+        self.assertNotIn("private", serialized)
+        self.assertNotIn("secret", serialized)
+        self.assertEqual(payload["_trackmcp"]["protocol_family"], "completion")
 
     def test_interaction_entity_observation_is_hash_only(self):
         resource = interaction_entity_observation("resources/read", {"uri": "secret://user:pass/private"})

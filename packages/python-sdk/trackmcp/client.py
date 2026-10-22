@@ -196,7 +196,31 @@ def _protocol_result_metadata(result: Any) -> Dict[str, Any]:
         metadata["input_request_count"] = min(100, len(requests))
     if isinstance(responses, list):
         metadata["input_response_count"] = min(100, len(responses))
+    completion = result.get("completion")
+    if isinstance(completion, dict):
+        values = completion.get("values")
+        if isinstance(values, list):
+            metadata["completion_value_count"] = min(32, len(values))
+        total = completion.get("total")
+        if isinstance(total, int) and not isinstance(total, bool) and 0 <= total <= 1_000_000:
+            metadata["completion_total"] = total
+        has_more = completion.get("hasMore", completion.get("has_more"))
+        if isinstance(has_more, bool):
+            metadata["completion_has_more"] = has_more
     return metadata
+
+
+def _protocol_metadata_payload(method: Optional[str], result: Any) -> Dict[str, Any]:
+    """Return bounded protocol metadata without retaining completion values."""
+    metadata = _protocol_result_metadata(result)
+    if method != "completion/complete" or not any(key.startswith("completion_") for key in metadata):
+        return {"_trackmcp": {"observation_kind": "protocol_response", "observation_source": "middleware"}}
+    return {"_trackmcp": {
+        "observation_kind": "protocol_response",
+        "observation_source": "middleware",
+        "protocol_family": "completion",
+        **{key: value for key, value in metadata.items() if key.startswith("completion_")},
+    }}
 
 
 def _entity_protocol_event(method: Optional[str], entity: Optional[Dict[str, str]], *, request_id: Optional[str] = None,
@@ -576,7 +600,8 @@ class _TrackMCPMiddleware:
             elif (entity := interaction_entity_observation(method, params)):
                 self.client.capture(_entity_protocol_event(method, entity, request_id=request_id, session_id=session_id, session_id_source=session_id_source, client_name=self.client_name, client_version=self.client_version, started=started, success=not is_error, result=result_data))
             else:
-                self.client.capture({"event_type": "protocol", "mcp_method": method, "request_id": request_id, "session_id": session_id, "session_id_source": session_id_source, "client_name": self.client_name, "client_version": self.client_version, "started_at": _iso_from_epoch(started), "duration_ms": round((time.time() - started) * 1000), "success": not is_error, "is_error": is_error, **_protocol_result_metadata(result_data), "payload": {"params": params, "result": result_data}})
+                payload = _protocol_metadata_payload(method, result_data) if method == "completion/complete" else {"params": params, "result": result_data}
+                self.client.capture({"event_type": "protocol", "mcp_method": method, "request_id": request_id, "session_id": session_id, "session_id_source": session_id_source, "client_name": self.client_name, "client_version": self.client_version, "started_at": _iso_from_epoch(started), "duration_ms": round((time.time() - started) * 1000), "success": not is_error, "is_error": is_error, **_protocol_result_metadata(result_data), "payload": payload})
             return result
         except Exception as error:
             if method == "shutdown" and self.lifecycle_started and not self.lifecycle_ended:

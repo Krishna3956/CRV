@@ -27,5 +27,10 @@ map. It emits only the allowlisted result discriminator, task status, and
 bounded request/response counts; result content and input values are never
 queued.
 
+For `completion/complete`, the same call also records bounded friction
+metadata (`completion_value_count` up to 32, `completion_total` up to
+1,000,000, and `completion_has_more`). Completion suggestion values and
+arguments are never queued.
+
 After configuring the key, make one real tool call, flush, and confirm the
 event in Setup. Key acceptance alone is not proof that telemetry arrived.
