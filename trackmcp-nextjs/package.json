@@ -125,6 +125,7 @@
     "test:protocol-matrix": "node --test scripts/protocol-matrix.test.mjs",
     "test:protocol-fixtures": "node --experimental-strip-types --test src/lib/telemetry/protocol-fixtures.test.ts",
     "test:package-release-audit": "node scripts/package-release-audit.mjs",
+    "test:package-consumer-gate": "node --test scripts/package-consumer-gate.contract.test.mjs",
     "test:package-provenance": "node --test scripts/package-provenance.contract.test.mjs",
     "test:package-consumers": "node scripts/package-consumer-gate.mjs",
     "test:production-load-harness": "node --test scripts/production-load-harness.test.mjs",
