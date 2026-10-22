@@ -27,5 +27,7 @@ test("public protocol docs do not claim the published SDK is a complete v2 clien
   const docs = await readFile(new URL("../src/app/docs/protocol/page.tsx", import.meta.url), "utf8");
   assert.match(docs, /observability adapter/i);
   assert.match(docs, /not a claim that the SDK implements every modern client lifecycle/i);
+  assert.match(docs, /cooperative cancellations/i);
+  assert.match(docs, /task creation, notification subscriptions, and result payload retrieval remain outside/i);
   assert.doesNotMatch(docs, /until a v2 SDK adapter is released/i);
 });

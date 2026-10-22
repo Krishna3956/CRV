@@ -194,3 +194,9 @@ just because a README or marketing page mentions it.
   when its poll/time budget is exhausted. Task results and input payloads are
   not returned by the helper; task status remains observation-only. SDK tests
   now pass 70/70 plus the packed consumer check.
+
+- 2026-10-22: Reconciled the public protocol documentation with the modern
+  client task controls. The docs now distinguish caller-requested task updates
+  and cooperative cancellation from unsupported task creation, notification
+  subscriptions, and result-payload retrieval; a protocol-matrix contract
+  prevents the old "never mutates task state" wording from returning.
