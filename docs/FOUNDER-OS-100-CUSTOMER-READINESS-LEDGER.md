@@ -507,3 +507,18 @@ a failed product gate or a Supabase plan warning.
   hashed prompt identity and explicit `input_required` result state; raw prompt
   names are asserted absent. The focused refresh-handler suite and full
   124-suite release gate pass. Production prompt-read exercise remains open.
+
+## 2026-10-22 protocol outcome read-model checkpoint
+
+- [x] Authenticated analytics now distinguishes explicit `completed` outcomes
+  from `error`, `input_required`, and `unknown` for every bounded protocol
+  family, including completion, sampling, and elicitation. The projection is
+  count-only and retains no method arguments, result bodies, or identifiers.
+- [x] Integration coverage exercises completion, elicitation, and sampling
+  completed/input-required states and preserves unknown lifecycle activity for
+  notifications, subscriptions, and tasks. The complete 124-suite release
+  gate passed.
+- [ ] This is not a claim of a durable family-specific completion/sampling/
+  elicitation entity model. Production authenticated UAT, capability-aware
+  request/result joins, input lifecycle persistence, and broader runtime
+  interoperability remain open in the protocol matrix.

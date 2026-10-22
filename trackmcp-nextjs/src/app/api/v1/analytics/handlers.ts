@@ -236,7 +236,7 @@ export function createAnalyticsHandler(getAdmin: typeof getSupabaseAdmin = getSu
 
   const events = ((data || []) as EventRow[]).filter((event) => event.observation_source === "server");
   const protocolFamilyCounts = new Map<string, number>();
-  const protocolFamilyOutcomes = new Map<string, { observations: number; errors: number; input_required: number; unknown: number }>();
+  const protocolFamilyOutcomes = new Map<string, { observations: number; completed: number; errors: number; input_required: number; unknown: number }>();
   const protocolFamilyEvents = (data || []) as EventRow[];
   for (const event of protocolFamilyEvents) {
     const hintedFamily = event.payload && typeof event.payload === "object" && !Array.isArray(event.payload)
@@ -245,10 +245,11 @@ export function createAnalyticsHandler(getAdmin: typeof getSupabaseAdmin = getSu
     const family = typeof hintedFamily === "string" ? hintedFamily : protocolFamilyForMethod(event.mcp_method);
     if (family === "sampling" || family === "elicitation" || family === "completion" || family === "tasks" || family === "control_signal" || family === "resources" || family === "prompts" || family === "tools" || family === "subscriptions" || family === "notifications") {
       protocolFamilyCounts.set(family, (protocolFamilyCounts.get(family) || 0) + 1);
-      const outcome = protocolFamilyOutcomes.get(family) || { observations: 0, errors: 0, input_required: 0, unknown: 0 };
+      const outcome = protocolFamilyOutcomes.get(family) || { observations: 0, completed: 0, errors: 0, input_required: 0, unknown: 0 };
       outcome.observations += 1;
       if (event.is_error === true || event.success === false) outcome.errors += 1;
       else if (event.result_type === "input_required") outcome.input_required += 1;
+      else if (event.result_type === "complete") outcome.completed += 1;
       else outcome.unknown += 1;
       protocolFamilyOutcomes.set(family, outcome);
     }
