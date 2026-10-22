@@ -26,7 +26,7 @@ const cards = [
   { icon: Code2, t: ".NET SDK", d: "Capture fail-open events from ASP.NET and .NET MCP middleware.", href: "/docs/dotnet" },
   { icon: Plug, t: "REST API", d: "Query your own metrics programmatically.", href: "/docs/api" },
   { icon: SlidersHorizontal, t: "Configuration", d: "Every option, event, and metric.", href: "/docs/reference" },
-  { icon: Activity, t: "OpenTelemetry", d: "Configure the bounded OTLP/HTTP JSON integration.", href: "/docs/opentelemetry" },
+  { icon: Activity, t: "OpenTelemetry", d: "Configure bounded OTLP/HTTP JSON or protobuf metadata.", href: "/docs/opentelemetry" },
   { icon: LockKeyhole, t: "Authentication & OAuth", d: "Understand dashboard keys, MCP OAuth boundaries, and what is tested.", href: "/docs/authentication" },
   { icon: Activity, t: "MCP protocol support", d: "See the 2026-07-28 compatibility boundary, legacy support, and transport coverage.", href: "/docs/protocol" },
 ];

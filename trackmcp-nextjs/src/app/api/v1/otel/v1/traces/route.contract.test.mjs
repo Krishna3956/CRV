@@ -5,9 +5,10 @@ import test from "node:test";
 const source = await readFile(new URL("./route.ts", import.meta.url), "utf8");
 const handlers = await readFile(new URL("./handlers.ts", import.meta.url), "utf8");
 
-test("OTLP endpoint is bounded, JSON-only, and delegates to authenticated ingest", () => {
+test("OTLP endpoint is bounded, JSON/protobuf, and delegates to authenticated ingest", () => {
   assert.match(source, /export const POST/);
   assert.ok(handlers.includes("application/json"));
+  assert.ok(handlers.includes("application/x-protobuf"));
   assert.match(handlers, /OTEL_JSON_MAX_BYTES/);
   assert.match(handlers, /status: 415/);
   assert.match(handlers, /createIngestHandler/);

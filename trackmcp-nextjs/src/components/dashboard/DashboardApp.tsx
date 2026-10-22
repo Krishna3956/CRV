@@ -4674,14 +4674,14 @@ function SetupView({
               <a href="/docs/opentelemetry" className="cursor-pointer text-xs font-semibold text-brand-strong hover:underline">Open guide <ArrowRight size={12} className="inline" /></a>
             </div>
             <p className="mt-1 text-xs leading-relaxed text-muted">
-              TrackMCP provides a bounded, privacy-safe OTLP/HTTP JSON receiver (protobuf and gRPC are not enabled). Native SDK instrumentation remains the recommended path for complete MCP semantics; unsupported spans are reported rather than silently treated as successes.
+              TrackMCP provides a bounded, privacy-safe OTLP/HTTP JSON or protobuf receiver (gRPC is not enabled). Native SDK instrumentation remains the recommended path for complete MCP semantics; unsupported spans are reported rather than silently treated as successes.
             </p>
             <code className="mt-3 block overflow-x-auto rounded bg-ink px-3 py-2 text-[11px] text-white">{otelEndpoint}</code>
             <div className="mt-3 flex flex-wrap items-center gap-2">
               <button type="button" onClick={() => void copyOtelEndpoint()} className="inline-flex cursor-pointer items-center gap-1.5 rounded-md border border-line-strong bg-white px-3 py-2 text-xs font-semibold text-body hover:bg-paper focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand">
                 <Clipboard size={13} /> {otelCopied ? "Copied" : "Copy endpoint"}
               </button>
-              <span className="text-[11px] text-faint">POST JSON · auth with a workspace connection key</span>
+              <span className="text-[11px] text-faint">POST JSON or protobuf · auth with a workspace connection key</span>
             </div>
           </div>
           <div className="border border-line bg-paper p-4">

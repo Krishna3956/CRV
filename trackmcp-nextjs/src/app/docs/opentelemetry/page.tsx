@@ -4,7 +4,7 @@ import { DocsShell, DocTitle, DocLead, DocSection, Para, Code, Inline } from "@/
 
 export const metadata: Metadata = pageMeta({
   title: "OpenTelemetry Integration | TrackMCP Docs",
-  description: "Configure TrackMCP's bounded OTLP/HTTP JSON interoperability path or use the native SDK for complete MCP semantics.",
+  description: "Configure TrackMCP's bounded OTLP/HTTP JSON or protobuf interoperability path or use the native SDK for complete MCP semantics.",
   path: "/docs/opentelemetry",
 });
 
@@ -12,10 +12,10 @@ export default function OpenTelemetryDocsPage() {
   return (
     <DocsShell active="/docs/opentelemetry">
       <DocTitle eyebrow="Integration guide">OpenTelemetry</DocTitle>
-      <DocLead>Send supported OTLP/HTTP JSON spans to TrackMCP when you already operate an OpenTelemetry pipeline. For complete MCP semantics, use the native TypeScript or Python SDK at the server boundary.</DocLead>
+      <DocLead>Send supported OTLP/HTTP JSON or protobuf spans to TrackMCP when you already operate an OpenTelemetry pipeline. For complete MCP semantics, use the native TypeScript or Python SDK at the server boundary.</DocLead>
 
       <DocSection title="Supported boundary">
-        <Para>TrackMCP accepts authenticated <Inline>POST</Inline> requests at <Inline>https://trackmcp.com/api/v1/otel/v1/traces</Inline>. The receiver supports OTLP/HTTP JSON only. Protobuf and gRPC are intentionally not enabled on this endpoint.</Para>
+        <Para>TrackMCP accepts authenticated <Inline>POST</Inline> requests at <Inline>https://trackmcp.com/api/v1/otel/v1/traces</Inline>. The receiver supports OTLP/HTTP JSON and OTLP/HTTP protobuf. OTLP/gRPC is not enabled on this endpoint.</Para>
         <div className="rounded-xl border border-brand/20 bg-brand-soft/35 p-4 text-sm leading-relaxed text-body">The OTEL adapter maps spans into bounded MCP activity metadata. It does not retain raw attributes, exception bodies, trace IDs, span links, or payload contents.</div>
       </DocSection>
 
@@ -23,14 +23,16 @@ export default function OpenTelemetryDocsPage() {
         <Para>Use a workspace connection key as the bearer credential. Keep the key in your collector or server secret store; never commit it to a repository or send it as a span attribute.</Para>
         <Code>{`OTEL_EXPORTER_OTLP_TRACES_ENDPOINT=https://trackmcp.com/api/v1/otel/v1/traces
 OTEL_EXPORTER_OTLP_TRACES_HEADERS=Authorization=Bearer $TRACKMCP_KEY
-OTEL_EXPORTER_OTLP_TRACES_PROTOCOL=http/json`}</Code>
-        <Para>Send a bounded JSON envelope with <Inline>resourceSpans</Inline>. TrackMCP reports accepted and rejected span counts in the response. Unsupported spans are reported as rejected or unmapped; they are never presented as successful MCP outcomes.</Para>
+OTEL_EXPORTER_OTLP_TRACES_PROTOCOL=http/json
+# Use http/protobuf when your collector emits protobuf instead.
+# OTEL_EXPORTER_OTLP_TRACES_PROTOCOL=http/protobuf`}</Code>
+        <Para>Send a bounded envelope with <Inline>resourceSpans</Inline>. JSON and protobuf are both decoded into the same metadata-only mapper. TrackMCP reports accepted and rejected span counts in the response. Unsupported spans are reported as rejected or unmapped; they are never presented as successful MCP outcomes.</Para>
       </DocSection>
 
       <DocSection title="Native SDK versus OTEL">
         <div className="grid gap-3 sm:grid-cols-2">
           <div className="rounded-xl border border-line bg-white p-4"><h3 className="text-sm font-semibold text-ink">Native SDK (recommended)</h3><p className="mt-2 text-xs leading-relaxed text-muted">Captures MCP lifecycle, catalog observations, tool outcomes, redaction, bounded retries, and privacy-safe identity context at the server boundary.</p></div>
-          <div className="rounded-xl border border-line bg-white p-4"><h3 className="text-sm font-semibold text-ink">OTLP/HTTP JSON</h3><p className="mt-2 text-xs leading-relaxed text-muted">Useful when an existing collector already emits compatible spans. Coverage is intentionally narrower and unsupported MCP semantics remain visible as insufficient evidence.</p></div>
+          <div className="rounded-xl border border-line bg-white p-4"><h3 className="text-sm font-semibold text-ink">OTLP/HTTP JSON or protobuf</h3><p className="mt-2 text-xs leading-relaxed text-muted">Useful when an existing collector already emits compatible spans. Both formats retain only bounded MCP metadata; coverage is intentionally narrower and unsupported semantics remain visible as insufficient evidence.</p></div>
         </div>
       </DocSection>
 
