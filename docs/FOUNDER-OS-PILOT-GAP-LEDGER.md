@@ -256,3 +256,11 @@ just because a README or marketing page mentions it.
   Local package, packed-consumer, provenance, and full release-gate evidence
   remain green; registry authentication is the remaining external release
   dependency rather than an inferred product failure.
+
+- 2026-10-22: Completed the local TypeScript SDK artifact audit for the same
+  release train. `npm pack --dry-run --ignore-scripts` produced a 10-file
+  package containing the README, manifest, declarations, and compiled exports;
+  the local tarball integrity was
+  `sha512-xSGDkNtdFNkUKZp459Sesu04nKkjAL6KrBH41TKoBqX8jooh0S11IuZgDnqbA6t1rMJq7soeAybGFqtnyFzdqg==`.
+  Build and clean packed-consumer verification passed. This is local artifact
+  evidence only, not registry publication or provenance evidence.
