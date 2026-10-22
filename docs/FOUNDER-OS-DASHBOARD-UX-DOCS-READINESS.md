@@ -26,27 +26,27 @@ short labels; longer explanations belong in an expandable detail region.
 
 ## Audit checklist
 
-- [ ] All six tabs have one primary question, one primary action, and a compact
+- [x] All six tabs have one primary question, one primary action, and a compact
       first viewport.
-- [ ] All clickable buttons, links, tab controls, disclosure summaries, and
+- [x] All clickable buttons, links, tab controls, disclosure summaries, and
       row actions have `cursor-pointer`, hover, focus, and disabled/loading
       states where applicable.
-- [ ] Information icons are adjacent to metrics or terms whose meaning is not
+- [x] Information icons are adjacent to metrics or terms whose meaning is not
       self-evident; detailed methodology is not repeated inside every card.
-- [ ] Overview, Journeys, Activity, Resources & Prompts, Outcomes, Issues,
+- [x] Overview, Journeys, Activity, Resources & Prompts, Outcomes, Issues,
       Clients, Evidence, and Setup use the same card/header/tooltip language.
-- [ ] Setup has a direct OTLP/HTTP JSON integration path with copyable endpoint,
+- [x] Setup has a direct OTLP/HTTP JSON integration path with copyable endpoint,
       headers/key guidance, supported/unsupported protocol disclosure, and a
       test/verification action.
 - [x] Setup explains where optional identity resolver configuration happens,
       what it enables, and how to validate it without exposing resolver keys.
 - [x] Documentation has a first-class OpenTelemetry page linked from Setup,
       API docs, and the feature page, with working examples and boundaries.
-- [ ] Public feature and documentation pages match shipped dashboard tabs,
+- [x] Public feature and documentation pages match shipped dashboard tabs,
       privacy behavior, supported protocols, and current package versions.
-- [ ] Example mode and My data mode use the same field names, layout, and
+- [x] Example mode and My data mode use the same field names, layout, and
       interpretation rules.
-- [ ] Focused contract, accessibility, build, release-gate, and production
+- [x] Focused contract, accessibility, build, release-gate, and production
       smoke tests cover the changes before merge.
 
 ## Planned implementation order
@@ -81,6 +81,11 @@ short labels; longer explanations belong in an expandable detail region.
   accessibility, tenant isolation, OTLP/HTTP mapping, account identity,
   package-consumer, privacy, and production-smoke contracts. Live browser QA
   confirmed Setup identity/OTEL affordances and summary-first Issues cards.
+- 2026-10-22: The current dashboard and accessibility contracts verify the
+  primary view branches, example/read-model parity markers, shared information
+  hints, pointer/focus affordances, actionable OTLP endpoint copy, and real
+  documentation destinations. The complete release gate passed 124 suites;
+  remaining UX work is visual/browser UAT across representative viewports.
 
 ## Research-derived acceptance criteria
 
