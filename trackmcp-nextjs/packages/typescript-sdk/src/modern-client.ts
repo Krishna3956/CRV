@@ -7,7 +7,6 @@ const MAX_CAPABILITIES = 32;
 const MAX_TOOLS = 128;
 const MAX_RESOURCES = 128;
 const MAX_PROMPTS = 128;
-const MAX_TASKS = 32;
 
 export type ModernMcpDiscovery = {
   protocolVersion: typeof MODERN_MCP_PROTOCOL_VERSION;
@@ -62,13 +61,8 @@ export type ModernMcpTask = {
   status: string;
 };
 
-export type ModernMcpTaskPage = {
-  tasks: ModernMcpTask[];
-  nextCursor?: string;
-};
-
 export class ModernMcpProtocolError extends Error {
-  readonly code: "invalid_endpoint" | "timeout" | "http_error" | "invalid_response" | "response_too_large" | "network_error";
+  readonly code: "invalid_endpoint" | "timeout" | "http_error" | "invalid_response" | "response_too_large" | "network_error" | "unsupported_method";
   readonly status?: number;
   constructor(code: ModernMcpProtocolError["code"], message: string, status?: number) {
     super(message); this.name = "ModernMcpProtocolError"; this.code = code; this.status = status;
@@ -181,20 +175,13 @@ export class ModernMcpClient {
     return { prompts, ...(nextCursor ? { nextCursor } : {}) };
   }
 
-  /** Retrieve one bounded, cursor-based task status page. This observes task
-   * state only; it never creates, cancels, or completes a task. */
-  async listTasks(cursor?: string): Promise<ModernMcpTaskPage> {
-    const result = await this.request("tasks/list", cursor ? { cursor: cursor.slice(0, MAX_STRING_LENGTH), limit: MAX_TASKS } : { limit: MAX_TASKS });
-    if (!Array.isArray(result.tasks)) throw new ModernMcpProtocolError("invalid_response", "Modern MCP tasks/list returned no tasks array.");
-    const tasks = result.tasks.slice(0, MAX_TASKS).flatMap((value): ModernMcpTask[] => {
-      if (!boundedObject(value)) return [];
-      const taskId = boundedString(value.taskId);
-      const status = boundedString(value.status);
-      if (!taskId || !status || !/^[A-Za-z0-9_.:-]{1,256}$/.test(taskId)) return [];
-      return [{ taskId, status }];
-    });
-    const nextCursor = boundedString(result.nextCursor);
-    return { tasks, ...(nextCursor ? { nextCursor } : {}) };
+  /**
+   * `tasks/list` was removed from the modern Tasks extension. Keep this
+   * compatibility-shaped method only as a fail-closed guard so an older
+   * caller cannot accidentally send a non-conformant request.
+   */
+  async listTasks(): Promise<never> {
+    throw new ModernMcpProtocolError("unsupported_method", "Modern MCP does not define tasks/list; observe task handles from server-directed responses and use getTask for an explicit handle.");
   }
 
   /** Retrieve one task's bounded status. This is observation only. */

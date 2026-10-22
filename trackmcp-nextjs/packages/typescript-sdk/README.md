@@ -80,18 +80,19 @@ contents, while `listPrompts` returns prompt names and argument names without
 requesting or retaining argument values. Both methods support opaque cursors
 and remain observation-only.
 
-Task state can be observed without mutating the server. `listTasks` returns a
-bounded page of opaque task identifiers and statuses, and `getTask` reads one
+Task state can be observed without mutating the server when the server returns
+an opaque task handle as part of a supported request. `getTask` reads one
 bounded status:
 
 ```ts
-const tasks = await client.listTasks();
-const status = tasks.tasks[0] ? await client.getTask(tasks.tasks[0].taskId) : null;
+const status = await client.getTask(taskIdFromYourServerResponse);
 ```
 
-These methods never create, cancel, complete, or subscribe to tasks. They are
-diagnostic observations only; callers must own the task lifecycle and should
-treat missing or malformed task state as unknown.
+The modern Tasks extension does not define `tasks/list`; the compatibility
+shaped `listTasks()` method therefore fails closed without sending a request.
+The observer never creates, cancels, completes, or subscribes to tasks. Task
+status is diagnostic evidence only; callers must own the task lifecycle and
+should treat missing or malformed state as unknown.
 
 This is intentionally a bounded discovery/catalog/status surface, not a claim
 of complete modern client lifecycle support. Tool execution, task mutation,

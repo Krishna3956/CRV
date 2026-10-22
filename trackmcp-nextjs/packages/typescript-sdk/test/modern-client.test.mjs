@@ -75,27 +75,23 @@ test("modern client rejects malformed resource and prompt catalog envelopes", as
   await assert.rejects(() => client.listPrompts(), (error) => error instanceof ModernMcpProtocolError && error.code === "invalid_response");
 });
 
-test("modern client observes bounded task pages and status without mutation", async () => {
+test("modern client refuses the removed tasks/list operation and observes an explicit task status", async () => {
   const requests = [];
   const client = new ModernMcpClient({ endpoint: "https://mcp.example.test", fetch: async (_input, init) => {
     const body = JSON.parse(init.body);
     requests.push(body);
-    return body.method === "tasks/list"
-      ? response({ result: { tasks: [{ taskId: "task-1", status: "working" }, { taskId: "bad id", status: "omit" }], nextCursor: "task-cursor" } })
-      : response({ result: { taskId: "task-1", status: "completed", result: { secret: "omit" } } });
+    return response({ result: { taskId: "task-1", status: "completed", result: { secret: "omit" } } });
   } });
-  const page = await client.listTasks();
-  const task = await client.getTask(page.tasks[0].taskId);
+  await assert.rejects(() => client.listTasks(), (error) => error instanceof ModernMcpProtocolError && error.code === "unsupported_method");
+  const task = await client.getTask("task-1");
   assert.deepEqual(requests.map(({ method, params }) => ({ method, params })), [
-    { method: "tasks/list", params: { limit: 32 } },
     { method: "tasks/get", params: { taskId: "task-1" } },
   ]);
-  assert.deepEqual(page, { tasks: [{ taskId: "task-1", status: "working" }], nextCursor: "task-cursor" });
   assert.deepEqual(task, { taskId: "task-1", status: "completed" });
 });
 
 test("modern client rejects malformed task status and unsafe task identifiers", async () => {
-  const client = new ModernMcpClient({ endpoint: "https://mcp.example.test", fetch: async () => response({ result: { tasks: [{ taskId: "task-1" }] } }) });
-  assert.deepEqual(await client.listTasks(), { tasks: [] });
+  const client = new ModernMcpClient({ endpoint: "https://mcp.example.test", fetch: async () => response({ result: { taskId: "task-1" } }) });
+  await assert.rejects(() => client.getTask("task-1"), (error) => error instanceof ModernMcpProtocolError && error.code === "invalid_response");
   await assert.rejects(() => client.getTask("task id"), (error) => error instanceof ModernMcpProtocolError && error.code === "invalid_response");
 });
