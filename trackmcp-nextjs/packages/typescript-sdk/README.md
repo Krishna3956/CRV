@@ -144,6 +144,12 @@ kinds, one-way SHA-256 resource URI hashes, and the server's honored filter;
 the stream has the same fixed event/byte/time bounds and is not a durable
 reconnect manager.
 
+`callTool` sends a bounded tool request with the Tasks extension capability and
+returns only result metadata (`complete`, `input_required`, or server-directed
+`task`). Tool content, arguments, errors, and task result payloads are not
+returned or retained; callers use the explicit task methods for subsequent
+status and input-response control.
+
 `redact` keeps compatibility with explicit dotted paths, while `redactKeys` adds case-insensitive exact key names. `redactEvent` receives an already sanitized event, may mutate it, or can return `null` to drop it. Hook failures drop only the event. The SDK queue is bounded to 500 events or 2 MiB; failed deliveries are requeued within those limits.
 
 Correlation is disabled by default and never changes MCP schemas. To attach an already anonymized, opaque business handle, opt into external mode; the resolver receives only bounded request metadata and its return value is validated before capture. Issued mode is opt-in and compatibility-limited to the TypeScript transport wrapper: compatible object-shaped `tools/list` schemas receive an optional `__trackmcp_correlation_handle` property, which is stripped before the handler. Strict or unsupported schemas and clients that ignore the field remain missing. Session IDs and request IDs are never used as business handles. Resolvers must not return emails, tokens, URLs, raw user IDs, prompts, completions, or private reasoning.

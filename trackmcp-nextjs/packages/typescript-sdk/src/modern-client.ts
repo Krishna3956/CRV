@@ -85,6 +85,7 @@ export type ModernMcpTaskWaitOptions = { maxPolls?: number; maxWaitMs?: number; 
 export type ModernMcpTaskWaitResult = { task: ModernMcpTask; complete: boolean; timedOut: boolean; polls: number };
 export type ModernMcpTaskListenerOptions = { signal?: AbortSignal; timeoutMs?: number; maxEvents?: number; onTask?: (task: ModernMcpTask) => void };
 export type ModernMcpTaskListenerResult = { events: ModernMcpTask[]; truncated: boolean };
+export type ModernMcpToolCallResult = { resultType: "complete" | "input_required" | "task"; task?: ModernMcpTask; isError?: boolean; contentItemCount?: number; inputRequestKeys?: string[] };
 export type ModernMcpSubscriptionFilter = {
   toolsListChanged?: boolean;
   promptsListChanged?: boolean;
@@ -264,6 +265,27 @@ export class ModernMcpClient {
     });
     const nextCursor = boundedString(result.nextCursor);
     return { tools, ...(nextCursor ? { nextCursor } : {}) };
+  }
+
+  /** Invoke a tool while returning only bounded result metadata. Tool
+   * arguments are sent to the caller-selected server but never retained or
+   * returned by this adapter; a server-directed Tasks result is projected to
+   * its sanitized task handle and lifecycle metadata. */
+  async callTool(name: string, args: Record<string, unknown> = {}): Promise<ModernMcpToolCallResult> {
+    if (!/^[A-Za-z0-9_.-]{1,128}$/.test(name) || !boundedObject(args)) throw new ModernMcpProtocolError("invalid_response", "Modern MCP tools/call requires a bounded tool name and object arguments.");
+    const result = await this.request("tools/call", taskParams({ name, arguments: args }));
+    const resultTypeValue = result.resultType === undefined ? "complete" : boundedString(result.resultType);
+    if (resultTypeValue !== "complete" && resultTypeValue !== "input_required" && resultTypeValue !== "task") throw new ModernMcpProtocolError("invalid_response", "Modern MCP tools/call returned an unsupported result type.");
+    if (resultTypeValue === "task") {
+      const task = projectTask(result);
+      if (!task) throw new ModernMcpProtocolError("invalid_response", "Modern MCP tools/call returned an invalid task result.");
+      return { resultType: "task", task };
+    }
+    const inputRequestKeys = boundedObject(result.inputRequests)
+      ? Object.keys(result.inputRequests).filter((key) => /^[A-Za-z0-9_.:-]{1,128}$/.test(key)).slice(0, MAX_CAPABILITIES)
+      : undefined;
+    const contentItemCount = Array.isArray(result.content) ? Math.min(MAX_CAPABILITIES, result.content.length) : undefined;
+    return { resultType: resultTypeValue, ...(typeof result.isError === "boolean" ? { isError: result.isError } : {}), ...(contentItemCount !== undefined ? { contentItemCount } : {}), ...(inputRequestKeys?.length ? { inputRequestKeys } : {}) };
   }
 
   /** Follow opaque tools/list cursors within a bounded page and item budget. */
