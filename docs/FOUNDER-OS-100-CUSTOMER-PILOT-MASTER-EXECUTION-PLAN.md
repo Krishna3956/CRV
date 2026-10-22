@@ -50,8 +50,8 @@ because a check box exists; it is done only with the stated acceptance evidence.
    and a truthful empty/insufficient/error state.
 8. Never stage broadly. Every commit uses explicit file paths and preserves the
    pre-existing `trackmcp-nextjs/AGENTS.md` change.
-9. The product may claim only JSON-only, metadata-bounded OTLP/HTTP support;
-   not gRPC/protobuf, full OpenTelemetry, a proxy fallback, or complete MCP
+9. The product may claim only metadata-bounded OTLP/HTTP JSON or protobuf
+   support; not gRPC, full OpenTelemetry, a proxy fallback, or complete MCP
    coverage.
 
 ## Pilot release definition
@@ -63,7 +63,7 @@ The pilot consists of the following supported customer journey:
 3. They create/select a workspace, approve a device session in the browser,
    and the CLI redeems the key once into a restrictive local file.
 4. Their server emits bounded, metadata-first telemetry through the SDK or the
-   documented OTLP/HTTP JSON adapter.
+   documented OTLP/HTTP JSON or protobuf adapter.
 5. The workspace dashboard presents observed account/client/tool/resource/
    journey/outcome/issue evidence with explicit uncertainty and privacy bounds.
 6. Support can diagnose setup, first-event, key, telemetry, and dashboard
@@ -148,7 +148,7 @@ and rollback result.
 - [x] Account resolver output is one-way and optional; self-reported client
   metadata is never identity proof.
 - [x] Resources/prompts are represented by bounded/hash-only evidence.
-- [x] OTLP receiver is authenticated, JSON-only, and metadata-bounded.
+- [x] OTLP receiver is authenticated, JSON/protobuf, and metadata-bounded.
 
 ### Still required
 

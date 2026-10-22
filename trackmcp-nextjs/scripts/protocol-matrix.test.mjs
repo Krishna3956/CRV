@@ -9,7 +9,7 @@ test("protocol matrix names every major surface and an explicit status", () => {
     "initialize", "tools/list", "tools/call", "resources/list", "resources/read",
     "prompts/list", "prompts/get", "pagination", "cancellation", "progress",
     "subscriptions", "completions", "sampling", "elicitation", "tasks",
-    "streamable HTTP", "stdio", "OTLP/HTTP JSON", "OTLP protobuf / gRPC",
+    "streamable HTTP", "stdio", "OTLP/HTTP JSON", "OTLP/HTTP protobuf", "OTLP/gRPC",
   ]) assert.match(matrix, new RegExp(surface.replace(/[.*+?^${}()|[\\]\\]/g, "\\$&"), "i"));
   assert.match(matrix, /\| Surface \| Current evidence \| Product status \| Required evidence/);
   assert.match(matrix, /Observed/);

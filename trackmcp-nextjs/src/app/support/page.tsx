@@ -30,7 +30,7 @@ const limited = [
 
 const excluded = [
   "Automatic authentication during `npm install` or `pip install`; package installation remains silent and activation is explicit.",
-  "OTLP/gRPC, protobuf, arbitrary OTel encodings, or external telemetry export.",
+  "OTLP/gRPC, arbitrary OTel encodings, or external telemetry export. OTLP/HTTP protobuf is supported only through the bounded metadata-only receiver.",
   "Unlimited analytics windows, zero-latency reads, or a guarantee that a successful tool call means telemetry was accepted.",
   "Self-service destructive deletion. Privacy requests remain review-only until the reviewed deletion workflow is available.",
 ];
