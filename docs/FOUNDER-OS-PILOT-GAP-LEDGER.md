@@ -187,3 +187,10 @@ just because a README or marketing page mentions it.
   than an asserted terminal state. The client still fails closed for the
   removed `tasks/list` operation and does not create tasks or subscribe to
   notifications. SDK tests now pass 68/68 plus the packed consumer check.
+
+- 2026-10-22: Added a bounded `waitForTask` helper to the modern TypeScript
+  client. It respects `pollIntervalMs`, stops only at explicit terminal task
+  states, supports caller abort signals, and returns an explicit timeout result
+  when its poll/time budget is exhausted. Task results and input payloads are
+  not returned by the helper; task status remains observation-only. SDK tests
+  now pass 70/70 plus the packed consumer check.

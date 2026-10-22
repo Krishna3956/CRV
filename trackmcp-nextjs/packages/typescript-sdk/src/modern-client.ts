@@ -67,9 +67,14 @@ export type ModernMcpBoundedCollection<T> = {
 export type ModernMcpTask = {
   taskId: string;
   status: string;
+  pollIntervalMs?: number;
+  ttlMs?: number;
+  inputRequestKeys?: string[];
 };
 
 export type ModernMcpTaskInputResponses = Record<string, unknown>;
+export type ModernMcpTaskWaitOptions = { maxPolls?: number; maxWaitMs?: number; signal?: AbortSignal };
+export type ModernMcpTaskWaitResult = { task: ModernMcpTask; complete: boolean; timedOut: boolean; polls: number };
 
 export class ModernMcpProtocolError extends Error {
   readonly code: "invalid_endpoint" | "timeout" | "http_error" | "invalid_response" | "response_too_large" | "request_too_large" | "network_error" | "unsupported_method";
@@ -297,7 +302,38 @@ export class ModernMcpClient {
     const returnedTaskId = boundedString(result.taskId);
     const status = boundedString(result.status);
     if (!returnedTaskId || !status || !/^[A-Za-z0-9_.:-]{1,256}$/.test(returnedTaskId)) throw new ModernMcpProtocolError("invalid_response", "Modern MCP tasks/get returned an invalid task status.");
-    return { taskId: returnedTaskId, status };
+    const pollIntervalMs = typeof result.pollIntervalMs === "number" && Number.isSafeInteger(result.pollIntervalMs) ? Math.min(60_000, Math.max(0, result.pollIntervalMs)) : undefined;
+    const ttlMs = typeof result.ttlMs === "number" && Number.isSafeInteger(result.ttlMs) ? Math.min(7 * 24 * 60 * 60 * 1000, Math.max(0, result.ttlMs)) : undefined;
+    const inputRequestKeys = boundedObject(result.inputRequests)
+      ? Object.keys(result.inputRequests).filter((key) => /^[A-Za-z0-9_.:-]{1,128}$/.test(key)).slice(0, MAX_CAPABILITIES)
+      : undefined;
+    return { taskId: returnedTaskId, status, ...(pollIntervalMs !== undefined ? { pollIntervalMs } : {}), ...(ttlMs !== undefined ? { ttlMs } : {}), ...(inputRequestKeys?.length ? { inputRequestKeys } : {}) };
+  }
+
+  /** Poll task status with fixed bounds and the server's advertised interval.
+   * This never retrieves task result/input payloads and never assumes a
+   * missing terminal state is success. */
+  async waitForTask(taskId: string, options: ModernMcpTaskWaitOptions = {}): Promise<ModernMcpTaskWaitResult> {
+    const maxPolls = typeof options.maxPolls === "number" && Number.isInteger(options.maxPolls) ? Math.min(64, Math.max(1, options.maxPolls)) : 12;
+    const maxWaitMs = typeof options.maxWaitMs === "number" && Number.isFinite(options.maxWaitMs) ? Math.min(120_000, Math.max(250, Math.floor(options.maxWaitMs))) : 30_000;
+    const startedAt = Date.now();
+    let polls = 0;
+    let task = await this.getTask(taskId);
+    polls += 1;
+    while (!["completed", "failed", "cancelled", "expired"].includes(task.status) && polls < maxPolls && Date.now() - startedAt < maxWaitMs) {
+      if (options.signal?.aborted) return { task, complete: false, timedOut: true, polls };
+      const remaining = Math.max(0, maxWaitMs - (Date.now() - startedAt));
+      const delay = Math.min(remaining, task.pollIntervalMs ?? 250);
+      if (delay > 0) await new Promise<void>((resolve) => {
+        const timer = setTimeout(resolve, delay);
+        options.signal?.addEventListener("abort", () => { clearTimeout(timer); resolve(); }, { once: true });
+      });
+      if (options.signal?.aborted) return { task, complete: false, timedOut: true, polls };
+      task = await this.getTask(taskId);
+      polls += 1;
+    }
+    const complete = ["completed", "failed", "cancelled", "expired"].includes(task.status);
+    return { task, complete, timedOut: !complete, polls };
   }
 
   /** Provide bounded responses to outstanding task input requests. Values are

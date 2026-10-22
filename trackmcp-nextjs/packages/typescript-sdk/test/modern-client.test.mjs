@@ -175,6 +175,31 @@ test("modern client updates and cancels tasks with routing headers and no task/l
   ]);
 });
 
+test("modern client polls bounded task status and stops at an explicit terminal state", async () => {
+  let calls = 0;
+  const client = new ModernMcpClient({ endpoint: "https://mcp.example.test", fetch: async () => {
+    calls += 1;
+    return response({ result: { taskId: "task-1", status: calls === 1 ? "working" : "completed", pollIntervalMs: 0, inputRequests: { secret: { method: "elicitation/create", params: { message: "omit" } } } } });
+  } });
+  const result = await client.waitForTask("task-1", { maxPolls: 4, maxWaitMs: 1_000 });
+  assert.equal(result.complete, true);
+  assert.equal(result.timedOut, false);
+  assert.equal(result.polls, 2);
+  assert.deepEqual(result.task, { taskId: "task-1", status: "completed", pollIntervalMs: 0, inputRequestKeys: ["secret"] });
+  assert.equal(calls, 2);
+});
+
+test("modern client waitForTask is abortable before another request", async () => {
+  const controller = new AbortController();
+  controller.abort();
+  let calls = 0;
+  const client = new ModernMcpClient({ endpoint: "https://mcp.example.test", fetch: async () => { calls += 1; return response({ result: { taskId: "task-1", status: "working", pollIntervalMs: 1000 } }); } });
+  const result = await client.waitForTask("task-1", { signal: controller.signal });
+  assert.equal(result.timedOut, true);
+  assert.equal(result.polls, 1);
+  assert.equal(calls, 1);
+});
+
 test("modern client bounds task update keys and request size", async () => {
   const client = new ModernMcpClient({ endpoint: "https://mcp.example.test", fetch: async () => response({ result: {} }) });
   await assert.rejects(() => client.updateTask("task-1", { "bad key!": true }), (error) => error instanceof ModernMcpProtocolError && error.code === "invalid_response");

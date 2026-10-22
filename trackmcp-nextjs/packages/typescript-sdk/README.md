@@ -105,6 +105,10 @@ await client.updateTask(taskIdFromYourServerResponse, {
   name: { action: "accept", content: { input: "Luca" } },
 });
 await client.cancelTask(taskIdFromYourServerResponse);
+const settled = await client.waitForTask(taskIdFromYourServerResponse, {
+  maxPolls: 12,
+  maxWaitMs: 30_000,
+});
 ```
 
 The modern Tasks extension does not define `tasks/list`; the compatibility
@@ -114,6 +118,12 @@ when the caller explicitly invokes `updateTask`; request bodies are bounded
 and task IDs are sent in the required `Mcp-Name` routing header. Task status is
 diagnostic evidence; callers own authorization, user consent, and lifecycle
 policy and should treat missing or malformed state as unknown.
+
+`waitForTask` is a bounded polling convenience: it respects the server's
+`pollIntervalMs`, stops only on an explicit terminal status, and returns
+`timedOut: true` when its poll or time budget ends. It never returns task
+result or input payloads; use the server's own authorized task client for
+those contents.
 
 This is intentionally a bounded discovery/catalog/status surface, not a claim
 of complete modern client lifecycle support. Tool execution, task mutation,
