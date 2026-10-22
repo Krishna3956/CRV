@@ -538,3 +538,7 @@ a failed product gate or a Supabase plan warning.
   and production postflight; this change does not claim that every production
   workspace has materialized facts. Authenticated production UAT and the
   family-specific lifecycle joins remain open.
+- [x] Post-change verification completed locally: `npm run lint` passed,
+  `npm run build` compiled and generated all 176 static pages/routes, and the
+  complete `npm run test:release-gate` passed all 124 suites. Commit `472b623`
+  is pushed to `main`; no package version was changed or published.
