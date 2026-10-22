@@ -249,3 +249,10 @@ just because a README or marketing page mentions it.
   arguments now fail closed as a typed bounded protocol error instead of
   escaping as a raw JSON runtime exception. Regression coverage is included;
   SDK tests now pass 77/77 plus the packed consumer check.
+
+- 2026-10-22: Ran the terminal npm registry preflight for the coordinated
+  release train. `npm whoami --registry=https://registry.npmjs.org/` returned
+  `ENEEDAUTH`; no package version was changed and no publication was attempted.
+  Local package, packed-consumer, provenance, and full release-gate evidence
+  remain green; registry authentication is the remaining external release
+  dependency rather than an inferred product failure.
