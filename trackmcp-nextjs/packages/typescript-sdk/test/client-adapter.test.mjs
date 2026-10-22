@@ -229,6 +229,29 @@ test("uses a real StreamableHTTPClientTransport and preserves transport-generate
   assert.equal(issued.session_id_source, "transport_generated");
 });
 
+test("real Streamable HTTP server disconnect emits bounded transport failure evidence", async () => {
+  const server = http.createServer((request) => { request.socket.destroy(); });
+  const endpoint = await listen(server);
+  const events = [];
+  const adapter = new TrackMCPClientAdapter({ apiKey: "tmcp_test", service: "adapter-test", transport: "streamable_http", flushIntervalMs: 60000, onEvent: (event) => events.push(event) });
+  const raw = new StreamableHTTPClientTransport(new URL(endpoint));
+  const wrapped = adapter.wrapTransport(raw);
+  wrapped.onerror = () => {};
+  wrapped.onclose = () => {};
+  try {
+    await wrapped.start();
+    await assert.rejects(() => wrapped.send(toolCall("http-disconnect", "lookup")));
+    const failure = events.find((event) => event.event_type === "session" && event.error_class === "transport_error");
+    assert.ok(failure);
+    assert.equal(failure.success, false);
+    assert.equal(failure.is_error, true);
+    assert.equal(failure.payload_policy, "metadata");
+  } finally {
+    await wrapped.close().catch(() => {});
+    await closeServer(server);
+  }
+});
+
 class FakeTransport extends StdioClientTransport {
   constructor() {
     super({ command: process.execPath, args: ["-e", "process.stdin.resume()"], stderr: "ignore" });

@@ -385,3 +385,18 @@ a failed product gate or a Supabase plan warning.
 - [ ] Streamable HTTP proxy/server-abrupt-close fixtures and production-like
   cross-language transport fixtures remain separate follow-up evidence; no
   unsupported reconnect policy is being claimed.
+
+## 2026-10-22 real Streamable HTTP disconnect evidence
+
+- [x] Added a local Streamable HTTP server fixture that destroys the socket
+  during an MCP request. The official transport reports the failure through
+  `onerror`, and the adapter emits bounded failed-session evidence without
+  retaining transport error text.
+- [x] Explicit close remains a clean lifecycle boundary; unsolicited Stdio
+  process exit and Streamable HTTP disconnect are now both distinguished from
+  caller-requested shutdown.
+- [x] TypeScript SDK package tests passed (63 tests), package consumers passed
+  for TypeScript, CLI, and Python, and the full web release gate passed all 122
+  suites after the change. Lint and the 176-route production build also passed.
+- [ ] Hosted Go/.NET compile evidence and authenticated production disconnect
+  UAT remain external gates; this milestone does not claim them closed.
