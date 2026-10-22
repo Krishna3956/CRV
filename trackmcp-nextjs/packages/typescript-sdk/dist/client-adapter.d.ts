@@ -40,6 +40,7 @@ export declare class TrackMCPClientAdapter {
     private lifecycleEnded;
     private lifecycleStartedAt;
     private lifecycleGeneration;
+    private intentionalClose;
     private lastResultRequestId;
     private lastResultAt;
     private clientName;
