@@ -522,3 +522,19 @@ a failed product gate or a Supabase plan warning.
   elicitation entity model. Production authenticated UAT, capability-aware
   request/result joins, input lifecycle persistence, and broader runtime
   interoperability remain open in the protocol matrix.
+
+## 2026-10-22 durable protocol-family projection checkpoint
+
+- [x] Analytics now reads the bounded `trackmcp_semantic_facts` projection for
+  protocol-family outcomes when materialized, validates only the allowlisted
+  family/outcome vocabulary, and reports `protocol_family_outcome_source` so
+  operators can distinguish durable facts from the bounded event-window
+  fallback. No raw method arguments, result bodies, request IDs, or handles
+  are read into this public response.
+- [x] Added integration coverage for the durable-fact path and preserved the
+  older-deployment fallback path. The focused analytics suite and complete
+  124-suite release gate pass.
+- [ ] Durable fact rows still depend on the reviewed refresh-worker migration
+  and production postflight; this change does not claim that every production
+  workspace has materialized facts. Authenticated production UAT and the
+  family-specific lifecycle joins remain open.

@@ -381,9 +381,30 @@ test("analytics exposes bounded protocol lifecycle signals without treating them
     subscription_started: 1, subscription_stopped: 1, observed_events: 5,
     timeline: [{ date: "2026-09-06", notification: 0, progress: 1, cancelled: 0, catalog_changed: 1, resource_changed: 1, subscription_started: 1, subscription_stopped: 1, observed_events: 5 }],
   });
-  assert.deepEqual(body.protocol_family_activity, [{ family: "notifications", observations: 3 }, { family: "resources", observations: 3 }, { family: "completion", observations: 1 }, { family: "sampling", observations: 1 }, { family: "subscriptions", observations: 1 }, { family: "tasks", observations: 1 }]);
+  assert.deepEqual(body.protocol_family_activity, [{ family: "notifications", observations: 3 }, { family: "resources", observations: 3 }, { family: "completion", observations: 1 }, { family: "elicitation", observations: 1 }, { family: "sampling", observations: 1 }, { family: "subscriptions", observations: 1 }, { family: "tasks", observations: 1 }]);
   assert.deepEqual(body.protocol_family_outcomes, [{ family: "notifications", observations: 3, completed: 0, errors: 0, input_required: 0, unknown: 3 }, { family: "resources", observations: 3, completed: 0, errors: 0, input_required: 0, unknown: 3 }, { family: "completion", observations: 1, completed: 1, errors: 0, input_required: 0, unknown: 0 }, { family: "elicitation", observations: 1, completed: 1, errors: 0, input_required: 0, unknown: 0 }, { family: "sampling", observations: 1, completed: 0, errors: 0, input_required: 1, unknown: 0 }, { family: "subscriptions", observations: 1, completed: 0, errors: 0, input_required: 0, unknown: 1 }, { family: "tasks", observations: 1, completed: 0, errors: 0, input_required: 0, unknown: 1 }]);
-  assert.equal(body.founder_os.facts.outcomes.not_observable, 6);
+  assert.equal(body.protocol_family_outcome_source, "event_window");
+  assert.equal(body.founder_os.facts.outcomes.not_observable, 5);
+});
+
+test("analytics prefers the bounded durable semantic-fact family projection when available", async () => {
+  const durableFacts = [
+    { semantic: { outcome: "completed" }, dimensions: { protocol_family: "completion" }, event_type: "protocol", observed_at: "2026-09-06T00:00:00Z" },
+    { semantic: { outcome: "pending" }, dimensions: { protocol_family: "sampling" }, event_type: "protocol", observed_at: "2026-09-06T00:00:00Z" },
+  ];
+  const base = fakeAdmin([]);
+  const originalFrom = base.from.bind(base);
+  base.from = (table) => table === "trackmcp_semantic_facts"
+    ? { select() { return this; }, eq() { return this; }, gte() { return this; }, limit: async () => ({ data: durableFacts, error: null }) }
+    : originalFrom(table);
+  const response = await createAnalyticsHandler(() => base)(new Request("http://analytics.test/api/v1/analytics?days=7", { headers: { authorization: "Bearer key" } }));
+  assert.equal(response.status, 200);
+  const body = await response.json();
+  assert.equal(body.protocol_family_outcome_source, "durable_facts");
+  assert.deepEqual(body.protocol_family_outcomes, [
+    { family: "completion", observations: 1, completed: 1, errors: 0, input_required: 0, unknown: 0 },
+    { family: "sampling", observations: 1, completed: 0, errors: 0, input_required: 1, unknown: 0 },
+  ]);
 });
 
 test("analytics insights carry bounded action context only when evidence supports it", async () => {

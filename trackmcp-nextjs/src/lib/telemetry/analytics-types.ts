@@ -212,6 +212,7 @@ export type Analytics = {
   /** Counts of bounded modern protocol families observed by the SDK observer. */
   protocol_family_activity?: Array<{ family: "sampling" | "elicitation" | "completion" | "tasks" | "control_signal" | "resources" | "prompts" | "tools" | "subscriptions" | "notifications"; observations: number }>;
   protocol_family_outcomes?: Array<{ family: "sampling" | "elicitation" | "completion" | "tasks" | "control_signal" | "resources" | "prompts" | "tools" | "subscriptions" | "notifications"; observations: number; completed: number; errors: number; input_required: number; unknown: number }>;
+  protocol_family_outcome_source?: "durable_facts" | "event_window";
   tool_calls: number;
   sessions: number;
   errors: number;

@@ -238,21 +238,45 @@ export function createAnalyticsHandler(getAdmin: typeof getSupabaseAdmin = getSu
   const protocolFamilyCounts = new Map<string, number>();
   const protocolFamilyOutcomes = new Map<string, { observations: number; completed: number; errors: number; input_required: number; unknown: number }>();
   const protocolFamilyEvents = (data || []) as EventRow[];
-  for (const event of protocolFamilyEvents) {
+  const durableFactsResult = await supabase.from("trackmcp_semantic_facts")
+    .select("semantic,dimensions,event_type,observed_at")
+    .eq("workspace_id", workspaceId).gte("observed_at", since).limit(analyticsQueryLimit);
+  const durableFamilyRows = durableFactsResult.error ? [] : ((durableFactsResult.data || []) as unknown[]).flatMap((row) => {
+    if (!row || typeof row !== "object") return [];
+    const record = row as Record<string, unknown>;
+    const semantic = record.semantic;
+    const dimensions = record.dimensions;
+    if (!semantic || typeof semantic !== "object" || Array.isArray(semantic) || !dimensions || typeof dimensions !== "object" || Array.isArray(dimensions)) return [];
+    const outcome = (semantic as Record<string, unknown>).outcome;
+    const family = (dimensions as Record<string, unknown>).protocol_family;
+    if (typeof family !== "string" || typeof outcome !== "string") return [];
+    if (!["sampling", "elicitation", "completion", "tasks", "control_signal", "resources", "prompts", "tools", "subscriptions", "notifications"].includes(family)) return [];
+    if (!["completed", "failed", "pending", "unknown", "not_observable"].includes(outcome)) return [];
+    return [{ family, outcome }];
+  });
+  // Semantic facts are the durable projection when the refresh worker has
+  // materialized them. Older deployments may not have rows yet, so retain the
+  // bounded event-window fallback without changing the public contract.
+  const familySource = durableFamilyRows.length ? "durable_facts" as const : "event_window" as const;
+  const protocolFamilySourceRows = durableFamilyRows.length ? durableFamilyRows : protocolFamilyEvents.flatMap((event) => {
     const hintedFamily = event.payload && typeof event.payload === "object" && !Array.isArray(event.payload)
       ? (event.payload._trackmcp && typeof event.payload._trackmcp === "object" && !Array.isArray(event.payload._trackmcp) ? (event.payload._trackmcp as Record<string, unknown>).protocol_family : undefined)
       : undefined;
     const family = typeof hintedFamily === "string" ? hintedFamily : protocolFamilyForMethod(event.mcp_method);
-    if (family === "sampling" || family === "elicitation" || family === "completion" || family === "tasks" || family === "control_signal" || family === "resources" || family === "prompts" || family === "tools" || family === "subscriptions" || family === "notifications") {
-      protocolFamilyCounts.set(family, (protocolFamilyCounts.get(family) || 0) + 1);
-      const outcome = protocolFamilyOutcomes.get(family) || { observations: 0, completed: 0, errors: 0, input_required: 0, unknown: 0 };
-      outcome.observations += 1;
-      if (event.is_error === true || event.success === false) outcome.errors += 1;
-      else if (event.result_type === "input_required") outcome.input_required += 1;
-      else if (event.result_type === "complete") outcome.completed += 1;
-      else outcome.unknown += 1;
-      protocolFamilyOutcomes.set(family, outcome);
-    }
+    if (family !== "sampling" && family !== "elicitation" && family !== "completion" && family !== "tasks" && family !== "control_signal" && family !== "resources" && family !== "prompts" && family !== "tools" && family !== "subscriptions" && family !== "notifications") return [];
+    const outcome = event.is_error === true || event.success === false ? "failed" : event.result_type === "input_required" ? "pending" : event.result_type === "complete" ? "completed" : "unknown";
+    return [{ family, outcome }];
+  });
+  for (const row of protocolFamilySourceRows) {
+    const { family, outcome } = row;
+    protocolFamilyCounts.set(family, (protocolFamilyCounts.get(family) || 0) + 1);
+    const current = protocolFamilyOutcomes.get(family) || { observations: 0, completed: 0, errors: 0, input_required: 0, unknown: 0 };
+    current.observations += 1;
+    if (outcome === "failed") current.errors += 1;
+    else if (outcome === "pending") current.input_required += 1;
+    else if (outcome === "completed") current.completed += 1;
+    else current.unknown += 1;
+    protocolFamilyOutcomes.set(family, current);
   }
   const facts = events.map(canonicalEventFromRow).map(projectTrackMCPFact);
   // The transition table is additive and may not exist on older deployments.
@@ -757,6 +781,7 @@ export function createAnalyticsHandler(getAdmin: typeof getSupabaseAdmin = getSu
     protocol_signals: { ...protocolSignalCounts, observed_events: protocolSignalEvents, timeline: [...protocolSignalTimeline.entries()].sort(([a], [b]) => a.localeCompare(b)).slice(-366).map(([date, counts]) => ({ date, ...counts, observed_events: Object.values(counts).reduce((sum, value) => sum + value, 0) })) },
     protocol_family_activity: [...protocolFamilyCounts.entries()].map(([family, observations]) => ({ family: family as TrackMCPProtocolFamily, observations })).sort((a, b) => b.observations - a.observations || a.family.localeCompare(b.family)),
     protocol_family_outcomes: [...protocolFamilyOutcomes.entries()].map(([family, outcome]) => ({ family: family as TrackMCPProtocolFamily, ...outcome })).sort((a, b) => b.observations - a.observations || a.family.localeCompare(b.family)),
+    protocol_family_outcome_source: familySource,
     transports: transports.slice(0, MAX_PUBLIC_DIMENSION_ITEMS),
     methods: methods.slice(0, MAX_PUBLIC_DIMENSION_ITEMS),
     tool_calls: calls.length, sessions: workflowRows.length, errors: calls.filter(failed).length,
