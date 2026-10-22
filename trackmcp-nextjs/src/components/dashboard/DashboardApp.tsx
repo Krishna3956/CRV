@@ -4227,6 +4227,8 @@ function SetupView({
   }, [workspaceId]);
   const activeSetupContract = setupContractWorkspaceId === workspaceId ? setupContract : null;
   const contractChecks = activeSetupContract?.setup?.checks;
+  const firstEventLagSeconds = activeSetupContract?.setup?.first_event?.ingestion_lag_seconds;
+  const firstEventIsStale = typeof firstEventLagSeconds === "number" && firstEventLagSeconds >= 15 * 60;
   const contractIdentity = contractChecks?.account_resolver_observed;
   const identityUnresolved = contractIdentity !== undefined && contractIdentity !== null
     ? contractIdentity === false
@@ -4324,6 +4326,11 @@ function SetupView({
                 Last observed event lag: {activeSetupContract.setup.first_event.ingestion_lag_seconds < 60
                   ? `${activeSetupContract.setup.first_event.ingestion_lag_seconds}s`
                   : `${Math.floor(activeSetupContract.setup.first_event.ingestion_lag_seconds / 60)}m`}
+              </p>
+            )}
+            {firstEventIsStale && (
+              <p className="mt-2 border-l-2 border-amber-400 pl-3 text-[11px] leading-relaxed text-amber-800">
+                This is historical ingestion evidence, not a current health check. Make a fresh MCP call and refresh this page before diagnosing the running server.
               </p>
             )}
             {activeSetupContract?.setup?.first_event && (

@@ -205,6 +205,12 @@ test("Setup renders the server readiness contract without making identity mandat
   assert.match(source, /aria-label="Setup readiness"/);
 });
 
+test("Setup distinguishes stale ingestion evidence from current health", () => {
+  assert.match(source, /firstEventIsStale/);
+  assert.match(source, /historical ingestion evidence, not a current health check/);
+  assert.match(source, /15 \* 60/);
+});
+
 test("Setup keeps deployment linkage count-only and non-health claiming", () => {
   assert.match(source, /Deployment linkage/);
   assert.match(source, /not deployment health or release status/);
