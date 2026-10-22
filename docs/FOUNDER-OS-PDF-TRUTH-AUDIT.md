@@ -83,8 +83,8 @@ business outcome.
 | Completions | Semantic fixtures and TypeScript server-wrapper metadata-only response observation for explicit bounded result types | **Partial** | Add a request/result read model, broader runtime support, and cap-aware dashboard evidence |
 | Sampling | Semantic fixtures and TypeScript server-wrapper metadata-only response observation for explicit bounded result types | **Partial** | Model request, approval/rejection, and outcome separately; never infer approval |
 | Elicitation | Semantic fixtures and TypeScript server-wrapper metadata-only response observation for explicit bounded result types; accept/decline/cancel details remain unmodeled | **Partial** | Add capability-aware event vectors, durable outcome states, and dashboard evidence |
-| Progress/cancellation | Not a complete persisted model | **Missing** | Add progress, cancellation race, disconnect, and late-result fixtures |
-| Subscriptions/list-changed | Not a complete persisted model | **Missing** | Add subscription lifecycle and catalog-version events |
+| Progress/cancellation | Bounded allowlisted signal primitives across TypeScript, Python, Go, and .NET; local client/transport fixtures; authenticated daily signal timeline; values, reasons, request IDs, and payloads remain excluded | **Implemented locally / bounded** | Complete per-transport production UAT and retain the metadata-only privacy boundary |
+| Subscriptions/list-changed | Bounded subscription/list-change request, acknowledgement, invalidation, and catalog-version observations; local reconnect/listener fixtures; daily signal timeline | **Implemented locally / bounded** | Complete stream close/reconnect and authenticated production UAT; do not imply durable raw subscription state |
 | Task lifecycle | Semantic classification recognizes explicit task IDs and allowlisted working/input-required/completed/failed/cancelled/expired states without inferring abandonment; the bounded read model lets a later explicit completion supersede an earlier expiry | **Partial** | Persist durable task transition history and cross-server joins, then add richer task drill-down evidence; the current contract remains metadata-only |
 | Conservative outcomes | Explicit workflow events and insufficient-data states exist | **Implemented locally** | Expand for protocol-specific outcomes; never infer abandonment from inactivity |
 | Journeys | v2 route and bounded correlation fields exist | **Partial** | Durable correlation across requests/tasks and evidence drill-down |
@@ -145,6 +145,10 @@ Until the missing layers are built and tested, the website/docs must not claim:
 - resources/prompts are fully cataloged when only method counts are available;
 - proxy or launcher integrations provide native-SDK coverage;
 - the dashboard's fixture/example data is customer production data.
+
+The protocol rows marked “Implemented locally / bounded” are not production
+interoperability claims. Their remaining UAT gates are deliberately retained in
+the protocol matrix and pilot readiness ledger.
 
 ## Release strategy derived from the PDF
 
