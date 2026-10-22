@@ -42,7 +42,9 @@ jobs:
           python-version: "3.12"
       - name: Install web dependencies
         working-directory: trackmcp-nextjs
-        run: npm ci
+        # npm registry stalls must fail visibly instead of occupying the
+        # hosted runner indefinitely and obscuring the candidate result.
+        run: timeout --signal=TERM --kill-after=30s 10m npm ci
       - name: Audit web production dependencies
         working-directory: trackmcp-nextjs
         run: npm audit --omit=dev --audit-level=high

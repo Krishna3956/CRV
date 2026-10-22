@@ -65,10 +65,19 @@ import { ModernMcpClient } from "@trackmcp/sdk/modern-client";
 const discovery = await new ModernMcpClient({ endpoint: process.env.MCP_ENDPOINT! }).discover();
 ```
 
-This is intentionally a discovery surface, not a claim of complete modern
-client lifecycle support. Tools, tasks, subscriptions, and other
-multi-round-trip operations remain explicit boundaries until their fixtures and
-privacy contracts are complete.
+For a bounded catalog page, use `tools/list` with an opaque cursor. Tool names,
+descriptions, schemas, and cursors are size-limited and sanitized before they
+are returned; the method does not execute tools or retain arguments/results:
+
+```ts
+const page = await new ModernMcpClient({ endpoint: process.env.MCP_ENDPOINT! }).listTools();
+for (const tool of page.tools) console.log(tool.name);
+```
+
+This is intentionally a bounded discovery/catalog surface, not a claim of
+complete modern client lifecycle support. Tool execution, tasks, subscriptions,
+and other multi-round-trip operations remain explicit boundaries until their
+fixtures and privacy contracts are complete.
 
 `redact` keeps compatibility with explicit dotted paths, while `redactKeys` adds case-insensitive exact key names. `redactEvent` receives an already sanitized event, may mutate it, or can return `null` to drop it. Hook failures drop only the event. The SDK queue is bounded to 500 events or 2 MiB; failed deliveries are requeued within those limits.
 

@@ -21,3 +21,30 @@ test("modern client rejects credentials, oversized responses, and non-success st
   await assert.rejects(() => new ModernMcpClient({ endpoint: "https://mcp.example.test", fetch: async () => response({ error: "no" }, 401) }).discover(), (error) => error instanceof ModernMcpProtocolError && error.code === "http_error" && error.status === 401);
   await assert.rejects(() => new ModernMcpClient({ endpoint: "https://mcp.example.test", fetch: async () => response({ result: { blob: "x" } }, 200, { "content-length": "300000" }) }).discover(), (error) => error instanceof ModernMcpProtocolError && error.code === "response_too_large");
 });
+
+test("modern client lists a bounded, cursor-based tool catalog", async () => {
+  let request;
+  const client = new ModernMcpClient({ endpoint: "https://mcp.example.test", fetch: async (_input, init) => {
+    request = init;
+    return response({ jsonrpc: "2.0", id: 1, result: {
+      tools: [
+        { name: "search", description: "Find things", inputSchema: { type: "object", properties: { query: { type: "string" } } } },
+        { name: "bad name", description: "omit" },
+        { name: "\\u0000secret", description: "omit" },
+      ],
+      nextCursor: "cursor-2",
+    } });
+  } });
+  const page = await client.listTools("cursor-1");
+  assert.equal(request.headers.get("mcp-method"), "tools/list");
+  assert.deepEqual(JSON.parse(request.body).params, { cursor: "cursor-1" });
+  assert.deepEqual(page, {
+    tools: [{ name: "search", description: "Find things", inputSchema: { type: "object", properties: { query: { type: "string" } } } }],
+    nextCursor: "cursor-2",
+  });
+});
+
+test("modern client rejects a tools/list response without an array", async () => {
+  const client = new ModernMcpClient({ endpoint: "https://mcp.example.test", fetch: async () => response({ result: {} }) });
+  await assert.rejects(() => client.listTools(), (error) => error instanceof ModernMcpProtocolError && error.code === "invalid_response");
+});
