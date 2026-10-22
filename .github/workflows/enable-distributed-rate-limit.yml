@@ -30,6 +30,8 @@ jobs:
       - name: Preserve service configuration and set distributed mode
         run: |
           set -euo pipefail
+          EVIDENCE="$RUNNER_TEMP/distributed-rate-limit-mode.json"
+          printf '{"outcome":"not_attempted","rate_limit_mode":""}\n' > "$EVIDENCE"
           timeout 30s aws apprunner describe-service \
             --service-arn "$SERVICE_ARN" --region "$AWS_REGION" \
             --query 'Service.SourceConfiguration' --output json \
@@ -49,14 +51,17 @@ jobs:
           set -e
           if [[ "$UPDATE_STATUS" -ne 0 ]]; then
             if grep -q "not authorized to perform: apprunner:UpdateService" <<<"$UPDATE_OUTPUT"; then
+              printf '{"outcome":"blocked_iam","required_action":"apprunner:UpdateService","rate_limit_mode":""}\n' > "$EVIDENCE"
               echo "::error::The GitHub OIDC role needs a narrowly scoped apprunner:UpdateService grant before distributed mode can be enabled. No production mutation was applied."
             else
+              printf '{"outcome":"update_failed","rate_limit_mode":""}\n' > "$EVIDENCE"
               echo "$UPDATE_OUTPUT"
             fi
             exit "$UPDATE_STATUS"
           fi
           OP_ID="$UPDATE_OUTPUT"
           if [[ "$OP_ID" == "None" || ! "$OP_ID" =~ ^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$ ]]; then
+            printf '{"outcome":"invalid_operation","rate_limit_mode":""}\n' > "$EVIDENCE"
             echo "::error::App Runner returned an invalid update operation ID."
             exit 1
           fi
@@ -99,10 +104,11 @@ jobs:
             --output json)
           MODE=$(printf '%s' "$FLAGS" | jq -r '.TRACKMCP_RATE_LIMIT_MODE // ""')
           if [[ "$MODE" != "supabase" ]]; then
+            printf '{"outcome":"verification_failed","rate_limit_mode":""}\n' > "$RUNNER_TEMP/distributed-rate-limit-mode.json"
             echo "::error::App Runner did not retain TRACKMCP_RATE_LIMIT_MODE=supabase."
             exit 1
           fi
-          printf '{"rate_limit_mode":"%s"}\n' "$MODE" > "$RUNNER_TEMP/distributed-rate-limit-mode.json"
+          printf '{"outcome":"enabled","rate_limit_mode":"%s"}\n' "$MODE" > "$RUNNER_TEMP/distributed-rate-limit-mode.json"
           echo "Distributed rate limiting is enabled in the live App Runner configuration."
 
       - name: Upload redacted mode evidence
