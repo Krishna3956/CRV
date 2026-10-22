@@ -315,6 +315,7 @@ test("journey terminal evidence comes from the latest event and is server-scoped
   assert.deepEqual(body.journey_activity.drop_off.map((path) => path.terminal_evidence).sort(), ["input_required", "unknown"]);
   assert.equal(body.journey_activity.funnel[0].step, "search");
   assert.equal(body.journey_activity.funnel[0].reached, 1);
+  assert.equal(body.journey_activity.stall_retry[0].status, "resumed");
 });
 
 test("analytics keeps Did It Work outcomes explicit and uncertainty separate", async () => {

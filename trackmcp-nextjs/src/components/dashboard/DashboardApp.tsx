@@ -874,6 +874,10 @@ function exampleAnalytics(days: number): Analytics {
         { step: "find_invoice", reached: scale(38), share: 0.396 },
         { step: "create_report", reached: scale(32), share: 0.333 },
       ],
+      stall_retry: [
+        { step: "find_invoice", interactions: scale(8), status: "resumed" },
+        { step: "run_query", interactions: scale(6), status: "not_observed" },
+      ],
       limitation: "Illustrative journeys are bounded server-observed interaction paths, not claims about a customer’s complete business task.",
     },
     outcome_activity: {
@@ -2753,6 +2757,9 @@ function JourneysView({
           </Panel>
           <Panel title="Top-path funnel" subtitle="Observed reach by step; a missing next step is not abandonment">
             <div className="space-y-3">{analytics.journey_activity.funnel.length ? analytics.journey_activity.funnel.map((step) => <div key={step.step}><div className="mb-1 flex items-center justify-between gap-3"><p className="text-xs text-ink">{step.step}</p><span className="text-xs text-muted">{fmt(step.reached)} · {step.share == null ? "N/A" : `${Math.round(step.share * 100)}%`}</span></div><div className="h-2 overflow-hidden rounded-full bg-mist"><div className="h-full rounded-full bg-brand" style={{ width: `${Math.max(0, Math.min(100, (step.share || 0) * 100))}%` }} /></div></div>) : <StateNote title="No funnel evidence yet" body="A funnel is shown only when an observed path has bounded interaction evidence." />}</div>
+          </Panel>
+          <Panel title="Stall → retry" subtitle="Input-required steps and observed retry evidence">
+            <div className="divide-y divide-line">{analytics.journey_activity.stall_retry.length ? analytics.journey_activity.stall_retry.map((item) => <div key={item.step} className="flex items-center justify-between gap-3 py-3"><div><p className="text-xs text-ink">{item.step}</p><p className="mt-1 text-[11px] text-muted">{fmt(item.interactions)} input-required interactions</p></div><span className="text-xs text-muted">{item.status === "resumed" ? "Retry observed" : "No retry observed"}</span></div>) : <StateNote title="No stall evidence yet" body="Only explicit input-required states are shown." />}</div>
           </Panel>
         </div>
         <p className="mb-6 text-[11px] leading-relaxed text-faint">{analytics.journey_activity.limitation}</p>

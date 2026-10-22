@@ -610,7 +610,7 @@ export function createAnalyticsHandler(getAdmin: typeof getSupabaseAdmin = getSu
     trend: [...surfaceTrend.entries()].sort(([a], [b]) => a.localeCompare(b)).slice(-500).map(([key, calls]) => { const [period_start, kind, name] = key.split("|"); return { period_start, kind: kind as "resource" | "prompt", name, calls }; }),
     limitation: `${historyCapped || historyResult.error ? "Current-period activity is complete, but previous-period comparison is bounded by the available history scan. " : ""}Only resources/read and prompts/get are product-use interactions; list, catalog, and subscription methods remain separate protocol evidence. Missing result type remains unknown rather than success or error. Explicitly linked retries are collapsed to one interaction; unlinked repeats remain distinct observations. Names are represented by safe protocol methods; raw URIs, prompt names, arguments, and contents are never exposed.`,
   };
-  const interactions = new Map<string, { path: string[]; stalled: boolean; retried: boolean; terminal_evidence: "explicit_error" | "input_required" | "unknown" }>();
+  const interactions = new Map<string, { path: string[]; stalled: boolean; stalled_step?: string; retried: boolean; terminal_evidence: "explicit_error" | "input_required" | "unknown" }>();
   for (const event of calls) {
     // Interaction/session IDs may be reused by independent servers. Scope the
     // bounded path to the observed server before grouping; a missing server ID
@@ -619,7 +619,7 @@ export function createAnalyticsHandler(getAdmin: typeof getSupabaseAdmin = getSu
     const key = `${scope.slice(0, 128)}:${(event.interaction_id || event.session_id || event.event_id).slice(0, 128)}`;
     const current = interactions.get(key) || { path: [], stalled: false, retried: false, terminal_evidence: "unknown" as const };
     if (event.tool_name && current.path.length < 50) current.path.push(event.tool_name.slice(0, 128));
-    if (event.result_type === "input_required") current.stalled = true;
+    if (event.result_type === "input_required") { current.stalled = true; current.stalled_step ||= event.tool_name?.slice(0, 128); }
     if (event.retry_number != null || event.retry_of_event_id) current.retried = true;
     // Terminal evidence describes the last observed event. An earlier failure
     // followed by a later retry is not presented as where the path stopped.
@@ -643,6 +643,15 @@ export function createAnalyticsHandler(getAdmin: typeof getSupabaseAdmin = getSu
     const reached = [...interactions.values()].filter((item) => item.path.slice(0, index + 1).join("\u0000") === topPath.slice(0, index + 1).join("\u0000")).length;
     return { step, reached, share: interactions.size ? reached / interactions.size : null };
   });
+  const stallRetryGroups = new Map<string, { step: string; interactions: number; resumed: number }>();
+  for (const item of interactions.values()) {
+    if (!item.stalled) continue;
+    const step = item.stalled_step || "Unknown step";
+    const current = stallRetryGroups.get(step) || { step, interactions: 0, resumed: 0 };
+    current.interactions += 1;
+    if (item.retried) current.resumed += 1;
+    stallRetryGroups.set(step, current);
+  }
   const journeyActivity = {
     interaction_count: interactions.size,
     typical_journey_length: interactions.size ? [...interactions.values()].map((item) => item.path.length).sort((a, b) => a - b)[Math.floor((interactions.size - 1) * 0.5)] || null : null,
@@ -651,6 +660,7 @@ export function createAnalyticsHandler(getAdmin: typeof getSupabaseAdmin = getSu
     common_paths: journeyGroups.slice(0, 10).map((item) => ({ path: item.path, interactions: item.interactions, share: interactions.size ? item.interactions / interactions.size : null })),
     drop_off: journeyGroups.slice(0, 10).map((item) => ({ path: item.path, interactions: item.interactions, terminal_evidence: item.terminal_evidence })),
     funnel,
+    stall_retry: [...stallRetryGroups.values()].sort((a, b) => b.interactions - a.interactions).slice(0, 10).map((item) => ({ step: item.step, interactions: item.interactions, status: item.resumed > 0 ? "resumed" as const : "not_observed" as const })),
     limitation: "Paths are bounded sequences of observed tool calls scoped to an observed server and grouped by interaction or session identity. Terminal evidence is the latest observed event; missing terminal events are unknown, not abandonment. Cross-server journeys outside this workspace are not visible.",
   };
   // The product outcome surface is intentionally narrower than the general
