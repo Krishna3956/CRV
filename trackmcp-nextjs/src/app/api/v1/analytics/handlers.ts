@@ -236,13 +236,22 @@ export function createAnalyticsHandler(getAdmin: typeof getSupabaseAdmin = getSu
 
   const events = ((data || []) as EventRow[]).filter((event) => event.observation_source === "server");
   const protocolFamilyCounts = new Map<string, number>();
+  const protocolFamilyOutcomes = new Map<string, { observations: number; errors: number; input_required: number; unknown: number }>();
   const protocolFamilyEvents = (data || []) as EventRow[];
   for (const event of protocolFamilyEvents) {
     const hintedFamily = event.payload && typeof event.payload === "object" && !Array.isArray(event.payload)
       ? (event.payload._trackmcp && typeof event.payload._trackmcp === "object" && !Array.isArray(event.payload._trackmcp) ? (event.payload._trackmcp as Record<string, unknown>).protocol_family : undefined)
       : undefined;
     const family = typeof hintedFamily === "string" ? hintedFamily : protocolFamilyForMethod(event.mcp_method);
-    if (family === "sampling" || family === "elicitation" || family === "completion" || family === "tasks" || family === "control_signal" || family === "resources" || family === "prompts" || family === "tools" || family === "subscriptions" || family === "notifications") protocolFamilyCounts.set(family, (protocolFamilyCounts.get(family) || 0) + 1);
+    if (family === "sampling" || family === "elicitation" || family === "completion" || family === "tasks" || family === "control_signal" || family === "resources" || family === "prompts" || family === "tools" || family === "subscriptions" || family === "notifications") {
+      protocolFamilyCounts.set(family, (protocolFamilyCounts.get(family) || 0) + 1);
+      const outcome = protocolFamilyOutcomes.get(family) || { observations: 0, errors: 0, input_required: 0, unknown: 0 };
+      outcome.observations += 1;
+      if (event.is_error === true || event.success === false) outcome.errors += 1;
+      else if (event.result_type === "input_required") outcome.input_required += 1;
+      else outcome.unknown += 1;
+      protocolFamilyOutcomes.set(family, outcome);
+    }
   }
   const facts = events.map(canonicalEventFromRow).map(projectTrackMCPFact);
   // The transition table is additive and may not exist on older deployments.
@@ -746,6 +755,7 @@ export function createAnalyticsHandler(getAdmin: typeof getSupabaseAdmin = getSu
     },
     protocol_signals: { ...protocolSignalCounts, observed_events: protocolSignalEvents, timeline: [...protocolSignalTimeline.entries()].sort(([a], [b]) => a.localeCompare(b)).slice(-366).map(([date, counts]) => ({ date, ...counts, observed_events: Object.values(counts).reduce((sum, value) => sum + value, 0) })) },
     protocol_family_activity: [...protocolFamilyCounts.entries()].map(([family, observations]) => ({ family: family as TrackMCPProtocolFamily, observations })).sort((a, b) => b.observations - a.observations || a.family.localeCompare(b.family)),
+    protocol_family_outcomes: [...protocolFamilyOutcomes.entries()].map(([family, outcome]) => ({ family: family as TrackMCPProtocolFamily, ...outcome })).sort((a, b) => b.observations - a.observations || a.family.localeCompare(b.family)),
     transports: transports.slice(0, MAX_PUBLIC_DIMENSION_ITEMS),
     methods: methods.slice(0, MAX_PUBLIC_DIMENSION_ITEMS),
     tool_calls: calls.length, sessions: workflowRows.length, errors: calls.filter(failed).length,

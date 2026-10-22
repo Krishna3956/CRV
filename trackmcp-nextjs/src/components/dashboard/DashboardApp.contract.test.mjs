@@ -432,6 +432,12 @@ test("Overview exposes protocol lifecycle signals with an explicit non-outcome c
   assert.match(source, /aria-label="Daily protocol signal timeline"/);
 });
 
+test("Capabilities exposes bounded modern protocol outcome states", () => {
+  assert.match(source, /protocol_family_outcomes/);
+  assert.match(source, /Modern protocol outcomes/);
+  assert.match(source, /Unknown is retained when no explicit terminal result exists/);
+});
+
 test("Capabilities exposes truthful catalog history states", () => {
   assert.match(source, /function CatalogHistoryPanel\(/);
   assert.match(source, /Hash-only snapshots show when the advertised capability surface changed/);

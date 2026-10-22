@@ -297,3 +297,10 @@ just because a README or marketing page mentions it.
   allowlisted signal counts, is capped to the selected window, and never
   forwards event payloads or identifiers. Analytics integration and dashboard
   contracts pass; transport-specific and production UAT remain separate gates.
+
+- 2026-10-22: Extended the modern capability-family read model with bounded
+  observed/error/input-required/unknown outcome counts for completion,
+  sampling, elicitation, tasks, and other protocol families. The dashboard
+  renders these as protocol evidence only; unknown states remain explicit and
+  no business-completion claim is inferred. Analytics integration and dashboard
+  contracts pass; durable family-specific persistence remains open.
