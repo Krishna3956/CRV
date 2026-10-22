@@ -22,7 +22,7 @@
     "test:data-trust": "node --experimental-strip-types --test src/lib/telemetry/data-trust.test.ts",
     "test:overview-route": "node --test src/app/api/v2/overview/route.contract.test.mjs",
     "test:setup-route": "node --test src/app/api/v2/setup/route.contract.test.mjs && node --experimental-strip-types --test src/app/api/v2/setup/setup-state.test.ts",
-    "test:data-trust-route": "node --test src/app/api/v2/data-trust/route.contract.test.mjs",
+    "test:data-trust-route": "node --test src/app/api/v2/data-trust/route.contract.test.mjs src/app/api/v2/data-trust/route.integration.test.mjs",
     "test:tools-route": "node --test src/app/api/v2/tools/route.contract.test.mjs src/app/api/v2/tools/route.integration.test.mjs",
     "test:tool-detail-route": "node --test src/app/api/v2/tools/tool-detail-route.contract.test.mjs",
     "test:catalogs-route": "node --test src/app/api/v2/catalogs/route.contract.test.mjs src/app/api/v2/catalogs/route.integration.test.mjs",

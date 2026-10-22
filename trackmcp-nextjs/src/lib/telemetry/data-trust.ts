@@ -13,6 +13,23 @@ export type TrackMCPDataTrust = {
   observed_through: string | null;
 };
 
+/** Project untrusted read-model provenance into the public contract. */
+export function projectTrackMCPDataTrust(value: unknown): TrackMCPDataTrust | null {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return null;
+  const row = value as Record<string, unknown>;
+  const text = (candidate: unknown) => typeof candidate === "string" ? candidate.slice(0, 80) : "";
+  const count = (candidate: unknown) => typeof candidate === "number" && Number.isSafeInteger(candidate) ? Math.max(0, Math.min(1000000, candidate)) : 0;
+  return {
+    generated_at: text(row.generated_at),
+    query_since: text(row.query_since),
+    query_until: text(row.query_until),
+    source_event_count: count(row.source_event_count),
+    returned_event_count: count(row.returned_event_count),
+    truncated: row.truncated === true,
+    observed_through: typeof row.observed_through === "string" ? row.observed_through.slice(0, 80) : null,
+  };
+}
+
 export function buildTrackMCPDataTrust(input: {
   generatedAt: string;
   querySince: string;

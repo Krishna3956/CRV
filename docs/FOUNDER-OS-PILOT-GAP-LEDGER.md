@@ -150,3 +150,8 @@ just because a README or marketing page mentions it.
   use bounded numeric/rate fields and allowlisted keys; arbitrary outcome or
   aggregate properties are discarded. The integration fixture injects private
   fields into both shapes and verifies they do not reach the response.
+
+- 2026-10-22: Added a shared public `data_trust` projection and applied it to
+  `/api/v2/data-trust`. Provenance now exposes only bounded timestamps, counts,
+  the truncation flag, and the observed watermark; arbitrary upstream fields
+  are discarded. Unit, contract, and adversarial route integration tests pass.
