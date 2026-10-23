@@ -3,6 +3,21 @@
 This is a review record, not a publication action. No registry credentials are
 used here and no package is published automatically.
 
+## Current registry reconciliation (2026-10-24)
+
+The reviewed release train for source head `41c4b75` is published and verified:
+
+| Package | Published version | Evidence |
+| --- | --- | --- |
+| `@trackmcp/sdk` | `0.1.13` | npm HTTP 200, public tarball and SHA-512 integrity; workflow `40029173082` uploaded provenance |
+| `@trackmcp/cli` | `0.1.5` | npm HTTP 200, public tarball and SHA-512 integrity; workflow `40029647746` uploaded provenance |
+| `trackmcp` | `0.1.7` | PyPI HTTP 200; wheel SHA-256 `44762e5a04ccf36ec342a60d7db173a214c1645697d2031e9d7a1943fc9b0e68`; sdist SHA-256 `19c3842390cbabc1a1238b83d4d646a86fa8eb1be6ba4c2a447e41cf4f967313`; workflow `40029650698` uploaded provenance |
+
+App Runner run `40030062391` deployed the same source after registry
+propagation and passed the post-publication read-only smoke and runtime audit.
+The older version tables below are retained as immutable historical evidence;
+they are not the current package baseline.
+
 ## Current source artifacts
 
 | Package | Source manifest | Local release checks | Publication workflow |
@@ -11,9 +26,9 @@ used here and no package is published automatically.
 | `@trackmcp/cli` | `trackmcp-nextjs/packages/cli/package.json` | CLI tests and packed-consumer test | `.github/workflows/publish.yml`, `cli` |
 | `trackmcp` | `packages/python-sdk/pyproject.toml` | unittest suite and build metadata audit | `.github/workflows/publish.yml`, `python` |
 
-The current local source manifests are deliberately distinct candidate versions:
-`@trackmcp/sdk` `0.1.12`, `@trackmcp/cli` `0.1.4`, and
-`trackmcp` `0.1.6`.
+The current local source manifests are the reviewed published versions:
+`@trackmcp/sdk` `0.1.13`, `@trackmcp/cli` `0.1.5`, and
+`trackmcp` `0.1.7`.
 They were selected after a registry preflight found the immediately preceding
 versions already published. The SDK 0.1.5 publication completed with
 provenance and an exact clean-consumer check in publish workflow
@@ -27,15 +42,14 @@ newly selected version immediately before upload.
 Never reuse an already-published version, and bump each package with its
 lockfile/artifact metadata together.
 
-## Current source delta after the registry baseline
+## Historical source delta before the 0.1.13 train
 
 The source after the published `@trackmcp/sdk@0.1.12` baseline now includes
 bounded modern-client request correlation and Streamable HTTP/SSE response
 handling (`1f81952`, `a3ed675`), plus aligned SDK documentation (`c64e603`).
-These changes are verified locally but are intentionally **not** described as
-part of the public registry artifact. They must be batched into the next
-reviewed release train and published only after the complete package audit,
-packed-consumer checks, provenance, and clean registry reconciliation pass.
+Those changes were verified locally at the time and were subsequently included
+in the 0.1.13 release train above. The historical wording is retained so the
+reconciliation chain remains auditable.
 
 ## Source-to-registry reconciliation snapshot (2026-10-19 UTC)
 
