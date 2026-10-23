@@ -5,11 +5,13 @@ used here and no package is published automatically.
 
 ## Current registry reconciliation (2026-10-24)
 
-The reviewed release train for source head `41c4b75` is published and verified:
+The current security-patched SDK release for source head `7961839` is published
+and verified; the CLI/Python versions remain the previously verified immutable
+release line:
 
 | Package | Published version | Evidence |
 | --- | --- | --- |
-| `@trackmcp/sdk` | `0.1.14` | Security-patched candidate; local audit is clean and publication/provenance are pending |
+| `@trackmcp/sdk` | `0.1.14` | npm HTTP 200, public tarball and SHA-512 integrity `sha512-JEbTLmnU2KtQAgDF//PvG8pWuxt2gYCa4ggfp0B0ER+CRIykiHB82+ibvUNbOmsEJ1zCkvv8681C7IJVY2ZSwQ==`; workflow `40034334707` uploaded provenance |
 | `@trackmcp/cli` | `0.1.5` | npm HTTP 200, public tarball and SHA-512 integrity; workflow `40029647746` uploaded provenance |
 | `trackmcp` | `0.1.7` | PyPI HTTP 200; wheel SHA-256 `44762e5a04ccf36ec342a60d7db173a214c1645697d2031e9d7a1943fc9b0e68`; sdist SHA-256 `19c3842390cbabc1a1238b83d4d646a86fa8eb1be6ba4c2a447e41cf4f967313`; workflow `40029650698` uploaded provenance |
 
