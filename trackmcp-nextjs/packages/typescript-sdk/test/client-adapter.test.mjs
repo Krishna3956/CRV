@@ -30,8 +30,8 @@ test("protocol family metadata classifies bounded modern MCP methods", () => {
 
 test("pins the MCP dependency and exposes the adapter only through the Node export condition", async () => {
   const packageJson = JSON.parse(await readFile(new URL("../package.json", import.meta.url), "utf8"));
-  assert.equal(packageJson.peerDependencies["@modelcontextprotocol/sdk"], "1.32.1");
-  assert.equal(packageJson.devDependencies["@modelcontextprotocol/sdk"], "1.32.1");
+  assert.equal(packageJson.peerDependencies["@modelcontextprotocol/sdk"], "1.32.2");
+  assert.equal(packageJson.devDependencies["@modelcontextprotocol/sdk"], "1.32.2");
   assert.equal(packageJson.exports["./client-adapter"].node, "./dist/client-adapter.js");
   assert.equal(packageJson.exports["./client-adapter"].browser, undefined);
   assert.equal(packageJson.exports["./client-adapter"].default, null);
@@ -108,7 +108,7 @@ async function closeServer(server) {
   await new Promise((resolve) => server.close(resolve));
 }
 
-test("uses MCP SDK 1.32.1 with a real StdioClientTransport and captures protocol identity", async () => {
+test("uses MCP SDK 1.32.2 with a real StdioClientTransport and captures protocol identity", async () => {
   const received = [];
   const ingest = http.createServer((request, response) => {
     let body = "";

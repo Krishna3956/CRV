@@ -51,7 +51,7 @@ export default function TypeScriptDocsPage() {
         <Para>
           The transport observer is the separate <Inline>@trackmcp/sdk/client-adapter</Inline> entry point. It is
           Node.js-only and requires <Inline>@modelcontextprotocol/sdk</Inline> exactly
-          <Inline>1.32.1</Inline>. It rejects browser and Edge runtimes and must not be
+          <Inline>1.32.2</Inline>. It rejects browser and Edge runtimes and must not be
           imported by frontend bundles. The caller is responsible for protecting the
           API key. It supports the official <Inline>StdioClientTransport</Inline>,
           <Inline>StreamableHTTPClientTransport</Inline>, and

@@ -206,7 +206,7 @@ export default function ReferenceDocsPage() {
       <DocSection title="Node client adapter boundary">
         <Para>
           <Inline>@trackmcp/sdk/client-adapter</Inline> is a separate Node-only entry
-          point pinned to <Inline>@modelcontextprotocol/sdk 1.32.1</Inline>. It wraps
+          point pinned to <Inline>@modelcontextprotocol/sdk 1.32.2</Inline>. It wraps
           <Inline>StdioClientTransport</Inline> or
           <Inline>StreamableHTTPClientTransport</Inline> before
           <Inline>Client.connect(transport)</Inline>. Browser and Edge runtimes,
