@@ -11,9 +11,11 @@ export async function DELETE(request: Request, context: { params: Promise<{ id: 
   const { id } = await context.params;
   const requestedWorkspaceId = new URL(request.url).searchParams.get("workspace_id")?.trim() || "";
   if (!requestedWorkspaceId || requestedWorkspaceId.length > 128) return NextResponse.json({ error: "workspace_id is required." }, { status: 400 });
+  if (!id || id.length > 128) return NextResponse.json({ error: "API key id is required." }, { status: 400 });
   const membership = await admin.from("trackmcp_workspace_members").select("workspace_id, role").eq("user_id", userData.user.id).eq("workspace_id", requestedWorkspaceId).in("role", ["owner", "admin"]).maybeSingle();
   if (membership.error || !membership.data) return NextResponse.json({ error: "Workspace not found." }, { status: 404 });
-  const { error } = await admin.from("trackmcp_api_keys").update({ revoked_at: new Date().toISOString() }).eq("id", id).eq("workspace_id", membership.data.workspace_id).is("revoked_at", null);
+  const { data: revokedKey, error } = await admin.from("trackmcp_api_keys").update({ revoked_at: new Date().toISOString() }).eq("id", id).eq("workspace_id", membership.data.workspace_id).is("revoked_at", null).select("id").maybeSingle();
   if (error) return NextResponse.json({ error: "Could not revoke API key." }, { status: 500 });
+  if (!revokedKey) return NextResponse.json({ error: "API key not found." }, { status: 404 });
   return NextResponse.json({ revoked: true });
 }
