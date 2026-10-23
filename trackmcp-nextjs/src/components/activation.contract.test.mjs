@@ -54,6 +54,8 @@ test("device approval states are explicit and recoverable", () => {
   assert.match(device, /Create workspace to continue/);
   assert.match(device, /body: JSON\.stringify\(\{ create_key: false \}\)/);
   assert.match(device, /The CLI redeems the one-time key/);
+  assert.match(device, /aria-live="polite"/);
+  assert.match(device, /role="alert"/);
 });
 
 test("activation UI emits bounded copy and first-event events", () => {
