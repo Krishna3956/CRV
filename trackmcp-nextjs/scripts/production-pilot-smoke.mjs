@@ -131,9 +131,9 @@ async function expectToolSitemap() {
 
 async function registryChecks() {
   const checks = [];
-  const npmPackage = process.env.TRACKMCP_EXPECTED_NPM_SDK || "@trackmcp/sdk@0.1.12";
-  const cliPackage = process.env.TRACKMCP_EXPECTED_NPM_CLI || "@trackmcp/cli@0.1.4";
-  const pythonPackage = process.env.TRACKMCP_EXPECTED_PYPI || "trackmcp@0.1.6";
+  const npmPackage = process.env.TRACKMCP_EXPECTED_NPM_SDK || "@trackmcp/sdk@0.1.13";
+  const cliPackage = process.env.TRACKMCP_EXPECTED_NPM_CLI || "@trackmcp/cli@0.1.5";
+  const pythonPackage = process.env.TRACKMCP_EXPECTED_PYPI || "trackmcp@0.1.7";
   const expectedNpmIntegrity = {
     [npmPackage]: process.env.TRACKMCP_EXPECTED_NPM_SDK_INTEGRITY || "",
     [cliPackage]: process.env.TRACKMCP_EXPECTED_NPM_CLI_INTEGRITY || "",
@@ -159,9 +159,9 @@ async function registryChecks() {
   const name = pythonPackage.slice(0, at);
   const version = pythonPackage.slice(at + 1);
   const expectedWheel = process.env.TRACKMCP_EXPECTED_PYPI_WHEEL_SHA256
-    || (pythonPackage === "trackmcp@0.1.6" ? "4898b68d5a02825bfef3b2cd2b8ba91467464754d1dc755f932ccda53a4c284c" : "");
+    || "";
   const expectedSdist = process.env.TRACKMCP_EXPECTED_PYPI_SDIST_SHA256
-    || (pythonPackage === "trackmcp@0.1.6" ? "3fec6e02a78b54ca14a3478d1f32623f44e6d1ea8fc3b4be3b88c57a7419226b" : "");
+    || "";
   // PyPI can briefly expose the version before its file list and digests have
   // propagated to every edge. Retry that narrow condition, but never weaken
   // the exact checksum comparison once the files are visible.
