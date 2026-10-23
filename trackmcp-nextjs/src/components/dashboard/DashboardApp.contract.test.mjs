@@ -51,6 +51,13 @@ test("business-first navigation and KPI hierarchy are explicit", () => {
   assert.doesNotMatch(source, /Open Configure/);
 });
 
+test("every dashboard tab button is wired to the shared route transition", () => {
+  assert.match(source, /onClick=\{\(\) => onNavigate\(item\.id\)\}/);
+  assert.match(source, /onClick=\{\(\) => goTo\(item\.id\)\}/);
+  assert.match(source, /writeRouteState\(next, range, dataMode\)/);
+  assert.match(source, /aria-current=\{view === item\.id \? "page" : undefined\}/);
+});
+
 test("dashboard deep links normalize singular and legacy view aliases", () => {
   assert.match(source, /journey: "journeys"/);
   assert.match(source, /capability: "capabilities"/);
