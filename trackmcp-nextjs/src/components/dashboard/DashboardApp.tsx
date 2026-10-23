@@ -4741,6 +4741,7 @@ function SetupView({
             <p className="mt-1 text-xs leading-relaxed text-muted">
               A proxy or launcher is not a replacement for native instrumentation today. It can provide limited transport coverage only after a separate integration is configured.
             </p>
+            <a href="/docs/protocol" className="mt-3 inline-flex cursor-pointer items-center gap-1 text-xs font-semibold text-brand-strong hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand">Read transport boundaries <ArrowRight size={12} aria-hidden="true" /></a>
           </div>
           <div className="border border-line bg-paper p-4">
             <div className="flex items-center justify-between gap-3">

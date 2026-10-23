@@ -367,6 +367,9 @@ test("Setup exposes a direct transport observer documentation CTA", () => {
   const setupSource = source.slice(setupStart, setupEnd);
   assert.match(setupSource, /Node client transport observer/);
   assert.match(setupSource, /\/docs\/typescript#transport-observer/);
+  assert.match(setupSource, /Proxy or stdio launcher/);
+  assert.match(setupSource, /Read transport boundaries/);
+  assert.match(setupSource, /href="\/docs\/protocol"/);
 });
 
 test("empty page previews explain each product area instead of repeating generic placeholders", () => {
