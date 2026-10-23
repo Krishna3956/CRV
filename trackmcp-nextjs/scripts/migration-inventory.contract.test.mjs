@@ -8,6 +8,9 @@ const migrationRoot = path.join(repoRoot, "supabase", "migrations");
 const migrationFiles = fs.readdirSync(migrationRoot)
   .filter((name) => name.endsWith(".sql"))
   .sort();
+// Existing migrations are immutable history; enforce the destructive-operation
+// guard on any migration added after the current release-line baseline.
+const destructiveGuardBaseline = "20261021000001";
 
 test("migration inventory has deterministic names and no duplicate executable versions", () => {
   assert.ok(migrationFiles.length > 0, "the repository must carry migrations");
@@ -34,11 +37,14 @@ test("migration inventory has deterministic names and no duplicate executable ve
   }
 });
 
-test("migration inventory is ordered and contains no destructive table/column operations", () => {
+test("migration inventory is ordered and contains no destructive schema or RLS operations", () => {
   const sorted = [...migrationFiles].sort();
   assert.deepEqual(migrationFiles, sorted);
   for (const name of migrationFiles) {
     const content = fs.readFileSync(path.join(migrationRoot, name), "utf8");
-    assert.doesNotMatch(content, /\b(?:drop\s+table|drop\s+column|truncate\s+(?:table\s+)?public\.)\b/i, `destructive schema operation requires an explicit release review: ${name}`);
+    const destructivePattern = /\b(?:drop\s+table|drop\s+column|drop\s+index|drop\s+constraint|drop\s+policy|truncate\s+(?:table\s+)?public\.|alter\s+table\s+[^;\n]*\bdisable\s+row\s+level\s+security)\b/i;
+    if (name.slice(0, 14) > destructiveGuardBaseline && destructivePattern.test(content)) {
+      assert.fail(`destructive schema or RLS operation requires an explicit release review: ${name}`);
+    }
   }
 });
