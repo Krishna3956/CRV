@@ -53,8 +53,9 @@ export default function TypeScriptDocsPage() {
           Node.js-only and requires <Inline>@modelcontextprotocol/sdk</Inline> exactly
           <Inline>1.32.1</Inline>. It rejects browser and Edge runtimes and must not be
           imported by frontend bundles. The caller is responsible for protecting the
-          API key. It supports only <Inline>StdioClientTransport</Inline> and
-          <Inline>StreamableHTTPClientTransport</Inline>.
+          API key. It supports the official <Inline>StdioClientTransport</Inline>,
+          <Inline>StreamableHTTPClientTransport</Inline>, and
+          <Inline>SSEClientTransport</Inline> implementations.
         </Para>
         <Code>{`import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { StdioClientTransport } from "@modelcontextprotocol/sdk/client/stdio.js";

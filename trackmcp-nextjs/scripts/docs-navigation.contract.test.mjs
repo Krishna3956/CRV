@@ -6,6 +6,7 @@ import test from "node:test";
 const appRoot = path.resolve(new URL("..", import.meta.url).pathname);
 const shell = await readFile(path.join(appRoot, "src/components/DocsShell.tsx"), "utf8");
 const overview = await readFile(path.join(appRoot, "src/app/docs/page.tsx"), "utf8");
+const typescript = await readFile(path.join(appRoot, "src/app/docs/typescript/page.tsx"), "utf8");
 
 const destinations = [...shell.matchAll(/href:\s*"([^"]+)"/g)].map((match) => match[1]);
 
@@ -30,6 +31,13 @@ test("desktop and compact docs navigation expose real, pointer-enabled links", (
   assert.match(shell, /data-doc-nav="sidebar"/);
   assert.match(shell, /pointer-events-auto/);
   assert.doesNotMatch(shell, /href:\s*["']#["']/);
+});
+
+test("the TypeScript transport observer docs match the supported official transports", () => {
+  for (const transport of ["StdioClientTransport", "StreamableHTTPClientTransport", "SSEClientTransport"]) {
+    assert.match(typescript, new RegExp(transport));
+  }
+  assert.doesNotMatch(typescript, /supports only .*StdioClientTransport/);
 });
 
 test("the shared wordmark cannot acquire a text-link border or underline", async () => {
