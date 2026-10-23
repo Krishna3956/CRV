@@ -70,6 +70,18 @@ const transport = new StdioClientTransport({ command: "my-mcp-server" });
 const client = new Client({ name: "my-host", version: "1.0.0" });
 await client.connect(adapter.wrapTransport(transport));`}</Code>
         <Para>
+          Use the same adapter with the other official Node transports by changing
+          only the transport construction. The endpoint must be the final HTTPS
+          MCP URL; the adapter never proxies or executes tools.
+        </Para>
+        <Code>{`import { StreamableHTTPClientTransport } from "@modelcontextprotocol/sdk/client/streamableHttp.js";
+import { SSEClientTransport } from "@modelcontextprotocol/sdk/client/sse.js";
+
+const httpTransport = new StreamableHTTPClientTransport(new URL(process.env.MCP_URL!));
+const sseTransport = new SSEClientTransport(new URL(process.env.MCP_SSE_URL!));
+await client.connect(adapter.wrapTransport(httpTransport));
+// Or: await client.connect(adapter.wrapTransport(sseTransport));`}</Code>
+        <Para>
           Capture is metadata-only. It records client-observed issued calls, matched
           transport responses, observable next calls, repeats, and lifecycle boundaries;
           it does not record tool arguments/results, prompts, completions, private

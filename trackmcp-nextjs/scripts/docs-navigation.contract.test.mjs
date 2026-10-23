@@ -37,6 +37,8 @@ test("the TypeScript transport observer docs match the supported official transp
   for (const transport of ["StdioClientTransport", "StreamableHTTPClientTransport", "SSEClientTransport"]) {
     assert.match(typescript, new RegExp(transport));
   }
+  assert.match(typescript, /new StreamableHTTPClientTransport\(new URL\(/);
+  assert.match(typescript, /new SSEClientTransport\(new URL\(/);
   assert.doesNotMatch(typescript, /supports only .*StdioClientTransport/);
 });
 
