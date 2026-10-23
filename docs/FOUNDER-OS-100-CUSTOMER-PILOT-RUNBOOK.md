@@ -159,10 +159,12 @@ and rate-limit false positives.
 
 ## 9. Package publication and clean consumers
 
-The currently reviewed TypeScript SDK release candidate is `@trackmcp/sdk@0.1.12`
-(publication must be verified before pilot use),
-`@trackmcp/cli@0.1.4`, and `trackmcp==0.1.6`. Publish only a new reviewed
-version after duplicate-version preflight passes.
+The currently reviewed and publicly resolved release train is
+`@trackmcp/sdk@0.1.13`, `@trackmcp/cli@0.1.5`, and `trackmcp==0.1.7`.
+Their registry availability and clean artifact resolution are recorded in
+`docs/FOUNDER-OS-PACKAGE-RELEASE-READINESS.md`; this does not prove
+credentialed production activation or first-event evidence. Publish only a new
+reviewed version after duplicate-version preflight passes.
 Install those exact registry versions in clean temporary npm and Python
 consumers, then run the first-event/key-status smoke. Record registry URLs,
 versions, checksums, provenance, and consumer results without recording keys.

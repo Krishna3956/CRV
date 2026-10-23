@@ -12,14 +12,14 @@ commit and the operator accepts the listed limitations.
 | --- | --- |
 | Pilot scope | First 100 customers, desktop dashboard boundary |
 | Production hosts | `trackmcp.com`, `app.trackmcp.com` |
-| Last deployed application commit | `683404b` |
-| Last successful App Runner deployment | `39512209436` |
+| Last deployed application commit | `71492d5` |
+| Last successful App Runner deployment | `40030062391` |
 | Readiness ledger | `docs/FOUNDER-OS-100-CUSTOMER-READINESS-LEDGER.md` |
 | Current release-record change | PR #141 (ledger and postflight evidence) |
 
 ## Verified gates
 
-- [x] Founder OS tabs 1–6 have authenticated production assertions.
+- [x] Founder OS tabs 1–6 have bounded authenticated production assertions from the prior live release inspection; these are retained as historical evidence and do not replace the current credentialed smoke.
 - [x] App Runner release gate, image build, rollout, readiness, HTTPS, and
   read-only production smoke passed for the deployed commit.
 - [x] Bounded production load passed: 120/120 requests, zero errors and
@@ -50,6 +50,10 @@ commit and the operator accepts the listed limitations.
   customer incident.
 - [ ] Rollback rehearsal and the release-specific rollback target are linked
   to this exact release.
+- [ ] The current release-specific authenticated production smoke is configured
+  and passes. Workflow `40031387951` failed closed because the repository is
+  missing `TRACKMCP_AUTH_SMOKE_KEY_A`, `TRACKMCP_AUTH_SMOKE_KEY_B`,
+  `TRACKMCP_AUTH_SMOKE_WORKSPACE_A`, and `TRACKMCP_AUTH_SMOKE_WORKSPACE_B`.
 - [ ] A final operator go/no-go decision is recorded with UTC timestamp and
   accepted limitations. The engineering recommendation remains **HOLD**
   until the Supabase quota/grace-period risk is resolved or explicitly
