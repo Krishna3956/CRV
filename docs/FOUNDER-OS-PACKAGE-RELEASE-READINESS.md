@@ -9,7 +9,7 @@ The reviewed release train for source head `41c4b75` is published and verified:
 
 | Package | Published version | Evidence |
 | --- | --- | --- |
-| `@trackmcp/sdk` | `0.1.13` | npm HTTP 200, public tarball and SHA-512 integrity; workflow `40029173082` uploaded provenance |
+| `@trackmcp/sdk` | `0.1.14` | Security-patched candidate; local audit is clean and publication/provenance are pending |
 | `@trackmcp/cli` | `0.1.5` | npm HTTP 200, public tarball and SHA-512 integrity; workflow `40029647746` uploaded provenance |
 | `trackmcp` | `0.1.7` | PyPI HTTP 200; wheel SHA-256 `44762e5a04ccf36ec342a60d7db173a214c1645697d2031e9d7a1943fc9b0e68`; sdist SHA-256 `19c3842390cbabc1a1238b83d4d646a86fa8eb1be6ba4c2a447e41cf4f967313`; workflow `40029650698` uploaded provenance |
 
@@ -19,7 +19,7 @@ The older version tables below are retained as immutable historical evidence;
 they are not the current package baseline.
 
 Clean public-registry artifact resolution was also verified after propagation:
-`npm pack --ignore-scripts @trackmcp/sdk@0.1.13 @trackmcp/cli@0.1.5` produced
+`npm pack --ignore-scripts @trackmcp/sdk@0.1.14 @trackmcp/cli@0.1.5` produced
 both tarballs, and `pip download --no-deps trackmcp==0.1.7` produced the
 published wheel. This proves installability of the exact artifacts, not a
 credentialed first-event or activation result.
@@ -33,7 +33,7 @@ credentialed first-event or activation result.
 | `trackmcp` | `packages/python-sdk/pyproject.toml` | unittest suite and build metadata audit | `.github/workflows/publish.yml`, `python` |
 
 The current local source manifests are the reviewed published versions:
-`@trackmcp/sdk` `0.1.13`, `@trackmcp/cli` `0.1.5`, and
+`@trackmcp/sdk` `0.1.14`, `@trackmcp/cli` `0.1.5`, and
 `trackmcp` `0.1.7`.
 They were selected after a registry preflight found the immediately preceding
 versions already published. The SDK 0.1.5 publication completed with

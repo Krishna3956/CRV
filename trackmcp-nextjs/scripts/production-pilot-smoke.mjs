@@ -131,7 +131,7 @@ async function expectToolSitemap() {
 
 async function registryChecks() {
   const checks = [];
-  const npmPackage = process.env.TRACKMCP_EXPECTED_NPM_SDK || "@trackmcp/sdk@0.1.13";
+  const npmPackage = process.env.TRACKMCP_EXPECTED_NPM_SDK || "@trackmcp/sdk@0.1.14";
   const cliPackage = process.env.TRACKMCP_EXPECTED_NPM_CLI || "@trackmcp/cli@0.1.5";
   const pythonPackage = process.env.TRACKMCP_EXPECTED_PYPI || "trackmcp@0.1.7";
   const expectedNpmIntegrity = {

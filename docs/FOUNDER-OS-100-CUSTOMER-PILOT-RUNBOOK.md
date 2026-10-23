@@ -160,7 +160,7 @@ and rate-limit false positives.
 ## 9. Package publication and clean consumers
 
 The currently reviewed and publicly resolved release train is
-`@trackmcp/sdk@0.1.13`, `@trackmcp/cli@0.1.5`, and `trackmcp==0.1.7`.
+`@trackmcp/sdk@0.1.14`, `@trackmcp/cli@0.1.5`, and `trackmcp==0.1.7`.
 Their registry availability and clean artifact resolution are recorded in
 `docs/FOUNDER-OS-PACKAGE-RELEASE-READINESS.md`; this does not prove
 credentialed production activation or first-event evidence. Publish only a new

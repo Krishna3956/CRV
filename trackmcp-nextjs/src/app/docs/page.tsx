@@ -48,7 +48,7 @@ export default function DocsPage() {
           locally and prints the next server snippet. The npm package itself remains
           intentionally silent and never opens a browser during installation.
           The CLI and SDK are versioned independently: the current CLI is 0.1.5 and the
-          current TypeScript SDK is 0.1.13; the one-command setup always uses the latest
+          current TypeScript SDK is 0.1.14; the one-command setup always uses the latest
           published CLI unless you intentionally pin a version. Source fixes are grouped
           into reviewed release trains; a small dashboard or documentation change does
           not consume an npm or PyPI version. Package publication is reserved for a

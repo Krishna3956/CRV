@@ -1,6 +1,6 @@
 {
   "name": "@trackmcp/sdk",
-  "version": "0.1.13",
+  "version": "0.1.14",
   "description": "Observability SDK for MCP servers",
   "keywords": [
     "mcp",
@@ -60,6 +60,9 @@
     "@modelcontextprotocol/sdk": {
       "optional": true
     }
+  },
+  "overrides": {
+    "body-parser": "2.4.0"
   },
   "devDependencies": {
     "@modelcontextprotocol/sdk": "1.32.2",
