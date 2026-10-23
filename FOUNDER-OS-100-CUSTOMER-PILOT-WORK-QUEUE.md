@@ -95,7 +95,7 @@ gate is complete. Unchecked items remain open.
 - [x] ✅ 043 **P0 · Today · Engineering:** Smoke signup and sign-in return routing with a safe `next` value.
 - [x] ✅ 044 **P0 · Today · Engineering:** Reject unsafe/external sign-in return targets.
 - [ ] 045 **P0 · Today · Engineering:** Smoke the device-authorization page with valid pending state.
-- [ ] 046 **P0 · Today · Engineering:** Smoke device page invalid-code state.
+- [x] ✅ 046 **P0 · Today · Engineering:** Smoke device page invalid-code state.
 - [ ] 047 **P0 · Today · Engineering:** Smoke device page expired-code state.
 - [ ] 048 **P0 · Today · Engineering:** Smoke device page denied state.
 - [ ] 049 **P0 · Today · Engineering:** Smoke device page already-approved state.
@@ -103,7 +103,7 @@ gate is complete. Unchecked items remain open.
 - [ ] 051 **P0 · Today · Engineering:** Smoke workspace selection with one workspace.
 - [ ] 052 **P0 · Today · Engineering:** Smoke workspace selection with multiple memberships.
 - [ ] 053 **P0 · Today · Engineering:** Smoke workspace creation from the device flow without key disclosure.
-- [ ] 054 **P0 · Today · Engineering:** Confirm approval controls are unavailable without authenticated membership.
+- [x] ✅ 054 **P0 · Today · Engineering:** Confirm approval controls are unavailable without authenticated membership.
 - [x] ✅ 055 **P0 · Today · Engineering:** Verify all primary dashboard tabs reach intentional states, not dead buttons.
 - [x] ✅ 056 **P0 · Today · Engineering:** Verify empty dashboard state explains the next real action.
 - [x] ✅ 057 **P0 · Today · Engineering:** Verify loading dashboard state cannot be mistaken for zero data.
@@ -488,3 +488,4 @@ the pilot is ready; it is the proof ledger needed to make that claim honestly.
 | 2026-10-19 | ✅ Founder OS vertical slice: Did it work | Pass locally: analytics/dashboard integration tests 14/14; the read model now exposes explicit completed/failed/pending/unknown/not-observable counts, completion and known-error rates, daily evidence trend, and uncertainty boundaries. Quality UI now shows these alongside existing per-tool reliability evidence. | Completes the local engineering portion of the PDF's outcome/reliability tab without inferring business success or converting missing data into failure. | Production deployment and live metric verification remain runtime gates; explicit outcome coverage depends on SDK/application events, and unknown evidence remains intentionally visible. |
 | 2026-10-19 | ✅ Founder OS vertical slice: What's broken | Pass locally: analytics/dashboard integration tests 15/15; the read model now exposes actionable-signal count, high-confidence count, bounded affected volume, suggested-action coverage, and an explicit non-diagnosis boundary. Issues UI presents these beside incidents and Action Queue lifecycle controls. | Completes the local engineering portion of the PDF's issue triage surface while preserving evidence strength and operator-controlled lifecycle state. | Production deployment and live metric verification remain runtime gates; signals may overlap and do not prove root cause. |
 | 2026-10-19 | Production smoke retry from current environment | Blocked: the read-only smoke runner timed out before receiving application responses; direct probes to `https://trackmcp.com` returned Cloudflare edge `403` responses (and a browser-like probe returned `503`). No application-level pass was recorded and no write/authenticated probe was attempted. | Confirms the current execution environment cannot produce trustworthy production HTTP evidence through the edge; this is not evidence of an application failure. | A rerun from an allowed browser/network or an operator environment is still required for public route, sitemap, protected-boundary, and registry evidence. |
+| 2026-10-24 | Device-flow browser state smoke | Pass: local rendered browser QA showed an invalid-format device code renders the explicit invalid state, while a valid-format code in a signed-out session renders safe sign-in/create-account handoff links and no approval control or key material. | Closes queue items 046 and 054 for the local engineering/browser behavior. | It does not prove authenticated production pending/expired/denied/already-approved states, workspace membership, or live redemption. |
