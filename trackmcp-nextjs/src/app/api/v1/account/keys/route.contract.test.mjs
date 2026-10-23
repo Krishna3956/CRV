@@ -8,8 +8,11 @@ test("connection-key revocation is limited to owner/admin workspace members", ()
   assert.match(source, /select\("workspace_id, role"\)/);
   assert.match(source, /searchParams\.get\("workspace_id"\)/);
   assert.match(source, /workspace_id is required/);
+  assert.match(source, /API key id is required/);
   assert.match(source, /\.in\("role", \["owner", "admin"\]\)/);
   assert.match(source, /\.eq\("workspace_id", requestedWorkspaceId\)/);
   assert.match(source, /\.eq\("workspace_id", membership\.data\.workspace_id\)/);
   assert.match(source, /\.is\("revoked_at", null\)/);
+  assert.match(source, /\.select\("id"\)\.maybeSingle\(\)/);
+  assert.match(source, /API key not found/);
 });
