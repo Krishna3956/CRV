@@ -3,6 +3,7 @@ import test from "node:test";
 import { readFile } from "node:fs/promises";
 
 const device = await readFile(new URL("./DeviceApprovalClient.tsx", import.meta.url), "utf8");
+const deviceUi = await readFile(new URL("../lib/device-auth-ui.ts", import.meta.url), "utf8");
 const deviceAuth = await readFile(new URL("../lib/device-auth.ts", import.meta.url), "utf8");
 const dashboard = await readFile(new URL("./dashboard/DashboardApp.tsx", import.meta.url), "utf8");
 const docs = await readFile(new URL("./DocsAnalytics.tsx", import.meta.url), "utf8");
@@ -46,7 +47,7 @@ test("device approval states are explicit and recoverable", () => {
     "No key was created",
     "Start npx @trackmcp/cli init again",
   ]) {
-    assert.match(device, new RegExp(phrase.replace(/[.*+?^${}()|[\\]\\]/g, "\\\\$&")));
+    assert.match(`${device}\n${deviceUi}`, new RegExp(phrase.replace(/[.*+?^${}()|[\\]\\]/g, "\\\\$&")));
   }
   assert.match(device, /next = `\/device\?user_code=\$\{encodeURIComponent\(userCode\)\}`/);
   assert.match(device, /source=device_auth/);

@@ -7,6 +7,7 @@ import type { User } from "@supabase/supabase-js";
 import { getSupabaseBrowser } from "@/lib/auth/supabase-browser";
 import { trackActivationEvent } from "@/lib/marketing-analytics";
 import { TrackMCPLogo } from "@/components/TrackMCPLogo";
+import { deviceStateCopy } from "@/lib/device-auth-ui";
 import {
   normalizeDeviceUserCode,
   createDeviceAuthAdapter,
@@ -154,13 +155,13 @@ export function DeviceApprovalClient({
     setWorking(false);
   };
 
-  if (status === "invalid") return <DeviceState icon={<XCircle />} title="That device code is not valid" detail="Use the complete code printed by npx @trackmcp/cli init. It should look like F7KQ-2M9D." />;
-  if (status === "expired") return <DeviceState icon={<Clock3 />} title="This device session expired" detail="Start npx @trackmcp/cli init again to get a new code." />;
+  if (status === "invalid") { const copy = deviceStateCopy(status); return <DeviceState icon={<XCircle />} {...copy} />; }
+  if (status === "expired") { const copy = deviceStateCopy(status); return <DeviceState icon={<Clock3 />} {...copy} />; }
   if (status === "unauthenticated") return <AuthRequiredState userCode={normalizedCode} />;
-  if (status === "denied") return <DeviceState icon={<XCircle />} title="Device access was not approved" detail={error || "No key was created. You can safely close this page and restart the CLI when ready."} />;
-  if (status === "already_redeemed") return <DeviceState icon={<CheckCircle2 />} title="This device session was already used" detail="Start a new CLI session if you need to connect another project." />;
-  if (status === "already_approved") return <DeviceState icon={<CheckCircle2 />} title="This device session is already approved" detail="Return to your terminal so it can redeem the one-time result." />;
-  if (status === "approved") return <DeviceState icon={<CheckCircle2 />} title="Device approved" detail="Return to your terminal. The CLI can now finish the one-time setup." />;
+  if (status === "denied") { const copy = deviceStateCopy(status, error); return <DeviceState icon={<XCircle />} {...copy} />; }
+  if (status === "already_redeemed") { const copy = deviceStateCopy(status); return <DeviceState icon={<CheckCircle2 />} {...copy} />; }
+  if (status === "already_approved") { const copy = deviceStateCopy(status); return <DeviceState icon={<CheckCircle2 />} {...copy} />; }
+  if (status === "approved") { const copy = deviceStateCopy(status); return <DeviceState icon={<CheckCircle2 />} {...copy} />; }
 
   return (
     <main className="min-h-screen bg-canvas px-6 py-8 text-body sm:py-12">
