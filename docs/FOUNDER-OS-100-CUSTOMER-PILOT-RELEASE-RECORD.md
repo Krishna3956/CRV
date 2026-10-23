@@ -15,7 +15,7 @@ commit and the operator accepts the listed limitations.
 | Last deployed application commit | `71492d5` |
 | Last successful App Runner deployment | `40030062391` |
 | Readiness ledger | `docs/FOUNDER-OS-100-CUSTOMER-READINESS-LEDGER.md` |
-| Current release-record change | PR #141 (ledger and postflight evidence) |
+| Current release-record change | Commit `0f89937` (current release identity and credentialed-smoke gate reconciliation) |
 
 ## Verified gates
 
