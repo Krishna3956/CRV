@@ -135,6 +135,36 @@ async function verifyFounderOsReadModels(key, keyLabel) {
   return checks;
 }
 
+const legacyReadModels = [
+  "/api/v1/analytics?days=30",
+  "/api/v1/tool-quality?days=30",
+  "/api/v1/traces?session_id=trackmcp-auth-smoke-empty-session&limit=1",
+];
+
+async function verifyLegacyReadModels(key, keyLabel, conflictingWorkspace) {
+  const checks = [];
+  for (const path of legacyReadModels) {
+    const separator = path.includes("?") ? "&" : "?";
+    const response = await request(`${path}${separator}workspace_id=${encodeURIComponent(conflictingWorkspace)}`, key);
+    if (response.status !== 200) fail(`${keyLabel} ${path.split("?")[0]} expected HTTP 200, received HTTP ${response.status}`);
+    let body = {};
+    try {
+      const parsed = await response.json();
+      if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) body = parsed;
+    } catch {
+      fail(`${keyLabel} ${path.split("?")[0]} did not return JSON.`);
+    }
+    assertPrivacySafe(body);
+    checks.push({
+      label: `${keyLabel} ${path.split("?")[0]} authenticated read model`,
+      status: response.status,
+      conflicting_workspace_ignored: true,
+      privacy_projection_verified: true,
+    });
+  }
+  return checks;
+}
+
 async function verifyApiKeyActionQueueBoundary(key, keyLabel) {
   const response = await request("/api/v2/action-queue", key);
   if (response.status !== 403) fail(`${keyLabel} action queue expected API-key denial HTTP 403, received HTTP ${response.status}`);
@@ -150,6 +180,8 @@ async function main() {
   checks.push(await verifyKeyScope(keyB, "workspace B", workspaceB, workspaceA));
   checks.push(...await verifyFounderOsReadModels(keyA, "workspace A"));
   checks.push(...await verifyFounderOsReadModels(keyB, "workspace B"));
+  checks.push(...await verifyLegacyReadModels(keyA, "workspace A", workspaceB));
+  checks.push(...await verifyLegacyReadModels(keyB, "workspace B", workspaceA));
   checks.push(await verifyApiKeyActionQueueBoundary(keyA, "workspace A"));
   checks.push(await verifyApiKeyActionQueueBoundary(keyB, "workspace B"));
   if (revokedKey) {

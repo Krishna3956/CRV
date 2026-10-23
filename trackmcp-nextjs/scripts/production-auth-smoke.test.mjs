@@ -13,6 +13,11 @@ test("authenticated production smoke is explicit, HTTPS-only, and secret-free in
   assert.match(source, /authenticated workspace envelope/);
   assert.match(source, /forbiddenReadModelKeys/);
   assert.match(source, /privacy_projection_verified/);
+  assert.match(source, /legacyReadModels/);
+  assert.match(source, /\/api\/v1\/analytics\?days=30/);
+  assert.match(source, /\/api\/v1\/tool-quality\?days=30/);
+  assert.match(source, /\/api\/v1\/traces\?session_id=/);
+  assert.match(source, /conflicting_workspace_ignored/);
   assert.match(source, /prompt_arguments/);
   assert.match(source, /resource_contents/);
   assert.match(source, /action queue API-key denial/);
