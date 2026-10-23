@@ -366,9 +366,11 @@ keeping resource URI/content and prompt names/arguments private by default?
   reviewed line is `@trackmcp/sdk@0.1.13`, `@trackmcp/cli@0.1.5`, and
   `trackmcp==0.1.7`, each reconciled against registry evidence and provenance.
   Historical versions remain explicitly labeled in the package readiness record.
-- [ ] Install each exact published package into a clean consumer project and
-  repeat the customer activation/first-event path; the TypeScript SDK consumer
-  gate is complete, while disposable production activation/first-event
+- [x] Install each exact published package into a clean consumer target; npm
+  pack resolved `@trackmcp/sdk@0.1.13` and `@trackmcp/cli@0.1.5`, and pip
+  download resolved `trackmcp==0.1.7` from the public registries.
+- [ ] Repeat the customer activation/first-event path from those clean
+  published-package targets; disposable production activation/first-event
   evidence remains open.
 - [x] Locally contract-test public docs, website, SDK READMEs, release notes,
   CLI boundary copy, and dashboard wording for the supported/limited/deferred

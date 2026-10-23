@@ -18,6 +18,12 @@ propagation and passed the post-publication read-only smoke and runtime audit.
 The older version tables below are retained as immutable historical evidence;
 they are not the current package baseline.
 
+Clean public-registry artifact resolution was also verified after propagation:
+`npm pack --ignore-scripts @trackmcp/sdk@0.1.13 @trackmcp/cli@0.1.5` produced
+both tarballs, and `pip download --no-deps trackmcp==0.1.7` produced the
+published wheel. This proves installability of the exact artifacts, not a
+credentialed first-event or activation result.
+
 ## Current source artifacts
 
 | Package | Source manifest | Local release checks | Publication workflow |
