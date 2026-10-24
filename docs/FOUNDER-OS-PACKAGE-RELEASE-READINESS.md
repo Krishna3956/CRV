@@ -34,9 +34,12 @@ credentialed first-event or activation result.
 | `@trackmcp/cli` | `trackmcp-nextjs/packages/cli/package.json` | CLI tests and packed-consumer test | `.github/workflows/publish.yml`, `cli` |
 | `trackmcp` | `packages/python-sdk/pyproject.toml` | unittest suite and build metadata audit | `.github/workflows/publish.yml`, `python` |
 
-The current local source manifests are the reviewed published versions:
-`@trackmcp/sdk` `0.1.14`, `@trackmcp/cli` `0.1.5`, and
-`trackmcp` `0.1.7`.
+The current local source manifests are the next coordinated release candidate:
+`@trackmcp/sdk` `0.1.15`, `@trackmcp/cli` `0.1.6`, and
+`trackmcp` `0.1.8`. They are not published until the merged candidate passes
+the release gate and the single `all` publication workflow completes.
+The last verified public baseline remains SDK `0.1.14`, CLI `0.1.5`, and
+Python `0.1.7` in the registry table above.
 They were selected after a registry preflight found the immediately preceding
 versions already published. The SDK 0.1.5 publication completed with
 provenance and an exact clean-consumer check in publish workflow

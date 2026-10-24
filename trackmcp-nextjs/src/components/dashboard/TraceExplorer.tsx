@@ -98,7 +98,7 @@ function sampleTraceResponse(
     server_id: "quickbooks-finance-mcp",
     deployment_id: "example-deployment-2026-08-28",
     server_version: "2.4.0",
-    sdk_version: "0.1.14",
+    sdk_version: "0.1.15",
     observation_source: "server" as const,
     direction: "server_to_client" as const,
     transport: "streamable_http" as const,
