@@ -12,8 +12,8 @@ commit and the operator accepts the listed limitations.
 | --- | --- |
 | Pilot scope | First 100 customers, desktop dashboard boundary |
 | Production hosts | `trackmcp.com`, `app.trackmcp.com` |
-| Last deployed application commit | `d095859` (privacy controls and pointer affordances) |
-| Last successful App Runner deployment | `40075157033` |
+| Last deployed application commit | `ce4380e7d8280edc415465520796099e5121da24` (explicit task evidence required for semantic task scope) |
+| Last successful App Runner deployment | `40112039766` |
 | Readiness ledger | `docs/FOUNDER-OS-100-CUSTOMER-READINESS-LEDGER.md` |
 | Current release-record change | Current mainline reconciliation of deployed runtime and release-gate evidence |
 
@@ -43,10 +43,11 @@ commit and the operator accepts the listed limitations.
 
 ## Open gates before GO
 
-- [ ] The release candidate is selected and its exact App Runner deployment
-  and production smoke artifact are attached to this record. The latest
-  deployed runtime above is evidence for current mainline, not a final GO
-  decision.
+- [x] The current engineering release candidate is identified as
+  `ce4380e7d8280edc415465520796099e5121da24`. App Runner run `40112039766`
+  passed the exact-SHA deployment-health wait, read-only production smoke,
+  runtime-safety audit, and redacted evidence uploads. This is engineering
+  verification; it is not the operator's final GO decision.
 - [ ] Privacy lifecycle behavior is reviewed for the pilot: export remains
   bounded and secret-free; deletion requests are review-only; destructive
   deletion remains disabled unless a separately approved worker exists.
