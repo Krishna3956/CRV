@@ -131,6 +131,8 @@ test("Go hosted CI runs the privacy, direction, and flush smoke harness", () => 
   assert.match(goSmokeSource, /client_to_server/);
   assert.match(goSmokeSource, /RecordCatalog/);
   assert.match(goSmokeSource, /RecordEntityRead/);
+  assert.match(goSmokeSource, /RecordProtocolResult\("elicitation\/create"/);
+  assert.match(goSmokeSource, /bounded protocol-result metadata/);
   assert.match(goSmokeSource, /RecordTransportFailure/);
   assert.match(goSmokeSource, /private-resource-name/);
   assert.match(goSmokeSource, /secret:\/\/private-resource/);
