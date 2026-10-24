@@ -4186,6 +4186,7 @@ function SetupView({
     setup?: {
       state?: string;
       connection_key?: { service?: string | null; environment?: string | null } | null;
+      scope_match?: boolean | null;
       checks?: {
         connection_key_ready?: boolean;
         sdk_event_recognized?: boolean;
@@ -4426,6 +4427,11 @@ function SetupView({
             <p className="mt-2 text-[11px] leading-relaxed text-muted">
               Your server telemetry must use these labels when they are set. A mismatched label is rejected without changing the key.
             </p>
+            {activeSetupContract.setup.scope_match === false && (
+              <div className="mt-3 border border-amber-200 bg-amber-50 px-3 py-2 text-[11px] leading-relaxed text-amber-900" role="alert">
+                The latest observed event does not match this key scope. Update the server/environment values in your SDK configuration or create a key with the intended scope, then send another event.
+              </div>
+            )}
           </div>
         )}
         {connectionState === "error" && (
