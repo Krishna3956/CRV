@@ -6,6 +6,10 @@ const workflow = await readFile(new URL("../../.github/workflows/production-auth
 
 test("authenticated production smoke is manual, read-only, and secret-bounded", () => {
   assert.match(workflow, /workflow_dispatch:/);
+  assert.match(workflow, /release_ref:/);
+  assert.match(workflow, /release_ref must be a full immutable 40-character commit SHA/);
+  assert.match(workflow, /git fetch --no-tags --depth=1 origin/);
+  assert.match(workflow, /TRACKMCP_AUTH_SMOKE_RELEASE_SHA=/);
   assert.match(workflow, /if:\s+github\.event_name\s*==\s*'workflow_dispatch'/);
   assert.match(workflow, /timeout-minutes: 10/);
   assert.match(workflow, /TRACKMCP_AUTH_SMOKE_CONFIRM: I_UNDERSTAND_PRODUCTION_AUTH_SMOKE/);
@@ -17,7 +21,7 @@ test("authenticated production smoke is manual, read-only, and secret-bounded", 
   assert.match(workflow, /Missing required repository secrets/);
   assert.match(workflow, /if \[ "\$\{#missing\[@\]\}" -gt 0 \]/);
   assert.match(workflow, /node scripts\/production-auth-smoke\.mjs/);
-  assert.match(workflow, /production-auth-smoke-\$\{\{ github\.sha \}\}/);
+  assert.match(workflow, /production-auth-smoke-\$\{\{ inputs\.release_ref \|\| github\.sha \}\}/);
   assert.doesNotMatch(workflow, /TRACKMCP_SMOKE_ALLOW_WRITE/);
   assert.doesNotMatch(workflow, /TRACKMCP_AUTH_SMOKE_REPORT.*key/);
 });
