@@ -107,3 +107,10 @@ test("keeps only the bounded account key and never raw event payload", () => {
   assert.equal(JSON.stringify(fact).includes("person@example.com"), false);
   assert.equal(JSON.stringify(fact).includes("secret"), false);
 });
+
+test("hashes interaction handles in durable facts", () => {
+  const fact = projectTrackMCPFact(event({ interaction_id: "private-interaction-handle" }));
+  assert.equal("interaction_id" in fact.dimensions, false);
+  assert.match(fact.dimensions.interaction_id_hash || "", /^[a-f0-9]{64}$/);
+  assert.equal(JSON.stringify(fact).includes("private-interaction-handle"), false);
+});

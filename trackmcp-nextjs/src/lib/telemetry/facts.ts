@@ -29,7 +29,7 @@ export type TrackMCPFact = {
     account_identity_source?: CanonicalTrackMCPEvent["account_identity_source"];
     resource_audience?: CanonicalTrackMCPEvent["resource_audience"];
     resource_priority?: number;
-    interaction_id?: string;
+    interaction_id_hash?: string;
     /** One-way task handle; raw task IDs are never stored in the fact projection. */
     task_id_hash?: string;
     /** Coarse protocol family; raw method names remain in the source event only. */
@@ -114,7 +114,7 @@ export function projectTrackMCPFact(event: CanonicalTrackMCPEvent): TrackMCPFact
       account_identity_source: event.account_identity_source,
       ...(event.resource_audience ? { resource_audience: event.resource_audience } : {}),
       ...(boundedNonNegative(event.resource_priority, 1) !== undefined ? { resource_priority: boundedNonNegative(event.resource_priority, 1) } : {}),
-      ...(bounded(event.interaction_id, 128) ? { interaction_id: bounded(event.interaction_id, 128) } : {}),
+      ...(bounded(event.interaction_id, 128) ? { interaction_id_hash: createHash("sha256").update(bounded(event.interaction_id, 128)!, "utf8").digest("hex") } : {}),
       ...(taskId ? { task_id_hash: createHash("sha256").update(taskId, "utf8").digest("hex") } : {}),
       ...(protocolFamilyForEvent(event) ? { protocol_family: protocolFamilyForEvent(event) } : {}),
       ...(observationKind ? { protocol_observation_kind: observationKind } : {}),
