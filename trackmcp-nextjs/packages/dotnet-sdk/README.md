@@ -39,6 +39,13 @@ For `completion/complete`, it additionally emits bounded friction metadata
 `completion_has_more`). Completion suggestion values and arguments are never
 queued.
 
+For a `tools/list`, `resources/list`, `resources/templates/list`, or
+`prompts/list` response, call `client.RecordCatalog(kind, method, result,
+sessionId)`. It records the bounded page count, SHA-256 identity hashes, and
+whether an opaque next cursor was present; names, URIs, schemas, descriptions,
+and cursor values are never queued. Repeated calls remain safe for paginated
+observation because the cursor itself is intentionally not persisted.
+
 After configuring the key, make one real MCP tool call, flush during shutdown
 or after a bounded batch, and confirm the event in Setup. Key creation alone
 never counts as telemetry.

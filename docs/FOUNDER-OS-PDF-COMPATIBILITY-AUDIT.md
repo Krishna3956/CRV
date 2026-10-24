@@ -52,6 +52,16 @@ change activity distinguishable in downstream analytics while preserving the
 same metadata-only privacy boundary. The additive migration widens only the
 semantic-fact type constraint and performs no backfill.
 
+### Cross-language catalog-page parity
+
+The TypeScript and Python exporters already project bounded catalog pages; Go
+and .NET now expose the same `RecordCatalog` boundary for tools, resources,
+resource templates, and prompts. Each exporter retains only a bounded count,
+one-way SHA-256 identity hashes, and opaque-cursor presence. Cursor values,
+names, URIs, schemas, descriptions, and payloads remain excluded. This closes
+the SDK parity gap without claiming transport-owned pagination or production
+UAT.
+
 ## Remaining PDF gaps
 
 These are deliberately not represented as complete merely because a route or field exists:

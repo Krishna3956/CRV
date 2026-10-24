@@ -26,6 +26,10 @@ public sealed class TrackMcpClient : IDisposable
         "progress", "cancelled", "catalog_changed", "resource_changed", "prompt_changed",
         "subscription_started", "subscription_stopped"
     };
+    private static readonly HashSet<string> CatalogKinds = new(StringComparer.Ordinal)
+    {
+        "tools", "resources", "resource_templates", "prompts"
+    };
 
     private static JsonNode? SanitizePayload(object? payload, int depth = 0)
     {
@@ -69,11 +73,11 @@ public sealed class TrackMcpClient : IDisposable
 
     public TrackMcpClient(TrackMcpOptions options, HttpClient? httpClient = null) { _options = options; _http = httpClient ?? new HttpClient(); }
 
-    public void Capture(string eventType, string method, object? payload = null, string? sessionId = null, bool? success = null, long? durationMs = null, string? toolName = null, string? resultType = null, string? taskStatus = null, int? inputRequestCount = null, int? inputResponseCount = null)
+    public void Capture(string eventType, string method, object? payload = null, string? sessionId = null, bool? success = null, long? durationMs = null, string? toolName = null, string? resultType = null, string? taskStatus = null, int? inputRequestCount = null, int? inputResponseCount = null, string? catalogKind = null, int? catalogItemCount = null, IReadOnlyList<string>? catalogItemNameHashes = null, IReadOnlyList<string>? catalogItemUriHashes = null)
     {
         if (string.IsNullOrWhiteSpace(_options.ApiKey)) return;
         var account = ResolveAccount();
-        var item = new Dictionary<string, object?> { ["event_id"] = Guid.NewGuid().ToString(), ["event_type"] = eventType, ["service"] = _options.Service, ["environment"] = _options.Environment, ["mcp_method"] = method, ["session_id"] = sessionId, ["tool_name"] = toolName, ["started_at"] = DateTimeOffset.UtcNow.ToString("O"), ["duration_ms"] = durationMs, ["success"] = success, ["is_error"] = success is false, ["result_type"] = resultType, ["task_status"] = taskStatus, ["input_request_count"] = inputRequestCount, ["input_response_count"] = inputResponseCount, ["account_key"] = account.Key, ["account_identity_source"] = account.Source, ["payload"] = SanitizePayload(payload), ["server_version"] = _options.ServerVersion, ["sdk_version"] = _options.SdkVersion, ["deployment_id"] = _options.DeploymentId };
+        var item = new Dictionary<string, object?> { ["event_id"] = Guid.NewGuid().ToString(), ["event_type"] = eventType, ["service"] = _options.Service, ["environment"] = _options.Environment, ["mcp_method"] = method, ["session_id"] = sessionId, ["tool_name"] = toolName, ["started_at"] = DateTimeOffset.UtcNow.ToString("O"), ["duration_ms"] = durationMs, ["success"] = success, ["is_error"] = success is false, ["result_type"] = resultType, ["task_status"] = taskStatus, ["input_request_count"] = inputRequestCount, ["input_response_count"] = inputResponseCount, ["catalog_kind"] = catalogKind, ["catalog_item_count"] = catalogItemCount, ["catalog_item_name_hashes"] = catalogItemNameHashes, ["catalog_item_uri_hashes"] = catalogItemUriHashes, ["account_key"] = account.Key, ["account_identity_source"] = account.Source, ["payload"] = SanitizePayload(payload), ["server_version"] = _options.ServerVersion, ["sdk_version"] = _options.SdkVersion, ["deployment_id"] = _options.DeploymentId };
         lock (_gate) { _queue.Add(item); }
     }
 
@@ -172,12 +176,45 @@ public sealed class TrackMcpClient : IDisposable
         }, BoundSessionId(sessionId), true);
     }
 
+    /// <summary>Records one bounded catalog page using hashes/counts only.</summary>
+    /// <remarks>Names, URIs, schemas, descriptions, and cursor values never cross the event boundary.</remarks>
+    public void RecordCatalog(string kind, string method, JsonObject result, string? sessionId = null)
+    {
+        if (!CatalogKinds.Contains(kind) || string.IsNullOrWhiteSpace(method) || method.Length > 128 || method.Any(char.IsControl)) return;
+        var key = kind == "resource_templates" ? "resourceTemplates" : kind;
+        var items = result[key] as JsonArray;
+        var names = new List<string>();
+        var uris = new List<string>();
+        if (items is not null)
+        {
+            foreach (var item in items.Take(128))
+            {
+                if (item is not JsonObject obj) continue;
+                if (obj["name"] is JsonValue name && name.TryGetValue<string>(out var nameValue) && !string.IsNullOrEmpty(nameValue)) names.Add(HashCatalogIdentity(nameValue));
+                var uriKey = kind == "resource_templates" ? "uriTemplate" : "uri";
+                if (obj[uriKey] is JsonValue uri && uri.TryGetValue<string>(out var uriValue) && !string.IsNullOrEmpty(uriValue)) uris.Add(HashCatalogIdentity(uriValue));
+            }
+        }
+        var cursorPresent = result["nextCursor"] is not null || result["next_cursor"] is not null;
+        Capture("catalog", method, new Dictionary<string, object?>
+        {
+            ["_trackmcp"] = new Dictionary<string, object?>
+            {
+                ["observation_kind"] = "catalog_page",
+                ["catalog_kind"] = kind,
+                ["next_cursor_present"] = cursorPresent,
+            }
+        }, BoundSessionId(sessionId), true, catalogKind: kind, catalogItemCount: items?.Count ?? 0, catalogItemNameHashes: names, catalogItemUriHashes: uris);
+    }
+
     private static string BoundSessionId(string? sessionId)
     {
         var value = sessionId?.Trim();
         if (string.IsNullOrEmpty(value)) return "transport-session";
         return value.Length <= MaxSessionIdLength ? value : value[..MaxSessionIdLength];
     }
+
+    private static string HashCatalogIdentity(string value) => Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(value))).ToLowerInvariant();
 
     public async Task FlushAsync(CancellationToken cancellationToken = default)
     {
