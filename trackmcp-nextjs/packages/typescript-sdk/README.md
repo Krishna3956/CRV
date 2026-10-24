@@ -82,6 +82,12 @@ dereferencing templates, and `listPrompts` returns prompt names and argument
 names without requesting or retaining argument values. All three methods
 support opaque cursors and remain observation-only.
 
+For privacy-safe entity reads, `readResource(uri)` and `getPrompt(name,
+arguments)` send the caller-selected request but return only a SHA-256 identity
+hash, bounded content/message count, and an optional error bit. Resource bodies,
+prompt messages, and argument values are never returned or retained by this
+adapter.
+
 Completion requests are also bounded and metadata-only. `complete` sends the
 caller-selected prompt or resource reference and argument to
 `completion/complete`, then returns only the number of suggestions and the

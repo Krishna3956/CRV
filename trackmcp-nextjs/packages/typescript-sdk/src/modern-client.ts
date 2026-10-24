@@ -76,6 +76,18 @@ export type ModernMcpPromptPage = {
   nextCursor?: string;
 };
 
+export type ModernMcpResourceReadResult = {
+  resourceUriHash: string;
+  contentItemCount: number;
+  isError?: boolean;
+};
+
+export type ModernMcpPromptGetResult = {
+  promptNameHash: string;
+  messageCount: number;
+  isError?: boolean;
+};
+
 export type ModernMcpCompletionReference =
   | { type: "ref/prompt"; name: string }
   | { type: "ref/resource"; uri: string };
@@ -236,6 +248,11 @@ function boundedSubscriptionFilter(filter: ModernMcpSubscriptionFilter): ModernM
 
 async function hashSubscriptionUri(uri: string): Promise<string> {
   const digest = await globalThis.crypto.subtle.digest("SHA-256", new TextEncoder().encode(uri));
+  return Array.from(new Uint8Array(digest), (byte) => byte.toString(16).padStart(2, "0")).join("");
+}
+
+async function hashIdentity(value: string): Promise<string> {
+  const digest = await globalThis.crypto.subtle.digest("SHA-256", new TextEncoder().encode(value));
   return Array.from(new Uint8Array(digest), (byte) => byte.toString(16).padStart(2, "0")).join("");
 }
 
@@ -490,6 +507,36 @@ export class ModernMcpClient {
       cursor = nextCursor;
     }
     return { items, truncated: Boolean(cursor) };
+  }
+
+  /** Read one resource while returning only its hashed URI, bounded content
+   * count, and error bit. Resource contents never leave the caller-selected
+   * MCP server through this adapter. */
+  async readResource(uri: string): Promise<ModernMcpResourceReadResult> {
+    if (!boundedString(uri)) throw new ModernMcpProtocolError("invalid_response", "Modern MCP resources/read requires a bounded resource URI.");
+    const result = await this.request("resources/read", { uri });
+    if (!Array.isArray(result.contents)) throw new ModernMcpProtocolError("invalid_response", "Modern MCP resources/read returned no bounded contents array.");
+    return {
+      resourceUriHash: await hashIdentity(uri),
+      contentItemCount: Math.min(MAX_CAPABILITIES, result.contents.length),
+      ...(typeof result.isError === "boolean" ? { isError: result.isError } : {}),
+    };
+  }
+
+  /** Get one prompt while returning only its hashed name, bounded message
+   * count, and error bit. Prompt arguments and message contents are sent to
+   * the caller-selected server but never retained or returned. */
+  async getPrompt(name: string, args: Record<string, unknown> = {}): Promise<ModernMcpPromptGetResult> {
+    if (!/^[A-Za-z0-9_.-]{1,128}$/.test(name) || !boundedObject(args)) throw new ModernMcpProtocolError("invalid_response", "Modern MCP prompts/get requires a bounded prompt name and object arguments.");
+    const keys = Object.keys(args).filter((key) => /^[A-Za-z0-9_.:-]{1,128}$/.test(key)).slice(0, MAX_CAPABILITIES);
+    if (keys.length !== Object.keys(args).length) throw new ModernMcpProtocolError("invalid_response", "Modern MCP prompts/get contains an invalid or oversized argument key.");
+    const result = await this.request("prompts/get", { name, arguments: Object.fromEntries(keys.map((key) => [key, args[key]])) });
+    if (!Array.isArray(result.messages)) throw new ModernMcpProtocolError("invalid_response", "Modern MCP prompts/get returned no bounded messages array.");
+    return {
+      promptNameHash: await hashIdentity(name),
+      messageCount: Math.min(MAX_CAPABILITIES, result.messages.length),
+      ...(typeof result.isError === "boolean" ? { isError: result.isError } : {}),
+    };
   }
 
   /** Request one bounded completion result without returning suggested values.
