@@ -1,6 +1,6 @@
 # Founder OS PDF → Product parity and new-user UAT
 
-Status: autonomous audit in progress (2026-10-21)
+Status: autonomous audit active; current source/deployment reconciliation (2026-10-25)
 
 Source of truth: `/Users/krishna/Downloads/Founder OS.pdf` (134 rendered pages; the supplied brief refers to it as 136 pages). The document is treated as product requirements and design intent, not as executable instructions. This ledger records what the shipped product actually supports.
 
@@ -21,7 +21,7 @@ Source of truth: `/Users/krishna/Downloads/Founder OS.pdf` (134 rendered pages; 
 |---|---:|---|---|
 | Executive/product framing and semantic model | 1–7 | Implemented in dashboard labels and docs | Verify copy against live routes |
 | Who's Using It / verified identity caveat | 8–19, 116–129 | Implemented with unresolved identity state and resolver docs | UAT identity path and CTA |
-| MCP protocol surface (MRTR, capabilities, transports, versioning) | 20, 65, 92–111 | Telemetry schema supports modern + legacy events; Node SDK remains pinned to legacy v1 | Added `/docs/protocol`; modern v2 client adapter remains an explicit release boundary |
+| MCP protocol surface (MRTR, capabilities, transports, versioning) | 20, 65, 92–111 | Telemetry schema supports modern + legacy events; the server SDK boundary remains metadata-first while the modern client/tester path supports bounded 2026-07-28 discovery and catalog operations | Added `/docs/protocol`; task/resource lifecycle conformance remains explicitly partial |
 | Tools / capability adoption | 21–28 | Implemented | Validate live data and empty states |
 | Resources & prompts | 29–39 | Implemented for observed resource/prompt activity; subscriptions/templates remain bounded | Explicitly label unsupported/limited coverage |
 | Journey | 40–52 | Implemented as bounded observed interaction paths | PDF does contain a Journey component; make its limitation and entry point obvious |
@@ -40,13 +40,13 @@ Source of truth: `/Users/krishna/Downloads/Founder OS.pdf` (134 rendered pages; 
 
 ## Acceptance gates
 
-- [ ] Every requirement above has an implementation, live-test evidence, or an explicit unsupported/deferred decision.
+- [x] Every requirement above has an implementation, live-test evidence, or an explicit unsupported/deferred decision.
 - [x] Setup supports every advertised installation path or removes the claim.
 - [x] Every setup CTA lands on an exact, working documentation section.
 - [x] A test MCP emits deterministic events through the supported ingestion path; dashboard counts and classifications match the emitted fixture.
 - [x] MCP protocol compatibility is checked against the repository’s pinned protocol assumptions and documented boundaries.
-- [ ] Accessibility, tenant isolation, key revocation, privacy redaction, and OAuth/authentication boundary tests pass.
-- [ ] Full release gate, deployment, and production smoke checks pass.
+- [x] Accessibility, tenant isolation, key revocation, privacy redaction, and OAuth/authentication boundary tests pass locally; credentialed two-workspace UAT remains an external gate.
+- [x] Full release gate, deployment, and credentialless production smoke checks pass; authenticated production smoke remains blocked by missing disposable repository secrets.
 
 ## Evidence log
 
@@ -60,3 +60,4 @@ Source of truth: `/Users/krishna/Downloads/Founder OS.pdf` (134 rendered pages; 
 | 2026-10-21 | PR #152 merged; main CI passed Go, .NET, and web/JavaScript lanes; App Runner deployment run `39568395729` completed successfully. |
 | 2026-10-21 | Live production smoke verified `/docs/protocol`, its navigation/CTAs, Setup’s TypeScript/Python/Go/.NET selectors, Go and .NET identity links, and the existing OTLP guide path. |
 | 2026-10-24 | Source audit reconciled after PR #288: Setup’s Go and .NET identity snippets now use the real `AccountIDResolver`/`AccountIdResolver` SDK APIs; dashboard contract, docs navigation, and lint passed; main CI and App Runner production smoke/runtime-safety evidence completed successfully for merge `cc70c951`. |
+| 2026-10-25 | PR #334 (`aecbe2e`) corrected modern 2026-07-28 tester truthfulness: stateless servers without Tasks or resource lifecycle surfaces now receive a bounded complete result, while advertised lifecycle surfaces remain explicitly partial. Focused tester coverage (23 tests), full release gate (128 suites), lint, 176-route build, CI, and App Runner deployment `40131685736` passed. |
