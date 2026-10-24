@@ -12,10 +12,10 @@ commit and the operator accepts the listed limitations.
 | --- | --- |
 | Pilot scope | First 100 customers, desktop dashboard boundary |
 | Production hosts | `trackmcp.com`, `app.trackmcp.com` |
-| Last deployed application commit | `71492d5` |
-| Last successful App Runner deployment | `40030062391` |
+| Last deployed application commit | `d095859` (privacy controls and pointer affordances) |
+| Last successful App Runner deployment | `40075157033` |
 | Readiness ledger | `docs/FOUNDER-OS-100-CUSTOMER-READINESS-LEDGER.md` |
-| Current release-record change | Commit `0f89937` (current release identity and credentialed-smoke gate reconciliation) |
+| Current release-record change | Current mainline reconciliation of deployed runtime and release-gate evidence |
 
 ## Verified gates
 
@@ -35,13 +35,18 @@ commit and the operator accepts the listed limitations.
   `SELECT`, and deletion-batch indexes are present.
 - [x] Local privacy, deletion-plan, accessibility, tenant-isolation,
   analytics, package-consumer, and pilot contract suites passed.
+- [x] Local full release gate passed on the current source: 128 suites,
+  including the six-tab dashboard contract (58 tests), OTLP/HTTP JSON and
+  protobuf interoperability, package consumers, privacy, tenant isolation,
+  protocol fixtures, and release-control contracts. This is source evidence;
+  it does not replace credentialed production UAT.
 
 ## Open gates before GO
 
-- [x] PR #141 is merged and the resulting main commit has a fresh green CI
-  run.
-- [x] The final release commit has a fresh App Runner deployment and the
-  production smoke artifact is attached to this record.
+- [ ] The release candidate is selected and its exact App Runner deployment
+  and production smoke artifact are attached to this record. The latest
+  deployed runtime above is evidence for current mainline, not a final GO
+  decision.
 - [ ] Privacy lifecycle behavior is reviewed for the pilot: export remains
   bounded and secret-free; deletion requests are review-only; destructive
   deletion remains disabled unless a separately approved worker exists.
@@ -55,9 +60,10 @@ commit and the operator accepts the listed limitations.
   missing `TRACKMCP_AUTH_SMOKE_KEY_A`, `TRACKMCP_AUTH_SMOKE_KEY_B`,
   `TRACKMCP_AUTH_SMOKE_WORKSPACE_A`, and `TRACKMCP_AUTH_SMOKE_WORKSPACE_B`.
 - [ ] A final operator go/no-go decision is recorded with UTC timestamp and
-  accepted limitations. The engineering recommendation remains **HOLD**
-  until the Supabase quota/grace-period risk is resolved or explicitly
-  accepted for the entire pilot window.
+  accepted limitations. The engineering recommendation remains **HOLD** until
+  credentialed UAT, migration/rollback ownership, worker freshness, and the
+  remaining protocol interoperability gates are evidenced or explicitly
+  accepted by the release owner.
 
 ## Known limitations to disclose
 
@@ -70,20 +76,19 @@ commit and the operator accepts the listed limitations.
   excluded from customer-health interpretation.
 - Privacy deletion is a reviewed, non-destructive request path in this pilot;
   no customer row is deleted automatically.
-- Supabase quota/billing status must be monitored before inviting the full
-  pilot cohort.
+- Supabase usage should be monitored during the pilot; no current overage is
+  inferred from the latest engineering evidence, but usage is an external
+  operational gate rather than a source-code guarantee.
 
 ## Infrastructure capacity evidence
 
-Read-only inspection of the Supabase billing and usage pages on 2026-10-21
-found the organization on the Free Plan with the grace period ended. Current
-cycle usage was approximately: log ingestion `0.803 / 1 GB` (80%), egress
-`2.988 / 5 GB` (60%), database size `148.55 / 500 MB` (31%), and `4 / 50,000`
-monthly active users. There is no current overage, but the log-ingestion
-headroom is only about 20%; the observed rate could cross the included quota
-during the pilot window. The application deployment passed, but this is a
-real availability risk because Supabase states that over-quota projects may
-return HTTP 402 or become restricted.
+The latest recorded read-only inspection of the Supabase billing and usage
+pages was on 2026-10-21. It found the organization on the Free Plan with the
+grace period ended and recorded approximately: log ingestion `0.803 / 1 GB`
+(80%), egress `2.988 / 5 GB` (60%), database size `148.55 / 500 MB` (31%), and
+`4 / 50,000` monthly active users. This is historical capacity evidence, not a
+current usage assertion. Recheck usage immediately before the pilot decision;
+the source tree cannot prove quota headroom or billing status.
 
 ## Go/no-go rule
 
