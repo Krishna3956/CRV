@@ -809,3 +809,20 @@ a failed product gate or a Supabase plan warning.
 - [x] Hosted CI run `39771313664` passed and App Runner deployment
   `39771313720` completed successfully. Authenticated production Journey UAT
   and cross-transport retry fixtures remain separately documented gates.
+
+## 2026-10-24 Python notification boundary and transport-gate reliability checkpoint
+
+- [x] The official Python middleware now classifies inbound progress,
+  cancellation, and tools/resources/prompts list-change notifications through
+  the metadata-only protocol-signal path. Notification parameters are not
+  retained, and direction is explicit (`client_to_server`). A regression test
+  covers the private request/reason/progress values.
+- [x] The TypeScript SDK transport-consumer fixture now waits for bounded
+  Stdio/SSE lifecycle evidence instead of relying on fixed short sleeps. This
+  removes a Node process-scheduling race without changing runtime behavior or
+  weakening the failure assertions.
+- [x] Python SDK suite passed 27/27, TypeScript SDK suite passed 85/85,
+  package-consumer gate passed for TypeScript/CLI/Python, and lint passed.
+- [ ] The complete release gate should be rerun after the final milestone
+  commit; hosted CI, exact-SHA deployment, and production UAT remain required
+  evidence gates after merge.

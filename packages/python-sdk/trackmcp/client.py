@@ -223,6 +223,17 @@ def _protocol_metadata_payload(method: Optional[str], result: Any) -> Dict[str, 
     }}
 
 
+def _protocol_signal_for_method(method: Optional[str]) -> Optional[str]:
+    """Map notification methods to the metadata-only signal vocabulary."""
+    return {
+        "notifications/progress": "progress",
+        "notifications/cancelled": "cancelled",
+        "notifications/tools/list_changed": "catalog_changed",
+        "notifications/resources/list_changed": "catalog_changed",
+        "notifications/prompts/list_changed": "catalog_changed",
+    }.get(method)
+
+
 def _entity_protocol_event(method: Optional[str], entity: Optional[Dict[str, str]], *, request_id: Optional[str] = None,
                            session_id: Optional[str] = None, session_id_source: Optional[str] = None,
                            client_name: Optional[str] = None, client_version: Optional[str] = None,
@@ -601,6 +612,8 @@ class _TrackMCPMiddleware:
                 self.client.capture({"event_type": "catalog", "mcp_method": method, "request_id": request_id, "session_id": session_id, "session_id_source": session_id_source, "client_name": self.client_name, "client_version": self.client_version, "started_at": _iso_from_epoch(started), "duration_ms": round((time.time() - started) * 1000), "success": not is_error, "is_error": is_error, **observation, "payload": payload})
             elif (entity := interaction_entity_observation(method, params)):
                 self.client.capture(_entity_protocol_event(method, entity, request_id=request_id, session_id=session_id, session_id_source=session_id_source, client_name=self.client_name, client_version=self.client_version, started=started, success=not is_error, result=result_data))
+            elif (signal := _protocol_signal_for_method(method)):
+                self.client.record_protocol_signal(signal, method, session_id=session_id, direction="client_to_server")
             else:
                 payload = _protocol_metadata_payload(method, result_data) if method == "completion/complete" else {"params": params, "result": result_data}
                 self.client.capture({"event_type": "protocol", "mcp_method": method, "request_id": request_id, "session_id": session_id, "session_id_source": session_id_source, "client_name": self.client_name, "client_version": self.client_version, "started_at": _iso_from_epoch(started), "duration_ms": round((time.time() - started) * 1000), "success": not is_error, "is_error": is_error, **_protocol_result_metadata(result_data), "payload": payload})
@@ -613,6 +626,8 @@ class _TrackMCPMiddleware:
                 self.client.capture(_event(tool_name, {"args": arguments}, started, None, error, self.client_name, session_id, request_id, self.client_version, self.client.tool_metadata(tool_name), session_id_source))
             elif (entity := interaction_entity_observation(method, params)):
                 self.client.capture(_entity_protocol_event(method, entity, request_id=request_id, session_id=session_id, session_id_source=session_id_source, client_name=self.client_name, client_version=self.client_version, started=started, success=False, error_class="protocol_error"))
+            elif (signal := _protocol_signal_for_method(method)):
+                self.client.record_protocol_signal(signal, method, session_id=session_id, direction="client_to_server")
             else:
                 self.client.capture({"event_type": "protocol", "mcp_method": method, "request_id": request_id, "session_id": session_id, "session_id_source": session_id_source, "client_name": self.client_name, "client_version": self.client_version, "started_at": _iso_from_epoch(started), "duration_ms": round((time.time() - started) * 1000), "success": False, "is_error": True, "error_class": "protocol_error", "payload": {"params": params, "error": str(error)}})
             raise

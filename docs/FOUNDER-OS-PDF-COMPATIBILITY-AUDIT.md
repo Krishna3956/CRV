@@ -71,6 +71,15 @@ misreported as a server notification while keeping request IDs, reasons, and
 payload values out of telemetry. Transport-specific runtime fixtures and
 production UAT remain separate evidence gates.
 
+### Python middleware notification boundary
+
+The official Python middleware now routes inbound progress, cancellation, and
+catalog list-change notifications through the same allowlisted signal helper
+used by direct SDK calls. Request IDs, cancellation reasons, progress values,
+and notification payloads are therefore excluded instead of entering the
+generic protocol projection. Go/.NET transport-boundary fixtures and
+production UAT remain separate evidence gates.
+
 ## Remaining PDF gaps
 
 These are deliberately not represented as complete merely because a route or field exists:
