@@ -389,6 +389,13 @@ test("Setup exposes a direct transport observer documentation CTA", () => {
   assert.match(setupSource, /href="\/docs\/protocol"/);
 });
 
+test("Setup exposes safe rotation alongside revocation for active keys", () => {
+  assert.match(source, /onRotateKey: \(id: string\) => void/);
+  assert.match(source, /onClick=\{\(\) => onRotateKey\(key\.id\)\}/);
+  assert.match(source, />\s*Rotate\s*<\/button>/);
+  assert.match(source, /disabled=\{working\}/);
+});
+
 test("empty page previews explain each product area instead of repeating generic placeholders", () => {
   for (const phrase of [
     "The business tasks users start",

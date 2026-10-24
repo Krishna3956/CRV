@@ -928,6 +928,7 @@ export function DashboardApp({
   initialView = "overview",
   onGenerateKey,
   onRevokeKey,
+  onRotateKey,
   onDismissKey,
   onRefresh,
   onCreateWorkspace,
@@ -946,6 +947,7 @@ export function DashboardApp({
   initialView?: "overview" | "traces";
   onGenerateKey: (options?: KeyCreationOptions) => void;
   onRevokeKey: (id: string) => void;
+  onRotateKey: (id: string) => void;
   onDismissKey: () => void;
   onRefresh: (days?: string) => void;
   onCreateWorkspace: () => void;
@@ -1315,6 +1317,7 @@ export function DashboardApp({
               onCreateWorkspace={onCreateWorkspace}
               onGenerateKey={onGenerateKey}
               onRevokeKey={onRevokeKey}
+              onRotateKey={onRotateKey}
               onRefresh={() => onRefresh(range)}
             />
           ) : !isExample && (!workspace || !hasActiveKey || zeroEventState) ? (
@@ -4164,6 +4167,7 @@ function SetupView({
   onCreateWorkspace,
   onGenerateKey,
   onRevokeKey,
+  onRotateKey,
   onRefresh,
 }: {
   keys: Key[];
@@ -4174,6 +4178,7 @@ function SetupView({
   onCreateWorkspace: () => void;
   onGenerateKey: (options?: KeyCreationOptions) => void;
   onRevokeKey: (id: string) => void;
+  onRotateKey: (id: string) => void;
   onRefresh: () => void;
 }) {
   const readSetupValue = (key: string, fallback: string, maxLength: number) => {
@@ -4603,13 +4608,24 @@ function SetupView({
                       </p>
                     </div>
                     {!key.revoked_at && (
-                      <button
-                        type="button"
-                        onClick={() => onRevokeKey(key.id)}
-                        className="cursor-pointer text-xs font-semibold text-red-700 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-600"
-                      >
-                        Revoke
-                      </button>
+                      <div className="flex items-center gap-3">
+                        <button
+                          type="button"
+                          onClick={() => onRotateKey(key.id)}
+                          disabled={working}
+                          className="cursor-pointer text-xs font-semibold text-brand-strong hover:underline disabled:cursor-not-allowed disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
+                        >
+                          Rotate
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => onRevokeKey(key.id)}
+                          disabled={working}
+                          className="cursor-pointer text-xs font-semibold text-red-700 hover:underline disabled:cursor-not-allowed disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-600"
+                        >
+                          Revoke
+                        </button>
+                      </div>
                     )}
                   </div>
                 ))}

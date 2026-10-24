@@ -116,6 +116,22 @@ export function DashboardPageContent({ initialView = "overview" }: { initialView
     if (!response.ok) { const body = await response.json(); setError(body.error || "Could not revoke the key."); return; }
     await loadAccount();
   };
+  const rotateKey = async (id: string) => {
+    if (!window.confirm("Rotate this key? The old key will stop working immediately, so update the server with the replacement.")) return;
+    const workspaceId = selectedWorkspaceId || workspace?.id;
+    if (!workspaceId) { setError("Select a workspace before rotating a key."); return; }
+    setWorking(true); setError("");
+    try {
+      const response = await fetch(`/api/v1/account/keys/${id}/rotate?workspace_id=${encodeURIComponent(workspaceId)}`, { method: "POST" });
+      const body = await response.json();
+      if (!response.ok) throw new Error(body.error || "Could not rotate the key.");
+      trackActivationEvent("api_key_rotated", { key_name_category: "server" });
+      setNewKey(body.api_key || "");
+      await loadAccount(workspaceId);
+    } catch (reason) {
+      setError(reason instanceof Error ? reason.message : "Could not rotate the key.");
+    } finally { setWorking(false); }
+  };
 
   useEffect(() => {
     if (LOCAL_DASHBOARD_BYPASS) {
@@ -143,7 +159,7 @@ export function DashboardPageContent({ initialView = "overview" }: { initialView
   if (loading) return <main className="mx-auto min-h-screen max-w-6xl px-6 py-20 text-sm text-muted">Loading your workspace…</main>;
   if (!email) return <main className="mx-auto min-h-screen max-w-xl px-6 py-24"><p className="text-xs font-semibold uppercase tracking-wide text-brand">TrackMCP</p><h1 className="mt-3 text-4xl font-medium tracking-tight text-ink">Your workspace is waiting.</h1><p className="mt-4 text-muted">Sign in to create an API key and see how your MCP server is being used.</p><Link href="/signin" className="mt-7 inline-flex rounded-lg bg-ink px-5 py-3 text-sm font-medium text-white">Sign in to continue</Link></main>;
   const selectWorkspace = async (workspaceId: string) => { if (!workspaceId || workspaceId === selectedWorkspaceId) return; setWorking(true); setError(""); setSelectedWorkspaceId(workspaceId); window.localStorage.setItem("trackmcp.selected_workspace_id", workspaceId); try { const account = await loadAccount(workspaceId); await Promise.all([loadAnalytics("30", account.workspace?.id || workspaceId), loadToolQuality("30", account.workspace?.id || workspaceId)]); } catch (reason) { setError(reason instanceof Error ? reason.message : "Could not switch workspaces."); } finally { setWorking(false); } };
-  return <DashboardApp displayName={displayName || email} workspace={workspace} workspaces={workspaces} keys={keys} analytics={analytics} toolQuality={toolQuality} newKey={newKey} working={working} error={error} initialView={initialView} onGenerateKey={generateKey} onRevokeKey={revokeKey} onDismissKey={() => setNewKey("")} onSelectWorkspace={selectWorkspace} onRefresh={(days) => { if (!LOCAL_DASHBOARD_BYPASS) void Promise.all([loadAnalytics(days, selectedWorkspaceId || undefined), loadToolQuality(days, selectedWorkspaceId || undefined)]).catch((reason) => setError(reason instanceof Error ? reason.message : "Could not refresh analytics.")); }} onCreateWorkspace={createWorkspace} onSignOut={() => { if (LOCAL_DASHBOARD_BYPASS) window.location.href = "https://trackmcp.com"; else void getSupabaseBrowser().auth.signOut().then(() => { window.location.href = "https://trackmcp.com"; }); }} />;
+  return <DashboardApp displayName={displayName || email} workspace={workspace} workspaces={workspaces} keys={keys} analytics={analytics} toolQuality={toolQuality} newKey={newKey} working={working} error={error} initialView={initialView} onGenerateKey={generateKey} onRevokeKey={revokeKey} onRotateKey={rotateKey} onDismissKey={() => setNewKey("")} onSelectWorkspace={selectWorkspace} onRefresh={(days) => { if (!LOCAL_DASHBOARD_BYPASS) void Promise.all([loadAnalytics(days, selectedWorkspaceId || undefined), loadToolQuality(days, selectedWorkspaceId || undefined)]).catch((reason) => setError(reason instanceof Error ? reason.message : "Could not refresh analytics.")); }} onCreateWorkspace={createWorkspace} onSignOut={() => { if (LOCAL_DASHBOARD_BYPASS) window.location.href = "https://trackmcp.com"; else void getSupabaseBrowser().auth.signOut().then(() => { window.location.href = "https://trackmcp.com"; }); }} />;
 }
 
 export default function DashboardPage() {
