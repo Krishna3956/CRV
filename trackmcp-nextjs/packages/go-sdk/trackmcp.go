@@ -233,6 +233,23 @@ func (c *Client) RecordCatalog(kind string, method string, result map[string]any
 	})
 }
 
+// RecordEntityRead records a resources/read or prompts/get response without
+// retaining the URI, prompt name, arguments, or returned content. Only a
+// one-way identity hash, bounded content/message count, and result state are
+// emitted.
+func (c *Client) RecordEntityRead(kind string, method string, identity string, result map[string]any, sessionID string) {
+	if (kind != "resources" && kind != "prompts") || (kind == "resources" && method != "resources/read") || (kind == "prompts" && method != "prompts/get") { return }
+	if len(identity) == 0 || len(identity) > 2048 || strings.IndexFunc(identity, func(r rune) bool { return r < 0x20 || r == 0x7f }) >= 0 { return }
+	if result == nil { result = map[string]any{} }
+	isError, _ := firstBool(result, "isError", "is_error")
+	count := 0
+	if kind == "resources" { if values, ok := result["contents"].([]any); ok { count = minInt(len(values), 100) } } else if values, ok := result["messages"].([]any); ok { count = minInt(len(values), 100) }
+	event := Event{EventType: "catalog", Direction: "server_to_client", MCPMethod: method, SessionID: boundedSessionID(sessionID), Success: boolPtr(!isError), IsError: boolPtr(isError), CatalogKind: kind, CatalogItemCount: count, Payload: map[string]any{"_trackmcp": map[string]any{"observation_kind": "entity_read", "catalog_kind": kind}}}
+	if kind == "resources" { event.CatalogItemURIHashes = []string{hashCatalogIdentity(identity)} } else { event.CatalogItemNameHashes = []string{hashCatalogIdentity(identity)} }
+	if value, ok := firstString(result, "resultType", "result_type"); ok && protocolResultTypes[value] { event.ResultType = value }
+	c.Capture(event)
+}
+
 func boundedCacheTTL(result map[string]any) (int, bool) {
 	for _, key := range []string{"ttlMs", "ttl_ms"} {
 		value, ok := result[key]

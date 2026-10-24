@@ -222,6 +222,24 @@ public sealed class TrackMcpClient : IDisposable
         }, BoundSessionId(sessionId), true, catalogKind: kind, catalogItemCount: items?.Count ?? 0, catalogItemNameHashes: names, catalogItemUriHashes: uris);
     }
 
+    /// <summary>Records a resources/read or prompts/get response using hash/count metadata only.</summary>
+    /// <remarks>URIs, prompt names, arguments, and returned content never cross the event boundary.</remarks>
+    public void RecordEntityRead(string kind, string method, string identity, JsonObject result, string? sessionId = null)
+    {
+        if ((kind, method) is not ("resources", "resources/read") and not ("prompts", "prompts/get")) return;
+        if (string.IsNullOrWhiteSpace(identity) || identity.Length > 2048 || identity.Any(char.IsControl)) return;
+        var isError = ReadBool(result, "isError", "is_error") ?? false;
+        var key = kind == "resources" ? "contents" : "messages";
+        var count = (result[key] as JsonArray)?.Count ?? 0;
+        var names = kind == "prompts" ? new[] { HashCatalogIdentity(identity) } : null;
+        var uris = kind == "resources" ? new[] { HashCatalogIdentity(identity) } : null;
+        var resultType = ReadAllowlisted(result, new[] { "resultType", "result_type" }, "complete", "input_required", "task");
+        Capture("catalog", method, new Dictionary<string, object?>
+        {
+            ["_trackmcp"] = new Dictionary<string, object?> { ["observation_kind"] = "entity_read", ["catalog_kind"] = kind }
+        }, BoundSessionId(sessionId), !isError, catalogKind: kind, catalogItemCount: Math.Min(100, count), catalogItemNameHashes: names, catalogItemUriHashes: uris, resultType: resultType is "complete" or "input_required" or "task" ? resultType : null);
+    }
+
     private static int? BoundedCacheTtl(JsonObject result)
     {
         foreach (var key in new[] { "ttlMs", "ttl_ms" })
