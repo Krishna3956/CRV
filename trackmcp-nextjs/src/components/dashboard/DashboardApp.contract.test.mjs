@@ -340,6 +340,10 @@ test("Setup exposes bounded export and non-destructive deletion controls", () =>
   assert.match(source, /request_type: "delete"/);
   assert.match(source, /crypto\.randomUUID\(\)/);
   assert.match(source, /privacy-request/);
+  assert.match(source, /Read privacy limits/);
+  assert.match(source, /href="\/docs\/reference#privacy"/);
+  assert.match(source, /inline-flex cursor-pointer items-center gap-1\.5 border border-line-strong/);
+  assert.match(source, /disabled:cursor-not-allowed/);
 });
 
 test("protocol surface cards disclose durable entity-read coverage", () => {
