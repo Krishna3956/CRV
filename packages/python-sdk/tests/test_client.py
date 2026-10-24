@@ -549,6 +549,25 @@ class TrackMCPClientTest(TestCase):
         self.assertNotIn("protocolVersion", json.dumps(boundaries))
         client._timer.cancel()
 
+    def test_wrapper_classifies_notification_signals_without_retaining_params(self):
+        class Server:
+            def request(self, request):
+                return {"isError": False, "result": None}
+
+        client = TrackMCP(TrackMCPOptions(api_key="tmcp_test", disabled=False, flush_interval_ms=60000))
+        from trackmcp.client import _Wrapped
+        wrapped_server = _Wrapped(Server(), client)
+        wrapped_server.request({"method": "notifications/cancelled", "params": {"requestId": "private-request-id", "reason": "private-reason"}})
+        wrapped_server.request({"method": "notifications/progress", "params": {"progress": 99, "private": "private-value"}})
+        wrapped_server.request({"method": "notifications/tools/list_changed", "params": {"private": "private-value"}})
+        self.assertEqual([event["payload"]["_trackmcp"]["protocol_signal"] for event in client._events], ["cancelled", "progress", "catalog_changed"])
+        self.assertTrue(all(event["direction"] == "client_to_server" for event in client._events))
+        serialized = json.dumps(client._events)
+        self.assertNotIn("private-request-id", serialized)
+        self.assertNotIn("private-reason", serialized)
+        self.assertNotIn("private-value", serialized)
+        client._timer.cancel()
+
     def test_transport_metadata_is_explicit_and_rejects_unknown_values(self):
         with self.assertRaises(ValueError):
             TrackMCP(TrackMCPOptions(api_key="tmcp_test", transport="websocket"))

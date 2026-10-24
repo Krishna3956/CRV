@@ -731,6 +731,8 @@ class _Wrapped:
                                 observation = _catalog_observation(catalog_type, value)
                                 payload = {"name": f"{catalog_type}_discovered", "tools": tools} if catalog_type == "tools" else {"name": f"{catalog_type}_discovered"}
                                 client.capture({"event_type": "catalog", "mcp_method": method, "session_id": self.transport_session_id, "session_id_source": "transport_generated", "client_name": self.client_name, "client_version": self.client_version, "started_at": _iso_from_epoch(started), "duration_ms": round((time.time() - started) * 1000), "success": True, "is_error": False, **observation, "payload": payload})
+                            elif (signal := _protocol_signal_for_method(method)):
+                                client.record_protocol_signal(signal, method, session_id=self.transport_session_id, direction="client_to_server")
                             elif (entity := interaction_entity_observation(method, params)):
                                 client.capture(_entity_protocol_event(method, entity, session_id=self.transport_session_id, session_id_source="transport_generated", client_name=self.client_name, client_version=self.client_version, started=started, result=value))
                             else:
@@ -740,8 +742,11 @@ class _Wrapped:
                             if method == "shutdown" and self.lifecycle_started and not self.lifecycle_ended:
                                 self._emit_session_boundary("session_ended", False, round((time.time() - started) * 1000))
                                 self.lifecycle_ended = True
+                            signal = _protocol_signal_for_method(method)
                             entity = interaction_entity_observation(method, params)
-                            if entity:
+                            if signal:
+                                client.record_protocol_signal(signal, method, session_id=self.transport_session_id, direction="client_to_server")
+                            elif entity:
                                 client.capture(_entity_protocol_event(method, entity, session_id=self.transport_session_id, session_id_source="transport_generated", client_name=self.client_name, client_version=self.client_version, started=started, success=False, error_class="protocol_error"))
                             else:
                                 client.capture(_event(tool_name, payload, started, None, error, self.client_name, self.transport_session_id, None, self.client_version, client.tool_metadata(tool_name), "transport_generated"))
@@ -759,6 +764,8 @@ class _Wrapped:
                     observation = _catalog_observation(catalog_type, result)
                     payload = {"name": f"{catalog_type}_discovered", "tools": tools} if catalog_type == "tools" else {"name": f"{catalog_type}_discovered"}
                     client.capture({"event_type": "catalog", "mcp_method": method, "session_id": self.transport_session_id, "session_id_source": "transport_generated", "client_name": self.client_name, "client_version": self.client_version, "started_at": _iso_from_epoch(started), "duration_ms": round((time.time() - started) * 1000), "success": True, "is_error": False, **observation, "payload": payload})
+                elif (signal := _protocol_signal_for_method(method)):
+                    client.record_protocol_signal(signal, method, session_id=self.transport_session_id, direction="client_to_server")
                 elif (entity := interaction_entity_observation(method, params)):
                     client.capture(_entity_protocol_event(method, entity, session_id=self.transport_session_id, session_id_source="transport_generated", client_name=self.client_name, client_version=self.client_version, started=started, result=result))
                 else:
@@ -774,8 +781,11 @@ class _Wrapped:
                 if method == "shutdown" and self.lifecycle_started and not self.lifecycle_ended:
                     self._emit_session_boundary("session_ended", False, round((time.time() - started) * 1000))
                     self.lifecycle_ended = True
+                signal = _protocol_signal_for_method(method)
                 entity = interaction_entity_observation(method, params)
-                if entity:
+                if signal:
+                    client.record_protocol_signal(signal, method, session_id=self.transport_session_id, direction="client_to_server")
+                elif entity:
                     client.capture(_entity_protocol_event(method, entity, session_id=self.transport_session_id, session_id_source="transport_generated", client_name=self.client_name, client_version=self.client_version, started=started, success=False, error_class="protocol_error"))
                 else:
                     client.capture(_event(tool_name, payload, started, None, error, self.client_name, self.transport_session_id, None, self.client_version, client.tool_metadata(tool_name), "transport_generated"))

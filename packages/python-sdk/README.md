@@ -23,6 +23,12 @@ The optional `direction` defaults to `server_to_client` and accepts
 `client_to_server` for inbound cancellation; only the allowlisted signal,
 direction, and method metadata are retained.
 
+The official middleware and the compatibility wrapper used by `with_trackmcp`
+apply the same notification boundary. Progress, cancellation, and
+tools/resources/prompts list-change calls are classified as metadata-only
+signals; notification parameters, reasons, request IDs, and progress values
+are never retained.
+
 Events emitted by this server SDK carry `observation_source="server"`. The
 P1-04 Node client transport wrapping is TypeScript-only. The Python server
 wrapper cannot infer whether the host is stdio or Streamable HTTP, so pass the

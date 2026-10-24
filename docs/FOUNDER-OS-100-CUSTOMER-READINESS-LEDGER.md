@@ -836,6 +836,8 @@ a failed product gate or a Supabase plan warning.
   weakening the failure assertions.
 - [x] Python SDK suite passed 27/27, TypeScript SDK suite passed 85/85,
   package-consumer gate passed for TypeScript/CLI/Python, and lint passed.
-- [ ] The complete release gate should be rerun after the final milestone
-  commit; hosted CI, exact-SHA deployment, and production UAT remain required
-  evidence gates after merge.
+- [x] Python SDK suite passed 28/28 after the compatibility-wrapper fix, and
+  the complete local release gate passed 128 suites. Hosted CI and exact-SHA
+  App Runner deployment for the preceding Go smoke milestone also passed.
+- [ ] Transport-specific credentialed production UAT and the remaining partial
+  protocol rows remain required external evidence gates.
