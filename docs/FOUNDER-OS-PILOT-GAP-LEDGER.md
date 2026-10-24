@@ -298,12 +298,13 @@ production transport UAT.
   escaping as a raw JSON runtime exception. Regression coverage is included;
   SDK tests now pass 77/77 plus the packed consumer check.
 
-- 2026-10-22: Ran the terminal npm registry preflight for the coordinated
-  release train. `npm whoami --registry=https://registry.npmjs.org/` returned
-  `ENEEDAUTH`; no package version was changed and no publication was attempted.
-  Local package, packed-consumer, provenance, and full release-gate evidence
-  remain green; registry authentication is the remaining external release
-  dependency rather than an inferred product failure.
+- 2026-10-25: The coordinated package release train completed through the
+  guarded GitHub Actions workflow `40129661973`. `@trackmcp/sdk@0.1.16`,
+  `@trackmcp/cli@0.1.7`, and `trackmcp==0.1.9` are published with registry
+  verification, provenance, and clean-consumer checks. The exact immutable
+  integrity/checksum evidence is recorded in
+  `FOUNDER-OS-PACKAGE-RELEASE-READINESS.md`; authenticated production
+  activation and first-event UAT remain external gates.
 
 - 2026-10-22: Completed the local TypeScript SDK artifact audit for the same
   release train. `npm pack --dry-run --ignore-scripts` produced a 10-file
