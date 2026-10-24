@@ -43,7 +43,9 @@ test("workspace writes bound JSON input and profile fields", () => {
 test("connection-key creation exposes optional service and environment scopes", () => {
   assert.match(source, /service_scope/);
   assert.match(source, /environment_scope/);
-  assert.match(source, /boundedScope\(body\.service_scope, 100\)/);
-  assert.match(source, /boundedScope\(body\.environment_scope, 64\)/);
+  assert.match(source, /boundedScope\(rawServiceScope, 100\)/);
+  assert.match(source, /boundedScope\(rawEnvironmentScope, 64\)/);
+  assert.match(source, /rawServiceScope\.length > 100 \|\| rawEnvironmentScope\.length > 64/);
+  assert.match(source, /Key scope is too long/);
   assert.match(source, /service_scope, environment_scope/);
 });

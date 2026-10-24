@@ -108,9 +108,12 @@ export async function POST(request: Request) {
 
   if (body.create_key !== false) {
     const generated = createTrackMCPKey();
-    const serviceScope = boundedScope(body.service_scope, 100);
-    const environmentScope = boundedScope(body.environment_scope, 64);
-    if ((body.service_scope !== undefined && serviceScope === null && boundedText(body.service_scope, 100)) || (body.environment_scope !== undefined && environmentScope === null && boundedText(body.environment_scope, 64))) {
+    const rawServiceScope = typeof body.service_scope === "string" ? body.service_scope.trim() : "";
+    const rawEnvironmentScope = typeof body.environment_scope === "string" ? body.environment_scope.trim() : "";
+    if (rawServiceScope.length > 100 || rawEnvironmentScope.length > 64) return NextResponse.json({ error: "Key scope is too long." }, { status: 400 });
+    const serviceScope = boundedScope(rawServiceScope, 100);
+    const environmentScope = boundedScope(rawEnvironmentScope, 64);
+    if ((body.service_scope !== undefined && serviceScope === null && rawServiceScope) || (body.environment_scope !== undefined && environmentScope === null && rawEnvironmentScope)) {
       return NextResponse.json({ error: "Key scope contains invalid control characters." }, { status: 400 });
     }
     const createdKey = await admin.from("trackmcp_api_keys").insert({ workspace_id: workspaceId, name: boundedText(body.key_name, 128) || "default", service_scope: serviceScope, environment_scope: environmentScope, key_prefix: generated.prefix, key_hash: generated.hash });
