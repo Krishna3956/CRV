@@ -1,6 +1,7 @@
 import { createHash, randomUUID } from "node:crypto";
 import { DEFAULT_MAX_BATCH_SIZE, DEFAULT_MAX_PAYLOAD_BYTES, DEFAULT_MAX_PAYLOAD_DEPTH, DEFAULT_MAX_PAYLOAD_KEYS, DEFAULT_MAX_QUEUE_BYTES, DEFAULT_MAX_QUEUE_EVENTS, DEFAULT_MAX_STRING_LENGTH, payloadByteLength, sanitizePayload, } from "./privacy.js";
 export const TRACKMCP_SCHEMA_VERSION = "1";
+const TRACKMCP_PROTOCOL_SIGNALS = new Set(["progress", "cancelled", "catalog_changed", "resource_changed", "prompt_changed", "subscription_started", "subscription_stopped"]);
 const DEFAULT_ENDPOINT = "https://trackmcp.com/api/v1/ingest";
 // Keep this URL fixed and bounded so the actionable missing-key diagnostic never
 // reflects caller-controlled values or accidentally includes a secret.
@@ -500,12 +501,13 @@ export class TrackMCPClient {
         this.capture({ event_type: "workflow", started_at: new Date().toISOString(), payload: { name: "workflow", workflow_name: name, status, ...payload } });
     }
     /** Record an allowlisted protocol notification without payload values. */
-    recordProtocolSignal(signal, method, sessionId) {
-        if (!/^[A-Za-z0-9_./-]{1,128}$/.test(method))
+    recordProtocolSignal(signal, method, sessionId, direction = "server_to_client") {
+        if (!TRACKMCP_PROTOCOL_SIGNALS.has(signal) || !/^[A-Za-z0-9_./-]{1,128}$/.test(method) || (direction !== "server_to_client" && direction !== "client_to_server"))
             return;
         this.capture({
             event_type: "protocol",
             mcp_method: method,
+            direction,
             session_id: sessionId || "transport-session",
             started_at: new Date().toISOString(),
             success: true,

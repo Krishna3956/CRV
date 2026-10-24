@@ -80,3 +80,12 @@ test("Go and .NET observers expose bounded catalog-page parity", () => {
     assert.match(docs, /never queued/);
   }
 });
+
+test("cross-language protocol signal observers validate direction", () => {
+  assert.match(goSource, /RecordProtocolSignalDirection/);
+  assert.match(goSource, /client_to_server/);
+  assert.match(dotnetSource, /client_to_server/);
+  assert.match(dotnetSource, /direction/);
+  assert.match(goReadme, /inbound cancellation/);
+  assert.match(dotnetReadme, /inbound cancellation/);
+});

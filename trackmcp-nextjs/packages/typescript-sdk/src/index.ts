@@ -19,6 +19,9 @@ export type TrackMCPCorrelationMode = "none" | "external" | "issued";
 export type TrackMCPCorrelationHandleSource = "external" | "issued" | "missing";
 export type TrackMCPIntentSource = "context_parameter" | "external_callback" | "fallback" | "missing";
 export type TrackMCPCatalogKind = "tools" | "resources" | "resource_templates" | "prompts";
+export type TrackMCPProtocolSignal = "progress" | "cancelled" | "catalog_changed" | "resource_changed" | "prompt_changed" | "subscription_started" | "subscription_stopped";
+export type TrackMCPProtocolDirection = "server_to_client" | "client_to_server";
+const TRACKMCP_PROTOCOL_SIGNALS = new Set<TrackMCPProtocolSignal>(["progress", "cancelled", "catalog_changed", "resource_changed", "prompt_changed", "subscription_started", "subscription_stopped"]);
 export type TrackMCPIntentContext = {
   eventType: TrackMCPEventType;
   mcpMethod?: string;
@@ -664,11 +667,12 @@ export class TrackMCPClient {
   }
 
   /** Record an allowlisted protocol notification without payload values. */
-  recordProtocolSignal(signal: "progress" | "cancelled" | "catalog_changed" | "resource_changed" | "prompt_changed" | "subscription_started" | "subscription_stopped", method: string, sessionId?: string): void {
-    if (!/^[A-Za-z0-9_./-]{1,128}$/.test(method)) return;
+  recordProtocolSignal(signal: TrackMCPProtocolSignal, method: string, sessionId?: string, direction: TrackMCPProtocolDirection = "server_to_client"): void {
+    if (!TRACKMCP_PROTOCOL_SIGNALS.has(signal) || !/^[A-Za-z0-9_./-]{1,128}$/.test(method) || (direction !== "server_to_client" && direction !== "client_to_server")) return;
     this.capture({
       event_type: "protocol",
       mcp_method: method,
+      direction,
       session_id: sessionId || "transport-session",
       started_at: new Date().toISOString(),
       success: true,
@@ -938,7 +942,7 @@ export const trackmcp_report_missing = (capability: string, context?: string): v
   activeClient?.reportMissing(capability, context);
 };
 
-export type TrackMCP = { capture(event: Omit<TrackMCPEvent, "event_id" | "service" | "environment" | "schema_version"> & { schema_version?: string }): void; track(name: string, payload?: Record<string, unknown>): void; workflow(name: string, status: "started" | "completed" | "failed", payload?: Record<string, unknown>): void; recordProtocolSignal(signal: "progress" | "cancelled" | "catalog_changed" | "resource_changed" | "prompt_changed" | "subscription_started" | "subscription_stopped", method: string, sessionId?: string): void; reportMissing(capability: string, context?: string): void; trackmcp_report_missing(capability: string, context?: string): void; flush(): Promise<void>; getDiagnostics(): TrackMCPDiagnostics };
+export type TrackMCP = { capture(event: Omit<TrackMCPEvent, "event_id" | "service" | "environment" | "schema_version"> & { schema_version?: string }): void; track(name: string, payload?: Record<string, unknown>): void; workflow(name: string, status: "started" | "completed" | "failed", payload?: Record<string, unknown>): void; recordProtocolSignal(signal: TrackMCPProtocolSignal, method: string, sessionId?: string, direction?: TrackMCPProtocolDirection): void; reportMissing(capability: string, context?: string): void; trackmcp_report_missing(capability: string, context?: string): void; flush(): Promise<void>; getDiagnostics(): TrackMCPDiagnostics };
 
 export {
   DEFAULT_MAX_BATCH_SIZE,

@@ -59,6 +59,14 @@ func TestRecordProtocolSignalIsAllowlistedAndMetadataOnly(t *testing.T) {
 	if len(client.queue) != 3 { t.Fatal("invalid signal or method should be ignored") }
 }
 
+func TestRecordProtocolSignalDirectionKeepsInboundCancellationDistinct(t *testing.T) {
+	client := New(Options{APIKey: "tmcp_test"})
+	client.RecordProtocolSignalDirection("cancelled", "notifications/cancelled", "client_to_server", "session-1")
+	if len(client.queue) != 1 || client.queue[0].Direction != "client_to_server" { t.Fatalf("unexpected inbound direction: %#v", client.queue) }
+	client.RecordProtocolSignalDirection("cancelled", "notifications/cancelled", "invalid", "session-2")
+	if len(client.queue) != 1 { t.Fatal("invalid direction should be ignored") }
+}
+
 func TestRecordCatalogIsBoundedAndHashOnly(t *testing.T) {
 	client := New(Options{APIKey: "tmcp_test"})
 	client.RecordCatalog("resources", "resources/list", map[string]any{

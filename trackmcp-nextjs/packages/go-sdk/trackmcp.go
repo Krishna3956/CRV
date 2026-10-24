@@ -163,9 +163,17 @@ func (c *Client) RecordTransportFailure(kind string, sessionID string, durationM
 // accepting progress values, cancellation reasons, resource URIs, or any
 // other caller payload. It is intentionally metadata-only and fail-closed.
 func (c *Client) RecordProtocolSignal(signal string, method string, sessionID string) {
+	c.RecordProtocolSignalDirection(signal, method, "server_to_client", sessionID)
+}
+
+// RecordProtocolSignalDirection records an allowlisted notification from
+// either side of the MCP boundary. Direction is explicit so inbound
+// cancellation is not mistaken for a server notification.
+func (c *Client) RecordProtocolSignalDirection(signal string, method string, direction string, sessionID string) {
 	if !protocolSignals[signal] || len(method) == 0 || len(method) > 128 || strings.IndexFunc(method, func(r rune) bool { return r < 0x20 || r == 0x7f }) >= 0 { return }
+	if direction != "server_to_client" && direction != "client_to_server" { return }
 	c.Capture(Event{
-		EventType: "protocol", Direction: "server_to_client", MCPMethod: method,
+		EventType: "protocol", Direction: direction, MCPMethod: method,
 		SessionID: boundedSessionID(sessionID), Success: boolPtr(true), IsError: boolPtr(false),
 		Payload: map[string]any{"_trackmcp": map[string]any{
 			"observation_kind": "protocol_notification", "protocol_signal": signal,

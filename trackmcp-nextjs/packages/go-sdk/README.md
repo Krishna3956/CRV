@@ -23,6 +23,9 @@ For protocol notifications, call `client.RecordProtocolSignal` with one of
 `prompt_changed`, `subscription_started`, or `subscription_stopped`. Only the
 allowlisted signal and method metadata are sent; progress values, cancellation
 reasons, subscription identifiers, URIs, and payloads are not accepted.
+Use `RecordProtocolSignalDirection` with `client_to_server` when recording an
+inbound cancellation; direction is validated and persisted as bounded
+metadata only.
 
 For MRTR/task responses, call `client.RecordProtocolResult` with the response
 map. It emits only the allowlisted result discriminator, task status, and
