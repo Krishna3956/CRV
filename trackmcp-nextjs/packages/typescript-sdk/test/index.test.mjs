@@ -365,6 +365,30 @@ test("captures bounded semantic results for non-tool protocol requests without r
   assert.equal(JSON.stringify(response).includes("private_"), false);
 });
 
+test("records bounded subscription lifecycle actions on server protocol responses", async () => {
+  const received = [];
+  const ingest = http.createServer((request, response) => {
+    let body = "";
+    request.on("data", (chunk) => { body += chunk; });
+    request.on("end", () => { received.push(JSON.parse(body)); response.writeHead(200); response.end(); });
+  });
+  await new Promise((resolve) => ingest.listen(0, resolve));
+  const rawTransport = { async send() {}, onmessage: undefined };
+  const server = { connect(transport) { this.transport = transport; transport.onmessage = () => {}; return Promise.resolve(); } };
+  const wrapped = withTrackMCP(server, { apiKey: "tmcp_test", endpoint: `http://127.0.0.1:${ingest.address().port}`, flushIntervalMs: 60000 });
+  await wrapped.connect(rawTransport);
+  server.transport.onmessage({ id: "subscribe-1", method: "resources/subscribe", params: { uri: "file:///private/config" } });
+  await server.transport.send({ id: "subscribe-1", result: {} });
+  server.transport.onmessage({ id: "unsubscribe-1", method: "resources/unsubscribe", params: { uri: "file:///private/config" } });
+  await server.transport.send({ id: "unsubscribe-1", result: {} });
+  await wrapped.trackmcp.flush();
+  await new Promise((resolve) => setTimeout(resolve, 20));
+  ingest.close();
+  const responses = received.flatMap((batch) => batch.events).filter((event) => event.direction === "server_to_client");
+  assert.deepEqual(responses.map((event) => event.payload?._trackmcp?.subscription_action), ["subscription_started", "subscription_stopped"]);
+  assert.equal(JSON.stringify(responses).includes("private/config"), false);
+});
+
 test("hashes task handles and records explicit task state for lifecycle methods", async () => {
   const received = [];
   const ingest = http.createServer((request, response) => {
