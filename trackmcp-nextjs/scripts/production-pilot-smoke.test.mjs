@@ -27,7 +27,7 @@ test("production pilot smoke records redacted evidence and covers pilot endpoint
   assert.match(source, /TRACKMCP_EXPECTED_NPM_CLI_INTEGRITY/);
   assert.match(source, /TRACKMCP_EXPECTED_PYPI_WHEEL_SHA256/);
   assert.match(source, /TRACKMCP_EXPECTED_PYPI_SDIST_SHA256/);
-  assert.match(source, /trackmcp@0\.1\.8/);
+  assert.match(source, /trackmcp@0\.1\.9/);
   assert.match(source, /integrity_present/);
   assert.match(source, /bounded propagation wait/);
   assert.match(source, /wheel_sha256_present/);
@@ -37,7 +37,7 @@ test("production pilot smoke records redacted evidence and covers pilot endpoint
   assert.match(source, /Observed calls, ranked and trended/);
   assert.match(source, /Every call, ranked and trended/);
   assert.match(source, /configured server boundary/);
-  assert.match(source, /@trackmcp\/sdk@0\.1\.15/);
+  assert.match(source, /@trackmcp\/sdk@0\.1\.16/);
 });
 
 test("production pilot smoke verifies security headers and protected API boundaries", () => {
