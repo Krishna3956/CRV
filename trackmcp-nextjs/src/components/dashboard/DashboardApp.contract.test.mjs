@@ -579,6 +579,9 @@ test("Setup makes server-side account identity configuration discoverable", () =
   assert.match(source, /Show resolver-linked account activity/);
   assert.match(source, /accountIdResolver/);
   assert.match(source, /account_id_resolver/);
+  assert.match(source, /AccountIDResolver: func\(\) string/);
+  assert.doesNotMatch(source, /ResolveAccount: func\(ctx trackmcp\.Context\)/);
+  assert.match(source, /AccountIdResolver: \(\) => verifiedTenantForRequest\(\)/);
   assert.match(source, /docs\/typescript#account-identity/);
   assert.match(source, /Without a resolver, activity remains visible but is counted as unresolved/);
 });
