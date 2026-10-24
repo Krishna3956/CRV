@@ -13,6 +13,15 @@ import { TrackMCPClientAdapter, protocolResponseMetadata } from "../dist/client-
 import { TrackMCPClient } from "../dist/index.js";
 
 const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+async function waitFor(predicate, timeoutMs = 1000, intervalMs = 10) {
+  const deadline = Date.now() + timeoutMs;
+  while (Date.now() < deadline) {
+    const value = predicate();
+    if (value) return value;
+    await wait(intervalMs);
+  }
+  return predicate();
+}
 const REPEAT_WINDOW_MS = 5 * 60 * 1000;
 
 test("protocol family metadata classifies bounded modern MCP methods", () => {
@@ -179,8 +188,7 @@ test("real Stdio child exit emits bounded transport failure evidence", async () 
   wrapped.onclose = () => {};
   await wrapped.start();
   await wrapped.send(toolCall("process-exit", "lookup"));
-  await new Promise((resolve) => setTimeout(resolve, 160));
-  const failure = events.find((event) => event.event_type === "session" && event.error_class === "transport_error");
+  const failure = await waitFor(() => events.find((event) => event.event_type === "session" && event.error_class === "transport_error"));
   assert.ok(failure);
   assert.equal(failure.success, false);
   assert.equal(failure.is_error, true);
@@ -342,11 +350,10 @@ test("real SSE server disconnect emits bounded transport failure evidence", asyn
     await wrapped.start();
     await wrapped.send({ jsonrpc: "2.0", id: 1, method: "initialize", params: { protocolVersion: "2025-06-18", capabilities: {}, clientInfo: { name: "sse-client", version: "1" } } });
     pendingSend = wrapped.send(toolCall("sse-disconnect", "lookup"));
-    await wait(20);
-    assert.equal(toolPost?.method, "tools/call");
+    const postedTool = await waitFor(() => toolPost);
+    assert.equal(postedTool?.method, "tools/call");
     sseResponse.destroy();
-    await wait(100);
-    const failure = events.find((event) => event.event_type === "tool_call" && event.error_class === "transport_error");
+    const failure = await waitFor(() => events.find((event) => event.event_type === "tool_call" && event.error_class === "transport_error"));
     assert.ok(failure);
     assert.equal(failure.transport, "sse");
     assert.equal(failure.success, false);

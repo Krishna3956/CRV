@@ -120,6 +120,36 @@ class TrackMCPClientTest(TestCase):
         self.assertNotIn("protocolVersion", json.dumps(boundaries))
         client._timer.cancel()
 
+    def test_middleware_classifies_notification_signals_without_retaining_params(self):
+        client = TrackMCP(TrackMCPOptions(api_key="tmcp_test", disabled=False, flush_interval_ms=60000))
+
+        class Context:
+            def __init__(self, method, params):
+                self.method = method
+                self.params = params
+                self.session_id = "session-notification"
+                self.request_id = "private-request-id"
+
+        async def call_next(_ctx):
+            return {}
+
+        middleware = _TrackMCPMiddleware(client)
+
+        async def exercise():
+            await middleware(Context("notifications/cancelled", {"requestId": "private-request-id", "reason": "private-reason"}), call_next)
+            await middleware(Context("notifications/progress", {"progress": 99, "private": "private-value"}), call_next)
+            await middleware(Context("notifications/resources/list_changed", {"private": "private-value"}), call_next)
+
+        asyncio.run(exercise())
+        events = client._events
+        self.assertEqual([event["payload"]["_trackmcp"]["protocol_signal"] for event in events], ["cancelled", "progress", "catalog_changed"])
+        self.assertTrue(all(event["direction"] == "client_to_server" for event in events))
+        serialized = json.dumps(events)
+        self.assertNotIn("private-request-id", serialized)
+        self.assertNotIn("private-reason", serialized)
+        self.assertNotIn("private-value", serialized)
+        client._timer.cancel()
+
     def test_transport_failure_is_metadata_only_and_bounded(self):
         client = TrackMCP(TrackMCPOptions(api_key="tmcp_test", disabled=False, flush_interval_ms=60000))
         client.record_transport_failure("transport_closed", session_id="session-1", duration_ms=12)
