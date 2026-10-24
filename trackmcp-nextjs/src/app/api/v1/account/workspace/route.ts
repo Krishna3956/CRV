@@ -42,7 +42,7 @@ export async function GET(request: Request) {
 
   const { data: keys, error: keyError } = await admin
     .from("trackmcp_api_keys")
-    .select("id, name, key_prefix, service_scope, environment_scope, revoked_at, created_at")
+    .select("id, name, key_prefix, service_scope, environment_scope, revoked_at, created_at, last_used_at")
     .eq("workspace_id", workspace.id)
     .order("created_at", { ascending: false });
   if (keyError) return NextResponse.json({ error: "Could not load API keys." }, { status: 500 });

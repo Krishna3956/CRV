@@ -55,6 +55,7 @@ type Key = {
   key_prefix: string;
   revoked_at: string | null;
   created_at: string;
+  last_used_at?: string | null;
   service_scope?: string | null;
   environment_scope?: string | null;
 };
@@ -4594,6 +4595,7 @@ function SetupView({
                       </p>
                       <p className="mt-1 text-[11px] text-muted">
                         {key.name} · {key.revoked_at ? "Revoked" : "Active"}
+                        {!key.revoked_at && <span className="text-faint"> · {key.last_used_at ? `last used ${new Date(key.last_used_at).toLocaleDateString()}` : "not used yet"}</span>}
                         {(key.service_scope || key.environment_scope) && (
                           <span className="text-faint"> · {key.service_scope || "any service"} / {key.environment_scope || "any environment"}</span>
                         )}
