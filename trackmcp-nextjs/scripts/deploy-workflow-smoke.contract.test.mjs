@@ -7,7 +7,8 @@ const distributedWorkflow = await readFile(new URL("../../.github/workflows/enab
 
 test("App Runner deployment performs a redacted read-only smoke after RUNNING", () => {
   assert.match(workflow, /timeout-minutes: 35/);
-  assert.match(workflow, /for i in \$\(seq 1 80\)/);
+  assert.match(workflow, /deadline=\$\(\(SECONDS \+ 1200\)\)/);
+  assert.match(workflow, /while \(\( SECONDS < deadline \)\); do/);
   assert.match(workflow, /timeout 30s aws apprunner start-deployment/);
   assert.match(workflow, /timeout 30s aws apprunner list-operations/);
   assert.match(workflow, /timeout 30s aws apprunner describe-service/);
