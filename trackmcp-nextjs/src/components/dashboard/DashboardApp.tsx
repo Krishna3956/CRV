@@ -4687,8 +4687,8 @@ function SetupView({
           : language === "Python"
             ? `with_trackmcp(server,\n    api_key=os.environ["TRACKMCP_KEY"],\n    account_id_resolver=lambda context: context.get("tenant_id"),\n)`
             : language === "Go"
-              ? `client := trackmcp.New(trackmcp.Options{\n  APIKey: os.Getenv("TRACKMCP_KEY"),\n  ResolveAccount: func(ctx trackmcp.Context) string {\n    return verifiedTenantForContext(ctx)\n  },\n})`
-              : `var telemetry = new TrackMcpClient(new TrackMcpOptions(\n    Environment.GetEnvironmentVariable("TRACKMCP_KEY") ?? "",\n    "${boundedService || "my-mcp-server"}",\n    "${boundedEnvironment}"));`}</code></pre>
+              ? `client := trackmcp.New(trackmcp.Options{\n  APIKey: os.Getenv("TRACKMCP_KEY"),\n  AccountIDResolver: func() string {\n    return verifiedTenantForRequest()\n  },\n})`
+              : `var telemetry = new TrackMcpClient(new TrackMcpOptions(\n    Environment.GetEnvironmentVariable("TRACKMCP_KEY") ?? "",\n    "${boundedService || "my-mcp-server"}",\n    "${boundedEnvironment}",\n    AccountIdResolver: () => verifiedTenantForRequest()));`}</code></pre>
         <p className="mt-3 text-[11px] leading-relaxed text-faint">Only use a stable, non-secret identifier already verified by your application. Do not return emails, tokens, URLs, prompts, completions, or raw user IDs. Without a resolver, activity remains visible but is counted as unresolved.</p>
       </section>
       <details className="mt-6 border border-line bg-white p-5 sm:p-6">

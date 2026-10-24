@@ -41,6 +41,13 @@ client.RecordTransportFailure("transport_closed", sessionID, durationMS)
     </DocSection>
     <DocSection id="account-identity" title="Optional account identity">
       <Para>Resolve a stable, non-secret tenant or account handle in your own authenticated middleware and pass only that bounded handle in the event. Do not send an email, access token, URL, prompt, result, or raw user identifier. If your middleware cannot verify identity, omit it; the dashboard will keep the activity in an unresolved bucket.</Para>
+      <Code>{`client := trackmcp.New(trackmcp.Options{
+    APIKey: os.Getenv("TRACKMCP_KEY"),
+    AccountIDResolver: func() string {
+        return verifiedTenantForRequest()
+    },
+})`}</Code>
+      <Para><Inline>AccountIDResolver</Inline> must return an already-validated, non-secret handle. The SDK hashes it locally; resolver failures are fail-open and remain unresolved.</Para>
     </DocSection>
     <DocSection id="verify-first-event" title="Verify your first event">
       <Para>Set the key in the same process, make one real tool call, wait for a flush, then open Setup in the dashboard. A key being accepted is not evidence that an MCP event arrived.</Para>

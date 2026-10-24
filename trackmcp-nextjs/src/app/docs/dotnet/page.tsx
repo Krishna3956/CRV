@@ -36,6 +36,12 @@ telemetry.RecordTransportFailure("transport_closed", sessionId, durationMs);
     </DocSection>
     <DocSection id="account-identity" title="Optional account identity">
       <Para>Resolve a stable, non-secret tenant or account handle in your own authenticated middleware and pass only that bounded handle in the event. Do not send an email, access token, URL, prompt, result, or raw user identifier. If your middleware cannot verify identity, omit it; the dashboard will keep the activity in an unresolved bucket.</Para>
+      <Code>{`using var telemetry = new TrackMcpClient(new TrackMcpOptions(
+    Environment.GetEnvironmentVariable("TRACKMCP_KEY") ?? "",
+    "acme-mcp-server",
+    "production",
+    AccountIdResolver: () => verifiedTenantForRequest()));`}</Code>
+      <Para><Inline>AccountIdResolver</Inline> must return an already-validated, non-secret handle. The SDK hashes it locally; resolver failures are fail-open and remain unresolved.</Para>
     </DocSection>
     <DocSection id="verify-first-event" title="Verify your first event">
       <Para>Configure the key, make one real MCP tool call, flush during shutdown or after a bounded batch, then use Setup to confirm the event. Key creation alone never counts as telemetry.</Para>
