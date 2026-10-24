@@ -10,6 +10,8 @@ const [goDocs, dotnetDocs, goReadme, dotnetReadme, goSource, dotnetSource] = awa
   readFile(new URL("../packages/go-sdk/trackmcp.go", import.meta.url), "utf8"),
   readFile(new URL("../packages/dotnet-sdk/TrackMcp.cs", import.meta.url), "utf8"),
 ]);
+const dotnetSmokeProject = await readFile(new URL("../packages/dotnet-sdk/tests/TrackMcp.Smoke.csproj", import.meta.url), "utf8");
+const dotnetSmokeSource = await readFile(new URL("../packages/dotnet-sdk/tests/Program.cs", import.meta.url), "utf8");
 
 test("Go and .NET docs disclose source-package status and first-event verification", () => {
   for (const source of [goDocs, dotnetDocs]) {
@@ -88,4 +90,13 @@ test("cross-language protocol signal observers validate direction", () => {
   assert.match(dotnetSource, /direction/);
   assert.match(goReadme, /inbound cancellation/);
   assert.match(dotnetReadme, /inbound cancellation/);
+});
+
+test(".NET hosted CI runs the privacy and direction smoke harness", () => {
+  assert.match(dotnetSmokeProject, /OutputType>Exe/);
+  assert.match(dotnetSmokeProject, /ProjectReference Include="\.\.\/TrackMcp\.csproj"/);
+  assert.match(dotnetSmokeSource, /RecordProtocolSignal\("cancelled"/);
+  assert.match(dotnetSmokeSource, /client_to_server/);
+  assert.match(dotnetSmokeSource, /RecordCatalog\("resources"/);
+  assert.match(dotnetSmokeSource, /raw catalog URI crossed/);
 });
