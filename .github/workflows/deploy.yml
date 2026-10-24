@@ -166,10 +166,13 @@ jobs:
         run: |
           set -euo pipefail
           echo "Waiting for App Runner deployment operation $TRACKMCP_DEPLOYMENT_OPERATION_ID to succeed..."
-          # App Runner image rollouts can legitimately take several minutes;
-          # allow a bounded 20-minute provider operation while keeping every
-          # individual AWS CLI call capped at 30 seconds.
-          for i in $(seq 1 80); do
+          # App Runner image rollouts can legitimately take several minutes.
+          # Keep both the provider calls and the whole polling process bounded:
+          # a hung runner must fail with evidence instead of remaining stale.
+          deadline=$((SECONDS + 1200))
+          i=0
+          while (( SECONDS < deadline )); do
+            i=$((i + 1))
             OP_STATUS=$(timeout 30s aws apprunner list-operations \
               --service-arn "$SERVICE_ARN" --region "$AWS_REGION" --max-results 20 \
               --query "OperationSummaryList[?Id=='$TRACKMCP_DEPLOYMENT_OPERATION_ID'].Status | [0]" --output text)
