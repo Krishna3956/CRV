@@ -25,9 +25,9 @@ export function createProtocolActivityHandler(analytics = createAnalyticsHandler
       : [];
     const outcomes = Array.isArray(body.protocol_family_outcomes)
       ? body.protocol_family_outcomes
-        .filter((value): value is { family: string; observations: number; completed: number; errors: number; input_required: number; unknown: number } => Boolean(value && typeof value === "object" && typeof (value as { family?: unknown }).family === "string" && ["observations", "completed", "errors", "input_required", "unknown"].every((key) => typeof (value as Record<string, unknown>)[key] === "number")))
+        .filter((value): value is { family: string; observations: number; requests?: number; responses?: number; completed: number; errors: number; input_required: number; unknown: number } => Boolean(value && typeof value === "object" && typeof (value as { family?: unknown }).family === "string" && ["observations", "completed", "errors", "input_required", "unknown"].every((key) => typeof (value as Record<string, unknown>)[key] === "number")))
         .filter((value) => FAMILIES.has(value.family))
-        .map((value) => ({ family: value.family, observations: Math.max(0, Math.min(100_000, Math.floor(value.observations))), completed: Math.max(0, Math.min(100_000, Math.floor(value.completed))), errors: Math.max(0, Math.min(100_000, Math.floor(value.errors))), input_required: Math.max(0, Math.min(100_000, Math.floor(value.input_required))), unknown: Math.max(0, Math.min(100_000, Math.floor(value.unknown))) }))
+        .map((value) => ({ family: value.family, observations: Math.max(0, Math.min(100_000, Math.floor(value.observations))), requests: Math.max(0, Math.min(100_000, Math.floor(value.requests ?? 0))), responses: Math.max(0, Math.min(100_000, Math.floor(value.responses ?? 0))), completed: Math.max(0, Math.min(100_000, Math.floor(value.completed))), errors: Math.max(0, Math.min(100_000, Math.floor(value.errors))), input_required: Math.max(0, Math.min(100_000, Math.floor(value.input_required))), unknown: Math.max(0, Math.min(100_000, Math.floor(value.unknown))) }))
         .sort((a, b) => b.observations - a.observations || a.family.localeCompare(b.family))
         .slice(0, 10)
       : [];

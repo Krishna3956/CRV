@@ -236,7 +236,7 @@ export function createAnalyticsHandler(getAdmin: typeof getSupabaseAdmin = getSu
 
   const events = ((data || []) as EventRow[]).filter((event) => event.observation_source === "server");
   const protocolFamilyCounts = new Map<string, number>();
-  const protocolFamilyOutcomes = new Map<string, { observations: number; completed: number; errors: number; input_required: number; unknown: number }>();
+  const protocolFamilyOutcomes = new Map<string, { observations: number; requests: number; responses: number; completed: number; errors: number; input_required: number; unknown: number }>();
   const protocolFamilyEvents = (data || []) as EventRow[];
   const durableFactsResult = await supabase.from("trackmcp_semantic_facts")
     .select("semantic,dimensions,measures,event_type,observed_at")
@@ -278,13 +278,23 @@ export function createAnalyticsHandler(getAdmin: typeof getSupabaseAdmin = getSu
     const family = typeof hintedFamily === "string" ? hintedFamily : protocolFamilyForMethod(event.mcp_method);
     if (family !== "sampling" && family !== "elicitation" && family !== "completion" && family !== "tasks" && family !== "control_signal" && family !== "resources" && family !== "prompts" && family !== "tools" && family !== "subscriptions" && family !== "notifications") return [];
     const outcome = event.is_error === true || event.success === false ? "failed" : event.result_type === "input_required" ? "pending" : event.result_type === "complete" ? "completed" : "unknown";
-    return [{ family, outcome }];
+    const metadata = event.payload && typeof event.payload === "object" && !Array.isArray(event.payload)
+      && event.payload._trackmcp && typeof event.payload._trackmcp === "object" && !Array.isArray(event.payload._trackmcp)
+      ? event.payload._trackmcp as Record<string, unknown>
+      : undefined;
+    return [{
+      family,
+      outcome,
+      observation_kind: metadata?.observation_kind === "protocol_request" || metadata?.observation_kind === "protocol_response" ? metadata.observation_kind : undefined,
+    }];
   });
   for (const row of protocolFamilySourceRows) {
     const { family, outcome } = row;
     protocolFamilyCounts.set(family, (protocolFamilyCounts.get(family) || 0) + 1);
-    const current = protocolFamilyOutcomes.get(family) || { observations: 0, completed: 0, errors: 0, input_required: 0, unknown: 0 };
+    const current = protocolFamilyOutcomes.get(family) || { observations: 0, requests: 0, responses: 0, completed: 0, errors: 0, input_required: 0, unknown: 0 };
     current.observations += 1;
+    if (row.observation_kind === "protocol_request") current.requests += 1;
+    if (row.observation_kind === "protocol_response") current.responses += 1;
     if (outcome === "failed") current.errors += 1;
     else if (outcome === "pending") current.input_required += 1;
     else if (outcome === "completed") current.completed += 1;
