@@ -217,6 +217,15 @@ just because a README or marketing page mentions it.
   task routing and payload projection. Regression tests assert the exact
   capability envelope; SDK tests remain 72/72 plus the packed consumer check.
 
+- 2026-10-24: Extended the dependency-free .NET runtime smoke harness to cover
+  metadata-only `elicitation/create` result projection and a bounded transport
+  failure in addition to catalog and cancellation signals. The harness asserts
+  that input values, private result fields, catalog names/URIs/cursors, and
+  transport details do not cross the serialized ingest boundary. The local
+  machine does not have the `dotnet` toolchain, so hosted CI remains the
+  authoritative compile/runtime result; no production or publication claim is
+  inferred from this source change.
+
 - 2026-10-22: Tightened the modern task read model to the Tasks extension's
   bounded lifecycle contract. Task status is now allowlisted, valid lifecycle
   timestamps and status messages are retained for operational UX, and result,
