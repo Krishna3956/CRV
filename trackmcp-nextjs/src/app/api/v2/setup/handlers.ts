@@ -39,11 +39,16 @@ export function createSetupHandler(getAdmin: typeof getSupabaseAdmin = getSupaba
     const days = boundedDays(request);
     const since = new Date(Date.now() - days * 86_400_000).toISOString();
     const [keyResult, eventResult] = await Promise.all([
-      admin!.from("trackmcp_api_keys").select("id").eq("workspace_id", scope.workspaceId).is("revoked_at", null).limit(1),
+      admin!.from("trackmcp_api_keys").select("id, service_scope, environment_scope").eq("workspace_id", scope.workspaceId).is("revoked_at", null).order("created_at", { ascending: false }).limit(1),
       admin!.from("trackmcp_events").select("event_id, started_at, event_type, service, environment, mcp_method, transport, payload_policy, deployment_id, account_identity_source, account_key").eq("workspace_id", scope.workspaceId).gte("started_at", since).order("started_at", { ascending: false }).limit(1),
     ]);
     if (keyResult.error || eventResult.error) return NextResponse.json({ error: "Could not load setup status." }, { status: 500 });
     const hasKey = Boolean(keyResult.data?.length);
+    const activeKey = keyResult.data?.[0] as { service_scope?: unknown; environment_scope?: unknown } | undefined;
+    const keyScope = hasKey ? {
+      service: typeof activeKey?.service_scope === "string" ? activeKey.service_scope.slice(0, 100) : null,
+      environment: typeof activeKey?.environment_scope === "string" ? activeKey.environment_scope.slice(0, 64) : null,
+    } : null;
     const latest = eventResult.data?.[0] as { event_id?: unknown; started_at?: unknown; event_type?: unknown; service?: unknown; environment?: unknown; mcp_method?: unknown; transport?: unknown; payload_policy?: unknown; deployment_id?: unknown; account_identity_source?: unknown; account_key?: unknown } | undefined;
     const hasEvent = Boolean(latest);
     const mcpMethodObserved = hasEvent && typeof latest?.mcp_method === "string";
@@ -64,6 +69,7 @@ export function createSetupHandler(getAdmin: typeof getSupabaseAdmin = getSupaba
       setup: {
         state,
         workspace_id: scope.workspaceId,
+        connection_key: keyScope,
         checks: {
           connection_key_ready: hasKey,
           sdk_event_recognized: hasEvent,

@@ -4185,6 +4185,7 @@ function SetupView({
   type SetupContract = {
     setup?: {
       state?: string;
+      connection_key?: { service?: string | null; environment?: string | null } | null;
       checks?: {
         connection_key_ready?: boolean;
         sdk_event_recognized?: boolean;
@@ -4403,6 +4404,27 @@ function SetupView({
             </div>
             <p className="mt-2 text-[11px] leading-relaxed text-muted">
               Identity resolution is optional and does not block a connected state. The percentage reflects only key, event, MCP method, transport, and privacy-policy evidence.
+            </p>
+          </div>
+        )}
+        {activeSetupContract?.setup?.connection_key && (
+          <div className="mt-5 border-t border-line pt-4" aria-label="Active connection key scope">
+            <div className="flex items-center justify-between gap-2">
+              <p className="text-xs font-semibold text-ink">Active key scope</p>
+              <span className="text-[11px] text-muted">Secret value never shown</span>
+            </div>
+            <div className="mt-2 grid gap-2 text-xs sm:grid-cols-2">
+              <div className="border border-line bg-paper px-3 py-2">
+                <span className="text-faint">Server</span>
+                <span className="ml-2 font-medium text-ink">{activeSetupContract.setup.connection_key.service || "Any server"}</span>
+              </div>
+              <div className="border border-line bg-paper px-3 py-2">
+                <span className="text-faint">Environment</span>
+                <span className="ml-2 font-medium text-ink">{activeSetupContract.setup.connection_key.environment || "Any environment"}</span>
+              </div>
+            </div>
+            <p className="mt-2 text-[11px] leading-relaxed text-muted">
+              Your server telemetry must use these labels when they are set. A mismatched label is rejected without changing the key.
             </p>
           </div>
         )}
