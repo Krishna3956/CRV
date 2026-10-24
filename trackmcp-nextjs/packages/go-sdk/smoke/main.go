@@ -87,7 +87,7 @@ func main() {
 	if envelope.Events[0].Transport != "stdio" {
 		fail("caller-verified signal transport label was not emitted")
 	}
-	if envelope.Events[1].EventType != "protocol" || envelope.Events[1].ResultType != "input_required" || envelope.Events[1].InputRequestCount == nil || *envelope.Events[1].InputRequestCount != 1 || envelope.Events[1].InputResponseCount == nil || *envelope.Events[1].InputResponseCount != 1 {
+	if envelope.Events[1].EventType != "protocol" || envelope.Events[1].ResultType != "input_required" || envelope.Events[1].InputRequestCount != 1 || envelope.Events[1].InputResponseCount != 1 {
 		fail("bounded protocol-result metadata was not emitted")
 	}
 	if envelope.Events[2].CatalogKind != "resources" || envelope.Events[2].EventType != "catalog" {
