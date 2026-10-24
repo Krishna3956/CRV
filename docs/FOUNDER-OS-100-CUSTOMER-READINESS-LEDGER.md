@@ -826,16 +826,3 @@ a failed product gate or a Supabase plan warning.
 - [ ] The complete release gate should be rerun after the final milestone
   commit; hosted CI, exact-SHA deployment, and production UAT remain required
   evidence gates after merge.
-
-## 2026-10-24 Go runtime privacy smoke checkpoint
-
-- [x] Added a dependency-free Go runtime smoke harness using a local fake
-  ingest server. It exercises the actual HTTP flush path, inbound protocol
-  signal direction, catalog identity hashing, and transport failure metadata.
-- [x] The harness asserts that private catalog names, URIs, and cursors never
-  cross the serialized event boundary. Hosted Go CI now runs both `go test
-  ./...` and the smoke harness.
-- [x] The cross-language contract requires the Go smoke source and the local
-  128-suite release gate plus lint passed.
-- [ ] Go transport-specific production UAT and the remaining partial protocol
-  rows remain external evidence gates.
