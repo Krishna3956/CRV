@@ -388,15 +388,15 @@ test("analytics exposes bounded protocol lifecycle signals without treating them
     timeline: [{ date: "2026-09-06", notification: 0, progress: 1, cancelled: 0, catalog_changed: 1, resource_changed: 1, subscription_started: 1, subscription_stopped: 1, observed_events: 5 }],
   });
   assert.deepEqual(body.protocol_family_activity, [{ family: "notifications", observations: 3 }, { family: "resources", observations: 3 }, { family: "completion", observations: 1 }, { family: "elicitation", observations: 1 }, { family: "sampling", observations: 1 }, { family: "subscriptions", observations: 1 }, { family: "tasks", observations: 1 }]);
-  assert.deepEqual(body.protocol_family_outcomes, [{ family: "notifications", observations: 3, completed: 0, errors: 0, input_required: 0, unknown: 3 }, { family: "resources", observations: 3, completed: 0, errors: 0, input_required: 0, unknown: 3 }, { family: "completion", observations: 1, completed: 1, errors: 0, input_required: 0, unknown: 0 }, { family: "elicitation", observations: 1, completed: 1, errors: 0, input_required: 0, unknown: 0 }, { family: "sampling", observations: 1, completed: 0, errors: 0, input_required: 1, unknown: 0 }, { family: "subscriptions", observations: 1, completed: 0, errors: 0, input_required: 0, unknown: 1 }, { family: "tasks", observations: 1, completed: 0, errors: 0, input_required: 0, unknown: 1 }]);
+  assert.deepEqual(body.protocol_family_outcomes, [{ family: "notifications", observations: 3, requests: 0, responses: 0, completed: 0, errors: 0, input_required: 0, unknown: 3 }, { family: "resources", observations: 3, requests: 0, responses: 0, completed: 0, errors: 0, input_required: 0, unknown: 3 }, { family: "completion", observations: 1, requests: 0, responses: 0, completed: 1, errors: 0, input_required: 0, unknown: 0 }, { family: "elicitation", observations: 1, requests: 0, responses: 0, completed: 1, errors: 0, input_required: 0, unknown: 0 }, { family: "sampling", observations: 1, requests: 0, responses: 0, completed: 0, errors: 0, input_required: 1, unknown: 0 }, { family: "subscriptions", observations: 1, requests: 0, responses: 0, completed: 0, errors: 0, input_required: 0, unknown: 1 }, { family: "tasks", observations: 1, requests: 0, responses: 0, completed: 0, errors: 0, input_required: 0, unknown: 1 }]);
   assert.equal(body.protocol_family_outcome_source, "event_window");
   assert.equal(body.founder_os.facts.outcomes.not_observable, 5);
 });
 
 test("analytics prefers the bounded durable semantic-fact family projection when available", async () => {
   const durableFacts = [
-    { semantic: { outcome: "completed" }, dimensions: { protocol_family: "completion" }, event_type: "protocol", observed_at: "2026-09-06T00:00:00Z" },
-    { semantic: { outcome: "pending" }, dimensions: { protocol_family: "sampling" }, event_type: "protocol", observed_at: "2026-09-06T00:00:00Z" },
+    { semantic: { outcome: "completed" }, dimensions: { protocol_family: "completion", protocol_observation_kind: "protocol_request" }, event_type: "protocol", observed_at: "2026-09-06T00:00:00Z" },
+    { semantic: { outcome: "pending" }, dimensions: { protocol_family: "sampling", protocol_observation_kind: "protocol_response" }, event_type: "protocol", observed_at: "2026-09-06T00:00:00Z" },
   ];
   const base = fakeAdmin([]);
   const originalFrom = base.from.bind(base);
@@ -408,8 +408,8 @@ test("analytics prefers the bounded durable semantic-fact family projection when
   const body = await response.json();
   assert.equal(body.protocol_family_outcome_source, "durable_facts");
   assert.deepEqual(body.protocol_family_outcomes, [
-    { family: "completion", observations: 1, completed: 1, errors: 0, input_required: 0, unknown: 0 },
-    { family: "sampling", observations: 1, completed: 0, errors: 0, input_required: 1, unknown: 0 },
+    { family: "completion", observations: 1, requests: 1, responses: 0, completed: 1, errors: 0, input_required: 0, unknown: 0 },
+    { family: "sampling", observations: 1, requests: 0, responses: 1, completed: 0, errors: 0, input_required: 1, unknown: 0 },
   ]);
 });
 
