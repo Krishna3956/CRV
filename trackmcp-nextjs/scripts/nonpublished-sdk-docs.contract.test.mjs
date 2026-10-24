@@ -100,3 +100,14 @@ test(".NET hosted CI runs the privacy and direction smoke harness", () => {
   assert.match(dotnetSmokeSource, /RecordCatalog\("resources"/);
   assert.match(dotnetSmokeSource, /raw catalog URI crossed/);
 });
+
+test("Go hosted CI runs the privacy, direction, and flush smoke harness", () => {
+  assert.match(goSmokeSource, /httptest.NewServer/);
+  assert.match(goSmokeSource, /RecordProtocolSignalDirection/);
+  assert.match(goSmokeSource, /client_to_server/);
+  assert.match(goSmokeSource, /RecordCatalog/);
+  assert.match(goSmokeSource, /RecordTransportFailure/);
+  assert.match(goSmokeSource, /private-resource-name/);
+  assert.match(goSmokeSource, /secret:\/\/private-resource/);
+  assert.match(goSmokeSource, /Go TrackMCP runtime smoke passed/);
+});
