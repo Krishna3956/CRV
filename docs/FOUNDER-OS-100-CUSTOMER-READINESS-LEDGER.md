@@ -201,7 +201,14 @@ Current estimate: **9/10 gates complete (90%)**. The deployed application path, 
 - [x] Verify Supabase refresh worker with a non-empty production job; queue lag, retry/dead-letter behavior, rate-limit persistence, and retention dry-run evidence remain open.
 - [x] Execute the authenticated two-workspace Founder OS read-model smoke against production with disposable keys; schema availability and live route behavior are now evidenced, while dashboard human-session rendering remains a separate gate.
 - [x] Verify production API-key status and revocation boundary with a disposable workspace; CLI activation, cross-workspace authorization, export, privacy review, and deletion-request boundaries remain open or locally verified only.
-- [ ] Reconcile public website/docs claims with shipped behavior and canonical URLs.
+- [x] Reconcile public website/docs claims with shipped behavior and canonical URLs.
+  The current source passes `test:docs-navigation` (4/4), `test:docs-version`
+  (2/2), `test:nonpublished-sdk-docs` (3/3), and `test:p0-truth` (9/9). These
+  contracts cover real sidebar destinations and pointer affordances, current
+  published package/version claims, honest Go/.NET source-package boundaries,
+  canonical logo/link behavior, unsupported-claim wording, and onboarding/
+  quickstart truth. This is source/contract evidence; deployed authenticated
+  dashboard UAT remains separately tracked.
 - [x] Produce the final 100-customer pilot release record with known limitations and rollback instructions.
 
 ## Rules for updates
