@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server.js";
+import { createHash } from "node:crypto";
 import { getSupabaseServer } from "../../../../lib/auth/supabase-server.ts";
 import { getSupabaseAdmin } from "../../../../lib/repository/supabase.ts";
 import { hashTrackMCPKey } from "../../../../lib/telemetry/keys.ts";
@@ -236,7 +237,8 @@ export function createAnalyticsHandler(getAdmin: typeof getSupabaseAdmin = getSu
 
   const events = ((data || []) as EventRow[]).filter((event) => event.observation_source === "server");
   const protocolFamilyCounts = new Map<string, number>();
-  const protocolFamilyOutcomes = new Map<string, { observations: number; requests: number; responses: number; completed: number; errors: number; input_required: number; unknown: number }>();
+  const protocolFamilyOutcomes = new Map<string, { observations: number; requests: number; responses: number; matched: number; completed: number; errors: number; input_required: number; unknown: number }>();
+  const protocolFamilyHandles = new Map<string, { requests: Set<string>; responses: Set<string> }>();
   const protocolFamilyEvents = (data || []) as EventRow[];
   const durableFactsResult = await supabase.from("trackmcp_semantic_facts")
     .select("semantic,dimensions,measures,event_type,observed_at")
@@ -262,6 +264,7 @@ export function createAnalyticsHandler(getAdmin: typeof getSupabaseAdmin = getSu
       signal: signal === "notification" || signal === "progress" || signal === "cancelled" || signal === "catalog_changed" || signal === "resource_changed" || signal === "subscription_started" || signal === "subscription_stopped" ? signal : undefined,
       observed_at: typeof record.observed_at === "string" ? record.observed_at : undefined,
       observation_kind: safeDimensions.protocol_observation_kind === "protocol_request" || safeDimensions.protocol_observation_kind === "protocol_response" ? safeDimensions.protocol_observation_kind : undefined,
+      interaction_id: typeof safeDimensions.interaction_id === "string" ? safeDimensions.interaction_id : undefined,
       completion_value_count: typeof safeMeasures.completion_value_count === "number" ? safeMeasures.completion_value_count : undefined,
       completion_total: typeof safeMeasures.completion_total === "number" ? safeMeasures.completion_total : undefined,
       completion_has_more: typeof safeMeasures.completion_has_more === "boolean" ? safeMeasures.completion_has_more : undefined,
@@ -286,20 +289,31 @@ export function createAnalyticsHandler(getAdmin: typeof getSupabaseAdmin = getSu
       family,
       outcome,
       observation_kind: metadata?.observation_kind === "protocol_request" || metadata?.observation_kind === "protocol_response" ? metadata.observation_kind : undefined,
+      interaction_id: typeof event.interaction_id === "string" ? event.interaction_id : undefined,
     }];
   });
   for (const row of protocolFamilySourceRows) {
     const { family, outcome } = row;
     protocolFamilyCounts.set(family, (protocolFamilyCounts.get(family) || 0) + 1);
-    const current = protocolFamilyOutcomes.get(family) || { observations: 0, requests: 0, responses: 0, completed: 0, errors: 0, input_required: 0, unknown: 0 };
+    const current = protocolFamilyOutcomes.get(family) || { observations: 0, requests: 0, responses: 0, matched: 0, completed: 0, errors: 0, input_required: 0, unknown: 0 };
     current.observations += 1;
     if (row.observation_kind === "protocol_request") current.requests += 1;
     if (row.observation_kind === "protocol_response") current.responses += 1;
+    if (row.interaction_id && row.observation_kind) {
+      const handle = protocolFamilyHandles.get(family) || { requests: new Set<string>(), responses: new Set<string>() };
+      const hashed = createHash("sha256").update(row.interaction_id, "utf8").digest("hex");
+      handle[row.observation_kind === "protocol_request" ? "requests" : "responses"].add(hashed);
+      protocolFamilyHandles.set(family, handle);
+    }
     if (outcome === "failed") current.errors += 1;
     else if (outcome === "pending") current.input_required += 1;
     else if (outcome === "completed") current.completed += 1;
     else current.unknown += 1;
     protocolFamilyOutcomes.set(family, current);
+  }
+  for (const [family, handle] of protocolFamilyHandles) {
+    const current = protocolFamilyOutcomes.get(family);
+    if (current) current.matched = [...handle.requests].filter((value) => handle.responses.has(value)).length;
   }
   const durableCompletionRows = durableFamilyRows.filter((row) => row.family === "completion");
   const durableCompletionEvidence = durableCompletionRows.some((row) => row.observation_kind === "protocol_request" || row.observation_kind === "protocol_response");
