@@ -395,9 +395,9 @@ test("analytics exposes bounded protocol lifecycle signals without treating them
 
 test("analytics prefers the bounded durable semantic-fact family projection when available", async () => {
   const durableFacts = [
-    { semantic: { outcome: "completed" }, dimensions: { protocol_family: "completion", protocol_observation_kind: "protocol_request", interaction_id: "completion-1" }, event_type: "protocol", observed_at: "2026-09-06T00:00:00Z" },
-    { semantic: { outcome: "completed" }, dimensions: { protocol_family: "completion", protocol_observation_kind: "protocol_response", interaction_id: "completion-1" }, event_type: "protocol", observed_at: "2026-09-06T00:00:00Z" },
-    { semantic: { outcome: "pending" }, dimensions: { protocol_family: "sampling", protocol_observation_kind: "protocol_response", interaction_id: "sampling-1" }, event_type: "protocol", observed_at: "2026-09-06T00:00:00Z" },
+    { semantic: { outcome: "completed" }, dimensions: { protocol_family: "completion", protocol_observation_kind: "protocol_request", interaction_id_hash: "612bffc01ad431f98bca56a51c5f65a99c3a87449e03b99a51039e58d62bbbc6" }, event_type: "protocol", observed_at: "2026-09-06T00:00:00Z" },
+    { semantic: { outcome: "completed" }, dimensions: { protocol_family: "completion", protocol_observation_kind: "protocol_response", interaction_id_hash: "612bffc01ad431f98bca56a51c5f65a99c3a87449e03b99a51039e58d62bbbc6" }, event_type: "protocol", observed_at: "2026-09-06T00:00:00Z" },
+    { semantic: { outcome: "pending" }, dimensions: { protocol_family: "sampling", protocol_observation_kind: "protocol_response", interaction_id_hash: "0338ac81cf24e13b1b0eb27e0bc977b1817b5b9ae3a73327a7d9ccafc9dfbaf8" }, event_type: "protocol", observed_at: "2026-09-06T00:00:00Z" },
   ];
   const base = fakeAdmin([]);
   const originalFrom = base.from.bind(base);

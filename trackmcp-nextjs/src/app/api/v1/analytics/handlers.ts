@@ -264,7 +264,7 @@ export function createAnalyticsHandler(getAdmin: typeof getSupabaseAdmin = getSu
       signal: signal === "notification" || signal === "progress" || signal === "cancelled" || signal === "catalog_changed" || signal === "resource_changed" || signal === "subscription_started" || signal === "subscription_stopped" ? signal : undefined,
       observed_at: typeof record.observed_at === "string" ? record.observed_at : undefined,
       observation_kind: safeDimensions.protocol_observation_kind === "protocol_request" || safeDimensions.protocol_observation_kind === "protocol_response" ? safeDimensions.protocol_observation_kind : undefined,
-      interaction_id: typeof safeDimensions.interaction_id === "string" ? safeDimensions.interaction_id : undefined,
+      interaction_id_hash: typeof safeDimensions.interaction_id_hash === "string" ? safeDimensions.interaction_id_hash : undefined,
       completion_value_count: typeof safeMeasures.completion_value_count === "number" ? safeMeasures.completion_value_count : undefined,
       completion_total: typeof safeMeasures.completion_total === "number" ? safeMeasures.completion_total : undefined,
       completion_has_more: typeof safeMeasures.completion_has_more === "boolean" ? safeMeasures.completion_has_more : undefined,
@@ -289,7 +289,7 @@ export function createAnalyticsHandler(getAdmin: typeof getSupabaseAdmin = getSu
       family,
       outcome,
       observation_kind: metadata?.observation_kind === "protocol_request" || metadata?.observation_kind === "protocol_response" ? metadata.observation_kind : undefined,
-      interaction_id: typeof event.interaction_id === "string" ? event.interaction_id : undefined,
+      interaction_id_hash: typeof event.interaction_id === "string" ? createHash("sha256").update(event.interaction_id, "utf8").digest("hex") : undefined,
     }];
   });
   for (const row of protocolFamilySourceRows) {
@@ -299,10 +299,9 @@ export function createAnalyticsHandler(getAdmin: typeof getSupabaseAdmin = getSu
     current.observations += 1;
     if (row.observation_kind === "protocol_request") current.requests += 1;
     if (row.observation_kind === "protocol_response") current.responses += 1;
-    if (row.interaction_id && row.observation_kind) {
+    if (row.interaction_id_hash && row.observation_kind) {
       const handle = protocolFamilyHandles.get(family) || { requests: new Set<string>(), responses: new Set<string>() };
-      const hashed = createHash("sha256").update(row.interaction_id, "utf8").digest("hex");
-      handle[row.observation_kind === "protocol_request" ? "requests" : "responses"].add(hashed);
+      handle[row.observation_kind === "protocol_request" ? "requests" : "responses"].add(row.interaction_id_hash);
       protocolFamilyHandles.set(family, handle);
     }
     if (outcome === "failed") current.errors += 1;
