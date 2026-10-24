@@ -12,6 +12,7 @@ const [goDocs, dotnetDocs, goReadme, dotnetReadme, goSource, dotnetSource] = awa
 ]);
 const dotnetSmokeProject = await readFile(new URL("../packages/dotnet-sdk/tests/TrackMcp.Smoke.csproj", import.meta.url), "utf8");
 const dotnetSmokeSource = await readFile(new URL("../packages/dotnet-sdk/tests/Program.cs", import.meta.url), "utf8");
+const goSmokeSource = await readFile(new URL("../packages/go-sdk/smoke/main.go", import.meta.url), "utf8");
 
 test("Go and .NET docs disclose source-package status and first-event verification", () => {
   for (const source of [goDocs, dotnetDocs]) {
