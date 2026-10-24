@@ -25,7 +25,7 @@ function fail(message) { throw new Error(message); }
 
 function validate() {
   if (process.env.TRACKMCP_AUTH_SMOKE_CONFIRM !== CONFIRM) fail(`Refusing to run. Set TRACKMCP_AUTH_SMOKE_CONFIRM=${CONFIRM} explicitly.`);
-  if (!baseUrl || !keyA || !keyB || !workspaceA || !workspaceB) fail("TRACKMCP_AUTH_SMOKE_BASE_URL, both keys, and both workspace IDs are required.");
+  if (!baseUrl || !keyA || !keyB || !workspaceA || !workspaceB || !revokedKey) fail("TRACKMCP_AUTH_SMOKE_BASE_URL, both keys, both workspace IDs, and a revoked key are required.");
   let parsed;
   try { parsed = new URL(baseUrl); } catch { fail("TRACKMCP_AUTH_SMOKE_BASE_URL must be an absolute URL."); }
   if (parsed.protocol !== "https:" || parsed.username || parsed.password || parsed.search || parsed.hash) fail("Base URL must be HTTPS and contain no credentials, query, or fragment.");
@@ -186,11 +186,9 @@ async function main() {
   checks.push(...await verifyLegacyReadModels(keyB, "workspace B", workspaceA));
   checks.push(await verifyApiKeyActionQueueBoundary(keyA, "workspace A"));
   checks.push(await verifyApiKeyActionQueueBoundary(keyB, "workspace B"));
-  if (revokedKey) {
-    const response = await request("/api/v1/cli/key-status", revokedKey);
-    if (![401, 403].includes(response.status)) fail(`revoked key expected HTTP 401/403, received HTTP ${response.status}`);
-    checks.push({ label: "revoked key negative auth", status: response.status });
-  }
+  const revokedResponse = await request("/api/v1/cli/key-status", revokedKey);
+  if (![401, 403].includes(revokedResponse.status)) fail(`revoked key expected HTTP 401/403, received HTTP ${revokedResponse.status}`);
+  checks.push({ label: "revoked key negative auth", status: revokedResponse.status });
   const report = {
     generated_at: new Date().toISOString(),
     base_url: new URL(baseUrl).origin,

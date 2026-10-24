@@ -79,7 +79,7 @@ jobs:
           TRACKMCP_AUTH_SMOKE_WORKSPACE_B: ${{ secrets.TRACKMCP_AUTH_SMOKE_WORKSPACE_B }}
         run: |
           missing=()
-          for name in TRACKMCP_AUTH_SMOKE_KEY_A TRACKMCP_AUTH_SMOKE_KEY_B TRACKMCP_AUTH_SMOKE_WORKSPACE_A TRACKMCP_AUTH_SMOKE_WORKSPACE_B; do
+          for name in TRACKMCP_AUTH_SMOKE_KEY_A TRACKMCP_AUTH_SMOKE_KEY_B TRACKMCP_AUTH_SMOKE_WORKSPACE_A TRACKMCP_AUTH_SMOKE_WORKSPACE_B TRACKMCP_AUTH_SMOKE_REVOKED_KEY; do
             if [ -z "${!name}" ]; then missing+=("$name"); fi
           done
           if [ "${#missing[@]}" -gt 0 ]; then
