@@ -48,6 +48,9 @@ sessionID)`. It records the bounded page count, SHA-256 identity hashes, and
 whether an opaque next cursor was present; names, URIs, schemas, descriptions,
 and cursor values are never queued. Repeated calls remain safe for paginated
 observation because the cursor itself is intentionally not persisted.
+Bounded `ttlMs`/`cacheScope` hints are retained as `cache_ttl_ms` and
+`cache_scope` only for `public` or `private`; they are freshness and sharing
+hints, not authorization or snapshot guarantees.
 
 To enable resolver-linked account analytics, return only a stable, already
 validated tenant/account handle. The SDK rejects credential-like values,

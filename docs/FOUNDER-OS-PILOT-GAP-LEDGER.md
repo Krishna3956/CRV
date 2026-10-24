@@ -251,6 +251,12 @@ production transport UAT.
   `streamable_http`; unsupported labels fail closed. This closes the local
   cross-language attribution gap while production transport UAT remains open.
 
+- 2026-10-25: Go and .NET catalog observers now retain bounded modern cache
+  hints (`cache_ttl_ms` up to 24 hours and `cache_scope` limited to `public` or
+  `private`) alongside cursor presence. Runtime smokes and Go unit coverage
+  reject oversized TTLs and unsupported scopes; these are freshness/sharing
+  hints only and do not claim cache conformance or snapshot consistency.
+
 - 2026-10-22: Tightened the modern task read model to the Tasks extension's
   bounded lifecycle contract. Task status is now allowlisted, valid lifecycle
   timestamps and status messages are retained for operational UX, and result,

@@ -223,12 +223,37 @@ func (c *Client) RecordCatalog(kind string, method string, result map[string]any
 		"catalog_kind": kind,
 		"next_cursor_present": result["nextCursor"] != nil || result["next_cursor"] != nil,
 	}
+	if ttl, ok := boundedCacheTTL(result); ok { metadata["cache_ttl_ms"] = ttl }
+	if scope, ok := boundedCacheScope(result); ok { metadata["cache_scope"] = scope }
 	c.Capture(Event{
 		EventType: "catalog", Direction: "server_to_client", MCPMethod: method,
 		SessionID: boundedSessionID(sessionID), Success: boolPtr(true), IsError: boolPtr(false),
 		CatalogKind: kind, CatalogItemCount: len(items), CatalogItemNameHashes: nameHashes,
 		CatalogItemURIHashes: uriHashes, Payload: map[string]any{"_trackmcp": metadata},
 	})
+}
+
+func boundedCacheTTL(result map[string]any) (int, bool) {
+	for _, key := range []string{"ttlMs", "ttl_ms"} {
+		value, ok := result[key]
+		if !ok { continue }
+		switch typed := value.(type) {
+		case int:
+			if typed >= 0 && typed <= 86400000 { return typed, true }
+		case int64:
+			if typed >= 0 && typed <= 86400000 { return int(typed), true }
+		case float64:
+			if typed >= 0 && typed <= 86400000 && typed == float64(int(typed)) { return int(typed), true }
+		}
+	}
+	return 0, false
+}
+
+func boundedCacheScope(result map[string]any) (string, bool) {
+	for _, key := range []string{"cacheScope", "cache_scope"} {
+		if value, ok := result[key].(string); ok && (value == "public" || value == "private") { return value, true }
+	}
+	return "", false
 }
 
 // RecordProtocolResult records only allowlisted MRTR/task result metadata.

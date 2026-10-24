@@ -54,6 +54,9 @@ sessionId)`. It records the bounded page count, SHA-256 identity hashes, and
 whether an opaque next cursor was present; names, URIs, schemas, descriptions,
 and cursor values are never queued. Repeated calls remain safe for paginated
 observation because the cursor itself is intentionally not persisted.
+Bounded `ttlMs`/`cacheScope` hints are retained only as `cache_ttl_ms` and
+`cache_scope` (`public` or `private`); they do not create authorization or
+snapshot guarantees.
 
 After configuring the key, make one real MCP tool call, flush during shutdown
 or after a bounded batch, and confirm the event in Setup. Key creation alone
