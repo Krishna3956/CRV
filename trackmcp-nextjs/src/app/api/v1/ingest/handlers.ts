@@ -95,6 +95,20 @@ export function createIngestHandler(getAdmin: typeof getSupabaseAdmin = getSupab
     return NextResponse.json({ error: "Telemetry does not match this connection key scope." }, { status: 403 });
   }
 
+  // Operational metadata is best-effort and fail-open: telemetry acceptance
+  // must not depend on this non-sensitive bookkeeping column being present
+  // during a rolling migration. The update is scoped to the authenticated
+  // key row and stores no token, event, or caller data.
+  try {
+    const keyTable = supabase.from("trackmcp_api_keys") as unknown as { update?: (values: Record<string, string>) => { eq: (column: string, value: string) => PromiseLike<{ error?: { code?: string; message?: string } | null }> } };
+    if (typeof keyTable.update === "function") {
+      const updated = await keyTable.update({ last_used_at: new Date().toISOString() }).eq("id", key.id);
+      if (updated?.error) console.error("TrackMCP API key usage update failed", { code: updated.error.code, message: updated.error.message });
+    }
+  } catch (error) {
+    console.error("TrackMCP API key usage update failed", { message: error instanceof Error ? error.message : "unknown error" });
+  }
+
   const { data: existing, error: existingError } = await supabase
     .from("trackmcp_events")
     .select("event_id")
