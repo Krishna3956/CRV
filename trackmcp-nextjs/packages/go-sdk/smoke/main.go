@@ -40,13 +40,20 @@ func main() {
 		"ttlMs": 60000,
 		"cacheScope": "private",
 	}, "go-smoke-session")
+	client.RecordEntityRead("resources", "resources/read", "secret://private-read", map[string]any{
+		"contents": []any{map[string]any{"text": "private-resource-content"}},
+	}, "go-smoke-session")
+	client.RecordEntityRead("prompts", "prompts/get", "private-prompt", map[string]any{
+		"messages": []any{map[string]any{"content": "private-prompt-message"}},
+		"resultType": "complete",
+	}, "go-smoke-session")
 	client.RecordTransportFailureForTransport("transport_error", "stdio", "go-smoke-session", 12)
 	client.Flush()
 
 	if len(received) == 0 || !json.Valid(received) {
 		fail("fake ingest did not receive valid JSON")
 	}
-	for _, secret := range []string{"private-resource-name", "secret://private-resource", "secret://second-resource", "private-cursor"} {
+	for _, secret := range []string{"private-resource-name", "secret://private-resource", "secret://second-resource", "private-cursor", "secret://private-read", "private-resource-content", "private-prompt", "private-prompt-message"} {
 		if bytes.Contains(received, []byte(secret)) {
 			fail("private catalog value crossed the event boundary: " + secret)
 		}
@@ -61,7 +68,7 @@ func main() {
 			Payload map[string]any `json:"payload"`
 		} `json:"events"`
 	}
-	if err := json.Unmarshal(received, &envelope); err != nil || len(envelope.Events) != 3 {
+	if err := json.Unmarshal(received, &envelope); err != nil || len(envelope.Events) != 5 {
 		fail("unexpected event envelope")
 	}
 	if envelope.Events[0].Direction != "client_to_server" || envelope.Events[0].EventType != "protocol" {
@@ -77,10 +84,16 @@ func main() {
 	if !ok || metadata["cache_ttl_ms"] != float64(60000) || metadata["cache_scope"] != "private" {
 		fail("bounded cache hints were not emitted")
 	}
-	if envelope.Events[2].ErrorClass != "transport_error" || envelope.Events[2].EventType != "session" {
+	if envelope.Events[2].CatalogKind != "resources" || envelope.Events[2].EventType != "catalog" || envelope.Events[2].Payload["_trackmcp"].(map[string]any)["observation_kind"] != "entity_read" {
+		fail("resource entity-read metadata was not emitted")
+	}
+	if envelope.Events[3].CatalogKind != "prompts" || envelope.Events[3].EventType != "catalog" || envelope.Events[3].Payload["_trackmcp"].(map[string]any)["observation_kind"] != "entity_read" {
+		fail("prompt entity-read metadata was not emitted")
+	}
+	if envelope.Events[4].ErrorClass != "transport_error" || envelope.Events[4].EventType != "session" {
 		fail("transport failure metadata was not emitted")
 	}
-	if envelope.Events[2].Transport != "stdio" {
+	if envelope.Events[4].Transport != "stdio" {
 		fail("caller-verified transport label was not emitted")
 	}
 	if strings.Contains(string(received), "request_id") && strings.Contains(string(received), "private") {

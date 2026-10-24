@@ -85,6 +85,21 @@ test("Go and .NET observers expose bounded catalog-page parity", () => {
   }
 });
 
+test("Go and .NET observers expose privacy-safe entity-read parity", () => {
+  for (const source of [goSource, dotnetSource]) {
+    assert.match(source, /RecordEntityRead/);
+    assert.match(source, /observation_kind.*entity_read/);
+    assert.match(source, /contents/);
+    assert.match(source, /messages/);
+    assert.match(source, /hashCatalogIdentity|HashData/);
+  }
+  for (const docs of [goReadme, dotnetReadme]) {
+    assert.match(docs, /RecordEntityRead/);
+    assert.match(docs, /SHA-256/);
+    assert.match(docs, /returned content.*never queued|returned content.*never queued or sent/i);
+  }
+});
+
 test("cross-language protocol signal observers validate direction", () => {
   assert.match(goSource, /RecordProtocolSignalDirection/);
   assert.match(goSource, /client_to_server/);
@@ -100,6 +115,8 @@ test(".NET hosted CI runs the privacy and direction smoke harness", () => {
   assert.match(dotnetSmokeSource, /RecordProtocolSignalForTransport\("cancelled"/);
   assert.match(dotnetSmokeSource, /client_to_server/);
   assert.match(dotnetSmokeSource, /RecordCatalog\("resources"/);
+  assert.match(dotnetSmokeSource, /RecordEntityRead\("resources"/);
+  assert.match(dotnetSmokeSource, /RecordEntityRead\("prompts"/);
   assert.match(dotnetSmokeSource, /raw catalog URI crossed/);
 });
 
@@ -108,6 +125,7 @@ test("Go hosted CI runs the privacy, direction, and flush smoke harness", () => 
   assert.match(goSmokeSource, /RecordProtocolSignalForTransport/);
   assert.match(goSmokeSource, /client_to_server/);
   assert.match(goSmokeSource, /RecordCatalog/);
+  assert.match(goSmokeSource, /RecordEntityRead/);
   assert.match(goSmokeSource, /RecordTransportFailure/);
   assert.match(goSmokeSource, /private-resource-name/);
   assert.match(goSmokeSource, /secret:\/\/private-resource/);
