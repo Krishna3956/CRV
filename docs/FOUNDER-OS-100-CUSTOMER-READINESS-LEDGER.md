@@ -1,6 +1,6 @@
 # Founder OS 100 Customer Readiness Ledger
 
-Last updated: 2026-10-24 (PR #301 semantic-scope correction and exact-SHA production verification)
+Last updated: 2026-10-24 (PR #308 Python runtime parity and exact-SHA production verification)
 Owner: Codex engineering execution
 Pilot target: 100 customers
 
@@ -19,8 +19,8 @@ This ledger is the operational source of truth for the autonomous readiness goal
 | Tab 6 — What's broken | Implemented and production-verified with synthetic evidence labeled | Live dashboard renders bounded reliability incidents, separates critical from insufficient-data rows, and labels all retained canary rows as synthetic test evidence rather than customer failures |
 | Example/live data parity | Merged and deployed | PR #57 merged; all Founder OS read models now have bounded example fixtures |
 | Privacy and tenant isolation | Verified locally | Privacy review, tenant isolation, security headers, accessibility contracts pass |
-| CI/CD deployment | Verified | PRs #58–#61 repaired the release gate, ECR digest verification, opaque App Runner IDs, and hostname normalization; PRs #64–#65 added and rendered safe MCP resource-template discovery; PR #67 routes scheduled cleanup through App Runner using AWS OIDC; PR #69 adds authenticated Founder OS read-model smoke coverage; PR #80 adds a SHA-only `deploy_ref` path for rollback rehearsal without widening AWS trust to arbitrary branches |
-| Production deployment | Verified for current release | App Runner run `40112039766` deployed merged main `ce4380e7d8280edc415465520796099e5121da24` successfully through deployment health, HTTPS, read-only production smoke, runtime-safety audit, and redacted evidence upload |
+| CI/CD deployment | Verified | PRs #58–#61 repaired the release gate, ECR digest verification, opaque App Runner IDs, and hostname normalization; PRs #64–#65 added and rendered safe MCP resource-template discovery; PR #67 routes scheduled cleanup through App Runner using AWS OIDC; PR #69 adds authenticated Founder OS read-model smoke coverage; PR #80 adds a SHA-only `deploy_ref` path for rollback rehearsal; PR #308 adds Python runtime privacy smoke parity |
+| Production deployment | Verified for current release | App Runner run `40117202718` deployed merged main `b7685e6cc38b37b132aa0cfbb7a8f10a19e864c7` successfully through the release gate, immutable image-digest check, deployment health, HTTPS/read-only production smoke, runtime-safety audit, and redacted evidence upload |
 | Bounded production load | Passed at pilot budget | Direct App Runner run on 2026-10-20: 120 requests at concurrency 8 across 9 authenticated read models plus ingest, 120/120 successful, zero errors/timeouts, tenant isolation passed, p95 2.11s against a 3s pilot budget; two disposable workspaces were deleted and verified absent |
 | Refresh worker | Five-slice transport, timeout recovery, and freshness checkpoint verified; continued monitoring open | PRs #109, #111, #112, #114, #123–#130 are merged. Trusted-main run `39494080043` processed five bounded slices (`39`, `37`, `42`, `38`, `39`) with zero retryable/failed results; postflight observed `0` queued, `0` running, `0` retryable, and no oldest queued job. Continued scheduled-run monitoring and richer entity/prompt coverage remain pilot gates. |
 | Supabase production schema | Additive pilot migration applied | `trackmcp_catalog_entity_reads` was missing in production; the reviewed additive migration was applied, then verified present with RLS enabled and anon/authenticated `SELECT` denied |
@@ -892,3 +892,14 @@ a failed product gate or a Supabase plan warning.
   176-route production build passed after the parity harness was added.
 - [ ] Authenticated production transport UAT and cross-language exporter parity
   against a real customer server remain external evidence gates.
+
+## 2026-10-24 exact-SHA App Runner rollout checkpoint
+
+- [x] App Runner workflow `40117202718` deployed commit
+  `b7685e6cc38b37b132aa0cfbb7a8f10a19e864c7` and completed successfully at
+  `2026-10-24T17:48:13Z`; its release gate, immutable image-digest check,
+  deployment wait, read-only production smoke, and runtime-safety flag audit
+  all completed successfully.
+- [x] This closes deployment evidence for the candidate only. Authenticated
+  two-workspace UAT, production key lifecycle, and transport-specific protocol
+  interoperability remain open evidence gates.
