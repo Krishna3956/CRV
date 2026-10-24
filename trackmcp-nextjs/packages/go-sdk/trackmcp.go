@@ -147,12 +147,20 @@ func (c *Client) Track(name string, payload map[string]any) { if payload == nil 
 // MCP request boundary. It accepts only bounded metadata; exception text,
 // URLs, headers, and payloads are never captured.
 func (c *Client) RecordTransportFailure(kind string, sessionID string, durationMS int64) {
+	c.RecordTransportFailureForTransport(kind, "", sessionID, durationMS)
+}
+
+// RecordTransportFailureForTransport records bounded failure metadata with a
+// caller-verified MCP transport label. The SDK never inspects transport
+// internals, URLs, headers, or error text.
+func (c *Client) RecordTransportFailureForTransport(kind string, transport string, sessionID string, durationMS int64) {
 	if kind != "transport_error" && kind != "transport_closed" { return }
+	if transport != "" && !transportKinds[transport] { return }
 	sessionID = boundedSessionID(sessionID)
 	if durationMS < 0 { durationMS = 0 }
 	if durationMS > 86400000 { durationMS = 86400000 }
 	c.Capture(Event{
-		EventType: "session", MCPMethod: "transport", SessionID: sessionID,
+		EventType: "session", MCPMethod: "transport", SessionID: sessionID, Transport: transport,
 		DurationMS: durationMS, Success: boolPtr(false), IsError: boolPtr(true),
 		ErrorClass: kind,
 		Payload: map[string]any{"_trackmcp": map[string]any{"observation_kind": kind, "observation_source": "transport"}},
@@ -303,6 +311,7 @@ func resolveAccountID(resolver func() string) (value string) {
 func hashAccountID(value string) string { sum := sha256.Sum256([]byte(value)); return hex.EncodeToString(sum[:]) }
 
 var catalogKinds = map[string]bool{"tools": true, "resources": true, "resource_templates": true, "prompts": true}
+var transportKinds = map[string]bool{"stdio": true, "streamable_http": true, "sse": true, "custom": true}
 
 func hashCatalogIdentity(value string) string { sum := sha256.Sum256([]byte(value)); return hex.EncodeToString(sum[:]) }
 

@@ -42,6 +42,16 @@ func TestRecordTransportFailureIsMetadataOnlyAndBounded(t *testing.T) {
 	if len(client.queue[2].SessionID) != maxSessionIDLength { t.Fatalf("session id was not bounded: %d", len(client.queue[2].SessionID)) }
 }
 
+func TestRecordTransportFailureForTransportAllowlistsLabel(t *testing.T) {
+	client := New(Options{APIKey: "test"})
+	client.RecordTransportFailureForTransport("transport_error", "streamable_http", "session-1", 12)
+	if len(client.queue) != 1 || client.queue[0].Transport != "streamable_http" {
+		t.Fatalf("transport label was not retained: %#v", client.queue)
+	}
+	client.RecordTransportFailureForTransport("transport_error", "private://endpoint", "session-2", 12)
+	if len(client.queue) != 1 { t.Fatalf("unsupported transport label was accepted") }
+}
+
 func TestRecordProtocolSignalIsAllowlistedAndMetadataOnly(t *testing.T) {
 	client := New(Options{APIKey: "tmcp_test"})
 	client.RecordProtocolSignal("progress", "notifications/progress", "session-1")

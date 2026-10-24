@@ -17,6 +17,9 @@ For disconnects outside an MCP request, call
 `client.RecordTransportFailure("transport_error", sessionID, durationMS)`. The
 hook records bounded session metadata only and remains fail-open; exception
 text, URLs, headers, and payloads are never accepted.
+For an explicit caller-verified transport label, use
+`RecordTransportFailureForTransport` with `stdio`, `streamable_http`, `sse`,
+or `custom`; the SDK does not inspect transport internals.
 
 For protocol notifications, call `client.RecordProtocolSignal` with one of
 `progress`, `cancelled`, `catalog_changed`, `resource_changed`,

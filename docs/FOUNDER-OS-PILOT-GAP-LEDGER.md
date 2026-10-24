@@ -54,6 +54,15 @@ production transport UAT.
 
 ## Evidence log
 
+- 2026-10-24: Go and .NET server SDKs now accept an explicit, allowlisted
+  caller-verified transport label (`stdio`, `streamable_http`, `sse`, or
+  `custom`) for transport failure observations. The label is bounded metadata;
+  URLs, headers, exception text, and payloads remain excluded. Runtime smokes
+  assert `stdio` and `streamable_http` survive serialization, while Go unit
+  coverage rejects unsupported labels. This improves cross-language transport
+  attribution but does not claim transport-owned reconnect policy or production
+  disconnect UAT.
+
 - Transport observer implementation and tests are present in the TypeScript
   package; `packages/typescript-sdk/test/client-adapter.test.mjs` covers the
   Node export boundary, transport support, fail-open behavior, and client-only

@@ -43,7 +43,7 @@ static class Smoke
             }),
             ["nextCursor"] = "private-cursor",
         }, "session-1");
-        client.RecordTransportFailure("transport_error", "session-1", 12);
+        client.RecordTransportFailureForTransport("transport_error", "streamable_http", "session-1", 12);
         await client.FlushAsync();
 
         Require(handler.Body is not null, "flush did not send an event batch");
@@ -60,6 +60,7 @@ static class Smoke
         Require(events[2].GetProperty("catalog_kind").GetString() == "resources", "catalog kind was not retained");
         Require(events[2].GetProperty("catalog_item_count").GetInt32() == 1, "catalog count was not retained");
         Require(events[3].GetProperty("payload").GetProperty("_trackmcp").GetProperty("observation_kind").GetString() == "transport_error", "transport failure was not retained");
+        Require(events[3].GetProperty("transport").GetString() == "streamable_http", "caller-verified transport label was not retained");
         var metadata = events[2].GetProperty("payload").GetProperty("_trackmcp");
         Require(metadata.GetProperty("next_cursor_present").GetBoolean(), "cursor presence was not retained");
     }

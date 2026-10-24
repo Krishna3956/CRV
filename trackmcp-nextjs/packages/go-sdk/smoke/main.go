@@ -38,7 +38,7 @@ func main() {
 		},
 		"nextCursor": "private-cursor",
 	}, "go-smoke-session")
-	client.RecordTransportFailure("transport_error", "go-smoke-session", 12)
+	client.RecordTransportFailureForTransport("transport_error", "stdio", "go-smoke-session", 12)
 	client.Flush()
 
 	if len(received) == 0 || !json.Valid(received) {
@@ -54,6 +54,7 @@ func main() {
 			EventType string `json:"event_type"`
 			Direction string `json:"direction"`
 			ErrorClass string `json:"error_class"`
+			Transport string `json:"transport"`
 			CatalogKind string `json:"catalog_kind"`
 			Payload map[string]any `json:"payload"`
 		} `json:"events"`
@@ -69,6 +70,9 @@ func main() {
 	}
 	if envelope.Events[2].ErrorClass != "transport_error" || envelope.Events[2].EventType != "session" {
 		fail("transport failure metadata was not emitted")
+	}
+	if envelope.Events[2].Transport != "stdio" {
+		fail("caller-verified transport label was not emitted")
 	}
 	if strings.Contains(string(received), "request_id") && strings.Contains(string(received), "private") {
 		fail("private request material appeared in the envelope")

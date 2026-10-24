@@ -21,6 +21,9 @@ For disconnects outside an MCP request, call
 `client.RecordTransportFailure("transport_error", sessionId, durationMs)`. The
 observer emits bounded session metadata only; exception text, URLs, headers,
 and payloads are never accepted.
+For an explicit caller-verified transport label, use
+`RecordTransportFailureForTransport` with `stdio`, `streamable_http`, `sse`,
+or `custom`; the SDK does not inspect transport internals.
 
 For protocol notifications, call `RecordProtocolSignal` with one of the
 allowlisted signals (`progress`, `cancelled`, `catalog_changed`,
