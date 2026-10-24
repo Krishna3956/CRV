@@ -180,6 +180,20 @@ func TestRecordCompletionMetadataIsBoundedAndValueFree(t *testing.T) {
 	if _, ok := metadata["secret"]; ok { t.Fatal("completion secret was retained") }
 }
 
+func TestRecordSubscriptionLifecycleMetadataIsBounded(t *testing.T) {
+	client := New(Options{APIKey: "tmcp_test"})
+	client.RecordProtocolResult("resources/subscribe", map[string]any{"uri": "secret://private"}, "session-subscribe")
+	client.RecordProtocolResult("resources/unsubscribe", map[string]any{"uri": "secret://private"}, "session-unsubscribe")
+	client.RecordProtocolResult("subscriptions/listen", map[string]any{"subscriptionId": "secret-subscription"}, "session-listen")
+	if len(client.queue) != 3 { t.Fatalf("expected three events, got %d", len(client.queue)) }
+	for index, expected := range []string{"subscription_started", "subscription_stopped", "subscription_started"} {
+		metadata := client.queue[index].Payload["_trackmcp"].(map[string]any)
+		if metadata["subscription_action"] != expected { t.Fatalf("unexpected subscription metadata: %#v", metadata) }
+	}
+	serialized, _ := json.Marshal(client.queue)
+	if strings.Contains(string(serialized), "secret://private") || strings.Contains(string(serialized), "secret-subscription") { t.Fatalf("subscription identifiers crossed privacy boundary: %s", serialized) }
+}
+
 func TestAccountIdentityResolverHashesLocallyAndFailsClosed(t *testing.T) {
 	client := New(Options{APIKey: "tmcp_test", AccountIDResolver: func() string { return "tenant-42" }})
 	client.Capture(Event{EventType: "tool_call", MCPMethod: "tools/call"})

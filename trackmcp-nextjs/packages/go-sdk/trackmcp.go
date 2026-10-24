@@ -285,6 +285,11 @@ func (c *Client) RecordProtocolResult(method string, result map[string]any, sess
 	if count, ok := boundedCountFrom(result, "inputRequests", "input_requests"); ok { event.InputRequestCount = &count }
 	if count, ok := boundedCountFrom(result, "inputResponses", "input_responses"); ok { event.InputResponseCount = &count }
 	metadata := map[string]any{"observation_kind": "protocol_response", "observation_source": "server"}
+	if method == "resources/subscribe" || method == "subscriptions/listen" {
+		metadata["subscription_action"] = "subscription_started"
+	} else if method == "resources/unsubscribe" {
+		metadata["subscription_action"] = "subscription_stopped"
+	}
 	if method == "completion/complete" {
 		if completion, ok := result["completion"].(map[string]any); ok {
 			metadata["protocol_family"] = "completion"
