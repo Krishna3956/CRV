@@ -32,6 +32,7 @@ export async function GET(request: Request) {
   if (membershipError) return NextResponse.json({ error: "Could not load your workspace." }, { status: 500 });
   const workspaces = publicWorkspaceMemberships(memberships || [], user.id);
   const requestedWorkspaceId = new URL(request.url).searchParams.get("workspace_id")?.trim() || "";
+  if (requestedWorkspaceId.length > 128) return NextResponse.json({ error: "workspace_id is invalid." }, { status: 400 });
   const workspace = requestedWorkspaceId
     ? workspaces.find((candidate) => candidate.id === requestedWorkspaceId) || null
     : workspaces[0] || null;
@@ -65,8 +66,9 @@ export async function POST(request: Request) {
   const membershipsResult = await admin.from("trackmcp_workspace_members").select("workspace_id").eq("user_id", user.id);
   if (membershipsResult.error) return NextResponse.json({ error: "Could not check your workspace." }, { status: 500 });
   const memberships = (membershipsResult.data || []) as Array<{ workspace_id: string }>;
-  const requestedWorkspaceId = boundedText(body.workspace_id, 128);
-  if (requestedWorkspaceId && requestedWorkspaceId.length > 128) return NextResponse.json({ error: "workspace_id is invalid." }, { status: 400 });
+  const rawWorkspaceId = typeof body.workspace_id === "string" ? body.workspace_id.trim() : "";
+  if (rawWorkspaceId.length > 128) return NextResponse.json({ error: "workspace_id is invalid." }, { status: 400 });
+  const requestedWorkspaceId = rawWorkspaceId;
   if (requestedWorkspaceId && !memberships.some((membership) => membership.workspace_id === requestedWorkspaceId)) return NextResponse.json({ error: "You do not have access to that workspace." }, { status: 404 });
   if (!requestedWorkspaceId && memberships.length > 1) return NextResponse.json({ error: "workspace_id is required when you belong to multiple workspaces." }, { status: 400 });
 
