@@ -182,7 +182,8 @@ where conname in (
   'mcp_tools_submission_attribution_object_check',
   'trackmcp_events_account_identity_source_check',
   'trackmcp_cli_device_sessions_redemption_id_hash_check',
-  'trackmcp_privacy_deletion_batches_terminal_timestamps'
+  'trackmcp_privacy_deletion_batches_terminal_timestamps',
+  'trackmcp_semantic_facts_fact_type_check'
 )
 order by table_name, conname;
 

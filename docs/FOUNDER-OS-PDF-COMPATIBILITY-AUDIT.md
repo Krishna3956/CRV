@@ -43,6 +43,15 @@ notification contents, and payload values are never captured. This improves
 exporter parity but does not turn the signals into a durable subscription
 entity or claim replay/reconnect ownership.
 
+### Dedicated lifecycle fact boundary
+
+Allowlisted protocol signals now project to the explicit durable fact category
+`lifecycle`, rather than being mixed with generic observations. This makes
+subscription start/stop, progress, cancellation, resource changes, and catalog
+change activity distinguishable in downstream analytics while preserving the
+same metadata-only privacy boundary. The additive migration widens only the
+semantic-fact type constraint and performs no backfill.
+
 ## Remaining PDF gaps
 
 These are deliberately not represented as complete merely because a route or field exists:

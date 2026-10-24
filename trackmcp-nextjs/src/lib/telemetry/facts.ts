@@ -1,5 +1,5 @@
 import { createHash } from "node:crypto";
-import { classifyTrackMCPOutcome, protocolFamilyForMethod, type TrackMCPProtocolFamily, type TrackMCPSemanticOutcome } from "./semantic.ts";
+import { classifyTrackMCPOutcome, classifyTrackMCPProtocolSignal, protocolFamilyForMethod, type TrackMCPProtocolFamily, type TrackMCPSemanticOutcome } from "./semantic.ts";
 import type { CanonicalTrackMCPEvent } from "./types.ts";
 
 /**
@@ -9,7 +9,7 @@ import type { CanonicalTrackMCPEvent } from "./types.ts";
  */
 export const TRACKMCP_FACT_CONTRACT_VERSION = "1" as const;
 
-export type TrackMCPFactType = "activity" | "outcome" | "observation";
+export type TrackMCPFactType = "activity" | "outcome" | "observation" | "lifecycle";
 
 export type TrackMCPFact = {
   fact_version: typeof TRACKMCP_FACT_CONTRACT_VERSION;
@@ -73,6 +73,7 @@ const protocolFamilyForEvent = (event: CanonicalTrackMCPEvent): TrackMCPProtocol
 function factTypeFor(event: CanonicalTrackMCPEvent): TrackMCPFactType {
   if (event.event_type === "tool_call") return "activity";
   if (event.event_type === "workflow" || event.event_type === "session") return "outcome";
+  if (classifyTrackMCPProtocolSignal(event)) return "lifecycle";
   return "observation";
 }
 

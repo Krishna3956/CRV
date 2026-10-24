@@ -97,3 +97,12 @@ test("catalog entity and workspace-scoped uniqueness postflights are included", 
   assert.match(postflight, /trackmcp_catalog_entity_reads/);
   assert.match(postflight, /trackmcp_catalog_versions_snapshot_hash_idx/);
 });
+
+test("lifecycle fact type constraint is included in reviewed postflight evidence", async () => {
+  const migration = await readFile(new URL("20261024000001_lifecycle_fact_type.sql", migrationRoot), "utf8");
+  const postflight = await readFile(postflightUrl, "utf8");
+  const audit = await readFile(new URL("../../../../supabase/manual/founder-os-complete-production-audit.sql", import.meta.url), "utf8");
+  assert.match(migration, /trackmcp_semantic_facts_fact_type_check/);
+  assert.match(postflight, /trackmcp_semantic_facts_fact_type_check/);
+  assert.match(audit, /trackmcp_semantic_facts_fact_type_check/);
+});
