@@ -915,3 +915,13 @@ a failed product gate or a Supabase plan warning.
 - [ ] Credentialed production execution remains external: repository secrets
   are still required before the workflow can verify two-workspace authorization
   and key lifecycle behavior against the deployed origin.
+
+## 2026-10-24 authenticated-smoke host-boundary checkpoint
+
+- [x] The credentialed smoke now rejects arbitrary HTTPS origins and permits
+  only the canonical `app.trackmcp.com` host or an AWS App Runner hostname.
+  This prevents an accidental manual-dispatch URL from receiving production
+  keys while preserving the documented direct-origin verification path.
+- [x] The smoke contract asserts the host boundary; credentialed execution and
+  two-workspace/key-lifecycle evidence remain external until repository secrets
+  are configured.

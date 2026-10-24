@@ -29,6 +29,8 @@ function validate() {
   let parsed;
   try { parsed = new URL(baseUrl); } catch { fail("TRACKMCP_AUTH_SMOKE_BASE_URL must be an absolute URL."); }
   if (parsed.protocol !== "https:" || parsed.username || parsed.password || parsed.search || parsed.hash) fail("Base URL must be HTTPS and contain no credentials, query, or fragment.");
+  const trustedHost = parsed.hostname === "app.trackmcp.com" || parsed.hostname.endsWith(".awsapprunner.com");
+  if (!trustedHost) fail("Base URL host must be app.trackmcp.com or an AWS App Runner hostname.");
   if (workspaceA === workspaceB) fail("Workspace A and B must be different for the negative authorization check.");
   for (const [label, value] of [["workspace A", workspaceA], ["workspace B", workspaceB]]) {
     if (!/^[a-zA-Z0-9_-]{1,128}$/.test(value)) fail(`${label} is outside the bounded workspace-ID format.`);
