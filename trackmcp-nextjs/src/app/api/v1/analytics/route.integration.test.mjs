@@ -50,8 +50,8 @@ test("analytics response exposes intent provenance and missing capabilities with
     event({ event_id: "external", context: "Resolve the deployment issue", intent_source: "external_callback", missing_capability: "bulk_export", correlation_handle: "job_1", correlation_handle_source: "external" }),
     event({ event_id: "fallback", context: "Find the record", intent_source: "fallback" }),
     event({ event_id: "missing", intent_source: "missing" }),
-    event({ event_id: "completion-request", event_type: "protocol", mcp_method: "completion/complete", intent_source: "context_parameter", payload: { _trackmcp: { observation_kind: "protocol_request", protocol_family: "completion" } } }),
-    event({ event_id: "completion-response", event_type: "protocol", mcp_method: "completion/complete", intent_source: "context_parameter", payload: { _trackmcp: { observation_kind: "protocol_response", protocol_family: "completion", completion_value_count: 0, completion_total: 0, completion_has_more: true } } }),
+    event({ event_id: "completion-request", event_type: "protocol", mcp_method: "completion/complete", interaction_id: "completion-1", intent_source: "context_parameter", payload: { _trackmcp: { observation_kind: "protocol_request", protocol_family: "completion" } } }),
+    event({ event_id: "completion-response", event_type: "protocol", mcp_method: "completion/complete", interaction_id: "completion-1", intent_source: "context_parameter", payload: { _trackmcp: { observation_kind: "protocol_response", protocol_family: "completion", completion_value_count: 0, completion_total: 0, completion_has_more: true } } }),
     event({ event_id: "client-observation", observation_source: "client", context: "must not inflate aggregate", intent_source: "context_parameter", missing_capability: "hidden-client" }),
     event({ workspace_id: "workspace-b", event_id: "foreign", context: "foreign", intent_source: "context_parameter", missing_capability: "hidden" }),
   ]), async () => ({ auth: { getUser: async () => ({ data: { user: null } }) } }));
@@ -388,15 +388,16 @@ test("analytics exposes bounded protocol lifecycle signals without treating them
     timeline: [{ date: "2026-09-06", notification: 0, progress: 1, cancelled: 0, catalog_changed: 1, resource_changed: 1, subscription_started: 1, subscription_stopped: 1, observed_events: 5 }],
   });
   assert.deepEqual(body.protocol_family_activity, [{ family: "notifications", observations: 3 }, { family: "resources", observations: 3 }, { family: "completion", observations: 1 }, { family: "elicitation", observations: 1 }, { family: "sampling", observations: 1 }, { family: "subscriptions", observations: 1 }, { family: "tasks", observations: 1 }]);
-  assert.deepEqual(body.protocol_family_outcomes, [{ family: "notifications", observations: 3, requests: 0, responses: 0, completed: 0, errors: 0, input_required: 0, unknown: 3 }, { family: "resources", observations: 3, requests: 0, responses: 0, completed: 0, errors: 0, input_required: 0, unknown: 3 }, { family: "completion", observations: 1, requests: 0, responses: 0, completed: 1, errors: 0, input_required: 0, unknown: 0 }, { family: "elicitation", observations: 1, requests: 0, responses: 0, completed: 1, errors: 0, input_required: 0, unknown: 0 }, { family: "sampling", observations: 1, requests: 0, responses: 0, completed: 0, errors: 0, input_required: 1, unknown: 0 }, { family: "subscriptions", observations: 1, requests: 0, responses: 0, completed: 0, errors: 0, input_required: 0, unknown: 1 }, { family: "tasks", observations: 1, requests: 0, responses: 0, completed: 0, errors: 0, input_required: 0, unknown: 1 }]);
+  assert.deepEqual(body.protocol_family_outcomes, [{ family: "notifications", observations: 3, requests: 0, responses: 0, matched: 0, completed: 0, errors: 0, input_required: 0, unknown: 3 }, { family: "resources", observations: 3, requests: 0, responses: 0, matched: 0, completed: 0, errors: 0, input_required: 0, unknown: 3 }, { family: "completion", observations: 1, requests: 0, responses: 0, matched: 0, completed: 1, errors: 0, input_required: 0, unknown: 0 }, { family: "elicitation", observations: 1, requests: 0, responses: 0, matched: 0, completed: 1, errors: 0, input_required: 0, unknown: 0 }, { family: "sampling", observations: 1, requests: 0, responses: 0, matched: 0, completed: 0, errors: 0, input_required: 1, unknown: 0 }, { family: "subscriptions", observations: 1, requests: 0, responses: 0, matched: 0, completed: 0, errors: 0, input_required: 0, unknown: 1 }, { family: "tasks", observations: 1, requests: 0, responses: 0, matched: 0, completed: 0, errors: 0, input_required: 0, unknown: 1 }]);
   assert.equal(body.protocol_family_outcome_source, "event_window");
   assert.equal(body.founder_os.facts.outcomes.not_observable, 5);
 });
 
 test("analytics prefers the bounded durable semantic-fact family projection when available", async () => {
   const durableFacts = [
-    { semantic: { outcome: "completed" }, dimensions: { protocol_family: "completion", protocol_observation_kind: "protocol_request" }, event_type: "protocol", observed_at: "2026-09-06T00:00:00Z" },
-    { semantic: { outcome: "pending" }, dimensions: { protocol_family: "sampling", protocol_observation_kind: "protocol_response" }, event_type: "protocol", observed_at: "2026-09-06T00:00:00Z" },
+    { semantic: { outcome: "completed" }, dimensions: { protocol_family: "completion", protocol_observation_kind: "protocol_request", interaction_id: "completion-1" }, event_type: "protocol", observed_at: "2026-09-06T00:00:00Z" },
+    { semantic: { outcome: "completed" }, dimensions: { protocol_family: "completion", protocol_observation_kind: "protocol_response", interaction_id: "completion-1" }, event_type: "protocol", observed_at: "2026-09-06T00:00:00Z" },
+    { semantic: { outcome: "pending" }, dimensions: { protocol_family: "sampling", protocol_observation_kind: "protocol_response", interaction_id: "sampling-1" }, event_type: "protocol", observed_at: "2026-09-06T00:00:00Z" },
   ];
   const base = fakeAdmin([]);
   const originalFrom = base.from.bind(base);
@@ -408,8 +409,8 @@ test("analytics prefers the bounded durable semantic-fact family projection when
   const body = await response.json();
   assert.equal(body.protocol_family_outcome_source, "durable_facts");
   assert.deepEqual(body.protocol_family_outcomes, [
-    { family: "completion", observations: 1, requests: 1, responses: 0, completed: 1, errors: 0, input_required: 0, unknown: 0 },
-    { family: "sampling", observations: 1, requests: 0, responses: 1, completed: 0, errors: 0, input_required: 1, unknown: 0 },
+    { family: "completion", observations: 2, requests: 1, responses: 1, matched: 1, completed: 2, errors: 0, input_required: 0, unknown: 0 },
+    { family: "sampling", observations: 1, requests: 0, responses: 1, matched: 0, completed: 0, errors: 0, input_required: 1, unknown: 0 },
   ]);
 });
 

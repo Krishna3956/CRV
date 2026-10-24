@@ -460,6 +460,12 @@ test("Overview exposes protocol lifecycle signals with an explicit non-outcome c
   assert.match(source, /aria-label="Daily protocol signal timeline"/);
 });
 
+test("protocol outcomes disclose hash-only matched request/response pairs", () => {
+  assert.match(source, /matched/);
+  assert.match(source, /same-family request\/response pairs/);
+  assert.match(source, /in-memory hash/);
+});
+
 test("Capabilities exposes bounded modern protocol outcome states", () => {
   assert.match(source, /protocol_family_outcomes/);
   assert.match(source, /Modern protocol outcomes/);
