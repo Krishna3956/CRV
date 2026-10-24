@@ -1,6 +1,6 @@
 # Founder OS 100 Customer Readiness Ledger
 
-Last updated: 2026-10-24 (PR #311 authenticated smoke host boundary and exact-SHA production verification)
+Last updated: 2026-10-25 (PR #334 modern discovery truth and current deployment verification)
 Owner: Codex engineering execution
 Pilot target: 100 customers
 
@@ -20,7 +20,7 @@ This ledger is the operational source of truth for the autonomous readiness goal
 | Example/live data parity | Merged and deployed | PR #57 merged; all Founder OS read models now have bounded example fixtures |
 | Privacy and tenant isolation | Verified locally | Privacy review, tenant isolation, security headers, accessibility contracts pass |
 | CI/CD deployment | Verified | PRs #58–#61 repaired the release gate, ECR digest verification, opaque App Runner IDs, and hostname normalization; PRs #64–#65 added and rendered safe MCP resource-template discovery; PR #67 routes scheduled cleanup through App Runner using AWS OIDC; PR #69 adds authenticated Founder OS read-model smoke coverage; PR #80 adds a SHA-only `deploy_ref` path for rollback rehearsal; PR #308 adds Python runtime privacy smoke parity; PRs #310–#311 bind authenticated UAT to an immutable SHA and trusted production host |
-| Production deployment | Verified for current release | App Runner run `40117202718` deployed merged main `b7685e6cc38b37b132aa0cfbb7a8f10a19e864c7` successfully through the release gate, immutable image-digest check, deployment health, HTTPS/read-only production smoke, runtime-safety audit, and redacted evidence upload |
+| Production deployment | Verified for current release | App Runner run `40131685736` deployed merged main `aecbe2e80ca237cb2a61340c7199f069587bdb39` successfully through the release gate, immutable image-digest check, deployment health, HTTPS/read-only production smoke, runtime-safety audit, and redacted evidence upload |
 | Bounded production load | Passed at pilot budget | Direct App Runner run on 2026-10-20: 120 requests at concurrency 8 across 9 authenticated read models plus ingest, 120/120 successful, zero errors/timeouts, tenant isolation passed, p95 2.11s against a 3s pilot budget; two disposable workspaces were deleted and verified absent |
 | Refresh worker | Five-slice transport, timeout recovery, and freshness checkpoint verified; continued monitoring open | PRs #109, #111, #112, #114, #123–#130 are merged. Trusted-main run `39494080043` processed five bounded slices (`39`, `37`, `42`, `38`, `39`) with zero retryable/failed results; postflight observed `0` queued, `0` running, `0` retryable, and no oldest queued job. Continued scheduled-run monitoring and richer entity/prompt coverage remain pilot gates. |
 | Supabase production schema | Additive pilot migration applied | `trackmcp_catalog_entity_reads` was missing in production; the reviewed additive migration was applied, then verified present with RLS enabled and anon/authenticated `SELECT` denied |

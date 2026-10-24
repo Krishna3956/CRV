@@ -12,8 +12,8 @@ commit and the operator accepts the listed limitations.
 | --- | --- |
 | Pilot scope | First 100 customers, desktop dashboard boundary |
 | Production hosts | `trackmcp.com`, `app.trackmcp.com` |
-| Last deployed application commit | `ce4380e7d8280edc415465520796099e5121da24` (explicit task evidence required for semantic task scope) |
-| Last successful App Runner deployment | `40112039766` |
+| Last deployed application commit | `aecbe2e80ca237cb2a61340c7199f069587bdb39` (stateless modern-discovery truth fix) |
+| Last successful App Runner deployment | `40131685736` |
 | Readiness ledger | `docs/FOUNDER-OS-100-CUSTOMER-READINESS-LEDGER.md` |
 | Current release-record change | Current mainline reconciliation of deployed runtime and release-gate evidence |
 
@@ -49,7 +49,7 @@ commit and the operator accepts the listed limitations.
 ## Open gates before GO
 
 - [x] The current engineering release candidate is identified as
-  `ce4380e7d8280edc415465520796099e5121da24`. App Runner run `40112039766`
+  `aecbe2e80ca237cb2a61340c7199f069587bdb39`. App Runner run `40131685736`
   passed the exact-SHA deployment-health wait, read-only production smoke,
   runtime-safety audit, and redacted evidence uploads. This is engineering
   verification; it is not the operator's final GO decision.
@@ -62,9 +62,10 @@ commit and the operator accepts the listed limitations.
 - [ ] Rollback rehearsal and the release-specific rollback target are linked
   to this exact release.
 - [ ] The current release-specific authenticated production smoke is configured
-  and passes. Workflow `40031387951` failed closed because the repository is
-  missing `TRACKMCP_AUTH_SMOKE_KEY_A`, `TRACKMCP_AUTH_SMOKE_KEY_B`,
-  `TRACKMCP_AUTH_SMOKE_WORKSPACE_A`, and `TRACKMCP_AUTH_SMOKE_WORKSPACE_B`.
+  and passes. Workflow `40131244836` failed closed before making any request
+  because the repository is missing `TRACKMCP_AUTH_SMOKE_KEY_A`,
+  `TRACKMCP_AUTH_SMOKE_KEY_B`, `TRACKMCP_AUTH_SMOKE_WORKSPACE_A`,
+  `TRACKMCP_AUTH_SMOKE_WORKSPACE_B`, and `TRACKMCP_AUTH_SMOKE_REVOKED_KEY`.
 - [ ] A final operator go/no-go decision is recorded with UTC timestamp and
   accepted limitations. The engineering recommendation remains **HOLD** until
   credentialed UAT, migration/rollback ownership, worker freshness, and the
