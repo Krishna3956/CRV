@@ -854,3 +854,17 @@ a failed product gate or a Supabase plan warning.
   release gate passed 128 suites, and lint passed.
 - [ ] Authenticated production privacy UAT and the remaining partial protocol
   rows remain external evidence gates.
+
+## 2026-10-24 TypeScript client catalog payload privacy checkpoint
+
+- [x] The Node transport observer now keeps catalog metadata local for tool-call
+  enrichment but emits only bounded catalog kind, count, and identity hashes.
+  Raw `tools/list`, `resources/list`, resource-template, and prompt catalog
+  names, descriptions, schemas, URIs, cursors, and result bodies are no longer
+  serialized in catalog event payloads.
+- [x] TypeScript regression coverage asserts that private catalog markers do not
+  cross the ingest boundary while the bounded count and SHA-256 identity hash
+  remain available. The TypeScript SDK suite passed 85/85, the full local
+  release gate passed, and lint passed.
+- [ ] Hosted PR checks, post-merge main checks, and authenticated production
+  privacy UAT remain required evidence gates for this milestone.
