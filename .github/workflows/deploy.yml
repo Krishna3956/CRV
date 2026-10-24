@@ -111,7 +111,7 @@ jobs:
           IMAGE_BASE="$REGISTRY/$ECR_REPO"
           # Build for App Runner's architecture (amd64). ubuntu-latest is amd64,
           # so this is a native build (fast, no emulation).
-          docker build \
+          timeout 15m docker build \
             --platform linux/amd64 \
             --build-arg NEXT_PUBLIC_SUPABASE_URL="${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}" \
             --build-arg NEXT_PUBLIC_SUPABASE_ANON_KEY="${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}" \
@@ -126,8 +126,8 @@ jobs:
           # Keep the push output as the source of truth for both digests. The
           # GitHub OIDC role is intentionally scoped to deployment operations
           # and does not need read access to enumerate the entire ECR repo.
-          docker push "$IMAGE_BASE:$IMAGE_TAG" 2>&1 | tee "$RUNNER_TEMP/deploy-tag-push.log"
-          docker push "$IMAGE_BASE:${TRACKMCP_DEPLOY_SHA}" 2>&1 | tee "$RUNNER_TEMP/candidate-tag-push.log"
+          timeout 10m docker push "$IMAGE_BASE:$IMAGE_TAG" 2>&1 | tee "$RUNNER_TEMP/deploy-tag-push.log"
+          timeout 10m docker push "$IMAGE_BASE:${TRACKMCP_DEPLOY_SHA}" 2>&1 | tee "$RUNNER_TEMP/candidate-tag-push.log"
 
       - name: Verify deployment tag resolves to the candidate image
         run: |
