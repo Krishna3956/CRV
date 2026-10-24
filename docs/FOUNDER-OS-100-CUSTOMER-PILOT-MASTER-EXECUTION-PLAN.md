@@ -364,8 +364,9 @@ keeping resource URI/content and prompt names/arguments private by default?
   the installed registry artifacts; the CLI path does not.
 - [x] Publish changed SDK code only under a new approved version; the current
   reviewed release line is `@trackmcp/sdk@0.1.16`, `@trackmcp/cli@0.1.7`, and
-  `trackmcp==0.1.9`, pending the coordinated publication workflow for this
-  source head.
+  `trackmcp==0.1.9`, published from the reviewed source head by workflow
+  `40129661973` with registry verification and provenance. Authenticated
+  activation and first-event UAT remain separate operational gates.
   Historical versions remain explicitly labeled in the package readiness record.
 - [x] Install each exact published package into a clean consumer target; npm
   pack and pip download resolved the exact published release train from the
