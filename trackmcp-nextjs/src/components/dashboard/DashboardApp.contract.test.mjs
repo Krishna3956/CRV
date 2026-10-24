@@ -374,6 +374,10 @@ test("Setup exposes a direct transport observer documentation CTA", () => {
   const setupSource = source.slice(setupStart, setupEnd);
   assert.match(setupSource, /Node client transport observer/);
   assert.match(setupSource, /\/docs\/typescript#transport-observer/);
+  assert.match(setupSource, /Go server SDK/);
+  assert.match(setupSource, /href="\/docs\/go"/);
+  assert.match(setupSource, /.NET server SDK/);
+  assert.match(setupSource, /href="\/docs\/dotnet"/);
   assert.match(setupSource, /Proxy or stdio launcher/);
   assert.match(setupSource, /Read transport boundaries/);
   assert.match(setupSource, /href="\/docs\/protocol"/);
