@@ -413,7 +413,9 @@ class TrackMCPClientTest(TestCase):
         self.assertEqual(seen_call_params[-1]["arguments"]["context"], "Find the relevant documentation")
         self.assertRegex(call["tool_description_hash"], r"^[0-9a-f]{64}$")
         self.assertRegex(call["schema_hash"], r"^[0-9a-f]{64}$")
-        self.assertEqual(catalog["payload"]["tools"][0]["name"], "lookup")
+        self.assertNotIn("lookup", json.dumps(catalog))
+        self.assertNotIn("Find a record", json.dumps(catalog))
+        self.assertRegex(catalog["catalog_item_name_hashes"][0], r"^[0-9a-f]{64}$")
 
         fallback_context = Context("tools/call", {"name": "lookup", "arguments": {}},)
         fallback_context.session_id = None
