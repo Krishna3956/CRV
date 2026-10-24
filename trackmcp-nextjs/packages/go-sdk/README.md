@@ -52,6 +52,8 @@ Bounded `ttlMs`/`cacheScope` hints are retained as `cache_ttl_ms` and
 `cache_scope` only for `public` or `private`; they are freshness and sharing
 hints, not authorization or snapshot guarantees.
 
+For privacy-safe entity reads, call `RecordEntityRead("resources", "resources/read", uri, result, sessionID)` or the equivalent `prompts/get` form. Only a SHA-256 identity hash, bounded content/message count, and result state are emitted; URI, prompt arguments, and returned content are never queued or sent.
+
 To enable resolver-linked account analytics, return only a stable, already
 validated tenant/account handle. The SDK rejects credential-like values,
 hashes accepted values locally, and records `account_identity_source` as

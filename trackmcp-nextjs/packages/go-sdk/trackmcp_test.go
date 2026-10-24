@@ -116,6 +116,24 @@ func TestRecordCatalogBoundsCacheHints(t *testing.T) {
 	if _, ok := metadata["cache_scope"]; ok { t.Fatalf("unsupported cache scope was retained") }
 }
 
+func TestRecordEntityReadIsHashAndCountOnly(t *testing.T) {
+	client := New(Options{APIKey: "tmcp_test"})
+	client.RecordEntityRead("resources", "resources/read", "secret://customer/private", map[string]any{
+		"contents": []any{map[string]any{"text": "private-content"}}, "isError": false,
+	}, "session-read")
+	client.RecordEntityRead("prompts", "prompts/get", "private-prompt", map[string]any{
+		"messages": []any{map[string]any{"content": "private-message"}}, "resultType": "complete",
+	}, "session-prompt")
+	if len(client.queue) != 2 { t.Fatalf("expected two entity reads, got %d", len(client.queue)) }
+	resource, prompt := client.queue[0], client.queue[1]
+	if resource.CatalogItemCount != 1 || len(resource.CatalogItemURIHashes) != 1 || resource.Success == nil || !*resource.Success { t.Fatalf("unexpected resource read: %#v", resource) }
+	if prompt.CatalogItemCount != 1 || len(prompt.CatalogItemNameHashes) != 1 || prompt.ResultType != "complete" { t.Fatalf("unexpected prompt read: %#v", prompt) }
+	serialized, _ := json.Marshal(client.queue)
+	if strings.Contains(string(serialized), "secret://customer/private") || strings.Contains(string(serialized), "private-content") || strings.Contains(string(serialized), "private-prompt") || strings.Contains(string(serialized), "private-message") { t.Fatalf("entity content escaped privacy boundary: %s", serialized) }
+	client.RecordEntityRead("resources", "prompts/get", "ignored", map[string]any{}, "session-invalid")
+	if len(client.queue) != 2 { t.Fatal("invalid entity/method pair should be ignored") }
+}
+
 func TestRecordProtocolResultIsBoundedAndMetadataOnly(t *testing.T) {
 	client := New(Options{APIKey: "tmcp_test"})
 	client.RecordProtocolResult("tools/call", map[string]any{
