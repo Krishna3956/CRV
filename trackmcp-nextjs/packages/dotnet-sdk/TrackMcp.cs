@@ -23,7 +23,8 @@ public sealed class TrackMcpClient : IDisposable
     };
     private static readonly HashSet<string> ProtocolSignals = new(StringComparer.Ordinal)
     {
-        "progress", "cancelled", "catalog_changed", "resource_changed", "prompt_changed"
+        "progress", "cancelled", "catalog_changed", "resource_changed", "prompt_changed",
+        "subscription_started", "subscription_stopped"
     };
 
     private static JsonNode? SanitizePayload(object? payload, int depth = 0)

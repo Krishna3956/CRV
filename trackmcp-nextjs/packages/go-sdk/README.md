@@ -19,9 +19,10 @@ hook records bounded session metadata only and remains fail-open; exception
 text, URLs, headers, and payloads are never accepted.
 
 For protocol notifications, call `client.RecordProtocolSignal` with one of
-`progress`, `cancelled`, `catalog_changed`, `resource_changed`, or
-`prompt_changed`. Only the allowlisted signal and method metadata are sent;
-progress values, cancellation reasons, URIs, and payloads are not accepted.
+`progress`, `cancelled`, `catalog_changed`, `resource_changed`,
+`prompt_changed`, `subscription_started`, or `subscription_stopped`. Only the
+allowlisted signal and method metadata are sent; progress values, cancellation
+reasons, subscription identifiers, URIs, and payloads are not accepted.
 
 For MRTR/task responses, call `client.RecordProtocolResult` with the response
 map. It emits only the allowlisted result discriminator, task status, and

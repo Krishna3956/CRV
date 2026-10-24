@@ -212,7 +212,7 @@ export declare class TrackMCPClient {
     track(name: string, payload?: Record<string, unknown>): void;
     workflow(name: string, status: "started" | "completed" | "failed", payload?: Record<string, unknown>): void;
     /** Record an allowlisted protocol notification without payload values. */
-    recordProtocolSignal(signal: "progress" | "cancelled" | "catalog_changed" | "resource_changed" | "prompt_changed", method: string, sessionId?: string): void;
+    recordProtocolSignal(signal: "progress" | "cancelled" | "catalog_changed" | "resource_changed" | "prompt_changed" | "subscription_started" | "subscription_stopped", method: string, sessionId?: string): void;
     recordCatalog(result: Record<string, unknown> | undefined): CatalogTool[];
     toolMetadata(name: string | undefined): CatalogTool | undefined;
     flush(): Promise<void>;
@@ -229,7 +229,7 @@ export type TrackMCP = {
     }): void;
     track(name: string, payload?: Record<string, unknown>): void;
     workflow(name: string, status: "started" | "completed" | "failed", payload?: Record<string, unknown>): void;
-    recordProtocolSignal(signal: "progress" | "cancelled" | "catalog_changed" | "resource_changed" | "prompt_changed", method: string, sessionId?: string): void;
+    recordProtocolSignal(signal: "progress" | "cancelled" | "catalog_changed" | "resource_changed" | "prompt_changed" | "subscription_started" | "subscription_stopped", method: string, sessionId?: string): void;
     reportMissing(capability: string, context?: string): void;
     trackmcp_report_missing(capability: string, context?: string): void;
     flush(): Promise<void>;

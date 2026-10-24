@@ -52,5 +52,15 @@ test("Go and .NET package READMEs carry the same privacy and lifecycle boundary"
     assert.match(source, /RecordTransportFailure/);
     assert.match(source, /transport_closed/);
     assert.match(source, /transport_error/);
+    assert.match(source, /subscription_started/);
+    assert.match(source, /subscription_stopped/);
+  }
+});
+
+test("Go and .NET observers expose the bounded subscription signal parity", () => {
+  for (const source of [goSource, dotnetSource]) {
+    assert.match(source, /subscription_started/);
+    assert.match(source, /subscription_stopped/);
+    assert.doesNotMatch(source, /subscription[_ ](?:uri|id|content)/i);
   }
 });

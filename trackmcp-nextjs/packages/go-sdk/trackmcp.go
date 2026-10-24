@@ -69,6 +69,7 @@ const (
 var protocolSignals = map[string]bool{
 	"progress": true, "cancelled": true, "catalog_changed": true,
 	"resource_changed": true, "prompt_changed": true,
+	"subscription_started": true, "subscription_stopped": true,
 }
 
 var protocolResultTypes = map[string]bool{"complete": true, "input_required": true, "task": true}

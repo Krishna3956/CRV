@@ -24,9 +24,10 @@ and payloads are never accepted.
 
 For protocol notifications, call `RecordProtocolSignal` with one of the
 allowlisted signals (`progress`, `cancelled`, `catalog_changed`,
-`resource_changed`, or `prompt_changed`). It records only the signal and
-method metadata; progress values, cancellation reasons, URIs, and payloads
-are never accepted.
+`resource_changed`, `prompt_changed`, `subscription_started`, or
+`subscription_stopped`). It records only the signal and method metadata;
+progress values, cancellation reasons, subscription identifiers, URIs, and
+payloads are never accepted.
 
 For MRTR/task responses, call `RecordProtocolResult` with the bounded
 `JsonObject` result. It emits only the allowlisted result discriminator, task

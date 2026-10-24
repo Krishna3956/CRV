@@ -41,15 +41,18 @@ func TestRecordTransportFailureIsMetadataOnlyAndBounded(t *testing.T) {
 func TestRecordProtocolSignalIsAllowlistedAndMetadataOnly(t *testing.T) {
 	client := New(Options{APIKey: "tmcp_test"})
 	client.RecordProtocolSignal("progress", "notifications/progress", "session-1")
-	if len(client.queue) != 1 { t.Fatalf("expected one signal, got %d", len(client.queue)) }
+	client.RecordProtocolSignal("subscription_started", "resources/subscribe", "session-1")
+	client.RecordProtocolSignal("subscription_stopped", "resources/unsubscribe", "session-1")
+	if len(client.queue) != 3 { t.Fatalf("expected three signals, got %d", len(client.queue)) }
 	event := client.queue[0]
 	if event.EventType != "protocol" || event.MCPMethod != "notifications/progress" || event.Direction != "server_to_client" { t.Fatalf("unexpected signal: %#v", event) }
 	metadata := event.Payload["_trackmcp"].(map[string]any)
 	if metadata["protocol_signal"] != "progress" || metadata["observation_kind"] != "protocol_notification" { t.Fatalf("unexpected metadata: %#v", metadata) }
+	if client.queue[1].Payload["_trackmcp"].(map[string]any)["protocol_signal"] != "subscription_started" || client.queue[2].Payload["_trackmcp"].(map[string]any)["protocol_signal"] != "subscription_stopped" { t.Fatal("subscription signals were not retained") }
 	if event.Payload["progress_value"] != nil { t.Fatal("signal unexpectedly retained a value") }
 	client.RecordProtocolSignal("raw", "notifications/progress", "session-2")
 	client.RecordProtocolSignal("cancelled", "bad\nmethod", "session-3")
-	if len(client.queue) != 1 { t.Fatal("invalid signal or method should be ignored") }
+	if len(client.queue) != 3 { t.Fatal("invalid signal or method should be ignored") }
 }
 
 func TestRecordProtocolResultIsBoundedAndMetadataOnly(t *testing.T) {
