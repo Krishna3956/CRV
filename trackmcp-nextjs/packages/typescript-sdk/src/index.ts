@@ -423,17 +423,20 @@ export class TrackMCPClient {
   private captureInternal(event: Omit<TrackMCPEvent, "event_id" | "service" | "environment" | "schema_version" | "observation_source"> & { schema_version?: string; observation_source?: "client" | "server" }, source: "client" | "server", issuedHandle?: string, hook?: TrackMCPEventHook, correlationOverride?: { handle?: string; source: TrackMCPCorrelationHandleSource }): void {
     if (this.options.disabled || Math.random() > this.options.sampleRate) return;
     try {
-      const correlation = correlationOverride || this.correlationFor(event, issuedHandle);
-      const intent = this.intentFor(event);
-      const account = this.accountFor(event);
+      const observedEvent = source === "server" && event.event_type === "protocol" && event.payload && typeof event.payload === "object" && !Array.isArray(event.payload)
+ ? { ...event, payload: { ...event.payload, _trackmcp: { ...(event.payload._trackmcp && typeof event.payload._trackmcp === "object" && !Array.isArray(event.payload._trackmcp) ? event.payload._trackmcp : {}), observation_kind: event.payload.name === "protocol_request_observed" ? "protocol_request" : event.payload.name === "protocol_response_observed" ? "protocol_response" : event.catalog_kind && (event.mcp_method === "resources/read" || event.mcp_method === "prompts/get") ? "entity_read" : undefined, ...(event.catalog_kind && (event.mcp_method === "resources/read" || event.mcp_method === "prompts/get") ? { protocol_observation_kind: "protocol_response" } : {}), observation_source: "server" } } }
+        : event;
+      const correlation = correlationOverride || this.correlationFor(observedEvent, issuedHandle);
+      const intent = this.intentFor(observedEvent);
+      const account = this.accountFor(observedEvent);
       let prepared = this.prepareEvent({
-        ...event,
+        ...observedEvent,
         schema_version: TRACKMCP_SCHEMA_VERSION,
         event_id: randomUUID(),
         service: this.options.service,
         environment: this.options.environment,
         observation_source: source,
-        session_id_source: event.session_id_source || (event.session_id ? "external" : "missing"),
+        session_id_source: observedEvent.session_id_source || (observedEvent.session_id ? "external" : "missing"),
         correlation_handle: correlation.handle,
         correlation_handle_source: correlation.source,
         context: intent.context,

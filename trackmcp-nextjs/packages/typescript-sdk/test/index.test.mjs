@@ -361,7 +361,7 @@ test("captures bounded semantic results for non-tool protocol requests without r
   assert.equal(response.input_request_count, 2);
   assert.equal(response.input_response_count, 1);
   assert.equal(response.success, true);
-  assert.deepEqual(response.payload, { name: "protocol_response_observed" });
+  assert.deepEqual(response.payload, { name: "protocol_response_observed", _trackmcp: { observation_kind: "protocol_response", observation_source: "server" } });
   assert.equal(JSON.stringify(response).includes("private_"), false);
 });
 

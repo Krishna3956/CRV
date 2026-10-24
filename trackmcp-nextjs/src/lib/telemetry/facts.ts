@@ -108,6 +108,8 @@ export function projectTrackMCPFact(event: CanonicalTrackMCPEvent): TrackMCPFact
     : undefined;
   const observationKind = payloadMetadata?.observation_kind === "protocol_request" || payloadMetadata?.observation_kind === "protocol_response"
     ? payloadMetadata.observation_kind
+    : payloadMetadata?.protocol_observation_kind === "protocol_request" || payloadMetadata?.protocol_observation_kind === "protocol_response"
+      ? payloadMetadata.protocol_observation_kind
     : undefined;
   const completionValueCount = boundedNonNegative(typeof payloadMetadata?.completion_value_count === "number" ? payloadMetadata.completion_value_count : undefined, 32);
   const completionTotal = boundedNonNegative(typeof payloadMetadata?.completion_total === "number" ? payloadMetadata.completion_total : undefined, 1_000_000);

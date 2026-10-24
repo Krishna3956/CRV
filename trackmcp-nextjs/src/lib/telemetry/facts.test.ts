@@ -89,6 +89,16 @@ test("projects bounded MRTR request counts without request contents", () => {
   assert.equal(fact.measures.input_response_count, 2);
 });
 
+test("projects server entity reads as durable protocol responses without changing the entity marker", () => {
+  const fact = projectTrackMCPFact(event({
+    event_type: "protocol",
+    mcp_method: "resources/read",
+    catalog_kind: "resources",
+    payload: { _trackmcp: { observation_kind: "entity_read", protocol_observation_kind: "protocol_response" } },
+  }));
+  assert.equal(fact.dimensions.protocol_observation_kind, "protocol_response");
+});
+
 test("projects bounded completion friction metadata without suggestion values", () => {
   const fact = projectTrackMCPFact(event({
     event_type: "protocol",
