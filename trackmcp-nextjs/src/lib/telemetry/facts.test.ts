@@ -30,6 +30,11 @@ test("persists only a coarse protocol family in durable facts", () => {
   assert.equal(JSON.stringify(fact).includes("elicitation/create"), false);
 });
 
+test("joins task-producing tool calls to the tasks protocol family", () => {
+  const fact = projectTrackMCPFact(event({ event_type: "tool_call", mcp_method: "tools/call", result_type: "task", task_id: "task_1" }));
+  assert.equal(fact.dimensions.protocol_family, "tasks");
+});
+
 test("persists allowlisted lifecycle signals in the durable semantic fact", () => {
   const fact = projectTrackMCPFact(event({ event_type: "protocol", mcp_method: "subscriptions/listen", success: true }));
   assert.equal(fact.fact_type, "lifecycle");
