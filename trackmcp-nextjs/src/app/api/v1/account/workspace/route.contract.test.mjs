@@ -8,6 +8,7 @@ test("workspace account route returns all memberships and validates explicit sel
   assert.match(source, /select\("user_id, workspace_id, role, trackmcp_workspaces\(id, name, slug\)"\)/);
   assert.match(source, /publicWorkspaceMemberships/);
   assert.match(source, /new URL\(request\.url\)\.searchParams\.get\("workspace_id"\)/);
+  assert.match(source, /requestedWorkspaceId\.length > 128/);
   assert.match(source, /workspaces\.find\(\(candidate\) => candidate\.id === requestedWorkspaceId\)/);
   assert.match(source, /You do not have access to that workspace/);
   assert.match(source, /workspaces, role/);
@@ -35,6 +36,8 @@ test("workspace writes bound JSON input and profile fields", () => {
   assert.match(source, /JSON body must be an object/);
   assert.match(source, /boundedText\(body\.use_case, 1000\)/);
   assert.match(source, /boundedText\(body\.key_name, 128\)/);
+  assert.match(source, /rawWorkspaceId\.length > 128/);
+  assert.match(source, /const requestedWorkspaceId = rawWorkspaceId/);
 });
 
 test("connection-key creation exposes optional service and environment scopes", () => {
