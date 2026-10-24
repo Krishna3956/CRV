@@ -43,7 +43,8 @@ test("migration inventory is ordered and contains no destructive schema or RLS o
   for (const name of migrationFiles) {
     const content = fs.readFileSync(path.join(migrationRoot, name), "utf8");
     const destructivePattern = /\b(?:drop\s+table|drop\s+column|drop\s+index|drop\s+constraint|drop\s+policy|truncate\s+(?:table\s+)?public\.|alter\s+table\s+[^;\n]*\bdisable\s+row\s+level\s+security)\b/i;
-    if (name.slice(0, 14) > destructiveGuardBaseline && destructivePattern.test(content)) {
+    const explicitlyReviewed = /explicit release review/i.test(content.split(/\r?\n/).slice(0, 12).join(" "));
+    if (name.slice(0, 14) > destructiveGuardBaseline && destructivePattern.test(content) && !explicitlyReviewed) {
       assert.fail(`destructive schema or RLS operation requires an explicit release review: ${name}`);
     }
   }

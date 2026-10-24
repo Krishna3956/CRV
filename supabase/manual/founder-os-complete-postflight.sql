@@ -174,6 +174,7 @@ with required(object_name, object_type) as (
     ('trackmcp_events_result_type_check', 'constraint'),
     ('trackmcp_events_request_state_hash_check', 'constraint'),
     ('trackmcp_events_resource_priority_check', 'constraint'),
+    ('trackmcp_semantic_facts_fact_type_check', 'constraint'),
     ('trackmcp_cli_device_sessions_approval_check', 'constraint'),
     ('trackmcp_action_queue_revision_positive', 'constraint')
     ,('trackmcp_rate_limit_buckets_updated_idx', 'index')

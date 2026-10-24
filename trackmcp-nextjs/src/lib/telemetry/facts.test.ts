@@ -32,6 +32,7 @@ test("persists only a coarse protocol family in durable facts", () => {
 
 test("persists allowlisted lifecycle signals in the durable semantic fact", () => {
   const fact = projectTrackMCPFact(event({ event_type: "protocol", mcp_method: "subscriptions/listen", success: true }));
+  assert.equal(fact.fact_type, "lifecycle");
   assert.equal(fact.semantic.protocol_signal, "subscription_started");
   assert.equal(JSON.stringify(fact).includes("subscriptions/listen"), false);
 });

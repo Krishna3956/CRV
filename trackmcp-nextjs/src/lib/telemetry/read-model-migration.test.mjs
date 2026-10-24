@@ -4,6 +4,7 @@ import test from "node:test";
 
 const migrationPath = new URL("../../../../supabase/migrations/20261018000003_founder_os_read_model.sql", import.meta.url);
 const taskTransitionMigrationPath = new URL("../../../../supabase/migrations/20261019000005_task_transition_history.sql", import.meta.url);
+const lifecycleFactMigrationPath = new URL("../../../../supabase/migrations/20261024000001_lifecycle_fact_type.sql", import.meta.url);
 
 test("Founder OS read-model migration is additive and bounded", async () => {
   const sql = await readFile(migrationPath, "utf8");
@@ -28,4 +29,12 @@ test("task transition migration is additive, bounded, and service-role-only", as
   assert.match(sql, /grant select, insert, update, delete on public\.trackmcp_task_transitions to service_role/i);
   assert.doesNotMatch(sql, /\b(drop|truncate|delete)\s+(table|schema|from|database)\b/i);
   assert.doesNotMatch(sql, /\b(insert|update)\s+into\b/i);
+});
+
+test("lifecycle fact type migration widens only the reviewed fact constraint", async () => {
+  const sql = await readFile(lifecycleFactMigrationPath, "utf8");
+  assert.match(sql, /drop constraint if exists trackmcp_semantic_facts_fact_type_check/i);
+  assert.match(sql, /fact_type in \('activity', 'outcome', 'observation', 'lifecycle'\)/i);
+  assert.match(sql, /no backfill|no raw payloads/i);
+  assert.doesNotMatch(sql, /\b(insert|update|delete|truncate|drop\s+table)\b/i);
 });
