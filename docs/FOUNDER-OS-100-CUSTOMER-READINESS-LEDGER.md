@@ -11,8 +11,8 @@ This ledger is the operational source of truth for the autonomous readiness goal
 | Area | Status | Evidence / next gate |
 | --- | --- | --- |
 | Founder OS specification audit | In progress | PDF/DOCX requirements extracted; tab/data contract reconciliation continues; MCP tester and authenticated production smoke now cover the bounded resource-template/read-model contract |
-| Tab 1 — Who's using it | Implemented; prior live inspection verified | Live and example read models, privacy caveats, account-unavailable state; prior authenticated production inspection verified resolver-linked, unresolved, and unknown-client states. The current credentialed smoke remains unconfigured (workflow `40031387951`). |
-| Tab 2 — What they're doing | Implemented; prior live inspection verified | Leaderboard, adoption, trend, reliability, detail, descriptions; prior authenticated production inspection verified named and unnamed capability evidence without inventing identities. The current credentialed smoke remains unconfigured (workflow `40031387951`). |
+| Tab 1 — Who's using it | Implemented; prior live inspection verified | Live and example read models, privacy caveats, account-unavailable state; prior authenticated production inspection verified resolver-linked, unresolved, and unknown-client states. The current credentialed smoke remains unconfigured (workflow `40131244836`; it failed closed before requests because five disposable secrets are absent). |
+| Tab 2 — What they're doing | Implemented; prior live inspection verified | Leaderboard, adoption, trend, reliability, detail, descriptions; prior authenticated production inspection verified named and unnamed capability evidence without inventing identities. The current credentialed smoke remains unconfigured (workflow `40131244836`; it failed closed before requests because five disposable secrets are absent). |
 | Tab 3 — Resources & Prompts | Implemented and production-verified | Live dashboard verified bounded resource/prompt methods, explicit interaction outcomes, hash-only entities, durable-read counts, and no raw contents/arguments; template discovery remains separately bounded and no-expansion |
 | Tab 4 — Journey | Implemented and production-verified | Live dashboard verified bounded interactions, no invented multi-step paths, explicit retry/input boundaries, no abandonment inference, task-state caveats, and cross-server correlation limits |
 | Tab 5 — Did it work | Implemented and production-verified | Live dashboard renders bounded outcome evidence, explicit `N/A` completion when no workflow terminal exists, zero invented task states, and the minimum-volume/correlation caveats |
@@ -241,10 +241,10 @@ Engineering evidence is complete for the deployed application path, bounded load
 
 ## Active branches and releases
 
-- `main` currently points to `79245b7` (pilot release-record reconciliation).
+- `main` currently points to `c7fb5d0` (PDF and protocol parity reconciliation).
 - The latest fully verified application runtime is commit
-  `ce4380e7d8280edc415465520796099e5121da24`, deployed and smoke-tested by
-  App Runner run `40112039766`.
+  `aecbe2e80ca237cb2a61340c7199f069587bdb39`, deployed and smoke-tested by
+  App Runner run `40131685736`.
 - No pull requests are currently open. Historical branches and merged PRs are
   retained in GitHub for auditability but are not active release work.
 - [PR #65 — Render MCP resource template discovery](https://github.com/Krishna3956/CRV/pull/65)
