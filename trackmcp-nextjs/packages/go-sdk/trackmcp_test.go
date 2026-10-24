@@ -1,6 +1,10 @@
 package trackmcp
 
-import "testing"
+import (
+	"encoding/json"
+	"strings"
+	"testing"
+)
 
 func TestSanitizePayloadRedactsAndBounds(t *testing.T) {
 	long := "0123456789abcdefghijklmnopqrstuvwxyz" 
@@ -53,6 +57,26 @@ func TestRecordProtocolSignalIsAllowlistedAndMetadataOnly(t *testing.T) {
 	client.RecordProtocolSignal("raw", "notifications/progress", "session-2")
 	client.RecordProtocolSignal("cancelled", "bad\nmethod", "session-3")
 	if len(client.queue) != 3 { t.Fatal("invalid signal or method should be ignored") }
+}
+
+func TestRecordCatalogIsBoundedAndHashOnly(t *testing.T) {
+	client := New(Options{APIKey: "tmcp_test"})
+	client.RecordCatalog("resources", "resources/list", map[string]any{
+		"resources": []any{
+			map[string]any{"name": "private-name", "uri": "secret://private"},
+			map[string]any{"uri": "secret://second"},
+		},
+		"nextCursor": "private-cursor",
+	}, "session-catalog")
+	if len(client.queue) != 1 { t.Fatalf("expected one catalog event, got %d", len(client.queue)) }
+	event := client.queue[0]
+	if event.EventType != "catalog" || event.CatalogKind != "resources" || event.CatalogItemCount != 2 { t.Fatalf("unexpected catalog event: %#v", event) }
+	if len(event.CatalogItemURIHashes) != 2 || len(event.CatalogItemNameHashes) != 1 { t.Fatalf("unexpected identity hashes: %#v", event) }
+	if event.Payload["_trackmcp"].(map[string]any)["next_cursor_present"] != true { t.Fatal("cursor presence was not recorded") }
+	serialized, _ := json.Marshal(event)
+	if strings.Contains(string(serialized), "private-name") || strings.Contains(string(serialized), "secret://private") || strings.Contains(string(serialized), "private-cursor") { t.Fatalf("catalog content escaped privacy boundary: %s", serialized) }
+	client.RecordCatalog("unknown", "resources/list", map[string]any{}, "session-2")
+	if len(client.queue) != 1 { t.Fatal("unsupported catalog kind should be ignored") }
 }
 
 func TestRecordProtocolResultIsBoundedAndMetadataOnly(t *testing.T) {

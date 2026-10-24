@@ -54,6 +54,10 @@ type Event struct {
 	TaskStatus string `json:"task_status,omitempty"`
 	InputRequestCount *int `json:"input_request_count,omitempty"`
 	InputResponseCount *int `json:"input_response_count,omitempty"`
+	CatalogKind string `json:"catalog_kind,omitempty"`
+	CatalogItemCount int `json:"catalog_item_count,omitempty"`
+	CatalogItemNameHashes []string `json:"catalog_item_name_hashes,omitempty"`
+	CatalogItemURIHashes []string `json:"catalog_item_uri_hashes,omitempty"`
 	Payload map[string]any `json:"payload,omitempty"`
 }
 
@@ -169,6 +173,40 @@ func (c *Client) RecordProtocolSignal(signal string, method string, sessionID st
 	})
 }
 
+// RecordCatalog records one bounded catalog page without retaining item names,
+// URIs, schemas, descriptions, or cursor values. The result is expected to be
+// the decoded MCP list response; only SHA-256 identity hashes, a bounded item
+// count, and cursor presence cross the event boundary.
+func (c *Client) RecordCatalog(kind string, method string, result map[string]any, sessionID string) {
+	if !catalogKinds[kind] || len(method) == 0 || len(method) > 128 || strings.IndexFunc(method, func(r rune) bool { return r < 0x20 || r == 0x7f }) >= 0 { return }
+	key := kind
+	if kind == "resource_templates" { key = "resourceTemplates" }
+	items, ok := result[key].([]any)
+	if !ok { items = []any{} }
+	nameHashes := make([]string, 0, minInt(len(items), 128))
+	uriHashes := make([]string, 0, minInt(len(items), 128))
+	for index, item := range items {
+		if index >= 128 { break }
+		object, ok := item.(map[string]any)
+		if !ok { continue }
+		if name, ok := object["name"].(string); ok && name != "" { nameHashes = append(nameHashes, hashCatalogIdentity(name)) }
+		uriKey := "uri"
+		if kind == "resource_templates" { uriKey = "uriTemplate" }
+		if uri, ok := object[uriKey].(string); ok && uri != "" { uriHashes = append(uriHashes, hashCatalogIdentity(uri)) }
+	}
+	metadata := map[string]any{
+		"observation_kind": "catalog_page",
+		"catalog_kind": kind,
+		"next_cursor_present": result["nextCursor"] != nil || result["next_cursor"] != nil,
+	}
+	c.Capture(Event{
+		EventType: "catalog", Direction: "server_to_client", MCPMethod: method,
+		SessionID: boundedSessionID(sessionID), Success: boolPtr(true), IsError: boolPtr(false),
+		CatalogKind: kind, CatalogItemCount: len(items), CatalogItemNameHashes: nameHashes,
+		CatalogItemURIHashes: uriHashes, Payload: map[string]any{"_trackmcp": metadata},
+	})
+}
+
 // RecordProtocolResult records only allowlisted MRTR/task result metadata.
 // Result content, input values, and arbitrary response fields never enter the
 // event or queue. This keeps Go parity with the TypeScript and Python SDKs.
@@ -255,6 +293,10 @@ func resolveAccountID(resolver func() string) (value string) {
 }
 
 func hashAccountID(value string) string { sum := sha256.Sum256([]byte(value)); return hex.EncodeToString(sum[:]) }
+
+var catalogKinds = map[string]bool{"tools": true, "resources": true, "resource_templates": true, "prompts": true}
+
+func hashCatalogIdentity(value string) string { sum := sha256.Sum256([]byte(value)); return hex.EncodeToString(sum[:]) }
 
 func boolPtr(value bool) *bool { return &value }
 

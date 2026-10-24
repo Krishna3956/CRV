@@ -64,3 +64,19 @@ test("Go and .NET observers expose the bounded subscription signal parity", () =
     assert.doesNotMatch(source, /subscription[_ ](?:uri|id|content)/i);
   }
 });
+
+test("Go and .NET observers expose bounded catalog-page parity", () => {
+  for (const source of [goSource, dotnetSource]) {
+    assert.match(source, /RecordCatalog/);
+    assert.match(source, /catalog_page/);
+    assert.match(source, /next_cursor_present/);
+    assert.match(source, /SHA-256|SHA256|HashData/);
+    assert.doesNotMatch(source, /cursor value.*queued/i);
+  }
+  for (const docs of [goReadme, dotnetReadme]) {
+    assert.match(docs, /RecordCatalog/);
+    assert.match(docs, /SHA-256/);
+    assert.match(docs, /next cursor/);
+    assert.match(docs, /never queued/);
+  }
+});

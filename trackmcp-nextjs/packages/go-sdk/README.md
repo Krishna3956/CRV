@@ -34,6 +34,13 @@ metadata (`completion_value_count` up to 32, `completion_total` up to
 1,000,000, and `completion_has_more`). Completion suggestion values and
 arguments are never queued.
 
+For a `tools/list`, `resources/list`, `resources/templates/list`, or
+`prompts/list` response, call `client.RecordCatalog(kind, method, result,
+sessionID)`. It records the bounded page count, SHA-256 identity hashes, and
+whether an opaque next cursor was present; names, URIs, schemas, descriptions,
+and cursor values are never queued. Repeated calls remain safe for paginated
+observation because the cursor itself is intentionally not persisted.
+
 To enable resolver-linked account analytics, return only a stable, already
 validated tenant/account handle. The SDK rejects credential-like values,
 hashes accepted values locally, and records `account_identity_source` as
