@@ -136,8 +136,9 @@ test("captures a real official MCP server transport call", async () => {
   assert.equal(session.client_version, "1.0.0");
   const catalog = events.find((event) => event.payload?.name === "tools_discovered");
   assert.ok(catalog);
-  assert.equal(catalog.payload.tools[0].description, "test tool");
-  assert.match(catalog.payload.tools[0].schema_hash, /^[0-9a-f]{64}$/);
+  assert.doesNotMatch(JSON.stringify(catalog), /hello|test tool|secret/i);
+  assert.equal(catalog.catalog_item_count, 1);
+  assert.match(catalog.catalog_item_name_hashes[0], /^[0-9a-f]{64}$/);
 });
 
 test("correlation is disabled by default and external provenance is explicit", async () => {
