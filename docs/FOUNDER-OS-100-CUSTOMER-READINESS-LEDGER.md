@@ -1,6 +1,6 @@
 # Founder OS 100 Customer Readiness Ledger
 
-Last updated: 2026-10-24 (package train and release-specific production smoke reconciliation)
+Last updated: 2026-10-24 (Setup, authentication, privacy, and deployment evidence reconciliation)
 Owner: Codex engineering execution
 Pilot target: 100 customers
 
@@ -40,7 +40,7 @@ The readiness percentage is based on 10 gates, not lines of code:
 9. Production smoke/load/rollback evidence
 10. Pilot operations and documentation
 
-Current estimate: **9/10 gates complete (90%)**. The deployed application path, bounded load/rollback evidence, five-slice refresh checkpoint, all six Founder OS tabs, production privacy/retention boundary checks, and the final release record now have evidence. The readiness claim remains deliberately below pilot-ready until the Supabase quota/grace-period risk is resolved or explicitly accepted for the 100-customer window.
+Engineering evidence is complete for the deployed application path, bounded load/rollback, five-slice refresh checkpoint, all six Founder OS tabs, privacy/retention boundaries, and the current release record. The pilot is **not marked ready by percentage**: credentialed UAT, migration/rollback ownership, repeated worker SLO observations, distributed-rate-limit IAM, and explicitly partial protocol interoperability remain release-owner gates. Supabase usage is monitored operationally; no current overage is inferred from this ledger, and quota headroom is not silently treated as a completed pilot gate.
 
 ## Latest checkpoint — 2026-10-20
 
