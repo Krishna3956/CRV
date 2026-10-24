@@ -24,6 +24,16 @@ just because a README or marketing page mentions it.
 | Transport disconnect evidence | Node client adapter now drains in-flight tool and non-tool requests on transport error/close into bounded `transport_error` observations before ending the session; real official Stdio child-exit and Streamable HTTP socket-disconnect fixtures now pass | Implemented locally with regression coverage | Hosted cross-language compile evidence and authenticated production disconnect UAT |
 | Connection-key scope | API keys can carry optional bounded service/environment scopes; ingest rejects mismatched labels with a tenant-safe 403 while legacy NULL-scoped keys remain workspace-wide | Implemented and deployed; migration applied, read-only postflight added, release-gate/tenant-isolation coverage passed; production postflight observed 49 active workspace-wide keys, 0 invalid scopes; live smoke accepted a matching event, rejected a mismatched label with 403, and the authenticated export showed the matching event | Keep scope behavior in the recurring release smoke and rotate/revoke the temporary pilot key under the operator’s key-retention policy |
 
+## 2026-10-24 — Python runtime boundary smoke
+
+The Python SDK now has a dependency-free `packages/python-sdk/smoke.py` harness
+that starts a local HTTP ingest fixture, exercises the real `flush()` path, and
+asserts metadata-only protocol direction, hash/count-only catalog observations,
+and bounded transport-failure evidence. Private catalog names, URIs, and cursors
+are checked against the serialized request body. Hosted CI runs this smoke next
+to the existing Go and .NET runtime harnesses; it does not claim authenticated
+production transport UAT.
+
 ## Acceptance gates
 
 - [x] Transport observer behavior is real code, not a placeholder claim.
