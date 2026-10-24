@@ -40,11 +40,24 @@ export async function GET(request: Request) {
   if (!workspace) return NextResponse.json({ workspace: null, workspaces: [], keys: [] }, { headers: { "cache-control": "no-store" } });
   const membership = (memberships || []).find((candidate: { workspace_id?: unknown }) => candidate.workspace_id === workspace.id) as { role?: unknown } | undefined;
 
-  const { data: keys, error: keyError } = await admin
+  let { data: keys, error: keyError } = await admin
     .from("trackmcp_api_keys")
     .select("id, name, key_prefix, service_scope, environment_scope, revoked_at, created_at, last_used_at")
     .eq("workspace_id", workspace.id)
     .order("created_at", { ascending: false });
+  // The column is additive and may not be visible to PostgREST during a
+  // rolling migration. Keep Setup usable with an explicit null usage state
+  // until the schema cache catches up; unrelated database errors still fail
+  // closed rather than being hidden.
+  if (keyError && /column|schema cache|does not exist/i.test(keyError.message || "")) {
+    const fallback = await admin
+      .from("trackmcp_api_keys")
+      .select("id, name, key_prefix, service_scope, environment_scope, revoked_at, created_at")
+      .eq("workspace_id", workspace.id)
+      .order("created_at", { ascending: false });
+    keyError = fallback.error;
+    keys = (fallback.data || []).map((key: Record<string, unknown>) => ({ ...key, last_used_at: null })) as typeof keys;
+  }
   if (keyError) return NextResponse.json({ error: "Could not load API keys." }, { status: 500 });
   return NextResponse.json({ workspace, workspaces, role: membership?.role || null, keys: keys || [] }, { headers: { "cache-control": "no-store" } });
 }
