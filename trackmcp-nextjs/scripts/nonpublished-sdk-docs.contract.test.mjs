@@ -27,6 +27,10 @@ test("Go and .NET docs disclose source-package status and first-event verificati
     assert.match(source, /RecordTransportFailure/);
     assert.match(source, /transport_closed/);
     assert.match(source, /transport_error/);
+    assert.match(source, /RecordEntityRead/);
+    assert.match(source, /resources\/read/);
+    assert.match(source, /prompts\/get/);
+    assert.match(source, /returned content never leave the process/);
   }
 });
 

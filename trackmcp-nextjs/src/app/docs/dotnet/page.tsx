@@ -31,6 +31,14 @@ telemetry.RecordTransportFailure("transport_closed", sessionId, durationMs);
 // or: telemetry.RecordTransportFailure("transport_error", sessionId, durationMs);`}</Code>
       <Para>The transport observer records only bounded session metadata. It never accepts exception text, URLs, headers, or payloads.</Para>
     </DocSection>
+    <DocSection id="entity-reads" title="Resources and prompts">
+      <Para>Record a decoded <Inline>resources/read</Inline> or <Inline>prompts/get</Inline> response with the privacy-safe helper. The SDK hashes the URI or prompt name locally and emits only a bounded content/message count and result state; arguments and returned content never leave the process.</Para>
+      <Code>{`telemetry.RecordEntityRead("resources", "resources/read", resourceUri,
+    new JsonObject { ["contents"] = decodedContents }, sessionId);
+telemetry.RecordEntityRead("prompts", "prompts/get", promptName,
+    new JsonObject { ["messages"] = decodedMessages, ["resultType"] = "complete" }, sessionId);`}</Code>
+      <Para>Call this after the MCP response has been decoded at your middleware boundary. It does not fetch resources or prompts and does not expose their bodies in TrackMCP.</Para>
+    </DocSection>
     <DocSection title="Coverage and limits">
       <Para>The .NET package is a transport-neutral primitive, not an automatic MCP server wrapper. Your middleware supplies protocol and transport fields. Account identity comes only from an application-validated claim and is hashed before storage. TrackMCP does not implement OAuth or parse bearer tokens.</Para>
     </DocSection>

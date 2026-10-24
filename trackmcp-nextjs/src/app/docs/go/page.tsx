@@ -36,6 +36,17 @@ client.RecordTransportFailure("transport_closed", sessionID, durationMS)
 // or: client.RecordTransportFailure("transport_error", sessionID, durationMS)`}</Code>
       <Para>The transport observer records only bounded session metadata. It never accepts exception text, URLs, headers, or payloads.</Para>
     </DocSection>
+    <DocSection id="entity-reads" title="Resources and prompts">
+      <Para>Record a decoded <Inline>resources/read</Inline> or <Inline>prompts/get</Inline> response with the privacy-safe helper. The SDK hashes the URI or prompt name locally and emits only a bounded content/message count and result state; arguments and returned content never leave the process.</Para>
+      <Code>{`client.RecordEntityRead("resources", "resources/read", resourceURI, map[string]any{
+    "contents": decodedContents,
+}, sessionID)
+client.RecordEntityRead("prompts", "prompts/get", promptName, map[string]any{
+    "messages": decodedMessages,
+    "resultType": "complete",
+}, sessionID)`}</Code>
+      <Para>Call this after the MCP response has been decoded at your middleware boundary. It does not fetch resources or prompts and does not expose their bodies in TrackMCP.</Para>
+    </DocSection>
     <DocSection title="Coverage and limits">
       <Para>The Go package is a primitive rather than an automatic MCP transport wrapper. Your middleware supplies the protocol method, tool, transport, and outcome fields. Account identity must come from an already-validated application claim and is hashed before storage. TrackMCP does not implement OAuth or inspect bearer tokens.</Para>
     </DocSection>
