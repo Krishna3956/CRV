@@ -178,10 +178,18 @@ func (c *Client) RecordProtocolSignal(signal string, method string, sessionID st
 // either side of the MCP boundary. Direction is explicit so inbound
 // cancellation is not mistaken for a server notification.
 func (c *Client) RecordProtocolSignalDirection(signal string, method string, direction string, sessionID string) {
+	c.RecordProtocolSignalForTransport(signal, method, "", direction, sessionID)
+}
+
+// RecordProtocolSignalForTransport records an allowlisted notification with a
+// caller-verified transport label. Notification values, reasons, identifiers,
+// and transport internals never cross the event boundary.
+func (c *Client) RecordProtocolSignalForTransport(signal string, method string, transport string, direction string, sessionID string) {
 	if !protocolSignals[signal] || len(method) == 0 || len(method) > 128 || strings.IndexFunc(method, func(r rune) bool { return r < 0x20 || r == 0x7f }) >= 0 { return }
 	if direction != "server_to_client" && direction != "client_to_server" { return }
+	if transport != "" && !transportKinds[transport] { return }
 	c.Capture(Event{
-		EventType: "protocol", Direction: direction, MCPMethod: method,
+		EventType: "protocol", Direction: direction, Transport: transport, MCPMethod: method,
 		SessionID: boundedSessionID(sessionID), Success: boolPtr(true), IsError: boolPtr(false),
 		Payload: map[string]any{"_trackmcp": map[string]any{
 			"observation_kind": "protocol_notification", "protocol_signal": signal,

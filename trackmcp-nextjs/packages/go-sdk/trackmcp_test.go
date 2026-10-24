@@ -77,6 +77,14 @@ func TestRecordProtocolSignalDirectionKeepsInboundCancellationDistinct(t *testin
 	if len(client.queue) != 1 { t.Fatal("invalid direction should be ignored") }
 }
 
+func TestRecordProtocolSignalForTransportAllowlistsLabel(t *testing.T) {
+	client := New(Options{APIKey: "test"})
+	client.RecordProtocolSignalForTransport("cancelled", "notifications/cancelled", "sse", "client_to_server", "session-1")
+	if len(client.queue) != 1 || client.queue[0].Transport != "sse" { t.Fatalf("signal transport label was not retained: %#v", client.queue) }
+	client.RecordProtocolSignalForTransport("cancelled", "notifications/cancelled", "private://endpoint", "client_to_server", "session-2")
+	if len(client.queue) != 1 { t.Fatalf("unsupported signal transport label was accepted") }
+}
+
 func TestRecordCatalogIsBoundedAndHashOnly(t *testing.T) {
 	client := New(Options{APIKey: "tmcp_test"})
 	client.RecordCatalog("resources", "resources/list", map[string]any{

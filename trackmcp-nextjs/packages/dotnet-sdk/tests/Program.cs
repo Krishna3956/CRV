@@ -27,7 +27,7 @@ static class Smoke
         using var http = new HttpClient(handler);
         using var client = new TrackMcpClient(new TrackMcpOptions("tmcp_test", Endpoint: "https://example.test/ingest"), http);
 
-        client.RecordProtocolSignal("cancelled", "notifications/cancelled", "session-1", "client_to_server");
+        client.RecordProtocolSignalForTransport("cancelled", "notifications/cancelled", "streamable_http", "session-1", "client_to_server");
         client.RecordProtocolResult("elicitation/create", new JsonObject
         {
             ["resultType"] = "input_required",
@@ -56,6 +56,7 @@ static class Smoke
         var events = document.RootElement.GetProperty("events");
         Require(events.GetArrayLength() == 4, "unexpected event count");
         Require(events[0].GetProperty("direction").GetString() == "client_to_server", "inbound direction was not retained");
+        Require(events[0].GetProperty("transport").GetString() == "streamable_http", "caller-verified signal transport label was not retained");
         Require(events[1].GetProperty("result_type").GetString() == "input_required", "protocol result type was not retained");
         Require(events[2].GetProperty("catalog_kind").GetString() == "resources", "catalog kind was not retained");
         Require(events[2].GetProperty("catalog_item_count").GetInt32() == 1, "catalog count was not retained");

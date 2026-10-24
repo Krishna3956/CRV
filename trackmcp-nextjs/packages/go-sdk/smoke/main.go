@@ -30,7 +30,7 @@ func main() {
 	defer server.Close()
 
 	client := trackmcp.New(trackmcp.Options{APIKey: "tmcp_smoke", Endpoint: server.URL})
-	client.RecordProtocolSignalDirection("cancelled", "notifications/cancelled", "client_to_server", "go-smoke-session")
+	client.RecordProtocolSignalForTransport("cancelled", "notifications/cancelled", "stdio", "client_to_server", "go-smoke-session")
 	client.RecordCatalog("resources", "resources/list", map[string]any{
 		"resources": []any{
 			map[string]any{"name": "private-resource-name", "uri": "secret://private-resource"},
@@ -64,6 +64,9 @@ func main() {
 	}
 	if envelope.Events[0].Direction != "client_to_server" || envelope.Events[0].EventType != "protocol" {
 		fail("inbound protocol signal direction was not preserved")
+	}
+	if envelope.Events[0].Transport != "stdio" {
+		fail("caller-verified signal transport label was not emitted")
 	}
 	if envelope.Events[1].CatalogKind != "resources" || envelope.Events[1].EventType != "catalog" {
 		fail("catalog observation was not emitted")
