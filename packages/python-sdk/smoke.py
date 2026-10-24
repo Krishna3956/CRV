@@ -13,7 +13,13 @@ import threading
 from http.server import BaseHTTPRequestHandler, HTTPServer
 
 from trackmcp import TrackMCP, TrackMCPOptions
-from trackmcp.client import _catalog_observation, _entity_protocol_event, interaction_entity_observation
+from trackmcp.client import (
+    _catalog_observation,
+    _entity_protocol_event,
+    _protocol_metadata_payload,
+    _protocol_result_metadata,
+    interaction_entity_observation,
+)
 
 
 class CaptureHandler(BaseHTTPRequestHandler):
@@ -91,6 +97,21 @@ def main() -> None:
             success=True,
             result={"messages": [{"content": "private-prompt-message"}], "resultType": "complete"},
         ))
+        protocol_result = {
+            "resultType": "input_required",
+            "inputRequests": [{"prompt": "private-input-request"}] * 140,
+            "inputResponses": [{"value": "private-input-response"}] * 120,
+            "taskId": "private-task-handle",
+        }
+        client.capture({
+            "event_type": "protocol",
+            "mcp_method": "elicitation/create",
+            "session_id": "python-smoke-session",
+            "success": True,
+            "is_error": False,
+            **_protocol_result_metadata(protocol_result),
+            "payload": _protocol_metadata_payload("elicitation/create", protocol_result),
+        })
         client.record_transport_failure(
             "transport_error", session_id="python-smoke-session", duration_ms=12
         )
@@ -110,11 +131,14 @@ def main() -> None:
         "private-resource-content",
         "private-prompt",
         "private-prompt-message",
+        "private-input-request",
+        "private-input-response",
+        "private-task-handle",
     ):
         if marker in body:
             fail(f"private catalog value crossed the event boundary: {marker}")
     events = CaptureHandler.payload.get("events", []) if CaptureHandler.payload else []
-    if len(events) != 5:
+    if len(events) != 6:
         fail("unexpected event envelope")
     if events[0].get("direction") != "client_to_server" or events[0].get("event_type") != "protocol":
         fail("protocol signal direction was not preserved")
@@ -124,7 +148,11 @@ def main() -> None:
         fail("resource entity-read metadata was not emitted")
     if events[3].get("catalog_kind") != "prompts" or events[3].get("mcp_method") != "prompts/get" or events[3].get("result_type") != "complete":
         fail("prompt entity-read metadata was not emitted")
-    if events[4].get("error_class") != "transport_error" or events[4].get("event_type") != "session":
+    if events[4].get("mcp_method") != "elicitation/create" or events[4].get("result_type") != "input_required" or events[4].get("input_request_count") != 100 or events[4].get("input_response_count") != 100:
+        fail("bounded protocol-result metadata was not emitted")
+    if events[4].get("payload", {}).get("_trackmcp", {}).get("observation_kind") != "protocol_response":
+        fail("protocol-result observation marker was not emitted")
+    if events[5].get("error_class") != "transport_error" or events[5].get("event_type") != "session":
         fail("transport failure metadata was not emitted")
     print("Python TrackMCP runtime smoke passed")
 

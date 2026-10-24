@@ -140,6 +140,38 @@ app.trackmcp.record_transport_failure("transport_error")`}</Code>
         </Para>
       </DocSection>
 
+      <DocSection id="protocol-results" title="Protocol result metadata">
+        <Para>
+          The server wrapper records bounded MCP result discriminators for protocol
+          responses such as <Inline>input_required</Inline> and <Inline>task</Inline>.
+          It keeps only the result type and capped request/response counts; task
+          handles, prompts, submitted values, and result bodies never leave the
+          process. This is metadata for dashboard filtering, not a copy of the
+          protocol response.
+        </Para>
+        <Code>{`# No extra call is required. Middleware observes the response:
+{
+  "resultType": "input_required",
+  "inputRequests": [...],
+  "inputResponses": [...]
+}
+
+# TrackMCP emits only:
+{
+  "result_type": "input_required",
+  "input_request_count": 1,
+  "input_response_count": 1
+}`}</Code>
+        <Para>
+          Completion responses use the same boundary and retain only bounded value
+          counts, totals, and the <Inline>has_more</Inline> flag. Use the{" "}
+          <a href="/docs/reference" className="font-medium text-brand-strong underline">
+            configuration reference
+          </a>{" "}
+          for the full privacy and payload limits.
+        </Para>
+      </DocSection>
+
       <DocSection id="account-identity" title="Optional account identity">
         <Para>
           If your application has already verified a tenant or account claim, pass

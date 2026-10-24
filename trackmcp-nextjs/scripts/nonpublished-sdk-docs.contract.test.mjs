@@ -2,9 +2,10 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
 
-const [goDocs, dotnetDocs, goReadme, dotnetReadme, goSource, dotnetSource] = await Promise.all([
+const [goDocs, dotnetDocs, pythonDocs, goReadme, dotnetReadme, goSource, dotnetSource] = await Promise.all([
   readFile(new URL("../src/app/docs/go/page.tsx", import.meta.url), "utf8"),
   readFile(new URL("../src/app/docs/dotnet/page.tsx", import.meta.url), "utf8"),
+  readFile(new URL("../src/app/docs/python/page.tsx", import.meta.url), "utf8"),
   readFile(new URL("../packages/go-sdk/README.md", import.meta.url), "utf8"),
   readFile(new URL("../packages/dotnet-sdk/README.md", import.meta.url), "utf8"),
   readFile(new URL("../packages/go-sdk/trackmcp.go", import.meta.url), "utf8"),
@@ -144,8 +145,18 @@ test("Python hosted CI runs the privacy, direction, and flush smoke harness", ()
   assert.match(pythonSmokeSource, /_entity_protocol_event/);
   assert.match(pythonSmokeSource, /resources\/read/);
   assert.match(pythonSmokeSource, /prompts\/get/);
+  assert.match(pythonSmokeSource, /_protocol_result_metadata/);
+  assert.match(pythonSmokeSource, /elicitation\/create/);
+  assert.match(pythonSmokeSource, /input_request_count/);
   assert.match(pythonSmokeSource, /record_transport_failure/);
   assert.match(pythonSmokeSource, /private-resource-name/);
   assert.match(pythonSmokeSource, /secret:\/\/private-resource/);
   assert.match(pythonSmokeSource, /Python TrackMCP runtime smoke passed/);
+});
+
+test("Python public docs explain bounded protocol-result metadata", () => {
+  assert.match(pythonDocs, /Protocol result metadata/);
+  assert.match(pythonDocs, /input_required/);
+  assert.match(pythonDocs, /task[\s\S]*handles[\s\S]*never leave the[\s\S]*process/i);
+  assert.match(pythonDocs, /Completion responses/);
 });
