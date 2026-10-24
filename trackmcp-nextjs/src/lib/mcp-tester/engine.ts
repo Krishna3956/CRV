@@ -288,8 +288,15 @@ export async function runMcpTester(options: McpTesterOptions): Promise<McpTester
     } else {
       skipPhase(state, "prompts_list", record, beginPhase, finishPhase);
     }
-    addFinding("modern_discovery_partial", "protocol", "warning", "Modern server discovery and bounded tools, resources, prompts, and advertised Tasks capabilities completed where available. This report remains intentionally bounded: server-directed task creation, polling, update/cancellation transitions, subscriptions, cache invalidation, and other multi-round-trip lifecycle checks are not asserted by this probe.", "modern_discover", { protocolVersion: MODERN_MCP_PROTOCOL_VERSION, tasksAdvertised: state.capabilities.tasks === true });
-    finishPhase("modern_discover", modernStart, "incomplete", record, phases, timings, now);
+    const lifecycleBoundaries = state.capabilities.tasks === true || state.resourcesAdvertised;
+    if (lifecycleBoundaries) {
+      addFinding("modern_discovery_partial", "protocol", "warning", "Modern server discovery and bounded tools, resources, prompts, and advertised Tasks capabilities completed where available. This report remains intentionally bounded: server-directed task creation, polling, update/cancellation transitions, subscriptions, cache invalidation, and other multi-round-trip lifecycle checks are not asserted by this probe.", "modern_discover", { protocolVersion: MODERN_MCP_PROTOCOL_VERSION, tasksAdvertised: state.capabilities.tasks === true });
+      finishPhase("modern_discover", modernStart, "incomplete", record, phases, timings, now);
+    } else {
+      addFinding("modern_discovery_complete", "protocol", "info", "Modern server discovery and the advertised stateless catalogs completed without an untested task or resource lifecycle surface.", "modern_discover", { protocolVersion: MODERN_MCP_PROTOCOL_VERSION });
+      finishPhase("modern_discover", modernStart, "passed", record, phases, timings, now);
+      state.incomplete = false;
+    }
     return finalize(state, observedAt, addFinding);
   }
 

@@ -320,6 +320,21 @@ test("modern discovery does not claim an unadvertised protocol version", async (
   assert.ok(report.findings.some((finding) => finding.code === "modern_version_not_advertised"));
 });
 
+test("modern discovery is complete when no lifecycle-capable surface is advertised", async () => {
+  const report = await runMcpTester({
+    endpoint,
+    protocolVersion: "2026-07-28",
+    fetch: async (_input, init) => {
+      const body = JSON.parse(String(init?.body));
+      if (body.method === "server/discover") return jsonRpc({ supportedVersions: ["2026-07-28"], serverInfo: { name: "Stateless fixture", version: "1" }, capabilities: {} }, 1);
+      assert.fail(`unexpected catalog request: ${body.method}`);
+    },
+  });
+  assert.notEqual(report.verdict, "incomplete");
+  assert.ok(report.findings.some((finding) => finding.code === "modern_discovery_complete"));
+  assert.ok(!report.findings.some((finding) => finding.code === "modern_discovery_partial"));
+});
+
 test("failed initialization and authentication are distinct", async () => {
   const failed = await runMcpTester({ endpoint, fetch: async () => jsonRpcError(-32602, "invalid params") });
   assert.equal(failed.verdict, "protocol_error");
