@@ -5,18 +5,18 @@ used here and no package is published automatically.
 
 ## Current registry reconciliation (2026-10-24)
 
-The current security-patched SDK release for source head `7961839` is published
-and verified; the CLI/Python versions remain the previously verified immutable
-release line:
+The coordinated release train from source head `108d3f2` is published and
+verified by workflow `40115875394`:
 
 | Package | Published version | Evidence |
 | --- | --- | --- |
-| `@trackmcp/sdk` | `0.1.14` | npm HTTP 200, public tarball and SHA-512 integrity `sha512-JEbTLmnU2KtQAgDF//PvG8pWuxt2gYCa4ggfp0B0ER+CRIykiHB82+ibvUNbOmsEJ1zCkvv8681C7IJVY2ZSwQ==`; workflow `40034334707` uploaded provenance |
-| `@trackmcp/cli` | `0.1.5` | npm HTTP 200, public tarball and SHA-512 integrity; workflow `40029647746` uploaded provenance |
-| `trackmcp` | `0.1.7` | PyPI HTTP 200; wheel SHA-256 `44762e5a04ccf36ec342a60d7db173a214c1645697d2031e9d7a1943fc9b0e68`; sdist SHA-256 `19c3842390cbabc1a1238b83d4d646a86fa8eb1be6ba4c2a447e41cf4f967313`; workflow `40029650698` uploaded provenance |
+| `@trackmcp/sdk` | `0.1.15` | npm HTTP 200, SHA-512 integrity `sha512-UM3FJqVEia0pVr/U3Z9PUoKCth/4edv6BMbY1NjZqkxFwiH2oyk1PxXw6xAlf3/dexcMiOloGCm7ft7Yl5eTpg==`; workflow `40115875394` uploaded provenance |
+| `@trackmcp/cli` | `0.1.6` | npm HTTP 200, SHA-512 integrity `sha512-c/7ZsWxeOi9WAal/VLjdkfxI1eej46NtoOgIS36ED2vJXYn4+Uux9bDMkAUygfW1PevjIfh0TSWiIZEwSvvyDQ==`; workflow `40115875394` uploaded provenance |
+| `trackmcp` | `0.1.8` | PyPI HTTP 200; wheel SHA-256 `3ea68628d8d4d5c95204f7b9125156cade0b3e9912962ff4fef391ba5b8b8e24`; sdist SHA-256 `f511d9640d307e2e9d893627187adaf7425be7f92fb1c10f3452ec93dd4fea88`; workflow `40115875394` uploaded provenance |
 
-App Runner run `40030062391` deployed the same source after registry
-propagation and passed the post-publication read-only smoke and runtime audit.
+App Runner run `40030062391` deployed the prior source after registry
+propagation and passed the post-publication read-only smoke and runtime audit;
+the release-train publication itself completed without a runtime deployment.
 The older version tables below are retained as immutable historical evidence;
 they are not the current package baseline.
 
@@ -34,12 +34,10 @@ credentialed first-event or activation result.
 | `@trackmcp/cli` | `trackmcp-nextjs/packages/cli/package.json` | CLI tests and packed-consumer test | `.github/workflows/publish.yml`, `cli` |
 | `trackmcp` | `packages/python-sdk/pyproject.toml` | unittest suite and build metadata audit | `.github/workflows/publish.yml`, `python` |
 
-The current local source manifests are the next coordinated release candidate:
-`@trackmcp/sdk` `0.1.15`, `@trackmcp/cli` `0.1.6`, and
-`trackmcp` `0.1.8`. They are not published until the merged candidate passes
-the release gate and the single `all` publication workflow completes.
-The last verified public baseline remains SDK `0.1.14`, CLI `0.1.5`, and
-Python `0.1.7` in the registry table above.
+The current local source manifests match the published coordinated train:
+`@trackmcp/sdk` `0.1.15`, `@trackmcp/cli` `0.1.6`, and `trackmcp` `0.1.8`.
+The release gate and single `all` publication workflow completed successfully;
+the immutable prior baseline remains in the historical tables below.
 They were selected after a registry preflight found the immediately preceding
 versions already published. The SDK 0.1.5 publication completed with
 provenance and an exact clean-consumer check in publish workflow
