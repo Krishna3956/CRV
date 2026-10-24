@@ -934,3 +934,11 @@ a failed product gate or a Supabase plan warning.
 - [x] The report remains secret-free; focused smoke/workflow contracts cover the
   provenance field and the existing 128-suite, lint, and build gates remain the
   release evidence baseline.
+
+## 2026-10-24 authenticated-smoke key-lifecycle gate checkpoint
+
+- [x] The manual authenticated smoke now requires a revoked-key secret and
+  always verifies HTTP 401/403 negative authentication. A run can no longer
+  pass while silently omitting revocation evidence.
+- [x] Workflow and source contracts cover the mandatory revoked-key path;
+  disposable credentials remain external and are not stored in the repository.
