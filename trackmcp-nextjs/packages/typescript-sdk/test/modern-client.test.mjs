@@ -205,6 +205,34 @@ test("modern client follows opaque catalog cursors and discloses truncation", as
   ]);
 });
 
+test("modern client reads resources and prompts without returning content", async () => {
+  const requests = [];
+  const client = new ModernMcpClient({ endpoint: "https://mcp.example.test", fetch: async (_input, init) => {
+    const body = JSON.parse(init.body);
+    requests.push(body);
+    if (body.method === "resources/read") return response({ result: { contents: [{ text: "private resource body" }], isError: false, private: "omit" } });
+    return response({ result: { messages: [{ role: "user", content: { type: "text", text: "private prompt" } }], isError: false, private: "omit" } });
+  } });
+  const resource = await client.readResource("file:///private/config");
+  const prompt = await client.getPrompt("summarize", { query: "private input" });
+  assert.equal(resource.resourceUriHash.length, 64);
+  assert.deepEqual(resource.contentItemCount, 1);
+  assert.deepEqual(prompt.messageCount, 1);
+  assert.equal(prompt.promptNameHash.length, 64);
+  assert.equal(JSON.stringify({ resource, prompt }).includes("private"), false);
+  assert.deepEqual(requests.map(({ method, params }) => ({ method, params })), [
+    { method: "resources/read", params: { uri: "file:///private/config" } },
+    { method: "prompts/get", params: { name: "summarize", arguments: { query: "private input" } } },
+  ]);
+});
+
+test("modern client rejects unsafe resource and prompt reads", async () => {
+  const client = new ModernMcpClient({ endpoint: "https://mcp.example.test", fetch: async () => response({ result: { contents: [], messages: [] } }) });
+  await assert.rejects(() => client.readResource(""), (error) => error instanceof ModernMcpProtocolError && error.code === "invalid_response");
+  await assert.rejects(() => client.getPrompt("bad name"), (error) => error instanceof ModernMcpProtocolError && error.code === "invalid_response");
+  await assert.rejects(() => client.getPrompt("summarize", { "bad key!": true }), (error) => error instanceof ModernMcpProtocolError && error.code === "invalid_response");
+});
+
 test("modern client stops on a repeated cursor instead of looping", async () => {
   let requests = 0;
   const client = new ModernMcpClient({ endpoint: "https://mcp.example.test", fetch: async () => {

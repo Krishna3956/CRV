@@ -257,6 +257,14 @@ production transport UAT.
   reject oversized TTLs and unsupported scopes; these are freshness/sharing
   hints only and do not claim cache conformance or snapshot consistency.
 
+- 2026-10-25: The modern TypeScript client now exposes privacy-safe
+  `readResource` and `getPrompt` methods. They send bounded caller-selected
+  reads but return only SHA-256 identity hashes, content/message counts, and an
+  optional error bit; raw resource bodies, prompt messages, and argument values
+  never leave the adapter. Tests cover wire methods, privacy, and fail-closed
+  identifiers. Cross-transport production UAT and durable read-outcome joins
+  remain partial.
+
 - 2026-10-22: Tightened the modern task read model to the Tasks extension's
   bounded lifecycle contract. Task status is now allowlisted, valid lifecycle
   timestamps and status messages are retained for operational UX, and result,
