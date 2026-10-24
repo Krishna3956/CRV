@@ -16,6 +16,7 @@ test("authenticated production smoke is explicit, HTTPS-only, and secret-free in
   assert.match(source, /authenticated workspace envelope/);
   assert.match(source, /forbiddenReadModelKeys/);
   assert.match(source, /privacy_projection_verified/);
+  assert.match(source, /release_sha: process\.env\.TRACKMCP_AUTH_SMOKE_RELEASE_SHA/);
   assert.match(source, /legacyReadModels/);
   assert.match(source, /\/api\/v1\/analytics\?days=30/);
   assert.match(source, /\/api\/v1\/tool-quality\?days=30/);

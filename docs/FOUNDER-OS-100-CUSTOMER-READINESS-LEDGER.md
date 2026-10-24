@@ -925,3 +925,12 @@ a failed product gate or a Supabase plan warning.
 - [x] The smoke contract asserts the host boundary; credentialed execution and
   two-workspace/key-lifecycle evidence remain external until repository secrets
   are configured.
+
+## 2026-10-24 authenticated-smoke artifact provenance checkpoint
+
+- [x] Redacted authenticated-smoke reports now include the resolved immutable
+  release SHA (or explicit `null` when no workflow SHA is supplied), allowing
+  evidence artifacts to be verified independently of the GitHub run UI.
+- [x] The report remains secret-free; focused smoke/workflow contracts cover the
+  provenance field and the existing 128-suite, lint, and build gates remain the
+  release evidence baseline.
