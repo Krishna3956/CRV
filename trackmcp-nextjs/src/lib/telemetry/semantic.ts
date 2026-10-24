@@ -81,6 +81,23 @@ export function protocolFamilyForMethod(method: string | null | undefined): Trac
   return undefined;
 }
 
+/** Map an explicitly advertised MCP capability to the coarse family used by
+ * analytics. Unknown extension names stay unknown; capability presence is
+ * never inferred from observed traffic. */
+export function protocolFamilyForCapabilityName(name: string | null | undefined): TrackMCPProtocolFamily | undefined {
+  if (!name) return undefined;
+  const normalized = name.trim().toLowerCase();
+  if (normalized === "sampling") return "sampling";
+  if (normalized === "elicitation") return "elicitation";
+  if (normalized === "completion" || normalized === "completions") return "completion";
+  if (normalized === "tasks" || normalized === "io.modelcontextprotocol/tasks") return "tasks";
+  if (normalized === "resources") return "resources";
+  if (normalized === "prompts") return "prompts";
+  if (normalized === "tools") return "tools";
+  if (normalized === "subscriptions") return "subscriptions";
+  return undefined;
+}
+
 export type TrackMCPSemanticOutcome = {
   contract_version: typeof TRACKMCP_SEMANTIC_CONTRACT_VERSION;
   classifier_version: typeof TRACKMCP_CLASSIFIER_VERSION;

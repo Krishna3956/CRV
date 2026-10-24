@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { classifyTrackMCPOutcome, classifyTrackMCPProtocolSignal, protocolFamilyForMethod, toTrackMCPSemanticEvent } from "./semantic.ts";
+import { classifyTrackMCPOutcome, classifyTrackMCPProtocolSignal, protocolFamilyForCapabilityName, protocolFamilyForMethod, toTrackMCPSemanticEvent } from "./semantic.ts";
 import type { CanonicalTrackMCPEvent } from "./types.ts";
 
 const event = (overrides: Partial<CanonicalTrackMCPEvent> = {}): CanonicalTrackMCPEvent => ({
@@ -53,6 +53,12 @@ test("does not treat generic protocol or custom success as a business outcome", 
   const result = classifyTrackMCPOutcome(source);
   assert.equal(result.outcome, "not_observable");
   assert.equal(result.reason, "not_an_outcome_event");
+});
+
+test("maps only explicit standard capability names to protocol families", () => {
+  assert.equal(protocolFamilyForCapabilityName("sampling"), "sampling");
+  assert.equal(protocolFamilyForCapabilityName("io.modelcontextprotocol/tasks"), "tasks");
+  assert.equal(protocolFamilyForCapabilityName("private_extension"), undefined);
 });
 
 test("classifies protocol notifications and subscriptions as lifecycle signals, not outcomes", () => {

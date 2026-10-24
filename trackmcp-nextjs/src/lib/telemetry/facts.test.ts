@@ -114,3 +114,13 @@ test("hashes interaction handles in durable facts", () => {
   assert.match(fact.dimensions.interaction_id_hash || "", /^[a-f0-9]{64}$/);
   assert.equal(JSON.stringify(fact).includes("private-interaction-handle"), false);
 });
+
+test("persists only allowlisted advertised capability families", () => {
+  const fact = projectTrackMCPFact(event({
+    event_type: "protocol",
+    mcp_method: "initialize",
+    payload: { _trackmcp: { capability_names: "tools,sampling,private_extension,io.modelcontextprotocol/tasks" } },
+  }));
+  assert.deepEqual(fact.dimensions.capability_families, ["tools", "sampling", "tasks"]);
+  assert.equal(JSON.stringify(fact).includes("private_extension"), false);
+});

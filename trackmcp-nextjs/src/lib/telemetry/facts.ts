@@ -1,5 +1,5 @@
 import { createHash } from "node:crypto";
-import { classifyTrackMCPOutcome, classifyTrackMCPProtocolSignal, protocolFamilyForMethod, type TrackMCPProtocolFamily, type TrackMCPSemanticOutcome } from "./semantic.ts";
+import { classifyTrackMCPOutcome, classifyTrackMCPProtocolSignal, protocolFamilyForCapabilityName, protocolFamilyForMethod, type TrackMCPProtocolFamily, type TrackMCPSemanticOutcome } from "./semantic.ts";
 import type { CanonicalTrackMCPEvent } from "./types.ts";
 
 /**
@@ -36,6 +36,8 @@ export type TrackMCPFact = {
     protocol_family?: ReturnType<typeof protocolFamilyForMethod>;
     /** Allowlisted protocol request/response role for durable friction metrics. */
     protocol_observation_kind?: "protocol_request" | "protocol_response";
+    /** Explicitly advertised capability families; never inferred from traffic. */
+    capability_families?: TrackMCPProtocolFamily[];
   };
   measures: {
     duration_ms?: number;
@@ -70,6 +72,16 @@ const protocolFamilyForEvent = (event: CanonicalTrackMCPEvent): TrackMCPProtocol
   return hinted === "sampling" || hinted === "elicitation" || hinted === "completion" || hinted === "tasks" || hinted === "control_signal" || hinted === "resources" || hinted === "prompts" || hinted === "tools" || hinted === "subscriptions" || hinted === "notifications" ? hinted : undefined;
 };
 
+const capabilityFamiliesForEvent = (event: CanonicalTrackMCPEvent): TrackMCPProtocolFamily[] => {
+  const payload = event.payload;
+  if (!payload || typeof payload !== "object" || Array.isArray(payload)) return [];
+  const metadata = payload._trackmcp;
+  const metadataRecord = metadata && typeof metadata === "object" && !Array.isArray(metadata) ? metadata as Record<string, unknown> : undefined;
+  const raw = metadataRecord?.capability_names ?? payload.capability_names;
+  const names = Array.isArray(raw) ? raw.filter((value): value is string => typeof value === "string") : typeof raw === "string" ? raw.split(",") : [];
+  return [...new Set(names.map((name) => protocolFamilyForCapabilityName(name)).filter((family): family is TrackMCPProtocolFamily => Boolean(family)))].slice(0, 16);
+};
+
 function factTypeFor(event: CanonicalTrackMCPEvent): TrackMCPFactType {
   if (event.event_type === "tool_call") return "activity";
   if (event.event_type === "workflow" || event.event_type === "session") return "outcome";
@@ -96,6 +108,7 @@ export function projectTrackMCPFact(event: CanonicalTrackMCPEvent): TrackMCPFact
   const completionValueCount = boundedNonNegative(typeof payloadMetadata?.completion_value_count === "number" ? payloadMetadata.completion_value_count : undefined, 32);
   const completionTotal = boundedNonNegative(typeof payloadMetadata?.completion_total === "number" ? payloadMetadata.completion_total : undefined, 1_000_000);
   const completionHasMore = typeof payloadMetadata?.completion_has_more === "boolean" ? payloadMetadata.completion_has_more : undefined;
+  const capabilityFamilies = capabilityFamiliesForEvent(event);
   const fact: TrackMCPFact = {
     fact_version: TRACKMCP_FACT_CONTRACT_VERSION,
     fact_type: factTypeFor(event),
@@ -118,6 +131,7 @@ export function projectTrackMCPFact(event: CanonicalTrackMCPEvent): TrackMCPFact
       ...(taskId ? { task_id_hash: createHash("sha256").update(taskId, "utf8").digest("hex") } : {}),
       ...(protocolFamilyForEvent(event) ? { protocol_family: protocolFamilyForEvent(event) } : {}),
       ...(observationKind ? { protocol_observation_kind: observationKind } : {}),
+      ...(capabilityFamilies.length ? { capability_families: capabilityFamilies } : {}),
     },
     measures: {
       duration_ms: boundedNonNegative(event.duration_ms, 86_400_000),

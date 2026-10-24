@@ -237,11 +237,13 @@ export function createAnalyticsHandler(getAdmin: typeof getSupabaseAdmin = getSu
 
   const events = ((data || []) as EventRow[]).filter((event) => event.observation_source === "server");
   const protocolFamilyCounts = new Map<string, number>();
-  const protocolFamilyOutcomes = new Map<string, { observations: number; requests: number; responses: number; matched: number; completed: number; errors: number; input_required: number; unknown: number }>();
+  const protocolFamilyOutcomes = new Map<string, { observations: number; requests: number; responses: number; matched: number; completed: number; errors: number; input_required: number; unknown: number; capability_advertised: boolean | null }>();
   const protocolFamilyHandles = new Map<string, { requests: Set<string>; responses: Set<string> }>();
+  const advertisedFamiliesByScope = new Map<string, Set<string>>();
+  const observedFamilyScopes = new Map<string, Set<string>>();
   const protocolFamilyEvents = (data || []) as EventRow[];
   const durableFactsResult = await supabase.from("trackmcp_semantic_facts")
-    .select("semantic,dimensions,measures,event_type,observed_at")
+    .select("semantic,dimensions,measures,event_type,observed_at,service,environment")
     .eq("workspace_id", workspaceId).gte("observed_at", since).limit(analyticsQueryLimit);
   const durableFamilyRows = durableFactsResult.error ? [] : ((durableFactsResult.data || []) as unknown[]).flatMap((row) => {
     if (!row || typeof row !== "object") return [];
@@ -258,9 +260,14 @@ export function createAnalyticsHandler(getAdmin: typeof getSupabaseAdmin = getSu
     if (!["completed", "failed", "pending", "unknown", "not_observable"].includes(outcome)) return [];
     const safeMeasures = measures && typeof measures === "object" && !Array.isArray(measures) ? measures as Record<string, unknown> : {};
     const safeDimensions = dimensions as Record<string, unknown>;
+    const capabilityFamilies = Array.isArray(safeDimensions.capability_families)
+      ? safeDimensions.capability_families.filter((value): value is string => typeof value === "string").slice(0, 16)
+      : [];
     return [{
       family,
       outcome,
+      scope_key: `${typeof record.service === "string" ? record.service.slice(0, 128) : "unknown"}:${typeof record.environment === "string" ? record.environment.slice(0, 64) : "unknown"}`,
+      capability_families: capabilityFamilies,
       signal: signal === "notification" || signal === "progress" || signal === "cancelled" || signal === "catalog_changed" || signal === "resource_changed" || signal === "subscription_started" || signal === "subscription_stopped" ? signal : undefined,
       observed_at: typeof record.observed_at === "string" ? record.observed_at : undefined,
       observation_kind: safeDimensions.protocol_observation_kind === "protocol_request" || safeDimensions.protocol_observation_kind === "protocol_response" ? safeDimensions.protocol_observation_kind : undefined,
@@ -285,9 +292,13 @@ export function createAnalyticsHandler(getAdmin: typeof getSupabaseAdmin = getSu
       && event.payload._trackmcp && typeof event.payload._trackmcp === "object" && !Array.isArray(event.payload._trackmcp)
       ? event.payload._trackmcp as Record<string, unknown>
       : undefined;
+    const rawCapabilities = metadata?.capability_names ?? (event.payload && typeof event.payload === "object" && !Array.isArray(event.payload) ? event.payload.capability_names : undefined);
+    const capabilityFamilies = (Array.isArray(rawCapabilities) ? rawCapabilities.filter((value): value is string => typeof value === "string") : typeof rawCapabilities === "string" ? rawCapabilities.split(",") : []).slice(0, 16);
     return [{
       family,
       outcome,
+      scope_key: `${event.service.slice(0, 128)}:${event.environment.slice(0, 64)}`,
+      capability_families: capabilityFamilies,
       observation_kind: metadata?.observation_kind === "protocol_request" || metadata?.observation_kind === "protocol_response" ? metadata.observation_kind : undefined,
       interaction_id_hash: typeof event.interaction_id === "string" ? createHash("sha256").update(event.interaction_id, "utf8").digest("hex") : undefined,
     }];
@@ -295,7 +306,18 @@ export function createAnalyticsHandler(getAdmin: typeof getSupabaseAdmin = getSu
   for (const row of protocolFamilySourceRows) {
     const { family, outcome } = row;
     protocolFamilyCounts.set(family, (protocolFamilyCounts.get(family) || 0) + 1);
-    const current = protocolFamilyOutcomes.get(family) || { observations: 0, requests: 0, responses: 0, matched: 0, completed: 0, errors: 0, input_required: 0, unknown: 0 };
+    const current = protocolFamilyOutcomes.get(family) || { observations: 0, requests: 0, responses: 0, matched: 0, completed: 0, errors: 0, input_required: 0, unknown: 0, capability_advertised: null };
+    const scopeKey = typeof row.scope_key === "string" ? row.scope_key : undefined;
+    if (scopeKey && Array.isArray(row.capability_families) && row.capability_families.length) {
+      const advertised = advertisedFamiliesByScope.get(scopeKey) || new Set<string>();
+      for (const capabilityFamily of row.capability_families) advertised.add(capabilityFamily);
+      advertisedFamiliesByScope.set(scopeKey, advertised);
+    }
+    if (scopeKey) {
+      const scopes = observedFamilyScopes.get(family) || new Set<string>();
+      scopes.add(scopeKey);
+      observedFamilyScopes.set(family, scopes);
+    }
     current.observations += 1;
     if (row.observation_kind === "protocol_request") current.requests += 1;
     if (row.observation_kind === "protocol_response") current.responses += 1;
@@ -313,6 +335,14 @@ export function createAnalyticsHandler(getAdmin: typeof getSupabaseAdmin = getSu
   for (const [family, handle] of protocolFamilyHandles) {
     const current = protocolFamilyOutcomes.get(family);
     if (current) current.matched = [...handle.requests].filter((value) => handle.responses.has(value)).length;
+  }
+  for (const [family, current] of protocolFamilyOutcomes) {
+    if (!advertisedFamiliesByScope.size) {
+      current.capability_advertised = null;
+      continue;
+    }
+    const scopes = observedFamilyScopes.get(family) || new Set<string>();
+    current.capability_advertised = [...scopes].some((scope) => advertisedFamiliesByScope.get(scope)?.has(family) === true);
   }
   const durableCompletionRows = durableFamilyRows.filter((row) => row.family === "completion");
   const durableCompletionEvidence = durableCompletionRows.some((row) => row.observation_kind === "protocol_request" || row.observation_kind === "protocol_response");
