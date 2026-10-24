@@ -378,6 +378,8 @@ test("Setup exposes a direct transport observer documentation CTA", () => {
   assert.match(setupSource, /href="\/docs\/go"/);
   assert.match(setupSource, /.NET server SDK/);
   assert.match(setupSource, /href="\/docs\/dotnet"/);
+  assert.match(setupSource, /Authentication and OAuth/);
+  assert.match(setupSource, /href="\/docs\/authentication"/);
   assert.match(setupSource, /Proxy or stdio launcher/);
   assert.match(setupSource, /Read transport boundaries/);
   assert.match(setupSource, /href="\/docs\/protocol"/);

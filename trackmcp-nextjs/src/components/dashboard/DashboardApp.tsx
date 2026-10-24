@@ -4798,6 +4798,15 @@ function SetupView({
               Run a bounded, read-only discovery check against a reachable MCP endpoint. The tester does not replace SDK instrumentation or prove customer authorization.
             </p>
           </div>
+          <div className="border border-line bg-paper p-4">
+            <div className="flex items-center justify-between gap-3">
+              <p className="text-sm font-semibold text-ink">Authentication and OAuth</p>
+              <a href="/docs/authentication" className="cursor-pointer text-xs font-semibold text-brand-strong hover:underline">Open guide <ArrowRight size={12} className="inline" /></a>
+            </div>
+            <p className="mt-1 text-xs leading-relaxed text-muted">
+              Keep dashboard sessions, telemetry keys, and customer MCP authorization separate. TrackMCP records bounded outcomes from your provider; it does not issue, exchange, or inspect OAuth tokens.
+            </p>
+          </div>
         </div>
       </details>
     </div>
