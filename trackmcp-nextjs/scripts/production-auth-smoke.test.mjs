@@ -7,6 +7,9 @@ const source = await readFile(new URL("./production-auth-smoke.mjs", import.meta
 test("authenticated production smoke is explicit, HTTPS-only, and secret-free in its report", () => {
   assert.match(source, /I_UNDERSTAND_PRODUCTION_AUTH_SMOKE/);
   assert.match(source, /parsed\.protocol !== "https:"/);
+  assert.match(source, /app\.trackmcp\.com/);
+  assert.match(source, /awsapprunner\.com/);
+  assert.match(source, /trustedHost/);
   assert.match(source, /workspace_scope_verified/);
   assert.match(source, /founderOsReadModels/);
   assert.match(source, /\/api\/v2\/protocol-activity/);
