@@ -42,6 +42,24 @@ The readiness percentage is based on 10 gates, not lines of code:
 
 Engineering evidence is complete for the deployed application path, bounded load/rollback, five-slice refresh checkpoint, all six Founder OS tabs, privacy/retention boundaries, and the current release record. The pilot is **not marked ready by percentage**: credentialed UAT, migration/rollback ownership, repeated worker SLO observations, distributed-rate-limit IAM, and explicitly partial protocol interoperability remain release-owner gates. Supabase usage is monitored operationally; no current overage is inferred from this ledger, and quota headroom is not silently treated as a completed pilot gate.
 
+## 2026-10-24 authenticated dashboard UAT checkpoint
+
+- [x] A direct authenticated browser inspection of `app.trackmcp.com/dashboard`
+  completed for the pilot account without recording credentials, workspace IDs,
+  or key values. Navigation reached Overview, Who's using it, What they're
+  doing, Resources & Prompts, Journey, Did it work, What's broken, Evidence,
+  and Setup; each surface rendered its intended heading/state and updated the
+  dashboard URL.
+- [x] Setup UAT showed the authenticated workspace envelope, first-event
+  evidence, active connection-key scope, TypeScript/Python/Go/.NET selectors,
+  documentation CTA, identity-resolver guidance, privacy/data-control
+  disclosures, and key lifecycle controls. The observed state correctly
+  described identity as unresolved and historical lag as non-health evidence.
+- [ ] This manual UAT does not substitute for the automated two-workspace
+  production smoke, cross-workspace negative authorization, or production key
+  lifecycle run; those remain open because the repository smoke secrets are not
+  configured.
+
 ## Latest checkpoint — 2026-10-20
 
 ### 2026-10-21 status check
