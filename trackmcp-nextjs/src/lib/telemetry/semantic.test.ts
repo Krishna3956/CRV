@@ -120,6 +120,7 @@ test("models MCP multi-round-trip result states without conflating stalls and er
 
 test("treats a modern task result handle as pending until task state is observed", () => {
   const result = classifyTrackMCPOutcome(event({ event_type: "tool_call", mcp_method: "tools/call", task_id: "task_1", result_type: "task" }));
+  assert.equal(result.scope, "task");
   assert.equal(result.outcome, "pending");
   assert.equal(result.reason, "task_pending");
   assert.equal(result.evidence_quality, "observed");
