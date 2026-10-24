@@ -35,6 +35,11 @@ test("joins task-producing tool calls to the tasks protocol family", () => {
   assert.equal(fact.dimensions.protocol_family, "tasks");
 });
 
+test("joins explicit task lifecycle signals to the tasks protocol family", () => {
+  const fact = projectTrackMCPFact(event({ event_type: "protocol", mcp_method: "notifications/progress", task_id: "task_1", task_status: "working" }));
+  assert.equal(fact.dimensions.protocol_family, "tasks");
+});
+
 test("persists allowlisted lifecycle signals in the durable semantic fact", () => {
   const fact = projectTrackMCPFact(event({ event_type: "protocol", mcp_method: "subscriptions/listen", success: true }));
   assert.equal(fact.fact_type, "lifecycle");

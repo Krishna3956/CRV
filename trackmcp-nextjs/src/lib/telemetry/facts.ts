@@ -67,7 +67,7 @@ const protocolFamilyForEvent = (event: CanonicalTrackMCPEvent): TrackMCPProtocol
   // A task-producing tools/call is an explicit Tasks extension observation,
   // even though its JSON-RPC method belongs to the tools family. Keep this
   // family aligned with task capability advertisements and lifecycle joins.
-  if (event.result_type === "task" && typeof event.task_id === "string" && event.task_id) return "tasks";
+  if (typeof event.task_id === "string" && event.task_id && (event.result_type === "task" || event.task_status)) return "tasks";
   const fromMethod = protocolFamilyForMethod(event.mcp_method);
   if (fromMethod) return fromMethod;
   const payload = event.payload;
