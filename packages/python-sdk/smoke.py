@@ -13,7 +13,7 @@ import threading
 from http.server import BaseHTTPRequestHandler, HTTPServer
 
 from trackmcp import TrackMCP, TrackMCPOptions
-from trackmcp.client import _catalog_observation
+from trackmcp.client import _catalog_observation, _entity_protocol_event, interaction_entity_observation
 
 
 class CaptureHandler(BaseHTTPRequestHandler):
@@ -77,6 +77,20 @@ def main() -> None:
                 "payload": {"_trackmcp": {"next_cursor_present": True}},
             }
         )
+        client.capture(_entity_protocol_event(
+            "resources/read",
+            interaction_entity_observation("resources/read", {"uri": "secret://private-read"}),
+            session_id="python-smoke-session",
+            success=True,
+            result={"contents": [{"text": "private-resource-content"}]},
+        ))
+        client.capture(_entity_protocol_event(
+            "prompts/get",
+            interaction_entity_observation("prompts/get", {"name": "private-prompt"}),
+            session_id="python-smoke-session",
+            success=True,
+            result={"messages": [{"content": "private-prompt-message"}], "resultType": "complete"},
+        ))
         client.record_transport_failure(
             "transport_error", session_id="python-smoke-session", duration_ms=12
         )
@@ -92,17 +106,25 @@ def main() -> None:
         "secret://private-resource",
         "secret://second-resource",
         "private-cursor",
+        "secret://private-read",
+        "private-resource-content",
+        "private-prompt",
+        "private-prompt-message",
     ):
         if marker in body:
             fail(f"private catalog value crossed the event boundary: {marker}")
     events = CaptureHandler.payload.get("events", []) if CaptureHandler.payload else []
-    if len(events) != 3:
+    if len(events) != 5:
         fail("unexpected event envelope")
     if events[0].get("direction") != "client_to_server" or events[0].get("event_type") != "protocol":
         fail("protocol signal direction was not preserved")
     if events[1].get("catalog_kind") != "resources" or events[1].get("event_type") != "catalog":
         fail("catalog observation was not emitted")
-    if events[2].get("error_class") != "transport_error" or events[2].get("event_type") != "session":
+    if events[2].get("catalog_kind") != "resources" or events[2].get("mcp_method") != "resources/read" or events[2].get("catalog_item_count") != 1:
+        fail("resource entity-read metadata was not emitted")
+    if events[3].get("catalog_kind") != "prompts" or events[3].get("mcp_method") != "prompts/get" or events[3].get("result_type") != "complete":
+        fail("prompt entity-read metadata was not emitted")
+    if events[4].get("error_class") != "transport_error" or events[4].get("event_type") != "session":
         fail("transport failure metadata was not emitted")
     print("Python TrackMCP runtime smoke passed")
 
