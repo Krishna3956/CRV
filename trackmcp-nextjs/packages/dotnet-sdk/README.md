@@ -28,6 +28,9 @@ allowlisted signals (`progress`, `cancelled`, `catalog_changed`,
 `subscription_stopped`). It records only the signal and method metadata;
 progress values, cancellation reasons, subscription identifiers, URIs, and
 payloads are never accepted.
+The optional `direction` argument defaults to `server_to_client`; pass
+`client_to_server` for an inbound cancellation or other client-originated
+notification. Invalid directions are ignored.
 
 For MRTR/task responses, call `RecordProtocolResult` with the bounded
 `JsonObject` result. It emits only the allowlisted result discriminator, task

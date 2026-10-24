@@ -355,14 +355,16 @@ class TrackMCP:
         method: str,
         *,
         session_id: Optional[str] = None,
+        direction: str = "server_to_client",
     ) -> None:
         """Record an allowlisted protocol notification without payload values."""
         allowed = {"progress", "cancelled", "catalog_changed", "resource_changed", "prompt_changed", "subscription_started", "subscription_stopped"}
-        if signal not in allowed or not isinstance(method, str) or not method or len(method) > 128 or any(ord(char) < 32 or ord(char) == 127 for char in method):
+        if signal not in allowed or direction not in ("server_to_client", "client_to_server") or not isinstance(method, str) or not method or len(method) > 128 or any(ord(char) < 32 or ord(char) == 127 for char in method):
             return
         self.capture({
             "event_type": "protocol",
             "mcp_method": method,
+            "direction": direction,
             "session_id": session_id or "transport-session",
             "started_at": _iso_now(),
             "success": True,

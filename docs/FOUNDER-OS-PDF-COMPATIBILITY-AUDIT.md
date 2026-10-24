@@ -62,6 +62,15 @@ names, URIs, schemas, descriptions, and payloads remain excluded. This closes
 the SDK parity gap without claiming transport-owned pagination or production
 UAT.
 
+### Explicit protocol signal direction
+
+Protocol-signal APIs across TypeScript, Python, Go, and .NET now validate and
+retain only the bounded direction values `server_to_client` and
+`client_to_server`. This prevents an inbound cancellation from being
+misreported as a server notification while keeping request IDs, reasons, and
+payload values out of telemetry. Transport-specific runtime fixtures and
+production UAT remain separate evidence gates.
+
 ## Remaining PDF gaps
 
 These are deliberately not represented as complete merely because a route or field exists:

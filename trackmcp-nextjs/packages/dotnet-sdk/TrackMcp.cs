@@ -73,11 +73,11 @@ public sealed class TrackMcpClient : IDisposable
 
     public TrackMcpClient(TrackMcpOptions options, HttpClient? httpClient = null) { _options = options; _http = httpClient ?? new HttpClient(); }
 
-    public void Capture(string eventType, string method, object? payload = null, string? sessionId = null, bool? success = null, long? durationMs = null, string? toolName = null, string? resultType = null, string? taskStatus = null, int? inputRequestCount = null, int? inputResponseCount = null, string? catalogKind = null, int? catalogItemCount = null, IReadOnlyList<string>? catalogItemNameHashes = null, IReadOnlyList<string>? catalogItemUriHashes = null)
+    public void Capture(string eventType, string method, object? payload = null, string? sessionId = null, bool? success = null, long? durationMs = null, string? toolName = null, string? resultType = null, string? taskStatus = null, int? inputRequestCount = null, int? inputResponseCount = null, string? catalogKind = null, int? catalogItemCount = null, IReadOnlyList<string>? catalogItemNameHashes = null, IReadOnlyList<string>? catalogItemUriHashes = null, string? direction = null)
     {
         if (string.IsNullOrWhiteSpace(_options.ApiKey)) return;
         var account = ResolveAccount();
-        var item = new Dictionary<string, object?> { ["event_id"] = Guid.NewGuid().ToString(), ["event_type"] = eventType, ["service"] = _options.Service, ["environment"] = _options.Environment, ["mcp_method"] = method, ["session_id"] = sessionId, ["tool_name"] = toolName, ["started_at"] = DateTimeOffset.UtcNow.ToString("O"), ["duration_ms"] = durationMs, ["success"] = success, ["is_error"] = success is false, ["result_type"] = resultType, ["task_status"] = taskStatus, ["input_request_count"] = inputRequestCount, ["input_response_count"] = inputResponseCount, ["catalog_kind"] = catalogKind, ["catalog_item_count"] = catalogItemCount, ["catalog_item_name_hashes"] = catalogItemNameHashes, ["catalog_item_uri_hashes"] = catalogItemUriHashes, ["account_key"] = account.Key, ["account_identity_source"] = account.Source, ["payload"] = SanitizePayload(payload), ["server_version"] = _options.ServerVersion, ["sdk_version"] = _options.SdkVersion, ["deployment_id"] = _options.DeploymentId };
+        var item = new Dictionary<string, object?> { ["event_id"] = Guid.NewGuid().ToString(), ["event_type"] = eventType, ["service"] = _options.Service, ["environment"] = _options.Environment, ["direction"] = direction, ["mcp_method"] = method, ["session_id"] = sessionId, ["tool_name"] = toolName, ["started_at"] = DateTimeOffset.UtcNow.ToString("O"), ["duration_ms"] = durationMs, ["success"] = success, ["is_error"] = success is false, ["result_type"] = resultType, ["task_status"] = taskStatus, ["input_request_count"] = inputRequestCount, ["input_response_count"] = inputResponseCount, ["catalog_kind"] = catalogKind, ["catalog_item_count"] = catalogItemCount, ["catalog_item_name_hashes"] = catalogItemNameHashes, ["catalog_item_uri_hashes"] = catalogItemUriHashes, ["account_key"] = account.Key, ["account_identity_source"] = account.Source, ["payload"] = SanitizePayload(payload), ["server_version"] = _options.ServerVersion, ["sdk_version"] = _options.SdkVersion, ["deployment_id"] = _options.DeploymentId };
         lock (_gate) { _queue.Add(item); }
     }
 
@@ -163,9 +163,9 @@ public sealed class TrackMcpClient : IDisposable
 
     /// <summary>Records one allowlisted protocol notification without payload values.</summary>
     /// <remarks>Progress values, cancellation reasons, URIs, and caller data are never accepted.</remarks>
-    public void RecordProtocolSignal(string signal, string method, string? sessionId = null)
+    public void RecordProtocolSignal(string signal, string method, string? sessionId = null, string direction = "server_to_client")
     {
-        if (!ProtocolSignals.Contains(signal) || string.IsNullOrWhiteSpace(method) || method.Length > 128 || method.Any(char.IsControl)) return;
+        if (!ProtocolSignals.Contains(signal) || (direction is not ("server_to_client" or "client_to_server")) || string.IsNullOrWhiteSpace(method) || method.Length > 128 || method.Any(char.IsControl)) return;
         Capture("protocol", method, new Dictionary<string, object?>
         {
             ["_trackmcp"] = new Dictionary<string, object?>
@@ -173,7 +173,7 @@ public sealed class TrackMcpClient : IDisposable
                 ["observation_kind"] = "protocol_notification",
                 ["protocol_signal"] = signal
             }
-        }, BoundSessionId(sessionId), true);
+        }, BoundSessionId(sessionId), true, direction: direction);
     }
 
     /// <summary>Records one bounded catalog page using hashes/counts only.</summary>

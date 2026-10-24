@@ -18,6 +18,11 @@ This supports privacy-safe unique-read counts while the dashboard continues to
 label entity-level history and read outcomes as limited until durable joins are
 available.
 
+Protocol notifications can be recorded with `client.record_protocol_signal`.
+The optional `direction` defaults to `server_to_client` and accepts
+`client_to_server` for inbound cancellation; only the allowlisted signal,
+direction, and method metadata are retained.
+
 Events emitted by this server SDK carry `observation_source="server"`. The
 P1-04 Node client transport wrapping is TypeScript-only. The Python server
 wrapper cannot infer whether the host is stdio or Streamable HTTP, so pass the
