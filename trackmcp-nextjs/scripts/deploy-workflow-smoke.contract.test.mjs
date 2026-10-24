@@ -10,6 +10,8 @@ test("App Runner deployment performs a redacted read-only smoke after RUNNING", 
   assert.match(workflow, /deadline=\$\(\(SECONDS \+ 1200\)\)/);
   assert.match(workflow, /while \(\( SECONDS < deadline \)\); do/);
   assert.match(workflow, /timeout 30s aws apprunner start-deployment/);
+  assert.match(workflow, /timeout 15m docker build/);
+  assert.match(workflow, /timeout 10m docker push/);
   assert.match(workflow, /timeout 30s aws apprunner list-operations/);
   assert.match(workflow, /timeout 30s aws apprunner describe-service/);
   assert.match(workflow, /actions\/setup-node@v4/);
