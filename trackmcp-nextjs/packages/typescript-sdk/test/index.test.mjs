@@ -80,11 +80,13 @@ test("records allowlisted protocol signals without notification payloads", async
   const wrapped = withTrackMCP({ async request() { return {}; } }, { apiKey: "tmcp_test", endpoint: `http://127.0.0.1:${server.address().port}`, disabled: false, flushIntervalMs: 60000 });
   wrapped.trackmcp.recordProtocolSignal("progress", "notifications/progress", "session-1");
   wrapped.trackmcp.recordProtocolSignal("cancelled", "notifications/cancelled", "session-1");
+  wrapped.trackmcp.recordProtocolSignal("subscription_started", "resources/subscribe", "session-1");
+  wrapped.trackmcp.recordProtocolSignal("subscription_stopped", "resources/unsubscribe", "session-1");
   await wrapped.trackmcp.flush();
   await new Promise((resolve) => setTimeout(resolve, 20));
   server.close();
   const events = received.flatMap((batch) => batch.events);
-  assert.deepEqual(events.map((event) => event.payload._trackmcp.protocol_signal), ["progress", "cancelled"]);
+  assert.deepEqual(events.map((event) => event.payload._trackmcp.protocol_signal), ["progress", "cancelled", "subscription_started", "subscription_stopped"]);
   assert.equal(JSON.stringify(events).includes("progress_value"), false);
   assert.equal(JSON.stringify(events).includes("reason"), false);
 });

@@ -357,7 +357,7 @@ class TrackMCP:
         session_id: Optional[str] = None,
     ) -> None:
         """Record an allowlisted protocol notification without payload values."""
-        allowed = {"progress", "cancelled", "catalog_changed", "resource_changed", "prompt_changed"}
+        allowed = {"progress", "cancelled", "catalog_changed", "resource_changed", "prompt_changed", "subscription_started", "subscription_stopped"}
         if signal not in allowed or not isinstance(method, str) or not method or len(method) > 128 or any(ord(char) < 32 or ord(char) == 127 for char in method):
             return
         self.capture({

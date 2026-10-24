@@ -33,6 +33,16 @@ The ingest projection writes the new fields to `trackmcp_events`; the correspond
 
 The migration is additive, has no backfill, and stores no raw protocol input.
 
+### Cross-language subscription signal parity
+
+The TypeScript, Python, Go, and .NET SDKs now expose the same bounded
+`subscription_started` and `subscription_stopped` signal vocabulary for
+legacy resource subscriptions and modern subscription streams. The APIs accept
+only the signal and method metadata; subscription identifiers, resource URIs,
+notification contents, and payload values are never captured. This improves
+exporter parity but does not turn the signals into a durable subscription
+entity or claim replay/reconnect ownership.
+
 ## Remaining PDF gaps
 
 These are deliberately not represented as complete merely because a route or field exists:
@@ -52,7 +62,9 @@ The current implementation can safely support a protocol-aware observability fou
 
 ## Verification
 
-- TypeScript check passed after the contract changes.
+- TypeScript and Python SDK checks passed after the cross-language signal
+  parity changes; Go and .NET source contracts are covered by the hosted
+  package gate.
 - Semantic, validation, and fact projection tests passed (19 tests).
 - `git diff --check` passed.
 - No SQL was executed.

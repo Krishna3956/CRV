@@ -123,7 +123,7 @@ class TrackMCPClientTest(TestCase):
     def test_transport_failure_is_metadata_only_and_bounded(self):
         client = TrackMCP(TrackMCPOptions(api_key="tmcp_test", disabled=False, flush_interval_ms=60000))
         client.record_transport_failure("transport_closed", session_id="session-1", duration_ms=12)
-        event = client._events[-1]
+        event = client._events[0]
         self.assertEqual(event["event_type"], "session")
         self.assertEqual(event["mcp_method"], "transport")
         self.assertEqual(event["error_class"], "transport_closed")
@@ -137,10 +137,14 @@ class TrackMCPClientTest(TestCase):
     def test_protocol_signal_is_allowlisted_and_metadata_only(self):
         client = TrackMCP(TrackMCPOptions(api_key="tmcp_test", disabled=False, flush_interval_ms=60000))
         client.record_protocol_signal("progress", "notifications/progress", session_id="session-1")
-        event = client._events[-1]
+        client.record_protocol_signal("subscription_started", "resources/subscribe", session_id="session-1")
+        client.record_protocol_signal("subscription_stopped", "resources/unsubscribe", session_id="session-1")
+        event = client._events[0]
         self.assertEqual(event["event_type"], "protocol")
         self.assertEqual(event["mcp_method"], "notifications/progress")
         self.assertEqual(event["payload"]["_trackmcp"]["protocol_signal"], "progress")
+        self.assertEqual(client._events[1]["payload"]["_trackmcp"]["protocol_signal"], "subscription_started")
+        self.assertEqual(client._events[2]["payload"]["_trackmcp"]["protocol_signal"], "subscription_stopped")
         self.assertNotIn("progress_value", json.dumps(event))
         count = len(client._events)
         client.record_protocol_signal("raw", "notifications/progress")

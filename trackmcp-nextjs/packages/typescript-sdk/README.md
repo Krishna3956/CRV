@@ -179,8 +179,9 @@ server.trackmcp.workflow("issue_resolution", "completed", { issue_type: "bug" })
 
 Protocol notifications can be recorded without values through
 `server.trackmcp.recordProtocolSignal(signal, method, sessionId)`. Signals are
-limited to `progress`, `cancelled`, `catalog_changed`, `resource_changed`, and
-`prompt_changed`; progress values, cancellation reasons, URIs, and payloads
+limited to `progress`, `cancelled`, `catalog_changed`, `resource_changed`,
+`prompt_changed`, `subscription_started`, and `subscription_stopped`; progress
+values, cancellation reasons, subscription identifiers, URIs, and payloads
 are not accepted.
 
 Intent and capability gaps are explicit, bounded signals. Compatible TypeScript
