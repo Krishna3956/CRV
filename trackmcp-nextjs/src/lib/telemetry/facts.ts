@@ -64,6 +64,10 @@ const boundedNonNegative = (value: number | undefined, max: number): number | un
   typeof value === "number" && Number.isFinite(value) ? Math.min(max, Math.max(0, value)) : undefined;
 
 const protocolFamilyForEvent = (event: CanonicalTrackMCPEvent): TrackMCPProtocolFamily | undefined => {
+  // A task-producing tools/call is an explicit Tasks extension observation,
+  // even though its JSON-RPC method belongs to the tools family. Keep this
+  // family aligned with task capability advertisements and lifecycle joins.
+  if (event.result_type === "task" && typeof event.task_id === "string" && event.task_id) return "tasks";
   const fromMethod = protocolFamilyForMethod(event.mcp_method);
   if (fromMethod) return fromMethod;
   const payload = event.payload;
