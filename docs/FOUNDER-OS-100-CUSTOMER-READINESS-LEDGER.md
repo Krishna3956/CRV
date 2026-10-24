@@ -841,3 +841,16 @@ a failed product gate or a Supabase plan warning.
   App Runner deployment for the preceding Go smoke milestone also passed.
 - [ ] Transport-specific credentialed production UAT and the remaining partial
   protocol rows remain required external evidence gates.
+
+## 2026-10-24 Python catalog payload privacy checkpoint
+
+- [x] Removed raw tool names, descriptions, and schemas from Python
+  `tools/list` event payloads in both the official middleware and the legacy
+  compatibility wrapper. Local in-memory catalog metadata remains available
+  for same-process tool-quality enrichment; serialized telemetry is now
+  hash/count-only as documented.
+- [x] Python regression coverage asserts raw catalog markers are absent while
+  SHA-256 identity hashes remain present. Python passed 28/28, the complete
+  release gate passed 128 suites, and lint passed.
+- [ ] Authenticated production privacy UAT and the remaining partial protocol
+  rows remain external evidence gates.

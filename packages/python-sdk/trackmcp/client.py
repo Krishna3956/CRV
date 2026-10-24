@@ -606,9 +606,9 @@ class _TrackMCPMiddleware:
                 self.client.capture(_event(tool_name, {"args": arguments}, started, result_data, None, self.client_name, session_id, request_id, self.client_version, metadata, session_id_source))
             elif method in ("tools/list", "resources/list", "resources/templates/list", "prompts/list"):
                 catalog_type = method.replace("/list", "")
-                tools = self.client.record_catalog(result_data)
+                self.client.record_catalog(result_data)
                 observation = _catalog_observation(catalog_type, result_data)
-                payload = {"name": f"{catalog_type}_discovered", "tools": tools} if catalog_type == "tools" else {"name": f"{catalog_type}_discovered"}
+                payload = {"name": f"{catalog_type}_discovered"}
                 self.client.capture({"event_type": "catalog", "mcp_method": method, "request_id": request_id, "session_id": session_id, "session_id_source": session_id_source, "client_name": self.client_name, "client_version": self.client_version, "started_at": _iso_from_epoch(started), "duration_ms": round((time.time() - started) * 1000), "success": not is_error, "is_error": is_error, **observation, "payload": payload})
             elif (entity := interaction_entity_observation(method, params)):
                 self.client.capture(_entity_protocol_event(method, entity, request_id=request_id, session_id=session_id, session_id_source=session_id_source, client_name=self.client_name, client_version=self.client_version, started=started, success=not is_error, result=result_data))
@@ -727,9 +727,9 @@ class _Wrapped:
                                 self.lifecycle_ended = True
                             if method in ("tools/list", "resources/list", "resources/templates/list", "prompts/list"):
                                 catalog_type = method.replace("/list", "")
-                                tools = client.record_catalog(value)
+                                client.record_catalog(value)
                                 observation = _catalog_observation(catalog_type, value)
-                                payload = {"name": f"{catalog_type}_discovered", "tools": tools} if catalog_type == "tools" else {"name": f"{catalog_type}_discovered"}
+                                payload = {"name": f"{catalog_type}_discovered"}
                                 client.capture({"event_type": "catalog", "mcp_method": method, "session_id": self.transport_session_id, "session_id_source": "transport_generated", "client_name": self.client_name, "client_version": self.client_version, "started_at": _iso_from_epoch(started), "duration_ms": round((time.time() - started) * 1000), "success": True, "is_error": False, **observation, "payload": payload})
                             elif (signal := _protocol_signal_for_method(method)):
                                 client.record_protocol_signal(signal, method, session_id=self.transport_session_id, direction="client_to_server")
@@ -760,9 +760,9 @@ class _Wrapped:
                         self._emit_session_boundary("session_ended", True, round((time.time() - started) * 1000))
                         self.lifecycle_ended = True
                     catalog_type = method.replace("/list", "")
-                    tools = client.record_catalog(result)
+                    client.record_catalog(result)
                     observation = _catalog_observation(catalog_type, result)
-                    payload = {"name": f"{catalog_type}_discovered", "tools": tools} if catalog_type == "tools" else {"name": f"{catalog_type}_discovered"}
+                    payload = {"name": f"{catalog_type}_discovered"}
                     client.capture({"event_type": "catalog", "mcp_method": method, "session_id": self.transport_session_id, "session_id_source": "transport_generated", "client_name": self.client_name, "client_version": self.client_version, "started_at": _iso_from_epoch(started), "duration_ms": round((time.time() - started) * 1000), "success": True, "is_error": False, **observation, "payload": payload})
                 elif (signal := _protocol_signal_for_method(method)):
                     client.record_protocol_signal(signal, method, session_id=self.transport_session_id, direction="client_to_server")
