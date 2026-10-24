@@ -49,3 +49,11 @@ test("connection-key creation exposes optional service and environment scopes", 
   assert.match(source, /Key scope is too long/);
   assert.match(source, /service_scope, environment_scope/);
 });
+
+test("scope validation completes before membership and profile persistence", () => {
+  const validation = source.indexOf("Key scope is too long");
+  const membershipRead = source.indexOf("membershipsResult");
+  const profileWrite = source.indexOf("trackmcp_profiles");
+  assert.ok(validation > -1 && validation < membershipRead);
+  assert.ok(validation < profileWrite);
+});
