@@ -476,11 +476,12 @@ test("protocol outcomes disclose hash-only matched request/response pairs", () =
 test("Capabilities exposes bounded modern protocol outcome states", () => {
   assert.match(source, /protocol_family_outcomes/);
   assert.match(source, /Modern protocol outcomes/);
+  assert.match(source, />Advertised</);
   assert.match(source, />Requests</);
   assert.match(source, />Responses</);
   assert.match(source, /Requests and responses are counted from explicit metadata roles/);
   assert.match(source, />Completed</);
-  assert.match(source, /Unknown is retained when no explicit terminal result exists/);
+  assert.match(source, /N\/A means no capability advertisement was observed/);
   assert.match(source, /Evidence source:/);
 });
 

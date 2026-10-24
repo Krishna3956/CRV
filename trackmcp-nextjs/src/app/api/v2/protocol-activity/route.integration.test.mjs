@@ -26,8 +26,8 @@ test("protocol activity keeps family counts and provenance bounded", async () =>
     { family: "sampling", observations: 2 },
   ]);
   assert.deepEqual(body.protocol_family_outcomes, [
-    { family: "tasks", observations: 3, requests: 0, responses: 0, matched: 0, completed: 1, errors: 1, input_required: 0, unknown: 1 },
-    { family: "sampling", observations: 2, requests: 0, responses: 0, matched: 0, completed: 1, errors: 0, input_required: 1, unknown: 0 },
+    { family: "tasks", observations: 3, requests: 0, responses: 0, matched: 0, completed: 1, errors: 1, input_required: 0, unknown: 1, capability_advertised: null },
+    { family: "sampling", observations: 2, requests: 0, responses: 0, matched: 0, completed: 1, errors: 0, input_required: 1, unknown: 0, capability_advertised: null },
   ]);
   assert.equal(body.protocol_family_outcome_source, "durable_facts");
   assert.ok(body.caveats.some((caveat) => caveat.includes("Completed is an explicit protocol result")));
