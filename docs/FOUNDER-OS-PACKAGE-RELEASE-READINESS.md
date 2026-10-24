@@ -3,7 +3,24 @@
 This is a review record, not a publication action. No registry credentials are
 used here and no package is published automatically.
 
-## Current registry reconciliation (2026-10-24)
+## Current registry reconciliation (2026-10-25)
+
+The coordinated release train from source head `6d1b72c1aa731ec7c580f4b7911827b205a66524`
+was published and verified by workflow `40129661973`:
+
+| Package | Published version | Evidence |
+| --- | --- | --- |
+| `@trackmcp/sdk` | `0.1.16` | npm HTTP 200, SHA-512 integrity `sha512-MLmVkSOf1pmm24YGcYEsgiKZG3h/t61AKWYA7aOuJceUVMFUU1W3FNweknv4n+hv1cGw/W5jW4Cilk9oZHx8KQ==`; tarball `https://registry.npmjs.org/@trackmcp/sdk/-/sdk-0.1.16.tgz`; workflow uploaded provenance |
+| `@trackmcp/cli` | `0.1.7` | npm HTTP 200, SHA-512 integrity `sha512-HzQXZAnr8oBrHFEyW5PlvgUQI8YMKvEpvKheYQzK18DBGweW8uusTui5F6EvLcp3wglkEorK7ZkvdffYS7D69Q==`; tarball `https://registry.npmjs.org/@trackmcp/cli/-/cli-0.1.7.tgz`; workflow uploaded provenance |
+| `trackmcp` | `0.1.9` | PyPI HTTP 200; wheel SHA-256 `10ef4e54412de71994eab49900db7732123d08b158f764e86cdf4c58bd27f59f`; sdist SHA-256 `89f554dbe3773ab5db90c54e50fe3c004814f86b2faae595d7cbb8b8b7c7e680`; workflow uploaded provenance |
+
+The publication workflow completed successfully, including registry verification,
+sequential publication, provenance attestation, and clean-consumer checks. This
+closes package publication for this source train; authenticated production
+activation, first-event UAT, rollback rehearsal, and runtime SLO evidence remain
+separate operational gates.
+
+## Previous registry reconciliation (2026-10-24)
 
 The coordinated release train from source head `108d3f2` is published and
 verified by workflow `40115875394`:
@@ -35,7 +52,7 @@ credentialed first-event or activation result.
 | `trackmcp` | `packages/python-sdk/pyproject.toml` | unittest suite and build metadata audit | `.github/workflows/publish.yml`, `python` |
 
 The current local source manifests match the published coordinated train:
-`@trackmcp/sdk` `0.1.15`, `@trackmcp/cli` `0.1.6`, and `trackmcp` `0.1.8`.
+`@trackmcp/sdk` `0.1.16`, `@trackmcp/cli` `0.1.7`, and `trackmcp` `0.1.9`.
 The release gate and single `all` publication workflow completed successfully;
 the immutable prior baseline remains in the historical tables below.
 They were selected after a registry preflight found the immediately preceding
