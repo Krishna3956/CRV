@@ -50,8 +50,12 @@ export function buildCatalogEntityReadWrites(workspaceId: string, rows: readonly
   const writes: CatalogEntityReadWrite[] = [];
   for (const row of rows) {
     const eventId = text(row.event_id, 128);
-    const kind = row.catalog_kind === "resources" || row.catalog_kind === "prompts" ? row.catalog_kind : null;
     const method = row.mcp_method;
+    const explicitKind = row.catalog_kind === "resources" || row.catalog_kind === "prompts" ? row.catalog_kind : null;
+    // Historical rows may predate the optional catalog_kind field. Recover
+    // only from the allowlisted read method; never inspect payload content.
+    const inferredKind = method === "resources/read" ? "resources" : method === "prompts/get" ? "prompts" : null;
+    const kind = explicitKind || inferredKind;
     if (!eventId || !kind || (kind === "resources" && method !== "resources/read") || (kind === "prompts" && method !== "prompts/get")) continue;
     const candidates = kind === "resources" ? hashes(row.catalog_item_uri_hashes) : hashes(row.catalog_item_name_hashes);
     if (candidates.length !== 1) continue;
