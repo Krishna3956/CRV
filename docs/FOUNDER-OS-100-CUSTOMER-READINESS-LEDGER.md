@@ -740,6 +740,32 @@ a failed product gate or a Supabase plan warning.
 - [ ] Rendered production browser inspection and authenticated dashboard UAT
   remain separate evidence gates; source contracts do not substitute for
   those runtime checks.
+
+## 2026-10-24 readiness reconciliation — Setup, privacy, and deployment evidence
+
+- [x] Setup now exposes the active connection-key service/environment scope and
+  warns when the latest event labels do not match it (`242cc44`). The API
+  remains secret-free and workspace-scoped.
+- [x] Setup provides direct, pointer-enabled documentation paths for the Go and
+  .NET source SDKs (`d8eb7ca`) and for the customer-owned Authentication/OAuth
+  boundary (`56c4072`). The UI does not imply NuGet publication or TrackMCP
+  OAuth token issuance/exchange.
+- [x] Setup privacy controls link to the bounded privacy reference and expose
+  explicit pointer affordances for export and review-only deletion
+  (`d095859`). Disabled deletion submission is visibly non-clickable.
+- [x] Each milestone passed the dashboard contracts (58/58), docs navigation
+  contracts (4/4 where applicable), lint, the 128-suite release gate, and a
+  176-route production build. Hosted Go/.NET/web checks passed for each PR;
+  exact-SHA App Runner deployments `40073105217`, `40074149294`, and
+  `40075157033` passed health, read-only smoke, runtime-safety, and redacted
+  evidence checks.
+- [ ] Credentialed two-workspace UAT, production key lifecycle and
+  cross-workspace negative authorization, migration-history/rollback evidence,
+  repeated worker freshness/SLO observations, distributed-rate-limit IAM, and
+  authenticated protocol interoperability remain explicit external gates.
+- [ ] Protocol-matrix rows marked Partial or Unsupported remain so until their
+  documented production/interoperability evidence exists; no UI or release
+  note treats local fixtures as proof of those gates.
 - [x] Hosted TrackMCP CI run `39768614817` passed the Go, .NET, web, CLI,
   Python, and packed-consumer lanes for the ledger checkpoint. No package
   publication or SDK version change was triggered.
