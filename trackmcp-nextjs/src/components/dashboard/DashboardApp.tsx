@@ -4750,6 +4750,24 @@ function SetupView({
           </div>
           <div className="border border-line bg-paper p-4">
             <div className="flex items-center justify-between gap-3">
+              <p className="text-sm font-semibold text-ink">Go server SDK</p>
+              <a href="/docs/go" className="cursor-pointer text-xs font-semibold text-brand-strong hover:underline">Open guide <ArrowRight size={12} className="inline" /></a>
+            </div>
+            <p className="mt-1 text-xs leading-relaxed text-muted">
+              Add bounded, fail-open telemetry at your Go MCP middleware or transport boundary. The guide includes source-package installation, flush, identity, and transport-failure examples.
+            </p>
+          </div>
+          <div className="border border-line bg-paper p-4">
+            <div className="flex items-center justify-between gap-3">
+              <p className="text-sm font-semibold text-ink">.NET server SDK</p>
+              <a href="/docs/dotnet" className="cursor-pointer text-xs font-semibold text-brand-strong hover:underline">Open guide <ArrowRight size={12} className="inline" /></a>
+            </div>
+            <p className="mt-1 text-xs leading-relaxed text-muted">
+              Instrument an ASP.NET or .NET MCP boundary with bounded, fail-open capture. The guide covers source-reference setup, flush, identity, and transport-failure handling.
+            </p>
+          </div>
+          <div className="border border-line bg-paper p-4">
+            <div className="flex items-center justify-between gap-3">
               <p className="text-sm font-semibold text-ink">OpenTelemetry</p>
               <a href="/docs/opentelemetry" className="cursor-pointer text-xs font-semibold text-brand-strong hover:underline">Open guide <ArrowRight size={12} className="inline" /></a>
             </div>
