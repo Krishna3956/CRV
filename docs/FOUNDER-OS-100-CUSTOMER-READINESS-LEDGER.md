@@ -903,3 +903,15 @@ a failed product gate or a Supabase plan warning.
 - [x] This closes deployment evidence for the candidate only. Authenticated
   two-workspace UAT, production key lifecycle, and transport-specific protocol
   interoperability remain open evidence gates.
+
+## 2026-10-24 authenticated-smoke provenance checkpoint
+
+- [x] The manual authenticated production smoke workflow now accepts an
+  optional immutable `release_ref`, validates a full 40-character commit SHA,
+  fetches and checks out that exact revision, and records the resolved SHA in
+  the job environment before running the read-only checks.
+- [x] Workflow and smoke contract tests pass; the full release gate passes 128
+  suites, lint passes, and the 176-route production build passes.
+- [ ] Credentialed production execution remains external: repository secrets
+  are still required before the workflow can verify two-workspace authorization
+  and key lifecycle behavior against the deployed origin.
