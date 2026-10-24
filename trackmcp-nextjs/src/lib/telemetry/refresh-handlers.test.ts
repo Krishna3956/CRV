@@ -80,6 +80,31 @@ test("fact projection selects bounded metadata and persists semantic facts", asy
   assert.equal((writes[0]?.rows[0] as { payload?: unknown }).payload, undefined);
 });
 
+test("fact projection persists server protocol request and response roles for durable analytics", async () => {
+  const events = [
+    {
+      event_id: "protocol-request-1", event_type: "protocol", service: "demo", environment: "prod",
+      started_at: "2026-01-01T00:00:00.000Z", mcp_method: "elicitation/create", success: true, is_error: false,
+      payload: { name: "protocol_request_observed", _trackmcp: { observation_kind: "protocol_request", observation_source: "server" } },
+    },
+    {
+      event_id: "protocol-response-1", event_type: "protocol", service: "demo", environment: "prod",
+      started_at: "2026-01-01T00:00:01.000Z", mcp_method: "elicitation/create", result_type: "input_required", input_request_count: 1, input_response_count: 0, success: true, is_error: false,
+      payload: { name: "protocol_response_observed", _trackmcp: { observation_kind: "protocol_response", observation_source: "server" }, private_result: "never-persist" },
+    },
+  ];
+  const { admin, writes } = fakeAdmin(events);
+  const handler = createRefreshJobHandlers(admin as never).fact_projection;
+  assert.ok(handler);
+  assert.deepEqual(await handler({ job: baseJob("fact_projection"), now: new Date() }), { outcome: "succeeded" });
+  const rows = writes.find((write) => write.table === "trackmcp_semantic_facts")?.rows as Array<{ dimensions?: Record<string, unknown>; measures?: Record<string, unknown>; payload?: unknown }>;
+  assert.equal(rows.length, 2);
+  assert.deepEqual(rows.map((row) => row.dimensions?.protocol_observation_kind), ["protocol_request", "protocol_response"]);
+  assert.equal(rows[1]?.measures?.input_request_count, 1);
+  assert.equal(rows[1]?.payload, undefined);
+  assert.equal(JSON.stringify(rows).includes("never-persist"), false);
+});
+
 test("task transition projection is enabled by default and writes only explicit task evidence", async () => {
   const event = {
     event_id: "task-event-1", event_type: "protocol", service: "demo", environment: "prod", started_at: "2026-01-01T00:00:00.000Z",
