@@ -63,6 +63,18 @@ export async function POST(request: Request) {
     if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) return NextResponse.json({ error: "JSON body must be an object." }, { status: 400 });
     body = parsed as typeof body;
   } catch { return NextResponse.json({ error: "Invalid JSON body." }, { status: 400 }); }
+  let serviceScope: string | null = null;
+  let environmentScope: string | null = null;
+  if (body.create_key !== false) {
+    const rawServiceScope = typeof body.service_scope === "string" ? body.service_scope.trim() : "";
+    const rawEnvironmentScope = typeof body.environment_scope === "string" ? body.environment_scope.trim() : "";
+    if (rawServiceScope.length > 100 || rawEnvironmentScope.length > 64) return NextResponse.json({ error: "Key scope is too long." }, { status: 400 });
+    serviceScope = boundedScope(rawServiceScope, 100);
+    environmentScope = boundedScope(rawEnvironmentScope, 64);
+    if ((body.service_scope !== undefined && serviceScope === null && rawServiceScope) || (body.environment_scope !== undefined && environmentScope === null && rawEnvironmentScope)) {
+      return NextResponse.json({ error: "Key scope contains invalid control characters." }, { status: 400 });
+    }
+  }
   const membershipsResult = await admin.from("trackmcp_workspace_members").select("workspace_id").eq("user_id", user.id);
   if (membershipsResult.error) return NextResponse.json({ error: "Could not check your workspace." }, { status: 500 });
   const memberships = (membershipsResult.data || []) as Array<{ workspace_id: string }>;
@@ -108,14 +120,6 @@ export async function POST(request: Request) {
 
   if (body.create_key !== false) {
     const generated = createTrackMCPKey();
-    const rawServiceScope = typeof body.service_scope === "string" ? body.service_scope.trim() : "";
-    const rawEnvironmentScope = typeof body.environment_scope === "string" ? body.environment_scope.trim() : "";
-    if (rawServiceScope.length > 100 || rawEnvironmentScope.length > 64) return NextResponse.json({ error: "Key scope is too long." }, { status: 400 });
-    const serviceScope = boundedScope(rawServiceScope, 100);
-    const environmentScope = boundedScope(rawEnvironmentScope, 64);
-    if ((body.service_scope !== undefined && serviceScope === null && rawServiceScope) || (body.environment_scope !== undefined && environmentScope === null && rawEnvironmentScope)) {
-      return NextResponse.json({ error: "Key scope contains invalid control characters." }, { status: 400 });
-    }
     const createdKey = await admin.from("trackmcp_api_keys").insert({ workspace_id: workspaceId, name: boundedText(body.key_name, 128) || "default", service_scope: serviceScope, environment_scope: environmentScope, key_prefix: generated.prefix, key_hash: generated.hash });
     if (createdKey.error) return NextResponse.json({ error: "Could not create your API key." }, { status: 500 });
     return NextResponse.json({ workspace, api_key: generated.key, message: "Copy this key now. It will not be shown again." }, { status: 201, headers: { "cache-control": "no-store" } });
