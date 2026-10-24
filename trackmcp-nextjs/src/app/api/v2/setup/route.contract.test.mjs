@@ -16,6 +16,8 @@ test("setup contract is authenticated, workspace-scoped, bounded, and privacy-sa
   assert.match(handlers, /trackmcp_api_keys/);
   assert.match(handlers, /service_scope, environment_scope/);
   assert.match(handlers, /connection_key: keyScope/);
+  assert.match(handlers, /setupScopeMatch/);
+  assert.match(handlers, /scope_match: scopeMatch/);
   assert.match(handlers, /slice\(0, 100\)/);
   assert.match(handlers, /slice\(0, 64\)/);
   assert.match(handlers, /trackmcp_workspace_members/);

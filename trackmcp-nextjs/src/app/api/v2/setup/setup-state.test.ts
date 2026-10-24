@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { accountResolverObservation, setupConnectionState } from "./setup-state.ts";
+import { accountResolverObservation, setupConnectionState, setupScopeMatch } from "./setup-state.ts";
 
 test("setup identity evidence distinguishes resolved, explicit unresolved, and legacy unknown", () => {
   assert.equal(accountResolverObservation("resolver"), true);
@@ -20,4 +20,11 @@ test("setup readiness treats identity as optional and counts only required evide
   const required = [true, true, true, true, true];
   assert.equal(required.filter(Boolean).length, 5);
   assert.equal(accountResolverObservation("unresolved"), false);
+});
+
+test("setup scope matching is explicit and does not guess when evidence is absent", () => {
+  assert.equal(setupScopeMatch({ key: null, event: undefined }), null);
+  assert.equal(setupScopeMatch({ key: { service: "orders", environment: "production" }, event: { service: "orders", environment: "production" } }), true);
+  assert.equal(setupScopeMatch({ key: { service: "orders", environment: "production" }, event: { service: "other", environment: "production" } }), false);
+  assert.equal(setupScopeMatch({ key: { service: "orders", environment: null }, event: { service: "orders", environment: "staging" } }), true);
 });

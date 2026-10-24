@@ -3,7 +3,7 @@ import { getSupabaseServer } from "../../../../lib/auth/supabase-server.ts";
 import { getSupabaseAdmin } from "../../../../lib/repository/supabase.ts";
 import { lookupCliKey } from "../../../../lib/cli/key-status.ts";
 import { withTrackMCPV2Envelope } from "../../../../lib/api/v2-envelope.ts";
-import { accountResolverObservation, setupConnectionState } from "./setup-state.ts";
+import { accountResolverObservation, setupConnectionState, setupScopeMatch } from "./setup-state.ts";
 
 const boundedDays = (request: Request) => {
   const raw = Number(new URL(request.url).searchParams.get("days") || 30);
@@ -51,6 +51,7 @@ export function createSetupHandler(getAdmin: typeof getSupabaseAdmin = getSupaba
     } : null;
     const latest = eventResult.data?.[0] as { event_id?: unknown; started_at?: unknown; event_type?: unknown; service?: unknown; environment?: unknown; mcp_method?: unknown; transport?: unknown; payload_policy?: unknown; deployment_id?: unknown; account_identity_source?: unknown; account_key?: unknown } | undefined;
     const hasEvent = Boolean(latest);
+    const scopeMatch = setupScopeMatch({ key: keyScope, event: latest });
     const mcpMethodObserved = hasEvent && typeof latest?.mcp_method === "string";
     const transportObserved = hasEvent && typeof latest?.transport === "string";
     const privacyPolicyApplied = hasEvent && typeof latest?.payload_policy === "string";
@@ -70,6 +71,7 @@ export function createSetupHandler(getAdmin: typeof getSupabaseAdmin = getSupaba
         state,
         workspace_id: scope.workspaceId,
         connection_key: keyScope,
+        scope_match: scopeMatch,
         checks: {
           connection_key_ready: hasKey,
           sdk_event_recognized: hasEvent,
