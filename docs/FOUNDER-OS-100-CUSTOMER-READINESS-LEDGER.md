@@ -223,19 +223,12 @@ Engineering evidence is complete for the deployed application path, bounded load
 
 ## Active branches and releases
 
-- `codex/founder-os-example-parity-clean`: example/live parity and Tab 1/2 UI fixes.
-- `codex/deploy-release-gate-python-build`: deploy workflow prerequisite hotfix.
-- `main` currently points to `7e3725a` (ledger evidence merge); run `39474489090` is the latest fully passing App Runner production smoke for the Founder OS release.
-
-Open pull requests:
-
-- [PR #57 — Keep Founder OS example tabs data-complete](https://github.com/Krishna3956/CRV/pull/57)
-- [PR #58 — Install Python build dependency before deploy gate](https://github.com/Krishna3956/CRV/pull/58)
-- [PR #59 — Verify ECR tags without repository read access](https://github.com/Krishna3956/CRV/pull/59)
-- [PR #60 — Accept opaque App Runner operation IDs](https://github.com/Krishna3956/CRV/pull/60)
-- [PR #61 — Normalize App Runner service hostname for production smoke](https://github.com/Krishna3956/CRV/pull/61)
-- [PR #62 — Record passing production pilot deployment evidence](https://github.com/Krishna3956/CRV/pull/62)
-- [PR #64 — Discover MCP resource templates safely](https://github.com/Krishna3956/CRV/pull/64)
+- `main` currently points to `79245b7` (pilot release-record reconciliation).
+- The latest fully verified application runtime is commit
+  `ce4380e7d8280edc415465520796099e5121da24`, deployed and smoke-tested by
+  App Runner run `40112039766`.
+- No pull requests are currently open. Historical branches and merged PRs are
+  retained in GitHub for auditability but are not active release work.
 - [PR #65 — Render MCP resource template discovery](https://github.com/Krishna3956/CRV/pull/65)
 - [PR #67 — Route scheduled cleanup through App Runner](https://github.com/Krishna3956/CRV/pull/67)
 - [PR #68 — Record App Runner run 98 readiness evidence](https://github.com/Krishna3956/CRV/pull/68)
