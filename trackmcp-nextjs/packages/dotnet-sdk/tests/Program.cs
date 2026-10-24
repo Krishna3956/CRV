@@ -42,6 +42,8 @@ static class Smoke
                 ["uri"] = "secret://customer/private",
             }),
             ["nextCursor"] = "private-cursor",
+            ["ttlMs"] = 60000,
+            ["cacheScope"] = "private",
         }, "session-1");
         client.RecordTransportFailureForTransport("transport_error", "streamable_http", "session-1", 12);
         await client.FlushAsync();
@@ -60,6 +62,8 @@ static class Smoke
         Require(events[1].GetProperty("result_type").GetString() == "input_required", "protocol result type was not retained");
         Require(events[2].GetProperty("catalog_kind").GetString() == "resources", "catalog kind was not retained");
         Require(events[2].GetProperty("catalog_item_count").GetInt32() == 1, "catalog count was not retained");
+        Require(events[2].GetProperty("payload").GetProperty("_trackmcp").GetProperty("cache_ttl_ms").GetInt32() == 60000, "cache TTL was not retained");
+        Require(events[2].GetProperty("payload").GetProperty("_trackmcp").GetProperty("cache_scope").GetString() == "private", "cache scope was not retained");
         Require(events[3].GetProperty("payload").GetProperty("_trackmcp").GetProperty("observation_kind").GetString() == "transport_error", "transport failure was not retained");
         Require(events[3].GetProperty("transport").GetString() == "streamable_http", "caller-verified transport label was not retained");
         var metadata = events[2].GetProperty("payload").GetProperty("_trackmcp");

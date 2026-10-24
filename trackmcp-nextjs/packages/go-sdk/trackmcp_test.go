@@ -105,6 +105,17 @@ func TestRecordCatalogIsBoundedAndHashOnly(t *testing.T) {
 	if len(client.queue) != 1 { t.Fatal("unsupported catalog kind should be ignored") }
 }
 
+func TestRecordCatalogBoundsCacheHints(t *testing.T) {
+	client := New(Options{APIKey: "test"})
+	client.RecordCatalog("tools", "tools/list", map[string]any{"tools": []any{}, "ttlMs": 60000, "cacheScope": "private"}, "session-1")
+	metadata := client.queue[0].Payload["_trackmcp"].(map[string]any)
+	if metadata["cache_ttl_ms"] != 60000 || metadata["cache_scope"] != "private" { t.Fatalf("cache hints were not retained: %#v", metadata) }
+	client.RecordCatalog("tools", "tools/list", map[string]any{"tools": []any{}, "ttlMs": 999999999, "cacheScope": "secret"}, "session-2")
+	metadata = client.queue[1].Payload["_trackmcp"].(map[string]any)
+	if _, ok := metadata["cache_ttl_ms"]; ok { t.Fatalf("oversized TTL was retained") }
+	if _, ok := metadata["cache_scope"]; ok { t.Fatalf("unsupported cache scope was retained") }
+}
+
 func TestRecordProtocolResultIsBoundedAndMetadataOnly(t *testing.T) {
 	client := New(Options{APIKey: "tmcp_test"})
 	client.RecordProtocolResult("tools/call", map[string]any{

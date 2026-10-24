@@ -37,6 +37,8 @@ func main() {
 			map[string]any{"uri": "secret://second-resource"},
 		},
 		"nextCursor": "private-cursor",
+		"ttlMs": 60000,
+		"cacheScope": "private",
 	}, "go-smoke-session")
 	client.RecordTransportFailureForTransport("transport_error", "stdio", "go-smoke-session", 12)
 	client.Flush()
@@ -70,6 +72,10 @@ func main() {
 	}
 	if envelope.Events[1].CatalogKind != "resources" || envelope.Events[1].EventType != "catalog" {
 		fail("catalog observation was not emitted")
+	}
+	metadata, ok := envelope.Events[1].Payload["_trackmcp"].(map[string]any)
+	if !ok || metadata["cache_ttl_ms"] != float64(60000) || metadata["cache_scope"] != "private" {
+		fail("bounded cache hints were not emitted")
 	}
 	if envelope.Events[2].ErrorClass != "transport_error" || envelope.Events[2].EventType != "session" {
 		fail("transport failure metadata was not emitted")

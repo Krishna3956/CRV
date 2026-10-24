@@ -206,15 +206,38 @@ public sealed class TrackMcpClient : IDisposable
             }
         }
         var cursorPresent = result["nextCursor"] is not null || result["next_cursor"] is not null;
+        var cacheTtl = BoundedCacheTtl(result);
+        var cacheScope = BoundedCacheScope(result);
+        var metadata = new Dictionary<string, object?>
+        {
+            ["observation_kind"] = "catalog_page",
+            ["catalog_kind"] = kind,
+            ["next_cursor_present"] = cursorPresent,
+        };
+        if (cacheTtl is not null) metadata["cache_ttl_ms"] = cacheTtl;
+        if (cacheScope is not null) metadata["cache_scope"] = cacheScope;
         Capture("catalog", method, new Dictionary<string, object?>
         {
-            ["_trackmcp"] = new Dictionary<string, object?>
-            {
-                ["observation_kind"] = "catalog_page",
-                ["catalog_kind"] = kind,
-                ["next_cursor_present"] = cursorPresent,
-            }
+            ["_trackmcp"] = metadata
         }, BoundSessionId(sessionId), true, catalogKind: kind, catalogItemCount: items?.Count ?? 0, catalogItemNameHashes: names, catalogItemUriHashes: uris);
+    }
+
+    private static int? BoundedCacheTtl(JsonObject result)
+    {
+        foreach (var key in new[] { "ttlMs", "ttl_ms" })
+        {
+            if (result[key] is JsonValue value && value.TryGetValue<int>(out var ttl) && ttl is >= 0 and <= 86_400_000) return ttl;
+        }
+        return null;
+    }
+
+    private static string? BoundedCacheScope(JsonObject result)
+    {
+        foreach (var key in new[] { "cacheScope", "cache_scope" })
+        {
+            if (result[key] is JsonValue value && value.TryGetValue<string>(out var scope) && (scope is "public" or "private")) return scope;
+        }
+        return null;
     }
 
     private static string BoundSessionId(string? sessionId)
