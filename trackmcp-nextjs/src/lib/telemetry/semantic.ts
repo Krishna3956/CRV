@@ -132,7 +132,10 @@ function qualityForEvent(event: CanonicalTrackMCPEvent, extra: TrackMCPDataQuali
 }
 
 function scopeForEvent(event: CanonicalTrackMCPEvent): TrackMCPSemanticScope {
-  if (event.task_id && (event.mcp_method?.startsWith("tasks/") || event.event_type === "protocol")) return "task";
+  // A server-directed tools/call can create a task before the caller issues
+  // tasks/get/update/cancel. Keep that creation event in task analytics rather
+  // than misclassifying it as an ordinary tool call.
+  if (event.task_id && (event.result_type === "task" || event.mcp_method?.startsWith("tasks/") || event.event_type === "protocol")) return "task";
   if (event.event_type === "tool_call") return "tool_call";
   if (event.event_type === "workflow") return "workflow";
   if (event.event_type === "session") return "session";
