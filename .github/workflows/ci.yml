@@ -86,6 +86,9 @@ jobs:
       - name: Test Python SDK
         working-directory: packages/python-sdk
         run: python3 -m unittest discover -s tests -v
+      - name: Run Python SDK runtime smoke
+        working-directory: packages/python-sdk
+        run: python3 smoke.py
 
   go:
     runs-on: ubuntu-latest

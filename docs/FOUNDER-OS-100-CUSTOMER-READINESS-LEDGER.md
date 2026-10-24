@@ -879,3 +879,16 @@ a failed product gate or a Supabase plan warning.
   release gate passed, and lint passed.
 - [ ] Hosted PR checks, post-merge main checks, and authenticated production
   privacy UAT remain required evidence gates for this milestone.
+
+## 2026-10-24 Python runtime boundary smoke checkpoint
+
+- [x] Added `packages/python-sdk/smoke.py`, a dependency-free local HTTP
+  fixture that exercises the real Python SDK flush path for protocol direction,
+  catalog hash/count metadata, and transport failure observations.
+- [x] The smoke asserts private catalog names, URIs, and cursors never cross
+  the serialized ingest boundary. Hosted CI now runs the Python smoke beside
+  the Go and .NET runtime harnesses.
+- [x] The full local release gate passed 128 suites, lint passed, and the
+  176-route production build passed after the parity harness was added.
+- [ ] Authenticated production transport UAT and cross-language exporter parity
+  against a real customer server remain external evidence gates.

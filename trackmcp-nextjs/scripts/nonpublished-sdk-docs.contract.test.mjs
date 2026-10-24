@@ -13,6 +13,7 @@ const [goDocs, dotnetDocs, goReadme, dotnetReadme, goSource, dotnetSource] = awa
 const dotnetSmokeProject = await readFile(new URL("../packages/dotnet-sdk/tests/TrackMcp.Smoke.csproj", import.meta.url), "utf8");
 const dotnetSmokeSource = await readFile(new URL("../packages/dotnet-sdk/tests/Program.cs", import.meta.url), "utf8");
 const goSmokeSource = await readFile(new URL("../packages/go-sdk/smoke/main.go", import.meta.url), "utf8");
+const pythonSmokeSource = await readFile(new URL("../../packages/python-sdk/smoke.py", import.meta.url), "utf8");
 
 test("Go and .NET docs disclose source-package status and first-event verification", () => {
   for (const source of [goDocs, dotnetDocs]) {
@@ -111,4 +112,15 @@ test("Go hosted CI runs the privacy, direction, and flush smoke harness", () => 
   assert.match(goSmokeSource, /private-resource-name/);
   assert.match(goSmokeSource, /secret:\/\/private-resource/);
   assert.match(goSmokeSource, /Go TrackMCP runtime smoke passed/);
+});
+
+test("Python hosted CI runs the privacy, direction, and flush smoke harness", () => {
+  assert.match(pythonSmokeSource, /HTTPServer/);
+  assert.match(pythonSmokeSource, /record_protocol_signal/);
+  assert.match(pythonSmokeSource, /client_to_server/);
+  assert.match(pythonSmokeSource, /_catalog_observation/);
+  assert.match(pythonSmokeSource, /record_transport_failure/);
+  assert.match(pythonSmokeSource, /private-resource-name/);
+  assert.match(pythonSmokeSource, /secret:\/\/private-resource/);
+  assert.match(pythonSmokeSource, /Python TrackMCP runtime smoke passed/);
 });
