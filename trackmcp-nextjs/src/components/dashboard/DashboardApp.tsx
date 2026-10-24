@@ -4855,10 +4855,10 @@ function PrivacyControls({ workspaceId }: { workspaceId: string | null }) {
         <span className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-paper text-muted"><ShieldCheck size={17} /></span>
         <span>Your data controls <span className="ml-2 text-xs font-normal text-muted">Export and deletion requests</span></span>
       </summary>
-      <p className="mt-3 text-xs leading-relaxed text-muted">Download a bounded, secret-free export or submit a deletion request for review. A request is not an immediate destructive operation.</p>
+      <p className="mt-3 text-xs leading-relaxed text-muted">Download a bounded, secret-free export or submit a deletion request for review. A request is not an immediate destructive operation. <a href="/docs/reference#privacy" className="cursor-pointer font-semibold text-brand-strong hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand">Read privacy limits</a></p>
       <div className="mt-4 flex flex-wrap items-center gap-3">
-        <a href={exportHref} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1.5 border border-line-strong bg-white px-3 py-2 text-xs font-semibold text-body hover:bg-paper focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"><ExternalLink size={13} /> Download data export</a>
-        <button type="button" onClick={() => void requestDeletion()} disabled={state === "submitting"} className="inline-flex items-center gap-1.5 border border-red-200 bg-white px-3 py-2 text-xs font-semibold text-red-700 hover:bg-red-50 disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-600">{state === "submitting" ? "Submitting…" : "Request deletion review"}</button>
+        <a href={exportHref} target="_blank" rel="noreferrer" className="inline-flex cursor-pointer items-center gap-1.5 border border-line-strong bg-white px-3 py-2 text-xs font-semibold text-body hover:bg-paper focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"><ExternalLink size={13} /> Download data export</a>
+        <button type="button" onClick={() => void requestDeletion()} disabled={state === "submitting"} className="inline-flex cursor-pointer items-center gap-1.5 border border-red-200 bg-white px-3 py-2 text-xs font-semibold text-red-700 hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-600">{state === "submitting" ? "Submitting…" : "Request deletion review"}</button>
       </div>
       {message && <p className={"mt-3 text-xs " + (state === "error" ? "text-red-700" : "text-muted")} role={state === "error" ? "alert" : "status"}>{message}</p>}
     </details>
