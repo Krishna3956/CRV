@@ -227,14 +227,18 @@ export function normalizeTrackMCPEvent(value: unknown): EventValidationResult {
 
   // Older clients sometimes emitted catalog hashes without the newer typed
   // catalog fields. Recover only from the bounded MCP method and hash arrays;
-  // never inspect or infer names, URIs, payloads, or business meaning.
-  const inferredCatalogKind = event.event_type === "catalog" && !event.catalog_kind
+  // never inspect or infer names, URIs, payloads, or business meaning. Read
+  // methods are included so privacy-safe entity projections are not lost when
+  // an older SDK omitted the optional catalog_kind field.
+  const inferredCatalogKind = !event.catalog_kind
     ? ({
       "tools/list": "tools",
       "resources/list": "resources",
       "resources/templates/list": "resource_templates",
       "prompts/list": "prompts",
-    } as const)[event.mcp_method as "tools/list" | "resources/list" | "resources/templates/list" | "prompts/list"]
+      "resources/read": "resources",
+      "prompts/get": "prompts",
+    } as const)[event.mcp_method as "tools/list" | "resources/list" | "resources/templates/list" | "prompts/list" | "resources/read" | "prompts/get"]
     : undefined;
   const inferredCatalogCount = event.event_type === "catalog" && event.catalog_item_count === undefined
     ? Math.max(Array.isArray(event.catalog_item_name_hashes) ? event.catalog_item_name_hashes.length : 0, Array.isArray(event.catalog_item_uri_hashes) ? event.catalog_item_uri_hashes.length : 0)

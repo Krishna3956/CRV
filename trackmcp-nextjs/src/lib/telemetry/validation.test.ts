@@ -127,6 +127,22 @@ test("recovers typed catalog metadata from bounded legacy method and hash fields
   }
 });
 
+test("recovers read entity kind from bounded MCP method without inspecting content", () => {
+  const resource = normalizeTrackMCPEvent(baseEvent({
+    mcp_method: "resources/read",
+    catalog_item_uri_hashes: ["a".repeat(64)],
+  }));
+  assert.equal(resource.ok, true);
+  if (resource.ok) assert.equal(resource.event.catalog_kind, "resources");
+
+  const prompt = normalizeTrackMCPEvent(baseEvent({
+    mcp_method: "prompts/get",
+    catalog_item_name_hashes: ["b".repeat(64)],
+  }));
+  assert.equal(prompt.ok, true);
+  if (prompt.ok) assert.equal(prompt.event.catalog_kind, "prompts");
+});
+
 test("accepts task result handles only when a task id is present", () => {
   assert.equal(normalizeTrackMCPEvent(baseEvent({ result_type: "task", task_id: "task_1" })).ok, true);
   const invalid = normalizeTrackMCPEvent(baseEvent({ result_type: "task" }));
