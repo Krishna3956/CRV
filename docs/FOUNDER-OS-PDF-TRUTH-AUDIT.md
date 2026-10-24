@@ -23,10 +23,11 @@ complete, persisted, tested product model.
 
 The current dashboard is a useful technical/semantic foundation, but it is not
 yet a complete realization of the PDF's business-user information architecture.
-The setup experience is split between CLI device activation and a dashboard
-checklist; it does not yet implement the PDF's full server-connection wizard
-(server/environment creation, method choice, key management, optional identity,
-privacy controls, and first-event verification) as one coherent surface.
+The dashboard Setup surface now combines server/environment labels, method
+choice, key management, optional identity, privacy, and first-event verification
+as one coherent surface. CLI device activation remains a separate authentication
+and key-redemption path; deployed browser/UAT evidence is still tracked
+separately.
 
 Therefore the correct product claim is:
 
@@ -91,7 +92,7 @@ business outcome.
 | Reliability | v2 route and bounded projections exist | **Partial** | Transport/process failures, baselines, and sufficient-data policy |
 | Action Queue | Candidate generation, lifecycle, read/PATCH contracts, lease-fenced worker, and a shared hash-only alert/queue identity link exist | **Partial** | Durable/read-model join, delivery-history links, and production operational metrics |
 | Catalog snapshots/version joins | Snapshot normalization and review-only schema exist | **Partial; SQL/operations dependent** | Persist snapshots, diffs, deployment joins, and cursor semantics |
-| Setup wizard | CLI device flow and dashboard checklist exist separately; Setup now exposes bounded server/environment labels from the first accepted event alongside method-specific snippets, key state, privacy, and first-event status | **Partial, with the first-event scope contract implemented** | Unify server details, method choice, key scope, optional identity, privacy, and first-event status into one durable wizard; verify it in a deployed browser |
+| Setup wizard | Dashboard Setup combines bounded server/environment labels from the first accepted event, method-specific snippets, scoped key state, optional identity, privacy, OTLP/tester links, and first-event status; CLI device activation remains the separate auth/redemption path | **Implemented locally; deployed browser evidence pending** | Run authenticated browser/UAT for the complete Setup journey and retain no-event/partial-event evidence |
 | API key management | Device flow stores connection key; dashboard has key generation/UI | **Partial** | Server/environment-scoped ingestion keys, rotation overlap, last-use status, one-time display |
 | First-event verification | CLI key-status/milestone foundations and dashboard check exist | **Partial** | End-to-end production-shaped test and no-event troubleshooting states |
 | Account identity optionality | SDK resolver is optional and fail-open | **Implemented** | Make “Identify your organizations — optional” the user-facing language |
@@ -187,4 +188,13 @@ recorded against an immutable release:
 - package publication and clean install from the published versions;
 - rollback commit/image and schema-compatibility record;
 - documentation claims reviewed against this matrix.
+
+## Reconciliation note — 2026-10-24
+
+The Setup findings above were reconciled against the current source after the
+identity-snippet parity release. Dashboard contracts cover the unified Setup
+surface and its direct TypeScript, Python, Go, .NET, OTLP, tester, identity,
+privacy, and first-event paths; the exact merge `cc70c951` also passed main CI
+and App Runner production smoke/runtime-safety verification. This does not
+close the separately required authenticated browser/UAT evidence gate.
 

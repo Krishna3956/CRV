@@ -28,11 +28,11 @@ Source of truth: `/Users/krishna/Downloads/Founder OS.pdf` (134 rendered pages; 
 | Outcome | 53–67 | Implemented with evidence-based completion/stall/error states | UAT response-state calculations |
 | Reliability | 68–111 | Partially implemented through Quality/Issues/Evidence surfaces | Map each classifier to code and mark gaps |
 | Hybrid SDK/OTel/proxy architecture | 112–123 | SDK and bounded OTLP/HTTP JSON or protobuf implemented; proxy is not a full alternative | Keep claims honest and link every route |
-| Setup and first-event experience | 124–131 | Implemented with TypeScript, Python, Go, .NET, OTLP guidance and first-event evidence | Deployment smoke and setup/docs contracts verified; authenticated workspace UAT remains open |
+| Setup and first-event experience | 124–131 | Implemented as one Setup surface with TypeScript, Python, Go, .NET, OTLP, tester, identity, privacy, key, and first-event paths | Deployment smoke, setup/docs contracts, and production rollout evidence verified; authenticated workspace UAT remains open |
 
 ## Initial gaps to verify before implementation
 
-- Setup currently offers TypeScript and Python snippets in the primary install control; Go and .NET need direct, honest routes there.
+- Setup exposes direct TypeScript, Python, Go, and .NET snippets with exact documentation links; the current snippets are contract-tested against the SDK option names.
 - The PDF’s “Journey” requirement is present in the source (pages 40–52), so the product must not remove it; it must explain that it is a bounded server-observed path rather than a claim about a complete business task.
 - The PDF calls for explicit transport, protocol-version, client, outcome, identity, and data-quality evidence. Every dashboard surface must either display those fields or link to the evidence surface.
 - OpenTelemetry is a supported bounded OTLP/HTTP JSON and protobuf ingestion path. OTLP/gRPC, arbitrary proxying, and customer OAuth exchange are not silently implied and must remain clearly marked unsupported.
@@ -59,3 +59,4 @@ Source of truth: `/Users/krishna/Downloads/Founder OS.pdf` (134 rendered pages; 
 | 2026-10-21 | Official MCP release research verified `2026-07-28` as current; added explicit protocol compatibility docs and called out the pinned TypeScript v1/legacy adapter boundary rather than implying modern v2 support. |
 | 2026-10-21 | PR #152 merged; main CI passed Go, .NET, and web/JavaScript lanes; App Runner deployment run `39568395729` completed successfully. |
 | 2026-10-21 | Live production smoke verified `/docs/protocol`, its navigation/CTAs, Setup’s TypeScript/Python/Go/.NET selectors, Go and .NET identity links, and the existing OTLP guide path. |
+| 2026-10-24 | Source audit reconciled after PR #288: Setup’s Go and .NET identity snippets now use the real `AccountIDResolver`/`AccountIdResolver` SDK APIs; dashboard contract, docs navigation, and lint passed; main CI and App Runner production smoke/runtime-safety evidence completed successfully for merge `cc70c951`. |
