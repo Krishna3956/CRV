@@ -135,7 +135,11 @@ function scopeForEvent(event: CanonicalTrackMCPEvent): TrackMCPSemanticScope {
   // A server-directed tools/call can create a task before the caller issues
   // tasks/get/update/cancel. Keep that creation event in task analytics rather
   // than misclassifying it as an ordinary tool call.
-  if (event.task_id && (event.result_type === "task" || event.mcp_method?.startsWith("tasks/") || event.event_type === "protocol")) return "task";
+  // A protocol envelope carrying only a task identifier is not enough to
+  // establish task semantics: notifications and experimental envelopes may
+  // reuse that field without a lifecycle state. Require an explicit task
+  // result, task method, or observed status before joining task analytics.
+  if (event.task_id && (event.result_type === "task" || event.mcp_method?.startsWith("tasks/") || taskStatus(event) !== undefined)) return "task";
   if (event.event_type === "tool_call") return "tool_call";
   if (event.event_type === "workflow") return "workflow";
   if (event.event_type === "session") return "session";

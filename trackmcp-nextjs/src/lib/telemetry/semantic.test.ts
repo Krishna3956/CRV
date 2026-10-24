@@ -126,6 +126,12 @@ test("treats a modern task result handle as pending until task state is observed
   assert.equal(result.evidence_quality, "observed");
 });
 
+test("does not infer task scope from an unclassified protocol envelope", () => {
+  const result = classifyTrackMCPOutcome(event({ event_type: "protocol", task_id: "task_opaque", mcp_method: "experimental/custom" }));
+  assert.equal(result.scope, "transport");
+  assert.equal(result.outcome, "not_observable");
+});
+
 test("models explicit task lifecycle states without inferring abandonment", () => {
   const working = classifyTrackMCPOutcome(event({ event_type: "protocol", task_id: "task_1", mcp_method: "tasks/get", payload: { status: "working" } }));
   assert.deepEqual({ scope: working.scope, outcome: working.outcome, reason: working.reason, task_status: working.task_status }, { scope: "task", outcome: "pending", reason: "task_pending", task_status: "working" });
