@@ -28,7 +28,9 @@ allowlisted signal and method metadata are sent; progress values, cancellation
 reasons, subscription identifiers, URIs, and payloads are not accepted.
 Use `RecordProtocolSignalDirection` with `client_to_server` when recording an
 inbound cancellation; direction is validated and persisted as bounded
-metadata only.
+metadata only. For a caller-verified transport label on the signal, use
+`RecordProtocolSignalForTransport` with `stdio`, `streamable_http`, `sse`, or
+`custom`; notification values and transport internals remain excluded.
 
 For MRTR/task responses, call `client.RecordProtocolResult` with the response
 map. It emits only the allowlisted result discriminator, task status, and

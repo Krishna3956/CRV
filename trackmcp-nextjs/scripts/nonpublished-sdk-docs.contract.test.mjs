@@ -97,7 +97,7 @@ test("cross-language protocol signal observers validate direction", () => {
 test(".NET hosted CI runs the privacy and direction smoke harness", () => {
   assert.match(dotnetSmokeProject, /OutputType>Exe/);
   assert.match(dotnetSmokeProject, /ProjectReference Include="\.\.\/TrackMcp\.csproj"/);
-  assert.match(dotnetSmokeSource, /RecordProtocolSignal\("cancelled"/);
+  assert.match(dotnetSmokeSource, /RecordProtocolSignalForTransport\("cancelled"/);
   assert.match(dotnetSmokeSource, /client_to_server/);
   assert.match(dotnetSmokeSource, /RecordCatalog\("resources"/);
   assert.match(dotnetSmokeSource, /raw catalog URI crossed/);
@@ -105,7 +105,7 @@ test(".NET hosted CI runs the privacy and direction smoke harness", () => {
 
 test("Go hosted CI runs the privacy, direction, and flush smoke harness", () => {
   assert.match(goSmokeSource, /httptest.NewServer/);
-  assert.match(goSmokeSource, /RecordProtocolSignalDirection/);
+  assert.match(goSmokeSource, /RecordProtocolSignalForTransport/);
   assert.match(goSmokeSource, /client_to_server/);
   assert.match(goSmokeSource, /RecordCatalog/);
   assert.match(goSmokeSource, /RecordTransportFailure/);

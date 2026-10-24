@@ -169,8 +169,13 @@ public sealed class TrackMcpClient : IDisposable
     /// <summary>Records one allowlisted protocol notification without payload values.</summary>
     /// <remarks>Progress values, cancellation reasons, URIs, and caller data are never accepted.</remarks>
     public void RecordProtocolSignal(string signal, string method, string? sessionId = null, string direction = "server_to_client")
+        => RecordProtocolSignalForTransport(signal, method, null, sessionId, direction);
+
+    /// <summary>Records an allowlisted notification with a caller-verified transport label.</summary>
+    public void RecordProtocolSignalForTransport(string signal, string method, string? transport, string? sessionId = null, string direction = "server_to_client")
     {
         if (!ProtocolSignals.Contains(signal) || (direction is not ("server_to_client" or "client_to_server")) || string.IsNullOrWhiteSpace(method) || method.Length > 128 || method.Any(char.IsControl)) return;
+        if (transport is not (null or "stdio" or "streamable_http" or "sse" or "custom")) return;
         Capture("protocol", method, new Dictionary<string, object?>
         {
             ["_trackmcp"] = new Dictionary<string, object?>
@@ -178,7 +183,7 @@ public sealed class TrackMcpClient : IDisposable
                 ["observation_kind"] = "protocol_notification",
                 ["protocol_signal"] = signal
             }
-        }, BoundSessionId(sessionId), true, direction: direction);
+        }, BoundSessionId(sessionId), true, direction: direction, transport: transport);
     }
 
     /// <summary>Records one bounded catalog page using hashes/counts only.</summary>

@@ -34,6 +34,9 @@ payloads are never accepted.
 The optional `direction` argument defaults to `server_to_client`; pass
 `client_to_server` for an inbound cancellation or other client-originated
 notification. Invalid directions are ignored.
+Use `RecordProtocolSignalForTransport` when the server boundary can verify
+`stdio`, `streamable_http`, `sse`, or `custom`; only that bounded label is
+retained.
 
 For MRTR/task responses, call `RecordProtocolResult` with the bounded
 `JsonObject` result. It emits only the allowlisted result discriminator, task

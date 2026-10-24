@@ -245,6 +245,12 @@ production transport UAT.
   authoritative compile/runtime result; no production or publication claim is
   inferred from this source change.
 
+- 2026-10-25: Go and .NET protocol-signal helpers now preserve the same
+  caller-verified transport label for cancellation and other allowlisted
+  notifications. Runtime smokes assert direction plus `stdio`/
+  `streamable_http`; unsupported labels fail closed. This closes the local
+  cross-language attribution gap while production transport UAT remains open.
+
 - 2026-10-22: Tightened the modern task read model to the Tasks extension's
   bounded lifecycle contract. Task status is now allowlisted, valid lifecycle
   timestamps and status messages are retained for operational UX, and result,
