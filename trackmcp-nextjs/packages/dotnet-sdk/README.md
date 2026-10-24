@@ -58,6 +58,8 @@ Bounded `ttlMs`/`cacheScope` hints are retained only as `cache_ttl_ms` and
 `cache_scope` (`public` or `private`); they do not create authorization or
 snapshot guarantees.
 
+For privacy-safe entity reads, call `RecordEntityRead("resources", "resources/read", uri, result, sessionId)` or the equivalent `prompts/get` form. Only a SHA-256 identity hash, bounded content/message count, and result state are emitted; URI, prompt arguments, and returned content are never queued or sent.
+
 After configuring the key, make one real MCP tool call, flush during shutdown
 or after a bounded batch, and confirm the event in Setup. Key creation alone
 never counts as telemetry.

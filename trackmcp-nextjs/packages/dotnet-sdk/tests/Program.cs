@@ -45,6 +45,15 @@ static class Smoke
             ["ttlMs"] = 60000,
             ["cacheScope"] = "private",
         }, "session-1");
+        client.RecordEntityRead("resources", "resources/read", "secret://customer/read", new JsonObject
+        {
+            ["contents"] = new JsonArray(new JsonObject { ["text"] = "private-resource-content" }),
+        }, "session-1");
+        client.RecordEntityRead("prompts", "prompts/get", "private-prompt", new JsonObject
+        {
+            ["messages"] = new JsonArray(new JsonObject { ["content"] = "private-prompt-message" }),
+            ["resultType"] = "complete",
+        }, "session-1");
         client.RecordTransportFailureForTransport("transport_error", "streamable_http", "session-1", 12);
         await client.FlushAsync();
 
@@ -54,9 +63,13 @@ static class Smoke
         Require(!handler.Body.Contains("private-cursor", StringComparison.Ordinal), "raw cursor crossed the boundary");
         Require(!handler.Body.Contains("secret-value", StringComparison.Ordinal), "raw input value crossed the boundary");
         Require(!handler.Body.Contains("must-not-cross-boundary", StringComparison.Ordinal), "raw protocol result crossed the boundary");
+        Require(!handler.Body.Contains("secret://customer/read", StringComparison.Ordinal), "raw resource read identity crossed the boundary");
+        Require(!handler.Body.Contains("private-resource-content", StringComparison.Ordinal), "raw resource content crossed the boundary");
+        Require(!handler.Body.Contains("private-prompt", StringComparison.Ordinal), "raw prompt identity crossed the boundary");
+        Require(!handler.Body.Contains("private-prompt-message", StringComparison.Ordinal), "raw prompt content crossed the boundary");
         using var document = JsonDocument.Parse(handler.Body);
         var events = document.RootElement.GetProperty("events");
-        Require(events.GetArrayLength() == 4, "unexpected event count");
+        Require(events.GetArrayLength() == 6, "unexpected event count");
         Require(events[0].GetProperty("direction").GetString() == "client_to_server", "inbound direction was not retained");
         Require(events[0].GetProperty("transport").GetString() == "streamable_http", "caller-verified signal transport label was not retained");
         Require(events[1].GetProperty("result_type").GetString() == "input_required", "protocol result type was not retained");
@@ -64,8 +77,14 @@ static class Smoke
         Require(events[2].GetProperty("catalog_item_count").GetInt32() == 1, "catalog count was not retained");
         Require(events[2].GetProperty("payload").GetProperty("_trackmcp").GetProperty("cache_ttl_ms").GetInt32() == 60000, "cache TTL was not retained");
         Require(events[2].GetProperty("payload").GetProperty("_trackmcp").GetProperty("cache_scope").GetString() == "private", "cache scope was not retained");
-        Require(events[3].GetProperty("payload").GetProperty("_trackmcp").GetProperty("observation_kind").GetString() == "transport_error", "transport failure was not retained");
-        Require(events[3].GetProperty("transport").GetString() == "streamable_http", "caller-verified transport label was not retained");
+        Require(events[3].GetProperty("payload").GetProperty("_trackmcp").GetProperty("observation_kind").GetString() == "entity_read", "resource entity read was not retained");
+        Require(events[3].GetProperty("catalog_kind").GetString() == "resources", "resource entity kind was not retained");
+        Require(events[3].GetProperty("catalog_item_count").GetInt32() == 1, "resource entity count was not retained");
+        Require(events[4].GetProperty("payload").GetProperty("_trackmcp").GetProperty("observation_kind").GetString() == "entity_read", "prompt entity read was not retained");
+        Require(events[4].GetProperty("catalog_kind").GetString() == "prompts", "prompt entity kind was not retained");
+        Require(events[4].GetProperty("result_type").GetString() == "complete", "prompt result state was not retained");
+        Require(events[5].GetProperty("payload").GetProperty("_trackmcp").GetProperty("observation_kind").GetString() == "transport_error", "transport failure was not retained");
+        Require(events[5].GetProperty("transport").GetString() == "streamable_http", "caller-verified transport label was not retained");
         var metadata = events[2].GetProperty("payload").GetProperty("_trackmcp");
         Require(metadata.GetProperty("next_cursor_present").GetBoolean(), "cursor presence was not retained");
     }
