@@ -213,14 +213,17 @@ def _protocol_result_metadata(result: Any) -> Dict[str, Any]:
 def _protocol_metadata_payload(method: Optional[str], result: Any) -> Dict[str, Any]:
     """Return bounded protocol metadata without retaining completion values."""
     metadata = _protocol_result_metadata(result)
-    if method != "completion/complete" or not any(key.startswith("completion_") for key in metadata):
-        return {"_trackmcp": {"observation_kind": "protocol_response", "observation_source": "middleware"}}
-    return {"_trackmcp": {
+    trackmcp: Dict[str, Any] = {
         "observation_kind": "protocol_response",
         "observation_source": "middleware",
-        "protocol_family": "completion",
-        **{key: value for key, value in metadata.items() if key.startswith("completion_")},
-    }}
+    }
+    if method in ("resources/subscribe", "subscriptions/listen"):
+        trackmcp["subscription_action"] = "subscription_started"
+    elif method == "resources/unsubscribe":
+        trackmcp["subscription_action"] = "subscription_stopped"
+    if method == "completion/complete" and any(key.startswith("completion_") for key in metadata):
+        trackmcp.update({"protocol_family": "completion", **{key: value for key, value in metadata.items() if key.startswith("completion_")}})
+    return {"_trackmcp": trackmcp}
 
 
 def _protocol_signal_for_method(method: Optional[str]) -> Optional[str]:

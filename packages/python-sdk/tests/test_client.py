@@ -47,6 +47,13 @@ class TrackMCPClientTest(TestCase):
         self.assertNotIn("secret", serialized)
         self.assertEqual(payload["_trackmcp"]["protocol_family"], "completion")
 
+    def test_subscription_lifecycle_metadata_is_bounded_and_value_free(self):
+        for method, expected in (("resources/subscribe", "subscription_started"), ("resources/unsubscribe", "subscription_stopped"), ("subscriptions/listen", "subscription_started")):
+            payload = _protocol_metadata_payload(method, {"uri": "secret://private", "subscriptionId": "private-subscription"})
+            self.assertEqual(payload["_trackmcp"]["subscription_action"], expected)
+            self.assertNotIn("secret://private", json.dumps(payload))
+            self.assertNotIn("private-subscription", json.dumps(payload))
+
     def test_interaction_entity_observation_is_hash_only(self):
         resource = interaction_entity_observation("resources/read", {"uri": "secret://user:pass/private"})
         self.assertEqual(resource["kind"], "resources")
