@@ -27,7 +27,7 @@ const cards = [
   { icon: Plug, t: "REST API", d: "Query your own metrics programmatically.", href: "/docs/api" },
   { icon: SlidersHorizontal, t: "Configuration", d: "Every option, event, and metric.", href: "/docs/reference" },
   { icon: Activity, t: "OpenTelemetry", d: "Configure bounded OTLP/HTTP JSON or protobuf metadata.", href: "/docs/opentelemetry" },
-  { icon: LockKeyhole, t: "Authentication & OAuth", d: "Understand dashboard keys, MCP OAuth boundaries, and what is tested.", href: "/docs/authentication" },
+  { icon: LockKeyhole, t: "Authentication & OAuth", d: "Understand dashboard keys, MCP OAuth, and rate-limit boundaries.", href: "/docs/authentication" },
   { icon: Activity, t: "MCP protocol support", d: "See the 2026-07-28 compatibility boundary, legacy support, and transport coverage.", href: "/docs/protocol" },
 ];
 
