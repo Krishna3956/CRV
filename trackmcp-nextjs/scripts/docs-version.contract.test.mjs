@@ -33,9 +33,9 @@ test("public quickstart explains the release-train boundary", () => {
 
 test("SDK documentation examples stay aligned with package versions", () => {
   assert.ok(pythonVersion);
+  assert.match(docs, new RegExp(`sdk_version: "${sdkVersion}"`));
   assert.match(tsDocs, new RegExp(`sdk_version: "${sdkVersion}"`));
   assert.match(goDocs, new RegExp(`SDKVersion: "${sdkVersion}"`));
   assert.match(dotnetDocs, new RegExp(`SdkVersion: "${sdkVersion}"`));
   assert.match(pythonDocs, new RegExp(`sdk_version="${pythonVersion}"`));
-  assert.match(docs, new RegExp(`sdk_version: "${sdkVersion}"`));
 });
