@@ -81,8 +81,14 @@ import { withTrackMCP } from "@trackmcp/sdk";
 export default withTrackMCP(server, {
   apiKey: process.env.TRACKMCP_KEY,
   service: "my-mcp-server",
+  server_version: "2026.10.26", // bounded release metadata (optional)
+  sdk_version: "0.1.16",        // bounded release metadata (optional)
+  deployment_id: "deploy-42",   // bounded release metadata (optional)
 });
 ```
+
+Release labels are metadata only; they do not identify a customer or assert
+deployment health.
 
 The SDK is fail-open: a missing or rejected key never blocks an MCP call. See
 the SDK README for diagnostic categories and the manual signup path.
