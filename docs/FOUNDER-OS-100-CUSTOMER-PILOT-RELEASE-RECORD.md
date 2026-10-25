@@ -12,8 +12,8 @@ commit and the operator accepts the listed limitations.
 | --- | --- |
 | Pilot scope | First 100 customers, desktop dashboard boundary |
 | Production hosts | `trackmcp.com`, `app.trackmcp.com` |
-| Last deployed application commit | `aecbe2e80ca237cb2a61340c7199f069587bdb39` (stateless modern-discovery truth fix) |
-| Last successful App Runner deployment | `40131685736` |
+| Last deployed application commit | `2e135f194f36e278232c6a46890b1ce850d1e9ba` (verified pilot runtime) |
+| Last successful App Runner deployment | `40198791603` |
 | Readiness ledger | `docs/FOUNDER-OS-100-CUSTOMER-READINESS-LEDGER.md` |
 | Current release-record change | Current mainline reconciliation of deployed runtime and release-gate evidence |
 
@@ -74,11 +74,18 @@ commit and the operator accepts the listed limitations.
   `workspace_available=true`, and `service_available=true`. The redacted report
   is `/tmp/trackmcp-production-smoke-2026-10-25-fixed3.json`; no event ID,
   credential, workspace ID, or response body was recorded.
+- [x] The authenticated owner dashboard rotated the pilot key labelled
+  `uat-device-2026-10-25` on 2026-10-25. The prior key is revoked and a
+  replacement is active; the replacement secret was not recorded. This proves
+  the dashboard mutation path, not server adoption of the replacement.
+- [x] The production migration execution record is retained with migration
+  `20261025000001_migration_execution_ledger`, timestamp `2026-10-25 13:23:09
+  UTC`, and operator `codex-autonomous-release`.
 
 ## Open gates before GO
 
-- [x] The current engineering release candidate is identified as
-  `aecbe2e80ca237cb2a61340c7199f069587bdb39`. App Runner run `40131685736`
+- [x] The current deployed engineering baseline is identified as
+  `2e135f194f36e278232c6a46890b1ce850d1e9ba`. App Runner run `40198791603`
   passed the exact-SHA deployment-health wait, read-only production smoke,
   runtime-safety audit, and redacted evidence uploads. This is engineering
   verification; it is not the operator's final GO decision.
@@ -88,32 +95,35 @@ commit and the operator accepts the listed limitations.
 - [ ] The stale synthetic reliability data is explicitly accepted as test
   evidence in the pilot data-hygiene decision; it must not be presented as a
   customer incident.
-- [x] Rollback rehearsal and the release-specific rollback target are linked
-  to this exact release. Workflow [40170438059](https://github.com/Krishna3956/CRV/actions/runs/40170438059)
-  deployed immutable rollback revision `6d1b72c1aa731ec7c580f4b7911827b205a66524`
-  and passed deployment/readiness/HTTPS/read-only smoke; restoration workflow
-  [40170901810](https://github.com/Krishna3956/CRV/actions/runs/40170901810)
-  restored `aecbe2e80ca237cb2a61340c7199f069587bdb39` and passed the same gate.
-- [x] The current release-specific authenticated production smoke is configured
-  and passes. Repository secrets were completed in the signed-in GitHub
-  session, and workflow [40169807874](https://github.com/Krishna3956/CRV/actions/runs/40169807874)
-  passed against `https://app.trackmcp.com` for release
-  `aecbe2e80ca237cb2a61340c7199f069587bdb39` without exposing secret values.
-- [x] A fresh read-only authenticated smoke rerun,
-  [40172215000](https://github.com/Krishna3956/CRV/actions/runs/40172215000),
-  passed against the same deployed release and production host. No secret,
-  workspace identifier, or payload was recorded.
+- [ ] Rollback rehearsal and authenticated production smoke are evidenced for
+  the prior release candidate in workflows
+  [40170438059](https://github.com/Krishna3956/CRV/actions/runs/40170438059),
+  [40170901810](https://github.com/Krishna3956/CRV/actions/runs/40170901810),
+  and [40169807874](https://github.com/Krishna3956/CRV/actions/runs/40169807874),
+  but those runs targeted `aecbe2e80ca237cb2a61340c7199f069587bdb39` rather
+  than the current deployed baseline. A current-SHA rerun remains required
+  before this release record can claim exact release-specific coverage.
+- [ ] A fresh read-only authenticated smoke rerun is available in the handoff
+  ledger (36 checks, redacted), but its exact workflow/deployed-SHA linkage is
+  not retained in this release record. Keep this gate open until a
+  current-baseline run is linked explicitly; no secret, workspace identifier,
+  or payload should be recorded.
 - [x] Historical disposable-workspace key-lifecycle evidence is retained in the
-  readiness ledger: the direct App Runner smoke returned HTTP 200 before key
-  revocation, HTTP 401 after service-role revocation, and verified workspace
-  cleanup. This proves the lifecycle boundary without exposing key material; a
-  final-candidate rerun remains a release-evidence task because the current
-  authenticated smoke is intentionally read-only.
+  readiness ledger, and the owner-dashboard rotation mutation is now evidenced
+  on the current pilot account. The direct App Runner smoke returned HTTP 200
+  before key revocation and HTTP 401 after service-role revocation; the browser
+  rotation proved the owner mutation path without exposing key material. Server
+  adoption of the replacement remains unclaimed.
 - [ ] A final operator go/no-go decision is recorded with UTC timestamp and
   accepted limitations. The engineering recommendation remains **HOLD** until
   credentialed UAT, migration/rollback ownership, worker freshness, and the
   remaining protocol interoperability gates are evidenced or explicitly
   accepted by the release owner.
+- [ ] Database backup posture remains open: read-only Supabase inspection
+  records region `us-east-1` (East US/North Virginia), but the current Free Plan
+  surface exposes no usable backup schedule, restore point, restoration contact,
+  or completed restore rehearsal. The pilot must keep this as an explicit
+  operational limitation until an owner records and accepts it.
 
 ### Distributed rate-limit IAM evidence
 
@@ -124,6 +134,11 @@ mutation and uploaded the redacted artifact
 `distributed-rate-limit-mode-40172392815` with outcome `blocked_iam`. The
 capability is therefore not claimed for the pilot until the AWS IAM owner adds
 that exact service-scoped permission and a subsequent verification succeeds.
+
+For the bounded first-100 pilot, distributed multi-instance limiting is
+explicitly outside the claimed scope. The deployed process-local limiter is the
+documented pilot boundary; AWS IAM enablement remains post-pilot work and is
+not a hidden release requirement.
 
 ## Known limitations to disclose
 
