@@ -5,6 +5,7 @@ import test from "node:test";
 const root = new URL("../../", import.meta.url);
 const queue = await readFile(new URL("FOUNDER-OS-100-CUSTOMER-PILOT-WORK-QUEUE.md", root), "utf8");
 const record = await readFile(new URL("docs/FOUNDER-OS-100-CUSTOMER-PILOT-RELEASE-RECORD.md", root), "utf8");
+const externalGates = await readFile(new URL("docs/FOUNDER-OS-100-CUSTOMER-PILOT-EXTERNAL-GATES.md", root), "utf8");
 
 function openQueueIds(source) {
   return [...source.matchAll(/^- \[ \] (\d+)\b/gm)].map((match) => match[1]);
@@ -28,6 +29,14 @@ test("release record preserves non-source acceptance decisions until an owner ac
   assert.match(record, /- \[ \] The stale synthetic reliability data is explicitly accepted/);
   assert.match(record, /- \[ \] A final operator go\/no-go decision is recorded/);
   assert.match(record, /- \[ \] Database backup posture remains open/);
+});
+
+test("external-gate register names accountable parties and closure evidence", () => {
+  assert.match(externalGates, /020 — limited pilot scope/);
+  assert.match(externalGates, /157 — database recovery posture/);
+  assert.match(externalGates, /260 — final go\/no-go/);
+  assert.match(externalGates, /Timestamped GO\/NO-GO decision/);
+  assert.match(externalGates, /must not check any\s+row above merely because source tests are green/i);
 });
 
 test("the queue and release record cannot silently drift from the open pilot set", () => {
