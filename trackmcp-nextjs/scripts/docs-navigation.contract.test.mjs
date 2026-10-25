@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { readFile } from "node:fs/promises";
+import { readdir, readFile } from "node:fs/promises";
 import path from "node:path";
 import test from "node:test";
 
@@ -9,6 +9,16 @@ const overview = await readFile(path.join(appRoot, "src/app/docs/page.tsx"), "ut
 const typescript = await readFile(path.join(appRoot, "src/app/docs/typescript/page.tsx"), "utf8");
 
 const destinations = [...shell.matchAll(/href:\s*"([^"]+)"/g)].map((match) => match[1]);
+
+async function docsPages(directory) {
+  const entries = await readdir(directory, { withFileTypes: true });
+  const nested = await Promise.all(entries.map(async (entry) => {
+    const file = path.join(directory, entry.name);
+    if (entry.isDirectory()) return docsPages(file);
+    return entry.name === "page.tsx" ? [file] : [];
+  }));
+  return nested.flat();
+}
 
 test("every documentation sidebar destination is a real route or overview section", async () => {
   assert.ok(destinations.length > 0);
@@ -24,6 +34,23 @@ test("every documentation sidebar destination is a real route or overview sectio
       await readFile(page);
     }
   }
+});
+
+test("all authored internal docs links resolve to a documentation route", async () => {
+  const pages = await docsPages(path.join(appRoot, "src/app/docs"));
+  const routes = new Set(pages.map((file) => {
+    const relative = path.relative(path.join(appRoot, "src/app"), file).replace(/[/\\]page\.tsx$/, "");
+    return `/${relative.replaceAll("\\", "/")}`;
+  }));
+  const failures = [];
+  for (const page of pages) {
+    const source = await readFile(page, "utf8");
+    for (const match of source.matchAll(/(?:href|to)=["'](\/docs[^"']*)["']/g)) {
+      const destination = match[1].split("#", 1)[0];
+      if (destination && !routes.has(destination)) failures.push(`${path.relative(appRoot, page)} -> ${match[1]}`);
+    }
+  }
+  assert.deepEqual(failures, [], `broken internal documentation links: ${failures.join(", ")}`);
 });
 
 test("desktop and compact docs navigation expose real, pointer-enabled links", () => {
