@@ -94,13 +94,13 @@ gate is complete. Unchecked items remain open.
 - [x] ✅ 042 **P0 · Today · Engineering:** Smoke documentation navigation and code-copy controls.
 - [x] ✅ 043 **P0 · Today · Engineering:** Smoke signup and sign-in return routing with a safe `next` value.
 - [x] ✅ 044 **P0 · Today · Engineering:** Reject unsafe/external sign-in return targets.
-- [ ] 045 **P0 · Today · Engineering:** Smoke the device-authorization page with valid pending state.
+- [x] ✅ 045 **P0 · Today · Engineering:** Smoke the device-authorization page with valid pending state. Authenticated production UAT on 2026-10-25 rendered the valid one-time code, no-key-disclosure copy, workspace context, and approval control before approval.
 - [x] ✅ 046 **P0 · Today · Engineering:** Smoke device page invalid-code state.
 - [ ] 047 **P0 · Today · Engineering:** Smoke device page expired-code state.
 - [ ] 048 **P0 · Today · Engineering:** Smoke device page denied state.
 - [ ] 049 **P0 · Today · Engineering:** Smoke device page already-approved state.
 - [x] ✅ 050 **P0 · Today · Engineering:** Confirm device page never renders or receives a raw connection key.
-- [ ] 051 **P0 · Today · Engineering:** Smoke workspace selection with one workspace.
+- [x] ✅ 051 **P0 · Today · Engineering:** Smoke workspace selection with one workspace. The signed-in production test account rendered its single available workspace and the approval action; no workspace ambiguity or key disclosure occurred.
 - [ ] 052 **P0 · Today · Engineering:** Smoke workspace selection with multiple memberships.
 - [ ] 053 **P0 · Today · Engineering:** Smoke workspace creation from the device flow without key disclosure.
 - [x] ✅ 054 **P0 · Today · Engineering:** Confirm approval controls are unavailable without authenticated membership.
