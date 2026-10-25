@@ -88,6 +88,12 @@ commit and the operator accepts the listed limitations.
   [40172215000](https://github.com/Krishna3956/CRV/actions/runs/40172215000),
   passed against the same deployed release and production host. No secret,
   workspace identifier, or payload was recorded.
+- [x] Historical disposable-workspace key-lifecycle evidence is retained in the
+  readiness ledger: the direct App Runner smoke returned HTTP 200 before key
+  revocation, HTTP 401 after service-role revocation, and verified workspace
+  cleanup. This proves the lifecycle boundary without exposing key material; a
+  final-candidate rerun remains a release-evidence task because the current
+  authenticated smoke is intentionally read-only.
 - [ ] A final operator go/no-go decision is recorded with UTC timestamp and
   accepted limitations. The engineering recommendation remains **HOLD** until
   credentialed UAT, migration/rollback ownership, worker freshness, and the
