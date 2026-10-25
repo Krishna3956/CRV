@@ -27,6 +27,13 @@ promise that every product capability is complete.
   pinned to the deployed runtime candidate. The workflow records a bounded,
   read-only tenant/privacy smoke and skips itself explicitly when disposable
   credentials are not configured.
+- The deployed `8f59000` candidate passed the explicit write-enabled production
+  smoke with the disposable pilot key: JSON first ingest and a metadata-only
+  OTLP/HTTP protobuf span both returned HTTP 200, and the protobuf response
+  carried `x-trackmcp-otel-protocol: otlp-http-protobuf`. Redacted evidence is
+  `tmp/deploy-40177870518/production-smoke/trackmcp-production-smoke-protobuf.json`.
+  This closes protobuf ingestion evidence only; it does not close key rotation
+  or revocation mutation evidence.
 - Supabase read-only postflight verified the required tables, RLS, grants,
   RPC execution boundaries, indexes, and constraints.
 - Refresh worker passed five bounded batches: 24 processed, 24 succeeded,
