@@ -6,6 +6,7 @@ const root = new URL("../../", import.meta.url);
 const queue = await readFile(new URL("FOUNDER-OS-100-CUSTOMER-PILOT-WORK-QUEUE.md", root), "utf8");
 const record = await readFile(new URL("docs/FOUNDER-OS-100-CUSTOMER-PILOT-RELEASE-RECORD.md", root), "utf8");
 const externalGates = await readFile(new URL("docs/FOUNDER-OS-100-CUSTOMER-PILOT-EXTERNAL-GATES.md", root), "utf8");
+const readinessLedger = await readFile(new URL("docs/FOUNDER-OS-100-CUSTOMER-READINESS-LEDGER.md", root), "utf8");
 
 function openQueueIds(source) {
   return [...source.matchAll(/^- \[ \] (\d+)\b/gm)].map((match) => match[1]);
@@ -40,6 +41,12 @@ test("external-gate register names accountable parties and closure evidence", ()
   assert.match(externalGates, /260 — final go\/no-go/);
   assert.match(externalGates, /Timestamped GO\/NO-GO decision/);
   assert.match(externalGates, /must not check any\s+row above merely because source tests are green/i);
+});
+
+test("readiness ledger points at the current reconciled mainline", () => {
+  assert.match(readinessLedger, /Last updated: 2026-10-26 \(PR #410 merge/);
+  assert.match(readinessLedger, /1fdcb32b4de0c61cb89367a9979b62bfe58534dc/);
+  assert.doesNotMatch(readinessLedger.split("## 2026-10-26 distributed-rate-limit reconciliation")[0], /PR #405 merge/);
 });
 
 test("the queue and release record cannot silently drift from the open pilot set", () => {
