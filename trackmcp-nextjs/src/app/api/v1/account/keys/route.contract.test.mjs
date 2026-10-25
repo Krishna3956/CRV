@@ -15,4 +15,5 @@ test("connection-key revocation is limited to owner/admin workspace members", ()
   assert.match(source, /\.is\("revoked_at", null\)/);
   assert.match(source, /\.select\("id"\)\.maybeSingle\(\)/);
   assert.match(source, /API key not found/);
+  assert.match(source, /cache-control.*no-store/);
 });

@@ -17,5 +17,5 @@ export async function DELETE(request: Request, context: { params: Promise<{ id: 
   const { data: revokedKey, error } = await admin.from("trackmcp_api_keys").update({ revoked_at: new Date().toISOString() }).eq("id", id).eq("workspace_id", membership.data.workspace_id).is("revoked_at", null).select("id").maybeSingle();
   if (error) return NextResponse.json({ error: "Could not revoke API key." }, { status: 500 });
   if (!revokedKey) return NextResponse.json({ error: "API key not found." }, { status: 404 });
-  return NextResponse.json({ revoked: true });
+  return NextResponse.json({ revoked: true }, { headers: { "cache-control": "no-store" } });
 }
