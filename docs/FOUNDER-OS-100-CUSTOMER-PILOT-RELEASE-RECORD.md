@@ -31,8 +31,11 @@ commit and the operator accepts the listed limitations.
   run [40169356835](https://github.com/Krishna3956/CRV/actions/runs/40169356835)
   returned five unparseable origin responses and no processed work; manual rerun
   [40171850037](https://github.com/Krishna3956/CRV/actions/runs/40171850037)
-  completed successfully. This closes the immediate incident but not a repeated
-  scheduled-worker SLO gate.
+  completed successfully. Two additional serialized recovery runs
+  [40171999599](https://github.com/Krishna3956/CRV/actions/runs/40171999599) and
+  [40172003995](https://github.com/Krishna3956/CRV/actions/runs/40172003995)
+  also completed successfully. This closes the immediate incident but not a
+  continuous scheduled-worker SLO gate.
 - [x] Tab 6 synthetic canary incidents are visibly labeled as test evidence
   and are not counted as customer health claims.
 - [x] Read-only retention dry run found no eligible rows in the configured
