@@ -17,6 +17,11 @@ current candidate; it does not close write-gated key lifecycle, first-ingest,
 migration/postflight, worker-SLO, rollback, or intentionally partial protocol
 gates.
 
+Historical baseline reference retained for audit continuity: application
+commit `2e135f194f36e278232c6a46890b1ce850d1e9ba` and App Runner run
+`40198791603` describe the prior verified pilot runtime, not the current
+candidate.
+
 The automatic authenticated production smoke [workflow
 40237513202](https://github.com/Krishna3956/CRV/actions/runs/40237513202)
 also completed successfully for the same deployed application SHA. Its
@@ -123,10 +128,11 @@ created, rotated, or revoked.
 ## Open gates before GO
 
 - [x] The current deployed engineering baseline is identified as
-  `2e135f194f36e278232c6a46890b1ce850d1e9ba`. App Runner run `40198791603`
+  `68d83a3d17ffb5fe63ea0afc2cb48188967d8e93`. App Runner run `40236925686`
   passed the exact-SHA deployment-health wait, read-only production smoke,
-  runtime-safety audit, and redacted evidence uploads. This is engineering
-  verification; it is not the operator's final GO decision.
+  immutable runtime-identity check, runtime-safety audit, and redacted
+  evidence uploads. This is engineering verification; it is not the
+  operator's final GO decision.
 - [ ] Privacy lifecycle behavior is reviewed for the pilot: export remains
   bounded and secret-free; deletion requests are review-only; destructive
   deletion remains disabled unless a separately approved worker exists.
@@ -143,9 +149,9 @@ created, rotated, or revoked.
   release-specific rollback and restoration workflows as passed; this row is
   retained as historical candidate evidence, not an additional open gate.
 - [x] A fresh read-only authenticated smoke rerun is available in the handoff
-  ledger (36 checks, redacted). Queue item 249 records the exact-SHA
-  authenticated scope smoke and its redacted artifact; no secret, workspace
-  identifier, or payload is recorded.
+  ledger (37 checks, redacted) for the current deployed SHA. Its artifact is
+  `production-auth-smoke-68d83a3d17ffb5fe63ea0afc2cb48188967d8e93`; no secret,
+  workspace identifier, or payload is recorded.
 - [x] Historical disposable-workspace key-lifecycle evidence is retained in the
   readiness ledger, and the owner-dashboard rotation mutation is now evidenced
   on the current pilot account. The direct App Runner smoke returned HTTP 200
