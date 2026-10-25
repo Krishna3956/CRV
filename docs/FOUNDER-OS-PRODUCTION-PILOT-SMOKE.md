@@ -61,6 +61,33 @@ and workspace; never use a customer key.
 
 ## Evidence boundary
 
+## Disposable key rotation/revocation check
+
+The key lifecycle harness is separate from the read-only pilot smoke because
+it intentionally mutates one disposable key. Run it only with a signed-in
+operator cookie and a key created specifically for this test:
+
+```bash
+TRACKMCP_KEY_LIFECYCLE_CONFIRM=I_UNDERSTAND_KEY_LIFECYCLE_SMOKE \
+TRACKMCP_LIFECYCLE_ALLOW_WRITE=true \
+TRACKMCP_LIFECYCLE_BASE_URL=https://app.trackmcp.com \
+TRACKMCP_LIFECYCLE_COOKIE='(operator supplies signed-in disposable cookie)' \
+TRACKMCP_LIFECYCLE_WORKSPACE_ID='(operator supplies disposable workspace ID)' \
+TRACKMCP_LIFECYCLE_KEY_ID='(operator supplies disposable key ID)' \
+TRACKMCP_LIFECYCLE_KEY='(operator supplies disposable key)' \
+npm run smoke:production-key-lifecycle
+```
+
+The harness rotates the supplied key, verifies the old key is rejected, checks
+the replacement, revokes it, and verifies the replacement is rejected. It
+writes only HTTP statuses and booleans to a `0600` report. It never prints or
+stores the cookie, key, workspace ID, key ID, or response body. Do not run this
+against a customer credential.
+
+The lifecycle command is intentionally not part of the default read-only
+smoke and remains an operator-owned production gate until its redacted report
+is retained.
+
 This runner cannot prove browser sign-up/device approval, workspace selection,
 dashboard rendering, cross-workspace isolation, key rotation/revocation, live
 worker scheduling, or App Runner multi-instance rate limiting. Those remain
