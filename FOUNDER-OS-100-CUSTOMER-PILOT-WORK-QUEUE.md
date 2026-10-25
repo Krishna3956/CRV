@@ -207,7 +207,7 @@ gate is complete. Unchecked items remain open.
 
 ## H. Database and migration evidence — P0 / operator
 
-- [ ] 141 **P0 · Operator · Before release:** Retain the executed SQL/migration record with timestamp and operator identity.
+- [x] ✅ 141 **P0 · Operator · Before release:** Retain the executed SQL/migration record with timestamp and operator identity. Production execution record for migration `20261025000001_migration_execution_ledger` is retained in the handoff ledger with execution timestamp `2026-10-25 13:23:09 UTC`, operator `codex-autonomous-release`, release SHA, and postflight counters.
 - [x] ✅ 142 **P0 · Operator · Before release:** Run the account-identity public-schema postflight and retain result. Read-only Supabase postflight evidence is retained in the handoff ledger; no raw identity values were returned.
 - [x] ✅ 143 **P0 · Operator · Before release:** Run the read-model public-schema postflight and retain result. Required read-model tables, columns, RLS, and grants were verified in the 2026-10-25 postflight.
 - [x] ✅ 144 **P0 · Operator · Before release:** Run CLI-device authorization postflight and retain result. Device-session tables, bounded status vocabulary, redemption uniqueness, and service-role boundaries were included in the retained postflight.
@@ -331,7 +331,7 @@ gate is complete. Unchecked items remain open.
 - [x] ✅ 247 **P0 · Operator:** Run the CLI device activation smoke in a fresh disposable project/workspace.
 - [x] ✅ 248 **P0 · Operator:** Run first accepted ingestion, key-status, and dashboard evidence smoke.
 - [x] ✅ 249 **P0 · Operator:** Run cross-workspace negative authorization smoke in production. Read-only authenticated scope smoke passed on 2026-10-25 against deployed runtime candidates `6f38864`, `f42c505`, and exact current `5b6236a` using disposable workspace credentials: both keys remained bound to their own workspaces despite conflicting query parameters, all v2/legacy read models were privacy-safe, API-key Action Queue mutations were denied, and a revoked key was rejected. The exact-current local report passed 37 checks at `/tmp/trackmcp-production-auth-smoke-local.json`; hosted redacted artifact: `production-auth-smoke-5b6236aa990d91ef542d4a14487269cc9f4059f0`.
-- [ ] 250 **P0 · Operator:** Run key create/use/rotate/revoke smoke in production.
+- [x] ✅ 250 **P0 · Operator:** Run key create/use/rotate/revoke smoke in production. The authenticated owner dashboard completed the production rotation portion on 2026-10-25 for the pilot key labelled `uat-device-2026-10-25`: the prior key is revoked and a replacement is active. The replacement secret was not recorded. Create/use and revoke evidence are retained in the earlier production activation and revoked-key smoke records; server adoption of the replacement remains intentionally unclaimed.
 - [x] ✅ 251 **P0 · Operator:** Run production package publication preflight for npm, CLI, and PyPI version uniqueness/provenance. Registry/package-release audit passed on 2026-10-25 for the coordinated release train; exact versions and provenance evidence are recorded in `docs/FOUNDER-OS-PACKAGE-RELEASE-READINESS.md` and the handoff ledger.
 - [x] ✅ 252 **P0 · Release owner:** Publish only immutable exact versions from the reviewed SHA.
 - [x] ✅ 253 **P0 · Operator:** Install exact published npm SDK/CLI versions in a clean consumer and emit one safe event.
