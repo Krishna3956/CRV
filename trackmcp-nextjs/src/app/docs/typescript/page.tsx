@@ -136,6 +136,9 @@ export default withTrackMCP(server, {
   apiKey: process.env.TRACKMCP_KEY!,
   service: "acme-mcp-server",   // shows up as the server name
   environment: "production",     // production | staging | ...
+  server_version: "2026.10.26",  // bounded release metadata (optional)
+  sdk_version: "0.1.16",          // bounded release metadata (optional)
+  deployment_id: "deploy-42",     // bounded release metadata (optional)
   sampleRate: 1.0,               // 0-1, fraction of calls captured
   payloadMode: "redacted",      // metadata | redacted | full (all are bounded)
   redact: ["args.password", "args.token"], // never leaves your process
@@ -144,6 +147,9 @@ export default withTrackMCP(server, {
   endpoint: "https://trackmcp.com/api/v1/ingest", // compatible ingest endpoint override
   intentFallback: ({ toolName }) => toolName ? "Complete the " + toolName + " operation" : undefined,
 });`}</Code>
+        <Para>
+          Release labels are metadata only; they do not identify a customer or assert deployment health.
+        </Para>
       </DocSection>
 
       <DocSection title="Redacting sensitive fields">
