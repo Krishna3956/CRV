@@ -24,6 +24,6 @@ test("pilot release record keeps unresolved operational gates explicit", () => {
 });
 
 test("the queue and release record cannot silently drift from the open pilot set", () => {
-  assert.deepEqual(openQueueIds(queue), ["020", "047", "048", "052", "053", "157", "259", "260"]);
+  assert.deepEqual(openQueueIds(queue), ["020", "047", "048", "052", "053", "157", "260"]);
   assert.match(record, /not yet a go decision/i);
 });
