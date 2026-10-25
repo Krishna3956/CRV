@@ -3,10 +3,14 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from trackmcp.cli import _read_key, _write_key, main
+from trackmcp.cli import CLIENT_VERSION, _read_key, _write_key, main
 
 
 class CliTests(unittest.TestCase):
+    def test_activation_metadata_uses_the_installed_package_version(self):
+        self.assertNotEqual(CLIENT_VERSION, "python-sdk")
+        self.assertRegex(CLIENT_VERSION, r"^(?:\d+\.\d+\.\d+(?:[-+].*)?|source-checkout)$")
+
     def test_write_key_preserves_other_environment_values(self):
         with tempfile.TemporaryDirectory() as directory:
             path = Path(directory) / ".env"
