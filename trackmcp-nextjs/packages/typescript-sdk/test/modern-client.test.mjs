@@ -116,6 +116,23 @@ test("modern client accepts a server-directed task when discovery advertises tas
   assert.deepEqual(await client.callTool("lookup"), { resultType: "task", task: { taskId: "declared", status: "working" } });
 });
 
+test("modern client does not issue unadvertised catalog methods after discovery", async () => {
+  const methods = [];
+  const client = new ModernMcpClient({ endpoint: "https://mcp.example.test", fetch: async (_input, init) => {
+    const body = JSON.parse(init.body);
+    methods.push(body.method);
+    return body.method === "server/discover"
+      ? response({ result: { capabilities: { tools: {} } } })
+      : response({ result: { tools: [] } });
+  } });
+  await client.discover();
+  await client.listTools();
+  await assert.rejects(() => client.listResources(), (error) => error instanceof ModernMcpProtocolError && error.code === "unsupported_method");
+  await assert.rejects(() => client.listResourceTemplates(), (error) => error instanceof ModernMcpProtocolError && error.code === "unsupported_method");
+  await assert.rejects(() => client.listPrompts(), (error) => error instanceof ModernMcpProtocolError && error.code === "unsupported_method");
+  assert.deepEqual(methods, ["server/discover", "tools/list"]);
+});
+
 test("modern client projects complete tool result metadata without payloads", async () => {
   const client = new ModernMcpClient({ endpoint: "https://mcp.example.test", fetch: async () => response({ result: { resultType: "complete", isError: false, content: [{ text: "omit" }], inputRequests: { ask: { params: { secret: "omit" } } } } }) });
   assert.deepEqual(await client.callTool("lookup"), { resultType: "complete", isError: false, contentItemCount: 1, inputRequestKeys: ["ask"] });

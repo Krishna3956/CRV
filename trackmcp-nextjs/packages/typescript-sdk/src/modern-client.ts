@@ -359,8 +359,15 @@ export class ModernMcpClient {
       return { protocolVersion: MODERN_MCP_PROTOCOL_VERSION, ...(supportedVersions?.length ? { supportedVersions } : {}), ...(serverInfo ? { serverInfo } : {}), capabilityNames };
   }
 
+  private requireAdvertisedCapability(capability: string, method: string): void {
+    if (this.discoveredCapabilities && !this.discoveredCapabilities.has(capability)) {
+      throw new ModernMcpProtocolError("unsupported_method", `Modern MCP ${method} was requested without an advertised ${capability} capability.`);
+    }
+  }
+
   /** Retrieve one bounded, cursor-based tools/list catalog page. */
   async listTools(cursor?: string): Promise<ModernMcpToolPage> {
+    this.requireAdvertisedCapability("tools", "tools/list");
     const result = await this.request("tools/list", cursor ? { cursor: cursor.slice(0, MAX_STRING_LENGTH) } : {});
     if (!Array.isArray(result.tools)) throw new ModernMcpProtocolError("invalid_response", "Modern MCP tools/list returned no tools array.");
     const tools = result.tools.slice(0, MAX_TOOLS).flatMap((value): ModernMcpTool[] => {
@@ -423,6 +430,7 @@ export class ModernMcpClient {
   /** Retrieve one bounded, cursor-based resources/list catalog page. Raw
    * resource contents and read arguments are never requested or retained. */
   async listResources(cursor?: string): Promise<ModernMcpResourcePage> {
+    this.requireAdvertisedCapability("resources", "resources/list");
     const result = await this.request("resources/list", cursor ? { cursor: cursor.slice(0, MAX_STRING_LENGTH) } : {});
     if (!Array.isArray(result.resources)) throw new ModernMcpProtocolError("invalid_response", "Modern MCP resources/list returned no resources array.");
     const resources = result.resources.slice(0, MAX_RESOURCES).flatMap((value): ModernMcpResource[] => {
@@ -459,6 +467,7 @@ export class ModernMcpClient {
    * URI templates are metadata only; this method never expands or dereferences
    * a template. */
   async listResourceTemplates(cursor?: string): Promise<ModernMcpResourceTemplatePage> {
+    this.requireAdvertisedCapability("resources", "resources/templates/list");
     const result = await this.request("resources/templates/list", cursor ? { cursor: cursor.slice(0, MAX_STRING_LENGTH) } : {});
     if (!Array.isArray(result.resourceTemplates)) throw new ModernMcpProtocolError("invalid_response", "Modern MCP resources/templates/list returned no resourceTemplates array.");
     const resourceTemplates = result.resourceTemplates.slice(0, MAX_RESOURCES).flatMap((value): ModernMcpResourceTemplate[] => {
@@ -495,6 +504,7 @@ export class ModernMcpClient {
    * argument values are never requested or retained; only argument names are
    * returned for catalog display. */
   async listPrompts(cursor?: string): Promise<ModernMcpPromptPage> {
+    this.requireAdvertisedCapability("prompts", "prompts/list");
     const result = await this.request("prompts/list", cursor ? { cursor: cursor.slice(0, MAX_STRING_LENGTH) } : {});
     if (!Array.isArray(result.prompts)) throw new ModernMcpProtocolError("invalid_response", "Modern MCP prompts/list returned no prompts array.");
     const prompts = result.prompts.slice(0, MAX_PROMPTS).flatMap((value): ModernMcpPrompt[] => {
