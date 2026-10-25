@@ -1,29 +1,24 @@
 # Founder OS 100 Customer Readiness Ledger
 
-Last updated: 2026-10-25 (PR #382 merge CI 40197822657; local 131-suite release gate)
+Last updated: 2026-10-26 (PR #405 merge; workflow 40220255833; local 132-suite release gate)
 Owner: Codex engineering execution
 Pilot target: 100 customers
 
 This ledger is the operational source of truth for the autonomous readiness goal. It is updated when work is implemented, verified, submitted for review, merged, deployed, or found to be incomplete. A checked item means that the stated evidence exists; it does not mean that an adjacent item is complete.
 
-## 2026-10-25 release-scope decision
+## 2026-10-26 distributed-rate-limit reconciliation
 
-For the first-100-customer pilot, distributed multi-instance rate limiting is
-explicitly **out of scope**. The supported pilot boundary is the documented
-process-local degraded limiter; it must not be presented as cross-instance
-protection. Enabling `TRACKMCP_RATE_LIMIT_MODE=supabase` remains a separate
-post-pilot capability requiring the guarded AWS IAM change, Supabase rate-limit
-postflight, cleanup workflow, and live-mode evidence. This decision closes the
-distributed-rate-limit *scope* question without claiming that distributed mode
-is deployed.
+Distributed multi-instance rate limiting is now enabled for the verified pilot
+service. The guarded workflow completed after a resource-scoped IAM policy was
+applied, and its postflight verified `TRACKMCP_RATE_LIMIT_MODE=supabase` live.
+The supported fallback remains process-local when distributed mode is unset or
+unavailable; neither mode is presented as stronger than its evidence.
 
-The scope decision was merged as PR #382 at SHA
-`080e9b81cbed9291f3ce1502c6694b932650b8db`; its exact-SHA TrackMCP CI run
-`40197822657` passed web/JavaScript, Go, and .NET. The current pilot checkout
-also passed lint, the 176-route production build, and the complete 131-suite
-release gate. These checks are source and hosted-CI evidence; they do not close
-the remaining external browser-state, backup/restore, final acceptance, or
-limited-pilot go/no-go gates.
+PR #405 recorded the final IAM shape and live workflow evidence, then merged to
+`main` as `bf4506696f4b9f36a3ffe0e5aab85ab5c901f16f`. Hosted checks passed and
+the current checkout passed lint, the 176-route production build, and the
+complete 132-suite release gate. These checks do not close the remaining
+backup/restore and release-owner decision gates.
 
 The credentialless production pilot smoke was rerun on 2026-10-25 and passed
 all 35 checks. A subsequent authenticated read-only invocation using the
@@ -68,14 +63,14 @@ The readiness percentage is based on 10 gates, not lines of code:
 9. Production smoke/load/rollback evidence
 10. Pilot operations and documentation
 
-Engineering evidence is complete for the deployed application path, bounded load/rollback, five-slice refresh checkpoint, all six Founder OS tabs, privacy/retention boundaries, and the current release record. The pilot is **not marked ready by percentage**: credentialed UAT, migration/rollback ownership, repeated worker SLO observations, distributed-rate-limit IAM, and explicitly partial protocol interoperability remain release-owner gates. Supabase usage is monitored operationally; no current overage is inferred from this ledger, and quota headroom is not silently treated as a completed pilot gate.
+Engineering evidence is complete for the deployed application path, bounded load/rollback, five-slice refresh checkpoint, all six Founder OS tabs, privacy/retention boundaries, and the current release record. The pilot is **not marked ready by percentage**: credentialed UAT, migration/rollback ownership, repeated worker SLO observations, and explicitly partial protocol interoperability remain release-owner gates. Distributed-rate-limit IAM is now resolved and live in the production App Runner configuration, verified by guarded workflow `40220255833`. Supabase usage is monitored operationally; no current overage is inferred from this ledger, and quota headroom is not silently treated as a completed pilot gate.
 
-The current distributed-rate-limit workflow was exercised from `main` as run
-`40172392815`. It authenticated with the GitHub OIDC role, was denied the
-narrowly scoped `apprunner:UpdateService` permission, applied no production
-mutation, and uploaded the redacted artifact
-`distributed-rate-limit-mode-40172392815` with outcome `blocked_iam`. This is
-the authoritative current IAM boundary; distributed mode remains unclaimed.
+The distributed-rate-limit workflow was subsequently rerun after the
+resource-scoped IAM policy was applied. Run `40220255833` completed the
+App Runner configuration update and postflight verification, and the
+distributed mode is now claimed only for the verified production service. The
+policy grants `apprunner:UpdateService` on that service and `iam:PassRole` on
+the existing App Runner ECR access role; no wildcard permissions were added.
 
 ## 2026-10-24 authenticated dashboard UAT checkpoint
 
@@ -807,7 +802,7 @@ a failed product gate or a Supabase plan warning.
   evidence checks.
 - [ ] Credentialed two-workspace UAT, production key lifecycle and
   cross-workspace negative authorization, migration-history/rollback evidence,
-  repeated worker freshness/SLO observations, distributed-rate-limit IAM, and
+  repeated worker freshness/SLO observations, and
   authenticated protocol interoperability remain explicit external gates.
 - [ ] Protocol-matrix rows marked Partial or Unsupported remain so until their
   documented production/interoperability evidence exists; no UI or release
