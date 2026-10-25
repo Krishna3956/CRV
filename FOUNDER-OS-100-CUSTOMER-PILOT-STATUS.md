@@ -8,7 +8,9 @@ promise that every product capability is complete.
 
 ## Verified and shipped
 
-- Main is synchronized to `6f38864` (PRs #356–#362 merged).
+- Repository main is synchronized to `811c29a` (PRs #356–#363 merged). The
+  deployed runtime candidate recorded below is `6f38864`; `811c29a` contains
+  documentation-only updates after that deployment.
 - Hosted release CI for PR #359 passed (workflow `40176488160`); web/JavaScript,
   Go, and .NET jobs were green.
 - App Runner deployment and read-only public production smoke passed
