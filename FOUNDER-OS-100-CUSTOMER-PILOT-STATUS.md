@@ -8,7 +8,7 @@ promise that every product capability is complete.
 
 ## Verified and shipped
 
-- `origin/main` is `658facb9bca8f367c8e42a8ff51332f6323c2029` (PR #403).
+- `origin/main` is `c0ec7c4acc97d34a99262fed823d9cb8bdc917f3` (PR #404).
   The deployed application runtime remains the previously verified
   `7d3dfa8585785659d214f1ed4af225969a63e661`; PR #403 is a reviewed
   least-privilege IAM artifact and does not require a runtime rollout.
@@ -29,14 +29,18 @@ promise that every product capability is complete.
   the old key is revoked and the replacement secret was shown once and not
   persisted. Server adoption of the replacement remains a separate check.
 - The exact distributed-rate-limit IAM policy is present at
-  `docs/FOUNDER-OS-RATE-LIMIT-IAM-POLICY.json`; its contract test passed and
-  the policy has not yet been applied to AWS.
+  `docs/FOUNDER-OS-RATE-LIMIT-IAM-POLICY.json`; its contract test passed. AWS
+  applied the policy to `GitHubActionsDeployRole`, including the resource-scoped
+  `iam:PassRole` handoff required by App Runner.
+- Guarded distributed-rate-limit workflow `40220255833` completed successfully;
+  App Runner configuration update and live postflight verification passed.
 
 ## Deliberately not claimed
 
-- Distributed multi-instance rate-limit behavior is implemented but remains
-  memory-degraded until the GitHub OIDC role receives a narrowly scoped
-  `apprunner:UpdateService` grant and the live postflight passes.
+- Distributed multi-instance rate-limit behavior is enabled and verified by
+  guarded workflow `40220255833`; App Runner configuration update and live
+  postflight passed. The memory-degraded provider remains the explicit local
+  fallback when distributed mode is unset.
 - Backup/restore rehearsal, scheduler execution under production load, and
   rollback rehearsal remain separate operator gates; the provider's Free Plan
   does not supply evidence for them automatically.
@@ -49,14 +53,11 @@ promise that every product capability is complete.
 
 ## Next execution order
 
-1. Obtain the narrowly scoped App Runner IAM grant and run the guarded
-   distributed-rate-limit workflow; otherwise keep memory-degraded mode
-   explicitly disclosed.
-2. Record provider backup/restore posture and the release-owner scope/go-no-go
+1. Record provider backup/restore posture and the release-owner scope/go-no-go
    decision; do not infer either from green CI.
-3. Verify server adoption and fresh telemetry with the rotated replacement key
+2. Verify server adoption and fresh telemetry with the rotated replacement key
    in a disposable process, without recording the secret.
-4. Keep partial MCP protocol surfaces and review-only deletion visibly bounded
+3. Keep partial MCP protocol surfaces and review-only deletion visibly bounded
    in docs and setup until their external dependencies or implementations are
    complete.
 5. Re-run lint, build, the full release gate, and production smoke after every
