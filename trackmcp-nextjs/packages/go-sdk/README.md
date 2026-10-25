@@ -25,6 +25,11 @@ For an explicit caller-verified transport label, use
 `RecordTransportFailureForTransport` with `stdio`, `streamable_http`, `sse`,
 or `custom`; the SDK does not inspect transport internals.
 
+After the caller has actually re-established a transport, it may record the
+bounded lifecycle signal with `client.RecordSessionReconnected(transport,
+sessionID, durationMS)`. This is caller-observed evidence only: it does not
+claim replay, durable delivery, or transport ownership.
+
 For protocol notifications, call `client.RecordProtocolSignal` with one of
 `progress`, `cancelled`, `catalog_changed`, `resource_changed`,
 `prompt_changed`, `subscription_started`, or `subscription_stopped`. Only the

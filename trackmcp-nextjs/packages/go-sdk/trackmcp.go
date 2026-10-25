@@ -171,6 +171,21 @@ func (c *Client) RecordTransportFailureForTransport(kind string, transport strin
 	})
 }
 
+// RecordSessionReconnected records a caller-observed transport reconnect as
+// bounded lifecycle metadata. It does not claim replay, delivery, or server
+// ownership of the reconnect; callers invoke it only after reconnecting.
+func (c *Client) RecordSessionReconnected(transport string, sessionID string, durationMS int64) {
+	if transport != "" && !transportKinds[transport] { return }
+	sessionID = boundedSessionID(sessionID)
+	if durationMS < 0 { durationMS = 0 }
+	if durationMS > 86400000 { durationMS = 86400000 }
+	c.Capture(Event{
+		EventType: "session", MCPMethod: "transport", SessionID: sessionID, Transport: transport,
+		DurationMS: durationMS, Success: boolPtr(true), IsError: boolPtr(false),
+		Payload: map[string]any{"_trackmcp": map[string]any{"observation_kind": "session_reconnected", "observation_source": "transport"}},
+	})
+}
+
 // RecordProtocolSignal records an allowlisted protocol notification without
 // accepting progress values, cancellation reasons, resource URIs, or any
 // other caller payload. It is intentionally metadata-only and fail-closed.
