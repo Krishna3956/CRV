@@ -40,13 +40,22 @@ function validate() {
 function endpoint(path) { return new URL(path, `${baseUrl.replace(/\/$/, "")}/`); }
 
 async function request(path, key, options = {}) {
-  const response = await fetch(endpoint(path), {
-    ...options,
-    redirect: "manual",
-    headers: { accept: "application/json", authorization: `Bearer ${key}`, ...(options.headers || {}) },
-    signal: AbortSignal.timeout(15_000),
-  });
-  return response;
+  const maxAttempts = 3;
+  for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
+    try {
+      const response = await fetch(endpoint(path), {
+        ...options,
+        redirect: "manual",
+        headers: { accept: "application/json", authorization: `Bearer ${key}`, ...(options.headers || {}) },
+        signal: AbortSignal.timeout(15_000),
+      });
+      if (![502, 503, 504].includes(response.status) || attempt === maxAttempts) return response;
+    } catch (error) {
+      if (attempt === maxAttempts) throw error;
+    }
+    await new Promise((resolve) => setTimeout(resolve, 500 * attempt));
+  }
+  fail("unreachable authenticated smoke request state");
 }
 
 async function keyStatus(key, label) {
