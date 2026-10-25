@@ -4,6 +4,10 @@ Install the current published package with `python3 -m pip install trackmcp`.
 Pin an exact version in your requirements or lockfile when you need
 reproducible builds.
 
+When known, pass `server_version`, `sdk_version`, and `deployment_id` to attach
+bounded release metadata to events. These labels are metadata only; they are
+not customer identity or deployment-health claims.
+
 Correlation is disabled by default and does not change MCP schemas. External mode accepts a synchronous resolver returning an already anonymized opaque handle from bounded request metadata. Invalid, oversized, credential-like, or resolver-failed values are recorded as missing. `correlation_mode="issued"` is exposed for contract parity but is not enabled by the current Python MCP middleware because it has no stable schema-rewrite-and-strip seam; it therefore records missing provenance until a compatible adapter exists. Resolvers must not return emails, tokens, URLs, raw user IDs, prompts, completions, or private reasoning.
 
 For optional verified organization/account reporting, set `account_id_resolver` to read an account or tenant claim already validated by your application. The SDK hashes the bounded result locally into `account_key`; it never parses bearer tokens or uses MCP `clientInfo` as identity. Resolver failures and unsafe values are fail-open and are labeled `account_identity_source="unresolved"`.
