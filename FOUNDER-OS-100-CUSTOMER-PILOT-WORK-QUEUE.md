@@ -332,12 +332,12 @@ gate is complete. Unchecked items remain open.
 - [x] ✅ 248 **P0 · Operator:** Run first accepted ingestion, key-status, and dashboard evidence smoke.
 - [x] ✅ 249 **P0 · Operator:** Run cross-workspace negative authorization smoke in production. Read-only authenticated scope smoke passed on 2026-10-25 with disposable workspace credentials: both keys remained bound to their own workspaces despite conflicting query parameters, all v2/legacy read models were privacy-safe, API-key Action Queue mutations were denied, and a revoked key was rejected. Redacted report: `/tmp/trackmcp-auth-smoke-2026-10-25.json`.
 - [ ] 250 **P0 · Operator:** Run key create/use/rotate/revoke smoke in production.
-- [ ] 251 **P0 · Operator:** Run production package publication preflight for npm, CLI, and PyPI version uniqueness/provenance.
+- [x] ✅ 251 **P0 · Operator:** Run production package publication preflight for npm, CLI, and PyPI version uniqueness/provenance. Registry/package-release audit passed on 2026-10-25 for the coordinated release train; exact versions and provenance evidence are recorded in `docs/FOUNDER-OS-PACKAGE-RELEASE-READINESS.md` and the handoff ledger.
 - [x] ✅ 252 **P0 · Release owner:** Publish only immutable exact versions from the reviewed SHA.
 - [x] ✅ 253 **P0 · Operator:** Install exact published npm SDK/CLI versions in a clean consumer and emit one safe event.
 - [x] ✅ 254 **P0 · Operator:** Install exact published PyPI version in a clean consumer and emit one safe event.
-- [ ] 255 **P0 · Operator:** Validate registry URLs, checksums, provenance, and package metadata.
-- [ ] 256 **P0 · Operator:** Rehearse application rollback against approved additive schema compatibility.
+- [x] ✅ 255 **P0 · Operator:** Validate registry URLs, checksums, provenance, and package metadata. Npm tarball/integrity and PyPI wheel/sdist checksum metadata were revalidated on 2026-10-25; clean-consumer and provenance checks passed.
+- [x] ✅ 256 **P0 · Operator:** Rehearse application rollback against approved additive schema compatibility. Rollback workflow `40170438059` and restoration workflow `40170901810` both completed successfully with immutable image and production smoke evidence.
 - [ ] 257 **P0 · Operator:** Run a production worker/scheduler batch and capture lag/retry/terminal evidence.
 - [ ] 258 **P0 · Operator:** Run multi-instance distributed rate-limit evidence if the capability is claimed.
 - [ ] 259 **P0 · Release owner:** Compare all acceptance-matrix rows with evidence links and explicitly waive none silently.
