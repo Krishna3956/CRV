@@ -365,6 +365,12 @@ export class ModernMcpClient {
     }
   }
 
+  private requireTasksCapability(method: string): void {
+    if (this.discoveredCapabilities && !["tasks", "io.modelcontextprotocol/tasks", "io.modelcontextprotocol/tasks/"].some((name) => this.discoveredCapabilities?.has(name))) {
+      throw new ModernMcpProtocolError("unsupported_method", `Modern MCP ${method} was requested without an advertised Tasks capability.`);
+    }
+  }
+
   /** Retrieve one bounded, cursor-based tools/list catalog page. */
   async listTools(cursor?: string): Promise<ModernMcpToolPage> {
     this.requireAdvertisedCapability("tools", "tools/list");
@@ -606,6 +612,7 @@ export class ModernMcpClient {
 
   /** Retrieve one task's bounded status. This is observation only. */
   async getTask(taskId: string): Promise<ModernMcpTask> {
+    this.requireTasksCapability("tasks/get");
     if (!/^[A-Za-z0-9_.:-]{1,256}$/.test(taskId)) throw new ModernMcpProtocolError("invalid_response", "Modern MCP tasks/get requires a bounded opaque task identifier.");
     const boundedTaskId = taskId.slice(0, MAX_STRING_LENGTH);
     const result = await this.request("tasks/get", taskParams({ taskId: boundedTaskId }), boundedTaskId);
@@ -643,6 +650,7 @@ export class ModernMcpClient {
   /** Provide bounded responses to outstanding task input requests. Values are
    * sent directly to the server and are never retained by this client. */
   async updateTask(taskId: string, inputResponses: ModernMcpTaskInputResponses): Promise<void> {
+    this.requireTasksCapability("tasks/update");
     if (!/^[A-Za-z0-9_.:-]{1,256}$/.test(taskId) || !boundedObject(inputResponses)) throw new ModernMcpProtocolError("invalid_response", "Modern MCP tasks/update requires a bounded task identifier and object input responses.");
     const keys = Object.keys(inputResponses).filter((key) => /^[A-Za-z0-9_.:-]{1,128}$/.test(key)).slice(0, MAX_CAPABILITIES);
     if (keys.length !== Object.keys(inputResponses).length) throw new ModernMcpProtocolError("invalid_response", "Modern MCP tasks/update contains an invalid or oversized input response key.");
@@ -653,6 +661,7 @@ export class ModernMcpClient {
   /** Signal cooperative cancellation; the server may acknowledge before its
    * observable task status changes. */
   async cancelTask(taskId: string): Promise<void> {
+    this.requireTasksCapability("tasks/cancel");
     if (!/^[A-Za-z0-9_.:-]{1,256}$/.test(taskId)) throw new ModernMcpProtocolError("invalid_response", "Modern MCP tasks/cancel requires a bounded opaque task identifier.");
     await this.request("tasks/cancel", taskParams({ taskId: taskId.slice(0, MAX_STRING_LENGTH) }), taskId.slice(0, MAX_STRING_LENGTH));
   }
@@ -661,6 +670,7 @@ export class ModernMcpClient {
    * `notifications/tasks` metadata is surfaced; acknowledgements, cursors,
    * stream identifiers, and task payloads are discarded. */
   async listenForTaskUpdates(taskIds: string[], options: ModernMcpTaskListenerOptions = {}): Promise<ModernMcpTaskListenerResult> {
+    this.requireTasksCapability("subscriptions/listen");
     const validIds = taskIds.map((id) => typeof id === "string" && /^[A-Za-z0-9_.:-]{1,256}$/.test(id));
     const ids = [...new Set(taskIds.map((id) => id.slice(0, MAX_STRING_LENGTH)))].slice(0, MAX_CAPABILITIES);
     if (!ids.length || validIds.some((valid) => !valid)) throw new ModernMcpProtocolError("invalid_response", "Modern MCP subscriptions/listen requires bounded task identifiers.");
