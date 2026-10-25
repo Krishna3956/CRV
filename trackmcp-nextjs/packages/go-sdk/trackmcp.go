@@ -50,6 +50,9 @@ type Event struct {
 	ErrorCode *int `json:"error_code,omitempty"`
 	AccountKey string `json:"account_key,omitempty"`
 	AccountIdentitySource string `json:"account_identity_source,omitempty"`
+	ServerVersion string `json:"server_version,omitempty"`
+	SDKVersion string `json:"sdk_version,omitempty"`
+	DeploymentID string `json:"deployment_id,omitempty"`
 	ResultType string `json:"result_type,omitempty"`
 	TaskStatus string `json:"task_status,omitempty"`
 	InputRequestCount *int `json:"input_request_count,omitempty"`
@@ -137,6 +140,7 @@ func (c *Client) Capture(event Event) {
 	event.Service, event.Environment = c.options.Service, c.options.Environment
 	if event.StartedAt == "" { event.StartedAt = time.Now().UTC().Format(time.RFC3339) }
 	if event.Payload != nil { event.Payload = sanitizePayload(event.Payload, 0).(map[string]any) }
+	event.ServerVersion, event.SDKVersion, event.DeploymentID = c.options.ServerVersion, c.options.SDKVersion, c.options.DeploymentID
 	c.mu.Lock(); c.queue = append(c.queue, event); flush := len(c.queue) >= c.options.MaxBatchSize; c.mu.Unlock()
 	if flush { go c.Flush() }
 }

@@ -26,6 +26,16 @@ func TestSanitizePayloadTruncatesDepth(t *testing.T) {
 	}
 }
 
+func TestCaptureIncludesDeploymentMetadata(t *testing.T) {
+	client := New(Options{APIKey: "tmcp_test", ServerVersion: "server-1.2.3", SDKVersion: "go-0.1.0", DeploymentID: "deploy-42"})
+	client.Capture(Event{EventType: "tool_call", MCPMethod: "tools/call"})
+	if len(client.queue) != 1 { t.Fatalf("expected one event, got %d", len(client.queue)) }
+	event := client.queue[0]
+	if event.ServerVersion != "server-1.2.3" || event.SDKVersion != "go-0.1.0" || event.DeploymentID != "deploy-42" {
+		t.Fatalf("deployment metadata was not propagated: %#v", event)
+	}
+}
+
 func TestRecordTransportFailureIsMetadataOnlyAndBounded(t *testing.T) {
 	client := New(Options{APIKey: "tmcp_test"})
 	client.RecordTransportFailure("transport_closed", "session-1", 12)
