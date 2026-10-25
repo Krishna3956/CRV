@@ -128,23 +128,25 @@ distributed provider's database contract is applied and publicly closed.
 
 The postflight did not inspect or change App Runner runtime values, so it does
 not prove that `TRACKMCP_RATE_LIMIT_MODE=supabase` is enabled in production.
-Until that runtime setting and a two-instance behavior test are recorded, the
-pilot must continue to describe rate limiting as memory-degraded rather than
-distributed.
+The guarded enablement workflow `40220255833` applied the runtime setting and
+its postflight verified the live App Runner configuration. Distributed mode is
+therefore the production pilot mode; the memory provider remains the explicit
+fallback when the mode is unset.
 
 The controlled enablement workflow is
 `.github/workflows/enable-distributed-rate-limit.yml`. Its first production
 attempt on 2026-10-21 read the existing service configuration successfully but
-was rejected before any mutation because the configured GitHub OIDC role lacks
-`apprunner:UpdateService` on the production service. Granting that narrowly
-scoped action to the deploy role (or performing the equivalent reviewed AWS
-change) is an external IAM prerequisite; the workflow does not bypass it or
-fall back to an unverified mode.
+was rejected before any mutation because the configured GitHub OIDC role then
+lacked `apprunner:UpdateService` on the production service. That IAM change was
+subsequently applied through the AWS console, including the narrowly scoped
+`iam:PassRole` handoff required by App Runner; workflow `40220255833` then
+completed its live postflight successfully. The workflow does not bypass IAM
+or fall back to an unverified mode.
 
 The exact least-privilege inline policy is checked into
-`docs/FOUNDER-OS-RATE-LIMIT-IAM-POLICY.json`. It grants only
-`apprunner:UpdateService` on the single production App Runner service ARN;
-it contains no wildcard resource or unrelated IAM action. Apply it to the
-existing `GitHubActionsDeployRole`, then dispatch the guarded workflow and
-retain its uploaded mode artifact as the runtime evidence. This file is a
-review artifact, not an automatic AWS mutation.
+`docs/FOUNDER-OS-RATE-LIMIT-IAM-POLICY.json`. AWS applied it to the existing
+`GitHubActionsDeployRole`; the final policy grants only
+`apprunner:UpdateService` on the single production App Runner service ARN and
+`iam:PassRole` on the existing `AppRunnerECRAccessRole`. It contains no
+wildcard resource or unrelated IAM action. Guarded workflow `40220255833`
+retains the live mode artifact and postflight as runtime evidence.
