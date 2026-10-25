@@ -18,6 +18,9 @@ const INTENDED = [
   /^\.github\/workflows\//,
   /^\.gitignore$/,
   /^FOUNDER-OS-[^/]+\.md$/,
+  // The release gate runs from trackmcp-nextjs, so root-level pilot manifests
+  // appear as trackmcp-nextjs/FOUNDER-OS-*.md after path normalization.
+  /^trackmcp-nextjs\/FOUNDER-OS-[^/]+\.md$/,
   /^docs\/FOUNDER-OS-/,
   /^supabase\/(?:migrations|manual)\//,
   /^packages\/python-sdk\//,

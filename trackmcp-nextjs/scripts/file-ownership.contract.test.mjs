@@ -33,6 +33,9 @@ const owners = [
   [".gitignore", "tests"],
   ["trackmcp-nextjs/.gitignore", "tests"],
   ["FOUNDER-OS-", "founder-docs"],
+  // The release gate normalizes root-level pilot manifests relative to the
+  // trackmcp-nextjs working directory.
+  ["trackmcp-nextjs/FOUNDER-OS-", "founder-docs"],
   ["docs/FOUNDER-OS-", "founder-docs"],
   ["docs/architecture.md", "founder-docs"],
   ["docs/getting-started.md", "founder-docs"],
