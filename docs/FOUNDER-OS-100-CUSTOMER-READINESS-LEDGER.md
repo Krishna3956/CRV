@@ -1,6 +1,6 @@
 # Founder OS 100 Customer Readiness Ledger
 
-Last updated: 2026-10-26 (PR #405 merge; workflow 40220255833; local 132-suite release gate)
+Last updated: 2026-10-26 (PR #410 merge; workflow 40220255833; local 132-suite release gate)
 Owner: Codex engineering execution
 Pilot target: 100 customers
 
@@ -14,11 +14,12 @@ applied, and its postflight verified `TRACKMCP_RATE_LIMIT_MODE=supabase` live.
 The supported fallback remains process-local when distributed mode is unset or
 unavailable; neither mode is presented as stronger than its evidence.
 
-PR #405 recorded the final IAM shape and live workflow evidence, then merged to
-`main` as `bf4506696f4b9f36a3ffe0e5aab85ab5c901f16f`. Hosted checks passed and
-the current checkout passed lint, the 176-route production build, and the
-complete 132-suite release gate. These checks do not close the remaining
-backup/restore and release-owner decision gates.
+PR #405 recorded the final IAM shape and live workflow evidence. The later
+external-gate reconciliation merged as PR #410 at
+`1fdcb32b4de0c61cb89367a9979b62bfe58534dc`; hosted checks passed and the
+current checkout passed lint, the 176-route production build, and the complete
+132-suite release gate. These checks do not close the remaining backup/restore
+and release-owner decision gates.
 
 The credentialless production pilot smoke was rerun on 2026-10-25 and passed
 all 35 checks. A subsequent authenticated read-only invocation using the
