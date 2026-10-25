@@ -2,6 +2,11 @@
 
 Transport-neutral, fail-open telemetry primitives for ASP.NET and .NET MCP servers. Use `Capture` at the MCP middleware boundary and flush during graceful shutdown.
 
+When available, set `ServerVersion`, `SdkVersion`, and `DeploymentId` on
+`TrackMcpOptions` to attach bounded release metadata to captured events. These
+labels are metadata only; they are not customer identity or deployment-health
+claims.
+
 The .NET SDK is currently a reviewed source package, not a published NuGet
 release. Keep `TRACKMCP_KEY` in your server secret store and use the pinned
 project reference documented at `/docs/dotnet`. Capture only bounded,
