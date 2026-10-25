@@ -1,6 +1,6 @@
 # Founder OS 100 Customer Readiness Ledger
 
-Last updated: 2026-10-26 (PR #411 merge; workflow 40220255833; local 132-suite release gate)
+Last updated: 2026-10-26 (workflow 40220255833; local 132-suite release gate)
 Owner: Codex engineering execution
 Pilot target: 100 customers
 
@@ -15,11 +15,12 @@ The supported fallback remains process-local when distributed mode is unset or
 unavailable; neither mode is presented as stronger than its evidence.
 
 PR #405 recorded the final IAM shape and live workflow evidence. The later
-readiness-ledger reconciliation merged as PR #411 at
-`425808111be4135aa0b43683a566757042f06829`; hosted checks passed and the
-current checkout passed lint, the 176-route production build, and the complete
-132-suite release gate. These checks do not close the remaining backup/restore
-and release-owner decision gates.
+readiness-ledger reconciliations merged through the terminal PR flow; hosted
+checks passed and the current checkout passed lint, the 176-route production
+build, and the complete 132-suite release gate. Immutable deployed SHAs remain
+in the release record, while this operational ledger stays branch-relative.
+These checks do not close the remaining backup/restore and release-owner
+decision gates.
 
 The credentialless production pilot smoke was rerun on 2026-10-25 and passed
 all 35 checks. A subsequent authenticated read-only invocation using the
