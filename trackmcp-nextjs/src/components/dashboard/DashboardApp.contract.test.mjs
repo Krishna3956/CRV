@@ -396,6 +396,16 @@ test("Setup exposes safe rotation alongside revocation for active keys", () => {
   assert.match(source, /disabled=\{working\}/);
 });
 
+test("Setup keeps revoked key history collapsed until explicitly requested", () => {
+  const setupStart = source.indexOf("function SetupView(");
+  const setupEnd = source.indexOf("// Kept as an inert compatibility artifact", setupStart);
+  const setupSource = source.slice(setupStart, setupEnd);
+  assert.match(setupSource, /showRevokedKeys/);
+  assert.match(setupSource, /aria-expanded=\{showRevokedKeys\}/);
+  assert.match(setupSource, /Show revoked keys \(\$\{keys\.filter\(\(key\) => key\.revoked_at\)\.length\}\)/);
+  assert.match(setupSource, /keys\.filter\(\(key\) => showRevokedKeys \|\| !key\.revoked_at\)/);
+});
+
 test("empty page previews explain each product area instead of repeating generic placeholders", () => {
   for (const phrase of [
     "The business tasks users start",
