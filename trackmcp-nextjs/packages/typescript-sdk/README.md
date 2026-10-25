@@ -71,6 +71,13 @@ import { ModernMcpClient } from "@trackmcp/sdk/modern-client";
 const discovery = await new ModernMcpClient({ endpoint: process.env.MCP_ENDPOINT! }).discover();
 ```
 
+`capabilityNames` contains the bounded top-level capability names and any
+advertised extension names (for example,
+`io.modelcontextprotocol/tasks`). After discovery, the client fails closed
+before sending a request when a catalog, task lifecycle method, or catalog subscription
+method is not advertised by the peer. Callers that skip discovery keep
+the compatibility behavior of the bounded request methods.
+
 For a bounded catalog page, use `tools/list` with an opaque cursor. Tool names,
 descriptions, schemas, and cursors are size-limited and sanitized before they
 are returned; the method does not execute tools or retain arguments/results:
