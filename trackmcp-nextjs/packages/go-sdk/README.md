@@ -2,6 +2,10 @@
 
 Fail-open telemetry primitives for Go MCP servers. Capture protocol envelopes at the server or transport boundary and call `Flush` during graceful shutdown. The package has no dependencies outside the Go standard library.
 
+Set `Options.ServerVersion`, `Options.SDKVersion`, and `Options.DeploymentID`
+when those bounded release labels are known. They are copied to each event as
+metadata only; they are not used as customer identity or health claims.
+
 The Go SDK is currently a reviewed source package, not a published registry
 release. Keep `TRACKMCP_KEY` in your secret manager and use the pinned source
 checkout documented at `/docs/go`. Capture only bounded, privacy-safe metadata:
