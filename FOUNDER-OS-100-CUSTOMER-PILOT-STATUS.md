@@ -8,13 +8,15 @@ promise that every product capability is complete.
 
 ## Verified and shipped
 
-- Main is synchronized to `f9673d7` (PRs #356, #357, #358, and #359 merged).
+- Main is synchronized to `6f38864` (PRs #356–#362 merged).
 - Hosted release CI for PR #359 passed (workflow `40176488160`); web/JavaScript,
   Go, and .NET jobs were green.
 - App Runner deployment and read-only public production smoke passed
-  (deployment workflow `40174103987`).
+  for `6f38864` (deployment workflow `40177870518`); the immutable image
+  digest was verified and 35 smoke checks passed (33 executed, 2 intentionally
+  skipped without a write credential).
 - Authenticated production scope smoke passed 37 checks
-  (workflow `40174666509`), including key-bound workspace isolation,
+  against the deployed `6f38864` (redacted report in `tmp/deploy-40177870518/auth-smoke.json`), including key-bound workspace isolation,
   privacy-safe v2/legacy read models, API-key Action Queue denial, and revoked
   key rejection.
 - Supabase read-only postflight verified the required tables, RLS, grants,
