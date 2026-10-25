@@ -51,6 +51,50 @@ async function request(path, options = {}) {
   return { status: response.status, headers: response.headers };
 }
 
+// Minimal OTLP/HTTP protobuf fixture used only when the operator explicitly
+// enables the write smoke. It contains metadata-only service/method fields;
+// no customer payload or credential is written to the report.
+const protobufVarint = (value) => {
+  let current = BigInt(value);
+  const bytes = [];
+  do {
+    const next = Number(current & 0x7fn);
+    current >>= 7n;
+    bytes.push(next | (current ? 0x80 : 0));
+  } while (current);
+  return bytes;
+};
+const protobufField = (number, wire, value) => {
+  const bytes = Array.isArray(value) ? value : protobufVarint(value);
+  return [...protobufVarint((BigInt(number) << 3n) | BigInt(wire)), ...(wire === 2 ? [...protobufVarint(bytes.length), ...bytes] : bytes)];
+};
+const protobufMessage = (...fields) => Uint8Array.from(fields.flat());
+const protobufStringField = (number, value) => protobufField(number, 2, [...new TextEncoder().encode(value)]);
+const protobufNestedField = (number, value) => protobufField(number, 2, [...value]);
+function buildOtelProtobufFixture() {
+  const service = protobufMessage(protobufStringField(1, "service.name"), protobufNestedField(2, protobufMessage(protobufStringField(1, "trackmcp-pilot-smoke"))));
+  const method = protobufMessage(protobufStringField(1, "mcp.method.name"), protobufNestedField(2, protobufMessage(protobufStringField(1, "tools/call"))));
+  const span = protobufMessage(protobufStringField(5, "tools/call"), protobufField(7, 0, 1700000000000000000n), protobufField(8, 0, 1700000000100000000n), protobufNestedField(9, method));
+  const scope = protobufMessage(protobufNestedField(2, span));
+  const resource = protobufMessage(protobufNestedField(1, service));
+  const resourceSpans = protobufMessage(protobufNestedField(1, resource), protobufNestedField(2, scope));
+  return protobufMessage(protobufNestedField(1, resourceSpans));
+}
+
+async function sendOtelProtobuf(apiKey) {
+  const response = await fetch(endpoint("/api/v1/otel/v1/traces"), {
+    method: "POST",
+    headers: { authorization: `Bearer ${apiKey}`, "content-type": "application/x-protobuf", "user-agent": "TrackMCP/0.1.16 production-smoke" },
+    body: buildOtelProtobufFixture(),
+    redirect: "manual",
+    signal: AbortSignal.timeout(15_000),
+  });
+  if (response.status !== 200) fail(`OTLP/HTTP protobuf smoke: expected HTTP 200, received HTTP ${response.status}`);
+  const protocol = response.headers.get("x-trackmcp-otel-protocol");
+  if (protocol !== "otlp-http-protobuf") fail("OTLP/HTTP protobuf smoke: protocol response header was not observed");
+  return { label: "OTLP/HTTP protobuf first-ingest smoke (payload redacted)", status: response.status, protocol };
+}
+
 const requiredSecurityHeaders = {
   "x-content-type-options": "nosniff",
   "referrer-policy": "strict-origin-when-cross-origin",
@@ -291,6 +335,7 @@ async function main() {
     }
     if (!accepted) fail("first-ingest smoke: key-status did not observe the accepted-ingest milestone within the bounded wait");
     checks.push({ label: "first-ingest milestone", status: "observed" });
+    checks.push(await sendOtelProtobuf(key));
   } else {
     checks.push({ label: "first-ingest smoke", status: "skipped (set TRACKMCP_SMOKE_ALLOW_WRITE=true explicitly)" });
   }
@@ -312,6 +357,7 @@ async function main() {
     caveats: [
       "This report proves HTTP/registry observations only; it does not prove browser auth, workspace selection, dashboard rendering, or cross-workspace authorization.",
       "The ingest check creates one metadata-only event only when TRACKMCP_SMOKE_ALLOW_WRITE=true is explicitly set.",
+      "The OTLP/HTTP protobuf check creates one metadata-only span only when TRACKMCP_SMOKE_ALLOW_WRITE=true is explicitly set.",
       "No raw API key, device code, workspace ID, event ID, response body, or credential is written to this report.",
       "Protected API checks are unauthenticated status probes; they do not prove authenticated authorization or tenant isolation.",
     ],
