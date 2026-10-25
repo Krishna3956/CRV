@@ -6,6 +6,17 @@ Pilot target: 100 customers
 
 This ledger is the operational source of truth for the autonomous readiness goal. It is updated when work is implemented, verified, submitted for review, merged, deployed, or found to be incomplete. A checked item means that the stated evidence exists; it does not mean that an adjacent item is complete.
 
+## 2026-10-25 release-scope decision
+
+For the first-100-customer pilot, distributed multi-instance rate limiting is
+explicitly **out of scope**. The supported pilot boundary is the documented
+process-local degraded limiter; it must not be presented as cross-instance
+protection. Enabling `TRACKMCP_RATE_LIMIT_MODE=supabase` remains a separate
+post-pilot capability requiring the guarded AWS IAM change, Supabase rate-limit
+postflight, cleanup workflow, and live-mode evidence. This decision closes the
+distributed-rate-limit *scope* question without claiming that distributed mode
+is deployed.
+
 ## Current status
 
 | Area | Status | Evidence / next gate |
