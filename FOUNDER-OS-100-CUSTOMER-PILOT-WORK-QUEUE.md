@@ -339,7 +339,7 @@ gate is complete. Unchecked items remain open.
 - [x] ✅ 255 **P0 · Operator:** Validate registry URLs, checksums, provenance, and package metadata. Npm tarball/integrity and PyPI wheel/sdist checksum metadata were revalidated on 2026-10-25; clean-consumer and provenance checks passed.
 - [x] ✅ 256 **P0 · Operator:** Rehearse application rollback against approved additive schema compatibility. Rollback workflow `40170438059` and restoration workflow `40170901810` both completed successfully with immutable image and production smoke evidence.
 - [x] ✅ 257 **P0 · Operator:** Run a production worker/scheduler batch and capture lag/retry/terminal evidence. Workflow `40175504973` uploaded the redacted summary; maximum observed queue lag was 3,226,961 ms and the bounded run completed without retryable or terminal failures.
-- [ ] 258 **P0 · Operator:** Run multi-instance distributed rate-limit evidence if the capability is claimed.
+- [x] ✅ 258 **P0 · Operator:** Run multi-instance distributed rate-limit evidence if the capability is claimed. The bounded first-100 pilot explicitly does not claim distributed multi-instance limiting; the deployed process-local degraded limiter and this scope decision are recorded in `docs/FOUNDER-OS-RATE-LIMITING.md` and the merged PR #382 evidence. Distributed mode remains post-pilot work requiring AWS permission and dedicated runtime evidence.
 - [ ] 259 **P0 · Release owner:** Compare all acceptance-matrix rows with evidence links and explicitly waive none silently.
 - [ ] 260 **P0 · Release owner:** Issue a limited 100-customer pilot go/no-go decision with scope, known limitations, and rollback owner.
 
