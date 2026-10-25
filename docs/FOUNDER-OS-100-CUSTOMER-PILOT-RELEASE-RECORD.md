@@ -49,6 +49,11 @@ commit and the operator accepts the listed limitations.
   protobuf interoperability, package consumers, privacy, tenant isolation,
   protocol fixtures, and release-control contracts. This is source evidence;
   it does not replace credentialed production UAT.
+- [x] Read-only production postflight for task-transition durability passed in
+  the signed-in Supabase SQL editor: `trackmcp_task_transitions` exists with
+  RLS enabled, 9 columns, 4 indexes, browser-role `SELECT` denied, and the
+  service-role result set confirmed `SELECT`/`INSERT` allowed. No rows or task
+  payloads were queried.
 - [x] Manual authenticated dashboard UAT on 2026-10-24 reached all Founder OS
   surfaces and inspected Setup, including scope state, first-event evidence,
   SDK/documentation CTAs, identity-resolver guidance, privacy disclosures, and
