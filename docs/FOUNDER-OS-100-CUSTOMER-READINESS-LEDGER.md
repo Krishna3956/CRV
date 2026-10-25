@@ -3,6 +3,17 @@
 Last updated: 2026-10-26 (workflow 40220255833; worker runs 40238996179, 40239039859, 40239080954; local 132-suite release gate)
 Latest freshness evidence: workflow 40240145632 on main commit
 `3d554015f16384df86d1caef33648c8b30576676`.
+
+## 2026-10-26 cross-language transport reconnect observer
+
+PR #434 (`27722fdd91f9c3afbf5026308c39d8ca13edea07`) adds bounded
+caller-observed `session_reconnected` lifecycle evidence to the Go and .NET
+SDKs. The signal is transport-labeled only when the caller verifies the label,
+rejects unknown labels, clamps duration, and never accepts payloads, URLs,
+headers, exception text, replay, or delivery claims. Hosted Go/.NET/web run
+`40240971745` passed; local release gate, lint, and the 177-route build passed.
+This improves cross-language observer parity but does not close
+transport-owned reconnect policy or production disconnect UAT.
 Owner: Codex engineering execution
 Pilot target: 100 customers
 
