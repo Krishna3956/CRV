@@ -4,11 +4,15 @@ import { EventEmitter } from "node:events";
 import { mkdir, mkdtemp, readFile, stat, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+import { createRequire } from "node:module";
 import { createDeviceClient, createRedeemer, pollDeviceSession } from "../lib/device-client.mjs";
 import { openBrowser } from "../lib/browser.mjs";
 import { ensureSdkInstalled } from "../lib/sdk-installer.mjs";
 import { isUsableKey, readConfiguredKey, writeEnvKey } from "../lib/storage.mjs";
 import { main, runDoctor, runInit } from "../bin/trackmcp.mjs";
+
+const require = createRequire(import.meta.url);
+const cliVersion = require("../package.json").version;
 
 const key = "tmcp_cli_test_key_12345678901234567890";
 const response = (body, status = 200, extraHeaders = {}) => new Response(JSON.stringify(body), { status, headers: { "content-type": "application/json", ...extraHeaders } });
@@ -17,7 +21,7 @@ test("device start uses bounded non-secret metadata and prints no device code", 
   let request;
   const client = createDeviceClient({ apiBaseUrl: "https://app.trackmcp.test", fetchImpl: async (_url, init) => { request = JSON.parse(init.body); return response({ device_code: "opaque-device-secret", user_code: "F7KQ-2M9D", verification_uri: "https://app.trackmcp.test/device", verification_uri_complete: "https://app.trackmcp.test/device?user_code=F7KQ-2M9D", expires_in: 600, interval: 5 }); } });
   const session = await client.startSession();
-  assert.deepEqual(request, { client_version: "0.1.0", platform: `${process.platform}-${process.arch}`, package_manager: "npm", sdk_package: "@trackmcp/sdk" });
+  assert.deepEqual(request, { client_version: cliVersion, platform: `${process.platform}-${process.arch}`, package_manager: "npm", sdk_package: "@trackmcp/sdk" });
   assert.equal(session.deviceCode, "opaque-device-secret");
   assert.equal(session.userCode, "F7KQ-2M9D");
 });
