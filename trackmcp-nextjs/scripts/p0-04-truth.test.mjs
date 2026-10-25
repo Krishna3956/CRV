@@ -20,6 +20,16 @@ test("dashboard distinguishes live data and completion evidence", async () => {
   assert.match(dashboard, /Open Evidence/);
 });
 
+test("marketing example dashboard uses the real Founder OS tab vocabulary", async () => {
+  const mock = await source("src/components/DashboardMock.tsx");
+  for (const label of ["Overview", "What they're doing", "The journey", "Did it work", "What's broken", "Who's using it", "Evidence", "Setup"]) {
+    assert.match(mock, new RegExp(`label: \\\"${label.replace(/[.*+?^${}()|[\\]\\\\]/g, "\\\\$&")}\\\"`));
+  }
+  for (const stale of ["label: \\\"Tools\\\"", "label: \\\"Sessions\\\"", "label: \\\"Workflows\\\"", "label: \\\"Reliability\\\""]) {
+    assert.doesNotMatch(mock, new RegExp(stale));
+  }
+});
+
 test("reference and API docs describe bounded trace responses and latency semantics", async () => {
   const reference = await source("src/app/docs/reference/page.tsx");
   const api = await source("src/app/docs/api/page.tsx");
