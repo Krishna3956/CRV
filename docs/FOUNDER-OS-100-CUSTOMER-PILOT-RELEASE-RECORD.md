@@ -89,6 +89,16 @@ commit and the operator accepts the listed limitations.
   remaining protocol interoperability gates are evidenced or explicitly
   accepted by the release owner.
 
+### Distributed rate-limit IAM evidence
+
+The current enablement workflow [40172392815](https://github.com/Krishna3956/CRV/actions/runs/40172392815)
+authenticated successfully with the GitHub OIDC role, then was denied the
+narrowly scoped `apprunner:UpdateService` permission. It applied no production
+mutation and uploaded the redacted artifact
+`distributed-rate-limit-mode-40172392815` with outcome `blocked_iam`. The
+capability is therefore not claimed for the pilot until the AWS IAM owner adds
+that exact service-scoped permission and a subsequent verification succeeds.
+
 ## Known limitations to disclose
 
 - Resolver-linked telemetry is not a count of named people or customers.
