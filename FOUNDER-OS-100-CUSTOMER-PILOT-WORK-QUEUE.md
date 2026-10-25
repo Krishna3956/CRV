@@ -247,8 +247,8 @@ gate is complete. Unchecked items remain open.
 - [x] ✅ 175 **P1 · Today · Engineering:** Test refresh trigger rejects missing/invalid secret.
 - [x] ✅ 176 **P1 · Today · Engineering:** Test scheduled workflow serializes overlapping runs.
 - [x] ✅ 177 **P1 · Today · Engineering:** Test scheduled workflow timeout and failed-run alert contract.
-- [ ] 178 **P1 · Operator:** Configure production worker/trigger secrets only after postflight passes.
-- [ ] 179 **P1 · Operator:** Run one production disposable refresh batch and record lag/retry/terminal result.
+- [x] ✅ 178 **P1 · Operator:** Configure production worker/trigger secrets only after postflight passes. The signed-in Supabase schema/RPC postflight passed before the authenticated worker workflow ran successfully.
+- [x] ✅ 179 **P1 · Operator:** Run one production disposable refresh batch and record lag/retry/terminal result. Worker workflow `40175504973` ran five bounded batches: 24 processed, 24 succeeded, 0 retryable, 0 failed, 0 errors, no timeout, and max attempt count 1.
 - [x] ✅ 180 **P1 · Engineering:** Define backlog, lag, dead-letter, and success-rate dashboards/alerts.
 
 ## J. Rate limits, abuse boundaries, and reliability — P0/P1
@@ -338,7 +338,7 @@ gate is complete. Unchecked items remain open.
 - [x] ✅ 254 **P0 · Operator:** Install exact published PyPI version in a clean consumer and emit one safe event.
 - [x] ✅ 255 **P0 · Operator:** Validate registry URLs, checksums, provenance, and package metadata. Npm tarball/integrity and PyPI wheel/sdist checksum metadata were revalidated on 2026-10-25; clean-consumer and provenance checks passed.
 - [x] ✅ 256 **P0 · Operator:** Rehearse application rollback against approved additive schema compatibility. Rollback workflow `40170438059` and restoration workflow `40170901810` both completed successfully with immutable image and production smoke evidence.
-- [ ] 257 **P0 · Operator:** Run a production worker/scheduler batch and capture lag/retry/terminal evidence.
+- [x] ✅ 257 **P0 · Operator:** Run a production worker/scheduler batch and capture lag/retry/terminal evidence. Workflow `40175504973` uploaded the redacted summary; maximum observed queue lag was 3,226,961 ms and the bounded run completed without retryable or terminal failures.
 - [ ] 258 **P0 · Operator:** Run multi-instance distributed rate-limit evidence if the capability is claimed.
 - [ ] 259 **P0 · Release owner:** Compare all acceptance-matrix rows with evidence links and explicitly waive none silently.
 - [ ] 260 **P0 · Release owner:** Issue a limited 100-customer pilot go/no-go decision with scope, known limitations, and rollback owner.
