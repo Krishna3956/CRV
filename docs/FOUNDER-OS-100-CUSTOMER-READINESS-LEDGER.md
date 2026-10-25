@@ -1,6 +1,6 @@
 # Founder OS 100 Customer Readiness Ledger
 
-Last updated: 2026-10-25 (hosted authenticated smoke 40169807874; refresh worker rerun 40171850037)
+Last updated: 2026-10-25 (PR #382 merge CI 40197822657; local 131-suite release gate)
 Owner: Codex engineering execution
 Pilot target: 100 customers
 
@@ -16,6 +16,14 @@ post-pilot capability requiring the guarded AWS IAM change, Supabase rate-limit
 postflight, cleanup workflow, and live-mode evidence. This decision closes the
 distributed-rate-limit *scope* question without claiming that distributed mode
 is deployed.
+
+The scope decision was merged as PR #382 at SHA
+`080e9b81cbed9291f3ce1502c6694b932650b8db`; its exact-SHA TrackMCP CI run
+`40197822657` passed web/JavaScript, Go, and .NET. The current pilot checkout
+also passed lint, the 176-route production build, and the complete 131-suite
+release gate. These checks are source and hosted-CI evidence; they do not close
+the remaining external browser-state, backup/restore, final acceptance, or
+limited-pilot go/no-go gates.
 
 ## Current status
 
