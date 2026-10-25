@@ -33,6 +33,8 @@ test("release record preserves non-source acceptance decisions until an owner ac
 });
 
 test("external-gate register names accountable parties and closure evidence", () => {
+  assert.match(externalGates, /52c4827751f8df0172d29a055f8cefeb415bb198/);
+  assert.match(externalGates, /263 total, 260 checked/);
   assert.match(externalGates, /020 — limited pilot scope/);
   assert.match(externalGates, /157 — database recovery posture/);
   assert.match(externalGates, /260 — final go\/no-go/);
