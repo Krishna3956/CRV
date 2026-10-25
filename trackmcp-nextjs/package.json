@@ -105,6 +105,7 @@
     "test:docs-navigation": "node --test scripts/docs-navigation.contract.test.mjs",
     "test:docs-version": "node --test scripts/docs-version.contract.test.mjs",
     "test:release-scope-audit": "node --test scripts/release-scope-audit.contract.test.mjs",
+    "test:pilot-acceptance-record": "node --test scripts/pilot-acceptance-record.contract.test.mjs",
     "test:start-standalone": "node --test scripts/start-standalone.contract.test.mjs",
     "pretest:python-package-artifact": "node scripts/ensure-python-package-artifact.mjs",
     "test:python-package-artifact": "node --test scripts/python-package-artifact.contract.test.mjs",
