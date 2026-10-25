@@ -1,7 +1,7 @@
 # First-100-customer external-gate register
 
 Status: **HOLD**  
-Updated: 2026-10-25 (Asia/Calcutta)
+Updated: 2026-10-26 (Asia/Calcutta)
 
 This register separates evidence that engineering can produce from decisions
 that require the release owner or an infrastructure-provider control plane. It
@@ -9,7 +9,8 @@ is intentionally not a GO approval and must not be treated as one.
 
 ## Engineering baseline
 
-- `main`: `889c3190d1cd94691ceca8c405dab51c6a86e8b4`
+- `main`: current release record reconciled through PR #408; see the tracked
+  release ledger for the exact merge SHA.
 - Queue: 260 checked; P0 queue items `020`, `157`, and `260` remain open.
 - Full local release gate: 132 suites passed, with lint and the 176-route
   production build green.
@@ -23,7 +24,7 @@ is intentionally not a GO approval and must not be treated as one.
 | Gate | Accountable party | Evidence required to close | Current state |
 | --- | --- | --- | --- |
 | 020 — limited pilot scope | Release owner | Timestamped approval naming the 100-customer cohort, supported hosts and paths, known limitations, rollback owner, and data-handling boundary | OPEN; the release record remains Draft/HOLD |
-| 157 — database recovery posture | Infrastructure/provider owner | Region and tier, backup/PITR policy or an explicitly accepted limitation, restoration owner, and a tested recovery reference | OPEN; Supabase inspection records East US/`us-east-1`, but no usable Free Plan schedule, restore point, restoration contact, or rehearsal was evidenced |
+| 157 — database recovery posture | Infrastructure/provider owner | Region and tier, backup/PITR policy or an explicitly accepted limitation, restoration owner, and a tested recovery reference | OPEN; authenticated Supabase inspection records Free tier, East US/`us-east-1`, Nano/shared compute, and PITR **Disabled**. No restore point, restoration contact, or rehearsal is evidenced. |
 | Privacy lifecycle acceptance | Release owner | Explicit acceptance that export is bounded/secret-free, deletion requests are review-only, and destructive deletion is disabled without an approved worker | OPEN in the release record |
 | Synthetic reliability-data hygiene | Release owner | Explicit acceptance that synthetic canary rows are test evidence only and cannot be presented as customer incidents | OPEN in the release record |
 | 260 — final go/no-go | Release owner | Timestamped GO/NO-GO decision linking the green evidence and accepted limitations | OPEN; engineering recommendation remains HOLD |
