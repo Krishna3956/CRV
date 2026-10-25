@@ -119,10 +119,11 @@ commit and the operator accepts the listed limitations.
   credentialed UAT, migration/rollback ownership, worker freshness, and the
   remaining protocol interoperability gates are evidenced or explicitly
   accepted by the release owner.
-- [ ] Database backup posture remains open: read-only Supabase inspection
-  records region `us-east-1` (East US/North Virginia), but the current Free Plan
-  surface exposes no usable backup schedule, restore point, restoration contact,
-  or completed restore rehearsal. The pilot must keep this as an explicit
+- [ ] Database backup posture remains open: authenticated Supabase inspection
+  on 2026-10-26 records the Free tier, region `us-east-1` (East US/North
+  Virginia), Nano/shared compute, and the Add-ons surface explicitly showing
+  PITR **Disabled**. No restore point, restoration contact, or completed
+  restore rehearsal is evidenced. The pilot must keep this as an explicit
   operational limitation until an owner records and accepts it.
 
 ### Distributed rate-limit IAM evidence
