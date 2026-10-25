@@ -18,6 +18,14 @@ test("production pilot smoke does not read credentials or emit secrets", () => {
   assert.match(source, /response body/);
 });
 
+test("first-ingest fixture matches the current canonical event envelope", () => {
+  assert.match(source, /schema_version: "1"/);
+  assert.match(source, /observation_source: "server"/);
+  assert.doesNotMatch(source, /schema_version: "1\.0"/);
+  assert.doesNotMatch(source, /payload_policy: "metadata_only"/);
+  assert.match(source, /user-agent.*TrackMCP\/0\.1\.16 production-smoke/);
+});
+
 test("production pilot smoke records redacted evidence and covers pilot endpoints", () => {
   for (const marker of ["/api/v1/cli/key-status", "/api/v1/ingest", "/sitemap.xml", "/docs/go", "/docs/dotnet", "/docs/opentelemetry", "/docs/protocol", "/docs/authentication", "registry.npmjs.org", "pypi.org", "outcome: \"passed\"", "checks_total", "checks_executed", "checks_skipped", "candidate_sha", "image_digest", "TRACKMCP_SMOKE_IMAGE_DIGEST"]) {
     assert.match(source, new RegExp(marker.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")), marker);

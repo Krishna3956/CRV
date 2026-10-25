@@ -45,6 +45,7 @@ async function request(path, options = {}) {
   const response = await fetch(endpoint(path), {
     ...options,
     redirect: "manual",
+    headers: { "user-agent": "TrackMCP/0.1.16 production-smoke", ...(options.headers || {}) },
     signal: AbortSignal.timeout(15_000),
   });
   return { status: response.status, headers: response.headers };
@@ -66,7 +67,7 @@ function assertSecurityHeaders(headers, label) {
 async function keyStatusRequest(apiKey) {
   const response = await fetch(endpoint("/api/v1/cli/key-status"), {
     method: "GET",
-    headers: { accept: "application/json", authorization: `Bearer ${apiKey}` },
+    headers: { accept: "application/json", "user-agent": "TrackMCP/0.1.16 production-smoke", authorization: `Bearer ${apiKey}` },
     redirect: "manual",
     signal: AbortSignal.timeout(15_000),
   });
@@ -265,7 +266,8 @@ async function main() {
       method: "POST",
       headers: { authorization: `Bearer ${key}`, "content-type": "application/json" },
       body: JSON.stringify({ events: [{
-        schema_version: "1.0",
+        schema_version: "1",
+        observation_source: "server",
         event_id: eventId,
         event_type: "tool_call",
         service: "trackmcp-pilot-smoke",
@@ -274,7 +276,6 @@ async function main() {
         duration_ms: 1,
         success: true,
         is_error: false,
-        payload_policy: "metadata_only",
       }] }),
     });
     if (response.status !== 200) fail(`first-ingest smoke: expected HTTP 200, received HTTP ${response.status}`);
