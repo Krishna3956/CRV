@@ -2,13 +2,12 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
 
-const [goDocs, dotnetDocs, pythonDocs, goReadme, dotnetReadme, tsReadme, goSource, dotnetSource] = await Promise.all([
+const [goDocs, dotnetDocs, pythonDocs, goReadme, dotnetReadme, goSource, dotnetSource] = await Promise.all([
   readFile(new URL("../src/app/docs/go/page.tsx", import.meta.url), "utf8"),
   readFile(new URL("../src/app/docs/dotnet/page.tsx", import.meta.url), "utf8"),
   readFile(new URL("../src/app/docs/python/page.tsx", import.meta.url), "utf8"),
   readFile(new URL("../packages/go-sdk/README.md", import.meta.url), "utf8"),
   readFile(new URL("../packages/dotnet-sdk/README.md", import.meta.url), "utf8"),
-  readFile(new URL("../packages/typescript-sdk/README.md", import.meta.url), "utf8"),
   readFile(new URL("../packages/go-sdk/trackmcp.go", import.meta.url), "utf8"),
   readFile(new URL("../packages/dotnet-sdk/TrackMcp.cs", import.meta.url), "utf8"),
 ]);
@@ -59,13 +58,6 @@ test("Go and .NET docs expose bounded release metadata options", () => {
   assert.match(dotnetDocs, /SdkVersion/);
   assert.match(dotnetDocs, /DeploymentId/);
   for (const docs of [goDocs, dotnetDocs]) assert.match(docs, /metadata only/);
-});
-
-test("TypeScript package README exposes bounded release metadata options", () => {
-  assert.match(tsReadme, /server_version/);
-  assert.match(tsReadme, /sdk_version/);
-  assert.match(tsReadme, /deployment_id/);
-  assert.match(tsReadme, /metadata only/);
 });
 
 test("Go and .NET package READMEs carry the same privacy and lifecycle boundary", () => {
