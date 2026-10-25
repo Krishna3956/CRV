@@ -25,6 +25,14 @@ release gate. These checks are source and hosted-CI evidence; they do not close
 the remaining external browser-state, backup/restore, final acceptance, or
 limited-pilot go/no-go gates.
 
+The credentialless production pilot smoke was rerun on 2026-10-25 and passed
+all 35 checks. A separate authenticated read-only invocation using the ignored
+disposable smoke inputs failed with a generic network error before producing a
+report, so it is not counted as authenticated evidence; no write or key
+mutation was attempted. The public origin remained reachable for the
+credentialless run, while direct probes returned the expected protected
+responses.
+
 ## Current status
 
 | Area | Status | Evidence / next gate |
