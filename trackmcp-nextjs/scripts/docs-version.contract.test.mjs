@@ -31,6 +31,13 @@ test("public quickstart explains the release-train boundary", () => {
   assert.match(docs, /coherent SDK\/CLI\/Python milestone/);
 });
 
+test("CLI device metadata defaults to its package manifest version", async () => {
+  const clientSource = await read("trackmcp-nextjs/packages/cli/lib/device-client.mjs");
+  assert.match(clientSource, /const CLI_VERSION = require\("\.\.\/package\.json"\)\.version/);
+  assert.match(clientSource, /clientVersion = CLI_VERSION/);
+  assert.match(docs, new RegExp(`current CLI is ${cliVersion}`));
+});
+
 test("SDK documentation examples stay aligned with package versions", () => {
   assert.ok(pythonVersion);
   assert.match(docs, new RegExp(`sdk_version: "${sdkVersion}"`));
