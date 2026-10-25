@@ -11,6 +11,13 @@ test("production pilot smoke is explicitly opt-in and requires HTTPS", () => {
   assert.match(source, /TRACKMCP_SMOKE_ALLOW_WRITE/);
 });
 
+test("production pilot smoke retries only idempotent reads", () => {
+  assert.match(source, /async function fetchReadOnly/);
+  assert.match(source, /method !== "GET" && method !== "HEAD"/);
+  assert.match(source, /attempt < 3/);
+  assert.match(source, /return fetch\(url, options\)/);
+});
+
 test("production pilot smoke does not read credentials or emit secrets", () => {
   assert.doesNotMatch(source, /\.env\.deploy|AWS_ACCESS_KEY|SUPABASE_SERVICE_ROLE_KEY/);
   assert.match(source, /No raw API key/);
