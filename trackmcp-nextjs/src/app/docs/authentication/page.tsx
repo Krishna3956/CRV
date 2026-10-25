@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { pageMeta } from "@/lib/seo";
-import { DocsShell, DocTitle, DocLead, DocSection, Para } from "@/components/DocsShell";
+import { DocsShell, DocTitle, DocLead, DocSection, Para, Inline } from "@/components/DocsShell";
 
 export const metadata: Metadata = pageMeta({
   title: "Authentication and OAuth | TrackMCP Docs",
@@ -35,6 +35,10 @@ export default function AuthenticationDocsPage() {
     </DocSection>
     <DocSection title="What is not implemented">
       <Para>TrackMCP does not provide an OAuth test server or pretend that accepting a URL, elicitation, or tool response proves that an external OAuth flow completed. Emit an explicit application outcome after your own provider confirms completion. See the <a href="/docs/reference" className="font-medium text-brand-strong underline">configuration reference</a> for resolver and privacy boundaries.</Para>
+    </DocSection>
+    <DocSection title="Rate-limit deployment boundary">
+      <Para>CLI device and activation endpoints are rate-limited. The production pilot uses the bounded process-local fallback unless the deployment explicitly sets <Inline>TRACKMCP_RATE_LIMIT_MODE=supabase</Inline> and the reviewed Supabase rate-limit migration, service-role RPC grants, cleanup job, and postflight have all passed. The fallback is intentionally marked degraded and does not coordinate limits across multiple application instances.</Para>
+      <Para>Do not treat the fallback as distributed protection. Before enabling horizontal scaling for activation traffic, run the reviewed rate-limit postflight and complete the guarded deployment workflow. If that external AWS/Supabase configuration is not present, the supported pilot boundary is a single-instance or otherwise explicitly scoped deployment.</Para>
     </DocSection>
   </DocsShell>;
 }

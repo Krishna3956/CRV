@@ -99,6 +99,14 @@ test("onboarding and quickstart make privacy and boundary behavior discoverable"
   assert.match(docsHome, /private model turn/);
 });
 
+test("authentication docs disclose the distributed rate-limit boundary", async () => {
+  const authentication = await source("src/app/docs/authentication/page.tsx");
+  assert.match(authentication, /TRACKMCP_RATE_LIMIT_MODE/);
+  assert.match(authentication, /process-local fallback/);
+  assert.match(authentication, /does not coordinate limits across multiple application instances/);
+  assert.match(authentication, /reviewed rate-limit postflight/);
+});
+
 test("homepage presents the terminal-first CLI as the primary setup action", async () => {
   const homepage = await source("src/app/page.tsx");
   const systemStory = await source("src/components/scenes/SystemStoryScene.tsx");
