@@ -208,13 +208,13 @@ gate is complete. Unchecked items remain open.
 ## H. Database and migration evidence — P0 / operator
 
 - [ ] 141 **P0 · Operator · Before release:** Retain the executed SQL/migration record with timestamp and operator identity.
-- [ ] 142 **P0 · Operator · Before release:** Run the account-identity public-schema postflight and retain result.
-- [ ] 143 **P0 · Operator · Before release:** Run the read-model public-schema postflight and retain result.
-- [ ] 144 **P0 · Operator · Before release:** Run CLI-device authorization postflight and retain result.
-- [ ] 145 **P0 · Operator · Before release:** Run rate-limit public-schema/RPC postflight and retain result.
-- [ ] 146 **P0 · Operator · Before release:** Run refresh-job RPC/lease-fencing postflight and retain result.
-- [ ] 147 **P0 · Operator · Before release:** Run catalog workspace-scope/uniqueness postflight and retain result.
-- [ ] 148 **P0 · Operator · Before release:** Run alert/action-queue link postflight and retain result.
+- [x] ✅ 142 **P0 · Operator · Before release:** Run the account-identity public-schema postflight and retain result. Read-only Supabase postflight evidence is retained in the handoff ledger; no raw identity values were returned.
+- [x] ✅ 143 **P0 · Operator · Before release:** Run the read-model public-schema postflight and retain result. Required read-model tables, columns, RLS, and grants were verified in the 2026-10-25 postflight.
+- [x] ✅ 144 **P0 · Operator · Before release:** Run CLI-device authorization postflight and retain result. Device-session tables, bounded status vocabulary, redemption uniqueness, and service-role boundaries were included in the retained postflight.
+- [x] ✅ 145 **P0 · Operator · Before release:** Run rate-limit public-schema/RPC postflight and retain result. All required rate-limit functions and service-role-only execution privileges were verified; distributed runtime mode remains unclaimed.
+- [x] ✅ 146 **P0 · Operator · Before release:** Run refresh-job RPC/lease-fencing postflight and retain result. Refresh result RPCs, lease-fencing privileges, and bounded worker tables were verified read-only.
+- [x] ✅ 147 **P0 · Operator · Before release:** Run catalog workspace-scope/uniqueness postflight and retain result. Catalog workspace indexes, uniqueness constraints, and hash-only entity-read boundaries were verified.
+- [x] ✅ 148 **P0 · Operator · Before release:** Run alert/action-queue link postflight and retain result. The optional workspace-scoped alert link and action-queue indexes were verified without exposing delivery secrets.
 - [x] ✅ 149 **P0 · Operator · Before release:** Verify all expected Founder OS tables exist without relying on internal migration ledger access.
 - [x] ✅ 150 **P0 · Operator · Before release:** Verify expected columns, indexes, and constraints exist.
 - [x] ✅ 151 **P0 · Operator · Before release:** Verify RLS is enabled on every telemetry/control table.
@@ -222,7 +222,7 @@ gate is complete. Unchecked items remain open.
 - [x] ✅ 153 **P0 · Operator · Before release:** Verify only service role can run worker/cleanup RPCs.
 - [x] ✅ 154 **P0 · Operator · Before release:** Verify redemption-ID uniqueness/index contract exists.
 - [x] ✅ 155 **P0 · Operator · Before release:** Verify existing data satisfies all new bounded constraints.
-- [ ] 156 **P0 · Operator · Before release:** Verify the migration path is additive and compatible with rollback image.
+- [x] ✅ 156 **P0 · Operator · Before release:** Verify the migration path is additive and compatible with rollback image. Migration-inventory/destructive-operation contracts and the immutable rollback/restore rehearsal passed; provider execution history remains separately open under item 141.
 - [ ] 157 **P0 · Operator · Before release:** Record database region, backup posture, and restoration contact.
 - [x] ✅ 158 **P0 · Engineering:** Prepare read-only reconciliation reports for stale redeeming sessions and session/key mismatches.
 - [x] ✅ 159 **P0 · Engineering:** Prepare read-only duplicate-event/fact consistency reports.
