@@ -114,7 +114,7 @@ export function DashboardPageContent({ initialView = "overview" }: { initialView
     if (!workspaceId) { setError("Select a workspace before revoking a key."); return; }
     const response = await fetch(`/api/v1/account/keys/${id}?workspace_id=${encodeURIComponent(workspaceId)}`, { method: "DELETE" });
     if (!response.ok) { const body = await response.json(); setError(body.error || "Could not revoke the key."); return; }
-    await loadAccount();
+    await loadAccount(workspaceId);
   };
   const rotateKey = async (id: string) => {
     if (!window.confirm("Rotate this key? The old key will stop working immediately, so update the server with the replacement.")) return;
