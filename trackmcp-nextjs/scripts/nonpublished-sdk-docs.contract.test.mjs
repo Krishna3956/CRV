@@ -68,6 +68,14 @@ test("TypeScript package README exposes bounded release metadata options", () =>
   assert.match(tsReadme, /metadata only/);
 });
 
+test("TypeScript modern client docs expose negotiated capability boundaries", () => {
+  assert.match(tsReadme, /capabilityNames/);
+  assert.match(tsReadme, /io\.modelcontextprotocol\/tasks/);
+  assert.match(tsReadme, /fails closed/);
+  assert.match(tsReadme, /catalog subscription/);
+  assert.match(tsReadme, /skip discovery/);
+});
+
 test("Go and .NET package READMEs carry the same privacy and lifecycle boundary", () => {
   for (const source of [goReadme, dotnetReadme]) {
     assert.match(source, /fail-open/i);
