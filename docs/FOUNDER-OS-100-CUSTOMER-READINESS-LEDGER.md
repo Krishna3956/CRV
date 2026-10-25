@@ -1,6 +1,6 @@
 # Founder OS 100 Customer Readiness Ledger
 
-Last updated: 2026-10-25 (PR #334 modern discovery truth and current deployment verification)
+Last updated: 2026-10-25 (hosted authenticated smoke run 40169807874)
 Owner: Codex engineering execution
 Pilot target: 100 customers
 
@@ -11,8 +11,8 @@ This ledger is the operational source of truth for the autonomous readiness goal
 | Area | Status | Evidence / next gate |
 | --- | --- | --- |
 | Founder OS specification audit | In progress | PDF/DOCX requirements extracted; tab/data contract reconciliation continues; MCP tester and authenticated production smoke now cover the bounded resource-template/read-model contract |
-| Tab 1 — Who's using it | Implemented; prior live inspection verified | Live and example read models, privacy caveats, account-unavailable state; prior authenticated production inspection verified resolver-linked, unresolved, and unknown-client states. The current credentialed smoke remains unconfigured (workflow `40131244836`; it failed closed before requests because five disposable secrets are absent). |
-| Tab 2 — What they're doing | Implemented; prior live inspection verified | Leaderboard, adoption, trend, reliability, detail, descriptions; prior authenticated production inspection verified named and unnamed capability evidence without inventing identities. The current credentialed smoke remains unconfigured (workflow `40131244836`; it failed closed before requests because five disposable secrets are absent). |
+| Tab 1 — Who's using it | Implemented; authenticated smoke verified | Live and example read models, privacy caveats, account-unavailable state; authenticated production smoke run `40169807874` passed against the deployed release. |
+| Tab 2 — What they're doing | Implemented; authenticated smoke verified | Leaderboard, adoption, trend, reliability, detail, descriptions; authenticated production smoke run `40169807874` passed against the deployed release. |
 | Tab 3 — Resources & Prompts | Implemented and production-verified | Live dashboard verified bounded resource/prompt methods, explicit interaction outcomes, hash-only entities, durable-read counts, and no raw contents/arguments; template discovery remains separately bounded and no-expansion |
 | Tab 4 — Journey | Implemented and production-verified | Live dashboard verified bounded interactions, no invented multi-step paths, explicit retry/input boundaries, no abandonment inference, task-state caveats, and cross-server correlation limits |
 | Tab 5 — Did it work | Implemented and production-verified | Live dashboard renders bounded outcome evidence, explicit `N/A` completion when no workflow terminal exists, zero invented task states, and the minimum-volume/correlation caveats |
