@@ -3,6 +3,7 @@ import { readFile } from "node:fs/promises";
 import test from "node:test";
 
 const workflow = await readFile(new URL("../../.github/workflows/deploy.yml", import.meta.url), "utf8");
+const dockerfile = await readFile(new URL("../Dockerfile", import.meta.url), "utf8");
 const distributedWorkflow = await readFile(new URL("../../.github/workflows/enable-distributed-rate-limit.yml", import.meta.url), "utf8");
 const lifecycleWorkflow = await readFile(new URL("../../.github/workflows/production-key-lifecycle-smoke.yml", import.meta.url), "utf8");
 
@@ -58,6 +59,15 @@ test("App Runner deployment performs a redacted read-only smoke after RUNNING", 
   assert.match(workflow, /trackmcp-runtime-flags\.json/);
   assert.match(workflow, /Upload redacted production smoke evidence/);
   assert.doesNotMatch(workflow, /TRACKMCP_SMOKE_ALLOW_WRITE=true/);
+});
+
+test("deployment carries and verifies an immutable runtime release identity", () => {
+  assert.match(dockerfile, /ARG TRACKMCP_RELEASE_SHA/);
+  assert.match(dockerfile, /ENV TRACKMCP_RELEASE_SHA=\$TRACKMCP_RELEASE_SHA/);
+  assert.match(workflow, /--build-arg TRACKMCP_RELEASE_SHA="\$TRACKMCP_DEPLOY_SHA"/);
+  assert.match(workflow, /Verify running release identity/);
+  assert.match(workflow, /\/api\/health/);
+  assert.match(workflow, /Running origin reported release_sha=/);
 });
 
 test("distributed rate-limit enablement preserves and verifies the App Runner configuration", () => {
