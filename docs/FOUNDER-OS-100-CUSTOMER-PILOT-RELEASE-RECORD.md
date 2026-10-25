@@ -8,6 +8,15 @@ commit and the operator accepts the listed limitations.
 
 ## Current evidence reconciliation — 2026-10-26
 
+The current mainline candidate is now deployed and identity-verified. Merge
+commit `68d83a3d17ffb5fe63ea0afc2cb48188967d8e93` passed App Runner workflow
+`40236925686`, including image digest verification, provider rollout,
+direct-origin read-only production smoke, `/api/health` SHA verification, and
+runtime safety-flag audit. This closes the deployment-evidence gap for the
+current candidate; it does not close write-gated key lifecycle, first-ingest,
+migration/postflight, worker-SLO, rollback, or intentionally partial protocol
+gates.
+
 The guarded authenticated read-only smoke [workflow
 40234566034](https://github.com/Krishna3956/CRV/actions/runs/40234566034)
 completed successfully with 37 redacted checks: 34 expected authenticated
@@ -34,8 +43,8 @@ created, rotated, or revoked.
 | --- | --- |
 | Pilot scope | First 100 customers, desktop dashboard boundary |
 | Production hosts | `trackmcp.com`, `app.trackmcp.com` |
-| Last deployed application commit | `2e135f194f36e278232c6a46890b1ce850d1e9ba` (verified pilot runtime) |
-| Last successful App Runner deployment | `40198791603` |
+| Last deployed application commit | `68d83a3d17ffb5fe63ea0afc2cb48188967d8e93` (identity-verified current candidate) |
+| Last successful App Runner deployment | `40236925686` |
 | Readiness ledger | `docs/FOUNDER-OS-100-CUSTOMER-READINESS-LEDGER.md` |
 | Current release-record change | Current mainline reconciliation of deployed runtime and release-gate evidence |
 
