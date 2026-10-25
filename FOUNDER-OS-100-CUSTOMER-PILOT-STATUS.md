@@ -8,7 +8,7 @@ promise that every product capability is complete.
 
 ## Verified and shipped
 
-- Repository main is synchronized to `811c29a` (PRs #356–#363 merged). The
+- Repository main is synchronized to `6ed5806` (PRs #356–#366 merged). The
   deployed runtime candidate recorded below is `6f38864`; `811c29a` contains
   documentation-only updates after that deployment.
 - Hosted release CI for PR #359 passed (workflow `40176488160`); web/JavaScript,
@@ -21,6 +21,12 @@ promise that every product capability is complete.
   against the deployed `6f38864` (redacted report in `tmp/deploy-40177870518/auth-smoke.json`), including key-bound workspace isolation,
   privacy-safe v2/legacy read models, API-key Action Queue denial, and revoked
   key rejection.
+- The post-deploy authenticated smoke workflow (run `40179980992`) completed
+  successfully for deployment head `6ed5806`; its artifact is named
+  `production-auth-smoke-6f38864a0d74680de7af12d6f66f8b7a7fff213e` and is
+  pinned to the deployed runtime candidate. The workflow records a bounded,
+  read-only tenant/privacy smoke and skips itself explicitly when disposable
+  credentials are not configured.
 - Supabase read-only postflight verified the required tables, RLS, grants,
   RPC execution boundaries, indexes, and constraints.
 - Refresh worker passed five bounded batches: 24 processed, 24 succeeded,
