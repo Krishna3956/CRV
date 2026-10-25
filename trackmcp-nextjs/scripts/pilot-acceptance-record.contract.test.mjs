@@ -34,7 +34,7 @@ test("release record preserves non-source acceptance decisions until an owner ac
 });
 
 test("external-gate register names accountable parties and closure evidence", () => {
-  assert.match(externalGates, /52c4827751f8df0172d29a055f8cefeb415bb198/);
+  assert.match(externalGates, /425808111be4135aa0b43683a566757042f06829/);
   assert.match(externalGates, /263 total, 260 checked/);
   assert.match(externalGates, /020 — limited pilot scope/);
   assert.match(externalGates, /157 — database recovery posture/);
@@ -44,9 +44,9 @@ test("external-gate register names accountable parties and closure evidence", ()
 });
 
 test("readiness ledger points at the current reconciled mainline", () => {
-  assert.match(readinessLedger, /Last updated: 2026-10-26 \(PR #410 merge/);
-  assert.match(readinessLedger, /1fdcb32b4de0c61cb89367a9979b62bfe58534dc/);
-  assert.doesNotMatch(readinessLedger.split("## 2026-10-26 distributed-rate-limit reconciliation")[0], /PR #405 merge/);
+  assert.match(readinessLedger, /Last updated: 2026-10-26 \(PR #411 merge/);
+  assert.match(readinessLedger, /425808111be4135aa0b43683a566757042f06829/);
+  assert.doesNotMatch(readinessLedger.split("## 2026-10-26 distributed-rate-limit reconciliation")[0], /PR #410 merge/);
 });
 
 test("the queue and release record cannot silently drift from the open pilot set", () => {
