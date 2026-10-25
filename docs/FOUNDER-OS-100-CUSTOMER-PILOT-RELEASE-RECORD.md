@@ -67,6 +67,13 @@ commit and the operator accepts the listed limitations.
   redacted report is `/tmp/trackmcp-auth-smoke-2026-10-25.json`; it contains no
   keys, workspace identifiers, or response bodies. This is deployed runtime
   evidence for the observed candidate, not key lifecycle or ingest evidence.
+- [x] A bounded first-event smoke passed on 2026-10-25 against
+  `https://app.trackmcp.com` using a disposable workspace key: one
+  metadata-only event was accepted with HTTP 200 and the subsequent key-status
+  response reported `accepted_telemetry=true`, `first_event_accepted=true`,
+  `workspace_available=true`, and `service_available=true`. The redacted report
+  is `/tmp/trackmcp-production-smoke-2026-10-25-fixed3.json`; no event ID,
+  credential, workspace ID, or response body was recorded.
 
 ## Open gates before GO
 
