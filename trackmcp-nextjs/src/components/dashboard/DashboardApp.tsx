@@ -4181,6 +4181,7 @@ function SetupView({
   onRotateKey: (id: string) => void;
   onRefresh: () => void;
 }) {
+  const [showRevokedKeys, setShowRevokedKeys] = useState(false);
   const readSetupValue = (key: string, fallback: string, maxLength: number) => {
     if (typeof window === "undefined") return fallback;
     try {
@@ -4589,8 +4590,18 @@ function SetupView({
             </div>
           ) : (
             <>
+              {keys.some((key) => key.revoked_at) && (
+                <button
+                  type="button"
+                  aria-expanded={showRevokedKeys}
+                  onClick={() => setShowRevokedKeys((visible) => !visible)}
+                  className="mb-3 inline-flex cursor-pointer items-center gap-1 text-xs font-semibold text-brand-strong hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
+                >
+                  {showRevokedKeys ? "Hide revoked keys" : `Show revoked keys (${keys.filter((key) => key.revoked_at).length})`}
+                </button>
+              )}
               <div className="max-h-64 space-y-2 overflow-y-auto pr-1">
-                {keys.map((key) => (
+                {keys.filter((key) => showRevokedKeys || !key.revoked_at).map((key) => (
                   <div
                     key={key.id}
                     className="flex items-center justify-between gap-3 border border-line bg-paper px-3.5 py-3"
