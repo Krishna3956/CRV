@@ -98,7 +98,7 @@ gate is complete. Unchecked items remain open.
 - [x] ✅ 046 **P0 · Today · Engineering:** Smoke device page invalid-code state.
 - [ ] 047 **P0 · Today · Engineering:** Smoke device page expired-code state.
 - [ ] 048 **P0 · Today · Engineering:** Smoke device page denied state.
-- [ ] 049 **P0 · Today · Engineering:** Smoke device page already-approved state.
+- [x] ✅ 049 **P0 · Today · Engineering:** Smoke device page already-approved state. Revisiting an approved disposable production session and submitting the idempotent approval returned the explicit “This device session is already approved” state and safe CLI-redemption guidance.
 - [x] ✅ 050 **P0 · Today · Engineering:** Confirm device page never renders or receives a raw connection key.
 - [x] ✅ 051 **P0 · Today · Engineering:** Smoke workspace selection with one workspace. The signed-in production test account rendered its single available workspace and the approval action; no workspace ambiguity or key disclosure occurred.
 - [ ] 052 **P0 · Today · Engineering:** Smoke workspace selection with multiple memberships.
