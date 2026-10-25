@@ -26,12 +26,13 @@ the remaining external browser-state, backup/restore, final acceptance, or
 limited-pilot go/no-go gates.
 
 The credentialless production pilot smoke was rerun on 2026-10-25 and passed
-all 35 checks. A separate authenticated read-only invocation using the ignored
-disposable smoke inputs failed with a generic network error before producing a
-report, so it is not counted as authenticated evidence; no write or key
-mutation was attempted. The public origin remained reachable for the
-credentialless run, while direct probes returned the expected protected
-responses.
+all 35 checks. A subsequent authenticated read-only invocation using the
+ignored disposable smoke inputs passed **36 checks**, including unauthenticated
+and revoked-key rejection plus accepted key-status scope; its redacted report
+is `/tmp/trackmcp-production-smoke-auth-current.json`. The run had
+`write_enabled=false`, so no key or write mutation was attempted. A transient
+network failure on the first invocation is retained in the handoff ledger as a
+recovered observation, not as a passing result.
 
 ## Current status
 
