@@ -1,10 +1,22 @@
 # Founder OS 100 Customer Readiness Ledger
 
-Last updated: 2026-10-26 (workflow 40220255833; local 132-suite release gate)
+Last updated: 2026-10-26 (workflow 40220255833; worker runs 40238996179, 40239039859, 40239080954; local 132-suite release gate)
 Owner: Codex engineering execution
 Pilot target: 100 customers
 
 This ledger is the operational source of truth for the autonomous readiness goal. It is updated when work is implemented, verified, submitted for review, merged, deployed, or found to be incomplete. A checked item means that the stated evidence exists; it does not mean that an adjacent item is complete.
+
+## 2026-10-26 refresh-worker freshness observations
+
+Three serialized worker runs completed successfully against the current
+identity-verified service. Run `40238996179` processed 16 jobs with 16
+successes, zero retryable/failed results, no timeout, and a maximum queue lag
+of `3,269,482 ms` (about 54.5 minutes). Follow-up runs `40239039859` and
+`40239080954` each completed five bounded batches with zero queued work,
+zero retryable/failed results, no timeout, and `max_queue_lag_ms=0`. This
+proves safe drain and recovery to an empty observed queue, but only the first
+observation is a non-empty backlog sample; continuous scheduled freshness SLO
+remains open until repeated scheduled observations are within the pilot target.
 
 ## 2026-10-26 distributed-rate-limit reconciliation
 
