@@ -1,9 +1,12 @@
 # Founder OS first-100-customer acceptance matrix
 
 Status: **HOLD — no silent waivers**  
-Reconciled: 2026-10-25 (Asia/Calcutta)  
-Baseline: application `2e135f194f36e278232c6a46890b1ce850d1e9ba`, App Runner
-run `40198791603`
+Reconciled: 2026-10-26 (Asia/Calcutta)  
+Current deployed baseline: application `68d83a3d17ffb5fe63ea0afc2cb48188967d8e93`,
+App Runner run `40236925686`
+
+Historical baseline retained for continuity: application
+`2e135f194f36e278232c6a46890b1ce850d1e9ba`, App Runner run `40198791603`.
 
 This matrix is the release-owner comparison for every currently open P0 queue
 item. A row is not green merely because a local contract or historical release
