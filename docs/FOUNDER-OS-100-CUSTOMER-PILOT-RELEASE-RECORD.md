@@ -6,6 +6,28 @@ This record is intentionally evidence-first. It must not be changed to
 `GO` until the open gates below are independently verified on the release
 commit and the operator accepts the listed limitations.
 
+## Current evidence reconciliation — 2026-10-26
+
+The guarded authenticated read-only smoke [workflow
+40234566034](https://github.com/Krishna3956/CRV/actions/runs/40234566034)
+completed successfully with 37 redacted checks: 34 expected authenticated
+read successes across two disposable workspaces and all Founder OS v2 read
+models, plus intentional 403 Action Queue API-key denials and a 401 revoked-key
+denial. This closes the read-only scope/privacy smoke gate.
+
+The workflow checked out and labeled source SHA
+`21b2a9d676576a51b98902595ea4322fd814b6d5`, but the merge-triggered App Runner
+run for that SHA became a stale GitHub run with no job record and was canceled.
+The public origin's runtime identity is therefore not proven to be that SHA;
+the smoke is current-origin UAT plus source-contract evidence, not deployment
+proof. The release remains Draft/HOLD.
+
+The guarded write-gated key-lifecycle smoke [workflow
+40234733862](https://github.com/Krishna3956/CRV/actions/runs/40234733862)
+completed its preflight but skipped mutations because disposable lifecycle
+cookie/workspace/key secrets were not configured. No production key was
+created, rotated, or revoked.
+
 ## Release identity
 
 | Item | Verified value |
