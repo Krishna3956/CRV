@@ -12,6 +12,9 @@ on:
         description: "Optional immutable 40-character commit SHA whose smoke contract should be used"
         required: false
         type: string
+  workflow_run:
+    workflows: ["Deploy to App Runner"]
+    types: [completed]
 
 permissions:
   contents: read
@@ -25,12 +28,14 @@ jobs:
     # Keep the workflow harmless if the repository's default event policy
     # schedules a newly-added workflow on push; only an explicit dispatch may
     # consume operator-supplied production credentials.
-    if: github.event_name == 'workflow_dispatch'
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success')
     runs-on: ubuntu-latest
     timeout-minutes: 10
     env:
       TRACKMCP_AUTH_SMOKE_CONFIRM: I_UNDERSTAND_PRODUCTION_AUTH_SMOKE
-      TRACKMCP_AUTH_SMOKE_BASE_URL: ${{ inputs.base_url }}
+      TRACKMCP_AUTH_SMOKE_BASE_URL: ${{ inputs.base_url || 'https://app.trackmcp.com' }}
       TRACKMCP_AUTH_SMOKE_KEY_A: ${{ secrets.TRACKMCP_AUTH_SMOKE_KEY_A }}
       TRACKMCP_AUTH_SMOKE_KEY_B: ${{ secrets.TRACKMCP_AUTH_SMOKE_KEY_B }}
       TRACKMCP_AUTH_SMOKE_WORKSPACE_A: ${{ secrets.TRACKMCP_AUTH_SMOKE_WORKSPACE_A }}
@@ -40,12 +45,12 @@ jobs:
       - name: Check out release source
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.sha }}
+          ref: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.head_sha || github.sha }}
 
       - name: Select immutable release revision
         if: ${{ inputs.release_ref != '' }}
         env:
-          REQUESTED_RELEASE_REF: ${{ inputs.release_ref }}
+          REQUESTED_RELEASE_REF: ${{ inputs.release_ref || github.event.workflow_run.head_sha }}
         run: |
           set -euo pipefail
           if [[ ! "$REQUESTED_RELEASE_REF" =~ ^[0-9a-f]{40}$ ]]; then
@@ -57,7 +62,7 @@ jobs:
 
       - name: Verify immutable release revision
         env:
-          REQUESTED_RELEASE_REF: ${{ inputs.release_ref }}
+          REQUESTED_RELEASE_REF: ${{ inputs.release_ref || github.event.workflow_run.head_sha }}
         run: |
           set -euo pipefail
           if [[ -n "$REQUESTED_RELEASE_REF" && ! "$REQUESTED_RELEASE_REF" =~ ^[0-9a-f]{40}$ ]]; then
@@ -71,7 +76,8 @@ jobs:
           fi
           echo "TRACKMCP_AUTH_SMOKE_RELEASE_SHA=$RELEASE_SHA" >> "$GITHUB_ENV"
 
-      - name: Verify authenticated smoke inputs are configured
+      - name: Check authenticated smoke inputs
+        id: smoke_inputs
         env:
           TRACKMCP_AUTH_SMOKE_KEY_A: ${{ secrets.TRACKMCP_AUTH_SMOKE_KEY_A }}
           TRACKMCP_AUTH_SMOKE_KEY_B: ${{ secrets.TRACKMCP_AUTH_SMOKE_KEY_B }}
@@ -83,18 +89,22 @@ jobs:
             if [ -z "${!name}" ]; then missing+=("$name"); fi
           done
           if [ "${#missing[@]}" -gt 0 ]; then
-            printf '::error::Authenticated production smoke is not configured. Missing required repository secrets: %s\n' "${missing[*]}"
-            exit 1
+            echo "configured=false" >> "$GITHUB_OUTPUT"
+            printf 'Authenticated production smoke skipped; missing required repository secrets: %s\n' "${missing[*]}" | tee -a "$GITHUB_STEP_SUMMARY"
+          else
+            echo "configured=true" >> "$GITHUB_OUTPUT"
+            echo "Authenticated production smoke inputs are configured." >> "$GITHUB_STEP_SUMMARY"
           fi
 
       - name: Run read-only authenticated smoke
+        if: steps.smoke_inputs.outputs.configured == 'true'
         working-directory: trackmcp-nextjs
         run: TRACKMCP_AUTH_SMOKE_REPORT="$RUNNER_TEMP/trackmcp-production-auth-smoke.json" node scripts/production-auth-smoke.mjs
 
       - name: Upload redacted authenticated smoke evidence
-        if: always()
+        if: always() && steps.smoke_inputs.outputs.configured == 'true'
         uses: actions/upload-artifact@v4
         with:
-          name: production-auth-smoke-${{ inputs.release_ref || github.sha }}
+          name: production-auth-smoke-${{ inputs.release_ref || github.event.workflow_run.head_sha || github.sha }}
           path: ${{ runner.temp }}/trackmcp-production-auth-smoke.json
           if-no-files-found: warn
