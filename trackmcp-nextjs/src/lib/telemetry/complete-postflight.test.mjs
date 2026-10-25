@@ -106,3 +106,20 @@ test("lifecycle fact type constraint is included in reviewed postflight evidence
   assert.match(postflight, /trackmcp_semantic_facts_fact_type_check/);
   assert.match(audit, /trackmcp_semantic_facts_fact_type_check/);
 });
+
+test("migration execution ledger is additive, bounded, and has a read-only postflight", async () => {
+  const migration = await readFile(new URL("20261025000001_migration_execution_ledger.sql", migrationRoot), "utf8");
+  const postflight = await readFile(new URL("../../../../supabase/manual/founder-os-migration-execution-postflight.sql", import.meta.url), "utf8");
+  assert.match(migration, /create table if not exists public\.trackmcp_migration_execution/);
+  assert.match(migration, /migration_version text not null/);
+  assert.match(migration, /applied_at timestamptz not null/);
+  assert.match(migration, /applied_by text not null/);
+  assert.match(migration, /release_sha text/);
+  assert.match(migration, /enable row level security/);
+  const executableMigration = migration.replace(/--[^\n]*\n/g, "\n").replace(/\/\*[\s\S]*?\*\//g, "\n");
+  assert.doesNotMatch(executableMigration, /\b(drop|truncate|delete)\b/i);
+  assert.match(postflight, /ledger_exists/);
+  assert.match(postflight, /recorded_batches/);
+  const sql = postflight.replace(/--[^\n]*\n/g, "\n").replace(/\/\*[\s\S]*?\*\//g, "\n");
+  assert.doesNotMatch(sql, /\b(insert|update|delete|alter|drop|truncate|create)\s+/i);
+});
