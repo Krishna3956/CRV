@@ -59,8 +59,12 @@ commit and the operator accepts the listed limitations.
 - [ ] The stale synthetic reliability data is explicitly accepted as test
   evidence in the pilot data-hygiene decision; it must not be presented as a
   customer incident.
-- [ ] Rollback rehearsal and the release-specific rollback target are linked
-  to this exact release.
+- [x] Rollback rehearsal and the release-specific rollback target are linked
+  to this exact release. Workflow [40170438059](https://github.com/Krishna3956/CRV/actions/runs/40170438059)
+  deployed immutable rollback revision `6d1b72c1aa731ec7c580f4b7911827b205a66524`
+  and passed deployment/readiness/HTTPS/read-only smoke; restoration workflow
+  [40170901810](https://github.com/Krishna3956/CRV/actions/runs/40170901810)
+  restored `aecbe2e80ca237cb2a61340c7199f069587bdb39` and passed the same gate.
 - [x] The current release-specific authenticated production smoke is configured
   and passes. Repository secrets were completed in the signed-in GitHub
   session, and workflow [40169807874](https://github.com/Krishna3956/CRV/actions/runs/40169807874)
