@@ -20,12 +20,16 @@ export default function DotnetDocsPage() {
       <Code>{`using var telemetry = new TrackMcpClient(new TrackMcpOptions(
     Environment.GetEnvironmentVariable("TRACKMCP_KEY") ?? "",
     "acme-mcp-server",
-    "production"));
+    "production",
+    ServerVersion: "2026.10.26", // bounded release metadata (optional)
+    SdkVersion: "0.1.16",        // bounded release metadata (optional)
+    DeploymentId: "deploy-42")); // bounded release metadata (optional)
 
 // In the MCP middleware/transport boundary:
 telemetry.Capture("tool_call", "tools/call", toolName: "lookup", success: true);
 await telemetry.FlushAsync();`}</Code>
       <Para>Capture and delivery are fail-open. Keep fields bounded and do not send API keys, OAuth tokens, prompts, results, or raw customer identifiers.</Para>
+      <Para>Release labels are metadata only; they do not identify a customer or assert deployment health.</Para>
       <Code>{`// When the server process or stream fails outside a request:
 telemetry.RecordTransportFailure("transport_closed", sessionId, durationMs);
 // or: telemetry.RecordTransportFailure("transport_error", sessionId, durationMs);`}</Code>

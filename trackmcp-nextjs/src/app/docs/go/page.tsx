@@ -21,6 +21,9 @@ export default function GoDocsPage() {
     APIKey: os.Getenv("TRACKMCP_KEY"),
     Service: "acme-mcp-server",
     Environment: "production",
+    ServerVersion: "2026.10.26", // bounded release metadata (optional)
+    SDKVersion: "0.1.16",        // bounded release metadata (optional)
+    DeploymentID: "deploy-42",   // bounded release metadata (optional)
 })
 defer client.Flush()
 
@@ -31,6 +34,7 @@ client.Capture(trackmcp.Event{
     Success: true,
 })`}</Code>
       <Para>Telemetry is asynchronous and fail-open: delivery errors do not block the MCP request. Keep captures bounded and never put API keys, OAuth tokens, prompts, results, or raw customer identifiers in event fields.</Para>
+      <Para>Release labels are metadata only; they do not identify a customer or assert deployment health.</Para>
       <Code>{`// When the server process or stream fails outside a request:
 client.RecordTransportFailure("transport_closed", sessionID, durationMS)
 // or: client.RecordTransportFailure("transport_error", sessionID, durationMS)`}</Code>

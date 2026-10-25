@@ -50,6 +50,16 @@ test("Go and .NET source expose bounded MRTR/task result metadata", () => {
   assert.match(dotnetSource, /ReadBool/);
 });
 
+test("Go and .NET docs expose bounded release metadata options", () => {
+  assert.match(goDocs, /ServerVersion/);
+  assert.match(goDocs, /SDKVersion/);
+  assert.match(goDocs, /DeploymentID/);
+  assert.match(dotnetDocs, /ServerVersion/);
+  assert.match(dotnetDocs, /SdkVersion/);
+  assert.match(dotnetDocs, /DeploymentId/);
+  for (const docs of [goDocs, dotnetDocs]) assert.match(docs, /metadata only/);
+});
+
 test("Go and .NET package READMEs carry the same privacy and lifecycle boundary", () => {
   for (const source of [goReadme, dotnetReadme]) {
     assert.match(source, /fail-open/i);
