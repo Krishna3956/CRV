@@ -127,18 +127,19 @@ commit and the operator accepts the listed limitations.
 
 ### Distributed rate-limit IAM evidence
 
-The current enablement workflow [40172392815](https://github.com/Krishna3956/CRV/actions/runs/40172392815)
-authenticated successfully with the GitHub OIDC role, then was denied the
-narrowly scoped `apprunner:UpdateService` permission. It applied no production
-mutation and uploaded the redacted artifact
-`distributed-rate-limit-mode-40172392815` with outcome `blocked_iam`. The
-capability is therefore not claimed for the pilot until the AWS IAM owner adds
-that exact service-scoped permission and a subsequent verification succeeds.
+The guarded enablement workflow [40220255833](https://github.com/Krishna3956/CRV/actions/runs/40220255833)
+completed successfully after the resource-scoped IAM policy was applied. Its
+App Runner update and postflight verified `TRACKMCP_RATE_LIMIT_MODE=supabase`
+live on the production service. The final policy grants only
+`apprunner:UpdateService` on that service and `iam:PassRole` on the existing
+App Runner ECR access role; the checked-in artifact and contract test preserve
+that boundary.
 
-For the bounded first-100 pilot, distributed multi-instance limiting is
-explicitly outside the claimed scope. The deployed process-local limiter is the
-documented pilot boundary; AWS IAM enablement remains post-pilot work and is
-not a hidden release requirement.
+Distributed multi-instance limiting is therefore an evidenced pilot capability
+for the verified service. The process-local limiter remains the documented
+fallback when distributed mode is unset or unavailable; neither fallback path
+is presented as cross-instance protection without corresponding runtime
+evidence.
 
 ## Known limitations to disclose
 
