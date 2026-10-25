@@ -148,6 +148,19 @@ test("modern client does not issue unadvertised task lifecycle methods after dis
   assert.deepEqual(methods, ["server/discover"]);
 });
 
+test("modern client does not issue unadvertised catalog subscriptions after discovery", async () => {
+  const methods = [];
+  const client = new ModernMcpClient({ endpoint: "https://mcp.example.test", fetch: async (_input, init) => {
+    const body = JSON.parse(init.body);
+    methods.push(body.method);
+    return response({ result: { capabilities: { tools: {} } } });
+  } });
+  await client.discover();
+  await assert.rejects(() => client.listenForUpdates({ resourcesListChanged: true }), (error) => error instanceof ModernMcpProtocolError && error.code === "unsupported_method");
+  await assert.rejects(() => client.listenForUpdates({ promptsListChanged: true }), (error) => error instanceof ModernMcpProtocolError && error.code === "unsupported_method");
+  assert.deepEqual(methods, ["server/discover"]);
+});
+
 test("modern client projects complete tool result metadata without payloads", async () => {
   const client = new ModernMcpClient({ endpoint: "https://mcp.example.test", fetch: async () => response({ result: { resultType: "complete", isError: false, content: [{ text: "omit" }], inputRequests: { ask: { params: { secret: "omit" } } } } }) });
   assert.deepEqual(await client.callTool("lookup"), { resultType: "complete", isError: false, contentItemCount: 1, inputRequestKeys: ["ask"] });
