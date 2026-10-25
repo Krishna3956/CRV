@@ -1,0 +1,18 @@
+import assert from "node:assert/strict";
+import { readFile } from "node:fs/promises";
+import test from "node:test";
+
+const source = await readFile(new URL("./production-key-lifecycle-smoke.mjs", import.meta.url), "utf8");
+
+test("key lifecycle smoke is HTTPS-only, explicitly write-gated, and bounded", () => {
+  assert.match(source, /I_UNDERSTAND_KEY_LIFECYCLE_SMOKE/);
+  assert.match(source, /TRACKMCP_LIFECYCLE_ALLOW_WRITE/);
+  assert.match(source, /parsed\.protocol !== "https:"/);
+  assert.match(source, /AbortSignal\.timeout\(15_000\)/);
+});
+
+test("key lifecycle smoke verifies rotation and revocation without logging secrets", () => {
+  for (const marker of ["rotate active key", "old key rejected after rotation", "replacement key accepted", "revoke replacement key", "replacement key rejected after revoke", "/api/v1/account/keys/", "/api/v1/cli/key-status"]) assert.match(source, new RegExp(marker.replace(/[.*+?^${}()|[\\]\\]/g, "\\\\$&")), marker);
+  assert.match(source, /No cookie, key, workspace ID, response body, or credential/);
+  assert.doesNotMatch(source, /console\.log\([^)]*(cookie|oldKey|replacementKey|workspaceId)/);
+});
