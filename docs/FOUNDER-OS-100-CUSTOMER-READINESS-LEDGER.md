@@ -42,6 +42,13 @@ The readiness percentage is based on 10 gates, not lines of code:
 
 Engineering evidence is complete for the deployed application path, bounded load/rollback, five-slice refresh checkpoint, all six Founder OS tabs, privacy/retention boundaries, and the current release record. The pilot is **not marked ready by percentage**: credentialed UAT, migration/rollback ownership, repeated worker SLO observations, distributed-rate-limit IAM, and explicitly partial protocol interoperability remain release-owner gates. Supabase usage is monitored operationally; no current overage is inferred from this ledger, and quota headroom is not silently treated as a completed pilot gate.
 
+The current distributed-rate-limit workflow was exercised from `main` as run
+`40172392815`. It authenticated with the GitHub OIDC role, was denied the
+narrowly scoped `apprunner:UpdateService` permission, applied no production
+mutation, and uploaded the redacted artifact
+`distributed-rate-limit-mode-40172392815` with outcome `blocked_iam`. This is
+the authoritative current IAM boundary; distributed mode remains unclaimed.
+
 ## 2026-10-24 authenticated dashboard UAT checkpoint
 
 - [x] A direct authenticated browser inspection of `app.trackmcp.com/dashboard`
