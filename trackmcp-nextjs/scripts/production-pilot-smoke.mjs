@@ -189,6 +189,29 @@ async function expectToolSitemap() {
   return { label: "tool sitemap index and first shard", status: 200, first_shard_has_urls: true };
 }
 
+async function expectRuntimeIdentity() {
+  const response = await fetchReadOnly(endpoint("/api/health"), {
+    redirect: "manual",
+    signal: AbortSignal.timeout(15_000),
+    headers: { accept: "application/json" },
+  });
+  if (response.status !== 200) fail(`runtime identity: expected HTTP 200, received HTTP ${response.status}`);
+  const body = await response.json();
+  if (!body || body.status !== "ok" || typeof body.release_sha !== "string") {
+    fail("runtime identity: health response did not contain the bounded status/release_sha contract");
+  }
+  const expected = process.env.TRACKMCP_SMOKE_CANDIDATE_SHA || "";
+  if (expected && body.release_sha !== expected) {
+    fail(`runtime identity: expected candidate SHA ${expected}, received ${body.release_sha}`);
+  }
+  return {
+    label: "immutable runtime release identity",
+    status: response.status,
+    release_sha_present: true,
+    candidate_sha_match: expected ? true : "not-supplied",
+  };
+}
+
 async function registryChecks() {
   const checks = [];
   const npmPackage = process.env.TRACKMCP_EXPECTED_NPM_SDK || "@trackmcp/sdk@0.1.16";
@@ -261,6 +284,7 @@ async function main() {
   for (const path of publicRoutes) {
     checks.push(await expect(path, 200, undefined, `browser ${path}`, { securityHeaders: true }));
   }
+  checks.push(await expectRuntimeIdentity());
   checks.push(await expectPublicClaim(
     "/features",
     "Observed calls, ranked and trended",

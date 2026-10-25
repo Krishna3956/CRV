@@ -55,6 +55,9 @@ test("production pilot smoke records redacted evidence and covers pilot endpoint
   assert.match(source, /bounded propagation wait/);
   assert.match(source, /wheel_sha256_present/);
   assert.match(source, /expectToolSitemap/);
+  assert.match(source, /expectRuntimeIdentity/);
+  assert.match(source, /TRACKMCP_SMOKE_CANDIDATE_SHA/);
+  assert.match(source, /immutable runtime release identity/);
   assert.match(source, /first_shard_has_urls/);
   assert.match(source, /expectPublicClaim/);
   assert.match(source, /Observed calls, ranked and trended/);
