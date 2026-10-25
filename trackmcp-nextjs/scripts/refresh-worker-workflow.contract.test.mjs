@@ -7,6 +7,11 @@ const workflow = await readFile(new URL("../../.github/workflows/founder-os-refr
 test("scheduled refresh worker emits a bounded redacted lag/retry summary artifact", () => {
   assert.match(workflow, /summary_file=\"\$RUNNER_TEMP\/trackmcp-refresh-worker-summary\.jsonl\"/);
   assert.match(workflow, /max_queue_lag_ms/);
+  assert.match(workflow, /freshness_budget_ms=900000/);
+  assert.match(workflow, /freshness_slo/);
+  assert.match(workflow, /no_backlog_observed/);
+  assert.match(workflow, /within_budget/);
+  assert.match(workflow, /stale/);
   assert.match(workflow, /max_attempt_count/);
   assert.match(workflow, /errors_count/);
   assert.match(workflow, /response_unparseable/);
