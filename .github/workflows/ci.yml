@@ -61,10 +61,10 @@ jobs:
         run: timeout --signal=TERM --kill-after=30s 20m npm run test:release-gate
       - name: Lint web application
         working-directory: trackmcp-nextjs
-        run: npm run lint
+        run: timeout --signal=TERM --kill-after=30s 10m npm run lint
       - name: Build web application
         working-directory: trackmcp-nextjs
-        run: npm run build
+        run: timeout --signal=TERM --kill-after=30s 15m npm run build
       - name: Build TypeScript SDK
         working-directory: trackmcp-nextjs/packages/typescript-sdk
         run: npm ci && npm run build
