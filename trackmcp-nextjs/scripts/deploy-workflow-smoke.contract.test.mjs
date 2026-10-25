@@ -8,6 +8,8 @@ const lifecycleWorkflow = await readFile(new URL("../../.github/workflows/produc
 
 test("App Runner deployment performs a redacted read-only smoke after RUNNING", () => {
   assert.match(workflow, /timeout-minutes: 35/);
+  assert.match(workflow, /cancel-in-progress: true/);
+  assert.match(workflow, /- name: Wait for deployment to finish\n\s+timeout-minutes: 21/);
   assert.match(workflow, /deadline=\$\(\(SECONDS \+ 1200\)\)/);
   assert.match(workflow, /while \(\( SECONDS < deadline \)\); do/);
   assert.match(workflow, /timeout 30s aws apprunner start-deployment/);
