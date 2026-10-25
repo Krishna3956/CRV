@@ -8,7 +8,10 @@ promise that every product capability is complete.
 
 ## Verified and shipped
 
-- `origin/main` is `7d3dfa8585785659d214f1ed4af225969a63e661` (PR #401).
+- `origin/main` is `658facb9bca8f367c8e42a8ff51332f6323c2029` (PR #403).
+  The deployed application runtime remains the previously verified
+  `7d3dfa8585785659d214f1ed4af225969a63e661`; PR #403 is a reviewed
+  least-privilege IAM artifact and does not require a runtime rollout.
 - Hosted TrackMCP CI `40212636803` passed for the merged SHA.
 - App Runner deployment `40213010821` attempt 2 passed immutable image
   verification, rollout, read-only production smoke, runtime-safety audit,
@@ -25,6 +28,9 @@ promise that every product capability is complete.
 - Production key rotation was executed in the authenticated owner dashboard;
   the old key is revoked and the replacement secret was shown once and not
   persisted. Server adoption of the replacement remains a separate check.
+- The exact distributed-rate-limit IAM policy is present at
+  `docs/FOUNDER-OS-RATE-LIMIT-IAM-POLICY.json`; its contract test passed and
+  the policy has not yet been applied to AWS.
 
 ## Deliberately not claimed
 
