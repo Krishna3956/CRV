@@ -9,7 +9,7 @@ is intentionally not a GO approval and must not be treated as one.
 
 ## Engineering baseline
 
-- `main`: `52c4827751f8df0172d29a055f8cefeb415bb198` (PR #409 merge).
+- `main`: `425808111be4135aa0b43683a566757042f06829` (PR #411 merge).
 - Queue: 263 total, 260 checked, and P0 queue items `020`, `157`, and `260`
   remain open.
 - Full local release gate: 132 suites passed, with lint and the 176-route
