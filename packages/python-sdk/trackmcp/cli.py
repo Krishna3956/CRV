@@ -15,11 +15,18 @@ import time
 import urllib.error
 import urllib.request
 import webbrowser
+from importlib.metadata import PackageNotFoundError, version as package_version
 from pathlib import Path
 from typing import Any, Dict, Optional
 
 DEFAULT_API_BASE = "https://app.trackmcp.com"
 KEY_PREFIX = "TRACKMCP_KEY="
+try:
+    CLIENT_VERSION = package_version("trackmcp")
+except PackageNotFoundError:
+    # Source checkouts can run the CLI before a wheel is installed. Keep the
+    # request metadata truthful without making activation depend on packaging.
+    CLIENT_VERSION = "source-checkout"
 
 
 def _request(base: str, path: str, payload: Optional[Dict[str, Any]] = None, authorization: Optional[str] = None) -> Dict[str, Any]:
@@ -105,7 +112,7 @@ def _init(args: argparse.Namespace) -> int:
         return 1
 
     session = _request(base, "/api/v1/cli/device/sessions", {
-        "client_version": "python-sdk",
+        "client_version": CLIENT_VERSION,
         "platform": f"python-{sys.version_info.major}.{sys.version_info.minor}",
         "package_manager": "pip",
         "sdk_package": "trackmcp",
