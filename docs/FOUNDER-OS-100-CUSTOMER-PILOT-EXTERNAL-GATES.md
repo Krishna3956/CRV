@@ -9,9 +9,9 @@ is intentionally not a GO approval and must not be treated as one.
 
 ## Engineering baseline
 
-- `main`: current release record reconciled through PR #408; see the tracked
-  release ledger for the exact merge SHA.
-- Queue: 260 checked; P0 queue items `020`, `157`, and `260` remain open.
+- `main`: `52c4827751f8df0172d29a055f8cefeb415bb198` (PR #409 merge).
+- Queue: 263 total, 260 checked, and P0 queue items `020`, `157`, and `260`
+  remain open.
 - Full local release gate: 132 suites passed, with lint and the 176-route
   production build green.
 - Authenticated device-flow UAT covers expired, denied, multiple-membership,
