@@ -79,6 +79,10 @@ commit and the operator accepts the listed limitations.
   session, and workflow [40169807874](https://github.com/Krishna3956/CRV/actions/runs/40169807874)
   passed against `https://app.trackmcp.com` for release
   `aecbe2e80ca237cb2a61340c7199f069587bdb39` without exposing secret values.
+- [x] A fresh read-only authenticated smoke rerun,
+  [40172215000](https://github.com/Krishna3956/CRV/actions/runs/40172215000),
+  passed against the same deployed release and production host. No secret,
+  workspace identifier, or payload was recorded.
 - [ ] A final operator go/no-go decision is recorded with UTC timestamp and
   accepted limitations. The engineering recommendation remains **HOLD** until
   credentialed UAT, migration/rollback ownership, worker freshness, and the
