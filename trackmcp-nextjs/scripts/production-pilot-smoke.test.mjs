@@ -26,6 +26,14 @@ test("first-ingest fixture matches the current canonical event envelope", () => 
   assert.match(source, /user-agent.*TrackMCP\/0\.1\.16 production-smoke/);
 });
 
+test("opt-in production write smoke exercises the bounded OTLP/HTTP protobuf path", () => {
+  assert.match(source, /application\/x-protobuf/);
+  assert.match(source, /sendOtelProtobuf/);
+  assert.match(source, /otlp-http-protobuf/);
+  assert.match(source, /metadata-only span/);
+  assert.match(source, /buildOtelProtobufFixture/);
+});
+
 test("production pilot smoke records redacted evidence and covers pilot endpoints", () => {
   for (const marker of ["/api/v1/cli/key-status", "/api/v1/ingest", "/sitemap.xml", "/docs/go", "/docs/dotnet", "/docs/opentelemetry", "/docs/protocol", "/docs/authentication", "registry.npmjs.org", "pypi.org", "outcome: \"passed\"", "checks_total", "checks_executed", "checks_skipped", "candidate_sha", "image_digest", "TRACKMCP_SMOKE_IMAGE_DIGEST"]) {
     assert.match(source, new RegExp(marker.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")), marker);
