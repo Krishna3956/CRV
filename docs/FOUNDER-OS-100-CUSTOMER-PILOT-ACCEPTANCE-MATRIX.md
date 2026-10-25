@@ -10,6 +10,10 @@ item. A row is not green merely because a local contract or historical release
 passed. The evidence column states what is actually proven; the exit column
 states what is still required.
 
+The companion [external-gate register](FOUNDER-OS-100-CUSTOMER-PILOT-EXTERNAL-GATES.md)
+records the non-source acceptance decisions that remain open in the release
+record.
+
 | Queue item | Requirement | Current evidence | Status | Exit evidence |
 | --- | --- | --- | --- | --- |
 | 020 | Approve the exact limited pilot scope before a customer-facing claim | `docs/FOUNDER-OS-100-CUSTOMER-PILOT-RELEASE-RECORD.md` remains Draft/HOLD and lists the bounded desktop scope and limitations | OPEN — release owner | Timestamped scope approval naming cohort, hosts, supported paths, limitations, rollback owner, and data-handling boundary |
