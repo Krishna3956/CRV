@@ -41,8 +41,23 @@ function validateOptIn() {
 
 function endpoint(path) { return new URL(path, `${baseUrl.replace(/\/$/, "")}/`); }
 
+async function fetchReadOnly(url, options = {}) {
+  const method = String(options.method || "GET").toUpperCase();
+  if (method !== "GET" && method !== "HEAD") return fetch(url, options);
+  let lastError;
+  for (let attempt = 0; attempt < 3; attempt += 1) {
+    try {
+      return await fetch(url, options);
+    } catch (error) {
+      lastError = error;
+      if (attempt < 2) await new Promise((resolve) => setTimeout(resolve, 250 * (attempt + 1)));
+    }
+  }
+  throw lastError;
+}
+
 async function request(path, options = {}) {
-  const response = await fetch(endpoint(path), {
+  const response = await fetchReadOnly(endpoint(path), {
     ...options,
     redirect: "manual",
     headers: { "user-agent": "TrackMCP/0.1.16 production-smoke", ...(options.headers || {}) },
@@ -109,7 +124,7 @@ function assertSecurityHeaders(headers, label) {
 }
 
 async function keyStatusRequest(apiKey) {
-  const response = await fetch(endpoint("/api/v1/cli/key-status"), {
+  const response = await fetchReadOnly(endpoint("/api/v1/cli/key-status"), {
     method: "GET",
     headers: { accept: "application/json", "user-agent": "TrackMCP/0.1.16 production-smoke", authorization: `Bearer ${apiKey}` },
     redirect: "manual",
@@ -141,7 +156,7 @@ async function expect(path, expected, options, label = path, { securityHeaders =
 // document has the bounded wording, but retain only booleans in the report—
 // never a page body or a customer-facing page snapshot.
 async function expectPublicClaim(path, requiredText, prohibitedText, label) {
-  const response = await fetch(endpoint(path), {
+  const response = await fetchReadOnly(endpoint(path), {
     redirect: "manual",
     signal: AbortSignal.timeout(15_000),
     headers: { accept: "text/html" },
@@ -155,7 +170,7 @@ async function expectPublicClaim(path, requiredText, prohibitedText, label) {
 }
 
 async function expectToolSitemap() {
-  const response = await fetch(endpoint("/tool-sitemap.xml"), {
+  const response = await fetchReadOnly(endpoint("/tool-sitemap.xml"), {
     redirect: "manual",
     signal: AbortSignal.timeout(15_000),
     headers: { accept: "application/xml,text/xml" },
@@ -163,7 +178,7 @@ async function expectToolSitemap() {
   if (response.status !== 200) fail(`tool sitemap index: expected HTTP 200, received HTTP ${response.status}`);
   const index = await response.text();
   if (!index.includes("<sitemapindex") || !index.includes("/tool-sitemap/0.xml")) fail("tool sitemap index: missing XML index or first shard");
-  const shard = await fetch(endpoint("/tool-sitemap/0.xml"), {
+  const shard = await fetchReadOnly(endpoint("/tool-sitemap/0.xml"), {
     redirect: "manual",
     signal: AbortSignal.timeout(15_000),
     headers: { accept: "application/xml,text/xml" },
@@ -187,7 +202,7 @@ async function registryChecks() {
     const at = spec.lastIndexOf("@");
     const name = spec.slice(0, at);
     const version = spec.slice(at + 1);
-    const response = await fetch(`https://registry.npmjs.org/${encodeURIComponent(name)}/${encodeURIComponent(version)}`, { signal: AbortSignal.timeout(15_000) });
+    const response = await fetchReadOnly(`https://registry.npmjs.org/${encodeURIComponent(name)}/${encodeURIComponent(version)}`, { signal: AbortSignal.timeout(15_000) });
     if (!response.ok) fail(`npm registry check failed for ${name}@${version}: HTTP ${response.status}`);
     const metadata = await response.json();
     if (metadata.name !== name || metadata.version !== version) fail(`npm registry metadata mismatch for ${name}@${version}`);
@@ -215,7 +230,7 @@ async function registryChecks() {
   let wheel;
   let sdist;
   for (let attempt = 1; attempt <= 6; attempt += 1) {
-    response = await fetch(`https://pypi.org/pypi/${encodeURIComponent(name)}/${encodeURIComponent(version)}/json`, { signal: AbortSignal.timeout(15_000) });
+    response = await fetchReadOnly(`https://pypi.org/pypi/${encodeURIComponent(name)}/${encodeURIComponent(version)}/json`, { signal: AbortSignal.timeout(15_000) });
     if (!response.ok) fail(`PyPI registry check failed for ${name}==${version}: HTTP ${response.status}`);
     metadata = await response.json();
     if (metadata.info?.name !== name || metadata.info?.version !== version) fail(`PyPI registry metadata mismatch for ${name}==${version}`);
