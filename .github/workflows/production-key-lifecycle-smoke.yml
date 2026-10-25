@@ -1,0 +1,65 @@
+name: Production key lifecycle smoke
+
+on:
+  workflow_dispatch:
+    inputs:
+      base_url:
+        description: "Credential-free HTTPS origin (default: https://app.trackmcp.com)"
+        required: false
+        default: "https://app.trackmcp.com"
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      TRACKMCP_LIFECYCLE_BASE_URL: ${{ inputs.base_url || 'https://app.trackmcp.com' }}
+      TRACKMCP_LIFECYCLE_COOKIE: ${{ secrets.TRACKMCP_LIFECYCLE_COOKIE }}
+      TRACKMCP_LIFECYCLE_WORKSPACE_ID: ${{ secrets.TRACKMCP_LIFECYCLE_WORKSPACE_ID }}
+      TRACKMCP_LIFECYCLE_KEY_ID: ${{ secrets.TRACKMCP_LIFECYCLE_KEY_ID }}
+      TRACKMCP_LIFECYCLE_KEY: ${{ secrets.TRACKMCP_LIFECYCLE_KEY }}
+      TRACKMCP_KEY_LIFECYCLE_CONFIRM: I_UNDERSTAND_KEY_LIFECYCLE_SMOKE
+      TRACKMCP_LIFECYCLE_ALLOW_WRITE: "true"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: trackmcp-nextjs/package-lock.json
+      - name: Install dependencies
+        working-directory: trackmcp-nextjs
+        run: npm ci
+      - name: Check lifecycle inputs
+        id: configured
+        shell: bash
+        run: |
+          set -euo pipefail
+          missing=()
+          for name in TRACKMCP_LIFECYCLE_COOKIE TRACKMCP_LIFECYCLE_WORKSPACE_ID TRACKMCP_LIFECYCLE_KEY_ID TRACKMCP_LIFECYCLE_KEY; do
+            if [[ -z "${!name:-}" ]]; then missing+=("$name"); fi
+          done
+          if (( ${#missing[@]} > 0 )); then
+            echo "configured=false" >> "$GITHUB_OUTPUT"
+            printf 'Key lifecycle smoke skipped; missing configured repository secrets: %s\n' "${missing[*]}" | tee -a "$GITHUB_STEP_SUMMARY"
+          else
+            echo "configured=true" >> "$GITHUB_OUTPUT"
+            echo "Disposable lifecycle inputs are configured; write-gated smoke will run." >> "$GITHUB_STEP_SUMMARY"
+          fi
+      - name: Run disposable lifecycle smoke
+        if: steps.configured.outputs.configured == 'true'
+        working-directory: trackmcp-nextjs
+        env:
+          TRACKMCP_LIFECYCLE_REPORT: ${{ runner.temp }}/trackmcp-key-lifecycle-smoke.json
+        run: npm run smoke:production-key-lifecycle
+      - name: Upload redacted lifecycle evidence
+        if: always() && steps.configured.outputs.configured == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: production-key-lifecycle-${{ github.sha }}
+          path: ${{ runner.temp }}/trackmcp-key-lifecycle-smoke.json
+          if-no-files-found: warn

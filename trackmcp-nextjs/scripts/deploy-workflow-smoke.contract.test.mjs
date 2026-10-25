@@ -4,6 +4,7 @@ import test from "node:test";
 
 const workflow = await readFile(new URL("../../.github/workflows/deploy.yml", import.meta.url), "utf8");
 const distributedWorkflow = await readFile(new URL("../../.github/workflows/enable-distributed-rate-limit.yml", import.meta.url), "utf8");
+const lifecycleWorkflow = await readFile(new URL("../../.github/workflows/production-key-lifecycle-smoke.yml", import.meta.url), "utf8");
 
 test("App Runner deployment performs a redacted read-only smoke after RUNNING", () => {
   assert.match(workflow, /timeout-minutes: 35/);
@@ -72,4 +73,15 @@ test("distributed rate-limit enablement preserves and verifies the App Runner co
   assert.match(distributedWorkflow, /"required_action":"apprunner:UpdateService"/);
   assert.match(distributedWorkflow, /"outcome":"enabled"/);
   assert.doesNotMatch(distributedWorkflow, /SUPABASE_SERVICE_ROLE_KEY|TRACKMCP_REFRESH_WORKER_SECRET/);
+});
+
+test("production key lifecycle workflow is manual, write-gated, and redacted", () => {
+  assert.match(lifecycleWorkflow, /workflow_dispatch/);
+  assert.match(lifecycleWorkflow, /TRACKMCP_KEY_LIFECYCLE_CONFIRM/);
+  assert.match(lifecycleWorkflow, /TRACKMCP_LIFECYCLE_ALLOW_WRITE: "true"/);
+  assert.match(lifecycleWorkflow, /TRACKMCP_LIFECYCLE_COOKIE/);
+  assert.match(lifecycleWorkflow, /TRACKMCP_LIFECYCLE_KEY_ID/);
+  assert.match(lifecycleWorkflow, /missing configured repository secrets/);
+  assert.match(lifecycleWorkflow, /actions\/upload-artifact@v4/);
+  assert.doesNotMatch(lifecycleWorkflow, /echo .*TRACKMCP_LIFECYCLE_KEY|console\.log/);
 });

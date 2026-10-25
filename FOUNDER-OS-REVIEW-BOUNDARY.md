@@ -7,6 +7,7 @@ reviewer disposition before staging; it is never included by a blanket add.
 | Path | Classification | Owner | Required reviewer | Disposition |
 | --- | --- | --- | --- | --- |
 | `trackmcp-nextjs/AGENTS.md` | review-required | repository maintainer | release owner | instruction-only formatting change; exclude from product candidate unless separately approved |
+| `trackmcp-nextjs/.github/workflows/production-key-lifecycle-smoke.yml` | review-required | repository maintainer | release owner | manual, write-gated operator workflow; review secret names and retain only redacted lifecycle evidence |
 
 ## Boundary rules
 
