@@ -8,7 +8,7 @@ const EXCLUDED = [
   // Local handoff notes and inspection output are deliberately kept outside
   // the product candidate. They may be present in a working checkout while a
   // release is being audited and must never become review-required by accident.
-  /^(?:docs\/codex-handoff|tmp)(\/|$)/,
+  /(?:^|\/)(?:docs\/codex-handoff|tmp)(\/|$)/,
   /(?:^|\/)(?:[^/]+\.(?:csv|tsbuildinfo))$/i,
   /(?:^|\/)(?:\.env(?:\.|$)|deploy\/\.env\.deploy$)/,
   /(?:^|\/)AGENTS\.md$/i,
@@ -44,7 +44,18 @@ function changedPaths() {
   return output.split(/\r?\n/).filter(Boolean).map((line) => {
     // Porcelain v1 uses two status columns followed by a space. For renames,
     // keep both paths visible rather than silently dropping the old location.
-    return line.slice(3).split(" -> ").map((value) => value.trim());
+    return line.slice(3).split(" -> ").map((value) => {
+      const candidate = value.trim().replace(/^"(.*)"$/, "$1");
+      // `git status` reports paths relative to the current working directory,
+      // while the audit classifies paths relative to the repository root. The
+      // release gate runs from trackmcp-nextjs, so normalize both views before
+      // applying the scope policy; otherwise ../docs and ../tmp handoff files
+      // are incorrectly treated as review-required product files.
+      const rootRelative = candidate === "trackmcp-nextjs" || candidate.startsWith("trackmcp-nextjs/")
+        ? candidate
+        : path.relative(repoRoot, path.resolve(process.cwd(), candidate));
+      return rootRelative.replaceAll("\\", "/");
+    });
   }).flat();
 }
 
