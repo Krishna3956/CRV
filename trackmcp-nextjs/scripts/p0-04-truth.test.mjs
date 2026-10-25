@@ -150,6 +150,8 @@ test("trust pages avoid promising unshipped retention and export controls", asyn
   const security = await source("src/app/security/page.tsx");
   const privacy = await source("src/app/privacy/page.tsx");
   assert.match(security, /confirm them with the TrackMCP team/);
+  assert.match(security, /Backup and recovery boundary/);
+  assert.match(security, /Do not rely on the pilot telemetry store as your only copy/);
   assert.match(security, /not represented as shipped functionality/);
   assert.match(privacy, /Confirm current retention/);
   assert.match(privacy, /Export is bounded and privacy-safe/);
