@@ -780,6 +780,9 @@ export class ModernMcpClient {
    * durable subscription or reconnect manager. */
   async listenForUpdates(filter: ModernMcpSubscriptionFilter, options: ModernMcpSubscriptionOptions = {}): Promise<ModernMcpSubscriptionResult> {
     const boundedFilter = boundedSubscriptionFilter(filter);
+    if (boundedFilter.toolsListChanged === true) this.requireAdvertisedCapability("tools", "subscriptions/listen");
+    if (boundedFilter.promptsListChanged === true) this.requireAdvertisedCapability("prompts", "subscriptions/listen");
+    if (boundedFilter.resourcesListChanged === true || boundedFilter.resourceSubscriptions?.length) this.requireAdvertisedCapability("resources", "subscriptions/listen");
     const maxEvents = typeof options.maxEvents === "number" && Number.isInteger(options.maxEvents) ? Math.min(MAX_TASK_STREAM_EVENTS, Math.max(1, options.maxEvents)) : MAX_TASK_STREAM_EVENTS;
     const timeoutMs = typeof options.timeoutMs === "number" && Number.isFinite(options.timeoutMs) ? Math.min(30_000, Math.max(250, Math.floor(options.timeoutMs))) : 10_000;
     if (options.signal?.aborted) return { events: [], graceful: false, truncated: true };
