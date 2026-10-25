@@ -112,7 +112,18 @@ jobs:
           jq -s '{observed_at:(map(.observed_at)|map(select(. != null))|max // null), batches:length, processed:(map(.processed // 0)|add // 0), succeeded:(map(.succeeded // 0)|add // 0), retryable:(map(.retryable // 0)|add // 0), failed:(map(.failed // 0)|add // 0), errors_count:(map(.errors_count // 0)|add // 0), max_queue_lag_ms:(map(.max_queue_lag_ms // 0)|max // 0), max_attempt_count:(map(.max_attempt_count // 0)|max // 0), timed_out:($timed_out == 1), workflow_failed:($failed == 1), batches_with_unparseable_response:(map(select(.response_unparseable == true))|length)}' \
             --argjson timed_out "$timed_out" --argjson failed "$failed" "$summary_file" \
             > "$RUNNER_TEMP/trackmcp-refresh-worker-summary.json"
-          echo "Bounded refresh summary: failed=$failed timed_out=$timed_out"
+          # The pilot freshness budget is 15 minutes. Keep the workflow
+          # transport result successful when a run safely drains or observes
+          # stale work, but classify the evidence explicitly so a green job
+          # cannot be mistaken for an SLO pass.
+          freshness_budget_ms=900000
+          jq --argjson budget "$freshness_budget_ms" \
+            '. + {freshness_budget_ms:$budget, freshness_slo:(if .max_queue_lag_ms == 0 then "no_backlog_observed" elif .max_queue_lag_ms <= $budget then "within_budget" else "stale" end)}' \
+            "$RUNNER_TEMP/trackmcp-refresh-worker-summary.json" \
+            > "$RUNNER_TEMP/trackmcp-refresh-worker-summary.json.tmp"
+          mv "$RUNNER_TEMP/trackmcp-refresh-worker-summary.json.tmp" "$RUNNER_TEMP/trackmcp-refresh-worker-summary.json"
+          freshness_slo=$(jq -r '.freshness_slo' "$RUNNER_TEMP/trackmcp-refresh-worker-summary.json")
+          echo "Bounded refresh summary: failed=$failed timed_out=$timed_out freshness_slo=$freshness_slo budget_ms=$freshness_budget_ms"
           exit "$failed"
       - name: Upload redacted refresh worker summary
         if: always()
