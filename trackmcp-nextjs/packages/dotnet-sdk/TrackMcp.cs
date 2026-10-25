@@ -168,6 +168,22 @@ public sealed class TrackMcpClient : IDisposable
         }, BoundSessionId(sessionId), false, boundedDuration, transport: transport);
     }
 
+    /// <summary>Records a caller-observed transport reconnect as bounded lifecycle metadata.</summary>
+    /// <remarks>This does not claim replay, durable delivery, or server ownership.</remarks>
+    public void RecordSessionReconnected(string? transport = null, string? sessionId = null, long durationMs = 0)
+    {
+        if (transport is not (null or "stdio" or "streamable_http" or "sse" or "custom")) return;
+        var boundedDuration = Math.Clamp(durationMs, 0, 86_400_000);
+        Capture("session", "transport", new Dictionary<string, object?>
+        {
+            ["_trackmcp"] = new Dictionary<string, object?>
+            {
+                ["observation_kind"] = "session_reconnected",
+                ["observation_source"] = "transport"
+            }
+        }, BoundSessionId(sessionId), true, boundedDuration, transport: transport);
+    }
+
     /// <summary>Records one allowlisted protocol notification without payload values.</summary>
     /// <remarks>Progress values, cancellation reasons, URIs, and caller data are never accepted.</remarks>
     public void RecordProtocolSignal(string signal, string method, string? sessionId = null, string direction = "server_to_client")

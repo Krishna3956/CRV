@@ -30,6 +30,10 @@ For an explicit caller-verified transport label, use
 `RecordTransportFailureForTransport` with `stdio`, `streamable_http`, `sse`,
 or `custom`; the SDK does not inspect transport internals.
 
+After the caller has actually re-established a transport, it may record
+`RecordSessionReconnected(transport, sessionId, durationMs)`. This is bounded,
+caller-observed evidence only and does not claim replay or durable delivery.
+
 For protocol notifications, call `RecordProtocolSignal` with one of the
 allowlisted signals (`progress`, `cancelled`, `catalog_changed`,
 `resource_changed`, `prompt_changed`, `subscription_started`, or

@@ -57,6 +57,7 @@ static class Smoke
             ["resultType"] = "complete",
         }, "session-1");
         client.RecordTransportFailureForTransport("transport_error", "streamable_http", "session-1", 12);
+        client.RecordSessionReconnected("streamable_http", "session-1", 12);
         await client.FlushAsync();
 
         Require(handler.Body is not null, "flush did not send an event batch");
@@ -71,7 +72,7 @@ static class Smoke
         Require(!handler.Body.Contains("private-prompt-message", StringComparison.Ordinal), "raw prompt content crossed the boundary");
         using var document = JsonDocument.Parse(handler.Body);
         var events = document.RootElement.GetProperty("events");
-        Require(events.GetArrayLength() == 8, "unexpected event count");
+        Require(events.GetArrayLength() == 9, "unexpected event count");
         Require(events[0].GetProperty("direction").GetString() == "client_to_server", "inbound direction was not retained");
         Require(events[0].GetProperty("transport").GetString() == "streamable_http", "caller-verified signal transport label was not retained");
         Require(events[1].GetProperty("result_type").GetString() == "input_required", "protocol result type was not retained");
@@ -89,6 +90,8 @@ static class Smoke
         Require(events[6].GetProperty("result_type").GetString() == "complete", "prompt result state was not retained");
         Require(events[7].GetProperty("payload").GetProperty("_trackmcp").GetProperty("observation_kind").GetString() == "transport_error", "transport failure was not retained");
         Require(events[7].GetProperty("transport").GetString() == "streamable_http", "caller-verified transport label was not retained");
+        Require(events[8].GetProperty("payload").GetProperty("_trackmcp").GetProperty("observation_kind").GetString() == "session_reconnected", "reconnect observation was not retained");
+        Require(events[8].GetProperty("success").GetBoolean(), "reconnect observation was not successful lifecycle evidence");
         var metadata = events[4].GetProperty("payload").GetProperty("_trackmcp");
         Require(metadata.GetProperty("next_cursor_present").GetBoolean(), "cursor presence was not retained");
     }

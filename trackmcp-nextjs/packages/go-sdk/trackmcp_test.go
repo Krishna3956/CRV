@@ -62,6 +62,20 @@ func TestRecordTransportFailureForTransportAllowlistsLabel(t *testing.T) {
 	if len(client.queue) != 1 { t.Fatalf("unsupported transport label was accepted") }
 }
 
+func TestRecordSessionReconnectedIsBoundedAndCallerObserved(t *testing.T) {
+	client := New(Options{APIKey: "test"})
+	client.RecordSessionReconnected("streamable_http", "session-1", 12)
+	if len(client.queue) != 1 { t.Fatalf("expected one reconnect event, got %d", len(client.queue)) }
+	event := client.queue[0]
+	if event.EventType != "session" || event.Transport != "streamable_http" || event.Success == nil || !*event.Success { t.Fatalf("unexpected reconnect event: %#v", event) }
+	metadata := event.Payload["_trackmcp"].(map[string]any)
+	if metadata["observation_kind"] != "session_reconnected" || metadata["observation_source"] != "transport" { t.Fatalf("unexpected reconnect metadata: %#v", metadata) }
+	client.RecordSessionReconnected("private://endpoint", "session-2", 12)
+	if len(client.queue) != 1 { t.Fatal("unsupported transport label was accepted") }
+	client.RecordSessionReconnected("stdio", "session-3", 999999999)
+	if client.queue[1].DurationMS != 86400000 { t.Fatalf("duration was not bounded: %#v", client.queue[1]) }
+}
+
 func TestRecordProtocolSignalIsAllowlistedAndMetadataOnly(t *testing.T) {
 	client := New(Options{APIKey: "tmcp_test"})
 	client.RecordProtocolSignal("progress", "notifications/progress", "session-1")
