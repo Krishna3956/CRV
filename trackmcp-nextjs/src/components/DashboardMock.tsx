@@ -24,12 +24,13 @@ import { TrackMCPAppIcon } from "./TrackMCPAppIcon";
 
 const NAV = [
   { key: "overview", label: "Overview", icon: LayoutGrid, tile: "bg-slate-100 text-slate-600" },
-  { key: "tools", label: "Tools", icon: Wrench, tile: "bg-violet-100 text-violet-600" },
-  { key: "sessions", label: "Sessions", icon: Activity, tile: "bg-sky-100 text-sky-600" },
-  { key: "workflows", label: "Workflows", icon: Workflow, tile: "bg-brand-soft text-brand-strong" },
-  { key: "clients", label: "Clients", icon: Users, tile: "bg-amber-100 text-amber-600" },
-  { key: "outcomes", label: "Outcomes", icon: Target, tile: "bg-teal-100 text-teal-600" },
-  { key: "reliability", label: "Reliability", icon: TriangleAlert, tile: "bg-rose-100 text-rose-600" },
+  { key: "tools", label: "What they're doing", icon: Wrench, tile: "bg-violet-100 text-violet-600" },
+  { key: "sessions", label: "Evidence", icon: Activity, tile: "bg-sky-100 text-sky-600" },
+  { key: "workflows", label: "The journey", icon: Workflow, tile: "bg-brand-soft text-brand-strong" },
+  { key: "clients", label: "Who's using it", icon: Users, tile: "bg-amber-100 text-amber-600" },
+  { key: "outcomes", label: "Did it work", icon: Target, tile: "bg-teal-100 text-teal-600" },
+  { key: "reliability", label: "What's broken", icon: TriangleAlert, tile: "bg-rose-100 text-rose-600" },
+  { key: "setup", label: "Setup", icon: Settings, tile: "bg-stone-100 text-stone-600" },
 ] as const;
 type View = (typeof NAV)[number]["key"];
 
@@ -1011,6 +1012,29 @@ export function DashboardMock() {
                   })}
                 </div>
               </>
+            )}
+
+            {view === "setup" && (
+              <div className="space-y-5">
+                <div>
+                  <p className="text-[12px] font-medium uppercase tracking-[0.08em] text-faint">Setup</p>
+                  <h3 className="mt-1 text-[20px] font-semibold tracking-[-0.02em] text-ink">Connect your server</h3>
+                  <p className="mt-1 max-w-[52ch] text-[12px] leading-relaxed text-muted">Example data follows the same setup path as the product: install the SDK, connect a scoped key, and verify the first accepted event.</p>
+                </div>
+                <div className="grid gap-3 sm:grid-cols-3">
+                  {[
+                    ["1", "Install", "npx @trackmcp/cli init"],
+                    ["2", "Connect", "Scoped connection key"],
+                    ["3", "Verify", "First event observed"],
+                  ].map(([step, title, detail]) => (
+                    <div key={step} className="rounded-xl border border-line bg-paper p-4">
+                      <span className="grid h-7 w-7 place-items-center rounded-full bg-brand text-[11px] font-semibold text-white">{step}</span>
+                      <p className="mt-3 text-[13px] font-semibold text-ink">{title}</p>
+                      <p className="mt-1 text-[12px] leading-relaxed text-muted">{detail}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
             )}
             </motion.div>
           </div>
