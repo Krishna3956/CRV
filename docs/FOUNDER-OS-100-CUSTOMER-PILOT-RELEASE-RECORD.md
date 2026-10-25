@@ -61,11 +61,11 @@ commit and the operator accepts the listed limitations.
   customer incident.
 - [ ] Rollback rehearsal and the release-specific rollback target are linked
   to this exact release.
-- [ ] The current release-specific authenticated production smoke is configured
-  and passes. Workflow `40131244836` failed closed before making any request
-  because the repository is missing `TRACKMCP_AUTH_SMOKE_KEY_A`,
-  `TRACKMCP_AUTH_SMOKE_KEY_B`, `TRACKMCP_AUTH_SMOKE_WORKSPACE_A`,
-  `TRACKMCP_AUTH_SMOKE_WORKSPACE_B`, and `TRACKMCP_AUTH_SMOKE_REVOKED_KEY`.
+- [x] The current release-specific authenticated production smoke is configured
+  and passes. Repository secrets were completed in the signed-in GitHub
+  session, and workflow [40169807874](https://github.com/Krishna3956/CRV/actions/runs/40169807874)
+  passed against `https://app.trackmcp.com` for release
+  `aecbe2e80ca237cb2a61340c7199f069587bdb39` without exposing secret values.
 - [ ] A final operator go/no-go decision is recorded with UTC timestamp and
   accepted limitations. The engineering recommendation remains **HOLD** until
   credentialed UAT, migration/rollback ownership, worker freshness, and the
