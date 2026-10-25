@@ -16,3 +16,12 @@ test("dashboard hydrates a workspace from a successful create response", () => {
   assert.match(source, /setSelectedWorkspaceId\(createdWorkspace\.id\)/);
   assert.match(source, /const activeWorkspace = account\?\.workspace \|\| createdWorkspace \|\| null/);
 });
+
+test("key revocation refreshes the selected workspace", () => {
+  const revokeStart = source.indexOf("const revokeKey = async");
+  const rotateStart = source.indexOf("const rotateKey = async", revokeStart);
+  assert.ok(revokeStart >= 0 && rotateStart > revokeStart, "key lifecycle handlers must remain ordered");
+  const revokeSource = source.slice(revokeStart, rotateStart);
+  assert.match(revokeSource, /workspace_id=\$\{encodeURIComponent\(workspaceId\)\}/);
+  assert.match(revokeSource, /await loadAccount\(workspaceId\)/);
+});
