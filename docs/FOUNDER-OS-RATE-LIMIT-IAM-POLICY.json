@@ -6,6 +6,12 @@
       "Effect": "Allow",
       "Action": "apprunner:UpdateService",
       "Resource": "arn:aws:apprunner:ap-south-1:872575360367:service/trackmcp-web/5d38155bd23141cabb4546b29a4075c7"
+    },
+    {
+      "Sid": "PassRoleForTrackMCPAppRunnerUpdate",
+      "Effect": "Allow",
+      "Action": "iam:PassRole",
+      "Resource": "arn:aws:iam::872575360367:role/AppRunnerECRAccessRole"
     }
   ]
 }

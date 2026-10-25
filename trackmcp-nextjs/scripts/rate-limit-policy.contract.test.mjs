@@ -35,12 +35,19 @@ test("rate-limit policy keeps secret and proxy boundaries explicit", () => {
 
 test("distributed-rate-limit IAM artifact is narrowly scoped", () => {
   assert.equal(iamPolicy.Version, "2012-10-17");
-  assert.equal(iamPolicy.Statement.length, 1);
+  assert.equal(iamPolicy.Statement.length, 2);
   assert.deepEqual(iamPolicy.Statement[0], {
     Sid: "EnableTrackMCPDistributedRateLimitMode",
     Effect: "Allow",
     Action: "apprunner:UpdateService",
     Resource: "arn:aws:apprunner:ap-south-1:872575360367:service/trackmcp-web/5d38155bd23141cabb4546b29a4075c7",
   });
-  assert.notEqual(iamPolicy.Statement[0].Resource, "*");
+  assert.deepEqual(iamPolicy.Statement[1], {
+    Sid: "PassRoleForTrackMCPAppRunnerUpdate",
+    Effect: "Allow",
+    Action: "iam:PassRole",
+    Resource: "arn:aws:iam::872575360367:role/AppRunnerECRAccessRole",
+  });
+  for (const statement of iamPolicy.Statement) assert.notEqual(statement.Resource, "*");
+  assert.doesNotMatch(JSON.stringify(iamPolicy), /iam:\*|apprunner:\*/);
 });
