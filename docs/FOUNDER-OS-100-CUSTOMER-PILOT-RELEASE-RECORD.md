@@ -17,6 +17,13 @@ current candidate; it does not close write-gated key lifecycle, first-ingest,
 migration/postflight, worker-SLO, rollback, or intentionally partial protocol
 gates.
 
+The automatic authenticated production smoke [workflow
+40237513202](https://github.com/Krishna3956/CRV/actions/runs/40237513202)
+also completed successfully for the same deployed application SHA. Its
+redacted artifact is `production-auth-smoke-68d83a3d17ffb5fe63ea0afc2cb48188967d8e93`.
+This is current-release authenticated read-only evidence; it does not perform
+write-gated key lifecycle mutation or prove continuous worker freshness.
+
 The guarded authenticated read-only smoke [workflow
 40234566034](https://github.com/Krishna3956/CRV/actions/runs/40234566034)
 completed successfully with 37 redacted checks: 34 expected authenticated
