@@ -112,7 +112,8 @@ test("modern client accepts a server-directed task when discovery advertises tas
       ? response({ result: { capabilities: { extensions: { "io.modelcontextprotocol/tasks": {} } } } })
       : response({ result: { resultType: "task", taskId: "declared", status: "working" } });
   } });
-  await client.discover();
+  const discovery = await client.discover();
+  assert.deepEqual(discovery.capabilityNames, ["extensions", "io.modelcontextprotocol/tasks"]);
   assert.deepEqual(await client.callTool("lookup"), { resultType: "task", task: { taskId: "declared", status: "working" } });
 });
 
