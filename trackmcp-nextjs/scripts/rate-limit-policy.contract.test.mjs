@@ -6,6 +6,7 @@ import path from "node:path";
 const root = process.cwd();
 const read = (file) => fs.readFileSync(path.join(root, file), "utf8");
 const policy = read("../docs/FOUNDER-OS-RATE-LIMITING.md");
+const iamPolicy = JSON.parse(read("../docs/FOUNDER-OS-RATE-LIMIT-IAM-POLICY.json"));
 const start = read("src/app/api/v1/cli/device/sessions/handlers.ts");
 const poll = read("src/app/api/v1/cli/device/sessions/poll/route.ts");
 const keyStatus = read("src/app/api/v1/cli/key-status/route.ts");
@@ -30,4 +31,16 @@ test("rate-limit policy keeps secret and proxy boundaries explicit", () => {
   assert.match(policy, /never issue a second key/);
   assert.match(policy, /without requesting or logging the secret/);
   assert.doesNotMatch(policy, /log the raw (key|device code)/i);
+});
+
+test("distributed-rate-limit IAM artifact is narrowly scoped", () => {
+  assert.equal(iamPolicy.Version, "2012-10-17");
+  assert.equal(iamPolicy.Statement.length, 1);
+  assert.deepEqual(iamPolicy.Statement[0], {
+    Sid: "EnableTrackMCPDistributedRateLimitMode",
+    Effect: "Allow",
+    Action: "apprunner:UpdateService",
+    Resource: "arn:aws:apprunner:ap-south-1:872575360367:service/trackmcp-web/5d38155bd23141cabb4546b29a4075c7",
+  });
+  assert.notEqual(iamPolicy.Statement[0].Resource, "*");
 });
