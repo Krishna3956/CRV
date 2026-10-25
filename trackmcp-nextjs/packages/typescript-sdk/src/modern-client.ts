@@ -292,6 +292,7 @@ function parseJsonRpcEnvelope(text: string, contentType: string, requestId: numb
  * concurrent calls cannot be confused by a shared constant id. */
 export class ModernMcpClient {
   private requestSequence = 0;
+  private discoveredCapabilities?: ReadonlySet<string>;
 
   constructor(private readonly options: ModernMcpClientOptions) {}
 
@@ -344,6 +345,7 @@ export class ModernMcpClient {
       const supportedVersions = Array.isArray(result.supportedVersions) ? [...new Set(result.supportedVersions.map(boundedString).filter((value): value is string => Boolean(value)))].slice(0, MAX_VERSIONS) : undefined;
       const serverInfo = boundedObject(result.serverInfo) ? { name: boundedString(result.serverInfo.name), version: boundedString(result.serverInfo.version) } : undefined;
       const capabilityNames = boundedObject(result.capabilities) ? Object.keys(result.capabilities).filter((name) => /^[A-Za-z][A-Za-z0-9_.-]{0,63}$/.test(name)).slice(0, MAX_CAPABILITIES) : [];
+      this.discoveredCapabilities = new Set(capabilityNames);
       return { protocolVersion: MODERN_MCP_PROTOCOL_VERSION, ...(supportedVersions?.length ? { supportedVersions } : {}), ...(serverInfo ? { serverInfo } : {}), capabilityNames };
   }
 
@@ -373,6 +375,13 @@ export class ModernMcpClient {
     const resultTypeValue = result.resultType === undefined ? "complete" : boundedString(result.resultType);
     if (resultTypeValue !== "complete" && resultTypeValue !== "input_required" && resultTypeValue !== "task") throw new ModernMcpProtocolError("invalid_response", "Modern MCP tools/call returned an unsupported result type.");
     if (resultTypeValue === "task") {
+      // A task result is only meaningful when the server advertised the Tasks
+      // extension during discovery. If discovery was performed, fail closed
+      // instead of silently accepting a server-directed workflow the peer did
+      // not negotiate. Calls made without discovery retain wire compatibility.
+      if (this.discoveredCapabilities && !["tasks", "io.modelcontextprotocol/tasks", "io.modelcontextprotocol/tasks/"].some((name) => this.discoveredCapabilities?.has(name))) {
+        throw new ModernMcpProtocolError("unsupported_method", "Modern MCP tools/call returned a task without advertising the Tasks capability during discovery.");
+      }
       const task = projectTask(result);
       if (!task) throw new ModernMcpProtocolError("invalid_response", "Modern MCP tools/call returned an invalid task result.");
       return { resultType: "task", task };

@@ -94,6 +94,28 @@ test("modern client invokes tools with task capability and projects task results
   await assert.rejects(() => client.callTool("bad name", {}), (error) => error instanceof ModernMcpProtocolError && error.code === "invalid_response");
 });
 
+test("modern client rejects an undeclared server-directed task after discovery", async () => {
+  const client = new ModernMcpClient({ endpoint: "https://mcp.example.test", fetch: async (_input, init) => {
+    const body = JSON.parse(init.body);
+    return body.method === "server/discover"
+      ? response({ result: { capabilities: { tools: {} } } })
+      : response({ result: { resultType: "task", taskId: "undeclared", status: "working" } });
+  } });
+  await client.discover();
+  await assert.rejects(() => client.callTool("lookup"), (error) => error instanceof ModernMcpProtocolError && error.code === "unsupported_method");
+});
+
+test("modern client accepts a server-directed task when discovery advertises tasks", async () => {
+  const client = new ModernMcpClient({ endpoint: "https://mcp.example.test", fetch: async (_input, init) => {
+    const body = JSON.parse(init.body);
+    return body.method === "server/discover"
+      ? response({ result: { capabilities: { tasks: {} } } })
+      : response({ result: { resultType: "task", taskId: "declared", status: "working" } });
+  } });
+  await client.discover();
+  assert.deepEqual(await client.callTool("lookup"), { resultType: "task", task: { taskId: "declared", status: "working" } });
+});
+
 test("modern client projects complete tool result metadata without payloads", async () => {
   const client = new ModernMcpClient({ endpoint: "https://mcp.example.test", fetch: async () => response({ result: { resultType: "complete", isError: false, content: [{ text: "omit" }], inputRequests: { ask: { params: { secret: "omit" } } } } }) });
   assert.deepEqual(await client.callTool("lookup"), { resultType: "complete", isError: false, contentItemCount: 1, inputRequestKeys: ["ask"] });
