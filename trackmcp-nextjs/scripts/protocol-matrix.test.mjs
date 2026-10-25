@@ -9,13 +9,15 @@ test("protocol matrix names every major surface and an explicit status", () => {
     "initialize", "tools/list", "tools/call", "resources/list", "resources/read",
     "prompts/list", "prompts/get", "pagination", "cancellation", "progress",
     "subscriptions", "completions", "sampling", "elicitation", "tasks",
-    "streamable HTTP", "stdio", "OTLP/HTTP JSON", "OTLP/HTTP protobuf", "OTLP/gRPC",
+    "streamable HTTP", "stdio", "OAuth / MCP authorization", "OTLP/HTTP JSON", "OTLP/HTTP protobuf", "OTLP/gRPC",
   ]) assert.match(matrix, new RegExp(surface.replace(/[.*+?^${}()|[\\]\\]/g, "\\$&"), "i"));
   assert.match(matrix, /\| Surface \| Current evidence \| Product status \| Required evidence/);
   assert.match(matrix, /Observed/);
   assert.match(matrix, /Partial/);
   assert.match(matrix, /Deferred/);
   assert.match(matrix, /Unsupported/);
+  assert.match(matrix, /external authorization-server integration/i);
+  assert.match(matrix, /HTTP\/2 gRPC listener/i);
 });
 
 test("matrix keeps absence separate from success", () => {
