@@ -344,8 +344,18 @@ export class ModernMcpClient {
     const result = await this.request("server/discover", {});
       const supportedVersions = Array.isArray(result.supportedVersions) ? [...new Set(result.supportedVersions.map(boundedString).filter((value): value is string => Boolean(value)))].slice(0, MAX_VERSIONS) : undefined;
       const serverInfo = boundedObject(result.serverInfo) ? { name: boundedString(result.serverInfo.name), version: boundedString(result.serverInfo.version) } : undefined;
-      const capabilityNames = boundedObject(result.capabilities) ? Object.keys(result.capabilities).filter((name) => /^[A-Za-z][A-Za-z0-9_.-]{0,63}$/.test(name)).slice(0, MAX_CAPABILITIES) : [];
-      this.discoveredCapabilities = new Set(capabilityNames);
+      const capabilities = boundedObject(result.capabilities) ? result.capabilities : undefined;
+      const capabilityNames = capabilities ? Object.keys(capabilities).filter((name) => /^[A-Za-z][A-Za-z0-9_.-]{0,63}$/.test(name)).slice(0, MAX_CAPABILITIES) : [];
+      const negotiatedCapabilities = new Set(capabilityNames);
+      // Modern Tasks is advertised under capabilities.extensions, while some
+      // compatible peers expose a top-level tasks member. Keep the public
+      // summary stable, but retain the bounded nested extension names for
+      // capability-aware task-result validation.
+      const extensions = capabilities && boundedObject(capabilities.extensions) ? capabilities.extensions : undefined;
+      if (extensions) {
+        for (const name of Object.keys(extensions).filter((value) => /^[A-Za-z][A-Za-z0-9_.\/-]{0,63}$/.test(value)).slice(0, MAX_CAPABILITIES)) negotiatedCapabilities.add(name);
+      }
+      this.discoveredCapabilities = negotiatedCapabilities;
       return { protocolVersion: MODERN_MCP_PROTOCOL_VERSION, ...(supportedVersions?.length ? { supportedVersions } : {}), ...(serverInfo ? { serverInfo } : {}), capabilityNames };
   }
 

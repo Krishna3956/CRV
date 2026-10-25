@@ -109,7 +109,7 @@ test("modern client accepts a server-directed task when discovery advertises tas
   const client = new ModernMcpClient({ endpoint: "https://mcp.example.test", fetch: async (_input, init) => {
     const body = JSON.parse(init.body);
     return body.method === "server/discover"
-      ? response({ result: { capabilities: { tasks: {} } } })
+      ? response({ result: { capabilities: { extensions: { "io.modelcontextprotocol/tasks": {} } } } })
       : response({ result: { resultType: "task", taskId: "declared", status: "working" } });
   } });
   await client.discover();
