@@ -23,6 +23,13 @@ test("pilot release record keeps unresolved operational gates explicit", () => {
   assert.match(record, /distributed multi-instance limiting is\s+explicitly outside the claimed scope/i);
 });
 
+test("release record preserves non-source acceptance decisions until an owner accepts them", () => {
+  assert.match(record, /- \[ \] Privacy lifecycle behavior is reviewed for the pilot/);
+  assert.match(record, /- \[ \] The stale synthetic reliability data is explicitly accepted/);
+  assert.match(record, /- \[ \] A final operator go\/no-go decision is recorded/);
+  assert.match(record, /- \[ \] Database backup posture remains open/);
+});
+
 test("the queue and release record cannot silently drift from the open pilot set", () => {
   assert.deepEqual(openQueueIds(queue), ["020", "157", "260"]);
   assert.match(record, /not yet a go decision/i);
