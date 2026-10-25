@@ -29,6 +29,8 @@ test("authenticated production smoke is explicit, HTTPS-only, and secret-free in
   assert.match(source, /both workspace IDs, and a revoked key are required/);
   assert.match(source, /Read-only authenticated scope checks/);
   assert.match(source, /Keys, workspace IDs, response bodies/);
+  assert.match(source, /outcome: "failed"/);
+  assert.match(source, /Redacted failure report/);
   assert.doesNotMatch(source, /console\.log\([^\n]*keyA/);
   assert.doesNotMatch(source, /JSON\.stringify\([^\n]*(keyA|keyB|workspaceA|workspaceB)/);
 });

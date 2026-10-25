@@ -20,6 +20,7 @@ const workspaceA = process.env.TRACKMCP_AUTH_SMOKE_WORKSPACE_A || "";
 const workspaceB = process.env.TRACKMCP_AUTH_SMOKE_WORKSPACE_B || "";
 const revokedKey = process.env.TRACKMCP_AUTH_SMOKE_REVOKED_KEY || "";
 const reportPath = process.env.TRACKMCP_AUTH_SMOKE_REPORT || "/tmp/trackmcp-production-auth-smoke.json";
+let completedChecks = [];
 
 function fail(message) { throw new Error(message); }
 
@@ -184,7 +185,7 @@ async function verifyApiKeyActionQueueBoundary(key, keyLabel) {
 
 async function main() {
   validate();
-  const checks = [];
+  const checks = completedChecks;
   checks.push(await keyStatus(keyA, "workspace A"));
   checks.push(await keyStatus(keyB, "workspace B"));
   checks.push(await verifyKeyScope(keyA, "workspace A", workspaceA, workspaceB));
@@ -214,4 +215,29 @@ async function main() {
   console.log(`Production authenticated scope smoke passed: ${checks.length} checks. Redacted report: ${reportPath}`);
 }
 
-main().catch((error) => { console.error(`Production authenticated scope smoke failed: ${error instanceof Error ? error.message : "unknown error"}`); process.exitCode = 1; });
+main().catch(async (error) => {
+  const message = error instanceof Error ? error.message : "unknown error";
+  let origin = null;
+  try { origin = new URL(baseUrl).origin; } catch {}
+  console.error(`Production authenticated scope smoke failed: ${message}`);
+  const report = {
+    generated_at: new Date().toISOString(),
+    base_url: origin,
+    release_sha: process.env.TRACKMCP_AUTH_SMOKE_RELEASE_SHA || null,
+    outcome: "failed",
+    failure: message,
+    checks: completedChecks,
+    caveats: [
+      "Failure evidence is redacted and read-only; no key, workspace ID, response body, or authorization material is persisted.",
+      "A failure report does not replace a successful authenticated scope smoke or the Supabase RLS postflight.",
+    ],
+  };
+  try {
+    await mkdir(dirname(reportPath), { recursive: true });
+    await writeFile(reportPath, JSON.stringify(report, null, 2) + "\n", { mode: 0o600 });
+    console.error(`Redacted failure report: ${reportPath}`);
+  } catch (reportError) {
+    console.error(`Could not write redacted failure report: ${reportError instanceof Error ? reportError.message : "unknown error"}`);
+  }
+  process.exitCode = 1;
+});
