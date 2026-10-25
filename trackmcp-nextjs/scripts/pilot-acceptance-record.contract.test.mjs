@@ -21,7 +21,8 @@ test("pilot release record keeps unresolved operational gates explicit", () => {
   assert.match(record, /Database backup posture remains open/);
   assert.match(record, /Queue item 256 records the\s+release-specific rollback/);
   assert.match(record, /final operator go\/no-go decision/);
-  assert.match(record, /distributed multi-instance limiting is\s+explicitly outside the claimed scope/i);
+  assert.match(record, /40220255833/);
+  assert.match(record, /iam:PassRole/);
 });
 
 test("release record preserves non-source acceptance decisions until an owner accepts them", () => {
