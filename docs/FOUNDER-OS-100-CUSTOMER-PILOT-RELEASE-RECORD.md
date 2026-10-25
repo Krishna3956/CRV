@@ -59,6 +59,14 @@ commit and the operator accepts the listed limitations.
   SDK/documentation CTAs, identity-resolver guidance, privacy disclosures, and
   key lifecycle controls. No credentials, workspace IDs, or key values were
   recorded.
+- [x] Read-only authenticated tenant-scope smoke passed on 2026-10-25 against
+  `https://app.trackmcp.com` with disposable workspace credentials: 37 checks
+  covered both key-status responses, conflicting-workspace resistance, every
+  Founder OS v2 read model, legacy analytics/tool-quality/traces projections,
+  API-key denial for Action Queue mutations, and revoked-key rejection. The
+  redacted report is `/tmp/trackmcp-auth-smoke-2026-10-25.json`; it contains no
+  keys, workspace identifiers, or response bodies. This is deployed runtime
+  evidence for the observed candidate, not key lifecycle or ingest evidence.
 
 ## Open gates before GO
 
