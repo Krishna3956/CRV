@@ -140,3 +140,11 @@ was rejected before any mutation because the configured GitHub OIDC role lacks
 scoped action to the deploy role (or performing the equivalent reviewed AWS
 change) is an external IAM prerequisite; the workflow does not bypass it or
 fall back to an unverified mode.
+
+The exact least-privilege inline policy is checked into
+`docs/FOUNDER-OS-RATE-LIMIT-IAM-POLICY.json`. It grants only
+`apprunner:UpdateService` on the single production App Runner service ARN;
+it contains no wildcard resource or unrelated IAM action. Apply it to the
+existing `GitHubActionsDeployRole`, then dispatch the guarded workflow and
+retain its uploaded mode artifact as the runtime evidence. This file is a
+review artifact, not an automatic AWS mutation.
