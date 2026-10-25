@@ -18,7 +18,7 @@ test("pilot release record points at the verified deployed baseline", () => {
 
 test("pilot release record keeps unresolved operational gates explicit", () => {
   assert.match(record, /Database backup posture remains open/);
-  assert.match(record, /current-SHA rerun remains required/);
+  assert.match(record, /Queue item 256 records the\s+release-specific rollback/);
   assert.match(record, /final operator go\/no-go decision/);
   assert.match(record, /distributed multi-instance limiting is\s+explicitly outside the claimed scope/i);
 });
