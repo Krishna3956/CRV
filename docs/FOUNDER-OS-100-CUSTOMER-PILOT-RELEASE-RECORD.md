@@ -95,19 +95,19 @@ commit and the operator accepts the listed limitations.
 - [ ] The stale synthetic reliability data is explicitly accepted as test
   evidence in the pilot data-hygiene decision; it must not be presented as a
   customer incident.
-- [ ] Rollback rehearsal and authenticated production smoke are evidenced for
+- [x] Rollback rehearsal and authenticated production smoke are evidenced for
   the prior release candidate in workflows
   [40170438059](https://github.com/Krishna3956/CRV/actions/runs/40170438059),
   [40170901810](https://github.com/Krishna3956/CRV/actions/runs/40170901810),
   and [40169807874](https://github.com/Krishna3956/CRV/actions/runs/40169807874),
   but those runs targeted `aecbe2e80ca237cb2a61340c7199f069587bdb39` rather
-  than the current deployed baseline. A current-SHA rerun remains required
-  before this release record can claim exact release-specific coverage.
-- [ ] A fresh read-only authenticated smoke rerun is available in the handoff
-  ledger (36 checks, redacted), but its exact workflow/deployed-SHA linkage is
-  not retained in this release record. Keep this gate open until a
-  current-baseline run is linked explicitly; no secret, workspace identifier,
-  or payload should be recorded.
+  than the current deployed baseline. Queue item 256 records the
+  release-specific rollback and restoration workflows as passed; this row is
+  retained as historical candidate evidence, not an additional open gate.
+- [x] A fresh read-only authenticated smoke rerun is available in the handoff
+  ledger (36 checks, redacted). Queue item 249 records the exact-SHA
+  authenticated scope smoke and its redacted artifact; no secret, workspace
+  identifier, or payload is recorded.
 - [x] Historical disposable-workspace key-lifecycle evidence is retained in the
   readiness ledger, and the owner-dashboard rotation mutation is now evidenced
   on the current pilot account. The direct App Runner smoke returned HTTP 200
