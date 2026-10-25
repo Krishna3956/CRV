@@ -15,7 +15,7 @@ states what is still required.
 | 020 | Approve the exact limited pilot scope before a customer-facing claim | `docs/FOUNDER-OS-100-CUSTOMER-PILOT-RELEASE-RECORD.md` remains Draft/HOLD and lists the bounded desktop scope and limitations | OPEN — release owner | Timestamped scope approval naming cohort, hosts, supported paths, limitations, rollback owner, and data-handling boundary |
 | 047 | Exercise the expired-code state in a real authenticated browser session | Signed-in Chrome exercised the disposable production device URL; the approval request returned the explicit `This device session expired` state with the recoverable CLI restart instruction and no key material | CLOSED — browser UAT | Retain the redacted browser evidence in the handoff ledger; this does not close denied or successful-redemption scenarios |
 | 048 | Exercise the denied state in a real authenticated browser session | Disposable production session was explicitly marked denied, then signed-in Chrome rendered `Device access was not approved` and `No key was created` recovery copy | CLOSED — browser UAT | Retain the redacted browser/session evidence in the handoff ledger; this does not close successful redemption |
-| 052 | Exercise multiple workspace membership selection in production browser UAT | Local contract and fixture matrix cover deterministic multi-membership selection; the signed-in production account exposed only one selectable workspace during inspection | OPEN — browser UAT | Production browser evidence with two memberships, explicit selection, and correct workspace-bound approval |
+| 052 | Exercise multiple workspace membership selection in production browser UAT | Signed-in production browser exposed `krishnaatmu workspace` and disposable `TrackMCP UAT Multi Workspace`; selecting the second workspace completed approval without key disclosure | CLOSED — browser UAT | Retain the redacted browser/session evidence in the handoff ledger; this does not close zero-membership creation or redemption |
 | 053 | Exercise workspace creation from device flow without key disclosure | Local contract and fixture matrix cover zero-membership creation; no production browser creation evidence is retained | OPEN — browser UAT | Production browser evidence showing workspace creation and no connection-key material in the browser response |
 | 157 | Record database region, backup posture, and restoration contact | Supabase inspection records East US / `us-east-1`; current Free Plan backup surface showed no usable schedule, restore point, contact, or completed restore rehearsal | OPEN — infrastructure owner | Written region/tier, backup/restore policy or explicit accepted limitation, restoration contact, and tested recovery reference |
 | 259 | Compare all acceptance rows with evidence and silently waive none | This matrix reconciles all six currently open IDs and records an explicit HOLD for each unresolved row | CLOSED — comparison complete | Keep this matrix and the release record updated whenever an item changes; it does not authorize GO |
@@ -23,7 +23,7 @@ states what is still required.
 
 ## Decision rule
 
-The product must remain **HOLD** until items 020, 052, 053, 157,
+The product must remain **HOLD** until items 020, 053, 157,
 and 260 have their exit evidence. Item 258 (distributed rate limiting) is
 explicitly outside the bounded pilot and is documented as post-pilot work; it
 is not silently waived. This matrix does not claim that the product is ready
