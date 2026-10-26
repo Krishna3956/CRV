@@ -70,7 +70,10 @@ jobs:
           fi
           SERVICE_JSON=$(aws apprunner describe-service --service-arn "$APP_RUNNER_SERVICE_ARN" --region "$AWS_REGION")
           ORIGIN=$(jq -r '.Service.ServiceUrl // empty' <<<"$SERVICE_JSON")
-          SECRET_REF=$(jq -r '.Service.InstanceConfiguration.RuntimeEnvironmentSecrets.TRACKMCP_REFRESH_WORKER_SECRET // empty' <<<"$SERVICE_JSON")
+          # App Runner image services expose runtime secret mappings under the
+          # image configuration, not the instance configuration. Read only
+          # the named reference; never read the secret value.
+          SECRET_REF=$(jq -r '.Service.SourceConfiguration.ImageRepository.ImageConfiguration.RuntimeEnvironmentSecrets.TRACKMCP_REFRESH_WORKER_SECRET // empty' <<<"$SERVICE_JSON")
           WORKER_TOKEN_SECRET_ARN="${SECRET_REF%:TRACKMCP_REFRESH_WORKER_SECRET::}"
           WORKER_URL="https://${ORIGIN}/api/internal/refresh/run"
           if [[ ! "$ORIGIN" =~ ^[a-z0-9.-]+\.awsapprunner\.com$ ]]; then
