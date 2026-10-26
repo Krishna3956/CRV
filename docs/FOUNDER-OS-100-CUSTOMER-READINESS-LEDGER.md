@@ -56,10 +56,13 @@ commit `59b7c1435358fbd6c00dce5bcb338089af49c310`.
   `accepted_telemetry=true`. The redacted report was written to
   `/tmp/trackmcp-production-ingest-smoke-local.json`; no key, workspace ID,
   event body, or response body was retained.
-- [ ] The GitHub manual workflow remains separately unverified until the
-  repository secret `TRACKMCP_INGEST_SMOKE_KEY` is configured. The local smoke
-  proves first-ingest transport acceptance, not the workflow secret path or
-  business-workflow completion.
+- [x] GitHub workflow `40272543094` then ran against the same trusted origin
+  using the encrypted repository secret and completed successfully. Its redacted
+  artifact `production-ingest-a96a0b8f90ea65dab414a6473ab3969d7f35ebbe` records
+  the same two HTTP 200 checks and contains no key, workspace ID, event body, or
+  response body. This closes the first-ingest workflow evidence gate.
+- [ ] First-ingest acceptance still does not prove CLI activation, dashboard
+  read-model freshness, or business-workflow completion.
 
 ## 2026-10-26 final local release-gate rerun
 
@@ -77,9 +80,10 @@ commit `59b7c1435358fbd6c00dce5bcb338089af49c310`.
   the local trusted-host smoke: one metadata-only event was accepted and the
   key-status milestone was observed. This is narrower than the workflow and
   full activation/dashboard UAT.
-- [ ] The GitHub workflow secret path, CLI activation, key lifecycle, and
-  authenticated dashboard/UAT evidence remain open; no key was written to the
-  repository or ledger.
+- [x] The GitHub workflow secret path is now verified by workflow `40272543094`
+  and its redacted artifact.
+- [ ] CLI activation, key lifecycle, and authenticated dashboard/UAT evidence
+  remain open; no key was written to the repository or ledger.
 
 ## 2026-10-26 refresh-worker freshness alerting
 
