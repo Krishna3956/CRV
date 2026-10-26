@@ -1,8 +1,25 @@
 # Founder OS 100 Customer Readiness Ledger
 
-Last updated: 2026-10-26 (main `4e77595`; deployed application `4e77595` and App Runner production/authenticated smoke verified)
+Last updated: 2026-10-26 (main `7551e2f`; deployed application `7551e2f` and App Runner production/authenticated smoke verified)
 Latest freshness evidence: sequence monitor workflow `40266407743` on main
 commit `59b7c1435358fbd6c00dce5bcb338089af49c310`.
+
+## 2026-10-26 worker-health recovery evidence deployment
+
+- [x] PR #547 merged as `7551e2f017cce2695803b13ce5605eee72d4a9f8` after the
+  hosted web/JavaScript, Go, and .NET checks passed. The health monitor now
+  includes both scheduled and recovery-dispatch worker samples, preserves the
+  run event in its redacted report, and requires the minimum scheduled sample
+  count before declaring sustained health.
+- [x] App Runner workflow `40349662276` deployed that immutable SHA. Release
+  gate, image binding, rollout, read-only production smoke, running-release
+  identity, and runtime-safety audit all passed.
+- [x] Retained artifacts are `production-smoke-7551e2f017cce2695803b13ce5605eee72d4a9f8`
+  (`12663088021`), `runtime-flags-7551e2f017cce2695803b13ce5605eee72d4a9f8`
+  (`12662729496`), and `app-runner-host-7551e2f017cce2695803b13ce5605eee72d4a9f8`
+  (`12662628779`).
+- [ ] This improves observability and recovery evidence; it does not by itself
+  close the sustained worker SLO until repeated scheduled samples are healthy.
 
 ## 2026-10-26 bounded insight-evidence deployment
 
