@@ -8,23 +8,20 @@ commit and the operator accepts the listed limitations.
 
 ## Current deployed baseline — 2026-10-26
 
-App Runner workflow `40345910892` successfully deployed immutable main commit
-`4e77595087bb14ede1fce4fb573322b3f925d572`. The hosted release gate, image
+App Runner workflow `40357654944` successfully deployed immutable main commit
+`1639663c6b403648797aed02a2b74bc33ca09056`. The hosted release gate, image
 binding, rollout wait, read-only production smoke, running-release identity
 verification, and runtime-safety audit passed. Retained artifacts are
-`production-smoke-4e77595087bb14ede1fce4fb573322b3f925d572` (`12662645650`),
-`runtime-flags-4e77595087bb14ede1fce4fb573322b3f925d572` (`12662435761`), and
-`app-runner-host-4e77595087bb14ede1fce4fb573322b3f925d572` (`12663020048`).
+the redacted production-smoke, runtime-flags, and app-runner-host artifacts
+uploaded by that workflow. The exact artifact names remain discoverable from
+the workflow run and are intentionally not copied into this ledger until the
+provider retention metadata is reconciled.
 This is the current engineering baseline; the release remains Draft/HOLD until
 the open operational and owner gates below are independently accepted.
 
-The latest deployed engineering baseline is now `7551e2f017cce2695803b13ce5605eee72d4a9f8`.
-App Runner workflow `40349662276` passed release gate, image binding, rollout,
-read-only production smoke, immutable runtime identity, runtime-safety audit,
-and redacted evidence uploads. Retained artifacts are
-`production-smoke-7551e2f017cce2695803b13ce5605eee72d4a9f8` (`12663088021`),
-`runtime-flags-7551e2f017cce2695803b13ce5605eee72d4a9f8` (`12662729496`), and
-`app-runner-host-7551e2f017cce2695803b13ce5605eee72d4a9f8` (`12662628779`).
+The preceding deployed engineering baseline was `7551e2f017cce2695803b13ce5605eee72d4a9f8`.
+It remains retained as historical evidence; the current baseline above is the
+one to use for release review.
 The release remains Draft/HOLD; this baseline contains the worker-health
 recovery-evidence hardening, not a final operational SLO acceptance.
 
@@ -243,8 +240,8 @@ the existing insufficient-evidence outcome rules.
 | --- | --- |
 | Pilot scope | First 100 customers, desktop dashboard boundary |
 | Production hosts | `trackmcp.com`, `app.trackmcp.com` |
-| Last deployed application commit | `7551e2f017cce2695803b13ce5605eee72d4a9f8` (identity-verified current baseline) |
-| Last successful App Runner deployment | `40349662276` |
+| Last deployed application commit | `1639663c6b403648797aed02a2b74bc33ca09056` (identity-verified current baseline) |
+| Last successful App Runner deployment | `40357654944` |
 | Readiness ledger | `docs/FOUNDER-OS-100-CUSTOMER-READINESS-LEDGER.md` |
 | Current release-record change | Current mainline reconciliation of deployed runtime and release-gate evidence |
 
@@ -317,7 +314,7 @@ the existing insufficient-evidence outcome rules.
 ## Open gates before GO
 
 - [x] The current deployed engineering baseline is identified as
-  `be9638965383841ee7579ae9155c0162bb626495`. App Runner run `40277566836`
+  `1639663c6b403648797aed02a2b74bc33ca09056`. App Runner run `40357654944`
   passed the exact-SHA deployment-health wait, read-only production smoke,
   immutable runtime-identity check, runtime-safety audit, and redacted
   evidence uploads. This is engineering verification; it is not the
