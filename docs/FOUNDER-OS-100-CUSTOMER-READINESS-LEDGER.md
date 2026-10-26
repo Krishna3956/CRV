@@ -18,6 +18,18 @@ commit `59b7c1435358fbd6c00dce5bcb338089af49c310`.
 - [ ] Worker freshness, credentialed mutation lifecycle, ingest/dashboard UAT,
   RLS postflight, backup/PITR, and release-owner approval remain open.
 
+## 2026-10-26 disposable first-ingest production UAT
+
+- [x] The guarded first-ingest workflow `40316460050` sent exactly one bounded
+  metadata-only event through `https://app.trackmcp.com` using the configured
+  disposable connection key and received the expected accepted-ingest result.
+- [x] The follow-up key-status check returned HTTP 200 with
+  `accepted_telemetry=true`; redacted artifact `12647117310`
+  (`production-ingest-b61aa69459102bdf7a0bd11413c983e03233f351`) is retained.
+- [x] This closes the transport-acceptance/first-ingest UAT gate. It does not
+  claim CLI activation, business-workflow completion, key create/rotate/revoke,
+  dashboard mutation, or durable worker freshness.
+
 ## 2026-10-26 merged-baseline deployment reconciliation
 
 - [x] Main merge commit `6582c90292fc817696110af32f08eb3d73e3e6b2` is deployed

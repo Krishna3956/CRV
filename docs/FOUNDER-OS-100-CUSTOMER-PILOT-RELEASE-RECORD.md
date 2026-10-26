@@ -16,6 +16,14 @@ uploaded `production-smoke-d338544b535132aa6f1c0cb8fc6174654f9bf28f`,
 production smoke workflow `40314461586` also passed and uploaded
 `production-auth-smoke-d338544b535132aa6f1c0cb8fc6174654f9bf28f`.
 The preceding `6582c90` deployment remains retained as historical evidence.
+
+The guarded first-ingest workflow `40316460050` subsequently passed against
+the deployed mainline and uploaded redacted artifact
+`production-ingest-b61aa69459102bdf7a0bd11413c983e03233f351` (`12647117310`).
+It sent one bounded metadata-only event and verified
+`accepted_telemetry=true`; this closes transport acceptance and first-ingest
+UAT, but not CLI activation, key lifecycle mutation, or business-workflow
+completion.
 The prior App Runner workflow `40307943718` completed successfully; the
 first rollout smoke saw a transient root HTTP 503 and was not accepted. The
 successful rerun uploaded production smoke artifact `12632674955` and
