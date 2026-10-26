@@ -1,8 +1,23 @@
 # Founder OS 100 Customer Readiness Ledger
 
-Last updated: 2026-10-26 (main `6bbd9ff`; deployed application `a27dd42` and App Runner production smoke verified)
+Last updated: 2026-10-26 (main `38f98b6`; deployed application `4821843` and App Runner production smoke verified)
 Latest freshness evidence: sequence monitor workflow `40266407743` on main
 commit `59b7c1435358fbd6c00dce5bcb338089af49c310`.
+
+## 2026-10-26 roots/logging parity deployment
+
+- [x] App Runner deployment workflow `40275821152` deployed merged SDK parity
+  commit `4821843345aa19c2520f302fc03be27153326d14` successfully. The
+  redacted direct-origin smoke executed 34 of 36 checks and verified the
+  immutable runtime identity, public docs, security headers, claim boundaries,
+  registry metadata, and unauthenticated API boundaries.
+- [x] The deployment artifact recorded image digest
+  `sha256:0443fab8186a887382ce8fa45d0dec003620e98b7b78b0d2f919ce67247b352c`.
+  Two credentialed checks were intentionally skipped because no production key
+  was supplied.
+- [ ] Credentialed roots/logging transport UAT remains open; local capability
+  fixtures and deployed source do not prove customer traffic observed those
+  protocol families.
 
 ## 2026-10-26 merged-main deployment verification
 
