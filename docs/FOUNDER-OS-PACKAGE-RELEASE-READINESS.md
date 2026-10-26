@@ -3,7 +3,22 @@
 This is a review record, not a publication action. No registry credentials are
 used here and no package is published automatically.
 
-## Current registry reconciliation (2026-10-26, coordinated train 0.1.18)
+## Current registry reconciliation (2026-10-26, published train 0.1.18)
+
+### Next coordinated release candidate
+
+The merged roots/logging parity work is prepared as one release candidate:
+
+| Package | Candidate version | Registry state |
+| --- | --- | --- |
+| `@trackmcp/sdk` | `0.1.19` | Not published; release workflow preflight required |
+| `@trackmcp/cli` | `0.1.10` | Not published; unchanged package included for train alignment |
+| `trackmcp` | `0.1.12` | Not published; release workflow preflight required |
+
+Publication is intentionally gated behind the reviewed `all` release workflow
+with `RELEASE_TRAIN_APPROVED`, registry uniqueness checks, provenance, and clean
+consumer verification. Do not call these versions published until that workflow
+and direct registry checks complete.
 
 The reviewed source train merged to `main` as `529c1a5c8f9deb80c7d8b2c1714483fd98d988fb`.
 The all-package publication workflow `40258109659` uploaded the TypeScript

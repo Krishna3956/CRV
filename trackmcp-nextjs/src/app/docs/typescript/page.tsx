@@ -137,7 +137,7 @@ export default withTrackMCP(server, {
   service: "acme-mcp-server",   // shows up as the server name
   environment: "production",     // production | staging | ...
   server_version: "2026.10.26",  // bounded release metadata (optional)
-    sdk_version: "0.1.18",          // bounded release metadata (optional)
+    sdk_version: "0.1.19",          // bounded release metadata (optional)
   deployment_id: "deploy-42",     // bounded release metadata (optional)
   sampleRate: 1.0,               // 0-1, fraction of calls captured
   payloadMode: "redacted",      // metadata | redacted | full (all are bounded)
