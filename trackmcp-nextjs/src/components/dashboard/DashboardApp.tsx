@@ -2701,7 +2701,7 @@ function AttentionPanel({
                       {insight.detail}
                     </p>
                     <p className="mt-2 text-[11px] text-muted">
-                      Evidence basis: API insight · affected volume: {insight.affected_volume == null ? "not provided" : fmt(insight.affected_volume)} · confidence: {insight.confidence || "not provided"} · {insight.metric}
+                      Evidence basis: API insight · affected volume: {insight.affected_volume == null ? "not provided" : fmt(insight.affected_volume)} · eligible volume: {insight.eligible_volume == null ? "not provided" : fmt(insight.eligible_volume)} · confidence: {insight.confidence || "not provided"} · {insight.metric}{insight.threshold ? ` · threshold: ${Object.entries(insight.threshold).slice(0, 3).map(([key, value]) => `${key.replaceAll("_", " ")} ${value}`).join(", ")}` : ""}
                     </p>
                     {insight.suggested_action && <p className="mt-2 text-[11px] leading-relaxed text-muted"><strong>Suggested next step:</strong> {insight.suggested_action}</p>}
                   </div>
@@ -3627,7 +3627,7 @@ function IssuesView({
                 {insight.detail}
               </p>
               <p className="mt-3 text-[11px] text-muted">
-                Evidence basis: API insight · affected volume: {insight.affected_volume == null ? "not provided" : fmt(insight.affected_volume)} · confidence: {insight.confidence || "not provided"} · metric: {insight.metric}
+                Evidence basis: API insight · affected volume: {insight.affected_volume == null ? "not provided" : fmt(insight.affected_volume)} · eligible volume: {insight.eligible_volume == null ? "not provided" : fmt(insight.eligible_volume)} · confidence: {insight.confidence || "not provided"} · metric: {insight.metric}{insight.threshold ? ` · threshold: ${Object.entries(insight.threshold).slice(0, 3).map(([key, value]) => `${key.replaceAll("_", " ")} ${value}`).join(", ")}` : ""}
               </p>
               {insight.suggested_action && <p className="mt-2 text-[11px] leading-relaxed text-muted"><strong>Suggested next step:</strong> {insight.suggested_action}</p>}
             </div>
