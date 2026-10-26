@@ -109,6 +109,13 @@ production transport UAT.
   does not close first-ingest, key-lifecycle mutation, recovery, scheduler
   cadence, rollback, load/SLO, or final release-owner acceptance gates.
 
+- 2026-10-27: App Runner deployment workflow `40417930214` completed its
+  deploy job successfully (`121904990539`) for the immutable `5edbd44`
+  candidate. The provider rollout, read-only production smoke, runtime
+  identity, and runtime-safety checks are therefore recorded as hosted
+  evidence for this candidate; the separate scheduler, recovery, sustained
+  freshness, rollback/load, and release-owner gates remain open.
+
 - 2026-10-26: App Runner workflow `40374059804` deployed immutable main
   `7c9edcda6ec5b313a38287d185d53f956b7d3be7`. Release gate, image binding,
   rollout, read-only production smoke, runtime identity, and runtime-safety
