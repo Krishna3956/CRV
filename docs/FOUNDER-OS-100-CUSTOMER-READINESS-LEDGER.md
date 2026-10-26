@@ -1,13 +1,30 @@
 # Founder OS 100 Customer Readiness Ledger
 
-Last updated: 2026-10-26 (main `0d7141f`; deployed application `1639663c` and App Runner production/authenticated smoke verified)
+Last updated: 2026-10-26 (main `7c9edcda`; deployed application `7c9edcda` and App Runner production/authenticated smoke verified)
 Latest freshness evidence: sequence monitor workflow `40266407743` on main
 commit `59b7c1435358fbd6c00dce5bcb338089af49c310`.
 
 The deployed application is the runtime-verified App Runner release
-(`73d74fb36adf824b2b2cf53b07ece36e1a0302d4`, workflow `40365790289`). Main has
-since received release-record and external-gate documentation reconciliations;
-the next successful App Runner deployment will update the runtime baseline.
+(`7c9edcda6ec5b313a38287d185d53f956b7d3be7`, workflow `40374059804`). The
+release gate, image binding, rollout, read-only production smoke, running
+identity, and runtime-safety audit all passed. Retained artifacts are
+`production-smoke-7c9edcda6ec5b313a38287d185d53f956b7d3be7` (`12674567499`),
+`runtime-flags-7c9edcda6ec5b313a38287d185d53f956b7d3be7` (`12673149173`), and
+`app-runner-host-7c9edcda6ec5b313a38287d185d53f956b7d3be7` (`12674607427`).
+
+## 2026-10-26 current release smoke-retry reconciliation
+
+- [x] The production pilot smoke now creates a fresh bounded timeout signal for
+  every idempotent GET/HEAD retry. The prior implementation reused an aborted
+  signal, making timeout retries ineffective.
+- [x] PR #561 merged as `7c9edcda6ec5b313a38287d185d53f956b7d3be7`; hosted
+  web/JavaScript, Go, and .NET checks passed.
+- [x] App Runner workflow `40374059804` passed the full release gate, image
+  binding, rollout, read-only production smoke, runtime identity, and runtime
+  safety checks for that exact SHA.
+- [ ] This evidence does not close the separate sustained worker-freshness,
+  backup/PITR, privacy-acceptance, lifecycle-UAT, interoperability, or
+  release-owner gates.
 
 ## 2026-10-26 worker-health recovery evidence deployment
 

@@ -55,6 +55,14 @@ production transport UAT.
 
 ## Evidence log
 
+- 2026-10-26: App Runner workflow `40374059804` deployed immutable main
+  `7c9edcda6ec5b313a38287d185d53f956b7d3be7`. Release gate, image binding,
+  rollout, read-only production smoke, runtime identity, and runtime-safety
+  checks passed. The production smoke retry harness was corrected in PR #561
+  so each idempotent attempt receives a fresh timeout signal; the full local
+  release gate passed 137 suites. Sustained freshness and other external pilot
+  gates remain explicitly open.
+
 - 2026-10-26: Scheduler secret handling was reconciled with the App Runner
   runtime bundle. The SAM template now selects only the
   `TRACKMCP_REFRESH_WORKER_SECRET` JSON field via the Secrets Manager dynamic
