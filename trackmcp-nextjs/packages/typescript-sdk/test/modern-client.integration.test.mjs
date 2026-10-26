@@ -3,7 +3,7 @@ import http from "node:http";
 import test from "node:test";
 import { ModernMcpClient, MODERN_MCP_PROTOCOL_VERSION } from "../dist/modern-client.js";
 
-function startFixture() {
+function startFixture({ tasks = false } = {}) {
   const requests = [];
   const server = http.createServer((request, response) => {
     let body = "";
@@ -22,8 +22,12 @@ function startFixture() {
       }
       response.setHeader("content-type", "application/json");
       const result = payload.method === "server/discover"
-        ? { supportedVersions: [MODERN_MCP_PROTOCOL_VERSION], capabilities: { tools: {}, resources: {} }, serverInfo: { name: "fixture", version: "1" } }
-        : { tools: [{ name: "search" }], nextCursor: "opaque-cursor", ttlMs: 30_000, cacheScope: "private" };
+        ? { supportedVersions: [MODERN_MCP_PROTOCOL_VERSION], capabilities: { tools: {}, resources: {}, ...(tasks ? { extensions: { "io.modelcontextprotocol/tasks": {} } } : {}) }, serverInfo: { name: "fixture", version: "1" } }
+        : payload.method === "tools/call"
+          ? { resultType: "task", taskId: "fixture-task", status: "working", result: { private: "omit" } }
+          : payload.method === "tasks/get"
+            ? { taskId: "fixture-task", status: "completed", result: { private: "omit" } }
+            : { tools: [{ name: "search" }], nextCursor: "opaque-cursor", ttlMs: 30_000, cacheScope: "private" };
       response.end(JSON.stringify({ jsonrpc: "2.0", id: payload.id, result }));
     });
   });
@@ -52,4 +56,17 @@ test("modern client consumes a real subscription stream without retaining its se
   assert.equal(result.honored.toolsListChanged, true);
   assert.equal(result.events[0].type, "tools_list_changed");
   assert.equal(JSON.stringify(result).includes("fixture-secret"), false);
+});
+
+test("modern client observes a real server-directed task lifecycle without payloads", async (t) => {
+  const fixture = await startFixture({ tasks: true });
+  t.after(() => fixture.server.close());
+  const client = new ModernMcpClient({ endpoint: `http://127.0.0.1:${fixture.port}` });
+  await client.discover();
+  const started = await client.callTool("search", { query: "private" });
+  assert.deepEqual(started, { resultType: "task", task: { taskId: "fixture-task", status: "working" } });
+  const completed = await client.getTask("fixture-task");
+  assert.deepEqual(completed, { taskId: "fixture-task", status: "completed" });
+  assert.equal(JSON.stringify(started).includes("omit"), false);
+  assert.equal(JSON.stringify(completed).includes("omit"), false);
 });
