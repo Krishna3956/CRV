@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  actions: read
+  actions: write
   contents: read
 
 jobs:
@@ -53,6 +53,8 @@ jobs:
 
       - name: Publish bounded health report
         if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
           report="$RUNNER_TEMP/refresh-health/report.json"
@@ -67,6 +69,28 @@ jobs:
             cat "$report" >> "$GITHUB_STEP_SUMMARY"
             if [ "$state" = "warning" ]; then
               echo "::warning::Refresh worker sequence health requires attention: $reasons"
+              # GitHub scheduled workflows can miss a tick. Recover only when
+              # no worker is currently running; the worker's lease fencing and
+              # concurrency group remain the final duplicate-work boundary.
+              api="${GITHUB_API_URL}/repos/${GITHUB_REPOSITORY}"
+              active=$(curl --fail-with-body --silent --show-error \
+                -H "authorization: Bearer $GH_TOKEN" \
+                -H 'accept: application/vnd.github+json' \
+                "$api/actions/workflows/founder-os-refresh-worker.yml/runs?status=in_progress&per_page=1" \
+                | jq -r '.total_count // 0')
+              if [ "$active" -eq 0 ]; then
+                curl --fail-with-body --silent --show-error -X POST \
+                  -H "authorization: Bearer $GH_TOKEN" \
+                  -H 'accept: application/vnd.github+json' \
+                  -H 'content-type: application/json' \
+                  "$api/actions/workflows/founder-os-refresh-worker.yml/dispatches" \
+                  --data '{"ref":"main"}'
+                echo "- Recovery dispatch: `requested` (no active worker run)" >> "$GITHUB_STEP_SUMMARY"
+              else
+                echo "- Recovery dispatch: `skipped` (an active worker run already exists)" >> "$GITHUB_STEP_SUMMARY"
+              fi
+            else
+              echo "- Recovery dispatch: `not-needed`" >> "$GITHUB_STEP_SUMMARY"
             fi
           else
             echo "::error::Refresh worker health report was not produced."
