@@ -1,6 +1,6 @@
 # Founder OS 100 Customer Readiness Ledger
 
-Last updated: 2026-10-26 (main `69d353b`; deployed application `bb82531` and App Runner production smoke verified)
+Last updated: 2026-10-26 (main `ffb81d3`; deployed application `ffb81d3` and App Runner production smoke verified)
 Latest freshness evidence: sequence monitor workflow `40266407743` on main
 commit `59b7c1435358fbd6c00dce5bcb338089af49c310`.
 
@@ -1356,3 +1356,21 @@ a failed product gate or a Supabase plan warning.
 - [ ] The first hosted smoke attempt timed out and was rejected; the rerun is
   the accepted deployment evidence. External pilot-owner, backup/PITR,
   privacy-acceptance, and worker-freshness gates remain open.
+
+## 2026-10-26 OpenTelemetry documentation CTA checkpoint
+
+- [x] The public OpenTelemetry guide now gives users a direct, authenticated
+  Dashboard → Setup link and a native TypeScript SDK alternative at the point
+  where they choose an integration path. Both actions have explicit pointer
+  and keyboard-focus affordances.
+- [x] The OTEL docs contract now protects those destinations and labels;
+  documentation navigation, lint, and the 177-route production build passed
+  before merge.
+- [x] PR #512 merged as `ffb81d3542826e1ab9e01ed5a35f5ea09400d851` after the
+  hosted web/JavaScript, Go, and .NET checks passed. App Runner workflow
+  `40297655303` completed successfully; production smoke artifact
+  `12639029077`, runtime-flags artifact `12639342199`, and host artifact
+  `12639378231` were uploaded for the same immutable SHA.
+- [ ] This closes the documentation-to-Setup handoff only. External
+  pilot-owner, backup/PITR, privacy-acceptance, and sustained worker-freshness
+  gates remain open.
