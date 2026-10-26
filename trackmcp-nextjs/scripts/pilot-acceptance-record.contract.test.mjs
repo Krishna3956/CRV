@@ -13,16 +13,12 @@ function openQueueIds(source) {
 }
 
 test("pilot release record points at the verified deployed baseline", () => {
-  assert.match(record, /d338544b535132aa6f1c0cb8fc6174654f9bf28f/);
-  assert.match(record, /40313575422/);
-  assert.match(record, /40314461586/);
-  assert.match(record, /40280160295/);
-  assert.match(record, /production-auth-smoke-be9638965383841ee7579ae9155c0162bb626495/);
-  assert.match(record, /40281259523/);
+  assert.match(record, /7551e2f017cce2695803b13ce5605eee72d4a9f8/);
+  assert.match(record, /40349662276/);
+  assert.match(record, /40352798759/);
+  assert.match(record, /12663714778/);
   assert.match(record, /accepted_telemetry=true/);
-  assert.match(record, /40282004222/);
-  assert.match(record, /TRACKMCP_LIFECYCLE_COOKIE/);
-  assert.doesNotMatch(record.split("## Release identity")[1].split("## Verified gates")[0], /aecbe2e|40131685736/);
+  assert.doesNotMatch(record.split("## Release identity")[1].split("## Verified gates")[0], /83131ecb|40330265695|aecbe2e|40131685736/);
 });
 
 test("pilot release record keeps unresolved operational gates explicit", () => {

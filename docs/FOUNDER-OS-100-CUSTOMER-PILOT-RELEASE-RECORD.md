@@ -107,9 +107,10 @@ PR #535 subsequently added a 20-minute completed-run cooldown to the recovery
 path. This prevents repeated dispatches caused only by historical stale samples
 while preserving recovery when no recent worker run exists.
 
-## Current evidence reconciliation — 2026-10-26
+## Historical evidence reconciliation — 2026-10-26
 
-The current deployed application is `d338544b535132aa6f1c0cb8fc6174654f9bf28f`.
+The deployed application at this historical checkpoint was
+`d338544b535132aa6f1c0cb8fc6174654f9bf28f`.
 App Runner workflow `40313575422` completed successfully; the deployment
 uploaded `production-smoke-d338544b535132aa6f1c0cb8fc6174654f9bf28f`,
 `runtime-flags-d338544b535132aa6f1c0cb8fc6174654f9bf28f`, and
@@ -242,8 +243,8 @@ the existing insufficient-evidence outcome rules.
 | --- | --- |
 | Pilot scope | First 100 customers, desktop dashboard boundary |
 | Production hosts | `trackmcp.com`, `app.trackmcp.com` |
-| Last deployed application commit | `83131ecb7cd0d6d4f3d71ac9bb015b407386ba5c` (identity-verified current baseline) |
-| Last successful App Runner deployment | `40330265695` |
+| Last deployed application commit | `7551e2f017cce2695803b13ce5605eee72d4a9f8` (identity-verified current baseline) |
+| Last successful App Runner deployment | `40349662276` |
 | Readiness ledger | `docs/FOUNDER-OS-100-CUSTOMER-READINESS-LEDGER.md` |
 | Current release-record change | Current mainline reconciliation of deployed runtime and release-gate evidence |
 
