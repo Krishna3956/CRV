@@ -101,6 +101,14 @@ production transport UAT.
 
 ## Evidence log
 
+- 2026-10-27: Read-only authenticated production smoke workflow
+  `40417989302` completed successfully for immutable mainline commit
+  `5edbd441288dde5226d5694855bf81223936c722`. GitHub retained the redacted
+  artifact `production-auth-smoke-5edbd441288dde5226d5694855bf81223936c722`.
+  This confirms the configured authenticated smoke path for the candidate; it
+  does not close first-ingest, key-lifecycle mutation, recovery, scheduler
+  cadence, rollback, load/SLO, or final release-owner acceptance gates.
+
 - 2026-10-26: App Runner workflow `40374059804` deployed immutable main
   `7c9edcda6ec5b313a38287d185d53f956b7d3be7`. Release gate, image binding,
   rollout, read-only production smoke, runtime identity, and runtime-safety
