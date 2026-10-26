@@ -179,7 +179,9 @@ event/byte/time bounds and reports truncation. It is not a durable
 subscription or reconnect manager, and it does not expose task result or input
 payloads. Task-related requests advertise the `io.modelcontextprotocol/tasks`
 client extension required by the 2026-07-28 Tasks specification. Task update
-and cooperative cancellation remain explicit caller-controlled methods.
+and cooperative cancellation remain explicit caller-controlled methods. When a
+peer supplies them, bounded one-day `cacheHints` from task-stream
+acknowledgements are exposed as metadata only.
 
 `listenForUpdates` also supports bounded 2026-07-28 catalog/resource change
 notifications (`toolsListChanged`, `promptsListChanged`,
