@@ -1,6 +1,6 @@
 # Founder OS 100 Customer Readiness Ledger
 
-Last updated: 2026-10-27 (main `9a8b640`; deployed application `57f5643` and App Runner production/authenticated smoke verified)
+Last updated: 2026-10-27 (main `809b08b`; deployed application `57f5643` and App Runner production/authenticated smoke verified)
 Latest freshness evidence: refresh-worker workflow `40381642702` on main
 commit `fff91da6576987f5d5259801d71b1e41f268a4bc` completed successfully;
 sustained scheduled-sample health is still an explicit open gate below.
@@ -1914,3 +1914,16 @@ a failed product gate or a Supabase plan warning.
   is active. It does not turn missing explicit business outcomes into success,
   and it does not close the remaining protocol interoperability or release
   owner gates.
+
+## 2026-10-27 full release-gate audit checkpoint
+
+- [x] A fresh `npm run test:release-gate` run from the current web workspace
+  passed all 137 suites. This re-verifies the privacy, tenant-isolation,
+  protocol, dashboard, documentation, package, deployment, and integration
+  contract families after the backup-evidence ledger merge.
+- [x] Focused documentation navigation, protocol-matrix, version-alignment,
+  package-release, package-consumer, and publish-workflow checks also passed.
+- [ ] This is local verification evidence only. It does not close the three
+  remaining operator/release-owner queue items (`020`, `157`, `260`) or the
+  explicitly external credentialed UAT, scheduler-sample, and protocol
+  interoperability gates.
