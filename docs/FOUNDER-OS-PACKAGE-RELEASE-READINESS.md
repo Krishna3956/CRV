@@ -3,22 +3,22 @@
 This is a review record, not a publication action. No registry credentials are
 used here and no package is published automatically.
 
-## Current registry reconciliation (2026-10-26, published train 0.1.18)
+## Current registry reconciliation (2026-10-26, published train 0.1.19/0.1.10/0.1.12)
 
-### Next coordinated release candidate
+### Latest coordinated release
 
-The merged roots/logging parity work is prepared as one release candidate:
+The merged roots/logging parity work was published as one coordinated train by
+workflow `40271909727` from main commit `33856172dd09baee5e1b4ada582ccdf00877f0b7`.
 
-| Package | Candidate version | Registry state |
+| Package | Published version | Registry state |
 | --- | --- | --- |
-| `@trackmcp/sdk` | `0.1.19` | Not published; release workflow preflight required |
-| `@trackmcp/cli` | `0.1.10` | Not published; unchanged package included for train alignment |
-| `trackmcp` | `0.1.12` | Not published; release workflow preflight required |
+| `@trackmcp/sdk` | `0.1.19` | npm HTTP 200; SHA-512 integrity `sha512-b1PN6XFYRAVtkX5cs2hHX1BAurQSBMFIo3fkc9qdU/gVf5wG5ffVfaVeo46RFpm4RgcNUJIyPtr+DwXBKMvivQ==`; [tarball](https://registry.npmjs.org/@trackmcp/sdk/-/sdk-0.1.19.tgz) |
+| `@trackmcp/cli` | `0.1.10` | npm HTTP 200; SHA-512 integrity `sha512-C8xsjg39zlMkY6DE6ohm+fW19LIJi88pgm/an+7AvLW9x/B5aHPJoXkUprM/En5gfIQPnzPx5XLIwG6M9XjECg==`; [tarball](https://registry.npmjs.org/@trackmcp/cli/-/cli-0.1.10.tgz) |
+| `trackmcp` | `0.1.12` | PyPI HTTP 200; wheel SHA-256 `91ce1efc690c6f26ac290b6cd17145909173093fc5a74b6afceafa7a12c460f2`; sdist SHA-256 `bfa3600192866c006085bef3aefdfa8130616566a23ae278792981c968700dd7` |
 
-Publication is intentionally gated behind the reviewed `all` release workflow
-with `RELEASE_TRAIN_APPROVED`, registry uniqueness checks, provenance, and clean
-consumer verification. Do not call these versions published until that workflow
-and direct registry checks complete.
+The workflow completed its release-artifact audit, registry uniqueness checks,
+sequential publication, provenance attestation, and package verification. The
+registry checks above are the authoritative publication evidence.
 
 The reviewed source train merged to `main` as `529c1a5c8f9deb80c7d8b2c1714483fd98d988fb`.
 The all-package publication workflow `40258109659` uploaded the TypeScript
@@ -104,8 +104,8 @@ credentialed first-event or activation result.
 | `@trackmcp/cli` | `trackmcp-nextjs/packages/cli/package.json` | CLI tests and packed-consumer test | `.github/workflows/publish.yml`, `cli` |
 | `trackmcp` | `packages/python-sdk/pyproject.toml` | unittest suite and build metadata audit | `.github/workflows/publish.yml`, `python` |
 
-The current local source manifests match the published coordinated train:
-`@trackmcp/sdk` `0.1.18`, `@trackmcp/cli` `0.1.9`, and `trackmcp` `0.1.11`.
+The current local source manifests match the latest published coordinated train:
+`@trackmcp/sdk` `0.1.19`, `@trackmcp/cli` `0.1.10`, and `trackmcp` `0.1.12`.
 The release gate and single `all` publication workflow completed successfully;
 the immutable prior baseline remains in the historical tables below.
 They were selected after a registry preflight found the immediately preceding

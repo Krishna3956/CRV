@@ -13,10 +13,10 @@ commit `59b7c1435358fbd6c00dce5bcb338089af49c310`.
 - [x] Added regression coverage for family classification and privacy behavior;
   TypeScript SDK tests passed 98/98 and Python client tests passed 30/30.
   The complete web release gate also passed locally.
-- [ ] Go and .NET runtime suites and authenticated production transport UAT
-  remain external evidence gates where those toolchains/credentials are not
-  available in this checkout. Package publication is intentionally deferred to
-  the next coordinated SDK release train.
+- [x] The coordinated SDK train was published by workflow `40271909727` after
+  the registry preflight and provenance steps. Go and .NET runtime checks are
+  green in hosted CI; authenticated production transport UAT
+  remains an external evidence gate.
 
 ## 2026-10-26 Python wrapper roots/logging privacy checkpoint
 
@@ -26,8 +26,8 @@ commit `59b7c1435358fbd6c00dce5bcb338089af49c310`.
   event for these families, including failed calls.
 - [x] Python SDK tests passed 34/34 with a wrapper-level regression asserting
   that root URIs and log levels are absent from queued telemetry.
-- [ ] Cross-transport authenticated production UAT and coordinated package
-  publication remain external release-train gates.
+- [ ] Cross-transport authenticated production UAT remains an external gate;
+  coordinated package publication is closed by workflow `40271909727`.
 
 ## 2026-10-26 roots and logging protocol-family coverage
 
