@@ -1,0 +1,124 @@
+name: Enable semantic fact writes
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirm:
+        description: "Type ENABLE_FACT_WRITES to apply the reviewed runtime change"
+        required: true
+        type: string
+      schema_confirmation:
+        description: "Type SCHEMA_POSTFLIGHT_VERIFIED after the read-only schema postflight"
+        required: true
+        type: string
+
+permissions:
+  id-token: write
+  contents: read
+
+concurrency:
+  group: enable-semantic-fact-writes
+  cancel-in-progress: false
+
+env:
+  AWS_REGION: ap-south-1
+  SERVICE_ARN: arn:aws:apprunner:ap-south-1:872575360367:service/trackmcp-web/5d38155bd23141cabb4546b29a4075c7
+  ROLE_ARN: arn:aws:iam::872575360367:role/GitHubActionsDeployRole
+
+jobs:
+  enable:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Require explicit runtime and schema confirmations
+        env:
+          RUNTIME_CONFIRMATION: ${{ inputs.confirm }}
+          SCHEMA_CONFIRMATION: ${{ inputs.schema_confirmation }}
+        run: |
+          set -euo pipefail
+          [[ "$RUNTIME_CONFIRMATION" == "ENABLE_FACT_WRITES" ]] || { echo "::error::Exact ENABLE_FACT_WRITES confirmation is required."; exit 1; }
+          [[ "$SCHEMA_CONFIRMATION" == "SCHEMA_POSTFLIGHT_VERIFIED" ]] || { echo "::error::Exact SCHEMA_POSTFLIGHT_VERIFIED confirmation is required."; exit 1; }
+          echo "Explicit runtime and schema confirmations accepted; values are not retained."
+
+      - name: Configure AWS credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ env.ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Preserve configuration and enable fact writes
+        run: |
+          set -euo pipefail
+          evidence="$RUNNER_TEMP/semantic-fact-writes.json"
+          printf '{"outcome":"not_attempted","fact_writes":"false","rate_limit_mode":""}\n' > "$evidence"
+          timeout 30s aws apprunner describe-service \
+            --service-arn "$SERVICE_ARN" --region "$AWS_REGION" \
+            --query 'Service.SourceConfiguration' --output json \
+            > "$RUNNER_TEMP/source-configuration.json"
+          mode=$(jq -r '.ImageRepository.ImageConfiguration.RuntimeEnvironmentVariables.TRACKMCP_RATE_LIMIT_MODE // ""' "$RUNNER_TEMP/source-configuration.json")
+          current=$(jq -r '.ImageRepository.ImageConfiguration.RuntimeEnvironmentVariables.TRACKMCP_ENABLE_FACT_WRITES // "false"' "$RUNNER_TEMP/source-configuration.json")
+          [[ "$mode" == "supabase" ]] || { echo "::error::Fact writes require TRACKMCP_RATE_LIMIT_MODE=supabase; no mutation applied."; exit 1; }
+          [[ "$current" == "false" ]] || { echo "::error::Expected fact writes to be disabled before this one-way enablement; no mutation applied."; exit 1; }
+          jq '.ImageRepository.ImageConfiguration.RuntimeEnvironmentVariables.TRACKMCP_ENABLE_FACT_WRITES = "true"' \
+            "$RUNNER_TEMP/source-configuration.json" > "$RUNNER_TEMP/updated-source-configuration.json"
+          set +e
+          update_output=$(timeout 30s aws apprunner update-service \
+            --service-arn "$SERVICE_ARN" --region "$AWS_REGION" \
+            --source-configuration "file://$RUNNER_TEMP/updated-source-configuration.json" \
+            --query OperationId --output text 2>&1)
+          update_status=$?
+          set -e
+          if [[ "$update_status" -ne 0 ]]; then
+            if grep -q "not authorized to perform: apprunner:UpdateService" <<<"$update_output"; then
+              printf '{"outcome":"blocked_iam","fact_writes":"false","rate_limit_mode":"%s","required_action":"apprunner:UpdateService"}\n' "$mode" > "$evidence"
+              echo "::error::The GitHub OIDC role needs a narrowly scoped apprunner:UpdateService grant. No production mutation was applied."
+            else
+              printf '{"outcome":"update_failed","fact_writes":"false","rate_limit_mode":"%s"}\n' "$mode" > "$evidence"
+              echo "$update_output"
+            fi
+            exit "$update_status"
+          fi
+          [[ "$update_output" =~ ^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$ ]] || { echo "::error::App Runner returned an invalid operation ID."; exit 1; }
+          echo "TRACKMCP_FACT_WRITES_OPERATION_ID=$update_output" >> "$GITHUB_ENV"
+
+      - name: Wait for App Runner configuration update
+        run: |
+          set -euo pipefail
+          for i in $(seq 1 70); do
+            status=$(timeout 30s aws apprunner list-operations \
+              --service-arn "$SERVICE_ARN" --region "$AWS_REGION" --max-results 20 \
+              --query "OperationSummaryList[?Id=='$TRACKMCP_FACT_WRITES_OPERATION_ID'].Status | [0]" --output text)
+            echo "[$i] operation=$status"
+            case "$status" in
+              SUCCEEDED)
+                service_status=$(timeout 30s aws apprunner describe-service --service-arn "$SERVICE_ARN" --region "$AWS_REGION" --query Service.Status --output text)
+                [[ "$service_status" == "RUNNING" ]] && exit 0
+                ;;
+              FAILED|ROLLBACK_FAILED|ROLLBACK_SUCCEEDED) echo "::error::App Runner configuration update ended with $status."; exit 1 ;;
+              PENDING|IN_PROGRESS|None) ;;
+              *) echo "::error::Unknown App Runner operation status: $status"; exit 1 ;;
+            esac
+            sleep 15
+          done
+          echo "::error::Timed out waiting for App Runner configuration update."
+          exit 1
+
+      - name: Verify durable fact writes are live
+        run: |
+          set -euo pipefail
+          flags=$(timeout 30s aws apprunner describe-service \
+            --service-arn "$SERVICE_ARN" --region "$AWS_REGION" \
+            --query 'Service.SourceConfiguration.ImageRepository.ImageConfiguration.RuntimeEnvironmentVariables' --output json)
+          mode=$(printf '%s' "$flags" | jq -r '.TRACKMCP_RATE_LIMIT_MODE // ""')
+          fact_writes=$(printf '%s' "$flags" | jq -r '.TRACKMCP_ENABLE_FACT_WRITES // "false"')
+          [[ "$mode" == "supabase" ]] || { echo "::error::Distributed rate-limit safety invariant is not retained."; exit 1; }
+          [[ "$fact_writes" == "true" ]] || { echo "::error::App Runner did not retain TRACKMCP_ENABLE_FACT_WRITES=true."; exit 1; }
+          printf '{"outcome":"enabled","fact_writes":"%s","rate_limit_mode":"%s"}\n' "$fact_writes" "$mode" > "$RUNNER_TEMP/semantic-fact-writes.json"
+
+      - name: Upload redacted fact-write evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: semantic-fact-writes-${{ github.run_id }}
+          path: ${{ runner.temp }}/semantic-fact-writes.json
+          if-no-files-found: warn

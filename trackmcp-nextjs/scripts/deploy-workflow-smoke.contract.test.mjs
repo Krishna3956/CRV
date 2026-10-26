@@ -6,6 +6,7 @@ const workflow = await readFile(new URL("../../.github/workflows/deploy.yml", im
 const dockerfile = await readFile(new URL("../Dockerfile", import.meta.url), "utf8");
 const distributedWorkflow = await readFile(new URL("../../.github/workflows/enable-distributed-rate-limit.yml", import.meta.url), "utf8");
 const lifecycleWorkflow = await readFile(new URL("../../.github/workflows/production-key-lifecycle-smoke.yml", import.meta.url), "utf8");
+const factWritesWorkflow = await readFile(new URL("../../.github/workflows/enable-semantic-fact-writes.yml", import.meta.url), "utf8");
 
 test("App Runner deployment performs a redacted read-only smoke after RUNNING", () => {
   assert.match(workflow, /timeout-minutes: 35/);
@@ -96,4 +97,18 @@ test("production key lifecycle workflow is manual, write-gated, and redacted", (
   assert.match(lifecycleWorkflow, /missing configured repository secrets/);
   assert.match(lifecycleWorkflow, /actions\/upload-artifact@v4/);
   assert.doesNotMatch(lifecycleWorkflow, /echo .*TRACKMCP_LIFECYCLE_KEY|console\.log/);
+});
+
+test("semantic fact writes are explicit, rate-limit-safe, and redacted", () => {
+  assert.match(factWritesWorkflow, /workflow_dispatch/);
+  assert.match(factWritesWorkflow, /ENABLE_FACT_WRITES/);
+  assert.match(factWritesWorkflow, /SCHEMA_POSTFLIGHT_VERIFIED/);
+  assert.match(factWritesWorkflow, /TRACKMCP_RATE_LIMIT_MODE=supabase/);
+  assert.match(factWritesWorkflow, /TRACKMCP_ENABLE_FACT_WRITES/);
+  assert.match(factWritesWorkflow, /update-service/);
+  assert.match(factWritesWorkflow, /list-operations/);
+  assert.match(factWritesWorkflow, /semantic-fact-writes-/);
+  assert.match(factWritesWorkflow, /\"outcome\":\"blocked_iam\"/);
+  assert.match(factWritesWorkflow, /\"outcome\":\"enabled\"/);
+  assert.doesNotMatch(factWritesWorkflow, /SUPABASE_SERVICE_ROLE_KEY|TRACKMCP_REFRESH_WORKER_SECRET/);
 });
