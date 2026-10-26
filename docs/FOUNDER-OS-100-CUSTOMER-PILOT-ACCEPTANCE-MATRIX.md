@@ -1,11 +1,12 @@
 # Founder OS first-100-customer acceptance matrix
 
 Status: **HOLD — no silent waivers**  
-Reconciled: 2026-10-26 (Asia/Calcutta)  
-Current deployed baseline: application `73d74fb36adf824b2b2cf53b07ece36e1a0302d4`,
-App Runner run `40365790289` (successful deployment; production smoke, runtime
-identity, runtime safety, and redacted evidence artifacts uploaded). The latest
-docs-only reconciliation is tracked in the open release-evidence PR.
+Reconciled: 2026-10-27 (Asia/Calcutta)
+Current deployed baseline: application `57f56431317564c4789bbae0eb4e7bac92bba29e`,
+App Runner run `40393173889` (successful deployment; production smoke, runtime
+identity, runtime safety, and redacted evidence artifacts uploaded). Authenticated
+smoke run `40394208530` passed 37 checks for the exact SHA; artifact `12685019035`
+records `outcome=passed`. Later docs/ops commits are not runtime deployments.
 
 Historical baseline retained for continuity: application
 `2e135f194f36e278232c6a46890b1ce850d1e9ba`, App Runner run `40198791603`.
