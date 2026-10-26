@@ -1,6 +1,6 @@
 # Founder OS 100 Customer Readiness Ledger
 
-Last updated: 2026-10-26 (main `7d99ec2`; local 136-suite release gate rerun)
+Last updated: 2026-10-26 (main `693d190`; local 136-suite release gate rerun)
 Latest freshness evidence: sequence monitor workflow `40266407743` on main
 commit `59b7c1435358fbd6c00dce5bcb338089af49c310`.
 
