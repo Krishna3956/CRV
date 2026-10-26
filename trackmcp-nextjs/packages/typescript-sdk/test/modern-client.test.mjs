@@ -134,6 +134,19 @@ test("modern client does not issue unadvertised catalog methods after discovery"
   assert.deepEqual(methods, ["server/discover", "tools/list"]);
 });
 
+test("modern client does not issue unadvertised catalog entity reads after discovery", async () => {
+  const methods = [];
+  const client = new ModernMcpClient({ endpoint: "https://mcp.example.test", fetch: async (_input, init) => {
+    const body = JSON.parse(init.body);
+    methods.push(body.method);
+    return response({ result: { capabilities: { tools: {} } } });
+  } });
+  await client.discover();
+  await assert.rejects(() => client.readResource("file:///private/config"), (error) => error instanceof ModernMcpProtocolError && error.code === "unsupported_method");
+  await assert.rejects(() => client.getPrompt("summarize"), (error) => error instanceof ModernMcpProtocolError && error.code === "unsupported_method");
+  assert.deepEqual(methods, ["server/discover"]);
+});
+
 test("modern client does not issue unadvertised task lifecycle methods after discovery", async () => {
   const methods = [];
   const client = new ModernMcpClient({ endpoint: "https://mcp.example.test", fetch: async (_input, init) => {

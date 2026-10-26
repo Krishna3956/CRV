@@ -551,6 +551,7 @@ export class ModernMcpClient {
    * count, and error bit. Resource contents never leave the caller-selected
    * MCP server through this adapter. */
   async readResource(uri: string): Promise<ModernMcpResourceReadResult> {
+    this.requireAdvertisedCapability("resources", "resources/read");
     if (!boundedString(uri)) throw new ModernMcpProtocolError("invalid_response", "Modern MCP resources/read requires a bounded resource URI.");
     const result = await this.request("resources/read", { uri });
     if (!Array.isArray(result.contents)) throw new ModernMcpProtocolError("invalid_response", "Modern MCP resources/read returned no bounded contents array.");
@@ -565,6 +566,7 @@ export class ModernMcpClient {
    * count, and error bit. Prompt arguments and message contents are sent to
    * the caller-selected server but never retained or returned. */
   async getPrompt(name: string, args: Record<string, unknown> = {}): Promise<ModernMcpPromptGetResult> {
+    this.requireAdvertisedCapability("prompts", "prompts/get");
     if (!/^[A-Za-z0-9_.-]{1,128}$/.test(name) || !boundedObject(args)) throw new ModernMcpProtocolError("invalid_response", "Modern MCP prompts/get requires a bounded prompt name and object arguments.");
     const keys = Object.keys(args).filter((key) => /^[A-Za-z0-9_.:-]{1,128}$/.test(key)).slice(0, MAX_CAPABILITIES);
     if (keys.length !== Object.keys(args).length) throw new ModernMcpProtocolError("invalid_response", "Modern MCP prompts/get contains an invalid or oversized argument key.");
