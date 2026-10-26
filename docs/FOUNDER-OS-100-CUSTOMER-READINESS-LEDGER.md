@@ -1,6 +1,6 @@
 # Founder OS 100 Customer Readiness Ledger
 
-Last updated: 2026-10-26 (main `a8cfda3`; local 134-suite release gate rerun)
+Last updated: 2026-10-26 (main `7d99ec2`; local 136-suite release gate rerun)
 Latest freshness evidence: sequence monitor workflow `40266407743` on main
 commit `59b7c1435358fbd6c00dce5bcb338089af49c310`.
 
@@ -425,7 +425,7 @@ the existing App Runner ECR access role; no wildcard permissions were added.
 
 ## Active branches and releases
 
-- `main` currently points to `c7fb5d0` (PDF and protocol parity reconciliation).
+- `main` currently points to `7d99ec2` (first-ingest UAT automation).
 - The latest fully verified application runtime is commit
   `aecbe2e80ca237cb2a61340c7199f069587bdb39`, deployed and smoke-tested by
   App Runner run `40131685736`.
