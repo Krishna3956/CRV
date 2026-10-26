@@ -109,11 +109,11 @@ test("modern client accepts a server-directed task when discovery advertises tas
   const client = new ModernMcpClient({ endpoint: "https://mcp.example.test", fetch: async (_input, init) => {
     const body = JSON.parse(init.body);
     return body.method === "server/discover"
-      ? response({ result: { capabilities: { extensions: { "io.modelcontextprotocol/tasks": {} } } } })
+      ? response({ result: { capabilities: { tools: {}, extensions: { "io.modelcontextprotocol/tasks": {} } } } })
       : response({ result: { resultType: "task", taskId: "declared", status: "working" } });
   } });
   const discovery = await client.discover();
-  assert.deepEqual(discovery.capabilityNames, ["extensions", "io.modelcontextprotocol/tasks"]);
+  assert.deepEqual(discovery.capabilityNames, ["tools", "extensions", "io.modelcontextprotocol/tasks"]);
   assert.deepEqual(await client.callTool("lookup"), { resultType: "task", task: { taskId: "declared", status: "working" } });
 });
 
@@ -144,6 +144,19 @@ test("modern client does not issue unadvertised catalog entity reads after disco
   await client.discover();
   await assert.rejects(() => client.readResource("file:///private/config"), (error) => error instanceof ModernMcpProtocolError && error.code === "unsupported_method");
   await assert.rejects(() => client.getPrompt("summarize"), (error) => error instanceof ModernMcpProtocolError && error.code === "unsupported_method");
+  assert.deepEqual(methods, ["server/discover"]);
+});
+
+test("modern client does not issue unadvertised tool calls or completions after discovery", async () => {
+  const methods = [];
+  const client = new ModernMcpClient({ endpoint: "https://mcp.example.test", fetch: async (_input, init) => {
+    const body = JSON.parse(init.body);
+    methods.push(body.method);
+    return response({ result: { capabilities: { resources: {} } } });
+  } });
+  await client.discover();
+  await assert.rejects(() => client.callTool("lookup"), (error) => error instanceof ModernMcpProtocolError && error.code === "unsupported_method");
+  await assert.rejects(() => client.complete({ type: "ref/prompt", name: "summarize" }, { name: "format", value: "j" }), (error) => error instanceof ModernMcpProtocolError && error.code === "unsupported_method");
   assert.deepEqual(methods, ["server/discover"]);
 });
 
