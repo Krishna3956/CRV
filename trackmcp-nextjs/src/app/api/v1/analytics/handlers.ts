@@ -256,7 +256,7 @@ export function createAnalyticsHandler(getAdmin: typeof getSupabaseAdmin = getSu
     const signal = (semantic as Record<string, unknown>).protocol_signal;
     const family = (dimensions as Record<string, unknown>).protocol_family;
     if (typeof family !== "string" || typeof outcome !== "string") return [];
-    if (!["sampling", "elicitation", "completion", "tasks", "control_signal", "resources", "prompts", "tools", "subscriptions", "notifications"].includes(family)) return [];
+    if (!["sampling", "elicitation", "completion", "tasks", "control_signal", "resources", "prompts", "tools", "subscriptions", "notifications", "roots", "logging"].includes(family)) return [];
     if (!["completed", "failed", "pending", "unknown", "not_observable"].includes(outcome)) return [];
     const safeMeasures = measures && typeof measures === "object" && !Array.isArray(measures) ? measures as Record<string, unknown> : {};
     const safeDimensions = dimensions as Record<string, unknown>;
@@ -286,7 +286,7 @@ export function createAnalyticsHandler(getAdmin: typeof getSupabaseAdmin = getSu
       ? (event.payload._trackmcp && typeof event.payload._trackmcp === "object" && !Array.isArray(event.payload._trackmcp) ? (event.payload._trackmcp as Record<string, unknown>).protocol_family : undefined)
       : undefined;
     const family = typeof hintedFamily === "string" ? hintedFamily : protocolFamilyForMethod(event.mcp_method);
-    if (family !== "sampling" && family !== "elicitation" && family !== "completion" && family !== "tasks" && family !== "control_signal" && family !== "resources" && family !== "prompts" && family !== "tools" && family !== "subscriptions" && family !== "notifications") return [];
+    if (family !== "sampling" && family !== "elicitation" && family !== "completion" && family !== "tasks" && family !== "control_signal" && family !== "resources" && family !== "prompts" && family !== "tools" && family !== "subscriptions" && family !== "notifications" && family !== "roots" && family !== "logging") return [];
     const outcome = event.is_error === true || event.success === false ? "failed" : event.result_type === "input_required" ? "pending" : event.result_type === "complete" ? "completed" : "unknown";
     const metadata = event.payload && typeof event.payload === "object" && !Array.isArray(event.payload)
       && event.payload._trackmcp && typeof event.payload._trackmcp === "object" && !Array.isArray(event.payload._trackmcp)

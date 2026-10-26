@@ -50,7 +50,9 @@ export type TrackMCPProtocolFamily =
   | "prompts"
   | "tools"
   | "subscriptions"
-  | "notifications";
+  | "notifications"
+  | "roots"
+  | "logging";
 
 export type TrackMCPDataQualityFlag =
   | "legacy_schema"
@@ -73,11 +75,13 @@ export function protocolFamilyForMethod(method: string | null | undefined): Trac
   if (method.startsWith("completion/")) return "completion";
   if (method.startsWith("tasks/")) return "tasks";
   if (method.startsWith("notifications/")) return "notifications";
+  if (method.startsWith("roots/")) return "roots";
+  if (method.startsWith("logging/")) return "logging";
   if (method.startsWith("subscriptions/")) return "subscriptions";
   if (method.startsWith("resources/")) return "resources";
   if (method.startsWith("prompts/")) return "prompts";
   if (method.startsWith("tools/")) return "tools";
-  if (method === "ping" || method === "initialize" || method === "logging/setLevel") return "control_signal";
+  if (method === "ping" || method === "initialize") return "control_signal";
   return undefined;
 }
 
@@ -95,6 +99,8 @@ export function protocolFamilyForCapabilityName(name: string | null | undefined)
   if (normalized === "prompts") return "prompts";
   if (normalized === "tools") return "tools";
   if (normalized === "subscriptions") return "subscriptions";
+  if (normalized === "roots") return "roots";
+  if (normalized === "logging") return "logging";
   return undefined;
 }
 

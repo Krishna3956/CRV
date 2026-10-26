@@ -73,7 +73,7 @@ const protocolFamilyForEvent = (event: CanonicalTrackMCPEvent): TrackMCPProtocol
   const payload = event.payload;
   const metadata = payload && typeof payload === "object" && !Array.isArray(payload) ? payload._trackmcp : undefined;
   const hinted = metadata && typeof metadata === "object" && !Array.isArray(metadata) ? (metadata as Record<string, unknown>).protocol_family : undefined;
-  return hinted === "sampling" || hinted === "elicitation" || hinted === "completion" || hinted === "tasks" || hinted === "control_signal" || hinted === "resources" || hinted === "prompts" || hinted === "tools" || hinted === "subscriptions" || hinted === "notifications" ? hinted : undefined;
+  return hinted === "sampling" || hinted === "elicitation" || hinted === "completion" || hinted === "tasks" || hinted === "control_signal" || hinted === "resources" || hinted === "prompts" || hinted === "tools" || hinted === "subscriptions" || hinted === "notifications" || hinted === "roots" || hinted === "logging" ? hinted : undefined;
 };
 
 const capabilityFamiliesForEvent = (event: CanonicalTrackMCPEvent): TrackMCPProtocolFamily[] => {

@@ -11,7 +11,7 @@ export const metadata: Metadata = pageMeta({
 export default function ProtocolDocsPage() {
   return <DocsShell active="/docs/protocol">
     <DocTitle eyebrow="Reference">MCP protocol support</DocTitle>
-    <DocLead>TrackMCP records the protocol era and transport your server actually reports. It does not turn a legacy client into a modern client, and it does not infer unsupported protocol features from a single request.</DocLead>
+      <DocLead>TrackMCP records the protocol era and transport your server actually reports. It does not turn a legacy client into a modern client, and it does not infer unsupported protocol features from a single request.</DocLead>
     <DocSection title="Supported telemetry boundary">
       <Para>The ingest schema accepts bounded events for the current <Inline>2026-07-28</Inline> revision and earlier handshake-era clients. Events can carry the negotiated protocol version, MCP method, transport, client metadata, request state counts, task identifiers, result state, and explicit error information.</Para>
       <Code>{`POST /api/v1/ingest
@@ -33,6 +33,9 @@ Authorization: Bearer $TRACKMCP_KEY
     <DocSection title="Transport matrix">
       <Para>Native server instrumentation is recommended for complete semantics. The Node client adapter supports the official <Inline>StdioClientTransport</Inline>, <Inline>StreamableHTTPClientTransport</Inline>, and <Inline>SSEClientTransport</Inline> classes from the pinned v1 SDK. OTLP/HTTP JSON and protobuf are supported as bounded metadata-only interoperability paths. OTLP/gRPC, arbitrary browser/Edge interception, and generic proxying are not supported in this release.</Para>
     </DocSection>
+      <DocSection title="Roots and logging">
+        <Para>The analytics boundary recognizes <Inline>roots/list</Inline> and <Inline>logging/setLevel</Inline> as separate bounded protocol families when they are observed, or when a client explicitly advertises the corresponding capability. TrackMCP records counts and outcome metadata only; root paths, log messages, and arbitrary level payloads are never exposed. These families remain partial until runtime fixtures and authenticated production evidence exist.</Para>
+      </DocSection>
     <DocSection title="What is not inferred">
       <Para>TrackMCP does not infer a customer from clientInfo, does not parse customer OAuth bearer tokens, does not infer workflow completion from sessions, and does not classify a missing event as abandonment. Configure a resolver for already-verified tenant identity and emit explicit workflow/task outcomes when those semantics matter.</Para>
     </DocSection>
