@@ -4,6 +4,23 @@ Last updated: 2026-10-26 (main `e395566`; deployed application `e395566` and App
 Latest freshness evidence: sequence monitor workflow `40266407743` on main
 commit `59b7c1435358fbd6c00dce5bcb338089af49c310`.
 
+## 2026-10-26 credentialed read-only scope UAT checkpoint
+
+- [x] The guarded local production smoke passed all 37 read-only checks against
+  `https://app.trackmcp.com` using two operator-supplied workspace fixtures and
+  one revoked-key fixture. It verified both key-status responses, resistance to
+  conflicting workspace query parameters, all 12 Founder OS v2 read models,
+  the legacy analytics/tool-quality/traces surfaces, API-key Action Queue
+  denials, and revoked-key rejection.
+- [x] The smoke recursively inspected response keys for forbidden credential,
+  authorization, email, prompt-argument, and resource-content fields. The
+  report contained only labels, status codes, boolean scope/privacy markers,
+  and caveats; no keys, workspace IDs, response bodies, or authorization data
+  were written.
+- [ ] This closes current production read-only tenant-scope evidence only. It
+  does not close key create/rotate/revoke, ingest, dashboard mutation, RLS
+  postflight, cross-transport traffic, or worker-freshness gates.
+
 ## 2026-10-26 reference-handoff deployment and freshness checkpoint
 
 - [x] PR #515 merged as `e395566642351064ec889382faff75eeb6dc5920` after the
