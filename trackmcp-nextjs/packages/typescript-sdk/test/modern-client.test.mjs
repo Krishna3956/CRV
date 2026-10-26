@@ -95,7 +95,7 @@ test("modern catalog pages expose bounded cache hints without inventing freshnes
   assert.deepEqual(await client.listResources(), { resources: [], nextCursor: "cursor-2", cacheHints: { ttlMs: 60_000, cacheScope: "private" } });
   assert.deepEqual(await client.listPrompts(), { prompts: [], nextCursor: "cursor-2", cacheHints: { ttlMs: 60_000, cacheScope: "private" } });
   const bounded = new ModernMcpClient({ endpoint: "https://mcp.example.test", fetch: async () => response({ result: { tools: [], ttlMs: 999_999_999, cacheScope: "secret" } }) });
-  assert.deepEqual(await bounded.listTools(), { tools: [], cacheHints: { ttlMs: 7 * 24 * 60 * 60 * 1000 } });
+  assert.deepEqual(await bounded.listTools(), { tools: [], cacheHints: { ttlMs: 24 * 60 * 60 * 1000 } });
 });
 
 test("modern client invokes tools with task capability and projects task results", async () => {
