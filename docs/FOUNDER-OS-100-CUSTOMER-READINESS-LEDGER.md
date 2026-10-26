@@ -1309,3 +1309,19 @@ a failed product gate or a Supabase plan warning.
 - [ ] The first deployment attempt returned a transient HTTP 503 at the root
   smoke check and was not accepted. The rerun passed; continue monitoring
   freshness, credentialed lifecycle, and transport-specific UAT gates below.
+
+## 2026-10-26 first-connection guide coverage checkpoint
+
+- [x] The first-connection checklist now links directly to the TypeScript,
+  Python, Go, and .NET SDK guides, plus OpenTelemetry, MCP protocol, and
+  privacy-reference documentation. A user no longer has to infer which SDK
+  or telemetry path to choose from a TypeScript-only CTA.
+- [x] Accessibility and documentation navigation contracts assert all six
+  setup destinations. The local release gate passed 136 suites, lint passed,
+  and the 177-route production build passed before merge.
+- [x] PR #506 merged as `06ab99a20b0ba7936b69bf7e6b8beed8f36ccb42` after hosted
+  web/JavaScript, Go, and .NET checks passed. App Runner workflow `40288271759`
+  completed successfully; production smoke artifact `12635352941` and
+  runtime-flags artifact `12635138813` were uploaded.
+- [ ] This closes setup discoverability, not the external pilot-owner,
+  backup/PITR, privacy-acceptance, or sustained-worker-freshness gates.
