@@ -57,6 +57,14 @@ path is exercised in production. The measured lag is still outside the
 - [ ] The monitor is now capable of proving a sustained SLO, but that proof
   still requires three subsequent scheduled runs with in-budget observations.
 
+The first real monitor run `40266407743` completed successfully against main
+`59b7c1435358fbd6c00dce5bcb338089af49c310`. It collected eight scheduled
+artifacts and correctly classified the sequence as `warning`: one historical
+worker failure, two stale freshness samples, seven cadence gaps, and a maximum
+queue lag of `13232020 ms`. This is now stronger operational evidence that the
+worker is being observed, while also confirming the sustained SLO is not yet
+met.
+
 ## 2026-10-26 release-train reconciliation
 
 The historical package-policy checkpoints below intentionally preserve their
