@@ -1,6 +1,6 @@
 # Founder OS 100 Customer Readiness Ledger
 
-Last updated: 2026-10-27 (main `ed1e3e5`; deployed application `57f5643` and App Runner production/authenticated smoke verified)
+Last updated: 2026-10-27 (main `69a0cda`; deployed application `57f5643` and App Runner production/authenticated smoke verified)
 Latest freshness evidence: refresh-worker workflow `40381642702` on main
 commit `fff91da6576987f5d5259801d71b1e41f268a4bc` completed successfully;
 sustained scheduled-sample health is still an explicit open gate below.
@@ -28,6 +28,19 @@ and authenticated smoke `production-auth-smoke-57f56431317564c4789bbae0eb4e7bac9
 - [ ] This closes the audited keyboard-focus gaps only. Production deployment,
   key lifecycle UAT, worker freshness, backup/PITR, and pilot-owner acceptance
   gates remain independently open below.
+
+## 2026-10-27 repository-wide interaction accessibility checkpoint
+
+- [x] PR #599 merged as `1624d9a2e6128feaffe1bfb83746b74a972ae311`. The docs
+  sidebar, onboarding checklist, and browser MCP tester now give every audited
+  link, disclosure, action, copy, remove, run, cancel, and reset control a
+  visible keyboard focus ring while retaining the pointer affordance.
+- [x] The accessibility contract now inventories these three surfaces; focused
+  accessibility/docs-navigation contracts, lint, and the full 137-suite release
+  gate passed. Hosted Go, .NET, and web checks passed for the merge commit.
+- [ ] This closes the repository-wide audited focus-ring gaps only. Production
+  deployment, key lifecycle UAT, worker freshness, backup/PITR, and pilot-owner
+  acceptance gates remain independently open below.
 
 ## 2026-10-27 evidence-document freshness
 
