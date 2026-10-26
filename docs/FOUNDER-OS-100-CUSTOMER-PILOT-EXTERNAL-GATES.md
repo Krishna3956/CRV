@@ -11,8 +11,8 @@ is intentionally not a GO approval and must not be treated as one.
 
 - `main`: current default branch. Immutable deployed SHAs belong in the
   release record; PR checks remain attached to their exact review commits.
-- Current deployed application: `e395566642351064ec889382faff75eeb6dc5920`,
-  App Runner workflow `40302484936` (successful deployment,
+- Current deployed application: `91ae22ace4f424434559876cc0655b87f66358b8`,
+  App Runner workflow `40304415330` (successful deployment,
   rejected root 503 on the first rollout attempt).
 - Queue: 263 total, 260 checked, and P0 queue items `020`, `157`, and `260`
   remain open.
