@@ -61,6 +61,16 @@ Queue denials, and revoked-key rejection. This closes current-release
 read-only tenant-scope evidence; it does not perform ingest or key lifecycle
 mutation.
 
+The guarded current-release first-ingest smoke [workflow
+40281259523](https://github.com/Krishna3956/CRV/actions/runs/40281259523)
+completed successfully after a transient 503 retry. Its redacted artifact
+recorded exactly one bounded metadata-only event accepted with HTTP 200 and a
+follow-up key-status response with `accepted_telemetry=true`. No key, event ID,
+workspace ID, response body, or authorization material was retained. This
+closes transport acceptance and the first-ingest milestone for the current
+release; CLI activation, business-workflow completion, and key lifecycle
+mutation remain separate gates.
+
 ## Release identity
 
 | Item | Verified value |
@@ -167,6 +177,11 @@ mutation.
   executed read-only checks and no secret, workspace identifier, or payload.
   Current-release read-only tenant/read-model evidence is now recorded by
   workflow `40280160295`; credentialed ingest and key lifecycle remain open.
+- [x] Current-release first-ingest evidence is recorded by workflow
+  `40281259523`: one metadata-only event returned HTTP 200 with `accepted=1`
+  and key-status returned HTTP 200 with `accepted_telemetry=true` after the
+  transient 503 retry. The redacted artifact contains no credentials or event
+  payload.
 - [x] Historical disposable-workspace key-lifecycle evidence is retained in the
   readiness ledger, and the owner-dashboard rotation mutation is now evidenced
   on the current pilot account. The direct App Runner smoke returned HTTP 200

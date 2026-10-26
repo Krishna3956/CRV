@@ -18,6 +18,18 @@ commit `59b7c1435358fbd6c00dce5bcb338089af49c310`.
   key lifecycle mutation, dashboard mutation, and worker-SLO evidence remain
   separate gates.
 
+## 2026-10-26 current-release first-ingest smoke
+
+- [x] Guarded workflow `40281259523` completed successfully after one
+  transient origin `503` on its initial attempt and a failed-job rerun. The
+  successful redacted artifact `production-ingest-2565241f2e82992555979961ad9f3af6cfd073a5`
+  recorded HTTP 200 with exactly one bounded metadata-only event accepted and
+  a subsequent HTTP 200 key-status response with `accepted_telemetry=true`.
+- [x] The artifact contains no key, event ID, workspace ID, response body, or
+  authorization material. This closes current-release transport acceptance and
+  first-ingest milestone evidence; it does not claim business-workflow
+  completion, CLI activation, or key rotation/revocation.
+
 ## 2026-10-26 cross-language capability deployment
 
 - [x] The deployment evidence reconciliation was squash-merged to `main` as
