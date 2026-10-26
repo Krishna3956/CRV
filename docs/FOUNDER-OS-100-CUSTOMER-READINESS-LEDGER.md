@@ -1,8 +1,25 @@
 # Founder OS 100 Customer Readiness Ledger
 
-Last updated: 2026-10-26 (workflow 40220255833; worker runs 40238996179, 40239039859, 40239080954; local 132-suite release gate)
+Last updated: 2026-10-26 (workflow 40220255833; main `6ef7f3e`; local 132-suite release gate rerun)
 Latest freshness evidence: workflow 40240145632 on main commit
 `3d554015f16384df86d1caef33648c8b30576676`.
+
+## 2026-10-26 final local release-gate rerun
+
+- [x] The current main checkout passed the complete `npm run
+  test:release-gate` with 132 suites passing. The gate includes accessibility
+  pointer affordances, docs navigation/version parity, tenant isolation,
+  Founder OS v2 read models, OTLP JSON/protobuf, transport observers, package
+  consumer tests, key/device flows, worker health, and release workflow
+  contracts.
+- [x] The AWS IAM console visibly confirms the resource-scoped policy
+  `TrackMCPEnableDistributedRateLimit` is created and attached to
+  `GitHubActionsDeployRole`. This is deployment plumbing evidence only; it is
+  not a substitute for production lifecycle secrets or sustained SLO evidence.
+- [ ] Production first-ingest UAT still requires a disposable key secret and
+  a real event. The browser dashboard has an unused active test key, but the
+  secret is not retrievable from the masked UI; no new key was created during
+  this verification pass.
 
 ## 2026-10-26 cross-language transport reconnect observer
 
