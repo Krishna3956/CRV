@@ -32,6 +32,16 @@ Pilot target: 100 customers
   does not claim first-ingest, CLI activation, key lifecycle, worker,
   rollback, or load/SLO evidence. Those gates remain separate.
 
+## 2026-10-26 key-lifecycle workflow readiness
+
+- [x] Write-gated workflow `40261231124` reached terminal success and evaluated
+  its safety preflight.
+- [ ] The disposable rotation/revocation smoke was intentionally skipped
+  because GitHub lacks `TRACKMCP_LIFECYCLE_COOKIE`,
+  `TRACKMCP_LIFECYCLE_WORKSPACE_ID`, `TRACKMCP_LIFECYCLE_KEY_ID`, and
+  `TRACKMCP_LIFECYCLE_KEY`. No production mutation occurred. This remains an
+  operator-secret gate, not evidence of lifecycle completion.
+
 This ledger is the operational source of truth for the autonomous readiness goal. It is updated when work is implemented, verified, submitted for review, merged, deployed, or found to be incomplete. A checked item means that the stated evidence exists; it does not mean that an adjacent item is complete.
 
 ## 2026-10-26 refresh-worker freshness observations
