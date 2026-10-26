@@ -82,7 +82,7 @@ export default withTrackMCP(server, {
   apiKey: process.env.TRACKMCP_KEY,
   service: "my-mcp-server",
   server_version: "2026.10.26", // bounded release metadata (optional)
-  sdk_version: "0.1.16",        // bounded release metadata (optional)
+  sdk_version: "0.1.17",        // bounded release metadata (optional)
   deployment_id: "deploy-42",   // bounded release metadata (optional)
 });
 ```
