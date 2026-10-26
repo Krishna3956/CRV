@@ -8,17 +8,25 @@ const record = await readFile(new URL("docs/FOUNDER-OS-100-CUSTOMER-PILOT-RELEAS
 const externalGates = await readFile(new URL("docs/FOUNDER-OS-100-CUSTOMER-PILOT-EXTERNAL-GATES.md", root), "utf8");
 const readinessLedger = await readFile(new URL("docs/FOUNDER-OS-100-CUSTOMER-READINESS-LEDGER.md", root), "utf8");
 
+function section(source, heading, nextHeading) {
+  const start = source.indexOf(heading);
+  assert.notEqual(start, -1, `missing section: ${heading}`);
+  const body = source.slice(start + heading.length);
+  const end = nextHeading ? body.indexOf(nextHeading) : -1;
+  return end === -1 ? body : body.slice(0, end);
+}
+
 function openQueueIds(source) {
   return [...source.matchAll(/^- \[ \] (\d+)\b/gm)].map((match) => match[1]);
 }
 
 test("pilot release record points at the verified deployed baseline", () => {
-  assert.match(record, /7551e2f017cce2695803b13ce5605eee72d4a9f8/);
-  assert.match(record, /40349662276/);
-  assert.match(record, /40352798759/);
-  assert.match(record, /12663714778/);
-  assert.match(record, /accepted_telemetry=true/);
-  assert.doesNotMatch(record.split("## Release identity")[1].split("## Verified gates")[0], /83131ecb|40330265695|aecbe2e|40131685736/);
+  const current = section(record, "## Current deployed baseline", "## Latest bounded insight-evidence deployment");
+  assert.match(current, /57f56431317564c4789bbae0eb4e7bac92bba29e/);
+  assert.match(current, /40393173889/);
+  assert.match(current, /40394208530/);
+  assert.match(current, /12685019035/);
+  assert.match(current, /outcome=passed/);
 });
 
 test("pilot release record keeps unresolved operational gates explicit", () => {
@@ -37,6 +45,10 @@ test("release record preserves non-source acceptance decisions until an owner ac
 });
 
 test("external-gate register names accountable parties and closure evidence", () => {
+  assert.match(externalGates, /57f56431317564c4789bbae0eb4e7bac92bba29e/);
+  assert.match(externalGates, /40393173889/);
+  assert.match(externalGates, /40397368253/);
+  assert.match(externalGates, /40398170070/);
   assert.match(externalGates, /main`: current default branch/);
   assert.doesNotMatch(externalGates, /main`: `(?:[0-9a-f]{40})`/);
   assert.match(externalGates, /263 total, 260 checked/);
