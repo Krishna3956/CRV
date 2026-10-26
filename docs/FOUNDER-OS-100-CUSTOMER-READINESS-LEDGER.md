@@ -36,6 +36,13 @@ Latest freshness evidence: workflow 40240145632 on main commit
   before claiming a sustained production SLO; alerting implementation does not
   substitute for that operational evidence.
 
+Post-merge worker run `40264019728` on `1ee7e3e` completed successfully and
+processed 8 jobs with 8 successes, zero retryable/failed results, and no
+timeouts. Its redacted artifact reported `max_queue_lag_ms=1522126`,
+`freshness_slo=stale`, and `freshness_alert=warning`, confirming the new alert
+path is exercised in production. The measured lag is still outside the
+15-minute pilot budget, so the sustained freshness gate remains open.
+
 ## 2026-10-26 cross-language transport reconnect observer
 
 PR #434 (`27722fdd91f9c3afbf5026308c39d8ca13edea07`) adds bounded
