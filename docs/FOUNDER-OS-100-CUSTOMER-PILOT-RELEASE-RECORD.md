@@ -8,8 +8,8 @@ commit and the operator accepts the listed limitations.
 
 ## Current evidence reconciliation — 2026-10-26
 
-The current deployed application is `bb82531b08b45e098b7c436f39fa7e57dbb550c8`.
-App Runner workflow `40283712842` completed successfully after a rerun; the
+The current deployed application is `ffb81d3542826e1ab9e01ed5a35f5ea09400d851`.
+App Runner workflow `40297655303` completed successfully; the
 first rollout smoke saw a transient root HTTP 503 and was not accepted. The
 successful rerun uploaded production smoke artifact `12632674955` and
 runtime-flags artifact `12634200409`. The onboarding pointer-affordance fix is
@@ -94,8 +94,8 @@ was created, rotated, revoked, or written to an artifact.
 | --- | --- |
 | Pilot scope | First 100 customers, desktop dashboard boundary |
 | Production hosts | `trackmcp.com`, `app.trackmcp.com` |
-| Last deployed application commit | `bb82531b08b45e098b7c436f39fa7e57dbb550c8` (identity-verified current candidate) |
-| Last successful App Runner deployment | `40283712842` |
+| Last deployed application commit | `ffb81d3542826e1ab9e01ed5a35f5ea09400d851` (identity-verified current candidate) |
+| Last successful App Runner deployment | `40297655303` |
 | Readiness ledger | `docs/FOUNDER-OS-100-CUSTOMER-READINESS-LEDGER.md` |
 | Current release-record change | Current mainline reconciliation of deployed runtime and release-gate evidence |
 
