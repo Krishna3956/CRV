@@ -1,8 +1,25 @@
 # Founder OS 100 Customer Readiness Ledger
 
-Last updated: 2026-10-26 (main `5728125`; deployed application `5728125` and App Runner production/authenticated smoke verified)
+Last updated: 2026-10-26 (main `4e77595`; deployed application `4e77595` and App Runner production/authenticated smoke verified)
 Latest freshness evidence: sequence monitor workflow `40266407743` on main
 commit `59b7c1435358fbd6c00dce5bcb338089af49c310`.
+
+## 2026-10-26 bounded insight-evidence deployment
+
+- [x] PR #545 merged as `4e77595087bb14ede1fce4fb573322b3f925d572` after the
+  hosted web/JavaScript, Go, and .NET checks passed. Insight cards now expose
+  bounded eligible volume and threshold metadata rather than presenting an
+  unexplained confidence label.
+- [x] App Runner workflow `40345910892` deployed that immutable SHA. The
+  release gate, image binding, rollout wait, read-only production smoke,
+  running-release identity check, and runtime-safety audit all passed.
+- [x] Retained artifacts are `production-smoke-4e77595087bb14ede1fce4fb573322b3f925d572`
+  (`12662645650`), `runtime-flags-4e77595087bb14ede1fce4fb573322b3f925d572`
+  (`12662435761`), and `app-runner-host-4e77595087bb14ede1fce4fb573322b3f925d572`
+  (`12663020048`).
+- [ ] This is engineering/deployment evidence only. Sustained worker
+  freshness, backup/PITR, privacy acceptance, lifecycle/interoperability UAT,
+  pilot-owner approval, and the final operator GO/NO-GO remain open.
 
 ## 2026-10-26 alert-delivery evidence deployment
 
