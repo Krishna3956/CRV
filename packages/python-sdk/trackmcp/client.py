@@ -82,6 +82,8 @@ class TrackMCPEvent(TypedDict, total=False):
     catalog_item_count: int
     catalog_item_name_hashes: List[str]
     catalog_item_uri_hashes: List[str]
+    cache_ttl_ms: int
+    cache_scope: Literal["public", "private"]
     payload_size_bytes: int
     payload_policy: str
     payload: Dict[str, Any]
@@ -162,7 +164,23 @@ def _catalog_observation(kind: str, result: Any) -> Dict[str, Any]:
         uri = item.get("uri", item.get("uriTemplate"))
         if isinstance(uri, str):
             uris.append(hashlib.sha256(uri.encode("utf-8")).hexdigest())
-    return {"catalog_kind": kind, "catalog_item_count": len(items), "catalog_item_name_hashes": names, "catalog_item_uri_hashes": uris}
+    metadata: Dict[str, Any] = {"catalog_kind": kind, "catalog_item_count": len(items), "catalog_item_name_hashes": names, "catalog_item_uri_hashes": uris}
+    metadata.update(_cache_hints(result))
+    return metadata
+
+
+def _cache_hints(result: Any) -> Dict[str, Any]:
+    """Project one-day cache hints without treating them as auth or invalidation."""
+    if not isinstance(result, dict):
+        return {}
+    ttl = result.get("ttlMs", result.get("ttl_ms"))
+    scope = result.get("cacheScope", result.get("cache_scope"))
+    metadata: Dict[str, Any] = {}
+    if isinstance(ttl, int) and not isinstance(ttl, bool) and 0 <= ttl <= 86_400_000:
+        metadata["cache_ttl_ms"] = ttl
+    if scope in ("public", "private"):
+        metadata["cache_scope"] = scope
+    return metadata
 
 
 def interaction_entity_observation(method: Optional[str], params: Any) -> Optional[Dict[str, str]]:
@@ -188,6 +206,7 @@ def _protocol_result_metadata(result: Any) -> Dict[str, Any]:
         return {}
     result_type = result.get("resultType", result.get("result_type"))
     metadata: Dict[str, Any] = {}
+    metadata.update(_cache_hints(result))
     if result_type in ("complete", "input_required", "task"):
         metadata["result_type"] = result_type
     requests = result.get("inputRequests", result.get("input_requests"))

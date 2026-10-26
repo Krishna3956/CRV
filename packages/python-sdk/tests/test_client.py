@@ -37,6 +37,15 @@ class TrackMCPClientTest(TestCase):
         self.assertEqual(_protocol_result_metadata({"result_type": "input_required", "input_requests": [1]}), {"result_type": "input_required", "input_request_count": 1})
         self.assertEqual(_protocol_result_metadata({"resultType": "unsupported", "inputRequests": "not-a-list"}), {})
 
+    def test_cache_hints_are_bounded_and_alias_safe(self):
+        metadata = _protocol_result_metadata({"ttl_ms": 60_000, "cache_scope": "private", "secret": "omit"})
+        self.assertEqual(metadata, {"cache_ttl_ms": 60_000, "cache_scope": "private"})
+        self.assertEqual(_protocol_result_metadata({"ttlMs": 999_999_999, "cacheScope": "secret"}), {})
+        catalog = _catalog_observation("tools", {"tools": [], "ttlMs": 60_000, "cacheScope": "public", "secret": "omit"})
+        self.assertEqual(catalog["cache_ttl_ms"], 60_000)
+        self.assertEqual(catalog["cache_scope"], "public")
+        self.assertNotIn("omit", json.dumps(catalog))
+
     def test_completion_metadata_is_bounded_and_value_free(self):
         result = {"completion": {"values": [{"value": "private"}] * 40, "total": 99, "hasMore": True, "secret": "omit"}}
         metadata = _protocol_result_metadata(result)
