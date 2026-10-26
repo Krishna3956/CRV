@@ -30,10 +30,10 @@ jobs:
           curl --fail-with-body --silent --show-error \
             -H "authorization: Bearer $GH_TOKEN" \
             -H 'accept: application/vnd.github+json' \
-            "$api/actions/workflows/founder-os-refresh-worker.yml/runs?event=schedule&status=completed&per_page=8" \
+            "$api/actions/workflows/founder-os-refresh-worker.yml/runs?status=completed&per_page=12" \
             > "$RUNNER_TEMP/refresh-health/runs.json"
           : > "$RUNNER_TEMP/refresh-health/runs.ndjson"
-          while IFS=$'\t' read -r run_id created_at conclusion; do
+          while IFS=$'\t' read -r run_id created_at conclusion event; do
             artifacts=$(curl --fail-with-body --silent --show-error \
               -H "authorization: Bearer $GH_TOKEN" \
               -H 'accept: application/vnd.github+json' \
@@ -47,8 +47,8 @@ jobs:
               "$api/actions/artifacts/$artifact_id/zip" -o "$archive"
             summary=$(unzip -p "$archive" '*.json' | jq -c 'select(type == "object")' | head -n 1)
             [ -n "$summary" ] || continue
-            printf '%s\n' "$summary" | jq -c --argjson run_id "$run_id" --arg created_at "$created_at" --arg conclusion "$conclusion" '. + {run_id:$run_id, created_at:$created_at, conclusion:$conclusion}' >> "$RUNNER_TEMP/refresh-health/runs.ndjson"
-          done < <(jq -r '.workflow_runs[] | [.id, .created_at, .conclusion] | @tsv' "$RUNNER_TEMP/refresh-health/runs.json")
+            printf '%s\n' "$summary" | jq -c --argjson run_id "$run_id" --arg created_at "$created_at" --arg conclusion "$conclusion" --arg event "$event" '. + {run_id:$run_id, created_at:$created_at, conclusion:$conclusion, event:$event}' >> "$RUNNER_TEMP/refresh-health/runs.ndjson"
+          done < <(jq -r '.workflow_runs[] | [.id, .created_at, .conclusion, .event] | @tsv' "$RUNNER_TEMP/refresh-health/runs.json")
           node trackmcp-nextjs/scripts/refresh-worker-health-report.mjs "$RUNNER_TEMP/refresh-health/runs.ndjson" > "$RUNNER_TEMP/refresh-health/report.json"
 
       - name: Publish bounded health report
@@ -65,6 +65,7 @@ jobs:
             echo "- State: $state"
             echo "- Reasons: $reasons"
             echo "- Samples: $(jq -r '.sample_count' "$report") / $(jq -r '.minimum_samples' "$report")"
+            echo "- Scheduled samples: $(jq -r '.scheduled_sample_count' "$report") / $(jq -r '.minimum_scheduled_samples' "$report")"
             echo "- Max queue lag (ms): $(jq -r '.max_queue_lag_ms' "$report")"
             cat "$report" >> "$GITHUB_STEP_SUMMARY"
             if [ "$state" = "warning" ]; then
