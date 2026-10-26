@@ -4,6 +4,18 @@ Last updated: 2026-10-26 (main `d338544`; deployed application `d338544` and App
 Latest freshness evidence: sequence monitor workflow `40266407743` on main
 commit `59b7c1435358fbd6c00dce5bcb338089af49c310`.
 
+## 2026-10-26 current-main release-gate verification
+
+- [x] Current merged main `c7a36e6b2af66f3389fcf5e46c59574e53c35b43` passed
+  the local full release gate: **136 suites**, including accessibility, docs
+  navigation, MCP modern-client/protocol, OTLP, privacy, tenant isolation,
+  SDK consumer, production-smoke contracts, and refresh-health contracts.
+- [x] `npm run lint` passed and `npm run build` completed successfully,
+  generating all 177 static pages and the complete API route inventory.
+- [ ] These checks confirm source/build integrity only; they do not close the
+  external backup/PITR, sustained-freshness, lifecycle-UAT, interoperability,
+  privacy-acceptance, or release-owner gates below.
+
 ## 2026-10-26 refresh-health recovery remediation
 
 - [x] PR #532 merged the health-triggered recovery dispatch into `main`
