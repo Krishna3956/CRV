@@ -34,7 +34,7 @@ async function request(path, options = {}) {
   const response = await fetch(endpoint(path), {
     ...options,
     redirect: "manual",
-    headers: { accept: "application/json", "user-agent": "TrackMCP/0.1.16 lifecycle-smoke", ...(options.headers || {}) },
+    headers: { accept: "application/json", "user-agent": "TrackMCP/0.1.17 lifecycle-smoke", ...(options.headers || {}) },
     signal: AbortSignal.timeout(15_000),
   });
   let body = {};
