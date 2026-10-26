@@ -1292,3 +1292,20 @@ a failed product gate or a Supabase plan warning.
   pass while silently omitting revocation evidence.
 - [x] Workflow and source contracts cover the mandatory revoked-key path;
   disposable credentials remain external and are not stored in the repository.
+
+## 2026-10-26 onboarding interaction and deployment checkpoint
+
+- [x] The dashboard onboarding checklist now gives every actionable control an
+  explicit pointer affordance, including completion, dismissal, key creation,
+  setup-command copy, and event verification. Disabled controls expose the
+  not-allowed cursor state.
+- [x] The accessibility contract now protects these onboarding affordances;
+  the focused contract passed, lint passed, and the 177-route production build
+  passed before merge.
+- [x] PR #503 merged as `bb82531b08b45e098b7c436f39fa7e57dbb550c8` after the
+  web/JavaScript, Go, and .NET hosted checks passed. App Runner workflow
+  `40283712842` completed successfully on rerun; production smoke artifact
+  `12632674955` and runtime-flags artifact `12634200409` were uploaded.
+- [ ] The first deployment attempt returned a transient HTTP 503 at the root
+  smoke check and was not accepted. The rerun passed; continue monitoring
+  freshness, credentialed lifecycle, and transport-specific UAT gates below.
