@@ -13,6 +13,9 @@ test("web CI blocks high-severity production dependency advisories", () => {
   assert.match(ciWorkflow, /actions\/setup-python@v5/);
   assert.match(ciWorkflow, /python3 -m build/);
   assert.match(ciWorkflow, /python3 -m twine check dist\/\*/);
+  assert.match(ciWorkflow, /go vet \.\/\.\.\.\n\s+- run: go run \.\/smoke/);
+  assert.match(ciWorkflow, /Build reviewed NuGet artifact \(not published\)/);
+  assert.match(ciWorkflow, /dotnet pack TrackMcp\.csproj --configuration Release --no-build/);
 });
 
 test("npm publication requires provenance and package preflight tests", () => {

@@ -103,6 +103,7 @@ jobs:
           go-version: "1.22"
           cache: false
       - run: go test ./...
+      - run: go vet ./...
       - run: go run ./smoke
 
   dotnet:
@@ -117,4 +118,6 @@ jobs:
         with:
           dotnet-version: 8.0.x
       - run: dotnet build --configuration Release
+      - name: Build reviewed NuGet artifact (not published)
+        run: dotnet pack TrackMcp.csproj --configuration Release --no-build --output "$RUNNER_TEMP/trackmcp-dotnet"
       - run: dotnet run --project tests/TrackMcp.Smoke.csproj --configuration Release
