@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { ModernMcpClient, ModernMcpProtocolError, MODERN_MCP_PROTOCOL_VERSION } from "../dist/modern-client.js";
 
-const CLIENT_INFO_META = { _meta: { "io.modelcontextprotocol/clientInfo": { name: "@trackmcp/sdk", version: "0.1.19" } } };
+const CLIENT_INFO_META = { _meta: { "io.modelcontextprotocol/clientInfo": { name: "@trackmcp/sdk", version: "0.1.19" }, "io.modelcontextprotocol/clientCapabilities": {} } };
 const withClientInfo = (params) => ({ ...params, ...CLIENT_INFO_META });
 
 function response(body, status = 200, headers = {}) {
@@ -48,6 +48,7 @@ test("modern client advertises bounded per-request client identity metadata", as
   });
   await client.listTools();
   assert.deepEqual(requests[0].params._meta["io.modelcontextprotocol/clientInfo"], { name: "fixture-client", version: "1.2.3" });
+  assert.deepEqual(requests[0].params._meta["io.modelcontextprotocol/clientCapabilities"], {});
   const fallback = new ModernMcpClient({ endpoint: "https://mcp.example.test", clientInfo: { name: "\u0000secret", version: "" }, fetch: async (_input, init) => { requests.push(JSON.parse(init.body)); return response({ result: { tools: [] } }); } });
   await fallback.listTools();
   assert.deepEqual(requests[1].params._meta["io.modelcontextprotocol/clientInfo"], { name: "@trackmcp/sdk", version: "0.1.19" });
