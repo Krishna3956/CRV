@@ -1568,3 +1568,20 @@ a failed product gate or a Supabase plan warning.
 - [ ] This closes the documentation-to-Setup handoff only. External
   pilot-owner, backup/PITR, privacy-acceptance, and sustained worker-freshness
   gates remain open.
+
+## 2026-10-26 refresh-worker backlog recovery checkpoint
+
+- [x] The latest worker health evidence showed a real backlog rather than an
+  analytics-only presentation issue: the pre-change run processed 104 jobs but
+  still reported approximately 5.8 hours of queue lag. PR #528 increased the
+  scheduler from five to ten independently bounded concurrent lease requests;
+  the application deadline, skip-locked claim boundary, redacted summary, and
+  failure/timeout semantics were unchanged and covered by workflow contracts.
+- [x] PR #528 merged as `31c3dd5beed17cf5f226ce90ca1cc08b8113132a` after the
+  hosted Go, .NET, and web/JavaScript checks passed. The post-merge worker run
+  `40321051841` completed successfully and uploaded artifact
+  `12649012655`: ten batches, zero remaining jobs, zero retryable/failed
+  results, `max_queue_lag_ms: 0`, and `freshness_slo: no_backlog_observed`.
+- [ ] This is a fresh recovery observation, not proof of a permanently healthy
+  scheduler. Continue the recurring health monitor and retain the worker SLO
+  as open until repeated scheduled samples remain within the pilot budget.
