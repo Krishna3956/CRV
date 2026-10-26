@@ -1,10 +1,43 @@
 package trackmcp
 
 import (
+	"context"
 	"encoding/json"
+	"errors"
+	"net/http"
 	"strings"
 	"testing"
 )
+
+type cancelRoundTripper struct{}
+
+func (cancelRoundTripper) RoundTrip(request *http.Request) (*http.Response, error) {
+	<-request.Context().Done()
+	return nil, request.Context().Err()
+}
+
+func TestFlushContextRequeuesOnCancellation(t *testing.T) {
+	client := New(Options{APIKey: "tmcp_test", Endpoint: "https://example.test/ingest", HTTPClient: &http.Client{Transport: cancelRoundTripper{}}})
+	client.Capture(Event{EventType: "tool_call", MCPMethod: "tools/call"})
+	ctx, cancel := context.WithCancel(context.Background())
+	cancel()
+	err := client.FlushContext(ctx)
+	if !errors.Is(err, context.Canceled) { t.Fatalf("expected context cancellation, got %v", err) }
+	if len(client.queue) != 1 { t.Fatalf("cancelled batch was not requeued: %d", len(client.queue)) }
+}
+
+func TestFlushContextUsesInjectedClientAndReturnsHTTPFailure(t *testing.T) {
+	client := New(Options{APIKey: "tmcp_test", Endpoint: "https://example.test/ingest", HTTPClient: &http.Client{Transport: roundTripperFunc(func(*http.Request) (*http.Response, error) {
+		return &http.Response{StatusCode: http.StatusBadGateway, Body: http.NoBody}, nil
+	})}})
+	client.Capture(Event{EventType: "tool_call", MCPMethod: "tools/call"})
+	if err := client.FlushContext(context.Background()); err == nil { t.Fatal("expected HTTP failure") }
+	if len(client.queue) != 1 { t.Fatalf("failed batch was not requeued: %d", len(client.queue)) }
+}
+
+type roundTripperFunc func(*http.Request) (*http.Response, error)
+
+func (fn roundTripperFunc) RoundTrip(request *http.Request) (*http.Response, error) { return fn(request) }
 
 func TestSanitizePayloadRedactsAndBounds(t *testing.T) {
 	long := "0123456789abcdefghijklmnopqrstuvwxyz" 

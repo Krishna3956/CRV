@@ -16,6 +16,13 @@ it locally before queueing. TrackMCP does not implement
 OAuth or inspect bearer tokens. Delivery is asynchronous and fail-open, so a
 telemetry failure must not block an MCP request.
 
+For graceful shutdown, `client.Flush()` uses the default HTTP client. If the
+host owns a cancellation context or transport, provide `Options.HTTPClient`
+and call `client.FlushContext(ctx)`. Cancellation, non-2xx responses, request
+construction failures, and serialization failures return an error for
+diagnostics and put the bounded batch back at the front of the queue for a
+later retry; telemetry remains fail-open.
+
 For disconnects outside an MCP request, call
 `client.RecordTransportFailure("transport_closed", sessionID, durationMS)` or
 `client.RecordTransportFailure("transport_error", sessionID, durationMS)`. The

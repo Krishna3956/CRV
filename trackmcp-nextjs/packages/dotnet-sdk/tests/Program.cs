@@ -14,6 +14,25 @@ sealed class CaptureHandler : HttpMessageHandler
     }
 }
 
+sealed class CancellationHandler : HttpMessageHandler
+{
+    public TaskCompletionSource Started { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+    public string? Body { get; private set; }
+    private int _calls;
+
+    protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+    {
+        if (Interlocked.Increment(ref _calls) == 1)
+        {
+            Started.TrySetResult();
+            await Task.Delay(Timeout.InfiniteTimeSpan, cancellationToken);
+        }
+
+        Body = request.Content is null ? null : await request.Content.ReadAsStringAsync(cancellationToken);
+        return new HttpResponseMessage(HttpStatusCode.OK) { Content = new StringContent("{}") };
+    }
+}
+
 static class Smoke
 {
     private static void Require(bool condition, string message)
@@ -23,6 +42,18 @@ static class Smoke
 
     public static async Task Main()
     {
+        var cancellationHandler = new CancellationHandler();
+        using var cancellationHttp = new HttpClient(cancellationHandler);
+        using var cancellationClient = new TrackMcpClient(new TrackMcpOptions("tmcp_test", Endpoint: "https://example.test/ingest"), cancellationHttp);
+        cancellationClient.RecordProtocolSignalForTransport("cancelled", "notifications/cancelled", "streamable_http", "session-cancel", "client_to_server");
+        using var cancellation = new CancellationTokenSource();
+        var cancelledFlush = cancellationClient.FlushAsync(cancellation.Token);
+        await cancellationHandler.Started.Task;
+        cancellation.Cancel();
+        await cancelledFlush;
+        await cancellationClient.FlushAsync();
+        Require(cancellationHandler.Body is not null && cancellationHandler.Body.Contains("notifications/cancelled", StringComparison.Ordinal), "cancelled flush did not preserve the batch for retry");
+
         var handler = new CaptureHandler();
         using var http = new HttpClient(handler);
         using var client = new TrackMcpClient(new TrackMcpOptions("tmcp_test", Endpoint: "https://example.test/ingest"), http);
