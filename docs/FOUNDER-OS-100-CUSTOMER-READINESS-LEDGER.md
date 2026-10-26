@@ -1,8 +1,13 @@
 # Founder OS 100 Customer Readiness Ledger
 
-Last updated: 2026-10-26 (main `7551e2f`; deployed application `7551e2f` and App Runner production/authenticated smoke verified)
+Last updated: 2026-10-26 (main `0d7141f`; deployed application `1639663c` and App Runner production/authenticated smoke verified)
 Latest freshness evidence: sequence monitor workflow `40266407743` on main
 commit `59b7c1435358fbd6c00dce5bcb338089af49c310`.
+
+The deployed application remains the last runtime-verified App Runner release
+(`1639663c6b403648797aed02a2b74bc33ca09056`, workflow `40357654944`). Main has
+since received release-record and external-gate documentation reconciliations;
+the next successful App Runner deployment will update the runtime baseline.
 
 ## 2026-10-26 worker-health recovery evidence deployment
 
