@@ -140,6 +140,21 @@ test("cross-language protocol signal observers validate direction", () => {
   assert.match(dotnetReadme, /inbound cancellation/);
 });
 
+test("Go flush exposes caller cancellation and preserves failed batches", () => {
+  assert.match(goSource, /FlushContext/);
+  assert.match(goSource, /HTTPClient \*http\.Client/);
+  assert.match(goSource, /append\(events, c\.queue\.\.\.\)/);
+  assert.match(goReadme, /FlushContext\(ctx\)/);
+  assert.match(goSource, /NewRequestWithContext/);
+  assert.match(goSource, /context\.Canceled|context\.Background/);
+});
+
+test(".NET hosted smoke exercises cancellation and retry preservation", () => {
+  assert.match(dotnetSmokeSource, /CancellationHandler/);
+  assert.match(dotnetSmokeSource, /CancellationTokenSource/);
+  assert.match(dotnetSmokeSource, /preserve the batch for retry/);
+});
+
 test(".NET hosted CI runs the privacy and direction smoke harness", () => {
   assert.match(dotnetSmokeProject, /OutputType>Exe/);
   assert.match(dotnetSmokeProject, /ProjectReference Include="\.\.\/TrackMcp\.csproj"/);

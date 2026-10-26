@@ -5,10 +5,12 @@ package trackmcp
 
 import (
 	"bytes"
+	"context"
 	"crypto/sha256"
 	"crypto/rand"
 	"encoding/hex"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"os"
 	"strings"
@@ -21,6 +23,10 @@ type Options struct {
 	Service string
 	Environment string
 	Endpoint string
+	// HTTPClient is optional and exists so callers can provide their transport
+	// boundary (including context-aware cancellation and test doubles). When it
+	// is nil, http.DefaultClient is used.
+	HTTPClient *http.Client
 	ServerVersion string
 	SDKVersion string
 	DeploymentID string
@@ -391,11 +397,22 @@ func hashCatalogIdentity(value string) string { sum := sha256.Sum256([]byte(valu
 
 func boolPtr(value bool) *bool { return &value }
 
-func (c *Client) Flush() {
-	c.mu.Lock(); if len(c.queue) == 0 { c.mu.Unlock(); return }; count := c.options.MaxBatchSize; if count > len(c.queue) { count = len(c.queue) }; events := append([]Event(nil), c.queue[:count]...); c.queue = c.queue[count:]; c.mu.Unlock()
-	body, err := json.Marshal(map[string]any{"events": events}); if err != nil { return }
-	req, err := http.NewRequest(http.MethodPost, c.options.Endpoint, bytes.NewReader(body)); if err != nil { return }; req.Header.Set("Content-Type", "application/json"); req.Header.Set("Authorization", "Bearer "+c.options.APIKey)
-	resp, err := http.DefaultClient.Do(req); if err != nil || resp.StatusCode >= 300 { c.mu.Lock(); c.queue = append(events, c.queue...); c.mu.Unlock() }; if resp != nil { resp.Body.Close() }
+func (c *Client) Flush() { _ = c.FlushContext(context.Background()) }
+
+// FlushContext sends one bounded batch and preserves it for a later retry when
+// cancellation, request construction, serialization, or delivery fails. The
+// telemetry path remains fail-open: the returned error is for caller-owned
+// diagnostics and must not block the MCP request.
+func (c *Client) FlushContext(ctx context.Context) error {
+	if ctx == nil { ctx = context.Background() }
+	c.mu.Lock(); if len(c.queue) == 0 { c.mu.Unlock(); return nil }; count := c.options.MaxBatchSize; if count > len(c.queue) { count = len(c.queue) }; events := append([]Event(nil), c.queue[:count]...); c.queue = c.queue[count:]; c.mu.Unlock()
+	requeue := func() { c.mu.Lock(); c.queue = append(events, c.queue...); c.mu.Unlock() }
+	body, err := json.Marshal(map[string]any{"events": events}); if err != nil { requeue(); return err }
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, c.options.Endpoint, bytes.NewReader(body)); if err != nil { requeue(); return err }; req.Header.Set("Content-Type", "application/json"); req.Header.Set("Authorization", "Bearer "+c.options.APIKey)
+	httpClient := c.options.HTTPClient; if httpClient == nil { httpClient = http.DefaultClient }
+	resp, err := httpClient.Do(req); if err != nil { requeue(); return err }
+	if resp.StatusCode >= 300 { requeue(); resp.Body.Close(); return fmt.Errorf("trackmcp: ingest returned HTTP %d", resp.StatusCode) }
+	resp.Body.Close(); return nil
 }
 
 func id() string { raw := make([]byte, 16); if _, err := rand.Read(raw); err != nil { return time.Now().Format("20060102150405") }; return hex.EncodeToString(raw) }
