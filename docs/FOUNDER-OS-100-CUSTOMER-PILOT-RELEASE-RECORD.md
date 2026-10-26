@@ -8,8 +8,14 @@ commit and the operator accepts the listed limitations.
 
 ## Current evidence reconciliation — 2026-10-26
 
-The current deployed application is `084a8e4d0165231f9998441c0e9d2611771a937d`.
-App Runner workflow `40307943718` completed successfully; the
+The current deployed application is `4e0f5f017cae40524ff95eb28f2b394a16394c81`.
+App Runner workflow `40309832613` completed successfully; the
+deployment uploaded `production-smoke-4e0f5f017cae40524ff95eb28f2b394a16394c81`,
+`runtime-flags-4e0f5f017cae40524ff95eb28f2b394a16394c81`, and
+`app-runner-host-4e0f5f017cae40524ff95eb28f2b394a16394c81`. Authenticated
+production smoke workflow `40310764833` also passed and uploaded
+`production-auth-smoke-4e0f5f017cae40524ff95eb28f2b394a16394c81`.
+The prior App Runner workflow `40307943718` completed successfully; the
 first rollout smoke saw a transient root HTTP 503 and was not accepted. The
 successful rerun uploaded production smoke artifact `12632674955` and
 runtime-flags artifact `12634200409`. The onboarding pointer-affordance fix is
