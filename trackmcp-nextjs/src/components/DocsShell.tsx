@@ -20,6 +20,7 @@ const groups = [
     label: "SDKs",
     items: [
       { t: "TypeScript", href: "/docs/typescript" },
+      { t: "Transport observer", href: "/docs/typescript#transport-observer" },
       { t: "Python", href: "/docs/python" },
       { t: "Go", href: "/docs/go" },
       { t: ".NET", href: "/docs/dotnet" },

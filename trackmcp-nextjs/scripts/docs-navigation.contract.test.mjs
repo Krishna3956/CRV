@@ -34,8 +34,8 @@ test("every documentation sidebar destination is a real route or overview sectio
     assert.match(destination, /^\/docs(?:\/[a-z-]+)?(?:#[a-z-]+)?$/);
     const [route, hash] = destination.split("#");
     if (hash) {
-      assert.equal(route, "/docs", `section link must target the overview: ${destination}`);
-      assert.match(overview, new RegExp(`id=["']${hash}["']`), `missing docs section: ${destination}`);
+      const page = route === "/docs" ? overview : await readFile(path.join(appRoot, "src/app", route.slice(1), "page.tsx"), "utf8");
+      assert.match(page, new RegExp(`id=["']${hash}["']`), `missing docs section: ${destination}`);
     } else if (route !== "/docs") {
       const page = path.join(appRoot, "src/app", route.slice(1), "page.tsx");
       await readFile(page);
@@ -83,6 +83,12 @@ test("every SDK guide exposes a direct Setup handoff", () => {
   assert.match(shell, /export function DocsNextSteps/);
   assert.match(shell, /dashboard\?view=setup/);
   assert.match(shell, /Documentation next steps/);
+});
+
+test("the transport observer is discoverable from the SDK navigation", () => {
+  assert.match(shell, /Transport observer/);
+  assert.match(shell, /href: "\/docs\/typescript#transport-observer"/);
+  assert.match(typescript, /id="transport-observer"/);
 });
 
 test("every integration and reference guide exposes a direct Setup handoff", () => {
