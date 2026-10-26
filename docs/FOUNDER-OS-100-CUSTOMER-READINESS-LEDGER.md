@@ -1,8 +1,28 @@
 # Founder OS 100 Customer Readiness Ledger
 
-Last updated: 2026-10-26 (main `fdf8e1c`; deployed application `fdf8e1c` and App Runner production smoke verified)
+Last updated: 2026-10-26 (main `e395566`; deployed application `e395566` and App Runner production smoke verified)
 Latest freshness evidence: sequence monitor workflow `40266407743` on main
 commit `59b7c1435358fbd6c00dce5bcb338089af49c310`.
+
+## 2026-10-26 reference-handoff deployment and freshness checkpoint
+
+- [x] PR #515 merged as `e395566642351064ec889382faff75eeb6dc5920` after the
+  hosted web/JavaScript, Go, and .NET checks passed. App Runner workflow
+  `40302484936` completed successfully for the same immutable SHA; production
+  smoke artifact `12641347456`, runtime-flags artifact `12641511404`, and host
+  artifact `12642195140` were uploaded.
+- [x] The deployed runtime includes the REST API, configuration, MCP protocol,
+  and Authentication/OAuth documentation handoffs. Their contracts passed,
+  the 177-route build passed, and the full 136-suite release gate passed
+  locally and in hosted CI.
+- [x] Read-only refresh-health workflow `40303459268` completed successfully
+  and uploaded `refresh-worker-health-40303459268`. The report contained 8
+  samples, 3 stale runs, 1 historical failure, 7 cadence breaches, and a
+  maximum queue lag of `13232020 ms` versus the `900000 ms` pilot budget.
+- [ ] The health report is an explicit `warning` with reasons
+  `worker_failures_observed`, `freshness_budget_exceeded`, and
+  `schedule_cadence_gap`; sustained worker freshness remains open. This
+  evidence must not be converted into a pilot-ready claim.
 
 ## 2026-10-26 complete documentation-reference handoff checkpoint
 
