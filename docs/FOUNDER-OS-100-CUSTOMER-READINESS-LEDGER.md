@@ -1,10 +1,10 @@
 # Founder OS 100 Customer Readiness Ledger
 
-Last updated: 2026-10-27 (main `76feae0`; deployed application `1624d9a` and App Runner production/authenticated smoke verified)
-Latest freshness evidence: refresh-worker workflow `40406070475` on main
-commit `a2dc026` completed technically successfully, but its retained summary
-artifact `12690586639` reports `freshness_slo: stale` and
-`max_queue_lag_ms: 9517787` against the `900000` ms pilot budget; sustained
+Last updated: 2026-10-27 (main `ee66051`; deployed application `1624d9a` and App Runner production/authenticated smoke verified)
+Latest freshness evidence: refresh-worker workflow `40416004272` on main
+commit `ee66051` completed technically successfully, but its retained summary
+artifact `12695217713` reports `freshness_slo: stale` and
+`max_queue_lag_ms: 4190625` against the `900000` ms pilot budget; sustained
 scheduled-sample health remains an explicit open gate below.
 
 The deployed application is the runtime-verified App Runner release
@@ -16,6 +16,15 @@ identity, and runtime-safety audit all passed. Retained artifacts are
 `app-runner-host-57f56431317564c4789bbae0eb4e7bac92bba29e` (`12685702047`),
 and the latest authenticated smoke `production-auth-smoke-1624d9a2e6128feaffe1bfb83746b74a972ae311`
 (`12694805391`).
+
+## 2026-10-27 latest refresh-worker evidence
+
+- [x] Refresh-worker workflow `40416004272` completed ten bounded batches with
+  20 processed, 20 succeeded, zero retryable jobs, zero failed jobs, and no
+  timeouts. Its redacted summary artifact is `12695217713`.
+- [ ] The same artifact reports `freshness_slo: stale` with maximum queue lag
+  `4190625 ms` versus the `900000 ms` pilot budget. The lag improved from the
+  prior sample but still does not prove the pilot freshness SLO.
 
 ## 2026-10-27 interaction accessibility deployment checkpoint
 
