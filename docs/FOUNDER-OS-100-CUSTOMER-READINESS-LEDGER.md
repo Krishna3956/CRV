@@ -1,9 +1,11 @@
 # Founder OS 100 Customer Readiness Ledger
 
 Last updated: 2026-10-27 (main `76feae0`; deployed application `1624d9a` and App Runner production/authenticated smoke verified)
-Latest freshness evidence: refresh-worker workflow `40381642702` on main
-commit `fff91da6576987f5d5259801d71b1e41f268a4bc` completed successfully;
-sustained scheduled-sample health is still an explicit open gate below.
+Latest freshness evidence: refresh-worker workflow `40406070475` on main
+commit `a2dc026` completed technically successfully, but its retained summary
+artifact `12690586639` reports `freshness_slo: stale` and
+`max_queue_lag_ms: 9517787` against the `900000` ms pilot budget; sustained
+scheduled-sample health remains an explicit open gate below.
 
 The deployed application is the runtime-verified App Runner release
 (`1624d9a2e6128feaffe1bfb83746b74a972ae311`, workflow `40412512143`). The
@@ -24,6 +26,16 @@ and the latest authenticated smoke `production-auth-smoke-1624d9a2e6128feaffe1bf
 - [ ] This confirms deployment and authenticated read-only smoke only. It does
   not close key lifecycle mutation UAT, worker freshness, backup/PITR, or final
   pilot-owner acceptance gates.
+
+## 2026-10-27 refresh-worker freshness checkpoint
+
+- [x] Refresh-worker workflow `40406070475` completed its ten bounded batches
+  without worker failures: 44 processed, 44 succeeded, zero retryable or
+  failed jobs, and no timeouts. Its redacted summary artifact is
+  `12690586639`.
+- [ ] The same artifact reports `freshness_slo: stale` with maximum queue lag
+  `9517787 ms` versus the `900000 ms` pilot budget. This is stronger current
+  evidence of the open freshness gate, not a pilot-ready claim.
 
 ## 2026-10-27 dashboard interaction accessibility checkpoint
 
