@@ -396,6 +396,7 @@ export class ModernMcpClient {
    * returned by this adapter; a server-directed Tasks result is projected to
    * its sanitized task handle and lifecycle metadata. */
   async callTool(name: string, args: Record<string, unknown> = {}): Promise<ModernMcpToolCallResult> {
+    this.requireAdvertisedCapability("tools", "tools/call");
     if (!/^[A-Za-z0-9_.-]{1,128}$/.test(name) || !boundedObject(args)) throw new ModernMcpProtocolError("invalid_response", "Modern MCP tools/call requires a bounded tool name and object arguments.");
     const result = await this.request("tools/call", taskParams({ name, arguments: args }), name);
     const resultTypeValue = result.resultType === undefined ? "complete" : boundedString(result.resultType);
@@ -587,6 +588,7 @@ export class ModernMcpClient {
     reference: ModernMcpCompletionReference,
     argument: { name: string; value: string },
   ): Promise<ModernMcpCompletionResult> {
+    this.requireAdvertisedCapability("completions", "completion/complete");
     const boundedReference = boundedCompletionReference(reference);
     if (!boundedObject(argument) || !/^[A-Za-z0-9_.:-]{1,128}$/.test(argument.name) || typeof argument.value !== "string" || argument.value.length > MAX_STRING_LENGTH || /[\u0000-\u001f\u007f]/.test(argument.value)) {
       throw new ModernMcpProtocolError("invalid_response", "Modern MCP completion requires bounded argument metadata and a bounded value.");

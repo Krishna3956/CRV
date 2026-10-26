@@ -75,7 +75,8 @@ const discovery = await new ModernMcpClient({ endpoint: process.env.MCP_ENDPOINT
 advertised extension names (for example,
 `io.modelcontextprotocol/tasks`). After discovery, the client fails closed
 before sending a request when a catalog, task lifecycle method, or catalog subscription
-method is not advertised by the peer. Callers that skip discovery keep
+method is not advertised by the peer. Tool calls and completions also fail
+closed when `tools` or `completions` is absent. Callers that skip discovery keep
 the compatibility behavior of the bounded request methods.
 
 For a bounded catalog page, use `tools/list` with an opaque cursor. Tool names,
