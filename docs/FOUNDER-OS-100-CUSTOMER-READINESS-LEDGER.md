@@ -1,8 +1,8 @@
 # Founder OS 100 Customer Readiness Ledger
 
-Last updated: 2026-10-26 (workflow 40220255833; main `6ef7f3e`; local 132-suite release gate rerun)
-Latest freshness evidence: workflow 40240145632 on main commit
-`3d554015f16384df86d1caef33648c8b30576676`.
+Last updated: 2026-10-26 (main `a8cfda3`; local 134-suite release gate rerun)
+Latest freshness evidence: sequence monitor workflow `40266407743` on main
+commit `59b7c1435358fbd6c00dce5bcb338089af49c310`.
 
 ## 2026-10-26 final local release-gate rerun
 
