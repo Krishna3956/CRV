@@ -17,6 +17,10 @@ Live health run `40326279012` reported the existing warning state with
 run `40326311792`, which completed successfully. This is remediation evidence,
 not proof of sustained freshness; the release remains Draft/HOLD.
 
+PR #535 subsequently added a 20-minute completed-run cooldown to the recovery
+path. This prevents repeated dispatches caused only by historical stale samples
+while preserving recovery when no recent worker run exists.
+
 ## Current evidence reconciliation — 2026-10-26
 
 The current deployed application is `d338544b535132aa6f1c0cb8fc6174654f9bf28f`.

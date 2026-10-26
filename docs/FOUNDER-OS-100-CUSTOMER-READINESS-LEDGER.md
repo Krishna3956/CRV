@@ -18,6 +18,9 @@ commit `59b7c1435358fbd6c00dce5bcb338089af49c310`.
 - [x] The recovery dispatch created worker run `40326311792`, which completed
   successfully. This proves remediation is wired and bounded; it does not
   convert the historical warning into sustained-SLO evidence.
+- [x] PR #535 (`037cc231664b1359629cab55f36b6b41b8c4f626`) added a 20-minute
+  cooldown based on the latest completed worker run, preventing repeated
+  dispatches while historical warning samples remain in the report window.
 
 ## 2026-10-26 current merged-baseline deployment reconciliation
 
