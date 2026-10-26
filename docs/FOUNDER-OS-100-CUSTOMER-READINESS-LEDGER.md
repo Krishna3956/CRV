@@ -17,6 +17,19 @@ commit `59b7c1435358fbd6c00dce5bcb338089af49c310`.
 - [ ] Deployment success does not close sustained freshness, backup/PITR,
   privacy acceptance, lifecycle UAT, interoperability, or release-owner gates.
 
+## 2026-10-26 authenticated smoke on current deployed baseline
+
+- [x] Authenticated production smoke workflow `40332727179` passed against the
+  exact deployed immutable commit `83131ecb7cd0d6d4f3d71ac9bb015b407386ba5c`.
+  The workflow verified the release revision before running its read-only
+  multi-workspace authentication, tenant-boundary, revoked-key, and health
+  checks.
+- [x] Redacted evidence artifact `production-auth-smoke-83131ecb7cd0d6d4f3d71ac9bb015b407386ba5c`
+  (`12655396002`) is retained by GitHub Actions.
+- [ ] This closes current-release authenticated smoke evidence only. It does
+  not close sustained freshness, backup/PITR, privacy acceptance, lifecycle
+  UAT, interoperability, or release-owner gates.
+
 ## 2026-10-26 current-main release-gate verification
 
 - [x] Current merged main `c7a36e6b2af66f3389fcf5e46c59574e53c35b43` passed
