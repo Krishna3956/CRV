@@ -404,6 +404,9 @@ test("Setup exposes a direct transport observer documentation CTA", () => {
     const escaped = href.replace(/[.*+?^${}()|[\\]\\]/g, "\\\\$&");
     assert.match(setupSource, new RegExp(`href="${escaped}" className="[^"]*focus-visible:ring-2`), `${href} must expose a keyboard focus ring`);
   }
+  const pointerAnchors = [...setupSource.matchAll(/<a\b[^>]*className="[^"]*cursor-pointer[^\"]*"[^>]*>/g)].map(([tag]) => tag);
+  assert.ok(pointerAnchors.length >= 10, "Setup should retain its documented interactive link inventory");
+  for (const tag of pointerAnchors) assert.match(tag, /focus-visible:ring-2/, `interactive Setup link lacks a focus ring: ${tag}`);
 });
 
 test("Setup exposes safe rotation alongside revocation for active keys", () => {
