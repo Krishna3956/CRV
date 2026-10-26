@@ -1,8 +1,24 @@
 # Founder OS 100 Customer Readiness Ledger
 
-Last updated: 2026-10-26 (main `83131ec`; deployed application `83131ec` and App Runner production/authenticated smoke verified)
+Last updated: 2026-10-26 (main `5728125`; deployed application `5728125` and App Runner production/authenticated smoke verified)
 Latest freshness evidence: sequence monitor workflow `40266407743` on main
 commit `59b7c1435358fbd6c00dce5bcb338089af49c310`.
+
+## 2026-10-26 custom-range release deployment
+
+- [x] App Runner workflow `40335675552` successfully deployed and verified
+  merged main commit `57281256e5ac1721a075f9b6f075b326530b1258`. The bounded
+  release gate, image binding, rollout wait, production smoke, runtime
+  identity, and runtime safety audit all passed. The first smoke attempt hit a
+  transient direct-origin timeout; the bounded workflow rerun passed all 36
+  checks and is the authoritative result.
+- [x] Retained artifacts are `production-smoke-57281256e5ac1721a075f9b6f075b326530b1258`
+  (`12657756599`), `runtime-flags-57281256e5ac1721a075f9b6f075b326530b1258`
+  (`12658121349`), and `app-runner-host-57281256e5ac1721a075f9b6f075b326530b1258`
+  (`12658645535`).
+- [ ] Deployment and smoke evidence do not close sustained freshness,
+  backup/PITR, privacy acceptance, lifecycle UAT, interoperability, or
+  release-owner gates.
 
 ## 2026-10-26 current deployed baseline reconciliation
 
