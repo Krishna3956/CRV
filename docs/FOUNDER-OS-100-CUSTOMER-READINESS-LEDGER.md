@@ -1,10 +1,15 @@
 # Founder OS 100 Customer Readiness Ledger
 
-Last updated: 2026-10-26 (main `d876350`; deployed application `be96389` and App Runner production smoke verified)
+Last updated: 2026-10-26 (main `436fea2`; deployed application `be96389` and App Runner production smoke verified)
 Latest freshness evidence: sequence monitor workflow `40266407743` on main
 commit `59b7c1435358fbd6c00dce5bcb338089af49c310`.
 
 ## 2026-10-26 cross-language capability deployment
+
+- [x] The deployment evidence reconciliation was squash-merged to `main` as
+  `436fea266fd68247070926a1bf49241b13f6293f` in PR #495. This is a
+  documentation-only merge; the deployed application remains the exact
+  `be9638965383841ee7579ae9155c0162bb626495` runtime recorded below.
 
 - [x] App Runner workflow `40277566836` deployed merged cross-language
   capability metadata commit `be9638965383841ee7579ae9155c0162bb626495`.
