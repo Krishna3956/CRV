@@ -4,6 +4,17 @@ Last updated: 2026-10-26 (main `436fea2`; deployed application `be96389` and App
 Latest freshness evidence: sequence monitor workflow `40266407743` on main
 commit `59b7c1435358fbd6c00dce5bcb338089af49c310`.
 
+## 2026-10-26 refresh-worker sequence monitor rerun
+
+- [x] Read-only monitor workflow `40282559365` completed successfully and
+  collected eight bounded scheduled-worker summaries. It classified the
+  sequence as `warning`, with 3 stale runs, 1 historical worker failure, 7
+  cadence breaches, and maximum queue lag `13232020 ms` against the
+  `900000 ms` pilot freshness budget. The sequence processed 284 jobs in the
+  retained samples.
+- [ ] Sustained worker freshness SLO remains open. This monitor evidence is
+  intentionally not converted into a healthy or pilot-ready claim.
+
 ## 2026-10-26 current-release authenticated scope smoke
 
 - [x] Workflow `40280160295` ran against `https://app.trackmcp.com` with the
