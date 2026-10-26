@@ -84,7 +84,7 @@ export function DocsShell({
                             href={it.href}
                             aria-current={active === it.href ? "page" : undefined}
                             data-doc-nav="sidebar"
-                            className={`block cursor-pointer rounded-md px-2.5 py-1.5 text-[13.5px] transition-colors ${
+                            className={`block cursor-pointer rounded-md px-2.5 py-1.5 text-[13.5px] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand ${
                               active === it.href
                                 ? "bg-brand-soft/50 font-medium text-brand-strong"
                                 : "text-muted hover:bg-mist hover:text-body"
@@ -108,7 +108,7 @@ export function DocsShell({
                   key={item.href}
                   href={item.href}
                   aria-current={active === item.href ? "page" : undefined}
-                  className={`shrink-0 cursor-pointer rounded-full border px-3 py-1.5 text-xs font-medium transition-colors ${
+                  className={`shrink-0 cursor-pointer rounded-full border px-3 py-1.5 text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand ${
                     active === item.href
                       ? "border-brand bg-brand-soft text-brand-strong"
                       : "border-line bg-white text-muted hover:border-line-strong hover:text-body"
