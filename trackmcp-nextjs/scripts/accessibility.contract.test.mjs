@@ -20,6 +20,9 @@ test("primary pilot flows retain keyboard focus and reduced-motion contracts", (
   assert.match(dashboard, /cursor-pointer[\s\S]*Complete onboarding/);
   assert.match(dashboard, /cursor-pointer[\s\S]*Generate key/);
   assert.match(dashboard, /cursor-pointer[\s\S]*Check data/);
+  for (const href of ["/docs/typescript", "/docs/python", "/docs/go", "/docs/dotnet", "/docs/opentelemetry", "/docs/protocol"]) {
+    assert.match(dashboard, new RegExp(`href="${href}"`));
+  }
   assert.match(logo, /focus-visible:ring/);
   assert.match(css, /button:not\(:disabled\)[\s\S]*cursor:\s*pointer/);
   assert.match(css, /button:disabled\s*\{[\s\S]*cursor:\s*not-allowed/);
