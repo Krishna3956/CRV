@@ -44,10 +44,15 @@ function endpoint(path) { return new URL(path, `${baseUrl.replace(/\/$/, "")}/`)
 async function fetchReadOnly(url, options = {}) {
   const method = String(options.method || "GET").toUpperCase();
   if (method !== "GET" && method !== "HEAD") return fetch(url, options);
+  const { timeoutMs, signal, ...fetchOptions } = options;
   let lastError;
   for (let attempt = 0; attempt < 3; attempt += 1) {
     try {
-      return await fetch(url, options);
+      // A timed-out AbortSignal stays aborted forever. Create a fresh signal
+      // for each idempotent retry so a transient cold-start/origin timeout can
+      // actually be retried without weakening the per-attempt bound.
+      const attemptSignal = timeoutMs ? AbortSignal.timeout(timeoutMs) : signal;
+      return await fetch(url, { ...fetchOptions, ...(attemptSignal ? { signal: attemptSignal } : {}) });
     } catch (error) {
       lastError = error;
       if (attempt < 2) await new Promise((resolve) => setTimeout(resolve, 250 * (attempt + 1)));
@@ -61,7 +66,7 @@ async function request(path, options = {}) {
     ...options,
     redirect: "manual",
     headers: { "user-agent": "TrackMCP/0.1.18 production-smoke", ...(options.headers || {}) },
-    signal: AbortSignal.timeout(15_000),
+    timeoutMs: 15_000,
   });
   return { status: response.status, headers: response.headers };
 }
@@ -128,7 +133,7 @@ async function keyStatusRequest(apiKey) {
     method: "GET",
     headers: { accept: "application/json", "user-agent": "TrackMCP/0.1.18 production-smoke", authorization: `Bearer ${apiKey}` },
     redirect: "manual",
-    signal: AbortSignal.timeout(15_000),
+    timeoutMs: 15_000,
   });
   let body = {};
   try {
@@ -158,7 +163,7 @@ async function expect(path, expected, options, label = path, { securityHeaders =
 async function expectPublicClaim(path, requiredText, prohibitedText, label) {
   const response = await fetchReadOnly(endpoint(path), {
     redirect: "manual",
-    signal: AbortSignal.timeout(15_000),
+    timeoutMs: 15_000,
     headers: { accept: "text/html" },
   });
   if (response.status !== 200) fail(`${label}: expected HTTP 200, received HTTP ${response.status}`);
@@ -172,7 +177,7 @@ async function expectPublicClaim(path, requiredText, prohibitedText, label) {
 async function expectToolSitemap() {
   const response = await fetchReadOnly(endpoint("/tool-sitemap.xml"), {
     redirect: "manual",
-    signal: AbortSignal.timeout(15_000),
+    timeoutMs: 15_000,
     headers: { accept: "application/xml,text/xml" },
   });
   if (response.status !== 200) fail(`tool sitemap index: expected HTTP 200, received HTTP ${response.status}`);
@@ -180,7 +185,7 @@ async function expectToolSitemap() {
   if (!index.includes("<sitemapindex") || !index.includes("/tool-sitemap/0.xml")) fail("tool sitemap index: missing XML index or first shard");
   const shard = await fetchReadOnly(endpoint("/tool-sitemap/0.xml"), {
     redirect: "manual",
-    signal: AbortSignal.timeout(15_000),
+    timeoutMs: 15_000,
     headers: { accept: "application/xml,text/xml" },
   });
   if (shard.status !== 200) fail(`tool sitemap first shard: expected HTTP 200, received HTTP ${shard.status}`);
@@ -192,7 +197,7 @@ async function expectToolSitemap() {
 async function expectRuntimeIdentity() {
   const response = await fetchReadOnly(endpoint("/api/health"), {
     redirect: "manual",
-    signal: AbortSignal.timeout(15_000),
+    timeoutMs: 15_000,
     headers: { accept: "application/json" },
   });
   if (response.status !== 200) fail(`runtime identity: expected HTTP 200, received HTTP ${response.status}`);
@@ -225,7 +230,7 @@ async function registryChecks() {
     const at = spec.lastIndexOf("@");
     const name = spec.slice(0, at);
     const version = spec.slice(at + 1);
-    const response = await fetchReadOnly(`https://registry.npmjs.org/${encodeURIComponent(name)}/${encodeURIComponent(version)}`, { signal: AbortSignal.timeout(15_000) });
+    const response = await fetchReadOnly(`https://registry.npmjs.org/${encodeURIComponent(name)}/${encodeURIComponent(version)}`, { timeoutMs: 15_000 });
     if (!response.ok) fail(`npm registry check failed for ${name}@${version}: HTTP ${response.status}`);
     const metadata = await response.json();
     if (metadata.name !== name || metadata.version !== version) fail(`npm registry metadata mismatch for ${name}@${version}`);
@@ -253,7 +258,7 @@ async function registryChecks() {
   let wheel;
   let sdist;
   for (let attempt = 1; attempt <= 6; attempt += 1) {
-    response = await fetchReadOnly(`https://pypi.org/pypi/${encodeURIComponent(name)}/${encodeURIComponent(version)}/json`, { signal: AbortSignal.timeout(15_000) });
+    response = await fetchReadOnly(`https://pypi.org/pypi/${encodeURIComponent(name)}/${encodeURIComponent(version)}/json`, { timeoutMs: 15_000 });
     if (!response.ok) fail(`PyPI registry check failed for ${name}==${version}: HTTP ${response.status}`);
     metadata = await response.json();
     if (metadata.info?.name !== name || metadata.info?.version !== version) fail(`PyPI registry metadata mismatch for ${name}==${version}`);

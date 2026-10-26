@@ -15,7 +15,8 @@ test("production pilot smoke retries only idempotent reads", () => {
   assert.match(source, /async function fetchReadOnly/);
   assert.match(source, /method !== "GET" && method !== "HEAD"/);
   assert.match(source, /attempt < 3/);
-  assert.match(source, /return fetch\(url, options\)/);
+  assert.match(source, /const attemptSignal = timeoutMs \? AbortSignal\.timeout\(timeoutMs\) : signal/);
+  assert.match(source, /return await fetch\(url, \{ \.\.\.fetchOptions/);
 });
 
 test("production pilot smoke does not read credentials or emit secrets", () => {
