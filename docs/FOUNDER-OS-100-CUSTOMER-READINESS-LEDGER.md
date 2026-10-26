@@ -43,6 +43,14 @@ timeouts. Its redacted artifact reported `max_queue_lag_ms=1522126`,
 path is exercised in production. The measured lag is still outside the
 15-minute pilot budget, so the sustained freshness gate remains open.
 
+## 2026-10-26 release-train reconciliation
+
+The historical package-policy checkpoints below intentionally preserve their
+original snapshots. The current release truth is the coordinated train from PR
+#463: `@trackmcp/sdk@0.1.18`, `@trackmcp/cli@0.1.9`, and `trackmcp==0.1.11`
+were published and registry-verified with immutable checksums. No additional
+package publication is required for the refresh-alert or ledger-only changes.
+
 ## 2026-10-26 cross-language transport reconnect observer
 
 PR #434 (`27722fdd91f9c3afbf5026308c39d8ca13edea07`) adds bounded
