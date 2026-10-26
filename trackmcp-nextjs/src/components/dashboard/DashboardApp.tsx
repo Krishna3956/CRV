@@ -4828,7 +4828,7 @@ function SetupView({
           <div className="border border-line bg-paper p-4">
             <div className="flex items-center justify-between gap-3">
               <p className="text-sm font-semibold text-ink">Node client transport observer</p>
-              <a href="/docs/typescript#transport-observer" className="cursor-pointer text-xs font-semibold text-brand-strong hover:underline">Open guide <ArrowRight size={12} className="inline" /></a>
+              <a href="/docs/typescript#transport-observer" className="cursor-pointer text-xs font-semibold text-brand-strong hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand">Open guide <ArrowRight size={12} className="inline" /></a>
             </div>
             <p className="mt-1 text-xs leading-relaxed text-muted">
               Observe client-side MCP traffic from Node with the metadata-only adapter. It supports official stdio, Streamable HTTP, and SSE transports and stays fail-open.
@@ -4837,7 +4837,7 @@ function SetupView({
           <div className="border border-line bg-paper p-4">
             <div className="flex items-center justify-between gap-3">
               <p className="text-sm font-semibold text-ink">Go server SDK</p>
-              <a href="/docs/go" className="cursor-pointer text-xs font-semibold text-brand-strong hover:underline">Open guide <ArrowRight size={12} className="inline" /></a>
+              <a href="/docs/go" className="cursor-pointer text-xs font-semibold text-brand-strong hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand">Open guide <ArrowRight size={12} className="inline" /></a>
             </div>
             <p className="mt-1 text-xs leading-relaxed text-muted">
               Add bounded, fail-open telemetry at your Go MCP middleware or transport boundary. The guide includes source-package installation, flush, identity, and transport-failure examples.
@@ -4846,7 +4846,7 @@ function SetupView({
           <div className="border border-line bg-paper p-4">
             <div className="flex items-center justify-between gap-3">
               <p className="text-sm font-semibold text-ink">.NET server SDK</p>
-              <a href="/docs/dotnet" className="cursor-pointer text-xs font-semibold text-brand-strong hover:underline">Open guide <ArrowRight size={12} className="inline" /></a>
+              <a href="/docs/dotnet" className="cursor-pointer text-xs font-semibold text-brand-strong hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand">Open guide <ArrowRight size={12} className="inline" /></a>
             </div>
             <p className="mt-1 text-xs leading-relaxed text-muted">
               Instrument an ASP.NET or .NET MCP boundary with bounded, fail-open capture. The guide covers source-reference setup, flush, identity, and transport-failure handling.
@@ -4855,7 +4855,7 @@ function SetupView({
           <div className="border border-line bg-paper p-4">
             <div className="flex items-center justify-between gap-3">
               <p className="text-sm font-semibold text-ink">OpenTelemetry</p>
-              <a href="/docs/opentelemetry" className="cursor-pointer text-xs font-semibold text-brand-strong hover:underline">Open guide <ArrowRight size={12} className="inline" /></a>
+              <a href="/docs/opentelemetry" className="cursor-pointer text-xs font-semibold text-brand-strong hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand">Open guide <ArrowRight size={12} className="inline" /></a>
             </div>
             <p className="mt-1 text-xs leading-relaxed text-muted">
               TrackMCP provides a bounded, privacy-safe OTLP/HTTP JSON or protobuf receiver (gRPC is not enabled). Native SDK instrumentation remains the recommended path for complete MCP semantics; unsupported spans are reported rather than silently treated as successes.
@@ -4878,7 +4878,7 @@ function SetupView({
           <div className="border border-line bg-paper p-4">
             <div className="flex items-center justify-between gap-3">
               <p className="text-sm font-semibold text-ink">MCP server tester</p>
-              <a href="/tools/mcp-server-tester" className="cursor-pointer text-xs font-semibold text-brand-strong hover:underline">Open tester <ArrowRight size={12} className="inline" /></a>
+              <a href="/tools/mcp-server-tester" className="cursor-pointer text-xs font-semibold text-brand-strong hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand">Open tester <ArrowRight size={12} className="inline" /></a>
             </div>
             <p className="mt-1 text-xs leading-relaxed text-muted">
               Run a bounded, read-only discovery check against a reachable MCP endpoint. The tester does not replace SDK instrumentation or prove customer authorization.
@@ -4887,7 +4887,7 @@ function SetupView({
           <div className="border border-line bg-paper p-4">
             <div className="flex items-center justify-between gap-3">
               <p className="text-sm font-semibold text-ink">Authentication and OAuth</p>
-              <a href="/docs/authentication" className="cursor-pointer text-xs font-semibold text-brand-strong hover:underline">Open guide <ArrowRight size={12} className="inline" /></a>
+              <a href="/docs/authentication" className="cursor-pointer text-xs font-semibold text-brand-strong hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand">Open guide <ArrowRight size={12} className="inline" /></a>
             </div>
             <p className="mt-1 text-xs leading-relaxed text-muted">
               Keep dashboard sessions, telemetry keys, and customer MCP authorization separate. TrackMCP records bounded outcomes from your provider; it does not issue, exchange, or inspect OAuth tokens.
