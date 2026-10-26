@@ -15,9 +15,9 @@ direct-origin read-only production smoke, `/api/health` SHA verification, and
 runtime safety-flag audit. The redacted smoke artifact recorded 34 of 36
 checks; two credentialed checks were intentionally skipped because no
 production key was supplied. This closes the deployment-evidence gap for the
-current candidate; it does not close credentialed activation, key lifecycle,
-authenticated dashboard UAT, worker-SLO, rollback, or intentionally partial
-protocol gates.
+current candidate; it does not close credentialed ingest, key lifecycle,
+authenticated dashboard mutation, worker-SLO, rollback, or intentionally
+partial protocol gates.
 
 Historical baseline reference retained for audit continuity: application
 commit `2e135f194f36e278232c6a46890b1ce850d1e9ba` and App Runner run
@@ -50,6 +50,16 @@ The guarded write-gated key-lifecycle smoke [workflow
 completed its preflight but skipped mutations because disposable lifecycle
 cookie/workspace/key secrets were not configured. No production key was
 created, rotated, or revoked.
+
+The current-release authenticated read-only smoke [workflow
+40280160295](https://github.com/Krishna3956/CRV/actions/runs/40280160295)
+ran against the deployed `be963896...` release and completed successfully.
+Its redacted artifact `production-auth-smoke-be9638965383841ee7579ae9155c0162bb626495`
+contains 37 checks: both workspace key-status responses, conflicting-workspace
+resistance, every Founder OS v2 and legacy analytics read model, API-key Action
+Queue denials, and revoked-key rejection. This closes current-release
+read-only tenant-scope evidence; it does not perform ingest or key lifecycle
+mutation.
 
 ## Release identity
 
@@ -104,14 +114,15 @@ created, rotated, or revoked.
   SDK/documentation CTAs, identity-resolver guidance, privacy disclosures, and
   key lifecycle controls. No credentials, workspace IDs, or key values were
   recorded.
-- [x] Read-only authenticated tenant-scope smoke passed on 2026-10-25 against
-  `https://app.trackmcp.com` with disposable workspace credentials: 37 checks
-  covered both key-status responses, conflicting-workspace resistance, every
-  Founder OS v2 read model, legacy analytics/tool-quality/traces projections,
-  API-key denial for Action Queue mutations, and revoked-key rejection. The
-  redacted report is `/tmp/trackmcp-auth-smoke-2026-10-25.json`; it contains no
-  keys, workspace identifiers, or response bodies. This is deployed runtime
-  evidence for the observed candidate, not key lifecycle or ingest evidence.
+- [x] Current-release read-only authenticated tenant-scope smoke passed on
+  2026-10-26 in workflow `40280160295` against
+  `be9638965383841ee7579ae9155c0162bb626495`. Its redacted artifact
+  `production-auth-smoke-be9638965383841ee7579ae9155c0162bb626495` contains 37
+  checks covering both key-status responses, conflicting-workspace resistance,
+  every Founder OS v2 read model, legacy analytics/tool-quality/traces
+  projections, API-key denial for Action Queue mutations, and revoked-key
+  rejection. It contains no keys, workspace identifiers, or response bodies;
+  ingest and key lifecycle mutation remain separate gates.
 - [x] A bounded first-event smoke passed on 2026-10-25 against
   `https://app.trackmcp.com` using a disposable workspace key: one
   metadata-only event was accepted with HTTP 200 and the subsequent key-status
@@ -154,8 +165,8 @@ created, rotated, or revoked.
   deployed SHA. Its artifact is
   `production-smoke-be9638965383841ee7579ae9155c0162bb626495`; it records 34
   executed read-only checks and no secret, workspace identifier, or payload.
-  A credentialed authenticated smoke is still required for current-release
-  tenant/read-model evidence.
+  Current-release read-only tenant/read-model evidence is now recorded by
+  workflow `40280160295`; credentialed ingest and key lifecycle remain open.
 - [x] Historical disposable-workspace key-lifecycle evidence is retained in the
   readiness ledger, and the owner-dashboard rotation mutation is now evidenced
   on the current pilot account. The direct App Runner smoke returned HTTP 200
