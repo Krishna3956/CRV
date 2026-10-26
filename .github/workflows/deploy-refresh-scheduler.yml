@@ -16,7 +16,7 @@ on:
         required: true
         type: string
       worker_token_secret_arn:
-        description: Secrets Manager ARN containing the refresh bearer token
+        description: Secrets Manager ARN containing the JSON bundle with TRACKMCP_REFRESH_WORKER_SECRET
         required: true
         type: string
       enable_schedule:
@@ -73,7 +73,7 @@ jobs:
             exit 1
           fi
           if [[ ! "$WORKER_TOKEN_SECRET_ARN" =~ ^arn:aws:secretsmanager:[^:]+:[0-9]{12}:secret:.+ ]]; then
-            echo "::error::worker_token_secret_arn must be a Secrets Manager ARN."
+            echo "::error::worker_token_secret_arn must be a Secrets Manager ARN for the runtime JSON bundle."
             exit 1
           fi
           sam deploy \

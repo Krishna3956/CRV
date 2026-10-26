@@ -17,7 +17,7 @@ test("refresh scheduler deployment is manual, OIDC-authenticated, and disabled b
 test("refresh scheduler deployment validates HTTPS and Secrets Manager inputs", () => {
   assert.match(workflow, /worker_url must be an HTTPS URL/);
   assert.match(workflow, /worker_token_secret_arn must be a Secrets Manager ARN/);
-  assert.match(workflow, /Secrets Manager ARN containing the refresh bearer token/);
+  assert.match(workflow, /Secrets Manager ARN containing the JSON bundle with TRACKMCP_REFRESH_WORKER_SECRET/);
   assert.doesNotMatch(workflow, /TRACKMCP_REFRESH_WORKER_TOKEN\s*=/);
 });
 
