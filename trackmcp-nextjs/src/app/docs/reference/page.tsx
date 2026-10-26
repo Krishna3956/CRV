@@ -7,6 +7,7 @@ import {
   DocSection,
   Para,
   Inline,
+  DocsNextSteps,
 } from "@/components/DocsShell";
 
 export const metadata: Metadata = pageMeta({
@@ -64,6 +65,7 @@ export default function ReferenceDocsPage() {
         Every SDK option, the data captured on each call, and the metrics TrackMCP
         computes from it.
       </DocLead>
+      <DocsNextSteps nativeHref="/docs/typescript" />
 
       <DocSection title="SDK options">
         <div className="overflow-hidden rounded-xl border border-line">

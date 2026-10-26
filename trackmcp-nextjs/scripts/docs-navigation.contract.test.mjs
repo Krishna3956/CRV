@@ -10,6 +10,10 @@ const typescript = await readFile(path.join(appRoot, "src/app/docs/typescript/pa
 const python = await readFile(path.join(appRoot, "src/app/docs/python/page.tsx"), "utf8");
 const go = await readFile(path.join(appRoot, "src/app/docs/go/page.tsx"), "utf8");
 const dotnet = await readFile(path.join(appRoot, "src/app/docs/dotnet/page.tsx"), "utf8");
+const api = await readFile(path.join(appRoot, "src/app/docs/api/page.tsx"), "utf8");
+const reference = await readFile(path.join(appRoot, "src/app/docs/reference/page.tsx"), "utf8");
+const protocol = await readFile(path.join(appRoot, "src/app/docs/protocol/page.tsx"), "utf8");
+const authentication = await readFile(path.join(appRoot, "src/app/docs/authentication/page.tsx"), "utf8");
 
 const destinations = [...shell.matchAll(/href:\s*"([^"]+)"/g)].map((match) => match[1]);
 
@@ -79,6 +83,13 @@ test("every SDK guide exposes a direct Setup handoff", () => {
   assert.match(shell, /export function DocsNextSteps/);
   assert.match(shell, /dashboard\?view=setup/);
   assert.match(shell, /Documentation next steps/);
+});
+
+test("every integration and reference guide exposes a direct Setup handoff", () => {
+  assert.match(api, /DocsNextSteps nativeHref="\/docs\/reference"/);
+  assert.match(reference, /DocsNextSteps nativeHref="\/docs\/typescript"/);
+  assert.match(protocol, /DocsNextSteps nativeHref="\/docs\/typescript"/);
+  assert.match(authentication, /DocsNextSteps nativeHref="\/docs\/reference"/);
 });
 
 test("the shared wordmark cannot acquire a text-link border or underline", async () => {
