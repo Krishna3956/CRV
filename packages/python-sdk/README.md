@@ -56,6 +56,11 @@ friction metadata: returned value count (capped at 32), optional total
 and completion content are never queued; analytics uses these fields only to
 distinguish empty and partial responses.
 
+Catalog and protocol responses may also expose one-day-bounded
+`cache_ttl_ms` and `cache_scope` (`public`/`private`) hints. These are
+freshness/sharing metadata only; they do not grant authorization or promise
+cache invalidation.
+
 ```python
 import os
 from mcp.server.fastmcp import FastMCP

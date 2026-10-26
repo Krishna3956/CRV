@@ -70,6 +70,8 @@ def main() -> None:
                 {"uri": "secret://second-resource"},
             ],
             "nextCursor": "private-cursor",
+                "ttlMs": 60000,
+                "cacheScope": "private",
         }
         client.capture(
             {
@@ -144,6 +146,8 @@ def main() -> None:
         fail("protocol signal direction was not preserved")
     if events[1].get("catalog_kind") != "resources" or events[1].get("event_type") != "catalog":
         fail("catalog observation was not emitted")
+        if events[1].get("cache_ttl_ms") != 60000 or events[1].get("cache_scope") != "private":
+            fail("bounded cache hints were not emitted")
     if events[2].get("catalog_kind") != "resources" or events[2].get("mcp_method") != "resources/read" or events[2].get("catalog_item_count") != 1:
         fail("resource entity-read metadata was not emitted")
     if events[3].get("catalog_kind") != "prompts" or events[3].get("mcp_method") != "prompts/get" or events[3].get("result_type") != "complete":
