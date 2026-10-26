@@ -1,6 +1,6 @@
 # Founder OS 100 Customer Readiness Ledger
 
-Last updated: 2026-10-27 (main `be1445f`; deployed application `57f5643` and App Runner production/authenticated smoke verified)
+Last updated: 2026-10-27 (main `9a8b640`; deployed application `57f5643` and App Runner production/authenticated smoke verified)
 Latest freshness evidence: refresh-worker workflow `40381642702` on main
 commit `fff91da6576987f5d5259801d71b1e41f268a4bc` completed successfully;
 sustained scheduled-sample health is still an explicit open gate below.
@@ -46,6 +46,12 @@ and authenticated smoke `production-auth-smoke-57f56431317564c4789bbae0eb4e7bac9
   rehearsal was visible. No SQL, data query, or destructive operation was run.
 - [ ] Queue item 157 remains an infrastructure-owner gate requiring an
   explicitly accepted backup limitation or a tested recovery reference.
+
+## 2026-10-27 backup evidence release
+
+- [x] PR #585 merged as `9a8b64031b5767c6228c88b0a74020cd1b5dc289`. The fresh
+  Supabase backup/PITR inspection is now part of the authoritative external-gate
+  evidence rather than an untracked browser observation.
 
 ## 2026-10-27 disabled scheduler deployment evidence
 
