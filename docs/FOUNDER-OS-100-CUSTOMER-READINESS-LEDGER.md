@@ -1,16 +1,28 @@
 # Founder OS 100 Customer Readiness Ledger
 
-Last updated: 2026-10-26 (main `7c9edcda`; deployed application `7c9edcda` and App Runner production/authenticated smoke verified)
+Last updated: 2026-10-26 (main `e363c040`; deployed application `e363c040` and App Runner production smoke verified)
 Latest freshness evidence: sequence monitor workflow `40266407743` on main
 commit `59b7c1435358fbd6c00dce5bcb338089af49c310`.
 
 The deployed application is the runtime-verified App Runner release
-(`7c9edcda6ec5b313a38287d185d53f956b7d3be7`, workflow `40374059804`). The
+(`e363c040d608bd211565f904e882e9a13ac3bbdf`, workflow `40377139058`). The
 release gate, image binding, rollout, read-only production smoke, running
 identity, and runtime-safety audit all passed. Retained artifacts are
-`production-smoke-7c9edcda6ec5b313a38287d185d53f956b7d3be7` (`12674567499`),
-`runtime-flags-7c9edcda6ec5b313a38287d185d53f956b7d3be7` (`12673149173`), and
-`app-runner-host-7c9edcda6ec5b313a38287d185d53f956b7d3be7` (`12674607427`).
+`production-smoke-e363c040d608bd211565f904e882e9a13ac3bbdf` (`12675831061`),
+`runtime-flags-e363c040d608bd211565f904e882e9a13ac3bbdf` (`12675656464`), and
+`app-runner-host-e363c040d608bd211565f904e882e9a13ac3bbdf` (`12675283021`).
+
+## 2026-10-26 current published package-train smoke
+
+- [x] The current-release smoke artifact executed 34 of 36 bounded checks and
+  passed the registry checks for `@trackmcp/sdk@0.1.19`, `@trackmcp/cli@0.1.10`,
+  and `trackmcp==0.1.12`, including npm integrity/tarball-origin verification
+  and PyPI wheel/sdist digests.
+- [x] This evidence is attached to the exact deployed candidate
+  `e363c040d608bd211565f904e882e9a13ac3bbdf`; the smoke no longer validates
+  historical package versions by default.
+- [ ] Two credentialed checks remain intentionally skipped because no pilot key
+  was supplied: authenticated key-status and first-ingest/OTLP write smoke.
 
 ## 2026-10-26 current release smoke-retry reconciliation
 
