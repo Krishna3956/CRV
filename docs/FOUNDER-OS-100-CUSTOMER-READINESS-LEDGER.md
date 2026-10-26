@@ -1,6 +1,6 @@
 # Founder OS 100 Customer Readiness Ledger
 
-Last updated: 2026-10-27 (main `7a8d144`; deployed application `57f5643` and App Runner production/authenticated smoke verified)
+Last updated: 2026-10-27 (main `9230088`; deployed application `57f5643` and App Runner production/authenticated smoke verified)
 Latest freshness evidence: refresh-worker workflow `40381642702` on main
 commit `fff91da6576987f5d5259801d71b1e41f268a4bc` completed successfully;
 sustained scheduled-sample health is still an explicit open gate below.
@@ -1970,3 +1970,15 @@ a failed product gate or a Supabase plan warning.
   lifecycle persistence, and authenticated UAT. Those are external protocol
   and product decisions, not a safe local helper that can be added without
   changing the adapter’s privacy boundary; the rows remain explicitly Partial.
+
+## 2026-10-27 cross-language artifact validation checkpoint
+
+- [x] PR #591 merged as `7a8d144`. Hosted CI now runs `go vet ./...` and builds
+  a reviewed `.nupkg` with `dotnet pack` for the .NET SDK. The package metadata
+  is explicit and the artifact is validated without publishing it to NuGet.
+- [x] The PR’s Go, .NET, and web checks passed; local package workflow,
+  nonpublished-SDK, full release-gate (137 suites), lint, and 177-page build
+  checks passed before merge.
+- [ ] Go/.NET registry publication remains intentionally unclaimed and still
+  requires an approved release train, registry credentials, and publication
+  verification before it can be treated as a customer-facing package.
