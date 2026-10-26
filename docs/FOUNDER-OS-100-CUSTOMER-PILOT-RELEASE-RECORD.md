@@ -8,8 +8,8 @@ commit and the operator accepts the listed limitations.
 
 ## Current deployed baseline — 2026-10-26
 
-App Runner workflow `40357654944` successfully deployed immutable main commit
-`1639663c6b403648797aed02a2b74bc33ca09056`. The hosted release gate, image
+App Runner workflow `40365790289` successfully deployed immutable main commit
+`73d74fb36adf824b2b2cf53b07ece36e1a0302d4`. The hosted release gate, image
 binding, rollout wait, read-only production smoke, running-release identity
 verification, and runtime-safety audit passed. Retained artifacts are
 the redacted production-smoke, runtime-flags, and app-runner-host artifacts
@@ -241,8 +241,8 @@ the existing insufficient-evidence outcome rules.
 | --- | --- |
 | Pilot scope | First 100 customers, desktop dashboard boundary |
 | Production hosts | `trackmcp.com`, `app.trackmcp.com` |
-| Last deployed application commit | `1639663c6b403648797aed02a2b74bc33ca09056` (identity-verified current baseline) |
-| Last successful App Runner deployment | `40357654944` |
+| Last deployed application commit | `73d74fb36adf824b2b2cf53b07ece36e1a0302d4` (identity-verified current baseline) |
+| Last successful App Runner deployment | `40365790289` |
 | Readiness ledger | `docs/FOUNDER-OS-100-CUSTOMER-READINESS-LEDGER.md` |
 | Current release-record change | Current mainline reconciliation of deployed runtime and release-gate evidence |
 
@@ -315,7 +315,7 @@ the existing insufficient-evidence outcome rules.
 ## Open gates before GO
 
 - [x] The current deployed engineering baseline is identified as
-  `1639663c6b403648797aed02a2b74bc33ca09056`. App Runner run `40357654944`
+  `73d74fb36adf824b2b2cf53b07ece36e1a0302d4`. App Runner run `40365790289`
   passed the exact-SHA deployment-health wait, read-only production smoke,
   immutable runtime-identity check, runtime-safety audit, and redacted
   evidence uploads. This is engineering verification; it is not the
