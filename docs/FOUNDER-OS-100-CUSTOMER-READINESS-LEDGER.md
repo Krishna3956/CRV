@@ -1325,3 +1325,19 @@ a failed product gate or a Supabase plan warning.
   runtime-flags artifact `12635138813` were uploaded.
 - [ ] This closes setup discoverability, not the external pilot-owner,
   backup/PITR, privacy-acceptance, or sustained-worker-freshness gates.
+
+## 2026-10-26 visible OpenTelemetry setup checkpoint
+
+- [x] The primary Setup “Connect the server” panel now exposes a visible
+  OpenTelemetry setup-guide CTA. Collector users no longer need to expand the
+  secondary connection-methods section to find the OTLP path.
+- [x] Dashboard contracts passed 62/62, documentation navigation passed, the
+  local release gate passed 136 suites, lint passed, and the 177-route build
+  passed before merge.
+- [x] PR #508 merged as `523cd88d5d09919fc9d21bb59a076f4c5f9d7940` after all
+  hosted language checks passed. App Runner workflow `40290695604` completed
+  successfully on rerun; production smoke and runtime-flags evidence were
+  uploaded for the deployed SHA.
+- [ ] The first smoke attempt timed out and was rejected; the rerun passed.
+  Continue treating sustained worker freshness and external pilot-owner gates
+  as open until their own evidence is accepted.
