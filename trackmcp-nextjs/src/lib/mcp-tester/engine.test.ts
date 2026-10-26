@@ -287,9 +287,11 @@ test("modern 2026-07-28 requests use bounded discovery instead of a legacy hands
       const body = JSON.parse(String(init?.body));
       if (body.method === "server/discover") {
         assert.equal(new Headers(init?.headers).get("mcp-method"), "server/discover");
+        assert.deepEqual(body.params._meta, { "io.modelcontextprotocol/clientInfo": { name: "TrackMCP Tester", version: "1.0.0" }, "io.modelcontextprotocol/clientCapabilities": {} });
         return jsonRpc({ supportedVersions: ["2026-07-28"], serverInfo: { name: "Modern fixture", version: "1" }, capabilities: { tools: {}, resources: {}, prompts: {}, extensions: { "io.modelcontextprotocol/tasks": {} } } }, 1);
       }
       assert.equal(new Headers(init?.headers).get("mcp-method"), body.method);
+      assert.deepEqual(body.params._meta, { "io.modelcontextprotocol/clientInfo": { name: "TrackMCP Tester", version: "1.0.0" }, "io.modelcontextprotocol/clientCapabilities": {} });
       assert.notEqual(body.method, "tasks/list");
       assert.notEqual(body.method, "tasks/get");
       if (body.method === "tools/list") return jsonRpc({ tools: [{ name: "search", description: "bounded fixture", inputSchema: { type: "object", properties: {} } }], ttlMs: 60_000, cacheScope: "private" }, body.id);

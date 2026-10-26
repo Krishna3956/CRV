@@ -206,7 +206,8 @@ export async function runMcpTester(options: McpTesterOptions): Promise<McpTester
 
   if (options.protocolVersion === MODERN_MCP_PROTOCOL_VERSION) {
     const modernStart = beginPhase("modern_discover", record, now);
-    const discovery = await sendMcpRequest({ fetch: fetchImplementation, endpoint: endpointValidation.requestUrl, customHeaders: [...headerValidation.entries, ["mcp-method", "server/discover"]], protocolVersion: MODERN_MCP_PROTOCOL_VERSION, requestId: 1, body: { jsonrpc: "2.0", id: 1, method: "server/discover", params: {} }, expectsResponse: true, limits, deadlineMs: startedMs + limits.maxTotalDurationMs, signal: options.signal, now, record, phase: "modern_discover" });
+    const discoveryMeta = { "io.modelcontextprotocol/clientInfo": { name: state.clientName, version: state.clientVersion }, "io.modelcontextprotocol/clientCapabilities": {} };
+    const discovery = await sendMcpRequest({ fetch: fetchImplementation, endpoint: endpointValidation.requestUrl, customHeaders: [...headerValidation.entries, ["mcp-method", "server/discover"]], protocolVersion: MODERN_MCP_PROTOCOL_VERSION, requestId: 1, body: { jsonrpc: "2.0", id: 1, method: "server/discover", params: { _meta: discoveryMeta } }, expectsResponse: true, limits, deadlineMs: startedMs + limits.maxTotalDurationMs, signal: options.signal, now, record, phase: "modern_discover" });
     if (!discovery.ok) {
       addFinding("modern_discovery_failed", "protocol", "error", "The endpoint did not complete the bounded 2026-07-28 server/discover request.", "modern_discover");
       finishPhase("modern_discover", modernStart, "failed", record, phases, timings, now);
@@ -679,6 +680,22 @@ function assessCatalogQuality(state: ProbeState, addFinding: AddFinding): void {
 
 async function request(state: ProbeState, method: string, body: Record<string, unknown>, expectsResponse: boolean, phase: McpTesterPhase): Promise<TransportResult> {
   if (state.now() >= state.deadlineMs) return { ok: false, kind: "timeout", code: "total_duration_limit", responseReceived: false };
+  const isModern = state.protocolVersion === MODERN_MCP_PROTOCOL_VERSION || state.protocol?.negotiatedVersion === MODERN_MCP_PROTOCOL_VERSION;
+  const requestBody = isModern && isRecord(body.params)
+    ? {
+        ...body,
+        params: {
+          ...body.params,
+          _meta: {
+            ...(isRecord(body.params._meta) ? body.params._meta : {}),
+            "io.modelcontextprotocol/clientInfo": { name: state.clientName, version: state.clientVersion },
+            "io.modelcontextprotocol/clientCapabilities": isRecord(body.params._meta) && isRecord(body.params._meta["io.modelcontextprotocol/clientCapabilities"])
+              ? body.params._meta["io.modelcontextprotocol/clientCapabilities"]
+              : {},
+          },
+        },
+      }
+    : body;
   return sendMcpRequest({
     fetch: state.fetch,
     endpoint: state.endpoint.requestUrl,
@@ -686,7 +703,7 @@ async function request(state: ProbeState, method: string, body: Record<string, u
     sessionId: state.sessionId,
     protocolVersion: state.protocolPassed ? state.protocol?.negotiatedVersion : undefined,
     requestId: typeof body.id === "number" ? body.id : undefined,
-    body,
+    body: requestBody,
     expectsResponse,
     limits: state.limits,
     deadlineMs: state.deadlineMs,
