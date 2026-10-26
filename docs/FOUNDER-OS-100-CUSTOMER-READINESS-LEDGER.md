@@ -30,6 +30,16 @@ commit `59b7c1435358fbd6c00dce5bcb338089af49c310`.
   first-ingest milestone evidence; it does not claim business-workflow
   completion, CLI activation, or key rotation/revocation.
 
+## 2026-10-26 current key-lifecycle preflight
+
+- [x] Guarded workflow `40282004222` completed successfully through its
+  preflight and correctly skipped all mutations because the repository is
+  missing `TRACKMCP_LIFECYCLE_COOKIE`, `TRACKMCP_LIFECYCLE_WORKSPACE_ID`,
+  `TRACKMCP_LIFECYCLE_KEY_ID`, and `TRACKMCP_LIFECYCLE_KEY`.
+- [ ] Disposable create/use/rotate/revoke execution remains an external
+  operator-secret gate. No production key was created, rotated, revoked, or
+  written to artifacts by this run.
+
 ## 2026-10-26 cross-language capability deployment
 
 - [x] The deployment evidence reconciliation was squash-merged to `main` as

@@ -71,6 +71,14 @@ closes transport acceptance and the first-ingest milestone for the current
 release; CLI activation, business-workflow completion, and key lifecycle
 mutation remain separate gates.
 
+The current guarded key-lifecycle workflow
+[40282004222](https://github.com/Krishna3956/CRV/actions/runs/40282004222)
+completed its preflight and intentionally skipped mutations because the four
+dedicated disposable lifecycle secrets are not configured:
+`TRACKMCP_LIFECYCLE_COOKIE`, `TRACKMCP_LIFECYCLE_WORKSPACE_ID`,
+`TRACKMCP_LIFECYCLE_KEY_ID`, and `TRACKMCP_LIFECYCLE_KEY`. No production key
+was created, rotated, revoked, or written to an artifact.
+
 ## Release identity
 
 | Item | Verified value |
