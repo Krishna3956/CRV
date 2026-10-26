@@ -34,6 +34,19 @@ class TrackMCPClientTest(TestCase):
             self.assertNotIn("file:///private", json.dumps(payload))
             self.assertNotIn("debug", json.dumps(payload))
 
+    def test_roots_and_logging_capability_advertisements_are_bounded(self):
+        payload = _protocol_metadata_payload("initialize", {
+            "capabilities": {
+                "roots": {"listChanged": True},
+                "logging": {},
+                "unsafe key": {"token": "omit"},
+            },
+        })
+        serialized = json.dumps(payload)
+        self.assertEqual(payload["_trackmcp"]["capability_names"], "logging,roots")
+        self.assertNotIn("listChanged", serialized)
+        self.assertNotIn("omit", serialized)
+
     def test_wrapped_roots_and_logging_calls_are_metadata_only(self):
         class Server:
             def request(self, message):

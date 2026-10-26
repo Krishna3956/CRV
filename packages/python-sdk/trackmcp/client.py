@@ -5,6 +5,7 @@ import inspect
 import json
 import os
 import random
+import re
 import threading
 import time
 import urllib.request
@@ -260,6 +261,13 @@ def _protocol_metadata_payload(method: Optional[str], result: Any) -> Dict[str, 
     family = _protocol_family_for_method(method)
     if family:
         trackmcp["protocol_family"] = family
+    if method == "initialize" and isinstance(result, dict) and isinstance(result.get("capabilities"), dict):
+        names = sorted(
+            name for name in result["capabilities"]
+            if isinstance(name, str) and re.fullmatch(r"[A-Za-z][A-Za-z0-9_.-]{0,63}", name)
+        )[:32]
+        if names:
+            trackmcp["capability_names"] = ",".join(names)
     if method in ("resources/subscribe", "subscriptions/listen"):
         trackmcp["subscription_action"] = "subscription_started"
     elif method == "resources/unsubscribe":
