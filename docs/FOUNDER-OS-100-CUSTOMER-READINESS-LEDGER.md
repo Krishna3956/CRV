@@ -1,19 +1,34 @@
 # Founder OS 100 Customer Readiness Ledger
 
-Last updated: 2026-10-26 (main `fff91da`; deployed application `fff91da` and App Runner production/authenticated smoke verified)
+Last updated: 2026-10-26 (main `70af43e`; deployed application `70af43e` and App Runner production/authenticated smoke verified)
 Latest freshness evidence: refresh-worker workflow `40381642702` on main
 commit `fff91da6576987f5d5259801d71b1e41f268a4bc` completed successfully;
 sustained scheduled-sample health is still an explicit open gate below.
 
 The deployed application is the runtime-verified App Runner release
-(`fff91da6576987f5d5259801d71b1e41f268a4bc`, workflow `40381106003`). The
+(`70af43edcc8ed6af12204586a11039757878ff5c`, workflow `40389085910`). The
 release gate, image binding, rollout, read-only production smoke, running
 identity, and runtime-safety audit all passed. Retained artifacts are
-`production-smoke-fff91da6576987f5d5259801d71b1e41f268a4bc` (`12679241269`),
-`runtime-flags-fff91da6576987f5d5259801d71b1e41f268a4bc` (`12679491105`),
-`app-runner-host-fff91da6576987f5d5259801d71b1e41f268a4bc` (`12679181363`),
-and authenticated smoke `production-auth-smoke-fff91da6576987f5d5259801d71b1e41f268a4bc`
-(`12679162736`).
+`production-smoke-70af43edcc8ed6af12204586a11039757878ff5c` (`12680979594`),
+`runtime-flags-70af43edcc8ed6af12204586a11039757878ff5c` (`12682780626`),
+`app-runner-host-70af43edcc8ed6af12204586a11039757878ff5c` (`12683170008`),
+and authenticated smoke `production-auth-smoke-70af43edcc8ed6af12204586a11039757878ff5c`
+(`12683225656`).
+
+## 2026-10-26 authenticated smoke timeout and transient-502 reconciliation
+
+- [x] PR #569 merged as `70af43edcc8ed6af12204586a11039757878ff5c`. The
+  authenticated smoke now uses a bounded 20-second default timeout (configurable
+  only within 5–30 seconds) and retries timeout/network failures with a fresh
+  signal, while authorization and application responses remain fail-fast.
+- [x] The first post-deploy smoke completed all workspace-A checks and the first
+  workspace-B checks but ended on a transient HTTP 502 at `/api/v2/prompts`.
+  The failed artifact is retained as diagnostic evidence (`12681309725`); no
+  privacy or tenant assertion was weakened.
+- [x] The bounded rerun recovered and passed 37 authenticated checks for the
+  exact deployed SHA; authoritative artifact `12683225656` includes both
+  workspace read models, conflicting-workspace checks, action-queue denials,
+  and revoked-key rejection.
 
 ## 2026-10-26 active-claim and lifecycle-evidence reconciliation
 
