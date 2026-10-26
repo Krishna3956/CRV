@@ -13,7 +13,7 @@ verified in the target environment.
 export AWS_REGION=ap-south-1
 export STACK_NAME=trackmcp-refresh-scheduler-staging
 export WORKER_URL=https://staging.example.com/api/internal/refresh/run
-export WORKER_TOKEN_SECRET_ARN=arn:aws:secretsmanager:ap-south-1:123456789012:secret:trackmcp/refresh/worker
+export WORKER_TOKEN_SECRET_ARN=arn:aws:secretsmanager:ap-south-1:123456789012:secret:trackmcp/runtime
 export FAILURE_ALARM_TOPIC_ARN=''
 
 sam build --template-file template.yaml --build-dir .aws-sam/build
@@ -39,5 +39,7 @@ Before enabling the schedule:
    freshness budget before widening the pilot.
 
 The IAM role created by this template is limited to invoking this Lambda and
-writing failed scheduler deliveries to its own DLQ. The Lambda receives the
-refresh token through a Secrets Manager dynamic reference.
+writing failed scheduler deliveries to its own DLQ. The Lambda receives only
+the `TRACKMCP_REFRESH_WORKER_SECRET` field from the JSON secret bundle through
+an AWS Secrets Manager dynamic reference; the bundle and token are never
+written to CloudFormation outputs or logs.

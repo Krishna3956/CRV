@@ -8,7 +8,7 @@ Parameters:
     AllowedPattern: '^https://[^ ]+$'
   WorkerTokenSecretArn:
     Type: String
-    Description: Secrets Manager ARN containing the App Runner refresh token as SecretString.
+    Description: Secrets Manager ARN containing the JSON bundle with TRACKMCP_REFRESH_WORKER_SECRET.
   EnableSchedule:
     Type: String
     Default: 'false'
@@ -34,7 +34,7 @@ Resources:
       Environment:
         Variables:
           TRACKMCP_REFRESH_WORKER_URL: !Ref WorkerUrl
-          TRACKMCP_REFRESH_WORKER_TOKEN: !Sub '{{resolve:secretsmanager:${WorkerTokenSecretArn}:SecretString}}'
+          TRACKMCP_REFRESH_WORKER_TOKEN: !Sub '{{resolve:secretsmanager:${WorkerTokenSecretArn}:SecretString:TRACKMCP_REFRESH_WORKER_SECRET}}'
 
   RefreshSchedulerInvokeRole:
     Type: AWS::IAM::Role
