@@ -30,6 +30,16 @@ commit `59b7c1435358fbd6c00dce5bcb338089af49c310`.
   `schedule_cadence_gap`; this is current evidence that the worker path is
   functional but not within the pilot freshness SLO.
 
+## 2026-10-26 key-lifecycle gate preflight
+
+- [x] Write-gated lifecycle workflow `40318987100` completed successfully.
+  Checkout, dependency installation, and the safety preflight all passed.
+- [x] The lifecycle mutation step was explicitly skipped because the four
+  dedicated disposable lifecycle secrets are not configured; no key was
+  created, rotated, or revoked and no production mutation occurred.
+- [ ] Key create/rotate/revoke remains an external credential gate. The
+  successful workflow is preflight evidence only, not lifecycle UAT.
+
 ## 2026-10-26 disposable first-ingest production UAT
 
 - [x] The guarded first-ingest workflow `40316460050` sent exactly one bounded

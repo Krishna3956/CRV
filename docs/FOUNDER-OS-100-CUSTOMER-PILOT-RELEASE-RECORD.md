@@ -33,6 +33,11 @@ guidance; dashboard privacy boundaries, insufficient-data states, synthetic
 incident labeling, and unknown outcomes were visible as documented. This is
 presentation/navigation evidence only and does not close write-gated lifecycle,
 worker-freshness, or release-owner gates.
+
+The current write-gated lifecycle preflight `40318987100` also completed
+successfully, but its disposable mutation step was skipped because the four
+dedicated lifecycle secrets are not configured. No production key was created,
+rotated, or revoked; lifecycle UAT remains an external credential gate.
 The prior App Runner workflow `40307943718` completed successfully; the
 first rollout smoke saw a transient root HTTP 503 and was not accepted. The
 successful rerun uploaded production smoke artifact `12632674955` and
