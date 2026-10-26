@@ -3,6 +3,7 @@ import { readFile } from "node:fs/promises";
 import test from "node:test";
 
 const workflow = await readFile(new URL("../../.github/workflows/deploy-refresh-scheduler.yml", import.meta.url), "utf8");
+const readme = await readFile(new URL("../workers/refresh-scheduler/README.md", import.meta.url), "utf8");
 
 test("refresh scheduler deployment is manual, OIDC-authenticated, and disabled by default", () => {
   assert.match(workflow, /workflow_dispatch:/);
@@ -31,4 +32,10 @@ test("refresh scheduler deployment reports only CloudFormation status metadata",
   assert.match(workflow, /ResourceStatus/);
   assert.match(workflow, /PhysicalResourceId/);
   assert.doesNotMatch(workflow, /get-secret-value|SecretString|response body/i);
+});
+
+test("refresh scheduler refuses a plain-text App Runner worker token", () => {
+  assert.match(readme, /does not accept a plain-text App Runner value/);
+    assert.match(readme, /Secrets\s+Manager reference/);
+    assert.match(readme, /do not paste\s+the token/);
 });

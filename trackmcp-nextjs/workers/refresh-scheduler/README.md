@@ -15,6 +15,15 @@ configurations redact runtime secret mappings from `describe-service`; in that
 case provide only the non-sensitive Secrets Manager ARN through the workflow's
 optional `worker_token_secret_arn` input.
 
+The scheduler does not accept a plain-text App Runner value for this variable.
+Before dispatching the workflow, open App Runner → Configuration → Runtime
+environment variables and change `TRACKMCP_REFRESH_WORKER_SECRET` to a Secrets
+Manager reference. The reference must resolve to a JSON secret field named
+`TRACKMCP_REFRESH_WORKER_SECRET`; do not paste the token into the workflow
+input, source tree, CloudFormation parameters, or logs. If App Runner redacts
+the reference during discovery, pass only the non-sensitive secret ARN as
+`worker_token_secret_arn`.
+
 ```bash
 export AWS_REGION=ap-south-1
 export STACK_NAME=trackmcp-refresh-scheduler-staging
