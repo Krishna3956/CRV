@@ -62,6 +62,13 @@ production transport UAT.
   403, and a revoked key returned 401. This closes the read-only tenant-
   isolation smoke, not first-ingest/activation or worker/SLO evidence.
 
+- 2026-10-26: Refresh workflow `40261716029` drained 28 queued jobs with
+  28 successes, no retries/failures/timeouts, and max attempt count 1, but
+  observed a stale 6,058,024 ms queue lag against the 900,000 ms freshness
+  budget. Immediate follow-up workflow `40261789193` found no backlog. This is
+  evidence of a drainable backlog and healthy worker execution, not sustained
+  freshness-SLO proof; cadence/alerting evidence remains open.
+
 - 2026-10-24: Go and .NET server SDKs now accept an explicit, allowlisted
   caller-verified transport label (`stdio`, `streamable_http`, `sse`, or
   `custom`) for transport failure observations. The label is bounded metadata;
