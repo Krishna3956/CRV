@@ -37,7 +37,7 @@ import type {
   ToolQualityInsufficientReason,
   ToolQualityResponse,
 } from "@/lib/telemetry/analytics-types";
-import type { AlertIncident } from "@/lib/alerts/types";
+import type { AlertDeliveryAttempt, AlertIncident } from "@/lib/alerts/types";
 import { TrackMCPLogo } from "@/components/TrackMCPLogo";
 import { TraceExplorer } from "@/components/dashboard/TraceExplorer";
 import {
@@ -4025,7 +4025,7 @@ function EvidenceView({
       />
       <DataSourceStrip dataMode={dataMode} hasMyData={hasMyData} view="evidence" />
       {incident && (
-        <IncidentEvidence incident={incident} onBack={() => onViewChange("issues")} />
+        <IncidentEvidence incident={incident} example={dataMode === "example"} onBack={() => onViewChange("issues")} />
       )}
       <Panel
         title="Observed sessions"
@@ -4107,11 +4107,41 @@ function EvidenceView({
 
 function IncidentEvidence({
   incident,
+  example = false,
   onBack,
 }: {
   incident: AlertIncident;
+  example?: boolean;
   onBack: () => void;
 }) {
+  const [deliveries, setDeliveries] = useState<AlertDeliveryAttempt[]>([]);
+  const [deliveryState, setDeliveryState] = useState<"idle" | "loading" | "ready" | "unavailable">(example ? "unavailable" : "idle");
+
+  useEffect(() => {
+    if (example) return;
+    const controller = new AbortController();
+    queueMicrotask(() => {
+      if (!controller.signal.aborted) setDeliveryState("loading");
+    });
+    fetch(`/api/v1/alert-incidents/${encodeURIComponent(incident.id)}/deliveries?limit=20`, {
+      credentials: "same-origin",
+      headers: { Accept: "application/json" },
+      signal: controller.signal,
+    }).then(async (response) => {
+      if (!response.ok) throw new Error("delivery attempts unavailable");
+      const body: unknown = await response.json();
+      const rows = isRecord(body) && Array.isArray(body.data) ? body.data.filter(isRecord) as AlertDeliveryAttempt[] : [];
+      setDeliveries(rows);
+      setDeliveryState("ready");
+    }).catch(() => {
+      if (!controller.signal.aborted) {
+        setDeliveries([]);
+        setDeliveryState("unavailable");
+      }
+    });
+    return () => controller.abort();
+  }, [example, incident.id]);
+
   return (
     <Panel
       title="Incident evidence"
@@ -4170,6 +4200,18 @@ function IncidentEvidence({
         unbounded JSON are not displayed. Notification delivery is shown only
         when the incident response provides it.
       </p>
+      <details className="mt-4 border-t border-line pt-3">
+        <summary className="cursor-pointer text-xs font-semibold text-brand-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand">
+          Notification attempts <span className="ml-1 font-normal text-faint">· bounded, redacted delivery metadata</span>
+        </summary>
+        <div className="mt-3">
+          {deliveryState === "loading" && <p className="text-xs text-muted">Loading delivery attempts…</p>}
+          {deliveryState === "unavailable" && <p className="text-xs text-muted">Delivery attempts are unavailable for this incident or sample data.</p>}
+          {deliveryState === "ready" && !deliveries.length && <p className="text-xs text-muted">No delivery attempts are recorded for this incident.</p>}
+          {deliveries.length > 0 && <div className="overflow-x-auto"><table className="w-full min-w-[560px] text-left text-xs"><thead className="border-b border-line text-[10px] uppercase tracking-[0.08em] text-faint"><tr><th className="pb-2">State</th><th className="pb-2">Attempt</th><th className="pb-2">HTTP</th><th className="pb-2">Started</th><th className="pb-2">Finished</th></tr></thead><tbody className="divide-y divide-line">{deliveries.map((delivery) => <tr key={delivery.id}><td className="py-2 font-medium text-ink">{delivery.state.replaceAll("_", " ")}</td><td className="py-2 text-muted">{delivery.attempt_number}</td><td className="py-2 text-muted">{delivery.http_status ?? "N/A"}</td><td className="py-2 text-muted">{incidentDateLabel(delivery.started_at)}</td><td className="py-2 text-muted">{incidentDateLabel(delivery.finished_at)}</td></tr>)}</tbody></table></div>}
+          <p className="mt-3 text-[11px] text-faint">Destination identifiers, webhook secrets, error text, and delivery payloads are never shown.</p>
+        </div>
+      </details>
     </Panel>
   );
 }

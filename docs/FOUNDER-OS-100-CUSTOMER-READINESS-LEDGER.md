@@ -59,6 +59,19 @@ commit `59b7c1435358fbd6c00dce5bcb338089af49c310`.
   rejection of overlong ranges; lint, dashboard contracts, and analytics/tool
   quality integration tests pass.
 
+## 2026-10-26 bounded alert-delivery evidence
+
+- [x] Evidence now exposes a lazy-loaded notification-attempt table for an
+  authenticated incident via the existing workspace-scoped delivery endpoint.
+  It reports only bounded state, attempt number, HTTP status, and timestamps;
+  destination identifiers, secrets, error text, and payloads remain hidden.
+- [x] Example incidents never call the authenticated endpoint and show an
+  explicit unavailable state. Loading, empty, and unavailable states remain
+  visible rather than implying delivery success.
+- [x] Lint, dashboard contracts, and the production build pass. This closes
+  the UI gap only; it does not claim that a notification was delivered when
+  the API has no corresponding attempt.
+
 ## 2026-10-26 current-main release-gate verification
 
 - [x] Current merged main `c7a36e6b2af66f3389fcf5e46c59574e53c35b43` passed
