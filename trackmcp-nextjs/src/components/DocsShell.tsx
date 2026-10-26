@@ -146,6 +146,25 @@ export function DocLead({ children }: { children: ReactNode }) {
   return <p className="mt-4 text-[16.5px] leading-[1.6] text-muted">{children}</p>;
 }
 
+export function DocsNextSteps({ nativeHref }: { nativeHref: string }) {
+  return (
+    <div className="mt-5 flex flex-wrap gap-3" aria-label="Documentation next steps">
+      <a
+        href="https://app.trackmcp.com/dashboard?view=setup"
+        className="inline-flex cursor-pointer items-center rounded-lg bg-brand px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-brand-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2"
+      >
+        Open Dashboard Setup
+      </a>
+      <a
+        href={nativeHref}
+        className="inline-flex cursor-pointer items-center rounded-lg border border-line bg-white px-4 py-2 text-sm font-semibold text-brand-strong transition hover:border-line-strong hover:bg-mist focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2"
+      >
+        View integration reference
+      </a>
+    </div>
+  );
+}
+
 export function DocSection({ id, title, children }: { id?: string; title: string; children: ReactNode }) {
   return (
     <section id={id} className="mt-12 scroll-mt-24">

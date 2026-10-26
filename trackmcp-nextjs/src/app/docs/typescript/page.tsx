@@ -8,6 +8,7 @@ import {
   Para,
   Code,
   Inline,
+  DocsNextSteps,
 } from "@/components/DocsShell";
 
 export const metadata: Metadata = pageMeta({
@@ -26,6 +27,7 @@ export default function TypeScriptDocsPage() {
         bounded server-side tool, session, result, and client observations. Works
         with Node 18+ and any transport.
       </DocLead>
+      <DocsNextSteps nativeHref="/docs/reference" />
 
       <DocSection title="Install">
         <Para>

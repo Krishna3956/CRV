@@ -8,6 +8,7 @@ import {
   Para,
   Code,
   Inline,
+  DocsNextSteps,
 } from "@/components/DocsShell";
 
 export const metadata: Metadata = pageMeta({
@@ -26,6 +27,7 @@ export default function PythonDocsPage() {
         boundary to capture bounded tool, session, catalog, and client observations.
         It works with Python 3.9+ and the official MCP SDK.
       </DocLead>
+      <DocsNextSteps nativeHref="/docs/reference" />
 
       <DocSection title="Install">
         <Para>
