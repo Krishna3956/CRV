@@ -1,0 +1,59 @@
+name: Production first-ingest smoke
+
+on:
+  workflow_dispatch:
+    inputs:
+      base_url:
+        description: "Credential-free HTTPS origin (default: https://app.trackmcp.com)"
+        required: false
+        default: "https://app.trackmcp.com"
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      TRACKMCP_INGEST_SMOKE_BASE_URL: ${{ inputs.base_url || 'https://app.trackmcp.com' }}
+      TRACKMCP_INGEST_SMOKE_KEY: ${{ secrets.TRACKMCP_INGEST_SMOKE_KEY }}
+      TRACKMCP_INGEST_SMOKE_CONFIRM: I_UNDERSTAND_FIRST_INGEST_SMOKE
+      TRACKMCP_INGEST_SMOKE_SERVICE: pilot-ingest-smoke
+      TRACKMCP_INGEST_SMOKE_ENVIRONMENT: production
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: trackmcp-nextjs/package-lock.json
+      - name: Install dependencies
+        working-directory: trackmcp-nextjs
+        run: npm ci
+      - name: Check first-ingest input
+        id: configured
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ -z "${TRACKMCP_INGEST_SMOKE_KEY:-}" ]]; then
+            echo "configured=false" >> "$GITHUB_OUTPUT"
+            echo "First-ingest smoke skipped; TRACKMCP_INGEST_SMOKE_KEY is not configured." | tee -a "$GITHUB_STEP_SUMMARY"
+          else
+            echo "configured=true" >> "$GITHUB_OUTPUT"
+            echo "Disposable first-ingest key is configured; write-gated smoke will run." >> "$GITHUB_STEP_SUMMARY"
+          fi
+      - name: Run disposable first-ingest smoke
+        if: steps.configured.outputs.configured == 'true'
+        working-directory: trackmcp-nextjs
+        env:
+          TRACKMCP_INGEST_SMOKE_REPORT: ${{ runner.temp }}/trackmcp-production-ingest-smoke.json
+        run: node scripts/production-ingest-smoke.mjs
+      - name: Upload redacted first-ingest evidence
+        if: always() && steps.configured.outputs.configured == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: production-ingest-${{ github.sha }}
+          path: ${{ runner.temp }}/trackmcp-production-ingest-smoke.json
+          if-no-files-found: warn
