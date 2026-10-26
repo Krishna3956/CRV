@@ -1,0 +1,102 @@
+name: Deploy refresh scheduler
+
+# This path is deliberately manual and disabled by default. It creates the
+# scheduler infrastructure only after an operator supplies the endpoint and
+# secret ARN; the schedule itself remains disabled until enable_schedule=true.
+on:
+  workflow_dispatch:
+    inputs:
+      stack_name:
+        description: CloudFormation stack name
+        required: true
+        default: trackmcp-refresh-scheduler
+        type: string
+      worker_url:
+        description: HTTPS internal refresh endpoint URL
+        required: true
+        type: string
+      worker_token_secret_arn:
+        description: Secrets Manager ARN containing the refresh bearer token
+        required: true
+        type: string
+      enable_schedule:
+        description: Enable the five-minute schedule after deployment (keep false for first deployment)
+        required: true
+        default: false
+        type: boolean
+      failure_alarm_topic_arn:
+        description: Optional SNS topic ARN for failure alarms
+        required: false
+        default: ''
+        type: string
+
+permissions:
+  id-token: write
+  contents: read
+
+env:
+  AWS_REGION: ap-south-1
+  ROLE_ARN: arn:aws:iam::872575360367:role/GitHubActionsDeployRole
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure AWS credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ env.ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Install SAM CLI
+        uses: aws-actions/setup-sam@v2
+
+      - name: Build scheduler template
+        working-directory: trackmcp-nextjs/workers/refresh-scheduler
+        run: sam build --template-file template.yaml --build-dir .aws-sam/build
+
+      - name: Deploy scheduler stack
+        working-directory: trackmcp-nextjs/workers/refresh-scheduler
+        env:
+          STACK_NAME: ${{ inputs.stack_name }}
+          WORKER_URL: ${{ inputs.worker_url }}
+          WORKER_TOKEN_SECRET_ARN: ${{ inputs.worker_token_secret_arn }}
+          ENABLE_SCHEDULE: ${{ inputs.enable_schedule }}
+          FAILURE_ALARM_TOPIC_ARN: ${{ inputs.failure_alarm_topic_arn }}
+        run: |
+          set -euo pipefail
+          if [[ ! "$WORKER_URL" =~ ^https://[^[:space:]]+$ ]]; then
+            echo "::error::worker_url must be an HTTPS URL."
+            exit 1
+          fi
+          if [[ ! "$WORKER_TOKEN_SECRET_ARN" =~ ^arn:aws:secretsmanager:[^:]+:[0-9]{12}:secret:.+ ]]; then
+            echo "::error::worker_token_secret_arn must be a Secrets Manager ARN."
+            exit 1
+          fi
+          sam deploy \
+            --template-file .aws-sam/build/template.yaml \
+            --stack-name "$STACK_NAME" \
+            --region "$AWS_REGION" \
+            --capabilities CAPABILITY_IAM \
+            --no-confirm-changeset \
+            --no-fail-on-empty-changeset \
+            --resolve-s3 \
+            --parameter-overrides \
+              WorkerUrl="$WORKER_URL" \
+              WorkerTokenSecretArn="$WORKER_TOKEN_SECRET_ARN" \
+              EnableSchedule="$ENABLE_SCHEDULE" \
+              FailureAlarmTopicArn="$FAILURE_ALARM_TOPIC_ARN"
+
+      - name: Report schedule state without secret material
+        env:
+          STACK_NAME: ${{ inputs.stack_name }}
+        run: |
+          set -euo pipefail
+          aws cloudformation describe-stack-resources \
+            --stack-name "$STACK_NAME" \
+            --region "$AWS_REGION" \
+            --query 'StackResourceSummaries[?LogicalResourceId==`RefreshSchedulerSchedule`].{Status:ResourceStatus,PhysicalId:PhysicalResourceId}' \
+            --output json

@@ -73,6 +73,7 @@
     "test:refresh-worker-workflow": "node --test scripts/refresh-worker-workflow.contract.test.mjs",
     "test:refresh-worker-health": "node --test scripts/refresh-worker-health-report.test.mjs",
     "test:refresh-worker-health-workflow": "node --test scripts/refresh-worker-health-workflow.contract.test.mjs",
+    "test:refresh-scheduler-workflow": "node --test scripts/refresh-scheduler-workflow.contract.test.mjs",
     "test:release-gate": "node scripts/release-gate.mjs",
     "test:production-ingest-smoke": "node --test scripts/production-ingest-smoke.test.mjs",
     "test:production-ingest-workflow": "node --test scripts/production-ingest-workflow.contract.test.mjs",
