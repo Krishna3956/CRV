@@ -531,9 +531,9 @@ a failed product gate or a Supabase plan warning.
   smoke, and runtime-safety audit in run `39752177226` (12m37s). The later
   ledger-only commit does not change application code and did not require a
   second deployment.
-- [ ] The next coordinated package train remains undispatched. Existing npm,
-  PyPI, and CLI versions are unchanged; registry authentication and explicit
-  release-owner approval remain external publication gates.
+- [x] The coordinated package train is dispatched and registry-verified. The
+  next train is intentionally undispatched until another reviewed SDK/API
+  change is ready; no package is to be republished merely for documentation.
 
 - [x] Local public-surface audits now pass for all documented CTA destinations,
   docs navigation, published-version claims, non-published Go/.NET package
