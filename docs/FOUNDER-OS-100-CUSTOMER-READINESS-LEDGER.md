@@ -7,7 +7,7 @@ commit `59b7c1435358fbd6c00dce5bcb338089af49c310`.
 ## 2026-10-26 final local release-gate rerun
 
 - [x] The current main checkout passed the complete `npm run
-  test:release-gate` with 132 suites passing. The gate includes accessibility
+  test:release-gate` with 134 suites passing. The gate includes accessibility
   pointer affordances, docs navigation/version parity, tenant isolation,
   Founder OS v2 read models, OTLP JSON/protobuf, transport observers, package
   consumer tests, key/device flows, worker health, and release workflow
@@ -30,7 +30,7 @@ commit `59b7c1435358fbd6c00dce5bcb338089af49c310`.
   workflow warning without turning a safely drainable run into a false worker
   failure.
 - [x] The workflow contract test covers the alert field, step summary, and
-  warning path. Lint, the 177-route production build, and the full 132-suite
+  warning path. Lint, the 177-route production build, and the full 134-suite
   release gate passed locally.
 - [ ] Repeated scheduled runs within the freshness budget are still required
   before claiming a sustained production SLO; alerting implementation does not
@@ -156,7 +156,7 @@ unavailable; neither mode is presented as stronger than its evidence.
 PR #405 recorded the final IAM shape and live workflow evidence. The later
 readiness-ledger reconciliations merged through the terminal PR flow; hosted
 checks passed and the current checkout passed lint, the 176-route production
-build, and the complete 132-suite release gate. Immutable deployed SHAs remain
+build, and the complete 134-suite release gate. Immutable deployed SHAs remain
 in the release record, while this operational ledger stays branch-relative.
 These checks do not close the remaining backup/restore and release-owner
 decision gates.
