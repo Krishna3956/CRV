@@ -1,8 +1,29 @@
 # Founder OS 100 Customer Readiness Ledger
 
-Last updated: 2026-10-26 (main `693d190`; local release gate rerun)
+Last updated: 2026-10-26 (main `a27dd42`; App Runner deployment and production smoke verified)
 Latest freshness evidence: sequence monitor workflow `40266407743` on main
 commit `59b7c1435358fbd6c00dce5bcb338089af49c310`.
+
+## 2026-10-26 merged-main deployment verification
+
+- [x] Manual deployment workflow `40272787491` deployed immutable main
+  `a27dd42540218ea7f8610a563a4770059f7b72d0` to App Runner and completed
+  successfully. The workflow passed the release gate, image digest binding,
+  App Runner rollout/readiness, and runtime identity check.
+- [x] The redacted production smoke artifact
+  `production-smoke-a27dd42540218ea7f8610a563a4770059f7b72d0` records 34 of
+  36 checks executed successfully against the direct App Runner origin. It
+  verified the public docs/routes, security headers, immutable `release_sha`,
+  public claim boundaries, sitemap, registry metadata, and unauthenticated
+  authorization boundaries. Two credentialed checks were intentionally skipped
+  because no production key was supplied.
+- [x] The deployed image digest was recorded as
+  `sha256:4cd908fa256f82c93259b3b8c0e81a59be9f43d1c7903c913eaaa66b89aeb0ab`.
+  Runtime flags reported `TRACKMCP_RATE_LIMIT_MODE=supabase` and
+  `TRACKMCP_ENABLE_FACT_WRITES=false`.
+- [ ] Credentialed CLI activation, key rotation/revocation, authenticated
+  dashboard UAT, and sustained worker freshness remain separate open gates;
+  this deployment evidence does not claim them complete.
 
 ## 2026-10-26 cross-language SDK roots/logging parity checkpoint
 
