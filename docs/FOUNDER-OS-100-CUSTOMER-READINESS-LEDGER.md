@@ -1,6 +1,6 @@
 # Founder OS 100 Customer Readiness Ledger
 
-Last updated: 2026-10-27 (main `d5efd74`; deployed application `57f5643` and App Runner production/authenticated smoke verified)
+Last updated: 2026-10-27 (main `be1445f`; deployed application `57f5643` and App Runner production/authenticated smoke verified)
 Latest freshness evidence: refresh-worker workflow `40381642702` on main
 commit `fff91da6576987f5d5259801d71b1e41f268a4bc` completed successfully;
 sustained scheduled-sample health is still an explicit open gate below.
@@ -31,6 +31,12 @@ and authenticated smoke `production-auth-smoke-57f56431317564c4789bbae0eb4e7bac9
   checks the current deployed SHA, App Runner run, authenticated artifact, and
   scheduler evidence instead of matching historical IDs elsewhere in the docs.
 - [x] The full 137-suite release gate, lint, and hosted Go/.NET/web checks passed.
+
+## 2026-10-27 active-evidence contract release
+
+- [x] PR #583 merged as `be1445fd336992a6ad9d620222bc803e36dacf7b`. The ledger
+  now records the active-evidence contract milestone separately from the
+  runtime-verified application release.
 
 ## 2026-10-27 disabled scheduler deployment evidence
 
