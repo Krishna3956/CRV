@@ -8,6 +8,8 @@ const read = (file) => fs.readFileSync(path.join(root, file), "utf8");
 const css = read("src/app/globals.css");
 const device = read("src/components/DeviceApprovalClient.tsx");
 const dashboard = read("src/components/dashboard/IntegrationChecklist.tsx");
+const docsShell = read("src/components/DocsShell.tsx");
+const tester = read("src/components/mcp-tester/McpTesterApp.tsx");
 const logo = read("src/components/TrackMCPLogo.tsx");
 
 test("primary pilot flows retain keyboard focus and reduced-motion contracts", () => {
@@ -36,4 +38,12 @@ test("accessibility audit does not hide focus or use inaccessible placeholder co
 
 test("all navigable links expose the pointer affordance", () => {
   assert.match(css, /button:not\(:disabled\),\s*\[href\],\s*\[role="button"\],\s*summary\s*\{[\s\S]*cursor:\s*pointer/);
+});
+
+test("docs, onboarding, and MCP tester controls expose visible focus rings", () => {
+  for (const source of [docsShell, dashboard, tester]) {
+    const interactiveTags = [...source.matchAll(/<(?:a|button|summary)\b[^>]*cursor-pointer[^>]*>/g)].map(([tag]) => tag);
+    assert.ok(interactiveTags.length > 0);
+    for (const tag of interactiveTags) assert.match(tag, /focus-visible:ring-2/, `interactive control lacks a focus ring: ${tag}`);
+  }
 });
