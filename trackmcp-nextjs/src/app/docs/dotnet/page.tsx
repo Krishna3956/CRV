@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { pageMeta } from "@/lib/seo";
-import { DocsShell, DocTitle, DocLead, DocSection, Para, Code, Inline } from "@/components/DocsShell";
+import { DocsShell, DocTitle, DocLead, DocSection, Para, Code, Inline, DocsNextSteps } from "@/components/DocsShell";
 
 export const metadata: Metadata = pageMeta({
   title: ".NET SDK | TrackMCP Docs",
@@ -12,6 +12,7 @@ export default function DotnetDocsPage() {
   return <DocsShell active="/docs/dotnet">
     <DocTitle eyebrow="SDKs">.NET SDK</DocTitle>
     <DocLead>The .NET package provides transport-neutral, fail-open telemetry primitives for ASP.NET and .NET MCP servers. Capture at your middleware boundary and flush during graceful shutdown.</DocLead>
+    <DocsNextSteps nativeHref="/docs/reference" />
     <DocSection title="Install">
       <Para>The .NET SDK is currently a reviewed source package in this repository; it is not advertised as a separately published NuGet release yet. Add a project reference from your pinned checkout and keep <Inline>TRACKMCP_KEY</Inline> in your server secret store.</Para>
       <Code>{`dotnet add reference ../../trackmcp-nextjs/packages/dotnet-sdk/TrackMcp.csproj`}</Code>

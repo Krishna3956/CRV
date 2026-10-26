@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { pageMeta } from "@/lib/seo";
-import { DocsShell, DocTitle, DocLead, DocSection, Para, Code, Inline } from "@/components/DocsShell";
+import { DocsShell, DocTitle, DocLead, DocSection, Para, Code, Inline, DocsNextSteps } from "@/components/DocsShell";
 
 export const metadata: Metadata = pageMeta({
   title: "Go SDK | TrackMCP Docs",
@@ -12,6 +12,7 @@ export default function GoDocsPage() {
   return <DocsShell active="/docs/go">
     <DocTitle eyebrow="SDKs">Go SDK</DocTitle>
     <DocLead>The Go package provides transport-neutral, fail-open telemetry primitives for MCP servers. Capture at the server or transport boundary and flush during graceful shutdown.</DocLead>
+    <DocsNextSteps nativeHref="/docs/reference" />
     <DocSection title="Install">
       <Para>The Go SDK is currently a reviewed source package in this repository; it is not advertised as a separately published registry release yet. Add the package from your pinned repository checkout and keep <Inline>TRACKMCP_KEY</Inline> in your process environment.</Para>
       <Code>{`// From your pinned TrackMCP checkout:\ngo mod edit -replace github.com/trackmcp/trackmcp-go=../../trackmcp-nextjs/packages/go-sdk\ngo mod tidy`}</Code>

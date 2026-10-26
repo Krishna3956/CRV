@@ -7,6 +7,9 @@ const appRoot = path.resolve(new URL("..", import.meta.url).pathname);
 const shell = await readFile(path.join(appRoot, "src/components/DocsShell.tsx"), "utf8");
 const overview = await readFile(path.join(appRoot, "src/app/docs/page.tsx"), "utf8");
 const typescript = await readFile(path.join(appRoot, "src/app/docs/typescript/page.tsx"), "utf8");
+const python = await readFile(path.join(appRoot, "src/app/docs/python/page.tsx"), "utf8");
+const go = await readFile(path.join(appRoot, "src/app/docs/go/page.tsx"), "utf8");
+const dotnet = await readFile(path.join(appRoot, "src/app/docs/dotnet/page.tsx"), "utf8");
 
 const destinations = [...shell.matchAll(/href:\s*"([^"]+)"/g)].map((match) => match[1]);
 
@@ -67,6 +70,15 @@ test("the TypeScript transport observer docs match the supported official transp
   assert.match(typescript, /new StreamableHTTPClientTransport\(new URL\(/);
   assert.match(typescript, /new SSEClientTransport\(new URL\(/);
   assert.doesNotMatch(typescript, /supports only .*StdioClientTransport/);
+});
+
+test("every SDK guide exposes a direct Setup handoff", () => {
+  for (const page of [typescript, python, go, dotnet]) {
+    assert.match(page, /DocsNextSteps nativeHref="\/docs\/reference"/);
+  }
+  assert.match(shell, /export function DocsNextSteps/);
+  assert.match(shell, /dashboard\?view=setup/);
+  assert.match(shell, /Documentation next steps/);
 });
 
 test("the shared wordmark cannot acquire a text-link border or underline", async () => {
