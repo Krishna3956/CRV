@@ -96,7 +96,7 @@ dereferencing templates, and `listPrompts` returns prompt names and argument
 names without requesting or retaining argument values. All three methods
 support opaque cursors and remain observation-only.
 When a peer supplies `ttlMs`/`ttl_ms` or `cacheScope`/`cache_scope`, each page
-also exposes bounded `cacheHints` (`ttlMs` is clamped to seven days and scope
+also exposes bounded `cacheHints` (`ttlMs` is clamped to one day and scope
 is limited to `public`/`private`). These are server-provided freshness/sharing
 hints only; the adapter does not treat them as authorization, cache
 invalidation, or durable snapshot guarantees.

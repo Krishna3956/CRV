@@ -169,7 +169,7 @@ function boundedObject(value: unknown): value is Record<string, unknown> {
 function projectCacheHints(value: Record<string, unknown>): ModernMcpCacheHints | undefined {
   const ttlCandidate = value.ttlMs ?? value.ttl_ms;
   const ttlMs = typeof ttlCandidate === "number" && Number.isSafeInteger(ttlCandidate)
-    ? Math.min(7 * 24 * 60 * 60 * 1000, Math.max(0, ttlCandidate))
+    ? Math.min(24 * 60 * 60 * 1000, Math.max(0, ttlCandidate))
     : undefined;
   const scopeCandidate = value.cacheScope ?? value.cache_scope;
   const cacheScope = scopeCandidate === "public" || scopeCandidate === "private" ? scopeCandidate : undefined;
