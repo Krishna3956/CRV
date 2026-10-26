@@ -8,6 +8,24 @@ commit and the operator accepts the listed limitations.
 
 ## Current deployed baseline — 2026-10-26
 
+App Runner workflow `40345910892` successfully deployed immutable main commit
+`4e77595087bb14ede1fce4fb573322b3f925d572`. The hosted release gate, image
+binding, rollout wait, read-only production smoke, running-release identity
+verification, and runtime-safety audit passed. Retained artifacts are
+`production-smoke-4e77595087bb14ede1fce4fb573322b3f925d572` (`12662645650`),
+`runtime-flags-4e77595087bb14ede1fce4fb573322b3f925d572` (`12662435761`), and
+`app-runner-host-4e77595087bb14ede1fce4fb573322b3f925d572` (`12663020048`).
+This is the current engineering baseline; the release remains Draft/HOLD until
+the open operational and owner gates below are independently accepted.
+
+## Latest bounded insight-evidence deployment — 2026-10-26
+
+PR #545 merged the bounded insight evidence metadata feature as
+`4e77595087bb14ede1fce4fb573322b3f925d572`. Insight cards now show affected
+volume, eligible volume, confidence, metric, and threshold metadata. This
+improves interpretation of the signal but does not convert incomplete business
+outcomes into success claims.
+
 App Runner workflow `40330265695` successfully deployed immutable main commit
 `83131ecb7cd0d6d4f3d71ac9bb015b407386ba5c` after the service-readiness
 preflight. Production smoke, release-identity verification, and runtime
