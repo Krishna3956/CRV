@@ -17,6 +17,17 @@ safety-flag audit passed. Retained artifacts are
 `app-runner-host-83131ecb7cd0d6d4f3d71ac9bb015b407386ba5c` (`12653798778`).
 This updates the deployed baseline only; the release remains Draft/HOLD.
 
+## Latest alert-delivery evidence deployment — 2026-10-26
+
+App Runner workflow `40341314542` deployed merged main commit
+`1e6c7144a6e2714df787bc6ed6fbc87f2a447aba`; rollout, production smoke,
+runtime identity, and runtime safety checks passed. Retained artifacts are
+`production-smoke-1e6c7144a6e2714df787bc6ed6fbc87f2a447aba` (`12659303738`),
+`runtime-flags-1e6c7144a6e2714df787bc6ed6fbc87f2a447aba` (`12660500729`), and
+`app-runner-host-1e6c7144a6e2714df787bc6ed6fbc87f2a447aba` (`12658999346`).
+This validates the bounded Evidence UI deployment only; the release remains
+Draft/HOLD.
+
 ## Latest custom-range deployment — 2026-10-26
 
 App Runner workflow `40335675552` successfully deployed and verified merged
