@@ -3,7 +3,7 @@ import { createAnalyticsHandler } from "../../v1/analytics/handlers.ts";
 import { withTrackMCPV2Envelope } from "../../../../lib/api/v2-envelope.ts";
 import { projectTrackMCPDataTrust } from "../../../../lib/telemetry/data-trust.ts";
 
-const FAMILIES = new Set(["sampling", "elicitation", "completion", "tasks", "control_signal", "resources", "prompts", "tools", "subscriptions", "notifications"]);
+const FAMILIES = new Set(["sampling", "elicitation", "completion", "tasks", "control_signal", "resources", "prompts", "tools", "subscriptions", "notifications", "roots", "logging"]);
 
 /**
  * Exposes the bounded modern-protocol family projection as a stable v2 read

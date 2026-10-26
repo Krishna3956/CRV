@@ -4,6 +4,17 @@ Last updated: 2026-10-26 (main `7d99ec2`; local 136-suite release gate rerun)
 Latest freshness evidence: sequence monitor workflow `40266407743` on main
 commit `59b7c1435358fbd6c00dce5bcb338089af49c310`.
 
+## 2026-10-26 roots and logging protocol-family coverage
+
+- [x] Added bounded `roots` and `logging` protocol families to semantic
+  classification, explicit capability-name mapping, durable-fact analytics,
+  and the authenticated v2 protocol-activity projection.
+- [x] Added privacy-safe route fixtures and semantic tests. Root paths, log
+  messages, and arbitrary level payloads remain outside the product boundary.
+- [x] Updated the protocol matrix and public protocol guide to keep these
+  families visibly partial until runtime fixtures and authenticated production
+  evidence exist; observed traffic is not treated as capability support.
+
 ## 2026-10-26 first-ingest UAT automation
 
 - [x] Added a manually dispatched, trusted-host-only first-ingest smoke that

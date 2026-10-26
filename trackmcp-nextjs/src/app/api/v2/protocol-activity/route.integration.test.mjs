@@ -7,11 +7,15 @@ test("protocol activity keeps family counts and provenance bounded", async () =>
     range_days: 30,
     protocol_family_activity: [
       { family: "sampling", observations: 2 },
+      { family: "roots", observations: 4 },
+      { family: "logging", observations: 1 },
       { family: "private", observations: 999 },
       { family: "tasks", observations: 3, private_payload: "do-not-return" },
     ],
     protocol_family_outcomes: [
       { family: "sampling", observations: 2, completed: 1, errors: 0, input_required: 1, unknown: 0 },
+      { family: "roots", observations: 4, completed: 0, errors: 0, input_required: 0, unknown: 4 },
+      { family: "logging", observations: 1, completed: 1, errors: 0, input_required: 0, unknown: 0 },
       { family: "private", observations: 999, completed: 999, errors: 0, input_required: 0, unknown: 0 },
       { family: "tasks", observations: 3, completed: 1, errors: 1, input_required: 0, unknown: 1, private_payload: "do-not-return" },
     ],
@@ -22,12 +26,16 @@ test("protocol activity keeps family counts and provenance bounded", async () =>
   assert.equal(response.status, 200);
   const body = await response.json();
   assert.deepEqual(body.protocol_family_activity, [
+    { family: "roots", observations: 4 },
     { family: "tasks", observations: 3 },
     { family: "sampling", observations: 2 },
+    { family: "logging", observations: 1 },
   ]);
   assert.deepEqual(body.protocol_family_outcomes, [
+    { family: "roots", observations: 4, requests: 0, responses: 0, matched: 0, completed: 0, errors: 0, input_required: 0, unknown: 4, capability_advertised: null },
     { family: "tasks", observations: 3, requests: 0, responses: 0, matched: 0, completed: 1, errors: 1, input_required: 0, unknown: 1, capability_advertised: null },
     { family: "sampling", observations: 2, requests: 0, responses: 0, matched: 0, completed: 1, errors: 0, input_required: 1, unknown: 0, capability_advertised: null },
+    { family: "logging", observations: 1, requests: 0, responses: 0, matched: 0, completed: 1, errors: 0, input_required: 0, unknown: 0, capability_advertised: null },
   ]);
   assert.equal(body.protocol_family_outcome_source, "durable_facts");
   assert.ok(body.caveats.some((caveat) => caveat.includes("Completed is an explicit protocol result")));

@@ -100,7 +100,15 @@ test("protocol family projection is coarse, explicit, and safe for unknown metho
   assert.equal(protocolFamilyForMethod("completion/complete"), "completion");
   assert.equal(protocolFamilyForMethod("tasks/get"), "tasks");
   assert.equal(protocolFamilyForMethod("notifications/progress"), "notifications");
+  assert.equal(protocolFamilyForMethod("roots/list"), "roots");
+  assert.equal(protocolFamilyForMethod("logging/setLevel"), "logging");
   assert.equal(protocolFamilyForMethod("experimental/custom"), undefined);
+});
+
+test("recognizes explicit roots and logging capabilities without inferring support", () => {
+  assert.equal(protocolFamilyForCapabilityName("roots"), "roots");
+  assert.equal(protocolFamilyForCapabilityName("logging"), "logging");
+  assert.equal(protocolFamilyForCapabilityName("unknown_extension"), undefined);
 });
 
 test("models MCP multi-round-trip result states without conflating stalls and errors", () => {
