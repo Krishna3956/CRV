@@ -85,6 +85,17 @@ commit `59b7c1435358fbd6c00dce5bcb338089af49c310`.
   the UI gap only; it does not claim that a notification was delivered when
   the API has no corresponding attempt.
 
+## 2026-10-26 insight evidence metadata
+
+- [x] Analytics insight records now include bounded confidence, eligible
+  volume, and per-rule threshold metadata for error, latency, advertised-vs-
+  observed, and workflow-completion signals. The dashboard renders these
+  fields beside the neutral observed-signal label.
+- [x] Integration coverage verifies the existing action-context contract and
+  the full release gate protects the new metadata shape; missing metadata
+  remains explicitly “not provided.” No signal is promoted to a confirmed
+  incident by this change.
+
 ## 2026-10-26 current-main release-gate verification
 
 - [x] Current merged main `c7a36e6b2af66f3389fcf5e46c59574e53c35b43` passed
