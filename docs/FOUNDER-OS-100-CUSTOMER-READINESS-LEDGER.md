@@ -30,6 +30,28 @@ commit `59b7c1435358fbd6c00dce5bcb338089af49c310`.
   claim CLI activation, business-workflow completion, key create/rotate/revoke,
   dashboard mutation, or durable worker freshness.
 
+## 2026-10-26 authenticated dashboard browser UAT
+
+- [x] The authenticated production dashboard was inspected across Overview,
+  The journey, What they're doing, Did it work, What's broken, Resources &
+  prompts, Who's using it, Evidence, and Setup. Every navigation control
+  reached the intended view and rendered a titled, data-bound surface.
+- [x] Setup exposed the TypeScript/Python/Go/.NET connection paths, the
+  OpenTelemetry guide CTA, scoped-key controls, resolver documentation, and
+  privacy/data-control disclosures. The page clearly separated telemetry
+  verification from unresolved identity and did not present labels as customer
+  identity or deployment health.
+- [x] Dashboard surfaces preserved the evidence boundary: insufficient volume
+  remained `N/A`/insufficient data, synthetic regression rows were labeled test
+  evidence, unknown outcomes stayed unknown, and resolver-linked account counts
+  remained zero when no verified resolver identity was supplied.
+- [x] Resources/prompts and Evidence views rendered bounded method/hash/session
+  evidence without raw resource contents, prompt arguments, or payloads. The
+  browser UAT was read-only; no key, workspace, incident, or telemetry mutation
+  was performed.
+- [ ] This validates navigation and privacy-safe presentation only; it does not
+  close write-gated key lifecycle, worker freshness, or release-owner gates.
+
 ## 2026-10-26 merged-baseline deployment reconciliation
 
 - [x] Main merge commit `6582c90292fc817696110af32f08eb3d73e3e6b2` is deployed
