@@ -117,6 +117,14 @@ dedicated disposable lifecycle secrets are not configured:
 `TRACKMCP_LIFECYCLE_KEY_ID`, and `TRACKMCP_LIFECYCLE_KEY`. No production key
 was created, rotated, revoked, or written to an artifact.
 
+The refresh-worker backlog recovery in PR [#528](https://github.com/Krishna3956/CRV/pull/528)
+merged as `31c3dd5beed17cf5f226ce90ca1cc08b8113132a`. Its post-merge worker
+run [40321051841](https://github.com/Krishna3956/CRV/actions/runs/40321051841)
+used ten bounded lease batches and reported `processed=0`,
+`max_queue_lag_ms=0`, `freshness_slo=no_backlog_observed`, and no failed or
+retryable work. This clears the observed backlog at that checkpoint; it does
+not close the sustained scheduler-freshness gate.
+
 ## Release identity
 
 | Item | Verified value |
