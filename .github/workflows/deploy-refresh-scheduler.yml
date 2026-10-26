@@ -101,6 +101,20 @@ jobs:
           if [[ -n "$FAILURE_ALARM_TOPIC_ARN" ]]; then
             PARAM_OVERRIDES+=("FailureAlarmTopicArn=$FAILURE_ALARM_TOPIC_ARN")
           fi
+          # A prior failed deployment can leave the named stack in
+          # ROLLBACK_FAILED, which CloudFormation will not update. Clean up
+          # only that terminal failed stack before retrying the same stack
+          # name; healthy stacks are never deleted by this workflow.
+          STACK_STATUS=$(aws cloudformation describe-stacks \
+            --stack-name "$STACK_NAME" \
+            --region "$AWS_REGION" \
+            --query 'Stacks[0].StackStatus' \
+            --output text 2>/dev/null || true)
+          if [[ "$STACK_STATUS" == "ROLLBACK_FAILED" ]]; then
+            echo "Existing stack is ROLLBACK_FAILED; deleting it before retry."
+            aws cloudformation delete-stack --stack-name "$STACK_NAME" --region "$AWS_REGION"
+            aws cloudformation wait stack-delete-complete --stack-name "$STACK_NAME" --region "$AWS_REGION"
+          fi
           sam deploy \
             --template-file .aws-sam/build/template.yaml \
             --stack-name "$STACK_NAME" \
