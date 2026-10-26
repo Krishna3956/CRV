@@ -8,7 +8,8 @@ test("health workflow can recover a missed worker tick without overlapping an ac
   assert.match(workflow, /actions: write/);
   assert.match(workflow, /founder-os-refresh-worker\.yml\/runs\?status=in_progress/);
   assert.match(workflow, /founder-os-refresh-worker\.yml\/dispatches/);
-  assert.match(workflow, /Recovery dispatch: `requested`/);
-  assert.match(workflow, /Recovery dispatch: `skipped`/);
+  assert.match(workflow, /Recovery dispatch: requested/);
+  assert.match(workflow, /Recovery dispatch: skipped/);
+  assert.doesNotMatch(workflow, /echo \"- State: `\$state`\"/);
   assert.match(workflow, /--data '\{"ref":"main"\}'/);
 });
