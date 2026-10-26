@@ -13,8 +13,8 @@ function openQueueIds(source) {
 }
 
 test("pilot release record points at the verified deployed baseline", () => {
-  assert.match(record, /a27dd42540218ea7f8610a563a4770059f7b72d0/);
-  assert.match(record, /40272787491/);
+  assert.match(record, /be9638965383841ee7579ae9155c0162bb626495/);
+  assert.match(record, /40277566836/);
   assert.doesNotMatch(record.split("## Release identity")[1].split("## Verified gates")[0], /aecbe2e|40131685736/);
 });
 

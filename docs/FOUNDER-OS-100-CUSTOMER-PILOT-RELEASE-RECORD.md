@@ -9,8 +9,8 @@ commit and the operator accepts the listed limitations.
 ## Current evidence reconciliation — 2026-10-26
 
 The current mainline candidate is now deployed and identity-verified. Merge
-commit `a27dd42540218ea7f8610a563a4770059f7b72d0` passed App Runner workflow
-`40272787491`, including image digest verification, provider rollout,
+commit `be9638965383841ee7579ae9155c0162bb626495` passed App Runner workflow
+`40277566836`, including image digest verification, provider rollout,
 direct-origin read-only production smoke, `/api/health` SHA verification, and
 runtime safety-flag audit. The redacted smoke artifact recorded 34 of 36
 checks; two credentialed checks were intentionally skipped because no
@@ -57,8 +57,8 @@ created, rotated, or revoked.
 | --- | --- |
 | Pilot scope | First 100 customers, desktop dashboard boundary |
 | Production hosts | `trackmcp.com`, `app.trackmcp.com` |
-| Last deployed application commit | `a27dd42540218ea7f8610a563a4770059f7b72d0` (identity-verified current candidate) |
-| Last successful App Runner deployment | `40272787491` |
+| Last deployed application commit | `be9638965383841ee7579ae9155c0162bb626495` (identity-verified current candidate) |
+| Last successful App Runner deployment | `40277566836` |
 | Readiness ledger | `docs/FOUNDER-OS-100-CUSTOMER-READINESS-LEDGER.md` |
 | Current release-record change | Current mainline reconciliation of deployed runtime and release-gate evidence |
 
@@ -130,7 +130,7 @@ created, rotated, or revoked.
 ## Open gates before GO
 
 - [x] The current deployed engineering baseline is identified as
-  `a27dd42540218ea7f8610a563a4770059f7b72d0`. App Runner run `40272787491`
+  `be9638965383841ee7579ae9155c0162bb626495`. App Runner run `40277566836`
   passed the exact-SHA deployment-health wait, read-only production smoke,
   immutable runtime-identity check, runtime-safety audit, and redacted
   evidence uploads. This is engineering verification; it is not the
@@ -152,7 +152,7 @@ created, rotated, or revoked.
   retained as historical candidate evidence, not an additional open gate.
 - [x] A fresh credential-free production smoke is available for the current
   deployed SHA. Its artifact is
-  `production-smoke-a27dd42540218ea7f8610a563a4770059f7b72d0`; it records 34
+  `production-smoke-be9638965383841ee7579ae9155c0162bb626495`; it records 34
   executed read-only checks and no secret, workspace identifier, or payload.
   A credentialed authenticated smoke is still required for current-release
   tenant/read-model evidence.
