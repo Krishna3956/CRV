@@ -50,8 +50,16 @@ commit `59b7c1435358fbd6c00dce5bcb338089af49c310`.
   contract coverage. The workflow never runs automatically and never writes
   credentials, event bodies, workspace identifiers, or response payloads to
   artifacts.
-- [ ] Production evidence remains open until `TRACKMCP_INGEST_SMOKE_KEY` is
-  configured and the manual smoke completes against the deployed origin.
+- [x] A local operator run used an existing disposable scoped test key against
+  `https://app.trackmcp.com` at `2026-10-26T05:05:09Z`. The bounded event was
+  accepted with HTTP 200 and key-status returned HTTP 200 with
+  `accepted_telemetry=true`. The redacted report was written to
+  `/tmp/trackmcp-production-ingest-smoke-local.json`; no key, workspace ID,
+  event body, or response body was retained.
+- [ ] The GitHub manual workflow remains separately unverified until the
+  repository secret `TRACKMCP_INGEST_SMOKE_KEY` is configured. The local smoke
+  proves first-ingest transport acceptance, not the workflow secret path or
+  business-workflow completion.
 
 ## 2026-10-26 final local release-gate rerun
 
@@ -65,10 +73,13 @@ commit `59b7c1435358fbd6c00dce5bcb338089af49c310`.
   `TrackMCPEnableDistributedRateLimit` is created and attached to
   `GitHubActionsDeployRole`. This is deployment plumbing evidence only; it is
   not a substitute for production lifecycle secrets or sustained SLO evidence.
-- [ ] Production first-ingest UAT still requires a disposable key secret and
-  a real event. The browser dashboard has an unused active test key, but the
-  secret is not retrievable from the masked UI; no new key was created during
-  this verification pass.
+- [x] Disposable production first-ingest transport evidence now exists from
+  the local trusted-host smoke: one metadata-only event was accepted and the
+  key-status milestone was observed. This is narrower than the workflow and
+  full activation/dashboard UAT.
+- [ ] The GitHub workflow secret path, CLI activation, key lifecycle, and
+  authenticated dashboard/UAT evidence remain open; no key was written to the
+  repository or ledger.
 
 ## 2026-10-26 refresh-worker freshness alerting
 
