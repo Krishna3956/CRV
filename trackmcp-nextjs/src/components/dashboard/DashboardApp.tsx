@@ -4547,6 +4547,9 @@ function SetupView({
             Telemetry is fail-open. Payloads remain subject to the existing
             privacy and redaction policy.
           </p>
+          <p className="mt-3 text-xs leading-relaxed text-muted">
+            Using an existing collector? <a href="/docs/opentelemetry" className="cursor-pointer font-semibold text-brand-strong hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand">Open the OpenTelemetry setup guide <ArrowRight size={12} className="inline" /></a>
+          </p>
           {language === "TypeScript" && (
             <p className="mt-3 text-xs leading-relaxed text-muted">
               Recommended: run <code className="font-mono text-ink">npx @trackmcp/cli init</code> first. Use a manual package-manager install only as a library-only fallback.
