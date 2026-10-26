@@ -117,6 +117,11 @@ test("resources and prompts have a dedicated evidence-bounded surface", () => {
   assert.match(source, /does not expose resource contents, prompt arguments/);
 });
 
+test("primary setup panel exposes the OpenTelemetry guide", () => {
+  assert.match(source, /Open the OpenTelemetry setup guide/);
+  assert.match(source, /href="\/docs\/opentelemetry"/);
+});
+
 test("dashboard typography uses the product type system", () => {
   assert.match(globalsSource, /--font-sans: var\(--font-inter\)/);
   assert.match(globalsSource, /\.dashboard-shell h1/);
