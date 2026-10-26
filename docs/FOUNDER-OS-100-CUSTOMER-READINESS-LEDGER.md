@@ -4,6 +4,19 @@ Last updated: 2026-10-26 (main `a8cfda3`; local 134-suite release gate rerun)
 Latest freshness evidence: sequence monitor workflow `40266407743` on main
 commit `59b7c1435358fbd6c00dce5bcb338089af49c310`.
 
+## 2026-10-26 first-ingest UAT automation
+
+- [x] Added a manually dispatched, trusted-host-only first-ingest smoke that
+  sends exactly one bounded metadata-only event with an explicitly supplied
+  disposable connection key and verifies the authenticated `accepted_telemetry`
+  milestone through key status.
+- [x] Added redacted-report, confirmation-token, secret-gated workflow, and
+  contract coverage. The workflow never runs automatically and never writes
+  credentials, event bodies, workspace identifiers, or response payloads to
+  artifacts.
+- [ ] Production evidence remains open until `TRACKMCP_INGEST_SMOKE_KEY` is
+  configured and the manual smoke completes against the deployed origin.
+
 ## 2026-10-26 final local release-gate rerun
 
 - [x] The current main checkout passed the complete `npm run
