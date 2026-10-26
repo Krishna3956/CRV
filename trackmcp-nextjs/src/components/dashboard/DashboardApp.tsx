@@ -1545,13 +1545,13 @@ function DateRange({
         ))}
       </div>
       <details className="relative hidden sm:block">
-        <summary className="flex h-9 cursor-pointer list-none items-center gap-1 rounded-md border border-line px-2.5 text-[11px] font-semibold text-muted hover:bg-paper hover:text-ink">
+        <summary className="flex h-9 cursor-pointer list-none items-center gap-1 rounded-md border border-line px-2.5 text-[11px] font-semibold text-muted hover:bg-paper hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand">
           <CalendarDays size={13} /> Custom
         </summary>
         <div className="absolute right-0 z-20 mt-2 grid min-w-[230px] gap-2 rounded-lg border border-line bg-white p-3 shadow-lg">
           <label className="grid gap-1 text-[11px] font-semibold text-muted">From<input data-range-from type="date" className="h-8 rounded border border-line px-2 text-xs font-normal text-ink" /></label>
           <label className="grid gap-1 text-[11px] font-semibold text-muted">To<input data-range-to type="date" className="h-8 rounded border border-line px-2 text-xs font-normal text-ink" /></label>
-          <button type="button" className="cursor-pointer rounded-md bg-ink px-2.5 py-2 text-[11px] font-semibold text-white hover:bg-brand-strong" onClick={(event) => {
+          <button type="button" className="cursor-pointer rounded-md bg-ink px-2.5 py-2 text-[11px] font-semibold text-white hover:bg-brand-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand" onClick={(event) => {
             const root = (event.currentTarget as HTMLButtonElement).parentElement;
             const from = root?.querySelector<HTMLInputElement>("[data-range-from]")?.value;
             const to = root?.querySelector<HTMLInputElement>("[data-range-to]")?.value;
@@ -3714,7 +3714,7 @@ function IssuesView({
                       type="button"
                       disabled={actionQueueMutation === item.id}
                       onClick={() => onActionQueueMutation(item.id, action)}
-                      className="cursor-pointer border border-line px-3 py-1.5 text-xs font-semibold text-ink hover:bg-white disabled:cursor-wait disabled:opacity-60"
+                      className="cursor-pointer border border-line px-3 py-1.5 text-xs font-semibold text-ink hover:bg-white disabled:cursor-wait disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
                     >
                       {action === "acknowledge" ? "Acknowledge" : action === "snooze" ? "Snooze 24h" : "Resolve"}
                     </button>
@@ -5013,7 +5013,7 @@ function DashboardOnboarding({
               <button
                 type="button"
                 onClick={() => void copy()}
-                className="inline-flex cursor-pointer items-center gap-1 text-xs font-semibold text-brand-strong"
+                className="inline-flex cursor-pointer items-center gap-1 text-xs font-semibold text-brand-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
               >
                 {copied ? (
                   <Check size={13} className="text-brand-strong" aria-hidden="true" />

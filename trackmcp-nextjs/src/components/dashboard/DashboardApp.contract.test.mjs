@@ -409,6 +409,15 @@ test("Setup exposes a direct transport observer documentation CTA", () => {
   for (const tag of pointerAnchors) assert.match(tag, /focus-visible:ring-2/, `interactive Setup link lacks a focus ring: ${tag}`);
 });
 
+test("shared dashboard controls expose keyboard focus rings", () => {
+  for (const snippet of [
+    "<summary className=\"flex h-9 cursor-pointer",
+    "Apply range</button>",
+    "disabled:cursor-wait disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand",
+    "inline-flex cursor-pointer items-center gap-1 text-xs font-semibold text-brand-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand",
+  ]) assert.match(source, new RegExp(snippet.replace(/[.*+?^${}()|[\\]\\]/g, "\\\\$&")), `${snippet} must remain keyboard accessible`);
+});
+
 test("Setup exposes safe rotation alongside revocation for active keys", () => {
   assert.match(source, /onRotateKey: \(id: string\) => void/);
   assert.match(source, /onClick=\{\(\) => onRotateKey\(key\.id\)\}/);
