@@ -8,6 +8,7 @@ import {
   Para,
   Code,
   Inline,
+  DocsNextSteps,
 } from "@/components/DocsShell";
 
 export const metadata: Metadata = pageMeta({
@@ -51,6 +52,7 @@ export default function ApiDocsPage() {
           Send bounded MCP telemetry or query the analytics currently exposed by your
           workspace. Requests use the same TrackMCP domain as the dashboard.
       </DocLead>
+      <DocsNextSteps nativeHref="/docs/reference" />
 
       <DocSection title="Authentication">
         <Para>

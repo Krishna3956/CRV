@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { pageMeta } from "@/lib/seo";
-import { DocsShell, DocTitle, DocLead, DocSection, Para, Code, Inline } from "@/components/DocsShell";
+import { DocsShell, DocTitle, DocLead, DocSection, Para, Code, Inline, DocsNextSteps } from "@/components/DocsShell";
 
 export const metadata: Metadata = pageMeta({
   title: "MCP protocol support | TrackMCP Docs",
@@ -12,6 +12,7 @@ export default function ProtocolDocsPage() {
   return <DocsShell active="/docs/protocol">
     <DocTitle eyebrow="Reference">MCP protocol support</DocTitle>
       <DocLead>TrackMCP records the protocol era and transport your server actually reports. It does not turn a legacy client into a modern client, and it does not infer unsupported protocol features from a single request.</DocLead>
+    <DocsNextSteps nativeHref="/docs/typescript" />
     <DocSection title="Supported telemetry boundary">
       <Para>The ingest schema accepts bounded events for the current <Inline>2026-07-28</Inline> revision and earlier handshake-era clients. Events can carry the negotiated protocol version, MCP method, transport, client metadata, request state counts, task identifiers, result state, and explicit error information.</Para>
       <Code>{`POST /api/v1/ingest

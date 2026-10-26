@@ -1,8 +1,27 @@
 # Founder OS 100 Customer Readiness Ledger
 
-Last updated: 2026-10-26 (main `ffb81d3`; deployed application `ffb81d3` and App Runner production smoke verified)
+Last updated: 2026-10-26 (main `fdf8e1c`; deployed application `fdf8e1c` and App Runner production smoke verified)
 Latest freshness evidence: sequence monitor workflow `40266407743` on main
 commit `59b7c1435358fbd6c00dce5bcb338089af49c310`.
+
+## 2026-10-26 complete documentation-reference handoff checkpoint
+
+- [x] REST API, configuration, MCP protocol, and authentication guides now
+  expose the same direct Dashboard → Setup handoff already available in the
+  SDK guides. Each reference page also links to the most relevant next
+  integration guide, with pointer and keyboard-focus affordances.
+- [x] Documentation navigation coverage now asserts all SDK, integration, and
+  reference handoffs. The focused docs contract passed 7 tests, lint passed,
+  the 177-route production build passed, and the full release gate passed 136
+  suites locally.
+- [x] PR #514 merged as `fdf8e1c0ea189eca55e271b175bb9f0d9d1361bb` after the
+  hosted web/JavaScript, Go, and .NET checks passed. App Runner workflow
+  `40300598145` completed successfully for the same immutable SHA; production
+  smoke artifact `12639529526`, runtime-flags artifact `12640422617`, and host
+  artifact `12640622041` were uploaded.
+- [ ] This closes documentation handoff coverage only. Pilot-owner approval,
+  backup/PITR, privacy-acceptance, credentialed lifecycle/UAT, and sustained
+  worker-freshness gates remain open and are not inferred from this deployment.
 
 ## 2026-10-26 refresh-worker sequence monitor rerun
 

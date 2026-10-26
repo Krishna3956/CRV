@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { pageMeta } from "@/lib/seo";
-import { DocsShell, DocTitle, DocLead, DocSection, Para, Inline } from "@/components/DocsShell";
+import { DocsShell, DocTitle, DocLead, DocSection, Para, Inline, DocsNextSteps } from "@/components/DocsShell";
 
 export const metadata: Metadata = pageMeta({
   title: "Authentication and OAuth | TrackMCP Docs",
@@ -12,6 +12,7 @@ export default function AuthenticationDocsPage() {
   return <DocsShell active="/docs/authentication">
     <DocTitle eyebrow="Security">Authentication &amp; OAuth</DocTitle>
     <DocLead>TrackMCP has separate credential domains for dashboard access, telemetry ingestion, and customer MCP authorization. Keeping them separate prevents a telemetry key from becoming an OAuth token.</DocLead>
+    <DocsNextSteps nativeHref="/docs/reference" />
     <DocSection title="What TrackMCP authenticates">
       <div className="grid gap-3 sm:grid-cols-3">
         {[
