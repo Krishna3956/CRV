@@ -118,12 +118,24 @@ jobs:
           # cannot be mistaken for an SLO pass.
           freshness_budget_ms=900000
           jq --argjson budget "$freshness_budget_ms" \
-            '. + {freshness_budget_ms:$budget, freshness_slo:(if .max_queue_lag_ms == 0 then "no_backlog_observed" elif .max_queue_lag_ms <= $budget then "within_budget" else "stale" end)}' \
+            '. + {freshness_budget_ms:$budget, freshness_slo:(if .max_queue_lag_ms == 0 then "no_backlog_observed" elif .max_queue_lag_ms <= $budget then "within_budget" else "stale" end), freshness_alert:(if .max_queue_lag_ms > $budget then "warning" else "none" end)}' \
             "$RUNNER_TEMP/trackmcp-refresh-worker-summary.json" \
             > "$RUNNER_TEMP/trackmcp-refresh-worker-summary.json.tmp"
           mv "$RUNNER_TEMP/trackmcp-refresh-worker-summary.json.tmp" "$RUNNER_TEMP/trackmcp-refresh-worker-summary.json"
           freshness_slo=$(jq -r '.freshness_slo' "$RUNNER_TEMP/trackmcp-refresh-worker-summary.json")
-          echo "Bounded refresh summary: failed=$failed timed_out=$timed_out freshness_slo=$freshness_slo budget_ms=$freshness_budget_ms"
+          freshness_alert=$(jq -r '.freshness_alert' "$RUNNER_TEMP/trackmcp-refresh-worker-summary.json")
+          if [ "$freshness_alert" = "warning" ]; then
+            echo "::warning::Refresh worker freshness is stale; max queue lag exceeded the 15-minute pilot budget."
+          fi
+          {
+            echo "### Refresh worker health"
+            echo "- Freshness: `$freshness_slo`"
+            echo "- Alert: `$freshness_alert`"
+            echo "- Max queue lag (ms): `$(jq -r '.max_queue_lag_ms' "$RUNNER_TEMP/trackmcp-refresh-worker-summary.json")`"
+            echo "- Processed: `$(jq -r '.processed' "$RUNNER_TEMP/trackmcp-refresh-worker-summary.json")`"
+            echo "- Failed: `$(jq -r '.failed' "$RUNNER_TEMP/trackmcp-refresh-worker-summary.json")`"
+          } >> "$GITHUB_STEP_SUMMARY"
+          echo "Bounded refresh summary: failed=$failed timed_out=$timed_out freshness_slo=$freshness_slo freshness_alert=$freshness_alert budget_ms=$freshness_budget_ms"
           exit "$failed"
       - name: Upload redacted refresh worker summary
         if: always()

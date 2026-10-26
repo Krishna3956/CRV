@@ -21,6 +21,21 @@ Latest freshness evidence: workflow 40240145632 on main commit
   secret is not retrievable from the masked UI; no new key was created during
   this verification pass.
 
+## 2026-10-26 refresh-worker freshness alerting
+
+- [x] The scheduled refresh workflow now writes a bounded `freshness_alert`
+  (`warning` when queue lag exceeds the 15-minute pilot budget, otherwise
+  `none`) into its redacted summary and publishes a GitHub step summary with
+  freshness, lag, processed, and failed counts. Stale work emits a visible
+  workflow warning without turning a safely drainable run into a false worker
+  failure.
+- [x] The workflow contract test covers the alert field, step summary, and
+  warning path. Lint, the 177-route production build, and the full 132-suite
+  release gate passed locally.
+- [ ] Repeated scheduled runs within the freshness budget are still required
+  before claiming a sustained production SLO; alerting implementation does not
+  substitute for that operational evidence.
+
 ## 2026-10-26 cross-language transport reconnect observer
 
 PR #434 (`27722fdd91f9c3afbf5026308c39d8ca13edea07`) adds bounded

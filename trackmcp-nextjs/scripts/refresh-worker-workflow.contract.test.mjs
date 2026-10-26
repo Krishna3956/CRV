@@ -9,6 +9,9 @@ test("scheduled refresh worker emits a bounded redacted lag/retry summary artifa
   assert.match(workflow, /max_queue_lag_ms/);
   assert.match(workflow, /freshness_budget_ms=900000/);
   assert.match(workflow, /freshness_slo/);
+  assert.match(workflow, /freshness_alert/);
+  assert.match(workflow, /GITHUB_STEP_SUMMARY/);
+  assert.match(workflow, /::warning::Refresh worker freshness is stale/);
   assert.match(workflow, /no_backlog_observed/);
   assert.match(workflow, /within_budget/);
   assert.match(workflow, /stale/);
