@@ -2,8 +2,8 @@
 
 Status: **HOLD — no silent waivers**  
 Reconciled: 2026-10-26 (Asia/Calcutta)  
-Current deployed baseline: application `bb82531b08b45e098b7c436f39fa7e57dbb550c8`,
-App Runner run `40283712842` (successful rerun; production smoke and runtime
+Current deployed baseline: application `ffb81d3542826e1ab9e01ed5a35f5ea09400d851`,
+App Runner run `40297655303` (successful deployment; production smoke and runtime
 flag artifacts uploaded).
 
 Historical baseline retained for continuity: application
