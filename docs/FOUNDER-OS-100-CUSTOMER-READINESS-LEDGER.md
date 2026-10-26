@@ -1,8 +1,23 @@
 # Founder OS 100 Customer Readiness Ledger
 
-Last updated: 2026-10-26 (main `38f98b6`; deployed application `4821843` and App Runner production smoke verified)
+Last updated: 2026-10-26 (main `d876350`; deployed application `be96389` and App Runner production smoke verified)
 Latest freshness evidence: sequence monitor workflow `40266407743` on main
 commit `59b7c1435358fbd6c00dce5bcb338089af49c310`.
+
+## 2026-10-26 cross-language capability deployment
+
+- [x] App Runner workflow `40277566836` deployed merged cross-language
+  capability metadata commit `be9638965383841ee7579ae9155c0162bb626495`.
+  The rollout, immutable runtime identity, and direct-origin read-only smoke
+  all completed successfully.
+- [x] The redacted production smoke recorded 34 of 36 checks executed, with
+  the two credentialed checks intentionally skipped because no production key
+  was supplied. Image digest:
+  `sha256:d5690f12b753039d71c40ac4b91e274a415db16b9c8f8a7549501ba051e71e61`.
+  Runtime flags were `rate_limit_mode=supabase` and `fact_writes=false`.
+- [ ] Credentialed cross-language roots/logging traffic UAT remains open; the
+  deployment proves source/runtime identity and public boundaries, not customer
+  traffic observation.
 
 ## 2026-10-26 roots/logging parity deployment
 
