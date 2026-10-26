@@ -5,7 +5,7 @@ import test from "node:test";
 
 const root = resolve(process.cwd(), "..");
 const read = (relative) => readFile(resolve(root, relative), "utf8");
-const [docs, traceExplorer, sdkManifest, cliManifest, tsDocs, pythonDocs, goDocs, dotnetDocs] = await Promise.all([
+const [docs, traceExplorer, sdkManifest, cliManifest, tsDocs, pythonDocs, goDocs, dotnetDocs, pilotRunbook, executionPlan, gapLedger] = await Promise.all([
   read("trackmcp-nextjs/src/app/docs/page.tsx"),
   read("trackmcp-nextjs/src/components/dashboard/TraceExplorer.tsx"),
   read("trackmcp-nextjs/packages/typescript-sdk/package.json"),
@@ -14,6 +14,9 @@ const [docs, traceExplorer, sdkManifest, cliManifest, tsDocs, pythonDocs, goDocs
   read("trackmcp-nextjs/src/app/docs/python/page.tsx"),
   read("trackmcp-nextjs/src/app/docs/go/page.tsx"),
   read("trackmcp-nextjs/src/app/docs/dotnet/page.tsx"),
+  read("docs/FOUNDER-OS-100-CUSTOMER-PILOT-RUNBOOK.md"),
+  read("docs/FOUNDER-OS-100-CUSTOMER-PILOT-MASTER-EXECUTION-PLAN.md"),
+  read("docs/FOUNDER-OS-PILOT-GAP-LEDGER.md"),
 ]);
 const sdkVersion = JSON.parse(sdkManifest).version;
 const cliVersion = JSON.parse(cliManifest).version;
@@ -45,4 +48,22 @@ test("SDK documentation examples stay aligned with package versions", () => {
   assert.match(goDocs, new RegExp(`SDKVersion: "${sdkVersion}"`));
   assert.match(dotnetDocs, new RegExp(`SdkVersion: "${sdkVersion}"`));
   assert.match(pythonDocs, new RegExp(`sdk_version="${pythonVersion}"`));
+});
+
+test("active pilot documents stay aligned without rewriting historical snapshots", () => {
+  const currentTrain = `@trackmcp/sdk@${sdkVersion}`;
+  const currentCli = `@trackmcp/cli@${cliVersion}`;
+  const currentPython = `trackmcp==${pythonVersion}`;
+  for (const source of [pilotRunbook, executionPlan]) {
+    assert.match(source, new RegExp(currentTrain.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
+    assert.match(source, new RegExp(currentCli.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
+    assert.match(source, new RegExp(currentPython.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
+  }
+  assert.match(gapLedger, new RegExp("published `" + sdkVersion + "`"));
+  assert.match(gapLedger, new RegExp("published `" + pythonVersion + "`"));
+  const activeRunbook = pilotRunbook.slice(pilotRunbook.indexOf("## 9. Package publication"), pilotRunbook.indexOf("## 10. Load and failure recovery"));
+  assert.ok(activeRunbook.length > 0);
+  assert.doesNotMatch(activeRunbook, /0\.1\.16|0\.1\.7|0\.1\.9/);
+  const activePlan = executionPlan.slice(executionPlan.indexOf("## Workstream 12 Packages and public claims"));
+  assert.doesNotMatch(activePlan, /reviewed release line is `@trackmcp\/sdk@0\.1\.16`/);
 });
