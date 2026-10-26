@@ -13,8 +13,8 @@ is intentionally not a GO approval and must not be treated as one.
   release record; PR checks remain attached to their exact review commits.
 - Queue: 263 total, 260 checked, and P0 queue items `020`, `157`, and `260`
   remain open.
-- Full local release gate: 132 suites passed, with lint and the 177-route
-  production build green.
+- Full local release gate: 136 suites passed, with lint and the production
+  build green.
 - Authenticated device-flow UAT covers expired, denied, multiple-membership,
   and zero-membership workspace creation without browser key disclosure.
 - Rollback and authenticated scope-smoke evidence are reconciled in the
