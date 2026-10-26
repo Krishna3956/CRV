@@ -1,5 +1,12 @@
 # Founder OS delivery status and remaining work
 
+> **Historical snapshot — superseded.** This document records the 2026-10-19
+> review and must not be used as the current release baseline. For current
+> deployed evidence, suite counts, open gates, and pilot decisions, use
+> [`docs/FOUNDER-OS-100-CUSTOMER-READINESS-LEDGER.md`](docs/FOUNDER-OS-100-CUSTOMER-READINESS-LEDGER.md),
+> [`docs/FOUNDER-OS-100-CUSTOMER-PILOT-RELEASE-RECORD.md`](docs/FOUNDER-OS-100-CUSTOMER-PILOT-RELEASE-RECORD.md),
+> and [`docs/FOUNDER-OS-100-CUSTOMER-PILOT-EXTERNAL-GATES.md`](docs/FOUNDER-OS-100-CUSTOMER-PILOT-EXTERNAL-GATES.md).
+
 Date: 2026-10-19
 Review mode: post-release evidence reconciliation
 Repository: `Krishna3956/CRV`
