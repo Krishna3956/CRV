@@ -2,6 +2,27 @@
 
 Status: active autonomous audit, started 2026-10-21.
 
+## 2026-10-27 — modern request metadata and browser-tester parity
+
+- The published TypeScript modern client (`@trackmcp/sdk@0.1.19`) now adds
+  bounded `io.modelcontextprotocol/clientInfo` and
+  `io.modelcontextprotocol/clientCapabilities` metadata to ordinary requests
+  and stream subscriptions, while preserving caller-supplied task capability
+  metadata. The client identity is bounded and defaults to the SDK package
+  name/version; no credentials, URLs, prompts, arguments, or result content
+  are retained.
+- The browser MCP tester now applies the same bounded metadata to modern
+  `server/discover` and subsequent requests. Contract coverage is 26/26 MCP
+  tester tests; the TypeScript SDK suite is 100/100; the full local release
+  gate is 137 suites; lint and the Next.js production build (177 pages) pass.
+- Protocol matrix language now records this parity, while keeping the modern
+  revision status `Partial` until server cache behavior, stream close/reconnect,
+  MRTR, and Tasks interoperability are exercised against an authenticated
+  production fixture. This is an explicit boundary, not a compatibility claim.
+- Mainline commit `b3ac136` is pushed to `origin/main`. The corresponding
+  hosted CI run `40416521863` is currently pending; App Runner/Vercel hosted
+  checks remain external evidence and are not treated as locally verified.
+
 This ledger separates implemented behavior from documented boundaries. A
 registry package, protocol capability, or OAuth flow is not treated as shipped
 just because a README or marketing page mentions it.
