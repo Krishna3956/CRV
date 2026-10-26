@@ -9,13 +9,15 @@ commit and the operator accepts the listed limitations.
 ## Current evidence reconciliation — 2026-10-26
 
 The current mainline candidate is now deployed and identity-verified. Merge
-commit `68d83a3d17ffb5fe63ea0afc2cb48188967d8e93` passed App Runner workflow
-`40236925686`, including image digest verification, provider rollout,
+commit `a27dd42540218ea7f8610a563a4770059f7b72d0` passed App Runner workflow
+`40272787491`, including image digest verification, provider rollout,
 direct-origin read-only production smoke, `/api/health` SHA verification, and
-runtime safety-flag audit. This closes the deployment-evidence gap for the
-current candidate; it does not close write-gated key lifecycle, first-ingest,
-migration/postflight, worker-SLO, rollback, or intentionally partial protocol
-gates.
+runtime safety-flag audit. The redacted smoke artifact recorded 34 of 36
+checks; two credentialed checks were intentionally skipped because no
+production key was supplied. This closes the deployment-evidence gap for the
+current candidate; it does not close credentialed activation, key lifecycle,
+authenticated dashboard UAT, worker-SLO, rollback, or intentionally partial
+protocol gates.
 
 Historical baseline reference retained for audit continuity: application
 commit `2e135f194f36e278232c6a46890b1ce850d1e9ba` and App Runner run
@@ -24,10 +26,10 @@ candidate.
 
 The automatic authenticated production smoke [workflow
 40237513202](https://github.com/Krishna3956/CRV/actions/runs/40237513202)
-also completed successfully for the same deployed application SHA. Its
-redacted artifact is `production-auth-smoke-68d83a3d17ffb5fe63ea0afc2cb48188967d8e93`.
-This is current-release authenticated read-only evidence; it does not perform
-write-gated key lifecycle mutation or prove continuous worker freshness.
+completed successfully for the prior `68d83a3d…` deployed application SHA.
+Its redacted artifact is retained as historical authenticated evidence; it
+does not establish current-release authenticated read-model state, perform
+write-gated key lifecycle mutation, or prove continuous worker freshness.
 
 The guarded authenticated read-only smoke [workflow
 40234566034](https://github.com/Krishna3956/CRV/actions/runs/40234566034)
@@ -36,12 +38,12 @@ read successes across two disposable workspaces and all Founder OS v2 read
 models, plus intentional 403 Action Queue API-key denials and a 401 revoked-key
 denial. This closes the read-only scope/privacy smoke gate.
 
-The workflow checked out and labeled source SHA
+The earlier workflow checked out and labeled source SHA
 `21b2a9d676576a51b98902595ea4322fd814b6d5`, but the merge-triggered App Runner
 run for that SHA became a stale GitHub run with no job record and was canceled.
-The public origin's runtime identity is therefore not proven to be that SHA;
-the smoke is current-origin UAT plus source-contract evidence, not deployment
-proof. The release remains Draft/HOLD.
+The public origin's runtime identity was therefore not proven to be that SHA;
+that historical smoke is current-origin UAT plus source-contract evidence, not
+deployment proof. The release remains Draft/HOLD.
 
 The guarded write-gated key-lifecycle smoke [workflow
 40234733862](https://github.com/Krishna3956/CRV/actions/runs/40234733862)
@@ -55,8 +57,8 @@ created, rotated, or revoked.
 | --- | --- |
 | Pilot scope | First 100 customers, desktop dashboard boundary |
 | Production hosts | `trackmcp.com`, `app.trackmcp.com` |
-| Last deployed application commit | `68d83a3d17ffb5fe63ea0afc2cb48188967d8e93` (identity-verified current candidate) |
-| Last successful App Runner deployment | `40236925686` |
+| Last deployed application commit | `a27dd42540218ea7f8610a563a4770059f7b72d0` (identity-verified current candidate) |
+| Last successful App Runner deployment | `40272787491` |
 | Readiness ledger | `docs/FOUNDER-OS-100-CUSTOMER-READINESS-LEDGER.md` |
 | Current release-record change | Current mainline reconciliation of deployed runtime and release-gate evidence |
 
@@ -87,7 +89,7 @@ created, rotated, or revoked.
   `SELECT`, and deletion-batch indexes are present.
 - [x] Local privacy, deletion-plan, accessibility, tenant-isolation,
   analytics, package-consumer, and pilot contract suites passed.
-- [x] Local full release gate passed on the current source: 128 suites,
+- [x] Local full release gate passed on the current source: 136 suites,
   including the six-tab dashboard contract (58 tests), OTLP/HTTP JSON and
   protobuf interoperability, package consumers, privacy, tenant isolation,
   protocol fixtures, and release-control contracts. This is source evidence;
@@ -128,7 +130,7 @@ created, rotated, or revoked.
 ## Open gates before GO
 
 - [x] The current deployed engineering baseline is identified as
-  `68d83a3d17ffb5fe63ea0afc2cb48188967d8e93`. App Runner run `40236925686`
+  `a27dd42540218ea7f8610a563a4770059f7b72d0`. App Runner run `40272787491`
   passed the exact-SHA deployment-health wait, read-only production smoke,
   immutable runtime-identity check, runtime-safety audit, and redacted
   evidence uploads. This is engineering verification; it is not the
@@ -148,10 +150,12 @@ created, rotated, or revoked.
   than the current deployed baseline. Queue item 256 records the
   release-specific rollback and restoration workflows as passed; this row is
   retained as historical candidate evidence, not an additional open gate.
-- [x] A fresh read-only authenticated smoke rerun is available in the handoff
-  ledger (37 checks, redacted) for the current deployed SHA. Its artifact is
-  `production-auth-smoke-68d83a3d17ffb5fe63ea0afc2cb48188967d8e93`; no secret,
-  workspace identifier, or payload is recorded.
+- [x] A fresh credential-free production smoke is available for the current
+  deployed SHA. Its artifact is
+  `production-smoke-a27dd42540218ea7f8610a563a4770059f7b72d0`; it records 34
+  executed read-only checks and no secret, workspace identifier, or payload.
+  A credentialed authenticated smoke is still required for current-release
+  tenant/read-model evidence.
 - [x] Historical disposable-workspace key-lifecycle evidence is retained in the
   readiness ledger, and the owner-dashboard rotation mutation is now evidenced
   on the current pilot account. The direct App Runner smoke returned HTTP 200
