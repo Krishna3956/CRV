@@ -1,6 +1,6 @@
 # Founder OS 100 Customer Readiness Ledger
 
-Last updated: 2026-10-27 (main `525f43e`; deployed application `57f5643` and App Runner production/authenticated smoke verified)
+Last updated: 2026-10-27 (main `9bf272b`; deployed application `57f5643` and App Runner production/authenticated smoke verified)
 Latest freshness evidence: refresh-worker workflow `40381642702` on main
 commit `fff91da6576987f5d5259801d71b1e41f268a4bc` completed successfully;
 sustained scheduled-sample health is still an explicit open gate below.
@@ -1949,3 +1949,12 @@ a failed product gate or a Supabase plan warning.
   queue item `157`. The release owner must either accept the documented
   recovery limitation with an owner/runbook or move the project to a plan with
   tested backup/PITR coverage.
+
+## 2026-10-27 production build audit checkpoint
+
+- [x] A fresh `npm run build` from the current web workspace compiled the
+  production bundle, completed TypeScript, and generated all **177/177**
+  static pages without route-validation or prerender errors.
+- [ ] Build success verifies the artifact only; it does not replace hosted
+  deployment, credentialed UAT, scheduler freshness, backup/recovery, or
+  release-owner acceptance evidence.
