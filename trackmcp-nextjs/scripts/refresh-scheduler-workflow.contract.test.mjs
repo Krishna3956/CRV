@@ -39,7 +39,7 @@ test("refresh scheduler omits an empty optional alarm parameter", () => {
   assert.match(workflow, /if \[\[ -n "\$FAILURE_ALARM_TOPIC_ARN" \]\]; then/);
   assert.match(workflow, /PARAM_OVERRIDES\+=\("FailureAlarmTopicArn=\$FAILURE_ALARM_TOPIC_ARN"\)/);
   assert.match(workflow, /STACK_STATUS=\$\(aws cloudformation describe-stacks/);
-  assert.match(workflow, /\[\[ "\$STACK_STATUS" == "ROLLBACK_FAILED" \]\]/);
+  assert.match(workflow, /\[\[ "\$STACK_STATUS" == "ROLLBACK_FAILED" \|\| "\$STACK_STATUS" == "ROLLBACK_COMPLETE" \]\]/);
   assert.match(workflow, /aws cloudformation delete-stack --stack-name "\$STACK_NAME"/);
   assert.match(workflow, /aws cloudformation wait stack-delete-complete --stack-name "\$STACK_NAME"/);
   assert.match(workflow, /--parameter-overrides "\$\{PARAM_OVERRIDES\[@\]\}"/);
