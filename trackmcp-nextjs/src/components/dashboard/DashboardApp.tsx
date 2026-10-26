@@ -4618,12 +4618,12 @@ function SetupView({
           )}
           {language === "Go" && (
             <p className="mt-3 text-xs leading-relaxed text-muted">
-              Go is currently distributed as a reviewed source package rather than a registry release. <a href="/docs/go" className="cursor-pointer font-semibold text-brand-strong hover:underline">Open the Go guide</a> for the pinned checkout, middleware capture, and first-event verification steps.
+              Go is currently distributed as a reviewed source package rather than a registry release. <a href="/docs/go" className="cursor-pointer font-semibold text-brand-strong hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand">Open the Go guide</a> for the pinned checkout, middleware capture, and first-event verification steps.
             </p>
           )}
           {language === ".NET" && (
             <p className="mt-3 text-xs leading-relaxed text-muted">
-              .NET is currently distributed as a reviewed source package rather than a NuGet release. <a href="/docs/dotnet" className="cursor-pointer font-semibold text-brand-strong hover:underline">Open the .NET guide</a> for the project reference, middleware capture, and first-event verification steps.
+              .NET is currently distributed as a reviewed source package rather than a NuGet release. <a href="/docs/dotnet" className="cursor-pointer font-semibold text-brand-strong hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand">Open the .NET guide</a> for the project reference, middleware capture, and first-event verification steps.
             </p>
           )}
           <p className="mt-3 text-xs leading-relaxed text-muted">
