@@ -4488,7 +4488,7 @@ function SetupView({
         >
           <div className="mt-4 grid gap-3 sm:grid-cols-2">
             <label className="text-xs font-semibold text-ink">
-              Server name
+              <span className="flex items-center gap-1.5">Server name <InfoHint label="About server name" text="A bounded label supplied by your server and used to group telemetry. It is not a TrackMCP deployment record." /></span>
               <input
                 value={serviceName}
                 onChange={(event) => updateService(event.target.value)}
@@ -4496,10 +4496,9 @@ function SetupView({
                 placeholder="my-mcp-server"
                 className="mt-1.5 block w-full rounded-md border border-line-strong bg-white px-3 py-2 text-sm font-normal text-body focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
               />
-              <span className="mt-1 block text-[11px] font-normal text-faint">Used as a bounded telemetry label.</span>
             </label>
             <label className="text-xs font-semibold text-ink">
-              Environment
+              <span className="flex items-center gap-1.5">Environment <InfoHint label="About environment" text="A bounded label such as production, staging, or local. It is supplied by your server and does not identify a person." /></span>
               <input
                 value={environmentName}
                 onChange={(event) => updateEnvironment(event.target.value)}
@@ -4507,7 +4506,6 @@ function SetupView({
                 placeholder="production"
                 className="mt-1.5 block w-full rounded-md border border-line-strong bg-white px-3 py-2 text-sm font-normal text-body focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
               />
-              <span className="mt-1 block text-[11px] font-normal text-faint">For example: production, staging, or local.</span>
             </label>
           </div>
           <p className="mt-3 text-[11px] leading-relaxed text-faint">These labels are supplied by your server. They are not a TrackMCP deployment record and do not identify a person or customer.</p>
@@ -4657,15 +4655,12 @@ function SetupView({
                     onChange={(event) => setScopeNewKey(event.target.checked)}
                     className="mt-0.5 h-4 w-4 cursor-pointer rounded border-line-strong text-brand focus:ring-brand"
                   />
-                  Limit this key to a server and environment
+                  <span>Limit this key to a server and environment <InfoHint label="About scoped keys" text="Scoped keys reject telemetry with different server or environment labels. Leave this off for a workspace-wide key." /></span>
                 </label>
-                <p className="mt-1 pl-6 text-[11px] leading-relaxed text-faint">
-                  Scoped keys reject telemetry with different labels. Leave this off for a workspace-wide key.
-                </p>
                 {scopeNewKey && (
                   <div className="mt-3 grid gap-3 pl-6 sm:grid-cols-2">
                     <label className="text-[11px] font-semibold text-ink">
-                      Service scope
+                      <span className="flex items-center gap-1.5">Service scope <InfoHint label="About service scope" text="Only telemetry carrying this exact bounded server label is accepted for the key." /></span>
                       <input
                         value={serviceName}
                         onChange={(event) => updateService(event.target.value)}
@@ -4675,7 +4670,7 @@ function SetupView({
                       />
                     </label>
                     <label className="text-[11px] font-semibold text-ink">
-                      Environment scope
+                      <span className="flex items-center gap-1.5">Environment scope <InfoHint label="About environment scope" text="Only telemetry carrying this exact bounded environment label is accepted for the key." /></span>
                       <input
                         value={environmentName}
                         onChange={(event) => updateEnvironment(event.target.value)}

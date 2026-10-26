@@ -122,6 +122,14 @@ test("primary setup panel exposes the OpenTelemetry guide", () => {
   assert.match(source, /href="\/docs\/opentelemetry"/);
 });
 
+test("setup field explanations use accessible info hints", () => {
+  assert.match(source, /About server name/);
+  assert.match(source, /About environment/);
+  assert.match(source, /About scoped keys/);
+  assert.match(source, /About service scope/);
+  assert.match(source, /About environment scope/);
+});
+
 test("dashboard typography uses the product type system", () => {
   assert.match(globalsSource, /--font-sans: var\(--font-inter\)/);
   assert.match(globalsSource, /\.dashboard-shell h1/);
