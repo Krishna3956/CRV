@@ -4,6 +4,20 @@ Last updated: 2026-10-26 (main `436fea2`; deployed application `be96389` and App
 Latest freshness evidence: sequence monitor workflow `40266407743` on main
 commit `59b7c1435358fbd6c00dce5bcb338089af49c310`.
 
+## 2026-10-26 current-release authenticated scope smoke
+
+- [x] Workflow `40280160295` ran against `https://app.trackmcp.com` with the
+  deployed release SHA `be9638965383841ee7579ae9155c0162bb626495` and completed
+  successfully. Its redacted artifact
+  `production-auth-smoke-be9638965383841ee7579ae9155c0162bb626495` contains 37
+  checks covering two workspace key-status responses, conflicting-workspace
+  resistance, all Founder OS v2 and legacy analytics read models, API-key Action
+  Queue denials, and revoked-key rejection.
+- [x] The artifact contains no keys, workspace IDs, response bodies, or event
+  payloads. This closes current-release read-only tenant-scope evidence; ingest,
+  key lifecycle mutation, dashboard mutation, and worker-SLO evidence remain
+  separate gates.
+
 ## 2026-10-26 cross-language capability deployment
 
 - [x] The deployment evidence reconciliation was squash-merged to `main` as
