@@ -159,10 +159,10 @@ and rate-limit false positives.
 
 ## 9. Package publication and clean consumers
 
-The current coordinated release candidate is `@trackmcp/sdk@0.1.19`,
+The current coordinated published release train is `@trackmcp/sdk@0.1.19`,
 `@trackmcp/cli@0.1.10`, and `trackmcp==0.1.12`. Publication is release-train
-gated and must be verified against the registries before this candidate is
-called published. The preceding published train was `@trackmcp/sdk@0.1.18`,
+gated and has been verified against the registries for this train. The
+preceding published train was `@trackmcp/sdk@0.1.18`,
 `@trackmcp/cli@0.1.9`, and `trackmcp==0.1.11`; its publication was observed
 through the all-package workflow `40258109659` (the workflow later failed only
 on its bounded npm propagation check); CLI recovery publication completed in
