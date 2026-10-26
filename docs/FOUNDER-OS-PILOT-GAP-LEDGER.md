@@ -35,6 +35,19 @@ Status: active autonomous audit, started 2026-10-21.
 - PR #607 was merged to `main` as commit `9acd152`. Hosted deployment remains
   an external check and is not claimed from local evidence alone.
 
+## 2026-10-27 — real modern-protocol fixture coverage
+
+- Added a real local HTTP Streamable MCP fixture to the TypeScript SDK suite.
+  It exercises `server/discover`, bounded `tools/list` cache hints, per-request
+  client capability metadata, and a real `subscriptions/listen` SSE stream.
+  The fixture asserts that subscription identifiers and private values never
+  appear in the returned projection.
+- SDK tests now pass 102/102; the repository lint and full release gate pass
+  (137 suites). This closes the local interoperability-fixture gap while the
+  authenticated production stream/interoperability gate remains explicitly
+  open.
+- PR #608 was merged to `main` as commit `a9b1126`.
+
 This ledger separates implemented behavior from documented boundaries. A
 registry package, protocol capability, or OAuth flow is not treated as shipped
 just because a README or marketing page mentions it.
