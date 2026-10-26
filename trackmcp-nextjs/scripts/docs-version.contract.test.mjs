@@ -68,6 +68,8 @@ test("active pilot documents stay aligned without rewriting historical snapshots
   assert.doesNotMatch(activeRunbook, /0\.1\.16|0\.1\.7/);
   const activePlan = executionPlan.slice(executionPlan.indexOf("## Workstream 12 Packages and public claims"));
   assert.doesNotMatch(activePlan, /reviewed release line is `@trackmcp\/sdk@0\.1\.16`/);
+  assert.doesNotMatch(pilotRunbook, /current coordinated release candidate/);
+  assert.doesNotMatch(activePlan, /reviewed release candidate is/);
 });
 
 test("active content and truth-audit docs name the current package train", () => {
