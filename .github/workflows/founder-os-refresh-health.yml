@@ -1,0 +1,82 @@
+name: Founder OS refresh health
+
+on:
+  schedule:
+    - cron: "17,47 * * * *"
+  workflow_dispatch:
+
+permissions:
+  actions: read
+  contents: read
+
+jobs:
+  health:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Check out the reviewed mainline
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 1
+
+      - name: Collect recent redacted worker summaries
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/refresh-health"
+          api="${GITHUB_API_URL}/repos/${GITHUB_REPOSITORY}"
+          curl --fail-with-body --silent --show-error \
+            -H "authorization: Bearer $GH_TOKEN" \
+            -H 'accept: application/vnd.github+json' \
+            "$api/actions/workflows/founder-os-refresh-worker.yml/runs?event=schedule&status=completed&per_page=8" \
+            > "$RUNNER_TEMP/refresh-health/runs.json"
+          : > "$RUNNER_TEMP/refresh-health/runs.ndjson"
+          while IFS=$'\t' read -r run_id created_at conclusion; do
+            artifacts=$(curl --fail-with-body --silent --show-error \
+              -H "authorization: Bearer $GH_TOKEN" \
+              -H 'accept: application/vnd.github+json' \
+              "$api/actions/runs/$run_id/artifacts")
+            artifact_id=$(printf '%s' "$artifacts" | jq -r --arg name "refresh-worker-summary-$run_id" '.artifacts[] | select(.name == $name and .expired == false) | .id' | head -n 1)
+            [ -n "$artifact_id" ] || continue
+            archive="$RUNNER_TEMP/refresh-health/$run_id.zip"
+            curl --fail-with-body --silent --show-error -L \
+              -H "authorization: Bearer $GH_TOKEN" \
+              -H 'accept: application/vnd.github+json' \
+              "$api/actions/artifacts/$artifact_id/zip" -o "$archive"
+            summary=$(unzip -p "$archive" '*.json' | jq -c 'select(type == "object")' | head -n 1)
+            [ -n "$summary" ] || continue
+            printf '%s\n' "$summary" | jq -c --argjson run_id "$run_id" --arg created_at "$created_at" --arg conclusion "$conclusion" '. + {run_id:$run_id, created_at:$created_at, conclusion:$conclusion}' >> "$RUNNER_TEMP/refresh-health/runs.ndjson"
+          done < <(jq -r '.workflow_runs[] | [.id, .created_at, .conclusion] | @tsv' "$RUNNER_TEMP/refresh-health/runs.json")
+          node trackmcp-nextjs/scripts/refresh-worker-health-report.mjs "$RUNNER_TEMP/refresh-health/runs.ndjson" > "$RUNNER_TEMP/refresh-health/report.json"
+
+      - name: Publish bounded health report
+        if: always()
+        run: |
+          set -euo pipefail
+          report="$RUNNER_TEMP/refresh-health/report.json"
+          if [ -f "$report" ]; then
+            state=$(jq -r '.state' "$report")
+            reasons=$(jq -r '(.reasons // []) | join(",")' "$report")
+            echo "### Refresh worker sequence health"
+            echo "- State: `$state`"
+            echo "- Reasons: `$reasons`"
+            echo "- Samples: `$(jq -r '.sample_count' "$report")` / `$(jq -r '.minimum_samples' "$report")`"
+            echo "- Max queue lag (ms): `$(jq -r '.max_queue_lag_ms' "$report")`"
+            cat "$report" >> "$GITHUB_STEP_SUMMARY"
+            if [ "$state" = "warning" ]; then
+              echo "::warning::Refresh worker sequence health requires attention: $reasons"
+            fi
+          else
+            echo "::error::Refresh worker health report was not produced."
+            exit 1
+          fi
+
+      - name: Upload bounded health report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: refresh-worker-health-${{ github.run_id }}
+          path: ${{ runner.temp }}/refresh-health/report.json
+          if-no-files-found: error

@@ -43,6 +43,20 @@ timeouts. Its redacted artifact reported `max_queue_lag_ms=1522126`,
 path is exercised in production. The measured lag is still outside the
 15-minute pilot budget, so the sustained freshness gate remains open.
 
+## 2026-10-26 refresh-worker sequence monitor
+
+- [x] Added a read-only scheduled health monitor that downloads only the
+  existing redacted worker artifacts, evaluates up to eight recent scheduled
+  runs, requires three samples before claiming health, and reports bounded
+  cadence/freshness/failure reasons. It never calls the worker endpoint and
+  never reads the refresh secret.
+- [x] Added contract and fixture coverage for insufficient data, healthy
+  repeated runs, stale/failure/cadence warnings, artifact bounds, and the
+  warning/step-summary workflow path. The monitor intentionally warns rather
+  than turning insufficient or stale evidence into a false product outage.
+- [ ] The monitor is now capable of proving a sustained SLO, but that proof
+  still requires three subsequent scheduled runs with in-budget observations.
+
 ## 2026-10-26 release-train reconciliation
 
 The historical package-policy checkpoints below intentionally preserve their
