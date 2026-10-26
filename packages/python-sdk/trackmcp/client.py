@@ -813,7 +813,10 @@ class _Wrapped:
                             elif (entity := interaction_entity_observation(method, params)):
                                 client.capture(_entity_protocol_event(method, entity, session_id=self.transport_session_id, session_id_source="transport_generated", client_name=self.client_name, client_version=self.client_version, started=started, result=value))
                             else:
-                                client.capture(_event(tool_name, payload, started, value, None, self.client_name, self.transport_session_id, None, self.client_version, client.tool_metadata(tool_name), "transport_generated"))
+                                if _protocol_family_for_method(method) in ("roots", "logging"):
+                                    client.capture(_bounded_protocol_event(method, started, value, self.client_name, self.transport_session_id, True))
+                                else:
+                                    client.capture(_event(tool_name, payload, started, value, None, self.client_name, self.transport_session_id, None, self.client_version, client.tool_metadata(tool_name), "transport_generated"))
                             return value
                         except Exception as error:
                             if method == "shutdown" and self.lifecycle_started and not self.lifecycle_ended:
@@ -826,7 +829,10 @@ class _Wrapped:
                             elif entity:
                                 client.capture(_entity_protocol_event(method, entity, session_id=self.transport_session_id, session_id_source="transport_generated", client_name=self.client_name, client_version=self.client_version, started=started, success=False, error_class="protocol_error"))
                             else:
-                                client.capture(_event(tool_name, payload, started, None, error, self.client_name, self.transport_session_id, None, self.client_version, client.tool_metadata(tool_name), "transport_generated"))
+                                if _protocol_family_for_method(method) in ("roots", "logging"):
+                                    client.capture(_bounded_protocol_event(method, started, None, self.client_name, self.transport_session_id, False))
+                                else:
+                                    client.capture(_event(tool_name, payload, started, None, error, self.client_name, self.transport_session_id, None, self.client_version, client.tool_metadata(tool_name), "transport_generated"))
                             raise
                     return awaited()
                 if method in ("tools/list", "resources/list", "resources/templates/list", "prompts/list"):
@@ -852,7 +858,10 @@ class _Wrapped:
                     if method == "shutdown" and self.lifecycle_started and not self.lifecycle_ended:
                         self._emit_session_boundary("session_ended", True, round((time.time() - started) * 1000))
                         self.lifecycle_ended = True
-                    client.capture(_event(tool_name, payload, started, result, None, self.client_name, self.transport_session_id, None, self.client_version, client.tool_metadata(tool_name), "transport_generated"))
+                    if _protocol_family_for_method(method) in ("roots", "logging"):
+                        client.capture(_bounded_protocol_event(method, started, result, self.client_name, self.transport_session_id, True))
+                    else:
+                        client.capture(_event(tool_name, payload, started, result, None, self.client_name, self.transport_session_id, None, self.client_version, client.tool_metadata(tool_name), "transport_generated"))
                 return result
             except Exception as error:
                 if method == "shutdown" and self.lifecycle_started and not self.lifecycle_ended:
@@ -865,9 +874,22 @@ class _Wrapped:
                 elif entity:
                     client.capture(_entity_protocol_event(method, entity, session_id=self.transport_session_id, session_id_source="transport_generated", client_name=self.client_name, client_version=self.client_version, started=started, success=False, error_class="protocol_error"))
                 else:
-                    client.capture(_event(tool_name, payload, started, None, error, self.client_name, self.transport_session_id, None, self.client_version, client.tool_metadata(tool_name), "transport_generated"))
+                    if _protocol_family_for_method(method) in ("roots", "logging"):
+                        client.capture(_bounded_protocol_event(method, started, None, self.client_name, self.transport_session_id, False))
+                    else:
+                        client.capture(_event(tool_name, payload, started, None, error, self.client_name, self.transport_session_id, None, self.client_version, client.tool_metadata(tool_name), "transport_generated"))
                 raise
         return wrapped
+
+
+def _bounded_protocol_event(method: Optional[str], started: float, result: Any, client_name: Optional[str], session_id: Optional[str], success: bool) -> Dict[str, Any]:
+    return {
+        "event_type": "protocol", "mcp_method": method, "session_id": session_id,
+        "session_id_source": "transport_generated", "client_name": client_name,
+        "started_at": _iso_from_epoch(started), "duration_ms": round((time.time() - started) * 1000),
+        "success": success, "is_error": not success,
+        **_protocol_result_metadata(result), "payload": _protocol_metadata_payload(method, result),
+    }
 
 
 def _event(tool_name: Optional[str], payload: Dict[str, Any], started: float, result: Any, error: Optional[Exception], client_name: Optional[str] = None, session_id: Optional[str] = None, request_id: Optional[str] = None, client_version: Optional[str] = None, metadata: Optional[Dict[str, Any]] = None, session_id_source: Optional[str] = None, context: Optional[str] = None) -> Dict[str, Any]:
