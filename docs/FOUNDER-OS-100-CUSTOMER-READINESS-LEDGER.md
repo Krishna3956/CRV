@@ -1,6 +1,6 @@
 # Founder OS 100 Customer Readiness Ledger
 
-Last updated: 2026-10-27 (main `9230088`; deployed application `57f5643` and App Runner production/authenticated smoke verified)
+Last updated: 2026-10-27 (main `30e01d2`; deployed application `57f5643` and App Runner production/authenticated smoke verified)
 Latest freshness evidence: refresh-worker workflow `40381642702` on main
 commit `fff91da6576987f5d5259801d71b1e41f268a4bc` completed successfully;
 sustained scheduled-sample health is still an explicit open gate below.
@@ -1982,3 +1982,17 @@ a failed product gate or a Supabase plan warning.
 - [ ] Go/.NET registry publication remains intentionally unclaimed and still
   requires an approved release train, registry credentials, and publication
   verification before it can be treated as a customer-facing package.
+
+## 2026-10-27 authenticated Setup browser refresh
+
+- [x] A fresh signed-in production dashboard inspection rendered the Setup
+  route with workspace selection, data-source controls, stale-ingestion
+  disclosure, scoped connection-key controls, TypeScript/Python/Go/.NET setup
+  paths, OpenTelemetry handoff, MCP tester handoff, account-identity guidance,
+  privacy export/deletion controls, and the collapsed privacy/connection
+  detail sections. Secret values remained redacted; no key was copied or
+  mutated during this inspection.
+- [ ] This confirms authenticated Setup discoverability only. It does not
+  close disposable key create/use/rotate/revoke UAT, which still requires a
+  bounded write-enabled test with a disposable key and authenticated API
+  evidence.
