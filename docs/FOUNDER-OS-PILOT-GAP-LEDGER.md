@@ -23,6 +23,7 @@ just because a README or marketing page mentions it.
 | Refresh and task transition projection | Accepted ingest now enqueues bounded refresh work by default; explicit task transition history is persisted by the service-role worker by default, with explicit `false` rollback flags; the bounded projection now selects `task_id` and `payload` required to derive hashed transitions; the TypeScript server wrapper records hashed task handles and explicit lifecycle state for `tasks/get`, `tasks/update`, and `tasks/cancel` | Implemented and production-verified for a non-empty worker batch; SDK lifecycle/privacy regression is merged in PR #170 with the full release gate green | Keep the worker and ingest smoke fixtures in recurring release validation; complete capability-negotiation and cross-server workflow fixtures |
 | Transport disconnect evidence | Node client adapter now drains in-flight tool and non-tool requests on transport error/close into bounded `transport_error` observations before ending the session; real official Stdio child-exit and Streamable HTTP socket-disconnect fixtures now pass | Implemented locally with regression coverage | Hosted cross-language compile evidence and authenticated production disconnect UAT |
 | Connection-key scope | API keys can carry optional bounded service/environment scopes; ingest rejects mismatched labels with a tenant-safe 403 while legacy NULL-scoped keys remain workspace-wide | Implemented and deployed; migration applied, read-only postflight added, release-gate/tenant-isolation coverage passed; production postflight observed 49 active workspace-wide keys, 0 invalid scopes; live smoke accepted a matching event, rejected a mismatched label with 403, and the authenticated export showed the matching event | Keep scope behavior in the recurring release smoke and rotate/revoke the temporary pilot key under the operator’s key-retention policy |
+| Refresh scheduler cadence | Added `workers/refresh-scheduler`: a bounded Node.js 22 Lambda, five-minute AWS Scheduler template, secret-manager dynamic reference, scheduler-only invoke/DLQ IAM permissions, CloudWatch alarms, disabled-by-default rollout instructions, and regression coverage for bearer auth, `max_jobs:100`, failure propagation, and least-privilege template actions | Implemented as a deployable infrastructure path; not yet enabled in AWS | Deploy disabled, run endpoint/token/log/DLQ checks, then enable and collect at least three scheduled samples within the 15-minute freshness budget |
 
 ## 2026-10-24 — Python runtime boundary smoke
 
@@ -53,6 +54,16 @@ production transport UAT.
       verify the mapped event in the authenticated export.
 
 ## Evidence log
+
+- 2026-10-26: GitHub API inspection of the refresh workflow showed scheduled
+  invocations arriving 1–3 hours apart despite the `*/5 * * * *` declaration
+  (for example, successful schedule runs at 06:03, 12:46, and 15:17 UTC).
+  This confirms the existing GitHub cron is not a sufficient pilot freshness
+  scheduler. A deployable AWS Scheduler-backed refresh invoker was added with
+  a five-minute rate, bounded `max_jobs:100` calls, Secret Manager token
+  resolution, scheduler-only Lambda/DLQ permissions, and disabled-by-default
+  enablement. Local scheduler, IAM-template, lint, and worker tests pass. AWS
+  enablement remains an external deployment gate.
 
 - 2026-10-26: Authenticated production scope smoke workflow `40260222918`
   passed against `https://trackmcp.com` at immutable release SHA

@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import test from "node:test";
 import { handler as schedulerHandler } from "../../../workers/alerts-scheduler/handler.mjs";
+import { handler as refreshSchedulerHandler } from "../../../workers/refresh-scheduler/handler.mjs";
 import { runAlertsWorker, type AlertWorkerAdmin } from "./worker.ts";
 
 function query(result: { data: unknown[] | null; error: unknown }): Record<string, unknown> {
@@ -61,6 +62,26 @@ test("scheduled invoker reports success and failure without logging response bod
   if (previousToken === undefined) delete process.env.TRACKMCP_ALERT_WORKER_TOKEN; else process.env.TRACKMCP_ALERT_WORKER_TOKEN = previousToken;
 });
 
+test("refresh scheduler sends a bounded bearer request and surfaces failures", async () => {
+  const previousUrl = process.env.TRACKMCP_REFRESH_WORKER_URL;
+  const previousToken = process.env.TRACKMCP_REFRESH_WORKER_TOKEN;
+  const previousFetch = globalThis.fetch;
+  process.env.TRACKMCP_REFRESH_WORKER_URL = "https://app.trackmcp.com/api/internal/refresh/run";
+  process.env.TRACKMCP_REFRESH_WORKER_TOKEN = "refresh-worker-token";
+  globalThis.fetch = (async (_input, init) => {
+    assert.equal(init?.redirect, "manual");
+    assert.equal(new Headers(init?.headers).get("authorization"), "Bearer refresh-worker-token");
+    assert.deepEqual(JSON.parse(String(init?.body)), { max_jobs: 100 });
+    return new Response(null, { status: 200 });
+  }) as typeof fetch;
+  assert.deepEqual(await refreshSchedulerHandler(), { statusCode: 200 });
+  globalThis.fetch = (async () => new Response(null, { status: 503 })) as typeof fetch;
+  await assert.rejects(() => refreshSchedulerHandler(), /HTTP 503/);
+  globalThis.fetch = previousFetch;
+  if (previousUrl === undefined) delete process.env.TRACKMCP_REFRESH_WORKER_URL; else process.env.TRACKMCP_REFRESH_WORKER_URL = previousUrl;
+  if (previousToken === undefined) delete process.env.TRACKMCP_REFRESH_WORKER_TOKEN; else process.env.TRACKMCP_REFRESH_WORKER_TOKEN = previousToken;
+});
+
 test("scheduler template is hourly and disabled until explicitly enabled", () => {
   const template = fs.readFileSync(new URL("../../../workers/alerts-scheduler/template.yaml", import.meta.url), "utf8");
   assert.match(template, /Type: AWS::Scheduler::Schedule/);
@@ -73,6 +94,20 @@ test("scheduler template is hourly and disabled until explicitly enabled", () =>
   assert.match(template, /Default: 'false'/);
   assert.match(template, /Timeout: 60/);
   assert.match(template, /WorkerTokenSecretArn/);
+});
+
+test("refresh scheduler template is five-minute and disabled until explicitly enabled", () => {
+  const template = fs.readFileSync(new URL("../../../workers/refresh-scheduler/template.yaml", import.meta.url), "utf8");
+  assert.match(template, /Type: AWS::Scheduler::Schedule/);
+  assert.match(template, /ScheduleExpression: rate\(5 minutes\)/);
+  assert.match(template, /MaximumEventAgeInSeconds: 300/);
+  assert.match(template, /MaximumRetryAttempts: 2/);
+  assert.match(template, /DeadLetterConfig:/);
+  assert.match(template, /AWS::Lambda::Permission/);
+  assert.match(template, /Default: 'false'/);
+  assert.match(template, /WorkerTokenSecretArn/);
+  assert.match(template, /Action: lambda:InvokeFunction/);
+  assert.match(template, /Action: sqs:SendMessage/);
 });
 
 test("scheduler documentation contains reproducible gated operations", () => {
