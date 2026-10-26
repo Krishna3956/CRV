@@ -8,6 +8,15 @@ commit and the operator accepts the listed limitations.
 
 ## Current evidence reconciliation — 2026-10-26
 
+The current deployed application is `bb82531b08b45e098b7c436f39fa7e57dbb550c8`.
+App Runner workflow `40283712842` completed successfully after a rerun; the
+first rollout smoke saw a transient root HTTP 503 and was not accepted. The
+successful rerun uploaded production smoke artifact `12632674955` and
+runtime-flags artifact `12634200409`. The onboarding pointer-affordance fix is
+therefore deployed and runtime-verified. The older `be963896...` references
+below are retained as historical evidence only and do not identify the current
+release.
+
 The current mainline candidate is now deployed and identity-verified. Merge
 commit `be9638965383841ee7579ae9155c0162bb626495` passed App Runner workflow
 `40277566836`, including image digest verification, provider rollout,
@@ -85,8 +94,8 @@ was created, rotated, revoked, or written to an artifact.
 | --- | --- |
 | Pilot scope | First 100 customers, desktop dashboard boundary |
 | Production hosts | `trackmcp.com`, `app.trackmcp.com` |
-| Last deployed application commit | `be9638965383841ee7579ae9155c0162bb626495` (identity-verified current candidate) |
-| Last successful App Runner deployment | `40277566836` |
+| Last deployed application commit | `bb82531b08b45e098b7c436f39fa7e57dbb550c8` (identity-verified current candidate) |
+| Last successful App Runner deployment | `40283712842` |
 | Readiness ledger | `docs/FOUNDER-OS-100-CUSTOMER-READINESS-LEDGER.md` |
 | Current release-record change | Current mainline reconciliation of deployed runtime and release-gate evidence |
 

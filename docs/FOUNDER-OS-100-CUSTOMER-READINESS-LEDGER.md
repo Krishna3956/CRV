@@ -1,6 +1,6 @@
 # Founder OS 100 Customer Readiness Ledger
 
-Last updated: 2026-10-26 (main `436fea2`; deployed application `be96389` and App Runner production smoke verified)
+Last updated: 2026-10-26 (main `69d353b`; deployed application `bb82531` and App Runner production smoke verified)
 Latest freshness evidence: sequence monitor workflow `40266407743` on main
 commit `59b7c1435358fbd6c00dce5bcb338089af49c310`.
 
