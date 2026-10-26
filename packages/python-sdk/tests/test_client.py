@@ -180,6 +180,23 @@ class TrackMCPClientTest(TestCase):
             client.record_transport_failure("raw_exception")
         client._timer.cancel()
 
+    def test_transport_reconnect_is_caller_observed_and_metadata_only(self):
+        client = TrackMCP(TrackMCPOptions(api_key="tmcp_test", disabled=False, flush_interval_ms=60000))
+        client.record_session_reconnected(
+            transport="streamable_http", session_id="session-1", duration_ms=86_500_000
+        )
+        event = client._events[0]
+        self.assertEqual(event["event_type"], "session")
+        self.assertEqual(event["transport"], "streamable_http")
+        self.assertEqual(event["duration_ms"], 86_400_000)
+        self.assertTrue(event["success"])
+        self.assertEqual(event["payload"]["_trackmcp"]["observation_kind"], "session_reconnected")
+        self.assertEqual(event["payload"]["_trackmcp"]["observation_source"], "transport")
+        self.assertNotIn("exception", json.dumps(event).lower())
+        client.record_session_reconnected(transport="private_transport")
+        self.assertEqual(len(client._events), 1)
+        client._timer.cancel()
+
     def test_protocol_signal_is_allowlisted_and_metadata_only(self):
         client = TrackMCP(TrackMCPOptions(api_key="tmcp_test", disabled=False, flush_interval_ms=60000))
         client.record_protocol_signal("progress", "notifications/progress", session_id="session-1")

@@ -117,6 +117,9 @@ def main() -> None:
         client.record_transport_failure(
             "transport_error", session_id="python-smoke-session", duration_ms=12
         )
+        client.record_session_reconnected(
+            transport="stdio", session_id="python-smoke-session", duration_ms=7
+        )
         client.flush()
     finally:
         client._timer.cancel()
@@ -140,7 +143,7 @@ def main() -> None:
         if marker in body:
             fail(f"private catalog value crossed the event boundary: {marker}")
     events = CaptureHandler.payload.get("events", []) if CaptureHandler.payload else []
-    if len(events) != 6:
+    if len(events) != 7:
         fail("unexpected event envelope")
     if events[0].get("direction") != "client_to_server" or events[0].get("event_type") != "protocol":
         fail("protocol signal direction was not preserved")
@@ -158,6 +161,10 @@ def main() -> None:
         fail("protocol-result observation marker was not emitted")
     if events[5].get("error_class") != "transport_error" or events[5].get("event_type") != "session":
         fail("transport failure metadata was not emitted")
+    if events[6].get("event_type") != "session" or events[6].get("transport") != "stdio" or events[6].get("success") is not True:
+        fail("transport reconnect metadata was not emitted")
+    if events[6].get("payload", {}).get("_trackmcp", {}).get("observation_kind") != "session_reconnected":
+        fail("transport reconnect observation marker was not emitted")
     print("Python TrackMCP runtime smoke passed")
 
 

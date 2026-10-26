@@ -382,6 +382,36 @@ class TrackMCP:
             "payload": {"_trackmcp": {"observation_kind": kind, "observation_source": "transport"}},
         })
 
+    def record_session_reconnected(
+        self,
+        *,
+        transport: Optional[TrackMCPTransport] = None,
+        session_id: Optional[str] = None,
+        session_id_source: str = "transport_generated",
+        duration_ms: int = 0,
+    ) -> None:
+        """Record caller-observed reconnect metadata without claiming replay.
+
+        The host invokes this only after it has successfully re-established a
+        transport. It records no exception text, URLs, headers, credentials,
+        or message payloads; reconnect ownership and delivery remain with the
+        host application.
+        """
+        if transport is not None and transport not in ("stdio", "streamable_http", "sse", "custom"):
+            return
+        self.capture({
+            "event_type": "session",
+            "mcp_method": "transport",
+            "session_id": session_id or "transport-session",
+            "session_id_source": session_id_source if session_id_source in ("protocol", "transport_generated", "external") else "transport_generated",
+            "started_at": _iso_now(),
+            "duration_ms": max(0, min(86_400_000, int(duration_ms))),
+            "success": True,
+            "is_error": False,
+            "payload": {"_trackmcp": {"observation_kind": "session_reconnected", "observation_source": "transport"}},
+            **({"transport": transport} if transport else {}),
+        })
+
     def record_protocol_signal(
         self,
         signal: str,

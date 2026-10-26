@@ -74,6 +74,12 @@ Telemetry is batched, redacted locally, and fail-open. Payload mode defaults to 
 
 If a transport disconnects or the server process exits outside an MCP request, call `client.record_transport_failure("transport_closed")` or `client.record_transport_failure("transport_error")`. The helper emits one bounded, metadata-only session observation; it never accepts or records exception text, headers, URLs, or payloads. It is optional and remains fail-open.
 
+After the host successfully re-establishes its connection, it may call
+`client.record_session_reconnected(transport="streamable_http")`. This is
+caller-observed lifecycle evidence only: it does not claim replay, durable
+delivery, or SDK ownership of reconnects, and it records only bounded session
+metadata.
+
 `redact` keeps compatibility with explicit dotted paths, while `redact_keys` adds case-insensitive exact key names. `redact_event` receives an already sanitized event, may mutate it, or can return `None` to drop it. Hook failures drop only the event. The SDK queue is bounded to 500 events or 2 MiB; failed deliveries are requeued within those limits.
 
 For an explicit business outcome, optionally call `app.trackmcp.workflow("issue_resolution", "completed")` from your application code. This is an application-emitted signal, not proof that an answer was correct. Payloads default to bounded redacted mode; use `payload_mode="metadata"` to omit arguments/results. See the [Python docs](https://trackmcp.com/docs/python), [configuration reference](https://trackmcp.com/docs/reference), and [API docs](https://trackmcp.com/docs/api) for trace and latency semantics.
