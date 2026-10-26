@@ -1,16 +1,35 @@
 # Founder OS 100 Customer Readiness Ledger
 
-Last updated: 2026-10-26 (main `e363c040`; deployed application `e363c040` and App Runner production smoke verified)
-Latest freshness evidence: sequence monitor workflow `40266407743` on main
-commit `59b7c1435358fbd6c00dce5bcb338089af49c310`.
+Last updated: 2026-10-26 (main `fff91da`; deployed application `fff91da` and App Runner production/authenticated smoke verified)
+Latest freshness evidence: refresh-worker workflow `40381642702` on main
+commit `fff91da6576987f5d5259801d71b1e41f268a4bc` completed successfully;
+sustained scheduled-sample health is still an explicit open gate below.
 
 The deployed application is the runtime-verified App Runner release
-(`e363c040d608bd211565f904e882e9a13ac3bbdf`, workflow `40377139058`). The
+(`fff91da6576987f5d5259801d71b1e41f268a4bc`, workflow `40381106003`). The
 release gate, image binding, rollout, read-only production smoke, running
 identity, and runtime-safety audit all passed. Retained artifacts are
-`production-smoke-e363c040d608bd211565f904e882e9a13ac3bbdf` (`12675831061`),
-`runtime-flags-e363c040d608bd211565f904e882e9a13ac3bbdf` (`12675656464`), and
-`app-runner-host-e363c040d608bd211565f904e882e9a13ac3bbdf` (`12675283021`).
+`production-smoke-fff91da6576987f5d5259801d71b1e41f268a4bc` (`12679241269`),
+`runtime-flags-fff91da6576987f5d5259801d71b1e41f268a4bc` (`12679491105`),
+`app-runner-host-fff91da6576987f5d5259801d71b1e41f268a4bc` (`12679181363`),
+and authenticated smoke `production-auth-smoke-fff91da6576987f5d5259801d71b1e41f268a4bc`
+(`12679162736`).
+
+## 2026-10-26 active-claim and lifecycle-evidence reconciliation
+
+- [x] PR #565 merged as `fda5acd9cc9a30d86dccfe9d24a9eec1870696f6`. The
+  credentialed key-lifecycle smoke user-agent is release-neutral; it no longer
+  presents an old package version as current. The 137-suite release gate and
+  hosted Go/web/.NET checks passed.
+- [x] PR #566 merged as `fff91da6576987f5d5259801d71b1e41f268a4bc`. Active
+  content-release and PDF truth-audit claims now name the published
+  `@trackmcp/sdk@0.1.19`, `@trackmcp/cli@0.1.10`, and `trackmcp==0.1.12` train;
+  historical release tables remain explicitly historical. The 137-suite gate,
+  hosted CI, App Runner deployment `40381106003`, and authenticated smoke
+  `40382233180` passed for this exact mainline.
+- [ ] This reconciles evidence wording only; it does not close the remaining
+  sustained worker-freshness, backup/PITR, credentialed write/lifecycle,
+  interoperability, or pilot-owner acceptance gates.
 
 ## 2026-10-26 current published package-train smoke
 

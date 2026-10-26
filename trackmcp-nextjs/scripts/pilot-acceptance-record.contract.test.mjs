@@ -49,7 +49,7 @@ test("external-gate register names accountable parties and closure evidence", ()
 
 test("readiness ledger points at the current reconciled mainline", () => {
   assert.match(readinessLedger, /Last updated: 2026-10-26 \(main `[0-9a-f]{7,40}`; deployed application `[0-9a-f]{7,40}` and/);
-  assert.match(readinessLedger, /Latest freshness evidence: sequence monitor workflow `40266407743`/);
+  assert.match(readinessLedger, /Latest freshness evidence: refresh-worker workflow `40381642702`/);
   assert.match(readinessLedger, /Immutable deployed SHAs remain\s+in the release record/);
   assert.doesNotMatch(readinessLedger, /readiness-ledger reconciliation merged as PR #411 at/);
 });
