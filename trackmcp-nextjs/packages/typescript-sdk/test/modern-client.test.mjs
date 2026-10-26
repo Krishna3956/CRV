@@ -469,6 +469,17 @@ test("modern client listens to bounded task notifications without retaining payl
   assert.equal(JSON.stringify(result).includes("omit"), false);
 });
 
+test("modern task streams project bounded acknowledgement cache hints without retaining payloads", async () => {
+  const client = new ModernMcpClient({ endpoint: "https://mcp.example.test", fetch: async () => sseResponse([
+    { jsonrpc: "2.0", method: "notifications/subscriptions/acknowledged", params: { ttlMs: 120_000, cacheScope: "private", subscriptionId: "omit" } },
+    { jsonrpc: "2.0", method: "notifications/tasks", params: { taskId: "task-1", status: "working" } },
+    { jsonrpc: "2.0", id: 1, result: { ttlMs: 999_999_999, cacheScope: "secret" } },
+  ]) });
+  const result = await client.listenForTaskUpdates(["task-1"]);
+  assert.deepEqual(result.cacheHints, { ttlMs: 120_000, cacheScope: "private" });
+  assert.equal(JSON.stringify(result).includes("omit"), false);
+});
+
 test("modern client bounds task notification streams and rejects unsafe filters", async () => {
   let requestBody;
   const client = new ModernMcpClient({ endpoint: "https://mcp.example.test", fetch: async (_input, init) => { requestBody = JSON.parse(init.body); return new Response(new ReadableStream({ start(controller) { controller.enqueue(new TextEncoder().encode(`data: ${JSON.stringify({ method: "notifications/tasks", params: { taskId: "task-1", status: "working" } })}\n\n`.repeat(3))); controller.close(); } }), { status: 200, headers: { "content-type": "text/event-stream" } }); } });
