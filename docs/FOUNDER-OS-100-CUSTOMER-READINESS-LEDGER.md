@@ -61,6 +61,18 @@ commit `59b7c1435358fbd6c00dce5bcb338089af49c310`.
   families visibly partial until runtime fixtures and authenticated production
   evidence exist; observed traffic is not treated as capability support.
 
+## 2026-10-26 roots/logging capability-advertisement parity
+
+- [x] Added TypeScript and Python initialize-response fixtures proving that
+  advertised `roots` and `logging` capabilities are recorded as bounded,
+  sorted capability names only; capability option values, root URIs, log
+  levels, and arbitrary payload fields remain outside telemetry.
+- [x] Python now projects the same bounded `capability_names` metadata as the
+  TypeScript adapter. Focused SDK tests, Python client tests, the protocol
+  matrix contract, and the complete 136-suite release gate passed.
+- [ ] Authenticated production UAT remains required before claiming observed
+  roots or logging availability in customer-facing readiness evidence.
+
 ## 2026-10-26 first-ingest UAT automation
 
 - [x] Added a manually dispatched, trusted-host-only first-ingest smoke that
