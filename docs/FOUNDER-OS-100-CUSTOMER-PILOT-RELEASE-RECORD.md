@@ -28,6 +28,13 @@ and redacted evidence uploads. Retained artifacts are
 The release remains Draft/HOLD; this baseline contains the worker-health
 recovery-evidence hardening, not a final operational SLO acceptance.
 
+Health validation workflow `40352798759` then ran against main `25877da` and
+uploaded redacted artifact `12663714778`. It reported eight samples, including
+two scheduled and six recovery/manual runs, and correctly remained `warning`
+with `scheduled_samples_not_met`, freshness, failure, and cadence reasons.
+This validates the monitor’s evidence boundary; it is not a sustained worker
+SLO pass.
+
 ## Latest bounded insight-evidence deployment — 2026-10-26
 
 PR #545 merged the bounded insight evidence metadata feature as

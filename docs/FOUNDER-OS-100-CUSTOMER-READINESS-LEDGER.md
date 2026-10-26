@@ -21,6 +21,19 @@ commit `59b7c1435358fbd6c00dce5bcb338089af49c310`.
 - [ ] This improves observability and recovery evidence; it does not by itself
   close the sustained worker SLO until repeated scheduled samples are healthy.
 
+## 2026-10-26 worker-health event-provenance validation
+
+- [x] Health workflow `40352798759` ran against main `25877da` and uploaded
+  redacted artifact `12663714778`. The new report contained eight bounded
+  samples: two scheduled and six recovery/manual runs.
+- [x] The report explicitly returned `state=warning` with
+  `scheduled_samples_not_met`, `worker_failures_observed`,
+  `freshness_budget_exceeded`, and `schedule_cadence_gap`; it did not mistake
+  recovery samples for sustained scheduled health.
+- [ ] The current evidence is a validated warning, not an SLO pass. Keep the
+  worker gate open until at least three scheduled samples are within budget and
+  no failure/cadence reasons remain.
+
 ## 2026-10-26 bounded insight-evidence deployment
 
 - [x] PR #545 merged as `4e77595087bb14ede1fce4fb573322b3f925d572` after the
