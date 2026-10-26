@@ -89,6 +89,15 @@ static class Smoke
         }, "session-1");
         client.RecordTransportFailureForTransport("transport_error", "streamable_http", "session-1", 12);
         client.RecordSessionReconnected("streamable_http", "session-1", 12);
+        client.RecordProtocolResult("initialize", new JsonObject
+        {
+            ["capabilities"] = new JsonObject
+            {
+                ["roots"] = new JsonObject { ["listChanged"] = true },
+                ["logging"] = new JsonObject(),
+                ["unsafe key"] = new JsonObject { ["secret"] = "omit" },
+            },
+        }, "session-init");
         await client.FlushAsync();
 
         Require(handler.Body is not null, "flush did not send an event batch");
@@ -103,7 +112,7 @@ static class Smoke
         Require(!handler.Body.Contains("private-prompt-message", StringComparison.Ordinal), "raw prompt content crossed the boundary");
         using var document = JsonDocument.Parse(handler.Body);
         var events = document.RootElement.GetProperty("events");
-        Require(events.GetArrayLength() == 9, "unexpected event count");
+        Require(events.GetArrayLength() == 10, "unexpected event count");
         Require(events[0].GetProperty("direction").GetString() == "client_to_server", "inbound direction was not retained");
         Require(events[0].GetProperty("transport").GetString() == "streamable_http", "caller-verified signal transport label was not retained");
         Require(events[1].GetProperty("result_type").GetString() == "input_required", "protocol result type was not retained");
@@ -125,5 +134,7 @@ static class Smoke
         Require(events[8].GetProperty("success").GetBoolean(), "reconnect observation was not successful lifecycle evidence");
         var metadata = events[4].GetProperty("payload").GetProperty("_trackmcp");
         Require(metadata.GetProperty("next_cursor_present").GetBoolean(), "cursor presence was not retained");
+        Require(events[9].GetProperty("payload").GetProperty("_trackmcp").GetProperty("capability_names").GetString() == "logging,roots", "capability names were not retained in bounded form");
+        Require(!handler.Body.Contains("listChanged", StringComparison.Ordinal) && !handler.Body.Contains("omit", StringComparison.Ordinal), "capability option values crossed the privacy boundary");
     }
 }
