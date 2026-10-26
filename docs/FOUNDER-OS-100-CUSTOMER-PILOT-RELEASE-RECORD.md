@@ -24,6 +24,15 @@ It sent one bounded metadata-only event and verified
 `accepted_telemetry=true`; this closes transport acceptance and first-ingest
 UAT, but not CLI activation, key lifecycle mutation, or business-workflow
 completion.
+
+An authenticated browser UAT then inspected all dashboard views (Overview,
+journey, activity, quality, issues, resources/prompts, identity, evidence, and
+Setup). Navigation and data-bound rendering passed read-only inspection. Setup
+exposed SDK and OpenTelemetry documentation CTAs plus resolver and scoped-key
+guidance; dashboard privacy boundaries, insufficient-data states, synthetic
+incident labeling, and unknown outcomes were visible as documented. This is
+presentation/navigation evidence only and does not close write-gated lifecycle,
+worker-freshness, or release-owner gates.
 The prior App Runner workflow `40307943718` completed successfully; the
 first rollout smoke saw a transient root HTTP 503 and was not accepted. The
 successful rerun uploaded production smoke artifact `12632674955` and
