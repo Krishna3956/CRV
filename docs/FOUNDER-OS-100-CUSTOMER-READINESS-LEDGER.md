@@ -18,6 +18,18 @@ commit `59b7c1435358fbd6c00dce5bcb338089af49c310`.
 - [ ] Worker freshness, credentialed mutation lifecycle, ingest/dashboard UAT,
   RLS postflight, backup/PITR, and release-owner approval remain open.
 
+## 2026-10-26 fresh worker-health evidence
+
+- [x] Read-only health workflow `40318183263` completed successfully and
+  retained artifact `refresh-worker-health-40318183263` (`12648235538`).
+- [x] The report contains 8 samples (minimum 3), 284 total processed rows,
+  3 stale runs, 1 historical failure, 7 cadence breaches, and maximum queue
+  lag of `13232020 ms` against the `900000 ms` freshness budget.
+- [ ] The current state remains `warning` with reasons
+  `worker_failures_observed`, `freshness_budget_exceeded`, and
+  `schedule_cadence_gap`; this is current evidence that the worker path is
+  functional but not within the pilot freshness SLO.
+
 ## 2026-10-26 disposable first-ingest production UAT
 
 - [x] The guarded first-ingest workflow `40316460050` sent exactly one bounded
