@@ -1,19 +1,29 @@
 # Founder OS 100 Customer Readiness Ledger
 
-Last updated: 2026-10-27 (main `69a0cda`; deployed application `57f5643` and App Runner production/authenticated smoke verified)
+Last updated: 2026-10-27 (main `76feae0`; deployed application `1624d9a` and App Runner production/authenticated smoke verified)
 Latest freshness evidence: refresh-worker workflow `40381642702` on main
 commit `fff91da6576987f5d5259801d71b1e41f268a4bc` completed successfully;
 sustained scheduled-sample health is still an explicit open gate below.
 
 The deployed application is the runtime-verified App Runner release
-(`57f56431317564c4789bbae0eb4e7bac92bba29e`, workflow `40393173889`). The
+(`1624d9a2e6128feaffe1bfb83746b74a972ae311`, workflow `40412512143`). The
 release gate, image binding, rollout, read-only production smoke, running
 identity, and runtime-safety audit all passed. Retained artifacts are
 `production-smoke-57f56431317564c4789bbae0eb4e7bac92bba29e` (`12686206914`),
 `runtime-flags-57f56431317564c4789bbae0eb4e7bac92bba29e` (`12685242310`),
 `app-runner-host-57f56431317564c4789bbae0eb4e7bac92bba29e` (`12685702047`),
-and authenticated smoke `production-auth-smoke-57f56431317564c4789bbae0eb4e7bac92bba29e`
-(`12685019035`).
+and the latest authenticated smoke `production-auth-smoke-1624d9a2e6128feaffe1bfb83746b74a972ae311`
+(`12694805391`).
+
+## 2026-10-27 interaction accessibility deployment checkpoint
+
+- [x] App Runner deployment workflow `40412512143` completed successfully for
+  the merged interaction-accessibility runtime SHA `1624d9a2e6128feaffe1bfb83746b74a972ae311`.
+- [x] Authenticated production smoke workflow `40413417880` completed
+  successfully and retained artifact `12694805391` for that deployed runtime.
+- [ ] This confirms deployment and authenticated read-only smoke only. It does
+  not close key lifecycle mutation UAT, worker freshness, backup/PITR, or final
+  pilot-owner acceptance gates.
 
 ## 2026-10-27 dashboard interaction accessibility checkpoint
 
