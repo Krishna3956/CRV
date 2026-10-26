@@ -7,10 +7,13 @@ Supabase directly and never logs the worker token or response body.
 
 The schedule is disabled by default. Deploy it disabled first, run the manual
 checks below, and enable it only after the endpoint and secret have been
-verified in the target environment. The repository workflow discovers both the
-App Runner hostname and the `TRACKMCP_REFRESH_WORKER_SECRET` ARN from the
-selected service's public configuration; it never reads or prints the secret
-value and no ARN needs to be copied into GitHub inputs.
+verified in the target environment. The repository workflow discovers the
+App Runner hostname and, when AWS exposes it, the
+`TRACKMCP_REFRESH_WORKER_SECRET` ARN from the selected service's public
+configuration; it never reads or prints the secret value. Some App Runner
+configurations redact runtime secret mappings from `describe-service`; in that
+case provide only the non-sensitive Secrets Manager ARN through the workflow's
+optional `worker_token_secret_arn` input.
 
 ```bash
 export AWS_REGION=ap-south-1

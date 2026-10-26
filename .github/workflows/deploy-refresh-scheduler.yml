@@ -16,6 +16,11 @@ on:
         required: true
         default: arn:aws:apprunner:ap-south-1:872575360367:service/trackmcp-web/5d38155bd23141cabb4546b29a4075c7
         type: string
+      worker_token_secret_arn:
+        description: Optional Secrets Manager ARN when App Runner redacts the runtime mapping from describe-service
+        required: false
+        default: ''
+        type: string
       enable_schedule:
         description: Enable the five-minute schedule after deployment (keep false for first deployment)
         required: true
@@ -60,6 +65,7 @@ jobs:
         env:
           STACK_NAME: ${{ inputs.stack_name }}
           APP_RUNNER_SERVICE_ARN: ${{ inputs.app_runner_service_arn }}
+          WORKER_TOKEN_SECRET_ARN_INPUT: ${{ inputs.worker_token_secret_arn }}
           ENABLE_SCHEDULE: ${{ inputs.enable_schedule }}
           FAILURE_ALARM_TOPIC_ARN: ${{ inputs.failure_alarm_topic_arn }}
         run: |
@@ -75,13 +81,16 @@ jobs:
           # the named reference; never read the secret value.
           SECRET_REF=$(jq -r '.Service.SourceConfiguration.ImageRepository.ImageConfiguration.RuntimeEnvironmentSecrets.TRACKMCP_REFRESH_WORKER_SECRET // empty' <<<"$SERVICE_JSON")
           WORKER_TOKEN_SECRET_ARN="${SECRET_REF%:TRACKMCP_REFRESH_WORKER_SECRET::}"
+          if [[ -z "$WORKER_TOKEN_SECRET_ARN" ]]; then
+            WORKER_TOKEN_SECRET_ARN="$WORKER_TOKEN_SECRET_ARN_INPUT"
+          fi
           WORKER_URL="https://${ORIGIN}/api/internal/refresh/run"
           if [[ ! "$ORIGIN" =~ ^[a-z0-9.-]+\.awsapprunner\.com$ ]]; then
             echo "::error::App Runner did not return a valid service hostname."
             exit 1
           fi
           if [[ ! "$WORKER_TOKEN_SECRET_ARN" =~ ^arn:aws:secretsmanager:[^:]+:[0-9]{12}:secret:.+ ]]; then
-            echo "::error::App Runner did not expose a valid TRACKMCP_REFRESH_WORKER_SECRET reference."
+            echo "::error::No valid TRACKMCP_REFRESH_WORKER_SECRET ARN was available. App Runner may redact it from describe-service; provide only the non-sensitive ARN input."
             exit 1
           fi
           sam deploy \

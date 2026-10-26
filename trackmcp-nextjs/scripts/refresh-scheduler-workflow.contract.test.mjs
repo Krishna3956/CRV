@@ -18,8 +18,10 @@ test("refresh scheduler deployment derives the HTTPS endpoint and secret ARN fro
   assert.match(workflow, /app_runner_service_arn/);
   assert.match(workflow, /aws apprunner describe-service/);
   assert.match(workflow, /SourceConfiguration\.ImageRepository\.ImageConfiguration\.RuntimeEnvironmentSecrets\.TRACKMCP_REFRESH_WORKER_SECRET/);
+  assert.match(workflow, /worker_token_secret_arn/);
+  assert.match(workflow, /WORKER_TOKEN_SECRET_ARN_INPUT/);
   assert.match(workflow, /App Runner did not return a valid service hostname/);
-  assert.match(workflow, /App Runner did not expose a valid TRACKMCP_REFRESH_WORKER_SECRET reference/);
+  assert.match(workflow, /No valid TRACKMCP_REFRESH_WORKER_SECRET ARN was available/);
   assert.match(workflow, /WorkerTokenSecretArn="\$WORKER_TOKEN_SECRET_ARN"/);
   assert.doesNotMatch(workflow, /TRACKMCP_REFRESH_WORKER_TOKEN\s*=/);
 });
