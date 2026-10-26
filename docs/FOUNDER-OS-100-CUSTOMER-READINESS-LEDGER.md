@@ -1,6 +1,6 @@
 # Founder OS 100 Customer Readiness Ledger
 
-Last updated: 2026-10-27 (main `353af7e`; deployed application `57f5643` and App Runner production/authenticated smoke verified)
+Last updated: 2026-10-27 (main `525f43e`; deployed application `57f5643` and App Runner production/authenticated smoke verified)
 Latest freshness evidence: refresh-worker workflow `40381642702` on main
 commit `fff91da6576987f5d5259801d71b1e41f268a4bc` completed successfully;
 sustained scheduled-sample health is still an explicit open gate below.
@@ -1937,3 +1937,15 @@ a failed product gate or a Supabase plan warning.
 - [ ] This closes the region fact for queue item `157` only. The Free-plan
   backup/PITR limitation, restoration contact, and tested recovery reference
   remain unresolved and are still required for operator acceptance.
+
+## 2026-10-27 Supabase backup limitation recheck
+
+- [x] A fresh signed-in inspection of Database → Backups explicitly displayed
+  that the Free Plan does not include project backups. The Point-in-Time
+  Recovery route explicitly displayed that PITR is a Pro Plan add-on starting
+  at $100/month. No restore point, backup artifact, or recovery rehearsal was
+  available in the current plan.
+- [ ] This confirms an external infrastructure limitation; it does not close
+  queue item `157`. The release owner must either accept the documented
+  recovery limitation with an owner/runbook or move the project to a plan with
+  tested backup/PITR coverage.
