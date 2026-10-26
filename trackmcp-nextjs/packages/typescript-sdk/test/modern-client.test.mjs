@@ -2,6 +2,9 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { ModernMcpClient, ModernMcpProtocolError, MODERN_MCP_PROTOCOL_VERSION } from "../dist/modern-client.js";
 
+const CLIENT_INFO_META = { _meta: { "io.modelcontextprotocol/clientInfo": { name: "@trackmcp/sdk", version: "0.1.19" } } };
+const withClientInfo = (params) => ({ ...params, ...CLIENT_INFO_META });
+
 function response(body, status = 200, headers = {}) {
   return new Response(JSON.stringify(body), { status, headers: { "content-type": "application/json", ...headers } });
 }
@@ -31,6 +34,23 @@ test("modern client assigns distinct JSON-RPC ids to concurrent requests", async
   assert.equal(ids.length, 2);
   assert.equal(new Set(ids).size, 2);
   assert.deepEqual(ids, [1, 2]);
+});
+
+test("modern client advertises bounded per-request client identity metadata", async () => {
+  const requests = [];
+  const client = new ModernMcpClient({
+    endpoint: "https://mcp.example.test",
+    clientInfo: { name: "fixture-client", version: "1.2.3" },
+    fetch: async (_input, init) => {
+      requests.push(JSON.parse(init.body));
+      return response({ result: { tools: [] } });
+    },
+  });
+  await client.listTools();
+  assert.deepEqual(requests[0].params._meta["io.modelcontextprotocol/clientInfo"], { name: "fixture-client", version: "1.2.3" });
+  const fallback = new ModernMcpClient({ endpoint: "https://mcp.example.test", clientInfo: { name: "\u0000secret", version: "" }, fetch: async (_input, init) => { requests.push(JSON.parse(init.body)); return response({ result: { tools: [] } }); } });
+  await fallback.listTools();
+  assert.deepEqual(requests[1].params._meta["io.modelcontextprotocol/clientInfo"], { name: "@trackmcp/sdk", version: "0.1.19" });
 });
 
 test("modern client rejects credentials, oversized responses, and non-success statuses", async () => {
@@ -72,7 +92,7 @@ test("modern client lists a bounded, cursor-based tool catalog", async () => {
   } });
   const page = await client.listTools("cursor-1");
   assert.equal(request.headers.get("mcp-method"), "tools/list");
-  assert.deepEqual(JSON.parse(request.body).params, { cursor: "cursor-1" });
+  assert.deepEqual(JSON.parse(request.body).params, withClientInfo({ cursor: "cursor-1" }));
   assert.deepEqual(page, {
     tools: [{ name: "search", description: "Find things", inputSchema: { type: "object", properties: { query: { type: "string" } } } }],
     nextCursor: "cursor-2",
@@ -108,7 +128,7 @@ test("modern client invokes tools with task capability and projects task results
   assert.deepEqual(result, { resultType: "task", task: { taskId: "task-call-1", status: "working", createdAt: "2026-10-22T00:00:00Z" } });
   assert.equal(requests[0].body.method, "tools/call");
   assert.equal(requests[0].mcpName, "lookup");
-  assert.deepEqual(requests[0].body.params._meta, { "io.modelcontextprotocol/clientCapabilities": { extensions: { "io.modelcontextprotocol/tasks": {} } } });
+  assert.deepEqual(requests[0].body.params._meta, { "io.modelcontextprotocol/clientCapabilities": { extensions: { "io.modelcontextprotocol/tasks": {} } }, "io.modelcontextprotocol/clientInfo": { name: "@trackmcp/sdk", version: "0.1.19" } });
   assert.equal(JSON.stringify(result).includes("omit"), false);
   await assert.rejects(() => client.callTool("bad name", {}), (error) => error instanceof ModernMcpProtocolError && error.code === "invalid_response");
 });
@@ -235,8 +255,8 @@ test("modern client lists bounded resource and prompt catalogs without reading c
   const resources = await client.listResources("resource-page");
   const prompts = await client.listPrompts();
   assert.deepEqual(requests.map(({ method, params }) => ({ method, params })), [
-    { method: "resources/list", params: { cursor: "resource-page" } },
-    { method: "prompts/list", params: {} },
+    { method: "resources/list", params: withClientInfo({ cursor: "resource-page" }) },
+    { method: "prompts/list", params: withClientInfo({}) },
   ]);
   assert.deepEqual(resources, { resources: [{ uri: "file:///safe/report", name: "Report", description: "A report", mimeType: "text/plain" }], nextCursor: "resource-cursor" });
   assert.deepEqual(prompts, { prompts: [{ name: "summarize", description: "Summarize", argumentNames: ["format", "secret"] }], nextCursor: "prompt-cursor" });
@@ -260,6 +280,7 @@ test("modern client requests completion and returns metadata without suggestions
   assert.deepEqual(JSON.parse(request.body).params, {
     ref: { type: "ref/prompt", name: "summarize" },
     argument: { name: "format", value: "mar" },
+    _meta: CLIENT_INFO_META._meta,
   });
   assert.deepEqual(result, { valueCount: 2, total: 7, hasMore: true });
   assert.equal(JSON.stringify(result).includes("private"), false);
@@ -282,7 +303,7 @@ test("modern client lists bounded resource templates without expanding or derefe
   } });
   const page = await client.listResourceTemplates("template-1");
   assert.equal(requests[0].method, "resources/templates/list");
-  assert.deepEqual(requests[0].params, { cursor: "template-1" });
+  assert.deepEqual(requests[0].params, withClientInfo({ cursor: "template-1" }));
   assert.deepEqual(page, { resourceTemplates: [{ uriTemplate: "file:///reports/{id}", name: "report", description: "Report template", mimeType: "text/plain" }], nextCursor: "template-2" });
   assert.equal(JSON.stringify(page).includes("secret"), false);
 });
@@ -312,9 +333,9 @@ test("modern client follows opaque catalog cursors and discloses truncation", as
   assert.deepEqual(await client.listAllResources(), { items: [{ uri: "file:///first" }, { uri: "file:///second" }], truncated: false });
   assert.deepEqual(await client.listAllPrompts(), { items: [{ name: "first", argumentNames: [] }, { name: "second", argumentNames: [] }], truncated: false });
   assert.deepEqual(methods.map(({ method, params }) => ({ method, params })), [
-    { method: "tools/list", params: {} }, { method: "tools/list", params: { cursor: "tools-2" } },
-    { method: "resources/list", params: {} }, { method: "resources/list", params: { cursor: "resources-2" } },
-    { method: "prompts/list", params: {} }, { method: "prompts/list", params: { cursor: "prompts-2" } },
+    { method: "tools/list", params: withClientInfo({}) }, { method: "tools/list", params: withClientInfo({ cursor: "tools-2" }) },
+    { method: "resources/list", params: withClientInfo({}) }, { method: "resources/list", params: withClientInfo({ cursor: "resources-2" }) },
+    { method: "prompts/list", params: withClientInfo({}) }, { method: "prompts/list", params: withClientInfo({ cursor: "prompts-2" }) },
   ]);
 });
 
@@ -334,8 +355,8 @@ test("modern client reads resources and prompts without returning content", asyn
   assert.equal(prompt.promptNameHash.length, 64);
   assert.equal(JSON.stringify({ resource, prompt }).includes("private"), false);
   assert.deepEqual(requests.map(({ method, params }) => ({ method, params })), [
-    { method: "resources/read", params: { uri: "file:///private/config" } },
-    { method: "prompts/get", params: { name: "summarize", arguments: { query: "private input" } } },
+    { method: "resources/read", params: withClientInfo({ uri: "file:///private/config" }) },
+    { method: "prompts/get", params: withClientInfo({ name: "summarize", arguments: { query: "private input" } }) },
   ]);
 });
 
@@ -366,7 +387,7 @@ test("modern client refuses the removed tasks/list operation and observes an exp
   await assert.rejects(() => client.listTasks(), (error) => error instanceof ModernMcpProtocolError && error.code === "unsupported_method");
   const task = await client.getTask("task-1");
   assert.deepEqual(requests.map(({ method, params }) => ({ method, params })), [
-    { method: "tasks/get", params: { taskId: "task-1", _meta: { "io.modelcontextprotocol/clientCapabilities": { extensions: { "io.modelcontextprotocol/tasks": {} } } } } },
+    { method: "tasks/get", params: { taskId: "task-1", _meta: { "io.modelcontextprotocol/clientCapabilities": { extensions: { "io.modelcontextprotocol/tasks": {} } }, "io.modelcontextprotocol/clientInfo": { name: "@trackmcp/sdk", version: "0.1.19" } } } },
   ]);
   assert.deepEqual(task, { taskId: "task-1", status: "completed" });
 });
@@ -397,8 +418,8 @@ test("modern client updates and cancels tasks with routing headers and no task/l
   await client.updateTask("task-1", { name: { action: "accept", content: { input: "Luca" } } });
   await client.cancelTask("task-1");
   assert.deepEqual(requests.map(({ headers, body }) => ({ method: body.method, params: body.params, mcpName: headers.get("mcp-name") })), [
-    { method: "tasks/update", params: { taskId: "task-1", inputResponses: { name: { action: "accept", content: { input: "Luca" } } }, _meta: { "io.modelcontextprotocol/clientCapabilities": { extensions: { "io.modelcontextprotocol/tasks": {} } } } }, mcpName: "task-1" },
-    { method: "tasks/cancel", params: { taskId: "task-1", _meta: { "io.modelcontextprotocol/clientCapabilities": { extensions: { "io.modelcontextprotocol/tasks": {} } } } }, mcpName: "task-1" },
+    { method: "tasks/update", params: { taskId: "task-1", inputResponses: { name: { action: "accept", content: { input: "Luca" } } }, _meta: { "io.modelcontextprotocol/clientCapabilities": { extensions: { "io.modelcontextprotocol/tasks": {} } }, "io.modelcontextprotocol/clientInfo": { name: "@trackmcp/sdk", version: "0.1.19" } } }, mcpName: "task-1" },
+    { method: "tasks/cancel", params: { taskId: "task-1", _meta: { "io.modelcontextprotocol/clientCapabilities": { extensions: { "io.modelcontextprotocol/tasks": {} } }, "io.modelcontextprotocol/clientInfo": { name: "@trackmcp/sdk", version: "0.1.19" } } }, mcpName: "task-1" },
   ]);
 });
 
@@ -465,7 +486,7 @@ test("modern client listens to bounded task notifications without retaining payl
   assert.deepEqual(result, { events: [{ taskId: "task-1", status: "working", inputRequestKeys: ["secret"] }], truncated: false });
   assert.deepEqual(seen, result.events);
   assert.equal(request.headers.get("mcp-method"), "subscriptions/listen");
-  assert.deepEqual(JSON.parse(request.body).params, { notifications: { taskIds: ["task-1"] }, _meta: { "io.modelcontextprotocol/clientCapabilities": { extensions: { "io.modelcontextprotocol/tasks": {} } } } });
+  assert.deepEqual(JSON.parse(request.body).params, { notifications: { taskIds: ["task-1"] }, _meta: { "io.modelcontextprotocol/clientCapabilities": { extensions: { "io.modelcontextprotocol/tasks": {} } }, "io.modelcontextprotocol/clientInfo": { name: "@trackmcp/sdk", version: "0.1.19" } } });
   assert.equal(JSON.stringify(result).includes("omit"), false);
 });
 

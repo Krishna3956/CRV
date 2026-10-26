@@ -14,6 +14,7 @@ const MAX_TASK_STREAM_BYTES = 256 * 1024;
 const MAX_TASK_STREAM_EVENTS = 64;
 const MAX_SUBSCRIPTION_RESOURCE_URIS = 128;
 const MAX_SUBSCRIPTION_URI_BYTES = 64 * 1024;
+const DEFAULT_CLIENT_INFO = { name: "@trackmcp/sdk", version: "0.1.19" } as const;
 const TASK_EXTENSION_META = { "io.modelcontextprotocol/clientCapabilities": { extensions: { "io.modelcontextprotocol/tasks": {} } } } as const;
 
 export type ModernMcpDiscovery = {
@@ -28,6 +29,8 @@ export type ModernMcpClientOptions = {
   fetch?: typeof globalThis.fetch;
   headers?: Readonly<Record<string, string>>;
   timeoutMs?: number;
+  /** Optional bounded identity advertised in every modern per-request _meta envelope. */
+  clientInfo?: { name: string; version: string };
 };
 
 export type ModernMcpTool = {
@@ -161,6 +164,11 @@ export class ModernMcpProtocolError extends Error {
 
 function boundedString(value: unknown): string | undefined {
   return typeof value === "string" && value.trim().length > 0 && value.length <= MAX_STRING_LENGTH && !/[\u0000-\u001f\u007f]/.test(value) ? value : undefined;
+}
+function boundedClientInfo(value: ModernMcpClientOptions["clientInfo"]): { name: string; version: string } {
+  const name = boundedString(value?.name);
+  const version = boundedString(value?.version);
+  return name && version ? { name, version } : DEFAULT_CLIENT_INFO;
 }
 function boundedObject(value: unknown): value is Record<string, unknown> {
   return Boolean(value) && typeof value === "object" && !Array.isArray(value);
@@ -315,8 +323,11 @@ function parseJsonRpcEnvelope(text: string, contentType: string, requestId: numb
 export class ModernMcpClient {
   private requestSequence = 0;
   private discoveredCapabilities?: ReadonlySet<string>;
+  private readonly clientInfo: { name: string; version: string };
 
-  constructor(private readonly options: ModernMcpClientOptions) {}
+  constructor(private readonly options: ModernMcpClientOptions) {
+    this.clientInfo = boundedClientInfo(options.clientInfo);
+  }
 
   private nextRequestId(): number {
     // Keep identifiers positive and bounded. Wrapping is safe because this
@@ -324,6 +335,16 @@ export class ModernMcpClient {
     // still unique for the active request set, including concurrent calls.
     this.requestSequence = this.requestSequence >= 2_000_000_000 ? 1 : this.requestSequence + 1;
     return this.requestSequence;
+  }
+
+  private withClientInfo(params: Record<string, unknown>): Record<string, unknown> {
+    return {
+      ...params,
+      _meta: {
+        ...(boundedObject(params._meta) ? params._meta : {}),
+        "io.modelcontextprotocol/clientInfo": this.clientInfo,
+      },
+    };
   }
 
   private async request(method: string, params: Record<string, unknown>, routingName?: string): Promise<Record<string, unknown>> {
@@ -344,7 +365,8 @@ export class ModernMcpClient {
     if (routingName) headers.set("mcp-name", routingName);
     const requestId = this.nextRequestId();
     let requestBody: string;
-    try { requestBody = JSON.stringify({ jsonrpc: "2.0", id: requestId, method, params }); }
+    const requestParams = this.withClientInfo(params);
+    try { requestBody = JSON.stringify({ jsonrpc: "2.0", id: requestId, method, params: requestParams }); }
     catch { throw new ModernMcpProtocolError("invalid_response", `Modern MCP ${method} request contained a non-serializable value.`); }
     if (new TextEncoder().encode(requestBody).byteLength > MAX_TASK_INPUT_BYTES) throw new ModernMcpProtocolError("request_too_large", `Modern MCP ${method} request exceeded the bounded request limit.`);
     try {
@@ -724,7 +746,7 @@ export class ModernMcpClient {
     const headers = new Headers(this.options.headers);
     headers.set("accept", "text/event-stream"); headers.set("content-type", "application/json");
     headers.set("mcp-protocol-version", MODERN_MCP_PROTOCOL_VERSION); headers.set("mcp-method", "subscriptions/listen");
-    const body = JSON.stringify({ jsonrpc: "2.0", id: this.nextRequestId(), method: "subscriptions/listen", params: taskParams({ notifications: { taskIds: ids } }) });
+    const body = JSON.stringify({ jsonrpc: "2.0", id: this.nextRequestId(), method: "subscriptions/listen", params: this.withClientInfo(taskParams({ notifications: { taskIds: ids } })) });
     const events: ModernMcpTask[] = [];
     let cacheHints: ModernMcpCacheHints | undefined;
     try {
@@ -846,7 +868,7 @@ export class ModernMcpClient {
     const headers = new Headers(this.options.headers);
     headers.set("accept", "text/event-stream"); headers.set("content-type", "application/json");
     headers.set("mcp-protocol-version", MODERN_MCP_PROTOCOL_VERSION); headers.set("mcp-method", "subscriptions/listen");
-    const body = JSON.stringify({ jsonrpc: "2.0", id: this.nextRequestId(), method: "subscriptions/listen", params: taskParams({ notifications: boundedFilter }) });
+    const body = JSON.stringify({ jsonrpc: "2.0", id: this.nextRequestId(), method: "subscriptions/listen", params: this.withClientInfo(taskParams({ notifications: boundedFilter })) });
     const events: ModernMcpSubscriptionEvent[] = [];
     let honored: ModernMcpSubscriptionHonoredFilter | undefined;
     let cacheHints: ModernMcpCacheHints | undefined;
