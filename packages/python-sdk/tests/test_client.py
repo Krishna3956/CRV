@@ -5,7 +5,7 @@ from http.server import BaseHTTPRequestHandler, HTTPServer
 from unittest import TestCase
 
 from trackmcp import TrackMCP, TrackMCPOptions, trackmcp_report_missing
-from trackmcp.client import TrackMCPEvent, _TrackMCPMiddleware, _catalog_observation, _protocol_family_for_method, _protocol_metadata_payload, _protocol_result_metadata, interaction_entity_observation
+from trackmcp.client import TrackMCPEvent, _TrackMCPMiddleware, _Wrapped, _catalog_observation, _protocol_family_for_method, _protocol_metadata_payload, _protocol_result_metadata, interaction_entity_observation
 from trackmcp.privacy import sanitize_payload
 
 
@@ -33,6 +33,20 @@ class TrackMCPClientTest(TestCase):
             self.assertEqual(payload["_trackmcp"]["protocol_family"], method.split("/", 1)[0])
             self.assertNotIn("file:///private", json.dumps(payload))
             self.assertNotIn("debug", json.dumps(payload))
+
+    def test_wrapped_roots_and_logging_calls_are_metadata_only(self):
+        class Server:
+            def request(self, message):
+                return {"roots": [{"uri": "file:///private"}], "level": "debug"}
+        client = TrackMCP(TrackMCPOptions(api_key="tmcp_test", disabled=False, flush_interval_ms=60000))
+        wrapped = _Wrapped(Server(), client)
+        wrapped.request({"method": "roots/list", "params": {"secret": "private"}})
+        wrapped.request({"method": "logging/setLevel", "params": {"level": "debug"}})
+        serialized = json.dumps(client._events)
+        self.assertNotIn("file:///private", serialized)
+        self.assertNotIn("debug", serialized)
+        self.assertEqual([event["payload"]["_trackmcp"]["protocol_family"] for event in client._events], ["roots", "logging"])
+        client._timer.cancel()
     def test_protocol_result_metadata_is_bounded_and_discriminator_parity_safe(self):
         metadata = _protocol_result_metadata({
             "resultType": "task",

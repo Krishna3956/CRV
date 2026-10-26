@@ -18,6 +18,17 @@ commit `59b7c1435358fbd6c00dce5bcb338089af49c310`.
   available in this checkout. Package publication is intentionally deferred to
   the next coordinated SDK release train.
 
+## 2026-10-26 Python wrapper roots/logging privacy checkpoint
+
+- [x] Closed the legacy `with_trackmcp` wrapper fall-through that could have
+  serialized `roots/list` or `logging/setLevel` response values. Both the
+  official middleware and wrapper now use the same bounded protocol metadata
+  event for these families, including failed calls.
+- [x] Python SDK tests passed 34/34 with a wrapper-level regression asserting
+  that root URIs and log levels are absent from queued telemetry.
+- [ ] Cross-transport authenticated production UAT and coordinated package
+  publication remain external release-train gates.
+
 ## 2026-10-26 roots and logging protocol-family coverage
 
 - [x] Added bounded `roots` and `logging` protocol families to semantic
