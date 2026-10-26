@@ -1,8 +1,22 @@
 # Founder OS 100 Customer Readiness Ledger
 
-Last updated: 2026-10-26 (main `693d190`; local 136-suite release gate rerun)
+Last updated: 2026-10-26 (SDK roots/logging parity branch; local release gate rerun)
 Latest freshness evidence: sequence monitor workflow `40266407743` on main
 commit `59b7c1435358fbd6c00dce5bcb338089af49c310`.
+
+## 2026-10-26 cross-language SDK roots/logging parity checkpoint
+
+- [x] TypeScript, Python, Go, and .NET SDK surfaces now classify `roots/*` and
+  `logging/*` protocol methods as bounded metadata-only families. Python now
+  avoids its generic response payload path for these methods; all four SDKs
+  omit root paths, log levels/messages, and response bodies.
+- [x] Added regression coverage for family classification and privacy behavior;
+  TypeScript SDK tests passed 98/98 and Python client tests passed 30/30.
+  The complete web release gate also passed locally.
+- [ ] Go and .NET runtime suites and authenticated production transport UAT
+  remain external evidence gates where those toolchains/credentials are not
+  available in this checkout. Package publication is intentionally deferred to
+  the next coordinated SDK release train.
 
 ## 2026-10-26 roots and logging protocol-family coverage
 
