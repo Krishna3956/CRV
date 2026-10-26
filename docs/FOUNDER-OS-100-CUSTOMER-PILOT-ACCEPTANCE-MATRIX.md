@@ -2,10 +2,10 @@
 
 Status: **HOLD — no silent waivers**  
 Reconciled: 2026-10-26 (Asia/Calcutta)  
-Current deployed baseline: application `7551e2f017cce2695803b13ce5605eee72d4a9f8`,
-App Runner run `40349662276` (successful deployment; production smoke, runtime
+Current deployed baseline: application `1639663c6b403648797aed02a2b74bc33ca09056`,
+App Runner run `40357654944` (successful deployment; production smoke, runtime
 identity, runtime safety, and redacted evidence artifacts uploaded). The latest
-docs-only mainline reconciliation is `9276a217aab6e779caf42701b53bea10ce86062d`.
+docs-only reconciliation is tracked in the open release-evidence PR.
 
 Historical baseline retained for continuity: application
 `2e135f194f36e278232c6a46890b1ce850d1e9ba`, App Runner run `40198791603`.
