@@ -24,3 +24,11 @@ test("scheduled refresh worker emits a bounded redacted lag/retry summary artifa
   assert.match(workflow, /if: always\(\)/);
   assert.doesNotMatch(workflow, /cat \"\$batch_dir\/\$batch\.json\"/);
 });
+
+test("scheduled refresh worker fans out ten independently bounded leases", () => {
+  assert.match(workflow, /Ten\s+bounded requests run concurrently/);
+  assert.match(workflow, /Ten\n\s+# concurrent calls increase drain throughput/);
+  assert.match(workflow, /for batch in \$\(seq 1 10\); do/);
+  assert.match(workflow, /pids=\(\)/);
+  assert.match(workflow, /wait \"\$\{pids\[\$\(\(batch - 1\)\)\]\}\"/);
+});

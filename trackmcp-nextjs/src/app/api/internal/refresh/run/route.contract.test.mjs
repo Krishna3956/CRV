@@ -39,7 +39,7 @@ test("scheduled refresh trigger is serialized and distinguishes bounded timeouts
   assert.match(workflow, /\[ "\$status" -eq 28 \] \|\| \[ "\$status" -eq 124 \] \|\| \[ "\$status" -eq 137 \]/);
   assert.match(workflow, /client timeout; continuing/);
   assert.match(workflow, /timed_out=\$timed_out/);
-  assert.match(workflow, /for batch in 1 2 3 4/);
+  assert.match(workflow, /for batch in \$\(seq 1 10\); do/);
   assert.match(workflow, /::error::Refresh worker secrets are not configured/);
   assert.match(workflow, /secrets are not configured[\s\S]*?exit 1/);
 });
