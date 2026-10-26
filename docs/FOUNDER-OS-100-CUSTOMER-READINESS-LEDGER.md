@@ -1,6 +1,6 @@
 # Founder OS 100 Customer Readiness Ledger
 
-Last updated: 2026-10-27 (main `809b08b`; deployed application `57f5643` and App Runner production/authenticated smoke verified)
+Last updated: 2026-10-27 (main `353af7e`; deployed application `57f5643` and App Runner production/authenticated smoke verified)
 Latest freshness evidence: refresh-worker workflow `40381642702` on main
 commit `fff91da6576987f5d5259801d71b1e41f268a4bc` completed successfully;
 sustained scheduled-sample health is still an explicit open gate below.
@@ -1927,3 +1927,13 @@ a failed product gate or a Supabase plan warning.
   remaining operator/release-owner queue items (`020`, `157`, `260`) or the
   explicitly external credentialed UAT, scheduler-sample, and protocol
   interoperability gates.
+
+## 2026-10-27 Supabase region evidence refresh
+
+- [x] A fresh signed-in production-project inspection of Supabase Settings →
+  Infrastructure confirmed the primary database region as **East US (North
+  Virginia), `us-east-1`**. It also showed the Free plan, no read replicas, and
+  approximately 0.51 GB used of the displayed 8 GB storage allocation.
+- [ ] This closes the region fact for queue item `157` only. The Free-plan
+  backup/PITR limitation, restoration contact, and tested recovery reference
+  remain unresolved and are still required for operator acceptance.
