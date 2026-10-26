@@ -23,6 +23,18 @@ Status: active autonomous audit, started 2026-10-21.
   hosted CI run `40416521863` is currently pending; App Runner/Vercel hosted
   checks remain external evidence and are not treated as locally verified.
 
+## 2026-10-27 — transport observer documentation discoverability
+
+- Added a first-class `Transport observer` destination to both desktop and
+  compact documentation navigation. It targets the existing TypeScript
+  `#transport-observer` section, where the official Stdio, Streamable HTTP, and
+  SSE boundaries are documented.
+- Added a route/anchor contract so navigation cannot point at a missing page or
+  orphaned section. Documentation navigation is now 8/8; lint and the full
+  local release gate are green across 137 suites.
+- PR #607 was merged to `main` as commit `9acd152`. Hosted deployment remains
+  an external check and is not claimed from local evidence alone.
+
 This ledger separates implemented behavior from documented boundaries. A
 registry package, protocol capability, or OAuth flow is not treated as shipped
 just because a README or marketing page mentions it.
