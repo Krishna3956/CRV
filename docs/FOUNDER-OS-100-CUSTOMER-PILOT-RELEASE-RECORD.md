@@ -18,6 +18,16 @@ verification, and runtime-safety audit passed. Retained artifacts are
 This is the current engineering baseline; the release remains Draft/HOLD until
 the open operational and owner gates below are independently accepted.
 
+The latest deployed engineering baseline is now `7551e2f017cce2695803b13ce5605eee72d4a9f8`.
+App Runner workflow `40349662276` passed release gate, image binding, rollout,
+read-only production smoke, immutable runtime identity, runtime-safety audit,
+and redacted evidence uploads. Retained artifacts are
+`production-smoke-7551e2f017cce2695803b13ce5605eee72d4a9f8` (`12663088021`),
+`runtime-flags-7551e2f017cce2695803b13ce5605eee72d4a9f8` (`12662729496`), and
+`app-runner-host-7551e2f017cce2695803b13ce5605eee72d4a9f8` (`12662628779`).
+The release remains Draft/HOLD; this baseline contains the worker-health
+recovery-evidence hardening, not a final operational SLO acceptance.
+
 ## Latest bounded insight-evidence deployment — 2026-10-26
 
 PR #545 merged the bounded insight evidence metadata feature as
