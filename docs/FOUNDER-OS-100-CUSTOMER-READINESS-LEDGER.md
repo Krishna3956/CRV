@@ -42,6 +42,18 @@ Pilot target: 100 customers
   `TRACKMCP_LIFECYCLE_KEY`. No production mutation occurred. This remains an
   operator-secret gate, not evidence of lifecycle completion.
 
+## 2026-10-26 refresh-worker backlog observation
+
+- [x] Refresh workflow `40261716029` ran five concurrent bounded batches and
+  processed 28 jobs: 28 succeeded, 0 retryable, 0 failed, 0 timeouts, and
+  maximum attempt count 1. The redacted artifact measured
+  `max_queue_lag_ms=6058024` (about 101 minutes), so the 15-minute freshness
+  budget was correctly classified as `stale`.
+- [x] A second bounded run `40261789193` immediately afterward processed 0
+  jobs and observed `freshness_slo=no_backlog_observed`. This demonstrates the
+  first result was a drainable backlog rather than a persistent worker failure;
+  sustained cadence evidence and alerting thresholds remain open.
+
 This ledger is the operational source of truth for the autonomous readiness goal. It is updated when work is implemented, verified, submitted for review, merged, deployed, or found to be incomplete. A checked item means that the stated evidence exists; it does not mean that an adjacent item is complete.
 
 ## 2026-10-26 refresh-worker freshness observations
