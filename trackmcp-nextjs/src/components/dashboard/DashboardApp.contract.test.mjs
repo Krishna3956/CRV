@@ -400,6 +400,10 @@ test("Setup exposes a direct transport observer documentation CTA", () => {
   assert.match(setupSource, /Proxy or stdio launcher/);
   assert.match(setupSource, /Read transport boundaries/);
   assert.match(setupSource, /href="\/docs\/protocol"/);
+  for (const href of ["/docs/typescript#transport-observer", "/docs/go", "/docs/dotnet", "/docs/opentelemetry", "/tools/mcp-server-tester", "/docs/authentication"]) {
+    const escaped = href.replace(/[.*+?^${}()|[\\]\\]/g, "\\\\$&");
+    assert.match(setupSource, new RegExp(`href="${escaped}" className="[^"]*focus-visible:ring-2`), `${href} must expose a keyboard focus ring`);
+  }
 });
 
 test("Setup exposes safe rotation alongside revocation for active keys", () => {
