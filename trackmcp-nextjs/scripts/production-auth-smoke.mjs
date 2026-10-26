@@ -208,6 +208,7 @@ async function main() {
     generated_at: new Date().toISOString(),
     base_url: new URL(baseUrl).origin,
     release_sha: process.env.TRACKMCP_AUTH_SMOKE_RELEASE_SHA || null,
+    outcome: "passed",
     checks,
     caveats: [
       "Read-only authenticated scope checks; no key creation, rotation, revocation, ingest, or dashboard mutation is performed.",
