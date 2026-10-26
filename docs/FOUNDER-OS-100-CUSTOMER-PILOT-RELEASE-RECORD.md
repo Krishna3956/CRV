@@ -17,6 +17,16 @@ safety-flag audit passed. Retained artifacts are
 `app-runner-host-83131ecb7cd0d6d4f3d71ac9bb015b407386ba5c` (`12653798778`).
 This updates the deployed baseline only; the release remains Draft/HOLD.
 
+## Authenticated smoke on the current deployed baseline — 2026-10-26
+
+Workflow `40332727179` passed against the exact deployed immutable commit
+`83131ecb7cd0d6d4f3d71ac9bb015b407386ba5c`. The workflow verified that commit
+before running the read-only multi-workspace authentication, tenant-boundary,
+revoked-key, and health checks. Redacted evidence is retained as artifact
+`production-auth-smoke-83131ecb7cd0d6d4f3d71ac9bb015b407386ba5c`
+(`12655396002`). This is current-release smoke evidence only and does not
+change the release from Draft/HOLD or close the external pilot gates.
+
 ## Current-main verification — 2026-10-26
 
 Main commit `c7a36e6b2af66f3389fcf5e46c59574e53c35b43` passed the full local
