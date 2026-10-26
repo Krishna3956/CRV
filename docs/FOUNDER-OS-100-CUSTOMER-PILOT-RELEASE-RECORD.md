@@ -8,14 +8,14 @@ commit and the operator accepts the listed limitations.
 
 ## Current evidence reconciliation — 2026-10-26
 
-The current deployed application is `6582c90292fc817696110af32f08eb3d73e3e6b2`.
-App Runner workflow `40311703574` completed successfully; the deployment
-uploaded `production-smoke-6582c90292fc817696110af32f08eb3d73e3e6b2`,
-`runtime-flags-6582c90292fc817696110af32f08eb3d73e3e6b2`, and
-`app-runner-host-6582c90292fc817696110af32f08eb3d73e3e6b2`. Authenticated
-production smoke workflow `40312678592` also passed and uploaded
-`production-auth-smoke-6582c90292fc817696110af32f08eb3d73e3e6b2`.
-The preceding `4e0f5f0` deployment remains retained as historical evidence.
+The current deployed application is `d338544b535132aa6f1c0cb8fc6174654f9bf28f`.
+App Runner workflow `40313575422` completed successfully; the deployment
+uploaded `production-smoke-d338544b535132aa6f1c0cb8fc6174654f9bf28f`,
+`runtime-flags-d338544b535132aa6f1c0cb8fc6174654f9bf28f`, and
+`app-runner-host-d338544b535132aa6f1c0cb8fc6174654f9bf28f`. Authenticated
+production smoke workflow `40314461586` also passed and uploaded
+`production-auth-smoke-d338544b535132aa6f1c0cb8fc6174654f9bf28f`.
+The preceding `6582c90` deployment remains retained as historical evidence.
 The prior App Runner workflow `40307943718` completed successfully; the
 first rollout smoke saw a transient root HTTP 503 and was not accepted. The
 successful rerun uploaded production smoke artifact `12632674955` and

@@ -13,9 +13,9 @@ function openQueueIds(source) {
 }
 
 test("pilot release record points at the verified deployed baseline", () => {
-  assert.match(record, /6582c90292fc817696110af32f08eb3d73e3e6b2/);
-  assert.match(record, /40311703574/);
-  assert.match(record, /40312678592/);
+  assert.match(record, /d338544b535132aa6f1c0cb8fc6174654f9bf28f/);
+  assert.match(record, /40313575422/);
+  assert.match(record, /40314461586/);
   assert.match(record, /40280160295/);
   assert.match(record, /production-auth-smoke-be9638965383841ee7579ae9155c0162bb626495/);
   assert.match(record, /40281259523/);
@@ -52,7 +52,7 @@ test("external-gate register names accountable parties and closure evidence", ()
 });
 
 test("readiness ledger points at the current reconciled mainline", () => {
-  assert.match(readinessLedger, /Last updated: 2026-10-26 \(main `6582c90`; deployed application `6582c90` and/);
+  assert.match(readinessLedger, /Last updated: 2026-10-26 \(main `d338544`; deployed application `d338544` and/);
   assert.match(readinessLedger, /Latest freshness evidence: sequence monitor workflow `40266407743`/);
   assert.match(readinessLedger, /Immutable deployed SHAs remain\s+in the release record/);
   assert.doesNotMatch(readinessLedger, /readiness-ledger reconciliation merged as PR #411 at/);
