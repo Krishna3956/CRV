@@ -148,6 +148,41 @@ jobs:
           fi
           echo "TRACKMCP_DEPLOYED_IMAGE_DIGEST=$CANDIDATE_DIGEST" >> "$GITHUB_ENV"
 
+      - name: Wait for App Runner service to accept deployment
+        timeout-minutes: 10
+        run: |
+          set -euo pipefail
+          # App Runner rejects StartDeployment while a prior operation is still
+          # settling. Wait for the service to become RUNNING instead of racing
+          # the provider and turning a recoverable transition into a failed
+          # release.
+          deadline=$((SECONDS + 540))
+          while (( SECONDS < deadline )); do
+            STATUS=$(timeout 30s aws apprunner describe-service \
+              --service-arn "$SERVICE_ARN" --region "$AWS_REGION" \
+              --query Service.Status --output text)
+            echo "App Runner service status: $STATUS"
+            case "$STATUS" in
+              RUNNING)
+                echo "App Runner service is ready for deployment."
+                exit 0
+                ;;
+              OPERATION_IN_PROGRESS|PAUSED)
+                sleep 15
+                ;;
+              CREATE_FAILED|UPDATE_FAILED|DELETE_FAILED|DELETED|"None")
+                echo "::error::App Runner service cannot accept deployment in status $STATUS."
+                exit 1
+                ;;
+              *)
+                echo "::error::Unknown App Runner service status: $STATUS"
+                exit 1
+                ;;
+            esac
+          done
+          echo "::error::Timed out waiting for App Runner service to become RUNNING before deployment."
+          exit 1
+
       - name: Trigger App Runner deployment
         run: |
           set -euo pipefail
