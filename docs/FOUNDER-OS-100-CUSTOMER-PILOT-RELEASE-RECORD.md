@@ -6,6 +6,17 @@ This record is intentionally evidence-first. It must not be changed to
 `GO` until the open gates below are independently verified on the release
 commit and the operator accepts the listed limitations.
 
+## Current deployed baseline — 2026-10-26
+
+App Runner workflow `40330265695` successfully deployed immutable main commit
+`83131ecb7cd0d6d4f3d71ac9bb015b407386ba5c` after the service-readiness
+preflight. Production smoke, release-identity verification, and runtime
+safety-flag audit passed. Retained artifacts are
+`production-smoke-83131ecb7cd0d6d4f3d71ac9bb015b407386ba5c` (`12653569033`),
+`runtime-flags-83131ecb7cd0d6d4f3d71ac9bb015b407386ba5c` (`12653489115`), and
+`app-runner-host-83131ecb7cd0d6d4f3d71ac9bb015b407386ba5c` (`12653798778`).
+This updates the deployed baseline only; the release remains Draft/HOLD.
+
 ## Current-main verification — 2026-10-26
 
 Main commit `c7a36e6b2af66f3389fcf5e46c59574e53c35b43` passed the full local
@@ -163,8 +174,8 @@ the existing insufficient-evidence outcome rules.
 | --- | --- |
 | Pilot scope | First 100 customers, desktop dashboard boundary |
 | Production hosts | `trackmcp.com`, `app.trackmcp.com` |
-| Last deployed application commit | `084a8e4d0165231f9998441c0e9d2611771a937d` (identity-verified current candidate) |
-| Last successful App Runner deployment | `40307943718` |
+| Last deployed application commit | `83131ecb7cd0d6d4f3d71ac9bb015b407386ba5c` (identity-verified current baseline) |
+| Last successful App Runner deployment | `40330265695` |
 | Readiness ledger | `docs/FOUNDER-OS-100-CUSTOMER-READINESS-LEDGER.md` |
 | Current release-record change | Current mainline reconciliation of deployed runtime and release-gate evidence |
 
