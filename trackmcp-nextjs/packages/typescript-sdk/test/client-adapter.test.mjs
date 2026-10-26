@@ -39,6 +39,17 @@ test("protocol family metadata classifies bounded modern MCP methods", () => {
   assert.equal(protocolResponseMetadata("private/method", {}).protocol_family, undefined);
 });
 
+test("roots and logging capability advertisements stay metadata-only", () => {
+  const metadata = protocolResponseMetadata("initialize", {
+    capabilities: { roots: { listChanged: true }, logging: {}, "unsafe key": { token: "omit" } },
+  });
+  assert.equal(metadata.capability_names, "logging,roots");
+  assert.equal(JSON.stringify(metadata).includes("listChanged"), false);
+  assert.equal(JSON.stringify(metadata).includes("omit"), false);
+  assert.equal(protocolResponseMetadata("logging/setLevel", { level: "trace", secret: "omit" }).protocol_family, "logging");
+  assert.equal(protocolResponseMetadata("roots/list", { roots: [{ uri: "file:///private" }] }).protocol_family, "roots");
+});
+
 test("pins the MCP dependency and exposes the adapter only through the Node export condition", async () => {
   const packageJson = JSON.parse(await readFile(new URL("../package.json", import.meta.url), "utf8"));
   assert.equal(packageJson.peerDependencies["@modelcontextprotocol/sdk"], "1.32.2");
