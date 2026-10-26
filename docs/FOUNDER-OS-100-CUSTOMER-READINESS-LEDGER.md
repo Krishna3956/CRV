@@ -1,6 +1,6 @@
 # Founder OS 100 Customer Readiness Ledger
 
-Last updated: 2026-10-27 (main `30e01d2`; deployed application `57f5643` and App Runner production/authenticated smoke verified)
+Last updated: 2026-10-27 (main `ed1e3e5`; deployed application `57f5643` and App Runner production/authenticated smoke verified)
 Latest freshness evidence: refresh-worker workflow `40381642702` on main
 commit `fff91da6576987f5d5259801d71b1e41f268a4bc` completed successfully;
 sustained scheduled-sample health is still an explicit open gate below.
@@ -14,6 +14,20 @@ identity, and runtime-safety audit all passed. Retained artifacts are
 `app-runner-host-57f56431317564c4789bbae0eb4e7bac92bba29e` (`12685702047`),
 and authenticated smoke `production-auth-smoke-57f56431317564c4789bbae0eb4e7bac92bba29e`
 (`12685019035`).
+
+## 2026-10-27 dashboard interaction accessibility checkpoint
+
+- [x] PR #597 merged as `a767ff88748880b45c42a5c975a8a0e4ebaa1a6`. The shared
+  dashboard date-range disclosure, range apply action, issue action-queue
+  controls, and one-time connection-key copy action now expose visible
+  keyboard focus rings alongside their pointer affordances.
+- [x] The dashboard contract now protects these shared controls from regressing;
+  the focused dashboard contract (64 tests), accessibility contract (3 tests),
+  lint, and full 137-suite release gate passed. Hosted Go, .NET, and web checks
+  passed for the merge commit.
+- [ ] This closes the audited keyboard-focus gaps only. Production deployment,
+  key lifecycle UAT, worker freshness, backup/PITR, and pilot-owner acceptance
+  gates remain independently open below.
 
 ## 2026-10-27 evidence-document freshness
 
