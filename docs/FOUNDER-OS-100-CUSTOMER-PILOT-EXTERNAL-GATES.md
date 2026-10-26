@@ -11,9 +11,11 @@ is intentionally not a GO approval and must not be treated as one.
 
 - `main`: current default branch. Immutable deployed SHAs belong in the
   release record; PR checks remain attached to their exact review commits.
-- Current deployed application: `83131ecb7cd0d6d4f3d71ac9bb015b407386ba5c`,
-  App Runner workflow `40330265695` (successful deployment, production smoke,
-  release-identity verification, and runtime safety-flag audit).
+- Current deployed application: `7551e2f017cce2695803b13ce5605eee72d4a9f8`,
+  App Runner workflow `40349662276` (successful deployment, production smoke,
+  release-identity verification, runtime safety-flag audit, and redacted
+  evidence uploads). The subsequent docs-only mainline reconciliation is
+  `9276a217aab6e779caf42701b53bea10ce86062d`.
 - Queue: 263 total, 260 checked, and P0 queue items `020`, `157`, and `260`
   remain open.
 - Full local release gate: 136 suites passed, with lint and the production
