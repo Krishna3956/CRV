@@ -33,6 +33,19 @@ test("worker health reports healthy only for repeated in-budget runs", () => {
   assert.equal(report.sample_count, 3);
 });
 
+test("recovery runs contribute evidence but cannot replace scheduled samples", () => {
+  const report = summarizeRefreshWorkerRuns([
+    run({ run_id: 1, event: "workflow_dispatch", created_at: "2026-10-26T00:00:00Z" }),
+    run({ run_id: 2, event: "workflow_dispatch", created_at: "2026-10-26T00:05:00Z" }),
+    run({ run_id: 3, event: "workflow_dispatch", created_at: "2026-10-26T00:10:00Z" }),
+  ]);
+  assert.equal(report.sample_count, 3);
+  assert.equal(report.scheduled_sample_count, 0);
+  assert.equal(report.state, "warning");
+  assert.deepEqual(report.reasons, ["scheduled_samples_not_met"]);
+  assert.equal(report.runs[0].event, "workflow_dispatch");
+});
+
 test("worker health surfaces stale, failed, and cadence evidence without payloads", () => {
   const report = summarizeRefreshWorkerRuns([
     run({ run_id: 1, created_at: "2026-10-26T00:00:00Z" }),
