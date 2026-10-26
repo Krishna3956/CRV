@@ -149,7 +149,7 @@ export type ModernMcpSubscriptionOptions = { signal?: AbortSignal; timeoutMs?: n
 export type ModernMcpReconnectOptions = ModernMcpSubscriptionOptions & { maxAttempts?: number; backoffMs?: number };
 export type ModernMcpReconnectResult = ModernMcpSubscriptionResult & { attempts: number; reconnects: number };
 export type ModernMcpSubscriptionHonoredFilter = Omit<ModernMcpSubscriptionFilter, "resourceSubscriptions"> & { resourceSubscriptionHashes?: string[] };
-export type ModernMcpSubscriptionResult = { events: ModernMcpSubscriptionEvent[]; honored?: ModernMcpSubscriptionHonoredFilter; graceful: boolean; truncated: boolean };
+export type ModernMcpSubscriptionResult = { events: ModernMcpSubscriptionEvent[]; honored?: ModernMcpSubscriptionHonoredFilter; cacheHints?: ModernMcpCacheHints; graceful: boolean; truncated: boolean };
 
 export class ModernMcpProtocolError extends Error {
   readonly code: "invalid_endpoint" | "timeout" | "http_error" | "invalid_response" | "response_too_large" | "request_too_large" | "network_error" | "unsupported_method";
@@ -836,6 +836,7 @@ export class ModernMcpClient {
     const body = JSON.stringify({ jsonrpc: "2.0", id: this.nextRequestId(), method: "subscriptions/listen", params: taskParams({ notifications: boundedFilter }) });
     const events: ModernMcpSubscriptionEvent[] = [];
     let honored: ModernMcpSubscriptionHonoredFilter | undefined;
+    let cacheHints: ModernMcpCacheHints | undefined;
     let graceful = false;
     try {
       const response = await (this.options.fetch ?? globalThis.fetch)(endpoint, { method: "POST", headers, body, redirect: "manual", credentials: "omit", signal: controller.signal });
@@ -853,6 +854,7 @@ export class ModernMcpClient {
           let envelope: unknown; try { envelope = JSON.parse(data); } catch { continue; }
           if (!boundedObject(envelope)) continue;
           if (envelope.method === "notifications/subscriptions/acknowledged") {
+            cacheHints = projectCacheHints(envelope.params && boundedObject(envelope.params) ? envelope.params : {});
             const notificationFilter = boundedObject(envelope.params) && boundedObject(envelope.params.notifications) ? envelope.params.notifications : undefined;
             if (notificationFilter) {
               const acknowledgedUris = Array.isArray(notificationFilter.resourceSubscriptions)
@@ -867,7 +869,7 @@ export class ModernMcpClient {
             }
             continue;
           }
-          if ("id" in envelope && boundedObject(envelope.result)) { graceful = true; continue; }
+          if ("id" in envelope && boundedObject(envelope.result)) { cacheHints = cacheHints || projectCacheHints(envelope.result); graceful = true; continue; }
           const type = envelope.method === "notifications/tools/list_changed" ? "tools_list_changed"
             : envelope.method === "notifications/prompts/list_changed" ? "prompts_list_changed"
               : envelope.method === "notifications/resources/list_changed" ? "resources_list_changed"
@@ -889,10 +891,10 @@ export class ModernMcpClient {
         if (bytes > MAX_TASK_STREAM_BYTES) { truncated = true; await reader.cancel(); break; }
         await consume(decoder.decode(value, { stream: true }));
       }
-      return { events, ...(honored ? { honored } : {}), graceful, truncated: truncated || Boolean(options.signal?.aborted) };
+      return { events, ...(honored ? { honored } : {}), ...(cacheHints ? { cacheHints } : {}), graceful, truncated: truncated || Boolean(options.signal?.aborted) };
     } catch (error) {
       if (error instanceof ModernMcpProtocolError) throw error;
-      if (options.signal?.aborted || timedOut || (error instanceof DOMException && error.name === "AbortError")) return { events, ...(honored ? { honored } : {}), graceful, truncated: true };
+      if (options.signal?.aborted || timedOut || (error instanceof DOMException && error.name === "AbortError")) return { events, ...(honored ? { honored } : {}), ...(cacheHints ? { cacheHints } : {}), graceful, truncated: true };
       throw new ModernMcpProtocolError("network_error", "Modern MCP subscriptions/listen could not reach the endpoint.");
     } finally { clearTimeout(timer); options.signal?.removeEventListener("abort", abort); }
   }
@@ -911,6 +913,7 @@ export class ModernMcpClient {
     const maxEvents = typeof options.maxEvents === "number" && Number.isInteger(options.maxEvents) ? Math.min(MAX_TASK_STREAM_EVENTS, Math.max(1, options.maxEvents)) : MAX_TASK_STREAM_EVENTS;
     const events: ModernMcpSubscriptionEvent[] = [];
     let honored: ModernMcpSubscriptionHonoredFilter | undefined;
+    let cacheHints: ModernMcpCacheHints | undefined;
     let attempts = 0;
     let reconnects = 0;
     let last: ModernMcpSubscriptionResult = { events: [], graceful: false, truncated: true };
@@ -926,6 +929,7 @@ export class ModernMcpClient {
         last = result;
         events.push(...result.events);
         honored = result.honored || honored;
+        cacheHints = result.cacheHints || cacheHints;
         if (result.graceful || !result.truncated || options.signal?.aborted || events.length >= maxEvents) break;
       } catch (error) {
         if (!(error instanceof ModernMcpProtocolError) || error.code !== "network_error") throw error;
@@ -942,6 +946,7 @@ export class ModernMcpClient {
     return {
       events: events.slice(0, maxEvents),
       ...(honored ? { honored } : last.honored ? { honored: last.honored } : {}),
+      ...(cacheHints ? { cacheHints } : last.cacheHints ? { cacheHints: last.cacheHints } : {}),
       graceful: last.graceful,
       truncated: Boolean(options.signal?.aborted) || events.length >= maxEvents ? events.length >= maxEvents : !last.graceful,
       attempts,

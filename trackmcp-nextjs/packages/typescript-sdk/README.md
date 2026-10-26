@@ -101,6 +101,10 @@ is limited to `public`/`private`). These are server-provided freshness/sharing
 hints only; the adapter does not treat them as authorization, cache
 invalidation, or durable snapshot guarantees.
 
+The modern `subscriptions/listen` adapter projects the same bounded
+`cacheHints` from an acknowledgement or response envelope when the peer
+supplies them. It does not implement cache invalidation or replay ownership.
+
 For privacy-safe entity reads, `readResource(uri)` and `getPrompt(name,
 arguments)` send the caller-selected request but return only a SHA-256 identity
 hash, bounded content/message count, and an optional error bit. Resource bodies,

@@ -520,6 +520,16 @@ test("modern client listens to bounded catalog/resource changes without retainin
   await assert.rejects(() => client.listenForUpdates({}), (error) => error instanceof ModernMcpProtocolError && error.code === "invalid_response");
 });
 
+test("modern subscriptions project bounded acknowledgement cache hints without retaining payloads", async () => {
+  const client = new ModernMcpClient({ endpoint: "https://mcp.example.test", fetch: async () => sseResponse([
+    { jsonrpc: "2.0", method: "notifications/subscriptions/acknowledged", params: { ttl_ms: 90_000, cache_scope: "private", notifications: { toolsListChanged: true }, private: "omit" } },
+    { jsonrpc: "2.0", id: 1, result: { ttlMs: 999_999_999, cacheScope: "secret" } },
+  ]) });
+  const result = await client.listenForUpdates({ toolsListChanged: true });
+  assert.deepEqual(result.cacheHints, { ttlMs: 90_000, cacheScope: "private" });
+  assert.equal(JSON.stringify(result).includes("omit"), false);
+});
+
 test("modern client can opt into bounded stream reconnects without replay ownership", async () => {
   let calls = 0;
   const client = new ModernMcpClient({ endpoint: "https://mcp.example.test", fetch: async () => {
