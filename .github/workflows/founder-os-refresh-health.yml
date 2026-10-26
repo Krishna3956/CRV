@@ -62,10 +62,10 @@ jobs:
             state=$(jq -r '.state' "$report")
             reasons=$(jq -r '(.reasons // []) | join(",")' "$report")
             echo "### Refresh worker sequence health"
-            echo "- State: `$state`"
-            echo "- Reasons: `$reasons`"
-            echo "- Samples: `$(jq -r '.sample_count' "$report")` / `$(jq -r '.minimum_samples' "$report")`"
-            echo "- Max queue lag (ms): `$(jq -r '.max_queue_lag_ms' "$report")`"
+            echo "- State: $state"
+            echo "- Reasons: $reasons"
+            echo "- Samples: $(jq -r '.sample_count' "$report") / $(jq -r '.minimum_samples' "$report")"
+            echo "- Max queue lag (ms): $(jq -r '.max_queue_lag_ms' "$report")"
             cat "$report" >> "$GITHUB_STEP_SUMMARY"
             if [ "$state" = "warning" ]; then
               echo "::warning::Refresh worker sequence health requires attention: $reasons"
@@ -85,12 +85,12 @@ jobs:
                   -H 'content-type: application/json' \
                   "$api/actions/workflows/founder-os-refresh-worker.yml/dispatches" \
                   --data '{"ref":"main"}'
-                echo "- Recovery dispatch: `requested` (no active worker run)" >> "$GITHUB_STEP_SUMMARY"
+                echo "- Recovery dispatch: requested (no active worker run)" >> "$GITHUB_STEP_SUMMARY"
               else
-                echo "- Recovery dispatch: `skipped` (an active worker run already exists)" >> "$GITHUB_STEP_SUMMARY"
+                echo "- Recovery dispatch: skipped (an active worker run already exists)" >> "$GITHUB_STEP_SUMMARY"
               fi
             else
-              echo "- Recovery dispatch: `not-needed`" >> "$GITHUB_STEP_SUMMARY"
+              echo "- Recovery dispatch: not-needed" >> "$GITHUB_STEP_SUMMARY"
             fi
           else
             echo "::error::Refresh worker health report was not produced."
