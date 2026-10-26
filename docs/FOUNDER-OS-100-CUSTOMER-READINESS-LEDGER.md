@@ -1,6 +1,6 @@
 # Founder OS 100 Customer Readiness Ledger
 
-Last updated: 2026-10-27 (main `f4084dc`; deployed application `57f5643` and App Runner production/authenticated smoke verified)
+Last updated: 2026-10-27 (main `243d546`; deployed application `57f5643` and App Runner production/authenticated smoke verified)
 Latest freshness evidence: refresh-worker workflow `40381642702` on main
 commit `fff91da6576987f5d5259801d71b1e41f268a4bc` completed successfully;
 sustained scheduled-sample health is still an explicit open gate below.
@@ -14,6 +14,15 @@ identity, and runtime-safety audit all passed. Retained artifacts are
 `app-runner-host-57f56431317564c4789bbae0eb4e7bac92bba29e` (`12685702047`),
 and authenticated smoke `production-auth-smoke-57f56431317564c4789bbae0eb4e7bac92bba29e`
 (`12685019035`).
+
+## 2026-10-27 evidence-document freshness
+
+- [x] PR #580 merged as `243d546eb9268a5da87d875e89aaad62ae8335bd`. The stale
+  delivery-status snapshot is now explicitly marked historical and points to
+  this ledger, the current release record, and the external-gate register.
+- [x] Active release artifacts remain anchored to the runtime-verified
+  application SHA above; docs-only commits are not represented as new runtime
+  deployments.
 
 ## 2026-10-27 disabled scheduler deployment evidence
 
