@@ -6,16 +6,15 @@ This record is intentionally evidence-first. It must not be changed to
 `GO` until the open gates below are independently verified on the release
 commit and the operator accepts the listed limitations.
 
-## Current deployed baseline — 2026-10-26
+## Current deployed baseline — 2026-10-27
 
-App Runner workflow `40365790289` successfully deployed immutable main commit
-`73d74fb36adf824b2b2cf53b07ece36e1a0302d4`. The hosted release gate, image
-binding, rollout wait, read-only production smoke, running-release identity
-verification, and runtime-safety audit passed. Retained artifacts are
-the redacted production-smoke, runtime-flags, and app-runner-host artifacts
-uploaded by that workflow. The exact artifact names remain discoverable from
-the workflow run and are intentionally not copied into this ledger until the
-provider retention metadata is reconciled.
+App Runner workflow `40393173889` successfully deployed immutable application
+commit `57f56431317564c4789bbae0eb4e7bac92bba29e`. The hosted release gate,
+image binding, rollout wait, read-only production smoke, running-release
+identity verification, and runtime-safety audit passed. Authenticated smoke
+workflow `40394208530` passed 37 checks for the exact SHA; retained artifact
+`12685019035` reports `outcome=passed`. Later docs/ops commits are not called
+runtime deployments because they do not change the application image.
 This is the current engineering baseline; the release remains Draft/HOLD until
 the open operational and owner gates below are independently accepted.
 
@@ -85,8 +84,8 @@ change the release from Draft/HOLD or close the external pilot gates.
 
 ## Current-main verification — 2026-10-26
 
-Main commit `c7a36e6b2af66f3389fcf5e46c59574e53c35b43` passed the full local
-release gate (136 suites), lint, and production build (177 generated pages).
+Main commit `26da04bd40810a82906e4961ee211a3f2dfe876a` passed the full local
+release gate (137 suites), lint, and production build verification.
 This is engineering verification and does not change the record from
 Draft/HOLD while the external pilot gates remain open.
 
@@ -241,8 +240,8 @@ the existing insufficient-evidence outcome rules.
 | --- | --- |
 | Pilot scope | First 100 customers, desktop dashboard boundary |
 | Production hosts | `trackmcp.com`, `app.trackmcp.com` |
-| Last deployed application commit | `73d74fb36adf824b2b2cf53b07ece36e1a0302d4` (identity-verified current baseline) |
-| Last successful App Runner deployment | `40365790289` |
+| Last deployed application commit | `57f56431317564c4789bbae0eb4e7bac92bba29e` (identity-verified current baseline) |
+| Last successful App Runner deployment | `40393173889` |
 | Readiness ledger | `docs/FOUNDER-OS-100-CUSTOMER-READINESS-LEDGER.md` |
 | Current release-record change | Current mainline reconciliation of deployed runtime and release-gate evidence |
 
@@ -273,7 +272,7 @@ the existing insufficient-evidence outcome rules.
   `SELECT`, and deletion-batch indexes are present.
 - [x] Local privacy, deletion-plan, accessibility, tenant-isolation,
   analytics, package-consumer, and pilot contract suites passed.
-- [x] Local full release gate passed on the current source: 136 suites,
+- [x] Local full release gate passed on the current source: 137 suites,
   including the six-tab dashboard contract (58 tests), OTLP/HTTP JSON and
   protobuf interoperability, package consumers, privacy, tenant isolation,
   protocol fixtures, and release-control contracts. This is source evidence;
