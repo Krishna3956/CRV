@@ -38,6 +38,15 @@ and authenticated smoke `production-auth-smoke-57f56431317564c4789bbae0eb4e7bac9
   now records the active-evidence contract milestone separately from the
   runtime-verified application release.
 
+## 2026-10-27 backup/PITR evidence refresh
+
+- [x] Signed-in Supabase production-project inspection reached Database →
+  Backups and the Point in time route. The project remains on the Free Plan;
+  no scheduled backup, PITR restore point, restoration contact, or completed
+  rehearsal was visible. No SQL, data query, or destructive operation was run.
+- [ ] Queue item 157 remains an infrastructure-owner gate requiring an
+  explicitly accepted backup limitation or a tested recovery reference.
+
 ## 2026-10-27 disabled scheduler deployment evidence
 
 - [x] Disabled scheduler deployment workflow `40397368253` failed closed before
