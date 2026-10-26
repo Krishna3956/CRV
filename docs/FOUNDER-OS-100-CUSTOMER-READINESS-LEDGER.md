@@ -4,6 +4,19 @@ Last updated: 2026-10-26 (main `5728125`; deployed application `5728125` and App
 Latest freshness evidence: sequence monitor workflow `40266407743` on main
 commit `59b7c1435358fbd6c00dce5bcb338089af49c310`.
 
+## 2026-10-26 alert-delivery evidence deployment
+
+- [x] App Runner workflow `40341314542` deployed merged main commit
+  `1e6c7144a6e2714df787bc6ed6fbc87f2a447aba`; rollout, production smoke,
+  runtime identity, and runtime safety checks passed.
+- [x] Retained artifacts are `production-smoke-1e6c7144a6e2714df787bc6ed6fbc87f2a447aba`
+  (`12659303738`), `runtime-flags-1e6c7144a6e2714df787bc6ed6fbc87f2a447aba`
+  (`12660500729`), and `app-runner-host-1e6c7144a6e2714df787bc6ed6fbc87f2a447aba`
+  (`12658999346`).
+- [ ] This deployment validates the bounded Evidence UI change only; it does
+  not close sustained freshness, backup/PITR, privacy acceptance, lifecycle
+  UAT, interoperability, or release-owner gates.
+
 ## 2026-10-26 custom-range release deployment
 
 - [x] App Runner workflow `40335675552` successfully deployed and verified
