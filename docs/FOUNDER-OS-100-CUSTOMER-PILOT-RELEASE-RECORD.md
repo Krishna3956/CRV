@@ -17,6 +17,18 @@ safety-flag audit passed. Retained artifacts are
 `app-runner-host-83131ecb7cd0d6d4f3d71ac9bb015b407386ba5c` (`12653798778`).
 This updates the deployed baseline only; the release remains Draft/HOLD.
 
+## Latest custom-range deployment — 2026-10-26
+
+App Runner workflow `40335675552` successfully deployed and verified merged
+main commit `57281256e5ac1721a075f9b6f075b326530b1258`. The bounded release
+gate, image binding, rollout wait, production smoke, runtime identity, and
+runtime safety audit passed. A first smoke attempt hit a transient direct-origin
+timeout; the workflow rerun passed all 36 checks and is the authoritative
+result. Retained artifacts are `production-smoke-57281256e5ac1721a075f9b6f075b326530b1258`
+(`12657756599`), `runtime-flags-57281256e5ac1721a075f9b6f075b326530b1258`
+(`12658121349`), and `app-runner-host-57281256e5ac1721a075f9b6f075b326530b1258`
+(`12658645535`). This confirms deployment only; the release remains Draft/HOLD.
+
 ## Authenticated smoke on the current deployed baseline — 2026-10-26
 
 Workflow `40332727179` passed against the exact deployed immutable commit
