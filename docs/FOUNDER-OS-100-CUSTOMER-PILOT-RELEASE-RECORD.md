@@ -125,6 +125,16 @@ used ten bounded lease batches and reported `processed=0`,
 retryable work. This clears the observed backlog at that checkpoint; it does
 not close the sustained scheduler-freshness gate.
 
+Durable semantic-fact writes are now enabled through the guarded workflow
+[40322891985](https://github.com/Krishna3956/CRV/actions/runs/40322891985);
+artifact `12650520660` records `fact_writes=true` with
+`rate_limit_mode=supabase`. First-ingest smoke `40323457545`, refresh-worker
+run `40323571185`, and authenticated read-only smoke `40323679620` all passed.
+The signed-in Supabase SQL editor then returned 32,771 rows in
+`trackmcp_semantic_facts`, with latest `observed_at=2026-10-26 12:36:49+00`.
+This closes the deployed ingest-to-durable-fact activation gap while preserving
+the existing insufficient-evidence outcome rules.
+
 ## Release identity
 
 | Item | Verified value |

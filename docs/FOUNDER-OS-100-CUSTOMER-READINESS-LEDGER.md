@@ -1585,3 +1585,21 @@ a failed product gate or a Supabase plan warning.
 - [ ] This is a fresh recovery observation, not proof of a permanently healthy
   scheduler. Continue the recurring health monitor and retain the worker SLO
   as open until repeated scheduled samples remain within the pilot budget.
+
+## 2026-10-26 durable analytics write-path checkpoint
+
+- [x] The guarded App Runner workflow now enables durable semantic-fact writes
+  only after exact runtime and schema confirmations. It preserves the full
+  service configuration and fails closed unless distributed Supabase rate
+  limiting remains enabled. Workflow `40322891985` completed successfully;
+  redacted artifact `12650520660` records `fact_writes=true` and
+  `rate_limit_mode=supabase`.
+- [x] A bounded production first-ingest smoke (`40323457545`) accepted one
+  metadata-only event, the ten-batch refresh worker (`40323571185`) completed
+  successfully, and the authenticated read-only smoke (`40323679620`) passed
+  37 tenant/privacy checks. A read-only Supabase query then reported 32,771
+  semantic facts with latest `observed_at=2026-10-26 12:36:49+00`.
+- [x] This proves the deployed ingest → refresh → durable semantic-fact path
+  is active. It does not turn missing explicit business outcomes into success,
+  and it does not close the remaining protocol interoperability or release
+  owner gates.
