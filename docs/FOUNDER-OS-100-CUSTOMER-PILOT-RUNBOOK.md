@@ -159,13 +159,16 @@ and rate-limit false positives.
 
 ## 9. Package publication and clean consumers
 
-The next coordinated release-train candidates are
-`@trackmcp/sdk@0.1.18`, `@trackmcp/cli@0.1.9`, and `trackmcp==0.1.11`.
-They are not registry evidence until the write-gated publication workflow
-completes. Publish only after duplicate-version preflight passes, then install
-the exact registry versions in clean temporary npm and Python consumers and run
-the first-event/key-status smoke. Record registry URLs, versions, checksums,
-provenance, and consumer results without recording keys.
+The currently published coordinated train is `@trackmcp/sdk@0.1.18`,
+`@trackmcp/cli@0.1.9`, and `trackmcp==0.1.11`. SDK publication was observed
+through the all-package workflow `40258109659` (the workflow later failed only
+on its bounded npm propagation check); CLI recovery publication completed in
+`40258606412`, and Python recovery publication completed in `40258608513`.
+Direct registry checks verified the exact versions and checksums recorded in
+`FOUNDER-OS-PACKAGE-RELEASE-READINESS.md`. This closes registry publication;
+install the exact artifacts in clean consumers and run the first-event/key-status
+smoke as the separate authenticated pilot gate. Record registry URLs, versions,
+checksums, provenance, and consumer results without recording keys.
 
 ## 10. Load and failure recovery
 
