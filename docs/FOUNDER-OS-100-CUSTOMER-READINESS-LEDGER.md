@@ -1,6 +1,6 @@
 # Founder OS 100 Customer Readiness Ledger
 
-Last updated: 2026-10-27 (main `9bf272b`; deployed application `57f5643` and App Runner production/authenticated smoke verified)
+Last updated: 2026-10-27 (main `7a8d144`; deployed application `57f5643` and App Runner production/authenticated smoke verified)
 Latest freshness evidence: refresh-worker workflow `40381642702` on main
 commit `fff91da6576987f5d5259801d71b1e41f268a4bc` completed successfully;
 sustained scheduled-sample health is still an explicit open gate below.
@@ -1958,3 +1958,15 @@ a failed product gate or a Supabase plan warning.
 - [ ] Build success verifies the artifact only; it does not replace hosted
   deployment, credentialed UAT, scheduler freshness, backup/recovery, or
   release-owner acceptance evidence.
+
+## 2026-10-27 sampling and elicitation protocol-boundary audit
+
+- [x] Audited the TypeScript modern client against the remaining protocol
+  matrix rows. Sampling and elicitation are currently observed as bounded
+  metadata/family outcomes; the client intentionally remains read-only and
+  does not accept server-initiated user-input requests.
+- [ ] Full sampling/elicitation support requires a bidirectional transport
+  request-handler contract, consent and cancellation semantics, privacy-safe
+  lifecycle persistence, and authenticated UAT. Those are external protocol
+  and product decisions, not a safe local helper that can be added without
+  changing the adapter’s privacy boundary; the rows remain explicitly Partial.
