@@ -19,7 +19,7 @@ concurrency:
 jobs:
   refresh:
     runs-on: ubuntu-latest
-    # Five bounded requests run concurrently. Each can spend up to the
+    # Ten bounded requests run concurrently. Each can spend up to the
     # application's 45s deadline plus curl retry/connection overhead; keeping
     # the job ceiling finite prevents a stuck scheduler from running forever.
     timeout-minutes: 5
@@ -53,7 +53,7 @@ jobs:
             exit 1
           fi
           # Each request is independently bounded by the application’s 45s
-          # lease/deadline and this workflow’s 55s curl timeout. Five
+          # lease/deadline and this workflow’s 55s curl timeout. Ten
           # concurrent calls increase drain throughput while the database
           # claim RPC's skip-locked lease boundary prevents duplicate claims.
           failed=0
@@ -62,7 +62,7 @@ jobs:
           summary_file="$RUNNER_TEMP/trackmcp-refresh-worker-summary.jsonl"
           : > "$summary_file"
           pids=()
-          for batch in 1 2 3 4 5; do
+          for batch in $(seq 1 10); do
             (
               # Keep a process-level kill boundary in addition to curl's own
               # retry timers. This protects the runner if curl or a transport
@@ -82,7 +82,7 @@ jobs:
             ) &
             pids+=("$!")
           done
-          for batch in 1 2 3 4 5; do
+          for batch in $(seq 1 10); do
             set +e
             wait "${pids[$((batch - 1))]}"
             status=$?
