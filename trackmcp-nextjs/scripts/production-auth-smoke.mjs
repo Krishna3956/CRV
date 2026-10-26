@@ -20,6 +20,7 @@ const workspaceA = process.env.TRACKMCP_AUTH_SMOKE_WORKSPACE_A || "";
 const workspaceB = process.env.TRACKMCP_AUTH_SMOKE_WORKSPACE_B || "";
 const revokedKey = process.env.TRACKMCP_AUTH_SMOKE_REVOKED_KEY || "";
 const reportPath = process.env.TRACKMCP_AUTH_SMOKE_REPORT || "/tmp/trackmcp-production-auth-smoke.json";
+const requestTimeoutMs = Math.min(30_000, Math.max(5_000, Number(process.env.TRACKMCP_AUTH_SMOKE_TIMEOUT_MS) || 20_000));
 let completedChecks = [];
 
 function fail(message) { throw new Error(message); }
@@ -48,11 +49,15 @@ async function request(path, key, options = {}) {
         ...options,
         redirect: "manual",
         headers: { accept: "application/json", authorization: `Bearer ${key}`, ...(options.headers || {}) },
-        signal: AbortSignal.timeout(15_000),
+        signal: AbortSignal.timeout(requestTimeoutMs),
       });
       if (![502, 503, 504].includes(response.status) || attempt === maxAttempts) return response;
     } catch (error) {
-      if (attempt === maxAttempts) throw error;
+      // App Runner can briefly exceed the old 15-second bound while a cold
+      // read-model path warms up. Retry only bounded timeout/network failures;
+      // authorization and application responses still fail immediately.
+      const retryable = error?.name === "AbortError" || error?.name === "TimeoutError" || error instanceof TypeError;
+      if (!retryable || attempt === maxAttempts) throw error;
     }
     await new Promise((resolve) => setTimeout(resolve, 500 * attempt));
   }
