@@ -6,6 +6,17 @@ This record is intentionally evidence-first. It must not be changed to
 `GO` until the open gates below are independently verified on the release
 commit and the operator accepts the listed limitations.
 
+## Refresh-worker remediation evidence — 2026-10-26
+
+PR #532 (`e8b3709d2e3402d82d5f54ca1656ea41db5be554`) added bounded recovery
+dispatch when the health monitor observes a warning and no worker run is
+active. PR #533 (`dd4ffec664c2dceaf920cfeaec94438b757f78b6`) corrected the
+health summary output so the evidence is rendered without shell substitution.
+Live health run `40326279012` reported the existing warning state with
+`freshness_budget_exceeded` and `schedule_cadence_gap`, then dispatched worker
+run `40326311792`, which completed successfully. This is remediation evidence,
+not proof of sustained freshness; the release remains Draft/HOLD.
+
 ## Current evidence reconciliation — 2026-10-26
 
 The current deployed application is `d338544b535132aa6f1c0cb8fc6174654f9bf28f`.

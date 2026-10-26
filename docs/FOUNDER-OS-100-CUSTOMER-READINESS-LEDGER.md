@@ -4,6 +4,21 @@ Last updated: 2026-10-26 (main `d338544`; deployed application `d338544` and App
 Latest freshness evidence: sequence monitor workflow `40266407743` on main
 commit `59b7c1435358fbd6c00dce5bcb338089af49c310`.
 
+## 2026-10-26 refresh-health recovery remediation
+
+- [x] PR #532 merged the health-triggered recovery dispatch into `main`
+  (`e8b3709d2e3402d82d5f54ca1656ea41db5be554`). When the sequence report is
+  warning and no worker run is active, the monitor dispatches the worker on
+  `main`; an active run causes a safe skip. The worker's lease fencing and
+  concurrency group remain the duplicate-work boundary.
+- [x] PR #533 merged the follow-up shell-output fix (`dd4ffec664c2dceaf920cfeaec94438b757f78b6`). A live health run
+  `40326279012` now renders state, reasons, sample count, and queue lag without
+  shell command-substitution errors. Its evidence remained warning because the
+  historical sample set had 3 stale runs and 7 cadence breaches.
+- [x] The recovery dispatch created worker run `40326311792`, which completed
+  successfully. This proves remediation is wired and bounded; it does not
+  convert the historical warning into sustained-SLO evidence.
+
 ## 2026-10-26 current merged-baseline deployment reconciliation
 
 - [x] Main merge commit `d338544b535132aa6f1c0cb8fc6174654f9bf28f` is deployed
