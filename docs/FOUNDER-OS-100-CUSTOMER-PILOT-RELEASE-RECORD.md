@@ -19,9 +19,10 @@ provider retention metadata is reconciled.
 This is the current engineering baseline; the release remains Draft/HOLD until
 the open operational and owner gates below are independently accepted.
 
-The preceding deployed engineering baseline was `7551e2f017cce2695803b13ce5605eee72d4a9f8`.
-It remains retained as historical evidence; the current baseline above is the
-one to use for release review.
+The preceding deployed engineering baseline was `7551e2f017cce2695803b13ce5605eee72d4a9f8`,
+deployed by App Runner workflow `40349662276`. It remains retained as
+historical evidence; the current baseline above is the one to use for release
+review.
 The release remains Draft/HOLD; this baseline contains the worker-health
 recovery-evidence hardening, not a final operational SLO acceptance.
 
