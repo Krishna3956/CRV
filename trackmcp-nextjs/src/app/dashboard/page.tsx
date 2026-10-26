@@ -49,8 +49,10 @@ export function DashboardPageContent({ initialView = "overview" }: { initialView
   }, []);
   const loadAnalytics = useCallback(async (days = "30", workspaceId?: string) => {
     trackActivationEvent("first_event_check_started", { data_mode: "my" });
+    const custom = days.match(/^custom:(\d{4}-\d{2}-\d{2}):(\d{4}-\d{2}-\d{2})$/);
+    const rangeQuery = custom ? `from=${custom[1]}&to=${custom[2]}` : `days=${encodeURIComponent(days)}`;
     const scope = workspaceId ? `&workspace_id=${encodeURIComponent(workspaceId)}` : "";
-    const response = await fetch(`/api/v1/analytics?days=${days}${scope}`, { cache: "no-store" });
+    const response = await fetch(`/api/v1/analytics?${rangeQuery}${scope}`, { cache: "no-store" });
     const body = await response.json();
     if (!response.ok) {
       trackActivationEvent("first_event_check_result", {
@@ -63,8 +65,10 @@ export function DashboardPageContent({ initialView = "overview" }: { initialView
     if (body.total_events > 0) trackActivationEvent("first_telemetry_seen", { event_count: body.total_events });
   }, []);
   const loadToolQuality = useCallback(async (days = "30", workspaceId?: string) => {
+    const custom = days.match(/^custom:(\d{4}-\d{2}-\d{2}):(\d{4}-\d{2}-\d{2})$/);
+    const rangeQuery = custom ? `from=${custom[1]}&to=${custom[2]}` : `days=${encodeURIComponent(days)}`;
     const scope = workspaceId ? `&workspace_id=${encodeURIComponent(workspaceId)}` : "";
-    const response = await fetch(`/api/v1/tool-quality?days=${days}${scope}`, { cache: "no-store" });
+    const response = await fetch(`/api/v1/tool-quality?${rangeQuery}${scope}`, { cache: "no-store" });
     const body = await response.json();
     if (!response.ok) throw new Error(body.error || "Could not load tool-quality analytics.");
     setToolQuality(body);

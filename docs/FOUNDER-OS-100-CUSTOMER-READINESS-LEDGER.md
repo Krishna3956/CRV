@@ -30,6 +30,19 @@ commit `59b7c1435358fbd6c00dce5bcb338089af49c310`.
   not close sustained freshness, backup/PITR, privacy acceptance, lifecycle
   UAT, interoperability, or release-owner gates.
 
+## 2026-10-26 bounded custom dashboard ranges
+
+- [x] Analytics and Tool Quality now accept an explicit inclusive `from`/`to`
+  ISO-date range, bounded to 1–90 days, while preserving the existing 7/30/90
+  day presets. Queries apply an exclusive upper bound so a selected end date
+  is complete without leaking adjacent-period events.
+- [x] The dashboard Custom control now submits the bounded range, preserves it
+  in deep links, and keeps the existing privacy, scan-cap, and example-data
+  boundaries. Invalid or overlong ranges return a clear 400 response.
+- [x] Added integration coverage for accepted seven-day custom ranges and
+  rejection of overlong ranges; lint, dashboard contracts, and analytics/tool
+  quality integration tests pass.
+
 ## 2026-10-26 current-main release-gate verification
 
 - [x] Current merged main `c7a36e6b2af66f3389fcf5e46c59574e53c35b43` passed

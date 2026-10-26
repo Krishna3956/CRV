@@ -131,13 +131,32 @@ export function createAnalyticsHandler(getAdmin: typeof getSupabaseAdmin = getSu
   }
 
   const requestedDays = Number(url.searchParams.get("days") || 30);
-  const days = Number.isFinite(requestedDays) ? Math.min(90, Math.max(1, Math.floor(requestedDays))) : 30;
-  const since = new Date(Date.now() - days * 86400000).toISOString();
+  const fromParam = url.searchParams.get("from");
+  const toParam = url.searchParams.get("to");
+  let days = Number.isFinite(requestedDays) ? Math.min(90, Math.max(1, Math.floor(requestedDays))) : 30;
+  let since = new Date(Date.now() - days * 86400000).toISOString();
+  let until: string | null = null;
+  if (fromParam || toParam) {
+    if (!fromParam || !toParam || !/^\d{4}-\d{2}-\d{2}$/.test(fromParam) || !/^\d{4}-\d{2}-\d{2}$/.test(toParam)) {
+      return NextResponse.json({ error: "from and to must be ISO dates (YYYY-MM-DD)." }, { status: 400 });
+    }
+    const start = new Date(`${fromParam}T00:00:00.000Z`);
+    const end = new Date(`${toParam}T00:00:00.000Z`);
+    const span = Math.round((end.getTime() - start.getTime()) / 86400000) + 1;
+    if (!Number.isFinite(start.getTime()) || !Number.isFinite(end.getTime()) || span < 1 || span > 90) {
+      return NextResponse.json({ error: "Custom date ranges must be 1 through 90 days." }, { status: 400 });
+    }
+    days = span;
+    since = start.toISOString();
+    until = new Date(end.getTime() + 86400000).toISOString();
+  }
   const analyticsQueryLimit = 10000;
   const generatedAt = new Date().toISOString();
-  const { data, error } = await supabase.from("trackmcp_events")
+  const eventsQuery = supabase.from("trackmcp_events")
     .select("event_id, schema_version, event_type, service, environment, server_id, deployment_id, server_version, sdk_version, observation_source, direction, transport, protocol_version, mcp_method, request_id, session_id, session_id_source, correlation_handle, correlation_handle_source, context, intent_source, missing_capability, task_id, workflow_id, client_name, client_version, account_key, account_identity_source, tool_name, tool_description, tool_description_hash, duration_ms, success, is_error, error_class, error_code, retry_number, result_type, interaction_id, interaction_link_source, retry_of_event_id, request_state_hash, input_request_count, input_response_count, resource_audience, resource_priority, schema_hash, catalog_kind, catalog_item_count, catalog_item_name_hashes, catalog_item_uri_hashes, payload_size_bytes, payload_policy, started_at, payload")
-    .eq("workspace_id", workspaceId).gte("started_at", since).order("started_at", { ascending: true }).limit(analyticsQueryLimit);
+    .eq("workspace_id", workspaceId).gte("started_at", since);
+  if (until) eventsQuery.lt("started_at", until);
+  const { data, error } = await eventsQuery.order("started_at", { ascending: true }).limit(analyticsQueryLimit);
   if (error) return NextResponse.json({ error: "Could not load analytics." }, { status: 500 });
 
   // The first Founder OS slice needs a lifetime-first-seen signal to
@@ -165,6 +184,7 @@ export function createAnalyticsHandler(getAdmin: typeof getSupabaseAdmin = getSu
     .select("id,server_id,environment_id,catalog_kind,item_count,item_name_hashes,item_uri_hashes,snapshot_hash,previous_snapshot_id,complete,truncated,diff,discovered_at")
     .eq("workspace_id", workspaceId).gte("discovered_at", since).order("discovered_at", { ascending: false });
   if (catalogBefore) catalogQuery.lt("discovered_at", catalogBefore);
+  if (until) catalogQuery.lt("discovered_at", until);
   const catalogVersionsResult = await catalogQuery.limit(101);
   const rawCatalogVersions: unknown[] = catalogVersionsResult.error ? [] : (catalogVersionsResult.data || []) as unknown[];
   const catalogHasMore = rawCatalogVersions.length > 100;
@@ -185,9 +205,11 @@ export function createAnalyticsHandler(getAdmin: typeof getSupabaseAdmin = getSu
     discovered_at: boundedText(row.discovered_at, 80),
   }));
   const catalogVersionStatus = catalogVersionsResult.error ? "schema_unavailable" : catalogVersions.length ? "available" : "no_snapshot_rows";
-  const entityReadsResult = await supabase.from("trackmcp_catalog_entity_reads")
+  const entityReadsQuery = supabase.from("trackmcp_catalog_entity_reads")
     .select("catalog_kind,entity_hash,success,is_error,result_type,observed_at")
-    .eq("workspace_id", workspaceId).gte("observed_at", since).order("observed_at", { ascending: true }).limit(10001);
+    .eq("workspace_id", workspaceId).gte("observed_at", since);
+  if (until) entityReadsQuery.lt("observed_at", until);
+  const entityReadsResult = await entityReadsQuery.order("observed_at", { ascending: true }).limit(10001);
   const entityRows = entityReadsResult.error ? [] : (entityReadsResult.data || []) as Array<Record<string, unknown>>;
   const entityReadAnalytics = (kind: "resources" | "prompts") => {
     const rows = entityRows.filter((row) => row.catalog_kind === kind && typeof row.entity_hash === "string" && /^[a-f0-9]{64}$/i.test(row.entity_hash));
