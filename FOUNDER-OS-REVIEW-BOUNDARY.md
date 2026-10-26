@@ -16,6 +16,7 @@ reviewer disposition before staging; it is never included by a blanket add.
 | `trackmcp-nextjs/workers/refresh-scheduler/template.yaml` | review-required | repository maintainer | release owner | AWS Scheduler/Lambda/IAM/DLQ template; review least-privilege actions, secret dynamic reference, alarms, retry policy, and disabled-by-default state before enablement |
 | `trackmcp-nextjs/.github/workflows/deploy.yml` | review-required | repository maintainer | release owner | production App Runner rollout workflow; review concurrency, immutable SHA selection, timeout behavior, and redacted smoke evidence before release |
 | `trackmcp-nextjs/.github/workflows/deploy-refresh-scheduler.yml` | review-required | repository maintainer | release owner | manual OIDC SAM deployment; review endpoint/secret ARN validation, disabled-by-default schedule input, IAM capability, and status-only output before use |
+| `trackmcp-nextjs/.github/workflows/ci.yml` | review-required | repository maintainer | release owner | hosted multi-language CI and artifact-validation workflow; review runner permissions, package artifact boundaries, timeout/concurrency controls, and ensure Go/.NET checks do not imply registry publication |
 | `trackmcp-nextjs/Dockerfile` | review-required | repository maintainer | release owner | production image build/runtime contract; review immutable release identity propagation and ensure no secret build arguments are added |
 
 ## Boundary rules

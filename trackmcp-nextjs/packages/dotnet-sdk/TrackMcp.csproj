@@ -4,5 +4,10 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <RootNamespace>TrackMcp</RootNamespace>
+    <PackageId>TrackMcp</PackageId>
+    <PackageVersion>0.1.0</PackageVersion>
+    <Description>Privacy-safe, fail-open TrackMCP telemetry primitives for .NET MCP servers.</Description>
+    <RepositoryUrl>https://github.com/Krishna3956/CRV</RepositoryUrl>
+    <PackageTags>mcp;telemetry;observability</PackageTags>
   </PropertyGroup>
 </Project>
