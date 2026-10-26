@@ -34,7 +34,10 @@ async function request(path, options = {}) {
   const response = await fetch(endpoint(path), {
     ...options,
     redirect: "manual",
-    headers: { accept: "application/json", "user-agent": "TrackMCP/0.1.18 lifecycle-smoke", ...(options.headers || {}) },
+    // This harness exercises the deployed web API, not a package release. Keep
+    // the user-agent release-neutral so a historical package version cannot be
+    // mistaken for the candidate being verified.
+    headers: { accept: "application/json", "user-agent": "TrackMCP lifecycle-smoke", ...(options.headers || {}) },
     signal: AbortSignal.timeout(15_000),
   });
   let body = {};

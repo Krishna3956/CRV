@@ -16,3 +16,8 @@ test("key lifecycle smoke verifies rotation and revocation without logging secre
   assert.match(source, /No cookie, key, workspace ID, response body, or credential/);
   assert.doesNotMatch(source, /console\.log\([^)]*(cookie|oldKey|replacementKey|workspaceId)/);
 });
+
+test("key lifecycle smoke user-agent is release-neutral", () => {
+  assert.match(source, /user-agent": "TrackMCP lifecycle-smoke/);
+  assert.doesNotMatch(source, /user-agent": "TrackMCP\/0\.1\./);
+});
