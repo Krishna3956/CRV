@@ -1,8 +1,21 @@
 # Founder OS 100 Customer Readiness Ledger
 
-Last updated: 2026-10-26 (main `4549608`; deployed application `91ae22a` and App Runner production smoke verified)
+Last updated: 2026-10-26 (main `c516899`; deployed application `c516899` and App Runner production smoke verified)
 Latest freshness evidence: sequence monitor workflow `40266407743` on main
 commit `59b7c1435358fbd6c00dce5bcb338089af49c310`.
+
+## 2026-10-26 latest deployment reconciliation
+
+- [x] App Runner workflow `40306329673` deployed immutable main commit
+  `c5168990486d3ab021ac44806ffcf9fcac155452` successfully. The release gate,
+  image binding, rollout/readiness, and runtime identity checks all passed.
+- [x] The deployment uploaded production smoke artifact
+  `production-smoke-c5168990486d3ab021ac44806ffcf9fcac155452`, runtime-flags
+  artifact `runtime-flags-c5168990486d3ab021ac44806ffcf9fcac155452`, and host
+  artifact `app-runner-host-c5168990486d3ab021ac44806ffcf9fcac155452`.
+- [ ] This is deployment evidence only; the worker freshness warning,
+  credentialed mutation lifecycle, ingest/dashboard UAT, RLS postflight,
+  backup/PITR, and release-owner gates remain open.
 
 ## 2026-10-26 latest production baseline checkpoint
 
