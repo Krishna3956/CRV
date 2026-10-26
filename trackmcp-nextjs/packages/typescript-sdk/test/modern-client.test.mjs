@@ -79,6 +79,25 @@ test("modern client lists a bounded, cursor-based tool catalog", async () => {
   });
 });
 
+test("modern catalog pages expose bounded cache hints without inventing freshness guarantees", async () => {
+  let method;
+  const client = new ModernMcpClient({ endpoint: "https://mcp.example.test", fetch: async (_input, init) => {
+    method = init.headers.get("mcp-method");
+    const requestId = JSON.parse(init.body).id;
+    const key = method === "tools/list" ? "tools" : method === "resources/list" ? "resources" : "prompts";
+    return response({ jsonrpc: "2.0", id: requestId, result: {
+      [key]: [], ttl_ms: 60_000, cache_scope: "private", nextCursor: "cursor-2",
+      secret: "omit",
+    } });
+  } });
+  assert.deepEqual(await client.listTools(), { tools: [], nextCursor: "cursor-2", cacheHints: { ttlMs: 60_000, cacheScope: "private" } });
+  assert.equal(method, "tools/list");
+  assert.deepEqual(await client.listResources(), { resources: [], nextCursor: "cursor-2", cacheHints: { ttlMs: 60_000, cacheScope: "private" } });
+  assert.deepEqual(await client.listPrompts(), { prompts: [], nextCursor: "cursor-2", cacheHints: { ttlMs: 60_000, cacheScope: "private" } });
+  const bounded = new ModernMcpClient({ endpoint: "https://mcp.example.test", fetch: async () => response({ result: { tools: [], ttlMs: 999_999_999, cacheScope: "secret" } }) });
+  assert.deepEqual(await bounded.listTools(), { tools: [], cacheHints: { ttlMs: 7 * 24 * 60 * 60 * 1000 } });
+});
+
 test("modern client invokes tools with task capability and projects task results", async () => {
   const requests = [];
   const client = new ModernMcpClient({ endpoint: "https://mcp.example.test", fetch: async (_input, init) => {

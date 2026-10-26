@@ -36,9 +36,15 @@ export type ModernMcpTool = {
   inputSchema?: Record<string, unknown>;
 };
 
+export type ModernMcpCacheHints = {
+  ttlMs?: number;
+  cacheScope?: "public" | "private";
+};
+
 export type ModernMcpToolPage = {
   tools: ModernMcpTool[];
   nextCursor?: string;
+  cacheHints?: ModernMcpCacheHints;
 };
 
 export type ModernMcpResource = {
@@ -51,6 +57,7 @@ export type ModernMcpResource = {
 export type ModernMcpResourcePage = {
   resources: ModernMcpResource[];
   nextCursor?: string;
+  cacheHints?: ModernMcpCacheHints;
 };
 
 export type ModernMcpResourceTemplate = {
@@ -63,6 +70,7 @@ export type ModernMcpResourceTemplate = {
 export type ModernMcpResourceTemplatePage = {
   resourceTemplates: ModernMcpResourceTemplate[];
   nextCursor?: string;
+  cacheHints?: ModernMcpCacheHints;
 };
 
 export type ModernMcpPrompt = {
@@ -74,6 +82,7 @@ export type ModernMcpPrompt = {
 export type ModernMcpPromptPage = {
   prompts: ModernMcpPrompt[];
   nextCursor?: string;
+  cacheHints?: ModernMcpCacheHints;
 };
 
 export type ModernMcpResourceReadResult = {
@@ -155,6 +164,19 @@ function boundedString(value: unknown): string | undefined {
 }
 function boundedObject(value: unknown): value is Record<string, unknown> {
   return Boolean(value) && typeof value === "object" && !Array.isArray(value);
+}
+
+function projectCacheHints(value: Record<string, unknown>): ModernMcpCacheHints | undefined {
+  const ttlCandidate = value.ttlMs ?? value.ttl_ms;
+  const ttlMs = typeof ttlCandidate === "number" && Number.isSafeInteger(ttlCandidate)
+    ? Math.min(7 * 24 * 60 * 60 * 1000, Math.max(0, ttlCandidate))
+    : undefined;
+  const scopeCandidate = value.cacheScope ?? value.cache_scope;
+  const cacheScope = scopeCandidate === "public" || scopeCandidate === "private" ? scopeCandidate : undefined;
+  return ttlMs === undefined && cacheScope === undefined ? undefined : {
+    ...(ttlMs !== undefined ? { ttlMs } : {}),
+    ...(cacheScope ? { cacheScope } : {}),
+  };
 }
 
 function boundedCompletionReference(reference: ModernMcpCompletionReference): ModernMcpCompletionReference {
@@ -388,7 +410,8 @@ export class ModernMcpClient {
       return [{ name, ...(description ? { description } : {}), ...(inputSchema ? { inputSchema } : {}) }];
     });
     const nextCursor = boundedString(result.nextCursor);
-    return { tools, ...(nextCursor ? { nextCursor } : {}) };
+    const cacheHints = projectCacheHints(result);
+    return { tools, ...(nextCursor ? { nextCursor } : {}), ...(cacheHints ? { cacheHints } : {}) };
   }
 
   /** Invoke a tool while returning only bounded result metadata. Tool
@@ -453,7 +476,8 @@ export class ModernMcpClient {
       return [{ uri, ...(name ? { name } : {}), ...(description ? { description } : {}), ...(mimeType ? { mimeType } : {}) }];
     });
     const nextCursor = boundedString(result.nextCursor);
-    return { resources, ...(nextCursor ? { nextCursor } : {}) };
+    const cacheHints = projectCacheHints(result);
+    return { resources, ...(nextCursor ? { nextCursor } : {}), ...(cacheHints ? { cacheHints } : {}) };
   }
 
   /** Follow opaque resources/list cursors without reading resource contents. */
@@ -490,7 +514,8 @@ export class ModernMcpClient {
       return [{ uriTemplate, ...(name ? { name } : {}), ...(description ? { description } : {}), ...(mimeType ? { mimeType } : {}) }];
     });
     const nextCursor = boundedString(result.nextCursor);
-    return { resourceTemplates, ...(nextCursor ? { nextCursor } : {}) };
+    const cacheHints = projectCacheHints(result);
+    return { resourceTemplates, ...(nextCursor ? { nextCursor } : {}), ...(cacheHints ? { cacheHints } : {}) };
   }
 
   /** Follow opaque resources/templates/list cursors within fixed budgets. */
@@ -528,7 +553,8 @@ export class ModernMcpClient {
       return [{ name, ...(description ? { description } : {}), argumentNames }];
     });
     const nextCursor = boundedString(result.nextCursor);
-    return { prompts, ...(nextCursor ? { nextCursor } : {}) };
+    const cacheHints = projectCacheHints(result);
+    return { prompts, ...(nextCursor ? { nextCursor } : {}), ...(cacheHints ? { cacheHints } : {}) };
   }
 
   /** Follow opaque prompts/list cursors without requesting prompt arguments. */
