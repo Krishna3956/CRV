@@ -1,6 +1,6 @@
 # Founder OS 100 Customer Readiness Ledger
 
-Last updated: 2026-10-26 (main `57f5643`; deployed application `57f5643` and App Runner production/authenticated smoke verified)
+Last updated: 2026-10-27 (main `8e70585`; deployed application `57f5643` and App Runner production/authenticated smoke verified)
 Latest freshness evidence: refresh-worker workflow `40381642702` on main
 commit `fff91da6576987f5d5259801d71b1e41f268a4bc` completed successfully;
 sustained scheduled-sample health is still an explicit open gate below.
@@ -14,6 +14,19 @@ identity, and runtime-safety audit all passed. Retained artifacts are
 `app-runner-host-57f56431317564c4789bbae0eb4e7bac92bba29e` (`12685702047`),
 and authenticated smoke `production-auth-smoke-57f56431317564c4789bbae0eb4e7bac92bba29e`
 (`12685019035`).
+
+## 2026-10-27 refresh scheduler deployment hardening
+
+- [x] PR #573 merged as `8e70585f7b38b8bbd76faa41e535c591d7b0d15e`. The manual
+  scheduler deployment now discovers the App Runner service URL and the
+  `TRACKMCP_REFRESH_WORKER_SECRET` Secrets Manager ARN reference directly from
+  `describe-service`; operators no longer copy endpoint or secret-ARN values
+  into workflow inputs.
+- [x] The workflow validates the App Runner service ARN, hostname, and scoped
+  secret reference before SAM deployment. It never reads, prints, or injects
+  the secret value, and `EnableSchedule` remains `false` by default.
+- [ ] AWS schedule enablement, endpoint/token checks, DLQ/alarm inspection, and
+  three in-budget scheduled samples remain external operator evidence gates.
 
 ## 2026-10-26 authenticated smoke report contract
 
