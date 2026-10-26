@@ -11,7 +11,7 @@ test("refresh scheduler deployment is manual, OIDC-authenticated, and disabled b
   assert.match(workflow, /aws-actions\/configure-aws-credentials@v4/);
   assert.match(workflow, /aws-actions\/setup-sam@v2/);
   assert.match(workflow, /default:\s*false[\s\S]*type:\s*boolean/);
-  assert.match(workflow, /EnableSchedule=\"\$ENABLE_SCHEDULE\"/);
+  assert.match(workflow, /\"EnableSchedule=\$ENABLE_SCHEDULE\"/);
   assert.match(workflow, /--no-confirm-changeset/);
 });
 
@@ -23,7 +23,7 @@ test("refresh scheduler deployment derives the HTTPS endpoint and secret ARN fro
   assert.match(workflow, /WORKER_TOKEN_SECRET_ARN_INPUT/);
   assert.match(workflow, /App Runner did not return a valid service hostname/);
   assert.match(workflow, /No valid TRACKMCP_REFRESH_WORKER_SECRET ARN was available/);
-  assert.match(workflow, /WorkerTokenSecretArn="\$WORKER_TOKEN_SECRET_ARN"/);
+  assert.match(workflow, /\"WorkerTokenSecretArn=\$WORKER_TOKEN_SECRET_ARN\"/);
   assert.doesNotMatch(workflow, /TRACKMCP_REFRESH_WORKER_TOKEN\s*=/);
 });
 
@@ -32,6 +32,13 @@ test("refresh scheduler deployment reports only CloudFormation status metadata",
   assert.match(workflow, /ResourceStatus/);
   assert.match(workflow, /PhysicalResourceId/);
   assert.doesNotMatch(workflow, /get-secret-value|SecretString|response body/i);
+});
+
+test("refresh scheduler omits an empty optional alarm parameter", () => {
+  assert.match(workflow, /PARAM_OVERRIDES=\(/);
+  assert.match(workflow, /if \[\[ -n "\$FAILURE_ALARM_TOPIC_ARN" \]\]; then/);
+  assert.match(workflow, /PARAM_OVERRIDES\+=\("FailureAlarmTopicArn=\$FAILURE_ALARM_TOPIC_ARN"\)/);
+  assert.match(workflow, /--parameter-overrides "\$\{PARAM_OVERRIDES\[@\]\}"/);
 });
 
 test("refresh scheduler refuses a plain-text App Runner worker token", () => {

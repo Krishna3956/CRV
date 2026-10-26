@@ -32,12 +32,14 @@ export WORKER_TOKEN_SECRET_ARN=arn:aws:secretsmanager:ap-south-1:123456789012:se
 export FAILURE_ALARM_TOPIC_ARN=''
 
 sam build --template-file template.yaml --build-dir .aws-sam/build
+PARAM_OVERRIDES=(WorkerUrl="$WORKER_URL" WorkerTokenSecretArn="$WORKER_TOKEN_SECRET_ARN" EnableSchedule=false)
+if [[ -n "$FAILURE_ALARM_TOPIC_ARN" ]]; then
+  PARAM_OVERRIDES+=(FailureAlarmTopicArn="$FAILURE_ALARM_TOPIC_ARN")
+fi
 sam deploy --template-file .aws-sam/build/template.yaml \
   --stack-name "$STACK_NAME" --region "$AWS_REGION" \
   --capabilities CAPABILITY_IAM --resolve-s3 \
-  --parameter-overrides WorkerUrl="$WORKER_URL" \
-    WorkerTokenSecretArn="$WORKER_TOKEN_SECRET_ARN" \
-    EnableSchedule=false FailureAlarmTopicArn="$FAILURE_ALARM_TOPIC_ARN"
+  --parameter-overrides "${PARAM_OVERRIDES[@]}"
 ```
 
 Before enabling the schedule:

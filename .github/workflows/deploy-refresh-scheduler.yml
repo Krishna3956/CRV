@@ -93,6 +93,14 @@ jobs:
             echo "::error::No valid TRACKMCP_REFRESH_WORKER_SECRET ARN was available. App Runner may redact it from describe-service; provide only the non-sensitive ARN input."
             exit 1
           fi
+          PARAM_OVERRIDES=(
+            "WorkerUrl=$WORKER_URL"
+            "WorkerTokenSecretArn=$WORKER_TOKEN_SECRET_ARN"
+            "EnableSchedule=$ENABLE_SCHEDULE"
+          )
+          if [[ -n "$FAILURE_ALARM_TOPIC_ARN" ]]; then
+            PARAM_OVERRIDES+=("FailureAlarmTopicArn=$FAILURE_ALARM_TOPIC_ARN")
+          fi
           sam deploy \
             --template-file .aws-sam/build/template.yaml \
             --stack-name "$STACK_NAME" \
@@ -101,11 +109,7 @@ jobs:
             --no-confirm-changeset \
             --no-fail-on-empty-changeset \
             --resolve-s3 \
-            --parameter-overrides \
-              WorkerUrl="$WORKER_URL" \
-              WorkerTokenSecretArn="$WORKER_TOKEN_SECRET_ARN" \
-              EnableSchedule="$ENABLE_SCHEDULE" \
-              FailureAlarmTopicArn="$FAILURE_ALARM_TOPIC_ARN"
+            --parameter-overrides "${PARAM_OVERRIDES[@]}"
 
       - name: Report schedule state without secret material
         env:
