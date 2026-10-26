@@ -13,6 +13,7 @@ function fakeAdmin(rows) {
         select() { return this; },
         eq(field, value) { filters[field] = value; return this; },
         gte(field, value) { filters[field] = value; return this; },
+        lt(field, value) { filters[field] = value; return this; },
         order() { return this; },
         limit(limit) { return Promise.resolve({ data: rows.filter((row) => row.workspace_id === filters.workspace_id).slice(0, limit), error: null }); },
       };
@@ -62,6 +63,13 @@ test("tool-quality rejects invalid range values and unauthenticated requests", a
   assert.equal((await handler(new Request("http://analytics.test/api/v1/tool-quality?days=91", { headers: { authorization: "Bearer key" } }))).status, 400);
   assert.equal((await handler(new Request("http://analytics.test/api/v1/tool-quality?days=abc", { headers: { authorization: "Bearer key" } }))).status, 400);
   assert.equal((await handler(new Request("http://analytics.test/api/v1/tool-quality"))).status, 401);
+});
+
+test("tool-quality accepts a bounded inclusive custom date range", async () => {
+  const handler = createToolQualityHandler(() => fakeAdmin([call(0)]));
+  const response = await handler(new Request("http://tool-quality.test/api/v1/tool-quality?from=2026-09-01&to=2026-09-07", { headers: { authorization: "Bearer key" } }));
+  assert.equal(response.status, 200);
+  assert.equal((await response.json()).range_days, 7);
 });
 
 test("tool-quality marks the bounded source scan when more than 10,000 rows are available", async () => {

@@ -15,6 +15,19 @@ function parseDays(request: Request): number | null {
   return Number.isSafeInteger(days) && days >= 1 && days <= 90 ? days : null;
 }
 
+function parseCustomRange(request: Request): { days: number; since: string; until: string } | null | false {
+  const params = new URL(request.url).searchParams;
+  const from = params.get("from");
+  const to = params.get("to");
+  if (!from && !to) return null;
+  if (!from || !to || !/^\d{4}-\d{2}-\d{2}$/.test(from) || !/^\d{4}-\d{2}-\d{2}$/.test(to)) return false;
+  const start = new Date(`${from}T00:00:00.000Z`);
+  const end = new Date(`${to}T00:00:00.000Z`);
+  const days = Math.round((end.getTime() - start.getTime()) / 86400000) + 1;
+  if (!Number.isFinite(start.getTime()) || !Number.isFinite(end.getTime()) || days < 1 || days > 90) return false;
+  return { days, since: start.toISOString(), until: new Date(end.getTime() + 86400000).toISOString() };
+}
+
 export function createToolQualityHandler(
   getAdmin: typeof getSupabaseAdmin = getSupabaseAdmin,
   getServer: typeof getSupabaseServer = getSupabaseServer,
@@ -45,15 +58,16 @@ export function createToolQualityHandler(
       workspaceId = membership.workspace_id;
     }
 
-    const days = parseDays(request);
+    const custom = parseCustomRange(request);
+    if (custom === false) return NextResponse.json({ error: "Custom date ranges must be valid ISO dates spanning 1 through 90 days." }, { status: 400 });
+    const days = custom?.days ?? parseDays(request);
     if (days === null) return NextResponse.json({ error: "days must be an integer from 1 through 90." }, { status: 400 });
-    const since = new Date(Date.now() - days * 86400000).toISOString();
-    const { data, error } = await supabase.from("trackmcp_events")
+    const since = custom?.since || new Date(Date.now() - days * 86400000).toISOString();
+    const eventsQuery = supabase.from("trackmcp_events")
       .select("event_type, service, environment, server_id, deployment_id, observation_source, session_id, correlation_handle, workflow_id, client_name, intent_source, tool_name, tool_description_hash, schema_hash, started_at, success, is_error, retry_number, payload_policy, payload")
-      .eq("workspace_id", workspaceId)
-      .gte("started_at", since)
-      .order("started_at", { ascending: true })
-      .limit(MAX_SOURCE_EVENTS + 1);
+      .eq("workspace_id", workspaceId).gte("started_at", since);
+    if (custom) eventsQuery.lt("started_at", custom.until);
+    const { data, error } = await eventsQuery.order("started_at", { ascending: true }).limit(MAX_SOURCE_EVENTS + 1);
     if (error) return NextResponse.json({ error: "Could not load tool-quality analytics." }, { status: 500 });
 
     const rows = (data || []) as ToolQualityEvent[];

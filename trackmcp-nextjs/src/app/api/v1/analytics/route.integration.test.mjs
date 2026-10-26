@@ -71,6 +71,19 @@ test("analytics authentication remains required", async () => {
   assert.equal(response.status, 401);
 });
 
+test("analytics accepts a bounded inclusive custom date range", async () => {
+  const handler = createAnalyticsHandler(() => fakeAdmin([event({ event_id: "custom-range" })]));
+  const response = await handler(new Request("http://analytics.test/api/v1/analytics?from=2026-09-01&to=2026-09-07", { headers: { authorization: "Bearer key" } }));
+  assert.equal(response.status, 200);
+  assert.equal((await response.json()).range_days, 7);
+});
+
+test("analytics rejects custom ranges longer than the bounded scan window", async () => {
+  const handler = createAnalyticsHandler(() => fakeAdmin([]));
+  const response = await handler(new Request("http://analytics.test/api/v1/analytics?from=2026-01-01&to=2026-04-01", { headers: { authorization: "Bearer key" } }));
+  assert.equal(response.status, 400);
+});
+
 test("analytics exposes conservative Founder OS outcome aggregates", async () => {
   const handler = createAnalyticsHandler(() => fakeAdmin([
     event({ event_id: "call-ok", event_type: "tool_call", tool_name: "lookup", success: true, account_key: "a".repeat(64), account_identity_source: "resolver" }),

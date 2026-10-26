@@ -372,7 +372,9 @@ function readRouteState(preferred: View = "overview") {
     view,
     range: ["7", "30", "90"].includes(params.get("range") || "")
       ? params.get("range") || "30"
-      : "30",
+      : params.get("from") && params.get("to")
+        ? `custom:${params.get("from")}:${params.get("to")}`
+        : "30",
     dataMode,
     sessionId: selected ? params.get("session_id") : null,
     correlationHandle: selected ? params.get("correlation_handle") : null,
@@ -406,7 +408,14 @@ function writeRouteState(
   } else if (view !== "overview") {
     params.set("view", view);
   }
-  if (range !== "30") params.set("range", range);
+  if (range.startsWith("custom:")) {
+    const [, from, to] = range.split(":");
+    if (from && to) {
+      params.set("range", "custom");
+      params.set("from", from);
+      params.set("to", to);
+    }
+  } else if (range !== "30") params.set("range", range);
   params.set("data", dataMode);
   const path =
     view === "evidence" && !sessionId && !correlationHandle
@@ -1535,15 +1544,22 @@ function DateRange({
           </button>
         ))}
       </div>
-      <button
-        type="button"
-        disabled
-        title="Custom date ranges require exact bounded-range API support"
-        className="hidden h-9 cursor-not-allowed items-center gap-1 rounded-md border border-line px-2.5 text-[11px] font-semibold text-faint sm:inline-flex"
-      >
-        <CalendarDays size={13} />
-        Custom
-      </button>
+      <details className="relative hidden sm:block">
+        <summary className="flex h-9 cursor-pointer list-none items-center gap-1 rounded-md border border-line px-2.5 text-[11px] font-semibold text-muted hover:bg-paper hover:text-ink">
+          <CalendarDays size={13} /> Custom
+        </summary>
+        <div className="absolute right-0 z-20 mt-2 grid min-w-[230px] gap-2 rounded-lg border border-line bg-white p-3 shadow-lg">
+          <label className="grid gap-1 text-[11px] font-semibold text-muted">From<input data-range-from type="date" className="h-8 rounded border border-line px-2 text-xs font-normal text-ink" /></label>
+          <label className="grid gap-1 text-[11px] font-semibold text-muted">To<input data-range-to type="date" className="h-8 rounded border border-line px-2 text-xs font-normal text-ink" /></label>
+          <button type="button" className="cursor-pointer rounded-md bg-ink px-2.5 py-2 text-[11px] font-semibold text-white hover:bg-brand-strong" onClick={(event) => {
+            const root = (event.currentTarget as HTMLButtonElement).parentElement;
+            const from = root?.querySelector<HTMLInputElement>("[data-range-from]")?.value;
+            const to = root?.querySelector<HTMLInputElement>("[data-range-to]")?.value;
+            if (from && to) onChange(`custom:${from}:${to}`);
+          }}>Apply range</button>
+          <p className="text-[10px] leading-relaxed text-faint">Choose a bounded range of up to 90 days. Data is still privacy-safe and scan-capped.</p>
+        </div>
+      </details>
     </div>
   );
 }
