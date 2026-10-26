@@ -3,6 +3,24 @@
 This is a review record, not a publication action. No registry credentials are
 used here and no package is published automatically.
 
+## Current registry reconciliation (2026-10-26)
+
+The coordinated release train from source head
+`41f93a2d38b9f31bece50a06efaaeb44277a9238` was published and verified by
+workflow `40248861031`. The workflow completed the repository-wide artifact
+audit, registry preflight, sequential publication, npm/PyPI verification,
+clean-consumer checks, and build provenance attestations.
+
+| Package | Published version | Evidence |
+| --- | --- | --- |
+| `@trackmcp/sdk` | `0.1.17` | npm HTTP 200; SHA-512 integrity `sha512-eC0IPEHNMsPSN7umeuNBzeyLtt5TvgJHcJqDmEzPPDe7N3W/NDWINoGTaMiQ/wQmZ3CoKQL+EFV08vhnIYNPrw==`; `gitHead` `41f93a2d38b9f31bece50a06efaaeb44277a9238`; npm provenance uploaded |
+| `@trackmcp/cli` | `0.1.8` | npm HTTP 200; SHA-512 integrity `sha512-TWozKLamnnSZSX+8Ppx1IHkoRTJEoyq8203o+auxLDhfYIjvNDidfSSs6PYkWmjRXQ1STpofu6wYVvk3HOsafA==`; `gitHead` `41f93a2d38b9f31bece50a06efaaeb44277a9238`; npm provenance uploaded |
+| `trackmcp` | `0.1.10` | PyPI HTTP 200; wheel SHA-256 `98a1645c1d6261c13aa910a1632c3036aa0a6a9454987724e1cb5cfeab95ad82`; sdist SHA-256 `c2d2634c5e7e2bb91ab8dd514539a622c7d9ef82fc8c403a5e9a0cc9cd99a8a5`; build provenance uploaded |
+
+Publication is complete for this coordinated source train. Authenticated
+production activation, first-event UAT, rollback rehearsal, and runtime SLO
+evidence remain separate operational gates.
+
 ## Current registry reconciliation (2026-10-25)
 
 The coordinated release train from source head `6d1b72c1aa731ec7c580f4b7911827b205a66524`
