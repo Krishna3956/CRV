@@ -5,7 +5,7 @@ import test from "node:test";
 
 const root = resolve(process.cwd(), "..");
 const read = (relative) => readFile(resolve(root, relative), "utf8");
-const [docs, traceExplorer, sdkManifest, cliManifest, tsDocs, pythonDocs, goDocs, dotnetDocs, pilotRunbook, executionPlan, gapLedger] = await Promise.all([
+const [docs, traceExplorer, sdkManifest, cliManifest, tsDocs, pythonDocs, goDocs, dotnetDocs, pilotRunbook, executionPlan, gapLedger, contentRelease, pdfTruth] = await Promise.all([
   read("trackmcp-nextjs/src/app/docs/page.tsx"),
   read("trackmcp-nextjs/src/components/dashboard/TraceExplorer.tsx"),
   read("trackmcp-nextjs/packages/typescript-sdk/package.json"),
@@ -17,6 +17,8 @@ const [docs, traceExplorer, sdkManifest, cliManifest, tsDocs, pythonDocs, goDocs
   read("docs/FOUNDER-OS-100-CUSTOMER-PILOT-RUNBOOK.md"),
   read("docs/FOUNDER-OS-100-CUSTOMER-PILOT-MASTER-EXECUTION-PLAN.md"),
   read("docs/FOUNDER-OS-PILOT-GAP-LEDGER.md"),
+  read("docs/FOUNDER-OS-DOCS-AND-CONTENT-RELEASE.md"),
+  read("docs/FOUNDER-OS-PDF-TRUTH-AUDIT.md"),
 ]);
 const sdkVersion = JSON.parse(sdkManifest).version;
 const cliVersion = JSON.parse(cliManifest).version;
@@ -66,4 +68,11 @@ test("active pilot documents stay aligned without rewriting historical snapshots
   assert.doesNotMatch(activeRunbook, /0\.1\.16|0\.1\.7/);
   const activePlan = executionPlan.slice(executionPlan.indexOf("## Workstream 12 Packages and public claims"));
   assert.doesNotMatch(activePlan, /reviewed release line is `@trackmcp\/sdk@0\.1\.16`/);
+});
+
+test("active content and truth-audit docs name the current package train", () => {
+  assert.match(contentRelease, new RegExp(`@trackmcp/sdk@${sdkVersion}`));
+  assert.match(contentRelease, new RegExp(`@trackmcp/cli@${cliVersion}`));
+  assert.match(contentRelease, new RegExp(`trackmcp==${pythonVersion}`));
+  assert.ok(pdfTruth.includes(`PyPI currently serves \`trackmcp==${pythonVersion}\``));
 });
