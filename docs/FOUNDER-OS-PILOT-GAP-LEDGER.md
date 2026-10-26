@@ -54,6 +54,14 @@ production transport UAT.
 
 ## Evidence log
 
+- 2026-10-26: Authenticated production scope smoke workflow `40260222918`
+  passed against `https://trackmcp.com` at immutable release SHA
+  `c49217d91a4e36703e62cbf6eec73b7392f29222`. Two disposable workspace keys
+  authenticated every Founder OS v2 and legacy analytics read model; conflicting
+  workspace parameters were ignored, API-key Action Queue mutations returned
+  403, and a revoked key returned 401. This closes the read-only tenant-
+  isolation smoke, not first-ingest/activation or worker/SLO evidence.
+
 - 2026-10-24: Go and .NET server SDKs now accept an explicit, allowlisted
   caller-verified transport label (`stdio`, `streamable_http`, `sse`, or
   `custom`) for transport failure observations. The label is bounded metadata;

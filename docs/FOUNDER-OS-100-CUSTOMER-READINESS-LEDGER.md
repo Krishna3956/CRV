@@ -17,6 +17,21 @@ transport-owned reconnect policy or production disconnect UAT.
 Owner: Codex engineering execution
 Pilot target: 100 customers
 
+## 2026-10-26 authenticated production scope smoke
+
+- [x] Authenticated production workflow `40260222918` ran against
+  `https://trackmcp.com` at immutable release SHA
+  `c49217d91a4e36703e62cbf6eec73b7392f29222`. Two disposable workspace keys
+  returned HTTP 200 from key-status and every Founder OS v2 and legacy
+  analytics read model returned its authenticated workspace envelope.
+  Conflicting workspace query parameters were ignored; API-key Action Queue
+  mutations returned HTTP 403; the revoked-key check returned HTTP 401. The
+  redacted workflow artifact contains 37 checks and no keys, workspace IDs, or
+  response bodies.
+- [ ] This closes the read-only authenticated scope/tenant-isolation smoke, but
+  does not claim first-ingest, CLI activation, key lifecycle, worker,
+  rollback, or load/SLO evidence. Those gates remain separate.
+
 This ledger is the operational source of truth for the autonomous readiness goal. It is updated when work is implemented, verified, submitted for review, merged, deployed, or found to be incomplete. A checked item means that the stated evidence exists; it does not mean that an adjacent item is complete.
 
 ## 2026-10-26 refresh-worker freshness observations
