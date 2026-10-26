@@ -29,6 +29,8 @@ test("protocol family metadata classifies bounded modern MCP methods", () => {
   assert.equal(protocolResponseMetadata("elicitation/create", { resultType: "complete" }).protocol_family, "elicitation");
   assert.equal(protocolResponseMetadata("completion/complete", {}).protocol_family, "completion");
   assert.equal(protocolResponseMetadata("tasks/get", { status: "working" }).protocol_family, "tasks");
+  assert.equal(protocolResponseMetadata("roots/list", { roots: [{ uri: "file:///private" }] }).protocol_family, "roots");
+  assert.equal(protocolResponseMetadata("logging/setLevel", { level: "debug" }).protocol_family, "logging");
   assert.equal(protocolResponseMetadata("resources/list", {}).protocol_family, "resources");
   assert.equal(protocolResponseMetadata("prompts/list", {}).protocol_family, "prompts");
   assert.equal(protocolResponseMetadata("tools/list", {}).protocol_family, "tools");

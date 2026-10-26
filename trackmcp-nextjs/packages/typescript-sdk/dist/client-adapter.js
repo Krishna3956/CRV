@@ -27,6 +27,10 @@ function protocolFamily(method) {
         return "completion";
     if (method.startsWith("tasks/"))
         return "tasks";
+    if (method.startsWith("roots/"))
+        return "roots";
+    if (method.startsWith("logging/"))
+        return "logging";
     if (method === "notifications/progress" || method === "notifications/cancelled")
         return "control_signal";
     if (method.startsWith("resources/"))

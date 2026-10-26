@@ -70,6 +70,8 @@ function protocolFamily(method: string | undefined): string | undefined {
   if (method.startsWith("elicitation/")) return "elicitation";
   if (method.startsWith("completion/")) return "completion";
   if (method.startsWith("tasks/")) return "tasks";
+  if (method.startsWith("roots/")) return "roots";
+  if (method.startsWith("logging/")) return "logging";
   if (method === "notifications/progress" || method === "notifications/cancelled") return "control_signal";
   if (method.startsWith("resources/")) return "resources";
   if (method.startsWith("prompts/")) return "prompts";

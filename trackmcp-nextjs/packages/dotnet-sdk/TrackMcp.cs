@@ -100,6 +100,8 @@ public sealed class TrackMcpClient : IDisposable
         var taskStatus = ReadAllowlisted(result, new[] { "taskStatus", "task_status" }, "working", "input_required", "completed", "failed", "cancelled", "expired");
         var isError = ReadBool(result, "isError", "is_error");
         var metadata = new Dictionary<string, object?> { ["observation_kind"] = "protocol_response", ["observation_source"] = "server" };
+        if (method.StartsWith("roots/", StringComparison.Ordinal)) metadata["protocol_family"] = "roots";
+        else if (method.StartsWith("logging/", StringComparison.Ordinal)) metadata["protocol_family"] = "logging";
         if (method is "resources/subscribe" or "subscriptions/listen") metadata["subscription_action"] = "subscription_started";
         else if (method == "resources/unsubscribe") metadata["subscription_action"] = "subscription_stopped";
         if (method == "completion/complete" && result["completion"] is JsonObject completion)

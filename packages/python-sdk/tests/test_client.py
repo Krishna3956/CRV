@@ -5,7 +5,7 @@ from http.server import BaseHTTPRequestHandler, HTTPServer
 from unittest import TestCase
 
 from trackmcp import TrackMCP, TrackMCPOptions, trackmcp_report_missing
-from trackmcp.client import TrackMCPEvent, _TrackMCPMiddleware, _catalog_observation, _protocol_metadata_payload, _protocol_result_metadata, interaction_entity_observation
+from trackmcp.client import TrackMCPEvent, _TrackMCPMiddleware, _catalog_observation, _protocol_family_for_method, _protocol_metadata_payload, _protocol_result_metadata, interaction_entity_observation
 from trackmcp.privacy import sanitize_payload
 
 
@@ -25,6 +25,14 @@ class Handler(BaseHTTPRequestHandler):
 
 
 class TrackMCPClientTest(TestCase):
+    def test_roots_and_logging_family_metadata_is_bounded(self):
+        self.assertEqual(_protocol_family_for_method("roots/list"), "roots")
+        self.assertEqual(_protocol_family_for_method("logging/setLevel"), "logging")
+        for method in ("roots/list", "logging/setLevel"):
+            payload = _protocol_metadata_payload(method, {"roots": [{"uri": "file:///private"}], "level": "debug"})
+            self.assertEqual(payload["_trackmcp"]["protocol_family"], method.split("/", 1)[0])
+            self.assertNotIn("file:///private", json.dumps(payload))
+            self.assertNotIn("debug", json.dumps(payload))
     def test_protocol_result_metadata_is_bounded_and_discriminator_parity_safe(self):
         metadata = _protocol_result_metadata({
             "resultType": "task",

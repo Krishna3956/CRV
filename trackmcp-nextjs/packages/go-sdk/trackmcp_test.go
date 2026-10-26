@@ -237,6 +237,19 @@ func TestRecordCompletionMetadataIsBoundedAndValueFree(t *testing.T) {
 	if _, ok := metadata["secret"]; ok { t.Fatal("completion secret was retained") }
 }
 
+func TestRecordRootsAndLoggingFamiliesAreMetadataOnly(t *testing.T) {
+	client := New(Options{APIKey: "tmcp_test"})
+	client.RecordProtocolResult("roots/list", map[string]any{"roots": []any{map[string]any{"uri": "file:///private"}}}, "session-roots")
+	client.RecordProtocolResult("logging/setLevel", map[string]any{"level": "debug"}, "session-logging")
+	if len(client.queue) != 2 { t.Fatalf("expected two events, got %d", len(client.queue)) }
+	for index, expected := range []string{"roots", "logging"} {
+		metadata := client.queue[index].Payload["_trackmcp"].(map[string]any)
+		if metadata["protocol_family"] != expected { t.Fatalf("unexpected family: %#v", metadata) }
+	}
+	serialized, _ := json.Marshal(client.queue)
+	if strings.Contains(string(serialized), "file:///private") || strings.Contains(string(serialized), "debug") { t.Fatal("roots/logging response values were retained") }
+}
+
 func TestRecordSubscriptionLifecycleMetadataIsBounded(t *testing.T) {
 	client := New(Options{APIKey: "tmcp_test"})
 	client.RecordProtocolResult("resources/subscribe", map[string]any{"uri": "secret://private"}, "session-subscribe")

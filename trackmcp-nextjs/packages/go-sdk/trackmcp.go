@@ -310,6 +310,8 @@ func (c *Client) RecordProtocolResult(method string, result map[string]any, sess
 	if count, ok := boundedCountFrom(result, "inputRequests", "input_requests"); ok { event.InputRequestCount = &count }
 	if count, ok := boundedCountFrom(result, "inputResponses", "input_responses"); ok { event.InputResponseCount = &count }
 	metadata := map[string]any{"observation_kind": "protocol_response", "observation_source": "server"}
+	if strings.HasPrefix(method, "roots/") { metadata["protocol_family"] = "roots" }
+	if strings.HasPrefix(method, "logging/") { metadata["protocol_family"] = "logging" }
 	if method == "resources/subscribe" || method == "subscriptions/listen" {
 		metadata["subscription_action"] = "subscription_started"
 	} else if method == "resources/unsubscribe" {

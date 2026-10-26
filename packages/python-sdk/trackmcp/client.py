@@ -229,6 +229,27 @@ def _protocol_result_metadata(result: Any) -> Dict[str, Any]:
     return metadata
 
 
+def _protocol_family_for_method(method: Optional[str]) -> Optional[str]:
+    """Classify MCP method families without retaining method parameters/results."""
+    if not isinstance(method, str):
+        return None
+    prefixes = (
+        ("sampling/", "sampling"), ("elicitation/", "elicitation"),
+        ("completion/", "completion"), ("tasks/", "tasks"),
+        ("roots/", "roots"), ("logging/", "logging"),
+        ("resources/", "resources"), ("prompts/", "prompts"),
+        ("tools/", "tools"), ("subscriptions/", "subscriptions"),
+    )
+    for prefix, family in prefixes:
+        if method.startswith(prefix):
+            return family
+    if method in ("notifications/progress", "notifications/cancelled"):
+        return "control_signal"
+    if method.startswith("notifications/"):
+        return "notifications"
+    return None
+
+
 def _protocol_metadata_payload(method: Optional[str], result: Any) -> Dict[str, Any]:
     """Return bounded protocol metadata without retaining completion values."""
     metadata = _protocol_result_metadata(result)
@@ -236,12 +257,15 @@ def _protocol_metadata_payload(method: Optional[str], result: Any) -> Dict[str, 
         "observation_kind": "protocol_response",
         "observation_source": "middleware",
     }
+    family = _protocol_family_for_method(method)
+    if family:
+        trackmcp["protocol_family"] = family
     if method in ("resources/subscribe", "subscriptions/listen"):
         trackmcp["subscription_action"] = "subscription_started"
     elif method == "resources/unsubscribe":
         trackmcp["subscription_action"] = "subscription_stopped"
     if method == "completion/complete" and any(key.startswith("completion_") for key in metadata):
-        trackmcp.update({"protocol_family": "completion", **{key: value for key, value in metadata.items() if key.startswith("completion_")}})
+        trackmcp.update({key: value for key, value in metadata.items() if key.startswith("completion_")})
     return {"_trackmcp": trackmcp}
 
 
@@ -667,7 +691,7 @@ class _TrackMCPMiddleware:
             elif (signal := _protocol_signal_for_method(method)):
                 self.client.record_protocol_signal(signal, method, session_id=session_id, direction="client_to_server")
             else:
-                payload = _protocol_metadata_payload(method, result_data) if method == "completion/complete" else {"params": params, "result": result_data}
+                payload = _protocol_metadata_payload(method, result_data) if _protocol_family_for_method(method) in ("roots", "logging", "completion") else {"params": params, "result": result_data}
                 self.client.capture({"event_type": "protocol", "mcp_method": method, "request_id": request_id, "session_id": session_id, "session_id_source": session_id_source, "client_name": self.client_name, "client_version": self.client_version, "started_at": _iso_from_epoch(started), "duration_ms": round((time.time() - started) * 1000), "success": not is_error, "is_error": is_error, **_protocol_result_metadata(result_data), "payload": payload})
             return result
         except Exception as error:
@@ -681,7 +705,8 @@ class _TrackMCPMiddleware:
             elif (signal := _protocol_signal_for_method(method)):
                 self.client.record_protocol_signal(signal, method, session_id=session_id, direction="client_to_server")
             else:
-                self.client.capture({"event_type": "protocol", "mcp_method": method, "request_id": request_id, "session_id": session_id, "session_id_source": session_id_source, "client_name": self.client_name, "client_version": self.client_version, "started_at": _iso_from_epoch(started), "duration_ms": round((time.time() - started) * 1000), "success": False, "is_error": True, "error_class": "protocol_error", "payload": {"params": params, "error": str(error)}})
+                safe_payload = _protocol_metadata_payload(method, {}) if _protocol_family_for_method(method) in ("roots", "logging", "completion") else {"params": params, "error": "protocol_error"}
+                self.client.capture({"event_type": "protocol", "mcp_method": method, "request_id": request_id, "session_id": session_id, "session_id_source": session_id_source, "client_name": self.client_name, "client_version": self.client_version, "started_at": _iso_from_epoch(started), "duration_ms": round((time.time() - started) * 1000), "success": False, "is_error": True, "error_class": "protocol_error", "payload": safe_payload})
             raise
 
 def _iso_now() -> str:
