@@ -3,6 +3,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
+using System.Text.RegularExpressions;
 
 namespace TrackMcp;
 
@@ -100,6 +101,15 @@ public sealed class TrackMcpClient : IDisposable
         var taskStatus = ReadAllowlisted(result, new[] { "taskStatus", "task_status" }, "working", "input_required", "completed", "failed", "cancelled", "expired");
         var isError = ReadBool(result, "isError", "is_error");
         var metadata = new Dictionary<string, object?> { ["observation_kind"] = "protocol_response", ["observation_source"] = "server" };
+        if (method == "initialize" && result["capabilities"] is JsonObject capabilities)
+        {
+            var names = capabilities.Select(pair => pair.Key)
+                .Where(name => Regex.IsMatch(name, "^[A-Za-z][A-Za-z0-9_.-]{0,63}$"))
+                .OrderBy(name => name, StringComparer.Ordinal)
+                .Take(32)
+                .ToArray();
+            if (names.Length > 0) metadata["capability_names"] = string.Join(",", names);
+        }
         if (method.StartsWith("roots/", StringComparison.Ordinal)) metadata["protocol_family"] = "roots";
         else if (method.StartsWith("logging/", StringComparison.Ordinal)) metadata["protocol_family"] = "logging";
         if (method is "resources/subscribe" or "subscriptions/listen") metadata["subscription_action"] = "subscription_started";

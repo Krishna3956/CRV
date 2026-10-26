@@ -13,6 +13,8 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"regexp"
+	"sort"
 	"strings"
 	"sync"
 	"time"
@@ -310,6 +312,17 @@ func (c *Client) RecordProtocolResult(method string, result map[string]any, sess
 	if count, ok := boundedCountFrom(result, "inputRequests", "input_requests"); ok { event.InputRequestCount = &count }
 	if count, ok := boundedCountFrom(result, "inputResponses", "input_responses"); ok { event.InputResponseCount = &count }
 	metadata := map[string]any{"observation_kind": "protocol_response", "observation_source": "server"}
+	if method == "initialize" {
+		if capabilities, ok := result["capabilities"].(map[string]any); ok {
+			names := make([]string, 0, len(capabilities))
+			for name := range capabilities {
+				if protocolCapabilityNamePattern.MatchString(name) { names = append(names, name) }
+			}
+			sort.Strings(names)
+			if len(names) > 32 { names = names[:32] }
+			if len(names) > 0 { metadata["capability_names"] = strings.Join(names, ",") }
+		}
+	}
 	if strings.HasPrefix(method, "roots/") { metadata["protocol_family"] = "roots" }
 	if strings.HasPrefix(method, "logging/") { metadata["protocol_family"] = "logging" }
 	if method == "resources/subscribe" || method == "subscriptions/listen" {
@@ -329,6 +342,8 @@ func (c *Client) RecordProtocolResult(method string, result map[string]any, sess
 	event.Payload = map[string]any{"_trackmcp": metadata}
 	c.Capture(event)
 }
+
+var protocolCapabilityNamePattern = regexp.MustCompile(`^[A-Za-z][A-Za-z0-9_.-]{0,63}$`)
 
 func boundedCompletionTotal(value any) (int, bool) {
 	switch typed := value.(type) {
