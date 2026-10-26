@@ -78,7 +78,18 @@ jobs:
                 -H 'accept: application/vnd.github+json' \
                 "$api/actions/workflows/founder-os-refresh-worker.yml/runs?status=in_progress&per_page=1" \
                 | jq -r '.total_count // 0')
-              if [ "$active" -eq 0 ]; then
+              latest_created=$(curl --fail-with-body --silent --show-error \
+                -H "authorization: Bearer $GH_TOKEN" \
+                -H 'accept: application/vnd.github+json' \
+                "$api/actions/workflows/founder-os-refresh-worker.yml/runs?status=completed&per_page=1" \
+                | jq -r '.workflow_runs[0].created_at // empty')
+              now_epoch=$(date -u +%s)
+              latest_epoch=0
+              if [ -n "$latest_created" ]; then
+                latest_epoch=$(date -u -d "$latest_created" +%s)
+              fi
+              latest_age=$((now_epoch - latest_epoch))
+              if [ "$active" -eq 0 ] && [ "$latest_age" -gt 1200 ]; then
                 curl --fail-with-body --silent --show-error -X POST \
                   -H "authorization: Bearer $GH_TOKEN" \
                   -H 'accept: application/vnd.github+json' \
@@ -87,7 +98,11 @@ jobs:
                   --data '{"ref":"main"}'
                 echo "- Recovery dispatch: requested (no active worker run)" >> "$GITHUB_STEP_SUMMARY"
               else
-                echo "- Recovery dispatch: skipped (an active worker run already exists)" >> "$GITHUB_STEP_SUMMARY"
+                if [ "$active" -gt 0 ]; then
+                  echo "- Recovery dispatch: skipped (an active worker run already exists)" >> "$GITHUB_STEP_SUMMARY"
+                else
+                  echo "- Recovery dispatch: skipped (a worker run completed within the 20-minute cooldown)" >> "$GITHUB_STEP_SUMMARY"
+                fi
               fi
             else
               echo "- Recovery dispatch: not-needed" >> "$GITHUB_STEP_SUMMARY"
