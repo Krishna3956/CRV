@@ -11,11 +11,12 @@ is intentionally not a GO approval and must not be treated as one.
 
 - `main`: current default branch. Immutable deployed SHAs belong in the
   release record; PR checks remain attached to their exact review commits.
-- Current deployed application: `7551e2f017cce2695803b13ce5605eee72d4a9f8`,
-  App Runner workflow `40349662276` (successful deployment, production smoke,
+- Current deployed application: `1639663c6b403648797aed02a2b74bc33ca09056`,
+  App Runner workflow `40357654944` (successful deployment, production smoke,
   release-identity verification, runtime safety-flag audit, and redacted
-  evidence uploads). The subsequent docs-only mainline reconciliation is
-  `9276a217aab6e779caf42701b53bea10ce86062d`.
+  evidence uploads). The subsequent release-evidence reconciliation merged to
+  main as `a1c1acd4774a50d45f7b77634f6c2648dc43e502`; it is awaiting the normal
+  post-merge deployment workflow before it becomes the deployed baseline.
 - Queue: 263 total, 260 checked, and P0 queue items `020`, `157`, and `260`
   remain open.
 - Full local release gate: 136 suites passed, with lint and the production
@@ -33,6 +34,7 @@ is intentionally not a GO approval and must not be treated as one.
 | 157 — database recovery posture | Infrastructure/provider owner | Region and tier, backup/PITR policy or an explicitly accepted limitation, restoration owner, and a tested recovery reference | OPEN; authenticated Supabase inspection records Free tier, East US/`us-east-1`, Nano/shared compute, and PITR **Disabled**. No restore point, restoration contact, or rehearsal is evidenced. |
 | Privacy lifecycle acceptance | Release owner | Explicit acceptance that export is bounded/secret-free, deletion requests are review-only, and destructive deletion is disabled without an approved worker | OPEN in the release record |
 | Synthetic reliability-data hygiene | Release owner | Explicit acceptance that synthetic canary rows are test evidence only and cannot be presented as customer incidents | OPEN in the release record |
+| Refresh scheduler enablement | Infrastructure/provider owner | Deploy the disabled-first AWS Scheduler stack, verify endpoint/token/log/DLQ behavior, enable the five-minute schedule, and retain at least three scheduled samples within the 15-minute freshness budget | OPEN; infrastructure template and runbook are merged, but no enabled AWS schedule evidence exists |
 | 260 — final go/no-go | Release owner | Timestamped GO/NO-GO decision linking the green evidence and accepted limitations | OPEN; engineering recommendation remains HOLD |
 
 ## Closure rule
