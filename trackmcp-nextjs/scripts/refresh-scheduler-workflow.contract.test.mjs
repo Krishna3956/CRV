@@ -14,10 +14,13 @@ test("refresh scheduler deployment is manual, OIDC-authenticated, and disabled b
   assert.match(workflow, /--no-confirm-changeset/);
 });
 
-test("refresh scheduler deployment validates HTTPS and Secrets Manager inputs", () => {
-  assert.match(workflow, /worker_url must be an HTTPS URL/);
-  assert.match(workflow, /worker_token_secret_arn must be a Secrets Manager ARN/);
-  assert.match(workflow, /Secrets Manager ARN containing the JSON bundle with TRACKMCP_REFRESH_WORKER_SECRET/);
+test("refresh scheduler deployment derives the HTTPS endpoint and secret ARN from App Runner", () => {
+  assert.match(workflow, /app_runner_service_arn/);
+  assert.match(workflow, /aws apprunner describe-service/);
+  assert.match(workflow, /RuntimeEnvironmentSecrets\.TRACKMCP_REFRESH_WORKER_SECRET/);
+  assert.match(workflow, /App Runner did not return a valid service hostname/);
+  assert.match(workflow, /App Runner did not expose a valid TRACKMCP_REFRESH_WORKER_SECRET reference/);
+  assert.match(workflow, /WorkerTokenSecretArn="\$WORKER_TOKEN_SECRET_ARN"/);
   assert.doesNotMatch(workflow, /TRACKMCP_REFRESH_WORKER_TOKEN\s*=/);
 });
 

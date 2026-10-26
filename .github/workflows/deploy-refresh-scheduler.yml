@@ -1,8 +1,8 @@
 name: Deploy refresh scheduler
 
 # This path is deliberately manual and disabled by default. It creates the
-# scheduler infrastructure only after an operator supplies the endpoint and
-# secret ARN; the schedule itself remains disabled until enable_schedule=true.
+# scheduler infrastructure only after an operator selects the App Runner
+# service; the schedule itself remains disabled until enable_schedule=true.
 on:
   workflow_dispatch:
     inputs:
@@ -11,13 +11,10 @@ on:
         required: true
         default: trackmcp-refresh-scheduler
         type: string
-      worker_url:
-        description: HTTPS internal refresh endpoint URL
+      app_runner_service_arn:
+        description: App Runner service whose public URL and runtime secret reference should be used
         required: true
-        type: string
-      worker_token_secret_arn:
-        description: Secrets Manager ARN containing the JSON bundle with TRACKMCP_REFRESH_WORKER_SECRET
-        required: true
+        default: arn:aws:apprunner:ap-south-1:872575360367:service/trackmcp-web/5d38155bd23141cabb4546b29a4075c7
         type: string
       enable_schedule:
         description: Enable the five-minute schedule after deployment (keep false for first deployment)
@@ -62,18 +59,26 @@ jobs:
         working-directory: trackmcp-nextjs/workers/refresh-scheduler
         env:
           STACK_NAME: ${{ inputs.stack_name }}
-          WORKER_URL: ${{ inputs.worker_url }}
-          WORKER_TOKEN_SECRET_ARN: ${{ inputs.worker_token_secret_arn }}
+          APP_RUNNER_SERVICE_ARN: ${{ inputs.app_runner_service_arn }}
           ENABLE_SCHEDULE: ${{ inputs.enable_schedule }}
           FAILURE_ALARM_TOPIC_ARN: ${{ inputs.failure_alarm_topic_arn }}
         run: |
           set -euo pipefail
-          if [[ ! "$WORKER_URL" =~ ^https://[^[:space:]]+$ ]]; then
-            echo "::error::worker_url must be an HTTPS URL."
+          if [[ ! "$APP_RUNNER_SERVICE_ARN" =~ ^arn:aws:apprunner:[^:]+:[0-9]{12}:service/.+ ]]; then
+            echo "::error::app_runner_service_arn must be an App Runner service ARN."
+            exit 1
+          fi
+          SERVICE_JSON=$(aws apprunner describe-service --service-arn "$APP_RUNNER_SERVICE_ARN" --region "$AWS_REGION")
+          ORIGIN=$(jq -r '.Service.ServiceUrl // empty' <<<"$SERVICE_JSON")
+          SECRET_REF=$(jq -r '.Service.InstanceConfiguration.RuntimeEnvironmentSecrets.TRACKMCP_REFRESH_WORKER_SECRET // empty' <<<"$SERVICE_JSON")
+          WORKER_TOKEN_SECRET_ARN="${SECRET_REF%:TRACKMCP_REFRESH_WORKER_SECRET::}"
+          WORKER_URL="https://${ORIGIN}/api/internal/refresh/run"
+          if [[ ! "$ORIGIN" =~ ^[a-z0-9.-]+\.awsapprunner\.com$ ]]; then
+            echo "::error::App Runner did not return a valid service hostname."
             exit 1
           fi
           if [[ ! "$WORKER_TOKEN_SECRET_ARN" =~ ^arn:aws:secretsmanager:[^:]+:[0-9]{12}:secret:.+ ]]; then
-            echo "::error::worker_token_secret_arn must be a Secrets Manager ARN for the runtime JSON bundle."
+            echo "::error::App Runner did not expose a valid TRACKMCP_REFRESH_WORKER_SECRET reference."
             exit 1
           fi
           sam deploy \
