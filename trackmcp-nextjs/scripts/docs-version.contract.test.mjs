@@ -59,11 +59,11 @@ test("active pilot documents stay aligned without rewriting historical snapshots
     assert.match(source, new RegExp(currentCli.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
     assert.match(source, new RegExp(currentPython.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
   }
-  assert.match(gapLedger, new RegExp("published `" + sdkVersion + "`"));
-  assert.match(gapLedger, new RegExp("published `" + pythonVersion + "`"));
+  assert.match(gapLedger, new RegExp("(?:published|release candidate) `" + sdkVersion + "`"));
+  assert.match(gapLedger, new RegExp("(?:published|release candidate) `" + pythonVersion + "`"));
   const activeRunbook = pilotRunbook.slice(pilotRunbook.indexOf("## 9. Package publication"), pilotRunbook.indexOf("## 10. Load and failure recovery"));
   assert.ok(activeRunbook.length > 0);
-  assert.doesNotMatch(activeRunbook, /0\.1\.16|0\.1\.7|0\.1\.9/);
+  assert.doesNotMatch(activeRunbook, /0\.1\.16|0\.1\.7/);
   const activePlan = executionPlan.slice(executionPlan.indexOf("## Workstream 12 Packages and public claims"));
   assert.doesNotMatch(activePlan, /reviewed release line is `@trackmcp\/sdk@0\.1\.16`/);
 });

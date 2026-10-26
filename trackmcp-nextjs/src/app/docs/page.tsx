@@ -47,8 +47,8 @@ export default function DocsPage() {
           approval flow only when no key is configured. After approval it writes the key
           locally and prints the next server snippet. The npm package itself remains
           intentionally silent and never opens a browser during installation.
-          The CLI and SDK are versioned independently: the current CLI is 0.1.8 and the
-          current TypeScript SDK is 0.1.17; the one-command setup always uses the latest
+          The CLI and SDK are versioned independently: the current CLI is 0.1.9 and the
+          current TypeScript SDK is 0.1.18; the one-command setup always uses the latest
           published CLI unless you intentionally pin a version. Source fixes are grouped
           into reviewed release trains; a small dashboard or documentation change does
           not consume an npm or PyPI version. Package publication is reserved for a
@@ -73,7 +73,7 @@ export default withTrackMCP(server, {
   service: "acme-mcp-server",
   environment: "production",
   server_version: "2026.10.26", // bounded release metadata (optional)
-  sdk_version: "0.1.17",         // bounded release metadata (optional)
+  sdk_version: "0.1.18",         // bounded release metadata (optional)
   deployment_id: "deploy-42",    // bounded release metadata (optional)
 });`}</Code>
         <Para>

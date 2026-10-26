@@ -94,7 +94,7 @@ app = with_trackmcp(
     max_payload_bytes=32768,         # final serialized payload budget
     transport="streamable_http",     # stdio | streamable_http | sse | custom
     server_version="2026.10.26",      # bounded release metadata (optional)
-    sdk_version="0.1.10",             # bounded release metadata (optional)
+    sdk_version="0.1.11",             # bounded release metadata (optional)
     deployment_id="deploy-42",        # bounded release metadata (optional)
     endpoint="https://trackmcp.com/api/v1/ingest",  # compatible ingest endpoint override
 )`}</Code>
