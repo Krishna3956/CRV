@@ -1,6 +1,6 @@
 # Founder OS 100 Customer Readiness Ledger
 
-Last updated: 2026-10-27 (main `8e70585`; deployed application `57f5643` and App Runner production/authenticated smoke verified)
+Last updated: 2026-10-27 (main `f4084dc`; deployed application `57f5643` and App Runner production/authenticated smoke verified)
 Latest freshness evidence: refresh-worker workflow `40381642702` on main
 commit `fff91da6576987f5d5259801d71b1e41f268a4bc` completed successfully;
 sustained scheduled-sample health is still an explicit open gate below.
@@ -14,6 +14,20 @@ identity, and runtime-safety audit all passed. Retained artifacts are
 `app-runner-host-57f56431317564c4789bbae0eb4e7bac92bba29e` (`12685702047`),
 and authenticated smoke `production-auth-smoke-57f56431317564c4789bbae0eb4e7bac92bba29e`
 (`12685019035`).
+
+## 2026-10-27 disabled scheduler deployment evidence
+
+- [x] Disabled scheduler deployment workflow `40397368253` failed closed before
+  provisioning because App Runner redacted the runtime secret mapping from
+  `describe-service`; no secret value or infrastructure resource was exposed.
+- [x] After correcting the App Runner metadata path, retry `40398170070`
+  reproduced the same redaction boundary. PR #576 (`f4084dc`) now preserves
+  automatic discovery when available and accepts only an explicitly supplied,
+  non-sensitive Secrets Manager ARN fallback.
+- [ ] A valid `worker_token_secret_arn` input and operator execution of the
+  disabled deployment remain required before endpoint/token, DLQ/alarm, and
+  three-sample freshness evidence can be collected. Schedule enablement remains
+  disabled by default.
 
 ## 2026-10-27 refresh scheduler deployment hardening
 
