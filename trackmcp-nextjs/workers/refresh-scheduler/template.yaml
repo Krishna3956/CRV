@@ -1,0 +1,123 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: Five-minute bounded invoker for the TrackMCP refresh worker.
+
+Parameters:
+  WorkerUrl:
+    Type: String
+    AllowedPattern: '^https://[^ ]+$'
+  WorkerTokenSecretArn:
+    Type: String
+    Description: Secrets Manager ARN containing the App Runner refresh token as SecretString.
+  EnableSchedule:
+    Type: String
+    Default: 'false'
+    AllowedValues: ['true', 'false']
+  FailureAlarmTopicArn:
+    Type: String
+    Default: ''
+    Description: Optional SNS topic ARN for scheduler/Lambda failure alarms.
+
+Conditions:
+  ScheduleEnabled: !Equals [!Ref EnableSchedule, 'true']
+  HasAlarmTopic: !Not [!Equals [!Ref FailureAlarmTopicArn, '']]
+
+Resources:
+  RefreshSchedulerFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: .
+      Handler: handler.handler
+      Runtime: nodejs22.x
+      Timeout: 60
+      MemorySize: 256
+      Environment:
+        Variables:
+          TRACKMCP_REFRESH_WORKER_URL: !Ref WorkerUrl
+          TRACKMCP_REFRESH_WORKER_TOKEN: !Sub '{{resolve:secretsmanager:${WorkerTokenSecretArn}:SecretString}}'
+
+  RefreshSchedulerInvokeRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal: { Service: scheduler.amazonaws.com }
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: InvokeRefreshSchedulerLambda
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action: lambda:InvokeFunction
+                Resource: !GetAtt RefreshSchedulerFunction.Arn
+              - Effect: Allow
+                Action: sqs:SendMessage
+                Resource: !GetAtt RefreshSchedulerDLQ.Arn
+
+  RefreshSchedulerDLQ:
+    Type: AWS::SQS::Queue
+    Properties:
+      MessageRetentionPeriod: 1209600
+
+  RefreshSchedulerSchedule:
+    Type: AWS::Scheduler::Schedule
+    Properties:
+      FlexibleTimeWindow: { Mode: 'OFF' }
+      ScheduleExpression: rate(5 minutes)
+      State: !If [ScheduleEnabled, ENABLED, DISABLED]
+      Target:
+        Arn: !GetAtt RefreshSchedulerFunction.Arn
+        RoleArn: !GetAtt RefreshSchedulerInvokeRole.Arn
+        Input: '{}'
+        RetryPolicy:
+          MaximumEventAgeInSeconds: 300
+          MaximumRetryAttempts: 2
+        DeadLetterConfig:
+          Arn: !GetAtt RefreshSchedulerDLQ.Arn
+
+  RefreshSchedulerInvokePermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref RefreshSchedulerFunction
+      Principal: scheduler.amazonaws.com
+      SourceArn: !GetAtt RefreshSchedulerSchedule.Arn
+
+  SchedulerLambdaFailureAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmDescription: TrackMCP refresh scheduler Lambda errors.
+      Namespace: AWS/Lambda
+      MetricName: Errors
+      Dimensions:
+        - Name: FunctionName
+          Value: !Ref RefreshSchedulerFunction
+      Statistic: Sum
+      Period: 300
+      EvaluationPeriods: 1
+      Threshold: 1
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      TreatMissingData: notBreaching
+      ActionsEnabled: !If [HasAlarmTopic, true, false]
+      AlarmActions: !If [HasAlarmTopic, [!Ref FailureAlarmTopicArn], !Ref AWS::NoValue]
+
+  SchedulerDLQAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmDescription: TrackMCP refresh scheduler dead-letter messages.
+      Namespace: AWS/SQS
+      MetricName: ApproximateNumberOfMessagesVisible
+      Dimensions:
+        - Name: QueueName
+          Value: !GetAtt RefreshSchedulerDLQ.QueueName
+      Statistic: Maximum
+      Period: 300
+      EvaluationPeriods: 1
+      Threshold: 1
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      TreatMissingData: notBreaching
+      ActionsEnabled: !If [HasAlarmTopic, true, false]
+      AlarmActions: !If [HasAlarmTopic, [!Ref FailureAlarmTopicArn], !Ref AWS::NoValue]
