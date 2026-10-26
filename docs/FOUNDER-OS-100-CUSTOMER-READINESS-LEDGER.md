@@ -1341,3 +1341,18 @@ a failed product gate or a Supabase plan warning.
 - [ ] The first smoke attempt timed out and was rejected; the rerun passed.
   Continue treating sustained worker freshness and external pilot-owner gates
   as open until their own evidence is accepted.
+
+## 2026-10-26 Setup info-hint cleanup checkpoint
+
+- [x] Server name, environment, scoped-key, service-scope, and
+  environment-scope explanations now live behind accessible `i` hints beside
+  the relevant controls. The Setup panel is less verbose without removing the
+  safety/privacy meaning of each field.
+- [x] Dashboard contract coverage increased to 63 tests; lint, the 177-route
+  production build, and the full 136-suite release gate passed before merge.
+- [x] PR #510 merged as `b89f1f84ac828d0210468f11a7a92e5e55990320` after hosted
+  web/JavaScript, Go, and .NET checks passed. App Runner workflow `40294198763`
+  completed successfully on rerun and verified the deployed runtime.
+- [ ] The first hosted smoke attempt timed out and was rejected; the rerun is
+  the accepted deployment evidence. External pilot-owner, backup/PITR,
+  privacy-acceptance, and worker-freshness gates remain open.
