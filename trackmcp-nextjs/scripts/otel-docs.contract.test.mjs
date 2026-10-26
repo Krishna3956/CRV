@@ -3,6 +3,7 @@ import { readFile } from "node:fs/promises";
 import test from "node:test";
 
 const apiDocs = await readFile(new URL("../src/app/docs/api/page.tsx", import.meta.url), "utf8");
+const otelDocs = await readFile(new URL("../src/app/docs/opentelemetry/page.tsx", import.meta.url), "utf8");
 
 test("public API docs state the exact bounded OTel interoperability boundary", () => {
   assert.match(apiDocs, /\/api\/v1\/otel\/v1\/traces/);
@@ -13,4 +14,13 @@ test("public API docs state the exact bounded OTel interoperability boundary", (
   assert.match(apiDocs, /OTLP\/gRPC/);
   assert.match(apiDocs, /not a general-purpose trace archive/);
   assert.match(apiDocs, /not a full OTel[\s\S]{0,80}integration/);
+});
+
+test("OpenTelemetry docs provide actionable setup and native-SDK CTAs", () => {
+  assert.match(otelDocs, /href="https:\/\/app\.trackmcp\.com\/dashboard\?view=setup"/);
+  assert.match(otelDocs, /Open Dashboard Setup/);
+  assert.match(otelDocs, /href="\/docs\/typescript"/);
+  assert.match(otelDocs, /Use the native SDK guide/);
+  assert.match(otelDocs, /cursor-pointer/);
+  assert.match(otelDocs, /focus-visible:ring/);
 });

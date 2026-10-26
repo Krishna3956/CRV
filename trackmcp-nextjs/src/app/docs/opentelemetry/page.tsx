@@ -13,6 +13,20 @@ export default function OpenTelemetryDocsPage() {
     <DocsShell active="/docs/opentelemetry">
       <DocTitle eyebrow="Integration guide">OpenTelemetry</DocTitle>
       <DocLead>Send supported OTLP/HTTP JSON or protobuf spans to TrackMCP when you already operate an OpenTelemetry pipeline. For complete MCP semantics, use the native TypeScript or Python SDK at the server boundary.</DocLead>
+      <div className="mt-5 flex flex-wrap gap-3" aria-label="OpenTelemetry next steps">
+        <a
+          href="https://app.trackmcp.com/dashboard?view=setup"
+          className="inline-flex cursor-pointer items-center rounded-lg bg-brand px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-brand-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2"
+        >
+          Open Dashboard Setup
+        </a>
+        <a
+          href="/docs/typescript"
+          className="inline-flex cursor-pointer items-center rounded-lg border border-line bg-white px-4 py-2 text-sm font-semibold text-brand-strong transition hover:border-line-strong hover:bg-mist focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2"
+        >
+          Use the native SDK guide
+        </a>
+      </div>
 
       <DocSection title="Supported boundary">
         <Para>TrackMCP accepts authenticated <Inline>POST</Inline> requests at <Inline>https://trackmcp.com/api/v1/otel/v1/traces</Inline>. The receiver supports OTLP/HTTP JSON and OTLP/HTTP protobuf. OTLP/gRPC is not enabled on this endpoint.</Para>
