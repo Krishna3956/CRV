@@ -4,8 +4,8 @@ Last updated: 2026-10-26 (main `0d7141f`; deployed application `1639663c` and Ap
 Latest freshness evidence: sequence monitor workflow `40266407743` on main
 commit `59b7c1435358fbd6c00dce5bcb338089af49c310`.
 
-The deployed application remains the last runtime-verified App Runner release
-(`1639663c6b403648797aed02a2b74bc33ca09056`, workflow `40357654944`). Main has
+The deployed application is the runtime-verified App Runner release
+(`73d74fb36adf824b2b2cf53b07ece36e1a0302d4`, workflow `40365790289`). Main has
 since received release-record and external-gate documentation reconciliations;
 the next successful App Runner deployment will update the runtime baseline.
 

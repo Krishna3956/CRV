@@ -11,8 +11,8 @@ is intentionally not a GO approval and must not be treated as one.
 
 - `main`: current default branch. Immutable deployed SHAs belong in the
   release record; PR checks remain attached to their exact review commits.
-- Current deployed application: `1639663c6b403648797aed02a2b74bc33ca09056`,
-  App Runner workflow `40357654944` (successful deployment, production smoke,
+- Current deployed application: `73d74fb36adf824b2b2cf53b07ece36e1a0302d4`,
+  App Runner workflow `40365790289` (successful deployment, production smoke,
   release-identity verification, runtime safety-flag audit, and redacted
   evidence uploads). The subsequent release-evidence reconciliation merged to
   main as `a1c1acd4774a50d45f7b77634f6c2648dc43e502`; it is awaiting the normal
