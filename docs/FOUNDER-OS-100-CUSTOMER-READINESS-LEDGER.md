@@ -1,19 +1,28 @@
 # Founder OS 100 Customer Readiness Ledger
 
-Last updated: 2026-10-26 (main `70af43e`; deployed application `70af43e` and App Runner production/authenticated smoke verified)
+Last updated: 2026-10-26 (main `57f5643`; deployed application `57f5643` and App Runner production/authenticated smoke verified)
 Latest freshness evidence: refresh-worker workflow `40381642702` on main
 commit `fff91da6576987f5d5259801d71b1e41f268a4bc` completed successfully;
 sustained scheduled-sample health is still an explicit open gate below.
 
 The deployed application is the runtime-verified App Runner release
-(`70af43edcc8ed6af12204586a11039757878ff5c`, workflow `40389085910`). The
+(`57f56431317564c4789bbae0eb4e7bac92bba29e`, workflow `40393173889`). The
 release gate, image binding, rollout, read-only production smoke, running
 identity, and runtime-safety audit all passed. Retained artifacts are
-`production-smoke-70af43edcc8ed6af12204586a11039757878ff5c` (`12680979594`),
-`runtime-flags-70af43edcc8ed6af12204586a11039757878ff5c` (`12682780626`),
-`app-runner-host-70af43edcc8ed6af12204586a11039757878ff5c` (`12683170008`),
-and authenticated smoke `production-auth-smoke-70af43edcc8ed6af12204586a11039757878ff5c`
-(`12683225656`).
+`production-smoke-57f56431317564c4789bbae0eb4e7bac92bba29e` (`12686206914`),
+`runtime-flags-57f56431317564c4789bbae0eb4e7bac92bba29e` (`12685242310`),
+`app-runner-host-57f56431317564c4789bbae0eb4e7bac92bba29e` (`12685702047`),
+and authenticated smoke `production-auth-smoke-57f56431317564c4789bbae0eb4e7bac92bba29e`
+(`12685019035`).
+
+## 2026-10-26 authenticated smoke report contract
+
+- [x] PR #571 merged as `57f56431317564c4789bbae0eb4e7bac92bba29e`. Successful
+  authenticated smoke reports now include an explicit `outcome=passed` marker;
+  failure reports retain `outcome=failed` and redacted diagnostic checks.
+- [x] App Runner deployment `40393173889` and authenticated smoke `40394208530`
+  passed for the exact SHA. The retained authenticated artifact `12685019035`
+  reports `outcome=passed` and 37 completed checks.
 
 ## 2026-10-26 authenticated smoke timeout and transient-502 reconciliation
 
