@@ -2,6 +2,18 @@
 
 Status: active autonomous audit, started 2026-10-21.
 
+## 2026-10-27 — scheduler handler contract coverage
+
+- Added direct tests for the refresh-scheduler Lambda: bounded authenticated
+  POST shape and `max_jobs` limit, fail-closed missing configuration, upstream
+  status classification, abort-signal propagation, and the rule that response
+  content is never read. The test is now included automatically in the release
+  gate (`139` suites).
+- Added the test path to the review-boundary ledger. Focused handler tests,
+  full release gate, lint, and production build all pass. This improves local
+  confidence but does not claim an authenticated production invocation or
+  recurring scheduler freshness evidence.
+
 ## 2026-10-27 — disabled-first authenticated scheduler smoke path
 
 - Extended the manual scheduler workflow with an explicit
