@@ -685,3 +685,14 @@ production transport UAT.
   scheduler contract and complete 139-suite release gate pass. This gives the
   release gate a direct AWS-scheduler observation path while GitHub cron
   cadence remains unreliable.
+
+- 2026-10-27: Saved the missing `cloudwatch:GetMetricData` permission on the
+  `GitHubActionsDeployRole` policy `TrackMCPRefreshSchedulerDeploy`, scoped to
+  all CloudWatch resources because this read action does not support a
+  resource-level ARN. Hosted evidence run `40437009030` completed successfully.
+  Its metadata-only artifact recorded five Lambda invocations across the
+  20-minute window (1, 1, 1, and 2 per five-minute datapoint), zero Lambda
+  errors, and five recent log-stream timestamps. The scheduler's AWS evidence
+  path is therefore operational; this does not yet close the separate
+  sustained cadence/freshness gate, which still requires clean scheduled
+  worker samples and a fresh health report.
