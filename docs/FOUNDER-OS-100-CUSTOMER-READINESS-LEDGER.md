@@ -989,6 +989,17 @@ owner acceptance remain separate open gates.
   policies. This preserves the service-role-only access boundary; no row data
   or secret material was selected.
 
+## 2026-10-27 Supabase recovery-posture inspection
+
+- [x] Signed-in production provider inspection confirmed Scheduled Backups
+  explicitly reports that the Free Plan does not include project backups.
+  Point-in-Time Recovery likewise reports that it is a Pro-plan add-on. No
+  scheduled restore point, PITR window, or completed restoration rehearsal is
+  available on the current tier.
+- [ ] Queue item `157` remains open as an infrastructure-owner decision: the
+  pilot must either fund/configure a reviewed backup and restoration posture or
+  explicitly accept this limitation with an owner and recovery plan.
+
 ## 2026-10-26 final local release-gate rerun
 
 - [x] The current main checkout passed the complete `npm run
