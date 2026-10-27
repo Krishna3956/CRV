@@ -2,6 +2,7 @@ import { type PayloadMode } from "./privacy.js";
 export type { PayloadMode } from "./privacy.js";
 export type TrackMCPEventType = "protocol" | "tool_call" | "session" | "catalog" | "workflow" | "custom";
 export declare const TRACKMCP_SCHEMA_VERSION: "1";
+export declare const TRACKMCP_EDGE_USER_AGENT: "Mozilla/5.0";
 export type TrackMCPCorrelationMode = "none" | "external" | "issued";
 export type TrackMCPCorrelationHandleSource = "external" | "issued" | "missing";
 export type TrackMCPIntentSource = "context_parameter" | "external_callback" | "fallback" | "missing";

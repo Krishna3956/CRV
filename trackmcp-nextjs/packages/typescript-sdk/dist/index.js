@@ -1,6 +1,11 @@
 import { createHash, randomUUID } from "node:crypto";
 import { DEFAULT_MAX_BATCH_SIZE, DEFAULT_MAX_PAYLOAD_BYTES, DEFAULT_MAX_PAYLOAD_DEPTH, DEFAULT_MAX_PAYLOAD_KEYS, DEFAULT_MAX_QUEUE_BYTES, DEFAULT_MAX_QUEUE_EVENTS, DEFAULT_MAX_STRING_LENGTH, payloadByteLength, sanitizePayload, } from "./privacy.js";
 export const TRACKMCP_SCHEMA_VERSION = "1";
+// The public edge currently applies a managed browser/WAF rule that rejects
+// the default Node fetch user-agent before the request reaches the ingest
+// handler. Keep the SDK request identifiable without exposing runtime details
+// or customer data; this matches the Python SDK's edge-compatible boundary.
+export const TRACKMCP_EDGE_USER_AGENT = "Mozilla/5.0";
 const TRACKMCP_PROTOCOL_SIGNALS = new Set(["progress", "cancelled", "catalog_changed", "resource_changed", "prompt_changed", "subscription_started", "subscription_stopped"]);
 const DEFAULT_ENDPOINT = "https://trackmcp.com/api/v1/ingest";
 // Keep this URL fixed and bounded so the actionable missing-key diagnostic never
@@ -559,7 +564,11 @@ export class TrackMCPClient {
         let delivered = false;
         this.flushing = fetch(this.options.endpoint, {
             method: "POST",
-            headers: { "content-type": "application/json", authorization: `Bearer ${this.options.apiKey}` },
+            headers: {
+                "content-type": "application/json",
+                authorization: `Bearer ${this.options.apiKey}`,
+                "user-agent": TRACKMCP_EDGE_USER_AGENT,
+            },
             body: JSON.stringify({ events }),
         })
             .then(async (response) => {
