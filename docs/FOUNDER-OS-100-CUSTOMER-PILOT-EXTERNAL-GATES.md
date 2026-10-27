@@ -23,7 +23,9 @@ is intentionally not a GO approval and must not be treated as one.
   gates.
 - Historical deployed baselines retained for audit include `9638e23c8529f9b1781d96413529e33a692715ed`
   (App Runner workflow `40468547762`) and `37579eade74a20818cd4f83569493e830e4855de`
-  (App Runner workflow `40474794151`).
+  (App Runner workflow `40474794151`), plus the earlier deployment identity
+  `4efa2e1bd444706e84d78ef85b8a7b3b133a46aa` and workflow `40497434962`
+  retained by the acceptance contract.
 - This register update does not change the deployed image; it only records
   the already-successful rollout and its bounded evidence.
 - Queue: 263 total, 260 checked, and P0 queue items `020`, `157`, and `260`
