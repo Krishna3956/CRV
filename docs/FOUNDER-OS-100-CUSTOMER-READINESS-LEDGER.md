@@ -8,6 +8,15 @@ CloudWatch EMF successes**. The overall state remains `warning` because
 only **1/3 scheduled worker samples** is in the current evaluation window and
 the maximum queue lag is `3,506,514 ms` (above the 15-minute pilot budget).
 
+## 2026-10-27 — hosted release gate corrected and green
+
+- [x] CI run `40538663963` passed on source `33347a3`; web/JavaScript, Go, and
+  .NET jobs all completed successfully.
+- [x] The web job passed the full release gate, lint, production build,
+  TypeScript SDK and CLI packed-consumer checks, Python SDK checks, and runtime
+  smoke. The prior run's failure was limited to the freshness-evidence wording
+  contract and is resolved.
+
 ## 2026-10-27 — scheduled health evidence renewed
 
 - [x] Scheduled health workflow `40502266095` completed successfully and
