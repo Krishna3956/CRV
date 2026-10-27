@@ -2,6 +2,18 @@
 
 Status: active autonomous audit, started 2026-10-21.
 
+## 2026-10-27 — direct CloudWatch scheduler log inspection
+
+- Read-only CloudWatch inspection of the deployed Lambda log group confirmed
+  recent EventBridge invocations at `07:26:37Z` and `07:31:36Z` completed with
+  bounded `ScheduledSuccess` EMF markers and no token, endpoint, request, or
+  response content. Their durations were approximately 46.9s and 45.7s,
+  consistent with the route's bounded 45-second worker slice.
+- This directly corroborates the health artifacts' four successful samples and
+  zero scheduled-failure metrics. The rolling CloudWatch Lambda error count is
+  still one, so the zero-error cadence gate remains open until that historical
+  datapoint leaves the evaluation window.
+
 ## 2026-10-27 — scheduled-success metric and failure classification verified
 
 - Health run `40467394730` retained artifact `12717320479` (read-only,
