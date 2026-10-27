@@ -17,6 +17,14 @@ the maximum queue lag is `3,506,514 ms` (above the 15-minute pilot budget).
   smoke. The prior run's failure was limited to the freshness-evidence wording
   contract and is resolved.
 
+## 2026-10-27 — hosted source-pointer verification green
+
+- [x] CI run `40539236364` passed on source `9f7ee43`; web/JavaScript, Go, and
+  .NET jobs completed successfully.
+- [x] The web job again passed the full release gate, lint, production build,
+  SDK/CLI packed-consumer checks, Python SDK checks, and runtime smoke after the
+  ledger's current-main pointer was reconciled.
+
 ## 2026-10-27 — scheduled health evidence renewed
 
 - [x] Scheduled health workflow `40502266095` completed successfully and
