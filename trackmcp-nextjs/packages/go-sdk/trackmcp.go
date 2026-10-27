@@ -323,8 +323,7 @@ func (c *Client) RecordProtocolResult(method string, result map[string]any, sess
 			if len(names) > 0 { metadata["capability_names"] = strings.Join(names, ",") }
 		}
 	}
-	if strings.HasPrefix(method, "roots/") { metadata["protocol_family"] = "roots" }
-	if strings.HasPrefix(method, "logging/") { metadata["protocol_family"] = "logging" }
+	if family := protocolFamilyForMethod(method); family != "" { metadata["protocol_family"] = family }
 	if method == "resources/subscribe" || method == "subscriptions/listen" {
 		metadata["subscription_action"] = "subscription_started"
 	} else if method == "resources/unsubscribe" {
@@ -341,6 +340,13 @@ func (c *Client) RecordProtocolResult(method string, result map[string]any, sess
 	}
 	event.Payload = map[string]any{"_trackmcp": metadata}
 	c.Capture(event)
+}
+
+func protocolFamilyForMethod(method string) string {
+	for _, family := range []string{"sampling", "elicitation", "completion", "tasks", "roots", "logging"} {
+		if strings.HasPrefix(method, family+"/") { return family }
+	}
+	return ""
 }
 
 var protocolCapabilityNamePattern = regexp.MustCompile(`^[A-Za-z][A-Za-z0-9_.-]{0,63}(?:/[A-Za-z][A-Za-z0-9_.-]{0,63})?$`)

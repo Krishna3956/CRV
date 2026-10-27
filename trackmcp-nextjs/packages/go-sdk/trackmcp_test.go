@@ -221,6 +221,7 @@ func TestRecordProtocolResultAcceptsNormalizedSnakeCaseMetadata(t *testing.T) {
 	event := client.queue[0]
 	if event.ResultType != "task" || event.TaskStatus != "completed" || event.Success == nil || *event.Success || event.IsError == nil || !*event.IsError { t.Fatalf("unexpected normalized metadata: %#v", event) }
 	if event.InputRequestCount == nil || *event.InputRequestCount != 2 || event.InputResponseCount == nil || *event.InputResponseCount != 1 { t.Fatalf("unexpected normalized counts: %#v", event) }
+	if event.Payload["_trackmcp"].(map[string]any)["protocol_family"] != "tasks" { t.Fatalf("task family was not retained: %#v", event.Payload) }
 }
 
 func TestRecordCompletionMetadataIsBoundedAndValueFree(t *testing.T) {
@@ -248,6 +249,19 @@ func TestRecordRootsAndLoggingFamiliesAreMetadataOnly(t *testing.T) {
 	}
 	serialized, _ := json.Marshal(client.queue)
 	if strings.Contains(string(serialized), "file:///private") || strings.Contains(string(serialized), "debug") { t.Fatal("roots/logging response values were retained") }
+}
+
+func TestRecordModernProtocolFamiliesAreBounded(t *testing.T) {
+	client := New(Options{APIKey: "tmcp_test"})
+	for _, method := range []string{"sampling/createMessage", "elicitation/create", "tasks/get"} {
+		client.RecordProtocolResult(method, map[string]any{"private": "omit"}, "session-modern")
+	}
+	for index, expected := range []string{"sampling", "elicitation", "tasks"} {
+		metadata := client.queue[index].Payload["_trackmcp"].(map[string]any)
+		if metadata["protocol_family"] != expected { t.Fatalf("unexpected modern family: %#v", metadata) }
+	}
+	serialized, _ := json.Marshal(client.queue)
+	if strings.Contains(string(serialized), "omit") { t.Fatal("modern protocol response value crossed the privacy boundary") }
 }
 
 func TestRecordInitializeCapabilitiesAreBoundedNames(t *testing.T) {

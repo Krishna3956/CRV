@@ -110,8 +110,8 @@ public sealed class TrackMcpClient : IDisposable
                 .ToArray();
             if (names.Length > 0) metadata["capability_names"] = string.Join(",", names);
         }
-        if (method.StartsWith("roots/", StringComparison.Ordinal)) metadata["protocol_family"] = "roots";
-        else if (method.StartsWith("logging/", StringComparison.Ordinal)) metadata["protocol_family"] = "logging";
+        var protocolFamily = ProtocolFamilyForMethod(method);
+        if (protocolFamily is not null) metadata["protocol_family"] = protocolFamily;
         if (method is "resources/subscribe" or "subscriptions/listen") metadata["subscription_action"] = "subscription_started";
         else if (method == "resources/unsubscribe") metadata["subscription_action"] = "subscription_stopped";
         if (method == "completion/complete" && result["completion"] is JsonObject completion)
@@ -123,6 +123,13 @@ public sealed class TrackMcpClient : IDisposable
             else if (completion["has_more"] is JsonValue snakeMore && snakeMore.TryGetValue<bool>(out var snake)) metadata["completion_has_more"] = snake;
         }
         Capture("protocol", method, new Dictionary<string, object?> { ["_trackmcp"] = metadata }, BoundSessionId(sessionId), isError is true ? false : true, resultType: resultType, taskStatus: taskStatus, inputRequestCount: BoundedCount(result, "inputRequests", "input_requests"), inputResponseCount: BoundedCount(result, "inputResponses", "input_responses"));
+    }
+
+    private static string? ProtocolFamilyForMethod(string method)
+    {
+        foreach (var family in new[] { "sampling", "elicitation", "completion", "tasks", "roots", "logging" })
+            if (method.StartsWith(family + "/", StringComparison.Ordinal)) return family;
+        return null;
     }
 
     private static string? ReadAllowlisted(JsonObject result, string[] keys, params string[] allowed)

@@ -1068,3 +1068,11 @@ production transport UAT.
   lint, diff validation, and the full **143-suite** release gate pass. This is
   source-verified; deployment and customer-owned endpoint UAT remain separate
   pilot gates.
+
+- 2026-10-27: Closed the remaining cross-language protocol-family parity gap in
+  the Go and .NET observers. Modern `sampling/*`, `elicitation/*`, and
+  `tasks/*` protocol results now carry the same bounded family discriminator as
+  the TypeScript and Python observers; Go regressions cover the three families
+  and preserve the metadata-only boundary. The full **143-suite** release gate,
+  lint, and diff validation pass; Go/.NET compilation remains hosted-CI
+  evidence because those toolchains are not installed locally.
