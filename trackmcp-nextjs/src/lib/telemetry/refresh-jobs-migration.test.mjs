@@ -9,6 +9,7 @@ const workerMigration = await readFile(resolve(process.cwd(), "../supabase/migra
 const workerPostflight = await readFile(resolve(process.cwd(), "../supabase/manual/founder-os-refresh-worker-rpc-postflight.sql"), "utf8");
 const retryPriorityMigration = await readFile(resolve(process.cwd(), "../supabase/migrations/20261020000011_prioritize_due_refresh_retries.sql"), "utf8");
 const deferredMigration = await readFile(resolve(process.cwd(), "../supabase/migrations/20261020000012_defer_cancelled_refresh_jobs.sql"), "utf8");
+const coalescingMigration = await readFile(resolve(process.cwd(), "../supabase/migrations/20261028000001_coalesce_refresh_jobs.sql"), "utf8");
 
 test("refresh-job migration is additive, bounded, and worker-only", () => {
   assert.match(migration, /create table if not exists public\.trackmcp_refresh_jobs/);
@@ -55,4 +56,16 @@ test("deferred cancellation migration requeues bounded deadline work", () => {
   assert.match(deferredMigration, /p_outcome in \('succeeded', 'deferred', 'retryable', 'failed'\)/);
   assert.match(deferredMigration, /grant execute on function public\.trackmcp_record_refresh_job_result/);
   assert.doesNotMatch(deferredMigration, /delete from|truncate |drop table/i);
+});
+
+test("window coalescing requeues late ingest revisions without stealing active leases", () => {
+  assert.match(coalescingMigration, /add column if not exists request_revision bigint/);
+  assert.match(coalescingMigration, /add column if not exists lease_revision bigint/);
+  assert.match(coalescingMigration, /trackmcp_enqueue_refresh_jobs\(/);
+  assert.match(coalescingMigration, /state = case when target\.state = 'running' then target\.state else 'queued' end/);
+  assert.match(coalescingMigration, /request_revision = target\.request_revision \+ 1/);
+  assert.match(coalescingMigration, /lease_revision = job\.request_revision/);
+  assert.match(coalescingMigration, /request_revision <> coalesce\(lease_revision, request_revision\)/);
+  assert.match(coalescingMigration, /grant execute on function public\.trackmcp_enqueue_refresh_jobs\(uuid, bigint, timestamptz\) to service_role/);
+  assert.doesNotMatch(coalescingMigration, /delete from|truncate |drop table/i);
 });

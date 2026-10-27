@@ -1,4 +1,5 @@
 import { execFileSync } from "node:child_process";
+import fs from "node:fs";
 import path from "node:path";
 
 const repoRoot = path.resolve(process.cwd(), "..");
@@ -55,9 +56,17 @@ function changedPaths() {
       // release gate runs from trackmcp-nextjs, so normalize both views before
       // applying the scope policy; otherwise ../docs and ../tmp handoff files
       // are incorrectly treated as review-required product files.
+      // Git reports paths relative to the invocation directory. A root-level
+      // `supabase/` edit therefore appears as `supabase/...` while the gate
+      // runs inside `trackmcp-nextjs`; resolve an existing root path first so
+      // intended root release files do not become accidental review gaps.
+      const rootCandidate = path.resolve(repoRoot, candidate);
+      const cwdCandidate = path.resolve(process.cwd(), candidate);
       const rootRelative = candidate === "trackmcp-nextjs" || candidate.startsWith("trackmcp-nextjs/")
         ? candidate
-        : path.relative(repoRoot, path.resolve(process.cwd(), candidate));
+        : fs.existsSync(rootCandidate)
+          ? path.relative(repoRoot, rootCandidate)
+          : path.relative(repoRoot, cwdCandidate);
       return rootRelative.replaceAll("\\", "/");
     });
   }).flat();

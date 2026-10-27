@@ -129,6 +129,8 @@ with required(table_name, column_name) as (
     ('trackmcp_refresh_jobs', 'state'),
     ('trackmcp_refresh_jobs', 'lease_owner'),
     ('trackmcp_refresh_jobs', 'lease_until'),
+    ('trackmcp_refresh_jobs', 'request_revision'),
+    ('trackmcp_refresh_jobs', 'lease_revision'),
     ('trackmcp_privacy_requests', 'requester_user_id'),
     ('trackmcp_privacy_requests', 'workspace_id'),
     ('trackmcp_privacy_requests', 'request_type'),
@@ -220,6 +222,7 @@ order by c.relname;
 -- 5) Worker RPCs must exist and be executable only by service_role.
 with required(signature) as (
   values
+    ('public.trackmcp_enqueue_refresh_jobs(uuid,bigint,timestamptz)'),
     ('public.trackmcp_claim_refresh_job(text,integer)'),
     ('public.trackmcp_record_refresh_job_result(uuid,text,text,text,text)')
     ,('public.trackmcp_consume_rate_limit(text,integer,integer)')

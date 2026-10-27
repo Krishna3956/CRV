@@ -47,6 +47,29 @@ and **4/4 scheduled successes**; the GitHub scheduled-worker sample count is
   freshness gate remains HOLD until three fresh scheduled samples drain within
   the 15-minute budget without incomplete execution evidence.
 
+## 2026-10-28 — refresh queue fingerprint explosion isolated and coalescing fix prepared
+
+- [x] Read-only production inspection found **12,350 queued jobs** for one
+  workspace, but only **196 distinct ingest-window/kind combinations**. The
+  remaining rows are repeated SHA-256 fingerprint jobs for later batches in the
+  same 15-minute window; they repeatedly rescan the same bounded source rows
+  and overwhelm the proven four-slice worker capacity.
+- [x] A bounded worker dispatch (`40591931974`) processed 40/40 jobs with zero
+  retryable, failed, or running rows, but the queue still grew during the run.
+  This confirms a throughput/queue-shape problem rather than a transport or
+  lease failure.
+- [x] Mainline now includes migration `20261028000001_coalesce_refresh_jobs`
+  and a guarded enqueue path. It uses one job per workspace/window/kind,
+  increments a request revision for late batches, preserves active leases, and
+  requeues a window after the active lease completes. Deployments without the
+  migration retain the fingerprinted fallback and therefore do not silently
+  lose late-ingest projections.
+- [ ] The migration is not yet applied to production, and the existing
+  fingerprinted backlog has not been rewritten or cancelled. Freshness remains
+  HOLD until the reviewed migration is applied, a read-only postflight confirms
+  the coalescing columns/RPC, and a fresh worker-health window proves the queue
+  drains within budget.
+
 ## Active external-gate register (current)
 
 | Gate | Current evidence | State | Required closure evidence |

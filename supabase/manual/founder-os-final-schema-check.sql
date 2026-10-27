@@ -50,7 +50,7 @@ with required(table_name, column_name) as (
     ('trackmcp_activation_milestones','workspace_id'), ('trackmcp_activation_milestones','key_id'), ('trackmcp_activation_milestones','first_accepted_at'),
     ('trackmcp_semantic_facts','workspace_id'), ('trackmcp_semantic_facts','source_event_id'), ('trackmcp_semantic_facts','fact_version'), ('trackmcp_semantic_facts','semantic'), ('trackmcp_semantic_facts','dimensions'), ('trackmcp_semantic_facts','measures'),
     ('trackmcp_action_queue','workspace_id'), ('trackmcp_action_queue','fingerprint'), ('trackmcp_action_queue','status'), ('trackmcp_action_queue','severity'), ('trackmcp_action_queue','revision'),
-    ('trackmcp_refresh_jobs','workspace_id'), ('trackmcp_refresh_jobs','dedupe_key'), ('trackmcp_refresh_jobs','state'), ('trackmcp_refresh_jobs','lease_owner'), ('trackmcp_refresh_jobs','lease_until'),
+    ('trackmcp_refresh_jobs','workspace_id'), ('trackmcp_refresh_jobs','dedupe_key'), ('trackmcp_refresh_jobs','state'), ('trackmcp_refresh_jobs','lease_owner'), ('trackmcp_refresh_jobs','lease_until'), ('trackmcp_refresh_jobs','request_revision'), ('trackmcp_refresh_jobs','lease_revision'),
     ('trackmcp_privacy_requests','requester_user_id'), ('trackmcp_privacy_requests','workspace_id'), ('trackmcp_privacy_requests','request_type'), ('trackmcp_privacy_requests','status'), ('trackmcp_privacy_requests','idempotency_key'),
     ('trackmcp_privacy_deletion_batches','request_id'), ('trackmcp_privacy_deletion_batches','workspace_id'), ('trackmcp_privacy_deletion_batches','dataset'), ('trackmcp_privacy_deletion_batches','batch_number'), ('trackmcp_privacy_deletion_batches','after_id'), ('trackmcp_privacy_deletion_batches','status'), ('trackmcp_privacy_deletion_batches','dry_run'), ('trackmcp_privacy_deletion_batches','returned_count'), ('trackmcp_privacy_deletion_batches','affected_count'), ('trackmcp_privacy_deletion_batches','error_code'), ('trackmcp_privacy_deletion_batches','reviewed_by'), ('trackmcp_privacy_deletion_batches','completed_at'),
     ('trackmcp_rate_limit_buckets','bucket_key'), ('trackmcp_rate_limit_buckets','window_started_at'), ('trackmcp_rate_limit_buckets','request_count'), ('trackmcp_rate_limit_buckets','updated_at')
@@ -97,6 +97,7 @@ union all
 select 'public.trackmcp_claim_refresh_job(text,integer)', 'function', to_regprocedure('public.trackmcp_claim_refresh_job(text,integer)') is not null
 union all
 select 'public.trackmcp_record_refresh_job_result(uuid,text,text,text,text)', 'function', to_regprocedure('public.trackmcp_record_refresh_job_result(uuid,text,text,text,text)') is not null
+union all select 'public.trackmcp_enqueue_refresh_jobs(uuid,bigint,timestamptz)', 'function', to_regprocedure('public.trackmcp_enqueue_refresh_jobs(uuid,bigint,timestamptz)') is not null
 union all
 select 'public.trackmcp_consume_rate_limit(text,integer,integer)', 'function', to_regprocedure('public.trackmcp_consume_rate_limit(text,integer,integer)') is not null
 union all

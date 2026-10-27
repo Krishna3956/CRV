@@ -21,6 +21,7 @@ select object_name, object_type,
 from required
 union all select 'public.trackmcp_claim_refresh_job(text,integer)', 'function', to_regprocedure('public.trackmcp_claim_refresh_job(text,integer)') is not null
 union all select 'public.trackmcp_record_refresh_job_result(uuid,text,text,text,text)', 'function', to_regprocedure('public.trackmcp_record_refresh_job_result(uuid,text,text,text,text)') is not null
+union all select 'public.trackmcp_enqueue_refresh_jobs(uuid,bigint,timestamptz)', 'function', to_regprocedure('public.trackmcp_enqueue_refresh_jobs(uuid,bigint,timestamptz)') is not null
 union all select 'public.trackmcp_claim_alert_evaluation(text,text,timestamptz,timestamptz)', 'function', to_regprocedure('public.trackmcp_claim_alert_evaluation(text,text,timestamptz,timestamptz)') is not null
 union all select 'public.trackmcp_release_alert_evaluation(text,text,timestamptz)', 'function', to_regprocedure('public.trackmcp_release_alert_evaluation(text,text,timestamptz)') is not null
 order by object_type, object_name;

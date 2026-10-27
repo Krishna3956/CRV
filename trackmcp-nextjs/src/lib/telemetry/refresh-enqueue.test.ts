@@ -30,10 +30,29 @@ test("refresh enqueue rejects malformed workspace scope before a write", async (
   assert.equal(called, false);
 });
 
-test("accepted batches in the same window retain distinct bounded projection jobs", () => {
+test("accepted batches in the same window coalesce to one bounded projection job", () => {
   const first = buildTrackMCPRefreshEnqueueRows(workspace, now, refreshBatchFingerprint(["event-a"]));
   const second = buildTrackMCPRefreshEnqueueRows(workspace, now, refreshBatchFingerprint(["event-b"]));
-  assert.notEqual(first[0].dedupe_key, second[0].dedupe_key);
-  assert.match(first[0].dedupe_key, /^ingest-window:\d+:[a-f0-9]{64}:fact_projection$/);
-  assert.match(second[0].dedupe_key, /^ingest-window:\d+:[a-f0-9]{64}:fact_projection$/);
+  assert.equal(first[0].dedupe_key, second[0].dedupe_key);
+  assert.match(first[0].dedupe_key, /^ingest-window:\d+:fact_projection$/);
+});
+
+test("legacy deployments retain fingerprinted fallback rows when the RPC is unavailable", async () => {
+  const writes: unknown[] = [];
+  const client = { from() { return { upsert(rows: unknown[], options: unknown) { writes.push({ rows, options }); return Promise.resolve({ error: null }); } }; } };
+  const result = await enqueueTrackMCPRefreshJobs(client, workspace, now, refreshBatchFingerprint(["event-a"]));
+  assert.equal(result.attempted, 4);
+  const rows = (writes[0] as { rows: Array<{ dedupe_key: string }> }).rows;
+  assert.ok(rows.every((row) => /ingest-window:\d+:[a-f0-9]{64}:[a-z_]+$/.test(row.dedupe_key)));
+});
+
+test("coalescing RPC receives only bounded workspace/window metadata", async () => {
+  const calls: unknown[] = [];
+  const client = {
+    rpc(name: string, args: unknown) { calls.push({ name, args }); return Promise.resolve({ error: null }); },
+    from() { throw new Error("fallback must not run"); },
+  };
+  const result = await enqueueTrackMCPRefreshJobs(client, workspace, now, refreshBatchFingerprint(["event-a"]));
+  assert.deepEqual(result, { attempted: 4, error: null });
+  assert.deepEqual(calls, [{ name: "trackmcp_enqueue_refresh_jobs", args: { p_workspace_id: workspace, p_window: Math.floor(now.getTime() / (15 * 60 * 1000)), p_requested_at: now.toISOString() } }]);
 });

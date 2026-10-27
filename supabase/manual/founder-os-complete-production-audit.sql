@@ -95,7 +95,7 @@ with required(table_name, column_name) as (values
   ('trackmcp_action_queue','workspace_id'), ('trackmcp_action_queue','fingerprint'),
   ('trackmcp_action_queue','status'), ('trackmcp_action_queue','severity'), ('trackmcp_action_queue','revision'),
   ('trackmcp_refresh_jobs','workspace_id'), ('trackmcp_refresh_jobs','dedupe_key'),
-  ('trackmcp_refresh_jobs','state'), ('trackmcp_refresh_jobs','lease_owner'), ('trackmcp_refresh_jobs','lease_until'),
+  ('trackmcp_refresh_jobs','state'), ('trackmcp_refresh_jobs','lease_owner'), ('trackmcp_refresh_jobs','lease_until'), ('trackmcp_refresh_jobs','request_revision'), ('trackmcp_refresh_jobs','lease_revision'),
   ('trackmcp_privacy_requests','requester_user_id'), ('trackmcp_privacy_requests','workspace_id'),
   ('trackmcp_privacy_requests','request_type'), ('trackmcp_privacy_requests','status'),
   ('trackmcp_privacy_requests','idempotency_key'),
@@ -153,6 +153,7 @@ select object_name, object_type,
 from required
 union all select 'public.trackmcp_claim_refresh_job(text,integer)', 'function', to_regprocedure('public.trackmcp_claim_refresh_job(text,integer)') is not null
 union all select 'public.trackmcp_record_refresh_job_result(uuid,text,text,text,text)', 'function', to_regprocedure('public.trackmcp_record_refresh_job_result(uuid,text,text,text,text)') is not null
+union all select 'public.trackmcp_enqueue_refresh_jobs(uuid,bigint,timestamptz)', 'function', to_regprocedure('public.trackmcp_enqueue_refresh_jobs(uuid,bigint,timestamptz)') is not null
 union all select 'public.trackmcp_claim_alert_evaluation(text,text,timestamptz,timestamptz)', 'function', to_regprocedure('public.trackmcp_claim_alert_evaluation(text,text,timestamptz,timestamptz)') is not null
 union all select 'public.trackmcp_release_alert_evaluation(text,text,timestamptz)', 'function', to_regprocedure('public.trackmcp_release_alert_evaluation(text,text,timestamptz)') is not null
 order by object_type, object_name;
