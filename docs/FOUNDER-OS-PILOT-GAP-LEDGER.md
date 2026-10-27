@@ -775,3 +775,17 @@ production transport UAT.
   routes. App Runner deployment run `40439886536` is in progress; prompt
   entity projection UAT is intentionally pending until the new image is
   running.
+
+- 2026-10-27: App Runner deployment `40439886536` completed successfully for
+  merged commit `592b74e`; the workflow's release gate, image digest check,
+  rollout wait, read-only production smoke, release-identity check, and
+  runtime safety-flag audit all passed. Production first-ingest smoke
+  `40440634836` and authenticated production smoke `40440625122` also passed.
+  Using the deployed App Runner host, sent a unique authenticated `prompts/get`
+  event with a SHA-256 entity-name hash; refresh-worker run `40440770324`
+  succeeded. Supabase read-back confirmed a `catalog_kind=prompts` entity row
+  for that exact source event and a new fingerprinted `catalog_entity_recompute`
+  job in `succeeded` state. This closes the previously failing late-batch
+  prompt-entity projection path. The public custom domain remains Cloudflare-
+  protected for direct local curl; the direct App Runner host was used for the
+  bounded UAT and no raw payload was selected.
