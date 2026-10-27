@@ -433,6 +433,14 @@ evidence and are not current approval.
   trusted-host/cookie/workspace bounds, explicit write confirmation, and
   uniquely named cleanup. A fresh deployed run passed all 9 checks and ended
   with zero active disposable keys; no evidence file was retained.
+- [x] Hosted CI `40604462111` passed the new harness and the full cross-language
+  gate. App Runner rollout `40604462107` reached `RUNNING`, but its immediate
+  post-rollout smoke saw a transient 503 on `/` before the service warmed;
+  the origin subsequently returned HTTP 200 and the immutable health response
+  reported `88bac7cf`. The read-only smoke retry window is now bounded at eight
+  attempts with capped backoff so this provider warm-up race is observable and
+  retried without weakening write safety; a follow-up deployed run passed all
+  36 read-only checks.
 
 ## 2026-10-28 — hosted verification of UAT ledger reconciliation
 

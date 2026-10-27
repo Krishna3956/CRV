@@ -48,7 +48,10 @@ async function fetchReadOnly(url, options = {}) {
   if (method !== "GET" && method !== "HEAD") return fetch(url, options);
   const { timeoutMs, signal, ...fetchOptions } = options;
   let lastError;
-  for (let attempt = 0; attempt < 3; attempt += 1) {
+  // App Runner can report RUNNING a few seconds before the first container is
+  // ready to serve every prerendered route. Keep the retry window bounded but
+  // long enough to cover that normal post-rollout warm-up.
+  for (let attempt = 0; attempt < 8; attempt += 1) {
     try {
       // A timed-out AbortSignal stays aborted forever. Create a fresh signal
       // for each idempotent retry so a transient cold-start/origin timeout can
@@ -58,9 +61,9 @@ async function fetchReadOnly(url, options = {}) {
       // App Runner can briefly return a provider-generated 502/503/504 while
       // a freshly rolled instance is warming. Retry only idempotent reads;
       // never retry writes or turn an application 4xx into a false pass.
-      if ([502, 503, 504].includes(response.status) && attempt < 2) {
+      if ([502, 503, 504].includes(response.status) && attempt < 7) {
         await response.body?.cancel();
-        await new Promise((resolve) => setTimeout(resolve, 500 * (attempt + 1)));
+        await new Promise((resolve) => setTimeout(resolve, Math.min(5_000, 1_000 * (attempt + 1))));
         continue;
       }
       return response;

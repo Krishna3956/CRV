@@ -21,6 +21,11 @@ Status: active autonomous audit, started 2026-10-21.
   workflow contract now cover the same start/approve/poll/redeem/first-event/
   revoke path. A fresh deployed invocation passed all 9 checks and left zero
   active disposable keys; the redacted report was deleted after verification.
+- Hosted CI `40604462111` passed the harness and full release gate. The paired
+  App Runner rollout reached `RUNNING` but the first public route probe hit a
+  transient 503 during cold-start; the origin is healthy now and the smoke
+  reader retries only idempotent 502/503/504 responses across a bounded,
+  capped warm-up window. A follow-up direct-origin run passed all 36 checks.
 
 ## 2026-10-28 — disposable production key lifecycle UAT passed
 

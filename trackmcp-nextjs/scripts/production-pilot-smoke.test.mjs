@@ -15,10 +15,11 @@ test("production pilot smoke is explicitly opt-in and requires HTTPS", () => {
 test("production pilot smoke retries only idempotent reads", () => {
   assert.match(source, /async function fetchReadOnly/);
   assert.match(source, /method !== "GET" && method !== "HEAD"/);
-  assert.match(source, /attempt < 3/);
+  assert.match(source, /attempt < 8/);
   assert.match(source, /const attemptSignal = timeoutMs \? AbortSignal\.timeout\(timeoutMs\) : signal/);
   assert.match(source, /const response = await fetch\(url, \{ \.\.\.fetchOptions/);
   assert.match(source, /\[502, 503, 504\]\.includes\(response\.status\)/);
+  assert.match(source, /Math\.min\(5_000, 1_000 \* \(attempt \+ 1\)\)/);
   assert.match(source, /Retry only idempotent reads/);
 });
 
