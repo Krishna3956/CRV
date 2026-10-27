@@ -168,9 +168,17 @@ jobs:
             --output text)
           FUNCTION_NAME="${FUNCTION_ARN##*:function:}"
           INVOKE_OUTPUT="$RUNNER_TEMP/refresh-scheduler-invoke.json"
+          INVOKE_ERROR="$RUNNER_TEMP/refresh-scheduler-invoke.error"
+          set +e
           aws lambda invoke --function-name "$FUNCTION_ARN" --region "$AWS_REGION" \
             --invocation-type RequestResponse --payload '{}' \
-            --cli-binary-format raw-in-base64-out "$INVOKE_OUTPUT" >/dev/null
+            --cli-binary-format raw-in-base64-out "$INVOKE_OUTPUT" > /dev/null 2>"$INVOKE_ERROR"
+          INVOKE_EXIT=$?
+          set -e
+          if [[ "$INVOKE_EXIT" != "0" ]]; then
+            echo "::error::authenticated refresh Lambda invocation failed (exit $INVOKE_EXIT): $(tr '\n' ' ' < "$INVOKE_ERROR")"
+            exit "$INVOKE_EXIT"
+          fi
           STATUS_CODE=$(jq -er '.statusCode | numbers' "$INVOKE_OUTPUT")
           [[ "$STATUS_CODE" == "200" ]] || { echo "::error::authenticated refresh Lambda returned status $STATUS_CODE"; exit 1; }
           jq -n --arg function "$FUNCTION_NAME" --arg function_arn "$FUNCTION_ARN" --argjson status "$STATUS_CODE" \
