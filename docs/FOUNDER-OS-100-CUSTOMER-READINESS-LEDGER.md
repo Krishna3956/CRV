@@ -33,6 +33,18 @@ the maximum queue lag is `3,506,514 ms` (above the 15-minute pilot budget).
   already-documented owner, backup/PITR, sustained freshness, credentialed
   lifecycle/UAT, and customer-owned interoperability gates.
 
+## 2026-10-28 — current refresh-health evidence
+
+- [x] Health workflow `40566829192` completed successfully and retained
+  artifact `12764060428`. AWS scheduler cadence is proven at `4/4` invocations
+  and `4/4` scheduled-success markers with zero errors.
+- [x] The bounded worker drain triggered by the health collection completed
+  successfully as workflow `40566911017`.
+- [ ] Overall freshness remains `warning`: only `1/3` scheduled worker samples
+  is in the current evaluation window and the observed maximum queue lag is
+  `35,497,938 ms` (above the 15-minute pilot budget). Manual drains do not
+  substitute for scheduled cadence evidence; no SLO pass is claimed.
+
 ## 2026-10-28 — published SDK train reconciliation
 
 - [x] Registry audit confirms the current public train remains
