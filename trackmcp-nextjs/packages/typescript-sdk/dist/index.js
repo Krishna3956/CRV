@@ -94,7 +94,7 @@ export function protocolCapabilities(value) {
     if (!capabilities || typeof capabilities !== "object" || Array.isArray(capabilities))
         return [];
     return Object.keys(capabilities)
-        .filter((name) => /^[A-Za-z][A-Za-z0-9_.-]{0,63}$/.test(name))
+        .filter((name) => /^[A-Za-z][A-Za-z0-9_.-]{0,63}(?:\/[A-Za-z][A-Za-z0-9_.-]{0,63})?$/.test(name))
         .sort()
         .slice(0, 32);
 }
