@@ -317,11 +317,16 @@ class TrackMCPClientTest(TestCase):
         self.assertEqual(event["result_type"], "task")
         self.assertEqual(event["task_status"], "working")
         self.assertEqual(event["payload"]["_trackmcp"]["input_request_count"], 1)
+        self.assertEqual(event["payload"]["_trackmcp"]["protocol_family"], "tools")
         self.assertNotIn("private-input", json.dumps(event))
         self.assertNotIn("do-not-store", json.dumps(event))
+        client.record_protocol_result("completion/complete", {"completion": {"values": ["secret"], "hasMore": True}})
+        self.assertEqual(client._events[1]["payload"]["_trackmcp"]["protocol_family"], "completion")
+        self.assertEqual(client._events[1]["payload"]["_trackmcp"]["completion_value_count"], 1)
+        self.assertTrue(client._events[1]["payload"]["_trackmcp"]["completion_has_more"])
         client.record_protocol_result("tools/call", {"task_status": "unknown"})
         client.record_protocol_result("bad\nmethod", {})
-        self.assertEqual(len(client._events), 2)
+        self.assertEqual(len(client._events), 3)
         client._timer.cancel()
 
     def test_resource_and_prompt_catalog_metadata_is_hashed_and_payload_free(self):

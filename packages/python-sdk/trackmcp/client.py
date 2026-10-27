@@ -509,7 +509,10 @@ class TrackMCP:
             "started_at": _iso_now(),
             "success": not failed,
             "is_error": failed,
-            "payload": {"_trackmcp": {"observation_kind": "protocol_response", "observation_source": "server", **metadata}},
+            "payload": {"_trackmcp": {
+                **_protocol_metadata_payload(method, result)["_trackmcp"],
+                **metadata,
+            }},
         }
         if "result_type" in metadata:
             event["result_type"] = metadata["result_type"]
