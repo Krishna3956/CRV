@@ -130,8 +130,15 @@ jobs:
           STACK_NAME: ${{ inputs.stack_name }}
         run: |
           set -euo pipefail
+          echo "CloudFormation outputs (non-secret metadata):"
+          aws cloudformation describe-stacks \
+            --stack-name "$STACK_NAME" \
+            --region "$AWS_REGION" \
+            --query 'Stacks[0].Outputs[].{Key:OutputKey,Value:OutputValue}' \
+            --output json
+          echo "CloudFormation resource states (non-secret metadata):"
           aws cloudformation describe-stack-resources \
             --stack-name "$STACK_NAME" \
             --region "$AWS_REGION" \
-            --query 'StackResourceSummaries[?LogicalResourceId==`RefreshSchedulerSchedule`].{Status:ResourceStatus,PhysicalId:PhysicalResourceId}' \
+            --query 'StackResourceSummaries[?LogicalResourceId==`RefreshSchedulerFunction` || LogicalResourceId==`RefreshSchedulerSchedule` || LogicalResourceId==`RefreshSchedulerDLQ` || LogicalResourceId==`SchedulerLambdaFailureAlarm` || LogicalResourceId==`SchedulerDLQAlarm`].{LogicalId:LogicalResourceId,Status:ResourceStatus,PhysicalId:PhysicalResourceId}' \
             --output json

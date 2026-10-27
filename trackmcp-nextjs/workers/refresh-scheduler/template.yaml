@@ -121,3 +121,20 @@ Resources:
       TreatMissingData: notBreaching
       ActionsEnabled: !If [HasAlarmTopic, true, false]
       AlarmActions: !If [HasAlarmTopic, [!Ref FailureAlarmTopicArn], !Ref AWS::NoValue]
+
+Outputs:
+  RefreshSchedulerFunctionArn:
+    Description: Lambda function invoked by the refresh schedule.
+    Value: !GetAtt RefreshSchedulerFunction.Arn
+  RefreshSchedulerScheduleArn:
+    Description: EventBridge Scheduler schedule ARN (disabled unless enabled explicitly).
+    Value: !GetAtt RefreshSchedulerSchedule.Arn
+  RefreshSchedulerDLQUrl:
+    Description: SQS dead-letter queue URL for failed scheduler deliveries.
+    Value: !Ref RefreshSchedulerDLQ
+  RefreshSchedulerLambdaAlarmName:
+    Description: CloudWatch alarm for Lambda invocation errors.
+    Value: !Ref SchedulerLambdaFailureAlarm
+  RefreshSchedulerDLQAlarmName:
+    Description: CloudWatch alarm for visible DLQ messages.
+    Value: !Ref SchedulerDLQAlarm

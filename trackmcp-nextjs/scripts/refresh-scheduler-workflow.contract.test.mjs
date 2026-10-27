@@ -29,8 +29,12 @@ test("refresh scheduler deployment derives the HTTPS endpoint and secret ARN fro
 
 test("refresh scheduler deployment reports only CloudFormation status metadata", () => {
   assert.match(workflow, /describe-stack-resources/);
+  assert.match(workflow, /describe-stacks/);
   assert.match(workflow, /ResourceStatus/);
   assert.match(workflow, /PhysicalResourceId/);
+  assert.match(workflow, /CloudFormation outputs \(non-secret metadata\)/);
+  assert.match(workflow, /RefreshSchedulerFunction/);
+  assert.match(workflow, /RefreshSchedulerDLQ/);
   assert.doesNotMatch(workflow, /get-secret-value|SecretString|response body/i);
 });
 

@@ -26,6 +26,11 @@ is intentionally not a GO approval and must not be treated as one.
   and zero-membership workspace creation without browser key disclosure.
 - Rollback and authenticated scope-smoke evidence are reconciled in the
   release record through queue items 256 and 249.
+- Scheduler deployment history is retained: disabled run `40397368253` failed
+  closed before provisioning when App Runner redacted the runtime mapping, and
+  retry `40398170070` reproduced that boundary. The later successful
+  disabled-first deployment is recorded below as `40423356750` after the
+  non-sensitive Secrets Manager ARN fallback was supplied.
 
 ## Gates requiring external evidence
 
