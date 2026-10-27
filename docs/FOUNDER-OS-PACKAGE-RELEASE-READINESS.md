@@ -3,6 +3,16 @@
 This is a review record, not a publication action. No registry credentials are
 used here and no package is published automatically.
 
+## Unpublished CLI proxy candidate — 2026-10-27
+
+Mainline `HEAD` adds the bounded stdio launcher to the CLI source and
+packed-consumer tests. The published registry artifact remains
+`@trackmcp/cli@0.1.10`; no claim is made that that existing artifact contains
+the new `proxy -- <command>` entry point. Publish it only in the next reviewed
+release train with a new CLI version, registry uniqueness check, provenance,
+and clean-consumer verification. This separation prevents source-only changes
+from being presented as available through `npx` before publication.
+
 ## Current single-package patch publication (2026-10-27)
 
 The reviewed patch release `@trackmcp/sdk@0.1.20` was published by workflow
