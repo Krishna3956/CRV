@@ -52,6 +52,12 @@ For MRTR/task responses, call `RecordProtocolResult` with the bounded
 status, and request/response counts; result content and input values are never
 queued.
 
+For an HTTP authorization response, call `RecordAuthorizationOutcome` with
+`401` or `403`. The SDK records only `unauthorized` or `forbidden` metadata and
+never accepts or stores `WWW-Authenticate` values, resource-metadata URLs,
+bearer tokens, or provider error text. OAuth discovery, token exchange,
+refresh, and consent remain caller-owned.
+
 For `completion/complete`, it additionally emits bounded friction metadata
 (`completion_value_count` up to 32, `completion_total` up to 1,000,000, and
 `completion_has_more`). Completion suggestion values and arguments are never

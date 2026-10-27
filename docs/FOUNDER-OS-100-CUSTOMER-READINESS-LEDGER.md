@@ -81,6 +81,16 @@ permission.
 - [ ] Python package publication remains part of the coordinated release train;
   OAuth discovery, token exchange, refresh, and consent remain unsupported.
 
+## 2026-10-27 .NET SDK authorization-observer parity milestone
+
+- [x] Added `RecordAuthorizationOutcome` for canonical `401`/`403` responses,
+  including bounded status metadata and secret-free `unauthorized`/`forbidden`
+  outcomes.
+- [x] Extended the .NET smoke fixture to cover both outcomes and reject other
+  status codes; documentation now states the caller-owned OAuth boundary.
+- [ ] This environment has no .NET toolchain, so hosted .NET compile/smoke
+  evidence remains required before publishing the changed package.
+
 ## 2026-10-27 health-state correction deployment
 
 - [x] App Runner deployment `40494157458` rolled out immutable commit

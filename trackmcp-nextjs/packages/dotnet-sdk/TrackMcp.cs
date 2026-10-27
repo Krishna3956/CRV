@@ -74,11 +74,11 @@ public sealed class TrackMcpClient : IDisposable
 
     public TrackMcpClient(TrackMcpOptions options, HttpClient? httpClient = null) { _options = options; _http = httpClient ?? new HttpClient(); }
 
-    public void Capture(string eventType, string method, object? payload = null, string? sessionId = null, bool? success = null, long? durationMs = null, string? toolName = null, string? resultType = null, string? taskStatus = null, int? inputRequestCount = null, int? inputResponseCount = null, string? catalogKind = null, int? catalogItemCount = null, IReadOnlyList<string>? catalogItemNameHashes = null, IReadOnlyList<string>? catalogItemUriHashes = null, string? direction = null, string? transport = null)
+    public void Capture(string eventType, string method, object? payload = null, string? sessionId = null, bool? success = null, long? durationMs = null, string? toolName = null, string? resultType = null, string? taskStatus = null, int? inputRequestCount = null, int? inputResponseCount = null, string? catalogKind = null, int? catalogItemCount = null, IReadOnlyList<string>? catalogItemNameHashes = null, IReadOnlyList<string>? catalogItemUriHashes = null, string? direction = null, string? transport = null, int? errorCode = null)
     {
         if (string.IsNullOrWhiteSpace(_options.ApiKey)) return;
         var account = ResolveAccount();
-        var item = new Dictionary<string, object?> { ["event_id"] = Guid.NewGuid().ToString(), ["event_type"] = eventType, ["service"] = _options.Service, ["environment"] = _options.Environment, ["direction"] = direction, ["transport"] = transport, ["mcp_method"] = method, ["session_id"] = sessionId, ["tool_name"] = toolName, ["started_at"] = DateTimeOffset.UtcNow.ToString("O"), ["duration_ms"] = durationMs, ["success"] = success, ["is_error"] = success is false, ["result_type"] = resultType, ["task_status"] = taskStatus, ["input_request_count"] = inputRequestCount, ["input_response_count"] = inputResponseCount, ["catalog_kind"] = catalogKind, ["catalog_item_count"] = catalogItemCount, ["catalog_item_name_hashes"] = catalogItemNameHashes, ["catalog_item_uri_hashes"] = catalogItemUriHashes, ["account_key"] = account.Key, ["account_identity_source"] = account.Source, ["payload"] = SanitizePayload(payload), ["server_version"] = _options.ServerVersion, ["sdk_version"] = _options.SdkVersion, ["deployment_id"] = _options.DeploymentId };
+        var item = new Dictionary<string, object?> { ["event_id"] = Guid.NewGuid().ToString(), ["event_type"] = eventType, ["service"] = _options.Service, ["environment"] = _options.Environment, ["direction"] = direction, ["transport"] = transport, ["mcp_method"] = method, ["session_id"] = sessionId, ["tool_name"] = toolName, ["started_at"] = DateTimeOffset.UtcNow.ToString("O"), ["duration_ms"] = durationMs, ["success"] = success, ["is_error"] = success is false, ["error_code"] = errorCode, ["result_type"] = resultType, ["task_status"] = taskStatus, ["input_request_count"] = inputRequestCount, ["input_response_count"] = inputResponseCount, ["catalog_kind"] = catalogKind, ["catalog_item_count"] = catalogItemCount, ["catalog_item_name_hashes"] = catalogItemNameHashes, ["catalog_item_uri_hashes"] = catalogItemUriHashes, ["account_key"] = account.Key, ["account_identity_source"] = account.Source, ["payload"] = SanitizePayload(payload), ["server_version"] = _options.ServerVersion, ["sdk_version"] = _options.SdkVersion, ["deployment_id"] = _options.DeploymentId };
         lock (_gate) { _queue.Add(item); }
     }
 
@@ -126,6 +126,16 @@ public sealed class TrackMcpClient : IDisposable
             else if (completion["has_more"] is JsonValue snakeMore && snakeMore.TryGetValue<bool>(out var snake)) metadata["completion_has_more"] = snake;
         }
         Capture("protocol", method, new Dictionary<string, object?> { ["_trackmcp"] = metadata }, BoundSessionId(sessionId), isError is true ? false : true, resultType: resultType, taskStatus: taskStatus, inputRequestCount: BoundedCount(result, "inputRequests", "input_requests"), inputResponseCount: BoundedCount(result, "inputResponses", "input_responses"));
+    }
+
+    /// <summary>Records only a canonical 401/403 authorization outcome.</summary>
+    public void RecordAuthorizationOutcome(string method, int statusCode, string? sessionId = null)
+    {
+        if (string.IsNullOrWhiteSpace(method) || method.Length > 128 || method.Any(char.IsControl)) return;
+        var outcome = statusCode switch { 401 => "unauthorized", 403 => "forbidden", _ => null };
+        if (outcome is null) return;
+        var metadata = new Dictionary<string, object?> { ["observation_kind"] = "protocol_response", ["authorization_attempt"] = true, ["authorization_outcome"] = outcome };
+        Capture("protocol", method, new Dictionary<string, object?> { ["_trackmcp"] = metadata }, BoundSessionId(sessionId), false, errorCode: statusCode);
     }
 
     private static string? ProtocolFamilyForMethod(string method)

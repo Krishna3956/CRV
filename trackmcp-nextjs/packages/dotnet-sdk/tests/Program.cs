@@ -101,6 +101,9 @@ static class Smoke
                 ["unsafe key"] = new JsonObject { ["secret"] = "omit" },
             },
         }, "session-init");
+        client.RecordAuthorizationOutcome("tools/call", 401, "session-auth");
+        client.RecordAuthorizationOutcome("tools/call", 403, "session-auth-2");
+        client.RecordAuthorizationOutcome("tools/call", 500, "ignored");
         await client.FlushAsync();
 
         Require(handler.Body is not null, "flush did not send an event batch");
@@ -115,7 +118,7 @@ static class Smoke
         Require(!handler.Body.Contains("private-prompt-message", StringComparison.Ordinal), "raw prompt content crossed the boundary");
         using var document = JsonDocument.Parse(handler.Body);
         var events = document.RootElement.GetProperty("events");
-        Require(events.GetArrayLength() == 10, "unexpected event count");
+        Require(events.GetArrayLength() == 12, "unexpected event count");
         Require(events[0].GetProperty("direction").GetString() == "client_to_server", "inbound direction was not retained");
         Require(events[0].GetProperty("transport").GetString() == "streamable_http", "caller-verified signal transport label was not retained");
         Require(events[1].GetProperty("result_type").GetString() == "input_required", "protocol result type was not retained");
@@ -139,6 +142,8 @@ static class Smoke
         var metadata = events[4].GetProperty("payload").GetProperty("_trackmcp");
         Require(metadata.GetProperty("next_cursor_present").GetBoolean(), "cursor presence was not retained");
         Require(events[9].GetProperty("payload").GetProperty("_trackmcp").GetProperty("capability_names").GetString() == "io.modelcontextprotocol/sampling,io.modelcontextprotocol/tasks,logging,roots", "capability names were not retained in bounded form");
+        Require(events[10].GetProperty("error_code").GetInt32() == 401 && events[10].GetProperty("payload").GetProperty("_trackmcp").GetProperty("authorization_outcome").GetString() == "unauthorized", "401 authorization outcome was not retained");
+        Require(events[11].GetProperty("error_code").GetInt32() == 403 && events[11].GetProperty("payload").GetProperty("_trackmcp").GetProperty("authorization_outcome").GetString() == "forbidden", "403 authorization outcome was not retained");
         Require(!handler.Body.Contains("listChanged", StringComparison.Ordinal) && !handler.Body.Contains("omit", StringComparison.Ordinal), "capability option values crossed the privacy boundary");
     }
 }
