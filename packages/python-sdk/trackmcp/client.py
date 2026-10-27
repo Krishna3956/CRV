@@ -277,6 +277,13 @@ def _protocol_metadata_payload(method: Optional[str], result: Any) -> Dict[str, 
     return {"_trackmcp": trackmcp}
 
 
+def _metadata_only_protocol_family(method: Optional[str]) -> bool:
+    """Keep protocol exchanges that may contain user content metadata-only."""
+    return _protocol_family_for_method(method) in {
+        "sampling", "elicitation", "completion", "tasks", "roots", "logging",
+    }
+
+
 def _protocol_signal_for_method(method: Optional[str]) -> Optional[str]:
     """Map notification methods to the metadata-only signal vocabulary."""
     return {
@@ -699,7 +706,7 @@ class _TrackMCPMiddleware:
             elif (signal := _protocol_signal_for_method(method)):
                 self.client.record_protocol_signal(signal, method, session_id=session_id, direction="client_to_server")
             else:
-                payload = _protocol_metadata_payload(method, result_data) if _protocol_family_for_method(method) in ("roots", "logging", "completion") else {"params": params, "result": result_data}
+                payload = _protocol_metadata_payload(method, result_data) if _metadata_only_protocol_family(method) else {"params": params, "result": result_data}
                 self.client.capture({"event_type": "protocol", "mcp_method": method, "request_id": request_id, "session_id": session_id, "session_id_source": session_id_source, "client_name": self.client_name, "client_version": self.client_version, "started_at": _iso_from_epoch(started), "duration_ms": round((time.time() - started) * 1000), "success": not is_error, "is_error": is_error, **_protocol_result_metadata(result_data), "payload": payload})
             return result
         except Exception as error:
@@ -713,7 +720,7 @@ class _TrackMCPMiddleware:
             elif (signal := _protocol_signal_for_method(method)):
                 self.client.record_protocol_signal(signal, method, session_id=session_id, direction="client_to_server")
             else:
-                safe_payload = _protocol_metadata_payload(method, {}) if _protocol_family_for_method(method) in ("roots", "logging", "completion") else {"params": params, "error": "protocol_error"}
+                safe_payload = _protocol_metadata_payload(method, {}) if _metadata_only_protocol_family(method) else {"params": params, "error": "protocol_error"}
                 self.client.capture({"event_type": "protocol", "mcp_method": method, "request_id": request_id, "session_id": session_id, "session_id_source": session_id_source, "client_name": self.client_name, "client_version": self.client_version, "started_at": _iso_from_epoch(started), "duration_ms": round((time.time() - started) * 1000), "success": False, "is_error": True, "error_class": "protocol_error", "payload": safe_payload})
             raise
 
@@ -821,7 +828,7 @@ class _Wrapped:
                             elif (entity := interaction_entity_observation(method, params)):
                                 client.capture(_entity_protocol_event(method, entity, session_id=self.transport_session_id, session_id_source="transport_generated", client_name=self.client_name, client_version=self.client_version, started=started, result=value))
                             else:
-                                if _protocol_family_for_method(method) in ("roots", "logging"):
+                                if _metadata_only_protocol_family(method):
                                     client.capture(_bounded_protocol_event(method, started, value, self.client_name, self.transport_session_id, True))
                                 else:
                                     client.capture(_event(tool_name, payload, started, value, None, self.client_name, self.transport_session_id, None, self.client_version, client.tool_metadata(tool_name), "transport_generated"))
@@ -837,7 +844,7 @@ class _Wrapped:
                             elif entity:
                                 client.capture(_entity_protocol_event(method, entity, session_id=self.transport_session_id, session_id_source="transport_generated", client_name=self.client_name, client_version=self.client_version, started=started, success=False, error_class="protocol_error"))
                             else:
-                                if _protocol_family_for_method(method) in ("roots", "logging"):
+                                if _metadata_only_protocol_family(method):
                                     client.capture(_bounded_protocol_event(method, started, None, self.client_name, self.transport_session_id, False))
                                 else:
                                     client.capture(_event(tool_name, payload, started, None, error, self.client_name, self.transport_session_id, None, self.client_version, client.tool_metadata(tool_name), "transport_generated"))
@@ -866,7 +873,7 @@ class _Wrapped:
                     if method == "shutdown" and self.lifecycle_started and not self.lifecycle_ended:
                         self._emit_session_boundary("session_ended", True, round((time.time() - started) * 1000))
                         self.lifecycle_ended = True
-                    if _protocol_family_for_method(method) in ("roots", "logging"):
+                    if _metadata_only_protocol_family(method):
                         client.capture(_bounded_protocol_event(method, started, result, self.client_name, self.transport_session_id, True))
                     else:
                         client.capture(_event(tool_name, payload, started, result, None, self.client_name, self.transport_session_id, None, self.client_version, client.tool_metadata(tool_name), "transport_generated"))
@@ -882,7 +889,7 @@ class _Wrapped:
                 elif entity:
                     client.capture(_entity_protocol_event(method, entity, session_id=self.transport_session_id, session_id_source="transport_generated", client_name=self.client_name, client_version=self.client_version, started=started, success=False, error_class="protocol_error"))
                 else:
-                    if _protocol_family_for_method(method) in ("roots", "logging"):
+                    if _metadata_only_protocol_family(method):
                         client.capture(_bounded_protocol_event(method, started, None, self.client_name, self.transport_session_id, False))
                     else:
                         client.capture(_event(tool_name, payload, started, None, error, self.client_name, self.transport_session_id, None, self.client_version, client.tool_metadata(tool_name), "transport_generated"))

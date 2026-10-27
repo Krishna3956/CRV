@@ -1059,3 +1059,12 @@ production transport UAT.
   `12711434759` (App Runner host), and `12711414742` (runtime flags). The
   follow-up authenticated production smoke `40456129779` passed and retained
   artifact `12712456778`.
+
+- 2026-10-27: Closed a Python SDK privacy-parity gap for modern MCP protocol
+  exchanges. Sampling, elicitation, completion, and task middleware calls now
+  use the bounded metadata-only protocol envelope instead of retaining request
+  or response bodies; added regressions proving private prompts, elicitation
+  responses, task handles, and request material are absent. Python tests (36),
+  lint, diff validation, and the full **143-suite** release gate pass. This is
+  source-verified; deployment and customer-owned endpoint UAT remain separate
+  pilot gates.

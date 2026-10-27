@@ -62,6 +62,30 @@ class TrackMCPClientTest(TestCase):
         self.assertNotIn("debug", serialized)
         self.assertEqual([event["payload"]["_trackmcp"]["protocol_family"] for event in client._events], ["roots", "logging"])
         client._timer.cancel()
+
+    def test_wrapped_modern_protocol_calls_are_metadata_only(self):
+        class Server:
+            def request(self, message):
+                method = message.get("method")
+                if method == "sampling/createMessage":
+                    return {"role": "user", "content": {"text": "private prompt"}, "secret": "omit"}
+                if method == "elicitation/create":
+                    return {"action": "accept", "content": {"email": "private@example.com"}, "secret": "omit"}
+                return {"taskId": "private-task-id", "status": "working", "secret": "omit"}
+
+        client = TrackMCP(TrackMCPOptions(api_key="tmcp_test", disabled=False, flush_interval_ms=60000))
+        wrapped = _Wrapped(Server(), client)
+        for method in ("sampling/createMessage", "elicitation/create", "tasks/get"):
+            wrapped.request({"method": method, "params": {"prompt": "private request", "secret": "omit"}})
+        serialized = json.dumps(client._events)
+        for value in ("private prompt", "private@example.com", "private-task-id", "private request", "omit"):
+            self.assertNotIn(value, serialized)
+        self.assertEqual(
+            [event["payload"]["_trackmcp"]["protocol_family"] for event in client._events],
+            ["sampling", "elicitation", "tasks"],
+        )
+        client._timer.cancel()
+
     def test_protocol_result_metadata_is_bounded_and_discriminator_parity_safe(self):
         metadata = _protocol_result_metadata({
             "resultType": "task",
