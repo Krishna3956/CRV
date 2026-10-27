@@ -713,3 +713,17 @@ production transport UAT.
   materialized” deployment dependency. It does not close family-specific
   lifecycle UAT or prove completion/input-required joins for every protocol
   family; those remain explicitly separate gates.
+
+- 2026-10-27: Ran a bounded authenticated protocol-family UAT against the
+  deployed ingest path using the existing pilot smoke credential. Three
+  protocol events (completion, elicitation, and tasks) plus a sampling event
+  were accepted individually; the sampling fixture used the valid
+  `input_required` result vocabulary. After the manual refresh-worker run
+  `40437722676`, Supabase read-back found durable rows for completion
+  (`completed`), elicitation (`pending`), sampling (`pending`), and tasks
+  (`completed`) under the dedicated UAT service label. The selected fact
+  columns contained only bounded family/role/outcome metadata; method names,
+  request bodies, and result payloads were not selected or retained in the
+  evidence. This closes the first authenticated durable family-outcome
+  materialization check; broader customer traffic coverage, cross-server
+  joins, and transport-owned lifecycle UAT remain open.
