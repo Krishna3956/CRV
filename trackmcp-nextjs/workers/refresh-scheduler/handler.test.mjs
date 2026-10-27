@@ -67,20 +67,29 @@ test("scheduler handler fails closed when configuration is incomplete", async ()
 
 test("scheduler handler reports upstream status without reading response content", async () => {
   const previousFetch = globalThis.fetch;
+  const previousLog = console.log;
+  const logs = [];
   globalThis.fetch = async () => ({
     ok: false,
     status: 503,
     get body() { throw new Error("response content must not be read"); },
   });
+  console.log = (line) => logs.push(line);
   try {
     await withEnvironment({
       TRACKMCP_REFRESH_WORKER_URL: ENDPOINT,
       TRACKMCP_REFRESH_WORKER_TOKEN: "test-token",
     }, async () => {
-      await assert.rejects(handler(), /refresh worker returned HTTP 503/);
+      await assert.rejects(handler({ source: "eventbridge_scheduler" }), /refresh worker returned HTTP 503/);
     });
+    const marker = JSON.parse(logs[0]);
+    assert.equal(marker.success, false);
+    assert.equal(marker.ScheduledFailure, 1);
+    assert.equal(marker.FailureClass, "upstream_http");
+    assert.doesNotMatch(logs[0], /response content|test-token/);
   } finally {
     globalThis.fetch = previousFetch;
+    console.log = previousLog;
   }
 });
 

@@ -20,6 +20,7 @@ function normalizeAwsSchedulerEvidence(value) {
   const invocations = boundedNumber(source.invocations);
   const errors = boundedNumber(source.errors);
   const scheduledSuccesses = boundedNumber(source.scheduled_successes);
+  const scheduledFailures = boundedNumber(source.scheduled_failures);
   const scheduledSuccessesAvailable = source.scheduled_successes_available === true;
   const healthy = datapoints.length > 0 && invocations > 0 && errors === 0;
   return {
@@ -28,6 +29,7 @@ function normalizeAwsSchedulerEvidence(value) {
     invocations,
     errors,
     scheduled_successes: scheduledSuccesses,
+    scheduled_failures: scheduledFailures,
     scheduled_successes_available: scheduledSuccessesAvailable,
     healthy,
   };
@@ -109,6 +111,7 @@ export function summarizeRefreshWorkerRuns(runs, { budgetMs = DEFAULT_BUDGET_MS,
   if (staleRuns > 0) reasons.push("freshness_budget_exceeded");
   if (effectiveCadenceBreaches > 0) reasons.push("schedule_cadence_gap");
   if (awsErrorsObserved) reasons.push("aws_scheduler_errors_observed");
+  if (awsEvidence.scheduled_failures > 0) reasons.push("scheduled_refresh_failures_observed");
   if (awsEvidence.enabled && awsEvidence.datapoints === 0) reasons.push("aws_scheduler_evidence_missing");
 
   return {

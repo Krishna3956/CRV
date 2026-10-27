@@ -11,6 +11,8 @@ test("health workflow can recover a missed worker tick without overlapping an ac
   assert.match(workflow, /cloudwatch get-metric-data/);
   assert.match(workflow, /TrackMCP\/RefreshScheduler/);
   assert.match(workflow, /ScheduledSuccess/);
+  assert.match(workflow, /ScheduledFailure/);
+  assert.match(workflow, /scheduled_failures/);
   assert.match(workflow, /scheduled_successes/);
   assert.doesNotMatch(workflow, /logs filter-log-events/);
   assert.match(workflow, /aws-scheduler\.json/);

@@ -11,6 +11,9 @@ non-sensitive `refresh_scheduler_result` marker with an Embedded Metric Format
 `TrackMCP/RefreshScheduler/ScheduledSuccess` sample. Manual invocations do not
 emit it, so the health workflow can distinguish a real scheduled worker
 success from an operator smoke without reading CloudWatch log events.
+Scheduled failures emit the same bounded envelope with a `ScheduledFailure`
+sample and one of the non-sensitive classes `configuration`, `upstream_http`,
+`timeout`, or `network_or_unknown`; no exception message is retained.
 
 The schedule is disabled by default. Deploy it disabled first, run the manual
 checks below, and enable it only after the endpoint and secret have been
