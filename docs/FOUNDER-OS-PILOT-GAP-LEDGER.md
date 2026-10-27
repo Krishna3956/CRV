@@ -727,3 +727,12 @@ production transport UAT.
   evidence. This closes the first authenticated durable family-outcome
   materialization check; broader customer traffic coverage, cross-server
   joins, and transport-owned lifecycle UAT remain open.
+
+- 2026-10-27: Merged PR #610 (`9056968`) to make the refresh-health workflow
+  observe the production AWS scheduler directly. The workflow now assumes the
+  existing OIDC deploy role, reads only Lambda invocation/error metrics for a
+  bounded 20-minute window, and adds redacted scheduler evidence to the health
+  report. A healthy AWS metric window clears the misleading GitHub-cron
+  cadence-gap reason without suppressing worker failures, stale queue lag, or
+  AWS errors. Added regression/contract coverage; the full release gate passed
+  139 suites, lint passed, and the production build generated 177 routes.
