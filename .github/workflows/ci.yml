@@ -2,7 +2,11 @@ name: TrackMCP CI
 
 on:
   push:
+    paths-ignore:
+      - docs/FOUNDER-OS-100-CUSTOMER-READINESS-LEDGER.md
   pull_request:
+    paths-ignore:
+      - docs/FOUNDER-OS-100-CUSTOMER-READINESS-LEDGER.md
 
 # A branch push and the corresponding pull_request event can otherwise start
 # two identical full release gates. Keep one authoritative run per ref so
