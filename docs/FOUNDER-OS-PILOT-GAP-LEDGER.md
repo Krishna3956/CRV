@@ -12,6 +12,13 @@ Status: active autonomous audit, started 2026-10-21.
   causality or delivery. Authenticated cross-transport UAT and production
   evidence remain external gates.
 
+## 2026-10-27 — catalog correlation rollout evidence
+
+- App Runner deployment run `40487982157` successfully rolled out `c5eac7b`
+  and passed the read-only production smoke. The deployed runtime therefore
+  includes the v1 and v2 catalog-correlation projection; this does not close
+  authenticated customer-owned transport UAT or other external pilot gates.
+
 ## 2026-10-27 — SDK release publication pointer
 
 - The reviewed SDK train is published as `@trackmcp/sdk@0.1.21` and

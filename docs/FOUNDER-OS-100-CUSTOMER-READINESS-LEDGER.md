@@ -1,6 +1,6 @@
 # Founder OS 100 Customer Readiness Ledger
 
-Last updated: 2026-10-27 (main `d789c5b`; deployed application `b2100af` and App Runner rollout and production smoke verified)
+Last updated: 2026-10-27 (main `44a0276`; deployed application `c5eac7b` and App Runner rollout and production smoke verified)
 Latest freshness evidence: health workflow `40450412687` inspected eight
 redacted worker samples and evaluated the two samples in its bounded current
 window. It proved the AWS scheduler cadence gate with four invocations and zero
@@ -72,6 +72,16 @@ permission.
   dashboard contract tests pass (89/89).
 - [ ] Authenticated cross-transport UAT and production evidence remain open;
   the join is correlation evidence and does not prove causality or delivery.
+
+## 2026-10-27 catalog correlation deployment verification
+
+- [x] App Runner deployment run `40487982157` completed successfully for
+  `c5eac7b` after the hosted release gate, image/digest reconciliation, port
+  reconciliation, and rollout wait.
+- [x] The same run passed read-only production smoke; the deployed runtime now
+  contains the v1 analytics and v2 catalog correlation projection.
+- [ ] Authenticated customer-owned transport UAT, scheduler freshness,
+  backup/PITR, privacy acceptance, and release-owner gates remain open.
 
 ## 2026-10-27 completion evidence milestone
 
