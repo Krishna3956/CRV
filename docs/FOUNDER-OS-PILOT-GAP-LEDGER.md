@@ -33,6 +33,15 @@ Status: active autonomous audit, started 2026-10-21.
   137-suite release gate pass; hosted deployment remains pending for this
   change.
 
+## 2026-10-27 — hosted deployment evidence
+
+- App Runner deployment run `40424325288` completed successfully for
+  `18519fe`. The provider console showed the service `Running`; the workflow
+  completed the read-only production smoke, immutable release-identity check,
+  runtime-safety audit, and redacted evidence uploads. This closes hosted
+  deployment evidence for the scheduler-observability change, but does not
+  close the separate recurring-scheduler or release-owner gates.
+
 ## 2026-10-27 — modern request metadata and browser-tester parity
 
 - The published TypeScript modern client (`@trackmcp/sdk@0.1.19`) now adds
