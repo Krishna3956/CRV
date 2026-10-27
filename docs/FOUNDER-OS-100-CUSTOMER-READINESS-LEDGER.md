@@ -22,6 +22,15 @@ permission.
 - [ ] Backup/PITR, privacy acceptance, credentialed customer-owned UAT, and
   release-owner acceptance remain external gates.
 
+## 2026-10-27 health-report semantics correction
+
+- [x] The health engine now treats a healthy, three-sample AWS scheduler
+  window as sufficient production scheduler evidence even when GitHub recovery
+  samples are fewer than three. Historical stale or failed worker summaries
+  remain visible and still produce warnings.
+- [x] Added regression coverage for the AWS-proven/fewer-GitHub-samples case;
+  the local 143-suite gate, lint, build, and hosted checks passed.
+
 ## 2026-10-27 catalog-correlation deployment verification (latest)
 
 - [x] App Runner deployment run `40489912233` rolled out immutable commit

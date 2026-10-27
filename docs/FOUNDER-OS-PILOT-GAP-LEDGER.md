@@ -14,6 +14,15 @@ Status: active autonomous audit, started 2026-10-21.
 - The correction is deployed, but backup/PITR, privacy acceptance,
   credentialed customer-owned UAT, and release-owner gates remain open.
 
+## 2026-10-27 — health-report semantics correction
+
+- The health engine now honors a healthy three-sample AWS scheduler window as
+  production scheduler evidence even when GitHub recovery samples are fewer
+  than three. Historical stale or failed worker summaries remain visible as
+  warnings; they are not hidden by AWS success.
+- Regression coverage for this distinction passed with the 143-suite local
+  release gate, lint, build, and hosted CI.
+
 ## 2026-10-27 — latest catalog-correlation deployment evidence
 
 - App Runner deployment run `40489912233` successfully rolled out immutable
