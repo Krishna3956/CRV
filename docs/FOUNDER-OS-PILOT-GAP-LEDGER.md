@@ -1032,3 +1032,9 @@ production transport UAT.
   artifacts (`12711132775`, `12711102908`, and `12710974571`). This verifies the
   reconciled release-record/source documentation deployment; it does not close
   any owner, scheduler, backup, privacy, or customer-endpoint gate.
+
+- 2026-10-27: Extended the explicit modern capability-family allowlist to
+  recognize namespace-qualified `/sampling`, `/elicitation`, `/completion(s)`,
+  and `/tasks` extension keys. Unknown extensions remain unmapped, so traffic
+  cannot imply support. Added semantic regressions plus analytics/fact coverage;
+  lint, diff validation, and the full **143-suite** release gate pass.

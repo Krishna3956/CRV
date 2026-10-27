@@ -58,7 +58,11 @@ test("does not treat generic protocol or custom success as a business outcome", 
 test("maps only explicit standard capability names to protocol families", () => {
   assert.equal(protocolFamilyForCapabilityName("sampling"), "sampling");
   assert.equal(protocolFamilyForCapabilityName("io.modelcontextprotocol/tasks"), "tasks");
+  assert.equal(protocolFamilyForCapabilityName("io.modelcontextprotocol/sampling"), "sampling");
+  assert.equal(protocolFamilyForCapabilityName("io.modelcontextprotocol/elicitation"), "elicitation");
+  assert.equal(protocolFamilyForCapabilityName("io.modelcontextprotocol/completions"), "completion");
   assert.equal(protocolFamilyForCapabilityName("private_extension"), undefined);
+  assert.equal(protocolFamilyForCapabilityName("io.example/private-feature"), undefined);
 });
 
 test("classifies protocol notifications and subscriptions as lifecycle signals, not outcomes", () => {

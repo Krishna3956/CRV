@@ -91,10 +91,12 @@ export function protocolFamilyForMethod(method: string | null | undefined): Trac
 export function protocolFamilyForCapabilityName(name: string | null | undefined): TrackMCPProtocolFamily | undefined {
   if (!name) return undefined;
   const normalized = name.trim().toLowerCase();
-  if (normalized === "sampling") return "sampling";
-  if (normalized === "elicitation") return "elicitation";
-  if (normalized === "completion" || normalized === "completions") return "completion";
-  if (normalized === "tasks" || normalized === "io.modelcontextprotocol/tasks") return "tasks";
+  // Modern extension keys may be namespace-qualified. Keep the allowlist
+  // explicit and suffix-bounded; unknown extensions must remain unknown.
+  if (normalized === "sampling" || normalized.endsWith("/sampling")) return "sampling";
+  if (normalized === "elicitation" || normalized.endsWith("/elicitation")) return "elicitation";
+  if (normalized === "completion" || normalized === "completions" || normalized.endsWith("/completion") || normalized.endsWith("/completions")) return "completion";
+  if (normalized === "tasks" || normalized.endsWith("/tasks")) return "tasks";
   if (normalized === "resources") return "resources";
   if (normalized === "prompts") return "prompts";
   if (normalized === "tools") return "tools";
