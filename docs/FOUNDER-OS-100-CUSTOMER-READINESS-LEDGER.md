@@ -94,6 +94,18 @@ permission.
   historical freshness breach. The application freshness SLO is therefore
   still open despite the AWS scheduler gates passing.
 
+## 2026-10-27 IAM policy evidence reconciliation
+
+- [x] The signed-in AWS IAM console was rechecked against the documented
+  `TrackMCPEnableDistributedRateLimit` deployment permission. The previously
+  bookmarked **managed-policy** ARN now returns `Policy ... was not found`.
+- [x] This does not prove the deployment permission is absent: the release
+  record describes it as an **inline policy** on `GitHubActionsDeployRole`, and
+  the latest App Runner deployment workflow completed successfully.
+- [ ] Re-open the role's inline-policy view and capture current evidence for
+  the exact attachment before treating this deployment permission as fully
+  reconciled. Do not create a duplicate managed policy from the stale ARN.
+
 ## 2026-10-27 SDK release-train publication
 
 - [x] Source changes after the published `@trackmcp/sdk@0.1.20` and
