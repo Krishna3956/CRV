@@ -1,6 +1,6 @@
 # Founder OS 100 Customer Readiness Ledger
 
-Last updated: 2026-10-28 (main `f37288bf`; deployed application `dd443a8c` and App Runner rollout `40581600172` succeeded; hosted CI `40585153203` passed; health run `40584912071` passed; authenticated production smoke `40582650751` passed; hosted publication workflow `40569475423` verified `@trackmcp/sdk@0.1.24`)
+Last updated: 2026-10-28 (main `c2b122f4`; deployed application `dd443a8c` and App Runner rollout `40581600172` succeeded; hosted CI/deploy for the recovery fix are still running; corrected recovery run `40586415068` passed; health run `40584912071` passed; authenticated production smoke `40582650751` passed; hosted publication workflow `40569475423` verified `@trackmcp/sdk@0.1.24`)
 The same-origin docs, auth, blog CTA fixes, regression guard, and hosted-runner verification gate are deployed and runtime-verified. The public Cloudflare edge still returns HTML 403 to scripted probes and remains a separate external gate.
 Latest freshness evidence: health workflow `40566829192` with worker drain
 `40566911017` inspected eight redacted worker samples. AWS scheduler cadence is
@@ -9,15 +9,13 @@ state remains `warning` because only **1/3 scheduled worker samples** is in the
 current evaluation window and the maximum queue lag is `35,497,938 ms` (above
 the 15-minute pilot budget).
 
-Latest recheck: health workflow `40584912071` completed successfully after
-bounded recovery worker `40584021521` also succeeded at the workflow level but
-reported `timed_out: true` and 10 unparseable batch responses. The corrected
-health parser records this as `worker_execution_incomplete` rather than an empty
-healthy queue. AWS scheduler evidence is proven at **4/4 invocations** and
-**4/4 scheduled successes**, while the GitHub scheduled-worker sample count is
-**0/3** and the historical maximum queue lag remains `36,729,012 ms`; freshness
-therefore stays **warning**. Manual dispatches are recovery evidence, not
-scheduled-cadence proof.
+Latest recheck: the bounded recovery worker `40586415068` now returns parseable
+evidence: four `max_jobs:10` batches, 40 processed/40 succeeded, zero retries,
+failures, timeouts, or unparseable responses. It still reports
+`max_queue_lag_ms:39048679` (about 10.8 hours), so execution is healthy but
+freshness is stale. AWS scheduler evidence remains proven at **4/4 invocations**
+and **4/4 scheduled successes**; the GitHub scheduled-worker sample count is
+**0/3**. Manual dispatches are recovery evidence, not scheduled-cadence proof.
 
 ## Active external-gate register (current)
 
@@ -62,8 +60,13 @@ evidence and are not current approval.
   timeout/unparseable evidence. Route, workflow, and release-gate contracts
   pass locally; the first fresh run also exposed and fixed a workflow-only
   `jq` variable-binding defect in mainline `b92e002f`'s follow-up.
-- [ ] Hosted CI and a fresh recovery sample for the corrected `jq` expression
-  are still required.
+- [x] Mainline `c2b122f4` fixes the `jq` expression to read the redacted
+  summary's own timeout field. Recovery run `40586415068` passed with four
+  parseable batches, 40/40 successes, and zero timeout/unparseable evidence.
+- [ ] Freshness remains open because that recovery artifact reports
+  `max_queue_lag_ms:39048679`, above the 15-minute pilot budget. Hosted CI and
+  the next health report must retain this as stale evidence, not relabel it as
+  healthy.
 - [ ] Do not treat this source correction as freshness closure until a fresh
   recovery artifact returns parseable bounded results and the scheduled AWS
   cadence continues to meet the 15-minute pilot budget.
