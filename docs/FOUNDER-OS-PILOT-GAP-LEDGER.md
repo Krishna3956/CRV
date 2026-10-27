@@ -868,3 +868,10 @@ production transport UAT.
   persisted hash/count snapshot/diff read model as implemented bounded
   capabilities, while retaining production-postflight and operational-metric
   caveats. No unsupported delivery or raw-identity claim was added.
+
+- 2026-10-27: Reconciled the protocol rows for completions, sampling, and
+  elicitation with the current SDK and analytics evidence. They now record
+  bounded privacy-safe request/response role counts and explicit
+  input-required/unknown outcomes as implemented signals, while retaining
+  capability-aware approval/acceptance lifecycle joins as partial. No user
+  values, suggestion values, prompt content, or approval claims are inferred.
