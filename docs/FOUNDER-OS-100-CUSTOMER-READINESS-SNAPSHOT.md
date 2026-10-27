@@ -43,14 +43,12 @@ These are not source-code failures and must not be silently marked green:
    requests are review-only and destructive deletion is disabled.
 4. Synthetic reliability-data hygiene acceptance: canary rows must remain
    visibly test evidence and never be presented as customer incidents.
-5. Sustained scheduler evidence: the dedicated scheduler stack deployment
-   `40466761616` is successful, and health run `40467745989` observes four
-   bounded `ScheduledSuccess` EMF samples with zero scheduled-failure samples.
-   Direct CloudWatch inspection confirms the marker is emitted only after a
-   successful authenticated refresh and contains no endpoint, token, request,
-   or response content. The stricter zero-error AWS invocation gate remains
-   open because one historical Lambda error is still inside the rolling
-   window; no end-to-end cadence claim is made until that window is clean.
+5. Sustained scheduler evidence: health run `40493587359` proves three AWS
+   Lambda invocations and three end-to-end `ScheduledSuccess` CloudWatch EMF
+   markers with no scheduled failures. The broader worker freshness state is
+   still `insufficient_data`: only one of three scheduled application-worker
+   samples is in the current evaluation window and maximum queue lag is above
+   the 15-minute pilot budget.
 6. Credentialed production key-lifecycle and customer-owned MCP endpoint UAT.
 7. Protocol interoperability that is explicitly Partial/Unsupported in the
    matrix (customer endpoints, reconnect/replay, proxy-specific behavior,

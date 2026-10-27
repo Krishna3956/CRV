@@ -11,14 +11,14 @@ is intentionally not a GO approval and must not be treated as one.
 
 - `main`: current default branch. Immutable deployed SHAs belong in the
   release record; PR checks remain attached to their exact review commits.
-- Current deployed application: `4efa2e1bd444706e84d78ef85b8a7b3b133a46aa`,
-  App Runner workflow `40497434962` (successful rollout). This deployment
-  contains deployment-trigger hardening and preserves the previously verified
-  application behavior; its runtime reference is the exact immutable SHA.
-- Current source verification: `main` at `HEAD` (active pilot evidence
-  postflight ledger update), with the deployed application still at immutable
-  `4efa2e1`. The intervening commits are documentation-only evidence updates;
-  no deployment is claimed for them.
+- Current deployed application: `506be89f010b5da15cad8d1f02421449a65fa660`,
+  App Runner workflow `40524668419` (successful rollout, release gate,
+  production smoke, identity, and runtime-safety checks). Its runtime
+  reference is the exact immutable SHA.
+- Current source verification: `main` at `HEAD` (`13fef70`, ledger-only
+  evidence update), with the deployed application at immutable `506be89`. The
+  deployed source contains the published CLI/docs reconciliation; the
+  subsequent ledger-only commit does not require a new App Runner image.
   This does not close the external owner, backup, privacy, or scheduler-cadence
   gates.
 - Historical deployed baselines retained for audit include `9638e23c8529f9b1781d96413529e33a692715ed`
@@ -28,8 +28,9 @@ is intentionally not a GO approval and must not be treated as one.
   the already-successful rollout and its bounded evidence.
 - Queue: 263 total, 260 checked, and P0 queue items `020`, `157`, and `260`
   remain open.
-- Full local release gate: **144 suites passed**, with lint and the 177-route
-  production build green.
+- Full release gate: **144 suites passed**, with lint and the 178-route
+  production build green (the prior 177-route baseline remains retained in
+  historical evidence).
 - Authenticated device-flow UAT covers expired, denied, multiple-membership,
   and zero-membership workspace creation without browser key disclosure.
 - Authenticated production scope smoke `40429116070` passed against immutable
