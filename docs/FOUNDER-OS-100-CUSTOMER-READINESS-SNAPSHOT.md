@@ -12,7 +12,7 @@ and [pilot release record](FOUNDER-OS-100-CUSTOMER-PILOT-RELEASE-RECORD.md).
 
 - Six authenticated dashboard surfaces have contract coverage, privacy-safe
   read models, and navigation/documentation CTA checks.
-- Current source release gate passes **142 suites**; lint passes; the
+- Current source release gate passes **143 suites**; lint passes; the
   production build generates **177 routes**; `git diff --check` passes.
 - Production deployment, read-only smoke, tenant-scope smoke, first-ingest
   smoke, refresh-worker recovery, prompt-entity projection, and distributed

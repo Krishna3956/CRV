@@ -913,6 +913,11 @@ production transport UAT.
   identity remains unchanged; the contract test requires this explicit update
   whenever the source checkpoint moves.
 
+- 2026-10-27: Added the PDF product-parity contract and reconciled the active
+  source checkpoint to `50ab08e`; the full release gate now runs **143 suites**.
+  The parity contract protects bounded Reliability truth, the explicit
+  write-enabled secret gate, and unsupported OTLP/proxy boundaries.
+
 - 2026-10-27: Audited the only remaining open GitHub PR (#425). Its immutable
   runtime identity, `/api/health` release marker, deployment verification, and
   related tests are already present on current `main`; no unique diff remained
