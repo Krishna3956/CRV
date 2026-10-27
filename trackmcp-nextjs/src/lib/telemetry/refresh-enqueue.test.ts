@@ -30,9 +30,10 @@ test("refresh enqueue rejects malformed workspace scope before a write", async (
   assert.equal(called, false);
 });
 
-test("accepted batches in the same window coalesce to one bounded job per kind", () => {
+test("accepted batches in the same window retain distinct bounded projection jobs", () => {
   const first = buildTrackMCPRefreshEnqueueRows(workspace, now, refreshBatchFingerprint(["event-a"]));
   const second = buildTrackMCPRefreshEnqueueRows(workspace, now, refreshBatchFingerprint(["event-b"]));
-  assert.equal(first[0].dedupe_key, second[0].dedupe_key);
-  assert.match(first[0].dedupe_key, /^ingest-window:\d+:fact_projection$/);
+  assert.notEqual(first[0].dedupe_key, second[0].dedupe_key);
+  assert.match(first[0].dedupe_key, /^ingest-window:\d+:[a-f0-9]{64}:fact_projection$/);
+  assert.match(second[0].dedupe_key, /^ingest-window:\d+:[a-f0-9]{64}:fact_projection$/);
 });

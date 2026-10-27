@@ -28,9 +28,9 @@ export type RefreshEnqueueClient = {
 
 /** Build a small, idempotent batch of worker requests. The queue has no raw
  * event payload, key, identifier, or customer data—only workspace, bounded
- * job kind, and a 15-minute UTC ingest window. Projection handlers read that
- * window directly, so batches in the same window intentionally coalesce to a
- * single job instead of repeatedly rescanning the same bounded rows. */
+ * job kind, a 15-minute UTC ingest window, and a SHA-256 batch fingerprint.
+ * Projection handlers read that window directly while the fingerprint keeps a
+ * later batch in the same window from being hidden behind a terminal job. */
 export function refreshBatchFingerprint(eventIds: readonly string[]): string {
   return createHash("sha256").update([...new Set(eventIds.filter((eventId) => typeof eventId === "string" && eventId.length > 0))].sort().join("\n")).digest("hex");
 }
@@ -39,10 +39,16 @@ export function buildTrackMCPRefreshEnqueueRows(workspaceId: string, now = new D
   if (!/^[a-zA-Z0-9_-]{1,128}$/.test(workspaceId) || !Number.isFinite(now.getTime())) return [];
   if (!/^(?:window|[a-f0-9]{64})$/i.test(batchFingerprint)) return [];
   const window = Math.floor(now.getTime() / WINDOW_MS);
+  // Include the bounded ingest-batch fingerprint in the conflict key. A
+  // window-only key can already be terminal when a later ingest arrives in
+  // the same 15-minute window, silently skipping its derived projections.
+  // Keep the legacy "window" sentinel compact for manual jobs; production
+  // ingest always supplies the SHA-256 fingerprint.
+  const fingerprintSuffix = batchFingerprint === "window" ? "" : `:${batchFingerprint}`;
   return TRACKMCP_INGEST_REFRESH_KINDS.slice(0, MAX_ENQUEUED_KINDS).map((kind) => ({
     workspace_id: workspaceId,
     kind,
-    dedupe_key: `ingest-window:${window}:${kind}`,
+    dedupe_key: `ingest-window:${window}${fingerprintSuffix}:${kind}`,
   }));
 }
 
