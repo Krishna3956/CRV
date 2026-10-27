@@ -797,3 +797,17 @@ production transport UAT.
   `40440770324` processed 20 jobs with zero failures and stayed within the
   freshness budget. This is an honest warning state, not a release claim that
   scheduler history is clean.
+
+- 2026-10-27: Ran an authenticated production-like Streamable HTTP
+  interoperability fixture against the deployed App Runner ingest origin.
+  The official MCP `StreamableHTTPClientTransport` completed `initialize`,
+  `notifications/initialized`, `tools/list`, and `tools/call` through the
+  TrackMCP client adapter. The adapter reported zero dropped events, hook
+  errors, privacy errors, malformed messages, unmatched messages, duplicate
+  messages, or expired requests. Supabase read-back for the scoped service
+  found nine client observations, all `transport=streamable_http` with
+  `payload_policy=metadata`, plus nine durable semantic facts including a
+  completed tool call and completed session facts. This closes the
+  production-like Streamable HTTP telemetry path; customer-owned MCP endpoint
+  interoperability, transport-owned reconnect, proxy, and disconnect UAT
+  remain separate open gates.
