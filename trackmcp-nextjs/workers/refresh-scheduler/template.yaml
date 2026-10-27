@@ -35,8 +35,6 @@ Resources:
       Runtime: nodejs22.x
       Timeout: 60
       MemorySize: 256
-      LoggingConfig:
-        LogGroup: !Sub /trackmcp/refresh-scheduler/${AWS::StackName}
       Environment:
         Variables:
           TRACKMCP_REFRESH_WORKER_URL: !Ref WorkerUrl
@@ -128,25 +126,6 @@ Resources:
       TreatMissingData: notBreaching
       ActionsEnabled: !If [HasAlarmTopic, true, false]
       AlarmActions: !If [HasAlarmTopic, [!Ref FailureAlarmTopicArn], !Ref AWS::NoValue]
-
-  SchedulerScheduledSuccessMetricFilter:
-    Type: AWS::Logs::MetricFilter
-    DependsOn: RefreshSchedulerLogGroup
-    Properties:
-      LogGroupName: !Ref RefreshSchedulerLogGroup
-      FilterPattern: '{ $.event = "refresh_scheduler_result" && $.scheduled = true && $.success = true }'
-      MetricTransformations:
-        - MetricNamespace: TrackMCP/RefreshScheduler
-          MetricName: ScheduledSuccess
-          MetricValue: '1'
-          DefaultValue: 0
-
-  RefreshSchedulerLogGroup:
-    Type: AWS::Logs::LogGroup
-    DependsOn: RefreshSchedulerFunction
-    Properties:
-      LogGroupName: !Sub /trackmcp/refresh-scheduler/${AWS::StackName}
-      RetentionInDays: 14
 
 Outputs:
   RefreshSchedulerFunctionArn:

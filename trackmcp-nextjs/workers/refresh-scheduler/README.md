@@ -7,10 +7,11 @@ Supabase directly and never logs the worker token or response body.
 
 EventBridge sends a bounded `source=eventbridge_scheduler` marker. Only after
 the upstream request returns successfully does the Lambda emit a
-non-sensitive `refresh_scheduler_result` marker; a CloudWatch metric filter
-projects that marker as `TrackMCP/RefreshScheduler:ScheduledSuccess`. Manual
-invocations do not emit it, so health checks can distinguish a real scheduled
-worker success from an operator smoke.
+non-sensitive `refresh_scheduler_result` marker. Manual invocations do not emit
+it, so a future log/metric projection can distinguish a real scheduled worker
+success from an operator smoke. The current deployment intentionally leaves
+that projection external until the deploy role has the required CloudWatch
+Logs metric-filter permissions.
 
 The schedule is disabled by default. Deploy it disabled first, run the manual
 checks below, and enable it only after the endpoint and secret have been
@@ -60,8 +61,8 @@ Before enabling the schedule:
 4. Invoke the Lambda manually and inspect logs for token/response leakage.
 5. Check the SQS DLQ is empty and the two CloudWatch alarms are configured.
 6. Enable the schedule with `EnableSchedule=true`, then verify at least three
-   `ScheduledSuccess` metric points and a queue-lag result within the
-   15-minute pilot freshness budget before widening the pilot.
+   scheduled-success markers and a queue-lag result within the 15-minute pilot
+   freshness budget before widening the pilot.
 
 ## Reproducible inspection commands
 

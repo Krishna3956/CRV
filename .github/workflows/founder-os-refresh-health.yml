@@ -52,8 +52,7 @@ jobs:
           start_time=$(date -u -d '20 minutes ago' +%Y-%m-%dT%H:%M:%SZ)
           queries=$(jq -nc --arg function_name "$function_name" '[
             {Id:"invocations",MetricStat:{Metric:{Namespace:"AWS/Lambda",MetricName:"Invocations",Dimensions:[{Name:"FunctionName",Value:$function_name}]},Period:300,Stat:"Sum"},ReturnData:true},
-            {Id:"errors",MetricStat:{Metric:{Namespace:"AWS/Lambda",MetricName:"Errors",Dimensions:[{Name:"FunctionName",Value:$function_name}]},Period:300,Stat:"Sum"},ReturnData:true},
-            {Id:"scheduled_successes",MetricStat:{Metric:{Namespace:"TrackMCP/RefreshScheduler",MetricName:"ScheduledSuccess"},Period:300,Stat:"Sum"},ReturnData:true}
+            {Id:"errors",MetricStat:{Metric:{Namespace:"AWS/Lambda",MetricName:"Errors",Dimensions:[{Name:"FunctionName",Value:$function_name}]},Period:300,Stat:"Sum"},ReturnData:true}
           ]')
           raw=$(aws cloudwatch get-metric-data \
             --region "$AWS_REGION" \
@@ -62,7 +61,7 @@ jobs:
             --end-time "$end_time" \
             --scan-by TimestampDescending \
             --output json)
-          printf '%s' "$raw" | jq '{enabled:true,datapoints:[.MetricDataResults[] | {id:.Id,values:.Values,timestamps:.Timestamps}],invocations:([.MetricDataResults[] | select(.Id=="invocations") | .Values[]] | add // 0),errors:([.MetricDataResults[] | select(.Id=="errors") | .Values[]] | add // 0),scheduled_successes:([.MetricDataResults[] | select(.Id=="scheduled_successes") | .Values[]] | add // 0)}' > "$output"
+          printf '%s' "$raw" | jq '{enabled:true,datapoints:[.MetricDataResults[] | {id:.Id,values:.Values,timestamps:.Timestamps}],invocations:([.MetricDataResults[] | select(.Id=="invocations") | .Values[]] | add // 0),errors:([.MetricDataResults[] | select(.Id=="errors") | .Values[]] | add // 0)}' > "$output"
 
       - name: Collect recent redacted worker summaries
         env:
