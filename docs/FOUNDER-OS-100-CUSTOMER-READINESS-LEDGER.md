@@ -1,6 +1,6 @@
 # Founder OS 100 Customer Readiness Ledger
 
-Last updated: 2026-10-27 (main `44a0276`; deployed application `c5eac7b` and App Runner rollout and production smoke verified)
+Last updated: 2026-10-27 (main `56c0401`; deployed application `56c0401` and App Runner rollout and production smoke verified)
 Latest freshness evidence: health workflow `40450412687` inspected eight
 redacted worker samples and evaluated the two samples in its bounded current
 window. It proved the AWS scheduler cadence gate with four invocations and zero
@@ -9,6 +9,17 @@ freshness breach, not a historical-failure false positive. The report records
 **0/3 scheduled worker samples**, and its end-to-end scheduled-success
 projection is unavailable because the OIDC role lacks log-event query
 permission.
+
+## 2026-10-27 catalog-correlation deployment verification (latest)
+
+- [x] App Runner deployment run `40489912233` rolled out immutable commit
+  `56c0401b9e040149159cfc8071cf238bdc4ed997` successfully.
+- [x] The hosted release gate, image/digest verification, rollout readiness,
+  read-only production smoke, immutable release-identity check, runtime-safety
+  audit, and redacted evidence uploads all passed in deployment job
+  `122141218771`.
+- [ ] Scheduler cadence, backup/PITR, privacy acceptance, credentialed
+  customer-owned UAT, and release-owner acceptance remain external gates.
 
 ## 2026-10-27 SDK release-train publication
 

@@ -2,6 +2,18 @@
 
 Status: active autonomous audit, started 2026-10-21.
 
+## 2026-10-27 — latest catalog-correlation deployment evidence
+
+- App Runner deployment run `40489912233` successfully rolled out immutable
+  commit `56c0401b9e040149159cfc8071cf238bdc4ed997` and passed the hosted
+  release gate, image/digest verification, rollout readiness, read-only
+  production smoke, immutable release-identity check, runtime-safety audit,
+  and redacted evidence uploads (`122141218771`).
+- This verifies the v1 analytics/v2 catalog-correlation projection and the
+  public API documentation wording in the running candidate. It does not
+  close scheduler cadence, backup/PITR, privacy acceptance, credentialed
+  customer-owned UAT, or release-owner gates.
+
 ## 2026-10-27 — bounded catalog correlation parity
 
 - Catalog list-change notifications now have a privacy-safe, reviewed evidence
