@@ -15,6 +15,11 @@ export type { PayloadMode } from "./privacy.js";
 
 export type TrackMCPEventType = "protocol" | "tool_call" | "session" | "catalog" | "workflow" | "custom";
 export const TRACKMCP_SCHEMA_VERSION = "1" as const;
+// The public edge currently applies a managed browser/WAF rule that rejects
+// the default Node fetch user-agent before the request reaches the ingest
+// handler. Keep the SDK request identifiable without exposing runtime details
+// or customer data; this matches the Python SDK's edge-compatible boundary.
+export const TRACKMCP_EDGE_USER_AGENT = "Mozilla/5.0" as const;
 export type TrackMCPCorrelationMode = "none" | "external" | "issued";
 export type TrackMCPCorrelationHandleSource = "external" | "issued" | "missing";
 export type TrackMCPIntentSource = "context_parameter" | "external_callback" | "fallback" | "missing";
@@ -724,7 +729,11 @@ export class TrackMCPClient {
     let delivered = false;
     this.flushing = fetch(this.options.endpoint, {
       method: "POST",
-      headers: { "content-type": "application/json", authorization: `Bearer ${this.options.apiKey}` },
+      headers: {
+        "content-type": "application/json",
+        authorization: `Bearer ${this.options.apiKey}`,
+        "user-agent": TRACKMCP_EDGE_USER_AGENT,
+      },
       body: JSON.stringify({ events }),
     })
       .then(async (response) => {

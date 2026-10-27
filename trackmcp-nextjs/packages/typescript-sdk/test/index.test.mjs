@@ -62,6 +62,7 @@ test("captures a tool call, redacts args, and delivers a batch", async () => {
 
   assert.equal(received.length, 1);
   assert.equal(received[0].headers.authorization, "Bearer tmcp_test");
+  assert.equal(received[0].headers["user-agent"], "Mozilla/5.0");
   assert.equal(received[0].body.events[0].tool_name, "lookup");
   assert.equal(received[0].body.events[0].payload.args.password, "[redacted]");
   assert.equal(received[0].body.events[0].schema_version, "1");

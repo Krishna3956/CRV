@@ -1,7 +1,7 @@
 # Founder OS 100 Customer Readiness Ledger
 
-Last updated: 2026-10-28 (main `69667aa9`; deployed application `7ab4eced` and App Runner rollout `40594711620` succeeded; hosted CI `40594711558` passed; read-only production smoke, immutable identity, and runtime-safety checks passed in that rollout; queued-backlog coalescer changes are documented below; scheduler redeploy/enablement `40586991487`/`40587311920` remain the latest scheduler evidence; authenticated production smoke remains verified at `40588063835`; hosted publication workflow `40569475423` verified `@trackmcp/sdk@0.1.24`; latest health monitor `40595457284` observes the first fresh scheduled sample but keeps freshness in warning pending three; public edge recheck at `2026-10-27T22:39:45Z` still returns Cloudflare 403 while direct origin returns 200)
-The same-origin docs, auth, blog CTA fixes, regression guard, and hosted-runner verification gate are deployed and runtime-verified. The public Cloudflare edge still returns HTML 403 to scripted probes and remains a separate external gate.
+Last updated: 2026-10-28 (main `9448bd9c`; deployed application `7ab4eced` and App Runner rollout `40594711620` succeeded; hosted CI `40594711558` passed; read-only production smoke, immutable identity, and runtime-safety checks passed in that rollout; queued-backlog coalescer changes are documented below; scheduler redeploy/enablement `40586991487`/`40587311920` remain the latest scheduler evidence; authenticated production smoke remains verified at `40588063835`; hosted publication workflow `40569475423` verified `@trackmcp/sdk@0.1.24`; latest health monitor `40595457284` observes the first fresh scheduled sample but keeps freshness in warning pending three; browser-compatible public probes pass while default scripted probes remain Cloudflare-blocked)
+The same-origin docs, auth, blog CTA fixes, regression guard, and hosted-runner verification gate are deployed and runtime-verified. Cloudflare permits browser-compatible requests, while its managed bot rule still returns HTML 403 to the default scripted user-agent; SDK delivery must use the compatible request boundary and retain a real authenticated UAT check.
 Latest freshness evidence: health workflow `40595457284` inspected eight
 redacted worker samples. AWS scheduler cadence is proven with **4/4 invocations**
 and **4/4 CloudWatch EMF successes**. The scheduled worker sample
@@ -285,8 +285,23 @@ evidence and are not current approval.
   expected JSON validation response for an empty batch.
 - [x] The same probes confirm `trackmcp.com` still returns Cloudflare HTTP 403
   HTML for `/api/health`, `/docs`, and `/api/v1/otel/v1/traces`. This remains
-  an external edge-policy HOLD; the application origin and source are not
-  being represented as publicly reachable until the edge rule is corrected.
+  a user-agent-specific bot-policy limitation; the application origin and
+  source are not being represented as universally reachable from arbitrary
+  scripts.
+
+## 2026-10-28 — edge-compatible TypeScript SDK delivery
+
+- [x] A browser-compatible user-agent probe reaches the public edge: `GET
+  /api/health` returns HTTP 200 and an empty OTLP/HTTP batch returns the
+  expected application HTTP 400 JSON response. The browser-facing website and
+  OTLP route are therefore reachable through Cloudflare for compatible clients.
+- [x] The TypeScript SDK ingest flush now sends the same bounded `Mozilla/5.0`
+  user-agent already used by the Python SDK, preventing Node's default fetch
+  identity from being rejected by the managed edge rule. A regression asserts
+  the header and the SDK suite passes 105/105.
+- [ ] The source fix is not yet a published package artifact. A coordinated
+  package release and one authenticated, disposable TypeScript first-ingest
+  run remain required before closing SDK edge interoperability.
 
 ## 2026-10-28 — documentation snippet fallback correction
 
@@ -323,17 +338,18 @@ evidence and are not current approval.
 
 ## 2026-10-28 — OTEL public edge audit
 
-- [x] Read-only live checks against the documented OTLP/HTTP endpoint found the
+- [x] Initial read-only checks using the default scripted user-agent found the
   public `https://trackmcp.com/api/v1/otel/v1/traces` path returns Cloudflare
   HTTP 403 HTML before the application, while the direct App Runner origin
   reaches the receiver and returns the expected validation response for an
-  empty batch (HTTP 400). This is an edge-routing limitation, not evidence of
-  successful ingestion.
+  empty batch (HTTP 400). This is a managed bot-policy boundary, not evidence
+  of successful ingestion.
 - [x] Added explicit pilot-gate copy to the OpenTelemetry docs and Setup card:
   an HTML 403 must never be treated as accepted telemetry. The public edge
   write rule remains an external HOLD until corrected and rechecked.
-- [ ] Deploy the source change and re-run an authenticated, disposable OTEL
-  span through the customer-facing hostname after the edge rule is fixed.
+- [ ] Publish the edge-compatible SDK source and re-run an authenticated,
+  disposable OTEL span through the customer-facing hostname; an HTML 403 must
+  remain a visible delivery failure rather than an accepted event.
 
 ## 2026-10-28 — transport observer documentation parity
 
