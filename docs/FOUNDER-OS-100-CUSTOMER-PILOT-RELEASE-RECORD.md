@@ -8,6 +8,14 @@ commit and the operator accepts the listed limitations.
 
 ## Current deployed baseline — 2026-10-27
 
+The documentation-only reconciliation commit `e802d16` was pushed to
+`main`; hosted TrackMCP CI run `40496271191` completed successfully. GitHub
+also created App Runner workflow `40496271215`, but that run has remained
+`in_progress` without a job update or terminal conclusion since it started.
+It is treated as stale hosted state, not deployment evidence. No new runtime
+baseline is claimed from it; the last independently verified runtime remains
+the `9026fa6` candidate recorded below.
+
 App Runner workflow `40494157458` successfully deployed immutable application
 commit `9026fa63fdc9b8082372fd50fda93077b8162998`. Rollout, production smoke,
 immutable runtime identity, runtime-safety audit, and redacted evidence upload
