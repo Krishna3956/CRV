@@ -100,14 +100,14 @@ jobs:
 
       - name: Install production-smoke dependencies
         working-directory: trackmcp-nextjs
-        run: npm ci
+        run: timeout --signal=TERM --kill-after=30s 10m npm ci
 
       - name: Install Python package build dependency
-        run: python3 -m pip install build
+        run: timeout --signal=TERM --kill-after=30s 10m python3 -m pip install build
 
       - name: Run release gate before deployment
         working-directory: trackmcp-nextjs
-        run: npm run test:release-gate
+        run: timeout --signal=TERM --kill-after=30s 20m npm run test:release-gate
 
       - name: Configure AWS credentials (OIDC)
         uses: aws-actions/configure-aws-credentials@v4
