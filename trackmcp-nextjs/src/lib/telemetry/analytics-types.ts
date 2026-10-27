@@ -224,7 +224,7 @@ export type Analytics = {
   protocol_family_outcome_source?: "durable_facts" | "event_window";
   /** Bounded completion suggestion metadata. Values and argument contents are
    * never returned; empty/partial results remain distinct signals. */
-  completion_activity?: { requests: number; responses_with_metadata: number; with_suggestions: number; empty_suggestions: number; partial: number; limitation: string };
+  completion_activity?: { requests: number; matched_requests: number; unmatched_requests: number; capability_advertised: boolean | null; responses_with_metadata: number; with_suggestions: number; empty_suggestions: number; partial: number; limitation: string };
   tool_calls: number;
   sessions: number;
   errors: number;

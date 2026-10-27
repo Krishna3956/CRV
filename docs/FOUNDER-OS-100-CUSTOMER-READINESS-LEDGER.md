@@ -22,6 +22,14 @@ permission.
   cross-transport UAT remain open. The current implementation is truthful and
   bounded rather than presenting an unverified join.
 
+## 2026-10-27 completion evidence milestone
+
+- [x] Completion analytics now exposes explicit request/response matches and
+  unmatched requests using the existing privacy-safe interaction hash.
+- [x] Capability advertisement status remains separate from observed outcomes;
+  suggestion values and request contents are never returned.
+- [ ] Broader transport fixtures and authenticated completion UAT remain open.
+
 The health report exposes `scheduled_cadence_gate` separately from operational
 `state`, plus `aws_scheduler_cadence_gate` and
 `aws_end_to_end_cadence_gate`. AWS metric health can be proven while the

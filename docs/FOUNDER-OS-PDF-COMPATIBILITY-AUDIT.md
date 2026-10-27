@@ -14,6 +14,16 @@ hash-only privacy boundary. The remaining gap is a reviewed server-side
 notification-to-snapshot correlation contract plus authenticated
 cross-transport UAT; no correlation is claimed here.
 
+## 2026-10-27 — completion request/result evidence
+
+Authenticated analytics now reports completion requests, explicitly matched
+request/response pairs, unmatched requests, and whether the completion
+capability was advertised in the same bounded service/environment evidence.
+The dashboard keeps suggestion counts, empty results, and partial results
+separate. Matching uses only an already-hashed explicit interaction handle;
+values, prompt/resource references, and arguments remain unavailable. Broader
+multi-transport runtime and authenticated UAT remain open.
+
 ## Closed in this pass
 
 ### Multi-round-trip outcomes

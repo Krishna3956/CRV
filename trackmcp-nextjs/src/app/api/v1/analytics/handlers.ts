@@ -413,8 +413,13 @@ export function createAnalyticsHandler(getAdmin: typeof getSupabaseAdmin = getSu
   const completionRequestCount = durableCompletionEvidence
     ? durableCompletionRows.filter((row) => row.observation_kind === "protocol_request").length
     : completionRequests.length;
+  const completionOutcome = protocolFamilyOutcomes.get("completion");
+  const completionMatchedRequests = Math.min(completionRequestCount, completionOutcome?.matched || 0);
   const completionActivity = {
     requests: completionRequestCount,
+    matched_requests: completionMatchedRequests,
+    unmatched_requests: Math.max(0, completionRequestCount - completionMatchedRequests),
+    capability_advertised: completionOutcome?.capability_advertised ?? null,
     responses_with_metadata: completionWithMetadata,
     with_suggestions: completionWithSuggestions,
     empty_suggestions: completionEmpty,
