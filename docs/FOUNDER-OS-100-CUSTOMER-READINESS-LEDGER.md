@@ -1,6 +1,6 @@
 # Founder OS 100 Customer Readiness Ledger
 
-Last updated: 2026-10-28 (main `cffc2a0`; deployed application `cffc2a0` and App Runner rollout `40570999509` succeeded; hosted publication workflow `40569475423` verified `@trackmcp/sdk@0.1.24`)
+Last updated: 2026-10-28 (OTEL edge-path audit; source change pending deployment; deployed application remains `cffc2a0`; hosted publication workflow `40569475423` verified `@trackmcp/sdk@0.1.24`)
 Latest freshness evidence: health workflow `40566829192` with worker drain
 `40566911017` inspected eight redacted worker samples. AWS scheduler cadence is
 proven with **4/4 invocations** and **4/4 CloudWatch EMF successes**. The overall
@@ -28,6 +28,20 @@ proof.
 
 This register is the active decision surface. Historical entries below remain
 evidence and are not current approval.
+
+## 2026-10-28 — OTEL public edge audit
+
+- [x] Read-only live checks against the documented OTLP/HTTP endpoint found the
+  public `https://trackmcp.com/api/v1/otel/v1/traces` path returns Cloudflare
+  HTTP 403 HTML before the application, while the direct App Runner origin
+  reaches the receiver and returns the expected validation response for an
+  empty batch (HTTP 400). This is an edge-routing limitation, not evidence of
+  successful ingestion.
+- [x] Added explicit pilot-gate copy to the OpenTelemetry docs and Setup card:
+  an HTML 403 must never be treated as accepted telemetry. The public edge
+  write rule remains an external HOLD until corrected and rechecked.
+- [ ] Deploy the source change and re-run an authenticated, disposable OTEL
+  span through the customer-facing hostname after the edge rule is fixed.
 
 ## 2026-10-28 — transport observer documentation parity
 

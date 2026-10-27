@@ -30,6 +30,7 @@ export default function OpenTelemetryDocsPage() {
 
       <DocSection title="Supported boundary">
         <Para>TrackMCP accepts authenticated <Inline>POST</Inline> requests at <Inline>https://trackmcp.com/api/v1/otel/v1/traces</Inline>. The receiver supports OTLP/HTTP JSON and OTLP/HTTP protobuf. OTLP/gRPC is not enabled on this endpoint.</Para>
+        <div className="rounded-xl border border-amber-300 bg-amber-50 p-4 text-sm leading-relaxed text-amber-950"><strong>Pilot deployment note:</strong> the current Cloudflare-fronted public hostname is blocking server-to-server OTEL writes with HTTP 403 before they reach the receiver. Treat this integration as pending until the edge write rule is corrected; a 403 HTML response is not an accepted span.</div>
         <div className="rounded-xl border border-brand/20 bg-brand-soft/35 p-4 text-sm leading-relaxed text-body">The OTEL adapter maps spans into bounded MCP activity metadata. It does not retain raw attributes, exception bodies, trace IDs, span links, or payload contents.</div>
       </DocSection>
 

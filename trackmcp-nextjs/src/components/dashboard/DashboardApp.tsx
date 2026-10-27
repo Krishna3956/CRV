@@ -4890,6 +4890,9 @@ function SetupView({
             <p className="mt-1 text-xs leading-relaxed text-muted">
               TrackMCP provides a bounded, privacy-safe OTLP/HTTP JSON or protobuf receiver (gRPC is not enabled). Native SDK instrumentation remains the recommended path for complete MCP semantics; unsupported spans are reported rather than silently treated as successes.
             </p>
+            <p className="mt-2 rounded-md border border-amber-300 bg-amber-50 px-3 py-2 text-[11px] leading-relaxed text-amber-950">
+              Pilot note: the public edge currently rejects server-to-server OTEL writes with HTTP 403. Do not treat an HTML 403 response as accepted telemetry; this path is pending an edge rule fix.
+            </p>
             <code className="mt-3 block overflow-x-auto rounded bg-ink px-3 py-2 text-[11px] text-white">{otelEndpoint}</code>
             <div className="mt-3 flex flex-wrap items-center gap-2">
               <button type="button" onClick={() => void copyOtelEndpoint()} className="inline-flex cursor-pointer items-center gap-1.5 rounded-md border border-line-strong bg-white px-3 py-2 text-xs font-semibold text-body hover:bg-paper focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand">
