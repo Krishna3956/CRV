@@ -379,6 +379,14 @@ export function createAnalyticsHandler(getAdmin: typeof getSupabaseAdmin = getSu
     const scopes = observedFamilyScopes.get(family) || new Set<string>();
     current.capability_advertised = [...scopes].some((scope) => advertisedFamiliesByScope.get(scope)?.has(family) === true);
   }
+  const protocolCapabilityGaps = [...protocolFamilyOutcomes.keys()].flatMap((family) => {
+    const requestsWithoutAdvertisement = protocolFamilySourceRows.filter((row) => {
+      if (row.family !== family || row.observation_kind !== "protocol_request" || typeof row.scope_key !== "string") return false;
+      const advertised = advertisedFamiliesByScope.get(row.scope_key);
+      return Boolean(advertised && !advertised.has(family));
+    }).length;
+    return requestsWithoutAdvertisement ? [{ family: family as TrackMCPProtocolFamily, requests_without_advertisement: requestsWithoutAdvertisement, limitation: "A request without an observed capability advertisement is a negotiation signal, not proof that the peer rejected or could not support the operation." }] : [];
+  }).sort((a, b) => b.requests_without_advertisement - a.requests_without_advertisement || a.family.localeCompare(b.family));
   const protocolDecisions = {
     elicitation: { accept: 0, decline: 0, cancel: 0 },
     sampling: { accept: 0, decline: 0, cancel: 0 },
@@ -983,6 +991,7 @@ export function createAnalyticsHandler(getAdmin: typeof getSupabaseAdmin = getSu
     protocol_family_activity: [...protocolFamilyCounts.entries()].map(([family, observations]) => ({ family: family as TrackMCPProtocolFamily, observations })).sort((a, b) => b.observations - a.observations || a.family.localeCompare(b.family)),
     protocol_family_outcomes: [...protocolFamilyOutcomes.entries()].map(([family, outcome]) => ({ family: family as TrackMCPProtocolFamily, ...outcome })).sort((a, b) => b.observations - a.observations || a.family.localeCompare(b.family)),
     protocol_family_outcome_source: familySource,
+    protocol_capability_gaps: protocolCapabilityGaps,
     protocol_decisions: protocolDecisionSummary,
     completion_activity: completionActivity,
     transports: transports.slice(0, MAX_PUBLIC_DIMENSION_ITEMS),

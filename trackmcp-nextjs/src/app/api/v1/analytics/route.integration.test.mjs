@@ -61,6 +61,7 @@ test("analytics response exposes intent provenance and missing capabilities with
   assert.deepEqual(body.intent_sources, { context_parameter: 2, external_callback: 1, fallback: 1, missing: 1 });
   assert.deepEqual(body.missing_capabilities, [{ name: "bulk_export", reports: 1 }]);
   assert.deepEqual(body.completion_activity, { requests: 1, matched_requests: 1, unmatched_requests: 0, capability_advertised: null, responses_with_metadata: 1, with_suggestions: 0, empty_suggestions: 1, partial: 1, limitation: "Suggestion values, prompt/resource references, and argument contents are never returned. Older events without bounded completion metadata remain in protocol-family outcomes but are not classified as empty or partial." });
+  assert.deepEqual(body.protocol_capability_gaps, []);
   assert.equal(JSON.stringify(body).includes("hidden"), false);
   assert.equal(JSON.stringify(body).includes("must not inflate aggregate"), false);
 });

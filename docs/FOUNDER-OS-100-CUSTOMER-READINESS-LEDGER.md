@@ -45,6 +45,13 @@ permission.
 - [x] Public protocol and SDK documentation now exposes the decision evidence
   and its non-approval/privacy limitation consistently.
 
+## 2026-10-27 capability-negotiation evidence milestone
+
+- [x] Analytics now reports bounded requests observed without a same-scope
+  capability advertisement, with explicit negotiation-only caveats.
+- [ ] Authenticated modern interoperability and peer-owned rejection behavior
+  remain external UAT gates.
+
 The health report exposes `scheduled_cadence_gate` separately from operational
 `state`, plus `aws_scheduler_cadence_gate` and
 `aws_end_to_end_cadence_gate`. AWS metric health can be proven while the
