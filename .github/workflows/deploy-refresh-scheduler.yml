@@ -147,7 +147,7 @@ jobs:
           aws cloudformation describe-stack-resources \
             --stack-name "$STACK_NAME" \
             --region "$AWS_REGION" \
-            --query 'StackResourceSummaries[?LogicalResourceId==`RefreshSchedulerFunction` || LogicalResourceId==`RefreshSchedulerSchedule` || LogicalResourceId==`RefreshSchedulerDLQ` || LogicalResourceId==`SchedulerLambdaFailureAlarm` || LogicalResourceId==`SchedulerDLQAlarm`].{LogicalId:LogicalResourceId,Status:ResourceStatus,PhysicalId:PhysicalResourceId}' \
+            --query 'StackResourceSummaries[].{LogicalId:LogicalResourceId,Status:ResourceStatus,PhysicalId:PhysicalResourceId}' \
             --output json | tee "$REPORT_DIR/resource-states.json"
 
       - name: Run opt-in authenticated Lambda smoke without secret material
@@ -162,9 +162,9 @@ jobs:
             exit 1
           fi
           REPORT_DIR="$RUNNER_TEMP/refresh-scheduler-report"
-          FUNCTION_NAME=$(aws cloudformation describe-stack-resources \
+          FUNCTION_NAME=$(aws cloudformation describe-stacks \
             --stack-name "$STACK_NAME" --region "$AWS_REGION" \
-            --query 'StackResourceSummaries[?LogicalResourceId==`RefreshSchedulerFunction`].PhysicalResourceId | [0]' \
+            --query 'Stacks[0].Outputs[?OutputKey==`RefreshSchedulerFunctionArn`].OutputValue | [0]' \
             --output text)
           INVOKE_OUTPUT="$RUNNER_TEMP/refresh-scheduler-invoke.json"
           aws lambda invoke --function-name "$FUNCTION_NAME" --region "$AWS_REGION" \
@@ -181,9 +181,9 @@ jobs:
             --order-by LastEventTime --descending --max-items 1 --region "$AWS_REGION" \
             --query 'logStreams[0].{log_stream_name:logStreamName,last_event_timestamp:lastEventTimestamp}' \
             --output json > "$REPORT_DIR/lambda-log-metadata.json"
-          DLQ_URL=$(aws cloudformation describe-stack-resources \
+          DLQ_URL=$(aws cloudformation describe-stacks \
             --stack-name "$STACK_NAME" --region "$AWS_REGION" \
-            --query 'StackResourceSummaries[?LogicalResourceId==`RefreshSchedulerDLQ`].PhysicalResourceId | [0]' \
+            --query 'Stacks[0].Outputs[?OutputKey==`RefreshSchedulerDLQUrl`].OutputValue | [0]' \
             --output text)
           aws sqs get-queue-attributes --queue-url "$DLQ_URL" \
             --attribute-names ApproximateNumberOfMessagesVisible \

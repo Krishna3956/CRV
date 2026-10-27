@@ -16,6 +16,14 @@ Status: active autonomous audit, started 2026-10-21.
   release gate passes 139 suites; lint and the production build pass. This is
   a workflow-read fix only: the authenticated production invocation, DLQ/log
   evidence, enabled schedule, and three scheduled samples remain open gates.
+- The follow-up dispatch (`40429899603`) showed that the stack's resource-list
+  query can return `null` under the deployed role, so the smoke now resolves
+  the function ARN and DLQ URL from the stack's already-published outputs and
+  reports all resource metadata without a restrictive JMESPath filter. That
+  run failed closed before invocation with function `None`; it did not execute
+  a refresh request or enable the schedule. The corrected workflow is covered
+  by the 6/6 focused suite and 139-suite release gate and is queued for the
+  next disabled-first dispatch.
 
 ## 2026-10-27 — authenticated production scope smoke
 
