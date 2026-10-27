@@ -101,6 +101,7 @@ export default function ApiDocsPage() {
           Span attributes, exception bodies, trace IDs, logs, baggage, arguments, and
           results are not retained by this endpoint.
         </Para>
+        <div className="rounded-xl border border-amber-300 bg-amber-50 p-4 text-sm leading-relaxed text-amber-950"><strong>Current pilot edge status:</strong> server-to-server writes through the public hostname may receive a Cloudflare HTTP 403 before reaching this receiver. Treat an HTML 403 as rejected telemetry, not a successful response, until the edge write rule is corrected.</div>
         <Code>{`curl https://trackmcp.com/api/v1/otel/v1/traces \\
   -H "Authorization: Bearer $TRACKMCP_KEY" \\
   -H "Content-Type: application/json" \\
