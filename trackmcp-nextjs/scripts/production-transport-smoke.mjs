@@ -40,7 +40,7 @@ function listen(server) {
 
 function close(server) { return new Promise((resolve) => server.close(() => resolve())); }
 
-function diagnosticSummary(adapter) {
+function diagnosticSummary(adapter, deliveryErrors) {
   const diagnostics = adapter.getDiagnostics();
   return {
     dropped_events: diagnostics.droppedEvents,
@@ -48,7 +48,18 @@ function diagnosticSummary(adapter) {
     privacy_errors: diagnostics.privacyErrors,
     queued_events: diagnostics.queuedEvents,
     queued_bytes: diagnostics.queuedBytes,
+    delivery_error_count: deliveryErrors.length,
   };
+}
+
+function assertDelivered(label, adapter, deliveryErrors) {
+  const diagnostics = adapter.getDiagnostics();
+  if (deliveryErrors.length > 0 || diagnostics.queuedEvents !== 0 || diagnostics.queuedBytes !== 0) {
+    fail(`${label} did not deliver a cleanly drained telemetry batch`);
+  }
+  if (diagnostics.droppedEvents !== 0 || diagnostics.hookErrors !== 0 || diagnostics.privacyErrors !== 0) {
+    fail(`${label} reported bounded telemetry diagnostics that invalidate UAT`);
+  }
 }
 
 async function runStreamable() {
@@ -70,7 +81,8 @@ async function runStreamable() {
     });
   });
   const endpoint = await listen(server);
-  const adapter = new TrackMCPClientAdapter({ apiKey, service: `${servicePrefix}-streamable`, environment: "production", endpoint: `${baseUrl.replace(/\/$/, "")}/api/v1/ingest`, transport: "streamable_http", flushIntervalMs: 60_000 });
+  const deliveryErrors = [];
+  const adapter = new TrackMCPClientAdapter({ apiKey, service: `${servicePrefix}-streamable`, environment: "production", endpoint: `${baseUrl.replace(/\/$/, "")}/api/v1/ingest`, transport: "streamable_http", flushIntervalMs: 60_000, diagnostics: { onDeliveryError: () => { if (deliveryErrors.length < 8) deliveryErrors.push(true); } } });
   const client = new Client({ name: "trackmcp-transport-smoke", version: "1" });
   try {
     await client.connect(adapter.wrapTransport(new StreamableHTTPClientTransport(new URL(endpoint))));
@@ -78,7 +90,8 @@ async function runStreamable() {
     await client.callTool({ name: "lookup", arguments: { private_fixture_value: "omit" } });
     await client.close();
     await adapter.flush();
-    return { label: "Streamable HTTP adapter", methods: methods.filter((method) => method !== "notifications/initialized"), diagnostics: diagnosticSummary(adapter) };
+    assertDelivered("Streamable HTTP adapter", adapter, deliveryErrors);
+    return { label: "Streamable HTTP adapter", methods: methods.filter((method) => method !== "notifications/initialized"), diagnostics: diagnosticSummary(adapter, deliveryErrors) };
   } finally {
     await client.close().catch(() => {});
     await close(server);
@@ -114,7 +127,8 @@ async function runSse() {
     response.end();
   });
   const endpoint = await listen(server);
-  const adapter = new TrackMCPClientAdapter({ apiKey, service: `${servicePrefix}-sse`, environment: "production", endpoint: `${baseUrl.replace(/\/$/, "")}/api/v1/ingest`, transport: "sse", flushIntervalMs: 60_000 });
+  const deliveryErrors = [];
+  const adapter = new TrackMCPClientAdapter({ apiKey, service: `${servicePrefix}-sse`, environment: "production", endpoint: `${baseUrl.replace(/\/$/, "")}/api/v1/ingest`, transport: "sse", flushIntervalMs: 60_000, diagnostics: { onDeliveryError: () => { if (deliveryErrors.length < 8) deliveryErrors.push(true); } } });
   const transport = adapter.wrapTransport(new SSEClientTransport(new URL(`${endpoint}/sse`)));
   transport.onerror = () => {};
   transport.onclose = () => {};
@@ -126,7 +140,8 @@ async function runSse() {
     stream?.destroy();
     await new Promise((resolve) => setTimeout(resolve, 250));
     await adapter.flush();
-    return { label: "SSE adapter", methods, diagnostics: diagnosticSummary(adapter) };
+    assertDelivered("SSE adapter", adapter, deliveryErrors);
+    return { label: "SSE adapter", methods, diagnostics: diagnosticSummary(adapter, deliveryErrors) };
   } finally {
     await transport.close().catch(() => {});
     await close(server);

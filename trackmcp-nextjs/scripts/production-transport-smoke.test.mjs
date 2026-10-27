@@ -31,6 +31,10 @@ test("production transport smoke is metadata-only and redacted", () => {
 test("production transport smoke writes bounded report evidence", () => {
   assert.match(source, /checks\.map/);
   assert.match(source, /diagnostics/);
+  assert.match(source, /onDeliveryError/);
+  assert.match(source, /queuedEvents/);
+  assert.match(source, /delivery_error_count/);
+  assert.match(source, /assertDelivered/);
   assert.match(source, /fixture-result-not-retained/);
   assert.match(source, /Production transport smoke passed/);
 });
