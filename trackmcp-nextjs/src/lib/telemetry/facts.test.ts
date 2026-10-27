@@ -47,6 +47,25 @@ test("persists allowlisted lifecycle signals in the durable semantic fact", () =
   assert.equal(JSON.stringify(fact).includes("subscriptions/listen"), false);
 });
 
+test("persists bounded subscription lifecycle metadata without identifiers or targets", () => {
+  const fact = projectTrackMCPFact(event({
+    event_type: "protocol",
+    mcp_method: "resources/subscribe",
+    payload: {
+      _trackmcp: {
+        subscription_action: "subscribe_requested",
+        subscription_id: "private-subscription-id",
+        uri: "secret://private-resource",
+      },
+    },
+  }));
+  assert.equal(fact.fact_type, "lifecycle");
+  assert.equal(fact.dimensions.subscription_action, "subscribe_requested");
+  const serialized = JSON.stringify(fact);
+  assert.equal(serialized.includes("private-subscription-id"), false);
+  assert.equal(serialized.includes("secret://private-resource"), false);
+});
+
 test("persists an allowlisted family hint when the method name is unavailable", () => {
   const fact = projectTrackMCPFact(event({ event_type: "protocol", payload: { _trackmcp: { protocol_family: "sampling", prompt: "private" } }, result_type: "complete" }));
   assert.equal(fact.dimensions.protocol_family, "sampling");

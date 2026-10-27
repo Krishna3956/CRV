@@ -51,6 +51,17 @@ Status: active autonomous audit, started 2026-10-21.
   revoked-key rejection. It does not close write-gated key lifecycle,
   first-ingest, transport, or customer-endpoint UAT; those gates remain open.
 
+## 2026-10-27 — subscription lifecycle fact projection
+
+- Durable semantic facts now retain an allowlisted `subscription_action`
+  discriminator for resource and modern subscription lifecycle events. Raw
+  subscription identifiers, URIs, and payload values remain excluded from the
+  fact projection; the new regression fixture verifies that privacy boundary.
+- This closes the local “subscription events are only ordinary lifecycle
+  signals” projection gap. Authenticated cross-transport subscription UAT,
+  reconnect ownership, and durable replay/invalidation guarantees remain
+  explicitly outside the claim.
+
 ## 2026-10-27 — package-version parity and release-gate recheck
 
 - Reconciled the current CLI integration README, package-release readiness

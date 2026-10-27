@@ -38,6 +38,8 @@ export type TrackMCPFact = {
     protocol_observation_kind?: "protocol_request" | "protocol_response";
     /** Explicitly advertised capability families; never inferred from traffic. */
     capability_families?: TrackMCPProtocolFamily[];
+    /** Bounded subscription lifecycle discriminator; identifiers and targets remain excluded. */
+    subscription_action?: "listen_requested" | "subscribe_requested" | "unsubscribe_requested" | "subscription_started" | "subscription_stopped";
   };
   measures: {
     duration_ms?: number;
@@ -115,6 +117,13 @@ export function projectTrackMCPFact(event: CanonicalTrackMCPEvent): TrackMCPFact
   const completionTotal = boundedNonNegative(typeof payloadMetadata?.completion_total === "number" ? payloadMetadata.completion_total : undefined, 1_000_000);
   const completionHasMore = typeof payloadMetadata?.completion_has_more === "boolean" ? payloadMetadata.completion_has_more : undefined;
   const capabilityFamilies = capabilityFamiliesForEvent(event);
+  const subscriptionAction = payloadMetadata?.subscription_action === "listen_requested"
+    || payloadMetadata?.subscription_action === "subscribe_requested"
+    || payloadMetadata?.subscription_action === "unsubscribe_requested"
+    || payloadMetadata?.subscription_action === "subscription_started"
+    || payloadMetadata?.subscription_action === "subscription_stopped"
+    ? payloadMetadata.subscription_action
+    : undefined;
   const fact: TrackMCPFact = {
     fact_version: TRACKMCP_FACT_CONTRACT_VERSION,
     fact_type: factTypeFor(event),
@@ -138,6 +147,7 @@ export function projectTrackMCPFact(event: CanonicalTrackMCPEvent): TrackMCPFact
       ...(protocolFamilyForEvent(event) ? { protocol_family: protocolFamilyForEvent(event) } : {}),
       ...(observationKind ? { protocol_observation_kind: observationKind } : {}),
       ...(capabilityFamilies.length ? { capability_families: capabilityFamilies } : {}),
+      ...(subscriptionAction ? { subscription_action: subscriptionAction } : {}),
     },
     measures: {
       duration_ms: boundedNonNegative(event.duration_ms, 86_400_000),
