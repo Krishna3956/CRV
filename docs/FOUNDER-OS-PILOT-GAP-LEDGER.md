@@ -54,6 +54,15 @@ Status: active autonomous audit, started 2026-10-21.
 - The required three-sample cadence is still pending; no sustained freshness
   SLO claim is made.
 
+## 2026-10-27 — AWS scheduler cadence gates proven
+
+- Health workflow `40493587359` now proves three Lambda invocations and three
+  scheduled-success markers with zero errors or scheduled failures.
+- The AWS scheduler and AWS end-to-end cadence gates are closed as `proven`.
+  The broader worker freshness gate remains open because only one GitHub-
+  scheduled worker sample is available and the report still carries a
+  historical freshness breach.
+
 ## 2026-10-27 — bounded catalog correlation parity
 
 - Catalog list-change notifications now have a privacy-safe, reviewed evidence

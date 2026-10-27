@@ -61,6 +61,18 @@ permission.
 - [ ] The required three scheduled samples are not yet available, so the
   sustained cadence and freshness gates remain open.
 
+## 2026-10-27 scheduler cadence gates proven
+
+- [x] Health workflow `40493587359` proves three AWS Lambda invocations and
+  three scheduled-success markers in the bounded CloudWatch window, with zero
+  errors or scheduled failures.
+- [x] `aws_scheduler_cadence_gate` and `aws_end_to_end_cadence_gate` are now
+  `proven`.
+- [ ] The overall worker health state remains `insufficient_data`: only one
+  GitHub-scheduled worker sample is available and the report retains a
+  historical freshness breach. The application freshness SLO is therefore
+  still open despite the AWS scheduler gates passing.
+
 ## 2026-10-27 SDK release-train publication
 
 - [x] Source changes after the published `@trackmcp/sdk@0.1.20` and
