@@ -22,6 +22,18 @@ the maximum queue lag is `3,506,514 ms` (above the 15-minute pilot budget).
   credentialed lifecycle/UAT, and customer-owned protocol interoperability
   gates.
 
+## 2026-10-28 — published SDK train reconciliation
+
+- [x] Registry audit confirms the current public train remains
+  `@trackmcp/sdk@0.1.22`, `@trackmcp/cli@0.1.11`, and `trackmcp==0.1.13`.
+- [ ] The Python transport-aware protocol-result observer was added after the
+  published Python artifact. It is source- and CI-verified but must not be
+  described as available from PyPI until the next reviewed coordinated release
+  train is published and registry-verified.
+- [ ] Do not create a micro-release for this alone; batch it with the next
+  reviewed SDK/CLI release and run the existing provenance and clean-consumer
+  gates before publication.
+
 ## 2026-10-27 — Python public protocol-result contract validation
 
 - [x] Corrected the release contract to assert the shipped public
