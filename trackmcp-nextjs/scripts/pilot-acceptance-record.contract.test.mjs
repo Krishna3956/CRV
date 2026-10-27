@@ -61,13 +61,13 @@ test("external-gate register names accountable parties and closure evidence", ()
 
 test("acceptance matrix separates current source from deployed runtime", () => {
   assert.match(acceptanceMatrix, /4efa2e1bd444706e84d78ef85b8a7b3b133a46aa/);
-  assert.match(acceptanceMatrix, /current repository source is `ba19661`/);
+  assert.match(acceptanceMatrix, /current repository source is `05bd567`/);
   assert.match(acceptanceMatrix, /not claimed as\s+deployed behavior/);
 });
 
 test("root pilot status stays aligned with the current evidence baseline", () => {
   assert.match(pilotStatus, /Last verified: 2026-10-27/);
-  assert.match(pilotStatus, /origin\/main` is `6b22d9e`/);
+  assert.match(pilotStatus, /origin\/main` is `05bd567`/);
   assert.match(pilotStatus, /144 suites/);
   assert.match(pilotStatus, /177-route/);
   assert.match(pilotStatus, /Release-owner scope approval and final first-100-user go\/no-go remain open/);

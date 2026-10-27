@@ -51,7 +51,7 @@ recovery-evidence hardening, not a final operational SLO acceptance.
 
 ## Latest source verification — 2026-10-27
 
-The current repository source is `ba19661`. The latest local release gate
+The current repository source is `05bd567`. The latest local release gate
 passes **144 suites**, lint, the production build (**177 routes**), and
 `git diff --check`. These are source/documentation verification results only;
 the latest verified deployed runtime remains immutable `4efa2e1` above. No

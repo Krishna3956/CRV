@@ -15,7 +15,7 @@ is intentionally not a GO approval and must not be treated as one.
   App Runner workflow `40497434962` (successful rollout). This deployment
   contains deployment-trigger hardening and preserves the previously verified
   application behavior; its runtime reference is the exact immutable SHA.
-- Current source verification: `main` at `ba19661` (catalog entity integrity
+- Current source verification: `main` at `05bd567` (pilot-status evidence
   postflight ledger update), with the deployed application still at immutable
   `4efa2e1`. The intervening commits are documentation-only evidence updates;
   no deployment is claimed for them.
