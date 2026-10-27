@@ -518,6 +518,10 @@ class TrackMCP:
             event["result_type"] = metadata["result_type"]
         if "task_status" in metadata:
             event["task_status"] = metadata["task_status"]
+        if "input_request_count" in metadata:
+            event["input_request_count"] = metadata["input_request_count"]
+        if "input_response_count" in metadata:
+            event["input_response_count"] = metadata["input_response_count"]
         self.capture(event)
 
     def record_authorization_outcome(

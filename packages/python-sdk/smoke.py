@@ -13,13 +13,7 @@ import threading
 from http.server import BaseHTTPRequestHandler, HTTPServer
 
 from trackmcp import TrackMCP, TrackMCPOptions
-from trackmcp.client import (
-    _catalog_observation,
-    _entity_protocol_event,
-    _protocol_metadata_payload,
-    _protocol_result_metadata,
-    interaction_entity_observation,
-)
+from trackmcp.client import _catalog_observation, _entity_protocol_event, interaction_entity_observation
 
 
 class CaptureHandler(BaseHTTPRequestHandler):
@@ -101,19 +95,12 @@ def main() -> None:
         ))
         protocol_result = {
             "resultType": "input_required",
+            "taskStatus": "working",
             "inputRequests": [{"prompt": "private-input-request"}] * 140,
             "inputResponses": [{"value": "private-input-response"}] * 120,
             "taskId": "private-task-handle",
         }
-        client.capture({
-            "event_type": "protocol",
-            "mcp_method": "elicitation/create",
-            "session_id": "python-smoke-session",
-            "success": True,
-            "is_error": False,
-            **_protocol_result_metadata(protocol_result),
-            "payload": _protocol_metadata_payload("elicitation/create", protocol_result),
-        })
+        client.record_protocol_result("elicitation/create", protocol_result, session_id="python-smoke-session")
         client.record_transport_failure(
             "transport_error", session_id="python-smoke-session", duration_ms=12
         )
@@ -155,7 +142,7 @@ def main() -> None:
         fail("resource entity-read metadata was not emitted")
     if events[3].get("catalog_kind") != "prompts" or events[3].get("mcp_method") != "prompts/get" or events[3].get("result_type") != "complete":
         fail("prompt entity-read metadata was not emitted")
-    if events[4].get("mcp_method") != "elicitation/create" or events[4].get("result_type") != "input_required" or events[4].get("input_request_count") != 100 or events[4].get("input_response_count") != 100:
+    if events[4].get("mcp_method") != "elicitation/create" or events[4].get("result_type") != "input_required" or events[4].get("task_status") != "working" or events[4].get("input_request_count") != 100 or events[4].get("input_response_count") != 100:
         fail("bounded protocol-result metadata was not emitted")
     if events[4].get("payload", {}).get("_trackmcp", {}).get("observation_kind") != "protocol_response":
         fail("protocol-result observation marker was not emitted")
