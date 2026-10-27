@@ -11,6 +11,8 @@ test("refresh scheduler deployment is manual, OIDC-authenticated, and disabled b
   assert.match(workflow, /aws-actions\/configure-aws-credentials@v4/);
   assert.match(workflow, /aws-actions\/setup-sam@v2/);
   assert.match(workflow, /default:\s*false[\s\S]*type:\s*boolean/);
+  assert.match(workflow, /run_authenticated_smoke:/);
+  assert.match(workflow, /run_authenticated_smoke requires enable_schedule=false/);
   assert.match(workflow, /\"EnableSchedule=\$ENABLE_SCHEDULE\"/);
   assert.match(workflow, /--no-confirm-changeset/);
 });
@@ -39,6 +41,17 @@ test("refresh scheduler deployment reports only CloudFormation status metadata",
   assert.match(workflow, /refresh-scheduler-evidence-\$\{\{ github\.run_id \}\}/);
   assert.match(workflow, /retention-days: 14/);
   assert.doesNotMatch(workflow, /get-secret-value|SecretString|response body/i);
+});
+
+test("authenticated smoke is explicit, disabled-first, and metadata-only", () => {
+  assert.match(workflow, /Run opt-in authenticated Lambda smoke without secret material/);
+  assert.match(workflow, /aws lambda invoke --function-name/);
+  assert.match(workflow, /statusCode \| numbers/);
+  assert.match(workflow, /describe-log-streams/);
+  assert.match(workflow, /get-queue-attributes/);
+  assert.match(workflow, /raw Lambda payloads/);
+  assert.doesNotMatch(workflow, /aws logs get-log-events/);
+  assert.doesNotMatch(workflow, /aws secretsmanager get-secret-value/);
 });
 
 test("refresh scheduler omits an empty optional alarm parameter", () => {

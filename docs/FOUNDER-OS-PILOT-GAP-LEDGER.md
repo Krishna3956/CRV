@@ -2,6 +2,19 @@
 
 Status: active autonomous audit, started 2026-10-21.
 
+## 2026-10-27 — disabled-first authenticated scheduler smoke path
+
+- Extended the manual scheduler workflow with an explicit
+  `run_authenticated_smoke` input, defaulting to `false` and refusing to run
+  unless `enable_schedule=false`. When selected, it invokes the deployed
+  Lambda once and retains only the status code, log-stream metadata, and DLQ
+  depth; it never reads the secret, fetches log events, or stores raw payloads.
+- Added contract coverage and operator documentation for this path. The
+  focused scheduler workflow suite passes 6/6; the full release gate passes
+  138 suites; lint and the Next.js production build pass. The smoke has not
+  been invoked against production, so the authenticated Lambda/log/DLQ gate
+  remains open and the recurring schedule remains disabled.
+
 ## 2026-10-27 — production route and release-gate recheck
 
 - Re-ran the credential-free production pilot smoke against `https://trackmcp.com`.

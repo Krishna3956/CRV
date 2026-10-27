@@ -1,6 +1,6 @@
 # Founder OS 100 Customer Readiness Ledger
 
-Last updated: 2026-10-27 (main `ee66051`; deployed application `1624d9a` and App Runner production/authenticated smoke verified)
+Last updated: 2026-10-27 (main `0b19953`; deployed application `0c36da1` and App Runner production smoke verified)
 Latest freshness evidence: refresh-worker workflow `40416004272` on main
 commit `ee66051` completed technically successfully, but its retained summary
 artifact `12695217713` reports `freshness_slo: stale` and
@@ -8,14 +8,11 @@ artifact `12695217713` reports `freshness_slo: stale` and
 scheduled-sample health remains an explicit open gate below.
 
 The deployed application is the runtime-verified App Runner release
-(`1624d9a2e6128feaffe1bfb83746b74a972ae311`, workflow `40412512143`). The
+(`0c36da187d6fee56cd280ea79070176e9cd8f63d`, workflow `40426236860`). The
 release gate, image binding, rollout, read-only production smoke, running
-identity, and runtime-safety audit all passed. Retained artifacts are
-`production-smoke-57f56431317564c4789bbae0eb4e7bac92bba29e` (`12686206914`),
-`runtime-flags-57f56431317564c4789bbae0eb4e7bac92bba29e` (`12685242310`),
-`app-runner-host-57f56431317564c4789bbae0eb4e7bac92bba29e` (`12685702047`),
-and the latest authenticated smoke `production-auth-smoke-1624d9a2e6128feaffe1bfb83746b74a972ae311`
-(`12694805391`).
+identity, and runtime-safety audit all passed. A separate credential-free
+production pilot smoke passed 36 bounded checks; authenticated smoke evidence
+from the prior release remains historical until rerun for this exact image.
 
 ## 2026-10-27 latest refresh-worker evidence
 

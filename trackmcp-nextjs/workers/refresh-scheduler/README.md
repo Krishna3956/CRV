@@ -91,6 +91,14 @@ unauthenticated request and an incorrect bearer token both return `401`, then
 load the real token only from the protected secret store. Keep the schedule
 disabled until those checks, the log review, and the DLQ/alarm review pass.
 
+The GitHub Actions deployment workflow also exposes an opt-in
+`run_authenticated_smoke` input. Set it to `true` only with
+`enable_schedule=false`; the workflow invokes the Lambda once and stores only
+the HTTP status, log-stream metadata, and DLQ depth in its short-lived evidence
+artifact. It never reads the secret, fetches log events, or stores the Lambda
+response body. This is the disabled-first authenticated check; it does not
+enable the recurring schedule or prove the three-sample freshness gate.
+
 To remove a test stack, disable it first and then delete it only after checking
 for in-flight work:
 

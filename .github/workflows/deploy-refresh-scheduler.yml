@@ -26,6 +26,11 @@ on:
         required: true
         default: false
         type: boolean
+      run_authenticated_smoke:
+        description: Invoke the deployed Lambda once and retain only status metadata (requires enable_schedule=false)
+        required: true
+        default: false
+        type: boolean
       failure_alarm_topic_arn:
         description: Optional SNS topic ARN for failure alarms
         required: false
@@ -144,6 +149,46 @@ jobs:
             --region "$AWS_REGION" \
             --query 'StackResourceSummaries[?LogicalResourceId==`RefreshSchedulerFunction` || LogicalResourceId==`RefreshSchedulerSchedule` || LogicalResourceId==`RefreshSchedulerDLQ` || LogicalResourceId==`SchedulerLambdaFailureAlarm` || LogicalResourceId==`SchedulerDLQAlarm`].{LogicalId:LogicalResourceId,Status:ResourceStatus,PhysicalId:PhysicalResourceId}' \
             --output json | tee "$REPORT_DIR/resource-states.json"
+
+      - name: Run opt-in authenticated Lambda smoke without secret material
+        if: ${{ inputs.run_authenticated_smoke }}
+        env:
+          STACK_NAME: ${{ inputs.stack_name }}
+          ENABLE_SCHEDULE: ${{ inputs.enable_schedule }}
+        run: |
+          set -euo pipefail
+          if [[ "$ENABLE_SCHEDULE" != "false" ]]; then
+            echo "::error::run_authenticated_smoke requires enable_schedule=false."
+            exit 1
+          fi
+          REPORT_DIR="$RUNNER_TEMP/refresh-scheduler-report"
+          FUNCTION_NAME=$(aws cloudformation describe-stack-resource \
+            --stack-name "$STACK_NAME" --logical-resource-id RefreshSchedulerFunction \
+            --region "$AWS_REGION" --query 'StackResourceDetail.PhysicalResourceId' \
+            --output text)
+          INVOKE_OUTPUT="$RUNNER_TEMP/refresh-scheduler-invoke.json"
+          aws lambda invoke --function-name "$FUNCTION_NAME" --region "$AWS_REGION" \
+            --invocation-type RequestResponse --payload '{}' \
+            --cli-binary-format raw-in-base64-out "$INVOKE_OUTPUT" >/dev/null
+          STATUS_CODE=$(jq -er '.statusCode | numbers' "$INVOKE_OUTPUT")
+          [[ "$STATUS_CODE" == "200" ]] || { echo "::error::authenticated refresh Lambda returned status $STATUS_CODE"; exit 1; }
+          jq -n --arg function "$FUNCTION_NAME" --argjson status "$STATUS_CODE" \
+            '{lambda_invocation:"passed", function_name:$function, status_code:$status}' \
+            > "$REPORT_DIR/authenticated-lambda-smoke.json"
+          # Describe only log-stream metadata. Never fetch log events, token
+          # values, or raw Lambda payloads into workflow output.
+          aws logs describe-log-streams --log-group-name "/aws/lambda/$FUNCTION_NAME" \
+            --order-by LastEventTime --descending --max-items 1 --region "$AWS_REGION" \
+            --query 'logStreams[0].{log_stream_name:logStreamName,last_event_timestamp:lastEventTimestamp}' \
+            --output json > "$REPORT_DIR/lambda-log-metadata.json"
+          DLQ_URL=$(aws cloudformation describe-stack-resource \
+            --stack-name "$STACK_NAME" --logical-resource-id RefreshSchedulerDLQ \
+            --region "$AWS_REGION" --query 'StackResourceDetail.PhysicalResourceId' \
+            --output text)
+          aws sqs get-queue-attributes --queue-url "$DLQ_URL" \
+            --attribute-names ApproximateNumberOfMessagesVisible \
+            --region "$AWS_REGION" --query 'Attributes' --output json \
+            > "$REPORT_DIR/dlq-depth.json"
 
       - name: Upload scheduler evidence
         if: always()

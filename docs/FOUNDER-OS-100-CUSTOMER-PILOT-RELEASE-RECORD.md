@@ -8,13 +8,14 @@ commit and the operator accepts the listed limitations.
 
 ## Current deployed baseline — 2026-10-27
 
-App Runner workflow `40393173889` successfully deployed immutable application
-commit `57f56431317564c4789bbae0eb4e7bac92bba29e`. The hosted release gate,
+App Runner workflow `40426236860` successfully deployed immutable application
+commit `0c36da187d6fee56cd280ea79070176e9cd8f63d`. The hosted release gate,
 image binding, rollout wait, read-only production smoke, running-release
-identity verification, and runtime-safety audit passed. Authenticated smoke
-workflow `40394208530` passed 37 checks for the exact SHA; retained artifact
-`12685019035` reports `outcome=passed`. Later docs/ops commits are not called
-runtime deployments because they do not change the application image.
+identity verification, and runtime-safety audit passed. A credential-free
+production pilot smoke then passed 36 bounded checks against the public origin;
+its redacted report is retained locally and is not treated as authenticated UAT.
+Later docs/ops commits are not called runtime deployments because they do not
+change the application image.
 This is the current engineering baseline; the release remains Draft/HOLD until
 the open operational and owner gates below are independently accepted.
 
@@ -240,8 +241,8 @@ the existing insufficient-evidence outcome rules.
 | --- | --- |
 | Pilot scope | First 100 customers, desktop dashboard boundary |
 | Production hosts | `trackmcp.com`, `app.trackmcp.com` |
-| Last deployed application commit | `57f56431317564c4789bbae0eb4e7bac92bba29e` (identity-verified current baseline) |
-| Last successful App Runner deployment | `40393173889` |
+| Last deployed application commit | `0c36da187d6fee56cd280ea79070176e9cd8f63d` (identity-verified current baseline) |
+| Last successful App Runner deployment | `40426236860` |
 | Readiness ledger | `docs/FOUNDER-OS-100-CUSTOMER-READINESS-LEDGER.md` |
 | Current release-record change | Current mainline reconciliation of deployed runtime and release-gate evidence |
 
