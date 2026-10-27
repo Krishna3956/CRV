@@ -21,6 +21,14 @@ Status: active autonomous audit, started 2026-10-21.
   record updates. It is not a substitute for the still-open hosted cadence,
   recovery, privacy, credentialed UAT, or release-owner gates.
 
+## 2026-10-27 — TypeScript SDK registry propagation verified
+
+- Read-only npm registry inspection confirms `@trackmcp/sdk@0.1.20` is
+  available at its expected tarball and reports the exact SHA-512 integrity
+  recorded in `FOUNDER-OS-PACKAGE-RELEASE-READINESS.md`.
+- This closes the publication-propagation ambiguity for the TypeScript SDK;
+  it does not claim authenticated customer activation or first-event UAT.
+
 ## 2026-10-27 — scheduler auto-redeploy verified
 
 - GitHub Actions run `40470584190` completed successfully for `078efb7`.
@@ -425,7 +433,7 @@ just because a README or marketing page mentions it.
 
 | Surface | Current evidence | Status | Next proof |
 | --- | --- | --- | --- |
-| TypeScript server SDK | `packages/typescript-sdk`, consumer gate, published `0.1.20`; source fails closed for removed `tasks/list` and retains explicit-handle `tasks/get` observation without task mutation | Patch publication is being verified through the reviewed single-package workflow; npm integrity will be recorded after propagation | Authenticated activation/first-event evidence remains a separate pilot gate |
+| TypeScript server SDK | `packages/typescript-sdk`, consumer gate, published `0.1.20`; source fails closed for removed `tasks/list` and retains explicit-handle `tasks/get` observation without task mutation | Published and registry-verified: npm reports version `0.1.20` with SHA-512 integrity `sha512-cg8If4qaIAoEzT5CLqj17IwsN36H4V77DAl4x8fXdbnlvP71ZqadIRibMIelv9ydaK7LexgXhzbtOGkvJ+fZdw==` and the reviewed tarball | Authenticated activation/first-event evidence remains a separate pilot gate |
 | Python server SDK | `packages/python-sdk`, package consumer gate, published `0.1.12` | Published and registry-verified by workflow `40271909727`; wheel/sdist digests recorded in `FOUNDER-OS-PACKAGE-RELEASE-READINESS.md` | Authenticated activation/first-event evidence remains a separate pilot gate |
 | Transport observer / Node client adapter | `@trackmcp/sdk/client-adapter`; Node-only wrapper for Stdio and Streamable HTTP; metadata-only and fail-open; bounded capability-family metadata, lifecycle generations for reconnect correlation, and dedicated adapter tests | Implemented and merged through PRs #173–#175 | Hosted cross-language compile evidence and authenticated transport UAT |
 | Go SDK | `packages/go-sdk/trackmcp.go`; transport-neutral primitive, source package only | Implemented with source-only distribution boundary | Publish only after package provenance/release work is approved |
