@@ -1,12 +1,23 @@
 # Founder OS 100 Customer Readiness Ledger
 
-Last updated: 2026-10-27 (main `f67b3c2`; deployed application `506be89` and App Runner rollout and production smoke verified; TypeScript SDK 0.1.22 and CLI 0.1.11 registry publication verified)
+Last updated: 2026-10-27 (main `aa15534`; deployed application `506be89` and App Runner rollout and production smoke verified; TypeScript SDK 0.1.22 and CLI 0.1.11 registry publication verified)
 Latest freshness evidence: health workflow `40502266095` (scheduled) inspected eight
 redacted worker samples. AWS scheduler cadence is now proven with **3/3
 invocations**, and the end-to-end scheduled-success marker is proven with **4/4
 CloudWatch EMF successes**. The overall state remains `warning` because
 only **1/3 scheduled worker samples** is in the current evaluation window and
 the maximum queue lag is `3,506,514 ms` (above the 15-minute pilot budget).
+
+## 2026-10-27 — Python protocol transport parity
+
+- [x] `record_protocol_signal` now preserves an explicitly supplied allowlisted
+  transport (`stdio`, `streamable_http`, `sse`, or `custom`) while rejecting
+  unknown values and retaining metadata-only privacy behavior.
+- [x] Python SDK unit tests (38), runtime smoke, and `git diff --check` passed;
+  implementation commit: `aa15534`.
+- [ ] This closes transport labeling parity only. Authenticated production UAT,
+  transport-owned reconnect/replay, and broader protocol lifecycle boundaries
+  remain separately tracked.
 
 ## 2026-10-27 — hosted validation for latest ledger commit green
 
