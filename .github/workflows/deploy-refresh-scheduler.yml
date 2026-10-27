@@ -102,6 +102,7 @@ jobs:
             "WorkerUrl=$WORKER_URL"
             "WorkerTokenSecretArn=$WORKER_TOKEN_SECRET_ARN"
             "EnableSchedule=$ENABLE_SCHEDULE"
+            "SecretRefreshNonce=${GITHUB_RUN_ID}"
           )
           if [[ -n "$FAILURE_ALARM_TOPIC_ARN" ]]; then
             PARAM_OVERRIDES+=("FailureAlarmTopicArn=$FAILURE_ALARM_TOPIC_ARN")

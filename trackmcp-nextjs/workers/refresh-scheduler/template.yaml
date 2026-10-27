@@ -17,6 +17,10 @@ Parameters:
     Type: String
     Default: ''
     Description: Optional SNS topic ARN for scheduler/Lambda failure alarms.
+  SecretRefreshNonce:
+    Type: String
+    Default: '0'
+    Description: Non-secret deployment nonce that forces re-evaluation of the Secrets Manager dynamic reference.
 
 Conditions:
   ScheduleEnabled: !Equals [!Ref EnableSchedule, 'true']
@@ -35,6 +39,7 @@ Resources:
         Variables:
           TRACKMCP_REFRESH_WORKER_URL: !Ref WorkerUrl
           TRACKMCP_REFRESH_WORKER_TOKEN: !Sub '{{resolve:secretsmanager:${WorkerTokenSecretArn}:SecretString:TRACKMCP_REFRESH_WORKER_SECRET}}'
+          TRACKMCP_REFRESH_SECRET_REFRESH_NONCE: !Ref SecretRefreshNonce
 
   RefreshSchedulerInvokeRole:
     Type: AWS::IAM::Role
