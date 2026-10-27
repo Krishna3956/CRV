@@ -1,10 +1,14 @@
 # Founder OS 100 Customer Readiness Ledger
 
-Last updated: 2026-10-27 (main `4849311`; deployed application `0c36da1` and App Runner production smoke verified)
+Last updated: 2026-10-27 (main `424258e`; deployed application `0c36da1` and App Runner production smoke verified)
 Latest freshness evidence: health workflow `40441666990` inspected eight
 redacted samples and reports a healthy bounded window, zero worker failures,
 and `max_queue_lag_ms: 105384`; sustained scheduled-sample health remains an
 explicit open gate because the report contains **0/3 scheduled samples**.
+
+The health report now exposes `scheduled_cadence_gate` separately from
+operational `state`: AWS metric health can be healthy while the pilot cadence
+gate remains pending until actual scheduled worker samples are observed.
 
 The deployed application is the runtime-verified App Runner release
 (`0c36da187d6fee56cd280ea79070176e9cd8f63d`, workflow `40426236860`). The

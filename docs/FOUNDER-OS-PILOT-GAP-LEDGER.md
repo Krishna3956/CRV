@@ -2,6 +2,16 @@
 
 Status: active autonomous audit, started 2026-10-21.
 
+## 2026-10-27 — scheduler health versus pilot cadence boundary
+
+- Added `scheduled_cadence_gate` to the redacted refresh-health report. AWS
+  scheduler metrics may establish operational health, but the pilot cadence
+  gate remains `pending` until three actual scheduled worker samples are
+  observed. The workflow summary now prints both statuses separately.
+- Added regression coverage for pending AWS-metrics-only evidence and proven
+  scheduled-run evidence. Full release gate, lint, and the 177-route build pass
+  on `424258e`; this clarifies the open gate without falsely closing it.
+
 ## 2026-10-27 — scheduler IAM and secret-resolution boundary
 
 - The AWS console change requested by the operator was applied successfully:
