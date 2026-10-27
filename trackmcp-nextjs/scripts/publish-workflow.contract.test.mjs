@@ -18,6 +18,14 @@ test("web CI blocks high-severity production dependency advisories", () => {
   assert.match(ciWorkflow, /dotnet pack TrackMcp\.csproj --configuration Release --no-build/);
 });
 
+test("package checks are individually bounded so a leaked fixture cannot stall CI", () => {
+  assert.match(ciWorkflow, /timeout --signal=TERM --kill-after=30s 10m npm test/);
+  assert.match(ciWorkflow, /timeout --signal=TERM --kill-after=30s 10m npm run test:packed-consumer/);
+  assert.match(ciWorkflow, /timeout --signal=TERM --kill-after=30s 10m sh -c 'npm ci && npm test'/);
+  assert.match(ciWorkflow, /timeout --signal=TERM --kill-after=30s 10m python3 -m unittest discover -s tests -v/);
+  assert.match(ciWorkflow, /timeout --signal=TERM --kill-after=30s 5m python3 smoke\.py/);
+});
+
 test("npm publication requires provenance and package preflight tests", () => {
   assert.doesNotMatch(workflow, /^\s*push:/m, "package publication must be deliberate, not push-triggered");
   assert.match(workflow, /id-token:\s*write/);

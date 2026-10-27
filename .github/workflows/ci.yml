@@ -77,22 +77,25 @@ jobs:
         run: npm audit --audit-level=high
       - name: Test TypeScript SDK
         working-directory: trackmcp-nextjs/packages/typescript-sdk
-        run: npm test
+        # Keep a leaked MCP transport/socket from leaving the release gate in
+        # an indeterminate state. The local suite is intentionally bounded and
+        # should fail visibly if a future fixture forgets to close a handle.
+        run: timeout --signal=TERM --kill-after=30s 10m npm test
       - name: Test TypeScript SDK packed consumer
         working-directory: trackmcp-nextjs/packages/typescript-sdk
-        run: npm run test:packed-consumer
+        run: timeout --signal=TERM --kill-after=30s 10m npm run test:packed-consumer
       - name: Test TrackMCP CLI
         working-directory: trackmcp-nextjs/packages/cli
-        run: npm ci && npm test
+        run: timeout --signal=TERM --kill-after=30s 10m sh -c 'npm ci && npm test'
       - name: Test TrackMCP CLI packed consumer
         working-directory: trackmcp-nextjs/packages/cli
-        run: npm run test:packed-consumer
+        run: timeout --signal=TERM --kill-after=30s 10m npm run test:packed-consumer
       - name: Test Python SDK
         working-directory: packages/python-sdk
-        run: python3 -m unittest discover -s tests -v
+        run: timeout --signal=TERM --kill-after=30s 10m python3 -m unittest discover -s tests -v
       - name: Run Python SDK runtime smoke
         working-directory: packages/python-sdk
-        run: python3 smoke.py
+        run: timeout --signal=TERM --kill-after=30s 5m python3 smoke.py
 
   go:
     runs-on: ubuntu-latest

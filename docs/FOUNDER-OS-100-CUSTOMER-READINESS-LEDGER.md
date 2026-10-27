@@ -17,6 +17,19 @@ freshness is stale. AWS scheduler evidence remains proven at **4/4 invocations**
 and **4/4 scheduled successes**; the GitHub scheduled-worker sample count is
 **0/3**. Manual dispatches are recovery evidence, not scheduled-cadence proof.
 
+## 2026-10-28 — package-test timeout hardening
+
+- [x] Hosted TrackMCP CI `40590525044` completed successfully for the current
+  source after the docs/runtime reconciliation. The local release gate also
+  passed all **144 suites**.
+- [x] Package-level TypeScript, packed-consumer, CLI, and Python checks now run
+  under explicit `timeout` bounds with a short TERM-to-KILL grace period. A
+  leaked transport, child process, or fixture can no longer leave the hosted
+  release gate indeterminate until the job timeout.
+- [x] The workflow contract test asserts each bound. This is an operability
+  improvement only; it does not close the worker-freshness, backup/PITR,
+  privacy-acceptance, credentialed-UAT, or release-owner HOLD gates below.
+
 ## Active external-gate register (current)
 
 | Gate | Current evidence | State | Required closure evidence |
