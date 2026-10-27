@@ -1,6 +1,6 @@
 # Founder OS 100 Customer Readiness Ledger
 
-Last updated: 2026-10-27 (main `d981c41`; deployed application `0c36da1` and App Runner production smoke verified)
+Last updated: 2026-10-27 (main `49f1000`; deployed application `0c36da1` and App Runner production smoke verified)
 Latest freshness evidence: health workflow `40449251681` inspected eight
 redacted worker samples and proved the AWS scheduler cadence gate with four
 invocations and zero errors. The report records **0/3 scheduled worker
@@ -2117,3 +2117,16 @@ a failed product gate or a Supabase plan warning.
   gate therefore remains pending until `logs:FilterLogEvents` (or an approved
   equivalent metric projection) is granted. This is an explicit infrastructure
   permission boundary, not an implementation claim.
+
+## 2026-10-27 scheduler health IAM handoff
+
+- [x] Added the reviewed least-privilege policy artifact
+  `docs/aws/TrackMCPRefreshHealthLogReadPolicy.json`. It grants only
+  `logs:DescribeLogStreams` and `logs:FilterLogEvents` on the scheduler Lambda
+  log-group prefix and grants no writes, deletion, secret access, or Lambda
+  mutation. Contract coverage protects the exact scope.
+- [ ] Applying the policy remains an AWS control-plane action. The available
+  native Chrome session is currently signed out, so no IAM mutation was
+  performed. After re-authentication, attach the artifact to
+  `GitHubActionsDeployRole` and rerun the health workflow; until then the
+  end-to-end cadence gate remains pending.

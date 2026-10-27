@@ -988,3 +988,10 @@ production transport UAT.
   marker projection as unavailable because the OIDC role lacks log-event query
   permission. The report now distinguishes unavailable evidence from zero
   successes; no log payloads are exposed.
+
+- 2026-10-27: Added `docs/aws/TrackMCPRefreshHealthLogReadPolicy.json` as a
+  least-privilege IAM handoff for the remaining scheduler health boundary.
+  It is contract-tested and grants only the two read actions required by the
+  bounded marker count. The native AWS session was signed out during the
+  attempted control-plane check, so the policy remains unapplied and the
+  end-to-end cadence gate remains explicitly pending.
