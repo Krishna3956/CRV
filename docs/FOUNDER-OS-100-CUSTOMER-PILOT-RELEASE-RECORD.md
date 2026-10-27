@@ -28,7 +28,7 @@ recovery-evidence hardening, not a final operational SLO acceptance.
 The current deployed source at `9638e23` remains (including the bounded scheduler
 slice, release-scope ownership reconciliation, and the transient App Runner
 smoke retry boundary retained from the preceding release train). Mainline now
-also contains docs/automation reconciliation commit `7a7d93c`; its focused
+also contains docs/automation reconciliation commit `e595881`; its focused
 scheduler/docs contracts pass, and the full local release gate, lint, and
 177-route build were already green on the preceding source. Push-triggered
 scheduler activation for that reviewed change completed successfully in

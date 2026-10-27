@@ -18,7 +18,7 @@ is intentionally not a GO approval and must not be treated as one.
   key-lifecycle UAT run.
   This documentation-only update does not change the deployed image; this
   baseline remains the runtime reference for release review.
-- Current source verification: `main` at `7a7d93c` (scheduler auto-redeploy
+- Current source verification: `main` at `e595881` (scheduler auto-redeploy
   evidence and readiness reconciliation) retains the previously verified
   bounded-slice source and passes the focused scheduler/docs contracts. The
   deployed application remains the immutable `9638e23` baseline above; this

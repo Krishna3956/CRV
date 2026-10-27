@@ -4,7 +4,7 @@ Status: active autonomous audit, started 2026-10-21.
 
 ## 2026-10-27 — release evidence reconciliation reverified
 
-- Mainline commit `743d337` reconciles the deployed `9638e23` runtime baseline
+- Mainline commit `e595881` reconciles the deployed `9638e23` runtime baseline
   with the current scheduler automation evidence and keeps all external gates
   explicitly on HOLD until their named owners provide closure evidence.
 - The full local release gate completed successfully with **143 suites** after
