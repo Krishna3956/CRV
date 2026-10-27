@@ -2457,6 +2457,9 @@ a failed product gate or a Supabase plan warning.
   history parity: 38 repository migration rows remain absent from the
   application ledger and still require reviewed evidence or an approved replay
   plan.
+- [x] The hash-only catalog entity-read postflight also returned
+  `invalid_catalog_entity_reads=0`; every checked row has a bounded SHA-256
+  identity, an allowed catalog kind, and a source event reference.
 
 ## 2026-10-27 first-ingest edge-path correction
 
