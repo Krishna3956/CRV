@@ -1,6 +1,6 @@
 # Founder OS 100 Customer Readiness Ledger
 
-Last updated: 2026-10-27 (main `aca361f`; Python public protocol-result contract corrected; hosted CI `40559178999` passed)
+Last updated: 2026-10-27 (main `4a80665`; deployed application `506be89` and App Runner rollout and production smoke verified; Python public protocol-result transport parity corrected; hosted CI `40559178999` passed)
 Latest freshness evidence: health workflow `40502266095` (scheduled) inspected eight
 redacted worker samples. AWS scheduler cadence is now proven with **3/3
 invocations**, and the end-to-end scheduled-success marker is proven with **4/4
