@@ -7,11 +7,12 @@ import { createDeviceClient, createRedeemer, pollDeviceSession } from "../lib/de
 import { openBrowser } from "../lib/browser.mjs";
 import { findEnvironment, isGitTracked, logout, readConfiguredKey, writeEnvKey } from "../lib/storage.mjs";
 import { detectPackageManager, ensureSdkInstalled, findInstalledSdkPackage } from "../lib/sdk-installer.mjs";
+import { parseProxyArgs, runProxy } from "../lib/proxy.mjs";
 
 function parseArgs(argv) {
   const [commandArg = "init", ...rest] = argv;
   const command = commandArg === "setup" ? "init" : commandArg;
-  if (!["init", "doctor", "logout"].includes(command)) throw new Error("Usage: npx @trackmcp/cli init|doctor|logout");
+  if (!["init", "doctor", "logout", "proxy"].includes(command)) throw new Error("Usage: npx @trackmcp/cli init|doctor|logout|proxy");
   const flags = { browser: true, installSdk: true, nonInteractive: false, envFile: process.env.TRACKMCP_ENV_FILE || ".env.local" };
   for (const arg of rest) {
     if (arg === "--no-browser" || arg === "--browser=false") flags.browser = false;
@@ -147,6 +148,11 @@ export async function runInit({ cwd = process.cwd(), flags = {}, client = create
 }
 
 export async function main(argv = process.argv.slice(2), dependencies = {}) {
+  if (argv[0] === "proxy") {
+    const parsed = parseProxyArgs(argv.slice(1));
+    await runProxy({ ...parsed, ...(dependencies.proxy || {}) });
+    return 0;
+  }
   const { command, flags } = parseArgs(argv);
   if (command === "logout") {
     await logout({ sessionFile: resolve(dependencies.cwd || process.cwd(), ".trackmcp-session.json") });

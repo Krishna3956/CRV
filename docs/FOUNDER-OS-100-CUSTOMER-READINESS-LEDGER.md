@@ -2534,6 +2534,22 @@ a failed product gate or a Supabase plan warning.
   close release-owner approval, recovery posture, privacy acceptance, or any
   credentialed production UAT gate.
 
+## 2026-10-27 bounded stdio launcher milestone
+
+- [x] Added `npx @trackmcp/cli proxy -- <command>` as a shell-free stdio
+  launcher for line-delimited JSON-RPC MCP servers.
+- [x] The launcher forwards child traffic unchanged while emitting only bounded
+  method/direction/transport metadata; request parameters, result bodies,
+  identifiers, and keys never enter telemetry.
+- [x] Added tests for command-boundary validation, HTTPS-only ingestion,
+  forwarding, privacy suppression, missing-key rejection, and fail-open
+  telemetry delivery.
+- [x] Updated CLI, PDF truth-audit, and protocol-matrix documentation to state
+  the new bounded local capability and preserve unsupported hosted proxy,
+  reconnect/replay, OAuth, HTTP/SSE, and durable-delivery boundaries.
+- [ ] Hosted proxy behavior, transport-owned reconnect/replay, and authenticated
+  production stdio UAT remain separate evidence gates.
+
 ## 2026-10-27 acceptance-matrix truth reconciliation
 
 - [x] Updated the first-100 acceptance matrix to identify repository source

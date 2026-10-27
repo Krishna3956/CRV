@@ -73,6 +73,23 @@ responses, network failures, no accepted telemetry, and accepted telemetry.
 It does not send fake telemetry or execute MCP tools. `logout` removes only
 local CLI session metadata; it does not delete environment keys.
 
+## Bounded stdio launcher
+
+For an MCP server that speaks line-delimited JSON-RPC over stdio, the CLI can
+forward the child process without a shell and emit metadata-only observations:
+
+```bash
+TRACKMCP_KEY=tmcp_... npx @trackmcp/cli proxy -- npx my-mcp-server
+```
+
+The launcher forwards each line unchanged, never logs or stores JSON-RPC
+parameters, result bodies, request IDs, or subscription identifiers, and sends
+only bounded method/direction/transport metadata to the HTTPS ingest endpoint.
+`TRACKMCP_KEY` must come from the environment; keys are never accepted as
+arguments. `--service` and `--environment` add bounded deployment labels.
+This is a stdio launcher boundary, not a hosted proxy: it does not claim HTTP
+or SSE support, OAuth, transport-owned reconnect/replay, or durable delivery.
+
 ## SDK integration
 
 ```ts
