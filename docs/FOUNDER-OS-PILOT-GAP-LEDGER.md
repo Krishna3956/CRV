@@ -1016,3 +1016,12 @@ production transport UAT.
   `70534428fd69a4fa5a07f46adad504a32fdfe262` (commit `7053442`). This confirms
   deployment of the modern capability-normalization fix; it does not close the
   external pilot gates or change the release recommendation from **HOLD**.
+
+- 2026-10-27: Credentialed production auth smoke passed against the same
+  immutable SHA. Both isolated workspaces authenticated across the dashboard
+  read models; conflicting `workspace_id` query parameters were ignored in
+  favor of the key scope; API-key attempts to mutate the action queue were
+  denied with 403; and the revoked-key negative check returned 401. This closes
+  the automated auth/tenant read-model smoke for this SHA, but does not close
+  customer-owned endpoint UAT, key-rotation ownership, or the other external
+  pilot gates.
