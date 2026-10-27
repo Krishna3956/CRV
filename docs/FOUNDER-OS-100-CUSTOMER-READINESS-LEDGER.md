@@ -2093,3 +2093,22 @@ a failed product gate or a Supabase plan warning.
   close disposable key create/use/rotate/revoke UAT, which still requires a
   bounded write-enabled test with a disposable key and authenticated API
   evidence.
+
+## 2026-10-27 scheduler deployment recovery checkpoint
+
+- [x] Commit `3746a33` removes the optional CloudWatch Logs metric-filter and
+  explicit log-group resources that the current GitHub OIDC deploy role could
+  not create (`logs:DescribeMetricFilters` was denied). The scheduler keeps
+  emitting a bounded `refresh_scheduler_result` marker for scheduled success;
+  metric projection is intentionally external until that role is granted the
+  required permissions.
+- [x] The full release gate passed **143 suites** after the change. Focused
+  scheduler handler, template, health-report, and workflow contract tests also
+  passed.
+- [x] GitHub Actions run `40448579066` completed successfully from
+  `3746a33`. Its redacted artifact `12709257776` records four recent Lambda
+  invocations, zero errors, five scheduler log streams, and the deployed
+  CloudFormation outputs (function, schedule, DLQ, and alarms).
+- [ ] This proves AWS scheduler deployment and Lambda invocation health, not
+  three end-to-end scheduled-success metric samples. The end-to-end cadence
+  gate remains pending until an approved log/metric projection is available.

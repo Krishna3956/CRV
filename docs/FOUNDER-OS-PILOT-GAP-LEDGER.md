@@ -972,3 +972,12 @@ production transport UAT.
   related tests are already present on current `main`; no unique diff remained
   necessary. Closed the superseded PR with an explanatory comment so obsolete
   release work is not presented as pending.
+
+- 2026-10-27: Recovered the refresh-scheduler deployment on `main` at
+  `3746a33`. Deployment workflow `40448579066` succeeded and artifact
+  `12709257776` records four Lambda invocations with zero errors plus the
+  schedule/DLQ/alarm outputs. The optional CloudWatch metric-filter resource
+  was removed because the current OIDC role is not authorized for
+  `logs:DescribeMetricFilters`; the Lambda still emits a non-sensitive
+  scheduled-success marker, while metric projection remains an explicit
+  external gate. Release gate remains green at 143 suites.
