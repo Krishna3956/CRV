@@ -1,6 +1,6 @@
 # Founder OS 100 Customer Readiness Ledger
 
-Last updated: 2026-10-27 (main `aa15534`; deployed application `506be89` and App Runner rollout and production smoke verified; TypeScript SDK 0.1.22 and CLI 0.1.11 registry publication verified)
+Last updated: 2026-10-27 (main `8c506a1`; deployed application `506be89` and App Runner rollout and production smoke verified; TypeScript SDK 0.1.22 and CLI 0.1.11 registry publication verified)
 Latest freshness evidence: health workflow `40502266095` (scheduled) inspected eight
 redacted worker samples. AWS scheduler cadence is now proven with **3/3
 invocations**, and the end-to-end scheduled-success marker is proven with **4/4
@@ -29,6 +29,16 @@ the maximum queue lag is `3,506,514 ms` (above the 15-minute pilot budget).
 - [ ] This confirms the bounded SDK change and build integrity only; it does
   not close authenticated production UAT or the remaining partial protocol
   lifecycle boundaries.
+
+## 2026-10-27 — hosted validation for bounded Python protocol results green
+
+- [x] CI run `40557588800` passed on source `8c506a1`; web/JavaScript, Go, and
+  .NET jobs completed successfully.
+- [x] The hosted web job passed the release gate, lint, production build,
+  TypeScript SDK and CLI packed-consumer checks, Python SDK checks, and runtime
+  smoke.
+- [ ] This confirms the bounded observer implementation only; authenticated
+  production UAT and complete protocol lifecycle support remain open.
 
 ## 2026-10-27 — hosted validation for latest ledger commit green
 
