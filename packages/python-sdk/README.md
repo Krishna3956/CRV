@@ -23,9 +23,10 @@ label entity-level history and read outcomes as limited until durable joins are
 available.
 
 Protocol notifications can be recorded with `client.record_protocol_signal`.
-The optional `direction` defaults to `server_to_client` and accepts
+The optional `transport` accepts `stdio`, `streamable_http`, `sse`, or `custom`,
+and `direction` defaults to `server_to_client` while accepting
 `client_to_server` for inbound cancellation; only the allowlisted signal,
-direction, and method metadata are retained.
+transport, direction, and method metadata are retained.
 
 For an HTTP authorization response, call
 `client.record_authorization_outcome("tools/call", 401)` or pass `403`. The

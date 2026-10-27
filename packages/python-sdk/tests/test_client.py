@@ -283,13 +283,14 @@ class TrackMCPClientTest(TestCase):
 
     def test_protocol_signal_is_allowlisted_and_metadata_only(self):
         client = TrackMCP(TrackMCPOptions(api_key="tmcp_test", disabled=False, flush_interval_ms=60000))
-        client.record_protocol_signal("progress", "notifications/progress", session_id="session-1")
+        client.record_protocol_signal("progress", "notifications/progress", transport="streamable_http", session_id="session-1")
         client.record_protocol_signal("subscription_started", "resources/subscribe", session_id="session-1")
         client.record_protocol_signal("subscription_stopped", "resources/unsubscribe", session_id="session-1")
         client.record_protocol_signal("cancelled", "notifications/cancelled", session_id="session-1", direction="client_to_server")
         event = client._events[0]
         self.assertEqual(event["event_type"], "protocol")
         self.assertEqual(event["mcp_method"], "notifications/progress")
+        self.assertEqual(event["transport"], "streamable_http")
         self.assertEqual(event["payload"]["_trackmcp"]["protocol_signal"], "progress")
         self.assertEqual(client._events[3]["direction"], "client_to_server")
         self.assertEqual(client._events[1]["payload"]["_trackmcp"]["protocol_signal"], "subscription_started")
@@ -299,6 +300,7 @@ class TrackMCPClientTest(TestCase):
         client.record_protocol_signal("raw", "notifications/progress")
         client.record_protocol_signal("cancelled", "bad\nmethod")
         client.record_protocol_signal("cancelled", "notifications/cancelled", direction="invalid")
+        client.record_protocol_signal("progress", "notifications/progress", transport="private_transport")
         self.assertEqual(len(client._events), count)
         client._timer.cancel()
 
