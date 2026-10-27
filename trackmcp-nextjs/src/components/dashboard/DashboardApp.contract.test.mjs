@@ -506,6 +506,8 @@ test("Overview exposes protocol lifecycle signals with an explicit non-outcome c
   assert.match(source, /aria-label="Daily protocol signal timeline"/);
   assert.match(source, /Catalog changes by surface/);
   assert.match(source, /not snapshot versions/);
+  assert.match(source, /Versioned snapshots/);
+  assert.match(source, /Notification counts are not correlated to versions/);
 });
 
 test("protocol outcomes disclose hash-only matched request/response pairs", () => {

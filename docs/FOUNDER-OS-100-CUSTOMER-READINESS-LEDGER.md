@@ -10,6 +10,18 @@ freshness breach, not a historical-failure false positive. The report records
 projection is unavailable because the OIDC role lacks log-event query
 permission.
 
+## 2026-10-27 catalog snapshot evidence milestone
+
+- [x] Authenticated analytics and the Overview protocol panel now show
+  notification-family catalog counts separately from versioned catalog
+  snapshots, computed diffs, and truncated rows.
+- [x] The response and dashboard state explicitly that notification counts are
+  not correlated to snapshot versions; no version is inferred from a
+  list-changed notification.
+- [ ] Reviewed notification-to-snapshot correlation and authenticated
+  cross-transport UAT remain open. The current implementation is truthful and
+  bounded rather than presenting an unverified join.
+
 The health report exposes `scheduled_cadence_gate` separately from operational
 `state`, plus `aws_scheduler_cadence_gate` and
 `aws_end_to_end_cadence_gate`. AWS metric health can be proven while the

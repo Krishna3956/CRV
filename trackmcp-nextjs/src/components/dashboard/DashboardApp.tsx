@@ -2251,7 +2251,7 @@ function Overview({
             )}
             {analytics.protocol_signals && (
               <div className="mt-5">
-                <ProtocolSignalPanel signals={analytics.protocol_signals} />
+                <ProtocolSignalPanel signals={analytics.protocol_signals} snapshotSummary={analytics.catalog_snapshot_summary} />
               </div>
             )}
           </div>
@@ -2564,8 +2564,10 @@ function FounderOSSignalPanel({
 
 function ProtocolSignalPanel({
   signals,
+  snapshotSummary,
 }: {
   signals: NonNullable<Analytics["protocol_signals"]>;
+  snapshotSummary?: Analytics["catalog_snapshot_summary"];
 }) {
   const rows = [
     ["Progress", signals.progress],
@@ -2598,6 +2600,11 @@ function ProtocolSignalPanel({
           Catalog changes by surface: tools {fmt(signals.catalog_change_kinds.tools)} · resources {fmt(signals.catalog_change_kinds.resources)} · resource templates {fmt(signals.catalog_change_kinds.resource_templates)} · prompts {fmt(signals.catalog_change_kinds.prompts)}. These are notification-family counts, not snapshot versions.
         </p>
       )}
+          {snapshotSummary && (
+            <p className="mt-2 text-[11px] text-muted">
+              Versioned snapshots: {fmt(snapshotSummary.versions)} · changed {fmt(snapshotSummary.changed_versions)} · computed diffs {fmt(snapshotSummary.diff_computed)} · truncated {fmt(snapshotSummary.truncated_versions)}{snapshotSummary.page_bounded ? " · page bounded" : ""}. Notification counts are not correlated to versions here.
+            </p>
+          )}
       {signals.timeline && signals.timeline.length > 0 && (
         <div className="mt-4 overflow-x-auto border-t border-line pt-4">
           <p className="text-[11px] font-medium text-muted">Daily signal timeline</p>

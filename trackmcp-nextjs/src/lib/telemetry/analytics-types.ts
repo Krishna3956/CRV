@@ -210,6 +210,14 @@ export type Analytics = {
     catalog_change_kinds?: { tools: number; resources: number; resource_templates: number; prompts: number };
     timeline?: Array<{ date: string; notification: number; progress: number; cancelled: number; catalog_changed: number; resource_changed: number; subscription_started: number; subscription_stopped: number; observed_events: number }>;
   };
+  catalog_snapshot_summary?: {
+    versions: number;
+    changed_versions: number;
+    diff_computed: number;
+    truncated_versions: number;
+    page_bounded: boolean;
+    limitation: string;
+  };
   /** Counts of bounded modern protocol families observed by the SDK observer. */
   protocol_family_activity?: Array<{ family: "sampling" | "elicitation" | "completion" | "tasks" | "control_signal" | "resources" | "prompts" | "tools" | "subscriptions" | "notifications" | "roots" | "logging"; observations: number }>;
   protocol_family_outcomes?: Array<{ family: "sampling" | "elicitation" | "completion" | "tasks" | "control_signal" | "resources" | "prompts" | "tools" | "subscriptions" | "notifications" | "roots" | "logging"; observations: number; requests: number; responses: number; matched: number; completed: number; errors: number; input_required: number; unknown: number; capability_advertised: boolean | null }>;

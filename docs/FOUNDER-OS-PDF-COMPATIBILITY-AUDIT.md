@@ -2,6 +2,18 @@
 
 This document records the protocol and product-contract review against the Founder OS source PDF. It separates what the current implementation can observe from what it must not claim.
 
+## 2026-10-27 — catalog notification and snapshot evidence boundary
+
+Authenticated analytics now exposes bounded notification-family counts by
+catalog surface (`tools`, `resources`, `resource_templates`, and `prompts`)
+alongside versioned snapshot counts, changed-version counts, computed-diff
+counts, and truncation status. The dashboard explicitly labels these as
+separate evidence streams: a notification never manufactures or implies a
+snapshot version. Snapshot summaries are page-bounded and retain the existing
+hash-only privacy boundary. The remaining gap is a reviewed server-side
+notification-to-snapshot correlation contract plus authenticated
+cross-transport UAT; no correlation is claimed here.
+
 ## Closed in this pass
 
 ### Multi-round-trip outcomes

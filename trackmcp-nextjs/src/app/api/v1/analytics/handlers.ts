@@ -205,6 +205,14 @@ export function createAnalyticsHandler(getAdmin: typeof getSupabaseAdmin = getSu
     discovered_at: boundedText(row.discovered_at, 80),
   }));
   const catalogVersionStatus = catalogVersionsResult.error ? "schema_unavailable" : catalogVersions.length ? "available" : "no_snapshot_rows";
+  const catalogSnapshotSummary = {
+    versions: catalogVersions.length,
+    changed_versions: catalogVersions.filter((version) => version.diff && typeof version.diff === "object" && (version.diff as Record<string, unknown>).changed === true).length,
+    diff_computed: catalogVersions.filter((version) => version.diff && typeof version.diff === "object" && (version.diff as Record<string, unknown>).status === "computed").length,
+    truncated_versions: catalogVersions.filter((version) => version.truncated).length,
+    page_bounded: catalogHasMore,
+    limitation: "Snapshot rows are versioned catalog observations. Notification-family counts are not correlated to a snapshot unless a reviewed server-side join exists; no snapshot version is inferred from a notification.",
+  };
   const entityReadsQuery = supabase.from("trackmcp_catalog_entity_reads")
     .select("catalog_kind,entity_hash,success,is_error,result_type,observed_at")
     .eq("workspace_id", workspaceId).gte("observed_at", since);
@@ -951,6 +959,7 @@ export function createAnalyticsHandler(getAdmin: typeof getSupabaseAdmin = getSu
       prompts: { events: promptEvents.length, methods: [...new Set(promptEvents.map((event) => event.mcp_method).filter(Boolean))].slice(0, MAX_PUBLIC_DIMENSION_ITEMS), entity_count: promptEntityHashes.size, entity_identity: "sha256_hash_count", entity_analytics: entityReadAnalytics("prompts") },
     },
     protocol_signals: { ...protocolSignalCounts, observed_events: protocolSignalEvents, catalog_change_kinds: catalogChangeKinds, timeline: [...protocolSignalTimeline.entries()].sort(([a], [b]) => a.localeCompare(b)).slice(-366).map(([date, counts]) => ({ date, ...counts, observed_events: Object.values(counts).reduce((sum, value) => sum + value, 0) })) },
+    catalog_snapshot_summary: catalogSnapshotSummary,
     protocol_family_activity: [...protocolFamilyCounts.entries()].map(([family, observations]) => ({ family: family as TrackMCPProtocolFamily, observations })).sort((a, b) => b.observations - a.observations || a.family.localeCompare(b.family)),
     protocol_family_outcomes: [...protocolFamilyOutcomes.entries()].map(([family, outcome]) => ({ family: family as TrackMCPProtocolFamily, ...outcome })).sort((a, b) => b.observations - a.observations || a.family.localeCompare(b.family)),
     protocol_family_outcome_source: familySource,
