@@ -2401,3 +2401,19 @@ a failed product gate or a Supabase plan warning.
 - [ ] This makes the smoke runnable; it does not claim first-ingest success
   until the operator supplies the dedicated disposable production key secret
   and the workflow produces a passing artifact.
+
+## 2026-10-27 transport-smoke edge and target-boundary correction
+
+- [x] Corrected the manual Streamable HTTP/SSE production smoke default to the
+  same direct App Runner origin. The previous `app.trackmcp.com` default was
+  vulnerable to the same Cloudflare 403 edge block and could not validate
+  transport telemetry.
+- [x] Added trusted-host validation to the transport smoke itself; supplied
+  targets are now limited to the canonical TrackMCP hosts or an AWS App Runner
+  hostname, with credentials, query strings, and fragments rejected before a
+  secret is sent.
+- [x] Added workflow/source contracts for the direct-origin default and target
+  boundary. The smoke remains manual, metadata-only, and secret-gated.
+- [ ] Customer-owned endpoint interoperability, transport-owned reconnect, and
+  production execution still require a disposable transport key and a passing
+  redacted workflow artifact.

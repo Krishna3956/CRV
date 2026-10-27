@@ -8,6 +8,7 @@ test("production transport smoke is explicit, HTTPS-only, and secret-gated", () 
   assert.match(source, /TRACKMCP_TRANSPORT_SMOKE_CONFIRM/);
   assert.match(source, /I_UNDERSTAND_TRANSPORT_SMOKE/);
   assert.match(source, /parsed\.protocol !== "https:"/);
+  assert.match(source, /trustedHost/);
   assert.match(source, /TRACKMCP_TRANSPORT_SMOKE_KEY/);
 });
 

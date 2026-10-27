@@ -29,7 +29,8 @@ function validate() {
   if (!baseUrl || !apiKey) fail("TRACKMCP_TRANSPORT_SMOKE_BASE_URL and TRACKMCP_TRANSPORT_SMOKE_KEY are required.");
   let parsed;
   try { parsed = new URL(baseUrl); } catch { fail("TRACKMCP_TRANSPORT_SMOKE_BASE_URL must be an absolute URL."); }
-  if (parsed.protocol !== "https:" || parsed.username || parsed.password || parsed.search || parsed.hash) fail("Base URL must be an HTTPS origin without credentials, query, or fragment.");
+  const trustedHost = parsed.hostname === "trackmcp.com" || parsed.hostname === "app.trackmcp.com" || parsed.hostname.endsWith(".awsapprunner.com");
+  if (parsed.protocol !== "https:" || !trustedHost || parsed.username || parsed.password || parsed.search || parsed.hash) fail("Base URL must be a trusted HTTPS origin without credentials, query, or fragment.");
   if (!/^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$/.test(servicePrefix)) fail("Service prefix is outside the bounded format.");
 }
 

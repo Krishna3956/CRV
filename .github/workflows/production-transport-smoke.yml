@@ -4,9 +4,9 @@ on:
   workflow_dispatch:
     inputs:
       base_url:
-        description: "HTTPS App Runner or app origin to verify"
-        required: true
-        default: "https://app.trackmcp.com"
+        description: "Direct trusted HTTPS origin to verify (defaults to the current App Runner origin)"
+        required: false
+        default: "https://i95pzq2xh7.ap-south-1.awsapprunner.com"
         type: string
 
 permissions:
@@ -18,7 +18,7 @@ jobs:
     timeout-minutes: 10
     env:
       TRACKMCP_TRANSPORT_SMOKE_CONFIRM: I_UNDERSTAND_TRANSPORT_SMOKE
-      TRACKMCP_TRANSPORT_SMOKE_BASE_URL: ${{ inputs.base_url }}
+      TRACKMCP_TRANSPORT_SMOKE_BASE_URL: ${{ inputs.base_url || 'https://i95pzq2xh7.ap-south-1.awsapprunner.com' }}
       TRACKMCP_TRANSPORT_SMOKE_KEY: ${{ secrets.TRACKMCP_TRANSPORT_SMOKE_KEY }}
       TRACKMCP_TRANSPORT_SMOKE_SERVICE: production-transport-smoke
     steps:

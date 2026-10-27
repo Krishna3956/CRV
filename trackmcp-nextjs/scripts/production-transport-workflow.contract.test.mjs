@@ -18,3 +18,9 @@ test("production transport smoke workflow installs the SDK and uploads redacted 
   assert.match(workflow, /if: always\(\) && steps\.configured\.outputs\.configured == 'true'/);
   assert.doesNotMatch(workflow, /SUPABASE_SERVICE_ROLE_KEY|AWS_ACCESS_KEY/);
 });
+
+test("transport smoke defaults to the direct App Runner origin", () => {
+  assert.match(workflow, /default:\s*"https:\/\/i95pzq2xh7\.ap-south-1\.awsapprunner\.com"/);
+  assert.match(workflow, /inputs\.base_url \|\| 'https:\/\/i95pzq2xh7\.ap-south-1\.awsapprunner\.com'/);
+  assert.doesNotMatch(workflow, /inputs\.base_url \|\| 'https:\/\/app\.trackmcp\.com'/);
+});
