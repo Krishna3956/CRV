@@ -1,6 +1,6 @@
 # Founder OS 100 Customer Readiness Ledger
 
-Last updated: 2026-10-27 (main `7d9021a`; deployed application `9026fa6` and App Runner rollout and production smoke verified; TypeScript SDK 0.1.22 remains an unpublished candidate)
+Last updated: 2026-10-27 (main `5256cdf`; deployed application `9026fa6` and App Runner rollout and production smoke verified; TypeScript SDK 0.1.22 registry publication verified)
 Latest freshness evidence: health workflow `40450412687` inspected eight
 redacted worker samples and evaluated the two samples in its bounded current
 window. It proved the AWS scheduler cadence gate with four invocations and zero
@@ -33,11 +33,12 @@ permission.
 - [x] A protocol contract checks all four public SDK guides for `401`/`403`
   handling and explicit bearer-token/privacy boundaries; focused contracts,
   lint, the 178-route build, and the full 144-suite release gate passed.
-- [ ] The published npm/PyPI artifacts remain the prior coordinated train until
-  a reviewed release workflow publishes the changed TypeScript API. No registry
-  publication is implied by documentation parity.
+- [x] The reviewed TypeScript API is now published as `@trackmcp/sdk@0.1.22`;
+  Python remains on the unchanged published `trackmcp==0.1.13` train. Registry
+  integrity, provenance, and clean-consumer evidence are recorded in the
+  package-readiness record.
 
-## 2026-10-27 TypeScript SDK release-candidate reconciliation
+## 2026-10-27 TypeScript SDK publication reconciliation
 
 - [x] A direct inspection of the public `@trackmcp/sdk@0.1.21` tarball proved
   that it does not contain `recordAuthorizationOutcome`, while the source now
@@ -46,11 +47,12 @@ permission.
   source metadata to distinguish the reviewed `0.1.22` candidate from the
   installable `0.1.21` baseline. This prevents the new API from being claimed
   as public before registry verification.
-- Reviewed release candidate `0.1.22` is source-complete; registry publication
-  remains an explicit external gate.
-- [ ] Publication requires the reviewed GitHub workflow, npm credentials,
-  provenance, and clean-consumer/registry evidence. No package was published
-  from this environment.
+- [x] Reviewed release candidate `0.1.22` was published by workflow
+  `40519934213` from main `5256cdf`; the public tarball contains the helper and
+  reports integrity `sha512-w3p01rayFpArLvTWgWP5VvsHLdMrDVZq6V9LNak++WP4LVZRmDgjH+tza8JzxRNM1SdmH9wl/y9XXffy8ipHcw==`.
+- [x] A direct clean-consumer download verified the published helper. The
+  failed concurrent attempt `40519986407` was a registry staged-version
+  conflict, not a source or publication-integrity failure.
 
 ## 2026-10-27 CLI proxy documentation discoverability milestone
 
