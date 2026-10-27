@@ -53,7 +53,10 @@ is intentionally not a GO approval and must not be treated as one.
   read-only evidence and does not close first-ingest, transport, or
   customer-endpoint UAT. A separate terminal-only disposable production run
   has since verified workspace/key creation, rotation, and revocation; that
-  evidence does not claim customer-owned endpoint interoperability.
+  evidence does not claim customer-owned endpoint interoperability. A separate
+  terminal-only device activation and first-event UAT now verifies the
+  browser-approval/CLI-redemption path with a disposable key; it does not
+  change the customer-owned endpoint or protocol boundary.
   revoke, ingest, or mutate dashboard state.
 - Rollback and authenticated scope-smoke evidence are reconciled in the
   release record through queue items 256 and 249.

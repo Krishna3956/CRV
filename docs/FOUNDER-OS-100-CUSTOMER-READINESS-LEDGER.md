@@ -159,7 +159,7 @@ failure.
 | Worker freshness | Health artifact `40601204628` is `healthy` after recovery run `40601163319`: three current-window samples are parseable and within budget, with AWS cadence proven at 4/4 invocations and 4/4 end-to-end successes; only 1/3 samples is a scheduled GitHub-worker run | **HOLD** | Three fresh scheduled samples within the 15-minute budget, with no unresolved stale/failure evidence |
 | Backup/PITR | Supabase Free Plan has no scheduled backups or PITR; inspection recorded in the backup evidence entries below | **HOLD / owner decision** | Accepted documented limitation with named recovery owner/runbook, or plan upgrade plus tested restore rehearsal |
 | Privacy acceptance | Engineering privacy/export/deletion contracts pass; production acceptance evidence is not recorded | **HOLD / owner decision** | Signed production privacy review and retention/deletion acceptance |
-| Credentialed lifecycle/UAT | Read-only tenant/auth smoke, direct-origin first-ingest UAT `40598515473`, authenticated Streamable HTTP/SSE adapter-to-ingest smoke with 15 persisted observations, and disposable production key rotation/revocation UAT are verified; customer-owned endpoint/protocol UAT remains unexecuted | **HOLD / credentialed** | Customer-owned endpoint/protocol UAT artifact, plus explicit acceptance of the unsupported reconnect/replay, durable-subscription, and OAuth boundaries |
+| Credentialed lifecycle/UAT | Read-only tenant/auth smoke, direct-origin first-ingest UAT `40598515473`, terminal device activation plus first-event UAT, authenticated Streamable HTTP/SSE adapter-to-ingest smoke with 15 persisted observations, and disposable production key rotation/revocation UAT are verified; customer-owned endpoint/protocol UAT remains unexecuted | **HOLD / credentialed** | Customer-owned endpoint/protocol UAT artifact, plus explicit acceptance of the unsupported reconnect/replay, durable-subscription, and OAuth boundaries |
 | Hosted deployment verification | App Runner rollout `40594711620` deployed immutable runtime `7ab4eced`; release gate, image build/push, rollout, production smoke, immutable release identity, and runtime-safety checks passed | **PASS** | Re-run the same guarded workflow for the next runtime-changing commit |
 | Release-owner acceptance | Source, CI, deployment, package publication, and local release gates are green | **HOLD / owner decision** | Explicit approval referencing this register and the current deployed source |
 
@@ -409,6 +409,25 @@ evidence and are not current approval.
 - [x] This verifies the ledger and lifecycle-harness contracts in the hosted
   environment. It does not expand the bounded production UAT claims or close
   the customer-owned endpoint, worker, backup/PITR, privacy, or owner gates.
+
+## 2026-10-28 — disposable CLI activation and first-event UAT passed
+
+- [x] A terminal-only UAT created a disposable confirmed Supabase user and a
+  workspace without a connection key, started a production device session,
+  approved it from the authenticated workspace session, polled the approved
+  state, and redeemed it through the CLI device endpoint.
+- [x] The returned key passed key-status (`200`), accepted one bounded
+  metadata-only `tool_call` event (`200`, `accepted: 1`), and exposed the
+  accepted-ingest milestone (`accepted_telemetry: true`). The key was then
+  revoked (`200`) and rejected on reuse (`401`).
+- [x] The first retry used the canonical `{ events: [...] }` envelope after
+  the initial harness attempt correctly surfaced a `400` for an invalid
+  envelope. No raw key, device code, cookie, event body, user identifier, or
+  workspace identifier was persisted; the disposable test key ended revoked.
+- [x] This closes the deployed CLI activation and first-event UAT boundary.
+  Customer-owned MCP endpoint interoperability, transport reconnect/replay,
+  durable subscriptions, OAuth token exchange, worker freshness, privacy,
+  backup/PITR, and final release-owner acceptance remain open.
 
 ## 2026-10-28 — hosted verification of UAT ledger reconciliation
 

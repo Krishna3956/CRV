@@ -2,6 +2,22 @@
 
 Status: active autonomous audit, started 2026-10-21.
 
+## 2026-10-28 — disposable CLI activation and first-event UAT passed
+
+- A terminal-only production UAT created a disposable authenticated user and
+  workspace without a key, started a CLI device session, approved it through
+  the authenticated browser-session boundary, polled the approved state, and
+  redeemed the session.
+- The redeemed key passed key-status (`200`), accepted one bounded metadata-only
+  event (`200`, `accepted: 1`), and exposed `accepted_telemetry: true`. The key
+  was revoked (`200`) and rejected afterward (`401`). No raw secret, device
+  code, cookie, event body, user identifier, or workspace identifier was
+  retained; the disposable key ended revoked.
+- This closes the deployed CLI activation and first-event UAT boundary.
+  Customer-owned remote endpoint interoperability, reconnect/replay, durable
+  subscriptions, OAuth exchange, scheduled worker freshness, privacy,
+  backup/PITR, and release-owner acceptance remain open gates.
+
 ## 2026-10-28 — disposable production key lifecycle UAT passed
 
 - A terminal-only UAT created a uniquely named confirmed Supabase auth user,
