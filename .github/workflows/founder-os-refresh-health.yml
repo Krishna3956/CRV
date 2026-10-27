@@ -69,7 +69,7 @@ jobs:
             --filter-pattern '{ $.event = "refresh_scheduler_result" && $.scheduled = true && $.success = true }' \
             --region "$AWS_REGION" \
             --query 'length(events)' \
-            --output text 2>/dev/null; then
+            --output text 2>/dev/null); then
             scheduled_successes=$(printf '%s' "$log_count" | awk '/^[0-9]+$/ { print; found=1 } END { if (!found) print 0 }')
           else
             echo "::warning::Scheduled-success log projection was unavailable; AWS end-to-end cadence remains pending."
