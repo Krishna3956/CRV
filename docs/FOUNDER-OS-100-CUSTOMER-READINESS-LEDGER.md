@@ -1,11 +1,14 @@
 # Founder OS 100 Customer Readiness Ledger
 
 Last updated: 2026-10-27 (main `49f1000`; deployed application `0c36da1` and App Runner production smoke verified)
-Latest freshness evidence: health workflow `40449251681` inspected eight
-redacted worker samples and proved the AWS scheduler cadence gate with four
-invocations and zero errors. The report records **0/3 scheduled worker
-samples**, and its end-to-end scheduled-success projection is unavailable
-because the OIDC role lacks log-event query permission.
+Latest freshness evidence: health workflow `40450412687` inspected eight
+redacted worker samples and evaluated the two samples in its bounded current
+window. It proved the AWS scheduler cadence gate with four invocations and zero
+errors; current operational state is `insufficient_data` with one current
+freshness breach, not a historical-failure false positive. The report records
+**0/3 scheduled worker samples**, and its end-to-end scheduled-success
+projection is unavailable because the OIDC role lacks log-event query
+permission.
 
 The health report exposes `scheduled_cadence_gate` separately from operational
 `state`, plus `aws_scheduler_cadence_gate` and
@@ -2130,3 +2133,14 @@ a failed product gate or a Supabase plan warning.
   performed. After re-authentication, attach the artifact to
   `GitHubActionsDeployRole` and rerun the health workflow; until then the
   end-to-end cadence gate remains pending.
+
+## 2026-10-27 bounded health-window production evidence
+
+- [x] Health workflow `40450412687` completed successfully from the current
+  mainline. Its redacted artifact reports 8 retained samples but only 2
+  current-window samples (`evaluation_window_ms: 3600000`), 0 current failed
+  runs, 1 current freshness breach, and `minimum_samples_not_met`.
+- [x] This confirms historical samples remain visible for audit without
+  poisoning the current operational classification. AWS invocation cadence is
+  proven (4 invocations, 0 errors); the scheduled-worker and end-to-end marker
+  gates remain pending exactly as documented.

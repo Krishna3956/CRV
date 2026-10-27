@@ -995,3 +995,10 @@ production transport UAT.
   bounded marker count. The native AWS session was signed out during the
   attempted control-plane check, so the policy remains unapplied and the
   end-to-end cadence gate remains explicitly pending.
+
+- 2026-10-27: Live health workflow `40450412687` verified the bounded current
+  health window in production evidence. Eight samples remain auditable, while
+  only two fall in the one-hour evaluation window; there are no current failed
+  runs, one current freshness breach, and insufficient current volume. AWS
+  invocation cadence is proven; scheduled-worker and log-marker gates remain
+  open.
