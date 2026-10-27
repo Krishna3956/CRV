@@ -74,10 +74,10 @@ export function summarizeRefreshWorkerRuns(runs, { budgetMs = DEFAULT_BUDGET_MS,
   const cadenceBreaches = intervals.filter((interval) => interval > maxCadenceMs).length;
   const awsEvidence = normalizeAwsSchedulerEvidence(awsScheduler);
   const scheduledSampleCount = evaluationRuns.filter((run) => run.event === "schedule").length;
-  const insufficient = evaluationRuns.length < MIN_SAMPLES;
   // EventBridge/Lambda is the production scheduler. GitHub cron is only a
   // recovery path, so a healthy AWS metric window satisfies the scheduler
   // evidence requirement even when GitHub has missed a tick.
+  const insufficient = evaluationRuns.length < MIN_SAMPLES && !awsEvidence.healthy;
   const scheduledInsufficient = scheduledSampleCount < MIN_SAMPLES && !awsEvidence.healthy;
   const effectiveCadenceBreaches = awsEvidence.healthy ? 0 : cadenceBreaches;
   const awsErrorsObserved = awsEvidence.enabled && awsEvidence.datapoints > 0 && awsEvidence.errors > 0;

@@ -103,6 +103,18 @@ test("healthy AWS scheduler evidence satisfies production cadence without hiding
   assert.deepEqual(report.reasons, ["worker_failures_observed", "freshness_budget_exceeded"]);
 });
 
+test("healthy AWS scheduler evidence can close health with fewer GitHub recovery samples", () => {
+  const report = summarizeRefreshWorkerRuns([
+    run({ run_id: 1, event: "workflow_dispatch", created_at: "2026-10-26T00:00:00Z" }),
+  ], { awsScheduler: { enabled: true, invocations: 3, errors: 0, scheduled_successes: 3, scheduled_successes_available: true, datapoints: [{ id: "invocations" }, { id: "errors" }, { id: "scheduled_successes" }] } });
+  assert.equal(report.state, "healthy");
+  assert.deepEqual(report.reasons, []);
+  assert.equal(report.evaluation_sample_count, 1);
+  assert.equal(report.scheduled_sample_count, 0);
+  assert.equal(report.aws_scheduler_cadence_gate.status, "proven");
+  assert.equal(report.aws_end_to_end_cadence_gate.status, "proven");
+});
+
 test("scheduled cadence gate becomes proven only from scheduled worker samples", () => {
   const report = summarizeRefreshWorkerRuns([
     run({ run_id: 1, event: "schedule", created_at: "2026-10-26T00:00:00Z" }),
