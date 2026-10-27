@@ -1,6 +1,6 @@
 # Founder OS 100 Customer Readiness Ledger
 
-Last updated: 2026-10-27 (main `df14e74`; deployed application `7053442` and App Runner rollout verified)
+Last updated: 2026-10-27 (main `b2100af`; App Runner rollout and production smoke verified)
 Latest freshness evidence: health workflow `40450412687` inspected eight
 redacted worker samples and evaluated the two samples in its bounded current
 window. It proved the AWS scheduler cadence gate with four invocations and zero
@@ -32,8 +32,21 @@ permission.
   despite passing locally. The release gate now uses a bounded 300-second
   limit, with a matching contract test; this changes no SDK assertions or
   publication contents.
-- [ ] The next deployment run must complete the hosted package-consumer gate
-  and post-deploy smoke against the published-source commit.
+- [x] The next deployment run completed the hosted package-consumer gate and
+  post-deploy smoke against the published-source commit; see run
+  `40484535761` below.
+
+## 2026-10-27 deployment verification after timeout hardening
+
+- [x] Deployment run `40484535761` for `b2100af` passed the full hosted release
+  gate after the 300-second package-consumer timeout fix.
+- [x] The same run successfully reconciled the ECR image digest, rolled out the
+  App Runner service, passed read-only production smoke, verified the running
+  release identity, and passed the runtime-safety audit. Redacted evidence was
+  uploaded for the smoke, App Runner host, and runtime flags.
+- [x] The prior 502 smoke on run `40480967920` is superseded by this verified
+  rollout; it remains recorded as a transient failed attempt rather than being
+  hidden or relabeled as success.
 
 ## 2026-10-27 catalog snapshot evidence milestone
 
