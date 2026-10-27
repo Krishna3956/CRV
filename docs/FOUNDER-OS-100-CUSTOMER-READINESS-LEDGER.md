@@ -31,6 +31,20 @@ proof.
 This register is the active decision surface. Historical entries below remain
 evidence and are not current approval.
 
+## 2026-10-28 — full release-gate revalidation
+
+- [x] Re-ran `npm run test:release-gate` from the reviewed web workspace after
+  the deployed-release reconciliation. The gate passed all **144 suites**.
+- [x] The pass includes the dashboard's six-tab wiring and data-trust
+  contracts, clickable documentation navigation, setup/OTel/transport CTAs,
+  SDK packed-consumer tests for TypeScript/CLI/Python, Go/.NET hosted smoke
+  contracts, OTLP JSON/protobuf, MCP protocol fixtures, tenant isolation,
+  privacy/export/deletion boundaries, worker health, and release hygiene.
+- [x] No source or generated files were changed by the gate. This is local
+  engineering evidence and does not close production scheduler freshness,
+  backup/PITR posture, credentialed customer-owned transport UAT, or the
+  release-owner GO/NO-GO decision above.
+
 ## 2026-10-28 — hosted deployment recovery and verification
 
 - [x] Stale workflow `40577463077` accepted cancellation through both the
