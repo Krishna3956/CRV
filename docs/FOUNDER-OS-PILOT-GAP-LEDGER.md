@@ -12,6 +12,15 @@ Status: active autonomous audit, started 2026-10-21.
   currentness contracts also passed; no product behavior or customer-facing
   readiness claim was changed by this documentation-only milestone.
 
+## 2026-10-27 — current-main build verification
+
+- Re-ran `npm run lint` and `npm run build` on `main` after the evidence
+  reconciliation. Both completed without diagnostics; the production build
+  generated all **177 routes**.
+- This confirms the current source remains buildable after the ledger/release
+  record updates. It is not a substitute for the still-open hosted cadence,
+  recovery, privacy, credentialed UAT, or release-owner gates.
+
 ## 2026-10-27 — scheduler auto-redeploy verified
 
 - GitHub Actions run `40470584190` completed successfully for `078efb7`.
