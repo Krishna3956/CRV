@@ -3,15 +3,20 @@
 This is a review record, not a publication action. No registry credentials are
 used here and no package is published automatically.
 
-## Unpublished CLI proxy candidate — 2026-10-27
+## CLI proxy publication — 2026-10-27
 
 Mainline `HEAD` adds the bounded stdio launcher to the CLI source and
-packed-consumer tests. The published registry artifact remains
-`@trackmcp/cli@0.1.10`; no claim is made that that existing artifact contains
-the new `proxy -- <command>` entry point. Publish it only in the next reviewed
-release train with a new CLI version, registry uniqueness check, provenance,
-and clean-consumer verification. This separation prevents source-only changes
-from being presented as available through `npx` before publication.
+packed-consumer tests. The reviewed single-package workflow `40523643329`
+published `@trackmcp/cli@0.1.11` with provenance from source commit `cddfdb7`.
+
+| Package | Published version | Registry/provenance evidence |
+| --- | --- | --- |
+| `@trackmcp/cli` | `0.1.11` | npm HTTP 200; SHA-512 integrity `sha512-I1F8BHyzod7/mHkOfuejy6YiicpbhzpnowWI0fvjxnpJzmNyCWPYMqgWHzlbmf7q/7ybhrULZNbguE+iyn7eDg==`; [tarball](https://registry.npmjs.org/@trackmcp/cli/-/cli-0.1.11.tgz); provenance log index `3519373664` |
+
+The public tarball was independently downloaded and inspected: it contains the
+`proxy` entry point and `lib/proxy.mjs`. The packed-consumer and CLI unit suites
+passed in the workflow and locally. Hosted proxying, OAuth, reconnect/replay,
+and durable delivery remain out of scope.
 
 ## TypeScript SDK publication — 2026-10-27
 

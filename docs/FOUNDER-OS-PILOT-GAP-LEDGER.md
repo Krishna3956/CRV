@@ -105,13 +105,13 @@ Status: active autonomous audit, started 2026-10-21.
 
 - The reviewed SDK train is published as `@trackmcp/sdk@0.1.21` and
   `trackmcp==0.1.13` (published `0.1.21` and published `0.1.13` release artifacts);
-  the CLI candidate is now `0.1.11`. Registry checksums,
+  the bounded CLI proxy is published as `@trackmcp/cli@0.1.11`. Registry checksums,
   provenance, and clean-consumer evidence are recorded in the package
   release-readiness file. The first npm run’s bounded propagation timeout is
   retained as a workflow caveat, not a registry failure.
 - Reviewed release candidate `0.1.22` contains the TypeScript authorization-
-  outcome observer; it is not yet published and must not be used as the
-  installable pilot baseline until registry and clean-consumer evidence exist.
+  outcome observer and is published with registry and clean-consumer evidence in
+  the package release-readiness record.
 
 ## 2026-10-27 — current-source pointer reconciliation
 

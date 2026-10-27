@@ -1,6 +1,6 @@
 # Founder OS 100 Customer Readiness Ledger
 
-Last updated: 2026-10-27 (main `6943d1d`; deployed application `877f3c5` and App Runner rollout and production smoke verified; TypeScript SDK 0.1.22 registry publication verified)
+Last updated: 2026-10-27 (main `cddfdb7`; deployed application `877f3c5` and App Runner rollout and production smoke verified; TypeScript SDK 0.1.22 and CLI 0.1.11 registry publication verified)
 Latest freshness evidence: health workflow `40450412687` inspected eight
 redacted worker samples and evaluated the two samples in its bounded current
 window. It proved the AWS scheduler cadence gate with four invocations and zero
@@ -78,8 +78,10 @@ permission.
   integration cards so the capability is reachable from the product's normal
   documentation paths rather than only from the package README.
 - [x] Production build generated `/docs/cli`; lint and the focused proxy tests
-  remain green. This closes documentation discoverability only; the source
-  proxy remains an unpublished package candidate until a reviewed release train.
+  remain green.
+- [x] The CLI proxy is now installable from published `@trackmcp/cli@0.1.11`;
+  registry integrity, provenance, and clean-consumer evidence are recorded in
+  the package-readiness record.
 - [ ] Hosted proxy behavior, OAuth exchange, durable replay, and customer-owned
   transport UAT remain explicitly outside this local launcher milestone.
 

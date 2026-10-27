@@ -19,9 +19,9 @@ export default function CliDocsPage() {
 
     <DocSection title="Install and run">
       <Para>
-        The proxy is included in the published CLI interface once your release train
-        contains it. Keep the workspace key in the environment; the CLI never accepts
-        API keys as command-line arguments.
+        The bounded proxy is available in the published <Inline>@trackmcp/cli@0.1.11</Inline>
+        package. Keep the workspace key in the environment; the CLI never accepts API
+        keys as command-line arguments.
       </Para>
       <Code>{`export TRACKMCP_KEY=tmcp_...
 npx @trackmcp/cli proxy -- npx my-mcp-server`}</Code>
