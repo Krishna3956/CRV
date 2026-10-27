@@ -1,6 +1,6 @@
 # Founder OS 100 Customer Readiness Ledger
 
-Last updated: 2026-10-28 (main `1c431b59`; deployed application `dd443a8c` and App Runner rollout `40581600172` succeeded; hosted CI `40583144698` passed; authenticated production smoke `40582650751` passed; hosted publication workflow `40569475423` verified `@trackmcp/sdk@0.1.24`)
+Last updated: 2026-10-28 (main `2c3763b8`; deployed application `dd443a8c` and App Runner rollout `40581600172` succeeded; hosted CI `40584418097` and health run `40584912071` passed; authenticated production smoke `40582650751` passed; hosted publication workflow `40569475423` verified `@trackmcp/sdk@0.1.24`)
 The same-origin docs, auth, blog CTA fixes, regression guard, and hosted-runner verification gate are deployed and runtime-verified. The public Cloudflare edge still returns HTML 403 to scripted probes and remains a separate external gate.
 Latest freshness evidence: health workflow `40566829192` with worker drain
 `40566911017` inspected eight redacted worker samples. AWS scheduler cadence is
@@ -9,19 +9,21 @@ state remains `warning` because only **1/3 scheduled worker samples** is in the
 current evaluation window and the maximum queue lag is `35,497,938 ms` (above
 the 15-minute pilot budget).
 
-Latest recheck: health workflow `40570232815` completed successfully after
-bounded recovery worker `40570059240` also succeeded. AWS scheduler evidence
-remains proven at **4/4 invocations** and **4/4 scheduled successes**, but the
-GitHub scheduled-worker sample count is **0/3** in this manual recheck and the
-historical maximum queue lag remains `36,729,012 ms`; freshness therefore stays
-**warning**. Manual dispatches are recovery evidence, not scheduled-cadence
-proof.
+Latest recheck: health workflow `40584912071` completed successfully after
+bounded recovery worker `40584021521` also succeeded at the workflow level but
+reported `timed_out: true` and 10 unparseable batch responses. The corrected
+health parser records this as `worker_execution_incomplete` rather than an empty
+healthy queue. AWS scheduler evidence is proven at **4/4 invocations** and
+**4/4 scheduled successes**, while the GitHub scheduled-worker sample count is
+**0/3** and the historical maximum queue lag remains `36,729,012 ms`; freshness
+therefore stays **warning**. Manual dispatches are recovery evidence, not
+scheduled-cadence proof.
 
 ## Active external-gate register (current)
 
 | Gate | Current evidence | State | Required closure evidence |
 | --- | --- | --- | --- |
-| Worker freshness | AWS scheduler 4/4 invocations and 4/4 successes; latest health artifact from `40570232815` has 0/3 scheduled GitHub-worker samples after successful manual recovery `40570059240`; max historical queue lag `36,729,012 ms` | **HOLD** | Three fresh scheduled samples within the 15-minute budget, with no unresolved stale/failure evidence |
+| Worker freshness | Health artifact `40584912071` proves AWS cadence at 4/4 invocations and 4/4 end-to-end successes, but records 0/3 scheduled GitHub-worker samples and incomplete recovery artifact `40584021521`; max historical queue lag `36,729,012 ms` | **HOLD** | Three fresh scheduled samples within the 15-minute budget, with no unresolved stale/failure evidence |
 | Backup/PITR | Supabase Free Plan has no scheduled backups or PITR; inspection recorded in the backup evidence entries below | **HOLD / owner decision** | Accepted documented limitation with named recovery owner/runbook, or plan upgrade plus tested restore rehearsal |
 | Privacy acceptance | Engineering privacy/export/deletion contracts pass; production acceptance evidence is not recorded | **HOLD / owner decision** | Signed production privacy review and retention/deletion acceptance |
 | Credentialed lifecycle/UAT | Read-only tenant/auth smoke is verified; write-gated key lifecycle and customer-owned transport UAT remain unexecuted | **HOLD / credentialed** | Disposable lifecycle key run plus customer-owned transport/protocol UAT artifacts |
@@ -30,6 +32,23 @@ proof.
 
 This register is the active decision surface. Historical entries below remain
 evidence and are not current approval.
+
+## 2026-10-28 — refresh timeout evidence correction
+
+- [x] Recovery worker run `40584021521` completed its bounded job but its
+  redacted artifact contained `timed_out: true` and 10 unparseable batch
+  responses. The previous workflow metadata would have labeled zero observed
+  lag as `no_backlog_observed`.
+- [x] Mainline `2c3763b8` now preserves timeout/unparseable fields, labels the
+  artifact freshness `unknown` with a warning, and exposes
+  `worker_execution_incomplete` in the health report. It cannot claim an empty
+  or healthy queue when the worker did not return parseable evidence.
+- [x] Focused health/workflow contracts passed, the full **144-suite** release
+  gate passed in hosted CI `40584418097`, and corrected health run
+  `40584912071` passed with the expected warning state.
+- [ ] The scheduled freshness gate remains open: the corrected report still has
+  0/3 scheduled samples and the recovery artifact is incomplete. This is an
+  operational worker/queue issue, not a reason to weaken the evidence contract.
 
 ## 2026-10-28 — post-reconciliation hosted CI verification
 

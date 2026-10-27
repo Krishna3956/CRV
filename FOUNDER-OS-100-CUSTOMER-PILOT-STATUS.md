@@ -12,8 +12,9 @@ promise that every product capability is complete.
   application runtime is immutable
   `dd443a8cd4ebb7a4312d48690cad2f19bbd296d5` via App Runner workflow
   `40581600172`; chained authenticated production smoke `40582650751` passed
-  for the same release. The post-deployment commits are documentation-only
-  evidence updates and are not claimed as deployed behavior.
+  for the same release. Post-deployment ledger and refresh-worker
+  evidence-tooling commits are not claimed as deployed behavior; they are not
+  App Runner application changes.
 - The latest local release gate passes 144 suites, lint, the 177-route
   production build, and `git diff --check`.
 - Production schema postflights verified required tables, indexes, functions,

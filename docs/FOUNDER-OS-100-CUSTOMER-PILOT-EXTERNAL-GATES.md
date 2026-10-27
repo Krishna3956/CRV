@@ -15,12 +15,11 @@ is intentionally not a GO approval and must not be treated as one.
   App Runner workflow `40581600172` (successful rollout, release gate,
   production smoke, identity, and runtime-safety checks). Its runtime
   reference is the exact immutable SHA.
-- Current source verification: `main` at `HEAD` (`dd443a8c`, same-origin
-  documentation fallback correction), with the deployed application at the
-  same immutable source. The chained authenticated production smoke
-  `40582650751` also passed for
-  that release; subsequent ledger-only commits do not require a new App Runner
-  image.
+- Current source verification: `main` at `HEAD` (`2c3763b8`, refresh-worker
+  timeout evidence correction), with the deployed application still at
+  immutable `dd443a8c`. The chained authenticated production smoke
+  `40582650751` passed for that deployed release; workflow/report tooling
+  commits after it do not require a new App Runner image.
   This does not close the external owner, backup, privacy, or scheduler-cadence
   gates.
 - Historical deployed baselines retained for audit include `9638e23c8529f9b1781d96413529e33a692715ed`

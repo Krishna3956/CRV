@@ -61,8 +61,9 @@ recovery-evidence hardening, not a final operational SLO acceptance.
 
 ## Latest source verification — 2026-10-28
 
-The current repository source is `main` at `HEAD` (including the same-origin
-documentation fallback correction in deployed source `dd443a8`). The latest local release gate
+The current repository source is `main` at `HEAD` (including the refresh-worker
+timeout evidence correction `2c3763b8`; this workflow/report tooling change is
+not claimed as App Runner application behavior). The latest local release gate
 passes **144 suites**, lint, the production build (**177 routes**), and
 `git diff --check`. The deployed source is `dd443a8` via App Runner workflow
 `40581600172`; authenticated production smoke `40582650751` passed for the same
