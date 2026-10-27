@@ -21,6 +21,7 @@ export const metadata: Metadata = pageMeta({
 
 const cards = [
   { icon: Terminal, t: "TypeScript SDK", d: "Wrap a Node MCP server in one line.", href: "/docs/typescript" },
+  { icon: Terminal, t: "CLI proxy", d: "Launch a bounded local stdio observer without changing your server.", href: "/docs/cli" },
   { icon: Braces, t: "Python SDK", d: "Wrap a Python MCP server and capture calls, sessions, and clients.", href: "/docs/python" },
   { icon: Code2, t: "Go SDK", d: "Capture bounded events from Go MCP middleware and flush on shutdown.", href: "/docs/go" },
   { icon: Code2, t: ".NET SDK", d: "Capture fail-open events from ASP.NET and .NET MCP middleware.", href: "/docs/dotnet" },

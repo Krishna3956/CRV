@@ -10,6 +10,21 @@ freshness breach, not a historical-failure false positive. The report records
 projection is unavailable because the OIDC role lacks log-event query
 permission.
 
+## 2026-10-27 CLI proxy documentation discoverability milestone
+
+- [x] Added a first-class `/docs/cli` page covering the bounded stdio proxy
+  launcher, exact invocation, byte-preserving forwarding, metadata-only privacy
+  boundary, fail-open delivery behavior, HTTPS requirement, and unsupported
+  hosted HTTP/SSE/OAuth/replay claims.
+- [x] Added the CLI proxy to the SDK documentation sidebar and the main docs
+  integration cards so the capability is reachable from the product's normal
+  documentation paths rather than only from the package README.
+- [x] Production build generated `/docs/cli`; lint and the focused proxy tests
+  remain green. This closes documentation discoverability only; the source
+  proxy remains an unpublished package candidate until a reviewed release train.
+- [ ] Hosted proxy behavior, OAuth exchange, durable replay, and customer-owned
+  transport UAT remain explicitly outside this local launcher milestone.
+
 ## 2026-10-27 health-state correction deployment
 
 - [x] App Runner deployment `40494157458` rolled out immutable commit

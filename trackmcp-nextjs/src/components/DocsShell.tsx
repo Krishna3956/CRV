@@ -21,6 +21,7 @@ const groups = [
     items: [
       { t: "TypeScript", href: "/docs/typescript" },
       { t: "Transport observer", href: "/docs/typescript#transport-observer" },
+      { t: "CLI proxy", href: "/docs/cli" },
       { t: "Python", href: "/docs/python" },
       { t: "Go", href: "/docs/go" },
       { t: ".NET", href: "/docs/dotnet" },
@@ -49,6 +50,7 @@ export function DocsShell({
   const labels: Record<string, string> = {
     "/docs": "Docs",
     "/docs/typescript": "TypeScript SDK",
+    "/docs/cli": "CLI proxy",
     "/docs/python": "Python SDK",
     "/docs/api": "REST API",
     "/docs/reference": "Configuration Reference",
