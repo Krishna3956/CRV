@@ -9,6 +9,8 @@ const key = "tmcp_proxy_test_key_12345678901234567890";
 test("proxy requires an explicit command separator and HTTPS endpoint", () => {
   assert.throws(() => parseProxyArgs(["--service=test"]), /Usage: trackmcp proxy/);
   assert.throws(() => parseProxyArgs(["--endpoint=http://localhost", "--", "server"]), /HTTPS/);
+  assert.throws(() => parseProxyArgs(["--endpoint=https://user:pass@example.test", "--", "server"]), /credentials/);
+  assert.throws(() => parseProxyArgs(["--service=bad label", "--", "server"]), /bounded label/);
   assert.deepEqual(parseProxyArgs(["--service=demo", "--", "mcp-server", "--stdio"]), {
     endpoint: "https://trackmcp.com/api/v1/ingest",
     service: "demo",
@@ -16,6 +18,11 @@ test("proxy requires an explicit command separator and HTTPS endpoint", () => {
     command: "mcp-server",
     args: ["--stdio"],
   });
+});
+
+test("proxy rejects unsafe runtime endpoint and labels", async () => {
+  await assert.rejects(() => runProxy({ command: "server", key, endpoint: "https://user:pass@example.test" }), /credentials/);
+  await assert.rejects(() => runProxy({ command: "server", key, service: "bad label" }), /bounded label/);
 });
 
 test("proxy forwards JSONL unchanged and emits bounded metadata without secrets", async () => {

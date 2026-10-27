@@ -34,6 +34,17 @@ permission.
 - [ ] This remains a local launcher boundary. Hosted proxying, OAuth exchange,
   replay/durable reconnect, and customer-owned transport UAT are not implied.
 
+## 2026-10-27 CLI proxy input-boundary hardening milestone
+
+- [x] Proxy endpoint validation now parses a URL, requires HTTPS, rejects
+  embedded credentials, and bounds the endpoint length.
+- [x] Service and environment labels are now allowlisted and bounded before
+  telemetry construction; unsafe runtime and CLI inputs have regression tests.
+- [x] Focused proxy tests, lint, production build, and the full 144-suite
+  release gate passed.
+- [ ] This does not enable hosted proxying or OAuth. Those remain explicit
+  external/deferred boundaries in the protocol matrix.
+
 ## 2026-10-27 health-state correction deployment
 
 - [x] App Runner deployment `40494157458` rolled out immutable commit

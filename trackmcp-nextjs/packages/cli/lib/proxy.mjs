@@ -5,6 +5,20 @@ const DEFAULT_ENDPOINT = "https://trackmcp.com/api/v1/ingest";
 const MAX_LINE_BYTES = 256 * 1024;
 const MAX_BATCH = 50;
 const METHOD = /^[A-Za-z0-9_.:/-]{1,128}$/;
+const LABEL = /^[A-Za-z0-9][A-Za-z0-9_.:/-]{0,127}$/;
+
+function validateEndpoint(value) {
+  if (typeof value !== "string" || value.length > 2048) throw new Error("Proxy endpoint must be a bounded HTTPS URL.");
+  let url;
+  try { url = new URL(value); } catch { throw new Error("Proxy endpoint must be a bounded HTTPS URL."); }
+  if (url.protocol !== "https:" || !url.hostname || url.username || url.password) throw new Error("Proxy endpoint must be HTTPS without embedded credentials.");
+  return url.toString();
+}
+
+function validateLabel(value, field) {
+  if (typeof value !== "string" || !LABEL.test(value)) throw new Error(`Proxy ${field} must be a bounded label.`);
+  return value;
+}
 
 function stable(value) {
   if (Array.isArray(value)) return `[${value.map(stable).join(",")}]`;
@@ -50,13 +64,17 @@ export function parseProxyArgs(argv) {
     else if (arg.startsWith("--environment=")) flags.environment = arg.slice("--environment=".length);
     else throw new Error(`Unknown proxy option: ${arg}`);
   }
-  if (!/^https:\/\//.test(flags.endpoint)) throw new Error("Proxy endpoint must use HTTPS.");
+  flags.endpoint = validateEndpoint(flags.endpoint);
+  flags.service = validateLabel(flags.service, "service");
+  flags.environment = validateLabel(flags.environment, "environment");
   return { ...flags, command: argv[separator + 1], args: argv.slice(separator + 2) };
 }
 
 export async function runProxy({ command, args = [], key = process.env.TRACKMCP_KEY, endpoint = DEFAULT_ENDPOINT, service = "mcp-stdio", environment = "production", spawnImpl = spawn, fetchImpl = fetch, input = process.stdin, output = process.stdout, errorOutput = process.stderr, now = () => new Date().toISOString() } = {}) {
   if (!key || typeof key !== "string") throw new Error("trackmcp proxy requires TRACKMCP_KEY in the environment; it never accepts keys as arguments.");
-  if (!/^https:\/\//.test(endpoint)) throw new Error("Proxy endpoint must use HTTPS.");
+  endpoint = validateEndpoint(endpoint);
+  service = validateLabel(service, "service");
+  environment = validateLabel(environment, "environment");
   if (!command || command.startsWith("-")) throw new Error("Proxy command is required after --.");
   const child = spawnImpl(command, args, { stdio: ["pipe", "pipe", "inherit"], shell: false });
   const queue = [];
