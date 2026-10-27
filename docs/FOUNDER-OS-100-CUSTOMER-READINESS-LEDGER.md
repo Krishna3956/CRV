@@ -33,6 +33,20 @@ and **4/4 scheduled successes**; the GitHub scheduled-worker sample count is
   dependency installation, builds, audits, and Python artifact validation so
   registry or compiler stalls fail with actionable evidence as well.
 
+## 2026-10-28 — fresh worker-health evidence remains a freshness HOLD
+
+- [x] Health workflow `40591189579` completed successfully against the current
+  source and produced a parseable report with eight retained redacted samples.
+  AWS scheduler cadence remains proven at **4/4 invocations** and **4/4
+  end-to-end successes** with zero AWS errors.
+- [x] The report still records **0/3 scheduled GitHub-worker samples** and a
+  maximum queue lag of `40,050,587 ms` (about 11.1 hours). The overall state is
+  therefore `warning` with `worker_failures_observed`,
+  `worker_execution_incomplete`, and `freshness_budget_exceeded` reasons.
+- [ ] This is not a code-release failure and is not safe to waive: the worker
+  freshness gate remains HOLD until three fresh scheduled samples drain within
+  the 15-minute budget without incomplete execution evidence.
+
 ## Active external-gate register (current)
 
 | Gate | Current evidence | State | Required closure evidence |
