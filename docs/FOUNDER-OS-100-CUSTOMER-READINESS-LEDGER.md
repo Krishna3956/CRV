@@ -1,6 +1,6 @@
 # Founder OS 100 Customer Readiness Ledger
 
-Last updated: 2026-10-28 (OTEL edge-path audit; source change pending deployment; deployed application remains `cffc2a0`; hosted publication workflow `40569475423` verified `@trackmcp/sdk@0.1.24`)
+Last updated: 2026-10-28 (same-origin docs CTA fix pushed as `7302507`; deployment pending; hosted publication workflow `40569475423` verified `@trackmcp/sdk@0.1.24`)
 Latest freshness evidence: health workflow `40566829192` with worker drain
 `40566911017` inspected eight redacted worker samples. AWS scheduler cadence is
 proven with **4/4 invocations** and **4/4 CloudWatch EMF successes**. The overall
@@ -28,6 +28,18 @@ proof.
 
 This register is the active decision surface. Historical entries below remain
 evidence and are not current approval.
+
+## 2026-10-28 — same-origin documentation CTA fix
+
+- [x] Live probes showed `app.trackmcp.com` currently returns the Cloudflare
+  block page for unauthenticated requests. Documentation Setup, dashboard, and
+  trace-explorer links now use same-origin paths (`/dashboard` and
+  `/dashboard?view=setup`) instead of sending users to that blocked hostname.
+- [x] Documentation navigation, OTEL documentation, and API-boundary contracts
+  pass (11/11 focused checks).
+- [ ] Re-run the deployed browser navigation audit after the new App Runner
+  rollout completes; this source fix cannot repair the external Cloudflare
+  edge rule itself.
 
 ## 2026-10-28 — OTEL public edge audit
 
