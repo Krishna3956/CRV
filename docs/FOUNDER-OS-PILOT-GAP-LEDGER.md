@@ -696,3 +696,15 @@ production transport UAT.
   path is therefore operational; this does not yet close the separate
   sustained cadence/freshness gate, which still requires clean scheduled
   worker samples and a fresh health report.
+
+- 2026-10-27: Read-only production postflight confirmed that the durable
+  semantic-fact path is materializing in Supabase: `trackmcp_semantic_facts`
+  contains 36,186 rows, with recent rows observed through
+  `2026-10-27T02:11:06Z`; the sample contains bounded protocol-family metadata
+  (including `prompts`, `resources`, and `control_signal`) and no raw payload
+  fields were selected. The refresh-job table contains 7,889 rows; the latest
+  sampled 100 jobs were all `succeeded` across fact projection and catalog
+  refresh kinds. This closes the previously unproven “facts are not
+  materialized” deployment dependency. It does not close family-specific
+  lifecycle UAT or prove completion/input-required joins for every protocol
+  family; those remain explicitly separate gates.
