@@ -2442,6 +2442,22 @@ a failed product gate or a Supabase plan warning.
   its result before converting the 38-row ledger gap into an accepted parity
   exception or an approved replay plan.
 
+## 2026-10-27 production schema integrity postflight result
+
+- [x] Read-only Supabase production checks found all 23 required indexes and
+  all 4 required worker/alert functions (`23/23` and `4/4`).
+- [x] The 21 service tables in the RLS audit all have RLS enabled, deny
+  `anon` SELECT, and deny `authenticated` SELECT at the table privilege layer
+  (`21/21/21`, with no missing service table in the query).
+- [x] The four named integrity constraints are present (`4/4`), and the
+  aggregate invalid-row check returned `0` across attribution, redemption
+  hashes, deletion-batch bounds, and account-identity pairs.
+- [x] These results close the current column/index/function/RLS/constraint/
+  integrity evidence gap for the audited objects. They do not close migration
+  history parity: 38 repository migration rows remain absent from the
+  application ledger and still require reviewed evidence or an approved replay
+  plan.
+
 ## 2026-10-27 first-ingest edge-path correction
 
 - [x] Corrected the manual first-ingest workflow default from the
