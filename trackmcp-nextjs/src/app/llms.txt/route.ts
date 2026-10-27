@@ -30,6 +30,7 @@ TrackMCP also maintains a directory of MCP servers and tools so builders can dis
 - [Documentation](https://trackmcp.com/docs): Start integrating TrackMCP with an MCP server.
 - [MCP analytics quickstart](https://trackmcp.com/mcp-server-analytics/quickstart): Instrument a TypeScript or Python server and verify the first event.
 - [TypeScript SDK](https://trackmcp.com/docs/typescript): TypeScript installation and integration guide.
+- [CLI proxy](https://trackmcp.com/docs/cli): Run the bounded local stdio observer and understand its privacy and transport limits.
 - [Python SDK](https://trackmcp.com/docs/python): Python installation and integration guide.
 - [REST API](https://trackmcp.com/docs/api): Query TrackMCP analytics programmatically.
 - [Configuration reference](https://trackmcp.com/docs/reference): Configure SDK behavior, redaction, batching, and telemetry.
