@@ -10,6 +10,15 @@ Status: active autonomous audit, started 2026-10-21.
   `f81317d` candidate; this documentation-only update does not relabel it as
   deployed or close any external acceptance gate.
 
+## 2026-10-27 — live scheduler evidence recheck
+
+- Refreshed the native CloudWatch log stream for the refresh-scheduler Lambda.
+  The console reports that newer events are available, but the loaded rows
+  still stop at the earlier 07:22 UTC sample and include the historical
+  `AbortError` at 07:17 UTC. Because the current event bodies were not loaded,
+  this observation cannot prove a clean three-sample cadence or zero-error
+  window; the scheduler gate remains open and no health claim was changed.
+
 ## 2026-10-27 — package-version parity and release-gate recheck
 
 - Reconciled the current CLI integration README, package-release readiness
