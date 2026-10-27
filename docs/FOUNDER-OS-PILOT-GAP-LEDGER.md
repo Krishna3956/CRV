@@ -861,3 +861,10 @@ production transport UAT.
   and the remaining release-owner/infrastructure/protocol gates. It keeps the
   release status explicitly **HOLD** and makes no readiness claim beyond the
   retained evidence.
+
+- 2026-10-27: Reconciled the PDF truth audit with the implemented bounded
+  Action Queue and catalog-snapshot surfaces. The audit now records the
+  workspace-scoped alert relationship, lazy delivery-attempt evidence, and
+  persisted hash/count snapshot/diff read model as implemented bounded
+  capabilities, while retaining production-postflight and operational-metric
+  caveats. No unsupported delivery or raw-identity claim was added.
