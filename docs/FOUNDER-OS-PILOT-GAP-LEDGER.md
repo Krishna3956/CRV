@@ -2,6 +2,19 @@
 
 Status: active autonomous audit, started 2026-10-21.
 
+## 2026-10-27 — scheduler redeploy automation made dependency-safe
+
+- The scheduler workflow now runs on pushes limited to
+  `trackmcp-nextjs/workers/refresh-scheduler/**` (and its workflow file), using
+  the reviewed App Runner service fallback and the existing protected secret
+  reference. Push-triggered runs force `EnableSchedule=false` and collect no
+  recurring evidence; manual dispatch remains required to enable the schedule
+  or collect cadence metrics.
+- This removes the prior gap where a reviewed Lambda fix could remain inactive
+  until someone manually dispatched a workflow, without creating an automatic
+  customer-traffic enablement path. The workflow contract, lint, 177-route
+  build, and complete **143-suite** release gate pass.
+
 ## 2026-10-27 — scheduler timeout hardening and release-scope reconciliation
 
 - The deployed scheduler previously requested `max_jobs: 100` in one App Runner

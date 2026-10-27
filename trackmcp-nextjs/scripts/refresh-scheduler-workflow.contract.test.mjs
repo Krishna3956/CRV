@@ -6,7 +6,9 @@ const workflow = await readFile(new URL("../../.github/workflows/deploy-refresh-
 const template = await readFile(new URL("../workers/refresh-scheduler/template.yaml", import.meta.url), "utf8");
 const readme = await readFile(new URL("../workers/refresh-scheduler/README.md", import.meta.url), "utf8");
 
-test("refresh scheduler deployment is manual, OIDC-authenticated, and disabled by default", () => {
+test("refresh scheduler deployment auto-redeploys reviewed changes but stays disabled by default", () => {
+  assert.match(workflow, /push:\s*[\s\S]*paths:/);
+  assert.match(workflow, /trackmcp-nextjs\/workers\/refresh-scheduler\/\*\*/);
   assert.match(workflow, /workflow_dispatch:/);
   assert.match(workflow, /id-token:\s*write/);
   assert.match(workflow, /aws-actions\/configure-aws-credentials@v4/);
@@ -20,6 +22,9 @@ test("refresh scheduler deployment is manual, OIDC-authenticated, and disabled b
   assert.match(workflow, /aws-scheduler-log-streams\.json/);
   assert.match(workflow, /\"EnableSchedule=\$ENABLE_SCHEDULE\"/);
   assert.match(workflow, /--no-confirm-changeset/);
+  assert.match(workflow, /ENABLE_SCHEDULE:\s*\$\{\{ inputs\.enable_schedule \|\| false \}\}/);
+  assert.match(workflow, /RUN_AUTHENTICATED_SMOKE:\s*\$\{\{ inputs\.run_authenticated_smoke \|\| false \}\}/);
+  assert.match(workflow, /COLLECT_SCHEDULE_EVIDENCE:\s*\$\{\{ inputs\.collect_schedule_evidence \|\| false \}\}/);
 });
 
 test("refresh scheduler deployment derives the HTTPS endpoint and secret ARN from App Runner", () => {

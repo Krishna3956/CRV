@@ -1,9 +1,13 @@
 name: Deploy refresh scheduler
 
-# This path is deliberately manual and disabled by default. It creates the
-# scheduler infrastructure only after an operator selects the App Runner
-# service; the schedule itself remains disabled until enable_schedule=true.
+# Pushes touching the scheduler implementation automatically redeploy the
+# Lambda with the schedule disabled. Manual dispatch remains the only path that
+# may enable the five-minute schedule or collect recurring evidence.
 on:
+  push:
+    paths:
+      - "trackmcp-nextjs/workers/refresh-scheduler/**"
+      - ".github/workflows/deploy-refresh-scheduler.yml"
   workflow_dispatch:
     inputs:
       stack_name:
@@ -54,6 +58,17 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     timeout-minutes: 20
+    env:
+      # Push events have no workflow_dispatch inputs. Keep the reviewed
+      # production service as the fallback and force all push deployments to
+      # remain disabled/evidence-free.
+      STACK_NAME: ${{ inputs.stack_name || 'trackmcp-refresh-scheduler' }}
+      APP_RUNNER_SERVICE_ARN: ${{ inputs.app_runner_service_arn || 'arn:aws:apprunner:ap-south-1:872575360367:service/trackmcp-web/5d38155bd23141cabb4546b29a4075c7' }}
+      WORKER_TOKEN_SECRET_ARN_INPUT: ${{ inputs.worker_token_secret_arn || '' }}
+      ENABLE_SCHEDULE: ${{ inputs.enable_schedule || false }}
+      RUN_AUTHENTICATED_SMOKE: ${{ inputs.run_authenticated_smoke || false }}
+      COLLECT_SCHEDULE_EVIDENCE: ${{ inputs.collect_schedule_evidence || false }}
+      FAILURE_ALARM_TOPIC_ARN: ${{ inputs.failure_alarm_topic_arn || '' }}
     steps:
       - uses: actions/checkout@v4
 
@@ -72,12 +87,6 @@ jobs:
 
       - name: Deploy scheduler stack
         working-directory: trackmcp-nextjs/workers/refresh-scheduler
-        env:
-          STACK_NAME: ${{ inputs.stack_name }}
-          APP_RUNNER_SERVICE_ARN: ${{ inputs.app_runner_service_arn }}
-          WORKER_TOKEN_SECRET_ARN_INPUT: ${{ inputs.worker_token_secret_arn }}
-          ENABLE_SCHEDULE: ${{ inputs.enable_schedule }}
-          FAILURE_ALARM_TOPIC_ARN: ${{ inputs.failure_alarm_topic_arn }}
         run: |
           set -euo pipefail
           if [[ ! "$APP_RUNNER_SERVICE_ARN" =~ ^arn:aws:apprunner:[^:]+:[0-9]{12}:service/.+ ]]; then
@@ -137,8 +146,6 @@ jobs:
             --parameter-overrides "${PARAM_OVERRIDES[@]}"
 
       - name: Report schedule state without secret material
-        env:
-          STACK_NAME: ${{ inputs.stack_name }}
         run: |
           set -euo pipefail
           REPORT_DIR="$RUNNER_TEMP/refresh-scheduler-report"
@@ -157,10 +164,7 @@ jobs:
             --output json | tee "$REPORT_DIR/resource-states.json"
 
       - name: Run opt-in authenticated Lambda smoke without secret material
-        if: ${{ inputs.run_authenticated_smoke }}
-        env:
-          STACK_NAME: ${{ inputs.stack_name }}
-          ENABLE_SCHEDULE: ${{ inputs.enable_schedule }}
+        if: ${{ env.RUN_AUTHENTICATED_SMOKE == 'true' }}
         run: |
           set -euo pipefail
           if [[ "$ENABLE_SCHEDULE" != "false" ]]; then
@@ -211,9 +215,7 @@ jobs:
             > "$REPORT_DIR/dlq-depth.json"
 
       - name: Collect enabled AWS schedule evidence without payloads
-        if: ${{ inputs.collect_schedule_evidence }}
-        env:
-          STACK_NAME: ${{ inputs.stack_name }}
+        if: ${{ env.COLLECT_SCHEDULE_EVIDENCE == 'true' }}
         run: |
           set -euo pipefail
           REPORT_DIR="$RUNNER_TEMP/refresh-scheduler-report"
