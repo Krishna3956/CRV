@@ -212,7 +212,7 @@ export function createAnalyticsHandler(getAdmin: typeof getSupabaseAdmin = getSu
     diff_computed: catalogVersions.filter((version) => version.diff && typeof version.diff === "object" && (version.diff as Record<string, unknown>).status === "computed").length,
     truncated_versions: catalogVersions.filter((version) => version.truncated).length,
     page_bounded: catalogHasMore,
-    limitation: "Snapshot rows are versioned catalog observations. Notification-family counts are not correlated to a snapshot unless a reviewed server-side join exists; no snapshot version is inferred from a notification.",
+    limitation: "Snapshot rows are versioned catalog observations. Notification-family counts are correlated only through the bounded same-scope evidence join when a unique snapshot is available; ambiguous or unmatched notifications remain unresolved, and no snapshot version is inferred.",
   };
   const entityReadsQuery = supabase.from("trackmcp_catalog_entity_reads")
     .select("catalog_kind,entity_hash,success,is_error,result_type,observed_at")
