@@ -36,6 +36,15 @@ Status: active autonomous audit, started 2026-10-21.
 - Key lifecycle mutation, CLI activation, customer-owned transport UAT, and
   the remaining operational/owner gates stay open.
 
+## 2026-10-28 — guarded lifecycle/transport UAT remains credential-gated
+
+- Transport workflow `40598518836` and key-lifecycle workflow `40598792457`
+  both completed successfully with their safety checks, but each skipped its
+  write step because the dedicated repository secrets are not configured.
+- The skips are recorded as evidence of safe gating, not as successful UAT.
+  Disposable transport and lifecycle credentials remain an external owner
+  dependency before those pilot gates can close.
+
 ## 2026-10-28 — refresh backlog coalescing evidence
 
 - Production coalescing preserved 196 canonical ingest-window jobs and marked

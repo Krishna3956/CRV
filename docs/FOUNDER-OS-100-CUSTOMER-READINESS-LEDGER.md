@@ -335,6 +335,18 @@ evidence and are not current approval.
 - [ ] It does not close key lifecycle mutation, CLI activation, customer-owned
   transport-observer UAT, or business-workflow completion.
 
+## 2026-10-28 — guarded credentialed UAT recheck
+
+- [x] Transport-observer workflow `40598518836` completed successfully but
+  skipped its write-enabled step because the dedicated
+  `TRACKMCP_TRANSPORT_SMOKE_KEY` repository secret is not configured.
+- [x] Key-lifecycle workflow `40598792457` completed successfully with explicit
+  write confirmation but safely skipped mutations because its dedicated
+  disposable cookie, workspace, key-id, and key secrets are not configured.
+- [ ] These are safe, truthful skips rather than failures or approvals. The
+  credentialed lifecycle/transport gate remains HOLD until disposable secrets
+  are supplied and their redacted evidence artifacts pass.
+
 ## 2026-10-28 — documentation snippet fallback correction
 
 - [x] Removed the remaining copy-paste `https://app.trackmcp.com` fallbacks from
