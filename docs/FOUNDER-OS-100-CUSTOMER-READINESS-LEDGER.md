@@ -1,6 +1,6 @@
 # Founder OS 100 Customer Readiness Ledger
 
-Last updated: 2026-10-28 (main `5575323`; deployed application `91293a3` and App Runner rollout `40564093852` remain the latest runtime evidence; hosted publication workflow `40569475423` verified `@trackmcp/sdk@0.1.24`)
+Last updated: 2026-10-28 (main `4bd2a63`; App Runner rollout `40569470630` deployed source `5b9627a` successfully; hosted publication workflow `40569475423` verified `@trackmcp/sdk@0.1.24`)
 Latest freshness evidence: health workflow `40566829192` with worker drain
 `40566911017` inspected eight redacted worker samples. AWS scheduler cadence is
 proven with **4/4 invocations** and **4/4 CloudWatch EMF successes**. The overall
@@ -47,15 +47,22 @@ evidence and are not current approval.
   fixtures to assert the active identity. SDK tests pass 105/105 and the full
   local release gate passes 144/144.
 
-## 2026-10-28 — TypeScript SDK 0.1.24 release candidate
+## 2026-10-28 — TypeScript SDK 0.1.24 publication
 
 - [x] Bumped the TypeScript package and lockfile to `0.1.24` so the corrected
-  modern-client identity can be published without mutating the public `0.1.23`
+  modern-client identity was published without mutating the public `0.1.23`
   artifact.
 - [x] Package tests (105/105), package-release audit, and production-smoke
   contracts (7/7) pass. Reviewed npm publication and clean-consumer checks
   passed in workflow `40569475423`; npm serves `@trackmcp/sdk@0.1.24` with
   verified integrity and provenance.
+
+## 2026-10-28 — TypeScript SDK 0.1.24 deployment evidence
+
+- [x] App Runner deployment workflow `40569470630` completed successfully for
+  source `5b9627a`, including rollout, runtime identity, runtime-safety, and
+  read-only production-smoke checks. The deployed application now contains the
+  reconciled SDK/docs version references.
 
 ## 2026-10-28 — published-train smoke default alignment
 
