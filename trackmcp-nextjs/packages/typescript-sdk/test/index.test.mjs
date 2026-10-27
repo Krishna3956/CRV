@@ -30,8 +30,8 @@ test("single resource and prompt reads emit only bounded identity hashes", () =>
 });
 
 test("capability negotiation metadata is bounded and does not retain initialize bodies", () => {
-  const capabilities = protocolCapabilities({ capabilities: { tools: {}, resources: { subscribe: true }, "server.example": {}, "unsafe key": {}, nested: { secret: "private" } } });
-  assert.deepEqual(capabilities, ["nested", "resources", "server.example", "tools"]);
+  const capabilities = protocolCapabilities({ capabilities: { tools: {}, resources: { subscribe: true }, "server.example": {}, "io.modelcontextprotocol/tasks": { experimental: true }, "unsafe key": {}, nested: { secret: "private" } } });
+  assert.deepEqual(capabilities, ["io.modelcontextprotocol/tasks", "nested", "resources", "server.example", "tools"]);
   assert.equal(JSON.stringify(capabilities).includes("private"), false);
   assert.deepEqual(protocolCapabilities({ capabilities: ["tools"] }), []);
 });

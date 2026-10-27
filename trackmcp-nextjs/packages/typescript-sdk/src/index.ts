@@ -260,7 +260,7 @@ export function protocolCapabilities(value: Record<string, unknown> | undefined)
   const capabilities = value?.capabilities;
   if (!capabilities || typeof capabilities !== "object" || Array.isArray(capabilities)) return [];
   return Object.keys(capabilities as Record<string, unknown>)
-    .filter((name) => /^[A-Za-z][A-Za-z0-9_.-]{0,63}$/.test(name))
+    .filter((name) => /^[A-Za-z][A-Za-z0-9_.-]{0,63}(?:\/[A-Za-z][A-Za-z0-9_.-]{0,63})?$/.test(name))
     .sort()
     .slice(0, 32);
 }

@@ -94,7 +94,7 @@ export function protocolResponseMetadata(method: string | undefined, result: Mes
   if (!result) return metadata;
   if (method === "initialize" && isRecord(result.capabilities)) {
     metadata.capability_names = Object.keys(result.capabilities)
-      .filter((name) => /^[A-Za-z][A-Za-z0-9_.-]{0,63}$/.test(name))
+      .filter((name) => /^[A-Za-z][A-Za-z0-9_.-]{0,63}(?:\/[A-Za-z][A-Za-z0-9_.-]{0,63})?$/.test(name))
       .sort()
       .slice(0, 32)
       .join(",");

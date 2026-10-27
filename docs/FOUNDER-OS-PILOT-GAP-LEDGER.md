@@ -1082,3 +1082,10 @@ production transport UAT.
   `next_cursor_present` marker, matching the TypeScript client while never
   retaining opaque cursor values. Python and Go regressions verify the privacy
   boundary; the full **143-suite** release gate, lint, and diff validation pass.
+
+- 2026-10-27: Completed capability-advertisement parity in the TypeScript SDK.
+  Both the server wrapper and Node client adapter now preserve bounded
+  namespace-qualified capability names such as
+  `io.modelcontextprotocol/tasks`, matching the Python, Go, and .NET observers;
+  option values and unsafe names remain excluded. TypeScript SDK tests (103),
+  lint, diff validation, and the full **143-suite** release gate pass.
