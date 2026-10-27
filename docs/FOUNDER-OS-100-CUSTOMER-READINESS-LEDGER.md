@@ -8,6 +8,19 @@ CloudWatch EMF successes**. The overall state remains `warning` because
 only **1/3 scheduled worker samples** is in the current evaluation window and
 the maximum queue lag is `3,506,514 ms` (above the 15-minute pilot budget).
 
+## Active external-gate register (current)
+
+| Gate | Current evidence | State | Required closure evidence |
+| --- | --- | --- | --- |
+| Worker freshness | AWS scheduler 4/4 invocations and 4/4 successes; only 1/3 scheduled GitHub-worker samples; latest report artifact `12764060428` | **HOLD** | Three fresh scheduled samples within the 15-minute budget, with no unresolved stale/failure evidence |
+| Backup/PITR | Supabase Free Plan has no scheduled backups or PITR; inspection recorded in the backup evidence entries below | **HOLD / owner decision** | Accepted documented limitation with named recovery owner/runbook, or plan upgrade plus tested restore rehearsal |
+| Privacy acceptance | Engineering privacy/export/deletion contracts pass; production acceptance evidence is not recorded | **HOLD / owner decision** | Signed production privacy review and retention/deletion acceptance |
+| Credentialed lifecycle/UAT | Read-only tenant/auth smoke is verified; write-gated key lifecycle and customer-owned transport UAT remain unexecuted | **HOLD / credentialed** | Disposable lifecycle key run plus customer-owned transport/protocol UAT artifacts |
+| Release-owner acceptance | Source, CI, deployment, package publication, and local release gates are green | **HOLD / owner decision** | Explicit approval referencing this register and the current deployed source |
+
+This register is the active decision surface. Historical entries below remain
+evidence and are not current approval.
+
 ## 2026-10-28 — complete local release-gate baseline
 
 - [x] The complete local release gate passed **144 suites**, including
