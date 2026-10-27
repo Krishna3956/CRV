@@ -1,6 +1,6 @@
 # Founder OS 100 Customer Readiness Ledger
 
-Last updated: 2026-10-27 (main `877f3c5`; deployed application `9026fa6` and App Runner rollout and production smoke verified; TypeScript SDK 0.1.22 registry publication verified)
+Last updated: 2026-10-27 (main `98009b7`; deployed application `877f3c5` and App Runner rollout and production smoke verified; TypeScript SDK 0.1.22 registry publication verified)
 Latest freshness evidence: health workflow `40450412687` inspected eight
 redacted worker samples and evaluated the two samples in its bounded current
 window. It proved the AWS scheduler cadence gate with four invocations and zero
@@ -9,6 +9,20 @@ freshness breach, not a historical-failure false positive. The report records
 **0/3 scheduled worker samples**, and its end-to-end scheduled-success
 projection is unavailable because the OIDC role lacks log-event query
 permission.
+
+## 2026-10-27 — post-publication docs deployment verified
+
+- [x] App Runner workflow `40521393982` completed successfully for immutable
+  source `877f3c5aabe22d4cdbec6592700885cc7835e68b`. Release gate, image/digest
+  verification, rollout readiness, read-only production smoke, immutable
+  release identity, and runtime-safety audit all passed.
+- [x] Retained redacted artifacts are `app-runner-host-877f3c5aabe22d4cdbec6592700885cc7835e68b`,
+  `production-smoke-877f3c5aabe22d4cdbec6592700885cc7835e68b`, and
+  `runtime-flags-877f3c5aabe22d4cdbec6592700885cc7835e68b`.
+- [ ] This deployment verifies the published SDK/documentation reconciliation
+  and current runtime identity; it does not close sustained worker freshness,
+  backup/PITR, privacy acceptance, credentialed mutation UAT, or release-owner
+  acceptance gates.
 
 ## 2026-10-27 TypeScript OAuth observer parity milestone
 
