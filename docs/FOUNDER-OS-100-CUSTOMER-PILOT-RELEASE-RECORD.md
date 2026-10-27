@@ -8,11 +8,12 @@ commit and the operator accepts the listed limitations.
 
 ## Current deployed baseline — 2026-10-27
 
-App Runner workflow `40461737971` successfully deployed immutable application
-commit `42f9a7849684cb9d5cb24ee0b1fbdca6fb5bf265`. Rollout, production smoke,
+App Runner workflow `40468547762` successfully deployed immutable application
+commit `9638e23c8529f9b1781d96413529e33a692715ed`. Rollout, production smoke,
 immutable runtime identity, runtime-safety audit, and redacted evidence upload
-passed. Authenticated production smoke `40462480640` also passed against this
-exact SHA. The release remains Draft/HOLD until the open operational and owner
+passed. The latest rollout has not been represented as a new authenticated
+key-lifecycle UAT run; the prior authenticated smoke remains historical
+evidence. The release remains Draft/HOLD until the open operational and owner
 gates below are independently accepted.
 
 The preceding deployed engineering baseline was `7551e2f017cce2695803b13ce5605eee72d4a9f8`,
@@ -24,8 +25,9 @@ recovery-evidence hardening, not a final operational SLO acceptance.
 
 ## Latest source verification — 2026-10-27
 
-The current deployed source at `42f9a78` (including the transient App Runner
-smoke retry boundary and published SDK `0.1.20` alignment) passes the full local
+The current deployed source at `9638e23` (including the bounded scheduler slice,
+release-scope ownership reconciliation, and the transient App Runner smoke retry boundary
+retained from the preceding release train) passes the full local
 release gate at **143 suites**, lint, the production build (**177 routes**),
 and `git diff --check`.
 The direct App Runner transport fixture passed official Streamable HTTP and SSE

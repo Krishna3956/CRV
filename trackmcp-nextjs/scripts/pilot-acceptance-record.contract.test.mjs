@@ -22,9 +22,9 @@ function openQueueIds(source) {
 
 test("pilot release record points at the verified deployed baseline", () => {
   const current = section(record, "## Current deployed baseline", "## Latest bounded insight-evidence deployment");
-  assert.match(current, /42f9a7849684cb9d5cb24ee0b1fbdca6fb5bf265/);
-  assert.match(current, /40461737971/);
-  assert.match(current, /Authenticated production smoke `40462480640`/);
+  assert.match(current, /9638e23c8529f9b1781d96413529e33a692715ed/);
+  assert.match(current, /40468547762/);
+  assert.match(current, /latest rollout has not been represented as a new authenticated/);
 });
 
 test("pilot release record keeps unresolved operational gates explicit", () => {
@@ -43,8 +43,8 @@ test("release record preserves non-source acceptance decisions until an owner ac
 });
 
 test("external-gate register names accountable parties and closure evidence", () => {
-  assert.match(externalGates, /42f9a7849684cb9d5cb24ee0b1fbdca6fb5bf265/);
-  assert.match(externalGates, /40461737971/);
+  assert.match(externalGates, /9638e23c8529f9b1781d96413529e33a692715ed/);
+  assert.match(externalGates, /40468547762/);
   assert.match(externalGates, /40397368253/);
   assert.match(externalGates, /40398170070/);
   assert.match(externalGates, /main`: current default branch/);

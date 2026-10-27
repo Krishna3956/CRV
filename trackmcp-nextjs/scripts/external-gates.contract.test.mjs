@@ -9,7 +9,7 @@ const schedulerHealthPolicy = await readFile(new URL("../../docs/aws/TrackMCPRef
 test("first-100 external-gate register stays an explicit HOLD record", () => {
   assert.match(register, /Status:\s*\*\*HOLD\*\*/);
   assert.match(register, /Updated:\s*2026-10-27/);
-  assert.match(register, /main.*42f9a78/s);
+  assert.match(register, /main.*9638e23/s);
   assert.match(register, /143 suites/);
   assert.match(register, /177-route/);
   assert.match(register, /do not change the application image|does not change the deployed image/i);
@@ -26,7 +26,7 @@ test("the release record carries the same current source gate evidence", () => {
   assert.match(releaseRecord, /full\s+local\s+release\s+gate\s+at\s+\*\*143\s+suites\*\*/i);
   assert.match(releaseRecord, /177 routes/);
   assert.match(releaseRecord, /transient App Runner\s+smoke retry boundary/);
-  assert.match(releaseRecord, /source at `42f9a78`|deployed source at `42f9a78`/);
+  assert.match(releaseRecord, /source at `9638e23`|deployed source at `9638e23`/);
 });
 
 test("scheduler log evidence permission artifact is least-privilege and explicit", () => {

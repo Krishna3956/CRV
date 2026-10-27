@@ -11,17 +11,18 @@ is intentionally not a GO approval and must not be treated as one.
 
 - `main`: current default branch. Immutable deployed SHAs belong in the
   release record; PR checks remain attached to their exact review commits.
-- Current deployed application: `42f9a7849684cb9d5cb24ee0b1fbdca6fb5bf265`,
-  App Runner workflow `40461737971` (successful rollout, production smoke,
+- Current deployed application: `9638e23c8529f9b1781d96413529e33a692715ed`,
+  App Runner workflow `40468547762` (successful rollout, production smoke,
   immutable identity, runtime safety, and redacted runtime evidence upload).
-  Authenticated production smoke `40462480640` also passed against this exact
-  SHA. Subsequent docs-only commits are intentionally not called runtime
-  deployments because they do not change the application image.
-- Current source verification: `main` at `42f9a78` (transient smoke retry
-  hardening and published SDK `0.1.20` alignment) passes lint, the 177-route
+  The latest rollout has not been represented as a new authenticated
+  key-lifecycle UAT run.
+  This documentation-only update does not change the deployed image; this
+  baseline remains the runtime reference for release review.
+- Current source verification: `main` at `9638e23` (bounded scheduler slice
+  and release-scope ownership reconciliation) passes lint, the 177-route
   production build, and the full local release gate at **143 suites**. This
-  source evidence does not change the deployed image identity or close
-  external gates.
+  source evidence does not close external owner, backup, privacy, or scheduler
+  cadence gates.
 - Queue: 263 total, 260 checked, and P0 queue items `020`, `157`, and `260`
   remain open.
 - Full local release gate: **143 suites passed**, with lint and the 177-route
