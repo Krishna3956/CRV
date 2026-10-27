@@ -34,6 +34,15 @@ the maximum queue lag is `3,506,514 ms` (above the 15-minute pilot budget).
   reviewed SDK/CLI release and run the existing provenance and clean-consumer
   gates before publication.
 
+## 2026-10-28 — coordinated SDK release candidate prepared
+
+- [x] Prepared one reviewed release train: `@trackmcp/sdk@0.1.23`,
+  `@trackmcp/cli@0.1.12`, and `trackmcp==0.1.14`.
+- [x] Updated active setup/docs examples and package manifests; historical
+  registry rows remain unchanged and labeled as historical evidence.
+- [ ] Registry publication, provenance, and clean-consumer verification remain
+  pending until the gated workflow is run with reviewed confirmation.
+
 ## 2026-10-27 — Python public protocol-result contract validation
 
 - [x] Corrected the release contract to assert the shipped public

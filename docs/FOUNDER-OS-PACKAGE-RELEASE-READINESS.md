@@ -193,6 +193,9 @@ credentialed first-event or activation result.
 
 The latest published registry train is `@trackmcp/sdk` `0.1.22`,
 `@trackmcp/cli` `0.1.11`, and `trackmcp` `0.1.13`.
+The next reviewed source candidate is `@trackmcp/sdk` `0.1.23`,
+`@trackmcp/cli` `0.1.12`, and `trackmcp` `0.1.14`; this is not a publication
+claim until the gated workflow verifies registry presence and provenance.
 The release gate and single `all` publication workflow completed successfully;
 the immutable prior baseline remains in the historical tables below.
 They were selected after a registry preflight found the immediately preceding
