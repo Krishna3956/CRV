@@ -51,8 +51,10 @@ Status: active autonomous audit, started 2026-10-21.
   `12717163592` were retained.
 - This proves the web/refresh-route candidate is deployed, not that the
   standalone AWS Scheduler Lambda has picked up the new `max_jobs: 10` handler.
-  The separate scheduler workflow still requires a disabled-first redeploy;
-  only then can a fresh scheduled cadence window validate the timeout fix.
+  The separate scheduler workflow is now auto-redeployed by reviewed
+  scheduler-owned pushes; the successful disabled-first activation is recorded
+  in run `40470584190`. A fresh scheduled cadence window is still required to
+  validate the timeout fix under customer traffic.
 
 ## 2026-10-27 — direct CloudWatch scheduler log inspection
 

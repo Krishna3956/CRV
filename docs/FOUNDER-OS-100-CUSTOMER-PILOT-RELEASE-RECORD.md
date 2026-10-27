@@ -25,11 +25,17 @@ recovery-evidence hardening, not a final operational SLO acceptance.
 
 ## Latest source verification — 2026-10-27
 
-The current deployed source at `9638e23` (including the bounded scheduler slice,
-release-scope ownership reconciliation, and the transient App Runner smoke retry boundary
-retained from the preceding release train) passes the full local
-release gate at **143 suites**, lint, the production build (**177 routes**),
-and `git diff --check`.
+The current deployed source at `9638e23` remains (including the bounded scheduler
+slice, release-scope ownership reconciliation, and the transient App Runner
+smoke retry boundary retained from the preceding release train). Mainline now
+also contains docs/automation reconciliation commit `7a7d93c`; its focused
+scheduler/docs contracts pass, and the full local release gate, lint, and
+177-route build were already green on the preceding source. Push-triggered
+scheduler activation for that reviewed change completed successfully in
+workflow `40470584190` with scheduling disabled by default.
+The preceding source verification passed the full local release gate at
+**143 suites**, lint, the production build (**177 routes**), and
+`git diff --check`.
 The direct App Runner transport fixture passed official Streamable HTTP and SSE
 client flows with metadata-only observations. The manually dispatched hosted
 transport workflow completed safely but skipped its write-enabled step because

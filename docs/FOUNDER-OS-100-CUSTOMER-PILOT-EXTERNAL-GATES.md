@@ -18,11 +18,12 @@ is intentionally not a GO approval and must not be treated as one.
   key-lifecycle UAT run.
   This documentation-only update does not change the deployed image; this
   baseline remains the runtime reference for release review.
-- Current source verification: `main` at `9638e23` (bounded scheduler slice
-  and release-scope ownership reconciliation) passes lint, the 177-route
-  production build, and the full local release gate at **143 suites**. This
-  source evidence does not close external owner, backup, privacy, or scheduler
-  cadence gates.
+- Current source verification: `main` at `7a7d93c` (scheduler auto-redeploy
+  evidence and readiness reconciliation) retains the previously verified
+  bounded-slice source and passes the focused scheduler/docs contracts. The
+  deployed application remains the immutable `9638e23` baseline above; this
+  docs-only source update does not change that image or close external owner,
+  backup, privacy, or scheduler-cadence gates.
 - Queue: 263 total, 260 checked, and P0 queue items `020`, `157`, and `260`
   remain open.
 - Full local release gate: **143 suites passed**, with lint and the 177-route
@@ -51,7 +52,7 @@ is intentionally not a GO approval and must not be treated as one.
 | 157 — database recovery posture | Infrastructure/provider owner | Region and tier, backup/PITR policy or an explicitly accepted limitation, restoration owner, and a tested recovery reference | OPEN; authenticated Supabase inspection records Free tier, East US/`us-east-1`, Nano/shared compute, and PITR **Disabled**. A fresh signed-in browser inspection of Database → Backups (2026-10-27) showed no usable scheduled-backup or restore-point evidence. No restoration contact or rehearsal is evidenced. |
 | Privacy lifecycle acceptance | Release owner | Explicit acceptance that export is bounded/secret-free, deletion requests are review-only, and destructive deletion is disabled without an approved worker | OPEN in the release record |
 | Synthetic reliability-data hygiene | Release owner | Explicit acceptance that synthetic canary rows are test evidence only and cannot be presented as customer incidents | OPEN in the release record |
-| Refresh scheduler enablement | Infrastructure/provider owner | Store `TRACKMCP_REFRESH_WORKER_SECRET` in Secrets Manager, map the App Runner runtime variable from that ARN, deploy the disabled-first AWS Scheduler stack, verify endpoint/token/DLQ behavior, enable the five-minute schedule, and retain at least three scheduled samples within the 15-minute freshness budget | OPEN for sustained cadence evidence. Scheduler deployment `40466761616` succeeded with the EMF/failure-class Lambda, and health run `40467394730` / artifact `12717320479` observes 4 scheduled-success samples and 0 scheduled-failure samples, proving the end-to-end metric gate. One Lambda error remains in the rolling AWS invocation window, so the stricter zero-error cadence gate remains open until a clean window is retained. |
+| Refresh scheduler enablement | Infrastructure/provider owner | Store `TRACKMCP_REFRESH_WORKER_SECRET` in Secrets Manager, map the App Runner runtime variable from that ARN, deploy the disabled-first AWS Scheduler stack, verify endpoint/token/DLQ behavior, enable the five-minute schedule, and retain at least three scheduled samples within the 15-minute freshness budget | OPEN for sustained cadence evidence. Scheduler deployment `40466761616` succeeded with the EMF/failure-class Lambda, health run `40467394730` / artifact `12717320479` observes 4 scheduled-success samples and 0 scheduled-failure samples, and push-triggered auto-redeploy run `40470584190` completed successfully with scheduling disabled. One Lambda error remains in the rolling AWS invocation window, so the stricter zero-error cadence gate remains open until a clean window is retained. |
 | 260 — final go/no-go | Release owner | Timestamped GO/NO-GO decision linking the green evidence and accepted limitations | OPEN; engineering recommendation remains HOLD |
 
 ## Closure rule
