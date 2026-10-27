@@ -1,6 +1,6 @@
 # Founder OS 100 Customer Readiness Ledger
 
-Last updated: 2026-10-28 (main `ae985c8`; deployed application `91293a3` and App Runner rollout `40564093852` and hosted CI `40564093743` verified)
+Last updated: 2026-10-28 (main `f10c161`; deployed application `91293a3` and App Runner rollout `40564093852` remain the latest runtime evidence; hosted CI `40568238535` is running for `f10c161`)
 Latest freshness evidence: health workflow `40566829192` with worker drain
 `40566911017` inspected eight redacted worker samples. AWS scheduler cadence is
 proven with **4/4 invocations** and **4/4 CloudWatch EMF successes**. The overall
@@ -20,6 +20,17 @@ the 15-minute pilot budget).
 
 This register is the active decision surface. Historical entries below remain
 evidence and are not current approval.
+
+## 2026-10-28 — published-train smoke default alignment
+
+- [x] Corrected the production pilot smoke harness to use the currently
+  published train by default: `@trackmcp/sdk@0.1.23`, `@trackmcp/cli@0.1.12`,
+  and `trackmcp@0.1.14`; its smoke user-agent is aligned to `0.1.23`.
+- [x] Updated the smoke contract tests to assert those active defaults rather
+  than the historical pre-recovery versions.
+- [x] Focused smoke passed 7/7, package-release audit passed, and the full
+  local release gate passed all 144 suites. Hosted CI is the remaining
+  post-push confirmation for this source-only change.
 
 ## 2026-10-28 — complete local release-gate baseline
 
