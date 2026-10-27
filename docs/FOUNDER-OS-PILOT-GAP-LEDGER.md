@@ -242,7 +242,7 @@ just because a README or marketing page mentions it.
 | Refresh and task transition projection | Accepted ingest now enqueues bounded refresh work by default; explicit task transition history is persisted by the service-role worker by default, with explicit `false` rollback flags; the bounded projection now selects `task_id` and `payload` required to derive hashed transitions; the TypeScript server wrapper records hashed task handles and explicit lifecycle state for `tasks/get`, `tasks/update`, and `tasks/cancel` | Implemented and production-verified for a non-empty worker batch; SDK lifecycle/privacy regression is merged in PR #170 with the full release gate green | Keep the worker and ingest smoke fixtures in recurring release validation; complete capability-negotiation and cross-server workflow fixtures |
 | Transport disconnect evidence | Node client adapter now drains in-flight tool and non-tool requests on transport error/close into bounded `transport_error` observations before ending the session; real official Stdio child-exit and Streamable HTTP socket-disconnect fixtures now pass | Implemented locally with regression coverage | Hosted cross-language compile evidence and authenticated production disconnect UAT |
 | Connection-key scope | API keys can carry optional bounded service/environment scopes; ingest rejects mismatched labels with a tenant-safe 403 while legacy NULL-scoped keys remain workspace-wide | Implemented and deployed; migration applied, read-only postflight added, release-gate/tenant-isolation coverage passed; production postflight observed 49 active workspace-wide keys, 0 invalid scopes; live smoke accepted a matching event, rejected a mismatched label with 403, and the authenticated export showed the matching event | Keep scope behavior in the recurring release smoke and rotate/revoke the temporary pilot key under the operator’s key-retention policy |
-| Refresh scheduler cadence | Added `workers/refresh-scheduler`: a bounded Node.js 22 Lambda, five-minute AWS Scheduler template, JSON-keyed Secrets Manager dynamic reference for `TRACKMCP_REFRESH_WORKER_SECRET`, scheduler-only invoke/DLQ IAM permissions, CloudWatch alarms, disabled-by-default rollout instructions, and a manual OIDC/SAM deployment workflow with endpoint/secret validation and status-only output | Implemented as a deployable infrastructure path; template regression coverage confirms the whole secret bundle is never injected. On 2026-10-27 the worker token was added to the existing replicated `RuntimeEnvironmentSecrets` bundle and App Runner update completed successfully; the Running configuration visibly references the JSON key ARN. After the observed IAM deltas were attached to `GitHubActionsDeployRole`, disabled-first workflow `40423356750` succeeded on main `28f1b53`; the stack is up to date and the schedule resource is present but disabled because `EnableSchedule=false`. On the deployed App Runner origin, unauthenticated and invalid-token POST probes both returned HTTP 401; no secret value is present in source or this ledger. Scheduler remains disabled and has no scheduled-sample evidence | Run authenticated endpoint/Lambda/log/DLQ checks, then explicitly enable and collect at least three scheduled samples within the 15-minute freshness budget |
+| Refresh scheduler cadence | Added `workers/refresh-scheduler`: a bounded Node.js 22 Lambda, five-minute AWS Scheduler template, dedicated plaintext Secrets Manager dynamic reference, scheduler-only invoke/DLQ IAM permissions, CloudWatch alarms, disabled-by-default rollout instructions, and a manual OIDC/SAM deployment workflow with endpoint/secret validation and status-only output | Implemented and deployed. App Runner now maps the dedicated `trackmcp/refresh/worker` ARN; `AppRunnerInstanceRole` and `GitHubActionsDeployRole` have the exact required permissions. Disabled-first hosted run `40435009405` passed Lambda authentication, log metadata, and DLQ evidence. EventBridge schedule enablement run `40435330718` succeeded. The separate GitHub worker now resolves the same dedicated secret; manual run `40435694603` passed 10 bounded batches with zero failures/backlog. Rolling health `40436113909` remains warning because historical stale/failure runs and cadence gaps are still present; the next post-fix scheduled samples remain required. | Keep the schedule enabled, observe a clean scheduled sequence within the 15-minute freshness budget, then reassess the release-owner gate |
 
 ## 2026-10-24 — Python runtime boundary smoke
 
@@ -298,14 +298,13 @@ production transport UAT.
   gates remain explicitly open.
 
 - 2026-10-26: Scheduler secret handling was reconciled with the App Runner
-  runtime bundle. That shared bundle was later verified in AWS to contain an
-  empty `TRACKMCP_REFRESH_WORKER_SECRET` value, so it cannot authenticate the
-  worker. The SAM template now resolves a dedicated Secrets Manager secret's
-  plaintext `SecretString`; this matches the existing dedicated
-  `trackmcp/refresh/worker` secret without reading or copying its value. The
-  worker contract test covers the plaintext dynamic reference. App Runner must
-  still be remapped to that dedicated ARN before the authenticated smoke gate
-  can close.
+  runtime bundle. That shared bundle was verified in AWS to contain an empty
+  `TRACKMCP_REFRESH_WORKER_SECRET` value, so it could not authenticate the
+  worker. The SAM template now resolves the dedicated Secrets Manager secret's
+  plaintext `SecretString`; App Runner was remapped to that dedicated ARN,
+  and hosted run `40435009405` subsequently passed the authenticated
+  smoke/evidence gate without reading or copying the secret value. The worker
+  contract test covers the plaintext dynamic reference.
 
 - 2026-10-26: GitHub API inspection of the refresh workflow showed scheduled
   invocations arriving 1–3 hours apart despite the `*/5 * * * *` declaration
