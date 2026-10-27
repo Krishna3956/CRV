@@ -15,6 +15,12 @@ for `@trackmcp/sdk@0.1.23`, so the train is not claimed published and CLI/Python
 publication did not run. This remains an external npm registry gate, not a
 source or CI failure.
 
+The staged train subsequently recovered: npm now exposes `@trackmcp/sdk@0.1.23`
+and `@trackmcp/cli@0.1.12` with public metadata. Python recovery workflow
+`40566216611` uploaded `trackmcp==0.1.14` and its provenance attestation, but
+PyPI's public JSON/index still reports `0.1.13`; Python remains pending public
+metadata verification.
+
 ## CLI proxy publication — 2026-10-27
 
 Mainline `HEAD` adds the bounded stdio launcher to the CLI source and

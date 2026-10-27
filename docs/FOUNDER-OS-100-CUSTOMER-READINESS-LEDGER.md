@@ -69,6 +69,20 @@ the maximum queue lag is `3,506,514 ms` (above the 15-minute pilot budget).
   either run. The package train remains externally blocked until npm resolves
   or releases that staged version; no publication claim is made.
 
+## 2026-10-28 — staged package train recovery
+
+- [x] npm now publicly serves `@trackmcp/sdk@0.1.23` with integrity
+  `sha512-mVUgk8aPITr+wsajQLb/F+9BmZD/pQMPjcyZuxIqHnOeXZ52mpqS5Cssnf9BpsU8TfO7XnmdO3yXB+LrA1phUw==`
+  and the public tarball URL.
+- [x] Recovery publication workflow `40565931200` completed successfully for
+  `@trackmcp/cli@0.1.12`; the npm metadata endpoint now returns version
+  `0.1.12`.
+- [x] Python recovery workflow `40566216611` completed successfully, uploaded
+  the wheel and sdist, and created provenance attestation.
+- [ ] PyPI's public JSON/index still reports `trackmcp==0.1.13` during the
+  propagation window; Python `0.1.14` remains unclaimed until a public
+  metadata check exposes the version and artifact hashes.
+
 ## 2026-10-27 — Python public protocol-result contract validation
 
 - [x] Corrected the release contract to assert the shipped public
