@@ -43,7 +43,8 @@ test("npm publication requires provenance and package preflight tests", () => {
   assert.match(workflow, /Require reviewed release-train confirmation/);
   assert.match(workflow, /inputs\.confirm.*RELEASE_TRAIN_APPROVED/);
   assert.match(workflow, /default: all/);
-  assert.match(workflow, /options: \[all, typescript, python, cli\]/);
+  assert.match(workflow, /options: \[all, typescript-python, typescript, python, cli\]/);
+  assert.match(workflow, /inputs\.package == 'typescript-python'/);
   assert.match(workflow, /single_package_reason:/);
   assert.match(workflow, /Require an explicit exception for single-package publication/);
   assert.match(workflow, /inputs\.package != 'all'/);
@@ -52,11 +53,11 @@ test("npm publication requires provenance and package preflight tests", () => {
   assert.match(workflow, /240 characters or fewer/);
   assert.match(workflow, /content intentionally omitted from logs/);
   assert.doesNotMatch(workflow, /Single-package exception recorded: \$\{SINGLE_PACKAGE_REASON\}/);
-  assert.match(workflow, /inputs\.package == 'typescript' \|\| inputs\.package == 'all'/);
+  assert.match(workflow, /inputs\.package == 'typescript'[\s\S]*inputs\.package == 'typescript-python'[\s\S]*inputs\.package == 'all'/);
   assert.match(workflow, /inputs\.package == 'cli' \|\| inputs\.package == 'all'/);
-  assert.match(workflow, /inputs\.package == 'python' \|\| inputs\.package == 'all'/);
+  assert.match(workflow, /inputs\.package == 'python'[\s\S]*inputs\.package == 'typescript-python'[\s\S]*inputs\.package == 'all'/);
   assert.match(workflow, /Preflight all release-train registry versions/);
-  assert.match(workflow, /if: inputs\.package == 'all'/);
+  assert.match(workflow, /if: inputs\.package == 'all' \|\| inputs\.package == 'typescript-python'/);
   assert.match(workflow, /All release-train versions are absent from npm\/PyPI/);
 });
 

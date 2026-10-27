@@ -17,6 +17,28 @@ The published tarball was independently inspected and contains the
 namespace-qualified capability regex. CLI and Python artifacts were
 intentionally not republished; their versions and contents were unchanged.
 
+## Next coordinated SDK candidate (unpublished)
+
+The source after `@trackmcp/sdk@0.1.20` and `trackmcp==0.1.12` includes
+privacy-bounded elicitation decision metadata, completion matching, catalog
+evidence, and capability-negotiation gap reporting. Those changes touch the
+published TypeScript and Python SDK surfaces, so they are queued as one
+reviewed release train:
+
+| Package | Candidate version | Publication state |
+| --- | --- | --- |
+| `@trackmcp/sdk` | `0.1.21` | Source and package metadata updated; npm publication not yet dispatched |
+| `trackmcp` | `0.1.13` | Source and package metadata updated; PyPI publication not yet dispatched |
+| `@trackmcp/cli` | `0.1.10` | Unchanged; no unnecessary version bump |
+
+The candidate passed the local package-release audit, TypeScript SDK tests and
+packed-consumer check, Python unit tests, and publish-workflow contracts. The
+manual publication workflow now supports the exact `typescript-python` batch
+scope and remains confirmation-gated; it must be dispatched from the reviewed
+commit with `RELEASE_TRAIN_APPROVED`. No registry publication is claimed until
+npm/PyPI metadata, immutable checksums, provenance, and clean consumer installs
+are independently recorded.
+
 ## Current registry reconciliation (2026-10-26, published train 0.1.19/0.1.10/0.1.12)
 
 ### Latest coordinated release
@@ -118,8 +140,9 @@ credentialed first-event or activation result.
 | `@trackmcp/cli` | `trackmcp-nextjs/packages/cli/package.json` | CLI tests and packed-consumer test | `.github/workflows/publish.yml`, `cli` |
 | `trackmcp` | `packages/python-sdk/pyproject.toml` | unittest suite and build metadata audit | `.github/workflows/publish.yml`, `python` |
 
-The current local source manifests match the latest published coordinated train:
-`@trackmcp/sdk` `0.1.20`, `@trackmcp/cli` `0.1.10`, and `trackmcp` `0.1.12`.
+The latest published registry train remains `@trackmcp/sdk` `0.1.20`,
+`@trackmcp/cli` `0.1.10`, and `trackmcp` `0.1.12`; local source manifests now
+contain the unpublished TypeScript/Python candidate versions documented above.
 The release gate and single `all` publication workflow completed successfully;
 the immutable prior baseline remains in the historical tables below.
 They were selected after a registry preflight found the immediately preceding

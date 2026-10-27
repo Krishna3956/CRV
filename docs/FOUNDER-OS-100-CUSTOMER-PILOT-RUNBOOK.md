@@ -159,9 +159,12 @@ and rate-limit false positives.
 
 ## 9. Package publication and clean consumers
 
-The current coordinated published release train is `@trackmcp/sdk@0.1.20`,
-`@trackmcp/cli@0.1.10`, and `trackmcp==0.1.12`. Publication is release-train
-gated and has been verified against the registries for this train. The
+The reviewed SDK release candidate is `@trackmcp/sdk@0.1.21`,
+`@trackmcp/cli@0.1.10`, and `trackmcp==0.1.13`. The TypeScript/Python
+candidate is release-train gated and remains unpublished until registry
+verification completes. The latest published train is `@trackmcp/sdk@0.1.20`,
+`@trackmcp/cli@0.1.10`, and `trackmcp==0.1.12`; it has been verified against
+the registries. The
 preceding published train was `@trackmcp/sdk@0.1.18`,
 `@trackmcp/cli@0.1.9`, and `trackmcp==0.1.11`; its publication was observed
 through the all-package workflow `40258109659` (the workflow later failed only

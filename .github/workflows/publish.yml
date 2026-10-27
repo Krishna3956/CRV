@@ -8,7 +8,7 @@ on:
         required: true
         type: choice
         default: all
-        options: [all, typescript, python, cli]
+        options: [all, typescript-python, typescript, python, cli]
       confirm:
         description: "Type RELEASE_TRAIN_APPROVED only for a reviewed, batched release"
         required: true
@@ -42,14 +42,14 @@ jobs:
           fi
           echo "Release-train confirmation accepted for the selected package."
       - name: Require an explicit exception for single-package publication
-        if: inputs.package != 'all'
+        if: inputs.package != 'all' && inputs.package != 'typescript-python'
         env:
           SINGLE_PACKAGE_REASON: ${{ inputs.single_package_reason }}
         run: |
           set -euo pipefail
           normalized_reason="${SINGLE_PACKAGE_REASON//[[:space:]]/}"
           if [[ -z "$normalized_reason" ]]; then
-            echo "::error::Single-package publication is an exception. Use package=all, or provide a non-empty single_package_reason after emergency review."
+            echo "::error::Single-package publication is an exception. Use package=all or package=typescript-python, or provide a non-empty single_package_reason after emergency review."
             exit 1
           fi
           if (( ${#SINGLE_PACKAGE_REASON} > 240 )); then
@@ -61,7 +61,7 @@ jobs:
         working-directory: trackmcp-nextjs
         run: npm run test:package-release-audit
       - name: Preflight all release-train registry versions
-        if: inputs.package == 'all'
+        if: inputs.package == 'all' || inputs.package == 'typescript-python'
         working-directory: trackmcp-nextjs
         run: |
           set -euo pipefail
@@ -72,7 +72,7 @@ jobs:
             echo "@trackmcp/sdk@${sdk_version} already exists on npm; reconcile the release train before publishing."
             exit 1
           fi
-          if npm view "@trackmcp/cli@${cli_version}" version --json >/dev/null 2>&1; then
+          if [[ "${{ inputs.package }}" == "all" ]] && npm view "@trackmcp/cli@${cli_version}" version --json >/dev/null 2>&1; then
             echo "@trackmcp/cli@${cli_version} already exists on npm; reconcile the release train before publishing."
             exit 1
           fi
@@ -82,7 +82,7 @@ jobs:
           fi
           echo "All release-train versions are absent from npm/PyPI; package uploads may proceed sequentially."
       - name: Publish TypeScript SDK
-        if: inputs.package == 'typescript' || inputs.package == 'all'
+        if: inputs.package == 'typescript' || inputs.package == 'typescript-python' || inputs.package == 'all'
         working-directory: trackmcp-nextjs/packages/typescript-sdk
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
@@ -118,7 +118,7 @@ jobs:
           fi
           npm publish --provenance --access public
       - name: Verify TypeScript SDK registry publication
-        if: inputs.package == 'typescript' || inputs.package == 'all'
+        if: inputs.package == 'typescript' || inputs.package == 'typescript-python' || inputs.package == 'all'
         working-directory: trackmcp-nextjs/packages/typescript-sdk
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
@@ -167,7 +167,7 @@ jobs:
         with:
           subject-path: ${{ runner.temp }}/*.tgz
       - name: Publish Python SDK
-        if: inputs.package == 'python' || inputs.package == 'all'
+        if: inputs.package == 'python' || inputs.package == 'typescript-python' || inputs.package == 'all'
         working-directory: packages/python-sdk
         env:
           TWINE_USERNAME: __token__
@@ -184,7 +184,7 @@ jobs:
           fi
           python -m twine upload dist/*
       - name: Attest Python SDK artifacts
-        if: inputs.package == 'python' || inputs.package == 'all'
+        if: inputs.package == 'python' || inputs.package == 'typescript-python' || inputs.package == 'all'
         uses: actions/attest-build-provenance@v2
         with:
           subject-path: packages/python-sdk/dist/*

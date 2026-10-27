@@ -76,5 +76,8 @@ test("active content and truth-audit docs name the current package train", () =>
   assert.match(contentRelease, new RegExp(`@trackmcp/sdk@${sdkVersion}`));
   assert.match(contentRelease, new RegExp(`@trackmcp/cli@${cliVersion}`));
   assert.match(contentRelease, new RegExp(`trackmcp==${pythonVersion}`));
-  assert.ok(pdfTruth.includes(`PyPI currently serves \`trackmcp==${pythonVersion}\``));
+  assert.ok(
+    pdfTruth.includes(`PyPI currently serves \`trackmcp==${pythonVersion}\``) ||
+      pdfTruth.includes(`reviewed source candidate is \`trackmcp==${pythonVersion}\``),
+  );
 });
