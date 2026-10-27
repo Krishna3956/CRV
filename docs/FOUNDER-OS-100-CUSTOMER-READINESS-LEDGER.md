@@ -60,7 +60,10 @@ evidence and are not current approval.
 - [x] Mainline `f37288bf` changes the recovery workflow to four concurrent
   `max_jobs:10` requests, preserving lease fencing and the existing redacted
   timeout/unparseable evidence. Route, workflow, and release-gate contracts
-  pass locally; hosted CI and a fresh recovery sample are still required.
+  pass locally; the first fresh run also exposed and fixed a workflow-only
+  `jq` variable-binding defect in mainline `b92e002f`'s follow-up.
+- [ ] Hosted CI and a fresh recovery sample for the corrected `jq` expression
+  are still required.
 - [ ] Do not treat this source correction as freshness closure until a fresh
   recovery artifact returns parseable bounded results and the scheduled AWS
   cadence continues to meet the 15-minute pilot budget.

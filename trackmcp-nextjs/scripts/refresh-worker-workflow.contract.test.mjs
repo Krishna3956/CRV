@@ -20,7 +20,7 @@ test("scheduled refresh worker emits a bounded redacted lag/retry summary artifa
   assert.match(workflow, /response_unparseable/);
   assert.match(workflow, /timed_out/);
   assert.match(workflow, /batches_with_unparseable_response/);
-  assert.match(workflow, /freshness_slo:\(if \$timed_out == 1/);
+  assert.match(workflow, /freshness_slo:\(if \(\.timed_out \/\/ false\) == true/);
   assert.match(workflow, /workflow_failed/);
   assert.match(workflow, /refresh-worker-summary-\$\{\{ github\.run_id \}\}/);
   assert.match(workflow, /actions\/upload-artifact@v4/);

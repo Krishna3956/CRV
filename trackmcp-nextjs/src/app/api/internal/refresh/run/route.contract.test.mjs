@@ -39,6 +39,7 @@ test("scheduled refresh trigger is serialized and distinguishes bounded timeouts
   assert.match(workflow, /\[ "\$status" -eq 28 \] \|\| \[ "\$status" -eq 124 \] \|\| \[ "\$status" -eq 137 \]/);
   assert.match(workflow, /client timeout; continuing/);
   assert.match(workflow, /timed_out=\$timed_out/);
+  assert.match(workflow, /\.timed_out \/\/ false\) == true/);
   assert.match(workflow, /Four\s+bounded requests run concurrently/);
   assert.match(workflow, /for batch in \$\(seq 1 4\); do/);
   assert.match(workflow, /--data '\{"max_jobs":10\}'/);
