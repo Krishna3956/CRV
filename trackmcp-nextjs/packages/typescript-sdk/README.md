@@ -197,6 +197,11 @@ kinds, one-way SHA-256 resource URI hashes, and the server's honored filter;
 the stream has the same fixed event/byte/time bounds and is not a durable
 reconnect manager.
 
+For `elicitation/create`, the Node observer retains only an explicit
+`protocol_decision` of `accept`, `decline`, or `cancel`. It never captures the
+question, requested schema, submitted values, or returned content. An
+`accept` is a protocol action, not proof of business approval.
+
 `callTool` sends a bounded tool request with the Tasks extension capability and
 returns only result metadata (`complete`, `input_required`, or server-directed
 `task`). Tool content, arguments, errors, and task result payloads are not

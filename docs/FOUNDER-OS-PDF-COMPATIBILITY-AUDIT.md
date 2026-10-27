@@ -37,6 +37,9 @@ The Go and .NET observers now apply the same allowlist for protocol decisions;
 their hosted compile/smoke gate remains the authoritative runtime evidence in
 this workspace because the local Go and .NET toolchains are unavailable.
 
+The public protocol guide and all four SDK guides now document this boundary
+and link the observed-decision limitation to the dashboard semantics.
+
 ## Closed in this pass
 
 ### Multi-round-trip outcomes

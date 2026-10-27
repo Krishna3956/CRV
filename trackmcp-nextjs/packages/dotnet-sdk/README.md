@@ -57,6 +57,11 @@ For `completion/complete`, it additionally emits bounded friction metadata
 `completion_has_more`). Completion suggestion values and arguments are never
 queued.
 
+For `elicitation/create`, `RecordProtocolResult` retains only an explicit
+`accept`, `decline`, or `cancel` decision. Questions, schemas, submitted
+values, and returned content are never queued; an `accept` is not a business
+approval claim.
+
 For a `tools/list`, `resources/list`, `resources/templates/list`, or
 `prompts/list` response, call `client.RecordCatalog(kind, method, result,
 sessionId)`. It records the bounded page count, SHA-256 identity hashes, and

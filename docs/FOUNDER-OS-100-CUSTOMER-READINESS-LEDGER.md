@@ -42,6 +42,9 @@ permission.
 - [x] Go and .NET observers now use the same metadata-only decision allowlist;
   hosted cross-language compile/smoke remains the runtime evidence source.
 
+- [x] Public protocol and SDK documentation now exposes the decision evidence
+  and its non-approval/privacy limitation consistently.
+
 The health report exposes `scheduled_cadence_gate` separately from operational
 `state`, plus `aws_scheduler_cadence_gate` and
 `aws_end_to_end_cadence_gate`. AWS metric health can be proven while the

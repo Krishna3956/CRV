@@ -58,6 +58,11 @@ metadata (`completion_value_count` up to 32, `completion_total` up to
 1,000,000, and `completion_has_more`). Completion suggestion values and
 arguments are never queued.
 
+For `elicitation/create`, `RecordProtocolResult` retains only an explicit
+`accept`, `decline`, or `cancel` decision. Questions, schemas, submitted
+values, and returned content are never queued; an `accept` is not a business
+approval claim.
+
 For a `tools/list`, `resources/list`, `resources/templates/list`, or
 `prompts/list` response, call `client.RecordCatalog(kind, method, result,
 sessionID)`. It records the bounded page count, SHA-256 identity hashes, and

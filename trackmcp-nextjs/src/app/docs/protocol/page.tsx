@@ -37,6 +37,9 @@ Authorization: Bearer $TRACKMCP_KEY
       <DocSection title="Roots and logging">
         <Para>The analytics boundary recognizes <Inline>roots/list</Inline> and <Inline>logging/setLevel</Inline> as separate bounded protocol families when they are observed, or when a client explicitly advertises the corresponding capability. TrackMCP records counts and outcome metadata only; root paths, log messages, and arbitrary level payloads are never exposed. These families remain partial until runtime fixtures and authenticated production evidence exist.</Para>
       </DocSection>
+      <DocSection title="Sampling and elicitation decisions">
+        <Para>Observers preserve only the explicit elicitation response decisions <Inline>accept</Inline>, <Inline>decline</Inline>, and <Inline>cancel</Inline>. Analytics reports these as protocol actions for sampling and elicitation; an observed <Inline>accept</Inline> is not a business-approval claim. Submitted values, prompts, model output, schemas, and response content are never retained. Request/response matching uses only an already-hashed interaction handle when one exists, so missing correlation remains unknown.</Para>
+      </DocSection>
     <DocSection title="What is not inferred">
       <Para>TrackMCP does not infer a customer from clientInfo, does not parse customer OAuth bearer tokens, does not infer workflow completion from sessions, and does not classify a missing event as abandonment. Configure a resolver for already-verified tenant identity and emit explicit workflow/task outcomes when those semantics matter.</Para>
     </DocSection>

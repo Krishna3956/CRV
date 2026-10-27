@@ -56,6 +56,11 @@ friction metadata: returned value count (capped at 32), optional total
 and completion content are never queued; analytics uses these fields only to
 distinguish empty and partial responses.
 
+For `elicitation/create`, the middleware retains only the explicit decision
+`accept`, `decline`, or `cancel`. Questions, schemas, submitted values, and
+returned content are never queued; an `accept` is not a business-approval
+claim.
+
 Catalog and protocol responses may also expose one-day-bounded
 `cache_ttl_ms` and `cache_scope` (`public`/`private`) hints. These are
 freshness/sharing metadata only; they do not grant authorization or promise
