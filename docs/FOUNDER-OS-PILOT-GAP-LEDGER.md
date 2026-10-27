@@ -4,13 +4,25 @@ Status: active autonomous audit, started 2026-10-21.
 
 ## 2026-10-28 — latest worker health recheck
 
-- Health workflow `40570232815` completed successfully after bounded recovery
-  worker `40570059240` succeeded. AWS scheduler and end-to-end cadence remain
-  proven at 4/4 invocations and 4/4 scheduled successes.
-- The GitHub scheduled-worker cadence is still not proven (0/3 samples in this
-  manual evaluation window) and the retained maximum queue lag is
-  `36,729,012 ms`; the freshness gate remains an explicit warning/HOLD. Manual
-  recovery is not counted as scheduled-cadence evidence.
+- Health workflow `40595457284` completed successfully after the coalescing
+  recovery. AWS scheduler and end-to-end cadence remain proven at 4/4
+  invocations and 4/4 scheduled successes.
+- The scheduled worker sample `40594595849` and manual recovery sample
+  `40594876889` are within the 15-minute budget, but only 1/3 scheduled
+  application samples is in the current evaluation window and two historical
+  stale samples remain in the evaluation set. The freshness gate therefore
+  remains an explicit warning/HOLD; manual recovery is not counted as
+  scheduled-cadence evidence.
+
+## 2026-10-28 — refresh backlog coalescing evidence
+
+- Production coalescing preserved 196 canonical ingest-window jobs and marked
+  12,490 redundant legacy fingerprint rows `cancelled` with
+  `last_error_code=coalesced_legacy`; telemetry and derived rows were not
+  deleted.
+- Worker dispatch `40594876889` processed 40/40 with zero retryable or failed
+  jobs and `max_queue_lag_ms=322350`. This is recovery evidence only and does
+  not close the sustained three-sample freshness gate.
 
 ## 2026-10-28 — TypeScript SDK 0.1.24 published
 
