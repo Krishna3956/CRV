@@ -875,3 +875,11 @@ production transport UAT.
   input-required/unknown outcomes as implemented signals, while retaining
   capability-aware approval/acceptance lifecycle joins as partial. No user
   values, suggestion values, prompt content, or approval claims are inferred.
+
+- 2026-10-27: Reconciled the PDF privacy rows with the implemented review-only
+  boundary. Secret-free export, authenticated privacy review, legal-hold and
+  retention checks, deterministic deletion planning/checkpoints, and the
+  fail-closed retention-cleanup worker contract are implemented. Destructive
+  deletion and scheduled cleanup remain deliberately disabled pending an
+  approved executor, operational metrics, replay procedure, and owner
+  acceptance; no deletion claim was added.
