@@ -51,11 +51,11 @@ and **4/4 scheduled successes**; the GitHub scheduled-worker sample count is
 
 | Gate | Current evidence | State | Required closure evidence |
 | --- | --- | --- | --- |
-| Worker freshness | Health artifact `40584912071` proves AWS cadence at 4/4 invocations and 4/4 end-to-end successes, but records 0/3 scheduled GitHub-worker samples and incomplete recovery artifact `40584021521`; max historical queue lag `36,729,012 ms` | **HOLD** | Three fresh scheduled samples within the 15-minute budget, with no unresolved stale/failure evidence |
+| Worker freshness | Fresh health artifact `40591189579` proves AWS cadence at 4/4 invocations and 4/4 end-to-end successes, but records 0/3 scheduled GitHub-worker samples and `worker_execution_incomplete`; maximum observed queue lag is `40,050,587 ms` | **HOLD** | Three fresh scheduled samples within the 15-minute budget, with no unresolved stale/failure evidence |
 | Backup/PITR | Supabase Free Plan has no scheduled backups or PITR; inspection recorded in the backup evidence entries below | **HOLD / owner decision** | Accepted documented limitation with named recovery owner/runbook, or plan upgrade plus tested restore rehearsal |
 | Privacy acceptance | Engineering privacy/export/deletion contracts pass; production acceptance evidence is not recorded | **HOLD / owner decision** | Signed production privacy review and retention/deletion acceptance |
 | Credentialed lifecycle/UAT | Read-only tenant/auth smoke is verified; write-gated key lifecycle and customer-owned transport UAT remain unexecuted | **HOLD / credentialed** | Disposable lifecycle key run plus customer-owned transport/protocol UAT artifacts |
-| Hosted deployment verification | Replacement workflow `40581600172` deployed `dd443a8`; release gate, image build/push, App Runner rollout, production smoke, immutable release identity, and runtime-safety checks passed; authenticated smoke `40582650751` also passed | **PASS** | Re-run the same guarded workflow for the next runtime-changing commit |
+| Hosted deployment verification | App Runner rollout `40586991519` deployed immutable runtime `d1bbf498`; release gate, image build/push, rollout, production smoke, immutable release identity, and runtime-safety checks passed; authenticated smoke `40588063835` also passed | **PASS** | Re-run the same guarded workflow for the next runtime-changing commit |
 | Release-owner acceptance | Source, CI, deployment, package publication, and local release gates are green | **HOLD / owner decision** | Explicit approval referencing this register and the current deployed source |
 
 This register is the active decision surface. Historical entries below remain
