@@ -22,6 +22,11 @@ Status: active autonomous audit, started 2026-10-21.
   MCP endpoint, transport-owned reconnect/replay, durable subscriptions, or
   OAuth token exchange; those remain explicit external/protocol boundaries.
 
+- Hosted TrackMCP CI `40602213797` also passed for the reviewed evidence
+  update, covering the web/JavaScript, Go, and .NET jobs. This confirms source
+  parity after the ledger reconciliation; it does not expand the production
+  smoke's bounded claims.
+
 ## 2026-10-28 — current worker window healthy after bounded recovery
 
 - Health workflow `40601204628` completed successfully after recovery worker
