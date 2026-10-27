@@ -36,6 +36,15 @@ Status: active autonomous audit, started 2026-10-21.
 - Key lifecycle mutation, CLI activation, customer-owned transport UAT, and
   the remaining operational/owner gates stay open.
 
+## 2026-10-28 — transport smoke delivery assertion hardened
+
+- The guarded Streamable HTTP/SSE smoke now fails closed when a production
+  flush reports delivery errors, dropped/privacy/hook diagnostics, or queued
+  events/bytes after flush. Redacted reports retain bounded counts only.
+- Source `d4c4096a` passed the full release gate, lint/build, and hosted CI
+  `40599618793`. This closes a false-positive risk in the UAT harness, not the
+  credentialed customer-owned transport gate.
+
 ## 2026-10-28 — guarded lifecycle/transport UAT remains credential-gated
 
 - Transport workflow `40598518836` and key-lifecycle workflow `40598792457`
@@ -742,7 +751,7 @@ just because a README or marketing page mentions it.
 | TypeScript server SDK | `packages/typescript-sdk`, consumer gate, published `0.1.24`; source fails closed for removed `tasks/list` and retains explicit-handle `tasks/get` observation without task mutation | Published and registry-verified: npm reports version `0.1.24` with workflow `40569475423` integrity/provenance and clean-consumer evidence; direct-origin first-ingest UAT passed in workflow `40598515473` | Authenticated activation, key-lifecycle mutation, and customer-owned transport UAT remain separate pilot gates |
 | CLI activation package | `packages/cli`, packed consumer and device-flow contracts, published `@trackmcp/cli@0.1.12` | Published and registry-verified by recovery workflow `40565931200`; npm metadata and tarball resolve publicly | Disposable production activation and first-event evidence remain a separate pilot gate |
 | Python server SDK | `packages/python-sdk`, package consumer gate, published `0.1.14` | Published and registry-verified by recovery workflow `40566216611`; wheel/sdist digests are recorded in `FOUNDER-OS-PACKAGE-RELEASE-READINESS.md` | Authenticated activation/first-event evidence remains a separate pilot gate |
-| Transport observer / Node client adapter | `@trackmcp/sdk/client-adapter`; Node-only wrapper for official Stdio, Streamable HTTP, and SSE transports; metadata-only and fail-open; bounded capability-family metadata, lifecycle generations for reconnect correlation, and dedicated adapter tests | Implemented and merged through PRs #173–#175 | Authenticated customer-owned transport UAT |
+| Transport observer / Node client adapter | `@trackmcp/sdk/client-adapter`; Node-only wrapper for official Stdio, Streamable HTTP, and SSE transports; metadata-only and fail-open; bounded capability-family metadata, lifecycle generations for reconnect correlation, dedicated adapter tests, and a production smoke that now requires clean delivery diagnostics after flush | Implemented and merged through PRs #173–#175; source delivery assertion verified in hosted CI `40599618793` | Authenticated customer-owned transport UAT |
 | Go SDK | `packages/go-sdk/trackmcp.go`; transport-neutral primitive, source package only; flush uses the managed-edge-compatible fixed user-agent | Implemented with source-only distribution boundary; hosted Go test/vet/smoke and edge-header assertion passed in CI `40597985741`; no reviewed Go-module tag/provenance workflow is configured | Publish only after a reviewed module-tag/provenance policy and release workflow exist |
 | .NET SDK | `packages/dotnet-sdk/TrackMcp.cs`; transport-neutral primitive, source package only; flush uses the managed-edge-compatible fixed user-agent | Implemented with source-only distribution boundary; hosted .NET build/pack/smoke and edge-header assertion passed in CI `40597985741`; no publication credential/workflow is configured | Publish only after a reviewed NuGet package identity, provenance policy, and `NUGET_API_KEY` owner are supplied |
 | OTLP/HTTP JSON or protobuf | Authenticated bounded receiver at `/api/v1/otel/v1/traces`; JSON/protobuf parsers and interoperability tests; the deployed candidate has a write-enabled protobuf UAT with a mapped event and redacted evidence | Implemented as metadata-only and production-UAT verified for the deployed candidate; gRPC intentionally unsupported | Keep the JSON/protobuf fixture in the recurring release gate; do not market OTLP/gRPC or external export |

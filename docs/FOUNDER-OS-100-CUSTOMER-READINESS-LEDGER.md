@@ -1,6 +1,6 @@
 # Founder OS 100 Customer Readiness Ledger
 
-Last updated: 2026-10-28 (main `9bb961b8`; deployed application `7ab4eced` and App Runner rollout `40594711620` succeeded; hosted CI `40598873859` passed for the reconciled ledger state and `40597985741` passed for web/JavaScript, Go, and .NET source; first-ingest UAT `40598515473` passed against the direct App Runner origin; read-only production smoke, immutable identity, and runtime-safety checks passed in that rollout; queued-backlog coalescer changes are documented below; scheduler redeploy/enablement `40586991487`/`40587311920` remain the latest scheduler evidence; authenticated production smoke remains verified at `40588063835`; hosted publication workflow `40569475423` verified `@trackmcp/sdk@0.1.24`; latest health monitor `40595457284` observes the first fresh scheduled sample but keeps freshness in warning pending three; browser-compatible public probes pass while default scripted probes remain Cloudflare-blocked)
+Last updated: 2026-10-28 (main `d4c4096a`; deployed application `7ab4eced` and App Runner rollout `40594711620` succeeded; hosted CI `40599618793` passed the transport-smoke delivery assertion and all web/JavaScript, Go, and .NET jobs; first-ingest UAT `40598515473` passed against the direct App Runner origin; read-only production smoke, immutable identity, and runtime-safety checks passed in that rollout; queued-backlog coalescer changes are documented below; scheduler redeploy/enablement `40586991487`/`40587311920` remain the latest scheduler evidence; authenticated production smoke remains verified at `40588063835`; hosted publication workflow `40569475423` verified `@trackmcp/sdk@0.1.24`; latest health monitor `40595457284` observes the first fresh scheduled sample but keeps freshness in warning pending three; browser-compatible public probes pass while default scripted probes remain Cloudflare-blocked)
 The same-origin docs, auth, blog CTA fixes, regression guard, and hosted-runner verification gate are deployed and runtime-verified. Cloudflare permits browser-compatible requests, while its managed bot rule still returns HTML 403 to the default scripted user-agent; SDK delivery must use the compatible request boundary and retain a real authenticated UAT check.
 Latest freshness evidence: health workflow `40595457284` inspected eight
 redacted worker samples. AWS scheduler cadence is proven with **4/4 invocations**
@@ -355,6 +355,19 @@ evidence and are not current approval.
   suites**.
 - [x] This verifies the evidence/ledger reconciliation and source contracts;
   it does not convert the skipped credentialed workflows into UAT passes.
+
+## 2026-10-28 — transport smoke now proves delivery, not only local execution
+
+- [x] The guarded Streamable HTTP/SSE production smoke now captures bounded
+  delivery diagnostics and fails unless both transport batches have zero
+  delivery errors, zero dropped/privacy/hook errors, and an empty queue after
+  flush. Its redacted report records only bounded counts.
+- [x] Focused transport contracts, the full **144-suite** release gate, lint,
+  the 178-route production build, and hosted CI `40599618793` all pass for
+  source `d4c4096a`.
+- [ ] The workflow still cannot run its write phase without the dedicated
+  `TRACKMCP_TRANSPORT_SMOKE_KEY`; source correctness is verified, but
+  customer-owned transport UAT remains a credentialed HOLD.
 
 ## 2026-10-28 — documentation snippet fallback correction
 
