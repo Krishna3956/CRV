@@ -38,22 +38,31 @@ function normalizeAwsSchedulerEvidence(value) {
 export function summarizeRefreshWorkerRuns(runs, { budgetMs = DEFAULT_BUDGET_MS, maxCadenceMs = DEFAULT_MAX_CADENCE_MS, evaluationWindowMs = DEFAULT_EVALUATION_WINDOW_MS, awsScheduler = null } = {}) {
   const boundedRuns = (Array.isArray(runs) ? runs : [])
     .filter((run) => run && typeof run === "object")
-    .map((run) => ({
-      run_id: typeof run.run_id === "number" ? run.run_id : null,
-      created_at: typeof run.created_at === "string" ? run.created_at : null,
-      event: typeof run.event === "string" ? run.event : "schedule",
-      conclusion: typeof run.conclusion === "string" ? run.conclusion : "unknown",
-      observed_at: typeof run.observed_at === "string" ? run.observed_at : null,
-      freshness_slo: typeof run.freshness_slo === "string" ? run.freshness_slo : "unknown",
-      freshness_alert: typeof run.freshness_alert === "string" ? run.freshness_alert : "unknown",
-      max_queue_lag_ms: boundedNumber(run.max_queue_lag_ms),
-      processed: boundedNumber(run.processed),
-      failed: boundedNumber(run.failed),
-      retryable: boundedNumber(run.retryable),
-      timed_out: run.timed_out === true,
-      workflow_failed: run.workflow_failed === true,
-      batches_with_unparseable_response: boundedNumber(run.batches_with_unparseable_response),
-    }))
+    .map((run) => {
+      const timedOut = run.timed_out === true;
+      const workflowFailed = run.workflow_failed === true;
+      const unparseable = boundedNumber(run.batches_with_unparseable_response);
+      const incomplete = timedOut || workflowFailed || unparseable > 0;
+      return {
+        run_id: typeof run.run_id === "number" ? run.run_id : null,
+        created_at: typeof run.created_at === "string" ? run.created_at : null,
+        event: typeof run.event === "string" ? run.event : "schedule",
+        conclusion: typeof run.conclusion === "string" ? run.conclusion : "unknown",
+        observed_at: typeof run.observed_at === "string" ? run.observed_at : null,
+        // Old artifacts may predate the timeout fields. Derive the row-level
+        // status from the durable bounded flags so they cannot display an
+        // empty healthy queue when the response was incomplete.
+        freshness_slo: incomplete ? "unknown" : typeof run.freshness_slo === "string" ? run.freshness_slo : "unknown",
+        freshness_alert: incomplete ? "warning" : typeof run.freshness_alert === "string" ? run.freshness_alert : "unknown",
+        max_queue_lag_ms: boundedNumber(run.max_queue_lag_ms),
+        processed: boundedNumber(run.processed),
+        failed: boundedNumber(run.failed),
+        retryable: boundedNumber(run.retryable),
+        timed_out: timedOut,
+        workflow_failed: workflowFailed,
+        batches_with_unparseable_response: unparseable,
+      };
+    })
     .sort((a, b) => (parseTimestamp(a.created_at) ?? 0) - (parseTimestamp(b.created_at) ?? 0))
     .slice(-8);
 

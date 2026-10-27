@@ -1,6 +1,6 @@
 # Founder OS 100 Customer Readiness Ledger
 
-Last updated: 2026-10-28 (main `d1bbf498`; App Runner rollout `40586991519` and scheduler redeploy/enablement `40586991487`/`40587311920` succeeded; hosted CI `40586991507` passed; corrected recovery run `40586415068` passed; health run `40586589280` passed; authenticated production smoke remains verified at `40582650751`; hosted publication workflow `40569475423` verified `@trackmcp/sdk@0.1.24`)
+Last updated: 2026-10-28 (main `f39ea20e`; deployed application `d1bbf498` and App Runner rollout `40586991519` succeeded; scheduler redeploy/enablement `40586991487`/`40587311920` succeeded; hosted CI `40586991507` passed; corrected recovery run `40586415068` passed; health run `40589534006` passed; authenticated production smoke remains verified at `40588063835`; hosted publication workflow `40569475423` verified `@trackmcp/sdk@0.1.24`)
 The same-origin docs, auth, blog CTA fixes, regression guard, and hosted-runner verification gate are deployed and runtime-verified. The public Cloudflare edge still returns HTML 403 to scripted probes and remains a separate external gate.
 Latest freshness evidence: health workflow `40566829192` with worker drain
 `40566911017` inspected eight redacted worker samples. AWS scheduler cadence is
@@ -83,6 +83,19 @@ evidence and are not current approval.
   lag result before changing the worker freshness gate from HOLD. The current
   scheduler is active, but the available health report still contains the
   earlier stale backlog and pre-rollout failure history.
+
+## 2026-10-28 — per-run health evidence consistency
+
+- [x] Health report `40589534006` correctly keeps the aggregate state at
+  `warning` with AWS cadence proven (4 invocations, 4 successes, zero errors)
+  and freshness stale. The report still includes the earlier incomplete
+  recovery artifact and the 39,048,679 ms maximum queue lag; no GO claim is
+  made.
+- [x] Mainline `f39ea20e` normalizes every run row from its bounded timeout,
+  workflow-failure, and unparseable-batch flags. A historical artifact can no
+  longer display `no_backlog_observed` or `none` when its response was
+  incomplete. Focused health tests and the full local 144-suite release gate
+  pass.
 - [ ] Do not treat this source correction as freshness closure until a fresh
   recovery artifact returns parseable bounded results and the scheduled AWS
   cadence continues to meet the 15-minute pilot budget.

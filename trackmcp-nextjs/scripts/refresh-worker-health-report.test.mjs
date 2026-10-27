@@ -162,4 +162,6 @@ test("timed out or unparseable batches cannot be reported as an empty healthy qu
   assert.deepEqual(report.reasons, ["worker_execution_incomplete", "freshness_budget_exceeded"]);
   assert.equal(report.runs.at(-1).timed_out, true);
   assert.equal(report.runs.at(-1).batches_with_unparseable_response, 10);
+  assert.equal(report.runs.at(-1).freshness_slo, "unknown");
+  assert.equal(report.runs.at(-1).freshness_alert, "warning");
 });
