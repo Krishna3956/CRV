@@ -61,11 +61,11 @@ npx @trackmcp/cli init
 # Remote setup: npx @trackmcp/cli init --no-browser
 # Restricted environment: npx @trackmcp/cli init --no-install
 # Diagnostics: npx @trackmcp/cli doctor
-# Manual fallback: https://app.trackmcp.com/signup?utm_source=npm&utm_medium=sdk_docs&utm_campaign=sdk_setup&package=%40trackmcp%2Fsdk&content_path=%2Fdocs
+# Manual fallback: open /signup on this documentation origin
 
 # Python
 python3 -m pip install trackmcp
-# Create your key at https://app.trackmcp.com/dashboard`}</Code>
+# Create your key from /dashboard on this documentation origin`}</Code>
         <Code>{`import { withTrackMCP } from "@trackmcp/sdk";
 import { server } from "./mcp";
 

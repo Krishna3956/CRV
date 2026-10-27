@@ -45,6 +45,19 @@ evidence and are not current approval.
   backup/PITR posture, credentialed customer-owned transport UAT, or the
   release-owner GO/NO-GO decision above.
 
+## 2026-10-28 — documentation same-origin fallback correction
+
+- [x] Removed the remaining copy-paste quickstart URLs that forced customers
+  to the Cloudflare-fronted `app.trackmcp.com` host. The public Docs and
+  TypeScript guide now direct users to `/signup` and `/dashboard` on the
+  documentation's current origin, while preserving the setup instructions.
+- [x] Added a sitewide regression contract that scans documentation code
+  snippets as well as authored anchors, so a blocked first-party hostname
+  cannot return through a copy-paste example unnoticed.
+- [x] Focused CTA/docs navigation checks and lint pass; the full release gate
+  then passed all **144 suites**. This is a source/docs correction and does
+  not claim that the external Cloudflare edge policy itself is fixed.
+
 ## 2026-10-28 — hosted deployment recovery and verification
 
 - [x] Stale workflow `40577463077` accepted cancellation through both the

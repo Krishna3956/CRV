@@ -45,7 +45,7 @@ export default function TypeScriptDocsPage() {
 # Optional manual install. The init command installs this automatically when missing.
 # npm install is intentionally silent: it never opens a browser or sends an install ping.
 # Manual fallback:
-# https://app.trackmcp.com/signup?utm_source=npm&utm_medium=sdk_docs&utm_campaign=sdk_setup&package=%40trackmcp%2Fsdk&content_path=%2Fdocs%2Ftypescript
+# Manual fallback: open /signup on this documentation origin
 # or: pnpm add @trackmcp/sdk / yarn add @trackmcp/sdk`}</Code>
       </DocSection>
 

@@ -83,3 +83,15 @@ test("first-party anchors do not force the Cloudflare-fronted app hostname", () 
   }
   assert.deepEqual(violations, []);
 });
+
+test("documentation snippets do not send customers to the blocked app hostname", () => {
+  const violations = [];
+  for (const file of sourceFiles) {
+    const text = fs.readFileSync(file, "utf8");
+    if (!file.includes(`${path.sep}app${path.sep}docs${path.sep}`)) continue;
+    for (const match of text.matchAll(/https:\/\/app\.trackmcp\.com(?:[^`"'\\s)]*)/g)) {
+      violations.push(`${path.relative(process.cwd(), file)}:${text.slice(0, match.index).split("\n").length} ${match[0]}`);
+    }
+  }
+  assert.deepEqual(violations, []);
+});
