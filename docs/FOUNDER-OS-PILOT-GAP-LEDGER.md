@@ -811,3 +811,16 @@ production transport UAT.
   production-like Streamable HTTP telemetry path; customer-owned MCP endpoint
   interoperability, transport-owned reconnect, proxy, and disconnect UAT
   remain separate open gates.
+
+- 2026-10-27: Ran an authenticated production-like SSE interoperability
+  fixture against the deployed App Runner ingest origin. The official MCP
+  `SSEClientTransport` completed initialization and a tool request against a
+  local SSE fixture, then the fixture deliberately closed the stream. The
+  adapter reported zero dropped events, hook errors, privacy errors, malformed
+  messages, unmatched messages, duplicate messages, or expired requests.
+  Supabase read-back found six `transport=sse` client observations with
+  `payload_policy=metadata`, including bounded initialization, tool-call, and
+  session transport errors; six durable semantic facts classified the
+  explicit failures without retaining response content. This closes the
+  production-like SSE failure-observation path; customer-owned endpoint
+  interoperability and transport-owned reconnect guarantees remain open.
