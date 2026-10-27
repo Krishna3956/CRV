@@ -76,6 +76,7 @@ class TrackMCPEvent(TypedDict, total=False):
     error_code: int
     retry_number: int
     result_type: Literal["complete", "input_required", "task"]
+    task_status: Literal["working", "input_required", "completed", "failed", "cancelled", "expired"]
     input_request_count: int
     input_response_count: int
     schema_hash: str
@@ -213,6 +214,9 @@ def _protocol_result_metadata(result: Any) -> Dict[str, Any]:
         metadata["next_cursor_present"] = True
     if result_type in ("complete", "input_required", "task"):
         metadata["result_type"] = result_type
+    task_status = result.get("taskStatus", result.get("task_status"))
+    if task_status in ("working", "input_required", "completed", "failed", "cancelled", "expired"):
+        metadata["task_status"] = task_status
     action = result.get("action")
     if action in ("accept", "decline", "cancel"):
         metadata["protocol_decision"] = action
@@ -485,6 +489,33 @@ class TrackMCP:
             "is_error": False,
             "payload": {"_trackmcp": {"observation_kind": "protocol_notification", "protocol_signal": signal}},
         })
+
+    def record_protocol_result(
+        self,
+        method: str,
+        result: Any,
+        *,
+        session_id: Optional[str] = None,
+    ) -> None:
+        """Record bounded MCP response metadata without retaining response content."""
+        if not isinstance(method, str) or not method or len(method) > 128 or any(ord(char) < 32 or ord(char) == 127 for char in method):
+            return
+        metadata = _protocol_result_metadata(result)
+        failed = bool(result.get("isError", result.get("is_error"))) if isinstance(result, dict) and isinstance(result.get("isError", result.get("is_error")), bool) else False
+        event: Dict[str, Any] = {
+            "event_type": "protocol",
+            "mcp_method": method,
+            "session_id": session_id or "transport-session",
+            "started_at": _iso_now(),
+            "success": not failed,
+            "is_error": failed,
+            "payload": {"_trackmcp": {"observation_kind": "protocol_response", "observation_source": "server", **metadata}},
+        }
+        if "result_type" in metadata:
+            event["result_type"] = metadata["result_type"]
+        if "task_status" in metadata:
+            event["task_status"] = metadata["task_status"]
+        self.capture(event)
 
     def record_authorization_outcome(
         self,

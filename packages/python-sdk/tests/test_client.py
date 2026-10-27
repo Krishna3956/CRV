@@ -304,6 +304,26 @@ class TrackMCPClientTest(TestCase):
         self.assertEqual(len(client._events), count)
         client._timer.cancel()
 
+    def test_protocol_result_is_bounded_and_tracks_task_discriminators(self):
+        client = TrackMCP(TrackMCPOptions(api_key="tmcp_test", disabled=False, flush_interval_ms=60000))
+        client.record_protocol_result("tools/call", {
+            "resultType": "task",
+            "taskStatus": "working",
+            "isError": False,
+            "inputRequests": ["private-input"],
+            "result": {"secret": "do-not-store"},
+        }, session_id="session-result")
+        event = client._events[0]
+        self.assertEqual(event["result_type"], "task")
+        self.assertEqual(event["task_status"], "working")
+        self.assertEqual(event["payload"]["_trackmcp"]["input_request_count"], 1)
+        self.assertNotIn("private-input", json.dumps(event))
+        self.assertNotIn("do-not-store", json.dumps(event))
+        client.record_protocol_result("tools/call", {"task_status": "unknown"})
+        client.record_protocol_result("bad\nmethod", {})
+        self.assertEqual(len(client._events), 2)
+        client._timer.cancel()
+
     def test_resource_and_prompt_catalog_metadata_is_hashed_and_payload_free(self):
         resource = _catalog_observation("resources", {"resources": [{"name": "docs", "uri": "secret://user:pass/private"}]})
         self.assertEqual(resource["catalog_kind"], "resources")

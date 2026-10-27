@@ -28,6 +28,12 @@ and `direction` defaults to `server_to_client` while accepting
 `client_to_server` for inbound cancellation; only the allowlisted signal,
 transport, direction, and method metadata are retained.
 
+Call `client.record_protocol_result("tools/call", result)` when the host owns
+the response boundary. The helper retains only bounded result/task
+discriminators, completion counts, cache hints, and protocol-family metadata;
+response bodies, task handles, input values, and arbitrary fields are never
+stored.
+
 For an HTTP authorization response, call
 `client.record_authorization_outcome("tools/call", 401)` or pass `403`. The
 SDK records only `unauthorized` or `forbidden` metadata and never accepts or
