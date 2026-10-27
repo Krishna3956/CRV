@@ -72,3 +72,14 @@ test("literal internal links resolve to an App Router page", () => {
   }
   assert.deepEqual(missing, []);
 });
+
+test("first-party anchors do not force the Cloudflare-fronted app hostname", () => {
+  const violations = [];
+  for (const file of sourceFiles) {
+    const text = fs.readFileSync(file, "utf8");
+    for (const match of text.matchAll(/(?:href|to)\s*=\s*["'](https:\/\/app\.trackmcp\.com[^"']*)["']/g)) {
+      violations.push(`${path.relative(process.cwd(), file)}:${text.slice(0, match.index).split("\n").length} ${match[1]}`);
+    }
+  }
+  assert.deepEqual(violations, []);
+});
