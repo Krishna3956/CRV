@@ -51,6 +51,13 @@ recovery-evidence hardening, not a final operational SLO acceptance.
 
 ## Latest source verification — 2026-10-27
 
+The current repository source is `ba19661`. The latest local release gate
+passes **144 suites**, lint, the production build (**177 routes**), and
+`git diff --check`. These are source/documentation verification results only;
+the latest verified deployed runtime remains immutable `4efa2e1` above. No
+deployment is claimed for the documentation-only postflight commits after that
+runtime baseline.
+
 The current deployed source is `4efa2e1` (including the health-report semantics
 correction that honors a proven AWS scheduler window while retaining historical
 worker warnings and the deployment-trigger hardening). Mainline now also

@@ -12,7 +12,7 @@ and [pilot release record](FOUNDER-OS-100-CUSTOMER-PILOT-RELEASE-RECORD.md).
 
 - Six authenticated dashboard surfaces have contract coverage, privacy-safe
   read models, and navigation/documentation CTA checks.
-- Current source release gate passes **143 suites**; lint passes; the
+- Current source release gate passes **144 suites**; lint passes; the
   production build generates **177 routes**; `git diff --check` passes.
 - Production deployment, read-only smoke, tenant-scope smoke, first-ingest
   smoke, refresh-worker recovery, prompt-entity projection, and distributed
@@ -77,7 +77,7 @@ scheduled-worker SLO. No secret, workspace identifier, raw payload, or token is
 stored in this snapshot.
 
 Latest scheduler evidence is recorded in the detailed ledger; the current
-source verification remains green at 143 suites. The deployed application is
+source verification remains green at 144 suites. The deployed application is
 immutable SHA `9638e23c8529f9b1781d96413529e33a692715ed` via App Runner
 workflow `40468547762`; its production smoke, immutable identity, and runtime
 safety checks passed. Scheduler-owned source activation also completed in

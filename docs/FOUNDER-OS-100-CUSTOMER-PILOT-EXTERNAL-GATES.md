@@ -15,10 +15,10 @@ is intentionally not a GO approval and must not be treated as one.
   App Runner workflow `40497434962` (successful rollout). This deployment
   contains deployment-trigger hardening and preserves the previously verified
   application behavior; its runtime reference is the exact immutable SHA.
-- Current source verification: `main` at `a0d2485` (first-ingest UAT ledger
-  reconciliation), with the deployed application at immutable `4efa2e1`.
-  TrackMCP CI `40498017114` passed for `a0d2485`; the docs-only commit was not
-  deployed by the tightened path filter.
+- Current source verification: `main` at `ba19661` (catalog entity integrity
+  postflight ledger update), with the deployed application still at immutable
+  `4efa2e1`. The intervening commits are documentation-only evidence updates;
+  no deployment is claimed for them.
   This does not close the external owner, backup, privacy, or scheduler-cadence
   gates.
 - Historical deployed baselines retained for audit include `9638e23c8529f9b1781d96413529e33a692715ed`
@@ -28,7 +28,7 @@ is intentionally not a GO approval and must not be treated as one.
   the already-successful rollout and its bounded evidence.
 - Queue: 263 total, 260 checked, and P0 queue items `020`, `157`, and `260`
   remain open.
-- Full local release gate: **143 suites passed**, with lint and the 177-route
+- Full local release gate: **144 suites passed**, with lint and the 177-route
   production build green.
 - Authenticated device-flow UAT covers expired, denied, multiple-membership,
   and zero-membership workspace creation without browser key disclosure.

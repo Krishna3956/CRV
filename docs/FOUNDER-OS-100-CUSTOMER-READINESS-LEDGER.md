@@ -2518,3 +2518,18 @@ a failed product gate or a Supabase plan warning.
 - [ ] Deployment-origin runtime identity and any write-enabled production
   result still require their own hosted evidence; target validation alone is
   not a smoke pass.
+
+## 2026-10-27 active-release truth reconciliation
+
+- [x] Reconciled the active external-gate register, pilot release record, and
+  readiness snapshot to the current repository source `ba19661`.
+- [x] Recorded the latest local verification as 144 release-gate suites,
+  passing lint, a 177-route production build, and `git diff --check`.
+- [x] Kept the deployed runtime separate: immutable `4efa2e1` remains the
+  latest verified App Runner deployment; documentation-only postflight commits
+  are not presented as deployed behavior.
+- [x] Updated the external-gate contract to assert the current baseline while
+  preserving historical 143-suite and prior-SHA evidence.
+- [ ] This is documentation/test-contract reconciliation only. It does not
+  close release-owner approval, recovery posture, privacy acceptance, or any
+  credentialed production UAT gate.
