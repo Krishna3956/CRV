@@ -24,6 +24,16 @@ permission.
 - [ ] Scheduler cadence, backup/PITR, privacy acceptance, credentialed
   customer-owned UAT, and release-owner acceptance remain external gates.
 
+## 2026-10-27 refresh-health log-read permission verification
+
+- [x] Read-only health workflow `40491400580` completed successfully after the
+  IAM policy update. Its report confirms `scheduled_successes_available: true`,
+  proving the workflow can now query the bounded scheduler-success marker.
+- [ ] The scheduler gate remains open: only one scheduled sample was observed,
+  AWS metrics reported zero current invocations, and the report is
+  `insufficient_data` with a freshness breach. Permission availability is not
+  evidence of a healthy cadence.
+
 ## 2026-10-27 SDK release-train publication
 
 - [x] Source changes after the published `@trackmcp/sdk@0.1.20` and

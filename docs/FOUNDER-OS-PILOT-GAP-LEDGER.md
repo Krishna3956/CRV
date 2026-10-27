@@ -18,6 +18,16 @@ Status: active autonomous audit, started 2026-10-21.
   isolation, revoked-key rejection, and API-key mutation denial. This remains
   read-only evidence and does not close write-gated customer UAT.
 
+## 2026-10-27 — scheduler health permission verified
+
+- Read-only health workflow `40491400580` completed successfully after the
+  `TrackMCPRefreshHealthLogReadPolicy` IAM change. The redacted report now
+  marks `scheduled_successes_available: true`, closing the missing-log-read
+  permission boundary.
+- Cadence remains pending: the bounded report observed one scheduled sample,
+  zero current AWS invocations, and `insufficient_data`/freshness-breach
+  findings. No scheduler health claim is made from the permission check alone.
+
 ## 2026-10-27 — bounded catalog correlation parity
 
 - Catalog list-change notifications now have a privacy-safe, reviewed evidence
