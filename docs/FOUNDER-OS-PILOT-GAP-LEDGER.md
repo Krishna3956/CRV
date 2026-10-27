@@ -103,18 +103,22 @@ Status: active autonomous audit, started 2026-10-21.
 
 ## 2026-10-27 — SDK release publication pointer
 
-- The reviewed SDK train is published as `@trackmcp/sdk@0.1.21` and
-  `trackmcp==0.1.14` (release candidate; `0.1.13` remains the latest
-  published artifact); the bounded CLI proxy candidate is `@trackmcp/cli@0.1.12`.
-  The Python release candidate `0.1.14` is not a publication claim until
-  the coordinated release workflow completes successfully.
-  Registry checksums,
-  provenance, and clean-consumer evidence are recorded in the package
-  release-readiness file. The first npm run’s bounded propagation timeout is
-  retained as a workflow caveat, not a registry failure.
-- Reviewed release candidate `0.1.23` contains the TypeScript authorization-
-  outcome observer and is published with registry and clean-consumer evidence in
-  the package release-readiness record.
+- Historical pointer retained for auditability; the current reviewed train is
+  recorded below after its staged publication recovery.
+
+## 2026-10-28 — coordinated SDK train publicly verified
+
+- `@trackmcp/sdk@0.1.23`, `@trackmcp/cli@0.1.12`, and `trackmcp==0.1.14`
+  are now publicly resolvable with provenance from recovery workflows
+  `40565931200` and `40566216611` plus the original TypeScript publication.
+- npm metadata and tarballs are verified for both JavaScript packages. PyPI
+  exposes the Python wheel (`64bd69e314b3415886e4ec3a56d2a598ff41d2567a122871e88867e4b24fa9f3`)
+  and sdist (`560dd3bb8435d9d08f219b04a52c42dadcc23d3f69103e9605bdc398b91153cc`).
+- The published `0.1.23` TypeScript train and published `0.1.14` Python train
+  are now the active public artifacts for this source milestone.
+- This closes the registry-publication gap for the reviewed source train;
+  authenticated customer activation, first-event UAT, and other external
+  pilot gates remain separate.
 
 ## 2026-10-27 — current-source pointer reconciliation
 
