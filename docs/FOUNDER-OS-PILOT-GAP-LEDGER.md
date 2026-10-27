@@ -2,6 +2,19 @@
 
 Status: active autonomous audit, started 2026-10-21.
 
+## 2026-10-27 — authenticated production scope smoke
+
+- The post-deployment workflow `40429116070` completed successfully against
+  immutable commit `5e26564ad446f11f712de66cf0594a0b803a7d70`. Its redacted
+  artifact `production-auth-smoke-5e26564ad446f11f712de66cf0594a0b803a7d70`
+  passed the read-only key-status, conflicting-workspace, Founder OS v2,
+  legacy analytics, API-key Action Queue denial, revoked-key, and privacy-key
+  checks. No key creation, rotation, revocation, ingest, or dashboard mutation
+  was performed.
+- This refreshes tenant-isolation/authentication evidence for the deployed
+  candidate; it does not close the separate key-lifecycle, backup/PITR,
+  scheduler-cadence, privacy-acceptance, or release-owner gates.
+
 ## 2026-10-27 — handler-test deployment evidence
 
 - App Runner deployment workflow `40428391413` completed successfully for

@@ -23,6 +23,12 @@ is intentionally not a GO approval and must not be treated as one.
   build green.
 - Authenticated device-flow UAT covers expired, denied, multiple-membership,
   and zero-membership workspace creation without browser key disclosure.
+- Authenticated production scope smoke `40429116070` passed against immutable
+  commit `5e26564ad446f11f712de66cf0594a0b803a7d70`; its redacted artifact
+  covered key status, conflicting-workspace isolation, Founder OS v2 and
+  legacy read models, API-key Action Queue denial, revoked-key rejection, and
+  privacy-safe projections. It was read-only and did not create, rotate,
+  revoke, ingest, or mutate dashboard state.
 - Rollback and authenticated scope-smoke evidence are reconciled in the
   release record through queue items 256 and 249.
 - Scheduler deployment history is retained: disabled run `40397368253` failed
