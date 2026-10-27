@@ -52,7 +52,16 @@ async function fetchReadOnly(url, options = {}) {
       // for each idempotent retry so a transient cold-start/origin timeout can
       // actually be retried without weakening the per-attempt bound.
       const attemptSignal = timeoutMs ? AbortSignal.timeout(timeoutMs) : signal;
-      return await fetch(url, { ...fetchOptions, ...(attemptSignal ? { signal: attemptSignal } : {}) });
+      const response = await fetch(url, { ...fetchOptions, ...(attemptSignal ? { signal: attemptSignal } : {}) });
+      // App Runner can briefly return a provider-generated 502/503/504 while
+      // a freshly rolled instance is warming. Retry only idempotent reads;
+      // never retry writes or turn an application 4xx into a false pass.
+      if ([502, 503, 504].includes(response.status) && attempt < 2) {
+        await response.body?.cancel();
+        await new Promise((resolve) => setTimeout(resolve, 500 * (attempt + 1)));
+        continue;
+      }
+      return response;
     } catch (error) {
       lastError = error;
       if (attempt < 2) await new Promise((resolve) => setTimeout(resolve, 250 * (attempt + 1)));
@@ -65,7 +74,7 @@ async function request(path, options = {}) {
   const response = await fetchReadOnly(endpoint(path), {
     ...options,
     redirect: "manual",
-    headers: { "user-agent": "TrackMCP/0.1.19 production-smoke", ...(options.headers || {}) },
+    headers: { "user-agent": "TrackMCP/0.1.20 production-smoke", ...(options.headers || {}) },
     timeoutMs: 15_000,
   });
   return { status: response.status, headers: response.headers };
@@ -104,7 +113,7 @@ function buildOtelProtobufFixture() {
 async function sendOtelProtobuf(apiKey) {
   const response = await fetch(endpoint("/api/v1/otel/v1/traces"), {
     method: "POST",
-    headers: { authorization: `Bearer ${apiKey}`, "content-type": "application/x-protobuf", "user-agent": "TrackMCP/0.1.19 production-smoke" },
+    headers: { authorization: `Bearer ${apiKey}`, "content-type": "application/x-protobuf", "user-agent": "TrackMCP/0.1.20 production-smoke" },
     body: buildOtelProtobufFixture(),
     redirect: "manual",
     signal: AbortSignal.timeout(15_000),
@@ -131,7 +140,7 @@ function assertSecurityHeaders(headers, label) {
 async function keyStatusRequest(apiKey) {
   const response = await fetchReadOnly(endpoint("/api/v1/cli/key-status"), {
     method: "GET",
-    headers: { accept: "application/json", "user-agent": "TrackMCP/0.1.19 production-smoke", authorization: `Bearer ${apiKey}` },
+    headers: { accept: "application/json", "user-agent": "TrackMCP/0.1.20 production-smoke", authorization: `Bearer ${apiKey}` },
     redirect: "manual",
     timeoutMs: 15_000,
   });
@@ -219,7 +228,7 @@ async function expectRuntimeIdentity() {
 
 async function registryChecks() {
   const checks = [];
-  const npmPackage = process.env.TRACKMCP_EXPECTED_NPM_SDK || "@trackmcp/sdk@0.1.19";
+  const npmPackage = process.env.TRACKMCP_EXPECTED_NPM_SDK || "@trackmcp/sdk@0.1.20";
   const cliPackage = process.env.TRACKMCP_EXPECTED_NPM_CLI || "@trackmcp/cli@0.1.10";
   const pythonPackage = process.env.TRACKMCP_EXPECTED_PYPI || "trackmcp@0.1.12";
   const expectedNpmIntegrity = {

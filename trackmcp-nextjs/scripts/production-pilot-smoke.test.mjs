@@ -16,7 +16,9 @@ test("production pilot smoke retries only idempotent reads", () => {
   assert.match(source, /method !== "GET" && method !== "HEAD"/);
   assert.match(source, /attempt < 3/);
   assert.match(source, /const attemptSignal = timeoutMs \? AbortSignal\.timeout\(timeoutMs\) : signal/);
-  assert.match(source, /return await fetch\(url, \{ \.\.\.fetchOptions/);
+  assert.match(source, /const response = await fetch\(url, \{ \.\.\.fetchOptions/);
+  assert.match(source, /\[502, 503, 504\]\.includes\(response\.status\)/);
+  assert.match(source, /Retry only idempotent reads/);
 });
 
 test("production pilot smoke does not read credentials or emit secrets", () => {
@@ -31,7 +33,7 @@ test("first-ingest fixture matches the current canonical event envelope", () => 
   assert.match(source, /observation_source: "server"/);
   assert.doesNotMatch(source, /schema_version: "1\.0"/);
   assert.doesNotMatch(source, /payload_policy: "metadata_only"/);
-  assert.match(source, /user-agent.*TrackMCP\/0\.1\.19 production-smoke/);
+  assert.match(source, /user-agent.*TrackMCP\/0\.1\.20 production-smoke/);
 });
 
 test("opt-in production write smoke exercises the bounded OTLP/HTTP protobuf path", () => {
@@ -64,7 +66,7 @@ test("production pilot smoke records redacted evidence and covers pilot endpoint
   assert.match(source, /Observed calls, ranked and trended/);
   assert.match(source, /Every call, ranked and trended/);
   assert.match(source, /configured server boundary/);
-  assert.match(source, /@trackmcp\/sdk@0\.1\.19/);
+  assert.match(source, /@trackmcp\/sdk@0\.1\.20/);
 });
 
 test("production pilot smoke verifies security headers and protected API boundaries", () => {
