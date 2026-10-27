@@ -253,11 +253,11 @@ func TestRecordRootsAndLoggingFamiliesAreMetadataOnly(t *testing.T) {
 func TestRecordInitializeCapabilitiesAreBoundedNames(t *testing.T) {
 	client := New(Options{APIKey: "tmcp_test"})
 	client.RecordProtocolResult("initialize", map[string]any{
-		"capabilities": map[string]any{"roots": map[string]any{"listChanged": true}, "logging": map[string]any{}, "unsafe key": map[string]any{"secret": "omit"}},
+		"capabilities": map[string]any{"roots": map[string]any{"listChanged": true}, "logging": map[string]any{}, "io.modelcontextprotocol/tasks": map[string]any{"experimental": true}, "io.modelcontextprotocol/sampling": map[string]any{"secret": "omit"}, "unsafe key": map[string]any{"secret": "omit"}},
 	}, "session-init")
 	if len(client.queue) != 1 { t.Fatalf("expected one event, got %d", len(client.queue)) }
 	metadata := client.queue[0].Payload["_trackmcp"].(map[string]any)
-	if metadata["capability_names"] != "logging,roots" { t.Fatalf("unexpected capability names: %#v", metadata) }
+	if metadata["capability_names"] != "io.modelcontextprotocol/sampling,io.modelcontextprotocol/tasks,logging,roots" { t.Fatalf("unexpected capability names: %#v", metadata) }
 	serialized, _ := json.Marshal(metadata)
 	if strings.Contains(string(serialized), "listChanged") || strings.Contains(string(serialized), "omit") { t.Fatal("capability option values crossed the privacy boundary") }
 }

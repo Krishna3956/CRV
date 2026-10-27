@@ -1045,3 +1045,10 @@ production transport UAT.
   (App Runner host), and `12711174854` (runtime flags). The follow-up
   authenticated production smoke `40454865428` also passed and retained
   artifact `12711258587`.
+
+- 2026-10-27: Closed the cross-language capability-advertisement parity gap.
+  Python, Go, and .NET now preserve bounded namespace-qualified capability keys
+  such as `io.modelcontextprotocol/tasks` and `/sampling` while still excluding
+  capability option values. Their fixtures assert the exact privacy-safe
+  projection; Python tests, lint, diff validation, and the full **143-suite**
+  release gate pass. Hosted Go/.NET compilation remains covered by CI.

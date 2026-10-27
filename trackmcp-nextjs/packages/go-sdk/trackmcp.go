@@ -343,7 +343,7 @@ func (c *Client) RecordProtocolResult(method string, result map[string]any, sess
 	c.Capture(event)
 }
 
-var protocolCapabilityNamePattern = regexp.MustCompile(`^[A-Za-z][A-Za-z0-9_.-]{0,63}$`)
+var protocolCapabilityNamePattern = regexp.MustCompile(`^[A-Za-z][A-Za-z0-9_.-]{0,63}(?:/[A-Za-z][A-Za-z0-9_.-]{0,63})?$`)
 
 func boundedCompletionTotal(value any) (int, bool) {
 	switch typed := value.(type) {

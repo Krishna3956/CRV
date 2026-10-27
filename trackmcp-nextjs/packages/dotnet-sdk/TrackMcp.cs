@@ -104,7 +104,7 @@ public sealed class TrackMcpClient : IDisposable
         if (method == "initialize" && result["capabilities"] is JsonObject capabilities)
         {
             var names = capabilities.Select(pair => pair.Key)
-                .Where(name => Regex.IsMatch(name, "^[A-Za-z][A-Za-z0-9_.-]{0,63}$"))
+                .Where(name => Regex.IsMatch(name, "^[A-Za-z][A-Za-z0-9_.-]{0,63}(/[A-Za-z][A-Za-z0-9_.-]{0,63})?$"))
                 .OrderBy(name => name, StringComparer.Ordinal)
                 .Take(32)
                 .ToArray();

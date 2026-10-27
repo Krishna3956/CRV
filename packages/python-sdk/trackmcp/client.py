@@ -264,7 +264,7 @@ def _protocol_metadata_payload(method: Optional[str], result: Any) -> Dict[str, 
     if method == "initialize" and isinstance(result, dict) and isinstance(result.get("capabilities"), dict):
         names = sorted(
             name for name in result["capabilities"]
-            if isinstance(name, str) and re.fullmatch(r"[A-Za-z][A-Za-z0-9_.-]{0,63}", name)
+            if isinstance(name, str) and re.fullmatch(r"[A-Za-z][A-Za-z0-9_.-]{0,63}(?:/[A-Za-z][A-Za-z0-9_.-]{0,63})?", name)
         )[:32]
         if names:
             trackmcp["capability_names"] = ",".join(names)

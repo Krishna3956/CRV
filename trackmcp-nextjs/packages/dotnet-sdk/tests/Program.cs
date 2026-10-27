@@ -95,6 +95,8 @@ static class Smoke
             {
                 ["roots"] = new JsonObject { ["listChanged"] = true },
                 ["logging"] = new JsonObject(),
+                ["io.modelcontextprotocol/tasks"] = new JsonObject { ["experimental"] = true },
+                ["io.modelcontextprotocol/sampling"] = new JsonObject { ["secret"] = "omit" },
                 ["unsafe key"] = new JsonObject { ["secret"] = "omit" },
             },
         }, "session-init");
@@ -134,7 +136,7 @@ static class Smoke
         Require(events[8].GetProperty("success").GetBoolean(), "reconnect observation was not successful lifecycle evidence");
         var metadata = events[4].GetProperty("payload").GetProperty("_trackmcp");
         Require(metadata.GetProperty("next_cursor_present").GetBoolean(), "cursor presence was not retained");
-        Require(events[9].GetProperty("payload").GetProperty("_trackmcp").GetProperty("capability_names").GetString() == "logging,roots", "capability names were not retained in bounded form");
+        Require(events[9].GetProperty("payload").GetProperty("_trackmcp").GetProperty("capability_names").GetString() == "io.modelcontextprotocol/sampling,io.modelcontextprotocol/tasks,logging,roots", "capability names were not retained in bounded form");
         Require(!handler.Body.Contains("listChanged", StringComparison.Ordinal) && !handler.Body.Contains("omit", StringComparison.Ordinal), "capability option values crossed the privacy boundary");
     }
 }

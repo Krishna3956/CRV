@@ -39,11 +39,13 @@ class TrackMCPClientTest(TestCase):
             "capabilities": {
                 "roots": {"listChanged": True},
                 "logging": {},
+                "io.modelcontextprotocol/tasks": {"experimental": True},
+                "io.modelcontextprotocol/sampling": {"secret": "omit"},
                 "unsafe key": {"token": "omit"},
             },
         })
         serialized = json.dumps(payload)
-        self.assertEqual(payload["_trackmcp"]["capability_names"], "logging,roots")
+        self.assertEqual(payload["_trackmcp"]["capability_names"], "io.modelcontextprotocol/sampling,io.modelcontextprotocol/tasks,logging,roots")
         self.assertNotIn("listChanged", serialized)
         self.assertNotIn("omit", serialized)
 
