@@ -28,7 +28,7 @@ recovery-evidence hardening, not a final operational SLO acceptance.
 
 ## Latest source verification — 2026-10-27
 
-The current `main` source (including the repeatable transport-smoke contracts,
+The current `main` source at `e9c91dd` (including the repeatable transport-smoke contracts,
 protocol closure-boundary test, and readiness documentation) passes the full
 local release gate at **143
 suites**, lint, the production build (**177 routes**), and `git diff --check`.

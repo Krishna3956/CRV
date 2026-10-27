@@ -17,7 +17,7 @@ is intentionally not a GO approval and must not be treated as one.
   evidence uploads). The AWS console showed `trackmcp-web` Running after the
   deployment. Subsequent docs-only commits are intentionally not called runtime
   deployments because they do not change the application image.
-- Current source verification: `main` at `8fd192a` (docs/test-only after the last
+- Current source verification: `main` at `e9c91dd` (docs/test-only after the last
   runtime deployment) passes lint, the 177-route production build, and the
   full local release gate at **143 suites**. This source evidence does not
   change the deployed image identity or close external gates.
