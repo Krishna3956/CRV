@@ -895,3 +895,9 @@ production transport UAT.
   analysis, baseline comparisons, queue health, and insufficient-data states
   are implemented evidence surfaces. Cross-server identity and sustained
   production SLO acceptance remain explicit external boundaries.
+
+- 2026-10-27: Reconciled the first-100 external-gate register with the latest
+  source verification. It now names `main` at `29096bc` as the docs-only
+  source checkpoint and records the current 141-suite, lint, and 177-route
+  build evidence without relabeling the deployed runtime or closing any
+  operator/infrastructure gate.

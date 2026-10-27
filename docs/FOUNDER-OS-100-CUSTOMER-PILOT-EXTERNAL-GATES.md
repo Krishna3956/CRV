@@ -17,10 +17,14 @@ is intentionally not a GO approval and must not be treated as one.
   evidence uploads). The AWS console showed `trackmcp-web` Running after the
   deployment. Subsequent docs-only commits are intentionally not called runtime
   deployments because they do not change the application image.
+- Current source verification: `main` at `29096bc` (docs-only after the last
+  runtime deployment) passes lint, the 177-route production build, and the
+  full local release gate at **141 suites**. This source evidence does not
+  change the deployed image identity or close external gates.
 - Queue: 263 total, 260 checked, and P0 queue items `020`, `157`, and `260`
   remain open.
-- Full local release gate: 137 suites passed, with lint and the production
-  build green.
+- Full local release gate: **141 suites passed**, with lint and the 177-route
+  production build green.
 - Authenticated device-flow UAT covers expired, denied, multiple-membership,
   and zero-membership workspace creation without browser key disclosure.
 - Authenticated production scope smoke `40429116070` passed against immutable
