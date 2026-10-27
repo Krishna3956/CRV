@@ -99,12 +99,13 @@ permission.
 - [x] The signed-in AWS IAM console was rechecked against the documented
   `TrackMCPEnableDistributedRateLimit` deployment permission. The previously
   bookmarked **managed-policy** ARN now returns `Policy ... was not found`.
-- [x] This does not prove the deployment permission is absent: the release
-  record describes it as an **inline policy** on `GitHubActionsDeployRole`, and
-  the latest App Runner deployment workflow completed successfully.
-- [ ] Re-open the role's inline-policy view and capture current evidence for
-  the exact attachment before treating this deployment permission as fully
-  reconciled. Do not create a duplicate managed policy from the stale ARN.
+- [x] The role's inline-policy view now provides authoritative evidence:
+  `GitHubActionsDeployRole` lists three customer-inline policies, including
+  `TrackMCPEnableDistributedRateLimit`. Its read-only preview is resource
+  scoped to `apprunner:UpdateService` on the `trackmcp-web` App Runner service
+  and `iam:PassRole` on `AppRunnerECRAccessRole`.
+- [x] The stale managed-policy ARN is therefore not a missing permission and
+  no duplicate managed policy should be created.
 
 ## 2026-10-27 SDK release-train publication
 
