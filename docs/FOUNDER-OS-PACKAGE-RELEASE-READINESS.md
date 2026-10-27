@@ -3,6 +3,19 @@
 This is a review record, not a publication action. No registry credentials are
 used here and no package is published automatically.
 
+## 2026-10-28 — TypeScript edge-delivery fix queued for the next train
+
+The TypeScript SDK source now sends a bounded `Mozilla/5.0` user-agent on
+ingest flushes, matching the already-published Python SDK boundary. This fixes
+the observed Cloudflare managed-bot rejection of Node's default fetch identity
+without changing telemetry payloads or privacy rules. The source regression,
+clean packed consumer, full release gate, lint, and production build pass.
+
+The currently published `@trackmcp/sdk@0.1.24` artifact is unchanged. The fix
+is intentionally queued for the next coordinated package release rather than
+creating a one-off micro-release; registry publication remains confirmation-
+gated by the reviewed release-train workflow.
+
 ## 2026-10-28 — current candidate publication result
 
 The TypeScript-only patch release `@trackmcp/sdk@0.1.24` carries the
