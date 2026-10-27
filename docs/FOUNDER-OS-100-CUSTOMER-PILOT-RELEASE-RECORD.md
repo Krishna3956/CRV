@@ -59,16 +59,16 @@ review.
 The release remains Draft/HOLD; this baseline contains the worker-health
 recovery-evidence hardening, not a final operational SLO acceptance.
 
-## Latest source verification — 2026-10-27
+## Latest source verification — 2026-10-28
 
 The current repository source is `main` at `HEAD`. The latest local release gate
 passes **144 suites**, lint, the production build (**177 routes**), and
-`git diff --check`. These are source/documentation verification results only;
-the latest verified deployed runtime remains immutable `4efa2e1` above. No
-deployment is claimed for the documentation-only postflight commits after that
-runtime baseline.
+`git diff --check`. The deployed source is `65e193a` via App Runner workflow
+`40578117597`; authenticated production smoke `40579268329` passed for the same
+immutable release. Documentation-only postflight commits after that runtime
+baseline do not require a new application image.
 
-The current deployed source is `4efa2e1` (including the health-report semantics
+The preceding deployed source was `4efa2e1` (including the health-report semantics
 correction that honors a proven AWS scheduler window while retaining historical
 worker warnings and the deployment-trigger hardening). Mainline now also
 contains the first-ingest UAT ledger update `a0d2485`; its focused
