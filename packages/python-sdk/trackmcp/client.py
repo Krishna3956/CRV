@@ -482,6 +482,44 @@ class TrackMCP:
             "payload": {"_trackmcp": {"observation_kind": "protocol_notification", "protocol_signal": signal}},
         })
 
+    def record_authorization_outcome(
+        self,
+        method: str,
+        status_code: int,
+        *,
+        session_id: Optional[str] = None,
+    ) -> None:
+        """Record only a canonical 401/403 authorization outcome.
+
+        Challenge headers, resource-metadata URLs, bearer credentials, and
+        provider error text are deliberately not accepted by this helper.
+        OAuth discovery, token exchange, refresh, and consent remain owned by
+        the host application.
+        """
+        if not isinstance(method, str) or not method or len(method) > 128 or any(ord(char) < 32 or ord(char) == 127 for char in method):
+            return
+        if status_code == 401:
+            outcome, error_class = "unauthorized", "authentication_error"
+        elif status_code == 403:
+            outcome, error_class = "forbidden", "authorization_error"
+        else:
+            return
+        self.capture({
+            "event_type": "protocol",
+            "mcp_method": method,
+            "session_id": session_id or "transport-session",
+            "started_at": _iso_now(),
+            "success": False,
+            "is_error": True,
+            "error_class": error_class,
+            "error_code": status_code,
+            "payload": {"_trackmcp": {
+                "observation_kind": "protocol_response",
+                "authorization_attempt": True,
+                "authorization_outcome": outcome,
+            }},
+        })
+
     def _correlation_for(self, event: Dict[str, Any], supplied_handle: Optional[str], supplied_source: Optional[TrackMCPCorrelationHandleSource]) -> Dict[str, Any]:
         if self.options.correlation_mode == "issued" and supplied_source == "issued" and _safe_correlation_handle(supplied_handle):
             return {"correlation_handle": supplied_handle, "correlation_handle_source": "issued"}

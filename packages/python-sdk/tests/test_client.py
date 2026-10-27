@@ -265,6 +265,22 @@ class TrackMCPClientTest(TestCase):
         self.assertEqual(len(client._events), 1)
         client._timer.cancel()
 
+    def test_authorization_outcome_is_bounded_and_secret_free(self):
+        client = TrackMCP(TrackMCPOptions(api_key="tmcp_test", disabled=False, flush_interval_ms=60000))
+        client.record_authorization_outcome("tools/call", 401, session_id="session-auth")
+        client.record_authorization_outcome("tools/call", 403, session_id="session-auth-2")
+        client.record_authorization_outcome("tools/call", 500)
+        self.assertEqual(len(client._events), 2)
+        first = client._events[0]
+        self.assertEqual(first["payload"]["_trackmcp"]["authorization_outcome"], "unauthorized")
+        self.assertEqual(first["error_code"], 401)
+        self.assertEqual(client._events[1]["payload"]["_trackmcp"]["authorization_outcome"], "forbidden")
+        serialized = json.dumps(client._events)
+        self.assertNotIn("WWW-Authenticate", serialized)
+        self.assertNotIn("https://", serialized)
+        self.assertNotIn("Bearer", serialized)
+        client._timer.cancel()
+
     def test_protocol_signal_is_allowlisted_and_metadata_only(self):
         client = TrackMCP(TrackMCPOptions(api_key="tmcp_test", disabled=False, flush_interval_ms=60000))
         client.record_protocol_signal("progress", "notifications/progress", session_id="session-1")

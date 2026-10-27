@@ -27,6 +27,13 @@ The optional `direction` defaults to `server_to_client` and accepts
 `client_to_server` for inbound cancellation; only the allowlisted signal,
 direction, and method metadata are retained.
 
+For an HTTP authorization response, call
+`client.record_authorization_outcome("tools/call", 401)` or pass `403`. The
+SDK records only `unauthorized` or `forbidden` metadata and never accepts or
+stores `WWW-Authenticate` values, resource-metadata URLs, bearer tokens, or
+provider error text. OAuth discovery, token exchange, refresh, and consent
+remain caller-owned.
+
 The official middleware and the compatibility wrapper used by `with_trackmcp`
 apply the same notification boundary. Progress, cancellation, and
 tools/resources/prompts list-change calls are classified as metadata-only

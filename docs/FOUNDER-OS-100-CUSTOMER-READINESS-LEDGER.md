@@ -71,6 +71,16 @@ permission.
   run here. Hosted Go compile/smoke evidence remains an explicit verification
   gate before publishing a package containing this change.
 
+## 2026-10-27 Python SDK authorization-observer parity milestone
+
+- [x] Added `record_authorization_outcome` for canonical `401`/`403`
+  responses with the same bounded `unauthorized`/`forbidden` metadata and
+  secret-free boundary as the Node and Go helpers.
+- [x] Added Python privacy regression coverage; the local Python suite passes
+  38 tests and the public README documents the caller-owned OAuth boundary.
+- [ ] Python package publication remains part of the coordinated release train;
+  OAuth discovery, token exchange, refresh, and consent remain unsupported.
+
 ## 2026-10-27 health-state correction deployment
 
 - [x] App Runner deployment `40494157458` rolled out immutable commit
