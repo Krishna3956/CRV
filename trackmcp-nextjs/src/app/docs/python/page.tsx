@@ -76,6 +76,24 @@ app = with_trackmcp(
         </Para>
       </DocSection>
 
+      <DocSection id="oauth-outcome-observer" title="Bounded OAuth outcome observation">
+        <Para>
+          When your application owns MCP authorization, record only the final
+          HTTP outcome with <Inline>record_authorization_outcome</Inline>. It
+          accepts <Inline>401</Inline> and <Inline>403</Inline> only and emits
+          metadata-only <Inline>unauthorized</Inline> or <Inline>forbidden</Inline>
+          evidence.
+        </Para>
+        <Code>{`client.record_authorization_outcome(
+    "tools/call", response.status_code, session_id=session_id
+)`}</Code>
+        <Para>
+          The helper never accepts bearer tokens, challenge headers, provider
+          text, or authorization URLs. OAuth discovery, PKCE, consent, token
+          exchange, refresh, and revocation remain caller-owned.
+        </Para>
+      </DocSection>
+
       <DocSection title="Options">
         <Para>
           Only <Inline>api_key</Inline> is required. See the full{" "}

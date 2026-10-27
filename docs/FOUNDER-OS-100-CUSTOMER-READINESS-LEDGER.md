@@ -26,6 +26,17 @@ permission.
   interoperability remain outside the product until an external integration
   contract and UAT are supplied.
 
+## 2026-10-27 cross-SDK OAuth documentation parity milestone
+
+- [x] Python, Go, and .NET integration guides now expose copyable examples for
+  their bounded authorization-outcome helpers, matching the TypeScript guide.
+- [x] A protocol contract checks all four public SDK guides for `401`/`403`
+  handling and explicit bearer-token/privacy boundaries; focused contracts,
+  lint, the 178-route build, and the full 144-suite release gate passed.
+- [ ] The published npm/PyPI artifacts remain the prior coordinated train until
+  a reviewed release workflow publishes the changed TypeScript API. No registry
+  publication is implied by documentation parity.
+
 ## 2026-10-27 CLI proxy documentation discoverability milestone
 
 - [x] Added a first-class `/docs/cli` page covering the bounded stdio proxy

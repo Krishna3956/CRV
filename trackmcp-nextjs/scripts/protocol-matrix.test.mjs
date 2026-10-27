@@ -57,6 +57,24 @@ test("TypeScript docs expose the bounded OAuth outcome helper", async () => {
   assert.match(docs, /does not discover providers/);
 });
 
+test("all SDK guides expose the bounded OAuth outcome helper", async () => {
+  const docs = await Promise.all([
+    readFile(new URL("../src/app/docs/typescript/page.tsx", import.meta.url), "utf8"),
+    readFile(new URL("../src/app/docs/python/page.tsx", import.meta.url), "utf8"),
+    readFile(new URL("../src/app/docs/go/page.tsx", import.meta.url), "utf8"),
+    readFile(new URL("../src/app/docs/dotnet/page.tsx", import.meta.url), "utf8"),
+  ]);
+  assert.match(docs[0], /recordAuthorizationOutcome/);
+  assert.match(docs[1], /record_authorization_outcome/);
+  assert.match(docs[2], /RecordAuthorizationOutcome/);
+  assert.match(docs[3], /RecordAuthorizationOutcome/);
+  for (const source of docs) {
+    assert.match(source, /401/);
+    assert.match(source, /403/);
+    assert.match(source, /bearer tokens/);
+  }
+});
+
 test("all SDKs preserve the same bounded OAuth observer boundary", async () => {
   const sources = await Promise.all([
     readFile(new URL("../packages/typescript-sdk/src/client-adapter.ts", import.meta.url), "utf8"),

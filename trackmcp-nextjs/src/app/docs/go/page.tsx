@@ -41,6 +41,11 @@ client.RecordTransportFailure("transport_closed", sessionID, durationMS)
 // or: client.RecordTransportFailure("transport_error", sessionID, durationMS)`}</Code>
       <Para>The transport observer records only bounded session metadata. It never accepts exception text, URLs, headers, or payloads.</Para>
     </DocSection>
+    <DocSection id="oauth-outcome-observer" title="Bounded OAuth outcome observation">
+      <Para>Record only a caller-owned authorization result. The helper accepts canonical HTTP 401/403 outcomes and emits metadata-only <Inline>unauthorized</Inline> or <Inline>forbidden</Inline> markers.</Para>
+      <Code>{`client.RecordAuthorizationOutcome("tools/call", response.StatusCode, sessionID)`}</Code>
+      <Para>TrackMCP never receives bearer tokens, challenge headers, provider text, or authorization URLs. OAuth discovery, PKCE, consent, token exchange, refresh, and revocation remain application-owned.</Para>
+    </DocSection>
     <DocSection id="entity-reads" title="Resources and prompts">
       <Para>Record a decoded <Inline>resources/read</Inline> or <Inline>prompts/get</Inline> response with the privacy-safe helper. The SDK hashes the URI or prompt name locally and emits only a bounded content/message count and result state; arguments and returned content never leave the process.</Para>
       <Code>{`client.RecordEntityRead("resources", "resources/read", resourceURI, map[string]any{
