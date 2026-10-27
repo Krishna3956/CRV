@@ -100,7 +100,7 @@ def main() -> None:
             "inputResponses": [{"value": "private-input-response"}] * 120,
             "taskId": "private-task-handle",
         }
-        client.record_protocol_result("elicitation/create", protocol_result, session_id="python-smoke-session")
+        client.record_protocol_result("elicitation/create", protocol_result, transport="stdio", session_id="python-smoke-session")
         client.record_transport_failure(
             "transport_error", session_id="python-smoke-session", duration_ms=12
         )
@@ -142,7 +142,7 @@ def main() -> None:
         fail("resource entity-read metadata was not emitted")
     if events[3].get("catalog_kind") != "prompts" or events[3].get("mcp_method") != "prompts/get" or events[3].get("result_type") != "complete":
         fail("prompt entity-read metadata was not emitted")
-    if events[4].get("mcp_method") != "elicitation/create" or events[4].get("result_type") != "input_required" or events[4].get("task_status") != "working" or events[4].get("input_request_count") != 100 or events[4].get("input_response_count") != 100:
+    if events[4].get("mcp_method") != "elicitation/create" or events[4].get("transport") != "stdio" or events[4].get("result_type") != "input_required" or events[4].get("task_status") != "working" or events[4].get("input_request_count") != 100 or events[4].get("input_response_count") != 100:
         fail("bounded protocol-result metadata was not emitted")
     if events[4].get("payload", {}).get("_trackmcp", {}).get("observation_kind") != "protocol_response":
         fail("protocol-result observation marker was not emitted")

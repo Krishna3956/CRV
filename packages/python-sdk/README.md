@@ -28,8 +28,10 @@ and `direction` defaults to `server_to_client` while accepting
 `client_to_server` for inbound cancellation; only the allowlisted signal,
 transport, direction, and method metadata are retained.
 
-Call `client.record_protocol_result("tools/call", result)` when the host owns
-the response boundary. The helper retains only bounded result/task
+Call `client.record_protocol_result("tools/call", result, transport="streamable_http")` when the host owns
+the response boundary and can verify the transport. The optional transport
+accepts `stdio`, `streamable_http`, `sse`, or `custom`; it is omitted rather
+than guessed when unknown. The helper retains only bounded result/task
 discriminators, completion counts, cache hints, and protocol-family metadata;
 response bodies, task handles, input values, and arbitrary fields are never
 stored.

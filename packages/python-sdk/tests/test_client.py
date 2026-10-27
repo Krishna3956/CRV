@@ -312,11 +312,12 @@ class TrackMCPClientTest(TestCase):
             "isError": False,
             "inputRequests": ["private-input"],
             "result": {"secret": "do-not-store"},
-        }, session_id="session-result")
+        }, transport="streamable_http", session_id="session-result")
         event = client._events[0]
         self.assertEqual(event["result_type"], "task")
         self.assertEqual(event["task_status"], "working")
         self.assertEqual(event["payload"]["_trackmcp"]["input_request_count"], 1)
+        self.assertEqual(event["transport"], "streamable_http")
         self.assertEqual(event["payload"]["_trackmcp"]["protocol_family"], "tools")
         self.assertNotIn("private-input", json.dumps(event))
         self.assertNotIn("do-not-store", json.dumps(event))
@@ -326,6 +327,7 @@ class TrackMCPClientTest(TestCase):
         self.assertTrue(client._events[1]["payload"]["_trackmcp"]["completion_has_more"])
         client.record_protocol_result("tools/call", {"task_status": "unknown"})
         client.record_protocol_result("bad\nmethod", {})
+        client.record_protocol_result("tools/call", {}, transport="private_transport")
         self.assertEqual(len(client._events), 3)
         client._timer.cancel()
 

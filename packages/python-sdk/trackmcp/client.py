@@ -495,16 +495,24 @@ class TrackMCP:
         method: str,
         result: Any,
         *,
+        transport: Optional[TrackMCPTransport] = None,
         session_id: Optional[str] = None,
     ) -> None:
-        """Record bounded MCP response metadata without retaining response content."""
+        """Record bounded MCP response metadata without retaining response content.
+
+        ``transport`` is caller-verified provenance. Unknown labels are ignored
+        rather than inferred from the protocol result.
+        """
         if not isinstance(method, str) or not method or len(method) > 128 or any(ord(char) < 32 or ord(char) == 127 for char in method):
+            return
+        if transport is not None and transport not in ("stdio", "streamable_http", "sse", "custom"):
             return
         metadata = _protocol_result_metadata(result)
         failed = bool(result.get("isError", result.get("is_error"))) if isinstance(result, dict) and isinstance(result.get("isError", result.get("is_error")), bool) else False
         event: Dict[str, Any] = {
             "event_type": "protocol",
             "mcp_method": method,
+            **({"transport": transport} if transport else {}),
             "session_id": session_id or "transport-session",
             "started_at": _iso_now(),
             "success": not failed,
