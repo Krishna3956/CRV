@@ -46,6 +46,16 @@ Status: active autonomous audit, started 2026-10-21.
   evidence; it does not imply that the recurring refresh schedule is enabled
   or that first-100 release approval has been granted.
 
+## 2026-10-27 — repeatable scheduler endpoint boundary smoke
+
+- Added `scripts/refresh-scheduler-endpoint-smoke.mjs`, a terminal-safe smoke
+  harness that accepts only an HTTPS refresh URL, sends unauthenticated and
+  deliberately invalid-token probes, enforces a 10-second timeout, and prints
+  only status metadata. It never reads the worker secret. The contract is now
+  included in the full release gate, which passes 138 suites.
+- This makes the recorded production 401 evidence reproducible; it does not
+  substitute for authenticated Lambda/log/DLQ checks or recurring samples.
+
 ## 2026-10-27 — modern request metadata and browser-tester parity
 
 - The published TypeScript modern client (`@trackmcp/sdk@0.1.19`) now adds
