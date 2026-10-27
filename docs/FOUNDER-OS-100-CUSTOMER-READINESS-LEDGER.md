@@ -1,6 +1,7 @@
 # Founder OS 100 Customer Readiness Ledger
 
-Last updated: 2026-10-28 (same-origin docs CTA fix pushed as `7302507`; deployment pending; hosted publication workflow `40569475423` verified `@trackmcp/sdk@0.1.24`)
+Last updated: 2026-10-28 (main `ccb3484`; deployed application `cffc2a0` and App Runner rollout `40570999509` succeeded; hosted publication workflow `40569475423` verified `@trackmcp/sdk@0.1.24`)
+Source-only follow-up: same-origin docs CTA fix is pushed as `7302507`; the latest rollout is pending.
 Latest freshness evidence: health workflow `40566829192` with worker drain
 `40566911017` inspected eight redacted worker samples. AWS scheduler cadence is
 proven with **4/4 invocations** and **4/4 CloudWatch EMF successes**. The overall
