@@ -6,7 +6,17 @@ This record is intentionally evidence-first. It must not be changed to
 `GO` until the open gates below are independently verified on the release
 commit and the operator accepts the listed limitations.
 
-## Current deployed baseline — 2026-10-27
+## Current deployed baseline — 2026-10-28
+
+App Runner workflow `40578117597` completed successfully for immutable commit
+`65e193ad6fa37178935bfa3db8fccd416426984b`. Release gate, image build/push,
+rollout, read-only production smoke, immutable release identity, and runtime
+safety checks passed. The chained authenticated production smoke
+`40579268329` also completed successfully for the same release. The release
+remains Draft/HOLD because the owner, backup/recovery, privacy acceptance,
+worker freshness, and credentialed lifecycle/transport gates are still open.
+
+The following entries are historical baselines retained for continuity.
 
 App Runner workflow `40497434962` subsequently completed successfully for
 immutable commit `4efa2e1bd444706e84d78ef85b8a7b3b133a46aa`. This is the latest

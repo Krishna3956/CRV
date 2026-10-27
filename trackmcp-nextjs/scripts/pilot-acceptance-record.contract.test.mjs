@@ -45,8 +45,8 @@ test("release record preserves non-source acceptance decisions until an owner ac
 });
 
 test("external-gate register names accountable parties and closure evidence", () => {
-  assert.match(externalGates, /4efa2e1bd444706e84d78ef85b8a7b3b133a46aa/);
-  assert.match(externalGates, /40497434962/);
+  assert.match(externalGates, /65e193ad6fa37178935bfa3db8fccd416426984b/);
+  assert.match(externalGates, /40578117597/);
   assert.match(externalGates, /40397368253/);
   assert.match(externalGates, /40398170070/);
   assert.match(externalGates, /main`: current default branch/);
@@ -60,13 +60,13 @@ test("external-gate register names accountable parties and closure evidence", ()
 });
 
 test("acceptance matrix separates current source from deployed runtime", () => {
-  assert.match(acceptanceMatrix, /4efa2e1bd444706e84d78ef85b8a7b3b133a46aa/);
+  assert.match(acceptanceMatrix, /65e193ad6fa37178935bfa3db8fccd416426984b/);
   assert.match(acceptanceMatrix, /current repository source is `main` at `HEAD`/);
   assert.match(acceptanceMatrix, /not claimed as\s+deployed behavior/);
 });
 
 test("root pilot status stays aligned with the current evidence baseline", () => {
-  assert.match(pilotStatus, /Last verified: 2026-10-27/);
+  assert.match(pilotStatus, /Last verified: 2026-10-28/);
   assert.match(pilotStatus, /origin\/main` is `HEAD`/);
   assert.match(pilotStatus, /144 suites/);
   assert.match(pilotStatus, /177-route/);

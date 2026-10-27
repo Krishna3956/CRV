@@ -1,6 +1,6 @@
 # Founder OS first-100 readiness snapshot
 
-Updated: 2026-10-27 (Asia/Kolkata; scheduler evidence refreshed)
+Updated: 2026-10-28 (Asia/Kolkata; deployment and release gate reverified)
 
 Status: **Engineering green; release decision HOLD**
 
@@ -14,6 +14,10 @@ and [pilot release record](FOUNDER-OS-100-CUSTOMER-PILOT-RELEASE-RECORD.md).
   read models, and navigation/documentation CTA checks.
 - Current source release gate passes **144 suites**; lint passes; the
   production build generates **177 routes**; `git diff --check` passes.
+- App Runner workflow `40578117597` deployed immutable application SHA
+  `65e193ad6fa37178935bfa3db8fccd416426984b`; direct-origin health, route,
+  runtime-identity, smoke, and runtime-safety checks passed. Authenticated
+  production smoke `40579268329` also passed for that release.
 - Production deployment, read-only smoke, tenant-scope smoke, first-ingest
   smoke, refresh-worker recovery, prompt-entity projection, and distributed
   rate-limit enablement have recorded evidence.

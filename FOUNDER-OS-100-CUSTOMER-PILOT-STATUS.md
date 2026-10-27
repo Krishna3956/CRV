@@ -1,6 +1,6 @@
 # Founder OS: 100-customer pilot status
 
-Last verified: 2026-10-27 (Asia/Kolkata)
+Last verified: 2026-10-28 (Asia/Kolkata)
 
 This is the concise release-owner handoff. It records evidence that exists,
 what is intentionally not claimed, and the next work queue. It is not a
@@ -8,10 +8,11 @@ promise that every product capability is complete.
 
 ## Verified and shipped
 
-- `origin/main` is `HEAD` (active pilot evidence baseline)
-  reconciliation). The deployed application runtime remains the latest
-  verified immutable `4efa2e1bd444706e84d78ef85b8a7b3b133a46aa` via App Runner
-  workflow `40497434962`; the post-deployment commits are documentation-only
+- `origin/main` is `HEAD` (active pilot evidence baseline). The deployed
+  application runtime is immutable
+  `65e193ad6fa37178935bfa3db8fccd416426984b` via App Runner workflow
+  `40578117597`; chained authenticated production smoke `40579268329` passed
+  for the same release. The post-deployment commits are documentation-only
   evidence updates and are not claimed as deployed behavior.
 - The latest local release gate passes 144 suites, lint, the 177-route
   production build, and `git diff --check`.

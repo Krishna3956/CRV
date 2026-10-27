@@ -1,7 +1,7 @@
 # First-100-customer external-gate register
 
 Status: **HOLD**  
-Updated: 2026-10-27 (Asia/Calcutta)
+Updated: 2026-10-28 (Asia/Calcutta)
 
 This register separates evidence that engineering can produce from decisions
 that require the release owner or an infrastructure-provider control plane. It
@@ -11,14 +11,15 @@ is intentionally not a GO approval and must not be treated as one.
 
 - `main`: current default branch. Immutable deployed SHAs belong in the
   release record; PR checks remain attached to their exact review commits.
-- Current deployed application: `506be89f010b5da15cad8d1f02421449a65fa660`,
-  App Runner workflow `40524668419` (successful rollout, release gate,
+- Current deployed application: `65e193ad6fa37178935bfa3db8fccd416426984b`,
+  App Runner workflow `40578117597` (successful rollout, release gate,
   production smoke, identity, and runtime-safety checks). Its runtime
   reference is the exact immutable SHA.
-- Current source verification: `main` at `HEAD` (`bb55307`, docs-only
-  evidence update), with the deployed application at immutable `506be89`. The
-  deployed source contains the published CLI/docs reconciliation; the
-  subsequent ledger-only commit does not require a new App Runner image.
+- Current source verification: `main` at `HEAD` (`8455e69c`, documentation-only
+  evidence update), with the deployed application at immutable `65e193a`.
+  The chained authenticated production smoke `40579268329` also passed for
+  that release; subsequent ledger-only commits do not require a new App Runner
+  image.
   This does not close the external owner, backup, privacy, or scheduler-cadence
   gates.
 - Historical deployed baselines retained for audit include `9638e23c8529f9b1781d96413529e33a692715ed`

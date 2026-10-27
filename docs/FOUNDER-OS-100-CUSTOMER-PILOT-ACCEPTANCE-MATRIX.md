@@ -1,14 +1,13 @@
 # Founder OS first-100-customer acceptance matrix
 
 Status: **HOLD — no silent waivers**  
-Reconciled: 2026-10-27 (Asia/Calcutta)
-Current deployed baseline: application `4efa2e1bd444706e84d78ef85b8a7b3b133a46aa`,
-App Runner run `40497434962` (successful deployment). This deployment contains
-deployment-trigger hardening and preserves the previously verified runtime
-behavior. The current repository source is `main` at `HEAD`; the post-deployment
-commits are documentation-only evidence updates and are not claimed as
-deployed behavior. This is current runtime and source evidence, not a pilot GO
-decision.
+Reconciled: 2026-10-28 (Asia/Calcutta)
+Current deployed baseline: application `65e193ad6fa37178935bfa3db8fccd416426984b`,
+App Runner run `40578117597` (successful deployment). The chained authenticated
+production smoke `40579268329` also passed for the same immutable release. The
+current repository source is `main` at `HEAD`; the post-deployment commits are
+documentation-only evidence updates and are not claimed as deployed behavior.
+This is current runtime and source evidence, not a pilot GO decision.
 
 Historical baseline retained for continuity: application
 `2e135f194f36e278232c6a46890b1ce850d1e9ba`, App Runner run `40198791603`.
