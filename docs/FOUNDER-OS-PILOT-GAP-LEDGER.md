@@ -1052,3 +1052,10 @@ production transport UAT.
   capability option values. Their fixtures assert the exact privacy-safe
   projection; Python tests, lint, diff validation, and the full **143-suite**
   release gate pass. Hosted Go/.NET compilation remains covered by CI.
+
+- 2026-10-27: App Runner deployment `40455478398` completed successfully for
+  cross-language parity commit `d00a6e90a34575ef57169640e7c50889a007c64b`.
+  Redacted artifacts are retained as `12711624660` (production smoke),
+  `12711434759` (App Runner host), and `12711414742` (runtime flags). The
+  follow-up authenticated production smoke `40456129779` passed and retained
+  artifact `12712456778`.
