@@ -4,6 +4,7 @@ import test from "node:test";
 
 const register = await readFile(new URL("../../docs/FOUNDER-OS-100-CUSTOMER-PILOT-EXTERNAL-GATES.md", import.meta.url), "utf8");
 const releaseRecord = await readFile(new URL("../../docs/FOUNDER-OS-100-CUSTOMER-PILOT-RELEASE-RECORD.md", import.meta.url), "utf8");
+const schedulerHealthPolicy = await readFile(new URL("../../docs/aws/TrackMCPRefreshHealthLogReadPolicy.json", import.meta.url), "utf8");
 
 test("first-100 external-gate register stays an explicit HOLD record", () => {
   assert.match(register, /Status:\s*\*\*HOLD\*\*/);
@@ -26,4 +27,16 @@ test("the release record carries the same current source gate evidence", () => {
   assert.match(releaseRecord, /177 routes/);
   assert.match(releaseRecord, /protocol closure-boundary test/);
   assert.match(releaseRecord, /source at `068f206`/);
+});
+
+test("scheduler log evidence permission artifact is least-privilege and explicit", () => {
+  const policy = JSON.parse(schedulerHealthPolicy);
+  assert.deepEqual(policy.Statement, [{
+    Sid: "ReadRefreshSchedulerLogEvidence",
+    Effect: "Allow",
+    Action: ["logs:DescribeLogStreams", "logs:FilterLogEvents"],
+    Resource: "arn:aws:logs:ap-south-1:872575360367:log-group:/aws/lambda/trackmcp-refresh-schedule-*",
+  }]);
+  assert.equal(JSON.stringify(policy).includes("logs:PutLogEvents"), false);
+  assert.equal(JSON.stringify(policy).includes("logs:Delete"), false);
 });

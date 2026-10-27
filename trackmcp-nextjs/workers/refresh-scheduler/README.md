@@ -23,6 +23,15 @@ configurations redact runtime secret mappings from `describe-service`; in that
 case provide only the non-sensitive Secrets Manager ARN through the workflow's
 optional `worker_token_secret_arn` input.
 
+The recurring health workflow counts only the bounded success marker through
+`logs:FilterLogEvents`. If its report says
+`cloudwatch_log_filter_unavailable`, attach the reviewed policy in
+`docs/aws/TrackMCPRefreshHealthLogReadPolicy.json` to the GitHub OIDC role
+`GitHubActionsDeployRole`, then rerun the health workflow. This policy grants
+only `DescribeLogStreams` and `FilterLogEvents` on the scheduler Lambda log
+group prefix; it does not grant log writes, deletion, secret access, or Lambda
+mutation.
+
 The scheduler does not accept a plain-text App Runner environment value for
 this variable. Before dispatching the workflow, open App Runner →
 Configuration → Runtime environment variables and change

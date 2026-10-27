@@ -1,0 +1,14 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "ReadRefreshSchedulerLogEvidence",
+      "Effect": "Allow",
+      "Action": [
+        "logs:DescribeLogStreams",
+        "logs:FilterLogEvents"
+      ],
+      "Resource": "arn:aws:logs:ap-south-1:872575360367:log-group:/aws/lambda/trackmcp-refresh-schedule-*"
+    }
+  ]
+}
