@@ -39,10 +39,11 @@ These are not source-code failures and must not be silently marked green:
    requests are review-only and destructive deletion is disabled.
 4. Synthetic reliability-data hygiene acceptance: canary rows must remain
    visibly test evidence and never be presented as customer incidents.
-5. Sustained scheduler evidence: health run `40449251681` proves the AWS
-   scheduler cadence gate with 4 invocations and 0 errors, but records
-   **0/3 scheduled worker samples** and an unavailable CloudWatch log-marker
-   projection. Manual/recovery/AWS-metric runs do not close the end-to-end
+5. Sustained scheduler evidence: health run `40450412687` proves the AWS
+   scheduler cadence gate with 4 invocations and 0 errors. Its one-hour
+   evaluation window contains only 2 current samples, 1 freshness breach, and
+   **0/3 scheduled worker samples**; the CloudWatch log-marker projection is
+   unavailable. Manual/recovery/AWS-metric runs do not close the end-to-end
    cadence gate.
 6. Credentialed production key-lifecycle and customer-owned MCP endpoint UAT.
 7. Protocol interoperability that is explicitly Partial/Unsupported in the
@@ -71,4 +72,6 @@ stored in this snapshot.
 
 Latest scheduler evidence is recorded in the detailed ledger; the current
 source verification remains green at 143 suites, with the deployed scheduler
-code at `3746a33` and subsequent health-evidence code at `9299fea`.
+code at `3746a33`, health-evidence code at `db6e7c8`, and ledger reconciliation
+at `fa87d93`. The deployed application image remains unchanged by these
+docs-only updates.
