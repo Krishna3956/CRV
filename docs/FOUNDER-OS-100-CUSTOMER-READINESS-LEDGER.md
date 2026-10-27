@@ -1,6 +1,6 @@
 # Founder OS 100 Customer Readiness Ledger
 
-Last updated: 2026-10-28 (main `4ff6cb0c`; deployed application `7ab4eced` and App Runner rollout `40594711620` succeeded; hosted CI `40597985741` passed for web/JavaScript, Go, and .NET; read-only production smoke, immutable identity, and runtime-safety checks passed in that rollout; queued-backlog coalescer changes are documented below; scheduler redeploy/enablement `40586991487`/`40587311920` remain the latest scheduler evidence; authenticated production smoke remains verified at `40588063835`; hosted publication workflow `40569475423` verified `@trackmcp/sdk@0.1.24`; latest health monitor `40595457284` observes the first fresh scheduled sample but keeps freshness in warning pending three; browser-compatible public probes pass while default scripted probes remain Cloudflare-blocked)
+Last updated: 2026-10-28 (main `809957c3`; deployed application `7ab4eced` and App Runner rollout `40594711620` succeeded; hosted CI `40597985741` passed for web/JavaScript, Go, and .NET; first-ingest UAT `40598515473` passed against the direct App Runner origin; read-only production smoke, immutable identity, and runtime-safety checks passed in that rollout; queued-backlog coalescer changes are documented below; scheduler redeploy/enablement `40586991487`/`40587311920` remain the latest scheduler evidence; authenticated production smoke remains verified at `40588063835`; hosted publication workflow `40569475423` verified `@trackmcp/sdk@0.1.24`; latest health monitor `40595457284` observes the first fresh scheduled sample but keeps freshness in warning pending three; browser-compatible public probes pass while default scripted probes remain Cloudflare-blocked)
 The same-origin docs, auth, blog CTA fixes, regression guard, and hosted-runner verification gate are deployed and runtime-verified. Cloudflare permits browser-compatible requests, while its managed bot rule still returns HTML 403 to the default scripted user-agent; SDK delivery must use the compatible request boundary and retain a real authenticated UAT check.
 Latest freshness evidence: health workflow `40595457284` inspected eight
 redacted worker samples. AWS scheduler cadence is proven with **4/4 invocations**
@@ -123,7 +123,7 @@ not a code-release failure.
 | Worker freshness | Health artifact `40595457284` proves AWS cadence at 4/4 invocations and 4/4 end-to-end successes; scheduled sample `40594595849` is within budget, but only 1/3 scheduled samples is in-window and two historical stale samples keep the overall state `warning` | **HOLD** | Three fresh scheduled samples within the 15-minute budget, with no unresolved stale/failure evidence |
 | Backup/PITR | Supabase Free Plan has no scheduled backups or PITR; inspection recorded in the backup evidence entries below | **HOLD / owner decision** | Accepted documented limitation with named recovery owner/runbook, or plan upgrade plus tested restore rehearsal |
 | Privacy acceptance | Engineering privacy/export/deletion contracts pass; production acceptance evidence is not recorded | **HOLD / owner decision** | Signed production privacy review and retention/deletion acceptance |
-| Credentialed lifecycle/UAT | Read-only tenant/auth smoke is verified; write-gated key lifecycle and customer-owned transport UAT remain unexecuted | **HOLD / credentialed** | Disposable lifecycle key run plus customer-owned transport/protocol UAT artifacts |
+| Credentialed lifecycle/UAT | Read-only tenant/auth smoke and direct-origin first-ingest UAT `40598515473` are verified; write-gated key lifecycle and customer-owned transport UAT remain unexecuted | **HOLD / credentialed** | Disposable lifecycle key run plus customer-owned transport/protocol UAT artifacts |
 | Hosted deployment verification | App Runner rollout `40594711620` deployed immutable runtime `7ab4eced`; release gate, image build/push, rollout, production smoke, immutable release identity, and runtime-safety checks passed | **PASS** | Re-run the same guarded workflow for the next runtime-changing commit |
 | Release-owner acceptance | Source, CI, deployment, package publication, and local release gates are green | **HOLD / owner decision** | Explicit approval referencing this register and the current deployed source |
 
@@ -322,6 +322,18 @@ evidence and are not current approval.
   The web/JavaScript release gate, lint/build, Go test/vet/smoke, and .NET
   build/pack/smoke jobs all passed. This is source/build evidence; it does not
   claim registry publication or customer-owned authenticated ingest.
+
+## 2026-10-28 — direct-origin first-ingest UAT
+
+- [x] Guarded workflow `40598515473` ran the disposable first-ingest smoke
+  against the trusted App Runner origin and passed. The redacted artifact
+  records exactly one bounded metadata-only event accepted with HTTP 200 and a
+  follow-up key-status response with `accepted_telemetry: true`.
+- [x] The workflow keeps keys, event IDs, workspace IDs, response bodies, and
+  authorization material out of the artifact. This closes direct-origin
+  transport acceptance and the first-ingest milestone for this source line.
+- [ ] It does not close key lifecycle mutation, CLI activation, customer-owned
+  transport-observer UAT, or business-workflow completion.
 
 ## 2026-10-28 — documentation snippet fallback correction
 

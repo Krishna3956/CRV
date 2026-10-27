@@ -24,6 +24,18 @@ Status: active autonomous audit, started 2026-10-21.
   publication and authenticated customer-owned transport/first-ingest UAT
   remain separate external gates.
 
+## 2026-10-28 — direct-origin first-ingest UAT verified
+
+- Guarded workflow `40598515473` passed against the trusted App Runner origin
+  with one bounded metadata-only event and `accepted_telemetry: true` in the
+  redacted key-status result. This closes direct-origin transport acceptance
+  and first-ingest evidence for the current source line.
+- Guarded transport-observer workflow `40598518836` completed safely but
+  skipped its write-enabled step because `TRACKMCP_TRANSPORT_SMOKE_KEY` is not
+  configured. No transport UAT claim is made from the skipped run.
+- Key lifecycle mutation, CLI activation, customer-owned transport UAT, and
+  the remaining operational/owner gates stay open.
+
 ## 2026-10-28 — refresh backlog coalescing evidence
 
 - Production coalescing preserved 196 canonical ingest-window jobs and marked
@@ -718,7 +730,7 @@ just because a README or marketing page mentions it.
 
 | Surface | Current evidence | Status | Next proof |
 | --- | --- | --- | --- |
-| TypeScript server SDK | `packages/typescript-sdk`, consumer gate, published `0.1.24`; source fails closed for removed `tasks/list` and retains explicit-handle `tasks/get` observation without task mutation | Published and registry-verified: npm reports version `0.1.24` with workflow `40569475423` integrity/provenance and clean-consumer evidence | Authenticated activation/first-event evidence remains a separate pilot gate |
+| TypeScript server SDK | `packages/typescript-sdk`, consumer gate, published `0.1.24`; source fails closed for removed `tasks/list` and retains explicit-handle `tasks/get` observation without task mutation | Published and registry-verified: npm reports version `0.1.24` with workflow `40569475423` integrity/provenance and clean-consumer evidence; direct-origin first-ingest UAT passed in workflow `40598515473` | Authenticated activation, key-lifecycle mutation, and customer-owned transport UAT remain separate pilot gates |
 | CLI activation package | `packages/cli`, packed consumer and device-flow contracts, published `@trackmcp/cli@0.1.12` | Published and registry-verified by recovery workflow `40565931200`; npm metadata and tarball resolve publicly | Disposable production activation and first-event evidence remain a separate pilot gate |
 | Python server SDK | `packages/python-sdk`, package consumer gate, published `0.1.14` | Published and registry-verified by recovery workflow `40566216611`; wheel/sdist digests are recorded in `FOUNDER-OS-PACKAGE-RELEASE-READINESS.md` | Authenticated activation/first-event evidence remains a separate pilot gate |
 | Transport observer / Node client adapter | `@trackmcp/sdk/client-adapter`; Node-only wrapper for official Stdio, Streamable HTTP, and SSE transports; metadata-only and fail-open; bounded capability-family metadata, lifecycle generations for reconnect correlation, and dedicated adapter tests | Implemented and merged through PRs #173–#175 | Authenticated customer-owned transport UAT |
