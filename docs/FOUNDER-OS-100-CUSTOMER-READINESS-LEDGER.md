@@ -1,6 +1,6 @@
 # Founder OS 100 Customer Readiness Ledger
 
-Last updated: 2026-10-27 (main `c85b52d`; deployed application `506be89` and App Runner rollout and production smoke verified; TypeScript SDK 0.1.22 and CLI 0.1.11 registry publication verified)
+Last updated: 2026-10-27 (main `a34e652`; deployed application `506be89` and App Runner rollout and production smoke verified; TypeScript SDK 0.1.22 and CLI 0.1.11 registry publication verified)
 Latest freshness evidence: health workflow `40493587359` inspected eight
 redacted worker samples. AWS scheduler cadence is now proven with **3/3
 invocations**, and the end-to-end scheduled-success marker is proven with **3/3
@@ -149,6 +149,14 @@ the maximum queue lag is `3,506,514 ms` (above the 15-minute pilot budget).
   `40534695517` passed the Go compile/smoke job for this source.
 - [ ] Go package publication remains a separate release decision; OAuth remains
   observer-only.
+
+## 2026-10-27 — final hosted CI reconciliation
+
+- [x] CI run `40536719713` completed successfully on the current publication
+  documentation source: web/JavaScript, Go, and .NET jobs all passed.
+- [x] The source, package train, deployed runtime, and hosted verification
+  references are now consistent; no deployment is claimed for the docs-only
+  source changes after `506be89`.
 
 ## 2026-10-27 Python SDK authorization-observer parity milestone
 
