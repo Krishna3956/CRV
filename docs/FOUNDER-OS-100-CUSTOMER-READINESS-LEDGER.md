@@ -1,6 +1,6 @@
 # Founder OS 100 Customer Readiness Ledger
 
-Last updated: 2026-10-27 (main `eeafadb`; deployed application `506be89` and App Runner rollout and production smoke verified; Python public protocol-result transport parity corrected; hosted CI `40560443098` passed)
+Last updated: 2026-10-27 (main `15a34ff`; deployed application `506be89` and App Runner rollout and production smoke verified; cross-language protocol-result transport parity corrected; hosted CI `40561176682` passed)
 Latest freshness evidence: health workflow `40502266095` (scheduled) inspected eight
 redacted worker samples. AWS scheduler cadence is now proven with **3/3
 invocations**, and the end-to-end scheduled-success marker is proven with **4/4
@@ -24,6 +24,20 @@ the maximum queue lag is `3,506,514 ms` (above the 15-minute pilot budget).
 - [ ] This validates the SDK source and privacy smoke only; authenticated
   production UAT and the remaining external protocol lifecycle gates stay
   open.
+
+## 2026-10-27 — cross-language protocol-result transport parity
+
+- [x] Go and .NET now expose backward-compatible transport-aware result
+  helpers alongside their existing APIs. Only caller-verified `stdio`,
+  `streamable_http`, `sse`, and `custom` labels are accepted; unknown labels
+  are rejected and no response content enters telemetry.
+- [x] Go allowlist/privacy coverage and shared source contracts passed locally;
+  the local environment has no Go/.NET compiler.
+- [x] Hosted CI run `40561176682` passed web/JavaScript, Go, and .NET jobs on
+  source `15a34ff`.
+- [ ] This closes SDK transport labeling parity only; transport-owned
+  reconnect/replay, authenticated production interoperability, and remaining
+  protocol lifecycle rows remain separately tracked.
 
 ## 2026-10-27 — Python protocol transport parity
 
