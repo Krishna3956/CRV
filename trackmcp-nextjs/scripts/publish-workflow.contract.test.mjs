@@ -19,6 +19,9 @@ test("web CI blocks high-severity production dependency advisories", () => {
 });
 
 test("package checks are individually bounded so a leaked fixture cannot stall CI", () => {
+  assert.match(ciWorkflow, /timeout --signal=TERM --kill-after=30s 10m sh -c 'python3 -m pip install build twine && python3 -m build && python3 -m twine check dist\/\*'/);
+  assert.match(ciWorkflow, /timeout --signal=TERM --kill-after=30s 10m sh -c 'npm ci && npm run build'/);
+  assert.match(ciWorkflow, /timeout --signal=TERM --kill-after=30s 5m npm audit --audit-level=high/);
   assert.match(ciWorkflow, /timeout --signal=TERM --kill-after=30s 10m npm test/);
   assert.match(ciWorkflow, /timeout --signal=TERM --kill-after=30s 10m npm run test:packed-consumer/);
   assert.match(ciWorkflow, /timeout --signal=TERM --kill-after=30s 10m sh -c 'npm ci && npm test'/);

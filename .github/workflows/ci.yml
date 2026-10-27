@@ -54,10 +54,7 @@ jobs:
         run: npm audit --omit=dev --audit-level=high
       - name: Build and validate Python SDK artifacts
         working-directory: packages/python-sdk
-        run: |
-          python3 -m pip install build twine
-          python3 -m build
-          python3 -m twine check dist/*
+        run: timeout --signal=TERM --kill-after=30s 10m sh -c 'python3 -m pip install build twine && python3 -m build && python3 -m twine check dist/*'
       - name: Run web release gate
         working-directory: trackmcp-nextjs
         # Keep the suite bounded even if the hosted runner fails to enforce
@@ -71,10 +68,10 @@ jobs:
         run: timeout --signal=TERM --kill-after=30s 15m npm run build
       - name: Build TypeScript SDK
         working-directory: trackmcp-nextjs/packages/typescript-sdk
-        run: npm ci && npm run build
+        run: timeout --signal=TERM --kill-after=30s 10m sh -c 'npm ci && npm run build'
       - name: Audit TypeScript SDK dependencies
         working-directory: trackmcp-nextjs/packages/typescript-sdk
-        run: npm audit --audit-level=high
+        run: timeout --signal=TERM --kill-after=30s 5m npm audit --audit-level=high
       - name: Test TypeScript SDK
         working-directory: trackmcp-nextjs/packages/typescript-sdk
         # Keep a leaked MCP transport/socket from leaving the release gate in
