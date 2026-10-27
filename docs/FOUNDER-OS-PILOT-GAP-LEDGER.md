@@ -789,3 +789,11 @@ production transport UAT.
   prompt-entity projection path. The public custom domain remains Cloudflare-
   protected for direct local curl; the direct App Runner host was used for the
   bounded UAT and no raw payload was selected.
+
+- 2026-10-27: Health run `40440890332` completed with AWS scheduler evidence
+  healthy (3 invocations, 0 errors in the bounded window). The overall report
+  remains `warning` only because its retained sample includes two historical
+  worker failures and cadence breaches; the latest worker run
+  `40440770324` processed 20 jobs with zero failures and stayed within the
+  freshness budget. This is an honest warning state, not a release claim that
+  scheduler history is clean.
