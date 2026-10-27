@@ -8,6 +8,7 @@ const read = (file) => fs.readFileSync(path.join(root, file), "utf8");
 const css = read("src/app/globals.css");
 const device = read("src/components/DeviceApprovalClient.tsx");
 const dashboard = read("src/components/dashboard/IntegrationChecklist.tsx");
+const setupModal = read("src/components/dashboard/SetupModal.tsx");
 const docsShell = read("src/components/DocsShell.tsx");
 const tester = read("src/components/mcp-tester/McpTesterApp.tsx");
 const logo = read("src/components/TrackMCPLogo.tsx");
@@ -22,6 +23,11 @@ test("primary pilot flows retain keyboard focus and reduced-motion contracts", (
   assert.match(dashboard, /cursor-pointer[\s\S]*Complete onboarding/);
   assert.match(dashboard, /cursor-pointer[\s\S]*Generate key/);
   assert.match(dashboard, /cursor-pointer[\s\S]*Check data/);
+  assert.match(dashboard, /<button type="button" onClick=\{onComplete\}/);
+  assert.match(dashboard, /<button type="button" onClick=\{onDismiss\}/);
+  assert.match(dashboard, /<button type="button" onClick=\{onGenerateKey\}/);
+  assert.match(dashboard, /<button type="button" onClick=\{onRefresh\}/);
+  assert.match(setupModal, /<button type="submit" disabled=\{working\}/);
   for (const href of ["/docs/typescript", "/docs/python", "/docs/go", "/docs/dotnet", "/docs/opentelemetry", "/docs/protocol"]) {
     assert.match(dashboard, new RegExp(`href="${href}"`));
   }
