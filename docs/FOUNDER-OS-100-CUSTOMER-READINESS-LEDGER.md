@@ -1,6 +1,6 @@
 # Founder OS 100 Customer Readiness Ledger
 
-Last updated: 2026-10-28 (main `57f28d49`; deployed application `7ab4eced` and App Runner rollout `40594711620` succeeded; hosted CI `40594711558` passed; read-only production smoke, immutable identity, and runtime-safety checks passed in that rollout; queued-backlog coalescer changes are documented below; scheduler redeploy/enablement `40586991487`/`40587311920` remain the latest scheduler evidence; authenticated production smoke remains verified at `40588063835`; hosted publication workflow `40569475423` verified `@trackmcp/sdk@0.1.24`; latest health monitor `40595457284` observes the first fresh scheduled sample but keeps freshness in warning pending three)
+Last updated: 2026-10-28 (main `69667aa9`; deployed application `7ab4eced` and App Runner rollout `40594711620` succeeded; hosted CI `40594711558` passed; read-only production smoke, immutable identity, and runtime-safety checks passed in that rollout; queued-backlog coalescer changes are documented below; scheduler redeploy/enablement `40586991487`/`40587311920` remain the latest scheduler evidence; authenticated production smoke remains verified at `40588063835`; hosted publication workflow `40569475423` verified `@trackmcp/sdk@0.1.24`; latest health monitor `40595457284` observes the first fresh scheduled sample but keeps freshness in warning pending three; public edge recheck at `2026-10-27T22:39:45Z` still returns Cloudflare 403 while direct origin returns 200)
 The same-origin docs, auth, blog CTA fixes, regression guard, and hosted-runner verification gate are deployed and runtime-verified. The public Cloudflare edge still returns HTML 403 to scripted probes and remains a separate external gate.
 Latest freshness evidence: health workflow `40595457284` inspected eight
 redacted worker samples. AWS scheduler cadence is proven with **4/4 invocations**
@@ -276,6 +276,17 @@ evidence and are not current approval.
 - [x] App Runner rollout `40581600172` and authenticated production smoke
   `40582650751` passed for immutable source `dd443a8c`; this source fix cannot
   repair the external Cloudflare edge rule itself.
+
+## 2026-10-28 — public edge recheck
+
+- [x] Fresh read-only probes at `2026-10-27T22:39:45Z` confirm the deployed
+  App Runner origin is healthy: `GET /api/health` returns HTTP 200 with release
+  SHA `7ab4eced`, `/docs` returns HTTP 200, and the OTLP endpoint returns the
+  expected JSON validation response for an empty batch.
+- [x] The same probes confirm `trackmcp.com` still returns Cloudflare HTTP 403
+  HTML for `/api/health`, `/docs`, and `/api/v1/otel/v1/traces`. This remains
+  an external edge-policy HOLD; the application origin and source are not
+  being represented as publicly reachable until the edge rule is corrected.
 
 ## 2026-10-28 — documentation snippet fallback correction
 
