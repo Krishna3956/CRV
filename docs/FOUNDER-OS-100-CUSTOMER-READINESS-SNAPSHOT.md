@@ -43,8 +43,8 @@ These are not source-code failures and must not be silently marked green:
    requests are review-only and destructive deletion is disabled.
 4. Synthetic reliability-data hygiene acceptance: canary rows must remain
    visibly test evidence and never be presented as customer incidents.
-5. Sustained scheduler evidence: health run `40493587359` proves three AWS
-   Lambda invocations and three end-to-end `ScheduledSuccess` CloudWatch EMF
+5. Sustained scheduler evidence: health run `40502266095` proves three AWS
+   Lambda invocations and four end-to-end `ScheduledSuccess` CloudWatch EMF
    markers with no scheduled failures. The broader worker freshness state is
    still `insufficient_data`: only one of three scheduled application-worker
    samples is in the current evaluation window and maximum queue lag is above
@@ -75,10 +75,12 @@ scheduled-worker SLO. No secret, workspace identifier, raw payload, or token is
 stored in this snapshot.
 
 Latest scheduler evidence is recorded in the detailed ledger; the current
-source verification remains green at 144 suites. The deployed application is
-immutable SHA `9638e23c8529f9b1781d96413529e33a692715ed` via App Runner
-workflow `40468547762`; its production smoke, immutable identity, and runtime
-safety checks passed. Scheduler-owned source activation also completed in
+source verification remains green at 144 suites. The current deployed
+application is immutable SHA `506be89f010b5da15cad8d1f02421449a65fa660` via
+App Runner workflow `40524668419`; its release gate, production smoke,
+immutable identity, and runtime-safety checks passed. Earlier deployment SHA
+`9638e23c8529f9b1781d96413529e33a692715ed` and workflow `40468547762` remain
+historical evidence. Scheduler-owned source activation also completed in
 push-triggered workflow `40470584190` for `078efb7`; push activation keeps the
 schedule disabled and collects no cadence evidence. The AWS policy update and
 post-deployment EMF metric path are evidenced, while deliberate manual
