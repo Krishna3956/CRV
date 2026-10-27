@@ -39,9 +39,9 @@ These are not source-code failures and must not be silently marked green:
    requests are review-only and destructive deletion is disabled.
 4. Synthetic reliability-data hygiene acceptance: canary rows must remain
    visibly test evidence and never be presented as customer incidents.
-5. Sustained scheduler evidence: the worker is healthy in bounded runs, but the
-   required repeated enabled AWS scheduled samples within the freshness budget
-   are not yet retained.
+5. Sustained scheduler evidence: the latest redacted health report is healthy
+   with zero worker errors and 105,384 ms maximum queue lag, but it records
+   **0/3 scheduled samples**. Manual/recovery runs do not close the cadence gate.
 6. Credentialed production key-lifecycle and customer-owned MCP endpoint UAT.
 7. Protocol interoperability that is explicitly Partial/Unsupported in the
    matrix (customer endpoints, reconnect/replay, proxy-specific behavior,

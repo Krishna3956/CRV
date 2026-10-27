@@ -1,11 +1,10 @@
 # Founder OS 100 Customer Readiness Ledger
 
-Last updated: 2026-10-27 (main `0b19953`; deployed application `0c36da1` and App Runner production smoke verified)
-Latest freshness evidence: refresh-worker workflow `40416004272` on main
-commit `ee66051` completed technically successfully, but its retained summary
-artifact `12695217713` reports `freshness_slo: stale` and
-`max_queue_lag_ms: 4190625` against the `900000` ms pilot budget; sustained
-scheduled-sample health remains an explicit open gate below.
+Last updated: 2026-10-27 (main `32e3b24`; deployed application `0c36da1` and App Runner production smoke verified)
+Latest freshness evidence: health workflow `40441666990` inspected eight
+redacted samples and reports a healthy bounded window, zero worker failures,
+and `max_queue_lag_ms: 105384`; sustained scheduled-sample health remains an
+explicit open gate because the report contains **0/3 scheduled samples**.
 
 The deployed application is the runtime-verified App Runner release
 (`0c36da187d6fee56cd280ea79070176e9cd8f63d`, workflow `40426236860`). The
@@ -13,6 +12,18 @@ release gate, image binding, rollout, read-only production smoke, running
 identity, and runtime-safety audit all passed. A separate credential-free
 production pilot smoke passed 36 bounded checks; authenticated smoke evidence
 from the prior release remains historical until rerun for this exact image.
+
+## 2026-10-27 latest scheduler-health evidence
+
+- [x] Health workflow `40441666990` retained artifact `12706560931` with
+  `state: healthy`, eight bounded samples, zero stale runs, zero failed runs,
+  and maximum queue lag `105384 ms` (inside the `900000 ms` budget).
+- [x] AWS scheduler metadata reported `enabled: true`, two metric datapoints,
+  four invocations, and zero errors; no secret, request body, or log content
+  was retained.
+- [ ] The same report records `scheduled_sample_count: 0` against a minimum of
+  three. Manual/recovery samples cannot close the sustained scheduled-cadence
+  gate, so the release remains HOLD.
 
 ## 2026-10-27 latest refresh-worker evidence
 
