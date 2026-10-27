@@ -2,6 +2,16 @@
 
 Status: active autonomous audit, started 2026-10-21.
 
+## 2026-10-27 — release evidence reconciliation reverified
+
+- Mainline commit `743d337` reconciles the deployed `9638e23` runtime baseline
+  with the current scheduler automation evidence and keeps all external gates
+  explicitly on HOLD until their named owners provide closure evidence.
+- The full local release gate completed successfully with **143 suites** after
+  the reconciliation. The focused external-gate, pilot-record, and launch-
+  currentness contracts also passed; no product behavior or customer-facing
+  readiness claim was changed by this documentation-only milestone.
+
 ## 2026-10-27 — scheduler auto-redeploy verified
 
 - GitHub Actions run `40470584190` completed successfully for `078efb7`.
