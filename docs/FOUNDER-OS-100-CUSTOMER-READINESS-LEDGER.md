@@ -1,6 +1,6 @@
 # Founder OS 100 Customer Readiness Ledger
 
-Last updated: 2026-10-28 (main `dd443a8c`; deployed application `dd443a8c` and App Runner rollout `40581600172` succeeded; authenticated production smoke `40582650751` passed; hosted publication workflow `40569475423` verified `@trackmcp/sdk@0.1.24`)
+Last updated: 2026-10-28 (main `1c431b59`; deployed application `dd443a8c` and App Runner rollout `40581600172` succeeded; hosted CI `40583144698` passed; authenticated production smoke `40582650751` passed; hosted publication workflow `40569475423` verified `@trackmcp/sdk@0.1.24`)
 The same-origin docs, auth, blog CTA fixes, regression guard, and hosted-runner verification gate are deployed and runtime-verified. The public Cloudflare edge still returns HTML 403 to scripted probes and remains a separate external gate.
 Latest freshness evidence: health workflow `40566829192` with worker drain
 `40566911017` inspected eight redacted worker samples. AWS scheduler cadence is
@@ -30,6 +30,15 @@ proof.
 
 This register is the active decision surface. Historical entries below remain
 evidence and are not current approval.
+
+## 2026-10-28 — post-reconciliation hosted CI verification
+
+- [x] Hosted TrackMCP CI run `40583144698` completed successfully for
+  immutable source `1c431b59798ef030a9bf790d3e571ca5f8b548c0`.
+- [x] The run passed the full web release gate, lint, production build,
+  TypeScript/CLI/Python package and packed-consumer checks, Go tests/vet/smoke,
+  and .NET build/pack/smoke. This is source/build evidence; the deployed
+  application remains the separately verified immutable `dd443a8c` runtime.
 
 ## 2026-10-28 — full release-gate revalidation
 
