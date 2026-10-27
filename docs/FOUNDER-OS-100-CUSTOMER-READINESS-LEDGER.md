@@ -1,12 +1,22 @@
 # Founder OS 100 Customer Readiness Ledger
 
-Last updated: 2026-10-27 (main `07e78ca`; deployed application `506be89` and App Runner rollout and production smoke verified; TypeScript SDK 0.1.22 and CLI 0.1.11 registry publication verified)
-Latest freshness evidence: health workflow `40493587359` inspected eight
+Last updated: 2026-10-27 (main `55627cb`; deployed application `506be89` and App Runner rollout and production smoke verified; TypeScript SDK 0.1.22 and CLI 0.1.11 registry publication verified)
+Latest freshness evidence: scheduled health workflow `40502266095` inspected eight
 redacted worker samples. AWS scheduler cadence is now proven with **3/3
-invocations**, and the end-to-end scheduled-success marker is proven with **3/3
-CloudWatch EMF successes**. The overall state remains `insufficient_data` because
+invocations**, and the end-to-end scheduled-success marker is proven with **4/4
+CloudWatch EMF successes**. The overall state remains `warning` because
 only **1/3 scheduled worker samples** is in the current evaluation window and
 the maximum queue lag is `3,506,514 ms` (above the 15-minute pilot budget).
+
+## 2026-10-27 — scheduled health evidence renewed
+
+- [x] Scheduled health workflow `40502266095` completed successfully and
+  retained artifact `refresh-worker-health-40502266095`.
+- [x] The report proves 3/3 AWS scheduler invocations, 4/4 scheduled-success
+  EMF markers, zero scheduler errors, and 734 processed records.
+- [ ] The worker freshness gate remains open: only 1/3 scheduled application
+  samples are in the evaluation window and maximum queue lag is
+  `3,506,514 ms`, exceeding the `900,000 ms` pilot budget.
 
 ## 2026-10-27 — post-publication docs deployment verified
 
