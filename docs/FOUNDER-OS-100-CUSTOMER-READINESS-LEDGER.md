@@ -41,6 +41,9 @@ evidence and are not current approval.
   for immutable source `65e193ad6fa37178935bfa3db8fccd416426984b`. The hosted
   release gate, image build/push, App Runner rollout, read-only production
   smoke, release-identity verification, and runtime-safety audit all passed.
+- [x] The chained authenticated production-smoke workflow `40579268329`
+  completed successfully for the same immutable release with no failed or
+  cancelled steps.
 - [x] Independent direct-origin probes confirmed `/api/health` reports
   `status=ok` and the exact deployed SHA; `/`, `/docs`,
   `/docs/opentelemetry`, and `/dashboard?view=setup` return HTTP 200. The OTLP
