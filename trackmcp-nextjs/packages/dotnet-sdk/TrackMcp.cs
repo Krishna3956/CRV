@@ -95,8 +95,13 @@ public sealed class TrackMcpClient : IDisposable
 
     /// <summary>Records allowlisted MRTR/task result metadata without result content.</summary>
     public void RecordProtocolResult(string method, JsonObject result, string? sessionId = null)
+        => RecordProtocolResultForTransport(method, result, null, sessionId);
+
+    /// <summary>Records bounded result metadata with caller-verified transport provenance.</summary>
+    public void RecordProtocolResultForTransport(string method, JsonObject result, string? transport, string? sessionId = null)
     {
         if (string.IsNullOrWhiteSpace(method) || method.Length > 128 || method.Any(char.IsControl)) return;
+        if (transport is not null && transport is not ("stdio" or "streamable_http" or "sse" or "custom")) return;
         var resultType = ReadAllowlisted(result, new[] { "resultType", "result_type" }, "complete", "input_required", "task");
         var taskStatus = ReadAllowlisted(result, new[] { "taskStatus", "task_status" }, "working", "input_required", "completed", "failed", "cancelled", "expired");
         var isError = ReadBool(result, "isError", "is_error");
@@ -125,7 +130,7 @@ public sealed class TrackMcpClient : IDisposable
             if (completion["hasMore"] is JsonValue hasMore && hasMore.TryGetValue<bool>(out var more)) metadata["completion_has_more"] = more;
             else if (completion["has_more"] is JsonValue snakeMore && snakeMore.TryGetValue<bool>(out var snake)) metadata["completion_has_more"] = snake;
         }
-        Capture("protocol", method, new Dictionary<string, object?> { ["_trackmcp"] = metadata }, BoundSessionId(sessionId), isError is true ? false : true, resultType: resultType, taskStatus: taskStatus, inputRequestCount: BoundedCount(result, "inputRequests", "input_requests"), inputResponseCount: BoundedCount(result, "inputResponses", "input_responses"));
+        Capture("protocol", method, new Dictionary<string, object?> { ["_trackmcp"] = metadata }, BoundSessionId(sessionId), isError is true ? false : true, resultType: resultType, taskStatus: taskStatus, inputRequestCount: BoundedCount(result, "inputRequests", "input_requests"), inputResponseCount: BoundedCount(result, "inputResponses", "input_responses"), transport: transport);
     }
 
     /// <summary>Records only a canonical 401/403 authorization outcome.</summary>

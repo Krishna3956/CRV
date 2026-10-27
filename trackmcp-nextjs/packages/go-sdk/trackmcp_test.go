@@ -224,6 +224,14 @@ func TestRecordProtocolResultAcceptsNormalizedSnakeCaseMetadata(t *testing.T) {
 	if event.Payload["_trackmcp"].(map[string]any)["protocol_family"] != "tasks" { t.Fatalf("task family was not retained: %#v", event.Payload) }
 }
 
+func TestRecordProtocolResultForTransportAllowlistsLabel(t *testing.T) {
+	client := New(Options{APIKey: "tmcp_test"})
+	client.RecordProtocolResultForTransport("tools/call", map[string]any{"resultType": "complete"}, "streamable_http", "session-transport")
+	if len(client.queue) != 1 || client.queue[0].Transport != "streamable_http" { t.Fatalf("transport label was not retained: %#v", client.queue) }
+	client.RecordProtocolResultForTransport("tools/call", map[string]any{}, "private://endpoint", "session-private")
+	if len(client.queue) != 1 { t.Fatal("invalid transport should be rejected") }
+}
+
 func TestRecordAuthorizationOutcomeIsBoundedAndSecretFree(t *testing.T) {
 	client := New(Options{APIKey: "tmcp_test"})
 	client.RecordAuthorizationOutcome("tools/call", 401, "session-auth")

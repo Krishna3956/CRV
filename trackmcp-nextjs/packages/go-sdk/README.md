@@ -51,7 +51,9 @@ metadata only. For a caller-verified transport label on the signal, use
 For MRTR/task responses, call `client.RecordProtocolResult` with the response
 map. It emits only the allowlisted result discriminator, task status, and
 bounded request/response counts; result content and input values are never
-queued.
+queued. When the host can verify its transport, use
+`RecordProtocolResultForTransport` with `stdio`, `streamable_http`, `sse`, or
+`custom`; unknown labels are rejected rather than inferred.
 
 For an HTTP authorization response, call `client.RecordAuthorizationOutcome`
 with `401` or `403`. The SDK records only `unauthorized` or `forbidden`

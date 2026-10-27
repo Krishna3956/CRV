@@ -304,8 +304,15 @@ func boundedCacheScope(result map[string]any) (string, bool) {
 // Result content, input values, and arbitrary response fields never enter the
 // event or queue. This keeps Go parity with the TypeScript and Python SDKs.
 func (c *Client) RecordProtocolResult(method string, result map[string]any, sessionID string) {
+	c.RecordProtocolResultForTransport(method, result, "", sessionID)
+}
+
+// RecordProtocolResultForTransport records bounded response metadata with a
+// caller-verified transport label. The legacy helper omits transport.
+func (c *Client) RecordProtocolResultForTransport(method string, result map[string]any, transport string, sessionID string) {
 	if len(method) == 0 || len(method) > 128 || strings.IndexFunc(method, func(r rune) bool { return r < 0x20 || r == 0x7f }) >= 0 { return }
-	event := Event{EventType: "protocol", Direction: "server_to_client", MCPMethod: method, SessionID: boundedSessionID(sessionID), Success: boolPtr(true), IsError: boolPtr(false)}
+	if transport != "" && !transportKinds[transport] { return }
+	event := Event{EventType: "protocol", Direction: "server_to_client", Transport: transport, MCPMethod: method, SessionID: boundedSessionID(sessionID), Success: boolPtr(true), IsError: boolPtr(false)}
 	if value, ok := firstString(result, "resultType", "result_type"); ok && protocolResultTypes[value] { event.ResultType = value }
 	if value, ok := firstString(result, "taskStatus", "task_status"); ok && taskStatuses[value] { event.TaskStatus = value }
 	if value, ok := firstBool(result, "isError", "is_error"); ok { event.IsError, event.Success = boolPtr(value), boolPtr(!value) }

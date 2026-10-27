@@ -38,11 +38,13 @@ test("Go and .NET docs disclose source-package status and first-event verificati
 
 test("Go and .NET source expose bounded MRTR/task result metadata", () => {
   assert.match(goSource, /RecordProtocolResult/);
+  assert.match(goSource, /RecordProtocolResultForTransport/);
   assert.match(goSource, /ResultType/);
   assert.match(goSource, /InputRequestCount/);
   assert.match(goSource, /InputResponseCount/);
   assert.match(goSource, /protocolResultTypes/);
   assert.match(dotnetSource, /RecordProtocolResult/);
+  assert.match(dotnetSource, /RecordProtocolResultForTransport/);
   assert.match(dotnetSource, /inputRequestCount/);
   assert.match(dotnetSource, /inputResponseCount/);
   assert.match(dotnetSource, /ReadAllowlisted/);

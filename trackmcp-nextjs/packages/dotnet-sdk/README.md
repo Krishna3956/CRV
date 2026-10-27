@@ -50,7 +50,9 @@ retained.
 For MRTR/task responses, call `RecordProtocolResult` with the bounded
 `JsonObject` result. It emits only the allowlisted result discriminator, task
 status, and request/response counts; result content and input values are never
-queued.
+queued. When the host can verify transport, use
+`RecordProtocolResultForTransport` with `stdio`, `streamable_http`, `sse`, or
+`custom`; unknown labels are rejected.
 
 For an HTTP authorization response, call `RecordAuthorizationOutcome` with
 `401` or `403`. The SDK records only `unauthorized` or `forbidden` metadata and
