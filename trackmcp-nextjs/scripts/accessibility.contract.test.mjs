@@ -12,6 +12,7 @@ const setupModal = read("src/components/dashboard/SetupModal.tsx");
 const docsShell = read("src/components/DocsShell.tsx");
 const tester = read("src/components/mcp-tester/McpTesterApp.tsx");
 const logo = read("src/components/TrackMCPLogo.tsx");
+const nav = read("src/components/Nav.tsx");
 
 test("primary pilot flows retain keyboard focus and reduced-motion contracts", () => {
   assert.match(css, /:focus-visible\s*\{/);
@@ -28,6 +29,7 @@ test("primary pilot flows retain keyboard focus and reduced-motion contracts", (
   assert.match(dashboard, /<button type="button" onClick=\{onGenerateKey\}/);
   assert.match(dashboard, /<button type="button" onClick=\{onRefresh\}/);
   assert.match(setupModal, /<button type="submit" disabled=\{working\}/);
+  assert.match(nav, /<button\s+type="button"\s+aria-label="Menu"/);
   for (const href of ["/docs/typescript", "/docs/python", "/docs/go", "/docs/dotnet", "/docs/opentelemetry", "/docs/protocol"]) {
     assert.match(dashboard, new RegExp(`href="${href}"`));
   }

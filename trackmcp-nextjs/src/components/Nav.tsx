@@ -90,6 +90,7 @@ export function Nav() {
           </Link>
           <EarlyAccessButton size="sm" className="hidden sm:inline-flex" />
           <button
+            type="button"
             aria-label="Menu"
             onClick={() => setOpen((v) => !v)}
             className="grid h-9 w-9 place-items-center rounded-lg border border-line-strong md:hidden"
