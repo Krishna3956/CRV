@@ -1,6 +1,6 @@
 # Founder OS 100 Customer Readiness Ledger
 
-Last updated: 2026-10-28 (main `4bd2a63`; App Runner rollout `40569470630` deployed source `5b9627a` successfully; hosted publication workflow `40569475423` verified `@trackmcp/sdk@0.1.24`)
+Last updated: 2026-10-28 (main `4bd2a63`; deployed application `5b9627a` and App Runner rollout `40569470630` succeeded; hosted publication workflow `40569475423` verified `@trackmcp/sdk@0.1.24`)
 Latest freshness evidence: health workflow `40566829192` with worker drain
 `40566911017` inspected eight redacted worker samples. AWS scheduler cadence is
 proven with **4/4 invocations** and **4/4 CloudWatch EMF successes**. The overall
@@ -63,6 +63,10 @@ evidence and are not current approval.
   source `5b9627a`, including rollout, runtime identity, runtime-safety, and
   read-only production-smoke checks. The deployed application now contains the
   reconciled SDK/docs version references.
+
+- [x] Corrected the public docs wording to say `0.1.24` is published with
+  provenance now that npm and the clean-consumer workflow are verified; the
+  previous “release candidate pending registry verification” phrase was stale.
 
 ## 2026-10-28 — published-train smoke default alignment
 
