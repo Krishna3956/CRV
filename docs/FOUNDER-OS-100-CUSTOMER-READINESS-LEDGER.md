@@ -25,6 +25,14 @@ the maximum queue lag is `3,506,514 ms` (above the 15-minute pilot budget).
   SDK/CLI packed-consumer checks, Python SDK checks, and runtime smoke after the
   ledger's current-main pointer was reconciled.
 
+## 2026-10-27 — hosted ledger-record verification green
+
+- [x] CI run `40539957866` passed on source `baf5639`; web/JavaScript, Go, and
+  .NET jobs completed successfully.
+- [x] The web job passed the full release gate, lint, production build,
+  TypeScript SDK tests and packed consumer, CLI tests and packed consumer,
+  Python SDK checks, and runtime smoke.
+
 ## 2026-10-27 — scheduled health evidence renewed
 
 - [x] Scheduled health workflow `40502266095` completed successfully and
