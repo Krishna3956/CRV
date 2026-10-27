@@ -86,7 +86,7 @@ These are deliberately not represented as complete merely because a route or fie
 
 1. Resource subscriptions (`resources/subscribe`, `notifications/resources/updated`) now project a dedicated bounded lifecycle fact discriminator (`subscription_action`) rather than being counted as ordinary reads; authenticated cross-transport lifecycle UAT remains open.
 2. `resources/templates/list` now has a distinct bounded catalog-observation path: the tester and TypeScript modern client emit/consume `resource_templates` metadata with cursor traversal, without expanding or dereferencing templates. Cross-transport production UAT and durable history evidence remain open.
-3. `resources/list_changed` and `prompts/list_changed` need snapshot version events. Snapshot storage exists, but no protocol adapter can claim complete change coverage yet.
+3. `resources/list_changed`, `tools/list_changed`, and `prompts/list_changed` now retain a bounded catalog-kind discriminator in lifecycle facts. Snapshot storage exists, but notifications still do not manufacture a snapshot version; authenticated cross-transport change-to-snapshot UAT remains open.
 4. Completion suggestions (`completion/complete`) now have a separate bounded friction metric and durable semantic-fact measures (count/total/hasMore plus request/response role); broader runtime fixtures and authenticated production UAT remain open, and suggestion values are unavailable by design.
 5. JSON-RPC errors, `isError`, `input_required`, and cancellation are separate states. A single success/failure ratio is not sufficient.
 6. Cancellation and disconnects are only observable when the integration exposes them; a missing notification must remain unknown, not silently abandoned.

@@ -66,6 +66,14 @@ test("persists bounded subscription lifecycle metadata without identifiers or ta
   assert.equal(serialized.includes("secret://private-resource"), false);
 });
 
+test("persists catalog-change kind without treating a notification as a snapshot", () => {
+  const fact = projectTrackMCPFact(event({ event_type: "protocol", mcp_method: "notifications/resources/list_changed" }));
+  assert.equal(fact.fact_type, "lifecycle");
+  assert.equal(fact.semantic.protocol_signal, "catalog_changed");
+  assert.equal(fact.dimensions.catalog_change_kind, "resources");
+  assert.equal("snapshot_hash" in fact.dimensions, false);
+});
+
 test("persists an allowlisted family hint when the method name is unavailable", () => {
   const fact = projectTrackMCPFact(event({ event_type: "protocol", payload: { _trackmcp: { protocol_family: "sampling", prompt: "private" } }, result_type: "complete" }));
   assert.equal(fact.dimensions.protocol_family, "sampling");

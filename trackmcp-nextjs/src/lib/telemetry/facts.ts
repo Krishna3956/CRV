@@ -40,6 +40,8 @@ export type TrackMCPFact = {
     capability_families?: TrackMCPProtocolFamily[];
     /** Bounded subscription lifecycle discriminator; identifiers and targets remain excluded. */
     subscription_action?: "listen_requested" | "subscribe_requested" | "unsubscribe_requested" | "subscription_started" | "subscription_stopped";
+    /** Catalog family for an explicit list-changed/resource-updated signal. */
+    catalog_change_kind?: "tools" | "resources" | "resource_templates" | "prompts";
   };
   measures: {
     duration_ms?: number;
@@ -124,6 +126,13 @@ export function projectTrackMCPFact(event: CanonicalTrackMCPEvent): TrackMCPFact
     || payloadMetadata?.subscription_action === "subscription_stopped"
     ? payloadMetadata.subscription_action
     : undefined;
+  const catalogChangeKind = event.mcp_method === "notifications/tools/list_changed"
+    ? "tools"
+    : event.mcp_method === "notifications/resources/list_changed" || event.mcp_method === "notifications/resources/updated"
+      ? "resources"
+      : event.mcp_method === "notifications/prompts/list_changed"
+        ? "prompts"
+        : undefined;
   const fact: TrackMCPFact = {
     fact_version: TRACKMCP_FACT_CONTRACT_VERSION,
     fact_type: factTypeFor(event),
@@ -148,6 +157,7 @@ export function projectTrackMCPFact(event: CanonicalTrackMCPEvent): TrackMCPFact
       ...(observationKind ? { protocol_observation_kind: observationKind } : {}),
       ...(capabilityFamilies.length ? { capability_families: capabilityFamilies } : {}),
       ...(subscriptionAction ? { subscription_action: subscriptionAction } : {}),
+      ...(catalogChangeKind ? { catalog_change_kind: catalogChangeKind } : {}),
     },
     measures: {
       duration_ms: boundedNonNegative(event.duration_ms, 86_400_000),

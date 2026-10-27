@@ -62,6 +62,17 @@ Status: active autonomous audit, started 2026-10-21.
   reconnect ownership, and durable replay/invalidation guarantees remain
   explicitly outside the claim.
 
+## 2026-10-27 — catalog-change kind in lifecycle facts
+
+- Catalog change notifications now retain an allowlisted
+  `catalog_change_kind` (`tools`, `resources`, `resource_templates`, or
+  `prompts` where observed) in durable lifecycle facts. A notification never
+  manufactures a snapshot hash or version, and the regression test protects
+  that distinction.
+- This closes the local ambiguity between catalog-change activity families;
+  authenticated change-to-snapshot correlation and cross-transport UAT remain
+  open.
+
 ## 2026-10-27 — package-version parity and release-gate recheck
 
 - Reconciled the current CLI integration README, package-release readiness
