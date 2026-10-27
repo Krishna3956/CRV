@@ -918,6 +918,13 @@ production transport UAT.
   The parity contract protects bounded Reliability truth, the explicit
   write-enabled secret gate, and unsupported OTLP/proxy boundaries.
 
+- 2026-10-27: Rechecked the official MCP 2026-07-28 specification release and
+  synchronized the protocol matrix: modern-era discovery is stateless and the
+  legacy roots/logging/sampling flows are deprecated in favor of modern/MRTR
+  semantics. Legacy telemetry remains bounded and supported; modern lifecycle
+  evidence is still explicitly partial until capability-aware request/result
+  UAT exists.
+
 - 2026-10-27: Audited the only remaining open GitHub PR (#425). Its immutable
   runtime identity, `/api/health` release marker, deployment verification, and
   related tests are already present on current `main`; no unique diff remained

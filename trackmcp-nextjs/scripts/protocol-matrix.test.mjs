@@ -18,6 +18,8 @@ test("protocol matrix names every major surface and an explicit status", () => {
   assert.match(matrix, /Unsupported/);
   assert.match(matrix, /external authorization-server integration/i);
   assert.match(matrix, /HTTP\/2 gRPC listener/i);
+  assert.match(matrix, /2026-07-28 modern era deprecates/i);
+  assert.match(matrix, /legacy server-initiated sampling.*MRTR/i);
 });
 
 test("matrix keeps absence separate from success", () => {
