@@ -22,6 +22,8 @@ is intentionally not a GO approval and must not be treated as one.
   gates.
 - Historical deployed baseline retained for audit: `9638e23c8529f9b1781d96413529e33a692715ed`,
   App Runner workflow `40468547762`.
+- This register update does not change the deployed image; it only records
+  the already-successful rollout and its bounded evidence.
 - Queue: 263 total, 260 checked, and P0 queue items `020`, `157`, and `260`
   remain open.
 - Full local release gate: **143 suites passed**, with lint and the 177-route

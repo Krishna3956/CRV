@@ -45,6 +45,10 @@ documentation/accessibility contracts pass, and the full local release gate,
 lint, and 177-route build were green before deployment. Push-triggered
 scheduler activation for the reviewed scheduler change completed successfully
 in workflow `40470584190` with scheduling disabled by default.
+The transient App Runner smoke retry boundary remains explicitly retained as
+deployment evidence rather than being treated as a customer-facing guarantee.
+The prior deployed source at `9638e23` remains retained as historical evidence
+and is not the current runtime baseline.
 The preceding source verification passed the full local release gate at
 **143 suites**, lint, the production build (**177 routes**), and
 `git diff --check`.
