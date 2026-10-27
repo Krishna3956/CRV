@@ -162,18 +162,19 @@ jobs:
             exit 1
           fi
           REPORT_DIR="$RUNNER_TEMP/refresh-scheduler-report"
-          FUNCTION_NAME=$(aws cloudformation describe-stacks \
+          FUNCTION_ARN=$(aws cloudformation describe-stacks \
             --stack-name "$STACK_NAME" --region "$AWS_REGION" \
             --query 'Stacks[0].Outputs[?OutputKey==`RefreshSchedulerFunctionArn`].OutputValue | [0]' \
             --output text)
+          FUNCTION_NAME="${FUNCTION_ARN##*:function:}"
           INVOKE_OUTPUT="$RUNNER_TEMP/refresh-scheduler-invoke.json"
-          aws lambda invoke --function-name "$FUNCTION_NAME" --region "$AWS_REGION" \
+          aws lambda invoke --function-name "$FUNCTION_ARN" --region "$AWS_REGION" \
             --invocation-type RequestResponse --payload '{}' \
             --cli-binary-format raw-in-base64-out "$INVOKE_OUTPUT" >/dev/null
           STATUS_CODE=$(jq -er '.statusCode | numbers' "$INVOKE_OUTPUT")
           [[ "$STATUS_CODE" == "200" ]] || { echo "::error::authenticated refresh Lambda returned status $STATUS_CODE"; exit 1; }
-          jq -n --arg function "$FUNCTION_NAME" --argjson status "$STATUS_CODE" \
-            '{lambda_invocation:"passed", function_name:$function, status_code:$status}' \
+          jq -n --arg function "$FUNCTION_NAME" --arg function_arn "$FUNCTION_ARN" --argjson status "$STATUS_CODE" \
+            '{lambda_invocation:"passed", function_name:$function, function_arn:$function_arn, status_code:$status}' \
             > "$REPORT_DIR/authenticated-lambda-smoke.json"
           # Describe only log-stream metadata. Never fetch log events, token
           # values, or raw Lambda payloads into workflow output.
