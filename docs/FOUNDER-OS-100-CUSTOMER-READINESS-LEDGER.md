@@ -1,6 +1,6 @@
 # Founder OS 100 Customer Readiness Ledger
 
-Last updated: 2026-10-27 (main `d42b577`; deployed application `506be89` and App Runner rollout and production smoke verified; TypeScript SDK 0.1.22 and CLI 0.1.11 registry publication verified)
+Last updated: 2026-10-27 (main `c85b52d`; deployed application `506be89` and App Runner rollout and production smoke verified; TypeScript SDK 0.1.22 and CLI 0.1.11 registry publication verified)
 Latest freshness evidence: health workflow `40493587359` inspected eight
 redacted worker samples. AWS scheduler cadence is now proven with **3/3
 invocations**, and the end-to-end scheduled-success marker is proven with **3/3
