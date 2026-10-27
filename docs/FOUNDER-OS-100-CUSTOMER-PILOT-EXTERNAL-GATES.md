@@ -17,8 +17,9 @@ is intentionally not a GO approval and must not be treated as one.
   evidence uploads). The AWS console showed `trackmcp-web` Running after the
   deployment. Subsequent docs-only commits are intentionally not called runtime
   deployments because they do not change the application image.
-- Current source verification: `main` at `424258e` (scheduler-health semantics and tests after the last
-  runtime deployment) passes lint, the 177-route production build, and the
+- Current source verification: `main` at `170807a` (scheduler log-evidence
+  semantics and readiness-ledger reconciliation after the last runtime
+  deployment) passes lint, the 177-route production build, and the
   full local release gate at **143 suites**. This source evidence does not
   change the deployed image identity or close external gates.
 - Queue: 263 total, 260 checked, and P0 queue items `020`, `157`, and `260`
@@ -49,7 +50,7 @@ is intentionally not a GO approval and must not be treated as one.
 | 157 — database recovery posture | Infrastructure/provider owner | Region and tier, backup/PITR policy or an explicitly accepted limitation, restoration owner, and a tested recovery reference | OPEN; authenticated Supabase inspection records Free tier, East US/`us-east-1`, Nano/shared compute, and PITR **Disabled**. A fresh signed-in browser inspection of Database → Backups (2026-10-27) showed no usable scheduled-backup or restore-point evidence. No restoration contact or rehearsal is evidenced. |
 | Privacy lifecycle acceptance | Release owner | Explicit acceptance that export is bounded/secret-free, deletion requests are review-only, and destructive deletion is disabled without an approved worker | OPEN in the release record |
 | Synthetic reliability-data hygiene | Release owner | Explicit acceptance that synthetic canary rows are test evidence only and cannot be presented as customer incidents | OPEN in the release record |
-| Refresh scheduler enablement | Infrastructure/provider owner | Store `TRACKMCP_REFRESH_WORKER_SECRET` in Secrets Manager, map the App Runner runtime variable from that ARN, deploy the disabled-first AWS Scheduler stack, verify endpoint/token/log/DLQ behavior, enable the five-minute schedule, and retain at least three scheduled samples within the 15-minute freshness budget | OPEN for sustained cadence evidence. Enablement workflow `40445610213` succeeded and retained scheduler artifact `12708211784`; follow-up health workflow `40445804232` retained artifact `12708665678` with bounded health `healthy`, AWS scheduler enabled, 4 invocations, 0 errors, and maximum queue lag 105,384 ms. The report still has `scheduled_sample_count` 0/3 and `scheduled_cadence_gate: pending`, so manual/recovery/AWS-metric evidence cannot close the gate |
+| Refresh scheduler enablement | Infrastructure/provider owner | Store `TRACKMCP_REFRESH_WORKER_SECRET` in Secrets Manager, map the App Runner runtime variable from that ARN, deploy the disabled-first AWS Scheduler stack, verify endpoint/token/log/DLQ behavior, enable the five-minute schedule, and retain at least three scheduled samples within the 15-minute freshness budget | OPEN for sustained cadence evidence. Deployment workflow `40448579066` succeeded from `3746a33`; artifact `12709257776` records four Lambda invocations, zero errors, five log streams, and schedule/DLQ/alarm outputs. Health workflow `40449251681` proves the AWS Lambda cadence gate (4 invocations, 0 errors), but records `scheduled_sample_count` 0/3 and `cloudwatch_log_filter_unavailable`; the end-to-end scheduled-success gate remains pending because the OIDC role lacks log-event query permission |
 | 260 — final go/no-go | Release owner | Timestamped GO/NO-GO decision linking the green evidence and accepted limitations | OPEN; engineering recommendation remains HOLD |
 
 ## Closure rule

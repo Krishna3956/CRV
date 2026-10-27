@@ -42,7 +42,7 @@ Status: active autonomous audit, started 2026-10-21.
   observed. The workflow summary now prints both statuses separately.
 - Added regression coverage for pending AWS-metrics-only evidence and proven
   scheduled-run evidence. Full release gate, lint, and the 177-route build pass
-  on `424258e`; this clarifies the open gate without falsely closing it.
+  on `170807a`; this clarifies the open gate without falsely closing it.
 
 ## 2026-10-27 — scheduler IAM and secret-resolution boundary
 

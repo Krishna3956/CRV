@@ -1,6 +1,6 @@
 # Founder OS 100 Customer Readiness Ledger
 
-Last updated: 2026-10-27 (main `424258e`; deployed application `0c36da1` and App Runner production smoke verified)
+Last updated: 2026-10-27 (main `170807a`; deployed application `0c36da1` and App Runner production smoke verified)
 Latest freshness evidence: health workflow `40445804232` inspected eight
 redacted samples and reports a healthy bounded window, zero worker failures,
 and `max_queue_lag_ms: 105384`; sustained scheduled-sample health remains an
