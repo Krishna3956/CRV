@@ -154,7 +154,7 @@ export function DocsNextSteps({ nativeHref }: { nativeHref: string }) {
   return (
     <div className="mt-5 flex flex-wrap gap-3" aria-label="Documentation next steps">
       <a
-        href="https://app.trackmcp.com/dashboard?view=setup"
+        href="/dashboard?view=setup"
         className="inline-flex cursor-pointer items-center rounded-lg bg-brand px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-brand-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2"
       >
         Open Dashboard Setup

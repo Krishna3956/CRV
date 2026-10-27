@@ -17,7 +17,7 @@ test("public API docs state the exact bounded OTel interoperability boundary", (
 });
 
 test("OpenTelemetry docs provide actionable setup and native-SDK CTAs", () => {
-  assert.match(otelDocs, /href="https:\/\/app\.trackmcp\.com\/dashboard\?view=setup"/);
+  assert.match(otelDocs, /href="\/dashboard\?view=setup"/);
   assert.match(otelDocs, /Open Dashboard Setup/);
   assert.match(otelDocs, /href="\/docs\/typescript"/);
   assert.match(otelDocs, /Use the native SDK guide/);

@@ -15,7 +15,7 @@ export default function OpenTelemetryDocsPage() {
       <DocLead>Send supported OTLP/HTTP JSON or protobuf spans to TrackMCP when you already operate an OpenTelemetry pipeline. For complete MCP semantics, use the native TypeScript or Python SDK at the server boundary.</DocLead>
       <div className="mt-5 flex flex-wrap gap-3" aria-label="OpenTelemetry next steps">
         <a
-          href="https://app.trackmcp.com/dashboard?view=setup"
+          href="/dashboard?view=setup"
           className="inline-flex cursor-pointer items-center rounded-lg bg-brand px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-brand-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2"
         >
           Open Dashboard Setup

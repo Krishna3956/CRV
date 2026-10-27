@@ -250,7 +250,7 @@ redactEvent: (event) => event // return null to drop this event
   issue_type: "bug",
 });`}</Code>
         <Para>
-          Open the authenticated <a href="https://app.trackmcp.com/dashboard" className="font-medium text-brand-strong underline">dashboard trace explorer</a> to inspect ordered server-boundary events. See the <a href="/docs/api" className="font-medium text-brand-strong underline">API reference</a> for the bounded trace response.
+          Open the authenticated <a href="/dashboard" className="font-medium text-brand-strong underline">dashboard trace explorer</a> to inspect ordered server-boundary events. See the <a href="/docs/api" className="font-medium text-brand-strong underline">API reference</a> for the bounded trace response.
         </Para>
       </DocSection>
 

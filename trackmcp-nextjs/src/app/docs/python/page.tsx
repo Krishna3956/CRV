@@ -33,7 +33,7 @@ export default function PythonDocsPage() {
         <Para>
           Python uses the package manager and a workspace connection key. The TrackMCP
           CLI currently bootstraps the TypeScript SDK; for Python, create or copy a key
-          from your authenticated <a href="https://app.trackmcp.com/dashboard" className="font-medium text-brand-strong underline">workspace dashboard</a> and keep it in the same environment that runs your server.
+          from your authenticated <a href="/dashboard" className="font-medium text-brand-strong underline">workspace dashboard</a> and keep it in the same environment that runs your server.
         </Para>
         <Code>{`python3 -m pip install trackmcp
 # or: uv add trackmcp / poetry add trackmcp`}</Code>
@@ -241,7 +241,7 @@ correlation_resolver=lambda context: anonymized_job_handle(context),
     "issue_resolution", "completed", {"issue_type": "bug"}
 )`}</Code>
         <Para>
-          Use the authenticated <a href="https://app.trackmcp.com/dashboard" className="font-medium text-brand-strong underline">dashboard trace explorer</a> for ordered server-boundary events, or see the <a href="/docs/api" className="font-medium text-brand-strong underline">API reference</a> for the bounded trace response.
+          Use the authenticated <a href="/dashboard" className="font-medium text-brand-strong underline">dashboard trace explorer</a> for ordered server-boundary events, or see the <a href="/docs/api" className="font-medium text-brand-strong underline">API reference</a> for the bounded trace response.
         </Para>
       </DocSection>
 
