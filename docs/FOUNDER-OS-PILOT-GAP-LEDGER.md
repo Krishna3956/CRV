@@ -754,3 +754,13 @@ production transport UAT.
   no current non-success rows. Keep the scheduler/release gate open until a
   subsequent window ages out the datapoint or a safe root-cause trace is
   available.
+
+- 2026-10-27: Extended the authenticated protocol-family UAT with `roots/list`
+  and `logging/setLevel` events. Both were accepted by production ingest and
+  refresh-worker run `40439005667` succeeded. Supabase read-back found one
+  durable `roots` fact and one durable `logging` fact, each with a completed
+  outcome and protocol-response role under the UAT service label. The
+  production roots/logging rows remain bounded metadata only; raw filesystem
+  roots, log levels, and message content were not retained. This closes the
+  first authenticated coverage check for those families while broader
+  transport and capability-advertisement UAT remains open.
