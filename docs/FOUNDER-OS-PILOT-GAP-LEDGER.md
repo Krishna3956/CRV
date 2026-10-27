@@ -907,3 +907,8 @@ production transport UAT.
   distinction, required external gate inventory, and current **142-suite**
   evidence. The readiness snapshot and release record were updated to match;
   historical checkpoints remain unchanged.
+
+- 2026-10-27: Advanced the external-gate register's source checkpoint to
+  `36eaed1` after the gate-guard documentation commit. The deployed runtime
+  identity remains unchanged; the contract test requires this explicit update
+  whenever the source checkpoint moves.
