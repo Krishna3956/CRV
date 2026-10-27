@@ -2,6 +2,16 @@
 
 Status: active autonomous audit, started 2026-10-21.
 
+## 2026-10-28 — latest worker health recheck
+
+- Health workflow `40570232815` completed successfully after bounded recovery
+  worker `40570059240` succeeded. AWS scheduler and end-to-end cadence remain
+  proven at 4/4 invocations and 4/4 scheduled successes.
+- The GitHub scheduled-worker cadence is still not proven (0/3 samples in this
+  manual evaluation window) and the retained maximum queue lag is
+  `36,729,012 ms`; the freshness gate remains an explicit warning/HOLD. Manual
+  recovery is not counted as scheduled-cadence evidence.
+
 ## 2026-10-28 — TypeScript SDK 0.1.24 published
 
 - `@trackmcp/sdk@0.1.24` is published with the corrected modern-client identity
