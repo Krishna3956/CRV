@@ -11,18 +11,20 @@ is intentionally not a GO approval and must not be treated as one.
 
 - `main`: current default branch. Immutable deployed SHAs belong in the
   release record; PR checks remain attached to their exact review commits.
-- Current deployed application: `37579eade74a20818cd4f83569493e830e4855de`,
-  App Runner workflow `40474794151` (successful rollout, production smoke,
+- Current deployed application: `9026fa63fdc9b8082372fd50fda93077b8162998`,
+  App Runner workflow `40494157458` (successful rollout, production smoke,
   immutable identity, runtime-safety audit, and three redacted artifacts).
-  The latest rollout has not been represented as a new authenticated
-  key-lifecycle UAT run. This is the runtime reference for release review.
-- Current source verification: `main` at `e208bea` (current-main build
-  verification), with the deployed application at the immutable `37579ea`
-  candidate above.
+  Authenticated production smoke `40495081946` also passed for this exact
+  commit; it remains read-only evidence and is not key-lifecycle UAT. This is
+  the runtime reference for release review.
+- Current source verification: `main` at `b2383ea` (ledger and health-report
+  semantics reconciliation), with the deployed application at immutable
+  `9026fa6` above.
   This does not close the external owner, backup, privacy, or scheduler-cadence
   gates.
-- Historical deployed baseline retained for audit: `9638e23c8529f9b1781d96413529e33a692715ed`,
-  App Runner workflow `40468547762`.
+- Historical deployed baselines retained for audit include `9638e23c8529f9b1781d96413529e33a692715ed`
+  (App Runner workflow `40468547762`) and `37579eade74a20818cd4f83569493e830e4855de`
+  (App Runner workflow `40474794151`).
 - This register update does not change the deployed image; it only records
   the already-successful rollout and its bounded evidence.
 - Queue: 263 total, 260 checked, and P0 queue items `020`, `157`, and `260`
@@ -60,7 +62,7 @@ is intentionally not a GO approval and must not be treated as one.
 | 157 — database recovery posture | Infrastructure/provider owner | Region and tier, backup/PITR policy or an explicitly accepted limitation, restoration owner, and a tested recovery reference | OPEN; authenticated Supabase inspection records Free tier, East US/`us-east-1`, Nano/shared compute, and PITR **Disabled**. A fresh signed-in browser inspection of Database → Backups (2026-10-27) showed no usable scheduled-backup or restore-point evidence. No restoration contact or rehearsal is evidenced. |
 | Privacy lifecycle acceptance | Release owner | Explicit acceptance that export is bounded/secret-free, deletion requests are review-only, and destructive deletion is disabled without an approved worker | OPEN in the release record |
 | Synthetic reliability-data hygiene | Release owner | Explicit acceptance that synthetic canary rows are test evidence only and cannot be presented as customer incidents | OPEN in the release record |
-| Refresh scheduler enablement | Infrastructure/provider owner | Store `TRACKMCP_REFRESH_WORKER_SECRET` in Secrets Manager, map the App Runner runtime variable from that ARN, deploy the disabled-first AWS Scheduler stack, verify endpoint/token/DLQ behavior, enable the five-minute schedule, and retain at least three scheduled samples within the 15-minute freshness budget | OPEN for sustained cadence evidence. Scheduler deployment `40466761616` succeeded with the EMF/failure-class Lambda, health run `40467394730` / artifact `12717320479` observes 4 scheduled-success samples and 0 scheduled-failure samples, and push-triggered auto-redeploy run `40470584190` completed successfully with scheduling disabled. One Lambda error remains in the rolling AWS invocation window, so the stricter zero-error cadence gate remains open until a clean window is retained. |
+| Refresh scheduler enablement | Infrastructure/provider owner | Store `TRACKMCP_REFRESH_WORKER_SECRET` in Secrets Manager, map the App Runner runtime variable from that ARN, deploy the disabled-first AWS Scheduler stack, verify endpoint/token/DLQ behavior, enable the five-minute schedule, and retain at least three scheduled samples within the 15-minute freshness budget | AWS scheduler and end-to-end cadence are proven: health run `40493587359` observed 3 invocations, 3 scheduled-success markers, and 0 errors. The deployed health engine now treats this AWS window as authoritative while retaining any historical worker-freshness warnings. Overall pilot approval remains open to the release owner. |
 | 260 — final go/no-go | Release owner | Timestamped GO/NO-GO decision linking the green evidence and accepted limitations | OPEN; engineering recommendation remains HOLD |
 
 ## Closure rule

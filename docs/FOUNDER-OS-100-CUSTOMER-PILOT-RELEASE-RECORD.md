@@ -8,13 +8,11 @@ commit and the operator accepts the listed limitations.
 
 ## Current deployed baseline — 2026-10-27
 
-App Runner workflow `40474794151` successfully deployed immutable application
-commit `37579eade74a20818cd4f83569493e830e4855de`. Rollout, production smoke,
+App Runner workflow `40494157458` successfully deployed immutable application
+commit `9026fa63fdc9b8082372fd50fda93077b8162998`. Rollout, production smoke,
 immutable runtime identity, runtime-safety audit, and redacted evidence upload
-passed. Retained artifacts are `app-runner-host-37579eade74a20818cd4f83569493e830e4855de`,
-`production-smoke-37579eade74a20818cd4f83569493e830e4855de`, and
-`runtime-flags-37579eade74a20818cd4f83569493e830e4855de`. The latest rollout
-has not been represented as a new authenticated key-lifecycle UAT run; the
+passed. Authenticated production smoke `40495081946` also passed for this exact
+commit, but remains read-only evidence rather than key-lifecycle UAT. The
 release remains Draft/HOLD until the open operational and owner gates below
 are independently accepted.
 
@@ -37,11 +35,10 @@ recovery-evidence hardening, not a final operational SLO acceptance.
 
 ## Latest source verification — 2026-10-27
 
-The current deployed source is `37579ea` (including the bounded scheduler
-slice, release-scope ownership reconciliation, transient App Runner smoke
-retry boundary, explicit button-type accessibility fixes, and package-train
-parity correction). Mainline now also contains the current-main verification
-update `e208bea`; its focused
+The current deployed source is `9026fa6` (including the health-report semantics
+correction that honors a proven AWS scheduler window while retaining historical
+worker warnings). Mainline now also contains the ledger reconciliation update
+`b2383ea`; its focused
 documentation/accessibility contracts pass, and the full local release gate,
 lint, and 177-route build were green before deployment. Push-triggered
 scheduler activation for the reviewed scheduler change completed successfully
