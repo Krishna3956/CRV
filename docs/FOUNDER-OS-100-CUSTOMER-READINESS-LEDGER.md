@@ -1,21 +1,15 @@
 # Founder OS 100 Customer Readiness Ledger
 
-Last updated: 2026-10-28 (main `e08106a2`; deployed application `7ab4eced` and App Runner rollout `40594711620` succeeded; hosted CI `40594711558` passed; read-only production smoke, immutable identity, and runtime-safety checks passed in that rollout; queued-backlog coalescer changes are documented below; scheduler redeploy/enablement `40586991487`/`40587311920` remain the latest scheduler evidence; authenticated production smoke remains verified at `40588063835`; hosted publication workflow `40569475423` verified `@trackmcp/sdk@0.1.24`)
+Last updated: 2026-10-28 (main `e08106a2`; deployed application `7ab4eced` and App Runner rollout `40594711620` succeeded; hosted CI `40594711558` passed; read-only production smoke, immutable identity, and runtime-safety checks passed in that rollout; queued-backlog coalescer changes are documented below; scheduler redeploy/enablement `40586991487`/`40587311920` remain the latest scheduler evidence; authenticated production smoke remains verified at `40588063835`; hosted publication workflow `40569475423` verified `@trackmcp/sdk@0.1.24`; latest health monitor `40595457284` observes the first fresh scheduled sample but keeps freshness in warning pending three)
 The same-origin docs, auth, blog CTA fixes, regression guard, and hosted-runner verification gate are deployed and runtime-verified. The public Cloudflare edge still returns HTML 403 to scripted probes and remains a separate external gate.
-Latest freshness evidence: health workflow `40566829192` with worker drain
-`40566911017` inspected eight redacted worker samples. AWS scheduler cadence is
-proven with **4/4 invocations** and **4/4 CloudWatch EMF successes**. The overall
-state remains `warning` because only **1/3 scheduled worker samples** is in the
-current evaluation window and the maximum queue lag is `35,497,938 ms` (above
-the 15-minute pilot budget).
-
-Latest recheck: the bounded recovery worker `40586415068` now returns parseable
-evidence: four `max_jobs:10` batches, 40 processed/40 succeeded, zero retries,
-failures, timeouts, or unparseable responses. It still reports
-`max_queue_lag_ms:39048679` (about 10.8 hours), so execution is healthy but
-freshness is stale. AWS scheduler evidence remains proven at **4/4 invocations**
-and **4/4 scheduled successes**; the GitHub scheduled-worker sample count is
-**0/3**. Manual dispatches are recovery evidence, not scheduled-cadence proof.
+Latest freshness evidence: health workflow `40595457284` inspected eight
+redacted worker samples. AWS scheduler cadence is proven with **4/4 invocations**
+and **4/4 CloudWatch EMF successes**. The scheduled worker sample
+`40594595849` and the manual recovery sample `40594876889` are both within the
+15-minute budget, but only **1/3 scheduled worker samples** is in the current
+evaluation window and two historical stale samples remain in the evaluation set.
+The overall state is therefore still `warning`; this is a valid evidence HOLD,
+not a code-release failure.
 
 ## 2026-10-28 — package-test timeout hardening
 
@@ -126,7 +120,7 @@ and **4/4 scheduled successes**; the GitHub scheduled-worker sample count is
 
 | Gate | Current evidence | State | Required closure evidence |
 | --- | --- | --- | --- |
-| Worker freshness | Fresh health artifact `40591189579` proves AWS cadence at 4/4 invocations and 4/4 end-to-end successes, but records 0/3 scheduled GitHub-worker samples and `worker_execution_incomplete`; maximum observed queue lag is `40,050,587 ms` | **HOLD** | Three fresh scheduled samples within the 15-minute budget, with no unresolved stale/failure evidence |
+| Worker freshness | Health artifact `40595457284` proves AWS cadence at 4/4 invocations and 4/4 end-to-end successes; scheduled sample `40594595849` is within budget, but only 1/3 scheduled samples is in-window and two historical stale samples keep the overall state `warning` | **HOLD** | Three fresh scheduled samples within the 15-minute budget, with no unresolved stale/failure evidence |
 | Backup/PITR | Supabase Free Plan has no scheduled backups or PITR; inspection recorded in the backup evidence entries below | **HOLD / owner decision** | Accepted documented limitation with named recovery owner/runbook, or plan upgrade plus tested restore rehearsal |
 | Privacy acceptance | Engineering privacy/export/deletion contracts pass; production acceptance evidence is not recorded | **HOLD / owner decision** | Signed production privacy review and retention/deletion acceptance |
 | Credentialed lifecycle/UAT | Read-only tenant/auth smoke is verified; write-gated key lifecycle and customer-owned transport UAT remain unexecuted | **HOLD / credentialed** | Disposable lifecycle key run plus customer-owned transport/protocol UAT artifacts |
