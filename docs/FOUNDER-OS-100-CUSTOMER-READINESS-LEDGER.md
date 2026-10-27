@@ -1,6 +1,6 @@
 # Founder OS 100 Customer Readiness Ledger
 
-Last updated: 2026-10-27 (main `15a34ff`; deployed application `506be89` and App Runner rollout and production smoke verified; cross-language protocol-result transport parity corrected; hosted CI `40561176682` passed)
+Last updated: 2026-10-27 (main `53ea054`; deployed application `506be89` and App Runner rollout and production smoke verified; cross-language transport-aware result smoke coverage verified; hosted CI `40562115220` passed)
 Latest freshness evidence: health workflow `40502266095` (scheduled) inspected eight
 redacted worker samples. AWS scheduler cadence is now proven with **3/3
 invocations**, and the end-to-end scheduled-success marker is proven with **4/4
@@ -38,6 +38,17 @@ the maximum queue lag is `3,506,514 ms` (above the 15-minute pilot budget).
 - [ ] This closes SDK transport labeling parity only; transport-owned
   reconnect/replay, authenticated production interoperability, and remaining
   protocol lifecycle rows remain separately tracked.
+
+## 2026-10-27 — transport-aware result smoke validation
+
+- [x] Go and .NET hosted smoke fixtures now call the public transport-aware
+  result helpers and assert that the allowlisted transport survives the
+  serialized ingest boundary without private result content.
+- [x] Hosted CI run `40562115220` passed web/JavaScript, Go, and .NET on
+  source `53ea054`.
+- [ ] This is SDK/runtime-smoke evidence only; transport-owned reconnect,
+  authenticated interoperability, and other external protocol gates remain
+  open.
 
 ## 2026-10-27 — Python protocol transport parity
 
