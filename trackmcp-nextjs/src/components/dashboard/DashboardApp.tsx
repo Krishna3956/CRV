@@ -2593,6 +2593,11 @@ function ProtocolSignalPanel({
           </div>
         ))}
       </div>
+      {signals.catalog_change_kinds && (
+        <p className="mt-3 text-[11px] text-muted">
+          Catalog changes by surface: tools {fmt(signals.catalog_change_kinds.tools)} · resources {fmt(signals.catalog_change_kinds.resources)} · resource templates {fmt(signals.catalog_change_kinds.resource_templates)} · prompts {fmt(signals.catalog_change_kinds.prompts)}. These are notification-family counts, not snapshot versions.
+        </p>
+      )}
       {signals.timeline && signals.timeline.length > 0 && (
         <div className="mt-4 overflow-x-auto border-t border-line pt-4">
           <p className="text-[11px] font-medium text-muted">Daily signal timeline</p>

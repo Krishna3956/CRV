@@ -207,6 +207,7 @@ export type Analytics = {
     subscription_started: number;
     subscription_stopped: number;
     observed_events: number;
+    catalog_change_kinds?: { tools: number; resources: number; resource_templates: number; prompts: number };
     timeline?: Array<{ date: string; notification: number; progress: number; cancelled: number; catalog_changed: number; resource_changed: number; subscription_started: number; subscription_stopped: number; observed_events: number }>;
   };
   /** Counts of bounded modern protocol families observed by the SDK observer. */

@@ -400,6 +400,7 @@ test("analytics exposes bounded protocol lifecycle signals without treating them
   assert.deepEqual(body.protocol_signals, {
     notification: 0, progress: 1, cancelled: 0, catalog_changed: 1, resource_changed: 1,
     subscription_started: 1, subscription_stopped: 1, observed_events: 5,
+    catalog_change_kinds: { tools: 1, resources: 0, resource_templates: 0, prompts: 0 },
     timeline: [{ date: "2026-09-06", notification: 0, progress: 1, cancelled: 0, catalog_changed: 1, resource_changed: 1, subscription_started: 1, subscription_stopped: 1, observed_events: 5 }],
   });
   assert.deepEqual(body.protocol_family_activity, [{ family: "notifications", observations: 3 }, { family: "resources", observations: 3 }, { family: "tasks", observations: 2 }, { family: "completion", observations: 1 }, { family: "control_signal", observations: 1 }, { family: "elicitation", observations: 1 }, { family: "sampling", observations: 1 }, { family: "subscriptions", observations: 1 }]);
