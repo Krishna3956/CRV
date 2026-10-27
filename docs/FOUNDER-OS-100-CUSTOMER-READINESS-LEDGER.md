@@ -1,6 +1,6 @@
 # Founder OS 100 Customer Readiness Ledger
 
-Last updated: 2026-10-27 (main `9026fa6`; deployed application `9026fa6` and App Runner rollout and production smoke verified)
+Last updated: 2026-10-27 (main `91866a8`; this SDK-only milestone passed local verification; no App Runner deployment claim is made)
 Latest freshness evidence: health workflow `40450412687` inspected eight
 redacted worker samples and evaluated the two samples in its bounded current
 window. It proved the AWS scheduler cadence gate with four invocations and zero
