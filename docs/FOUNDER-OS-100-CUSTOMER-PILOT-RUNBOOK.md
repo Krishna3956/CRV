@@ -159,7 +159,7 @@ and rate-limit false positives.
 
 ## 9. Package publication and clean consumers
 
-The current coordinated published release train is `@trackmcp/sdk@0.1.19`,
+The current coordinated published release train is `@trackmcp/sdk@0.1.20`,
 `@trackmcp/cli@0.1.10`, and `trackmcp==0.1.12`. Publication is release-train
 gated and has been verified against the registries for this train. The
 preceding published train was `@trackmcp/sdk@0.1.18`,

@@ -14,7 +14,7 @@ const MAX_TASK_STREAM_BYTES = 256 * 1024;
 const MAX_TASK_STREAM_EVENTS = 64;
 const MAX_SUBSCRIPTION_RESOURCE_URIS = 128;
 const MAX_SUBSCRIPTION_URI_BYTES = 64 * 1024;
-const DEFAULT_CLIENT_INFO = { name: "@trackmcp/sdk", version: "0.1.19" } as const;
+const DEFAULT_CLIENT_INFO = { name: "@trackmcp/sdk", version: "0.1.20" } as const;
 const DEFAULT_CLIENT_CAPABILITIES = {} as const;
 const TASK_EXTENSION_META = { "io.modelcontextprotocol/clientCapabilities": { extensions: { "io.modelcontextprotocol/tasks": {} } } } as const;
 
