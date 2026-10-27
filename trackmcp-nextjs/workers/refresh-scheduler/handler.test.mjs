@@ -20,10 +20,10 @@ async function withEnvironment(values, callback) {
 test("scheduler handler sends one bounded authenticated refresh request", async () => {
   const previousFetch = globalThis.fetch;
   const previousLog = console.log;
-  let request;
+  const requests = [];
   const logs = [];
   globalThis.fetch = async (url, options) => {
-    request = { url, options };
+    requests.push({ url, options });
     return { ok: true, status: 202 };
   };
   console.log = (line) => logs.push(line);
@@ -33,13 +33,16 @@ test("scheduler handler sends one bounded authenticated refresh request", async 
       TRACKMCP_REFRESH_WORKER_TOKEN: "test-token-is-never-logged",
     }, () => handler({ source: "eventbridge_scheduler" }));
     assert.deepEqual(result, { statusCode: 202 });
-    assert.equal(request.url, ENDPOINT);
-    assert.equal(request.options.method, "POST");
-    assert.equal(request.options.redirect, "manual");
-    assert.equal(request.options.headers.authorization, "Bearer test-token-is-never-logged");
-    assert.equal(request.options.headers["content-type"], "application/json");
-    assert.deepEqual(JSON.parse(request.options.body), { max_jobs: 10 });
-    assert.ok(request.options.signal instanceof AbortSignal);
+    assert.equal(requests.length, 4);
+    for (const request of requests) {
+      assert.equal(request.url, ENDPOINT);
+      assert.equal(request.options.method, "POST");
+      assert.equal(request.options.redirect, "manual");
+      assert.equal(request.options.headers.authorization, "Bearer test-token-is-never-logged");
+      assert.equal(request.options.headers["content-type"], "application/json");
+      assert.deepEqual(JSON.parse(request.options.body), { max_jobs: 10 });
+      assert.ok(request.options.signal instanceof AbortSignal);
+    }
     assert.equal(logs.length, 1);
     const marker = JSON.parse(logs[0]);
     assert.equal(marker.event, "refresh_scheduler_result");
@@ -97,7 +100,8 @@ test("manual invocations do not emit the scheduled-success marker", async () => 
   const previousFetch = globalThis.fetch;
   const previousLog = console.log;
   const logs = [];
-  globalThis.fetch = async () => ({ ok: true, status: 200 });
+  let requestCount = 0;
+  globalThis.fetch = async () => { requestCount += 1; return { ok: true, status: 200 }; };
   console.log = (line) => logs.push(line);
   try {
     await withEnvironment({
@@ -105,6 +109,7 @@ test("manual invocations do not emit the scheduled-success marker", async () => 
       TRACKMCP_REFRESH_WORKER_TOKEN: "test-token",
     }, () => handler({}));
     assert.deepEqual(logs, []);
+    assert.equal(requestCount, 1);
   } finally {
     globalThis.fetch = previousFetch;
     console.log = previousLog;

@@ -1,8 +1,9 @@
 const TIMEOUT_MS = 55_000;
-// Keep the externally scheduled slice small enough to finish well inside the
-// App Runner route deadline. The worker remains resumable, so later ticks drain
-// the queue instead of allowing one large backlog to create a Lambda timeout.
+// Keep each externally scheduled slice small enough to finish well inside the
+// App Runner route deadline. Four independent leases match the proven recovery
+// profile; later ticks remain resumable if the queue is larger than one tick.
 const SCHEDULED_MAX_JOBS = 10;
+const SCHEDULED_BATCH_COUNT = 4;
 
 function isScheduledEvent(event) {
   if (event && typeof event === "object") return event.source === "eventbridge_scheduler";
@@ -52,22 +53,25 @@ export async function handler(event = {}) {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), TIMEOUT_MS);
   try {
-    const response = await fetch(endpoint, {
+    const batchCount = scheduled ? SCHEDULED_BATCH_COUNT : 1;
+    const responses = await Promise.all(Array.from({ length: batchCount }, () => fetch(endpoint, {
       method: "POST",
       headers: { authorization: `Bearer ${token}`, "content-type": "application/json" },
       body: JSON.stringify({ max_jobs: SCHEDULED_MAX_JOBS }),
       redirect: "manual",
       signal: controller.signal,
-    });
-    if (!response.ok) throw new Error(`refresh worker returned HTTP ${response.status}`);
+    })));
+    const unhealthy = responses.find((response) => !response.ok);
+    if (unhealthy) throw new Error(`refresh worker returned HTTP ${unhealthy.status}`);
     if (scheduled) {
       // Emit a non-sensitive Embedded Metric Format sample so the health
       // workflow can query the success count without reading log events. Never
       // log the endpoint, token, request body, or response content.
       emitScheduledMetric({ success: true, failure: null });
     }
-    return { statusCode: response.status };
+    return { statusCode: Math.max(...responses.map((response) => response.status)) };
   } catch (error) {
+    controller.abort();
     if (scheduled) emitScheduledMetric({ success: false, failure: failureClass(error) });
     throw error;
   } finally {

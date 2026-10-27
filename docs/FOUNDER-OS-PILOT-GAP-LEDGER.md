@@ -320,6 +320,18 @@ Status: active autonomous audit, started 2026-10-21.
   passes. This is a source/deployment-candidate improvement; a fresh clean AWS
   cadence window is still required before closing the external scheduler gate.
 
+## 2026-10-28 — scheduler capacity aligned with proven recovery fan-out
+
+- [x] Fresh recovery run `40586415068` proved that four concurrent
+  `max_jobs:10` slices complete with 40/40 successes, zero retries/failures,
+  and no timeout or unparseable evidence. The AWS scheduler Lambda now uses the
+  same four-way bounded fan-out while retaining one 55-second shared deadline,
+  lease fencing, and metadata-only success/failure metrics.
+- [ ] This source change is not yet production scheduler evidence. The
+  scheduler workflow must redeploy the Lambda, re-enable the existing
+  five-minute schedule, and collect three clean scheduled samples before the
+  freshness gate can move beyond HOLD.
+
 ## 2026-10-27 — bounded-slice candidate deployed to App Runner
 
 - App Runner deployment workflow `40468547762` completed successfully for

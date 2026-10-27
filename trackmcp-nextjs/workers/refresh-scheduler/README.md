@@ -1,11 +1,11 @@
 # TrackMCP refresh scheduler
 
 This directory contains a Node.js 22 Lambda invoked by an AWS
-`AWS::Scheduler::Schedule`. It sends one authenticated, bounded batch request
-(`max_jobs: 10`) to the App Runner refresh endpoint. The small scheduled slice
-stays inside the App Runner route deadline; resumable queue work is drained by
-later five-minute ticks instead of allowing a large backlog to create a Lambda
-timeout. It never queries
+`AWS::Scheduler::Schedule`. It sends four concurrent authenticated, bounded
+batch requests (`max_jobs: 10` each) to the App Runner refresh endpoint. Each
+small slice stays inside the App Runner route deadline; resumable queue work is
+drained by later five-minute ticks instead of allowing a large backlog to create
+a Lambda timeout. It never queries
 Supabase directly and never logs the worker token or response body.
 
 EventBridge sends a bounded `source=eventbridge_scheduler` marker. Only after
