@@ -7,6 +7,7 @@ const queue = await readFile(new URL("FOUNDER-OS-100-CUSTOMER-PILOT-WORK-QUEUE.m
 const record = await readFile(new URL("docs/FOUNDER-OS-100-CUSTOMER-PILOT-RELEASE-RECORD.md", root), "utf8");
 const externalGates = await readFile(new URL("docs/FOUNDER-OS-100-CUSTOMER-PILOT-EXTERNAL-GATES.md", root), "utf8");
 const acceptanceMatrix = await readFile(new URL("docs/FOUNDER-OS-100-CUSTOMER-PILOT-ACCEPTANCE-MATRIX.md", root), "utf8");
+const pilotStatus = await readFile(new URL("FOUNDER-OS-100-CUSTOMER-PILOT-STATUS.md", root), "utf8");
 const readinessLedger = await readFile(new URL("docs/FOUNDER-OS-100-CUSTOMER-READINESS-LEDGER.md", root), "utf8");
 
 function section(source, heading, nextHeading) {
@@ -62,6 +63,14 @@ test("acceptance matrix separates current source from deployed runtime", () => {
   assert.match(acceptanceMatrix, /4efa2e1bd444706e84d78ef85b8a7b3b133a46aa/);
   assert.match(acceptanceMatrix, /current repository source is `ba19661`/);
   assert.match(acceptanceMatrix, /not claimed as\s+deployed behavior/);
+});
+
+test("root pilot status stays aligned with the current evidence baseline", () => {
+  assert.match(pilotStatus, /Last verified: 2026-10-27/);
+  assert.match(pilotStatus, /origin\/main` is `6b22d9e`/);
+  assert.match(pilotStatus, /144 suites/);
+  assert.match(pilotStatus, /177-route/);
+  assert.match(pilotStatus, /Release-owner scope approval and final first-100-user go\/no-go remain open/);
 });
 
 test("readiness ledger points at the current reconciled mainline", () => {

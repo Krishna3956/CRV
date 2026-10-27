@@ -1,6 +1,6 @@
 # Founder OS: 100-customer pilot status
 
-Last verified: 2026-10-25 (UTC)
+Last verified: 2026-10-27 (Asia/Kolkata)
 
 This is the concise release-owner handoff. It records evidence that exists,
 what is intentionally not claimed, and the next work queue. It is not a
@@ -8,20 +8,20 @@ promise that every product capability is complete.
 
 ## Verified and shipped
 
-- `origin/main` is `c0ec7c4acc97d34a99262fed823d9cb8bdc917f3` (PR #404).
-  The deployed application runtime remains the previously verified
-  `7d3dfa8585785659d214f1ed4af225969a63e661`; PR #403 is a reviewed
-  least-privilege IAM artifact and does not require a runtime rollout.
-- Hosted TrackMCP CI `40212636803` passed for the merged SHA.
-- App Runner deployment `40213010821` attempt 2 passed immutable image
-  verification, rollout, read-only production smoke, runtime-safety audit,
-  and redacted evidence uploads.
-- Authenticated production smoke `40214144654` passed for the same deployed
-  SHA, including workspace-bound authorization and revoked-key rejection.
+- `origin/main` is `6b22d9e` (active-release and acceptance-matrix truth
+  reconciliation). The deployed application runtime remains the latest
+  verified immutable `4efa2e1bd444706e84d78ef85b8a7b3b133a46aa` via App Runner
+  workflow `40497434962`; the post-deployment commits are documentation-only
+  evidence updates and are not claimed as deployed behavior.
+- The latest local release gate passes 144 suites, lint, the 177-route
+  production build, and `git diff --check`.
+- Production schema postflights verified required tables, indexes, functions,
+  RLS/privilege boundaries, constraints, integrity aggregates, and catalog
+  entity-read privacy checks with zero invalid rows in the audited sets.
 - The public Security page now discloses the backup/recovery boundary; it does
   not claim schedules, PITR, restore testing, or restoration ownership that the
   selected provider plan does not supply.
-- Local lint, build (176 routes), and the complete 132-suite release gate pass.
+- Local lint, build (177 routes), and the complete 144-suite release gate pass.
 - SDK/CLI/Python/Go/.NET consumer, OTLP JSON/protobuf, protocol observer,
   tenant-isolation, privacy, accessibility, and documentation-navigation
   checks are green.
@@ -60,7 +60,7 @@ promise that every product capability is complete.
 3. Keep partial MCP protocol surfaces and review-only deletion visibly bounded
    in docs and setup until their external dependencies or implementations are
    complete.
-5. Re-run lint, build, the full release gate, and production smoke after every
+4. Re-run lint, build, the full release gate, and production smoke after every
    runtime change, then update this file and `docs/codex-handoff/PENDING_WORK.md`.
 
 ## Evidence locations
