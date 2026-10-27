@@ -11,19 +11,17 @@ is intentionally not a GO approval and must not be treated as one.
 
 - `main`: current default branch. Immutable deployed SHAs belong in the
   release record; PR checks remain attached to their exact review commits.
-- Current deployed application: `9638e23c8529f9b1781d96413529e33a692715ed`,
-  App Runner workflow `40468547762` (successful rollout, production smoke,
-  immutable identity, runtime safety, and redacted runtime evidence upload).
+- Current deployed application: `f81317d9875dab0f48fb21bd0adfa76011b76baf`,
+  App Runner workflow `40472509165` (successful rollout, production smoke,
+  immutable identity, runtime-safety audit, and three redacted artifacts).
   The latest rollout has not been represented as a new authenticated
-  key-lifecycle UAT run.
-  This documentation-only update does not change the deployed image; this
-  baseline remains the runtime reference for release review.
-- Current source verification: `main` at `e595881` (scheduler auto-redeploy
-  evidence and readiness reconciliation) retains the previously verified
-  bounded-slice source and passes the focused scheduler/docs contracts. The
-  deployed application remains the immutable `9638e23` baseline above; this
-  docs-only source update does not change that image or close external owner,
-  backup, privacy, or scheduler-cadence gates.
+  key-lifecycle UAT run. This is the runtime reference for release review.
+- Current source verification: `main` at `4c82f72` (ledger evidence update),
+  with the deployed application at the immutable `f81317d` candidate above.
+  This does not close the external owner, backup, privacy, or scheduler-cadence
+  gates.
+- Historical deployed baseline retained for audit: `9638e23c8529f9b1781d96413529e33a692715ed`,
+  App Runner workflow `40468547762`.
 - Queue: 263 total, 260 checked, and P0 queue items `020`, `157`, and `260`
   remain open.
 - Full local release gate: **143 suites passed**, with lint and the 177-route

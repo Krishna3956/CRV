@@ -8,6 +8,18 @@ commit and the operator accepts the listed limitations.
 
 ## Current deployed baseline — 2026-10-27
 
+App Runner workflow `40472509165` successfully deployed immutable application
+commit `f81317d9875dab0f48fb21bd0adfa76011b76baf`. Rollout, production smoke,
+immutable runtime identity, runtime-safety audit, and redacted evidence upload
+passed. Retained artifacts are `app-runner-host-f81317d9875dab0f48fb21bd0adfa76011b76baf`,
+`production-smoke-f81317d9875dab0f48fb21bd0adfa76011b76baf`, and
+`runtime-flags-f81317d9875dab0f48fb21bd0adfa76011b76baf`. The latest rollout
+has not been represented as a new authenticated key-lifecycle UAT run; the
+release remains Draft/HOLD until the open operational and owner gates below
+are independently accepted.
+
+The previously deployed baseline below remains historical evidence.
+
 App Runner workflow `40468547762` successfully deployed immutable application
 commit `9638e23c8529f9b1781d96413529e33a692715ed`. Rollout, production smoke,
 immutable runtime identity, runtime-safety audit, and redacted evidence upload
@@ -25,14 +37,14 @@ recovery-evidence hardening, not a final operational SLO acceptance.
 
 ## Latest source verification — 2026-10-27
 
-The current deployed source at `9638e23` remains (including the bounded scheduler
-slice, release-scope ownership reconciliation, and the transient App Runner
-smoke retry boundary retained from the preceding release train). Mainline now
-also contains docs/automation reconciliation commit `e595881`; its focused
-scheduler/docs contracts pass, and the full local release gate, lint, and
-177-route build were already green on the preceding source. Push-triggered
-scheduler activation for that reviewed change completed successfully in
-workflow `40470584190` with scheduling disabled by default.
+The current deployed source is `f81317d` (including the bounded scheduler
+slice, release-scope ownership reconciliation, transient App Runner smoke
+retry boundary, and the explicit button-type accessibility fixes). Mainline
+now also contains the ledger evidence update `4c82f72`; its focused
+documentation/accessibility contracts pass, and the full local release gate,
+lint, and 177-route build were green before deployment. Push-triggered
+scheduler activation for the reviewed scheduler change completed successfully
+in workflow `40470584190` with scheduling disabled by default.
 The preceding source verification passed the full local release gate at
 **143 suites**, lint, the production build (**177 routes**), and
 `git diff --check`.
