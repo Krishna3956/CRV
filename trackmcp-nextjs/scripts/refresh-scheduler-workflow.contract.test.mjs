@@ -52,6 +52,8 @@ test("scheduler template records only non-sensitive EventBridge success markers"
   assert.match(template, /SchedulerScheduledSuccessMetricFilter/);
   assert.match(template, /RefreshSchedulerLogGroup/);
   assert.match(template, /RetentionInDays: 14/);
+  assert.match(template, /LoggingConfig:/);
+  assert.match(template, /trackmcp\/refresh-scheduler/);
   assert.match(template, /TrackMCP\/RefreshScheduler/);
   assert.match(template, /ScheduledSuccess/);
   assert.match(template, /refresh_scheduler_result/);

@@ -35,6 +35,8 @@ Resources:
       Runtime: nodejs22.x
       Timeout: 60
       MemorySize: 256
+      LoggingConfig:
+        LogGroup: !Sub /trackmcp/refresh-scheduler/${AWS::StackName}
       Environment:
         Variables:
           TRACKMCP_REFRESH_WORKER_URL: !Ref WorkerUrl
@@ -143,7 +145,7 @@ Resources:
     Type: AWS::Logs::LogGroup
     DependsOn: RefreshSchedulerFunction
     Properties:
-      LogGroupName: !Sub /aws/lambda/${RefreshSchedulerFunction}
+      LogGroupName: !Sub /trackmcp/refresh-scheduler/${AWS::StackName}
       RetentionInDays: 14
 
 Outputs:
