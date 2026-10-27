@@ -428,6 +428,11 @@ evidence and are not current approval.
   Customer-owned MCP endpoint interoperability, transport reconnect/replay,
   durable subscriptions, OAuth token exchange, worker freshness, privacy,
   backup/PITR, and final release-owner acceptance remain open.
+- [x] Added the reusable, manual workflow-gated
+  `scripts/production-device-flow-smoke.mjs` harness with a redacted report,
+  trusted-host/cookie/workspace bounds, explicit write confirmation, and
+  uniquely named cleanup. A fresh deployed run passed all 9 checks and ended
+  with zero active disposable keys; no evidence file was retained.
 
 ## 2026-10-28 — hosted verification of UAT ledger reconciliation
 

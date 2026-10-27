@@ -1,0 +1,68 @@
+name: Production CLI device-flow smoke
+
+on:
+  workflow_dispatch:
+    inputs:
+      base_url:
+        description: "Direct trusted HTTPS origin (defaults to the current App Runner origin)"
+        required: false
+        default: "https://i95pzq2xh7.ap-south-1.awsapprunner.com"
+        type: string
+      confirm_write:
+        description: "Explicitly authorize disposable device activation, ingest, and key revocation"
+        required: true
+        default: false
+        type: boolean
+
+permissions:
+  contents: read
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      TRACKMCP_DEVICE_FLOW_BASE_URL: ${{ inputs.base_url || 'https://i95pzq2xh7.ap-south-1.awsapprunner.com' }}
+      TRACKMCP_DEVICE_FLOW_COOKIE: ${{ secrets.TRACKMCP_DEVICE_FLOW_COOKIE }}
+      TRACKMCP_DEVICE_FLOW_WORKSPACE_ID: ${{ secrets.TRACKMCP_DEVICE_FLOW_WORKSPACE_ID }}
+      TRACKMCP_DEVICE_FLOW_CONFIRM: ${{ inputs.confirm_write && 'I_UNDERSTAND_DEVICE_FLOW_SMOKE' || '' }}
+      TRACKMCP_DEVICE_FLOW_ALLOW_WRITE: ${{ inputs.confirm_write && 'true' || 'false' }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: trackmcp-nextjs/package-lock.json
+      - name: Install dependencies
+        working-directory: trackmcp-nextjs
+        run: npm ci
+      - name: Check device-flow inputs
+        id: configured
+        shell: bash
+        run: |
+          set -euo pipefail
+          missing=()
+          for name in TRACKMCP_DEVICE_FLOW_COOKIE TRACKMCP_DEVICE_FLOW_WORKSPACE_ID; do
+            if [[ -z "${!name:-}" ]]; then missing+=("$name"); fi
+          done
+          if (( ${#missing[@]} > 0 )); then
+            echo "configured=false" >> "$GITHUB_OUTPUT"
+            printf 'Device-flow smoke skipped; missing configured repository secrets: %s\n' "${missing[*]}" | tee -a "$GITHUB_STEP_SUMMARY"
+          else
+            echo "configured=true" >> "$GITHUB_OUTPUT"
+            echo "Disposable device-flow inputs are configured; write-gated smoke will run." >> "$GITHUB_STEP_SUMMARY"
+          fi
+      - name: Run disposable CLI device-flow smoke
+        if: steps.configured.outputs.configured == 'true'
+        working-directory: trackmcp-nextjs
+        env:
+          TRACKMCP_DEVICE_FLOW_REPORT: ${{ runner.temp }}/trackmcp-device-flow-smoke.json
+        run: npm run smoke:production-device-flow
+      - name: Upload redacted device-flow evidence
+        if: always() && steps.configured.outputs.configured == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: production-device-flow-${{ github.sha }}
+          path: ${{ runner.temp }}/trackmcp-device-flow-smoke.json
+          if-no-files-found: warn

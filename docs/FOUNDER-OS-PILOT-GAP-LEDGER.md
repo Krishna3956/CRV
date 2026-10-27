@@ -17,6 +17,10 @@ Status: active autonomous audit, started 2026-10-21.
   Customer-owned remote endpoint interoperability, reconnect/replay, durable
   subscriptions, OAuth exchange, scheduled worker freshness, privacy,
   backup/PITR, and release-owner acceptance remain open gates.
+- The repeatable `production-device-flow-smoke.mjs` harness and its manual
+  workflow contract now cover the same start/approve/poll/redeem/first-event/
+  revoke path. A fresh deployed invocation passed all 9 checks and left zero
+  active disposable keys; the redacted report was deleted after verification.
 
 ## 2026-10-28 — disposable production key lifecycle UAT passed
 
