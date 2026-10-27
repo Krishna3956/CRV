@@ -1,6 +1,6 @@
 # Founder OS 100 Customer Readiness Ledger
 
-Last updated: 2026-10-27 (main `deb9575`; deployed application `877f3c5` and App Runner rollout and production smoke verified; TypeScript SDK 0.1.22 and CLI 0.1.11 registry publication verified)
+Last updated: 2026-10-27 (main `d42b577`; deployed application `506be89` and App Runner rollout and production smoke verified; TypeScript SDK 0.1.22 and CLI 0.1.11 registry publication verified)
 Latest freshness evidence: health workflow `40493587359` inspected eight
 redacted worker samples. AWS scheduler cadence is now proven with **3/3
 invocations**, and the end-to-end scheduled-success marker is proven with **3/3
@@ -9,6 +9,15 @@ only **1/3 scheduled worker samples** is in the current evaluation window and
 the maximum queue lag is `3,506,514 ms` (above the 15-minute pilot budget).
 
 ## 2026-10-27 — post-publication docs deployment verified
+
+## 2026-10-27 — hosted cross-language verification renewed
+
+- [x] Hosted CI run `40534695517` passed on source `d42b577`: Go and .NET
+  compile/smoke jobs passed, and the web/JavaScript release gate passed after
+  the historical deployment-evidence contract was reconciled.
+- [x] This closes the previously missing hosted compiler evidence for the
+  reviewed Go/.NET observer parity. It does not publish Go/.NET packages or
+  close customer-owned OAuth/transport UAT.
 
 ## 2026-10-27 — refresh scheduler cadence evidence renewed
 
@@ -136,9 +145,10 @@ the maximum queue lag is `3,506,514 ms` (above the 15-minute pilot budget).
   the Node observer and never accepts challenge headers, URLs, tokens, or
   provider text.
 - [x] Added Go unit coverage and public SDK documentation for the boundary.
-- [ ] The local environment has no Go toolchain, so `go test`/`gofmt` could not
-  run here. Hosted Go compile/smoke evidence remains an explicit verification
-  gate before publishing a package containing this change.
+- [x] The local environment has no Go toolchain, but hosted CI run
+  `40534695517` passed the Go compile/smoke job for this source.
+- [ ] Go package publication remains a separate release decision; OAuth remains
+  observer-only.
 
 ## 2026-10-27 Python SDK authorization-observer parity milestone
 
@@ -157,8 +167,10 @@ the maximum queue lag is `3,506,514 ms` (above the 15-minute pilot budget).
   outcomes.
 - [x] Extended the .NET smoke fixture to cover both outcomes and reject other
   status codes; documentation now states the caller-owned OAuth boundary.
-- [ ] This environment has no .NET toolchain, so hosted .NET compile/smoke
-  evidence remains required before publishing the changed package.
+- [x] The local environment has no .NET toolchain, but hosted CI run
+  `40534695517` passed the .NET compile/smoke job for this source.
+- [ ] .NET package publication remains a separate release decision; OAuth
+  remains observer-only.
 
 ## 2026-10-27 OAuth observer parity contract milestone
 
