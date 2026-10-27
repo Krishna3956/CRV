@@ -1,7 +1,7 @@
 # Founder OS 100 Customer Readiness Ledger
 
-Last updated: 2026-10-28 (main `ccb3484`; deployed application `cffc2a0` and App Runner rollout `40570999509` succeeded; hosted publication workflow `40569475423` verified `@trackmcp/sdk@0.1.24`)
-Source-only follow-up: same-origin docs CTA fix is pushed as `7302507`; the latest rollout is pending.
+Last updated: 2026-10-28 (main `09a399e`; deployed application `cffc2a0` and App Runner rollout `40570999509` succeeded; hosted publication workflow `40569475423` verified `@trackmcp/sdk@0.1.24`)
+Source-only follow-up: same-origin docs and auth CTA fixes are pushed as `09a399e`; the latest rollout is pending.
 Latest freshness evidence: health workflow `40566829192` with worker drain
 `40566911017` inspected eight redacted worker samples. AWS scheduler cadence is
 proven with **4/4 invocations** and **4/4 CloudWatch EMF successes**. The overall
@@ -41,6 +41,14 @@ evidence and are not current approval.
 - [ ] Re-run the deployed browser navigation audit after the new App Runner
   rollout completes; this source fix cannot repair the external Cloudflare
   edge rule itself.
+
+## 2026-10-28 — same-origin auth CTA fix
+
+- [x] Main navigation sign-in and Early Access signup now use `/signin` and
+  `/signup` on the current origin, preserving attribution query parameters
+  without forcing a blocked `app.trackmcp.com` hostname.
+- [x] Website truth, CTA, and lint checks pass locally; deployed verification
+  remains pending the hosted rollout.
 
 ## 2026-10-28 — OTEL public edge audit
 
