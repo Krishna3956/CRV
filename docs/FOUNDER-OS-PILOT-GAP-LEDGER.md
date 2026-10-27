@@ -2,6 +2,27 @@
 
 Status: active autonomous audit, started 2026-10-21.
 
+## 2026-10-27 — scheduler IAM and secret-resolution boundary
+
+- The AWS console change requested by the operator was applied successfully:
+  inline policy `TrackMCPRefreshSchedulerDeploy` now allows only
+  `lambda:InvokeFunction` on the deployed refresh-scheduler function ARN
+  (no wildcard invocation permission). AWS confirmed the policy update.
+- The subsequent disabled-first dispatches reached the real Lambda invocation
+  boundary, proving the IAM fix. The workflow was corrected to invoke by ARN
+  while deriving the function name for `/aws/lambda/<name>` log metadata, and
+  to report non-secret invocation failures deterministically.
+- Runs `40430683487` through `40431733945` remain fail-closed because the
+  Lambda response is `Error: refresh worker is not configured`. The existing
+  replicated secret ARN is known and was supplied without reading its value;
+  the Lambda environment contains the token key but the Secrets Manager
+  dynamic reference is resolving empty at runtime. Added a non-secret
+  deployment nonce (`SecretRefreshNonce`) so explicit deployments re-evaluate
+  the reference; the latest run still reproduced the empty resolution.
+- No authenticated refresh request, CloudWatch log-stream evidence, or DLQ
+  depth evidence exists yet. The EventBridge schedule remains disabled. This
+  is an external configuration/provider boundary, not a first-100 GO signal.
+
 ## 2026-10-27 — scheduler smoke IAM-read fix
 
 - The first disabled-first authenticated scheduler dispatch (`40429342755`)
