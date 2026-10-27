@@ -213,6 +213,9 @@ def _protocol_result_metadata(result: Any) -> Dict[str, Any]:
         metadata["next_cursor_present"] = True
     if result_type in ("complete", "input_required", "task"):
         metadata["result_type"] = result_type
+    action = result.get("action")
+    if action in ("accept", "decline", "cancel"):
+        metadata["protocol_decision"] = action
     requests = result.get("inputRequests", result.get("input_requests"))
     responses = result.get("inputResponses", result.get("input_responses"))
     if isinstance(requests, list):
@@ -277,6 +280,8 @@ def _protocol_metadata_payload(method: Optional[str], result: Any) -> Dict[str, 
         trackmcp["subscription_action"] = "subscription_stopped"
     if method == "completion/complete" and any(key.startswith("completion_") for key in metadata):
         trackmcp.update({key: value for key, value in metadata.items() if key.startswith("completion_")})
+    if method == "elicitation/create" and metadata.get("protocol_decision") in ("accept", "decline", "cancel"):
+        trackmcp["protocol_decision"] = metadata["protocol_decision"]
     return {"_trackmcp": trackmcp}
 
 

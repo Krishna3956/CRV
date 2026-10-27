@@ -300,6 +300,7 @@ export function createAnalyticsHandler(getAdmin: typeof getSupabaseAdmin = getSu
       capability_families: capabilityFamilies,
       signal: signal === "notification" || signal === "progress" || signal === "cancelled" || signal === "catalog_changed" || signal === "resource_changed" || signal === "subscription_started" || signal === "subscription_stopped" ? signal : undefined,
       catalog_change_kind: safeDimensions.catalog_change_kind === "tools" || safeDimensions.catalog_change_kind === "resources" || safeDimensions.catalog_change_kind === "resource_templates" || safeDimensions.catalog_change_kind === "prompts" ? safeDimensions.catalog_change_kind : undefined,
+      protocol_decision: safeDimensions.protocol_decision === "accept" || safeDimensions.protocol_decision === "decline" || safeDimensions.protocol_decision === "cancel" ? safeDimensions.protocol_decision : undefined,
       observed_at: typeof record.observed_at === "string" ? record.observed_at : undefined,
       observation_kind: safeDimensions.protocol_observation_kind === "protocol_request" || safeDimensions.protocol_observation_kind === "protocol_response" ? safeDimensions.protocol_observation_kind : undefined,
       interaction_id_hash: typeof safeDimensions.interaction_id_hash === "string" ? safeDimensions.interaction_id_hash : undefined,
@@ -333,6 +334,7 @@ export function createAnalyticsHandler(getAdmin: typeof getSupabaseAdmin = getSu
       scope_key: `${event.service.slice(0, 128)}:${event.environment.slice(0, 64)}`,
       capability_families: capabilityFamilies,
       observation_kind: metadata?.observation_kind === "protocol_request" || metadata?.observation_kind === "protocol_response" ? metadata.observation_kind : undefined,
+      protocol_decision: metadata?.protocol_decision === "accept" || metadata?.protocol_decision === "decline" || metadata?.protocol_decision === "cancel" ? metadata.protocol_decision : undefined,
       interaction_id_hash: typeof event.interaction_id === "string" ? createHash("sha256").update(event.interaction_id, "utf8").digest("hex") : undefined,
     }];
   });
@@ -377,6 +379,19 @@ export function createAnalyticsHandler(getAdmin: typeof getSupabaseAdmin = getSu
     const scopes = observedFamilyScopes.get(family) || new Set<string>();
     current.capability_advertised = [...scopes].some((scope) => advertisedFamiliesByScope.get(scope)?.has(family) === true);
   }
+  const protocolDecisions = {
+    elicitation: { accept: 0, decline: 0, cancel: 0 },
+    sampling: { accept: 0, decline: 0, cancel: 0 },
+  };
+  for (const row of protocolFamilySourceRows) {
+    if ((row.family === "elicitation" || row.family === "sampling") && (row.protocol_decision === "accept" || row.protocol_decision === "decline" || row.protocol_decision === "cancel")) {
+      protocolDecisions[row.family][row.protocol_decision] += 1;
+    }
+  }
+  const protocolDecisionSummary = {
+    ...protocolDecisions,
+    limitation: "Only explicit allowlisted protocol decisions are counted. Accept is an observed protocol action, not proof that a user approved a business operation; user-entered values are never retained.",
+  };
   const durableCompletionRows = durableFamilyRows.filter((row) => row.family === "completion");
   const durableCompletionEvidence = durableCompletionRows.some((row) => row.observation_kind === "protocol_request" || row.observation_kind === "protocol_response");
   const completionResponses = durableCompletionEvidence
@@ -968,6 +983,7 @@ export function createAnalyticsHandler(getAdmin: typeof getSupabaseAdmin = getSu
     protocol_family_activity: [...protocolFamilyCounts.entries()].map(([family, observations]) => ({ family: family as TrackMCPProtocolFamily, observations })).sort((a, b) => b.observations - a.observations || a.family.localeCompare(b.family)),
     protocol_family_outcomes: [...protocolFamilyOutcomes.entries()].map(([family, outcome]) => ({ family: family as TrackMCPProtocolFamily, ...outcome })).sort((a, b) => b.observations - a.observations || a.family.localeCompare(b.family)),
     protocol_family_outcome_source: familySource,
+    protocol_decisions: protocolDecisionSummary,
     completion_activity: completionActivity,
     transports: transports.slice(0, MAX_PUBLIC_DIMENSION_ITEMS),
     methods: methods.slice(0, MAX_PUBLIC_DIMENSION_ITEMS),

@@ -42,6 +42,8 @@ export type TrackMCPFact = {
     subscription_action?: "listen_requested" | "subscribe_requested" | "unsubscribe_requested" | "subscription_started" | "subscription_stopped";
     /** Catalog family for an explicit list-changed/resource-updated signal. */
     catalog_change_kind?: "tools" | "resources" | "resource_templates" | "prompts";
+    /** Explicit elicitation decision; never user-entered content. */
+    protocol_decision?: "accept" | "decline" | "cancel";
   };
   measures: {
     duration_ms?: number;
@@ -133,6 +135,9 @@ export function projectTrackMCPFact(event: CanonicalTrackMCPEvent): TrackMCPFact
       : event.mcp_method === "notifications/prompts/list_changed"
         ? "prompts"
         : undefined;
+  const protocolDecision = payloadMetadata?.protocol_decision === "accept" || payloadMetadata?.protocol_decision === "decline" || payloadMetadata?.protocol_decision === "cancel"
+    ? payloadMetadata.protocol_decision
+    : undefined;
   const fact: TrackMCPFact = {
     fact_version: TRACKMCP_FACT_CONTRACT_VERSION,
     fact_type: factTypeFor(event),
@@ -158,6 +163,7 @@ export function projectTrackMCPFact(event: CanonicalTrackMCPEvent): TrackMCPFact
       ...(capabilityFamilies.length ? { capability_families: capabilityFamilies } : {}),
       ...(subscriptionAction ? { subscription_action: subscriptionAction } : {}),
       ...(catalogChangeKind ? { catalog_change_kind: catalogChangeKind } : {}),
+      ...(protocolDecision ? { protocol_decision: protocolDecision } : {}),
     },
     measures: {
       duration_ms: boundedNonNegative(event.duration_ms, 86_400_000),

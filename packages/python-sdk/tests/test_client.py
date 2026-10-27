@@ -96,6 +96,8 @@ class TrackMCPClientTest(TestCase):
         self.assertEqual(metadata, {"result_type": "task", "input_request_count": 100, "input_response_count": 100})
         self.assertNotIn("raw-task-handle", json.dumps(metadata))
         self.assertEqual(_protocol_result_metadata({"result_type": "input_required", "input_requests": [1]}), {"result_type": "input_required", "input_request_count": 1})
+        self.assertEqual(_protocol_result_metadata({"action": "accept", "content": {"secret": "omit"}}), {"protocol_decision": "accept"})
+        self.assertEqual(_protocol_result_metadata({"action": "unexpected"}), {})
         self.assertEqual(_protocol_result_metadata({"resultType": "unsupported", "inputRequests": "not-a-list"}), {})
 
     def test_cache_hints_are_bounded_and_alias_safe(self):

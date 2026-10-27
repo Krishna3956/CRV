@@ -24,6 +24,15 @@ separate. Matching uses only an already-hashed explicit interaction handle;
 values, prompt/resource references, and arguments remain unavailable. Broader
 multi-transport runtime and authenticated UAT remain open.
 
+## 2026-10-27 — explicit elicitation decision evidence
+
+The TypeScript and Python client observers now retain only the allowlisted
+elicitation decisions `accept`, `decline`, and `cancel` in metadata. Analytics
+counts those decisions separately for elicitation and sampling and never
+retains submitted values or content. An observed protocol `accept` is not
+presented as business approval. Broader cross-language runtime fixtures and
+authenticated UAT remain open.
+
 ## Closed in this pass
 
 ### Multi-round-trip outcomes

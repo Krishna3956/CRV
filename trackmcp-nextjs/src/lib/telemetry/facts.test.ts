@@ -74,6 +74,16 @@ test("persists catalog-change kind without treating a notification as a snapshot
   assert.equal("snapshot_hash" in fact.dimensions, false);
 });
 
+test("persists explicit elicitation decisions without user-entered content", () => {
+  const fact = projectTrackMCPFact(event({
+    event_type: "protocol",
+    mcp_method: "elicitation/create",
+    payload: { _trackmcp: { protocol_decision: "decline", content: { secret_answer: "private" } } },
+  }));
+  assert.equal(fact.dimensions.protocol_decision, "decline");
+  assert.equal(JSON.stringify(fact).includes("private"), false);
+});
+
 test("persists an allowlisted family hint when the method name is unavailable", () => {
   const fact = projectTrackMCPFact(event({ event_type: "protocol", payload: { _trackmcp: { protocol_family: "sampling", prompt: "private" } }, result_type: "complete" }));
   assert.equal(fact.dimensions.protocol_family, "sampling");

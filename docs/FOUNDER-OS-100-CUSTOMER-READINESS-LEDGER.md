@@ -30,6 +30,15 @@ permission.
   suggestion values and request contents are never returned.
 - [ ] Broader transport fixtures and authenticated completion UAT remain open.
 
+## 2026-10-27 elicitation decision evidence milestone
+
+- [x] TypeScript and Python observers preserve only explicit `accept`,
+  `decline`, or `cancel` decisions for elicitation responses.
+- [x] Analytics and the dashboard keep these protocol decisions separate from
+  business approval and retain no submitted values or content.
+- [ ] Broader cross-language fixtures and authenticated sampling/elicitation
+  UAT remain open.
+
 The health report exposes `scheduled_cadence_gate` separately from operational
 `state`, plus `aws_scheduler_cadence_gate` and
 `aws_end_to_end_cadence_gate`. AWS metric health can be proven while the

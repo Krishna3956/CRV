@@ -83,6 +83,9 @@ export function protocolResponseMetadata(method, result) {
         if (typeof result.completion.hasMore === "boolean")
             metadata.completion_has_more = result.completion.hasMore;
     }
+    if (method === "elicitation/create" && (result.action === "accept" || result.action === "decline" || result.action === "cancel")) {
+        metadata.protocol_decision = result.action;
+    }
     if (method === "subscriptions/listen" || method === "resources/subscribe")
         metadata.subscription_action = "subscription_started";
     if (method === "resources/unsubscribe")
@@ -434,6 +437,7 @@ export class TrackMCPClientAdapter {
             if (!pending.toolName) {
                 const taskIdHash = protocolTaskIdHash(result);
                 const taskStatus = protocolTaskStatus(result);
+                const protocolDecision = pending.method === "elicitation/create" && (result?.action === "accept" || result?.action === "decline" || result?.action === "cancel") ? result.action : undefined;
                 this.emit({
                     event_type: "protocol",
                     transport: this.options.transport,
@@ -454,7 +458,7 @@ export class TrackMCPClientAdapter {
                     ...session,
                     client_name: this.clientName,
                     client_version: this.clientVersion,
-                    payload: { _trackmcp: { observation_kind: "protocol_response", observation_source: "client", ...protocolResponseMetadata(pending.method, result), ...(taskStatus ? { task_status: taskStatus } : {}) } },
+                    payload: { _trackmcp: { observation_kind: "protocol_response", observation_source: "client", ...protocolResponseMetadata(pending.method, result), ...(protocolDecision ? { protocol_decision: protocolDecision } : {}), ...(taskStatus ? { task_status: taskStatus } : {}) } },
                 }, pending.correlation);
                 continue;
             }
