@@ -826,6 +826,18 @@ production transport UAT.
   yet prove a sustained scheduled-worker SLO across multiple scheduled
   samples.
 
+- 2026-10-27: Added the repeatable secret-gated `production-transport-smoke`
+  workflow and script. It starts bounded local MCP fixtures for the official
+  Streamable HTTP and SSE transports, sends only metadata observations to the
+  configured HTTPS production origin, writes a mode-0600 redacted report, and
+  explicitly disclaims replay, durable subscriptions, transport-owned
+  reconnect, OAuth exchange, and customer-server conformance. The direct
+  App Runner run passed both transport checks with zero dropped, hook, privacy,
+  malformed, unmatched, duplicate, or expired-message diagnostics. Contract
+  coverage passed; the release gate now runs 141 suites. Lint, the 177-route
+  production build, and `git diff --check` passed. Workflow execution remains
+  manual and skips safely when its dedicated repository secret is absent.
+
 - 2026-10-27: Ran an authenticated production-like SSE interoperability
   fixture against the deployed App Runner ingest origin. The official MCP
   `SSEClientTransport` completed initialization and a tool request against a
