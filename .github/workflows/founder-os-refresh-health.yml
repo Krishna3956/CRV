@@ -112,6 +112,7 @@ jobs:
             echo "- Reasons: $reasons"
             echo "- Samples: $(jq -r '.sample_count' "$report") / $(jq -r '.minimum_samples' "$report")"
             echo "- Scheduled samples: $(jq -r '.scheduled_sample_count' "$report") / $(jq -r '.minimum_scheduled_samples' "$report")"
+            echo "- Scheduled cadence gate: $(jq -r '.scheduled_cadence_gate.status' "$report") ($(jq -r '.scheduled_cadence_gate.evidence' "$report"))"
             echo "- Max queue lag (ms): $(jq -r '.max_queue_lag_ms' "$report")"
             echo "- AWS scheduler evidence: $(jq -r '.scheduler_evidence | if .healthy then "healthy" else "not-healthy" end' "$report")"
             cat "$report" >> "$GITHUB_STEP_SUMMARY"

@@ -48,26 +48,46 @@ test("recovery runs contribute evidence but cannot replace scheduled samples", (
 
 test("worker health surfaces stale, failed, and cadence evidence without payloads", () => {
   const report = summarizeRefreshWorkerRuns([
-    run({ run_id: 1, created_at: "2026-10-26T00:00:00Z" }),
-    run({ run_id: 2, created_at: "2026-10-26T00:30:00Z", freshness_slo: "stale", freshness_alert: "warning", max_queue_lag_ms: 1_500_000 }),
-    run({ run_id: 3, created_at: "2026-10-26T00:35:00Z", conclusion: "failure", failed: 1 }),
+    run({ run_id: 1, event: "workflow_dispatch", created_at: "2026-10-26T00:00:00Z" }),
+    run({ run_id: 2, event: "workflow_dispatch", created_at: "2026-10-26T00:30:00Z", freshness_slo: "stale", freshness_alert: "warning", max_queue_lag_ms: 1_500_000 }),
+    run({ run_id: 3, event: "workflow_dispatch", created_at: "2026-10-26T00:35:00Z", conclusion: "failure", failed: 1 }),
   ]);
   assert.equal(report.state, "warning");
-  assert.deepEqual(report.reasons, ["worker_failures_observed", "freshness_budget_exceeded", "schedule_cadence_gap"]);
+  assert.deepEqual(report.reasons, ["scheduled_samples_not_met", "worker_failures_observed", "freshness_budget_exceeded", "schedule_cadence_gap"]);
   assert.equal(report.max_queue_lag_ms, 1_500_000);
   assert.equal(JSON.stringify(report).includes("private"), false);
 });
 
 test("healthy AWS scheduler evidence satisfies production cadence without hiding worker failures", () => {
   const report = summarizeRefreshWorkerRuns([
-    run({ run_id: 1, created_at: "2026-10-26T00:00:00Z" }),
-    run({ run_id: 2, created_at: "2026-10-26T00:30:00Z", freshness_slo: "stale", freshness_alert: "warning", max_queue_lag_ms: 1_500_000 }),
-    run({ run_id: 3, created_at: "2026-10-26T00:35:00Z", conclusion: "failure", failed: 1 }),
+    run({ run_id: 1, event: "workflow_dispatch", created_at: "2026-10-26T00:00:00Z" }),
+    run({ run_id: 2, event: "workflow_dispatch", created_at: "2026-10-26T00:30:00Z", freshness_slo: "stale", freshness_alert: "warning", max_queue_lag_ms: 1_500_000 }),
+    run({ run_id: 3, event: "workflow_dispatch", created_at: "2026-10-26T00:35:00Z", conclusion: "failure", failed: 1 }),
   ], { awsScheduler: { enabled: true, invocations: 5, errors: 0, datapoints: [{ id: "invocations" }, { id: "errors" }] } });
   assert.equal(report.scheduler_evidence.healthy, true);
   assert.equal(report.scheduler_evidence.invocations, 5);
+  assert.deepEqual(report.scheduled_cadence_gate, {
+    status: "pending",
+    observed_samples: 0,
+    required_samples: 3,
+    evidence: "aws_metrics_only",
+  });
   assert.equal(report.cadence_breaches, 1);
   assert.deepEqual(report.reasons, ["worker_failures_observed", "freshness_budget_exceeded"]);
+});
+
+test("scheduled cadence gate becomes proven only from scheduled worker samples", () => {
+  const report = summarizeRefreshWorkerRuns([
+    run({ run_id: 1, event: "schedule", created_at: "2026-10-26T00:00:00Z" }),
+    run({ run_id: 2, event: "schedule", created_at: "2026-10-26T00:05:00Z" }),
+    run({ run_id: 3, event: "schedule", created_at: "2026-10-26T00:10:00Z" }),
+  ]);
+  assert.deepEqual(report.scheduled_cadence_gate, {
+    status: "proven",
+    observed_samples: 3,
+    required_samples: 3,
+    evidence: "scheduled_runs",
+  });
 });
 
 test("AWS scheduler errors remain visible as a distinct health reason", () => {

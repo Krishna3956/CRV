@@ -65,6 +65,12 @@ export function summarizeRefreshWorkerRuns(runs, { budgetMs = DEFAULT_BUDGET_MS,
   const scheduledInsufficient = scheduledSampleCount < MIN_SAMPLES && !awsEvidence.healthy;
   const effectiveCadenceBreaches = awsEvidence.healthy ? 0 : cadenceBreaches;
   const awsErrorsObserved = awsEvidence.enabled && awsEvidence.datapoints > 0 && awsEvidence.errors > 0;
+  const scheduledCadenceGate = {
+    status: scheduledSampleCount >= MIN_SAMPLES ? "proven" : "pending",
+    observed_samples: scheduledSampleCount,
+    required_samples: MIN_SAMPLES,
+    evidence: scheduledSampleCount >= MIN_SAMPLES ? "scheduled_runs" : awsEvidence.healthy ? "aws_metrics_only" : "insufficient_scheduled_samples",
+  };
   const state = insufficient ? "insufficient_data" : failedRuns > 0 || staleRuns > 0 || effectiveCadenceBreaches > 0 || scheduledInsufficient || awsErrorsObserved ? "warning" : "healthy";
   const reasons = [];
   if (insufficient) reasons.push("minimum_samples_not_met");
@@ -83,6 +89,7 @@ export function summarizeRefreshWorkerRuns(runs, { budgetMs = DEFAULT_BUDGET_MS,
     minimum_samples: MIN_SAMPLES,
     scheduled_sample_count: scheduledSampleCount,
     minimum_scheduled_samples: MIN_SAMPLES,
+    scheduled_cadence_gate: scheduledCadenceGate,
     freshness_budget_ms: boundedNumber(budgetMs, DEFAULT_BUDGET_MS),
     max_cadence_ms: boundedNumber(maxCadenceMs, DEFAULT_MAX_CADENCE_MS),
     stale_runs: staleRuns,
