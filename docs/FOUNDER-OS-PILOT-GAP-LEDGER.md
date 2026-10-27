@@ -912,3 +912,9 @@ production transport UAT.
   `36eaed1` after the gate-guard documentation commit. The deployed runtime
   identity remains unchanged; the contract test requires this explicit update
   whenever the source checkpoint moves.
+
+- 2026-10-27: Audited the only remaining open GitHub PR (#425). Its immutable
+  runtime identity, `/api/health` release marker, deployment verification, and
+  related tests are already present on current `main`; no unique diff remained
+  necessary. Closed the superseded PR with an explanatory comment so obsolete
+  release work is not presented as pending.
