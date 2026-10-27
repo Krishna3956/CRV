@@ -11,13 +11,14 @@ is intentionally not a GO approval and must not be treated as one.
 
 - `main`: current default branch. Immutable deployed SHAs belong in the
   release record; PR checks remain attached to their exact review commits.
-- Current deployed application: `65e193ad6fa37178935bfa3db8fccd416426984b`,
-  App Runner workflow `40578117597` (successful rollout, release gate,
+- Current deployed application: `dd443a8cd4ebb7a4312d48690cad2f19bbd296d5`,
+  App Runner workflow `40581600172` (successful rollout, release gate,
   production smoke, identity, and runtime-safety checks). Its runtime
   reference is the exact immutable SHA.
-- Current source verification: `main` at `HEAD` (`8455e69c`, documentation-only
-  evidence update), with the deployed application at immutable `65e193a`.
-  The chained authenticated production smoke `40579268329` also passed for
+- Current source verification: `main` at `HEAD` (`dd443a8c`, same-origin
+  documentation fallback correction), with the deployed application at the
+  same immutable source. The chained authenticated production smoke
+  `40582650751` also passed for
   that release; subsequent ledger-only commits do not require a new App Runner
   image.
   This does not close the external owner, backup, privacy, or scheduler-cadence

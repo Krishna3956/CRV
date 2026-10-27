@@ -10,8 +10,8 @@ promise that every product capability is complete.
 
 - `origin/main` is `HEAD` (active pilot evidence baseline). The deployed
   application runtime is immutable
-  `65e193ad6fa37178935bfa3db8fccd416426984b` via App Runner workflow
-  `40578117597`; chained authenticated production smoke `40579268329` passed
+  `dd443a8cd4ebb7a4312d48690cad2f19bbd296d5` via App Runner workflow
+  `40581600172`; chained authenticated production smoke `40582650751` passed
   for the same release. The post-deployment commits are documentation-only
   evidence updates and are not claimed as deployed behavior.
 - The latest local release gate passes 144 suites, lint, the 177-route

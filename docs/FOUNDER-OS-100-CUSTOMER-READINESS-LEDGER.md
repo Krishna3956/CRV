@@ -1,6 +1,6 @@
 # Founder OS 100 Customer Readiness Ledger
 
-Last updated: 2026-10-28 (main `0c56b62b`; deployed application `65e193a` and App Runner rollout `40578117597` succeeded; hosted publication workflow `40569475423` verified `@trackmcp/sdk@0.1.24`)
+Last updated: 2026-10-28 (main `dd443a8c`; deployed application `dd443a8c` and App Runner rollout `40581600172` succeeded; authenticated production smoke `40582650751` passed; hosted publication workflow `40569475423` verified `@trackmcp/sdk@0.1.24`)
 The same-origin docs, auth, blog CTA fixes, regression guard, and hosted-runner verification gate are deployed and runtime-verified. The public Cloudflare edge still returns HTML 403 to scripted probes and remains a separate external gate.
 Latest freshness evidence: health workflow `40566829192` with worker drain
 `40566911017` inspected eight redacted worker samples. AWS scheduler cadence is
@@ -25,7 +25,7 @@ proof.
 | Backup/PITR | Supabase Free Plan has no scheduled backups or PITR; inspection recorded in the backup evidence entries below | **HOLD / owner decision** | Accepted documented limitation with named recovery owner/runbook, or plan upgrade plus tested restore rehearsal |
 | Privacy acceptance | Engineering privacy/export/deletion contracts pass; production acceptance evidence is not recorded | **HOLD / owner decision** | Signed production privacy review and retention/deletion acceptance |
 | Credentialed lifecycle/UAT | Read-only tenant/auth smoke is verified; write-gated key lifecycle and customer-owned transport UAT remain unexecuted | **HOLD / credentialed** | Disposable lifecycle key run plus customer-owned transport/protocol UAT artifacts |
-| Hosted deployment verification | Replacement workflow `40578117597` deployed `65e193a`; release gate, image build/push, App Runner rollout, production smoke, immutable release identity, and runtime-safety checks passed | **PASS** | Re-run the same guarded workflow for the next runtime-changing commit |
+| Hosted deployment verification | Replacement workflow `40581600172` deployed `dd443a8`; release gate, image build/push, App Runner rollout, production smoke, immutable release identity, and runtime-safety checks passed; authenticated smoke `40582650751` also passed | **PASS** | Re-run the same guarded workflow for the next runtime-changing commit |
 | Release-owner acceptance | Source, CI, deployment, package publication, and local release gates are green | **HOLD / owner decision** | Explicit approval referencing this register and the current deployed source |
 
 This register is the active decision surface. Historical entries below remain
@@ -64,11 +64,11 @@ evidence and are not current approval.
   authenticated GitHub UI and API and completed as cancelled. It had already
   pushed the candidate image and started App Runner, so no success was inferred
   from the partial run.
-- [x] One controlled replacement workflow, `40578117597`, completed successfully
-  for immutable source `65e193ad6fa37178935bfa3db8fccd416426984b`. The hosted
+- [x] One controlled replacement workflow, `40581600172`, completed successfully
+  for immutable source `dd443a8cd4ebb7a4312d48690cad2f19bbd296d5`. The hosted
   release gate, image build/push, App Runner rollout, read-only production
   smoke, release-identity verification, and runtime-safety audit all passed.
-- [x] The chained authenticated production-smoke workflow `40579268329`
+- [x] The chained authenticated production-smoke workflow `40582650751`
   completed successfully for the same immutable release with no failed or
   cancelled steps.
 - [x] Independent direct-origin probes confirmed `/api/health` reports
@@ -88,9 +88,20 @@ evidence and are not current approval.
   `/dashboard?view=setup`) instead of sending users to that blocked hostname.
 - [x] Documentation navigation, OTEL documentation, and API-boundary contracts
   pass (11/11 focused checks).
-- [ ] Re-run the deployed browser navigation audit after the new App Runner
-  rollout completes; this source fix cannot repair the external Cloudflare
-  edge rule itself.
+- [x] App Runner rollout `40581600172` and authenticated production smoke
+  `40582650751` passed for immutable source `dd443a8c`; this source fix cannot
+  repair the external Cloudflare edge rule itself.
+
+## 2026-10-28 — documentation snippet fallback correction
+
+- [x] Removed the remaining copy-paste `https://app.trackmcp.com` fallbacks from
+  the public Docs and TypeScript pages. Snippets now direct customers to the
+  same-origin `/signup` and `/dashboard` paths used by the working navigation.
+- [x] Added a regression scan covering code/text snippets as well as authored
+  anchors, so the blocked first-party hostname cannot return through a copy-
+  paste example unnoticed.
+- [x] Focused docs/CTA checks and the full **144-suite** release gate pass; the
+  correction is included in deployed source `dd443a8c`.
 
 ## 2026-10-28 — same-origin auth CTA fix
 
@@ -98,13 +109,15 @@ evidence and are not current approval.
   `/signup` on the current origin, preserving attribution query parameters
   without forcing a blocked `app.trackmcp.com` hostname.
 - [x] Website truth, CTA, and lint checks pass locally; deployed verification
-  remains pending the hosted rollout.
+  passed in App Runner workflow `40581600172` and authenticated smoke
+  `40582650751`.
 
 ## 2026-10-28 — same-origin blog CTA fix
 
 - [x] The two authored blog dashboard CTAs now use `/dashboard`; a source audit
   found no remaining first-party anchor hrefs that force `app.trackmcp.com`.
-- [x] Marketing truth and sitewide CTA checks pass 16/16 locally.
+- [x] Marketing truth and sitewide CTA checks pass 16/16 locally; the fix is
+  included in deployed source `dd443a8c`.
 
 ## 2026-10-28 — first-party CTA regression guard
 

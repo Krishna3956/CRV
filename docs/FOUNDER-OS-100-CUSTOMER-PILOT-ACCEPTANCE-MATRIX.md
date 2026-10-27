@@ -2,9 +2,9 @@
 
 Status: **HOLD — no silent waivers**  
 Reconciled: 2026-10-28 (Asia/Calcutta)
-Current deployed baseline: application `65e193ad6fa37178935bfa3db8fccd416426984b`,
-App Runner run `40578117597` (successful deployment). The chained authenticated
-production smoke `40579268329` also passed for the same immutable release. The
+Current deployed baseline: application `dd443a8cd4ebb7a4312d48690cad2f19bbd296d5`,
+App Runner run `40581600172` (successful deployment). The chained authenticated
+production smoke `40582650751` also passed for the same immutable release. The
 current repository source is `main` at `HEAD`; the post-deployment commits are
 documentation-only evidence updates and are not claimed as deployed behavior.
 This is current runtime and source evidence, not a pilot GO decision.

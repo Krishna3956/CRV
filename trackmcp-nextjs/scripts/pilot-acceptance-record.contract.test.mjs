@@ -45,8 +45,9 @@ test("release record preserves non-source acceptance decisions until an owner ac
 });
 
 test("external-gate register names accountable parties and closure evidence", () => {
-  assert.match(externalGates, /65e193ad6fa37178935bfa3db8fccd416426984b/);
-  assert.match(externalGates, /40578117597/);
+  assert.match(externalGates, /dd443a8cd4ebb7a4312d48690cad2f19bbd296d5/);
+  assert.match(externalGates, /40581600172/);
+  assert.match(externalGates, /40582650751/);
   assert.match(externalGates, /40397368253/);
   assert.match(externalGates, /40398170070/);
   assert.match(externalGates, /main`: current default branch/);
@@ -60,7 +61,7 @@ test("external-gate register names accountable parties and closure evidence", ()
 });
 
 test("acceptance matrix separates current source from deployed runtime", () => {
-  assert.match(acceptanceMatrix, /65e193ad6fa37178935bfa3db8fccd416426984b/);
+  assert.match(acceptanceMatrix, /dd443a8cd4ebb7a4312d48690cad2f19bbd296d5/);
   assert.match(acceptanceMatrix, /current repository source is `main` at `HEAD`/);
   assert.match(acceptanceMatrix, /not claimed as\s+deployed behavior/);
 });

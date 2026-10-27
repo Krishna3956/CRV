@@ -8,11 +8,11 @@ commit and the operator accepts the listed limitations.
 
 ## Current deployed baseline — 2026-10-28
 
-App Runner workflow `40578117597` completed successfully for immutable commit
-`65e193ad6fa37178935bfa3db8fccd416426984b`. Release gate, image build/push,
+App Runner workflow `40581600172` completed successfully for immutable commit
+`dd443a8cd4ebb7a4312d48690cad2f19bbd296d5`. Release gate, image build/push,
 rollout, read-only production smoke, immutable release identity, and runtime
 safety checks passed. The chained authenticated production smoke
-`40579268329` also completed successfully for the same release. The release
+`40582650751` also completed successfully for the same release. The release
 remains Draft/HOLD because the owner, backup/recovery, privacy acceptance,
 worker freshness, and credentialed lifecycle/transport gates are still open.
 
@@ -61,10 +61,11 @@ recovery-evidence hardening, not a final operational SLO acceptance.
 
 ## Latest source verification — 2026-10-28
 
-The current repository source is `main` at `HEAD`. The latest local release gate
+The current repository source is `main` at `HEAD` (including the same-origin
+documentation fallback correction in deployed source `dd443a8`). The latest local release gate
 passes **144 suites**, lint, the production build (**177 routes**), and
-`git diff --check`. The deployed source is `65e193a` via App Runner workflow
-`40578117597`; authenticated production smoke `40579268329` passed for the same
+`git diff --check`. The deployed source is `dd443a8` via App Runner workflow
+`40581600172`; authenticated production smoke `40582650751` passed for the same
 immutable release. Documentation-only postflight commits after that runtime
 baseline do not require a new application image.
 
