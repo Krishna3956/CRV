@@ -26,6 +26,19 @@ review.
 The release remains Draft/HOLD; this baseline contains the worker-health
 recovery-evidence hardening, not a final operational SLO acceptance.
 
+## Latest source verification — 2026-10-27
+
+The current `main` source (including the repeatable transport-smoke contracts
+and readiness documentation) passes the full local release gate at **141
+suites**, lint, the production build (**177 routes**), and `git diff --check`.
+The direct App Runner transport fixture passed official Streamable HTTP and SSE
+client flows with metadata-only observations. The manually dispatched hosted
+transport workflow completed safely but skipped its write-enabled step because
+the dedicated `TRACKMCP_TRANSPORT_SMOKE_KEY` repository secret is not present.
+This is source and bounded transport evidence only; it does not alter the
+release HOLD or close the credentialed, scheduler, backup, privacy-acceptance,
+or protocol-interoperability gates below.
+
 Health validation workflow `40352798759` then ran against main `25877da` and
 uploaded redacted artifact `12663714778`. It reported eight samples, including
 two scheduled and six recovery/manual runs, and correctly remained `warning`
