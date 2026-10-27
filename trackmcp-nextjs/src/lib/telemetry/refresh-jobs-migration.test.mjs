@@ -10,6 +10,7 @@ const workerPostflight = await readFile(resolve(process.cwd(), "../supabase/manu
 const retryPriorityMigration = await readFile(resolve(process.cwd(), "../supabase/migrations/20261020000011_prioritize_due_refresh_retries.sql"), "utf8");
 const deferredMigration = await readFile(resolve(process.cwd(), "../supabase/migrations/20261020000012_defer_cancelled_refresh_jobs.sql"), "utf8");
 const coalescingMigration = await readFile(resolve(process.cwd(), "../supabase/migrations/20261028000001_coalesce_refresh_jobs.sql"), "utf8");
+const backlogCoalescingMigration = await readFile(resolve(process.cwd(), "../supabase/migrations/20261028000002_coalesce_legacy_refresh_backlog.sql"), "utf8");
 
 test("refresh-job migration is additive, bounded, and worker-only", () => {
   assert.match(migration, /create table if not exists public\.trackmcp_refresh_jobs/);
@@ -68,4 +69,14 @@ test("window coalescing requeues late ingest revisions without stealing active l
   assert.match(coalescingMigration, /request_revision <> coalesce\(lease_revision, request_revision\)/);
   assert.match(coalescingMigration, /grant execute on function public\.trackmcp_enqueue_refresh_jobs\(uuid, bigint, timestamptz\) to service_role/);
   assert.doesNotMatch(coalescingMigration, /delete from|truncate |drop table/i);
+});
+
+test("legacy backlog coalescer preserves telemetry and cancels only redundant queue rows", () => {
+  assert.match(backlogCoalescingMigration, /trackmcp_coalesce_legacy_refresh_backlog/);
+  assert.match(backlogCoalescingMigration, /distinct on \(workspace_id, kind/);
+  assert.match(backlogCoalescingMigration, /format\('ingest-window:%s:%s'/);
+  assert.match(backlogCoalescingMigration, /state = 'cancelled'/);
+  assert.match(backlogCoalescingMigration, /coalesced_legacy/);
+  assert.match(backlogCoalescingMigration, /telemetry rows are never deleted/);
+  assert.doesNotMatch(backlogCoalescingMigration, /delete from|truncate |drop table/i);
 });

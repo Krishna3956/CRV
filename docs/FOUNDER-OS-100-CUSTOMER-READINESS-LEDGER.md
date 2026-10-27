@@ -1,6 +1,6 @@
 # Founder OS 100 Customer Readiness Ledger
 
-Last updated: 2026-10-28 (main `e11d106e`; deployed application `d1bbf498` and App Runner rollout `40586991519` succeeded; scheduler redeploy/enablement `40586991487`/`40587311920` succeeded; hosted CI `40589952051` passed; corrected recovery run `40586415068` passed; health run `40589534006` passed; authenticated production smoke remains verified at `40588063835`; hosted publication workflow `40569475423` verified `@trackmcp/sdk@0.1.24`)
+Last updated: 2026-10-28 (main `f4c2b9be`; deployed application `f4c2b9be` and App Runner rollout `40592783145` succeeded; hosted CI `40592783084` passed; read-only production smoke, immutable identity, and runtime-safety checks passed in that rollout; queued-backlog coalescer changes are documented below; scheduler redeploy/enablement `40586991487`/`40587311920` remain the latest scheduler evidence; authenticated production smoke remains verified at `40588063835`; hosted publication workflow `40569475423` verified `@trackmcp/sdk@0.1.24`)
 The same-origin docs, auth, blog CTA fixes, regression guard, and hosted-runner verification gate are deployed and runtime-verified. The public Cloudflare edge still returns HTML 403 to scripted probes and remains a separate external gate.
 Latest freshness evidence: health workflow `40566829192` with worker drain
 `40566911017` inspected eight redacted worker samples. AWS scheduler cadence is
@@ -69,6 +69,29 @@ and **4/4 scheduled successes**; the GitHub scheduled-worker sample count is
   HOLD until the reviewed migration is applied, a read-only postflight confirms
   the coalescing columns/RPC, and a fresh worker-health window proves the queue
   drains within budget.
+
+## 2026-10-28 — coalescing migration applied and legacy backlog reduced
+
+- [x] App Runner rollout `40592783145` deployed immutable source `f4c2b9be`.
+  The hosted release gate, ECR image build/push, App Runner rollout, read-only
+  production smoke, immutable release identity, runtime-safety audit, and all
+  redacted evidence uploads completed successfully. TrackMCP CI `40592783084`
+  also passed.
+- [x] In the authenticated production SQL editor, migration
+  `20261028000001_coalesce_refresh_jobs` was applied. A read-only postflight
+  returned `coalescing_columns=2`, `refresh_rpc_count=3`, and zero running,
+  retryable, or failed jobs. The migration is additive and does not delete
+  telemetry or derived rows.
+- [x] A bounded, reviewed coalescer was installed and executed for the legacy
+  queue. It preserved 196 canonical ingest-window jobs and marked 12,490
+  redundant fingerprinted queue rows `cancelled` with
+  `last_error_code=coalesced_legacy`; no telemetry rows were deleted. The
+  follow-up postflight reports `queued_jobs=196`, `retryable_jobs=0`,
+  `legacy_pending_jobs=0`.
+- [ ] This is an operational backlog reduction, not a sustained freshness pass.
+  Run the worker against the 196 canonical jobs, then retain three fresh
+  scheduled health samples within the 15-minute budget before changing the
+  active freshness gate from HOLD.
 
 ## Active external-gate register (current)
 
