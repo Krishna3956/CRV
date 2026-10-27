@@ -3,6 +3,20 @@
 This is a review record, not a publication action. No registry credentials are
 used here and no package is published automatically.
 
+## Current single-package patch publication (2026-10-27)
+
+The reviewed patch release `@trackmcp/sdk@0.1.20` was published by workflow
+`40460973967` from source commit `de60a3f`. It contains the synchronized
+namespaced-capability privacy boundary in the distributed Node adapter.
+
+| Package | Published version | Registry state |
+| --- | --- | --- |
+| `@trackmcp/sdk` | `0.1.20` | npm HTTP 200; SHA-512 integrity `sha512-cg8If4qaIAoEzT5CLqj17IwsN36H4V77DAl4x8fXdbnlvP71ZqadIRibMIelv9ydaK7LexgXhzbtOGkvJ+fZdw==`; [tarball](https://registry.npmjs.org/@trackmcp/sdk/-/sdk-0.1.20.tgz) |
+
+The published tarball was independently inspected and contains the
+namespace-qualified capability regex. CLI and Python artifacts were
+intentionally not republished; their versions and contents were unchanged.
+
 ## Current registry reconciliation (2026-10-26, published train 0.1.19/0.1.10/0.1.12)
 
 ### Latest coordinated release

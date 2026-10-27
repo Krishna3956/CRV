@@ -1130,3 +1130,12 @@ production transport UAT.
   `12714945228` (App Runner host). This verifies the synchronized SDK bundle
   is present in a production candidate; it does not imply a new registry
   publication or close the external pilot-acceptance gates.
+
+- 2026-10-27: Published the reviewed single-package patch
+  `@trackmcp/sdk@0.1.20` through workflow `40460973967` from source
+  `de60a3f`. npm registry verification passed with integrity
+  `sha512-cg8If4qaIAoEzT5CLqj17IwsN36H4V77DAl4x8fXdbnlvP71ZqadIRibMIelv9ydaK7LexgXhzbtOGkvJ+fZdw==`, and direct tarball inspection confirmed the
+  namespace-qualified capability regex is present in the published Node
+  adapter. CLI/Python were not republished because their artifacts were
+  unchanged. This closes the consumer-facing SDK distribution drift; broader
+  authenticated transport UAT and external pilot gates remain separate.
