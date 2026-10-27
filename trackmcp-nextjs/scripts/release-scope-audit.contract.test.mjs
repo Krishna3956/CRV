@@ -34,7 +34,8 @@ test("strict scope mode fails closed when review or local artifacts are present"
   } catch (error) {
     failed = error?.status !== 0;
   }
-  if (report.files.length > 0) {
+  const hasReviewOrLocalArtifacts = (report.summary["review-required"] || 0) > 0 || (report.summary["excluded-local-artifact"] || 0) > 0;
+  if (hasReviewOrLocalArtifacts) {
     assert.equal(failed, true, "a mixed worktree must not pass the strict release audit");
   } else {
     assert.equal(failed, false, "a clean checkout should pass the strict release audit");
