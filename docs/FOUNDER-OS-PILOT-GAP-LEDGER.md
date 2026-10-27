@@ -41,6 +41,10 @@ Status: active autonomous audit, started 2026-10-21.
   runtime-safety audit, and redacted evidence uploads. This closes hosted
   deployment evidence for the scheduler-observability change, but does not
   close the separate recurring-scheduler or release-owner gates.
+- Authenticated production smoke run `40425382400` for the same deployed
+  candidate completed successfully. The smoke result is retained as hosted
+  evidence; it does not imply that the recurring refresh schedule is enabled
+  or that first-100 release approval has been granted.
 
 ## 2026-10-27 — modern request metadata and browser-tester parity
 
