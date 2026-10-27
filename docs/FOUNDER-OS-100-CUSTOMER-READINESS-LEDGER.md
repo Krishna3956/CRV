@@ -1,26 +1,17 @@
 # Founder OS 100 Customer Readiness Ledger
 
-Last updated: 2026-10-27 (main `068f206`; deployed application `0c36da1` and App Runner production smoke verified)
-Latest freshness evidence: health workflow `40445804232` inspected eight
-redacted samples and reports a healthy bounded window, zero worker failures,
-and `max_queue_lag_ms: 105384`; sustained scheduled-sample health remains an
-explicit open gate because the report contains **0/3 scheduled samples**.
+Last updated: 2026-10-27 (main `d981c41`; deployed application `0c36da1` and App Runner production smoke verified)
+Latest freshness evidence: health workflow `40449251681` inspected eight
+redacted worker samples and proved the AWS scheduler cadence gate with four
+invocations and zero errors. The report records **0/3 scheduled worker
+samples**, and its end-to-end scheduled-success projection is unavailable
+because the OIDC role lacks log-event query permission.
 
-The health report now exposes `scheduled_cadence_gate` separately from
-operational `state`: AWS metric health can be healthy while the pilot cadence
-gate remains pending until actual scheduled worker samples are observed.
-
-It also exposes `aws_scheduler_cadence_gate`: the current enabled AWS metrics
-window proves the minimum invocation/error-free threshold, while the stricter
-application scheduled-worker sample gate remains separately pending.
-
-The enabled-schedule follow-up is retained as artifact `12708665678`; it
-reports four AWS invocations, zero errors, and the same pending 0/3 scheduled
-worker cadence gate.
-
-The post-change health run `40446554951` (artifact `12708936081`) now proves
-the separate AWS cadence gate with three invocations and zero errors. The
-application scheduled-worker sample gate remains pending at 0/3.
+The health report exposes `scheduled_cadence_gate` separately from operational
+`state`, plus `aws_scheduler_cadence_gate` and
+`aws_end_to_end_cadence_gate`. AWS metric health can be proven while the
+stricter application/end-to-end cadence gates remain pending. Manual and
+recovery runs never count as scheduled evidence.
 
 ## 2026-10-27 manual refresh-worker recovery evidence
 
