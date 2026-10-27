@@ -1,12 +1,26 @@
 # Founder OS 100 Customer Readiness Ledger
 
-Last updated: 2026-10-27 (main `83a1335`; deployed application `506be89` and App Runner rollout and production smoke verified; TypeScript SDK 0.1.22 and CLI 0.1.11 registry publication verified)
+Last updated: 2026-10-27 (main `aca361f`; Python public protocol-result contract corrected; hosted CI `40559178999` passed)
 Latest freshness evidence: health workflow `40502266095` (scheduled) inspected eight
 redacted worker samples. AWS scheduler cadence is now proven with **3/3
 invocations**, and the end-to-end scheduled-success marker is proven with **4/4
 CloudWatch EMF successes**. The overall state remains `warning` because
 only **1/3 scheduled worker samples** is in the current evaluation window and
 the maximum queue lag is `3,506,514 ms` (above the 15-minute pilot budget).
+
+## 2026-10-27 — Python public protocol-result contract validation
+
+- [x] Corrected the release contract to assert the shipped public
+  `record_protocol_result(...)` observer rather than the private helper name
+  that the runtime smoke no longer calls.
+- [x] Focused nonpublished-SDK contract tests passed 16/16 and the Python
+  runtime smoke passed with seven metadata-only events and no private payload
+  markers crossing the serialized boundary.
+- [x] Hosted CI run `40559178999` passed web/JavaScript, Go, and .NET jobs on
+  source `aca361f`.
+- [ ] This validates the SDK source and privacy smoke only; authenticated
+  production UAT and the remaining external protocol lifecycle gates stay
+  open.
 
 ## 2026-10-27 — Python protocol transport parity
 
