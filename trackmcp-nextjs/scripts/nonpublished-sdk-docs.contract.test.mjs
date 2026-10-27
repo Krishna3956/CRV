@@ -190,6 +190,7 @@ test("Python hosted CI runs the privacy, direction, and flush smoke harness", ()
   assert.match(pythonSmokeSource, /prompts\/get/);
   assert.match(pythonSmokeSource, /record_protocol_result\(/);
   assert.match(pythonSmokeSource, /elicitation\/create/);
+  assert.match(pythonSmokeSource, /record_protocol_result\([\s\S]*transport="stdio"/);
   assert.match(pythonSmokeSource, /input_request_count/);
   assert.match(pythonSmokeSource, /record_transport_failure/);
   assert.match(pythonSmokeSource, /private-resource-name/);
