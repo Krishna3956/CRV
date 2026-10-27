@@ -13,7 +13,22 @@ function parseTimestamp(value) {
   return Number.isFinite(time) ? time : null;
 }
 
-export function summarizeRefreshWorkerRuns(runs, { budgetMs = DEFAULT_BUDGET_MS, maxCadenceMs = DEFAULT_MAX_CADENCE_MS } = {}) {
+function normalizeAwsSchedulerEvidence(value) {
+  const source = value && typeof value === "object" ? value : {};
+  const datapoints = Array.isArray(source.datapoints) ? source.datapoints.filter((item) => item && typeof item === "object").slice(0, 32) : [];
+  const invocations = boundedNumber(source.invocations);
+  const errors = boundedNumber(source.errors);
+  const healthy = datapoints.length > 0 && invocations > 0 && errors === 0;
+  return {
+    enabled: source.enabled === true,
+    datapoints: datapoints.length,
+    invocations,
+    errors,
+    healthy,
+  };
+}
+
+export function summarizeRefreshWorkerRuns(runs, { budgetMs = DEFAULT_BUDGET_MS, maxCadenceMs = DEFAULT_MAX_CADENCE_MS, awsScheduler = null } = {}) {
   const boundedRuns = (Array.isArray(runs) ? runs : [])
     .filter((run) => run && typeof run === "object")
     .map((run) => ({
@@ -41,16 +56,24 @@ export function summarizeRefreshWorkerRuns(runs, { budgetMs = DEFAULT_BUDGET_MS,
   const staleRuns = boundedRuns.filter((run) => run.freshness_slo === "stale" || run.freshness_alert === "warning").length;
   const failedRuns = boundedRuns.filter((run) => run.conclusion !== "success" || run.failed > 0 || run.retryable > 0).length;
   const cadenceBreaches = intervals.filter((interval) => interval > maxCadenceMs).length;
+  const awsEvidence = normalizeAwsSchedulerEvidence(awsScheduler);
   const scheduledSampleCount = boundedRuns.filter((run) => run.event === "schedule").length;
   const insufficient = boundedRuns.length < MIN_SAMPLES;
-  const scheduledInsufficient = scheduledSampleCount < MIN_SAMPLES;
-  const state = insufficient ? "insufficient_data" : failedRuns > 0 || staleRuns > 0 || cadenceBreaches > 0 || scheduledInsufficient ? "warning" : "healthy";
+  // EventBridge/Lambda is the production scheduler. GitHub cron is only a
+  // recovery path, so a healthy AWS metric window satisfies the scheduler
+  // evidence requirement even when GitHub has missed a tick.
+  const scheduledInsufficient = scheduledSampleCount < MIN_SAMPLES && !awsEvidence.healthy;
+  const effectiveCadenceBreaches = awsEvidence.healthy ? 0 : cadenceBreaches;
+  const awsErrorsObserved = awsEvidence.enabled && awsEvidence.datapoints > 0 && awsEvidence.errors > 0;
+  const state = insufficient ? "insufficient_data" : failedRuns > 0 || staleRuns > 0 || effectiveCadenceBreaches > 0 || scheduledInsufficient || awsErrorsObserved ? "warning" : "healthy";
   const reasons = [];
   if (insufficient) reasons.push("minimum_samples_not_met");
   if (scheduledInsufficient && !insufficient) reasons.push("scheduled_samples_not_met");
   if (failedRuns > 0) reasons.push("worker_failures_observed");
   if (staleRuns > 0) reasons.push("freshness_budget_exceeded");
-  if (cadenceBreaches > 0) reasons.push("schedule_cadence_gap");
+  if (effectiveCadenceBreaches > 0) reasons.push("schedule_cadence_gap");
+  if (awsErrorsObserved) reasons.push("aws_scheduler_errors_observed");
+  if (awsEvidence.enabled && awsEvidence.datapoints === 0) reasons.push("aws_scheduler_evidence_missing");
 
   return {
     version: 1,
@@ -65,6 +88,7 @@ export function summarizeRefreshWorkerRuns(runs, { budgetMs = DEFAULT_BUDGET_MS,
     stale_runs: staleRuns,
     failed_runs: failedRuns,
     cadence_breaches: cadenceBreaches,
+    scheduler_evidence: awsEvidence,
     max_queue_lag_ms: Math.max(0, ...boundedRuns.map((run) => run.max_queue_lag_ms)),
     total_processed: boundedRuns.reduce((total, run) => total + run.processed, 0),
     runs: boundedRuns.map(({ run_id, created_at, event, observed_at, freshness_slo, freshness_alert, max_queue_lag_ms, processed, failed, retryable }) => ({ run_id, created_at, event, observed_at, freshness_slo, freshness_alert, max_queue_lag_ms, processed, failed, retryable })),
@@ -76,5 +100,16 @@ if (process.argv[1] === new URL(import.meta.url).pathname) {
   if (!inputPath) throw new Error("Usage: node refresh-worker-health-report.mjs <runs.json>");
   const source = (await readFile(inputPath, "utf8")).trim();
   const input = source ? source.split(/\r?\n/).map((line) => JSON.parse(line)) : [];
-  process.stdout.write(`${JSON.stringify(summarizeRefreshWorkerRuns(input), null, 2)}\n`);
+  const awsPath = process.argv[3];
+  let awsScheduler = null;
+  if (awsPath) {
+    try {
+      awsScheduler = JSON.parse(await readFile(awsPath, "utf8"));
+    } catch {
+      // Missing optional AWS evidence is represented explicitly by the
+      // report rather than making a health run fail open.
+      awsScheduler = { enabled: true, datapoints: [], invocations: 0, errors: 0 };
+    }
+  }
+  process.stdout.write(`${JSON.stringify(summarizeRefreshWorkerRuns(input, { awsScheduler }), null, 2)}\n`);
 }

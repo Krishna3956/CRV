@@ -57,3 +57,25 @@ test("worker health surfaces stale, failed, and cadence evidence without payload
   assert.equal(report.max_queue_lag_ms, 1_500_000);
   assert.equal(JSON.stringify(report).includes("private"), false);
 });
+
+test("healthy AWS scheduler evidence satisfies production cadence without hiding worker failures", () => {
+  const report = summarizeRefreshWorkerRuns([
+    run({ run_id: 1, created_at: "2026-10-26T00:00:00Z" }),
+    run({ run_id: 2, created_at: "2026-10-26T00:30:00Z", freshness_slo: "stale", freshness_alert: "warning", max_queue_lag_ms: 1_500_000 }),
+    run({ run_id: 3, created_at: "2026-10-26T00:35:00Z", conclusion: "failure", failed: 1 }),
+  ], { awsScheduler: { enabled: true, invocations: 5, errors: 0, datapoints: [{ id: "invocations" }, { id: "errors" }] } });
+  assert.equal(report.scheduler_evidence.healthy, true);
+  assert.equal(report.scheduler_evidence.invocations, 5);
+  assert.equal(report.cadence_breaches, 1);
+  assert.deepEqual(report.reasons, ["worker_failures_observed", "freshness_budget_exceeded"]);
+});
+
+test("AWS scheduler errors remain visible as a distinct health reason", () => {
+  const report = summarizeRefreshWorkerRuns([
+    run({ run_id: 1, event: "schedule", created_at: "2026-10-26T00:00:00Z" }),
+    run({ run_id: 2, event: "schedule", created_at: "2026-10-26T00:05:00Z" }),
+    run({ run_id: 3, event: "schedule", created_at: "2026-10-26T00:10:00Z" }),
+  ], { awsScheduler: { enabled: true, invocations: 3, errors: 2, datapoints: [{ id: "invocations" }, { id: "errors" }] } });
+  assert.equal(report.state, "warning");
+  assert.deepEqual(report.reasons, ["aws_scheduler_errors_observed"]);
+});

@@ -8,6 +8,11 @@ on:
 permissions:
   actions: write
   contents: read
+  id-token: write
+
+env:
+  AWS_REGION: ap-south-1
+  AWS_ROLE_ARN: arn:aws:iam::872575360367:role/GitHubActionsDeployRole
 
 jobs:
   health:
@@ -19,6 +24,44 @@ jobs:
         with:
           ref: ${{ github.sha }}
           fetch-depth: 1
+
+      - name: Authenticate to AWS for scheduler metrics
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ env.AWS_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Collect bounded AWS scheduler evidence
+        continue-on-error: true
+        run: |
+          set -euo pipefail
+          output="$RUNNER_TEMP/refresh-health/aws-scheduler.json"
+          mkdir -p "$(dirname "$output")"
+          stack_output=$(aws cloudformation describe-stacks \
+            --stack-name trackmcp-refresh-scheduler \
+            --region "$AWS_REGION" \
+            --query "Stacks[0].Outputs[?OutputKey=='RefreshSchedulerFunctionArn'].OutputValue | [0]" \
+            --output text 2>/dev/null || true)
+          function_name="${stack_output##*:function:}"
+          if [[ -z "$function_name" || "$function_name" == "None" || "$function_name" == "$stack_output" ]]; then
+            printf '{"enabled":true,"datapoints":[],"invocations":0,"errors":0}\n' > "$output"
+            echo "::warning::Refresh scheduler function ARN was not available for health evidence."
+            exit 0
+          fi
+          end_time=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+          start_time=$(date -u -d '20 minutes ago' +%Y-%m-%dT%H:%M:%SZ)
+          queries=$(jq -nc --arg function_name "$function_name" '[
+            {Id:"invocations",MetricStat:{Metric:{Namespace:"AWS/Lambda",MetricName:"Invocations",Dimensions:[{Name:"FunctionName",Value:$function_name}]},Period:300,Stat:"Sum"},ReturnData:true},
+            {Id:"errors",MetricStat:{Metric:{Namespace:"AWS/Lambda",MetricName:"Errors",Dimensions:[{Name:"FunctionName",Value:$function_name}]},Period:300,Stat:"Sum"},ReturnData:true}
+          ]')
+          raw=$(aws cloudwatch get-metric-data \
+            --region "$AWS_REGION" \
+            --metric-data-queries "$queries" \
+            --start-time "$start_time" \
+            --end-time "$end_time" \
+            --scan-by TimestampDescending \
+            --output json)
+          printf '%s' "$raw" | jq '{enabled:true,datapoints:[.MetricDataResults[] | {id:.Id,values:.Values,timestamps:.Timestamps}],invocations:([.MetricDataResults[] | select(.Id=="invocations") | .Values[]] | add // 0),errors:([.MetricDataResults[] | select(.Id=="errors") | .Values[]] | add // 0)}' > "$output"
 
       - name: Collect recent redacted worker summaries
         env:
@@ -49,7 +92,10 @@ jobs:
             [ -n "$summary" ] || continue
             printf '%s\n' "$summary" | jq -c --argjson run_id "$run_id" --arg created_at "$created_at" --arg conclusion "$conclusion" --arg event "$event" '. + {run_id:$run_id, created_at:$created_at, conclusion:$conclusion, event:$event}' >> "$RUNNER_TEMP/refresh-health/runs.ndjson"
           done < <(jq -r '.workflow_runs[] | [.id, .created_at, .conclusion, .event] | @tsv' "$RUNNER_TEMP/refresh-health/runs.json")
-          node trackmcp-nextjs/scripts/refresh-worker-health-report.mjs "$RUNNER_TEMP/refresh-health/runs.ndjson" > "$RUNNER_TEMP/refresh-health/report.json"
+          node trackmcp-nextjs/scripts/refresh-worker-health-report.mjs \
+            "$RUNNER_TEMP/refresh-health/runs.ndjson" \
+            "$RUNNER_TEMP/refresh-health/aws-scheduler.json" \
+            > "$RUNNER_TEMP/refresh-health/report.json"
 
       - name: Publish bounded health report
         if: always()
@@ -67,6 +113,7 @@ jobs:
             echo "- Samples: $(jq -r '.sample_count' "$report") / $(jq -r '.minimum_samples' "$report")"
             echo "- Scheduled samples: $(jq -r '.scheduled_sample_count' "$report") / $(jq -r '.minimum_scheduled_samples' "$report")"
             echo "- Max queue lag (ms): $(jq -r '.max_queue_lag_ms' "$report")"
+            echo "- AWS scheduler evidence: $(jq -r '.scheduler_evidence | if .healthy then "healthy" else "not-healthy" end' "$report")"
             cat "$report" >> "$GITHUB_STEP_SUMMARY"
             if [ "$state" = "warning" ]; then
               echo "::warning::Refresh worker sequence health requires attention: $reasons"
