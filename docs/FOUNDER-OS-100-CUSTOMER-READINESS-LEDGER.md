@@ -1,12 +1,26 @@
 # Founder OS 100 Customer Readiness Ledger
 
-Last updated: 2026-10-27 (main `53ea054`; deployed application `506be89` and App Runner rollout and production smoke verified; cross-language transport-aware result smoke coverage verified; hosted CI `40562115220` passed)
+Last updated: 2026-10-28 (main `53ea054`; deployed application `506be89` and App Runner rollout and production smoke verified; cross-language transport-aware result smoke coverage verified; hosted CI `40562115220` passed)
 Latest freshness evidence: health workflow `40502266095` (scheduled) inspected eight
 redacted worker samples. AWS scheduler cadence is now proven with **3/3
 invocations**, and the end-to-end scheduled-success marker is proven with **4/4
 CloudWatch EMF successes**. The overall state remains `warning` because
 only **1/3 scheduled worker samples** is in the current evaluation window and
 the maximum queue lag is `3,506,514 ms` (above the 15-minute pilot budget).
+
+## 2026-10-28 — complete local release-gate baseline
+
+- [x] The complete local release gate passed **144 suites**, including
+  accessibility, tenant isolation, privacy/export, protocol matrix, modern
+  client fixtures, SDK/CLI/Python packed consumers, docs navigation, dashboard
+  contracts, deployment contracts, worker health, and production-smoke
+  workflow contracts.
+- [x] Current focused UX audits also pass: docs navigation 8/8, sitewide CTAs
+  4/4, dashboard contracts 64/64, and accessibility contracts 4/4.
+- [ ] This is source/build evidence only. The release remains HOLD pending the
+  documented owner approval, backup/PITR evidence, sustained worker freshness,
+  credentialed lifecycle/UAT, and customer-owned protocol interoperability
+  gates.
 
 ## 2026-10-27 — Python public protocol-result contract validation
 
