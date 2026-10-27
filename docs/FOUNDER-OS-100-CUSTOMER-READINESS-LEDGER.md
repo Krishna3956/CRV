@@ -14,6 +14,16 @@ The enabled-schedule follow-up is retained as artifact `12708665678`; it
 reports four AWS invocations, zero errors, and the same pending 0/3 scheduled
 worker cadence gate.
 
+## 2026-10-27 manual refresh-worker recovery evidence
+
+- [x] Explicit recovery run `40446099143` completed successfully on the
+  current mainline and retained artifact `12707938220`. It executed ten
+  bounded batches with zero processed, zero failed, zero retryable jobs, zero
+  timeouts, and `freshness_slo: no_backlog_observed` (`max_queue_lag_ms: 0`).
+- [ ] This was a deliberate `workflow_dispatch` recovery run, not an
+  EventBridge-scheduled sample. It therefore improves current freshness
+  evidence without closing the separate 0/3 scheduled-cadence gate.
+
 The deployed application is the runtime-verified App Runner release
 (`0c36da187d6fee56cd280ea79070176e9cd8f63d`, workflow `40426236860`). The
 release gate, image binding, rollout, read-only production smoke, running

@@ -2,6 +2,14 @@
 
 Status: active autonomous audit, started 2026-10-21.
 
+## 2026-10-27 — refresh-worker recovery clears current backlog
+
+- Explicit recovery run `40446099143` completed successfully with ten bounded
+  batches, zero failures/retries/timeouts, and `max_queue_lag_ms: 0`; redacted
+  artifact `12707938220` records `freshness_slo: no_backlog_observed`.
+- This is not treated as scheduled-cadence proof: it was a manual
+  `workflow_dispatch`, so the AWS EventBridge 0/3 cadence gate remains open.
+
 ## 2026-10-27 — scheduler enabled and cadence evidence refreshed
 
 - Enablement workflow `40445610213` succeeded with the existing non-secret
