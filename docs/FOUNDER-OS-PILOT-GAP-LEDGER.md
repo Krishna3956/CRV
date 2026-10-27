@@ -853,3 +853,11 @@ production transport UAT.
   explicit failures without retaining response content. This closes the
   production-like SSE failure-observation path; customer-owned endpoint
   interoperability and transport-owned reconnect guarantees remain open.
+
+- 2026-10-27: Added `docs/FOUNDER-OS-100-CUSTOMER-READINESS-SNAPSHOT.md` as
+  the concise first-100 handoff. It records the current engineering-green
+  evidence (141-suite release gate, lint, 177-route build, deployment and
+  bounded transport checks), the hosted transport-secret configuration skip,
+  and the remaining release-owner/infrastructure/protocol gates. It keeps the
+  release status explicitly **HOLD** and makes no readiness claim beyond the
+  retained evidence.
