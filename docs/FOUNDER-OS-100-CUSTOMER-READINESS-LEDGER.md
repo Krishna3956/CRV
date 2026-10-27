@@ -1,6 +1,6 @@
 # Founder OS 100 Customer Readiness Ledger
 
-Last updated: 2026-10-28 (main `f39ea20e`; deployed application `d1bbf498` and App Runner rollout `40586991519` succeeded; scheduler redeploy/enablement `40586991487`/`40587311920` succeeded; hosted CI `40586991507` passed; corrected recovery run `40586415068` passed; health run `40589534006` passed; authenticated production smoke remains verified at `40588063835`; hosted publication workflow `40569475423` verified `@trackmcp/sdk@0.1.24`)
+Last updated: 2026-10-28 (main `e11d106e`; deployed application `d1bbf498` and App Runner rollout `40586991519` succeeded; scheduler redeploy/enablement `40586991487`/`40587311920` succeeded; hosted CI `40589952051` passed; corrected recovery run `40586415068` passed; health run `40589534006` passed; authenticated production smoke remains verified at `40588063835`; hosted publication workflow `40569475423` verified `@trackmcp/sdk@0.1.24`)
 The same-origin docs, auth, blog CTA fixes, regression guard, and hosted-runner verification gate are deployed and runtime-verified. The public Cloudflare edge still returns HTML 403 to scripted probes and remains a separate external gate.
 Latest freshness evidence: health workflow `40566829192` with worker drain
 `40566911017` inspected eight redacted worker samples. AWS scheduler cadence is
