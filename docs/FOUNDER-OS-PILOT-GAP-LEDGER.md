@@ -653,5 +653,8 @@ production transport UAT.
   CloudWatch metric name, not a valid SQS `GetQueueAttributes` attribute. The
   workflow and refresh-scheduler runbook now request the valid
   `ApproximateNumberOfMessages`; the contract suite and complete local
-  release gate (139 suites) pass. A final hosted rerun remains required before
-  enabling the recurring schedule.
+  release gate (139 suites) pass. Hosted run `40435009405` then passed
+  end-to-end: authenticated Lambda invocation returned status 200, the
+  scheduler DLQ depth was 0, and metadata-only CloudWatch log evidence was
+  uploaded as artifact `12704070739`. The recurring schedule remains
+  intentionally disabled pending sustained-sample and release-owner gates.
