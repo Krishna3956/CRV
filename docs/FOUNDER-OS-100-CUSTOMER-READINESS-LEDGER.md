@@ -1,6 +1,6 @@
 # Founder OS 100 Customer Readiness Ledger
 
-Last updated: 2026-10-27 (main `4a80665`; deployed application `506be89` and App Runner rollout and production smoke verified; Python public protocol-result transport parity corrected; hosted CI `40559178999` passed)
+Last updated: 2026-10-27 (main `eeafadb`; deployed application `506be89` and App Runner rollout and production smoke verified; Python public protocol-result transport parity corrected; hosted CI `40560443098` passed)
 Latest freshness evidence: health workflow `40502266095` (scheduled) inspected eight
 redacted worker samples. AWS scheduler cadence is now proven with **3/3
 invocations**, and the end-to-end scheduled-success marker is proven with **4/4
@@ -18,6 +18,9 @@ the maximum queue lag is `3,506,514 ms` (above the 15-minute pilot budget).
   markers crossing the serialized boundary.
 - [x] Hosted CI run `40559178999` passed web/JavaScript, Go, and .NET jobs on
   source `aca361f`.
+- [x] Follow-up hosted CI run `40560443098` passed web/JavaScript, Go, and
+  .NET jobs on source `eeafadb` after the ledger-provenance contract was
+  reconciled.
 - [ ] This validates the SDK source and privacy smoke only; authenticated
   production UAT and the remaining external protocol lifecycle gates stay
   open.
