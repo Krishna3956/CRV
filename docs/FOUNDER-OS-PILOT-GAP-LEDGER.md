@@ -2,6 +2,15 @@
 
 Status: active autonomous audit, started 2026-10-21.
 
+## 2026-10-28 — TypeScript SDK 0.1.24 release candidate
+
+- The source candidate is now `@trackmcp/sdk@0.1.24`; release candidate `0.1.24`
+  is carrying the corrected
+  modern-client identity (`io.modelcontextprotocol/clientInfo.version`).
+- Local SDK (105/105), package audit, production-smoke contract (7/7), and the
+  full 144-suite gate pass. Registry publication and clean-consumer evidence
+  are intentionally still pending until the reviewed npm workflow completes.
+
 ## 2026-10-27 — health-state correction deployed
 
 - App Runner deployment `40494157458` successfully rolled out immutable

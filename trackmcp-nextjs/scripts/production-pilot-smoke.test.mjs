@@ -34,7 +34,7 @@ test("first-ingest fixture matches the current canonical event envelope", () => 
   assert.match(source, /observation_source: "server"/);
   assert.doesNotMatch(source, /schema_version: "1\.0"/);
   assert.doesNotMatch(source, /payload_policy: "metadata_only"/);
-  assert.match(source, /user-agent.*TrackMCP\/0\.1\.23 production-smoke/);
+  assert.match(source, /user-agent.*TrackMCP\/0\.1\.24 production-smoke/);
 });
 
 test("opt-in production write smoke exercises the bounded OTLP/HTTP protobuf path", () => {
@@ -67,7 +67,7 @@ test("production pilot smoke records redacted evidence and covers pilot endpoint
   assert.match(source, /Observed calls, ranked and trended/);
   assert.match(source, /Every call, ranked and trended/);
   assert.match(source, /configured server boundary/);
-  assert.match(source, /@trackmcp\/sdk@0\.1\.23/);
+  assert.match(source, /@trackmcp\/sdk@0\.1\.24/);
 });
 
 test("production pilot smoke verifies security headers and protected API boundaries", () => {

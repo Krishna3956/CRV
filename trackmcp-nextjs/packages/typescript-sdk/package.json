@@ -1,6 +1,6 @@
 {
   "name": "@trackmcp/sdk",
-  "version": "0.1.23",
+  "version": "0.1.24",
   "description": "Observability SDK for MCP servers",
   "keywords": [
     "mcp",

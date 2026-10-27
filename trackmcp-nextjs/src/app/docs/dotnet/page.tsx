@@ -23,7 +23,7 @@ export default function DotnetDocsPage() {
     "acme-mcp-server",
     "production",
     ServerVersion: "2026.10.26", // bounded release metadata (optional)
-    SdkVersion: "0.1.23",        // reviewed TypeScript release metadata (optional)
+    SdkVersion: "0.1.24",        // reviewed TypeScript release metadata (optional)
     DeploymentId: "deploy-42")); // bounded release metadata (optional)
 
 // In the MCP middleware/transport boundary:

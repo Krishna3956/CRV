@@ -5,6 +5,11 @@ used here and no package is published automatically.
 
 ## 2026-10-28 — current candidate publication result
 
+The next TypeScript-only patch candidate is `@trackmcp/sdk@0.1.24`. It carries
+the modern-client release-identity correction and is intentionally separate
+from the already-public `0.1.23` artifact; it must not be described as public
+until the reviewed publish workflow verifies npm metadata and a clean consumer.
+
 The coordinated candidate `@trackmcp/sdk@0.1.23`, `@trackmcp/cli@0.1.12`, and
 `trackmcp==0.1.14` passed local contracts and hosted CI. App Runner deployment
 for source `91293a3` passed. Publication workflow `40564834985` accepted the

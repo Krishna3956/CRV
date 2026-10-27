@@ -39,6 +39,15 @@ evidence and are not current approval.
   fixtures to assert the active identity. SDK tests pass 105/105 and the full
   local release gate passes 144/144.
 
+## 2026-10-28 — TypeScript SDK 0.1.24 release candidate
+
+- [x] Bumped the TypeScript package and lockfile to `0.1.24` so the corrected
+  modern-client identity can be published without mutating the public `0.1.23`
+  artifact.
+- [x] Package tests (105/105), package-release audit, and production-smoke
+  contracts (7/7) pass. The reviewed npm publication and clean-consumer check
+  remain pending; no public `0.1.24` claim is made yet.
+
 ## 2026-10-28 — published-train smoke default alignment
 
 - [x] Corrected the production pilot smoke harness to use the currently
