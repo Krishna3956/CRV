@@ -2,6 +2,20 @@
 
 Status: active autonomous audit, started 2026-10-21.
 
+## 2026-10-27 — package-version parity and release-gate recheck
+
+- Reconciled the current CLI integration README, package-release readiness
+  record, and active readiness ledger to the verified published train:
+  `@trackmcp/sdk@0.1.20`, `@trackmcp/cli@0.1.10`, and `trackmcp==0.1.12`.
+  Historical release rows remain unchanged and explicitly historical.
+- Re-ran the complete `npm run test:release-gate` after the reconciliation.
+  The gate passed all **143 suites**, including docs navigation, package
+  consumers/provenance, privacy and tenant isolation, OTLP interoperability,
+  transport fixtures, and deployment-contract checks. This is source and
+  contract verification; it does not close the still-open external scheduler,
+  recovery/PITR, privacy-acceptance, credentialed customer UAT, or owner
+  release gates.
+
 ## 2026-10-27 — post-rollout source verification
 
 - On the reconciled `main` source, `npm run lint` passed and `npm run build`
@@ -475,7 +489,7 @@ just because a README or marketing page mentions it.
 | Setup density | Secondary privacy/data-flow and export/deletion explanations moved behind accessible disclosures; primary setup actions remain visible | Implemented in current change | Live browser audit after deployment |
 | Public docs parity | Added Go, .NET, Authentication/OAuth, and clearly named Transport Observer documentation paths | Implemented in current change | Check links, snippets, and package-version claims in CI |
 | Node client protocol observer | Client adapter now emits bounded request/response/notification observations for every identified non-tool MCP request, including catalog counts, task/MRTR result discriminators, list-changed/progress signals, modern protocol-family labels, and reconnect lifecycle generations; arguments, URIs, prompt names, and result bodies remain excluded | Implemented and merged through PRs #173–#175 with 42 SDK tests passing; authenticated analytics now exposes bounded protocol-family counts through PR #177; a production-like TypeScript SDK fixture completed against the deployed App Runner ingest origin and Supabase read-back verified `initialize`, `notifications/initialized`, and `tools/call` (`pilot_probe`) rows under the scoped production service | Keep the fixture in recurring release validation; broader transport and package-publication coverage remains pending |
-| Modern cache and subscription metadata | TypeScript client adapter emits bounded `next_cursor_present`, `cache_ttl_ms`, `cache_scope`, `subscriptions/listen` request/acknowledgement markers, and list-change/progress/cancellation signal metadata; the modern client exposes bounded task/catalog/resource subscription listeners and metadata-only `callTool` task-result recognition without retaining cursor, raw URI, tool result, or subscription values | Implemented and shipped in the published `@trackmcp/sdk@0.1.19`; real local Streamable HTTP discovery/catalog/subscription fixture merged in PR #608; authenticated production stream interoperability remains open | Preserve the fixture in recurring release validation; complete authenticated production stream UAT and keep the no-replay/no-durable-subscription boundary |
+| Modern cache and subscription metadata | TypeScript client adapter emits bounded `next_cursor_present`, `cache_ttl_ms`, `cache_scope`, `subscriptions/listen` request/acknowledgement markers, and list-change/progress/cancellation signal metadata; the modern client exposes bounded task/catalog/resource subscription listeners and metadata-only `callTool` task-result recognition without retaining cursor, raw URI, tool result, or subscription values | Implemented and shipped in the published `@trackmcp/sdk@0.1.20`; real local Streamable HTTP discovery/catalog/subscription fixture merged in PR #608; authenticated production stream interoperability remains open | Preserve the fixture in recurring release validation; complete authenticated production stream UAT and keep the no-replay/no-durable-subscription boundary |
 | Refresh and task transition projection | Accepted ingest now enqueues bounded refresh work by default; explicit task transition history is persisted by the service-role worker by default, with explicit `false` rollback flags; the bounded projection now selects `task_id` and `payload` required to derive hashed transitions; the TypeScript server wrapper records hashed task handles and explicit lifecycle state for `tasks/get`, `tasks/update`, and `tasks/cancel` | Implemented and production-verified for a non-empty worker batch; SDK lifecycle/privacy regression is merged in PR #170 with the full release gate green | Keep the worker and ingest smoke fixtures in recurring release validation; complete capability-negotiation and cross-server workflow fixtures |
 | Transport disconnect evidence | Node client adapter now drains in-flight tool and non-tool requests on transport error/close into bounded `transport_error` observations before ending the session; real official Stdio child-exit and Streamable HTTP socket-disconnect fixtures now pass | Implemented locally with regression coverage | Hosted cross-language compile evidence and authenticated production disconnect UAT |
 | Connection-key scope | API keys can carry optional bounded service/environment scopes; ingest rejects mismatched labels with a tenant-safe 403 while legacy NULL-scoped keys remain workspace-wide | Implemented and deployed; migration applied, read-only postflight added, release-gate/tenant-isolation coverage passed; production postflight observed 49 active workspace-wide keys, 0 invalid scopes; live smoke accepted a matching event, rejected a mismatched label with 403, and the authenticated export showed the matching event | Keep scope behavior in the recurring release smoke and rotate/revoke the temporary pilot key under the operator’s key-retention policy |

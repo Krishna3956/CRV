@@ -202,7 +202,7 @@ owner acceptance remain separate open gates.
   hosted Go/web/.NET checks passed.
 - [x] PR #566 merged as `fff91da6576987f5d5259801d71b1e41f268a4bc`. Active
   content-release and PDF truth-audit claims now name the published
-  `@trackmcp/sdk@0.1.19`, `@trackmcp/cli@0.1.10`, and `trackmcp==0.1.12` train;
+  `@trackmcp/sdk@0.1.20`, `@trackmcp/cli@0.1.10`, and `trackmcp==0.1.12` train;
   historical release tables remain explicitly historical. The 137-suite gate,
   hosted CI, App Runner deployment `40381106003`, and authenticated smoke
   `40382233180` passed for this exact mainline.
@@ -213,7 +213,7 @@ owner acceptance remain separate open gates.
 ## 2026-10-26 current published package-train smoke
 
 - [x] The current-release smoke artifact executed 34 of 36 bounded checks and
-  passed the registry checks for `@trackmcp/sdk@0.1.19`, `@trackmcp/cli@0.1.10`,
+  passed the registry checks for `@trackmcp/sdk@0.1.20`, `@trackmcp/cli@0.1.10`,
   and `trackmcp==0.1.12`, including npm integrity/tarball-origin verification
   and PyPI wheel/sdist digests.
 - [x] This evidence is attached to the exact deployed candidate

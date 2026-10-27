@@ -119,7 +119,7 @@ credentialed first-event or activation result.
 | `trackmcp` | `packages/python-sdk/pyproject.toml` | unittest suite and build metadata audit | `.github/workflows/publish.yml`, `python` |
 
 The current local source manifests match the latest published coordinated train:
-`@trackmcp/sdk` `0.1.19`, `@trackmcp/cli` `0.1.10`, and `trackmcp` `0.1.12`.
+`@trackmcp/sdk` `0.1.20`, `@trackmcp/cli` `0.1.10`, and `trackmcp` `0.1.12`.
 The release gate and single `all` publication workflow completed successfully;
 the immutable prior baseline remains in the historical tables below.
 They were selected after a registry preflight found the immediately preceding
