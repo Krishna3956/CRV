@@ -29,6 +29,9 @@ and **4/4 scheduled successes**; the GitHub scheduled-worker sample count is
 - [x] The workflow contract test asserts each bound. This is an operability
   improvement only; it does not close the worker-freshness, backup/PITR,
   privacy-acceptance, credentialed-UAT, or release-owner HOLD gates below.
+- [x] Follow-up `4af1711c` applies the same bounded process rule to SDK
+  dependency installation, builds, audits, and Python artifact validation so
+  registry or compiler stalls fail with actionable evidence as well.
 
 ## Active external-gate register (current)
 
