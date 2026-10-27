@@ -9,6 +9,12 @@ const lifecycleWorkflow = await readFile(new URL("../../.github/workflows/produc
 const factWritesWorkflow = await readFile(new URL("../../.github/workflows/enable-semantic-fact-writes.yml", import.meta.url), "utf8");
 
 test("App Runner deployment performs a redacted read-only smoke after RUNNING", () => {
+  assert.match(workflow, /paths:\s*[\s\S]*trackmcp-nextjs\/src\/\*\*/);
+  assert.match(workflow, /trackmcp-nextjs\/workers\/\*\*/);
+  assert.match(workflow, /trackmcp-nextjs\/package-lock\.json/);
+  assert.match(workflow, /trackmcp-nextjs\/Dockerfile/);
+  assert.match(workflow, /trackmcp-nextjs\/entrypoint\.\*/);
+  assert.doesNotMatch(workflow, /paths:\s*[\s\S]*- "trackmcp-nextjs\/\*\*"\s*\n/);
   assert.match(workflow, /timeout-minutes: 35/);
   assert.match(workflow, /cancel-in-progress: true/);
   assert.match(workflow, /- name: Wait for deployment to finish\n\s+timeout-minutes: 21/);

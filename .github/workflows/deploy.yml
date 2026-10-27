@@ -7,7 +7,21 @@ on:
   push:
     branches: [main]
     paths:
-      - "trackmcp-nextjs/**"
+      # Deploy runtime and packaging changes only. Contract tests, release
+      # ledgers, and other repository tooling under trackmcp-nextjs/scripts or
+      # src/**/*.test.* must not trigger a production rollout by themselves.
+      - "trackmcp-nextjs/src/**"
+      - "trackmcp-nextjs/public/**"
+      - "trackmcp-nextjs/workers/**"
+      - "trackmcp-nextjs/package.json"
+      - "trackmcp-nextjs/package-lock.json"
+      - "trackmcp-nextjs/next.config.*"
+      - "trackmcp-nextjs/tsconfig.json"
+      - "trackmcp-nextjs/postcss.config.*"
+      - "trackmcp-nextjs/tailwind.config.*"
+      - "trackmcp-nextjs/Dockerfile"
+      - "trackmcp-nextjs/entrypoint.*"
+      - "trackmcp-nextjs/middleware.*"
       - ".github/workflows/deploy.yml"
   workflow_dispatch:
     inputs:
