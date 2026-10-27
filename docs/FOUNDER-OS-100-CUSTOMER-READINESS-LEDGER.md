@@ -34,6 +34,17 @@ permission.
   `insufficient_data` with a freshness breach. Permission availability is not
   evidence of a healthy cadence.
 
+## 2026-10-27 scheduler re-enable and invocation evidence
+
+- [x] Scheduler deployment run `40491826607` completed successfully with
+  `enable_schedule=true` and metadata-only evidence collection. The retained
+  artifact `12728353468` contains five fresh Lambda log streams for the
+  deployed scheduler function, confirming invocation activity after the
+  re-enable.
+- [ ] CloudWatch invocation/error datapoints were not yet available in that
+  bounded collection window, so the sustained three-sample cadence and
+  freshness SLO remain open.
+
 ## 2026-10-27 SDK release-train publication
 
 - [x] Source changes after the published `@trackmcp/sdk@0.1.20` and

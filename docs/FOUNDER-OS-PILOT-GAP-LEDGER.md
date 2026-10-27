@@ -28,6 +28,16 @@ Status: active autonomous audit, started 2026-10-21.
   zero current AWS invocations, and `insufficient_data`/freshness-breach
   findings. No scheduler health claim is made from the permission check alone.
 
+## 2026-10-27 — scheduler re-enable evidence
+
+- Scheduler deployment run `40491826607` completed successfully with the
+  five-minute schedule explicitly enabled. Artifact `12728353468` contains
+  five fresh Lambda log streams for the deployed function, confirming
+  post-deploy invocation activity.
+- CloudWatch metric datapoints were still unavailable in the collection
+  window, so this is invocation evidence only; the sustained cadence and
+  freshness gates remain open.
+
 ## 2026-10-27 — bounded catalog correlation parity
 
 - Catalog list-change notifications now have a privacy-safe, reviewed evidence
