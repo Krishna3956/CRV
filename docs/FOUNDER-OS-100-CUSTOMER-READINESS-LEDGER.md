@@ -30,13 +30,13 @@ the maximum queue lag is `3,506,514 ms` (above the 15-minute pilot budget).
   application-worker samples are in the evaluation window, the state is
   `insufficient_data`, and maximum queue lag exceeds the 15-minute budget.
 
-- [x] App Runner workflow `40521393982` completed successfully for immutable
-  source `877f3c5aabe22d4cdbec6592700885cc7835e68b`. Release gate, image/digest
+- [x] App Runner workflow `40524668419` completed successfully for immutable
+  source `506be89f010b5da15cad8d1f02421449a65fa660`. Release gate, image/digest
   verification, rollout readiness, read-only production smoke, immutable
   release identity, and runtime-safety audit all passed.
-- [x] Retained redacted artifacts are `app-runner-host-877f3c5aabe22d4cdbec6592700885cc7835e68b`,
-  `production-smoke-877f3c5aabe22d4cdbec6592700885cc7835e68b`, and
-  `runtime-flags-877f3c5aabe22d4cdbec6592700885cc7835e68b`.
+- [x] Retained redacted artifacts are `app-runner-host-506be89f010b5da15cad8d1f02421449a65fa660`,
+  `production-smoke-506be89f010b5da15cad8d1f02421449a65fa660`, and
+  `runtime-flags-506be89f010b5da15cad8d1f02421449a65fa660`.
 - [ ] This deployment verifies the published SDK/documentation reconciliation
   and current runtime identity; it does not close sustained worker freshness,
   backup/PITR, privacy acceptance, credentialed mutation UAT, or release-owner

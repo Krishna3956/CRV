@@ -191,8 +191,8 @@ credentialed first-event or activation result.
 | `@trackmcp/cli` | `trackmcp-nextjs/packages/cli/package.json` | CLI tests and packed-consumer test | `.github/workflows/publish.yml`, `cli` |
 | `trackmcp` | `packages/python-sdk/pyproject.toml` | unittest suite and build metadata audit | `.github/workflows/publish.yml`, `python` |
 
-The latest published registry train is `@trackmcp/sdk` `0.1.21`,
-`@trackmcp/cli` `0.1.10`, and `trackmcp` `0.1.13`.
+The latest published registry train is `@trackmcp/sdk` `0.1.22`,
+`@trackmcp/cli` `0.1.11`, and `trackmcp` `0.1.13`.
 The release gate and single `all` publication workflow completed successfully;
 the immutable prior baseline remains in the historical tables below.
 They were selected after a registry preflight found the immediately preceding
