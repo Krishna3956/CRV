@@ -1002,3 +1002,11 @@ production transport UAT.
   runs, one current freshness breach, and insufficient current volume. AWS
   invocation cadence is proven; scheduled-worker and log-marker gates remain
   open.
+
+- 2026-10-27: Fixed a parity bug in the analytics event-window fallback. Modern
+  extension capability names such as `io.modelcontextprotocol/tasks` are now
+  normalized to the same bounded protocol family used by durable semantic facts,
+  so capability-aware outcome tables cannot report an explicitly advertised
+  modern capability as absent when the durable refresh projection is unavailable.
+  The regression covers tenant-scoped analytics and preserves the metadata-only
+  boundary.

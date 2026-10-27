@@ -10,7 +10,7 @@ import { projectTrackMCPFact } from "../../../../lib/telemetry/facts.ts";
 import { aggregateTrackMCPFacts, aggregateTrackMCPFactsBy, type TrackMCPOutcomeGroupBy } from "../../../../lib/telemetry/outcomes.ts";
 import { aggregateTaskLifecycles, type TrackMCPTaskTransitionObservation } from "../../../../lib/telemetry/task-lifecycle.ts";
 import { buildTrackMCPDataTrust } from "../../../../lib/telemetry/data-trust.ts";
-import { classifyTrackMCPProtocolSignal, protocolFamilyForMethod, type TrackMCPProtocolFamily, type TrackMCPProtocolSignal } from "../../../../lib/telemetry/semantic.ts";
+import { classifyTrackMCPProtocolSignal, protocolFamilyForCapabilityName, protocolFamilyForMethod, type TrackMCPProtocolFamily, type TrackMCPProtocolSignal } from "../../../../lib/telemetry/semantic.ts";
 import { evaluateWorkerHealth } from "../../../../lib/telemetry/worker-health.ts";
 
 type EventRow = {
@@ -315,7 +315,9 @@ export function createAnalyticsHandler(getAdmin: typeof getSupabaseAdmin = getSu
       ? event.payload._trackmcp as Record<string, unknown>
       : undefined;
     const rawCapabilities = metadata?.capability_names ?? (event.payload && typeof event.payload === "object" && !Array.isArray(event.payload) ? event.payload.capability_names : undefined);
-    const capabilityFamilies = (Array.isArray(rawCapabilities) ? rawCapabilities.filter((value): value is string => typeof value === "string") : typeof rawCapabilities === "string" ? rawCapabilities.split(",") : []).slice(0, 16);
+    const capabilityFamilies = [...new Set((Array.isArray(rawCapabilities) ? rawCapabilities.filter((value): value is string => typeof value === "string") : typeof rawCapabilities === "string" ? rawCapabilities.split(",") : [])
+      .map((name) => protocolFamilyForCapabilityName(name.trim()))
+      .filter((family): family is TrackMCPProtocolFamily => Boolean(family)))].slice(0, 16);
     return [{
       family,
       outcome,
