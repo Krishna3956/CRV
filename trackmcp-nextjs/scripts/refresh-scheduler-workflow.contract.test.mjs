@@ -13,6 +13,10 @@ test("refresh scheduler deployment is manual, OIDC-authenticated, and disabled b
   assert.match(workflow, /default:\s*false[\s\S]*type:\s*boolean/);
   assert.match(workflow, /run_authenticated_smoke:/);
   assert.match(workflow, /run_authenticated_smoke requires enable_schedule=false/);
+  assert.match(workflow, /collect_schedule_evidence/);
+  assert.match(workflow, /get-metric-data/);
+  assert.match(workflow, /aws-scheduler-metrics\.json/);
+  assert.match(workflow, /aws-scheduler-log-streams\.json/);
   assert.match(workflow, /\"EnableSchedule=\$ENABLE_SCHEDULE\"/);
   assert.match(workflow, /--no-confirm-changeset/);
 });

@@ -31,6 +31,11 @@ on:
         required: true
         default: false
         type: boolean
+      collect_schedule_evidence:
+        description: Collect metadata-only Lambda invocation/error metrics for the enabled AWS schedule
+        required: true
+        default: false
+        type: boolean
       failure_alarm_topic_arn:
         description: Optional SNS topic ARN for failure alarms
         required: false
@@ -204,6 +209,36 @@ jobs:
             --attribute-names ApproximateNumberOfMessages \
             --region "$AWS_REGION" --query 'Attributes' --output json \
             > "$REPORT_DIR/dlq-depth.json"
+
+      - name: Collect enabled AWS schedule evidence without payloads
+        if: ${{ inputs.collect_schedule_evidence }}
+        env:
+          STACK_NAME: ${{ inputs.stack_name }}
+        run: |
+          set -euo pipefail
+          REPORT_DIR="$RUNNER_TEMP/refresh-scheduler-report"
+          FUNCTION_ARN=$(aws cloudformation describe-stacks \
+            --stack-name "$STACK_NAME" --region "$AWS_REGION" \
+            --query 'Stacks[0].Outputs[?OutputKey==`RefreshSchedulerFunctionArn`].OutputValue | [0]' \
+            --output text)
+          FUNCTION_NAME="${FUNCTION_ARN##*:function:}"
+          END_TIME=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+          START_TIME=$(date -u -d '20 minutes ago' +%Y-%m-%dT%H:%M:%SZ)
+          METRIC_QUERIES=$(jq -nc --arg fn "$FUNCTION_NAME" '[
+            {Id:"invocations",MetricStat:{Metric:{Namespace:"AWS/Lambda",MetricName:"Invocations",Dimensions:[{Name:"FunctionName",Value:$fn}]},Period:300,Stat:"Sum"},ReturnData:true},
+            {Id:"errors",MetricStat:{Metric:{Namespace:"AWS/Lambda",MetricName:"Errors",Dimensions:[{Name:"FunctionName",Value:$fn}]},Period:300,Stat:"Sum"},ReturnData:true}
+          ]')
+          aws cloudwatch get-metric-data \
+            --metric-data-queries "$METRIC_QUERIES" \
+            --start-time "$START_TIME" --end-time "$END_TIME" \
+            --scan-by TimestampDescending --region "$AWS_REGION" \
+            --query 'MetricDataResults[].{id:Id,values:Values,timestamps:Timestamps}' \
+            --output json > "$REPORT_DIR/aws-scheduler-metrics.json"
+          aws logs describe-log-streams \
+            --log-group-name "/aws/lambda/$FUNCTION_NAME" \
+            --order-by LastEventTime --descending --max-items 5 --region "$AWS_REGION" \
+            --query 'logStreams[].{log_stream_name:logStreamName,last_event_timestamp:lastEventTimestamp}' \
+            --output json > "$REPORT_DIR/aws-scheduler-log-streams.json"
 
       - name: Upload scheduler evidence
         if: always()

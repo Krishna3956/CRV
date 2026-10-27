@@ -677,3 +677,11 @@ production transport UAT.
   This is not a readiness signal. The dedicated-secret fix has passed a manual
   worker run, and the next scheduled samples must be observed before the
   freshness/SLO gate can be reconsidered.
+
+- 2026-10-27: Added an opt-in metadata-only AWS cadence evidence mode to the
+  scheduler deployment workflow. It records Lambda invocation/error metric
+  datapoints and the latest log-stream timestamps for the enabled function;
+  it never fetches log events, request bodies, or secret values. The focused
+  scheduler contract and complete 139-suite release gate pass. This gives the
+  release gate a direct AWS-scheduler observation path while GitHub cron
+  cadence remains unreliable.
