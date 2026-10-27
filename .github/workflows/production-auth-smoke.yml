@@ -4,9 +4,9 @@ on:
   workflow_dispatch:
     inputs:
       base_url:
-        description: "HTTPS App Runner or app origin to verify"
-        required: true
-        default: "https://app.trackmcp.com"
+        description: "Direct trusted HTTPS origin to verify (defaults to the current App Runner origin)"
+        required: false
+        default: "https://i95pzq2xh7.ap-south-1.awsapprunner.com"
         type: string
       release_ref:
         description: "Optional immutable 40-character commit SHA whose smoke contract should be used"
@@ -35,7 +35,7 @@ jobs:
     timeout-minutes: 10
     env:
       TRACKMCP_AUTH_SMOKE_CONFIRM: I_UNDERSTAND_PRODUCTION_AUTH_SMOKE
-      TRACKMCP_AUTH_SMOKE_BASE_URL: ${{ inputs.base_url || 'https://app.trackmcp.com' }}
+      TRACKMCP_AUTH_SMOKE_BASE_URL: ${{ inputs.base_url || 'https://i95pzq2xh7.ap-south-1.awsapprunner.com' }}
       TRACKMCP_AUTH_SMOKE_KEY_A: ${{ secrets.TRACKMCP_AUTH_SMOKE_KEY_A }}
       TRACKMCP_AUTH_SMOKE_KEY_B: ${{ secrets.TRACKMCP_AUTH_SMOKE_KEY_B }}
       TRACKMCP_AUTH_SMOKE_WORKSPACE_A: ${{ secrets.TRACKMCP_AUTH_SMOKE_WORKSPACE_A }}

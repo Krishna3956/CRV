@@ -106,7 +106,8 @@ test("distributed rate-limit enablement preserves and verifies the App Runner co
 test("production key lifecycle workflow is manual, write-gated, and redacted", () => {
   assert.match(lifecycleWorkflow, /workflow_dispatch/);
   assert.match(lifecycleWorkflow, /TRACKMCP_KEY_LIFECYCLE_CONFIRM/);
-  assert.match(lifecycleWorkflow, /TRACKMCP_LIFECYCLE_ALLOW_WRITE: "true"/);
+  assert.match(lifecycleWorkflow, /confirm_write:/);
+  assert.match(lifecycleWorkflow, /inputs\.confirm_write && 'true'/);
   assert.match(lifecycleWorkflow, /TRACKMCP_LIFECYCLE_COOKIE/);
   assert.match(lifecycleWorkflow, /TRACKMCP_LIFECYCLE_KEY_ID/);
   assert.match(lifecycleWorkflow, /missing configured repository secrets/);

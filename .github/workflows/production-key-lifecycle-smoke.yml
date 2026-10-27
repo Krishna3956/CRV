@@ -4,10 +4,15 @@ on:
   workflow_dispatch:
     inputs:
       base_url:
-        description: "Credential-free HTTPS origin (default: https://app.trackmcp.com)"
+        description: "Direct trusted HTTPS origin (defaults to the current App Runner origin)"
         required: false
-        default: "https://app.trackmcp.com"
+        default: "https://i95pzq2xh7.ap-south-1.awsapprunner.com"
         type: string
+      confirm_write:
+        description: "Explicitly authorize the disposable rotation/revocation mutation"
+        required: true
+        default: false
+        type: boolean
 
 permissions:
   contents: read
@@ -17,13 +22,13 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     env:
-      TRACKMCP_LIFECYCLE_BASE_URL: ${{ inputs.base_url || 'https://app.trackmcp.com' }}
+      TRACKMCP_LIFECYCLE_BASE_URL: ${{ inputs.base_url || 'https://i95pzq2xh7.ap-south-1.awsapprunner.com' }}
       TRACKMCP_LIFECYCLE_COOKIE: ${{ secrets.TRACKMCP_LIFECYCLE_COOKIE }}
       TRACKMCP_LIFECYCLE_WORKSPACE_ID: ${{ secrets.TRACKMCP_LIFECYCLE_WORKSPACE_ID }}
       TRACKMCP_LIFECYCLE_KEY_ID: ${{ secrets.TRACKMCP_LIFECYCLE_KEY_ID }}
       TRACKMCP_LIFECYCLE_KEY: ${{ secrets.TRACKMCP_LIFECYCLE_KEY }}
-      TRACKMCP_KEY_LIFECYCLE_CONFIRM: I_UNDERSTAND_KEY_LIFECYCLE_SMOKE
-      TRACKMCP_LIFECYCLE_ALLOW_WRITE: "true"
+      TRACKMCP_KEY_LIFECYCLE_CONFIRM: ${{ inputs.confirm_write && 'I_UNDERSTAND_KEY_LIFECYCLE_SMOKE' || '' }}
+      TRACKMCP_LIFECYCLE_ALLOW_WRITE: ${{ inputs.confirm_write && 'true' || 'false' }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4

@@ -31,3 +31,9 @@ test("authenticated production smoke is manual, read-only, and secret-bounded", 
   assert.doesNotMatch(workflow, /TRACKMCP_SMOKE_ALLOW_WRITE/);
   assert.doesNotMatch(workflow, /TRACKMCP_AUTH_SMOKE_REPORT.*key/);
 });
+
+test("authenticated smoke defaults to the direct App Runner origin", () => {
+  assert.match(workflow, /default:\s*"https:\/\/i95pzq2xh7\.ap-south-1\.awsapprunner\.com"/);
+  assert.match(workflow, /inputs\.base_url \|\| 'https:\/\/i95pzq2xh7\.ap-south-1\.awsapprunner\.com'/);
+  assert.doesNotMatch(workflow, /inputs\.base_url \|\| 'https:\/\/app\.trackmcp\.com'/);
+});

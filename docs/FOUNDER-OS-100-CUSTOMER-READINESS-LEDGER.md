@@ -2417,3 +2417,18 @@ a failed product gate or a Supabase plan warning.
 - [ ] Customer-owned endpoint interoperability, transport-owned reconnect, and
   production execution still require a disposable transport key and a passing
   redacted workflow artifact.
+
+## 2026-10-27 authenticated-workflow safety correction
+
+- [x] Updated the authenticated read-only smoke and write-gated key-lifecycle
+  workflows to default to the direct App Runner origin instead of the
+  Cloudflare-fronted public edge.
+- [x] Added the same trusted-host check to the key-lifecycle harness and made
+  the workflow require an explicit boolean `confirm_write` dispatch input
+  before it can pass the mutation authorization values to the script. A
+  configured secret set can no longer trigger rotation/revocation merely by
+  dispatching the workflow with its default options.
+- [x] Added contracts for the direct origin and explicit write confirmation.
+- [ ] These changes improve safety and operability; they do not claim
+  authenticated UAT or key-lifecycle success until a disposable, approved
+  workflow run produces redacted evidence.

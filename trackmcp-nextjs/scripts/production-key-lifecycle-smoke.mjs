@@ -25,7 +25,8 @@ function validate() {
   if (!baseUrl || !cookie || !workspaceId || !keyId || !oldKey) fail("TRACKMCP_LIFECYCLE_BASE_URL, COOKIE, WORKSPACE_ID, KEY_ID, and KEY are required.");
   let parsed;
   try { parsed = new URL(baseUrl); } catch { fail("TRACKMCP_LIFECYCLE_BASE_URL must be an absolute URL."); }
-  if (parsed.protocol !== "https:" || parsed.username || parsed.password || parsed.search || parsed.hash) fail("Lifecycle smoke requires a credential-free HTTPS base URL.");
+  const trustedHost = parsed.hostname === "trackmcp.com" || parsed.hostname === "app.trackmcp.com" || parsed.hostname.endsWith(".awsapprunner.com");
+  if (parsed.protocol !== "https:" || !trustedHost || parsed.username || parsed.password || parsed.search || parsed.hash) fail("Lifecycle smoke requires a trusted credential-free HTTPS base URL.");
 }
 
 function endpoint(path) { return new URL(path, `${baseUrl.replace(/\/$/, "")}/`); }
