@@ -11,15 +11,14 @@ is intentionally not a GO approval and must not be treated as one.
 
 - `main`: current default branch. Immutable deployed SHAs belong in the
   release record; PR checks remain attached to their exact review commits.
-- Current deployed application: `9026fa63fdc9b8082372fd50fda93077b8162998`,
-  App Runner workflow `40494157458` (successful rollout, production smoke,
-  immutable identity, runtime-safety audit, and three redacted artifacts).
-  Authenticated production smoke `40495081946` also passed for this exact
-  commit; it remains read-only evidence and is not key-lifecycle UAT. This is
-  the runtime reference for release review.
-- Current source verification: `main` at `b2383ea` (ledger and health-report
-  semantics reconciliation), with the deployed application at immutable
-  `9026fa6` above.
+- Current deployed application: `4efa2e1bd444706e84d78ef85b8a7b3b133a46aa`,
+  App Runner workflow `40497434962` (successful rollout). This deployment
+  contains deployment-trigger hardening and preserves the previously verified
+  application behavior; its runtime reference is the exact immutable SHA.
+- Current source verification: `main` at `a0d2485` (first-ingest UAT ledger
+  reconciliation), with the deployed application at immutable `4efa2e1`.
+  TrackMCP CI `40498017114` passed for `a0d2485`; the docs-only commit was not
+  deployed by the tightened path filter.
   This does not close the external owner, backup, privacy, or scheduler-cadence
   gates.
 - Historical deployed baselines retained for audit include `9638e23c8529f9b1781d96413529e33a692715ed`

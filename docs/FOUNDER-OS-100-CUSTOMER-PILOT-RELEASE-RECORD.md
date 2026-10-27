@@ -8,14 +8,21 @@ commit and the operator accepts the listed limitations.
 
 ## Current deployed baseline — 2026-10-27
 
+App Runner workflow `40497434962` subsequently completed successfully for
+immutable commit `4efa2e1bd444706e84d78ef85b8a7b3b133a46aa`. This is the latest
+verified runtime deployment; the change is deployment-trigger hardening and
+does not alter application behavior. TrackMCP CI `40498017114` also completed
+successfully for the later documentation-only `a0d2485` commit, which was not
+deployed because the tightened path filter correctly excludes ledger-only
+changes.
+
 The documentation-only reconciliation commit `e802d16` was pushed to
 `main`; hosted TrackMCP CI run `40496271191` completed successfully. App
 Runner workflow `40496271215` initially showed stale `in_progress` state with
 no job update, but later reached terminal `success` on the exact SHA. It is
 therefore valid deployment evidence for the documentation-only candidate;
 the runtime behavior remains unchanged from the `9026fa6` candidate recorded
-below. The newer `4efa2e1` workflow is tracked separately and is not treated
-as deployed until its own terminal result is available.
+below; the `4efa2e1` deployment is now the verified runtime baseline.
 
 App Runner workflow `40494157458` successfully deployed immutable application
 commit `9026fa63fdc9b8082372fd50fda93077b8162998`. Rollout, production smoke,
@@ -44,10 +51,10 @@ recovery-evidence hardening, not a final operational SLO acceptance.
 
 ## Latest source verification — 2026-10-27
 
-The current deployed source is `9026fa6` (including the health-report semantics
+The current deployed source is `4efa2e1` (including the health-report semantics
 correction that honors a proven AWS scheduler window while retaining historical
-worker warnings). Mainline now also contains the ledger reconciliation update
-`b2383ea`; its focused
+worker warnings and the deployment-trigger hardening). Mainline now also
+contains the first-ingest UAT ledger update `a0d2485`; its focused
 documentation/accessibility contracts pass, and the full local release gate,
 lint, and 177-route build were green before deployment. Push-triggered
 scheduler activation for the reviewed scheduler change completed successfully
