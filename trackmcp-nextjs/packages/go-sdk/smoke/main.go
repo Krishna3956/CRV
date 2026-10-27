@@ -15,7 +15,7 @@ import (
 func main() {
 	var received []byte
 	server := httptest.NewServer(http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
-		if request.Method != http.MethodPost || request.Header.Get("Authorization") != "Bearer tmcp_smoke" {
+		if request.Method != http.MethodPost || request.Header.Get("Authorization") != "Bearer tmcp_smoke" || request.Header.Get("User-Agent") != "Mozilla/5.0" {
 			writer.WriteHeader(http.StatusUnauthorized)
 			return
 		}

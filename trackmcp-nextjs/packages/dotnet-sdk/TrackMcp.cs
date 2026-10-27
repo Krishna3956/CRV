@@ -11,7 +11,8 @@ public sealed record TrackMcpOptions(string ApiKey, string Service = "mcp-server
 
 public sealed class TrackMcpClient : IDisposable
 {
-	private const int MaxSessionIdLength = 256;
+    private const string EdgeUserAgent = "Mozilla/5.0";
+    private const int MaxSessionIdLength = 256;
     private readonly TrackMcpOptions _options;
     private readonly HttpClient _http;
     private readonly List<Dictionary<string, object?>> _queue = new();
@@ -328,6 +329,7 @@ public sealed class TrackMcpClient : IDisposable
         lock (_gate) { if (_queue.Count == 0) return; events = new List<Dictionary<string, object?>>(_queue); _queue.Clear(); }
         using var request = new HttpRequestMessage(HttpMethod.Post, _options.Endpoint) { Content = new StringContent(JsonSerializer.Serialize(new { events }), Encoding.UTF8, "application/json") };
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", _options.ApiKey);
+        request.Headers.UserAgent.ParseAdd(EdgeUserAgent);
         try { using var response = await _http.SendAsync(request, cancellationToken); if (!response.IsSuccessStatusCode) lock (_gate) { _queue.InsertRange(0, events); } } catch { lock (_gate) { _queue.InsertRange(0, events); } }
     }
 

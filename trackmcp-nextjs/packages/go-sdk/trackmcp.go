@@ -453,6 +453,10 @@ func hashAccountID(value string) string { sum := sha256.Sum256([]byte(value)); r
 var catalogKinds = map[string]bool{"tools": true, "resources": true, "resource_templates": true, "prompts": true}
 var transportKinds = map[string]bool{"stdio": true, "streamable_http": true, "sse": true, "custom": true}
 
+// trackmcpEdgeUserAgent keeps SDK delivery compatible with the managed edge
+// boundary used by the public endpoint. It carries no customer data.
+const trackmcpEdgeUserAgent = "Mozilla/5.0"
+
 func hashCatalogIdentity(value string) string { sum := sha256.Sum256([]byte(value)); return hex.EncodeToString(sum[:]) }
 
 func boolPtr(value bool) *bool { return &value }
@@ -468,7 +472,7 @@ func (c *Client) FlushContext(ctx context.Context) error {
 	c.mu.Lock(); if len(c.queue) == 0 { c.mu.Unlock(); return nil }; count := c.options.MaxBatchSize; if count > len(c.queue) { count = len(c.queue) }; events := append([]Event(nil), c.queue[:count]...); c.queue = c.queue[count:]; c.mu.Unlock()
 	requeue := func() { c.mu.Lock(); c.queue = append(events, c.queue...); c.mu.Unlock() }
 	body, err := json.Marshal(map[string]any{"events": events}); if err != nil { requeue(); return err }
-	req, err := http.NewRequestWithContext(ctx, http.MethodPost, c.options.Endpoint, bytes.NewReader(body)); if err != nil { requeue(); return err }; req.Header.Set("Content-Type", "application/json"); req.Header.Set("Authorization", "Bearer "+c.options.APIKey)
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, c.options.Endpoint, bytes.NewReader(body)); if err != nil { requeue(); return err }; req.Header.Set("Content-Type", "application/json"); req.Header.Set("Authorization", "Bearer "+c.options.APIKey); req.Header.Set("User-Agent", trackmcpEdgeUserAgent)
 	httpClient := c.options.HTTPClient; if httpClient == nil { httpClient = http.DefaultClient }
 	resp, err := httpClient.Do(req); if err != nil { requeue(); return err }
 	if resp.StatusCode >= 300 { requeue(); resp.Body.Close(); return fmt.Errorf("trackmcp: ingest returned HTTP %d", resp.StatusCode) }

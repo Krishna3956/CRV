@@ -21,7 +21,9 @@ host owns a cancellation context or transport, provide `Options.HTTPClient`
 and call `client.FlushContext(ctx)`. Cancellation, non-2xx responses, request
 construction failures, and serialization failures return an error for
 diagnostics and put the bounded batch back at the front of the queue for a
-later retry; telemetry remains fail-open.
+later retry; telemetry remains fail-open. Requests use the managed-edge-
+compatible `Mozilla/5.0` user-agent and never place customer data in that
+header.
 
 For disconnects outside an MCP request, call
 `client.RecordTransportFailure("transport_closed", sessionID, durationMS)` or

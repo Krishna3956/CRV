@@ -6,9 +6,11 @@ using TrackMcp;
 sealed class CaptureHandler : HttpMessageHandler
 {
     public string? Body { get; private set; }
+    public string? UserAgent { get; private set; }
 
     protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
     {
+        UserAgent = request.Headers.UserAgent.ToString();
         Body = request.Content is null ? null : await request.Content.ReadAsStringAsync(cancellationToken);
         return new HttpResponseMessage(HttpStatusCode.OK) { Content = new StringContent("{}") };
     }
@@ -107,6 +109,7 @@ static class Smoke
         await client.FlushAsync();
 
         Require(handler.Body is not null, "flush did not send an event batch");
+        Require(handler.UserAgent == "Mozilla/5.0", "flush did not send the edge-compatible user-agent");
         Require(!handler.Body!.Contains("private-resource", StringComparison.Ordinal), "raw catalog name crossed the boundary");
         Require(!handler.Body.Contains("secret://customer/private", StringComparison.Ordinal), "raw catalog URI crossed the boundary");
         Require(!handler.Body.Contains("private-cursor", StringComparison.Ordinal), "raw cursor crossed the boundary");

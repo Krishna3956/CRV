@@ -16,6 +16,9 @@ application-validated claim and is hashed before persistence. TrackMCP does not
 implement OAuth or parse bearer tokens. Capture and delivery are fail-open so
 telemetry failures do not block MCP requests.
 
+Flush requests use the managed-edge-compatible `Mozilla/5.0` user-agent. The
+header is a fixed delivery compatibility value and contains no customer data.
+
 Pass `AccountIdResolver` in `TrackMcpOptions` to enable resolver-linked
 account analytics. Return only a stable, already validated tenant/account
 handle; the SDK rejects credential-like values, hashes accepted values locally,
