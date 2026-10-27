@@ -2,6 +2,20 @@
 
 Status: active autonomous audit, started 2026-10-21.
 
+## 2026-10-27 — post-baseline verification checkpoint
+
+- Re-ran the complete local release gate after the baseline reconciliation;
+  all **143 suites** passed, including the docs-navigation, transport-observer,
+  cross-language SDK, privacy, tenant-isolation, OTLP, and modern MCP protocol
+  contracts.
+- `npm run lint` passed with no diagnostics, and `npm run build` completed the
+  production Next.js build for all **177 routes**.
+- The only working-tree entries outside the tracked product remain the
+  user-owned untracked `docs/codex-handoff/` and `tmp/` directories; neither is
+  part of the release artifact. No new product limitation was inferred from
+  this verification. The release-owner, database-recovery, scheduled worker
+  cadence, and customer-owned UAT gates remain explicitly open below.
+
 ## 2026-10-27 — separate AWS cadence evidence from worker-run cadence
 
 - The refresh-health report now exposes `aws_scheduler_cadence_gate` in
