@@ -38,6 +38,14 @@ Status: active autonomous audit, started 2026-10-21.
   window, so this is invocation evidence only; the sustained cadence and
   freshness gates remain open.
 
+## 2026-10-27 — first post-enable scheduler health sample
+
+- Health workflow `40492317740` retained artifact `12728574033` and observed
+  one scheduled invocation plus one scheduled-success marker with zero errors.
+  The scheduler evidence is healthy for the observed sample.
+- The three-sample cadence requirement is not met yet, so the overall health
+  gate remains `insufficient_data` and no sustained SLO claim is made.
+
 ## 2026-10-27 — bounded catalog correlation parity
 
 - Catalog list-change notifications now have a privacy-safe, reviewed evidence

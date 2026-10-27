@@ -45,6 +45,14 @@ permission.
   bounded collection window, so the sustained three-sample cadence and
   freshness SLO remain open.
 
+## 2026-10-27 scheduler health after re-enable
+
+- [x] Health workflow `40492317740` (artifact `12728574033`) observed one
+  scheduled invocation and one scheduled-success marker with zero errors.
+  Scheduler evidence is enabled and currently healthy for that sample.
+- [ ] The cadence gate still requires three scheduled samples; the report is
+  therefore `insufficient_data` and the broader freshness SLO remains open.
+
 ## 2026-10-27 SDK release-train publication
 
 - [x] Source changes after the published `@trackmcp/sdk@0.1.20` and
