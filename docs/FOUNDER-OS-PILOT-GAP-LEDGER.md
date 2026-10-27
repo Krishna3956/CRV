@@ -1389,6 +1389,13 @@ production transport UAT.
   invocation cadence is proven; scheduled-worker and log-marker gates remain
   open.
 
+- 2026-10-27: Health workflow `40493587359` renewed the scheduler evidence.
+  Its redacted report proves `3/3` AWS Lambda invocations and `3/3`
+  end-to-end `ScheduledSuccess` CloudWatch EMF markers. The overall worker
+  state remains `insufficient_data` because only `1/3` scheduled application
+  samples is in the evaluation window and maximum queue lag is
+  `3,506,514 ms`; no freshness SLO closure is claimed.
+
 - 2026-10-27: Fixed a parity bug in the analytics event-window fallback. Modern
   extension capability names such as `io.modelcontextprotocol/tasks` are now
   normalized to the same bounded protocol family used by durable semantic facts,

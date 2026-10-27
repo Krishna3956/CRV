@@ -1,16 +1,25 @@
 # Founder OS 100 Customer Readiness Ledger
 
 Last updated: 2026-10-27 (main `506be89`; deployed application `877f3c5` and App Runner rollout and production smoke verified; TypeScript SDK 0.1.22 and CLI 0.1.11 registry publication verified)
-Latest freshness evidence: health workflow `40450412687` inspected eight
-redacted worker samples and evaluated the two samples in its bounded current
-window. It proved the AWS scheduler cadence gate with four invocations and zero
-errors; current operational state is `insufficient_data` with one current
-freshness breach, not a historical-failure false positive. The report records
-**0/3 scheduled worker samples**, and its end-to-end scheduled-success
-projection is unavailable because the OIDC role lacks log-event query
-permission.
+Latest freshness evidence: health workflow `40493587359` inspected eight
+redacted worker samples. AWS scheduler cadence is now proven with **3/3
+invocations**, and the end-to-end scheduled-success marker is proven with **3/3
+CloudWatch EMF successes**. The overall state remains `insufficient_data` because
+only **1/3 scheduled worker samples** is in the current evaluation window and
+the maximum queue lag is `3,506,514 ms` (above the 15-minute pilot budget).
 
 ## 2026-10-27 — post-publication docs deployment verified
+
+## 2026-10-27 — refresh scheduler cadence evidence renewed
+
+- [x] Health workflow `40493587359` completed successfully and retained the
+  redacted report artifact `refresh-worker-health-40493587359`.
+- [x] The report proves the AWS Lambda invocation cadence (`3/3`) and the
+  end-to-end `TrackMCP/RefreshScheduler:ScheduledSuccess` marker (`3/3`) in
+  CloudWatch EMF. This closes the prior IAM/log-marker evidence gap.
+- [ ] The broader worker freshness gate remains open: only `1/3` scheduled
+  application-worker samples are in the evaluation window, the state is
+  `insufficient_data`, and maximum queue lag exceeds the 15-minute budget.
 
 - [x] App Runner workflow `40521393982` completed successfully for immutable
   source `877f3c5aabe22d4cdbec6592700885cc7835e68b`. Release gate, image/digest
