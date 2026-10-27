@@ -2112,3 +2112,17 @@ a failed product gate or a Supabase plan warning.
 - [ ] This proves AWS scheduler deployment and Lambda invocation health, not
   three end-to-end scheduled-success metric samples. The end-to-end cadence
   gate remains pending until an approved log/metric projection is available.
+
+## 2026-10-27 scheduler log-evidence checkpoint
+
+- [x] Commit `9299fea` adds a privacy-bounded CloudWatch Logs count query for
+  the non-sensitive scheduled-success marker and distinguishes an unavailable
+  projection from a real zero count in the health report.
+- [x] Health workflow `40449251681` completed successfully. It proved the AWS
+  Lambda cadence gate with 4 invocations, 0 errors, and 2 metric datapoints;
+  no log payloads were retained or printed.
+- [ ] The same run recorded `cloudwatch_log_filter_unavailable`: the current
+  OIDC role cannot query the Lambda log events. The end-to-end scheduled-success
+  gate therefore remains pending until `logs:FilterLogEvents` (or an approved
+  equivalent metric projection) is granted. This is an explicit infrastructure
+  permission boundary, not an implementation claim.

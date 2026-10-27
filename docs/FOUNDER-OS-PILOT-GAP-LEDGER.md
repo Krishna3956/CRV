@@ -981,3 +981,10 @@ production transport UAT.
   `logs:DescribeMetricFilters`; the Lambda still emits a non-sensitive
   scheduled-success marker, while metric projection remains an explicit
   external gate. Release gate remains green at 143 suites.
+
+- 2026-10-27: Added the bounded CloudWatch Logs marker-count path to the
+  refresh health workflow (`9299fea`). Health run `40449251681` proves the AWS
+  Lambda cadence gate (4 invocations, 0 errors) but records the end-to-end
+  marker projection as unavailable because the OIDC role lacks log-event query
+  permission. The report now distinguishes unavailable evidence from zero
+  successes; no log payloads are exposed.
