@@ -2369,3 +2369,21 @@ a failed product gate or a Supabase plan warning.
   poisoning the current operational classification. AWS invocation cadence is
   proven (4 invocations, 0 errors); the scheduled-worker and end-to-end marker
   gates remain pending exactly as documented.
+
+## 2026-10-27 production migration-history audit
+
+- [x] Read-only SQL-editor inspection of production `information_schema` found
+  the application migration ledger at `public.trackmcp_migration_execution`
+  (the Supabase-managed `supabase_migrations.schema_migrations` relation is
+  not present in this project).
+- [x] The production ledger currently contains one application row:
+  `20261025000001_migration_execution_ledger`, applied at
+  `2026-10-25 13:23:19.15742+00`, with release SHA
+  `d0751181abed22d2f97f5d6458d20f48598ff0e5`.
+- [x] The repository currently contains 39 SQL migration files, so this
+  result is evidence for the application ledger migration only; it is not
+  evidence that every repository migration has been applied to production.
+- [ ] A complete migration parity/replay check remains an explicit release
+  gate. It requires the reviewed migration runner or a credentialed,
+  read-only schema-diff procedure that can safely compare each migration’s
+  expected object contract with production without executing arbitrary DDL.
