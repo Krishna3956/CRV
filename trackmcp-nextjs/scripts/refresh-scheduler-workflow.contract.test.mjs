@@ -84,7 +84,7 @@ test("refresh scheduler requires a protected dedicated worker secret", () => {
   assert.match(readme, /dedicated secret/);
   assert.match(readme, /plaintext `SecretString`/);
   assert.match(readme, /refresh_scheduler_result/);
-  assert.match(readme, /projection external/);
+  assert.match(readme, /permission to query/);
   assert.match(readme, /Manual\s+invocations do not emit\s+it/);
   assert.match(readme, /[Dd]o not paste/);
 });

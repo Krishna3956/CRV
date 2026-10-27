@@ -8,10 +8,9 @@ Supabase directly and never logs the worker token or response body.
 EventBridge sends a bounded `source=eventbridge_scheduler` marker. Only after
 the upstream request returns successfully does the Lambda emit a
 non-sensitive `refresh_scheduler_result` marker. Manual invocations do not emit
-it, so a future log/metric projection can distinguish a real scheduled worker
-success from an operator smoke. The current deployment intentionally leaves
-that projection external until the deploy role has the required CloudWatch
-Logs metric-filter permissions.
+it, so the health workflow can distinguish a real scheduled worker success
+from an operator smoke. The projection remains externally gated only by the
+health role's permission to query that bounded marker.
 
 The schedule is disabled by default. Deploy it disabled first, run the manual
 checks below, and enable it only after the endpoint and secret have been
