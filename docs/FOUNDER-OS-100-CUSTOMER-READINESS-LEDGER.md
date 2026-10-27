@@ -22,6 +22,17 @@ the maximum queue lag is `3,506,514 ms` (above the 15-minute pilot budget).
   credentialed lifecycle/UAT, and customer-owned protocol interoperability
   gates.
 
+## 2026-10-28 — post-deployment full local gate recheck
+
+- [x] Re-ran `npm run test:release-gate` from the current source after the
+  coordinated release/deployment work; it completed successfully, including
+  docs navigation/version, package consumers, privacy, tenant isolation,
+  protocol, deployment, worker, accessibility, and evidence/external-gate
+  contracts.
+- [ ] This recheck does not close the external npm staged-version gate or the
+  already-documented owner, backup/PITR, sustained freshness, credentialed
+  lifecycle/UAT, and customer-owned interoperability gates.
+
 ## 2026-10-28 — published SDK train reconciliation
 
 - [x] Registry audit confirms the current public train remains
