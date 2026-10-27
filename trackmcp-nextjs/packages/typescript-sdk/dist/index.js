@@ -521,6 +521,27 @@ export class TrackMCPClient {
             payload: { _trackmcp: { observation_kind: "protocol_notification", protocol_signal: signal } },
         });
     }
+    /** Record only a canonical 401/403 authorization outcome. OAuth discovery,
+     * token exchange, refresh, consent, and bearer material remain caller-owned. */
+    recordAuthorizationOutcome(method, statusCode, sessionId) {
+        if (!/^[A-Za-z0-9_./-]{1,128}$/.test(method))
+            return;
+        const outcome = statusCode === 401 ? "unauthorized" : statusCode === 403 ? "forbidden" : undefined;
+        const errorClass = statusCode === 401 ? "authentication_error" : statusCode === 403 ? "authorization_error" : undefined;
+        if (!outcome || !errorClass)
+            return;
+        this.capture({
+            event_type: "protocol",
+            mcp_method: method,
+            session_id: sessionId || "transport-session",
+            started_at: new Date().toISOString(),
+            success: false,
+            is_error: true,
+            error_class: errorClass,
+            error_code: statusCode,
+            payload: { _trackmcp: { observation_kind: "protocol_response", authorization_attempt: true, authorization_outcome: outcome } },
+        });
+    }
     recordCatalog(result) {
         const tools = catalogTools(result);
         for (const tool of tools)
@@ -797,7 +818,7 @@ export function withTrackMCP(server, options) {
             }
         };
     }
-    Object.defineProperty(target, "trackmcp", { value: { capture: client.capture.bind(client), track: client.track.bind(client), workflow: client.workflow.bind(client), recordProtocolSignal: client.recordProtocolSignal.bind(client), reportMissing: client.reportMissing.bind(client), trackmcp_report_missing: client.reportMissing.bind(client), flush: client.flush.bind(client), getDiagnostics: client.getDiagnostics.bind(client) } });
+    Object.defineProperty(target, "trackmcp", { value: { capture: client.capture.bind(client), track: client.track.bind(client), workflow: client.workflow.bind(client), recordProtocolSignal: client.recordProtocolSignal.bind(client), recordAuthorizationOutcome: client.recordAuthorizationOutcome.bind(client), reportMissing: client.reportMissing.bind(client), trackmcp_report_missing: client.reportMissing.bind(client), flush: client.flush.bind(client), getDiagnostics: client.getDiagnostics.bind(client) } });
     return target;
 }
 export const track = (name, payload) => {

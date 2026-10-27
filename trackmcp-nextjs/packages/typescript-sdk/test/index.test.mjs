@@ -94,6 +94,30 @@ test("records allowlisted protocol signals without notification payloads", async
   assert.equal(JSON.stringify(events).includes("reason"), false);
 });
 
+test("records bounded authorization outcomes through the public wrapper", async () => {
+  const received = [];
+  const server = http.createServer((request, response) => {
+    let body = "";
+    request.on("data", (chunk) => { body += chunk; });
+    request.on("end", () => { received.push(JSON.parse(body)); response.writeHead(200); response.end("{}"); });
+  });
+  await new Promise((resolve) => server.listen(0, resolve));
+  const wrapped = withTrackMCP({ async request() { return {}; } }, { apiKey: "tmcp_test", endpoint: `http://127.0.0.1:${server.address().port}`, disabled: false, flushIntervalMs: 60000 });
+  wrapped.trackmcp.recordAuthorizationOutcome("tools/call", 401, "auth-session");
+  wrapped.trackmcp.recordAuthorizationOutcome("tools/call", 403, "auth-session-2");
+  wrapped.trackmcp.recordAuthorizationOutcome("tools/call", 500, "ignored");
+  wrapped.trackmcp.recordAuthorizationOutcome("tools/call?token=secret", 401, "ignored");
+  await wrapped.trackmcp.flush();
+  await new Promise((resolve) => setTimeout(resolve, 20));
+  server.close();
+  const events = received.flatMap((batch) => batch.events);
+  assert.deepEqual(events.map((event) => [event.error_code, event.error_class, event.payload?._trackmcp?.authorization_outcome]), [
+    [401, "authentication_error", "unauthorized"],
+    [403, "authorization_error", "forbidden"],
+  ]);
+  assert.equal(JSON.stringify(events).includes("secret"), false);
+});
+
 test("captures a real official MCP server transport call", async () => {
   const received = [];
   const ingest = http.createServer((request, response) => {

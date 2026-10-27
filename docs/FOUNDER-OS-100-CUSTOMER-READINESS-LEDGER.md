@@ -10,6 +10,22 @@ freshness breach, not a historical-failure false positive. The report records
 projection is unavailable because the OIDC role lacks log-event query
 permission.
 
+## 2026-10-27 TypeScript OAuth observer parity milestone
+
+- [x] The TypeScript SDK now exposes `recordAuthorizationOutcome(method,
+  statusCode, sessionId?)` through both the `TrackMCPClient` API and the
+  `withTrackMCP(...).trackmcp` wrapper. It accepts only bounded method names
+  and canonical `401`/`403` statuses, emitting the same
+  `unauthorized`/`forbidden` metadata boundary as Python, Go, and .NET.
+- [x] Added a transport-independent public-wrapper regression test proving
+  unsupported statuses, unsafe method strings, and secret-like input are not
+  retained. README and protocol-matrix wording now document the explicit
+  helper alongside automatic client-adapter observation.
+- [ ] This remains observer-only. OAuth discovery, registration, token
+  exchange, refresh, consent, revocation, and authenticated external-provider
+  interoperability remain outside the product until an external integration
+  contract and UAT are supplied.
+
 ## 2026-10-27 CLI proxy documentation discoverability milestone
 
 - [x] Added a first-class `/docs/cli` page covering the bounded stdio proxy

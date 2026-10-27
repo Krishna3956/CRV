@@ -145,6 +145,17 @@ or provider error text. TrackMCP remains an observer: it does not perform OAuth
 discovery, register clients, exchange tokens, refresh credentials, or proxy an
 authorization flow.
 
+If an application owns the HTTP boundary instead of using the Node transport
+adapter, it can record the same bounded outcome explicitly:
+
+```ts
+client.recordAuthorizationOutcome("tools/call", response.status, sessionId);
+```
+
+Only status `401` or `403` is accepted. The helper emits `unauthorized` or
+`forbidden` metadata and ignores all other status codes; challenges, URLs,
+tokens, and provider text are never accepted as arguments.
+
 For bounded historical discovery, `listAllTools`, `listAllResources`, and
 `listAllPrompts` follow opaque cursors up to a fixed page/item budget and return
 `truncated: true` when the server continues beyond that budget or repeats a
