@@ -2,6 +2,26 @@
 
 Status: active autonomous audit, started 2026-10-21.
 
+## 2026-10-28 — authenticated production transport smoke verified
+
+- A disposable, uniquely scoped production workspace/key was created through
+  the service-role path and used only for the guarded transport smoke. The
+  generated key is not recorded here and remains available for the approved
+  test account; it was not revoked.
+- The direct App Runner smoke report
+  `/tmp/trackmcp-transport-smoke-20261027232459.json` passed both official
+  transports: Streamable HTTP (`initialize`, `tools/list`, `tools/call`) and
+  SSE (`initialize`, `tools/call`). Both checks reported zero dropped events,
+  hook/privacy errors, queued events/bytes, and delivery errors.
+- A service-role read-back found `15` persisted, workspace-scoped observations
+  across the two bounded transport labels, confirming that the accepted
+  batches reached the production database. No key, event ID, request body,
+  response body, session ID, or customer payload was retained in the report.
+- This closes the authenticated TrackMCP adapter-to-ingest smoke boundary for
+  the current deployed origin. It does **not** claim a customer-owned remote
+  MCP endpoint, transport-owned reconnect/replay, durable subscriptions, or
+  OAuth token exchange; those remain explicit external/protocol boundaries.
+
 ## 2026-10-28 — current worker window healthy after bounded recovery
 
 - Health workflow `40601204628` completed successfully after recovery worker

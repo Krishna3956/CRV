@@ -1,6 +1,6 @@
 # Founder OS 100 Customer Readiness Ledger
 
-Last updated: 2026-10-28 (main `0c57e42a`; deployed application `7ab4eced` and App Runner rollout `40594711620` succeeded; hosted CI `40600448948` passed the reconciled transport-smoke ledger state and `40600092345` passed the transport-smoke delivery assertion plus all web/JavaScript, Go, and .NET jobs; first-ingest UAT `40598515473` passed against the direct App Runner origin; read-only production smoke, immutable identity, and runtime-safety checks passed in that rollout; queued-backlog coalescer changes are documented below; scheduler redeploy/enablement `40586991487`/`40587311920` remain the latest scheduler evidence; authenticated production smoke remains verified at `40588063835`; hosted publication workflow `40569475423` verified `@trackmcp/sdk@0.1.24`; latest health monitor `40601204628` is healthy after a fresh bounded worker recovery, while the stricter scheduled-sample gate remains pending at 1/3; browser-compatible public probes pass while default scripted probes remain Cloudflare-blocked)
+Last updated: 2026-10-28 (main `3e6a87dc`; deployed application `7ab4eced` and App Runner rollout `40594711620` succeeded; hosted CI `40600448948` passed the reconciled transport-smoke ledger state and `40600092345` passed the transport-smoke delivery assertion plus all web/JavaScript, Go, and .NET jobs; first-ingest UAT `40598515473` passed against the direct App Runner origin; authenticated adapter-to-ingest transport smoke passed for Streamable HTTP and SSE with 15 persisted observations; read-only production smoke, immutable identity, and runtime-safety checks passed in that rollout; queued-backlog coalescer changes are documented below; scheduler redeploy/enablement `40586991487`/`40587311920` remain the latest scheduler evidence; authenticated production smoke remains verified at `40588063835`; hosted publication workflow `40569475423` verified `@trackmcp/sdk@0.1.24`; latest health monitor `40601204628` is healthy after a fresh bounded worker recovery, while the stricter scheduled-sample gate remains pending at 1/3; browser-compatible public probes pass while default scripted probes remain Cloudflare-blocked)
 The same-origin docs, auth, blog CTA fixes, regression guard, and hosted-runner verification gate are deployed and runtime-verified. Cloudflare permits browser-compatible requests, while its managed bot rule still returns HTML 403 to the default scripted user-agent; SDK delivery must use the compatible request boundary and retain a real authenticated UAT check.
 Latest freshness evidence: health workflow `40601204628` inspected eight
 redacted worker samples after recovery worker run `40601163319`. Its current
@@ -132,6 +132,23 @@ failure.
   the requirement for three fresh scheduled samples; it proves that the
   recovered queue and worker are currently within budget.
 
+## 2026-10-28 — authenticated transport smoke and production read-back
+
+- [x] A disposable, uniquely scoped production workspace/key was created for
+  the guarded transport smoke and was not revoked. The raw key is not recorded
+  in the repository or evidence.
+- [x] The direct App Runner smoke passed both official transports: Streamable
+  HTTP (`initialize`, `tools/list`, `tools/call`) and SSE (`initialize`,
+  `tools/call`). Both checks reported zero dropped events, hook/privacy errors,
+  queued events/bytes, and delivery errors.
+- [x] Service-role read-back found `15` persisted, workspace-scoped
+  observations across the two transport labels. The redacted report contains
+  no key, event ID, request/response body, session ID, or customer payload.
+- [ ] This is authenticated adapter-to-ingest evidence using local MCP
+  fixtures. Customer-owned remote endpoint interoperability,
+  transport-owned reconnect/replay, durable subscriptions, and OAuth token
+  exchange remain separate external/protocol gates.
+
 ## Active external-gate register (current)
 
 | Gate | Current evidence | State | Required closure evidence |
@@ -139,7 +156,7 @@ failure.
 | Worker freshness | Health artifact `40601204628` is `healthy` after recovery run `40601163319`: three current-window samples are parseable and within budget, with AWS cadence proven at 4/4 invocations and 4/4 end-to-end successes; only 1/3 samples is a scheduled GitHub-worker run | **HOLD** | Three fresh scheduled samples within the 15-minute budget, with no unresolved stale/failure evidence |
 | Backup/PITR | Supabase Free Plan has no scheduled backups or PITR; inspection recorded in the backup evidence entries below | **HOLD / owner decision** | Accepted documented limitation with named recovery owner/runbook, or plan upgrade plus tested restore rehearsal |
 | Privacy acceptance | Engineering privacy/export/deletion contracts pass; production acceptance evidence is not recorded | **HOLD / owner decision** | Signed production privacy review and retention/deletion acceptance |
-| Credentialed lifecycle/UAT | Read-only tenant/auth smoke and direct-origin first-ingest UAT `40598515473` are verified; write-gated key lifecycle and customer-owned transport UAT remain unexecuted | **HOLD / credentialed** | Disposable lifecycle key run plus customer-owned transport/protocol UAT artifacts |
+| Credentialed lifecycle/UAT | Read-only tenant/auth smoke, direct-origin first-ingest UAT `40598515473`, and authenticated adapter-to-ingest transport smoke with 15 persisted observations are verified; write-gated key lifecycle and customer-owned endpoint UAT remain unexecuted | **HOLD / credentialed** | Disposable lifecycle key run plus customer-owned endpoint/protocol UAT artifacts |
 | Hosted deployment verification | App Runner rollout `40594711620` deployed immutable runtime `7ab4eced`; release gate, image build/push, rollout, production smoke, immutable release identity, and runtime-safety checks passed | **PASS** | Re-run the same guarded workflow for the next runtime-changing commit |
 | Release-owner acceptance | Source, CI, deployment, package publication, and local release gates are green | **HOLD / owner decision** | Explicit approval referencing this register and the current deployed source |
 
