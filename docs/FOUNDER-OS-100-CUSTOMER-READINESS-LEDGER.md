@@ -974,6 +974,17 @@ owner acceptance remain separate open gates.
 - [ ] Production evidence remains open until `TRACKMCP_INGEST_SMOKE_KEY` is
   configured and the manual smoke completes against the deployed origin.
 
+## 2026-10-27 API-key last-use production postflight
+
+- [x] Read-only production SQL inspection confirmed the additive
+  `trackmcp_api_keys.last_used_at` migration is present. The metadata summary
+  contained 75 key rows, 3 rows with a recorded accepted use, and latest use
+  at `2026-10-27 11:47:09 UTC`. The query selected counts/timestamp only and
+  did not read key material, workspace identifiers, or event payloads.
+- [x] This closes schema/runtime evidence for the dashboard's bounded last-use
+  indicator. It does not close the separate first-ingest workflow, backup,
+  privacy-acceptance, or final pilot GO gates.
+
 ## 2026-10-26 final local release-gate rerun
 
 - [x] The current main checkout passed the complete `npm run
