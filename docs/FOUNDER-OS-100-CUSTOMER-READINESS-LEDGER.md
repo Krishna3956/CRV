@@ -1,15 +1,16 @@
 # Founder OS 100 Customer Readiness Ledger
 
-Last updated: 2026-10-28 (main `7e2fb896`; deployed application `7ab4eced` and App Runner rollout `40594711620` succeeded; hosted CI `40600448948` passed the reconciled transport-smoke ledger state and `40600092345` passed the transport-smoke delivery assertion plus all web/JavaScript, Go, and .NET jobs; first-ingest UAT `40598515473` passed against the direct App Runner origin; read-only production smoke, immutable identity, and runtime-safety checks passed in that rollout; queued-backlog coalescer changes are documented below; scheduler redeploy/enablement `40586991487`/`40587311920` remain the latest scheduler evidence; authenticated production smoke remains verified at `40588063835`; hosted publication workflow `40569475423` verified `@trackmcp/sdk@0.1.24`; latest health monitor `40595457284` observes the first fresh scheduled sample but keeps freshness in warning pending three; browser-compatible public probes pass while default scripted probes remain Cloudflare-blocked)
+Last updated: 2026-10-28 (main `3eb42b89`; deployed application `7ab4eced` and App Runner rollout `40594711620` succeeded; hosted CI `40600448948` passed the reconciled transport-smoke ledger state and `40600092345` passed the transport-smoke delivery assertion plus all web/JavaScript, Go, and .NET jobs; first-ingest UAT `40598515473` passed against the direct App Runner origin; read-only production smoke, immutable identity, and runtime-safety checks passed in that rollout; queued-backlog coalescer changes are documented below; scheduler redeploy/enablement `40586991487`/`40587311920` remain the latest scheduler evidence; authenticated production smoke remains verified at `40588063835`; hosted publication workflow `40569475423` verified `@trackmcp/sdk@0.1.24`; latest health monitor `40601204628` is healthy after a fresh bounded worker recovery, while the stricter scheduled-sample gate remains pending at 1/3; browser-compatible public probes pass while default scripted probes remain Cloudflare-blocked)
 The same-origin docs, auth, blog CTA fixes, regression guard, and hosted-runner verification gate are deployed and runtime-verified. Cloudflare permits browser-compatible requests, while its managed bot rule still returns HTML 403 to the default scripted user-agent; SDK delivery must use the compatible request boundary and retain a real authenticated UAT check.
-Latest freshness evidence: health workflow `40595457284` inspected eight
-redacted worker samples. AWS scheduler cadence is proven with **4/4 invocations**
-and **4/4 CloudWatch EMF successes**. The scheduled worker sample
-`40594595849` and the manual recovery sample `40594876889` are both within the
-15-minute budget, but only **1/3 scheduled worker samples** is in the current
-evaluation window and two historical stale samples remain in the evaluation set.
-The overall state is therefore still `warning`; this is a valid evidence HOLD,
-not a code-release failure.
+Latest freshness evidence: health workflow `40601204628` inspected eight
+redacted worker samples after recovery worker run `40601163319`. Its current
+evaluation window contains three parseable samples, all within the 15-minute
+budget, with zero failures, retries, timeouts, or unparseable responses. AWS
+scheduler cadence remains proven with **4/4 invocations** and **4/4 CloudWatch
+EMF successes**. The report is therefore **healthy**. Only **1/3 scheduled
+GitHub-worker samples** is present, so the stricter scheduled-sample evidence
+gate remains HOLD; this is an evidence requirement, not a new code-release
+failure.
 
 ## 2026-10-28 — package-test timeout hardening
 
@@ -116,11 +117,26 @@ not a code-release failure.
 - [ ] Freshness remains HOLD until the monitor records three current scheduled
   samples inside the budget; this is the evidence rule, not a code failure.
 
+## 2026-10-28 — bounded recovery restores healthy current-window evidence
+
+- [x] Recovery worker run `40601163319` completed successfully against the
+  canonical queue with `4` processed jobs, zero failed/retryable jobs, zero
+  timeouts, zero unparseable batches, and `max_queue_lag_ms=137611` (about
+  2.3 minutes).
+- [x] Health workflow `40601204628` completed successfully and reports
+  `state=healthy`, with three parseable current-window samples, no freshness
+  budget breach, no worker failure/incomplete-execution reason, and AWS
+  scheduler evidence of `4/4` invocations plus `4/4` end-to-end successes.
+- [ ] The stricter scheduled-worker cadence register remains **HOLD** at
+  `1/3` scheduled samples. The healthy current-window result does not waive
+  the requirement for three fresh scheduled samples; it proves that the
+  recovered queue and worker are currently within budget.
+
 ## Active external-gate register (current)
 
 | Gate | Current evidence | State | Required closure evidence |
 | --- | --- | --- | --- |
-| Worker freshness | Health artifact `40595457284` proves AWS cadence at 4/4 invocations and 4/4 end-to-end successes; scheduled sample `40594595849` is within budget, but only 1/3 scheduled samples is in-window and two historical stale samples keep the overall state `warning` | **HOLD** | Three fresh scheduled samples within the 15-minute budget, with no unresolved stale/failure evidence |
+| Worker freshness | Health artifact `40601204628` is `healthy` after recovery run `40601163319`: three current-window samples are parseable and within budget, with AWS cadence proven at 4/4 invocations and 4/4 end-to-end successes; only 1/3 samples is a scheduled GitHub-worker run | **HOLD** | Three fresh scheduled samples within the 15-minute budget, with no unresolved stale/failure evidence |
 | Backup/PITR | Supabase Free Plan has no scheduled backups or PITR; inspection recorded in the backup evidence entries below | **HOLD / owner decision** | Accepted documented limitation with named recovery owner/runbook, or plan upgrade plus tested restore rehearsal |
 | Privacy acceptance | Engineering privacy/export/deletion contracts pass; production acceptance evidence is not recorded | **HOLD / owner decision** | Signed production privacy review and retention/deletion acceptance |
 | Credentialed lifecycle/UAT | Read-only tenant/auth smoke and direct-origin first-ingest UAT `40598515473` are verified; write-gated key lifecycle and customer-owned transport UAT remain unexecuted | **HOLD / credentialed** | Disposable lifecycle key run plus customer-owned transport/protocol UAT artifacts |
