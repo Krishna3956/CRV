@@ -16,6 +16,7 @@ const EXCLUDED = [
 
 const INTENDED = [
   /^\.github\/workflows\//,
+  /^trackmcp-nextjs\/\.github\/workflows\//,
   /^\.gitignore$/,
   /^FOUNDER-OS-[^/]+\.md$/,
   // The release gate runs from trackmcp-nextjs, so root-level pilot manifests

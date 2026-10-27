@@ -2,6 +2,21 @@
 
 Status: active autonomous audit, started 2026-10-21.
 
+## 2026-10-27 — scheduler smoke IAM-read fix
+
+- The first disabled-first authenticated scheduler dispatch (`40429342755`)
+  successfully updated the stack but failed before invoking Lambda because the
+  workflow used singular `cloudformation:DescribeStackResource`, while the
+  deploy role only permits the plural `DescribeStackResources` action.
+- Changed the status-only evidence step to use the permitted plural API and
+  select the named function/DLQ resources. No secret, log event, request body,
+  or response content is read or retained. Added the workflow to the release
+  ownership map so the strict audit remains fail-closed and deterministic.
+- Focused scheduler workflow tests pass 6/6; handler tests pass 3/3; the full
+  release gate passes 139 suites; lint and the production build pass. This is
+  a workflow-read fix only: the authenticated production invocation, DLQ/log
+  evidence, enabled schedule, and three scheduled samples remain open gates.
+
 ## 2026-10-27 — authenticated production scope smoke
 
 - The post-deployment workflow `40429116070` completed successfully against

@@ -162,9 +162,9 @@ jobs:
             exit 1
           fi
           REPORT_DIR="$RUNNER_TEMP/refresh-scheduler-report"
-          FUNCTION_NAME=$(aws cloudformation describe-stack-resource \
-            --stack-name "$STACK_NAME" --logical-resource-id RefreshSchedulerFunction \
-            --region "$AWS_REGION" --query 'StackResourceDetail.PhysicalResourceId' \
+          FUNCTION_NAME=$(aws cloudformation describe-stack-resources \
+            --stack-name "$STACK_NAME" --region "$AWS_REGION" \
+            --query 'StackResourceSummaries[?LogicalResourceId==`RefreshSchedulerFunction`].PhysicalResourceId | [0]' \
             --output text)
           INVOKE_OUTPUT="$RUNNER_TEMP/refresh-scheduler-invoke.json"
           aws lambda invoke --function-name "$FUNCTION_NAME" --region "$AWS_REGION" \
@@ -181,9 +181,9 @@ jobs:
             --order-by LastEventTime --descending --max-items 1 --region "$AWS_REGION" \
             --query 'logStreams[0].{log_stream_name:logStreamName,last_event_timestamp:lastEventTimestamp}' \
             --output json > "$REPORT_DIR/lambda-log-metadata.json"
-          DLQ_URL=$(aws cloudformation describe-stack-resource \
-            --stack-name "$STACK_NAME" --logical-resource-id RefreshSchedulerDLQ \
-            --region "$AWS_REGION" --query 'StackResourceDetail.PhysicalResourceId' \
+          DLQ_URL=$(aws cloudformation describe-stack-resources \
+            --stack-name "$STACK_NAME" --region "$AWS_REGION" \
+            --query 'StackResourceSummaries[?LogicalResourceId==`RefreshSchedulerDLQ`].PhysicalResourceId | [0]' \
             --output text)
           aws sqs get-queue-attributes --queue-url "$DLQ_URL" \
             --attribute-names ApproximateNumberOfMessagesVisible \

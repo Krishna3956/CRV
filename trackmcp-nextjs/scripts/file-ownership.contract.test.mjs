@@ -10,6 +10,7 @@ const scope = JSON.parse(execFileSync(process.execPath, ["scripts/release-scope-
 
 const owners = [
   [".github/workflows/", "deployment"],
+  ["trackmcp-nextjs/.github/workflows/", "deployment"],
   ["trackmcp-nextjs/deploy/", "deployment"],
   ["trackmcp-nextjs/packages/typescript-sdk/", "sdk"],
   ["trackmcp-nextjs/packages/cli/", "sdk"],
