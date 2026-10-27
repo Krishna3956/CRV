@@ -2,6 +2,16 @@
 
 Status: active autonomous audit, started 2026-10-21.
 
+## 2026-10-27 — scheduler enabled and cadence evidence refreshed
+
+- Enablement workflow `40445610213` succeeded with the existing non-secret
+  Secrets Manager ARN reference; scheduler artifact `12708211784` contains
+  only stack/resource metadata, Lambda metrics, and log-stream metadata.
+- Follow-up health workflow `40445804232` retained `12708665678`: AWS scheduler
+  evidence is enabled with four invocations and zero errors, but the pilot
+  `scheduled_cadence_gate` remains `pending` at 0/3 scheduled worker samples.
+  This strengthens external evidence without changing the HOLD decision.
+
 ## 2026-10-27 — scheduler health versus pilot cadence boundary
 
 - Added `scheduled_cadence_gate` to the redacted refresh-health report. AWS

@@ -1,7 +1,7 @@
 # Founder OS 100 Customer Readiness Ledger
 
 Last updated: 2026-10-27 (main `424258e`; deployed application `0c36da1` and App Runner production smoke verified)
-Latest freshness evidence: health workflow `40441666990` inspected eight
+Latest freshness evidence: health workflow `40445804232` inspected eight
 redacted samples and reports a healthy bounded window, zero worker failures,
 and `max_queue_lag_ms: 105384`; sustained scheduled-sample health remains an
 explicit open gate because the report contains **0/3 scheduled samples**.
@@ -9,6 +9,10 @@ explicit open gate because the report contains **0/3 scheduled samples**.
 The health report now exposes `scheduled_cadence_gate` separately from
 operational `state`: AWS metric health can be healthy while the pilot cadence
 gate remains pending until actual scheduled worker samples are observed.
+
+The enabled-schedule follow-up is retained as artifact `12708665678`; it
+reports four AWS invocations, zero errors, and the same pending 0/3 scheduled
+worker cadence gate.
 
 The deployed application is the runtime-verified App Runner release
 (`0c36da187d6fee56cd280ea79070176e9cd8f63d`, workflow `40426236860`). The
@@ -19,7 +23,10 @@ from the prior release remains historical until rerun for this exact image.
 
 ## 2026-10-27 latest scheduler-health evidence
 
-- [x] Health workflow `40441666990` retained artifact `12706560931` with
+- [x] Enablement workflow `40445610213` succeeded and retained scheduler
+  metadata artifact `12708211784`.
+
+- [x] Health workflow `40445804232` retained artifact `12708665678` with
   `state: healthy`, eight bounded samples, zero stale runs, zero failed runs,
   and maximum queue lag `105384 ms` (inside the `900000 ms` budget).
 - [x] AWS scheduler metadata reported `enabled: true`, two metric datapoints,
