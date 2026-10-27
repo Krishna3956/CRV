@@ -2,6 +2,22 @@
 
 Status: active autonomous audit, started 2026-10-21.
 
+## 2026-10-27 — production route and release-gate recheck
+
+- Re-ran the credential-free production pilot smoke against `https://trackmcp.com`.
+  It passed all 36 bounded checks, including public documentation routes,
+  security headers, sitemap/tool-sitemap reachability, public claim boundaries,
+  registry metadata, and unauthenticated protection of the analytics, ingest,
+  OTLP, device, refresh, rate-limit, and privacy-review endpoints. The redacted
+  report is retained locally at `/tmp/trackmcp-pilot-smoke-20261027.json` and
+  contains no credentials or response bodies.
+- Re-ran the full local release gate after the latest deployment; all 138
+  suites passed, including accessibility, docs navigation/version contracts,
+  tenant isolation, OTLP JSON/protobuf, transport observer, modern MCP fixture,
+  package consumers, and worker/scheduler contracts. This strengthens recurring
+  validation but does not close the external scheduler, backup/PITR, privacy,
+  pilot-scope, or release-owner gates.
+
 ## 2026-10-27 — latest hosted deployment verification
 
 - App Runner deployment run `40426236860` completed successfully for the
