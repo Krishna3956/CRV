@@ -1,0 +1,60 @@
+name: Production transport smoke
+
+on:
+  workflow_dispatch:
+    inputs:
+      base_url:
+        description: "HTTPS App Runner or app origin to verify"
+        required: true
+        default: "https://app.trackmcp.com"
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      TRACKMCP_TRANSPORT_SMOKE_CONFIRM: I_UNDERSTAND_TRANSPORT_SMOKE
+      TRACKMCP_TRANSPORT_SMOKE_BASE_URL: ${{ inputs.base_url }}
+      TRACKMCP_TRANSPORT_SMOKE_KEY: ${{ secrets.TRACKMCP_TRANSPORT_SMOKE_KEY }}
+      TRACKMCP_TRANSPORT_SMOKE_SERVICE: production-transport-smoke
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: trackmcp-nextjs/package-lock.json
+      - name: Install web and SDK dependencies
+        working-directory: trackmcp-nextjs
+        run: |
+          npm ci
+          npm ci --prefix packages/typescript-sdk
+      - name: Check transport smoke input
+        id: configured
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ -z "${TRACKMCP_TRANSPORT_SMOKE_KEY:-}" ]]; then
+            echo "configured=false" >> "$GITHUB_OUTPUT"
+            echo "Production transport smoke skipped; TRACKMCP_TRANSPORT_SMOKE_KEY is not configured." | tee -a "$GITHUB_STEP_SUMMARY"
+          else
+            echo "configured=true" >> "$GITHUB_OUTPUT"
+            echo "Metadata-only production transport smoke is configured." >> "$GITHUB_STEP_SUMMARY"
+          fi
+      - name: Run metadata-only transport smoke
+        if: steps.configured.outputs.configured == 'true'
+        working-directory: trackmcp-nextjs
+        env:
+          TRACKMCP_TRANSPORT_SMOKE_REPORT: ${{ runner.temp }}/trackmcp-production-transport-smoke.json
+        run: node scripts/production-transport-smoke.mjs
+      - name: Upload redacted transport evidence
+        if: always() && steps.configured.outputs.configured == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: production-transport-smoke-${{ github.sha }}
+          path: ${{ runner.temp }}/trackmcp-production-transport-smoke.json
+          if-no-files-found: warn
