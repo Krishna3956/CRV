@@ -1089,3 +1089,11 @@ production transport UAT.
   `io.modelcontextprotocol/tasks`, matching the Python, Go, and .NET observers;
   option values and unsafe names remain excluded. TypeScript SDK tests (103),
   lint, diff validation, and the full **143-suite** release gate pass.
+
+- 2026-10-27: App Runner deployment `40457095244` completed successfully for
+  immutable source `0fcaaaef7167766e92df3ebd0d45ee42665c85d2`. Redacted
+  artifacts are retained as `12713590379` (production smoke), `12713575567`
+  (runtime flags), and `12713502024` (App Runner host). The follow-up
+  authenticated production smoke `40457840079` passed with artifact
+  `12712464779`, confirming the deployed candidate’s bounded authenticated
+  read-model, tenant-isolation, and negative authorization checks.
