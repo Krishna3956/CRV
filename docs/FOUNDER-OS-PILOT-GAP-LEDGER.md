@@ -2,6 +2,18 @@
 
 Status: active autonomous audit, started 2026-10-21.
 
+## 2026-10-27 — scheduler resource evidence hardening
+
+- The manual scheduler workflow now reports CloudFormation outputs and the
+  non-secret states of the Lambda, schedule, DLQ, and both CloudWatch alarms.
+  The SAM template exposes only resource identifiers and names; it does not
+  expose the worker token or secret bundle. The workflow contract and full
+  release gate (137 suites) pass, and the change is pushed on main as
+  `ae2128c`.
+- This improves the evidence path but does not claim an enabled schedule or
+  successful endpoint invocation. The external scheduler gate remains open
+  until those checks and three fresh samples are retained.
+
 ## 2026-10-27 — modern request metadata and browser-tester parity
 
 - The published TypeScript modern client (`@trackmcp/sdk@0.1.19`) now adds
