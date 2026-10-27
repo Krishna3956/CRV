@@ -146,6 +146,12 @@ test("brand logo links remove decoration while retaining a visible keyboard focu
   assert.match(css, /text-decoration: none !important/);
 });
 
+test("interactive controls expose a universal pointer affordance", async () => {
+  const css = await source("src/app/globals.css");
+  assert.match(css, /button:not\(:disabled\),\s*\[href\],\s*\[role="button"\],\s*summary\s*\{\s*cursor:\s*pointer;/s);
+  assert.match(css, /button:disabled\s*\{\s*cursor:\s*not-allowed;/s);
+});
+
 test("trust pages avoid promising unshipped retention and export controls", async () => {
   const security = await source("src/app/security/page.tsx");
   const privacy = await source("src/app/privacy/page.tsx");
