@@ -84,6 +84,14 @@ evidence and are not current approval.
   MCP protocol, and Authentication/OAuth documentation. Menu and Copy buttons
   also report `cursor: pointer` in the deployed DOM.
 
+## 2026-10-28 — live dashboard unauthenticated entry audit
+
+- [x] Read-only browser inspection of the deployed `/dashboard` route shows a
+  clear, non-data-bearing empty state: “Your workspace is waiting. Sign in to
+  create an API key and see how your MCP server is being used.”
+- [x] The `Sign in to continue` CTA is visible, points to `/signin`, and
+  reports `cursor: pointer`; no unauthenticated workspace data is exposed.
+
 ## 2026-10-28 — published-train smoke default alignment
 
 - [x] Corrected the production pilot smoke harness to use the currently
