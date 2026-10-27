@@ -27,6 +27,20 @@ Status: active autonomous audit, started 2026-10-21.
   **177 routes**. This confirms source health only and does not close any
   external scheduler, recovery, privacy, credentialed-UAT, or owner gates.
 
+## 2026-10-27 — App Runner rollout reconciled
+
+- App Runner workflow `40474794151` completed successfully for immutable
+  source `37579eade74a20818cd4f83569493e830e4855de` after the release gate,
+  OIDC setup, image/digest verification, port reconciliation, rollout wait,
+  read-only production smoke, immutable release-identity check, and runtime
+  safety audit. Redacted artifacts retained by the workflow are
+  `app-runner-host-37579eade74a20818cd4f83569493e830e4855de`,
+  `production-smoke-37579eade74a20818cd4f83569493e830e4855de`, and
+  `runtime-flags-37579eade74a20818cd4f83569493e830e4855de`.
+- The later `main` documentation verification commit `e208bea` is not claimed
+  as deployed by this entry. External scheduler, recovery/PITR, privacy,
+  credentialed UAT, and release-owner gates remain open.
+
 ## 2026-10-27 — package-version parity and release-gate recheck
 
 - Reconciled the current CLI integration README, package-release readiness

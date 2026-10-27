@@ -8,12 +8,12 @@ commit and the operator accepts the listed limitations.
 
 ## Current deployed baseline — 2026-10-27
 
-App Runner workflow `40472509165` successfully deployed immutable application
-commit `f81317d9875dab0f48fb21bd0adfa76011b76baf`. Rollout, production smoke,
+App Runner workflow `40474794151` successfully deployed immutable application
+commit `37579eade74a20818cd4f83569493e830e4855de`. Rollout, production smoke,
 immutable runtime identity, runtime-safety audit, and redacted evidence upload
-passed. Retained artifacts are `app-runner-host-f81317d9875dab0f48fb21bd0adfa76011b76baf`,
-`production-smoke-f81317d9875dab0f48fb21bd0adfa76011b76baf`, and
-`runtime-flags-f81317d9875dab0f48fb21bd0adfa76011b76baf`. The latest rollout
+passed. Retained artifacts are `app-runner-host-37579eade74a20818cd4f83569493e830e4855de`,
+`production-smoke-37579eade74a20818cd4f83569493e830e4855de`, and
+`runtime-flags-37579eade74a20818cd4f83569493e830e4855de`. The latest rollout
 has not been represented as a new authenticated key-lifecycle UAT run; the
 release remains Draft/HOLD until the open operational and owner gates below
 are independently accepted.
@@ -37,11 +37,11 @@ recovery-evidence hardening, not a final operational SLO acceptance.
 
 ## Latest source verification — 2026-10-27
 
-The current deployed source is `f81317d` (including the bounded scheduler
+The current deployed source is `37579ea` (including the bounded scheduler
 slice, release-scope ownership reconciliation, transient App Runner smoke
-retry boundary, and the explicit button-type accessibility fixes). Mainline
-now also contains the package-train parity and ledger evidence update
-`37579ea`; its focused
+retry boundary, explicit button-type accessibility fixes, and package-train
+parity correction). Mainline now also contains the current-main verification
+update `e208bea`; its focused
 documentation/accessibility contracts pass, and the full local release gate,
 lint, and 177-route build were green before deployment. Push-triggered
 scheduler activation for the reviewed scheduler change completed successfully
