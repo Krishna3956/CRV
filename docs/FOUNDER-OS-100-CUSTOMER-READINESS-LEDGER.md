@@ -1,12 +1,12 @@
 # Founder OS 100 Customer Readiness Ledger
 
-Last updated: 2026-10-28 (main `53ea054`; deployed application `506be89` and App Runner rollout and production smoke verified; cross-language transport-aware result smoke coverage verified; hosted CI `40562115220` passed)
-Latest freshness evidence: health workflow `40502266095` (scheduled) inspected eight
-redacted worker samples. AWS scheduler cadence is now proven with **3/3
-invocations**, and the end-to-end scheduled-success marker is proven with **4/4
-CloudWatch EMF successes**. The overall state remains `warning` because
-only **1/3 scheduled worker samples** is in the current evaluation window and
-the maximum queue lag is `3,506,514 ms` (above the 15-minute pilot budget).
+Last updated: 2026-10-28 (main `ae985c8`; deployed application `91293a3` and App Runner rollout `40564093852` and hosted CI `40564093743` verified)
+Latest freshness evidence: health workflow `40566829192` with worker drain
+`40566911017` inspected eight redacted worker samples. AWS scheduler cadence is
+proven with **4/4 invocations** and **4/4 CloudWatch EMF successes**. The overall
+state remains `warning` because only **1/3 scheduled worker samples** is in the
+current evaluation window and the maximum queue lag is `35,497,938 ms` (above
+the 15-minute pilot budget).
 
 ## Active external-gate register (current)
 
