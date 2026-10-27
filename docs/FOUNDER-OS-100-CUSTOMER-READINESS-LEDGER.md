@@ -53,6 +53,14 @@ permission.
 - [ ] The cadence gate still requires three scheduled samples; the report is
   therefore `insufficient_data` and the broader freshness SLO remains open.
 
+## 2026-10-27 scheduler health second sample
+
+- [x] Health workflow `40493000885` observed two scheduled invocations and two
+  scheduled-success markers with zero errors; scheduler evidence remains
+  healthy for all observed samples.
+- [ ] The required three scheduled samples are not yet available, so the
+  sustained cadence and freshness gates remain open.
+
 ## 2026-10-27 SDK release-train publication
 
 - [x] Source changes after the published `@trackmcp/sdk@0.1.20` and

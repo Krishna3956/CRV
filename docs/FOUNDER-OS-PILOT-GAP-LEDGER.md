@@ -46,6 +46,14 @@ Status: active autonomous audit, started 2026-10-21.
 - The three-sample cadence requirement is not met yet, so the overall health
   gate remains `insufficient_data` and no sustained SLO claim is made.
 
+## 2026-10-27 — second post-enable scheduler sample
+
+- Health workflow `40493000885` observed two scheduled invocations and two
+  scheduled-success markers with zero errors. The scheduler remains healthy
+  for the observed samples.
+- The required three-sample cadence is still pending; no sustained freshness
+  SLO claim is made.
+
 ## 2026-10-27 — bounded catalog correlation parity
 
 - Catalog list-change notifications now have a privacy-safe, reviewed evidence
