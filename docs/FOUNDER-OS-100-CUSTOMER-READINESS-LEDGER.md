@@ -91,6 +91,15 @@ permission.
 - [ ] This environment has no .NET toolchain, so hosted .NET compile/smoke
   evidence remains required before publishing the changed package.
 
+## 2026-10-27 OAuth observer parity contract milestone
+
+- [x] The protocol matrix now names TypeScript, Python, Go, and .NET as the
+  four SDKs that expose the same bounded authorization-outcome boundary.
+- [x] Added a release-gate contract that checks all four source surfaces retain
+  `401`/`403` handling and the `unauthorized`/`forbidden` vocabulary.
+- [ ] This contract prevents source drift but does not replace Go/.NET compiler
+  and hosted runtime evidence; those remain explicit release gates.
+
 ## 2026-10-27 health-state correction deployment
 
 - [x] App Runner deployment `40494157458` rolled out immutable commit

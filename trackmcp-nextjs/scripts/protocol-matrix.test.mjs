@@ -47,3 +47,22 @@ test("public protocol docs do not claim the published SDK is a complete v2 clien
   assert.match(docs, /task creation, notification subscriptions, and result payload retrieval remain outside/i);
   assert.doesNotMatch(docs, /until a v2 SDK adapter is released/i);
 });
+
+test("all SDKs preserve the same bounded OAuth observer boundary", async () => {
+  const sources = await Promise.all([
+    readFile(new URL("../packages/typescript-sdk/src/client-adapter.ts", import.meta.url), "utf8"),
+    readFile(new URL("../../packages/python-sdk/trackmcp/client.py", import.meta.url), "utf8"),
+    readFile(new URL("../packages/go-sdk/trackmcp.go", import.meta.url), "utf8"),
+    readFile(new URL("../packages/dotnet-sdk/TrackMcp.cs", import.meta.url), "utf8"),
+  ]);
+  assert.match(sources[0], /authorizationResponseMetadata/);
+  assert.match(sources[1], /record_authorization_outcome/);
+  assert.match(sources[2], /RecordAuthorizationOutcome/);
+  assert.match(sources[3], /RecordAuthorizationOutcome/);
+  for (const source of sources) {
+    assert.match(source, /unauthorized/);
+    assert.match(source, /forbidden/);
+    assert.match(source, /401/);
+    assert.match(source, /403/);
+  }
+});
