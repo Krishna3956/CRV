@@ -93,6 +93,20 @@ and **4/4 scheduled successes**; the GitHub scheduled-worker sample count is
   scheduled health samples within the 15-minute budget before changing the
   active freshness gate from HOLD.
 
+## 2026-10-28 — post-coalescing worker evidence
+
+- [x] Worker dispatch `40594876889` ran the deployed bounded four-slice profile
+  against the canonical queue and returned parseable evidence: `40/40`
+  processed/succeeded, `0` retryable, `0` failed, `0` timed out, and
+  `max_queue_lag_ms=322350` (about 5.4 minutes), inside the 15-minute budget.
+- [x] The subsequent authenticated production postflight reports `36` queued,
+  `0` running, `0` retryable, `0` failed, `12,490` coalesced legacy rows, and
+  `oldest_queued_lag_ms=381005` (about 6.4 minutes). The remaining rows are
+  canonical windows and are within the target at this observation.
+- [ ] This is one manual recovery sample, not the required three scheduled
+  samples. The freshness gate remains HOLD until the scheduled health workflow
+  records three fresh, parseable worker samples within the budget.
+
 ## Active external-gate register (current)
 
 | Gate | Current evidence | State | Required closure evidence |
