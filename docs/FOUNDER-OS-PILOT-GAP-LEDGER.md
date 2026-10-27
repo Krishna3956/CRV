@@ -105,7 +105,7 @@ Status: active autonomous audit, started 2026-10-21.
 
 - The reviewed SDK train is published as `@trackmcp/sdk@0.1.21` and
   `trackmcp==0.1.13` (published `0.1.21` and published `0.1.13` release artifacts);
-  the unchanged CLI remains `0.1.10`. Registry checksums,
+  the CLI candidate is now `0.1.11`. Registry checksums,
   provenance, and clean-consumer evidence are recorded in the package
   release-readiness file. The first npm run’s bounded propagation timeout is
   retained as a workflow caveat, not a registry failure.

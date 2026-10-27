@@ -161,7 +161,7 @@ and rate-limit false positives.
 
 The reviewed TypeScript SDK is published as `@trackmcp/sdk@0.1.22`, while the
 current coordinated release train retains
-`@trackmcp/cli@0.1.10` and `trackmcp==0.1.13`; registry checksums,
+`@trackmcp/cli@0.1.11` and `trackmcp==0.1.13`; registry checksums,
 provenance, and clean-consumer downloads are recorded in the package
 readiness file. The preceding published train was `@trackmcp/sdk@0.1.20`,
 `@trackmcp/cli@0.1.10`, and `trackmcp==0.1.12`; it remains historical. The
