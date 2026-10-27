@@ -126,6 +126,7 @@ jobs:
             echo "- State: $state"
             echo "- Reasons: $reasons"
             echo "- Samples: $(jq -r '.sample_count' "$report") / $(jq -r '.minimum_samples' "$report")"
+            echo "- Current evaluation samples: $(jq -r '.evaluation_sample_count' "$report") (window $(jq -r '.evaluation_window_ms' "$report") ms)"
             echo "- Scheduled samples: $(jq -r '.scheduled_sample_count' "$report") / $(jq -r '.minimum_scheduled_samples' "$report")"
             echo "- Scheduled cadence gate: $(jq -r '.scheduled_cadence_gate.status' "$report") ($(jq -r '.scheduled_cadence_gate.evidence' "$report"))"
             echo "- AWS scheduler cadence gate: $(jq -r '.aws_scheduler_cadence_gate.status' "$report") ($(jq -r '.aws_scheduler_cadence_gate.evidence' "$report"))"

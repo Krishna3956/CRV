@@ -2,6 +2,7 @@ import { readFile } from "node:fs/promises";
 
 const DEFAULT_BUDGET_MS = 900_000;
 const DEFAULT_MAX_CADENCE_MS = 20 * 60_000;
+const DEFAULT_EVALUATION_WINDOW_MS = 60 * 60_000;
 const MIN_SAMPLES = 3;
 
 function boundedNumber(value, fallback = 0) {
@@ -32,7 +33,7 @@ function normalizeAwsSchedulerEvidence(value) {
   };
 }
 
-export function summarizeRefreshWorkerRuns(runs, { budgetMs = DEFAULT_BUDGET_MS, maxCadenceMs = DEFAULT_MAX_CADENCE_MS, awsScheduler = null } = {}) {
+export function summarizeRefreshWorkerRuns(runs, { budgetMs = DEFAULT_BUDGET_MS, maxCadenceMs = DEFAULT_MAX_CADENCE_MS, evaluationWindowMs = DEFAULT_EVALUATION_WINDOW_MS, awsScheduler = null } = {}) {
   const boundedRuns = (Array.isArray(runs) ? runs : [])
     .filter((run) => run && typeof run === "object")
     .map((run) => ({
@@ -51,18 +52,27 @@ export function summarizeRefreshWorkerRuns(runs, { budgetMs = DEFAULT_BUDGET_MS,
     .sort((a, b) => (parseTimestamp(a.created_at) ?? 0) - (parseTimestamp(b.created_at) ?? 0))
     .slice(-8);
 
+  const latestRunTime = parseTimestamp(boundedRuns.at(-1)?.created_at);
+  const evaluationWindow = boundedNumber(evaluationWindowMs, DEFAULT_EVALUATION_WINDOW_MS);
+  const evaluationRuns = latestRunTime === null
+    ? boundedRuns
+    : boundedRuns.filter((run) => {
+      const created = parseTimestamp(run.created_at);
+      return created === null || created >= latestRunTime - evaluationWindow;
+    });
+
   const intervals = [];
-  for (let index = 1; index < boundedRuns.length; index += 1) {
-    const previous = parseTimestamp(boundedRuns[index - 1].created_at);
-    const current = parseTimestamp(boundedRuns[index].created_at);
+  for (let index = 1; index < evaluationRuns.length; index += 1) {
+    const previous = parseTimestamp(evaluationRuns[index - 1].created_at);
+    const current = parseTimestamp(evaluationRuns[index].created_at);
     if (previous !== null && current !== null && current >= previous) intervals.push(current - previous);
   }
-  const staleRuns = boundedRuns.filter((run) => run.freshness_slo === "stale" || run.freshness_alert === "warning").length;
-  const failedRuns = boundedRuns.filter((run) => run.conclusion !== "success" || run.failed > 0 || run.retryable > 0).length;
+  const staleRuns = evaluationRuns.filter((run) => run.freshness_slo === "stale" || run.freshness_alert === "warning").length;
+  const failedRuns = evaluationRuns.filter((run) => run.conclusion !== "success" || run.failed > 0 || run.retryable > 0).length;
   const cadenceBreaches = intervals.filter((interval) => interval > maxCadenceMs).length;
   const awsEvidence = normalizeAwsSchedulerEvidence(awsScheduler);
-  const scheduledSampleCount = boundedRuns.filter((run) => run.event === "schedule").length;
-  const insufficient = boundedRuns.length < MIN_SAMPLES;
+  const scheduledSampleCount = evaluationRuns.filter((run) => run.event === "schedule").length;
+  const insufficient = evaluationRuns.length < MIN_SAMPLES;
   // EventBridge/Lambda is the production scheduler. GitHub cron is only a
   // recovery path, so a healthy AWS metric window satisfies the scheduler
   // evidence requirement even when GitHub has missed a tick.
@@ -106,6 +116,8 @@ export function summarizeRefreshWorkerRuns(runs, { budgetMs = DEFAULT_BUDGET_MS,
     state,
     reasons,
     sample_count: boundedRuns.length,
+    evaluation_sample_count: evaluationRuns.length,
+    evaluation_window_ms: evaluationWindow,
     minimum_samples: MIN_SAMPLES,
     scheduled_sample_count: scheduledSampleCount,
     minimum_scheduled_samples: MIN_SAMPLES,

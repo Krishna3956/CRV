@@ -58,6 +58,21 @@ test("worker health surfaces stale, failed, and cadence evidence without payload
   assert.equal(JSON.stringify(report).includes("private"), false);
 });
 
+test("historical failures do not poison the bounded current health window", () => {
+  const report = summarizeRefreshWorkerRuns([
+    run({ run_id: 1, created_at: "2026-10-26T00:00:00Z", conclusion: "failure", failed: 1, freshness_slo: "stale" }),
+    run({ run_id: 2, created_at: "2026-10-26T01:00:00Z" }),
+    run({ run_id: 3, created_at: "2026-10-26T01:05:00Z" }),
+    run({ run_id: 4, created_at: "2026-10-26T01:10:00Z" }),
+  ], { evaluationWindowMs: 60 * 60_000, awsScheduler: { enabled: true, invocations: 3, errors: 0, datapoints: [{ id: "invocations" }] } });
+  assert.equal(report.sample_count, 4);
+  assert.equal(report.evaluation_sample_count, 3);
+  assert.equal(report.failed_runs, 0);
+  assert.equal(report.stale_runs, 0);
+  assert.equal(report.state, "healthy");
+  assert.deepEqual(report.reasons, []);
+});
+
 test("healthy AWS scheduler evidence satisfies production cadence without hiding worker failures", () => {
   const report = summarizeRefreshWorkerRuns([
     run({ run_id: 1, event: "workflow_dispatch", created_at: "2026-10-26T00:00:00Z" }),
