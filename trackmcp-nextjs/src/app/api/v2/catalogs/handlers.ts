@@ -51,6 +51,7 @@ export function createCatalogsHandler(analytics = createAnalyticsHandler()) {
       catalog_tools?: unknown;
       catalog_versions?: unknown;
       catalog_version_status?: string;
+      catalog_snapshot_summary?: { notification_correlations?: unknown };
       catalog_next_cursor?: unknown;
       data_trust?: { observed_through?: string | null } | null;
     };
@@ -70,6 +71,18 @@ export function createCatalogsHandler(analytics = createAnalyticsHandler()) {
       previous_snapshot_id: typeof version.previous_snapshot_id === "string" ? version.previous_snapshot_id : null,
       diff: projectDiff(version.diff),
     }));
+    const notificationCorrelations = Array.isArray(body.catalog_snapshot_summary?.notification_correlations)
+      ? body.catalog_snapshot_summary.notification_correlations.flatMap((value) => {
+        if (!value || typeof value !== "object" || Array.isArray(value)) return [];
+        const row = value as Record<string, unknown>;
+        const kind = row.kind === "tools" || row.kind === "resources" || row.kind === "resource_templates" || row.kind === "prompts" ? row.kind : null;
+        if (!kind) return [];
+        const bounded = (field: string) => typeof row[field] === "number" && Number.isSafeInteger(row[field]) ? Math.max(0, Math.min(100000, row[field] as number)) : 0;
+        const boundedWindow = typeof row.match_window_ms === "number" && Number.isSafeInteger(row.match_window_ms) ? Math.max(0, Math.min(3600000, row.match_window_ms)) : 0;
+        const status = row.status === "available" || row.status === "no_notifications" || row.status === "no_snapshots" ? row.status : "no_snapshots";
+        return [{ kind, notifications: bounded("notifications"), matched_notifications: bounded("matched_notifications"), ambiguous_notifications: bounded("ambiguous_notifications"), unmatched_notifications: bounded("unmatched_notifications"), snapshots: bounded("snapshots"), match_window_ms: boundedWindow, status }];
+      }).slice(0, 4)
+      : [];
     return NextResponse.json(withTrackMCPV2Envelope({
       range_days: body.range_days ?? null,
       catalogs: [{
@@ -87,6 +100,7 @@ export function createCatalogsHandler(analytics = createAnalyticsHandler()) {
         diff_status: historical.some((version) => version.previous_snapshot_id) ? "available" : "awaiting_previous_snapshot_join",
         identifiers: "sha256_hashes_only",
         caveat: "A partial or truncated observation is not evidence that an item was removed.",
+        notification_correlations: notificationCorrelations,
       },
       pagination: {
         next_cursor: typeof body.catalog_next_cursor === "string" ? body.catalog_next_cursor : null,

@@ -2602,7 +2602,7 @@ function ProtocolSignalPanel({
       )}
           {snapshotSummary && (
             <p className="mt-2 text-[11px] text-muted">
-              Versioned snapshots: {fmt(snapshotSummary.versions)} · changed {fmt(snapshotSummary.changed_versions)} · computed diffs {fmt(snapshotSummary.diff_computed)} · truncated {fmt(snapshotSummary.truncated_versions)}{snapshotSummary.page_bounded ? " · page bounded" : ""}. Notification counts are not correlated to versions here.
+              Versioned snapshots: {fmt(snapshotSummary.versions)} · changed {fmt(snapshotSummary.changed_versions)} · computed diffs {fmt(snapshotSummary.diff_computed)} · truncated {fmt(snapshotSummary.truncated_versions)}{snapshotSummary.page_bounded ? " · page bounded" : ""}. Notification counts use the bounded evidence join below when a unique same-scope snapshot exists.
             </p>
           )}
       {snapshotSummary?.notification_correlations && snapshotSummary.notification_correlations.some((row) => row.notifications > 0) && (

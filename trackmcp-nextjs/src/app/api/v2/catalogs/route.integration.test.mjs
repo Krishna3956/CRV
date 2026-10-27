@@ -48,6 +48,10 @@ test("catalog API exposes bounded historical metadata without raw payloads", asy
   const referenceVersion = snapshot.snapshot_hash;
   const referenceAdded = snapshot.diff.added_name_count;
   assert.equal(body.versioning.historical_versions, true);
+  assert.equal(body.versioning.notification_correlations.length, 4);
+  assert.equal(body.versioning.notification_correlations[0].kind, "tools");
+  assert.equal(body.versioning.notification_correlations[0].snapshots, 1);
+  assert.equal(body.versioning.notification_correlations[0].match_window_ms, 600000);
   assert.equal(body.catalogs[1].version, referenceVersion);
   assert.equal(body.catalogs[1].diff.added_name_count, referenceAdded);
   assert.deepEqual(body.catalogs[1].diff.added_name_hashes, ["d".repeat(64)]);

@@ -507,7 +507,7 @@ test("Overview exposes protocol lifecycle signals with an explicit non-outcome c
   assert.match(source, /Catalog changes by surface/);
   assert.match(source, /not snapshot versions/);
   assert.match(source, /Versioned snapshots/);
-  assert.match(source, /Notification counts are not correlated to versions/);
+  assert.match(source, /Notification counts use the bounded evidence join/);
 });
 
 test("protocol outcomes disclose hash-only matched request/response pairs", () => {

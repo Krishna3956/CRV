@@ -56,9 +56,8 @@ permission.
 - [x] The response and dashboard state explicitly that notification counts are
   not correlated to snapshot versions; no version is inferred from a
   list-changed notification.
-- [ ] Reviewed notification-to-snapshot correlation and authenticated
-  cross-transport UAT remain open. The current implementation is truthful and
-  bounded rather than presenting an unverified join.
+- [x] The reviewed notification-to-snapshot correlation is now implemented as
+  a bounded evidence join; authenticated cross-transport UAT remains open.
 
 ## 2026-10-27 bounded catalog correlation implementation
 
