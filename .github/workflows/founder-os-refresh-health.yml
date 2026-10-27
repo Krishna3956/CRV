@@ -61,7 +61,20 @@ jobs:
             --end-time "$end_time" \
             --scan-by TimestampDescending \
             --output json)
-          printf '%s' "$raw" | jq '{enabled:true,datapoints:[.MetricDataResults[] | {id:.Id,values:.Values,timestamps:.Timestamps}],invocations:([.MetricDataResults[] | select(.Id=="invocations") | .Values[]] | add // 0),errors:([.MetricDataResults[] | select(.Id=="errors") | .Values[]] | add // 0)}' > "$output"
+          scheduled_successes=0
+          if log_count=$(aws logs filter-log-events \
+            --log-group-name "/aws/lambda/$function_name" \
+            --start-time "$(( $(date -d "$start_time" +%s) * 1000 ))" \
+            --end-time "$(( $(date -d "$end_time" +%s) * 1000 ))" \
+            --filter-pattern '{ $.event = "refresh_scheduler_result" && $.scheduled = true && $.success = true }' \
+            --region "$AWS_REGION" \
+            --query 'length(events)' \
+            --output text 2>/dev/null; then
+            scheduled_successes=$(printf '%s' "$log_count" | awk '/^[0-9]+$/ { print; found=1 } END { if (!found) print 0 }')
+          else
+            echo "::warning::Scheduled-success log projection was unavailable; AWS end-to-end cadence remains pending."
+          fi
+          printf '%s' "$raw" | jq --argjson scheduled_successes "$scheduled_successes" '{enabled:true,datapoints:[.MetricDataResults[] | {id:.Id,values:.Values,timestamps:.Timestamps}],invocations:([.MetricDataResults[] | select(.Id=="invocations") | .Values[]] | add // 0),errors:([.MetricDataResults[] | select(.Id=="errors") | .Values[]] | add // 0),scheduled_successes:$scheduled_successes}' > "$output"
 
       - name: Collect recent redacted worker summaries
         env:

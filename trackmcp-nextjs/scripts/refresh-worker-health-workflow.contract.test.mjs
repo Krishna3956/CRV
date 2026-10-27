@@ -9,6 +9,11 @@ test("health workflow can recover a missed worker tick without overlapping an ac
   assert.match(workflow, /id-token: write/);
   assert.match(workflow, /configure-aws-credentials@v4/);
   assert.match(workflow, /cloudwatch get-metric-data/);
+  assert.match(workflow, /logs filter-log-events/);
+  assert.match(workflow, /refresh_scheduler_result/);
+  assert.match(workflow, /scheduled_successes/);
+  assert.match(workflow, /length\(events\)/);
+  assert.match(workflow, /AWS end-to-end cadence remains pending/);
   assert.match(workflow, /aws-scheduler\.json/);
   assert.match(workflow, /scheduler_evidence/);
   assert.match(workflow, /scheduled_cadence_gate/);
