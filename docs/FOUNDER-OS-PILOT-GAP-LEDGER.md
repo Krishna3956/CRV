@@ -24,6 +24,15 @@ Status: active autonomous audit, started 2026-10-21.
 - Added documentation-contract coverage to the alert worker suite. The worker
   suite passes 8/8 and the full local release gate passes 137 suites.
 
+## 2026-10-27 — scheduler evidence artifact retention
+
+- The manual scheduler workflow now writes its non-secret CloudFormation
+  outputs and resource states to JSON files and uploads a 14-day GitHub Actions
+  artifact. This preserves evidence beyond transient log retention while
+  excluding token values and response bodies. The scheduler contract and full
+  137-suite release gate pass; hosted deployment remains pending for this
+  change.
+
 ## 2026-10-27 — modern request metadata and browser-tester parity
 
 - The published TypeScript modern client (`@trackmcp/sdk@0.1.19`) now adds

@@ -130,15 +130,26 @@ jobs:
           STACK_NAME: ${{ inputs.stack_name }}
         run: |
           set -euo pipefail
+          REPORT_DIR="$RUNNER_TEMP/refresh-scheduler-report"
+          mkdir -p "$REPORT_DIR"
           echo "CloudFormation outputs (non-secret metadata):"
           aws cloudformation describe-stacks \
             --stack-name "$STACK_NAME" \
             --region "$AWS_REGION" \
             --query 'Stacks[0].Outputs[].{Key:OutputKey,Value:OutputValue}' \
-            --output json
+            --output json | tee "$REPORT_DIR/stack-outputs.json"
           echo "CloudFormation resource states (non-secret metadata):"
           aws cloudformation describe-stack-resources \
             --stack-name "$STACK_NAME" \
             --region "$AWS_REGION" \
             --query 'StackResourceSummaries[?LogicalResourceId==`RefreshSchedulerFunction` || LogicalResourceId==`RefreshSchedulerSchedule` || LogicalResourceId==`RefreshSchedulerDLQ` || LogicalResourceId==`SchedulerLambdaFailureAlarm` || LogicalResourceId==`SchedulerDLQAlarm`].{LogicalId:LogicalResourceId,Status:ResourceStatus,PhysicalId:PhysicalResourceId}' \
-            --output json
+            --output json | tee "$REPORT_DIR/resource-states.json"
+
+      - name: Upload scheduler evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: refresh-scheduler-evidence-${{ github.run_id }}
+          path: ${{ runner.temp }}/refresh-scheduler-report/
+          if-no-files-found: ignore
+          retention-days: 14

@@ -35,6 +35,9 @@ test("refresh scheduler deployment reports only CloudFormation status metadata",
   assert.match(workflow, /CloudFormation outputs \(non-secret metadata\)/);
   assert.match(workflow, /RefreshSchedulerFunction/);
   assert.match(workflow, /RefreshSchedulerDLQ/);
+  assert.match(workflow, /actions\/upload-artifact@v4/);
+  assert.match(workflow, /refresh-scheduler-evidence-\$\{\{ github\.run_id \}\}/);
+  assert.match(workflow, /retention-days: 14/);
   assert.doesNotMatch(workflow, /get-secret-value|SecretString|response body/i);
 });
 
