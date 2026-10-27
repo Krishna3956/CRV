@@ -2,6 +2,16 @@
 
 Status: active autonomous audit, started 2026-10-21.
 
+## 2026-10-27 — bounded catalog correlation parity
+
+- Catalog list-change notifications now have a privacy-safe, reviewed evidence
+  join with versioned snapshots when server, environment, and catalog family
+  match within a ten-minute window. The v1 analytics projection, v2 catalog
+  API, and dashboard expose matched, ambiguous, and unmatched counts.
+- This closes the local notification-versus-snapshot ambiguity without claiming
+  causality or delivery. Authenticated cross-transport UAT and production
+  evidence remain external gates.
+
 ## 2026-10-27 — SDK release publication pointer
 
 - The reviewed SDK train is published as `@trackmcp/sdk@0.1.21` and
