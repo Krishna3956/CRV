@@ -74,6 +74,16 @@ evidence and are not current approval.
   Hosted release gate, image build/push, rollout, read-only production smoke,
   running release identity, and runtime-safety checks all passed.
 
+## 2026-10-28 — live documentation navigation audit
+
+- [x] Read-only browser inspection of the deployed App Runner `/docs` route
+  confirmed all 97 authored links expose pointer affordances and resolve to
+  real destinations; no link rendered with a non-pointer cursor.
+- [x] The live page exposes working navigation for TypeScript, transport
+  observer, OAuth outcomes, CLI, Python, Go, .NET, REST API, OpenTelemetry,
+  MCP protocol, and Authentication/OAuth documentation. Menu and Copy buttons
+  also report `cursor: pointer` in the deployed DOM.
+
 ## 2026-10-28 — published-train smoke default alignment
 
 - [x] Corrected the production pilot smoke harness to use the currently
