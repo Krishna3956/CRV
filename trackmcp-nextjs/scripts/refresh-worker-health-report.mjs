@@ -50,6 +50,9 @@ export function summarizeRefreshWorkerRuns(runs, { budgetMs = DEFAULT_BUDGET_MS,
       processed: boundedNumber(run.processed),
       failed: boundedNumber(run.failed),
       retryable: boundedNumber(run.retryable),
+      timed_out: run.timed_out === true,
+      workflow_failed: run.workflow_failed === true,
+      batches_with_unparseable_response: boundedNumber(run.batches_with_unparseable_response),
     }))
     .sort((a, b) => (parseTimestamp(a.created_at) ?? 0) - (parseTimestamp(b.created_at) ?? 0))
     .slice(-8);
@@ -71,6 +74,7 @@ export function summarizeRefreshWorkerRuns(runs, { budgetMs = DEFAULT_BUDGET_MS,
   }
   const staleRuns = evaluationRuns.filter((run) => run.freshness_slo === "stale" || run.freshness_alert === "warning").length;
   const failedRuns = evaluationRuns.filter((run) => run.conclusion !== "success" || run.failed > 0 || run.retryable > 0).length;
+  const incompleteRuns = evaluationRuns.filter((run) => run.timed_out || run.workflow_failed || run.batches_with_unparseable_response > 0).length;
   const cadenceBreaches = intervals.filter((interval) => interval > maxCadenceMs).length;
   const awsEvidence = normalizeAwsSchedulerEvidence(awsScheduler);
   const scheduledSampleCount = evaluationRuns.filter((run) => run.event === "schedule").length;
@@ -103,11 +107,12 @@ export function summarizeRefreshWorkerRuns(runs, { budgetMs = DEFAULT_BUDGET_MS,
       ? "cloudwatch_emf_metric"
       : awsEvidence.scheduled_successes_available ? "scheduled_success_metric_pending" : "cloudwatch_metric_unavailable",
   };
-  const state = insufficient ? "insufficient_data" : failedRuns > 0 || staleRuns > 0 || effectiveCadenceBreaches > 0 || scheduledInsufficient || awsErrorsObserved ? "warning" : "healthy";
+  const state = insufficient ? "insufficient_data" : failedRuns > 0 || incompleteRuns > 0 || staleRuns > 0 || effectiveCadenceBreaches > 0 || scheduledInsufficient || awsErrorsObserved ? "warning" : "healthy";
   const reasons = [];
   if (insufficient) reasons.push("minimum_samples_not_met");
   if (scheduledInsufficient && !insufficient) reasons.push("scheduled_samples_not_met");
   if (failedRuns > 0) reasons.push("worker_failures_observed");
+  if (incompleteRuns > 0) reasons.push("worker_execution_incomplete");
   if (staleRuns > 0) reasons.push("freshness_budget_exceeded");
   if (effectiveCadenceBreaches > 0) reasons.push("schedule_cadence_gap");
   if (awsErrorsObserved) reasons.push("aws_scheduler_errors_observed");
@@ -131,11 +136,12 @@ export function summarizeRefreshWorkerRuns(runs, { budgetMs = DEFAULT_BUDGET_MS,
     max_cadence_ms: boundedNumber(maxCadenceMs, DEFAULT_MAX_CADENCE_MS),
     stale_runs: staleRuns,
     failed_runs: failedRuns,
+    incomplete_runs: incompleteRuns,
     cadence_breaches: cadenceBreaches,
     scheduler_evidence: awsEvidence,
     max_queue_lag_ms: Math.max(0, ...boundedRuns.map((run) => run.max_queue_lag_ms)),
     total_processed: boundedRuns.reduce((total, run) => total + run.processed, 0),
-    runs: boundedRuns.map(({ run_id, created_at, event, observed_at, freshness_slo, freshness_alert, max_queue_lag_ms, processed, failed, retryable }) => ({ run_id, created_at, event, observed_at, freshness_slo, freshness_alert, max_queue_lag_ms, processed, failed, retryable })),
+    runs: boundedRuns.map(({ run_id, created_at, event, observed_at, freshness_slo, freshness_alert, max_queue_lag_ms, processed, failed, retryable, timed_out, workflow_failed, batches_with_unparseable_response }) => ({ run_id, created_at, event, observed_at, freshness_slo, freshness_alert, max_queue_lag_ms, processed, failed, retryable, timed_out, workflow_failed, batches_with_unparseable_response })),
   };
 }
 

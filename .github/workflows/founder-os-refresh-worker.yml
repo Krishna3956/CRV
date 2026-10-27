@@ -128,7 +128,7 @@ jobs:
           # cannot be mistaken for an SLO pass.
           freshness_budget_ms=900000
           jq --argjson budget "$freshness_budget_ms" \
-            '. + {freshness_budget_ms:$budget, freshness_slo:(if .max_queue_lag_ms == 0 then "no_backlog_observed" elif .max_queue_lag_ms <= $budget then "within_budget" else "stale" end), freshness_alert:(if .max_queue_lag_ms > $budget then "warning" else "none" end)}' \
+            '. + {freshness_budget_ms:$budget, freshness_slo:(if $timed_out == 1 or (.batches_with_unparseable_response // 0) > 0 then "unknown" elif .max_queue_lag_ms == 0 then "no_backlog_observed" elif .max_queue_lag_ms <= $budget then "within_budget" else "stale" end), freshness_alert:(if $timed_out == 1 or (.batches_with_unparseable_response // 0) > 0 or .max_queue_lag_ms > $budget then "warning" else "none" end)}' \
             "$RUNNER_TEMP/trackmcp-refresh-worker-summary.json" \
             > "$RUNNER_TEMP/trackmcp-refresh-worker-summary.json.tmp"
           mv "$RUNNER_TEMP/trackmcp-refresh-worker-summary.json.tmp" "$RUNNER_TEMP/trackmcp-refresh-worker-summary.json"

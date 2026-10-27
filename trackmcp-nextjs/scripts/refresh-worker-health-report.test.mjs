@@ -150,3 +150,16 @@ test("AWS scheduler errors remain visible as a distinct health reason", () => {
   assert.equal(report.state, "warning");
   assert.deepEqual(report.reasons, ["aws_scheduler_errors_observed"]);
 });
+
+test("timed out or unparseable batches cannot be reported as an empty healthy queue", () => {
+  const report = summarizeRefreshWorkerRuns([
+    run({ run_id: 1, event: "schedule", created_at: "2026-10-26T00:00:00Z" }),
+    run({ run_id: 2, event: "schedule", created_at: "2026-10-26T00:05:00Z" }),
+    run({ run_id: 3, event: "schedule", created_at: "2026-10-26T00:10:00Z", max_queue_lag_ms: 0, timed_out: true, batches_with_unparseable_response: 10, freshness_slo: "unknown", freshness_alert: "warning" }),
+  ]);
+  assert.equal(report.state, "warning");
+  assert.equal(report.incomplete_runs, 1);
+  assert.deepEqual(report.reasons, ["worker_execution_incomplete", "freshness_budget_exceeded"]);
+  assert.equal(report.runs.at(-1).timed_out, true);
+  assert.equal(report.runs.at(-1).batches_with_unparseable_response, 10);
+});
