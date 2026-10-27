@@ -2387,3 +2387,17 @@ a failed product gate or a Supabase plan warning.
   gate. It requires the reviewed migration runner or a credentialed,
   read-only schema-diff procedure that can safely compare each migration’s
   expected object contract with production without executing arbitrary DDL.
+
+## 2026-10-27 first-ingest edge-path correction
+
+- [x] Corrected the manual first-ingest workflow default from the
+  Cloudflare-fronted `app.trackmcp.com` origin to the recorded direct App
+  Runner origin `i95pzq2xh7.ap-south-1.awsapprunner.com`. The prior public
+  edge path had returned HTTP 403 before the application during a disposable
+  ingest attempt, so it could not provide meaningful write-gated evidence.
+- [x] Added a workflow contract that requires the direct App Runner default
+  and rejects regression to the blocked public edge fallback. The workflow
+  remains manual, disposable-key-gated, trusted-host-only, and redacted.
+- [ ] This makes the smoke runnable; it does not claim first-ingest success
+  until the operator supplies the dedicated disposable production key secret
+  and the workflow produces a passing artifact.

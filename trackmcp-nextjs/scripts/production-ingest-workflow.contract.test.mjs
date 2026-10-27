@@ -13,3 +13,9 @@ test("production first-ingest workflow is manual, secret-gated, and uploads only
   assert.match(workflow, /permissions:\s+contents: read/);
   assert.doesNotMatch(workflow, /TRACKMCP_LIFECYCLE_COOKIE/);
 });
+
+test("first-ingest defaults to the direct App Runner origin rather than the Cloudflare edge", () => {
+  assert.match(workflow, /default:\s*"https:\/\/i95pzq2xh7\.ap-south-1\.awsapprunner\.com"/);
+  assert.match(workflow, /inputs\.base_url \|\| 'https:\/\/i95pzq2xh7\.ap-south-1\.awsapprunner\.com'/);
+  assert.doesNotMatch(workflow, /inputs\.base_url \|\| 'https:\/\/app\.trackmcp\.com'/);
+});

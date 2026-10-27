@@ -4,9 +4,9 @@ on:
   workflow_dispatch:
     inputs:
       base_url:
-        description: "Credential-free HTTPS origin (default: https://app.trackmcp.com)"
+        description: "Direct trusted HTTPS origin (default: current App Runner origin; avoids the Cloudflare write block)"
         required: false
-        default: "https://app.trackmcp.com"
+        default: "https://i95pzq2xh7.ap-south-1.awsapprunner.com"
         type: string
 
 permissions:
@@ -17,7 +17,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     env:
-      TRACKMCP_INGEST_SMOKE_BASE_URL: ${{ inputs.base_url || 'https://app.trackmcp.com' }}
+      TRACKMCP_INGEST_SMOKE_BASE_URL: ${{ inputs.base_url || 'https://i95pzq2xh7.ap-south-1.awsapprunner.com' }}
       TRACKMCP_INGEST_SMOKE_KEY: ${{ secrets.TRACKMCP_INGEST_SMOKE_KEY }}
       TRACKMCP_INGEST_SMOKE_CONFIRM: I_UNDERSTAND_FIRST_INGEST_SMOKE
       TRACKMCP_INGEST_SMOKE_SERVICE: pilot-ingest-smoke
