@@ -901,3 +901,9 @@ production transport UAT.
   source checkpoint and records the current 141-suite, lint, and 177-route
   build evidence without relabeling the deployed runtime or closing any
   operator/infrastructure gate.
+
+- 2026-10-27: Added `test:external-gates` to the release gate. The contract
+  protects the register's HOLD status, current source/deployed-image
+  distinction, required external gate inventory, and current **142-suite**
+  evidence. The readiness snapshot and release record were updated to match;
+  historical checkpoints remain unchanged.
