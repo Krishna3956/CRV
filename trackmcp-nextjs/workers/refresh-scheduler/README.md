@@ -5,6 +5,13 @@ This directory contains a Node.js 22 Lambda invoked by an AWS
 (`max_jobs: 100`) to the App Runner refresh endpoint. It never queries
 Supabase directly and never logs the worker token or response body.
 
+EventBridge sends a bounded `source=eventbridge_scheduler` marker. Only after
+the upstream request returns successfully does the Lambda emit a
+non-sensitive `refresh_scheduler_result` marker; a CloudWatch metric filter
+projects that marker as `TrackMCP/RefreshScheduler:ScheduledSuccess`. Manual
+invocations do not emit it, so health checks can distinguish a real scheduled
+worker success from an operator smoke.
+
 The schedule is disabled by default. Deploy it disabled first, run the manual
 checks below, and enable it only after the endpoint and secret have been
 verified in the target environment. The repository workflow discovers the
@@ -53,8 +60,8 @@ Before enabling the schedule:
 4. Invoke the Lambda manually and inspect logs for token/response leakage.
 5. Check the SQS DLQ is empty and the two CloudWatch alarms are configured.
 6. Enable the schedule with `EnableSchedule=true`, then verify at least three
-   scheduled invocations and a queue-lag result within the 15-minute pilot
-   freshness budget before widening the pilot.
+   `ScheduledSuccess` metric points and a queue-lag result within the
+   15-minute pilot freshness budget before widening the pilot.
 
 ## Reproducible inspection commands
 

@@ -76,7 +76,7 @@ Resources:
       Target:
         Arn: !GetAtt RefreshSchedulerFunction.Arn
         RoleArn: !GetAtt RefreshSchedulerInvokeRole.Arn
-        Input: '{}'
+        Input: '{"source":"eventbridge_scheduler"}'
         RetryPolicy:
           MaximumEventAgeInSeconds: 300
           MaximumRetryAttempts: 2
@@ -126,6 +126,25 @@ Resources:
       TreatMissingData: notBreaching
       ActionsEnabled: !If [HasAlarmTopic, true, false]
       AlarmActions: !If [HasAlarmTopic, [!Ref FailureAlarmTopicArn], !Ref AWS::NoValue]
+
+  SchedulerScheduledSuccessMetricFilter:
+    Type: AWS::Logs::MetricFilter
+    DependsOn: RefreshSchedulerLogGroup
+    Properties:
+      LogGroupName: !Ref RefreshSchedulerLogGroup
+      FilterPattern: '{ $.event = "refresh_scheduler_result" && $.scheduled = true && $.success = true }'
+      MetricTransformations:
+        - MetricNamespace: TrackMCP/RefreshScheduler
+          MetricName: ScheduledSuccess
+          MetricValue: '1'
+          DefaultValue: 0
+
+  RefreshSchedulerLogGroup:
+    Type: AWS::Logs::LogGroup
+    DependsOn: RefreshSchedulerFunction
+    Properties:
+      LogGroupName: !Sub /aws/lambda/${RefreshSchedulerFunction}
+      RetentionInDays: 14
 
 Outputs:
   RefreshSchedulerFunctionArn:

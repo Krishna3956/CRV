@@ -18,12 +18,14 @@ function normalizeAwsSchedulerEvidence(value) {
   const datapoints = Array.isArray(source.datapoints) ? source.datapoints.filter((item) => item && typeof item === "object").slice(0, 32) : [];
   const invocations = boundedNumber(source.invocations);
   const errors = boundedNumber(source.errors);
+  const scheduledSuccesses = boundedNumber(source.scheduled_successes);
   const healthy = datapoints.length > 0 && invocations > 0 && errors === 0;
   return {
     enabled: source.enabled === true,
     datapoints: datapoints.length,
     invocations,
     errors,
+    scheduled_successes: scheduledSuccesses,
     healthy,
   };
 }
@@ -79,6 +81,12 @@ export function summarizeRefreshWorkerRuns(runs, { budgetMs = DEFAULT_BUDGET_MS,
       ? "aws_lambda_metrics_window"
       : awsEvidence.enabled ? "insufficient_aws_metrics" : "aws_scheduler_not_enabled",
   };
+  const awsEndToEndCadenceGate = {
+    status: awsEvidence.scheduled_successes >= MIN_SAMPLES ? "proven" : "pending",
+    observed_successes: awsEvidence.scheduled_successes,
+    required_successes: MIN_SAMPLES,
+    evidence: awsEvidence.scheduled_successes >= MIN_SAMPLES ? "eventbridge_success_metric" : "scheduled_success_metric_pending",
+  };
   const state = insufficient ? "insufficient_data" : failedRuns > 0 || staleRuns > 0 || effectiveCadenceBreaches > 0 || scheduledInsufficient || awsErrorsObserved ? "warning" : "healthy";
   const reasons = [];
   if (insufficient) reasons.push("minimum_samples_not_met");
@@ -99,6 +107,7 @@ export function summarizeRefreshWorkerRuns(runs, { budgetMs = DEFAULT_BUDGET_MS,
     minimum_scheduled_samples: MIN_SAMPLES,
     scheduled_cadence_gate: scheduledCadenceGate,
     aws_scheduler_cadence_gate: awsSchedulerCadenceGate,
+    aws_end_to_end_cadence_gate: awsEndToEndCadenceGate,
     freshness_budget_ms: boundedNumber(budgetMs, DEFAULT_BUDGET_MS),
     max_cadence_ms: boundedNumber(maxCadenceMs, DEFAULT_MAX_CADENCE_MS),
     stale_runs: staleRuns,

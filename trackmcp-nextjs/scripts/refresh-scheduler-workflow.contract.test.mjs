@@ -3,6 +3,7 @@ import { readFile } from "node:fs/promises";
 import test from "node:test";
 
 const workflow = await readFile(new URL("../../.github/workflows/deploy-refresh-scheduler.yml", import.meta.url), "utf8");
+const template = await readFile(new URL("../workers/refresh-scheduler/template.yaml", import.meta.url), "utf8");
 const readme = await readFile(new URL("../workers/refresh-scheduler/README.md", import.meta.url), "utf8");
 
 test("refresh scheduler deployment is manual, OIDC-authenticated, and disabled by default", () => {
@@ -47,6 +48,16 @@ test("refresh scheduler deployment reports only CloudFormation status metadata",
   assert.doesNotMatch(workflow, /get-secret-value|SecretString|response body/i);
 });
 
+test("scheduler template records only non-sensitive EventBridge success markers", () => {
+  assert.match(template, /SchedulerScheduledSuccessMetricFilter/);
+  assert.match(template, /RefreshSchedulerLogGroup/);
+  assert.match(template, /RetentionInDays: 14/);
+  assert.match(template, /TrackMCP\/RefreshScheduler/);
+  assert.match(template, /ScheduledSuccess/);
+  assert.match(template, /refresh_scheduler_result/);
+  assert.match(template, /Input:.*eventbridge_scheduler/);
+});
+
 test("authenticated smoke is explicit, disabled-first, and metadata-only", () => {
   assert.match(workflow, /Run opt-in authenticated Lambda smoke without secret material/);
   assert.match(workflow, /aws lambda invoke --function-name/);
@@ -75,5 +86,7 @@ test("refresh scheduler requires a protected dedicated worker secret", () => {
   assert.match(readme, /Secrets\s+Manager reference/);
   assert.match(readme, /dedicated secret/);
   assert.match(readme, /plaintext `SecretString`/);
+  assert.match(readme, /ScheduledSuccess/);
+  assert.match(readme, /Manual\s+invocations do not emit it/);
   assert.match(readme, /[Dd]o not paste/);
 });

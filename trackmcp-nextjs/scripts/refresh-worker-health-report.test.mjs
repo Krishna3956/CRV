@@ -63,7 +63,7 @@ test("healthy AWS scheduler evidence satisfies production cadence without hiding
     run({ run_id: 1, event: "workflow_dispatch", created_at: "2026-10-26T00:00:00Z" }),
     run({ run_id: 2, event: "workflow_dispatch", created_at: "2026-10-26T00:30:00Z", freshness_slo: "stale", freshness_alert: "warning", max_queue_lag_ms: 1_500_000 }),
     run({ run_id: 3, event: "workflow_dispatch", created_at: "2026-10-26T00:35:00Z", conclusion: "failure", failed: 1 }),
-  ], { awsScheduler: { enabled: true, invocations: 5, errors: 0, datapoints: [{ id: "invocations" }, { id: "errors" }] } });
+  ], { awsScheduler: { enabled: true, invocations: 5, errors: 0, scheduled_successes: 4, datapoints: [{ id: "invocations" }, { id: "errors" }, { id: "scheduled_successes" }] } });
   assert.equal(report.scheduler_evidence.healthy, true);
   assert.equal(report.scheduler_evidence.invocations, 5);
   assert.deepEqual(report.scheduled_cadence_gate, {
@@ -77,6 +77,12 @@ test("healthy AWS scheduler evidence satisfies production cadence without hiding
     observed_invocations: 5,
     required_invocations: 3,
     evidence: "aws_lambda_metrics_window",
+  });
+  assert.deepEqual(report.aws_end_to_end_cadence_gate, {
+    status: "proven",
+    observed_successes: 4,
+    required_successes: 3,
+    evidence: "eventbridge_success_metric",
   });
   assert.equal(report.cadence_breaches, 1);
   assert.deepEqual(report.reasons, ["worker_failures_observed", "freshness_budget_exceeded"]);
@@ -99,6 +105,12 @@ test("scheduled cadence gate becomes proven only from scheduled worker samples",
     observed_invocations: 0,
     required_invocations: 3,
     evidence: "aws_scheduler_not_enabled",
+  });
+  assert.deepEqual(report.aws_end_to_end_cadence_gate, {
+    status: "pending",
+    observed_successes: 0,
+    required_successes: 3,
+    evidence: "scheduled_success_metric_pending",
   });
 });
 

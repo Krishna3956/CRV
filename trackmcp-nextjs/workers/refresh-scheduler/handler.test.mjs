@@ -19,16 +19,19 @@ async function withEnvironment(values, callback) {
 
 test("scheduler handler sends one bounded authenticated refresh request", async () => {
   const previousFetch = globalThis.fetch;
+  const previousLog = console.log;
   let request;
+  const logs = [];
   globalThis.fetch = async (url, options) => {
     request = { url, options };
     return { ok: true, status: 202 };
   };
+  console.log = (line) => logs.push(line);
   try {
     const result = await withEnvironment({
       TRACKMCP_REFRESH_WORKER_URL: ENDPOINT,
       TRACKMCP_REFRESH_WORKER_TOKEN: "test-token-is-never-logged",
-    }, () => handler());
+    }, () => handler({ source: "eventbridge_scheduler" }));
     assert.deepEqual(result, { statusCode: 202 });
     assert.equal(request.url, ENDPOINT);
     assert.equal(request.options.method, "POST");
@@ -37,8 +40,10 @@ test("scheduler handler sends one bounded authenticated refresh request", async 
     assert.equal(request.options.headers["content-type"], "application/json");
     assert.deepEqual(JSON.parse(request.options.body), { max_jobs: 100 });
     assert.ok(request.options.signal instanceof AbortSignal);
+    assert.deepEqual(logs, [JSON.stringify({ event: "refresh_scheduler_result", scheduled: true, success: true })]);
   } finally {
     globalThis.fetch = previousFetch;
+    console.log = previousLog;
   }
 });
 
@@ -67,5 +72,23 @@ test("scheduler handler reports upstream status without reading response content
     });
   } finally {
     globalThis.fetch = previousFetch;
+  }
+});
+
+test("manual invocations do not emit the scheduled-success marker", async () => {
+  const previousFetch = globalThis.fetch;
+  const previousLog = console.log;
+  const logs = [];
+  globalThis.fetch = async () => ({ ok: true, status: 200 });
+  console.log = (line) => logs.push(line);
+  try {
+    await withEnvironment({
+      TRACKMCP_REFRESH_WORKER_URL: ENDPOINT,
+      TRACKMCP_REFRESH_WORKER_TOKEN: "test-token",
+    }, () => handler({}));
+    assert.deepEqual(logs, []);
+  } finally {
+    globalThis.fetch = previousFetch;
+    console.log = previousLog;
   }
 });

@@ -13,6 +13,8 @@ test("health workflow can recover a missed worker tick without overlapping an ac
   assert.match(workflow, /scheduler_evidence/);
   assert.match(workflow, /scheduled_cadence_gate/);
   assert.match(workflow, /aws_scheduler_cadence_gate/);
+  assert.match(workflow, /scheduled_successes/);
+  assert.match(workflow, /TrackMCP\/RefreshScheduler/);
   assert.match(workflow, /founder-os-refresh-worker\.yml\/runs\?status=in_progress/);
   assert.match(workflow, /founder-os-refresh-worker\.yml\/dispatches/);
   assert.match(workflow, /Recovery dispatch: requested/);
