@@ -2533,3 +2533,12 @@ a failed product gate or a Supabase plan warning.
 - [ ] This is documentation/test-contract reconciliation only. It does not
   close release-owner approval, recovery posture, privacy acceptance, or any
   credentialed production UAT gate.
+
+## 2026-10-27 acceptance-matrix truth reconciliation
+
+- [x] Updated the first-100 acceptance matrix to identify repository source
+  `ba19661` while retaining immutable deployed runtime `4efa2e1`.
+- [x] Added a contract test requiring the matrix to distinguish source-only
+  postflight commits from deployed behavior.
+- [ ] The matrix remains HOLD; this change does not close any owner or
+  credentialed production gate.

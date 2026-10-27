@@ -6,6 +6,7 @@ const root = new URL("../../", import.meta.url);
 const queue = await readFile(new URL("FOUNDER-OS-100-CUSTOMER-PILOT-WORK-QUEUE.md", root), "utf8");
 const record = await readFile(new URL("docs/FOUNDER-OS-100-CUSTOMER-PILOT-RELEASE-RECORD.md", root), "utf8");
 const externalGates = await readFile(new URL("docs/FOUNDER-OS-100-CUSTOMER-PILOT-EXTERNAL-GATES.md", root), "utf8");
+const acceptanceMatrix = await readFile(new URL("docs/FOUNDER-OS-100-CUSTOMER-PILOT-ACCEPTANCE-MATRIX.md", root), "utf8");
 const readinessLedger = await readFile(new URL("docs/FOUNDER-OS-100-CUSTOMER-READINESS-LEDGER.md", root), "utf8");
 
 function section(source, heading, nextHeading) {
@@ -55,6 +56,12 @@ test("external-gate register names accountable parties and closure evidence", ()
   assert.match(externalGates, /260 — final go\/no-go/);
   assert.match(externalGates, /Timestamped GO\/NO-GO decision/);
   assert.match(externalGates, /must not check any\s+row above merely because source tests are green/i);
+});
+
+test("acceptance matrix separates current source from deployed runtime", () => {
+  assert.match(acceptanceMatrix, /4efa2e1bd444706e84d78ef85b8a7b3b133a46aa/);
+  assert.match(acceptanceMatrix, /current repository source is `ba19661`/);
+  assert.match(acceptanceMatrix, /not claimed as\s+deployed behavior/);
 });
 
 test("readiness ledger points at the current reconciled mainline", () => {

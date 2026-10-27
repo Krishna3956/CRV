@@ -5,8 +5,9 @@ Reconciled: 2026-10-27 (Asia/Calcutta)
 Current deployed baseline: application `4efa2e1bd444706e84d78ef85b8a7b3b133a46aa`,
 App Runner run `40497434962` (successful deployment). This deployment contains
 deployment-trigger hardening and preserves the previously verified runtime
-behavior. The later docs-only `a0d2485` CI run `40498017114` passed but was
-correctly not deployed. This is current runtime evidence, not a pilot GO
+behavior. The current repository source is `ba19661`; the post-deployment
+commits are documentation-only evidence updates and are not claimed as
+deployed behavior. This is current runtime and source evidence, not a pilot GO
 decision.
 
 Historical baseline retained for continuity: application
