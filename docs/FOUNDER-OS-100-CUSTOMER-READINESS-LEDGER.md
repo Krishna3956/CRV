@@ -159,7 +159,7 @@ failure.
 | Worker freshness | Health artifact `40601204628` is `healthy` after recovery run `40601163319`: three current-window samples are parseable and within budget, with AWS cadence proven at 4/4 invocations and 4/4 end-to-end successes; only 1/3 samples is a scheduled GitHub-worker run | **HOLD** | Three fresh scheduled samples within the 15-minute budget, with no unresolved stale/failure evidence |
 | Backup/PITR | Supabase Free Plan has no scheduled backups or PITR; inspection recorded in the backup evidence entries below | **HOLD / owner decision** | Accepted documented limitation with named recovery owner/runbook, or plan upgrade plus tested restore rehearsal |
 | Privacy acceptance | Engineering privacy/export/deletion contracts pass; production acceptance evidence is not recorded | **HOLD / owner decision** | Signed production privacy review and retention/deletion acceptance |
-| Credentialed lifecycle/UAT | Read-only tenant/auth smoke, direct-origin first-ingest UAT `40598515473`, and authenticated adapter-to-ingest transport smoke with 15 persisted observations are verified; write-gated key lifecycle and customer-owned endpoint UAT remain unexecuted | **HOLD / credentialed** | Disposable lifecycle key run plus customer-owned endpoint/protocol UAT artifacts |
+| Credentialed lifecycle/UAT | Read-only tenant/auth smoke, direct-origin first-ingest UAT `40598515473`, authenticated Streamable HTTP/SSE adapter-to-ingest smoke with 15 persisted observations, and disposable production key rotation/revocation UAT are verified; customer-owned endpoint/protocol UAT remains unexecuted | **HOLD / credentialed** | Customer-owned endpoint/protocol UAT artifact, plus explicit acceptance of the unsupported reconnect/replay, durable-subscription, and OAuth boundaries |
 | Hosted deployment verification | App Runner rollout `40594711620` deployed immutable runtime `7ab4eced`; release gate, image build/push, rollout, production smoke, immutable release identity, and runtime-safety checks passed | **PASS** | Re-run the same guarded workflow for the next runtime-changing commit |
 | Release-owner acceptance | Source, CI, deployment, package publication, and local release gates are green | **HOLD / owner decision** | Explicit approval referencing this register and the current deployed source |
 
@@ -382,6 +382,24 @@ evidence and are not current approval.
 - [ ] These are safe, truthful skips rather than failures or approvals. The
   credentialed lifecycle/transport gate remains HOLD until disposable secrets
   are supplied and their redacted evidence artifacts pass.
+
+## 2026-10-28 — disposable production key lifecycle UAT passed
+
+- [x] From the terminal, a uniquely named confirmed Supabase auth user was
+  created and signed in using the same SSR cookie format used by the app. The
+  account was used only for this disposable UAT; no credential, cookie, raw
+  key, response body, user identifier, or workspace identifier was written to
+  the repository or evidence ledger.
+- [x] The deployed App Runner origin accepted workspace/key creation (`201`),
+  workspace listing (`200`), active-key rotation (`201`), old-key rejection
+  (`401`), replacement-key acceptance (`200`), replacement-key revocation
+  (`200`), and replacement-key rejection after revocation (`401`). Both
+  disposable keys are therefore revoked by the test sequence.
+- [x] This closes the production key create/rotate/revoke UAT boundary for the
+  current account routes. It does not close customer-owned remote endpoint
+  interoperability, transport reconnect/replay, durable subscriptions, OAuth
+  token exchange, worker freshness, privacy acceptance, backup/PITR, or final
+  release-owner approval.
 
 ## 2026-10-28 — hosted verification of UAT ledger reconciliation
 

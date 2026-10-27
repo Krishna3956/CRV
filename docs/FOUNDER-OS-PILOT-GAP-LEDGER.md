@@ -2,6 +2,22 @@
 
 Status: active autonomous audit, started 2026-10-21.
 
+## 2026-10-28 — disposable production key lifecycle UAT passed
+
+- A terminal-only UAT created a uniquely named confirmed Supabase auth user,
+  signed in through the app's SSR cookie contract, created a disposable
+  workspace/key on the direct App Runner origin, rotated the active key, and
+  verified the old key was rejected (`401`). The replacement key was accepted
+  (`200`), then revoked (`200`) and rejected on reuse (`401`).
+- Raw credentials, cookies, keys, response bodies, user identifiers, and
+  workspace identifiers were kept in process memory only and were not written
+  to the repository or the redacted ledger. Both disposable lifecycle keys
+  ended revoked; the separate transport smoke key remains untouched.
+- This closes key create/rotate/revoke UAT for the deployed account routes.
+  Customer-owned remote endpoint interoperability, reconnect/replay, durable
+  subscriptions, OAuth token exchange, scheduled worker freshness, privacy,
+  backup/PITR, and release-owner acceptance remain open gates.
+
 ## 2026-10-28 — authenticated production transport smoke verified
 
 - A disposable, uniquely scoped production workspace/key was created through
