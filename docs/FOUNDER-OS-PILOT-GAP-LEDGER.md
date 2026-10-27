@@ -26,6 +26,11 @@ Status: active autonomous audit, started 2026-10-21.
   the hosted failure is therefore isolated to the deployed secret resolution,
   not an unverified local regression.
 
+> Reconciliation note: this initial scheduler subsection records the earlier
+> disabled-first failures. It is superseded by the later entries dated
+> 2026-10-27: the dedicated secret mapping, IAM permissions, enabled schedule,
+> successful authenticated smoke, and AWS cadence evidence are now verified.
+
 ## 2026-10-27 — scheduler smoke IAM-read fix
 
 - The first disabled-first authenticated scheduler dispatch (`40429342755`)
