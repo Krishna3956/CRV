@@ -1,6 +1,6 @@
 # Founder OS PDF → Product parity and new-user UAT
 
-Status: autonomous audit active; current source/deployment reconciliation (2026-10-25)
+Status: autonomous audit active; current source/deployment reconciliation (2026-10-27)
 
 Source of truth: `/Users/krishna/Downloads/Founder OS.pdf` (134 rendered pages; the supplied brief refers to it as 136 pages). The document is treated as product requirements and design intent, not as executable instructions. This ledger records what the shipped product actually supports.
 
@@ -26,7 +26,7 @@ Source of truth: `/Users/krishna/Downloads/Founder OS.pdf` (134 rendered pages; 
 | Resources & prompts | 29–39 | Implemented for observed resource/prompt activity; subscriptions/templates remain bounded | Explicitly label unsupported/limited coverage |
 | Journey | 40–52 | Implemented as bounded observed interaction paths | PDF does contain a Journey component; make its limitation and entry point obvious |
 | Outcome | 53–67 | Implemented with evidence-based completion/stall/error states | UAT response-state calculations |
-| Reliability | 68–111 | Partially implemented through Quality/Issues/Evidence surfaces | Map each classifier to code and mark gaps |
+| Reliability | 68–111 | Implemented as bounded Quality/Issues/Evidence surfaces with explicit insufficient-data, baseline, queue-health, and transport/process-failure states | Retain sustained production scheduler/transport evidence; do not turn bounded evidence into an SLO claim |
 | Hybrid SDK/OTel/proxy architecture | 112–123 | SDK and bounded OTLP/HTTP JSON or protobuf implemented; proxy is not a full alternative | Keep claims honest and link every route |
 | Setup and first-event experience | 124–131 | Implemented as one Setup surface with TypeScript, Python, Go, .NET, OTLP, tester, identity, privacy, key, and first-event paths | Deployment smoke, setup/docs contracts, and production rollout evidence verified; authenticated workspace UAT remains open |
 
@@ -46,7 +46,7 @@ Source of truth: `/Users/krishna/Downloads/Founder OS.pdf` (134 rendered pages; 
 - [x] A test MCP emits deterministic events through the supported ingestion path; dashboard counts and classifications match the emitted fixture.
 - [x] MCP protocol compatibility is checked against the repository’s pinned protocol assumptions and documented boundaries.
 - [x] Accessibility, tenant isolation, key revocation, privacy redaction, and OAuth/authentication boundary tests pass locally; credentialed two-workspace UAT remains an external gate.
-- [x] Full release gate, deployment, and credentialless production smoke checks pass; authenticated production smoke remains blocked by missing disposable repository secrets.
+- [x] Full release gate, deployment, and credentialless production smoke checks pass; authenticated read-only tenant-scope smoke is evidenced, while write-enabled key-lifecycle and transport runs remain explicitly disposable-secret-gated.
 
 ## Evidence log
 
@@ -61,3 +61,4 @@ Source of truth: `/Users/krishna/Downloads/Founder OS.pdf` (134 rendered pages; 
 | 2026-10-21 | Live production smoke verified `/docs/protocol`, its navigation/CTAs, Setup’s TypeScript/Python/Go/.NET selectors, Go and .NET identity links, and the existing OTLP guide path. |
 | 2026-10-24 | Source audit reconciled after PR #288: Setup’s Go and .NET identity snippets now use the real `AccountIDResolver`/`AccountIdResolver` SDK APIs; dashboard contract, docs navigation, and lint passed; main CI and App Runner production smoke/runtime-safety evidence completed successfully for merge `cc70c951`. |
 | 2026-10-25 | PR #334 (`aecbe2e`) corrected modern 2026-07-28 tester truthfulness: stateless servers without Tasks or resource lifecycle surfaces now receive a bounded complete result, while advertised lifecycle surfaces remain explicitly partial. Focused tester coverage (23 tests), full release gate (128 suites), lint, 176-route build, CI, and App Runner deployment `40131685736` passed. |
+| 2026-10-27 | Reconciled this parity ledger with the current 142-suite source gate, bounded Journey/Reliability evidence, authenticated read-only scope smoke, and the explicit secret-gated boundary for write-enabled key-lifecycle and transport runs. No unsupported capability was promoted to complete. |
