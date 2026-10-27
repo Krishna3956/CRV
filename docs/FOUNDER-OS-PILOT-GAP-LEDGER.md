@@ -2,6 +2,17 @@
 
 Status: active autonomous audit, started 2026-10-21.
 
+## 2026-10-27 — scheduler auto-redeploy verified
+
+- GitHub Actions run `40470584190` completed successfully for `078efb7`.
+  The push-triggered scheduler workflow activated the reviewed scheduler
+  source without a manual dispatch. Push runs keep the schedule disabled and
+  collect no cadence evidence; enabling customer traffic and collecting the
+  sustained cadence window remain deliberate manual gates.
+- This closes the prior “scheduler source can remain inactive after merge”
+  deployment gap. It does not close the strict zero-error cadence gate or any
+  owner-controlled release, recovery, privacy, or authenticated UAT gate.
+
 ## 2026-10-27 — scheduler redeploy automation made dependency-safe
 
 - The scheduler workflow now runs on pushes limited to

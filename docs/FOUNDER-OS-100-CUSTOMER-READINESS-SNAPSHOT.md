@@ -80,7 +80,8 @@ Latest scheduler evidence is recorded in the detailed ledger; the current
 source verification remains green at 143 suites. The deployed application is
 immutable SHA `9638e23c8529f9b1781d96413529e33a692715ed` via App Runner
 workflow `40468547762`; its production smoke, immutable identity, and runtime
-safety checks passed. The standalone scheduler Lambda still requires its own
-disabled-first redeploy for the `max_jobs: 10` change. The AWS policy update
-and post-deployment EMF metric path are evidenced, while the strict zero-error
-rolling-window gate remains open.
+safety checks passed. Scheduler-owned source activation also completed in
+push-triggered workflow `40470584190` for `078efb7`; push activation keeps the
+schedule disabled and collects no cadence evidence. The AWS policy update and
+post-deployment EMF metric path are evidenced, while deliberate manual
+enablement and the strict zero-error rolling-window gate remain open.
