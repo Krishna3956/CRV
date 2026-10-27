@@ -12,6 +12,7 @@ import { aggregateTaskLifecycles, type TrackMCPTaskTransitionObservation } from 
 import { buildTrackMCPDataTrust } from "../../../../lib/telemetry/data-trust.ts";
 import { classifyTrackMCPProtocolSignal, protocolFamilyForCapabilityName, protocolFamilyForMethod, type TrackMCPProtocolFamily, type TrackMCPProtocolSignal } from "../../../../lib/telemetry/semantic.ts";
 import { evaluateWorkerHealth } from "../../../../lib/telemetry/worker-health.ts";
+import { correlateCatalogNotifications, type CatalogNotificationInput } from "../../../../lib/telemetry/catalog-correlations.ts";
 
 type EventRow = {
   event_id: string;
@@ -266,6 +267,18 @@ export function createAnalyticsHandler(getAdmin: typeof getSupabaseAdmin = getSu
   })));
 
   const events = ((data || []) as EventRow[]).filter((event) => event.observation_source === "server");
+  const catalogNotificationInputs: CatalogNotificationInput[] = events.flatMap((event) => {
+    const catalogKind = event.mcp_method === "notifications/tools/list_changed"
+      ? "tools"
+      : event.mcp_method === "notifications/resources/list_changed" || event.mcp_method === "notifications/resources/updated"
+        ? "resources"
+        : event.mcp_method === "notifications/prompts/list_changed"
+          ? "prompts"
+          : null;
+    if (!catalogKind || !event.started_at) return [];
+    return [{ server_id: event.server_id, environment: event.environment, catalog_kind: catalogKind, started_at: event.started_at }];
+  });
+  const catalogCorrelations = correlateCatalogNotifications(catalogNotificationInputs, catalogVersions);
   const protocolFamilyCounts = new Map<string, number>();
   const protocolFamilyOutcomes = new Map<string, { observations: number; requests: number; responses: number; matched: number; completed: number; errors: number; input_required: number; unknown: number; capability_advertised: boolean | null }>();
   const protocolFamilyHandles = new Map<string, { requests: Set<string>; responses: Set<string> }>();
@@ -987,7 +1000,7 @@ export function createAnalyticsHandler(getAdmin: typeof getSupabaseAdmin = getSu
       prompts: { events: promptEvents.length, methods: [...new Set(promptEvents.map((event) => event.mcp_method).filter(Boolean))].slice(0, MAX_PUBLIC_DIMENSION_ITEMS), entity_count: promptEntityHashes.size, entity_identity: "sha256_hash_count", entity_analytics: entityReadAnalytics("prompts") },
     },
     protocol_signals: { ...protocolSignalCounts, observed_events: protocolSignalEvents, catalog_change_kinds: catalogChangeKinds, timeline: [...protocolSignalTimeline.entries()].sort(([a], [b]) => a.localeCompare(b)).slice(-366).map(([date, counts]) => ({ date, ...counts, observed_events: Object.values(counts).reduce((sum, value) => sum + value, 0) })) },
-    catalog_snapshot_summary: catalogSnapshotSummary,
+    catalog_snapshot_summary: { ...catalogSnapshotSummary, notification_correlations: catalogCorrelations },
     protocol_family_activity: [...protocolFamilyCounts.entries()].map(([family, observations]) => ({ family: family as TrackMCPProtocolFamily, observations })).sort((a, b) => b.observations - a.observations || a.family.localeCompare(b.family)),
     protocol_family_outcomes: [...protocolFamilyOutcomes.entries()].map(([family, outcome]) => ({ family: family as TrackMCPProtocolFamily, ...outcome })).sort((a, b) => b.observations - a.observations || a.family.localeCompare(b.family)),
     protocol_family_outcome_source: familySource,

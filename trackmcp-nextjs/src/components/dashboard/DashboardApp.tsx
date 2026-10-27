@@ -2605,6 +2605,22 @@ function ProtocolSignalPanel({
               Versioned snapshots: {fmt(snapshotSummary.versions)} · changed {fmt(snapshotSummary.changed_versions)} · computed diffs {fmt(snapshotSummary.diff_computed)} · truncated {fmt(snapshotSummary.truncated_versions)}{snapshotSummary.page_bounded ? " · page bounded" : ""}. Notification counts are not correlated to versions here.
             </p>
           )}
+      {snapshotSummary?.notification_correlations && snapshotSummary.notification_correlations.some((row) => row.notifications > 0) && (
+        <div className="mt-3 border-t border-line pt-3">
+          <p className="text-[11px] font-medium text-muted">Bounded notification-to-snapshot evidence</p>
+          <p className="mt-1 text-[11px] leading-relaxed text-muted">
+            A match requires the same server, environment, and catalog family within a ten-minute window. Ambiguous matches stay unresolved; this is correlation evidence, not proof that a notification caused a snapshot.
+          </p>
+          <div className="mt-2 grid gap-2 sm:grid-cols-4">
+            {snapshotSummary.notification_correlations.filter((row) => row.notifications > 0).map((row) => (
+              <div key={row.kind} className="border border-line bg-paper p-2 text-[11px]">
+                <p className="font-medium capitalize text-ink">{row.kind.replace("_", " ")}</p>
+                <p className="mt-1 text-muted">{fmt(row.matched_notifications)} matched · {fmt(row.ambiguous_notifications)} ambiguous · {fmt(row.unmatched_notifications)} unmatched</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
       {signals.timeline && signals.timeline.length > 0 && (
         <div className="mt-4 overflow-x-auto border-t border-line pt-4">
           <p className="text-[11px] font-medium text-muted">Daily signal timeline</p>

@@ -1,6 +1,6 @@
 # Founder OS 100 Customer Readiness Ledger
 
-Last updated: 2026-10-27 (main `b2100af`; App Runner rollout and production smoke verified)
+Last updated: 2026-10-27 (main `d789c5b`; deployed application `b2100af` and App Runner rollout and production smoke verified)
 Latest freshness evidence: health workflow `40450412687` inspected eight
 redacted worker samples and evaluated the two samples in its bounded current
 window. It proved the AWS scheduler cadence gate with four invocations and zero
@@ -59,6 +59,20 @@ permission.
 - [ ] Reviewed notification-to-snapshot correlation and authenticated
   cross-transport UAT remain open. The current implementation is truthful and
   bounded rather than presenting an unverified join.
+
+## 2026-10-27 bounded catalog correlation implementation
+
+- [x] Analytics now performs a privacy-safe, server-side evidence join for
+  catalog list-change notifications when the notification and snapshot share
+  the same server, environment, and catalog family within a ten-minute window.
+- [x] The projection reports matched, ambiguous, and unmatched notification
+  counts by catalog family. Ambiguous candidates remain unresolved and no
+  snapshot version is inferred from a notification.
+- [x] Added pure correlation tests covering same-scope matching, scope
+  isolation, bounded windows, and ambiguity handling; focused analytics and
+  dashboard contract tests pass (89/89).
+- [ ] Authenticated cross-transport UAT and production evidence remain open;
+  the join is correlation evidence and does not prove causality or delivery.
 
 ## 2026-10-27 completion evidence milestone
 

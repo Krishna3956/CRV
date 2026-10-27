@@ -217,6 +217,16 @@ export type Analytics = {
     truncated_versions: number;
     page_bounded: boolean;
     limitation: string;
+    notification_correlations?: Array<{
+      kind: "tools" | "resources" | "resource_templates" | "prompts";
+      notifications: number;
+      matched_notifications: number;
+      ambiguous_notifications: number;
+      unmatched_notifications: number;
+      snapshots: number;
+      match_window_ms: number;
+      status: "available" | "no_notifications" | "no_snapshots";
+    }>;
   };
   protocol_decisions?: {
     elicitation: { accept: number; decline: number; cancel: number };
