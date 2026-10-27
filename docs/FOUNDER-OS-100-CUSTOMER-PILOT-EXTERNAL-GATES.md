@@ -11,13 +11,12 @@ is intentionally not a GO approval and must not be treated as one.
 
 - `main`: current default branch. Immutable deployed SHAs belong in the
   release record; PR checks remain attached to their exact review commits.
-- Current deployed application: `57f56431317564c4789bbae0eb4e7bac92bba29e`,
-  App Runner workflow `40393173889` (successful deployment, production smoke,
+- Current deployed application: `0c36da187d6fee56cd280ea79070176e9cd8f63d`,
+  App Runner workflow `40426236860` (successful deployment, production smoke,
   release-identity verification, runtime safety-flag audit, and redacted
-  evidence uploads). Authenticated production smoke `40394208530` passed 37
-  checks for the exact SHA; retained artifact `12685019035` reports
-  `outcome=passed`. Subsequent docs/ops commits are intentionally not called
-  runtime deployments because they do not change the application image.
+  evidence uploads). The AWS console showed `trackmcp-web` Running after the
+  deployment. Subsequent docs-only commits are intentionally not called runtime
+  deployments because they do not change the application image.
 - Queue: 263 total, 260 checked, and P0 queue items `020`, `157`, and `260`
   remain open.
 - Full local release gate: 137 suites passed, with lint and the production
