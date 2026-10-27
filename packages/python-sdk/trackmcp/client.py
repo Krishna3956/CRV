@@ -208,6 +208,9 @@ def _protocol_result_metadata(result: Any) -> Dict[str, Any]:
     result_type = result.get("resultType", result.get("result_type"))
     metadata: Dict[str, Any] = {}
     metadata.update(_cache_hints(result))
+    next_cursor = result.get("nextCursor", result.get("next_cursor"))
+    if isinstance(next_cursor, str) and next_cursor:
+        metadata["next_cursor_present"] = True
     if result_type in ("complete", "input_required", "task"):
         metadata["result_type"] = result_type
     requests = result.get("inputRequests", result.get("input_requests"))

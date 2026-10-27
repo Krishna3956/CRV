@@ -323,6 +323,7 @@ func (c *Client) RecordProtocolResult(method string, result map[string]any, sess
 			if len(names) > 0 { metadata["capability_names"] = strings.Join(names, ",") }
 		}
 	}
+	if cursor, ok := firstString(result, "nextCursor", "next_cursor"); ok && cursor != "" { metadata["next_cursor_present"] = true }
 	if family := protocolFamilyForMethod(method); family != "" { metadata["protocol_family"] = family }
 	if method == "resources/subscribe" || method == "subscriptions/listen" {
 		metadata["subscription_action"] = "subscription_started"

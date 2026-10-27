@@ -107,6 +107,11 @@ class TrackMCPClientTest(TestCase):
         self.assertEqual(catalog["cache_scope"], "public")
         self.assertNotIn("omit", json.dumps(catalog))
 
+    def test_cursor_metadata_is_presence_only(self):
+        metadata = _protocol_result_metadata({"nextCursor": "private-cursor", "secret": "omit"})
+        self.assertEqual(metadata, {"next_cursor_present": True})
+        self.assertNotIn("private-cursor", json.dumps(metadata))
+
     def test_completion_metadata_is_bounded_and_value_free(self):
         result = {"completion": {"values": [{"value": "private"}] * 40, "total": 99, "hasMore": True, "secret": "omit"}}
         metadata = _protocol_result_metadata(result)

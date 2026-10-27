@@ -110,6 +110,8 @@ public sealed class TrackMcpClient : IDisposable
                 .ToArray();
             if (names.Length > 0) metadata["capability_names"] = string.Join(",", names);
         }
+        if (result["nextCursor"] is JsonValue cursor && cursor.TryGetValue<string>(out var cursorValue) && !string.IsNullOrEmpty(cursorValue)) metadata["next_cursor_present"] = true;
+        else if (result["next_cursor"] is JsonValue snakeCursor && snakeCursor.TryGetValue<string>(out var snakeCursorValue) && !string.IsNullOrEmpty(snakeCursorValue)) metadata["next_cursor_present"] = true;
         var protocolFamily = ProtocolFamilyForMethod(method);
         if (protocolFamily is not null) metadata["protocol_family"] = protocolFamily;
         if (method is "resources/subscribe" or "subscriptions/listen") metadata["subscription_action"] = "subscription_started";

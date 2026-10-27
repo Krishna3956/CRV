@@ -1076,3 +1076,9 @@ production transport UAT.
   and preserve the metadata-only boundary. The full **143-suite** release gate,
   lint, and diff validation pass; Go/.NET compilation remains hosted-CI
   evidence because those toolchains are not installed locally.
+
+- 2026-10-27: Added cross-language pagination presence parity. Python, Go, and
+  .NET protocol-result observers now expose only a boolean
+  `next_cursor_present` marker, matching the TypeScript client while never
+  retaining opaque cursor values. Python and Go regressions verify the privacy
+  boundary; the full **143-suite** release gate, lint, and diff validation pass.

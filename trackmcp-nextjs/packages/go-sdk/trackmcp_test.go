@@ -264,6 +264,15 @@ func TestRecordModernProtocolFamiliesAreBounded(t *testing.T) {
 	if strings.Contains(string(serialized), "omit") { t.Fatal("modern protocol response value crossed the privacy boundary") }
 }
 
+func TestRecordProtocolCursorIsPresenceOnly(t *testing.T) {
+	client := New(Options{APIKey: "tmcp_test"})
+	client.RecordProtocolResult("tools/list", map[string]any{"nextCursor": "private-cursor"}, "session-cursor")
+	metadata := client.queue[0].Payload["_trackmcp"].(map[string]any)
+	if metadata["next_cursor_present"] != true { t.Fatalf("cursor presence was not retained: %#v", metadata) }
+	serialized, _ := json.Marshal(metadata)
+	if strings.Contains(string(serialized), "private-cursor") { t.Fatal("raw cursor crossed the privacy boundary") }
+}
+
 func TestRecordInitializeCapabilitiesAreBoundedNames(t *testing.T) {
 	client := New(Options{APIKey: "tmcp_test"})
 	client.RecordProtocolResult("initialize", map[string]any{
