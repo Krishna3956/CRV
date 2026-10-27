@@ -31,7 +31,7 @@ const endpoints: { method: string; path: string; desc: string }[] = [
   { method: "GET", path: "/api/v2/overview?days=30", desc: "Versioned Founder OS overview with data-trust metadata" },
   { method: "GET", path: "/api/v2/tools?days=30[&limit=50&cursor=...]", desc: "Bounded tool performance and catalog projection with optional cursor pagination" },
   { method: "GET", path: "/api/v2/tools/{name}?days=30", desc: "One tool's observed calls, errors, and latency" },
-  { method: "GET", path: "/api/v2/catalogs?days=30", desc: "Current bounded catalog snapshot projection" },
+  { method: "GET", path: "/api/v2/catalogs?days=30", desc: "Bounded catalog snapshots, diffs, and same-scope notification correlation evidence" },
   { method: "GET", path: "/api/v2/reliability?days=30", desc: "Conservative observed reliability evidence, not uptime" },
   { method: "GET", path: "/api/v2/outcomes?days=30", desc: "Evidence-backed outcomes with unknown states preserved" },
   { method: "GET", path: "/api/v2/journeys?days=30", desc: "Bounded correlated sessions, not unique people" },
