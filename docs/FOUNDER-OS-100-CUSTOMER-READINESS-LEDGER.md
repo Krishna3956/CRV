@@ -1,6 +1,6 @@
 # Founder OS 100 Customer Readiness Ledger
 
-Last updated: 2026-10-27 (main `7e96236`; deployed application `506be89` and App Runner rollout and production smoke verified; TypeScript SDK 0.1.22 and CLI 0.1.11 registry publication verified)
+Last updated: 2026-10-27 (main `49d678e`; deployed application `506be89` and App Runner rollout and production smoke verified; TypeScript SDK 0.1.22 and CLI 0.1.11 registry publication verified)
 Latest freshness evidence: health workflow `40502266095` (scheduled) inspected eight
 redacted worker samples. AWS scheduler cadence is now proven with **3/3
 invocations**, and the end-to-end scheduled-success marker is proven with **4/4
@@ -9,6 +9,16 @@ only **1/3 scheduled worker samples** is in the current evaluation window and
 the maximum queue lag is `3,506,514 ms` (above the 15-minute pilot budget).
 
 ## 2026-10-27 — hosted validation for latest ledger commit green
+
+- [x] CI run `40555426746` passed on source `49d678e`; web/JavaScript, Go, and
+  .NET jobs completed successfully.
+- [x] The web job passed the release gate, lint, production build, TypeScript
+  SDK and CLI packed-consumer checks, Python SDK checks, and runtime smoke.
+- [ ] This confirms engineering/build integrity only; worker freshness, owner
+  approval, recovery, privacy, synthetic-data, credentialed-UAT, and protocol
+  boundary gates remain separately tracked.
+
+## 2026-10-27 — hosted validation for prior ledger commit green
 
 - [x] CI run `40554974708` passed on source `7e96236`; web/JavaScript, Go, and
   .NET jobs completed successfully.
