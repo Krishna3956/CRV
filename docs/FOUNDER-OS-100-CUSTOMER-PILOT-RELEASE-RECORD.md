@@ -61,6 +61,14 @@ This is source and bounded transport evidence only; it does not alter the
 release HOLD or close the credentialed, scheduler, backup, privacy-acceptance,
 or protocol-interoperability gates below.
 
+Authenticated production smoke workflow `40475627480` passed against the
+deployed `37579ea` candidate and retained redacted artifact
+`production-auth-smoke-37579eade74a20818cd4f83569493e830e4855de`. It
+reverified dashboard read models, tenant/workspace isolation and conflict
+handling, API-key mutation denial, and revoked-key rejection. The run was
+read-only and therefore does not close write-gated key lifecycle, first-ingest,
+transport, or customer-endpoint UAT.
+
 Health validation workflow `40352798759` then ran against main `25877da` and
 uploaded redacted artifact `12663714778`. It reported eight samples, including
 two scheduled and six recovery/manual runs, and correctly remained `warning`

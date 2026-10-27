@@ -41,6 +41,16 @@ Status: active autonomous audit, started 2026-10-21.
   as deployed by this entry. External scheduler, recovery/PITR, privacy,
   credentialed UAT, and release-owner gates remain open.
 
+## 2026-10-27 — authenticated production read-model smoke reverified
+
+- Authenticated production smoke workflow `40475627480` passed against the
+  deployed `37579ea` candidate. Its retained redacted artifact is
+  `production-auth-smoke-37579eade74a20818cd4f83569493e830e4855de`.
+- The read-only run reverified dashboard read models, tenant/workspace
+  isolation and conflicting-workspace handling, API-key mutation denial, and
+  revoked-key rejection. It does not close write-gated key lifecycle,
+  first-ingest, transport, or customer-endpoint UAT; those gates remain open.
+
 ## 2026-10-27 — package-version parity and release-gate recheck
 
 - Reconciled the current CLI integration README, package-release readiness

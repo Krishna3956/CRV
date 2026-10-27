@@ -36,6 +36,13 @@ is intentionally not a GO approval and must not be treated as one.
   covered key status, conflicting-workspace isolation, Founder OS v2 and
   legacy read models, API-key Action Queue denial, revoked-key rejection, and
   privacy-safe projections. It was read-only and did not create, rotate,
+- Authenticated production smoke `40475627480` also passed for the deployed
+  `37579ea` candidate; retained redacted artifact
+  `production-auth-smoke-37579eade74a20818cd4f83569493e830e4855de`
+  reverified dashboard read models, tenant/workspace isolation and conflict
+  handling, API-key mutation denial, and revoked-key rejection. This remains
+  read-only evidence and does not close write-gated key lifecycle, first
+  ingest, transport, or customer-endpoint UAT.
   revoke, ingest, or mutate dashboard state.
 - Rollback and authenticated scope-smoke evidence are reconciled in the
   release record through queue items 256 and 249.
