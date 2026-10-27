@@ -72,6 +72,12 @@ test("healthy AWS scheduler evidence satisfies production cadence without hiding
     required_samples: 3,
     evidence: "aws_metrics_only",
   });
+  assert.deepEqual(report.aws_scheduler_cadence_gate, {
+    status: "proven",
+    observed_invocations: 5,
+    required_invocations: 3,
+    evidence: "aws_lambda_metrics_window",
+  });
   assert.equal(report.cadence_breaches, 1);
   assert.deepEqual(report.reasons, ["worker_failures_observed", "freshness_budget_exceeded"]);
 });
@@ -87,6 +93,12 @@ test("scheduled cadence gate becomes proven only from scheduled worker samples",
     observed_samples: 3,
     required_samples: 3,
     evidence: "scheduled_runs",
+  });
+  assert.deepEqual(report.aws_scheduler_cadence_gate, {
+    status: "pending",
+    observed_invocations: 0,
+    required_invocations: 3,
+    evidence: "aws_scheduler_not_enabled",
   });
 });
 

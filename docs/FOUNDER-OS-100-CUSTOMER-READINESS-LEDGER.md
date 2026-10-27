@@ -10,6 +10,10 @@ The health report now exposes `scheduled_cadence_gate` separately from
 operational `state`: AWS metric health can be healthy while the pilot cadence
 gate remains pending until actual scheduled worker samples are observed.
 
+It also exposes `aws_scheduler_cadence_gate`: the current enabled AWS metrics
+window proves the minimum invocation/error-free threshold, while the stricter
+application scheduled-worker sample gate remains separately pending.
+
 The enabled-schedule follow-up is retained as artifact `12708665678`; it
 reports four AWS invocations, zero errors, and the same pending 0/3 scheduled
 worker cadence gate.
@@ -42,6 +46,8 @@ from the prior release remains historical until rerun for this exact image.
 - [x] AWS scheduler metadata reported `enabled: true`, two metric datapoints,
   four invocations, and zero errors; no secret, request body, or log content
   was retained.
+- [x] The new `aws_scheduler_cadence_gate` is proven from that enabled,
+  zero-error metrics window; this is operational scheduler evidence only.
 - [ ] The same report records `scheduled_sample_count: 0` against a minimum of
   three. Manual/recovery samples cannot close the sustained scheduled-cadence
   gate, so the release remains HOLD.

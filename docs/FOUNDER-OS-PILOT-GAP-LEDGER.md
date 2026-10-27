@@ -2,6 +2,17 @@
 
 Status: active autonomous audit, started 2026-10-21.
 
+## 2026-10-27 — separate AWS cadence evidence from worker-run cadence
+
+- The refresh-health report now exposes `aws_scheduler_cadence_gate` in
+  addition to the stricter `scheduled_cadence_gate`. The former is proven only
+  when the enabled AWS Lambda metrics window contains at least three
+  invocations and zero errors; the latter still requires three observed
+  scheduled worker summaries.
+- This closes the previous reporting ambiguity without treating CloudWatch
+  invocation metrics as authenticated response-content or end-to-end business
+  UAT evidence. Regression coverage and the workflow summary contract pass.
+
 ## 2026-10-27 — refresh-worker recovery clears current backlog
 
 - Explicit recovery run `40446099143` completed successfully with ten bounded
