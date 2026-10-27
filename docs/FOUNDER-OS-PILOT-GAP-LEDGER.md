@@ -665,5 +665,7 @@ production transport UAT.
   resolves the same dedicated plaintext Secrets Manager ARN used by the
   production scheduler through the existing OIDC deploy role, masks the value
   immediately, and never persists it. The refresh-worker contract and the
-  complete 139-suite release gate pass. A fresh scheduled worker run is still
+  complete 139-suite release gate pass. Manual worker run `40435694603` then
+  completed successfully with ten bounded batches, zero failures, zero
+  backlog, and no freshness alert. A fresh scheduled worker run is still
   required to establish the sustained cadence baseline.
