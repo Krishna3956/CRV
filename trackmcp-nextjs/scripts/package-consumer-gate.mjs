@@ -13,11 +13,11 @@ function run(label, command, args, cwd) {
     shell: process.platform === "win32",
     // Package installation and consumer tests must not leave the release gate
     // waiting forever on a registry, child process, or leaked test handle.
-    timeout: 180_000,
+    timeout: 300_000,
     killSignal: "SIGTERM",
   });
   if (result.error) {
-    if (result.error.code === "ETIMEDOUT") throw new Error(`${label} timed out after 180 seconds`);
+    if (result.error.code === "ETIMEDOUT") throw new Error(`${label} timed out after 300 seconds`);
     throw result.error;
   }
   if (result.status !== 0) {

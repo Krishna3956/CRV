@@ -25,6 +25,16 @@ permission.
   The first npm workflow’s propagation timeout is retained as an operational
   caveat; it did not invalidate the independently verified artifact.
 
+## 2026-10-27 hosted package-consumer timeout hardening
+
+- [x] Repeated deployment attempts showed the hosted TypeScript SDK package
+  consumer subprocess exceeded the previous 180-second child-process limit
+  despite passing locally. The release gate now uses a bounded 300-second
+  limit, with a matching contract test; this changes no SDK assertions or
+  publication contents.
+- [ ] The next deployment run must complete the hosted package-consumer gate
+  and post-deploy smoke against the published-source commit.
+
 ## 2026-10-27 catalog snapshot evidence milestone
 
 - [x] Authenticated analytics and the Overview protocol panel now show
