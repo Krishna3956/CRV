@@ -21,6 +21,16 @@ the 15-minute pilot budget).
 This register is the active decision surface. Historical entries below remain
 evidence and are not current approval.
 
+## 2026-10-28 — transport observer documentation parity
+
+- [x] Removed the stale TypeScript SDK README exclusion that incorrectly said
+  the Node client adapter did not support SSE. The implementation and tests
+  support the official Stdio, Streamable HTTP, and SSE transports; browser,
+  Edge, Python, and custom transports remain outside this adapter boundary.
+- [x] Reconciled the pilot gap ledger to name all three supported official
+  transports. Protocol and docs-navigation contracts pass, and the full local
+  release gate remains green at 144 suites.
+
 ## 2026-10-28 — published-train smoke default alignment
 
 - [x] Corrected the production pilot smoke harness to use the currently

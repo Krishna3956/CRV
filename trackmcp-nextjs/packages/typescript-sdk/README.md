@@ -28,7 +28,7 @@ Capture is fail-open: a slow or unavailable TrackMCP endpoint never blocks a too
 
 The optional `@trackmcp/sdk/client-adapter` entry point requires Node.js and
 `@modelcontextprotocol/sdk` exactly `1.32.2`. It is not for browsers, Edge
-runtime routes, frontend bundles, Python clients, SSE, or custom transports. The
+runtime routes, frontend bundles, Python clients, or custom transports. The
 caller is responsible for protecting the API key. Wrap one supported transport
 before connecting the MCP client:
 
