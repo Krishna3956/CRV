@@ -8,7 +8,7 @@ promise that every product capability is complete.
 
 ## Verified and shipped
 
-- `origin/main` is `05bd567` (pilot-status evidence baseline refresh)
+- `origin/main` is `HEAD` (active pilot evidence baseline)
   reconciliation). The deployed application runtime remains the latest
   verified immutable `4efa2e1bd444706e84d78ef85b8a7b3b133a46aa` via App Runner
   workflow `40497434962`; the post-deployment commits are documentation-only
