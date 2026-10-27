@@ -51,8 +51,8 @@ the maximum queue lag is `3,506,514 ms` (above the 15-minute pilot budget).
   `@trackmcp/cli@0.1.12`, and `trackmcp==0.1.14`.
 - [x] Updated active setup/docs examples and package manifests; historical
   registry rows remain unchanged and labeled as historical evidence.
-- [ ] Registry publication, provenance, and clean-consumer verification remain
-  pending until the gated workflow is run with reviewed confirmation.
+- [x] Registry publication and provenance are now verified by the recovery
+  workflows below; clean-consumer verification is the remaining local check.
 
 ## 2026-10-28 — hosted release and deployment result
 
@@ -79,9 +79,10 @@ the maximum queue lag is `3,506,514 ms` (above the 15-minute pilot budget).
   `0.1.12`.
 - [x] Python recovery workflow `40566216611` completed successfully, uploaded
   the wheel and sdist, and created provenance attestation.
-- [ ] PyPI's public JSON/index still reports `trackmcp==0.1.13` during the
-  propagation window; Python `0.1.14` remains unclaimed until a public
-  metadata check exposes the version and artifact hashes.
+- [x] PyPI now publicly serves `trackmcp==0.1.14`; wheel SHA-256 is
+  `64bd69e314b3415886e4ec3a56d2a598ff41d2567a122871e88867e4b24fa9f3` and
+  sdist SHA-256 is
+  `560dd3bb8435d9d08f219b04a52c42dadcc23d3f69103e9605bdc398b91153cc`.
 
 ## 2026-10-27 — Python public protocol-result contract validation
 

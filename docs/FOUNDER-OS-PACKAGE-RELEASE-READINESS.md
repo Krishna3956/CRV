@@ -18,8 +18,10 @@ source or CI failure.
 The staged train subsequently recovered: npm now exposes `@trackmcp/sdk@0.1.23`
 and `@trackmcp/cli@0.1.12` with public metadata. Python recovery workflow
 `40566216611` uploaded `trackmcp==0.1.14` and its provenance attestation, but
-PyPI's public JSON/index still reports `0.1.13`; Python remains pending public
-metadata verification.
+PyPI now publicly exposes `trackmcp==0.1.14`; the wheel SHA-256 is
+`64bd69e314b3415886e4ec3a56d2a598ff41d2567a122871e88867e4b24fa9f3` and the
+sdist SHA-256 is
+`560dd3bb8435d9d08f219b04a52c42dadcc23d3f69103e9605bdc398b91153cc`.
 
 ## CLI proxy publication — 2026-10-27
 
