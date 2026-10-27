@@ -2,6 +2,15 @@
 
 Status: active autonomous audit, started 2026-10-21.
 
+## 2026-10-27 — latest hosted deployment verification
+
+- App Runner deployment run `40426236860` completed successfully for the
+  scheduler endpoint smoke change (`0c36da1`). GitHub reported the deploy job
+  successful, and the AWS console showed `trackmcp-web` Running with the new
+  deployment succeeded. This confirms the release path remains healthy; it
+  does not close the disabled scheduler, privacy, backup/PITR, or release-owner
+  acceptance gates.
+
 ## 2026-10-27 — scheduler resource evidence hardening
 
 - The manual scheduler workflow now reports CloudFormation outputs and the
