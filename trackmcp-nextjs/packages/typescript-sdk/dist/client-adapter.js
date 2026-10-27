@@ -118,6 +118,20 @@ function protocolNotificationMetadata(method) {
         return { protocol_signal: "prompt_changed" };
     return {};
 }
+/**
+ * Record only the HTTP-equivalent authorization outcome. The client adapter
+ * never copies WWW-Authenticate values, resource metadata URLs, bearer
+ * credentials, or provider error text into telemetry.
+ */
+function authorizationResponseMetadata(error) {
+    if (!isRecord(error) || typeof error.code !== "number")
+        return {};
+    if (error.code === 401)
+        return { authorization_attempt: true, authorization_outcome: "unauthorized" };
+    if (error.code === 403)
+        return { authorization_attempt: true, authorization_outcome: "forbidden" };
+    return {};
+}
 function nodeOnlyGuard() {
     const nodeProcess = typeof process !== "undefined" ? process : undefined;
     const edgeRuntime = typeof globalThis === "object" && "EdgeRuntime" in globalThis;
@@ -458,7 +472,7 @@ export class TrackMCPClientAdapter {
                     ...session,
                     client_name: this.clientName,
                     client_version: this.clientVersion,
-                    payload: { _trackmcp: { observation_kind: "protocol_response", observation_source: "client", ...protocolResponseMetadata(pending.method, result), ...(protocolDecision ? { protocol_decision: protocolDecision } : {}), ...(taskStatus ? { task_status: taskStatus } : {}) } },
+                    payload: { _trackmcp: { observation_kind: "protocol_response", observation_source: "client", ...protocolResponseMetadata(pending.method, result), ...authorizationResponseMetadata(item.error), ...(protocolDecision ? { protocol_decision: protocolDecision } : {}), ...(taskStatus ? { task_status: taskStatus } : {}) } },
                 }, pending.correlation);
                 continue;
             }
@@ -483,7 +497,7 @@ export class TrackMCPClientAdapter {
                 ...session,
                 client_name: this.clientName,
                 client_version: this.clientVersion,
-                payload: { _trackmcp: { observation_kind: "result_received", observation_source: "client", ...(taskStatus ? { task_status: taskStatus } : {}) } },
+                payload: { _trackmcp: { observation_kind: "result_received", observation_source: "client", ...authorizationResponseMetadata(item.error), ...(taskStatus ? { task_status: taskStatus } : {}) } },
             }, pending.correlation);
         }
     }
