@@ -53,6 +53,12 @@ map. It emits only the allowlisted result discriminator, task status, and
 bounded request/response counts; result content and input values are never
 queued.
 
+For an HTTP authorization response, call `client.RecordAuthorizationOutcome`
+with `401` or `403`. The SDK records only `unauthorized` or `forbidden`
+metadata; it never accepts or stores `WWW-Authenticate` values, resource
+metadata URLs, bearer tokens, or provider error text. OAuth discovery, token
+exchange, refresh, and consent remain caller-owned.
+
 For `completion/complete`, the same call also records bounded friction
 metadata (`completion_value_count` up to 32, `completion_total` up to
 1,000,000, and `completion_has_more`). Completion suggestion values and

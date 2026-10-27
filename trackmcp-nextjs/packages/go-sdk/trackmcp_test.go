@@ -224,6 +224,22 @@ func TestRecordProtocolResultAcceptsNormalizedSnakeCaseMetadata(t *testing.T) {
 	if event.Payload["_trackmcp"].(map[string]any)["protocol_family"] != "tasks" { t.Fatalf("task family was not retained: %#v", event.Payload) }
 }
 
+func TestRecordAuthorizationOutcomeIsBoundedAndSecretFree(t *testing.T) {
+	client := New(Options{APIKey: "tmcp_test"})
+	client.RecordAuthorizationOutcome("tools/call", 401, "session-auth")
+	client.RecordAuthorizationOutcome("tools/call", 403, "session-auth-2")
+	client.RecordAuthorizationOutcome("tools/call", 500, "ignored")
+	if len(client.queue) != 2 { t.Fatalf("expected two canonical authorization events, got %d", len(client.queue)) }
+	first := client.queue[0]
+	metadata, ok := first.Payload["_trackmcp"].(map[string]any)
+	if !ok || metadata["authorization_attempt"] != true || metadata["authorization_outcome"] != "unauthorized" { t.Fatalf("unexpected 401 metadata: %#v", first) }
+	if first.ErrorCode == nil || *first.ErrorCode != 401 || first.Success == nil || *first.Success { t.Fatalf("unexpected 401 status: %#v", first) }
+	secondMetadata := client.queue[1].Payload["_trackmcp"].(map[string]any)
+	if secondMetadata["authorization_outcome"] != "forbidden" { t.Fatalf("unexpected 403 metadata: %#v", secondMetadata) }
+	serialized, _ := json.Marshal(client.queue)
+	if strings.Contains(string(serialized), "WWW-Authenticate") || strings.Contains(string(serialized), "https://") || strings.Contains(string(serialized), "Bearer") { t.Fatalf("authorization material crossed the boundary: %s", serialized) }
+}
+
 func TestRecordCompletionMetadataIsBoundedAndValueFree(t *testing.T) {
 	client := New(Options{APIKey: "tmcp_test"})
 	values := make([]any, 40)

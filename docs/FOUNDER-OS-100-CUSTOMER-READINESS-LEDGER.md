@@ -60,6 +60,17 @@ permission.
   tenant binding, and authenticated interoperability UAT remain required
   before any token-handling capability can be enabled.
 
+## 2026-10-27 Go SDK authorization-observer parity milestone
+
+- [x] Added `Client.RecordAuthorizationOutcome` for canonical `401`/`403`
+  responses. It emits the same bounded `unauthorized`/`forbidden` markers as
+  the Node observer and never accepts challenge headers, URLs, tokens, or
+  provider text.
+- [x] Added Go unit coverage and public SDK documentation for the boundary.
+- [ ] The local environment has no Go toolchain, so `go test`/`gofmt` could not
+  run here. Hosted Go compile/smoke evidence remains an explicit verification
+  gate before publishing a package containing this change.
+
 ## 2026-10-27 health-state correction deployment
 
 - [x] App Runner deployment `40494157458` rolled out immutable commit

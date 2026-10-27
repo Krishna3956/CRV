@@ -346,6 +346,32 @@ func (c *Client) RecordProtocolResult(method string, result map[string]any, sess
 	c.Capture(event)
 }
 
+// RecordAuthorizationOutcome records only a canonical 401/403 authorization
+// outcome. It never accepts or stores challenge headers, URLs, tokens, or
+// provider error text.
+func (c *Client) RecordAuthorizationOutcome(method string, statusCode int, sessionID string) {
+	if len(method) == 0 || len(method) > 128 || strings.IndexFunc(method, func(r rune) bool { return r < 0x20 || r == 0x7f }) >= 0 { return }
+	outcome, errorClass := "", ""
+	switch statusCode {
+	case 401:
+		outcome, errorClass = "unauthorized", "authentication_error"
+	case 403:
+		outcome, errorClass = "forbidden", "authorization_error"
+	default:
+		return
+	}
+	success, isError := false, true
+	c.Capture(Event{
+		EventType: "protocol", Direction: "server_to_client", MCPMethod: method,
+		SessionID: boundedSessionID(sessionID), Success: &success, IsError: &isError,
+		ErrorClass: errorClass, ErrorCode: &statusCode,
+		Payload: map[string]any{"_trackmcp": map[string]any{
+			"observation_kind": "protocol_response", "observation_source": "server",
+			"authorization_attempt": true, "authorization_outcome": outcome,
+		}},
+	})
+}
+
 func protocolFamilyForMethod(method string) string {
 	for _, family := range []string{"sampling", "elicitation", "completion", "tasks", "roots", "logging"} {
 		if strings.HasPrefix(method, family+"/") { return family }
