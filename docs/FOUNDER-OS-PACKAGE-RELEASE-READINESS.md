@@ -13,6 +13,18 @@ release train with a new CLI version, registry uniqueness check, provenance,
 and clean-consumer verification. This separation prevents source-only changes
 from being presented as available through `npx` before publication.
 
+## Unpublished TypeScript SDK candidate — 2026-10-27
+
+The source now contains the public `recordAuthorizationOutcome` helper and is
+versioned as `@trackmcp/sdk@0.1.22`. A direct registry tarball inspection proved
+that the published `@trackmcp/sdk@0.1.21` artifact does **not** contain that
+helper. The candidate therefore must be published through the reviewed
+`typescript` workflow with `RELEASE_TRAIN_APPROVED`, provenance, and a clean
+consumer check before the helper is advertised as installable.
+
+The local source and package tests are green; npm credentials are not available
+in this environment, so no publication claim is made.
+
 ## Current single-package patch publication (2026-10-27)
 
 The reviewed patch release `@trackmcp/sdk@0.1.20` was published by workflow

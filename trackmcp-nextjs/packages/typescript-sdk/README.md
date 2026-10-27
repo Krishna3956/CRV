@@ -14,7 +14,7 @@ export default withTrackMCP(server, {
   apiKey: process.env.TRACKMCP_KEY!,
   service: "my-mcp-server",
   server_version: "2026.10.26", // bounded release metadata (optional)
-  sdk_version: "0.1.21",        // bounded release metadata (optional)
+  sdk_version: "0.1.22",        // reviewed candidate release metadata (optional)
   deployment_id: "deploy-42",   // bounded release metadata (optional)
 });
 ```
@@ -82,7 +82,8 @@ the compatibility behavior of the bounded request methods.
 Every modern request also carries a bounded
 `io.modelcontextprotocol/clientInfo` object in per-request `_meta`, as required
 by the stateless 2026-07-28 revision. The default identity is
-`@trackmcp/sdk@0.1.21`; callers may provide a safe `{ name, version }` pair via
+`@trackmcp/sdk@0.1.22` (the published baseline remains `0.1.21` until the
+reviewed release workflow completes); callers may provide a safe `{ name, version }` pair via
 `ModernMcpClient` options. Invalid or control-character values fall back to
 the SDK identity, and no credentials or payload data are included.
 

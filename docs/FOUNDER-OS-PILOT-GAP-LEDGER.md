@@ -109,6 +109,9 @@ Status: active autonomous audit, started 2026-10-21.
   provenance, and clean-consumer evidence are recorded in the package
   release-readiness file. The first npm run’s bounded propagation timeout is
   retained as a workflow caveat, not a registry failure.
+- Reviewed release candidate `0.1.22` contains the TypeScript authorization-
+  outcome observer; it is not yet published and must not be used as the
+  installable pilot baseline until registry and clean-consumer evidence exist.
 
 ## 2026-10-27 — current-source pointer reconciliation
 

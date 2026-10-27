@@ -37,6 +37,21 @@ permission.
   a reviewed release workflow publishes the changed TypeScript API. No registry
   publication is implied by documentation parity.
 
+## 2026-10-27 TypeScript SDK release-candidate reconciliation
+
+- [x] A direct inspection of the public `@trackmcp/sdk@0.1.21` tarball proved
+  that it does not contain `recordAuthorizationOutcome`, while the source now
+  carries the helper and is versioned as release candidate `0.1.22`.
+- [x] Updated the active runbook, execution plan, package-readiness record, and
+  source metadata to distinguish the reviewed `0.1.22` candidate from the
+  installable `0.1.21` baseline. This prevents the new API from being claimed
+  as public before registry verification.
+- Reviewed release candidate `0.1.22` is source-complete; registry publication
+  remains an explicit external gate.
+- [ ] Publication requires the reviewed GitHub workflow, npm credentials,
+  provenance, and clean-consumer/registry evidence. No package was published
+  from this environment.
+
 ## 2026-10-27 CLI proxy documentation discoverability milestone
 
 - [x] Added a first-class `/docs/cli` page covering the bounded stdio proxy
