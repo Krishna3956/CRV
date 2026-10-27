@@ -15,20 +15,21 @@ configurations redact runtime secret mappings from `describe-service`; in that
 case provide only the non-sensitive Secrets Manager ARN through the workflow's
 optional `worker_token_secret_arn` input.
 
-The scheduler does not accept a plain-text App Runner value for this variable.
-Before dispatching the workflow, open App Runner → Configuration → Runtime
-environment variables and change `TRACKMCP_REFRESH_WORKER_SECRET` to a Secrets
-Manager reference. The reference must resolve to a JSON secret field named
-`TRACKMCP_REFRESH_WORKER_SECRET`; do not paste the token into the workflow
-input, source tree, CloudFormation parameters, or logs. If App Runner redacts
-the reference during discovery, pass only the non-sensitive secret ARN as
-`worker_token_secret_arn`.
+The scheduler does not accept a plain-text App Runner environment value for
+this variable. Before dispatching the workflow, open App Runner →
+Configuration → Runtime environment variables and change
+`TRACKMCP_REFRESH_WORKER_SECRET` to a Secrets Manager reference. The referenced
+secret must contain the worker token as its plaintext `SecretString`; use a
+dedicated secret rather than the shared runtime JSON bundle. Do not paste the
+token into the workflow input, source tree, CloudFormation parameters, or
+logs. If App Runner redacts the reference during discovery, pass only the
+non-sensitive secret ARN as `worker_token_secret_arn`.
 
 ```bash
 export AWS_REGION=ap-south-1
 export STACK_NAME=trackmcp-refresh-scheduler-staging
 export WORKER_URL=https://staging.example.com/api/internal/refresh/run
-export WORKER_TOKEN_SECRET_ARN=arn:aws:secretsmanager:ap-south-1:123456789012:secret:trackmcp/runtime
+export WORKER_TOKEN_SECRET_ARN=arn:aws:secretsmanager:ap-south-1:123456789012:secret:trackmcp/refresh/worker
 export FAILURE_ALARM_TOPIC_ARN=''
 
 sam build --template-file template.yaml --build-dir .aws-sam/build
@@ -107,7 +108,7 @@ sam delete --stack-name "$STACK_NAME" --region "$AWS_REGION"
 ```
 
 The IAM role created by this template is limited to invoking this Lambda and
-writing failed scheduler deliveries to its own DLQ. The Lambda receives only
-the `TRACKMCP_REFRESH_WORKER_SECRET` field from the JSON secret bundle through
-an AWS Secrets Manager dynamic reference; the bundle and token are never
-written to CloudFormation outputs or logs.
+writing failed scheduler deliveries to its own DLQ. The Lambda receives the
+dedicated secret's plaintext value through an AWS Secrets Manager dynamic
+reference; the secret and token are never written to CloudFormation outputs or
+logs.

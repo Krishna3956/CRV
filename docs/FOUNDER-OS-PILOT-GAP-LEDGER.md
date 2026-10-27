@@ -298,11 +298,14 @@ production transport UAT.
   gates remain explicitly open.
 
 - 2026-10-26: Scheduler secret handling was reconciled with the App Runner
-  runtime bundle. The SAM template now selects only the
-  `TRACKMCP_REFRESH_WORKER_SECRET` JSON field via the Secrets Manager dynamic
-  reference instead of injecting the whole JSON `SecretString`. Workflow and
-  worker contract tests cover the exact key selector and reject the prior
-  whole-bundle form; the full local release gate passed 137 suites.
+  runtime bundle. That shared bundle was later verified in AWS to contain an
+  empty `TRACKMCP_REFRESH_WORKER_SECRET` value, so it cannot authenticate the
+  worker. The SAM template now resolves a dedicated Secrets Manager secret's
+  plaintext `SecretString`; this matches the existing dedicated
+  `trackmcp/refresh/worker` secret without reading or copying its value. The
+  worker contract test covers the plaintext dynamic reference. App Runner must
+  still be remapped to that dedicated ARN before the authenticated smoke gate
+  can close.
 
 - 2026-10-26: GitHub API inspection of the refresh workflow showed scheduled
   invocations arriving 1–3 hours apart despite the `*/5 * * * *` declaration

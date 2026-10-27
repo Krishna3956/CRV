@@ -8,7 +8,7 @@ Parameters:
     AllowedPattern: '^https://[^ ]+$'
   WorkerTokenSecretArn:
     Type: String
-    Description: Secrets Manager ARN containing the JSON bundle with TRACKMCP_REFRESH_WORKER_SECRET.
+    Description: Secrets Manager ARN containing the refresh worker token as its plaintext SecretString.
   EnableSchedule:
     Type: String
     Default: 'false'
@@ -38,7 +38,7 @@ Resources:
       Environment:
         Variables:
           TRACKMCP_REFRESH_WORKER_URL: !Ref WorkerUrl
-          TRACKMCP_REFRESH_WORKER_TOKEN: !Sub '{{resolve:secretsmanager:${WorkerTokenSecretArn}:SecretString:TRACKMCP_REFRESH_WORKER_SECRET}}'
+          TRACKMCP_REFRESH_WORKER_TOKEN: !Sub '{{resolve:secretsmanager:${WorkerTokenSecretArn}:SecretString}}'
           TRACKMCP_REFRESH_SECRET_REFRESH_NONCE: !Ref SecretRefreshNonce
 
   RefreshSchedulerInvokeRole:

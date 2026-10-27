@@ -65,8 +65,10 @@ test("refresh scheduler omits an empty optional alarm parameter", () => {
   assert.match(workflow, /--parameter-overrides "\$\{PARAM_OVERRIDES\[@\]\}"/);
 });
 
-test("refresh scheduler refuses a plain-text App Runner worker token", () => {
-  assert.match(readme, /does not accept a plain-text App Runner value/);
-    assert.match(readme, /Secrets\s+Manager reference/);
-    assert.match(readme, /do not paste\s+the token/);
+test("refresh scheduler requires a protected dedicated worker secret", () => {
+  assert.match(readme, /does not accept a plain-text App Runner environment value/);
+  assert.match(readme, /Secrets\s+Manager reference/);
+  assert.match(readme, /dedicated secret/);
+  assert.match(readme, /plaintext `SecretString`/);
+  assert.match(readme, /[Dd]o not paste/);
 });

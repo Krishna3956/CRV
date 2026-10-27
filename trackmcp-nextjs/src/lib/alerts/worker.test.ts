@@ -106,8 +106,8 @@ test("refresh scheduler template is five-minute and disabled until explicitly en
   assert.match(template, /AWS::Lambda::Permission/);
   assert.match(template, /Default: 'false'/);
   assert.match(template, /WorkerTokenSecretArn/);
-  assert.match(template, /SecretString:TRACKMCP_REFRESH_WORKER_SECRET/);
-  assert.doesNotMatch(template, /SecretString}}/);
+  assert.match(template, /SecretString}}/);
+  assert.doesNotMatch(template, /SecretString:TRACKMCP_REFRESH_WORKER_SECRET/);
   assert.match(template, /Action: lambda:InvokeFunction/);
   assert.match(template, /Action: sqs:SendMessage/);
 });
