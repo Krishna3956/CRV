@@ -22,6 +22,9 @@ Status: active autonomous audit, started 2026-10-21.
 - No authenticated refresh request, CloudWatch log-stream evidence, or DLQ
   depth evidence exists yet. The EventBridge schedule remains disabled. This
   is an external configuration/provider boundary, not a first-100 GO signal.
+- The post-change local release gate passed all 139 suites (`release_gate_rc=0`);
+  the hosted failure is therefore isolated to the deployed secret resolution,
+  not an unverified local regression.
 
 ## 2026-10-27 — scheduler smoke IAM-read fix
 
