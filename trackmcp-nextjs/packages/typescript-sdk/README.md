@@ -137,6 +137,14 @@ matching result is received; a response ID, when present, must match the
 request. The stream is still observation-only and is not a general-purpose
 subscription or proxy implementation.
 
+When an observed protocol response carries the canonical authorization error
+codes `401` or `403`, the client adapter records only a bounded
+`authorization_attempt` marker and an `unauthorized`/`forbidden` outcome. It
+never copies `WWW-Authenticate` values, resource-metadata URLs, bearer tokens,
+or provider error text. TrackMCP remains an observer: it does not perform OAuth
+discovery, register clients, exchange tokens, refresh credentials, or proxy an
+authorization flow.
+
 For bounded historical discovery, `listAllTools`, `listAllResources`, and
 `listAllPrompts` follow opaque cursors up to a fixed page/item budget and return
 `truncated: true` when the server continues beyond that budget or repeats a

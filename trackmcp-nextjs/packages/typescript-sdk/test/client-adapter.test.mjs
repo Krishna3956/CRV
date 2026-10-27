@@ -495,6 +495,25 @@ test("emits bounded request and response observations for non-tool MCP methods",
   await wrapped.close();
 });
 
+test("records only bounded authorization outcomes for protocol errors", async () => {
+  const events = [];
+  const raw = new FakeTransport();
+  const adapter = new TrackMCPClientAdapter({ apiKey: "tmcp_test", service: "adapter-test", transport: "stdio", flushIntervalMs: 60000, onEvent: (event) => events.push(event) });
+  const wrapped = adapter.wrapTransport(raw);
+  await wrapped.start();
+  wrapped.onmessage = () => {};
+  await wrapped.send({ jsonrpc: "2.0", id: "auth-401", method: "tools/list", params: { token: "do-not-capture" } });
+  raw.onmessage({ jsonrpc: "2.0", id: "auth-401", error: { code: 401, message: "Bearer secret should not escape" } });
+  await wrapped.send({ jsonrpc: "2.0", id: "auth-403", method: "tools/call", params: { name: "private" } });
+  raw.onmessage({ jsonrpc: "2.0", id: "auth-403", error: { code: 403, data: { resource_metadata: "https://private.example/.well-known" } } });
+  const authEvents = events.filter((event) => event.payload?._trackmcp?.authorization_attempt === true);
+  assert.equal(authEvents.length, 2);
+  assert.deepEqual(authEvents.map((event) => event.payload._trackmcp.authorization_outcome), ["unauthorized", "forbidden"]);
+  assert.equal(JSON.stringify(authEvents).includes("Bearer secret"), false);
+  assert.equal(JSON.stringify(authEvents).includes("private.example"), false);
+  await wrapped.close();
+});
+
 test("observes cancellation notifications in both directions without retaining request IDs", async () => {
   const events = [];
   const raw = new FakeTransport();

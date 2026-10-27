@@ -45,6 +45,21 @@ permission.
 - [ ] This does not enable hosted proxying or OAuth. Those remain explicit
   external/deferred boundaries in the protocol matrix.
 
+## 2026-10-27 bounded OAuth-outcome observation milestone
+
+- [x] The Node client transport observer now records a metadata-only
+  authorization marker for canonical `401` and `403` protocol errors,
+  distinguishing `unauthorized` from `forbidden` without retaining challenge
+  headers, resource-metadata URLs, bearer credentials, or provider text.
+- [x] Added privacy regression coverage for both outcomes and verified the
+  clean TypeScript package consumer suite (104 tests).
+- [x] Updated the public SDK boundary and protocol matrix: this is observer
+  evidence only, not OAuth discovery, registration, token exchange, refresh,
+  or proxy behavior.
+- [ ] External OAuth-server integration, consent/PKCE policy, revocation,
+  tenant binding, and authenticated interoperability UAT remain required
+  before any token-handling capability can be enabled.
+
 ## 2026-10-27 health-state correction deployment
 
 - [x] App Runner deployment `40494157458` rolled out immutable commit
