@@ -2,6 +2,22 @@
 
 Status: active autonomous audit, started 2026-10-21.
 
+## 2026-10-27 — scheduler timeout hardening and release-scope reconciliation
+
+- The deployed scheduler previously requested `max_jobs: 100` in one App Runner
+  request. A direct CloudWatch stream inspection found one historical
+  `AbortError` at the Lambda's 55-second deadline. The scheduler now requests a
+  resumable `max_jobs: 10` slice, keeping one invocation below the App Runner
+  route deadline while allowing later five-minute ticks to drain backlog.
+- Updated the scheduler README and handler contract test. Added the standalone
+  `workers/` boundary to the release-scope and file-ownership contracts after
+  the full gate correctly detected that the new production worker files lacked
+  an ownership bucket.
+- Focused scheduler, release-scope, and file-ownership tests pass; lint and the
+  177-route production build pass; the complete **143-suite** release gate
+  passes. This is a source/deployment-candidate improvement; a fresh clean AWS
+  cadence window is still required before closing the external scheduler gate.
+
 ## 2026-10-27 — direct CloudWatch scheduler log inspection
 
 - Read-only CloudWatch inspection of the deployed Lambda log group confirmed

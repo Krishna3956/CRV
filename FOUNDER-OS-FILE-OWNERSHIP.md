@@ -16,7 +16,7 @@ deployment, SQL execution, or package publication.
 | SDK and CLI | `trackmcp-nextjs/packages/typescript-sdk/`, `trackmcp-nextjs/packages/cli/` | SDK engineering | package/release reviewer |
 | Python SDK | `packages/python-sdk/` | SDK engineering | package/release reviewer |
 | Schema and SQL | `supabase/migrations/`, `supabase/manual/` | data/platform engineering | security + operator reviewer |
-| Deployment and CI | `.github/workflows/`, `trackmcp-nextjs/deploy/`, `trackmcp-nextjs/next.config.ts`, `trackmcp-nextjs/eslint.config.mjs` | platform/reliability engineering | release owner |
+| Deployment and CI | `.github/workflows/`, `trackmcp-nextjs/deploy/`, `trackmcp-nextjs/workers/`, `trackmcp-nextjs/next.config.ts`, `trackmcp-nextjs/eslint.config.mjs` | platform/reliability engineering | release owner |
 | Tests and release tooling | `trackmcp-nextjs/scripts/`, `trackmcp-nextjs/**/*.test.*`, `trackmcp-nextjs/package*.json` | developer productivity | owning feature reviewer |
 | Founder OS documentation | `FOUNDER-OS-*.md`, `docs/FOUNDER-OS-*.md`, `docs/architecture.md`, `docs/getting-started.md` | CTO/release engineering | release owner |
 

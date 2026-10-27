@@ -1,4 +1,8 @@
 const TIMEOUT_MS = 55_000;
+// Keep the externally scheduled slice small enough to finish well inside the
+// App Runner route deadline. The worker remains resumable, so later ticks drain
+// the queue instead of allowing one large backlog to create a Lambda timeout.
+const SCHEDULED_MAX_JOBS = 10;
 
 function isScheduledEvent(event) {
   if (event && typeof event === "object") return event.source === "eventbridge_scheduler";
@@ -51,7 +55,7 @@ export async function handler(event = {}) {
     const response = await fetch(endpoint, {
       method: "POST",
       headers: { authorization: `Bearer ${token}`, "content-type": "application/json" },
-      body: JSON.stringify({ max_jobs: 100 }),
+      body: JSON.stringify({ max_jobs: SCHEDULED_MAX_JOBS }),
       redirect: "manual",
       signal: controller.signal,
     });

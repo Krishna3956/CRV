@@ -38,7 +38,7 @@ test("scheduler handler sends one bounded authenticated refresh request", async 
     assert.equal(request.options.redirect, "manual");
     assert.equal(request.options.headers.authorization, "Bearer test-token-is-never-logged");
     assert.equal(request.options.headers["content-type"], "application/json");
-    assert.deepEqual(JSON.parse(request.options.body), { max_jobs: 100 });
+    assert.deepEqual(JSON.parse(request.options.body), { max_jobs: 10 });
     assert.ok(request.options.signal instanceof AbortSignal);
     assert.equal(logs.length, 1);
     const marker = JSON.parse(logs[0]);

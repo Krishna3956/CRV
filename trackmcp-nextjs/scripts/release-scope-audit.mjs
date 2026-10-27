@@ -30,7 +30,7 @@ const INTENDED = [
   // test verifies its direct framework/MCP entries against package manifests
   // and customer documentation. Other lockfiles still require explicit review.
   /^trackmcp-nextjs\/(?:\.gitignore|eslint\.config\.mjs|next\.config\.ts|package(?:-lock)?\.json)$/,
-  /^trackmcp-nextjs\/(?:src|packages|deploy|docs|scripts)\//,
+  /^trackmcp-nextjs\/(?:src|packages|deploy|docs|scripts|workers)\//,
 ];
 
 export function classifyPath(relativePath) {

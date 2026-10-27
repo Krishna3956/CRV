@@ -12,6 +12,7 @@ const owners = [
   [".github/workflows/", "deployment"],
   ["trackmcp-nextjs/.github/workflows/", "deployment"],
   ["trackmcp-nextjs/deploy/", "deployment"],
+  ["trackmcp-nextjs/workers/", "deployment"],
   ["trackmcp-nextjs/packages/typescript-sdk/", "sdk"],
   ["trackmcp-nextjs/packages/cli/", "sdk"],
   ["packages/python-sdk/", "python"],
