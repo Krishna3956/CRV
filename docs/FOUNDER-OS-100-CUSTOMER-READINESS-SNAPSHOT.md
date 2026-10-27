@@ -1,6 +1,6 @@
 # Founder OS first-100 readiness snapshot
 
-Updated: 2026-10-27 (Asia/Kolkata)
+Updated: 2026-10-27 (Asia/Kolkata; scheduler evidence refreshed)
 
 Status: **Engineering green; release decision HOLD**
 
@@ -43,12 +43,14 @@ These are not source-code failures and must not be silently marked green:
    requests are review-only and destructive deletion is disabled.
 4. Synthetic reliability-data hygiene acceptance: canary rows must remain
    visibly test evidence and never be presented as customer incidents.
-5. Sustained scheduler evidence: health run `40450412687` proves the AWS
-   scheduler cadence gate with 4 invocations and 0 errors. Its one-hour
-   evaluation window contains only 2 current samples, 1 freshness breach, and
-   **0/3 scheduled worker samples**; the CloudWatch log-marker projection is
-   unavailable. Manual/recovery/AWS-metric runs do not close the end-to-end
-   cadence gate.
+5. Sustained scheduler evidence: the dedicated scheduler stack deployment
+   `40466761616` is successful, and health run `40467745989` observes four
+   bounded `ScheduledSuccess` EMF samples with zero scheduled-failure samples.
+   Direct CloudWatch inspection confirms the marker is emitted only after a
+   successful authenticated refresh and contains no endpoint, token, request,
+   or response content. The stricter zero-error AWS invocation gate remains
+   open because one historical Lambda error is still inside the rolling
+   window; no end-to-end cadence claim is made until that window is clean.
 6. Credentialed production key-lifecycle and customer-owned MCP endpoint UAT.
 7. Protocol interoperability that is explicitly Partial/Unsupported in the
    matrix (customer endpoints, reconnect/replay, proxy-specific behavior,
@@ -76,7 +78,8 @@ stored in this snapshot.
 
 Latest scheduler evidence is recorded in the detailed ledger; the current
 source verification remains green at 143 suites. The deployed application is
-immutable SHA `70534428fd69a4fa5a07f46adad504a32fdfe262` via App Runner
-workflow `40451066166`; the current source/ledger reconciliation is
-`0e744d4`. The AWS policy-update notification was observed, but no post-policy
-health run has yet proved the scheduled log-marker gate.
+immutable SHA `42f9a7849684cb9d5cb24ee0b1fbdca6fb5bf265` via App Runner
+workflow `40461737971`; subsequent scheduler-only and documentation commits
+are not described as application deployments. The AWS policy update and the
+post-deployment EMF metric path are evidenced, while the strict zero-error
+rolling-window gate remains open.
