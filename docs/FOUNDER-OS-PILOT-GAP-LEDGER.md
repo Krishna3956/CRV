@@ -746,3 +746,11 @@ production transport UAT.
   reproduced as a durable failed-job row. The health report now correctly
   retains `aws_scheduler_errors_observed` and keeps the release gate open
   pending repeated zero-error windows or a safe status-only root-cause trace.
+
+- 2026-10-27: Health rerun `40438869799` still observed the same single error
+  within its rolling window (5 invocations, 1 error), so the warning is
+  persistent rather than cleared by one additional sample. The error remains
+  isolated to the AWS scheduler metric; the bounded refresh-job read-back has
+  no current non-success rows. Keep the scheduler/release gate open until a
+  subsequent window ages out the datapoint or a safe root-cause trace is
+  available.
