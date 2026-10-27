@@ -1,7 +1,7 @@
 # Founder OS 100 Customer Readiness Ledger
 
-Last updated: 2026-10-28 (main `34670bd`; deployed application `cffc2a0` and App Runner rollout `40570999509` succeeded; hosted publication workflow `40569475423` verified `@trackmcp/sdk@0.1.24`)
-Source-only follow-up: same-origin docs, auth, blog CTA fixes, regression guard, and hosted-runner verification gate are recorded on main; the latest rollout is pending.
+Last updated: 2026-10-28 (main `65e193a`; deployed application `65e193a` and App Runner rollout `40578117597` succeeded; hosted publication workflow `40569475423` verified `@trackmcp/sdk@0.1.24`)
+The same-origin docs, auth, blog CTA fixes, regression guard, and hosted-runner verification gate are deployed and runtime-verified. The public Cloudflare edge still returns HTML 403 to scripted probes and remains a separate external gate.
 Latest freshness evidence: health workflow `40566829192` with worker drain
 `40566911017` inspected eight redacted worker samples. AWS scheduler cadence is
 proven with **4/4 invocations** and **4/4 CloudWatch EMF successes**. The overall
@@ -25,11 +25,30 @@ proof.
 | Backup/PITR | Supabase Free Plan has no scheduled backups or PITR; inspection recorded in the backup evidence entries below | **HOLD / owner decision** | Accepted documented limitation with named recovery owner/runbook, or plan upgrade plus tested restore rehearsal |
 | Privacy acceptance | Engineering privacy/export/deletion contracts pass; production acceptance evidence is not recorded | **HOLD / owner decision** | Signed production privacy review and retention/deletion acceptance |
 | Credentialed lifecycle/UAT | Read-only tenant/auth smoke is verified; write-gated key lifecycle and customer-owned transport UAT remain unexecuted | **HOLD / credentialed** | Disposable lifecycle key run plus customer-owned transport/protocol UAT artifacts |
-| Hosted deployment verification | Local lint, production build, and release gate pass; stale GitHub CI/deploy handles `40574101778` and `40573968022` were cancelled after remaining non-terminal across repeated checks | **HOLD / hosted runner** | Fresh CI release-gate result plus App Runner rollout and post-deploy smoke for the current commit |
+| Hosted deployment verification | Replacement workflow `40578117597` deployed `65e193a`; release gate, image build/push, App Runner rollout, production smoke, immutable release identity, and runtime-safety checks passed | **PASS** | Re-run the same guarded workflow for the next runtime-changing commit |
 | Release-owner acceptance | Source, CI, deployment, package publication, and local release gates are green | **HOLD / owner decision** | Explicit approval referencing this register and the current deployed source |
 
 This register is the active decision surface. Historical entries below remain
 evidence and are not current approval.
+
+## 2026-10-28 — hosted deployment recovery and verification
+
+- [x] Stale workflow `40577463077` accepted cancellation through both the
+  authenticated GitHub UI and API and completed as cancelled. It had already
+  pushed the candidate image and started App Runner, so no success was inferred
+  from the partial run.
+- [x] One controlled replacement workflow, `40578117597`, completed successfully
+  for immutable source `65e193ad6fa37178935bfa3db8fccd416426984b`. The hosted
+  release gate, image build/push, App Runner rollout, read-only production
+  smoke, release-identity verification, and runtime-safety audit all passed.
+- [x] Independent direct-origin probes confirmed `/api/health` reports
+  `status=ok` and the exact deployed SHA; `/`, `/docs`,
+  `/docs/opentelemetry`, and `/dashboard?view=setup` return HTTP 200. The OTLP
+  receiver correctly returns HTTP 400 JSON for an empty `resourceSpans` batch.
+- [ ] Public `trackmcp.com` and `app.trackmcp.com` scripted probes still receive
+  Cloudflare HTTP 403 HTML. That edge policy remains separate from the now-green
+  GitHub/App Runner deployment path and must not be represented as successful
+  public OTLP ingestion.
 
 ## 2026-10-28 — same-origin documentation CTA fix
 
