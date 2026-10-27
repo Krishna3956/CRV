@@ -3,6 +3,18 @@
 This is a review record, not a publication action. No registry credentials are
 used here and no package is published automatically.
 
+## 2026-10-28 — current candidate publication result
+
+The coordinated candidate `@trackmcp/sdk@0.1.23`, `@trackmcp/cli@0.1.12`, and
+`trackmcp==0.1.14` passed local contracts and hosted CI. App Runner deployment
+for source `91293a3` passed. Publication workflow `40564834985` accepted the
+TypeScript npm publish request but could not verify the public metadata within
+its bounded propagation window; retry `40565575358` received npm `409 Conflict`
+because the version is already staged. Public npm metadata still returns 404
+for `@trackmcp/sdk@0.1.23`, so the train is not claimed published and CLI/Python
+publication did not run. This remains an external npm registry gate, not a
+source or CI failure.
+
 ## CLI proxy publication — 2026-10-27
 
 Mainline `HEAD` adds the bounded stdio launcher to the CLI source and

@@ -43,6 +43,21 @@ the maximum queue lag is `3,506,514 ms` (above the 15-minute pilot budget).
 - [ ] Registry publication, provenance, and clean-consumer verification remain
   pending until the gated workflow is run with reviewed confirmation.
 
+## 2026-10-28 — hosted release and deployment result
+
+- [x] Hosted TrackMCP CI `40564093743` passed for source `91293a3` across
+  web/JavaScript, Go, and .NET jobs.
+- [x] App Runner deployment `40564093852` completed successfully for source
+  `91293a3`.
+- [ ] Coordinated package publication workflow `40564834985` published the
+  TypeScript package to npm's staging path but failed its bounded public
+  registry verification; the public metadata endpoint still returns 404 for
+  `@trackmcp/sdk@0.1.23`.
+- [ ] A second attempt `40565575358` correctly stopped with npm `409 Conflict`
+  because `0.1.23` is already staged. CLI and Python were not published by
+  either run. The package train remains externally blocked until npm resolves
+  or releases that staged version; no publication claim is made.
+
 ## 2026-10-27 — Python public protocol-result contract validation
 
 - [x] Corrected the release contract to assert the shipped public
