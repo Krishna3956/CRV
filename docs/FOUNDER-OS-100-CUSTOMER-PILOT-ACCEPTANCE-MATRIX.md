@@ -2,12 +2,11 @@
 
 Status: **HOLD — no silent waivers**  
 Reconciled: 2026-10-27 (Asia/Calcutta)
-Current deployed baseline: application `0c36da187d6fee56cd280ea79070176e9cd8f63d`,
-App Runner run `40426236860` (successful deployment; production smoke, runtime
-identity, runtime safety, and redacted evidence artifacts uploaded). A separate
-credential-free production pilot smoke passed 36 bounded checks against the
-public origin; it is not authenticated UAT. Later docs/ops commits are not
-runtime deployments.
+Current deployed baseline: application `42f9a7849684cb9d5cb24ee0b1fbdca6fb5bf265`,
+App Runner run `40461737971` (successful deployment; production smoke, runtime
+identity, runtime safety, and redacted evidence artifacts uploaded). The
+follow-up authenticated production smoke `40462480640` also passed against this
+exact SHA. This is current runtime evidence, not a pilot GO decision.
 
 Historical baseline retained for continuity: application
 `2e135f194f36e278232c6a46890b1ce850d1e9ba`, App Runner run `40198791603`.

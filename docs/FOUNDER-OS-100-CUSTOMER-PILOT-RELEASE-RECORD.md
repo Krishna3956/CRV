@@ -8,13 +8,12 @@ commit and the operator accepts the listed limitations.
 
 ## Current deployed baseline — 2026-10-27
 
-App Runner workflow `40451066166` successfully deployed immutable application
-commit `70534428fd69a4fa5a07f46adad504a32fdfe262`. The rollout wait and
-redacted runtime-evidence upload passed. Credentialed two-workspace auth smoke
-against this exact SHA passed read-model authentication, workspace-query
-isolation, API-key action-queue denial, and revoked-key rejection. The release
-remains Draft/HOLD until the open operational and owner gates below are
-independently accepted.
+App Runner workflow `40461737971` successfully deployed immutable application
+commit `42f9a7849684cb9d5cb24ee0b1fbdca6fb5bf265`. Rollout, production smoke,
+immutable runtime identity, runtime-safety audit, and redacted evidence upload
+passed. Authenticated production smoke `40462480640` also passed against this
+exact SHA. The release remains Draft/HOLD until the open operational and owner
+gates below are independently accepted.
 
 The preceding deployed engineering baseline was `7551e2f017cce2695803b13ce5605eee72d4a9f8`,
 deployed by App Runner workflow `40349662276`. It remains retained as
@@ -25,10 +24,10 @@ recovery-evidence hardening, not a final operational SLO acceptance.
 
 ## Latest source verification — 2026-10-27
 
-The current `main` source at `0e744d4` (including the repeatable transport-smoke contracts,
-protocol closure-boundary test, and readiness documentation) passes the full
-local release gate at **143
-suites**, lint, the production build (**177 routes**), and `git diff --check`.
+The current deployed source at `42f9a78` (including the transient App Runner
+smoke retry boundary and published SDK `0.1.20` alignment) passes the full local
+release gate at **143 suites**, lint, the production build (**177 routes**),
+and `git diff --check`.
 The direct App Runner transport fixture passed official Streamable HTTP and SSE
 client flows with metadata-only observations. The manually dispatched hosted
 transport workflow completed safely but skipped its write-enabled step because
