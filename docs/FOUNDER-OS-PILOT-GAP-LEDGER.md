@@ -2,13 +2,14 @@
 
 Status: active autonomous audit, started 2026-10-21.
 
-## 2026-10-27 — SDK release candidate pointer
+## 2026-10-27 — SDK release publication pointer
 
-- The next reviewed SDK train is the release candidate `0.1.21` for
-  `@trackmcp/sdk` and release candidate `0.1.13` for `trackmcp`; the unchanged CLI remains
-  `0.1.10`. The candidate is not described as published until the
-  confirmation-gated `typescript-python` workflow records npm/PyPI checksums,
-  provenance, and clean-consumer evidence.
+- The reviewed SDK train is published as `@trackmcp/sdk@0.1.21` and
+  `trackmcp==0.1.13` (published `0.1.21` and published `0.1.13` release artifacts);
+  the unchanged CLI remains `0.1.10`. Registry checksums,
+  provenance, and clean-consumer evidence are recorded in the package
+  release-readiness file. The first npm run’s bounded propagation timeout is
+  retained as a workflow caveat, not a registry failure.
 
 ## 2026-10-27 — current-source pointer reconciliation
 

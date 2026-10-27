@@ -10,19 +10,20 @@ freshness breach, not a historical-failure false positive. The report records
 projection is unavailable because the OIDC role lacks log-event query
 permission.
 
-## 2026-10-27 SDK release-train reconciliation
+## 2026-10-27 SDK release-train publication
 
 - [x] Source changes after the published `@trackmcp/sdk@0.1.20` and
   `trackmcp==0.1.12` artifacts were identified as public SDK changes rather
   than dashboard-only work.
-- [x] The next batch candidate is versioned without touching the unchanged CLI:
+- [x] The batch train published without touching the unchanged CLI:
   `@trackmcp/sdk@0.1.21`, `trackmcp==0.1.13`, and existing
   `@trackmcp/cli@0.1.10`.
 - [x] Local package-release audit, TypeScript SDK tests/packed-consumer check,
   Python unit tests, and publish-workflow contracts passed.
-- [ ] npm/PyPI publication, provenance, immutable registry checksums, and
-  clean-consumer installs remain open until the confirmation-gated release
-  workflow is dispatched from the reviewed commit.
+- [x] npm/PyPI registry metadata, immutable checksums, provenance, and exact
+  clean-consumer downloads are recorded in the package release-readiness file.
+  The first npm workflow’s propagation timeout is retained as an operational
+  caveat; it did not invalidate the independently verified artifact.
 
 ## 2026-10-27 catalog snapshot evidence milestone
 
