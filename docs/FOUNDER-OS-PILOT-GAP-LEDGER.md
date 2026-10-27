@@ -818,6 +818,14 @@ production transport UAT.
   rollout; the already deployed adapter/runtime is the candidate exercised by
   the UAT.
 
+- 2026-10-27: Health run `40441666990` is now `healthy`: zero failed worker
+  runs, zero report reasons, four AWS scheduler invocations, zero AWS errors,
+  76 jobs processed, and maximum queue lag of 105,384 ms. The report still
+  records one cadence breach and zero GitHub-scheduled samples in its bounded
+  window, so this closes the current worker failure/error warning but does not
+  yet prove a sustained scheduled-worker SLO across multiple scheduled
+  samples.
+
 - 2026-10-27: Ran an authenticated production-like SSE interoperability
   fixture against the deployed App Runner ingest origin. The official MCP
   `SSEClientTransport` completed initialization and a tool request against a
