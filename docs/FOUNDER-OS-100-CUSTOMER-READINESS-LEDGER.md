@@ -33,6 +33,14 @@ the maximum queue lag is `3,506,514 ms` (above the 15-minute pilot budget).
   TypeScript SDK tests and packed consumer, CLI tests and packed consumer,
   Python SDK checks, and runtime smoke.
 
+## 2026-10-27 — hosted readiness-header verification green
+
+- [x] CI run `40540678442` passed on source `0bd4d88`; web/JavaScript, Go, and
+  .NET jobs completed successfully.
+- [x] The web job passed the full release gate, lint, production build,
+  TypeScript SDK and CLI packed-consumer checks, Python SDK checks, and runtime
+  smoke after the readiness header was aligned with `main`.
+
 ## 2026-10-27 — scheduled health evidence renewed
 
 - [x] Scheduled health workflow `40502266095` completed successfully and
