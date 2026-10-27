@@ -2,6 +2,14 @@
 
 Status: active autonomous audit, started 2026-10-21.
 
+## 2026-10-27 — current-source pointer reconciliation
+
+- Updated the external-gate register and release record to point at the
+  actual current `main` commit `37579ea`, which contains the verified package
+  train parity correction. The deployed runtime remains the immutable
+  `f81317d` candidate; this documentation-only update does not relabel it as
+  deployed or close any external acceptance gate.
+
 ## 2026-10-27 — package-version parity and release-gate recheck
 
 - Reconciled the current CLI integration README, package-release readiness

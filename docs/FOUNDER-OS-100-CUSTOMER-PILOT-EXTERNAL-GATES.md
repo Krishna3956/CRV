@@ -16,7 +16,8 @@ is intentionally not a GO approval and must not be treated as one.
   immutable identity, runtime-safety audit, and three redacted artifacts).
   The latest rollout has not been represented as a new authenticated
   key-lifecycle UAT run. This is the runtime reference for release review.
-- Current source verification: `main` at `4c82f72` (ledger evidence update),
+- Current source verification: `main` at `37579ea` (package-train parity and
+  ledger evidence update),
   with the deployed application at the immutable `f81317d` candidate above.
   This does not close the external owner, backup, privacy, or scheduler-cadence
   gates.

@@ -40,7 +40,8 @@ recovery-evidence hardening, not a final operational SLO acceptance.
 The current deployed source is `f81317d` (including the bounded scheduler
 slice, release-scope ownership reconciliation, transient App Runner smoke
 retry boundary, and the explicit button-type accessibility fixes). Mainline
-now also contains the ledger evidence update `4c82f72`; its focused
+now also contains the package-train parity and ledger evidence update
+`37579ea`; its focused
 documentation/accessibility contracts pass, and the full local release gate,
 lint, and 177-route build were green before deployment. Push-triggered
 scheduler activation for the reviewed scheduler change completed successfully
