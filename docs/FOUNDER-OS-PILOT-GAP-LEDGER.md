@@ -1010,3 +1010,9 @@ production transport UAT.
   modern capability as absent when the durable refresh projection is unavailable.
   The regression covers tenant-scoped analytics and preserves the metadata-only
   boundary.
+
+- 2026-10-27: App Runner workflow `40451066166` successfully deployed and
+  completed the redacted runtime-evidence upload for immutable application SHA
+  `70534428fd69a4fa5a07f46adad504a32fdfe262` (commit `7053442`). This confirms
+  deployment of the modern capability-normalization fix; it does not close the
+  external pilot gates or change the release recommendation from **HOLD**.
