@@ -837,6 +837,9 @@ production transport UAT.
   coverage passed; the release gate now runs 141 suites. Lint, the 177-route
   production build, and `git diff --check` passed. Workflow execution remains
   manual and skips safely when its dedicated repository secret is absent.
+  Manual dispatch `40442041930` completed successfully and confirmed that the
+  repository currently has no `TRACKMCP_TRANSPORT_SMOKE_KEY`; the write step
+  skipped and no credential or production mutation occurred.
 
 - 2026-10-27: Ran an authenticated production-like SSE interoperability
   fixture against the deployed App Runner ingest origin. The official MCP
