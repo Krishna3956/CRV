@@ -2,6 +2,17 @@
 
 Status: active autonomous audit, started 2026-10-21.
 
+## 2026-10-27 — scheduled-success metric and failure classification verified
+
+- Health run `40467394730` retained artifact `12717320479` (read-only,
+  redacted). It observes **4** `ScheduledSuccess` EMF samples and **0**
+  `ScheduledFailure` samples, so the AWS end-to-end cadence gate is now
+  **proven** (`cloudwatch_emf_metric`).
+- The report still shows one Lambda error in the rolling metrics window, so the
+  stricter zero-error AWS cadence gate remains OPEN until a subsequent clean
+  window. This is not silently waived; the report distinguishes scheduler
+  invocation errors from successful refresh evidence.
+
 ## 2026-10-27 — dedicated scheduler stack redeployed
 
 - SAM scheduler deployment `40464781740` completed successfully from the
