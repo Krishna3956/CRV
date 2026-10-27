@@ -125,6 +125,7 @@
     "test:secret-scope-audit": "node --test scripts/secret-scope-audit.contract.test.mjs",
     "test:rollback-plan": "node --test scripts/rollback-plan.contract.test.mjs",
     "test:evidence-record": "node --test scripts/evidence-record.contract.test.mjs",
+    "test:external-gates": "node --test scripts/external-gates.contract.test.mjs",
     "test:review-boundary": "node --test scripts/review-boundary.contract.test.mjs",
     "test:manifest-reconciliation": "node --test scripts/manifest-reconciliation.contract.test.mjs",
     "seo:audit": "node scripts/audit-seo.mjs",
