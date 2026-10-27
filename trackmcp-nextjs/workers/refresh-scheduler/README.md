@@ -7,10 +7,10 @@ Supabase directly and never logs the worker token or response body.
 
 EventBridge sends a bounded `source=eventbridge_scheduler` marker. Only after
 the upstream request returns successfully does the Lambda emit a
-non-sensitive `refresh_scheduler_result` marker. Manual invocations do not emit
-it, so the health workflow can distinguish a real scheduled worker success
-from an operator smoke. The projection remains externally gated only by the
-health role's permission to query that bounded marker.
+non-sensitive `refresh_scheduler_result` marker with an Embedded Metric Format
+`TrackMCP/RefreshScheduler/ScheduledSuccess` sample. Manual invocations do not
+emit it, so the health workflow can distinguish a real scheduled worker
+success from an operator smoke without reading CloudWatch log events.
 
 The schedule is disabled by default. Deploy it disabled first, run the manual
 checks below, and enable it only after the endpoint and secret have been
@@ -22,14 +22,10 @@ configurations redact runtime secret mappings from `describe-service`; in that
 case provide only the non-sensitive Secrets Manager ARN through the workflow's
 optional `worker_token_secret_arn` input.
 
-The recurring health workflow counts only the bounded success marker through
-`logs:FilterLogEvents`. If its report says
-`cloudwatch_log_filter_unavailable`, attach the reviewed policy in
-`docs/aws/TrackMCPRefreshHealthLogReadPolicy.json` to the GitHub OIDC role
-`GitHubActionsDeployRole`, then rerun the health workflow. This policy grants
-only `DescribeLogStreams` and `FilterLogEvents` on the scheduler Lambda log
-group prefix; it does not grant log writes, deletion, secret access, or Lambda
-mutation.
+The recurring health workflow counts only the bounded EMF success metric
+through `cloudwatch:GetMetricData`. It does not require log-event read access,
+so the GitHub OIDC role needs no additional CloudWatch Logs policy for this
+projection.
 
 The scheduler does not accept a plain-text App Runner environment value for
 this variable. Before dispatching the workflow, open App Runner →
@@ -69,7 +65,7 @@ Before enabling the schedule:
 4. Invoke the Lambda manually and inspect logs for token/response leakage.
 5. Check the SQS DLQ is empty and the two CloudWatch alarms are configured.
 6. Enable the schedule with `EnableSchedule=true`, then verify at least three
-   scheduled-success markers and a queue-lag result within the 15-minute pilot
+   scheduled-success metric samples and a queue-lag result within the 15-minute pilot
    freshness budget before widening the pilot.
 
 ## Reproducible inspection commands

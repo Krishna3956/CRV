@@ -52,7 +52,8 @@ jobs:
           start_time=$(date -u -d '20 minutes ago' +%Y-%m-%dT%H:%M:%SZ)
           queries=$(jq -nc --arg function_name "$function_name" '[
             {Id:"invocations",MetricStat:{Metric:{Namespace:"AWS/Lambda",MetricName:"Invocations",Dimensions:[{Name:"FunctionName",Value:$function_name}]},Period:300,Stat:"Sum"},ReturnData:true},
-            {Id:"errors",MetricStat:{Metric:{Namespace:"AWS/Lambda",MetricName:"Errors",Dimensions:[{Name:"FunctionName",Value:$function_name}]},Period:300,Stat:"Sum"},ReturnData:true}
+            {Id:"errors",MetricStat:{Metric:{Namespace:"AWS/Lambda",MetricName:"Errors",Dimensions:[{Name:"FunctionName",Value:$function_name}]},Period:300,Stat:"Sum"},ReturnData:true},
+            {Id:"scheduled_successes",MetricStat:{Metric:{Namespace:"TrackMCP/RefreshScheduler",MetricName:"ScheduledSuccess",Dimensions:[{Name:"FunctionName",Value:$function_name}]},Period:300,Stat:"Sum"},ReturnData:true}
           ]')
           raw=$(aws cloudwatch get-metric-data \
             --region "$AWS_REGION" \
@@ -61,21 +62,8 @@ jobs:
             --end-time "$end_time" \
             --scan-by TimestampDescending \
             --output json)
-          scheduled_successes=0
-          scheduled_successes_available=false
-          if log_count=$(aws logs filter-log-events \
-            --log-group-name "/aws/lambda/$function_name" \
-            --start-time "$(( $(date -d "$start_time" +%s) * 1000 ))" \
-            --end-time "$(( $(date -d "$end_time" +%s) * 1000 ))" \
-            --filter-pattern '{ $.event = "refresh_scheduler_result" && $.scheduled = true && $.success = true }' \
-            --region "$AWS_REGION" \
-            --query 'length(events)' \
-            --output text 2>/dev/null); then
-            scheduled_successes=$(printf '%s' "$log_count" | awk '/^[0-9]+$/ { print; found=1 } END { if (!found) print 0 }')
-            scheduled_successes_available=true
-          else
-            echo "::warning::Scheduled-success log projection was unavailable; AWS end-to-end cadence remains pending."
-          fi
+          scheduled_successes=$(printf '%s' "$raw" | jq '[.MetricDataResults[] | select(.Id=="scheduled_successes") | .Values[]] | add // 0')
+          scheduled_successes_available=true
           printf '%s' "$raw" | jq --argjson scheduled_successes "$scheduled_successes" --argjson scheduled_successes_available "$scheduled_successes_available" '{enabled:true,datapoints:[.MetricDataResults[] | {id:.Id,values:.Values,timestamps:.Timestamps}],invocations:([.MetricDataResults[] | select(.Id=="invocations") | .Values[]] | add // 0),errors:([.MetricDataResults[] | select(.Id=="errors") | .Values[]] | add // 0),scheduled_successes:$scheduled_successes,scheduled_successes_available:$scheduled_successes_available}' > "$output"
 
       - name: Collect recent redacted worker summaries

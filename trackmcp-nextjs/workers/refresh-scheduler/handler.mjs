@@ -16,9 +16,24 @@ export async function handler(event = {}) {
     });
     if (!response.ok) throw new Error(`refresh worker returned HTTP ${response.status}`);
     if (event && event.source === "eventbridge_scheduler") {
-      // A non-sensitive marker is consumed by the CloudWatch metric filter.
-      // Never log the endpoint, token, request body, or response content.
-      console.log(JSON.stringify({ event: "refresh_scheduler_result", scheduled: true, success: true }));
+      // Emit a non-sensitive Embedded Metric Format sample so the health
+      // workflow can query the success count without reading log events. Never
+      // log the endpoint, token, request body, or response content.
+      console.log(JSON.stringify({
+        _aws: {
+          Timestamp: Date.now(),
+          CloudWatchMetrics: [{
+            Namespace: "TrackMCP/RefreshScheduler",
+            Dimensions: [["FunctionName"]],
+            Metrics: [{ Name: "ScheduledSuccess", Unit: "Count" }],
+          }],
+        },
+        FunctionName: process.env.AWS_LAMBDA_FUNCTION_NAME || "refresh-scheduler",
+        ScheduledSuccess: 1,
+        event: "refresh_scheduler_result",
+        scheduled: true,
+        success: true,
+      }));
     }
     return { statusCode: response.status };
   } finally {

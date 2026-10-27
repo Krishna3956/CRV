@@ -40,7 +40,16 @@ test("scheduler handler sends one bounded authenticated refresh request", async 
     assert.equal(request.options.headers["content-type"], "application/json");
     assert.deepEqual(JSON.parse(request.options.body), { max_jobs: 100 });
     assert.ok(request.options.signal instanceof AbortSignal);
-    assert.deepEqual(logs, [JSON.stringify({ event: "refresh_scheduler_result", scheduled: true, success: true })]);
+    assert.equal(logs.length, 1);
+    const marker = JSON.parse(logs[0]);
+    assert.equal(marker.event, "refresh_scheduler_result");
+    assert.equal(marker.scheduled, true);
+    assert.equal(marker.success, true);
+    assert.equal(marker.ScheduledSuccess, 1);
+    assert.equal(marker._aws.CloudWatchMetrics[0].Namespace, "TrackMCP/RefreshScheduler");
+    assert.deepEqual(marker._aws.CloudWatchMetrics[0].Dimensions, [["FunctionName"]]);
+    assert.equal(marker._aws.CloudWatchMetrics[0].Metrics[0].Name, "ScheduledSuccess");
+    assert.equal(marker.request, undefined);
   } finally {
     globalThis.fetch = previousFetch;
     console.log = previousLog;

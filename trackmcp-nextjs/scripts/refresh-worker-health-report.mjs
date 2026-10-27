@@ -98,8 +98,8 @@ export function summarizeRefreshWorkerRuns(runs, { budgetMs = DEFAULT_BUDGET_MS,
     observed_successes: awsEvidence.scheduled_successes,
     required_successes: MIN_SAMPLES,
     evidence: awsEvidence.scheduled_successes >= MIN_SAMPLES
-      ? "cloudwatch_log_filter"
-      : awsEvidence.scheduled_successes_available ? "scheduled_success_metric_pending" : "cloudwatch_log_filter_unavailable",
+      ? "cloudwatch_emf_metric"
+      : awsEvidence.scheduled_successes_available ? "scheduled_success_metric_pending" : "cloudwatch_metric_unavailable",
   };
   const state = insufficient ? "insufficient_data" : failedRuns > 0 || staleRuns > 0 || effectiveCadenceBreaches > 0 || scheduledInsufficient || awsErrorsObserved ? "warning" : "healthy";
   const reasons = [];

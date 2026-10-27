@@ -2,6 +2,23 @@
 
 Status: active autonomous audit, started 2026-10-21.
 
+## 2026-10-27 — remove scheduler health log-permission dependency
+
+- The refresh-scheduler Lambda now emits a bounded CloudWatch Embedded Metric
+  Format `TrackMCP/RefreshScheduler/ScheduledSuccess` sample only after a real
+  EventBridge-sourced refresh succeeds. The marker contains no endpoint, token,
+  request, or response material; manual invocations do not emit it.
+- The recurring health workflow now queries that metric with
+  `cloudwatch:GetMetricData` and no longer calls `logs:FilterLogEvents`. This
+  removes the repository's dependency on an additional GitHub OIDC log-read
+  policy while preserving an explicit pending state when fewer than three
+  samples exist.
+- Updated the scheduler runbook, privacy/workflow contracts, and health-report
+  evidence labels. Focused scheduler/health tests, lint, the 177-route build,
+  and the full **143-suite** release gate passed. Production cadence remains
+  OPEN until the scheduler stack is redeployed with this Lambda and three fresh
+  scheduled-success metric samples are retained.
+
 ## 2026-10-27 — post-baseline verification checkpoint
 
 - Re-ran the complete local release gate after the baseline reconciliation;

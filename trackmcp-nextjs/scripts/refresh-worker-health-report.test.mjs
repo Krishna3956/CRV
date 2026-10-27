@@ -97,7 +97,7 @@ test("healthy AWS scheduler evidence satisfies production cadence without hiding
     status: "proven",
     observed_successes: 4,
     required_successes: 3,
-    evidence: "cloudwatch_log_filter",
+    evidence: "cloudwatch_emf_metric",
   });
   assert.equal(report.cadence_breaches, 1);
   assert.deepEqual(report.reasons, ["worker_failures_observed", "freshness_budget_exceeded"]);
@@ -125,7 +125,7 @@ test("scheduled cadence gate becomes proven only from scheduled worker samples",
     status: "pending",
     observed_successes: 0,
     required_successes: 3,
-    evidence: "cloudwatch_log_filter_unavailable",
+    evidence: "cloudwatch_metric_unavailable",
   });
 });
 

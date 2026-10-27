@@ -49,8 +49,6 @@ test("refresh scheduler deployment reports only CloudFormation status metadata",
 });
 
 test("scheduler template records only non-sensitive EventBridge success markers", () => {
-  assert.doesNotMatch(template, /SchedulerScheduledSuccessMetricFilter/);
-  assert.doesNotMatch(template, /AWS::Logs::MetricFilter/);
   assert.match(template, /eventbridge_scheduler/);
   assert.match(template, /Input:.*eventbridge_scheduler/);
 });
@@ -84,7 +82,8 @@ test("refresh scheduler requires a protected dedicated worker secret", () => {
   assert.match(readme, /dedicated secret/);
   assert.match(readme, /plaintext `SecretString`/);
   assert.match(readme, /refresh_scheduler_result/);
-  assert.match(readme, /permission to query/);
-  assert.match(readme, /Manual\s+invocations do not emit\s+it/);
+  assert.match(readme, /Embedded Metric Format/);
+  assert.match(readme, /cloudwatch:GetMetricData/);
+  assert.match(readme, /Manual\s+invocations do not\s+emit\s+it/);
   assert.match(readme, /[Dd]o not paste/);
 });
