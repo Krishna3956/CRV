@@ -1,6 +1,6 @@
 # Founder OS 100 Customer Readiness Ledger
 
-Last updated: 2026-10-28 (main `f10c161`; deployed application `91293a3` and App Runner rollout `40564093852` remain the latest runtime evidence; hosted CI `40568238535` is running for `f10c161`)
+Last updated: 2026-10-28 (main `5b9627a`; deployed application `91293a3` and App Runner rollout `40564093852` remain the latest runtime evidence; hosted publication workflow `40569475423` verified `@trackmcp/sdk@0.1.24`)
 Latest freshness evidence: health workflow `40566829192` with worker drain
 `40566911017` inspected eight redacted worker samples. AWS scheduler cadence is
 proven with **4/4 invocations** and **4/4 CloudWatch EMF successes**. The overall
@@ -45,8 +45,9 @@ evidence and are not current approval.
   modern-client identity can be published without mutating the public `0.1.23`
   artifact.
 - [x] Package tests (105/105), package-release audit, and production-smoke
-  contracts (7/7) pass. The reviewed npm publication and clean-consumer check
-  remain pending; no public `0.1.24` claim is made yet.
+  contracts (7/7) pass. Reviewed npm publication and clean-consumer checks
+  passed in workflow `40569475423`; npm serves `@trackmcp/sdk@0.1.24` with
+  verified integrity and provenance.
 
 ## 2026-10-28 — published-train smoke default alignment
 
