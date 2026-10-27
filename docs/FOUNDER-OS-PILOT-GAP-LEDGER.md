@@ -2,6 +2,15 @@
 
 Status: active autonomous audit, started 2026-10-21.
 
+## 2026-10-27 — handler-test deployment evidence
+
+- App Runner deployment workflow `40428391413` completed successfully for
+  commit `5e26564ad446f11f712de66cf0594a0b803a7d70`. The workflow completed
+  immutable image verification, rollout readiness, and the read-only
+  production smoke. This confirms the handler-test change is deployed; it does
+  not imply that the scheduler is enabled or that authenticated refresh cadence
+  evidence exists.
+
 ## 2026-10-27 — scheduler handler contract coverage
 
 - Added direct tests for the refresh-scheduler Lambda: bounded authenticated
