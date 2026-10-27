@@ -2,6 +2,17 @@
 
 Status: active autonomous audit, started 2026-10-21.
 
+## 2026-10-27 — dedicated scheduler stack redeployed
+
+- SAM scheduler deployment `40464781740` completed successfully from the
+  reviewed `main` source with the existing non-secret worker-secret ARN,
+  `EnableSchedule=true`, and schedule-evidence collection enabled. Artifact
+  `12716211550` retains only bounded stack/resource/metric metadata.
+- This is the deployment that updates the separate Lambda; the preceding App
+  Runner rollout alone could not update scheduler code. The next health window
+  must observe the new `ScheduledSuccess` EMF metric before the end-to-end
+  cadence gate can be closed.
+
 ## 2026-10-27 — scheduler metric fix deployed and authenticated
 
 - App Runner deployment `40463437109` completed successfully for immutable
