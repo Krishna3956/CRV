@@ -49,6 +49,7 @@ test("authenticated smoke is explicit, disabled-first, and metadata-only", () =>
   assert.match(workflow, /statusCode \| numbers/);
   assert.match(workflow, /describe-log-streams/);
   assert.match(workflow, /get-queue-attributes/);
+  assert.match(workflow, /--attribute-names ApproximateNumberOfMessages\b/);
   assert.match(workflow, /raw Lambda payloads/);
   assert.doesNotMatch(workflow, /aws logs get-log-events/);
   assert.doesNotMatch(workflow, /aws secretsmanager get-secret-value/);

@@ -83,7 +83,7 @@ export DLQ_URL="$(aws cloudformation describe-stack-resource \
   --region "$AWS_REGION" --query 'StackResourceDetail.PhysicalResourceId' \
   --output text)"
 aws sqs get-queue-attributes --queue-url "$DLQ_URL" \
-  --attribute-names ApproximateNumberOfMessagesVisible --region "$AWS_REGION"
+  --attribute-names ApproximateNumberOfMessages --region "$AWS_REGION"
 unset FUNCTION_NAME SCHEDULE_NAME DLQ_URL
 ```
 

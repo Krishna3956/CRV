@@ -201,7 +201,7 @@ jobs:
             --query 'Stacks[0].Outputs[?OutputKey==`RefreshSchedulerDLQUrl`].OutputValue | [0]' \
             --output text)
           aws sqs get-queue-attributes --queue-url "$DLQ_URL" \
-            --attribute-names ApproximateNumberOfMessagesVisible \
+            --attribute-names ApproximateNumberOfMessages \
             --region "$AWS_REGION" --query 'Attributes' --output json \
             > "$REPORT_DIR/dlq-depth.json"
 

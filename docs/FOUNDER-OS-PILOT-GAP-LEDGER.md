@@ -631,3 +631,27 @@ production transport UAT.
   renders these as protocol evidence only; unknown states remain explicit and
   no business-completion claim is inferred. Analytics integration and dashboard
   contracts pass; durable family-specific persistence remains open.
+- 2026-10-27: Production scheduler remediation progressed through the AWS
+  control plane. The App Runner runtime mapping was changed to the dedicated
+  `trackmcp/refresh/worker` secret, but the first update rolled back because
+  `AppRunnerInstanceRole` lacked `secretsmanager:GetSecretValue` for that ARN.
+  The inline `ReadRuntimeSecrets` policy was then narrowed/extended in IAM to
+  include that exact dedicated ARN; AWS confirmed `Policy ReadRuntimeSecrets
+  updated.` The App Runner service was subsequently updated successfully with
+  the exact dedicated ARN. Hosted scheduler run `40432719225` reached
+  CloudFormation successfully but its authenticated smoke ran before the
+  IAM/App Runner rollout completed and returned worker HTTP 401. Hosted run
+  `40434168737` proved the Lambda smoke path authenticated, but its metadata
+  step exposed a missing `logs:DescribeLogStreams` permission on the GitHub
+  deploy role; that permission was added scoped to the exact function log
+  group.
+
+- 2026-10-27: Hosted scheduler run `40434634021` ran after the IAM fix. The
+  authenticated refresh Lambda returned the expected success status and
+  CloudWatch log-stream metadata access succeeded. The evidence step then
+  exposed a workflow defect: `ApproximateNumberOfMessagesVisible` is a
+  CloudWatch metric name, not a valid SQS `GetQueueAttributes` attribute. The
+  workflow and refresh-scheduler runbook now request the valid
+  `ApproximateNumberOfMessages`; the contract suite and complete local
+  release gate (139 suites) pass. A final hosted rerun remains required before
+  enabling the recurring schedule.
