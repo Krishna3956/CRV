@@ -1,6 +1,6 @@
 # Founder OS 100 Customer Readiness Ledger
 
-Last updated: 2026-10-28 (main `5b9627a`; deployed application `91293a3` and App Runner rollout `40564093852` remain the latest runtime evidence; hosted publication workflow `40569475423` verified `@trackmcp/sdk@0.1.24`)
+Last updated: 2026-10-28 (main `5575323`; deployed application `91293a3` and App Runner rollout `40564093852` remain the latest runtime evidence; hosted publication workflow `40569475423` verified `@trackmcp/sdk@0.1.24`)
 Latest freshness evidence: health workflow `40566829192` with worker drain
 `40566911017` inspected eight redacted worker samples. AWS scheduler cadence is
 proven with **4/4 invocations** and **4/4 CloudWatch EMF successes**. The overall
@@ -8,11 +8,19 @@ state remains `warning` because only **1/3 scheduled worker samples** is in the
 current evaluation window and the maximum queue lag is `35,497,938 ms` (above
 the 15-minute pilot budget).
 
+Latest recheck: health workflow `40570232815` completed successfully after
+bounded recovery worker `40570059240` also succeeded. AWS scheduler evidence
+remains proven at **4/4 invocations** and **4/4 scheduled successes**, but the
+GitHub scheduled-worker sample count is **0/3** in this manual recheck and the
+historical maximum queue lag remains `36,729,012 ms`; freshness therefore stays
+**warning**. Manual dispatches are recovery evidence, not scheduled-cadence
+proof.
+
 ## Active external-gate register (current)
 
 | Gate | Current evidence | State | Required closure evidence |
 | --- | --- | --- | --- |
-| Worker freshness | AWS scheduler 4/4 invocations and 4/4 successes; only 1/3 scheduled GitHub-worker samples; latest report artifact `12764060428` | **HOLD** | Three fresh scheduled samples within the 15-minute budget, with no unresolved stale/failure evidence |
+| Worker freshness | AWS scheduler 4/4 invocations and 4/4 successes; latest health artifact from `40570232815` has 0/3 scheduled GitHub-worker samples after successful manual recovery `40570059240`; max historical queue lag `36,729,012 ms` | **HOLD** | Three fresh scheduled samples within the 15-minute budget, with no unresolved stale/failure evidence |
 | Backup/PITR | Supabase Free Plan has no scheduled backups or PITR; inspection recorded in the backup evidence entries below | **HOLD / owner decision** | Accepted documented limitation with named recovery owner/runbook, or plan upgrade plus tested restore rehearsal |
 | Privacy acceptance | Engineering privacy/export/deletion contracts pass; production acceptance evidence is not recorded | **HOLD / owner decision** | Signed production privacy review and retention/deletion acceptance |
 | Credentialed lifecycle/UAT | Read-only tenant/auth smoke is verified; write-gated key lifecycle and customer-owned transport UAT remain unexecuted | **HOLD / credentialed** | Disposable lifecycle key run plus customer-owned transport/protocol UAT artifacts |
