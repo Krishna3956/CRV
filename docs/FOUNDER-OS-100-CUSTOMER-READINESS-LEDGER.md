@@ -101,6 +101,16 @@ evidence and are not current approval.
   contains no dead CTA or unauthenticated workspace data. This is UI evidence
   only and does not claim credentialed login/UAT success.
 
+## 2026-10-28 — live signup handoff audit
+
+- [x] Following `Create an account` from the deployed sign-in route reaches
+  `/signup` without submitting data. The page exposes bounded first/last name,
+  email, password, confirmation, terms/privacy consent, and an explicit
+  create-account action.
+- [x] Terms, Privacy, Create account, Sign in, and return-home controls all
+  report `cursor: pointer`. No account was created during this read-only audit;
+  credentialed signup/email-verification evidence remains separate.
+
 ## 2026-10-28 — published-train smoke default alignment
 
 - [x] Corrected the production pilot smoke harness to use the currently
