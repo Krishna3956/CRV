@@ -19,6 +19,14 @@ Status: active autonomous audit, started 2026-10-21.
   this observation cannot prove a clean three-sample cadence or zero-error
   window; the scheduler gate remains open and no health claim was changed.
 
+## 2026-10-27 — current-main lint and build verification
+
+- Re-ran `npm run lint` and `npm run build` on `main` after the source-pointer
+  and scheduler-evidence ledger updates. ESLint passed; the Next.js 16.4.2
+  production build compiled successfully, type-checked, and generated all
+  **177 routes**. This confirms source health only and does not close any
+  external scheduler, recovery, privacy, credentialed-UAT, or owner gates.
+
 ## 2026-10-27 — package-version parity and release-gate recheck
 
 - Reconciled the current CLI integration README, package-release readiness
