@@ -18,6 +18,10 @@ The enabled-schedule follow-up is retained as artifact `12708665678`; it
 reports four AWS invocations, zero errors, and the same pending 0/3 scheduled
 worker cadence gate.
 
+The post-change health run `40446554951` (artifact `12708936081`) now proves
+the separate AWS cadence gate with three invocations and zero errors. The
+application scheduled-worker sample gate remains pending at 0/3.
+
 ## 2026-10-27 manual refresh-worker recovery evidence
 
 - [x] Explicit recovery run `40446099143` completed successfully on the
@@ -44,7 +48,7 @@ from the prior release remains historical until rerun for this exact image.
   `state: healthy`, eight bounded samples, zero stale runs, zero failed runs,
   and maximum queue lag `105384 ms` (inside the `900000 ms` budget).
 - [x] AWS scheduler metadata reported `enabled: true`, two metric datapoints,
-  four invocations, and zero errors; no secret, request body, or log content
+  three invocations, and zero errors; no secret, request body, or log content
   was retained.
 - [x] The new `aws_scheduler_cadence_gate` is proven from that enabled,
   zero-error metrics window; this is operational scheduler evidence only.

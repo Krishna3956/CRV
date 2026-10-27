@@ -12,6 +12,9 @@ Status: active autonomous audit, started 2026-10-21.
 - This closes the previous reporting ambiguity without treating CloudWatch
   invocation metrics as authenticated response-content or end-to-end business
   UAT evidence. Regression coverage and the workflow summary contract pass.
+- Health run `40446554951` retained artifact `12708936081` and reports the AWS
+  cadence gate as `proven` (3 invocations, 0 errors); the stricter worker-run
+  gate remains pending at 0/3.
 
 ## 2026-10-27 — refresh-worker recovery clears current backlog
 
