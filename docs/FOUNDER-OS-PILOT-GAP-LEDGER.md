@@ -2,6 +2,19 @@
 
 Status: active autonomous audit, started 2026-10-21.
 
+## 2026-10-27 — scheduler metric fix deployed and authenticated
+
+- App Runner deployment `40463437109` completed successfully for immutable
+  source `1ab14ed2ea47eee6c586d4c2d5abcfc559898df1`; its production smoke,
+  runtime-flags, and host artifacts are `12716110559`, `12716110567`, and
+  `12716210514`.
+- Authenticated production smoke `40464201073` also passed for the same SHA;
+  artifact `12716076639` contains the bounded tenant/auth/privacy checks.
+- The deployed Lambda now contains the EMF metric path, but the sustained
+  scheduler cadence gate is still OPEN until the enabled schedule produces at
+  least three fresh `ScheduledSuccess` metric samples inside the 15-minute
+  budget. No cadence claim is inferred from deployment success alone.
+
 ## 2026-10-27 — remove scheduler health log-permission dependency
 
 - The refresh-scheduler Lambda now emits a bounded CloudWatch Embedded Metric
