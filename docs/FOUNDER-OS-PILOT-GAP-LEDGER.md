@@ -18,6 +18,18 @@ Status: active autonomous audit, started 2026-10-21.
   passes. This is a source/deployment-candidate improvement; a fresh clean AWS
   cadence window is still required before closing the external scheduler gate.
 
+## 2026-10-27 — bounded-slice candidate deployed to App Runner
+
+- App Runner deployment workflow `40468547762` completed successfully for
+  immutable SHA `9638e23c8529f9b1781d96413529e33a692715ed` (run 600). The
+  read-only production smoke, release-identity verification, and runtime-safety
+  audit passed; redacted artifacts `12717497733`, `12717567675`, and
+  `12717163592` were retained.
+- This proves the web/refresh-route candidate is deployed, not that the
+  standalone AWS Scheduler Lambda has picked up the new `max_jobs: 10` handler.
+  The separate scheduler workflow still requires a disabled-first redeploy;
+  only then can a fresh scheduled cadence window validate the timeout fix.
+
 ## 2026-10-27 — direct CloudWatch scheduler log inspection
 
 - Read-only CloudWatch inspection of the deployed Lambda log group confirmed
