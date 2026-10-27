@@ -19,6 +19,17 @@ the maximum queue lag is `3,506,514 ms` (above the 15-minute pilot budget).
   transport-owned reconnect/replay, and broader protocol lifecycle boundaries
   remain separately tracked.
 
+## 2026-10-27 — hosted validation for Python transport parity green
+
+- [x] CI run `40556845457` passed on source `aa15534`; web/JavaScript, Go, and
+  .NET jobs completed successfully.
+- [x] The hosted web job passed the release gate, lint, production build,
+  TypeScript SDK and CLI packed-consumer checks, Python SDK checks, and runtime
+  smoke.
+- [ ] This confirms the bounded SDK change and build integrity only; it does
+  not close authenticated production UAT or the remaining partial protocol
+  lifecycle boundaries.
+
 ## 2026-10-27 — hosted validation for latest ledger commit green
 
 - [x] CI run `40556006656` passed on source `f67b3c2`; web/JavaScript, Go, and
