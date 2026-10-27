@@ -669,3 +669,12 @@ production transport UAT.
   completed successfully with ten bounded batches, zero failures, zero
   backlog, and no freshness alert. A fresh scheduled worker run is still
   required to establish the sustained cadence baseline.
+
+- 2026-10-27: The bounded health workflow `40436113909` inspected the current
+  redacted worker artifacts. It found 8 samples (3 scheduled), but correctly
+  remains `warning` because historical stale/failing runs produce
+  `freshness_budget_exceeded`, `worker_failures_observed`, and
+  `schedule_cadence_gap`; the worst observed queue lag is 13,654,611 ms.
+  This is not a readiness signal. The dedicated-secret fix has passed a manual
+  worker run, and the next scheduled samples must be observed before the
+  freshness/SLO gate can be reconsidered.
