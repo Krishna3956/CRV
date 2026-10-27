@@ -25,6 +25,15 @@ permission.
 - [ ] Hosted proxy behavior, OAuth exchange, durable replay, and customer-owned
   transport UAT remain explicitly outside this local launcher milestone.
 
+## 2026-10-27 CLI proxy lifecycle hardening milestone
+
+- [x] The bounded stdio launcher now propagates parent stdin EOF to the child
+  process, so a server waiting for stream completion can terminate cleanly.
+- [x] Added a regression test for EOF propagation; focused proxy tests, lint,
+  build, and the full 144-suite release gate passed.
+- [ ] This remains a local launcher boundary. Hosted proxying, OAuth exchange,
+  replay/durable reconnect, and customer-owned transport UAT are not implied.
+
 ## 2026-10-27 health-state correction deployment
 
 - [x] App Runner deployment `40494157458` rolled out immutable commit

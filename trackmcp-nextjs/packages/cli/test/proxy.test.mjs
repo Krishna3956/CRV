@@ -61,3 +61,16 @@ test("proxy is fail-closed for missing keys and fail-open for telemetry delivery
   child.emit("close", 0, null);
   await new Promise((resolve) => setTimeout(resolve, 10));
 });
+
+test("proxy propagates parent stdin EOF to the child", async () => {
+  const input = new PassThrough();
+  const child = new EventEmitter();
+  child.stdin = new PassThrough();
+  child.stdout = new PassThrough();
+  let finished = false;
+  child.stdin.on("finish", () => { finished = true; });
+  await runProxy({ command: "server", key, input, output: new PassThrough(), spawnImpl: () => child, fetchImpl: async () => new Response("{}", { status: 202 }) });
+  input.end();
+  await new Promise((resolve) => setTimeout(resolve, 10));
+  assert.equal(finished, true);
+});

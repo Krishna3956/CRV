@@ -89,6 +89,9 @@ export async function runProxy({ command, args = [], key = process.env.TRACKMCP_
     for (const line of lines) enqueue(line.replace(/\r$/, ""), direction);
   };
   input.on("data", (chunk) => consume(chunk, "client_to_server", child.stdin));
+  // Propagate stdin EOF so servers that wait for a complete stream can exit
+  // cleanly. This is lifecycle plumbing only; it does not alter forwarded data.
+  input.on("end", () => child.stdin.end());
   child.stdout.on("data", (chunk) => consume(chunk, "server_to_client", output));
   child.on("close", async (code, signal) => { if (inputBuffer) enqueue(inputBuffer, "client_to_server"); if (outputBuffer) enqueue(outputBuffer, "server_to_client"); await flush(); if (code !== null) process.exitCode = code; else if (signal) errorOutput.write(`TrackMCP proxy child exited with ${signal}.\n`); });
   child.on("error", (error) => errorOutput.write(`TrackMCP proxy could not start the child process: ${error.message}\n`));
