@@ -55,6 +55,49 @@ Before enabling the schedule:
    scheduled invocations and a queue-lag result within the 15-minute pilot
    freshness budget before widening the pilot.
 
+## Reproducible inspection commands
+
+The following commands collect non-secret evidence after a disabled deployment.
+They resolve generated physical names from CloudFormation and never print the
+worker token or response body:
+
+```bash
+export FUNCTION_NAME="$(aws cloudformation describe-stack-resource \
+  --stack-name "$STACK_NAME" --logical-resource-id RefreshSchedulerFunction \
+  --region "$AWS_REGION" --query 'StackResourceDetail.PhysicalResourceId' \
+  --output text)"
+aws lambda invoke --function-name "$FUNCTION_NAME" --region "$AWS_REGION" \
+  --payload '{}' --cli-binary-format raw-in-base64-out /tmp/trackmcp-refresh-scheduler.json
+cat /tmp/trackmcp-refresh-scheduler.json
+aws logs tail "/aws/lambda/$FUNCTION_NAME" --since 1h --region "$AWS_REGION"
+
+export SCHEDULE_NAME="$(aws cloudformation describe-stack-resource \
+  --stack-name "$STACK_NAME" --logical-resource-id RefreshSchedulerSchedule \
+  --region "$AWS_REGION" --query 'StackResourceDetail.PhysicalResourceId' \
+  --output text)"
+aws scheduler get-schedule --name "$SCHEDULE_NAME" --region "$AWS_REGION"
+aws cloudwatch describe-alarms --alarm-name-prefix "$STACK_NAME" --region "$AWS_REGION"
+export DLQ_URL="$(aws cloudformation describe-stack-resource \
+  --stack-name "$STACK_NAME" --logical-resource-id RefreshSchedulerDLQ \
+  --region "$AWS_REGION" --query 'StackResourceDetail.PhysicalResourceId' \
+  --output text)"
+aws sqs get-queue-attributes --queue-url "$DLQ_URL" \
+  --attribute-names ApproximateNumberOfMessagesVisible --region "$AWS_REGION"
+unset FUNCTION_NAME SCHEDULE_NAME DLQ_URL
+```
+
+Before invoking the function, the operator must separately verify that an
+unauthenticated request and an incorrect bearer token both return `401`, then
+load the real token only from the protected secret store. Keep the schedule
+disabled until those checks, the log review, and the DLQ/alarm review pass.
+
+To remove a test stack, disable it first and then delete it only after checking
+for in-flight work:
+
+```bash
+sam delete --stack-name "$STACK_NAME" --region "$AWS_REGION"
+```
+
 The IAM role created by this template is limited to invoking this Lambda and
 writing failed scheduler deliveries to its own DLQ. The Lambda receives only
 the `TRACKMCP_REFRESH_WORKER_SECRET` field from the JSON secret bundle through

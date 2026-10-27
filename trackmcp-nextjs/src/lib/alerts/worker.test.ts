@@ -120,3 +120,11 @@ test("scheduler documentation contains reproducible gated operations", () => {
   assert.match(readme, /staging shadow evaluation/);
   assert.match(readme, /keep the Scheduler disabled/);
 });
+
+test("refresh scheduler documentation contains reproducible evidence commands", () => {
+  const readme = fs.readFileSync(new URL("../../../workers/refresh-scheduler/README.md", import.meta.url), "utf8");
+  for (const phrase of ["aws lambda invoke", "aws logs tail", "aws sqs get-queue-attributes", "aws cloudwatch describe-alarms", "aws scheduler get-schedule", "sam delete", "unauthenticated request", "incorrect bearer token", "EnableSchedule=false", "EnableSchedule=true"]) {
+    assert.match(readme, new RegExp(phrase.replace(/[.*+?^${}()|[\\]\\]/g, "\\$&")));
+  }
+  assert.match(readme, /never print the\s+worker token or response body/);
+});

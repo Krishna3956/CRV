@@ -14,6 +14,16 @@ Status: active autonomous audit, started 2026-10-21.
   successful endpoint invocation. The external scheduler gate remains open
   until those checks and three fresh samples are retained.
 
+## 2026-10-27 — refresh scheduler operator evidence
+
+- Expanded `workers/refresh-scheduler/README.md` with a secret-safe operator
+  sequence: manual Lambda invocation, CloudWatch log inspection, generated
+  schedule lookup, alarm inspection, DLQ depth, and controlled stack removal.
+  The instructions explicitly require 401 checks for unauthenticated and bad
+  bearer requests and keep the recurring schedule disabled until acceptance.
+- Added documentation-contract coverage to the alert worker suite. The worker
+  suite passes 8/8 and the full local release gate passes 137 suites.
+
 ## 2026-10-27 — modern request metadata and browser-tester parity
 
 - The published TypeScript modern client (`@trackmcp/sdk@0.1.19`) now adds
