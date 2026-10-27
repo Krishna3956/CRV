@@ -812,6 +812,12 @@ production transport UAT.
   interoperability, transport-owned reconnect, proxy, and disconnect UAT
   remain separate open gates.
 
+- 2026-10-27: The SSE evidence/matrix reconciliation passed the complete
+  139-suite release gate, lint, and the 177-route production build. The
+  change is documentation/evidence-only and does not require a new App Runner
+  rollout; the already deployed adapter/runtime is the candidate exercised by
+  the UAT.
+
 - 2026-10-27: Ran an authenticated production-like SSE interoperability
   fixture against the deployed App Runner ingest origin. The official MCP
   `SSEClientTransport` completed initialization and a tool request against a
