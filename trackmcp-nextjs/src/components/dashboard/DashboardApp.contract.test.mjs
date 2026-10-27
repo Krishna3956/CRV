@@ -652,6 +652,8 @@ test("Setup exposes an actionable OTLP endpoint and guide", () => {
   assert.match(source, /Copy endpoint/);
   assert.match(source, /OTLP\/HTTP JSON or protobuf receiver \(gRPC is not enabled\)/);
   assert.match(source, /POST JSON or protobuf/);
+  assert.match(source, /public edge currently rejects server-to-server OTEL writes with HTTP 403/);
+  assert.match(source, /Do not treat an HTML 403 response as accepted telemetry/);
   assert.doesNotMatch(source, /protobuf and gRPC are not enabled/);
 });
 
