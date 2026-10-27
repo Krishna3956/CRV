@@ -2401,6 +2401,34 @@ a failed product gate or a Supabase plan warning.
   migrations or claim parity. Production still needs the reviewed SQL run and
   operator interpretation of any missing rows.
 
+## 2026-10-27 production migration parity result
+
+- [x] Ran the bounded read-only parity summary in the authenticated Supabase
+  production SQL editor. The application ledger returned `recorded_count=1`,
+  `timestamped_count=1`, and `release_sha_count=1`; the sole row is the
+  `20261025000001_migration_execution_ledger` migration already recorded in
+  the earlier postflight.
+- [x] Compared with the 39-file repository manifest: 38 migrations are not
+  represented in the application execution ledger. This is a concrete
+  `parity_complete=false` result, not a deployment claim or an instruction to
+  replay migrations automatically.
+- [ ] The 38 missing ledger rows require reviewed evidence that those schema
+  changes are present (or a separately approved, additive replay plan) before
+  the migration-parity release gate can close. No production write was made.
+
+## 2026-10-27 production required-table postflight result
+
+- [x] A separate read-only production query checked the 24 required Founder OS
+  application tables listed by the complete audit: `required_count=24`,
+  `present_count=24`, `missing_count=0`.
+- [x] This is strong schema-object evidence that the currently required table
+  surface exists in production, while remaining deliberately distinct from
+  migration-history parity. It does not prove every column, index, function,
+  RLS policy, constraint, or migration release hash is reconciled.
+- [ ] Run the complete column/index/function/RLS/integrity postflight and retain
+  its result before converting the 38-row ledger gap into an accepted parity
+  exception or an approved replay plan.
+
 ## 2026-10-27 first-ingest edge-path correction
 
 - [x] Corrected the manual first-ingest workflow default from the
