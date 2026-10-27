@@ -14,12 +14,16 @@ is intentionally not a GO approval and must not be treated as one.
 - Current deployed application: `dd443a8cd4ebb7a4312d48690cad2f19bbd296d5`,
   App Runner workflow `40581600172` (successful rollout, release gate,
   production smoke, identity, and runtime-safety checks). Its runtime
-  reference is the exact immutable SHA.
-- Current source verification: `main` at `HEAD` (`2c3763b8`, refresh-worker
-  timeout evidence correction), with the deployed application still at
-  immutable `dd443a8c`. The chained authenticated production smoke
-  `40582650751` passed for that deployed release; workflow/report tooling
-  commits after it do not require a new App Runner image.
+  reference is the exact immutable SHA retained as the prior deployed baseline.
+- Latest deployed application: `d1bbf498`, App Runner workflow `40586991519`
+  (successful rollout); authenticated production smoke `40588063835` passed
+  for that release. The scheduler capacity rollout is separately recorded in
+  `40586991487` and enablement/evidence workflow `40587311920`.
+- Current source verification: `main` at `HEAD` (`503e827b`, with the health
+  row correction in `e11d106e`), while the latest runtime-changing source is
+  `d1bbf498`. The health-report correction is tooling/report behavior and is
+  not claimed as App Runner application behavior until its next runtime
+  rollout. Historical smoke `40582650751` remains retained for `dd443a8`.
   This does not close the external owner, backup, privacy, or scheduler-cadence
   gates.
 - Historical deployed baselines retained for audit include `9638e23c8529f9b1781d96413529e33a692715ed`

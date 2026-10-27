@@ -61,14 +61,14 @@ recovery-evidence hardening, not a final operational SLO acceptance.
 
 ## Latest source verification — 2026-10-28
 
-The current repository source is `main` at `HEAD` (including the refresh-worker
-timeout evidence correction `2c3763b8`; this workflow/report tooling change is
-not claimed as App Runner application behavior). The latest local release gate
+The current repository source is `main` at `HEAD` (including bounded scheduler
+capacity `d1bbf498` and the health-row correction `e11d106e`; the latest local release gate
 passes **144 suites**, lint, the production build (**177 routes**), and
-`git diff --check`. The deployed source is `dd443a8` via App Runner workflow
-`40581600172`; authenticated production smoke `40582650751` passed for the same
-immutable release. Documentation-only postflight commits after that runtime
-baseline do not require a new application image.
+`git diff --check`. The prior deployed source is `dd443a8` via App Runner
+workflow `40581600172`; the latest deployed source is `d1bbf498` via workflow
+`40586991519`, with authenticated production smoke `40588063835`. Documentation-
+only postflight commits after that runtime baseline do not require a new
+application image.
 
 The preceding deployed source was `4efa2e1` (including the health-report semantics
 correction that honors a proven AWS scheduler window while retaining historical

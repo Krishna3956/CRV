@@ -8,11 +8,13 @@ promise that every product capability is complete.
 
 ## Verified and shipped
 
-- `origin/main` is `HEAD` (active pilot evidence baseline). The deployed
-  application runtime is immutable
+- `origin/main` is `HEAD` (active pilot evidence baseline). The latest deployed
+  application runtime is immutable `d1bbf498` via App Runner workflow
+  `40586991519`; authenticated production smoke `40588063835` passed. The prior
+  deployed runtime remains retained as immutable
   `dd443a8cd4ebb7a4312d48690cad2f19bbd296d5` via App Runner workflow
   `40581600172`; chained authenticated production smoke `40582650751` passed
-  for the same release. Post-deployment ledger and refresh-worker
+  for that historical release. Post-deployment ledger and refresh-worker
   evidence-tooling commits are not claimed as deployed behavior; they are not
   App Runner application changes.
 - The latest local release gate passes 144 suites, lint, the 177-route

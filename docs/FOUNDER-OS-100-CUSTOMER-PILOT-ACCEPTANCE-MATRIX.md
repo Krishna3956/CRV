@@ -5,7 +5,8 @@ Reconciled: 2026-10-28 (Asia/Calcutta)
 Current deployed baseline: application `dd443a8cd4ebb7a4312d48690cad2f19bbd296d5`,
 App Runner run `40581600172` (successful deployment). The chained authenticated
 production smoke `40582650751` also passed for the same immutable release. The
-current repository source is `main` at `HEAD`; the post-deployment commits are
+latest deployed baseline is application `d1bbf498` via App Runner run
+`40586991519`, with authenticated smoke `40588063835`. The current repository source is `main` at `HEAD`; the post-deployment commits are
 ledger and refresh-worker evidence-tooling commits are not claimed as deployed behavior;
 specifically, they are not App Runner application behavior.
 This is current runtime and source evidence, not a pilot GO decision.
