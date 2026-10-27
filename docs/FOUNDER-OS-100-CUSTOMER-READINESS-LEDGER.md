@@ -42,9 +42,10 @@ evidence and are not current approval.
   docs navigation/version, package consumers, privacy, tenant isolation,
   protocol, deployment, worker, accessibility, and evidence/external-gate
   contracts.
-- [ ] This recheck does not close the external npm staged-version gate or the
-  already-documented owner, backup/PITR, sustained freshness, credentialed
-  lifecycle/UAT, and customer-owned interoperability gates.
+- [x] The coordinated SDK publication gate is now closed by the public npm and
+  PyPI evidence recorded below. The owner, backup/PITR, sustained freshness,
+  credentialed lifecycle/UAT, and customer-owned interoperability gates remain
+  open.
 
 ## 2026-10-28 — current refresh-health evidence
 
@@ -58,17 +59,11 @@ evidence and are not current approval.
   `35,497,938 ms` (above the 15-minute pilot budget). Manual drains do not
   substitute for scheduled cadence evidence; no SLO pass is claimed.
 
-## 2026-10-28 — published SDK train reconciliation
+## 2026-10-28 — published SDK train reconciliation (historical pre-recovery snapshot)
 
-- [x] Registry audit confirms the current public train remains
-  `@trackmcp/sdk@0.1.22`, `@trackmcp/cli@0.1.11`, and `trackmcp==0.1.13`.
-- [ ] The Python transport-aware protocol-result observer was added after the
-  published Python artifact. It is source- and CI-verified but must not be
-  described as available from PyPI until the next reviewed coordinated release
-  train is published and registry-verified.
-- [ ] Do not create a micro-release for this alone; batch it with the next
-  reviewed SDK/CLI release and run the existing provenance and clean-consumer
-  gates before publication.
+- This section records the pre-recovery public train (`0.1.22`/`0.1.11`/
+  `0.1.13`) for auditability. The active public train is recorded in the
+  staged-package recovery section below.
 
 ## 2026-10-28 — coordinated SDK release candidate prepared
 
@@ -76,8 +71,8 @@ evidence and are not current approval.
   `@trackmcp/cli@0.1.12`, and `trackmcp==0.1.14`.
 - [x] Updated active setup/docs examples and package manifests; historical
   registry rows remain unchanged and labeled as historical evidence.
-- [x] Registry publication and provenance are now verified by the recovery
-  workflows below; clean-consumer verification is the remaining local check.
+- [x] Registry publication, provenance, and clean-consumer checks are now
+  verified for the coordinated train by the recovery workflows below.
 
 ## 2026-10-28 — hosted release and deployment result
 
@@ -85,14 +80,13 @@ evidence and are not current approval.
   web/JavaScript, Go, and .NET jobs.
 - [x] App Runner deployment `40564093852` completed successfully for source
   `91293a3`.
-- [ ] Coordinated package publication workflow `40564834985` published the
+- Historical workflow `40564834985` published the
   TypeScript package to npm's staging path but failed its bounded public
   registry verification; the public metadata endpoint still returns 404 for
   `@trackmcp/sdk@0.1.23`.
-- [ ] A second attempt `40565575358` correctly stopped with npm `409 Conflict`
+- Historical retry `40565575358` correctly stopped with npm `409 Conflict`
   because `0.1.23` is already staged. CLI and Python were not published by
-  either run. The package train remains externally blocked until npm resolves
-  or releases that staged version; no publication claim is made.
+  either run; subsequent recovery workflows completed the train.
 
 ## 2026-10-28 — staged package train recovery
 
