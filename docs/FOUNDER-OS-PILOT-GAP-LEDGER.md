@@ -2,6 +2,18 @@
 
 Status: active autonomous audit, started 2026-10-21.
 
+## 2026-10-27 — health-state correction deployed
+
+- App Runner deployment `40494157458` successfully rolled out immutable
+  commit `9026fa63fdc9b8082372fd50fda93077b8162998` with the health-report
+  correction. Hosted release gate, rollout, read-only smoke, immutable
+  identity, runtime-safety audit, and redacted evidence uploads passed.
+- Authenticated production smoke `40495081946` also passed for that exact
+  deployed commit; redacted artifact `12729958118` reverified tenant-scoped
+  read models, revoked-key rejection, and API-key mutation denial.
+- The correction is deployed, but backup/PITR, privacy acceptance,
+  credentialed customer-owned UAT, and release-owner gates remain open.
+
 ## 2026-10-27 — latest catalog-correlation deployment evidence
 
 - App Runner deployment run `40489912233` successfully rolled out immutable
