@@ -13,6 +13,10 @@ Status: active autonomous audit, started 2026-10-21.
   public API documentation wording in the running candidate. It does not
   close scheduler cadence, backup/PITR, privacy acceptance, credentialed
   customer-owned UAT, or release-owner gates.
+- Authenticated production smoke workflow `40490936541` passed for the same
+  immutable commit and reverified the bounded read models, workspace
+  isolation, revoked-key rejection, and API-key mutation denial. This remains
+  read-only evidence and does not close write-gated customer UAT.
 
 ## 2026-10-27 — bounded catalog correlation parity
 

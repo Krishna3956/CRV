@@ -18,6 +18,9 @@ permission.
   read-only production smoke, immutable release-identity check, runtime-safety
   audit, and redacted evidence uploads all passed in deployment job
   `122141218771`.
+- [x] Authenticated production smoke workflow `40490936541` also passed against
+  the same immutable deployed commit, rechecking dashboard read models,
+  workspace isolation, revoked-key rejection, and API-key mutation denial.
 - [ ] Scheduler cadence, backup/PITR, privacy acceptance, credentialed
   customer-owned UAT, and release-owner acceptance remain external gates.
 
