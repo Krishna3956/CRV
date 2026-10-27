@@ -107,6 +107,21 @@ and **4/4 scheduled successes**; the GitHub scheduled-worker sample count is
   samples. The freshness gate remains HOLD until the scheduled health workflow
   records three fresh, parseable worker samples within the budget.
 
+## 2026-10-28 — health monitor sees the first fresh scheduled sample
+
+- [x] Health workflow `40595457284` now sees the scheduled worker sample
+  `40594595849` as `within_budget` (`40` processed, zero failed/retryable,
+  `max_queue_lag_ms=191972`) and the manual post-coalescing run as another
+  within-budget sample (`40594876889`, `max_queue_lag_ms=322350`). The AWS
+  cadence gates remain proven at `4/4` invocations and `4/4` scheduled
+  successes, with zero AWS errors.
+- [x] The worker evidence is now parseable with no incomplete runs, but the
+  health report still classifies overall state as `warning` because only
+  `1/3` scheduled samples is in the current window and two historical stale
+  samples remain in the evaluation set.
+- [ ] Freshness remains HOLD until the monitor records three current scheduled
+  samples inside the budget; this is the evidence rule, not a code failure.
+
 ## Active external-gate register (current)
 
 | Gate | Current evidence | State | Required closure evidence |
