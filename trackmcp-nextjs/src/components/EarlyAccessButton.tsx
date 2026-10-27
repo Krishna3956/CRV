@@ -33,10 +33,12 @@ export function EarlyAccessButton({
   className?: string;
 }) {
   const pathname = usePathname() || "/";
-  const signupUrl = new URL("https://app.trackmcp.com/signup");
-  signupUrl.searchParams.set("content_path", pathname);
-  signupUrl.searchParams.set("content_cta", label);
-  signupUrl.searchParams.set("content_surface", contentSurface(pathname));
+  const signupParams = new URLSearchParams({
+    content_path: pathname,
+    content_cta: label,
+    content_surface: contentSurface(pathname),
+  });
+  const signupHref = `/signup?${signupParams.toString()}`;
 
   const handleClick = () => {
     const attribution = {
@@ -50,7 +52,7 @@ export function EarlyAccessButton({
 
   return (
     <Link
-      href={signupUrl.toString()}
+      href={signupHref}
       onClick={handleClick}
       className={`inline-flex items-center justify-center gap-2 rounded-lg font-medium whitespace-nowrap transition duration-150 active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/40 focus-visible:ring-offset-2 focus-visible:ring-offset-white ${sizes[size]} ${variants[variant]} ${className}`}
     >

@@ -83,7 +83,7 @@ export function Nav() {
 
         <div className="flex items-center gap-3">
           <Link
-            href="https://app.trackmcp.com/signin"
+            href="/signin"
             className="hidden text-[15px] text-body transition-colors hover:text-ink sm:block"
           >
             Sign in
