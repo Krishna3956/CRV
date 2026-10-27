@@ -179,7 +179,12 @@ jobs:
             echo "::error::authenticated refresh Lambda invocation failed (exit $INVOKE_EXIT): $(tr '\n' ' ' < "$INVOKE_ERROR")"
             exit "$INVOKE_EXIT"
           fi
-          STATUS_CODE=$(jq -er '.statusCode | numbers' "$INVOKE_OUTPUT")
+          if ! STATUS_CODE=$(jq -er '.statusCode | numbers' "$INVOKE_OUTPUT"); then
+            ERROR_TYPE=$(jq -r '.errorType // "unknown"' "$INVOKE_OUTPUT" 2>/dev/null || printf 'invalid-json')
+            ERROR_MESSAGE=$(jq -r '.errorMessage // "unknown"' "$INVOKE_OUTPUT" 2>/dev/null || printf 'invalid-json')
+            echo "::error::authenticated refresh Lambda returned no numeric status (type=$ERROR_TYPE, message=$ERROR_MESSAGE)"
+            exit 1
+          fi
           [[ "$STATUS_CODE" == "200" ]] || { echo "::error::authenticated refresh Lambda returned status $STATUS_CODE"; exit 1; }
           jq -n --arg function "$FUNCTION_NAME" --arg function_arn "$FUNCTION_ARN" --argjson status "$STATUS_CODE" \
             '{lambda_invocation:"passed", function_name:$function, function_arn:$function_arn, status_code:$status}' \
