@@ -148,6 +148,42 @@ jobs:
           fi
           echo "TRACKMCP_DEPLOYED_IMAGE_DIGEST=$CANDIDATE_DIGEST" >> "$GITHUB_ENV"
 
+      - name: Reconcile App Runner container port
+        run: |
+          set -euo pipefail
+          # The service is long-lived and may have been created before the
+          # standalone image moved to port 8080. StartDeployment only rolls
+          # out the configured service; it does not repair a stale port. Read
+          # the provider-owned source configuration and update just this
+          # routing field, preserving the existing image, secrets, and env.
+          SOURCE_CONFIG=$(timeout 30s aws apprunner describe-service \
+            --service-arn "$SERVICE_ARN" --region "$AWS_REGION" \
+            --query Service.SourceConfiguration --output json)
+          CURRENT_PORT=$(printf '%s' "$SOURCE_CONFIG" | jq -r '.ImageRepository.ImageConfiguration.Port // ""')
+          if [[ "$CURRENT_PORT" == "8080" ]]; then
+            echo "App Runner image port is already 8080."
+            exit 0
+          fi
+          echo "Reconciling App Runner image port from ${CURRENT_PORT:-unset} to 8080."
+          UPDATED_CONFIG=$(printf '%s' "$SOURCE_CONFIG" | jq -c '.ImageRepository.ImageConfiguration.Port = "8080"')
+          timeout 30s aws apprunner update-service \
+            --service-arn "$SERVICE_ARN" --region "$AWS_REGION" \
+            --source-configuration "$UPDATED_CONFIG" >/dev/null
+          deadline=$((SECONDS + 540))
+          while (( SECONDS < deadline )); do
+            STATUS=$(timeout 30s aws apprunner describe-service \
+              --service-arn "$SERVICE_ARN" --region "$AWS_REGION" \
+              --query Service.Status --output text)
+            echo "App Runner status after port reconciliation: $STATUS"
+            case "$STATUS" in
+              RUNNING) exit 0 ;;
+              OPERATION_IN_PROGRESS|PAUSED) sleep 15 ;;
+              *) echo "::error::App Runner port reconciliation ended in status $STATUS."; exit 1 ;;
+            esac
+          done
+          echo "::error::Timed out waiting for App Runner port reconciliation."
+          exit 1
+
       - name: Wait for App Runner service to accept deployment
         timeout-minutes: 10
         run: |

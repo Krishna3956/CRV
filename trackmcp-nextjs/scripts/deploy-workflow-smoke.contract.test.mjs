@@ -42,6 +42,11 @@ test("App Runner deployment performs a redacted read-only smoke after RUNNING", 
   assert.match(workflow, /candidate-tag-push\.log/);
   assert.doesNotMatch(workflow, /ecr describe-images/);
   assert.match(workflow, /TRACKMCP_DEPLOYED_IMAGE_DIGEST/);
+  assert.match(workflow, /- name: Reconcile App Runner container port/);
+  assert.match(workflow, /ImageRepository\.ImageConfiguration\.Port/);
+  assert.match(workflow, /\.Port = "8080"/);
+  assert.match(workflow, /App Runner image port is already 8080/);
+  assert.match(workflow, /App Runner port reconciliation ended in status/);
   assert.match(workflow, /TRACKMCP_SMOKE_IMAGE_DIGEST/);
   assert.match(workflow, /TRACKMCP_DEPLOYMENT_OPERATION_ID=\$OP_ID/);
   assert.match(workflow, /App Runner operation IDs are opaque service identifiers/);
