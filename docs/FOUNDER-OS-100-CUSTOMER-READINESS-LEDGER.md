@@ -92,6 +92,15 @@ evidence and are not current approval.
 - [x] The `Sign in to continue` CTA is visible, points to `/signin`, and
   reports `cursor: pointer`; no unauthenticated workspace data is exposed.
 
+## 2026-10-28 — live sign-in handoff audit
+
+- [x] The deployed `/signin` route renders an actionable email/password form,
+  a visible sign-in button, password-recovery action, account-creation action,
+  and a return link to the public site.
+- [x] All five authentication controls report `cursor: pointer`; the route
+  contains no dead CTA or unauthenticated workspace data. This is UI evidence
+  only and does not claim credentialed login/UAT success.
+
 ## 2026-10-28 — published-train smoke default alignment
 
 - [x] Corrected the production pilot smoke harness to use the currently
