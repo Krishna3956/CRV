@@ -27,6 +27,18 @@ test("matrix keeps absence separate from success", () => {
   assert.match(matrix, /unknown.*insufficient evidence/i);
 });
 
+test("every non-observed protocol row carries an explicit closure boundary", () => {
+  const rows = matrix.split("\n").filter((line) => line.startsWith("|") && !line.startsWith("| ---"));
+  const gated = rows.filter((line) => /\|\s*(Partial|Deferred|Unsupported)/i.test(line));
+  assert.ok(gated.length >= 8, "expected the matrix to retain multiple explicit partial/unsupported boundaries");
+  for (const row of gated) {
+    const columns = row.split("|").map((value) => value.trim());
+    const requiredEvidence = columns.at(-2) || "";
+    assert.ok(requiredEvidence.length > 20, `missing required evidence boundary: ${row}`);
+    assert.match(requiredEvidence, /before|remain|external|unsupported|UAT|evidence|not claim|complete|add .*lifecycle|add .*vectors/i, `unbounded closure text: ${row}`);
+  }
+});
+
 test("public protocol docs do not claim the published SDK is a complete v2 client", async () => {
   const docs = await readFile(new URL("../src/app/docs/protocol/page.tsx", import.meta.url), "utf8");
   assert.match(docs, /observability adapter/i);
