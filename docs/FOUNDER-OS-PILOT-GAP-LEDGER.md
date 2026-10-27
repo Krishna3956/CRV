@@ -1025,3 +1025,10 @@ production transport UAT.
   the automated auth/tenant read-model smoke for this SHA, but does not close
   customer-owned endpoint UAT, key-rotation ownership, or the other external
   pilot gates.
+
+- 2026-10-27: App Runner workflow `40452904510` completed successfully for
+  source commit `2de24d30ecf681a564e9368db256896874d988ca`. The deployment
+  retained redacted `production-smoke`, `runtime-flags`, and `app-runner-host`
+  artifacts (`12711132775`, `12711102908`, and `12710974571`). This verifies the
+  reconciled release-record/source documentation deployment; it does not close
+  any owner, scheduler, backup, privacy, or customer-endpoint gate.
