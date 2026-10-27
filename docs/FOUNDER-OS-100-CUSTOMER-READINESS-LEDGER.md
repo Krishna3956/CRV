@@ -1,6 +1,6 @@
 # Founder OS 100 Customer Readiness Ledger
 
-Last updated: 2026-10-28 (main `14b0e31f`; deployed application `dd443a8c` and App Runner rollout `40581600172` succeeded; hosted CI `40585153203` passed; health run `40584912071` passed; authenticated production smoke `40582650751` passed; hosted publication workflow `40569475423` verified `@trackmcp/sdk@0.1.24`)
+Last updated: 2026-10-28 (main `f37288bf`; deployed application `dd443a8c` and App Runner rollout `40581600172` succeeded; hosted CI `40585153203` passed; health run `40584912071` passed; authenticated production smoke `40582650751` passed; hosted publication workflow `40569475423` verified `@trackmcp/sdk@0.1.24`)
 The same-origin docs, auth, blog CTA fixes, regression guard, and hosted-runner verification gate are deployed and runtime-verified. The public Cloudflare edge still returns HTML 403 to scripted probes and remains a separate external gate.
 Latest freshness evidence: health workflow `40566829192` with worker drain
 `40566911017` inspected eight redacted worker samples. AWS scheduler cadence is
@@ -49,6 +49,21 @@ evidence and are not current approval.
 - [ ] The scheduled freshness gate remains open: the corrected report still has
   0/3 scheduled samples and the recovery artifact is incomplete. This is an
   operational worker/queue issue, not a reason to weaken the evidence contract.
+
+## 2026-10-28 — recovery fan-out bounded to the proven scheduler slice
+
+- [x] Root cause isolated: the GitHub recovery workflow still issued ten
+  concurrent `max_jobs:100` requests even after the production AWS scheduler
+  had been reduced to one resumable `max_jobs:10` slice. That stale profile
+  explains the all-timeout recovery artifact without requiring a database or
+  protocol change.
+- [x] Mainline `f37288bf` changes the recovery workflow to four concurrent
+  `max_jobs:10` requests, preserving lease fencing and the existing redacted
+  timeout/unparseable evidence. Route, workflow, and release-gate contracts
+  pass locally; hosted CI and a fresh recovery sample are still required.
+- [ ] Do not treat this source correction as freshness closure until a fresh
+  recovery artifact returns parseable bounded results and the scheduled AWS
+  cadence continues to meet the 15-minute pilot budget.
 
 ## 2026-10-28 — evidence reconciliation CI
 
