@@ -2,6 +2,17 @@
 
 Status: active autonomous audit, started 2026-10-21.
 
+## 2026-10-27 — deployment-role permission repair verified
+
+- AWS IAM confirmed that the inline policy `TrackMCPEnableDistributedRateLimit`
+  was updated on `GitHubActionsDeployRole`. The policy review showed the
+  bounded App Runner and IAM actions required by the deployment workflow.
+- GitHub Actions run `40472509165` for `f81317d` passed checkout, the complete
+  143-suite release gate, OIDC, ECR image publication, digest reconciliation,
+  port reconciliation, and deployment start. At the time of this entry its
+  App Runner operation remained `IN_PROGRESS`; production rollout and source
+  baseline are therefore not claimed until the run reaches a terminal success.
+
 ## 2026-10-27 — release evidence reconciliation reverified
 
 - Mainline commit `e595881` reconciles the deployed `9638e23` runtime baseline
