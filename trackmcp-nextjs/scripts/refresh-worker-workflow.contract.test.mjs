@@ -22,6 +22,10 @@ test("scheduled refresh worker emits a bounded redacted lag/retry summary artifa
   assert.match(workflow, /refresh-worker-summary-\$\{\{ github\.run_id \}\}/);
   assert.match(workflow, /actions\/upload-artifact@v4/);
   assert.match(workflow, /if: always\(\)/);
+  assert.match(workflow, /secretsmanager get-secret-value/);
+  assert.match(workflow, /WORKER_SECRET_ARN=arn:aws:secretsmanager:ap-south-1:/);
+  assert.match(workflow, /::add-mask::\$WORKER_SECRET/);
+  assert.doesNotMatch(workflow, /secrets\.TRACKMCP_REFRESH_WORKER_SECRET/);
   assert.doesNotMatch(workflow, /cat \"\$batch_dir\/\$batch\.json\"/);
 });
 

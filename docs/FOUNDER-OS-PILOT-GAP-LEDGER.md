@@ -658,3 +658,12 @@ production transport UAT.
   scheduler DLQ depth was 0, and metadata-only CloudWatch log evidence was
   uploaded as artifact `12704070739`. The recurring schedule remains
   intentionally disabled pending sustained-sample and release-owner gates.
+
+- 2026-10-27: Enabling the EventBridge schedule exposed a separate cadence
+  path defect: the GitHub refresh-worker workflow was still reading the empty
+  legacy `TRACKMCP_REFRESH_WORKER_SECRET` repository secret. The workflow now
+  resolves the same dedicated plaintext Secrets Manager ARN used by the
+  production scheduler through the existing OIDC deploy role, masks the value
+  immediately, and never persists it. The refresh-worker contract and the
+  complete 139-suite release gate pass. A fresh scheduled worker run is still
+  required to establish the sustained cadence baseline.

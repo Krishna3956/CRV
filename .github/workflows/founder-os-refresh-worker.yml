@@ -42,16 +42,26 @@ jobs:
             exit 1
           fi
           echo "WORKER_URL=https://$ORIGIN/api/internal/refresh/run" >> "$GITHUB_ENV"
+          # Keep the scheduled worker on the same dedicated plaintext secret
+          # as the production EventBridge scheduler. Never read the value
+          # from App Runner's redacted runtime mapping or the legacy bundle.
+          echo "WORKER_SECRET_ARN=arn:aws:secretsmanager:ap-south-1:872575360367:secret:trackmcp/refresh/worker-uzoExO" >> "$GITHUB_ENV"
 
       - name: Run bounded refresh batches
-        env:
-          WORKER_SECRET: ${{ secrets.TRACKMCP_REFRESH_WORKER_SECRET }}
         run: |
           set -uo pipefail
-          if [ -z "$WORKER_URL" ] || [ -z "$WORKER_SECRET" ]; then
-            echo "::error::Refresh worker secrets are not configured; the scheduled refresh did not run."
+          if [ -z "$WORKER_URL" ] || [ -z "$WORKER_SECRET_ARN" ]; then
+            echo "::error::Refresh worker endpoint or secret ARN is not configured; the scheduled refresh did not run."
             exit 1
           fi
+          WORKER_SECRET=$(aws secretsmanager get-secret-value \
+            --secret-id "$WORKER_SECRET_ARN" \
+            --query 'SecretString' --output text)
+          if [ -z "$WORKER_SECRET" ] || [ "$WORKER_SECRET" = "None" ]; then
+            echo "::error::Dedicated refresh worker secret is empty; the scheduled refresh did not run."
+            exit 1
+          fi
+          echo "::add-mask::$WORKER_SECRET"
           # Each request is independently bounded by the application’s 45s
           # lease/deadline and this workflow’s 55s curl timeout. Ten
           # concurrent calls increase drain throughput while the database
