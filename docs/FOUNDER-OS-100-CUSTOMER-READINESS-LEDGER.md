@@ -31,6 +31,14 @@ evidence and are not current approval.
   transports. Protocol and docs-navigation contracts pass, and the full local
   release gate remains green at 144 suites.
 
+## 2026-10-28 — modern client release identity alignment
+
+- [x] Updated the modern MCP client's default `io.modelcontextprotocol/clientInfo`
+  version from stale `0.1.22` to the published TypeScript SDK train `0.1.23`.
+- [x] Updated the CLI integration example and all modern-client protocol
+  fixtures to assert the active identity. SDK tests pass 105/105 and the full
+  local release gate passes 144/144.
+
 ## 2026-10-28 — published-train smoke default alignment
 
 - [x] Corrected the production pilot smoke harness to use the currently
