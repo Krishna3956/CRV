@@ -764,3 +764,14 @@ production transport UAT.
   roots, log levels, and message content were not retained. This closes the
   first authenticated coverage check for those families while broader
   transport and capability-advertisement UAT remains open.
+
+- 2026-10-27: Merged PR #611 (`592b74e`) to preserve late ingest refresh
+  batches. The ingest refresh dedupe key now includes the production batch
+  fingerprint, while retaining the legacy compact key for the explicit
+  window-only fallback. This prevents an event arriving after a successful
+  15-minute refresh job from being silently absorbed by that terminal job.
+  Focused ingest/refresh tests passed (30 tests), the complete release gate
+  passed (139 suites), lint passed, and the production build generated 177
+  routes. App Runner deployment run `40439886536` is in progress; prompt
+  entity projection UAT is intentionally pending until the new image is
+  running.
