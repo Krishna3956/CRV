@@ -1097,3 +1097,36 @@ production transport UAT.
   authenticated production smoke `40457840079` passed with artifact
   `12712464779`, confirming the deployed candidate’s bounded authenticated
   read-model, tenant-isolation, and negative authorization checks.
+
+- 2026-10-27: Repaired an App Runner production routing mismatch exposed by
+  deployment `40458176609`: the service reported `RUNNING` but its origin
+  returned HTTP 503 because the long-lived service could retain a stale image
+  port. Commit `94c63a234fb2ba3b38b62f1e030b860419e91785` adds a bounded
+  deployment-time reconciliation that preserves the existing source
+  configuration and updates only the image port to `8080`, with a workflow
+  contract test. Local and hosted **143-suite** release gates passed.
+  Deployment `40459003195` then passed rollout, production smoke, immutable
+  release identity, and runtime-safety checks. Redacted artifacts are retained
+  as `12713936809` (production smoke), `12713951688` (runtime flags), and
+  `12713782653` (App Runner host). Follow-up authenticated smoke
+  `40459690783` passed with artifact `12713807943`. This closes the observed
+  deployment-routing failure; it does not imply unsupported protocol or
+  external-auth capabilities are complete.
+
+- 2026-10-27: Synchronized the checked-in TypeScript SDK distribution with
+  the source capability-name privacy boundary in commit `1f181c9`. The
+  generated Node bundle now preserves the same bounded namespaced capability
+  regex as source, so published consumers cannot drift from the tested SDK.
+  Focused adapter/modern-client tests (72), package consumer/provenance
+  contracts, package release audit, and the full **143-suite** release gate
+  passed. Hosted CI and App Runner redeployment are running for this exact
+  SHA; no registry publication is claimed by this source-only synchronization.
+
+- 2026-10-27: App Runner deployment `40460016591` completed successfully for
+  immutable source `1f181c90968dd3393d5ee64d7e7b21b8bf837c7d`. The deployed
+  candidate passed rollout, read-only production smoke, immutable release
+  identity, and runtime-safety checks. Redacted artifacts are retained as
+  `12714915266` (production smoke), `12714227133` (runtime flags), and
+  `12714945228` (App Runner host). This verifies the synchronized SDK bundle
+  is present in a production candidate; it does not imply a new registry
+  publication or close the external pilot-acceptance gates.
