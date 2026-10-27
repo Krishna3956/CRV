@@ -8,6 +8,7 @@ test("production pilot smoke is explicitly opt-in and requires HTTPS", () => {
   assert.match(source, /TRACKMCP_PRODUCTION_SMOKE_CONFIRM/);
   assert.match(source, /I_UNDERSTAND_PRODUCTION_SMOKE/);
   assert.match(source, /url\.protocol !== "https:"/);
+  assert.match(source, /trustedHost/);
   assert.match(source, /TRACKMCP_SMOKE_ALLOW_WRITE/);
 });
 

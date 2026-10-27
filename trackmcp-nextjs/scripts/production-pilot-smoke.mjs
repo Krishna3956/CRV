@@ -34,6 +34,8 @@ function validateOptIn() {
   let url;
   try { url = new URL(baseUrl); } catch { fail("TRACKMCP_SMOKE_BASE_URL must be an absolute URL."); }
   if (url.protocol !== "https:") fail("Production smoke requires an https base URL.");
+  const trustedHost = url.hostname === "trackmcp.com" || url.hostname === "app.trackmcp.com" || url.hostname.endsWith(".awsapprunner.com");
+  if (!trustedHost) fail("Production smoke requires a trusted TrackMCP or App Runner host.");
   if (url.username || url.password || url.search || url.hash) fail("Base URL must not contain credentials, query parameters, or fragments.");
   if (allowWrite && !key) fail("TRACKMCP_SMOKE_KEY is required when TRACKMCP_SMOKE_ALLOW_WRITE=true.");
   if (requireAuth && !key) fail("TRACKMCP_SMOKE_KEY is required when TRACKMCP_SMOKE_REQUIRE_AUTH=true.");

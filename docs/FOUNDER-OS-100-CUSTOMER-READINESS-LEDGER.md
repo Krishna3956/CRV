@@ -2432,3 +2432,16 @@ a failed product gate or a Supabase plan warning.
 - [ ] These changes improve safety and operability; they do not claim
   authenticated UAT or key-lifecycle success until a disposable, approved
   workflow run produces redacted evidence.
+
+## 2026-10-27 public-pilot-smoke target-boundary correction
+
+- [x] The credential-free/opt-in pilot smoke now rejects arbitrary HTTPS
+  targets before it performs its public, authenticated, or write-enabled
+  checks. It accepts only `trackmcp.com`, `app.trackmcp.com`, or an AWS App
+  Runner hostname, matching the other production harnesses.
+- [x] Added the source contract for this target boundary. Credentials and
+  write-enabled test material cannot be redirected to an unrelated HTTPS
+  service through `TRACKMCP_SMOKE_BASE_URL`.
+- [ ] Deployment-origin runtime identity and any write-enabled production
+  result still require their own hosted evidence; target validation alone is
+  not a smoke pass.
