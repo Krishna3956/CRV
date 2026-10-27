@@ -20,7 +20,7 @@ and **4/4 scheduled successes**; the GitHub scheduled-worker sample count is
 ## 2026-10-28 — package-test timeout hardening
 
 - [x] Hosted TrackMCP CI `40590525044` completed successfully for the current
-  source after the docs/runtime reconciliation. The local release gate also
+  source after the docs/runtime reconciliation (`cf3d1588`). The local release gate also
   passed all **144 suites**.
 - [x] Package-level TypeScript, packed-consumer, CLI, and Python checks now run
   under explicit `timeout` bounds with a short TERM-to-KILL grace period. A
