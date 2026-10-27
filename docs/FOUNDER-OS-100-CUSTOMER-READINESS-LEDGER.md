@@ -1,6 +1,6 @@
 # Founder OS 100 Customer Readiness Ledger
 
-Last updated: 2026-10-28 (main `d00c132`; deployed application `cffc2a0` and App Runner rollout `40570999509` succeeded; hosted publication workflow `40569475423` verified `@trackmcp/sdk@0.1.24`)
+Last updated: 2026-10-28 (main `7d71b37`; deployed application `cffc2a0` and App Runner rollout `40570999509` succeeded; hosted publication workflow `40569475423` verified `@trackmcp/sdk@0.1.24`)
 Source-only follow-up: same-origin docs, auth, blog CTA fixes, regression guard, and hosted-runner verification gate are recorded on main; the latest rollout is pending.
 Latest freshness evidence: health workflow `40566829192` with worker drain
 `40566911017` inspected eight redacted worker samples. AWS scheduler cadence is
@@ -25,7 +25,7 @@ proof.
 | Backup/PITR | Supabase Free Plan has no scheduled backups or PITR; inspection recorded in the backup evidence entries below | **HOLD / owner decision** | Accepted documented limitation with named recovery owner/runbook, or plan upgrade plus tested restore rehearsal |
 | Privacy acceptance | Engineering privacy/export/deletion contracts pass; production acceptance evidence is not recorded | **HOLD / owner decision** | Signed production privacy review and retention/deletion acceptance |
 | Credentialed lifecycle/UAT | Read-only tenant/auth smoke is verified; write-gated key lifecycle and customer-owned transport UAT remain unexecuted | **HOLD / credentialed** | Disposable lifecycle key run plus customer-owned transport/protocol UAT artifacts |
-| Hosted deployment verification | Local lint, production build, and release gate pass; latest GitHub CI/deploy runs remain in progress without reaching a terminal job result | **HOLD / hosted runner** | Fresh CI release-gate result plus App Runner rollout and post-deploy smoke for the current commit |
+| Hosted deployment verification | Local lint, production build, and release gate pass; stale GitHub CI/deploy handles `40574101778` and `40573968022` were cancelled after remaining non-terminal across repeated checks | **HOLD / hosted runner** | Fresh CI release-gate result plus App Runner rollout and post-deploy smoke for the current commit |
 | Release-owner acceptance | Source, CI, deployment, package publication, and local release gates are green | **HOLD / owner decision** | Explicit approval referencing this register and the current deployed source |
 
 This register is the active decision surface. Historical entries below remain
