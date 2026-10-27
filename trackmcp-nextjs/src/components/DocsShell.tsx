@@ -21,6 +21,7 @@ const groups = [
     items: [
       { t: "TypeScript", href: "/docs/typescript" },
       { t: "Transport observer", href: "/docs/typescript#transport-observer" },
+      { t: "OAuth outcomes", href: "/docs/typescript#oauth-outcome-observer" },
       { t: "CLI proxy", href: "/docs/cli" },
       { t: "Python", href: "/docs/python" },
       { t: "Go", href: "/docs/go" },

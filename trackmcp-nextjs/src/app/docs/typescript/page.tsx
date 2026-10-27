@@ -102,6 +102,35 @@ await client.connect(adapter.wrapTransport(httpTransport));
         </Para>
       </DocSection>
 
+      <DocSection id="oauth-outcome-observer" title="Bounded OAuth outcome observation">
+        <Para>
+          If your host application owns an MCP authorization flow, record only its
+          final HTTP authorization outcome with <Inline>recordAuthorizationOutcome</Inline>.
+          The helper accepts <Inline>401</Inline> and <Inline>403</Inline> only, and
+          emits metadata that distinguishes <Inline>unauthorized</Inline> from
+          <Inline>forbidden</Inline>. It does not discover providers, exchange or
+          refresh tokens, follow authorization URLs, or accept challenge headers.
+        </Para>
+        <Code>{`const server = withTrackMCP(mcpServer, {
+  apiKey: process.env.TRACKMCP_KEY!,
+});
+
+// Call after your own resource request completes.
+server.trackmcp.recordAuthorizationOutcome(
+  "tools/call",
+  response.status,
+  sessionId,
+);`}</Code>
+        <Para>
+          Only the status code and bounded method/session metadata are retained;
+          bearer tokens, <Inline>WWW-Authenticate</Inline> values, resource
+          metadata URLs, and provider error text are never accepted. The same
+          boundary is available in the Python, Go, and .NET SDKs. OAuth client
+          registration, PKCE, consent, revocation, and tenant binding remain
+          caller-owned and require a separately reviewed provider integration.
+        </Para>
+      </DocSection>
+
       <DocSection title="Wrap your server">
         <Para>
           Pass your existing server into <Inline>withTrackMCP</Inline> with your API
