@@ -116,6 +116,7 @@ public sealed class TrackMcpClient : IDisposable
         if (protocolFamily is not null) metadata["protocol_family"] = protocolFamily;
         if (method is "resources/subscribe" or "subscriptions/listen") metadata["subscription_action"] = "subscription_started";
         else if (method == "resources/unsubscribe") metadata["subscription_action"] = "subscription_stopped";
+        if (method == "elicitation/create" && result["action"] is JsonValue action && action.TryGetValue<string>(out var decision) && decision is "accept" or "decline" or "cancel") metadata["protocol_decision"] = decision;
         if (method == "completion/complete" && result["completion"] is JsonObject completion)
         {
             metadata["protocol_family"] = "completion";

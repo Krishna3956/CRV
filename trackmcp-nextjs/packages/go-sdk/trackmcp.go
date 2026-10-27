@@ -330,6 +330,9 @@ func (c *Client) RecordProtocolResult(method string, result map[string]any, sess
 	} else if method == "resources/unsubscribe" {
 		metadata["subscription_action"] = "subscription_stopped"
 	}
+	if method == "elicitation/create" {
+		if action, ok := firstString(result, "action"); ok && (action == "accept" || action == "decline" || action == "cancel") { metadata["protocol_decision"] = action }
+	}
 	if method == "completion/complete" {
 		if completion, ok := result["completion"].(map[string]any); ok {
 			metadata["protocol_family"] = "completion"

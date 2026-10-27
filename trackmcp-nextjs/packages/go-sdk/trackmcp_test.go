@@ -236,6 +236,12 @@ func TestRecordCompletionMetadataIsBoundedAndValueFree(t *testing.T) {
 	if metadata["protocol_family"] != "completion" || metadata["completion_value_count"] != 32 || metadata["completion_total"] != 99 || metadata["completion_has_more"] != true { t.Fatalf("unexpected completion metadata: %#v", metadata) }
 	if _, ok := metadata["values"]; ok { t.Fatal("completion values were retained") }
 	if _, ok := metadata["secret"]; ok { t.Fatal("completion secret was retained") }
+	client.RecordProtocolResult("elicitation/create", map[string]any{"action": "accept", "content": map[string]any{"secret": "omit"}}, "session-elicitation")
+	if len(client.queue) != 2 { t.Fatalf("expected two events, got %d", len(client.queue)) }
+	decisionEvent := client.queue[1]
+	decisionMetadata := decisionEvent.Payload["_trackmcp"].(map[string]any)
+	serialized, _ := json.Marshal(decisionEvent)
+	if decisionMetadata["protocol_decision"] != "accept" || strings.Contains(string(serialized), "omit") { t.Fatalf("elicitation decision was not bounded: %#v", decisionEvent.Payload) }
 }
 
 func TestRecordRootsAndLoggingFamiliesAreMetadataOnly(t *testing.T) {

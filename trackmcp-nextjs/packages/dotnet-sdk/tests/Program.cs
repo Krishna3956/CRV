@@ -61,6 +61,7 @@ static class Smoke
         client.RecordProtocolSignalForTransport("cancelled", "notifications/cancelled", "streamable_http", "session-1", "client_to_server");
         client.RecordProtocolResult("elicitation/create", new JsonObject
         {
+            ["action"] = "accept",
             ["resultType"] = "input_required",
             ["inputRequests"] = new JsonObject { ["private_request"] = new JsonObject { ["value"] = "secret-value" } },
             ["private_result"] = "must-not-cross-boundary",
@@ -118,6 +119,7 @@ static class Smoke
         Require(events[0].GetProperty("direction").GetString() == "client_to_server", "inbound direction was not retained");
         Require(events[0].GetProperty("transport").GetString() == "streamable_http", "caller-verified signal transport label was not retained");
         Require(events[1].GetProperty("result_type").GetString() == "input_required", "protocol result type was not retained");
+        Require(events[1].GetProperty("payload").GetProperty("_trackmcp").GetProperty("protocol_decision").GetString() == "accept", "elicitation decision was not retained");
         Require(events[2].GetProperty("payload").GetProperty("_trackmcp").GetProperty("subscription_action").GetString() == "subscription_started", "subscription start was not retained");
         Require(events[3].GetProperty("payload").GetProperty("_trackmcp").GetProperty("subscription_action").GetString() == "subscription_stopped", "subscription stop was not retained");
         Require(events[4].GetProperty("catalog_kind").GetString() == "resources", "catalog kind was not retained");

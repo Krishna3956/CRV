@@ -33,6 +33,10 @@ retains submitted values or content. An observed protocol `accept` is not
 presented as business approval. Broader cross-language runtime fixtures and
 authenticated UAT remain open.
 
+The Go and .NET observers now apply the same allowlist for protocol decisions;
+their hosted compile/smoke gate remains the authoritative runtime evidence in
+this workspace because the local Go and .NET toolchains are unavailable.
+
 ## Closed in this pass
 
 ### Multi-round-trip outcomes
