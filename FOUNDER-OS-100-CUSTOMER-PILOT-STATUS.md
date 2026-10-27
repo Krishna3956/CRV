@@ -9,14 +9,15 @@ promise that every product capability is complete.
 ## Verified and shipped
 
 - `origin/main` is `HEAD` (active pilot evidence baseline). The latest deployed
-  application runtime is immutable `d1bbf498` via App Runner workflow
-  `40586991519`; authenticated production smoke `40588063835` passed. The prior
-  deployed runtime remains retained as immutable
-  `dd443a8cd4ebb7a4312d48690cad2f19bbd296d5` via App Runner workflow
-  `40581600172`; chained authenticated production smoke `40582650751` passed
-  for that historical release. Post-deployment ledger and refresh-worker
-  evidence-tooling commits are not claimed as deployed behavior; they are not
-  App Runner application changes.
+  application runtime is immutable `7ab4eced` via App Runner workflow
+  `40594711620`; hosted CI `40594711558`, read-only production smoke, immutable
+  identity, and runtime-safety checks passed for that rollout. The latest
+  health monitor `40595457284` sees one fresh scheduled worker sample and keeps
+  the freshness gate in `warning` pending three. The prior deployed runtime
+  remains retained as immutable `d1bbf498` via App Runner workflow
+  `40586991519`; authenticated production smoke `40588063835` passed for that
+  historical release. Documentation-only evidence commits are not claimed as
+  deployed application behavior unless a rollout is explicitly listed.
 - The latest local release gate passes 144 suites, lint, the 177-route
   production build, and `git diff --check`.
 - Production schema postflights verified required tables, indexes, functions,
@@ -32,6 +33,11 @@ promise that every product capability is complete.
 - Production key rotation was executed in the authenticated owner dashboard;
   the old key is revoked and the replacement secret was shown once and not
   persisted. Server adoption of the replacement remains a separate check.
+- The refresh backlog coalescer was applied in production: 12,490 redundant
+  legacy queue rows were marked cancelled, 196 canonical ingest-window jobs
+  were preserved, and the latest bounded worker run processed 40/40 with zero
+  retryable or failed jobs. This is operational recovery evidence, not the
+  sustained three-sample freshness pass.
 - The exact distributed-rate-limit IAM policy is present at
   `docs/FOUNDER-OS-RATE-LIMIT-IAM-POLICY.json`; its contract test passed. AWS
   applied the policy to `GitHubActionsDeployRole`, including the resource-scoped
@@ -57,14 +63,16 @@ promise that every product capability is complete.
 
 ## Next execution order
 
-1. Record provider backup/restore posture and the release-owner scope/go-no-go
+1. Collect two more fresh scheduled health samples within the 15-minute budget;
+   preserve the warning if historical stale samples remain in-window.
+2. Record provider backup/restore posture and the release-owner scope/go/no-go
    decision; do not infer either from green CI.
-2. Verify server adoption and fresh telemetry with the rotated replacement key
+3. Verify server adoption and fresh telemetry with the rotated replacement key
    in a disposable process, without recording the secret.
-3. Keep partial MCP protocol surfaces and review-only deletion visibly bounded
+4. Keep partial MCP protocol surfaces and review-only deletion visibly bounded
    in docs and setup until their external dependencies or implementations are
    complete.
-4. Re-run lint, build, the full release gate, and production smoke after every
+5. Re-run lint, build, the full release gate, and production smoke after every
    runtime change, then update this file and `docs/codex-handoff/PENDING_WORK.md`.
 
 ## Evidence locations
