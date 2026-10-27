@@ -2,6 +2,13 @@
 
 Status: active autonomous audit, started 2026-10-21.
 
+## 2026-10-27 — post-rollout source verification
+
+- On the reconciled `main` source, `npm run lint` passed and `npm run build`
+  completed the production Next.js build for all **177 routes**. This is
+  source verification after the successful App Runner rollout, not a new
+  deployment or a closure of the external pilot gates.
+
 ## 2026-10-27 — deployment-role repair and rollout verified
 
 - AWS IAM confirmed that the inline policy `TrackMCPEnableDistributedRateLimit`
