@@ -889,3 +889,9 @@ production transport UAT.
   the SDKs and analytics projections. The matrix now names the implemented
   request/response-role and explicit-outcome signals while retaining lifecycle
   joins and authenticated UAT as partial requirements.
+
+- 2026-10-27: Reconciled the PDF truth audit for Journeys and Reliability.
+  Their bounded v2 projections, explicit workflow/task evidence, path/funnel
+  analysis, baseline comparisons, queue health, and insufficient-data states
+  are implemented evidence surfaces. Cross-server identity and sustained
+  production SLO acceptance remain explicit external boundaries.
