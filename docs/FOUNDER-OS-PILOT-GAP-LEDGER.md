@@ -1038,3 +1038,10 @@ production transport UAT.
   and `/tasks` extension keys. Unknown extensions remain unmapped, so traffic
   cannot imply support. Added semantic regressions plus analytics/fact coverage;
   lint, diff validation, and the full **143-suite** release gate pass.
+
+- 2026-10-27: App Runner deployment `40454157613` completed successfully for
+  commit `0daa713517462302f3f3288c5068b064004bb783`. Redacted deployment
+  artifacts are retained as `12712320065` (production smoke), `12712177200`
+  (App Runner host), and `12711174854` (runtime flags). The follow-up
+  authenticated production smoke `40454865428` also passed and retained
+  artifact `12711258587`.
