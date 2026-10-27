@@ -2,6 +2,21 @@
 
 Status: active autonomous audit, started 2026-10-21.
 
+## 2026-10-28 — current worker window healthy after bounded recovery
+
+- Health workflow `40601204628` completed successfully after recovery worker
+  run `40601163319`. The current evaluation window contains three parseable
+  samples, all within the 15-minute budget, with zero failed, retryable,
+  timed-out, or unparseable batches. AWS scheduler evidence remains proven at
+  `4/4` invocations and `4/4` end-to-end successes.
+- This closes the current-window worker health warning and confirms that the
+  coalesced queue is draining within budget. It does **not** close the stricter
+  scheduled-worker cadence gate: only `1/3` retained samples came from the
+  GitHub `schedule` event, so sustained scheduled evidence remains pending.
+- The readiness ledger and external-gate register now point to this health
+  artifact; manual recovery is retained as recovery evidence and is not
+  relabeled as scheduled cadence.
+
 ## 2026-10-28 — latest worker health recheck
 
 - Health workflow `40595457284` completed successfully after the coalescing
