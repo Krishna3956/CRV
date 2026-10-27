@@ -736,3 +736,13 @@ production transport UAT.
   cadence-gap reason without suppressing worker failures, stale queue lag, or
   AWS errors. Added regression/contract coverage; the full release gate passed
   139 suites, lint passed, and the production build generated 177 routes.
+
+- 2026-10-27: The first AWS-aware health run `40438521938` exposed one Lambda
+  error in its 20-minute window (4 invocations, 1 error), and the follow-up
+  scheduler evidence run `40438606882` localized it to the `02:24Z` five-minute
+  datapoint. The redacted resource/log-stream metadata path still succeeded;
+  no log bodies or secret values were read. A read-only Supabase check found
+  the latest 50 refresh jobs all `succeeded`, so the error is not currently
+  reproduced as a durable failed-job row. The health report now correctly
+  retains `aws_scheduler_errors_observed` and keeps the release gate open
+  pending repeated zero-error windows or a safe status-only root-cause trace.
