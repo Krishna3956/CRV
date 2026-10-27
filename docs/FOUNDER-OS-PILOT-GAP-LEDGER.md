@@ -17,6 +17,8 @@ Status: active autonomous audit, started 2026-10-21.
   Customer-owned remote endpoint interoperability, reconnect/replay, durable
   subscriptions, OAuth token exchange, scheduled worker freshness, privacy,
   backup/PITR, and release-owner acceptance remain open gates.
+- Hosted TrackMCP CI `40602983172` passed the corresponding web/JavaScript,
+  Go, and .NET checks for source `c2d9ef5c`.
 
 ## 2026-10-28 — authenticated production transport smoke verified
 

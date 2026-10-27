@@ -1,6 +1,6 @@
 # Founder OS 100 Customer Readiness Ledger
 
-Last updated: 2026-10-28 (main `8a1893a2`; deployed application `7ab4eced` and App Runner rollout `40594711620` succeeded; hosted CI `40602213797` passed the authenticated transport-evidence update across web/JavaScript, Go, and .NET, while `40600448948` passed the reconciled transport-smoke ledger state and `40600092345` passed the transport-smoke delivery assertion; first-ingest UAT `40598515473` passed against the direct App Runner origin; authenticated adapter-to-ingest transport smoke passed for Streamable HTTP and SSE with 15 persisted observations; read-only production smoke, immutable identity, and runtime-safety checks passed in that rollout; queued-backlog coalescer changes are documented below; scheduler redeploy/enablement `40586991487`/`40587311920` remain the latest scheduler evidence; authenticated production smoke remains verified at `40588063835`; hosted publication workflow `40569475423` verified `@trackmcp/sdk@0.1.24`; latest health monitor `40601204628` is healthy after a fresh bounded worker recovery, while the stricter scheduled-sample gate remains pending at 1/3; browser-compatible public probes pass while default scripted probes remain Cloudflare-blocked)
+Last updated: 2026-10-28 (main `c2d9ef5c`; deployed application `7ab4eced` and App Runner rollout `40594711620` succeeded; hosted CI `40602983172` passed the disposable key-lifecycle evidence update across web/JavaScript, Go, and .NET, while `40602213797` passed the authenticated transport-evidence update and `40600092345` passed the transport-smoke delivery assertion; first-ingest UAT `40598515473` passed against the direct App Runner origin; authenticated adapter-to-ingest transport smoke passed for Streamable HTTP and SSE with 15 persisted observations; disposable production key creation, rotation, and revocation UAT passed with redacted status evidence; read-only production smoke, immutable identity, and runtime-safety checks passed in that rollout; queued-backlog coalescer changes are documented below; scheduler redeploy/enablement `40586991487`/`40587311920` remain the latest scheduler evidence; authenticated production smoke remains verified at `40588063835`; hosted publication workflow `40569475423` verified `@trackmcp/sdk@0.1.24`; latest health monitor `40601204628` is healthy after a fresh bounded worker recovery, while the stricter scheduled-sample gate remains pending at 1/3; browser-compatible public probes pass while default scripted probes remain Cloudflare-blocked)
 The same-origin docs, auth, blog CTA fixes, regression guard, and hosted-runner verification gate are deployed and runtime-verified. Cloudflare permits browser-compatible requests, while its managed bot rule still returns HTML 403 to the default scripted user-agent; SDK delivery must use the compatible request boundary and retain a real authenticated UAT check.
 Latest freshness evidence: health workflow `40601204628` inspected eight
 redacted worker samples after recovery worker run `40601163319`. Its current
@@ -400,6 +400,15 @@ evidence and are not current approval.
   interoperability, transport reconnect/replay, durable subscriptions, OAuth
   token exchange, worker freshness, privacy acceptance, backup/PITR, or final
   release-owner approval.
+
+## 2026-10-28 — hosted verification of key lifecycle UAT evidence
+
+- [x] Hosted TrackMCP CI `40602983172` completed successfully for `c2d9ef5c`.
+  Web/JavaScript, Go, and .NET jobs all passed, including package consumers
+  and the full **144-suite** release gate.
+- [x] This verifies the ledger and lifecycle-harness contracts in the hosted
+  environment. It does not expand the bounded production UAT claims or close
+  the customer-owned endpoint, worker, backup/PITR, privacy, or owner gates.
 
 ## 2026-10-28 — hosted verification of UAT ledger reconciliation
 
