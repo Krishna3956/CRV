@@ -15,7 +15,7 @@ is intentionally not a GO approval and must not be treated as one.
   App Runner workflow `40524668419` (successful rollout, release gate,
   production smoke, identity, and runtime-safety checks). Its runtime
   reference is the exact immutable SHA.
-- Current source verification: `main` at `HEAD` (`13fef70`, ledger-only
+- Current source verification: `main` at `HEAD` (`3366c12`, docs-only
   evidence update), with the deployed application at immutable `506be89`. The
   deployed source contains the published CLI/docs reconciliation; the
   subsequent ledger-only commit does not require a new App Runner image.
