@@ -1,7 +1,7 @@
 # Founder OS 100 Customer Readiness Ledger
 
-Last updated: 2026-10-28 (main `7f23547`; deployed application `cffc2a0` and App Runner rollout `40570999509` succeeded; hosted publication workflow `40569475423` verified `@trackmcp/sdk@0.1.24`)
-Source-only follow-up: same-origin docs, auth, and blog CTA fixes are pushed as `7f23547`; the latest rollout is pending.
+Last updated: 2026-10-28 (main `25bc68d`; deployed application `cffc2a0` and App Runner rollout `40570999509` succeeded; hosted publication workflow `40569475423` verified `@trackmcp/sdk@0.1.24`)
+Source-only follow-up: same-origin docs, auth, blog CTA fixes, and regression guard are pushed as `25bc68d`; the latest rollout is pending.
 Latest freshness evidence: health workflow `40566829192` with worker drain
 `40566911017` inspected eight redacted worker samples. AWS scheduler cadence is
 proven with **4/4 invocations** and **4/4 CloudWatch EMF successes**. The overall
@@ -55,6 +55,12 @@ evidence and are not current approval.
 - [x] The two authored blog dashboard CTAs now use `/dashboard`; a source audit
   found no remaining first-party anchor hrefs that force `app.trackmcp.com`.
 - [x] Marketing truth and sitewide CTA checks pass 16/16 locally.
+
+## 2026-10-28 — first-party CTA regression guard
+
+- [x] Added a sitewide contract that rejects authored `href`/`to` anchors which
+  force the Cloudflare-fronted `app.trackmcp.com` hostname. The five-check
+  sitewide CTA suite passes locally.
 
 ## 2026-10-28 — OTEL public edge audit
 
