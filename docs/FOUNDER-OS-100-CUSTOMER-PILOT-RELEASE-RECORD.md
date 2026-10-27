@@ -8,16 +8,13 @@ commit and the operator accepts the listed limitations.
 
 ## Current deployed baseline — 2026-10-27
 
-App Runner workflow `40426236860` successfully deployed immutable application
-commit `0c36da187d6fee56cd280ea79070176e9cd8f63d`. The hosted release gate,
-image binding, rollout wait, read-only production smoke, running-release
-identity verification, and runtime-safety audit passed. A credential-free
-production pilot smoke then passed 36 bounded checks against the public origin;
-its redacted report is retained locally and is not treated as authenticated UAT.
-Later docs/ops commits are not called runtime deployments because they do not
-change the application image.
-This is the current engineering baseline; the release remains Draft/HOLD until
-the open operational and owner gates below are independently accepted.
+App Runner workflow `40451066166` successfully deployed immutable application
+commit `70534428fd69a4fa5a07f46adad504a32fdfe262`. The rollout wait and
+redacted runtime-evidence upload passed. Credentialed two-workspace auth smoke
+against this exact SHA passed read-model authentication, workspace-query
+isolation, API-key action-queue denial, and revoked-key rejection. The release
+remains Draft/HOLD until the open operational and owner gates below are
+independently accepted.
 
 The preceding deployed engineering baseline was `7551e2f017cce2695803b13ce5605eee72d4a9f8`,
 deployed by App Runner workflow `40349662276`. It remains retained as
@@ -28,7 +25,7 @@ recovery-evidence hardening, not a final operational SLO acceptance.
 
 ## Latest source verification — 2026-10-27
 
-The current `main` source at `fa87d93` (including the repeatable transport-smoke contracts,
+The current `main` source at `0e744d4` (including the repeatable transport-smoke contracts,
 protocol closure-boundary test, and readiness documentation) passes the full
 local release gate at **143
 suites**, lint, the production build (**177 routes**), and `git diff --check`.
@@ -255,8 +252,8 @@ the existing insufficient-evidence outcome rules.
 | --- | --- |
 | Pilot scope | First 100 customers, desktop dashboard boundary |
 | Production hosts | `trackmcp.com`, `app.trackmcp.com` |
-| Last deployed application commit | `0c36da187d6fee56cd280ea79070176e9cd8f63d` (identity-verified current baseline) |
-| Last successful App Runner deployment | `40426236860` |
+| Last deployed application commit | `70534428fd69a4fa5a07f46adad504a32fdfe262` (identity-verified current baseline) |
+| Last successful App Runner deployment | `40451066166` |
 | Readiness ledger | `docs/FOUNDER-OS-100-CUSTOMER-READINESS-LEDGER.md` |
 | Current release-record change | Current mainline reconciliation of deployed runtime and release-gate evidence |
 

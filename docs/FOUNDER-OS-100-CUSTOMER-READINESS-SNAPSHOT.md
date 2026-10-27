@@ -17,6 +17,10 @@ and [pilot release record](FOUNDER-OS-100-CUSTOMER-PILOT-RELEASE-RECORD.md).
 - Production deployment, read-only smoke, tenant-scope smoke, first-ingest
   smoke, refresh-worker recovery, prompt-entity projection, and distributed
   rate-limit enablement have recorded evidence.
+- Credentialed two-workspace production auth smoke passed against immutable
+  SHA `70534428fd69a4fa5a07f46adad504a32fdfe262`: read models authenticated,
+  conflicting workspace queries were ignored, API-key action-queue mutation
+  was denied, and a revoked key was rejected.
 - Official Streamable HTTP and SSE client fixtures pass through the adapter to
   the deployed App Runner ingest endpoint with metadata-only payloads. The
   repeatable script is `trackmcp-nextjs/scripts/production-transport-smoke.mjs`.
@@ -71,7 +75,8 @@ scheduled-worker SLO. No secret, workspace identifier, raw payload, or token is
 stored in this snapshot.
 
 Latest scheduler evidence is recorded in the detailed ledger; the current
-source verification remains green at 143 suites, with the deployed scheduler
-code at `3746a33`, health-evidence code at `db6e7c8`, and ledger reconciliation
-at `fa87d93`. The deployed application image remains unchanged by these
-docs-only updates.
+source verification remains green at 143 suites. The deployed application is
+immutable SHA `70534428fd69a4fa5a07f46adad504a32fdfe262` via App Runner
+workflow `40451066166`; the current source/ledger reconciliation is
+`0e744d4`. The AWS policy-update notification was observed, but no post-policy
+health run has yet proved the scheduled log-marker gate.

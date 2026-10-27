@@ -1,6 +1,6 @@
 # Founder OS 100 Customer Readiness Ledger
 
-Last updated: 2026-10-27 (main `49f1000`; deployed application `0c36da1` and App Runner production smoke verified)
+Last updated: 2026-10-27 (main `0e744d4`; deployed application `7053442` and App Runner rollout verified)
 Latest freshness evidence: health workflow `40450412687` inspected eight
 redacted worker samples and evaluated the two samples in its bounded current
 window. It proved the AWS scheduler cadence gate with four invocations and zero
@@ -27,11 +27,10 @@ recovery runs never count as scheduled evidence.
   evidence without closing the separate 0/3 scheduled-cadence gate.
 
 The deployed application is the runtime-verified App Runner release
-(`0c36da187d6fee56cd280ea79070176e9cd8f63d`, workflow `40426236860`). The
-release gate, image binding, rollout, read-only production smoke, running
-identity, and runtime-safety audit all passed. A separate credential-free
-production pilot smoke passed 36 bounded checks; authenticated smoke evidence
-from the prior release remains historical until rerun for this exact image.
+(`70534428fd69a4fa5a07f46adad504a32fdfe262`, workflow `40451066166`).
+Credentialed two-workspace auth smoke passed for this exact image; key lifecycle
+mutation, customer-owned endpoint UAT, scheduler freshness, backup/PITR, and
+owner acceptance remain separate open gates.
 
 ## 2026-10-27 latest scheduler-health evidence
 

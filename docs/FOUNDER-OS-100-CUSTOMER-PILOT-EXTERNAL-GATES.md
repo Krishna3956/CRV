@@ -11,13 +11,11 @@ is intentionally not a GO approval and must not be treated as one.
 
 - `main`: current default branch. Immutable deployed SHAs belong in the
   release record; PR checks remain attached to their exact review commits.
-- Current deployed application: `0c36da187d6fee56cd280ea79070176e9cd8f63d`,
-  App Runner workflow `40426236860` (successful deployment, production smoke,
-  release-identity verification, runtime safety-flag audit, and redacted
-  evidence uploads). The AWS console showed `trackmcp-web` Running after the
-  deployment. Subsequent docs-only commits are intentionally not called runtime
-  deployments because they do not change the application image.
-- Current source verification: `main` at `fa87d93` (bounded scheduler health-window
+- Current deployed application: `70534428fd69a4fa5a07f46adad504a32fdfe262`,
+  App Runner workflow `40451066166` (successful rollout and redacted runtime
+  evidence upload). Subsequent docs-only commits are intentionally not called
+  runtime deployments because they do not change the application image.
+- Current source verification: `main` at `0e744d4` (credentialed auth-smoke
   semantics and readiness-ledger reconciliation after the last runtime
   deployment) passes lint, the 177-route production build, and the
   full local release gate at **143 suites**. This source evidence does not
