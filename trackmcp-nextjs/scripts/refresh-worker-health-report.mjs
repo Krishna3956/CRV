@@ -19,6 +19,7 @@ function normalizeAwsSchedulerEvidence(value) {
   const invocations = boundedNumber(source.invocations);
   const errors = boundedNumber(source.errors);
   const scheduledSuccesses = boundedNumber(source.scheduled_successes);
+  const scheduledSuccessesAvailable = source.scheduled_successes_available === true;
   const healthy = datapoints.length > 0 && invocations > 0 && errors === 0;
   return {
     enabled: source.enabled === true,
@@ -26,6 +27,7 @@ function normalizeAwsSchedulerEvidence(value) {
     invocations,
     errors,
     scheduled_successes: scheduledSuccesses,
+    scheduled_successes_available: scheduledSuccessesAvailable,
     healthy,
   };
 }
@@ -85,7 +87,9 @@ export function summarizeRefreshWorkerRuns(runs, { budgetMs = DEFAULT_BUDGET_MS,
     status: awsEvidence.scheduled_successes >= MIN_SAMPLES ? "proven" : "pending",
     observed_successes: awsEvidence.scheduled_successes,
     required_successes: MIN_SAMPLES,
-    evidence: awsEvidence.scheduled_successes >= MIN_SAMPLES ? "eventbridge_success_metric" : "scheduled_success_metric_pending",
+    evidence: awsEvidence.scheduled_successes >= MIN_SAMPLES
+      ? "cloudwatch_log_filter"
+      : awsEvidence.scheduled_successes_available ? "scheduled_success_metric_pending" : "cloudwatch_log_filter_unavailable",
   };
   const state = insufficient ? "insufficient_data" : failedRuns > 0 || staleRuns > 0 || effectiveCadenceBreaches > 0 || scheduledInsufficient || awsErrorsObserved ? "warning" : "healthy";
   const reasons = [];
