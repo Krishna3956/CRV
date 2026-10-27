@@ -79,11 +79,14 @@ export async function runProxy({ command, args = [], key = process.env.TRACKMCP_
     return flushing;
   };
   const consume = (chunk, direction, target) => {
+    // Forward the original bytes before parsing a copy. JSONL parsing is only
+    // for telemetry; it must never normalize line endings or chunk boundaries.
+    target.write(chunk);
     const buffer = direction === "client_to_server" ? inputBuffer + chunk.toString("utf8") : outputBuffer + chunk.toString("utf8");
     const lines = buffer.split("\n");
     const remainder = lines.pop() || "";
     if (direction === "client_to_server") inputBuffer = remainder; else outputBuffer = remainder;
-    for (const line of lines) { enqueue(line, direction); target.write(`${line}\n`); }
+    for (const line of lines) enqueue(line.replace(/\r$/, ""), direction);
   };
   input.on("data", (chunk) => consume(chunk, "client_to_server", child.stdin));
   child.stdout.on("data", (chunk) => consume(chunk, "server_to_client", output));
