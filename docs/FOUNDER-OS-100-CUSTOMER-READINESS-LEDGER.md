@@ -2388,6 +2388,19 @@ a failed product gate or a Supabase plan warning.
   read-only schema-diff procedure that can safely compare each migration’s
   expected object contract with production without executing arbitrary DDL.
 
+## 2026-10-27 migration parity postflight added
+
+- [x] Added `supabase/manual/founder-os-migration-parity-postflight.sql`, a
+  read-only production query that carries the complete 39-file repository
+  migration manifest, reports each recorded ledger row, and returns an explicit
+  `parity_complete` boolean plus missing-row count.
+- [x] Added a release-gate contract that derives the repository migration list
+  and fails if either SQL manifest copy drifts. The SQL is also checked for
+  write statements and for explicit missing-parity reporting.
+- [ ] The postflight improves evidence quality but does not itself execute
+  migrations or claim parity. Production still needs the reviewed SQL run and
+  operator interpretation of any missing rows.
+
 ## 2026-10-27 first-ingest edge-path correction
 
 - [x] Corrected the manual first-ingest workflow default from the

@@ -43,6 +43,7 @@
     "test:complete-production-audit": "node --test scripts/complete-production-audit.test.mjs",
     "test:manual-sql-safety": "node --test scripts/manual-sql-safety.test.mjs",
     "test:migration-inventory": "node --test scripts/migration-inventory.contract.test.mjs",
+    "test:migration-parity-postflight": "node --test scripts/migration-parity-postflight.contract.test.mjs",
     "test:cli-redemption-reconciliation": "node --test src/lib/telemetry/cli-redemption-reconciliation.test.mjs",
     "test:cli-redemption-idempotency": "node --test src/lib/cli/device-redemption-idempotency.contract.test.mjs",
     "test:privacy-deletion-plan": "node --experimental-strip-types --test src/lib/account/privacy-deletion-plan.test.ts src/lib/account/privacy-deletion-preview-worker.test.ts",
