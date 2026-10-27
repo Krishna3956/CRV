@@ -31,13 +31,13 @@ func main() {
 
 	client := trackmcp.New(trackmcp.Options{APIKey: "tmcp_smoke", Endpoint: server.URL})
 	client.RecordProtocolSignalForTransport("cancelled", "notifications/cancelled", "stdio", "client_to_server", "go-smoke-session")
-	client.RecordProtocolResult("elicitation/create", map[string]any{
+	client.RecordProtocolResultForTransport("elicitation/create", map[string]any{
 		"resultType": "input_required",
 		"inputRequests": []any{map[string]any{"prompt": "private-input-request"}},
 		"inputResponses": map[string]any{"value": "private-input-response"},
 		"taskId": "private-task-handle",
 		"content": "private-result-content",
-	}, "go-smoke-session")
+	}, "stdio", "go-smoke-session")
 	client.RecordCatalog("resources", "resources/list", map[string]any{
 		"resources": []any{
 			map[string]any{"name": "private-resource-name", "uri": "secret://private-resource"},
@@ -89,6 +89,9 @@ func main() {
 	}
 	if envelope.Events[1].EventType != "protocol" || envelope.Events[1].ResultType != "input_required" || envelope.Events[1].InputRequestCount != 1 || envelope.Events[1].InputResponseCount != 1 {
 		fail("bounded protocol-result metadata was not emitted")
+	}
+	if envelope.Events[1].Transport != "stdio" {
+		fail("caller-verified result transport label was not emitted")
 	}
 	if envelope.Events[2].CatalogKind != "resources" || envelope.Events[2].EventType != "catalog" {
 		fail("catalog observation was not emitted")

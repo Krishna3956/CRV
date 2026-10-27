@@ -163,6 +163,7 @@ test(".NET hosted CI runs the privacy and direction smoke harness", () => {
   assert.match(dotnetSmokeSource, /RecordProtocolSignalForTransport\("cancelled"/);
   assert.match(dotnetSmokeSource, /client_to_server/);
   assert.match(dotnetSmokeSource, /RecordCatalog\("resources"/);
+  assert.match(dotnetSmokeSource, /RecordProtocolResultForTransport\("elicitation\/create"/);
   assert.match(dotnetSmokeSource, /RecordEntityRead\("resources"/);
   assert.match(dotnetSmokeSource, /RecordEntityRead\("prompts"/);
   assert.match(dotnetSmokeSource, /raw catalog URI crossed/);
@@ -174,8 +175,9 @@ test("Go hosted CI runs the privacy, direction, and flush smoke harness", () => 
   assert.match(goSmokeSource, /client_to_server/);
   assert.match(goSmokeSource, /RecordCatalog/);
   assert.match(goSmokeSource, /RecordEntityRead/);
-  assert.match(goSmokeSource, /RecordProtocolResult\("elicitation\/create"/);
+  assert.match(goSmokeSource, /RecordProtocolResultForTransport\("elicitation\/create"/);
   assert.match(goSmokeSource, /bounded protocol-result metadata/);
+  assert.match(goSmokeSource, /result transport label/);
   assert.match(goSmokeSource, /RecordTransportFailure/);
   assert.match(goSmokeSource, /private-resource-name/);
   assert.match(goSmokeSource, /secret:\/\/private-resource/);
