@@ -1,6 +1,6 @@
 # Founder OS 100 Customer Readiness Ledger
 
-Last updated: 2026-10-28 (main `c2b122f4`; deployed application `dd443a8c` and App Runner rollout `40581600172` succeeded; hosted CI/deploy for the recovery fix are still running; corrected recovery run `40586415068` passed; health run `40584912071` passed; authenticated production smoke `40582650751` passed; hosted publication workflow `40569475423` verified `@trackmcp/sdk@0.1.24`)
+Last updated: 2026-10-28 (main `d1bbf498`; App Runner rollout `40586991519` and scheduler redeploy/enablement `40586991487`/`40587311920` succeeded; hosted CI `40586991507` passed; corrected recovery run `40586415068` passed; health run `40586589280` passed; authenticated production smoke remains verified at `40582650751`; hosted publication workflow `40569475423` verified `@trackmcp/sdk@0.1.24`)
 The same-origin docs, auth, blog CTA fixes, regression guard, and hosted-runner verification gate are deployed and runtime-verified. The public Cloudflare edge still returns HTML 403 to scripted probes and remains a separate external gate.
 Latest freshness evidence: health workflow `40566829192` with worker drain
 `40566911017` inspected eight redacted worker samples. AWS scheduler cadence is
@@ -67,6 +67,22 @@ evidence and are not current approval.
   `max_queue_lag_ms:39048679`, above the 15-minute pilot budget. Hosted CI and
   the next health report must retain this as stale evidence, not relabel it as
   healthy.
+
+## 2026-10-28 — AWS scheduler capacity rollout
+
+- [x] Scheduler source `d1bbf498` passed the local 144-suite release gate and
+  hosted CI `40586991507`. The automatic disabled-first scheduler deployment
+  `40586991487` completed successfully, then the protected enablement/evidence
+  workflow `40587311920` re-enabled the existing five-minute EventBridge
+  schedule.
+- [x] Enablement evidence reports four invocation datapoints with zero AWS
+  Lambda errors and retains only status/stream metadata. The evidence window
+  was captured immediately before the first post-enable tick, so it is not
+  counted as proof that the new four-way fan-out has sustained cadence.
+- [ ] Collect three post-rollout scheduled-success samples and a fresh queue
+  lag result before changing the worker freshness gate from HOLD. The current
+  scheduler is active, but the available health report still contains the
+  earlier stale backlog and pre-rollout failure history.
 - [ ] Do not treat this source correction as freshness closure until a fresh
   recovery artifact returns parseable bounded results and the scheduled AWS
   cadence continues to meet the 15-minute pilot budget.
