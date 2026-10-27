@@ -3,11 +3,12 @@ import { readFile } from "node:fs/promises";
 import test from "node:test";
 
 const register = await readFile(new URL("../../docs/FOUNDER-OS-100-CUSTOMER-PILOT-EXTERNAL-GATES.md", import.meta.url), "utf8");
+const releaseRecord = await readFile(new URL("../../docs/FOUNDER-OS-100-CUSTOMER-PILOT-RELEASE-RECORD.md", import.meta.url), "utf8");
 
 test("first-100 external-gate register stays an explicit HOLD record", () => {
   assert.match(register, /Status:\s*\*\*HOLD\*\*/);
   assert.match(register, /Updated:\s*2026-10-27/);
-  assert.match(register, /main.*50ab08e/s);
+  assert.match(register, /main.*8fd192a/s);
   assert.match(register, /143 suites/);
   assert.match(register, /177-route/);
   assert.match(register, /do not change the application image|does not change the deployed image/i);
@@ -18,4 +19,10 @@ test("all operator and infrastructure gates remain named and open until evidence
     assert.ok(register.includes(gate), `missing gate: ${gate}`);
   }
   assert.match(register, /A gate becomes closed only\s+when the named evidence is retained/i);
+});
+
+test("the release record carries the same current source gate evidence", () => {
+  assert.match(releaseRecord, /full\s+local\s+release\s+gate\s+at\s+\*\*143\s+suites\*\*/i);
+  assert.match(releaseRecord, /177 routes/);
+  assert.match(releaseRecord, /protocol closure-boundary test/);
 });

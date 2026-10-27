@@ -28,8 +28,9 @@ recovery-evidence hardening, not a final operational SLO acceptance.
 
 ## Latest source verification — 2026-10-27
 
-The current `main` source (including the repeatable transport-smoke contracts
-and readiness documentation) passes the full local release gate at **142
+The current `main` source (including the repeatable transport-smoke contracts,
+protocol closure-boundary test, and readiness documentation) passes the full
+local release gate at **143
 suites**, lint, the production build (**177 routes**), and `git diff --check`.
 The direct App Runner transport fixture passed official Streamable HTTP and SSE
 client flows with metadata-only observations. The manually dispatched hosted
