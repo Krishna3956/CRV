@@ -984,6 +984,10 @@ owner acceptance remain separate open gates.
 - [x] This closes schema/runtime evidence for the dashboard's bounded last-use
   indicator. It does not close the separate first-ingest workflow, backup,
   privacy-acceptance, or final pilot GO gates.
+- [x] The same read-only postflight confirmed `trackmcp_api_keys` has
+  `relrowsecurity=true`, `relforcerowsecurity=false`, and zero browser-role
+  policies. This preserves the service-role-only access boundary; no row data
+  or secret material was selected.
 
 ## 2026-10-26 final local release-gate rerun
 
