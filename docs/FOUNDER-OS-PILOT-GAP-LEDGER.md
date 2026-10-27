@@ -1139,3 +1139,15 @@ production transport UAT.
   adapter. CLI/Python were not republished because their artifacts were
   unchanged. This closes the consumer-facing SDK distribution drift; broader
   authenticated transport UAT and external pilot gates remain separate.
+
+- 2026-10-27: Hardened the production pilot smoke against provider-generated
+  App Runner warm-up responses in commit `42f9a7849684cb9d5cb24ee0b1fbdca6fb5bf265`.
+  Idempotent GET/HEAD checks now retry only transient 502/503/504 responses;
+  writes and application 4xx responses are never retried. The smoke registry
+  expectation now targets the published `@trackmcp/sdk@0.1.20`. Focused smoke
+  contracts and the full **143-suite** release gate passed. Deployment
+  `40461737971` passed rollout, production smoke, immutable identity, and
+  runtime-safety checks with artifacts `12714794051` (production smoke),
+  `12715380478` (runtime flags), and `12714354825` (App Runner host).
+  Authenticated production smoke `40462480640` passed with artifact
+  `12714814206`. This closes the observed transient warm-up smoke failure.
