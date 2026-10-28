@@ -6,16 +6,16 @@ This record is intentionally evidence-first. It must not be changed to
 `GO` until the open gates below are independently verified on the release
 commit and the operator accepts the listed limitations.
 
-## Current deployed baseline — 2026-10-28
+## Current deployed baseline — 2026-10-29
 
-The current baseline is immutable commit `7763e05f9e62c9f3349ba20596c208d81cca08c9`.
-App Runner deployment `40729507033` succeeded on rerun attempt 2 after a
-transient first-attempt warm-up 502; the final release gate, image binding,
+The current baseline is immutable commit `c6d5f9048060b3e5c12506da41efd1c64cc9a155`.
+App Runner deployment `40748297706` succeeded; the final release gate, image binding,
 rollout, read-only smoke, immutable identity, and runtime-safety checks passed.
-Main CI `40739164434` and authenticated production smoke `40732381275` also
-passed. Live `/api/health` reports this exact SHA, and `/` plus `/docs` return
+Main CI `40748298150` also passed. Live `/api/health` reports this exact SHA,
+and `/` plus `/docs` return
 HTTP 200. The source change is the canonical MCP 2026-07-28 per-request
-protocol-version metadata alignment. The release remains Draft/HOLD because
+protocol-version metadata alignment plus the opaque workspace-bound catalog
+history cursor privacy fix. The release remains Draft/HOLD because
 the owner, backup/recovery, privacy acceptance, and customer-owned
 lifecycle/transport gates are still open.
 
@@ -94,18 +94,17 @@ review.
 The release remains Draft/HOLD; this baseline contains the worker-health
 recovery-evidence hardening, not a final operational SLO acceptance.
 
-## Latest source verification — 2026-10-28
+## Latest source verification — 2026-10-29
 
 The current repository source is `main` at `HEAD`; the deployed application is
-immutable source `7763e05f` via App Runner workflow `40729507033`.
-Hosted TrackMCP CI `40739164434` passed across web/JavaScript, Go, and .NET.
+immutable source `c6d5f904` via App Runner workflow `40748297706`.
+Hosted TrackMCP CI `40748298150` passed across web/JavaScript, Go, and .NET.
 The latest local release gate passes **148 suites**, lint, the production build
 (**178 routes**), and `git diff --check`. The deployment's read-only
 production smoke, immutable identity, runtime-safety checks, and live health
-identity verification all passed; authenticated production smoke
-`40732381275` also passed. Scheduler deployment and health evidence are
-recorded above. This docs-only reconciliation did not require a new App Runner
-deployment, so the runtime remains the verified `7763e05f` image.
+identity verification all passed. Scheduler deployment and health evidence are
+recorded above. The opaque catalog-history cursor fix is now included in the
+verified `c6d5f904` image.
 
 The preceding deployed source was `4efa2e1` (including the health-report semantics
 correction that honors a proven AWS scheduler window while retaining historical

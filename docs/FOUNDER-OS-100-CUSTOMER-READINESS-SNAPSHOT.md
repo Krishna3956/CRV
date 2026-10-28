@@ -1,6 +1,6 @@
 # Founder OS first-100 readiness snapshot
 
-Updated: 2026-10-28 (Asia/Kolkata; source `7763e05f`; runtime and hosted evidence reconciled)
+Updated: 2026-10-29 (Asia/Kolkata; source `c6d5f904`; runtime and hosted evidence reconciled)
 
 Status: **Engineering green; release decision HOLD**
 
@@ -14,16 +14,16 @@ and [pilot release record](FOUNDER-OS-100-CUSTOMER-PILOT-RELEASE-RECORD.md).
   read models, and navigation/documentation CTA checks.
 - Current source release gate passes **148 suites**; lint, production build,
   and `git diff --check` pass. The production build generates **178 routes**.
-- Hosted TrackMCP CI `40729507069` passed for source `7763e05f` across the
+- Hosted TrackMCP CI `40748298150` passed for source `c6d5f904` across the
   web/JavaScript, Go, and .NET lanes.
 - The latest verified application runtime is immutable SHA
-  `7763e05f9e62c9f3349ba20596c208d81cca08c9`, deployed by App Runner workflow
-  `40729507033` (successful rerun attempt 2); the deployment preflight built the reviewed Python wheel and
+  `c6d5f9048060b3e5c12506da41efd1c64cc9a155`, deployed by App Runner workflow
+  `40748297706`; the deployment preflight built the reviewed Python wheel and
   sdist before the package-release audit, and the workflow's release gate,
   read-only smoke, immutable identity, and runtime-safety checks passed. The
   live health endpoint reports this exact SHA; `/` and `/docs` also return HTTP
-  200. Post-deploy authenticated smoke `40732381275` passed with redacted
-  evidence.
+  200. The deployment's post-deploy read-only smoke and immutable runtime
+  identity checks passed with redacted evidence.
 - Production deployment, read-only smoke, tenant-scope smoke, first-ingest
   smoke, refresh-worker recovery, prompt-entity projection, and distributed
   rate-limit enablement have recorded evidence.

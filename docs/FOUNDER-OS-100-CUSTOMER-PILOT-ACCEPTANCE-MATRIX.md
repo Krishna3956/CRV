@@ -1,14 +1,15 @@
 # Founder OS first-100-customer acceptance matrix
 
 Status: **HOLD — no silent waivers**  
-Reconciled: 2026-10-28 (Asia/Kolkata)
+Reconciled: 2026-10-29 (Asia/Kolkata)
 Current deployed baseline: application
-`7763e05f9e62c9f3349ba20596c208d81cca08c9`, App Runner run `40729507033`
-(successful rerun attempt 2). The current repository source is `main` at
-`HEAD`; hosted CI `40739164434` passed
+`c6d5f9048060b3e5c12506da41efd1c64cc9a155`, App Runner run `40748297706`
+(successful rollout and post-deploy verification). The current repository source is `main` at
+`HEAD`; hosted CI `40748298150` passed
 across web/JavaScript, Go, and .NET, and the full release gate passed 148
-suites. Authenticated production smoke `40732381275` passed against the
-deployed runtime SHA `7763e05f`. The deployed refresh scheduler remains
+suites. The App Runner deployment's read-only production smoke and immutable
+runtime identity checks passed against the deployed runtime SHA `c6d5f904`.
+The deployed refresh scheduler remains
 independently proven by health artifact `40629348992`, which records 3/3
 complete AWS worker-summary samples within the 15-minute budget. The alert
 evaluator deployment path is present but manual-only and disabled-first; no
