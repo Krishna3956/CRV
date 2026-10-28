@@ -58,6 +58,7 @@ type Event struct {
 	ErrorCode *int `json:"error_code,omitempty"`
 	AccountKey string `json:"account_key,omitempty"`
 	AccountIdentitySource string `json:"account_identity_source,omitempty"`
+	AccountIdentityVersion string `json:"account_identity_version,omitempty"`
 	ServerVersion string `json:"server_version,omitempty"`
 	SDKVersion string `json:"sdk_version,omitempty"`
 	DeploymentID string `json:"deployment_id,omitempty"`
@@ -148,6 +149,7 @@ func (c *Client) Capture(event Event) {
 		if value := resolveAccountID(c.options.AccountIDResolver); value != "" {
 			event.AccountKey = hashAccountID(value)
 			event.AccountIdentitySource = "resolver"
+			event.AccountIdentityVersion = "sha256-v1"
 		} else { event.AccountIdentitySource = "unresolved" }
 	}
 	if event.EventID == "" { event.EventID = id() }

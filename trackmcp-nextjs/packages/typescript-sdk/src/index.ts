@@ -15,6 +15,7 @@ export type { PayloadMode } from "./privacy.js";
 
 export type TrackMCPEventType = "protocol" | "tool_call" | "session" | "catalog" | "workflow" | "custom";
 export const TRACKMCP_SCHEMA_VERSION = "1" as const;
+export const TRACKMCP_ACCOUNT_IDENTITY_VERSION = "sha256-v1" as const;
 // The public edge currently applies a managed browser/WAF rule that rejects
 // the default Node fetch user-agent before the request reaches the ingest
 // handler. Keep the SDK request identifiable without exposing runtime details
@@ -86,6 +87,7 @@ export type TrackMCPEvent = {
   client_version?: string;
   account_key?: string;
   account_identity_source?: "resolver" | "unresolved";
+  account_identity_version?: typeof TRACKMCP_ACCOUNT_IDENTITY_VERSION;
   tool_name?: string;
   tool_description?: string;
   tool_description_hash?: string;
@@ -483,6 +485,7 @@ export class TrackMCPClient {
         intent_source: intent.source,
         account_key: account.key,
         account_identity_source: account.source,
+        account_identity_version: account.version,
         server_id: this.options.server_id,
         server_version: this.options.server_version,
         sdk_version: this.options.sdk_version,
@@ -495,7 +498,7 @@ export class TrackMCPClient {
             this.diagnosticCounts.droppedEvents += 1;
             return;
           }
-          prepared = this.prepareEvent({ ...hooked, account_key: account.key, account_identity_source: account.source }, source);
+          prepared = this.prepareEvent({ ...hooked, account_key: account.key, account_identity_source: account.source, account_identity_version: account.version }, source);
         } catch {
           this.diagnosticCounts.hookErrors += 1;
           this.diagnosticCounts.droppedEvents += 1;
@@ -519,11 +522,11 @@ export class TrackMCPClient {
     if (this.queue.length >= this.options.maxBatchSize) void this.flush();
   }
 
-  private accountFor(event: Partial<TrackMCPEvent>): { key?: string; source: "resolver" | "unresolved" } {
+  private accountFor(event: Partial<TrackMCPEvent>): { key?: string; source: "resolver" | "unresolved"; version?: typeof TRACKMCP_ACCOUNT_IDENTITY_VERSION } {
     if (!this.options.accountIdResolver) return { source: "unresolved" };
     try {
       const value = this.options.accountIdResolver({ eventType: event.event_type || "custom", mcpMethod: event.mcp_method, toolName: event.tool_name, requestId: event.request_id, sessionId: event.session_id, transport: event.transport });
-      if (safeAccountId(value)) return { key: sha256(value.trim()), source: "resolver" };
+      if (safeAccountId(value)) return { key: sha256(value.trim()), source: "resolver", version: TRACKMCP_ACCOUNT_IDENTITY_VERSION };
     } catch {
       // Account identity is optional enrichment and must never affect MCP behavior.
     }

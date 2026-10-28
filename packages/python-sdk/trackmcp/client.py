@@ -33,6 +33,7 @@ TrackMCPCorrelationMode = Literal["none", "external", "issued"]
 TrackMCPCorrelationHandleSource = Literal["external", "issued", "missing"]
 TrackMCPIntentSource = Literal["context_parameter", "external_callback", "fallback", "missing"]
 TrackMCPAccountIdentitySource = Literal["resolver", "unresolved"]
+TrackMCPAccountIdentityVersion = Literal["sha256-v1"]
 TrackMCPTransport = Literal["stdio", "streamable_http", "sse", "custom"]
 
 
@@ -65,6 +66,7 @@ class TrackMCPEvent(TypedDict, total=False):
     client_version: str
     account_key: str
     account_identity_source: TrackMCPAccountIdentitySource
+    account_identity_version: TrackMCPAccountIdentityVersion
     tool_name: str
     tool_description: str
     tool_description_hash: str
@@ -632,7 +634,7 @@ class TrackMCP:
                 "transport": event.get("transport"),
             })
             if _safe_account_id(value):
-                return {"account_key": hashlib.sha256(value.strip().encode("utf-8")).hexdigest(), "account_identity_source": "resolver"}
+                return {"account_key": hashlib.sha256(value.strip().encode("utf-8")).hexdigest(), "account_identity_source": "resolver", "account_identity_version": "sha256-v1"}
         except Exception:
             pass
         return {"account_identity_source": "unresolved"}

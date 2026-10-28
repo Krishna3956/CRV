@@ -1,6 +1,24 @@
 # Founder OS 100 Customer Readiness Ledger
 
-Last updated: 2026-10-29 (main `12c22d08`; deployed application `12c22d08` and immutable App Runner deployment `40780767344` are healthy; bounded privacy execution, synthetic-evidence, retention-preview, ingest-metadata, and payload-redaction boundaries are published with focused tests; customer-owned endpoint/protocol UAT, privacy acceptance, backup/PITR posture, and release-owner GO/NO-GO remain open)
+Last updated: 2026-10-29 (main `e1f5483d`; deployed application `e1f5483d` and immutable App Runner deployment `40783523850` are healthy; bounded privacy execution, synthetic-evidence, retention-preview, ingest-metadata, payload-redaction, and account-identity-version boundaries are published with focused tests; customer-owned endpoint/protocol UAT, privacy acceptance, backup/PITR posture, migration postflight, and release-owner GO/NO-GO remain open)
+
+## 2026-10-29 — account identity derivation version published
+
+- [x] Added the additive `account_identity_version` contract with the current
+  namespace `sha256-v1`. Existing hashed account keys are backfilled to this
+  namespace by the review-only migration; future resolver rotations must use a
+  new explicit version instead of silently joining pseudonym spaces.
+- [x] Ingest normalization, persistence, refresh projections, semantic facts,
+  analytics history, account activity, growth, per-tool adoption, and account
+  detail maps now namespace identities by version. Legacy rows without the
+  column remain readable as `sha256-v1` during the migration window.
+- [x] TypeScript, Go, Python, and .NET SDKs emit `sha256-v1` whenever their
+  local resolver produces an account key. Resolver failures remain unresolved
+  and never emit a partial identity.
+- [x] Focused validation, ingest integration, migration-contract, TypeScript
+  SDK, Go, and Python identity tests pass. The migration has not been applied
+  to production from this checkout; Supabase postflight and reviewed execution
+  remain external gates.
 
 ## 2026-10-29 — ingest payload privacy negatives hardened
 

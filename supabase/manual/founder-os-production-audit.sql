@@ -31,7 +31,7 @@ with required(table_name, column_name) as (values
   ('trackmcp_events','is_error'), ('trackmcp_events','payload'), ('trackmcp_events','received_at'), ('trackmcp_events','mcp_method'),
   ('trackmcp_events','request_id'), ('trackmcp_events','interaction_id'), ('trackmcp_events','catalog_kind'),
   ('trackmcp_events','catalog_item_count'), ('trackmcp_events','catalog_item_name_hashes'), ('trackmcp_events','catalog_item_uri_hashes'),
-  ('trackmcp_events','account_key'), ('trackmcp_events','account_identity_source'),
+  ('trackmcp_events','account_key'), ('trackmcp_events','account_identity_source'), ('trackmcp_events','account_identity_version'),
   ('trackmcp_servers','workspace_id'), ('trackmcp_servers','name'), ('trackmcp_servers','slug'),
   ('trackmcp_environments','server_id'), ('trackmcp_environments','name'),
   ('trackmcp_deployments','environment_id'), ('trackmcp_deployments','version'), ('trackmcp_deployments','commit_sha'),
@@ -58,6 +58,7 @@ where c.column_name is null order by 1, 2;
 with required(object_name, object_type) as (values
   ('trackmcp_events_workspace_started_idx','index'), ('trackmcp_events_workspace_tool_idx','index'),
   ('trackmcp_events_workspace_session_idx','index'), ('trackmcp_events_workspace_account_started_idx','index'),
+  ('trackmcp_events_workspace_account_identity_started_idx','index'),
   ('trackmcp_events_workspace_interaction_idx','index'), ('trackmcp_catalog_versions_workspace_scope_idx','index'),
   ('trackmcp_catalog_versions_scope_idx','index'), ('trackmcp_catalog_versions_snapshot_hash_idx','index'),
   ('trackmcp_catalog_entity_reads_scope_idx','index'), ('trackmcp_catalog_entity_reads_hash_idx','index'),

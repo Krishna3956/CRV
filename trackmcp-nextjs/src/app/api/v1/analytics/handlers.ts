@@ -5,7 +5,7 @@ import { getSupabaseAdmin } from "../../../../lib/repository/supabase.ts";
 import { hashTrackMCPKey } from "../../../../lib/telemetry/keys.ts";
 import type { CatalogTool, CompletionSource, CorrelationQuality } from "../../../../lib/telemetry/analytics-types.ts";
 import { completedForEvents, completionSourceForEvents, correlationQualityForEvents, isWorkflowLifecycleEvent, percentile } from "../../../../lib/telemetry/analytics.ts";
-import type { CanonicalTrackMCPEvent, TrackMCPCorrelationHandleSource, TrackMCPIntentSource, TrackMCPObservationSource, TrackMCPSessionIdSource } from "../../../../lib/telemetry/types.ts";
+import { TRACKMCP_ACCOUNT_IDENTITY_VERSION, type CanonicalTrackMCPEvent, type TrackMCPCorrelationHandleSource, type TrackMCPIntentSource, type TrackMCPObservationSource, type TrackMCPSessionIdSource } from "../../../../lib/telemetry/types.ts";
 import { projectTrackMCPFact } from "../../../../lib/telemetry/facts.ts";
 import { aggregateTrackMCPFacts, aggregateTrackMCPFactsBy, type TrackMCPOutcomeGroupBy } from "../../../../lib/telemetry/outcomes.ts";
 import { aggregateTaskLifecycles, type TrackMCPTaskTransitionObservation } from "../../../../lib/telemetry/task-lifecycle.ts";
@@ -44,6 +44,7 @@ type EventRow = {
   client_version: string | null;
   account_key: string | null;
   account_identity_source: "resolver" | "unresolved" | null;
+  account_identity_version: string | null;
   tool_name: string | null;
   tool_description: string | null;
   tool_description_hash: string | null;
@@ -84,11 +85,27 @@ const MIN_ISSUE_WORKFLOW_STARTS = 10;
 const boundedText = (value: unknown, max: number): string | null =>
   typeof value === "string" ? value.slice(0, max) : null;
 
+function isMissingAccountIdentityVersionColumn(error: unknown): boolean {
+  if (!error || typeof error !== "object") return false;
+  const record = error as Record<string, unknown>;
+  const text = `${typeof record.code === "string" ? record.code : ""} ${typeof record.message === "string" ? record.message : ""}`.toLowerCase();
+  return text.includes("account_identity_version") && (text.includes("column") || text.includes("pgrst204") || text.includes("42703"));
+}
+
 function failed(event: { is_error?: boolean | null; success?: boolean | null }) { return event.is_error === true || event.success === false; }
 
 function canonicalEventFromRow(event: EventRow): CanonicalTrackMCPEvent {
   const normalized = Object.fromEntries(Object.entries({ ...event, payload: event.payload || undefined }).filter(([, value]) => value !== null));
   return normalized as unknown as CanonicalTrackMCPEvent;
+}
+
+/** Namespace identity maps by derivation version so rotations cannot silently merge accounts. */
+function accountIdentityKey(event: { account_key?: unknown; account_identity_source?: unknown; account_identity_version?: unknown }): string | null {
+  if (event.account_identity_source !== "resolver" || typeof event.account_key !== "string" || !event.account_key) return null;
+  const version = typeof event.account_identity_version === "string" && event.account_identity_version
+    ? event.account_identity_version
+    : TRACKMCP_ACCOUNT_IDENTITY_VERSION;
+  return `${version}:${event.account_key}`;
 }
 
 function catalogFromEvent(event: EventRow): CatalogTool[] {
@@ -157,11 +174,14 @@ export function createAnalyticsHandler(getAdmin: typeof getSupabaseAdmin = getSu
   }
   const analyticsQueryLimit = 10000;
   const generatedAt = new Date().toISOString();
-  const eventsQuery = supabase.from("trackmcp_events")
-    .select("event_id, schema_version, event_type, service, environment, server_id, deployment_id, server_version, sdk_version, observation_source, direction, transport, protocol_version, mcp_method, request_id, session_id, session_id_source, correlation_handle, correlation_handle_source, context, intent_source, missing_capability, task_id, workflow_id, client_name, client_version, account_key, account_identity_source, tool_name, tool_description, tool_description_hash, duration_ms, success, is_error, error_class, error_code, retry_number, result_type, interaction_id, interaction_link_source, retry_of_event_id, request_state_hash, input_request_count, input_response_count, resource_audience, resource_priority, schema_hash, catalog_kind, catalog_item_count, catalog_item_name_hashes, catalog_item_uri_hashes, payload_size_bytes, payload_policy, started_at, payload")
-    .eq("workspace_id", workspaceId).gte("started_at", since);
-  if (until) eventsQuery.lt("started_at", until);
-  const { data, error } = await eventsQuery.order("started_at", { ascending: true }).limit(analyticsQueryLimit);
+  const eventSelect = "event_id, schema_version, event_type, service, environment, server_id, deployment_id, server_version, sdk_version, observation_source, direction, transport, protocol_version, mcp_method, request_id, session_id, session_id_source, correlation_handle, correlation_handle_source, context, intent_source, missing_capability, task_id, workflow_id, client_name, client_version, account_key, account_identity_source, account_identity_version, tool_name, tool_description, tool_description_hash, duration_ms, success, is_error, error_class, error_code, retry_number, result_type, interaction_id, interaction_link_source, retry_of_event_id, request_state_hash, input_request_count, input_response_count, resource_audience, resource_priority, schema_hash, catalog_kind, catalog_item_count, catalog_item_name_hashes, catalog_item_uri_hashes, payload_size_bytes, payload_policy, started_at, payload";
+  const readEvents = async (select: string) => {
+    const query = supabase.from("trackmcp_events").select(select).eq("workspace_id", workspaceId).gte("started_at", since);
+    if (until) query.lt("started_at", until);
+    return query.order("started_at", { ascending: true }).limit(analyticsQueryLimit);
+  };
+  let { data, error } = await readEvents(eventSelect);
+  if (error && isMissingAccountIdentityVersionColumn(error)) ({ data, error } = await readEvents(eventSelect.replace(", account_identity_version", "")));
   if (error) return NextResponse.json({ error: "Could not load analytics." }, { status: 500 });
 
   // The first Founder OS slice needs a lifetime-first-seen signal to
@@ -170,13 +190,16 @@ export function createAnalyticsHandler(getAdmin: typeof getSupabaseAdmin = getSu
   // resolver key. If the bounded scan is capped, the response explicitly
   // marks the classification as insufficient rather than inventing a trend.
   const historyLimit = 100_000;
-  const historyResult = await supabase.from("trackmcp_events")
-    .select("event_id, account_key, account_identity_source, started_at, event_type, mcp_method, tool_name, is_error, success, result_type, duration_ms, interaction_id, request_state_hash, retry_number, retry_of_event_id")
+  const historySelect = "event_id, account_key, account_identity_source, account_identity_version, started_at, event_type, mcp_method, tool_name, is_error, success, result_type, duration_ms, interaction_id, request_state_hash, retry_number, retry_of_event_id";
+  const readHistory = async (select: string) => supabase.from("trackmcp_events")
+    .select(select)
     .eq("workspace_id", workspaceId)
     .eq("observation_source", "server")
     .order("started_at", { ascending: true })
     .limit(historyLimit);
-  const historyRows = historyResult.error ? [] : ((historyResult.data || []) as Array<{ event_id?: unknown; account_key?: unknown; account_identity_source?: unknown; started_at?: unknown; event_type?: unknown; mcp_method?: unknown; tool_name?: unknown; is_error?: unknown; success?: unknown; result_type?: unknown; duration_ms?: unknown; interaction_id?: unknown; request_state_hash?: unknown; retry_number?: unknown; retry_of_event_id?: unknown }>);
+  let historyResult = await readHistory(historySelect);
+  if (historyResult.error && isMissingAccountIdentityVersionColumn(historyResult.error)) historyResult = await readHistory(historySelect.replace(", account_identity_version", ""));
+  const historyRows = historyResult.error ? [] : ((historyResult.data || []) as Array<{ event_id?: unknown; account_key?: unknown; account_identity_source?: unknown; account_identity_version?: unknown; started_at?: unknown; event_type?: unknown; mcp_method?: unknown; tool_name?: unknown; is_error?: unknown; success?: unknown; result_type?: unknown; duration_ms?: unknown; interaction_id?: unknown; request_state_hash?: unknown; retry_number?: unknown; retry_of_event_id?: unknown }>);
   const historyCapped = historyRows.length >= historyLimit;
 
   // Snapshot rows are service-written and explicitly workspace-scoped by the
@@ -306,7 +329,7 @@ export function createAnalyticsHandler(getAdmin: typeof getSupabaseAdmin = getSu
     attempts: job.attempt_count,
   })));
 
-  const events = ((data || []) as EventRow[]).filter((event) => event.observation_source === "server");
+  const events = ((data || []) as unknown as EventRow[]).filter((event) => event.observation_source === "server");
   const catalogNotificationInputs: CatalogNotificationInput[] = events.flatMap((event) => {
     const catalogKind = event.mcp_method === "notifications/tools/list_changed"
       ? "tools"
@@ -329,7 +352,7 @@ export function createAnalyticsHandler(getAdmin: typeof getSupabaseAdmin = getSu
   const mrtrRetryLinks = new Set<string>();
   const advertisedFamiliesByScope = new Map<string, Set<string>>();
   const observedFamilyScopes = new Map<string, Set<string>>();
-  const protocolFamilyEvents = (data || []) as EventRow[];
+  const protocolFamilyEvents = (data || []) as unknown as EventRow[];
   const durableFactsResult = await supabase.from("trackmcp_semantic_facts")
     .select("source_event_id,semantic,dimensions,measures,event_type,observed_at,service,environment")
     .eq("workspace_id", workspaceId).gte("observed_at", since).limit(analyticsQueryLimit);
@@ -565,7 +588,7 @@ export function createAnalyticsHandler(getAdmin: typeof getSupabaseAdmin = getSu
     return [{ task_id_hash: row.task_id_hash.toLowerCase(), state, observed_at: row.observed_at.slice(0, 80), evidence_quality: quality }];
   });
   const identityEligible = events.filter((event) => event.account_identity_source === "resolver" || event.account_identity_source === "unresolved").length;
-  const identityResolved = events.filter((event) => event.account_identity_source === "resolver" && Boolean(event.account_key)).length;
+  const identityResolved = events.filter((event) => Boolean(accountIdentityKey(event))).length;
   const identityCoverage = {
     numerator: identityResolved,
     denominator: identityEligible,
@@ -590,8 +613,8 @@ export function createAnalyticsHandler(getAdmin: typeof getSupabaseAdmin = getSu
   const recentAccountKeys = new Set<string>();
   const sevenDaysAgo = Date.now() - 7 * 86400000;
   for (const event of events) {
-    if (event.account_identity_source !== "resolver" || !event.account_key) continue;
-    const key = event.account_key;
+    const key = accountIdentityKey(event);
+    if (!key) continue;
     accountEventCounts.set(key, (accountEventCounts.get(key) || 0) + 1);
     const days = accountEventDays.get(key) || new Set<string>();
     days.add(event.started_at.slice(0, 10));
@@ -610,8 +633,9 @@ export function createAnalyticsHandler(getAdmin: typeof getSupabaseAdmin = getSu
   let resolverLinkedEvents = 0;
   let unresolvedEvents = 0;
   for (const event of calls) {
-    if (event.account_identity_source === "resolver" && event.account_key) {
-      observedAccountKeys.add(event.account_key);
+    const key = accountIdentityKey(event);
+    if (key) {
+      observedAccountKeys.add(key);
       resolverLinkedEvents += 1;
     } else if (event.account_identity_source === "unresolved") {
       unresolvedEvents += 1;
@@ -663,22 +687,24 @@ export function createAnalyticsHandler(getAdmin: typeof getSupabaseAdmin = getSu
   const previousPeriodStartMs = periodStartMs - periodLengthMs;
   const currentAccountActivity = new Map<string, { count: number; days: Set<string> }>();
   for (const event of events) {
-    if (event.account_identity_source !== "resolver" || !event.account_key) continue;
-    const existing = currentAccountActivity.get(event.account_key) || { count: 0, days: new Set<string>() };
+    const key = accountIdentityKey(event);
+    if (!key) continue;
+    const existing = currentAccountActivity.get(key) || { count: 0, days: new Set<string>() };
     existing.count += 1;
     existing.days.add(event.started_at.slice(0, 10));
-    currentAccountActivity.set(event.account_key, existing);
+    currentAccountActivity.set(key, existing);
   }
   const historicalAccountFirstSeen = new Map<string, number>();
   const previousPeriodAccounts = new Set<string>();
   const growthBuckets = new Map<string, Set<string>>();
   for (const row of historyRows) {
-    if (row.account_identity_source !== "resolver" || typeof row.account_key !== "string" || typeof row.started_at !== "string") continue;
+    const key = accountIdentityKey(row);
+    if (!key || typeof row.started_at !== "string") continue;
     const timestamp = Date.parse(row.started_at);
     if (!Number.isFinite(timestamp)) continue;
-    const existing = historicalAccountFirstSeen.get(row.account_key);
-    if (existing === undefined || timestamp < existing) historicalAccountFirstSeen.set(row.account_key, timestamp);
-    if (timestamp >= previousPeriodStartMs && timestamp < periodStartMs) previousPeriodAccounts.add(row.account_key);
+    const existing = historicalAccountFirstSeen.get(key);
+    if (existing === undefined || timestamp < existing) historicalAccountFirstSeen.set(key, timestamp);
+    if (timestamp >= previousPeriodStartMs && timestamp < periodStartMs) previousPeriodAccounts.add(key);
     if (timestamp >= periodStartMs && timestamp <= periodEndMs) {
       const bucket = new Date(timestamp);
       // Founder OS adoption is intentionally reported as a weekly signal.
@@ -688,7 +714,7 @@ export function createAnalyticsHandler(getAdmin: typeof getSupabaseAdmin = getSu
       bucket.setUTCHours(0, 0, 0, 0);
       const bucketKey = bucket.toISOString().slice(0, 10);
       const set = growthBuckets.get(bucketKey) || new Set<string>();
-      set.add(row.account_key);
+      set.add(key);
       growthBuckets.set(bucketKey, set);
     }
   }
@@ -714,10 +740,12 @@ export function createAnalyticsHandler(getAdmin: typeof getSupabaseAdmin = getSu
   const growth = [...growthBuckets.entries()].sort(([a], [b]) => a.localeCompare(b)).slice(-366).map(([period_start, accounts]) => ({ period_start, active_accounts: accounts.size }));
   const currentToolAccounts = new Map<string, Set<string>>();
   for (const event of calls) {
-    if (!event.tool_name || event.account_identity_source !== "resolver" || !event.account_key) continue;
-    const accountsForTool = currentToolAccounts.get(event.account_key) || new Set<string>();
+    if (!event.tool_name) continue;
+    const key = accountIdentityKey(event);
+    if (!key) continue;
+    const accountsForTool = currentToolAccounts.get(key) || new Set<string>();
     accountsForTool.add(event.tool_name);
-    currentToolAccounts.set(event.account_key, accountsForTool);
+    currentToolAccounts.set(key, accountsForTool);
   }
   const adoptionBuckets = { "1 tool": 0, "2-3 tools": 0, "4-6 tools": 0, "7+ tools": 0 } as Record<"1 tool" | "2-3 tools" | "4-6 tools" | "7+ tools", number>;
   for (const toolSet of currentToolAccounts.values()) {
@@ -763,17 +791,18 @@ export function createAnalyticsHandler(getAdmin: typeof getSupabaseAdmin = getSu
     const accountCalls = new Map<string, number>();
     const weekly = new Map<string, { calls: number; errors: number }>();
     for (const event of matching) {
-      if (event.account_identity_source === "resolver" && event.account_key) accountCalls.set(event.account_key, (accountCalls.get(event.account_key) || 0) + 1);
+      const key = accountIdentityKey(event);
+      if (key) accountCalls.set(key, (accountCalls.get(key) || 0) + 1);
       const timestamp = Date.parse(event.started_at);
       if (!Number.isFinite(timestamp)) continue;
       const bucket = new Date(timestamp);
       bucket.setUTCDate(bucket.getUTCDate() - bucket.getUTCDay());
       bucket.setUTCHours(0, 0, 0, 0);
-      const key = bucket.toISOString().slice(0, 10);
-      const current = weekly.get(key) || { calls: 0, errors: 0 };
+      const weekKey = bucket.toISOString().slice(0, 10);
+      const current = weekly.get(weekKey) || { calls: 0, errors: 0 };
       current.calls += 1;
       if (failed(event)) current.errors += 1;
-      weekly.set(key, current);
+      weekly.set(weekKey, current);
     }
     return {
       tool_name: tool.name,

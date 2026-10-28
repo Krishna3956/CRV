@@ -21,6 +21,13 @@ function scopeMatches(value: string, scope: unknown): boolean {
   return typeof scope !== "string" || scope.length === 0 || scope === value;
 }
 
+function isMissingAccountIdentityVersionColumn(error: unknown): boolean {
+  if (!error || typeof error !== "object") return false;
+  const record = error as Record<string, unknown>;
+  const text = `${typeof record.code === "string" ? record.code : ""} ${typeof record.message === "string" ? record.message : ""}`.toLowerCase();
+  return text.includes("account_identity_version") && (text.includes("column") || text.includes("pgrst204") || text.includes("42703"));
+}
+
 /**
  * Catalog projections reference the server registry. Telemetry clients are
  * allowed to send a stable server UUID before a dashboard user has manually
@@ -154,6 +161,7 @@ export function createIngestHandler(getAdmin: typeof getSupabaseAdmin = getSupab
     client_version: event.client_version || null,
     account_key: event.account_key || null,
     account_identity_source: event.account_identity_source || "unresolved",
+    account_identity_version: event.account_identity_version || null,
     tool_name: event.tool_name || null,
     tool_description: event.tool_description || null,
     tool_description_hash: event.tool_description_hash || null,
@@ -185,10 +193,19 @@ export function createIngestHandler(getAdmin: typeof getSupabaseAdmin = getSupab
   });
 
   if (rows.length) {
-    const { error } = await supabase.from("trackmcp_events").upsert(rows, {
+    let { error } = await supabase.from("trackmcp_events").upsert(rows, {
       onConflict: "workspace_id,event_id",
       ignoreDuplicates: true,
     });
+    // Keep the rolling deployment safe while the reviewed additive migration
+    // is pending. Legacy SHA-256 rows remain readable as sha256-v1.
+    if (error && isMissingAccountIdentityVersionColumn(error)) {
+      const legacyRows = rows.map((row) => Object.fromEntries(Object.entries(row).filter(([field]) => field !== "account_identity_version")));
+      ({ error } = await supabase.from("trackmcp_events").upsert(legacyRows, {
+        onConflict: "workspace_id,event_id",
+        ignoreDuplicates: true,
+      }));
+    }
     if (error) {
       console.error("TrackMCP ingest failed", { code: error.code, message: error.message });
       return NextResponse.json({ error: "Could not store telemetry." }, { status: 500 });
