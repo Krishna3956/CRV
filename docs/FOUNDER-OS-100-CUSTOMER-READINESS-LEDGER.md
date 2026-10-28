@@ -3932,3 +3932,12 @@ a failed product gate or a Supabase plan warning.
 - [ ] This closes trusted-origin transport smoke only. Customer-owned MCP
   endpoints, transport-owned reconnect/replay semantics, cross-language
   transport UAT, and release-owner GO/NO-GO remain open.
+
+### 2026-10-28 disposable first-ingest acceptance
+
+- [x] First-ingest workflow `40614968793` passed against the direct App Runner
+  origin using the configured disposable smoke key. The canonical current-time
+  event was accepted and the workflow uploaded redacted evidence only.
+- [ ] This proves write acceptance for the smoke fixture, not customer-owned
+  UAT, dashboard read-back, sustained worker freshness, privacy acceptance, or
+  release-owner GO/NO-GO.

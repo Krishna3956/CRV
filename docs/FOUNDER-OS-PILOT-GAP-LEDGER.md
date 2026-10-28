@@ -1805,3 +1805,10 @@ production transport UAT.
   and tool-call observations, and uploaded only redacted evidence. This closes
   the trusted-origin transport smoke gate; customer-owned endpoints,
   transport-owned reconnect/replay, and full MRTR interoperability remain open.
+
+- 2026-10-28: Disposable first-ingest smoke `40614968793` passed against the
+  direct App Runner origin. The write-gated check accepted a current-time
+  canonical event through the configured production key and uploaded only a
+  redacted report. This closes first-ingest acceptance for the smoke key; it
+  does not replace customer-owned UAT, dashboard read-back, or release-owner
+  approval.
