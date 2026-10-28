@@ -1,6 +1,6 @@
 # Founder OS first-100 readiness snapshot
 
-Updated: 2026-10-29 (Asia/Kolkata; source and runtime `4ed1c33e`; hosted evidence reconciled)
+Updated: 2026-10-29 (Asia/Kolkata; source and runtime `cfbcc54b`; hosted evidence reconciled)
 
 Status: **Engineering green; release decision HOLD**
 
@@ -14,11 +14,11 @@ and [pilot release record](FOUNDER-OS-100-CUSTOMER-PILOT-RELEASE-RECORD.md).
   read models, and navigation/documentation CTA checks.
 - Current source release gate passes **148 suites**; lint, production build,
   and `git diff --check` pass. The production build generates **178 routes**.
-- Hosted TrackMCP CI `40752715192` passed for source `4ed1c33e` across the
+- Hosted TrackMCP CI `40758058405` passed for source `cfbcc54b` across the
   web/JavaScript, Go, and .NET lanes.
 - The latest verified application runtime is immutable SHA
-  `4ed1c33e32623489cf3099bb7a7a8659f95b2ad9`, deployed by App Runner workflow
-  `40752715423`; the deployment preflight built the reviewed Python wheel and
+  `cfbcc54bf30fe1e975d17b9f3232b23af3e11ff1`, deployed by App Runner workflow
+  `40758058500`; the deployment preflight built the reviewed Python wheel and
   sdist before the package-release audit, and the workflow's release gate,
   read-only smoke, immutable identity, and runtime-safety checks passed. The
   live health endpoint reports this exact SHA; `/` and `/docs` also return HTTP
@@ -47,6 +47,10 @@ and [pilot release record](FOUNDER-OS-100-CUSTOMER-PILOT-RELEASE-RECORD.md).
   also passed with redacted evidence.
 - Privacy, tenant isolation, OTLP/HTTP, package-consumer, protocol-fixture,
   dashboard, and release-control contract families are covered by the gate.
+- Alert incident API responses now expose a bounded `evidence_kind` field so
+  retained canary rows are explicitly classified as synthetic evidence before
+  they reach dashboard or API consumers; the dashboard preserves the visible
+  test-evidence banner.
 - The published-artifact audit now scans the exact npm tarballs and Python
   wheel/sdist selected for release and rejects credential-shaped values in
   runtime files; Python artifacts are also required to match the source
@@ -71,8 +75,10 @@ These are not source-code failures and must not be silently marked green:
    bounded deletion execution engine is implemented but disabled by default;
    production deletion remains review-only until the approved storage adapter,
    recovery rehearsal, and legal/privacy acceptance are complete.
-4. Synthetic reliability-data hygiene acceptance: canary rows must remain
-   visibly test evidence and never be presented as customer incidents.
+4. Synthetic reliability-data hygiene acceptance: the API/dashboard boundary
+   now labels canary rows as synthetic evidence; release-owner acceptance is
+   still required for the retained historical rows and no customer-health
+   claim may be inferred from them.
 5. Credentialed production key-lifecycle and customer-owned MCP endpoint UAT.
 6. Protocol interoperability that is explicitly Partial/Unsupported in the
    matrix (customer endpoints, reconnect/replay, proxy-specific behavior,
@@ -108,7 +114,7 @@ scheduled-worker SLO. No secret, workspace identifier, raw payload, or token is
 stored in this snapshot.
 
 The detailed ledger is authoritative for the remaining external gates. The
-current source is `main` at `HEAD` (`4ed1c33e`); the deployed application is
-the verified runtime `4ed1c33e` after the App Runner rollout. The
+current source is `main` at `HEAD` (`cfbcc54b`); the deployed application is
+the verified runtime `cfbcc54b` after the App Runner rollout. The
 latest health report is the AWS-proven freshness result above. The alert evaluator remains
 disabled-first and is not claimed as enabled production delivery.

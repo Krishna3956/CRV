@@ -1,5 +1,22 @@
-import type { AlertConfiguration, AlertDeliveryAttempt, AlertIncident } from "./types.ts";
+import type { AlertConfiguration, AlertDeliveryAttempt, AlertEvidenceKind, AlertIncident } from "./types.ts";
 import { boundedJsonValue } from "./http.ts";
+
+const SYNTHETIC_CANARY_IDENTITY_PREFIX = "p1-05-canary-probe";
+
+/**
+ * Classify retained canary rows at the API boundary so consumers cannot treat
+ * a synthetic regression as a customer incident. This is derived from the
+ * existing bounded scope/identity fields; no new database column or payload
+ * data is required.
+ */
+export function incidentEvidenceKind(row: { environment?: unknown; identity?: unknown }): AlertEvidenceKind {
+  const identity = typeof row.identity === "string" ? row.identity : "";
+  const syntheticIdentity = identity === SYNTHETIC_CANARY_IDENTITY_PREFIX
+    || identity.split("|").some((segment) => segment === SYNTHETIC_CANARY_IDENTITY_PREFIX);
+  return row.environment === "canary" || syntheticIdentity
+    ? "synthetic"
+    : "customer";
+}
 
 export function serializeConfiguration(row: Record<string, unknown>): AlertConfiguration {
   return {
@@ -22,6 +39,7 @@ export function serializeIncident(row: Record<string, unknown>): AlertIncident {
     id: String(row.id), workspace_id: String(row.workspace_id), alert_id: String(row.alert_id), identity: String(row.identity),
     metric: row.metric as AlertIncident["metric"], state: row.state as AlertIncident["state"], severity: (row.severity as AlertIncident["severity"]) || null,
     scope: { tool_name: typeof row.tool_name === "string" ? row.tool_name : null, environment: typeof row.environment === "string" ? row.environment : null },
+    evidence_kind: incidentEvidenceKind(row),
     data_status: row.data_status as AlertIncident["data_status"], baseline: (boundedJsonValue(row.baseline, 8 * 1024) as AlertIncident["baseline"]) || null, comparison: (boundedJsonValue(row.comparison, 8 * 1024) as AlertIncident["comparison"]) || null,
     threshold: (boundedJsonValue(row.threshold, 4 * 1024) as Record<string, number>) || {}, reasons: Array.isArray(row.reasons) ? row.reasons.slice(0, 8) as AlertIncident["reasons"] : [], evidence: (boundedJsonValue(row.evidence, 32 * 1024) as AlertIncident["evidence"]) || {},
     first_seen_at: String(row.first_seen_at), last_seen_at: String(row.last_seen_at), acknowledged_at: typeof row.acknowledged_at === "string" ? row.acknowledged_at : null, resolved_at: typeof row.resolved_at === "string" ? row.resolved_at : null,

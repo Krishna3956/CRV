@@ -70,6 +70,7 @@
     "test:privacy-deletion-batches": "node --test src/lib/account/privacy-deletion-batches-migration.test.mjs",
     "test:key-revocation-authz": "node --test src/app/api/v1/account/keys/route.contract.test.mjs",
     "test:workspace-selection": "node --test src/app/api/v1/account/workspace/route.contract.test.mjs src/lib/alerts/auth.contract.test.mjs src/lib/alerts/auth.integration.test.mjs src/lib/alerts/action-queue-link-migration.test.mjs",
+    "test:alert-serialization": "node --experimental-strip-types --test src/lib/alerts/serialize.test.ts",
     "test:worker-health-postflight": "node --test scripts/worker-health-postflight.test.mjs",
     "test:refresh-worker-workflow": "node --test scripts/refresh-worker-workflow.contract.test.mjs",
     "test:refresh-worker-health": "node --test scripts/refresh-worker-health-report.test.mjs",

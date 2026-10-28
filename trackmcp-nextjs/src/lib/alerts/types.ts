@@ -8,6 +8,9 @@ export type AlertScope = {
   environment: string | null;
 };
 
+/** Whether an incident is customer evidence or an intentionally retained test row. */
+export type AlertEvidenceKind = "customer" | "synthetic";
+
 export type AlertConfiguration = {
   id: string;
   workspace_id: string;
@@ -31,6 +34,8 @@ export type AlertIncident = {
   state: AlertState;
   severity: AlertSeverity | null;
   scope: AlertScope;
+  /** Server-derived classification; absent only on older in-memory fixtures. */
+  evidence_kind?: AlertEvidenceKind;
   data_status: AlertDataStatus;
   baseline: RegressionSummary | null;
   comparison: RegressionSummary | null;
