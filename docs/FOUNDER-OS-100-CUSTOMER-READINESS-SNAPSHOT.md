@@ -67,8 +67,10 @@ These are not source-code failures and must not be silently marked green:
 2. Supabase recovery posture: the current Free plan has no project backups and
    PITR is disabled. A restoration owner/runbook plus tested recovery, or an
    explicit accepted limitation, is required (queue item 157).
-3. Privacy lifecycle acceptance: export is bounded and secret-free; deletion
-   requests are review-only and destructive deletion is disabled.
+3. Privacy lifecycle acceptance: export is bounded and secret-free; the
+   bounded deletion execution engine is implemented but disabled by default;
+   production deletion remains review-only until the approved storage adapter,
+   recovery rehearsal, and legal/privacy acceptance are complete.
 4. Synthetic reliability-data hygiene acceptance: canary rows must remain
    visibly test evidence and never be presented as customer incidents.
 5. Credentialed production key-lifecycle and customer-owned MCP endpoint UAT.

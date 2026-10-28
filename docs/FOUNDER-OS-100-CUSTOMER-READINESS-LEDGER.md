@@ -31,6 +31,23 @@ Last updated: 2026-10-29 (main `4ed1c33e`; deployed application `4ed1c33e` and i
   transport-owned reconnect/OAuth interoperability, scheduler cadence, and
   optional Go/.NET registry publication remain explicitly open.
 
+## 2026-10-29 — privacy deletion execution engine added
+
+- [x] Added a separately typed destructive worker boundary with bounded,
+  resumable dataset batches, abort handling, request-bound confirmation, and
+  idempotency requirements for the storage adapter.
+- [x] The worker requires a `processing` plan, distinct operator and second
+  approver IDs, a cleared legal-hold/retention/dependency decision, and a
+  request/workspace-bound confirmation string. It never reads or writes raw
+  payloads and remains disabled unless an explicit release policy enables it.
+- [x] Added unit coverage for disabled-by-default behavior, confirmation
+  binding, legal-hold blocking, bounded completion, resume cursors, aborts, and
+  missing audit adapters.
+- [ ] Production destructive execution remains intentionally gated: the
+  reviewed Supabase transaction/RPC adapter, legal/privacy approval, recovery
+  rehearsal, and release-owner acceptance are external dependencies. The
+  existing user-facing deletion control therefore remains review-only.
+
 ## 2026-10-29 — bounded catalog predecessor lineage
 
 - [x] The analytics read model now joins each page's `previous_snapshot_id`
