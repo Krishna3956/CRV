@@ -23,10 +23,10 @@ function openQueueIds(source) {
 }
 
 test("pilot release record points at the verified deployed baseline", () => {
-  const current = section(record, "## Current deployed baseline", "## Latest bounded insight-evidence deployment");
-  assert.match(current, /8e3b61836432e1b045b539857fb8639d9d464c3f/);
-  assert.match(current, /40695080113/);
-  assert.match(current, /read-only evidence rather than key-lifecycle UAT/);
+  const current = section(record, "## Current deployed baseline", "## Historical deployed baseline");
+  assert.match(current, /7763e05f9e62c9f3349ba20596c208d81cca08c9/);
+  assert.match(current, /40729507033/);
+  assert.match(current, /authenticated production smoke `40732381275` also\s+passed/);
 });
 
 test("pilot release record keeps unresolved operational gates explicit", () => {
@@ -45,9 +45,9 @@ test("release record preserves non-source acceptance decisions until an owner ac
 });
 
 test("external-gate register names accountable parties and closure evidence", () => {
-  assert.match(externalGates, /8e3b61836432e1b045b539857fb8639d9d464c3f/);
-  assert.match(externalGates, /40695080113/);
-  assert.match(externalGates, /bb8c89a7a3794b83c129681310e423e007c9096cba9f4398cf84ebf3392d8cb0/);
+  assert.match(externalGates, /7763e05f9e62c9f3349ba20596c208d81cca08c9/);
+  assert.match(externalGates, /40729507033/);
+  assert.match(externalGates, /2c0cdc0f54d74a37353a33fb25a56e79ef4e024f/);
   assert.match(externalGates, /40397368253/);
   assert.match(externalGates, /40398170070/);
   assert.match(externalGates, /main`: current default branch/);
@@ -62,9 +62,9 @@ test("external-gate register names accountable parties and closure evidence", ()
 
 test("acceptance matrix separates current source from deployed runtime", () => {
   assert.match(acceptanceMatrix, /7763e05f9e62c9f3349ba20596c208d81cca08c9/);
-  assert.match(acceptanceMatrix, /current repository source is `main` at\s+`01d89aa31521861f063cf7ecc029507f82b90ed8`/);
+  assert.match(acceptanceMatrix, /current repository source is `main` at\s+`2c0cdc0f54d74a37353a33fb25a56e79ef4e024f`/);
   assert.match(acceptanceMatrix, /40729507033/);
-  assert.match(acceptanceMatrix, /40729507069/);
+  assert.match(acceptanceMatrix, /40735717782/);
   assert.match(acceptanceMatrix, /manual-only and disabled-first/);
 });
 

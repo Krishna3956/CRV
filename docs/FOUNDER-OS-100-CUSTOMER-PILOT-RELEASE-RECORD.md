@@ -12,7 +12,7 @@ The current baseline is immutable commit `7763e05f9e62c9f3349ba20596c208d81cca08
 App Runner deployment `40729507033` succeeded on rerun attempt 2 after a
 transient first-attempt warm-up 502; the final release gate, image binding,
 rollout, read-only smoke, immutable identity, and runtime-safety checks passed.
-Main CI `40729507069` and authenticated production smoke `40732381275` also
+Main CI `40735717782` and authenticated production smoke `40732381275` also
 passed. Live `/api/health` reports this exact SHA, and `/` plus `/docs` return
 HTTP 200. The source change is the canonical MCP 2026-07-28 per-request
 protocol-version metadata alignment. The release remains Draft/HOLD because
@@ -20,6 +20,8 @@ the owner, backup/recovery, privacy acceptance, and customer-owned
 lifecycle/transport gates are still open.
 
 The prior runtime baseline and historical evidence remain below.
+
+## Historical deployed baseline — 2026-10-28
 
 App Runner deployment `40695080113` completed successfully for immutable
 commit `8e3b61836432e1b045b539857fb8639d9d464c3f` with image digest
@@ -94,15 +96,17 @@ recovery-evidence hardening, not a final operational SLO acceptance.
 
 ## Latest source verification — 2026-10-28
 
-The current repository source is `main` at `HEAD` (`5fa4aff576e3729c54ccb11290895751d45f9801`); the deployed application is
-immutable source `8e3b6183` via App Runner workflow `40695080113`, with image
-digest `sha256:bb8c89a7a3794b83c129681310e423e007c9096cba9f4398cf84ebf3392d8cb0`.
-Hosted TrackMCP CI `40706968504` passed across web/JavaScript, Go, and .NET.
+The current repository source is `main` at `HEAD`
+(`2c0cdc0f54d74a37353a33fb25a56e79ef4e024f`); the deployed application is
+immutable source `7763e05f` via App Runner workflow `40729507033`.
+Hosted TrackMCP CI `40735717782` passed across web/JavaScript, Go, and .NET.
 The latest local release gate passes **148 suites**, lint, the production build
 (**178 routes**), and `git diff --check`. The deployment's read-only
 production smoke, immutable identity, runtime-safety checks, and live health
-identity verification all passed. Scheduler deployment and health evidence are
-recorded above.
+identity verification all passed; authenticated production smoke
+`40732381275` also passed. Scheduler deployment and health evidence are
+recorded above. This docs-only reconciliation did not require a new App Runner
+deployment, so the runtime remains the verified `7763e05f` image.
 
 The preceding deployed source was `4efa2e1` (including the health-report semantics
 correction that honors a proven AWS scheduler window while retaining historical

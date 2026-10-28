@@ -11,13 +11,13 @@ is intentionally not a GO approval and must not be treated as one.
 
 - `main`: current default branch. Immutable deployed SHAs belong in the
   release record; PR checks remain attached to their exact review commits.
-- Current deployed application: `8e3b61836432e1b045b539857fb8639d9d464c3f`,
-  App Runner workflow `40695080113` (successful rollout, release gate,
-  production smoke, immutable identity, runtime-safety checks, and live health
-  identity verification) with image digest
-  `sha256:bb8c89a7a3794b83c129681310e423e007c9096cba9f4398cf84ebf3392d8cb0`.
-- Current source verification: `main` at `HEAD` (`5fa4aff5`); hosted TrackMCP CI
-  `40706968504` passed across the web/JavaScript, Go, and .NET lanes. The refresh scheduler
+- Current deployed application: `7763e05f9e62c9f3349ba20596c208d81cca08c9`,
+  App Runner workflow `40729507033` (successful rerun attempt 2; rollout,
+  release gate, production smoke, immutable identity, runtime-safety checks,
+  and live health identity verification passed).
+- Current source verification: `main` at `HEAD`
+  (`2c0cdc0f54d74a37353a33fb25a56e79ef4e024f`); hosted TrackMCP CI
+  `40735717782` passed across the web/JavaScript, Go, and .NET lanes. The refresh scheduler
   and health evidence are recorded below. This does not close the external
   owner, backup, privacy, or customer-owned protocol gates.
 - Historical deployed baselines retained for audit include `9638e23c8529f9b1781d96413529e33a692715ed`
@@ -25,8 +25,9 @@ is intentionally not a GO approval and must not be treated as one.
   (App Runner workflow `40474794151`), plus the earlier deployment identity
   `4efa2e1bd444706e84d78ef85b8a7b3b133a46aa` and workflow `40497434962`
   retained by the acceptance contract.
-- This register update does not change the deployed image; it only records
-  the already-successful rollout and its bounded evidence.
+- This register reconciliation does not change the deployed image; it records
+  the already-successful rollout and its bounded evidence. The docs-only merge
+  remains intentionally aligned to runtime `7763e05f`.
 - Queue: 263 total, 260 checked, and P0 queue items `020`, `157`, and `260`
   remain open.
 - Full release gate: **148 suites passed**, with lint and the 178-route
