@@ -1,6 +1,17 @@
 # Founder OS 100 Customer Readiness Ledger
 
-Last updated: 2026-10-29 (main `c492dac0`; deployed application `c492dac0` and immutable App Runner deployment `40760941895` are healthy; bounded privacy execution and synthetic-evidence boundaries are published with focused tests; customer-owned endpoint/protocol UAT, privacy acceptance, backup/PITR posture, and release-owner GO/NO-GO remain open)
+Last updated: 2026-10-29 (main `2ac9580b`; deployed application `2ac9580b` and immutable App Runner deployment `40765865842` are healthy; bounded privacy execution, synthetic-evidence, and retention-preview boundaries are published with focused tests; customer-owned endpoint/protocol UAT, privacy acceptance, backup/PITR posture, and release-owner GO/NO-GO remain open)
+
+## 2026-10-29 — retention preview worker published live
+
+- [x] PR `#656` merged as
+  `2ac9580b1fb5403d4854559337e24b49fb5fb0a0`; hosted PR CI `40765171341`,
+  main CI `40765865769`, and App Runner deploy `40765865842` passed.
+- [x] The live origin returned HTTP 200 for `/`, `/docs`, and `/api/health`,
+  with `/api/health` reporting the exact runtime SHA above.
+- [x] The release gate passed **149 suites**, lint passed, and the production
+  build passed. The retention preview remains read-only and does not create a
+  destructive cleanup claim.
 
 ## 2026-10-29 — retention preview boundary implemented
 
