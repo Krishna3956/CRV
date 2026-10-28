@@ -522,10 +522,21 @@ test("Capabilities exposes bounded modern protocol outcome states", () => {
   assert.match(source, />Advertised</);
   assert.match(source, />Requests</);
   assert.match(source, />Responses</);
+  assert.match(source, />Matched</);
   assert.match(source, /Requests and responses are counted from explicit metadata roles/);
   assert.match(source, />Completed</);
   assert.match(source, /N\/A means no capability advertisement was observed/);
   assert.match(source, /Evidence source:/);
+});
+
+test("Capabilities exposes concise MRTR linkage evidence without raw identifiers", () => {
+  assert.match(source, /protocol_mrtr_linkage/);
+  assert.match(source, /MRTR linkage evidence/);
+  assert.match(source, /Request-state hashes/);
+  assert.match(source, /Interaction hashes/);
+  assert.match(source, /Retry links/);
+  assert.match(source, /Matched pairs/);
+  assert.match(source, /Privacy-safe multi-round-trip metadata/);
 });
 
 test("Capabilities exposes truthful catalog history states", () => {

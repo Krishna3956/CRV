@@ -237,6 +237,7 @@ export type Analytics = {
   protocol_family_activity?: Array<{ family: "sampling" | "elicitation" | "completion" | "tasks" | "control_signal" | "resources" | "prompts" | "tools" | "subscriptions" | "notifications" | "roots" | "logging"; observations: number }>;
   protocol_family_outcomes?: Array<{ family: "sampling" | "elicitation" | "completion" | "tasks" | "control_signal" | "resources" | "prompts" | "tools" | "subscriptions" | "notifications" | "roots" | "logging"; observations: number; requests: number; responses: number; matched: number; completed: number; errors: number; input_required: number; unknown: number; capability_advertised: boolean | null }>;
   protocol_family_outcome_source?: "durable_facts" | "event_window";
+  protocol_mrtr_linkage?: { request_state_hashes: number; interaction_hashes: number; retry_links: number; matched_pairs: number; source: "durable_facts" | "event_window"; limitation: string };
   protocol_capability_gaps?: Array<{ family: "sampling" | "elicitation" | "completion" | "tasks" | "control_signal" | "resources" | "prompts" | "tools" | "subscriptions" | "notifications" | "roots" | "logging"; requests_without_advertisement: number; limitation: string }>;
   /** Bounded completion suggestion metadata. Values and argument contents are
    * never returned; empty/partial results remain distinct signals. */

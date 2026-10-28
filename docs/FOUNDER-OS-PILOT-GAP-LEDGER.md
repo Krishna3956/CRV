@@ -1764,3 +1764,12 @@ production transport UAT.
   .NET, and App Runner deployment run `40610886407` passed rollout, production
   smoke, immutable identity, and runtime-safety checks. Cross-transport
   lifecycle fixtures and authenticated production UAT remain open.
+
+- 2026-10-28: Added the next MRTR evidence surface. The analytics matcher now
+  uses explicit interaction/request-state handles and bounded retry links from
+  the durable semantic-fact projection, while the Capabilities dashboard
+  renders a `Matched` outcome column and a privacy-safe MRTR linkage summary
+  (counts only; no hashes or retry IDs). The focused analytics/dashboard
+  suites and the complete local **145-suite** release gate passed. This closes
+  the dashboard/read-model visibility gap; cross-transport lifecycle fixtures
+  and authenticated production UAT remain open until hosted verification.

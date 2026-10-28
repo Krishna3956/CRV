@@ -431,6 +431,34 @@ test("analytics prefers the bounded durable semantic-fact family projection when
   ]);
 });
 
+test("analytics matches durable MRTR evidence through request-state and retry linkage", async () => {
+  const durableFacts = [
+    { source_event_id: "mrtr-request-1", semantic: { outcome: "pending" }, dimensions: { protocol_family: "elicitation", protocol_observation_kind: "protocol_request" }, event_type: "protocol", observed_at: "2026-09-06T00:00:00Z", service: "demo", environment: "prod" },
+    { source_event_id: "mrtr-response-1", semantic: { outcome: "completed" }, dimensions: { protocol_family: "elicitation", protocol_observation_kind: "protocol_response", retry_of_event_id: "mrtr-request-1" }, event_type: "protocol", observed_at: "2026-09-06T00:00:01Z", service: "demo", environment: "prod" },
+    { source_event_id: "mrtr-request-2", semantic: { outcome: "pending" }, dimensions: { protocol_family: "elicitation", protocol_observation_kind: "protocol_request", request_state_hash: "a".repeat(64) }, event_type: "protocol", observed_at: "2026-09-06T00:00:02Z", service: "demo", environment: "prod" },
+    { source_event_id: "mrtr-response-2", semantic: { outcome: "completed" }, dimensions: { protocol_family: "elicitation", protocol_observation_kind: "protocol_response", request_state_hash: "a".repeat(64) }, event_type: "protocol", observed_at: "2026-09-06T00:00:03Z", service: "demo", environment: "prod" },
+  ];
+  const base = fakeAdmin([]);
+  const originalFrom = base.from.bind(base);
+  base.from = (table) => table === "trackmcp_semantic_facts"
+    ? { select() { return this; }, eq() { return this; }, gte() { return this; }, limit: async () => ({ data: durableFacts, error: null }) }
+    : originalFrom(table);
+  const response = await createAnalyticsHandler(() => base)(new Request("http://analytics.test/api/v1/analytics?days=7", { headers: { authorization: "Bearer key" } }));
+  assert.equal(response.status, 200);
+  const body = await response.json();
+  assert.deepEqual(body.protocol_family_outcomes, [
+    { family: "elicitation", observations: 4, requests: 2, responses: 2, matched: 2, completed: 2, errors: 0, input_required: 2, unknown: 0, capability_advertised: null },
+  ]);
+  assert.deepEqual(body.protocol_mrtr_linkage, {
+    request_state_hashes: 1,
+    interaction_hashes: 0,
+    retry_links: 1,
+    matched_pairs: 2,
+    source: "durable_facts",
+    limitation: "Counts are metadata-only evidence. Hashes and retry identifiers are never returned; a matched pair requires the same explicit interaction/request-state handle or an allowlisted retry link within the bounded workspace window.",
+  });
+});
+
 test("analytics insights carry bounded action context only when evidence supports it", async () => {
   const rows = Array.from({ length: 30 }, (_, index) => event({
     event_id: `failed-${index}`,

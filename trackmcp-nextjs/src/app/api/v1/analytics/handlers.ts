@@ -282,11 +282,14 @@ export function createAnalyticsHandler(getAdmin: typeof getSupabaseAdmin = getSu
   const protocolFamilyCounts = new Map<string, number>();
   const protocolFamilyOutcomes = new Map<string, { observations: number; requests: number; responses: number; matched: number; completed: number; errors: number; input_required: number; unknown: number; capability_advertised: boolean | null }>();
   const protocolFamilyHandles = new Map<string, { requests: Set<string>; responses: Set<string> }>();
+  const mrtrRequestStateHashes = new Set<string>();
+  const mrtrInteractionHashes = new Set<string>();
+  const mrtrRetryLinks = new Set<string>();
   const advertisedFamiliesByScope = new Map<string, Set<string>>();
   const observedFamilyScopes = new Map<string, Set<string>>();
   const protocolFamilyEvents = (data || []) as EventRow[];
   const durableFactsResult = await supabase.from("trackmcp_semantic_facts")
-    .select("semantic,dimensions,measures,event_type,observed_at,service,environment")
+    .select("source_event_id,semantic,dimensions,measures,event_type,observed_at,service,environment")
     .eq("workspace_id", workspaceId).gte("observed_at", since).limit(analyticsQueryLimit);
   const durableFamilyRows = durableFactsResult.error ? [] : ((durableFactsResult.data || []) as unknown[]).flatMap((row) => {
     if (!row || typeof row !== "object") return [];
@@ -307,6 +310,7 @@ export function createAnalyticsHandler(getAdmin: typeof getSupabaseAdmin = getSu
       ? safeDimensions.capability_families.filter((value): value is string => typeof value === "string").slice(0, 16)
       : [];
     return [{
+      source_event_id: typeof record.source_event_id === "string" ? record.source_event_id.slice(0, 128) : undefined,
       family,
       outcome,
       scope_key: `${typeof record.service === "string" ? record.service.slice(0, 128) : "unknown"}:${typeof record.environment === "string" ? record.environment.slice(0, 64) : "unknown"}`,
@@ -317,6 +321,8 @@ export function createAnalyticsHandler(getAdmin: typeof getSupabaseAdmin = getSu
       observed_at: typeof record.observed_at === "string" ? record.observed_at : undefined,
       observation_kind: safeDimensions.protocol_observation_kind === "protocol_request" || safeDimensions.protocol_observation_kind === "protocol_response" ? safeDimensions.protocol_observation_kind : undefined,
       interaction_id_hash: typeof safeDimensions.interaction_id_hash === "string" ? safeDimensions.interaction_id_hash : undefined,
+      request_state_hash: typeof safeDimensions.request_state_hash === "string" && /^[0-9a-f]{64}$/.test(safeDimensions.request_state_hash) ? safeDimensions.request_state_hash : undefined,
+      retry_of_event_id: typeof safeDimensions.retry_of_event_id === "string" ? safeDimensions.retry_of_event_id.slice(0, 128) : undefined,
       completion_value_count: typeof safeMeasures.completion_value_count === "number" ? safeMeasures.completion_value_count : undefined,
       completion_total: typeof safeMeasures.completion_total === "number" ? safeMeasures.completion_total : undefined,
       completion_has_more: typeof safeMeasures.completion_has_more === "boolean" ? safeMeasures.completion_has_more : undefined,
@@ -342,6 +348,7 @@ export function createAnalyticsHandler(getAdmin: typeof getSupabaseAdmin = getSu
       .map((name) => protocolFamilyForCapabilityName(name.trim()))
       .filter((family): family is TrackMCPProtocolFamily => Boolean(family)))].slice(0, 16);
     return [{
+      source_event_id: typeof event.event_id === "string" ? event.event_id.slice(0, 128) : undefined,
       family,
       outcome,
       scope_key: `${event.service.slice(0, 128)}:${event.environment.slice(0, 64)}`,
@@ -349,6 +356,8 @@ export function createAnalyticsHandler(getAdmin: typeof getSupabaseAdmin = getSu
       observation_kind: metadata?.observation_kind === "protocol_request" || metadata?.observation_kind === "protocol_response" ? metadata.observation_kind : undefined,
       protocol_decision: metadata?.protocol_decision === "accept" || metadata?.protocol_decision === "decline" || metadata?.protocol_decision === "cancel" ? metadata.protocol_decision : undefined,
       interaction_id_hash: typeof event.interaction_id === "string" ? createHash("sha256").update(event.interaction_id, "utf8").digest("hex") : undefined,
+      request_state_hash: typeof event.request_state_hash === "string" && /^[0-9a-f]{64}$/.test(event.request_state_hash) ? event.request_state_hash : undefined,
+      retry_of_event_id: typeof event.retry_of_event_id === "string" ? event.retry_of_event_id.slice(0, 128) : undefined,
     }];
   });
   for (const row of protocolFamilySourceRows) {
@@ -366,12 +375,19 @@ export function createAnalyticsHandler(getAdmin: typeof getSupabaseAdmin = getSu
       scopes.add(scopeKey);
       observedFamilyScopes.set(family, scopes);
     }
+    if (row.request_state_hash) mrtrRequestStateHashes.add(`${scopeKey || "unknown"}:${row.request_state_hash}`);
+    if (row.interaction_id_hash) mrtrInteractionHashes.add(`${scopeKey || "unknown"}:${row.interaction_id_hash}`);
+    if (row.retry_of_event_id) mrtrRetryLinks.add(`${scopeKey || "unknown"}:${row.retry_of_event_id}`);
     current.observations += 1;
     if (row.observation_kind === "protocol_request") current.requests += 1;
     if (row.observation_kind === "protocol_response") current.responses += 1;
-    if (row.interaction_id_hash && row.observation_kind) {
+    const primaryLink = row.interaction_id_hash
+      || row.request_state_hash
+      || (row.observation_kind === "protocol_request" && row.source_event_id ? `event:${row.source_event_id}` : undefined)
+      || (row.observation_kind === "protocol_response" && row.retry_of_event_id ? `event:${row.retry_of_event_id}` : undefined);
+    if (primaryLink && row.observation_kind) {
       const handle = protocolFamilyHandles.get(family) || { requests: new Set<string>(), responses: new Set<string>() };
-      handle[row.observation_kind === "protocol_request" ? "requests" : "responses"].add(row.interaction_id_hash);
+      handle[row.observation_kind === "protocol_request" ? "requests" : "responses"].add(primaryLink);
       protocolFamilyHandles.set(family, handle);
     }
     if (outcome === "failed") current.errors += 1;
@@ -400,6 +416,14 @@ export function createAnalyticsHandler(getAdmin: typeof getSupabaseAdmin = getSu
     }).length;
     return requestsWithoutAdvertisement ? [{ family: family as TrackMCPProtocolFamily, requests_without_advertisement: requestsWithoutAdvertisement, limitation: "A request without an observed capability advertisement is a negotiation signal, not proof that the peer rejected or could not support the operation." }] : [];
   }).sort((a, b) => b.requests_without_advertisement - a.requests_without_advertisement || a.family.localeCompare(b.family));
+  const protocolMrtrLinkage = {
+    request_state_hashes: mrtrRequestStateHashes.size,
+    interaction_hashes: mrtrInteractionHashes.size,
+    retry_links: mrtrRetryLinks.size,
+    matched_pairs: [...protocolFamilyOutcomes.values()].reduce((sum, value) => sum + value.matched, 0),
+    source: familySource,
+    limitation: "Counts are metadata-only evidence. Hashes and retry identifiers are never returned; a matched pair requires the same explicit interaction/request-state handle or an allowlisted retry link within the bounded workspace window.",
+  };
   const protocolDecisions = {
     elicitation: { accept: 0, decline: 0, cancel: 0 },
     sampling: { accept: 0, decline: 0, cancel: 0 },
@@ -1004,6 +1028,7 @@ export function createAnalyticsHandler(getAdmin: typeof getSupabaseAdmin = getSu
     protocol_family_activity: [...protocolFamilyCounts.entries()].map(([family, observations]) => ({ family: family as TrackMCPProtocolFamily, observations })).sort((a, b) => b.observations - a.observations || a.family.localeCompare(b.family)),
     protocol_family_outcomes: [...protocolFamilyOutcomes.entries()].map(([family, outcome]) => ({ family: family as TrackMCPProtocolFamily, ...outcome })).sort((a, b) => b.observations - a.observations || a.family.localeCompare(b.family)),
     protocol_family_outcome_source: familySource,
+    protocol_mrtr_linkage: protocolMrtrLinkage,
     protocol_capability_gaps: protocolCapabilityGaps,
     protocol_decisions: protocolDecisionSummary,
     completion_activity: completionActivity,

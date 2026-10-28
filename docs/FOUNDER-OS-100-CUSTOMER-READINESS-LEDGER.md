@@ -3864,3 +3864,20 @@ a failed product gate or a Supabase plan warning.
 - [ ] This is verified source/deployment read-model parity only. It does not
   close cross-transport lifecycle fixtures, authenticated production UAT, or
   release-owner approval gates.
+
+## 2026-10-28 MRTR dashboard evidence milestone
+
+- [x] Analytics now matches request/response observations through the explicit
+  interaction hash, request-state hash, or bounded retry link retained in the
+  durable semantic-fact projection. Matching remains workspace-scoped and
+  window-bounded.
+- [x] The Capabilities dashboard now renders the previously hidden `Matched`
+  protocol-outcome column and a concise MRTR linkage panel with request-state,
+  interaction, retry-link, and matched-pair counts. Only counts and the
+  evidence limitation are returned; raw hashes, retry IDs, request state, and
+  response values remain excluded.
+- [x] The focused analytics/dashboard tests and the complete local **145-suite**
+  release gate passed on the source tree.
+- [ ] Hosted CI, immutable deployment identity, authenticated production UAT,
+  cross-transport lifecycle fixtures, and release-owner approval remain open;
+  this milestone does not claim full MRTR conformance or pilot readiness.
