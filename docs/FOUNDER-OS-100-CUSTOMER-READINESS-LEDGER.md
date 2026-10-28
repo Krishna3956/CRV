@@ -12,6 +12,26 @@ GitHub-worker samples** is present, so the stricter scheduled-sample evidence
 gate remains HOLD; this is an evidence requirement, not a new code-release
 failure.
 
+## 2026-10-28 — AWS scheduler worker-freshness metrics (candidate `0d03e687`)
+
+- [x] The EventBridge refresh Lambda now consumes only the bounded JSON summary
+  returned by each successful App Runner batch, clamps the body to 16 KiB and
+  numeric fields to reviewed limits, and emits metadata-only CloudWatch EMF
+  metrics for processed/succeeded/retryable/failed counts, parse completeness,
+  and maximum queue lag. It never logs response content, owners, errors, URLs,
+  worker tokens, or payloads.
+- [x] The health workflow reads those metrics through `cloudwatch:GetMetricData`
+  and exposes a separate `worker_freshness_gate`. Three complete AWS samples
+  with zero failed/retryable jobs and queue lag within the 15-minute budget can
+  prove production scheduler freshness without substituting GitHub recovery
+  runs for scheduler evidence.
+- [x] Focused scheduler/health contracts pass; the full local release gate
+  passes **145 suites**, lint/build pass, and the workflow YAML parses.
+- [ ] This candidate is not production evidence until the scheduler deployment
+  workflow rolls out the Lambda, the health workflow observes at least three
+  complete AWS worker-summary samples, and the resulting artifact is recorded.
+  Until then the active freshness gate remains HOLD.
+
 ## 2026-10-28 — package-test timeout hardening
 
 - [x] Hosted TrackMCP CI `40590525044` completed successfully for the current
