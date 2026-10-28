@@ -76,8 +76,59 @@ type EventRow = {
 
 const MAX_PUBLIC_LIST_ITEMS = 500;
 const MAX_PUBLIC_DIMENSION_ITEMS = 100;
+const ANALYTICS_CACHE_TTL_MS = 2_000;
+const ANALYTICS_CACHE_MAX_ENTRIES = 64;
 const protocolTransportNames = ["stdio", "streamable_http", "sse", "custom"] as const;
 type ProtocolTransportName = typeof protocolTransportNames[number];
+
+type AnalyticsCacheEntry = { expires_at: number; body: Record<string, unknown> };
+
+// All Founder OS v2 read models are bounded projections of this same analytics
+// response. A short, authenticated, workspace-scoped cache prevents twelve
+// dashboard routes from repeating the 10k-event/100k-history scan while a
+// customer loads a page. The TTL is deliberately shorter than the dashboard
+// refresh interval and every request still authenticates before reading it.
+const analyticsResponseCache = new WeakMap<object, Map<string, AnalyticsCacheEntry>>();
+
+function getAnalyticsCache(supabase: object): Map<string, AnalyticsCacheEntry> {
+  const existing = analyticsResponseCache.get(supabase);
+  if (existing) return existing;
+  const created = new Map<string, AnalyticsCacheEntry>();
+  analyticsResponseCache.set(supabase, created);
+  return created;
+}
+
+function analyticsCacheKey(workspaceId: string, apiKey: string, query: string): string {
+  // The API key is hashed before entering the process-local key so credentials
+  // can never be retained in cache keys or diagnostic output. Session-auth
+  // requests are still workspace-scoped after membership validation.
+  const credentialScope = apiKey ? hashTrackMCPKey(apiKey) : "session";
+  return `${workspaceId}\u0000${credentialScope}\u0000${query}`;
+}
+
+function readCachedAnalytics(supabase: object, key: string): Record<string, unknown> | null {
+  const cache = getAnalyticsCache(supabase);
+  const now = Date.now();
+  for (const [entryKey, entry] of cache) {
+    if (entry.expires_at <= now) cache.delete(entryKey);
+  }
+  const entry = cache.get(key);
+  if (!entry || entry.expires_at <= now) {
+    if (entry) cache.delete(key);
+    return null;
+  }
+  return entry.body;
+}
+
+function writeCachedAnalytics(supabase: object, key: string, body: Record<string, unknown>): void {
+  const cache = getAnalyticsCache(supabase);
+  cache.set(key, { expires_at: Date.now() + ANALYTICS_CACHE_TTL_MS, body });
+  while (cache.size > ANALYTICS_CACHE_MAX_ENTRIES) {
+    const oldest = cache.keys().next().value;
+    if (typeof oldest !== "string") break;
+    cache.delete(oldest);
+  }
+}
 // A single failed call is useful trace evidence, not a product-wide issue.
 // Match the quality surface's minimum before ranking a tool as broken.
 const MIN_ISSUE_TOOL_CALLS = 30;
@@ -172,6 +223,9 @@ export function createAnalyticsHandler(getAdmin: typeof getSupabaseAdmin = getSu
     since = start.toISOString();
     until = new Date(end.getTime() + 86400000).toISOString();
   }
+  const cacheKey = analyticsCacheKey(workspaceId, apiKey, url.search);
+  const cachedBody = readCachedAnalytics(supabase, cacheKey);
+  if (cachedBody) return NextResponse.json(cachedBody);
   const analyticsQueryLimit = 10000;
   const generatedAt = new Date().toISOString();
   const eventSelect = "event_id, schema_version, event_type, service, environment, server_id, deployment_id, server_version, sdk_version, observation_source, direction, transport, protocol_version, mcp_method, request_id, session_id, session_id_source, correlation_handle, correlation_handle_source, context, intent_source, missing_capability, task_id, workflow_id, client_name, client_version, account_key, account_identity_source, account_identity_version, tool_name, tool_description, tool_description_hash, duration_ms, success, is_error, error_class, error_code, retry_number, result_type, interaction_id, interaction_link_source, retry_of_event_id, request_state_hash, input_request_count, input_response_count, resource_audience, resource_priority, schema_hash, catalog_kind, catalog_item_count, catalog_item_name_hashes, catalog_item_uri_hashes, payload_size_bytes, payload_policy, started_at, payload";
@@ -1102,7 +1156,7 @@ export function createAnalyticsHandler(getAdmin: typeof getSupabaseAdmin = getSu
   const correlationQuality: CorrelationQuality = correlationQualityForEvents(events);
   const handleSources = [...new Set(events.map((event) => event.correlation_handle_source).filter((source): source is TrackMCPCorrelationHandleSource => Boolean(source)))];
   const correlationHandleSource: TrackMCPCorrelationHandleSource | null = handleSources.length === 1 ? handleSources[0] : handleSources.length === 0 ? "missing" : null;
-  return NextResponse.json({ range_days: days, total_events: events.length, protocol_events: protocols.length, catalog_events: catalogs,
+  const responseBody: Record<string, unknown> = { range_days: days, total_events: events.length, protocol_events: protocols.length, catalog_events: catalogs,
     protocol_versions: protocolVersions.slice(0, MAX_PUBLIC_DIMENSION_ITEMS),
     services: services.slice(0, MAX_PUBLIC_DIMENSION_ITEMS),
     environments: environments.slice(0, MAX_PUBLIC_DIMENSION_ITEMS),
@@ -1193,7 +1247,9 @@ export function createAnalyticsHandler(getAdmin: typeof getSupabaseAdmin = getSu
       : null,
     catalog_version_status: catalogVersionStatus,
     refresh_status: { status: refreshStatus, ...refreshCounts, max_queue_lag_ms: maxQueueLagMs, max_attempt_count: maxAttemptCount, last_successful_run: lastSuccessfulRun, worker_health: workerHealth },
-    data_trust: buildTrackMCPDataTrust({ generatedAt, querySince: since, sourceEventCount: events.length, returnedEventCount: data?.length || 0, queryLimit: analyticsQueryLimit, observedThrough: events.length ? events[events.length - 1].started_at : null }), insights });
+    data_trust: buildTrackMCPDataTrust({ generatedAt, querySince: since, sourceEventCount: events.length, returnedEventCount: data?.length || 0, queryLimit: analyticsQueryLimit, observedThrough: events.length ? events[events.length - 1].started_at : null }), insights };
+  writeCachedAnalytics(supabase, cacheKey, responseBody);
+  return NextResponse.json(responseBody);
   };
 }
 

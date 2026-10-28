@@ -29,6 +29,22 @@ Last updated: 2026-10-29 (main `9c46a1a5`; deployed application `9c46a1a5` and A
   path. Do not treat this release as having passed the full authenticated
   scope smoke until that rerun is green.
 
+## 2026-10-29 — analytics projection cache hardening
+
+- [x] The authenticated analytics projection now uses a process-local,
+  workspace/query-scoped cache with a two-second TTL and a 64-entry cap. Every
+  request authenticates first; API-key cache scopes use a one-way key hash, and
+  no response is shared across Supabase client instances.
+- [x] This prevents the twelve analytics-backed v2 routes from repeating the
+  same bounded event/history/catalog scans during a dashboard load, while the
+  short TTL preserves near-real-time behavior and the existing bounded data
+  contract.
+- [x] Targeted analytics, v2 tenant-isolation, TypeScript, ESLint, full
+  **149-suite** release gate, and production build checks passed.
+- [ ] The authenticated production smoke must be rerun after deployment. The
+  prior timeout occurred before the second workspace and revoked-key checks;
+  this code change is not treated as proof until that smoke artifact is green.
+
 ## 2026-10-29 — account identity derivation version published
 
 - [x] Added the additive `account_identity_version` contract with the current
