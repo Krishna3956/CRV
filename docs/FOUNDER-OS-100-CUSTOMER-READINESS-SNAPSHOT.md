@@ -45,6 +45,10 @@ and [pilot release record](FOUNDER-OS-100-CUSTOMER-PILOT-RELEASE-RECORD.md).
   also passed with redacted evidence.
 - Privacy, tenant isolation, OTLP/HTTP, package-consumer, protocol-fixture,
   dashboard, and release-control contract families are covered by the gate.
+- The published-artifact audit now scans the exact npm tarballs and Python
+  wheel/sdist selected for release and rejects credential-shaped values in
+  runtime files; Python artifacts are also required to match the source
+  version in `pyproject.toml`.
 - The 134-page Founder OS source PDF was re-read against the current dashboard
   navigation and contracts. Its six business questions are represented by the
   current Overview, Journey, What they're doing, Resources & prompts, Did it

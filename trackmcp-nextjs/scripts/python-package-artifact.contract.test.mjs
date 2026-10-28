@@ -1,12 +1,16 @@
 import assert from "node:assert/strict";
 import { execFileSync } from "node:child_process";
 import fs from "node:fs";
+import { readFile } from "node:fs/promises";
 import path from "node:path";
 import test from "node:test";
 
 const repoRoot = path.resolve(process.cwd(), "..");
 const packageRoot = path.join(repoRoot, "packages", "python-sdk");
 const dist = path.join(packageRoot, "dist");
+const pyproject = await readFile(path.join(packageRoot, "pyproject.toml"), "utf8");
+const expectedVersion = pyproject.match(/^version\s*=\s*"([^"]+)"/m)?.[1];
+assert.ok(expectedVersion, "Python package version is required");
 const wheel = fs.readdirSync(dist).find((name) => name.endsWith(".whl"));
 const sdist = fs.readdirSync(dist).find((name) => name.endsWith(".tar.gz"));
 assert.ok(wheel, "Python wheel artifact is required for release review");
@@ -17,6 +21,7 @@ const sdistFiles = execFileSync("tar", ["-tzf", path.join(dist, sdist)], { encod
 const forbidden = /(^|\/)(?:\.env(?:\.|$)|\.git(?:\/|$)|__pycache__(?:\/|$)|.*\.(?:pem|key|p12|csv|tsbuildinfo))$/i;
 
 test("Python wheel contains only the runtime package and metadata", () => {
+  assert.match(wheel, new RegExp(`^trackmcp-${expectedVersion}-`));
   assert.ok(wheelFiles.includes("trackmcp/__init__.py"));
   assert.ok(wheelFiles.includes("trackmcp/client.py"));
   assert.ok(wheelFiles.includes("trackmcp/privacy.py"));
@@ -25,6 +30,7 @@ test("Python wheel contains only the runtime package and metadata", () => {
 });
 
 test("Python source distribution contains no private or generated artifacts", () => {
+  assert.equal(sdist, `trackmcp-${expectedVersion}.tar.gz`);
   assert.equal(sdistFiles.some((file) => forbidden.test(file)), false);
   assert.equal(sdistFiles.some((file) => /(?:\.env|secret|credential|campaign)/i.test(file)), false);
   assert.ok(sdistFiles.some((file) => file.endsWith("/README.md")));
