@@ -72,6 +72,20 @@ test("analytics authentication remains required", async () => {
   assert.equal(response.status, 401);
 });
 
+test("analytics reuses a short-lived workspace projection for repeated dashboard routes", async () => {
+  const rows = [event({ event_id: "cached-first" })];
+  const admin = fakeAdmin(rows);
+  const handler = createAnalyticsHandler(() => admin);
+  const first = await handler(new Request("http://analytics.test/api/v1/analytics?days=7", { headers: { authorization: "Bearer key" } }));
+  assert.equal(first.status, 200);
+  assert.equal((await first.json()).total_events, 1);
+
+  rows.push(event({ event_id: "should-not-appear-until-cache-expires" }));
+  const second = await handler(new Request("http://analytics.test/api/v1/analytics?days=7", { headers: { authorization: "Bearer key" } }));
+  assert.equal(second.status, 200);
+  assert.equal((await second.json()).total_events, 1);
+});
+
 test("analytics accepts a bounded inclusive custom date range", async () => {
   const handler = createAnalyticsHandler(() => fakeAdmin([event({ event_id: "custom-range" })]));
   const response = await handler(new Request("http://analytics.test/api/v1/analytics?from=2026-09-01&to=2026-09-07", { headers: { authorization: "Bearer key" } }));
