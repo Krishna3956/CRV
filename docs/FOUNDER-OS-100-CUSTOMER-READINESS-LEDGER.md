@@ -1,6 +1,27 @@
 # Founder OS 100 Customer Readiness Ledger
 
-Last updated: 2026-10-28 (main `28cf0497`; deployed application `8e3b6183` and immutable App Runner deployment `40695080113` succeeded with image digest `sha256:bb8c89a7a3794b83c129681310e423e007c9096cba9f4398cf84ebf3392d8cb0`; PR `#634` merged and hosted TrackMCP CI `40712182548` passed; the current source is docs/evidence-only relative to the deployed runtime; scheduler deploy `40628036770`, authenticated smoke `40628409832`, schedule enablement `40628646879`, and health artifact `40629348992` prove the AWS worker-freshness path; customer-owned endpoint/protocol UAT, privacy acceptance, backup/PITR posture, and release-owner GO/NO-GO remain open)
+Last updated: 2026-10-28 (main `7763e05f`; deployed application `7763e05f` and immutable App Runner deployment `40729507033` succeeded; PR `#641` merged and hosted TrackMCP CI `40729507069` passed; authenticated smoke `40732381275` passed; the canonical modern protocol metadata fix is live; customer-owned endpoint/protocol UAT, privacy acceptance, backup/PITR posture, and release-owner GO/NO-GO remain open)
+
+## 2026-10-28 — canonical modern protocol metadata deployed
+
+- [x] PR `#641` merged as `7763e05f`, adding the final MCP 2026-07-28
+  `io.modelcontextprotocol/protocolVersion` value to every modern SDK and
+  browser-tester request `_meta` envelope while preserving bounded client
+  identity, capabilities, task, and subscription metadata.
+- [x] Hosted TrackMCP CI `40729507069` passed all web/JavaScript, Go, and .NET
+  lanes. The local release gate passed 148 suites, lint passed, and the
+  production build generated 178 routes.
+- [x] App Runner deployment `40729507033` succeeded on rerun attempt 2 after
+  a transient first smoke warm-up 502. The final deployment release gate,
+  image binding, rollout, read-only smoke, immutable identity, and runtime
+  safety checks passed. Authenticated production smoke `40732381275` also
+  passed. Live `/api/health` reports immutable runtime SHA
+  `7763e05f9e62c9f3349ba20596c208d81cca08c9`; `/` and `/docs` return HTTP
+  200.
+- [ ] This closes the protocol-version metadata alignment only. Modern
+  customer-endpoint interoperability, reconnect/replay, OAuth exchange,
+  OTLP/gRPC, privacy acceptance, backup/PITR, and release-owner gates remain
+  explicitly open.
 
 ## 2026-10-28 — final handoff and Founder OS PDF reconciliation
 

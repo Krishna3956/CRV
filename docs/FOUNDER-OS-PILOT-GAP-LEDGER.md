@@ -2,7 +2,7 @@
 
 Status: active autonomous audit, started 2026-10-21.
 
-## 2026-10-28 — canonical modern request protocol metadata shipped
+## 2026-10-28 — canonical modern request protocol metadata shipped live
 
 - [x] The TypeScript modern client and browser MCP tester now include the
   canonical `io.modelcontextprotocol/protocolVersion: "2026-07-28"` value in
@@ -13,10 +13,13 @@ Status: active autonomous audit, started 2026-10-21.
 - [x] SDK unit/integration tests and browser-tester contracts assert the
   canonical metadata on discovery and subsequent requests. The protocol
   matrix and SDK README document the wire boundary.
-- [ ] This source change still requires the normal release gate, hosted CI,
-  and deployment verification before it is considered live. Modern customer
-  endpoint interoperability, reconnect behavior, and broader MRTR/Tasks UAT
-  remain explicitly partial.
+- [x] PR `#641` merged as `7763e05f`. Hosted CI `40729507069`, the 148-suite
+  local release gate, lint, and 178-route production build passed. App Runner
+  deployment `40729507033` succeeded on rerun attempt 2 and authenticated
+  smoke `40732381275` passed; live `/api/health` reports the immutable
+  `7763e05f9e62c9f3349ba20596c208d81cca08c9` runtime SHA.
+- [ ] Modern customer endpoint interoperability, reconnect behavior, and
+  broader MRTR/Tasks UAT remain explicitly partial.
 
 ## 2026-10-28 — modern identity fix and deployment preflight shipped live
 
