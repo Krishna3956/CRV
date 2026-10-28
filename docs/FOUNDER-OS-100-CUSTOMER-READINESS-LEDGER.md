@@ -10,6 +10,21 @@ errors and maximum queue lag within the 15-minute budget. The report is
 **healthy** and the AWS worker-freshness gate is proven; customer-owned endpoint
 and other external acceptance gates remain separate decisions.
 
+## 2026-10-28 — customer-endpoint UAT SSE fixture added
+
+- [x] The release-gate integration suite now runs both official client
+  transports against explicit loopback fixtures: Streamable HTTP and the
+  deprecated-but-supported SSE client transport. The SSE fixture exercises the
+  endpoint event handshake, bearer authorization on the SSE and message POST
+  paths, initialize plus all four bounded catalog-discovery calls, and the
+  metadata-only adapter flush to a separately authenticated ingest endpoint.
+- [x] The SSE report assertions prove zero queued events, zero delivery errors,
+  no credential/path leakage, and clean fixture shutdown. This strengthens the
+  engineering evidence for the manual UAT path without claiming interoperability
+  with any particular customer endpoint.
+- [ ] Customer-owned endpoint execution, transport-owned reconnect/replay,
+  OAuth/token exchange, and release-owner acceptance remain external gates.
+
 ## 2026-10-28 — deployment workflow dependency fix published
 
 - [x] PR `#626` merged the customer-endpoint UAT fixture and release-gate
