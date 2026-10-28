@@ -1727,3 +1727,14 @@ production transport UAT.
   `12715380478` (runtime flags), and `12714354825` (App Runner host).
   Authenticated production smoke `40462480640` passed with artifact
   `12714814206`. This closes the observed transient warm-up smoke failure.
+
+- 2026-10-28: Added metadata-only MRTR linkage parity to the TypeScript SDK.
+  Explicit `requestState`/`request_state` and `interactionId`/`interaction_id`
+  values are SHA-256 hashed before capture; only bounded
+  `retryOfEventId`/`retry_of_event_id` identifiers are preserved. The
+  projection never reads or stores input request/response values and is now
+  applied by both the Node client adapter and `withTrackMCP` server wrapper
+  for protocol and tool responses. Privacy/size-bound coverage and a real
+  wrapper assertion pass in the TypeScript suite (**106/106**). Cross-language
+  exporter parity, all-transport lifecycle fixtures, and authenticated
+  production UAT remain open; this closes only the Node projection gap.

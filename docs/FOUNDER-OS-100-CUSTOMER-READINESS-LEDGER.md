@@ -2468,6 +2468,21 @@ The readiness percentage is based on 10 gates, not lines of code:
 
 Engineering evidence is complete for the deployed application path, bounded load/rollback, five-slice refresh checkpoint, all six Founder OS tabs, privacy/retention boundaries, and the current release record. The pilot is **not marked ready by percentage**: credentialed UAT, migration/rollback ownership, repeated worker SLO observations, and explicitly partial protocol interoperability remain release-owner gates. Distributed-rate-limit IAM is now resolved and live in the production App Runner configuration, verified by guarded workflow `40220255833`. Supabase usage is monitored operationally; no current overage is inferred from this ledger, and quota headroom is not silently treated as a completed pilot gate.
 
+### 2026-10-28 MRTR linkage parity checkpoint
+
+- The TypeScript SDK now projects explicit MRTR `requestState` and `interactionId`
+  values as one-way SHA-256 metadata and preserves only bounded retry event IDs
+  on Node protocol/tool responses. No request, response, or user-entered value
+  is retained by the new projection.
+- The `TrackMCPClientAdapter` and `withTrackMCP` wrapper share this boundary;
+  privacy/size-bound assertions and the real wrapper fixture pass in the SDK
+  suite (**106/106**).
+- This is a source-level Node observer improvement only. The deployed runtime
+  remains the previously recorded immutable App Runner release, and the pilot
+  stays HOLD for cross-language/all-transport MRTR lifecycle evidence,
+  customer-owned endpoint UAT, OAuth/external gates, recovery posture, and
+  release-owner acceptance.
+
 The distributed-rate-limit workflow was subsequently rerun after the
 resource-scoped IAM policy was applied. Run `40220255833` completed the
 App Runner configuration update and postflight verification, and the

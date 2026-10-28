@@ -80,6 +80,11 @@ export type TrackMCPEvent = {
     result_type?: "complete" | "input_required" | "task";
     /** Explicit task state; raw task handles are never stored. */
     task_status?: "working" | "input_required" | "completed" | "failed" | "cancelled" | "expired";
+    /** One-way linkage for a multi-round-trip response; raw protocol state is never emitted. */
+    interaction_id?: string;
+    interaction_link_source?: "external" | "issued" | "missing";
+    retry_of_event_id?: string;
+    request_state_hash?: string;
     input_request_count?: number;
     input_response_count?: number;
     schema_hash?: string;
@@ -153,6 +158,13 @@ export declare function protocolResultType(result: Record<string, unknown> | und
 export declare function protocolInputRequestCount(result: Record<string, unknown> | undefined): number | undefined;
 /** Count MRTR input responses without retaining response contents. */
 export declare function protocolInputResponseCount(result: Record<string, unknown> | undefined): number | undefined;
+/**
+ * Project only the bounded MRTR linkage metadata needed to join an input
+ * request with a later response/retry. Request-state and interaction values
+ * are hashed before leaving the process; response/input contents are never
+ * inspected or retained.
+ */
+export declare function protocolMRTRMetadata(result: Record<string, unknown> | undefined): Pick<TrackMCPEvent, "interaction_id" | "interaction_link_source" | "retry_of_event_id" | "request_state_hash">;
 /**
  * Return a one-way task handle for protocol telemetry. Raw task IDs are not
  * sent over the wire; hashing here keeps server-side task lifecycle events

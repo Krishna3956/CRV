@@ -74,6 +74,36 @@ export function protocolInputResponseCount(result) {
     const responses = result?.inputResponses ?? result?.input_responses;
     return Array.isArray(responses) ? Math.min(100, responses.length) : undefined;
 }
+const PROTOCOL_EVENT_ID = /^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$/;
+const MAX_PROTOCOL_STATE_BYTES = 16 * 1024;
+function protocolStateHash(value) {
+    if (typeof value !== "string" || value.length === 0)
+        return undefined;
+    if (new TextEncoder().encode(value).byteLength > MAX_PROTOCOL_STATE_BYTES)
+        return undefined;
+    return sha256(value);
+}
+/**
+ * Project only the bounded MRTR linkage metadata needed to join an input
+ * request with a later response/retry. Request-state and interaction values
+ * are hashed before leaving the process; response/input contents are never
+ * inspected or retained.
+ */
+export function protocolMRTRMetadata(result) {
+    if (!result)
+        return {};
+    const requestState = result.requestState ?? result.request_state;
+    const interaction = result.interactionId ?? result.interaction_id;
+    const retry = result.retryOfEventId ?? result.retry_of_event_id;
+    const interactionId = protocolStateHash(interaction);
+    const requestStateHash = protocolStateHash(requestState);
+    const retryOfEventId = typeof retry === "string" && PROTOCOL_EVENT_ID.test(retry) ? retry : undefined;
+    return {
+        ...(interactionId ? { interaction_id: interactionId, interaction_link_source: "external" } : {}),
+        ...(retryOfEventId ? { retry_of_event_id: retryOfEventId } : {}),
+        ...(requestStateHash ? { request_state_hash: requestStateHash } : {}),
+    };
+}
 const TASK_STATES = new Set(["working", "input_required", "completed", "failed", "cancelled", "expired"]);
 /**
  * Return a one-way task handle for protocol telemetry. Raw task IDs are not
@@ -697,11 +727,11 @@ function wrapTransport(transport, client) {
                         }
                         else if (call.entity && !failed) {
                             const catalogKind = call.entity.kind;
-                            client.capture({ event_type: "protocol", direction: "server_to_client", transport: observedTransport, mcp_method: call.method, request_id: String(id), ...(taskIdHash ? { task_id: taskIdHash } : {}), client_name: clientName, client_version: clientVersion, session_id: sessionId, session_id_source: activeSessionIdSource, started_at: new Date(call.started).toISOString(), duration_ms: Date.now() - call.started, success: true, is_error: false, ...(protocolResultType(result) ? { result_type: protocolResultType(result) } : {}), ...(protocolInputRequestCount(result) !== undefined ? { input_request_count: protocolInputRequestCount(result) } : {}), ...(protocolInputResponseCount(result) !== undefined ? { input_response_count: protocolInputResponseCount(result) } : {}), catalog_kind: catalogKind, ...(catalogKind === "resources" ? { catalog_item_uri_hashes: [call.entity.hash] } : { catalog_item_name_hashes: [call.entity.hash] }), payload: { name: `${catalogKind}_read_observed`, ...(taskStatus ? { task_status: taskStatus } : {}) } });
+                            client.capture({ event_type: "protocol", direction: "server_to_client", transport: observedTransport, mcp_method: call.method, request_id: String(id), ...(taskIdHash ? { task_id: taskIdHash } : {}), ...protocolMRTRMetadata(result), client_name: clientName, client_version: clientVersion, session_id: sessionId, session_id_source: activeSessionIdSource, started_at: new Date(call.started).toISOString(), duration_ms: Date.now() - call.started, success: true, is_error: false, ...(protocolResultType(result) ? { result_type: protocolResultType(result) } : {}), ...(protocolInputRequestCount(result) !== undefined ? { input_request_count: protocolInputRequestCount(result) } : {}), ...(protocolInputResponseCount(result) !== undefined ? { input_response_count: protocolInputResponseCount(result) } : {}), catalog_kind: catalogKind, ...(catalogKind === "resources" ? { catalog_item_uri_hashes: [call.entity.hash] } : { catalog_item_name_hashes: [call.entity.hash] }), payload: { name: `${catalogKind}_read_observed`, ...(taskStatus ? { task_status: taskStatus } : {}) } });
                         }
                         else if (call.method && call.method !== "tools/call" && call.method !== "initialize") {
                             const decision = call.method === "elicitation/create" && (result?.action === "accept" || result?.action === "decline" || result?.action === "cancel") ? result.action : undefined;
-                            client.capture({ event_type: "protocol", direction: "server_to_client", transport: observedTransport, mcp_method: call.method, request_id: String(id), ...(taskIdHash ? { task_id: taskIdHash } : {}), client_name: clientName, client_version: clientVersion, session_id: sessionId, session_id_source: activeSessionIdSource, started_at: new Date(call.started).toISOString(), duration_ms: Date.now() - call.started, success: !failed, is_error: failed, ...(protocolResultType(result) ? { result_type: protocolResultType(result) } : {}), ...(protocolInputRequestCount(result) !== undefined ? { input_request_count: protocolInputRequestCount(result) } : {}), ...(protocolInputResponseCount(result) !== undefined ? { input_response_count: protocolInputResponseCount(result) } : {}), error_class: message.error ? "protocol_error" : result?.isError ? "protocol_error" : undefined, error_code: typeof protocolError?.code === "number" ? protocolError.code : undefined, payload: { name: "protocol_response_observed", ...(taskStatus ? { task_status: taskStatus } : {}), ...((subscriptionAction || decision) ? { _trackmcp: { ...(subscriptionAction ? { subscription_action: subscriptionAction } : {}), ...(decision ? { protocol_decision: decision } : {}) } } : {}) } });
+                            client.capture({ event_type: "protocol", direction: "server_to_client", transport: observedTransport, mcp_method: call.method, request_id: String(id), ...(taskIdHash ? { task_id: taskIdHash } : {}), ...protocolMRTRMetadata(result), client_name: clientName, client_version: clientVersion, session_id: sessionId, session_id_source: activeSessionIdSource, started_at: new Date(call.started).toISOString(), duration_ms: Date.now() - call.started, success: !failed, is_error: failed, ...(protocolResultType(result) ? { result_type: protocolResultType(result) } : {}), ...(protocolInputRequestCount(result) !== undefined ? { input_request_count: protocolInputRequestCount(result) } : {}), ...(protocolInputResponseCount(result) !== undefined ? { input_response_count: protocolInputResponseCount(result) } : {}), error_class: message.error ? "protocol_error" : result?.isError ? "protocol_error" : undefined, error_code: typeof protocolError?.code === "number" ? protocolError.code : undefined, payload: { name: "protocol_response_observed", ...(taskStatus ? { task_status: taskStatus } : {}), ...((subscriptionAction || decision) ? { _trackmcp: { ...(subscriptionAction ? { subscription_action: subscriptionAction } : {}), ...(decision ? { protocol_decision: decision } : {}) } } : {}) } });
                         }
                     }
                     const send = Reflect.get(target, property);

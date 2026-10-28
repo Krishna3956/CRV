@@ -1,11 +1,26 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import http from "node:http";
-import { withTrackMCP, catalogObservation, interactionEntityObservation, protocolCapabilities } from "../dist/index.js";
+import { withTrackMCP, catalogObservation, interactionEntityObservation, protocolCapabilities, protocolMRTRMetadata } from "../dist/index.js";
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { InMemoryTransport } from "@modelcontextprotocol/sdk/inMemory.js";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
+
+test("projects MRTR linkage as one-way metadata without retaining protocol state", () => {
+  const metadata = protocolMRTRMetadata({
+    requestState: "private-request-state",
+    interactionId: "private-interaction",
+    retryOfEventId: "retry-1",
+    inputResponses: [{ secret: "do-not-read" }],
+  });
+  assert.match(metadata.request_state_hash, /^[a-f0-9]{64}$/);
+  assert.match(metadata.interaction_id, /^[a-f0-9]{64}$/);
+  assert.equal(metadata.interaction_link_source, "external");
+  assert.equal(metadata.retry_of_event_id, "retry-1");
+  assert.equal(JSON.stringify(metadata).includes("private-"), false);
+  assert.deepEqual(protocolMRTRMetadata({ requestState: "x".repeat(16 * 1024 + 1), retryOfEventId: "not valid" }), {});
+});
 
 test("catalog observation hashes resource identities without retaining URI or prompt arguments", () => {
   const resource = catalogObservation("resources", { resources: [{ name: "docs", uri: "secret://user:pass/private" }] });
@@ -374,7 +389,7 @@ test("captures bounded semantic results for non-tool protocol requests without r
   const wrapped = withTrackMCP(server, { apiKey: "tmcp_test", endpoint: `http://127.0.0.1:${ingest.address().port}`, flushIntervalMs: 60000 });
   await wrapped.connect(rawTransport);
   server.transport.onmessage({ id: "sampling-1", method: "sampling/createMessage", params: { private_prompt: "do not persist" } });
-  await server.transport.send({ id: "sampling-1", result: { resultType: "input_required", inputRequests: ["private-request", "private-request-2"], inputResponses: ["private-response"], private_result: "do not persist" } });
+  await server.transport.send({ id: "sampling-1", result: { resultType: "input_required", inputRequests: ["private-request", "private-request-2"], inputResponses: ["private-response"], requestState: "private-request-state", interactionId: "private-interaction", retryOfEventId: "retry-1", private_result: "do not persist" } });
   await wrapped.trackmcp.flush();
   await new Promise((resolve) => setTimeout(resolve, 20));
   ingest.close();
@@ -385,6 +400,10 @@ test("captures bounded semantic results for non-tool protocol requests without r
   assert.equal(response.result_type, "input_required");
   assert.equal(response.input_request_count, 2);
   assert.equal(response.input_response_count, 1);
+  assert.match(response.request_state_hash, /^[a-f0-9]{64}$/);
+  assert.match(response.interaction_id, /^[a-f0-9]{64}$/);
+  assert.equal(response.interaction_link_source, "external");
+  assert.equal(response.retry_of_event_id, "retry-1");
   assert.equal(response.success, true);
   assert.deepEqual(response.payload, { name: "protocol_response_observed", _trackmcp: { observation_kind: "protocol_response", observation_source: "server" } });
   assert.equal(JSON.stringify(response).includes("private_"), false);

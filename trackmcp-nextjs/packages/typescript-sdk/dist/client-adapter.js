@@ -1,7 +1,7 @@
 import { StdioClientTransport } from "@modelcontextprotocol/sdk/client/stdio.js";
 import { StreamableHTTPClientTransport } from "@modelcontextprotocol/sdk/client/streamableHttp.js";
 import { SSEClientTransport } from "@modelcontextprotocol/sdk/client/sse.js";
-import { TrackMCPClient, catalogObservation, protocolInputRequestCount, protocolInputResponseCount, protocolResultType, protocolTaskIdHash, protocolTaskStatus, } from "./index.js";
+import { TrackMCPClient, catalogObservation, protocolInputRequestCount, protocolInputResponseCount, protocolMRTRMetadata, protocolResultType, protocolTaskIdHash, protocolTaskStatus, } from "./index.js";
 const MAX_PENDING_CALLS = 1000;
 const PENDING_CALL_TTL_MS = 30_000;
 const REPEAT_WINDOW_MS = 5 * 60 * 1000;
@@ -464,6 +464,7 @@ export class TrackMCPClientAdapter {
                     is_error: failed,
                     error_code: isRecord(item.error) && typeof item.error.code === "number" ? item.error.code : undefined,
                     result_type: protocolResultType(result),
+                    ...protocolMRTRMetadata(result),
                     ...(taskIdHash ? { task_id: taskIdHash } : {}),
                     ...(taskStatus ? { task_status: taskStatus } : {}),
                     input_request_count: protocolInputRequestCount(result),
@@ -492,6 +493,7 @@ export class TrackMCPClientAdapter {
                 success: !failed,
                 is_error: failed,
                 retry_number: 0,
+                ...protocolMRTRMetadata(result),
                 ...(taskIdHash ? { task_id: taskIdHash } : {}),
                 ...(taskStatus ? { task_status: taskStatus } : {}),
                 ...session,
