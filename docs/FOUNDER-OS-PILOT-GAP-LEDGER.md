@@ -2,6 +2,24 @@
 
 Status: active autonomous audit, started 2026-10-21.
 
+## 2026-10-29 — published-release contract recheck
+
+- [x] The post-merge `main` release gate passed **148 suites**. This includes
+  the Founder OS v2 route projections, privacy/export/deletion-plan safety,
+  tenant isolation, modern protocol fixtures, OTLP JSON/protobuf, SDK packed
+  consumers, dashboard accessibility/pointer contracts, docs navigation, and
+  external-gate truth contracts.
+- [x] Lint passed and the production build generated **178 routes**. The
+  deployed runtime remains the immutable `4ed1c33e` release verified by App
+  Runner deployment `40752715423`; this docs/evidence recheck does not claim
+  a new runtime image.
+- [ ] No remaining engineering contract is being hidden by this recheck. The
+  open rows are still external or owner-controlled: credentialed customer
+  endpoint/key-lifecycle UAT, OAuth token exchange/PKCE, transport-owned
+  reconnect/replay, Supabase backup/PITR, destructive privacy acceptance,
+  sustained scheduler cadence, release-owner GO/NO-GO, and optional Go/.NET
+  registry publication.
+
 ## 2026-10-29 — bounded predecessor lineage added to catalog history
 
 - [x] The workspace-scoped analytics projection now resolves
