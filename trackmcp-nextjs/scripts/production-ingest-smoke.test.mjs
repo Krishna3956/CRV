@@ -7,6 +7,8 @@ const source = await readFile(new URL("./production-ingest-smoke.mjs", import.me
 test("first-ingest smoke is explicit, bounded, trusted-host-only, and redacted", () => {
   assert.match(source, /I_UNDERSTAND_FIRST_INGEST_SMOKE/);
   assert.match(source, /accepted_telemetry === true/);
+  assert.match(source, /waitForAnalyticsReadBack/);
+  assert.match(source, /analytics read-back exposes the accepted smoke event/);
   assert.match(source, /trustedHost/);
   assert.match(source, /event_id: `pilot-ingest-\$\{randomUUID\(\)\}`/);
   assert.match(source, /exactly one bounded event/);

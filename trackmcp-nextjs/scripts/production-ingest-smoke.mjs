@@ -82,11 +82,25 @@ async function waitForAcceptedIngest() {
   fail(`accepted ingest milestone was not visible before timeout (last HTTP status ${lastStatus ?? "none"})`);
 }
 
+async function waitForAnalyticsReadBack() {
+  const deadline = Date.now() + waitMs;
+  let lastStatus = null;
+  while (Date.now() < deadline) {
+    const result = await request("/api/v1/analytics?days=1");
+    lastStatus = result.status;
+    const services = Array.isArray(result.body.services) ? result.body.services.filter((value) => typeof value === "string") : [];
+    if (result.status === 200 && services.includes(service) && Number(result.body.total_events) >= 1) return result;
+    await new Promise((resolve) => setTimeout(resolve, Math.min(5_000, Math.max(500, deadline - Date.now()))));
+  }
+  fail(`analytics read-back was not visible before timeout (last HTTP status ${lastStatus ?? "none"})`);
+}
+
 async function main() {
   validate();
   const ingest = await request("/api/v1/ingest", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(eventBody()) });
   if (ingest.status !== 200 || ingest.body.accepted !== 1) fail(`first ingest expected HTTP 200 with one accepted event, received HTTP ${ingest.status}`);
   await waitForAcceptedIngest();
+  await waitForAnalyticsReadBack();
   const report = {
     outcome: "passed",
     generated_at: new Date().toISOString(),
@@ -94,8 +108,9 @@ async function main() {
     checks: [
       { label: "metadata-only first ingest accepted", status: ingest.status, accepted: 1 },
       { label: "key-status exposes accepted ingest milestone", status: 200, accepted_telemetry: true },
+      { label: "analytics read-back exposes the accepted smoke event", status: 200, analytics_read_back: true },
     ],
-    caveats: ["This smoke sends exactly one bounded event with the explicitly supplied disposable key.", "Keys, event IDs, workspace IDs, response bodies, and authorization material are never written to the report.", "Accepted ingestion proves transport acceptance, not business-workflow completion."],
+    caveats: ["This smoke sends exactly one bounded event with the explicitly supplied disposable key.", "Keys, event IDs, workspace IDs, response bodies, and authorization material are never written to the report.", "Accepted ingestion and analytics read-back prove transport/read-model acceptance, not business-workflow completion."],
   };
   await mkdir(dirname(reportPath), { recursive: true });
   await writeFile(reportPath, `${JSON.stringify(report, null, 2)}\n`, { mode: 0o600 });
