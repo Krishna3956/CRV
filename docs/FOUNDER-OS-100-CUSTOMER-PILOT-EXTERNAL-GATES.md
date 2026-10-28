@@ -15,8 +15,8 @@ is intentionally not a GO approval and must not be treated as one.
   App Runner workflow `40606435487` (successful rollout, release gate,
   production smoke, identity, and runtime-safety checks); authenticated
   production smoke `40607394426` passed for the same immutable SHA.
-- Current source verification: `main` at `HEAD` (`210e5a9d`), with
-  implementation/test baseline `6b1cf1f8`; hosted TrackMCP CI
+- Current source verification: `main` at `HEAD`, with implementation/test
+  baseline `6b1cf1f8`; hosted TrackMCP CI
   `40607765427` passed all 145 cross-language suites. These docs-only
   reconciliations are not claimed as App Runner application behavior.
   This does not close the external owner, backup, privacy, or scheduler-cadence

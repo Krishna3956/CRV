@@ -61,9 +61,9 @@ recovery-evidence hardening, not a final operational SLO acceptance.
 
 ## Latest source verification — 2026-10-28
 
-The current repository source is `main` at `HEAD` (`210e5a9d`, with the
-implementation/test baseline `6b1cf1f8`; the latest docs-only reconciliations
-are not claimed as App Runner behavior). Hosted TrackMCP CI
+The current repository source is `main` at `HEAD` (the docs-only reconciliation
+commits after implementation/test baseline `6b1cf1f8` are not claimed as App
+Runner behavior). Hosted TrackMCP CI
 `40607765427` passed all **145 suites** across web/JavaScript, Go, and .NET for
 the implementation baseline. The latest local release gate passes **145 suites**,
 lint, the production build (**178 routes**), and `git diff --check`. The deployed source is
