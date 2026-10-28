@@ -238,6 +238,7 @@ test("route integration persists only the hashed account identity contract", asy
   assert.equal(accepted.status, 200);
   assert.equal(state.rows[0].account_key, accountKey);
   assert.equal(state.rows[0].account_identity_source, "resolver");
+  assert.equal(state.rows[0].account_identity_version, "sha256-v1");
 
   const rawAccount = await post(handler, { events: [event({
     event_id: "raw-account-event",
@@ -245,6 +246,13 @@ test("route integration persists only the hashed account identity contract", asy
     account_identity_source: "resolver",
   })] });
   assert.equal(rawAccount.status, 400);
+  const unsupportedVersion = await post(handler, { events: [event({
+    event_id: "unsupported-account-version",
+    account_key: accountKey,
+    account_identity_source: "resolver",
+    account_identity_version: "sha256-v2",
+  })] });
+  assert.equal(unsupportedVersion.status, 400);
 });
 
 test("legacy events remain source-null while versioned events require provenance", async () => {

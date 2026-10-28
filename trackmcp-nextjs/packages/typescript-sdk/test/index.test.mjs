@@ -229,6 +229,7 @@ test("account resolver emits a one-way account key and fails open", async () => 
   ingest.close();
   const event = received[0].events[0];
   assert.equal(event.account_identity_source, "resolver");
+  assert.equal(event.account_identity_version, "sha256-v1");
   assert.match(event.account_key, /^[0-9a-f]{64}$/);
   assert.equal(event.account_key.includes("acme"), false);
 

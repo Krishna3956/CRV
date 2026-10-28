@@ -27,6 +27,7 @@ export type TrackMCPFact = {
     transport?: CanonicalTrackMCPEvent["transport"];
     account_key?: string;
     account_identity_source?: CanonicalTrackMCPEvent["account_identity_source"];
+    account_identity_version?: CanonicalTrackMCPEvent["account_identity_version"];
     resource_audience?: CanonicalTrackMCPEvent["resource_audience"];
     resource_priority?: number;
     interaction_id_hash?: string;
@@ -171,6 +172,7 @@ export function projectTrackMCPFact(event: CanonicalTrackMCPEvent): TrackMCPFact
       transport: event.transport,
       account_key: bounded(event.account_key, 64),
       account_identity_source: event.account_identity_source,
+      account_identity_version: event.account_identity_version,
       ...(event.resource_audience ? { resource_audience: event.resource_audience } : {}),
       ...(boundedNonNegative(event.resource_priority, 1) !== undefined ? { resource_priority: boundedNonNegative(event.resource_priority, 1) } : {}),
       ...(bounded(event.interaction_id, 128) ? { interaction_id_hash: createHash("sha256").update(bounded(event.interaction_id, 128)!, "utf8").digest("hex") } : {}),

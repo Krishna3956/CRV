@@ -337,7 +337,7 @@ func TestAccountIdentityResolverHashesLocallyAndFailsClosed(t *testing.T) {
 	client.Capture(Event{EventType: "tool_call", MCPMethod: "tools/call"})
 	if len(client.queue) != 1 { t.Fatalf("expected one event, got %d", len(client.queue)) }
 	event := client.queue[0]
-	if event.AccountIdentitySource != "resolver" || len(event.AccountKey) != 64 { t.Fatalf("unexpected identity metadata: %#v", event) }
+	if event.AccountIdentitySource != "resolver" || event.AccountIdentityVersion != "sha256-v1" || len(event.AccountKey) != 64 { t.Fatalf("unexpected identity metadata: %#v", event) }
 	if event.AccountKey == "tenant-42" { t.Fatalf("resolver identity was not isolated: %#v", event) }
 	unsafeClient := New(Options{APIKey: "tmcp_test", AccountIDResolver: func() string { return "user@example.com" }})
 	unsafeClient.Capture(Event{EventType: "tool_call"})

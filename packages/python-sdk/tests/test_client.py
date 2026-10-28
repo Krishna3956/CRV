@@ -637,6 +637,7 @@ class TrackMCPClientTest(TestCase):
         client.capture({"event_type": "custom", "started_at": "2026-01-01T00:00:00Z"})
         event = client._events[0]
         self.assertEqual(event["account_identity_source"], "resolver")
+        self.assertEqual(event["account_identity_version"], "sha256-v1")
         self.assertRegex(event["account_key"], r"^[0-9a-f]{64}$")
         self.assertNotIn("acme", event["account_key"])
         client._timer.cancel()

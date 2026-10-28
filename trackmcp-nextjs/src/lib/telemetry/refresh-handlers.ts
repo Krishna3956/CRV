@@ -12,7 +12,7 @@ const MAX_ROWS = 500;
 // projection intentionally hashes the identifier and derives status only from
 // this query result. Omitting either field silently turns valid task events
 // into ordinary semantic facts with no transition history.
-const EVENT_COLUMNS = "event_id,event_type,service,environment,started_at,client_name,client_version,transport,account_key,account_identity_source,tool_name,duration_ms,payload_size_bytes,retry_number,result_type,interaction_id,interaction_link_source,retry_of_event_id,request_state_hash,input_request_count,input_response_count,resource_audience,resource_priority,is_error,success,error_class,error_code,task_id,payload";
+const EVENT_COLUMNS = "event_id,event_type,service,environment,started_at,client_name,client_version,transport,account_key,account_identity_source,account_identity_version,tool_name,duration_ms,payload_size_bytes,retry_number,result_type,interaction_id,interaction_link_source,retry_of_event_id,request_state_hash,input_request_count,input_response_count,resource_audience,resource_priority,is_error,success,error_class,error_code,task_id,payload";
 
 type QueryResult<T> = { data: T[] | null; error: { code?: string; message: string } | null };
 type Query = {

@@ -61,7 +61,7 @@ with required(table_name, column_name) as (values
   ('trackmcp_events','environment_id'), ('trackmcp_events','deployment_id'), ('trackmcp_events','sdk_version'),
   ('trackmcp_events','transport'), ('trackmcp_events','protocol_version'), ('trackmcp_events','mcp_method'),
   ('trackmcp_events','request_id'), ('trackmcp_events','task_id'), ('trackmcp_events','workflow_id'),
-  ('trackmcp_events','account_key'), ('trackmcp_events','account_identity_source'), ('trackmcp_events','catalog_kind'),
+  ('trackmcp_events','account_key'), ('trackmcp_events','account_identity_source'), ('trackmcp_events','account_identity_version'), ('trackmcp_events','catalog_kind'),
   ('trackmcp_events','catalog_item_count'), ('trackmcp_events','catalog_item_name_hashes'),
   ('trackmcp_events','catalog_item_uri_hashes'), ('trackmcp_events','result_type'), ('trackmcp_events','interaction_id'),
   ('trackmcp_events','interaction_link_source'), ('trackmcp_events','retry_of_event_id'),
@@ -182,6 +182,7 @@ from pg_constraint
 where conname in (
   'mcp_tools_submission_attribution_object_check',
   'trackmcp_events_account_identity_source_check',
+  'trackmcp_events_account_identity_version_check',
   'trackmcp_cli_device_sessions_redemption_id_hash_check',
   'trackmcp_privacy_deletion_batches_terminal_timestamps',
   'trackmcp_semantic_facts_fact_type_check'
@@ -193,7 +194,8 @@ select
   (select count(*) from public.mcp_tools where submission_attribution is not null and jsonb_typeof(submission_attribution) <> 'object')::bigint as invalid_attribution_rows,
   (select count(*) from public.trackmcp_cli_device_sessions where redemption_id_hash is not null and redemption_id_hash !~ '^[a-f0-9]{64}$')::bigint as invalid_redemption_hashes,
   (select count(*) from public.trackmcp_privacy_deletion_batches where returned_count < 0 or returned_count > 500 or affected_count < 0 or affected_count > 500)::bigint as invalid_deletion_batch_counts,
-  (select count(*) from public.trackmcp_events where account_key is not null and account_identity_source <> 'resolver')::bigint as invalid_identity_pairs;
+  (select count(*) from public.trackmcp_events where account_key is not null and account_identity_source <> 'resolver')::bigint as invalid_identity_pairs,
+  (select count(*) from public.trackmcp_events where (account_key is null and account_identity_version is not null) or (account_key is not null and account_identity_version <> 'sha256-v1'))::bigint as invalid_identity_versions;
 
 -- 8) Entity-read projection must remain hash-only and workspace scoped. This
 -- reports malformed rows without exposing URI, prompt, resource, or payload

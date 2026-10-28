@@ -22,7 +22,9 @@ header is a fixed delivery compatibility value and contains no customer data.
 Pass `AccountIdResolver` in `TrackMcpOptions` to enable resolver-linked
 account analytics. Return only a stable, already validated tenant/account
 handle; the SDK rejects credential-like values, hashes accepted values locally,
-and records only `account_identity_source` (`resolver` or `unresolved`).
+and records `account_identity_source` (`resolver` or `unresolved`) plus
+`account_identity_version: "sha256-v1"` for resolved keys. Future derivation
+rotations must use an explicit new version.
 
 For disconnects outside an MCP request, call
 `client.RecordTransportFailure("transport_closed", sessionId, durationMs)` or

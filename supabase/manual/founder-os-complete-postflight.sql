@@ -65,6 +65,7 @@ with required(table_name, column_name) as (
     ('trackmcp_events', 'workflow_id'),
     ('trackmcp_events', 'account_key'),
     ('trackmcp_events', 'account_identity_source'),
+    ('trackmcp_events', 'account_identity_version'),
     ('trackmcp_events', 'catalog_kind'),
     ('trackmcp_events', 'catalog_item_count'),
     ('trackmcp_events', 'catalog_item_name_hashes'),

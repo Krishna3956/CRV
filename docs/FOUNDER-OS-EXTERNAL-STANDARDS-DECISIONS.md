@@ -148,7 +148,13 @@ Do not reuse an ingestion key as an OAuth access token, and do not put either cr
 3. Add a retention job for raw events, derived facts, and optional diagnostics, with documented durations and a dry-run report.
 4. Add a workspace privacy/settings surface for telemetry opt-in, content diagnostics, retention, and deletion/export requests.
 5. Add OTel interoperability tests that round-trip Founder OS events without changing event names or timestamps.
-6. Add an identity-key version field before adopting server-side HMAC; this permits safe rotation without silently joining different pseudonym spaces.
+6. **Engineering boundary implemented on 2026-10-29:** added the explicit
+   `account_identity_version` namespace (`sha256-v1`) across the event contract,
+   ingest, facts, refresh projections, analytics identity maps, and TypeScript,
+   Go, Python, and .NET SDKs. The review-only migration backfills existing
+   SHA-256 keys. HMAC rotation and production migration/postflight remain
+   separate approvals; analytics treats legacy null versions as `sha256-v1`
+   only for backward-compatible reads.
 7. Add MCP OAuth discovery/401/PKCE integration tests if TrackMCP becomes a protected MCP resource.
 8. Add a data-quality dashboard showing evidence quality and source coverage; never hide “unknown” or “not observable” behind success percentages.
 9. Add a versioned migration/read-model strategy so metric definitions can evolve without rewriting historical facts.

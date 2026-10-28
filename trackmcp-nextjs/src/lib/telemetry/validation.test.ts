@@ -22,6 +22,16 @@ test("normalizes legacy and accepts versioned events", () => {
   assert.equal(normalizeTrackMCPEvent(baseEvent({ schema_version: "1" })).ok, false);
 });
 
+test("versions resolved account identities and preserves legacy key compatibility", () => {
+  const legacyKey = normalizeTrackMCPEvent(baseEvent({ account_key: "a".repeat(64), account_identity_source: "resolver" }));
+  assert.equal(legacyKey.ok, true);
+  if (legacyKey.ok) assert.equal(legacyKey.event.account_identity_version, "sha256-v1");
+  const explicit = normalizeTrackMCPEvent(baseEvent({ account_key: "b".repeat(64), account_identity_source: "resolver", account_identity_version: "sha256-v1" }));
+  assert.equal(explicit.ok, true);
+  assert.equal(normalizeTrackMCPEvent(baseEvent({ account_key: "c".repeat(64), account_identity_source: "resolver", account_identity_version: "sha256-v2" })).ok, false);
+  assert.equal(normalizeTrackMCPEvent(baseEvent({ account_identity_version: "sha256-v1" })).ok, false);
+});
+
 test("rejects invalid event types, IDs, timestamps, and negative measurements", () => {
   assert.equal(normalizeTrackMCPEvent(baseEvent({ event_type: "unknown" })).ok, false);
   assert.equal(normalizeTrackMCPEvent(baseEvent({ event_id: "" })).ok, false);

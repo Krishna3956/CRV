@@ -1,9 +1,11 @@
 import {
   TRACKMCP_LEGACY_SCHEMA_VERSION,
   TRACKMCP_SCHEMA_VERSION,
+  TRACKMCP_ACCOUNT_IDENTITY_VERSION,
   type CanonicalTrackMCPEvent,
   type TrackMCPEvent,
   type TrackMCPEventType,
+  type TrackMCPAccountIdentityVersion,
   type TrackMCPCorrelationHandleSource,
   type TrackMCPIntentSource,
   type TrackMCPObservationSource,
@@ -33,6 +35,7 @@ const CORRELATION_HANDLE_SOURCES = ["external", "issued", "missing"] as const;
 const OBSERVATION_SOURCES = ["client", "server"] as const;
 const INTENT_SOURCES = ["context_parameter", "external_callback", "fallback", "missing"] as const;
 const ACCOUNT_IDENTITY_SOURCES = ["resolver", "unresolved"] as const;
+const ACCOUNT_IDENTITY_VERSIONS = [TRACKMCP_ACCOUNT_IDENTITY_VERSION] as const;
 const RESULT_TYPES = ["complete", "input_required", "task"] as const;
 const INTERACTION_LINK_SOURCES = ["request_id", "external", "issued", "missing"] as const;
 const INGEST_SENSITIVE_KEYS = new Set([
@@ -302,8 +305,10 @@ export function normalizeTrackMCPEvent(value: unknown): EventValidationResult {
   }
   if (event.intent_source !== undefined && event.intent_source !== null && !INTENT_SOURCES.includes(event.intent_source as TrackMCPIntentSource)) return { ok: false, reason: "intent_source is unsupported", eventId };
   if (event.account_identity_source !== undefined && event.account_identity_source !== null && !ACCOUNT_IDENTITY_SOURCES.includes(event.account_identity_source as "resolver" | "unresolved")) return { ok: false, reason: "account_identity_source is unsupported", eventId };
+  if (event.account_identity_version !== undefined && event.account_identity_version !== null && !ACCOUNT_IDENTITY_VERSIONS.includes(event.account_identity_version as TrackMCPAccountIdentityVersion)) return { ok: false, reason: "account_identity_version is unsupported", eventId };
   if (event.account_key !== undefined && event.account_key !== null && (typeof event.account_key !== "string" || !/^[0-9a-f]{64}$/.test(event.account_key))) return { ok: false, reason: "account_key must be a SHA-256 hex identifier", eventId };
   if (event.account_key && event.account_identity_source !== "resolver") return { ok: false, reason: "account_identity_source is required for account_key", eventId };
+  if (event.account_identity_version && !event.account_key) return { ok: false, reason: "account_identity_version requires account_key", eventId };
   const context = sanitizeIntentText(event.context);
   if (event.context !== undefined && event.context !== null && !context) return { ok: false, reason: "context must be bounded and privacy-safe", eventId };
   if (event.intent_source !== undefined && event.intent_source !== null && event.intent_source !== "missing" && !context) return { ok: false, reason: "context is required for intent_source", eventId };
@@ -361,6 +366,7 @@ export function normalizeTrackMCPEvent(value: unknown): EventValidationResult {
     ...(inferredCatalogCount !== undefined ? { catalog_item_count: inferredCatalogCount } : {}),
     ...(context ? { context, intent_source: event.intent_source || "context_parameter" } : { intent_source: "missing" }),
     ...(event.missing_capability ? { missing_capability: sanitizeIntentText(event.missing_capability) } : {}),
+    ...(event.account_key ? { account_identity_version: event.account_identity_version || TRACKMCP_ACCOUNT_IDENTITY_VERSION } : {}),
     schema_version: event.schema_version || TRACKMCP_LEGACY_SCHEMA_VERSION,
   } as CanonicalTrackMCPEvent;
   const serialized = JSON.stringify(normalized);

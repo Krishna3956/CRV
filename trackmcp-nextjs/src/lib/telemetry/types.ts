@@ -11,6 +11,9 @@ export type TrackMCPSessionIdSource = "protocol" | "transport_generated" | "exte
 export type TrackMCPCorrelationHandleSource = "external" | "issued" | "missing";
 export type TrackMCPIntentSource = "context_parameter" | "external_callback" | "fallback" | "missing";
 export type TrackMCPAccountIdentitySource = "resolver" | "unresolved";
+/** Version of the one-way account identity derivation contract. */
+export type TrackMCPAccountIdentityVersion = "sha256-v1";
+export const TRACKMCP_ACCOUNT_IDENTITY_VERSION = "sha256-v1" as const;
 export type TrackMCPCatalogKind = "tools" | "resources" | "resource_templates" | "prompts";
 /** Protocol-level result state. Missing values remain backward-compatible and are treated as complete. */
 export type TrackMCPResultType = "complete" | "input_required" | "task";
@@ -48,6 +51,8 @@ export type TrackMCPEvent = {
   /** One-way bounded account identifier; never a raw email, token, or client identity. */
   account_key?: string;
   account_identity_source?: TrackMCPAccountIdentitySource;
+  /** Present whenever account_key is present; prevents silent joins across rotations. */
+  account_identity_version?: TrackMCPAccountIdentityVersion;
   tool_name?: string;
   tool_description?: string;
   tool_description_hash?: string;

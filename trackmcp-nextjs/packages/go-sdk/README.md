@@ -93,7 +93,9 @@ For privacy-safe entity reads, call `RecordEntityRead("resources", "resources/re
 To enable resolver-linked account analytics, return only a stable, already
 validated tenant/account handle. The SDK rejects credential-like values,
 hashes accepted values locally, and records `account_identity_source` as
-`resolver` or `unresolved`; the raw handle is never queued.
+`resolver` or `unresolved`; resolved keys also emit
+`account_identity_version: "sha256-v1"`. The raw handle is never queued, and
+future derivation rotations must use an explicit new version.
 
 After configuring the key, make one real tool call, flush, and confirm the
 event in Setup. Key acceptance alone is not proof that telemetry arrived.

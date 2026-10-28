@@ -1,6 +1,7 @@
 import { createHash, randomUUID } from "node:crypto";
 import { DEFAULT_MAX_BATCH_SIZE, DEFAULT_MAX_PAYLOAD_BYTES, DEFAULT_MAX_PAYLOAD_DEPTH, DEFAULT_MAX_PAYLOAD_KEYS, DEFAULT_MAX_QUEUE_BYTES, DEFAULT_MAX_QUEUE_EVENTS, DEFAULT_MAX_STRING_LENGTH, payloadByteLength, sanitizePayload, } from "./privacy.js";
 export const TRACKMCP_SCHEMA_VERSION = "1";
+export const TRACKMCP_ACCOUNT_IDENTITY_VERSION = "sha256-v1";
 // The public edge currently applies a managed browser/WAF rule that rejects
 // the default Node fetch user-agent before the request reaches the ingest
 // handler. Keep the SDK request identifiable without exposing runtime details
@@ -301,6 +302,7 @@ export class TrackMCPClient {
                 intent_source: intent.source,
                 account_key: account.key,
                 account_identity_source: account.source,
+                account_identity_version: account.version,
                 server_id: this.options.server_id,
                 server_version: this.options.server_version,
                 sdk_version: this.options.sdk_version,
@@ -313,7 +315,7 @@ export class TrackMCPClient {
                         this.diagnosticCounts.droppedEvents += 1;
                         return;
                     }
-                    prepared = this.prepareEvent({ ...hooked, account_key: account.key, account_identity_source: account.source }, source);
+                    prepared = this.prepareEvent({ ...hooked, account_key: account.key, account_identity_source: account.source, account_identity_version: account.version }, source);
                 }
                 catch {
                     this.diagnosticCounts.hookErrors += 1;
@@ -347,7 +349,7 @@ export class TrackMCPClient {
         try {
             const value = this.options.accountIdResolver({ eventType: event.event_type || "custom", mcpMethod: event.mcp_method, toolName: event.tool_name, requestId: event.request_id, sessionId: event.session_id, transport: event.transport });
             if (safeAccountId(value))
-                return { key: sha256(value.trim()), source: "resolver" };
+                return { key: sha256(value.trim()), source: "resolver", version: TRACKMCP_ACCOUNT_IDENTITY_VERSION };
         }
         catch {
             // Account identity is optional enrichment and must never affect MCP behavior.
