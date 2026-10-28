@@ -2,6 +2,24 @@
 
 Status: active autonomous audit, started 2026-10-21.
 
+## 2026-10-28 — modern identity fix and deployment preflight shipped live
+
+- [x] PR `#638` merged as `46d6aca5`, aligning the modern TypeScript client and
+  browser tester with canonical MCP 2026-07-28 result metadata for server
+  identity. Hosted CI `40721604012` passed all three language lanes after the
+  authoritative rerun.
+- [x] The post-merge deploy exposed and then closed a clean-runner packaging
+  defect: PR `#639` merged as `b659f13e` and now builds the reviewed Python
+  wheel/sdist before `package-release-audit` in the App Runner workflow.
+- [x] Hosted CI `40724264808` passed web/JavaScript, Go, and .NET. App Runner
+  workflow `40724264782` completed successfully, and authenticated smoke
+  `40726102995` passed with redacted evidence. The live origin reports runtime
+  SHA `b659f13e49dbb5ac06120327b68ae69a9e593711`; `/`, `/docs`, and
+  `/api/health` returned HTTP 200.
+- [ ] This milestone does not close the explicitly partial modern lifecycle,
+  customer-owned transport, OAuth, privacy, backup/PITR, or release-owner
+  gates recorded below.
+
 ## 2026-10-28 — final 2026-07-28 server identity metadata alignment
 
 - [x] The modern TypeScript client and browser MCP tester now read server
