@@ -1,6 +1,6 @@
 # Founder OS 100 Customer Readiness Ledger
 
-Last updated: 2026-10-28 (main `66be5ff4`; deployed application `66be5ff4` and immutable App Runner redeploy `40672911685` succeeded with image digest `sha256:cf96c0ce1a0c351f40da3aee7ec4e59eb7841d52ea4d95e22cf0e8304ec42a6a`; hosted TrackMCP CI `40672911351` and authenticated production smoke `40673960981` passed; scheduler deploy `40628036770`, authenticated smoke `40628409832`, schedule enablement `40628646879`, and health artifact `40629348992` prove the AWS worker-freshness path; customer-owned endpoint/protocol UAT, privacy acceptance, backup/PITR posture, and release-owner GO/NO-GO remain open)
+Last updated: 2026-10-28 (main `dde5e94d`; deployed application `dde5e94d` and immutable App Runner redeploy `40689262786` succeeded with image digest `sha256:75817e7405a72ad6a4ac5653543ce177acf9d1d993837ca684f4bdf8c21ce5a1`; hosted TrackMCP CI `40689262784` and authenticated production smoke `40690377977` passed; scheduler deploy `40628036770`, authenticated smoke `40628409832`, schedule enablement `40628646879`, and health artifact `40629348992` prove the AWS worker-freshness path; customer-owned endpoint/protocol UAT, privacy acceptance, backup/PITR posture, and release-owner GO/NO-GO remain open)
 The same-origin docs, auth, blog CTA fixes, regression guard, and hosted-runner verification gate are deployed and runtime-verified. Cloudflare permits browser-compatible requests, while its managed bot rule still returns HTML 403 to the default scripted user-agent; SDK delivery must use the compatible request boundary and retain a real authenticated UAT check.
 Latest freshness evidence: health workflow `40629348992` inspected the newly
 deployed scheduler's bounded worker-summary metrics. The current window has
@@ -25,6 +25,19 @@ and other external acceptance gates remain separate decisions.
 - [ ] This is an evidence path, not customer-owned evidence. The credentialed
   endpoint run, transport-owned reconnect/replay behavior, OAuth exchange, and
   release-owner acceptance remain open gates.
+
+## 2026-10-28 — customer-owned endpoint UAT harness release published
+
+- [x] PR `#624` merged to `main` as `dde5e94d`. Main CI `40689262784` passed
+  147 suites across the web/JavaScript, Go, and .NET lanes.
+- [x] App Runner deployment `40689262786` rolled out the immutable source with
+  image digest
+  `sha256:75817e7405a72ad6a4ac5653543ce177acf9d1d993837ca684f4bdf8c21ce5a1`.
+  Read-only production smoke, immutable release identity, and runtime-safety
+  checks passed; authenticated production smoke `40690377977` also passed.
+- [ ] The endpoint harness remains an evidence path, not customer-owned
+  evidence. No customer endpoint, reconnect/replay behavior, OAuth exchange,
+  or release-owner GO/NO-GO gate is claimed closed by this deployment.
 
 ## 2026-10-28 — OTEL edge-copy release published
 

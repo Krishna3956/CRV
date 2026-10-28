@@ -10,7 +10,7 @@ test("first-100 external-gate register stays an explicit HOLD record", () => {
   assert.match(register, /Status:\s*\*\*HOLD\*\*/);
   assert.match(register, /Updated:\s*2026-10-28/);
   assert.match(register, /main.*HEAD/s);
-  assert.match(register, /145 suites/);
+  assert.match(register, /147 suites/);
   assert.match(register, /17[78]-route/);
   assert.match(register, /do not change the application image|does not change the deployed image/i);
 });
@@ -24,10 +24,10 @@ test("all operator and infrastructure gates remain named and open until evidence
 
 test("the release record carries the same current source gate evidence", () => {
   assert.match(releaseRecord, /current repository source is `main` at `HEAD`/i);
-  assert.match(releaseRecord, /latest local release gate\s+passes\s+\*\*145\s+suites\*\*/i);
+  assert.match(releaseRecord, /latest local release gate\s+passes\s+\*\*147\s+suites\*\*/i);
   assert.match(releaseRecord, /178 routes/);
   assert.match(releaseRecord, /transient App Runner\s+smoke retry boundary/);
-  assert.match(releaseRecord, /deployed application is\s+immutable source `66be5ff4`/);
+  assert.match(releaseRecord, /deployed application is\s+immutable source `dde5e94d`/);
 });
 
 test("scheduler log evidence permission artifact is least-privilege and explicit", () => {

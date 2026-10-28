@@ -9,14 +9,14 @@ promise that every product capability is complete.
 ## Verified and shipped
 
 - `origin/main` is `HEAD` (active pilot evidence baseline). The latest deployed
-  application runtime is immutable `66be5ff4ac5b9d4204cb24a765a71eea2210c010`
-  via App Runner workflow `40672911685`, with read-only production smoke,
+  application runtime is immutable `dde5e94d44c665b20033ed3b2ab56e5accc593a4`
+  via App Runner workflow `40689262786`, with read-only production smoke,
   immutable identity, and runtime-safety checks passed. Hosted TrackMCP CI
-  `40672911351` passed 145 cross-language suites, and authenticated production
-  smoke `40673960981` passed against the same release. AWS worker freshness
+  `40689262784` passed 147 cross-language suites, and authenticated production
+  smoke `40690377977` passed against the same release. AWS worker freshness
   remains proven by health artifact `40629348992`; the alert evaluator path is
   published but manual-only and disabled-first.
-- The latest local release gate passes 145 suites, lint, the 178-route
+- The latest local release gate passes 147 suites, lint, the 178-route
   production build, and `git diff --check`.
 - Production schema postflights verified required tables, indexes, functions,
   RLS/privilege boundaries, constraints, integrity aggregates, and catalog
