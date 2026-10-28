@@ -2,6 +2,20 @@
 
 Status: active autonomous audit, started 2026-10-21.
 
+## 2026-10-29 — catalog-history cursor privacy boundary closed
+
+- [x] The v1 analytics projection no longer returns a raw `discovered_at`
+  timestamp as the catalog-history continuation value. It now emits a
+  versioned opaque token containing only a one-way workspace binding and the
+  bounded timestamp needed for the next query.
+- [x] Decoder tests cover round-trip behavior, malformed values, invalid
+  timestamps, and cross-workspace replay. Catalog route and tenant-isolation
+  suites pass; raw workspace IDs and timestamps are not present in emitted
+  cursors.
+- [ ] Pagination remains Partial until durable cross-transport snapshot joins
+  and authenticated customer-endpoint UAT are completed; this milestone does
+  not claim full MCP pagination interoperability.
+
 ## 2026-10-28 — canonical modern request protocol metadata shipped live
 
 - [x] The TypeScript modern client and browser MCP tester now include the

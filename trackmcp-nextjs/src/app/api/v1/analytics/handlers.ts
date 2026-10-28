@@ -13,6 +13,7 @@ import { buildTrackMCPDataTrust } from "../../../../lib/telemetry/data-trust.ts"
 import { classifyTrackMCPProtocolSignal, protocolFamilyForCapabilityName, protocolFamilyForMethod, type TrackMCPProtocolFamily, type TrackMCPProtocolSignal } from "../../../../lib/telemetry/semantic.ts";
 import { evaluateWorkerHealth } from "../../../../lib/telemetry/worker-health.ts";
 import { correlateCatalogNotifications, type CatalogNotificationInput } from "../../../../lib/telemetry/catalog-correlations.ts";
+import { decodeCatalogCursor, encodeCatalogCursor } from "../../../../lib/telemetry/catalog-cursor.ts";
 
 type EventRow = {
   event_id: string;
@@ -132,6 +133,7 @@ export function createAnalyticsHandler(getAdmin: typeof getSupabaseAdmin = getSu
     if (!membership) return NextResponse.json({ error: requestedWorkspaceId ? "You do not have access to that workspace." : "Create a workspace first." }, { status: 404 });
     workspaceId = membership.workspace_id;
   }
+  if (!workspaceId) return NextResponse.json({ error: "Workspace context is unavailable." }, { status: 401 });
 
   const requestedDays = Number(url.searchParams.get("days") || 30);
   const fromParam = url.searchParams.get("from");
@@ -182,7 +184,7 @@ export function createAnalyticsHandler(getAdmin: typeof getSupabaseAdmin = getSu
   // yet, preserve the current analytics response and expose a truthful status
   // instead of turning the whole dashboard into a 500.
   const catalogBeforeParam = url.searchParams.get("catalog_before");
-  const catalogBefore = catalogBeforeParam && Number.isFinite(Date.parse(catalogBeforeParam)) ? new Date(catalogBeforeParam).toISOString() : null;
+  const catalogBefore = decodeCatalogCursor(catalogBeforeParam, workspaceId);
   const catalogQuery = supabase.from("trackmcp_catalog_versions")
     .select("id,server_id,environment_id,catalog_kind,item_count,item_name_hashes,item_uri_hashes,snapshot_hash,previous_snapshot_id,complete,truncated,diff,discovered_at")
     .eq("workspace_id", workspaceId).gte("discovered_at", since).order("discovered_at", { ascending: false });
@@ -1121,7 +1123,9 @@ export function createAnalyticsHandler(getAdmin: typeof getSupabaseAdmin = getSu
     unused_tools: unusedTools.slice(0, MAX_PUBLIC_LIST_ITEMS), workflows: workflowRows.slice(0, 100), outcomes: explicitOutcomes.slice(0, MAX_PUBLIC_DIMENSION_ITEMS),
     founder_os: { facts: allFactsAggregate, groups: outcomeGroups, identity_coverage: identityCoverage, identity_source_counts: identitySourceCounts, tasks: taskLifecycles },
     catalog_versions: catalogVersions,
-    catalog_next_cursor: catalogHasMore ? catalogVersions.at(-1)?.discovered_at || null : null,
+    catalog_next_cursor: catalogHasMore && catalogVersions.at(-1)?.discovered_at
+      ? encodeCatalogCursor(workspaceId, catalogVersions.at(-1)?.discovered_at || "")
+      : null,
     catalog_version_status: catalogVersionStatus,
     refresh_status: { status: refreshStatus, ...refreshCounts, max_queue_lag_ms: maxQueueLagMs, max_attempt_count: maxAttemptCount, last_successful_run: lastSuccessfulRun, worker_health: workerHealth },
     data_trust: buildTrackMCPDataTrust({ generatedAt, querySince: since, sourceEventCount: events.length, returnedEventCount: data?.length || 0, queryLimit: analyticsQueryLimit, observedThrough: events.length ? events[events.length - 1].started_at : null }), insights });
