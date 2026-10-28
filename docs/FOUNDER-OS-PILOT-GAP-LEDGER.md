@@ -10,8 +10,8 @@ Status: active autonomous audit, started 2026-10-21.
   consumers, dashboard accessibility/pointer contracts, docs navigation, and
   external-gate truth contracts.
 - [x] Lint passed and the production build generated **178 routes**. The
-  deployed runtime is the immutable `cfbcc54b` release verified by App Runner
-  deployment `40758058500`; its post-deploy smoke, identity, and safety checks
+  deployed runtime is the immutable `c492dac0` release verified by App Runner
+  deployment `40760941895`; its post-deploy smoke, identity, and safety checks
   passed.
 - [ ] No remaining engineering contract is being hidden by this recheck. The
   open rows are still external or owner-controlled: credentialed customer
@@ -39,8 +39,8 @@ Status: active autonomous audit, started 2026-10-21.
 ## 2026-10-29 — post-PR #653 source/runtime lineage reconciled
 
 - [x] `main` and `origin/main` point at
-  `cfbcc54bf30fe1e975d17b9f3232b23af3e11ff1`.
-- [x] Hosted main CI `40758058405` and App Runner deployment `40758058500`
+  `c492dac0c9a3ec57fcc2afc7a45baddf160b7a68`.
+- [x] Hosted main CI `40760941766` and App Runner deployment `40760941895`
   passed. Direct live checks for `/`, `/docs`, and `/api/health` returned HTTP
   200; health reported the same immutable SHA.
 - [x] The readiness snapshot, pilot gap ledger, and handoff records now point
