@@ -5,6 +5,8 @@ name: Deploy refresh scheduler
 # may enable the five-minute schedule or collect recurring evidence.
 on:
   push:
+    branches:
+      - main
     paths:
       - "trackmcp-nextjs/workers/refresh-scheduler/**"
       - ".github/workflows/deploy-refresh-scheduler.yml"
