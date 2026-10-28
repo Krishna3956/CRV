@@ -2097,7 +2097,7 @@ const isFresh = Date.now() < freshUntil;`),
       faq("Is every MCP error an HTTP error?", "No. MCP messages can carry protocol errors and tool-level error results independently of the transport status code."),
       faq("Why are request IDs important?", "They let a client match responses to requests, which is essential when several operations are in flight at the same time."),
       links([
-        { label: "Official MCP messages specification", href: "https://modelcontextprotocol.io/specification/2025-11-25/basic/messages" },
+        { label: "Official MCP messages specification", href: "https://modelcontextprotocol.io/specification/2026-07-28/basic#messages" },
         { label: "How to debug MCP tool errors", href: "/blog/how-to-debug-mcp-tool-errors" },
         { label: "MCP tool schemas", href: "/blog/mcp-tool-schemas" },
       ]),
