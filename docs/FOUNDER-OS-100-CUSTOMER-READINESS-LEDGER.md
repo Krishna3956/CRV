@@ -2,6 +2,20 @@
 
 Last updated: 2026-10-29 (main `c492dac0`; deployed application `c492dac0` and immutable App Runner deployment `40760941895` are healthy; bounded privacy execution and synthetic-evidence boundaries are published with focused tests; customer-owned endpoint/protocol UAT, privacy acceptance, backup/PITR posture, and release-owner GO/NO-GO remain open)
 
+## 2026-10-29 — retention preview boundary implemented
+
+- [x] Added a pure, typed retention-preview worker covering all four v1
+  datasets. Plans are workspace-bound and policy-versioned; cutoffs are
+  derived from one fixed `as_of` timestamp; batches are bounded, resumable,
+  abortable, and audit-required; no raw payloads are read or written by the
+  worker.
+- [x] Added focused release-gate coverage for invalid plans/scopes, cutoff
+  calculation, opaque cursor progression, bounded counts, abort/resume, audit
+  completion, and the explicit no-delete policy.
+- [ ] Retention remains preview-only. A reviewed storage adapter, approved
+  scheduler/dead-letter/recovery procedure, and privacy/release-owner approval
+  are still required before destructive execution can be enabled.
+
 ## 2026-10-29 — PR #654 runtime and ledger reconciliation
 
 - [x] PR `#654` merged the synthetic-evidence boundary as

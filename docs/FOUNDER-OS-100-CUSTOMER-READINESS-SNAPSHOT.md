@@ -51,6 +51,10 @@ and [pilot release record](FOUNDER-OS-100-CUSTOMER-PILOT-RELEASE-RECORD.md).
   retained canary rows are explicitly classified as synthetic evidence before
   they reach dashboard or API consumers; the dashboard preserves the visible
   test-evidence banner.
+- Retention now has a typed, policy-versioned, workspace-scoped preview worker
+  with immutable cutoffs, bounded resumable batches, audit completion, and an
+  explicit no-delete policy. This is engineering evidence only; production
+  cleanup remains disabled pending adapter, recovery, and owner approval.
 - The published-artifact audit now scans the exact npm tarballs and Python
   wheel/sdist selected for release and rejects credential-shaped values in
   runtime files; Python artifacts are also required to match the source
@@ -75,6 +79,8 @@ These are not source-code failures and must not be silently marked green:
    bounded deletion execution engine is implemented but disabled by default;
    production deletion remains review-only until the approved storage adapter,
    recovery rehearsal, and legal/privacy acceptance are complete.
+   Retention cleanup is likewise preview-only until its reviewed adapter,
+   scheduler/recovery procedure, and privacy/release-owner approval exist.
 4. Synthetic reliability-data hygiene acceptance: the API/dashboard boundary
    now labels canary rows as synthetic evidence; release-owner acceptance is
    still required for the retained historical rows and no customer-health
