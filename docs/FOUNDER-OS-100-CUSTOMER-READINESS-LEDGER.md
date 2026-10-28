@@ -4086,3 +4086,17 @@ a failed product gate or a Supabase plan warning.
   (artifact `12785237813`).
 - [ ] This materially improves the current recovery window but does not close
   sustained scheduled cadence, the freshness SLO, or release-owner GO/NO-GO.
+
+### 2026-10-28 OTEL edge-copy reconciliation
+
+- [x] Dashboard Setup, API documentation, and the OpenTelemetry guide now state
+  the observed boundary precisely: current SDK delivery and browser-compatible
+  requests reach the public edge, while some default automated server-to-server
+  user agents can receive an HTML/Cloudflare HTTP 403 before the receiver. An
+  HTML 403 is explicitly rejected telemetry, not an accepted span.
+- [x] The user-facing guidance points controlled collector verification at the
+  trusted App Runner origin and no longer claims that all server-to-server OTEL
+  writes are blocked or that SDK delivery is pending an unspecified edge fix.
+- [ ] Broad customer-owned collector reachability through the public edge still
+  requires an accepted edge policy and credentialed UAT; this wording correction
+  does not close that external gate or release-owner GO/NO-GO.

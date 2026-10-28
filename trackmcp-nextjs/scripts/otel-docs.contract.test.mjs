@@ -23,11 +23,12 @@ test("OpenTelemetry docs provide actionable setup and native-SDK CTAs", () => {
   assert.match(otelDocs, /Use the native SDK guide/);
   assert.match(otelDocs, /cursor-pointer/);
   assert.match(otelDocs, /focus-visible:ring/);
-  assert.match(otelDocs, /HTTP 403/);
-  assert.match(otelDocs, /not an accepted span/i);
+  assert.match(otelDocs, /HTML 403/);
+  assert.match(otelDocs, /rejected telemetry/i);
 });
 
 test("API docs disclose the public-edge OTEL write limitation", () => {
+  assert.match(apiDocs, /default automated server-to-server user agents/);
   assert.match(apiDocs, /Cloudflare HTTP 403/);
   assert.match(apiDocs, /rejected telemetry/i);
 });
