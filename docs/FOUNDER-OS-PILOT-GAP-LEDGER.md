@@ -14,6 +14,17 @@ Status: active autonomous audit, started 2026-10-21.
 - Full OAuth client/PKCE, consent, token exchange, refresh, revocation, tenant
   binding, and customer-owned interoperability remain open by design.
 
+## 2026-10-28 — current-source authenticated read-model smoke reverified
+
+- Read-only production smoke `40710093943` passed all 37 bounded checks for
+  source `d8b806d2c5ea4cf813079b55ac22c1d28ae8fc74`, covering both workspace
+  scopes, v2 analytics projections, legacy read models, Action Queue API-key
+  denial, and revoked-key rejection. The run changed no production data.
+- Guarded transport smoke `40709815397` and disposable device-flow smoke
+  `40709954314` completed safely but skipped because their repository secrets
+  are absent. The remaining credential-gated transport/activation evidence is
+  recorded as open rather than treated as a pass.
+
 ## 2026-10-28 — bounded OAuth metadata discovery added to endpoint UAT
 
 - The customer-owned endpoint UAT now checks RFC 9728 protected-resource
