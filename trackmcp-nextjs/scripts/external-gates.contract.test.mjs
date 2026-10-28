@@ -27,7 +27,8 @@ test("the release record carries the same current source gate evidence", () => {
   assert.match(releaseRecord, /latest local release gate\s+passes\s+\*\*148\s+suites\*\*/i);
   assert.match(releaseRecord, /178 routes/);
   assert.match(releaseRecord, /transient App Runner\s+smoke retry boundary/);
-  assert.match(releaseRecord, /deployed application is\s+immutable source `8e3b6183`/);
+  assert.match(releaseRecord, /deployed application is\s+immutable source `7763e05f`/);
+  assert.match(releaseRecord, /2c0cdc0f54d74a37353a33fb25a56e79ef4e024f/);
 });
 
 test("scheduler log evidence permission artifact is least-privilege and explicit", () => {

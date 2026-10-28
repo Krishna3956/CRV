@@ -1,6 +1,21 @@
 # Founder OS 100 Customer Readiness Ledger
 
-Last updated: 2026-10-28 (main `7763e05f`; deployed application `7763e05f` and immutable App Runner deployment `40729507033` succeeded; PR `#641` merged and hosted TrackMCP CI `40729507069` passed; authenticated smoke `40732381275` passed; the canonical modern protocol metadata fix is live; customer-owned endpoint/protocol UAT, privacy acceptance, backup/PITR posture, and release-owner GO/NO-GO remain open)
+Last updated: 2026-10-28 (main `2c0cdc0f`; deployed application `7763e05f` and immutable App Runner deployment `40729507033` succeeded; PR `#643` merged and hosted TrackMCP CI `40735717782` passed; authenticated smoke `40732381275` passed; the canonical modern protocol metadata fix is live; customer-owned endpoint/protocol UAT, privacy acceptance, backup/PITR posture, and release-owner GO/NO-GO remain open)
+
+## 2026-10-28 — current evidence reconciliation
+
+- [x] PR `#643` merged as `2c0cdc0f54d74a37353a33fb25a56e79ef4e024f`, updating
+  the acceptance matrix, external-gate register, release record, and this
+  ledger so current source (`2c0cdc0f`) cannot be confused with the deployed
+  application (`7763e05f`).
+- [x] Hosted TrackMCP CI `40735717782` passed all web/JavaScript, Go, and .NET
+  lanes. The docs-only merge did not trigger a new application deployment;
+  the live runtime remains the verified App Runner release `7763e05f`.
+- [x] The live origin was rechecked at `/`, `/docs`, and `/api/health`; all
+  returned HTTP 200 and `/api/health` reported `7763e05f`.
+- [ ] External release gates remain open: owner GO/NO-GO, Supabase recovery
+  posture, privacy/synthetic-data acceptance, and credentialed customer
+  endpoint/key-lifecycle UAT.
 
 ## 2026-10-28 — canonical modern protocol metadata deployed
 
@@ -34,11 +49,11 @@ Last updated: 2026-10-28 (main `7763e05f`; deployed application `7763e05f` and i
   The journey, What they're doing, Did it work, and What's broken are primary;
   Resources & prompts, Who's using it, Evidence, and Setup are grouped under
   More. This is an intentional navigation grouping, not an absent feature.
-- [x] Confirmed `main` and `origin/main` are identical at `28cf0497`, with no
+- [x] Confirmed `main` and `origin/main` are identical at `2c0cdc0f`, with no
   tracked uncommitted changes. The only untracked paths are the intentional
   `docs/codex-handoff/` and `tmp/` working directories.
 - [x] Rechecked the direct App Runner health endpoint. It returns `status: ok`
-  and immutable runtime SHA `8e3b61836432e1b045b539857fb8639d9d464c3f`.
+  and immutable runtime SHA `7763e05f9e62c9f3349ba20596c208d81cca08c9`.
 - [x] Saved the handoff at this source SHA. The next session should begin from
   this ledger entry and must not infer that external acceptance gates are
   closed merely because the engineering release is published and healthy.
