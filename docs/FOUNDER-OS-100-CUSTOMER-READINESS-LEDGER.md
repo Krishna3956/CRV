@@ -2,6 +2,21 @@
 
 Last updated: 2026-10-29 (main `HEAD`; deployed application `c6d5f904` and immutable App Runner deployment `40748297706` are healthy; catalog-history cursors are now opaque and workspace-bound with focused privacy/tenant tests; customer-owned endpoint/protocol UAT, privacy acceptance, backup/PITR posture, and release-owner GO/NO-GO remain open)
 
+## 2026-10-29 — bounded catalog predecessor lineage
+
+- [x] The analytics read model now joins each page's `previous_snapshot_id`
+  against the same workspace and returns only bounded predecessor metadata:
+  hash-only version, timestamp, kind, item counts, completeness, truncation,
+  and privacy-safe diff fields. Missing predecessors are disclosed as
+  `not_in_window`; no raw catalog names, URIs, payloads, or cross-workspace
+  rows are returned.
+- [x] The v2 catalogs route projects the predecessor object through the same
+  hash/count allowlist. Route integration, catalog-snapshot, and tenant
+  isolation tests pass.
+- [ ] The matrix remains Partial for cross-transport durability and
+  authenticated customer-endpoint UAT; this milestone does not claim complete
+  MCP pagination interoperability.
+
 ## 2026-10-29 — opaque workspace-bound catalog-history cursors
 
 - [x] Replaced the catalog-history API's raw timestamp continuation value with

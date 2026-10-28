@@ -2,6 +2,18 @@
 
 Status: active autonomous audit, started 2026-10-21.
 
+## 2026-10-29 — bounded predecessor lineage added to catalog history
+
+- [x] The workspace-scoped analytics projection now resolves
+  `previous_snapshot_id` through a bounded same-tenant join and exposes only
+  hash/count/completeness/diff metadata. The v2 route preserves the explicit
+  `available`, `not_in_window`, and `not_requested` states.
+- [x] Route, tenant-isolation, catalog-snapshot, and payload-suppression tests
+  cover the lineage path. No catalog content or workspace identifier is added
+  to the predecessor projection.
+- [ ] Cross-transport durability and authenticated customer-endpoint UAT remain
+  explicit partial/external boundaries in the protocol matrix.
+
 ## 2026-10-29 — catalog-history cursor privacy boundary closed
 
 - [x] The v1 analytics projection no longer returns a raw `discovered_at`
