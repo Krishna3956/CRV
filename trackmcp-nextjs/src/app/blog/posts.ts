@@ -1,4 +1,5 @@
 import type { ArtKey } from "./art";
+import { nextBatch } from "./next-batch";
 
 export type Block =
   | { t: "p"; c: string }
@@ -36,6 +37,7 @@ const links = (items: { label: string; href: string }[]): Block => ({ t: "links"
 const callout = (title: string, c: string): Block => ({ t: "callout", title, c });
 
 export const posts: Post[] = [
+  ...nextBatch,
   {
     slug: "trackmcp-cli-activation-release",
     title: "TrackMCP CLI Activation: A Faster Path from Install to First Signal",
