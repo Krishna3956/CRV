@@ -8,6 +8,19 @@ commit and the operator accepts the listed limitations.
 
 ## Current deployed baseline — 2026-10-28
 
+The current baseline is immutable commit `7763e05f9e62c9f3349ba20596c208d81cca08c9`.
+App Runner deployment `40729507033` succeeded on rerun attempt 2 after a
+transient first-attempt warm-up 502; the final release gate, image binding,
+rollout, read-only smoke, immutable identity, and runtime-safety checks passed.
+Main CI `40729507069` and authenticated production smoke `40732381275` also
+passed. Live `/api/health` reports this exact SHA, and `/` plus `/docs` return
+HTTP 200. The source change is the canonical MCP 2026-07-28 per-request
+protocol-version metadata alignment. The release remains Draft/HOLD because
+the owner, backup/recovery, privacy acceptance, and customer-owned
+lifecycle/transport gates are still open.
+
+The prior runtime baseline and historical evidence remain below.
+
 App Runner deployment `40695080113` completed successfully for immutable
 commit `8e3b61836432e1b045b539857fb8639d9d464c3f` with image digest
 `sha256:bb8c89a7a3794b83c129681310e423e007c9096cba9f4398cf84ebf3392d8cb0`.
