@@ -3909,3 +3909,14 @@ a failed product gate or a Supabase plan warning.
 - [ ] Customer-owned endpoint interoperability, transport-owned reconnect and
   replay behavior, authenticated production MRTR lifecycle UAT, and
   release-owner approval remain open. MRTR remains Partial for pilot claims.
+
+### 2026-10-28 hosted MRTR transport verification
+
+- [x] TrackMCP CI `40613570155` passed all web/JavaScript, Go, and .NET lanes.
+- [x] App Runner deployment `40613570183` passed rollout, production smoke,
+  immutable release identity, and runtime-safety checks.
+- [x] Authenticated production smoke `40614311671` passed against the deployed
+  candidate; refresh-health run `40614305812` also passed.
+- [ ] Customer-owned endpoint interoperability, transport-owned reconnect and
+  replay semantics, authenticated MRTR lifecycle UAT, privacy acceptance, and
+  release-owner GO/NO-GO remain open. No full MRTR conformance claim is made.

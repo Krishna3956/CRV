@@ -1790,3 +1790,11 @@ production transport UAT.
   unknown labels. A fixture covers all four supported transports and the
   complete local **145-suite** release gate passed. This is lifecycle evidence
   coverage, not customer-owned endpoint interoperability or full MRTR support.
+
+- 2026-10-28: Hosted verification completed for the transport-coverage
+  milestone. TrackMCP CI `40613570155` passed web/JavaScript, Go, and .NET;
+  App Runner deployment `40613570183` passed rollout, production smoke,
+  immutable identity, and runtime safety; authenticated smoke `40614311671`
+  passed against the deployed candidate; and refresh-health run `40614305812`
+  passed. This verifies the bounded transport projection in the hosted
+  candidate, not customer-owned endpoint interoperability or full MRTR support.
