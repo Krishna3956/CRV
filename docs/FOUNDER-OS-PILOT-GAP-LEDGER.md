@@ -2,6 +2,25 @@
 
 Status: active autonomous audit, started 2026-10-21.
 
+## 2026-10-28 — published-artifact secret and version audit hardened
+
+- [x] The package release audit now inspects the exact npm tarballs produced by
+  `npm pack` for `@trackmcp/sdk` and `@trackmcp/cli`, plus the Python wheel and
+  source distribution selected for release. Runtime files are scanned for
+  credential-shaped assignments, bearer values, API keys, device codes, user
+  codes, and redemption identifiers; bounded test/example fixtures remain
+  explicitly classified as fixtures.
+- [x] The Python artifact preflight now reads the version from `pyproject.toml`
+  and refuses to reuse stale ignored artifacts from an older release. The
+  artifact contract asserts that wheel and sdist filenames match that exact
+  source version.
+- [x] Focused package, Python artifact, and secret-scope checks pass. The full
+  local release gate passes **148 suites**, lint passes, and the production
+  build generates **178 routes**.
+- [ ] This closes release-artifact hygiene evidence only. It does not publish a
+  new package version or close the external Go/.NET publication, credentialed
+  UAT, privacy, backup/PITR, or release-owner gates.
+
 ## 2026-10-28 — OAuth metadata boundary evidence published
 
 - PR `#632` merged the corrected metadata-only probe and three explicit local
