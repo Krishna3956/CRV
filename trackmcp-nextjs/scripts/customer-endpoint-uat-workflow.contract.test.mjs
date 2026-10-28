@@ -19,6 +19,7 @@ test("customer endpoint UAT installs the SDK and uploads only the redacted repor
   assert.match(workflow, /customer-endpoint-uat\.mjs/);
   assert.match(workflow, /Upload redacted UAT evidence/);
   assert.match(workflow, /trackmcp-customer-endpoint-uat\.json/);
+  assert.doesNotMatch(workflow, /TRACKMCP_CUSTOMER_ENDPOINT_UAT_ALLOW_PRIVATE/);
 });
 
 test("customer endpoint UAT is explicit about transport and protocol version", () => {

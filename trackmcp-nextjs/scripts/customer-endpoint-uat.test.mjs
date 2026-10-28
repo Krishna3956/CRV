@@ -18,10 +18,12 @@ test("customer endpoint UAT uses only the reviewed official transports", () => {
   assert.match(source, /transportName !== "sse"/);
   assert.match(source, /redirectPolicy: "same-origin"/);
   assert.match(source, /setProtocolVersion/);
+  assert.match(source, /listResourceTemplates/);
 });
 
 test("customer endpoint UAT has SSRF and redirect boundaries", () => {
   assert.match(source, /parsed\.protocol !== "https:"/);
+  assert.match(source, /localHttpFixture/);
   assert.match(source, /parsed\.username/);
   assert.match(source, /parsed\.search/);
   assert.match(source, /isPrivateHostname/);

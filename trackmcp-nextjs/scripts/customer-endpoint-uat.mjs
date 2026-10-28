@@ -54,10 +54,12 @@ function isPrivateHostname(hostname) {
 function parseEndpoint(value, label) {
   let parsed;
   try { parsed = new URL(value); } catch { fail("invalid_endpoint", `${label} must be an absolute URL.`); }
-  if (parsed.protocol !== "https:" || parsed.username || parsed.password || parsed.search || parsed.hash) {
-    fail("unsafe_endpoint", `${label} must be HTTPS without credentials, query, or fragment.`);
+  const privateTarget = isPrivateHostname(parsed.hostname);
+  const localHttpFixture = allowPrivate && privateTarget && parsed.protocol === "http:";
+  if ((!localHttpFixture && parsed.protocol !== "https:") || parsed.username || parsed.password || parsed.search || parsed.hash) {
+    fail("unsafe_endpoint", `${label} must be HTTPS without credentials, query, or fragment (loopback HTTP is allowed only with the explicit private fixture override).`);
   }
-  if (isPrivateHostname(parsed.hostname) && !allowPrivate) {
+  if (privateTarget && !allowPrivate) {
     fail("private_endpoint", `${label} resolves to a private or local hostname; set the explicit private-target override for a controlled fixture.`);
   }
   return parsed;
@@ -66,7 +68,7 @@ function parseEndpoint(value, label) {
 function parseTrustedBase(value) {
   const parsed = parseEndpoint(value, "TrackMCP base URL");
   const trusted = parsed.hostname === "trackmcp.com" || parsed.hostname === "app.trackmcp.com" || parsed.hostname.endsWith(".awsapprunner.com");
-  if (!trusted) fail("untrusted_ingest_origin", "TrackMCP base URL is outside the approved production origin set.");
+  if (!trusted && !(allowPrivate && isPrivateHostname(parsed.hostname))) fail("untrusted_ingest_origin", "TrackMCP base URL is outside the approved production origin set.");
   return parsed;
 }
 
@@ -184,6 +186,7 @@ async function main() {
     checks = [
       await probe("tools/list", () => client.listTools()),
       await probe("resources/list", () => client.listResources()),
+      await probe("resources/templates/list", () => client.listResourceTemplates()),
       await probe("prompts/list", () => client.listPrompts()),
     ];
     if (checks.some((check) => check.outcome === "failed")) fail("discovery_failed", "At least one MCP discovery operation failed.", checks);
