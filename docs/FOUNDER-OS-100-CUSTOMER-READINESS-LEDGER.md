@@ -3979,3 +3979,15 @@ a failed product gate or a Supabase plan warning.
   `freshness_slo=within_budget` (artifact `12784998036`).
 - [ ] This improves transient startup resilience but does not close repeated
   scheduled cadence, sustained freshness SLO, or release-owner GO/NO-GO.
+
+### 2026-10-28 refresh-health evidence checkpoint
+
+- [x] Health workflow `40616155470` completed with an explicit `warning` and
+  artifact `12785007710`: historical worker failures/incomplete execution and
+  a freshness budget exceedance remain visible, with only `1/3` required
+  GitHub scheduled samples.
+- [x] AWS evidence in the same report proves four scheduler invocations and
+  four end-to-end success markers with zero AWS-reported errors.
+- [ ] Sustained application cadence still requires repeated scheduled samples
+  and a fresh bounded queue-lag window; this checkpoint does not close the
+  pilot freshness SLO or release-owner GO/NO-GO.

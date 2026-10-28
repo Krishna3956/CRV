@@ -1839,3 +1839,12 @@ production transport UAT.
   `freshness_slo=within_budget`; redacted artifact `12784998036` is retained.
   Repeated scheduled cadence and the final pilot-owner freshness decision
   remain open.
+
+- 2026-10-28: Refresh-health workflow `40616155470` completed with an explicit
+  `warning`, not a false green: the bounded evaluation reported historical
+  worker failures/incomplete execution and a freshness budget exceedance, with
+  only one of three required GitHub scheduled samples. AWS CloudWatch evidence
+  independently proved four scheduler invocations and four end-to-end success
+  markers in the window (artifact `12785007710`). This narrows the remaining
+  freshness gate to repeated GitHub/application samples and owner acceptance;
+  the warning is preserved rather than hidden.
