@@ -1,6 +1,6 @@
 # Founder OS 100 Customer Readiness Ledger
 
-Last updated: 2026-10-29 (main `9c46a1a5`; deployed application `9c46a1a5` and App Runner deployment `40786382710` are healthy; bounded privacy execution, synthetic-evidence, retention-preview, ingest-metadata, payload-redaction, and account-identity-version boundaries are published with focused tests; customer-owned endpoint/protocol UAT, privacy acceptance, backup/PITR posture, migration postflight, and release-owner GO/NO-GO remain open)
+Last updated: 2026-10-29 (main `181159e2`; deployed application `8a3aee17` and App Runner deployment `40788716827` are healthy; analytics projection caching and the 38-check authenticated two-workspace smoke are live; customer-owned endpoint/protocol UAT, privacy acceptance, backup/PITR posture, migration postflight, and release-owner GO/NO-GO remain open)
 
 ## 2026-10-29 — identity-version release deployed
 
@@ -21,13 +21,11 @@ Last updated: 2026-10-29 (main `9c46a1a5`; deployed application `9c46a1a5` and A
 - [x] Authenticated smoke run `40787271857` reached the live release and
   verified both workspace key-status responses, conflicting-workspace query
   isolation, and the first workspace's Founder OS read-model privacy checks.
-- [ ] The run failed closed after a bounded request timeout before completing
+- [x] The run failed closed after a bounded request timeout before completing
   the second workspace/legacy-model and revoked-key checks. The redacted
   artifact records no key, workspace ID, response body, or authorization
-  material. This is a real UAT gap, not a successful smoke result; rerun with
-  the configured test fixtures after identifying the slow production read-model
-  path. Do not treat this release as having passed the full authenticated
-  scope smoke until that rerun is green.
+  material. This historical failure was resolved by the bounded analytics
+  projection cache and the green rerun recorded below.
 
 ## 2026-10-29 — analytics projection cache hardening
 
