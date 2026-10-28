@@ -431,7 +431,7 @@ export const blogSpecs: BlogSpec[] = [
       { heading: "Use the report to change the catalog", body: "Use evidence to improve descriptions, schemas, authorization, grouping, and retirement decisions. Test changes against selection, adoption, latency, and outcome metrics. Avoid optimizing for calls if that causes agents to choose a tool that cannot complete the task safely.", bullets: ["Identify catalog gaps and misleading descriptions.", "Remove or deprecate unused tools with owner review.", "Compare a catalog change with a release marker.", "Keep client and server boundaries explicit in the interpretation."] },
     ],
     faq: [["What is the most important tool metric?", "There is no universal one. Combine selection or call adoption with result reliability, latency, and workflow outcome for the decision you need to make."], ["Can I identify tools no client calls?", "Only when you have complete catalog and traffic evidence. Sampling, hidden clients, or missing sessions make non-use an uncertain claim."], ["Should raw arguments be in a usage report?", "Usually not. Bounded metadata and approved categories are safer and often sufficient for product decisions."]],
-    related: ["mcp-tool-adoption-benchmark", "mcp-client-analytics", "measure-mcp-tool-adoption"],
+    related: ["mcp-tool-adoption-benchmark", "mcp-client-analytics", "measure-mcp-tool-adoption-workflow-completion"],
     source: { label: "Open TrackMCP tool analytics", href: "https://trackmcp.com/tool-analytics" },
   },
   {
