@@ -1,6 +1,6 @@
 # Founder OS first-100 readiness snapshot
 
-Updated: 2026-10-28 (Asia/Kolkata; source `dde5e94d`; runtime and hosted evidence reconciled)
+Updated: 2026-10-28 (Asia/Kolkata; source `8e3b6183`; runtime and hosted evidence reconciled)
 
 Status: **Engineering green; release decision HOLD**
 
@@ -12,16 +12,16 @@ and [pilot release record](FOUNDER-OS-100-CUSTOMER-PILOT-RELEASE-RECORD.md).
 
 - Six authenticated dashboard surfaces have contract coverage, privacy-safe
   read models, and navigation/documentation CTA checks.
-- Current source release gate passes **147 suites**; lint, production build,
+- Current source release gate passes **148 suites**; lint, production build,
   and `git diff --check` pass. The production build generates **178 routes**.
-- Hosted TrackMCP CI `40689262784` passed for source `dde5e94d` across the
+- Hosted TrackMCP CI `40695079991` passed for source `8e3b6183` across the
   web/JavaScript, Go, and .NET lanes.
 - The latest verified application runtime is immutable SHA
-  `dde5e94d44c665b20033ed3b2ab56e5accc593a4`, deployed by App Runner workflow
-  `40689262786` with image digest
-  `sha256:75817e7405a72ad6a4ac5653543ce177acf9d1d993837ca684f4bdf8c21ce5a1`;
-  release gate, direct-origin smoke, immutable identity, runtime-safety, and
-  authenticated production smoke `40690377977` passed.
+  `8e3b61836432e1b045b539857fb8639d9d464c3f`, deployed by App Runner workflow
+  `40695080113` with image digest
+  `sha256:bb8c89a7a3794b83c129681310e423e007c9096cba9f4398cf84ebf3392d8cb0`;
+  release gate, direct-origin smoke, immutable identity, and runtime-safety
+  checks passed. The live health endpoint reports this exact SHA.
 - Production deployment, read-only smoke, tenant-scope smoke, first-ingest
   smoke, refresh-worker recovery, prompt-entity projection, and distributed
   rate-limit enablement have recorded evidence.
@@ -93,6 +93,6 @@ scheduled-worker SLO. No secret, workspace identifier, raw payload, or token is
 stored in this snapshot.
 
 The detailed ledger is authoritative for the remaining external gates. The
-current source and deployed application are both `dde5e94d`; the latest health
+current source and deployed application are both `8e3b6183`; the latest health
 report is the AWS-proven freshness result above. The alert evaluator remains
 disabled-first and is not claimed as enabled production delivery.

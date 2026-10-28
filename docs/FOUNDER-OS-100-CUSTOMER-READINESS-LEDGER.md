@@ -1,6 +1,6 @@
 # Founder OS 100 Customer Readiness Ledger
 
-Last updated: 2026-10-28 (main `dde5e94d`; deployed application `dde5e94d` and immutable App Runner redeploy `40689262786` succeeded with image digest `sha256:75817e7405a72ad6a4ac5653543ce177acf9d1d993837ca684f4bdf8c21ce5a1`; hosted TrackMCP CI `40689262784` and authenticated production smoke `40690377977` passed; scheduler deploy `40628036770`, authenticated smoke `40628409832`, schedule enablement `40628646879`, and health artifact `40629348992` prove the AWS worker-freshness path; customer-owned endpoint/protocol UAT, privacy acceptance, backup/PITR posture, and release-owner GO/NO-GO remain open)
+Last updated: 2026-10-28 (main `8e3b6183`; deployed application `8e3b6183` and immutable App Runner deployment `40695080113` succeeded with image digest `sha256:bb8c89a7a3794b83c129681310e423e007c9096cba9f4398cf84ebf3392d8cb0`; hosted TrackMCP CI `40695079991` passed; deployment release gate, production smoke, immutable identity, runtime-safety checks, and live health SHA verification passed; scheduler deploy `40628036770`, authenticated smoke `40628409832`, schedule enablement `40628646879`, and health artifact `40629348992` prove the AWS worker-freshness path; customer-owned endpoint/protocol UAT, privacy acceptance, backup/PITR posture, and release-owner GO/NO-GO remain open)
 The same-origin docs, auth, blog CTA fixes, regression guard, and hosted-runner verification gate are deployed and runtime-verified. Cloudflare permits browser-compatible requests, while its managed bot rule still returns HTML 403 to the default scripted user-agent; SDK delivery must use the compatible request boundary and retain a real authenticated UAT check.
 Latest freshness evidence: health workflow `40629348992` inspected the newly
 deployed scheduler's bounded worker-summary metrics. The current window has
@@ -9,6 +9,24 @@ EMF successes**, with zero parse failures, failed jobs, retryable jobs, or
 errors and maximum queue lag within the 15-minute budget. The report is
 **healthy** and the AWS worker-freshness gate is proven; customer-owned endpoint
 and other external acceptance gates remain separate decisions.
+
+## 2026-10-28 — deployment workflow dependency fix published
+
+- [x] PR `#626` merged the customer-endpoint UAT fixture and release-gate
+  dependency contract. The hosted web lane passed after installing the nested
+  TypeScript SDK dependencies used by the official-client integration fixture.
+- [x] PR `#627` merged the matching dependency install into the App Runner
+  deployment preflight. Main CI `40695079991` passed; App Runner deployment
+  `40695080113` rolled out source `8e3b61836432e1b045b539857fb8639d9d464c3f`
+  with image digest
+  `sha256:bb8c89a7a3794b83c129681310e423e007c9096cba9f4398cf84ebf3392d8cb0`.
+  The deployment's release gate, read-only production smoke, running-release
+  identity, and runtime-safety audit all passed, and `/api/health` reports the
+  same immutable SHA.
+- [ ] This closes publication and runtime verification for the engineering
+  release only. Customer-owned endpoint UAT, OAuth/token exchange,
+  reconnect/replay, backup/PITR, privacy acceptance, and release-owner GO/NO-GO
+  remain open and are intentionally not inferred from green CI.
 
 ## 2026-10-28 — customer-owned endpoint UAT harness prepared
 
