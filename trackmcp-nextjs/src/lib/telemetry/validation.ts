@@ -18,6 +18,11 @@ export const MAX_EVENT_BYTES = 256 * 1024;
 export const MAX_PAYLOAD_BYTES = 128 * 1024;
 export const MAX_STRING_LENGTH = 2048;
 export const MAX_CORRELATION_HANDLE_BYTES = 128;
+/** Nested payload bounds protect the last-line server-side ingest boundary. */
+export const MAX_INGEST_PAYLOAD_DEPTH = 12;
+export const MAX_INGEST_PAYLOAD_KEYS = 64;
+export const MAX_INGEST_PAYLOAD_ITEMS = 128;
+export const MAX_INGEST_PAYLOAD_NODES = 512;
 
 const EVENT_TYPES: readonly TrackMCPEventType[] = ["protocol", "tool_call", "session", "catalog", "workflow", "custom"];
 const DIRECTIONS = ["client_to_server", "server_to_client"] as const;
@@ -36,6 +41,34 @@ const INGEST_SENSITIVE_KEYS = new Set([
   "credit_card", "card_number",
 ]);
 const INGEST_BASE64_THRESHOLD = 128;
+const TRACKMCP_METADATA_KEYS = new Set([
+  "observation_kind", "protocol_observation_kind", "observation_source", "protocol_family",
+  "capability_names", "catalog_kind", "repeat_observed", "repeat_group_source",
+  "next_tool_selection_observed", "preceding_request_id", "next_cursor_present",
+  "cache_ttl_ms", "cache_scope", "completion_value_count", "completion_total",
+  "completion_has_more", "subscription_action", "protocol_decision", "protocol_signal",
+  "authorization_attempt", "authorization_outcome", "lifecycle_generation",
+]);
+const TRACKMCP_METADATA_ENUMS: Record<string, ReadonlySet<string>> = {
+  observation_kind: new Set(["tool_call_issued", "result_received", "next_tool_selected", "session_started", "session_reconnected", "session_ended", "protocol_request", "protocol_response", "protocol_notification", "catalog_page", "entity_read", "transport_error", "transport_closed"]),
+  protocol_observation_kind: new Set(["protocol_request", "protocol_response"]),
+  observation_source: new Set(["client", "server", "transport"]),
+  protocol_family: new Set(["sampling", "elicitation", "completion", "tasks", "roots", "logging", "control_signal", "resources", "prompts", "tools", "subscriptions", "notifications"]),
+  catalog_kind: new Set(["tools", "resources", "resource_templates", "prompts"]),
+  repeat_group_source: new Set(["session_id", "correlation_handle"]),
+  cache_scope: new Set(["public", "private"]),
+  subscription_action: new Set(["listen_requested", "subscribe_requested", "unsubscribe_requested", "subscription_started", "subscription_stopped"]),
+  protocol_decision: new Set(["accept", "decline", "cancel"]),
+  protocol_signal: new Set(["progress", "cancelled", "catalog_changed", "resource_changed", "prompt_changed", "subscription_started", "subscription_stopped"]),
+  authorization_outcome: new Set(["unauthorized", "forbidden"]),
+};
+const TRACKMCP_METADATA_BOOLEAN_KEYS = new Set(["repeat_observed", "next_tool_selection_observed", "next_cursor_present", "completion_has_more", "authorization_attempt"]);
+const TRACKMCP_METADATA_NUMBER_LIMITS: Record<string, number> = {
+  cache_ttl_ms: 86_400_000,
+  completion_value_count: 32,
+  completion_total: 1_000_000,
+  lifecycle_generation: 1_000_000,
+};
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const EVENT_ID = /^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$/;
 const ISO_TIMESTAMP = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,9})?(?:Z|[+-]\d{2}:\d{2})$/;
@@ -77,7 +110,57 @@ function ingestMarker(reason: string, originalType: string, extra: Record<string
   return { __trackmcp_truncated: true, reason, original_type: originalType, ...extra };
 }
 
-function scrubIngestValue(value: unknown, depth = 0, seen = new WeakSet<object>()): unknown {
+function safeMetadataString(value: unknown): string | undefined {
+  if (typeof value !== "string" || !value || value.length > 128 || /[\u0000-\u001f\u007f]/.test(value)) return undefined;
+  if (/(?:bearer\s+|https?:\/\/|@|api[_-]?key\s*[:=]|token\s*[:=])/i.test(value)) return undefined;
+  return value;
+}
+
+/**
+ * `_trackmcp` is a reserved metadata namespace. Keep its key and value
+ * surface explicit so arbitrary nested objects cannot cross the ingest
+ * boundary even when a non-SDK client sends them.
+ */
+function sanitizeTrackMCPMetadata(value: unknown): Record<string, unknown> {
+  if (!isRecord(value)) return {};
+  const result: Record<string, unknown> = {};
+  for (const [key, raw] of Object.entries(value)) {
+    if (!TRACKMCP_METADATA_KEYS.has(key)) continue;
+    if (TRACKMCP_METADATA_BOOLEAN_KEYS.has(key)) {
+      if (typeof raw === "boolean") result[key] = raw;
+      continue;
+    }
+    const enumValues = TRACKMCP_METADATA_ENUMS[key];
+    if (enumValues) {
+      if (typeof raw === "string" && enumValues.has(raw)) result[key] = raw;
+      continue;
+    }
+    if (key === "capability_names") {
+      if (Array.isArray(raw)) {
+        const names = raw.map(safeMetadataString).filter((name): name is string => Boolean(name)).slice(0, 16);
+        if (names.length) result[key] = [...new Set(names)];
+      } else if (typeof raw === "string") {
+        const names = raw.split(",").map((name) => safeMetadataString(name.trim())).filter((name): name is string => Boolean(name)).slice(0, 16);
+        if (names.length) result[key] = [...new Set(names)];
+      }
+      continue;
+    }
+    if (key === "preceding_request_id") {
+      const safe = safeMetadataString(raw);
+      if (safe) result[key] = safe;
+      continue;
+    }
+    const limit = TRACKMCP_METADATA_NUMBER_LIMITS[key];
+    if (limit !== undefined && typeof raw === "number" && Number.isInteger(raw) && Number.isFinite(raw) && raw >= 0 && raw <= limit) result[key] = raw;
+  }
+  return result;
+}
+
+type IngestBudget = { nodes: number };
+
+function scrubIngestValue(value: unknown, depth = 0, seen = new WeakSet<object>(), budget: IngestBudget = { nodes: 0 }): unknown {
+  budget.nodes += 1;
+  if (budget.nodes > MAX_INGEST_PAYLOAD_NODES) return ingestMarker("max_payload_nodes", typeof value);
   if (typeof value === "string") {
     if (/(?:authorization|api[_-]?key|access[_-]?token|refresh[_-]?token|password|secret)\s*[:=]\s*\S+/i.test(value)) return "[redacted]";
     if (/\bbearer\s+[A-Za-z0-9._~+/-]+=*/i.test(value)) return "[redacted]";
@@ -93,16 +176,27 @@ function scrubIngestValue(value: unknown, depth = 0, seen = new WeakSet<object>(
     return value;
   }
   if (value === null || typeof value === "number" || typeof value === "boolean") return value;
-  if (depth >= 20) return ingestMarker("max_payload_depth", Array.isArray(value) ? "array" : "object");
+  if (depth >= MAX_INGEST_PAYLOAD_DEPTH) return ingestMarker("max_payload_depth", Array.isArray(value) ? "array" : "object");
   if (!value || typeof value !== "object") return ingestMarker("binary", typeof value);
   if (seen.has(value)) return ingestMarker("circular", Array.isArray(value) ? "array" : "object");
   seen.add(value);
   try {
-    if (Array.isArray(value)) return value.map((item) => scrubIngestValue(item, depth + 1, seen));
-    const result: Record<string, unknown> = {};
-    for (const [key, child] of Object.entries(value)) {
-      result[key] = INGEST_SENSITIVE_KEYS.has(normalizedKey(key)) ? "[redacted]" : scrubIngestValue(child, depth + 1, seen);
+    if (Array.isArray(value)) {
+      const items = value.slice(0, MAX_INGEST_PAYLOAD_ITEMS).map((item) => scrubIngestValue(item, depth + 1, seen, budget));
+      if (value.length > MAX_INGEST_PAYLOAD_ITEMS) items.push(ingestMarker("max_payload_items", "array"));
+      return items;
     }
+    const result: Record<string, unknown> = {};
+    const entries = Object.entries(value);
+    for (const [key, child] of entries.slice(0, MAX_INGEST_PAYLOAD_KEYS)) {
+      if (key === "_trackmcp") {
+        const metadata = sanitizeTrackMCPMetadata(child);
+        if (Object.keys(metadata).length) result[key] = metadata;
+      } else {
+        result[key] = INGEST_SENSITIVE_KEYS.has(normalizedKey(key)) ? "[redacted]" : scrubIngestValue(child, depth + 1, seen, budget);
+      }
+    }
+    if (entries.length > MAX_INGEST_PAYLOAD_KEYS) result.__trackmcp_truncated = true;
     return result;
   } finally {
     seen.delete(value);

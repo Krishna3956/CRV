@@ -133,7 +133,12 @@ Do not reuse an ingestion key as an OAuth access token, and do not put either cr
 
 ## Gaps to close before calling Founder OS production-ready
 
-1. Add an explicit schema-level allowlist and size limits for all telemetry attributes, including nested metadata.
+1. **Engineering boundary implemented on 2026-10-29:** the ingest validator now
+   enforces the top-level field contracts plus an explicit `_trackmcp`
+   metadata allowlist and bounded nested payload depth, keys, items, nodes,
+   strings, and bytes. Keep the focused negative tests in the release gate;
+   this does not by itself approve payload capture or close production privacy
+   acceptance.
 2. Add server-side redaction tests for headers, bearer tokens, API keys, emails, IPs, URLs with query strings, and arbitrary error messages.
 3. Add a retention job for raw events, derived facts, and optional diagnostics, with documented durations and a dry-run report.
 4. Add a workspace privacy/settings surface for telemetry opt-in, content diagnostics, retention, and deletion/export requests.

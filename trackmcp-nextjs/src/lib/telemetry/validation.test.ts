@@ -62,6 +62,38 @@ test("ingest scrubs secrets, bearer tokens, credentialed URLs, and resource blob
   assert.equal(result.uri, "[redacted]");
 });
 
+test("ingest applies an explicit reserved metadata allowlist", () => {
+  const result = sanitizeIngestPayload({
+    _trackmcp: {
+      observation_kind: "protocol_response",
+      protocol_family: "tools",
+      capability_names: ["tools", "resources", "secret-capability"],
+      completion_total: 12,
+      private_nested: { token: "must-not-cross" },
+      unknown_scalar: "must-not-cross",
+    },
+  });
+  assert.deepEqual(result._trackmcp, {
+    observation_kind: "protocol_response",
+    protocol_family: "tools",
+    capability_names: ["tools", "resources", "secret-capability"],
+    completion_total: 12,
+  });
+});
+
+test("ingest bounds deeply nested and oversized payload shapes", () => {
+  const result = sanitizeIngestPayload({
+    array: Array.from({ length: 140 }, (_, index) => index),
+    nested: { a: { b: { c: { d: { e: { f: { g: { h: { i: { j: { k: "too-deep" } } } } } } } } } } },
+    keys: Object.fromEntries(Array.from({ length: 70 }, (_, index) => [`key_${index}`, index])),
+  });
+  assert.equal(Array.isArray(result.array), true);
+  assert.equal((result.array as unknown[]).length, 129);
+  assert.equal(((result.array as unknown[]).at(-1) as Record<string, unknown>).reason, "max_payload_items");
+  assert.equal((result.nested as Record<string, unknown>).a !== undefined, true);
+  assert.equal((result.keys as Record<string, unknown>).__trackmcp_truncated, true);
+});
+
 test("validates bounded correlation handles without inferring them from request IDs", () => {
   const valid = normalizeTrackMCPEvent(baseEvent({ correlation_handle: "job_anon_1", correlation_handle_source: "external", request_id: "job_anon_1" }));
   assert.equal(valid.ok, true);
