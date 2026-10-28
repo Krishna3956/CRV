@@ -2,6 +2,17 @@
 
 Status: active autonomous audit, started 2026-10-21.
 
+## 2026-10-28 — bounded OAuth metadata discovery added to endpoint UAT
+
+- The customer-owned endpoint UAT now checks RFC 9728 protected-resource
+  metadata without sending credentials, following server-provided URLs, or
+  performing OAuth registration/token exchange. Evidence is count-only and
+  reports resource matching, authorization-server count, scope count, and an
+  explicit `not_advertised` outcome.
+- The probe is capped at 32 KiB, refuses redirects, and is covered by both
+  Streamable HTTP and SSE local fixtures. Full OAuth interoperability remains
+  external and explicitly Partial in the protocol matrix.
+
 ## 2026-10-28 — customer-endpoint UAT transport parity strengthened
 
 - The release-gate customer-endpoint fixture now exercises both supported UAT

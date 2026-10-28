@@ -39,7 +39,9 @@ test("customer endpoint UAT is metadata-only and discovery-only", () => {
   assert.doesNotMatch(source, /callTool\(/);
   assert.doesNotMatch(source, /readResource\(/);
   assert.doesNotMatch(source, /getPrompt\(/);
-  assert.match(source, /does not discover OAuth providers/);
+  assert.match(source, /probeOAuthMetadata/);
+  assert.match(source, /authorization_server_urls_followed: false/);
+  assert.doesNotMatch(source, /client[_-]registration|authorizationCode|access_token/);
   assert.match(source, /Reports contain no endpoint path/);
 });
 

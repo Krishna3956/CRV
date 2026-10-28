@@ -10,6 +10,22 @@ errors and maximum queue lag within the 15-minute budget. The report is
 **healthy** and the AWS worker-freshness gate is proven; customer-owned endpoint
 and other external acceptance gates remain separate decisions.
 
+## 2026-10-28 — customer-endpoint OAuth metadata probe added
+
+- [x] The manual endpoint UAT now performs a bounded, unauthenticated probe of
+  the endpoint's RFC 9728 protected-resource metadata candidates. Reports retain
+  only whether metadata was observed, whether its resource matched the target,
+  and bounded counts of authorization servers/scopes; metadata URLs and values
+  are never persisted.
+- [x] The probe refuses redirects, caps the response at 32 KiB, never follows
+  authorization-server URLs, and never performs registration, token exchange,
+  refresh, consent, or revocation. Local Streamable HTTP and SSE fixtures cover
+  matching metadata and the `not_advertised` boundary remains safe for servers
+  without OAuth metadata.
+- [ ] Full OAuth interoperability remains external: reviewed client/PKCE and
+  consent policy, token exchange and revocation, tenant binding, and
+  credentialed customer-endpoint acceptance are not inferred from metadata.
+
 ## 2026-10-28 — customer-endpoint UAT SSE fixture added
 
 - [x] The release-gate integration suite now runs both official client
