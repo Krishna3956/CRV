@@ -3955,3 +3955,15 @@ a failed product gate or a Supabase plan warning.
 - [ ] This proves disposable transport/read-model acceptance only. It does not
   close customer-owned endpoint UAT, sustained worker freshness, business
   workflow completion, privacy acceptance, or release-owner GO/NO-GO.
+
+### 2026-10-28 refresh-worker recovery checkpoint
+
+- [x] Manual recovery run `40615739450` processed four bounded jobs with four
+  successes, zero retryable/failed results, max queue lag `95,785 ms`, and
+  `freshness_slo=within_budget`; redacted artifact `12784738884` is retained.
+- [x] The run used the terminal/API workflow path and did not expose worker
+  secrets or event payloads.
+- [ ] This is one healthy checkpoint after scheduled run `40615361849`
+  returned four unparseable responses. Sustained cadence, repeated in-budget
+  samples, and alerting/recovery proof remain open; this does not close the
+  pilot freshness SLO or release-owner GO/NO-GO.

@@ -1822,3 +1822,11 @@ production transport UAT.
   transport-plus-read-model acceptance check; it does not claim customer-owned
   UAT, sustained worker freshness, business-workflow completion, or
   release-owner approval.
+
+- 2026-10-28: A manual refresh-worker recovery run `40615739450` completed
+  successfully after the scheduled run `40615361849` returned four
+  unparseable responses. The successful run processed four bounded jobs with
+  four successes, zero retryable/failed results, max queue lag `95,785 ms`,
+  and `freshness_slo=within_budget` in artifact `12784738884`. This is a
+  current worker checkpoint, not sustained cadence/SLO evidence; the failed
+  scheduled observation remains recorded as a transient availability signal.
