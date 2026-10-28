@@ -14,7 +14,7 @@ promise that every product capability is complete.
   production smoke, immutable identity, and runtime-safety checks passed. The
   deployed image digest is
   `sha256:bb8c89a7a3794b83c129681310e423e007c9096cba9f4398cf84ebf3392d8cb0`.
-  Hosted TrackMCP CI `40695079991` passed across the web/JavaScript, Go, and
+  Hosted TrackMCP CI `40702831003` passed across the web/JavaScript, Go, and
   .NET lanes, and the live health endpoint reports the same release SHA. AWS
   worker freshness remains proven by health artifact `40629348992`; the alert
   evaluator path is published but manual-only and disabled-first.
