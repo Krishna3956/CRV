@@ -3941,3 +3941,17 @@ a failed product gate or a Supabase plan warning.
 - [ ] This proves write acceptance for the smoke fixture, not customer-owned
   UAT, dashboard read-back, sustained worker freshness, privacy acceptance, or
   release-owner GO/NO-GO.
+
+### 2026-10-28 first-ingest analytics read-back acceptance
+
+- [x] Source commit `3f5a3ebd` now waits for the configured smoke service to
+  appear in `/api/v1/analytics?days=1` with at least one event after the
+  accepted write. The check is bounded, metadata-only, and preserves the
+  existing redaction boundary.
+- [x] The complete local **145-suite** release gate passed, including the
+  first-ingest smoke contract.
+- [x] Hosted first-ingest workflow `40615210168` passed for the same source
+  SHA; redacted evidence artifact `12784483407` was uploaded.
+- [ ] This proves disposable transport/read-model acceptance only. It does not
+  close customer-owned endpoint UAT, sustained worker freshness, business
+  workflow completion, privacy acceptance, or release-owner GO/NO-GO.

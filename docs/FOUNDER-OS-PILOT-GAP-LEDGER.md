@@ -1812,3 +1812,13 @@ production transport UAT.
   redacted report. This closes first-ingest acceptance for the smoke key; it
   does not replace customer-owned UAT, dashboard read-back, or release-owner
   approval.
+
+- 2026-10-28: Tightened the first-ingest smoke in source commit `3f5a3ebd` so
+  acceptance is not treated as complete until the bounded analytics read model
+  exposes the configured smoke service with at least one event. The focused
+  smoke contract and complete local **145-suite** release gate passed. Hosted
+  first-ingest workflow `40615210168` passed for the same SHA and uploaded only
+  the redacted artifact `12784483407`. This closes the smoke fixture's
+  transport-plus-read-model acceptance check; it does not claim customer-owned
+  UAT, sustained worker freshness, business-workflow completion, or
+  release-owner approval.
