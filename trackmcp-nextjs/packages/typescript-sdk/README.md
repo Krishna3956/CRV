@@ -79,9 +79,13 @@ method is not advertised by the peer. Tool calls and completions also fail
 closed when `tools` or `completions` is absent. Callers that skip discovery keep
 the compatibility behavior of the bounded request methods.
 
-Every modern request also carries a bounded
-`io.modelcontextprotocol/clientInfo` object in per-request `_meta`, as required
-by the stateless 2026-07-28 revision. The default identity is
+Every modern request also carries the canonical
+`io.modelcontextprotocol/protocolVersion` value plus bounded
+`io.modelcontextprotocol/clientInfo` and
+`io.modelcontextprotocol/clientCapabilities` objects in per-request `_meta`,
+as required by the stateless 2026-07-28 revision. The protocol-version value
+is controlled by the client and cannot be replaced by caller payload metadata.
+The default identity is
 `@trackmcp/sdk@0.1.24` (published with provenance); callers may provide a safe `{ name, version }` pair via
 `ModernMcpClient` options. Invalid or control-character values fall back to
 the SDK identity, and no credentials or payload data are included.

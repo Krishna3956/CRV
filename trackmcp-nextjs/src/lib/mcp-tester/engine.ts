@@ -206,7 +206,7 @@ export async function runMcpTester(options: McpTesterOptions): Promise<McpTester
 
   if (options.protocolVersion === MODERN_MCP_PROTOCOL_VERSION) {
     const modernStart = beginPhase("modern_discover", record, now);
-    const discoveryMeta = { "io.modelcontextprotocol/clientInfo": { name: state.clientName, version: state.clientVersion }, "io.modelcontextprotocol/clientCapabilities": {} };
+    const discoveryMeta = { "io.modelcontextprotocol/protocolVersion": MODERN_MCP_PROTOCOL_VERSION, "io.modelcontextprotocol/clientInfo": { name: state.clientName, version: state.clientVersion }, "io.modelcontextprotocol/clientCapabilities": {} };
     const discovery = await sendMcpRequest({ fetch: fetchImplementation, endpoint: endpointValidation.requestUrl, customHeaders: [...headerValidation.entries, ["mcp-method", "server/discover"]], protocolVersion: MODERN_MCP_PROTOCOL_VERSION, requestId: 1, body: { jsonrpc: "2.0", id: 1, method: "server/discover", params: { _meta: discoveryMeta } }, expectsResponse: true, limits, deadlineMs: startedMs + limits.maxTotalDurationMs, signal: options.signal, now, record, phase: "modern_discover" });
     if (!discovery.ok) {
       addFinding("modern_discovery_failed", "protocol", "error", "The endpoint did not complete the bounded 2026-07-28 server/discover request.", "modern_discover");
@@ -699,6 +699,7 @@ async function request(state: ProbeState, method: string, body: Record<string, u
           ...body.params,
           _meta: {
             ...(isRecord(body.params._meta) ? body.params._meta : {}),
+            "io.modelcontextprotocol/protocolVersion": MODERN_MCP_PROTOCOL_VERSION,
             "io.modelcontextprotocol/clientInfo": { name: state.clientName, version: state.clientVersion },
             "io.modelcontextprotocol/clientCapabilities": isRecord(body.params._meta) && isRecord(body.params._meta["io.modelcontextprotocol/clientCapabilities"])
               ? body.params._meta["io.modelcontextprotocol/clientCapabilities"]

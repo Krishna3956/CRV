@@ -343,6 +343,7 @@ export class ModernMcpClient {
       ...params,
       _meta: {
         ...(boundedObject(params._meta) ? params._meta : {}),
+        "io.modelcontextprotocol/protocolVersion": MODERN_MCP_PROTOCOL_VERSION,
         "io.modelcontextprotocol/clientInfo": this.clientInfo,
         "io.modelcontextprotocol/clientCapabilities": boundedObject(params._meta) && boundedObject(params._meta["io.modelcontextprotocol/clientCapabilities"])
           ? params._meta["io.modelcontextprotocol/clientCapabilities"]
