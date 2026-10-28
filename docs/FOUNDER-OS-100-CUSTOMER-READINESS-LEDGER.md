@@ -32,6 +32,20 @@ failure.
   complete AWS worker-summary samples, and the resulting artifact is recorded.
   Until then the active freshness gate remains HOLD.
 
+## 2026-10-28 — scheduler deployment trust-boundary correction (candidate `7ae6f23c`)
+
+- [x] The automatic scheduler deployment trigger is now restricted to pushes on
+  `main`, matching the existing `GitHubActionsDeployRole` trust policy. Feature
+  branch pushes continue to run the full CI gate but cannot trigger a production
+  AWS assume-role attempt.
+- [x] The prior feature-branch run `40627066551` was inspected and failed only
+  at `sts:AssumeRoleWithWebIdentity`; no build, CloudFormation, Lambda, or
+  runtime state was changed by that run. IAM trust was not broadened.
+- [ ] After PR `612` merges, the main-branch scheduler deployment must succeed
+  with the schedule still disabled, followed by the reviewed smoke/evidence
+  sequence. This change removes a false branch failure; it does not itself
+  prove production worker freshness.
+
 ## 2026-10-28 — package-test timeout hardening
 
 - [x] Hosted TrackMCP CI `40590525044` completed successfully for the current
