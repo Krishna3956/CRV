@@ -1760,4 +1760,7 @@ production transport UAT.
   `interaction_link_source`, and bounded `retry_of_event_id` fields. Raw
   request state and response values remain excluded. The targeted fact/refresh
   suite passed (**30 tests**) and the complete local **145-suite** release gate
-  passed; hosted verification is required after the next push.
+  passed. Hosted TrackMCP CI run `40610886397` passed web/JavaScript, Go, and
+  .NET, and App Runner deployment run `40610886407` passed rollout, production
+  smoke, immutable identity, and runtime-safety checks. Cross-transport
+  lifecycle fixtures and authenticated production UAT remain open.

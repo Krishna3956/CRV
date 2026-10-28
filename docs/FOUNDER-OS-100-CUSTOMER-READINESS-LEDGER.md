@@ -3858,6 +3858,9 @@ a failed product gate or a Supabase plan warning.
 - [x] Added privacy regression coverage for raw request-state/response
   suppression and a refresh-column regression test; the targeted suite passed
   30 tests and the full local release gate passed 145 suites.
-- [ ] This is source-level read-model parity only. The code still needs hosted
-  CI verification and does not close cross-transport lifecycle fixtures,
-  authenticated production UAT, deployment identity, or release-owner gates.
+- [x] Hosted TrackMCP CI run `40610886397` passed web/JavaScript, Go, and .NET;
+  App Runner deployment run `40610886407` also passed rollout, production
+  smoke, immutable release identity, and runtime-safety checks.
+- [ ] This is verified source/deployment read-model parity only. It does not
+  close cross-transport lifecycle fixtures, authenticated production UAT, or
+  release-owner approval gates.
