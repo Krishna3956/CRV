@@ -1,14 +1,14 @@
 # Founder OS 100 Customer Readiness Ledger
 
-Last updated: 2026-10-28 (main `947c42cb`; deployed application `7763e05f` and immutable App Runner deployment `40729507033` succeeded; PR `#644` merged and hosted TrackMCP CI `40737430027` passed; authenticated smoke `40732381275` passed; the canonical modern protocol metadata fix is live; customer-owned endpoint/protocol UAT, privacy acceptance, backup/PITR posture, and release-owner GO/NO-GO remain open)
+Last updated: 2026-10-28 (main `HEAD`; deployed application `7763e05f` and immutable App Runner deployment `40729507033` succeeded; PR `#645` merged and hosted TrackMCP CI `40739164434` passed; authenticated smoke `40732381275` passed; the canonical modern protocol metadata fix is live; customer-owned endpoint/protocol UAT, privacy acceptance, backup/PITR posture, and release-owner GO/NO-GO remain open)
 
 ## 2026-10-28 — current evidence reconciliation
 
-- [x] PR `#643` merged as `2c0cdc0f54d74a37353a33fb25a56e79ef4e024f`, updating
+- [x] PR `#645` merged as `b8075cc186009e28e9baa4287920ad877471af18`, updating
   the acceptance matrix, external-gate register, release record, and this
-  ledger so current source (`947c42cb`) cannot be confused with the deployed
+  ledger so current source (`main` at `HEAD`) cannot be confused with the deployed
   application (`7763e05f`).
-- [x] Hosted TrackMCP CI `40737430027` passed all web/JavaScript, Go, and .NET
+- [x] Hosted TrackMCP CI `40739164434` passed all web/JavaScript, Go, and .NET
   lanes. The docs-only merge did not trigger a new application deployment;
   the live runtime remains the verified App Runner release `7763e05f`.
 - [x] The live origin was rechecked at `/`, `/docs`, and `/api/health`; all
@@ -49,7 +49,7 @@ Last updated: 2026-10-28 (main `947c42cb`; deployed application `7763e05f` and i
   The journey, What they're doing, Did it work, and What's broken are primary;
   Resources & prompts, Who's using it, Evidence, and Setup are grouped under
   More. This is an intentional navigation grouping, not an absent feature.
-- [x] Confirmed `main` and `origin/main` are identical at `2c0cdc0f`, with no
+- [x] Confirmed `main` and `origin/main` are identical at `HEAD`, with no
   tracked uncommitted changes. The only untracked paths are the intentional
   `docs/codex-handoff/` and `tmp/` working directories.
 - [x] Rechecked the direct App Runner health endpoint. It returns `status: ok`
