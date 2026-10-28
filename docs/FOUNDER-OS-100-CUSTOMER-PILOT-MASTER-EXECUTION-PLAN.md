@@ -99,7 +99,9 @@ idle scheduler run does not prove that a queued job can be processed.
 - [ ] A candidate commit SHA is chosen after all intended product changes land.
 - [ ] A clean worktree at that SHA contains no credentials, CSV exports,
   campaign files, or generated artifacts.
-- [ ] A release manifest lists code, migration, package, image, and evidence
+- [x] `FOUNDER-OS-RELEASE-MANIFEST.md` lists the current code, migration,
+  package, runtime, and evidence identifiers; it preserves the separate HOLD
+  gates rather than implying pilot approval.
   versions by immutable identifier.
 - [ ] Every production observation is redacted and includes UTC time, actor
   role, environment, command/action, result, and link/reference.
