@@ -5,10 +5,13 @@ Reconciled: 2026-10-28 (Asia/Calcutta)
 Current deployed baseline: application `b2ab68e6369f54105cf219b88fedc483e1590738`,
 App Runner run `40606435487` (successful deployment). The chained authenticated
 production smoke `40607394426` also passed for the same immutable release. The
-current repository source is `main` at `HEAD`; implementation/test source
-`6b1cf1f8` passed hosted CI `40607765427`. The post-deployment commits are
-ledger and evidence-tooling commits and are not claimed as deployed behavior;
-specifically, they are not App Runner application behavior.
+current repository source is `main` at `HEAD`; merged scheduler source
+`20702c9` passed hosted CI `40628036758`. The application image remains the
+separately verified App Runner runtime above; the scheduler is deployed
+independently and health artifact `40629348992` proves 3/3 complete AWS
+worker-summary samples within the 15-minute budget. The post-deployment
+commits are ledger and evidence-tooling commits and are not claimed as
+deployed behavior; specifically, they are not App Runner application behavior.
 This is current runtime and source evidence, not a pilot GO decision.
 
 Historical baseline retained for continuity: application
@@ -32,12 +35,13 @@ record.
 | 053 | Exercise workspace creation from device flow without key disclosure | Disposable authenticated zero-membership account rendered `Workspace setup required`; browser creation succeeded, approval completed, and no connection-key material was shown. Disposable user, workspace, and session were removed after capture | CLOSED — browser UAT | Retain the redacted browser/session evidence in the handoff ledger; this does not close redemption |
 | 157 | Record database region, backup posture, and restoration contact | Supabase inspection records East US / `us-east-1`; current Free Plan backup surface showed no usable schedule, restore point, contact, or completed restore rehearsal | OPEN — infrastructure owner | Written region/tier, backup/restore policy or explicit accepted limitation, restoration contact, and tested recovery reference |
 | 259 | Compare all acceptance rows with evidence and silently waive none | This matrix reconciles all three currently open IDs and records an explicit HOLD for each unresolved row | CLOSED — comparison complete | Keep this matrix and the release record updated whenever an item changes; it does not authorize GO |
-| 260 | Issue the limited 100-customer pilot go/no-go decision | Engineering recommendation remains HOLD because browser UAT, backup posture, and owner acceptance are open | OPEN — release owner | Timestamped GO/NO-GO decision with accepted limitations, scope, rollback owner, and links to every green/open row |
+| 260 | Issue the limited 100-customer pilot go/no-go decision | Engineering recommendation remains HOLD because backup posture, privacy acceptance, customer-owned protocol boundaries, and owner acceptance are open; scheduler freshness is proven separately by health artifact `40629348992` | OPEN — release owner | Timestamped GO/NO-GO decision with accepted limitations, scope, rollback owner, and links to every green/open row |
 
 ## Decision rule
 
 The product must remain **HOLD** until items 020, 157,
-and 260 have their exit evidence. Item 258 (distributed rate limiting) is
+and 260 have their exit evidence. Scheduler freshness is an engineering PASS,
+but it does not replace those owner decisions. Item 258 (distributed rate limiting) is
 explicitly outside the bounded pilot and is documented as post-pilot work; it
 is not silently waived. This matrix does not claim that the product is ready
 for 100 customers.
