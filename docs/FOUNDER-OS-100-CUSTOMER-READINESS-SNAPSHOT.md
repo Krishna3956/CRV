@@ -106,7 +106,7 @@ scheduled-worker SLO. No secret, workspace identifier, raw payload, or token is
 stored in this snapshot.
 
 The detailed ledger is authoritative for the remaining external gates. The
-current source is `7763e05f`; the deployed application is the same verified
-runtime `7763e05f` after the App Runner rollout. The
+current source is `main` at `HEAD` (`1e995eb3`); the deployed application is
+the verified runtime `c6d5f904` after the App Runner rollout. The
 latest health report is the AWS-proven freshness result above. The alert evaluator remains
 disabled-first and is not claimed as enabled production delivery.
