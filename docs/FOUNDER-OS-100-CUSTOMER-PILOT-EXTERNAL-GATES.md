@@ -11,19 +11,14 @@ is intentionally not a GO approval and must not be treated as one.
 
 - `main`: current default branch. Immutable deployed SHAs belong in the
   release record; PR checks remain attached to their exact review commits.
-- Current deployed application: `dd443a8cd4ebb7a4312d48690cad2f19bbd296d5`,
-  App Runner workflow `40581600172` (successful rollout, release gate,
-  production smoke, identity, and runtime-safety checks). Its runtime
-  reference is the exact immutable SHA retained as the prior deployed baseline.
-- Latest deployed application: `d1bbf498`, App Runner workflow `40586991519`
-  (successful rollout); authenticated production smoke `40588063835` passed
-  for that release. The scheduler capacity rollout is separately recorded in
-  `40586991487` and enablement/evidence workflow `40587311920`.
-- Current source verification: `main` at `HEAD` (`503e827b`, with the health
-  row correction in `e11d106e`), while the latest runtime-changing source is
-  `d1bbf498`. The health-report correction is tooling/report behavior and is
-  not claimed as App Runner application behavior until its next runtime
-  rollout. Historical smoke `40582650751` remains retained for `dd443a8`.
+- Current deployed application: `b2ab68e6369f54105cf219b88fedc483e1590738`,
+  App Runner workflow `40606435487` (successful rollout, release gate,
+  production smoke, identity, and runtime-safety checks); authenticated
+  production smoke `40607394426` passed for the same immutable SHA.
+- Current source verification: `main` at `HEAD` (`210e5a9d`), with
+  implementation/test baseline `6b1cf1f8`; hosted TrackMCP CI
+  `40607765427` passed all 145 cross-language suites. These docs-only
+  reconciliations are not claimed as App Runner application behavior.
   This does not close the external owner, backup, privacy, or scheduler-cadence
   gates.
 - Historical deployed baselines retained for audit include `9638e23c8529f9b1781d96413529e33a692715ed`
@@ -35,7 +30,7 @@ is intentionally not a GO approval and must not be treated as one.
   the already-successful rollout and its bounded evidence.
 - Queue: 263 total, 260 checked, and P0 queue items `020`, `157`, and `260`
   remain open.
-- Full release gate: **144 suites passed**, with lint and the 178-route
+- Full release gate: **145 suites passed**, with lint and the 178-route
   production build green (the prior 177-route baseline remains retained in
   historical evidence).
 - Authenticated device-flow UAT covers expired, denied, multiple-membership,

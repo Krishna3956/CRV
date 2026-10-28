@@ -9,16 +9,14 @@ promise that every product capability is complete.
 ## Verified and shipped
 
 - `origin/main` is `HEAD` (active pilot evidence baseline). The latest deployed
-  application runtime is immutable `7ab4eced` via App Runner workflow
-  `40594711620`; hosted CI `40594711558`, read-only production smoke, immutable
-  identity, and runtime-safety checks passed for that rollout. The latest
-  health monitor `40595457284` sees one fresh scheduled worker sample and keeps
-  the freshness gate in `warning` pending three. The prior deployed runtime
-  remains retained as immutable `d1bbf498` via App Runner workflow
-  `40586991519`; authenticated production smoke `40588063835` passed for that
-  historical release. Documentation-only evidence commits are not claimed as
+  application runtime is immutable `b2ab68e6` via App Runner workflow
+  `40606435487`; authenticated production smoke `40607394426` passed for the
+  same release. Hosted TrackMCP CI `40607765427` passed 145 cross-language
+  suites for implementation source `6b1cf1f8`. The latest health evidence is
+  healthy for the current evaluation window but the stricter scheduled-sample
+  gate remains open. Documentation-only evidence commits are not claimed as
   deployed application behavior unless a rollout is explicitly listed.
-- The latest local release gate passes 144 suites, lint, the 177-route
+- The latest local release gate passes 145 suites, lint, the 178-route
   production build, and `git diff --check`.
 - Production schema postflights verified required tables, indexes, functions,
   RLS/privilege boundaries, constraints, integrity aggregates, and catalog
@@ -26,7 +24,7 @@ promise that every product capability is complete.
 - The public Security page now discloses the backup/recovery boundary; it does
   not claim schedules, PITR, restore testing, or restoration ownership that the
   selected provider plan does not supply.
-- Local lint, build (177 routes), and the complete 144-suite release gate pass.
+- Local lint, build (178 routes), and the complete 145-suite release gate pass.
 - SDK/CLI/Python/Go/.NET consumer, OTLP JSON/protobuf, protocol observer,
   tenant-isolation, privacy, accessibility, and documentation-navigation
   checks are green.

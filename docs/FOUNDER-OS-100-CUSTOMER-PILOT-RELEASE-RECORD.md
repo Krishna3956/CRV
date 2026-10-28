@@ -8,13 +8,13 @@ commit and the operator accepts the listed limitations.
 
 ## Current deployed baseline — 2026-10-28
 
-App Runner workflow `40581600172` completed successfully for immutable commit
-`dd443a8cd4ebb7a4312d48690cad2f19bbd296d5`. Release gate, image build/push,
+App Runner redeploy `40606435487` completed successfully for immutable commit
+`b2ab68e6369f54105cf219b88fedc483e1590738`. Release gate, image build/push,
 rollout, read-only production smoke, immutable release identity, and runtime
 safety checks passed. The chained authenticated production smoke
-`40582650751` also completed successfully for the same release. The release
+`40607394426` also completed successfully for the same release. The release
 remains Draft/HOLD because the owner, backup/recovery, privacy acceptance,
-worker freshness, and credentialed lifecycle/transport gates are still open.
+worker freshness, and customer-owned lifecycle/transport gates are still open.
 
 The following entries are historical baselines retained for continuity.
 
@@ -61,14 +61,15 @@ recovery-evidence hardening, not a final operational SLO acceptance.
 
 ## Latest source verification — 2026-10-28
 
-The current repository source is `main` at `HEAD` (including bounded scheduler
-capacity `d1bbf498` and the health-row correction `e11d106e`; the latest local release gate
-passes **144 suites**, lint, the production build (**177 routes**), and
-`git diff --check`. The prior deployed source is `dd443a8` via App Runner
-workflow `40581600172`; the latest deployed source is `d1bbf498` via workflow
-`40586991519`, with authenticated production smoke `40588063835`. Documentation-
-only postflight commits after that runtime baseline do not require a new
-application image.
+The current repository source is `main` at `HEAD` (`210e5a9d`, with the
+implementation/test baseline `6b1cf1f8`; the latest docs-only reconciliations
+are not claimed as App Runner behavior). Hosted TrackMCP CI
+`40607765427` passed all **145 suites** across web/JavaScript, Go, and .NET for
+the implementation baseline. The latest local release gate passes **145 suites**,
+lint, the production build (**178 routes**), and `git diff --check`. The deployed source is
+`b2ab68e6` via App Runner workflow `40606435487`, with authenticated production
+smoke `40607394426`. Documentation-only commits after that runtime baseline do
+not require a new application image.
 
 The preceding deployed source was `4efa2e1` (including the health-report semantics
 correction that honors a proven AWS scheduler window while retaining historical
