@@ -3976,7 +3976,9 @@ a failed product gate or a Supabase plan warning.
 - [x] The focused workflow contract and complete local **145-suite** release
   gate passed; verification run `40616039422` passed with four successes,
   zero retryable/failed results, no unparseable responses, and
-  `freshness_slo=within_budget` (artifact `12784998036`).
+  `freshness_slo=within_budget` (artifact `12784998036`). Hosted TrackMCP CI
+  `40616257747` also passed the web/JavaScript, Go, and .NET lanes for the
+  reconciled source.
 - [ ] This improves transient startup resilience but does not close repeated
   scheduled cadence, sustained freshness SLO, or release-owner GO/NO-GO.
 
