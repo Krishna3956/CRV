@@ -20,6 +20,22 @@ Status: active autonomous audit, started 2026-10-21.
   sustained scheduler cadence, release-owner GO/NO-GO, and optional Go/.NET
   registry publication.
 
+## 2026-10-29 — privacy deletion execution engine implemented behind policy gate
+
+- [x] Added `privacy-deletion-worker.ts` as a separate destructive boundary
+  from the review-only preview worker. It executes only an explicit
+  `processing` plan, in bounded resumable batches, with request-bound
+  confirmation, distinct approvers, cleared legal-hold checks, abort support,
+  and an audit callback for every idempotent batch.
+- [x] Added 6 focused execution tests and included them in the privacy
+  deletion release-gate command. Tests prove that the default policy is
+  disabled, unsafe confirmations and legal holds fail closed, batch cursors
+  resume deterministically, and completion cannot bypass the audit adapter.
+- [ ] No production deletion is claimed. The Supabase transaction/RPC adapter,
+  recovery rehearsal, legal/privacy approval, and release-owner enablement are
+  still required before setting the policy flag or changing the dashboard's
+  review-only language.
+
 ## 2026-10-29 — bounded predecessor lineage added to catalog history
 
 - [x] The workspace-scoped analytics projection now resolves

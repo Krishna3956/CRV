@@ -54,7 +54,7 @@ export function initialPrivacyDeletionCheckpoint(): PrivacyDeletionCheckpoint {
 
 /** Advance a reviewed dry-run checkpoint; this function never deletes rows. */
 export function advancePrivacyDeletionCheckpoint(
-  plan: PrivacyDeletionPlan,
+  plan: Pick<PrivacyDeletionPlan, "request_id" | "workspace_id" | "batch_size">,
   checkpoint: PrivacyDeletionCheckpoint,
   returnedCount: number,
   lastId: unknown,

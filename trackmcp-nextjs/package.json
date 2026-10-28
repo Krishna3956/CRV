@@ -46,7 +46,7 @@
     "test:migration-parity-postflight": "node --test scripts/migration-parity-postflight.contract.test.mjs",
     "test:cli-redemption-reconciliation": "node --test src/lib/telemetry/cli-redemption-reconciliation.test.mjs",
     "test:cli-redemption-idempotency": "node --test src/lib/cli/device-redemption-idempotency.contract.test.mjs",
-    "test:privacy-deletion-plan": "node --experimental-strip-types --test src/lib/account/privacy-deletion-plan.test.ts src/lib/account/privacy-deletion-preview-worker.test.ts",
+    "test:privacy-deletion-plan": "node --experimental-strip-types --test src/lib/account/privacy-deletion-plan.test.ts src/lib/account/privacy-deletion-preview-worker.test.ts src/lib/account/privacy-deletion-worker.test.ts",
     "test:privacy-deletion-worker-review": "node --test scripts/privacy-deletion-worker-review.contract.test.mjs",
     "test:privacy-legal-hold": "node --experimental-strip-types --test src/lib/account/privacy-legal-hold.test.ts",
     "test:analytics-bounds": "node --test scripts/analytics-bounds.contract.test.mjs",
