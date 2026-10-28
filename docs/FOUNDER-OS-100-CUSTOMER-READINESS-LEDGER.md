@@ -3835,3 +3835,17 @@ a failed product gate or a Supabase plan warning.
   postflight commits from deployed behavior.
 - [ ] The matrix remains HOLD; this change does not close any owner or
   credentialed production gate.
+
+## 2026-10-28 cross-language MRTR parity verification
+
+- [x] Committed the bounded Python, Go, and .NET MRTR metadata parity as
+  `ae025bcb` and pushed it to `main`.
+- [x] Local verification passed the complete **145-suite** release gate,
+  including the Python SDK's 40-test native suite and the protocol, privacy,
+  tenant-isolation, package-consumer, and production-workflow contracts.
+- [x] Hosted TrackMCP CI run `40610135088` completed successfully for the
+  web/JavaScript, Go, and .NET lanes; the hosted lanes provide the Go/.NET
+  compilation and smoke evidence unavailable in the local environment.
+- [ ] This closes SDK exporter metadata parity only. Cross-transport MRTR
+  lifecycle fixtures, authenticated production UAT, deployment identity, and
+  release-owner approval remain open gates.

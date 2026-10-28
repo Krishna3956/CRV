@@ -1747,3 +1747,9 @@ production transport UAT.
   hosted-CI evidence because those toolchains are not installed locally.
   Cross-transport lifecycle fixtures and authenticated production UAT remain
   open; this closes exporter metadata parity, not full MRTR interoperability.
+
+- 2026-10-28: Commit `ae025bcb` passed the complete local **145-suite** release
+  gate and hosted TrackMCP CI run `40610135088` across web/JavaScript, Go, and
+  .NET. This verifies the cross-language bounded MRTR exporter changes compile
+  and pass their release lanes. It does not claim cross-transport lifecycle
+  completeness or authenticated production UAT.
