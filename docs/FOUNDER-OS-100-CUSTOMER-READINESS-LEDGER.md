@@ -1,16 +1,14 @@
 # Founder OS 100 Customer Readiness Ledger
 
-Last updated: 2026-10-28 (main `6b1cf1f8`; deployed application `b2ab68e6` and immutable App Runner redeploy `40606435487` succeeded; hosted TrackMCP CI `40607765427` passed the 145-suite cross-language gate for this source; a fresh disposable CLI lifecycle UAT passed 11 checks including OTLP/HTTP JSON and protobuf through one tenant-scoped key with no active disposable key left behind; the transient origin 503 before redeploy is recorded below; terminal activation, authenticated Streamable HTTP/SSE transport smoke, key lifecycle UAT, and package publication evidence remain recorded; scheduled-sample freshness, customer-owned endpoint/protocol UAT, privacy acceptance, backup/PITR posture, and release-owner GO/NO-GO remain open)
+Last updated: 2026-10-28 (main `bf2dd5ec`; deployed application `b2ab68e6` and immutable App Runner redeploy `40606435487` succeeded; hosted TrackMCP CI `40628036758` and App Runner deployment `40628036757` passed for the merged scheduler source; scheduler deploy `40628036770`, authenticated smoke `40628409832`, schedule enablement `40628646879`, and health artifact `40629348992` prove the AWS worker-freshness path; customer-owned endpoint/protocol UAT, privacy acceptance, backup/PITR posture, and release-owner GO/NO-GO remain open)
 The same-origin docs, auth, blog CTA fixes, regression guard, and hosted-runner verification gate are deployed and runtime-verified. Cloudflare permits browser-compatible requests, while its managed bot rule still returns HTML 403 to the default scripted user-agent; SDK delivery must use the compatible request boundary and retain a real authenticated UAT check.
-Latest freshness evidence: health workflow `40601204628` inspected eight
-redacted worker samples after recovery worker run `40601163319`. Its current
-evaluation window contains three parseable samples, all within the 15-minute
-budget, with zero failures, retries, timeouts, or unparseable responses. AWS
-scheduler cadence remains proven with **4/4 invocations** and **4/4 CloudWatch
-EMF successes**. The report is therefore **healthy**. Only **1/3 scheduled
-GitHub-worker samples** is present, so the stricter scheduled-sample evidence
-gate remains HOLD; this is an evidence requirement, not a new code-release
-failure.
+Latest freshness evidence: health workflow `40629348992` inspected the newly
+deployed scheduler's bounded worker-summary metrics. The current window has
+**3/3 complete AWS worker samples**, **6/6 invocations**, and **4/4 CloudWatch
+EMF successes**, with zero parse failures, failed jobs, retryable jobs, or
+errors and maximum queue lag within the 15-minute budget. The report is
+**healthy** and the AWS worker-freshness gate is proven; customer-owned endpoint
+and other external acceptance gates remain separate decisions.
 
 ## 2026-10-28 — AWS scheduler worker-freshness metrics (candidate `0d03e687`)
 
@@ -27,10 +25,10 @@ failure.
   runs for scheduler evidence.
 - [x] Focused scheduler/health contracts pass; the full local release gate
   passes **145 suites**, lint/build pass, and the workflow YAML parses.
-- [ ] This candidate is not production evidence until the scheduler deployment
-  workflow rolls out the Lambda, the health workflow observes at least three
-  complete AWS worker-summary samples, and the resulting artifact is recorded.
-  Until then the active freshness gate remains HOLD.
+- [x] The candidate is now production evidence: the scheduler deployment
+  workflow rolled out the Lambda, the health workflow observed three complete
+  AWS worker-summary samples, and artifact `40629348992` recorded the healthy
+  result. The active AWS worker-freshness gate is proven.
 
 ## 2026-10-28 — scheduler deployment trust-boundary correction (candidate `7ae6f23c`)
 
@@ -41,10 +39,10 @@ failure.
 - [x] The prior feature-branch run `40627066551` was inspected and failed only
   at `sts:AssumeRoleWithWebIdentity`; no build, CloudFormation, Lambda, or
   runtime state was changed by that run. IAM trust was not broadened.
-- [ ] After PR `612` merges, the main-branch scheduler deployment must succeed
-  with the schedule still disabled, followed by the reviewed smoke/evidence
-  sequence. This change removes a false branch failure; it does not itself
-  prove production worker freshness.
+- [x] After PR `612` merged, main-branch scheduler deployment `40628036770`
+  succeeded with the schedule disabled, followed by the reviewed smoke,
+  enablement, and evidence sequence. This change removes a false branch
+  failure; the resulting production proof is recorded in the rollout section.
 
 ## 2026-10-28 — scheduler rollout, authenticated smoke, and schedule enablement
 
@@ -215,7 +213,7 @@ failure.
 
 | Gate | Current evidence | State | Required closure evidence |
 | --- | --- | --- | --- |
-| Worker freshness | Health artifact `40601204628` is `healthy` after recovery run `40601163319`: three current-window samples are parseable and within budget, with AWS cadence proven at 4/4 invocations and 4/4 end-to-end successes; only 1/3 samples is a scheduled GitHub-worker run | **HOLD** | Three fresh scheduled samples within the 15-minute budget, with no unresolved stale/failure evidence |
+| Worker freshness | Health artifact `40629348992`: 3/3 complete AWS worker-summary samples, 6/6 invocations, 4/4 end-to-end EMF successes, zero parse/failed/retryable jobs, and queue lag within the 15-minute budget | **PASS** | Continue monitoring the same bounded metrics; regressions reopen this gate |
 | Backup/PITR | Supabase Free Plan has no scheduled backups or PITR; inspection recorded in the backup evidence entries below | **HOLD / owner decision** | Accepted documented limitation with named recovery owner/runbook, or plan upgrade plus tested restore rehearsal |
 | Privacy acceptance | Engineering privacy/export/deletion contracts pass; production acceptance evidence is not recorded | **HOLD / owner decision** | Signed production privacy review and retention/deletion acceptance |
 | Credentialed lifecycle/UAT | Read-only tenant/auth smoke, direct-origin first-ingest UAT `40598515473`, terminal device activation plus first-event UAT, authenticated Streamable HTTP/SSE adapter-to-ingest smoke with 15 persisted observations, disposable production key rotation/revocation UAT, and the fresh 11-check disposable device-flow UAT covering canonical ingest plus OTLP/HTTP JSON and protobuf are verified; customer-owned endpoint/protocol UAT remains unexecuted | **HOLD / credentialed** | Customer-owned endpoint/protocol UAT artifact, plus explicit acceptance of the unsupported reconnect/replay, durable-subscription, and OAuth boundaries |
