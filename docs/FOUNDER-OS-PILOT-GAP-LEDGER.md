@@ -1830,3 +1830,12 @@ production transport UAT.
   and `freshness_slo=within_budget` in artifact `12784738884`. This is a
   current worker checkpoint, not sustained cadence/SLO evidence; the failed
   scheduled observation remains recorded as a transient availability signal.
+
+- 2026-10-28: Hardened the refresh workflow in commit `dce016a9` with a
+  read-only App Runner `/api/health` warm-up before concurrent lease fan-out.
+  The focused workflow contract and complete local **145-suite** release gate
+  passed. Verification run `40616039422` then processed four jobs with four
+  successes, zero retryable/failed results, no unparseable responses, and
+  `freshness_slo=within_budget`; redacted artifact `12784998036` is retained.
+  Repeated scheduled cadence and the final pilot-owner freshness decision
+  remain open.

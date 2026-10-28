@@ -3967,3 +3967,15 @@ a failed product gate or a Supabase plan warning.
   returned four unparseable responses. Sustained cadence, repeated in-budget
   samples, and alerting/recovery proof remain open; this does not close the
   pilot freshness SLO or release-owner GO/NO-GO.
+
+### 2026-10-28 refresh-worker warm-up hardening
+
+- [x] Commit `dce016a9` adds a read-only App Runner health warm-up before the
+  four concurrent refresh leases, reducing cold-start/provider 502/503 risk
+  without sending worker credentials to the health route.
+- [x] The focused workflow contract and complete local **145-suite** release
+  gate passed; verification run `40616039422` passed with four successes,
+  zero retryable/failed results, no unparseable responses, and
+  `freshness_slo=within_budget` (artifact `12784998036`).
+- [ ] This improves transient startup resilience but does not close repeated
+  scheduled cadence, sustained freshness SLO, or release-owner GO/NO-GO.
