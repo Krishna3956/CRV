@@ -17,6 +17,10 @@ Status: active autonomous audit, started 2026-10-21.
 - [x] Focused package, Python artifact, and secret-scope checks pass. The full
   local release gate passes **148 suites**, lint passes, and the production
   build generates **178 routes**.
+- [x] PR `#636` merged as `a9262f15`; hosted TrackMCP CI `40716477220` passed
+  the web/JavaScript, Go, and .NET lanes. The live App Runner origin remains
+  healthy on the separately verified runtime `8e3b6183`; this validation-only
+  change did not require a new application image.
 - [ ] This closes release-artifact hygiene evidence only. It does not publish a
   new package version or close the external Go/.NET publication, credentialed
   UAT, privacy, backup/PITR, or release-owner gates.
