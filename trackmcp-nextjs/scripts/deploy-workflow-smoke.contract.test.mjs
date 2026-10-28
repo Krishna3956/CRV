@@ -42,6 +42,8 @@ test("App Runner deployment performs a redacted read-only smoke after RUNNING", 
   assert.match(workflow, /Install Python package build dependency/);
   assert.match(workflow, /python3 -m pip install build/);
   assert.match(workflow, /timeout --signal=TERM --kill-after=30s 10m npm ci/);
+  assert.match(workflow, /Install TypeScript SDK dependencies for customer endpoint fixture/);
+  assert.match(workflow, /timeout --signal=TERM --kill-after=30s 10m npm ci --prefix packages\/typescript-sdk/);
   assert.match(workflow, /timeout --signal=TERM --kill-after=30s 10m python3 -m pip install build/);
   assert.match(workflow, /Run release gate before deployment/);
   assert.match(workflow, /timeout --signal=TERM --kill-after=30s 20m npm run test:release-gate/);
