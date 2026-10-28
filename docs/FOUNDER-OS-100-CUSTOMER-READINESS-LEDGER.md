@@ -16,6 +16,19 @@ Last updated: 2026-10-29 (main `9c46a1a5`; deployed application `9c46a1a5` and A
   applied from this checkout. Apply it through the reviewed production change
   process, then run the account-identity and migration-parity postflight SQL.
 
+## 2026-10-29 — authenticated production smoke follow-up
+
+- [x] Authenticated smoke run `40787271857` reached the live release and
+  verified both workspace key-status responses, conflicting-workspace query
+  isolation, and the first workspace's Founder OS read-model privacy checks.
+- [ ] The run failed closed after a bounded request timeout before completing
+  the second workspace/legacy-model and revoked-key checks. The redacted
+  artifact records no key, workspace ID, response body, or authorization
+  material. This is a real UAT gap, not a successful smoke result; rerun with
+  the configured test fixtures after identifying the slow production read-model
+  path. Do not treat this release as having passed the full authenticated
+  scope smoke until that rerun is green.
+
 ## 2026-10-29 — account identity derivation version published
 
 - [x] Added the additive `account_identity_version` contract with the current
