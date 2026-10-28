@@ -109,6 +109,10 @@ jobs:
       - name: Install Python package build dependency
         run: timeout --signal=TERM --kill-after=30s 10m python3 -m pip install build
 
+      - name: Build reviewed Python package artifacts
+        working-directory: packages/python-sdk
+        run: timeout --signal=TERM --kill-after=30s 10m python3 -m build
+
       - name: Run release gate before deployment
         working-directory: trackmcp-nextjs
         run: timeout --signal=TERM --kill-after=30s 20m npm run test:release-gate
