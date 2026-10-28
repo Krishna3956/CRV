@@ -539,6 +539,12 @@ test("Capabilities exposes concise MRTR linkage evidence without raw identifiers
   assert.match(source, /Privacy-safe multi-round-trip metadata/);
 });
 
+test("Capabilities exposes bounded MRTR transport coverage", () => {
+  assert.match(source, /protocol_transport_outcomes/);
+  assert.match(source, /MRTR transport coverage/);
+  assert.match(source, /Transport labels are caller-verified metadata/);
+});
+
 test("Capabilities exposes truthful catalog history states", () => {
   assert.match(source, /function CatalogHistoryPanel\(/);
   assert.match(source, /Hash-only snapshots show when the advertised capability surface changed/);

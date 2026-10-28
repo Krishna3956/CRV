@@ -459,6 +459,25 @@ test("analytics matches durable MRTR evidence through request-state and retry li
   });
 });
 
+test("analytics keeps MRTR lifecycle evidence separated across supported transports", async () => {
+  const transports = ["stdio", "streamable_http", "sse", "custom"];
+  const durableFacts = transports.flatMap((transport, index) => [
+    { source_event_id: `${transport}-request`, semantic: { outcome: "pending" }, dimensions: { protocol_family: "elicitation", protocol_observation_kind: "protocol_request", transport, interaction_id_hash: String(index + 1).repeat(64) }, event_type: "protocol", observed_at: `2026-09-06T00:00:0${index}Z`, service: "demo", environment: "prod" },
+    { source_event_id: `${transport}-response`, semantic: { outcome: "completed" }, dimensions: { protocol_family: "elicitation", protocol_observation_kind: "protocol_response", transport, interaction_id_hash: String(index + 1).repeat(64) }, event_type: "protocol", observed_at: `2026-09-06T00:00:1${index}Z`, service: "demo", environment: "prod" },
+  ]);
+  const base = fakeAdmin([]);
+  const originalFrom = base.from.bind(base);
+  base.from = (table) => table === "trackmcp_semantic_facts"
+    ? { select() { return this; }, eq() { return this; }, gte() { return this; }, limit: async () => ({ data: durableFacts, error: null }) }
+    : originalFrom(table);
+  const response = await createAnalyticsHandler(() => base)(new Request("http://analytics.test/api/v1/analytics?days=7", { headers: { authorization: "Bearer key" } }));
+  assert.equal(response.status, 200);
+  const body = await response.json();
+  assert.deepEqual(body.protocol_transport_outcomes, transports.slice().sort().map((transport) => ({ transport, observations: 2, requests: 1, responses: 1, matched: 1, completed: 1, errors: 0, input_required: 1, unknown: 0 })));
+  assert.equal(body.protocol_mrtr_linkage.interaction_hashes, 4);
+  assert.equal(body.protocol_mrtr_linkage.matched_pairs, 4);
+});
+
 test("analytics insights carry bounded action context only when evidence supports it", async () => {
   const rows = Array.from({ length: 30 }, (_, index) => event({
     event_id: `failed-${index}`,

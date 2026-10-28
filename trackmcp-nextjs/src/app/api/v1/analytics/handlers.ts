@@ -74,6 +74,8 @@ type EventRow = {
 
 const MAX_PUBLIC_LIST_ITEMS = 500;
 const MAX_PUBLIC_DIMENSION_ITEMS = 100;
+const protocolTransportNames = ["stdio", "streamable_http", "sse", "custom"] as const;
+type ProtocolTransportName = typeof protocolTransportNames[number];
 // A single failed call is useful trace evidence, not a product-wide issue.
 // Match the quality surface's minimum before ranking a tool as broken.
 const MIN_ISSUE_TOOL_CALLS = 30;
@@ -282,6 +284,8 @@ export function createAnalyticsHandler(getAdmin: typeof getSupabaseAdmin = getSu
   const protocolFamilyCounts = new Map<string, number>();
   const protocolFamilyOutcomes = new Map<string, { observations: number; requests: number; responses: number; matched: number; completed: number; errors: number; input_required: number; unknown: number; capability_advertised: boolean | null }>();
   const protocolFamilyHandles = new Map<string, { requests: Set<string>; responses: Set<string> }>();
+  const protocolTransportOutcomes = new Map<string, { transport: string; observations: number; requests: number; responses: number; matched: number; completed: number; errors: number; input_required: number; unknown: number }>();
+  const protocolTransportHandles = new Map<string, { requests: Set<string>; responses: Set<string> }>();
   const mrtrRequestStateHashes = new Set<string>();
   const mrtrInteractionHashes = new Set<string>();
   const mrtrRetryLinks = new Set<string>();
@@ -306,12 +310,14 @@ export function createAnalyticsHandler(getAdmin: typeof getSupabaseAdmin = getSu
     if (!["completed", "failed", "pending", "unknown", "not_observable"].includes(outcome)) return [];
     const safeMeasures = measures && typeof measures === "object" && !Array.isArray(measures) ? measures as Record<string, unknown> : {};
     const safeDimensions = dimensions as Record<string, unknown>;
+    const transport = protocolTransportNames.includes(safeDimensions.transport as ProtocolTransportName) ? safeDimensions.transport as ProtocolTransportName : undefined;
     const capabilityFamilies = Array.isArray(safeDimensions.capability_families)
       ? safeDimensions.capability_families.filter((value): value is string => typeof value === "string").slice(0, 16)
       : [];
     return [{
       source_event_id: typeof record.source_event_id === "string" ? record.source_event_id.slice(0, 128) : undefined,
       family,
+      transport,
       outcome,
       scope_key: `${typeof record.service === "string" ? record.service.slice(0, 128) : "unknown"}:${typeof record.environment === "string" ? record.environment.slice(0, 64) : "unknown"}`,
       capability_families: capabilityFamilies,
@@ -350,6 +356,7 @@ export function createAnalyticsHandler(getAdmin: typeof getSupabaseAdmin = getSu
     return [{
       source_event_id: typeof event.event_id === "string" ? event.event_id.slice(0, 128) : undefined,
       family,
+      transport: protocolTransportNames.includes(event.transport as ProtocolTransportName) ? event.transport as ProtocolTransportName : undefined,
       outcome,
       scope_key: `${event.service.slice(0, 128)}:${event.environment.slice(0, 64)}`,
       capability_families: capabilityFamilies,
@@ -364,6 +371,10 @@ export function createAnalyticsHandler(getAdmin: typeof getSupabaseAdmin = getSu
     const { family, outcome } = row;
     protocolFamilyCounts.set(family, (protocolFamilyCounts.get(family) || 0) + 1);
     const current = protocolFamilyOutcomes.get(family) || { observations: 0, requests: 0, responses: 0, matched: 0, completed: 0, errors: 0, input_required: 0, unknown: 0, capability_advertised: null };
+    const transportKey = row.transport || "unknown";
+    const transportOutcomeKey = `${transportKey}:${family}`;
+    const transportCurrent = protocolTransportOutcomes.get(transportOutcomeKey) || { transport: transportKey, observations: 0, requests: 0, responses: 0, matched: 0, completed: 0, errors: 0, input_required: 0, unknown: 0 };
+    transportCurrent.observations += 1;
     const scopeKey = typeof row.scope_key === "string" ? row.scope_key : undefined;
     if (scopeKey && Array.isArray(row.capability_families) && row.capability_families.length) {
       const advertised = advertisedFamiliesByScope.get(scopeKey) || new Set<string>();
@@ -381,6 +392,8 @@ export function createAnalyticsHandler(getAdmin: typeof getSupabaseAdmin = getSu
     current.observations += 1;
     if (row.observation_kind === "protocol_request") current.requests += 1;
     if (row.observation_kind === "protocol_response") current.responses += 1;
+    if (row.observation_kind === "protocol_request") transportCurrent.requests += 1;
+    if (row.observation_kind === "protocol_response") transportCurrent.responses += 1;
     const primaryLink = row.interaction_id_hash
       || row.request_state_hash
       || (row.observation_kind === "protocol_request" && row.source_event_id ? `event:${row.source_event_id}` : undefined)
@@ -389,15 +402,27 @@ export function createAnalyticsHandler(getAdmin: typeof getSupabaseAdmin = getSu
       const handle = protocolFamilyHandles.get(family) || { requests: new Set<string>(), responses: new Set<string>() };
       handle[row.observation_kind === "protocol_request" ? "requests" : "responses"].add(primaryLink);
       protocolFamilyHandles.set(family, handle);
+      const transportHandle = protocolTransportHandles.get(transportOutcomeKey) || { requests: new Set<string>(), responses: new Set<string>() };
+      transportHandle[row.observation_kind === "protocol_request" ? "requests" : "responses"].add(primaryLink);
+      protocolTransportHandles.set(transportOutcomeKey, transportHandle);
     }
     if (outcome === "failed") current.errors += 1;
     else if (outcome === "pending") current.input_required += 1;
     else if (outcome === "completed") current.completed += 1;
     else current.unknown += 1;
+    if (outcome === "failed") transportCurrent.errors += 1;
+    else if (outcome === "pending") transportCurrent.input_required += 1;
+    else if (outcome === "completed") transportCurrent.completed += 1;
+    else transportCurrent.unknown += 1;
     protocolFamilyOutcomes.set(family, current);
+    protocolTransportOutcomes.set(transportOutcomeKey, transportCurrent);
   }
   for (const [family, handle] of protocolFamilyHandles) {
     const current = protocolFamilyOutcomes.get(family);
+    if (current) current.matched = [...handle.requests].filter((value) => handle.responses.has(value)).length;
+  }
+  for (const [key, handle] of protocolTransportHandles) {
+    const current = protocolTransportOutcomes.get(key);
     if (current) current.matched = [...handle.requests].filter((value) => handle.responses.has(value)).length;
   }
   for (const [family, current] of protocolFamilyOutcomes) {
@@ -1028,6 +1053,7 @@ export function createAnalyticsHandler(getAdmin: typeof getSupabaseAdmin = getSu
     protocol_family_activity: [...protocolFamilyCounts.entries()].map(([family, observations]) => ({ family: family as TrackMCPProtocolFamily, observations })).sort((a, b) => b.observations - a.observations || a.family.localeCompare(b.family)),
     protocol_family_outcomes: [...protocolFamilyOutcomes.entries()].map(([family, outcome]) => ({ family: family as TrackMCPProtocolFamily, ...outcome })).sort((a, b) => b.observations - a.observations || a.family.localeCompare(b.family)),
     protocol_family_outcome_source: familySource,
+    protocol_transport_outcomes: [...protocolTransportOutcomes.values()].sort((a, b) => b.observations - a.observations || a.transport.localeCompare(b.transport)),
     protocol_mrtr_linkage: protocolMrtrLinkage,
     protocol_capability_gaps: protocolCapabilityGaps,
     protocol_decisions: protocolDecisionSummary,

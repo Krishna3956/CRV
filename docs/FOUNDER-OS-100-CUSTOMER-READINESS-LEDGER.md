@@ -3893,3 +3893,19 @@ a failed product gate or a Supabase plan warning.
 - [ ] Cross-transport MRTR lifecycle fixtures, customer-owned endpoint UAT,
   privacy acceptance, and release-owner GO/NO-GO remain open. The product
   truth boundary remains Partial for MRTR; no full-conformance claim is made.
+
+### 2026-10-28 MRTR transport evidence projection
+
+- [x] The analytics read model now preserves only the validated transport
+  label from durable semantic facts and emits bounded per-transport MRTR
+  lifecycle counts for `stdio`, `streamable_http`, `sse`, `custom`, and
+  `unknown`.
+- [x] The Capabilities dashboard renders a transport-coverage table alongside
+  family outcomes and the privacy-safe linkage summary. It does not show
+  hashes, event IDs, request state, response values, or transport payloads.
+- [x] Analytics fixtures cover request/response matching for all four supported
+  transports; the focused suite passed **91 tests** and the full local release
+  gate passed **145 suites**.
+- [ ] Customer-owned endpoint interoperability, transport-owned reconnect and
+  replay behavior, authenticated production MRTR lifecycle UAT, and
+  release-owner approval remain open. MRTR remains Partial for pilot claims.

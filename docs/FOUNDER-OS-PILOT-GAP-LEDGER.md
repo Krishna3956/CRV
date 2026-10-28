@@ -1781,3 +1781,12 @@ production transport UAT.
   `40613170713` passed against the deployed candidate. These runs verify the
   bounded evidence surface on the hosted candidate. Cross-transport MRTR
   lifecycle fixtures and customer-owned endpoint UAT remain open.
+
+- 2026-10-28: Added bounded MRTR transport coverage to the analytics read
+  model and Capabilities dashboard. Durable semantic facts now retain the
+  caller-verified transport label for protocol roles; the API reports
+  per-transport observations, requests, responses, matched pairs, completed,
+  and input-required counts for `stdio`, Streamable HTTP, SSE, custom, and
+  unknown labels. A fixture covers all four supported transports and the
+  complete local **145-suite** release gate passed. This is lifecycle evidence
+  coverage, not customer-owned endpoint interoperability or full MRTR support.
