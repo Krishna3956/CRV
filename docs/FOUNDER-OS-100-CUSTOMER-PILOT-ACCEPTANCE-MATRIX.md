@@ -1,19 +1,18 @@
 # Founder OS first-100-customer acceptance matrix
 
 Status: **HOLD — no silent waivers**  
-Reconciled: 2026-10-28 (Asia/Calcutta)
-Current deployed baseline: application `8e3b61836432e1b045b539857fb8639d9d464c3f`,
-App Runner run `40695080113` (successful deployment, image digest
-`sha256:bb8c89a7a3794b83c129681310e423e007c9096cba9f4398cf84ebf3392d8cb0`).
-The current repository source is `main` at `HEAD`; hosted CI `40706968504`
-passed across web/JavaScript, Go, and .NET. The full release gate passed 148
-suites. Authenticated production smoke `40696432361` passed against the
-deployed runtime SHA `8e3b6183`; it is read-only evidence and is not a claim
-that the docs/test-only source commit itself was redeployed. The deployed
-refresh scheduler remains independently proven by health artifact
-`40629348992`, which records 3/3 complete AWS worker-summary samples within
-the 15-minute budget. The alert evaluator deployment path is present but
-manual-only and disabled-first; no production alert delivery is claimed.
+Reconciled: 2026-10-28 (Asia/Kolkata)
+Current deployed baseline: application
+`7763e05f9e62c9f3349ba20596c208d81cca08c9`, App Runner run `40729507033`
+(successful rerun attempt 2). The current repository source is `main` at
+`01d89aa31521861f063cf7ecc029507f82b90ed8`; hosted CI `40729507069` passed
+across web/JavaScript, Go, and .NET, and the full release gate passed 148
+suites. Authenticated production smoke `40732381275` passed against the
+deployed runtime SHA `7763e05f`. The deployed refresh scheduler remains
+independently proven by health artifact `40629348992`, which records 3/3
+complete AWS worker-summary samples within the 15-minute budget. The alert
+evaluator deployment path is present but manual-only and disabled-first; no
+production alert delivery is claimed.
 This is current runtime and source evidence, not a pilot GO decision.
 
 Historical baseline retained for continuity: application
@@ -37,7 +36,7 @@ record.
 | 053 | Exercise workspace creation from device flow without key disclosure | Disposable authenticated zero-membership account rendered `Workspace setup required`; browser creation succeeded, approval completed, and no connection-key material was shown. Disposable user, workspace, and session were removed after capture | CLOSED — browser UAT | Retain the redacted browser/session evidence in the handoff ledger; this does not close redemption |
 | 157 | Record database region, backup posture, and restoration contact | Supabase inspection records East US / `us-east-1`; current Free Plan backup surface showed no usable schedule, restore point, contact, or completed restore rehearsal | OPEN — infrastructure owner | Written region/tier, backup/restore policy or explicit accepted limitation, restoration contact, and tested recovery reference |
 | 259 | Compare all acceptance rows with evidence and silently waive none | This matrix reconciles all three currently open IDs and records an explicit HOLD for each unresolved row | CLOSED — comparison complete | Keep this matrix and the release record updated whenever an item changes; it does not authorize GO |
-| 260 | Issue the limited 100-customer pilot go/no-go decision | Engineering recommendation remains HOLD because backup posture, privacy acceptance, customer-owned protocol boundaries, and owner acceptance are open; scheduler freshness is proven separately by health artifact `40629348992` | OPEN — release owner | Timestamped GO/NO-GO decision with accepted limitations, scope, rollback owner, and links to every green/open row |
+| 260 | Issue the limited 100-customer pilot go/no-go decision | Engineering recommendation remains HOLD because backup posture, privacy acceptance, customer-owned protocol boundaries, and owner acceptance are open; scheduler freshness is an engineering PASS proven separately by health artifact `40629348992` | OPEN — release owner | Timestamped GO/NO-GO decision with accepted limitations, scope, rollback owner, and links to every green/open row |
 
 ## Decision rule
 

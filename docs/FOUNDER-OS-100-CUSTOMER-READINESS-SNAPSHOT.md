@@ -71,20 +71,16 @@ These are not source-code failures and must not be silently marked green:
    requests are review-only and destructive deletion is disabled.
 4. Synthetic reliability-data hygiene acceptance: canary rows must remain
    visibly test evidence and never be presented as customer incidents.
-5. Sustained scheduler evidence: health run `40629348992` proves three complete
-   AWS worker-summary samples, six scheduler invocations, four end-to-end EMF
-   successes, zero parse/failed/retryable jobs, and queue lag within the
-   15-minute budget.
-6. Credentialed production key-lifecycle and customer-owned MCP endpoint UAT.
-7. Protocol interoperability that is explicitly Partial/Unsupported in the
+5. Credentialed production key-lifecycle and customer-owned MCP endpoint UAT.
+6. Protocol interoperability that is explicitly Partial/Unsupported in the
    matrix (customer endpoints, reconnect/replay, proxy-specific behavior,
    OAuth/token exchange, OTLP/gRPC, sampling/elicitation).
-8. Go/.NET registry publication, if those packages are part of the pilot
+7. Go/.NET registry publication, if those packages are part of the pilot
    promise; artifacts are validated but intentionally unpublished.
 
 ## Next execution order
 
-1. Release owner records decisions for items 1–5 and the accepted limitations.
+1. Release owner records decisions for items 1–4 and the accepted limitations.
 2. Add the dedicated hosted transport-smoke secret only if a credentialed
    hosted transport run is desired; do not reuse a customer key.
 3. Run bounded credentialed key-lifecycle and transport UAT with disposable
