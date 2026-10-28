@@ -14,6 +14,20 @@ Last updated: 2026-10-28 (main `5fa4aff5`; deployed application `8e3b6183` and i
   UAT/engineering-evidence release only; no App Runner image was rebuilt.
 - [ ] Full OAuth interoperability remains external and is not inferred from
   this metadata-only evidence.
+
+## 2026-10-28 — current-source authenticated read-model smoke reverified
+
+- [x] Read-only authenticated production smoke `40710093943` checked out the
+  immutable current source `d8b806d2c5ea4cf813079b55ac22c1d28ae8fc74` and
+  passed all 37 bounded checks across both workspace scopes: key status,
+  conflicting-workspace isolation, every Founder OS v2 read model, legacy
+  analytics/tool-quality/traces reads, API-key Action Queue denial, and revoked
+  key rejection. The redacted artifact is retained by GitHub Actions.
+- [ ] The guarded live transport smoke `40709815397` skipped because
+  `TRACKMCP_TRANSPORT_SMOKE_KEY` is not configured. The disposable device-flow
+  smoke `40709954314` likewise skipped because its cookie/workspace secrets are
+  not configured. These are explicit credential-gated evidence boundaries; no
+  secret values were printed or inferred.
 The same-origin docs, auth, blog CTA fixes, regression guard, and hosted-runner verification gate are deployed and runtime-verified. Cloudflare permits browser-compatible requests, while its managed bot rule still returns HTML 403 to the default scripted user-agent; SDK delivery must use the compatible request boundary and retain a real authenticated UAT check.
 Latest freshness evidence: health workflow `40629348992` inspected the newly
 deployed scheduler's bounded worker-summary metrics. The current window has

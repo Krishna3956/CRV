@@ -29,6 +29,11 @@ and [pilot release record](FOUNDER-OS-100-CUSTOMER-PILOT-RELEASE-RECORD.md).
   SHA `70534428fd69a4fa5a07f46adad504a32fdfe262`: read models authenticated,
   conflicting workspace queries were ignored, API-key action-queue mutation
   was denied, and a revoked key was rejected.
+- Current-source read-only authenticated smoke `40710093943` reverified the
+  same tenant/read-model boundary against
+  `d8b806d2c5ea4cf813079b55ac22c1d28ae8fc74` with 37 bounded checks. The
+  transport and disposable device-flow workflows remain explicitly skipped
+  when their repository secrets are absent.
 - Official Streamable HTTP and SSE client fixtures pass through the adapter to
   the trusted App Runner origin with metadata-only payloads. Production
   transport smoke `40614861539` passed; the repeatable script is
