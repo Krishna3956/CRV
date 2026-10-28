@@ -32,6 +32,11 @@ Status: active autonomous audit, started 2026-10-21.
   device-flow run then passed 11 checks, adding authenticated OTLP/HTTP JSON
   and protobuf acceptance to the canonical ingest lifecycle. Cleanup left no
   active disposable key and emitted no secret material.
+- Hosted TrackMCP CI `40607765427` passed the complete 145-suite
+  cross-language release gate for source `6b1cf1f8`, including the reusable
+  OTLP JSON/protobuf device-flow contract; this is source verification and does
+  not close the external owner, backup, privacy, scheduler-cadence, or
+  customer-owned protocol gates.
 
 ## 2026-10-28 — disposable production key lifecycle UAT passed
 
