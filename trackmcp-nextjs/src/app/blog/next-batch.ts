@@ -245,7 +245,7 @@ export const blogSpecs: BlogSpec[] = [
     ],
     faq: [["Is a browser probe a production monitor?", "No. It is a bounded diagnostic and preflight. Use continuous server telemetry and infrastructure monitoring for production behavior."], ["What does a CORS error prove?", "It proves that the browser could not expose a usable response. It does not prove the MCP endpoint is down."], ["Should I monitor the gateway or the server?", "Both, with separate evidence. The gateway owns routing and auth behavior; the server owns MCP and tool behavior."]],
     related: ["mcp-server-monitoring-tools", "mcp-server-uptime-vs-health", "remote-mcp-oauth-guide"],
-    source: { label: "Open the remote MCP observability page", href: "https://trackmcp.com/remote-mcp-observability" },
+    source: { label: "Open the remote MCP observability page", href: "https://trackmcp.com/mcp-observability/remote-http" },
   },
   {
     slug: "mcp-observability-multi-server",
@@ -364,7 +364,7 @@ export const blogSpecs: BlogSpec[] = [
     ],
     faq: [["Should I log every MCP payload while debugging?", "No. Use bounded, redacted evidence and a temporary, approved diagnostic mode. Raw payload logging can create a larger security incident."], ["What is the first query to run?", "Find the affected server, client, tool, release, and time window, then inspect the ordered boundary events for the first divergence from a known-good workflow."], ["How do I debug a timeout?", "Separate deadline, cancellation, server completion, downstream side effect, and retry. Reconcile unknown state before attempting another write."]],
     related: ["mcp-incident-response-runbook", "mcp-tool-failure-analysis", "mcp-request-timeouts-deadlines"],
-    source: { label: "Open the TrackMCP troubleshooting docs", href: "https://trackmcp.com/docs/troubleshooting" },
+    source: { label: "Open the TrackMCP troubleshooting docs", href: "https://trackmcp.com/docs#troubleshooting" },
   },
   {
     slug: "mcp-server-incident-response",
@@ -432,7 +432,7 @@ export const blogSpecs: BlogSpec[] = [
     ],
     faq: [["What is the most important tool metric?", "There is no universal one. Combine selection or call adoption with result reliability, latency, and workflow outcome for the decision you need to make."], ["Can I identify tools no client calls?", "Only when you have complete catalog and traffic evidence. Sampling, hidden clients, or missing sessions make non-use an uncertain claim."], ["Should raw arguments be in a usage report?", "Usually not. Bounded metadata and approved categories are safer and often sufficient for product decisions."]],
     related: ["mcp-tool-adoption-benchmark", "mcp-client-analytics", "measure-mcp-tool-adoption-workflow-completion"],
-    source: { label: "Open TrackMCP tool analytics", href: "https://trackmcp.com/tool-analytics" },
+    source: { label: "Open TrackMCP tool analytics", href: "https://trackmcp.com/mcp-tool-analytics" },
   },
   {
     slug: "mcp-client-analytics",
