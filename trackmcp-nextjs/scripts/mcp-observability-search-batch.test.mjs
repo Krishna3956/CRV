@@ -39,6 +39,8 @@ test("the batch links back to the observability pillar and product docs", () => 
   assert.match(batch, /mcp-observability-guide/);
   assert.match(batch, /best-mcp-observability-tools-for-production-servers/);
   assert.match(batch, /href: "\/docs"/);
+  assert.doesNotMatch(batch, /measure-mcp-tool-adoption[\"`]/);
+  assert.match(batch, /measure-mcp-tool-adoption-workflow-completion/);
 });
 
 test("every article has a topic-specific research note and named ecosystem tools", () => {
