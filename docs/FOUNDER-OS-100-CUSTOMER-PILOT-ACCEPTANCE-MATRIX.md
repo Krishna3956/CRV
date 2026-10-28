@@ -2,16 +2,15 @@
 
 Status: **HOLD — no silent waivers**  
 Reconciled: 2026-10-28 (Asia/Calcutta)
-Current deployed baseline: application `b2ab68e6369f54105cf219b88fedc483e1590738`,
-App Runner run `40606435487` (successful deployment). The chained authenticated
-production smoke `40607394426` also passed for the same immutable release. The
-current repository source is `main` at `HEAD`; merged scheduler source
-`20702c9` passed hosted CI `40628036758`. The application image remains the
-separately verified App Runner runtime above; the scheduler is deployed
-independently and health artifact `40629348992` proves 3/3 complete AWS
-worker-summary samples within the 15-minute budget. The post-deployment
-commits are ledger and evidence-tooling commits and are not claimed as
-deployed behavior; specifically, they are not App Runner application behavior.
+Current deployed baseline: application `8130f517b411a7859801b0472aae1c9e955d210b`,
+App Runner run `40669192809` (successful deployment, image digest
+`sha256:429208e0d65cd84e23909aabad592c7639f3b929848b0d0d239a127ee53368fd`).
+The current repository source is `main` at `HEAD`; hosted CI `40669192861`
+passed all 145 suites across web/JavaScript, Go, and .NET. The deployed
+refresh scheduler remains independently proven by health artifact
+`40629348992`, which records 3/3 complete AWS worker-summary samples within
+the 15-minute budget. The alert evaluator deployment path is present but
+manual-only and disabled-first; no production alert delivery is claimed.
 This is current runtime and source evidence, not a pilot GO decision.
 
 Historical baseline retained for continuity: application

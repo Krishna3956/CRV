@@ -1,6 +1,6 @@
 # Founder OS 100 Customer Readiness Ledger
 
-Last updated: 2026-10-28 (main `a9faa4b6`; deployed application `b2ab68e6` and immutable App Runner redeploy `40606435487` succeeded; hosted TrackMCP CI `40628036758` and App Runner deployment `40628036757` passed for the merged scheduler source; scheduler deploy `40628036770`, authenticated smoke `40628409832`, schedule enablement `40628646879`, and health artifact `40629348992` prove the AWS worker-freshness path; customer-owned endpoint/protocol UAT, privacy acceptance, backup/PITR posture, and release-owner GO/NO-GO remain open)
+Last updated: 2026-10-28 (main `8130f517`; deployed application `8130f517` and immutable App Runner redeploy `40669192809` succeeded with image digest `sha256:429208e0d65cd84e23909aabad592c7639f3b929848b0d0d239a127ee53368fd`; hosted TrackMCP CI `40669192861` passed; scheduler deploy `40628036770`, authenticated smoke `40628409832`, schedule enablement `40628646879`, and health artifact `40629348992` prove the AWS worker-freshness path; customer-owned endpoint/protocol UAT, privacy acceptance, backup/PITR posture, and release-owner GO/NO-GO remain open)
 The same-origin docs, auth, blog CTA fixes, regression guard, and hosted-runner verification gate are deployed and runtime-verified. Cloudflare permits browser-compatible requests, while its managed bot rule still returns HTML 403 to the default scripted user-agent; SDK delivery must use the compatible request boundary and retain a real authenticated UAT check.
 Latest freshness evidence: health workflow `40629348992` inspected the newly
 deployed scheduler's bounded worker-summary metrics. The current window has
@@ -9,6 +9,23 @@ EMF successes**, with zero parse failures, failed jobs, retryable jobs, or
 errors and maximum queue lag within the 15-minute budget. The report is
 **healthy** and the AWS worker-freshness gate is proven; customer-owned endpoint
 and other external acceptance gates remain separate decisions.
+
+## 2026-10-28 — guarded alert-scheduler deployment published
+
+- [x] PR `#620` merged to `main` as `8130f517`. The reviewed alert-scheduler
+  deployment workflow is manual-only and disabled-first; it derives the
+  App Runner evaluator boundary, accepts only a non-sensitive Secrets Manager
+  ARN reference, and retains metadata-only smoke/evidence artifacts.
+- [x] App Runner deployment `40669192809` rolled out immutable source
+  `8130f517b411a7859801b0472aae1c9e955d210b` with image digest
+  `sha256:429208e0d65cd84e23909aabad592c7639f3b929848b0d0d239a127ee53368fd`.
+  Release gate, image verification, rollout, read-only production smoke,
+  immutable identity, and runtime-safety checks all passed. Main CI
+  `40669192861` also passed.
+- [x] The alert evaluator schedule remains disabled by default. No production
+  alert write path is claimed as enabled; a dedicated worker-token ARN,
+  canary workspace/destination, and accepted delivery evidence remain the
+  explicit external enablement boundary.
 
 ## 2026-10-28 — AWS scheduler worker-freshness metrics (candidate `0d03e687`)
 
@@ -223,7 +240,7 @@ End of historical checkpoint archive.
 | Backup/PITR | Supabase Free Plan has no scheduled backups or PITR; inspection recorded in the backup evidence entries below | **HOLD / owner decision** | Accepted documented limitation with named recovery owner/runbook, or plan upgrade plus tested restore rehearsal |
 | Privacy acceptance | Engineering privacy/export/deletion contracts pass; production acceptance evidence is not recorded | **HOLD / owner decision** | Signed production privacy review and retention/deletion acceptance |
 | Credentialed lifecycle/UAT | Read-only tenant/auth smoke, direct-origin first-ingest UAT `40598515473`, terminal device activation plus first-event UAT, authenticated Streamable HTTP/SSE adapter-to-ingest smoke with 15 persisted observations, disposable production key rotation/revocation UAT, and the fresh 11-check disposable device-flow UAT covering canonical ingest plus OTLP/HTTP JSON and protobuf are verified; customer-owned endpoint/protocol UAT remains unexecuted | **HOLD / credentialed** | Customer-owned endpoint/protocol UAT artifact, plus explicit acceptance of the unsupported reconnect/replay, durable-subscription, and OAuth boundaries |
-| Hosted deployment verification | App Runner redeploy `40606435487` deployed immutable runtime `b2ab68e6`; `/api/health`, `/`, and `/docs` returned 200, and the health response matched the immutable source SHA. The merged scheduler source `20702c9` passed hosted TrackMCP CI `40628036758`; its scheduler deployment is independent of the application image | **PASS** | Re-run the same guarded workflow for the next runtime-changing commit |
+| Hosted deployment verification | App Runner deployment `40669192809` deployed immutable source `8130f517b411a7859801b0472aae1c9e955d210b` with image digest `sha256:429208e0d65cd84e23909aabad592c7639f3b929848b0d0d239a127ee53368fd`; release gate, read-only production smoke, immutable identity, and runtime-safety checks passed. Main CI `40669192861` passed all hosted lanes | **PASS** | Re-run the same guarded workflow for the next runtime-changing commit |
 | Release-owner acceptance | Source, CI, deployment, package publication, and local release gates are green | **HOLD / owner decision** | Explicit approval referencing this register and the current deployed source |
 
 This register is the active decision surface. Historical entries below remain

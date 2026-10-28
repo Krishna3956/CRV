@@ -11,15 +11,14 @@ is intentionally not a GO approval and must not be treated as one.
 
 - `main`: current default branch. Immutable deployed SHAs belong in the
   release record; PR checks remain attached to their exact review commits.
-- Current deployed application: `b2ab68e6369f54105cf219b88fedc483e1590738`,
-  App Runner workflow `40606435487` (successful rollout, release gate,
-  production smoke, identity, and runtime-safety checks); authenticated
-  production smoke `40607394426` passed for the same immutable SHA.
-- Current source verification: `main` at `HEAD`; merged scheduler source
-  `20702c9` passed hosted TrackMCP CI `40628036758` with all 145 cross-language
-  suites. The application image remains the separately verified App Runner
-  runtime `b2ab68e6`; scheduler deployment and health evidence are recorded
-  below. This does not close the external owner, backup, or privacy gates.
+- Current deployed application: `8130f517b411a7859801b0472aae1c9e955d210b`,
+  App Runner workflow `40669192809` (successful rollout, release gate,
+  production smoke, immutable identity, and runtime-safety checks) with image
+  digest `sha256:429208e0d65cd84e23909aabad592c7639f3b929848b0d0d239a127ee53368fd`.
+- Current source verification: `main` at `HEAD`; hosted TrackMCP CI
+  `40669192861` passed all 145 cross-language suites. The refresh scheduler
+  and health evidence are recorded below. This does not close the external
+  owner, backup, privacy, or customer-owned protocol gates.
 - Historical deployed baselines retained for audit include `9638e23c8529f9b1781d96413529e33a692715ed`
   (App Runner workflow `40468547762`) and `37579eade74a20818cd4f83569493e830e4855de`
   (App Runner workflow `40474794151`), plus the earlier deployment identity

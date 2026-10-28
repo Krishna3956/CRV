@@ -2,6 +2,20 @@
 
 Status: active autonomous audit, started 2026-10-21.
 
+## 2026-10-28 — current runtime and alert-scheduler baseline reconciled
+
+- PR `#620` merged to `main` as `8130f517`. App Runner deployment
+  `40669192809` deployed the same immutable source with image digest
+  `sha256:429208e0d65cd84e23909aabad592c7639f3b929848b0d0d239a127ee53368fd`;
+  release gate, production smoke, immutable identity, and runtime-safety
+  checks passed. Hosted CI `40669192861` passed all 145 suites.
+- The alert-scheduler workflow is now published as a manual, disabled-first
+  deployment path with metadata-only smoke/evidence. It does not enable
+  production alert delivery; a dedicated worker token, canary destination,
+  and accepted delivery evidence remain required.
+- This current baseline supersedes older runtime references in this ledger's
+  historical entries; historical evidence is retained for audit continuity.
+
 ## 2026-10-28 — AWS scheduler worker-freshness gate closed
 
 - The merged scheduler source `20702c9` passed hosted TrackMCP CI
