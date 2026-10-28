@@ -46,6 +46,31 @@ failure.
   sequence. This change removes a false branch failure; it does not itself
   prove production worker freshness.
 
+## 2026-10-28 — scheduler rollout, authenticated smoke, and schedule enablement
+
+- [x] PR `612` merged to main as `20702c9`. Main TrackMCP CI and App Runner
+  deployment were started from that immutable merge; the main scheduler deploy
+  `40628036770` passed OIDC, SAM build, CloudFormation update, and metadata-only
+  evidence upload with the schedule disabled.
+- [x] A single controlled smoke run `40628409832` updated the same stack and
+  passed the authenticated Lambda invocation with `status_code=200`, DLQ depth
+  `0`, and no payload/log contents retained in the artifact.
+- [x] The reviewed enablement run `40628646879` completed successfully with
+  `EnableSchedule=true`; the production schedule ARN and function identity are
+  present in the redacted artifact. The five-minute schedule is now collecting
+  the worker-summary EMF metrics required by the freshness gate.
+- [x] Freshness is now proven by health artifact `40629348992`: AWS worker
+  freshness is `3/3` complete samples, scheduler cadence is `6/6` invocations,
+  end-to-end EMF success is `4/4`, and worker parse/failed/retryable counts are
+  all zero within the 15-minute budget. The earlier duplicate-dispatch race
+  (`40628227307` failed while the stack was already updating;
+  `40628221132` was cancelled) is retained as operational evidence and did not
+  change the deployed state.
+- [x] Health artifact `40629215427` was the intermediate observation: it proved
+  AWS scheduler cadence at `5/5` and end-to-end EMF success at `3/3`, with
+  `2/3` complete worker-summary samples and zero parse, failed, or retryable
+  jobs. The follow-up artifact above closes the final sample requirement.
+
 ## 2026-10-28 — package-test timeout hardening
 
 - [x] Hosted TrackMCP CI `40590525044` completed successfully for the current
