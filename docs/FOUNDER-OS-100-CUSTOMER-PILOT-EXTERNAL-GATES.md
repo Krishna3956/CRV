@@ -16,8 +16,8 @@ is intentionally not a GO approval and must not be treated as one.
   production smoke, immutable identity, runtime-safety checks, and live health
   identity verification) with image digest
   `sha256:bb8c89a7a3794b83c129681310e423e007c9096cba9f4398cf84ebf3392d8cb0`.
-- Current source verification: `main` at `HEAD`; hosted TrackMCP CI
-  `40702831003` passed across the web/JavaScript, Go, and .NET lanes. The refresh scheduler
+- Current source verification: `main` at `HEAD` (`5fa4aff5`); hosted TrackMCP CI
+  `40706968504` passed across the web/JavaScript, Go, and .NET lanes. The refresh scheduler
   and health evidence are recorded below. This does not close the external
   owner, backup, privacy, or customer-owned protocol gates.
 - Historical deployed baselines retained for audit include `9638e23c8529f9b1781d96413529e33a692715ed`

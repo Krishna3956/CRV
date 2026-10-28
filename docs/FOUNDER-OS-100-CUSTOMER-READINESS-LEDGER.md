@@ -1,6 +1,19 @@
 # Founder OS 100 Customer Readiness Ledger
 
-Last updated: 2026-10-28 (main `77822705`; deployed application `8e3b6183` and immutable App Runner deployment `40695080113` succeeded with image digest `sha256:bb8c89a7a3794b83c129681310e423e007c9096cba9f4398cf84ebf3392d8cb0`; hosted TrackMCP CI `40702831003` passed; deployment release gate, production smoke, immutable identity, runtime-safety checks, and live health SHA verification passed; scheduler deploy `40628036770`, authenticated smoke `40628409832`, schedule enablement `40628646879`, and health artifact `40629348992` prove the AWS worker-freshness path; customer-owned endpoint/protocol UAT, privacy acceptance, backup/PITR posture, and release-owner GO/NO-GO remain open)
+Last updated: 2026-10-28 (main `5fa4aff5`; deployed application `8e3b6183` and immutable App Runner deployment `40695080113` succeeded with image digest `sha256:bb8c89a7a3794b83c129681310e423e007c9096cba9f4398cf84ebf3392d8cb0`; PR `#632` merged and hosted TrackMCP CI `40706968504` passed; the new source is UAT-only; scheduler deploy `40628036770`, authenticated smoke `40628409832`, schedule enablement `40628646879`, and health artifact `40629348992` prove the AWS worker-freshness path; customer-owned endpoint/protocol UAT, privacy acceptance, backup/PITR posture, and release-owner GO/NO-GO remain open)
+
+## 2026-10-28 — OAuth metadata boundary evidence published
+
+- [x] PR `#632` merged the bounded OAuth metadata probe correction and local
+  fixture coverage. The probe now distinguishes `not_advertised` (all
+  candidates explicitly return 404/405) from `unavailable` (timeouts or other
+  non-success responses), and the fixtures cover absent metadata, unsafe
+  redirects, and oversized responses.
+- [x] Hosted TrackMCP CI `40706968504` passed the full 148-suite release gate,
+  lint, production build, and cross-language package consumers. This is a
+  UAT/engineering-evidence release only; no App Runner image was rebuilt.
+- [ ] Full OAuth interoperability remains external and is not inferred from
+  this metadata-only evidence.
 The same-origin docs, auth, blog CTA fixes, regression guard, and hosted-runner verification gate are deployed and runtime-verified. Cloudflare permits browser-compatible requests, while its managed bot rule still returns HTML 403 to the default scripted user-agent; SDK delivery must use the compatible request boundary and retain a real authenticated UAT check.
 Latest freshness evidence: health workflow `40629348992` inspected the newly
 deployed scheduler's bounded worker-summary metrics. The current window has
