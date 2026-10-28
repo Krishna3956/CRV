@@ -102,6 +102,10 @@ jobs:
         working-directory: trackmcp-nextjs
         run: timeout --signal=TERM --kill-after=30s 10m npm ci
 
+      - name: Install TypeScript SDK dependencies for customer endpoint fixture
+        working-directory: trackmcp-nextjs
+        run: timeout --signal=TERM --kill-after=30s 10m npm ci --prefix packages/typescript-sdk
+
       - name: Install Python package build dependency
         run: timeout --signal=TERM --kill-after=30s 10m python3 -m pip install build
 
