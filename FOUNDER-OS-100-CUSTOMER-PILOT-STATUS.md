@@ -28,6 +28,11 @@ promise that every product capability is complete.
 - SDK/CLI/Python/Go/.NET consumer, OTLP JSON/protobuf, protocol observer,
   tenant-isolation, privacy, accessibility, and documentation-navigation
   checks are green.
+- The customer-endpoint UAT runner now has a release-gate integration fixture
+  that exercises the official Streamable HTTP client through initialize,
+  tools/resources/resource-template/prompts discovery, metadata-only adapter
+  delivery, and redacted evidence drain. The private-target override is
+  explicit and loopback-only; it does not change production HTTPS policy.
 - Production key rotation was executed in the authenticated owner dashboard;
   the old key is revoked and the replacement secret was shown once and not
   persisted. Server adoption of the replacement remains a separate check.

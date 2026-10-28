@@ -13,6 +13,8 @@ test("web CI blocks high-severity production dependency advisories", () => {
   assert.match(ciWorkflow, /actions\/setup-python@v5/);
   assert.match(ciWorkflow, /python3 -m build/);
   assert.match(ciWorkflow, /python3 -m twine check dist\/\*/);
+  assert.match(ciWorkflow, /Install TypeScript SDK dependencies for customer endpoint fixture/);
+  assert.match(ciWorkflow, /timeout --signal=TERM --kill-after=30s 10m npm ci --prefix packages\/typescript-sdk/);
   assert.match(ciWorkflow, /go vet \.\/\.\.\.\n\s+- run: go run \.\/smoke/);
   assert.match(ciWorkflow, /Build reviewed NuGet artifact \(not published\)/);
   assert.match(ciWorkflow, /dotnet pack TrackMcp\.csproj --configuration Release --no-build/);

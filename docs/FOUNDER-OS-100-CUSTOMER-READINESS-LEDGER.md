@@ -4143,3 +4143,20 @@ a failed product gate or a Supabase plan warning.
 - [ ] Broad customer-owned collector reachability through the public edge still
   requires an accepted edge policy and credentialed UAT; this wording correction
   does not close that external gate or release-owner GO/NO-GO.
+
+### 2026-10-28 customer-endpoint UAT fixture hardening
+
+- [x] The manual customer-endpoint UAT runner now probes the full bounded
+  discovery set: `tools/list`, `resources/list`,
+  `resources/templates/list`, and `prompts/list` through the official
+  Streamable HTTP client transport.
+- [x] Added a release-gate integration fixture that starts an ephemeral
+  loopback MCP endpoint and ingest receiver, runs the actual UAT child process,
+  verifies metadata-only adapter delivery drains successfully, and checks the
+  report for token, key, endpoint-path, and payload suppression.
+- [x] The private-target override is explicit, requires a private/loopback
+  hostname, and is never enabled by the hosted workflow; production targets
+  remain HTTPS-only and restricted to the approved TrackMCP ingest origins.
+- [ ] This closes local harness execution evidence only. A real
+  customer-owned endpoint run, transport-owned reconnect/replay semantics,
+  OAuth/token exchange, and release-owner GO/NO-GO remain external gates.

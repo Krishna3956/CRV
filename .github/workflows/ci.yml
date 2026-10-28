@@ -55,6 +55,9 @@ jobs:
       - name: Build and validate Python SDK artifacts
         working-directory: packages/python-sdk
         run: timeout --signal=TERM --kill-after=30s 10m sh -c 'python3 -m pip install build twine && python3 -m build && python3 -m twine check dist/*'
+      - name: Install TypeScript SDK dependencies for customer endpoint fixture
+        working-directory: trackmcp-nextjs
+        run: timeout --signal=TERM --kill-after=30s 10m npm ci --prefix packages/typescript-sdk
       - name: Run web release gate
         working-directory: trackmcp-nextjs
         # Keep the suite bounded even if the hosted runner fails to enforce

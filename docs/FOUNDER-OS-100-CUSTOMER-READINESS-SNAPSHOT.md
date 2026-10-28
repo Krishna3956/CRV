@@ -80,7 +80,10 @@ The customer-endpoint UAT path is now implemented as a manual-only workflow at
 `.github/workflows/customer-endpoint-uat.yml`. It requires an exact operator
 confirmation, an allowlisted TrackMCP ingest origin, an endpoint-specific
 transport/version choice, and disposable credentials. Its report is redacted
-and mode `0600`; running the workflow remains an external acceptance action.
+and mode `0600`; the release gate also exercises the official Streamable HTTP
+discovery path against an explicit loopback fixture with a private-target
+override. Running the workflow against a real customer endpoint remains an
+external acceptance action.
 
 ## Non-claims
 

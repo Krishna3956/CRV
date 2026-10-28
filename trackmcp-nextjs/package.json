@@ -81,6 +81,7 @@
     "test:production-ingest-smoke": "node --test scripts/production-ingest-smoke.test.mjs",
     "test:production-transport-smoke": "node --test scripts/production-transport-smoke.test.mjs",
     "test:customer-endpoint-uat": "node --test scripts/customer-endpoint-uat.test.mjs",
+    "test:customer-endpoint-uat-integration": "node --test scripts/customer-endpoint-uat.integration.test.mjs",
     "test:customer-endpoint-uat-workflow": "node --test scripts/customer-endpoint-uat-workflow.contract.test.mjs",
     "test:production-transport-workflow": "node --test scripts/production-transport-workflow.contract.test.mjs",
     "test:production-ingest-workflow": "node --test scripts/production-ingest-workflow.contract.test.mjs",
