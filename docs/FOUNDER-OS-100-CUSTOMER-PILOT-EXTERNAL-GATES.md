@@ -52,6 +52,13 @@ is intentionally not a GO approval and must not be treated as one.
   browser-approval/CLI-redemption path with a disposable key; it does not
   change the customer-owned endpoint or protocol boundary.
   revoke, ingest, or mutate dashboard state.
+- A manual-only `customer-endpoint-uat.yml` workflow now accepts one
+  operator-supplied HTTPS endpoint and reviewed MCP transport/version, runs a
+  bounded initialize plus catalog-discovery pass through the official client,
+  and uploads only a mode-0600 redacted report. It rejects unsafe targets,
+  cross-origin redirects, arbitrary tool calls, and implicit OAuth flows. The
+  harness improves the evidence path but does not close this gate until a
+  credentialed customer endpoint run is executed and accepted.
 - Rollback and authenticated scope-smoke evidence are reconciled in the
   release record through queue items 256 and 249.
 - Scheduler deployment history is retained: disabled run `40397368253` failed
