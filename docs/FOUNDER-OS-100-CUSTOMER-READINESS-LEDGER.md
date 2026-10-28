@@ -3849,3 +3849,15 @@ a failed product gate or a Supabase plan warning.
 - [ ] This closes SDK exporter metadata parity only. Cross-transport MRTR
   lifecycle fixtures, authenticated production UAT, deployment identity, and
   release-owner approval remain open gates.
+
+## 2026-10-28 durable MRTR read-model parity
+
+- [x] The refresh worker now selects the validated MRTR linkage columns and
+  the semantic-fact projection retains only the SHA-256 request-state hash,
+  allowlisted interaction source, and bounded retry event identifier.
+- [x] Added privacy regression coverage for raw request-state/response
+  suppression and a refresh-column regression test; the targeted suite passed
+  30 tests and the full local release gate passed 145 suites.
+- [ ] This is source-level read-model parity only. The code still needs hosted
+  CI verification and does not close cross-transport lifecycle fixtures,
+  authenticated production UAT, deployment identity, or release-owner gates.

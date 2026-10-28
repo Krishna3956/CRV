@@ -70,11 +70,16 @@ test("legacy fingerprinted ingest jobs still restrict projections to their sourc
 });
 
 test("fact projection selects bounded metadata and persists semantic facts", async () => {
-  const { admin, writes } = fakeAdmin([{ event_id: "evt-1", event_type: "tool_call", service: "demo", environment: "prod", started_at: "2026-01-01T00:00:00.000Z", success: true, is_error: false, tool_name: "search", transport: "stdio" }]);
+  const queryLog: string[] = [];
+  const { admin, writes } = fakeAdmin([{ event_id: "evt-1", event_type: "tool_call", service: "demo", environment: "prod", started_at: "2026-01-01T00:00:00.000Z", success: true, is_error: false, tool_name: "search", transport: "stdio" }], [], queryLog);
   const handler = createRefreshJobHandlers(admin as never).fact_projection;
   assert.ok(handler);
   const result = await handler({ job: baseJob("fact_projection"), now: new Date(), signal: undefined });
   assert.deepEqual(result, { outcome: "succeeded" });
+  const eventSelect = queryLog.find((entry) => entry.startsWith("select:trackmcp_events:")) || "";
+  assert.match(eventSelect, /interaction_link_source/);
+  assert.match(eventSelect, /retry_of_event_id/);
+  assert.match(eventSelect, /request_state_hash/);
   assert.equal(writes.length, 1);
   assert.equal(writes[0]?.table, "trackmcp_semantic_facts");
   assert.equal((writes[0]?.rows[0] as { payload?: unknown }).payload, undefined);

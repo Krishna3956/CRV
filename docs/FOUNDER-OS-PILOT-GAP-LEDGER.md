@@ -1753,3 +1753,11 @@ production transport UAT.
   .NET. This verifies the cross-language bounded MRTR exporter changes compile
   and pass their release lanes. It does not claim cross-transport lifecycle
   completeness or authenticated production UAT.
+
+- 2026-10-28: Closed a durable read-model loss discovered during the MRTR
+  parity audit. The refresh worker now selects and the semantic-fact
+  projection now preserves only validated `request_state_hash`,
+  `interaction_link_source`, and bounded `retry_of_event_id` fields. Raw
+  request state and response values remain excluded. The targeted fact/refresh
+  suite passed (**30 tests**) and the complete local **145-suite** release gate
+  passed; hosted verification is required after the next push.

@@ -126,6 +126,24 @@ test("projects bounded MRTR request counts without request contents", () => {
   assert.equal(fact.measures.input_response_count, 2);
 });
 
+test("persists only bounded MRTR linkage in durable facts", () => {
+  const fact = projectTrackMCPFact(event({
+    interaction_id: "interaction-hash",
+    interaction_link_source: "external",
+    request_state_hash: "a".repeat(64),
+    retry_of_event_id: "retry-1",
+    payload: { requestState: "never-persist", inputResponses: ["never-persist"] },
+  }));
+  assert.equal(fact.dimensions.interaction_link_source, "external");
+  assert.equal(fact.dimensions.request_state_hash, "a".repeat(64));
+  assert.equal(fact.dimensions.retry_of_event_id, "retry-1");
+  assert.equal(JSON.stringify(fact).includes("never-persist"), false);
+  assert.equal(JSON.stringify(fact).includes("interaction-hash"), false);
+  const invalid = projectTrackMCPFact(event({ request_state_hash: "secret", retry_of_event_id: "retry id" }));
+  assert.equal(invalid.dimensions.request_state_hash, undefined);
+  assert.equal(invalid.dimensions.retry_of_event_id, undefined);
+});
+
 test("projects server entity reads as durable protocol responses without changing the entity marker", () => {
   const fact = projectTrackMCPFact(event({
     event_type: "protocol",

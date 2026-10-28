@@ -30,6 +30,12 @@ export type TrackMCPFact = {
     resource_audience?: CanonicalTrackMCPEvent["resource_audience"];
     resource_priority?: number;
     interaction_id_hash?: string;
+    /** Hash/opaque handle linking an MRTR request state without raw state. */
+    request_state_hash?: string;
+    /** Explicit linkage source for an interaction handle. */
+    interaction_link_source?: CanonicalTrackMCPEvent["interaction_link_source"];
+    /** Bounded retry event identifier; no request/response content is copied. */
+    retry_of_event_id?: string;
     /** One-way task handle; raw task IDs are never stored in the fact projection. */
     task_id_hash?: string;
     /** Coarse protocol family; raw method names remain in the source event only. */
@@ -68,6 +74,12 @@ const bounded = (value: string | undefined, max: number): string | undefined => 
 
 const boundedNonNegative = (value: number | undefined, max: number): number | undefined =>
   typeof value === "number" && Number.isFinite(value) ? Math.min(max, Math.max(0, value)) : undefined;
+
+const boundedSha256 = (value: string | undefined): string | undefined =>
+  typeof value === "string" && /^[0-9a-f]{64}$/.test(value) ? value : undefined;
+
+const boundedEventId = (value: string | undefined): string | undefined =>
+  typeof value === "string" && /^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$/.test(value) ? value : undefined;
 
 const protocolFamilyForEvent = (event: CanonicalTrackMCPEvent): TrackMCPProtocolFamily | undefined => {
   // A task-producing tools/call is an explicit Tasks extension observation,
@@ -138,6 +150,11 @@ export function projectTrackMCPFact(event: CanonicalTrackMCPEvent): TrackMCPFact
   const protocolDecision = payloadMetadata?.protocol_decision === "accept" || payloadMetadata?.protocol_decision === "decline" || payloadMetadata?.protocol_decision === "cancel"
     ? payloadMetadata.protocol_decision
     : undefined;
+  const requestStateHash = boundedSha256(event.request_state_hash);
+  const interactionLinkSource = event.interaction_link_source === "request_id" || event.interaction_link_source === "external" || event.interaction_link_source === "issued" || event.interaction_link_source === "missing"
+    ? event.interaction_link_source
+    : undefined;
+  const retryOfEventId = boundedEventId(event.retry_of_event_id);
   const fact: TrackMCPFact = {
     fact_version: TRACKMCP_FACT_CONTRACT_VERSION,
     fact_type: factTypeFor(event),
@@ -157,6 +174,9 @@ export function projectTrackMCPFact(event: CanonicalTrackMCPEvent): TrackMCPFact
       ...(event.resource_audience ? { resource_audience: event.resource_audience } : {}),
       ...(boundedNonNegative(event.resource_priority, 1) !== undefined ? { resource_priority: boundedNonNegative(event.resource_priority, 1) } : {}),
       ...(bounded(event.interaction_id, 128) ? { interaction_id_hash: createHash("sha256").update(bounded(event.interaction_id, 128)!, "utf8").digest("hex") } : {}),
+      ...(requestStateHash ? { request_state_hash: requestStateHash } : {}),
+      ...(interactionLinkSource ? { interaction_link_source: interactionLinkSource } : {}),
+      ...(retryOfEventId ? { retry_of_event_id: retryOfEventId } : {}),
       ...(taskId ? { task_id_hash: createHash("sha256").update(taskId, "utf8").digest("hex") } : {}),
       ...(protocolFamilyForEvent(event) ? { protocol_family: protocolFamilyForEvent(event) } : {}),
       ...(observationKind ? { protocol_observation_kind: observationKind } : {}),
