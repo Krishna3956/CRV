@@ -59,6 +59,12 @@ is intentionally not a GO approval and must not be treated as one.
   retry `40398170070` reproduced that boundary. The later successful
   disabled-first deployment is recorded below as `40423356750` after the
   non-sensitive Secrets Manager ARN fallback was supplied.
+- Alert evaluation deployment path is now implemented in
+  `.github/workflows/deploy-alert-scheduler.yml` with manual invocation,
+  disabled-first defaults, opt-in metadata-only smoke/evidence, and no secret
+  value retrieval. Production alert enablement remains an external HOLD until
+  a dedicated worker-token ARN, canary workspace/destination, and accepted
+  delivery evidence are supplied.
 
 ## Gates requiring external evidence
 

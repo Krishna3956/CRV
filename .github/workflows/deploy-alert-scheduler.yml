@@ -1,0 +1,177 @@
+name: Deploy alert scheduler
+
+# Alert evaluation is a customer-impacting write path. Keep deployment and
+# enablement explicit until a canary workspace, destination, and operator have
+# been accepted. This workflow never reads the worker token value.
+on:
+  workflow_dispatch:
+    inputs:
+      stack_name:
+        description: CloudFormation stack name
+        required: true
+        default: trackmcp-alert-scheduler
+        type: string
+      app_runner_service_arn:
+        description: App Runner service whose evaluator URL and runtime secret reference should be used
+        required: true
+        default: arn:aws:apprunner:ap-south-1:872575360367:service/trackmcp-web/5d38155bd23141cabb4546b29a4075c7
+        type: string
+      worker_token_secret_arn:
+        description: Optional Secrets Manager ARN when App Runner redacts the runtime mapping from describe-service
+        required: false
+        default: ''
+        type: string
+      enable_schedule:
+        description: Enable hourly alert evaluation after deployment (keep false for first deployment)
+        required: true
+        default: false
+        type: boolean
+      run_authenticated_smoke:
+        description: Invoke the deployed Lambda once and retain only status metadata (requires enable_schedule=false)
+        required: true
+        default: false
+        type: boolean
+      collect_schedule_evidence:
+        description: Collect metadata-only Lambda and DLQ metrics for the enabled schedule
+        required: true
+        default: false
+        type: boolean
+      failure_alarm_topic_arn:
+        description: Optional SNS topic ARN for failure alarms
+        required: false
+        default: ''
+        type: string
+
+permissions:
+  id-token: write
+  contents: read
+
+env:
+  AWS_REGION: us-east-1
+  ROLE_ARN: arn:aws:iam::872575360367:role/GitHubActionsDeployRole
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      STACK_NAME: ${{ inputs.stack_name }}
+      APP_RUNNER_SERVICE_ARN: ${{ inputs.app_runner_service_arn }}
+      WORKER_TOKEN_SECRET_ARN_INPUT: ${{ inputs.worker_token_secret_arn || '' }}
+      ENABLE_SCHEDULE: ${{ inputs.enable_schedule || false }}
+      RUN_AUTHENTICATED_SMOKE: ${{ inputs.run_authenticated_smoke || false }}
+      COLLECT_SCHEDULE_EVIDENCE: ${{ inputs.collect_schedule_evidence || false }}
+      FAILURE_ALARM_TOPIC_ARN: ${{ inputs.failure_alarm_topic_arn || '' }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure AWS credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ env.ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Install SAM CLI
+        uses: aws-actions/setup-sam@v2
+
+      - name: Build alert scheduler template
+        working-directory: trackmcp-nextjs/workers/alerts-scheduler
+        run: sam build --template-file template.yaml --build-dir .aws-sam/build
+
+      - name: Deploy alert scheduler stack
+        working-directory: trackmcp-nextjs/workers/alerts-scheduler
+        run: |
+          set -euo pipefail
+          if [[ ! "$APP_RUNNER_SERVICE_ARN" =~ ^arn:aws:apprunner:[^:]+:[0-9]{12}:service/.+ ]]; then
+            echo "::error::app_runner_service_arn must be an App Runner service ARN."
+            exit 1
+          fi
+          SERVICE_JSON=$(aws apprunner describe-service --service-arn "$APP_RUNNER_SERVICE_ARN" --region "$AWS_REGION")
+          ORIGIN=$(jq -r '.Service.ServiceUrl // empty' <<<"$SERVICE_JSON")
+          SECRET_REF=$(jq -r '.Service.SourceConfiguration.ImageRepository.ImageConfiguration.RuntimeEnvironmentSecrets.TRACKMCP_ALERT_WORKER_TOKEN // empty' <<<"$SERVICE_JSON")
+          WORKER_TOKEN_SECRET_ARN="${SECRET_REF%:TRACKMCP_ALERT_WORKER_TOKEN::}"
+          if [[ -z "$WORKER_TOKEN_SECRET_ARN" ]]; then
+            WORKER_TOKEN_SECRET_ARN="$WORKER_TOKEN_SECRET_ARN_INPUT"
+          fi
+          EVALUATOR_URL="https://${ORIGIN}/api/internal/alerts/evaluate"
+          if [[ ! "$ORIGIN" =~ ^[a-z0-9.-]+\.awsapprunner\.com$ ]]; then
+            echo "::error::App Runner did not return a valid service hostname."
+            exit 1
+          fi
+          if [[ ! "$WORKER_TOKEN_SECRET_ARN" =~ ^arn:aws:secretsmanager:[^:]+:[0-9]{12}:secret:.+ ]]; then
+            echo "::error::No valid TRACKMCP_ALERT_WORKER_TOKEN ARN was available. App Runner may redact it from describe-service; provide only the non-sensitive ARN input."
+            exit 1
+          fi
+          PARAM_OVERRIDES=(
+            "EvaluatorUrl=$EVALUATOR_URL"
+            "WorkerTokenSecretArn=$WORKER_TOKEN_SECRET_ARN"
+            "EnableSchedule=$ENABLE_SCHEDULE"
+          )
+          if [[ -n "$FAILURE_ALARM_TOPIC_ARN" ]]; then
+            PARAM_OVERRIDES+=("FailureAlarmTopicArn=$FAILURE_ALARM_TOPIC_ARN")
+          fi
+          STACK_STATUS=$(aws cloudformation describe-stacks --stack-name "$STACK_NAME" --region "$AWS_REGION" --query 'Stacks[0].StackStatus' --output text 2>/dev/null || true)
+          if [[ "$STACK_STATUS" == "ROLLBACK_FAILED" || "$STACK_STATUS" == "ROLLBACK_COMPLETE" ]]; then
+            echo "Existing stack is $STACK_STATUS; deleting it before retry."
+            aws cloudformation delete-stack --stack-name "$STACK_NAME" --region "$AWS_REGION"
+            aws cloudformation wait stack-delete-complete --stack-name "$STACK_NAME" --region "$AWS_REGION"
+          fi
+          sam deploy \
+            --template-file .aws-sam/build/template.yaml \
+            --stack-name "$STACK_NAME" \
+            --region "$AWS_REGION" \
+            --capabilities CAPABILITY_IAM \
+            --no-confirm-changeset \
+            --no-fail-on-empty-changeset \
+            --resolve-s3 \
+            --parameter-overrides "${PARAM_OVERRIDES[@]}"
+
+      - name: Report scheduler state without secret material
+        run: |
+          set -euo pipefail
+          REPORT_DIR="$RUNNER_TEMP/alert-scheduler-report"
+          mkdir -p "$REPORT_DIR"
+          aws cloudformation describe-stacks --stack-name "$STACK_NAME" --region "$AWS_REGION" \
+            --query 'Stacks[0].Outputs[].{Key:OutputKey,Value:OutputValue}' --output json > "$REPORT_DIR/stack-outputs.json"
+          aws cloudformation describe-stack-resources --stack-name "$STACK_NAME" --region "$AWS_REGION" \
+            --query 'StackResourceSummaries[].{LogicalId:LogicalResourceId,Status:ResourceStatus,PhysicalId:PhysicalResourceId}' --output json > "$REPORT_DIR/resource-states.json"
+
+      - name: Run opt-in authenticated Lambda smoke without secret material
+        if: ${{ env.RUN_AUTHENTICATED_SMOKE == 'true' }}
+        run: |
+          set -euo pipefail
+          if [[ "$ENABLE_SCHEDULE" != "false" ]]; then
+            echo "::error::run_authenticated_smoke requires enable_schedule=false."
+            exit 1
+          fi
+          REPORT_DIR="$RUNNER_TEMP/alert-scheduler-report"
+          FUNCTION_NAME=$(aws cloudformation describe-stack-resource --stack-name "$STACK_NAME" --logical-resource-id AlertsSchedulerFunction --region "$AWS_REGION" --query 'StackResourceDetail.PhysicalResourceId' --output text)
+          INVOKE_OUTPUT="$RUNNER_TEMP/alert-scheduler-invoke.json"
+          aws lambda invoke --function-name "$FUNCTION_NAME" --region "$AWS_REGION" --invocation-type RequestResponse --payload '{}' --cli-binary-format raw-in-base64-out "$INVOKE_OUTPUT" > /dev/null
+          STATUS_CODE=$(jq -er '.statusCode | numbers' "$INVOKE_OUTPUT")
+          [[ "$STATUS_CODE" == "200" ]] || { echo "::error::alert scheduler Lambda returned status $STATUS_CODE"; exit 1; }
+          jq -n --arg function "$FUNCTION_NAME" --argjson status "$STATUS_CODE" '{lambda_invocation:"passed",function_name:$function,status_code:$status}' > "$REPORT_DIR/authenticated-lambda-smoke.json"
+          DLQ_URL=$(aws cloudformation describe-stack-resource --stack-name "$STACK_NAME" --logical-resource-id AlertsSchedulerDLQ --region "$AWS_REGION" --query 'StackResourceDetail.PhysicalResourceId' --output text)
+          aws sqs get-queue-attributes --queue-url "$DLQ_URL" --attribute-names ApproximateNumberOfMessages --region "$AWS_REGION" --query 'Attributes' --output json > "$REPORT_DIR/dlq-depth.json"
+
+      - name: Collect enabled schedule evidence without payloads
+        if: ${{ env.COLLECT_SCHEDULE_EVIDENCE == 'true' }}
+        run: |
+          set -euo pipefail
+          REPORT_DIR="$RUNNER_TEMP/alert-scheduler-report"
+          FUNCTION_NAME=$(aws cloudformation describe-stack-resource --stack-name "$STACK_NAME" --logical-resource-id AlertsSchedulerFunction --region "$AWS_REGION" --query 'StackResourceDetail.PhysicalResourceId' --output text)
+          DLQ_URL=$(aws cloudformation describe-stack-resource --stack-name "$STACK_NAME" --logical-resource-id AlertsSchedulerDLQ --region "$AWS_REGION" --query 'StackResourceDetail.PhysicalResourceId' --output text)
+          END_TIME=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+          START_TIME=$(date -u -d '2 hours ago' +%Y-%m-%dT%H:%M:%SZ)
+          METRIC_QUERIES=$(jq -nc --arg fn "$FUNCTION_NAME" '[{Id:"invocations",MetricStat:{Metric:{Namespace:"AWS/Lambda",MetricName:"Invocations",Dimensions:[{Name:"FunctionName",Value:$fn}]},Period:3600,Stat:"Sum"},ReturnData:true},{Id:"errors",MetricStat:{Metric:{Namespace:"AWS/Lambda",MetricName:"Errors",Dimensions:[{Name:"FunctionName",Value:$fn}]},Period:3600,Stat:"Sum"},ReturnData:true}]')
+          aws cloudwatch get-metric-data --metric-data-queries "$METRIC_QUERIES" --start-time "$START_TIME" --end-time "$END_TIME" --scan-by TimestampDescending --region "$AWS_REGION" --query 'MetricDataResults[].{id:Id,values:Values,timestamps:Timestamps}' --output json > "$REPORT_DIR/aws-scheduler-metrics.json"
+          aws sqs get-queue-attributes --queue-url "$DLQ_URL" --attribute-names ApproximateNumberOfMessages --region "$AWS_REGION" --query 'Attributes' --output json > "$REPORT_DIR/dlq-depth.json"
+
+      - name: Upload scheduler evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: alert-scheduler-evidence-${{ github.run_id }}
+          path: ${{ runner.temp }}/alert-scheduler-report/
+          if-no-files-found: ignore
+          retention-days: 14
