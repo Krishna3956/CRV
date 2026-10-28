@@ -93,7 +93,7 @@
     "test:outcomes-read-model": "node --experimental-strip-types --test src/lib/telemetry/facts.test.ts src/lib/telemetry/outcomes.test.ts",
     "test:task-lifecycle": "node --experimental-strip-types --test src/lib/telemetry/task-lifecycle.test.ts",
     "test:fact-writer": "node --experimental-strip-types --test src/lib/telemetry/fact-writer.test.ts src/lib/telemetry/action-queue.test.ts src/lib/telemetry/issue-identity.test.ts",
-    "test:retention-policy": "node --experimental-strip-types --test src/lib/telemetry/retention-policy.test.ts",
+    "test:retention-policy": "node --experimental-strip-types --test src/lib/telemetry/retention-policy.test.ts src/lib/telemetry/retention-preview-worker.test.ts",
     "test:refresh-jobs": "node --experimental-strip-types --test src/lib/telemetry/refresh-jobs.test.ts src/lib/telemetry/refresh-jobs-migration.test.mjs src/lib/telemetry/refresh-worker.test.ts src/lib/telemetry/refresh-supabase-store.test.ts src/lib/telemetry/refresh-handlers.test.ts src/lib/telemetry/refresh-enqueue.test.ts src/lib/telemetry/catalog-refresh.test.ts src/lib/telemetry/catalog-version-migration.test.mjs",
     "test:refresh-trigger": "node --test src/app/api/internal/refresh/run/route.contract.test.mjs",
     "test:rate-limit-cleanup": "node --test src/app/api/internal/rate-limit/cleanup/route.contract.test.mjs",

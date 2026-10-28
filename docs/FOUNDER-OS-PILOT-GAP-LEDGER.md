@@ -2,6 +2,22 @@
 
 Status: active autonomous audit, started 2026-10-21.
 
+## 2026-10-29 — bounded retention preview worker added
+
+- [x] Added `src/lib/telemetry/retention-preview-worker.ts`, a typed,
+  workspace-scoped, resumable preview boundary for every v1 retention dataset.
+  It derives immutable UTC cutoffs from the policy, caps batch size and run
+  fan-out, validates opaque continuation IDs, supports abort/resume, and
+  requires an audit adapter before completion can be reported.
+- [x] Added focused tests for plan validation, cutoff determinism, dataset
+  progression, cursor fail-closed behavior, bounded abort/resume, invalid
+  stores/counts, and the no-delete boundary. The retention release-gate suite
+  now covers these tests.
+- [ ] This does not enable destructive cleanup. A reviewed Supabase adapter,
+  dry-run artifact review, scheduler/dead-letter policy, recovery rehearsal,
+  and release-owner/privacy approval remain external before any delete method
+  can be introduced or enabled.
+
 ## 2026-10-29 — published-release contract recheck
 
 - [x] The post-merge `main` release gate passed **148 suites**. This includes
