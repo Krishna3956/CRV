@@ -1,6 +1,20 @@
 # Founder OS 100 Customer Readiness Ledger
 
-Last updated: 2026-10-29 (main `e1f5483d`; deployed application `e1f5483d` and immutable App Runner deployment `40783523850` are healthy; bounded privacy execution, synthetic-evidence, retention-preview, ingest-metadata, payload-redaction, and account-identity-version boundaries are published with focused tests; customer-owned endpoint/protocol UAT, privacy acceptance, backup/PITR posture, migration postflight, and release-owner GO/NO-GO remain open)
+Last updated: 2026-10-29 (main `9c46a1a5`; deployed application `9c46a1a5` and App Runner deployment `40786382710` are healthy; bounded privacy execution, synthetic-evidence, retention-preview, ingest-metadata, payload-redaction, and account-identity-version boundaries are published with focused tests; customer-owned endpoint/protocol UAT, privacy acceptance, backup/PITR posture, migration postflight, and release-owner GO/NO-GO remain open)
+
+## 2026-10-29 — identity-version release deployed
+
+- [x] PR `#665` (`codex/telemetry-metadata-boundary`) passed hosted web/JavaScript,
+  Go, and .NET checks and was squash-merged as `9c46a1a5e0232c43c72b70464977ec69f3669515`.
+- [x] Main CI `40786382724` passed. App Runner deployment `40786382710`
+  completed its release gate, rollout, read-only production smoke, immutable
+  release-identity check, and runtime-safety checks.
+- [x] The production health endpoint returned HTTP 200 with
+  `release_sha=9c46a1a5e0232c43c72b70464977ec69f3669515` after rollout.
+- [ ] The additive Supabase migration
+  `20261029000002_account_identity_version.sql` remains review-only and was not
+  applied from this checkout. Apply it through the reviewed production change
+  process, then run the account-identity and migration-parity postflight SQL.
 
 ## 2026-10-29 — account identity derivation version published
 
