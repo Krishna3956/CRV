@@ -1,0 +1,71 @@
+name: Customer endpoint UAT
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirm:
+        description: "Type the exact confirmation phrase before running against a customer-owned endpoint"
+        required: true
+        type: string
+      endpoint_url:
+        description: "Customer-owned MCP HTTPS endpoint (no query, fragment, or credentials)"
+        required: true
+        type: string
+      transport:
+        description: "Official MCP transport exposed by the endpoint"
+        required: true
+        default: "streamable_http"
+        type: choice
+        options:
+          - streamable_http
+          - sse
+      protocol_version:
+        description: "MCP protocol version to request"
+        required: true
+        default: "2025-06-18"
+        type: choice
+        options:
+          - 2025-06-18
+          - 2025-11-25
+          - 2026-07-28
+
+permissions:
+  contents: read
+
+jobs:
+  uat:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      TRACKMCP_CUSTOMER_ENDPOINT_UAT_CONFIRM: ${{ inputs.confirm }}
+      TRACKMCP_CUSTOMER_ENDPOINT_UAT_URL: ${{ inputs.endpoint_url }}
+      TRACKMCP_CUSTOMER_ENDPOINT_UAT_TRANSPORT: ${{ inputs.transport }}
+      TRACKMCP_CUSTOMER_ENDPOINT_UAT_PROTOCOL_VERSION: ${{ inputs.protocol_version }}
+      TRACKMCP_CUSTOMER_ENDPOINT_UAT_BASE_URL: https://i95pzq2xh7.ap-south-1.awsapprunner.com
+      TRACKMCP_CUSTOMER_ENDPOINT_UAT_KEY: ${{ secrets.TRACKMCP_CUSTOMER_ENDPOINT_UAT_KEY }}
+      TRACKMCP_CUSTOMER_ENDPOINT_UAT_AUTH_TOKEN: ${{ secrets.TRACKMCP_CUSTOMER_ENDPOINT_UAT_AUTH_TOKEN }}
+      TRACKMCP_CUSTOMER_ENDPOINT_UAT_SERVICE: customer-endpoint-uat
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: trackmcp-nextjs/package-lock.json
+      - name: Install web and SDK dependencies
+        working-directory: trackmcp-nextjs
+        run: |
+          npm ci
+          npm ci --prefix packages/typescript-sdk
+      - name: Run redacted customer endpoint UAT
+        working-directory: trackmcp-nextjs
+        env:
+          TRACKMCP_CUSTOMER_ENDPOINT_UAT_REPORT: ${{ runner.temp }}/trackmcp-customer-endpoint-uat.json
+        run: node scripts/customer-endpoint-uat.mjs
+      - name: Upload redacted UAT evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: customer-endpoint-uat-${{ github.run_id }}
+          path: ${{ runner.temp }}/trackmcp-customer-endpoint-uat.json
+          if-no-files-found: warn

@@ -76,6 +76,12 @@ These are not source-code failures and must not be silently marked green:
    reconciliation on the exact release SHA.
 5. Record GO/NO-GO; absent explicit acceptance, keep the status HOLD.
 
+The customer-endpoint UAT path is now implemented as a manual-only workflow at
+`.github/workflows/customer-endpoint-uat.yml`. It requires an exact operator
+confirmation, an allowlisted TrackMCP ingest origin, an endpoint-specific
+transport/version choice, and disposable credentials. Its report is redacted
+and mode `0600`; running the workflow remains an external acceptance action.
+
 ## Non-claims
 
 Local fixtures do not prove every customer MCP server, transport-owned

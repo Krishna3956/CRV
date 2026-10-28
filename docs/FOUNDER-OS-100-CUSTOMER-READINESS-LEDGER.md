@@ -10,6 +10,22 @@ errors and maximum queue lag within the 15-minute budget. The report is
 **healthy** and the AWS worker-freshness gate is proven; customer-owned endpoint
 and other external acceptance gates remain separate decisions.
 
+## 2026-10-28 — customer-owned endpoint UAT harness prepared
+
+- [x] Added the manual-only `.github/workflows/customer-endpoint-uat.yml`
+  path and `scripts/customer-endpoint-uat.mjs`. The runner uses the official
+  Streamable HTTP or SSE client, requests one reviewed protocol version, and
+  performs initialize plus `tools/list`, `resources/list`, and `prompts/list`
+  discovery without invoking tools or OAuth flows.
+- [x] The endpoint and ingest origins are HTTPS- and redirect-bounded; private
+  targets require an explicit fixture override; credentials are supplied only
+  through environment/secrets and never appear in the redacted mode-`0600`
+  report. Adapter diagnostics must drain with zero privacy, hook, drop, or
+  delivery errors.
+- [ ] This is an evidence path, not customer-owned evidence. The credentialed
+  endpoint run, transport-owned reconnect/replay behavior, OAuth exchange, and
+  release-owner acceptance remain open gates.
+
 ## 2026-10-28 — OTEL edge-copy release published
 
 - [x] PR `#622` merged to `main` as `66be5ff4`. Dashboard Setup, API docs,
