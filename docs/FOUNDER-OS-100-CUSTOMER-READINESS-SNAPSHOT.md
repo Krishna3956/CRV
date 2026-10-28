@@ -1,6 +1,6 @@
 # Founder OS first-100 readiness snapshot
 
-Updated: 2026-10-28 (Asia/Kolkata; source `bb31eb6c`; runtime and hosted evidence reconciled)
+Updated: 2026-10-28 (Asia/Kolkata; source `8130f517`; runtime and hosted evidence reconciled)
 
 Status: **Engineering green; release decision HOLD**
 
@@ -13,15 +13,15 @@ and [pilot release record](FOUNDER-OS-100-CUSTOMER-PILOT-RELEASE-RECORD.md).
 - Six authenticated dashboard surfaces have contract coverage, privacy-safe
   read models, and navigation/documentation CTA checks.
 - Current source release gate passes **145 suites**; lint, production build,
-  and `git diff --check` pass. The production build generates **177 routes**.
-- Hosted TrackMCP CI `40617154045` passed for source `bb31eb6c` across the
+  and `git diff --check` pass. The production build generates **178 routes**.
+- Hosted TrackMCP CI `40669192861` passed for source `8130f517` across the
   web/JavaScript, Go, and .NET lanes.
-- The latest verified application runtime is immutable SHA `8a2589ee`, deployed
-  by App Runner workflow `40613570183`; direct-origin health, route,
-  runtime-identity, smoke, and runtime-safety checks passed. Authenticated
-  production smoke `40614311671` and refresh-health run `40614305812` passed
-  against that candidate. Later source commits are workflow/docs-only and are
-  not presented as a new application deployment.
+- The latest verified application runtime is immutable SHA
+  `8130f517b411a7859801b0472aae1c9e955d210b`, deployed by App Runner workflow
+  `40669192809` with image digest
+  `sha256:429208e0d65cd84e23909aabad592c7639f3b929848b0d0d239a127ee53368fd`;
+  release gate, direct-origin smoke, immutable identity, and runtime-safety
+  checks passed.
 - Production deployment, read-only smoke, tenant-scope smoke, first-ingest
   smoke, refresh-worker recovery, prompt-entity projection, and distributed
   rate-limit enablement have recorded evidence.
@@ -54,12 +54,10 @@ These are not source-code failures and must not be silently marked green:
    requests are review-only and destructive deletion is disabled.
 4. Synthetic reliability-data hygiene acceptance: canary rows must remain
    visibly test evidence and never be presented as customer incidents.
-5. Sustained scheduler evidence: health run `40616913256` proves four AWS
-   scheduler invocations and four end-to-end `ScheduledSuccess` CloudWatch EMF
-   markers with no AWS-reported failures. The broader application-worker
-   freshness state remains `warning`: only one of three scheduled application
-   samples is in the current evaluation window and the historical scheduled
-   failure remains visible.
+5. Sustained scheduler evidence: health run `40629348992` proves three complete
+   AWS worker-summary samples, six scheduler invocations, four end-to-end EMF
+   successes, zero parse/failed/retryable jobs, and queue lag within the
+   15-minute budget.
 6. Credentialed production key-lifecycle and customer-owned MCP endpoint UAT.
 7. Protocol interoperability that is explicitly Partial/Unsupported in the
    matrix (customer endpoints, reconnect/replay, proxy-specific behavior,
@@ -86,6 +84,6 @@ scheduled-worker SLO. No secret, workspace identifier, raw payload, or token is
 stored in this snapshot.
 
 The detailed ledger is authoritative for the remaining external gates. The
-current source is `bb31eb6c`; the deployed application remains the verified
-`8a2589ee` runtime above. The latest health report intentionally preserves the
-warning state rather than converting recovery runs into scheduled-sample proof.
+current source and deployed application are both `8130f517`; the latest health
+report is the AWS-proven freshness result above. The alert evaluator remains
+disabled-first and is not claimed as enabled production delivery.

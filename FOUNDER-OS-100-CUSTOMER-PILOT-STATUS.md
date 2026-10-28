@@ -9,13 +9,12 @@ promise that every product capability is complete.
 ## Verified and shipped
 
 - `origin/main` is `HEAD` (active pilot evidence baseline). The latest deployed
-  application runtime is immutable `b2ab68e6` via App Runner workflow
-  `40606435487`; authenticated production smoke `40607394426` passed for the
-  same release. Hosted TrackMCP CI `40607765427` passed 145 cross-language
-  suites for implementation source `6b1cf1f8`. The latest health evidence is
-  healthy for the current evaluation window but the stricter scheduled-sample
-  gate remains open. Documentation-only evidence commits are not claimed as
-  deployed application behavior unless a rollout is explicitly listed.
+  application runtime is immutable `8130f517b411a7859801b0472aae1c9e955d210b`
+  via App Runner workflow `40669192809`, with read-only production smoke,
+  immutable identity, and runtime-safety checks passed. Hosted TrackMCP CI
+  `40669192861` passed 145 cross-language suites. AWS worker freshness remains
+  proven by health artifact `40629348992`; the alert evaluator path is
+  published but manual-only and disabled-first.
 - The latest local release gate passes 145 suites, lint, the 178-route
   production build, and `git diff --check`.
 - Production schema postflights verified required tables, indexes, functions,
@@ -49,9 +48,10 @@ promise that every product capability is complete.
   guarded workflow `40220255833`; App Runner configuration update and live
   postflight passed. The memory-degraded provider remains the explicit local
   fallback when distributed mode is unset.
-- Backup/restore rehearsal, scheduler execution under production load, and
-  rollback rehearsal remain separate operator gates; the provider's Free Plan
-  does not supply evidence for them automatically.
+- Backup/restore rehearsal and rollback rehearsal remain separate operator
+  gates; the provider's Free Plan does not supply evidence for them
+  automatically. Refresh-worker freshness is proven by the current AWS health
+  artifact; alert evaluation is not enabled in production.
 - Export/delete behavior remains review-only and is not represented as a
   completed destructive pilot capability.
 - Protocol surfaces explicitly documented as partial (for example OTLP/gRPC,
@@ -61,15 +61,15 @@ promise that every product capability is complete.
 
 ## Next execution order
 
-1. Collect two more fresh scheduled health samples within the 15-minute budget;
-   preserve the warning if historical stale samples remain in-window.
-2. Record provider backup/restore posture and the release-owner scope/go/no-go
+1. Record provider backup/restore posture and the release-owner scope/go/no-go
    decision; do not infer either from green CI.
-3. Verify server adoption and fresh telemetry with the rotated replacement key
+2. Verify server adoption and fresh telemetry with the rotated replacement key
    in a disposable process, without recording the secret.
-4. Keep partial MCP protocol surfaces and review-only deletion visibly bounded
+3. Keep partial MCP protocol surfaces and review-only deletion visibly bounded
    in docs and setup until their external dependencies or implementations are
    complete.
+4. Enable alert evaluation only after the dedicated token, canary destination,
+   and delivery acceptance evidence are available.
 5. Re-run lint, build, the full release gate, and production smoke after every
    runtime change, then update this file and `docs/codex-handoff/PENDING_WORK.md`.
 
