@@ -47,7 +47,7 @@ test("release record preserves non-source acceptance decisions until an owner ac
 test("external-gate register names accountable parties and closure evidence", () => {
   assert.match(externalGates, /7763e05f9e62c9f3349ba20596c208d81cca08c9/);
   assert.match(externalGates, /40729507033/);
-  assert.match(externalGates, /2c0cdc0f54d74a37353a33fb25a56e79ef4e024f/);
+  assert.match(externalGates, /947c42cb6e692f616e7556f35bdc57e885dc8e36/);
   assert.match(externalGates, /40397368253/);
   assert.match(externalGates, /40398170070/);
   assert.match(externalGates, /main`: current default branch/);
@@ -62,9 +62,9 @@ test("external-gate register names accountable parties and closure evidence", ()
 
 test("acceptance matrix separates current source from deployed runtime", () => {
   assert.match(acceptanceMatrix, /7763e05f9e62c9f3349ba20596c208d81cca08c9/);
-  assert.match(acceptanceMatrix, /current repository source is `main` at\s+`2c0cdc0f54d74a37353a33fb25a56e79ef4e024f`/);
+  assert.match(acceptanceMatrix, /current repository source is `main` at\s+`947c42cb6e692f616e7556f35bdc57e885dc8e36`/);
   assert.match(acceptanceMatrix, /40729507033/);
-  assert.match(acceptanceMatrix, /40735717782/);
+  assert.match(acceptanceMatrix, /40737430027/);
   assert.match(acceptanceMatrix, /manual-only and disabled-first/);
 });
 

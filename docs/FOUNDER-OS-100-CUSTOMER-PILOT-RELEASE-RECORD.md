@@ -12,7 +12,7 @@ The current baseline is immutable commit `7763e05f9e62c9f3349ba20596c208d81cca08
 App Runner deployment `40729507033` succeeded on rerun attempt 2 after a
 transient first-attempt warm-up 502; the final release gate, image binding,
 rollout, read-only smoke, immutable identity, and runtime-safety checks passed.
-Main CI `40735717782` and authenticated production smoke `40732381275` also
+Main CI `40737430027` and authenticated production smoke `40732381275` also
 passed. Live `/api/health` reports this exact SHA, and `/` plus `/docs` return
 HTTP 200. The source change is the canonical MCP 2026-07-28 per-request
 protocol-version metadata alignment. The release remains Draft/HOLD because
@@ -97,9 +97,9 @@ recovery-evidence hardening, not a final operational SLO acceptance.
 ## Latest source verification — 2026-10-28
 
 The current repository source is `main` at `HEAD`
-(`2c0cdc0f54d74a37353a33fb25a56e79ef4e024f`); the deployed application is
+(`947c42cb6e692f616e7556f35bdc57e885dc8e36`); the deployed application is
 immutable source `7763e05f` via App Runner workflow `40729507033`.
-Hosted TrackMCP CI `40735717782` passed across web/JavaScript, Go, and .NET.
+Hosted TrackMCP CI `40737430027` passed across web/JavaScript, Go, and .NET.
 The latest local release gate passes **148 suites**, lint, the production build
 (**178 routes**), and `git diff --check`. The deployment's read-only
 production smoke, immutable identity, runtime-safety checks, and live health
