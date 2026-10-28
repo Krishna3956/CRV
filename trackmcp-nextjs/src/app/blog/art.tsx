@@ -13,6 +13,19 @@ export type ArtKey =
   | "schema"
   | "layers"
   | "inventory"
+  | "observability"
+  | "monitoring"
+  | "privacy"
+  | "sdk"
+  | "remote"
+  | "fleet"
+  | "outcomes"
+  | "adoption"
+  | "catalog"
+  | "release"
+  | "compare"
+  | "opentelemetry"
+  | "buyer"
   | "default";
 
 const C = {
@@ -286,6 +299,203 @@ function Inventory() {
   );
 }
 
+function Observability() {
+  return (
+    <>
+      <Bg />
+      <text x="56" y="52" fontFamily="system-ui" fontSize="12" fill={C.muted}>server-boundary evidence</text>
+      {[
+        ["CONNECTION", "client + transport"],
+        ["CATALOG", "tools + schemas"],
+        ["CALL", "duration + result"],
+        ["OUTCOME", "completed + failed"],
+      ].map(([label, sub], i) => (
+        <g key={label}>
+          <rect x={56 + i * 94} y="86" width="82" height="70" rx="10" fill={i === 3 ? C.brandSoft : C.white} stroke={i === 3 ? C.brand : C.line} strokeWidth="1.5" />
+          <circle cx={97 + i * 94} cy="106" r="7" fill={i === 3 ? C.brand : C.ink} />
+          <text x={97 + i * 94} y="128" textAnchor="middle" fontFamily="monospace" fontSize="9.5" fill={C.ink}>{label}</text>
+          <text x={97 + i * 94} y="143" textAnchor="middle" fontFamily="system-ui" fontSize="8.5" fill={C.muted}>{sub}</text>
+          {i < 3 ? <path d={`M${138 + i * 94} 121 H${150 + i * 94}`} stroke={C.faint} strokeWidth="2" /> : null}
+        </g>
+      ))}
+    </>
+  );
+}
+
+function Monitoring() {
+  return (
+    <>
+      <Bg />
+      <text x="64" y="51" fontFamily="system-ui" fontSize="12" fill={C.muted}>from reachable to useful</text>
+      {["REACHABLE", "NEGOTIATED", "CATALOG", "TOOL RESULT"].map((label, i) => (
+        <g key={label}>
+          <rect x="64" y={70 + i * 34} width={260 - i * 18} height="22" rx="6" fill={i === 3 ? C.brand : i === 2 ? C.ink : C.white} stroke={i === 3 ? C.brand : C.line} />
+          <text x="76" y={85 + i * 34} fontFamily="monospace" fontSize="10" fill={i >= 2 ? C.white : C.body}>{label}</text>
+          <text x="420" y={85 + i * 34} textAnchor="end" fontFamily="monospace" fontSize="10" fill={i === 3 ? C.brandStrong : C.muted}>{i === 3 ? "useful" : "check"}</text>
+        </g>
+      ))}
+    </>
+  );
+}
+
+function Privacy() {
+  return (
+    <>
+      <Bg />
+      <rect x="56" y="82" width="112" height="70" rx="10" fill={C.white} stroke={C.line} />
+      <text x="112" y="108" textAnchor="middle" fontFamily="monospace" fontSize="10" fill={C.ink}>tool result</text>
+      <text x="112" y="128" textAnchor="middle" fontFamily="system-ui" fontSize="9" fill={C.red}>customer data</text>
+      <path d="M176 117 H214" stroke={C.faint} strokeWidth="2" /><path d="M214 117 l-8 -4 v8 z" fill={C.faint} />
+      <rect x="220" y="70" width="112" height="94" rx="10" fill={C.brandSoft} stroke={C.brand} />
+      <path d="M276 88 l18 8 v16 c0 14-9 23-18 28-9-5-18-14-18-28V96z" fill={C.brand} />
+      <path d="M266 112 l7 7 14-16" fill="none" stroke={C.white} strokeWidth="2.5" />
+      <text x="276" y="154" textAnchor="middle" fontFamily="monospace" fontSize="9" fill={C.brandStrong}>redact locally</text>
+      <path d="M340 117 H378" stroke={C.faint} strokeWidth="2" /><path d="M378 117 l-8 -4 v8 z" fill={C.faint} />
+      <rect x="384" y="82" width="40" height="70" rx="8" fill={C.white} stroke={C.line} />
+      <text x="404" y="105" textAnchor="middle" fontFamily="monospace" fontSize="8" fill={C.muted}>safe</text>
+      <text x="404" y="120" textAnchor="middle" fontFamily="monospace" fontSize="8" fill={C.muted}>meta</text>
+      <text x="404" y="135" textAnchor="middle" fontFamily="monospace" fontSize="8" fill={C.muted}>only</text>
+    </>
+  );
+}
+
+function Sdk() {
+  return (
+    <>
+      <Bg />
+      <rect x="64" y="48" width="352" height="144" rx="12" fill={C.ink} />
+      <text x="84" y="75" fontFamily="monospace" fontSize="11" fill="#86efac">server.ts</text>
+      <text x="84" y="101" fontFamily="monospace" fontSize="11" fill="#7dd3fc">withTrackMCP</text>
+      <text x="84" y="122" fontFamily="monospace" fontSize="11" fill={C.white}>(server, &#123;</text>
+      <text x="104" y="143" fontFamily="monospace" fontSize="11" fill="#fcd34d">apiKey: env.TRACKMCP_KEY</text>
+      <text x="84" y="164" fontFamily="monospace" fontSize="11" fill={C.white}>&#125;)</text>
+      <rect x="318" y="80" width="78" height="26" rx="6" fill={C.brand} /><text x="357" y="97" textAnchor="middle" fontFamily="monospace" fontSize="10" fill={C.white}>boundary</text>
+    </>
+  );
+}
+
+function Remote() {
+  return (
+    <>
+      <Bg />
+      {["CLIENT", "GATEWAY", "MCP SERVER", "DEPENDENCY"].map((label, i) => (
+        <g key={label}>
+          <rect x={30 + i * 112} y="92" width="94" height="56" rx="10" fill={i === 2 ? C.brandSoft : C.white} stroke={i === 2 ? C.brand : C.line} strokeWidth="1.5" />
+          <text x={77 + i * 112} y="116" textAnchor="middle" fontFamily="monospace" fontSize="9" fill={C.ink}>{label}</text>
+          <text x={77 + i * 112} y="132" textAnchor="middle" fontFamily="system-ui" fontSize="8" fill={C.muted}>{i === 1 ? "auth + route" : i === 2 ? "tools + result" : i === 0 ? "discover + call" : "slow or down"}</text>
+          {i < 3 ? <path d={`M${124 + i * 112} 120 H${136 + i * 112}`} stroke={C.faint} strokeWidth="2" /> : null}
+        </g>
+      ))}
+      <text x="240" y="67" textAnchor="middle" fontFamily="system-ui" fontSize="12" fill={C.muted}>remote HTTP path</text>
+    </>
+  );
+}
+
+function Fleet() {
+  return (
+    <>
+      <Bg />
+      <text x="64" y="51" fontFamily="system-ui" fontSize="12" fill={C.muted}>MCP server fleet</text>
+      {["search / prod", "billing / prod", "docs / staging", "crm / prod"].map((label, i) => (
+        <g key={label}>
+          <rect x={64 + (i % 2) * 188} y={70 + Math.floor(i / 2) * 62} width="164" height="44" rx="9" fill={i === 0 ? C.brandSoft : C.white} stroke={i === 0 ? C.brand : C.line} />
+          <circle cx={82 + (i % 2) * 188} cy={92 + Math.floor(i / 2) * 62} r="5" fill={i === 0 ? C.brand : C.muted} />
+          <text x={95 + (i % 2) * 188} y={96 + Math.floor(i / 2) * 62} fontFamily="monospace" fontSize="9.5" fill={C.ink}>{label}</text>
+          <text x={212 + (i % 2) * 188} y={96 + Math.floor(i / 2) * 62} textAnchor="end" fontFamily="system-ui" fontSize="8.5" fill={C.muted}>{i === 0 ? "healthy" : "owner"}</text>
+        </g>
+      ))}
+    </>
+  );
+}
+
+function Outcomes() {
+  return (
+    <>
+      <Bg />
+      <text x="64" y="51" fontFamily="system-ui" fontSize="12" fill={C.muted}>result state is not outcome</text>
+      <rect x="64" y="78" width="148" height="70" rx="10" fill={C.white} stroke={C.line} />
+      <text x="138" y="104" textAnchor="middle" fontFamily="monospace" fontSize="10" fill={C.ink}>tool result</text>
+      <text x="138" y="127" textAnchor="middle" fontFamily="monospace" fontSize="10" fill={C.brandStrong}>returned</text>
+      <path d="M224 113 H256" stroke={C.faint} strokeWidth="2" /><path d="M256 113 l-8 -4 v8 z" fill={C.faint} />
+      <rect x="268" y="78" width="148" height="70" rx="10" fill={C.brandSoft} stroke={C.brand} />
+      <text x="342" y="104" textAnchor="middle" fontFamily="monospace" fontSize="10" fill={C.ink}>workflow</text>
+      <text x="342" y="127" textAnchor="middle" fontFamily="monospace" fontSize="10" fill={C.brandStrong}>completed</text>
+      <text x="240" y="178" textAnchor="middle" fontFamily="system-ui" fontSize="10" fill={C.red}>emit explicit outcome</text>
+    </>
+  );
+}
+
+function Adoption() {
+  return (
+    <>
+      <Bg />
+      <text x="64" y="51" fontFamily="system-ui" fontSize="12" fill={C.muted}>tool adoption path</text>
+      {[{ l: "exposed", w: 328, c: C.ink }, { l: "called", w: 248, c: C.muted }, { l: "succeeded", w: 184, c: C.brand }, { l: "completed", w: 124, c: C.brandStrong }].map((row, i) => (
+        <g key={row.l}><rect x="64" y={68 + i * 33} width={row.w} height="22" rx="6" fill={row.c} /><text x="76" y={83 + i * 33} fontFamily="monospace" fontSize="10" fill={C.white}>{row.l}</text><text x={row.w + 76} y={83 + i * 33} fontFamily="monospace" fontSize="10" fill={C.muted}>{[100, 76, 56, 38][i]}%</text></g>
+      ))}
+    </>
+  );
+}
+
+function Catalog() {
+  return (
+    <>
+      <Bg />
+      <rect x="58" y="48" width="168" height="144" rx="12" fill={C.white} stroke={C.line} />
+      <rect x="252" y="48" width="168" height="144" rx="12" fill={C.white} stroke={C.line} />
+      <text x="76" y="74" fontFamily="monospace" fontSize="10" fill={C.muted}>release N</text>
+      <text x="270" y="74" fontFamily="monospace" fontSize="10" fill={C.muted}>release N+1</text>
+      {["search_docs", "create_issue", "run_query"].map((label, i) => <g key={label}><text x="76" y={103 + i * 25} fontFamily="monospace" fontSize="9.5" fill={C.body}>{label}</text><text x="270" y={103 + i * 25} fontFamily="monospace" fontSize="9.5" fill={i === 1 ? C.red : C.body}>{i === 1 ? "schema changed" : label}</text></g>)}
+      <text x="240" y="126" textAnchor="middle" fontFamily="monospace" fontSize="14" fill={C.red}>Δ</text>
+    </>
+  );
+}
+
+function Release() {
+  return (
+    <>
+      <Bg />
+      <line x1="68" y1="126" x2="414" y2="126" stroke={C.faint} strokeWidth="2" />
+      {[{ x: 92, l: "baseline" }, { x: 190, l: "canary" }, { x: 288, l: "rollout" }, { x: 386, l: "evidence" }].map((item, i) => <g key={item.l}><circle cx={item.x} cy="126" r="9" fill={i === 3 ? C.brand : C.white} stroke={i === 3 ? C.brand : C.ink} strokeWidth="2" /><text x={item.x} y="158" textAnchor="middle" fontFamily="monospace" fontSize="9" fill={C.muted}>{item.l}</text></g>)}
+      <text x="68" y="70" fontFamily="system-ui" fontSize="12" fill={C.muted}>release → traffic → evidence</text>
+      <text x="68" y="91" fontFamily="monospace" fontSize="10" fill={C.brandStrong}>error rate · p95 · catalog · outcome</text>
+    </>
+  );
+}
+
+function Compare() {
+  return (
+    <>
+      <Bg />
+      {[{ x: 48, title: "MCP", sub: "server boundary", fill: C.brandSoft, stroke: C.brand }, { x: 184, title: "AGENT", sub: "model + tools", fill: C.white, stroke: C.line }, { x: 320, title: "APM", sub: "infra + app", fill: C.white, stroke: C.line }].map((card) => <g key={card.title}><rect x={card.x} y="70" width="112" height="94" rx="12" fill={card.fill} stroke={card.stroke} strokeWidth="1.5" /><text x={card.x + 56} y="104" textAnchor="middle" fontFamily="monospace" fontSize="11" fill={C.ink}>{card.title}</text><text x={card.x + 56} y="126" textAnchor="middle" fontFamily="system-ui" fontSize="9" fill={C.muted}>{card.sub}</text></g>)}
+      <path d="M160 117 H184 M296 117 H320" stroke={C.faint} strokeWidth="2" />
+      <text x="240" y="194" textAnchor="middle" fontFamily="system-ui" fontSize="10" fill={C.muted}>complementary evidence, different boundaries</text>
+    </>
+  );
+}
+
+function OpenTelemetry() {
+  return (
+    <>
+      <Bg />
+      <text x="64" y="52" fontFamily="system-ui" fontSize="12" fill={C.muted}>one trace, named boundaries</text>
+      {["gateway", "mcp tool", "database"].map((label, i) => <g key={label}><rect x={64 + i * 124} y="88" width="100" height="42" rx="8" fill={i === 1 ? C.brandSoft : C.white} stroke={i === 1 ? C.brand : C.line} /><text x={114 + i * 124} y="113" textAnchor="middle" fontFamily="monospace" fontSize="10" fill={C.ink}>{label}</text>{i < 2 ? <path d={`M${164 + i * 124} 109 H${180 + i * 124}`} stroke={C.faint} strokeWidth="2" /> : null}</g>)}
+      <line x1="64" y1="154" x2="388" y2="154" stroke={C.red} strokeWidth="1.5" strokeDasharray="5 5" /><text x="388" y="174" textAnchor="end" fontFamily="monospace" fontSize="9" fill={C.red}>preserve MCP fields</text>
+    </>
+  );
+}
+
+function Buyer() {
+  return (
+    <>
+      <Bg />
+      <rect x="72" y="50" width="336" height="142" rx="14" fill={C.white} stroke={C.line} />
+      <text x="94" y="77" fontFamily="system-ui" fontSize="12" fill={C.muted}>evaluation scorecard</text>
+      {["boundary coverage", "privacy + retention", "incident usefulness", "total operating cost"].map((label, i) => <g key={label}><text x="94" y={103 + i * 21} fontFamily="system-ui" fontSize="10" fill={C.body}>{label}</text><rect x="274" y={94 + i * 21} width="100" height="10" rx="5" fill={C.mist} /><rect x="274" y={94 + i * 21} width={[82, 66, 91, 54][i]} height="10" rx="5" fill={i === 2 ? C.brand : C.ink} /></g>)}
+    </>
+  );
+}
+
 function Default() {
   return (
     <>
@@ -313,6 +523,19 @@ const SCENES: Record<ArtKey, () => React.ReactElement> = {
   schema: Schema,
   layers: Layers,
   inventory: Inventory,
+  observability: Observability,
+  monitoring: Monitoring,
+  privacy: Privacy,
+  sdk: Sdk,
+  remote: Remote,
+  fleet: Fleet,
+  outcomes: Outcomes,
+  adoption: Adoption,
+  catalog: Catalog,
+  release: Release,
+  compare: Compare,
+  opentelemetry: OpenTelemetry,
+  buyer: Buyer,
   default: Default,
 };
 
