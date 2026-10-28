@@ -227,6 +227,13 @@ returns only result metadata (`complete`, `input_required`, or server-directed
 returned or retained; callers use the explicit task methods for subsequent
 status and input-response control.
 
+For MRTR-capable servers, protocol and tool responses may include explicit
+`requestState`/`interactionId` and retry linkage. The Node observer projects
+these as `request_state_hash` and a one-way `interaction_id` hash, and accepts
+only a bounded `retry_of_event_id`; it never retains request/response values.
+This is observation metadata, not an MRTR executor: the application remains
+responsible for collecting input and issuing the next round trip.
+
 `redact` keeps compatibility with explicit dotted paths, while `redactKeys` adds case-insensitive exact key names. `redactEvent` receives an already sanitized event, may mutate it, or can return `null` to drop it. Hook failures drop only the event. The SDK queue is bounded to 500 events or 2 MiB; failed deliveries are requeued within those limits.
 
 Correlation is disabled by default and never changes MCP schemas. To attach an already anonymized, opaque business handle, opt into external mode; the resolver receives only bounded request metadata and its return value is validated before capture. Issued mode is opt-in and compatibility-limited to the TypeScript transport wrapper: compatible object-shaped `tools/list` schemas receive an optional `__trackmcp_correlation_handle` property, which is stripped before the handler. Strict or unsupported schemas and clients that ignore the field remain missing. Session IDs and request IDs are never used as business handles. Resolvers must not return emails, tokens, URLs, raw user IDs, prompts, completions, or private reasoning.
