@@ -8,12 +8,13 @@ commit and the operator accepts the listed limitations.
 
 ## Current deployed baseline — 2026-10-28
 
-App Runner deployment `40669192809` completed successfully for immutable
-commit `8130f517b411a7859801b0472aae1c9e955d210b` with image digest
-`sha256:429208e0d65cd84e23909aabad592c7639f3b929848b0d0d239a127ee53368fd`.
+App Runner deployment `40672911685` completed successfully for immutable
+commit `66be5ff4ac5b9d4204cb24a765a71eea2210c010` with image digest
+`sha256:cf96c0ce1a0c351f40da3aee7ec4e59eb7841d52ea4d95e22cf0e8304ec42a6a`.
 Release gate, image build/push, rollout, read-only production smoke,
 immutable release identity, and runtime-safety checks passed. Main CI
-`40669192861` also completed successfully. The release remains Draft/HOLD
+`40672911351` and authenticated production smoke `40673960981` also completed
+successfully. The release remains Draft/HOLD
 because the owner, backup/recovery, privacy acceptance, and customer-owned
 lifecycle/transport gates are still open. The separate AWS refresh scheduler
 remains deployed and its worker-freshness gate is proven by health artifact
@@ -80,14 +81,15 @@ recovery-evidence hardening, not a final operational SLO acceptance.
 ## Latest source verification — 2026-10-28
 
 The current repository source is `main` at `HEAD`; the deployed application is
-immutable source `8130f517` via App Runner workflow `40669192809`, with image
-digest `sha256:429208e0d65cd84e23909aabad592c7639f3b929848b0d0d239a127ee53368fd`.
-Hosted TrackMCP CI `40669192861` passed all **145 suites** across
+immutable source `66be5ff4` via App Runner workflow `40672911685`, with image
+digest `sha256:cf96c0ce1a0c351f40da3aee7ec4e59eb7841d52ea4d95e22cf0e8304ec42a6a`.
+Hosted TrackMCP CI `40672911351` passed all **145 suites** across
 web/JavaScript, Go, and .NET. The latest local release gate passes **145
 suites**, lint, the production build (**178 routes**), and `git diff --check`.
 The deployment's read-only production smoke, immutable identity, and runtime
-safety checks all passed. Scheduler deployment and health evidence are
-recorded above.
+safety checks all passed; authenticated production smoke `40673960981` also
+passed against this exact release. Scheduler deployment and health evidence
+are recorded above.
 
 The preceding deployed source was `4efa2e1` (including the health-report semantics
 correction that honors a proven AWS scheduler window while retaining historical

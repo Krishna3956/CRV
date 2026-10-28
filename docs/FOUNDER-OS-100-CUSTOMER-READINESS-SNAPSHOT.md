@@ -1,6 +1,6 @@
 # Founder OS first-100 readiness snapshot
 
-Updated: 2026-10-28 (Asia/Kolkata; source `8130f517`; runtime and hosted evidence reconciled)
+Updated: 2026-10-28 (Asia/Kolkata; source `66be5ff4`; runtime and hosted evidence reconciled)
 
 Status: **Engineering green; release decision HOLD**
 
@@ -14,14 +14,14 @@ and [pilot release record](FOUNDER-OS-100-CUSTOMER-PILOT-RELEASE-RECORD.md).
   read models, and navigation/documentation CTA checks.
 - Current source release gate passes **145 suites**; lint, production build,
   and `git diff --check` pass. The production build generates **178 routes**.
-- Hosted TrackMCP CI `40669192861` passed for source `8130f517` across the
+- Hosted TrackMCP CI `40672911351` passed for source `66be5ff4` across the
   web/JavaScript, Go, and .NET lanes.
 - The latest verified application runtime is immutable SHA
-  `8130f517b411a7859801b0472aae1c9e955d210b`, deployed by App Runner workflow
-  `40669192809` with image digest
-  `sha256:429208e0d65cd84e23909aabad592c7639f3b929848b0d0d239a127ee53368fd`;
-  release gate, direct-origin smoke, immutable identity, and runtime-safety
-  checks passed.
+  `66be5ff4ac5b9d4204cb24a765a71eea2210c010`, deployed by App Runner workflow
+  `40672911685` with image digest
+  `sha256:cf96c0ce1a0c351f40da3aee7ec4e59eb7841d52ea4d95e22cf0e8304ec42a6a`;
+  release gate, direct-origin smoke, immutable identity, runtime-safety, and
+  authenticated production smoke `40673960981` passed.
 - Production deployment, read-only smoke, tenant-scope smoke, first-ingest
   smoke, refresh-worker recovery, prompt-entity projection, and distributed
   rate-limit enablement have recorded evidence.
@@ -84,6 +84,6 @@ scheduled-worker SLO. No secret, workspace identifier, raw payload, or token is
 stored in this snapshot.
 
 The detailed ledger is authoritative for the remaining external gates. The
-current source and deployed application are both `8130f517`; the latest health
+current source and deployed application are both `66be5ff4`; the latest health
 report is the AWS-proven freshness result above. The alert evaluator remains
 disabled-first and is not claimed as enabled production delivery.

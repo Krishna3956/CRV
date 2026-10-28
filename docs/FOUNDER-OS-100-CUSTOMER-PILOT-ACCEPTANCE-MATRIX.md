@@ -2,11 +2,12 @@
 
 Status: **HOLD — no silent waivers**  
 Reconciled: 2026-10-28 (Asia/Calcutta)
-Current deployed baseline: application `8130f517b411a7859801b0472aae1c9e955d210b`,
-App Runner run `40669192809` (successful deployment, image digest
-`sha256:429208e0d65cd84e23909aabad592c7639f3b929848b0d0d239a127ee53368fd`).
-The current repository source is `main` at `HEAD`; hosted CI `40669192861`
-passed all 145 suites across web/JavaScript, Go, and .NET. The deployed
+Current deployed baseline: application `66be5ff4ac5b9d4204cb24a765a71eea2210c010`,
+App Runner run `40672911685` (successful deployment, image digest
+`sha256:cf96c0ce1a0c351f40da3aee7ec4e59eb7841d52ea4d95e22cf0e8304ec42a6a`).
+The current repository source is `main` at `HEAD`; hosted CI `40672911351`
+passed all 145 suites across web/JavaScript, Go, and .NET. Authenticated
+production smoke `40673960981` also passed against this exact release. The deployed
 refresh scheduler remains independently proven by health artifact
 `40629348992`, which records 3/3 complete AWS worker-summary samples within
 the 15-minute budget. The alert evaluator deployment path is present but
