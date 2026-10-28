@@ -2,6 +2,23 @@
 
 Status: active autonomous audit, started 2026-10-21.
 
+## 2026-10-28 — AWS scheduler worker-freshness gate closed
+
+- The merged scheduler source `20702c9` passed hosted TrackMCP CI
+  `40628036758`; main scheduler deployment `40628036770` succeeded with the
+  five-minute schedule disabled, authenticated smoke `40628409832` returned
+  status `200` with DLQ depth `0`, and enablement run `40628646879` enabled the
+  recurring schedule.
+- Health artifact `40629348992` proves 3/3 complete AWS worker-summary samples,
+  6/6 invocations, 4/4 end-to-end EMF successes, zero parse/failed/retryable
+  jobs, and queue lag within the 15-minute budget. This closes the
+  engineering-owned scheduler freshness gate.
+- Customer-owned remote endpoint interoperability, reconnect/replay, durable
+  subscriptions, OAuth exchange, privacy acceptance, backup/PITR, and
+  release-owner acceptance remain explicit external gates. The local guarded
+  Streamable HTTP/SSE smoke does not substitute for customer-owned endpoint
+  UAT.
+
 ## 2026-10-28 — disposable CLI activation and first-event UAT passed
 
 - A terminal-only production UAT created a disposable authenticated user and

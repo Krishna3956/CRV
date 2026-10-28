@@ -13,8 +13,20 @@ App Runner redeploy `40606435487` completed successfully for immutable commit
 rollout, read-only production smoke, immutable release identity, and runtime
 safety checks passed. The chained authenticated production smoke
 `40607394426` also completed successfully for the same release. The release
-remains Draft/HOLD because the owner, backup/recovery, privacy acceptance,
-worker freshness, and customer-owned lifecycle/transport gates are still open.
+remains Draft/HOLD because the owner, backup/recovery, privacy acceptance, and
+customer-owned lifecycle/transport gates are still open. The separate AWS
+refresh scheduler is now deployed and its worker-freshness gate is proven by
+health artifact `40629348992`.
+
+The merged scheduler source `20702c9` passed main TrackMCP CI `40628036758`.
+Scheduler deployment `40628036770` succeeded with the schedule disabled,
+authenticated smoke `40628409832` returned status `200` with DLQ depth `0`, and
+enablement run `40628646879` enabled the five-minute schedule. Health run
+`40629348992` then recorded 3/3 complete AWS worker-summary samples, 6/6
+invocations, 4/4 end-to-end EMF successes, zero worker parse/failed/retryable
+jobs, and queue lag within the 15-minute budget. This closes the
+engineering-owned scheduler freshness gate without changing the application
+image baseline or implying customer-owned endpoint interoperability.
 
 The following entries are historical baselines retained for continuity.
 
@@ -61,15 +73,14 @@ recovery-evidence hardening, not a final operational SLO acceptance.
 
 ## Latest source verification — 2026-10-28
 
-The current repository source is `main` at `HEAD` (the docs-only reconciliation
-commits after implementation/test baseline `6b1cf1f8` are not claimed as App
-Runner behavior). Hosted TrackMCP CI
-`40607765427` passed all **145 suites** across web/JavaScript, Go, and .NET for
-the implementation baseline. The latest local release gate passes **145 suites**,
-lint, the production build (**178 routes**), and `git diff --check`. The deployed source is
-`b2ab68e6` via App Runner workflow `40606435487`, with authenticated production
-smoke `40607394426`. Documentation-only commits after that runtime baseline do
-not require a new application image.
+The current repository source is `main` at `HEAD`; the latest application image
+remains `b2ab68e6`, while the scheduler is deployed independently from merged
+source `20702c9`. Hosted TrackMCP CI `40628036758` passed all **145 suites**
+across web/JavaScript, Go, and .NET for the merged scheduler source. The latest local release gate passes **145 suites**, lint, the production build (**178 routes**), and `git diff --check`. The deployed application remains
+`b2ab68e6` via App Runner workflow `40606435487`; the deployed source is
+`b2ab68e6`, with authenticated production smoke `40607394426`. Scheduler
+deployment and health evidence are recorded above. Documentation-only commits
+after that runtime baseline do not require a new application image.
 
 The preceding deployed source was `4efa2e1` (including the health-report semantics
 correction that honors a proven AWS scheduler window while retaining historical

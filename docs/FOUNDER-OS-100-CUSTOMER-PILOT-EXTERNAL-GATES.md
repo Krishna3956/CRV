@@ -15,12 +15,11 @@ is intentionally not a GO approval and must not be treated as one.
   App Runner workflow `40606435487` (successful rollout, release gate,
   production smoke, identity, and runtime-safety checks); authenticated
   production smoke `40607394426` passed for the same immutable SHA.
-- Current source verification: `main` at `HEAD`, with implementation/test
-  baseline `6b1cf1f8`; hosted TrackMCP CI
-  `40607765427` passed all 145 cross-language suites. These docs-only
-  reconciliations are not claimed as App Runner application behavior.
-  This does not close the external owner, backup, privacy, or scheduler-cadence
-  gates.
+- Current source verification: `main` at `HEAD`; merged scheduler source
+  `20702c9` passed hosted TrackMCP CI `40628036758` with all 145 cross-language
+  suites. The application image remains the separately verified App Runner
+  runtime `b2ab68e6`; scheduler deployment and health evidence are recorded
+  below. This does not close the external owner, backup, or privacy gates.
 - Historical deployed baselines retained for audit include `9638e23c8529f9b1781d96413529e33a692715ed`
   (App Runner workflow `40468547762`) and `37579eade74a20818cd4f83569493e830e4855de`
   (App Runner workflow `40474794151`), plus the earlier deployment identity
@@ -69,7 +68,7 @@ is intentionally not a GO approval and must not be treated as one.
 | 157 — database recovery posture | Infrastructure/provider owner | Region and tier, backup/PITR policy or an explicitly accepted limitation, restoration owner, and a tested recovery reference | OPEN; authenticated Supabase inspection records Free tier, East US/`us-east-1`, Nano/shared compute, and PITR **Disabled**. A fresh signed-in browser inspection of Database → Backups (2026-10-27) showed no usable scheduled-backup or restore-point evidence. No restoration contact or rehearsal is evidenced. |
 | Privacy lifecycle acceptance | Release owner | Explicit acceptance that export is bounded/secret-free, deletion requests are review-only, and destructive deletion is disabled without an approved worker | OPEN in the release record |
 | Synthetic reliability-data hygiene | Release owner | Explicit acceptance that synthetic canary rows are test evidence only and cannot be presented as customer incidents | OPEN in the release record |
-| Refresh scheduler enablement | Infrastructure/provider owner | Store `TRACKMCP_REFRESH_WORKER_SECRET` in Secrets Manager, map the App Runner runtime variable from that ARN, deploy the disabled-first AWS Scheduler stack, verify endpoint/token/DLQ behavior, enable the five-minute schedule, and retain at least three scheduled samples within the 15-minute freshness budget | AWS scheduler and end-to-end cadence are proven: health run `40493587359` observed 3 invocations, 3 scheduled-success markers, and 0 errors. The deployed health engine now treats this AWS window as authoritative while retaining any historical worker-freshness warnings. Overall pilot approval remains open to the release owner. |
+| Refresh scheduler enablement | Infrastructure/provider owner | Store `TRACKMCP_REFRESH_WORKER_SECRET` in Secrets Manager, map the App Runner runtime variable from that ARN, deploy the disabled-first AWS Scheduler stack, verify endpoint/token/DLQ behavior, enable the five-minute schedule, and retain at least three scheduled samples within the 15-minute freshness budget | **PASS for engineering evidence:** deployment `40628036770`, authenticated smoke `40628409832`, enablement `40628646879`, and health `40629348992` prove 3/3 complete AWS worker samples, 6/6 invocations, 4/4 EMF successes, zero worker failures/retries/parse failures, and queue lag within budget. Overall pilot approval remains open to the release owner. |
 | 260 — final go/no-go | Release owner | Timestamped GO/NO-GO decision linking the green evidence and accepted limitations | OPEN; engineering recommendation remains HOLD |
 
 ## Closure rule
