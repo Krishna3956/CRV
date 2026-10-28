@@ -14,6 +14,23 @@ Last updated: 2026-10-29 (main `4ed1c33e`; deployed application `4ed1c33e` and i
 - [ ] This publishes the bounded catalog predecessor read model; it does not
   close the explicitly listed external release gates below.
 
+## 2026-10-29 — post-publication release-gate recheck
+
+- [x] The current `main` checkout was revalidated after the lineage and
+  readiness-record merges: `npm run test:release-gate` passed all **148
+  suites**, including the privacy, tenant-isolation, protocol, OTLP, package,
+  docs-navigation, dashboard, and external-gate contract families.
+- [x] `npm run lint` passed and `npm run build` generated **178 routes**.
+  `git diff --check` remains clean for tracked product files.
+- [x] No new runtime deployment was required for this recheck because the
+  source change since the live image is documentation-only; App Runner remains
+  verified at immutable runtime `4ed1c33e` by deployment `40752715423`.
+- [ ] The recheck does not convert operator-owned decisions or credentialed
+  UAT into engineering evidence: release-owner GO/NO-GO, Supabase backup/PITR,
+  privacy deletion acceptance, customer-owned endpoint/key-lifecycle UAT,
+  transport-owned reconnect/OAuth interoperability, scheduler cadence, and
+  optional Go/.NET registry publication remain explicitly open.
+
 ## 2026-10-29 — bounded catalog predecessor lineage
 
 - [x] The analytics read model now joins each page's `previous_snapshot_id`
