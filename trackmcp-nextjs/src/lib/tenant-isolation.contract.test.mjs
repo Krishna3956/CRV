@@ -53,7 +53,8 @@ function fixtureAdmin() {
       { workspace_id: "workspace-b", id: "action-b", fingerprint: "b", rule_key: "b", status: "open", severity: "info", title: "B", evidence: {}, created_at: now, updated_at: now, revision: 1 },
     ],
     trackmcp_catalog_versions: [
-      { workspace_id: "workspace-a", id: "catalog-a", snapshot_hash: "a".repeat(64), catalog_kind: "tools", item_count: 1, item_name_hashes: [], item_uri_hashes: [], previous_snapshot_id: null, complete: true, truncated: false, diff: { status: "unchanged" }, discovered_at: now },
+      { workspace_id: "workspace-a", id: "catalog-a", snapshot_hash: "a".repeat(64), catalog_kind: "tools", item_count: 1, item_name_hashes: ["c".repeat(64)], item_uri_hashes: [], previous_snapshot_id: "catalog-a-prev", complete: true, truncated: false, diff: { status: "computed", changed: true }, discovered_at: now },
+      { workspace_id: "workspace-a", id: "catalog-a-prev", snapshot_hash: "d".repeat(64), catalog_kind: "tools", item_count: 2, item_name_hashes: ["e".repeat(64)], item_uri_hashes: [], previous_snapshot_id: null, complete: true, truncated: false, diff: { status: "unchanged" }, discovered_at: new Date(Date.now() - 2 * 86400000).toISOString() },
       { workspace_id: "workspace-b", id: "catalog-b", snapshot_hash: "b".repeat(64), catalog_kind: "tools", item_count: 2, item_name_hashes: [], item_uri_hashes: [], previous_snapshot_id: null, complete: true, truncated: false, diff: { status: "unchanged" }, discovered_at: now },
     ],
     trackmcp_workspace_members: [
@@ -82,7 +83,12 @@ test("catalog history is tenant-scoped through the analytics projection", async 
   const response = await createCatalogsHandler(analytics)(request("/api/v2/catalogs?days=1", admin.keyA));
   assert.equal(response.status, 200);
   const body = await response.json();
-  assert.deepEqual(body.catalogs.slice(1).map((catalog) => catalog.id), ["catalog-a"]);
+  const current = body.catalogs.find((catalog) => catalog.id === "catalog-a");
+  assert.ok(current);
+  assert.equal(current.previous_snapshot_status, "available");
+  assert.equal(current.previous_snapshot.id, "catalog-a-prev");
+  assert.equal(current.previous_snapshot.version, "d".repeat(64));
+  assert.deepEqual(current.previous_snapshot.item_name_hashes, ["e".repeat(64)]);
   assert.equal(JSON.stringify(body).includes("catalog-b"), false);
   assert.equal(JSON.stringify(body).includes("b".repeat(64)), false);
 });

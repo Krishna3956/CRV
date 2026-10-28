@@ -70,6 +70,22 @@ export function createCatalogsHandler(analytics = createAnalyticsHandler()) {
       truncated: version.truncated === true,
       previous_snapshot_id: typeof version.previous_snapshot_id === "string" ? version.previous_snapshot_id : null,
       diff: projectDiff(version.diff),
+      previous_snapshot: version.previous_snapshot && typeof version.previous_snapshot === "object" && !Array.isArray(version.previous_snapshot) ? (() => {
+        const previous = version.previous_snapshot as Record<string, unknown>;
+        return {
+          id: typeof previous.id === "string" ? previous.id : null,
+          version: typeof previous.version === "string" && HASH.test(previous.version) ? previous.version.toLowerCase() : null,
+          observed_at: typeof previous.observed_at === "string" ? previous.observed_at : null,
+          catalog_kind: typeof previous.catalog_kind === "string" ? previous.catalog_kind : null,
+          item_count: typeof previous.item_count === "number" && Number.isSafeInteger(previous.item_count) ? Math.max(0, Math.min(1000000, previous.item_count)) : null,
+          item_name_hashes: boundedHashes(previous.item_name_hashes),
+          item_uri_hashes: boundedHashes(previous.item_uri_hashes),
+          complete: previous.complete === true,
+          truncated: previous.truncated === true,
+          diff: projectDiff(previous.diff),
+        };
+      })() : null,
+      previous_snapshot_status: version.previous_snapshot_status === "available" || version.previous_snapshot_status === "not_in_window" || version.previous_snapshot_status === "unavailable" || version.previous_snapshot_status === "not_requested" ? version.previous_snapshot_status : "unavailable",
     }));
     const notificationCorrelations = Array.isArray(body.catalog_snapshot_summary?.notification_correlations)
       ? body.catalog_snapshot_summary.notification_correlations.flatMap((value) => {

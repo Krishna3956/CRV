@@ -28,6 +28,19 @@ export type CatalogVersion = {
   truncated: boolean;
   diff: Record<string, unknown>;
   discovered_at: string | null;
+  previous_snapshot?: {
+    id: string | null;
+    version: string | null;
+    observed_at: string | null;
+    catalog_kind: string | null;
+    item_count: number | null;
+    item_name_hashes: string[];
+    item_uri_hashes: string[];
+    complete: boolean;
+    truncated: boolean;
+    diff: Record<string, unknown>;
+  } | null;
+  previous_snapshot_status?: "not_requested" | "available" | "not_in_window" | "unavailable" | string;
 };
 
 export type TraceEvent = {

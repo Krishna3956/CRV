@@ -194,7 +194,7 @@ export function createAnalyticsHandler(getAdmin: typeof getSupabaseAdmin = getSu
   const rawCatalogVersions: unknown[] = catalogVersionsResult.error ? [] : (catalogVersionsResult.data || []) as unknown[];
   const catalogHasMore = rawCatalogVersions.length > 100;
   const catalogPageRows = rawCatalogVersions.slice(0, 100);
-  const catalogVersions = catalogPageRows.filter((row): row is Record<string, unknown> => Boolean(row && typeof row === "object")).map((row) => ({
+  const catalogVersionsBase = catalogPageRows.filter((row): row is Record<string, unknown> => Boolean(row && typeof row === "object")).map((row) => ({
     id: boundedText(row.id, 128),
     server_id: boundedText(row.server_id, 128),
     environment_id: boundedText(row.environment_id, 128),
@@ -209,6 +209,42 @@ export function createAnalyticsHandler(getAdmin: typeof getSupabaseAdmin = getSu
     diff: row.diff && typeof row.diff === "object" && !Array.isArray(row.diff) ? row.diff : {},
     discovered_at: boundedText(row.discovered_at, 80),
   }));
+  const predecessorIds = [...new Set(catalogPageRows
+    .filter((row): row is Record<string, unknown> => Boolean(row && typeof row === "object"))
+    .map((row) => boundedText(row.previous_snapshot_id, 128))
+    .filter((id): id is string => Boolean(id)))].slice(0, 128);
+  const predecessorById = new Map<string, Record<string, unknown>>();
+  if (predecessorIds.length && !catalogVersionsResult.error) {
+    const predecessorQuery = supabase.from("trackmcp_catalog_versions")
+      .select("id,catalog_kind,item_count,item_name_hashes,item_uri_hashes,snapshot_hash,complete,truncated,diff,discovered_at")
+      .eq("workspace_id", workspaceId);
+    const predecessorResult = await predecessorQuery.in("id", predecessorIds).limit(128);
+    if (!predecessorResult.error && Array.isArray(predecessorResult.data)) {
+      for (const row of predecessorResult.data) {
+        if (row && typeof row === "object" && typeof (row as Record<string, unknown>).id === "string") predecessorById.set((row as Record<string, unknown>).id as string, row as Record<string, unknown>);
+      }
+    }
+  }
+  const catalogVersions = catalogVersionsBase.map((version) => {
+    const previousId = version.previous_snapshot_id;
+    const predecessor = previousId ? predecessorById.get(previousId) : null;
+    return {
+      ...version,
+      previous_snapshot: predecessor ? {
+        id: boundedText(predecessor.id, 128),
+        version: typeof predecessor.snapshot_hash === "string" && /^[a-f0-9]{64}$/i.test(predecessor.snapshot_hash) ? predecessor.snapshot_hash.toLowerCase() : null,
+        observed_at: boundedText(predecessor.discovered_at, 80),
+        catalog_kind: boundedText(predecessor.catalog_kind, 32),
+        item_count: typeof predecessor.item_count === "number" && Number.isInteger(predecessor.item_count) ? predecessor.item_count : null,
+        item_name_hashes: Array.isArray(predecessor.item_name_hashes) ? predecessor.item_name_hashes.filter((value): value is string => typeof value === "string" && /^[a-f0-9]{64}$/i.test(value)).slice(0, 128) : [],
+        item_uri_hashes: Array.isArray(predecessor.item_uri_hashes) ? predecessor.item_uri_hashes.filter((value): value is string => typeof value === "string" && /^[a-f0-9]{64}$/i.test(value)).slice(0, 128) : [],
+        complete: predecessor.complete === true,
+        truncated: predecessor.truncated === true,
+        diff: predecessor.diff && typeof predecessor.diff === "object" && !Array.isArray(predecessor.diff) ? predecessor.diff : {},
+      } : null,
+      previous_snapshot_status: !previousId ? "not_requested" : predecessor ? "available" : "not_in_window",
+    };
+  });
   const catalogVersionStatus = catalogVersionsResult.error ? "schema_unavailable" : catalogVersions.length ? "available" : "no_snapshot_rows";
   const catalogSnapshotSummary = {
     versions: catalogVersions.length,
