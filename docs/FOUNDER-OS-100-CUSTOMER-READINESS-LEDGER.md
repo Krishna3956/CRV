@@ -1,6 +1,21 @@
 # Founder OS 100 Customer Readiness Ledger
 
-Last updated: 2026-10-29 (main `2ac9580b`; deployed application `2ac9580b` and immutable App Runner deployment `40765865842` are healthy; bounded privacy execution, synthetic-evidence, and retention-preview boundaries are published with focused tests; customer-owned endpoint/protocol UAT, privacy acceptance, backup/PITR posture, and release-owner GO/NO-GO remain open)
+Last updated: 2026-10-29 (main `4eaa15ed`; deployed application `4eaa15ed` and immutable App Runner deployment `40777114925` are healthy; bounded privacy execution, synthetic-evidence, retention-preview, and ingest-metadata boundaries are published with focused tests; customer-owned endpoint/protocol UAT, privacy acceptance, backup/PITR posture, and release-owner GO/NO-GO remain open)
+
+## 2026-10-29 — reserved ingest metadata and nested payload boundary hardened
+
+- [x] The authenticated ingest boundary now applies an explicit allowlist to
+  the reserved `_trackmcp` metadata namespace. Unknown metadata keys and
+  nested objects are dropped before persistence; approved enum, boolean,
+  numeric, and capability-list values remain bounded and privacy-safe.
+- [x] All arbitrary payload trees now have server-side depth, key-count,
+  array-count, node-count, string, and byte limits. Oversized shapes produce
+  bounded truncation markers rather than crossing the raw event boundary.
+- [x] Focused validation coverage passed 14/14 tests, ingest integration
+  coverage passed 14/14, TypeScript type-check and targeted ESLint passed.
+- [ ] This closes the engineering allowlist/bounds gap only. It does not
+  authorize payload capture, close privacy acceptance, or replace the pending
+  production storage/recovery review.
 
 ## 2026-10-29 — retention preview worker published live
 
