@@ -288,7 +288,7 @@ test("modern 2026-07-28 requests use bounded discovery instead of a legacy hands
       if (body.method === "server/discover") {
         assert.equal(new Headers(init?.headers).get("mcp-method"), "server/discover");
         assert.deepEqual(body.params._meta, { "io.modelcontextprotocol/clientInfo": { name: "TrackMCP Tester", version: "1.0.0" }, "io.modelcontextprotocol/clientCapabilities": {} });
-        return jsonRpc({ supportedVersions: ["2026-07-28"], serverInfo: { name: "Modern fixture", version: "1" }, capabilities: { tools: {}, resources: {}, prompts: {}, extensions: { "io.modelcontextprotocol/tasks": {} } } }, 1);
+        return jsonRpc({ supportedVersions: ["2026-07-28"], _meta: { "io.modelcontextprotocol/serverInfo": { name: "Modern fixture", version: "1", secret: "omit" } }, serverInfo: { name: "draft-body", version: "0" }, capabilities: { tools: {}, resources: {}, prompts: {}, extensions: { "io.modelcontextprotocol/tasks": {} } } }, 1);
       }
       assert.equal(new Headers(init?.headers).get("mcp-method"), body.method);
       assert.deepEqual(body.params._meta, { "io.modelcontextprotocol/clientInfo": { name: "TrackMCP Tester", version: "1.0.0" }, "io.modelcontextprotocol/clientCapabilities": {} });
@@ -303,6 +303,8 @@ test("modern 2026-07-28 requests use bounded discovery instead of a legacy hands
   });
   assert.equal(report.protocol?.negotiatedVersion, "2026-07-28");
   assert.deepEqual(report.protocol?.supportedVersions, ["2026-07-28"]);
+  assert.deepEqual(report.server, { name: "Modern fixture", version: "1" });
+  assert.equal(report.healthDimensions.server_identity.status, "pass");
   assert.equal(report.capabilities.tasks, true);
   assert.equal(report.protocol?.sessionIdPresent, false);
   assert.equal(report.verdict, "incomplete");
@@ -328,13 +330,23 @@ test("modern discovery is complete when no lifecycle-capable surface is advertis
     protocolVersion: "2026-07-28",
     fetch: async (_input, init) => {
       const body = JSON.parse(String(init?.body));
-      if (body.method === "server/discover") return jsonRpc({ supportedVersions: ["2026-07-28"], serverInfo: { name: "Stateless fixture", version: "1" }, capabilities: {} }, 1);
+      if (body.method === "server/discover") return jsonRpc({ supportedVersions: ["2026-07-28"], _meta: { "io.modelcontextprotocol/serverInfo": { name: "Stateless fixture", version: "1" } }, capabilities: {} }, 1);
       assert.fail(`unexpected catalog request: ${body.method}`);
     },
   });
   assert.notEqual(report.verdict, "incomplete");
   assert.ok(report.findings.some((finding) => finding.code === "modern_discovery_complete"));
   assert.ok(!report.findings.some((finding) => finding.code === "modern_discovery_partial"));
+});
+
+test("modern tester does not trust early-draft body server identity", async () => {
+  const report = await runMcpTester({
+    endpoint,
+    protocolVersion: "2026-07-28",
+    fetch: async () => jsonRpc({ supportedVersions: ["2026-07-28"], serverInfo: { name: "draft-body", version: "0" }, capabilities: {} }, 1),
+  });
+  assert.equal(report.server, undefined);
+  assert.equal(report.healthDimensions.server_identity.status, "warn");
 });
 
 test("failed initialization and authentication are distinct", async () => {

@@ -214,7 +214,14 @@ export async function runMcpTester(options: McpTesterOptions): Promise<McpTester
       return buildEarlyReport(observedAt, startedMs, now, timeline, timelineTruncated, findings, phases, timings, "unsupported", limits, endpointValidation.safeEndpoint);
     }
     const result = isRecord(discovery.envelope?.result) ? discovery.envelope.result : undefined;
-    const serverInfo = result && isRecord(result.serverInfo) ? result.serverInfo : undefined;
+    // Final 2026-07-28 discovery responses carry self-reported server
+    // identity in the reserved result metadata key. Ignore the early-draft
+    // body-level `serverInfo` shape so the probe does not claim identity from
+    // a non-conformant response.
+    const resultMeta = result && isRecord(result._meta) ? result._meta : undefined;
+    const serverInfo = resultMeta && isRecord(resultMeta["io.modelcontextprotocol/serverInfo"])
+      ? resultMeta["io.modelcontextprotocol/serverInfo"]
+      : undefined;
     const capabilities = result && isRecord(result.capabilities) ? result.capabilities : undefined;
     const supportedVersions = result && Array.isArray(result.supportedVersions)
       ? [...new Set(result.supportedVersions.filter((version): version is string => typeof version === "string" && version.length > 0 && version.length <= 32).map((version) => safeString(version, 32)).filter((version): version is string => Boolean(version)))].slice(0, 16)
@@ -238,8 +245,12 @@ export async function runMcpTester(options: McpTesterOptions): Promise<McpTester
       state.incomplete = false;
       return finalize(state, observedAt, addFinding);
     }
-    state.server = { name: typeof serverInfo?.name === "string" ? safeString(serverInfo.name, limits.maxRenderedStringLength) : undefined, version: typeof serverInfo?.version === "string" ? safeString(serverInfo.version, limits.maxRenderedStringLength) : undefined };
-    state.identityPassed = Boolean(state.server.name && state.server.version);
+    const boundedServer: ServerIdentity = {
+      ...(typeof serverInfo?.name === "string" && safeString(serverInfo.name, limits.maxRenderedStringLength) ? { name: safeString(serverInfo.name, limits.maxRenderedStringLength) } : {}),
+      ...(typeof serverInfo?.version === "string" && safeString(serverInfo.version, limits.maxRenderedStringLength) ? { version: safeString(serverInfo.version, limits.maxRenderedStringLength) } : {}),
+    };
+    state.server = Object.keys(boundedServer).length > 0 ? boundedServer : undefined;
+    state.identityPassed = Boolean(state.server?.name && state.server?.version);
     const extensions = capabilities && isRecord(capabilities.extensions) ? capabilities.extensions : undefined;
     state.capabilities = {
       tools: Boolean(capabilities?.tools),

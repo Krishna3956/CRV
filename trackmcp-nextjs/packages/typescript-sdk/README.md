@@ -86,6 +86,13 @@ by the stateless 2026-07-28 revision. The default identity is
 `ModernMcpClient` options. Invalid or control-character values fall back to
 the SDK identity, and no credentials or payload data are included.
 
+The final 2026-07-28 wire revision carries self-reported server identity in the
+response result metadata key
+`_meta["io.modelcontextprotocol/serverInfo"]`. The client reads only that
+reserved metadata shape; an early-draft body-level `serverInfo` is ignored and
+missing or malformed metadata leaves the discovery result anonymous. This
+identity is display/debug metadata, not authorization or tenant identity.
+
 For a bounded catalog page, use `tools/list` with an opaque cursor. Tool names,
 descriptions, schemas, and cursors are size-limited and sanitized before they
 are returned; the method does not execute tools or retain arguments/results:

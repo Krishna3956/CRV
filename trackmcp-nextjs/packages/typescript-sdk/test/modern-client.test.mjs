@@ -15,12 +15,19 @@ function sseResponse(events, status = 200) {
 
 test("modern client sends bounded server/discover request and sanitizes metadata", async () => {
   let request;
-  const client = new ModernMcpClient({ endpoint: "https://mcp.example.test", fetch: async (_input, init) => { request = init; return response({ jsonrpc: "2.0", id: 1, result: { supportedVersions: [MODERN_MCP_PROTOCOL_VERSION, "2025-06-18", "\u0000bad"], serverInfo: { name: "Fixture", version: "1.2", secret: "omit" }, capabilities: { tools: {}, resources: {}, "not safe": {} } } }); } });
+  const client = new ModernMcpClient({ endpoint: "https://mcp.example.test", fetch: async (_input, init) => { request = init; return response({ jsonrpc: "2.0", id: 1, result: { supportedVersions: [MODERN_MCP_PROTOCOL_VERSION, "2025-06-18", "\u0000bad"], _meta: { "io.modelcontextprotocol/serverInfo": { name: "Fixture", version: "1.2", secret: "omit" } }, serverInfo: { name: "draft-body", version: "0" }, capabilities: { tools: {}, resources: {}, "not safe": {} } } }); } });
   const discovery = await client.discover();
   assert.equal(request.headers.get("mcp-protocol-version"), MODERN_MCP_PROTOCOL_VERSION);
   assert.equal(request.headers.get("mcp-method"), "server/discover");
   assert.deepEqual(JSON.parse(request.body).method, "server/discover");
   assert.deepEqual(discovery, { protocolVersion: MODERN_MCP_PROTOCOL_VERSION, supportedVersions: [MODERN_MCP_PROTOCOL_VERSION, "2025-06-18"], serverInfo: { name: "Fixture", version: "1.2" }, capabilityNames: ["tools", "resources"] });
+});
+
+test("modern client treats missing or malformed server identity metadata as anonymous", async () => {
+  const bodyOnly = new ModernMcpClient({ endpoint: "https://mcp.example.test", fetch: async () => response({ result: { serverInfo: { name: "draft-body", version: "0" }, capabilities: {} } }) });
+  assert.deepEqual(await bodyOnly.discover(), { protocolVersion: MODERN_MCP_PROTOCOL_VERSION, capabilityNames: [] });
+  const malformedMeta = new ModernMcpClient({ endpoint: "https://mcp.example.test", fetch: async () => response({ result: { _meta: { "io.modelcontextprotocol/serverInfo": "not-an-object" }, capabilities: {} } }) });
+  assert.deepEqual(await malformedMeta.discover(), { protocolVersion: MODERN_MCP_PROTOCOL_VERSION, capabilityNames: [] });
 });
 
 test("modern client assigns distinct JSON-RPC ids to concurrent requests", async () => {
