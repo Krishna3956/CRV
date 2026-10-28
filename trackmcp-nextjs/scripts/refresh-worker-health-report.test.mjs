@@ -115,6 +115,50 @@ test("healthy AWS scheduler evidence can close health with fewer GitHub recovery
   assert.equal(report.aws_end_to_end_cadence_gate.status, "proven");
 });
 
+test("bounded AWS worker metrics prove freshness without GitHub scheduled samples", () => {
+  const report = summarizeRefreshWorkerRuns([
+    run({ run_id: 1, event: "workflow_dispatch", created_at: "2026-10-26T00:00:00Z" }),
+  ], {
+    awsScheduler: {
+      enabled: true,
+      invocations: 3,
+      errors: 0,
+      scheduled_successes: 3,
+      scheduled_successes_available: true,
+      datapoints: [{ id: "invocations" }, { id: "errors" }, { id: "scheduled_successes" }],
+      worker_summary: { available: true, samples: 3, complete_samples: 3, parse_failures: 0, failed: 0, retryable: 0, max_queue_lag_ms: 420 },
+    },
+  });
+  assert.equal(report.worker_freshness_gate.status, "proven");
+  assert.deepEqual(report.scheduled_cadence_gate, {
+    status: "proven",
+    observed_samples: 0,
+    required_samples: 3,
+    evidence: "aws_worker_metrics",
+  });
+  assert.equal(report.scheduler_evidence.worker_healthy, true);
+  assert.deepEqual(report.reasons, []);
+});
+
+test("incomplete AWS worker metrics remain a visible freshness warning", () => {
+  const report = summarizeRefreshWorkerRuns([
+    run({ run_id: 1, event: "workflow_dispatch", created_at: "2026-10-26T00:00:00Z" }),
+  ], {
+    awsScheduler: {
+      enabled: true,
+      invocations: 3,
+      errors: 0,
+      scheduled_successes: 3,
+      scheduled_successes_available: true,
+      datapoints: [{ id: "invocations" }, { id: "errors" }, { id: "scheduled_successes" }],
+      worker_summary: { available: true, samples: 3, complete_samples: 2, parse_failures: 1, failed: 0, retryable: 0, max_queue_lag_ms: 420 },
+    },
+  });
+  assert.equal(report.worker_freshness_gate.status, "pending");
+  assert.equal(report.state, "warning");
+  assert.deepEqual(report.reasons, ["aws_worker_freshness_not_proven"]);
+});
+
 test("scheduled cadence gate becomes proven only from scheduled worker samples", () => {
   const report = summarizeRefreshWorkerRuns([
     run({ run_id: 1, event: "schedule", created_at: "2026-10-26T00:00:00Z" }),

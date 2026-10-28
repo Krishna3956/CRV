@@ -54,7 +54,14 @@ jobs:
             {Id:"invocations",MetricStat:{Metric:{Namespace:"AWS/Lambda",MetricName:"Invocations",Dimensions:[{Name:"FunctionName",Value:$function_name}]},Period:300,Stat:"Sum"},ReturnData:true},
             {Id:"errors",MetricStat:{Metric:{Namespace:"AWS/Lambda",MetricName:"Errors",Dimensions:[{Name:"FunctionName",Value:$function_name}]},Period:300,Stat:"Sum"},ReturnData:true},
             {Id:"scheduled_successes",MetricStat:{Metric:{Namespace:"TrackMCP/RefreshScheduler",MetricName:"ScheduledSuccess",Dimensions:[{Name:"FunctionName",Value:$function_name}]},Period:300,Stat:"Sum"},ReturnData:true},
-            {Id:"scheduled_failures",MetricStat:{Metric:{Namespace:"TrackMCP/RefreshScheduler",MetricName:"ScheduledFailure",Dimensions:[{Name:"FunctionName",Value:$function_name}]},Period:300,Stat:"Sum"},ReturnData:true}
+            {Id:"scheduled_failures",MetricStat:{Metric:{Namespace:"TrackMCP/RefreshScheduler",MetricName:"ScheduledFailure",Dimensions:[{Name:"FunctionName",Value:$function_name}]},Period:300,Stat:"Sum"},ReturnData:true},
+            {Id:"worker_samples",MetricStat:{Metric:{Namespace:"TrackMCP/RefreshScheduler",MetricName:"WorkerSummarySample",Dimensions:[{Name:"FunctionName",Value:$function_name}]},Period:300,Stat:"Sum"},ReturnData:true},
+            {Id:"worker_complete_samples",MetricStat:{Metric:{Namespace:"TrackMCP/RefreshScheduler",MetricName:"WorkerSummaryComplete",Dimensions:[{Name:"FunctionName",Value:$function_name}]},Period:300,Stat:"Sum"},ReturnData:true},
+            {Id:"worker_parse_failures",MetricStat:{Metric:{Namespace:"TrackMCP/RefreshScheduler",MetricName:"WorkerSummaryParseFailures",Dimensions:[{Name:"FunctionName",Value:$function_name}]},Period:300,Stat:"Sum"},ReturnData:true},
+            {Id:"worker_processed",MetricStat:{Metric:{Namespace:"TrackMCP/RefreshScheduler",MetricName:"WorkerProcessed",Dimensions:[{Name:"FunctionName",Value:$function_name}]},Period:300,Stat:"Sum"},ReturnData:true},
+            {Id:"worker_failed",MetricStat:{Metric:{Namespace:"TrackMCP/RefreshScheduler",MetricName:"WorkerFailed",Dimensions:[{Name:"FunctionName",Value:$function_name}]},Period:300,Stat:"Sum"},ReturnData:true},
+            {Id:"worker_retryable",MetricStat:{Metric:{Namespace:"TrackMCP/RefreshScheduler",MetricName:"WorkerRetryable",Dimensions:[{Name:"FunctionName",Value:$function_name}]},Period:300,Stat:"Sum"},ReturnData:true},
+            {Id:"worker_max_queue_lag",MetricStat:{Metric:{Namespace:"TrackMCP/RefreshScheduler",MetricName:"WorkerMaxQueueLagMs",Dimensions:[{Name:"FunctionName",Value:$function_name}]},Period:300,Stat:"Maximum"},ReturnData:true}
           ]')
           raw=$(aws cloudwatch get-metric-data \
             --region "$AWS_REGION" \
@@ -65,8 +72,16 @@ jobs:
             --output json)
           scheduled_successes=$(printf '%s' "$raw" | jq '[.MetricDataResults[] | select(.Id=="scheduled_successes") | .Values[]] | add // 0')
           scheduled_failures=$(printf '%s' "$raw" | jq '[.MetricDataResults[] | select(.Id=="scheduled_failures") | .Values[]] | add // 0')
+          worker_samples=$(printf '%s' "$raw" | jq '[.MetricDataResults[] | select(.Id=="worker_samples") | .Values[]] | add // 0')
+          worker_complete_samples=$(printf '%s' "$raw" | jq '[.MetricDataResults[] | select(.Id=="worker_complete_samples") | .Values[]] | add // 0')
+          worker_parse_failures=$(printf '%s' "$raw" | jq '[.MetricDataResults[] | select(.Id=="worker_parse_failures") | .Values[]] | add // 0')
+          worker_processed=$(printf '%s' "$raw" | jq '[.MetricDataResults[] | select(.Id=="worker_processed") | .Values[]] | add // 0')
+          worker_failed=$(printf '%s' "$raw" | jq '[.MetricDataResults[] | select(.Id=="worker_failed") | .Values[]] | add // 0')
+          worker_retryable=$(printf '%s' "$raw" | jq '[.MetricDataResults[] | select(.Id=="worker_retryable") | .Values[]] | add // 0')
+          worker_max_queue_lag_ms=$(printf '%s' "$raw" | jq '[.MetricDataResults[] | select(.Id=="worker_max_queue_lag") | .Values[]] | max // 0')
+          worker_metrics_available=$(printf '%s' "$raw" | jq '[.MetricDataResults[] | select(.Id=="worker_samples") | .Values[]] | length > 0')
           scheduled_successes_available=true
-          printf '%s' "$raw" | jq --argjson scheduled_successes "$scheduled_successes" --argjson scheduled_failures "$scheduled_failures" --argjson scheduled_successes_available "$scheduled_successes_available" '{enabled:true,datapoints:[.MetricDataResults[] | {id:.Id,values:.Values,timestamps:.Timestamps}],invocations:([.MetricDataResults[] | select(.Id=="invocations") | .Values[]] | add // 0),errors:([.MetricDataResults[] | select(.Id=="errors") | .Values[]] | add // 0),scheduled_successes:$scheduled_successes,scheduled_failures:$scheduled_failures,scheduled_successes_available:$scheduled_successes_available}' > "$output"
+          printf '%s' "$raw" | jq --argjson scheduled_successes "$scheduled_successes" --argjson scheduled_failures "$scheduled_failures" --argjson scheduled_successes_available "$scheduled_successes_available" --argjson worker_samples "$worker_samples" --argjson worker_complete_samples "$worker_complete_samples" --argjson worker_parse_failures "$worker_parse_failures" --argjson worker_processed "$worker_processed" --argjson worker_failed "$worker_failed" --argjson worker_retryable "$worker_retryable" --argjson worker_max_queue_lag_ms "$worker_max_queue_lag_ms" --argjson worker_metrics_available "$worker_metrics_available" '{enabled:true,datapoints:[.MetricDataResults[] | {id:.Id,values:.Values,timestamps:.Timestamps}],invocations:([.MetricDataResults[] | select(.Id=="invocations") | .Values[]] | add // 0),errors:([.MetricDataResults[] | select(.Id=="errors") | .Values[]] | add // 0),scheduled_successes:$scheduled_successes,scheduled_failures:$scheduled_failures,scheduled_successes_available:$scheduled_successes_available,worker_summary:{available:$worker_metrics_available,samples:$worker_samples,complete_samples:$worker_complete_samples,parse_failures:$worker_parse_failures,processed:$worker_processed,failed:$worker_failed,retryable:$worker_retryable,max_queue_lag_ms:$worker_max_queue_lag_ms}}' > "$output"
 
       - name: Collect recent redacted worker summaries
         env:
@@ -121,6 +136,7 @@ jobs:
             echo "- Scheduled cadence gate: $(jq -r '.scheduled_cadence_gate.status' "$report") ($(jq -r '.scheduled_cadence_gate.evidence' "$report"))"
             echo "- AWS scheduler cadence gate: $(jq -r '.aws_scheduler_cadence_gate.status' "$report") ($(jq -r '.aws_scheduler_cadence_gate.evidence' "$report"))"
             echo "- AWS end-to-end cadence gate: $(jq -r '.aws_end_to_end_cadence_gate.status' "$report") ($(jq -r '.aws_end_to_end_cadence_gate.evidence' "$report"))"
+            echo "- AWS worker freshness gate: $(jq -r '.worker_freshness_gate.status' "$report") ($(jq -r '.worker_freshness_gate.evidence' "$report"))"
             echo "- Max queue lag (ms): $(jq -r '.max_queue_lag_ms' "$report")"
             echo "- AWS scheduler evidence: $(jq -r '.scheduler_evidence | if .healthy then "healthy" else "not-healthy" end' "$report")"
             cat "$report" >> "$GITHUB_STEP_SUMMARY"

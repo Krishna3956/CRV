@@ -14,7 +14,7 @@ function parseTimestamp(value) {
   return Number.isFinite(time) ? time : null;
 }
 
-function normalizeAwsSchedulerEvidence(value) {
+function normalizeAwsSchedulerEvidence(value, budgetMs = DEFAULT_BUDGET_MS) {
   const source = value && typeof value === "object" ? value : {};
   const datapoints = Array.isArray(source.datapoints) ? source.datapoints.filter((item) => item && typeof item === "object").slice(0, 32) : [];
   const invocations = boundedNumber(source.invocations);
@@ -23,6 +23,21 @@ function normalizeAwsSchedulerEvidence(value) {
   const scheduledFailures = boundedNumber(source.scheduled_failures);
   const scheduledSuccessesAvailable = source.scheduled_successes_available === true;
   const healthy = datapoints.length > 0 && invocations > 0 && errors === 0;
+  const worker = source.worker_summary && typeof source.worker_summary === "object" ? source.worker_summary : {};
+  const workerSamples = boundedNumber(worker.samples);
+  const workerCompleteSamples = boundedNumber(worker.complete_samples);
+  const workerParseFailures = boundedNumber(worker.parse_failures);
+  const workerFailed = boundedNumber(worker.failed);
+  const workerRetryable = boundedNumber(worker.retryable);
+  const workerMaxQueueLagMs = boundedNumber(worker.max_queue_lag_ms);
+  const workerMetricsAvailable = worker.available === true || workerSamples > 0;
+  const workerHealthy = workerMetricsAvailable
+    && workerSamples >= MIN_SAMPLES
+    && workerCompleteSamples >= workerSamples
+    && workerParseFailures === 0
+    && workerFailed === 0
+    && workerRetryable === 0
+    && workerMaxQueueLagMs <= boundedNumber(budgetMs, DEFAULT_BUDGET_MS);
   return {
     enabled: source.enabled === true,
     datapoints: datapoints.length,
@@ -32,6 +47,14 @@ function normalizeAwsSchedulerEvidence(value) {
     scheduled_failures: scheduledFailures,
     scheduled_successes_available: scheduledSuccessesAvailable,
     healthy,
+    worker_metrics_available: workerMetricsAvailable,
+    worker_samples: workerSamples,
+    worker_complete_samples: workerCompleteSamples,
+    worker_parse_failures: workerParseFailures,
+    worker_failed: workerFailed,
+    worker_retryable: workerRetryable,
+    worker_max_queue_lag_ms: workerMaxQueueLagMs,
+    worker_healthy: workerHealthy,
   };
 }
 
@@ -85,7 +108,7 @@ export function summarizeRefreshWorkerRuns(runs, { budgetMs = DEFAULT_BUDGET_MS,
   const failedRuns = evaluationRuns.filter((run) => run.conclusion !== "success" || run.failed > 0 || run.retryable > 0).length;
   const incompleteRuns = evaluationRuns.filter((run) => run.timed_out || run.workflow_failed || run.batches_with_unparseable_response > 0).length;
   const cadenceBreaches = intervals.filter((interval) => interval > maxCadenceMs).length;
-  const awsEvidence = normalizeAwsSchedulerEvidence(awsScheduler);
+  const awsEvidence = normalizeAwsSchedulerEvidence(awsScheduler, budgetMs);
   const scheduledSampleCount = evaluationRuns.filter((run) => run.event === "schedule").length;
   // EventBridge/Lambda is the production scheduler. GitHub cron is only a
   // recovery path, so a healthy AWS metric window satisfies the scheduler
@@ -94,11 +117,25 @@ export function summarizeRefreshWorkerRuns(runs, { budgetMs = DEFAULT_BUDGET_MS,
   const scheduledInsufficient = scheduledSampleCount < MIN_SAMPLES && !awsEvidence.healthy;
   const effectiveCadenceBreaches = awsEvidence.healthy ? 0 : cadenceBreaches;
   const awsErrorsObserved = awsEvidence.enabled && awsEvidence.datapoints > 0 && awsEvidence.errors > 0;
+  const workerCadenceProven = awsEvidence.worker_healthy;
+  const awsWorkerFreshnessWarning = awsEvidence.worker_metrics_available && !awsEvidence.worker_healthy;
   const scheduledCadenceGate = {
-    status: scheduledSampleCount >= MIN_SAMPLES ? "proven" : "pending",
+    status: scheduledSampleCount >= MIN_SAMPLES || workerCadenceProven ? "proven" : "pending",
     observed_samples: scheduledSampleCount,
     required_samples: MIN_SAMPLES,
-    evidence: scheduledSampleCount >= MIN_SAMPLES ? "scheduled_runs" : awsEvidence.healthy ? "aws_metrics_only" : "insufficient_scheduled_samples",
+    evidence: scheduledSampleCount >= MIN_SAMPLES
+      ? "scheduled_runs"
+      : workerCadenceProven
+        ? "aws_worker_metrics"
+        : awsEvidence.healthy ? "aws_metrics_only" : "insufficient_scheduled_samples",
+  };
+  const workerFreshnessGate = {
+    status: workerCadenceProven ? "proven" : "pending",
+    observed_samples: awsEvidence.worker_samples,
+    required_samples: MIN_SAMPLES,
+    evidence: workerCadenceProven
+      ? "aws_worker_metrics"
+      : awsEvidence.worker_metrics_available ? "aws_worker_metrics_not_healthy" : "aws_worker_metrics_unavailable",
   };
   const awsSchedulerCadenceGate = {
     status: awsEvidence.enabled && awsEvidence.datapoints > 0 && awsEvidence.invocations >= MIN_SAMPLES && awsEvidence.errors === 0 ? "proven" : "pending",
@@ -116,7 +153,7 @@ export function summarizeRefreshWorkerRuns(runs, { budgetMs = DEFAULT_BUDGET_MS,
       ? "cloudwatch_emf_metric"
       : awsEvidence.scheduled_successes_available ? "scheduled_success_metric_pending" : "cloudwatch_metric_unavailable",
   };
-  const state = insufficient ? "insufficient_data" : failedRuns > 0 || incompleteRuns > 0 || staleRuns > 0 || effectiveCadenceBreaches > 0 || scheduledInsufficient || awsErrorsObserved ? "warning" : "healthy";
+  const state = insufficient ? "insufficient_data" : failedRuns > 0 || incompleteRuns > 0 || staleRuns > 0 || effectiveCadenceBreaches > 0 || scheduledInsufficient || awsErrorsObserved || awsWorkerFreshnessWarning ? "warning" : "healthy";
   const reasons = [];
   if (insufficient) reasons.push("minimum_samples_not_met");
   if (scheduledInsufficient && !insufficient) reasons.push("scheduled_samples_not_met");
@@ -125,6 +162,7 @@ export function summarizeRefreshWorkerRuns(runs, { budgetMs = DEFAULT_BUDGET_MS,
   if (staleRuns > 0) reasons.push("freshness_budget_exceeded");
   if (effectiveCadenceBreaches > 0) reasons.push("schedule_cadence_gap");
   if (awsErrorsObserved) reasons.push("aws_scheduler_errors_observed");
+  if (awsWorkerFreshnessWarning) reasons.push("aws_worker_freshness_not_proven");
   if (awsEvidence.scheduled_failures > 0) reasons.push("scheduled_refresh_failures_observed");
   if (awsEvidence.enabled && awsEvidence.datapoints === 0) reasons.push("aws_scheduler_evidence_missing");
 
@@ -139,6 +177,7 @@ export function summarizeRefreshWorkerRuns(runs, { budgetMs = DEFAULT_BUDGET_MS,
     scheduled_sample_count: scheduledSampleCount,
     minimum_scheduled_samples: MIN_SAMPLES,
     scheduled_cadence_gate: scheduledCadenceGate,
+    worker_freshness_gate: workerFreshnessGate,
     aws_scheduler_cadence_gate: awsSchedulerCadenceGate,
     aws_end_to_end_cadence_gate: awsEndToEndCadenceGate,
     freshness_budget_ms: boundedNumber(budgetMs, DEFAULT_BUDGET_MS),

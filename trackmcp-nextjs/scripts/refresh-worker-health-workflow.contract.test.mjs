@@ -29,3 +29,11 @@ test("health workflow can recover a missed worker tick without overlapping an ac
   assert.doesNotMatch(workflow, /echo \"- State: `\$state`\"/);
   assert.match(workflow, /--data '\{"ref":"main"\}'/);
 });
+
+test("health workflow reads bounded AWS worker freshness metrics", () => {
+  for (const metric of ["WorkerSummarySample", "WorkerSummaryComplete", "WorkerSummaryParseFailures", "WorkerProcessed", "WorkerFailed", "WorkerRetryable", "WorkerMaxQueueLagMs"]) {
+    assert.match(workflow, new RegExp(metric));
+  }
+  assert.match(workflow, /worker_summary:/);
+  assert.match(workflow, /AWS worker freshness gate:/);
+});

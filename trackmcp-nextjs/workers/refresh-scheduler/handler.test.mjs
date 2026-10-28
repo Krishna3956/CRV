@@ -49,10 +49,52 @@ test("scheduler handler sends one bounded authenticated refresh request", async 
     assert.equal(marker.scheduled, true);
     assert.equal(marker.success, true);
     assert.equal(marker.ScheduledSuccess, 1);
+    assert.equal(marker.WorkerSummarySample, 1);
+    assert.equal(marker.WorkerSummaryComplete, 0);
+    assert.equal(marker.WorkerSummaryParseFailures, 4);
+    assert.equal(marker.WorkerProcessed, 0);
+    assert.equal(marker.WorkerMaxQueueLagMs, 0);
     assert.equal(marker._aws.CloudWatchMetrics[0].Namespace, "TrackMCP/RefreshScheduler");
     assert.deepEqual(marker._aws.CloudWatchMetrics[0].Dimensions, [["FunctionName"]]);
     assert.equal(marker._aws.CloudWatchMetrics[0].Metrics[0].Name, "ScheduledSuccess");
     assert.equal(marker.request, undefined);
+  } finally {
+    globalThis.fetch = previousFetch;
+    console.log = previousLog;
+  }
+});
+
+test("scheduler emits bounded worker freshness metrics without logging response content", async () => {
+  const previousFetch = globalThis.fetch;
+  const previousLog = console.log;
+  const logs = [];
+  globalThis.fetch = async () => new Response(JSON.stringify({
+    processed: 2,
+    succeeded: 2,
+    retryable: 0,
+    failed: 0,
+    max_queue_lag_ms: 420,
+    owner: "must-not-be-logged",
+    errors: ["must-not-be-logged"],
+  }), { status: 200, headers: { "content-type": "application/json" } });
+  console.log = (line) => logs.push(line);
+  try {
+    await withEnvironment({
+      TRACKMCP_REFRESH_WORKER_URL: ENDPOINT,
+      TRACKMCP_REFRESH_WORKER_TOKEN: "test-token",
+    }, () => handler({ source: "eventbridge_scheduler" }));
+    assert.equal(logs.length, 1);
+    const marker = JSON.parse(logs[0]);
+    assert.equal(marker.WorkerSummarySample, 1);
+    assert.equal(marker.WorkerSummaryComplete, 1);
+    assert.equal(marker.WorkerSummaryParseFailures, 0);
+    assert.equal(marker.WorkerProcessed, 8);
+    assert.equal(marker.WorkerSucceeded, 8);
+    assert.equal(marker.WorkerRetryable, 0);
+    assert.equal(marker.WorkerFailed, 0);
+    assert.equal(marker.WorkerMaxQueueLagMs, 420);
+    assert.doesNotMatch(logs[0], /must-not-be-logged/);
+    assert.doesNotMatch(logs[0], /owner|errors/);
   } finally {
     globalThis.fetch = previousFetch;
     console.log = previousLog;
