@@ -2,6 +2,22 @@
 
 Status: active autonomous audit, started 2026-10-21.
 
+## 2026-10-28 — canonical modern request protocol metadata shipped
+
+- [x] The TypeScript modern client and browser MCP tester now include the
+  canonical `io.modelcontextprotocol/protocolVersion: "2026-07-28"` value in
+  every modern request's `_meta` envelope, including discovery, catalog,
+  task, and subscription calls. Caller-supplied metadata cannot override the
+  negotiated protocol value; task capability metadata remains bounded and
+  preserved.
+- [x] SDK unit/integration tests and browser-tester contracts assert the
+  canonical metadata on discovery and subsequent requests. The protocol
+  matrix and SDK README document the wire boundary.
+- [ ] This source change still requires the normal release gate, hosted CI,
+  and deployment verification before it is considered live. Modern customer
+  endpoint interoperability, reconnect behavior, and broader MRTR/Tasks UAT
+  remain explicitly partial.
+
 ## 2026-10-28 — modern identity fix and deployment preflight shipped live
 
 - [x] PR `#638` merged as `46d6aca5`, aligning the modern TypeScript client and

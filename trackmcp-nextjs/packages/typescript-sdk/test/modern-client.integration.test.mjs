@@ -42,6 +42,7 @@ test("modern client interoperates with a real local Streamable HTTP fixture", as
   assert.equal(discovery.protocolVersion, MODERN_MCP_PROTOCOL_VERSION);
   assert.deepEqual(await client.listTools(), { tools: [{ name: "search" }], nextCursor: "opaque-cursor", cacheHints: { ttlMs: 30_000, cacheScope: "private" } });
   const request = fixture.requests.find((item) => item.method === "tools/list");
+  assert.equal(request.params._meta["io.modelcontextprotocol/protocolVersion"], MODERN_MCP_PROTOCOL_VERSION);
   assert.deepEqual(request.params._meta["io.modelcontextprotocol/clientCapabilities"], {});
   assert.equal(request.headers["mcp-protocol-version"], MODERN_MCP_PROTOCOL_VERSION);
 });
