@@ -1,6 +1,6 @@
 # Founder OS first-100 readiness snapshot
 
-Updated: 2026-10-28 (Asia/Kolkata; source `a9262f15`; runtime and hosted evidence reconciled)
+Updated: 2026-10-28 (Asia/Kolkata; source `b659f13e`; runtime and hosted evidence reconciled)
 
 Status: **Engineering green; release decision HOLD**
 
@@ -14,14 +14,16 @@ and [pilot release record](FOUNDER-OS-100-CUSTOMER-PILOT-RELEASE-RECORD.md).
   read models, and navigation/documentation CTA checks.
 - Current source release gate passes **148 suites**; lint, production build,
   and `git diff --check` pass. The production build generates **178 routes**.
-- Hosted TrackMCP CI `40716477220` passed for source `a9262f15` across the
+- Hosted TrackMCP CI `40724264808` passed for source `b659f13e` across the
   web/JavaScript, Go, and .NET lanes.
 - The latest verified application runtime is immutable SHA
-  `8e3b61836432e1b045b539857fb8639d9d464c3f`, deployed by App Runner workflow
-  `40695080113` with image digest
-  `sha256:bb8c89a7a3794b83c129681310e423e007c9096cba9f4398cf84ebf3392d8cb0`;
-  release gate, direct-origin smoke, immutable identity, and runtime-safety
-  checks passed. The live health endpoint reports this exact SHA.
+  `b659f13e49dbb5ac06120327b68ae69a9e593711`, deployed by App Runner workflow
+  `40724264782`; the deployment preflight built the reviewed Python wheel and
+  sdist before the package-release audit, and the workflow's release gate,
+  read-only smoke, immutable identity, and runtime-safety checks passed. The
+  live health endpoint reports this exact SHA; `/` and `/docs` also return HTTP
+  200. Post-deploy authenticated smoke `40726102995` passed with redacted
+  evidence.
 - Production deployment, read-only smoke, tenant-scope smoke, first-ingest
   smoke, refresh-worker recovery, prompt-entity projection, and distributed
   rate-limit enablement have recorded evidence.
@@ -108,7 +110,7 @@ scheduled-worker SLO. No secret, workspace identifier, raw payload, or token is
 stored in this snapshot.
 
 The detailed ledger is authoritative for the remaining external gates. The
-current source is `a9262f15`; the deployed application remains the verified
-runtime `8e3b6183` because the latest source changes are UAT/docs-only. The
+current source is `b659f13e`; the deployed application is the same verified
+runtime `b659f13e` after the corrected App Runner rollout. The
 latest health report is the AWS-proven freshness result above. The alert evaluator remains
 disabled-first and is not claimed as enabled production delivery.
