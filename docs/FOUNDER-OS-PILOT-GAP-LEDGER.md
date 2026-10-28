@@ -2,6 +2,18 @@
 
 Status: active autonomous audit, started 2026-10-21.
 
+## 2026-10-29 — retention preview worker published live
+
+- [x] PR `#656` merged as `2ac9580b1fb5403d4854559337e24b49fb5fb0a0` after
+  hosted CI `40765171341` passed all web/JavaScript, Go, and .NET lanes.
+- [x] Main CI `40765865769` and App Runner deploy `40765865842` passed their
+  release gates, immutable runtime identity, rollout, read-only smoke, and
+  runtime-safety checks. Direct `/`, `/docs`, and `/api/health` checks returned
+  HTTP 200; health reported the exact `2ac9580b` runtime SHA.
+- [x] The retention-preview worker and its 9 focused tests are now in the
+  published runtime source. Destructive retention cleanup remains disabled
+  and externally gated as recorded below.
+
 ## 2026-10-29 — bounded retention preview worker added
 
 - [x] Added `src/lib/telemetry/retention-preview-worker.ts`, a typed,
@@ -20,14 +32,14 @@ Status: active autonomous audit, started 2026-10-21.
 
 ## 2026-10-29 — published-release contract recheck
 
-- [x] The post-merge `main` release gate passed **148 suites**. This includes
+- [x] The post-merge `main` release gate passed **149 suites**. This includes
   the Founder OS v2 route projections, privacy/export/deletion-plan safety,
   tenant isolation, modern protocol fixtures, OTLP JSON/protobuf, SDK packed
   consumers, dashboard accessibility/pointer contracts, docs navigation, and
   external-gate truth contracts.
 - [x] Lint passed and the production build generated **178 routes**. The
-  deployed runtime is the immutable `c492dac0` release verified by App Runner
-  deployment `40760941895`; its post-deploy smoke, identity, and safety checks
+  deployed runtime is the immutable `2ac9580b` release verified by App Runner
+  deployment `40765865842`; its post-deploy smoke, identity, and safety checks
   passed.
 - [ ] No remaining engineering contract is being hidden by this recheck. The
   open rows are still external or owner-controlled: credentialed customer
