@@ -139,7 +139,12 @@ Do not reuse an ingestion key as an OAuth access token, and do not put either cr
    strings, and bytes. Keep the focused negative tests in the release gate;
    this does not by itself approve payload capture or close production privacy
    acceptance.
-2. Add server-side redaction tests for headers, bearer tokens, API keys, emails, IPs, URLs with query strings, and arbitrary error messages.
+2. **Engineering boundary implemented on 2026-10-29:** server-side ingest now
+   redacts named secret/privacy/error fields and drops email addresses, IPv4/
+   IPv6 network addresses, and full HTTP(S) URLs from arbitrary payload strings;
+   focused negative tests cover headers/tokens/API keys, emails, IPs, URLs,
+   exception text, and nested objects. This does not approve payload capture or
+   close production privacy acceptance.
 3. Add a retention job for raw events, derived facts, and optional diagnostics, with documented durations and a dry-run report.
 4. Add a workspace privacy/settings surface for telemetry opt-in, content diagnostics, retention, and deletion/export requests.
 5. Add OTel interoperability tests that round-trip Founder OS events without changing event names or timestamps.

@@ -1,6 +1,18 @@
 # Founder OS 100 Customer Readiness Ledger
 
-Last updated: 2026-10-29 (main `4eaa15ed`; deployed application `4eaa15ed` and immutable App Runner deployment `40777114925` are healthy; bounded privacy execution, synthetic-evidence, retention-preview, and ingest-metadata boundaries are published with focused tests; customer-owned endpoint/protocol UAT, privacy acceptance, backup/PITR posture, and release-owner GO/NO-GO remain open)
+Last updated: 2026-10-29 (main `12c22d08`; deployed application `12c22d08` and immutable App Runner deployment `40780767344` are healthy; bounded privacy execution, synthetic-evidence, retention-preview, ingest-metadata, and payload-redaction boundaries are published with focused tests; customer-owned endpoint/protocol UAT, privacy acceptance, backup/PITR posture, and release-owner GO/NO-GO remain open)
+
+## 2026-10-29 — ingest payload privacy negatives hardened
+
+- [x] The authenticated ingest boundary now drops or replaces payload values
+  containing email addresses, IPv4/IPv6 network addresses, full HTTP(S) URLs,
+  and arbitrary exception/stack fields. Named privacy keys are redacted even
+  when their values are nested objects.
+- [x] Focused validation coverage passed 15/15 tests, ingest integration
+  coverage passed 14/14, TypeScript type-check and targeted ESLint passed.
+- [ ] This is engineering boundary evidence only. It does not approve payload
+  capture, change retention policy, or close the production privacy-acceptance
+  gate.
 
 ## 2026-10-29 — reserved ingest metadata and nested payload boundary hardened
 
