@@ -33,6 +33,13 @@ async function startFixture() {
       response.end(JSON.stringify({ accepted: true }));
       return;
     }
+    if (request.url === "/.well-known/oauth-protected-resource/mcp" || request.url === "/.well-known/oauth-protected-resource") {
+      const address = server.address();
+      const origin = `http://127.0.0.1:${address.port}`;
+      response.writeHead(200, { "content-type": "application/json" });
+      response.end(JSON.stringify({ resource: `${origin}/mcp`, authorization_servers: [origin], scopes_supported: ["mcp:read"] }));
+      return;
+    }
     if (request.url === "/mcp" && request.method === "DELETE") {
       response.writeHead(204);
       response.end();
@@ -106,6 +113,13 @@ async function startSseFixture() {
       seenIngest.push({ authorization, body: await readBody(request) });
       response.writeHead(202, { "content-type": "application/json" });
       response.end(JSON.stringify({ accepted: true }));
+      return;
+    }
+    if (request.url === "/.well-known/oauth-protected-resource/sse" || request.url === "/.well-known/oauth-protected-resource") {
+      const address = server.address();
+      const origin = `http://127.0.0.1:${address.port}`;
+      response.writeHead(200, { "content-type": "application/json" });
+      response.end(JSON.stringify({ resource: `${origin}/sse`, authorization_servers: [origin], scopes_supported: ["mcp:read"] }));
       return;
     }
     if (authorization !== "Bearer fixture-token") {
@@ -210,6 +224,14 @@ test("customer endpoint UAT runs the official streamable HTTP discovery path aga
     assert.equal(result.code, 0, `${result.stdout}\n${result.stderr}`);
     const evidence = JSON.parse(await readFile(report, "utf8"));
     assert.equal(evidence.outcome, "passed");
+    assert.deepEqual(evidence.oauth_metadata, {
+      outcome: "observed",
+      candidate_count: 1,
+      resource_match: true,
+      authorization_server_count: 1,
+      scopes_supported_count: 1,
+      authorization_server_urls_followed: false,
+    });
     assert.deepEqual(evidence.checks.map(({ label, outcome }) => ({ label, outcome })), [
       { label: "tools/list", outcome: "observed" },
       { label: "resources/list", outcome: "observed" },
@@ -248,6 +270,14 @@ test("customer endpoint UAT runs the official SSE discovery path against an expl
     const evidence = JSON.parse(await readFile(report, "utf8"));
     assert.equal(evidence.outcome, "passed");
     assert.equal(evidence.transport, "sse");
+    assert.deepEqual(evidence.oauth_metadata, {
+      outcome: "observed",
+      candidate_count: 1,
+      resource_match: true,
+      authorization_server_count: 1,
+      scopes_supported_count: 1,
+      authorization_server_urls_followed: false,
+    });
     assert.deepEqual(evidence.checks.map(({ label, outcome }) => ({ label, outcome })), [
       { label: "tools/list", outcome: "observed" },
       { label: "resources/list", outcome: "observed" },

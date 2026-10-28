@@ -3,12 +3,14 @@
 /**
  * Explicit, operator-run UAT for one customer-owned MCP endpoint.
  *
- * This runner deliberately has no scheduled trigger and never performs OAuth
- * discovery, token exchange, tool calls, or replay. It uses the official MCP
- * client transports for a bounded initialize/list discovery pass, wraps the
- * transport with the metadata-only TrackMCP adapter, and writes only redacted
- * evidence. A bearer token may be supplied by the operator for the endpoint;
- * it is never written to the report or error output.
+ * This runner deliberately has no scheduled trigger and never exchanges OAuth
+ * tokens, calls tools, or replays events. It uses the official MCP client
+ * transports for a bounded initialize/list discovery pass, wraps the transport
+ * with the metadata-only TrackMCP adapter, and writes only redacted evidence.
+ * It may probe RFC 9728 protected-resource metadata, but never follows an
+ * authorization-server URL or registers a client. A bearer token may be
+ * supplied by the operator for the endpoint; it is never written to the report
+ * or error output.
  */
 import { mkdir, writeFile } from "node:fs/promises";
 import { dirname } from "node:path";
@@ -28,6 +30,7 @@ const apiKey = process.env.TRACKMCP_CUSTOMER_ENDPOINT_UAT_KEY || "";
 const servicePrefix = process.env.TRACKMCP_CUSTOMER_ENDPOINT_UAT_SERVICE || "customer-endpoint-uat";
 const reportPath = process.env.TRACKMCP_CUSTOMER_ENDPOINT_UAT_REPORT || "/tmp/trackmcp-customer-endpoint-uat.json";
 const allowPrivate = process.env.TRACKMCP_CUSTOMER_ENDPOINT_UAT_ALLOW_PRIVATE === "true";
+const oauthMetadataLimitBytes = 32 * 1024;
 
 class UatError extends Error {
   constructor(code, message, details) {
@@ -122,6 +125,72 @@ function isUnsupported(error) {
   return code === "-32601" || code === "404" || code === "http_404";
 }
 
+function protectedResourceMetadataUrl(endpoint, pathAware) {
+  if (!pathAware) return new URL("/.well-known/oauth-protected-resource", endpoint.origin);
+  const pathname = endpoint.pathname.replace(/^\/+/, "");
+  return new URL(`/.well-known/oauth-protected-resource/${pathname}`, endpoint.origin);
+}
+
+function comparableResource(value) {
+  try {
+    const parsed = new URL(value);
+    if (parsed.username || parsed.password || parsed.search || parsed.hash) return null;
+    return `${parsed.origin}${parsed.pathname.replace(/\/$/, "") || "/"}`;
+  } catch {
+    return null;
+  }
+}
+
+async function probeOAuthMetadata(endpoint) {
+  const expectedResource = comparableResource(endpoint.href);
+  const candidates = [protectedResourceMetadataUrl(endpoint, true), protectedResourceMetadataUrl(endpoint, false)];
+  const seen = new Set();
+  let unavailableCount = 0;
+  for (const candidate of candidates) {
+    const candidateUrl = candidate.toString();
+    if (seen.has(candidateUrl)) continue;
+    seen.add(candidateUrl);
+    try {
+      const response = await fetch(candidate, {
+        headers: { accept: "application/json" },
+        redirect: "manual",
+        signal: AbortSignal.timeout(5_000),
+      });
+      if (response.status === 404 || response.status === 405) {
+        unavailableCount += 1;
+        continue;
+      }
+      if (response.status >= 300 && response.status < 400) return { outcome: "unsafe_redirect", candidate_count: seen.size };
+      if (!response.ok) {
+        unavailableCount += 1;
+        continue;
+      }
+      const body = await response.text();
+      if (Buffer.byteLength(body, "utf8") > oauthMetadataLimitBytes) return { outcome: "oversized", candidate_count: seen.size };
+      let metadata;
+      try { metadata = JSON.parse(body); } catch { return { outcome: "malformed", candidate_count: seen.size }; }
+      if (!metadata || typeof metadata !== "object" || Array.isArray(metadata)) return { outcome: "malformed", candidate_count: seen.size };
+      const authorizationServers = Array.isArray(metadata.authorization_servers)
+        ? metadata.authorization_servers.filter((value) => typeof value === "string" && value.length <= 2048).slice(0, 4)
+        : [];
+      const scopes = Array.isArray(metadata.scopes_supported)
+        ? metadata.scopes_supported.filter((value) => typeof value === "string").slice(0, 32)
+        : [];
+      return {
+        outcome: "observed",
+        candidate_count: seen.size,
+        resource_match: comparableResource(metadata.resource) === expectedResource,
+        authorization_server_count: authorizationServers.length,
+        scopes_supported_count: scopes.length,
+        authorization_server_urls_followed: false,
+      };
+    } catch {
+      unavailableCount += 1;
+    }
+  }
+  return { outcome: unavailableCount ? "not_advertised" : "unavailable", candidate_count: seen.size };
+}
+
 function boundedCount(value) {
   if (Array.isArray(value)) return Math.min(value.length, 1000);
   if (value && typeof value === "object") {
@@ -181,7 +250,9 @@ async function main() {
   const transport = buildTransport(endpoint);
   transport.setProtocolVersion?.(protocolVersion);
   let checks = [];
+  let oauthMetadata = { outcome: "not_run" };
   try {
+    oauthMetadata = await probeOAuthMetadata(endpoint);
     await client.connect(adapter.wrapTransport(transport));
     checks = [
       await probe("tools/list", () => client.listTools()),
@@ -200,11 +271,12 @@ async function main() {
       transport: transportName,
       protocol_version: protocolVersion,
       authorization_supplied: Boolean(authToken),
+      oauth_metadata: oauthMetadata,
       checks,
       diagnostics: diagnostics(adapter, deliveryErrors),
       caveats: [
         "This is an operator-supplied endpoint UAT, not a claim about every customer server.",
-        "The runner does not discover OAuth providers, exchange or refresh tokens, call tools, replay events, or prove transport-owned reconnect semantics.",
+        "The runner only probes protected-resource metadata; it does not follow authorization-server URLs, register clients, exchange or refresh tokens, call tools, replay events, or prove transport-owned reconnect semantics.",
         "Reports contain no endpoint path, token, API key, session identifier, request body, response body, cursor, tool name, resource URI, or prompt name.",
       ],
     });
@@ -220,6 +292,7 @@ async function main() {
       transport: transportName,
       protocol_version: protocolVersion,
       authorization_supplied: Boolean(authToken),
+      oauth_metadata: oauthMetadata,
       failure_code: code,
       checks: error instanceof UatError && Array.isArray(error.details) ? error.details : checks,
       diagnostics: diagnostics(adapter, deliveryErrors),
