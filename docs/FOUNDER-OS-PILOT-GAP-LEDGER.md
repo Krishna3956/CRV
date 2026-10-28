@@ -2,6 +2,17 @@
 
 Status: active autonomous audit, started 2026-10-21.
 
+## 2026-10-28 — customer-endpoint UAT transport parity strengthened
+
+- The release-gate customer-endpoint fixture now exercises both supported UAT
+  transports: official Streamable HTTP and official SSE. The SSE fixture
+  verifies endpoint-event negotiation, bearer propagation on the SSE and POST
+  channels, initialize/catalog discovery, separate API-key ingest delivery,
+  redacted evidence, and a drained metadata-only adapter.
+- This closes the missing local SSE UAT-fixture coverage. It does not close
+  customer-owned endpoint interoperability, reconnect/replay, OAuth exchange,
+  or release-owner acceptance; those remain explicit external boundaries.
+
 ## 2026-10-28 — OTEL edge-copy runtime baseline reconciled
 
 - PR `#622` merged to `main` as `66be5ff4`. App Runner deployment
