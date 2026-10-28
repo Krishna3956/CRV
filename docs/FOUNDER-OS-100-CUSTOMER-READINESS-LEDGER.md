@@ -1,6 +1,6 @@
 # Founder OS 100 Customer Readiness Ledger
 
-Last updated: 2026-10-28 (main `2e920499`; deployed application `88bac7cf` and App Runner rollout `40604462107` reached `RUNNING`; hosted TrackMCP CI `40605591926` passed the 145-suite cross-language gate; the deployed origin now passes the bounded 36-check read-only production smoke after the post-rollout warm-up retry fix; terminal CLI activation and first-event UAT, authenticated Streamable HTTP/SSE transport smoke, disposable key lifecycle UAT, and package publication evidence remain recorded below; latest health monitor `40601204628` is healthy after a bounded worker recovery, while stricter scheduled-sample freshness, customer-owned endpoint/protocol UAT, privacy acceptance, backup/PITR posture, and release-owner GO/NO-GO remain open; browser-compatible public probes pass while default scripted probes remain Cloudflare-blocked)
+Last updated: 2026-10-28 (main `b2ab68e6`; deployed application `b2ab68e6` and immutable App Runner redeploy `40606435487` succeeded; hosted TrackMCP CI `40605591926` passed the 145-suite cross-language gate; a fresh disposable CLI lifecycle UAT passed 11 checks including OTLP/HTTP JSON and protobuf through one tenant-scoped key with no active disposable key left behind; the transient origin 503 before redeploy is recorded below; terminal activation, authenticated Streamable HTTP/SSE transport smoke, key lifecycle UAT, and package publication evidence remain recorded; scheduled-sample freshness, customer-owned endpoint/protocol UAT, privacy acceptance, backup/PITR posture, and release-owner GO/NO-GO remain open)
 The same-origin docs, auth, blog CTA fixes, regression guard, and hosted-runner verification gate are deployed and runtime-verified. Cloudflare permits browser-compatible requests, while its managed bot rule still returns HTML 403 to the default scripted user-agent; SDK delivery must use the compatible request boundary and retain a real authenticated UAT check.
 Latest freshness evidence: health workflow `40601204628` inspected eight
 redacted worker samples after recovery worker run `40601163319`. Its current
@@ -441,6 +441,15 @@ evidence and are not current approval.
   attempts with capped backoff so this provider warm-up race is observable and
   retried without weakening write safety; a follow-up deployed run passed all
   36 read-only checks.
+- [x] Immutable redeploy `40606435487` restored the direct App Runner origin
+  after repeated upstream 503s; `/api/health`, `/`, and `/docs` now return
+  HTTP 200 and the health response reports
+  `b2ab68e6369f54105cf219b88fedc483e1590738`. A fresh disposable lifecycle
+  run passed all 11 checks: start, approval, polling, redemption, key status,
+  canonical first event, OTLP/HTTP JSON, OTLP/HTTP protobuf,
+  accepted-telemetry milestone, scoped revocation, and post-revocation
+  rejection. The test principal was disabled and no active disposable key
+  remained; no report or credential was retained.
 
 ## 2026-10-28 — hosted verification of UAT ledger reconciliation
 

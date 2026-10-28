@@ -26,6 +26,12 @@ Status: active autonomous audit, started 2026-10-21.
   transient 503 during cold-start; the origin is healthy now and the smoke
   reader retries only idempotent 502/503/504 responses across a bounded,
   capped warm-up window. A follow-up direct-origin run passed all 36 checks.
+- The origin later returned repeated upstream 503s on health and authenticated
+  workspace setup. Immutable redeploy `40606435487` restored it; health and
+  public routes now return 200 for release `b2ab68e6`. The same disposable
+  device-flow run then passed 11 checks, adding authenticated OTLP/HTTP JSON
+  and protobuf acceptance to the canonical ingest lifecycle. Cleanup left no
+  active disposable key and emitted no secret material.
 
 ## 2026-10-28 — disposable production key lifecycle UAT passed
 

@@ -28,6 +28,15 @@ test("device-flow smoke covers activation, first event, and revocation without l
   assert.doesNotMatch(source, /console\.log\([^)]*(cookie|deviceCode|replacementKey|workspaceId)/);
 });
 
+test("device-flow smoke exercises both bounded OTLP/HTTP formats", () => {
+  assert.match(source, /\/api\/v1\/otel\/v1\/traces/);
+  assert.match(source, /sendOtelFormat\(replacementKey, "json"\)/);
+  assert.match(source, /sendOtelFormat\(replacementKey, "protobuf"\)/);
+  assert.match(source, /application\/x-protobuf/);
+  assert.match(source, /otlp-http-\$\{format\}/);
+  assert.match(source, /No cookie, device code, key, event ID, workspace ID, response body/);
+});
+
 test("device-flow smoke uses a release-neutral user-agent and uniquely named disposable key", () => {
   assert.match(source, /user-agent": "TrackMCP device-flow-smoke/);
   assert.match(source, /device-flow-smoke-\$\{randomBytes/);

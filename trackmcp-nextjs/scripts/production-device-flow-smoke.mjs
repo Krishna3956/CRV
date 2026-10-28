@@ -51,14 +51,82 @@ async function request(path, options = {}) {
   return { status: response.status, body };
 }
 
+function otelJsonBody() {
+  const start = BigInt(Date.now()) * 1_000_000n;
+  return {
+    resourceSpans: [{
+      resource: { attributes: [
+        { key: "service.name", value: { stringValue: "device-flow-smoke" } },
+        { key: "deployment.environment.name", value: { stringValue: "test" } },
+      ] },
+      scopeSpans: [{ spans: [{
+        name: "tools/call",
+        startTimeUnixNano: String(start),
+        endTimeUnixNano: String(start + 1_000_000n),
+        attributes: [
+          { key: "mcp.tool.name", value: { stringValue: "trackmcp_device_flow_smoke" } },
+          { key: "mcp.transport", value: { stringValue: "streamable_http" } },
+        ],
+      }] }],
+    }],
+  };
+}
+
+const protobufVarint = (value) => {
+  let current = BigInt(value);
+  const bytes = [];
+  do {
+    const next = Number(current & 0x7fn);
+    current >>= 7n;
+    bytes.push(next | (current ? 0x80 : 0));
+  } while (current);
+  return bytes;
+};
+const protobufField = (number, wire, value) => {
+  const bytes = Array.isArray(value) ? value : protobufVarint(value);
+  return [...protobufVarint((BigInt(number) << 3n) | BigInt(wire)), ...(wire === 2 ? [...protobufVarint(bytes.length), ...bytes] : bytes)];
+};
+const protobufMessage = (...fields) => Uint8Array.from(fields.flat());
+const protobufStringField = (number, value) => protobufField(number, 2, [...new TextEncoder().encode(value)]);
+const protobufNestedField = (number, value) => protobufField(number, 2, [...value]);
+
+function otelProtobufBody() {
+  const service = protobufMessage(protobufStringField(1, "service.name"), protobufNestedField(2, protobufMessage(protobufStringField(1, "device-flow-smoke"))));
+  const method = protobufMessage(protobufStringField(1, "mcp.method.name"), protobufNestedField(2, protobufMessage(protobufStringField(1, "tools/call"))));
+  const span = protobufMessage(protobufStringField(5, "tools/call"), protobufField(7, 0, BigInt(Date.now()) * 1_000_000n), protobufField(8, 0, BigInt(Date.now()) * 1_000_000n + 1_000_000n), protobufNestedField(9, method));
+  const scope = protobufMessage(protobufNestedField(2, span));
+  const resource = protobufMessage(protobufNestedField(1, service), protobufNestedField(2, protobufMessage(protobufStringField(1, "deployment.environment.name"), protobufNestedField(2, protobufMessage(protobufStringField(1, "test"))))));
+  const resourceSpans = protobufMessage(protobufNestedField(1, resource), protobufNestedField(2, scope));
+  return protobufMessage(protobufNestedField(1, resourceSpans));
+}
+
+async function sendOtelFormat(apiKey, format) {
+  const isJson = format === "json";
+  const response = await request("/api/v1/otel/v1/traces", {
+    method: "POST",
+    headers: {
+      authorization: `Bearer ${apiKey}`,
+      "content-type": isJson ? "application/json" : "application/x-protobuf",
+    },
+    body: isJson ? JSON.stringify(otelJsonBody()) : otelProtobufBody(),
+  });
+  assertStatus(response, 200, `OTLP/HTTP ${format}`);
+  if (response.body.accepted !== 1 || response.body.otel?.accepted_spans !== 1 || response.body.otel?.protocol !== `otlp-http-${format}`) {
+    fail(`OTLP/HTTP ${format}: bounded acceptance metadata was missing`);
+  }
+  checks.push({ label: `OTLP/HTTP ${format}`, status: response.status, accepted_spans: 1, protocol: `otlp-http-${format}` });
+}
+
 function assertStatus(result, expected, label) {
   if (result.status !== expected) fail(`${label}: expected HTTP ${expected}, received HTTP ${result.status}`);
 }
 
+let checks;
+
 async function main() {
   validate();
   const authHeaders = { cookie };
-  const checks = [];
+  checks = [];
   const keyName = `device-flow-smoke-${randomBytes(8).toString("hex")}`;
   let replacementKey = "";
   let createdKeyId = "";
@@ -126,6 +194,9 @@ async function main() {
     assertStatus(ingest, 200, "first device-flow event");
     if (ingest.body.accepted !== 1) fail("first device-flow event: event was not accepted");
     checks.push({ label: "first device-flow event", status: ingest.status, accepted: 1 });
+
+    await sendOtelFormat(replacementKey, "json");
+    await sendOtelFormat(replacementKey, "protobuf");
 
     const milestone = await request("/api/v1/cli/key-status", { headers: { authorization: `Bearer ${replacementKey}` } });
     assertStatus(milestone, 200, "accepted-ingest milestone");
