@@ -1,6 +1,6 @@
 # Founder OS 100 Customer Readiness Ledger
 
-Last updated: 2026-10-28 (main `8130f517`; deployed application `8130f517` and immutable App Runner redeploy `40669192809` succeeded with image digest `sha256:429208e0d65cd84e23909aabad592c7639f3b929848b0d0d239a127ee53368fd`; hosted TrackMCP CI `40669192861` passed; scheduler deploy `40628036770`, authenticated smoke `40628409832`, schedule enablement `40628646879`, and health artifact `40629348992` prove the AWS worker-freshness path; customer-owned endpoint/protocol UAT, privacy acceptance, backup/PITR posture, and release-owner GO/NO-GO remain open)
+Last updated: 2026-10-28 (main `66be5ff4`; deployed application `66be5ff4` and immutable App Runner redeploy `40672911685` succeeded with image digest `sha256:cf96c0ce1a0c351f40da3aee7ec4e59eb7841d52ea4d95e22cf0e8304ec42a6a`; hosted TrackMCP CI `40672911351` and authenticated production smoke `40673960981` passed; scheduler deploy `40628036770`, authenticated smoke `40628409832`, schedule enablement `40628646879`, and health artifact `40629348992` prove the AWS worker-freshness path; customer-owned endpoint/protocol UAT, privacy acceptance, backup/PITR posture, and release-owner GO/NO-GO remain open)
 The same-origin docs, auth, blog CTA fixes, regression guard, and hosted-runner verification gate are deployed and runtime-verified. Cloudflare permits browser-compatible requests, while its managed bot rule still returns HTML 403 to the default scripted user-agent; SDK delivery must use the compatible request boundary and retain a real authenticated UAT check.
 Latest freshness evidence: health workflow `40629348992` inspected the newly
 deployed scheduler's bounded worker-summary metrics. The current window has
@@ -9,6 +9,20 @@ EMF successes**, with zero parse failures, failed jobs, retryable jobs, or
 errors and maximum queue lag within the 15-minute budget. The report is
 **healthy** and the AWS worker-freshness gate is proven; customer-owned endpoint
 and other external acceptance gates remain separate decisions.
+
+## 2026-10-28 — OTEL edge-copy release published
+
+- [x] PR `#622` merged to `main` as `66be5ff4`. Dashboard Setup, API docs,
+  and the OpenTelemetry guide now distinguish current edge-compatible SDK
+  delivery from HTML/Cloudflare 403 responses for default automated
+  server-to-server user agents; rejected telemetry is not presented as a span.
+- [x] App Runner deployment `40672911685` rolled out the immutable source with
+  image digest `sha256:cf96c0ce1a0c351f40da3aee7ec4e59eb7841d52ea4d95e22cf0e8304ec42a6a`.
+  Hosted CI `40672911351` and authenticated production smoke `40673960981`
+  passed. The live origin reported the same immutable SHA.
+- [ ] Broad customer-owned collector reachability through the public edge still
+  requires accepted edge policy and credentialed UAT; this release does not
+  close that external gate or release-owner GO/NO-GO.
 
 ## 2026-10-28 — guarded alert-scheduler deployment published
 

@@ -2,6 +2,18 @@
 
 Status: active autonomous audit, started 2026-10-21.
 
+## 2026-10-28 — OTEL edge-copy runtime baseline reconciled
+
+- PR `#622` merged to `main` as `66be5ff4`. App Runner deployment
+  `40672911685` deployed the same immutable source with image digest
+  `sha256:cf96c0ce1a0c351f40da3aee7ec4e59eb7841d52ea4d95e22cf0e8304ec42a6a`;
+  release gate, production smoke, immutable identity, runtime-safety, and
+  authenticated production smoke `40673960981` passed. Hosted CI
+  `40672911351` passed all 145 suites.
+- The user-facing OTEL edge copy now accurately distinguishes current
+  edge-compatible SDK delivery from default automated-user-agent 403 behavior.
+  Customer-owned collector UAT and release-owner acceptance remain open.
+
 ## 2026-10-28 — current runtime and alert-scheduler baseline reconciled
 
 - PR `#620` merged to `main` as `8130f517`. App Runner deployment
