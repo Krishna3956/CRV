@@ -1,6 +1,6 @@
 # Founder OS 100 Customer Readiness Ledger
 
-Last updated: 2026-10-29 (main `HEAD`; deployed application `7763e05f` and immutable App Runner deployment `40729507033` remain healthy; catalog-history cursors are now opaque and workspace-bound with focused privacy/tenant tests; customer-owned endpoint/protocol UAT, privacy acceptance, backup/PITR posture, and release-owner GO/NO-GO remain open)
+Last updated: 2026-10-29 (main `HEAD`; deployed application `c6d5f904` and immutable App Runner deployment `40748297706` are healthy; catalog-history cursors are now opaque and workspace-bound with focused privacy/tenant tests; customer-owned endpoint/protocol UAT, privacy acceptance, backup/PITR posture, and release-owner GO/NO-GO remain open)
 
 ## 2026-10-29 — opaque workspace-bound catalog-history cursors
 

@@ -1,7 +1,7 @@
 # First-100-customer external-gate register
 
 Status: **HOLD**  
-Updated: 2026-10-28 (Asia/Calcutta)
+Updated: 2026-10-29 (Asia/Calcutta)
 
 This register separates evidence that engineering can produce from decisions
 that require the release owner or an infrastructure-provider control plane. It
@@ -11,12 +11,12 @@ is intentionally not a GO approval and must not be treated as one.
 
 - `main`: current default branch. Immutable deployed SHAs belong in the
   release record; PR checks remain attached to their exact review commits.
-- Current deployed application: `7763e05f9e62c9f3349ba20596c208d81cca08c9`,
-  App Runner workflow `40729507033` (successful rerun attempt 2; rollout,
+- Current deployed application: `c6d5f9048060b3e5c12506da41efd1c64cc9a155`,
+  App Runner workflow `40748297706` (successful rollout; rollout,
   release gate, production smoke, immutable identity, runtime-safety checks,
   and live health identity verification passed).
 - Current source verification: `main` at `HEAD`
-  (`HEAD`); hosted TrackMCP CI `40739164434` passed across the
+  (`HEAD`); hosted TrackMCP CI `40748298150` passed across the
   web/JavaScript, Go, and .NET lanes. The refresh scheduler
   and health evidence are recorded below. This does not close the external
   owner, backup, privacy, or customer-owned protocol gates.
@@ -25,9 +25,9 @@ is intentionally not a GO approval and must not be treated as one.
   (App Runner workflow `40474794151`), plus the earlier deployment identity
   `4efa2e1bd444706e84d78ef85b8a7b3b133a46aa` and workflow `40497434962`
   retained by the acceptance contract.
-- This register reconciliation does not change the deployed image; it records
-  the already-successful rollout and its bounded evidence. The docs-only merge
-  remains intentionally aligned to runtime `7763e05f`.
+- This register records the already-successful `c6d5f904` rollout and its
+  bounded evidence. It does not change the external owner, backup, privacy, or
+  customer-owned protocol decisions.
 - Queue: 263 total, 260 checked, and P0 queue items `020`, `157`, and `260`
   remain open.
 - Full release gate: **148 suites passed**, with lint and the 178-route
