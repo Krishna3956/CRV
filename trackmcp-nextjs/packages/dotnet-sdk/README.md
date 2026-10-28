@@ -57,6 +57,11 @@ queued. When the host can verify transport, use
 `RecordProtocolResultForTransport` with `stdio`, `streamable_http`, `sse`, or
 `custom`; unknown labels are rejected.
 
+Explicit MRTR `requestState`/`interactionId` values are one-way hashed and a
+bounded retry event ID may be retained as top-level metadata. Raw request,
+response, and input values are never queued; this observer does not execute
+the next MRTR round trip.
+
 For an HTTP authorization response, call `RecordAuthorizationOutcome` with
 `401` or `403`. The SDK records only `unauthorized` or `forbidden` metadata and
 never accepts or stores `WWW-Authenticate` values, resource-metadata URLs,

@@ -66,6 +66,11 @@ stores task handles, request values, response content, or private reasoning.
 This is evidence for analytics, not a claim that the Python middleware
 implements the full Tasks wire lifecycle.
 
+When a response supplies explicit MRTR `requestState`/`interactionId` values,
+the observer emits only their SHA-256 hashes plus a bounded retry event ID.
+Raw request, response, and input values remain excluded, and callers still
+own the next round trip.
+
 For `completion/complete`, the middleware records only bounded completion
 friction metadata: returned value count (capped at 32), optional total
 (capped at 1,000,000), and the `hasMore` flag. Suggestion values, arguments,

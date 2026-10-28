@@ -75,11 +75,11 @@ public sealed class TrackMcpClient : IDisposable
 
     public TrackMcpClient(TrackMcpOptions options, HttpClient? httpClient = null) { _options = options; _http = httpClient ?? new HttpClient(); }
 
-    public void Capture(string eventType, string method, object? payload = null, string? sessionId = null, bool? success = null, long? durationMs = null, string? toolName = null, string? resultType = null, string? taskStatus = null, int? inputRequestCount = null, int? inputResponseCount = null, string? catalogKind = null, int? catalogItemCount = null, IReadOnlyList<string>? catalogItemNameHashes = null, IReadOnlyList<string>? catalogItemUriHashes = null, string? direction = null, string? transport = null, int? errorCode = null)
+    public void Capture(string eventType, string method, object? payload = null, string? sessionId = null, bool? success = null, long? durationMs = null, string? toolName = null, string? resultType = null, string? taskStatus = null, int? inputRequestCount = null, int? inputResponseCount = null, string? catalogKind = null, int? catalogItemCount = null, IReadOnlyList<string>? catalogItemNameHashes = null, IReadOnlyList<string>? catalogItemUriHashes = null, string? direction = null, string? transport = null, int? errorCode = null, string? interactionId = null, string? interactionLinkSource = null, string? retryOfEventId = null, string? requestStateHash = null)
     {
         if (string.IsNullOrWhiteSpace(_options.ApiKey)) return;
         var account = ResolveAccount();
-        var item = new Dictionary<string, object?> { ["event_id"] = Guid.NewGuid().ToString(), ["event_type"] = eventType, ["service"] = _options.Service, ["environment"] = _options.Environment, ["direction"] = direction, ["transport"] = transport, ["mcp_method"] = method, ["session_id"] = sessionId, ["tool_name"] = toolName, ["started_at"] = DateTimeOffset.UtcNow.ToString("O"), ["duration_ms"] = durationMs, ["success"] = success, ["is_error"] = success is false, ["error_code"] = errorCode, ["result_type"] = resultType, ["task_status"] = taskStatus, ["input_request_count"] = inputRequestCount, ["input_response_count"] = inputResponseCount, ["catalog_kind"] = catalogKind, ["catalog_item_count"] = catalogItemCount, ["catalog_item_name_hashes"] = catalogItemNameHashes, ["catalog_item_uri_hashes"] = catalogItemUriHashes, ["account_key"] = account.Key, ["account_identity_source"] = account.Source, ["payload"] = SanitizePayload(payload), ["server_version"] = _options.ServerVersion, ["sdk_version"] = _options.SdkVersion, ["deployment_id"] = _options.DeploymentId };
+        var item = new Dictionary<string, object?> { ["event_id"] = Guid.NewGuid().ToString(), ["event_type"] = eventType, ["service"] = _options.Service, ["environment"] = _options.Environment, ["direction"] = direction, ["transport"] = transport, ["mcp_method"] = method, ["session_id"] = sessionId, ["tool_name"] = toolName, ["started_at"] = DateTimeOffset.UtcNow.ToString("O"), ["duration_ms"] = durationMs, ["success"] = success, ["is_error"] = success is false, ["error_code"] = errorCode, ["result_type"] = resultType, ["task_status"] = taskStatus, ["interaction_id"] = interactionId, ["interaction_link_source"] = interactionLinkSource, ["retry_of_event_id"] = retryOfEventId, ["request_state_hash"] = requestStateHash, ["input_request_count"] = inputRequestCount, ["input_response_count"] = inputResponseCount, ["catalog_kind"] = catalogKind, ["catalog_item_count"] = catalogItemCount, ["catalog_item_name_hashes"] = catalogItemNameHashes, ["catalog_item_uri_hashes"] = catalogItemUriHashes, ["account_key"] = account.Key, ["account_identity_source"] = account.Source, ["payload"] = SanitizePayload(payload), ["server_version"] = _options.ServerVersion, ["sdk_version"] = _options.SdkVersion, ["deployment_id"] = _options.DeploymentId };
         lock (_gate) { _queue.Add(item); }
     }
 
@@ -106,6 +106,7 @@ public sealed class TrackMcpClient : IDisposable
         var resultType = ReadAllowlisted(result, new[] { "resultType", "result_type" }, "complete", "input_required", "task");
         var taskStatus = ReadAllowlisted(result, new[] { "taskStatus", "task_status" }, "working", "input_required", "completed", "failed", "cancelled", "expired");
         var isError = ReadBool(result, "isError", "is_error");
+        var mrtr = ProtocolMrtrMetadata(result);
         var metadata = new Dictionary<string, object?> { ["observation_kind"] = "protocol_response", ["observation_source"] = "server" };
         if (method == "initialize" && result["capabilities"] is JsonObject capabilities)
         {
@@ -131,7 +132,7 @@ public sealed class TrackMcpClient : IDisposable
             if (completion["hasMore"] is JsonValue hasMore && hasMore.TryGetValue<bool>(out var more)) metadata["completion_has_more"] = more;
             else if (completion["has_more"] is JsonValue snakeMore && snakeMore.TryGetValue<bool>(out var snake)) metadata["completion_has_more"] = snake;
         }
-        Capture("protocol", method, new Dictionary<string, object?> { ["_trackmcp"] = metadata }, BoundSessionId(sessionId), isError is true ? false : true, resultType: resultType, taskStatus: taskStatus, inputRequestCount: BoundedCount(result, "inputRequests", "input_requests"), inputResponseCount: BoundedCount(result, "inputResponses", "input_responses"), transport: transport);
+        Capture("protocol", method, new Dictionary<string, object?> { ["_trackmcp"] = metadata }, BoundSessionId(sessionId), isError is true ? false : true, resultType: resultType, taskStatus: taskStatus, inputRequestCount: BoundedCount(result, "inputRequests", "input_requests"), inputResponseCount: BoundedCount(result, "inputResponses", "input_responses"), transport: transport, interactionId: mrtr.InteractionId, interactionLinkSource: mrtr.InteractionLinkSource, retryOfEventId: mrtr.RetryOfEventId, requestStateHash: mrtr.RequestStateHash);
     }
 
     /// <summary>Records only a canonical 401/403 authorization outcome.</summary>
@@ -183,6 +184,29 @@ public sealed class TrackMcpClient : IDisposable
             if (result[key] is JsonObject obj) return Math.Min(100, obj.Count);
         }
         return null;
+    }
+
+    private static (string? InteractionId, string? InteractionLinkSource, string? RetryOfEventId, string? RequestStateHash) ProtocolMrtrMetadata(JsonObject result)
+    {
+        static string? ReadString(JsonObject value, params string[] keys)
+        {
+            foreach (var key in keys)
+            {
+                try { if (value[key] is JsonValue node && node.TryGetValue<string>(out var text) && !string.IsNullOrEmpty(text)) return text; }
+                catch (InvalidOperationException) { }
+            }
+            return null;
+        }
+        static string? Hash(string? value)
+        {
+            if (value is null || value.Length > 16 * 1024 || value.Any(char.IsControl)) return null;
+            return Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(value))).ToLowerInvariant();
+        }
+        var interaction = Hash(ReadString(result, "interactionId", "interaction_id"));
+        var requestState = Hash(ReadString(result, "requestState", "request_state"));
+        var retry = ReadString(result, "retryOfEventId", "retry_of_event_id");
+        var retryId = retry is not null && Regex.IsMatch(retry, "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$") ? retry : null;
+        return (interaction, interaction is null ? null : "external", retryId, requestState);
     }
 
     /// <summary>Records a bounded, metadata-only transport disconnect or error.</summary>

@@ -77,6 +77,10 @@ class TrackMCPEvent(TypedDict, total=False):
     retry_number: int
     result_type: Literal["complete", "input_required", "task"]
     task_status: Literal["working", "input_required", "completed", "failed", "cancelled", "expired"]
+    interaction_id: str
+    interaction_link_source: Literal["external", "issued", "missing"]
+    retry_of_event_id: str
+    request_state_hash: str
     input_request_count: int
     input_response_count: int
     schema_hash: str
@@ -240,6 +244,33 @@ def _protocol_result_metadata(result: Any) -> Dict[str, Any]:
     return metadata
 
 
+_PROTOCOL_EVENT_ID = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$")
+_MAX_PROTOCOL_STATE_BYTES = 16 * 1024
+
+
+def _protocol_mrtr_metadata(result: Any) -> Dict[str, Any]:
+    """Project MRTR linkage without retaining request/response state values."""
+    if not isinstance(result, dict):
+        return {}
+
+    def state_hash(value: Any) -> Optional[str]:
+        if not isinstance(value, str) or not value:
+            return None
+        if len(value.encode("utf-8")) > _MAX_PROTOCOL_STATE_BYTES:
+            return None
+        return hashlib.sha256(value.encode("utf-8")).hexdigest()
+
+    interaction = state_hash(result.get("interactionId", result.get("interaction_id")))
+    request_state = state_hash(result.get("requestState", result.get("request_state")))
+    retry = result.get("retryOfEventId", result.get("retry_of_event_id"))
+    retry_id = retry if isinstance(retry, str) and _PROTOCOL_EVENT_ID.fullmatch(retry) else None
+    return {
+        **({"interaction_id": interaction, "interaction_link_source": "external"} if interaction else {}),
+        **({"request_state_hash": request_state} if request_state else {}),
+        **({"retry_of_event_id": retry_id} if retry_id else {}),
+    }
+
+
 def _protocol_family_for_method(method: Optional[str]) -> Optional[str]:
     """Classify MCP method families without retaining method parameters/results."""
     if not isinstance(method, str):
@@ -333,6 +364,7 @@ def _entity_protocol_event(method: Optional[str], entity: Optional[Dict[str, str
         "payload": {"name": f"{kind}_read_observed"},
     }
     observation.update(_protocol_result_metadata(result))
+    observation.update(_protocol_mrtr_metadata(result))
     if error_class:
         observation["error_class"] = error_class
     return observation
@@ -530,6 +562,7 @@ class TrackMCP:
             event["input_request_count"] = metadata["input_request_count"]
         if "input_response_count" in metadata:
             event["input_response_count"] = metadata["input_response_count"]
+        event.update(_protocol_mrtr_metadata(result))
         self.capture(event)
 
     def record_authorization_outcome(
@@ -803,7 +836,7 @@ class _TrackMCPMiddleware:
                 self.client.record_protocol_signal(signal, method, session_id=session_id, direction="client_to_server")
             else:
                 payload = _protocol_metadata_payload(method, result_data) if _metadata_only_protocol_family(method) else {"params": params, "result": result_data}
-                self.client.capture({"event_type": "protocol", "mcp_method": method, "request_id": request_id, "session_id": session_id, "session_id_source": session_id_source, "client_name": self.client_name, "client_version": self.client_version, "started_at": _iso_from_epoch(started), "duration_ms": round((time.time() - started) * 1000), "success": not is_error, "is_error": is_error, **_protocol_result_metadata(result_data), "payload": payload})
+                self.client.capture({"event_type": "protocol", "mcp_method": method, "request_id": request_id, "session_id": session_id, "session_id_source": session_id_source, "client_name": self.client_name, "client_version": self.client_version, "started_at": _iso_from_epoch(started), "duration_ms": round((time.time() - started) * 1000), "success": not is_error, "is_error": is_error, **_protocol_result_metadata(result_data), **_protocol_mrtr_metadata(result_data), "payload": payload})
             return result
         except Exception as error:
             if method == "shutdown" and self.lifecycle_started and not self.lifecycle_ended:
@@ -999,7 +1032,7 @@ def _bounded_protocol_event(method: Optional[str], started: float, result: Any, 
         "session_id_source": "transport_generated", "client_name": client_name,
         "started_at": _iso_from_epoch(started), "duration_ms": round((time.time() - started) * 1000),
         "success": success, "is_error": not success,
-        **_protocol_result_metadata(result), "payload": _protocol_metadata_payload(method, result),
+        **_protocol_result_metadata(result), **_protocol_mrtr_metadata(result), "payload": _protocol_metadata_payload(method, result),
     }
 
 
@@ -1027,7 +1060,7 @@ def _event(tool_name: Optional[str], payload: Dict[str, Any], started: float, re
         "duration_ms": round((time.time() - started) * 1000),
         "success": not is_error,
         "is_error": is_error,
-        **_protocol_result_metadata(result),
+        **_protocol_result_metadata(result), **_protocol_mrtr_metadata(result),
         "payload": {**event_payload, "result": result, "error": str(error) if error else None},
     }
 

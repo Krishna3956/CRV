@@ -2483,6 +2483,19 @@ Engineering evidence is complete for the deployed application path, bounded load
   customer-owned endpoint UAT, OAuth/external gates, recovery posture, and
   release-owner acceptance.
 
+### 2026-10-28 cross-language MRTR exporter checkpoint
+
+- Python, Go, and .NET response helpers now emit the same bounded MRTR linkage
+  contract as the TypeScript SDK: SHA-256 request-state/interaction hashes and
+  an allowlisted retry event ID, with no raw request, response, or input value.
+- Python's native suite passes **40/40**. Go and .NET remain hosted-toolchain
+  evidence; local execution is unavailable because those runtimes are not
+  installed in this workspace.
+- The pilot remains HOLD for hosted cross-language confirmation, explicit
+  lifecycle fixtures across every transport, customer-owned endpoint UAT, and
+  the other external release gates. No deployment or package publication is
+  claimed by this source-only milestone.
+
 The distributed-rate-limit workflow was subsequently rerun after the
 resource-scoped IAM policy was applied. Run `40220255833` completed the
 App Runner configuration update and postflight verification, and the

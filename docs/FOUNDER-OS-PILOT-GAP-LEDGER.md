@@ -1738,3 +1738,12 @@ production transport UAT.
   wrapper assertion pass in the TypeScript suite (**106/106**). Cross-language
   exporter parity, all-transport lifecycle fixtures, and authenticated
   production UAT remain open; this closes only the Node projection gap.
+
+- 2026-10-28: Extended the same bounded MRTR linkage boundary to the Python,
+  Go, and .NET public `record/RecordProtocolResult` helpers. Each SDK hashes
+  explicit request-state and interaction values locally, preserves only a
+  bounded retry event ID, and never queues raw request/response values.
+  Python's 40-test suite passes; Go and .NET source/smoke verification remain
+  hosted-CI evidence because those toolchains are not installed locally.
+  Cross-transport lifecycle fixtures and authenticated production UAT remain
+  open; this closes exporter metadata parity, not full MRTR interoperability.

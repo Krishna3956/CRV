@@ -197,6 +197,7 @@ func TestRecordProtocolResultIsBoundedAndMetadataOnly(t *testing.T) {
 		"resultType": "input_required",
 		"inputRequests": []any{map[string]any{"secret": "omit"}},
 		"inputResponses": map[string]any{"answer": map[string]any{"private": "omit"}},
+		"requestState": "private-request-state", "interactionId": "private-interaction", "retryOfEventId": "retry-1",
 		"taskStatus": "working",
 		"content": "private result",
 	}, "session-1")
@@ -204,6 +205,8 @@ func TestRecordProtocolResultIsBoundedAndMetadataOnly(t *testing.T) {
 	event := client.queue[0]
 	if event.ResultType != "input_required" || event.TaskStatus != "working" { t.Fatalf("unexpected result metadata: %#v", event) }
 	if event.InputRequestCount == nil || *event.InputRequestCount != 1 || event.InputResponseCount == nil || *event.InputResponseCount != 1 { t.Fatalf("unexpected MRTR counts: %#v", event) }
+	if len(event.RequestStateHash) != 64 || len(event.InteractionID) != 64 || event.InteractionLinkSource != "external" || event.RetryOfEventID != "retry-1" { t.Fatalf("unexpected MRTR linkage: %#v", event) }
+	if strings.Contains(event.RequestStateHash+event.InteractionID, "private-") { t.Fatal("MRTR state was not hashed") }
 	if event.Payload["content"] != nil || event.Payload["_trackmcp"] == nil { t.Fatalf("result content was retained: %#v", event.Payload) }
 	client.RecordProtocolResult("bad\nmethod", map[string]any{"resultType": "complete"}, "session-2")
 	client.RecordProtocolResult("tools/call", map[string]any{"resultType": "unknown", "taskStatus": "secret"}, "session-3")

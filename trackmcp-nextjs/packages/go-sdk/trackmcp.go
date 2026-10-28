@@ -63,6 +63,10 @@ type Event struct {
 	DeploymentID string `json:"deployment_id,omitempty"`
 	ResultType string `json:"result_type,omitempty"`
 	TaskStatus string `json:"task_status,omitempty"`
+	InteractionID string `json:"interaction_id,omitempty"`
+	InteractionLinkSource string `json:"interaction_link_source,omitempty"`
+	RetryOfEventID string `json:"retry_of_event_id,omitempty"`
+	RequestStateHash string `json:"request_state_hash,omitempty"`
 	InputRequestCount *int `json:"input_request_count,omitempty"`
 	InputResponseCount *int `json:"input_response_count,omitempty"`
 	CatalogKind string `json:"catalog_kind,omitempty"`
@@ -89,6 +93,8 @@ var protocolSignals = map[string]bool{
 
 var protocolResultTypes = map[string]bool{"complete": true, "input_required": true, "task": true}
 var taskStatuses = map[string]bool{"working": true, "input_required": true, "completed": true, "failed": true, "cancelled": true, "expired": true}
+var protocolEventIDPattern = regexp.MustCompile(`^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$`)
+const maxProtocolStateBytes = 16 * 1024
 
 var sensitivePayloadKeys = map[string]bool{
 	"password": true, "passwd": true, "secret": true, "token": true,
@@ -274,6 +280,7 @@ func (c *Client) RecordEntityRead(kind string, method string, identity string, r
 	event := Event{EventType: "catalog", Direction: "server_to_client", MCPMethod: method, SessionID: boundedSessionID(sessionID), Success: boolPtr(!isError), IsError: boolPtr(isError), CatalogKind: kind, CatalogItemCount: count, Payload: map[string]any{"_trackmcp": map[string]any{"observation_kind": "entity_read", "catalog_kind": kind}}}
 	if kind == "resources" { event.CatalogItemURIHashes = []string{hashCatalogIdentity(identity)} } else { event.CatalogItemNameHashes = []string{hashCatalogIdentity(identity)} }
 	if value, ok := firstString(result, "resultType", "result_type"); ok && protocolResultTypes[value] { event.ResultType = value }
+	applyProtocolMRTRMetadata(&event, result)
 	c.Capture(event)
 }
 
@@ -318,6 +325,7 @@ func (c *Client) RecordProtocolResultForTransport(method string, result map[stri
 	if value, ok := firstBool(result, "isError", "is_error"); ok { event.IsError, event.Success = boolPtr(value), boolPtr(!value) }
 	if count, ok := boundedCountFrom(result, "inputRequests", "input_requests"); ok { event.InputRequestCount = &count }
 	if count, ok := boundedCountFrom(result, "inputResponses", "input_responses"); ok { event.InputResponseCount = &count }
+	applyProtocolMRTRMetadata(&event, result)
 	metadata := map[string]any{"observation_kind": "protocol_response", "observation_source": "server"}
 	if method == "initialize" {
 		if capabilities, ok := result["capabilities"].(map[string]any); ok {
@@ -419,6 +427,17 @@ func boundedCount(value any) (int, bool) {
 func firstString(result map[string]any, keys ...string) (string, bool) {
 	for _, key := range keys { if value, ok := result[key].(string); ok { return value, true } }
 	return "", false
+}
+
+func applyProtocolMRTRMetadata(event *Event, result map[string]any) {
+	if event == nil || result == nil { return }
+	if value, ok := firstString(result, "requestState", "request_state"); ok && len([]byte(value)) <= maxProtocolStateBytes {
+		digest := sha256.Sum256([]byte(value)); event.RequestStateHash = hex.EncodeToString(digest[:])
+	}
+	if value, ok := firstString(result, "interactionId", "interaction_id"); ok && len([]byte(value)) <= maxProtocolStateBytes {
+		digest := sha256.Sum256([]byte(value)); event.InteractionID = hex.EncodeToString(digest[:]); event.InteractionLinkSource = "external"
+	}
+	if value, ok := firstString(result, "retryOfEventId", "retry_of_event_id"); ok && protocolEventIDPattern.MatchString(value) { event.RetryOfEventID = value }
 }
 
 func firstBool(result map[string]any, keys ...string) (bool, bool) {

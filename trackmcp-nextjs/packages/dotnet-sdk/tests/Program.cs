@@ -66,6 +66,9 @@ static class Smoke
             ["action"] = "accept",
             ["resultType"] = "input_required",
             ["inputRequests"] = new JsonObject { ["private_request"] = new JsonObject { ["value"] = "secret-value" } },
+            ["requestState"] = "private-request-state",
+            ["interactionId"] = "private-interaction",
+            ["retryOfEventId"] = "retry-1",
             ["private_result"] = "must-not-cross-boundary",
         }, "streamable_http", "session-1");
         client.RecordProtocolResult("resources/subscribe", new JsonObject { ["uri"] = "secret://private" }, "session-subscribe");
@@ -114,6 +117,11 @@ static class Smoke
         Require(!handler.Body.Contains("secret://customer/private", StringComparison.Ordinal), "raw catalog URI crossed the boundary");
         Require(!handler.Body.Contains("private-cursor", StringComparison.Ordinal), "raw cursor crossed the boundary");
         Require(!handler.Body.Contains("secret-value", StringComparison.Ordinal), "raw input value crossed the boundary");
+        Require(handler.Body.Contains("request_state_hash", StringComparison.Ordinal), "MRTR request-state hash was not emitted");
+        Require(handler.Body.Contains("interaction_link_source", StringComparison.Ordinal), "MRTR interaction linkage was not emitted");
+        Require(handler.Body.Contains("retry_of_event_id", StringComparison.Ordinal), "MRTR retry linkage was not emitted");
+        Require(!handler.Body.Contains("private-request-state", StringComparison.Ordinal), "raw request state crossed the boundary");
+        Require(!handler.Body.Contains("private-interaction", StringComparison.Ordinal), "raw interaction state crossed the boundary");
         Require(!handler.Body.Contains("must-not-cross-boundary", StringComparison.Ordinal), "raw protocol result crossed the boundary");
         Require(!handler.Body.Contains("secret://customer/read", StringComparison.Ordinal), "raw resource read identity crossed the boundary");
         Require(!handler.Body.Contains("private-resource-content", StringComparison.Ordinal), "raw resource content crossed the boundary");

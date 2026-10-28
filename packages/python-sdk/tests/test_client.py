@@ -5,7 +5,7 @@ from http.server import BaseHTTPRequestHandler, HTTPServer
 from unittest import TestCase
 
 from trackmcp import TrackMCP, TrackMCPOptions, trackmcp_report_missing
-from trackmcp.client import TrackMCPEvent, _TrackMCPMiddleware, _Wrapped, _catalog_observation, _protocol_family_for_method, _protocol_metadata_payload, _protocol_result_metadata, interaction_entity_observation
+from trackmcp.client import TrackMCPEvent, _TrackMCPMiddleware, _Wrapped, _catalog_observation, _protocol_family_for_method, _protocol_metadata_payload, _protocol_mrtr_metadata, _protocol_result_metadata, interaction_entity_observation
 from trackmcp.privacy import sanitize_payload
 
 
@@ -99,6 +99,20 @@ class TrackMCPClientTest(TestCase):
         self.assertEqual(_protocol_result_metadata({"action": "accept", "content": {"secret": "omit"}}), {"protocol_decision": "accept"})
         self.assertEqual(_protocol_result_metadata({"action": "unexpected"}), {})
         self.assertEqual(_protocol_result_metadata({"resultType": "unsupported", "inputRequests": "not-a-list"}), {})
+
+    def test_mrtr_linkage_is_hashed_and_bounded(self):
+        metadata = _protocol_mrtr_metadata({
+            "requestState": "private-request-state",
+            "interactionId": "private-interaction",
+            "retryOfEventId": "retry-1",
+            "inputResponses": [{"secret": "omit"}],
+        })
+        self.assertRegex(metadata["request_state_hash"], r"^[a-f0-9]{64}$")
+        self.assertRegex(metadata["interaction_id"], r"^[a-f0-9]{64}$")
+        self.assertEqual(metadata["interaction_link_source"], "external")
+        self.assertEqual(metadata["retry_of_event_id"], "retry-1")
+        self.assertNotIn("private-", json.dumps(metadata))
+        self.assertEqual(_protocol_mrtr_metadata({"requestState": "x" * (16 * 1024 + 1), "retryOfEventId": "bad id"}), {})
 
     def test_cache_hints_are_bounded_and_alias_safe(self):
         metadata = _protocol_result_metadata({"ttl_ms": 60_000, "cache_scope": "private", "secret": "omit"})
@@ -311,6 +325,9 @@ class TrackMCPClientTest(TestCase):
             "taskStatus": "working",
             "isError": False,
             "inputRequests": ["private-input"],
+            "requestState": "private-request-state",
+            "interactionId": "private-interaction",
+            "retryOfEventId": "retry-1",
             "result": {"secret": "do-not-store"},
         }, transport="streamable_http", session_id="session-result")
         event = client._events[0]
@@ -319,6 +336,10 @@ class TrackMCPClientTest(TestCase):
         self.assertEqual(event["payload"]["_trackmcp"]["input_request_count"], 1)
         self.assertEqual(event["transport"], "streamable_http")
         self.assertEqual(event["payload"]["_trackmcp"]["protocol_family"], "tools")
+        self.assertRegex(event["request_state_hash"], r"^[a-f0-9]{64}$")
+        self.assertRegex(event["interaction_id"], r"^[a-f0-9]{64}$")
+        self.assertEqual(event["interaction_link_source"], "external")
+        self.assertEqual(event["retry_of_event_id"], "retry-1")
         self.assertNotIn("private-input", json.dumps(event))
         self.assertNotIn("do-not-store", json.dumps(event))
         client.record_protocol_result("completion/complete", {"completion": {"values": ["secret"], "hasMore": True}})

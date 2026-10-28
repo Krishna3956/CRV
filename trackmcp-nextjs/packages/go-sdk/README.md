@@ -57,6 +57,11 @@ queued. When the host can verify its transport, use
 `RecordProtocolResultForTransport` with `stdio`, `streamable_http`, `sse`, or
 `custom`; unknown labels are rejected rather than inferred.
 
+When a response explicitly carries MRTR `requestState`/`interactionId` and
+retry linkage, the SDK hashes the first two and preserves only a bounded retry
+event ID as top-level metadata. Raw request/response values are never queued;
+the application remains responsible for issuing the next round trip.
+
 For an HTTP authorization response, call `client.RecordAuthorizationOutcome`
 with `401` or `403`. The SDK records only `unauthorized` or `forbidden`
 metadata; it never accepts or stores `WWW-Authenticate` values, resource
