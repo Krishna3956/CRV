@@ -145,6 +145,7 @@ async function probeOAuthMetadata(endpoint) {
   const expectedResource = comparableResource(endpoint.href);
   const candidates = [protectedResourceMetadataUrl(endpoint, true), protectedResourceMetadataUrl(endpoint, false)];
   const seen = new Set();
+  let notFoundCount = 0;
   let unavailableCount = 0;
   for (const candidate of candidates) {
     const candidateUrl = candidate.toString();
@@ -157,7 +158,7 @@ async function probeOAuthMetadata(endpoint) {
         signal: AbortSignal.timeout(5_000),
       });
       if (response.status === 404 || response.status === 405) {
-        unavailableCount += 1;
+        notFoundCount += 1;
         continue;
       }
       if (response.status >= 300 && response.status < 400) return { outcome: "unsafe_redirect", candidate_count: seen.size };
@@ -188,7 +189,10 @@ async function probeOAuthMetadata(endpoint) {
       unavailableCount += 1;
     }
   }
-  return { outcome: unavailableCount ? "not_advertised" : "unavailable", candidate_count: seen.size };
+  return {
+    outcome: notFoundCount === seen.size && unavailableCount === 0 ? "not_advertised" : "unavailable",
+    candidate_count: seen.size,
+  };
 }
 
 function boundedCount(value) {

@@ -23,7 +23,7 @@ function jsonRpcResponse(id, result) {
   return JSON.stringify({ jsonrpc: "2.0", id, result });
 }
 
-async function startFixture() {
+async function startFixture({ metadataMode = "observed" } = {}) {
   const seenIngest = [];
   const server = createServer(async (request, response) => {
     const body = await readBody(request);
@@ -36,6 +36,21 @@ async function startFixture() {
     if (request.url === "/.well-known/oauth-protected-resource/mcp" || request.url === "/.well-known/oauth-protected-resource") {
       const address = server.address();
       const origin = `http://127.0.0.1:${address.port}`;
+      if (metadataMode === "absent") {
+        response.writeHead(404);
+        response.end();
+        return;
+      }
+      if (metadataMode === "redirect") {
+        response.writeHead(302, { location: `${origin}/oauth-metadata` });
+        response.end();
+        return;
+      }
+      if (metadataMode === "oversized") {
+        response.writeHead(200, { "content-type": "application/json" });
+        response.end(JSON.stringify({ resource: `${origin}/mcp`, padding: "x".repeat(33 * 1024) }));
+        return;
+      }
       response.writeHead(200, { "content-type": "application/json" });
       response.end(JSON.stringify({ resource: `${origin}/mcp`, authorization_servers: [origin], scopes_supported: ["mcp:read"] }));
       return;
@@ -247,6 +262,39 @@ test("customer endpoint UAT runs the official streamable HTTP discovery path aga
     assert.equal(serialized.includes("/mcp"), false);
   } finally {
     await new Promise((resolve) => fixture.server.close(resolve));
+  }
+});
+
+test("customer endpoint UAT keeps OAuth metadata boundary outcomes explicit", async () => {
+  for (const [metadataMode, expectedOutcome] of [
+    ["absent", "not_advertised"],
+    ["redirect", "unsafe_redirect"],
+    ["oversized", "oversized"],
+  ]) {
+    const fixture = await startFixture({ metadataMode });
+    const report = join(tmpdir(), `trackmcp-customer-endpoint-uat-metadata-${metadataMode}-${process.pid}.json`);
+    try {
+      const result = await runRunner({
+        TRACKMCP_CUSTOMER_ENDPOINT_UAT_CONFIRM: "I_UNDERSTAND_CUSTOMER_ENDPOINT_UAT",
+        TRACKMCP_CUSTOMER_ENDPOINT_UAT_URL: `${fixture.origin}/mcp`,
+        TRACKMCP_CUSTOMER_ENDPOINT_UAT_TRANSPORT: "streamable_http",
+        TRACKMCP_CUSTOMER_ENDPOINT_UAT_PROTOCOL_VERSION: "2025-06-18",
+        TRACKMCP_CUSTOMER_ENDPOINT_UAT_BASE_URL: fixture.origin,
+        TRACKMCP_CUSTOMER_ENDPOINT_UAT_KEY: "tmcp_fixture_key",
+        TRACKMCP_CUSTOMER_ENDPOINT_UAT_AUTH_TOKEN: "fixture-token",
+        TRACKMCP_CUSTOMER_ENDPOINT_UAT_ALLOW_PRIVATE: "true",
+        TRACKMCP_CUSTOMER_ENDPOINT_UAT_SERVICE: `fixture-metadata-${metadataMode}`,
+        TRACKMCP_CUSTOMER_ENDPOINT_UAT_REPORT: report,
+      });
+      assert.equal(result.code, 0, `${result.stdout}\n${result.stderr}`);
+      const evidence = JSON.parse(await readFile(report, "utf8"));
+      assert.equal(evidence.outcome, "passed");
+      assert.equal(evidence.oauth_metadata.outcome, expectedOutcome);
+      assert.equal(evidence.diagnostics.queued_events, 0);
+      assert.equal(evidence.diagnostics.delivery_error_count, 0);
+    } finally {
+      await new Promise((resolve) => fixture.server.close(resolve));
+    }
   }
 });
 
