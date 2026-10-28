@@ -62,6 +62,28 @@ test("ingest scrubs secrets, bearer tokens, credentialed URLs, and resource blob
   assert.equal(result.uri, "[redacted]");
 });
 
+test("ingest scrubs personal data, network addresses, full URLs, and exception text", () => {
+  const result = sanitizeIngestPayload({
+    contact: "owner@example.com",
+    source_ip: "203.0.113.10",
+    ipv6: "2001:db8::1",
+    endpoint: "https://example.com/mcp?workspace=private",
+    nested: {
+      message: "safe diagnostic context",
+      error_message: "request failed for owner@example.com at 203.0.113.10",
+      exception: { stack: "Error: private detail" },
+    },
+  });
+  assert.equal((result.contact as Record<string, unknown>).reason, "personal_data");
+  assert.equal(result.source_ip, "[redacted]");
+  assert.equal((result.ipv6 as Record<string, unknown>).reason, "network_address");
+  assert.equal((result.endpoint as Record<string, unknown>).reason, "resource_uri");
+  assert.equal((result.nested as Record<string, unknown>).message, "safe diagnostic context");
+  assert.equal((result.nested as Record<string, unknown>).error_message, "[redacted]");
+  assert.equal((result.nested as Record<string, unknown>).exception, "[redacted]");
+  assert.doesNotMatch(JSON.stringify(result), /owner@example\.com|203\.0\.113\.10|private detail|https:\/\//);
+});
+
 test("ingest applies an explicit reserved metadata allowlist", () => {
   const result = sanitizeIngestPayload({
     _trackmcp: {

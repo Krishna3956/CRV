@@ -40,6 +40,11 @@ const INGEST_SENSITIVE_KEYS = new Set([
   "set_cookie", "access_token", "refresh_token", "private_key", "client_secret", "ssn",
   "credit_card", "card_number",
 ]);
+const INGEST_REDACTED_KEYS = new Set([
+  ...INGEST_SENSITIVE_KEYS,
+  "email", "email_address", "user_email", "ip", "ip_address", "client_ip", "source_ip", "remote_addr", "remote_address",
+  "error", "error_message", "error_description", "exception", "exception_message", "stack", "stack_trace",
+]);
 const INGEST_BASE64_THRESHOLD = 128;
 const TRACKMCP_METADATA_KEYS = new Set([
   "observation_kind", "protocol_observation_kind", "observation_source", "protocol_family",
@@ -74,6 +79,14 @@ const EVENT_ID = /^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$/;
 const ISO_TIMESTAMP = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,9})?(?:Z|[+-]\d{2}:\d{2})$/;
 const CORRELATION_HANDLE = /^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$/;
 const SENSITIVE_INTENT = /(?:bearer\s+|authorization\s*[:=]|api[_-]?key\s*[:=]|access[_-]?token\s*[:=]|refresh[_-]?token\s*[:=]|password\s*[:=]|secret\s*[:=]|eyJ[A-Za-z0-9_-]+\.|https?:\/\/|\b[^\s@]+@[^\s@]+\.[^\s@]+\b)/i;
+const EMAIL_VALUE = /\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b/i;
+const IPV4_VALUE = /(?<![\d.])(?:\d{1,3}\.){3}\d{1,3}(?![\d.])/g;
+const IPV6_VALUE = /(?:(?:[0-9a-f]{1,4}:){2,}[0-9a-f:.]{1,})/i;
+
+function containsIpAddress(value: string): boolean {
+  if ([...value.matchAll(IPV4_VALUE)].some(([candidate]) => candidate.split(".").every((part) => Number(part) <= 255))) return true;
+  return IPV6_VALUE.test(value);
+}
 
 export type EventValidationResult =
   | { ok: true; event: CanonicalTrackMCPEvent }
@@ -112,7 +125,7 @@ function ingestMarker(reason: string, originalType: string, extra: Record<string
 
 function safeMetadataString(value: unknown): string | undefined {
   if (typeof value !== "string" || !value || value.length > 128 || /[\u0000-\u001f\u007f]/.test(value)) return undefined;
-  if (/(?:bearer\s+|https?:\/\/|@|api[_-]?key\s*[:=]|token\s*[:=])/i.test(value)) return undefined;
+  if (/(?:bearer\s+|https?:\/\/|@|api[_-]?key\s*[:=]|token\s*[:=])/i.test(value) || containsIpAddress(value)) return undefined;
   return value;
 }
 
@@ -167,6 +180,9 @@ function scrubIngestValue(value: unknown, depth = 0, seen = new WeakSet<object>(
     const dataUri = value.match(/^data:([^;,]+)?(?:;base64)?,/i);
     if (dataUri) return ingestMarker("binary", "string", { media_type: dataUri[1] || "application/octet-stream" });
     if (value.length >= INGEST_BASE64_THRESHOLD && /^[A-Za-z0-9+/_-]+={0,2}$/.test(value)) return ingestMarker("binary", "string", { original_bytes: Math.floor(value.length * 0.75) });
+    if (EMAIL_VALUE.test(value)) return ingestMarker("personal_data", "string");
+    if (containsIpAddress(value)) return ingestMarker("network_address", "string");
+    if (/\bhttps?:\/\//i.test(value)) return ingestMarker("resource_uri", "string");
     try {
       const url = new URL(value);
       if (url.username || url.password || [...url.searchParams.keys()].some((key) => INGEST_SENSITIVE_KEYS.has(normalizedKey(key)))) return ingestMarker("resource_uri", "string");
@@ -192,8 +208,10 @@ function scrubIngestValue(value: unknown, depth = 0, seen = new WeakSet<object>(
       if (key === "_trackmcp") {
         const metadata = sanitizeTrackMCPMetadata(child);
         if (Object.keys(metadata).length) result[key] = metadata;
+      } else if (INGEST_REDACTED_KEYS.has(normalizedKey(key))) {
+        result[key] = "[redacted]";
       } else {
-        result[key] = INGEST_SENSITIVE_KEYS.has(normalizedKey(key)) ? "[redacted]" : scrubIngestValue(child, depth + 1, seen, budget);
+        result[key] = scrubIngestValue(child, depth + 1, seen, budget);
       }
     }
     if (entries.length > MAX_INGEST_PAYLOAD_KEYS) result.__trackmcp_truncated = true;
