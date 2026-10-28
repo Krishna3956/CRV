@@ -101,7 +101,11 @@ Resources:
       ComparisonOperator: GreaterThanOrEqualToThreshold
       TreatMissingData: notBreaching
       ActionsEnabled: !If [HasAlarmTopic, true, false]
-      AlarmActions: !If [HasAlarmTopic, [!Ref FailureAlarmTopicArn], !Ref AWS::NoValue]
+      AlarmActions:
+        Fn::If:
+          - HasAlarmTopic
+          - - Ref: FailureAlarmTopicArn
+          - Ref: AWS::NoValue
 
   SchedulerDLQAlarm:
     Type: AWS::CloudWatch::Alarm
@@ -119,4 +123,8 @@ Resources:
       ComparisonOperator: GreaterThanOrEqualToThreshold
       TreatMissingData: notBreaching
       ActionsEnabled: !If [HasAlarmTopic, true, false]
-      AlarmActions: !If [HasAlarmTopic, [!Ref FailureAlarmTopicArn], !Ref AWS::NoValue]
+      AlarmActions:
+        Fn::If:
+          - HasAlarmTopic
+          - - Ref: FailureAlarmTopicArn
+          - Ref: AWS::NoValue
