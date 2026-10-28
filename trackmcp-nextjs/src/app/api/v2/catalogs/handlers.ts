@@ -105,7 +105,7 @@ export function createCatalogsHandler(analytics = createAnalyticsHandler()) {
       pagination: {
         next_cursor: typeof body.catalog_next_cursor === "string" ? body.catalog_next_cursor : null,
         cursor_parameter: "catalog_before",
-        caveat: "The cursor is an opaque bounded observation timestamp; it remains workspace-scoped and does not expose catalog payloads.",
+        caveat: "The cursor is an opaque workspace-bound continuation token; it does not expose timestamps, workspace identifiers, or catalog payloads.",
       },
       data_trust: projectTrackMCPDataTrust(body.data_trust),
       catalog_version_status: body.catalog_version_status ?? "unknown",

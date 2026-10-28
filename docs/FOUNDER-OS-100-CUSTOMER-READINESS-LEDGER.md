@@ -1,6 +1,21 @@
 # Founder OS 100 Customer Readiness Ledger
 
-Last updated: 2026-10-28 (main `HEAD`; deployed application `7763e05f` and immutable App Runner deployment `40729507033` succeeded; PR `#645` merged and hosted TrackMCP CI `40739164434` passed; authenticated smoke `40732381275` passed; the canonical modern protocol metadata fix is live; customer-owned endpoint/protocol UAT, privacy acceptance, backup/PITR posture, and release-owner GO/NO-GO remain open)
+Last updated: 2026-10-29 (main `HEAD`; deployed application `7763e05f` and immutable App Runner deployment `40729507033` remain healthy; catalog-history cursors are now opaque and workspace-bound with focused privacy/tenant tests; customer-owned endpoint/protocol UAT, privacy acceptance, backup/PITR posture, and release-owner GO/NO-GO remain open)
+
+## 2026-10-29 — opaque workspace-bound catalog-history cursors
+
+- [x] Replaced the catalog-history API's raw timestamp continuation value with
+  a versioned base64url token containing only a short one-way workspace binding
+  and the bounded observation timestamp. The API decodes the token only for the
+  authenticated workspace, so a token copied between workspaces is ignored and
+  cannot alter another tenant's query.
+- [x] Added focused round-trip, malformed-input, timestamp-validation, and
+  cross-workspace replay tests, then reran the catalogs route and tenant
+  isolation suites. All focused checks passed.
+- [ ] This closes the cursor privacy/opaque-token engineering gap but does not
+  close the broader partial pagination row: durable cross-transport snapshot
+  joins and authenticated customer-endpoint UAT remain external/readiness
+  gates.
 
 ## 2026-10-28 — current evidence reconciliation
 
