@@ -1,6 +1,6 @@
 # Founder OS first-100 readiness snapshot
 
-Updated: 2026-10-29 (Asia/Kolkata; source `c6d5f904`; runtime and hosted evidence reconciled)
+Updated: 2026-10-29 (Asia/Kolkata; source and runtime `4ed1c33e`; hosted evidence reconciled)
 
 Status: **Engineering green; release decision HOLD**
 
@@ -14,11 +14,11 @@ and [pilot release record](FOUNDER-OS-100-CUSTOMER-PILOT-RELEASE-RECORD.md).
   read models, and navigation/documentation CTA checks.
 - Current source release gate passes **148 suites**; lint, production build,
   and `git diff --check` pass. The production build generates **178 routes**.
-- Hosted TrackMCP CI `40748298150` passed for source `c6d5f904` across the
+- Hosted TrackMCP CI `40752715192` passed for source `4ed1c33e` across the
   web/JavaScript, Go, and .NET lanes.
 - The latest verified application runtime is immutable SHA
-  `c6d5f9048060b3e5c12506da41efd1c64cc9a155`, deployed by App Runner workflow
-  `40748297706`; the deployment preflight built the reviewed Python wheel and
+  `4ed1c33e32623489cf3099bb7a7a8659f95b2ad9`, deployed by App Runner workflow
+  `40752715423`; the deployment preflight built the reviewed Python wheel and
   sdist before the package-release audit, and the workflow's release gate,
   read-only smoke, immutable identity, and runtime-safety checks passed. The
   live health endpoint reports this exact SHA; `/` and `/docs` also return HTTP
@@ -106,7 +106,7 @@ scheduled-worker SLO. No secret, workspace identifier, raw payload, or token is
 stored in this snapshot.
 
 The detailed ledger is authoritative for the remaining external gates. The
-current source is `main` at `HEAD` (`1e995eb3`); the deployed application is
-the verified runtime `c6d5f904` after the App Runner rollout. The
+current source is `main` at `HEAD` (`4ed1c33e`); the deployed application is
+the verified runtime `4ed1c33e` after the App Runner rollout. The
 latest health report is the AWS-proven freshness result above. The alert evaluator remains
 disabled-first and is not claimed as enabled production delivery.

@@ -1,6 +1,18 @@
 # Founder OS 100 Customer Readiness Ledger
 
-Last updated: 2026-10-29 (main `HEAD`; deployed application `c6d5f904` and immutable App Runner deployment `40748297706` are healthy; catalog-history cursors are now opaque and workspace-bound with focused privacy/tenant tests; customer-owned endpoint/protocol UAT, privacy acceptance, backup/PITR posture, and release-owner GO/NO-GO remain open)
+Last updated: 2026-10-29 (main `4ed1c33e`; deployed application `4ed1c33e` and immutable App Runner deployment `40752715423` are healthy; bounded catalog predecessor lineage is published with focused privacy/tenant tests; customer-owned endpoint/protocol UAT, privacy acceptance, backup/PITR posture, and release-owner GO/NO-GO remain open)
+
+## 2026-10-29 — lineage milestone published live
+
+- [x] PR `#650` merged as `4ed1c33e32623489cf3099bb7a7a8659f95b2ad9` after
+  hosted web/JavaScript, Go, and .NET CI `40752134106` passed.
+- [x] Main CI `40752715192` passed all three lanes. App Runner deployment
+  `40752715423` passed the release gate, rollout, read-only production smoke,
+  immutable runtime identity, and runtime-safety checks.
+- [x] Direct origin checks for `/`, `/docs`, and `/api/health` returned HTTP
+  200; `/api/health` reported the exact runtime SHA `4ed1c33e32623489cf3099bb7a7a8659f95b2ad9`.
+- [ ] This publishes the bounded catalog predecessor read model; it does not
+  close the explicitly listed external release gates below.
 
 ## 2026-10-29 — bounded catalog predecessor lineage
 
