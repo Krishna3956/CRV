@@ -3920,3 +3920,15 @@ a failed product gate or a Supabase plan warning.
 - [ ] Customer-owned endpoint interoperability, transport-owned reconnect and
   replay semantics, authenticated MRTR lifecycle UAT, privacy acceptance, and
   release-owner GO/NO-GO remain open. No full MRTR conformance claim is made.
+
+### 2026-10-28 trusted-origin transport UAT
+
+- [x] Production transport smoke `40614861539` passed against the trusted App
+  Runner origin, exercising the official TypeScript Streamable HTTP and SSE
+  clients with bounded initialization and tool-call metadata.
+- [x] The workflow remained metadata-only and uploaded redacted evidence; no
+  request/response payloads, credentials, or transport identifiers were
+  exposed in the report.
+- [ ] This closes trusted-origin transport smoke only. Customer-owned MCP
+  endpoints, transport-owned reconnect/replay semantics, cross-language
+  transport UAT, and release-owner GO/NO-GO remain open.

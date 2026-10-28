@@ -1798,3 +1798,10 @@ production transport UAT.
   passed against the deployed candidate; and refresh-health run `40614305812`
   passed. This verifies the bounded transport projection in the hosted
   candidate, not customer-owned endpoint interoperability or full MRTR support.
+
+- 2026-10-28: Production transport smoke `40614861539` passed against the
+  trusted App Runner origin. The metadata-only workflow exercised the official
+  TypeScript Streamable HTTP and SSE clients, verified bounded initialization
+  and tool-call observations, and uploaded only redacted evidence. This closes
+  the trusted-origin transport smoke gate; customer-owned endpoints,
+  transport-owned reconnect/replay, and full MRTR interoperability remain open.
