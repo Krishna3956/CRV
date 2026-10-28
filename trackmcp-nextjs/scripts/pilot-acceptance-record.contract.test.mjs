@@ -24,8 +24,8 @@ function openQueueIds(source) {
 
 test("pilot release record points at the verified deployed baseline", () => {
   const current = section(record, "## Current deployed baseline", "## Latest bounded insight-evidence deployment");
-  assert.match(current, /dde5e94d44c665b20033ed3b2ab56e5accc593a4/);
-  assert.match(current, /40689262786/);
+  assert.match(current, /8e3b61836432e1b045b539857fb8639d9d464c3f/);
+  assert.match(current, /40695080113/);
   assert.match(current, /read-only evidence rather than key-lifecycle UAT/);
 });
 
@@ -45,9 +45,9 @@ test("release record preserves non-source acceptance decisions until an owner ac
 });
 
 test("external-gate register names accountable parties and closure evidence", () => {
-  assert.match(externalGates, /dde5e94d44c665b20033ed3b2ab56e5accc593a4/);
-  assert.match(externalGates, /40689262786/);
-  assert.match(externalGates, /75817e7405a72ad6a4ac5653543ce177acf9d1d993837ca684f4bdf8c21ce5a1/);
+  assert.match(externalGates, /8e3b61836432e1b045b539857fb8639d9d464c3f/);
+  assert.match(externalGates, /40695080113/);
+  assert.match(externalGates, /bb8c89a7a3794b83c129681310e423e007c9096cba9f4398cf84ebf3392d8cb0/);
   assert.match(externalGates, /40397368253/);
   assert.match(externalGates, /40398170070/);
   assert.match(externalGates, /main`: current default branch/);
@@ -61,7 +61,7 @@ test("external-gate register names accountable parties and closure evidence", ()
 });
 
 test("acceptance matrix separates current source from deployed runtime", () => {
-  assert.match(acceptanceMatrix, /dde5e94d44c665b20033ed3b2ab56e5accc593a4/);
+  assert.match(acceptanceMatrix, /8e3b61836432e1b045b539857fb8639d9d464c3f/);
   assert.match(acceptanceMatrix, /current repository source is `main` at `HEAD`/);
   assert.match(acceptanceMatrix, /manual-only and disabled-first/);
 });
@@ -69,7 +69,7 @@ test("acceptance matrix separates current source from deployed runtime", () => {
 test("root pilot status stays aligned with the current evidence baseline", () => {
   assert.match(pilotStatus, /Last verified: 2026-10-28/);
   assert.match(pilotStatus, /origin\/main` is `HEAD`/);
-  assert.match(pilotStatus, /147 suites/);
+  assert.match(pilotStatus, /148 suites/);
   assert.match(pilotStatus, /178-route/);
   assert.match(pilotStatus, /Release-owner scope approval and final first-100-user go\/no-go remain open/);
 });

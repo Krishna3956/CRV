@@ -9,14 +9,16 @@ promise that every product capability is complete.
 ## Verified and shipped
 
 - `origin/main` is `HEAD` (active pilot evidence baseline). The latest deployed
-  application runtime is immutable `dde5e94d44c665b20033ed3b2ab56e5accc593a4`
-  via App Runner workflow `40689262786`, with read-only production smoke,
-  immutable identity, and runtime-safety checks passed. Hosted TrackMCP CI
-  `40689262784` passed 147 cross-language suites, and authenticated production
-  smoke `40690377977` passed against the same release. AWS worker freshness
-  remains proven by health artifact `40629348992`; the alert evaluator path is
-  published but manual-only and disabled-first.
-- The latest local release gate passes 147 suites, lint, the 178-route
+  application runtime is immutable `8e3b61836432e1b045b539857fb8639d9d464c3f`
+  via App Runner workflow `40695080113`, with release gate, read-only
+  production smoke, immutable identity, and runtime-safety checks passed. The
+  deployed image digest is
+  `sha256:bb8c89a7a3794b83c129681310e423e007c9096cba9f4398cf84ebf3392d8cb0`.
+  Hosted TrackMCP CI `40695079991` passed across the web/JavaScript, Go, and
+  .NET lanes, and the live health endpoint reports the same release SHA. AWS
+  worker freshness remains proven by health artifact `40629348992`; the alert
+  evaluator path is published but manual-only and disabled-first.
+- The latest local release gate passes 148 suites, lint, the 178-route
   production build, and `git diff --check`.
 - Production schema postflights verified required tables, indexes, functions,
   RLS/privilege boundaries, constraints, integrity aggregates, and catalog
@@ -24,7 +26,6 @@ promise that every product capability is complete.
 - The public Security page now discloses the backup/recovery boundary; it does
   not claim schedules, PITR, restore testing, or restoration ownership that the
   selected provider plan does not supply.
-- Local lint, build (178 routes), and the complete 145-suite release gate pass.
 - SDK/CLI/Python/Go/.NET consumer, OTLP JSON/protobuf, protocol observer,
   tenant-isolation, privacy, accessibility, and documentation-navigation
   checks are green.
