@@ -1,6 +1,6 @@
 # Founder OS first-100 readiness snapshot
 
-Updated: 2026-10-28 (Asia/Kolkata; source `110befe4`; runtime and hosted evidence reconciled)
+Updated: 2026-10-28 (Asia/Kolkata; source `bb31eb6c`; runtime and hosted evidence reconciled)
 
 Status: **Engineering green; release decision HOLD**
 
@@ -14,6 +14,8 @@ and [pilot release record](FOUNDER-OS-100-CUSTOMER-PILOT-RELEASE-RECORD.md).
   read models, and navigation/documentation CTA checks.
 - Current source release gate passes **145 suites**; lint, production build,
   and `git diff --check` pass. The production build generates **177 routes**.
+- Hosted TrackMCP CI `40617154045` passed for source `bb31eb6c` across the
+  web/JavaScript, Go, and .NET lanes.
 - The latest verified application runtime is immutable SHA `8a2589ee`, deployed
   by App Runner workflow `40613570183`; direct-origin health, route,
   runtime-identity, smoke, and runtime-safety checks passed. Authenticated
@@ -84,6 +86,6 @@ scheduled-worker SLO. No secret, workspace identifier, raw payload, or token is
 stored in this snapshot.
 
 The detailed ledger is authoritative for the remaining external gates. The
-current source is `110befe4`; the deployed application remains the verified
+current source is `bb31eb6c`; the deployed application remains the verified
 `8a2589ee` runtime above. The latest health report intentionally preserves the
 warning state rather than converting recovery runs into scheduled-sample proof.
