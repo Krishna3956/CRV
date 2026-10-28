@@ -10,13 +10,17 @@ Supabase directly and never logs the worker token or response body.
 
 EventBridge sends a bounded `source=eventbridge_scheduler` marker. Only after
 the upstream request returns successfully does the Lambda emit a
-non-sensitive `refresh_scheduler_result` marker with an Embedded Metric Format
-`TrackMCP/RefreshScheduler/ScheduledSuccess` sample. Manual invocations do not
-emit it, so the health workflow can distinguish a real scheduled worker
-success from an operator smoke without reading CloudWatch log events.
-Scheduled failures emit the same bounded envelope with a `ScheduledFailure`
-sample and one of the non-sensitive classes `configuration`, `upstream_http`,
-`timeout`, or `network_or_unknown`; no exception message is retained.
+non-sensitive `refresh_scheduler_result` marker with Embedded Metric Format
+samples for the scheduled result and the bounded worker summary:
+processed/succeeded counts, retryable/failed counts, a parse-completeness
+count, and maximum queue lag. Only numeric aggregates are emitted; worker
+owners, errors, payloads, URLs, and response content are never logged. Manual
+invocations do not emit it or these scheduled samples, so the health workflow can
+distinguish a real scheduled worker result from an operator smoke without
+reading CloudWatch log events. Scheduled failures emit the same bounded
+envelope with a `ScheduledFailure` sample and one of the non-sensitive classes
+`configuration`, `upstream_http`, `timeout`, or `network_or_unknown`; no
+exception message is retained.
 
 The schedule is disabled by default. Deploy it disabled first, run the manual
 checks below, and enable it only after the endpoint and secret have been
@@ -28,10 +32,13 @@ configurations redact runtime secret mappings from `describe-service`; in that
 case provide only the non-sensitive Secrets Manager ARN through the workflow's
 optional `worker_token_secret_arn` input.
 
-The recurring health workflow counts only the bounded EMF success metric
-through `cloudwatch:GetMetricData`. It does not require log-event read access,
-so the GitHub OIDC role needs no additional CloudWatch Logs policy for this
-projection.
+The recurring health workflow reads only the bounded EMF metrics through
+`cloudwatch:GetMetricData`. It can therefore prove both scheduler cadence and
+worker freshness from the canonical AWS schedule without requiring log-event
+read access; the GitHub OIDC role needs no additional CloudWatch Logs policy
+for this projection. Three complete worker-summary samples with zero failed or
+retryable jobs and queue lag within the 15-minute budget prove the AWS worker
+freshness gate. Missing or malformed summaries remain a visible warning.
 
 The scheduler does not accept a plain-text App Runner environment value for
 this variable. Before dispatching the workflow, open App Runner →
