@@ -1773,3 +1773,11 @@ production transport UAT.
   suites and the complete local **145-suite** release gate passed. This closes
   the dashboard/read-model visibility gap; cross-transport lifecycle fixtures
   and authenticated production UAT remain open until hosted verification.
+
+- 2026-10-28: Hosted verification completed for the MRTR dashboard milestone.
+  TrackMCP CI run `40612339540` passed the web/JavaScript, Go, and .NET lanes;
+  App Runner deployment `40612339539` passed rollout, production smoke,
+  immutable release identity, and runtime-safety checks; authenticated smoke
+  `40613170713` passed against the deployed candidate. These runs verify the
+  bounded evidence surface on the hosted candidate. Cross-transport MRTR
+  lifecycle fixtures and customer-owned endpoint UAT remain open.

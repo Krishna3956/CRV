@@ -3881,3 +3881,15 @@ a failed product gate or a Supabase plan warning.
 - [ ] Hosted CI, immutable deployment identity, authenticated production UAT,
   cross-transport lifecycle fixtures, and release-owner approval remain open;
   this milestone does not claim full MRTR conformance or pilot readiness.
+
+### 2026-10-28 hosted MRTR dashboard verification
+
+- [x] TrackMCP CI run `40612339540` passed the web/JavaScript, Go, and .NET
+  lanes for source `19272b5b`.
+- [x] App Runner deployment `40612339539` passed rollout, production smoke,
+  immutable release identity, and runtime-safety checks for the same source.
+- [x] Authenticated production smoke `40613170713` passed against the deployed
+  candidate, confirming the authenticated read path after deployment.
+- [ ] Cross-transport MRTR lifecycle fixtures, customer-owned endpoint UAT,
+  privacy acceptance, and release-owner GO/NO-GO remain open. The product
+  truth boundary remains Partial for MRTR; no full-conformance claim is made.
