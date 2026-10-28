@@ -2,6 +2,18 @@
 
 Status: active autonomous audit, started 2026-10-21.
 
+## 2026-10-28 — OAuth metadata boundary evidence published
+
+- PR `#632` merged the corrected metadata-only probe and three explicit local
+  boundary fixtures: no advertised metadata, unsafe redirect, and oversized
+  metadata. The probe now reports `unavailable` for transport/time-out or other
+  non-404 failures instead of manufacturing `not_advertised` evidence.
+- Hosted TrackMCP CI `40706968504` passed all 148 suites, lint, build, and the
+  package-consumer lanes. The change is UAT-only; the deployed runtime remains
+  the separately verified `8e3b6183` image.
+- Full OAuth client/PKCE, consent, token exchange, refresh, revocation, tenant
+  binding, and customer-owned interoperability remain open by design.
+
 ## 2026-10-28 — bounded OAuth metadata discovery added to endpoint UAT
 
 - The customer-owned endpoint UAT now checks RFC 9728 protected-resource

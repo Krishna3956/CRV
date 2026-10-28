@@ -5,7 +5,7 @@ Reconciled: 2026-10-28 (Asia/Calcutta)
 Current deployed baseline: application `8e3b61836432e1b045b539857fb8639d9d464c3f`,
 App Runner run `40695080113` (successful deployment, image digest
 `sha256:bb8c89a7a3794b83c129681310e423e007c9096cba9f4398cf84ebf3392d8cb0`).
-The current repository source is `main` at `HEAD`; hosted CI `40702831003`
+The current repository source is `main` at `HEAD`; hosted CI `40706968504`
 passed across web/JavaScript, Go, and .NET. The full release gate passed 148
 suites. Authenticated production smoke `40696432361` passed against the
 deployed runtime SHA `8e3b6183`; it is read-only evidence and is not a claim

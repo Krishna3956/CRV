@@ -13,7 +13,7 @@ commit `8e3b61836432e1b045b539857fb8639d9d464c3f` with image digest
 `sha256:bb8c89a7a3794b83c129681310e423e007c9096cba9f4398cf84ebf3392d8cb0`.
 Release gate, image build/push, rollout, read-only production smoke,
 immutable release identity, runtime-safety checks, and live `/api/health`
-identity verification passed. Main CI `40702831003` also completed
+identity verification passed. Main CI `40706968504` also completed
 successfully for the current source; no runtime image change was required. The
 release remains Draft/HOLD
 because the owner, backup/recovery, privacy acceptance, and customer-owned
@@ -81,10 +81,10 @@ recovery-evidence hardening, not a final operational SLO acceptance.
 
 ## Latest source verification — 2026-10-28
 
-The current repository source is `main` at `HEAD` (`7782270501ba9a43fbf13f06721427d1e9bd1648`); the deployed application is
+The current repository source is `main` at `HEAD` (`5fa4aff576e3729c54ccb11290895751d45f9801`); the deployed application is
 immutable source `8e3b6183` via App Runner workflow `40695080113`, with image
 digest `sha256:bb8c89a7a3794b83c129681310e423e007c9096cba9f4398cf84ebf3392d8cb0`.
-Hosted TrackMCP CI `40702831003` passed across web/JavaScript, Go, and .NET.
+Hosted TrackMCP CI `40706968504` passed across web/JavaScript, Go, and .NET.
 The latest local release gate passes **148 suites**, lint, the production build
 (**178 routes**), and `git diff --check`. The deployment's read-only
 production smoke, immutable identity, runtime-safety checks, and live health

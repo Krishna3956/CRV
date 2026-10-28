@@ -1,6 +1,6 @@
 # Founder OS first-100 readiness snapshot
 
-Updated: 2026-10-28 (Asia/Kolkata; source `77822705`; runtime and hosted evidence reconciled)
+Updated: 2026-10-28 (Asia/Kolkata; source `5fa4aff5`; runtime and hosted evidence reconciled)
 
 Status: **Engineering green; release decision HOLD**
 
@@ -14,7 +14,7 @@ and [pilot release record](FOUNDER-OS-100-CUSTOMER-PILOT-RELEASE-RECORD.md).
   read models, and navigation/documentation CTA checks.
 - Current source release gate passes **148 suites**; lint, production build,
   and `git diff --check` pass. The production build generates **178 routes**.
-- Hosted TrackMCP CI `40702831003` passed for source `77822705` across the
+- Hosted TrackMCP CI `40706968504` passed for source `5fa4aff5` across the
   web/JavaScript, Go, and .NET lanes.
 - The latest verified application runtime is immutable SHA
   `8e3b61836432e1b045b539857fb8639d9d464c3f`, deployed by App Runner workflow
@@ -93,7 +93,7 @@ scheduled-worker SLO. No secret, workspace identifier, raw payload, or token is
 stored in this snapshot.
 
 The detailed ledger is authoritative for the remaining external gates. The
-current source is `77822705`; the deployed application remains the verified
+current source is `5fa4aff5`; the deployed application remains the verified
 runtime `8e3b6183` because the latest source changes are UAT/docs-only. The
 latest health report is the AWS-proven freshness result above. The alert evaluator remains
 disabled-first and is not claimed as enabled production delivery.
