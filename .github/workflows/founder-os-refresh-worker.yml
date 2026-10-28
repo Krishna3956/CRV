@@ -63,6 +63,19 @@ jobs:
             exit 1
           fi
           echo "::add-mask::$WORKER_SECRET"
+          # App Runner can return a provider-generated 502/503 while a cold
+          # instance is starting. Warm the public health route once before
+          # fanning out worker leases; this is read-only and never carries the
+          # worker secret. The refresh requests still retain their own retry
+          # and deadline boundaries below.
+          WARMUP_URL="${WORKER_URL%/api/internal/refresh/run}/api/health"
+          if timeout --signal=TERM --kill-after=5s 40s curl --fail --silent --show-error \
+            --connect-timeout 5 --retry 5 --retry-delay 2 --retry-all-errors \
+            --retry-max-time 30 --max-time 35 "$WARMUP_URL" >/dev/null; then
+            echo "App Runner health warm-up passed."
+          else
+            echo "::warning::App Runner health warm-up did not complete; continuing with bounded refresh retries."
+          fi
           # Each request is independently bounded by the application’s 45s
           # lease/deadline and this workflow’s 55s curl timeout. Four
           # concurrent max_jobs:10 slices provide bounded drain throughput
