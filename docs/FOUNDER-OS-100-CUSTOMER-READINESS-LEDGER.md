@@ -1,6 +1,30 @@
 # Founder OS 100 Customer Readiness Ledger
 
-Last updated: 2026-10-28 (main `5fa4aff5`; deployed application `8e3b6183` and immutable App Runner deployment `40695080113` succeeded with image digest `sha256:bb8c89a7a3794b83c129681310e423e007c9096cba9f4398cf84ebf3392d8cb0`; PR `#632` merged and hosted TrackMCP CI `40706968504` passed; the new source is UAT-only; scheduler deploy `40628036770`, authenticated smoke `40628409832`, schedule enablement `40628646879`, and health artifact `40629348992` prove the AWS worker-freshness path; customer-owned endpoint/protocol UAT, privacy acceptance, backup/PITR posture, and release-owner GO/NO-GO remain open)
+Last updated: 2026-10-28 (main `28cf0497`; deployed application `8e3b6183` and immutable App Runner deployment `40695080113` succeeded with image digest `sha256:bb8c89a7a3794b83c129681310e423e007c9096cba9f4398cf84ebf3392d8cb0`; PR `#634` merged and hosted TrackMCP CI `40712182548` passed; the current source is docs/evidence-only relative to the deployed runtime; scheduler deploy `40628036770`, authenticated smoke `40628409832`, schedule enablement `40628646879`, and health artifact `40629348992` prove the AWS worker-freshness path; customer-owned endpoint/protocol UAT, privacy acceptance, backup/PITR posture, and release-owner GO/NO-GO remain open)
+
+## 2026-10-28 — final handoff and Founder OS PDF reconciliation
+
+- [x] Re-read the 134-page `/Users/krishna/Downloads/Founder OS.pdf` using the
+  PDF review workflow and compared its business-facing tab model with the
+  current source. The six questions are represented: who is using it, what
+  they are doing, what they are looking up/asking for, the journey, whether it
+  worked, and what is broken.
+- [x] Confirmed the current information architecture in source: Overview,
+  The journey, What they're doing, Did it work, and What's broken are primary;
+  Resources & prompts, Who's using it, Evidence, and Setup are grouped under
+  More. This is an intentional navigation grouping, not an absent feature.
+- [x] Confirmed `main` and `origin/main` are identical at `28cf0497`, with no
+  tracked uncommitted changes. The only untracked paths are the intentional
+  `docs/codex-handoff/` and `tmp/` working directories.
+- [x] Rechecked the direct App Runner health endpoint. It returns `status: ok`
+  and immutable runtime SHA `8e3b61836432e1b045b539857fb8639d9d464c3f`.
+- [x] Saved the handoff at this source SHA. The next session should begin from
+  this ledger entry and must not infer that external acceptance gates are
+  closed merely because the engineering release is published and healthy.
+- [ ] The release decision remains HOLD until the explicit external gates in
+  the snapshot are accepted or run: release-owner GO/NO-GO, backup/PITR
+  posture, privacy lifecycle acceptance, credentialed customer endpoint and
+  key-lifecycle UAT, and any package publication promises for Go/.NET.
 
 ## 2026-10-28 — OAuth metadata boundary evidence published
 
