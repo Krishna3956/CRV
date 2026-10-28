@@ -41,9 +41,21 @@ Last updated: 2026-10-29 (main `9c46a1a5`; deployed application `9c46a1a5` and A
   contract.
 - [x] Targeted analytics, v2 tenant-isolation, TypeScript, ESLint, full
   **149-suite** release gate, and production build checks passed.
-- [ ] The authenticated production smoke must be rerun after deployment. The
-  prior timeout occurred before the second workspace and revoked-key checks;
-  this code change is not treated as proof until that smoke artifact is green.
+- [x] The authenticated production smoke was rerun after deployment; the prior
+  timeout is retained as historical evidence and is superseded by the green
+  38-check artifact recorded in the next section.
+
+## 2026-10-29 — authenticated smoke rerun passed
+
+- [x] Authenticated smoke workflow `40789610787` passed against the deployed
+  release `8a3aee175ddc8fb819e5cf1c3cfd6e71ff635408` with redacted artifact
+  `12861116605`.
+- [x] All **38** checks passed: both workspace key-status responses, conflicting
+  workspace-query isolation, all 24 Founder OS v2 read models, all six legacy
+  read models, both API-key action-queue denials, and revoked-key rejection.
+- [x] The prior timeout gate is closed for this release. The smoke remains
+  read-only and does not replace the Supabase RLS postflight, customer-owned
+  endpoint UAT, or key lifecycle write smoke.
 
 ## 2026-10-29 — account identity derivation version published
 
