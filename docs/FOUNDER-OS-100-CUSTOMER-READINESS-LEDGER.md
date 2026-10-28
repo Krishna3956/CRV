@@ -1,6 +1,6 @@
 # Founder OS 100 Customer Readiness Ledger
 
-Last updated: 2026-10-28 (main `bf2dd5ec`; deployed application `b2ab68e6` and immutable App Runner redeploy `40606435487` succeeded; hosted TrackMCP CI `40628036758` and App Runner deployment `40628036757` passed for the merged scheduler source; scheduler deploy `40628036770`, authenticated smoke `40628409832`, schedule enablement `40628646879`, and health artifact `40629348992` prove the AWS worker-freshness path; customer-owned endpoint/protocol UAT, privacy acceptance, backup/PITR posture, and release-owner GO/NO-GO remain open)
+Last updated: 2026-10-28 (main `a9faa4b6`; deployed application `b2ab68e6` and immutable App Runner redeploy `40606435487` succeeded; hosted TrackMCP CI `40628036758` and App Runner deployment `40628036757` passed for the merged scheduler source; scheduler deploy `40628036770`, authenticated smoke `40628409832`, schedule enablement `40628646879`, and health artifact `40629348992` prove the AWS worker-freshness path; customer-owned endpoint/protocol UAT, privacy acceptance, backup/PITR posture, and release-owner GO/NO-GO remain open)
 The same-origin docs, auth, blog CTA fixes, regression guard, and hosted-runner verification gate are deployed and runtime-verified. Cloudflare permits browser-compatible requests, while its managed bot rule still returns HTML 403 to the default scripted user-agent; SDK delivery must use the compatible request boundary and retain a real authenticated UAT check.
 Latest freshness evidence: health workflow `40629348992` inspected the newly
 deployed scheduler's bounded worker-summary metrics. The current window has
@@ -85,7 +85,11 @@ and other external acceptance gates remain separate decisions.
   dependency installation, builds, audits, and Python artifact validation so
   registry or compiler stalls fail with actionable evidence as well.
 
-## 2026-10-28 — fresh worker-health evidence remains a freshness HOLD
+The checkpoint entries below are a historical audit archive. They preserve the
+evidence trail from before the active scheduler register was closed; they do
+not override the current register below.
+
+## 2026-10-28 — fresh worker-health evidence remains a freshness HOLD (historical)
 
 - [x] Health workflow `40591189579` completed successfully against the current
   source and produced a parseable report with eight retained redacted samples.
@@ -209,6 +213,8 @@ and other external acceptance gates remain separate decisions.
   across web/JavaScript, Go, and .NET. This confirms source parity and does not
   expand the production smoke's bounded claims.
 
+End of historical checkpoint archive.
+
 ## Active external-gate register (current)
 
 | Gate | Current evidence | State | Required closure evidence |
@@ -217,7 +223,7 @@ and other external acceptance gates remain separate decisions.
 | Backup/PITR | Supabase Free Plan has no scheduled backups or PITR; inspection recorded in the backup evidence entries below | **HOLD / owner decision** | Accepted documented limitation with named recovery owner/runbook, or plan upgrade plus tested restore rehearsal |
 | Privacy acceptance | Engineering privacy/export/deletion contracts pass; production acceptance evidence is not recorded | **HOLD / owner decision** | Signed production privacy review and retention/deletion acceptance |
 | Credentialed lifecycle/UAT | Read-only tenant/auth smoke, direct-origin first-ingest UAT `40598515473`, terminal device activation plus first-event UAT, authenticated Streamable HTTP/SSE adapter-to-ingest smoke with 15 persisted observations, disposable production key rotation/revocation UAT, and the fresh 11-check disposable device-flow UAT covering canonical ingest plus OTLP/HTTP JSON and protobuf are verified; customer-owned endpoint/protocol UAT remains unexecuted | **HOLD / credentialed** | Customer-owned endpoint/protocol UAT artifact, plus explicit acceptance of the unsupported reconnect/replay, durable-subscription, and OAuth boundaries |
-| Hosted deployment verification | App Runner redeploy `40606435487` deployed immutable runtime `b2ab68e6`; `/api/health`, `/`, and `/docs` returned 200, and the health response matched the immutable source SHA. Hosted TrackMCP CI `40607765427` passed the 145-suite cross-language gate for source `6b1cf1f8` | **PASS** | Re-run the same guarded workflow for the next runtime-changing commit |
+| Hosted deployment verification | App Runner redeploy `40606435487` deployed immutable runtime `b2ab68e6`; `/api/health`, `/`, and `/docs` returned 200, and the health response matched the immutable source SHA. The merged scheduler source `20702c9` passed hosted TrackMCP CI `40628036758`; its scheduler deployment is independent of the application image | **PASS** | Re-run the same guarded workflow for the next runtime-changing commit |
 | Release-owner acceptance | Source, CI, deployment, package publication, and local release gates are green | **HOLD / owner decision** | Explicit approval referencing this register and the current deployed source |
 
 This register is the active decision surface. Historical entries below remain
