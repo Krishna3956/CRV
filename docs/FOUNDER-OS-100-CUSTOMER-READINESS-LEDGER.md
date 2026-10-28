@@ -1,6 +1,18 @@
 # Founder OS 100 Customer Readiness Ledger
 
-Last updated: 2026-10-29 (main `cfbcc54b`; deployed application `cfbcc54b` and immutable App Runner deployment `40758058500` are healthy; bounded privacy execution and synthetic-evidence boundaries are published with focused tests; customer-owned endpoint/protocol UAT, privacy acceptance, backup/PITR posture, and release-owner GO/NO-GO remain open)
+Last updated: 2026-10-29 (main `c492dac0`; deployed application `c492dac0` and immutable App Runner deployment `40760941895` are healthy; bounded privacy execution and synthetic-evidence boundaries are published with focused tests; customer-owned endpoint/protocol UAT, privacy acceptance, backup/PITR posture, and release-owner GO/NO-GO remain open)
+
+## 2026-10-29 — PR #654 runtime and ledger reconciliation
+
+- [x] PR `#654` merged the synthetic-evidence boundary as
+  `c492dac0c9a3ec57fcc2afc7a45baddf160b7a68`. Hosted main CI `40760941766`
+  and App Runner deployment `40760941895` passed their release gates,
+  rollout, immutable identity, read-only smoke, and runtime-safety checks.
+- [x] Direct origin checks for `/`, `/docs`, and `/api/health` returned HTTP
+  200; `/api/health` reported the exact runtime SHA above.
+- [x] This ledger, the concise snapshot, the pilot gap ledger, and the local
+  handoff now share one current source/runtime pointer. Open external gates
+  remain unchanged.
 
 ## 2026-10-29 — synthetic reliability evidence boundary published
 
