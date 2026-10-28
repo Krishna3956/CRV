@@ -3993,3 +3993,16 @@ a failed product gate or a Supabase plan warning.
 - [ ] Sustained application cadence still requires repeated scheduled samples
   and a fresh bounded queue-lag window; this checkpoint does not close the
   pilot freshness SLO or release-owner GO/NO-GO.
+
+### 2026-10-28 repeated refresh recovery checkpoints
+
+- [x] Recovery runs `40616803534` and `40616854993` both passed after the
+  warm-up hardening. The first processed four jobs with zero retryable/failed
+  results and `freshness_slo=within_budget` (artifact `12785417099`); the
+  second observed no backlog with zero failures (artifact `12785083227`).
+- [x] Health recheck `40616913256` reports the current bounded maximum queue lag
+  as `744,386 ms` and preserves `warning` because only `1/3` GitHub scheduled
+  samples are present and the historical scheduled failure remains in-window
+  (artifact `12785237813`).
+- [ ] This materially improves the current recovery window but does not close
+  sustained scheduled cadence, the freshness SLO, or release-owner GO/NO-GO.

@@ -1850,3 +1850,13 @@ production transport UAT.
   markers in the window (artifact `12785007710`). This narrows the remaining
   freshness gate to repeated GitHub/application samples and owner acceptance;
   the warning is preserved rather than hidden.
+
+- 2026-10-28: Two additional terminal-dispatched worker checkpoints
+  `40616803534` and `40616854993` both completed successfully after the
+  warm-up change. The first processed four jobs with zero retryable/failed
+  results and `freshness_slo=within_budget` (artifact `12785417099`); the
+  second observed no backlog with zero failures (artifact `12785083227`). A
+  health recheck `40616913256` reduced the current maximum queue lag to
+  `744,386 ms`, while retaining the explicit warning because the historical
+  scheduled failure and the `1/3` GitHub scheduled-sample requirement remain
+  in the bounded evidence window (artifact `12785237813`).
