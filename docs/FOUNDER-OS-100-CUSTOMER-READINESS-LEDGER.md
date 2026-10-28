@@ -1,6 +1,21 @@
 # Founder OS 100 Customer Readiness Ledger
 
-Last updated: 2026-10-29 (main `4ed1c33e`; deployed application `4ed1c33e` and immutable App Runner deployment `40752715423` are healthy; bounded catalog predecessor lineage is published with focused privacy/tenant tests; customer-owned endpoint/protocol UAT, privacy acceptance, backup/PITR posture, and release-owner GO/NO-GO remain open)
+Last updated: 2026-10-29 (main `cfbcc54b`; deployed application `cfbcc54b` and immutable App Runner deployment `40758058500` are healthy; bounded privacy execution and synthetic-evidence boundaries are published with focused tests; customer-owned endpoint/protocol UAT, privacy acceptance, backup/PITR posture, and release-owner GO/NO-GO remain open)
+
+## 2026-10-29 — synthetic reliability evidence boundary published
+
+- [x] Alert incident responses now include a server-derived `evidence_kind`
+  classification (`customer` or `synthetic`). The classifier recognizes both
+  the retained `canary` environment and the bounded `p1-05-canary-probe`
+  identity segment without reading or exposing payloads.
+- [x] The dashboard retains its visible synthetic-canary banner and now uses
+  the API classification as an additional fail-closed signal. API, serializer,
+  dashboard, and docs contracts cover tenant scope, secret suppression, and
+  composite canary identities.
+- [ ] Release-owner acceptance is still required before treating historical
+  synthetic rows as fully cleared pilot data. This milestone closes the
+  engineering presentation boundary; it does not relabel synthetic evidence as
+  customer health or delete retained rows.
 
 ## 2026-10-29 — lineage milestone published live
 

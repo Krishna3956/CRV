@@ -96,4 +96,17 @@ test("alert-incidents serializes bounded safe fields without secrets, webhook pa
   assert.equal(serialized.includes("private-unbounded-record"), false);
   assert.ok(serialized.length < 40_000);
   assert.ok(Object.hasOwn(body.data[0], "evidence"));
+  assert.equal(body.data[0].evidence_kind, "customer");
+});
+
+test("alert-incidents labels retained canary rows as synthetic evidence", async () => {
+  const rows = [
+    incident({ id: "canary-environment", environment: "canary" }),
+    incident({ id: "canary-identity", environment: "production", identity: "workspace-a|p1-05-canary-probe|latency" }),
+  ];
+  const handler = createAlertIncidentsHandler(authenticated("workspace-a", fakeAdmin(rows)));
+  const response = await handler(new Request("http://alerts.test/api/v1/alert-incidents?limit=10"));
+  assert.equal(response.status, 200);
+  const body = await response.json();
+  assert.deepEqual(body.data.map((row) => row.evidence_kind), ["synthetic", "synthetic"]);
 });

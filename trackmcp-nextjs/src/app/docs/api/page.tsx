@@ -24,7 +24,7 @@ const endpoints: { method: string; path: string; desc: string }[] = [
   { method: "GET", path: "/api/v1/analytics?days=30[&workspace_id=...]", desc: "Workspace metrics, tools, clients, sessions, and insights" },
   { method: "GET", path: "/api/v1/tool-quality?days=30[&workspace_id=...]", desc: "Bounded tool-quality metrics, catalog history, workflow associations, and insufficient-data states" },
   { method: "GET", path: "/api/v1/alerts?limit=50[&workspace_id=...]", desc: "List authenticated workspace alert configurations" },
-  { method: "GET", path: "/api/v1/alert-incidents?limit=50[&workspace_id=...]", desc: "List bounded regression incidents and their data status" },
+  { method: "GET", path: "/api/v1/alert-incidents?limit=50[&workspace_id=...]", desc: "List bounded regression incidents, data status, and server-derived customer/synthetic evidence kind" },
   { method: "GET", path: "/api/v1/alert-incidents/{id}/deliveries", desc: "Inspect bounded webhook delivery attempts without secrets" },
   { method: "POST", path: "/api/v1/alert-destinations", desc: "Create a generic HTTPS webhook destination using an external secret reference" },
   { method: "GET", path: "/api/v1/traces?session_id=...|correlation_handle=...[&workspace_id=...]", desc: "Inspect ordered events for one protocol session or bounded correlation handle" },

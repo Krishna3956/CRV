@@ -10,9 +10,9 @@ Status: active autonomous audit, started 2026-10-21.
   consumers, dashboard accessibility/pointer contracts, docs navigation, and
   external-gate truth contracts.
 - [x] Lint passed and the production build generated **178 routes**. The
-  deployed runtime remains the immutable `4ed1c33e` release verified by App
-  Runner deployment `40752715423`; this docs/evidence recheck does not claim
-  a new runtime image.
+  deployed runtime is the immutable `cfbcc54b` release verified by App Runner
+  deployment `40758058500`; its post-deploy smoke, identity, and safety checks
+  passed.
 - [ ] No remaining engineering contract is being hidden by this recheck. The
   open rows are still external or owner-controlled: credentialed customer
   endpoint/key-lifecycle UAT, OAuth token exchange/PKCE, transport-owned
@@ -35,6 +35,29 @@ Status: active autonomous audit, started 2026-10-21.
   recovery rehearsal, legal/privacy approval, and release-owner enablement are
   still required before setting the policy flag or changing the dashboard's
   review-only language.
+
+## 2026-10-29 — post-PR #653 source/runtime lineage reconciled
+
+- [x] `main` and `origin/main` point at
+  `cfbcc54bf30fe1e975d17b9f3232b23af3e11ff1`.
+- [x] Hosted main CI `40758058405` and App Runner deployment `40758058500`
+  passed. Direct live checks for `/`, `/docs`, and `/api/health` returned HTTP
+  200; health reported the same immutable SHA.
+- [x] The readiness snapshot, pilot gap ledger, and handoff records now point
+  at the same source/runtime baseline. Existing external gates remain open;
+  this milestone closes evidence drift only.
+
+## 2026-10-29 — synthetic reliability evidence boundary implemented
+
+- [x] Alert incident serialization now emits `evidence_kind: "synthetic"` for
+  the retained `canary` environment or bounded `p1-05-canary-probe` identity
+  segment; all other rows are explicitly `customer`.
+- [x] API integration and serializer tests cover composite identities, tenant
+  scoping, secret suppression, and fail-closed customer classification. The
+  dashboard uses the server classification while retaining its visible banner.
+- [ ] Historical synthetic-row acceptance remains release-owner controlled;
+  no synthetic row is counted as a customer incident by this boundary, and no
+  destructive cleanup is implied.
 
 ## 2026-10-29 — bounded predecessor lineage added to catalog history
 

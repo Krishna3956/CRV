@@ -3876,7 +3876,9 @@ function IncidentCard({
 }
 
 function isSyntheticCanaryIncident(incident: AlertIncident): boolean {
-  return incident.scope.environment === "canary" || incident.identity.startsWith("p1-05-canary-probe");
+  return incident.evidence_kind === "synthetic"
+    || incident.scope.environment === "canary"
+    || incident.identity.split("|").some((segment) => segment === "p1-05-canary-probe");
 }
 
 function ClientsView({
