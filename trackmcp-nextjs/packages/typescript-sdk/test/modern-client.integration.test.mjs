@@ -22,7 +22,7 @@ function startFixture({ tasks = false } = {}) {
       }
       response.setHeader("content-type", "application/json");
       const result = payload.method === "server/discover"
-        ? { supportedVersions: [MODERN_MCP_PROTOCOL_VERSION], capabilities: { tools: {}, resources: {}, ...(tasks ? { extensions: { "io.modelcontextprotocol/tasks": {} } } : {}) }, serverInfo: { name: "fixture", version: "1" } }
+        ? { supportedVersions: [MODERN_MCP_PROTOCOL_VERSION], _meta: { "io.modelcontextprotocol/serverInfo": { name: "fixture", version: "1" } }, capabilities: { tools: {}, resources: {}, ...(tasks ? { extensions: { "io.modelcontextprotocol/tasks": {} } } : {}) } }
         : payload.method === "tools/call"
           ? { resultType: "task", taskId: "fixture-task", status: "working", result: { private: "omit" } }
           : payload.method === "tasks/get"

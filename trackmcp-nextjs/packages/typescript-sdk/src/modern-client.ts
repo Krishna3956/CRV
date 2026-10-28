@@ -391,7 +391,17 @@ export class ModernMcpClient {
   async discover(): Promise<ModernMcpDiscovery> {
     const result = await this.request("server/discover", {});
       const supportedVersions = Array.isArray(result.supportedVersions) ? [...new Set(result.supportedVersions.map(boundedString).filter((value): value is string => Boolean(value)))].slice(0, MAX_VERSIONS) : undefined;
-      const serverInfo = boundedObject(result.serverInfo) ? { name: boundedString(result.serverInfo.name), version: boundedString(result.serverInfo.version) } : undefined;
+      // The final 2026-07-28 wire revision moved server identity out of the
+      // DiscoverResult body. Treat only the reserved result metadata key as
+      // authoritative; a body-level `serverInfo` is an early-draft shape and
+      // must not be trusted by the modern adapter.
+      const resultMeta = boundedObject(result._meta) ? result._meta : undefined;
+      const serverInfoMeta = resultMeta && boundedObject(resultMeta["io.modelcontextprotocol/serverInfo"])
+        ? resultMeta["io.modelcontextprotocol/serverInfo"]
+        : undefined;
+      const serverInfo = serverInfoMeta
+        ? { name: boundedString(serverInfoMeta.name), version: boundedString(serverInfoMeta.version) }
+        : undefined;
       const capabilities = boundedObject(result.capabilities) ? result.capabilities : undefined;
       const capabilityNames = capabilities ? Object.keys(capabilities).filter((name) => /^[A-Za-z][A-Za-z0-9_.-]{0,63}$/.test(name)).slice(0, MAX_CAPABILITIES) : [];
       const negotiatedCapabilities = new Set(capabilityNames);

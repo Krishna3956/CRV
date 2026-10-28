@@ -2,6 +2,21 @@
 
 Status: active autonomous audit, started 2026-10-21.
 
+## 2026-10-28 — final 2026-07-28 server identity metadata alignment
+
+- [x] The modern TypeScript client and browser MCP tester now read server
+  identity only from the final revision's result metadata key
+  `_meta["io.modelcontextprotocol/serverInfo"]`. Early-draft body-level
+  `serverInfo` is ignored; missing or malformed metadata remains anonymous and
+  never becomes an authorization or tenant identity.
+- [x] Regression coverage proves canonical metadata extraction, malformed and
+  absent metadata handling, body-field rejection, and privacy-safe bounded
+  server projections. The published SDK's local suite passes 107 tests and the
+  MCP tester suite passes 27 tests after the change.
+- [ ] This is protocol-wire alignment evidence only. Authenticated customer
+  endpoint interoperability, transport reconnect behavior, and the broader
+  modern lifecycle boundary remain explicitly partial in the matrix.
+
 ## 2026-10-28 — published-artifact secret and version audit hardened
 
 - [x] The package release audit now inspects the exact npm tarballs produced by
