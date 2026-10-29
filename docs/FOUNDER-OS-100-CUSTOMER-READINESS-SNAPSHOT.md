@@ -1,18 +1,23 @@
 # Founder OS first-100 readiness snapshot
 
-Updated: 2026-10-29 (Asia/Kolkata; source `501cd7cf`; deployed runtime `a1ad002e`; hosted evidence reconciled)
+Updated: 2026-10-29 (Asia/Kolkata; source and deployed runtime `fe0d2cd1`; hosted evidence reconciled)
 
 Status: **Engineering green; release decision HOLD**
 
 ## Current checkpoint — 2026-10-29
 
-- The current source is `origin/main` at `501cd7cf4182a5261d1cbe47fa09452dcdee820d`.
-  PR #686 recorded the final live SEO/backlink audit; it changed documentation
-  only and did not require an application redeploy.
+- The current source and deployed runtime are `origin/main` at
+  `fe0d2cd1f5cde059cfc9546b983a575103b0df52`. PR #688 deferred optional GA4
+  loading from `afterInteractive` to `lazyOnload` and deployed through App
+  Runner workflow `40807491324`.
 - The deployed App Runner runtime reports immutable release
-  `a1ad002e04d9d77b720cd427723ce3ee126f542c` from `/api/health`.
-- The full local release gate passes **151 suites**; TypeScript, lint, build,
+  `fe0d2cd1f5cde059cfc9546b983a575103b0df52` from `/api/health`.
+- The full local release gate passes **152 suites**; TypeScript, lint, build,
   and the production SEO audit pass. The build generates 209 routes.
+- The representative production Lighthouse recheck improved to performance
+  0.76, SEO 1.00, accessibility 0.96, LCP 5.2 s, CLS 0, and TBT 220 ms.
+  This is an improvement, not a claim that all pages meet Core Web Vitals;
+  PostHog and origin variability remain open performance risks.
 - Refresh health run `40804980639` reports an overall `warning` only because
   two pre-fix manual recovery runs remain in the one-hour diagnostic window.
   The source-of-truth production gates are already proven: AWS scheduler
@@ -142,8 +147,8 @@ scheduled-worker SLO. No secret, workspace identifier, raw payload, or token is
 stored in this snapshot.
 
 The detailed ledger is authoritative for the remaining external gates. The
-current source is `main` at `HEAD` (`501cd7cf`); the deployed application is
-the verified runtime `a1ad002e` after the App Runner rollout. The latest
+current source is `main` at `HEAD` (`fe0d2cd1`); the deployed application is
+the verified runtime `fe0d2cd1` after the App Runner rollout. The latest
 health report is the AWS-proven freshness result above, with historical manual
 diagnostics still visible. The alert evaluator remains
 disabled-first and is not claimed as enabled production delivery.

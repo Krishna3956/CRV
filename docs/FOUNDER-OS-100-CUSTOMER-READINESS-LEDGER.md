@@ -1,15 +1,21 @@
 # Founder OS 100 Customer Readiness Ledger
 
-## 2026-10-29 — current source, runtime, and SEO/readiness reconciliation
+## 2026-10-29 — production analytics deferral and readiness reconciliation
 
-- [x] Current source is `origin/main` at `501cd7cf4182a5261d1cbe47fa09452dcdee820d`.
-  The documentation-only SEO evidence update merged through PR `#686`; no
-  application redeploy was required.
+- [x] Current source and deployed runtime are `origin/main` at
+  `fe0d2cd1f5cde059cfc9546b983a575103b0df52`. PR `#688` moved optional GA4
+  loading from `afterInteractive` to `lazyOnload`; App Runner deployment
+  `40807491324` passed its release gate, rollout, read-only smoke, immutable
+  identity, and runtime-safety checks.
 - [x] The deployed App Runner health endpoint reports immutable runtime
-  `a1ad002e04d9d77b720cd427723ce3ee126f542c`.
-- [x] `npm run test:release-gate` passed all **151 suites** on the current
+  `fe0d2cd1f5cde059cfc9546b983a575103b0df52`.
+- [x] `npm run test:release-gate` passed all **152 suites** on the current
   source. TypeScript, lint, production build (209 routes), and local plus
   origin SEO audits also pass.
+- [x] A representative production Lighthouse run after deployment measured
+  performance 0.76, SEO 1.00, accessibility 0.96, LCP 5.2 s, CLS 0, and TBT
+  220 ms. Local production-build Lighthouse measured 0.9 s LCP and 0 ms TBT.
+  The production result is improved but not a universal Core Web Vitals pass.
 - [x] Live SEO evidence is recorded in
   `docs/seo/trackmcp-live-seo-backlink-audit-2026-10-29.md`: all 107 article
   pages passed status, metadata, canonical, structured-data, image-alt, and
@@ -118,7 +124,7 @@
   so the overall production LCP risk remains open and is not being claimed as
   resolved by this patch.
 
-Last updated: 2026-10-29 (main `d5f8fa3d`; deployed application `d5f8fa3d` and App Runner health are healthy; refresh scheduler retries are deployed and the schedule is enabled, but the three-window cadence gate remains open; customer-owned endpoint/protocol UAT, privacy acceptance, backup/PITR posture, migration postflight, production LCP optimization, and release-owner GO/NO-GO remain open)
+Last updated: 2026-10-29 (main `fe0d2cd1`; deployed application `fe0d2cd1` and App Runner health are healthy; GA4 loading is deferred and production LCP improved but remains above target on the representative run; customer-owned endpoint/protocol UAT, privacy acceptance, backup/PITR posture, migration postflight, indexing/backlinks, and release-owner GO/NO-GO remain open)
 
 ## 2026-10-29 — identity-version release deployed
 
