@@ -21,6 +21,12 @@ test("allows identifiers and acronyms to remain Latin", () => {
   assert.equal(translationQualityError("MCP API GitHub TrackMCP", "MCP API GitHub TrackMCP"), null);
 });
 
+test("allows standalone protocol tokens and shell labels to remain Latin", () => {
+  assert.equal(translationQualityError("mcp", "mcp"), null);
+  assert.equal(translationQualityError("npx", "npx"), null);
+  assert.equal(translationQualityError("@trackmcp/cli init", "@trackmcp/cli init"), null);
+});
+
 test("rejects an incomplete batch before display", () => {
   assert.throws(() => assertTranslationBatchQuality(["Hello", "World"], ["你好"]), /incomplete/);
 });
