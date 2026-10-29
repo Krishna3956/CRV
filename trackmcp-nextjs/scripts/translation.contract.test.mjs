@@ -69,6 +69,8 @@ test("translation endpoint only accepts English to Simplified Chinese", async ()
   assert.match(source, /MAX_RATE_BUCKETS/);
   assert.match(source, /rateBuckets\.delete/);
   assert.match(source, /status: 429/);
+  assert.match(source, /TRACKMCP_TRUST_PROXY/);
+  assert.match(source, /!== "true"/);
 });
 
 test("translation batches are bounded and use a configured provider", async () => {

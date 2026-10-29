@@ -15,6 +15,10 @@ const MAX_RATE_BUCKETS = 10_000;
 const rateBuckets = new Map<string, { startedAt: number; count: number }>();
 
 function requestKey(request: Request): string {
+  // Forwarded addresses are only meaningful when the deployment's edge has
+  // been configured to strip and rewrite them. Otherwise a caller can spoof
+  // the header and evade the provider-cost rate limit.
+  if (process.env.TRACKMCP_TRUST_PROXY !== "true") return "anonymous";
   return request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "anonymous";
 }
 
