@@ -11,8 +11,9 @@ const baseJob = (kind: "fact_projection" | "action_queue_refresh") => {
   return result.job;
 };
 
-function fakeAdmin(eventRows: unknown[] = [], semanticRows: unknown[] = [], queryLog: string[] = []) {
+function fakeAdmin(eventRows: unknown[] = [], semanticRows: unknown[] = [], queryLog: string[] = [], missingIdentityVersion = false) {
   const writes: Array<{ table: string; rows: unknown[]; onConflict?: string }> = [];
+  let missingIdentityVersionReads = 0;
   const admin = {
     from(table: string) {
       const rows = table === "trackmcp_events"
@@ -20,19 +21,26 @@ function fakeAdmin(eventRows: unknown[] = [], semanticRows: unknown[] = [], quer
         : table === "trackmcp_servers"
           ? eventRows.map((row) => ({ id: row && typeof row === "object" ? (row as { server_id?: unknown }).server_id : null }))
           : semanticRows;
+      let selectedColumns = "";
       const query = {
-        select(columns: string) { queryLog.push(`select:${table}:${columns}`); return query; },
+        select(columns: string) { selectedColumns = columns; queryLog.push(`select:${table}:${columns}`); return query; },
         eq() { return query; },
         gte(column: string, value: string) { queryLog.push(`gte:${table}:${column}:${value}`); return query; },
         lt(column: string, value: string) { queryLog.push(`lt:${table}:${column}:${value}`); return query; },
         order() { return query; },
-        limit: async () => ({ data: rows, error: null }),
+        limit: async () => missingIdentityVersion && table === "trackmcp_events" && selectedColumns.includes("account_identity_version") && missingIdentityVersionReads++ === 0
+          ? { data: null, error: { code: "PGRST204", message: "column trackmcp_events.account_identity_version does not exist" } }
+          : ({ data: rows, error: null }),
         upsert: async (values: unknown[], options?: { onConflict?: string }) => { writes.push({ table, rows: values, onConflict: options?.onConflict }); return { error: null }; },
       };
       return query;
     },
   };
   return { admin, writes };
+}
+
+function legacyIdentityVersionAdmin(eventRows: unknown[], queryLog: string[] = []) {
+  return fakeAdmin(eventRows, [], queryLog, true);
 }
 
 test("windowed ingest jobs restrict event projections to their source window", async () => {
@@ -83,6 +91,16 @@ test("fact projection selects bounded metadata and persists semantic facts", asy
   assert.equal(writes.length, 1);
   assert.equal(writes[0]?.table, "trackmcp_semantic_facts");
   assert.equal((writes[0]?.rows[0] as { payload?: unknown }).payload, undefined);
+});
+
+test("fact projection falls back when the additive identity-version column is pending", async () => {
+  const queryLog: string[] = [];
+  const { admin, writes } = legacyIdentityVersionAdmin([{ event_id: "legacy-evt", event_type: "tool_call", service: "demo", environment: "prod", started_at: "2026-01-01T00:00:00.000Z", success: true, is_error: false }], queryLog);
+  const handler = createRefreshJobHandlers(admin as never, { taskTransitionsEnabled: false }).fact_projection;
+  assert.ok(handler);
+  assert.deepEqual(await handler({ job: baseJob("fact_projection"), now: new Date() }), { outcome: "succeeded" });
+  assert.equal(queryLog.filter((entry) => entry.startsWith("select:trackmcp_events:")).length, 2);
+  assert.equal(writes.some((write) => write.table === "trackmcp_semantic_facts"), true);
 });
 
 test("fact projection persists server protocol request and response roles for durable analytics", async () => {
