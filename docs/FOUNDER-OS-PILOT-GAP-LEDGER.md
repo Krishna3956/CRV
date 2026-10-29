@@ -20,9 +20,9 @@ Status: active autonomous audit, started 2026-10-21.
 - [x] PR #744 merged as `c7203a24e417564b044d2846a8aaa7e9481a1550`.
   TrackMCP CI `40974088697` passed, and both direct App Runner and public
   `/api/health` probes report that exact runtime SHA.
-- [ ] App Runner workflow `40974088720` is still in its provider-side
-  post-rollout wait at this checkpoint; full workflow completion evidence is
-  intentionally not claimed until the run reaches a terminal state.
+- [x] App Runner workflow `40974088720` completed successfully, including the
+  provider rollout, read-only production smoke, immutable runtime identity,
+  runtime-safety, and live translation-provider checks.
 - [ ] Provider configuration, new-user onboarding, existing-user return, and
   device-flow return-path evidence remain separate pilot gates.
 
