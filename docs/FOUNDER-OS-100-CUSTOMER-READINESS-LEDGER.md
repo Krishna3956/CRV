@@ -1,5 +1,32 @@
 # Founder OS 100 Customer Readiness Ledger
 
+## 2026-10-29 — optional PostHog delay deployed and production rechecked
+
+- [x] PR `#690` delayed optional PostHog recorder/survey initialization behind
+  a 10-second timer and idle callback. The existing bounded event queue and
+  privacy configuration remain in place; the change affects only optional
+  marketing telemetry, not article rendering or product analytics contracts.
+- [x] PR `#690` was squash-merged as
+  `5a742ec2856fea22acfc51e11d830f759f4a1c48`. Hosted CI
+  `40809475611` passed web/JavaScript, Go, and .NET. App Runner deployment
+  `40809475613` passed the release gate, image binding, rollout, read-only
+  production smoke, immutable identity, runtime-safety checks, and evidence
+  uploads.
+- [x] The live health endpoint reports HTTP 200 and immutable runtime
+  `5a742ec2856fea22acfc51e11d830f759f4a1c48`.
+- [x] The full local release gate passed **152 suites** before publication;
+  the focused PostHog contract, ESLint, production build (209 routes), and
+  SEO audit also passed.
+- [x] A cold production Lighthouse run against the deployed App Runner
+  article returned performance 0.76, SEO 1.00, accessibility 0.96, LCP 6.1 s,
+  CLS 0, TBT 80 ms, and TTFB 80 ms. This confirms the new runtime is live and
+  lowers blocking time, but does **not** close the LCP/Core Web Vitals risk;
+  cold-origin variability and remaining third-party payload are still open.
+- [ ] Google indexing progression, external blog backlinks, Supabase
+  backup/PITR, privacy acceptance, customer-owned endpoint/key-lifecycle UAT,
+  protocol boundaries, optional Go/.NET publication, refresh-health clean
+  window, and release-owner GO/NO-GO remain separate open gates.
+
 ## 2026-10-29 — production analytics deferral and readiness reconciliation
 
 - [x] Current source and deployed runtime are `origin/main` at
@@ -124,7 +151,7 @@
   so the overall production LCP risk remains open and is not being claimed as
   resolved by this patch.
 
-Last updated: 2026-10-29 (main `fe0d2cd1`; deployed application `fe0d2cd1` and App Runner health are healthy; GA4 loading is deferred and production LCP improved but remains above target on the representative run; customer-owned endpoint/protocol UAT, privacy acceptance, backup/PITR posture, migration postflight, indexing/backlinks, and release-owner GO/NO-GO remain open)
+Last updated: 2026-10-29 (main `5a742ec2`; deployed application `5a742ec2` and App Runner health are healthy; optional PostHog initialization is delayed but production LCP remains above target on the representative cold run; customer-owned endpoint/protocol UAT, privacy acceptance, backup/PITR posture, migration postflight, indexing/backlinks, refresh-health clean window, and release-owner GO/NO-GO remain open)
 
 ## 2026-10-29 — identity-version release deployed
 
