@@ -24,9 +24,9 @@ function openQueueIds(source) {
 
 test("pilot release record points at the verified deployed baseline", () => {
   const current = section(record, "## Current deployed baseline", "## Historical deployed baseline");
-  assert.match(current, /5eb5799b74e88e7b9cb05a24b4fef1fe52cf94c4/);
-  assert.match(current, /40848157943/);
-  assert.match(current, /Main CI\s+`40848157886` also\s+passed/);
+  assert.match(current, /b98c6f41cabdb12f976291c4160ac581423d3461/);
+  assert.match(current, /40850990485/);
+  assert.match(current, /Main CI\s+`40850990551` also\s+passed/);
 });
 
 test("pilot release record keeps unresolved operational gates explicit", () => {
@@ -45,8 +45,8 @@ test("release record preserves non-source acceptance decisions until an owner ac
 });
 
 test("external-gate register names accountable parties and closure evidence", () => {
-  assert.match(externalGates, /5eb5799b74e88e7b9cb05a24b4fef1fe52cf94c4/);
-  assert.match(externalGates, /40848157943/);
+  assert.match(externalGates, /b98c6f41cabdb12f976291c4160ac581423d3461/);
+  assert.match(externalGates, /40850990485/);
   assert.match(externalGates, /main.*HEAD/s);
   assert.match(externalGates, /40397368253/);
   assert.match(externalGates, /40398170070/);
@@ -61,10 +61,10 @@ test("external-gate register names accountable parties and closure evidence", ()
 });
 
 test("acceptance matrix separates current source from deployed runtime", () => {
-  assert.match(acceptanceMatrix, /5eb5799b74e88e7b9cb05a24b4fef1fe52cf94c4/);
+  assert.match(acceptanceMatrix, /b98c6f41cabdb12f976291c4160ac581423d3461/);
   assert.match(acceptanceMatrix, /current repository source is `main` at\s+`HEAD`/);
-  assert.match(acceptanceMatrix, /40848157943/);
-  assert.match(acceptanceMatrix, /40848157886/);
+  assert.match(acceptanceMatrix, /40850990485/);
+  assert.match(acceptanceMatrix, /40850990551/);
   assert.match(acceptanceMatrix, /full release gate passed 152\s+suites/);
   assert.match(acceptanceMatrix, /latest refresh-health artifact `12885673154` from evaluation `40848128417`\s+remains a warning/);
   assert.match(acceptanceMatrix, /manual-only and disabled-first/);

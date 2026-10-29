@@ -8,13 +8,14 @@ commit and the operator accepts the listed limitations.
 
 ## Current deployed baseline — 2026-10-29
 
-The current baseline is immutable commit `5eb5799b74e88e7b9cb05a24b4fef1fe52cf94c4`.
-App Runner deployment `40848157943` succeeded; the final release gate, image binding,
+The current baseline is immutable commit `b98c6f41cabdb12f976291c4160ac581423d3461`.
+App Runner deployment `40850990485` succeeded; the final release gate, image binding,
 rollout, read-only smoke, immutable identity, runtime-safety checks, post-deploy
 authenticated smoke, and live Chinese translation audit all passed. Main CI
-`40848157886` also passed.
+`40850990551` also passed.
 Live `/api/health` reports this exact SHA, and `/` plus `/docs` return HTTP 200.
 The source includes the safe social-auth flow, shared Chinese translation runtime,
+the public language-selector fix,
 and the responsive homepage hero
 polish: the CLI command box is capped on narrow screens, the desktop-only hero
 bridge is hidden on phones, and the homepage heading now says “Understand how
@@ -100,14 +101,15 @@ recovery-evidence hardening, not a final operational SLO acceptance.
 ## Latest source verification — 2026-10-29
 
 The current repository source is `main` at `HEAD`; the deployed application is
-immutable source `5eb5799b` via App Runner workflow `40848157943`.
-Hosted TrackMCP CI `40848157886` passed across web/JavaScript, Go, and .NET.
+immutable source `b98c6f41` via App Runner workflow `40850990485`.
+Hosted TrackMCP CI `40850990551` passed across web/JavaScript, Go, and .NET.
 The latest local release gate passes **152 suites**, lint, the production build
 (**209 routes**), and `git diff --check`. The deployment's read-only
 production smoke, immutable identity, runtime-safety checks, and live health
 identity verification all passed. Scheduler deployment and health evidence are
 recorded above. The opaque catalog-history cursor fix and shared Chinese
-translation runtime are now included in the verified `5eb5799b` image.
+translation runtime and public language-selector fix are now included in the
+verified `b98c6f41` image.
 
 The preceding deployed source was `4efa2e1` (including the health-report semantics
 correction that honors a proven AWS scheduler window while retaining historical

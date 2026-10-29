@@ -27,7 +27,7 @@ test("the release record carries the same current source gate evidence", () => {
   assert.match(releaseRecord, /latest local release gate\s+passes\s+\*\*152\s+suites\*\*/i);
   assert.match(releaseRecord, /209 routes/);
   assert.match(releaseRecord, /transient App Runner\s+smoke retry boundary/);
-  assert.match(releaseRecord, /deployed application is\s+immutable source `5eb5799b`/);
+  assert.match(releaseRecord, /deployed application is\s+immutable source `b98c6f41`/);
   assert.match(releaseRecord, /current repository source is `main` at `HEAD`/i);
 });
 
