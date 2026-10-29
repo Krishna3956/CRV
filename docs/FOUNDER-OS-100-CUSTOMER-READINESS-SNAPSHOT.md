@@ -1,16 +1,27 @@
 # Founder OS first-100 readiness snapshot
 
-Updated: 2026-10-29 (Asia/Kolkata; source `0627a890`; deployed runtime `0627a890`; hosted evidence reconciled)
+Updated: 2026-10-29 (Asia/Kolkata; source `ed0ea99`; deployed runtime `ed0ea99`; hosted evidence reconciled)
 
 Status: **Engineering green; release decision HOLD**
 
 ## Current checkpoint — 2026-10-29
 
-- The submission-attribution improvement is ready for publication: the form
-  captures a bounded self-reported source, current campaign signals override
-  stale last-touch storage, and server normalization drops email/credential-
-  shaped detail. Focused attribution coverage is 11/11; production migration
-  parity, deploy, and submission smoke remain required before claiming it live.
+- TrackMCP account social authentication is implemented in the current
+  candidate: Google and GitHub Supabase PKCE buttons use same-origin bounded
+  redirects, and the callback never exposes provider error text or accepts
+  external `next` URLs. Production provider enablement and credentialed OAuth
+  UAT remain external; customer MCP OAuth token exchange is still explicitly
+  unsupported until this candidate is deployed.
+- The submission-attribution flow is live on runtime
+  `ed0ea99fb524feac67b7fb6bb59a8c91ff720e68` via deployment `40840163412`.
+  Public `/submit-mcp` returns 200, the smoke passed 36 checks with two
+  intentional write/key skips, and no production submission was created.
+
+- The deployed submission-attribution flow captures a bounded self-reported
+  source, current campaign signals override stale last-touch storage, and
+  server normalization drops email/credential-shaped detail. Focused
+  attribution coverage is 11/11; production write persistence remains
+  intentionally unclaimed because the smoke did not create a submission.
 
 - Fresh health evaluation `40837179614` has no current worker-failure reason:
   the latest bounded worker runs are clean, including `40836789883` (12
@@ -239,8 +250,8 @@ scheduled-worker SLO. No secret, workspace identifier, raw payload, or token is
 stored in this snapshot.
 
 The detailed ledger is authoritative for the remaining external gates. The
-current source is `main` at `HEAD` (`6ef17eb9`); the deployed application is
-the verified runtime `dd6e5544` after the App Runner rollout. The latest
+current source is `main` at `HEAD` (`ed0ea99f`); the deployed application is
+the verified runtime `ed0ea99f` after the App Runner rollout. The latest
 health report is the AWS-proven freshness result above, with historical manual
 diagnostics still visible. The alert evaluator remains
 disabled-first and is not claimed as enabled production delivery.
