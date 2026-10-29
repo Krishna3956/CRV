@@ -28,6 +28,14 @@ GOOGLE_TRANSLATE_API_KEY=...
 
 `DEEPL_API_URL` may point at the DeepL Pro or Free endpoint where appropriate. The endpoint enforces bounded batches (100 text nodes, 4,000 characters per node, 40,000 characters per request) to avoid accidental abuse and oversized provider calls.
 
+For terminology control, configure an approved DeepL glossary when available:
+
+```text
+DEEPL_GLOSSARY_ID=...
+```
+
+The endpoint also applies a per-process request limit and the browser keeps a bounded translation cache so repeated labels and route transitions do not repeatedly spend provider quota.
+
 ## Accuracy gate
 
 Machine translation is not a 100% accuracy guarantee. The endpoint is therefore deliberately provider-backed and fail-closed when no provider is configured; it does not pretend that an unavailable or unreviewed translation is exact. For a public launch that promises “100% accurate,” the translated output must be reviewed and approved by a qualified Simplified Chinese linguist, with a glossary for TrackMCP, MCP, GitHub, API, SDK, and product terminology. Dynamic GitHub README content and future submissions cannot honestly be promised as 100% accurate without a review workflow or an explicit product decision to accept machine-translated content.

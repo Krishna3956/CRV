@@ -17,6 +17,8 @@ test("translation endpoint only accepts English to Simplified Chinese", async ()
   assert.match(source, /sourceLocale: input\.sourceLocale === "en"/);
   assert.match(source, /targetLocale: "zh-CN"/);
   assert.match(source, /translation_not_configured/);
+  assert.match(source, /MAX_REQUESTS_PER_WINDOW/);
+  assert.match(source, /status: 429/);
 });
 
 test("translation batches are bounded and use a configured provider", async () => {
@@ -25,6 +27,7 @@ test("translation batches are bounded and use a configured provider", async () =
   assert.match(source, /const MAX_TOTAL_CHARS = 40_000/);
   assert.match(source, /process\.env\.DEEPL_API_KEY/);
   assert.match(source, /process\.env\.GOOGLE_TRANSLATE_API_KEY/);
+  assert.match(source, /DEEPL_GLOSSARY_ID/);
   assert.match(source, /TRANSLATION_PROVIDER/);
 });
 
@@ -34,4 +37,6 @@ test("runtime excludes code and user-editable content", async () => {
   assert.match(source, /pre, code/);
   assert.match(source, /contenteditable='true'/);
   assert.match(source, /MutationObserver/);
+  assert.match(source, /translationGeneration/);
+  assert.match(source, /translationCache/);
 });

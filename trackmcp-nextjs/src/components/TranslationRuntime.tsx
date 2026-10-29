@@ -6,7 +6,21 @@ import type { SiteLocale } from "./LanguageSwitcher";
 type TextRecord = { node: Text; original: string };
 const originals = new Map<Text, string>();
 const translated = new Set<Text>();
+const translationCache = new Map<string, string>();
+const MAX_CACHE_ENTRIES = 1_000;
 let translationInFlight: Promise<void> | null = null;
+let translationQueued = false;
+let translationGeneration = 0;
+
+function cacheTranslation(source: string, value: string) {
+  translationCache.delete(source);
+  translationCache.set(source, value);
+  while (translationCache.size > MAX_CACHE_ENTRIES) {
+    const oldest = translationCache.keys().next().value;
+    if (oldest === undefined) break;
+    translationCache.delete(oldest);
+  }
+}
 
 function isExcluded(node: Text): boolean {
   const parent = node.parentElement;
@@ -46,16 +60,24 @@ function restoreEnglish() {
 }
 
 async function translatePage() {
-  if (translationInFlight) return translationInFlight;
-  translationInFlight = translatePageInternal();
+  if (translationInFlight) {
+    translationQueued = true;
+    return translationInFlight;
+  }
+  translationInFlight = translatePageInternal(translationGeneration);
   try {
     await translationInFlight;
   } finally {
     translationInFlight = null;
+    if (translationQueued) {
+      translationQueued = false;
+      const match = document.cookie.match(/(?:^|; )trackmcp_locale=([^;]+)/);
+      if (match?.[1] === "zh-CN") void translatePage();
+    }
   }
 }
 
-async function translatePageInternal() {
+async function translatePageInternal(generation: number) {
   const records = collectTextNodes();
   if (!records.length) {
     document.documentElement.lang = "zh-CN";
@@ -64,15 +86,14 @@ async function translatePageInternal() {
   }
 
   emitStatus("translating");
-  const cache = new Map<string, string>();
   try {
-    const uncached = records.filter(({ original }) => !cache.has(original));
+    const uncached = [...new Set(records.map(({ original }) => original))].filter((original) => !translationCache.has(original));
     for (let index = 0; index < uncached.length; index += 80) {
       const batch = uncached.slice(index, index + 80);
       const response = await fetch("/api/translation", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ texts: batch.map(({ original }) => original), sourceLocale: "en", targetLocale: "zh-CN" }),
+        body: JSON.stringify({ texts: batch, sourceLocale: "en", targetLocale: "zh-CN" }),
       });
       if (!response.ok) throw new Error("Translation service unavailable.");
       const body = (await response.json()) as { translations?: unknown };
@@ -80,10 +101,11 @@ async function translatePageInternal() {
       if (translations.length !== batch.length || translations.some((value) => typeof value !== "string" || !value)) {
         throw new Error("Translation service returned incomplete content.");
       }
-      batch.forEach(({ original }, batchIndex) => cache.set(original, translations[batchIndex] as string));
+      batch.forEach((original, batchIndex) => cacheTranslation(original, translations[batchIndex] as string));
     }
+    if (generation !== translationGeneration) return;
     records.forEach(({ node, original }) => {
-      const value = cache.get(original);
+      const value = translationCache.get(original);
       if (value && node.isConnected) {
         node.nodeValue = value;
         translated.add(node);
@@ -113,6 +135,7 @@ export function TranslationRuntime() {
     };
     const onLocaleChange = (event: Event) => {
       const next = (event as CustomEvent<{ locale?: SiteLocale }>).detail?.locale;
+      translationGeneration += 1;
       if (next === "zh-CN") void translatePage();
       else restoreEnglish();
     };

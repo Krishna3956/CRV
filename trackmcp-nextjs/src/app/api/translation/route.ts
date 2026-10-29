@@ -1,10 +1,41 @@
 import { NextResponse } from "next/server";
-import { translate, translationLimits, type TranslationRequest } from "@/lib/translation";
+import {
+  translate,
+  TranslationConfigurationError,
+  TranslationInputError,
+  translationLimits,
+  type TranslationRequest,
+} from "@/lib/translation";
 
 export const runtime = "nodejs";
 const MAX_BODY_BYTES = 100_000;
+const RATE_WINDOW_MS = 60_000;
+const MAX_REQUESTS_PER_WINDOW = 120;
+const rateBuckets = new Map<string, { startedAt: number; count: number }>();
+
+function requestKey(request: Request): string {
+  return request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "anonymous";
+}
+
+function isRateLimited(request: Request): boolean {
+  const now = Date.now();
+  const key = requestKey(request);
+  const previous = rateBuckets.get(key);
+  if (!previous || now - previous.startedAt >= RATE_WINDOW_MS) {
+    rateBuckets.set(key, { startedAt: now, count: 1 });
+    return false;
+  }
+  previous.count += 1;
+  return previous.count > MAX_REQUESTS_PER_WINDOW;
+}
 
 export async function POST(request: Request) {
+  if (isRateLimited(request)) {
+    return NextResponse.json({ error: "Too many translation requests. Please try again shortly." }, {
+      status: 429,
+      headers: { "Retry-After": String(Math.ceil(RATE_WINDOW_MS / 1000)) },
+    });
+  }
   const contentLength = Number(request.headers.get("content-length") || 0);
   if (contentLength > MAX_BODY_BYTES) {
     return NextResponse.json({ error: "Translation request is too large." }, { status: 413 });
@@ -44,15 +75,15 @@ export async function POST(request: Request) {
       headers: { "Cache-Control": "private, no-store" },
     });
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Translation failed.";
-    const configurationError = /not configured|must be deepl|Unsupported|out of bounds|too large|too long/i.test(message);
+    const inputError = error instanceof TranslationInputError;
+    const configurationError = error instanceof TranslationConfigurationError;
     return NextResponse.json(
       {
         error: configurationError ? "Chinese translation is not configured for this deployment." : "Chinese translation is temporarily unavailable.",
-        code: configurationError ? "translation_not_configured" : "translation_unavailable",
+        code: inputError ? "translation_input" : configurationError ? "translation_not_configured" : "translation_unavailable",
         limits: translationLimits,
       },
-      { status: configurationError ? 503 : 502 },
+      { status: inputError ? 400 : configurationError ? 503 : 502 },
     );
   }
 }

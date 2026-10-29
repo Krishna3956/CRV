@@ -22,28 +22,42 @@ const MAX_TEXTS = 100;
 const MAX_TEXT_LENGTH = 4_000;
 const MAX_TOTAL_CHARS = 40_000;
 
+export class TranslationInputError extends Error {
+  readonly code = "translation_input";
+}
+
+export class TranslationConfigurationError extends Error {
+  readonly code = "translation_configuration";
+}
+
 function assertRequest(request: TranslationRequest): void {
-  if (request.sourceLocale && request.sourceLocale !== "en") throw new Error("Unsupported source locale.");
-  if (request.targetLocale !== "zh-CN") throw new Error("Unsupported target locale.");
+  if (request.sourceLocale && request.sourceLocale !== "en") throw new TranslationInputError("Unsupported source locale.");
+  if (request.targetLocale !== "zh-CN") throw new TranslationInputError("Unsupported target locale.");
   if (!Array.isArray(request.texts) || request.texts.length < 1 || request.texts.length > MAX_TEXTS) {
-    throw new Error("Translation batch size is out of bounds.");
+    throw new TranslationInputError("Translation batch size is out of bounds.");
   }
   if (request.texts.some((text) => typeof text !== "string" || text.length > MAX_TEXT_LENGTH)) {
-    throw new Error("A translation item is too long.");
+    throw new TranslationInputError("A translation item is too long.");
   }
   if (request.texts.reduce((total, text) => total + text.length, 0) > MAX_TOTAL_CHARS) {
-    throw new Error("Translation batch is too large.");
+    throw new TranslationInputError("Translation batch is too large.");
   }
 }
 
 async function translateWithDeepL(texts: string[]): Promise<TranslationResult> {
   const key = process.env.DEEPL_API_KEY;
-  if (!key) throw new Error("DEEPL_API_KEY is not configured.");
+  if (!key) throw new TranslationConfigurationError("DEEPL_API_KEY is not configured.");
   const endpoint = process.env.DEEPL_API_URL || "https://api.deepl.com/v2/translate";
+  const glossaryId = process.env.DEEPL_GLOSSARY_ID;
   const response = await fetch(endpoint, {
     method: "POST",
     headers: { Authorization: `DeepL-Auth-Key ${key}`, "Content-Type": "application/json" },
-    body: JSON.stringify({ text: texts, source_lang: "EN", target_lang: "ZH-HANS" }),
+    body: JSON.stringify({
+      text: texts,
+      source_lang: "EN",
+      target_lang: "ZH-HANS",
+      ...(glossaryId ? { glossary_id: glossaryId } : {}),
+    }),
     cache: "no-store",
   });
   if (!response.ok) throw new Error(`DeepL returned ${response.status}.`);
@@ -57,7 +71,7 @@ async function translateWithDeepL(texts: string[]): Promise<TranslationResult> {
 
 async function translateWithGoogle(texts: string[]): Promise<TranslationResult> {
   const key = process.env.GOOGLE_TRANSLATE_API_KEY;
-  if (!key) throw new Error("GOOGLE_TRANSLATE_API_KEY is not configured.");
+  if (!key) throw new TranslationConfigurationError("GOOGLE_TRANSLATE_API_KEY is not configured.");
   const response = await fetch(`https://translation.googleapis.com/language/translate/v2?key=${encodeURIComponent(key)}`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -78,7 +92,7 @@ export async function translate(request: TranslationRequest): Promise<Translatio
   const provider = process.env.TRANSLATION_PROVIDER || (process.env.DEEPL_API_KEY ? "deepl" : "google");
   if (provider === "deepl") return translateWithDeepL(request.texts);
   if (provider === "google") return translateWithGoogle(request.texts);
-  throw new Error("TRANSLATION_PROVIDER must be deepl or google.");
+  throw new TranslationConfigurationError("TRANSLATION_PROVIDER must be deepl or google.");
 }
 
 export const translationLimits = {
