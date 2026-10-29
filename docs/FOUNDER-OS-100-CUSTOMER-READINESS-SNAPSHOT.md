@@ -1,10 +1,24 @@
 # Founder OS first-100 readiness snapshot
 
-Updated: 2026-10-29 (Asia/Kolkata; source and deployed runtime `dd6e5544`; hosted evidence reconciled)
+Updated: 2026-10-29 (Asia/Kolkata; source `336e1049`; deployed runtime `07dea115`; hosted evidence reconciled)
 
 Status: **Engineering green; release decision HOLD**
 
 ## Current checkpoint — 2026-10-29
+
+- The final live SEO re-audit is merged as PR #699 (`336e1049`). It checked
+  108 blog routes on the public hostname and trusted origin: all 200, one H1,
+  unique metadata, exact HTTPS canonicals, no noindex, Article/Breadcrumb/FAQ
+  schema where expected, 367 internal targets with zero broken/redirecting
+  responses, and 71 external targets with zero confirmed failures. This closes
+  the technical on-page audit, not indexing or backlink acquisition.
+- The deployed runtime remains `07dea11535311179b83f1bff7010f9c3b074fc7d`;
+  App Runner workflow `40817742133` passed production smoke, immutable release
+  identity, and runtime-safety checks. Mainline CI for the documentation merge
+  (`40819480056`) also passed.
+- Worker run `40818690734` is a clean no-backlog point sample (0 processed,
+  0 retryable, 0 failed, 0 ms maximum lag), but it does not replace the required
+  three clean scheduled samples. The readiness decision remains HOLD.
 
 - The refresh scheduler was explicitly reconciled with the five-minute
   EventBridge schedule enabled by workflow `40812206669`. AWS evidence showed
