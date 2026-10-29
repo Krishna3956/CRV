@@ -237,6 +237,46 @@ returned HTTP 200 and `/api/health` reported that exact SHA. This release only
 adds redacted worker diagnostics and readiness evidence, so it does not change
 the article metadata, schema, sitemap, robots, or backlink findings above.
 
+### Current release re-audit (2026-10-29, release `07dea115`)
+
+The runtime release that completed the latest App Runner deployment workflow
+(`40817742133`) was rechecked after production smoke, immutable release
+identity, and runtime-safety steps passed. Both the public hostname and the
+trusted App Runner origin were crawled with a browser-style user agent. The
+current evidence is:
+
+- The public and origin sitemaps returned HTTP 200 with **151 unique HTTPS
+  URLs**, including **108 blog routes** (107 articles and the releases index).
+- All **108/108 blog routes returned HTTP 200**. All 108 had exactly one H1,
+  unique title and description values, exact HTTPS canonicals, complete
+  Open Graph and Twitter metadata, no accidental `noindex`, server-rendered
+  content, and a visible read-time label.
+- All **107/107 article routes** had Article JSON-LD, author/publication
+  metadata, and non-empty image alt text. All **108/108 blog routes** had
+  BreadcrumbList JSON-LD. **77/77** routes that expose FAQ content had
+  matching FAQPage JSON-LD.
+- The article crawl found **367 unique internal targets** with **0 broken
+  responses**, **0 redirecting targets**, and **0 exact links to the stale
+  adoption path**. It found **71 unique external targets** with **0 confirmed
+  4xx/5xx responses** in this pass.
+- `/blog/measure-mcp-tool-adoption` returned one permanent **301** to
+  `/blog/measure-mcp-tool-adoption-workflow-completion`; the destination
+  returned **200** with no further redirect. The old path is not present in
+  article hrefs or the sitemap.
+- The newly deployed bounded refresh worker produced a clean no-backlog
+  summary in run `40818690734` (processed 0, retryable 0, failed 0, maximum
+  queue lag 0 ms). This is operational evidence only and does not change the
+  Search Console or backlink conclusions below.
+
+The same live Search Console property was re-opened after this crawl. It
+continues to show **79 indexed** and **2,301 not indexed** pages property-wide;
+the page-indexing report is dated 23 October 2026. The submitted
+`https://trackmcp.com/sitemap.xml` remains **Success** with **151 discovered
+pages**. The Links report shows **123 external links**, with the homepage as
+the only top-linked-page target in the visible report; no blog-page backlink is
+verified there. These are Google-controlled indexing and link observations,
+not a claim that the site has no links in other indexes.
+
 ## Fixed during this work / existing fixes verified
 
 - Verified the previously shipped stale-link replacement in `trackmcp-nextjs/src/app/blog/deep-research.ts` and `trackmcp-nextjs/src/app/blog/next-batch.ts` (`12c22d08`).
