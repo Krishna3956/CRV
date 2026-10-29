@@ -23,6 +23,9 @@ test("scheduled refresh worker emits a bounded redacted lag/retry summary artifa
   assert.match(workflow, /freshness_slo:\(if \(\.timed_out \/\/ false\) == true/);
   assert.match(workflow, /workflow_failed/);
   assert.match(workflow, /refresh-worker-summary-\$\{\{ github\.run_id \}\}/);
+  assert.match(workflow, /left retryable work for the next bounded tick/);
+  assert.match(workflow, /printf -- '- Freshness: `%s`\\n'/);
+  assert.doesNotMatch(workflow, /echo "- Freshness: `\$freshness_slo`"/);
   assert.match(workflow, /actions\/upload-artifact@v4/);
   assert.match(workflow, /if: always\(\)/);
   assert.match(workflow, /secretsmanager get-secret-value/);
