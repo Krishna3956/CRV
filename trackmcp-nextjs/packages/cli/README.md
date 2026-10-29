@@ -60,10 +60,15 @@ call.
 ## Doctor and logout
 
 ```bash
+npx @trackmcp/cli --help
+npx @trackmcp/cli init --help
 npx @trackmcp/cli doctor
 npx @trackmcp/cli doctor --non-interactive
 npx @trackmcp/cli logout
 ```
+
+The help commands are handled locally and do not install the SDK, contact the
+TrackMCP service, or open a browser.
 
 `doctor` checks Node.js, the SDK package and version, package manager,
 environment-file discovery, key presence/format (without displaying the key),

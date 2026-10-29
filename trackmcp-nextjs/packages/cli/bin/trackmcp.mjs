@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 import { createInterface } from "node:readline/promises";
+import { realpathSync } from "node:fs";
 import { stdin as input, stdout as output } from "node:process";
 import { fileURLToPath } from "node:url";
 import { resolve } from "node:path";
@@ -9,13 +10,53 @@ import { findEnvironment, isGitTracked, logout, readConfiguredKey, writeEnvKey }
 import { detectPackageManager, ensureSdkInstalled, findInstalledSdkPackage } from "../lib/sdk-installer.mjs";
 import { parseProxyArgs, runProxy } from "../lib/proxy.mjs";
 
+const HELP = `TrackMCP CLI
+
+Usage:
+  npx @trackmcp/cli init [options]
+  npx @trackmcp/cli doctor
+  npx @trackmcp/cli logout
+  npx @trackmcp/cli proxy [options]
+
+Commands:
+  init       Install the SDK when needed and authorize TrackMCP in a browser.
+  doctor     Check the local SDK, configuration, network, and key status.
+  logout     Remove local CLI session metadata (environment keys are preserved).
+  proxy      Run the local telemetry proxy.
+
+Options:
+  --no-browser       Print the authorization URL without opening a browser.
+  --no-install       Do not install @trackmcp/sdk during init.
+  --non-interactive  Do not start browser authorization; useful in CI.
+  --env-file=PATH    Read/write TRACKMCP_KEY in PATH (default: .env.local).
+  -h, --help         Show this help message.
+
+Environment:
+  TRACKMCP_KEY       Existing API key used by init and doctor.
+  TRACKMCP_ENV_FILE  Default env file path when --env-file is omitted.`;
+
+const COMMAND_HELP = {
+  init: `Usage: npx @trackmcp/cli init [--no-browser] [--no-install] [--non-interactive] [--env-file=PATH]`,
+  doctor: "Usage: npx @trackmcp/cli doctor",
+  logout: "Usage: npx @trackmcp/cli logout",
+  proxy: "Usage: npx @trackmcp/cli proxy [--port=PORT] [--target=URL]",
+};
+
+function printHelp(outputLog, command) {
+  outputLog(command ? COMMAND_HELP[command] || HELP : HELP);
+}
+
 function parseArgs(argv) {
   const [commandArg = "init", ...rest] = argv;
+  if (commandArg === "help" || commandArg === "-h" || commandArg === "--help") {
+    return { command: "help", flags: { help: true } };
+  }
   const command = commandArg === "setup" ? "init" : commandArg;
   if (!["init", "doctor", "logout", "proxy"].includes(command)) throw new Error("Usage: npx @trackmcp/cli init|doctor|logout|proxy");
-  const flags = { browser: true, installSdk: true, nonInteractive: false, envFile: process.env.TRACKMCP_ENV_FILE || ".env.local" };
+  const flags = { browser: true, installSdk: true, nonInteractive: false, envFile: process.env.TRACKMCP_ENV_FILE || ".env.local", help: false };
   for (const arg of rest) {
-    if (arg === "--no-browser" || arg === "--browser=false") flags.browser = false;
+    if (arg === "-h" || arg === "--help") flags.help = true;
+    else if (arg === "--no-browser" || arg === "--browser=false") flags.browser = false;
     else if (arg === "--browser=true") flags.browser = true;
     else if (arg === "--no-install") flags.installSdk = false;
     else if (arg === "--non-interactive") flags.nonInteractive = true;
@@ -148,12 +189,25 @@ export async function runInit({ cwd = process.cwd(), flags = {}, client = create
 }
 
 export async function main(argv = process.argv.slice(2), dependencies = {}) {
+  const outputLog = dependencies.outputLog || console.log;
+  if (argv[0] === "help" || argv[0] === "-h" || argv[0] === "--help") {
+    printHelp(outputLog);
+    return 0;
+  }
   if (argv[0] === "proxy") {
+    if (argv.includes("-h") || argv.includes("--help")) {
+      printHelp(outputLog, "proxy");
+      return 0;
+    }
     const parsed = parseProxyArgs(argv.slice(1));
     await runProxy({ ...parsed, ...(dependencies.proxy || {}) });
     return 0;
   }
   const { command, flags } = parseArgs(argv);
+  if (flags.help) {
+    printHelp(outputLog, command);
+    return 0;
+  }
   if (command === "logout") {
     await logout({ sessionFile: resolve(dependencies.cwd || process.cwd(), ".trackmcp-session.json") });
     (dependencies.outputLog || console.log)("Removed local TrackMCP CLI session metadata. Environment keys were not changed.");
@@ -168,7 +222,19 @@ export async function main(argv = process.argv.slice(2), dependencies = {}) {
   return result.status === "completed" || result.status === "existing_key" ? 0 : 1;
 }
 
-if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
+function isCliEntrypoint() {
+  if (!process.argv[1]) return false;
+  const modulePath = fileURLToPath(import.meta.url);
+  try {
+    // npm and npx invoke bin entries through node_modules/.bin symlinks. Resolve
+    // both paths before comparing or the package exits silently without running.
+    return realpathSync(process.argv[1]) === realpathSync(modulePath);
+  } catch {
+    return resolve(process.argv[1]) === resolve(modulePath);
+  }
+}
+
+if (isCliEntrypoint()) {
   try {
     process.exitCode = await main();
   } catch (error) {
