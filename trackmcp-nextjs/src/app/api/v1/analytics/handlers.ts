@@ -434,7 +434,7 @@ export function createAnalyticsHandler(getAdmin: typeof getSupabaseAdmin = getSu
       family,
       transport,
       outcome,
-      scope_key: `${typeof record.service === "string" ? record.service.slice(0, 128) : "unknown"}:${typeof record.environment === "string" ? record.environment.slice(0, 64) : "unknown"}`,
+      scope_key: `${typeof record.service === "string" ? record.service.slice(0, 128) : "unknown"}:${typeof record.environment === "string" ? record.environment.slice(0, 64) : "unknown"}:${typeof safeDimensions.server_id === "string" ? safeDimensions.server_id.slice(0, 128) : "unknown"}`,
       capability_families: capabilityFamilies,
       signal: signal === "notification" || signal === "progress" || signal === "cancelled" || signal === "catalog_changed" || signal === "resource_changed" || signal === "subscription_started" || signal === "subscription_stopped" ? signal : undefined,
       catalog_change_kind: safeDimensions.catalog_change_kind === "tools" || safeDimensions.catalog_change_kind === "resources" || safeDimensions.catalog_change_kind === "resource_templates" || safeDimensions.catalog_change_kind === "prompts" ? safeDimensions.catalog_change_kind : undefined,
@@ -473,7 +473,7 @@ export function createAnalyticsHandler(getAdmin: typeof getSupabaseAdmin = getSu
       family,
       transport: protocolTransportNames.includes(event.transport as ProtocolTransportName) ? event.transport as ProtocolTransportName : undefined,
       outcome,
-      scope_key: `${event.service.slice(0, 128)}:${event.environment.slice(0, 64)}`,
+      scope_key: `${event.service.slice(0, 128)}:${event.environment.slice(0, 64)}:${event.server_id?.slice(0, 128) || "unknown"}`,
       capability_families: capabilityFamilies,
       observation_kind: metadata?.observation_kind === "protocol_request" || metadata?.observation_kind === "protocol_response" ? metadata.observation_kind : undefined,
       protocol_decision: metadata?.protocol_decision === "accept" || metadata?.protocol_decision === "decline" || metadata?.protocol_decision === "cancel" ? metadata.protocol_decision : undefined,
@@ -513,12 +513,16 @@ export function createAnalyticsHandler(getAdmin: typeof getSupabaseAdmin = getSu
       || row.request_state_hash
       || (row.observation_kind === "protocol_request" && row.source_event_id ? `event:${row.source_event_id}` : undefined)
       || (row.observation_kind === "protocol_response" && row.retry_of_event_id ? `event:${row.retry_of_event_id}` : undefined);
-    if (primaryLink && row.observation_kind) {
+    // The opaque handle is only meaningful inside the observed server scope.
+    // Prefix it before matching so two servers that reuse a request/interaction
+    // handle cannot manufacture a cross-server response pair.
+    const scopedLink = primaryLink && scopeKey ? `${scopeKey}:${primaryLink}` : primaryLink;
+    if (scopedLink && row.observation_kind) {
       const handle = protocolFamilyHandles.get(family) || { requests: new Set<string>(), responses: new Set<string>() };
-      handle[row.observation_kind === "protocol_request" ? "requests" : "responses"].add(primaryLink);
+      handle[row.observation_kind === "protocol_request" ? "requests" : "responses"].add(scopedLink);
       protocolFamilyHandles.set(family, handle);
       const transportHandle = protocolTransportHandles.get(transportOutcomeKey) || { requests: new Set<string>(), responses: new Set<string>() };
-      transportHandle[row.observation_kind === "protocol_request" ? "requests" : "responses"].add(primaryLink);
+      transportHandle[row.observation_kind === "protocol_request" ? "requests" : "responses"].add(scopedLink);
       protocolTransportHandles.set(transportOutcomeKey, transportHandle);
     }
     if (outcome === "failed") current.errors += 1;

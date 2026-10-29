@@ -2,6 +2,22 @@
 
 Status: active autonomous audit, started 2026-10-21.
 
+## 2026-10-30 — protocol linkage scope hardening
+
+- [x] Durable semantic facts now retain a bounded `server_id` dimension for
+  linkage scoping. It is metadata only and does not expose raw request,
+  interaction, task, or payload content.
+- [x] Analytics request/response matching now prefixes every opaque interaction,
+  request-state, or retry handle with service/environment/server scope before
+  joining. Identical handles from different servers therefore remain unmatched
+  instead of manufacturing a cross-server response pair.
+- [x] Regression coverage proves the privacy-safe fact projection and the
+  cross-server non-match. Focused analytics, tenant-isolation, fact, and lint
+  checks pass; the full release gate remains required before publication.
+- [ ] This improves the bounded observed-session surface but does not establish
+  verified person identity, business-workflow correlation, or customer-owned
+  transport interoperability. Those boundaries remain explicit.
+
 ## 2026-10-30 — credentialed tenant/auth scope smoke rechecked
 
 - [x] The read-only production authenticated smoke completed **37/37 checks**

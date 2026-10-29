@@ -1,5 +1,17 @@
 # Founder OS 100 Customer Readiness Ledger
 
+## 2026-10-30 — protocol linkage scope hardening
+
+- [x] Durable protocol facts now preserve a bounded server scope used only to
+  prevent cross-server linkage joins.
+- [x] Protocol request/response matching prefixes opaque handles with the
+  service, environment, and server scope. Reused handles across servers no
+  longer count as matched pairs.
+- [x] Focused analytics, fact-projection, tenant-isolation, and lint checks are
+  green. This is an engineering correctness improvement, not production UAT.
+- [ ] Verified person identity, business-workflow correlation, and
+  customer-owned transport UAT remain outside this change.
+
 ## 2026-10-30 — credentialed tenant/auth scope smoke rechecked
 
 - [x] The production read-only authenticated smoke completed **37/37 checks**

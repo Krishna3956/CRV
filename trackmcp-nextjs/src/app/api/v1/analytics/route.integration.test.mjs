@@ -491,6 +491,27 @@ test("analytics matches durable MRTR evidence through request-state and retry li
   });
 });
 
+test("analytics does not match identical MRTR handles across server scopes", async () => {
+  const shared = "b".repeat(64);
+  const durableFacts = [
+    { source_event_id: "server-a-request", semantic: { outcome: "pending" }, dimensions: { protocol_family: "elicitation", protocol_observation_kind: "protocol_request", interaction_id_hash: shared, server_id: "server-a" }, event_type: "protocol", observed_at: "2026-09-06T00:00:00Z", service: "demo", environment: "prod" },
+    { source_event_id: "server-b-response", semantic: { outcome: "completed" }, dimensions: { protocol_family: "elicitation", protocol_observation_kind: "protocol_response", interaction_id_hash: shared, server_id: "server-b" }, event_type: "protocol", observed_at: "2026-09-06T00:00:01Z", service: "demo", environment: "prod" },
+  ];
+  const base = fakeAdmin([]);
+  const originalFrom = base.from.bind(base);
+  base.from = (table) => table === "trackmcp_semantic_facts"
+    ? { select() { return this; }, eq() { return this; }, gte() { return this; }, limit: async () => ({ data: durableFacts, error: null }) }
+    : originalFrom(table);
+  const response = await createAnalyticsHandler(() => base)(new Request("http://analytics.test/api/v1/analytics?days=7", { headers: { authorization: "Bearer key" } }));
+  assert.equal(response.status, 200);
+  const body = await response.json();
+  assert.deepEqual(body.protocol_family_outcomes, [
+    { family: "elicitation", observations: 2, requests: 1, responses: 1, matched: 0, completed: 1, errors: 0, input_required: 1, unknown: 0, capability_advertised: null },
+  ]);
+  assert.equal(body.protocol_mrtr_linkage.interaction_hashes, 2);
+  assert.equal(body.protocol_mrtr_linkage.matched_pairs, 0);
+});
+
 test("analytics keeps MRTR lifecycle evidence separated across supported transports", async () => {
   const transports = ["stdio", "streamable_http", "sse", "custom"];
   const durableFacts = transports.flatMap((transport, index) => [
