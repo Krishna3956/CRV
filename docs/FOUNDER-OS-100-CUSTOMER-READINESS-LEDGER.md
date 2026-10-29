@@ -11,16 +11,21 @@
   loader marker.
 - [x] Local Lighthouse against the representative blog article improved to
   approximately 0.91s LCP on both the 390px mobile and 1350px desktop profiles
-  (SEO 1.0, CLS 0, TBT 0 in the local production build). The earlier live
-  baseline measured 5.70s mobile and 7.84s desktop LCP, so a fresh deployed
-  measurement remains required before claiming the production improvement.
+  (SEO 1.0, CLS 0, TBT 0 in the local production build).
 - [x] The complete local release gate passed **150 suites**, lint passed, and
   the production build generated **209 routes**.
-- [ ] The change is not yet deployed; hosted CI, immutable App Runner rollout,
-  and a fresh production Lighthouse run remain required before closing the
-  performance risk.
+- [x] PR `#672` (`codex/perf-font-loading`) passed hosted web/JavaScript, Go,
+  and .NET checks and was squash-merged as
+  `2e2211d888b782c88988011960d3deb20261b221`. Main CI `40792706866` and App
+  Runner deployment `40792706931` completed successfully; the health endpoint
+  reports the same immutable release SHA.
+- [x] A fresh production Lighthouse run confirms the Fontshare request is no
+  longer render-blocking. The representative mobile page remains at roughly
+  0.72 performance with 5.96s LCP (TTFB and third-party JavaScript dominate),
+  so the overall production LCP risk remains open and is not being claimed as
+  resolved by this patch.
 
-Last updated: 2026-10-29 (main `181159e2`; deployed application `8a3aee17` and App Runner deployment `40788716827` are healthy; analytics projection caching and the 38-check authenticated two-workspace smoke are live; customer-owned endpoint/protocol UAT, privacy acceptance, backup/PITR posture, migration postflight, and release-owner GO/NO-GO remain open)
+Last updated: 2026-10-29 (main and deployed application `2e2211d8`; App Runner deployment `40792706931` is healthy; analytics projection caching and the 38-check authenticated two-workspace smoke are live; customer-owned endpoint/protocol UAT, privacy acceptance, backup/PITR posture, migration postflight, production LCP optimization, and release-owner GO/NO-GO remain open)
 
 ## 2026-10-29 — identity-version release deployed
 
