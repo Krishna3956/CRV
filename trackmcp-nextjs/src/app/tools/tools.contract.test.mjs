@@ -57,6 +57,8 @@ test("tool sitemap is an index of bounded shards", async () => {
   const queries = await readFile(resolve(root, "src/lib/repository/queries.ts"), "utf8");
   assert.match(queries, /getToolCount/);
   assert.match(queries, /getToolNamesPage/);
+  assert.match(queries, /TOOL_QUERY_BATCH_SIZE = 1000/);
+  assert.match(queries, /getToolNamesPage[\s\S]*?\.range\(cursor, batchEnd\)/);
   assert.match(queries, /getAllToolNames[\s\S]*?\.in\("status", \["approved", "pending"\]\)/);
   assert.match(queries, /getAllToolNames[\s\S]*?\.order\("stars",[\s\S]*?\.order\("id", \{ ascending: true \}\)/);
   assert.match(queries, /getCategoryCounts[\s\S]*?\.range\(offset, offset \+ batch - 1\)/);
