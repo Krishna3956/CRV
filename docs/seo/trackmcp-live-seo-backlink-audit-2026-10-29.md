@@ -10,6 +10,28 @@ The live blog has no detected technical SEO or internal-link breakage. The crawl
 
 This does **not** mean SEO, indexing, or backlinks are complete. Search Console currently reports 79 indexed pages and 2,301 not indexed pages for the whole property. A representative new article is still `Discovered – currently not indexed`. Search Console reports 123 external links from 26 linking sites, all to the homepage in its current top-target report; no blog article appears in that report. No external backlink index was connected, so referring-domain, dofollow/nofollow, lost-link, and competitor-gap claims outside Search Console remain unverified.
 
+### 2026-10-29 direct-origin recheck
+
+Because the Cloudflare-fronted `trackmcp.com` hostname returned an access
+challenge to this audit client, the full live recheck was repeated against the
+trusted App Runner origin used by the production smoke workflows:
+`https://i95pzq2xh7.ap-south-1.awsapprunner.com`. The origin reported HTTP 200
+and served release `a1ad002e04d9d77b720cd427723ce3ee126f542c`. All 30 articles in
+the new batch returned 200; all 30 had one H1, unique title and description,
+exact HTTPS canonicals, no noindex, complete OG/Twitter metadata, Article,
+BreadcrumbList, and FAQPage JSON-LD, author/date/read-time markers, and
+non-empty image alt text. The recheck found 160 unique internal targets with
+0 broken links, 0 redirecting targets, and 0 stale adoption-route links. It
+found 23 unique external targets with 0 broken responses and 0 missing
+`noopener` rel attributes on `_blank` links. The sitemap contained every new
+slug with no duplicate or non-HTTPS URL; robots allowed public crawling and
+declared the HTTPS sitemap; the deliberate stale route returned one 301 and
+the valid route returned 200.
+
+This origin-level evidence confirms the deployed article implementation. It
+does not override the Search Console indexing results above, and it does not
+turn outbound citations into backlinks.
+
 ## Verified and complete
 
 ### Live blog crawl
@@ -94,6 +116,12 @@ Representative Lighthouse runs against `/blog/best-mcp-observability-platforms` 
 |---|---:|---:|---:|---:|---:|---:|
 | Mobile 390×844 | 0.73 | 1.00 | 5.70 s | 0.0025 | 270 ms | 435 ms |
 | Desktop 1350×900 | 0.60 | 1.00 | 7.84 s | 0.0000 | 171 ms | 261 ms |
+
+An additional direct-origin Lighthouse run on 2026-10-29 measured
+performance **0.68**, SEO **1.00**, accessibility **0.96**, LCP **7.52 s**, CLS
+**0.00002**, TBT **274 ms**, and server response time **388 ms**. This is a
+single cold-origin sample and reinforces the existing LCP risk; it is not a
+claim that Core Web Vitals are complete.
 
 The article body and headline are present in server-rendered HTML, images have alt text, and layout shift is negligible. LCP is a remaining release risk, largely associated with the current font/JavaScript payload and render delay; it should be a separate performance milestone rather than being hidden by an SEO score of 1.0.
 
