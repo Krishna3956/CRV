@@ -1,5 +1,14 @@
 # Founder OS first-100 readiness snapshot
 
+## 2026-10-30 CLI release checkpoint
+
+The published `@trackmcp/cli@0.1.13` fixes the npm/npx `.bin` symlink entrypoint
+regression that caused `init`, `doctor`, and `--help` to exit silently. PR #735
+merged as `fac78e7c`, publication workflow `40962471850` completed successfully,
+and clean public-registry checks now show help and diagnostics from the exact
+`npx`/`npm exec` command shapes. This is a package activation correction, not a
+first-100 release GO; the external pilot gates below remain authoritative.
+
 Updated: 2026-10-30 (Asia/Kolkata; source `8f9bbcd5`; deployed runtime `3116f2c9`; hosted evidence reconciled)
 
 Status: **Engineering green; release decision HOLD**

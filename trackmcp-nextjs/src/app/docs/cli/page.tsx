@@ -19,7 +19,7 @@ export default function CliDocsPage() {
 
     <DocSection title="Install and run">
       <Para>
-        The bounded proxy is available in the published <Inline>@trackmcp/cli@0.1.12</Inline>
+        The bounded proxy is available in the published <Inline>@trackmcp/cli@0.1.13</Inline>
         package. Keep the workspace key in the environment; the CLI never accepts API
         keys as command-line arguments.
       </Para>

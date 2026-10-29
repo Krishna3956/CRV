@@ -13,6 +13,14 @@ Path-level reconciliation is maintained in `FOUNDER-OS-FILE-OWNERSHIP.md` and
 the current out-of-scope disposition is maintained in
 `FOUNDER-OS-REVIEW-BOUNDARY.md`.
 
+## Current package correction — 2026-10-30
+
+`@trackmcp/cli@0.1.13` is the current published CLI. It contains the npm/npx
+entrypoint symlink fix and local help dispatch; the public artifact was verified
+after publication workflow `40962471850`. This replaces the prior `0.1.12`
+baseline for active docs and smoke defaults. Historical release rows below are
+retained as immutable evidence.
+
 ## Current pilot evidence manifest (2026-10-28)
 
 This is the immutable cross-system inventory for the current bounded pilot

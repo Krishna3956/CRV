@@ -2,6 +2,19 @@
 
 Status: active autonomous audit, started 2026-10-21.
 
+## 2026-10-30 — CLI entrypoint regression closed
+
+- [x] PR #735 merged as `fac78e7cf7c5baa467fe18b996da0dbb7a01ec3e`; the
+  published `@trackmcp/cli@0.1.13` resolves npm `.bin` symlinks before invoking
+  `main()` and handles global/command help locally.
+- [x] Exact public `npx` and `npm exec --package` checks now print help and
+  doctor diagnostics; non-interactive init returns an actionable error instead
+  of an empty successful exit. Node 25.6.0 direct checks and packed-consumer
+  coverage passed.
+- [ ] Credentialed customer endpoint/key-lifecycle UAT, transport-owned
+  reconnect/replay, backup/PITR, privacy approval, and release-owner GO/NO-GO
+  remain explicit external or owner-controlled gates.
+
 ## 2026-10-29 — coordinated SDK release published
 
 - [x] The reviewed source train merged as `d7e5a527d9883495048562a6d04252845d80fef2` after PR `#681` corrected clean-runner Python artifact preparation.
