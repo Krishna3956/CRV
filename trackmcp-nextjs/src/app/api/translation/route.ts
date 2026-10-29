@@ -13,6 +13,27 @@ const RATE_WINDOW_MS = 60_000;
 const MAX_REQUESTS_PER_WINDOW = 120;
 const MAX_RATE_BUCKETS = 10_000;
 const rateBuckets = new Map<string, { startedAt: number; count: number }>();
+const CORS_ORIGINS = new Set([
+  "https://trackmcp.com",
+  "https://www.trackmcp.com",
+  "https://app.trackmcp.com",
+]);
+
+function withCors(response: NextResponse, request: Request): NextResponse {
+  const origin = request.headers.get("origin");
+  if (origin && CORS_ORIGINS.has(origin)) {
+    response.headers.set("Access-Control-Allow-Origin", origin);
+    response.headers.set("Access-Control-Allow-Methods", "POST, OPTIONS");
+    response.headers.set("Access-Control-Allow-Headers", "Content-Type");
+    response.headers.set("Access-Control-Max-Age", "600");
+    response.headers.set("Vary", "Origin");
+  }
+  return response;
+}
+
+export function OPTIONS(request: Request): NextResponse {
+  return withCors(new NextResponse(null, { status: 204 }), request);
+}
 
 function requestKey(request: Request): string {
   // Forwarded addresses are only meaningful when the deployment's edge has
@@ -43,14 +64,14 @@ function isRateLimited(request: Request): boolean {
 
 export async function POST(request: Request) {
   if (isRateLimited(request)) {
-    return NextResponse.json({ error: "Too many translation requests. Please try again shortly." }, {
+    return withCors(NextResponse.json({ error: "Too many translation requests. Please try again shortly." }, {
       status: 429,
       headers: { "Retry-After": String(Math.ceil(RATE_WINDOW_MS / 1000)) },
-    });
+    }), request);
   }
   const contentLength = Number(request.headers.get("content-length") || 0);
   if (contentLength > MAX_BODY_BYTES) {
-    return NextResponse.json({ error: "Translation request is too large." }, { status: 413 });
+    return withCors(NextResponse.json({ error: "Translation request is too large." }, { status: 413 }), request);
   }
   let body: unknown;
   try {
@@ -60,16 +81,16 @@ export async function POST(request: Request) {
     }
     body = JSON.parse(raw);
   } catch {
-    return NextResponse.json({ error: "Invalid JSON body." }, { status: 400 });
+    return withCors(NextResponse.json({ error: "Invalid JSON body." }, { status: 400 }), request);
   }
 
   if (!body || typeof body !== "object" || Array.isArray(body)) {
-    return NextResponse.json({ error: "Invalid translation request." }, { status: 400 });
+    return withCors(NextResponse.json({ error: "Invalid translation request." }, { status: 400 }), request);
   }
 
   const input = body as Partial<TranslationRequest>;
   if (input.targetLocale !== "zh-CN") {
-    return NextResponse.json({ error: "Only English to Simplified Chinese is supported." }, { status: 400 });
+    return withCors(NextResponse.json({ error: "Only English to Simplified Chinese is supported." }, { status: 400 }), request);
   }
   const payload: TranslationRequest = {
     texts: Array.isArray(input.texts) ? input.texts.filter((text): text is string => typeof text === "string") : [],
@@ -78,24 +99,24 @@ export async function POST(request: Request) {
   };
 
   if (payload.texts.length === 0 || payload.targetLocale !== "zh-CN") {
-    return NextResponse.json({ error: "Only English to Simplified Chinese is supported." }, { status: 400 });
+    return withCors(NextResponse.json({ error: "Only English to Simplified Chinese is supported." }, { status: 400 }), request);
   }
 
   try {
     const result = await translate(payload);
-    return NextResponse.json({ ...result, locale: "zh-CN" }, {
+    return withCors(NextResponse.json({ ...result, locale: "zh-CN" }, {
       headers: { "Cache-Control": "private, no-store" },
-    });
+    }), request);
   } catch (error) {
     const inputError = error instanceof TranslationInputError;
     const configurationError = error instanceof TranslationConfigurationError;
-    return NextResponse.json(
+    return withCors(NextResponse.json(
       {
         error: configurationError ? "Chinese translation is not configured for this deployment." : "Chinese translation is temporarily unavailable.",
         code: inputError ? "translation_input" : configurationError ? "translation_not_configured" : "translation_unavailable",
         limits: translationLimits,
       },
       { status: inputError ? 400 : configurationError ? 503 : 502 },
-    );
+    ), request);
   }
 }

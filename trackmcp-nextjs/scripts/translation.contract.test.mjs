@@ -99,6 +99,8 @@ test("translation endpoint only accepts English to Simplified Chinese", async ()
   assert.match(source, /translation_not_configured/);
   assert.match(source, /MAX_REQUESTS_PER_WINDOW/);
   assert.match(source, /MAX_RATE_BUCKETS/);
+  assert.match(source, /Access-Control-Allow-Origin/);
+  assert.match(source, /export function OPTIONS/);
   assert.match(source, /rateBuckets\.delete/);
   assert.match(source, /status: 429/);
   assert.match(source, /TRACKMCP_TRUST_PROXY/);
@@ -140,6 +142,9 @@ test("runtime excludes code and user-editable content", async () => {
   assert.match(source, /attributeFilter/);
   assert.match(source, /pruneDisconnectedRecords/);
   assert.match(source, /MutationObserver/);
+  assert.match(source, /NEXT_PUBLIC_TRANSLATION_ORIGIN/);
+  assert.match(source, /translationEndpoints/);
+  assert.match(source, /requestTranslation/);
   assert.match(source, /characterData: true/);
   assert.match(source, /translationGeneration/);
   assert.match(source, /translationCache/);

@@ -22,6 +22,42 @@ let translationInFlight: Promise<void> | null = null;
 let translationQueued = false;
 let translationGeneration = 0;
 
+function translationEndpoints(): string[] {
+  const endpoints = ["/api/translation"];
+  const origin = process.env.NEXT_PUBLIC_TRANSLATION_ORIGIN?.replace(/\/+$/, "");
+  if (origin && typeof window !== "undefined" && origin !== window.location.origin) {
+    endpoints.push(`${origin}/api/translation`);
+  }
+  return endpoints;
+}
+
+async function requestTranslation(batch: string[]): Promise<string[]> {
+  let lastError: Error | null = null;
+  for (const endpoint of translationEndpoints()) {
+    try {
+      const response = await fetch(endpoint, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ texts: batch, sourceLocale: "en", targetLocale: "zh-CN" }),
+      });
+      if (!response.ok) {
+        lastError = new Error(`Translation service returned ${response.status}.`);
+        continue;
+      }
+      const body = (await response.json()) as { translations?: unknown };
+      const translations = Array.isArray(body.translations) ? body.translations : [];
+      if (translations.length !== batch.length || translations.some((value) => typeof value !== "string" || !value)) {
+        lastError = new Error("Translation service returned incomplete content.");
+        continue;
+      }
+      return translations as string[];
+    } catch (error) {
+      lastError = error instanceof Error ? error : new Error("Translation service unavailable.");
+    }
+  }
+  throw lastError || new Error("Translation service unavailable.");
+}
+
 function cacheTranslation(source: string, value: string) {
   translationCache.delete(source);
   translationCache.set(source, value);
@@ -180,18 +216,8 @@ async function translatePageInternal(generation: number) {
     const uncached = [...new Set(records.map(({ original }) => original))].filter((original) => !translationCache.has(original));
     for (let index = 0; index < uncached.length; index += 80) {
       const batch = uncached.slice(index, index + 80);
-      const response = await fetch("/api/translation", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ texts: batch, sourceLocale: "en", targetLocale: "zh-CN" }),
-      });
-      if (!response.ok) throw new Error("Translation service unavailable.");
-      const body = (await response.json()) as { translations?: unknown };
-      const translations = Array.isArray(body.translations) ? body.translations : [];
-      if (translations.length !== batch.length || translations.some((value) => typeof value !== "string" || !value)) {
-        throw new Error("Translation service returned incomplete content.");
-      }
-      batch.forEach((original, batchIndex) => cacheTranslation(original, translations[batchIndex] as string));
+      const translations = await requestTranslation(batch);
+      batch.forEach((original, batchIndex) => cacheTranslation(original, translations[batchIndex]));
     }
     if (generation !== translationGeneration) return;
     records.forEach((record) => {

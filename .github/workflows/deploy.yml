@@ -159,6 +159,7 @@ jobs:
             --build-arg NEXT_PUBLIC_WEB3FORMS_ACCESS_KEY="${{ secrets.NEXT_PUBLIC_WEB3FORMS_ACCESS_KEY }}" \
             --build-arg NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN="${{ secrets.NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN }}" \
             --build-arg NEXT_PUBLIC_POSTHOG_HOST="${{ secrets.NEXT_PUBLIC_POSTHOG_HOST || 'https://us.i.posthog.com' }}" \
+            --build-arg NEXT_PUBLIC_TRANSLATION_ORIGIN="https://i95pzq2xh7.ap-south-1.awsapprunner.com" \
             --build-arg TRACKMCP_RELEASE_SHA="$TRACKMCP_DEPLOY_SHA" \
             -t "$IMAGE_BASE:$IMAGE_TAG" \
             -t "$IMAGE_BASE:${TRACKMCP_DEPLOY_SHA}" \
