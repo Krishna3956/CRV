@@ -6,6 +6,15 @@ Status: **Engineering green; release decision HOLD**
 
 ## Current checkpoint — 2026-10-29
 
+- Three additional post-fix worker runs are clean: `40833999710` (4/4
+  succeeded, 712385 ms lag), `40834033933` (no backlog), and `40834069509`
+  (4/4 succeeded, 755497 ms lag). No retryable or failed job has appeared
+  after the compatibility fix.
+- Health evaluation `40834185194` remains warning only because historical
+  pre-fix samples and an older AWS high-lag datapoint are still inside the
+  bounded evaluation window. The freshness gate remains open until that
+  window rolls forward cleanly.
+
 - PR #702 (`0627a890`) added the additive `account_identity_version`
   compatibility fallback to the refresh worker. App Runner deployment
   workflow `40832252214` passed all post-deploy checks, and the live origin

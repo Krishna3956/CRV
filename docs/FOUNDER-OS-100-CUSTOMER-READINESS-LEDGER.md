@@ -1,5 +1,21 @@
 # Founder OS 100 Customer Readiness Ledger
 
+## 2026-10-29 — post-fix worker window recheck
+
+- [x] Three additional worker runs after PR #702 are clean: `40833999710`
+  processed 4/4 successfully with no retryable or failed jobs and
+  `712385 ms` maximum queue lag; `40834033933` observed no backlog; and
+  `40834069509` processed 4/4 successfully with no retryable or failed jobs
+  and `755497 ms` maximum queue lag.
+- [x] The deployed runtime remains healthy at `0627a890`; no new
+  `fact_projection` retry or worker failure has appeared after the migration
+  compatibility fix.
+- [ ] Health report `40834185194` remains **warning** because the bounded
+  one-hour evaluation still contains historical pre-fix stale/failure samples
+  and the AWS rolling metric still contains an older high-lag datapoint. This
+  is an operational window condition, not a newly observed handler failure;
+  the freshness gate remains open until the window is clean.
+
 ## 2026-10-29 — refresh-worker compatibility fix deployed and verified
 
 - [x] PR #702 (`0627a8904efebaa66ac01c5a34ed41e3c8ca8c37`) added the
