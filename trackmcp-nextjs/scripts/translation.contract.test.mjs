@@ -59,8 +59,9 @@ test("translation batches are bounded and use a configured provider", async () =
   assert.match(source, /DEEPL_GLOSSARY_ID/);
   assert.match(source, /TRANSLATION_ENABLE_MACHINE_TRANSLATION/);
   assert.match(source, /TRANSLATION_PROVIDER/);
-  assert.match(source, /HAN_CHARACTERS/);
-  assert.match(source, /PROTECTED_TOKEN/);
+  const quality = await readFile(resolve(root, "src/lib/translation-quality.ts"), "utf8");
+  assert.match(quality, /HAN_CHARACTERS/);
+  assert.match(quality, /PROTECTED_TOKEN/);
   assert.match(source, /assertTranslationBatchQuality/);
 });
 
