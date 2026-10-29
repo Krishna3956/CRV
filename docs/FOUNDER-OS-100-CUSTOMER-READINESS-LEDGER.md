@@ -1,5 +1,22 @@
 # Founder OS 100 Customer Readiness Ledger
 
+## 2026-10-29 — current worker-health recheck
+
+- [x] Health run `40837179614` completed successfully against current `main`.
+  The report now has no `worker_failures_observed` reason: the latest bounded
+  worker evidence is clean, including `40836789883` (12 processed, 0 failed,
+  0 retryable, `537100 ms` lag) and `40837088531` (0 processed, 0 failed,
+  0 retryable, `0 ms` lag).
+- [x] AWS scheduler cadence remains proven: 4 invocations, 0 errors, and 4
+  scheduled end-to-end successes. The report is explicit that this does not
+  prove worker freshness yet.
+- [ ] The freshness state remains **warning**, now for only
+  `freshness_budget_exceeded` and `aws_worker_freshness_not_proven`: two older
+  stale samples and an older `10540402 ms` AWS worker-lag datapoint remain in
+  the bounded window. Keep the gate open until the window rolls forward and
+  at least three current in-budget worker samples are reflected by AWS
+  metrics; do not relabel this warning as healthy.
+
 ## 2026-10-29 — backup/PITR recovery control added
 
 - [x] Added [`FOUNDER-OS-BACKUP-RECOVERY-RUNBOOK.md`](FOUNDER-OS-BACKUP-RECOVERY-RUNBOOK.md)
@@ -948,7 +965,7 @@ End of historical checkpoint archive.
 
 | Gate | Current evidence | State | Required closure evidence |
 | --- | --- | --- | --- |
-| Worker freshness | Health artifact `12873300062` from run `40816871097`: AWS cadence is proven (4 invocations, 0 errors, 4 end-to-end successes), but worker freshness is warning with `962905 ms` maximum AWS queue lag versus the `900000 ms` budget; worker artifact `12872467824` reports two `handler_failure` retries and `1048892 ms` max lag | **HOLD / warning** | Deploy the bounded retryable-kind diagnostic, identify the affected handler family, then obtain at least 3 complete scheduled samples with zero retryable/failed rows and maximum queue lag within 900000 ms |
+| Worker freshness | Health artifact `12881601320` from run `40837179614`: AWS cadence is proven (4 invocations, 0 errors, 4 end-to-end successes); current worker samples are clean, but two older stale samples and an older `10540402 ms` AWS worker-lag datapoint remain in the bounded window | **HOLD / warning** | Let the bounded window roll forward, then obtain at least 3 current in-budget worker samples reflected by AWS metrics with zero retryable/failed work and maximum queue lag within `900000 ms` |
 | Backup/PITR | Supabase Free Plan has no scheduled backups or PITR | **HOLD / owner decision** | Accepted documented limitation with named recovery owner/runbook, or plan upgrade plus tested restore rehearsal |
 | Privacy acceptance | Engineering export/deletion contracts pass; production acceptance is not recorded | **HOLD / owner decision** | Signed production privacy review and retention/deletion acceptance |
 | Credentialed lifecycle/UAT | Read-only auth, first-ingest, transport, and device-flow evidence is recorded; customer-owned endpoint/protocol UAT remains unexecuted | **HOLD / credentialed** | Customer-owned endpoint/protocol UAT artifact plus explicit acceptance of reconnect/replay, durable-subscription, and OAuth boundaries |
