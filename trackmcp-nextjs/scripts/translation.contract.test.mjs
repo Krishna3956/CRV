@@ -17,6 +17,27 @@ test("route audit covers static and dynamic page families", async () => {
   assert.match(source, /blog\/\[slug\]/);
   assert.match(source, /category\/\[slug\]/);
   assert.match(source, /apiRoutesExcluded/);
+  assert.match(source, /sourcePublicUrlInventory/);
+  assert.match(source, /blogPostEntries/);
+  assert.match(source, /categoryEntries/);
+});
+
+test("Chinese browser preferences are detected without overriding an explicit cookie", async () => {
+  const source = await readFile(resolve(root, "src/components/site-locale.ts"), "utf8");
+  assert.match(source, /navigator\.languages/);
+  assert.match(source, /zh-CN/);
+  assert.match(source, /trackmcp_locale/);
+  assert.match(source, /browserPrefersSimplifiedChinese/);
+});
+
+test("new submissions stay inside the shared translation runtime", async () => {
+  const submit = await readFile(resolve(root, "src/app/api/repository/submit/route.ts"), "utf8");
+  assert.match(submit, /from\("mcp_tools"\)\.insert/);
+  assert.match(submit, /revalidatePath\("\/tool-sitemap\.xml"\)/);
+  assert.match(submit, /revalidatePath\("\/new", "page"\)/);
+  const runtime = await readFile(resolve(root, "src/components/TranslationRuntime.tsx"), "utf8");
+  assert.match(runtime, /MutationObserver/);
+  assert.match(runtime, /readSiteLocale/);
 });
 
 test("translation endpoint only accepts English to Simplified Chinese", async () => {

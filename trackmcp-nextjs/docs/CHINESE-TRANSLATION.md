@@ -6,6 +6,7 @@ The site now has a global language control in the root layout. It is available o
 
 - English remains the canonical URL and source language.
 - Selecting `中文（简体）` stores `trackmcp_locale=zh-CN` and translates the rendered text in place.
+- If there is no saved language choice, browsers advertising `zh`, `zh-CN`, `zh-Hans`, or `zh-SG` start with Simplified Chinese automatically. An explicit English or Chinese choice always wins.
 - Route transitions and newly rendered content are observed with `MutationObserver`, so a newly submitted tool page does not need a new page file or a translation build.
 - Code, preformatted blocks, URLs, SVGs, form controls, editable fields, and explicitly marked `data-no-translate` content are left unchanged.
 - A failed or incomplete translation restores the original English content. The client never leaves a partially translated page visible.
@@ -48,6 +49,8 @@ Machine translation is not a 100% accuracy guarantee. The endpoint is therefore 
 
 ## Current catalog size
 
-The repository code contains 51 page entrypoints. The live Supabase directory currently reports 17,796 approved or pending tool rows, and those rows are rendered through the dynamic `/tool/[name]` route. This runtime translates those pages on demand rather than trying to prebuild tens of thousands of locale copies.
+The repository code contains 51 page entrypoints, but that is not the public URL count. The source sitemap inventory contains 35 static URLs, 108 blog post entries, and 9 category URLs: 152 sitemap URLs before the dynamic tool catalog. Run `npm run audit:translation-live` against the deployed site to measure the currently published sitemap and tool shards; the audit keeps the static/blog/category inventory separate from database-backed tool URLs.
 
-Run `npm run audit:translation-routes` to re-check the route tree. The audit confirms the shared root runtime, counts page entrypoints, excludes API routes, and requires the dynamic tool, blog, and category route families to remain present.
+The connected Supabase directory currently reports 17,797 approved or pending tool rows, and those rows are rendered through the dynamic `/tool/[name]` route. The runtime translates those pages on demand rather than trying to prebuild tens of thousands of locale copies. A submitted tool is inserted into `mcp_tools`, the directory/sitemap paths are revalidated, and the shared root runtime translates the new page when a visitor has selected or automatically prefers Chinese.
+
+Run `npm run audit:translation-routes` to re-check the route tree and source URL inventory. Run `npm run audit:translation-live` to read the deployed sitemap and tool-sitemap index without changing anything. The audits confirm the shared root runtime, count page entrypoints, exclude API routes, and require the dynamic tool, blog, and category route families to remain present.

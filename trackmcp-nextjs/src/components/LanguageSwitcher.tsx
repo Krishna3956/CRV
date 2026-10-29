@@ -2,22 +2,15 @@
 
 import { useEffect, useRef, useState } from "react";
 import { Check, ChevronDown, Globe2 } from "lucide-react";
-
-export type SiteLocale = "en" | "zh-CN";
+import { readSiteLocale, writeSiteLocale, type SiteLocale } from "./site-locale";
 
 const LOCALES: { value: SiteLocale; label: string; short: string }[] = [
   { value: "en", label: "English", short: "EN" },
   { value: "zh-CN", label: "中文（简体）", short: "中文" },
 ];
 
-function readLocale(): SiteLocale {
-  if (typeof document === "undefined") return "en";
-  const match = document.cookie.match(/(?:^|; )trackmcp_locale=([^;]+)/);
-  return match?.[1] === "zh-CN" ? "zh-CN" : "en";
-}
-
 export function LanguageSwitcher() {
-  const [locale, setLocale] = useState<SiteLocale>(readLocale);
+  const [locale, setLocale] = useState<SiteLocale>(readSiteLocale);
   const [open, setOpen] = useState(false);
   const [status, setStatus] = useState<"idle" | "translating" | "error">("idle");
   const ref = useRef<HTMLDivElement>(null);
@@ -41,7 +34,7 @@ export function LanguageSwitcher() {
   }, []);
 
   useEffect(() => {
-    document.cookie = `trackmcp_locale=${locale}; Path=/; Max-Age=31536000; SameSite=Lax`;
+    writeSiteLocale(locale);
   }, [locale]);
 
   const choose = (next: SiteLocale) => {

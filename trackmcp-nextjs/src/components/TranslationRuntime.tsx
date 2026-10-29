@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
-import type { SiteLocale } from "./LanguageSwitcher";
+import { readSiteLocale, type SiteLocale } from "./site-locale";
 
 type TextRecord = { node: Text; original: string };
 const originals = new Map<Text, string>();
@@ -122,8 +122,7 @@ async function translatePageInternal(generation: number) {
 export function TranslationRuntime() {
   useEffect(() => {
     const locale = (): SiteLocale => {
-      const match = document.cookie.match(/(?:^|; )trackmcp_locale=([^;]+)/);
-      return match?.[1] === "zh-CN" ? "zh-CN" : "en";
+      return readSiteLocale();
     };
     let timer: number | undefined;
     const apply = () => {
