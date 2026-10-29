@@ -34,15 +34,16 @@ Status: **Engineering green; release decision HOLD**
   attribution coverage is 11/11; production write persistence remains
   intentionally unclaimed because the smoke did not create a submission.
 
-- Fresh health evaluation `40837179614` has no current worker-failure reason:
-  the latest bounded worker runs are clean, including `40836789883` (12
-  processed, 0 failed, 0 retryable, `537100 ms` lag) and `40837088531` (no
-  backlog, 0 failed, 0 retryable). AWS scheduler cadence remains proven with
-  4 invocations, 0 errors, and 4 scheduled successes.
-- The health state is still **warning**, not healthy, because two older stale
-  samples and an older `10540402 ms` AWS worker-lag datapoint remain in the
-  bounded window. The freshness gate stays open until the window rolls
-  forward and AWS reflects at least three current in-budget samples.
+- Fresh health evaluation `40848128417` (artifact `12885673154`) has no
+  current worker-failure reason: AWS scheduler cadence remains proven with 4
+  invocations, 0 errors, and 4 scheduled successes, and the current scheduled
+  sample is within budget at `179222 ms` queue lag with 0 failed/retryable
+  work.
+- The health state is still **warning**, not healthy, because AWS's rolling
+  worker metric retains an older `10606459 ms` maximum queue-lag datapoint;
+  `worker_freshness_gate` is therefore still pending. The gate stays open
+  until the bounded window rolls forward and AWS reflects at least three
+  current in-budget samples.
 
 - The backup/PITR control is now documented in
   `FOUNDER-OS-BACKUP-RECOVERY-RUNBOOK.md`, including explicit RPO/RTO,

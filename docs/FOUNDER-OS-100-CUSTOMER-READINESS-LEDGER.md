@@ -1,5 +1,23 @@
 # Founder OS 100 Customer Readiness Ledger
 
+## 2026-10-29 — latest worker-health recheck remains an explicit warning
+
+- [x] Manual refresh-health evaluation `40848128417` completed successfully
+  against `main`; artifact `12885673154` reports scheduler cadence proven with
+  4 invocations, 0 errors, and 4 scheduled end-to-end successes. The current
+  worker samples contain 0 failed, 0 retryable, and 0 incomplete runs.
+- [x] The latest scheduled sample is within the 15-minute budget
+  (`179222 ms` queue lag), and the four AWS worker samples are complete. This
+  confirms that the post-fix worker path is operating; it is not a blanket
+  freshness pass.
+- [ ] The report remains `state=warning` because AWS still exposes a rolling
+  maximum queue lag of `10606459 ms` from an older sample, so
+  `worker_freshness_gate` is still `pending` even though the current sample is
+  clean. The freshness gate stays open until the bounded AWS window rolls
+  forward and at least three current in-budget samples are reflected there.
+- [ ] Backup/PITR, privacy acceptance, customer-owned protocol/UAT, and the
+  release-owner GO/NO-GO decision remain independent HOLD gates.
+
 ## 2026-10-29 — homepage responsive polish deployed and verified
 
 - [x] PR #710 (`e0629ea1d02331a1c9cd26eb82d61bfe0a93529f`) shipped the three
