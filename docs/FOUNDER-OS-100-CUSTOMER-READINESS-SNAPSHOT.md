@@ -6,6 +6,12 @@ Status: **Engineering green; release decision HOLD**
 
 ## Current checkpoint — 2026-10-29
 
+- The submission-attribution improvement is ready for publication: the form
+  captures a bounded self-reported source, current campaign signals override
+  stale last-touch storage, and server normalization drops email/credential-
+  shaped detail. Focused attribution coverage is 11/11; production migration
+  parity, deploy, and submission smoke remain required before claiming it live.
+
 - Fresh health evaluation `40837179614` has no current worker-failure reason:
   the latest bounded worker runs are clean, including `40836789883` (12
   processed, 0 failed, 0 retryable, `537100 ms` lag) and `40837088531` (no

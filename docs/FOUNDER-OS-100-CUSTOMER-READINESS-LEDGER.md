@@ -1,5 +1,21 @@
 # Founder OS 100 Customer Readiness Ledger
 
+## 2026-10-29 — submission attribution made actionable and privacy-bounded
+
+- [x] The public submission flow now captures a bounded self-reported source
+  category for private-share referrals that browsers cannot reveal, preserves
+  first-touch context, and lets current UTM/referrer evidence override stale
+  last-touch storage. The read-only latest-50 SQL report uses explicit
+  self-report, campaign, referrer, then browser-unknown precedence.
+- [x] Server normalization rejects email-like, credential-shaped, token-like,
+  and private-key-shaped free-text details before persistence. The migration
+  remains nullable and object-only; no backfill or raw payload capture was
+  added. Submission attribution tests now cover the privacy boundary and all
+  11 focused tests pass.
+- [ ] This source change is not a production deployment or owner acceptance.
+  Run migration parity and the production submission smoke after publication;
+  do not treat self-reported source as verified identity or a backlink.
+
 ## 2026-10-29 — current worker-health recheck
 
 - [x] Health run `40837179614` completed successfully against current `main`.

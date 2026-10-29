@@ -52,6 +52,8 @@ const URL_RE = /^https?:\/\/(www\.)?github\.com\/[\w-]+\/[\w.-]+\/?$/;
 export function SubmitClient() {
   const [url, setUrl] = useState("");
   const [email, setEmail] = useState("");
+  const [selfReportedSource, setSelfReportedSource] = useState("");
+  const [selfReportedDetail, setSelfReportedDetail] = useState("");
   const [wantsFeatured, setWantsFeatured] = useState(false);
   const [status, setStatus] = useState<"idle" | "loading" | "done" | "error">("idle");
   const [message, setMessage] = useState("");
@@ -94,7 +96,17 @@ export function SubmitClient() {
       const res = await fetch("/api/repository/submit", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ url, email, wantsFeatured, submission_event_id: submissionEventId, submission_attribution: submissionAttribution }),
+        body: JSON.stringify({
+          url,
+          email,
+          wantsFeatured,
+          submission_event_id: submissionEventId,
+          submission_attribution: {
+            ...submissionAttribution,
+            self_reported_source: selfReportedSource,
+            self_reported_detail: selfReportedDetail || null,
+          },
+        }),
       });
       const data = await res.json();
       if (!res.ok) {
@@ -116,6 +128,7 @@ export function SubmitClient() {
         utm_medium: submissionAttribution?.utm_medium || null,
         utm_campaign: submissionAttribution?.utm_campaign || null,
         landing_pathname: submissionAttribution?.landing_pathname || null,
+        self_reported_source: selfReportedSource,
       });
       void sendWeb3Form({
         subject: `New MCP submission, ${data.repo_name || url}`,
@@ -236,6 +249,39 @@ export function SubmitClient() {
                   )}
                 </div>
                 <p className="mt-1.5 text-[12px] text-faint">We&apos;ll fetch your repo details automatically.</p>
+              </div>
+
+              <div>
+                <label htmlFor="source" className="mb-1.5 flex items-center gap-1.5 text-[13px] font-medium text-body">
+                  How did you hear about TrackMCP? <span className="text-amber-600">*</span>
+                </label>
+                <select
+                  id="source"
+                  required
+                  value={selfReportedSource}
+                  onChange={(e) => setSelfReportedSource(e.target.value)}
+                  className="w-full rounded-lg border border-line-strong bg-white px-3.5 py-3 text-[14.5px] text-ink outline-none transition-colors focus:border-brand focus:ring-2 focus:ring-brand/20"
+                >
+                  <option value="" disabled>Select the closest source</option>
+                  <option value="google">Google or another search engine</option>
+                  <option value="chatgpt">ChatGPT or another AI assistant</option>
+                  <option value="github">GitHub</option>
+                  <option value="social_media">Social media</option>
+                  <option value="community">Community, Discord, Slack, or forum</option>
+                  <option value="email_newsletter">Email or newsletter</option>
+                  <option value="friend_or_colleague">Friend or colleague</option>
+                  <option value="other">Other</option>
+                </select>
+                <input
+                  id="source-detail"
+                  type="text"
+                  value={selfReportedDetail}
+                  onChange={(e) => setSelfReportedDetail(e.target.value.slice(0, 128))}
+                  placeholder="Optional: name the site, community, or person"
+                  maxLength={128}
+                  className="mt-2 w-full rounded-lg border border-line bg-white px-3.5 py-2.5 text-[13px] text-ink outline-none transition-colors placeholder:text-faint focus:border-brand focus:ring-2 focus:ring-brand/20"
+                />
+                <p className="mt-1.5 text-[12px] text-faint">This helps us measure sources that browsers cannot reveal, such as private shares.</p>
               </div>
 
               <div>
