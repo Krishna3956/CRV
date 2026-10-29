@@ -25,6 +25,9 @@ test("allows standalone protocol tokens and shell labels to remain Latin", () =>
   assert.equal(translationQualityError("mcp", "mcp"), null);
   assert.equal(translationQualityError("npx", "npx"), null);
   assert.equal(translationQualityError("@trackmcp/cli init", "@trackmcp/cli init"), null);
+  assert.equal(translationQualityError("$ npx @trackmcp/cli init", "$ npx @trackmcp/cli init"), null);
+  assert.equal(translationQualityError("trackmcp", "trackmcp"), null);
+  assert.equal(translationQualityError("Python SDK", "Python SDK"), null);
 });
 
 test("rejects an incomplete batch before display", () => {

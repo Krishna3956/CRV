@@ -1,5 +1,6 @@
 const HAN_CHARACTERS = /[\u3400-\u9fff]/;
 const PROTECTED_TOKEN = /https?:\/\/[^\s)]+|`[^`]+`/g;
+const OPAQUE_TECHNICAL_LABEL = /^(?:[A-Za-z]+(?:\s+(?:SDK|API|CLI|MCP|HTTP|SSE|OTel|JSON|OAuth|URL|ID)))+$/;
 
 function expectsNaturalLanguage(source: string): boolean {
   const normalized = source.trim();
@@ -10,7 +11,9 @@ function expectsNaturalLanguage(source: string): boolean {
   // This also covers values such as `@trackmcp/cli init`, which are code-like
   // even when a caller did not mark the surrounding DOM node as code.
   if (
-    /^(?:mcp|track|npx|en|sdk|api|cli|http|sse|otel|json|oauth|url|id)$/i.test(normalized) ||
+    /^(?:mcp|track|trackmcp|npx|en|sdk|api|cli|http|sse|otel|json|oauth|url|id)$/i.test(normalized) ||
+    OPAQUE_TECHNICAL_LABEL.test(normalized) ||
+    /^\$\s+[A-Za-z0-9@._/+:-]+(?:\s+[A-Za-z0-9@._/+:-]+)*$/.test(normalized) ||
     (/[\/@._:+-]/.test(normalized) && /^[A-Za-z0-9@._/+:-]+(?:\s+[A-Za-z0-9@._/+:-]+)*$/.test(normalized))
   ) {
     return false;
