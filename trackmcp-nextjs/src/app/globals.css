@@ -7,6 +7,12 @@
   display: none;
 }
 
+/* Public pages render the selector inside the sticky nav. Keep the root-level
+ * fallback for auth, device, and dashboard surfaces without two controls. */
+body:has([data-site-nav]) .global-language-switcher {
+  display: none;
+}
+
 @theme {
   /* Surfaces */
   --color-canvas: #ffffff;
