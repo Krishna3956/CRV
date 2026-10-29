@@ -68,6 +68,8 @@ export type RefreshBatchResult = {
   max_attempt_count: number;
   /** Bounded, redacted error-code counts for retryable jobs in this invocation. */
   retryable_error_codes: Record<string, number>;
+  /** Bounded job-kind counts for retryable jobs in this invocation. */
+  retryable_error_kinds: Record<string, number>;
   /** Server-side timestamp for interpreting the bounded metrics. */
   observed_at: string;
 };
@@ -103,10 +105,10 @@ function resultFromHandler(value: TrackMCPRefreshJobResult | void): TrackMCPRefr
   return { outcome: value.outcome, error_code: safe.code, detail: safe.detail };
 }
 
-function recordRetryableErrorCode(counts: Record<string, number>, code: string | null): void {
-  if (!code || !/^[a-zA-Z0-9_.-]{1,80}$/.test(code)) return;
-  if (!Object.prototype.hasOwnProperty.call(counts, code) && Object.keys(counts).length >= MAX_RETRYABLE_ERROR_CODES) return;
-  counts[code] = Math.min(MAX_RETRYABLE_ERROR_COUNT, (counts[code] || 0) + 1);
+function recordRetryableLabel(counts: Record<string, number>, label: string | null): void {
+  if (!label || !/^[a-zA-Z0-9_.-]{1,80}$/.test(label)) return;
+  if (!Object.prototype.hasOwnProperty.call(counts, label) && Object.keys(counts).length >= MAX_RETRYABLE_ERROR_CODES) return;
+  counts[label] = Math.min(MAX_RETRYABLE_ERROR_COUNT, (counts[label] || 0) + 1);
 }
 
 /** Run at most one job. The caller controls scheduling and repetition. */
@@ -161,9 +163,9 @@ export async function runRefreshJobBatch(
   const maxDurationMs = batch.maxDurationMs ?? DEFAULT_BATCH_DURATION_MS;
   const observedAt = options.now?.() ?? new Date();
   if (!Number.isInteger(maxJobs) || maxJobs < 1 || maxJobs > 100 || !Number.isInteger(maxDurationMs) || maxDurationMs < 1 || maxDurationMs > 60_000) {
-    return { processed: 0, succeeded: 0, retryable: 0, failed: 0, idle: false, aborted: false, errors: ["invalid_worker"], max_queue_lag_ms: 0, max_attempt_count: 0, retryable_error_codes: {}, observed_at: observedAt.toISOString() };
+    return { processed: 0, succeeded: 0, retryable: 0, failed: 0, idle: false, aborted: false, errors: ["invalid_worker"], max_queue_lag_ms: 0, max_attempt_count: 0, retryable_error_codes: {}, retryable_error_kinds: {}, observed_at: observedAt.toISOString() };
   }
-  const summary: RefreshBatchResult = { processed: 0, succeeded: 0, retryable: 0, failed: 0, idle: false, aborted: false, errors: [], max_queue_lag_ms: 0, max_attempt_count: 0, retryable_error_codes: {}, observed_at: observedAt.toISOString() };
+  const summary: RefreshBatchResult = { processed: 0, succeeded: 0, retryable: 0, failed: 0, idle: false, aborted: false, errors: [], max_queue_lag_ms: 0, max_attempt_count: 0, retryable_error_codes: {}, retryable_error_kinds: {}, observed_at: observedAt.toISOString() };
   const controller = new AbortController();
   const abortFromCaller = () => controller.abort();
   if (batch.signal?.aborted) controller.abort();
@@ -188,7 +190,10 @@ export async function runRefreshJobBatch(
         const createdAt = Date.parse(result.job.created_at);
         if (Number.isFinite(createdAt)) summary.max_queue_lag_ms = Math.max(summary.max_queue_lag_ms, Math.min(86_400_000, Math.max(0, observedAt.getTime() - createdAt)));
         summary.max_attempt_count = Math.max(summary.max_attempt_count, Math.min(8, Math.max(0, result.job.attempt_count)));
-        if (result.state === "retryable") recordRetryableErrorCode(summary.retryable_error_codes, result.job.last_error_code);
+        if (result.state === "retryable") {
+          recordRetryableLabel(summary.retryable_error_codes, result.job.last_error_code);
+          recordRetryableLabel(summary.retryable_error_kinds, result.job.kind);
+        }
       }
       summary.processed += 1;
       summary[result.state] += 1;

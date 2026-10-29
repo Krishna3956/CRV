@@ -58,6 +58,18 @@ test("worker health surfaces stale, failed, and cadence evidence without payload
   assert.equal(JSON.stringify(report).includes("private"), false);
 });
 
+test("worker health preserves bounded retryable diagnostics without payloads", () => {
+  const report = summarizeRefreshWorkerRuns([
+    run({
+      retryable: 2,
+      retryable_error_codes: { handler_failure: 2, "https://secret.example": 9, "bad key": 4 },
+      retryable_error_kinds: { fact_projection: 2, "raw payload": 9 },
+    }),
+  ]);
+  assert.deepEqual(report.runs[0].retryable_error_codes, { handler_failure: 2 });
+  assert.deepEqual(report.runs[0].retryable_error_kinds, { fact_projection: 2 });
+});
+
 test("historical failures do not poison the bounded current health window", () => {
   const report = summarizeRefreshWorkerRuns([
     run({ run_id: 1, created_at: "2026-10-26T00:00:00Z", conclusion: "failure", failed: 1, freshness_slo: "stale" }),
