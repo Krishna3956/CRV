@@ -52,10 +52,10 @@ application callback `https://app.trackmcp.com/auth/callback` is used by the
 live authorization request. Provider client secrets belong only in Supabase.
 
 The real GitHub sign-in and existing-user dashboard return-path checks passed
-in the signed-in production browser on 2026-10-29. Google provider wiring is
-configured, but fresh unauthenticated browser verification is blocked because
-`/signin` currently returns a Cloudflare 502 from the App Runner host while
-the authenticated `/dashboard` remains reachable. New-user onboarding and the
+in the signed-in production browser on 2026-10-29. A fresh Google sign-in using
+the TrackMCP account `krishnaatmu@gmail.com` reached the Google consent screen,
+returned to `https://app.trackmcp.com/dashboard`, and loaded the `krishnaatmu`
+workspace with dashboard navigation and data. New-user onboarding and the
 device-flow `/device?user_code=...` return-path remain separate acceptance
 checks.
 
@@ -63,9 +63,9 @@ checks.
 
 The fail-closed provider gate is merged and live in runtime
 `32ff5dfef6ec6a59de230c3eed2a98e7c0803b79`. GitHub provider configuration and
-one real browser sign-in are verified; Google provider configuration is verified
-in Google Cloud and Supabase, while fresh Google UAT remains blocked by the
-current 502. The route still intentionally hides disabled or unavailable
+one real browser sign-in are verified; Google provider configuration and a
+fresh Google UAT are also verified in Google Cloud, Supabase, and the live
+dashboard. The route still intentionally hides disabled or unavailable
 providers and keeps email/password as the safe fallback. OAuth remains
-partially closed pending sign-in host recovery, new-user onboarding, and
-device-flow return-path evidence.
+partially closed only for the separate new-user onboarding and device-flow
+return-path evidence.

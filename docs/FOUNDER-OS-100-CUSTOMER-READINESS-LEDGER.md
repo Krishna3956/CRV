@@ -9,9 +9,10 @@
   `https://qficcofvzidpvkltjkmo.supabase.co/auth/v1/callback`.
 - [x] Enabled Google in the production Supabase Auth provider settings and
   registered the TrackMCP account as a Google test user (testing mode).
-- [ ] Fresh Google browser UAT is blocked by a current Cloudflare 502 on the
-  unauthenticated `/signin` route. The authenticated `/dashboard` remains
-  reachable; retry sign-in after the App Runner/Cloudflare host recovers.
+- [x] Fresh Google browser UAT used `krishnaatmu@gmail.com`, returned to
+  `app.trackmcp.com/dashboard`, and loaded the `krishnaatmu` workspace with
+  dashboard navigation and data. An earlier transient Cloudflare 502 cleared
+  before this verification.
 - [ ] Do not use the earlier `samkalp-abhyas` project/client for production;
   it was created during the initial setup before the dedicated TrackMCP
   project was requested.

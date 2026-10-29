@@ -26,10 +26,10 @@ promise that every product capability is complete.
 - Production GitHub OAuth is configured in Supabase and verified end to end in
   the signed-in browser. Google is configured in the dedicated Google Cloud
   project `trusty-diorama-513117-f6` and enabled in Supabase, with the
-  TrackMCP account registered as a Google test user. Fresh Google browser UAT
-  is still blocked because the unauthenticated `/signin` route currently
-  returns a Cloudflare 502; the authenticated dashboard remains reachable.
-  New-user onboarding and device-flow OAuth return-path checks remain open.
+  TrackMCP account registered as a Google test user. A fresh Google browser
+  flow using `krishnaatmu@gmail.com` reached consent, returned to
+  `app.trackmcp.com/dashboard`, and loaded the `krishnaatmu` workspace. New-user
+  onboarding and device-flow OAuth return-path checks remain open.
 
 The release remains **HOLD** pending backup/PITR ownership, production privacy
 acceptance, credentialed key-lifecycle/customer-endpoint UAT, the remaining

@@ -23,10 +23,10 @@ Health evaluation `40891096616` (`12905900486`) reports a healthy bounded worker
 window. GitHub OAuth is configured in Supabase and passed a real browser
 authorization and authenticated dashboard return on 2026-10-29. Google is
 configured in the dedicated Google Cloud project `trusty-diorama-513117-f6`,
-enabled in Supabase, and the TrackMCP account is registered as a test user.
-Fresh Google browser UAT is blocked because the unauthenticated `/signin`
-route currently returns a Cloudflare 502 while `/dashboard` remains reachable.
-New-user onboarding and device-flow OAuth return-path checks remain open. The
+enabled in Supabase, and the TrackMCP account is registered as a test user. A
+fresh Google browser flow using `krishnaatmu@gmail.com` returned to
+`app.trackmcp.com/dashboard` and loaded the `krishnaatmu` workspace. New-user
+onboarding and device-flow OAuth return-path checks remain open. The
 release remains Draft/HOLD because backup/recovery ownership,
 privacy acceptance, credentialed lifecycle/customer-endpoint UAT, and
 release-owner approval remain open.
