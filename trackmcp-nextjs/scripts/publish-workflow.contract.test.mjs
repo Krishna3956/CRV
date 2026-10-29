@@ -72,6 +72,10 @@ test("npm publication requires provenance and package preflight tests", () => {
   assert.match(workflow, /Preflight all release-train registry versions/);
   assert.match(workflow, /if: inputs\.package == 'all' \|\| inputs\.package == 'typescript-python'/);
   assert.match(workflow, /All release-train versions are absent from npm\/PyPI/);
+  const pythonBuildIndex = workflow.indexOf("Build Python release artifacts for the clean-runner audit");
+  const auditIndex = workflow.indexOf("Audit all release artifacts before publishing");
+  assert.ok(pythonBuildIndex >= 0, "the release train must build Python artifacts on a clean runner");
+  assert.ok(pythonBuildIndex < auditIndex, "Python artifacts must exist before the release audit runs");
 });
 
 test("Python publication is deliberate and confirmation-gated", async () => {
@@ -101,4 +105,8 @@ test("Python publication refuses an immutable duplicate version", async () => {
   assert.match(pythonWorkflow, /https:\/\/pypi\.org\/pypi\/trackmcp\/\$\{PACKAGE_VERSION\}\/json/);
   assert.match(pythonWorkflow, /already exists on PyPI; bump the package version before publishing/);
   assert.match(pythonWorkflow, /python -m twine check dist\/\*/);
+  const pythonBuildIndex = pythonWorkflow.indexOf("Build Python release artifacts for the clean-runner audit");
+  const auditIndex = pythonWorkflow.indexOf("Audit all release artifacts before publishing");
+  assert.ok(pythonBuildIndex >= 0, "the standalone Python workflow must build artifacts on a clean runner");
+  assert.ok(pythonBuildIndex < auditIndex, "Python artifacts must exist before the standalone audit runs");
 });
