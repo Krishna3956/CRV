@@ -6,6 +6,16 @@ Status: **Engineering green; release decision HOLD**
 
 ## Current checkpoint — 2026-10-29
 
+- The refresh scheduler was explicitly reconciled with the five-minute
+  EventBridge schedule enabled by workflow `40812206669`. AWS evidence showed
+  four invocations, zero Lambda errors, and four end-to-end scheduled
+  successes. Manual recovery runs `40811957061` and `40811959309` were also
+  successful and redacted.
+- The latest health evaluation `40812789576` remains `warning`, not healthy:
+  AWS cadence is proven, but worker freshness is `977319 ms` versus the
+  `900000 ms` budget and the bounded evaluation window still includes a
+  retryable/stale scheduled row. This remains an operational release gate.
+
 - PR #690 delayed optional PostHog recorder/survey initialization behind a
   10-second idle window while preserving the queued, privacy-safe analytics
   contract. It was squash-merged as `5a742ec2` and deployed by App Runner

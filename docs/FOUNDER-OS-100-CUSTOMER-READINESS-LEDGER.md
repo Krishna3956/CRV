@@ -1,5 +1,24 @@
 # Founder OS 100 Customer Readiness Ledger
 
+## 2026-10-29 — refresh scheduler re-enabled and freshness rechecked
+
+- [x] Re-ran the reviewed refresh-scheduler deployment with the five-minute
+  EventBridge schedule explicitly enabled and metadata-only evidence collection
+  enabled. Workflow `40812206669` completed successfully; its AWS evidence
+  showed four consecutive five-minute Lambda invocations with zero Lambda
+  errors and four scheduled end-to-end successes.
+- [x] Two bounded manual recovery runs (`40811957061` and `40811959309`)
+  completed successfully after the schedule reconciliation. Their redacted
+  summaries reported no terminal failures; the observed queue lag was within
+  budget for the work-bearing slice and no backlog was observed on the second
+  slice.
+- [ ] Health run `40812789576` still reports `warning`, not a pass. AWS
+  cadence and end-to-end gates are proven, but the latest CloudWatch worker
+  freshness sample reports `977319 ms` against the `900000 ms` budget and the
+  evaluation window still contains a retryable/stale scheduled row. Keep the
+  release gate open until a subsequent clean AWS worker-freshness window proves
+  three in-budget samples with no retryable/failed work.
+
 ## 2026-10-29 — optional PostHog delay deployed and production rechecked
 
 - [x] PR `#690` delayed optional PostHog recorder/survey initialization behind
