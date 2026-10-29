@@ -52,5 +52,8 @@ this integration is not accepted as production-complete.
 
 ## Release status
 
-The fail-closed provider gate is prepared locally and must not be merged or
-deployed until the external provider configuration is explicitly confirmed.
+The fail-closed provider gate is merged and live in runtime
+`32ff5dfef6ec6a59de230c3eed2a98e7c0803b79`. It intentionally hides disabled or
+unavailable social providers and keeps email/password as the safe fallback.
+Google/GitHub are not production-complete until an operator enables the
+providers in Supabase and the real end-to-end UAT listed above passes.
