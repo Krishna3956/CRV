@@ -1,5 +1,25 @@
 # Founder OS 100 Customer Readiness Ledger
 
+## 2026-10-29 — coordinated SDK release train published
+
+- [x] PR `#681` fixed the clean-runner publication workflow so Python wheel
+  and sdist artifacts are built and validated before the repository-wide
+  release audit. Hosted checks passed and the PR was squash-merged as
+  `d7e5a527d9883495048562a6d04252845d80fef2`.
+- [x] Publication workflow `40801454555` completed successfully from merged
+  `main`, including package audit, registry preflight, npm/PyPI publication,
+  public metadata verification, and provenance attestations.
+- [x] Public registry verification: `@trackmcp/sdk@0.1.25` is on npm with
+  integrity `sha512-uU6C/2FdElACU805Kn4sC780Ap4ZXkJZhwEuag/R16yxvFEQCwYZc3Mw8GHSPSt6igPRcZ3wkmmubEMUPs0Btw==`;
+  `trackmcp==0.1.15` is on PyPI with wheel SHA-256
+  `738e6ca64fb5ea91b80bfe1fc9a88457783cc7e5fc264b5f8e122347922aae07` and
+  sdist SHA-256 `ce4f645b7cc414b9087cf12f11581b14e502e1ff6df4274fe01907e9907ce4d0`.
+- [x] `@trackmcp/cli@0.1.12` remains the unchanged published CLI baseline;
+  no unnecessary version was created.
+- [ ] This closes package publication for the train only. Scheduler cadence,
+  production LCP, Supabase postflight/backup evidence, customer-owned
+  endpoint UAT, and release-owner GO/NO-GO remain open gates.
+
 ## 2026-10-29 — refresh scheduler retry deployment and cadence gate
 
 - [x] Fresh AWS health run `40797136189` exposed a real reliability gap rather

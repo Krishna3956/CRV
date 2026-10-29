@@ -35,7 +35,7 @@ test("first-ingest fixture matches the current canonical event envelope", () => 
   assert.match(source, /observation_source: "server"/);
   assert.doesNotMatch(source, /schema_version: "1\.0"/);
   assert.doesNotMatch(source, /payload_policy: "metadata_only"/);
-  assert.match(source, /user-agent.*TrackMCP\/0\.1\.24 production-smoke/);
+  assert.match(source, /user-agent.*TrackMCP\/0\.1\.25 production-smoke/);
 });
 
 test("opt-in production write smoke exercises the bounded OTLP/HTTP protobuf path", () => {
@@ -55,7 +55,7 @@ test("production pilot smoke records redacted evidence and covers pilot endpoint
   assert.match(source, /TRACKMCP_EXPECTED_NPM_CLI_INTEGRITY/);
   assert.match(source, /TRACKMCP_EXPECTED_PYPI_WHEEL_SHA256/);
   assert.match(source, /TRACKMCP_EXPECTED_PYPI_SDIST_SHA256/);
-  assert.match(source, /trackmcp@0\.1\.14/);
+  assert.match(source, /trackmcp@0\.1\.15/);
   assert.match(source, /integrity_present/);
   assert.match(source, /bounded propagation wait/);
   assert.match(source, /wheel_sha256_present/);
@@ -68,7 +68,7 @@ test("production pilot smoke records redacted evidence and covers pilot endpoint
   assert.match(source, /Observed calls, ranked and trended/);
   assert.match(source, /Every call, ranked and trended/);
   assert.match(source, /configured server boundary/);
-  assert.match(source, /@trackmcp\/sdk@0\.1\.24/);
+  assert.match(source, /@trackmcp\/sdk@0\.1\.25/);
 });
 
 test("production pilot smoke verifies security headers and protected API boundaries", () => {
