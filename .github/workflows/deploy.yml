@@ -390,6 +390,7 @@ jobs:
         env:
           TRANSLATION_AUDIT_BASE_URL: ${{ env.TRACKMCP_DEPLOYED_ORIGIN }}
           TRANSLATION_AUDIT_TRANSLATE: "true"
+          TRANSLATION_AUDIT_ALL_SITEMAP_ROUTES: "true"
         run: npm run audit:translation-live-runtime
 
       - name: Upload redacted production smoke evidence

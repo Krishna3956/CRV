@@ -31,6 +31,8 @@ test("live runtime audit checks static, blog, category, tool, and endpoint behav
   }
   assert.match(source, /rejectsUnsupportedLocale/);
   assert.match(source, /TRANSLATION_AUDIT_TRANSLATE/);
+  assert.match(source, /TRANSLATION_AUDIT_ALL_SITEMAP_ROUTES/);
+  assert.match(source, /sitemapAuditUrls/);
   assert.match(source, /providerProbePassed/);
   assert.match(source, /AUDIT_USER_AGENT/);
 });

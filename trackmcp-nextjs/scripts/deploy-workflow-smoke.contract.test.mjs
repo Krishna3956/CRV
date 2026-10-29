@@ -79,6 +79,7 @@ test("App Runner deployment performs a redacted read-only smoke after RUNNING", 
   assert.match(workflow, /TRACKMCP_DEPLOYED_ORIGIN=\$ORIGIN/);
   assert.match(workflow, /Verify live Chinese translation provider/);
   assert.match(workflow, /TRANSLATION_AUDIT_TRANSLATE: "true"/);
+  assert.match(workflow, /TRANSLATION_AUDIT_ALL_SITEMAP_ROUTES: "true"/);
   assert.match(workflow, /npm run audit:translation-live-runtime/);
   assert.match(workflow, /Audit runtime safety flags/);
   assert.match(workflow, /RuntimeEnvironmentVariables/);

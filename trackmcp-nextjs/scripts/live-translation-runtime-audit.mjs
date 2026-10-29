@@ -21,7 +21,10 @@ const sitemap = await request("/sitemap.xml");
 const sitemapUrls = locations(sitemap.body);
 const representativeBlog = sitemapUrls.find((url) => /\/blog\/[^/]+$/.test(url));
 const representativeCategory = sitemapUrls.find((url) => url.includes("/category/"));
-for (const url of [representativeBlog, representativeCategory]) {
+const sitemapAuditUrls = process.env.TRANSLATION_AUDIT_ALL_SITEMAP_ROUTES === "true"
+  ? [...new Set(sitemapUrls)]
+  : [representativeBlog, representativeCategory].filter(Boolean);
+for (const url of sitemapAuditUrls) {
   if (!url) continue;
   const path = new URL(url).pathname;
   const page = await request(path);
