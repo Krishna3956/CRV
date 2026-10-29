@@ -85,11 +85,14 @@ export default function RootLayout({ children }: RootLayoutProps) {
       className={`${inter.variable} ${geistMono.variable} h-full`}
     >
       <body className="min-h-full flex flex-col bg-canvas text-body">
-        <div className="global-language-switcher pointer-events-none fixed inset-x-0 top-[4.75rem] z-[70] flex justify-end px-4 sm:top-3 sm:px-6">
+        <div className="global-language-switcher pointer-events-none fixed inset-x-0 top-[4.75rem] z-[70] hidden justify-end px-4 sm:top-3 sm:flex sm:px-6">
           <div className="pointer-events-auto">
             <LanguageSwitcher />
           </div>
         </div>
+        <Script id="trackmcp-locale-bootstrap" strategy="beforeInteractive">
+          {`try { if (document.cookie.split("; ").some((entry) => entry === "trackmcp_locale=zh-CN")) { document.documentElement.lang = "zh-CN"; document.documentElement.setAttribute("data-trackmcp-translation-pending", "true"); } } catch (_) {}`}
+        </Script>
         <TranslationRuntime />
         <LanguageSuggestion />
         <ScrollToTop />

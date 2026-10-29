@@ -148,7 +148,7 @@ export function DashboardPageContent({ initialView = "overview" }: { initialView
       // Retry the read briefly instead of showing the misleading empty-state
       // screen and making a first-time user sign in a second time.
       let user = (await auth.getUser()).data.user;
-      for (let attempt = 0; !user && attempt < 3; attempt += 1) {
+      for (let attempt = 0; !user && attempt < 7; attempt += 1) {
         await new Promise((resolve) => window.setTimeout(resolve, 250 * (attempt + 1)));
         user = (await auth.getUser()).data.user;
       }
