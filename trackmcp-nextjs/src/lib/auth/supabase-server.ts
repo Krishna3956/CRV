@@ -11,10 +11,13 @@ import type { NextResponse } from "next/server";
  */
 export async function getSupabaseServer(response?: NextResponse) {
   const cookieStore = await cookies();
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "";
+  const cookieOptions = siteUrl.includes("trackmcp.com") ? { domain: ".trackmcp.com" } : undefined;
   return createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
+      ...(cookieOptions ? { cookieOptions } : {}),
       cookies: {
         getAll() {
           return cookieStore.getAll();
