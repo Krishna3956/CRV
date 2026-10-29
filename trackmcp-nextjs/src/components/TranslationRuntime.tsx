@@ -48,8 +48,24 @@ function isTranslatableValue(value: string): boolean {
   return text.length >= 2 && !/^https?:\/\//i.test(text) && !/^[-_./:@#$%{}[\]()<>=+*|\\\d\s]+$/.test(text);
 }
 
+function pruneDisconnectedRecords() {
+  originals.forEach((_original, node) => {
+    if (!node.isConnected) {
+      originals.delete(node);
+      translated.delete(node);
+    }
+  });
+  attributeOriginals.forEach((_attributes, element) => {
+    if (!element.isConnected) {
+      attributeOriginals.delete(element);
+      translatedAttributes.delete(element);
+    }
+  });
+}
+
 function collectTranslationRecords(): TranslationRecord[] {
   const records: TranslationRecord[] = [];
+  pruneDisconnectedRecords();
   const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
   let node: Node | null;
   while ((node = walker.nextNode())) {
