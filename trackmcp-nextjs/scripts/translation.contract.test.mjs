@@ -18,6 +18,8 @@ test("route audit covers static and dynamic page families", async () => {
   assert.match(source, /category\/\[slug\]/);
   assert.match(source, /apiRoutesExcluded/);
   assert.match(source, /sourcePublicUrlInventory/);
+  assert.match(source, /staticPageEntrypoints/);
+  assert.match(source, /sitemapStaticCoverageGaps/);
   assert.match(source, /blogPostEntries/);
   assert.match(source, /categoryEntries/);
 });

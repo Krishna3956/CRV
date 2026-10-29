@@ -23,7 +23,7 @@ const pages = files
   .filter((file) => file.endsWith("/page.tsx"))
   .map((file) => {
     const routeFile = relative(appRoot, file);
-    return routeFile === "page.tsx" ? "/" : routeFile.replace(/\/page\.tsx$/, "");
+    return routeFile === "page.tsx" ? "/" : `/${routeFile.replace(/\/page\.tsx$/, "")}`;
   })
   .sort();
 const dynamicPages = pages.filter((page) => page.includes("["));
@@ -55,27 +55,32 @@ const blogSources = await Promise.all(
 );
 const blogPostEntries = blogSources.reduce((sum, count) => sum + count, 0);
 const staticSitemapUrls = [...sitemapSource.matchAll(/url:\s*`\$\{BASE\}(?:\/[^`$]*)?`/g)].length;
+const staticPageEntrypoints = pages.filter((page) => !page.includes("["));
+const sitemapStaticPaths = [...sitemapSource.matchAll(/url:\s*`\$\{BASE\}([^`$]*)`/g)].map((match) => match[1] || "/");
+const sitemapStaticCoverageGaps = staticPageEntrypoints.filter((page) => !sitemapStaticPaths.includes(page));
 const categoryEntries = (await readFile(join(appRoot, "../lib/repository/types.ts"), "utf8"))
   .match(/\bid:\s*["']/g)?.length || 0;
 
 if (!rootLayout.includes("<LanguageSwitcher") || !rootLayout.includes("<TranslationRuntime")) {
   throw new Error("Root layout is missing the global language runtime.");
 }
-for (const expected of ["tool/[name]", "blog/[slug]", "category/[slug]"]) {
+for (const expected of ["/tool/[name]", "/blog/[slug]", "/category/[slug]"]) {
   if (!dynamicPages.includes(expected)) throw new Error(`Expected dynamic route is missing: ${expected}`);
 }
 
 const report = {
   pageEntrypoints: pages.length,
+  staticPageEntrypoints: staticPageEntrypoints.length,
   dynamicPageEntrypoints: dynamicPages.length,
   apiRoutesExcluded: apiRoutes.length,
   sourcePublicUrlInventory: {
     staticSitemapUrls,
+    sitemapStaticCoverageGaps,
     blogPostEntries,
     categoryEntries,
     totalBeforeToolCatalog: staticSitemapUrls + blogPostEntries + categoryEntries,
   },
   rootRuntime: "verified",
-  dynamicRoutesVerified: ["tool/[name]", "blog/[slug]", "category/[slug]"],
+  dynamicRoutesVerified: ["/tool/[name]", "/blog/[slug]", "/category/[slug]"],
 };
 console.log(JSON.stringify(report, null, 2));
