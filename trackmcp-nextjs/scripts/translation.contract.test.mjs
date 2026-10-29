@@ -22,6 +22,14 @@ test("route audit covers static and dynamic page families", async () => {
   assert.match(source, /categoryEntries/);
 });
 
+test("live runtime audit checks static, blog, category, tool, and endpoint behavior", async () => {
+  const source = await readFile(resolve(root, "scripts/live-translation-runtime-audit.mjs"), "utf8");
+  for (const marker of ["Language: English", "/sitemap.xml", "/tool-sitemap.xml", "/api/translation", "representativeBlog", "representativeCategory"]) {
+    assert.match(source, new RegExp(marker.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
+  }
+  assert.match(source, /rejectsUnsupportedLocale/);
+});
+
 test("Chinese browser preferences are detected without overriding an explicit cookie", async () => {
   const source = await readFile(resolve(root, "src/components/site-locale.ts"), "utf8");
   assert.match(source, /navigator\.languages/);

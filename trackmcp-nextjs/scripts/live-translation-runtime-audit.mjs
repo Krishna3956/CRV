@@ -1,0 +1,57 @@
+const base = (process.env.TRANSLATION_AUDIT_BASE_URL || "https://trackmcp.com").replace(/\/$/, "");
+
+async function request(path, init) {
+  const response = await fetch(`${base}${path}`, init);
+  const body = await response.text();
+  return { response, body };
+}
+
+function locations(xml) {
+  return [...xml.matchAll(/<loc>([^<]+)<\/loc>/g)].map((match) => match[1]);
+}
+
+const checks = [];
+const root = await request("/");
+checks.push({ path: "/", status: root.response.status, switcher: root.body.includes("Language: English") });
+
+const sitemap = await request("/sitemap.xml");
+const sitemapUrls = locations(sitemap.body);
+const representativeBlog = sitemapUrls.find((url) => /\/blog\/[^/]+$/.test(url));
+const representativeCategory = sitemapUrls.find((url) => url.includes("/category/"));
+for (const url of [representativeBlog, representativeCategory]) {
+  if (!url) continue;
+  const path = new URL(url).pathname;
+  const page = await request(path);
+  checks.push({ path, status: page.response.status, switcher: page.body.includes("Language: English") });
+}
+
+const toolIndex = await request("/tool-sitemap.xml");
+const toolShards = locations(toolIndex.body);
+if (toolShards.length) {
+  const firstShard = await request(new URL(toolShards[0]).pathname);
+  const toolUrl = locations(firstShard.body)[0];
+  if (toolUrl) {
+    const path = new URL(toolUrl).pathname;
+    const page = await request(path);
+    checks.push({ path, status: page.response.status, switcher: page.body.includes("Language: English") });
+  }
+}
+
+const invalidTarget = await request("/api/translation", {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({ texts: ["Hello"], sourceLocale: "en", targetLocale: "fr" }),
+});
+const endpoint = { path: "/api/translation", status: invalidTarget.response.status, rejectsUnsupportedLocale: invalidTarget.response.status === 400 };
+
+const report = { base, checks, endpoint };
+const failures = [
+  ...checks.filter((check) => check.status !== 200 || !check.switcher).map((check) => `${check.path} must return 200 with the language switcher`),
+  ...(endpoint.rejectsUnsupportedLocale ? [] : ["/api/translation must reject unsupported locales with HTTP 400"]),
+];
+if (failures.length) {
+  console.error(JSON.stringify({ ...report, failures }, null, 2));
+  process.exitCode = 1;
+} else {
+  console.log(JSON.stringify(report, null, 2));
+}
