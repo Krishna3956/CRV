@@ -1,8 +1,30 @@
 # Founder OS first-100 readiness snapshot
 
-Updated: 2026-10-29 (Asia/Kolkata; source and runtime `2ac9580b`; hosted evidence reconciled)
+Updated: 2026-10-29 (Asia/Kolkata; source `501cd7cf`; deployed runtime `a1ad002e`; hosted evidence reconciled)
 
 Status: **Engineering green; release decision HOLD**
+
+## Current checkpoint — 2026-10-29
+
+- The current source is `origin/main` at `501cd7cf4182a5261d1cbe47fa09452dcdee820d`.
+  PR #686 recorded the final live SEO/backlink audit; it changed documentation
+  only and did not require an application redeploy.
+- The deployed App Runner runtime reports immutable release
+  `a1ad002e04d9d77b720cd427723ce3ee126f542c` from `/api/health`.
+- The full local release gate passes **151 suites**; TypeScript, lint, build,
+  and the production SEO audit pass. The build generates 209 routes.
+- Refresh health run `40804980639` reports an overall `warning` only because
+  two pre-fix manual recovery runs remain in the one-hour diagnostic window.
+  The source-of-truth production gates are already proven: AWS scheduler
+  cadence (3 invocations, 0 errors), AWS end-to-end cadence (3 successes, 0
+  failures), and worker freshness (3 complete samples, 0 failed/retryable,
+  maximum queue lag 863743 ms within the 900000 ms budget). Keep the overall
+  release gate open until a clean evaluation window removes the historical
+  manual diagnostics; do not hide those rows.
+- The live SEO audit verified 107/107 article pages, 151/151 sitemap URLs,
+  zero broken internal links, and zero confirmed broken external links. Google
+  indexing and external blog backlinks remain incomplete and are not claimed
+  as finished.
 
 This is the concise handoff view. The detailed evidence and historical
 checkpoints remain in the [readiness ledger](FOUNDER-OS-100-CUSTOMER-READINESS-LEDGER.md)
@@ -120,7 +142,8 @@ scheduled-worker SLO. No secret, workspace identifier, raw payload, or token is
 stored in this snapshot.
 
 The detailed ledger is authoritative for the remaining external gates. The
-current source is `main` at `HEAD` (`2ac9580b`); the deployed application is
-the verified runtime `2ac9580b` after the App Runner rollout. The
-latest health report is the AWS-proven freshness result above. The alert evaluator remains
+current source is `main` at `HEAD` (`501cd7cf`); the deployed application is
+the verified runtime `a1ad002e` after the App Runner rollout. The latest
+health report is the AWS-proven freshness result above, with historical manual
+diagnostics still visible. The alert evaluator remains
 disabled-first and is not claimed as enabled production delivery.
