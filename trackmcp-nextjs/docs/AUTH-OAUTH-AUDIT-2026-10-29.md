@@ -39,6 +39,10 @@ settings cannot be read, email/password remains the available fallback.
   `krishnaatmu@gmail.com`, TrackMCP logo, homepage, privacy policy, terms, and
   the authorised `trackmcp.com` domain. The branding save was verified in the
   Google Cloud console.
+- The Google OAuth app was moved from Testing to **In production** for public
+  sign-in. Google now flags the configuration for verification because a logo
+  is present; the OAuth request uses only the basic email/profile scopes and
+  remains functional for the verified test account.
 
 ## Local verification
 
