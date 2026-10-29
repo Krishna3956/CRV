@@ -18,6 +18,15 @@ Updated: 2026-10-30 (Asia/Kolkata; source `2e321201`; deployed runtime `2e321201
 
 Status: **Engineering green; release decision HOLD**
 
+## 2026-10-30 protocol linkage checkpoint
+
+Protocol analytics now scopes opaque request/interaction/retry joins by bounded
+service, environment, and server metadata. A repeated handle from another MCP
+server cannot manufacture a matched response pair. This strengthens the
+privacy-safe analytics contract; it does not close identity, business-workflow,
+customer-owned transport, backup/PITR, privacy-approval, or release-owner
+gates.
+
 ## 2026-10-30 credentialed tenant/auth scope checkpoint
 
 The production read-only authenticated smoke completed **37/37 checks** against

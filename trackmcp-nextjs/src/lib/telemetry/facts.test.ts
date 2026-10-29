@@ -16,11 +16,12 @@ const event = (overrides: Partial<CanonicalTrackMCPEvent> = {}): CanonicalTrackM
 });
 
 test("projects tool calls as bounded activity facts", () => {
-  const fact = projectTrackMCPFact(event({ tool_name: "search", success: true, duration_ms: 20 }));
+  const fact = projectTrackMCPFact(event({ tool_name: "search", server_id: "server-a", success: true, duration_ms: 20 }));
   assert.equal(fact.fact_type, "activity");
   assert.equal(fact.semantic.outcome, "completed");
   assert.deepEqual(fact.measures, { duration_ms: 20, payload_size_bytes: undefined, retry_number: undefined });
   assert.equal(fact.dimensions.tool_name, "search");
+  assert.equal(fact.dimensions.server_id, "server-a");
   assert.equal("payload" in fact, false);
 });
 

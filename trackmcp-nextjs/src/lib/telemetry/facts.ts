@@ -21,6 +21,8 @@ export type TrackMCPFact = {
   environment: string;
   semantic: TrackMCPSemanticOutcome;
   dimensions: {
+    /** Bounded server scope used only to prevent cross-server linkage joins. */
+    server_id?: string;
     client_name?: string;
     client_version?: string;
     tool_name?: string;
@@ -166,6 +168,7 @@ export function projectTrackMCPFact(event: CanonicalTrackMCPEvent): TrackMCPFact
     environment: bounded(event.environment, 64) ?? "unknown",
     semantic,
     dimensions: {
+      ...(bounded(event.server_id, 128) ? { server_id: bounded(event.server_id, 128) } : {}),
       client_name: bounded(event.client_name, 128),
       client_version: bounded(event.client_version, 64),
       tool_name: bounded(event.tool_name, 256),
