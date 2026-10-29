@@ -11,12 +11,12 @@ is intentionally not a GO approval and must not be treated as one.
 
 - `main`: current default branch. Immutable deployed SHAs belong in the
   release record; PR checks remain attached to their exact review commits.
-- Current deployed application runtime: `3116f2c9`. App Runner workflow
-  `40955384383` was rolling out when checked, and an uncached live health probe
-  confirmed the exact runtime SHA.
-- Current source verification: `main` at
-  `8f9bbcd5f8c37c9e24dcd8abafe4e35c2e375658`; the deployed runtime remains
-  `3116f2c900e764a341bb5df779aaf0b149268805`. The full local release gate
+- Current deployed application runtime:
+  `0e6457378ad92e1c9a78b5e66acdfa5c5b274e76`. App Runner workflow
+  `40970812367` passed rollout, read-only production smoke, runtime-safety,
+  and release-identity checks; the direct-origin health probe confirmed the
+  exact runtime SHA.
+- Current source verification: `main` at the same immutable SHA. The full local release gate
   passes 154 suites and the production build generates 211 routes. Read-only
   auth smoke `40893382834`, direct first-ingest `40894964464`, and
   SDK-shaped public-edge first-ingest `40896249223` are recorded in the

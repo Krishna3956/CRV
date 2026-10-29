@@ -4,6 +4,11 @@ Status: active autonomous audit, started 2026-10-21.
 
 ## 2026-10-30 — protocol linkage scope hardening
 
+- [x] PR #741 merged to `main` as
+  `0e6457378ad92e1c9a78b5e66acdfa5c5b274e76`; TrackMCP CI
+  `40970812291` and App Runner deployment `40970812367` passed the full
+  release gate, rollout, immutable identity, production smoke, runtime-safety,
+  and live translation-provider checks.
 - [x] Durable semantic facts now retain a bounded `server_id` dimension for
   linkage scoping. It is metadata only and does not expose raw request,
   interaction, task, or payload content.
