@@ -1,6 +1,76 @@
 # Founder OS 100 Customer Readiness Ledger
 
-## 2026-10-29 — fresh worker-health evaluation remains insufficient
+## 2026-10-29 — direct-origin first-ingest and analytics read-back passed
+
+- [x] Guarded first-ingest smoke `40894964464` produced artifact
+  `12907131051` against the trusted App Runner origin
+  `https://i95pzq2xh7.ap-south-1.awsapprunner.com` on runtime `32ff5dfe`.
+- [x] The smoke accepted exactly one bounded metadata-only event (HTTP 200),
+  observed `key-status.accepted_telemetry=true`, and verified analytics
+  read-back for the smoke service. The report stores no key, event ID,
+  workspace ID, response body, or authorization material.
+- [x] The parallel public-edge attempt against `https://app.trackmcp.com`
+  timed out before receiving a response and produced no accepted-ingest
+  evidence. The supported first-ingest evidence path remains the direct trusted
+  App Runner origin; this does not claim Cloudflare write-path behavior.
+- [ ] Key creation/rotation/revocation mutation, customer-owned endpoint /
+  protocol interoperability, and OAuth provider UAT remain open.
+
+## 2026-10-29 — live authenticated tenant/privacy smoke passed
+
+- [x] Read-only production smoke `40893382834` produced artifact
+  `12906111577` against `https://app.trackmcp.com` and immutable runtime
+  `32ff5dfef6ec6a59de230c3eed2a98e7c0803b79`.
+- [x] All `37/37` checks passed: two workspace key-status checks, both
+  conflicting-workspace scope checks, the complete v2 Founder OS read-model
+  set for workspaces A and B, legacy analytics/tool-quality/traces projections,
+  privacy-safe field inspection, API-key Action Queue denial, and revoked-key
+  denial.
+- [x] The report contains no keys, workspace IDs, response bodies, or bearer
+  material. This is strong live tenant-isolation/read-model evidence.
+- [ ] Key creation/rotation/revocation mutation, first accepted ingest,
+  customer-owned endpoint/protocol interoperability, and OAuth provider UAT
+  remain separate credentialed or external gates; this smoke intentionally did
+  not perform those mutations.
+
+## 2026-10-29 — refresh worker freshness gate proven healthy
+
+- [x] Three serialized bounded recovery runs `40890377248`, `40890603525`,
+  and `40890888427` completed successfully. They processed `12`, `0`, and `4`
+  jobs respectively; every run reported zero failed, retryable, timed-out, or
+  unparseable work, with queue lag at or below the 15-minute budget.
+- [x] Fresh health evaluation `40891096616` (artifact `12905900486`) reports
+  `state=healthy`: evaluation sample count `3`, AWS invocations `4/3`, errors
+  `0`, scheduled successes `4/3`, scheduled failures `0`, worker samples
+  `4/3`, complete samples `4/4`, worker failures/retries/parse failures `0`,
+  and maximum CloudWatch worker lag `867340 ms` against the `900000 ms` budget.
+- [x] The worker-freshness and scheduler-cadence gates are now proven for this
+  bounded evaluation window. Continue monitoring the scheduled window; this
+  does not close backup/PITR, privacy acceptance, credentialed customer UAT,
+  OAuth provider setup, or release-owner acceptance.
+
+## 2026-10-29 — OAuth gate live, provider availability still held
+
+- [x] PR #724 was rebased onto the deployed main line and squash-merged as
+  `32ff5dfef6ec6a59de230c3eed2a98e7c0803b79`. The source now fail-closes
+  Google/GitHub controls when Supabase reports a provider disabled or when
+  provider discovery fails; email/password remains the safe fallback.
+- [x] Local verification on the merged source passed translation contracts
+  (16/16), auth callback/OAuth contracts (7/7), TypeScript, and the 211-route
+  production build.
+- [x] The explicit App Runner rollout `40888363134` was cancelled during its
+  final wait, after the rollout had applied. An uncached browser health probe
+  now reports the exact live runtime `32ff5dfef6ec6a59de230c3eed2a98e7c0803b79`;
+  the deployment's post-rollout workflow completion is not claimed.
+- [x] The live `/api/auth/providers` probe returns
+  `{"google":false,"github":false}`, so the shipped UI correctly renders no
+  unusable social controls and keeps email/password as the fallback.
+- [ ] Supabase still reports `external.google=false` and
+  `external.github=false`. Configure the providers and callback URLs in the
+  Supabase/provider consoles, then complete new-user, existing-user, and
+  `/device?user_code=...` UAT before the next deployment.
+
+## 2026-10-29 — fresh worker-health evaluation remains insufficient (superseded)
 
 - [x] Read-only health workflow `40886442282` completed successfully and
   uploaded artifact `12902757193`.
@@ -1152,10 +1222,10 @@ End of historical checkpoint archive.
 
 | Gate | Current evidence | State | Required closure evidence |
 | --- | --- | --- | --- |
-| Worker freshness | Health artifact `12881601320` from run `40837179614`: AWS cadence is proven (4 invocations, 0 errors, 4 end-to-end successes); current worker samples are clean, but two older stale samples and an older `10540402 ms` AWS worker-lag datapoint remain in the bounded window | **HOLD / warning** | Let the bounded window roll forward, then obtain at least 3 current in-budget worker samples reflected by AWS metrics with zero retryable/failed work and maximum queue lag within `900000 ms` |
+| Worker freshness | Health artifact `12905900486` from run `40891096616`: healthy bounded window with 4 AWS invocations, 0 errors, 4 end-to-end successes, 4 complete worker samples, 0 failed/retryable/parse-failure samples, and `867340 ms` maximum AWS worker lag | **PROVEN / monitor** | Continue scheduled monitoring; reopen only if a later bounded window exceeds the `900000 ms` budget or records worker/scheduler failures |
 | Backup/PITR | Supabase Free Plan has no scheduled backups or PITR | **HOLD / owner decision** | Accepted documented limitation with named recovery owner/runbook, or plan upgrade plus tested restore rehearsal |
 | Privacy acceptance | Engineering export/deletion contracts pass; production acceptance is not recorded | **HOLD / owner decision** | Signed production privacy review and retention/deletion acceptance |
-| Credentialed lifecycle/UAT | Read-only auth, first-ingest, transport, and device-flow evidence is recorded; customer-owned endpoint/protocol UAT remains unexecuted | **HOLD / credentialed** | Customer-owned endpoint/protocol UAT artifact plus explicit acceptance of reconnect/replay, durable-subscription, and OAuth boundaries |
+| Credentialed lifecycle/UAT | Live read-only authenticated smoke `40893382834` passed `37/37` tenant/privacy checks and direct-origin first-ingest smoke `40894964464` passed acceptance plus analytics read-back on `32ff5dfe`; key mutation and customer-owned endpoint/protocol UAT remain unexecuted | **HOLD / credentialed** | Disposable key creation/rotation/revocation evidence, customer-owned endpoint/protocol UAT, and explicit acceptance of reconnect/replay, durable-subscription, and OAuth boundaries |
 | Release-owner acceptance | Source, CI, deployment, package publication, and local release gates are green | **HOLD / owner decision** | Explicit approval referencing this register and the current deployed source |
 
 The detailed historical table below is retained for audit continuity and is not
