@@ -38,8 +38,17 @@ function collectTextNodes(): TextRecord[] {
   while ((node = walker.nextNode())) {
     const textNode = node as Text;
     if (isExcluded(textNode)) continue;
-    const original = originals.get(textNode) || textNode.nodeValue || "";
-    if (!original.trim() || translated.has(textNode)) continue;
+    let original = originals.get(textNode) || textNode.nodeValue || "";
+    if (translated.has(textNode)) {
+      // React may update an existing text node in place rather than replacing
+      // it. If its value is no longer the translation we applied, treat the
+      // new value as English source text and send it through the next batch.
+      const applied = translationCache.get(original);
+      if (applied && textNode.nodeValue === applied) continue;
+      translated.delete(textNode);
+      original = textNode.nodeValue || "";
+    }
+    if (!original.trim()) continue;
     originals.set(textNode, original);
     records.push({ node: textNode, original });
   }
@@ -142,7 +151,7 @@ export function TranslationRuntime() {
       if (locale() === "zh-CN") apply();
     });
     window.addEventListener("trackmcp:locale-change", onLocaleChange);
-    observer.observe(document.body, { childList: true, subtree: true });
+    observer.observe(document.body, { characterData: true, childList: true, subtree: true });
     if (locale() === "zh-CN") void translatePage();
     return () => {
       if (timer) window.clearTimeout(timer);
