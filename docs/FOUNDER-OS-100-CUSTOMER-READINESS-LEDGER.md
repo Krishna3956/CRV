@@ -1,5 +1,17 @@
 # Founder OS 100 Customer Readiness Ledger
 
+## 2026-10-30 — CLI documentation reconciliation deployed
+
+- [x] PR #736 merged to `main` as `2e3212017bca372377ab0c2bb6c6530f6976b08d`.
+- [x] TrackMCP CI workflow `40964008474` passed its web/JavaScript, Go, and
+  .NET lanes; the local release gate also passed all 154 suites.
+- [x] App Runner deployment workflow `40964008580` completed successfully,
+  including the immutable release-identity, runtime-safety, production-smoke,
+  and live Chinese-translation-provider checks.
+- [x] The active docs page, CLI docs page, and production-pilot smoke default
+  now advertise the public `@trackmcp/cli@0.1.13` package. Historical package
+  rows remain unchanged.
+
 ## 2026-10-30 — CLI npm bin entrypoint fix published
 
 - [x] PR #735 merged to `main` as `fac78e7cf7c5baa467fe18b996da0dbb7a01ec3e`.
