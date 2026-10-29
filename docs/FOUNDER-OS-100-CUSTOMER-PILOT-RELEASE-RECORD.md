@@ -20,11 +20,13 @@ The full local release gate passes 154 suites and the production build generates
 direct-origin first-ingest `40894964464` and SDK-shaped public-edge smoke
 `40896249223` both passed a bounded metadata-only event and analytics read-back.
 Health evaluation `40891096616` (`12905900486`) reports a healthy bounded worker
-window. OAuth remains fail-closed because Supabase reports Google/GitHub
-disabled; email/password is the available fallback. The release remains
-Draft/HOLD because backup/recovery ownership, privacy acceptance, credentialed
-lifecycle/customer-endpoint UAT, provider setup/UAT, and release-owner approval
-remain open.
+window. GitHub OAuth is configured in Supabase and passed a real browser
+authorization and authenticated dashboard return on 2026-10-29. Google
+remains disabled and the provider gate stays fail-closed for unavailable
+providers. New-user onboarding and device-flow OAuth return-path checks remain
+open. The release remains Draft/HOLD because backup/recovery ownership,
+privacy acceptance, credentialed lifecycle/customer-endpoint UAT, and
+release-owner approval remain open.
 
 The prior runtime baseline and historical evidence remain below.
 

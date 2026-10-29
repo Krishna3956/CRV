@@ -4,10 +4,11 @@ Audit date: 2026-10-29
 
 ## Decision
 
-The application-side OAuth implementation is ready for provider configuration,
-but Google and GitHub are **not live** in the connected Supabase project. The
-production UI must not claim that either provider is available until Supabase
-enables it and a real end-to-end sign-in succeeds.
+The application-side OAuth implementation is live for GitHub after provider
+configuration in the connected Supabase project and a real end-to-end browser
+sign-in. Google remains disabled and is correctly hidden by the fail-closed
+provider discovery route. The production UI must not claim a provider is
+available unless Supabase reports it enabled.
 
 This change set therefore adds a fail-closed provider discovery route. The
 social buttons render only for providers that Supabase reports as enabled; if
@@ -16,18 +17,23 @@ settings cannot be read, email/password remains the available fallback.
 ## Evidence
 
 - Production authentication hostname: `https://app.trackmcp.com`.
-- Browser verification: `/signin` renders Google/GitHub surfaces and email
-  authentication; `/signup` renders both social controls and a required Terms
-  and Privacy checkbox.
+- Browser verification: `/signin` rendered the GitHub surface and email
+  authentication after the Supabase provider was enabled; the GitHub OAuth
+  consent screen requested only read-only email access and returned to the
+  authenticated `/dashboard` at `app.trackmcp.com`. `/signup` continues to use
+  the same provider-gated surface and required Terms and Privacy checkbox.
 - Missing-code callback verification redirects to `/signin` with a bounded
   error and preserves `/device?user_code=...`.
 - External `next=https://evil.example` verification is reduced to
   `/dashboard`.
-- Supabase Auth settings probe (using the public project URL and anon key) reports:
-  `external.google=false`, `external.github=false`, `external.email=true`.
+- Supabase dashboard provider state shows GitHub **ENABLED**. The live app then
+  exposed the GitHub button, redirected through the GitHub authorization page,
+  and returned to the authenticated dashboard with the expected workspace
+  navigation. Google remains disabled and is not exposed.
 - No provider secret, authorization code, code verifier, or bearer token was
   printed, stored, or added to the repository.
-- No SQL migration is required for basic Supabase social authentication.
+- No SQL migration is required for basic Supabase social authentication. The
+  provider client secret remains stored only in Supabase Auth configuration.
 
 ## Local verification
 
@@ -38,22 +44,24 @@ settings cannot be read, email/password remains the available fallback.
 - `npm run build`: passed; 211 routes generated.
 - `git diff --check`: passed.
 
-## Provider configuration still required
+## Provider configuration and remaining UAT
 
-An operator must configure Google and/or GitHub in Supabase Auth using the
-provider callback URL `https://qficcofvzidpvkltjkmo.supabase.co/auth/v1/callback`,
-then add the exact application callback `https://app.trackmcp.com/auth/callback`
-to Supabase URL Configuration. Provider client secrets belong only in Supabase.
+GitHub is configured in Supabase Auth using the provider callback URL
+`https://qficcofvzidpvkltjkmo.supabase.co/auth/v1/callback`, and the exact
+application callback `https://app.trackmcp.com/auth/callback` is used by the
+live authorization request. Provider client secrets belong only in Supabase.
+Google is intentionally not configured for this release.
 
-After configuration, the release gate must include one real Google or GitHub
-sign-in, a new-user onboarding check, an existing-user dashboard check, and a
-device-flow `/device?user_code=...` return-path check. Until those checks pass,
-this integration is not accepted as production-complete.
+The real GitHub sign-in and existing-user dashboard return-path checks passed
+in the signed-in production browser on 2026-10-29. New-user onboarding and the
+device-flow `/device?user_code=...` return-path remain separate acceptance
+checks; they are not inferred from the successful OAuth callback.
 
 ## Release status
 
 The fail-closed provider gate is merged and live in runtime
-`32ff5dfef6ec6a59de230c3eed2a98e7c0803b79`. It intentionally hides disabled or
-unavailable social providers and keeps email/password as the safe fallback.
-Google/GitHub are not production-complete until an operator enables the
-providers in Supabase and the real end-to-end UAT listed above passes.
+`32ff5dfef6ec6a59de230c3eed2a98e7c0803b79`. GitHub provider configuration and
+one real browser sign-in are now verified. The route still intentionally hides
+disabled or unavailable providers and keeps email/password as the safe
+fallback. OAuth is therefore partially closed for GitHub, while Google,
+new-user onboarding, and device-flow return-path evidence remain open.

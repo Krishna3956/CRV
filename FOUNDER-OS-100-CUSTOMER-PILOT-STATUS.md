@@ -23,13 +23,16 @@ promise that every product capability is complete.
 - Refresh-worker health evaluation `40891096616` (`12905900486`) reports a
   healthy bounded window: zero scheduler/worker failures, four complete
   samples, and maximum lag `867340 ms` within the `900000 ms` budget.
-- The production OAuth provider probe remains `email=true`,
-  `google=false`, `github=false`; the UI correctly hides unavailable social
-  controls. Google/GitHub provider setup and real UAT remain open.
+- Production GitHub OAuth is now configured in Supabase and verified end to
+  end in the signed-in browser: the live `/signin` page exposed GitHub, GitHub
+  consent completed with read-only email scope, and the callback returned to
+  the authenticated `/dashboard`. Google remains disabled and hidden by the
+  fail-closed provider gate. New-user onboarding and device-flow OAuth
+  return-path checks remain open.
 
 The release remains **HOLD** pending backup/PITR ownership, production privacy
-acceptance, credentialed key-lifecycle/customer-endpoint UAT, OAuth provider
-configuration/UAT, and release-owner GO/NO-GO acceptance.
+acceptance, credentialed key-lifecycle/customer-endpoint UAT, the remaining
+OAuth onboarding/device-flow checks, and release-owner GO/NO-GO acceptance.
 
 ## Verified and shipped
 
@@ -98,14 +101,17 @@ configuration/UAT, and release-owner GO/NO-GO acceptance.
 
 1. Record provider backup/restore posture and the release-owner scope/go/no-go
    decision; do not infer either from green CI.
-2. Verify server adoption and fresh telemetry with the rotated replacement key
+2. Complete the remaining OAuth onboarding and device-flow return-path checks
+   using the configured GitHub provider; keep Google explicitly disabled until
+   separately approved.
+3. Verify server adoption and fresh telemetry with the rotated replacement key
    in a disposable process, without recording the secret.
-3. Keep partial MCP protocol surfaces and review-only deletion visibly bounded
+4. Keep partial MCP protocol surfaces and review-only deletion visibly bounded
    in docs and setup until their external dependencies or implementations are
    complete.
-4. Enable alert evaluation only after the dedicated token, canary destination,
+5. Enable alert evaluation only after the dedicated token, canary destination,
    and delivery acceptance evidence are available.
-5. Re-run lint, build, the full release gate, and production smoke after every
+6. Re-run lint, build, the full release gate, and production smoke after every
    runtime change, then update this file and `docs/codex-handoff/PENDING_WORK.md`.
 
 ## Evidence locations
