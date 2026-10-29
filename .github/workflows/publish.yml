@@ -57,6 +57,13 @@ jobs:
             exit 1
           fi
           echo "Single-package exception reason supplied (content intentionally omitted from logs)."
+      - name: Build Python release artifacts for the clean-runner audit
+        working-directory: packages/python-sdk
+        run: |
+          set -euo pipefail
+          python -m pip install build twine
+          python -m build
+          python -m twine check dist/*
       - name: Audit all release artifacts before publishing
         working-directory: trackmcp-nextjs
         run: npm run test:package-release-audit
