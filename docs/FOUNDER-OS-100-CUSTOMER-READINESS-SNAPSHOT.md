@@ -47,6 +47,12 @@ Status: **Engineering green; release decision HOLD**
   verified ingestion path. Key lifecycle mutation and customer-owned protocol
   UAT remain open.
 
+- Edge-shaped first-ingest smoke `40896249223` (artifact `12906059482`) now
+  passes against `https://app.trackmcp.com` with the SDK-compatible user-agent:
+  HTTP 200, accepted telemetry, and analytics read-back. This is a harness
+  compatibility proof, not a claim that every arbitrary HTTP client bypasses
+  the managed edge policy.
+
 ## Historical checkpoint — 2026-10-29 (superseded by runtime `32ff5dfe` above)
 
 - The latest live baseline is immutable runtime

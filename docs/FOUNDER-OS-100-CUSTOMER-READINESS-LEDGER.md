@@ -1,5 +1,22 @@
 # Founder OS 100 Customer Readiness Ledger
 
+## 2026-10-29 — public-edge first-ingest smoke aligned with SDK traffic
+
+- [x] The smoke harness now sends the same browser-compatible `User-Agent`
+  (`Mozilla/5.0`) used by the published TypeScript, Go, .NET, and Python SDK
+  clients. This is a test-harness compatibility correction only; it does not
+  weaken authentication or change the application ingest contract.
+- [x] PR #726 was squash-merged as `78c4dca33b8b4d5e566562bc2651f6a7c4b9938d`
+  after Go, .NET, smoke, and web CI passed. No runtime deployment was required.
+- [x] Edge-shaped first-ingest workflow `40896249223` produced artifact
+  `12906059482` against `https://app.trackmcp.com`: exactly one bounded
+  metadata-only event returned HTTP 200, `accepted_telemetry=true`, and the
+  analytics read-back succeeded. The report contains no key, event ID,
+  workspace ID, response body, or authorization material.
+- [ ] This proves the SDK-shaped public-edge path for the current smoke event;
+  it does not close customer-owned endpoint/protocol UAT, key mutation UAT,
+  OAuth provider setup, or the separate Cloudflare policy/observability gate.
+
 ## 2026-10-29 — direct-origin first-ingest and analytics read-back passed
 
 - [x] Guarded first-ingest smoke `40894964464` produced artifact
