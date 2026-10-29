@@ -66,7 +66,7 @@ test("acceptance matrix separates current source from deployed runtime", () => {
   assert.match(acceptanceMatrix, /40845415688/);
   assert.match(acceptanceMatrix, /40845415274/);
   assert.match(acceptanceMatrix, /full release gate passed 152\s+suites/);
-  assert.match(acceptanceMatrix, /latest refresh-health artifact `12881601320` remains a warning/);
+  assert.match(acceptanceMatrix, /latest refresh-health artifact `12885673154` from evaluation `40848128417`\s+remains a warning/);
   assert.match(acceptanceMatrix, /manual-only and disabled-first/);
 });
 

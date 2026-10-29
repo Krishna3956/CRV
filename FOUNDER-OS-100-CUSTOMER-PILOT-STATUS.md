@@ -44,6 +44,11 @@ promise that every product capability is complete.
   `iam:PassRole` handoff required by App Runner.
 - Guarded distributed-rate-limit workflow `40220255833` completed successfully;
   App Runner configuration update and live postflight verification passed.
+- Latest refresh-health evaluation `40848128417` (artifact `12885673154`) is
+  warning with scheduler cadence proven (4 invocations, 0 errors, 4 scheduled
+  successes) and a clean current scheduled sample (`179222 ms` lag, zero
+  failed/retryable work). The warning remains authoritative because AWS's
+  rolling worker metric still contains an older `10606459 ms` lag datapoint.
 
 ## Deliberately not claimed
 
@@ -54,8 +59,9 @@ promise that every product capability is complete.
 - Backup/restore rehearsal and rollback rehearsal remain separate operator
   gates; the provider's Free Plan does not supply evidence for them
   automatically. Refresh-worker cadence is proven, but freshness remains a
-  warning until the bounded AWS window rolls forward without stale samples;
-  alert evaluation is not enabled in production.
+  warning until the bounded AWS window rolls forward and AWS reflects at least
+  three current in-budget samples; alert evaluation is not enabled in
+  production.
 - Export/delete behavior remains review-only and is not represented as a
   completed destructive pilot capability.
 - Protocol surfaces explicitly documented as partial (for example OTLP/gRPC,

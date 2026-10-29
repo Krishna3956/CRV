@@ -9,9 +9,10 @@ Current deployed baseline: application
 across web/JavaScript, Go, and .NET, and the full release gate passed 152
 suites. The App Runner deployment's read-only production smoke and immutable
 runtime identity checks passed against the deployed runtime SHA `e0629ea1`.
-The latest refresh-health artifact `12881601320` remains a warning because
-older stale samples and an older AWS lag datapoint are still inside the bounded
-window; the scheduler cadence itself remains proven. The alert
+The latest refresh-health artifact `12885673154` from evaluation `40848128417`
+remains a warning because AWS's rolling worker metric still includes an older
+`10606459 ms` lag datapoint; the current scheduled sample is within budget and
+the scheduler cadence itself remains proven. The alert
 evaluator deployment path is present but manual-only and disabled-first; no
 production alert delivery is claimed.
 This is current runtime and source evidence, not a pilot GO decision.
