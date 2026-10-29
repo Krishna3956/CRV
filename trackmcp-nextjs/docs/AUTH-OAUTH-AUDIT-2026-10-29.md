@@ -86,15 +86,27 @@ Selecting `krishnaatmu@gmail.com` reached the authenticated
 The prompt lifecycle was then hardened so a post-selection GIS notification
 cannot leave a false error banner after a successful session handoff.
 
+On 2026-10-30, Supabase's Google provider was rechecked with nonce validation
+still enabled. The direct GIS flow now generates a fresh random nonce for each
+attempt, sends its SHA-256 hexadecimal digest to Google, and sends the original
+nonce to `signInWithIdToken`, matching Supabase's documented nonce contract.
+The branded chooser was reverified after the rollout as
+`Sign in to trackmcp.com with google.com`; no Supabase hostname is present.
+The release passed the 36-check production pilot smoke against the direct App
+Runner origin. A final dashboard redirect check from this operator IP is
+currently limited by a Cloudflare block on `app.trackmcp.com` (the direct
+App Runner origin is healthy), so that last browser step must be rerun after
+the edge block clears.
+
 ## Release status
 
-The provider gate and branded Google flow are merged. The latest candidate is
-`f7b58b70` (App Runner rollout pending at audit time); the preceding candidate
-`1cb5c34f` is live and has passed the browser verification above. The GitHub
-Actions production smoke for `2e8fae9` reached the new image but failed on a
-transient read-only timeout; a manual rerun against the live origin passed all
-36 checks. The current candidate is retained behind the same release gate and
-must pass its own post-deploy smoke before it is treated as fully green.
+The provider gate and branded Google flow are merged. The current live release
+is `b583e3a5` (`b583e3a53cd10386220af4e0393053371f5d7e87`), and the direct
+App Runner health endpoint reports that exact release SHA. Local build,
+TypeScript, auth/security contracts, and the 36-check production pilot smoke
+pass. The provider configuration, branded chooser, and token exchange path are
+documented separately from the remaining edge-network browser verification;
+email/password remains the safe fallback while the Cloudflare block clears.
 OAuth keeps email/password as the safe fallback. New-user onboarding and the
 device-flow `/device?user_code=...` return-path remain separate acceptance
 checks.
