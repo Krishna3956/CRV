@@ -11,6 +11,7 @@ export const runtime = "nodejs";
 const MAX_BODY_BYTES = 100_000;
 const RATE_WINDOW_MS = 60_000;
 const MAX_REQUESTS_PER_WINDOW = 120;
+const MAX_RATE_BUCKETS = 10_000;
 const rateBuckets = new Map<string, { startedAt: number; count: number }>();
 
 function requestKey(request: Request): string {
@@ -19,7 +20,14 @@ function requestKey(request: Request): string {
 
 function isRateLimited(request: Request): boolean {
   const now = Date.now();
+  for (const [key, bucket] of rateBuckets) {
+    if (now - bucket.startedAt >= RATE_WINDOW_MS) rateBuckets.delete(key);
+  }
   const key = requestKey(request);
+  if (!rateBuckets.has(key) && rateBuckets.size >= MAX_RATE_BUCKETS) {
+    const oldest = rateBuckets.keys().next().value;
+    if (oldest !== undefined) rateBuckets.delete(oldest);
+  }
   const previous = rateBuckets.get(key);
   if (!previous || now - previous.startedAt >= RATE_WINDOW_MS) {
     rateBuckets.set(key, { startedAt: now, count: 1 });

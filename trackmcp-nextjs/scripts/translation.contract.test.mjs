@@ -47,6 +47,8 @@ test("translation endpoint only accepts English to Simplified Chinese", async ()
   assert.match(source, /targetLocale: "zh-CN"/);
   assert.match(source, /translation_not_configured/);
   assert.match(source, /MAX_REQUESTS_PER_WINDOW/);
+  assert.match(source, /MAX_RATE_BUCKETS/);
+  assert.match(source, /rateBuckets\.delete/);
   assert.match(source, /status: 429/);
 });
 
