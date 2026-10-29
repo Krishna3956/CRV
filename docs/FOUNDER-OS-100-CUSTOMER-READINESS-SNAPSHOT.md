@@ -1,10 +1,20 @@
 # Founder OS first-100 readiness snapshot
 
-Updated: 2026-10-29 (Asia/Kolkata; source `336e1049`; deployed runtime `07dea115`; hosted evidence reconciled)
+Updated: 2026-10-29 (Asia/Kolkata; source `0627a890`; deployed runtime `0627a890`; hosted evidence reconciled)
 
 Status: **Engineering green; release decision HOLD**
 
 ## Current checkpoint — 2026-10-29
+
+- PR #702 (`0627a890`) added the additive `account_identity_version`
+  compatibility fallback to the refresh worker. App Runner deployment
+  workflow `40832252214` passed all post-deploy checks, and the live origin
+  reports the exact SHA `0627a8904efebaa66ac01c5a34ed41e3c8ca8c37`.
+- Fresh worker acceptance run `40833086452` is clean: 5 processed, 5
+  succeeded, 0 retryable, 0 failed, and 0 unparseable responses. The observed
+  retry defect is fixed. The run's maximum queue age was `1138020 ms`, so the
+  scheduled freshness gate remains open until its required clean window is
+  proven.
 
 - The final live SEO re-audit is merged as PR #699 (`336e1049`). It checked
   108 blog routes on the public hostname and trusted origin: all 200, one H1,

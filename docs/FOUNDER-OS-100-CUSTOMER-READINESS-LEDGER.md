@@ -1,5 +1,28 @@
 # Founder OS 100 Customer Readiness Ledger
 
+## 2026-10-29 — refresh-worker compatibility fix deployed and verified
+
+- [x] PR #702 (`0627a8904efebaa66ac01c5a34ed41e3c8ca8c37`) added the
+  account-identity-version compatibility fallback to the background fact
+  projection worker, matching the existing ingest and analytics fallback for
+  the same additive migration. Focused regression coverage, TypeScript,
+  ESLint, and the hosted web/SDK/Go/.NET checks all passed.
+- [x] App Runner deployment workflow `40832252214` completed successfully.
+  Production smoke, immutable release identity, runtime safety, artifact
+  uploads, and the live origin health check all passed; `/api/health` reports
+  the exact runtime `0627a8904efebaa66ac01c5a34ed41e3c8ca8c37`.
+- [x] Fresh worker acceptance run `40833086452` against that runtime completed
+  with 5 processed, 5 succeeded, 0 retryable, 0 failed, 0 unparseable
+  responses, and no retryable error codes or kinds. This closes the observed
+  `fact_projection` retry defect. The sample still reports `stale` freshness
+  because its maximum queue age was `1138020 ms`; it does not replace the
+  required clean scheduled freshness window.
+- [ ] Release remains **HOLD** for the external/manual gates below: the
+  scheduled worker-freshness window, backup/PITR, privacy acceptance,
+  customer-owned endpoint/key-lifecycle UAT, protocol-boundary sign-off,
+  Google indexing progression, external blog backlinks, and release-owner
+  GO/NO-GO. No production retry is being hidden or reclassified as healthy.
+
 ## 2026-10-29 — final live SEO evidence and post-deploy worker recheck
 
 - [x] App Runner deployment workflow `40817742133` completed successfully
