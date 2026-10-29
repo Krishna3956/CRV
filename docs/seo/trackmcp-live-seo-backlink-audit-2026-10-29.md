@@ -32,6 +32,31 @@ This origin-level evidence confirms the deployed article implementation. It
 does not override the Search Console indexing results above, and it does not
 turn outbound citations into backlinks.
 
+### Final verification rerun (2026-10-29)
+
+The complete checks were rerun against the built application and the trusted
+production origin after the latest deployment. The local `npm run seo:audit`
+passed with 151/151 sitemap URLs. The same audit against App Runner also
+passed with 151/151 URLs. A schema-aware crawl of all 107 article URLs found:
+
+- 107/107 HTTP 200, one H1, unique title, unique description, exact HTTPS
+  canonical, no accidental `noindex`, complete Open Graph and Twitter card
+  metadata, read-time label, and non-empty image alt text.
+- 107/107 Article JSON-LD and BreadcrumbList JSON-LD records; 77/77 pages
+  that emit FAQs had FAQPage JSON-LD with a `mainEntity`.
+- 361 unique internal targets from the article set, with 0 broken or
+  redirecting targets, 0 stale adoption-route links, and 0 redirect chains.
+- 72 unique HTTPS external targets. No confirmed broken external target was
+  found; `https://x.com/trackmcp` returned a bot-protection 403 to this audit
+  client and is therefore recorded as **unverified**, not as a broken link.
+
+The production health endpoint for this audit reported release
+`a1ad002e04d9d77b720cd427723ce3ee126f542c`. The front door was also checked
+with Googlebot/browser user agents: `/blog`, representative new articles,
+`/sitemap.xml`, and `/robots.txt` returned 200; the stale adoption route
+returned one 301 to the valid canonical route and that destination returned
+200.
+
 As a front-door recheck, the same 30 article requests, sitemap, robots file,
 and stale-route redirect were then fetched from `https://trackmcp.com` with a
 browser user-agent and Googlebot user-agent. Both received HTTP 200 for public
@@ -77,6 +102,10 @@ Article JSON-LD was checked for `headline`, `description`, `datePublished`, `dat
 - All article pages are reachable from the blog index, categories, related content, product pages, or documentation. No article is orphaned.
 - The exact stale path `/blog/measure-mcp-tool-adoption` does not occur as an internal content URL, generated article link, sitemap entry, or live article link. It is retained only by the deliberate redirect route.
 - The old path returns one permanent redirect: `301 → https://trackmcp.com/blog/measure-mcp-tool-adoption-workflow-completion`; the destination returns 200 and does not redirect again.
+
+The counts above are the initial crawl baseline. The final rerun found 361
+internal and 72 external targets; see the final-verification section for the
+current evidence and the single bot-protected external URL.
 
 ### Sitemap and robots
 
