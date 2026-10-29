@@ -10,6 +10,8 @@ test("first-ingest smoke is explicit, bounded, trusted-host-only, and redacted",
   assert.match(source, /waitForAnalyticsReadBack/);
   assert.match(source, /analytics read-back exposes the accepted smoke event/);
   assert.match(source, /trustedHost/);
+  assert.match(source, /EDGE_USER_AGENT = "Mozilla\/5\.0"/);
+  assert.match(source, /"user-agent": EDGE_USER_AGENT/);
   assert.match(source, /event_id: `pilot-ingest-\$\{randomUUID\(\)\}`/);
   assert.match(source, /exactly one bounded event/);
   assert.match(source, /Keys, event IDs, workspace IDs, response bodies/);

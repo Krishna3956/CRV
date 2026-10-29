@@ -14,6 +14,11 @@ import process from "node:process";
 import { randomUUID } from "node:crypto";
 
 const CONFIRMATION = "I_UNDERSTAND_FIRST_INGEST_SMOKE";
+// The public edge applies a managed WAF rule to the default Node fetch
+// fingerprint. Match the already-published SDK boundary so this smoke tests
+// the same request class as customer SDK delivery, without sending secrets or
+// customer-identifying data in the header.
+const EDGE_USER_AGENT = "Mozilla/5.0";
 const baseUrl = process.env.TRACKMCP_INGEST_SMOKE_BASE_URL || "";
 const apiKey = process.env.TRACKMCP_INGEST_SMOKE_KEY || "";
 const service = process.env.TRACKMCP_INGEST_SMOKE_SERVICE || "pilot-ingest-smoke";
@@ -39,7 +44,7 @@ async function request(path, options = {}) {
   const response = await fetch(endpoint(path), {
     ...options,
     redirect: "manual",
-    headers: { accept: "application/json", authorization: `Bearer ${apiKey}`, ...(options.headers || {}) },
+    headers: { accept: "application/json", authorization: `Bearer ${apiKey}`, "user-agent": EDGE_USER_AGENT, ...(options.headers || {}) },
     signal: AbortSignal.timeout(15_000),
   });
   let body = {};
