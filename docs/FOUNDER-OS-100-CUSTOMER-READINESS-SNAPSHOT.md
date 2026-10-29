@@ -1,23 +1,35 @@
 # Founder OS first-100 readiness snapshot
 
-Updated: 2026-10-29 (Asia/Kolkata; source and deployed runtime `fe0d2cd1`; hosted evidence reconciled)
+Updated: 2026-10-29 (Asia/Kolkata; source and deployed runtime `5a742ec2`; hosted evidence reconciled)
 
 Status: **Engineering green; release decision HOLD**
 
 ## Current checkpoint — 2026-10-29
 
+- PR #690 delayed optional PostHog recorder/survey initialization behind a
+  10-second idle window while preserving the queued, privacy-safe analytics
+  contract. It was squash-merged as `5a742ec2` and deployed by App Runner
+  workflow `40809475613`; main CI `40809475611` and all post-deploy checks
+  passed.
+- `/api/health` reports the exact deployed SHA
+  `5a742ec2856fea22acfc51e11d830f759f4a1c48`. A fresh cold production
+  Lighthouse sample measured performance 0.76, SEO 1.00, accessibility 0.96,
+  LCP 6.1 s, CLS 0, TBT 80 ms, and TTFB 80 ms. Blocking time improved, but
+  LCP remains an explicit risk and is not claimed as a Core Web Vitals pass.
+
 - The current source and deployed runtime are `origin/main` at
-  `fe0d2cd1f5cde059cfc9546b983a575103b0df52`. PR #688 deferred optional GA4
-  loading from `afterInteractive` to `lazyOnload` and deployed through App
-  Runner workflow `40807491324`.
+  `5a742ec2856fea22acfc51e11d830f759f4a1c48`. PR #688 deferred optional GA4
+  loading from `afterInteractive` to `lazyOnload`; PR #690 then delayed
+  optional PostHog initialization. The latest deployment is App Runner
+  workflow `40809475613`.
 - The deployed App Runner runtime reports immutable release
-  `fe0d2cd1f5cde059cfc9546b983a575103b0df52` from `/api/health`.
+  `5a742ec2856fea22acfc51e11d830f759f4a1c48` from `/api/health`.
 - The full local release gate passes **152 suites**; TypeScript, lint, build,
   and the production SEO audit pass. The build generates 209 routes.
-- The representative production Lighthouse recheck improved to performance
-  0.76, SEO 1.00, accessibility 0.96, LCP 5.2 s, CLS 0, and TBT 220 ms.
-  This is an improvement, not a claim that all pages meet Core Web Vitals;
-  PostHog and origin variability remain open performance risks.
+- The latest representative production Lighthouse sample measured performance
+  0.76, SEO 1.00, accessibility 0.96, LCP 6.1 s, CLS 0, and TBT 80 ms.
+  Blocking time improved, but this is not a Core Web Vitals pass; LCP and
+  origin/third-party variability remain open performance risks.
 - Refresh health run `40804980639` reports an overall `warning` only because
   two pre-fix manual recovery runs remain in the one-hour diagnostic window.
   The source-of-truth production gates are already proven: AWS scheduler
@@ -147,8 +159,8 @@ scheduled-worker SLO. No secret, workspace identifier, raw payload, or token is
 stored in this snapshot.
 
 The detailed ledger is authoritative for the remaining external gates. The
-current source is `main` at `HEAD` (`fe0d2cd1`); the deployed application is
-the verified runtime `fe0d2cd1` after the App Runner rollout. The latest
+current source is `main` at `HEAD` (`5a742ec2`); the deployed application is
+the verified runtime `5a742ec2` after the App Runner rollout. The latest
 health report is the AWS-proven freshness result above, with historical manual
 diagnostics still visible. The alert evaluator remains
 disabled-first and is not claimed as enabled production delivery.
