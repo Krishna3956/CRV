@@ -45,7 +45,7 @@ Article JSON-LD was checked for `headline`, `description`, `datePublished`, `dat
 - 359 unique internal targets were collected from the blog pages; 0 returned 4xx/5xx and 0 had a redirect chain.
 - 71 unique external targets were collected; 0 returned 4xx/5xx during the audit window.
 - All article pages are reachable from the blog index, categories, related content, product pages, or documentation. No article is orphaned.
-- The exact stale path `/blog/measure-mcp-tool-adoption` does not occur in the source tree, generated output, sitemap, or live article links.
+- The exact stale path `/blog/measure-mcp-tool-adoption` does not occur as an internal content URL, generated article link, sitemap entry, or live article link. It is retained only by the deliberate redirect route.
 - The old path returns one permanent redirect: `301 → https://trackmcp.com/blog/measure-mcp-tool-adoption-workflow-completion`; the destination returns 200 and does not redirect again.
 
 ### Sitemap and robots
