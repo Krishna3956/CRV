@@ -13,7 +13,7 @@ export async function proxy(request: NextRequest) {
   // same callback route used by the normal PKCE flow.
   if (
     request.nextUrl.pathname === "/" &&
-    (host === APP_HOST || host.endsWith(".awsapprunner.com")) &&
+    (host === APP_HOST || MARKETING_HOSTS.has(host) || host.endsWith(".awsapprunner.com")) &&
     (request.nextUrl.searchParams.has("code") || request.nextUrl.searchParams.has("error"))
   ) {
     const callback = new URL("/auth/callback", request.url);
