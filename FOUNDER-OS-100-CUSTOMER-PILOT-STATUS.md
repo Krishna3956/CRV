@@ -23,12 +23,13 @@ promise that every product capability is complete.
 - Refresh-worker health evaluation `40891096616` (`12905900486`) reports a
   healthy bounded window: zero scheduler/worker failures, four complete
   samples, and maximum lag `867340 ms` within the `900000 ms` budget.
-- Production GitHub OAuth is now configured in Supabase and verified end to
-  end in the signed-in browser: the live `/signin` page exposed GitHub, GitHub
-  consent completed with read-only email scope, and the callback returned to
-  the authenticated `/dashboard`. Google remains disabled and hidden by the
-  fail-closed provider gate. New-user onboarding and device-flow OAuth
-  return-path checks remain open.
+- Production GitHub OAuth is configured in Supabase and verified end to end in
+  the signed-in browser. Google is configured in the dedicated Google Cloud
+  project `trusty-diorama-513117-f6` and enabled in Supabase, with the
+  TrackMCP account registered as a Google test user. Fresh Google browser UAT
+  is still blocked because the unauthenticated `/signin` route currently
+  returns a Cloudflare 502; the authenticated dashboard remains reachable.
+  New-user onboarding and device-flow OAuth return-path checks remain open.
 
 The release remains **HOLD** pending backup/PITR ownership, production privacy
 acceptance, credentialed key-lifecycle/customer-endpoint UAT, the remaining
@@ -101,9 +102,8 @@ OAuth onboarding/device-flow checks, and release-owner GO/NO-GO acceptance.
 
 1. Record provider backup/restore posture and the release-owner scope/go/no-go
    decision; do not infer either from green CI.
-2. Complete the remaining OAuth onboarding and device-flow return-path checks
-   using the configured GitHub provider; keep Google explicitly disabled until
-   separately approved.
+2. Recover the unauthenticated sign-in host, then complete Google/GitHub
+   onboarding and device-flow return-path checks using the configured providers.
 3. Verify server adoption and fresh telemetry with the rotated replacement key
    in a disposable process, without recording the secret.
 4. Keep partial MCP protocol surfaces and review-only deletion visibly bounded

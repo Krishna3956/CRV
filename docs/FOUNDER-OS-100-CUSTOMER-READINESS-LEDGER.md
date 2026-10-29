@@ -1,5 +1,21 @@
 # Founder OS 100 Customer Readiness Ledger
 
+## 2026-10-29 — TrackMCP Google OAuth provider configured in dedicated project
+
+- [x] Created the dedicated Google Cloud project display name `TrackMCP`,
+  project ID `trusty-diorama-513117-f6`, under the TrackMCP Google account.
+- [x] Created the production web OAuth client with origin
+  `https://app.trackmcp.com` and redirect
+  `https://qficcofvzidpvkltjkmo.supabase.co/auth/v1/callback`.
+- [x] Enabled Google in the production Supabase Auth provider settings and
+  registered the TrackMCP account as a Google test user (testing mode).
+- [ ] Fresh Google browser UAT is blocked by a current Cloudflare 502 on the
+  unauthenticated `/signin` route. The authenticated `/dashboard` remains
+  reachable; retry sign-in after the App Runner/Cloudflare host recovers.
+- [ ] Do not use the earlier `samkalp-abhyas` project/client for production;
+  it was created during the initial setup before the dedicated TrackMCP
+  project was requested.
+
 ## 2026-10-29 — public-edge first-ingest smoke aligned with SDK traffic
 
 - [x] The smoke harness now sends the same browser-compatible `User-Agent`

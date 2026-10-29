@@ -6,9 +6,10 @@ Audit date: 2026-10-29
 
 The application-side OAuth implementation is live for GitHub after provider
 configuration in the connected Supabase project and a real end-to-end browser
-sign-in. Google remains disabled and is correctly hidden by the fail-closed
-provider discovery route. The production UI must not claim a provider is
-available unless Supabase reports it enabled.
+sign-in. Google is now configured in the dedicated Google Cloud project
+`trusty-diorama-513117-f6` (display name `TrackMCP`) and enabled in Supabase.
+The production UI must not claim a provider is available unless Supabase
+reports it enabled.
 
 This change set therefore adds a fail-closed provider discovery route. The
 social buttons render only for providers that Supabase reports as enabled; if
@@ -26,10 +27,9 @@ settings cannot be read, email/password remains the available fallback.
   error and preserves `/device?user_code=...`.
 - External `next=https://evil.example` verification is reduced to
   `/dashboard`.
-- Supabase dashboard provider state shows GitHub **ENABLED**. The live app then
-  exposed the GitHub button, redirected through the GitHub authorization page,
-  and returned to the authenticated dashboard with the expected workspace
-  navigation. Google remains disabled and is not exposed.
+- Supabase dashboard provider state shows GitHub **ENABLED** and Google
+  **ENABLED**. Google uses the dedicated TrackMCP Cloud project and production
+  Supabase callback; the TrackMCP account is registered as a Google test user.
 - No provider secret, authorization code, code verifier, or bearer token was
   printed, stored, or added to the repository.
 - No SQL migration is required for basic Supabase social authentication. The
@@ -46,22 +46,26 @@ settings cannot be read, email/password remains the available fallback.
 
 ## Provider configuration and remaining UAT
 
-GitHub is configured in Supabase Auth using the provider callback URL
+GitHub and Google are configured in Supabase Auth using the provider callback URL
 `https://qficcofvzidpvkltjkmo.supabase.co/auth/v1/callback`, and the exact
 application callback `https://app.trackmcp.com/auth/callback` is used by the
 live authorization request. Provider client secrets belong only in Supabase.
-Google is intentionally not configured for this release.
 
 The real GitHub sign-in and existing-user dashboard return-path checks passed
-in the signed-in production browser on 2026-10-29. New-user onboarding and the
+in the signed-in production browser on 2026-10-29. Google provider wiring is
+configured, but fresh unauthenticated browser verification is blocked because
+`/signin` currently returns a Cloudflare 502 from the App Runner host while
+the authenticated `/dashboard` remains reachable. New-user onboarding and the
 device-flow `/device?user_code=...` return-path remain separate acceptance
-checks; they are not inferred from the successful OAuth callback.
+checks.
 
 ## Release status
 
 The fail-closed provider gate is merged and live in runtime
 `32ff5dfef6ec6a59de230c3eed2a98e7c0803b79`. GitHub provider configuration and
-one real browser sign-in are now verified. The route still intentionally hides
-disabled or unavailable providers and keeps email/password as the safe
-fallback. OAuth is therefore partially closed for GitHub, while Google,
-new-user onboarding, and device-flow return-path evidence remain open.
+one real browser sign-in are verified; Google provider configuration is verified
+in Google Cloud and Supabase, while fresh Google UAT remains blocked by the
+current 502. The route still intentionally hides disabled or unavailable
+providers and keeps email/password as the safe fallback. OAuth remains
+partially closed pending sign-in host recovery, new-user onboarding, and
+device-flow return-path evidence.

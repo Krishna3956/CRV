@@ -21,10 +21,13 @@ direct-origin first-ingest `40894964464` and SDK-shaped public-edge smoke
 `40896249223` both passed a bounded metadata-only event and analytics read-back.
 Health evaluation `40891096616` (`12905900486`) reports a healthy bounded worker
 window. GitHub OAuth is configured in Supabase and passed a real browser
-authorization and authenticated dashboard return on 2026-10-29. Google
-remains disabled and the provider gate stays fail-closed for unavailable
-providers. New-user onboarding and device-flow OAuth return-path checks remain
-open. The release remains Draft/HOLD because backup/recovery ownership,
+authorization and authenticated dashboard return on 2026-10-29. Google is
+configured in the dedicated Google Cloud project `trusty-diorama-513117-f6`,
+enabled in Supabase, and the TrackMCP account is registered as a test user.
+Fresh Google browser UAT is blocked because the unauthenticated `/signin`
+route currently returns a Cloudflare 502 while `/dashboard` remains reachable.
+New-user onboarding and device-flow OAuth return-path checks remain open. The
+release remains Draft/HOLD because backup/recovery ownership,
 privacy acceptance, credentialed lifecycle/customer-endpoint UAT, and
 release-owner approval remain open.
 
