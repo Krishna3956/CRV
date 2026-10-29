@@ -21,6 +21,8 @@ export type TranslationResult = {
 const MAX_TEXTS = 100;
 const MAX_TEXT_LENGTH = 4_000;
 const MAX_TOTAL_CHARS = 40_000;
+const HAN_CHARACTERS = /[\u3400-\u9fff]/;
+const PROTECTED_TOKEN = /https?:\/\/[^\s)]+|`[^`]+`/g;
 
 export class TranslationInputError extends Error {
   readonly code = "translation_input";
@@ -42,6 +44,28 @@ function assertRequest(request: TranslationRequest): void {
   if (request.texts.reduce((total, text) => total + text.length, 0) > MAX_TOTAL_CHARS) {
     throw new TranslationInputError("Translation batch is too large.");
   }
+}
+
+function expectsNaturalLanguage(source: string): boolean {
+  // Acronyms and product identifiers such as MCP, API, GitHub, and TrackMCP
+  // may correctly remain Latin. Ordinary words should produce at least one
+  // Han character in a Simplified Chinese response.
+  return source.split(/\s+/).some((word) => /^[A-Z]?[a-z]{3,}[.,!?;:)]*$/.test(word));
+}
+
+function assertTranslationQuality(source: string, translated: string): void {
+  if (!translated.trim()) throw new Error("Translation provider returned an empty item.");
+  if (expectsNaturalLanguage(source) && !HAN_CHARACTERS.test(translated)) {
+    throw new Error("Translation provider returned an untranslated Latin-language item.");
+  }
+  for (const token of source.match(PROTECTED_TOKEN) || []) {
+    if (!translated.includes(token)) throw new Error("Translation provider changed a protected token.");
+  }
+}
+
+function assertTranslationBatchQuality(source: string[], translated: string[]): void {
+  if (source.length !== translated.length) throw new Error("Translation provider returned an incomplete batch.");
+  source.forEach((item, index) => assertTranslationQuality(item, translated[index] || ""));
 }
 
 async function translateWithDeepL(texts: string[]): Promise<TranslationResult> {
@@ -93,9 +117,12 @@ export async function translate(request: TranslationRequest): Promise<Translatio
     throw new TranslationConfigurationError("Machine translation is disabled until explicitly approved.");
   }
   const provider = process.env.TRANSLATION_PROVIDER || (process.env.DEEPL_API_KEY ? "deepl" : "google");
-  if (provider === "deepl") return translateWithDeepL(request.texts);
-  if (provider === "google") return translateWithGoogle(request.texts);
-  throw new TranslationConfigurationError("TRANSLATION_PROVIDER must be deepl or google.");
+  let result: TranslationResult;
+  if (provider === "deepl") result = await translateWithDeepL(request.texts);
+  else if (provider === "google") result = await translateWithGoogle(request.texts);
+  else throw new TranslationConfigurationError("TRANSLATION_PROVIDER must be deepl or google.");
+  assertTranslationBatchQuality(request.texts, result.translations);
+  return result;
 }
 
 export const translationLimits = {

@@ -59,6 +59,9 @@ test("translation batches are bounded and use a configured provider", async () =
   assert.match(source, /DEEPL_GLOSSARY_ID/);
   assert.match(source, /TRANSLATION_ENABLE_MACHINE_TRANSLATION/);
   assert.match(source, /TRANSLATION_PROVIDER/);
+  assert.match(source, /HAN_CHARACTERS/);
+  assert.match(source, /PROTECTED_TOKEN/);
+  assert.match(source, /assertTranslationBatchQuality/);
 });
 
 test("runtime excludes code and user-editable content", async () => {

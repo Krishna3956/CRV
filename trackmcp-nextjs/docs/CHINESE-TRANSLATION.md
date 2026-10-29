@@ -10,6 +10,7 @@ The site now has a global language control in the root layout. It is available o
 - Route transitions and newly rendered content are observed with `MutationObserver`, so a newly submitted tool page does not need a new page file or a translation build.
 - Code, preformatted blocks, URLs, SVGs, form controls, editable fields, and explicitly marked `data-no-translate` content are left unchanged.
 - A failed or incomplete translation restores the original English content. The client never leaves a partially translated page visible.
+- Provider responses are also checked before they reach the browser: ordinary English-language items must contain Han characters, and URLs/backtick-delimited tokens must survive unchanged. A failed integrity check rejects the whole batch and leaves the page in English.
 
 ## Provider configuration
 
