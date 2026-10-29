@@ -1,5 +1,33 @@
 # Founder OS 100 Customer Readiness Ledger
 
+## 2026-10-29 — current source, runtime, and SEO/readiness reconciliation
+
+- [x] Current source is `origin/main` at `501cd7cf4182a5261d1cbe47fa09452dcdee820d`.
+  The documentation-only SEO evidence update merged through PR `#686`; no
+  application redeploy was required.
+- [x] The deployed App Runner health endpoint reports immutable runtime
+  `a1ad002e04d9d77b720cd427723ce3ee126f542c`.
+- [x] `npm run test:release-gate` passed all **151 suites** on the current
+  source. TypeScript, lint, production build (209 routes), and local plus
+  origin SEO audits also pass.
+- [x] Live SEO evidence is recorded in
+  `docs/seo/trackmcp-live-seo-backlink-audit-2026-10-29.md`: all 107 article
+  pages passed status, metadata, canonical, structured-data, image-alt, and
+  internal-link checks; sitemap and robots are valid.
+- [x] Refresh health artifact `12868310137` from run `40804980639` proves the
+  production source-of-truth gates: AWS scheduler cadence (3 invocations, 0
+  errors), AWS end-to-end cadence (3 successes, 0 failures), and worker
+  freshness (3 complete samples, no failed/retryable work, max queue lag
+  863743 ms within the 900000 ms budget).
+- [ ] The aggregate refresh report remains `warning` while the two pre-fix
+  manual recovery rows (`40804079540` and `40804146163`) remain in its one-hour
+  diagnostic window. They stay visible by design; close this operational gate
+  only after a clean evaluation window, not by filtering historical evidence.
+- [ ] Google indexing progression, external blog backlinks, Supabase
+  backup/PITR, privacy acceptance, customer-owned endpoint/key-lifecycle UAT,
+  protocol boundaries, optional Go/.NET publication, and release-owner GO/NO-GO
+  remain separate open gates.
+
 ## 2026-10-29 — coordinated SDK release train published
 
 - [x] PR `#681` fixed the clean-runner publication workflow so Python wheel
