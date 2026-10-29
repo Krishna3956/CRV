@@ -11,6 +11,9 @@ type PostHogClient = {
 const apiHost = process.env.NEXT_PUBLIC_POSTHOG_HOST || "https://us.i.posthog.com";
 const projectToken = process.env.NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN;
 let posthogPromise: Promise<PostHogClient | null> | null = null;
+let posthogClient: PostHogClient | null | undefined;
+let idleScheduled = false;
+const pendingActions: Array<(posthog: PostHogClient) => void> = [];
 
 function loadPostHog(): Promise<PostHogClient | null> {
   if (typeof window === "undefined" || !projectToken) return Promise.resolve(null);
@@ -41,13 +44,24 @@ function loadPostHog(): Promise<PostHogClient | null> {
         });
         return posthog as PostHogClient;
       })
-      .catch(() => null);
+      .catch(() => null)
+      .then((posthog) => {
+        posthogClient = posthog;
+        if (posthog) {
+          for (const action of pendingActions.splice(0)) action(posthog);
+        } else {
+          pendingActions.length = 0;
+        }
+        return posthog;
+      });
   }
   return posthogPromise;
 }
 
 export function schedulePostHogInit() {
   if (typeof window === "undefined" || !projectToken) return;
+  if (idleScheduled || posthogClient) return;
+  idleScheduled = true;
   const initialize = () => {
     void loadPostHog();
   };
@@ -62,25 +76,27 @@ export function schedulePostHogInit() {
 }
 
 export function capturePostHog(name: string, properties: Record<string, unknown>) {
-  void loadPostHog().then((posthog) => {
-    if (posthog) posthog.capture(name, properties);
-  });
+  queuePostHog((posthog) => posthog.capture(name, properties));
 }
 
 export function identifyPostHog(userId: string, properties: Record<string, unknown>) {
-  void loadPostHog().then((posthog) => {
-    if (posthog) posthog.identify(userId, properties);
-  });
+  queuePostHog((posthog) => posthog.identify(userId, properties));
 }
 
 export function registerPostHog(properties: Record<string, unknown>) {
-  void loadPostHog().then((posthog) => {
-    if (posthog) posthog.register(properties);
-  });
+  queuePostHog((posthog) => posthog.register(properties));
 }
 
 export function resetPostHog() {
-  void loadPostHog().then((posthog) => {
-    if (posthog) posthog.reset();
-  });
+  queuePostHog((posthog) => posthog.reset());
+}
+
+function queuePostHog(action: (posthog: PostHogClient) => void) {
+  if (typeof window === "undefined" || !projectToken) return;
+  if (posthogClient) {
+    action(posthogClient);
+    return;
+  }
+  pendingActions.push(action);
+  schedulePostHogInit();
 }
