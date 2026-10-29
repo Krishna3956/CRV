@@ -14,6 +14,8 @@ test("optional PostHog analytics stays out of the initial client path", () => {
   assert.match(loader, /import\(["']posthog-js["']\)/);
   assert.match(loader, /requestIdleCallback/);
   assert.match(loader, /setTimeout\(initialize, 3000\)/);
+  assert.match(loader, /pendingActions/);
+  assert.match(loader, /queuePostHog/);
   assert.match(loader, /maskAllInputs: true/);
   assert.match(loader, /recordHeaders: false/);
   assert.match(loader, /recordBody: false/);
