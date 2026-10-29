@@ -7,10 +7,11 @@ import { authCallbackUrl, safeAuthNext } from "@/lib/auth/redirect";
 
 type OAuthProvider = "google" | "github";
 
-// This is a browser-safe OAuth client identifier. The matching client is
-// restricted to app.trackmcp.com in Google Cloud; no client secret belongs in
-// the browser. Using Google Identity Services directly keeps the consent UI
-// branded as TrackMCP instead of exposing Supabase's project hostname.
+// This is a browser-safe OAuth client identifier. Its authorized browser
+// origins are managed in Google Cloud for the public marketing host, app host,
+// and deployment origin; no client secret belongs in the browser. Using Google
+// Identity Services directly keeps the consent UI branded as TrackMCP instead
+// of exposing Supabase's project hostname.
 const GOOGLE_CLIENT_ID = "59314638849-ifjalfkjhkdl00grbadeh61c2pimo57o.apps.googleusercontent.com";
 
 type GoogleCredentialResponse = { credential?: string };

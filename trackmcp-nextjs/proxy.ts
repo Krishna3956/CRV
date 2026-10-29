@@ -1,7 +1,37 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
+const APP_HOST = "app.trackmcp.com";
+const MARKETING_HOSTS = new Set(["trackmcp.com", "www.trackmcp.com"]);
+
 export async function proxy(request: NextRequest) {
+  const host = request.headers.get("x-forwarded-host")?.split(",")[0].trim() || request.headers.get("host") || "";
+
+  // OAuth providers can occasionally return the authorization response to the
+  // configured site root instead of the requested callback path. Never render
+  // the marketing page with a live code in the query string: hand it to the
+  // same callback route used by the normal PKCE flow.
+  if (
+    request.nextUrl.pathname === "/" &&
+    (host === APP_HOST || host.endsWith(".awsapprunner.com")) &&
+    (request.nextUrl.searchParams.has("code") || request.nextUrl.searchParams.has("error"))
+  ) {
+    const callback = new URL("/auth/callback", request.url);
+    request.nextUrl.searchParams.forEach((value, key) => callback.searchParams.set(key, value));
+    return NextResponse.redirect(callback, 307);
+  }
+
+  // The app subdomain shares this deployment with the marketing site, but its
+  // root should always enter the product instead of rendering the homepage.
+  if (process.env.NODE_ENV === "production" && host === APP_HOST && request.nextUrl.pathname === "/") {
+    return NextResponse.redirect(new URL("/signin", `https://${APP_HOST}`), 307);
+  }
+
+  if (process.env.NODE_ENV === "production" && MARKETING_HOSTS.has(host)) {
+    const target = new URL(request.nextUrl.pathname + request.nextUrl.search, `https://${APP_HOST}`);
+    return NextResponse.redirect(target, 308);
+  }
+
   let response = NextResponse.next({ request });
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -22,5 +52,5 @@ export async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/dashboard/:path*", "/onboarding", "/api/v1/account/:path*", "/auth/callback"],
+  matcher: ["/", "/signin/:path*", "/signup/:path*", "/dashboard/:path*", "/onboarding/:path*", "/auth/callback/:path*"],
 };
