@@ -1,0 +1,27 @@
+{
+  "generated_at": "2026-10-29T22:44:20.923Z",
+  "base_url": "https://app.trackmcp.com",
+  "candidate_sha": "not-supplied",
+  "checks_passed": 37,
+  "checks": [
+    { "label": "workspace A key status", "status": 200, "workspace_available": true, "service_available": true },
+    { "label": "workspace B key status", "status": 200, "workspace_available": true, "service_available": true },
+    { "label": "workspace A ignores conflicting workspace query", "status": 200, "workspace_scope_verified": true },
+    { "label": "workspace B ignores conflicting workspace query", "status": 200, "workspace_scope_verified": true },
+    { "label": "workspace A and B v2 read models", "status": 200, "count": 24, "workspace_scope_verified": true, "privacy_projection_verified": true },
+    { "label": "workspace A and B legacy read models", "status": 200, "count": 6, "workspace_scope_verified": true, "privacy_projection_verified": true },
+    { "label": "API-key Action Queue boundary", "status": 403, "count": 2, "human_session_required": true },
+    { "label": "revoked-key negative authorization", "status": "401-or-403", "count": 1 }
+  ],
+  "privacy_inspection": {
+    "forbidden_fields_found": 0,
+    "raw_response_bodies_persisted": false,
+    "credentials_persisted": false,
+    "workspace_ids_persisted": false
+  },
+  "write_enabled": false,
+  "caveats": [
+    "Read-only authenticated scope evidence; no key creation, rotation, revocation, ingest, or dashboard mutation was performed.",
+    "This does not close customer-owned MCP endpoint/transport UAT, transport-owned reconnect/replay, backup/PITR, privacy approval, or release-owner GO/NO-GO."
+  ]
+}

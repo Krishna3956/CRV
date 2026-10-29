@@ -24,6 +24,14 @@ test("packed CLI installs cleanly and executes through the npm bin symlink", asy
     assert.equal(helpRun.error, undefined);
     assert.match(helpRun.stdout, /TrackMCP CLI/);
 
+    // npm exec is the exact invocation used by the documented `npx` flow. It
+    // resolves the package's .bin entry itself, so keep this path covered in
+    // addition to invoking the symlink through node directly.
+    const npmExecHelpRun = spawnSync("npm", ["exec", "--yes", "--", "trackmcp", "--help"], { cwd: consumer, env: { ...npmEnv, npm_config_loglevel: "error" }, encoding: "utf8", timeout: 15_000 });
+    assert.equal(npmExecHelpRun.status, 0);
+    assert.equal(npmExecHelpRun.error, undefined);
+    assert.match(npmExecHelpRun.stdout, /TrackMCP CLI/);
+
     const initHelpRun = spawnSync("node", ["node_modules/.bin/trackmcp", "init", "--help"], { cwd: consumer, env: { ...process.env }, encoding: "utf8", timeout: 15_000 });
     assert.equal(initHelpRun.status, 0);
     assert.match(initHelpRun.stdout, /Usage: npx @trackmcp\/cli init/);
