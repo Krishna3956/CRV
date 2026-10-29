@@ -68,31 +68,33 @@ workspace with dashboard navigation and data. New-user onboarding and the
 device-flow `/device?user_code=...` return-path remain separate acceptance
 checks.
 
-The Google account chooser and consent page still show
-`qficcofvzidpvkltjkmo.supabase.co` as the OAuth host. This is not a stale
-application label: Supabase's hosted OAuth authorize flow supplies its project
-hostname as `app_domain` and callback host. Google Auth Platform branding does
-not replace that host in the chooser. Supabase documents a custom Auth domain as
-the supported remedy; the current project is on the Free plan and the
-dashboard reports Custom Domains as a Pro add-on. No paid-plan upgrade or
-billing mutation was made without explicit authorization.
+The Google account chooser previously showed
+`qficcofvzidpvkltjkmo.supabase.co` because Supabase's hosted OAuth authorize
+flow supplies its project hostname as `app_domain` and callback host. Google
+Auth Platform branding cannot replace that host in the hosted chooser. The
+product flow now avoids that hosted authorize path: the Google button loads
+Google Identity Services directly and exchanges the returned Google ID token
+with Supabase via `signInWithIdToken`. GitHub continues using the existing
+Supabase OAuth redirect. Supabase remains the session/database authority while
+Google's branded client owns the account chooser; no paid custom-domain upgrade
+or billing mutation was made.
 
-To remove that hosted-domain dependency in the product flow, the Google button
-now uses Google Identity Services directly and exchanges the returned Google
-ID token with Supabase via `signInWithIdToken`. GitHub continues using the
-existing Supabase OAuth redirect. This keeps Supabase as the session/database
-authority while allowing Google's branded client to own the Google account
-chooser. The direct flow is covered by the OAuth contract test and the
-production build; a live browser verification is required after the next
-App Runner rollout.
+Live browser verification on 2026-10-29 confirmed the Google dialog title
+`Sign in to trackmcp.com with google.com`, with no Supabase hostname present.
+Selecting `krishnaatmu@gmail.com` reached the authenticated
+`https://app.trackmcp.com/dashboard` and loaded the `krishnaatmu` workspace.
+The prompt lifecycle was then hardened so a post-selection GIS notification
+cannot leave a false error banner after a successful session handoff.
 
 ## Release status
 
-The fail-closed provider gate is merged and live in runtime
-`32ff5dfef6ec6a59de230c3eed2a98e7c0803b79`. GitHub provider configuration and
-one real browser sign-in are verified; Google provider configuration and a
-fresh Google UAT are also verified in Google Cloud, Supabase, and the live
-dashboard. The route still intentionally hides disabled or unavailable
-providers and keeps email/password as the safe fallback. OAuth remains
-partially closed only for the separate new-user onboarding and device-flow
-return-path evidence.
+The provider gate and branded Google flow are merged. The latest candidate is
+`f7b58b70` (App Runner rollout pending at audit time); the preceding candidate
+`1cb5c34f` is live and has passed the browser verification above. The GitHub
+Actions production smoke for `2e8fae9` reached the new image but failed on a
+transient read-only timeout; a manual rerun against the live origin passed all
+36 checks. The current candidate is retained behind the same release gate and
+must pass its own post-deploy smoke before it is treated as fully green.
+OAuth keeps email/password as the safe fallback. New-user onboarding and the
+device-flow `/device?user_code=...` return-path remain separate acceptance
+checks.
