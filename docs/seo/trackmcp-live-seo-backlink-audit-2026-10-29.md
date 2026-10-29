@@ -65,6 +65,18 @@ results matched the origin crawl. The default `curl` user-agent received a
 Cloudflare 403 challenge; that is an audit-client WAF challenge rather than a
 Googlebot block, but it should remain on the operational watch list.
 
+### Current deployment recheck (2026-10-29)
+
+After the final optional-analytics performance deployment, App Runner workflow
+`40809475613` passed its release gate, rollout, production smoke, immutable
+identity, and runtime-safety checks. The live `/api/health` endpoint now
+reports release `5a742ec2856fea22acfc51e11d830f759f4a1c48`. The origin SEO
+audit was rerun against this release and passed all 151 sitemap URLs. This
+deployment changed only optional PostHog initialization timing, so the SEO
+and schema findings above remain unchanged. A fresh cold Lighthouse sample
+returned performance 0.76, SEO 1.00, accessibility 0.96, LCP 6.1 s, CLS 0,
+TBT 80 ms, and TTFB 80 ms; LCP remains an explicit performance risk.
+
 ## Verified and complete
 
 ### Live blog crawl
