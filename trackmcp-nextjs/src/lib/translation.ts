@@ -1,4 +1,5 @@
 import "server-only";
+import { createHash } from "node:crypto";
 import { assertTranslationBatchQuality } from "./translation-quality";
 import { unstable_cache } from "next/cache";
 
@@ -87,14 +88,25 @@ async function translateWithGoogle(texts: string[]): Promise<TranslationResult> 
   return { translations, provider: "google" };
 }
 
-const translateProviderCached = unstable_cache(
-  async (provider: "deepl" | "google", texts: string[], deeplEndpoint: string, glossaryId: string): Promise<TranslationResult> => {
-    if (provider === "deepl") return translateWithDeepL(texts, deeplEndpoint, glossaryId || undefined);
-    return translateWithGoogle(texts);
-  },
-  ["trackmcp-translation-provider-v1"],
-  { revalidate: 86_400, tags: ["trackmcp-translation-cache"] },
-);
+async function translateProviderCached(
+  provider: "deepl" | "google",
+  texts: string[],
+  deeplEndpoint: string,
+  glossaryId: string,
+): Promise<TranslationResult> {
+  const cacheDigest = createHash("sha256")
+    .update(JSON.stringify({ provider, texts, deeplEndpoint, glossaryId, targetLocale: "zh-CN" }))
+    .digest("hex");
+  const cached = unstable_cache(
+    async () => {
+      if (provider === "deepl") return translateWithDeepL(texts, deeplEndpoint, glossaryId || undefined);
+      return translateWithGoogle(texts);
+    },
+    ["trackmcp-translation-provider-v1", cacheDigest],
+    { revalidate: 86_400, tags: ["trackmcp-translation-cache"] },
+  );
+  return cached();
+}
 
 export async function translate(request: TranslationRequest): Promise<TranslationResult> {
   assertRequest(request);

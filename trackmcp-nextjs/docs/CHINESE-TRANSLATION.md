@@ -40,7 +40,7 @@ DEEPL_GLOSSARY_ID=...
 
 The endpoint also applies a per-process request limit and the browser keeps a bounded translation cache so repeated labels and route transitions do not repeatedly spend provider quota.
 
-Successful provider batches are also cached server-side for 24 hours using Next.js data-cache keys derived from the provider, glossary/endpoint configuration, and batch contents. This keeps repeated visits to the same generated tool or README page from making a fresh provider call for every visitor while preserving the fail-closed behavior on cache misses and provider errors.
+Successful provider batches are also cached server-side for 24 hours using Next.js data-cache keys derived from a SHA-256 digest of the provider, glossary/endpoint configuration, and batch contents. The cache key does not contain provider secrets. This keeps repeated visits to the same generated tool or README page from making a fresh provider call for every visitor while preserving the fail-closed behavior on cache misses and provider errors.
 
 The flag is intentionally separate from the provider credential. A key can be present for staging or rotation without activating unreviewed output. Set it to `true` only after the owner explicitly accepts a machine-translation policy; it does not constitute a 100% accuracy guarantee.
 
