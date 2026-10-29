@@ -204,7 +204,7 @@ test("catalog refresh preserves structured database error context", async () => 
   const result = await handler({ job: baseJob("fact_projection"), now: new Date() });
   assert.deepEqual(result, {
     outcome: "retryable",
-    error_code: "handler_failure",
+    error_code: "conflict_target_missing",
     detail: "code=42P10; message=no unique or exclusion constraint matching the ON CONFLICT specification; details=constraint mismatch; hint=create a matching unique index",
   });
 });

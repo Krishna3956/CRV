@@ -77,6 +77,14 @@ export type RefreshBatchResult = {
 const MAX_HANDLER_DETAIL = 240;
 const MAX_RETRYABLE_ERROR_CODES = 8;
 const MAX_RETRYABLE_ERROR_COUNT = 1000;
+const SAFE_HANDLER_ERROR_CODES = new Set([
+  "handler_failure",
+  "handler_timeout",
+  "schema_missing",
+  "constraint_violation",
+  "conflict_target_missing",
+  "unique_conflict",
+]);
 const DEFAULT_LEASE_MS = 5 * 60 * 1000;
 const DEFAULT_BATCH_DURATION_MS = 45_000;
 
@@ -91,7 +99,12 @@ function safeError(error: unknown): { code: string; detail: string | undefined }
     .replace(/eyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+/g, "[redacted]")
     .replace(/https?:\/\/\S+/gi, "[url]")
     .slice(0, MAX_HANDLER_DETAIL);
-  const code = detail.toLowerCase().includes("timeout") ? "handler_timeout" : "handler_failure";
+  const suppliedCode = raw.match(/^([a-z][a-z0-9_.-]{1,79})(?::|$)/i)?.[1]?.toLowerCase();
+  const code = suppliedCode && SAFE_HANDLER_ERROR_CODES.has(suppliedCode)
+    ? suppliedCode
+    : detail.toLowerCase().includes("timeout")
+      ? "handler_timeout"
+      : "handler_failure";
   return { code, detail: detail || undefined };
 }
 
