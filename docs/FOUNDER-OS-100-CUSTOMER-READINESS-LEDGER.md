@@ -1,5 +1,17 @@
 # Founder OS 100 Customer Readiness Ledger
 
+## 2026-10-29 — backup/PITR recovery control added
+
+- [x] Added [`FOUNDER-OS-BACKUP-RECOVERY-RUNBOOK.md`](FOUNDER-OS-BACKUP-RECOVERY-RUNBOOK.md)
+  with the Free-plan boundary, explicit RPO/RTO limits, non-destructive
+  logical-export procedure, disposable restore rehearsal, rollback order, and
+  acceptance criteria. A contract test protects against accidentally claiming
+  automated backup/PITR coverage or storing secrets in evidence.
+- [ ] This is an engineering control, not provider evidence. Supabase backup/
+  PITR enablement or an explicit release-owner accepted limitation, named
+  recovery operator, and completed restore rehearsal remain required before
+  the backup gate can be marked complete.
+
 ## 2026-10-29 — post-fix worker window recheck
 
 - [x] Three additional worker runs after PR #702 are clean: `40833999710`
