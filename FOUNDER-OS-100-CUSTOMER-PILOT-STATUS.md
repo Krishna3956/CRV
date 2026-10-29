@@ -1,6 +1,6 @@
 # Founder OS: 100-customer pilot status
 
-Last verified: 2026-10-28 (Asia/Kolkata)
+Last verified: 2026-10-29 (Asia/Kolkata)
 
 This is the concise release-owner handoff. It records evidence that exists,
 what is intentionally not claimed, and the next work queue. It is not a
@@ -9,16 +9,12 @@ promise that every product capability is complete.
 ## Verified and shipped
 
 - `origin/main` is `HEAD` (active pilot evidence baseline). The latest deployed
-  application runtime is immutable `8e3b61836432e1b045b539857fb8639d9d464c3f`
-  via App Runner workflow `40695080113`, with release gate, read-only
-  production smoke, immutable identity, and runtime-safety checks passed. The
-  deployed image digest is
-  `sha256:bb8c89a7a3794b83c129681310e423e007c9096cba9f4398cf84ebf3392d8cb0`.
-  Hosted TrackMCP CI `40702831003` passed across the web/JavaScript, Go, and
-  .NET lanes, and the live health endpoint reports the same release SHA. AWS
-  worker freshness remains proven by health artifact `40629348992`; the alert
-  evaluator path is published but manual-only and disabled-first.
-- The latest local release gate passes 148 suites, lint, the 178-route
+  application runtime is immutable `e0629ea1d02331a1c9cd26eb82d61bfe0a93529f`
+  via App Runner workflow `40845415688`, with release gate, read-only
+  production smoke, immutable identity, and runtime-safety checks passed.
+  Hosted TrackMCP CI `40845415274` passed across the web/JavaScript, Go, and
+  .NET lanes, and the live health endpoint reports the same release SHA. The
+  latest local release gate passes **152 suites**, lint, the **209-route**
   production build, and `git diff --check`.
 - Production schema postflights verified required tables, indexes, functions,
   RLS/privilege boundaries, constraints, integrity aggregates, and catalog
@@ -57,8 +53,9 @@ promise that every product capability is complete.
   fallback when distributed mode is unset.
 - Backup/restore rehearsal and rollback rehearsal remain separate operator
   gates; the provider's Free Plan does not supply evidence for them
-  automatically. Refresh-worker freshness is proven by the current AWS health
-  artifact; alert evaluation is not enabled in production.
+  automatically. Refresh-worker cadence is proven, but freshness remains a
+  warning until the bounded AWS window rolls forward without stale samples;
+  alert evaluation is not enabled in production.
 - Export/delete behavior remains review-only and is not represented as a
   completed destructive pilot capability.
 - Protocol surfaces explicitly documented as partial (for example OTLP/gRPC,

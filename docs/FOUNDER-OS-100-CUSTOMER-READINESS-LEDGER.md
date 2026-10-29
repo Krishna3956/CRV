@@ -1,5 +1,23 @@
 # Founder OS 100 Customer Readiness Ledger
 
+## 2026-10-29 — homepage responsive polish deployed and verified
+
+- [x] PR #710 (`e0629ea1d02331a1c9cd26eb82d61bfe0a93529f`) shipped the three
+  requested homepage fixes in one focused release: the CLI command box is
+  capped at `18rem` on narrow screens, the desktop-only hero bridge/gray strip
+  is hidden below the mobile breakpoint, and the homepage heading/root title
+  now says “Understand how your MCP is being used.”
+- [x] The mobile-layout contract covers both the narrow CLI width and the
+  phone-only bridge boundary. The full local release gate passed 152 suites;
+  lint and the production build passed, generating 209 routes.
+- [x] Hosted TrackMCP CI `40845415274`, App Runner deployment
+  `40845415688`, and authenticated production smoke `40846362114` passed.
+  Direct App Runner `/api/health` reports the exact deployed SHA, and the
+  public homepage returned 200 with desktop and iPhone browser user agents.
+- [ ] This is a UX/runtime milestone only. It does not close the worker
+  freshness, backup/PITR, privacy acceptance, customer-owned protocol/UAT, or
+  release-owner GO/NO-GO gates below.
+
 ## 2026-10-29 — TrackMCP social-auth path implemented with safe redirects
 
 - [x] PR #708 (`03488cb67727c7fdf4b06b11d721bd06c884045a`) deployed the

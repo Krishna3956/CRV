@@ -1,10 +1,20 @@
 # Founder OS first-100 readiness snapshot
 
-Updated: 2026-10-29 (Asia/Kolkata; source `03488cb6`; deployed runtime `03488cb6`; hosted evidence reconciled)
+Updated: 2026-10-29 (Asia/Kolkata; source `HEAD`; deployed runtime `e0629ea1`; hosted evidence reconciled)
 
 Status: **Engineering green; release decision HOLD**
 
 ## Current checkpoint — 2026-10-29
+
+- The latest homepage release is live on immutable runtime
+  `e0629ea1d02331a1c9cd26eb82d61bfe0a93529f` via App Runner workflow
+  `40845415688`; main CI `40845415274` and authenticated production smoke
+  `40846362114` passed. The responsive CLI box, phone-only gray-strip removal,
+  and “Understand how your MCP is being used” heading are verified on the
+  direct origin and public domain with desktop and iPhone user agents.
+- The current local production build generates 209 routes and the full release
+  gate passes 152 suites. This is a cosmetic/runtime verification milestone,
+  not a first-100-user GO decision.
 
 - TrackMCP account social authentication is deployed in runtime
   `03488cb67727c7fdf4b06b11d721bd06c884045a` via App Runner workflow
