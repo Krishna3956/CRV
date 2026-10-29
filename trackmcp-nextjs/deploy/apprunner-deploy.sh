@@ -43,6 +43,10 @@ case "${TRACKMCP_TRUST_PROXY:-false}" in
   true|false) ;;
   *) echo "ERROR: TRACKMCP_TRUST_PROXY must be true or false." >&2; exit 1 ;;
 esac
+case "${TRANSLATION_PROVIDER:-}" in
+  ""|deepl|google) ;;
+  *) echo "ERROR: TRANSLATION_PROVIDER must be empty, deepl, or google." >&2; exit 1 ;;
+esac
 if [[ "${TRACKMCP_RATE_LIMIT_MODE:-}" == "supabase" || "${TRACKMCP_ENABLE_FACT_WRITES:-false}" == "true" ]] && [[ -z "${SECRETS_ARN:-}" ]]; then
   echo "ERROR: SECRETS_ARN is required when distributed rate limits or fact writes are enabled." >&2
   exit 1
@@ -139,13 +143,16 @@ keys = [
     "TRACKMCP_RATE_LIMIT_MODE",
     "TRACKMCP_TRUST_PROXY",
     "BREVO_SUBMIT_FORM_URL",
+    "TRANSLATION_PROVIDER",
+    "DEEPL_API_URL",
+    "DEEPL_GLOSSARY_ID",
 ]
 print(json.dumps({k: os.environ[k] for k in keys if os.environ.get(k)}))
 PY
 )"
 
 SOURCE_CONFIG="$(python3 - "$IMAGE" "$ACCESS_ROLE_ARN" "$RUNTIME_ENV" "$SECRETS_ARN" <<'PY'
-import json, sys
+import json, os, sys
 image, role_arn, runtime_env, secrets_arn = sys.argv[1], sys.argv[2], sys.argv[3], sys.argv[4]
 img_cfg = {"Port": "8080", "RuntimeEnvironmentVariables": json.loads(runtime_env)}
 if secrets_arn:
@@ -157,6 +164,11 @@ if secrets_arn:
         "TRACKMCP_REFRESH_WORKER_SECRET": f"{secrets_arn}:TRACKMCP_REFRESH_WORKER_SECRET::",
         "TRACKMCP_PRIVACY_REVIEW_SECRET": f"{secrets_arn}:TRACKMCP_PRIVACY_REVIEW_SECRET::",
     }
+    provider = os.environ.get("TRANSLATION_PROVIDER", "")
+    if provider == "deepl":
+        img_cfg["RuntimeEnvironmentSecrets"]["DEEPL_API_KEY"] = f"{secrets_arn}:DEEPL_API_KEY::"
+    elif provider == "google":
+        img_cfg["RuntimeEnvironmentSecrets"]["GOOGLE_TRANSLATE_API_KEY"] = f"{secrets_arn}:GOOGLE_TRANSLATE_API_KEY::"
 cfg = {
     "ImageRepository": {
         "ImageIdentifier": image,
