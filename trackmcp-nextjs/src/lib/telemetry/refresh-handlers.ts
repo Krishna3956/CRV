@@ -13,6 +13,7 @@ const MAX_ROWS = 500;
 // this query result. Omitting either field silently turns valid task events
 // into ordinary semantic facts with no transition history.
 const EVENT_COLUMNS = "event_id,event_type,service,environment,started_at,client_name,client_version,transport,account_key,account_identity_source,account_identity_version,tool_name,duration_ms,payload_size_bytes,retry_number,result_type,interaction_id,interaction_link_source,retry_of_event_id,request_state_hash,input_request_count,input_response_count,resource_audience,resource_priority,is_error,success,error_class,error_code,task_id,payload";
+const LEGACY_EVENT_COLUMNS = EVENT_COLUMNS.replace(",account_identity_version", "");
 
 type QueryResult<T> = { data: T[] | null; error: { code?: string; message: string } | null };
 type Query = {
@@ -54,6 +55,28 @@ function applyJobWindow(query: Query, job: { dedupe_key: string }, column: strin
   const lt = query.lt;
   if (!range || typeof gte !== "function" || typeof lt !== "function") return query;
   return lt.call(gte.call(query, column, range.start), column, range.end);
+}
+
+function isMissingAccountIdentityVersionColumn(error: unknown): boolean {
+  if (!error || typeof error !== "object") return false;
+  const record = error as Record<string, unknown>;
+  const text = `${typeof record.code === "string" ? record.code : ""} ${typeof record.message === "string" ? record.message : ""}`.toLowerCase();
+  return text.includes("account_identity_version") && (text.includes("column") || text.includes("pgrst204") || text.includes("42703"));
+}
+
+async function readProjectionEvents(admin: RefreshAdmin, job: { workspace_id: string; dedupe_key: string }) {
+  const read = async (columns: string) => {
+    const query = applyJobWindow(admin.from("trackmcp_events").select(columns).eq("workspace_id", job.workspace_id), job, "started_at");
+    return query.order("started_at", { ascending: false }).limit(MAX_ROWS);
+  };
+  const result = await read(EVENT_COLUMNS);
+  // The account identity version migration is additive and may lag a rolling
+  // deployment. It is optional in the canonical event contract, so preserve
+  // projection freshness by using the legacy select while that migration is
+  // pending, matching the ingest and analytics compatibility path.
+  return result.error && isMissingAccountIdentityVersionColumn(result.error)
+    ? read(LEGACY_EVENT_COLUMNS)
+    : result;
 }
 
 function retryable(error: unknown) {
@@ -131,8 +154,7 @@ export function createRefreshJobHandlers(admin: RefreshAdmin, options: RefreshHa
     async fact_projection({ job, signal }) {
       if (signal?.aborted) return { outcome: "deferred", detail: "worker deadline deferred this job" };
       try {
-        const query = applyJobWindow(admin.from("trackmcp_events").select(EVENT_COLUMNS).eq("workspace_id", job.workspace_id), job, "started_at");
-        const result = await query.order("started_at", { ascending: false }).limit(MAX_ROWS);
+        const result = await readProjectionEvents(admin, job);
         if (result.error) return retryable(result.error);
         const facts = factsFromRows(result.data || []);
         const persisted = await persistTrackMCPFacts(admin as never, job.workspace_id, facts);
