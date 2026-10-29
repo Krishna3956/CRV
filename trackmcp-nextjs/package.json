@@ -111,6 +111,7 @@
     "test:action-queue-read-route": "node --experimental-strip-types --test src/lib/telemetry/action-queue-read-route.test.mjs",
     "test:device-auth-activation": "node --experimental-strip-types --test src/lib/device-auth.test.ts src/lib/device-auth-ui.test.ts src/components/activation.contract.test.mjs",
     "test:font-loading-contract": "node --test scripts/font-loading-contract.test.mjs",
+    "test:marketing-analytics-loading-contract": "node --test scripts/marketing-analytics-loading-contract.test.mjs",
     "test:device-approval-contract": "node --test src/app/api/v1/cli/device/sessions/approve/route.contract.test.mjs src/app/api/v1/cli/device/sessions/approve/route.integration.test.mjs",
     "test:activation-funnel": "node --test src/app/api/v1/activation/funnel/route.contract.test.mjs",
     "test:admin-workspaces": "node --test src/app/api/v1/admin/workspaces/route.contract.test.mjs",
