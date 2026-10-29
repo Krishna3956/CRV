@@ -79,6 +79,8 @@ test("Chinese browser preferences only drive a non-blocking suggestion", async (
   assert.match(suggestion, /hasDismissedLanguageSuggestion/);
   const layout = await readFile(resolve(root, "src/app/layout.tsx"), "utf8");
   assert.match(layout, /<LanguageSuggestion\s*\/>/);
+  assert.match(layout, /trackmcp-locale-bootstrap/);
+  assert.match(layout, /trackmcp_locale=zh-CN/);
 });
 
 test("new submissions stay inside the shared translation runtime", async () => {

@@ -35,11 +35,16 @@ export function OAuthButtons({
     void fetch("/api/auth/providers", { headers: { accept: "application/json" }, cache: "no-store" })
       .then((response) => response.ok ? response.json() as Promise<{ google?: unknown; github?: unknown }> : null)
       .then((value) => {
-        if (!active) return;
+        // A discovery response is authoritative only when it is a valid JSON
+        // object. Keep the optimistic actions on edge/route failures.
+        if (!active || !value) return;
         setProviders({ google: value?.google === true, github: value?.github === true });
       })
       .catch(() => {
-        if (active) setProviders({ google: false, github: false });
+        // Keep the optimistic actions visible when discovery is unavailable.
+        // A transient edge/API failure must not make the primary auth choices
+        // disappear after they were already rendered. The provider itself is
+        // still the source of truth and reports a bounded error if disabled.
       });
     return () => { active = false; };
   }, []);

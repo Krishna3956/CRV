@@ -30,7 +30,11 @@ export async function proxy(request: NextRequest) {
 
   if (process.env.NODE_ENV !== "production" || !MARKETING_HOSTS.has(host)) {
     let response = NextResponse.next({ request });
+    const cookieOptions = host.endsWith(".trackmcp.com") || host === "trackmcp.com"
+      ? { domain: ".trackmcp.com", path: "/", sameSite: "lax" as const, secure: true }
+      : undefined;
     const supabase = createServerClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!, {
+      ...(cookieOptions ? { cookieOptions } : {}),
       cookies: {
         getAll() { return request.cookies.getAll(); },
         setAll(cookiesToSet) {

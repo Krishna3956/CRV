@@ -22,4 +22,5 @@ test("OAuth callback does not turn a missing authorization code into a session",
   assert.match(source, /return redirectToSignIn\("provider_error", next\)/);
   assert.match(source, /exchangeCodeForSession\(code\)/);
   assert.match(source, /new URL\(safeAuthNext\(next\), SITE_ORIGIN\)/);
+  assert.match(source, /cache-control/);
 });
