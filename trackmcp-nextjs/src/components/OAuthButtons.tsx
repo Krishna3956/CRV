@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Loader2 } from "lucide-react";
 import { getSupabaseBrowser } from "@/lib/auth/supabase-browser";
 import { authCallbackUrl, safeAuthNext } from "@/lib/auth/redirect";
@@ -27,6 +27,21 @@ export function OAuthButtons({
   onError?: (message: string) => void;
 }) {
   const [loading, setLoading] = useState<OAuthProvider | null>(null);
+  const [providers, setProviders] = useState<{ google: boolean; github: boolean } | null>(null);
+
+  useEffect(() => {
+    let active = true;
+    void fetch("/api/auth/providers", { headers: { accept: "application/json" }, cache: "no-store" })
+      .then((response) => response.ok ? response.json() as Promise<{ google?: unknown; github?: unknown }> : null)
+      .then((value) => {
+        if (!active) return;
+        setProviders({ google: value?.google === true, github: value?.github === true });
+      })
+      .catch(() => {
+        if (active) setProviders({ google: false, github: false });
+      });
+    return () => { active = false; };
+  }, []);
 
   const start = async (provider: OAuthProvider) => {
     if (loading) return;
@@ -48,17 +63,18 @@ export function OAuthButtons({
   };
 
   const buttonClass = "inline-flex h-11 items-center justify-center gap-2 rounded-lg border border-line-strong bg-white px-3 text-[13px] font-medium text-body transition-colors hover:bg-mist disabled:cursor-not-allowed disabled:opacity-60";
+  if (!providers || (!providers.google && !providers.github)) return null;
   return (
     <div className="mt-6">
       <div className="grid grid-cols-2 gap-3">
-        <button type="button" disabled={Boolean(loading)} onClick={() => void start("google")} className={buttonClass}>
+        {providers.google && <button type="button" disabled={Boolean(loading)} onClick={() => void start("google")} className={buttonClass}>
           {loading === "google" ? <Loader2 size={15} className="animate-spin" /> : <GoogleIcon />}
           {mode === "signup" ? "Sign up with Google" : "Google"}
-        </button>
-        <button type="button" disabled={Boolean(loading)} onClick={() => void start("github")} className={buttonClass}>
+        </button>}
+        {providers.github && <button type="button" disabled={Boolean(loading)} onClick={() => void start("github")} className={buttonClass}>
           {loading === "github" ? <Loader2 size={15} className="animate-spin" /> : <GitHubIcon />}
           {mode === "signup" ? "Sign up with GitHub" : "GitHub"}
-        </button>
+        </button>}
       </div>
       <div className="mt-5 flex items-center gap-3 text-[11px] uppercase tracking-[0.14em] text-faint"><span className="h-px flex-1 bg-line" /><span>or use email</span><span className="h-px flex-1 bg-line" /></div>
     </div>

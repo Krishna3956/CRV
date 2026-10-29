@@ -1,5 +1,49 @@
 # Founder OS 100 Customer Readiness Ledger
 
+## 2026-10-29 — fresh worker-health evaluation remains insufficient
+
+- [x] Read-only health workflow `40886442282` completed successfully and
+  uploaded artifact `12902757193`.
+- [x] The bounded report records `state=insufficient_data`, 5 AWS invocations,
+  4 scheduled successes, 1 AWS error, 1 scheduled failure, 4 complete worker
+  samples, 0 worker parse failures, 0 worker failures, and 0 worker retries.
+- [ ] The worker freshness gate remains pending: the current CloudWatch
+  maximum queue lag is `1105645 ms` against the `900000 ms` budget, and the
+  application scheduled-sample count is `0/3`. AWS end-to-end cadence is
+  proven (`4/3` successes), but this is not sustained freshness evidence.
+
+
+## 2026-10-29 — OAuth provider configuration audit and fail-closed gate
+
+- [x] Production auth was verified in a real browser at `app.trackmcp.com`:
+  sign-in, sign-up, Terms/Privacy enforcement, bounded missing-code callback,
+  `/device?user_code=...` preservation, and external-redirect rejection all
+  behaved as specified.
+- [x] Supabase Auth settings were queried through the connected production
+  project using only the public URL and anon key. The authoritative response
+  reports `external.email=true`, `external.google=false`, and
+  `external.github=false`.
+- [x] PR #724 adds `/api/auth/providers` and makes social buttons fail closed
+  when Supabase disables a provider or provider discovery fails. It also
+  records the audit in `trackmcp-nextjs/docs/AUTH-OAUTH-AUDIT-2026-10-29.md`.
+  Hosted CI passed; the PR remains open and is intentionally not merged or
+  deployed until provider configuration and real OAuth UAT exist.
+- [ ] Google/GitHub provider enablement, new-user onboarding, existing-user
+  dashboard access, and authenticated device-flow UAT remain external gates.
+- [ ] No SQL migration is required for this integration.
+
+## 2026-10-29 — Chinese localization foundation
+
+- [x] PR #723 keeps English as the deterministic default and replaces silent
+  browser-language switching with a non-blocking, dismissible Simplified
+  Chinese suggestion. Explicit choices and dismissal persist.
+- [x] Translation contracts, focused lint, and the 210-route production build
+  passed; the persistent localization ledger and terminology glossary are in
+  `trackmcp-nextjs/docs/`.
+- [ ] Full page-by-page linguistic review, Chinese SEO/hreflang inventory,
+  Baidu/mainland reachability evidence, and native-speaker acceptance remain
+  open. Automated translation tests do not prove native-level quality.
+
 ## 2026-10-29 — scheduled rate-limit cleanup secret regression fixed and reverified
 
 - [x] The first post-translation cleanup run (`40854824483`) exposed a real

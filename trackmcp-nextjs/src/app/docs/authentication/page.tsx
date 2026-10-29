@@ -23,7 +23,7 @@ export default function AuthenticationDocsPage() {
       </div>
     </DocSection>
     <DocSection title="Sign in with Google or GitHub">
-      <Para>TrackMCP supports email sign-in plus Google and GitHub sign-in on the dashboard. Choose a provider on <a href="/signin" className="font-medium text-brand-strong underline">Sign in</a> or <a href="/signup" className="font-medium text-brand-strong underline">Create an account</a>; after the provider confirms you, TrackMCP returns you to the dashboard or to the page that started the sign-in flow.</Para>
+      <Para>TrackMCP supports email sign-in and is prepared for Google and GitHub sign-in on the dashboard. Social buttons appear only after the corresponding provider is enabled in the connected Supabase project. Choose an enabled provider on <a href="/signin" className="font-medium text-brand-strong underline">Sign in</a> or <a href="/signup" className="font-medium text-brand-strong underline">Create an account</a>; after the provider confirms you, TrackMCP returns you to the dashboard or to the page that started the sign-in flow.</Para>
       <Para>Social sign-in uses Supabase Auth&apos;s authorization-code (PKCE) flow. TrackMCP exchanges the short-lived callback code on the server and stores the resulting session in secure auth cookies. TrackMCP does not request, store, or use Google/GitHub provider tokens for analytics.</Para>
       <div className="mt-4 rounded-xl border border-line bg-white p-4 text-sm leading-relaxed text-body">
         <h3 className="font-semibold text-ink">One-time project configuration</h3>

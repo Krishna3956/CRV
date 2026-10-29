@@ -15,6 +15,17 @@ test("root layout exposes one global language switcher and runtime", async () =>
   assert.match(nav, /<div className="hidden md:block">\s*<LanguageSwitcher\s*\/>/);
 });
 
+test("social auth is fail-closed until Supabase enables a provider", async () => {
+  const route = await readFile(resolve(root, "src/app/api/auth/providers/route.ts"), "utf8");
+  assert.match(route, /auth\/v1\/settings/);
+  assert.match(route, /google: settings\.external\?\.google === true/);
+  assert.match(route, /github: settings\.external\?\.github === true/);
+  assert.match(route, /google: false, github: false/);
+  const buttons = await readFile(resolve(root, "src/components/OAuthButtons.tsx"), "utf8");
+  assert.match(buttons, /fetch\("\/api\/auth\/providers"/);
+  assert.match(buttons, /if \(!providers \|\| \(!providers\.google && !providers\.github\)\) return null/);
+});
+
 test("route audit covers static and dynamic page families", async () => {
   const source = await readFile(resolve(root, "scripts/translation-route-audit.mjs"), "utf8");
   assert.match(source, /tool\/\[name\]/);
