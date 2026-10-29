@@ -79,7 +79,7 @@ async function request(path, options = {}) {
   const response = await fetchReadOnly(endpoint(path), {
     ...options,
     redirect: "manual",
-    headers: { "user-agent": "TrackMCP/0.1.24 production-smoke", ...(options.headers || {}) },
+    headers: { "user-agent": "TrackMCP/0.1.25 production-smoke", ...(options.headers || {}) },
     timeoutMs: 15_000,
   });
   return { status: response.status, headers: response.headers };
@@ -118,7 +118,7 @@ function buildOtelProtobufFixture() {
 async function sendOtelProtobuf(apiKey) {
   const response = await fetch(endpoint("/api/v1/otel/v1/traces"), {
     method: "POST",
-    headers: { authorization: `Bearer ${apiKey}`, "content-type": "application/x-protobuf", "user-agent": "TrackMCP/0.1.24 production-smoke" },
+    headers: { authorization: `Bearer ${apiKey}`, "content-type": "application/x-protobuf", "user-agent": "TrackMCP/0.1.25 production-smoke" },
     body: buildOtelProtobufFixture(),
     redirect: "manual",
     signal: AbortSignal.timeout(15_000),
@@ -145,7 +145,7 @@ function assertSecurityHeaders(headers, label) {
 async function keyStatusRequest(apiKey) {
   const response = await fetchReadOnly(endpoint("/api/v1/cli/key-status"), {
     method: "GET",
-    headers: { accept: "application/json", "user-agent": "TrackMCP/0.1.24 production-smoke", authorization: `Bearer ${apiKey}` },
+    headers: { accept: "application/json", "user-agent": "TrackMCP/0.1.25 production-smoke", authorization: `Bearer ${apiKey}` },
     redirect: "manual",
     timeoutMs: 15_000,
   });
@@ -233,9 +233,9 @@ async function expectRuntimeIdentity() {
 
 async function registryChecks() {
   const checks = [];
-  const npmPackage = process.env.TRACKMCP_EXPECTED_NPM_SDK || "@trackmcp/sdk@0.1.24";
+  const npmPackage = process.env.TRACKMCP_EXPECTED_NPM_SDK || "@trackmcp/sdk@0.1.25";
   const cliPackage = process.env.TRACKMCP_EXPECTED_NPM_CLI || "@trackmcp/cli@0.1.12";
-  const pythonPackage = process.env.TRACKMCP_EXPECTED_PYPI || "trackmcp@0.1.14";
+  const pythonPackage = process.env.TRACKMCP_EXPECTED_PYPI || "trackmcp@0.1.15";
   const expectedNpmIntegrity = {
     [npmPackage]: process.env.TRACKMCP_EXPECTED_NPM_SDK_INTEGRITY || "",
     [cliPackage]: process.env.TRACKMCP_EXPECTED_NPM_CLI_INTEGRITY || "",

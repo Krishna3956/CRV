@@ -3,6 +3,29 @@
 This is a review record, not a publication action. No registry credentials are
 used here and no package is published automatically.
 
+## 2026-10-29 — coordinated edge-delivery train published
+
+The reviewed release train was merged to `main` as
+`d7e5a527d9883495048562a6d04252845d80fef2` after PR `#681` fixed the
+clean-runner Python artifact-audit ordering. Publication workflow
+`40801454555` completed the clean-runner artifact audit, npm/PyPI preflight,
+sequential publication, public-registry verification, and provenance
+attestation successfully.
+
+| Package | Published version | Registry/provenance evidence |
+| --- | --- | --- |
+| `@trackmcp/sdk` | `0.1.25` | npm HTTP 200; SHA-512 integrity `sha512-uU6C/2FdElACU805Kn4sC780Ap4ZXkJZhwEuag/R16yxvFEQCwYZc3Mw8GHSPSt6igPRcZ3wkmmubEMUPs0Btw==`; [tarball](https://registry.npmjs.org/@trackmcp/sdk/-/sdk-0.1.25.tgz); npm provenance predicate available |
+| `trackmcp` | `0.1.15` | PyPI HTTP 200; wheel SHA-256 `738e6ca64fb5ea91b80bfe1fc9a88457783cc7e5fc264b5f8e122347922aae07`; sdist SHA-256 `ce4f645b7cc414b9087cf12f11581b14e502e1ff6df4274fe01907e9907ce4d0` |
+| `@trackmcp/cli` | `0.1.12` | Existing unchanged published artifact; no unnecessary republish |
+
+The workflow's package-release audit scanned the built npm and Python
+artifacts for credential-shaped values, and its clean consumer/unit checks
+passed before publication. The Python version-specific JSON endpoint briefly
+lagged the aggregate PyPI index during propagation; the public package index
+now reports `0.1.15` and both immutable artifact digests above. Authenticated
+activation, first-event UAT, and customer-owned transport evidence remain
+separate pilot gates.
+
 ## 2026-10-28 — cross-language edge-delivery parity queued for the next train
 
 The TypeScript, Go, and .NET SDK sources now send a bounded `Mozilla/5.0`

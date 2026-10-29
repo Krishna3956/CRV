@@ -2,6 +2,22 @@
 
 Status: active autonomous audit, started 2026-10-21.
 
+## 2026-10-29 — coordinated SDK release published
+
+- [x] The reviewed source train merged as `d7e5a527d9883495048562a6d04252845d80fef2` after PR `#681` corrected clean-runner Python artifact preparation.
+- [x] Publication workflow `40801454555` completed the artifact audit,
+  registry preflight, sequential publication, public npm/PyPI verification,
+  and provenance attestation.
+- [x] `@trackmcp/sdk@0.1.25` and `trackmcp==0.1.15` are publicly available;
+  npm integrity is `sha512-uU6C/2FdElACU805Kn4sC780Ap4ZXkJZhwEuag/R16yxvFEQCwYZc3Mw8GHSPSt6igPRcZ3wkmmubEMUPs0Btw==`,
+  PyPI wheel/sdist SHA-256 values are recorded in
+  `docs/FOUNDER-OS-PACKAGE-RELEASE-READINESS.md`.
+- [x] The CLI remains at `@trackmcp/cli@0.1.12`; it was not republished because
+  this train contains no CLI source change.
+- [ ] Registry publication is closed for this train, but authenticated
+  activation, customer-owned endpoint/key-lifecycle UAT, and runtime cadence
+  gates remain separate pilot acceptance work.
+
 ## 2026-10-29 — coordinated SDK release candidate prepared
 
 - [x] The reviewed source candidate is `@trackmcp/sdk@0.1.25` (release candidate `0.1.25`) and `trackmcp==0.1.15` (release candidate `0.1.15`). It
@@ -11,11 +27,9 @@ Status: active autonomous audit, started 2026-10-21.
 - [x] TypeScript (107 tests plus packed consumer), Python (40 tests), package
   artifact secret audit, publication workflow contracts, and the full release
   gate pass locally.
-- [ ] Registry publication remains gated until the merged source candidate is
-  on `main` and the reviewed `RELEASE_TRAIN_APPROVED` workflow run verifies
-  public npm/PyPI metadata, provenance, checksums, and clean consumers. The
-  prior `0.1.24`/`0.1.14` artifacts remain the last published baseline until
-  that evidence exists.
+- [x] Registry publication was subsequently completed by workflow `40801454555`;
+  this earlier candidate note is retained as historical context. The current
+  published baseline is `@trackmcp/sdk@0.1.25` and `trackmcp==0.1.15`.
 
 ## 2026-10-29 — retention preview worker published live
 
