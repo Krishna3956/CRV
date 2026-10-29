@@ -65,7 +65,7 @@ test("external-gate register names accountable parties and closure evidence", ()
 
 test("acceptance matrix separates current source from deployed runtime", () => {
   assert.match(acceptanceMatrix, /a0751dc232b0d0f9e52ae5dcb79d5044d7de2b83/);
-  assert.match(acceptanceMatrix, /current repository source is `main` at\s+`a0751dc232b0d0f9e52ae5dcb79d5044d7de2b83`/);
+  assert.match(acceptanceMatrix, /current repository source is `main` at\s+`3116f2c900e764a341bb5df779aaf0b149268805`/);
   assert.match(acceptanceMatrix, /40893382834/);
   assert.match(acceptanceMatrix, /40891096616/);
   assert.match(acceptanceMatrix, /full local release gate passes 154\s+suites/);

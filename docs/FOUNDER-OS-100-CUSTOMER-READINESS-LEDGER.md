@@ -2,7 +2,7 @@
 
 ## 2026-10-30 — first-login auth and marketing translation stabilization
 
-- [x] `a0751dc232b0d0f9e52ae5dcb79d5044d7de2b83` is the current `main` and deployed App Runner release (workflow `40949005203` succeeded; health reports the same SHA).
+- [x] Deployed App Runner release `a0751dc232b0d0f9e52ae5dcb79d5044d7de2b83` (workflow `40949005203`) remains healthy; `main` is now `3116f2c900e764a341bb5df779aaf0b149268805` after the documentation/test-only reconciliation merge.
 - [x] Social OAuth controls render immediately, and social sign-in no longer waits on the terms checkbox. The email form keeps the terms control checked by default while retaining an explicit opt-out state for credential signup.
 - [x] The dashboard retries the Supabase session after the callback, preventing the transient empty “Your workspace is waiting” state that previously forced a second Google attempt.
 - [x] Workspace provisioning handles concurrent OAuth callbacks idempotently: unique-slug races load the existing workspace and membership writes are conflict-safe.
