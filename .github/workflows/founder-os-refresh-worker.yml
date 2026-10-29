@@ -131,8 +131,18 @@ jobs:
               timed_out=1
               echo "Batch $batch reached the client timeout; continuing with the next bounded slice."
             elif [ "$status" -ne 0 ]; then
-              failed=1
-              echo "Batch $batch reported an unhealthy result; continuing to the next bounded batch."
+              # The refresh route deliberately returns HTTP 500 when it leaves
+              # retryable jobs queued so the AWS scheduler can retry them. That
+              # is an expected bounded outcome, not a failed worker invocation;
+              # preserve the retryable count in the redacted summary and let the
+              # next tick claim the backoff-eligible work. Transport failures,
+              # terminal failures, and malformed responses remain hard failures.
+              if jq -e '(.retryable // 0) > 0 and (.failed // 0) == 0 and ((.errors // []) | length) == 0' "$batch_dir/$batch.json" >/dev/null 2>&1; then
+                echo "Batch $batch left retryable work for the next bounded tick; continuing."
+              else
+                failed=1
+                echo "Batch $batch reported an unhealthy result; continuing to the next bounded batch."
+              fi
             fi
           done
           jq -s '{observed_at:(map(.observed_at)|map(select(. != null))|max // null), batches:length, processed:(map(.processed // 0)|add // 0), succeeded:(map(.succeeded // 0)|add // 0), retryable:(map(.retryable // 0)|add // 0), failed:(map(.failed // 0)|add // 0), errors_count:(map(.errors_count // 0)|add // 0), max_queue_lag_ms:(map(.max_queue_lag_ms // 0)|max // 0), max_attempt_count:(map(.max_attempt_count // 0)|max // 0), timed_out:($timed_out == 1), workflow_failed:($failed == 1), batches_with_unparseable_response:(map(select(.response_unparseable == true))|length)}' \
@@ -155,11 +165,11 @@ jobs:
           fi
           {
             echo "### Refresh worker health"
-            echo "- Freshness: `$freshness_slo`"
-            echo "- Alert: `$freshness_alert`"
-            echo "- Max queue lag (ms): `$(jq -r '.max_queue_lag_ms' "$RUNNER_TEMP/trackmcp-refresh-worker-summary.json")`"
-            echo "- Processed: `$(jq -r '.processed' "$RUNNER_TEMP/trackmcp-refresh-worker-summary.json")`"
-            echo "- Failed: `$(jq -r '.failed' "$RUNNER_TEMP/trackmcp-refresh-worker-summary.json")`"
+            printf -- '- Freshness: `%s`\n' "$freshness_slo"
+            printf -- '- Alert: `%s`\n' "$freshness_alert"
+            printf -- '- Max queue lag (ms): `%s`\n' "$(jq -r '.max_queue_lag_ms' "$RUNNER_TEMP/trackmcp-refresh-worker-summary.json")"
+            printf -- '- Processed: `%s`\n' "$(jq -r '.processed' "$RUNNER_TEMP/trackmcp-refresh-worker-summary.json")"
+            printf -- '- Failed: `%s`\n' "$(jq -r '.failed' "$RUNNER_TEMP/trackmcp-refresh-worker-summary.json")"
           } >> "$GITHUB_STEP_SUMMARY"
           echo "Bounded refresh summary: failed=$failed timed_out=$timed_out freshness_slo=$freshness_slo freshness_alert=$freshness_alert budget_ms=$freshness_budget_ms"
           exit "$failed"
