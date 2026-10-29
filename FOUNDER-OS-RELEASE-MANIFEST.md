@@ -34,8 +34,8 @@ surface remains `docs/FOUNDER-OS-100-CUSTOMER-PILOT-EXTERNAL-GATES.md`.
 | Scheduler source/deployment | source `20702c9`; CI `40628036758`; deploy `40628036770` | Independent AWS refresh scheduler; schedule enablement `40628646879` |
 | Scheduler smoke/health | smoke `40628409832`; health `40629348992` | Authenticated smoke returned status 200 with DLQ depth 0; health reports 3/3 AWS worker samples, 6/6 invocations, and 4/4 EMF successes within budget |
 | Applied refresh migration | `20261028000001_coalesce_refresh_jobs` | Additive coalescing migration and read-only postflight are recorded in the readiness ledger; no destructive schema operation is implied |
-| Published package versions | `@trackmcp/sdk@0.1.24`; `@trackmcp/cli@0.1.12`; `trackmcp==0.1.14` | Local package-consumer and release-audit checks pass; publication and activation boundaries remain separately documented |
-| Verification | local release gate `145` suites; production build `178` routes | Local release gate, lint, and build pass; hosted CI is the authority for merge checks |
+| Published package versions | `@trackmcp/sdk@0.1.25`; `@trackmcp/cli@0.1.13`; `trackmcp==0.1.15` | Public npm/PyPI registry checks and clean-consumer evidence are recorded in `docs/FOUNDER-OS-PACKAGE-RELEASE-READINESS.md`; activation and customer UAT remain separately gated |
+| Verification | local release gate `154` suites; current production build passes | Local release gate, lint, and build pass; hosted CI is the authority for merge checks |
 
 The release remains **HOLD** for backup/PITR ownership, privacy acceptance,
 customer-owned endpoint/protocol UAT, and release-owner scope/go-no-go. This
