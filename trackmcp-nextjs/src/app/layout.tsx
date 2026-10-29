@@ -7,6 +7,7 @@ import { SpeedInsights } from "@vercel/speed-insights/react";
 import { ScrollToTop } from "@/components/ScrollToTop";
 import { PostHogIdentity } from "@/components/PostHogIdentity";
 import { MarketingAttributionTracker } from "@/components/MarketingAttributionTracker";
+import { FontshareLoader } from "@/components/FontshareLoader";
 import { serializeJsonLd, SITE_DESCRIPTION, SITE_JSON_LD, SITE_URL, DEFAULT_IMAGE } from "@/lib/seo";
 import "./globals.css";
 
@@ -84,12 +85,8 @@ export default function RootLayout({ children }: RootLayoutProps) {
         <ScrollToTop />
         <PostHogIdentity />
         <MarketingAttributionTracker />
+        <FontshareLoader />
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeJsonLd(SITE_JSON_LD) }} />
-        <link rel="preconnect" href="https://api.fontshare.com" crossOrigin="anonymous" />
-        <link
-          rel="stylesheet"
-          href="https://api.fontshare.com/v2/css?f[]=satoshi@400,500,700,900&display=swap"
-        />
         {children}
 
         {/* Google Analytics 4 */}

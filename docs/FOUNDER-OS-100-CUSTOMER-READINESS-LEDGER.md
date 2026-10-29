@@ -1,5 +1,25 @@
 # Founder OS 100 Customer Readiness Ledger
 
+## 2026-10-29 — blog render-path performance hardening
+
+- [x] The optional Fontshare stylesheet no longer blocks the initial server
+  render. `FontshareLoader` loads Satoshi after hydration while the bundled
+  Inter face remains the first-paint fallback, so article content does not
+  wait on a third-party CSS request.
+- [x] Added `test:font-loading-contract`, which fails if the root layout adds
+  the render-blocking Fontshare stylesheet back or removes the post-hydration
+  loader marker.
+- [x] Local Lighthouse against the representative blog article improved to
+  approximately 0.91s LCP on both the 390px mobile and 1350px desktop profiles
+  (SEO 1.0, CLS 0, TBT 0 in the local production build). The earlier live
+  baseline measured 5.70s mobile and 7.84s desktop LCP, so a fresh deployed
+  measurement remains required before claiming the production improvement.
+- [x] The complete local release gate passed **150 suites**, lint passed, and
+  the production build generated **209 routes**.
+- [ ] The change is not yet deployed; hosted CI, immutable App Runner rollout,
+  and a fresh production Lighthouse run remain required before closing the
+  performance risk.
+
 Last updated: 2026-10-29 (main `181159e2`; deployed application `8a3aee17` and App Runner deployment `40788716827` are healthy; analytics projection caching and the 38-check authenticated two-workspace smoke are live; customer-owned endpoint/protocol UAT, privacy acceptance, backup/PITR posture, migration postflight, and release-owner GO/NO-GO remain open)
 
 ## 2026-10-29 — identity-version release deployed
