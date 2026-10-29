@@ -126,28 +126,38 @@ export async function searchToolsQuery(query: string, limit = 200): Promise<McpT
 }
 
 export const TOOL_SITEMAP_PAGE_SIZE = 45000;
+// Supabase/PostgREST commonly caps a response at 1,000 rows even when a
+// larger range is requested. Keep sitemap pages large for the URL protocol,
+// but read them in bounded API-sized windows so the page never silently stops
+// at the first 1,000 rows.
+const TOOL_QUERY_BATCH_SIZE = 1000;
 
 /** One deterministic sitemap page, kept below the protocol URL ceiling. */
 export async function getToolNamesPage(offset = 0, limit = TOOL_SITEMAP_PAGE_SIZE): Promise<{ name: string; slug: string; updated: string | null }[]> {
   const supabase = getSupabase();
   if (!supabase || !Number.isInteger(offset) || offset < 0 || !Number.isInteger(limit) || limit < 1 || limit > TOOL_SITEMAP_PAGE_SIZE) return [];
-  const { data, error } = await supabase
-    .from("mcp_tools")
-    .select("id, repo_name, github_url, last_updated")
-    .in("status", ["approved", "pending"])
-    .order("stars", { ascending: false, nullsFirst: false })
-    .order("id", { ascending: true })
-    .range(offset, offset + limit - 1);
-  if (error || !data) return [];
   const seen = new Set<string>();
   const out: { name: string; slug: string; updated: string | null }[] = [];
-  for (const r of data as { repo_name: string | null; github_url: string; last_updated: string | null }[]) {
-    if (!r.repo_name || isBlocked(r.repo_name)) continue;
-    const slug = toolSlug(r.github_url, r.repo_name);
-    if (!seen.has(slug)) {
-      seen.add(slug);
-      out.push({ name: r.repo_name, slug, updated: r.last_updated });
+  const end = offset + limit - 1;
+  for (let cursor = offset; cursor <= end; cursor += TOOL_QUERY_BATCH_SIZE) {
+    const batchEnd = Math.min(cursor + TOOL_QUERY_BATCH_SIZE - 1, end);
+    const { data, error } = await supabase
+      .from("mcp_tools")
+      .select("id, repo_name, github_url, last_updated")
+      .in("status", ["approved", "pending"])
+      .order("stars", { ascending: false, nullsFirst: false })
+      .order("id", { ascending: true })
+      .range(cursor, batchEnd);
+    if (error || !data) return [];
+    for (const r of data as { repo_name: string | null; github_url: string; last_updated: string | null }[]) {
+      if (!r.repo_name || isBlocked(r.repo_name)) continue;
+      const slug = toolSlug(r.github_url, r.repo_name);
+      if (!seen.has(slug)) {
+        seen.add(slug);
+        out.push({ name: r.repo_name, slug, updated: r.last_updated });
+      }
     }
+    if (data.length < batchEnd - cursor + 1) break;
   }
   return out;
 }
