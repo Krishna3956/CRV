@@ -63,6 +63,8 @@ test("translation batches are bounded and use a configured provider", async () =
   assert.match(quality, /HAN_CHARACTERS/);
   assert.match(quality, /PROTECTED_TOKEN/);
   assert.match(source, /assertTranslationBatchQuality/);
+  assert.match(source, /unstable_cache/);
+  assert.match(source, /trackmcp-translation-cache/);
 });
 
 test("runtime excludes code and user-editable content", async () => {

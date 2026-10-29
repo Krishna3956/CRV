@@ -1,5 +1,6 @@
 import "server-only";
 import { assertTranslationBatchQuality } from "./translation-quality";
+import { unstable_cache } from "next/cache";
 
 export const SUPPORTED_LOCALES = ["en", "zh-CN"] as const;
 export type SupportedLocale = (typeof SUPPORTED_LOCALES)[number];
@@ -45,11 +46,9 @@ function assertRequest(request: TranslationRequest): void {
   }
 }
 
-async function translateWithDeepL(texts: string[]): Promise<TranslationResult> {
+async function translateWithDeepL(texts: string[], endpoint = process.env.DEEPL_API_URL || "https://api.deepl.com/v2/translate", glossaryId = process.env.DEEPL_GLOSSARY_ID): Promise<TranslationResult> {
   const key = process.env.DEEPL_API_KEY;
   if (!key) throw new TranslationConfigurationError("DEEPL_API_KEY is not configured.");
-  const endpoint = process.env.DEEPL_API_URL || "https://api.deepl.com/v2/translate";
-  const glossaryId = process.env.DEEPL_GLOSSARY_ID;
   const response = await fetch(endpoint, {
     method: "POST",
     headers: { Authorization: `DeepL-Auth-Key ${key}`, "Content-Type": "application/json" },
@@ -88,16 +87,30 @@ async function translateWithGoogle(texts: string[]): Promise<TranslationResult> 
   return { translations, provider: "google" };
 }
 
+const translateProviderCached = unstable_cache(
+  async (provider: "deepl" | "google", texts: string[], deeplEndpoint: string, glossaryId: string): Promise<TranslationResult> => {
+    if (provider === "deepl") return translateWithDeepL(texts, deeplEndpoint, glossaryId || undefined);
+    return translateWithGoogle(texts);
+  },
+  ["trackmcp-translation-provider-v1"],
+  { revalidate: 86_400, tags: ["trackmcp-translation-cache"] },
+);
+
 export async function translate(request: TranslationRequest): Promise<TranslationResult> {
   assertRequest(request);
   if (process.env.TRANSLATION_ENABLE_MACHINE_TRANSLATION !== "true") {
     throw new TranslationConfigurationError("Machine translation is disabled until explicitly approved.");
   }
   const provider = process.env.TRANSLATION_PROVIDER || (process.env.DEEPL_API_KEY ? "deepl" : "google");
-  let result: TranslationResult;
-  if (provider === "deepl") result = await translateWithDeepL(request.texts);
-  else if (provider === "google") result = await translateWithGoogle(request.texts);
-  else throw new TranslationConfigurationError("TRANSLATION_PROVIDER must be deepl or google.");
+  if (provider !== "deepl" && provider !== "google") {
+    throw new TranslationConfigurationError("TRANSLATION_PROVIDER must be deepl or google.");
+  }
+  const result = await translateProviderCached(
+    provider,
+    request.texts,
+    process.env.DEEPL_API_URL || "https://api.deepl.com/v2/translate",
+    process.env.DEEPL_GLOSSARY_ID || "",
+  );
   assertTranslationBatchQuality(request.texts, result.translations);
   return result;
 }

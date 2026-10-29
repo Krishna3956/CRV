@@ -40,6 +40,8 @@ DEEPL_GLOSSARY_ID=...
 
 The endpoint also applies a per-process request limit and the browser keeps a bounded translation cache so repeated labels and route transitions do not repeatedly spend provider quota.
 
+Successful provider batches are also cached server-side for 24 hours using Next.js data-cache keys derived from the provider, glossary/endpoint configuration, and batch contents. This keeps repeated visits to the same generated tool or README page from making a fresh provider call for every visitor while preserving the fail-closed behavior on cache misses and provider errors.
+
 The flag is intentionally separate from the provider credential. A key can be present for staging or rotation without activating unreviewed output. Set it to `true` only after the owner explicitly accepts a machine-translation policy; it does not constitute a 100% accuracy guarantee.
 
 For the AWS App Runner deployment, `deploy/env.deploy.template` leaves the provider empty by default. Set `TRANSLATION_PROVIDER=deepl` or `TRANSLATION_PROVIDER=google` only after adding the matching `DEEPL_API_KEY` or `GOOGLE_TRANSLATE_API_KEY` JSON field to the existing AWS Secrets Manager bundle. The deploy script maps only the selected provider secret; it never puts a provider key in a Docker build argument or plaintext runtime variable.
