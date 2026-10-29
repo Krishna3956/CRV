@@ -1,5 +1,26 @@
 # Founder OS 100 Customer Readiness Ledger
 
+## 2026-10-29 — optional analytics deferred from the article render path
+
+- [x] PR `#674` (`codex/defer-posthog-analytics`) passed hosted web/JavaScript,
+  Go, and .NET checks and was squash-merged as
+  `813411f36a9f61f6ea1b707e3d18932a577a0df6`. It moved PostHog initialization
+  and the existing privacy configuration behind a dynamic idle loader while
+  keeping analytics fail-open.
+- [x] PR `#675` (`codex/posthog-idle-queue`) passed the same hosted checks and
+  was squash-merged as `d89f58587bca4e81e7efa32f277c196e982d87b8`. Marketing
+  pageview and identity events now queue until that idle loader runs, so an
+  event cannot pull the optional SDK into the initial hydration path.
+- [x] App Runner deployment `40796109807` now serves immutable release
+  `d89f58587bca4e81e7efa32f277c196e982d87b8` and the health endpoint returns
+  HTTP 200 with that SHA. The representative live article measures roughly
+  0.79 mobile performance, 4.36s LCP, 0.0025 CLS, 266ms TBT, 695ms TTFB, and
+  SEO 1.0.
+- [ ] PostHog recorder/surveys and Google Analytics still load after the idle
+  window by design. The remaining production performance risk is third-party
+  analytics cost plus origin latency; this milestone does not claim perfect
+  Core Web Vitals.
+
 ## 2026-10-29 — blog render-path performance hardening
 
 - [x] The optional Fontshare stylesheet no longer blocks the initial server
@@ -25,7 +46,7 @@
   so the overall production LCP risk remains open and is not being claimed as
   resolved by this patch.
 
-Last updated: 2026-10-29 (main `fc7ec455`; deployed application `2e2211d8` and App Runner deployment `40792706931` are healthy; analytics projection caching and the 38-check authenticated two-workspace smoke are live; customer-owned endpoint/protocol UAT, privacy acceptance, backup/PITR posture, migration postflight, production LCP optimization, and release-owner GO/NO-GO remain open)
+Last updated: 2026-10-29 (main `d89f5858`; deployed application `d89f5858` and App Runner deployment `40796109807` are healthy; analytics projection caching and the 38-check authenticated two-workspace smoke are live; customer-owned endpoint/protocol UAT, privacy acceptance, backup/PITR posture, migration postflight, production LCP optimization, and release-owner GO/NO-GO remain open)
 
 ## 2026-10-29 — identity-version release deployed
 
