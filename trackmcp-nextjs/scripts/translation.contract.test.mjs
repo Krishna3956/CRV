@@ -55,6 +55,8 @@ test("Chinese browser preferences are detected without overriding an explicit co
   const switcher = await readFile(resolve(root, "src/components/LanguageSwitcher.tsx"), "utf8");
   assert.match(switcher, /useSyncExternalStore/);
   assert.match(switcher, /getServerLocale/);
+  assert.match(switcher, /selectedLocale/);
+  assert.match(switcher, /setSelectedLocale\(next\)/);
   assert.match(switcher, /writeSiteLocale\(next\)/);
 });
 
