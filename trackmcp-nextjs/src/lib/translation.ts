@@ -1,5 +1,5 @@
 import "server-only";
-import { createHash } from "node:crypto";
+import { createHash, createHmac } from "node:crypto";
 import { assertTranslationBatchQuality } from "./translation-quality";
 import { unstable_cache } from "next/cache";
 
@@ -18,7 +18,7 @@ export type TranslationRequest = {
 
 export type TranslationResult = {
   translations: string[];
-  provider: "deepl" | "google";
+  provider: "aws" | "deepl" | "google";
 };
 
 const MAX_TEXTS = 100;
@@ -91,8 +91,108 @@ async function translateWithGoogle(texts: string[]): Promise<TranslationResult> 
   return { translations, provider: "google" };
 }
 
+type AwsCredentials = {
+  AccessKeyId?: unknown;
+  SecretAccessKey?: unknown;
+  Token?: unknown;
+  SessionToken?: unknown;
+};
+
+function awsRegion(): string {
+  return process.env.AWS_REGION || process.env.AWS_DEFAULT_REGION || "ap-south-1";
+}
+
+async function getAwsCredentials(): Promise<{ accessKeyId: string; secretAccessKey: string; sessionToken?: string }> {
+  const envAccessKeyId = process.env.AWS_ACCESS_KEY_ID;
+  const envSecretAccessKey = process.env.AWS_SECRET_ACCESS_KEY;
+  if (envAccessKeyId && envSecretAccessKey) {
+    return {
+      accessKeyId: envAccessKeyId,
+      secretAccessKey: envSecretAccessKey,
+      ...(process.env.AWS_SESSION_TOKEN ? { sessionToken: process.env.AWS_SESSION_TOKEN } : {}),
+    };
+  }
+  const relativeUri = process.env.AWS_CONTAINER_CREDENTIALS_RELATIVE_URI;
+  const fullUri = process.env.AWS_CONTAINER_CREDENTIALS_FULL_URI;
+  const endpoint = relativeUri ? `http://169.254.170.2${relativeUri}` : fullUri;
+  if (!endpoint) throw new TranslationConfigurationError("AWS container credentials are not configured.");
+  const response = await fetch(endpoint, { cache: "no-store", signal: AbortSignal.timeout(PROVIDER_TIMEOUT_MS) });
+  if (!response.ok) throw new Error(`AWS container credentials returned ${response.status}.`);
+  const body = (await response.json()) as AwsCredentials;
+  const accessKeyId = typeof body.AccessKeyId === "string" ? body.AccessKeyId : "";
+  const secretAccessKey = typeof body.SecretAccessKey === "string" ? body.SecretAccessKey : "";
+  const sessionToken = typeof body.Token === "string" ? body.Token : typeof body.SessionToken === "string" ? body.SessionToken : undefined;
+  if (!accessKeyId || !secretAccessKey) throw new TranslationConfigurationError("AWS container credentials are incomplete.");
+  return { accessKeyId, secretAccessKey, ...(sessionToken ? { sessionToken } : {}) };
+}
+
+function hmac(key: Buffer | string, value: string): Buffer {
+  return createHmac("sha256", key).update(value).digest();
+}
+
+async function translateWithAws(texts: string[]): Promise<TranslationResult> {
+  const credentials = await getAwsCredentials();
+  const region = awsRegion();
+  const host = `translate.${region}.amazonaws.com`;
+  const endpoint = `https://${host}/`;
+  const now = new Date();
+  const amzDate = now.toISOString().replace(/[:-]|\.\d{3}/g, "");
+  const dateStamp = amzDate.slice(0, 8);
+  const service = "translate";
+  const target = "AWSShineFrontendService_20170701.TranslateText";
+  const translateOne = async (text: string): Promise<string> => {
+    const body = JSON.stringify({ Text: text, SourceLanguageCode: "en", TargetLanguageCode: "zh" });
+    const payloadHash = createHash("sha256").update(body).digest("hex");
+    const headers: Record<string, string> = {
+      "content-type": "application/x-amz-json-1.1",
+      host,
+      "x-amz-date": amzDate,
+      "x-amz-target": target,
+    };
+    if (credentials.sessionToken) headers["x-amz-security-token"] = credentials.sessionToken;
+    const signedHeaderNames = Object.keys(headers).sort();
+    const canonicalHeaders = signedHeaderNames.map((name) => `${name}:${headers[name].trim()}\n`).join("");
+    const canonicalRequest = ["POST", "/", "", canonicalHeaders, signedHeaderNames.join(";"), payloadHash].join("\n");
+    const credentialScope = `${dateStamp}/${region}/${service}/aws4_request`;
+    const stringToSign = [
+      "AWS4-HMAC-SHA256",
+      amzDate,
+      credentialScope,
+      createHash("sha256").update(canonicalRequest).digest("hex"),
+    ].join("\n");
+    const kDate = hmac(`AWS4${credentials.secretAccessKey}`, dateStamp);
+    const kRegion = hmac(kDate, region);
+    const kService = hmac(kRegion, service);
+    const kSigning = hmac(kService, "aws4_request");
+    const signature = createHmac("sha256", kSigning).update(stringToSign).digest("hex");
+    const authorization = `AWS4-HMAC-SHA256 Credential=${credentials.accessKeyId}/${credentialScope}, SignedHeaders=${signedHeaderNames.join(";")}, Signature=${signature}`;
+    const response = await fetch(endpoint, {
+      method: "POST",
+      headers: { ...headers, authorization },
+      body,
+      cache: "no-store",
+      signal: AbortSignal.timeout(PROVIDER_TIMEOUT_MS),
+    });
+    if (!response.ok) throw new Error(`AWS Translate returned ${response.status}.`);
+    const result = (await response.json()) as { TranslatedText?: unknown };
+    const translated = typeof result.TranslatedText === "string" ? result.TranslatedText : "";
+    if (!translated) throw new Error("AWS Translate returned an incomplete translation.");
+    return translated;
+  };
+
+  // TranslateText accepts one string per request. Keep a small bounded fan-out
+  // so a full 100-item page does not exceed the request timeout or throttle the
+  // account with an unbounded burst.
+  const translations: string[] = [];
+  for (let offset = 0; offset < texts.length; offset += 5) {
+    const batch = texts.slice(offset, offset + 5);
+    translations.push(...(await Promise.all(batch.map(translateOne))));
+  }
+  return { translations, provider: "aws" };
+}
+
 async function translateProviderCached(
-  provider: "deepl" | "google",
+  provider: "aws" | "deepl" | "google",
   texts: string[],
   deeplEndpoint: string,
   glossaryId: string,
@@ -102,6 +202,7 @@ async function translateProviderCached(
     .digest("hex");
   const cached = unstable_cache(
     async () => {
+      if (provider === "aws") return translateWithAws(texts);
       if (provider === "deepl") return translateWithDeepL(texts, deeplEndpoint, glossaryId || undefined);
       return translateWithGoogle(texts);
     },
@@ -117,8 +218,8 @@ export async function translate(request: TranslationRequest): Promise<Translatio
     throw new TranslationConfigurationError("Machine translation is disabled until explicitly approved.");
   }
   const provider = process.env.TRANSLATION_PROVIDER || (process.env.DEEPL_API_KEY ? "deepl" : "google");
-  if (provider !== "deepl" && provider !== "google") {
-    throw new TranslationConfigurationError("TRANSLATION_PROVIDER must be deepl or google.");
+  if (provider !== "aws" && provider !== "deepl" && provider !== "google") {
+    throw new TranslationConfigurationError("TRANSLATION_PROVIDER must be aws, deepl, or google.");
   }
   const result = await translateProviderCached(
     provider,

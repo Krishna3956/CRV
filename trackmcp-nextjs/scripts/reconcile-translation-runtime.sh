@@ -44,7 +44,11 @@ for key in SUPABASE_SERVICE_ROLE_KEY GITHUB_TOKEN TRACKMCP_REFRESH_WORKER_SECRET
 done
 
 if [[ -z "$provider" ]]; then
-  if [[ "$current_enabled" == "true" && ( "$current_provider" == "deepl" || "$current_provider" == "google" ) ]]; then
+  if [[ "$current_enabled" == "true" && ( "$current_provider" == "aws" || "$current_provider" == "deepl" || "$current_provider" == "google" ) ]]; then
+    if [[ "$current_provider" == "aws" ]]; then
+      echo "Translation runtime is already configured: provider=aws enabled=true."
+      exit 0
+    fi
     selected_key="DEEPL_API_KEY"
     [[ "$current_provider" == "google" ]] && selected_key="GOOGLE_TRANSLATE_API_KEY"
     selected_ref="$(printf '%s' "$runtime_secrets" | jq -r --arg key "$selected_key" '.[$key] // ""')"
@@ -55,16 +59,17 @@ if [[ -z "$provider" ]]; then
   fi
   cat >&2 <<'EOF'
 ERROR: Chinese translation is not configured on the App Runner service.
-Set the repository variables TRACKMCP_TRANSLATION_PROVIDER (deepl or google)
-and TRACKMCP_TRANSLATION_ENABLE_MACHINE_TRANSLATION=true, add the matching
-provider key to the existing AWS Secrets Manager JSON bundle, then rerun the
-deployment. The rollout stopped before building or deploying an image.
+Set the repository variables TRACKMCP_TRANSLATION_PROVIDER (aws, deepl, or google)
+and TRACKMCP_TRANSLATION_ENABLE_MACHINE_TRANSLATION=true. For deepl/google,
+add the matching provider key to the existing AWS Secrets Manager JSON bundle.
+AWS uses the App Runner instance role. Then rerun the deployment; the rollout
+stopped before building or deploying an image.
 EOF
   exit 1
 fi
 
-if [[ "$provider" != "deepl" && "$provider" != "google" ]]; then
-  echo "ERROR: TRACKMCP_TRANSLATION_PROVIDER must be deepl or google." >&2
+if [[ "$provider" != "aws" && "$provider" != "deepl" && "$provider" != "google" ]]; then
+  echo "ERROR: TRACKMCP_TRANSLATION_PROVIDER must be aws, deepl, or google." >&2
   exit 1
 fi
 if [[ "$enabled" != "true" ]]; then
@@ -74,7 +79,7 @@ fi
 
 secret_arn="$requested_secret_arn"
 if [[ -z "$secret_arn" ]]; then secret_arn="$existing_secret_arn"; fi
-if [[ ! "$secret_arn" =~ ^arn:aws:secretsmanager:[^:]+:[0-9]{12}:secret:.+ ]]; then
+if [[ "$provider" != "aws" && ! "$secret_arn" =~ ^arn:aws:secretsmanager:[^:]+:[0-9]{12}:secret:.+ ]]; then
   echo "ERROR: no valid Secrets Manager ARN was found for the translation provider key." >&2
   echo "Add TRACKMCP_TRANSLATION_SECRETS_ARN or keep the existing runtime secret bundle mapped on App Runner." >&2
   exit 1
@@ -97,7 +102,9 @@ updated_config="$(printf '%s' "$source_config" | jq -c \
       | del(.DEEPL_API_KEY, .GOOGLE_TRANSLATE_API_KEY)
       | if $provider == "deepl"
         then .DEEPL_API_KEY = ($secret_arn + ":DEEPL_API_KEY::")
-        else .GOOGLE_TRANSLATE_API_KEY = ($secret_arn + ":GOOGLE_TRANSLATE_API_KEY::")
+        elif $provider == "google"
+        then .GOOGLE_TRANSLATE_API_KEY = ($secret_arn + ":GOOGLE_TRANSLATE_API_KEY::")
+        else .
         end)
   ')"
 

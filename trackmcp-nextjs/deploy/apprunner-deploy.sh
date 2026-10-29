@@ -129,7 +129,7 @@ if ! aws iam get-role --role-name "$INSTANCE_ROLE_NAME" >/dev/null 2>&1; then
   sleep 5
 fi
 aws iam put-role-policy --role-name "$INSTANCE_ROLE_NAME" --policy-name ReadRuntimeSecrets \
-  --policy-document "{\"Version\":\"2012-10-17\",\"Statement\":[{\"Effect\":\"Allow\",\"Action\":[\"secretsmanager:GetSecretValue\"],\"Resource\":[\"${SECRETS_ARN}\",\"${SECRETS_ARN}*\"]}]}" >/dev/null
+  --policy-document "{\"Version\":\"2012-10-17\",\"Statement\":[{\"Effect\":\"Allow\",\"Action\":[\"secretsmanager:GetSecretValue\"],\"Resource\":[\"${SECRETS_ARN}\",\"${SECRETS_ARN}*\"]},{\"Effect\":\"Allow\",\"Action\":[\"translate:TranslateText\"],\"Resource\":\"*\"}]}" >/dev/null
 INSTANCE_ROLE_ARN="$(aws iam get-role --role-name "$INSTANCE_ROLE_NAME" --query Role.Arn --output text)"
 
 # ---- 4. Build runtime env var JSON (only non-empty values) ----

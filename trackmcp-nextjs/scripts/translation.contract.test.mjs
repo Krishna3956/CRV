@@ -90,6 +90,9 @@ test("translation batches are bounded and use a configured provider", async () =
   assert.match(source, /DEEPL_GLOSSARY_ID/);
   assert.match(source, /TRANSLATION_ENABLE_MACHINE_TRANSLATION/);
   assert.match(source, /TRANSLATION_PROVIDER/);
+  assert.match(source, /translateWithAws/);
+  assert.match(source, /AWS_CONTAINER_CREDENTIALS_RELATIVE_URI/);
+  assert.match(source, /translate:TranslateText|AWSShineFrontendService_20170701\.TranslateText/);
   const quality = await readFile(resolve(root, "src/lib/translation-quality.ts"), "utf8");
   assert.match(quality, /HAN_CHARACTERS/);
   assert.match(quality, /PROTECTED_TOKEN/);
@@ -129,6 +132,7 @@ test("the real App Runner rollout reconciles translation configuration before de
   assert.match(script, /RuntimeEnvironmentSecrets/);
   assert.match(script, /DEEPL_API_KEY/);
   assert.match(script, /GOOGLE_TRANSLATE_API_KEY/);
+  assert.match(script, /current_provider.*aws/);
   assert.match(script, /update-service/);
   assert.match(script, /stopped before building or deploying an image/);
   assert.doesNotMatch(script, /DEEPL_API_KEY=\"/);
