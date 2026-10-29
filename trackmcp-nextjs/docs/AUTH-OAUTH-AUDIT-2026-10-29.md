@@ -77,6 +77,15 @@ the supported remedy; the current project is on the Free plan and the
 dashboard reports Custom Domains as a Pro add-on. No paid-plan upgrade or
 billing mutation was made without explicit authorization.
 
+To remove that hosted-domain dependency in the product flow, the Google button
+now uses Google Identity Services directly and exchanges the returned Google
+ID token with Supabase via `signInWithIdToken`. GitHub continues using the
+existing Supabase OAuth redirect. This keeps Supabase as the session/database
+authority while allowing Google's branded client to own the Google account
+chooser. The direct flow is covered by the OAuth contract test and the
+production build; a live browser verification is required after the next
+App Runner rollout.
+
 ## Release status
 
 The fail-closed provider gate is merged and live in runtime
