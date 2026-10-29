@@ -5,7 +5,6 @@ import { useEffect, useState } from "react";
 import { Menu, X, ChevronDown, Sparkles, TrendingUp, Boxes, Plus } from "lucide-react";
 import { TrackMCPLogo } from "./TrackMCPLogo";
 import { EarlyAccessButton } from "./EarlyAccessButton";
-import { LanguageSwitcher } from "./LanguageSwitcher";
 
 const links = [
   { label: "Features", href: "/features" },
@@ -84,7 +83,6 @@ export function Nav() {
         </nav>
 
         <div className="flex items-center gap-3">
-          <LanguageSwitcher />
           <Link
             href="/signin"
             className="hidden text-[15px] text-body transition-colors hover:text-ink sm:block"

@@ -9,6 +9,8 @@ test("root layout exposes one global language switcher and runtime", async () =>
   const source = await readFile(resolve(root, "src/app/layout.tsx"), "utf8");
   assert.match(source, /<LanguageSwitcher\s*\/>/);
   assert.match(source, /<TranslationRuntime\s*\/>/);
+  const nav = await readFile(resolve(root, "src/components/Nav.tsx"), "utf8");
+  assert.doesNotMatch(nav, /LanguageSwitcher/);
 });
 
 test("route audit covers static and dynamic page families", async () => {
