@@ -116,6 +116,7 @@ export function OAuthButtons({
         if (!googleId) throw new Error("Google Identity Services is unavailable.");
         await new Promise<void>((resolve, reject) => {
           let settled = false;
+          let credentialStarted = false;
           const finish = (error?: Error) => {
             if (settled) return;
             settled = true;
@@ -127,6 +128,7 @@ export function OAuthButtons({
             auto_select: false,
             cancel_on_tap_outside: true,
             callback: async (response) => {
+              credentialStarted = true;
               if (!response.credential) {
                 finish(new Error("Google did not return an identity token."));
                 return;
@@ -141,7 +143,10 @@ export function OAuthButtons({
             },
           });
           googleId.prompt((notification) => {
-            if (notification.isNotDisplayed?.() || notification.isSkippedMoment?.()) {
+            // GIS can report a skipped prompt while its account chooser is
+            // handing the credential back. Never turn that post-selection
+            // lifecycle event into a false sign-in failure.
+            if (!credentialStarted && (notification.isNotDisplayed?.() || notification.isSkippedMoment?.())) {
               finish(new Error("Google sign-in was not displayed. Try again or use email sign-in."));
             }
           });

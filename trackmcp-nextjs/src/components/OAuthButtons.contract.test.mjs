@@ -9,6 +9,7 @@ test("social auth offers branded Google identity-token and GitHub OAuth flows", 
   assert.match(component, /type OAuthProvider = \"google\" \| \"github\"/);
   assert.match(component, /signInWithIdToken/);
   assert.match(component, /accounts\.google\.com\/gsi\/client/);
+  assert.match(component, /credentialStarted/);
   assert.match(component, /signInWithOAuth/);
   assert.match(component, /authCallbackUrl/);
   assert.match(component, /safeAuthNext/);
