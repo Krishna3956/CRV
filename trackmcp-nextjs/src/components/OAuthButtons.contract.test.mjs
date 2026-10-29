@@ -17,7 +17,7 @@ test("sign-in and sign-up share the same social auth surface", () => {
   assert.match(signInPage, /<OAuthButtons/);
   assert.match(signInPage, /mode=\{mode\}/);
   assert.doesNotMatch(signInPage, /canContinue=/);
-  assert.match(component, /google: true, github: true/);
+  assert.match(component, /useState<\{ google: boolean; github: boolean \} \| null>\(null\)/);
 });
 
 test("social auth is not blocked by a late terms checkbox render", () => {
@@ -27,7 +27,9 @@ test("social auth is not blocked by a late terms checkbox render", () => {
   assert.match(signInPage, /By continuing, you agree to the/);
 });
 
-test("social discovery failures keep the immediate optimistic actions", () => {
-  assert.match(component, /if \(!active \|\| !value\) return/);
-  assert.doesNotMatch(component, /setProviders\(\{ google: false, github: false \}\)/);
+test("social discovery failures fail closed without causing a layout shift", () => {
+  assert.match(component, /if \(!value \|\| typeof value\.google !== "boolean" \|\| typeof value\.github !== "boolean"\)/);
+  assert.match(component, /if \(active\) setProviders\(\{ google: false, github: false \}\)/);
+  assert.match(component, /aria-busy="true"/);
+  assert.match(component, /Loading sign-in options/);
 });

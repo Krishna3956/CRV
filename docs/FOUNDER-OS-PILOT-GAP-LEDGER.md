@@ -2,6 +2,24 @@
 
 Status: active autonomous audit, started 2026-10-21.
 
+## 2026-10-30 — OAuth provider discovery now fails closed without layout shift
+
+- [x] The auth surface no longer renders clickable Google/GitHub controls from
+  an optimistic default while `/api/auth/providers` is unavailable or returns
+  malformed data. Provider discovery must return explicit boolean flags before
+  a social action is rendered; email/password remains the fallback.
+- [x] An accessible, non-interactive loading shell preserves the auth layout
+  while provider discovery is pending, so the correction does not reintroduce
+  the late-button layout shift that affected the first-login flow.
+- [x] Focused auth, translation, customer-endpoint UAT, lint, release gate
+  (154 suites), and the 211-route production build passed locally.
+- [x] A live Google chooser check showed the branded “to continue to TrackMCP”
+  surface and the TrackMCP privacy/terms links; no Supabase hostname appeared
+  in the user-facing chooser copy. This is browser-flow evidence only and does
+  not replace new-user onboarding or device-flow acceptance.
+- [ ] Provider configuration, new-user onboarding, existing-user return, and
+  device-flow return-path evidence remain separate pilot gates.
+
 ## 2026-10-30 — protocol linkage scope hardening
 
 - [x] PR #741 merged to `main` as

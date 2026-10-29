@@ -1,5 +1,18 @@
 # Founder OS 100 Customer Readiness Ledger
 
+## 2026-10-30 — OAuth discovery fail-closed hardening
+
+- [x] Social controls now wait for an explicit provider-discovery response and
+  fail closed to email/password on malformed, unavailable, or disabled
+  provider state. A fixed loading shell prevents auth-layout movement while
+  discovery completes.
+- [x] Focused auth/translation/UAT contracts, lint, the 154-suite release
+  gate, and the 211-route build passed locally.
+- [x] Live Google account chooser evidence displayed TrackMCP branding and
+  TrackMCP privacy/terms links.
+- [ ] This is an application-boundary hardening milestone, not proof of
+  new-user onboarding, device-flow return-path, or release-owner acceptance.
+
 ## 2026-10-30 — protocol linkage scope hardening
 
 - [x] Durable protocol facts now preserve a bounded server scope used only to
