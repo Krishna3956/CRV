@@ -1,5 +1,25 @@
 # Founder OS 100 Customer Readiness Ledger
 
+## 2026-10-29 — scheduled rate-limit cleanup secret regression fixed and reverified
+
+- [x] The first post-translation cleanup run (`40854824483`) exposed a real
+  regression: the workflow still read the removed legacy GitHub secret, so all
+  retries returned HTTP 401 from the internal cleanup endpoint.
+- [x] PR #717 (`e2d98e25a07ae177caa374cef73a6f5dbd05ba60`) changed the workflow
+  to read the dedicated refresh-worker secret from AWS Secrets Manager, mask it
+  in the runner log, and fail closed when the secret is unavailable. Contract
+  coverage now prevents the legacy secret from returning.
+- [x] Hosted CI run `40868109959` passed (`web-and-javascript`, Go, and .NET).
+  The full local release gate passed 154 suites before merge.
+- [x] Post-merge workflow runs `40868577591` and `40868586652` both completed
+  successfully against `main`. Their bounded endpoint responses were HTTP 200
+  with `deleted_count` values of 16 and 0; the authorization header was
+  masked in both logs.
+- [ ] This operational fix does not close the overall pilot HOLD. Worker
+  freshness-window evidence, backup/PITR, privacy acceptance, customer-owned
+  protocol/UAT, translation-policy acceptance, and release-owner GO/NO-GO
+  remain separate gates.
+
 ## 2026-10-29 — public language selector fix deployed and verified
 
 - [x] PR #715 (`b98c6f41cabdb12f976291c4160ac581423d3461`) fixed the public
