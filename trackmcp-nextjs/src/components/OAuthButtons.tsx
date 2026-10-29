@@ -18,16 +18,17 @@ function GitHubIcon() {
 export function OAuthButtons({
   next,
   mode,
-  canContinue = true,
   onError,
 }: {
   next: string;
   mode: "signin" | "signup";
-  canContinue?: boolean;
   onError?: (message: string) => void;
 }) {
   const [loading, setLoading] = useState<OAuthProvider | null>(null);
-  const [providers, setProviders] = useState<{ google: boolean; github: boolean } | null>(null);
+  // Render the configured social actions immediately. The provider discovery
+  // request still reconciles availability, but it must not make the primary
+  // sign-in choices appear late or cause a layout shift on the auth screen.
+  const [providers, setProviders] = useState<{ google: boolean; github: boolean }>({ google: true, github: true });
 
   useEffect(() => {
     let active = true;
@@ -45,10 +46,6 @@ export function OAuthButtons({
 
   const start = async (provider: OAuthProvider) => {
     if (loading) return;
-    if (!canContinue) {
-      onError?.("Please accept the Terms of Service and Privacy Policy before continuing.");
-      return;
-    }
     setLoading(provider);
     onError?.("");
     const nextPath = safeAuthNext(next);
@@ -64,7 +61,7 @@ export function OAuthButtons({
   };
 
   const buttonClass = "inline-flex h-11 items-center justify-center gap-2 rounded-lg border border-line-strong bg-white px-3 text-[13px] font-medium text-body transition-colors hover:bg-mist disabled:cursor-not-allowed disabled:opacity-60";
-  if (!providers || (!providers.google && !providers.github)) return null;
+  if (!providers.google && !providers.github) return null;
   return (
     <div className="mt-6">
       <div className="grid grid-cols-2 gap-3">

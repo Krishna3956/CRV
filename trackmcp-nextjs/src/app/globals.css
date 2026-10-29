@@ -118,6 +118,10 @@ body:has([data-site-nav]) .global-language-switcher {
 
 @layer base {
   html { scroll-behavior: smooth; overflow-x: clip; }
+  /* Avoid exposing a half-English/half-Chinese first paint while the initial
+   * page translation is fetched. Once the first pass is complete, subsequent
+   * lazy/hydrated content remains visible and is translated incrementally. */
+  html[data-trackmcp-translation-pending="true"] body { visibility: hidden; }
   body {
     overflow-x: clip;
     background: var(--color-canvas);

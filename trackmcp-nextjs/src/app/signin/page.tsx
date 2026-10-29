@@ -33,7 +33,10 @@ export default function SignInPage({ initialMode = "signin" }: { initialMode?: "
   const [newPassword, setNewPassword] = useState("");
   const [confirmNewPassword, setConfirmNewPassword] = useState("");
   const [resendIn, setResendIn] = useState(0);
-  const [acceptedTerms, setAcceptedTerms] = useState(false);
+  // Social OAuth providers show their own consent and policy context. Keep the
+  // email form frictionless too, while still presenting the linked terms and
+  // allowing the user to opt out before submitting credentials.
+  const [acceptedTerms, setAcceptedTerms] = useState(true);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
   const [existingAccount, setExistingAccount] = useState(false);
@@ -302,7 +305,7 @@ export default function SignInPage({ initialMode = "signin" }: { initialMode?: "
             <p className="mt-2 text-[14.5px] leading-relaxed text-muted">{description}</p>
 
             {!resetFlow && screen === "credentials" && <>
-              <OAuthButtons next={authNext} mode={mode} canContinue={mode === "signin" || acceptedTerms} onError={setError} />
+              <OAuthButtons next={authNext} mode={mode} onError={setError} />
               {mode === "signup" && <label className="mt-4 flex items-start gap-2 text-[12px] leading-relaxed text-muted"><input required type="checkbox" checked={acceptedTerms} onChange={(event) => { setAcceptedTerms(event.target.checked); setError(""); }} className="mt-0.5 h-4 w-4 accent-brand" /><span>I agree to the <Link href="/terms" className="font-medium text-brand-strong hover:underline">Terms of Service</Link> and <Link href="/privacy" className="font-medium text-brand-strong hover:underline">Privacy Policy</Link>.</span></label>}
             </>}
 

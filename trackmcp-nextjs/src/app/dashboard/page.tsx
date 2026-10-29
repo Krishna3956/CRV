@@ -141,7 +141,18 @@ export function DashboardPageContent({ initialView = "overview" }: { initialView
     if (LOCAL_DASHBOARD_BYPASS) {
       return;
     }
-    void (async () => { const { data } = await getSupabaseBrowser().auth.getUser(); const user = data.user; setEmail(user?.email || null); setDisplayName(userDisplayName(user)); if (!user) { setLoading(false); return; } try {
+    void (async () => {
+      const auth = getSupabaseBrowser().auth;
+      // The OAuth callback and the first dashboard render can land in adjacent
+      // browser tasks while the shared .trackmcp.com cookie is being written.
+      // Retry the read briefly instead of showing the misleading empty-state
+      // screen and making a first-time user sign in a second time.
+      let user = (await auth.getUser()).data.user;
+      for (let attempt = 0; !user && attempt < 3; attempt += 1) {
+        await new Promise((resolve) => window.setTimeout(resolve, 250 * (attempt + 1)));
+        user = (await auth.getUser()).data.user;
+      }
+      setEmail(user?.email || null); setDisplayName(userDisplayName(user)); if (!user) { setLoading(false); return; } try {
       const preferred = window.localStorage.getItem("trackmcp.selected_workspace_id") || undefined;
       let account: Account;
       try {

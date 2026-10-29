@@ -118,12 +118,21 @@ export async function POST(request: Request) {
     const name = boundedText(body.name, 160) || `${emailName} workspace`;
     const slug = boundedText(body.slug, 120).toLowerCase() || `workspace-${user.id.slice(0, 8)}`;
     const created = await admin.from("trackmcp_workspaces").insert({ name, slug }).select("id, name, slug").single();
-    if (created.error || !created.data) return NextResponse.json({ error: "Could not create your workspace." }, { status: created.error?.code === "23505" ? 409 : 500 });
-    workspace = created.data;
+    if (created.error || !created.data) {
+      // OAuth callbacks can cause two dashboard shells to provision at once.
+      // Treat a unique-slug race as success by loading the workspace created
+      // by the sibling request instead of surfacing a first-login failure.
+      if (created.error?.code !== "23505") return NextResponse.json({ error: "Could not create your workspace." }, { status: 500 });
+      const existing = await admin.from("trackmcp_workspaces").select("id, name, slug").eq("slug", slug).maybeSingle();
+      if (existing.error || !existing.data) return NextResponse.json({ error: "Could not create your workspace." }, { status: 500 });
+      workspace = existing.data;
+    } else {
+      workspace = created.data;
+    }
     workspaceId = workspace.id;
-    const membership = await admin.from("trackmcp_workspace_members").insert({ workspace_id: workspaceId, user_id: user.id, role: "owner" });
+    const membership = await admin.from("trackmcp_workspace_members").upsert({ workspace_id: workspaceId, user_id: user.id, role: "owner" }, { onConflict: "workspace_id,user_id", ignoreDuplicates: true });
     if (membership.error) {
-      await admin.from("trackmcp_workspaces").delete().eq("id", workspaceId);
+      if (created.data) await admin.from("trackmcp_workspaces").delete().eq("id", workspaceId);
       return NextResponse.json({ error: "Could not connect your workspace." }, { status: 500 });
     }
   } else {

@@ -16,5 +16,6 @@ test("social auth offers the configured Google and GitHub OAuth flows", () => {
 test("sign-in and sign-up share the same social auth surface", () => {
   assert.match(signInPage, /<OAuthButtons/);
   assert.match(signInPage, /mode=\{mode\}/);
-  assert.match(signInPage, /canContinue=\{mode === \"signin\" \|\| acceptedTerms\}/);
+  assert.doesNotMatch(signInPage, /canContinue=/);
+  assert.match(component, /google: true, github: true/);
 });

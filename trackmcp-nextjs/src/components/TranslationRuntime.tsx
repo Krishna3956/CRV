@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useLayoutEffect } from "react";
 import { readSiteLocale, type SiteLocale } from "./site-locale";
 
 type TextRecord = { kind: "text"; node: Text; original: string };
@@ -184,6 +184,11 @@ function emitStatus(status: "translating" | "ready" | "error") {
   window.dispatchEvent(new CustomEvent("trackmcp:translation-status", { detail: { status } }));
 }
 
+function setInitialTranslationPending(pending: boolean) {
+  if (pending) document.documentElement.setAttribute("data-trackmcp-translation-pending", "true");
+  else document.documentElement.removeAttribute("data-trackmcp-translation-pending");
+}
+
 function restoreEnglish() {
   originals.forEach((original, node) => {
     if (node.isConnected) node.nodeValue = original;
@@ -196,6 +201,7 @@ function restoreEnglish() {
   translatedAttributes.clear();
   if (documentTitleOriginal !== null) document.title = documentTitleOriginal;
   documentTitleTranslated = false;
+  setInitialTranslationPending(false);
   document.documentElement.lang = "en";
   emitStatus("ready");
 }
@@ -219,8 +225,11 @@ async function translatePage() {
 }
 
 async function translatePageInternal(generation: number) {
+  const initialTranslation = document.documentElement.lang !== "zh-CN";
+  if (initialTranslation) setInitialTranslationPending(true);
   const records = collectTranslationRecords();
   if (!records.length) {
+    setInitialTranslationPending(false);
     document.documentElement.lang = "zh-CN";
     emitStatus("ready");
     return;
@@ -255,6 +264,7 @@ async function translatePageInternal(generation: number) {
         documentTitleTranslated = true;
       }
     });
+    setInitialTranslationPending(false);
     document.documentElement.lang = "zh-CN";
     emitStatus("ready");
   } catch {
@@ -264,7 +274,7 @@ async function translatePageInternal(generation: number) {
 }
 
 export function TranslationRuntime() {
-  useEffect(() => {
+  useLayoutEffect(() => {
     const locale = (): SiteLocale => {
       return readSiteLocale();
     };
