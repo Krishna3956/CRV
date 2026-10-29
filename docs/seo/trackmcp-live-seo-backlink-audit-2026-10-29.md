@@ -227,6 +227,16 @@ mobile article after the queue change measured performance **0.79**, SEO
 This is an improvement, not proof that every article meets a Core Web Vitals
 target: the audit still leaves third-party analytics and origin latency open.
 
+### Final runtime identity recheck after PR #695
+
+The subsequent bounded refresh-diagnostics release was merged as PR #695
+(`dd6e554463ca0658c60d435c1cb0022bf043dd10`) and deployed by App Runner
+workflow `40815048476`. Its production smoke, immutable release-identity, and
+runtime-safety checks passed; direct-origin `/`, `/blog`, and `/api/health`
+returned HTTP 200 and `/api/health` reported that exact SHA. This release only
+adds redacted worker diagnostics and readiness evidence, so it does not change
+the article metadata, schema, sitemap, robots, or backlink findings above.
+
 ## Fixed during this work / existing fixes verified
 
 - Verified the previously shipped stale-link replacement in `trackmcp-nextjs/src/app/blog/deep-research.ts` and `trackmcp-nextjs/src/app/blog/next-batch.ts` (`12c22d08`).
