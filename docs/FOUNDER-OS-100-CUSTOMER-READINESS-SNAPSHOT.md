@@ -15,6 +15,9 @@ Status: **Engineering green; release decision HOLD**
   AWS cadence is proven, but worker freshness is `977319 ms` versus the
   `900000 ms` budget and the bounded evaluation window still includes a
   retryable/stale scheduled row. This remains an operational release gate.
+- The refresh worker now emits a capped, sanitized `retryable_error_codes`
+  histogram in its bounded batch summary. This is diagnostic evidence only; it
+  does not expose handler details or change the warning to green.
 
 - PR #690 delayed optional PostHog recorder/survey initialization behind a
   10-second idle window while preserving the queued, privacy-safe analytics

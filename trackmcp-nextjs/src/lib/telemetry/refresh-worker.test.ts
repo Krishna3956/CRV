@@ -62,6 +62,19 @@ test("handler failures are retryable and redact secrets and URLs", async () => {
   assert.equal(store.current.last_error_detail?.includes("https://"), false);
 });
 
+test("batch summaries expose only bounded retryable error-code counts", async () => {
+  const store = storeFor(job("fact_projection"));
+  const result = await runRefreshJobBatch({
+    store,
+    owner: "worker-diagnostics",
+    now: () => now,
+    handlers: { fact_projection: async () => { throw new Error("temporary database failure"); } },
+  }, { maxJobs: 1 });
+  assert.equal(result.retryable, 1);
+  assert.deepEqual(result.retryable_error_codes, { handler_failure: 1 });
+  assert.equal(JSON.stringify(result.retryable_error_codes).includes("temporary"), false);
+});
+
 test("worker does not imply a scheduler", () => {
   assert.equal(REFRESH_WORKER_POLICY.schedulerEnabledByDefault, false);
   assert.equal(REFRESH_WORKER_POLICY.maxJobsPerInvocation, 100);

@@ -17,6 +17,7 @@ test("scheduled refresh worker emits a bounded redacted lag/retry summary artifa
   assert.match(workflow, /stale/);
   assert.match(workflow, /max_attempt_count/);
   assert.match(workflow, /errors_count/);
+  assert.match(workflow, /retryable_error_codes/);
   assert.match(workflow, /response_unparseable/);
   assert.match(workflow, /timed_out/);
   assert.match(workflow, /batches_with_unparseable_response/);
