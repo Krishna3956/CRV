@@ -23,11 +23,11 @@ test("all operator and infrastructure gates remain named and open until evidence
 });
 
 test("the release record carries the same current source gate evidence", () => {
-  assert.match(releaseRecord, /current source is `main` at\s+`3116f2c900e764a341bb5df779aaf0b149268805`/i);
+  assert.match(releaseRecord, /current source is `main` at\s+`8f9bbcd5f8c37c9e24dcd8abafe4e35c2e375658`/i);
   assert.match(releaseRecord, /latest local release gate\s+passes\s+\*\*154\s+suites\*\*/i);
   assert.match(releaseRecord, /211 routes/);
   assert.match(releaseRecord, /transient App Runner\s+smoke retry boundary/);
-  assert.match(releaseRecord, /a0751dc232b0d0f9e52ae5dcb79d5044d7de2b83/);
+  assert.match(releaseRecord, /3116f2c900e764a341bb5df779aaf0b149268805/);
 });
 
 test("scheduler log evidence permission artifact is least-privilege and explicit", () => {

@@ -1,12 +1,12 @@
 # Founder OS first-100 readiness snapshot
 
-Updated: 2026-10-30 (Asia/Kolkata; source `3116f2c9`; deployed runtime `a0751dc2`; hosted evidence reconciled)
+Updated: 2026-10-30 (Asia/Kolkata; source `8f9bbcd5`; deployed runtime `3116f2c9`; hosted evidence reconciled)
 
 Status: **Engineering green; release decision HOLD**
 
 ## Current auth/localization checkpoint — 2026-10-30
 
-- The deployed App Runner runtime is `a0751dc232b0d0f9e52ae5dcb79d5044d7de2b83` (workflow `40949005203`, successful rollout). `main` is now `3116f2c900e764a341bb5df779aaf0b149268805` after a documentation/test-only merge; the immutable health probe still reports the deployed runtime SHA.
+- The deployed App Runner runtime is `3116f2c900e764a341bb5df779aaf0b149268805` (workflow `40955384383`, rollout in progress when checked). `main` is now `8f9bbcd5f8c37c9e24dcd8abafe4e35c2e375658` after a documentation-only merge; the immutable health probe reports the deployed runtime SHA.
 - Google and GitHub controls render immediately on the sign-in/sign-up surface and no longer wait for a provider-discovery request or a terms-checkbox interaction. The terms control defaults to checked for the email form; social providers still perform their provider-side consent flow.
 - The dashboard now retries the Supabase session briefly after the OAuth callback and workspace provisioning is idempotent across concurrent first-login callbacks. A fresh browser Google flow with `krishnaatmu@gmail.com` reached the authenticated dashboard in one attempt and loaded the `krishnaatmu` workspace.
 - Marketing-site translation remains a shared client runtime with App Runner-origin fallback. The initial page is held while the first translation batch settles, and a live scroll test preserved `zh-CN` after navigation through the page. Direct Cloudflare requests to `/api/translation` can still be rejected by edge policy; the user-facing runtime fallback is the supported path.
