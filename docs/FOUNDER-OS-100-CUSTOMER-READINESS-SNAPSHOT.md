@@ -9,7 +9,12 @@ and clean public-registry checks now show help and diagnostics from the exact
 `npx`/`npm exec` command shapes. This is a package activation correction, not a
 first-100 release GO; the external pilot gates below remain authoritative.
 
-Updated: 2026-10-30 (Asia/Kolkata; source `8f9bbcd5`; deployed runtime `3116f2c9`; hosted evidence reconciled)
+The follow-up docs reconciliation PR #736 merged as `2e321201`, with CI
+`40964008474` and App Runner deployment `40964008580` both green. The deployment
+performed immutable release-identity, production-smoke, runtime-safety, and
+live translation-provider checks successfully.
+
+Updated: 2026-10-30 (Asia/Kolkata; source `2e321201`; deployed runtime `2e321201`; hosted evidence reconciled)
 
 Status: **Engineering green; release decision HOLD**
 
