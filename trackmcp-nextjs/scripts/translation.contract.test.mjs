@@ -28,6 +28,8 @@ test("live runtime audit checks static, blog, category, tool, and endpoint behav
     assert.match(source, new RegExp(marker.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
   }
   assert.match(source, /rejectsUnsupportedLocale/);
+  assert.match(source, /TRANSLATION_AUDIT_TRANSLATE/);
+  assert.match(source, /providerProbePassed/);
   assert.match(source, /AUDIT_USER_AGENT/);
 });
 
@@ -108,4 +110,23 @@ test("runtime excludes code and user-editable content", async () => {
   assert.match(source, /characterData: true/);
   assert.match(source, /translationGeneration/);
   assert.match(source, /translationCache/);
+});
+
+test("the real App Runner rollout reconciles translation configuration before deployment", async () => {
+  const script = await readFile(resolve(root, "scripts/reconcile-translation-runtime.sh"), "utf8");
+  const workflow = await readFile(resolve(root, "../.github/workflows/deploy.yml"), "utf8");
+  assert.match(workflow, /Reconcile Chinese translation runtime/);
+  assert.match(workflow, /vars\.TRACKMCP_TRANSLATION_PROVIDER/);
+  assert.match(workflow, /vars\.TRACKMCP_TRANSLATION_ENABLE_MACHINE_TRANSLATION/);
+  assert.match(workflow, /secrets\.TRACKMCP_TRANSLATION_SECRETS_ARN/);
+  assert.match(workflow, /bash scripts\/reconcile-translation-runtime\.sh/);
+  assert.match(script, /describe-service/);
+  assert.match(script, /RuntimeEnvironmentVariables/);
+  assert.match(script, /RuntimeEnvironmentSecrets/);
+  assert.match(script, /DEEPL_API_KEY/);
+  assert.match(script, /GOOGLE_TRANSLATE_API_KEY/);
+  assert.match(script, /update-service/);
+  assert.match(script, /stopped before building or deploying an image/);
+  assert.doesNotMatch(script, /DEEPL_API_KEY=\"/);
+  assert.doesNotMatch(script, /GOOGLE_TRANSLATE_API_KEY=\"/);
 });

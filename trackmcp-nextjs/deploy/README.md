@@ -119,6 +119,16 @@ That deployment updates the service's secret mapping. Later
 `aws apprunner start-deployment` only rolls out the already-configured service;
 it does not add a newly named secret field to its runtime configuration.
 
+The normal GitHub Actions production rollout has the same guard: it runs
+`scripts/reconcile-translation-runtime.sh` before building or deploying the
+image. Set the repository variables `TRACKMCP_TRANSLATION_PROVIDER` and
+`TRACKMCP_TRANSLATION_ENABLE_MACHINE_TRANSLATION=true` when enabling Chinese,
+and add the matching provider key to the existing Secrets Manager JSON bundle.
+If the service has neither an active translation mapping nor those variables,
+the workflow stops before ECR/App Runner work rather than publishing a broken
+language control. The provider key is never placed in a GitHub Actions variable,
+Docker build argument, or plaintext runtime variable.
+
 `TRACKMCP_DEVICE_KEY_DERIVATION_SECRET` is a dedicated, high-entropy secret for
 hashing device authorization values. `TRACKMCP_ADMIN_KEY` protects internal
 operator endpoints. Neither is a browser value, a public build argument, or a

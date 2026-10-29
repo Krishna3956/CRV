@@ -74,6 +74,12 @@ test("App Runner deployment performs a redacted read-only smoke after RUNNING", 
   assert.match(workflow, /TRACKMCP_PRODUCTION_SMOKE_CONFIRM=I_UNDERSTAND_PRODUCTION_SMOKE/);
   assert.match(workflow, /TRACKMCP_SMOKE_CANDIDATE_SHA="\$TRACKMCP_DEPLOY_SHA"/);
   assert.match(workflow, /npm run smoke:production-pilot/);
+  assert.match(workflow, /Reconcile Chinese translation runtime/);
+  assert.match(workflow, /bash scripts\/reconcile-translation-runtime\.sh/);
+  assert.match(workflow, /TRACKMCP_DEPLOYED_ORIGIN=\$ORIGIN/);
+  assert.match(workflow, /Verify live Chinese translation provider/);
+  assert.match(workflow, /TRANSLATION_AUDIT_TRANSLATE: "true"/);
+  assert.match(workflow, /npm run audit:translation-live-runtime/);
   assert.match(workflow, /Audit runtime safety flags/);
   assert.match(workflow, /RuntimeEnvironmentVariables/);
   assert.match(workflow, /TRACKMCP_RATE_LIMIT_MODE is invalid/);

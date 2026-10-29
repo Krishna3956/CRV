@@ -22,6 +22,7 @@ on:
       - "trackmcp-nextjs/Dockerfile"
       - "trackmcp-nextjs/entrypoint.*"
       - "trackmcp-nextjs/middleware.*"
+      - "trackmcp-nextjs/scripts/reconcile-translation-runtime.sh"
       - ".github/workflows/deploy.yml"
   workflow_dispatch:
     inputs:
@@ -122,6 +123,21 @@ jobs:
         with:
           role-to-assume: ${{ env.ROLE_ARN }}
           aws-region: ${{ env.AWS_REGION }}
+
+      - name: Reconcile Chinese translation runtime
+        working-directory: trackmcp-nextjs
+        env:
+          AWS_REGION: ${{ env.AWS_REGION }}
+          SERVICE_ARN: ${{ env.SERVICE_ARN }}
+          # These repository variables select the approved provider without
+          # putting a provider key in GitHub Actions. The key itself remains
+          # in the existing AWS Secrets Manager JSON bundle.
+          TRACKMCP_TRANSLATION_PROVIDER: ${{ vars.TRACKMCP_TRANSLATION_PROVIDER || '' }}
+          TRACKMCP_TRANSLATION_ENABLE_MACHINE_TRANSLATION: ${{ vars.TRACKMCP_TRANSLATION_ENABLE_MACHINE_TRANSLATION || '' }}
+          TRACKMCP_TRANSLATION_SECRETS_ARN: ${{ secrets.TRACKMCP_TRANSLATION_SECRETS_ARN || '' }}
+          TRACKMCP_DEEPL_API_URL: ${{ vars.TRACKMCP_DEEPL_API_URL || '' }}
+          TRACKMCP_DEEPL_GLOSSARY_ID: ${{ vars.TRACKMCP_DEEPL_GLOSSARY_ID || '' }}
+        run: bash scripts/reconcile-translation-runtime.sh
 
       - name: Log in to Amazon ECR
         id: ecr
@@ -318,6 +334,7 @@ jobs:
           # operators can run direct-origin checks when the public edge blocks
           # authenticated pilot traffic.
           printf '%s\n' "$SERVICE_HOST" > "$RUNNER_TEMP/trackmcp-app-runner-host.txt"
+          echo "TRACKMCP_DEPLOYED_ORIGIN=$ORIGIN" >> "$GITHUB_ENV"
           TRACKMCP_PRODUCTION_SMOKE_CONFIRM=I_UNDERSTAND_PRODUCTION_SMOKE \
           TRACKMCP_SMOKE_BASE_URL="$ORIGIN" \
           TRACKMCP_SMOKE_CANDIDATE_SHA="$TRACKMCP_DEPLOY_SHA" \
@@ -367,6 +384,13 @@ jobs:
           fi
           printf '{"rate_limit_mode":"%s","fact_writes":"%s"}\n' "$RATE_LIMIT_MODE" "$FACT_WRITES" > "$RUNNER_TEMP/trackmcp-runtime-flags.json"
           echo "Runtime flags: rate_limit_mode=$RATE_LIMIT_MODE fact_writes=$FACT_WRITES"
+
+      - name: Verify live Chinese translation provider
+        working-directory: trackmcp-nextjs
+        env:
+          TRANSLATION_AUDIT_BASE_URL: ${{ env.TRACKMCP_DEPLOYED_ORIGIN }}
+          TRANSLATION_AUDIT_TRANSLATE: "true"
+        run: npm run audit:translation-live-runtime
 
       - name: Upload redacted production smoke evidence
         if: always()
