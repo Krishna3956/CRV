@@ -69,7 +69,14 @@ async function fetchReadOnly(url, options = {}) {
       return response;
     } catch (error) {
       lastError = error;
-      if (attempt < 2) await new Promise((resolve) => setTimeout(resolve, 250 * (attempt + 1)));
+      // A freshly promoted App Runner instance can accept the service-level
+      // RUNNING status before its first request path is warm. Treat an
+      // idempotent timeout like a transient 502/503 and use the same bounded
+      // retry window, rather than failing the deployment on the first cold
+      // route. Writes never enter this helper.
+      if (attempt < 7) {
+        await new Promise((resolve) => setTimeout(resolve, Math.min(5_000, 1_000 * (attempt + 1))));
+      }
     }
   }
   throw lastError;
