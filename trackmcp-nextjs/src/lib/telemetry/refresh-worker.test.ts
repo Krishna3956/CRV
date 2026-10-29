@@ -72,6 +72,7 @@ test("batch summaries expose only bounded retryable error-code counts", async ()
   }, { maxJobs: 1 });
   assert.equal(result.retryable, 1);
   assert.deepEqual(result.retryable_error_codes, { handler_failure: 1 });
+  assert.deepEqual(result.retryable_error_kinds, { fact_projection: 1 });
   assert.equal(JSON.stringify(result.retryable_error_codes).includes("temporary"), false);
 });
 

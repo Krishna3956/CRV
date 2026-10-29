@@ -115,7 +115,7 @@ jobs:
             set -e
             if jq -e 'type == "object"' "$batch_dir/$batch.json" >/dev/null 2>&1; then
               jq -c --arg batch "$batch" --argjson http_status "$((status == 0 ? 200 : 500))" \
-                '{batch:($batch|tonumber), http_status:$http_status, processed:(.processed//0), succeeded:(.succeeded//0), retryable:(.retryable//0), retryable_error_codes:(.retryable_error_codes//{}), failed:(.failed//0), idle:(.idle//false), aborted:(.aborted//false), errors_count:((.errors//[])|length), max_queue_lag_ms:(.max_queue_lag_ms//0), max_attempt_count:(.max_attempt_count//0), observed_at:(.observed_at//null)}' \
+                '{batch:($batch|tonumber), http_status:$http_status, processed:(.processed//0), succeeded:(.succeeded//0), retryable:(.retryable//0), retryable_error_codes:(.retryable_error_codes//{}), retryable_error_kinds:(.retryable_error_kinds//{}), failed:(.failed//0), idle:(.idle//false), aborted:(.aborted//false), errors_count:((.errors//[])|length), max_queue_lag_ms:(.max_queue_lag_ms//0), max_attempt_count:(.max_attempt_count//0), observed_at:(.observed_at//null)}' \
                 "$batch_dir/$batch.json" >>"$summary_file"
             else
               jq -cn --arg batch "$batch" --argjson http_status "$((status == 0 ? 200 : 500))" \
@@ -145,7 +145,7 @@ jobs:
               fi
             fi
           done
-          jq -s 'def merge_codes: reduce (.[].retryable_error_codes // {}) as $codes ({}; reduce ($codes | to_entries[]) as $entry (. ; .[$entry.key] = ([.[$entry.key] // 0, ($entry.value // 0)] | add | if . > 1000 then 1000 else . end))); {observed_at:(map(.observed_at)|map(select(. != null))|max // null), batches:length, processed:(map(.processed // 0)|add // 0), succeeded:(map(.succeeded // 0)|add // 0), retryable:(map(.retryable // 0)|add // 0), retryable_error_codes:merge_codes, failed:(map(.failed // 0)|add // 0), errors_count:(map(.errors_count // 0)|add // 0), max_queue_lag_ms:(map(.max_queue_lag_ms // 0)|max // 0), max_attempt_count:(map(.max_attempt_count // 0)|max // 0), timed_out:($timed_out == 1), workflow_failed:($failed == 1), batches_with_unparseable_response:(map(select(.response_unparseable == true))|length)}' \
+          jq -s 'def merge_histogram($field): reduce (.[].[$field] // {}) as $codes ({}; reduce ($codes | to_entries[]) as $entry (. ; .[$entry.key] = ([.[$entry.key] // 0, ($entry.value // 0)] | add | if . > 1000 then 1000 else . end))); {observed_at:(map(.observed_at)|map(select(. != null))|max // null), batches:length, processed:(map(.processed // 0)|add // 0), succeeded:(map(.succeeded // 0)|add // 0), retryable:(map(.retryable // 0)|add // 0), retryable_error_codes:merge_histogram("retryable_error_codes"), retryable_error_kinds:merge_histogram("retryable_error_kinds"), failed:(map(.failed // 0)|add // 0), errors_count:(map(.errors_count // 0)|add // 0), max_queue_lag_ms:(map(.max_queue_lag_ms // 0)|max // 0), max_attempt_count:(map(.max_attempt_count // 0)|max // 0), timed_out:($timed_out == 1), workflow_failed:($failed == 1), batches_with_unparseable_response:(map(select(.response_unparseable == true))|length)}' \
             --argjson timed_out "$timed_out" --argjson failed "$failed" "$summary_file" \
             > "$RUNNER_TEMP/trackmcp-refresh-worker-summary.json"
           # The pilot freshness budget is 15 minutes. Keep the workflow

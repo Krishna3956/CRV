@@ -9,6 +9,14 @@ function boundedNumber(value, fallback = 0) {
   return Number.isFinite(value) && value >= 0 ? Math.min(value, 31_536_000_000) : fallback;
 }
 
+function boundedHistogram(value) {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return {};
+  return Object.entries(value)
+    .filter(([key, count]) => /^[a-zA-Z0-9_.-]{1,80}$/.test(key) && Number.isFinite(count) && count >= 0)
+    .slice(0, 8)
+    .reduce((result, [key, count]) => ({ ...result, [key]: Math.min(1000, Math.floor(count)) }), {});
+}
+
 function parseTimestamp(value) {
   const time = Date.parse(value ?? "");
   return Number.isFinite(time) ? time : null;
@@ -81,6 +89,8 @@ export function summarizeRefreshWorkerRuns(runs, { budgetMs = DEFAULT_BUDGET_MS,
         processed: boundedNumber(run.processed),
         failed: boundedNumber(run.failed),
         retryable: boundedNumber(run.retryable),
+        retryable_error_codes: boundedHistogram(run.retryable_error_codes),
+        retryable_error_kinds: boundedHistogram(run.retryable_error_kinds),
         timed_out: timedOut,
         workflow_failed: workflowFailed,
         batches_with_unparseable_response: unparseable,
@@ -189,7 +199,7 @@ export function summarizeRefreshWorkerRuns(runs, { budgetMs = DEFAULT_BUDGET_MS,
     scheduler_evidence: awsEvidence,
     max_queue_lag_ms: Math.max(0, ...boundedRuns.map((run) => run.max_queue_lag_ms)),
     total_processed: boundedRuns.reduce((total, run) => total + run.processed, 0),
-    runs: boundedRuns.map(({ run_id, created_at, event, observed_at, freshness_slo, freshness_alert, max_queue_lag_ms, processed, failed, retryable, timed_out, workflow_failed, batches_with_unparseable_response }) => ({ run_id, created_at, event, observed_at, freshness_slo, freshness_alert, max_queue_lag_ms, processed, failed, retryable, timed_out, workflow_failed, batches_with_unparseable_response })),
+    runs: boundedRuns.map(({ run_id, created_at, event, observed_at, freshness_slo, freshness_alert, max_queue_lag_ms, processed, failed, retryable, retryable_error_codes, retryable_error_kinds, timed_out, workflow_failed, batches_with_unparseable_response }) => ({ run_id, created_at, event, observed_at, freshness_slo, freshness_alert, max_queue_lag_ms, processed, failed, retryable, retryable_error_codes, retryable_error_kinds, timed_out, workflow_failed, batches_with_unparseable_response })),
   };
 }
 

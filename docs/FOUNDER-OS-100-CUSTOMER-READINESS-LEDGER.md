@@ -1,5 +1,25 @@
 # Founder OS 100 Customer Readiness Ledger
 
+## 2026-10-29 — fresh worker-health evaluation and retryable-kind diagnostics
+
+- [x] Health run `40816871097` completed against current `main` with artifact
+  `12873300062`. The result remains **warning**, not green: AWS cadence is
+  proven (4 invocations, 0 errors, 4 end-to-end successes), but worker
+  freshness is not proven (`962905 ms` maximum AWS queue lag versus the
+  `900000 ms` budget) and the bounded evaluation contains retryable/stale
+  work.
+- [x] The health report is explicit about the retry class:
+  `handler_failure` occurred in recovered worker artifact `12872467824` from
+  run `40816916268` (2 retryable jobs, maximum queue lag `1048892 ms`). No
+  handler detail, payload, URL, credential, or workspace identifier was
+  exposed.
+- [x] The next runtime change adds a bounded `retryable_error_kinds` histogram
+  beside the existing error-code histogram, so the next fresh artifact can
+  identify the failing projection family without weakening privacy or the
+  freshness gate. Focused tests and the full 152-suite release gate pass.
+- [ ] Deploy this diagnostic change and collect a fresh artifact before making
+  any handler-specific fix; the current warning remains authoritative.
+
 ## 2026-10-29 — bounded refresh diagnostics deployed
 
 - [x] PR #695 (`dd6e554463ca0658c60d435c1cb0022bf043dd10`) was merged to
@@ -838,7 +858,20 @@ not override the current register below.
 
 End of historical checkpoint archive.
 
-## Active external-gate register (current)
+## Active external-gate register (current — 2026-10-29 refresh evaluation)
+
+| Gate | Current evidence | State | Required closure evidence |
+| --- | --- | --- | --- |
+| Worker freshness | Health artifact `12873300062` from run `40816871097`: AWS cadence is proven (4 invocations, 0 errors, 4 end-to-end successes), but worker freshness is warning with `962905 ms` maximum AWS queue lag versus the `900000 ms` budget; worker artifact `12872467824` reports two `handler_failure` retries and `1048892 ms` max lag | **HOLD / warning** | Deploy the bounded retryable-kind diagnostic, identify the affected handler family, then obtain at least 3 complete scheduled samples with zero retryable/failed rows and maximum queue lag within 900000 ms |
+| Backup/PITR | Supabase Free Plan has no scheduled backups or PITR | **HOLD / owner decision** | Accepted documented limitation with named recovery owner/runbook, or plan upgrade plus tested restore rehearsal |
+| Privacy acceptance | Engineering export/deletion contracts pass; production acceptance is not recorded | **HOLD / owner decision** | Signed production privacy review and retention/deletion acceptance |
+| Credentialed lifecycle/UAT | Read-only auth, first-ingest, transport, and device-flow evidence is recorded; customer-owned endpoint/protocol UAT remains unexecuted | **HOLD / credentialed** | Customer-owned endpoint/protocol UAT artifact plus explicit acceptance of reconnect/replay, durable-subscription, and OAuth boundaries |
+| Release-owner acceptance | Source, CI, deployment, package publication, and local release gates are green | **HOLD / owner decision** | Explicit approval referencing this register and the current deployed source |
+
+The detailed historical table below is retained for audit continuity and is not
+the current decision surface.
+
+## Historical external-gate register (superseded by the 2026-10-29 refresh evaluation above)
 
 | Gate | Current evidence | State | Required closure evidence |
 | --- | --- | --- | --- |

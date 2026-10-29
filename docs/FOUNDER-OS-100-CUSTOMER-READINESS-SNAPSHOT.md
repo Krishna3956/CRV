@@ -22,6 +22,12 @@ Status: **Engineering green; release decision HOLD**
   passed production smoke, release identity, and runtime-safety checks; direct
   origin `/api/health` reports the exact SHA. This deployment does not change
   the worker-freshness warning.
+- Fresh health run `40816871097` (artifact `12873300062`) remains warning:
+  AWS cadence is proven, but worker freshness is `962905 ms` versus the
+  `900000 ms` budget and the latest recovery artifact records two bounded
+  `handler_failure` retries. The next source change adds a sanitized,
+  bounded retryable-kind histogram so the failing projection family can be
+  identified after deployment.
 
 - PR #690 delayed optional PostHog recorder/survey initialization behind a
   10-second idle window while preserving the queued, privacy-safe analytics
@@ -34,13 +40,14 @@ Status: **Engineering green; release decision HOLD**
   LCP 6.1 s, CLS 0, TBT 80 ms, and TTFB 80 ms. Blocking time improved, but
   LCP remains an explicit risk and is not claimed as a Core Web Vitals pass.
 
-- The current source and deployed runtime are `origin/main` at
-  `5a742ec2856fea22acfc51e11d830f759f4a1c48`. PR #688 deferred optional GA4
+- The current source is `origin/main` at
+  `6ef17eb98d6134e3182094b262b17d79b84a1a6b`; the deployed runtime is
+  `dd6e554463ca0658c60d435c1cb0022bf043dd10`. PR #688 deferred optional GA4
   loading from `afterInteractive` to `lazyOnload`; PR #690 then delayed
   optional PostHog initialization. The latest deployment is App Runner
   workflow `40809475613`.
 - The deployed App Runner runtime reports immutable release
-  `5a742ec2856fea22acfc51e11d830f759f4a1c48` from `/api/health`.
+  `dd6e554463ca0658c60d435c1cb0022bf043dd10` from `/api/health`.
 - The full local release gate passes **152 suites**; TypeScript, lint, build,
   and the production SEO audit pass. The build generates 209 routes.
 - The latest representative production Lighthouse sample measured performance
@@ -176,8 +183,8 @@ scheduled-worker SLO. No secret, workspace identifier, raw payload, or token is
 stored in this snapshot.
 
 The detailed ledger is authoritative for the remaining external gates. The
-current source is `main` at `HEAD` (`5a742ec2`); the deployed application is
-the verified runtime `5a742ec2` after the App Runner rollout. The latest
+current source is `main` at `HEAD` (`6ef17eb9`); the deployed application is
+the verified runtime `dd6e5544` after the App Runner rollout. The latest
 health report is the AWS-proven freshness result above, with historical manual
 diagnostics still visible. The alert evaluator remains
 disabled-first and is not claimed as enabled production delivery.
