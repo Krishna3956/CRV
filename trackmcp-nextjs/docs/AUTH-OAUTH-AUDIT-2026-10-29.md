@@ -34,6 +34,11 @@ settings cannot be read, email/password remains the available fallback.
   printed, stored, or added to the repository.
 - No SQL migration is required for basic Supabase social authentication. The
   provider client secret remains stored only in Supabase Auth configuration.
+- Google Auth Platform branding is configured in the dedicated `TrackMCP`
+  project: app name `TrackMCP`, support/developer email
+  `krishnaatmu@gmail.com`, TrackMCP logo, homepage, privacy policy, terms, and
+  the authorised `trackmcp.com` domain. The branding save was verified in the
+  Google Cloud console.
 
 ## Local verification
 
@@ -58,6 +63,15 @@ returned to `https://app.trackmcp.com/dashboard`, and loaded the `krishnaatmu`
 workspace with dashboard navigation and data. New-user onboarding and the
 device-flow `/device?user_code=...` return-path remain separate acceptance
 checks.
+
+The Google account chooser and consent page still show
+`qficcofvzidpvkltjkmo.supabase.co` as the OAuth host. This is not a stale
+application label: Supabase's hosted OAuth authorize flow supplies its project
+hostname as `app_domain` and callback host. Google Auth Platform branding does
+not replace that host in the chooser. Supabase documents a custom Auth domain as
+the supported remedy; the current project is on the Free plan and the
+dashboard reports Custom Domains as a Pro add-on. No paid-plan upgrade or
+billing mutation was made without explicit authorization.
 
 ## Release status
 
