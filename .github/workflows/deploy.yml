@@ -21,6 +21,7 @@ on:
       - "trackmcp-nextjs/tailwind.config.*"
       - "trackmcp-nextjs/Dockerfile"
       - "trackmcp-nextjs/entrypoint.*"
+      - "trackmcp-nextjs/proxy.ts"
       - "trackmcp-nextjs/middleware.*"
       - "trackmcp-nextjs/scripts/reconcile-translation-runtime.sh"
       - ".github/workflows/deploy.yml"
