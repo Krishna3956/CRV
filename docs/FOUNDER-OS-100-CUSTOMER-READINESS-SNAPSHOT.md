@@ -14,7 +14,13 @@ The follow-up docs reconciliation PR #736 merged as `2e321201`, with CI
 performed immutable release-identity, production-smoke, runtime-safety, and
 live translation-provider checks successfully.
 
-Updated: 2026-10-30 (Asia/Kolkata; source `2e321201`; deployed runtime `2e321201`; hosted evidence reconciled)
+The protocol-linkage hardening PR #741 merged as
+`0e6457378ad92e1c9a78b5e66acdfa5c5b274e76`. TrackMCP CI
+`40970812291` and App Runner deployment `40970812367` passed, including the
+release gate, immutable release identity, production smoke, runtime safety, and
+live translation-provider checks.
+
+Updated: 2026-10-30 (Asia/Kolkata; source `0e6457378ad92e1c9a78b5e66acdfa5c5b274e76`; deployed runtime `0e6457378ad92e1c9a78b5e66acdfa5c5b274e76`; hosted evidence reconciled)
 
 Status: **Engineering green; release decision HOLD**
 
@@ -43,7 +49,7 @@ replay, backup/PITR, privacy approval, and release-owner GO/NO-GO remain open.
 
 ## Current auth/localization checkpoint — 2026-10-30
 
-- The deployed App Runner runtime is `3116f2c900e764a341bb5df779aaf0b149268805` (workflow `40955384383`, rollout in progress when checked). `main` is now `8f9bbcd5f8c37c9e24dcd8abafe4e35c2e375658` after a documentation-only merge; the immutable health probe reports the deployed runtime SHA.
+- The deployed App Runner runtime is `0e6457378ad92e1c9a78b5e66acdfa5c5b274e76` (workflow `40970812367`). `main` is at the same immutable SHA, and the direct-origin `/api/health` probe reports that exact release identity.
 - Google and GitHub controls render immediately on the sign-in/sign-up surface and no longer wait for a provider-discovery request or a terms-checkbox interaction. The terms control defaults to checked for the email form; social providers still perform their provider-side consent flow.
 - The dashboard now retries the Supabase session briefly after the OAuth callback and workspace provisioning is idempotent across concurrent first-login callbacks. A fresh browser Google flow with `krishnaatmu@gmail.com` reached the authenticated dashboard in one attempt and loaded the `krishnaatmu` workspace.
 - Marketing-site translation remains a shared client runtime with App Runner-origin fallback. The initial page is held while the first translation batch settles, and a live scroll test preserved `zh-CN` after navigation through the page. Direct Cloudflare requests to `/api/translation` can still be rejected by edge policy; the user-facing runtime fallback is the supported path.

@@ -12,7 +12,7 @@ test("first-100 external-gate register stays an explicit HOLD record", () => {
   assert.match(register, /Current source verification: `main` at/);
   assert.match(register, /154 suites/);
   assert.match(register, /211-route/);
-  assert.match(register, /workflow completion is not claimed|confirmed the exact runtime SHA/i);
+  assert.match(register, /workflow completion is not claimed|confirmed\s+the\s+exact runtime SHA/i);
 });
 
 test("all operator and infrastructure gates remain named and open until evidence closes them", () => {
@@ -23,11 +23,11 @@ test("all operator and infrastructure gates remain named and open until evidence
 });
 
 test("the release record carries the same current source gate evidence", () => {
-  assert.match(releaseRecord, /current source is `main` at\s+`8f9bbcd5f8c37c9e24dcd8abafe4e35c2e375658`/i);
+  assert.match(releaseRecord, /current source is\s+`main` at the same immutable commit/i);
   assert.match(releaseRecord, /latest local release gate\s+passes\s+\*\*154\s+suites\*\*/i);
   assert.match(releaseRecord, /211 routes/);
   assert.match(releaseRecord, /transient App Runner\s+smoke retry boundary/);
-  assert.match(releaseRecord, /3116f2c900e764a341bb5df779aaf0b149268805/);
+  assert.match(releaseRecord, /0e6457378ad92e1c9a78b5e66acdfa5c5b274e76/);
 });
 
 test("scheduler log evidence permission artifact is least-privilege and explicit", () => {
