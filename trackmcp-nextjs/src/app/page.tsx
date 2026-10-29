@@ -29,7 +29,7 @@ import { ProductHuntBadge } from "@/components/ProductHuntBadge";
 import type { Metadata } from "next";
 import { pageMeta, serializeJsonLd } from "@/lib/seo";
 
-const TITLE = "TrackMCP: See how your MCP server is being used";
+const TITLE = "TrackMCP: Understand how your MCP server is being used";
 const DESCRIPTION =
   "TrackMCP shows who is using your MCP server, what they are trying to do, and where to improve. Analytics for MCP servers, one line to install.";
 
@@ -68,7 +68,7 @@ export default function Home() {
 
             <Reveal delay={0.08}>
               <h1 className="mx-auto max-w-[16ch] text-balance text-[36px] font-medium leading-[1.05] tracking-[-0.03em] text-ink sm:text-[48px]">
-                See how your MCP is being used
+                Understand how your MCP is being used
               </h1>
             </Reveal>
 
@@ -83,7 +83,7 @@ export default function Home() {
             <Reveal delay={0.2}>
               <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
                 <EarlyAccessButton size="lg" />
-                <div className="flex w-full min-w-0 max-w-full items-center justify-between gap-3 rounded-lg border border-line bg-paper px-4 py-[13px] font-mono text-[13.5px] sm:w-auto">
+                <div className="flex w-full min-w-0 max-w-[18rem] items-center justify-between gap-3 rounded-lg border border-line bg-paper px-4 py-[13px] font-mono text-[13.5px] sm:w-auto">
                   <span className="min-w-0 truncate text-body">
                     <Pn>$</Pn> npx <span className="text-brand">@trackmcp/cli init</span>
                   </span>
@@ -102,7 +102,7 @@ export default function Home() {
         </section>
 
         {/* ══════════ FIRST-FOLD DIVISION — stepped white bridge → tag stack → dashboard ══════════ */}
-        <section className="relative bg-mist pb-14 md:pb-20">
+        <section className="relative hidden bg-mist pb-14 md:block md:pb-20">
           {/* white bridge: a sharp trapezoid dips from the hero into the mist,
               holding the tag stack */}
           <div className="relative mx-auto hidden w-full max-w-[680px] px-6 md:block">
