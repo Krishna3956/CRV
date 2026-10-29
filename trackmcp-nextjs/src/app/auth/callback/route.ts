@@ -29,7 +29,9 @@ export async function GET(request: Request) {
     return redirectToSignIn("provider_error", next);
   }
   const destination = new URL(safeAuthNext(next), SITE_ORIGIN);
-  const successResponse = NextResponse.redirect(destination);
+  const successResponse = NextResponse.redirect(destination, {
+    headers: { "cache-control": "no-store" },
+  });
   const { error } = await (await getSupabaseServer(successResponse)).auth.exchangeCodeForSession(code);
   if (error) {
     const message = error.message.toLowerCase();

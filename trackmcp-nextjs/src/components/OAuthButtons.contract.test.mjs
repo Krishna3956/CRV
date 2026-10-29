@@ -17,11 +17,17 @@ test("sign-in and sign-up share the same social auth surface", () => {
   assert.match(signInPage, /<OAuthButtons/);
   assert.match(signInPage, /mode=\{mode\}/);
   assert.doesNotMatch(signInPage, /canContinue=/);
-  assert.match(signInPage, /useState\(true\)/);
   assert.match(component, /google: true, github: true/);
 });
 
 test("social auth is not blocked by a late terms checkbox render", () => {
   assert.doesNotMatch(component, /acceptedTerms|canContinue/);
   assert.match(signInPage, /<OAuthButtons\s+next=\{authNext\}\s+mode=\{mode\}/);
+  assert.doesNotMatch(signInPage, /type="checkbox"/);
+  assert.match(signInPage, /By continuing, you agree to the/);
+});
+
+test("social discovery failures keep the immediate optimistic actions", () => {
+  assert.match(component, /if \(!active \|\| !value\) return/);
+  assert.doesNotMatch(component, /setProviders\(\{ google: false, github: false \}\)/);
 });

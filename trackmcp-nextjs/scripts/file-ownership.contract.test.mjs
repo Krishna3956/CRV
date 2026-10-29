@@ -19,6 +19,7 @@ const owners = [
   ["supabase/", "schema"],
   ["trackmcp-nextjs/src/lib/telemetry/", "telemetry"],
   ["trackmcp-nextjs/src/lib/", "shared-lib"],
+  ["trackmcp-nextjs/src/proxy.ts", "shared-lib"],
   ["trackmcp-nextjs/src/app/api/v2/", "api"],
   ["trackmcp-nextjs/src/app/api/v1/", "api"],
   ["trackmcp-nextjs/src/components/dashboard/", "dashboard"],
