@@ -1,5 +1,29 @@
 # Founder OS 100 Customer Readiness Ledger
 
+## 2026-10-29 — refresh scheduler retry deployment and cadence gate
+
+- [x] Fresh AWS health run `40797136189` exposed a real reliability gap rather
+  than a false green: the bounded 20-minute evidence window contained 9
+  scheduler errors across 10 invocations, so the cadence gate remained open.
+- [x] Added bounded 100ms/300ms retries for transient refresh-worker HTTP
+  responses (`429`, `500`, `502`, `503`, `504`). The retry path preserves the
+  existing timeout, bearer authentication, four-batch scheduled fan-out,
+  bounded payload, and metadata-only logging. Persistent failures still fail
+  closed and emit the existing failure metric.
+- [x] Focused scheduler tests passed, the full **151-suite** release gate
+  passed, lint passed, and the production build generated **209 routes**.
+- [x] PR `#678` passed hosted web/JavaScript, Go, .NET, and preview checks and
+  was squash-merged as `d5f8fa3d8da4c94a599cbfb7c1fbdbc6cea3a987`. The normal
+  push deployment `40797867206` succeeded, and the explicit schedule-enable
+  deployment `40798073578` succeeded with the five-minute schedule enabled.
+- [x] App Runner now serves immutable release `d5f8fa3d8da4c94a599cbfb7c1fbdbc6cea3a987`; `/api/health` returned HTTP 200 with that SHA.
+- [ ] The first post-deploy health run `40798356335` is correctly **not a
+  pass**: it reports `insufficient_data` because the window still includes
+  pre-fix failures, with 2 scheduled successes, 5 historical errors, and only
+  1 scheduled worker sample. Re-run after three clean scheduled windows and
+  close this gate only when scheduler errors are zero, scheduled successes and
+  worker freshness meet their minimum samples, and queue lag remains bounded.
+
 ## 2026-10-29 — optional analytics deferred from the article render path
 
 - [x] PR `#674` (`codex/defer-posthog-analytics`) passed hosted web/JavaScript,
@@ -46,7 +70,7 @@
   so the overall production LCP risk remains open and is not being claimed as
   resolved by this patch.
 
-Last updated: 2026-10-29 (main `d89f5858`; deployed application `d89f5858` and App Runner deployment `40796109807` are healthy; analytics projection caching and the 38-check authenticated two-workspace smoke are live; customer-owned endpoint/protocol UAT, privacy acceptance, backup/PITR posture, migration postflight, production LCP optimization, and release-owner GO/NO-GO remain open)
+Last updated: 2026-10-29 (main `d5f8fa3d`; deployed application `d5f8fa3d` and App Runner health are healthy; refresh scheduler retries are deployed and the schedule is enabled, but the three-window cadence gate remains open; customer-owned endpoint/protocol UAT, privacy acceptance, backup/PITR posture, migration postflight, production LCP optimization, and release-owner GO/NO-GO remain open)
 
 ## 2026-10-29 — identity-version release deployed
 
