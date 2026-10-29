@@ -24,6 +24,7 @@ export type TranslationResult = {
 const MAX_TEXTS = 100;
 const MAX_TEXT_LENGTH = 4_000;
 const MAX_TOTAL_CHARS = 40_000;
+const PROVIDER_TIMEOUT_MS = 15_000;
 
 export class TranslationInputError extends Error {
   readonly code = "translation_input";
@@ -60,6 +61,7 @@ async function translateWithDeepL(texts: string[], endpoint = process.env.DEEPL_
       ...(glossaryId ? { glossary_id: glossaryId } : {}),
     }),
     cache: "no-store",
+    signal: AbortSignal.timeout(PROVIDER_TIMEOUT_MS),
   });
   if (!response.ok) throw new Error(`DeepL returned ${response.status}.`);
   const body = (await response.json()) as { translations?: { text?: unknown }[] };
@@ -78,6 +80,7 @@ async function translateWithGoogle(texts: string[]): Promise<TranslationResult> 
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ q: texts, source: "en", target: "zh-CN", format: "text" }),
     cache: "no-store",
+    signal: AbortSignal.timeout(PROVIDER_TIMEOUT_MS),
   });
   if (!response.ok) throw new Error(`Google Cloud Translation returned ${response.status}.`);
   const body = (await response.json()) as { data?: { translations?: { translatedText?: unknown }[] } };
@@ -131,4 +134,5 @@ export const translationLimits = {
   maxTexts: MAX_TEXTS,
   maxTextLength: MAX_TEXT_LENGTH,
   maxTotalChars: MAX_TOTAL_CHARS,
+  providerTimeoutMs: PROVIDER_TIMEOUT_MS,
 } as const;

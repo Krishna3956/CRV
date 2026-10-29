@@ -56,6 +56,8 @@ test("translation batches are bounded and use a configured provider", async () =
   const source = await readFile(resolve(root, "src/lib/translation.ts"), "utf8");
   assert.match(source, /const MAX_TEXTS = 100/);
   assert.match(source, /const MAX_TOTAL_CHARS = 40_000/);
+  assert.match(source, /const PROVIDER_TIMEOUT_MS = 15_000/);
+  assert.match(source, /AbortSignal\.timeout/);
   assert.match(source, /process\.env\.DEEPL_API_KEY/);
   assert.match(source, /process\.env\.GOOGLE_TRANSLATE_API_KEY/);
   assert.match(source, /DEEPL_GLOSSARY_ID/);
