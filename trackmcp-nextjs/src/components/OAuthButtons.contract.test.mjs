@@ -5,11 +5,8 @@ import test from "node:test";
 const component = await readFile(new URL("./OAuthButtons.tsx", import.meta.url), "utf8");
 const signInPage = await readFile(new URL("../app/signin/page.tsx", import.meta.url), "utf8");
 
-test("social auth offers branded Google identity-token and GitHub OAuth flows", () => {
+test("social auth offers the configured Google and GitHub OAuth flows", () => {
   assert.match(component, /type OAuthProvider = \"google\" \| \"github\"/);
-  assert.match(component, /signInWithIdToken/);
-  assert.match(component, /accounts\.google\.com\/gsi\/client/);
-  assert.match(component, /credentialStarted/);
   assert.match(component, /signInWithOAuth/);
   assert.match(component, /authCallbackUrl/);
   assert.match(component, /safeAuthNext/);
