@@ -1,6 +1,6 @@
 # Founder OS first-100 readiness snapshot
 
-Updated: 2026-10-29 (Asia/Kolkata; source and deployed runtime `5a742ec2`; hosted evidence reconciled)
+Updated: 2026-10-29 (Asia/Kolkata; source and deployed runtime `dd6e5544`; hosted evidence reconciled)
 
 Status: **Engineering green; release decision HOLD**
 
@@ -18,6 +18,10 @@ Status: **Engineering green; release decision HOLD**
 - The refresh worker now emits a capped, sanitized `retryable_error_codes`
   histogram in its bounded batch summary. This is diagnostic evidence only; it
   does not expose handler details or change the warning to green.
+- PR #695 (`dd6e5544`) is merged and deployed. App Runner workflow `40815048476`
+  passed production smoke, release identity, and runtime-safety checks; direct
+  origin `/api/health` reports the exact SHA. This deployment does not change
+  the worker-freshness warning.
 
 - PR #690 delayed optional PostHog recorder/survey initialization behind a
   10-second idle window while preserving the queued, privacy-safe analytics
