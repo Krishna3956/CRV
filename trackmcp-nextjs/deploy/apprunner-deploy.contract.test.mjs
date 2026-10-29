@@ -37,7 +37,9 @@ test("deployment docs distinguish one-time secret mapping from GitHub rollout", 
 
 test("translation provider wiring is opt-in and secret-backed", () => {
   assert.match(template, /TRANSLATION_PROVIDER=""/);
+  assert.match(template, /TRANSLATION_ENABLE_MACHINE_TRANSLATION="false"/);
   assert.match(script, /TRANSLATION_PROVIDER must be empty, deepl, or google/);
+  assert.match(script, /TRANSLATION_ENABLE_MACHINE_TRANSLATION must be true or false/);
   assert.match(script, /provider == "deepl"/);
   assert.match(script, /DEEPL_API_KEY.*secrets_arn/);
   assert.match(script, /provider == "google"/);

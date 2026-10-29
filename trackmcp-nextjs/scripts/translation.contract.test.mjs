@@ -36,6 +36,7 @@ test("translation batches are bounded and use a configured provider", async () =
   assert.match(source, /process\.env\.DEEPL_API_KEY/);
   assert.match(source, /process\.env\.GOOGLE_TRANSLATE_API_KEY/);
   assert.match(source, /DEEPL_GLOSSARY_ID/);
+  assert.match(source, /TRANSLATION_ENABLE_MACHINE_TRANSLATION/);
   assert.match(source, /TRANSLATION_PROVIDER/);
 });
 

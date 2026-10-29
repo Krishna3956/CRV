@@ -47,6 +47,10 @@ case "${TRANSLATION_PROVIDER:-}" in
   ""|deepl|google) ;;
   *) echo "ERROR: TRANSLATION_PROVIDER must be empty, deepl, or google." >&2; exit 1 ;;
 esac
+case "${TRANSLATION_ENABLE_MACHINE_TRANSLATION:-false}" in
+  true|false) ;;
+  *) echo "ERROR: TRANSLATION_ENABLE_MACHINE_TRANSLATION must be true or false." >&2; exit 1 ;;
+esac
 if [[ "${TRACKMCP_RATE_LIMIT_MODE:-}" == "supabase" || "${TRACKMCP_ENABLE_FACT_WRITES:-false}" == "true" ]] && [[ -z "${SECRETS_ARN:-}" ]]; then
   echo "ERROR: SECRETS_ARN is required when distributed rate limits or fact writes are enabled." >&2
   exit 1
@@ -144,6 +148,7 @@ keys = [
     "TRACKMCP_TRUST_PROXY",
     "BREVO_SUBMIT_FORM_URL",
     "TRANSLATION_PROVIDER",
+    "TRANSLATION_ENABLE_MACHINE_TRANSLATION",
     "DEEPL_API_URL",
     "DEEPL_GLOSSARY_ID",
 ]

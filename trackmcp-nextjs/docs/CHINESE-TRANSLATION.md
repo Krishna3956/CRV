@@ -12,10 +12,11 @@ The site now has a global language control in the root layout. It is available o
 
 ## Provider configuration
 
-Set exactly one provider in the deployment environment:
+Set exactly one provider in the deployment environment. The machine-translation flag must also be explicitly enabled; it is `false` by default:
 
 ```text
 TRANSLATION_PROVIDER=deepl
+TRANSLATION_ENABLE_MACHINE_TRANSLATION=false
 DEEPL_API_KEY=...
 ```
 
@@ -23,6 +24,7 @@ or:
 
 ```text
 TRANSLATION_PROVIDER=google
+TRANSLATION_ENABLE_MACHINE_TRANSLATION=false
 GOOGLE_TRANSLATE_API_KEY=...
 ```
 
@@ -35,6 +37,8 @@ DEEPL_GLOSSARY_ID=...
 ```
 
 The endpoint also applies a per-process request limit and the browser keeps a bounded translation cache so repeated labels and route transitions do not repeatedly spend provider quota.
+
+The flag is intentionally separate from the provider credential. A key can be present for staging or rotation without activating unreviewed output. Set it to `true` only after the owner explicitly accepts a machine-translation policy; it does not constitute a 100% accuracy guarantee.
 
 For the AWS App Runner deployment, `deploy/env.deploy.template` leaves the provider empty by default. Set `TRANSLATION_PROVIDER=deepl` or `TRANSLATION_PROVIDER=google` only after adding the matching `DEEPL_API_KEY` or `GOOGLE_TRANSLATE_API_KEY` JSON field to the existing AWS Secrets Manager bundle. The deploy script maps only the selected provider secret; it never puts a provider key in a Docker build argument or plaintext runtime variable.
 

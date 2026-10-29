@@ -89,6 +89,9 @@ async function translateWithGoogle(texts: string[]): Promise<TranslationResult> 
 
 export async function translate(request: TranslationRequest): Promise<TranslationResult> {
   assertRequest(request);
+  if (process.env.TRANSLATION_ENABLE_MACHINE_TRANSLATION !== "true") {
+    throw new TranslationConfigurationError("Machine translation is disabled until explicitly approved.");
+  }
   const provider = process.env.TRANSLATION_PROVIDER || (process.env.DEEPL_API_KEY ? "deepl" : "google");
   if (provider === "deepl") return translateWithDeepL(request.texts);
   if (provider === "google") return translateWithGoogle(request.texts);
