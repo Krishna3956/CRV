@@ -109,9 +109,47 @@ updated_config="$(printf '%s' "$source_config" | jq -c \
   ')"
 
 echo "Reconciling App Runner translation runtime: provider=$provider enabled=true."
-timeout 30s aws apprunner update-service \
-  --service-arn "$SERVICE_ARN" --region "$AWS_REGION" \
-  --source-configuration "$updated_config" >/dev/null
+
+# A prior image rollout can leave App Runner in OPERATION_IN_PROGRESS even
+# after the workflow that started it has been cancelled. Updating the service
+# during that window fails with InvalidStateException and prevents a valid
+# candidate from ever reaching the deployment step. Wait for the provider to
+# become mutable before making this configuration update; the workflow has a
+# separate bounded wait before StartDeployment as well.
+ready_deadline=$((SECONDS + 540))
+while (( SECONDS < ready_deadline )); do
+  service_status="$(timeout 30s aws apprunner describe-service \
+    --service-arn "$SERVICE_ARN" --region "$AWS_REGION" \
+    --query Service.Status --output text)"
+  echo "App Runner status before translation reconciliation: $service_status"
+  case "$service_status" in
+    RUNNING) break ;;
+    OPERATION_IN_PROGRESS|PAUSED) sleep 15 ;;
+    *)
+      echo "ERROR: App Runner cannot accept translation reconciliation in status $service_status." >&2
+      exit 1
+      ;;
+  esac
+done
+if (( SECONDS >= ready_deadline )); then
+  echo "ERROR: timed out waiting for App Runner to become RUNNING before translation reconciliation." >&2
+  exit 1
+fi
+
+update_deadline=$((SECONDS + 120))
+while (( SECONDS < update_deadline )); do
+  if timeout 30s aws apprunner update-service \
+    --service-arn "$SERVICE_ARN" --region "$AWS_REGION" \
+    --source-configuration "$updated_config" >/dev/null; then
+    break
+  fi
+  echo "App Runner rejected the translation update because another operation is active; retrying in 15s."
+  sleep 15
+done
+if (( SECONDS >= update_deadline )); then
+  echo "ERROR: timed out updating App Runner translation runtime." >&2
+  exit 1
+fi
 
 deadline=$((SECONDS + 540))
 while (( SECONDS < deadline )); do
