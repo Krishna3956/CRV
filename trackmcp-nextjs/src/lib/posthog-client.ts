@@ -65,14 +65,19 @@ export function schedulePostHogInit() {
   const initialize = () => {
     void loadPostHog();
   };
-  const idleWindow = window as Window & {
-    requestIdleCallback?: (callback: () => void, options?: { timeout: number }) => number;
+  const scheduleIdle = () => {
+    const idleWindow = window as Window & {
+      requestIdleCallback?: (callback: () => void, options?: { timeout: number }) => number;
+    };
+    if (idleWindow.requestIdleCallback) {
+      idleWindow.requestIdleCallback(initialize, { timeout: 10000 });
+    } else {
+      initialize();
+    }
   };
-  if (idleWindow.requestIdleCallback) {
-    idleWindow.requestIdleCallback(initialize, { timeout: 3000 });
-  } else {
-    window.setTimeout(initialize, 3000);
-  }
+  // Keep optional recorder/survey code out of the first interaction and LCP
+  // windows. The event queue preserves attribution until this bounded delay.
+  window.setTimeout(scheduleIdle, 10000);
 }
 
 export function capturePostHog(name: string, properties: Record<string, unknown>) {
