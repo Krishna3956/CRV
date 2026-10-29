@@ -9,10 +9,10 @@ promise that every product capability is complete.
 ## Verified and shipped
 
 - `origin/main` is `HEAD` (active pilot evidence baseline). The latest deployed
-  application runtime is immutable `e0629ea1d02331a1c9cd26eb82d61bfe0a93529f`
-  via App Runner workflow `40845415688`, with release gate, read-only
+  application runtime is immutable `5eb5799b74e88e7b9cb05a24b4fef1fe52cf94c4`
+  via App Runner workflow `40848157943`, with release gate, read-only
   production smoke, immutable identity, and runtime-safety checks passed.
-  Hosted TrackMCP CI `40845415274` passed across the web/JavaScript, Go, and
+  Hosted TrackMCP CI `40848157886` passed across the web/JavaScript, Go, and
   .NET lanes, and the live health endpoint reports the same release SHA. The
   latest local release gate passes **152 suites**, lint, the **209-route**
   production build, and `git diff --check`.
@@ -49,6 +49,10 @@ promise that every product capability is complete.
   successes) and a clean current scheduled sample (`179222 ms` lag, zero
   failed/retryable work). The warning remains authoritative because AWS's
   rolling worker metric still contains an older `10606459 ms` lag datapoint.
+- PR #712's shared Chinese translation runtime is deployed in the current
+  baseline. The live `/api/translation` smoke returned HTTP 200 with an AWS
+  Simplified Chinese response; provider policy and linguistic acceptance are
+  not represented as a completed pilot gate.
 
 ## Deliberately not claimed
 

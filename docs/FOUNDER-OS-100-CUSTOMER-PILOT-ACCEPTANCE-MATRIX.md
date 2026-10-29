@@ -3,12 +3,12 @@
 Status: **HOLD — no silent waivers**  
 Reconciled: 2026-10-29 (Asia/Kolkata)
 Current deployed baseline: application
-`e0629ea1d02331a1c9cd26eb82d61bfe0a93529f`, App Runner run `40845415688`
+`5eb5799b74e88e7b9cb05a24b4fef1fe52cf94c4`, App Runner run `40848157943`
 (successful rollout and post-deploy verification). The current repository source is `main` at
-`HEAD`; hosted CI `40845415274` passed
+`HEAD`; hosted CI `40848157886` passed
 across web/JavaScript, Go, and .NET, and the full release gate passed 152
 suites. The App Runner deployment's read-only production smoke and immutable
-runtime identity checks passed against the deployed runtime SHA `e0629ea1`.
+runtime identity checks passed against the deployed runtime SHA `5eb5799b`.
 The latest refresh-health artifact `12885673154` from evaluation `40848128417`
 remains a warning because AWS's rolling worker metric still includes an older
 `10606459 ms` lag datapoint; the current scheduled sample is within budget and
