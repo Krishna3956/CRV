@@ -1,10 +1,16 @@
 # Founder OS first-100 readiness snapshot
 
-Updated: 2026-10-29 (Asia/Kolkata; source `HEAD`; deployed runtime `1ecc4d56`; hosted evidence reconciled)
+Updated: 2026-10-29 (Asia/Kolkata; source `32ff5dfe`; deployed runtime `32ff5dfe`; hosted evidence reconciled)
 
 Status: **Engineering green; release decision HOLD**
 
 ## Latest auth/localization checkpoint — 2026-10-29
+
+- The fail-closed social-provider implementation is merged and live as
+  `32ff5dfe` (PR #724). Its App Runner workflow was cancelled during the final
+  wait, so the workflow's post-rollout completion is not claimed; an uncached
+  health probe confirms the exact runtime. Supabase still reports both social
+  providers disabled, and no Google/GitHub availability is claimed.
 
 - PR #723 (`1ecc4d56`) is merged and deployed. It makes English the
   deterministic default and adds an explicit, dismissible Simplified Chinese
@@ -14,11 +20,40 @@ Status: **Engineering green; release decision HOLD**
   canonical application host. The callback preserves bounded device paths and
   rejects external redirects.
 - The connected Supabase Auth settings report email enabled but Google and
-  GitHub disabled. PR #724 adds a fail-closed provider gate and is intentionally
-  open/unmerged. Google/GitHub are not claimed as live until provider setup and
-  real new-user, existing-user, and device-flow UAT pass.
+  GitHub disabled. Google/GitHub are not claimed as live until provider setup
+  and real new-user, existing-user, and device-flow UAT pass.
 
-## Current checkpoint — 2026-10-29
+- Fresh health evaluation `40891096616` (artifact `12905900486`) is **healthy**:
+  three current evaluation samples, four AWS scheduler invocations with zero
+  errors, four scheduled end-to-end successes, four complete worker samples,
+  zero worker failures/retries/parse failures, and maximum worker lag
+  `867340 ms` within the `900000 ms` budget. Three serialized recovery runs
+  immediately before the evaluation were also clean (`12`, `0`, and `4`
+  processed). This closes the current bounded worker-freshness gate, subject to
+  continued scheduled monitoring.
+
+- Live authenticated smoke `40893382834` (artifact `12906111577`) passed all
+  `37/37` read-only checks against `32ff5dfe`: both workspace scopes, all v2
+  read models, legacy projections, privacy-safe response fields, API-key
+  Action Queue denial, and revoked-key denial. No mutation or first-ingest
+  claim is inferred from this evidence; key lifecycle and customer-owned UAT
+  remain open.
+
+- Direct-origin first-ingest smoke `40894964464` (artifact `12907131051`)
+  passed on runtime `32ff5dfe`: one bounded metadata-only event returned HTTP
+  200, the accepted-ingest milestone became visible, and analytics read-back
+  succeeded. The public Cloudflare write attempt timed out before any accepted
+  response and is not counted as evidence; the direct App Runner origin is the
+  verified ingestion path. Key lifecycle mutation and customer-owned protocol
+  UAT remain open.
+
+- Edge-shaped first-ingest smoke `40896249223` (artifact `12906059482`) now
+  passes against `https://app.trackmcp.com` with the SDK-compatible user-agent:
+  HTTP 200, accepted telemetry, and analytics read-back. This is a harness
+  compatibility proof, not a claim that every arbitrary HTTP client bypasses
+  the managed edge policy.
+
+## Historical checkpoint — 2026-10-29 (superseded by runtime `32ff5dfe` above)
 
 - The latest live baseline is immutable runtime
   `b98c6f41cabdb12f976291c4160ac581423d3461` via App Runner workflow
@@ -54,16 +89,9 @@ Status: **Engineering green; release decision HOLD**
   attribution coverage is 11/11; production write persistence remains
   intentionally unclaimed because the smoke did not create a submission.
 
-- Fresh health evaluation `40848128417` (artifact `12885673154`) has no
-  current worker-failure reason: AWS scheduler cadence remains proven with 4
-  invocations, 0 errors, and 4 scheduled successes, and the current scheduled
-  sample is within budget at `179222 ms` queue lag with 0 failed/retryable
-  work.
-- The health state is still **warning**, not healthy, because AWS's rolling
-  worker metric retains an older `10606459 ms` maximum queue-lag datapoint;
-  `worker_freshness_gate` is therefore still pending. The gate stays open
-  until the bounded window rolls forward and AWS reflects at least three
-  current in-budget samples.
+- The older warning artifact `12885673154` is superseded by the fresh healthy
+  evaluation `12905900486` recorded above. Do not use that historical warning
+  to reopen the worker gate unless a newer bounded evaluation regresses.
 
 - The backup/PITR control is now documented in
   `FOUNDER-OS-BACKUP-RECOVERY-RUNBOOK.md`, including explicit RPO/RTO,
