@@ -1,10 +1,19 @@
 # Founder OS: 100-customer pilot status
 
-Last verified: 2026-10-29 (Asia/Kolkata)
+Last verified: 2026-10-30 (Asia/Kolkata)
 
 This is the concise release-owner handoff. It records evidence that exists,
 what is intentionally not claimed, and the next work queue. It is not a
 promise that every product capability is complete.
+
+## Current runtime checkpoint — 2026-10-30
+
+- Source `main` and the live App Runner runtime are `a0751dc232b0d0f9e52ae5dcb79d5044d7de2b83`; deployment workflow `40949005203` completed successfully and the uncached health probe reports the same SHA.
+- One-pass Google OAuth was browser-verified with `krishnaatmu@gmail.com`: the flow reached the authenticated dashboard and loaded the `krishnaatmu` workspace without the prior second-login workaround.
+- Social buttons render immediately, terms are not a prerequisite for social OAuth, the dashboard retries the callback session, and concurrent workspace creation is idempotent. These behaviors are covered by focused contract tests.
+- Marketing translation was browser-verified on `trackmcp.com` with `zh-CN` preserved after scrolling. The runtime uses the trusted App Runner origin fallback when the public edge rejects direct translation API requests.
+
+The release remains **HOLD** for the same external gates below: recovery ownership, privacy acceptance, credentialed key/customer-endpoint UAT, remaining protocol limitations, and release-owner go/no-go.
 
 ## Current evidence checkpoint — 2026-10-29
 

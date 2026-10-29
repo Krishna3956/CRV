@@ -1,5 +1,15 @@
 # Founder OS 100 Customer Readiness Ledger
 
+## 2026-10-30 — first-login auth and marketing translation stabilization
+
+- [x] `a0751dc232b0d0f9e52ae5dcb79d5044d7de2b83` is the current `main` and deployed App Runner release (workflow `40949005203` succeeded; health reports the same SHA).
+- [x] Social OAuth controls render immediately, and social sign-in no longer waits on the terms checkbox. The email form keeps the terms control checked by default while retaining an explicit opt-out state for credential signup.
+- [x] The dashboard retries the Supabase session after the callback, preventing the transient empty “Your workspace is waiting” state that previously forced a second Google attempt.
+- [x] Workspace provisioning handles concurrent OAuth callbacks idempotently: unique-slug races load the existing workspace and membership writes are conflict-safe.
+- [x] The shared marketing translation runtime now blocks the initial half-translated paint and keeps the selected locale through client-side mutations and scrolling. Live browser verification preserved Simplified Chinese after a full-page scroll.
+- [x] Focused regression contracts cover OAuth rendering, callback-session retry, workspace provisioning, and translation hydration; auth, workspace, translation, and dashboard suites pass.
+- [ ] Supabase custom auth domain is still required if the provider authorization screen must stop displaying the Supabase callback hostname; this is an external DNS/provider configuration gate, not a frontend claim.
+
 ## 2026-10-29 — TrackMCP Google OAuth provider configured in dedicated project
 
 - [x] Created the dedicated Google Cloud project display name `TrackMCP`,

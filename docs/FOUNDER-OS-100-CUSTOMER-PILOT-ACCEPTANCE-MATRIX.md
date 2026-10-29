@@ -1,11 +1,11 @@
 # Founder OS first-100-customer acceptance matrix
 
 Status: **HOLD — no silent waivers**  
-Reconciled: 2026-10-29 (Asia/Kolkata)
-Current deployed baseline: application runtime `32ff5dfe` (the App Runner
-rollout `40888363134` ended during its final wait, so workflow completion is not
-claimed; an uncached live health probe confirmed the exact runtime SHA). The
-current repository source is `main` at `08ef4c00781a357d6ec9a8273902155f9344974b`.
+Reconciled: 2026-10-30 (Asia/Kolkata)
+Current deployed baseline: application runtime `a0751dc2` (App Runner workflow
+`40949005203` completed successfully; an uncached live health probe confirmed
+the exact runtime SHA). The current repository source is `main` at
+`a0751dc232b0d0f9e52ae5dcb79d5044d7de2b83`.
 The full local release gate passes 154 suites and the production build generates
 211 routes. Read-only authenticated smoke `40893382834` passed 37/37 checks;
 direct-origin first-ingest `40894964464` and SDK-shaped public-edge smoke

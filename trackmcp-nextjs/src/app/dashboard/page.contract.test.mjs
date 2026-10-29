@@ -17,6 +17,13 @@ test("dashboard hydrates a workspace from a successful create response", () => {
   assert.match(source, /const activeWorkspace = account\?\.workspace \|\| createdWorkspace \|\| null/);
 });
 
+test("dashboard retries the callback session before showing the sign-in empty state", () => {
+  assert.match(source, /let user = \(await auth\.getUser\(\)\)\.data\.user/);
+  assert.match(source, /for \(let attempt = 0; !user && attempt < 3; attempt \+= 1\)/);
+  assert.match(source, /setTimeout\(resolve, 250 \* \(attempt \+ 1\)\)/);
+  assert.match(source, /if \(!user\) \{ setLoading\(false\); return; \}/);
+});
+
 test("key revocation refreshes the selected workspace", () => {
   const revokeStart = source.indexOf("const revokeKey = async");
   const rotateStart = source.indexOf("const rotateKey = async", revokeStart);
