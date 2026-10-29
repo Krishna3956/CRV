@@ -11,7 +11,9 @@ commit and the operator accepts the listed limitations.
 The current live runtime is immutable commit
 `a0751dc232b0d0f9e52ae5dcb79d5044d7de2b83`. App Runner workflow `40949005203`
 completed successfully and an uncached `/api/health` probe confirmed the exact
-runtime SHA. The current source is `main` at the same commit.
+runtime SHA. The current source is `main` at
+`3116f2c900e764a341bb5df779aaf0b149268805`; the documentation/test-only merge
+did not trigger a runtime deployment.
 
 The full local release gate passes 154 suites and the production build generates
 211 routes. Authenticated read-only smoke `40893382834` passed 37/37 checks;

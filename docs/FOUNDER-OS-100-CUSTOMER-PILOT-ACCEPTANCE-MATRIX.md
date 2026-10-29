@@ -5,6 +5,7 @@ Reconciled: 2026-10-30 (Asia/Kolkata)
 Current deployed baseline: application runtime `a0751dc2` (App Runner workflow
 `40949005203` completed successfully; an uncached live health probe confirmed
 the exact runtime SHA). The current repository source is `main` at
+`3116f2c900e764a341bb5df779aaf0b149268805`; the deployed runtime remains
 `a0751dc232b0d0f9e52ae5dcb79d5044d7de2b83`.
 The full local release gate passes 154 suites and the production build generates
 211 routes. Read-only authenticated smoke `40893382834` passed 37/37 checks;
