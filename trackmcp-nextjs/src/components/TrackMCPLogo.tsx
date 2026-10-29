@@ -64,7 +64,11 @@ export function TrackMCPLogo({
 
   if (!asLink) {
     return (
-      <span className={base} aria-hidden={size === "watermark" ? true : undefined}>
+      <span
+        className={base}
+        data-no-translate
+        aria-hidden={size === "watermark" ? true : undefined}
+      >
         {inner}
       </span>
     );
@@ -74,6 +78,7 @@ export function TrackMCPLogo({
     <a
       href={href}
       aria-label="TrackMCP home"
+      data-no-translate
       className={`${base} trackmcp-logo cursor-pointer border-0 no-underline outline-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2`}
     >
       {inner}

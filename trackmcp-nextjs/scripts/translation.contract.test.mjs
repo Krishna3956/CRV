@@ -120,6 +120,8 @@ test("runtime excludes code and user-editable content", async () => {
   assert.match(source, /characterData: true/);
   assert.match(source, /translationGeneration/);
   assert.match(source, /translationCache/);
+  const logo = await readFile(resolve(root, "src/components/TrackMCPLogo.tsx"), "utf8");
+  assert.match(logo, /data-no-translate/);
 });
 
 test("the real App Runner rollout reconciles translation configuration before deployment", async () => {
