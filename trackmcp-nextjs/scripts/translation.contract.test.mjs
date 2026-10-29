@@ -155,6 +155,17 @@ test("runtime excludes code and user-editable content", async () => {
   assert.match(source, /OPAQUE_TECHNICAL_LABEL/);
 });
 
+test("translation hydration prevents a half-translated first paint", async () => {
+  const runtime = await readFile(resolve(root, "src/components/TranslationRuntime.tsx"), "utf8");
+  const css = await readFile(resolve(root, "src/app/globals.css"), "utf8");
+  assert.match(runtime, /useLayoutEffect/);
+  assert.match(runtime, /data-trackmcp-translation-pending/);
+  assert.match(runtime, /setAttribute\("data-trackmcp-translation-pending", "true"\)/);
+  assert.match(runtime, /removeAttribute\("data-trackmcp-translation-pending"\)/);
+  assert.match(css, /html\[data-trackmcp-translation-pending="true"\] body/);
+  assert.match(css, /visibility:\s*hidden/);
+});
+
 test("the real App Runner rollout reconciles translation configuration before deployment", async () => {
   const script = await readFile(resolve(root, "scripts/reconcile-translation-runtime.sh"), "utf8");
   const workflow = await readFile(resolve(root, "../.github/workflows/deploy.yml"), "utf8");

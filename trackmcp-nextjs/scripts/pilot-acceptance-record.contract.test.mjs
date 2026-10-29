@@ -24,8 +24,8 @@ function openQueueIds(source) {
 
 test("pilot release record points at the verified deployed baseline", () => {
   const current = section(record, "## Current deployed baseline", "## Historical deployed baseline");
-  assert.match(current, /32ff5dfe/);
-  assert.match(current, /40888363134/);
+  assert.match(current, /a0751dc232b0d0f9e52ae5dcb79d5044d7de2b83/);
+  assert.match(current, /40949005203/);
   assert.match(current, /154 suites/);
   assert.match(current, /211 routes/);
   assert.match(current, /40891096616/);
@@ -47,8 +47,8 @@ test("release record preserves non-source acceptance decisions until an owner ac
 });
 
 test("external-gate register names accountable parties and closure evidence", () => {
-  assert.match(externalGates, /32ff5dfe/);
-  assert.match(externalGates, /40888363134/);
+  assert.match(externalGates, /a0751dc232b0d0f9e52ae5dcb79d5044d7de2b83/);
+  assert.match(externalGates, /40949005203/);
   assert.match(externalGates, /154 suites passed/);
   assert.match(externalGates, /Current source verification: `main` at/);
   assert.match(externalGates, /40397368253/);
@@ -64,8 +64,8 @@ test("external-gate register names accountable parties and closure evidence", ()
 });
 
 test("acceptance matrix separates current source from deployed runtime", () => {
-  assert.match(acceptanceMatrix, /32ff5dfe/);
-  assert.match(acceptanceMatrix, /current repository source is `main` at\s+`08ef4c00781a357d6ec9a8273902155f9344974b`/);
+  assert.match(acceptanceMatrix, /a0751dc232b0d0f9e52ae5dcb79d5044d7de2b83/);
+  assert.match(acceptanceMatrix, /current repository source is `main` at\s+`a0751dc232b0d0f9e52ae5dcb79d5044d7de2b83`/);
   assert.match(acceptanceMatrix, /40893382834/);
   assert.match(acceptanceMatrix, /40891096616/);
   assert.match(acceptanceMatrix, /full local release gate passes 154\s+suites/);
@@ -73,7 +73,7 @@ test("acceptance matrix separates current source from deployed runtime", () => {
 });
 
 test("root pilot status stays aligned with the current evidence baseline", () => {
-  assert.match(pilotStatus, /Last verified: 2026-10-29/);
+  assert.match(pilotStatus, /Last verified: 2026-10-30/);
   assert.match(pilotStatus, /origin\/main` is `HEAD`/);
   assert.match(pilotStatus, /154 suites/);
   assert.match(pilotStatus, /211 routes/);

@@ -1,7 +1,7 @@
 # First-100-customer external-gate register
 
 Status: **HOLD**  
-Updated: 2026-10-29 (Asia/Calcutta)
+Updated: 2026-10-30 (Asia/Calcutta)
 
 This register separates evidence that engineering can produce from decisions
 that require the release owner or an infrastructure-provider control plane. It
@@ -11,11 +11,11 @@ is intentionally not a GO approval and must not be treated as one.
 
 - `main`: current default branch. Immutable deployed SHAs belong in the
   release record; PR checks remain attached to their exact review commits.
-- Current deployed application runtime: `32ff5dfe`. App Runner workflow
-  `40888363134` ended during its final wait, so workflow completion is not
-  claimed; an uncached live health probe confirmed the exact runtime SHA.
+- Current deployed application runtime: `a0751dc2`. App Runner workflow
+  `40949005203` completed successfully, and an uncached live health probe
+  confirmed the exact runtime SHA.
 - Current source verification: `main` at
-  `08ef4c00781a357d6ec9a8273902155f9344974b`. The full local release gate
+  `a0751dc232b0d0f9e52ae5dcb79d5044d7de2b83`. The full local release gate
   passes 154 suites and the production build generates 211 routes. Read-only
   auth smoke `40893382834`, direct first-ingest `40894964464`, and
   SDK-shaped public-edge first-ingest `40896249223` are recorded in the

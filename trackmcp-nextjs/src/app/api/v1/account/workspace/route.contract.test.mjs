@@ -25,6 +25,13 @@ test("workspace creation responses containing connection keys are never cacheabl
   assert.match(source, /api_key: generated\.key[\s\S]*?cache-control.*no-store/);
 });
 
+test("workspace provisioning is idempotent across concurrent OAuth callbacks", () => {
+  assert.match(source, /created\.error\?\.code !== "23505"/);
+  assert.match(source, /eq\("slug", slug\)\.maybeSingle\(\)/);
+  assert.match(source, /upsert\(\{ workspace_id: workspaceId, user_id: user\.id, role: "owner" \}/);
+  assert.match(source, /if \(created\.data\) await admin\.from\("trackmcp_workspaces"\)\.delete\(\)/);
+});
+
 test("workspace account reads are not cacheable", () => {
   assert.match(source, /keys: \[\][\s\S]*?cache-control.*no-store/);
   assert.match(source, /keys: keys \|\| \[\][\s\S]*?cache-control.*no-store/);

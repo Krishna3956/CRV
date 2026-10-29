@@ -6,14 +6,12 @@ This record is intentionally evidence-first. It must not be changed to
 `GO` until the open gates below are independently verified on the release
 commit and the operator accepts the listed limitations.
 
-## Current deployed baseline — 2026-10-29
+## Current deployed baseline — 2026-10-30
 
-The current live runtime is immutable commit `32ff5dfe`. App Runner rollout
-`40888363134` ended during its final wait, so workflow completion is not claimed;
-an uncached `/api/health` probe confirmed the exact runtime SHA. The current
-source is `main` at `08ef4c00781a357d6ec9a8273902155f9344974b`; the merges after
-`32ff5dfe` are documentation/test-harness only and do not require a runtime
-deployment.
+The current live runtime is immutable commit
+`a0751dc232b0d0f9e52ae5dcb79d5044d7de2b83`. App Runner workflow `40949005203`
+completed successfully and an uncached `/api/health` probe confirmed the exact
+runtime SHA. The current source is `main` at the same commit.
 
 The full local release gate passes 154 suites and the production build generates
 211 routes. Authenticated read-only smoke `40893382834` passed 37/37 checks;
