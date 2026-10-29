@@ -117,9 +117,11 @@ export function OAuthButtons({
         await new Promise<void>((resolve, reject) => {
           let settled = false;
           let credentialStarted = false;
+          const promptTimeout: { current?: ReturnType<typeof setTimeout> } = {};
           const finish = (error?: Error) => {
             if (settled) return;
             settled = true;
+            if (promptTimeout.current) clearTimeout(promptTimeout.current);
             if (error) reject(error);
             else resolve();
           };
@@ -143,13 +145,15 @@ export function OAuthButtons({
             },
           });
           googleId.prompt((notification) => {
-            // GIS can report a skipped prompt while its account chooser is
-            // handing the credential back. Never turn that post-selection
-            // lifecycle event into a false sign-in failure.
-            if (!credentialStarted && (notification.isNotDisplayed?.() || notification.isSkippedMoment?.())) {
-              finish(new Error("Google sign-in was not displayed. Try again or use email sign-in."));
-            }
+            // GIS may report a skipped moment while its account chooser is
+            // handing the credential back. The bounded timer below handles a
+            // genuinely missing prompt without turning that lifecycle event
+            // into a false sign-in failure.
+            void notification;
           });
+          promptTimeout.current = setTimeout(() => {
+            if (!credentialStarted) finish(new Error("Google sign-in was not displayed. Try again or use email sign-in."));
+          }, 15_000);
         });
         return;
       } catch {
