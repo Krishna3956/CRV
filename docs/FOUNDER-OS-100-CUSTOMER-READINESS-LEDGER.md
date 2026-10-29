@@ -12,8 +12,9 @@
   TrackMCP privacy/terms links.
 - [x] PR #744 merged as `c7203a24e417564b044d2846a8aaa7e9481a1550`; hosted CI
   `40974088697` passed and direct/public health probes report that SHA.
-- [ ] App Runner workflow `40974088720` remains in its provider-side wait at
-  this checkpoint, so terminal deploy-workflow evidence is still pending.
+- [x] App Runner workflow `40974088720` completed successfully, including the
+  provider rollout, read-only production smoke, immutable runtime identity,
+  runtime-safety, and live translation-provider checks.
 - [ ] This is an application-boundary hardening milestone, not proof of
   new-user onboarding, device-flow return-path, or release-owner acceptance.
 
