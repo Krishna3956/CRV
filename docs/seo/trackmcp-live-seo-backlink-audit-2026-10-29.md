@@ -97,6 +97,19 @@ Representative Lighthouse runs against `/blog/best-mcp-observability-platforms` 
 
 The article body and headline are present in server-rendered HTML, images have alt text, and layout shift is negligible. LCP is a remaining release risk, largely associated with the current font/JavaScript payload and render delay; it should be a separate performance milestone rather than being hidden by an SEO score of 1.0.
 
+### Post-audit production follow-up
+
+The performance risk was then addressed in two deployed, independently tested
+steps: the optional Fontshare stylesheet was moved out of the server render,
+and the optional PostHog SDK plus its pageview/identity events were deferred
+behind an idle dynamic loader. App Runner deployment `40796109807` completed
+successfully and the live health endpoint reports release
+`d89f58587bca4e81e7efa32f277c196e982d87b8`. A fresh Lighthouse run of the same
+mobile article after the queue change measured performance **0.79**, SEO
+**1.00**, LCP **4.36 s**, CLS **0.0025**, TBT **266 ms**, and TTFB **695 ms**.
+This is an improvement, not proof that every article meets a Core Web Vitals
+target: the audit still leaves third-party analytics and origin latency open.
+
 ## Fixed during this work / existing fixes verified
 
 - Verified the previously shipped stale-link replacement in `trackmcp-nextjs/src/app/blog/deep-research.ts` and `trackmcp-nextjs/src/app/blog/next-batch.ts` (`12c22d08`).
