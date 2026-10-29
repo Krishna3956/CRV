@@ -76,6 +76,24 @@ test("batch summaries expose only bounded retryable error-code counts", async ()
   assert.equal(JSON.stringify(result.retryable_error_codes).includes("temporary"), false);
 });
 
+test("batch summaries preserve only allowlisted database error categories", async () => {
+  const store = storeFor(job("fact_projection"));
+  const result = await runRefreshJobBatch({
+    store,
+    owner: "worker-diagnostics",
+    now: () => now,
+    handlers: {
+      fact_projection: async () => ({
+        outcome: "retryable" as const,
+        error_code: "schema_missing",
+        detail: "code=PGRST205: relation public.trackmcp_task_transitions does not exist",
+      }),
+    },
+  }, { maxJobs: 1 });
+  assert.deepEqual(result.retryable_error_codes, { schema_missing: 1 });
+  assert.equal(JSON.stringify(result).includes("trackmcp_task_transitions"), false);
+});
+
 test("worker does not imply a scheduler", () => {
   assert.equal(REFRESH_WORKER_POLICY.schedulerEnabledByDefault, false);
   assert.equal(REFRESH_WORKER_POLICY.maxJobsPerInvocation, 100);

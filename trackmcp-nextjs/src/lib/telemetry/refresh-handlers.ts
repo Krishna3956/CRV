@@ -70,7 +70,24 @@ function retryable(error: unknown) {
           .filter((value): value is string => Boolean(value))
           .join("; ") || "refresh handler failed"
         : "refresh handler failed";
-  return { outcome: "retryable" as const, error_code: "handler_failure", detail: message.slice(0, 200) };
+  const structured = error && typeof error === "object" ? error as Record<string, unknown> : {};
+  const databaseCode = typeof structured.code === "string" ? structured.code.toUpperCase() : "";
+  const lowerMessage = message.toLowerCase();
+  // Keep worker diagnostics useful without persisting provider SQL, table
+  // names, URLs, or credentials. These categories are intentionally coarse
+  // and bounded; the full error remains redacted by the worker boundary.
+  const errorCode = databaseCode === "PGRST205" || databaseCode === "42P01" || /relation .* does not exist|could not find the table/i.test(lowerMessage)
+    ? "schema_missing"
+    : databaseCode === "23514" || /violates .*check constraint/i.test(lowerMessage)
+      ? "constraint_violation"
+      : databaseCode === "42P10" || /no unique or exclusion constraint matching/i.test(lowerMessage)
+        ? "conflict_target_missing"
+        : databaseCode === "23505" || /duplicate key value violates unique constraint/i.test(lowerMessage)
+          ? "unique_conflict"
+          : /timeout|timed out/i.test(lowerMessage)
+            ? "handler_timeout"
+            : "handler_failure";
+  return { outcome: "retryable" as const, error_code: errorCode, detail: message.slice(0, 200) };
 }
 
 function uuid(value: unknown): value is string {
