@@ -89,9 +89,11 @@ export default function RootLayout({ children }: RootLayoutProps) {
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeJsonLd(SITE_JSON_LD) }} />
         {children}
 
-        {/* Google Analytics 4 */}
-        <Script src={`https://www.googletagmanager.com/gtag/js?id=${GA_ID}`} strategy="afterInteractive" />
-        <Script id="ga4" strategy="afterInteractive">
+        {/* Google Analytics 4 is optional marketing telemetry. Loading it after
+            the page's idle-on-load boundary keeps article content and the
+            initial interaction path independent of the third-party script. */}
+        <Script src={`https://www.googletagmanager.com/gtag/js?id=${GA_ID}`} strategy="lazyOnload" />
+        <Script id="ga4" strategy="lazyOnload">
           {`
             window.dataLayer = window.dataLayer || [];
             function gtag(){dataLayer.push(arguments);}
