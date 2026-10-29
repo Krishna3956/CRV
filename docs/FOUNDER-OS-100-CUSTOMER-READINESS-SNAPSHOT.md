@@ -6,6 +6,13 @@ Status: **Engineering green; release decision HOLD**
 
 ## Current checkpoint — 2026-10-29
 
+- The backup/PITR control is now documented in
+  `FOUNDER-OS-BACKUP-RECOVERY-RUNBOOK.md`, including explicit RPO/RTO,
+  logical-export boundaries, disposable restore rehearsal, and rollback
+  order. This is engineering-ready documentation only: the Free-plan
+  provider evidence or an explicitly accepted owner limitation and completed
+  rehearsal are still required before this gate can close.
+
 - Three additional post-fix worker runs are clean: `40833999710` (4/4
   succeeded, 712385 ms lag), `40834033933` (no backlog), and `40834069509`
   (4/4 succeeded, 755497 ms lag). No retryable or failed job has appeared
