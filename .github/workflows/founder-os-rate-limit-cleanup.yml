@@ -25,13 +25,21 @@ jobs:
           aws-region: ap-south-1
       - name: Remove expired rate-limit buckets
         env:
-          WORKER_SECRET: ${{ secrets.TRACKMCP_REFRESH_WORKER_SECRET }}
+          WORKER_SECRET_ARN: arn:aws:secretsmanager:ap-south-1:872575360367:secret:trackmcp/refresh/worker-uzoExO
         run: |
           set -euo pipefail
-          if [ -z "$WORKER_SECRET" ]; then
-            echo "::error::TRACKMCP_REFRESH_WORKER_SECRET is not configured; cleanup did not run."
+          if [ -z "$WORKER_SECRET_ARN" ]; then
+            echo "::error::Dedicated refresh worker secret ARN is not configured; cleanup did not run."
             exit 1
           fi
+          WORKER_SECRET=$(aws secretsmanager get-secret-value \
+            --secret-id "$WORKER_SECRET_ARN" \
+            --query 'SecretString' --output text)
+          if [ -z "$WORKER_SECRET" ] || [ "$WORKER_SECRET" = "None" ]; then
+            echo "::error::Dedicated refresh worker secret is empty; cleanup did not run."
+            exit 1
+          fi
+          echo "::add-mask::$WORKER_SECRET"
           SERVICE_HOST=$(aws apprunner describe-service \
             --service-arn arn:aws:apprunner:ap-south-1:872575360367:service/trackmcp-web/5d38155bd23141cabb4546b29a4075c7 \
             --region ap-south-1 \

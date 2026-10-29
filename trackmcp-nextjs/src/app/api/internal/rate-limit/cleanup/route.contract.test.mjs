@@ -16,7 +16,7 @@ test("rate-limit cleanup is secret-authenticated and bounded", () => {
   assert.doesNotMatch(source, /console\.log\(.*secret|api_key|payload/);
 });
 
-test("scheduled cleanup is serialized, retried, and fails when secrets are absent", () => {
+test("scheduled cleanup is serialized, retried, and reads the dedicated AWS secret", () => {
   assert.match(workflow, /id-token: write/);
   assert.match(workflow, /configure-aws-credentials@v4/);
   assert.match(workflow, /aws apprunner describe-service/);
@@ -26,5 +26,8 @@ test("scheduled cleanup is serialized, retried, and fails when secrets are absen
   assert.match(workflow, /cancel-in-progress: false/);
   assert.match(workflow, /--retry 3/);
   assert.match(workflow, /--max-time 55/);
-  assert.match(workflow, /TRACKMCP_REFRESH_WORKER_SECRET is not configured[\s\S]*?exit 1/);
+  assert.match(workflow, /WORKER_SECRET_ARN: arn:aws:secretsmanager:ap-south-1:/);
+  assert.match(workflow, /secretsmanager get-secret-value/);
+  assert.match(workflow, /Dedicated refresh worker secret ARN is not configured[\s\S]*?exit 1/);
+  assert.doesNotMatch(workflow, /secrets\.TRACKMCP_REFRESH_WORKER_SECRET/);
 });

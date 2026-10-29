@@ -79,6 +79,7 @@
     "test:refresh-scheduler-workflow": "node --test scripts/refresh-scheduler-workflow.contract.test.mjs",
     "test:refresh-scheduler-handler": "node --test workers/refresh-scheduler/handler.test.mjs",
     "test:refresh-scheduler-endpoint-smoke": "node --test scripts/refresh-scheduler-endpoint-smoke.test.mjs",
+    "test:rate-limit-cleanup-workflow": "node --test scripts/rate-limit-cleanup-workflow.contract.test.mjs",
     "test:release-gate": "node scripts/release-gate.mjs",
     "test:production-ingest-smoke": "node --test scripts/production-ingest-smoke.test.mjs",
     "test:production-transport-smoke": "node --test scripts/production-transport-smoke.test.mjs",
