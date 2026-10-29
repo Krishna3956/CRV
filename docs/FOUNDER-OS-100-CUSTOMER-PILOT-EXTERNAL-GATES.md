@@ -11,12 +11,12 @@ is intentionally not a GO approval and must not be treated as one.
 
 - `main`: current default branch. Immutable deployed SHAs belong in the
   release record; PR checks remain attached to their exact review commits.
-- Current deployed application: `c6d5f9048060b3e5c12506da41efd1c64cc9a155`,
-  App Runner workflow `40748297706` (successful rollout; rollout,
+- Current deployed application: `e0629ea1d02331a1c9cd26eb82d61bfe0a93529f`,
+  App Runner workflow `40845415688` (successful rollout; rollout,
   release gate, production smoke, immutable identity, runtime-safety checks,
   and live health identity verification passed).
 - Current source verification: `main` at `HEAD`
-  (`HEAD`); hosted TrackMCP CI `40748298150` passed across the
+  (`HEAD`); hosted TrackMCP CI `40845415274` passed across the
   web/JavaScript, Go, and .NET lanes. The refresh scheduler
   and health evidence are recorded below. This does not close the external
   owner, backup, privacy, or customer-owned protocol gates.
@@ -25,12 +25,12 @@ is intentionally not a GO approval and must not be treated as one.
   (App Runner workflow `40474794151`), plus the earlier deployment identity
   `4efa2e1bd444706e84d78ef85b8a7b3b133a46aa` and workflow `40497434962`
   retained by the acceptance contract.
-- This register records the already-successful `c6d5f904` rollout and its
+- This register records the already-successful `e0629ea1` rollout and its
   bounded evidence. It does not change the external owner, backup, privacy, or
   customer-owned protocol decisions.
 - Queue: 263 total, 260 checked, and P0 queue items `020`, `157`, and `260`
   remain open.
-- Full release gate: **148 suites passed**, with lint and the 178-route
+- Full release gate: **152 suites passed**, with lint and the 209-route
   production build green (the prior 177-route baseline remains retained in
   historical evidence).
 - Authenticated device-flow UAT covers expired, denied, multiple-membership,
@@ -82,7 +82,7 @@ is intentionally not a GO approval and must not be treated as one.
 | 157 — database recovery posture | Infrastructure/provider owner | Region and tier, backup/PITR policy or an explicitly accepted limitation, restoration owner, and a tested recovery reference | OPEN; authenticated Supabase inspection records Free tier, East US/`us-east-1`, Nano/shared compute, and PITR **Disabled**. A fresh signed-in browser inspection of Database → Backups (2026-10-27) showed no usable scheduled-backup or restore-point evidence. No restoration contact or rehearsal is evidenced. |
 | Privacy lifecycle acceptance | Release owner | Explicit acceptance that export is bounded/secret-free, deletion requests are review-only, and destructive deletion is disabled without an approved worker | OPEN in the release record |
 | Synthetic reliability-data hygiene | Release owner | Explicit acceptance that synthetic canary rows are test evidence only and cannot be presented as customer incidents | OPEN in the release record |
-| Refresh scheduler enablement | Infrastructure/provider owner | Store `TRACKMCP_REFRESH_WORKER_SECRET` in Secrets Manager, map the App Runner runtime variable from that ARN, deploy the disabled-first AWS Scheduler stack, verify endpoint/token/DLQ behavior, enable the five-minute schedule, and retain at least three scheduled samples within the 15-minute freshness budget | **PASS for engineering evidence:** deployment `40628036770`, authenticated smoke `40628409832`, enablement `40628646879`, and health `40629348992` prove 3/3 complete AWS worker samples, 6/6 invocations, 4/4 EMF successes, zero worker failures/retries/parse failures, and queue lag within budget. Overall pilot approval remains open to the release owner. |
+| Refresh scheduler enablement | Infrastructure/provider owner | Store `TRACKMCP_REFRESH_WORKER_SECRET` in Secrets Manager, map the App Runner runtime variable from that ARN, deploy the disabled-first AWS Scheduler stack, verify endpoint/token/DLQ behavior, enable the five-minute schedule, and retain at least three scheduled samples within the 15-minute freshness budget | **HOLD / warning:** latest health artifact `12881601320` from run `40837179614` proves four scheduled invocations and four end-to-end successes, but older stale samples and an older AWS lag datapoint remain in the bounded window. Let the window roll forward and re-run the health evaluation before calling freshness green. |
 | 260 — final go/no-go | Release owner | Timestamped GO/NO-GO decision linking the green evidence and accepted limitations | OPEN; engineering recommendation remains HOLD |
 
 ## Closure rule

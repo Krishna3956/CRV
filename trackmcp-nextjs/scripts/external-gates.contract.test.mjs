@@ -10,8 +10,8 @@ test("first-100 external-gate register stays an explicit HOLD record", () => {
   assert.match(register, /Status:\s*\*\*HOLD\*\*/);
   assert.match(register, /Updated:\s*2026-10-29/);
   assert.match(register, /main.*HEAD/s);
-  assert.match(register, /148 suites/);
-  assert.match(register, /17[78]-route/);
+  assert.match(register, /152 suites/);
+  assert.match(register, /209-route/);
   assert.match(register, /does not change the deployed image|records the already-successful/i);
 });
 
@@ -24,10 +24,10 @@ test("all operator and infrastructure gates remain named and open until evidence
 
 test("the release record carries the same current source gate evidence", () => {
   assert.match(releaseRecord, /current repository source is `main` at `HEAD`/i);
-  assert.match(releaseRecord, /latest local release gate\s+passes\s+\*\*148\s+suites\*\*/i);
-  assert.match(releaseRecord, /178 routes/);
+  assert.match(releaseRecord, /latest local release gate\s+passes\s+\*\*152\s+suites\*\*/i);
+  assert.match(releaseRecord, /209 routes/);
   assert.match(releaseRecord, /transient App Runner\s+smoke retry boundary/);
-  assert.match(releaseRecord, /deployed application is\s+immutable source `c6d5f904`/);
+  assert.match(releaseRecord, /deployed application is\s+immutable source `e0629ea1`/);
   assert.match(releaseRecord, /current repository source is `main` at `HEAD`/i);
 });
 
