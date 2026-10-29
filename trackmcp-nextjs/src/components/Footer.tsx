@@ -101,7 +101,7 @@ export function Footer() {
 
         <div className="mt-14 grid grid-cols-2 gap-x-6 gap-y-12 sm:grid-cols-3 lg:grid-cols-[1.45fr_repeat(5,minmax(0,1fr))] lg:gap-x-7 lg:gap-y-8">
           <div className="col-span-2 sm:col-span-3 lg:col-span-1">
-            <Link href="/" aria-label="TrackMCP home" className="group inline-flex items-center gap-2">
+            <Link href="/" aria-label="TrackMCP home" data-no-translate className="group inline-flex items-center gap-2">
               <TrackMCPAppIcon size={28} className="transition-transform duration-200 group-hover:-rotate-3" />
               <span className="font-display text-[21px] font-medium lowercase tracking-[-0.045em]"><span className="text-[#171717]">track</span><span className="text-brand">mcp</span></span>
             </Link>

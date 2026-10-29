@@ -9,6 +9,7 @@ type AttributeRecord = { kind: "attribute"; element: Element; attribute: Attribu
 type TitleRecord = { kind: "document-title"; original: string };
 type TranslationRecord = TextRecord | AttributeRecord | TitleRecord;
 const TRANSLATABLE_ATTRIBUTES: AttributeName[] = ["placeholder", "aria-label", "title", "alt"];
+const OPAQUE_TECHNICAL_LABEL = /^(?:[A-Za-z]+(?:\s+(?:SDK|API|CLI|MCP|HTTP|SSE|OTel|JSON|OAuth|URL|ID)))+$/;
 const originals = new Map<Text, string>();
 const translated = new Set<Text>();
 const attributeOriginals = new Map<Element, Map<AttributeName, string>>();
@@ -36,7 +37,7 @@ function isExcluded(node: Text): boolean {
   if (!parent) return true;
   if (parent.closest("[data-no-translate], script, style, noscript, textarea, input, select, option, pre, code, svg, [contenteditable='true'], [aria-hidden='true']")) return true;
   const text = node.nodeValue?.trim() || "";
-  if (text.length < 2 || /^https?:\/\//i.test(text) || /^[-_./:@#$%{}[\]()<>=+*|\\\d\s]+$/.test(text)) return true;
+  if (text.length < 2 || /^https?:\/\//i.test(text) || /^[a-z0-9.-]+\.[a-z]{2,}$/i.test(text) || OPAQUE_TECHNICAL_LABEL.test(text) || /^[-_./:@#$%{}[\]()<>=+*|\\\d\s]+$/.test(text)) return true;
   return false;
 }
 
@@ -48,7 +49,7 @@ function isExcludedElement(element: Element): boolean {
 
 function isTranslatableValue(value: string): boolean {
   const text = value.trim();
-  return text.length >= 2 && !/^https?:\/\//i.test(text) && !/^[-_./:@#$%{}[\]()<>=+*|\\\d\s]+$/.test(text);
+  return text.length >= 2 && !/^https?:\/\//i.test(text) && !/^[a-z0-9.-]+\.[a-z]{2,}$/i.test(text) && !OPAQUE_TECHNICAL_LABEL.test(text) && !/^[-_./:@#$%{}[\]()<>=+*|\\\d\s]+$/.test(text);
 }
 
 function pruneDisconnectedRecords() {
