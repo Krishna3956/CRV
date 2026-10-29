@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { Check, ChevronDown, Globe2 } from "lucide-react";
 import { readSiteLocale, writeSiteLocale, type SiteLocale } from "./site-locale";
 
@@ -9,8 +9,23 @@ const LOCALES: { value: SiteLocale; label: string; short: string }[] = [
   { value: "zh-CN", label: "中文（简体）", short: "中文" },
 ];
 
+function subscribeLocale(listener: () => void): () => void {
+  window.addEventListener("trackmcp:locale-change", listener);
+  window.addEventListener("storage", listener);
+  return () => {
+    window.removeEventListener("trackmcp:locale-change", listener);
+    window.removeEventListener("storage", listener);
+  };
+}
+
+function getServerLocale(): SiteLocale {
+  return "en";
+}
+
 export function LanguageSwitcher() {
-  const [locale, setLocale] = useState<SiteLocale>(readSiteLocale);
+  // useSyncExternalStore keeps the server and first client render deterministic
+  // while allowing browser-language detection immediately after hydration.
+  const locale = useSyncExternalStore(subscribeLocale, readSiteLocale, getServerLocale);
   const [open, setOpen] = useState(false);
   const [status, setStatus] = useState<"idle" | "translating" | "error">("idle");
   const ref = useRef<HTMLDivElement>(null);
@@ -19,7 +34,11 @@ export function LanguageSwitcher() {
     const onStatus = (event: Event) => {
       const next = (event as CustomEvent<{ status?: string }>).detail?.status;
       if (next === "translating") setStatus("translating");
-      else if (next === "error") { setStatus("error"); setLocale("en"); }
+      else if (next === "error") {
+        setStatus("error");
+        writeSiteLocale("en");
+        window.dispatchEvent(new CustomEvent("trackmcp:locale-change", { detail: { locale: "en" } }));
+      }
       else if (next === "ready") setStatus("idle");
     };
     const onOutside = (event: MouseEvent) => {
@@ -33,13 +52,9 @@ export function LanguageSwitcher() {
     };
   }, []);
 
-  useEffect(() => {
-    writeSiteLocale(locale);
-  }, [locale]);
-
   const choose = (next: SiteLocale) => {
     setOpen(false);
-    setLocale(next);
+    writeSiteLocale(next);
     window.dispatchEvent(new CustomEvent("trackmcp:locale-change", { detail: { locale: next } }));
   };
 

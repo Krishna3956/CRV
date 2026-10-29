@@ -36,6 +36,10 @@ test("Chinese browser preferences are detected without overriding an explicit co
   assert.match(source, /zh-CN/);
   assert.match(source, /trackmcp_locale/);
   assert.match(source, /browserPrefersSimplifiedChinese/);
+  const switcher = await readFile(resolve(root, "src/components/LanguageSwitcher.tsx"), "utf8");
+  assert.match(switcher, /useSyncExternalStore/);
+  assert.match(switcher, /getServerLocale/);
+  assert.match(switcher, /writeSiteLocale\(next\)/);
 });
 
 test("new submissions stay inside the shared translation runtime", async () => {
