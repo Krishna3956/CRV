@@ -1,7 +1,7 @@
 # TrackMCP live SEO and backlink-readiness audit
 
-Audit date: 2026-10-29  
-Property: `https://trackmcp.com`  
+Audit date: 2026-10-29
+Property: `https://trackmcp.com`
 Scope: the live sitemap, every `/blog/*` URL in that sitemap, Search Console, and the two known external references.
 
 ## Executive result
