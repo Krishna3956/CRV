@@ -26,8 +26,9 @@ negative fixture. Both keys remained bound to their authenticated workspace
 despite conflicting workspace query parameters; all v2 and legacy read models
 returned privacy-safe authenticated envelopes; API-key Action Queue access was
 correctly denied; and the revoked key returned the expected 401/403 class.
-The redacted report is `/tmp/trackmcp-production-auth-smoke.json`. This closes
-the current tenant/authenticated-read evidence point only. Key lifecycle
+The durable redacted evidence record is
+`docs/evidence/production-auth-scope-smoke-2026-10-30.json`. This closes the
+current tenant/authenticated-read evidence point only. Key lifecycle
 mutation, customer-owned endpoint/transport UAT, transport-owned reconnect or
 replay, backup/PITR, privacy approval, and release-owner GO/NO-GO remain open.
 

@@ -16,9 +16,10 @@ Status: active autonomous audit, started 2026-10-21.
   resource-content, or authorization fields. API-key Action Queue access was
   denied with HTTP 403 as designed, and the revoked-key check returned the
   expected HTTP 401/403 class.
-- [x] Evidence is redacted at `/tmp/trackmcp-production-auth-smoke.json`; the
-  smoke writes no application data and performs no key creation, rotation,
-  revocation, ingest, or dashboard mutation.
+- [x] The redacted evidence record is
+  `docs/evidence/production-auth-scope-smoke-2026-10-30.json`; the smoke writes
+  no application data and performs no key creation, rotation, revocation,
+  ingest, or dashboard mutation.
 - [ ] This closes the current authenticated read-scope/tenant-isolation
   evidence point only. Credentialed key-lifecycle mutation, customer-owned
   endpoint/transport UAT, transport-owned reconnect/replay, backup/PITR,

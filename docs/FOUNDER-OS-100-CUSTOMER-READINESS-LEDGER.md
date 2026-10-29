@@ -8,9 +8,10 @@
   conflicting `workspace_id` query parameters. All v2 and legacy analytics
   projections returned authenticated, privacy-safe envelopes for both
   workspaces; API-key Action Queue access remained correctly denied.
-- [x] The redacted evidence file is `/tmp/trackmcp-production-auth-smoke.json`.
-  No key lifecycle mutation, ingest, dashboard mutation, or response body was
-  persisted by the smoke.
+- [x] The redacted evidence file is
+  `docs/evidence/production-auth-scope-smoke-2026-10-30.json`. No key lifecycle
+  mutation, ingest, dashboard mutation, or response body was persisted by the
+  smoke.
 - [ ] This is not customer-owned transport UAT or a key rotation/revocation
   acceptance. Those external pilot gates remain open.
 

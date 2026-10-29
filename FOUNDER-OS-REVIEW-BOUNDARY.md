@@ -24,6 +24,7 @@ reviewer disposition before staging; it is never included by a blanket add.
 | `trackmcp-nextjs/Dockerfile` | review-required | repository maintainer | release owner | production image build/runtime contract; review immutable release identity propagation and ensure no secret build arguments are added |
 | `docs/mcp-blog-backlink-plan-2026-10.md` | review-required | repository maintainer | release owner | local editorial/outreach planning only; exclude from the product candidate and do not infer external publication or backlink evidence |
 | `docs/SUBMISSION-ATTRIBUTION-RUNBOOK.md` | review-required | repository maintainer | privacy/release owner | analytics attribution runbook; review source precedence, self-reported detail redaction, and read-only reporting before publication |
+| `docs/evidence/production-auth-scope-smoke-2026-10-30.json` | review-required | repository maintainer | release owner | redacted, read-only production tenant/auth scope evidence; review that it contains no credentials, workspace identifiers, raw bodies, or mutation results before release use |
 
 ## Boundary rules
 
