@@ -118,6 +118,7 @@
     "test:rate-limit": "node --experimental-strip-types --test src/lib/cli/rate-limit.test.ts src/lib/cli/supabase-rate-limit.test.ts src/lib/cli/supabase-rate-limit-migration.test.mjs",
     "test:mcp-tester-ui": "node --test src/components/mcp-tester/McpTesterApp.contract.test.mjs src/app/tools/tools.contract.test.mjs",
     "test:translation": "node --test scripts/translation.contract.test.mjs",
+    "audit:translation-routes": "node scripts/translation-route-audit.mjs",
     "test:dashboard-contract": "node --test src/components/dashboard/DashboardApp.contract.test.mjs",
     "test:mobile-layout": "node --test scripts/mobile-layout.contract.test.mjs",
     "test:docs-navigation": "node --test scripts/docs-navigation.contract.test.mjs",

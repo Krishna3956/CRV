@@ -45,3 +45,5 @@ Machine translation is not a 100% accuracy guarantee. The endpoint is therefore 
 ## Current catalog size
 
 The repository code contains 51 page entrypoints. The live Supabase directory currently reports 17,796 approved or pending tool rows, and those rows are rendered through the dynamic `/tool/[name]` route. This runtime translates those pages on demand rather than trying to prebuild tens of thousands of locale copies.
+
+Run `npm run audit:translation-routes` to re-check the route tree. The audit confirms the shared root runtime, counts page entrypoints, excludes API routes, and requires the dynamic tool, blog, and category route families to remain present.

@@ -11,6 +11,14 @@ test("root layout exposes one global language switcher and runtime", async () =>
   assert.match(source, /<TranslationRuntime\s*\/>/);
 });
 
+test("route audit covers static and dynamic page families", async () => {
+  const source = await readFile(resolve(root, "scripts/translation-route-audit.mjs"), "utf8");
+  assert.match(source, /tool\/\[name\]/);
+  assert.match(source, /blog\/\[slug\]/);
+  assert.match(source, /category\/\[slug\]/);
+  assert.match(source, /apiRoutesExcluded/);
+});
+
 test("translation endpoint only accepts English to Simplified Chinese", async () => {
   const source = await readFile(resolve(root, "src/app/api/translation/route.ts"), "utf8");
   assert.match(source, /input\.targetLocale !== "zh-CN"/);
