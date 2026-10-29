@@ -25,10 +25,11 @@ export function OAuthButtons({
   onError?: (message: string) => void;
 }) {
   const [loading, setLoading] = useState<OAuthProvider | null>(null);
-  // Render the configured social actions immediately. The provider discovery
-  // request still reconciles availability, but it must not make the primary
-  // sign-in choices appear late or cause a layout shift on the auth screen.
-  const [providers, setProviders] = useState<{ google: boolean; github: boolean }>({ google: true, github: true });
+  // Keep the social-action footprint stable while provider discovery is in
+  // flight, but do not render a clickable provider until Supabase confirms it
+  // is enabled. This preserves the fail-closed route contract during edge/API
+  // failures without causing the auth form to jump when the response arrives.
+  const [providers, setProviders] = useState<{ google: boolean; github: boolean } | null>(null);
 
   useEffect(() => {
     let active = true;
@@ -36,15 +37,19 @@ export function OAuthButtons({
       .then((response) => response.ok ? response.json() as Promise<{ google?: unknown; github?: unknown }> : null)
       .then((value) => {
         // A discovery response is authoritative only when it is a valid JSON
-        // object. Keep the optimistic actions on edge/route failures.
-        if (!active || !value) return;
-        setProviders({ google: value?.google === true, github: value?.github === true });
+        // object with boolean provider flags. Invalid responses fail closed.
+        if (!active) return;
+        if (!value || typeof value.google !== "boolean" || typeof value.github !== "boolean") {
+          setProviders({ google: false, github: false });
+          return;
+        }
+        setProviders({ google: value.google, github: value.github });
       })
       .catch(() => {
-        // Keep the optimistic actions visible when discovery is unavailable.
-        // A transient edge/API failure must not make the primary auth choices
-        // disappear after they were already rendered. The provider itself is
-        // still the source of truth and reports a bounded error if disabled.
+        // Provider discovery is the source of truth. If it is unavailable,
+        // email/password remains the safe fallback and social actions stay
+        // hidden rather than presenting controls that are known to fail.
+        if (active) setProviders({ google: false, github: false });
       });
     return () => { active = false; };
   }, []);
@@ -66,7 +71,18 @@ export function OAuthButtons({
   };
 
   const buttonClass = "inline-flex h-11 items-center justify-center gap-2 rounded-lg border border-line-strong bg-white px-3 text-[13px] font-medium text-body transition-colors hover:bg-mist disabled:cursor-not-allowed disabled:opacity-60";
-  if (!providers.google && !providers.github) return null;
+  if (providers && !providers.google && !providers.github) return null;
+  if (!providers) {
+    return (
+      <div className="mt-6" aria-busy="true" aria-label="Loading sign-in options">
+        <div className="grid grid-cols-2 gap-3">
+          <span className={`${buttonClass} animate-pulse text-transparent`} aria-hidden="true">Google</span>
+          <span className={`${buttonClass} animate-pulse text-transparent`} aria-hidden="true">GitHub</span>
+        </div>
+        <div className="mt-5 flex items-center gap-3 text-[11px] uppercase tracking-[0.14em] text-faint"><span className="h-px flex-1 bg-line" /><span>or use email</span><span className="h-px flex-1 bg-line" /></div>
+      </div>
+    );
+  }
   return (
     <div className="mt-6">
       <div className="grid grid-cols-2 gap-3">

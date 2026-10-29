@@ -23,7 +23,9 @@ test("social auth is fail-closed until Supabase enables a provider", async () =>
   assert.match(route, /google: false, github: false/);
   const buttons = await readFile(resolve(root, "src/components/OAuthButtons.tsx"), "utf8");
   assert.match(buttons, /fetch\("\/api\/auth\/providers"/);
-  assert.match(buttons, /if \(!providers\.google && !providers\.github\) return null/);
+  assert.match(buttons, /if \(providers && !providers\.google && !providers\.github\) return null/);
+  assert.match(buttons, /setProviders\(\{ google: false, github: false \}\)/);
+  assert.match(buttons, /aria-busy="true"/);
 });
 
 test("route audit covers static and dynamic page families", async () => {
