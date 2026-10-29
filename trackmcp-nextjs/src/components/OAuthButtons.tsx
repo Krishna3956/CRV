@@ -26,6 +26,7 @@ declare global {
         id?: {
           initialize: (config: {
             client_id: string;
+            nonce?: string;
             auto_select?: boolean;
             cancel_on_tap_outside?: boolean;
             callback: (response: GoogleCredentialResponse) => void | Promise<void>;
@@ -39,6 +40,13 @@ declare global {
 }
 
 let googleIdentityScript: Promise<void> | null = null;
+
+async function createGoogleNonce() {
+  const nonce = btoa(String.fromCharCode(...crypto.getRandomValues(new Uint8Array(32))));
+  const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(nonce));
+  const hashedNonce = Array.from(new Uint8Array(digest), (byte) => byte.toString(16).padStart(2, "0")).join("");
+  return { nonce, hashedNonce };
+}
 
 function loadGoogleIdentityScript() {
   if (typeof window === "undefined") return Promise.reject(new Error("Google sign-in is only available in a browser."));
@@ -114,6 +122,10 @@ export function OAuthButtons({
         await loadGoogleIdentityScript();
         const googleId = window.google?.accounts?.id;
         if (!googleId) throw new Error("Google Identity Services is unavailable.");
+        // Supabase keeps nonce checks enabled in production. Google receives
+        // the SHA-256 form while Supabase receives the original value, which
+        // binds this credential to this sign-in attempt.
+        const { nonce, hashedNonce } = await createGoogleNonce();
         await new Promise<void>((resolve, reject) => {
           let settled = false;
           let credentialStarted = false;
@@ -127,6 +139,7 @@ export function OAuthButtons({
           };
           googleId.initialize({
             client_id: GOOGLE_CLIENT_ID,
+            nonce: hashedNonce,
             auto_select: false,
             cancel_on_tap_outside: true,
             callback: async (response) => {
@@ -135,7 +148,7 @@ export function OAuthButtons({
                 finish(new Error("Google did not return an identity token."));
                 return;
               }
-              const { data, error } = await getSupabaseBrowser().auth.signInWithIdToken({ provider: "google", token: response.credential });
+              const { data, error } = await getSupabaseBrowser().auth.signInWithIdToken({ provider: "google", token: response.credential, nonce });
               if (error || !data.session) {
                 finish(error || new Error("Supabase could not create the Google session."));
                 return;
