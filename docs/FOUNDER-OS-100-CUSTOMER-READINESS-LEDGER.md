@@ -1,5 +1,94 @@
 # Founder OS 100 Customer Readiness Ledger
 
+## 2026-10-29 — homepage responsive polish deployed and verified
+
+- [x] PR #710 (`e0629ea1d02331a1c9cd26eb82d61bfe0a93529f`) shipped the three
+  requested homepage fixes in one focused release: the CLI command box is
+  capped at `18rem` on narrow screens, the desktop-only hero bridge/gray strip
+  is hidden below the mobile breakpoint, and the homepage heading/root title
+  now says “Understand how your MCP is being used.”
+- [x] The mobile-layout contract covers both the narrow CLI width and the
+  phone-only bridge boundary. The full local release gate passed 152 suites;
+  lint and the production build passed, generating 209 routes.
+- [x] Hosted TrackMCP CI `40845415274`, App Runner deployment
+  `40845415688`, and authenticated production smoke `40846362114` passed.
+  Direct App Runner `/api/health` reports the exact deployed SHA, and the
+  public homepage returned 200 with desktop and iPhone browser user agents.
+- [ ] This is a UX/runtime milestone only. It does not close the worker
+  freshness, backup/PITR, privacy acceptance, customer-owned protocol/UAT, or
+  release-owner GO/NO-GO gates below.
+
+## 2026-10-29 — TrackMCP social-auth path implemented with safe redirects
+
+- [x] PR #708 (`03488cb67727c7fdf4b06b11d721bd06c884045a`) deployed the
+  sign-in and sign-up Google/GitHub path through Supabase Auth's
+  authorization-code/PKCE flow. The callback exchanges only the short-lived
+  code server-side, bounds provider errors, and accepts only same-origin
+  internal `next` paths; regression coverage passes for open-redirect,
+  provider-error, and missing-code boundaries. App Runner deployment workflow
+  `40842716127` passed the release gate, rollout, immutable runtime identity,
+  runtime safety, and redacted production smoke checks; mainline CI
+  `40842716152` also passed.
+- [x] Live checks against runtime `03488cb67727c7fdf4b06b11d721bd06c884045a`
+  returned HTTP 200 for `/signin` and `/docs/authentication`; the callback
+  reduced an external `next` value to `/dashboard` and preserved only bounded
+  provider error codes. The public hostname returned 200 for both pages too.
+- [x] Authentication documentation explains the one-time Supabase provider
+  and callback configuration, secure secret placement, and the distinction
+  between TrackMCP account sign-in and customer MCP OAuth.
+- [ ] This implements the TrackMCP account-auth path but does not prove that
+  Google/GitHub providers are enabled in the production Supabase project, and
+  it does not enable customer MCP token exchange, refresh, consent, or
+  revocation. Provider configuration and credentialed UAT remain external.
+
+## 2026-10-29 — submission attribution deployed and verified
+
+- [x] PR #707 (`ed0ea99fb524feac67b7fb6bb59a8c91ff720e68`) deployed the
+  actionable submission-attribution flow. App Runner deployment workflow
+  `40840163412` passed its release gate, rollout, immutable runtime identity,
+  runtime safety, and production smoke checks; `/api/health` reports the exact
+  deployed SHA.
+- [x] The public `/submit-mcp` route and trusted origin both return HTTP 200;
+  the live HTML contains the self-reported source and private-share guidance.
+  The redacted production smoke passed 36 checks with 2 intentional write/key
+  skips and no failures. No production submission was created by this check.
+- [ ] Migration parity and a disposable authenticated submission write remain
+  required before claiming end-to-end persistence evidence; self-reported
+  attribution remains advisory, not verified identity or backlink evidence.
+
+## 2026-10-29 — submission attribution made actionable and privacy-bounded
+
+- [x] The public submission flow now captures a bounded self-reported source
+  category for private-share referrals that browsers cannot reveal, preserves
+  first-touch context, and lets current UTM/referrer evidence override stale
+  last-touch storage. The read-only latest-50 SQL report uses explicit
+  self-report, campaign, referrer, then browser-unknown precedence.
+- [x] Server normalization rejects email-like, credential-shaped, token-like,
+  and private-key-shaped free-text details before persistence. The migration
+  remains nullable and object-only; no backfill or raw payload capture was
+  added. Submission attribution tests now cover the privacy boundary and all
+  11 focused tests pass.
+- [ ] This source change is not a production deployment or owner acceptance.
+  Run migration parity and the production submission smoke after publication;
+  do not treat self-reported source as verified identity or a backlink.
+
+## 2026-10-29 — current worker-health recheck
+
+- [x] Health run `40837179614` completed successfully against current `main`.
+  The report now has no `worker_failures_observed` reason: the latest bounded
+  worker evidence is clean, including `40836789883` (12 processed, 0 failed,
+  0 retryable, `537100 ms` lag) and `40837088531` (0 processed, 0 failed,
+  0 retryable, `0 ms` lag).
+- [x] AWS scheduler cadence remains proven: 4 invocations, 0 errors, and 4
+  scheduled end-to-end successes. The report is explicit that this does not
+  prove worker freshness yet.
+- [ ] The freshness state remains **warning**, now for only
+  `freshness_budget_exceeded` and `aws_worker_freshness_not_proven`: two older
+  stale samples and an older `10540402 ms` AWS worker-lag datapoint remain in
+  the bounded window. Keep the gate open until the window rolls forward and
+  at least three current in-budget worker samples are reflected by AWS
+  metrics; do not relabel this warning as healthy.
+
 ## 2026-10-29 — backup/PITR recovery control added
 
 - [x] Added [`FOUNDER-OS-BACKUP-RECOVERY-RUNBOOK.md`](FOUNDER-OS-BACKUP-RECOVERY-RUNBOOK.md)
@@ -948,7 +1037,7 @@ End of historical checkpoint archive.
 
 | Gate | Current evidence | State | Required closure evidence |
 | --- | --- | --- | --- |
-| Worker freshness | Health artifact `12873300062` from run `40816871097`: AWS cadence is proven (4 invocations, 0 errors, 4 end-to-end successes), but worker freshness is warning with `962905 ms` maximum AWS queue lag versus the `900000 ms` budget; worker artifact `12872467824` reports two `handler_failure` retries and `1048892 ms` max lag | **HOLD / warning** | Deploy the bounded retryable-kind diagnostic, identify the affected handler family, then obtain at least 3 complete scheduled samples with zero retryable/failed rows and maximum queue lag within 900000 ms |
+| Worker freshness | Health artifact `12881601320` from run `40837179614`: AWS cadence is proven (4 invocations, 0 errors, 4 end-to-end successes); current worker samples are clean, but two older stale samples and an older `10540402 ms` AWS worker-lag datapoint remain in the bounded window | **HOLD / warning** | Let the bounded window roll forward, then obtain at least 3 current in-budget worker samples reflected by AWS metrics with zero retryable/failed work and maximum queue lag within `900000 ms` |
 | Backup/PITR | Supabase Free Plan has no scheduled backups or PITR | **HOLD / owner decision** | Accepted documented limitation with named recovery owner/runbook, or plan upgrade plus tested restore rehearsal |
 | Privacy acceptance | Engineering export/deletion contracts pass; production acceptance is not recorded | **HOLD / owner decision** | Signed production privacy review and retention/deletion acceptance |
 | Credentialed lifecycle/UAT | Read-only auth, first-ingest, transport, and device-flow evidence is recorded; customer-owned endpoint/protocol UAT remains unexecuted | **HOLD / credentialed** | Customer-owned endpoint/protocol UAT artifact plus explicit acceptance of reconnect/replay, durable-subscription, and OAuth boundaries |

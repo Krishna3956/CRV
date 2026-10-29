@@ -15,8 +15,12 @@ const [home, docs, device, dashboard, docsShell] = await Promise.all([
 test("homepage keeps primary actions stacked before the small-screen breakpoint", () => {
   assert.match(home, /flex flex-col items-center justify-center gap-3 sm:flex-row/);
   assert.match(home, /max-w-\[58ch\]/);
-  assert.match(home, /w-full min-w-0 max-w-full[\s\S]*sm:w-auto/);
+  assert.match(home, /w-full min-w-0 max-w-\[18rem\][\s\S]*sm:w-auto/);
   assert.match(home, /min-w-0 truncate text-body/);
+});
+
+test("homepage hides the desktop-only hero bridge on phones", () => {
+  assert.match(home, /<section className="relative hidden bg-mist pb-14 md:block md:pb-20">/);
 });
 
 test("docs overview uses responsive grids and overflow-safe code blocks", () => {

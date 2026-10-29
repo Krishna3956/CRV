@@ -34,7 +34,7 @@ const geistMono = Geist_Mono({
   display: "swap",
 });
 
-const TITLE = "TrackMCP: See how your MCP server is being used";
+const TITLE = "TrackMCP: Understand how your MCP server is being used";
 type RootLayoutProps = { children: ReactNode };
 
 export const metadata: Metadata = {

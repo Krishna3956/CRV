@@ -3,15 +3,15 @@
 Status: **HOLD — no silent waivers**  
 Reconciled: 2026-10-29 (Asia/Kolkata)
 Current deployed baseline: application
-`c6d5f9048060b3e5c12506da41efd1c64cc9a155`, App Runner run `40748297706`
+`e0629ea1d02331a1c9cd26eb82d61bfe0a93529f`, App Runner run `40845415688`
 (successful rollout and post-deploy verification). The current repository source is `main` at
-`HEAD`; hosted CI `40748298150` passed
-across web/JavaScript, Go, and .NET, and the full release gate passed 148
+`HEAD`; hosted CI `40845415274` passed
+across web/JavaScript, Go, and .NET, and the full release gate passed 152
 suites. The App Runner deployment's read-only production smoke and immutable
-runtime identity checks passed against the deployed runtime SHA `c6d5f904`.
-The deployed refresh scheduler remains
-independently proven by health artifact `40629348992`, which records 3/3
-complete AWS worker-summary samples within the 15-minute budget. The alert
+runtime identity checks passed against the deployed runtime SHA `e0629ea1`.
+The latest refresh-health artifact `12881601320` remains a warning because
+older stale samples and an older AWS lag datapoint are still inside the bounded
+window; the scheduler cadence itself remains proven. The alert
 evaluator deployment path is present but manual-only and disabled-first; no
 production alert delivery is claimed.
 This is current runtime and source evidence, not a pilot GO decision.
@@ -37,7 +37,7 @@ record.
 | 053 | Exercise workspace creation from device flow without key disclosure | Disposable authenticated zero-membership account rendered `Workspace setup required`; browser creation succeeded, approval completed, and no connection-key material was shown. Disposable user, workspace, and session were removed after capture | CLOSED — browser UAT | Retain the redacted browser/session evidence in the handoff ledger; this does not close redemption |
 | 157 | Record database region, backup posture, and restoration contact | Supabase inspection records East US / `us-east-1`; current Free Plan backup surface showed no usable schedule, restore point, contact, or completed restore rehearsal | OPEN — infrastructure owner | Written region/tier, backup/restore policy or explicit accepted limitation, restoration contact, and tested recovery reference |
 | 259 | Compare all acceptance rows with evidence and silently waive none | This matrix reconciles all three currently open IDs and records an explicit HOLD for each unresolved row | CLOSED — comparison complete | Keep this matrix and the release record updated whenever an item changes; it does not authorize GO |
-| 260 | Issue the limited 100-customer pilot go/no-go decision | Engineering recommendation remains HOLD because backup posture, privacy acceptance, customer-owned protocol boundaries, and owner acceptance are open; scheduler freshness is an engineering PASS proven separately by health artifact `40629348992` | OPEN — release owner | Timestamped GO/NO-GO decision with accepted limitations, scope, rollback owner, and links to every green/open row |
+| 260 | Issue the limited 100-customer pilot go/no-go decision | Engineering recommendation remains HOLD because worker freshness, backup posture, privacy acceptance, customer-owned protocol boundaries, and owner acceptance are open; the latest health evaluation remains a warning | OPEN — release owner | Timestamped GO/NO-GO decision with accepted limitations, scope, rollback owner, and links to every green/open row |
 
 ## Decision rule
 

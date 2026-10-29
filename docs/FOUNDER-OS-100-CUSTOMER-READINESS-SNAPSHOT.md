@@ -1,10 +1,48 @@
 # Founder OS first-100 readiness snapshot
 
-Updated: 2026-10-29 (Asia/Kolkata; source `0627a890`; deployed runtime `0627a890`; hosted evidence reconciled)
+Updated: 2026-10-29 (Asia/Kolkata; source `HEAD`; deployed runtime `e0629ea1`; hosted evidence reconciled)
 
 Status: **Engineering green; release decision HOLD**
 
 ## Current checkpoint — 2026-10-29
+
+- The latest homepage release is live on immutable runtime
+  `e0629ea1d02331a1c9cd26eb82d61bfe0a93529f` via App Runner workflow
+  `40845415688`; main CI `40845415274` and authenticated production smoke
+  `40846362114` passed. The responsive CLI box, phone-only gray-strip removal,
+  and “Understand how your MCP is being used” heading are verified on the
+  direct origin and public domain with desktop and iPhone user agents.
+- The current local production build generates 209 routes and the full release
+  gate passes 152 suites. This is a cosmetic/runtime verification milestone,
+  not a first-100-user GO decision.
+
+- TrackMCP account social authentication is deployed in runtime
+  `03488cb67727c7fdf4b06b11d721bd06c884045a` via App Runner workflow
+  `40842716127`: Google and GitHub Supabase PKCE buttons use same-origin
+  bounded redirects, and the callback never exposes provider error text or
+  accepts external `next` URLs. Production provider enablement and
+  credentialed OAuth UAT remain external; customer MCP OAuth token exchange is
+  still explicitly unsupported.
+- The submission-attribution flow is live on runtime
+  `ed0ea99fb524feac67b7fb6bb59a8c91ff720e68` via deployment `40840163412`.
+  Public `/submit-mcp` returns 200, the smoke passed 36 checks with two
+  intentional write/key skips, and no production submission was created.
+
+- The deployed submission-attribution flow captures a bounded self-reported
+  source, current campaign signals override stale last-touch storage, and
+  server normalization drops email/credential-shaped detail. Focused
+  attribution coverage is 11/11; production write persistence remains
+  intentionally unclaimed because the smoke did not create a submission.
+
+- Fresh health evaluation `40837179614` has no current worker-failure reason:
+  the latest bounded worker runs are clean, including `40836789883` (12
+  processed, 0 failed, 0 retryable, `537100 ms` lag) and `40837088531` (no
+  backlog, 0 failed, 0 retryable). AWS scheduler cadence remains proven with
+  4 invocations, 0 errors, and 4 scheduled successes.
+- The health state is still **warning**, not healthy, because two older stale
+  samples and an older `10540402 ms` AWS worker-lag datapoint remain in the
+  bounded window. The freshness gate stays open until the window rolls
+  forward and AWS reflects at least three current in-budget samples.
 
 - The backup/PITR control is now documented in
   `FOUNDER-OS-BACKUP-RECOVERY-RUNBOOK.md`, including explicit RPO/RTO,
@@ -223,8 +261,8 @@ scheduled-worker SLO. No secret, workspace identifier, raw payload, or token is
 stored in this snapshot.
 
 The detailed ledger is authoritative for the remaining external gates. The
-current source is `main` at `HEAD` (`6ef17eb9`); the deployed application is
-the verified runtime `dd6e5544` after the App Runner rollout. The latest
+current source is `main` at `HEAD` (`03488cb6`); the deployed application is
+the verified runtime `03488cb6` after the App Runner rollout. The latest
 health report is the AWS-proven freshness result above, with historical manual
 diagnostics still visible. The alert evaluator remains
 disabled-first and is not claimed as enabled production delivery.
