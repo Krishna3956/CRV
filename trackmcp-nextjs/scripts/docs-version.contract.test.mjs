@@ -5,7 +5,7 @@ import test from "node:test";
 
 const root = resolve(process.cwd(), "..");
 const read = (relative) => readFile(resolve(root, relative), "utf8");
-const [docs, traceExplorer, sdkManifest, cliManifest, tsDocs, pythonDocs, goDocs, dotnetDocs, pilotRunbook, executionPlan, gapLedger, contentRelease, pdfTruth] = await Promise.all([
+const [docs, traceExplorer, sdkManifest, cliManifest, tsDocs, pythonDocs, goDocs, dotnetDocs, pilotRunbook, executionPlan, gapLedger, contentRelease, pdfTruth, releaseManifest, packageReadiness, readinessLedger] = await Promise.all([
   read("trackmcp-nextjs/src/app/docs/page.tsx"),
   read("trackmcp-nextjs/src/components/dashboard/TraceExplorer.tsx"),
   read("trackmcp-nextjs/packages/typescript-sdk/package.json"),
@@ -19,6 +19,9 @@ const [docs, traceExplorer, sdkManifest, cliManifest, tsDocs, pythonDocs, goDocs
   read("docs/FOUNDER-OS-PILOT-GAP-LEDGER.md"),
   read("docs/FOUNDER-OS-DOCS-AND-CONTENT-RELEASE.md"),
   read("docs/FOUNDER-OS-PDF-TRUTH-AUDIT.md"),
+  read("FOUNDER-OS-RELEASE-MANIFEST.md"),
+  read("docs/FOUNDER-OS-PACKAGE-RELEASE-READINESS.md"),
+  read("docs/FOUNDER-OS-100-CUSTOMER-READINESS-LEDGER.md"),
 ]);
 const sdkVersion = JSON.parse(sdkManifest).version;
 const cliVersion = JSON.parse(cliManifest).version;
@@ -80,4 +83,18 @@ test("active content and truth-audit docs name the current package train", () =>
     pdfTruth.includes(`PyPI currently serves \`trackmcp==${pythonVersion}\``) ||
       pdfTruth.includes(`reviewed source candidate is \`trackmcp==${pythonVersion}\``),
   );
+});
+
+test("active release ledgers keep the current package train aligned", () => {
+  const current = [`@trackmcp/sdk@${sdkVersion}`, `@trackmcp/cli@${cliVersion}`, `trackmcp==${pythonVersion}`];
+  for (const source of [releaseManifest, gapLedger, readinessLedger]) {
+    for (const version of current) assert.match(source, new RegExp(version.replace(/[.*+?^${}()|[\\]\\]/g, "\\$&")));
+  }
+  const tableRow = (name, version) => new RegExp("\\\\| `" + name + "` \\\\| `" + version + "` \\\\|");
+  assert.match(packageReadiness, tableRow("@trackmcp/sdk", sdkVersion));
+  assert.match(packageReadiness, tableRow("@trackmcp/cli", cliVersion));
+  assert.match(packageReadiness, tableRow("trackmcp", pythonVersion));
+  assert.match(packageReadiness, /CLI entrypoint correction was published as a separate approved patch/);
+  assert.match(gapLedger, /active package-truth reconciliation/);
+  assert.match(readinessLedger, /active package-version truth aligned/);
 });

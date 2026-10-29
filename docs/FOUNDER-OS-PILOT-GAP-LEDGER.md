@@ -2,6 +2,18 @@
 
 Status: active autonomous audit, started 2026-10-21.
 
+## 2026-10-30 — active package-truth reconciliation
+
+- [x] The active published train is `@trackmcp/sdk@0.1.25`,
+  `@trackmcp/cli@0.1.13`, and `trackmcp==0.1.15`; public registry evidence is
+  recorded in `FOUNDER-OS-PACKAGE-RELEASE-READINESS.md`.
+- [x] The stale `0.1.12` CLI references in the active package-release row and
+  activation summary are superseded by the published CLI entrypoint fix. Older
+  rows remain explicitly historical evidence and are not rewritten.
+- [x] The release-truth contract now checks the active package tables against
+  the package manifests so a future publication cannot silently leave setup or
+  pilot documentation on an old version.
+
 ## 2026-10-30 — CLI entrypoint regression closed
 
 - [x] PR #735 merged as `fac78e7cf7c5baa467fe18b996da0dbb7a01ec3e`; the
@@ -25,8 +37,9 @@ Status: active autonomous audit, started 2026-10-21.
   npm integrity is `sha512-uU6C/2FdElACU805Kn4sC780Ap4ZXkJZhwEuag/R16yxvFEQCwYZc3Mw8GHSPSt6igPRcZ3wkmmubEMUPs0Btw==`,
   PyPI wheel/sdist SHA-256 values are recorded in
   `docs/FOUNDER-OS-PACKAGE-RELEASE-READINESS.md`.
-- [x] The CLI remains at `@trackmcp/cli@0.1.12`; it was not republished because
-  this train contains no CLI source change.
+- [x] At the 2026-10-29 train cutoff, the CLI was still
+  `@trackmcp/cli@0.1.12`; the separate 2026-10-30 entrypoint patch subsequently
+  published `@trackmcp/cli@0.1.13` and superseded that active baseline.
 - [ ] Registry publication is closed for this train, but authenticated
   activation, customer-owned endpoint/key-lifecycle UAT, and runtime cadence
   gates remain separate pilot acceptance work.
@@ -1158,9 +1171,9 @@ just because a README or marketing page mentions it.
 
 | Surface | Current evidence | Status | Next proof |
 | --- | --- | --- | --- |
-| TypeScript server SDK | `packages/typescript-sdk`, consumer gate, published `0.1.24`; source fails closed for removed `tasks/list` and retains explicit-handle `tasks/get` observation without task mutation | Published and registry-verified: npm reports version `0.1.24` with workflow `40569475423` integrity/provenance and clean-consumer evidence; direct-origin first-ingest UAT passed in workflow `40598515473` | Authenticated activation, key-lifecycle mutation, and customer-owned transport UAT remain separate pilot gates |
-| CLI activation package | `packages/cli`, packed consumer and device-flow contracts, published `@trackmcp/cli@0.1.12` | Published and registry-verified by recovery workflow `40565931200`; npm metadata and tarball resolve publicly | Disposable production activation and first-event evidence remain a separate pilot gate |
-| Python server SDK | `packages/python-sdk`, package consumer gate, published `0.1.14` | Published and registry-verified by recovery workflow `40566216611`; wheel/sdist digests are recorded in `FOUNDER-OS-PACKAGE-RELEASE-READINESS.md` | Authenticated activation/first-event evidence remains a separate pilot gate |
+| TypeScript server SDK | `packages/typescript-sdk`, consumer gate, published `0.1.25`; source fails closed for removed `tasks/list` and retains explicit-handle `tasks/get` observation without task mutation | Published and registry-verified: npm reports version `0.1.25` with workflow `40801454555` integrity/provenance and clean-consumer evidence; direct-origin first-ingest UAT remains separately evidenced | Authenticated activation, key-lifecycle mutation, and customer-owned transport UAT remain separate pilot gates |
+| CLI activation package | `packages/cli`, packed consumer and device-flow contracts, published `@trackmcp/cli@0.1.13` | Published and registry-verified by workflow `40962471850`; npm metadata, integrity, provenance, and real `.bin` packed-consumer checks resolve publicly | Disposable production activation and first-event evidence remain a separate pilot gate |
+| Python server SDK | `packages/python-sdk`, package consumer gate, published `0.1.15` | Published and registry-verified by workflow `40801454555`; wheel/sdist digests are recorded in `FOUNDER-OS-PACKAGE-RELEASE-READINESS.md` | Authenticated activation/first-event evidence remains a separate pilot gate |
 | Transport observer / Node client adapter | `@trackmcp/sdk/client-adapter`; Node-only wrapper for official Stdio, Streamable HTTP, and SSE transports; metadata-only and fail-open; bounded capability-family metadata, lifecycle generations for reconnect correlation, dedicated adapter tests, and a production smoke that now requires clean delivery diagnostics after flush | Implemented and merged through PRs #173–#175; source delivery assertion verified in hosted CI `40599618793` | Authenticated customer-owned transport UAT |
 | Go SDK | `packages/go-sdk/trackmcp.go`; transport-neutral primitive, source package only; flush uses the managed-edge-compatible fixed user-agent | Implemented with source-only distribution boundary; hosted Go test/vet/smoke and edge-header assertion passed in CI `40600092345`; no reviewed Go-module tag/provenance workflow is configured | Publish only after a reviewed module-tag/provenance policy and release workflow exist |
 | .NET SDK | `packages/dotnet-sdk/TrackMcp.cs`; transport-neutral primitive, source package only; flush uses the managed-edge-compatible fixed user-agent | Implemented with source-only distribution boundary; hosted .NET build/pack/smoke and edge-header assertion passed in CI `40600092345`; no publication credential/workflow is configured | Publish only after a reviewed NuGet package identity, provenance policy, and `NUGET_API_KEY` owner are supplied |

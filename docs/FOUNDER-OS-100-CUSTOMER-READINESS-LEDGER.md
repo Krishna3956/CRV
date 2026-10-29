@@ -1,5 +1,16 @@
 # Founder OS 100 Customer Readiness Ledger
 
+## 2026-10-30 — active package-version truth aligned
+
+- [x] Active package manifests, setup documentation, pilot smoke defaults, and
+  release ledgers now agree on `@trackmcp/sdk@0.1.25`, `@trackmcp/cli@0.1.13`,
+  and `trackmcp==0.1.15`.
+- [x] Historical package rows remain unchanged and are labeled by their
+  original release checkpoint; they are not used as current setup guidance.
+- [x] A docs-version contract now checks the active package tables against the
+  checked-in manifests and fails if a future release leaves stale active
+  versions behind.
+
 ## 2026-10-30 — CLI documentation reconciliation deployed
 
 - [x] PR #736 merged to `main` as `2e3212017bca372377ab0c2bb6c6530f6976b08d`.
@@ -576,8 +587,9 @@
   `trackmcp==0.1.15` is on PyPI with wheel SHA-256
   `738e6ca64fb5ea91b80bfe1fc9a88457783cc7e5fc264b5f8e122347922aae07` and
   sdist SHA-256 `ce4f645b7cc414b9087cf12f11581b14e502e1ff6df4274fe01907e9907ce4d0`.
-- [x] `@trackmcp/cli@0.1.12` remains the unchanged published CLI baseline;
-  no unnecessary version was created.
+- [x] At the 2026-10-29 train cutoff, `@trackmcp/cli@0.1.12` was the unchanged
+  published baseline; the separate 2026-10-30 entrypoint patch subsequently
+  published `@trackmcp/cli@0.1.13` and superseded that active baseline.
 - [ ] This closes package publication for the train only. Scheduler cadence,
   production LCP, Supabase postflight/backup evidence, customer-owned
   endpoint UAT, and release-owner GO/NO-GO remain open gates.
