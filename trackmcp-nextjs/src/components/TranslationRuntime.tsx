@@ -6,12 +6,15 @@ import { readSiteLocale, type SiteLocale } from "./site-locale";
 type TextRecord = { kind: "text"; node: Text; original: string };
 type AttributeName = "placeholder" | "aria-label" | "title" | "alt";
 type AttributeRecord = { kind: "attribute"; element: Element; attribute: AttributeName; original: string };
-type TranslationRecord = TextRecord | AttributeRecord;
+type TitleRecord = { kind: "document-title"; original: string };
+type TranslationRecord = TextRecord | AttributeRecord | TitleRecord;
 const TRANSLATABLE_ATTRIBUTES: AttributeName[] = ["placeholder", "aria-label", "title", "alt"];
 const originals = new Map<Text, string>();
 const translated = new Set<Text>();
 const attributeOriginals = new Map<Element, Map<AttributeName, string>>();
 const translatedAttributes = new Map<Element, Set<AttributeName>>();
+let documentTitleOriginal: string | null = null;
+let documentTitleTranslated = false;
 const translationCache = new Map<string, string>();
 const MAX_CACHE_ENTRIES = 1_000;
 let translationInFlight: Promise<void> | null = null;
@@ -66,6 +69,22 @@ function pruneDisconnectedRecords() {
 function collectTranslationRecords(): TranslationRecord[] {
   const records: TranslationRecord[] = [];
   pruneDisconnectedRecords();
+  if (isTranslatableValue(document.title)) {
+    if (documentTitleTranslated) {
+      const applied = documentTitleOriginal ? translationCache.get(documentTitleOriginal) : undefined;
+      if (applied && document.title === applied) {
+        // The title is already translated for the current source value.
+      } else {
+        documentTitleTranslated = false;
+        documentTitleOriginal = document.title;
+      }
+    } else if (documentTitleOriginal !== document.title) {
+      documentTitleOriginal = document.title;
+    }
+    if (!documentTitleTranslated && documentTitleOriginal) {
+      records.push({ kind: "document-title", original: documentTitleOriginal });
+    }
+  }
   const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
   let node: Node | null;
   while ((node = walker.nextNode())) {
@@ -123,6 +142,8 @@ function restoreEnglish() {
     attributes.forEach((original, attribute) => element.setAttribute(attribute, original));
   });
   translatedAttributes.clear();
+  if (documentTitleOriginal !== null) document.title = documentTitleOriginal;
+  documentTitleTranslated = false;
   document.documentElement.lang = "en";
   emitStatus("ready");
 }
@@ -184,6 +205,9 @@ async function translatePageInternal(generation: number) {
         const translatedSet = translatedAttributes.get(record.element) || new Set<AttributeName>();
         translatedSet.add(record.attribute);
         translatedAttributes.set(record.element, translatedSet);
+      } else if (record.kind === "document-title") {
+        document.title = value;
+        documentTitleTranslated = true;
       }
     });
     document.documentElement.lang = "zh-CN";
@@ -217,7 +241,7 @@ export function TranslationRuntime() {
       if (locale() === "zh-CN") apply();
     });
     window.addEventListener("trackmcp:locale-change", onLocaleChange);
-    observer.observe(document.body, {
+    observer.observe(document.documentElement, {
       attributes: true,
       attributeFilter: TRANSLATABLE_ATTRIBUTES,
       characterData: true,

@@ -100,6 +100,8 @@ test("runtime excludes code and user-editable content", async () => {
   assert.match(source, /contenteditable='true'/);
   assert.match(source, /placeholder/);
   assert.match(source, /aria-label/);
+  assert.match(source, /document-title/);
+  assert.match(source, /document\.title/);
   assert.match(source, /attributeFilter/);
   assert.match(source, /pruneDisconnectedRecords/);
   assert.match(source, /MutationObserver/);
