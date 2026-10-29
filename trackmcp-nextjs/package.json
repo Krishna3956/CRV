@@ -4,6 +4,7 @@
   "private": true,
   "scripts": {
     "test:nonpublished-sdk-docs": "node --test scripts/nonpublished-sdk-docs.contract.test.mjs",
+    "test:posthog-loading-contract": "node --test scripts/posthog-loading-contract.test.mjs",
     "dev": "next dev",
     "build": "next build",
     "start": "node scripts/start-standalone.mjs",

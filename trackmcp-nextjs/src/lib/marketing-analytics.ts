@@ -1,12 +1,12 @@
 "use client";
 
 import { track } from "@vercel/analytics";
-import posthog from "posthog-js";
 import {
   classifySubmissionSource,
   normalizeReferrerHostname,
   type SubmissionSource,
 } from "./submission-attribution";
+import { capturePostHog, identifyPostHog, registerPostHog } from "./posthog-client";
 
 type MarketingValue = string | number | boolean | null | undefined;
 export const SERVER_ACTIVATION_EVENT_TYPES = new Set([
@@ -118,7 +118,7 @@ export function trackMarketingEvent(name: string, properties: Record<string, Mar
   try {
     const eventProperties = { ...readContentAttribution(), ...properties };
     track(name, eventProperties);
-    posthog.capture(name, eventProperties);
+    capturePostHog(name, eventProperties);
   } catch {
     // Analytics must remain fail-open.
   }
@@ -235,8 +235,8 @@ export function identifyMarketingUser(userId: string, properties: Record<string,
   try {
     const snapshot = captureSubmissionAttribution();
     const identityProperties = { ...attributionProperties(snapshot), ...properties };
-    posthog.identify(userId, identityProperties);
-    posthog.register(attributionProperties(snapshot));
+    identifyPostHog(userId, identityProperties);
+    registerPostHog(attributionProperties(snapshot));
   } catch {
     // Analytics must remain fail-open.
   }

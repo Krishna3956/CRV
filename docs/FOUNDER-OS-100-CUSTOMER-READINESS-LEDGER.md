@@ -25,7 +25,7 @@
   so the overall production LCP risk remains open and is not being claimed as
   resolved by this patch.
 
-Last updated: 2026-10-29 (main and deployed application `2e2211d8`; App Runner deployment `40792706931` is healthy; analytics projection caching and the 38-check authenticated two-workspace smoke are live; customer-owned endpoint/protocol UAT, privacy acceptance, backup/PITR posture, migration postflight, production LCP optimization, and release-owner GO/NO-GO remain open)
+Last updated: 2026-10-29 (main `fc7ec455`; deployed application `2e2211d8` and App Runner deployment `40792706931` are healthy; analytics projection caching and the 38-check authenticated two-workspace smoke are live; customer-owned endpoint/protocol UAT, privacy acceptance, backup/PITR posture, migration postflight, production LCP optimization, and release-owner GO/NO-GO remain open)
 
 ## 2026-10-29 — identity-version release deployed
 

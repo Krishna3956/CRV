@@ -27,8 +27,8 @@ test("submission analytics uses only a boolean email-presence signal", () => {
 test("page attribution and identity stitching remain privacy-safe", () => {
   assert.match(tracker, /marketing_pageview/);
   assert.match(tracker, /captureSubmissionAttribution/);
-  assert.match(analytics, /posthog\.identify\(userId/);
-  assert.match(analytics, /posthog\.register\(attributionProperties\(snapshot\)\)/);
+  assert.match(analytics, /identifyPostHog\(userId/);
+  assert.match(analytics, /registerPostHog\(attributionProperties\(snapshot\)\)/);
   assert.doesNotMatch(analytics, /\bemail\s*:/);
   assert.doesNotMatch(tracker, /document\.cookie|navigator\.userAgent/);
 });

@@ -1,10 +1,10 @@
 "use client";
 
 import { useEffect } from "react";
-import posthog from "posthog-js";
 import type { AuthChangeEvent, Session } from "@supabase/supabase-js";
 import { getSupabaseBrowser } from "@/lib/auth/supabase-browser";
 import { identifyMarketingUser, captureSubmissionAttribution } from "@/lib/marketing-analytics";
+import { resetPostHog } from "@/lib/posthog-client";
 
 const enabled = Boolean(process.env.NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN);
 
@@ -17,7 +17,7 @@ export function PostHogIdentity() {
     const identifySession = (session: Session | null) => {
       const user = session?.user;
       if (!user) {
-        posthog.reset();
+        resetPostHog();
         return;
       }
 
@@ -36,7 +36,7 @@ export function PostHogIdentity() {
 
     const { data } = supabase.auth.onAuthStateChange((event: AuthChangeEvent, session: Session | null) => {
       if (event === "SIGNED_OUT") {
-        posthog.reset();
+        resetPostHog();
         return;
       }
       identifySession(session);
