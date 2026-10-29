@@ -1,7 +1,10 @@
 const base = (process.env.TRANSLATION_AUDIT_BASE_URL || "https://trackmcp.com").replace(/\/$/, "");
+const AUDIT_USER_AGENT = "TrackMCP-translation-audit/1.0 (+https://trackmcp.com) Mozilla/5.0";
 
 async function request(path, init) {
-  const response = await fetch(`${base}${path}`, init);
+  const headers = new Headers(init?.headers);
+  headers.set("User-Agent", AUDIT_USER_AGENT);
+  const response = await fetch(`${base}${path}`, { ...init, headers });
   const body = await response.text();
   return { response, body };
 }

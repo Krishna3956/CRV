@@ -28,6 +28,13 @@ test("live runtime audit checks static, blog, category, tool, and endpoint behav
     assert.match(source, new RegExp(marker.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
   }
   assert.match(source, /rejectsUnsupportedLocale/);
+  assert.match(source, /AUDIT_USER_AGENT/);
+});
+
+test("live sitemap audit identifies itself to edge protection", async () => {
+  const source = await readFile(resolve(root, "scripts/live-translation-sitemap-audit.mjs"), "utf8");
+  assert.match(source, /AUDIT_USER_AGENT/);
+  assert.match(source, /User-Agent/);
 });
 
 test("Chinese browser preferences are detected without overriding an explicit cookie", async () => {

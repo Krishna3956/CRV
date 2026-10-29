@@ -1,7 +1,16 @@
 const base = (process.env.TRANSLATION_AUDIT_BASE_URL || "https://trackmcp.com").replace(/\/$/, "");
+const AUDIT_USER_AGENT = "TrackMCP-translation-audit/1.0 (+https://trackmcp.com) Mozilla/5.0";
 
 async function get(path) {
-  const response = await fetch(`${base}${path}`, { headers: { Accept: "application/xml" } });
+  const response = await fetch(`${base}${path}`, {
+    headers: {
+      Accept: "application/xml",
+      // Cloudflare serves an interstitial to the default Node user agent;
+      // identify this as a normal read-only browser audit instead of counting
+      // the edge challenge as sitemap content.
+      "User-Agent": AUDIT_USER_AGENT,
+    },
+  });
   if (!response.ok) throw new Error(`${path} returned HTTP ${response.status}`);
   return response.text();
 }
