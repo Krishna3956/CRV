@@ -9,10 +9,10 @@ promise that every product capability is complete.
 ## Verified and shipped
 
 - `origin/main` is `HEAD` (active pilot evidence baseline). The latest deployed
-  application runtime is immutable `5eb5799b74e88e7b9cb05a24b4fef1fe52cf94c4`
-  via App Runner workflow `40848157943`, with release gate, read-only
+  application runtime is immutable `b98c6f41cabdb12f976291c4160ac581423d3461`
+  via App Runner workflow `40850990485`, with release gate, read-only
   production smoke, immutable identity, and runtime-safety checks passed.
-  Hosted TrackMCP CI `40848157886` passed across the web/JavaScript, Go, and
+  Hosted TrackMCP CI `40850990551` passed across the web/JavaScript, Go, and
   .NET lanes, and the live health endpoint reports the same release SHA. The
   latest local release gate passes **152 suites**, lint, the **209-route**
   production build, and `git diff --check`.
@@ -53,6 +53,9 @@ promise that every product capability is complete.
   baseline. The live `/api/translation` smoke returned HTTP 200 with an AWS
   Simplified Chinese response; provider policy and linguistic acceptance are
   not represented as a completed pilot gate.
+- PR #715's public language-selector fix is also deployed in that baseline;
+  the selector is present beside “Sign in” on the direct origin and public
+  homepage, and production smoke `40850990485` passed.
 
 ## Deliberately not claimed
 

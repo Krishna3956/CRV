@@ -1,5 +1,20 @@
 # Founder OS 100 Customer Readiness Ledger
 
+## 2026-10-29 — public language selector fix deployed and verified
+
+- [x] PR #715 (`b98c6f41cabdb12f976291c4160ac581423d3461`) fixed the public
+  navigation gap by rendering the shared language selector beside “Sign in”.
+- [x] Main CI `40850990551` and App Runner deployment `40850990485` passed.
+  Production smoke covered the public docs, SDK pages, sitemap, immutable
+  release identity, and feature-claim boundaries; the live health endpoint
+  reports the exact deployed SHA.
+- [x] Direct origin and public-domain HTML both contain the language selector
+  and “Language: English”, while the AWS-backed Chinese translation endpoint
+  remains live and fail-closed.
+- [ ] This is a navigation/runtime milestone only. It does not close the
+  worker freshness, backup/PITR, privacy acceptance, customer-owned
+  protocol/UAT, translation-policy, or release-owner GO/NO-GO gates.
+
 ## 2026-10-29 — Chinese translation runtime merged, deployed, and verified
 
 - [x] PR #712 (`5eb5799b74e88e7b9cb05a24b4fef1fe52cf94c4`) added the shared
