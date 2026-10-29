@@ -53,4 +53,6 @@ The repository code contains 51 page entrypoints, but that is not the public URL
 
 The connected Supabase directory currently reports 17,797 approved or pending tool rows, and those rows are rendered through the dynamic `/tool/[name]` route. The runtime translates those pages on demand rather than trying to prebuild tens of thousands of locale copies. A submitted tool is inserted into `mcp_tools`, the directory/sitemap paths are revalidated, and the shared root runtime translates the new page when a visitor has selected or automatically prefers Chinese.
 
+The live-site audit currently finds 988 tool URLs in the published tool sitemap, even though the connected catalog reports 17,797 rows. Direct probes show that some tool URLs outside the sitemap still render, so this is a published sitemap/deployment discrepancy rather than evidence that the translation runtime only covers 988 tools. It must be resolved in the production rollout before using the sitemap as a complete catalog count.
+
 Run `npm run audit:translation-routes` to re-check the route tree and source URL inventory. Run `npm run audit:translation-live` to read the deployed sitemap and tool-sitemap index without changing anything. The audits confirm the shared root runtime, count page entrypoints, exclude API routes, and require the dynamic tool, blog, and category route families to remain present.
