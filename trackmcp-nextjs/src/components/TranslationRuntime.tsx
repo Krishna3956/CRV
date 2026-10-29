@@ -58,6 +58,21 @@ async function requestTranslation(batch: string[]): Promise<string[]> {
   throw lastError || new Error("Translation service unavailable.");
 }
 
+async function requestTranslationBestEffort(batch: string[]): Promise<Array<string | null>> {
+  try {
+    return await requestTranslation(batch);
+  } catch {
+    // A single provider-rejected label must not discard an entire page. Split
+    // the batch until the valid prose can be translated and leave only an
+    // individual unsupported token in its source language.
+    if (batch.length === 1) return [null];
+    const midpoint = Math.ceil(batch.length / 2);
+    const left = await requestTranslationBestEffort(batch.slice(0, midpoint));
+    const right = await requestTranslationBestEffort(batch.slice(midpoint));
+    return [...left, ...right];
+  }
+}
+
 function cacheTranslation(source: string, value: string) {
   translationCache.delete(source);
   translationCache.set(source, value);
@@ -216,8 +231,11 @@ async function translatePageInternal(generation: number) {
     const uncached = [...new Set(records.map(({ original }) => original))].filter((original) => !translationCache.has(original));
     for (let index = 0; index < uncached.length; index += 80) {
       const batch = uncached.slice(index, index + 80);
-      const translations = await requestTranslation(batch);
-      batch.forEach((original, batchIndex) => cacheTranslation(original, translations[batchIndex]));
+      const translations = await requestTranslationBestEffort(batch);
+      batch.forEach((original, batchIndex) => {
+        const value = translations[batchIndex];
+        if (value) cacheTranslation(original, value);
+      });
     }
     if (generation !== translationGeneration) return;
     records.forEach((record) => {
