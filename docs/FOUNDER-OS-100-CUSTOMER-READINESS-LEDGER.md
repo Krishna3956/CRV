@@ -2,12 +2,20 @@
 
 ## 2026-10-29 — TrackMCP social-auth path implemented with safe redirects
 
-- [x] Sign-in and sign-up now offer Google and GitHub through Supabase Auth's
+- [x] PR #708 (`03488cb67727c7fdf4b06b11d721bd06c884045a`) deployed the
+  sign-in and sign-up Google/GitHub path through Supabase Auth's
   authorization-code/PKCE flow. The callback exchanges only the short-lived
   code server-side, bounds provider errors, and accepts only same-origin
   internal `next` paths; regression coverage passes for open-redirect,
-  provider-error, and missing-code boundaries.
-- [x] Authentication documentation now explains the one-time Supabase provider
+  provider-error, and missing-code boundaries. App Runner deployment workflow
+  `40842716127` passed the release gate, rollout, immutable runtime identity,
+  runtime safety, and redacted production smoke checks; mainline CI
+  `40842716152` also passed.
+- [x] Live checks against runtime `03488cb67727c7fdf4b06b11d721bd06c884045a`
+  returned HTTP 200 for `/signin` and `/docs/authentication`; the callback
+  reduced an external `next` value to `/dashboard` and preserved only bounded
+  provider error codes. The public hostname returned 200 for both pages too.
+- [x] Authentication documentation explains the one-time Supabase provider
   and callback configuration, secure secret placement, and the distinction
   between TrackMCP account sign-in and customer MCP OAuth.
 - [ ] This implements the TrackMCP account-auth path but does not prove that
