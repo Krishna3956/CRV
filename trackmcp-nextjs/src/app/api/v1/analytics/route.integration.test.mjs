@@ -86,6 +86,24 @@ test("analytics reuses a short-lived workspace projection for repeated dashboard
   assert.equal((await second.json()).total_events, 1);
 });
 
+test("analytics authenticates again before serving a cached projection after revocation", async () => {
+  let revoked = false;
+  const base = fakeAdmin([event({ event_id: "revocation-cache" })]);
+  const admin = {
+    from(table) {
+      if (table !== "trackmcp_api_keys") return base.from(table);
+      return { select() { return this; }, eq() { return this; }, maybeSingle: async () => ({ data: { workspace_id: "workspace-a", revoked_at: revoked ? "2026-10-29T00:00:00Z" : null }, error: null }) };
+    },
+  };
+  const handler = createAnalyticsHandler(() => admin);
+  const first = await handler(new Request("http://analytics.test/api/v1/analytics?days=7", { headers: { authorization: "Bearer key" } }));
+  assert.equal(first.status, 200);
+
+  revoked = true;
+  const second = await handler(new Request("http://analytics.test/api/v1/analytics?days=7", { headers: { authorization: "Bearer key" } }));
+  assert.equal(second.status, 401);
+});
+
 test("analytics accepts a bounded inclusive custom date range", async () => {
   const handler = createAnalyticsHandler(() => fakeAdmin([event({ event_id: "custom-range" })]));
   const response = await handler(new Request("http://analytics.test/api/v1/analytics?from=2026-09-01&to=2026-09-07", { headers: { authorization: "Bearer key" } }));
