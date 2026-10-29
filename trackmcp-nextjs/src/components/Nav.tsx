@@ -84,7 +84,9 @@ export function Nav() {
         </nav>
 
         <div className="flex items-center gap-3">
-          <LanguageSwitcher />
+          <div className="hidden md:block">
+            <LanguageSwitcher />
+          </div>
           <Link
             href="/signin"
             className="hidden text-[15px] text-body transition-colors hover:text-ink sm:block"
