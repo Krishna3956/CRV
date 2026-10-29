@@ -98,6 +98,15 @@ currently limited by a Cloudflare block on `app.trackmcp.com` (the direct
 App Runner origin is healthy), so that last browser step must be rerun after
 the edge block clears.
 
+On 2026-10-30, Google Auth Platform verification was completed for the
+dedicated `TrackMCP` project. The console now reports that the branding is
+**verified and being shown to users**. This covers the app name, TrackMCP logo,
+support email, homepage, privacy policy, terms, and authorised domains. The
+console had previously reported that branding was not being shown, which is
+why an older hosted OAuth prompt could expose the Supabase project name. That
+state has been corrected and published. The application still uses the direct
+GIS flow so the chooser itself remains branded as TrackMCP.
+
 ## Release status
 
 The provider gate and branded Google flow are merged. The current live release
