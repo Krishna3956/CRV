@@ -32,6 +32,14 @@ This origin-level evidence confirms the deployed article implementation. It
 does not override the Search Console indexing results above, and it does not
 turn outbound citations into backlinks.
 
+As a front-door recheck, the same 30 article requests, sitemap, robots file,
+and stale-route redirect were then fetched from `https://trackmcp.com` with a
+browser user-agent and Googlebot user-agent. Both received HTTP 200 for public
+pages, the stale route returned the expected single 301, and the metadata/schema
+results matched the origin crawl. The default `curl` user-agent received a
+Cloudflare 403 challenge; that is an audit-client WAF challenge rather than a
+Googlebot block, but it should remain on the operational watch list.
+
 ## Verified and complete
 
 ### Live blog crawl
