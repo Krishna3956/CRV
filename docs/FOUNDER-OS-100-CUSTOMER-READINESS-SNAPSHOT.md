@@ -1,8 +1,22 @@
 # Founder OS first-100 readiness snapshot
 
-Updated: 2026-10-29 (Asia/Kolkata; source `HEAD`; deployed runtime `b98c6f41`; hosted evidence reconciled)
+Updated: 2026-10-29 (Asia/Kolkata; source `HEAD`; deployed runtime `1ecc4d56`; hosted evidence reconciled)
 
 Status: **Engineering green; release decision HOLD**
+
+## Latest auth/localization checkpoint — 2026-10-29
+
+- PR #723 (`1ecc4d56`) is merged and deployed. It makes English the
+  deterministic default and adds an explicit, dismissible Simplified Chinese
+  language suggestion. Translation contracts, focused lint, and the 210-route
+  build passed.
+- Production auth verification confirms `https://app.trackmcp.com` is the
+  canonical application host. The callback preserves bounded device paths and
+  rejects external redirects.
+- The connected Supabase Auth settings report email enabled but Google and
+  GitHub disabled. PR #724 adds a fail-closed provider gate and is intentionally
+  open/unmerged. Google/GitHub are not claimed as live until provider setup and
+  real new-user, existing-user, and device-flow UAT pass.
 
 ## Current checkpoint — 2026-10-29
 
