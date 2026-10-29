@@ -2,19 +2,17 @@
 
 Status: **HOLD — no silent waivers**  
 Reconciled: 2026-10-29 (Asia/Kolkata)
-Current deployed baseline: application
-`b98c6f41cabdb12f976291c4160ac581423d3461`, App Runner run `40850990485`
-(successful rollout and post-deploy verification). The current repository source is `main` at
-`HEAD`; hosted CI `40850990551` passed
-across web/JavaScript, Go, and .NET, and the full release gate passed 152
-suites. The App Runner deployment's read-only production smoke and immutable
-runtime identity checks passed against the deployed runtime SHA `b98c6f41`.
-The latest refresh-health artifact `12885673154` from evaluation `40848128417`
-remains a warning because AWS's rolling worker metric still includes an older
-`10606459 ms` lag datapoint; the current scheduled sample is within budget and
-the scheduler cadence itself remains proven. The alert
-evaluator deployment path is present but manual-only and disabled-first; no
-production alert delivery is claimed.
+Current deployed baseline: application runtime `32ff5dfe` (the App Runner
+rollout `40888363134` ended during its final wait, so workflow completion is not
+claimed; an uncached live health probe confirmed the exact runtime SHA). The
+current repository source is `main` at `08ef4c00781a357d6ec9a8273902155f9344974b`.
+The full local release gate passes 154 suites and the production build generates
+211 routes. Read-only authenticated smoke `40893382834` passed 37/37 checks;
+direct-origin first-ingest `40894964464` and SDK-shaped public-edge smoke
+`40896249223` both passed one bounded metadata-only event plus analytics
+read-back. Health evaluation `40891096616` (`12905900486`) is healthy within
+the 15-minute worker-lag budget. The alert evaluator remains manual-only and
+disabled-first; no production alert delivery is claimed.
 This is current runtime and source evidence, not a pilot GO decision.
 
 Historical baseline retained for continuity: application

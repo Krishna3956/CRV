@@ -24,9 +24,11 @@ function openQueueIds(source) {
 
 test("pilot release record points at the verified deployed baseline", () => {
   const current = section(record, "## Current deployed baseline", "## Historical deployed baseline");
-  assert.match(current, /b98c6f41cabdb12f976291c4160ac581423d3461/);
-  assert.match(current, /40850990485/);
-  assert.match(current, /Main CI\s+`40850990551` also\s+passed/);
+  assert.match(current, /32ff5dfe/);
+  assert.match(current, /40888363134/);
+  assert.match(current, /154 suites/);
+  assert.match(current, /211 routes/);
+  assert.match(current, /40891096616/);
 });
 
 test("pilot release record keeps unresolved operational gates explicit", () => {
@@ -45,9 +47,10 @@ test("release record preserves non-source acceptance decisions until an owner ac
 });
 
 test("external-gate register names accountable parties and closure evidence", () => {
-  assert.match(externalGates, /b98c6f41cabdb12f976291c4160ac581423d3461/);
-  assert.match(externalGates, /40850990485/);
-  assert.match(externalGates, /main.*HEAD/s);
+  assert.match(externalGates, /32ff5dfe/);
+  assert.match(externalGates, /40888363134/);
+  assert.match(externalGates, /154 suites passed/);
+  assert.match(externalGates, /Current source verification: `main` at/);
   assert.match(externalGates, /40397368253/);
   assert.match(externalGates, /40398170070/);
   assert.match(externalGates, /main`: current default branch/);
@@ -61,20 +64,19 @@ test("external-gate register names accountable parties and closure evidence", ()
 });
 
 test("acceptance matrix separates current source from deployed runtime", () => {
-  assert.match(acceptanceMatrix, /b98c6f41cabdb12f976291c4160ac581423d3461/);
-  assert.match(acceptanceMatrix, /current repository source is `main` at\s+`HEAD`/);
-  assert.match(acceptanceMatrix, /40850990485/);
-  assert.match(acceptanceMatrix, /40850990551/);
-  assert.match(acceptanceMatrix, /full release gate passed 152\s+suites/);
-  assert.match(acceptanceMatrix, /latest refresh-health artifact `12885673154` from evaluation `40848128417`\s+remains a warning/);
-  assert.match(acceptanceMatrix, /manual-only and disabled-first/);
+  assert.match(acceptanceMatrix, /32ff5dfe/);
+  assert.match(acceptanceMatrix, /current repository source is `main` at\s+`08ef4c00781a357d6ec9a8273902155f9344974b`/);
+  assert.match(acceptanceMatrix, /40893382834/);
+  assert.match(acceptanceMatrix, /40891096616/);
+  assert.match(acceptanceMatrix, /full local release gate passes 154\s+suites/);
+  assert.match(acceptanceMatrix, /alert evaluator remains manual-only/);
 });
 
 test("root pilot status stays aligned with the current evidence baseline", () => {
   assert.match(pilotStatus, /Last verified: 2026-10-29/);
   assert.match(pilotStatus, /origin\/main` is `HEAD`/);
-  assert.match(pilotStatus, /152 suites/);
-  assert.match(pilotStatus, /209-route/);
+  assert.match(pilotStatus, /154 suites/);
+  assert.match(pilotStatus, /211 routes/);
   assert.match(pilotStatus, /Release-owner scope approval and final first-100-user go\/no-go remain open/);
 });
 

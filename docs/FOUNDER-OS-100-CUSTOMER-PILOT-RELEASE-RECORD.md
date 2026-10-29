@@ -8,20 +8,23 @@ commit and the operator accepts the listed limitations.
 
 ## Current deployed baseline — 2026-10-29
 
-The current baseline is immutable commit `b98c6f41cabdb12f976291c4160ac581423d3461`.
-App Runner deployment `40850990485` succeeded; the final release gate, image binding,
-rollout, read-only smoke, immutable identity, runtime-safety checks, post-deploy
-authenticated smoke, and live Chinese translation audit all passed. Main CI
-`40850990551` also passed.
-Live `/api/health` reports this exact SHA, and `/` plus `/docs` return HTTP 200.
-The source includes the safe social-auth flow, shared Chinese translation runtime,
-the public language-selector fix,
-and the responsive homepage hero
-polish: the CLI command box is capped on narrow screens, the desktop-only hero
-bridge is hidden on phones, and the homepage heading now says “Understand how
-your MCP is being used.” The release remains Draft/HOLD because the owner,
-backup/recovery, privacy acceptance, worker-freshness, and customer-owned
-lifecycle/transport gates are still open.
+The current live runtime is immutable commit `32ff5dfe`. App Runner rollout
+`40888363134` ended during its final wait, so workflow completion is not claimed;
+an uncached `/api/health` probe confirmed the exact runtime SHA. The current
+source is `main` at `08ef4c00781a357d6ec9a8273902155f9344974b`; the merges after
+`32ff5dfe` are documentation/test-harness only and do not require a runtime
+deployment.
+
+The full local release gate passes 154 suites and the production build generates
+211 routes. Authenticated read-only smoke `40893382834` passed 37/37 checks;
+direct-origin first-ingest `40894964464` and SDK-shaped public-edge smoke
+`40896249223` both passed a bounded metadata-only event and analytics read-back.
+Health evaluation `40891096616` (`12905900486`) reports a healthy bounded worker
+window. OAuth remains fail-closed because Supabase reports Google/GitHub
+disabled; email/password is the available fallback. The release remains
+Draft/HOLD because backup/recovery ownership, privacy acceptance, credentialed
+lifecycle/customer-endpoint UAT, provider setup/UAT, and release-owner approval
+remain open.
 
 The prior runtime baseline and historical evidence remain below.
 
@@ -100,16 +103,12 @@ recovery-evidence hardening, not a final operational SLO acceptance.
 
 ## Latest source verification — 2026-10-29
 
-The current repository source is `main` at `HEAD`; the deployed application is
-immutable source `b98c6f41` via App Runner workflow `40850990485`.
-Hosted TrackMCP CI `40850990551` passed across web/JavaScript, Go, and .NET.
-The latest local release gate passes **152 suites**, lint, the production build
-(**209 routes**), and `git diff --check`. The deployment's read-only
-production smoke, immutable identity, runtime-safety checks, and live health
-identity verification all passed. Scheduler deployment and health evidence are
-recorded above. The opaque catalog-history cursor fix and shared Chinese
-translation runtime and public language-selector fix are now included in the
-verified `b98c6f41` image.
+The current repository source is `main` at `08ef4c00781a357d6ec9a8273902155f9344974b`;
+the deployed application remains immutable source `32ff5dfe` as described above.
+The latest local release gate passes **154 suites**, lint, the production build
+(**211 routes**), and `git diff --check`. The current worker, auth-scope, and
+first-ingest evidence is recorded above and in the readiness ledger. The older
+`b98c6f41` rollout remains historical evidence only.
 
 The preceding deployed source was `4efa2e1` (including the health-report semantics
 correction that honors a proven AWS scheduler window while retaining historical

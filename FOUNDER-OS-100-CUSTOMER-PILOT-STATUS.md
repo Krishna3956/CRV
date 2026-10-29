@@ -6,16 +6,36 @@ This is the concise release-owner handoff. It records evidence that exists,
 what is intentionally not claimed, and the next work queue. It is not a
 promise that every product capability is complete.
 
+## Current evidence checkpoint — 2026-10-29
+
+- Source `main` is `08ef4c00781a357d6ec9a8273902155f9344974b`; the latest live
+  application runtime remains immutable `32ff5dfe` because the subsequent
+  merges are documentation/test-harness only. App Runner rollout `40888363134`
+  ended during its final wait, but an uncached live health probe confirmed the
+  exact runtime SHA; its workflow completion is not claimed.
+- The current local release gate passes **154 suites**, TypeScript, lint,
+  `git diff --check`, and the production build (**211 routes**).
+- Read-only authenticated smoke `40893382834` passed **37/37** tenant/privacy
+  checks. Direct-origin first-ingest `40894964464` and SDK-shaped public-edge
+  first-ingest `40896249223` both accepted one bounded metadata-only event and
+  verified analytics read-back; their redacted artifacts are `12907131051` and
+  `12906059482`.
+- Refresh-worker health evaluation `40891096616` (`12905900486`) reports a
+  healthy bounded window: zero scheduler/worker failures, four complete
+  samples, and maximum lag `867340 ms` within the `900000 ms` budget.
+- The production OAuth provider probe remains `email=true`,
+  `google=false`, `github=false`; the UI correctly hides unavailable social
+  controls. Google/GitHub provider setup and real UAT remain open.
+
+The release remains **HOLD** pending backup/PITR ownership, production privacy
+acceptance, credentialed key-lifecycle/customer-endpoint UAT, OAuth provider
+configuration/UAT, and release-owner GO/NO-GO acceptance.
+
 ## Verified and shipped
 
-- `origin/main` is `HEAD` (active pilot evidence baseline). The latest deployed
-  application runtime is immutable `b98c6f41cabdb12f976291c4160ac581423d3461`
-  via App Runner workflow `40850990485`, with release gate, read-only
-  production smoke, immutable identity, and runtime-safety checks passed.
-  Hosted TrackMCP CI `40850990551` passed across the web/JavaScript, Go, and
-  .NET lanes, and the live health endpoint reports the same release SHA. The
-  latest local release gate passes **152 suites**, lint, the **209-route**
-  production build, and `git diff --check`.
+- `origin/main` is `HEAD` (active pilot evidence baseline). The current
+  deployed runtime and source reconciliation are recorded in the checkpoint
+  above; the older `b98c6f41` rollout remains historical evidence only.
 - Production schema postflights verified required tables, indexes, functions,
   RLS/privilege boundaries, constraints, integrity aggregates, and catalog
   entity-read privacy checks with zero invalid rows in the audited sets.
@@ -44,11 +64,9 @@ promise that every product capability is complete.
   `iam:PassRole` handoff required by App Runner.
 - Guarded distributed-rate-limit workflow `40220255833` completed successfully;
   App Runner configuration update and live postflight verification passed.
-- Latest refresh-health evaluation `40848128417` (artifact `12885673154`) is
-  warning with scheduler cadence proven (4 invocations, 0 errors, 4 scheduled
-  successes) and a clean current scheduled sample (`179222 ms` lag, zero
-  failed/retryable work). The warning remains authoritative because AWS's
-  rolling worker metric still contains an older `10606459 ms` lag datapoint.
+- The older refresh-health evaluation `40848128417` is superseded by the
+  healthy current-window evaluation recorded above; historical warning data is
+  retained for audit continuity and is not the current decision surface.
 - PR #712's shared Chinese translation runtime is deployed in the current
   baseline. The live `/api/translation` smoke returned HTTP 200 with an AWS
   Simplified Chinese response; provider policy and linguistic acceptance are

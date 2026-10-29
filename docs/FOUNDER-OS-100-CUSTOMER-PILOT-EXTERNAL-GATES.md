@@ -11,27 +11,28 @@ is intentionally not a GO approval and must not be treated as one.
 
 - `main`: current default branch. Immutable deployed SHAs belong in the
   release record; PR checks remain attached to their exact review commits.
-- Current deployed application: `b98c6f41cabdb12f976291c4160ac581423d3461`,
-  App Runner workflow `40850990485` (successful rollout; rollout,
-  release gate, production smoke, immutable identity, runtime-safety checks,
-  and live health identity verification passed).
-- Current source verification: `main` at `HEAD`
-  (`HEAD`); hosted TrackMCP CI `40850990551` passed across the
-  web/JavaScript, Go, and .NET lanes. The refresh scheduler
-  and health evidence are recorded below. This does not close the external
-  owner, backup, privacy, or customer-owned protocol gates.
+- Current deployed application runtime: `32ff5dfe`. App Runner workflow
+  `40888363134` ended during its final wait, so workflow completion is not
+  claimed; an uncached live health probe confirmed the exact runtime SHA.
+- Current source verification: `main` at
+  `08ef4c00781a357d6ec9a8273902155f9344974b`. The full local release gate
+  passes 154 suites and the production build generates 211 routes. Read-only
+  auth smoke `40893382834`, direct first-ingest `40894964464`, and
+  SDK-shaped public-edge first-ingest `40896249223` are recorded in the
+  readiness ledger. This does not close the external owner, backup, privacy,
+  credentialed lifecycle, OAuth provider, or customer-owned protocol gates.
 - Historical deployed baselines retained for audit include `9638e23c8529f9b1781d96413529e33a692715ed`
   (App Runner workflow `40468547762`) and `37579eade74a20818cd4f83569493e830e4855de`
   (App Runner workflow `40474794151`), plus the earlier deployment identity
   `4efa2e1bd444706e84d78ef85b8a7b3b133a46aa` and workflow `40497434962`
   retained by the acceptance contract.
-- This register records the already-successful `b98c6f41` rollout and its
-  bounded evidence. It does not change the external owner, backup, privacy, or
-  customer-owned protocol decisions.
+- The older `b98c6f41` rollout remains historical evidence. This register does
+  not change the external owner, backup, privacy, or customer-owned protocol
+  decisions.
 - Queue: 263 total, 260 checked, and P0 queue items `020`, `157`, and `260`
   remain open.
-- Full release gate: **152 suites passed**, with lint and the 209-route
-  production build green (the prior 177-route baseline remains retained in
+- Full release gate: **154 suites passed**, with lint and the 211-route
+  production build green (the prior 209/177-route baselines remain retained in
   historical evidence).
 - Authenticated device-flow UAT covers expired, denied, multiple-membership,
   and zero-membership workspace creation without browser key disclosure.
@@ -82,7 +83,7 @@ is intentionally not a GO approval and must not be treated as one.
 | 157 — database recovery posture | Infrastructure/provider owner | Region and tier, backup/PITR policy or an explicitly accepted limitation, restoration owner, and a tested recovery reference | OPEN; authenticated Supabase inspection records Free tier, East US/`us-east-1`, Nano/shared compute, and PITR **Disabled**. A fresh signed-in browser inspection of Database → Backups (2026-10-27) showed no usable scheduled-backup or restore-point evidence. No restoration contact or rehearsal is evidenced. |
 | Privacy lifecycle acceptance | Release owner | Explicit acceptance that export is bounded/secret-free, deletion requests are review-only, and destructive deletion is disabled without an approved worker | OPEN in the release record |
 | Synthetic reliability-data hygiene | Release owner | Explicit acceptance that synthetic canary rows are test evidence only and cannot be presented as customer incidents | OPEN in the release record |
-| Refresh scheduler enablement | Infrastructure/provider owner | Store `TRACKMCP_REFRESH_WORKER_SECRET` in Secrets Manager, map the App Runner runtime variable from that ARN, deploy the disabled-first AWS Scheduler stack, verify endpoint/token/DLQ behavior, enable the five-minute schedule, and retain at least three scheduled samples within the 15-minute freshness budget | **HOLD / warning:** latest health artifact `12885673154` from run `40848128417` proves four scheduled invocations and four end-to-end successes; the current scheduled sample is within budget with zero failed/retryable work, but the AWS rolling worker metric still contains an older `10606459 ms` lag datapoint. Let the bounded window roll forward and re-run the health evaluation before calling freshness green. |
+| Refresh scheduler enablement | Infrastructure/provider owner | Store `TRACKMCP_REFRESH_WORKER_SECRET` in Secrets Manager, map the App Runner runtime variable from that ARN, deploy the disabled-first AWS Scheduler stack, verify endpoint/token/DLQ behavior, enable the five-minute schedule, and retain at least three scheduled samples within the 15-minute freshness budget | **PROVEN / monitor:** latest health artifact `12905900486` from run `40891096616` proves four scheduled invocations, four complete worker samples, zero errors, and max lag `867340 ms` within the 15-minute budget. Continue monitoring after release; the older `12885673154` / `40848128417` warning is historical evidence only. |
 | 260 — final go/no-go | Release owner | Timestamped GO/NO-GO decision linking the green evidence and accepted limitations | OPEN; engineering recommendation remains HOLD |
 
 ## Closure rule
