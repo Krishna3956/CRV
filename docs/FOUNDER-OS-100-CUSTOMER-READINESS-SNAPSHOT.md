@@ -18,6 +18,19 @@ Updated: 2026-10-30 (Asia/Kolkata; source `2e321201`; deployed runtime `2e321201
 
 Status: **Engineering green; release decision HOLD**
 
+## 2026-10-30 credentialed tenant/auth scope checkpoint
+
+The production read-only authenticated smoke completed **37/37 checks** against
+`https://app.trackmcp.com` for two distinct workspace keys and a revoked-key
+negative fixture. Both keys remained bound to their authenticated workspace
+despite conflicting workspace query parameters; all v2 and legacy read models
+returned privacy-safe authenticated envelopes; API-key Action Queue access was
+correctly denied; and the revoked key returned the expected 401/403 class.
+The redacted report is `/tmp/trackmcp-production-auth-smoke.json`. This closes
+the current tenant/authenticated-read evidence point only. Key lifecycle
+mutation, customer-owned endpoint/transport UAT, transport-owned reconnect or
+replay, backup/PITR, privacy approval, and release-owner GO/NO-GO remain open.
+
 ## Current auth/localization checkpoint — 2026-10-30
 
 - The deployed App Runner runtime is `3116f2c900e764a341bb5df779aaf0b149268805` (workflow `40955384383`, rollout in progress when checked). `main` is now `8f9bbcd5f8c37c9e24dcd8abafe4e35c2e375658` after a documentation-only merge; the immutable health probe reports the deployed runtime SHA.

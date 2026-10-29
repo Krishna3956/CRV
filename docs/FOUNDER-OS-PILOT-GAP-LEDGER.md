@@ -2,6 +2,28 @@
 
 Status: active autonomous audit, started 2026-10-21.
 
+## 2026-10-30 — credentialed tenant/auth scope smoke rechecked
+
+- [x] The read-only production authenticated smoke completed **37/37 checks**
+  against `https://app.trackmcp.com` using the configured two-workspace test
+  fixture and revoked-key negative fixture. Both key-status calls returned
+  HTTP 200 with workspace/service availability; each key remained bound to its
+  own workspace even when the request carried the other workspace in the query
+  string.
+- [x] All twelve v2 read models and the three legacy read models returned
+  authenticated, workspace-scoped responses for both workspaces. The report's
+  recursive privacy inspection found no credential, identity, prompt-argument,
+  resource-content, or authorization fields. API-key Action Queue access was
+  denied with HTTP 403 as designed, and the revoked-key check returned the
+  expected HTTP 401/403 class.
+- [x] Evidence is redacted at `/tmp/trackmcp-production-auth-smoke.json`; the
+  smoke writes no application data and performs no key creation, rotation,
+  revocation, ingest, or dashboard mutation.
+- [ ] This closes the current authenticated read-scope/tenant-isolation
+  evidence point only. Credentialed key-lifecycle mutation, customer-owned
+  endpoint/transport UAT, transport-owned reconnect/replay, backup/PITR,
+  privacy approval, and release-owner GO/NO-GO remain open.
+
 ## 2026-10-30 — active package-truth reconciliation
 
 - [x] The active published train is `@trackmcp/sdk@0.1.25`,

@@ -1,5 +1,19 @@
 # Founder OS 100 Customer Readiness Ledger
 
+## 2026-10-30 — credentialed tenant/auth scope smoke rechecked
+
+- [x] The production read-only authenticated smoke completed **37/37 checks**
+  for two distinct workspace keys plus a revoked-key negative fixture.
+- [x] Key scope remained bound to the authenticated workspace despite
+  conflicting `workspace_id` query parameters. All v2 and legacy analytics
+  projections returned authenticated, privacy-safe envelopes for both
+  workspaces; API-key Action Queue access remained correctly denied.
+- [x] The redacted evidence file is `/tmp/trackmcp-production-auth-smoke.json`.
+  No key lifecycle mutation, ingest, dashboard mutation, or response body was
+  persisted by the smoke.
+- [ ] This is not customer-owned transport UAT or a key rotation/revocation
+  acceptance. Those external pilot gates remain open.
+
 ## 2026-10-30 — active package-version truth aligned
 
 - [x] Active package manifests, setup documentation, pilot smoke defaults, and
