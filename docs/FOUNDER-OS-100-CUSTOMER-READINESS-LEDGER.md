@@ -1,5 +1,20 @@
 # Founder OS 100 Customer Readiness Ledger
 
+## 2026-10-30 — CLI npm bin entrypoint fix published
+
+- [x] PR #735 merged to `main` as `fac78e7cf7c5baa467fe18b996da0dbb7a01ec3e`.
+- [x] `@trackmcp/cli@0.1.13` is publicly available with npm provenance and
+  integrity `sha512-O1GJrapjo6w33+KtJsSN4r3hD3F8FVUN3fZAj3Nm5JGab3klCqRQNnszbF97f9E5aYTRe5xbFLFDk7nBk1MAWA==`.
+- [x] The entrypoint resolves npm/npx `.bin` symlinks before dispatching, so
+  `npx @trackmcp/cli init`, `doctor`, and `--help` no longer exit silently.
+  Packed-consumer coverage exercises the real `.bin` path and Node 25 direct
+  checks pass.
+- [x] Active docs and the production pilot registry default now reference
+  `@trackmcp/cli@0.1.13`; historical package entries remain unchanged.
+- [ ] This closes the CLI entrypoint regression only. Credentialed customer
+  endpoint/key-lifecycle UAT, backup/PITR, privacy approval, and release-owner
+  GO/NO-GO remain separate pilot gates.
+
 ## 2026-10-30 — first-login auth and marketing translation stabilization
 
 - [x] Deployed App Runner release `3116f2c900e764a341bb5df779aaf0b149268805` (workflow `40955384383`) was observed healthy during rollout; `main` is now `8f9bbcd5f8c37c9e24dcd8abafe4e35c2e375658` after the documentation-only reconciliation merge.

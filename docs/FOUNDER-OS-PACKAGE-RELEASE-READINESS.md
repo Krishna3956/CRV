@@ -3,6 +3,20 @@
 This is a review record, not a publication action. No registry credentials are
 used here and no package is published automatically.
 
+## 2026-10-30 — CLI entrypoint patch published
+
+PR #735 merged as `fac78e7cf7c5baa467fe18b996da0dbb7a01ec3e`. The reviewed
+single-package workflow `40962471850` published `@trackmcp/cli@0.1.13` with
+provenance after the CLI unit, packed-consumer, and artifact audits passed.
+The exact public npm integrity is:
+
+`sha512-O1GJrapjo6w33+KtJsSN4r3hD3F8FVUN3fZAj3Nm5JGab3klCqRQNnszbF97f9E5aYTRe5xbFLFDk7nBk1MAWA==`
+
+The packed consumer runs the installed `node_modules/.bin/trackmcp` symlink,
+covering the production npx/npm-exec path. This release fixes silent early exit
+and adds local help output; it does not expand the documented transport or
+OAuth boundaries.
+
 ## 2026-10-29 — coordinated edge-delivery train published
 
 The reviewed release train was merged to `main` as

@@ -366,7 +366,7 @@ keeping resource URI/content and prompt names/arguments private by default?
   the installed registry artifacts; the CLI path does not.
 - [x] Publish changed SDK code only under a new approved version; the current
   reviewed TypeScript SDK is prepared as `@trackmcp/sdk@0.1.25`; the reviewed
-  train is `@trackmcp/cli@0.1.12` and
+  train is `@trackmcp/cli@0.1.13` and
   `trackmcp==0.1.15`, prepared from the reviewed source head for the gated
   publication workflow. The prior published train (`0.1.20`/`0.1.10`/`0.1.12`)
   remains historical; exact checksums and provenance are recorded in the
