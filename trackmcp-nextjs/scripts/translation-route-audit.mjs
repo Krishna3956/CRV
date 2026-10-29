@@ -58,11 +58,15 @@ const staticSitemapUrls = [...sitemapSource.matchAll(/url:\s*`\$\{BASE\}(?:\/[^`
 const staticPageEntrypoints = pages.filter((page) => !page.includes("["));
 const sitemapStaticPaths = [...sitemapSource.matchAll(/url:\s*`\$\{BASE\}([^`$]*)`/g)].map((match) => match[1] || "/");
 const sitemapStaticCoverageGaps = staticPageEntrypoints.filter((page) => !sitemapStaticPaths.includes(page));
+const publicDocumentationCoverageGaps = staticPageEntrypoints.filter((page) => page.startsWith("/docs/") && !sitemapStaticPaths.includes(page));
 const categoryEntries = (await readFile(join(appRoot, "../lib/repository/types.ts"), "utf8"))
   .match(/\bid:\s*["']/g)?.length || 0;
 
 if (!rootLayout.includes("<LanguageSwitcher") || !rootLayout.includes("<TranslationRuntime")) {
   throw new Error("Root layout is missing the global language runtime.");
+}
+if (publicDocumentationCoverageGaps.length) {
+  throw new Error(`Public documentation routes missing from sitemap: ${publicDocumentationCoverageGaps.join(", ")}`);
 }
 for (const expected of ["/tool/[name]", "/blog/[slug]", "/category/[slug]"]) {
   if (!dynamicPages.includes(expected)) throw new Error(`Expected dynamic route is missing: ${expected}`);
@@ -76,6 +80,7 @@ const report = {
   sourcePublicUrlInventory: {
     staticSitemapUrls,
     sitemapStaticCoverageGaps,
+    publicDocumentationCoverageGaps,
     blogPostEntries,
     categoryEntries,
     totalBeforeToolCatalog: staticSitemapUrls + blogPostEntries + categoryEntries,
