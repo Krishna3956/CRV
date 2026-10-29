@@ -12,6 +12,7 @@ test("root layout exposes one global language switcher and runtime", async () =>
   const nav = await readFile(resolve(root, "src/components/Nav.tsx"), "utf8");
   assert.match(nav, /import \{ LanguageSwitcher \} from "\.\/LanguageSwitcher"/);
   assert.match(nav, /<LanguageSwitcher\s*\/>/);
+  assert.match(nav, /<div className="hidden md:block">\s*<LanguageSwitcher\s*\/>/);
 });
 
 test("route audit covers static and dynamic page families", async () => {
