@@ -1,5 +1,23 @@
 # Founder OS 100 Customer Readiness Ledger
 
+## 2026-10-29 — refresh retryable diagnostics and active-gate reconciliation
+
+- [x] The bounded refresh batch result now exposes a capped
+  `retryable_error_codes` histogram containing only sanitized error-code labels;
+  it never includes handler detail, URLs, credentials, payloads, or workspace
+  identifiers. The worker unit test and scheduled-worker workflow contract test
+  cover the boundary, and the scheduled artifact aggregates the counts with a
+  per-code cap.
+- [x] The active worker-freshness row now points at the latest health artifact
+  `12870578168` from run `40812789576`, rather than the older PASS artifact. The
+  current state is **HOLD / warning**: AWS cadence is proven, but the latest
+  evaluation contains retryable/stale work and `977319 ms` maximum queue lag
+  against the `900000 ms` budget.
+- [ ] A runtime deployment and one or more fresh scheduled samples are still
+  required before this diagnostic can explain the next retryable code and the
+  freshness gate can be reconsidered. No warning is being converted to green by
+  this instrumentation change.
+
 ## 2026-10-29 — refresh scheduler re-enabled and freshness rechecked
 
 - [x] Re-ran the reviewed refresh-scheduler deployment with the five-minute
@@ -811,7 +829,7 @@ End of historical checkpoint archive.
 
 | Gate | Current evidence | State | Required closure evidence |
 | --- | --- | --- | --- |
-| Worker freshness | Health artifact `40629348992`: 3/3 complete AWS worker-summary samples, 6/6 invocations, 4/4 end-to-end EMF successes, zero parse/failed/retryable jobs, and queue lag within the 15-minute budget | **PASS** | Continue monitoring the same bounded metrics; regressions reopen this gate |
+| Worker freshness | Latest health artifact `12870578168` from run `40812789576`: AWS cadence is proven (4 invocations, 0 errors, 4 end-to-end successes), but the evaluation is **warning** because one scheduled row is stale/retryable and the AWS worker max queue lag is `977319 ms`, above the `900000 ms` pilot budget | **HOLD / warning** | Obtain a fresh bounded evaluation window with at least 3 complete scheduled samples, zero retryable/failed rows, and maximum queue lag within 900000 ms; do not substitute the older PASS artifact `40629348992` |
 | Backup/PITR | Supabase Free Plan has no scheduled backups or PITR; inspection recorded in the backup evidence entries below | **HOLD / owner decision** | Accepted documented limitation with named recovery owner/runbook, or plan upgrade plus tested restore rehearsal |
 | Privacy acceptance | Engineering privacy/export/deletion contracts pass; production acceptance evidence is not recorded | **HOLD / owner decision** | Signed production privacy review and retention/deletion acceptance |
 | Credentialed lifecycle/UAT | Read-only tenant/auth smoke, direct-origin first-ingest UAT `40598515473`, terminal device activation plus first-event UAT, authenticated Streamable HTTP/SSE adapter-to-ingest smoke with 15 persisted observations, disposable production key rotation/revocation UAT, and the fresh 11-check disposable device-flow UAT covering canonical ingest plus OTLP/HTTP JSON and protobuf are verified; customer-owned endpoint/protocol UAT remains unexecuted | **HOLD / credentialed** | Customer-owned endpoint/protocol UAT artifact, plus explicit acceptance of the unsupported reconnect/replay, durable-subscription, and OAuth boundaries |
