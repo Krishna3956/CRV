@@ -14,7 +14,7 @@ export default withTrackMCP(server, {
   apiKey: process.env.TRACKMCP_KEY!,
   service: "my-mcp-server",
   server_version: "2026.10.26", // bounded release metadata (optional)
-  sdk_version: "0.1.24",        // published release metadata (optional)
+  sdk_version: "0.1.25",        // published release metadata (optional)
   deployment_id: "deploy-42",   // bounded release metadata (optional)
 });
 ```
@@ -86,7 +86,7 @@ Every modern request also carries the canonical
 as required by the stateless 2026-07-28 revision. The protocol-version value
 is controlled by the client and cannot be replaced by caller payload metadata.
 The default identity is
-`@trackmcp/sdk@0.1.24` (published with provenance); callers may provide a safe `{ name, version }` pair via
+`@trackmcp/sdk@0.1.25` (published with provenance); callers may provide a safe `{ name, version }` pair via
 `ModernMcpClient` options. Invalid or control-character values fall back to
 the SDK identity, and no credentials or payload data are included.
 

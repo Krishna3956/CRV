@@ -23,7 +23,7 @@ export default function GoDocsPage() {
     Service: "acme-mcp-server",
     Environment: "production",
     ServerVersion: "2026.10.26", // bounded release metadata (optional)
-    SDKVersion: "0.1.24",        // reviewed TypeScript release metadata (optional)
+    SDKVersion: "0.1.25",        // reviewed TypeScript release metadata (optional)
     DeploymentID: "deploy-42",   // bounded release metadata (optional)
 })
 defer client.Flush()
