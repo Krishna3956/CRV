@@ -6,6 +6,7 @@ import { Analytics } from "@vercel/analytics/react";
 import { SpeedInsights } from "@vercel/speed-insights/react";
 import { ScrollToTop } from "@/components/ScrollToTop";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
+import { LanguageSuggestion } from "@/components/LanguageSuggestion";
 import { TranslationRuntime } from "@/components/TranslationRuntime";
 import { PostHogIdentity } from "@/components/PostHogIdentity";
 import { MarketingAttributionTracker } from "@/components/MarketingAttributionTracker";
@@ -90,6 +91,7 @@ export default function RootLayout({ children }: RootLayoutProps) {
           </div>
         </div>
         <TranslationRuntime />
+        <LanguageSuggestion />
         <ScrollToTop />
         <PostHogIdentity />
         <MarketingAttributionTracker />

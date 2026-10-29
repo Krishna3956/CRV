@@ -6,7 +6,7 @@ The site now has a global language control in the root layout. It is available o
 
 - English remains the canonical URL and source language.
 - Selecting `中文（简体）` stores `trackmcp_locale=zh-CN` and translates the rendered text in place.
-- If there is no saved language choice, browsers advertising `zh`, `zh-CN`, `zh-Hans`, or `zh-SG` start with Simplified Chinese automatically. An explicit English or Chinese choice always wins.
+- English is the deterministic default when there is no saved language choice. Browsers advertising `zh`, `zh-CN`, `zh-Hans`, or `zh-SG` receive a small, dismissible Simplified Chinese suggestion; browser language never silently changes the page.
 - Route transitions and newly rendered content are observed with `MutationObserver`, so a newly submitted tool page does not need a new page file or a translation build.
 - Code, preformatted blocks, URLs, SVGs, editable values, and explicitly marked `data-no-translate` content are left unchanged. The document title plus user-facing `placeholder`, `aria-label`, `title`, and image `alt` attributes are translated alongside visible text.
 - A failed or incomplete translation restores the original English content. The client never leaves a partially translated page visible.

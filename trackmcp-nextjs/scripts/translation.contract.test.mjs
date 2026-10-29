@@ -47,18 +47,27 @@ test("live sitemap audit identifies itself to edge protection", async () => {
   assert.match(source, /User-Agent/);
 });
 
-test("Chinese browser preferences are detected without overriding an explicit cookie", async () => {
+test("Chinese browser preferences only drive a non-blocking suggestion", async () => {
   const source = await readFile(resolve(root, "src/components/site-locale.ts"), "utf8");
   assert.match(source, /navigator\.languages/);
   assert.match(source, /zh-CN/);
   assert.match(source, /trackmcp_locale/);
   assert.match(source, /browserPrefersSimplifiedChinese/);
+  assert.match(source, /return "en";/);
+  assert.match(source, /LANGUAGE_SUGGESTION_DISMISSED_COOKIE/);
   const switcher = await readFile(resolve(root, "src/components/LanguageSwitcher.tsx"), "utf8");
   assert.match(switcher, /useSyncExternalStore/);
   assert.match(switcher, /getServerLocale/);
   assert.match(switcher, /selectedLocale/);
   assert.match(switcher, /setSelectedLocale\(next\)/);
   assert.match(switcher, /writeSiteLocale\(next\)/);
+  const suggestion = await readFile(resolve(root, "src/components/LanguageSuggestion.tsx"), "utf8");
+  assert.match(suggestion, /是否切换为简体中文/);
+  assert.match(suggestion, /切换为中文/);
+  assert.match(suggestion, /Continue in English/);
+  assert.match(suggestion, /hasDismissedLanguageSuggestion/);
+  const layout = await readFile(resolve(root, "src/app/layout.tsx"), "utf8");
+  assert.match(layout, /<LanguageSuggestion\s*\/>/);
 });
 
 test("new submissions stay inside the shared translation runtime", async () => {
