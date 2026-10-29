@@ -1,5 +1,18 @@
 # Founder OS 100 Customer Readiness Ledger
 
+## 2026-10-29 — bounded refresh diagnostics deployed
+
+- [x] PR #695 (`dd6e554463ca0658c60d435c1cb0022bf043dd10`) was merged to
+  `main` after all hosted CI checks passed. The local release gate passed 152
+  suites, and local lint, build, and TypeScript checks passed.
+- [x] App Runner deployment workflow `40815048476` completed successfully,
+  including the production smoke, running-release identity, and runtime-safety
+  checks. Direct origin `/`, `/blog`, and `/api/health` returned HTTP 200;
+  `/api/health` reported the exact release SHA `dd6e554463ca0658c60d435c1cb0022bf043dd10`.
+- [ ] The deployment does not close the worker-freshness gate. A fresh bounded
+  health evaluation with zero retryable/failed rows and queue lag within
+  `900000 ms` is still required; the existing warning remains authoritative.
+
 ## 2026-10-29 — refresh retryable diagnostics and active-gate reconciliation
 
 - [x] The bounded refresh batch result now exposes a capped
