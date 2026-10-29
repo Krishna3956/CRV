@@ -3,9 +3,15 @@
 import { useEffect } from "react";
 import { readSiteLocale, type SiteLocale } from "./site-locale";
 
-type TextRecord = { node: Text; original: string };
+type TextRecord = { kind: "text"; node: Text; original: string };
+type AttributeName = "placeholder" | "aria-label" | "title" | "alt";
+type AttributeRecord = { kind: "attribute"; element: Element; attribute: AttributeName; original: string };
+type TranslationRecord = TextRecord | AttributeRecord;
+const TRANSLATABLE_ATTRIBUTES: AttributeName[] = ["placeholder", "aria-label", "title", "alt"];
 const originals = new Map<Text, string>();
 const translated = new Set<Text>();
+const attributeOriginals = new Map<Element, Map<AttributeName, string>>();
+const translatedAttributes = new Map<Element, Set<AttributeName>>();
 const translationCache = new Map<string, string>();
 const MAX_CACHE_ENTRIES = 1_000;
 let translationInFlight: Promise<void> | null = null;
@@ -31,8 +37,19 @@ function isExcluded(node: Text): boolean {
   return false;
 }
 
-function collectTextNodes(): TextRecord[] {
-  const records: TextRecord[] = [];
+function isExcludedElement(element: Element): boolean {
+  // Form controls are excluded from text-node translation, but their
+  // user-facing placeholder and aria-label attributes are still translatable.
+  return Boolean(element.closest("[data-no-translate], script, style, noscript, pre, code, svg, [contenteditable='true'], [aria-hidden='true']"));
+}
+
+function isTranslatableValue(value: string): boolean {
+  const text = value.trim();
+  return text.length >= 2 && !/^https?:\/\//i.test(text) && !/^[-_./:@#$%{}[\]()<>=+*|\\\d\s]+$/.test(text);
+}
+
+function collectTranslationRecords(): TranslationRecord[] {
+  const records: TranslationRecord[] = [];
   const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
   let node: Node | null;
   while ((node = walker.nextNode())) {
@@ -50,8 +67,29 @@ function collectTextNodes(): TextRecord[] {
     }
     if (!original.trim()) continue;
     originals.set(textNode, original);
-    records.push({ node: textNode, original });
+    records.push({ kind: "text", node: textNode, original });
   }
+
+  const elements = document.querySelectorAll("[placeholder], [aria-label], [title], img[alt]");
+  elements.forEach((element) => {
+    if (isExcludedElement(element)) return;
+    for (const attribute of TRANSLATABLE_ATTRIBUTES) {
+      const current = element.getAttribute(attribute);
+      if (current === null || !isTranslatableValue(current)) continue;
+      const perElement = attributeOriginals.get(element) || new Map<AttributeName, string>();
+      let original = perElement.get(attribute) || current;
+      const translatedSet = translatedAttributes.get(element);
+      if (translatedSet?.has(attribute)) {
+        const applied = translationCache.get(original);
+        if (applied && current === applied) continue;
+        translatedSet.delete(attribute);
+        original = current;
+      }
+      perElement.set(attribute, original);
+      attributeOriginals.set(element, perElement);
+      records.push({ kind: "attribute", element, attribute, original });
+    }
+  });
   return records;
 }
 
@@ -64,6 +102,11 @@ function restoreEnglish() {
     if (node.isConnected) node.nodeValue = original;
   });
   translated.clear();
+  attributeOriginals.forEach((attributes, element) => {
+    if (!element.isConnected) return;
+    attributes.forEach((original, attribute) => element.setAttribute(attribute, original));
+  });
+  translatedAttributes.clear();
   document.documentElement.lang = "en";
   emitStatus("ready");
 }
@@ -87,7 +130,7 @@ async function translatePage() {
 }
 
 async function translatePageInternal(generation: number) {
-  const records = collectTextNodes();
+  const records = collectTranslationRecords();
   if (!records.length) {
     document.documentElement.lang = "zh-CN";
     emitStatus("ready");
@@ -113,11 +156,18 @@ async function translatePageInternal(generation: number) {
       batch.forEach((original, batchIndex) => cacheTranslation(original, translations[batchIndex] as string));
     }
     if (generation !== translationGeneration) return;
-    records.forEach(({ node, original }) => {
+    records.forEach((record) => {
+      const { original } = record;
       const value = translationCache.get(original);
-      if (value && node.isConnected) {
-        node.nodeValue = value;
-        translated.add(node);
+      if (!value) return;
+      if (record.kind === "text" && record.node.isConnected) {
+        record.node.nodeValue = value;
+        translated.add(record.node);
+      } else if (record.kind === "attribute" && record.element.isConnected) {
+        record.element.setAttribute(record.attribute, value);
+        const translatedSet = translatedAttributes.get(record.element) || new Set<AttributeName>();
+        translatedSet.add(record.attribute);
+        translatedAttributes.set(record.element, translatedSet);
       }
     });
     document.documentElement.lang = "zh-CN";
@@ -151,7 +201,13 @@ export function TranslationRuntime() {
       if (locale() === "zh-CN") apply();
     });
     window.addEventListener("trackmcp:locale-change", onLocaleChange);
-    observer.observe(document.body, { characterData: true, childList: true, subtree: true });
+    observer.observe(document.body, {
+      attributes: true,
+      attributeFilter: TRANSLATABLE_ATTRIBUTES,
+      characterData: true,
+      childList: true,
+      subtree: true,
+    });
     if (locale() === "zh-CN") void translatePage();
     return () => {
       if (timer) window.clearTimeout(timer);

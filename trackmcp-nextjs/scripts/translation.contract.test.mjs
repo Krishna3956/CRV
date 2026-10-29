@@ -98,6 +98,9 @@ test("runtime excludes code and user-editable content", async () => {
   assert.match(source, /data-no-translate/);
   assert.match(source, /pre, code/);
   assert.match(source, /contenteditable='true'/);
+  assert.match(source, /placeholder/);
+  assert.match(source, /aria-label/);
+  assert.match(source, /attributeFilter/);
   assert.match(source, /MutationObserver/);
   assert.match(source, /characterData: true/);
   assert.match(source, /translationGeneration/);
