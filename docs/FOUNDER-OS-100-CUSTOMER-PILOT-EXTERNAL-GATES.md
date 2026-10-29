@@ -11,12 +11,12 @@ is intentionally not a GO approval and must not be treated as one.
 
 - `main`: current default branch. Immutable deployed SHAs belong in the
   release record; PR checks remain attached to their exact review commits.
-- Current deployed application: `e0629ea1d02331a1c9cd26eb82d61bfe0a93529f`,
-  App Runner workflow `40845415688` (successful rollout; rollout,
+- Current deployed application: `5eb5799b74e88e7b9cb05a24b4fef1fe52cf94c4`,
+  App Runner workflow `40848157943` (successful rollout; rollout,
   release gate, production smoke, immutable identity, runtime-safety checks,
   and live health identity verification passed).
 - Current source verification: `main` at `HEAD`
-  (`HEAD`); hosted TrackMCP CI `40845415274` passed across the
+  (`HEAD`); hosted TrackMCP CI `40848157886` passed across the
   web/JavaScript, Go, and .NET lanes. The refresh scheduler
   and health evidence are recorded below. This does not close the external
   owner, backup, privacy, or customer-owned protocol gates.
@@ -25,7 +25,7 @@ is intentionally not a GO approval and must not be treated as one.
   (App Runner workflow `40474794151`), plus the earlier deployment identity
   `4efa2e1bd444706e84d78ef85b8a7b3b133a46aa` and workflow `40497434962`
   retained by the acceptance contract.
-- This register records the already-successful `e0629ea1` rollout and its
+- This register records the already-successful `5eb5799b` rollout and its
   bounded evidence. It does not change the external owner, backup, privacy, or
   customer-owned protocol decisions.
 - Queue: 263 total, 260 checked, and P0 queue items `020`, `157`, and `260`

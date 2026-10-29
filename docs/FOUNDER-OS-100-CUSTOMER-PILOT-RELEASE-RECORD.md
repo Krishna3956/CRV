@@ -8,12 +8,14 @@ commit and the operator accepts the listed limitations.
 
 ## Current deployed baseline — 2026-10-29
 
-The current baseline is immutable commit `e0629ea1d02331a1c9cd26eb82d61bfe0a93529f`.
-App Runner deployment `40845415688` succeeded; the final release gate, image binding,
-rollout, read-only smoke, immutable identity, runtime-safety checks, and the
-post-deploy authenticated smoke all passed. Main CI `40845415274` also passed.
+The current baseline is immutable commit `5eb5799b74e88e7b9cb05a24b4fef1fe52cf94c4`.
+App Runner deployment `40848157943` succeeded; the final release gate, image binding,
+rollout, read-only smoke, immutable identity, runtime-safety checks, post-deploy
+authenticated smoke, and live Chinese translation audit all passed. Main CI
+`40848157886` also passed.
 Live `/api/health` reports this exact SHA, and `/` plus `/docs` return HTTP 200.
-The source includes the safe social-auth flow and the responsive homepage hero
+The source includes the safe social-auth flow, shared Chinese translation runtime,
+and the responsive homepage hero
 polish: the CLI command box is capped on narrow screens, the desktop-only hero
 bridge is hidden on phones, and the homepage heading now says “Understand how
 your MCP is being used.” The release remains Draft/HOLD because the owner,
@@ -98,14 +100,14 @@ recovery-evidence hardening, not a final operational SLO acceptance.
 ## Latest source verification — 2026-10-29
 
 The current repository source is `main` at `HEAD`; the deployed application is
-immutable source `e0629ea1` via App Runner workflow `40845415688`.
-Hosted TrackMCP CI `40845415274` passed across web/JavaScript, Go, and .NET.
+immutable source `5eb5799b` via App Runner workflow `40848157943`.
+Hosted TrackMCP CI `40848157886` passed across web/JavaScript, Go, and .NET.
 The latest local release gate passes **152 suites**, lint, the production build
 (**209 routes**), and `git diff --check`. The deployment's read-only
 production smoke, immutable identity, runtime-safety checks, and live health
 identity verification all passed. Scheduler deployment and health evidence are
-recorded above. The opaque catalog-history cursor fix is now included in the
-verified `e0629ea1` image.
+recorded above. The opaque catalog-history cursor fix and shared Chinese
+translation runtime are now included in the verified `5eb5799b` image.
 
 The preceding deployed source was `4efa2e1` (including the health-report semantics
 correction that honors a proven AWS scheduler window while retaining historical

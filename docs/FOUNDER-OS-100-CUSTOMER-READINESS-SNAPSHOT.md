@@ -1,17 +1,22 @@
 # Founder OS first-100 readiness snapshot
 
-Updated: 2026-10-29 (Asia/Kolkata; source `HEAD`; deployed runtime `e0629ea1`; hosted evidence reconciled)
+Updated: 2026-10-29 (Asia/Kolkata; source `HEAD`; deployed runtime `5eb5799b`; hosted evidence reconciled)
 
 Status: **Engineering green; release decision HOLD**
 
 ## Current checkpoint — 2026-10-29
 
-- The latest homepage release is live on immutable runtime
-  `e0629ea1d02331a1c9cd26eb82d61bfe0a93529f` via App Runner workflow
-  `40845415688`; main CI `40845415274` and authenticated production smoke
-  `40846362114` passed. The responsive CLI box, phone-only gray-strip removal,
-  and “Understand how your MCP is being used” heading are verified on the
-  direct origin and public domain with desktop and iPhone user agents.
+- The latest live baseline is immutable runtime
+  `5eb5799b74e88e7b9cb05a24b4fef1fe52cf94c4` via App Runner workflow
+  `40848157943`; main CI `40848157886` and the deployment's production smoke,
+  immutable identity, runtime-safety, and translation audits passed. It
+  includes the responsive CLI box, phone-only gray-strip removal, and
+  “Understand how your MCP is being used” heading verified on the direct
+  origin and public domain with desktop and iPhone user agents.
+- The shared Chinese runtime is live. A direct production-origin POST to
+  `/api/translation` returned HTTP 200 with a Simplified Chinese response from
+  the AWS provider. The provider remains fail-closed and the translation
+  feature is not an accuracy guarantee.
 - The current local production build generates 209 routes and the full release
   gate passes 152 suites. This is a cosmetic/runtime verification milestone,
   not a first-100-user GO decision.

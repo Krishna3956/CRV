@@ -1,5 +1,23 @@
 # Founder OS 100 Customer Readiness Ledger
 
+## 2026-10-29 — Chinese translation runtime merged, deployed, and verified
+
+- [x] PR #712 (`5eb5799b74e88e7b9cb05a24b4fef1fe52cf94c4`) added the shared
+  Simplified Chinese runtime, route-transition coverage, provider quality
+  checks, translation audits, and the AWS-backed `/api/translation` path.
+- [x] Main CI `40848157886` and App Runner deployment `40848157943` passed.
+  The direct App Runner origin reports the exact deployed SHA, and the
+  deployment's immutable identity, production smoke, runtime-safety checks,
+  and live Chinese translation audit completed successfully.
+- [x] Direct production-origin probe returned HTTP 200 with a Simplified
+  Chinese translation from the configured AWS provider. English remains the
+  canonical source language; the runtime remains fail-closed for unavailable
+  or invalid provider output.
+- [ ] This does not close the overall pilot HOLD. Provider policy/linguistic
+  acceptance, backup/PITR, privacy acceptance, worker freshness,
+  customer-owned protocol/UAT, and release-owner GO/NO-GO remain separate
+  gates.
+
 ## 2026-10-29 — latest worker-health recheck remains an explicit warning
 
 - [x] Manual refresh-health evaluation `40848128417` completed successfully
