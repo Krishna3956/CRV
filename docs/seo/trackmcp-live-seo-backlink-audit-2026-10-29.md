@@ -174,6 +174,46 @@ claim that Core Web Vitals are complete.
 
 The article body and headline are present in server-rendered HTML, images have alt text, and layout shift is negligible. LCP is a remaining release risk, largely associated with the current font/JavaScript payload and render delay; it should be a separate performance milestone rather than being hidden by an SEO score of 1.0.
 
+### Current live re-audit evidence (2026-10-29)
+
+The audit was rerun against the public front door with a browser/Googlebot
+user-agent and against the trusted App Runner origin. The current evidence is:
+
+- The sitemap returned HTTP 200 with **151 unique HTTPS URLs**, including **107
+  blog article URLs**. No duplicate sitemap URL, non-HTTPS URL, redirect URL, or
+  404 URL was found.
+- All **107/107 article pages returned HTTP 200**. The article checks found
+  **107/107** one-H1 pages, title tags, useful meta descriptions, unique titles,
+  unique descriptions, exact HTTPS canonicals, no accidental `noindex`, complete
+  Open Graph and Twitter card metadata, Article JSON-LD, BreadcrumbList
+  JSON-LD, author/publication markers, non-empty image alt text, and visible
+  read-time labels. **77/77** pages that emit FAQ content also emitted FAQPage
+  JSON-LD with matching question data.
+- The article crawl collected **332 unique internal targets** and **70 unique
+  external targets**. Internal targets had **0** 4xx/5xx responses, **0**
+  redirecting responses, and **0** exact links to the stale adoption route.
+  External targets had **0** confirmed 4xx/5xx responses in this pass.
+- `/blog/measure-mcp-tool-adoption` returned one **301** to
+  `/blog/measure-mcp-tool-adoption-workflow-completion`; the destination returned
+  **200** with no further redirect.
+- The public `/blog`, `/sitemap.xml`, and `/robots.txt` endpoints returned 200
+  for browser and Googlebot user-agents. A default `curl` user-agent still sees
+  a Cloudflare challenge; this is recorded as an operational WAF watch item,
+  not as a Googlebot block.
+- A fresh desktop Lighthouse sample for
+  `/blog/best-mcp-observability-platforms` measured performance **0.89**, SEO
+  **1.00**, accessibility **0.96**, LCP **1.43 s**, CLS **0.00002**, and TTFB
+  **0.84 s**. This is representative evidence, not a Core Web Vitals pass for
+  every URL. The earlier mobile sample remains the mobile baseline in this
+  report.
+
+Search Console was also rechecked in the verified `sc-domain:trackmcp.com`
+property. The live overview still shows **79 indexed** and **2,301 not
+indexed** pages property-wide. The Links report shows **123 external links**;
+its current top-linked-pages table shows the homepage as the only listed target,
+so it does not provide evidence of external links to the blog batch. This is
+indexing/backlink evidence, not a defect in the on-page implementation.
+
 ### Post-audit production follow-up
 
 The performance risk was then addressed in two deployed, independently tested
