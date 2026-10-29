@@ -28,7 +28,9 @@ export async function GET(request: Request) {
   if (!code) {
     return redirectToSignIn("provider_error", next);
   }
-  const { error } = await (await getSupabaseServer()).auth.exchangeCodeForSession(code);
+  const destination = new URL(safeAuthNext(next), SITE_ORIGIN);
+  const successResponse = NextResponse.redirect(destination);
+  const { error } = await (await getSupabaseServer(successResponse)).auth.exchangeCodeForSession(code);
   if (error) {
     const message = error.message.toLowerCase();
     const errorCode = message.includes("code verifier") || message.includes("pkce")
@@ -36,6 +38,5 @@ export async function GET(request: Request) {
       : "sign_in_failed";
     return redirectToSignIn(errorCode, next);
   }
-  const destination = new URL(safeAuthNext(next), SITE_ORIGIN);
-  return NextResponse.redirect(destination);
+  return successResponse;
 }
