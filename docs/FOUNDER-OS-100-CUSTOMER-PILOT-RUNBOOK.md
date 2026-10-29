@@ -159,9 +159,9 @@ and rate-limit false positives.
 
 ## 9. Package publication and clean consumers
 
-The reviewed TypeScript SDK release candidate is `@trackmcp/sdk@0.1.24`, while the
+The reviewed TypeScript SDK release candidate is `@trackmcp/sdk@0.1.25`, while the
 current coordinated release train retains
-`@trackmcp/cli@0.1.12` and `trackmcp==0.1.14`; registry checksums,
+`@trackmcp/cli@0.1.12` and `trackmcp==0.1.15`; registry checksums,
 provenance, and clean-consumer downloads are recorded in the package
 readiness file. The preceding published train was `@trackmcp/sdk@0.1.20`,
 `@trackmcp/cli@0.1.10`, and `trackmcp==0.1.12`; it remains historical. The

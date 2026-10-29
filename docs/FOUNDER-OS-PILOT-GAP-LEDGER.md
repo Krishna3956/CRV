@@ -2,6 +2,21 @@
 
 Status: active autonomous audit, started 2026-10-21.
 
+## 2026-10-29 — coordinated SDK release candidate prepared
+
+- [x] The reviewed source candidate is `@trackmcp/sdk@0.1.25` (release candidate `0.1.25`) and `trackmcp==0.1.15` (release candidate `0.1.15`). It
+  batches the edge-compatible ingest user-agent fix
+  across the TypeScript and Python artifacts instead of publishing a separate
+  micro-release for each source change.
+- [x] TypeScript (107 tests plus packed consumer), Python (40 tests), package
+  artifact secret audit, publication workflow contracts, and the full release
+  gate pass locally.
+- [ ] Registry publication remains gated until the merged source candidate is
+  on `main` and the reviewed `RELEASE_TRAIN_APPROVED` workflow run verifies
+  public npm/PyPI metadata, provenance, checksums, and clean consumers. The
+  prior `0.1.24`/`0.1.14` artifacts remain the last published baseline until
+  that evidence exists.
+
 ## 2026-10-29 — retention preview worker published live
 
 - [x] PR `#656` merged as `2ac9580b1fb5403d4854559337e24b49fb5fb0a0` after

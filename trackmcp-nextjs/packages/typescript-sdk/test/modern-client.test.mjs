@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { ModernMcpClient, ModernMcpProtocolError, MODERN_MCP_PROTOCOL_VERSION } from "../dist/modern-client.js";
 
-const CLIENT_INFO_META = { _meta: { "io.modelcontextprotocol/protocolVersion": MODERN_MCP_PROTOCOL_VERSION, "io.modelcontextprotocol/clientInfo": { name: "@trackmcp/sdk", version: "0.1.24" }, "io.modelcontextprotocol/clientCapabilities": {} } };
+const CLIENT_INFO_META = { _meta: { "io.modelcontextprotocol/protocolVersion": MODERN_MCP_PROTOCOL_VERSION, "io.modelcontextprotocol/clientInfo": { name: "@trackmcp/sdk", version: "0.1.25" }, "io.modelcontextprotocol/clientCapabilities": {} } };
 const withClientInfo = (params) => ({ ...params, ...CLIENT_INFO_META });
 
 function response(body, status = 200, headers = {}) {
@@ -60,7 +60,7 @@ test("modern client advertises bounded per-request client identity metadata", as
   assert.deepEqual(requests[0].params._meta["io.modelcontextprotocol/clientCapabilities"], {});
   const fallback = new ModernMcpClient({ endpoint: "https://mcp.example.test", clientInfo: { name: "\u0000secret", version: "" }, fetch: async (_input, init) => { requests.push(JSON.parse(init.body)); return response({ result: { tools: [] } }); } });
   await fallback.listTools();
-  assert.deepEqual(requests[1].params._meta["io.modelcontextprotocol/clientInfo"], { name: "@trackmcp/sdk", version: "0.1.24" });
+  assert.deepEqual(requests[1].params._meta["io.modelcontextprotocol/clientInfo"], { name: "@trackmcp/sdk", version: "0.1.25" });
 });
 
 test("modern client rejects credentials, oversized responses, and non-success statuses", async () => {
@@ -138,7 +138,7 @@ test("modern client invokes tools with task capability and projects task results
   assert.deepEqual(result, { resultType: "task", task: { taskId: "task-call-1", status: "working", createdAt: "2026-10-22T00:00:00Z" } });
   assert.equal(requests[0].body.method, "tools/call");
   assert.equal(requests[0].mcpName, "lookup");
-  assert.deepEqual(requests[0].body.params._meta, { "io.modelcontextprotocol/protocolVersion": MODERN_MCP_PROTOCOL_VERSION, "io.modelcontextprotocol/clientCapabilities": { extensions: { "io.modelcontextprotocol/tasks": {} } }, "io.modelcontextprotocol/clientInfo": { name: "@trackmcp/sdk", version: "0.1.24" } });
+  assert.deepEqual(requests[0].body.params._meta, { "io.modelcontextprotocol/protocolVersion": MODERN_MCP_PROTOCOL_VERSION, "io.modelcontextprotocol/clientCapabilities": { extensions: { "io.modelcontextprotocol/tasks": {} } }, "io.modelcontextprotocol/clientInfo": { name: "@trackmcp/sdk", version: "0.1.25" } });
   assert.equal(JSON.stringify(result).includes("omit"), false);
   await assert.rejects(() => client.callTool("bad name", {}), (error) => error instanceof ModernMcpProtocolError && error.code === "invalid_response");
 });
@@ -397,7 +397,7 @@ test("modern client refuses the removed tasks/list operation and observes an exp
   await assert.rejects(() => client.listTasks(), (error) => error instanceof ModernMcpProtocolError && error.code === "unsupported_method");
   const task = await client.getTask("task-1");
   assert.deepEqual(requests.map(({ method, params }) => ({ method, params })), [
-    { method: "tasks/get", params: { taskId: "task-1", _meta: { "io.modelcontextprotocol/protocolVersion": MODERN_MCP_PROTOCOL_VERSION, "io.modelcontextprotocol/clientCapabilities": { extensions: { "io.modelcontextprotocol/tasks": {} } }, "io.modelcontextprotocol/clientInfo": { name: "@trackmcp/sdk", version: "0.1.24" } } } },
+    { method: "tasks/get", params: { taskId: "task-1", _meta: { "io.modelcontextprotocol/protocolVersion": MODERN_MCP_PROTOCOL_VERSION, "io.modelcontextprotocol/clientCapabilities": { extensions: { "io.modelcontextprotocol/tasks": {} } }, "io.modelcontextprotocol/clientInfo": { name: "@trackmcp/sdk", version: "0.1.25" } } } },
   ]);
   assert.deepEqual(task, { taskId: "task-1", status: "completed" });
 });
@@ -428,8 +428,8 @@ test("modern client updates and cancels tasks with routing headers and no task/l
   await client.updateTask("task-1", { name: { action: "accept", content: { input: "Luca" } } });
   await client.cancelTask("task-1");
   assert.deepEqual(requests.map(({ headers, body }) => ({ method: body.method, params: body.params, mcpName: headers.get("mcp-name") })), [
-    { method: "tasks/update", params: { taskId: "task-1", inputResponses: { name: { action: "accept", content: { input: "Luca" } } }, _meta: { "io.modelcontextprotocol/protocolVersion": MODERN_MCP_PROTOCOL_VERSION, "io.modelcontextprotocol/clientCapabilities": { extensions: { "io.modelcontextprotocol/tasks": {} } }, "io.modelcontextprotocol/clientInfo": { name: "@trackmcp/sdk", version: "0.1.24" } } }, mcpName: "task-1" },
-    { method: "tasks/cancel", params: { taskId: "task-1", _meta: { "io.modelcontextprotocol/protocolVersion": MODERN_MCP_PROTOCOL_VERSION, "io.modelcontextprotocol/clientCapabilities": { extensions: { "io.modelcontextprotocol/tasks": {} } }, "io.modelcontextprotocol/clientInfo": { name: "@trackmcp/sdk", version: "0.1.24" } } }, mcpName: "task-1" },
+    { method: "tasks/update", params: { taskId: "task-1", inputResponses: { name: { action: "accept", content: { input: "Luca" } } }, _meta: { "io.modelcontextprotocol/protocolVersion": MODERN_MCP_PROTOCOL_VERSION, "io.modelcontextprotocol/clientCapabilities": { extensions: { "io.modelcontextprotocol/tasks": {} } }, "io.modelcontextprotocol/clientInfo": { name: "@trackmcp/sdk", version: "0.1.25" } } }, mcpName: "task-1" },
+    { method: "tasks/cancel", params: { taskId: "task-1", _meta: { "io.modelcontextprotocol/protocolVersion": MODERN_MCP_PROTOCOL_VERSION, "io.modelcontextprotocol/clientCapabilities": { extensions: { "io.modelcontextprotocol/tasks": {} } }, "io.modelcontextprotocol/clientInfo": { name: "@trackmcp/sdk", version: "0.1.25" } } }, mcpName: "task-1" },
   ]);
 });
 
@@ -496,7 +496,7 @@ test("modern client listens to bounded task notifications without retaining payl
   assert.deepEqual(result, { events: [{ taskId: "task-1", status: "working", inputRequestKeys: ["secret"] }], truncated: false });
   assert.deepEqual(seen, result.events);
   assert.equal(request.headers.get("mcp-method"), "subscriptions/listen");
-  assert.deepEqual(JSON.parse(request.body).params, { notifications: { taskIds: ["task-1"] }, _meta: { "io.modelcontextprotocol/protocolVersion": MODERN_MCP_PROTOCOL_VERSION, "io.modelcontextprotocol/clientCapabilities": { extensions: { "io.modelcontextprotocol/tasks": {} } }, "io.modelcontextprotocol/clientInfo": { name: "@trackmcp/sdk", version: "0.1.24" } } });
+  assert.deepEqual(JSON.parse(request.body).params, { notifications: { taskIds: ["task-1"] }, _meta: { "io.modelcontextprotocol/protocolVersion": MODERN_MCP_PROTOCOL_VERSION, "io.modelcontextprotocol/clientCapabilities": { extensions: { "io.modelcontextprotocol/tasks": {} } }, "io.modelcontextprotocol/clientInfo": { name: "@trackmcp/sdk", version: "0.1.25" } } });
   assert.equal(JSON.stringify(result).includes("omit"), false);
 });
 

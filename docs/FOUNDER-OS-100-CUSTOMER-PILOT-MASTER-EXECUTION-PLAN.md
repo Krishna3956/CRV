@@ -365,9 +365,9 @@ keeping resource URI/content and prompt names/arguments private by default?
   artifact evidence. The TypeScript and Python SDK source paths differ from
   the installed registry artifacts; the CLI path does not.
 - [x] Publish changed SDK code only under a new approved version; the current
-  reviewed TypeScript SDK is prepared as `@trackmcp/sdk@0.1.24`; the reviewed
+  reviewed TypeScript SDK is prepared as `@trackmcp/sdk@0.1.25`; the reviewed
   train is `@trackmcp/cli@0.1.12` and
-  `trackmcp==0.1.14`, prepared from the reviewed source head for the gated
+  `trackmcp==0.1.15`, prepared from the reviewed source head for the gated
   publication workflow. The prior published train (`0.1.20`/`0.1.10`/`0.1.12`)
   remains historical; exact checksums and provenance are recorded in the
   package readiness file.
