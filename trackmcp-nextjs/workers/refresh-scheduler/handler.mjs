@@ -7,6 +7,8 @@ const MAX_QUEUE_LAG_MS = 86_400_000;
 // profile; later ticks remain resumable if the queue is larger than one tick.
 const SCHEDULED_MAX_JOBS = 10;
 const SCHEDULED_BATCH_COUNT = 4;
+const TRANSIENT_HTTP_STATUSES = new Set([429, 500, 502, 503, 504]);
+const RETRY_DELAYS_MS = [100, 300];
 
 function isScheduledEvent(event) {
   if (event && typeof event === "object") return event.source === "eventbridge_scheduler";
@@ -116,6 +118,40 @@ function emitScheduledMetric({ success, failure, workerSummary = null }) {
   }));
 }
 
+function waitForRetry(delayMs, signal) {
+  return new Promise((resolve, reject) => {
+    if (signal.aborted) {
+      reject(new DOMException("The refresh request was aborted", "AbortError"));
+      return;
+    }
+    const timer = setTimeout(() => {
+      signal.removeEventListener("abort", onAbort);
+      resolve();
+    }, delayMs);
+    const onAbort = () => {
+      clearTimeout(timer);
+      reject(new DOMException("The refresh request was aborted", "AbortError"));
+    };
+    signal.addEventListener("abort", onAbort, { once: true });
+  });
+}
+
+async function fetchRefreshBatch(endpoint, token, signal) {
+  for (let attempt = 0; ; attempt += 1) {
+    const response = await fetch(endpoint, {
+      method: "POST",
+      headers: { authorization: `Bearer ${token}`, "content-type": "application/json" },
+      body: JSON.stringify({ max_jobs: SCHEDULED_MAX_JOBS }),
+      redirect: "manual",
+      signal,
+    });
+    if (response.ok || !TRANSIENT_HTTP_STATUSES.has(response.status) || attempt >= RETRY_DELAYS_MS.length) {
+      return response;
+    }
+    await waitForRetry(RETRY_DELAYS_MS[attempt], signal);
+  }
+}
+
 export async function handler(event = {}) {
   const endpoint = process.env.TRACKMCP_REFRESH_WORKER_URL;
   const token = process.env.TRACKMCP_REFRESH_WORKER_TOKEN;
@@ -129,13 +165,7 @@ export async function handler(event = {}) {
   const timeout = setTimeout(() => controller.abort(), TIMEOUT_MS);
   try {
     const batchCount = scheduled ? SCHEDULED_BATCH_COUNT : 1;
-    const responses = await Promise.all(Array.from({ length: batchCount }, () => fetch(endpoint, {
-      method: "POST",
-      headers: { authorization: `Bearer ${token}`, "content-type": "application/json" },
-      body: JSON.stringify({ max_jobs: SCHEDULED_MAX_JOBS }),
-      redirect: "manual",
-      signal: controller.signal,
-    })));
+    const responses = await Promise.all(Array.from({ length: batchCount }, () => fetchRefreshBatch(endpoint, token, controller.signal)));
     const unhealthy = responses.find((response) => !response.ok);
     if (unhealthy) throw new Error(`refresh worker returned HTTP ${unhealthy.status}`);
     if (scheduled) {

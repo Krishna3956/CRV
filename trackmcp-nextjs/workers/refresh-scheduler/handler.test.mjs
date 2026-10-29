@@ -114,11 +114,15 @@ test("scheduler handler reports upstream status without reading response content
   const previousFetch = globalThis.fetch;
   const previousLog = console.log;
   const logs = [];
-  globalThis.fetch = async () => ({
+  let requestCount = 0;
+  globalThis.fetch = async () => {
+    requestCount += 1;
+    return {
     ok: false,
     status: 503,
     get body() { throw new Error("response content must not be read"); },
-  });
+    };
+  };
   console.log = (line) => logs.push(line);
   try {
     await withEnvironment({
@@ -127,11 +131,38 @@ test("scheduler handler reports upstream status without reading response content
     }, async () => {
       await assert.rejects(handler({ source: "eventbridge_scheduler" }), /refresh worker returned HTTP 503/);
     });
+    assert.equal(requestCount, 12);
     const marker = JSON.parse(logs[0]);
     assert.equal(marker.success, false);
     assert.equal(marker.ScheduledFailure, 1);
     assert.equal(marker.FailureClass, "upstream_http");
     assert.doesNotMatch(logs[0], /response content|test-token/);
+  } finally {
+    globalThis.fetch = previousFetch;
+    console.log = previousLog;
+  }
+});
+
+test("scheduler retries transient upstream statuses before recording success", async () => {
+  const previousFetch = globalThis.fetch;
+  const previousLog = console.log;
+  const logs = [];
+  let requestCount = 0;
+  globalThis.fetch = async () => {
+    requestCount += 1;
+    return requestCount <= 4
+      ? { ok: false, status: 503, body: null }
+      : new Response(JSON.stringify({ processed: 1, succeeded: 1, retryable: 0, failed: 0, max_queue_lag_ms: 10 }), { status: 200 });
+  };
+  console.log = (line) => logs.push(line);
+  try {
+    const result = await withEnvironment({
+      TRACKMCP_REFRESH_WORKER_URL: ENDPOINT,
+      TRACKMCP_REFRESH_WORKER_TOKEN: "test-token",
+    }, () => handler({ source: "eventbridge_scheduler" }));
+    assert.deepEqual(result, { statusCode: 200 });
+    assert.equal(requestCount, 8);
+    assert.equal(JSON.parse(logs[0]).success, true);
   } finally {
     globalThis.fetch = previousFetch;
     console.log = previousLog;
