@@ -23,6 +23,7 @@ reviewer disposition before staging; it is never included by a blanket add.
 | `trackmcp-nextjs/supabase/manual/founder-os-migration-parity-postflight.sql` | review-required | repository maintainer | release owner | read-only production migration parity query; review the manifest against the approved release and interpret missing rows before any migration action |
 | `trackmcp-nextjs/Dockerfile` | review-required | repository maintainer | release owner | production image build/runtime contract; review immutable release identity propagation and ensure no secret build arguments are added |
 | `docs/mcp-blog-backlink-plan-2026-10.md` | review-required | repository maintainer | release owner | local editorial/outreach planning only; exclude from the product candidate and do not infer external publication or backlink evidence |
+| `docs/SUBMISSION-ATTRIBUTION-RUNBOOK.md` | review-required | repository maintainer | privacy/release owner | analytics attribution runbook; review source precedence, self-reported detail redaction, and read-only reporting before publication |
 
 ## Boundary rules
 
