@@ -1,5 +1,35 @@
 # Founder OS 100 Customer Readiness Ledger
 
+## 2026-10-29 — TrackMCP social-auth path implemented with safe redirects
+
+- [x] Sign-in and sign-up now offer Google and GitHub through Supabase Auth's
+  authorization-code/PKCE flow. The callback exchanges only the short-lived
+  code server-side, bounds provider errors, and accepts only same-origin
+  internal `next` paths; regression coverage passes for open-redirect,
+  provider-error, and missing-code boundaries.
+- [x] Authentication documentation now explains the one-time Supabase provider
+  and callback configuration, secure secret placement, and the distinction
+  between TrackMCP account sign-in and customer MCP OAuth.
+- [ ] This implements the TrackMCP account-auth path but does not prove that
+  Google/GitHub providers are enabled in the production Supabase project, and
+  it does not enable customer MCP token exchange, refresh, consent, or
+  revocation. Provider configuration and credentialed UAT remain external.
+
+## 2026-10-29 — submission attribution deployed and verified
+
+- [x] PR #707 (`ed0ea99fb524feac67b7fb6bb59a8c91ff720e68`) deployed the
+  actionable submission-attribution flow. App Runner deployment workflow
+  `40840163412` passed its release gate, rollout, immutable runtime identity,
+  runtime safety, and production smoke checks; `/api/health` reports the exact
+  deployed SHA.
+- [x] The public `/submit-mcp` route and trusted origin both return HTTP 200;
+  the live HTML contains the self-reported source and private-share guidance.
+  The redacted production smoke passed 36 checks with 2 intentional write/key
+  skips and no failures. No production submission was created by this check.
+- [ ] Migration parity and a disposable authenticated submission write remain
+  required before claiming end-to-end persistence evidence; self-reported
+  attribution remains advisory, not verified identity or backlink evidence.
+
 ## 2026-10-29 — submission attribution made actionable and privacy-bounded
 
 - [x] The public submission flow now captures a bounded self-reported source
