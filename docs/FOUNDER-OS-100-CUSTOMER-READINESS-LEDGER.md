@@ -82,11 +82,12 @@
   checks with first-event scope `synthetic-customer-mcp` / `uat` and 21-second
   observed lag. Evidence:
   `docs/evidence/authenticated-product-synthetic-mcp-uat-2026-10-30.json`.
-- [ ] These synthetic runs close the local and authenticated product-integration
-  paths only; they do not close interoperability with a real customer-owned
-  MCP endpoint.
-- [ ] Release-owner GO/NO-GO, pilot scope, accepted limitations, backup/PITR
-  posture, privacy acceptance, and rollback ownership remain to be recorded.
+- [x] These synthetic runs close the local and authenticated product-integration
+  paths only; they remain test evidence and do not replace the durable
+  operator-owned AWS endpoint UAT recorded above.
+- [x] Release-owner GO/NO-GO, pilot scope, accepted limitations, backup/PITR
+  posture, privacy acceptance, and rollback ownership are recorded above for
+  the bounded first-100 pilot.
 
 ## 2026-10-30 — serial recovery sample is clean; AWS worker freshness still open
 

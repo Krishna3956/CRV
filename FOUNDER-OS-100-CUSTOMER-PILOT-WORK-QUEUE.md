@@ -63,7 +63,7 @@ gate is complete. Unchecked items remain open.
 - [x] ✅ 017 **P0 · Today · Engineering:** Create a single redacted evidence folder/index for this candidate.
 - [x] ✅ 018 **P0 · Today · Engineering:** Add owner, timestamp, command, environment, and outcome fields to every gate record.
 - [x] ✅ 019 **P0 · Today · Engineering:** Define stop conditions for schema, authorization, key, worker, and deployment failures.
-- [ ] 020 **P0 · Today · Release owner:** Approve the exact limited pilot scope before any customer-facing claim.
+- [x] ✅ 020 **P0 · Today · Release owner:** Approve the exact limited pilot scope before any customer-facing claim. Final GO recorded for the controlled first-100 pilot with supported HTTPS MCP discovery path, metadata-only telemetry, manual/disabled-first alerting, accepted limitations, rollback/restoration owner, and `krishnaatmu@gmail.com` contact.
 
 ## B. Reproducible build and artifact integrity — P0
 
@@ -223,7 +223,7 @@ gate is complete. Unchecked items remain open.
 - [x] ✅ 154 **P0 · Operator · Before release:** Verify redemption-ID uniqueness/index contract exists.
 - [x] ✅ 155 **P0 · Operator · Before release:** Verify existing data satisfies all new bounded constraints.
 - [x] ✅ 156 **P0 · Operator · Before release:** Verify the migration path is additive and compatible with rollback image. Migration-inventory/destructive-operation contracts and the immutable rollback/restore rehearsal passed; provider execution history remains separately open under item 141.
-- [ ] 157 **P0 · Operator · Before release:** Record database region, backup posture, and restoration contact.
+- [x] ✅ 157 **P0 · Operator · Before release:** Record database region, backup posture, and restoration contact. The controlled first-100 pilot accepts Supabase Free/us-east-1, PITR disabled, logical-export-only recovery, no guaranteed RPO/RTO, and release owner/project operator as rollback/restoration owner; see `docs/evidence/supabase-backup-acceptance-2026-10-30.md`.
 - [x] ✅ 158 **P0 · Engineering:** Prepare read-only reconciliation reports for stale redeeming sessions and session/key mismatches.
 - [x] ✅ 159 **P0 · Engineering:** Prepare read-only duplicate-event/fact consistency reports.
 - [x] ✅ 160 **P0 · Engineering:** Prepare a redacted schema evidence bundle for pilot sign-off.
@@ -340,8 +340,8 @@ gate is complete. Unchecked items remain open.
 - [x] ✅ 256 **P0 · Operator:** Rehearse application rollback against approved additive schema compatibility. Rollback workflow `40170438059` and restoration workflow `40170901810` both completed successfully with immutable image and production smoke evidence.
 - [x] ✅ 257 **P0 · Operator:** Run a production worker/scheduler batch and capture lag/retry/terminal evidence. Workflow `40175504973` uploaded the redacted summary; maximum observed queue lag was 3,226,961 ms and the bounded run completed without retryable or terminal failures.
 - [x] ✅ 258 **P0 · Operator:** Run multi-instance distributed rate-limit evidence if the capability is claimed. The bounded first-100 pilot explicitly does not claim distributed multi-instance limiting; the deployed process-local degraded limiter and this scope decision are recorded in `docs/FOUNDER-OS-RATE-LIMITING.md` and the merged PR #382 evidence. Distributed mode remains post-pilot work requiring AWS permission and dedicated runtime evidence.
-- [x] ✅ 259 **P0 · Release owner:** Compare all acceptance-matrix rows with evidence links and explicitly waive none silently. The reconciled matrix is `docs/FOUNDER-OS-100-CUSTOMER-PILOT-ACCEPTANCE-MATRIX.md`; it maps every remaining open row to current evidence and an exit condition, records an explicit HOLD, and does not authorize GO.
-- [ ] 260 **P0 · Release owner:** Issue a limited 100-customer pilot go/no-go decision with scope, known limitations, and rollback owner.
+- [x] ✅ 259 **P0 · Release owner:** Compare all acceptance-matrix rows with evidence links and explicitly waive none silently. The reconciled matrix is `docs/FOUNDER-OS-100-CUSTOMER-PILOT-ACCEPTANCE-MATRIX.md`; the final GO records the bounded first-100 scope and each accepted limitation.
+- [x] ✅ 260 **P0 · Release owner:** Issue a limited 100-customer pilot go/no-go decision with scope, known limitations, and rollback owner. Final decision: **GO — controlled first-100 pilot**, not an unbounded public launch.
 
 ## Completion definition
 

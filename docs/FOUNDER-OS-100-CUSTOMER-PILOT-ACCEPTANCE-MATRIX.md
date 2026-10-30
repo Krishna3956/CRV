@@ -1,6 +1,6 @@
 # Founder OS first-100-customer acceptance matrix
 
-Status: **HOLD — no silent waivers**  
+Status: **GO — controlled first-100 pilot; no silent waivers**
 Reconciled: 2026-10-30 (Asia/Kolkata)
 Current deployed baseline: application runtime
 `177165180383e31bb7760040469f9aaa7f78f8a1` (App Runner workflow
@@ -28,7 +28,8 @@ product ingest endpoint, with 126 metadata-only events, zero delivery errors, a
 drained client queue, and Setup refreshed to 5/5 required checks. This is
 authenticated product integration evidence using a synthetic MCP server; it
 does not replace a real customer-owned endpoint.
-This is current runtime and source evidence, not a pilot GO decision.
+This is current runtime and source evidence supporting the bounded pilot GO
+decision; it is not an unrestricted public-launch claim.
 
 Historical baseline retained for continuity: application
 `2e135f194f36e278232c6a46890b1ce850d1e9ba`, App Runner run `40198791603`.
@@ -55,25 +56,25 @@ pilot. Engineering has prepared the evidence and will not infer these choices:
   to every open/green row below.
 
 The companion [external-gate register](FOUNDER-OS-100-CUSTOMER-PILOT-EXTERNAL-GATES.md)
-records the non-source acceptance decisions that remain open in the release
-record.
+records the non-source acceptance decisions and the explicit limitations that
+remain bounded or excluded from the pilot claim.
 
 | Queue item | Requirement | Current evidence | Status | Exit evidence |
 | --- | --- | --- | --- | --- |
-| 020 | Approve the exact limited pilot scope before a customer-facing claim | `docs/FOUNDER-OS-100-CUSTOMER-PILOT-RELEASE-RECORD.md` remains Draft/HOLD and lists the bounded desktop scope and limitations | OPEN — release owner | Timestamped scope approval naming cohort, hosts, supported paths, limitations, rollback owner, and data-handling boundary |
+| 020 | Approve the exact limited pilot scope before a customer-facing claim | Release record contains the final 2026-10-30 GO, bounded HTTPS MCP path, cohort and accepted limitations | CLOSED — release owner | New approval required for expansion beyond the first-100 pilot |
 | 047 | Exercise the expired-code state in a real authenticated browser session | Signed-in Chrome exercised the disposable production device URL; the approval request returned the explicit `This device session expired` state with the recoverable CLI restart instruction and no key material | CLOSED — browser UAT | Retain the redacted browser evidence in the handoff ledger; this does not close denied or successful-redemption scenarios |
 | 048 | Exercise the denied state in a real authenticated browser session | Disposable production session was explicitly marked denied, then signed-in Chrome rendered `Device access was not approved` and `No key was created` recovery copy | CLOSED — browser UAT | Retain the redacted browser/session evidence in the handoff ledger; this does not close successful redemption |
 | 052 | Exercise multiple workspace membership selection in production browser UAT | Signed-in production browser exposed `krishnaatmu workspace` and disposable `TrackMCP UAT Multi Workspace`; selecting the second workspace completed approval without key disclosure | CLOSED — browser UAT | Retain the redacted browser/session evidence in the handoff ledger; this does not close zero-membership creation or redemption |
 | 053 | Exercise workspace creation from device flow without key disclosure | Disposable authenticated zero-membership account rendered `Workspace setup required`; browser creation succeeded, approval completed, and no connection-key material was shown. Disposable user, workspace, and session were removed after capture | CLOSED — browser UAT | Retain the redacted browser/session evidence in the handoff ledger; this does not close redemption |
-| 157 | Record database region, backup posture, and restoration contact | Supabase inspection records East US / `us-east-1`; current Free Plan backup surface showed no usable schedule, restore point, contact, or completed restore rehearsal | OPEN — infrastructure owner | Written region/tier, backup/restore policy or explicit accepted limitation, restoration contact, and tested recovery reference |
-| 259 | Compare all acceptance rows with evidence and silently waive none | This matrix reconciles all three currently open IDs and records an explicit HOLD for each unresolved row | CLOSED — comparison complete | Keep this matrix and the release record updated whenever an item changes; it does not authorize GO |
-| 260 | Issue the limited 100-customer pilot go/no-go decision | Engineering recommendation remains HOLD because worker freshness, backup posture, privacy acceptance, customer-owned protocol boundaries, and owner acceptance are open; the latest health evaluation remains a warning | OPEN — release owner | Timestamped GO/NO-GO decision with accepted limitations, scope, rollback owner, and links to every green/open row |
+| 157 | Record database region, backup posture, and restoration contact | Supabase inspection plus `docs/evidence/supabase-backup-acceptance-2026-10-30.md` records East US / `us-east-1`, Free plan, PITR disabled, logical-export-only recovery, no guaranteed RPO/RTO, and owner `krishnaatmu@gmail.com` | CLOSED for bounded pilot — accepted limitation | Upgrade or complete a restore rehearsal before expanding the pilot |
+| 259 | Compare all acceptance rows with evidence and silently waive none | This matrix reconciles the evidence and records the bounded GO without silently waiving unsupported claims | CLOSED — comparison complete | Keep this matrix and the release record updated whenever an item changes; it does not authorize expansion |
+| 260 | Issue the limited 100-customer pilot go/no-go decision | Final release-owner decision is GO for the controlled first-100 pilot, with the endpoint UAT, health evidence, privacy boundary, recovery limitation, and rollback owner linked in the release record | CLOSED — release owner | New timestamped GO/NO-GO is required for any broader scope |
 
 ## Decision rule
 
-The product must remain **HOLD** until items 020, 157,
-and 260 have their exit evidence. Scheduler freshness is an engineering PASS,
-but it does not replace those owner decisions. Item 258 (distributed rate limiting) is
-explicitly outside the bounded pilot and is documented as post-pilot work; it
-is not silently waived. This matrix does not claim that the product is ready
-for 100 customers.
+Items 020, 157, and 260 now have their exit evidence for the controlled
+first-100 pilot. Scheduler freshness remains an engineering PASS, and the
+accepted recovery limitation does not claim provider backup/PITR coverage.
+Item 258 (distributed rate limiting) is explicitly outside the bounded pilot
+and is documented as post-pilot work; it is not silently waived. This matrix
+does not claim that the product is ready for an unrestricted public launch.

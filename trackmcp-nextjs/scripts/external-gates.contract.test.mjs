@@ -6,20 +6,23 @@ const register = await readFile(new URL("../../docs/FOUNDER-OS-100-CUSTOMER-PILO
 const releaseRecord = await readFile(new URL("../../docs/FOUNDER-OS-100-CUSTOMER-PILOT-RELEASE-RECORD.md", import.meta.url), "utf8");
 const schedulerHealthPolicy = await readFile(new URL("../../docs/aws/TrackMCPRefreshHealthLogReadPolicy.json", import.meta.url), "utf8");
 
-test("first-100 external-gate register stays an explicit HOLD record", () => {
-  assert.match(register, /Status:\s*\*\*HOLD\*\*/);
+test("first-100 external-gate register is explicit GO for the controlled pilot", () => {
+  assert.match(register, /Status:\s*\*\*GO — controlled first-100 pilot\*\*/);
   assert.match(register, /Updated:\s*2026-10-30/);
+  assert.match(register, /Final release-owner GO/);
+  assert.match(register, /41049662323/);
   assert.match(register, /Current source verification: `main` at/);
   assert.match(register, /155 suites/);
   assert.match(register, /211-route/);
   assert.match(register, /workflow completion is not claimed|confirmed\s+the\s+exact runtime SHA/i);
 });
 
-test("all operator and infrastructure gates remain named and open until evidence closes them", () => {
+test("all operator and infrastructure gates remain named with closure evidence", () => {
   for (const gate of ["020", "157", "260", "Privacy lifecycle acceptance", "Synthetic reliability-data hygiene", "Refresh scheduler enablement"]) {
     assert.ok(register.includes(gate), `missing gate: ${gate}`);
   }
-  assert.match(register, /A gate becomes closed only\s+when the named evidence is retained/i);
+  assert.match(register, /A gate is closed for this\s+pilot only when the named evidence is retained/i);
+  assert.match(register, /Customer-facing claims remain limited to the controlled first-100/i);
 });
 
 test("the release record carries the same current source gate evidence", () => {

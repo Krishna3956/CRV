@@ -2,6 +2,11 @@
 
 Last verified: 2026-10-30 (Asia/Kolkata)
 
+**Current decision: GO — controlled first-100 pilot.** This is a bounded
+pilot authorization, not an unrestricted public launch. The release-owner
+decision, accepted limitations, and evidence links are recorded in
+`docs/FOUNDER-OS-100-CUSTOMER-PILOT-RELEASE-RECORD.md`.
+
 This is the concise release-owner handoff. It records evidence that exists,
 what is intentionally not claimed, and the next work queue. It is not a
 promise that every product capability is complete.
@@ -15,7 +20,11 @@ promise that every product capability is complete.
 - Social buttons render immediately, terms are not a prerequisite for social OAuth, the dashboard retries the callback session, and concurrent workspace creation is idempotent. These behaviors are covered by focused contract tests.
 - Marketing translation was browser-verified on `trackmcp.com` with `zh-CN` preserved after scrolling. The runtime uses the trusted App Runner origin fallback when the public edge rejects direct translation API requests.
 
-The release remains **HOLD** for the same external gates below: recovery ownership, privacy acceptance, credentialed key/customer-endpoint UAT, remaining protocol limitations, and release-owner go/no-go.
+The release is **GO — controlled first-100 pilot**. Recovery ownership,
+privacy acceptance, customer-owned test-endpoint UAT, and release-owner
+go/no-go are recorded. The pilot still excludes unverified third-party
+interoperability, OAuth token exchange/reconnect/replay semantics, destructive
+deletion, and provider backup/PITR guarantees.
 
 ## Historical evidence checkpoint — 2026-10-29
 
@@ -42,9 +51,12 @@ The release remains **HOLD** for the same external gates below: recovery ownersh
   `app.trackmcp.com/dashboard`, and loaded the `krishnaatmu` workspace. New-user
   onboarding and device-flow OAuth return-path checks remain open.
 
-The release remains **HOLD** pending backup/PITR ownership, production privacy
-acceptance, credentialed key-lifecycle/customer-endpoint UAT, the remaining
-OAuth onboarding/device-flow checks, and release-owner GO/NO-GO acceptance.
+The release is **GO — controlled first-100 pilot**. Backup/PITR ownership,
+production privacy acceptance, credentialed customer-test-endpoint UAT, and
+release-owner GO are recorded. OAuth onboarding/device-flow return-path
+coverage beyond the exercised existing-user path remains outside this bounded
+pilot claim and must be evidenced before expanding the supported onboarding
+surface.
 
 ## Verified and shipped
 
@@ -107,7 +119,8 @@ OAuth onboarding/device-flow checks, and release-owner GO/NO-GO acceptance.
 - Protocol surfaces explicitly documented as partial (for example OTLP/gRPC,
   proxy/stdio launcher ownership, and full durable task lifecycle) remain
   bounded rather than overclaimed.
-- Release-owner scope approval and final first-100-user go/no-go remain open.
+- Release-owner scope approval and final first-100-user go/no-go are recorded
+  as **GO** for the bounded pilot; expansion requires a new decision.
 
 ## Next execution order
 
