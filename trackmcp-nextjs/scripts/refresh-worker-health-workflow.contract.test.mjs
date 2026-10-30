@@ -37,4 +37,6 @@ test("health workflow reads bounded AWS worker freshness metrics", () => {
   }
   assert.match(workflow, /worker_summary:/);
   assert.match(workflow, /AWS worker freshness gate:/);
+  assert.match(workflow, /Latest AWS metric timestamp/);
+  assert.match(workflow, /Max queue-lag metric timestamp/);
 });
