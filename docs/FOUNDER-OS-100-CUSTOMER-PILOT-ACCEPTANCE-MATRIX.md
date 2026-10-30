@@ -7,20 +7,20 @@ Current deployed baseline: application runtime
 `41013186081`, passed release gate, rollout, production smoke, runtime-safety,
 translation-provider, and identity checks). The current repository source is
 `main` at documentation-only handoff commit
-`c530c193808579ae5b82f9e015515c090ec7f8d9`; the direct-origin health probe
+`78374fd0a08d23a6602a67dc6de758f279467b53`; the direct-origin health probe
 reports the deployed application SHA.
-The full local release gate passes 154 suites and the production build generates
+The full local release gate passes 155 suites and the production build generates
 211 routes. Authenticated production smoke `41014068784` passed against the
 deployed revision; direct-origin first-ingest `40894964464` and SDK-shaped
 public-edge smoke `40896249223` both passed one bounded metadata-only event plus
-analytics read-back. Health evaluation `41026583693` records five AWS scheduler
-invocations, three end-to-end scheduled successes, and two scheduler
-failures/errors. The AWS end-to-end cadence sub-gate is proven, but the run
-remains `warning` because AWS worker freshness is `1010614ms` against the
-`900000ms` freshness budget. The bounded GitHub recovery evaluation has zero
-stale or incomplete samples. Serial recovery run `41026523923` observed no
-backlog; the provider-owned scheduler gate remains open pending a clean bounded
-AWS window. The alert evaluator remains manual-only
+analytics read-back. Fresh health evaluation `41038856612` is `healthy`: it
+records four AWS scheduler invocations, zero errors, four scheduled successes,
+four complete worker samples, zero worker failures/retries/parse failures, and
+current worker max queue lag `832835ms` against the `900000ms` freshness budget.
+The AWS scheduler cadence, AWS end-to-end cadence, and worker-freshness gates
+are all `proven`. Historical samples remain retained in the report, including
+two cadence breaches outside the current clean evaluation window. The bounded
+GitHub recovery evaluation has zero stale or incomplete samples. The alert evaluator remains manual-only
 and disabled-first; no production alert delivery is claimed.
 This is current runtime and source evidence, not a pilot GO decision.
 
@@ -31,6 +31,22 @@ This matrix is the release-owner comparison for every currently open P0 queue
 item. A row is not green merely because a local contract or historical release
 passed. The evidence column states what is actually proven; the exit column
 states what is still required.
+
+## Release-owner decision packet
+
+The following are the exact decisions still required for a limited first-100
+pilot. Engineering has prepared the evidence and will not infer these choices:
+
+- Pilot scope: confirm the cohort size, supported host environments, supported
+  MCP transports/protocol versions, and the excluded features.
+- Accepted limitations: explicitly accept or reject synthetic-only UAT versus
+  real customer endpoint UAT, manual-only alert evaluation, disabled-first
+  production alert delivery, and the bounded metadata-only telemetry policy.
+- Data and recovery: accept or reject the current backup/PITR posture and name
+  the restoration contact and rollback owner.
+- Decision: issue `GO` or `NO-GO` for the limited pilot, with a timestamp,
+  decision owner, accepted limitations, cohort scope, rollback owner, and links
+  to every open/green row below.
 
 The companion [external-gate register](FOUNDER-OS-100-CUSTOMER-PILOT-EXTERNAL-GATES.md)
 records the non-source acceptance decisions that remain open in the release

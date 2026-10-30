@@ -1,0 +1,64 @@
+{
+  "outcome": "passed",
+  "evidence_class": "synthetic_customer_fixture_uat",
+  "generated_at": "2026-10-30T10:14:56.070Z",
+  "target": "local synthetic customer MCP server",
+  "transport": "streamable_http",
+  "protocol_version": "2025-06-18",
+  "catalog": {
+    "tools": 30,
+    "resources": 6,
+    "resource_templates": 3,
+    "prompts": 5
+  },
+  "exercised": {
+    "tool_calls": 30,
+    "resource_reads": 6,
+    "prompt_gets": 5,
+    "completions": 1
+  },
+  "telemetry": {
+    "delivered_events": 126,
+    "summary": {
+      "total": 126,
+      "byType": {
+        "session": 2,
+        "protocol": 35,
+        "tool_call": 60,
+        "custom": 29
+      },
+      "byMethod": {
+        "initialize": 2,
+        "notifications/initialized": 1,
+        "tools/list": 2,
+        "resources/list": 2,
+        "resources/templates/list": 2,
+        "prompts/list": 2,
+        "tools/call": 89,
+        "resources/read": 12,
+        "prompts/get": 10,
+        "completion/complete": 2
+      }
+    },
+    "diagnostics": {
+      "droppedEvents": 0,
+      "hookErrors": 0,
+      "privacyErrors": 0,
+      "queuedEvents": 0,
+      "queuedBytes": 0,
+      "malformedMessages": 0,
+      "unmatchedMessages": 1,
+      "duplicateMessages": 1,
+      "expiredMessages": 0,
+      "lifecycle_generation": 1,
+      "pending_request_count": 0,
+      "repeat_group_count": 30
+    },
+    "sensitive_values_retained": false
+  },
+  "caveats": [
+    "This validates the TrackMCP client/telemetry path against a deterministic synthetic customer server.",
+    "It does not replace a real customer-owned endpoint UAT or release-owner approval.",
+    "Tool arguments, resource contents, prompt messages, and credentials were not retained in telemetry."
+  ]
+}
