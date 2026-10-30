@@ -23,11 +23,11 @@ test("all operator and infrastructure gates remain named and open until evidence
 });
 
 test("the release record carries the same current source gate evidence", () => {
-  assert.match(releaseRecord, /current source is\s+`main`\s+at (?:documentation reconciliation|the same merged application) commit/i);
+  assert.match(releaseRecord, /current source is\s+`main`\s+at (?:documentation reconciliation|the same merged application) commit|current source is\s+`main`\s+at documentation-only tip/i);
   assert.match(releaseRecord, /latest local release gate\s+passes\s+\*\*154\s+suites\*\*/i);
   assert.match(releaseRecord, /211 routes/);
   assert.match(releaseRecord, /transient App Runner\s+smoke retry boundary/);
-  assert.match(releaseRecord, /c6b6e85a43c33629e73694eb312e4e7db24b5a35/);
+  assert.match(releaseRecord, /177165180383e31bb7760040469f9aaa7f78f8a1/);
 });
 
 test("scheduler log evidence permission artifact is least-privilege and explicit", () => {

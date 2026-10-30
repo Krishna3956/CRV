@@ -18,7 +18,7 @@ is intentionally not a GO approval and must not be treated as one.
   direct-origin health probe confirmed the exact runtime SHA. Authenticated
   production smoke `41014068784` also passed for that deployed revision.
 - Current source verification: `main` at documentation-only tip
-  `181af749ef989b06d0ed1a5e134a5a88af087470`. The deployed application code
+  `8dd7f8c2fda6d8bd8ab73b4d7f625386bb7de6d2`. The deployed application code
   remains the merged application revision above. Main CI `41014120839` passed
   all hosted lanes. The full local release gate
   passes 154 suites and the production build generates 211 routes. Read-only
