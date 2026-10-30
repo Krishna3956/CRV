@@ -21,6 +21,25 @@ const MAX_CACHE_ENTRIES = 1_000;
 let translationInFlight: Promise<void> | null = null;
 let translationQueued = false;
 let translationGeneration = 0;
+let translationObserverSuppressed = false;
+let translationObserverDirty = false;
+let translationObserverReleaseTimer: number | undefined;
+let scheduleTranslationRefresh: (() => void) | null = null;
+
+function suppressTranslationObserver() {
+  translationObserverSuppressed = true;
+  if (translationObserverReleaseTimer !== undefined) {
+    window.clearTimeout(translationObserverReleaseTimer);
+  }
+  translationObserverReleaseTimer = window.setTimeout(() => {
+    translationObserverSuppressed = false;
+    translationObserverReleaseTimer = undefined;
+    if (translationObserverDirty) {
+      translationObserverDirty = false;
+      scheduleTranslationRefresh?.();
+    }
+  }, 0);
+}
 
 function translationEndpoints(): string[] {
   const endpoints = ["/api/translation"];
@@ -247,6 +266,11 @@ async function translatePageInternal(generation: number) {
       });
     }
     if (generation !== translationGeneration) return;
+    // Applying translated text mutates the same DOM observed below. Suppress
+    // that callback batch so the runtime does not immediately queue a second
+    // pass and visibly churn the page. A real page mutation in the same task
+    // marks the observer dirty and is rechecked after this write batch settles.
+    suppressTranslationObserver();
     records.forEach((record) => {
       const { original } = record;
       const value = translationCache.get(original);
@@ -293,8 +317,13 @@ export function TranslationRuntime() {
       else restoreEnglish();
     };
     const observer = new MutationObserver(() => {
+      if (translationObserverSuppressed) {
+        translationObserverDirty = true;
+        return;
+      }
       if (locale() === "zh-CN") apply();
     });
+    scheduleTranslationRefresh = apply;
     window.addEventListener("trackmcp:locale-change", onLocaleChange);
     observer.observe(document.documentElement, {
       attributes: true,
@@ -308,6 +337,13 @@ export function TranslationRuntime() {
       if (timer) window.clearTimeout(timer);
       observer.disconnect();
       window.removeEventListener("trackmcp:locale-change", onLocaleChange);
+      scheduleTranslationRefresh = null;
+      translationObserverDirty = false;
+      if (translationObserverReleaseTimer !== undefined) {
+        window.clearTimeout(translationObserverReleaseTimer);
+        translationObserverReleaseTimer = undefined;
+      }
+      translationObserverSuppressed = false;
     };
   }, []);
 

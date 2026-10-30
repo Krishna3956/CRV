@@ -152,6 +152,11 @@ test("runtime excludes code and user-editable content", async () => {
   assert.match(source, /characterData: true/);
   assert.match(source, /translationGeneration/);
   assert.match(source, /translationCache/);
+  assert.match(source, /translationObserverSuppressed/);
+  assert.match(source, /translationObserverDirty/);
+  assert.match(source, /suppressTranslationObserver/);
+  assert.match(source, /scheduleTranslationRefresh/);
+  assert.match(source, /A real page mutation in the same task/);
   const logo = await readFile(resolve(root, "src/components/TrackMCPLogo.tsx"), "utf8");
   assert.match(logo, /data-no-translate/);
   const footer = await readFile(resolve(root, "src/components/Footer.tsx"), "utf8");
