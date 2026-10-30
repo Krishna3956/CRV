@@ -1,5 +1,22 @@
 # Founder OS 100 Customer Readiness Ledger
 
+## 2026-10-30 — cross-language publication boundary verified
+
+- [x] Hosted CI runs `go test ./...`, `go vet ./...`, and the Go runtime smoke
+  harness; the .NET lane runs Release build, produces a reviewed NuGet package
+  into the runner workspace, and runs the hosted smoke project.
+- [x] The publication workflow has no Go or NuGet upload step. Public docs and
+  package READMEs consistently describe Go and .NET as reviewed source
+  packages, so the product does not imply registry availability that has not
+  been verified.
+- [x] `test:nonpublished-sdk-docs`, `test:package-provenance`,
+  `test:dependency-pins`, `test:publish-workflow`, `test:docs-version`, and
+  `test:package-release-audit` pass locally; the release artifact audit still
+  covers only the approved npm/PyPI train.
+- [ ] Go/.NET registry publication remains an explicit release-owner decision;
+  no package will be published or advertised without that decision and a
+  corresponding clean-consumer/provenance gate.
+
 ## 2026-10-30 — transitive MCP dependency advisory closed
 
 - [x] npm audit identified `@hono/node-server@2.1.1` through
