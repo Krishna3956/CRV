@@ -1,5 +1,32 @@
 # Founder OS 100 Customer Readiness Ledger
 
+## 2026-10-30 — production refresh worker catalog schema repair
+
+- [x] Investigated the refresh-health warning from worker runs `41008199336`
+  and `41008398867`. The bounded, redacted job diagnostics identified
+  `catalog_recompute` retryable failures caused by the production table
+  `trackmcp_catalog_versions` missing its source-declared `transport` column
+  (`Postgres 42703`); this was a real schema/runtime drift, not a worker
+  freshness false positive.
+- [x] Applied the existing additive migration
+  `supabase/migrations/20261030000001_catalog_transport_scope.sql` to the
+  production Supabase project `TOP-MCP-v2` through the SQL Editor. The
+  migration adds the caller-verified transport scope, labels legacy rows
+  `unknown`, replaces the uniqueness scope, and creates the transport index;
+  it does not delete or rewrite raw event content.
+- [x] Read-only postflight query `6a2c21a2-a320-499e-a24c-75e847a6344c`
+  returned `transport_column=true`, `transport_constraint=true`,
+  `transport_index=true`, `snapshot_unique_constraint=true`,
+  `total_rows=12`, `null_transport_rows=0`, and `unknown_transport_rows=12`.
+- [x] Worker run `41008801744` processed six jobs with `succeeded=6`,
+  `retryable=0`, `failed=0`, and no parse errors, confirming the catalog
+  handler now executes against the repaired schema.
+- [ ] Freshness is not yet a GO: that run still reported a historical queue
+  lag of `10,709,040ms` because nine pre-migration catalog retries remain
+  scheduled with bounded backoff. The worker must drain those retries and a
+  subsequent health report must prove three healthy samples before the
+  freshness gate can be marked complete. No gate was loosened or suppressed.
+
 ## 2026-10-30 — CLI entrypoint fix and deployment retry verified
 
 - [x] Reproduced the published `@trackmcp/cli@0.1.12` defect from a clean npm

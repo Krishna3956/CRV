@@ -1,5 +1,21 @@
 # Founder OS first-100 readiness snapshot
 
+## 2026-10-30 production refresh schema checkpoint — catalog transport drift repaired
+
+The refresh-health warning was traced to a production schema drift: the
+`catalog_recompute` handler selected `trackmcp_catalog_versions.transport`,
+but production had not received the already-reviewed catalog transport
+migration. The additive migration was applied in Supabase production and the
+read-only postflight verified the column, check constraint, transport index,
+workspace-scoped uniqueness, and 12 legacy rows labeled `unknown`.
+
+Worker run `41008801744` then processed six jobs with zero retryable or failed
+jobs, proving the handler path is repaired. Freshness remains an explicit
+warning because nine old retryable jobs are still in bounded backoff and the
+run observed `10,709,040ms` maximum queue lag. The worker and health workflows
+must continue until the retry backlog drains and three healthy samples are
+observed; this is not being reported as a release GO.
+
 ## 2026-10-30 deployment checkpoint — CLI fix and warm redeploy verified
 
 The published `@trackmcp/cli@0.1.13` is the corrected CLI release. Version
