@@ -28,8 +28,12 @@ test("social auth is not blocked by a late terms checkbox render", () => {
 });
 
 test("social discovery failures fail closed without causing a layout shift", () => {
-  assert.match(component, /if \(!value \|\| typeof value\.google !== "boolean" \|\| typeof value\.github !== "boolean"\)/);
-  assert.match(component, /if \(active\) setProviders\(\{ google: false, github: false \}\)/);
+  assert.match(component, /discoverAuthProviders/);
+  assert.match(component, /setProviders\(value\)/);
   assert.match(component, /aria-busy="true"/);
   assert.match(component, /Loading sign-in options/);
+});
+
+test("provider discovery uses the bounded transient retry helper", () => {
+  assert.match(component, /provider-discovery\.mjs/);
 });

@@ -1,5 +1,15 @@
 # Founder OS first-100 readiness snapshot
 
+## 2026-10-30 OAuth resilience checkpoint — provider discovery is bounded
+
+OAuth controls now use a shared provider-discovery helper with a three-attempt
+retry budget for transient edge/network failures. Permanent failures and
+malformed settings fail closed, while the email path remains available and the
+loading skeleton prevents a layout shift. Focused auth/translation tests and
+the authoritative full release gate pass. This is not yet a deployed-runtime
+claim: merge/deploy, real Google/GitHub browser acceptance, Supabase custom
+auth-domain verification, and the refresh-health freshness gate remain open.
+
 ## 2026-10-30 refresh backlog checkpoint — schema repair is now drained
 
 PR #763 is merged as main commit `12d0f6cd1367ebc5ba56abbcbafe7e812ecc14a3`.

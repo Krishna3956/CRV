@@ -1,5 +1,25 @@
 # Founder OS 100 Customer Readiness Ledger
 
+## 2026-10-30 — OAuth provider discovery tolerates transient edge failures
+
+- [x] Added a bounded provider-discovery helper for the sign-in and sign-up
+  OAuth buttons. It retries only transient `408`, `425`, `429`, `500`, `502`,
+  `503`, and `504` responses or network failures, with a maximum of three
+  attempts and short delays; malformed or permanent responses fail closed.
+- [x] The UI keeps a stable, non-clickable loading skeleton while discovery is
+  pending, hides social actions when the provider endpoint cannot be trusted,
+  and leaves email sign-in available. OAuth redirects and credentials are not
+  retried or logged.
+- [x] Added focused tests for transient recovery, bounded retries, permanent
+  failures, malformed responses, and the component contract. `npm run
+  test:auth-callback` passes 13/13 and `npm run test:translation` passes 18/18.
+- [x] The authoritative `npm run test:release-gate` passes all suites after
+  updating the translation contract to assert the helper boundary. Lint,
+  TypeScript, and the production build remain green locally.
+- [ ] This is source-level resilience pending merge and deployment. It does
+  not replace authenticated Google/GitHub browser UAT, Supabase custom-domain
+  configuration, or the still-open refresh-health freshness gate.
+
 ## 2026-10-30 — refresh backlog drained after catalog schema repair
 
 - [x] PR #763 merged as main commit `12d0f6cd1367ebc5ba56abbcbafe7e812ecc14a3`.
