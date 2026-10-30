@@ -13,9 +13,10 @@ The full local release gate passes 154 suites and the production build generates
 211 routes. Authenticated production smoke `41014068784` passed against the
 deployed revision; direct-origin first-ingest `40894964464` and SDK-shaped
 public-edge smoke `40896249223` both passed one bounded metadata-only event plus
-analytics read-back. Health evaluation `41011008346` remains `warning` because
-the bounded window contains only one clean scheduled sample despite the drained
-queue; the freshness gate is still open. The alert evaluator remains manual-only
+analytics read-back. Health evaluation `41018456722` remains `warning` because
+the AWS window still contains one `923273ms` worker-lag sample above the
+`900000ms` freshness budget despite the drained queue; the freshness gate is
+still open. The alert evaluator remains manual-only
 and disabled-first; no production alert delivery is claimed.
 This is current runtime and source evidence, not a pilot GO decision.
 

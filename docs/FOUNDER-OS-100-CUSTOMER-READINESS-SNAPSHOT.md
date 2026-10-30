@@ -1,5 +1,17 @@
 # Founder OS first-100 readiness snapshot
 
+## 2026-10-30 refresh-health evidence recheck — AWS window still open
+
+The repaired health collector now resolves the deployed scheduler Lambda and
+reads bounded CloudWatch metrics. Health run `41018456722` proved four Lambda
+invocations, four scheduled successes, four complete worker samples, zero AWS
+errors, and zero worker failures or retryable jobs. The evaluator remains
+`warning` because the current 20-minute metric window still contains one
+`923273ms` worker-lag sample against the `900000ms` pilot budget. The latest
+manual recovery run `41017574546` is clean at `5271ms`; retain a fully
+in-budget AWS window before closing freshness. This is operational evidence,
+not a release-owner approval.
+
 ## 2026-10-30 OAuth resilience checkpoint — provider discovery is bounded
 
 OAuth controls now use a shared provider-discovery helper with a three-attempt
@@ -23,11 +35,10 @@ retries were re-enqueued through the existing idempotent service-role RPC.
 The production queue postflight now reports zero queued, running, retryable,
 or failed jobs and `16883` succeeded jobs.
 
-Health run `41011008346` remains `warning`, not GO: its bounded window still
-contains historical pre-fix failures and only one scheduled sample. Three
-clean scheduled samples plus healthy AWS worker metrics are required before
-the freshness gate can be closed. This checkpoint is operational evidence,
-not a release-owner approval.
+Health run `41018456722` remains `warning`, not GO: AWS scheduler and
+end-to-end cadence are proven, but one current worker metric is still
+`923273ms`, above the `900000ms` freshness budget. This checkpoint is
+operational evidence, not a release-owner approval.
 
 ## 2026-10-30 production refresh schema checkpoint — catalog transport drift repaired
 
