@@ -8,7 +8,7 @@ promise that every product capability is complete.
 
 ## Current runtime checkpoint — 2026-10-30
 
-- The live App Runner runtime is `3116f2c900e764a341bb5df779aaf0b149268805`; deployment workflow `40955384383` was still rolling out when checked. `main` is now `8f9bbcd5f8c37c9e24dcd8abafe4e35c2e375658` after a documentation-only merge, and the uncached health probe reports the deployed runtime SHA.
+- The live App Runner runtime is `1afc766ebcf3db9b9149e02104eab74dd377cd42`; deployment workflow `40978136879` (retry attempt 2) passed its post-deploy checks. `main` is now `4f043236b9d1ed51687a4972eba118b7fdfa3616` after a documentation-only merge, and the uncached health probe reports the deployed application SHA.
 - One-pass Google OAuth was browser-verified with `krishnaatmu@gmail.com`: the flow reached the authenticated dashboard and loaded the `krishnaatmu` workspace without the prior second-login workaround.
 - Social buttons render immediately, terms are not a prerequisite for social OAuth, the dashboard retries the callback session, and concurrent workspace creation is idempotent. These behaviors are covered by focused contract tests.
 - Marketing translation was browser-verified on `trackmcp.com` with `zh-CN` preserved after scrolling. The runtime uses the trusted App Runner origin fallback when the public edge rejects direct translation API requests.
