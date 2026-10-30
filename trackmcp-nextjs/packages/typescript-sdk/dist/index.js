@@ -65,15 +65,24 @@ export function protocolResultType(result) {
     const value = result?.resultType ?? result?.result_type;
     return value === "complete" || value === "input_required" || value === "task" ? value : undefined;
 }
-/** Count MRTR input requests without retaining request contents. */
+function boundedInputCount(value) {
+    if (Array.isArray(value))
+        return Math.min(100, value.length);
+    // The modern Tasks extension represents inputRequests/inputResponses as
+    // keyed objects. Count keys only; never inspect or retain the values.
+    if (value && typeof value === "object")
+        return Math.min(100, Object.keys(value).length);
+    return undefined;
+}
+/** Count MRTR/task input requests without retaining request contents. */
 export function protocolInputRequestCount(result) {
     const requests = result?.inputRequests ?? result?.input_requests;
-    return Array.isArray(requests) ? Math.min(100, requests.length) : undefined;
+    return boundedInputCount(requests);
 }
-/** Count MRTR input responses without retaining response contents. */
+/** Count MRTR/task input responses without retaining response contents. */
 export function protocolInputResponseCount(result) {
     const responses = result?.inputResponses ?? result?.input_responses;
-    return Array.isArray(responses) ? Math.min(100, responses.length) : undefined;
+    return boundedInputCount(responses);
 }
 const PROTOCOL_EVENT_ID = /^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$/;
 const MAX_PROTOCOL_STATE_BYTES = 16 * 1024;

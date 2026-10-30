@@ -1,5 +1,23 @@
 # Founder OS 100 Customer Readiness Ledger
 
+## 2026-10-30 — modern task-notification telemetry reconciled
+
+- [x] The TypeScript Node transport observer now projects the official
+  `notifications/tasks` lifecycle envelope into the canonical event fields:
+  one-way task-handle hash, explicit task status, and bounded input
+  request/response counts. Task IDs, result content, input values, and status
+  messages remain excluded from telemetry.
+- [x] Object-shaped `inputRequests`/`inputResponses` used by the modern Tasks
+  extension are counted by key only; legacy array-shaped MRTR fixtures remain
+  supported and all counts are capped at 100.
+- [x] SDK regression coverage passes **109/109**, including a notification
+  lifecycle privacy fixture and object-shaped input-count fixture. The README
+  and protocol matrix now describe the observer boundary accurately.
+- [ ] This is a source-level SDK capability correction. The published
+  `@trackmcp/sdk@0.1.25` artifact is unchanged; package publication for the
+  next coordinated version and authenticated customer-owned Tasks UAT remain
+  separate release gates.
+
 ## 2026-10-30 — cross-language publication boundary verified
 
 - [x] Hosted CI runs `go test ./...`, `go vet ./...`, and the Go runtime smoke

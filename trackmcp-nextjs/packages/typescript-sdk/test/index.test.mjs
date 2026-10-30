@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import http from "node:http";
-import { withTrackMCP, catalogObservation, interactionEntityObservation, protocolCapabilities, protocolMRTRMetadata } from "../dist/index.js";
+import { withTrackMCP, catalogObservation, interactionEntityObservation, protocolCapabilities, protocolInputRequestCount, protocolInputResponseCount, protocolMRTRMetadata } from "../dist/index.js";
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { InMemoryTransport } from "@modelcontextprotocol/sdk/inMemory.js";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
@@ -20,6 +20,21 @@ test("projects MRTR linkage as one-way metadata without retaining protocol state
   assert.equal(metadata.retry_of_event_id, "retry-1");
   assert.equal(JSON.stringify(metadata).includes("private-"), false);
   assert.deepEqual(protocolMRTRMetadata({ requestState: "x".repeat(16 * 1024 + 1), retryOfEventId: "not valid" }), {});
+});
+
+test("counts modern object-shaped task inputs without inspecting their values", () => {
+  const result = {
+    inputRequests: {
+      first: { params: { secret: "omit" } },
+      second: { params: { secret: "omit" } },
+    },
+    inputResponses: {
+      first: { content: { secret: "omit" } },
+    },
+  };
+  assert.equal(protocolInputRequestCount(result), 2);
+  assert.equal(protocolInputResponseCount(result), 1);
+  assert.equal(JSON.stringify({ counts: [protocolInputRequestCount(result), protocolInputResponseCount(result)] }).includes("secret"), false);
 });
 
 test("catalog observation hashes resource identities without retaining URI or prompt arguments", () => {
