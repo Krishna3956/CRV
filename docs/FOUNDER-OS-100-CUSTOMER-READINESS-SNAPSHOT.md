@@ -1,5 +1,17 @@
 # Founder OS first-100 readiness snapshot
 
+## 2026-10-30 source checkpoint — transport-scoped analytics is user-visible
+
+The current readiness branch contains the transport-scoped resource/prompt
+analytics correction (`5ff485cf`) and the dashboard consumption milestone
+(`02126e22`). Resources & prompts now renders bounded per-transport read,
+success, and failure counts instead of hiding the transport dimension already
+returned by the analytics API. The focused dashboard contract suite passed
+67/67, the full release gate passed 154 suites, and the production build
+generated 211 routes. This source checkpoint is pushed on the existing review
+branch; it is not a claim that the deployed `main` runtime has changed until
+the review branch is merged and its deployment evidence is available.
+
 ## 2026-10-30 verification checkpoint
 
 The complete local release gate passed 154 suites, standalone ESLint passed,
