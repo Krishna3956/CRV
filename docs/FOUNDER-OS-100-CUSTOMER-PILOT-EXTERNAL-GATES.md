@@ -12,12 +12,14 @@ is intentionally not a GO approval and must not be treated as one.
 - `main`: current default branch. Immutable deployed SHAs belong in the
   release record; PR checks remain attached to their exact review commits.
 - Current deployed application runtime:
-  `c6b6e85a43c33629e73694eb312e4e7db24b5a35`. App Runner workflow
-  `40988182608` passed rollout, release gate, read-only production smoke,
-  runtime-safety, translation-provider, and release-identity checks; the direct-origin health probe
-  confirmed the exact runtime SHA.
-- Current source verification: `main` at merged application commit
-  `c6b6e85a43c33629e73694eb312e4e7db24b5a35`. Main CI `40988182750` passed
+  `177165180383e31bb7760040469f9aaa7f78f8a1`. App Runner workflow
+  `41013186081` passed rollout, release gate, read-only production smoke,
+  runtime-safety, translation-provider, and release-identity checks; the
+  direct-origin health probe confirmed the exact runtime SHA. Authenticated
+  production smoke `41014068784` also passed for that deployed revision.
+- Current source verification: `main` at documentation-only tip
+  `181af749ef989b06d0ed1a5e134a5a88af087470`. The deployed application code
+  remains the merged application revision above. Main CI `41014120839` passed
   all hosted lanes. The full local release gate
   passes 154 suites and the production build generates 211 routes. Read-only
   auth smoke `40893382834`, direct first-ingest `40894964464`, and
@@ -32,8 +34,10 @@ is intentionally not a GO approval and must not be treated as one.
 - The older `b98c6f41` rollout remains historical evidence. This register does
   not change the external owner, backup, privacy, or customer-owned protocol
   decisions.
-- Queue: 263 total, 260 checked, and P0 queue items `020`, `157`, and `260`
-  remain open.
+- Refresh queue postflight after the schema repair reports
+  `queued=0`, `running=0`, `retryable=0`, and `failed=0`, with `16883`
+  succeeded jobs. The freshness gate remains a monitored warning until the
+  bounded scheduled-sample requirement is satisfied again.
 - Full release gate: **154 suites passed**, with lint and the 211-route
   production build green (the prior 209/177-route baselines remain retained in
   historical evidence).

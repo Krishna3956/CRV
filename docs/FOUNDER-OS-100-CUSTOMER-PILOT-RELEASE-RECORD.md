@@ -9,16 +9,18 @@ commit and the operator accepts the listed limitations.
 ## Current deployed baseline — 2026-10-30
 
 The current live runtime is immutable commit
-`c6b6e85a43c33629e73694eb312e4e7db24b5a35`. App Runner workflow `40988182608`
+`177165180383e31bb7760040469f9aaa7f78f8a1`. App Runner workflow `41013186081`
 completed the rollout, release gate, read-only production checks, runtime-safety,
 translation-provider, and immutable identity checks;
 the direct-origin `/api/health` probe confirms the exact runtime SHA. The
-current source is `main` at the same merged application commit
-`c6b6e85a43c33629e73694eb312e4e7db24b5a35`. Main CI workflow `40988182750`
+current source is `main` at documentation-only tip
+`181af749ef989b06d0ed1a5e134a5a88af087470`; the deployed application code is
+the immutable revision above. Main CI workflow `41014120839`
 passed the web/JavaScript, Go, and .NET lanes.
 
 The full local release gate passes 154 suites and the production build generates
-211 routes. Authenticated read-only smoke `40893382834` passed 37/37 checks;
+211 routes. Authenticated production smoke `41014068784` passed against the
+deployed revision;
 direct-origin first-ingest `40894964464` and SDK-shaped public-edge smoke
 `40896249223` both passed a bounded metadata-only event and analytics read-back.
 Health evaluation `40891096616` (`12905900486`) reports a healthy bounded worker
