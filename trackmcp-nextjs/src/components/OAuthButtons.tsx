@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { Loader2 } from "lucide-react";
 import { getSupabaseBrowser } from "@/lib/auth/supabase-browser";
 import { authCallbackUrl, safeAuthNext } from "@/lib/auth/redirect";
+import { discoverAuthProviders } from "@/lib/auth/provider-discovery.mjs";
 
 type OAuthProvider = "google" | "github";
 
@@ -33,24 +34,11 @@ export function OAuthButtons({
 
   useEffect(() => {
     let active = true;
-    void fetch("/api/auth/providers", { headers: { accept: "application/json" }, cache: "no-store" })
-      .then((response) => response.ok ? response.json() as Promise<{ google?: unknown; github?: unknown }> : null)
-      .then((value) => {
-        // A discovery response is authoritative only when it is a valid JSON
-        // object with boolean provider flags. Invalid responses fail closed.
-        if (!active) return;
-        if (!value || typeof value.google !== "boolean" || typeof value.github !== "boolean") {
-          setProviders({ google: false, github: false });
-          return;
-        }
-        setProviders({ google: value.google, github: value.github });
-      })
-      .catch(() => {
-        // Provider discovery is the source of truth. If it is unavailable,
-        // email/password remains the safe fallback and social actions stay
-        // hidden rather than presenting controls that are known to fail.
-        if (active) setProviders({ google: false, github: false });
-      });
+    void discoverAuthProviders().then((value) => {
+      // A discovery response is authoritative only when it is a valid JSON
+      // object with boolean provider flags. Invalid responses fail closed.
+      if (active) setProviders(value);
+    });
     return () => { active = false; };
   }, []);
 
