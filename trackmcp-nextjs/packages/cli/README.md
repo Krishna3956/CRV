@@ -22,9 +22,15 @@ with restrictive permissions. The URL and code can be completed on another
 device:
 
 ```bash
-npx @trackmcp/cli init --no-browser
-npx @trackmcp/cli init --browser=false
+npx --yes --package=@trackmcp/cli trackmcp init --no-browser
+npx --yes --package=@trackmcp/cli trackmcp init --browser=false
 ```
+
+The short `npx @trackmcp/cli init` form is supported for the default setup.
+When passing options after the command, use the explicit `--package` form
+above (or `npm exec --package=@trackmcp/cli -- trackmcp ...`) so npm does not
+consume the CLI flags itself. This is especially important with npm 10 and
+npm 11, whose shorthand argument forwarding differs between releases.
 
 Use `--no-install` when the SDK must already be present (for example, in a
 restricted environment). The default one-command setup is intentionally an
@@ -49,7 +55,7 @@ For CI and other non-interactive environments, provision the key through the
 environment or a secret manager:
 
 ```bash
-TRACKMCP_KEY=tmcp_... npx @trackmcp/cli doctor --non-interactive
+TRACKMCP_KEY=tmcp_... npx --yes --package=@trackmcp/cli trackmcp doctor --non-interactive
 ```
 
 The CLI never accepts an API key as a positional argument. The manual fallback
@@ -61,9 +67,9 @@ call.
 
 ```bash
 npx @trackmcp/cli --help
-npx @trackmcp/cli init --help
+npx --yes --package=@trackmcp/cli trackmcp init --help
 npx @trackmcp/cli doctor
-npx @trackmcp/cli doctor --non-interactive
+npx --yes --package=@trackmcp/cli trackmcp doctor --non-interactive
 npx @trackmcp/cli logout
 ```
 
