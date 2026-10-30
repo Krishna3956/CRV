@@ -77,7 +77,7 @@ jobs:
           SERVICE_ARN=$(aws apprunner create-service \
             --service-name "$SERVICE_NAME" \
             --source-configuration "ImageRepository={ImageIdentifier=$IMAGE,ImageRepositoryType=ECR,ImageConfiguration={Port=8080,RuntimeEnvironmentVariables={PORT=8080,CUSTOMER_MCP_ENDPOINT_PORT=8080,CUSTOMER_MCP_ENDPOINT_BIND=0.0.0.0}}},AutoDeploymentsEnabled=false,AuthenticationConfiguration={AccessRoleArn=$ACCESS_ROLE_ARN}" \
-            --instance-configuration Cpu=1,Memory=2GB \
+            --instance-configuration 'Cpu=1 vCPU,Memory=2 GB' \
             --query 'Service.ServiceArn' --output text)
           echo "service_arn=$SERVICE_ARN" >> "$GITHUB_OUTPUT"
 
