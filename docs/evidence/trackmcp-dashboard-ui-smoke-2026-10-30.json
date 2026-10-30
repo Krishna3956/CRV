@@ -1,0 +1,95 @@
+{
+  "outcome": "passed",
+  "evidence_class": "authenticated_product_dashboard_read_only_smoke",
+  "generated_at": "2026-10-30T10:30:28Z",
+  "target": "TrackMCP dashboard test workspace",
+  "browser": "Codex in-app browser authenticated session",
+  "mutations": false,
+  "pages": [
+    {
+      "surface": "Overview",
+      "result": "loaded",
+      "observed": [
+        "my-data source selected",
+        "activity and session summaries rendered",
+        "outcome evidence separates completed, failed, pending, unknown, and not-observable states"
+      ]
+    },
+    {
+      "surface": "The journey",
+      "result": "loaded",
+      "observed": [
+        "common paths and stop points rendered",
+        "explicit workflow outcomes section rendered",
+        "unknown terminal evidence is not inferred as abandonment"
+      ]
+    },
+    {
+      "surface": "What they are doing",
+      "result": "loaded",
+      "observed": [
+        "feature leaderboard rendered",
+        "modern protocol activity and outcomes rendered",
+        "transport and correlation boundaries rendered"
+      ]
+    },
+    {
+      "surface": "Did it work",
+      "result": "loaded",
+      "observed": [
+        "completion evidence rendered",
+        "unknown and not-observable outcomes remain separate from failure",
+        "tool-quality rows expose insufficient-data thresholds"
+      ]
+    },
+    {
+      "surface": "What is broken",
+      "result": "loaded",
+      "observed": [
+        "synthetic canary incidents are explicitly labeled as non-customer evidence",
+        "no open action-queue signals were returned"
+      ]
+    },
+    {
+      "surface": "Resources and prompts",
+      "result": "loaded",
+      "observed": [
+        "resource and prompt interaction summaries rendered",
+        "raw URIs, prompt names, arguments, and contents are not exposed"
+      ]
+    },
+    {
+      "surface": "Who is using it",
+      "result": "loaded",
+      "observed": [
+        "client names rendered",
+        "no resolver-linked account activity was observed",
+        "the UI states this is not a count of people or customers"
+      ]
+    },
+    {
+      "surface": "Evidence and Trace Explorer",
+      "result": "loaded",
+      "observed": [
+        "observed sessions listed",
+        "trace events loaded in observed order",
+        "trace payload details remained redacted"
+      ]
+    },
+    {
+      "surface": "Setup",
+      "result": "loaded",
+      "observed": [
+        "telemetry is arriving and the scan is bounded",
+        "connection key, SDK/event, MCP method, transport, persistence, and privacy checks rendered",
+        "identity remains unresolved and explicitly optional",
+        "no key rotation or revocation was performed"
+      ]
+    }
+  ],
+  "caveats": [
+    "This is read-only product UI smoke evidence against the authenticated test workspace.",
+    "It does not replace real customer-owned MCP endpoint interoperability UAT.",
+    "It does not constitute release-owner GO/NO-GO approval."
+  ]
+}
