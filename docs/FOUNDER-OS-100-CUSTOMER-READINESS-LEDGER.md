@@ -1,6 +1,6 @@
 # Founder OS 100 Customer Readiness Ledger
 
-## 2026-10-30 — capability-aware protocol analytics implemented locally
+## 2026-10-30 — capability-aware protocol analytics deployed
 
 - [x] Protocol-family request/response joins now precompute bounded capability
   advertisements by server scope before matching opaque handles.
@@ -10,9 +10,14 @@
 - [x] Analytics integration and dashboard contract tests pass, with no raw
   request IDs, interaction handles, capability payloads, or user content in
   the projection.
-- [ ] This remains local/CI evidence until the next deployed runtime and an
-  authenticated customer-owned protocol UAT prove the same behavior in
-  production.
+- [x] PR #757 merged as `c6b6e85a43c33629e73694eb312e4e7db24b5a35`;
+  main CI `40988182750` and App Runner deployment `40988182608` passed the
+  full release gate, rollout, production smoke, runtime-safety, translation,
+  and immutable identity checks. The direct-origin health probe reports the
+  same SHA.
+- [ ] Authenticated customer-owned protocol UAT is still required before this
+  becomes customer-interoperability evidence; no unsupported protocol or
+  negotiated-support claim is made from the deployed fixture alone.
 
 ## 2026-10-30 — translation observer stability fix deployed
 

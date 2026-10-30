@@ -1,20 +1,19 @@
 # Founder OS first-100 readiness snapshot
 
-## 2026-10-30 transport-lineage release checkpoint
+## 2026-10-30 capability-aware analytics release checkpoint
 
-The transport-scoped catalog lineage release is live as immutable application
-runtime `3a1a70c8e4f2197343f487f3d443d68e334a8027`. App Runner deployment
-workflow `40985423350` passed the release gate, rollout,
-immutable identity, production smoke, runtime-safety, and live translation
-audits. Mainline CI `40978136898` passed all required lanes. The public health
-endpoint reports the same runtime SHA; `/`, `/sitemap.xml`, and the
-representative tool route return HTTP 200, and unauthenticated `/api/v2/catalogs`
-remains protected with HTTP 401.
+The capability-aware protocol analytics release is live as immutable application
+runtime `c6b6e85a43c33629e73694eb312e4e7db24b5a35`. App Runner deployment
+workflow `40988182608` passed the release gate, rollout, immutable identity,
+production smoke, runtime-safety, and live translation audits. Mainline CI
+`40988182750` passed all required lanes. The public health endpoint reports the
+same runtime SHA; `/`, `/sitemap.xml`, and `/robots.txt` return HTTP 200, and
+unauthenticated `/api/v2/catalogs` remains protected with HTTP 401.
 
-The current repository source is `main` at documentation reconciliation commit
-`3a1a70c8e4f2197343f487f3d443d68e334a8027`; that docs-only commit did not
-change the deployed application image. The additive transport migration and
-authenticated customer-owned multi-transport UAT remain open gates, so this is
+The current repository source is `main` at the same merged application commit
+`c6b6e85a43c33629e73694eb312e4e7db24b5a35`. Capability-aware matching is
+deployed, but authenticated customer-owned multi-transport UAT, backup/PITR,
+privacy acceptance, and release-owner approval remain open gates, so this is
 not a first-100 release GO.
 
 ## 2026-10-30 CLI release checkpoint
@@ -38,7 +37,7 @@ release gate, immutable release identity, production smoke, runtime safety, and
 live translation-provider checks; the transport-lineage release above is the
 newer application runtime.
 
-Updated: 2026-10-30 (Asia/Kolkata; source `3a1a70c8e4f2197343f487f3d443d68e334a8027`; deployed runtime `3a1a70c8e4f2197343f487f3d443d68e334a8027`; hosted evidence reconciled)
+Updated: 2026-10-30 (Asia/Kolkata; source `c6b6e85a43c33629e73694eb312e4e7db24b5a35`; deployed runtime `c6b6e85a43c33629e73694eb312e4e7db24b5a35`; hosted evidence reconciled)
 
 Status: **Engineering green; release decision HOLD**
 
@@ -67,7 +66,7 @@ replay, backup/PITR, privacy approval, and release-owner GO/NO-GO remain open.
 
 ## Current auth/localization checkpoint — 2026-10-30
 
-- The deployed App Runner runtime is `3a1a70c8e4f2197343f487f3d443d68e334a8027` (workflow `40985423350`). `main` is now at the translation observer stability merge, and the direct-origin `/api/health` probe reports the deployed application SHA.
+- The deployed App Runner runtime is `c6b6e85a43c33629e73694eb312e4e7db24b5a35` (workflow `40988182608`). `main` is now at the capability-aware protocol analytics merge, and the direct-origin `/api/health` probe reports the deployed application SHA.
 - Google and GitHub controls render immediately on the sign-in/sign-up surface and no longer wait for a provider-discovery request or a terms-checkbox interaction. The terms control defaults to checked for the email form; social providers still perform their provider-side consent flow.
 - The dashboard now retries the Supabase session briefly after the OAuth callback and workspace provisioning is idempotent across concurrent first-login callbacks. A fresh browser Google flow with `krishnaatmu@gmail.com` reached the authenticated dashboard in one attempt and loaded the `krishnaatmu` workspace.
 - Marketing-site translation remains a shared client runtime with App Runner-origin fallback. The initial page is held while the first translation batch settles, and a live scroll test preserved `zh-CN` after navigation through the page. Direct Cloudflare requests to `/api/translation` can still be rejected by edge policy; the user-facing runtime fallback is the supported path.
