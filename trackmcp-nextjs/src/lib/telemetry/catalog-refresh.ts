@@ -2,11 +2,14 @@ import { createHash } from "node:crypto";
 import { diffCatalogSnapshots, normalizeCatalogSnapshot, type CatalogSnapshotContract, type CatalogSnapshotInput } from "./catalog-snapshots.ts";
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+export const CATALOG_TRANSPORTS = ["stdio", "streamable_http", "sse", "custom", "unknown"] as const;
+export type CatalogTransport = typeof CATALOG_TRANSPORTS[number];
 
 export type CatalogObservationRow = {
   server_id?: unknown;
   environment_id?: unknown;
   session_id?: unknown;
+  transport?: unknown;
   protocol_version?: unknown;
   catalog_kind?: unknown;
   catalog_item_count?: unknown;
@@ -20,6 +23,7 @@ export type CatalogVersionWrite = {
   server_id: string;
   environment_id: string | null;
   session_id: string | null;
+  transport: CatalogTransport;
   protocol_version: string | null;
   catalog_kind: "tools" | "resources" | "resource_templates" | "prompts";
   item_count: number;
@@ -38,6 +42,7 @@ export type ExistingCatalogVersion = {
   id?: unknown;
   server_id?: unknown;
   environment_id?: unknown;
+  transport?: unknown;
   catalog_kind?: unknown;
   item_count?: unknown;
   item_name_hashes?: unknown;
@@ -52,6 +57,10 @@ function text(value: unknown, max: number): string | null {
   return typeof value === "string" && value.trim() ? value.trim().slice(0, max) : null;
 }
 
+function transport(value: unknown): CatalogTransport {
+  return typeof value === "string" && (CATALOG_TRANSPORTS as readonly string[]).includes(value) ? value as CatalogTransport : "unknown";
+}
+
 function hashes(value: unknown): string[] {
   return Array.isArray(value) ? value.filter((item): item is string => typeof item === "string").slice(0, 128) : [];
 }
@@ -60,13 +69,13 @@ function stableHash(input: unknown): string {
   return createHash("sha256").update(JSON.stringify(input)).digest("hex");
 }
 
-function keyFor(row: { server_id?: unknown; environment_id?: unknown; catalog_kind?: unknown }): string | null {
+function keyFor(row: { server_id?: unknown; environment_id?: unknown; catalog_kind?: unknown; transport?: unknown }): string | null {
   const server = text(row.server_id, 64);
   if (!server || !UUID.test(server)) return null;
   const environment = text(row.environment_id, 64);
   if (environment && !UUID.test(environment)) return null;
   const kind = text(row.catalog_kind, 32);
-  return `${server}:${environment || "none"}:${kind || "unknown"}`;
+  return `${server}:${environment || "none"}:${kind || "unknown"}:${transport(row.transport)}`;
 }
 
 function snapshotFromExisting(row: ExistingCatalogVersion): CatalogSnapshotContract | null {
@@ -89,7 +98,7 @@ function snapshotFromExisting(row: ExistingCatalogVersion): CatalogSnapshotContr
 
 /**
  * Turn accepted metadata-only catalog observations into one bounded version
- * row per server/environment/kind. The newest observation wins; malformed
+ * row per server/environment/transport/kind. The newest observation wins; malformed
  * identifiers are ignored rather than coerced into foreign keys.
  */
 export function buildCatalogVersionWrites(workspaceId: string, rows: readonly CatalogObservationRow[], previousRows: readonly ExistingCatalogVersion[] = [], now = new Date()): CatalogVersionWrite[] {
@@ -133,6 +142,7 @@ export function buildCatalogVersionWrites(workspaceId: string, rows: readonly Ca
       server_id: serverId,
       environment_id: text(row.environment_id, 64),
       session_id: text(row.session_id, 256),
+      transport: transport(row.transport),
       protocol_version: text(row.protocol_version, 128),
       catalog_kind: normalized.snapshot.catalog_kind,
       item_count: normalized.snapshot.item_count,

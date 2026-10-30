@@ -36,3 +36,19 @@ test("joins a changed snapshot to the previous bounded version", () => {
   assert.equal(writes[0].diff.added_name_count, 1);
   assert.deepEqual(writes[0].diff.removed_name_hashes, []);
 });
+
+test("keeps identical catalog snapshots separate by caller-verified transport", () => {
+  const writes = buildCatalogVersionWrites("workspace-1", [
+    { server_id: server, environment_id: environment, transport: "stdio", catalog_kind: "tools", catalog_item_count: 1, catalog_item_name_hashes: [hash] },
+    { server_id: server, environment_id: environment, transport: "streamable_http", catalog_kind: "tools", catalog_item_count: 1, catalog_item_name_hashes: [hash] },
+  ]);
+  assert.deepEqual(writes.map((write) => write.transport), ["stdio", "streamable_http"]);
+  assert.equal(writes[0].snapshot_hash, writes[1].snapshot_hash);
+  assert.equal(writes[0].previous_snapshot_id, null);
+  assert.equal(writes[1].previous_snapshot_id, null);
+});
+
+test("labels missing or unsafe transport values as unknown", () => {
+  const [write] = buildCatalogVersionWrites("workspace-1", [{ server_id: server, catalog_kind: "tools", catalog_item_count: 0, transport: "private-socket" }]);
+  assert.equal(write.transport, "unknown");
+});

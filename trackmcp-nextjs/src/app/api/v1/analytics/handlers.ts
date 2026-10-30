@@ -263,7 +263,7 @@ export function createAnalyticsHandler(getAdmin: typeof getSupabaseAdmin = getSu
   const catalogBeforeParam = url.searchParams.get("catalog_before");
   const catalogBefore = decodeCatalogCursor(catalogBeforeParam, workspaceId);
   const catalogQuery = supabase.from("trackmcp_catalog_versions")
-    .select("id,server_id,environment_id,catalog_kind,item_count,item_name_hashes,item_uri_hashes,snapshot_hash,previous_snapshot_id,complete,truncated,diff,discovered_at")
+    .select("id,server_id,environment_id,transport,catalog_kind,item_count,item_name_hashes,item_uri_hashes,snapshot_hash,previous_snapshot_id,complete,truncated,diff,discovered_at")
     .eq("workspace_id", workspaceId).gte("discovered_at", since).order("discovered_at", { ascending: false });
   if (catalogBefore) catalogQuery.lt("discovered_at", catalogBefore);
   if (until) catalogQuery.lt("discovered_at", until);
@@ -275,6 +275,7 @@ export function createAnalyticsHandler(getAdmin: typeof getSupabaseAdmin = getSu
     id: boundedText(row.id, 128),
     server_id: boundedText(row.server_id, 128),
     environment_id: boundedText(row.environment_id, 128),
+    transport: boundedText(row.transport, 32) || "unknown",
     catalog_kind: boundedText(row.catalog_kind, 32),
     item_count: typeof row.item_count === "number" && Number.isInteger(row.item_count) ? row.item_count : null,
     item_name_hashes: Array.isArray(row.item_name_hashes) ? row.item_name_hashes.filter((value): value is string => typeof value === "string" && /^[a-f0-9]{64}$/i.test(value)).slice(0, 128) : [],
@@ -293,7 +294,7 @@ export function createAnalyticsHandler(getAdmin: typeof getSupabaseAdmin = getSu
   const predecessorById = new Map<string, Record<string, unknown>>();
   if (predecessorIds.length && !catalogVersionsResult.error) {
     const predecessorQuery = supabase.from("trackmcp_catalog_versions")
-      .select("id,catalog_kind,item_count,item_name_hashes,item_uri_hashes,snapshot_hash,complete,truncated,diff,discovered_at")
+      .select("id,transport,catalog_kind,item_count,item_name_hashes,item_uri_hashes,snapshot_hash,complete,truncated,diff,discovered_at")
       .eq("workspace_id", workspaceId);
     const predecessorResult = await predecessorQuery.in("id", predecessorIds).limit(128);
     if (!predecessorResult.error && Array.isArray(predecessorResult.data)) {
@@ -311,6 +312,7 @@ export function createAnalyticsHandler(getAdmin: typeof getSupabaseAdmin = getSu
         id: boundedText(predecessor.id, 128),
         version: typeof predecessor.snapshot_hash === "string" && /^[a-f0-9]{64}$/i.test(predecessor.snapshot_hash) ? predecessor.snapshot_hash.toLowerCase() : null,
         observed_at: boundedText(predecessor.discovered_at, 80),
+        transport: boundedText(predecessor.transport, 32) || "unknown",
         catalog_kind: boundedText(predecessor.catalog_kind, 32),
         item_count: typeof predecessor.item_count === "number" && Number.isInteger(predecessor.item_count) ? predecessor.item_count : null,
         item_name_hashes: Array.isArray(predecessor.item_name_hashes) ? predecessor.item_name_hashes.filter((value): value is string => typeof value === "string" && /^[a-f0-9]{64}$/i.test(value)).slice(0, 128) : [],

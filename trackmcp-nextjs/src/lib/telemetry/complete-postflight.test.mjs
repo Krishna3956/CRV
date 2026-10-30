@@ -33,6 +33,7 @@ const requiredColumns = [
   ["trackmcp_events", "request_state_hash"],
   ["trackmcp_events", "catalog_item_name_hashes"],
   ["trackmcp_catalog_versions", "snapshot_hash"],
+  ["trackmcp_catalog_versions", "transport"],
   ["trackmcp_catalog_versions", "workspace_id"],
   ["trackmcp_catalog_entity_reads", "workspace_id"],
   ["trackmcp_catalog_entity_reads", "entity_hash"],
@@ -96,6 +97,9 @@ test("catalog entity and workspace-scoped uniqueness postflights are included", 
   assert.match(scopeMigration, /workspace_id,\s*server_id,\s*environment_id,\s*catalog_kind,\s*snapshot_hash/s);
   assert.match(postflight, /trackmcp_catalog_entity_reads/);
   assert.match(postflight, /trackmcp_catalog_versions_snapshot_hash_idx/);
+  const transportMigration = await readFile(new URL("../../../../supabase/migrations/20261030000001_catalog_transport_scope.sql", import.meta.url), "utf8");
+  assert.match(transportMigration, /transport,\s*catalog_kind,\s*snapshot_hash/s);
+  assert.match(postflight, /trackmcp_catalog_versions_transport_scope_idx/);
 });
 
 test("lifecycle fact type constraint is included in reviewed postflight evidence", async () => {

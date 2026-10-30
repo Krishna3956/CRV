@@ -2,6 +2,27 @@
 
 Status: active autonomous audit, started 2026-10-21.
 
+## 2026-10-30 — catalog lineage now preserves transport scope
+
+- [x] Catalog refresh observations now carry a bounded caller-verified
+  transport dimension: `stdio`, `streamable_http`, `sse`, `custom`, or the
+  explicit legacy-safe `unknown` label. Unsafe or missing values are never
+  inferred from URLs or session IDs.
+- [x] Snapshot deduplication and predecessor joins include transport scope, so
+  identical catalog hashes observed over different transports remain separate
+  lineage rows instead of being silently merged.
+- [x] The v1 analytics projection and v2 catalogs route expose only the bounded
+  transport label alongside existing hash/count metadata. No endpoint,
+  session, catalog name, URI, or payload is added to the browser response.
+- [x] Added additive migration
+  `supabase/migrations/20261030000001_catalog_transport_scope.sql`, updated the
+  read-only complete postflight, and added transport-scope, migration,
+  refresh-worker, catalogs-route, and tenant-isolation regression coverage.
+- [x] Focused refresh, catalogs, postflight, and tenant-isolation checks passed.
+- [ ] Production evidence remains pending application of the additive
+  migration and an authenticated customer-owned multi-transport UAT; this
+  milestone does not claim full transport interoperability.
+
 ## 2026-10-30 — OAuth provider discovery now fails closed without layout shift
 
 - [x] The auth surface no longer renders clickable Google/GitHub controls from

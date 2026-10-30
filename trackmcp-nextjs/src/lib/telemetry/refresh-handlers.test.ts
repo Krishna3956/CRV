@@ -202,7 +202,8 @@ test("catalog refresh writes only hash-based version rows", async () => {
   assert.equal((catalogWrite.rows[0] as { catalog?: unknown }).catalog, undefined);
   assert.equal((catalogWrite.rows[0] as { workspace_id?: unknown }).workspace_id, workspace);
   assert.equal((catalogWrite.rows[0] as { snapshot_hash?: unknown }).snapshot_hash?.toString().length, 64);
-  assert.equal(catalogWrite.onConflict, "workspace_id,server_id,environment_id,catalog_kind,snapshot_hash");
+  assert.equal(catalogWrite.onConflict, "workspace_id,server_id,environment_id,transport,catalog_kind,snapshot_hash");
+  assert.equal((catalogWrite.rows[0] as { transport?: string }).transport, "unknown");
 });
 
 test("catalog refresh preserves structured database error context", async () => {
