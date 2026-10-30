@@ -1,10 +1,25 @@
 # Founder OS 100-customer pilot release record
 
-Status: **Draft — not yet a go decision**
+Status: **Draft — not yet a go decision; final first-100 GO pending explicit release-owner confirmation**
 
 This record is intentionally evidence-first. It must not be changed to
 `GO` until the open gates below are independently verified on the release
 commit and the operator accepts the listed limitations.
+
+## Current gate reconciliation — 2026-10-30
+
+- The formal guarded customer endpoint UAT workflow `41049662323` passed from
+  merged `main` `2365106b` and uploaded a redacted artifact. It exercised the
+  reviewed Streamable HTTP discovery path against the isolated AWS endpoint.
+- The Supabase Free-plan recovery posture is now recorded as an explicitly
+  accepted limitation for a controlled first-100 pilot: logical-export-only,
+  no guaranteed RPO/RTO, PITR disabled, and release owner/project operator as
+  rollback/restoration owner. See
+  `docs/evidence/supabase-backup-acceptance-2026-10-30.md`.
+- The formal release status remains **HOLD** until the release owner records an
+  explicit final first-100 GO/NO-GO against the current evidence and accepted
+  limitations. This is the last governance action in this release goal; it is
+  not a source-code or CI action that engineering may infer.
 
 ## Release-owner decision record — 2026-10-30
 

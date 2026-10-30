@@ -1,5 +1,24 @@
 # Founder OS 100 Customer Readiness Ledger
 
+## 2026-10-30 — formal customer endpoint UAT passed; recovery limitation recorded
+
+- [x] Guarded GitHub Actions customer endpoint workflow `41049662323` ran from
+  merged `main` commit `2365106b` with the reviewed endpoint, transport, and
+  protocol inputs. The job passed and uploaded the redacted artifact
+  `customer-endpoint-uat-41049662323`.
+- [x] The formal workflow path now has the required encrypted telemetry secret
+  and records the same bounded discovery evidence as the local runner: 30
+  tools, 6 resources, 5 prompts, protected-resource metadata observed, and no
+  delivery, hook, privacy, or queue errors.
+- [x] The Supabase Free-plan backup/PITR limitation is explicitly accepted for
+  a controlled first-100 pilot. Recovery remains logical-export-only with no
+  guaranteed RPO/RTO; the release owner/project operator owns rollback and
+  restoration. Evidence:
+  `docs/evidence/supabase-backup-acceptance-2026-10-30.md`.
+- [ ] The final release-owner GO/NO-GO is still required before changing the
+  formal register from **HOLD** to **GO**. The controlled pilot may proceed
+  only within the accepted limitations.
+
 ## 2026-10-30 — isolated AWS endpoint deployed and bounded UAT passed
 
 - [x] The merged `main` workflow run `41048627524` updated the isolated
