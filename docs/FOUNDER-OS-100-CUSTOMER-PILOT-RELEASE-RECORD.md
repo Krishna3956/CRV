@@ -14,20 +14,23 @@ completed the rollout, release gate, read-only production checks, runtime-safety
 translation-provider, and immutable identity checks;
 the direct-origin `/api/health` probe confirms the exact runtime SHA. The
 current source is `main` at documentation-only tip
-`c530c193808579ae5b82f9e015515c090ec7f8d9`; the deployed application code is
+`78374fd0a08d23a6602a67dc6de758f279467b53`; the deployed application code is
 the immutable revision above. Main CI workflow `41025977624`
 passed the web/JavaScript, Go, and .NET lanes.
 
-The full local release gate passes 154 suites and the production build generates
+The full local release gate passes 155 suites and the production build generates
 211 routes. Authenticated production smoke `41014068784` passed against the
 deployed revision;
 direct-origin first-ingest `40894964464` and SDK-shaped public-edge smoke
 `40896249223` both passed a bounded metadata-only event and analytics read-back.
-Health evaluation `41026583693` remains `warning`: it records five AWS scheduler
-invocations, three end-to-end scheduled successes, and two scheduler
-failures/errors. The AWS end-to-end cadence sub-gate is proven, but the AWS
-worker-freshness metric is `1010614ms` against the `900000ms` budget. The
-bounded GitHub recovery evaluation has zero stale or incomplete samples. Serial
+Fresh health evaluation `41038856612` is `healthy`: it records four AWS
+scheduler invocations, zero errors, four end-to-end scheduled successes, four
+complete worker samples, zero worker failures/retries/parse failures, and
+current worker max queue lag `832835ms` against the `900000ms` budget. The AWS
+scheduler cadence, AWS end-to-end cadence, and worker-freshness gates are all
+proven. Historical samples remain retained in the report, including two
+cadence breaches outside the current clean evaluation window. The bounded
+GitHub recovery evaluation has zero stale or incomplete samples. Serial
 recovery run `41026523923` is clean with no backlog observed.
 GitHub OAuth is configured in Supabase and passed a real browser
 authorization and authenticated dashboard return on 2026-10-29. Google is
@@ -40,18 +43,30 @@ production key create/rotate/revoke UAT was verified on 2026-10-28, and the
 account key routes have not changed since that run. The release remains
 Draft/HOLD because backup/recovery ownership, privacy acceptance,
 customer-owned endpoint/protocol UAT, and release-owner approval remain open.
+The synthetic customer fixture UAT is recorded separately as engineering
+evidence and does not replace a real customer-owned endpoint.
+
+## Release-owner choices required
+
+The release owner must explicitly provide a timestamped `GO` or `NO-GO` for the
+limited first-100 pilot, identify the cohort and supported environments,
+accept/reject the documented limitations, name the rollback owner and recovery
+contact, and either accept the current backup/PITR posture or keep the release
+on HOLD. Engineering has not inferred any of those decisions.
 
 The refresh-health evidence collector was repaired in PR #766, merged as
 `f9fbb0b7`, and its timestamp retention was merged in PR #769 as `a484cbf9`.
 PR #770 then serialized the GitHub recovery path and merged as `96aeb508` after
-all required repository lanes passed. Health run `41026583693` authenticated to
-AWS and recorded five scheduler invocations, three end-to-end scheduled
-successes, and two scheduler failures/errors; the AWS worker-freshness metric
-was `1010614ms` against the `900000ms` budget. The bounded GitHub recovery
-evaluation now has zero stale or incomplete samples. Serial follow-up worker
-run `41026523923` observed no backlog with zero failures/retries/unparseable
-responses. The scheduler gate remains open until a clean bounded AWS window is
-retained; no readiness claim was loosened.
+all required repository lanes passed. Fresh health run `41038856612` is
+`healthy`: AWS recorded four invocations, zero errors, four scheduled
+successes, four complete worker samples, zero worker failures/retries/parse
+failures, and current worker max queue lag `832835ms` against the `900000ms`
+budget. The AWS scheduler cadence, AWS end-to-end cadence, and worker-freshness
+gates are proven. Historical samples remain retained in the report, including
+two cadence breaches outside the current clean evaluation window. The bounded
+GitHub recovery evaluation has zero stale or incomplete samples. Serial
+follow-up worker run `41026523923` observed no backlog with zero
+failures/retries/unparseable responses.
 
 The prior runtime baseline and historical evidence remain below.
 
@@ -130,10 +145,10 @@ recovery-evidence hardening, not a final operational SLO acceptance.
 
 ## Latest source verification — 2026-10-30
 
-The current repository source is `main` at `f9fbb0b7380ab6bb738c060f825b72cdfd2958a3`;
+The current repository source is `main` at `78374fd0a08d23a6602a67dc6de758f279467b53`;
 the deployed application remains immutable source
 `177165180383e31bb7760040469f9aaa7f78f8a1` as described above.
-The latest local release gate passes **154 suites**, lint, the production build
+The latest local release gate passes **155 suites**, lint, the production build
 (**211 routes**), and `git diff --check`. The current worker, auth-scope, and
 first-ingest evidence is recorded above and in the readiness ledger. The older
 `b98c6f41` rollout remains historical evidence only.

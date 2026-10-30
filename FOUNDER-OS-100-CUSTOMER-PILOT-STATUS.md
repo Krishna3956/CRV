@@ -8,8 +8,9 @@ promise that every product capability is complete.
 
 ## Current runtime checkpoint — 2026-10-30
 
-- The live App Runner runtime is `177165180383e31bb7760040469f9aaa7f78f8a1`; deployment workflow `41013186081` passed release gate, rollout, production smoke, runtime-safety, translation-provider, and identity checks. The current documentation/source tip is `c530c193808579ae5b82f9e015515c090ec7f8d9`, and the direct-origin health probe reports the deployed application SHA.
-- Health evaluation `41026583693` records five AWS scheduler invocations, three end-to-end scheduled successes, and two scheduler failures/errors; the AWS end-to-end cadence sub-gate is proven, but AWS worker freshness remains `warning` at `1010614ms` against the `900000ms` budget. The bounded GitHub recovery evaluation now has zero stale or incomplete samples. The latest serial recovery run `41026523923` is clean with no backlog observed and zero failures/retries/unparseable responses.
+- The live App Runner runtime is `177165180383e31bb7760040469f9aaa7f78f8a1`; deployment workflow `41013186081` passed release gate, rollout, production smoke, runtime-safety, translation-provider, and identity checks. The current documentation/source tip is `78374fd0a08d23a6602a67dc6de758f279467b53`, and the direct-origin health probe reports the deployed application SHA.
+- Fresh health evaluation `41038856612` is `healthy`: it records four AWS scheduler invocations, zero errors, four end-to-end scheduled successes, four complete worker samples, zero worker failures/retries/parse failures, and current worker max queue lag `832835ms` against the `900000ms` budget. The AWS scheduler cadence, AWS end-to-end cadence, and worker-freshness gates are all proven. Historical cadence breaches remain retained outside the current clean evaluation window; the bounded GitHub recovery evaluation has zero stale or incomplete samples.
+- Synthetic customer MCP UAT passed against a deterministic local Streamable HTTP server with 30 tools, 6 resources, 3 templates, 5 prompts, and 126 metadata-only telemetry events. This closes the engineering fixture path only; real customer-owned endpoint interoperability remains open.
 - One-pass Google OAuth was browser-verified with `krishnaatmu@gmail.com`: the flow reached the authenticated dashboard and loaded the `krishnaatmu` workspace without the prior second-login workaround.
 - Social buttons render immediately, terms are not a prerequisite for social OAuth, the dashboard retries the callback session, and concurrent workspace creation is idempotent. These behaviors are covered by focused contract tests.
 - Marketing translation was browser-verified on `trackmcp.com` with `zh-CN` preserved after scrolling. The runtime uses the trusted App Runner origin fallback when the public edge rejects direct translation API requests.
@@ -23,7 +24,7 @@ The release remains **HOLD** for the same external gates below: recovery ownersh
   merges are documentation/test-harness only. App Runner rollout `40888363134`
   ended during its final wait, but an uncached live health probe confirmed the
   exact runtime SHA; its workflow completion is not claimed.
-- The current local release gate passes **154 suites**, TypeScript, lint,
+- The current local release gate passes **155 suites**, TypeScript, lint,
   `git diff --check`, and the production build (**211 routes**).
 - Read-only authenticated smoke `40893382834` passed **37/37** tenant/privacy
   checks. Direct-origin first-ingest `40894964464` and SDK-shaped public-edge

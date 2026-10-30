@@ -1,5 +1,25 @@
 # Founder OS 100 Customer Readiness Ledger
 
+## 2026-10-30 — clean AWS health window proven; synthetic customer UAT exercised
+
+- [x] Fresh health run `41038856612` on merged `main` completed with evaluator
+  state `healthy`. The AWS scheduler cadence gate is `proven` with 4 observed
+  invocations, 0 errors, and 4 scheduled successes; the AWS end-to-end cadence
+  gate is `proven` with 4 observed successes; and the worker-freshness gate is
+  `proven` with 4 complete samples, zero parse failures, zero worker failures,
+  zero retryable jobs, and current `worker_max_queue_lag_ms=832835`, within the
+  `900000ms` budget. The redacted artifact is attached to the workflow run.
+- [x] The synthetic customer MCP UAT passed against a deterministic local
+  Streamable HTTP server with 30 tools, 6 resources, 3 resource templates, and
+  5 prompts. It exercised 30 tool calls, 6 resource reads, 5 prompt retrievals,
+  one completion request, and delivered 126 metadata-only telemetry events with
+  no retained credentials, tool arguments, resource bodies, or prompt values.
+  Evidence: `docs/evidence/synthetic-customer-mcp-uat-2026-10-30.json`.
+- [ ] This synthetic run closes the engineering fixture path only; it does not
+  close authenticated interoperability with a real customer-owned endpoint.
+- [ ] Release-owner GO/NO-GO, pilot scope, accepted limitations, backup/PITR
+  posture, privacy acceptance, and rollback ownership remain to be recorded.
+
 ## 2026-10-30 — serial recovery sample is clean; AWS worker freshness still open
 
 - [x] PR #770 merged to `main` as `96aeb50865e27fabe03f7511cfedc761aca3dbde`
