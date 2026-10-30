@@ -1,5 +1,21 @@
 # Founder OS first-100 readiness snapshot
 
+## 2026-10-30 refresh backlog checkpoint — schema repair is now drained
+
+PR #763 is merged as main commit `12d0f6cd1367ebc5ba56abbcbafe7e812ecc14a3`.
+After the catalog transport migration and bounded App Runner warm-up landed,
+worker run `41010829163` completed `4/4` jobs successfully and replay run
+`41010924200` completed `32/32` jobs successfully. The seven stale catalog
+retries were re-enqueued through the existing idempotent service-role RPC.
+The production queue postflight now reports zero queued, running, retryable,
+or failed jobs and `16883` succeeded jobs.
+
+Health run `41011008346` remains `warning`, not GO: its bounded window still
+contains historical pre-fix failures and only one scheduled sample. Three
+clean scheduled samples plus healthy AWS worker metrics are required before
+the freshness gate can be closed. This checkpoint is operational evidence,
+not a release-owner approval.
+
 ## 2026-10-30 production refresh schema checkpoint — catalog transport drift repaired
 
 The refresh-health warning was traced to a production schema drift: the
