@@ -1,5 +1,20 @@
 # Founder OS 100 Customer Readiness Ledger
 
+## 2026-10-30 — package and release truth rechecked
+
+- [x] Public registry verification was repeated for the current release train:
+  npm serves `@trackmcp/sdk@0.1.25` and `@trackmcp/cli@0.1.13`; PyPI serves
+  `trackmcp==0.1.15` with wheel SHA-256
+  `738e6ca64fb5ea91b80bfe1fc9a88457783cc7e5fc264b5f8e122347922aae07`.
+- [x] The current source tree passed the clean build and lint checks, and the
+  full release gate passed 154 suites.
+- [x] `docs/FOUNDER-OS-PDF-TRUTH-AUDIT.md` now distinguishes registry-verified
+  package artifacts and candidate-verified engineering from the still-open
+  external pilot gates.
+- [ ] This does not close customer-owned endpoint/protocol UAT,
+  privacy/deletion acceptance, backup/PITR, sustained reliability evidence,
+  release-owner GO/NO-GO, or other provider/owner gates listed below.
+
 ## 2026-10-30 — protocol decision analytics reconciled with implementation
 
 - [x] The deployed analytics projection already exposes bounded

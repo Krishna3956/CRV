@@ -73,8 +73,8 @@ business outcome.
 | Honest client identity | `clientInfo` is labeled self-reported; unknown is retained | **Implemented** | Keep this caveat visible in all client charts and exports |
 | Resolver-based account identity | SDKs hash bounded resolver output into `account_key` | **Implemented but not verified identity** | Add server-attested/workspace-keyed identity semantics before calling it “verified” |
 | Metadata-first privacy | SDK redaction, bounded payloads, secret scans, no raw keys/tokens by default | **Implemented locally** | Repeat the scan on the exact release tree and review production logs |
-| Native TypeScript SDK | Direct HTTPS ingestion, catalog metadata, identity resolver, bounded queue, packed-consumer coverage; the reviewed source candidate is `@trackmcp/sdk@0.1.25`, with `0.1.24` as the last registry-verified artifact | **Implemented; coordinated publication pending** | Keep the packed consumer gate and exact published provenance tied to the pilot release |
-| Native Python SDK | Direct HTTPS ingestion, privacy controls, catalog metadata, resolver, bounded middleware/wrapper lifecycle events, explicit transport metadata, and PyPI-style consumer coverage; the reviewed source candidate is `trackmcp==0.1.15`, with `0.1.14` as the last registry-verified artifact | **Implemented; coordinated publication pending** | Keep unsupported middleware seams documented and tie published provenance to the pilot release |
+| Native TypeScript SDK | Direct HTTPS ingestion, catalog metadata, identity resolver, bounded queue, packed-consumer coverage; npm serves `@trackmcp/sdk@0.1.25` (`sdk-0.1.25.tgz`) | **Implemented and registry-verified** | Keep the packed consumer gate, immutable package provenance, and pilot release SHA linked; this does not prove every future release is published |
+| Native Python SDK | Direct HTTPS ingestion, privacy controls, catalog metadata, resolver, bounded middleware/wrapper lifecycle events, explicit transport metadata, and PyPI-style consumer coverage; PyPI serves `trackmcp==0.1.15` with the recorded wheel digest | **Implemented and registry-verified** | Keep unsupported middleware seams documented and tie the verified wheel digest to the pilot release record |
 | Streamable HTTP and stdio awareness | Event envelope has explicit transport values; TypeScript/Python middleware or adapters emit bounded initialize/shutdown boundaries, TypeScript records bounded transport-error session failures and duration, Python transport metadata is explicit, and local child-exit/socket-disconnect fixtures cover the failure boundary | **Implemented locally / bounded; production reconnect UAT remains open** | Keep transport-owned reconnect policy, proxy behavior, and authenticated production disconnect evidence explicitly separate; transport must not be inferred when unknown |
 | OTel interoperability | `mapOTelSpanToTrackMCPEvent`, bounded authenticated OTLP/HTTP JSON and protobuf receiver, docs, and production smoke for the deployed release | **Implemented as a bounded OTLP/HTTP receiver** | Run a separate authenticated pilot-key protobuf UAT; OTLP/gRPC and external export remain unsupported and must not be marketed |
 | Proxy/stdio launcher fallback | The CLI now provides a bounded `proxy -- <command>` stdio launcher that forwards JSONL unchanged and emits metadata-only method/direction/transport observations; shell execution, payload retention, and key arguments are rejected | **Implemented as a bounded local launcher** | Keep hosted proxy, HTTP/SSE forwarding, OAuth, reconnect/replay, and durable delivery explicitly out of scope until separately designed and verified |
@@ -98,7 +98,7 @@ business outcome.
 | Account identity optionality | SDK resolver is optional and fail-open | **Implemented** | Make “Identify your organizations — optional” the user-facing language |
 | Export/delete | Bounded secret-free export, authenticated review queue, legal-hold/retention checks, deterministic deletion planning/checkpoints, and non-destructive deletion requests exist; completion remains closed without a separately reviewed executor | **Implemented as a review-only privacy boundary; destructive execution intentionally external** | Approve and review an audited asynchronous deletion worker, then retain completion evidence; do not enable deletion by implication |
 | Retention | Dataset-specific retention policy, UTC cutoffs, fail-closed `retention_cleanup` worker boundary, and read-only dry-run/postflight contracts exist | **Implemented as a fail-closed policy boundary; operational execution remains external** | Add an approved scheduler, lag/dead-letter metrics, replay procedure, and operator acceptance before enabling cleanup |
-| CI/release governance | CI/release gate/hygiene scripts exist locally | **Implemented locally** | Run on clean release branch and record deployed SHA |
+| CI/release governance | CI/release gate/hygiene scripts, clean build/lint, hosted CI, and App Runner runtime smoke are green for the current candidate; the full release gate passed 154 suites | **Implemented and candidate-verified** | Keep the deployed SHA, rollback record, and remaining owner/provider gates attached to the pilot decision |
 
 ## Design and style truth
 
@@ -132,6 +132,16 @@ OTel and proxy/launcher choices belong under an “Other connection methods”
 disclosure and must show their coverage limitations. The current CLI activation
 flow solves authentication and key redemption, but it does not by itself replace
 the server/environment setup and verification contract described in the PDF.
+
+## Reconciliation note — 2026-10-30
+
+The package rows above were rechecked against the public registries on this
+date: npm serves `@trackmcp/sdk@0.1.25` and `@trackmcp/cli@0.1.13`; PyPI currently serves `trackmcp==0.1.15`
+with the wheel digest recorded in the readiness ledger. The current source tree also passed the clean build/lint checks and the
+full 154-suite release gate. These checks establish artifact and engineering
+readiness, not a blanket pilot GO: authenticated customer-owned endpoint UAT,
+privacy/deletion acceptance, backup/PITR, sustained reliability evidence, and
+other explicitly listed owner/provider gates remain open.
 
 ## Claims that must remain prohibited
 
