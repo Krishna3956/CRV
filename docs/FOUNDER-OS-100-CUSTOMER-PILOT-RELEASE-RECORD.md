@@ -14,7 +14,7 @@ completed the rollout, release gate, read-only production checks, runtime-safety
 translation-provider, and immutable identity checks;
 the direct-origin `/api/health` probe confirms the exact runtime SHA. The
 current source is `main` at documentation-only tip
-`78374fd0a08d23a6602a67dc6de758f279467b53`; the deployed application code is
+`dfcdb30f75f97df1c94f2adb1f0b67964c2376eb`; the deployed application code is
 the immutable revision above. Main CI workflow `41025977624`
 passed the web/JavaScript, Go, and .NET lanes.
 
@@ -43,8 +43,11 @@ production key create/rotate/revoke UAT was verified on 2026-10-28, and the
 account key routes have not changed since that run. The release remains
 Draft/HOLD because backup/recovery ownership, privacy acceptance,
 customer-owned endpoint/protocol UAT, and release-owner approval remain open.
-The synthetic customer fixture UAT is recorded separately as engineering
-evidence and does not replace a real customer-owned endpoint.
+The synthetic customer fixture UAT and the follow-up authenticated product
+synthetic UAT are recorded separately as engineering evidence. The latter
+proved delivery of 126 metadata-only events to the product ingest endpoint and
+5/5 Setup readiness checks with a disposable test-workspace key, but it still
+does not replace a real customer-owned endpoint.
 
 ## Release-owner choices required
 
@@ -145,7 +148,7 @@ recovery-evidence hardening, not a final operational SLO acceptance.
 
 ## Latest source verification — 2026-10-30
 
-The current repository source is `main` at `78374fd0a08d23a6602a67dc6de758f279467b53`;
+The current repository source is `main` at `dfcdb30f75f97df1c94f2adb1f0b67964c2376eb`;
 the deployed application remains immutable source
 `177165180383e31bb7760040469f9aaa7f78f8a1` as described above.
 The latest local release gate passes **155 suites**, lint, the production build

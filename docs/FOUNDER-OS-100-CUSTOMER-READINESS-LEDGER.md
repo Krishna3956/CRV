@@ -1,6 +1,6 @@
 # Founder OS 100 Customer Readiness Ledger
 
-## 2026-10-30 — clean AWS health window proven; synthetic customer UAT exercised
+## 2026-10-30 — clean AWS health window proven; authenticated synthetic product UAT exercised
 
 - [x] Fresh health run `41038856612` on merged `main` completed with evaluator
   state `healthy`. The AWS scheduler cadence gate is `proven` with 4 observed
@@ -15,8 +15,17 @@
   one completion request, and delivered 126 metadata-only telemetry events with
   no retained credentials, tool arguments, resource bodies, or prompt values.
   Evidence: `docs/evidence/synthetic-customer-mcp-uat-2026-10-30.json`.
-- [ ] This synthetic run closes the engineering fixture path only; it does not
-  close authenticated interoperability with a real customer-owned endpoint.
+- [x] The same deterministic synthetic MCP was then driven through the
+  authenticated TrackMCP product ingest endpoint using a disposable test-workspace
+  key. It exercised the same 30 tools, 6 resources, 3 templates, 5 prompts, and
+  one completion; 126 metadata-only events reached the product, the client queue
+  drained to zero with no delivery errors, and Setup refreshed to 5/5 required
+  checks with first-event scope `synthetic-customer-mcp` / `uat` and 21-second
+  observed lag. Evidence:
+  `docs/evidence/authenticated-product-synthetic-mcp-uat-2026-10-30.json`.
+- [ ] These synthetic runs close the local and authenticated product-integration
+  paths only; they do not close interoperability with a real customer-owned
+  MCP endpoint.
 - [ ] Release-owner GO/NO-GO, pilot scope, accepted limitations, backup/PITR
   posture, privacy acceptance, and rollback ownership remain to be recorded.
 

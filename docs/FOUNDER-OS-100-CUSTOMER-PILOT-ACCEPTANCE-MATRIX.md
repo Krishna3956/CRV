@@ -7,7 +7,7 @@ Current deployed baseline: application runtime
 `41013186081`, passed release gate, rollout, production smoke, runtime-safety,
 translation-provider, and identity checks). The current repository source is
 `main` at documentation-only handoff commit
-`78374fd0a08d23a6602a67dc6de758f279467b53`; the direct-origin health probe
+`dfcdb30f75f97df1c94f2adb1f0b67964c2376eb`; the direct-origin health probe
 reports the deployed application SHA.
 The full local release gate passes 155 suites and the production build generates
 211 routes. Authenticated production smoke `41014068784` passed against the
@@ -22,6 +22,12 @@ are all `proven`. Historical samples remain retained in the report, including
 two cadence breaches outside the current clean evaluation window. The bounded
 GitHub recovery evaluation has zero stale or incomplete samples. The alert evaluator remains manual-only
 and disabled-first; no production alert delivery is claimed.
+The authenticated product synthetic MCP UAT also passed: 30 tools,
+6 resources, 3 templates, 5 prompts, and one completion exercised through the
+product ingest endpoint, with 126 metadata-only events, zero delivery errors, a
+drained client queue, and Setup refreshed to 5/5 required checks. This is
+authenticated product integration evidence using a synthetic MCP server; it
+does not replace a real customer-owned endpoint.
 This is current runtime and source evidence, not a pilot GO decision.
 
 Historical baseline retained for continuity: application
