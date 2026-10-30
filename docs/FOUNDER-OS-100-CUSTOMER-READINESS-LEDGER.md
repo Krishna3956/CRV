@@ -1,5 +1,23 @@
 # Founder OS 100 Customer Readiness Ledger
 
+## 2026-10-30 — protocol decision analytics reconciled with implementation
+
+- [x] The deployed analytics projection already exposes bounded
+  `protocol_decisions` for sampling and elicitation (`accept`, `decline`, and
+  `cancel`) and keeps the values, prompts, schemas, and response content out of
+  the response.
+- [x] Capability-scoped request/response matching is implemented for the
+  protocol-family projection, with negotiated, no-advertisement, and unknown
+  evidence kept distinct. The current integration coverage includes sampling
+  and elicitation matches, cross-server handle isolation, and durable-fact
+  fallback behavior.
+- [x] The PDF truth audit was corrected so these are no longer described as
+  missing engineering vectors. Remaining limitations are explicit: only
+  allowlisted decisions count, accept is not business approval, and
+  authenticated customer-owned transport/UAT remains external.
+- [x] The complete release gate remains green at 154 suites; this is a truth
+  reconciliation of the deployed capability, not a new runtime claim.
+
 ## 2026-10-30 — release-gate and package-boundary recheck
 
 - [x] The complete local release gate passed **154 suites** after the CLI and
