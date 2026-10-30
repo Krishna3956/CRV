@@ -1,22 +1,21 @@
 # Founder OS 100 Customer Readiness Ledger
 
-## 2026-10-30 — serial recovery sample is clean; AWS scheduler window still open
+## 2026-10-30 — serial recovery sample is clean; AWS worker freshness still open
 
 - [x] PR #770 merged to `main` as `96aeb50865e27fabe03f7511cfedc761aca3dbde`
   after the Go, .NET, and web/SDK CI lanes passed. The GitHub fallback recovery
   path now sends one serial `max_jobs:4` request so it cannot compete with the
   canonical AWS scheduler's four-way production fan-out.
-- [x] Worker run `41020485719` completed one bounded batch with `processed=4`,
+- [x] Worker run `41023757195` completed one bounded batch with `processed=4`,
   `succeeded=4`, zero retryable/failed jobs, zero unparseable responses, and
-  `max_queue_lag_ms=879644` (`within_budget`).
-- [x] Health run `41022126569` authenticated to AWS and proved four complete
-  worker samples, zero worker failures/retries/parse failures, and maximum AWS
-  worker lag `688932ms` within the `900000ms` budget.
-- [ ] The overall health evaluator remains `warning`: the bounded AWS window
-  includes one scheduler failure (`5` invocations, `4` successes, `1` failure),
-  and the retained GitHub recovery window includes the earlier timed-out run
-  `41019676583`. Keep the provider-owned scheduler gate open until a clean
-  bounded AWS window is retained; no readiness claim was loosened.
+  `max_queue_lag_ms=104488` (`within_budget`).
+- [x] Health run `41023904744` authenticated to AWS and proved four scheduler
+  invocations, four end-to-end scheduled successes, and zero AWS errors.
+- [ ] The overall health evaluator remains `warning`: the latest AWS worker
+  freshness metric is `976842ms` against the `900000ms` budget, and the
+  retained GitHub recovery window includes one older incomplete sample. Keep
+  the provider-owned scheduler gate open until a clean bounded AWS window is
+  retained; no readiness claim was loosened.
 
 ## 2026-10-30 — refresh-health evidence collection repaired and re-evaluated
 
