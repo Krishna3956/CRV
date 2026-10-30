@@ -1,6 +1,6 @@
 # Founder OS local release manifest
 
-Date: 2026-10-19  
+Date: 2026-10-30
 Status: post-release evidence reconciliation; documentation changes are reviewed separately from the deployed application.
 
 The earlier `local review only; intentionally uncommitted` classification has
@@ -21,7 +21,7 @@ after publication workflow `40962471850`. This replaces the prior `0.1.12`
 baseline for active docs and smoke defaults. Historical release rows below are
 retained as immutable evidence.
 
-## Current pilot evidence manifest (2026-10-28)
+## Current pilot evidence manifest (2026-10-30)
 
 This is the immutable cross-system inventory for the current bounded pilot
 baseline. It is evidence mapping, not a go/no-go decision; the active decision
@@ -29,13 +29,13 @@ surface remains `docs/FOUNDER-OS-100-CUSTOMER-PILOT-EXTERNAL-GATES.md`.
 
 | Scope | Immutable identifier | Evidence / boundary |
 | --- | --- | --- |
-| Application source/runtime | deployed application `b2ab68e6369f54105cf219b88fedc483e1590738`; App Runner run `40606435487` | `/api/health`, `/`, and `/docs` returned 200; the runtime identity matched the deployed source |
-| Repository mainline | `b91b1d4d00e9e27dc0d63a298a183b1fc339c2a2` | Documentation-only reconciliation after the deployed application baseline; not claimed as App Runner behavior |
+| Application source/runtime | deployed application `c6b6e85a43c33629e73694eb312e4e7db24b5a35`; App Runner run `40988182608` | Direct-origin `/api/health` reports the exact runtime SHA; `/`, `/docs`, `/sitemap.xml`, and `/robots.txt` returned 200; deployment release gate, rollout, production smoke, runtime safety, translation, and immutable identity checks passed |
+| Repository mainline | `bf8fe88f2f1aa7c20aed4cfca5d0c932c85ee6ca` | Documentation-only readiness reconciliation after the capability-aware analytics release; it does not change the deployed application image |
 | Scheduler source/deployment | source `20702c9`; CI `40628036758`; deploy `40628036770` | Independent AWS refresh scheduler; schedule enablement `40628646879` |
 | Scheduler smoke/health | smoke `40628409832`; health `40629348992` | Authenticated smoke returned status 200 with DLQ depth 0; health reports 3/3 AWS worker samples, 6/6 invocations, and 4/4 EMF successes within budget |
 | Applied refresh migration | `20261028000001_coalesce_refresh_jobs` | Additive coalescing migration and read-only postflight are recorded in the readiness ledger; no destructive schema operation is implied |
 | Published package versions | `@trackmcp/sdk@0.1.25`; `@trackmcp/cli@0.1.13`; `trackmcp==0.1.15` | Public npm/PyPI registry checks and clean-consumer evidence are recorded in `docs/FOUNDER-OS-PACKAGE-RELEASE-READINESS.md`; activation and customer UAT remain separately gated |
-| Verification | local release gate `154` suites; current production build passes | Local release gate, lint, and build pass; hosted CI is the authority for merge checks |
+| Verification | local release gate `154` suites; production build generates `211` routes; main CI `40988182750`; authenticated smoke `40989051472` | Local release gate, lint, and build pass; hosted CI and the 37-check authenticated read-only smoke are the authoritative hosted evidence |
 
 The release remains **HOLD** for backup/PITR ownership, privacy acceptance,
 customer-owned endpoint/protocol UAT, and release-owner scope/go-no-go. This
@@ -53,8 +53,9 @@ manifest must not be read as customer-readiness approval.
 - CLI/SDK activation flow, tests, and packed-consumer validation.
 - Deployment-template wiring for `TRACKMCP_ENABLE_FACT_WRITES`.
 - Publication workflow preflight for npm provenance and PyPI artifact checks;
-  immutable packages are published (`@trackmcp/sdk@0.1.2`,
-  `@trackmcp/cli@0.1.4`, `trackmcp==0.1.4`).
+  the current immutable packages are published (`@trackmcp/sdk@0.1.25`,
+  `@trackmcp/cli@0.1.13`, `trackmcp==0.1.15`). Historical package versions
+  remain in the release records as immutable evidence only.
 - Architecture, retention, metric, standards, and lifecycle documentation.
 - Supabase migrations and read-only postflight SQL (application reported by
   the operator; this checkout never executes production SQL).
