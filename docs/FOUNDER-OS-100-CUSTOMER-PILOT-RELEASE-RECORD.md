@@ -9,11 +9,11 @@ commit and the operator accepts the listed limitations.
 ## Current deployed baseline — 2026-10-30
 
 The current live runtime is immutable commit
-`1afc766ebcf3db9b9149e02104eab74dd377cd42`. App Runner workflow `40978136879`
-(retry attempt 2) completed the rollout and its read-only production checks;
+`d82cbf6f0318957cc212c4d6aa94d3ef2784454b`. App Runner workflow `40982469955`
+completed the rollout and its read-only production checks;
 the direct-origin `/api/health` probe confirms the exact runtime SHA. The
 current source is `main` at documentation reconciliation commit
-`4f043236b9d1ed51687a4972eba118b7fdfa3616`; that docs-only commit did not
+`d5c8950b8df78b23e2b6d6152d27c86d0651e281`; that docs-only commit did not
 change the deployed application image.
 
 The full local release gate passes 154 suites and the production build generates

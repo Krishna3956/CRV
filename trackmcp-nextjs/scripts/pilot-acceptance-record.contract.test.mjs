@@ -24,9 +24,9 @@ function openQueueIds(source) {
 
 test("pilot release record points at the verified deployed baseline", () => {
   const current = section(record, "## Current deployed baseline", "## Historical deployed baseline");
-  assert.match(current, /1afc766ebcf3db9b9149e02104eab74dd377cd42/);
-  assert.match(current, /40978136879/);
-  assert.match(current, /4f043236b9d1ed51687a4972eba118b7fdfa3616/);
+  assert.match(current, /d82cbf6f0318957cc212c4d6aa94d3ef2784454b/);
+  assert.match(current, /40982469955/);
+  assert.match(current, /d5c8950b8df78b23e2b6d6152d27c86d0651e281/);
   assert.match(current, /154 suites/);
   assert.match(current, /211 routes/);
   assert.match(current, /40891096616/);
@@ -48,8 +48,8 @@ test("release record preserves non-source acceptance decisions until an owner ac
 });
 
 test("external-gate register names accountable parties and closure evidence", () => {
-  assert.match(externalGates, /1afc766ebcf3db9b9149e02104eab74dd377cd42/);
-  assert.match(externalGates, /40978136879/);
+  assert.match(externalGates, /d82cbf6f0318957cc212c4d6aa94d3ef2784454b/);
+  assert.match(externalGates, /40982469955/);
   assert.match(externalGates, /154 suites passed/);
   assert.match(externalGates, /Current source verification: `main` at/);
   assert.match(externalGates, /40397368253/);
@@ -65,7 +65,7 @@ test("external-gate register names accountable parties and closure evidence", ()
 });
 
 test("acceptance matrix separates current source from deployed runtime", () => {
-  assert.match(acceptanceMatrix, /1afc766ebcf3db9b9149e02104eab74dd377cd42/);
+  assert.match(acceptanceMatrix, /d82cbf6f0318957cc212c4d6aa94d3ef2784454b/);
   assert.match(acceptanceMatrix, /current\s+repository\s+source\s+is `main` at documentation reconciliation commit/);
   assert.match(acceptanceMatrix, /40893382834/);
   assert.match(acceptanceMatrix, /40891096616/);
