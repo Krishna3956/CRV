@@ -18,7 +18,7 @@ is intentionally not a GO approval and must not be treated as one.
   direct-origin health probe confirmed the exact runtime SHA. Authenticated
   production smoke `41014068784` also passed for that deployed revision.
 - Current source verification: `main` at documentation-only tip
-  `f9fbb0b7380ab6bb738c060f825b72cdfd2958a3`. The deployed application code
+  `96aeb50865e27fabe03f7511cfedc761aca3dbde`. The deployed application code
   remains the merged application revision above. Main CI `41015565958` passed
   all hosted lanes. The full local release gate
   passes 154 suites and the production build generates 211 routes. Read-only
@@ -36,11 +36,13 @@ is intentionally not a GO approval and must not be treated as one.
   decisions.
 - Refresh queue postflight after the schema repair reports
   `queued=0`, `running=0`, `retryable=0`, and `failed=0`, with `16883`
-  succeeded jobs. Health run `41017646038` now proves the AWS scheduler and
-  end-to-end cadence metrics, but remains a monitored warning because one
-  current worker metric was `923273ms`, above the `900000ms` freshness budget.
-  The freshness gate remains open until a fresh bounded window is fully within
-  budget.
+  succeeded jobs. Health run `41020556319` proves four complete AWS worker
+  samples with zero worker failures/retries/parse failures and maximum lag
+  `845605ms` within the `900000ms` freshness budget, but remains a monitored
+  warning because one scheduler failure is present in the bounded AWS window
+  and one retained GitHub recovery sample timed out. Serial recovery run
+  `41020485719` is clean at `879644ms`; the provider-owned freshness gate
+  remains open until a clean bounded AWS window is retained.
 - Full release gate: **154 suites passed**, with lint and the 211-route
   production build green (the prior 209/177-route baselines remain retained in
   historical evidence).
@@ -94,7 +96,7 @@ is intentionally not a GO approval and must not be treated as one.
 | 157 — database recovery posture | Infrastructure/provider owner | Region and tier, backup/PITR policy or an explicitly accepted limitation, restoration owner, and a tested recovery reference | OPEN; authenticated Supabase inspection records Free tier, East US/`us-east-1`, Nano/shared compute, and PITR **Disabled**. A fresh signed-in browser inspection of Database → Backups (2026-10-27) showed no usable scheduled-backup or restore-point evidence. No restoration contact or rehearsal is evidenced. |
 | Privacy lifecycle acceptance | Release owner | Explicit acceptance that export is bounded/secret-free, deletion requests are review-only, and destructive deletion is disabled without an approved worker | OPEN in the release record |
 | Synthetic reliability-data hygiene | Release owner | Explicit acceptance that synthetic canary rows are test evidence only and cannot be presented as customer incidents | OPEN in the release record |
-| Refresh scheduler enablement | Infrastructure/provider owner | Store `TRACKMCP_REFRESH_WORKER_SECRET` in Secrets Manager, map the App Runner runtime variable from that ARN, deploy the disabled-first AWS Scheduler stack, verify endpoint/token/DLQ behavior, enable the five-minute schedule, and retain at least three scheduled samples within the 15-minute freshness budget | **OPEN / monitor:** health run `41017646038` collected valid AWS evidence and proved four invocations, four scheduled successes, and four complete worker samples, but one current AWS worker sample was `923273ms` versus the `900000ms` budget. Retain a fully in-budget bounded window before closing this gate. |
+| Refresh scheduler enablement | Infrastructure/provider owner | Store `TRACKMCP_REFRESH_WORKER_SECRET` in Secrets Manager, map the App Runner runtime variable from that ARN, deploy the disabled-first AWS Scheduler stack, verify endpoint/token/DLQ behavior, enable the five-minute schedule, and retain at least three scheduled samples within the 15-minute freshness budget | **OPEN / monitor:** health run `41020556319` collected valid AWS evidence and proved four complete worker samples with maximum lag `845605ms`, but the bounded AWS window contains one scheduler failure. Serial recovery run `41020485719` is clean at `879644ms`; retain a clean bounded AWS window before closing this provider-owned gate. |
 | Credentialed key lifecycle mutation | Engineering | Disposable workspace/key create, active-key rotation, old-key rejection, replacement acceptance, replacement revocation, and post-revocation rejection | **PROVEN:** terminal-only disposable production UAT on 2026-10-28 completed the status checks; both disposable credentials ended revoked. This does not prove customer-owned endpoint interoperability. |
 | TrackMCP account OAuth providers | Engineering + release owner | Supabase providers enabled, exact callback configuration, real sign-in, existing-user dashboard return, onboarding and device-flow return-path checks | **PARTIALLY PROVEN:** GitHub is enabled in Supabase and a real signed-in browser flow returned to `/dashboard` on 2026-10-29. Google is configured in dedicated Cloud project `trusty-diorama-513117-f6`, enabled in Supabase, and a fresh flow using `krishnaatmu@gmail.com` returned to `/dashboard` and loaded the `krishnaatmu` workspace. New-user onboarding and device-flow return-path evidence remain open. |
 | 260 — final go/no-go | Release owner | Timestamped GO/NO-GO decision linking the green evidence and accepted limitations | OPEN; engineering recommendation remains HOLD |

@@ -3,7 +3,7 @@
 **Date:** 2026-10-30 (Asia/Calcutta)
 **Repository:** `Krishna3956/CRV`
 **Default branch:** `main`
-**Current source tip:** `f9fbb0b7` (`fix(health): resolve refresh scheduler function output`)
+**Current source tip:** `96aeb508` (`fix: serialize refresh recovery batches`)
 **Current deployed application revision:** `177165180383e31bb7760040469f9aaa7f78f8a1`
 **App Runner deployment:** workflow `41013186081`
 **Authenticated production smoke:** workflow `41014068784`
@@ -56,11 +56,14 @@ feature is complete.
 - The latest main CI workflow `41015565958` passed web/JavaScript, Go, and .NET
   lanes. The Vercel PR check was rate-limited by the account build quota; this
   is recorded as an external CI limitation, not a TrackMCP test failure.
-- The refresh-health workflow fix merged as PR #766. Health run `41017646038`
-  now collects valid AWS scheduler evidence, but remains warning because one
-  current worker metric exceeded the 15-minute freshness budget by a small
-  margin. Follow-up worker run `41017574546` was clean at `5271ms`; retain a
-  fresh fully in-budget health window before changing the readiness gate.
+- The refresh-health workflow fix merged as PR #766, timestamp retention merged
+  as PR #769, and the serial recovery hardening merged as PR #770. Health run
+  `41020556319` proves four complete AWS worker samples with zero worker
+  failures/retries/parse failures and maximum lag `845605ms` within the
+  `900000ms` budget, but remains warning because the bounded AWS window
+  contains one scheduler failure and retained GitHub recovery history contains
+  one timed-out sample. Worker run `41020485719` is clean at `879644ms`; retain
+  a clean bounded AWS window before changing the provider-owned gate.
 
 ### Current package train
 

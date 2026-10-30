@@ -14,7 +14,7 @@ completed the rollout, release gate, read-only production checks, runtime-safety
 translation-provider, and immutable identity checks;
 the direct-origin `/api/health` probe confirms the exact runtime SHA. The
 current source is `main` at documentation-only tip
-`f9fbb0b7380ab6bb738c060f825b72cdfd2958a3`; the deployed application code is
+`96aeb50865e27fabe03f7511cfedc761aca3dbde`; the deployed application code is
 the immutable revision above. Main CI workflow `41015565958`
 passed the web/JavaScript, Go, and .NET lanes.
 
@@ -23,9 +23,12 @@ The full local release gate passes 154 suites and the production build generates
 deployed revision;
 direct-origin first-ingest `40894964464` and SDK-shaped public-edge smoke
 `40896249223` both passed a bounded metadata-only event and analytics read-back.
-Health evaluation `41018456722` remains `warning`: AWS scheduler and end-to-end
-cadence are proven, but one current worker metric is `923273ms`, above the
-`900000ms` freshness budget. GitHub OAuth is configured in Supabase and passed a real browser
+Health evaluation `41020556319` remains `warning`: the AWS worker-freshness
+sub-gate is proven with four complete samples, zero worker failures/retries/parse
+failures, and maximum lag `845605ms` within the `900000ms` budget, but the bounded
+AWS window contains one scheduler failure and retained GitHub recovery history
+contains one timed-out sample. Serial recovery run `41020485719` is clean at
+`879644ms`. GitHub OAuth is configured in Supabase and passed a real browser
 authorization and authenticated dashboard return on 2026-10-29. Google is
 configured in the dedicated Google Cloud project `trusty-diorama-513117-f6`,
 enabled in Supabase, and the TrackMCP account is registered as a test user. A
@@ -38,12 +41,15 @@ Draft/HOLD because backup/recovery ownership, privacy acceptance,
 customer-owned endpoint/protocol UAT, and release-owner approval remain open.
 
 The refresh-health evidence collector was repaired in PR #766, merged as
-`f9fbb0b7`; health run `41017646038` authenticated to AWS and proved four
-invocations, four scheduled successes, and four complete worker samples. The
-run remains `warning` because one current AWS worker metric was `923273ms`,
-above the `900000ms` freshness budget. Follow-up worker run `41017574546` was
-clean at `5271ms`, but the freshness gate remains open until a fresh bounded
-health window is fully within budget.
+`f9fbb0b7`, and its timestamp retention was merged in PR #769 as `a484cbf9`.
+PR #770 then serialized the GitHub recovery path and merged as `96aeb508` after
+all required repository lanes passed. Health run `41020556319` authenticated to
+AWS and proved four complete worker samples with maximum lag `845605ms`, but
+also recorded one AWS scheduler failure in the bounded window. The serial
+follow-up worker run `41020485719` processed `4/4` successfully with zero
+retries/failures/unparseable responses and `879644ms` lag. The scheduler gate
+remains open until a clean bounded AWS window is retained; no readiness claim
+was loosened.
 
 The prior runtime baseline and historical evidence remain below.
 
