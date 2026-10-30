@@ -2,6 +2,18 @@
 
 Status: active autonomous audit, started 2026-10-21.
 
+## 2026-10-30 — translation observer stability fix is live
+
+- [x] PR #754 merged as
+  `3a1a70c8e4f2197343f487f3d443d68e334a8027`; App Runner workflow
+  `40985423350` passed release gate, rollout, production smoke, runtime safety,
+  and live translation verification.
+- [x] The translation MutationObserver now suppresses self-generated write
+  callbacks and schedules one bounded recheck for real page mutations, removing
+  a source of visible translation churn without persisting page text.
+- [ ] This does not close provider-account OAuth UAT, privacy/recovery owner
+  acceptance, customer-owned transport evidence, or pilot GO/NO-GO.
+
 ## 2026-10-30 — first-login OAuth session race fix is live
 
 - [x] PR #751 merged as
