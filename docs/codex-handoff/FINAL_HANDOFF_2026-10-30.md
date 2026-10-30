@@ -3,11 +3,11 @@
 **Date:** 2026-10-30 (Asia/Calcutta)
 **Repository:** `Krishna3956/CRV`
 **Default branch:** `main`
-**Current source tip:** `96aeb508` (`fix: serialize refresh recovery batches`)
+**Current source tip:** `091cce3b` (`docs: record latest refresh health sample`)
 **Current deployed application revision:** `177165180383e31bb7760040469f9aaa7f78f8a1`
 **App Runner deployment:** workflow `41013186081`
 **Authenticated production smoke:** workflow `41014068784`
-**Latest main CI:** workflow `41015565958`
+**Latest main CI:** workflow `41022780280`
 
 This is the compact knowledge-transfer document for the next engineer. It is
 authoritative for the current handoff date and points to the more detailed
