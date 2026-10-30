@@ -12,6 +12,11 @@ test("protocol activity is a bounded authenticated v2 projection", () => {
   assert.match(handlers, /protocol_family_activity/);
   assert.match(handlers, /protocol_family_outcomes/);
   assert.match(handlers, /protocol_family_outcome_source/);
+  assert.match(handlers, /protocol_transport_outcomes/);
+  assert.match(handlers, /protocol_mrtr_linkage/);
+  assert.match(handlers, /protocol_capability_gaps/);
+  assert.match(handlers, /matched_advertised/);
+  assert.match(handlers, /boundedTransport/);
   assert.match(handlers, /Completed is an explicit protocol result/);
   assert.match(handlers, /slice\(0, 10\)/);
   assert.match(handlers, /not customer demand/);

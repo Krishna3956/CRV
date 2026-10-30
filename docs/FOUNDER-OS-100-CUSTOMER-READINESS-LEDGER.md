@@ -1,5 +1,19 @@
 # Founder OS 100 Customer Readiness Ledger
 
+## 2026-10-30 — v2 protocol activity preserves capability-aware transport and MRTR evidence
+
+- [x] The v2 protocol-activity projection now preserves bounded per-transport
+  outcomes, capability-aware matched-pair counts, MRTR linkage counts, and
+  capability-gap explanations already computed by the v1 analytics engine.
+- [x] Transport and protocol-family labels are allowlisted; counts are capped;
+  malformed values fail closed; and raw payloads, handles, and arguments are
+  never projected.
+- [x] Integration and contract coverage verifies transport bounds, unknown
+  fallback, capability-gap filtering, MRTR provenance, and privacy behavior.
+- [ ] This is a source-level read-model correction. Production migration
+  application, authenticated customer-owned protocol UAT, and release-owner
+  approval remain open gates.
+
 ## 2026-10-30 — catalog history transport labels fail closed
 
 - [x] The v2 catalog-history projection now allowlists transport labels and
