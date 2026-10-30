@@ -1,5 +1,20 @@
 # Founder OS 100 Customer Readiness Ledger
 
+## 2026-10-30 — incident volume disclosure copy reconciled
+
+- [x] Issues incident disclosures no longer append a second “affected” label
+  after a summary that already distinguishes observed affected volume from
+  eligible comparison volume. Latency, catalog, and workflow signals remain
+  explicitly unavailable for an affected-event count.
+- [x] The dashboard feature-coverage table now matches the shipped API and UI:
+  supported rate metrics expose the comparison numerator/denominator, while
+  notification attempts remain bounded and lazy-loaded in incident evidence.
+- [x] Dashboard contract coverage, ESLint, TypeScript, and the complete
+  **154-suite** release gate pass on the exact tree before this ledger update.
+- [ ] This is a truth/UX reconciliation only; it does not enable disabled-first
+  alert scheduling or close external endpoint, privacy, backup, or release-owner
+  gates.
+
 ## 2026-10-30 — P1-05 incident volume is explicit and metric-scoped
 
 - [x] The authenticated alert-incidents serializer now exposes bounded
