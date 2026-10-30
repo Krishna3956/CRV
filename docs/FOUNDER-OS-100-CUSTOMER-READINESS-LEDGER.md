@@ -1,5 +1,21 @@
 # Founder OS 100 Customer Readiness Ledger
 
+## 2026-10-30 — rendered SEO and live blog verification refreshed
+
+- [x] The built standalone app passed `npm run seo:audit`: **157 URLs** were
+  checked and every audited route returned HTTP 200 with a title, description,
+  canonical URL, and exactly one H1.
+- [x] The live expanded blog batch passed the local live-blog audit: all **30**
+  article URLs returned HTTP 200, with complete metadata/source-link checks and
+  article lengths between 1,194 and 1,549 words.
+- [x] Public probes for `/`, `/blog`, `/docs`, `/dashboard`, `/sitemap.xml`,
+  and `/robots.txt` returned HTTP 200. The live robots policy declares both
+  sitemaps, allows the requested search/AI crawlers, and keeps `/admin` and
+  `/api/` disallowed for the wildcard crawler.
+- [ ] Google Search Console indexing/canonical reports and external backlink
+  counts still require credentialed external-tool evidence; sitemap inclusion
+  and successful HTTP responses are not treated as indexing or backlink proof.
+
 ## 2026-10-30 — incident volume disclosure copy reconciled
 
 - [x] Issues incident disclosures no longer append a second “affected” label
