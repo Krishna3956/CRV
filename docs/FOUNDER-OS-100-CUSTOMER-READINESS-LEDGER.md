@@ -1,5 +1,29 @@
 # Founder OS 100 Customer Readiness Ledger
 
+## 2026-10-30 — production account-identity namespace migration applied
+
+- [x] Applied the reviewed additive migration
+  `20261029000002_account_identity_version.sql` to the production Supabase
+  project `TOP-MCP-v2` through the SQL Editor. The column was added to
+  `public.trackmcp_events`; the current `sha256-v1` backfill was a no-op because
+  the production event set currently has zero non-null `account_key` rows.
+- [x] Added and verified the `trackmcp_events_account_identity_version_check`
+  constraint, the
+  `trackmcp_events_workspace_account_identity_started_idx` index, and the
+  schema comment. The bounded postflight returned
+  `version_column=true`, `version_constraint=true`, `version_index=true`,
+  `total_events=117233`, `keyed_events=0`, `versioned_events=0`,
+  `invalid_versioned_events=0`, and `orphan_versions=0`.
+- [x] Recorded the verified execution in
+  `public.trackmcp_migration_execution` with source SHA
+  `9c46a1a5e0232c43c72b70464977ec69f3669515` and postflight reference
+  `supabase-sql-postflight-2026-10-30-account-identity`; a readback returned
+  the exact row.
+- [ ] This closes the production schema prerequisite only. The current source
+  review branch still needs merge/deployment, and privacy acceptance,
+  customer-owned protocol UAT, backup/PITR, and release-owner approval remain
+  independent gates.
+
 ## 2026-10-30 — privacy export preserves catalog transport scope
 
 - [x] Account privacy exports now select and project the caller-verified

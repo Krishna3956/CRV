@@ -1,5 +1,16 @@
 # Founder OS first-100 readiness snapshot
 
+## 2026-10-30 production schema checkpoint — account identity namespace applied
+
+The reviewed account identity migration is now applied to production. The
+`account_identity_version` column, `sha256-v1` safety constraint, and workspace
+identity index are verified. The postflight found 117,233 events, no existing
+non-null account keys, no version backfill required, and zero invalid/orphan
+identity versions. The execution is recorded in the production migration
+ledger. This closes a schema prerequisite, not customer UAT, privacy
+acceptance, backup/PITR, deployment of the current review branch, or release
+owner approval.
+
 ## 2026-10-30 source checkpoint — privacy export transport scope
 
 Account privacy exports now preserve the caller-verified transport label for
