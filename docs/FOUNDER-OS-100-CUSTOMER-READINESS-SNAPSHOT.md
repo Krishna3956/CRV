@@ -1,5 +1,15 @@
 # Founder OS first-100 readiness snapshot
 
+## 2026-10-30 deployment checkpoint — translation audit retry hardening
+
+PR #760 merged and the candidate App Runner rollout passed build, smoke,
+identity, and runtime-safety checks, but one all-sitemap translation request
+observed a transient HTTP 502. The direct origin recovered to HTTP 200 and the
+provider probe passed. A follow-up branch now retries only bounded transient
+page/probe requests; focused tests, the full 154-suite gate, and the 211-route
+build pass. A green follow-up deployment is still required before treating the
+runtime as fully verified.
+
 ## 2026-10-30 production schema checkpoint — account identity namespace applied
 
 The reviewed account identity migration is now applied to production. The

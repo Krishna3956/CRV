@@ -4,6 +4,7 @@ import test from "node:test";
 
 const workflow = await readFile(new URL("../../.github/workflows/deploy.yml", import.meta.url), "utf8");
 const dockerfile = await readFile(new URL("../Dockerfile", import.meta.url), "utf8");
+const translationAudit = await readFile(new URL("./live-translation-runtime-audit.mjs", import.meta.url), "utf8");
 const distributedWorkflow = await readFile(new URL("../../.github/workflows/enable-distributed-rate-limit.yml", import.meta.url), "utf8");
 const lifecycleWorkflow = await readFile(new URL("../../.github/workflows/production-key-lifecycle-smoke.yml", import.meta.url), "utf8");
 const factWritesWorkflow = await readFile(new URL("../../.github/workflows/enable-semantic-fact-writes.yml", import.meta.url), "utf8");
@@ -88,6 +89,16 @@ test("App Runner deployment performs a redacted read-only smoke after RUNNING", 
   assert.match(workflow, /trackmcp-runtime-flags\.json/);
   assert.match(workflow, /Upload redacted production smoke evidence/);
   assert.doesNotMatch(workflow, /TRACKMCP_SMOKE_ALLOW_WRITE=true/);
+});
+
+test("live translation audit retries only transient idempotent page probes", () => {
+  assert.match(translationAudit, /RETRYABLE_STATUSES = new Set\(\[429, 502, 503, 504\]\)/);
+  assert.match(translationAudit, /MAX_GET_ATTEMPTS = 3/);
+  assert.match(translationAudit, /method === "GET"/);
+  assert.match(translationAudit, /retrySafe === true/);
+  assert.match(translationAudit, /retrySafe: true/);
+  assert.match(translationAudit, /setTimeout\(resolve, 250 \* attempt\)/);
+  assert.match(translationAudit, /targetLocale: "zh-CN"/);
 });
 
 test("deployment carries and verifies an immutable runtime release identity", () => {

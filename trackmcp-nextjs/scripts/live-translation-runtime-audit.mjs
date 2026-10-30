@@ -1,12 +1,33 @@
 const base = (process.env.TRANSLATION_AUDIT_BASE_URL || "https://trackmcp.com").replace(/\/$/, "");
 const AUDIT_USER_AGENT = "TrackMCP-translation-audit/1.0 (+https://trackmcp.com) Mozilla/5.0";
+const RETRYABLE_STATUSES = new Set([429, 502, 503, 504]);
+const MAX_GET_ATTEMPTS = 3;
 
 async function request(path, init) {
   const headers = new Headers(init?.headers);
   headers.set("User-Agent", AUDIT_USER_AGENT);
-  const response = await fetch(`${base}${path}`, { ...init, headers });
-  const body = await response.text();
-  return { response, body };
+  const method = (init?.method || "GET").toUpperCase();
+  // Page probes are idempotent GETs. The two translation checks below also
+  // opt in because this endpoint is a stateless translation operation with a
+  // fixed probe payload; ordinary POST callers remain non-retryable.
+  const retryableRequest = method === "GET" || init?.retrySafe === true;
+  const fetchInit = { ...init };
+  delete fetchInit.retrySafe;
+  let lastError;
+  for (let attempt = 1; attempt <= (retryableRequest ? MAX_GET_ATTEMPTS : 1); attempt += 1) {
+    try {
+      const response = await fetch(`${base}${path}`, { ...fetchInit, headers });
+      const body = await response.text();
+      if (!retryableRequest || !RETRYABLE_STATUSES.has(response.status) || attempt === MAX_GET_ATTEMPTS) {
+        return { response, body };
+      }
+    } catch (error) {
+      lastError = error;
+      if (!retryableRequest || attempt === MAX_GET_ATTEMPTS) throw error;
+    }
+    await new Promise((resolve) => setTimeout(resolve, 250 * attempt));
+  }
+  throw lastError instanceof Error ? lastError : new Error(`GET ${path} failed after ${MAX_GET_ATTEMPTS} attempts`);
 }
 
 function locations(xml) {
@@ -45,6 +66,7 @@ if (toolShards.length) {
 
 const invalidTarget = await request("/api/translation", {
   method: "POST",
+  retrySafe: true,
   headers: { "Content-Type": "application/json" },
   body: JSON.stringify({ texts: ["Hello"], sourceLocale: "en", targetLocale: "fr" }),
 });
@@ -52,6 +74,7 @@ const endpoint = { path: "/api/translation", status: invalidTarget.response.stat
 if (process.env.TRANSLATION_AUDIT_TRANSLATE === "true") {
   const providerProbe = await request("/api/translation", {
     method: "POST",
+    retrySafe: true,
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ texts: ["This is a translation smoke test."], sourceLocale: "en", targetLocale: "zh-CN" }),
   });
