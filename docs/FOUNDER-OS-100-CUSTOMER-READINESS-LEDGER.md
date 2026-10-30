@@ -1,5 +1,28 @@
 # Founder OS 100 Customer Readiness Ledger
 
+## 2026-10-30 — deployment audit exposed transient App Runner 502 and is hardened
+
+- [x] PR #760 merged as main commit
+  `bdc0a682a413d84de849f84161fa332bb5148b2a`. Main CI, the App Runner image
+  build, rollout wait, read-only production smoke, immutable release identity,
+  and runtime-safety checks all passed.
+- [x] The deployment workflow failed only at the all-sitemap translation audit:
+  one request to `/blog/mcp-server-incident-response` received a transient
+  App Runner HTTP 502 while the other route checks and the provider probe
+  passed. A subsequent direct-origin probe returned HTTP 200 for the root,
+  health endpoint, and that article, with the language switcher and Chinese
+  provider response present.
+- [x] Follow-up source hardening retries only bounded transient GET page probes
+  (`429`, `502`, `503`, `504`) and explicitly opts the stateless fixed
+  translation probe into the same retry budget; ordinary POST requests remain
+  non-retryable. The deployment contract test covers this boundary.
+- [x] The focused deployment-contract test, full 154-suite release gate, and
+  211-route production build pass on the follow-up branch.
+- [ ] Follow-up CI and an App Runner redeployment must pass the complete
+  translation audit before this runtime milestone is marked deployed. The
+  workflow failure is retained as evidence; no green deployment claim is made
+  from the transient direct-origin recheck alone.
+
 ## 2026-10-30 — production account-identity namespace migration applied
 
 - [x] Applied the reviewed additive migration
