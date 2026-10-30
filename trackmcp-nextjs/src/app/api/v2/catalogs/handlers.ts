@@ -6,6 +6,11 @@ import { projectTrackMCPDataTrust } from "../../../../lib/telemetry/data-trust.t
 const MAX_TOOLS = 500;
 const HASH = /^[a-f0-9]{64}$/i;
 const DIFF_STATUS = new Set(["computed", "unchanged", "not_comparable"]);
+const CATALOG_TRANSPORTS = new Set(["stdio", "streamable_http", "sse", "custom", "unknown"]);
+
+function boundedTransport(value: unknown): "stdio" | "streamable_http" | "sse" | "custom" | "unknown" {
+  return typeof value === "string" && CATALOG_TRANSPORTS.has(value) ? value as "stdio" | "streamable_http" | "sse" | "custom" | "unknown" : "unknown";
+}
 
 function boundedHashes(value: unknown): string[] {
   return Array.isArray(value) ? value.filter((item): item is string => typeof item === "string" && HASH.test(item)).map((item) => item.toLowerCase()).slice(0, 128) : [];
@@ -62,7 +67,7 @@ export function createCatalogsHandler(analytics = createAnalyticsHandler()) {
       id: typeof version.id === "string" ? version.id : null,
       version: typeof version.snapshot_hash === "string" && HASH.test(version.snapshot_hash) ? version.snapshot_hash.toLowerCase() : null,
       observed_at: typeof version.discovered_at === "string" ? version.discovered_at : null,
-      transport: typeof version.transport === "string" ? version.transport : "unknown",
+      transport: boundedTransport(version.transport),
       catalog_kind: typeof version.catalog_kind === "string" ? version.catalog_kind : null,
       item_count: typeof version.item_count === "number" && Number.isSafeInteger(version.item_count) ? Math.max(0, Math.min(1000000, version.item_count)) : null,
       item_name_hashes: boundedHashes(version.item_name_hashes),
@@ -77,7 +82,7 @@ export function createCatalogsHandler(analytics = createAnalyticsHandler()) {
           id: typeof previous.id === "string" ? previous.id : null,
           version: typeof previous.version === "string" && HASH.test(previous.version) ? previous.version.toLowerCase() : null,
           observed_at: typeof previous.observed_at === "string" ? previous.observed_at : null,
-          transport: typeof previous.transport === "string" ? previous.transport : "unknown",
+          transport: boundedTransport(previous.transport),
           catalog_kind: typeof previous.catalog_kind === "string" ? previous.catalog_kind : null,
           item_count: typeof previous.item_count === "number" && Number.isSafeInteger(previous.item_count) ? Math.max(0, Math.min(1000000, previous.item_count)) : null,
           item_name_hashes: boundedHashes(previous.item_name_hashes),

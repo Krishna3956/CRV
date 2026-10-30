@@ -25,7 +25,7 @@ const snapshot = {
   payload: { should_never_leave_storage: true },
 };
 
-function fakeAdmin() {
+function fakeAdmin(source = snapshot) {
   return {
     from(table) {
       if (table === "trackmcp_api_keys") return { select() { return this; }, eq() { return this; }, maybeSingle: async () => ({ data: { workspace_id: workspace, revoked_at: null }, error: null }) };
@@ -36,7 +36,7 @@ function fakeAdmin() {
         in(_column, values) { this.ids = values; return this; },
         gte() { return this; },
         order() { return this; },
-        async limit() { return { data: table === "trackmcp_catalog_versions" ? (this.ids.includes("snapshot-1") ? [{ id: "snapshot-1", snapshot_hash: "e".repeat(64), transport: "streamable_http", catalog_kind: "tools", item_count: 1, item_name_hashes: ["f".repeat(64)], item_uri_hashes: [], complete: true, truncated: false, diff: { status: "unchanged" }, discovered_at: "2026-01-01T00:00:00Z" }] : [snapshot]) : [], error: null }; },
+        async limit() { return { data: table === "trackmcp_catalog_versions" ? (this.ids.includes("snapshot-1") ? [{ id: "snapshot-1", snapshot_hash: "e".repeat(64), transport: source.previous_snapshot?.transport || "streamable_http", catalog_kind: "tools", item_count: 1, item_name_hashes: ["f".repeat(64)], item_uri_hashes: [], complete: true, truncated: false, diff: { status: "unchanged" }, discovered_at: "2026-01-01T00:00:00Z" }] : [source]) : [], error: null }; },
       };
       return query;
     },
@@ -72,4 +72,15 @@ test("catalog API exposes bounded historical metadata without raw payloads", asy
   assert.equal(JSON.stringify(body).includes("should_never_leave_storage"), false);
   assert.equal(Object.prototype.hasOwnProperty.call(body.catalogs[1], "payload"), false);
   assert.equal(Object.prototype.hasOwnProperty.call(body.catalogs[1], "workspace_id"), false);
+});
+
+test("catalog API fails closed on unsupported transport labels", async () => {
+  const unsafe = { ...snapshot, transport: "websocket", previous_snapshot: { ...snapshot.previous_snapshot, transport: "websocket" } };
+  const admin = fakeAdmin(unsafe);
+  const analytics = createAnalyticsHandler(() => admin, async () => ({ auth: { getUser: async () => ({ data: { user: null } }) } }));
+  const response = await createCatalogsHandler(analytics)(new Request("http://catalogs.test/api/v2/catalogs?days=30", { headers: { authorization: "Bearer key" } }));
+  assert.equal(response.status, 200);
+  const body = await response.json();
+  assert.equal(body.catalogs[1].transport, "unknown");
+  assert.equal(body.catalogs[1].previous_snapshot.transport, "unknown");
 });

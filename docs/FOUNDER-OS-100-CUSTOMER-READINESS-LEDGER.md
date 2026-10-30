@@ -1,5 +1,15 @@
 # Founder OS 100 Customer Readiness Ledger
 
+## 2026-10-30 — catalog history transport labels fail closed
+
+- [x] The v2 catalog-history projection now allowlists transport labels and
+  maps malformed or unsupported values to `unknown` for both current and
+  predecessor snapshots.
+- [x] Added integration coverage proving supported labels remain visible while
+  unsupported labels cannot become an unreviewed product claim.
+- [ ] Legacy snapshot rows and cross-transport lineage still require the
+  additive production migration and authenticated customer-owned UAT.
+
 ## 2026-10-30 — v2 resource/prompt projections preserve transport coverage
 
 - [x] The v2 Resources and Prompts read-model projection now carries a bounded
