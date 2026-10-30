@@ -42,7 +42,6 @@ The exact registry reproduction was run from a clean temporary npm cache:
 
 The CLI package test suite passes all 26 tests. Its packed-consumer test
 installs the tarball into a clean consumer project and exercises the actual npm
-installs the tarball into a clean consumer project and exercises the actual npm
 bin symlink, both the exact `npx @trackmcp/cli --help` shorthand and the
 `npm exec --package` help path, init help, doctor, and non-interactive init.
 The unit suite also covers browser-launch failure, authorization denial/expiry,
