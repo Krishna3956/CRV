@@ -46,6 +46,11 @@ bin symlink, npm exec help path, init help, doctor, and non-interactive init.
 The unit suite also covers browser-launch failure, authorization denial/expiry,
 key-status failures, and no-browser fallback behavior.
 
+The published 0.1.13 bin was also executed through the real npm symlink with
+Node.js `v25.9.0` (the same supported Node 25 major line as the reported
+`v25.6.0`) and printed help successfully. The repository host itself has Node
+23.11.0 installed, so the Node 25 check used an isolated temporary npm cache.
+
 ## Usage note
 
 For the least ambiguous npm 10/11 argument forwarding, use either:
