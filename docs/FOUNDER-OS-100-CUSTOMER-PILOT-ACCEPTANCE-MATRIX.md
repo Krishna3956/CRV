@@ -3,10 +3,11 @@
 Status: **HOLD — no silent waivers**  
 Reconciled: 2026-10-30 (Asia/Kolkata)
 Current deployed baseline: application runtime
-`3a1a70c8e4f2197343f487f3d443d68e334a8027` (App Runner workflow
-`40985423350`, passed its rollout and post-deploy checks). The
-current repository source is `main` at documentation reconciliation commit
-`3a1a70c8e4f2197343f487f3d443d68e334a8027`; the direct-origin health probe
+`c6b6e85a43c33629e73694eb312e4e7db24b5a35` (App Runner workflow
+`40988182608`, passed release gate, rollout, production smoke, runtime-safety,
+translation-provider, and identity checks). The current repository source is
+`main` at merged application commit
+`c6b6e85a43c33629e73694eb312e4e7db24b5a35`; the direct-origin health probe
 reports the deployed application SHA.
 The full local release gate passes 154 suites and the production build generates
 211 routes. Read-only authenticated smoke `40893382834` passed 37/37 checks;
