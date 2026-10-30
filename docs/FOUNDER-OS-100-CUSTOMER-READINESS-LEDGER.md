@@ -1,5 +1,25 @@
 # Founder OS 100 Customer Readiness Ledger
 
+## 2026-10-30 — refresh backlog drained after catalog schema repair
+
+- [x] PR #763 merged as main commit `12d0f6cd1367ebc5ba56abbcbafe7e812ecc14a3`.
+  The accumulated production migration evidence, bounded App Runner warm-up,
+  and readiness reconciliation are now on `main`; TrackMCP CI passed all web,
+  Go, and .NET lanes before merge.
+- [x] Worker run `41010829163` on the merged commit completed `4/4` jobs with
+  zero failed, retryable, or unparseable responses and a `340108ms` maximum
+  queue lag. The subsequent replay run `41010924200` completed `32/32` jobs
+  with zero failures or retryable responses.
+- [x] The seven remaining pre-migration `catalog_recompute` retries were
+  replayed through the existing service-role enqueue RPC, not by editing job
+  rows or deleting telemetry. Production queue postflight now reports
+  `queued=0`, `running=0`, `retryable=0`, and `failed=0` (with `16883`
+  succeeded jobs).
+- [ ] The freshness gate remains open. Health run `41011008346` is correctly
+  `warning`: it sees the historical pre-fix failures and only one scheduled
+  sample in the bounded evaluation window. Three clean scheduled samples and
+  healthy AWS worker metrics are still required; no gate was loosened.
+
 ## 2026-10-30 — production refresh worker catalog schema repair
 
 - [x] Investigated the refresh-health warning from worker runs `41008199336`
