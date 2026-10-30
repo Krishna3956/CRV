@@ -1,5 +1,23 @@
 # Founder OS 100 Customer Readiness Ledger
 
+## 2026-10-30 — CLI entrypoint fix and deployment retry verified
+
+- [x] Reproduced the published `@trackmcp/cli@0.1.12` defect from a clean npm
+  environment. The npm/npx `.bin` symlink failed the module entrypoint guard,
+  so `init`, `doctor`, and `--help` all exited 0 with no output before argument
+  parsing, browser authorization, or error handling ran.
+- [x] Confirmed the published `@trackmcp/cli@0.1.13` fix: both documented npm
+  invocation forms print help; `doctor --non-interactive` prints diagnostics;
+  and missing-key init exits 1 with an actionable message. The packed-consumer
+  suite passes 26/26, including the npm-bin symlink path under Node 25.6.0.
+- [x] PR #761 merged as main commit
+  `4dc0d99196b16a09280f753a855c055d74ff8f01`. Immutable App Runner workflow
+  `41006257339` passed release gate, image push, rollout, 36-check production
+  smoke, immutable identity, runtime-safety checks, and live translation audit.
+- [x] The earlier redeploy `41005436310` is retained as evidence of a transient
+  cold-origin smoke timeout. A direct rerun against the deployed origin passed
+  all 36 read-only checks before the warm immutable rerun was marked green.
+
 ## 2026-10-30 — deployment audit exposed transient App Runner 502 and is hardened
 
 - [x] PR #760 merged as main commit
@@ -18,10 +36,9 @@
   non-retryable. The deployment contract test covers this boundary.
 - [x] The focused deployment-contract test, full 154-suite release gate, and
   211-route production build pass on the follow-up branch.
-- [ ] Follow-up CI and an App Runner redeployment must pass the complete
-  translation audit before this runtime milestone is marked deployed. The
-  workflow failure is retained as evidence; no green deployment claim is made
-  from the transient direct-origin recheck alone.
+- [x] Follow-up PR #761 and the warm immutable App Runner redeployment passed
+  the complete translation audit. The first workflow failure is retained as
+  evidence; the second run is the authoritative green deployment.
 
 ## 2026-10-30 — production account-identity namespace migration applied
 
