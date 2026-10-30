@@ -3,7 +3,7 @@
 **Date:** 2026-10-30 (Asia/Calcutta)
 **Repository:** `Krishna3956/CRV`
 **Default branch:** `main`
-**Current source tip:** `2533c603` (`docs(readiness): reconcile pilot evidence baseline`)
+**Current source tip:** `f9fbb0b7` (`fix(health): resolve refresh scheduler function output`)
 **Current deployed application revision:** `177165180383e31bb7760040469f9aaa7f78f8a1`
 **App Runner deployment:** workflow `41013186081`
 **Authenticated production smoke:** workflow `41014068784`
@@ -56,6 +56,11 @@ feature is complete.
 - The latest main CI workflow `41015565958` passed web/JavaScript, Go, and .NET
   lanes. The Vercel PR check was rate-limited by the account build quota; this
   is recorded as an external CI limitation, not a TrackMCP test failure.
+- The refresh-health workflow fix merged as PR #766. Health run `41017646038`
+  now collects valid AWS scheduler evidence, but remains warning because one
+  current worker metric exceeded the 15-minute freshness budget by a small
+  margin. Follow-up worker run `41017574546` was clean at `5271ms`; retain a
+  fresh fully in-budget health window before changing the readiness gate.
 
 ### Current package train
 

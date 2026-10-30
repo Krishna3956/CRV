@@ -26,7 +26,7 @@ test("pilot release record points at the verified deployed baseline", () => {
   const current = section(record, "## Current deployed baseline", "## Historical deployed baseline");
   assert.match(current, /177165180383e31bb7760040469f9aaa7f78f8a1/);
   assert.match(current, /41013186081/);
-  assert.match(current, /2533c6038ae452f9f8536f3a96ccd7dce5eb00dd/);
+  assert.match(current, /f9fbb0b7380ab6bb738c060f825b72cdfd2958a3/);
   assert.match(current, /154 suites/);
   assert.match(current, /211 routes/);
   assert.match(current, /41011008346/);

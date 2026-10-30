@@ -14,7 +14,7 @@ completed the rollout, release gate, read-only production checks, runtime-safety
 translation-provider, and immutable identity checks;
 the direct-origin `/api/health` probe confirms the exact runtime SHA. The
 current source is `main` at documentation-only tip
-`2533c6038ae452f9f8536f3a96ccd7dce5eb00dd`; the deployed application code is
+`f9fbb0b7380ab6bb738c060f825b72cdfd2958a3`; the deployed application code is
 the immutable revision above. Main CI workflow `41015565958`
 passed the web/JavaScript, Go, and .NET lanes.
 
@@ -36,6 +36,14 @@ production key create/rotate/revoke UAT was verified on 2026-10-28, and the
 account key routes have not changed since that run. The release remains
 Draft/HOLD because backup/recovery ownership, privacy acceptance,
 customer-owned endpoint/protocol UAT, and release-owner approval remain open.
+
+The refresh-health evidence collector was repaired in PR #766, merged as
+`f9fbb0b7`; health run `41017646038` authenticated to AWS and proved four
+invocations, four scheduled successes, and four complete worker samples. The
+run remains `warning` because one current AWS worker metric was `923273ms`,
+above the `900000ms` freshness budget. Follow-up worker run `41017574546` was
+clean at `5271ms`, but the freshness gate remains open until a fresh bounded
+health window is fully within budget.
 
 The prior runtime baseline and historical evidence remain below.
 
@@ -114,7 +122,7 @@ recovery-evidence hardening, not a final operational SLO acceptance.
 
 ## Latest source verification — 2026-10-30
 
-The current repository source is `main` at `2533c6038ae452f9f8536f3a96ccd7dce5eb00dd`;
+The current repository source is `main` at `f9fbb0b7380ab6bb738c060f825b72cdfd2958a3`;
 the deployed application remains immutable source
 `177165180383e31bb7760040469f9aaa7f78f8a1` as described above.
 The latest local release gate passes **154 suites**, lint, the production build
