@@ -4330,6 +4330,8 @@ function SetupView({
   const [otelCopied, setOtelCopied] = useState(false);
   const [setupContract, setSetupContract] = useState<SetupContract | null>(null);
   const [setupContractWorkspaceId, setSetupContractWorkspaceId] = useState<string | null>(null);
+  const [setupReloadToken, setSetupReloadToken] = useState(0);
+  const [setupChecking, setSetupChecking] = useState(() => Boolean(workspaceId));
 
   const boundedService = serviceName.replace(/[^a-zA-Z0-9._ -]/g, "").trim().slice(0, 100);
   const boundedEnvironment = environmentName.replace(/[^a-zA-Z0-9._ -]/g, "").trim().slice(0, 64) || "production";
@@ -4371,9 +4373,12 @@ function SetupView({
           setSetupContractWorkspaceId(workspaceId);
           setSetupContract(null);
         }
+      })
+      .finally(() => {
+        if (!cancelled) setSetupChecking(false);
       });
     return () => { cancelled = true; };
-  }, [workspaceId]);
+  }, [setupReloadToken, workspaceId]);
   const activeSetupContract = setupContractWorkspaceId === workspaceId ? setupContract : null;
   const contractChecks = activeSetupContract?.setup?.checks;
   const firstEventLagSeconds = activeSetupContract?.setup?.first_event?.ingestion_lag_seconds;
@@ -4444,6 +4449,12 @@ function SetupView({
       setOtelCopied(false);
     }
   };
+  const retrySetupCheck = () => {
+    if (!workspaceId || setupChecking) return;
+    setSetupChecking(true);
+    setSetupReloadToken((value) => value + 1);
+    onRefresh();
+  };
   return (
     <div>
       <PageIntro
@@ -4488,10 +4499,22 @@ function SetupView({
               </p>
             )}
           </div>
-          <span className={"inline-flex items-center gap-2 border px-3 py-2 text-xs font-semibold " + stateCopy[3]}>
-            <span className={"h-2 w-2 rounded-full " + stateCopy[4]} aria-hidden="true" />
-            {stateCopy[2]}
-          </span>
+          <div className="flex flex-wrap items-center justify-end gap-2">
+            <span className={"inline-flex items-center gap-2 border px-3 py-2 text-xs font-semibold " + stateCopy[3]}>
+              <span className={"h-2 w-2 rounded-full " + stateCopy[4]} aria-hidden="true" />
+              {stateCopy[2]}
+            </span>
+            <button
+              type="button"
+              onClick={retrySetupCheck}
+              disabled={!workspaceId || setupChecking}
+              className="inline-flex cursor-pointer items-center gap-1.5 border border-line-strong bg-white px-3 py-2 text-xs font-semibold text-body hover:bg-paper disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
+              aria-label="Refresh setup check"
+            >
+              <RefreshCw size={13} className={setupChecking ? "animate-spin" : ""} aria-hidden="true" />
+              {setupChecking ? "Checking…" : "Refresh setup check"}
+            </button>
+          </div>
         </div>
         <div className="mt-5 grid gap-2 text-xs sm:grid-cols-4">
           {checks.map(([label, done]) => (
@@ -4548,10 +4571,11 @@ function SetupView({
         {connectionState === "error" && (
           <button
             type="button"
-            onClick={onRefresh}
+            onClick={retrySetupCheck}
+            disabled={setupChecking}
             className="mt-4 inline-flex cursor-pointer items-center gap-1.5 border border-red-200 bg-white px-3 py-2 text-xs font-semibold text-red-800 hover:bg-red-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-600"
           >
-            <RefreshCw size={13} /> Retry connection check
+            <RefreshCw size={13} className={setupChecking ? "animate-spin" : ""} /> {setupChecking ? "Checking…" : "Retry connection check"}
           </button>
         )}
       </section>

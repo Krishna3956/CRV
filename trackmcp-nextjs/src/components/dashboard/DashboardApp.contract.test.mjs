@@ -233,6 +233,15 @@ test("Setup renders the server readiness contract without making identity mandat
   assert.match(source, /aria-label="Setup readiness"/);
 });
 
+test("Setup exposes an explicit refresh action for first-event evidence", () => {
+  assert.match(source, /setupReloadToken/);
+  assert.match(source, /setSetupReloadToken\(\(value\) => value \+ 1\)/);
+  assert.match(source, /aria-label="Refresh setup check"/);
+  assert.match(source, /Refresh setup check/);
+  assert.match(source, /setupChecking/);
+  assert.match(source, /onClick=\{retrySetupCheck\}/);
+});
+
 test("Setup distinguishes stale ingestion evidence from current health", () => {
   assert.match(source, /firstEventIsStale/);
   assert.match(source, /historical ingestion evidence, not a current health check/);

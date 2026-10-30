@@ -1,5 +1,21 @@
 # Founder OS 100 Customer Readiness Ledger
 
+## 2026-10-30 — Setup first-event verification is manually refreshable
+
+- [x] Setup now exposes a visible **Refresh setup check** action beside the
+  connection status. It re-runs the authenticated, workspace-scoped v2 setup
+  evidence query and refreshes the analytics window without claiming health or
+  reachability.
+- [x] The control has an explicit loading state, disabled duplicate requests,
+  keyboard focus styling, and the existing retry path uses the same bounded
+  action. No key material or event payload is sent by the browser.
+- [x] Dashboard contract coverage verifies the refresh token, loading state,
+  action label, and retry wiring; the full release gate remains the required
+  follow-up.
+- [ ] This makes evidence refresh actionable but does not prove SDK
+  installation, server reachability, durable delivery, customer-owned endpoint
+  interoperability, or the other external pilot gates.
+
 ## 2026-10-30 — CLI npm-bin silent-exit root cause verified and fixed
 
 - [x] Reproduced the reported behavior from a clean npm cache against the
