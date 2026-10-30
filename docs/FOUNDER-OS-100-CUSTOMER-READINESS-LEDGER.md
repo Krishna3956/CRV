@@ -10,6 +10,11 @@
   crosses the browser boundary.
 - [x] The additive migration, read-only postflight, refresh-worker tests,
   catalog-route tests, and tenant-isolation checks pass locally.
+- [x] Release `1afc766ebcf3db9b9149e02104eab74dd377cd42` passed post-merge CI
+  (`40978136898`) and the App Runner deployment workflow (`40978136879`,
+  attempt 2). Public `/api/health`, `/`, `/sitemap.xml`, and the representative
+  tool route returned 200; the authenticated catalog API boundary returned 401
+  without credentials.
 - [ ] Supabase migration application and authenticated customer-owned
   multi-transport UAT are still required before this becomes production
   evidence. Existing rows are deliberately reported as `unknown` until then.

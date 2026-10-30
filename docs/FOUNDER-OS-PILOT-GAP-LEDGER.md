@@ -19,6 +19,11 @@ Status: active autonomous audit, started 2026-10-21.
   read-only complete postflight, and added transport-scope, migration,
   refresh-worker, catalogs-route, and tenant-isolation regression coverage.
 - [x] Focused refresh, catalogs, postflight, and tenant-isolation checks passed.
+- [x] Release `1afc766ebcf3db9b9149e02104eab74dd377cd42` passed the required
+  post-merge CI and App Runner deployment gates. Public health reported the
+  same immutable SHA; the full live translation audit passed after rollout
+  convergence, including `/tool/modelcontextprotocol--servers` and the
+  Simplified Chinese provider probe.
 - [ ] Production evidence remains pending application of the additive
   migration and an authenticated customer-owned multi-transport UAT; this
   milestone does not claim full transport interoperability.
