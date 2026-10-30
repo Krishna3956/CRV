@@ -9,9 +9,9 @@
 - [x] Worker run `41020485719` completed one bounded batch with `processed=4`,
   `succeeded=4`, zero retryable/failed jobs, zero unparseable responses, and
   `max_queue_lag_ms=879644` (`within_budget`).
-- [x] Health run `41020556319` authenticated to AWS and proved four complete
+- [x] Health run `41022126569` authenticated to AWS and proved four complete
   worker samples, zero worker failures/retries/parse failures, and maximum AWS
-  worker lag `845605ms` within the `900000ms` budget.
+  worker lag `688932ms` within the `900000ms` budget.
 - [ ] The overall health evaluator remains `warning`: the bounded AWS window
   includes one scheduler failure (`5` invocations, `4` successes, `1` failure),
   and the retained GitHub recovery window includes the earlier timed-out run

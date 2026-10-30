@@ -23,9 +23,9 @@ The full local release gate passes 154 suites and the production build generates
 deployed revision;
 direct-origin first-ingest `40894964464` and SDK-shaped public-edge smoke
 `40896249223` both passed a bounded metadata-only event and analytics read-back.
-Health evaluation `41020556319` remains `warning`: the AWS worker-freshness
+Health evaluation `41022126569` remains `warning`: the AWS worker-freshness
 sub-gate is proven with four complete samples, zero worker failures/retries/parse
-failures, and maximum lag `845605ms` within the `900000ms` budget, but the bounded
+failures, and maximum lag `688932ms` within the `900000ms` budget, but the bounded
 AWS window contains one scheduler failure and retained GitHub recovery history
 contains one timed-out sample. Serial recovery run `41020485719` is clean at
 `879644ms`. GitHub OAuth is configured in Supabase and passed a real browser
@@ -43,8 +43,8 @@ customer-owned endpoint/protocol UAT, and release-owner approval remain open.
 The refresh-health evidence collector was repaired in PR #766, merged as
 `f9fbb0b7`, and its timestamp retention was merged in PR #769 as `a484cbf9`.
 PR #770 then serialized the GitHub recovery path and merged as `96aeb508` after
-all required repository lanes passed. Health run `41020556319` authenticated to
-AWS and proved four complete worker samples with maximum lag `845605ms`, but
+all required repository lanes passed. Health run `41022126569` authenticated to
+AWS and proved four complete worker samples with maximum lag `688932ms`, but
 also recorded one AWS scheduler failure in the bounded window. The serial
 follow-up worker run `41020485719` processed `4/4` successfully with zero
 retries/failures/unparseable responses and `879644ms` lag. The scheduler gate

@@ -3,9 +3,9 @@
 ## 2026-10-30 refresh-health evidence recheck — worker freshness proven; AWS window still open
 
 The repaired health collector now resolves the deployed scheduler Lambda and
-reads bounded CloudWatch metrics. Health run `41020556319` proves four complete
+reads bounded CloudWatch metrics. Health run `41022126569` proves four complete
 AWS worker samples, zero worker failures/retries/parse failures, and maximum
-worker lag `845605ms` within the `900000ms` pilot budget. The evaluator remains
+worker lag `688932ms` within the `900000ms` pilot budget. The evaluator remains
 `warning` because the bounded AWS window includes one scheduler failure and
 retained GitHub recovery history includes one timed-out sample. The merged
 serial recovery run `41020485719` is clean: one batch, `4/4` succeeded, zero

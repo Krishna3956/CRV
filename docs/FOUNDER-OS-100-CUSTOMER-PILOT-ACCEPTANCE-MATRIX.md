@@ -13,9 +13,9 @@ The full local release gate passes 154 suites and the production build generates
 211 routes. Authenticated production smoke `41014068784` passed against the
 deployed revision; direct-origin first-ingest `40894964464` and SDK-shaped
 public-edge smoke `40896249223` both passed one bounded metadata-only event plus
-analytics read-back. Health evaluation `41020556319` proves four complete AWS
+analytics read-back. Health evaluation `41022126569` proves four complete AWS
 worker samples with zero worker failures/retries/parse failures and maximum
-worker lag `845605ms` within the `900000ms` freshness budget, but remains
+worker lag `688932ms` within the `900000ms` freshness budget, but remains
 `warning` because the bounded AWS window includes one scheduler failure and
 retained GitHub recovery history includes one timed-out sample. Serial recovery
 run `41020485719` is clean at `879644ms`; the provider-owned scheduler gate
