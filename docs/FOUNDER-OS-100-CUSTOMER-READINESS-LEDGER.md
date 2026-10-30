@@ -9,8 +9,8 @@
 - [x] Worker run `41023757195` completed one bounded batch with `processed=4`,
   `succeeded=4`, zero retryable/failed jobs, zero unparseable responses, and
   `max_queue_lag_ms=104488` (`within_budget`).
-- [x] Health run `41023904744` authenticated to AWS and proved four scheduler
-  invocations, four end-to-end scheduled successes, and zero AWS errors.
+- [x] Health run `41025425195` authenticated to AWS and recorded four scheduler
+  invocations, three end-to-end scheduled successes, and one scheduler failure.
 - [ ] The overall health evaluator remains `warning`: the latest AWS worker
   freshness metric is `976842ms` against the `900000ms` budget, and the
   retained GitHub recovery window includes one older incomplete sample. Keep
