@@ -233,16 +233,24 @@ export function protocolResultType(result: Record<string, unknown> | undefined):
   return value === "complete" || value === "input_required" || value === "task" ? value : undefined;
 }
 
-/** Count MRTR input requests without retaining request contents. */
-export function protocolInputRequestCount(result: Record<string, unknown> | undefined): number | undefined {
-  const requests = result?.inputRequests ?? result?.input_requests;
-  return Array.isArray(requests) ? Math.min(100, requests.length) : undefined;
+function boundedInputCount(value: unknown): number | undefined {
+  if (Array.isArray(value)) return Math.min(100, value.length);
+  // The modern Tasks extension represents inputRequests/inputResponses as
+  // keyed objects. Count keys only; never inspect or retain the values.
+  if (value && typeof value === "object") return Math.min(100, Object.keys(value as Record<string, unknown>).length);
+  return undefined;
 }
 
-/** Count MRTR input responses without retaining response contents. */
+/** Count MRTR/task input requests without retaining request contents. */
+export function protocolInputRequestCount(result: Record<string, unknown> | undefined): number | undefined {
+  const requests = result?.inputRequests ?? result?.input_requests;
+  return boundedInputCount(requests);
+}
+
+/** Count MRTR/task input responses without retaining response contents. */
 export function protocolInputResponseCount(result: Record<string, unknown> | undefined): number | undefined {
   const responses = result?.inputResponses ?? result?.input_responses;
-  return Array.isArray(responses) ? Math.min(100, responses.length) : undefined;
+  return boundedInputCount(responses);
 }
 
 const PROTOCOL_EVENT_ID = /^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$/;

@@ -1,5 +1,58 @@
 # Founder OS first-100 readiness snapshot
 
+## 2026-10-30 production schema checkpoint — account identity namespace applied
+
+The reviewed account identity migration is now applied to production. The
+`account_identity_version` column, `sha256-v1` safety constraint, and workspace
+identity index are verified. The postflight found 117,233 events, no existing
+non-null account keys, no version backfill required, and zero invalid/orphan
+identity versions. The execution is recorded in the production migration
+ledger. This closes a schema prerequisite, not customer UAT, privacy
+acceptance, backup/PITR, deployment of the current review branch, or release
+owner approval.
+
+## 2026-10-30 source checkpoint — privacy export transport scope
+
+Account privacy exports now preserve the caller-verified transport label for
+catalog entity reads and fail closed to `unknown` for unsupported or legacy
+values. Focused privacy/contract tests, TypeScript, ESLint, the full 154-suite
+release gate, and the 211-route production build all pass. This is a source
+branch correction and is not a deployed-runtime claim until the review branch
+is merged and deployment evidence is available.
+
+## 2026-10-30 production schema checkpoint — transport scope columns applied
+
+The two additive transport-scope migrations are now applied to the production
+Supabase project `TOP-MCP-v2`. A read-only information-schema postflight
+returned the expected five columns across `trackmcp_task_transitions` and
+`trackmcp_catalog_entity_reads`; no historical rows were rewritten. This
+closes the production-schema prerequisite for the source-level transport-scoped
+read models. The two executions are also recorded in the production migration
+ledger with bounded source SHAs and a postflight reference. It does not close
+customer-owned endpoint UAT, deployment of the current review branch,
+backup/PITR, privacy acceptance, or release-owner GO.
+
+## 2026-10-30 source checkpoint — transport-scoped analytics is user-visible
+
+The current readiness branch contains the transport-scoped resource/prompt
+analytics correction (`5ff485cf`) and the dashboard consumption milestone
+(`02126e22`). Resources & prompts now renders bounded per-transport read,
+success, and failure counts instead of hiding the transport dimension already
+returned by the analytics API. The focused dashboard contract suite passed
+67/67, the full release gate passed 154 suites, and the production build
+generated 211 routes. This source checkpoint is pushed on the existing review
+branch; it is not a claim that the deployed `main` runtime has changed until
+the review branch is merged and its deployment evidence is available.
+
+## 2026-10-30 verification checkpoint
+
+The complete local release gate passed 154 suites, standalone ESLint passed,
+and the production build passed with 211 routes. The exact published-artifact
+audit passed for `@trackmcp/sdk@0.1.25`, `@trackmcp/cli@0.1.13`, and
+`trackmcp==0.1.15`; the Go/.NET contract suite passed 16/16 while continuing to
+disclose that those two SDKs are reviewed source packages rather than published
+registry artifacts. This is verification evidence, not a release-owner GO.
+
 ## 2026-10-30 capability-aware analytics release checkpoint
 
 The capability-aware protocol analytics release is live as immutable application
@@ -12,9 +65,11 @@ unauthenticated `/api/v2/catalogs` remains protected with HTTP 401.
 
 The current repository source is `main` at the same merged application commit
 `c6b6e85a43c33629e73694eb312e4e7db24b5a35`. Capability-aware matching is
-deployed, but authenticated customer-owned multi-transport UAT, backup/PITR,
-privacy acceptance, and release-owner approval remain open gates, so this is
-not a first-100 release GO.
+deployed. The disposable production key create/rotate/revoke boundary was
+verified on 2026-10-28 and the account key routes have not changed since that
+run; customer-owned multi-transport UAT, backup/PITR, privacy acceptance, and
+release-owner approval remain open gates, so this is not a first-100 release
+GO.
 
 ## 2026-10-30 CLI release checkpoint
 
@@ -59,10 +114,12 @@ despite conflicting workspace query parameters; all v2 and legacy read models
 returned privacy-safe authenticated envelopes; API-key Action Queue access was
 correctly denied; and the revoked key returned the expected 401/403 class.
 The durable redacted evidence record is
-`docs/evidence/production-auth-scope-smoke-2026-10-30.json`. This closes the
-current tenant/authenticated-read evidence point only. Key lifecycle
-mutation, customer-owned endpoint/transport UAT, transport-owned reconnect or
-replay, backup/PITR, privacy approval, and release-owner GO/NO-GO remain open.
+`docs/evidence/production-auth-scope-smoke-2026-10-30.json`. The separate
+disposable production UAT verified key create/rotate/revoke and post-revocation
+rejection on 2026-10-28. This closes the current tenant/authenticated-read and
+key-mutation evidence points only. Customer-owned endpoint/transport UAT,
+transport-owned reconnect or replay, backup/PITR, privacy approval, and
+release-owner GO/NO-GO remain open.
 
 ## Current auth/localization checkpoint — 2026-10-30
 

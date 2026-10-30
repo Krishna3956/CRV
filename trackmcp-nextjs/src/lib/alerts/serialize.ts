@@ -1,7 +1,37 @@
-import type { AlertConfiguration, AlertDeliveryAttempt, AlertEvidenceKind, AlertIncident } from "./types.ts";
+import type { AlertConfiguration, AlertDeliveryAttempt, AlertEvidenceKind, AlertIncident, AlertVolumeBasis } from "./types.ts";
 import { boundedJsonValue } from "./http.ts";
 
 const SYNTHETIC_CANARY_IDENTITY_PREFIX = "p1-05-canary-probe";
+const AFFECTED_VOLUME_METRICS = new Set<AlertIncident["metric"]>([
+  "tool_error_rate_spike",
+  "empty_result_spike",
+  "retry_loop_spike",
+  "authorization_failure_spike",
+  "deployment_comparison",
+]);
+
+function boundedCount(value: unknown): number | null {
+  return typeof value === "number" && Number.isSafeInteger(value) && value >= 0 && value <= 1_000_000_000
+    ? value
+    : null;
+}
+
+function incidentVolumes(metric: AlertIncident["metric"], comparison: AlertIncident["comparison"], evidence: Record<string, unknown>): {
+  affected_volume: number | null;
+  eligible_volume: number | null;
+  volume_basis: AlertVolumeBasis;
+} {
+  const eligible = boundedCount(comparison?.denominator);
+  const explicit = AFFECTED_VOLUME_METRICS.has(metric) ? boundedCount(evidence.affected_volume) : null;
+  const derived = explicit !== null
+    ? explicit
+    : AFFECTED_VOLUME_METRICS.has(metric) ? boundedCount(comparison?.numerator) : null;
+  return {
+    affected_volume: derived,
+    eligible_volume: eligible,
+    volume_basis: derived === null ? "not_defined" : "comparison_numerator",
+  };
+}
 
 /**
  * Classify retained canary rows at the API boundary so consumers cannot treat
@@ -35,13 +65,17 @@ export function serializeConfiguration(row: Record<string, unknown>): AlertConfi
 }
 
 export function serializeIncident(row: Record<string, unknown>): AlertIncident {
+  const comparison = (boundedJsonValue(row.comparison, 8 * 1024) as AlertIncident["comparison"]) || null;
+  const evidence = (boundedJsonValue(row.evidence, 32 * 1024) as AlertIncident["evidence"]) || {};
+  const volumes = incidentVolumes(row.metric as AlertIncident["metric"], comparison, evidence);
   return {
     id: String(row.id), workspace_id: String(row.workspace_id), alert_id: String(row.alert_id), identity: String(row.identity),
     metric: row.metric as AlertIncident["metric"], state: row.state as AlertIncident["state"], severity: (row.severity as AlertIncident["severity"]) || null,
     scope: { tool_name: typeof row.tool_name === "string" ? row.tool_name : null, environment: typeof row.environment === "string" ? row.environment : null },
     evidence_kind: incidentEvidenceKind(row),
-    data_status: row.data_status as AlertIncident["data_status"], baseline: (boundedJsonValue(row.baseline, 8 * 1024) as AlertIncident["baseline"]) || null, comparison: (boundedJsonValue(row.comparison, 8 * 1024) as AlertIncident["comparison"]) || null,
-    threshold: (boundedJsonValue(row.threshold, 4 * 1024) as Record<string, number>) || {}, reasons: Array.isArray(row.reasons) ? row.reasons.slice(0, 8) as AlertIncident["reasons"] : [], evidence: (boundedJsonValue(row.evidence, 32 * 1024) as AlertIncident["evidence"]) || {},
+    ...volumes,
+    data_status: row.data_status as AlertIncident["data_status"], baseline: (boundedJsonValue(row.baseline, 8 * 1024) as AlertIncident["baseline"]) || null, comparison,
+    threshold: (boundedJsonValue(row.threshold, 4 * 1024) as Record<string, number>) || {}, reasons: Array.isArray(row.reasons) ? row.reasons.slice(0, 8) as AlertIncident["reasons"] : [], evidence,
     first_seen_at: String(row.first_seen_at), last_seen_at: String(row.last_seen_at), acknowledged_at: typeof row.acknowledged_at === "string" ? row.acknowledged_at : null, resolved_at: typeof row.resolved_at === "string" ? row.resolved_at : null,
     suppressed_reason: typeof row.suppressed_reason === "string" ? row.suppressed_reason : null, recovery: (row.recovery as AlertIncident["recovery"]) || null, revision: Number(row.revision || 1),
   };

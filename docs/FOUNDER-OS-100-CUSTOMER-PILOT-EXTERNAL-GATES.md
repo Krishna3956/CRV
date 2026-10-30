@@ -44,6 +44,7 @@ is intentionally not a GO approval and must not be treated as one.
   covered key status, conflicting-workspace isolation, Founder OS v2 and
   legacy read models, API-key Action Queue denial, revoked-key rejection, and
   privacy-safe projections. It was read-only and did not create, rotate,
+  revoke, ingest, or mutate dashboard state.
 - Authenticated production smoke `40475627480` also passed for the deployed
   `37579ea` candidate; retained redacted artifact
   `production-auth-smoke-37579eade74a20818cd4f83569493e830e4855de`
@@ -51,12 +52,12 @@ is intentionally not a GO approval and must not be treated as one.
   handling, API-key mutation denial, and revoked-key rejection. This remains
   read-only evidence and does not close first-ingest, transport, or
   customer-endpoint UAT. A separate terminal-only disposable production run
-  has since verified workspace/key creation, rotation, and revocation; that
-  evidence does not claim customer-owned endpoint interoperability. A separate
-  terminal-only device activation and first-event UAT now verifies the
-  browser-approval/CLI-redemption path with a disposable key; it does not
+  has since verified workspace/key creation, rotation, old-key rejection,
+  replacement acceptance, replacement revocation, and post-revocation
+  rejection; it did not claim customer-owned endpoint interoperability. A
+  separate terminal-only device activation and first-event UAT now verifies
+  the browser-approval/CLI-redemption path with a disposable key; it does not
   change the customer-owned endpoint or protocol boundary.
-  revoke, ingest, or mutate dashboard state.
 - A manual-only `customer-endpoint-uat.yml` workflow now accepts one
   operator-supplied HTTPS endpoint and reviewed MCP transport/version, runs a
   bounded initialize plus catalog-discovery pass through the official client,
@@ -87,6 +88,7 @@ is intentionally not a GO approval and must not be treated as one.
 | Privacy lifecycle acceptance | Release owner | Explicit acceptance that export is bounded/secret-free, deletion requests are review-only, and destructive deletion is disabled without an approved worker | OPEN in the release record |
 | Synthetic reliability-data hygiene | Release owner | Explicit acceptance that synthetic canary rows are test evidence only and cannot be presented as customer incidents | OPEN in the release record |
 | Refresh scheduler enablement | Infrastructure/provider owner | Store `TRACKMCP_REFRESH_WORKER_SECRET` in Secrets Manager, map the App Runner runtime variable from that ARN, deploy the disabled-first AWS Scheduler stack, verify endpoint/token/DLQ behavior, enable the five-minute schedule, and retain at least three scheduled samples within the 15-minute freshness budget | **PROVEN / monitor:** latest health artifact `12905900486` from run `40891096616` proves four scheduled invocations, four complete worker samples, zero errors, and max lag `867340 ms` within the 15-minute budget. Continue monitoring after release; the older `12885673154` / `40848128417` warning is historical evidence only. |
+| Credentialed key lifecycle mutation | Engineering | Disposable workspace/key create, active-key rotation, old-key rejection, replacement acceptance, replacement revocation, and post-revocation rejection | **PROVEN:** terminal-only disposable production UAT on 2026-10-28 completed the status checks; both disposable credentials ended revoked. This does not prove customer-owned endpoint interoperability. |
 | TrackMCP account OAuth providers | Engineering + release owner | Supabase providers enabled, exact callback configuration, real sign-in, existing-user dashboard return, onboarding and device-flow return-path checks | **PARTIALLY PROVEN:** GitHub is enabled in Supabase and a real signed-in browser flow returned to `/dashboard` on 2026-10-29. Google is configured in dedicated Cloud project `trusty-diorama-513117-f6`, enabled in Supabase, and a fresh flow using `krishnaatmu@gmail.com` returned to `/dashboard` and loaded the `krishnaatmu` workspace. New-user onboarding and device-flow return-path evidence remain open. |
 | 260 — final go/no-go | Release owner | Timestamped GO/NO-GO decision linking the green evidence and accepted limitations | OPEN; engineering recommendation remains HOLD |
 

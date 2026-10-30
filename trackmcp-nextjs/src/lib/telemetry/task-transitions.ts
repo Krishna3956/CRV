@@ -1,4 +1,5 @@
 import type { TrackMCPFact } from "./facts.ts";
+import { taskScopeForFact, type TrackMCPTaskScope } from "./task-scope.ts";
 
 export type TrackMCPTaskState = "working" | "input_required" | "completed" | "failed" | "cancelled" | "expired";
 export type TrackMCPTaskResultType = "complete" | "input_required" | "task" | null;
@@ -12,6 +13,10 @@ export type TrackMCPTaskTransitionRow = {
   workspace_id: string;
   source_event_id: string;
   task_id_hash: string;
+  service: string;
+  environment: string;
+  server_id: string | null;
+  transport: TrackMCPTaskScope["transport"];
   state: TrackMCPTaskState;
   observed_at: string;
   result_type: TrackMCPTaskResultType;
@@ -40,6 +45,7 @@ export function buildTaskTransitionWrites(workspaceId: string, facts: readonly T
       workspace_id: workspaceId,
       source_event_id: fact.source_event_id.slice(0, 128),
       task_id_hash: taskIdHash,
+      ...taskScopeForFact(fact),
       state,
       observed_at: fact.observed_at,
       result_type: resultTypeFor(state),

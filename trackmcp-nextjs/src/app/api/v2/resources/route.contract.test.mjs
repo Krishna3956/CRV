@@ -15,5 +15,7 @@ test("resources route reports observed protocol methods without inventing entiti
   assert.match(handlers, /entity_analytics: "bounded_read_projection"/);
   assert.match(handlers, /entity_read_projection/);
   assert.match(projections, /successful_reads/);
+  assert.match(projections, /transport_breakdown/);
+  assert.match(projections, /streamable_http/);
   assert.match(handlers, /Raw URIs are never returned/);
 });

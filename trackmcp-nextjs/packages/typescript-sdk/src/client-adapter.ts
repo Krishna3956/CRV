@@ -130,6 +130,51 @@ function protocolRequestMetadata(method: string | undefined): ProtocolMetadata {
   return metadata;
 }
 
+type ProtocolNotificationObservation = ProtocolMetadata & {
+  taskIdHash?: string;
+  taskStatus?: ReturnType<typeof protocolTaskStatus>;
+  inputRequestCount?: number;
+  inputResponseCount?: number;
+};
+
+/**
+ * Project metadata from a server notification without retaining its params.
+ * Modern Tasks uses `notifications/tasks` to deliver explicit lifecycle
+ * updates, so task handles and states must travel on the canonical event
+ * fields just like a tasks/get response. The handle is one-way hashed and
+ * input contents are represented only by bounded counts.
+ */
+function protocolNotificationObservation(method: string, params?: Message): ProtocolNotificationObservation {
+  const metadata: ProtocolNotificationObservation = { ...protocolNotificationMetadata(method) };
+  if (method !== "notifications/tasks" || !params) return metadata;
+  const taskIdHash = protocolTaskIdHash(params);
+  const taskStatus = protocolTaskStatus(params);
+  const inputRequestCount = protocolInputRequestCount(params);
+  const inputResponseCount = protocolInputResponseCount(params);
+  return {
+    ...metadata,
+    ...(taskIdHash ? { taskIdHash } : {}),
+    ...(taskStatus ? { taskStatus } : {}),
+    ...(inputRequestCount !== undefined ? { inputRequestCount } : {}),
+    ...(inputResponseCount !== undefined ? { inputResponseCount } : {}),
+  };
+}
+
+function protocolNotificationPayload(observation: ProtocolNotificationObservation): ProtocolMetadata {
+  const { taskStatus, inputRequestCount, inputResponseCount } = observation;
+  const metadata = { ...observation };
+  delete metadata.taskIdHash;
+  delete metadata.taskStatus;
+  delete metadata.inputRequestCount;
+  delete metadata.inputResponseCount;
+  return {
+    ...(metadata as ProtocolMetadata),
+    ...(taskStatus ? { task_status: taskStatus } : {}),
+    ...(inputRequestCount !== undefined ? { input_request_count: inputRequestCount } : {}),
+    ...(inputResponseCount !== undefined ? { input_response_count: inputResponseCount } : {}),
+  };
+}
+
 function protocolNotificationMetadata(method: string): ProtocolMetadata {
   if (method === "notifications/progress") return { protocol_signal: "progress" };
   if (method === "notifications/cancelled") return { protocol_signal: "cancelled" };
@@ -324,6 +369,7 @@ export class TrackMCPClientAdapter {
         const id = requestId(item.id);
         const method = boundedString(item.method);
         if (method && id === undefined) {
+          const observation = protocolNotificationObservation(method, isRecord(item.params) ? item.params : undefined);
           const session = this.sessionFields(transport);
           this.emit({
             event_type: "protocol",
@@ -334,7 +380,11 @@ export class TrackMCPClientAdapter {
             ...session,
             client_name: this.clientName,
             client_version: this.clientVersion,
-            payload: { _trackmcp: { observation_kind: "protocol_notification", observation_source: "client", ...protocolNotificationMetadata(method) } },
+            ...(observation.taskIdHash ? { task_id: observation.taskIdHash } : {}),
+            ...(observation.taskStatus ? { task_status: observation.taskStatus } : {}),
+            ...(observation.inputRequestCount !== undefined ? { input_request_count: observation.inputRequestCount } : {}),
+            ...(observation.inputResponseCount !== undefined ? { input_response_count: observation.inputResponseCount } : {}),
+            payload: { _trackmcp: { observation_kind: "protocol_notification", observation_source: "client", ...protocolNotificationPayload(observation) } },
           });
         } else if (method && id !== undefined) {
           const started = Date.now();
@@ -416,6 +466,7 @@ export class TrackMCPClientAdapter {
       if (!Object.prototype.hasOwnProperty.call(item, "result") && !Object.prototype.hasOwnProperty.call(item, "error")) {
         const method = boundedString(item.method);
         if (method) {
+          const observation = protocolNotificationObservation(method, isRecord(item.params) ? item.params : undefined);
           const session = this.sessionFields();
           this.emit({
             event_type: "protocol",
@@ -426,7 +477,11 @@ export class TrackMCPClientAdapter {
             ...session,
             client_name: this.clientName,
             client_version: this.clientVersion,
-            payload: { _trackmcp: { observation_kind: "protocol_notification", observation_source: "client", ...protocolNotificationMetadata(method) } },
+            ...(observation.taskIdHash ? { task_id: observation.taskIdHash } : {}),
+            ...(observation.taskStatus ? { task_status: observation.taskStatus } : {}),
+            ...(observation.inputRequestCount !== undefined ? { input_request_count: observation.inputRequestCount } : {}),
+            ...(observation.inputResponseCount !== undefined ? { input_response_count: observation.inputResponseCount } : {}),
+            payload: { _trackmcp: { observation_kind: "protocol_notification", observation_source: "client", ...protocolNotificationPayload(observation) } },
           });
         }
         continue;

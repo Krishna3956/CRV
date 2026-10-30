@@ -7,6 +7,7 @@ const source = await readFile(new URL("./route.ts", import.meta.url), "utf8");
 test("account export includes bounded derived datasets and excludes secret tables", () => {
   assert.match(source, /trackmcp_catalog_versions/);
   assert.match(source, /trackmcp_catalog_entity_reads/);
+  assert.match(source, /source_event_id,server_id,environment,transport,catalog_kind/);
   assert.match(source, /trackmcp_activation_milestones/);
   assert.match(source, /projectCatalogVersion/);
   assert.match(source, /projectCatalogEntityRead/);

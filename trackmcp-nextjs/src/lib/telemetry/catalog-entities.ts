@@ -1,4 +1,5 @@
 import { createHash } from "node:crypto";
+import { CATALOG_TRANSPORTS, type CatalogTransport } from "./catalog-refresh.ts";
 
 const HASH = /^[a-f0-9]{64}$/i;
 
@@ -14,6 +15,7 @@ export type CatalogEntityReadObservation = {
   success?: unknown;
   is_error?: unknown;
   result_type?: unknown;
+  transport?: unknown;
 };
 
 export type CatalogEntityReadWrite = {
@@ -27,6 +29,7 @@ export type CatalogEntityReadWrite = {
   success: boolean | null;
   is_error: boolean | null;
   result_type: string | null;
+  transport: CatalogTransport;
 };
 
 function text(value: unknown, max: number): string | null {
@@ -39,6 +42,10 @@ function hashes(value: unknown): string[] {
 
 function eventHash(value: string): string {
   return createHash("sha256").update(value, "utf8").digest("hex");
+}
+
+function transport(value: unknown): CatalogTransport {
+  return typeof value === "string" && (CATALOG_TRANSPORTS as readonly string[]).includes(value) ? value as CatalogTransport : "unknown";
 }
 
 /**
@@ -72,6 +79,7 @@ export function buildCatalogEntityReadWrites(workspaceId: string, rows: readonly
       success: typeof row.success === "boolean" ? row.success : null,
       is_error: typeof row.is_error === "boolean" ? row.is_error : null,
       result_type: text(row.result_type, 32),
+      transport: transport(row.transport),
     });
   }
   return writes;

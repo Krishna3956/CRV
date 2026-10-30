@@ -227,6 +227,29 @@ func TestRecordProtocolResultAcceptsNormalizedSnakeCaseMetadata(t *testing.T) {
 	if event.Payload["_trackmcp"].(map[string]any)["protocol_family"] != "tasks" { t.Fatalf("task family was not retained: %#v", event.Payload) }
 }
 
+func TestRecordTaskNotificationProjectsBoundedModernMetadata(t *testing.T) {
+	client := New(Options{APIKey: "tmcp_test", Service: "task-test"})
+	client.RecordTaskNotificationForTransport(map[string]any{
+		"taskId": "secret-task-notification",
+		"status": "input_required",
+		"inputRequests": map[string]any{"first": map[string]any{"value": "never-retain"}},
+		"result": map[string]any{"private": "never-retain"},
+	}, "streamable_http", "server_to_client", "session-task")
+	if len(client.queue) != 1 { t.Fatalf("expected one task notification, got %d", len(client.queue)) }
+	event := client.queue[0]
+	if len(event.TaskID) != 64 || event.TaskID == "secret-task-notification" { t.Fatalf("task handle was not hashed: %#v", event.TaskID) }
+	if event.TaskStatus != "input_required" || event.InputRequestCount == nil || *event.InputRequestCount != 1 { t.Fatalf("unexpected task metadata: %#v", event) }
+	encoded, _ := json.Marshal(event)
+	if strings.Contains(string(encoded), "secret-task-notification") || strings.Contains(string(encoded), "never-retain") { t.Fatalf("task payload crossed boundary: %s", encoded) }
+}
+
+func TestRecordTaskNotificationRejectsUnverifiedProvenance(t *testing.T) {
+	client := New(Options{APIKey: "tmcp_test"})
+	client.RecordTaskNotificationForTransport(map[string]any{"taskId": "task-1", "status": "completed"}, "private_transport", "server_to_client", "session-task")
+	client.RecordTaskNotificationForTransport(map[string]any{"taskId": "task-1", "status": "completed"}, "streamable_http", "unknown", "session-task")
+	if len(client.queue) != 0 { t.Fatalf("unverified task notification was accepted") }
+}
+
 func TestRecordProtocolResultForTransportAllowlistsLabel(t *testing.T) {
 	client := New(Options{APIKey: "tmcp_test"})
 	client.RecordProtocolResultForTransport("tools/call", map[string]any{"resultType": "complete"}, "streamable_http", "session-transport")

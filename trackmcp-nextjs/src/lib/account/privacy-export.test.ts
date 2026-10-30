@@ -33,11 +33,17 @@ test("privacy export includes bounded catalog and activation evidence without ra
 });
 
 test("privacy export includes hash-only catalog entity reads without content", () => {
-  const result = projectCatalogEntityRead({ source_event_id: "read-1", catalog_kind: "resources", entity_hash: "A".repeat(64), payload: { text: "private" }, uri: "secret://private" });
+  const result = projectCatalogEntityRead({ source_event_id: "read-1", catalog_kind: "resources", transport: "streamable_http", entity_hash: "A".repeat(64), payload: { text: "private" }, uri: "secret://private" });
   assert.equal(result.catalog_kind, "resources");
+  assert.equal(result.transport, "streamable_http");
   assert.equal(result.entity_hash, "a".repeat(64));
   assert.equal("payload" in result, false);
   assert.equal("uri" in result, false);
+});
+
+test("privacy export fails closed for an unsupported catalog transport", () => {
+  const result = projectCatalogEntityRead({ catalog_kind: "prompts", transport: "tcp", entity_hash: "B".repeat(64) });
+  assert.equal(result.transport, "unknown");
 });
 
 test("disposable workspace review excludes secret and raw-content markers from every projection", () => {

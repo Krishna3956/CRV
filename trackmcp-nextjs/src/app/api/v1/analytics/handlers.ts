@@ -259,7 +259,7 @@ export function createAnalyticsHandler(getAdmin: typeof getSupabaseAdmin = getSu
   // resolver key. If the bounded scan is capped, the response explicitly
   // marks the classification as insufficient rather than inventing a trend.
   const historyLimit = 100_000;
-  const historySelect = "event_id, account_key, account_identity_source, account_identity_version, started_at, event_type, mcp_method, tool_name, is_error, success, result_type, duration_ms, interaction_id, request_state_hash, retry_number, retry_of_event_id";
+  const historySelect = "event_id, account_key, account_identity_source, account_identity_version, started_at, event_type, mcp_method, tool_name, is_error, success, result_type, duration_ms, interaction_id, request_state_hash, retry_number, retry_of_event_id, service, environment, server_id, transport";
   const readHistory = async (select: string) => supabase.from("trackmcp_events")
     .select(select)
     .eq("workspace_id", workspaceId)
@@ -268,7 +268,7 @@ export function createAnalyticsHandler(getAdmin: typeof getSupabaseAdmin = getSu
     .limit(historyLimit);
   let historyResult = await readHistory(historySelect);
   if (historyResult.error && isMissingAccountIdentityVersionColumn(historyResult.error)) historyResult = await readHistory(historySelect.replace(", account_identity_version", ""));
-  const historyRows = historyResult.error ? [] : ((historyResult.data || []) as Array<{ event_id?: unknown; account_key?: unknown; account_identity_source?: unknown; account_identity_version?: unknown; started_at?: unknown; event_type?: unknown; mcp_method?: unknown; tool_name?: unknown; is_error?: unknown; success?: unknown; result_type?: unknown; duration_ms?: unknown; interaction_id?: unknown; request_state_hash?: unknown; retry_number?: unknown; retry_of_event_id?: unknown }>);
+  const historyRows = historyResult.error ? [] : ((historyResult.data || []) as Array<{ event_id?: unknown; account_key?: unknown; account_identity_source?: unknown; account_identity_version?: unknown; started_at?: unknown; event_type?: unknown; mcp_method?: unknown; tool_name?: unknown; is_error?: unknown; success?: unknown; result_type?: unknown; duration_ms?: unknown; interaction_id?: unknown; request_state_hash?: unknown; retry_number?: unknown; retry_of_event_id?: unknown; service?: unknown; environment?: unknown; server_id?: unknown; transport?: unknown }>);
   const historyCapped = historyRows.length >= historyLimit;
 
   // Snapshot rows are service-written and explicitly workspace-scoped by the
@@ -349,7 +349,7 @@ export function createAnalyticsHandler(getAdmin: typeof getSupabaseAdmin = getSu
     limitation: "Snapshot rows are versioned catalog observations. Notification-family counts are correlated only through the bounded same-scope evidence join when a unique snapshot is available; ambiguous or unmatched notifications remain unresolved, and no snapshot version is inferred.",
   };
   const entityReadsQuery = supabase.from("trackmcp_catalog_entity_reads")
-    .select("catalog_kind,entity_hash,success,is_error,result_type,observed_at")
+    .select("catalog_kind,entity_hash,success,is_error,result_type,observed_at,transport")
     .eq("workspace_id", workspaceId).gte("observed_at", since);
   if (until) entityReadsQuery.lt("observed_at", until);
   const entityReadsResult = await entityReadsQuery.order("observed_at", { ascending: true }).limit(10001);
@@ -363,6 +363,12 @@ export function createAnalyticsHandler(getAdmin: typeof getSupabaseAdmin = getSu
       successful_reads: rows.filter((row) => row.success === true && row.is_error !== true).length,
       failed_reads: rows.filter((row) => row.is_error === true || row.success === false).length,
       input_required_reads: rows.filter((row) => row.result_type === "input_required").length,
+      transport_breakdown: ["stdio", "streamable_http", "sse", "custom", "unknown"].map((transport) => ({
+        transport,
+        read_events: rows.filter((row) => (typeof row.transport === "string" ? row.transport : "unknown") === transport).length,
+        successful_reads: rows.filter((row) => (typeof row.transport === "string" ? row.transport : "unknown") === transport && row.success === true && row.is_error !== true).length,
+        failed_reads: rows.filter((row) => (typeof row.transport === "string" ? row.transport : "unknown") === transport && (row.is_error === true || row.success === false)).length,
+      })).filter((item) => item.read_events > 0),
     };
   };
   const refreshJobsResult = await supabase.from("trackmcp_refresh_jobs")
@@ -671,7 +677,7 @@ export function createAnalyticsHandler(getAdmin: typeof getSupabaseAdmin = getSu
   // A missing schema must not break analytics; when present it extends the
   // bounded event-window projection so late completion/expiry remains visible.
   const transitionResult = await supabase.from("trackmcp_task_transitions")
-    .select("task_id_hash,state,observed_at,evidence_quality")
+    .select("source_event_id,task_id_hash,state,observed_at,evidence_quality,service,environment,server_id,transport")
     .eq("workspace_id", workspaceId).gte("observed_at", since).order("observed_at", { ascending: true }).limit(10000);
   const taskTransitions = transitionResult.error ? [] : ((transitionResult.data || []) as Array<Record<string, unknown>>).flatMap((row): TrackMCPTaskTransitionObservation[] => {
     const state = row.state;
@@ -679,7 +685,12 @@ export function createAnalyticsHandler(getAdmin: typeof getSupabaseAdmin = getSu
     if (typeof row.task_id_hash !== "string" || !/^[a-f0-9]{64}$/i.test(row.task_id_hash) || typeof row.observed_at !== "string") return [];
     if (state !== "working" && state !== "input_required" && state !== "completed" && state !== "failed" && state !== "cancelled" && state !== "expired") return [];
     if (quality !== "observed" && quality !== "insufficient_data" && quality !== "conflicting") return [];
-    return [{ task_id_hash: row.task_id_hash.toLowerCase(), state, observed_at: row.observed_at.slice(0, 80), evidence_quality: quality }];
+    return [{ source_event_id: typeof row.source_event_id === "string" ? row.source_event_id.slice(0, 128) : undefined, task_id_hash: row.task_id_hash.toLowerCase(), state, observed_at: row.observed_at.slice(0, 80), evidence_quality: quality, scope: {
+      service: typeof row.service === "string" ? row.service : "unknown",
+      environment: typeof row.environment === "string" ? row.environment : "unknown",
+      server_id: typeof row.server_id === "string" ? row.server_id : null,
+      transport: row.transport === "stdio" || row.transport === "streamable_http" || row.transport === "sse" || row.transport === "custom" ? row.transport : "unknown",
+    } }];
   });
   const identityEligible = events.filter((event) => event.account_identity_source === "resolver" || event.account_identity_source === "unresolved").length;
   const identityResolved = events.filter((event) => Boolean(accountIdentityKey(event))).length;
@@ -914,7 +925,7 @@ export function createAnalyticsHandler(getAdmin: typeof getSupabaseAdmin = getSu
   // excluding it from this product-use read model.
   const resourceReadEvents = resourceEvents.filter((event) => event.mcp_method === "resources/read");
   const promptCallEvents = promptEvents.filter((event) => event.mcp_method === "prompts/get");
-  type SurfaceEvent = { event_id?: unknown; mcp_method?: unknown; started_at?: unknown; is_error?: unknown; success?: unknown; result_type?: unknown; interaction_id?: unknown; request_state_hash?: unknown; retry_number?: unknown; retry_of_event_id?: unknown };
+  type SurfaceEvent = { event_id?: unknown; mcp_method?: unknown; started_at?: unknown; is_error?: unknown; success?: unknown; result_type?: unknown; interaction_id?: unknown; request_state_hash?: unknown; retry_number?: unknown; retry_of_event_id?: unknown; service?: unknown; environment?: unknown; server_id?: unknown; transport?: unknown };
   type SurfaceOutcome = "complete" | "stalled" | "errored" | "unknown";
   type SurfaceSummary = { interactions: number; observations: number; complete: number; stalled: number; errored: number; unknown: number; linked_retry_count: number; by_method: Map<string, { interactions: number; complete: number; stalled: number; errored: number; unknown: number }> };
   const surfaceOutcome = (event: SurfaceEvent): SurfaceOutcome => {
@@ -934,7 +945,22 @@ export function createAnalyticsHandler(getAdmin: typeof getSupabaseAdmin = getSu
       // Collapse only evidence that carries a correlation handle. Never group
       // unlinked same-method events, since doing so would invent retry linkage.
       const eventId = typeof event.event_id === "string" && event.event_id ? event.event_id : String(index);
-      const key = interactionId ? `interaction:${interactionId}` : requestState ? `request:${requestState}` : `event:${eventId}`;
+      // Correlation handles are opaque and may be reused independently by
+      // different servers, services, environments, or transports. Namespace
+      // the handle before grouping so unrelated interactions cannot collapse.
+      // Missing provenance is explicit and never silently merged with an
+      // identified scope.
+      const scope = JSON.stringify([
+        typeof event.service === "string" && event.service ? event.service : "unknown",
+        typeof event.environment === "string" && event.environment ? event.environment : "unknown",
+        typeof event.server_id === "string" && event.server_id ? event.server_id : "unknown",
+        typeof event.transport === "string" && event.transport ? event.transport : "unknown",
+      ]);
+      const key = interactionId
+        ? `${scope}|interaction:${interactionId}`
+        : requestState
+          ? `${scope}|request:${requestState}`
+          : `event:${eventId}`;
       const current = interactions.get(key);
       const method = typeof event.mcp_method === "string" && event.mcp_method ? event.mcp_method : "safe method unavailable";
       if (current) {

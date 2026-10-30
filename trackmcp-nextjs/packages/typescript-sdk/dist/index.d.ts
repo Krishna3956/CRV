@@ -156,9 +156,9 @@ type EntityObservation = {
     hash: string;
 };
 export declare function protocolResultType(result: Record<string, unknown> | undefined): TrackMCPEvent["result_type"];
-/** Count MRTR input requests without retaining request contents. */
+/** Count MRTR/task input requests without retaining request contents. */
 export declare function protocolInputRequestCount(result: Record<string, unknown> | undefined): number | undefined;
-/** Count MRTR input responses without retaining response contents. */
+/** Count MRTR/task input responses without retaining response contents. */
 export declare function protocolInputResponseCount(result: Record<string, unknown> | undefined): number | undefined;
 /**
  * Project only the bounded MRTR linkage metadata needed to join an input

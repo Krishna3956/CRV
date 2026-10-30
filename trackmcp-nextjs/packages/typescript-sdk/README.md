@@ -220,6 +220,11 @@ and cooperative cancellation remain explicit caller-controlled methods. When a
 peer supplies them, bounded one-day `cacheHints` from task-stream
 acknowledgements are exposed as metadata only.
 
+When the Node transport observer receives a server `notifications/tasks`
+message, it emits the same metadata-only task lifecycle fields: a one-way task
+handle hash, explicit status, and bounded input-request/response counts. Task
+IDs, result content, input values, and status messages never enter telemetry.
+
 `listenForUpdates` also supports bounded 2026-07-28 catalog/resource change
 notifications (`toolsListChanged`, `promptsListChanged`,
 `resourcesListChanged`, and `resourceSubscriptions`). It returns only event

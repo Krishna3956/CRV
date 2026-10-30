@@ -75,11 +75,11 @@ public sealed class TrackMcpClient : IDisposable
 
     public TrackMcpClient(TrackMcpOptions options, HttpClient? httpClient = null) { _options = options; _http = httpClient ?? new HttpClient(); }
 
-    public void Capture(string eventType, string method, object? payload = null, string? sessionId = null, bool? success = null, long? durationMs = null, string? toolName = null, string? resultType = null, string? taskStatus = null, int? inputRequestCount = null, int? inputResponseCount = null, string? catalogKind = null, int? catalogItemCount = null, IReadOnlyList<string>? catalogItemNameHashes = null, IReadOnlyList<string>? catalogItemUriHashes = null, string? direction = null, string? transport = null, int? errorCode = null, string? interactionId = null, string? interactionLinkSource = null, string? retryOfEventId = null, string? requestStateHash = null)
+    public void Capture(string eventType, string method, object? payload = null, string? sessionId = null, bool? success = null, long? durationMs = null, string? toolName = null, string? resultType = null, string? taskStatus = null, int? inputRequestCount = null, int? inputResponseCount = null, string? catalogKind = null, int? catalogItemCount = null, IReadOnlyList<string>? catalogItemNameHashes = null, IReadOnlyList<string>? catalogItemUriHashes = null, string? direction = null, string? transport = null, int? errorCode = null, string? interactionId = null, string? interactionLinkSource = null, string? retryOfEventId = null, string? requestStateHash = null, string? taskId = null)
     {
         if (string.IsNullOrWhiteSpace(_options.ApiKey)) return;
         var account = ResolveAccount();
-        var item = new Dictionary<string, object?> { ["event_id"] = Guid.NewGuid().ToString(), ["event_type"] = eventType, ["service"] = _options.Service, ["environment"] = _options.Environment, ["direction"] = direction, ["transport"] = transport, ["mcp_method"] = method, ["session_id"] = sessionId, ["tool_name"] = toolName, ["started_at"] = DateTimeOffset.UtcNow.ToString("O"), ["duration_ms"] = durationMs, ["success"] = success, ["is_error"] = success is false, ["error_code"] = errorCode, ["result_type"] = resultType, ["task_status"] = taskStatus, ["interaction_id"] = interactionId, ["interaction_link_source"] = interactionLinkSource, ["retry_of_event_id"] = retryOfEventId, ["request_state_hash"] = requestStateHash, ["input_request_count"] = inputRequestCount, ["input_response_count"] = inputResponseCount, ["catalog_kind"] = catalogKind, ["catalog_item_count"] = catalogItemCount, ["catalog_item_name_hashes"] = catalogItemNameHashes, ["catalog_item_uri_hashes"] = catalogItemUriHashes, ["account_key"] = account.Key, ["account_identity_source"] = account.Source, ["account_identity_version"] = account.Key is null ? null : "sha256-v1", ["payload"] = SanitizePayload(payload), ["server_version"] = _options.ServerVersion, ["sdk_version"] = _options.SdkVersion, ["deployment_id"] = _options.DeploymentId };
+        var item = new Dictionary<string, object?> { ["event_id"] = Guid.NewGuid().ToString(), ["event_type"] = eventType, ["service"] = _options.Service, ["environment"] = _options.Environment, ["direction"] = direction, ["transport"] = transport, ["mcp_method"] = method, ["session_id"] = sessionId, ["task_id"] = taskId, ["tool_name"] = toolName, ["started_at"] = DateTimeOffset.UtcNow.ToString("O"), ["duration_ms"] = durationMs, ["success"] = success, ["is_error"] = success is false, ["error_code"] = errorCode, ["result_type"] = resultType, ["task_status"] = taskStatus, ["interaction_id"] = interactionId, ["interaction_link_source"] = interactionLinkSource, ["retry_of_event_id"] = retryOfEventId, ["request_state_hash"] = requestStateHash, ["input_request_count"] = inputRequestCount, ["input_response_count"] = inputResponseCount, ["catalog_kind"] = catalogKind, ["catalog_item_count"] = catalogItemCount, ["catalog_item_name_hashes"] = catalogItemNameHashes, ["catalog_item_uri_hashes"] = catalogItemUriHashes, ["account_key"] = account.Key, ["account_identity_source"] = account.Source, ["account_identity_version"] = account.Key is null ? null : "sha256-v1", ["payload"] = SanitizePayload(payload), ["server_version"] = _options.ServerVersion, ["sdk_version"] = _options.SdkVersion, ["deployment_id"] = _options.DeploymentId };
         lock (_gate) { _queue.Add(item); }
     }
 
@@ -161,6 +161,16 @@ public sealed class TrackMcpClient : IDisposable
                 var value = result[key]?.GetValue<string>();
                 if (value is not null && allowed.Contains(value, StringComparer.Ordinal)) return value;
             }
+            catch (InvalidOperationException) { }
+        }
+        return null;
+    }
+
+    private static string? ReadString(JsonObject result, params string[] keys)
+    {
+        foreach (var key in keys)
+        {
+            try { if (result[key] is JsonValue node && node.TryGetValue<string>(out var value)) return value; }
             catch (InvalidOperationException) { }
         }
         return null;
@@ -264,6 +274,23 @@ public sealed class TrackMcpClient : IDisposable
                 ["protocol_signal"] = signal
             }
         }, BoundSessionId(sessionId), true, direction: direction, transport: transport);
+    }
+
+    /// <summary>Records the modern notifications/tasks envelope with bounded metadata only.</summary>
+    /// <remarks>Task handles are hashed locally; input values, result content, and status messages are never retained.</remarks>
+    public void RecordTaskNotification(JsonObject parameters, string? sessionId = null)
+        => RecordTaskNotificationForTransport(parameters, null, sessionId, "server_to_client");
+
+    /// <summary>Records a modern Tasks notification with caller-verified transport and direction.</summary>
+    public void RecordTaskNotificationForTransport(JsonObject parameters, string? transport, string? sessionId = null, string direction = "server_to_client")
+    {
+        if (direction is not ("server_to_client" or "client_to_server") || transport is not (null or "stdio" or "streamable_http" or "sse" or "custom")) return;
+        var taskId = ReadString(parameters, "taskId", "task_id");
+        var taskHash = taskId is not null && taskId.Length <= 2048 && !taskId.Any(char.IsControl) ? HashCatalogIdentity(taskId) : null;
+        var status = ReadAllowlisted(parameters, new[] { "status", "taskStatus", "task_status" }, "working", "input_required", "completed", "failed", "cancelled", "expired");
+        var source = direction == "server_to_client" ? "server" : "client";
+        var metadata = new Dictionary<string, object?> { ["observation_kind"] = "protocol_notification", ["observation_source"] = source, ["protocol_family"] = "tasks" };
+        Capture("protocol", "notifications/tasks", new Dictionary<string, object?> { ["_trackmcp"] = metadata }, BoundSessionId(sessionId), true, taskStatus: status, inputRequestCount: BoundedCount(parameters, "inputRequests", "input_requests"), inputResponseCount: BoundedCount(parameters, "inputResponses", "input_responses"), direction: direction, transport: transport, taskId: taskHash);
     }
 
     /// <summary>Records one bounded catalog page using hashes/counts only.</summary>

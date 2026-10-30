@@ -25,11 +25,15 @@ test("direct framework and MCP SDK pins agree with the lockfiles", async () => {
   assert.equal(webLock.packages[""].devDependencies["@modelcontextprotocol/sdk"], "1.32.2");
   assert.equal(webLock.packages["node_modules/next"].version, "16.4.2");
   assert.equal(webLock.packages["node_modules/@modelcontextprotocol/sdk"].version, "1.32.2");
+  assert.equal(webPackage.overrides["@hono/node-server"], "2.1.5");
+  assert.equal(webLock.packages["node_modules/@hono/node-server"].version, "2.1.5");
 
   assert.equal(sdkPackage.peerDependencies["@modelcontextprotocol/sdk"], "1.32.2");
   assert.equal(sdkPackage.devDependencies["@modelcontextprotocol/sdk"], "1.32.2");
+  assert.equal(sdkPackage.overrides["@hono/node-server"], "2.1.5");
   assert.equal(sdkLock.packages[""].peerDependencies["@modelcontextprotocol/sdk"], "1.32.2");
   assert.equal(sdkLock.packages["node_modules/@modelcontextprotocol/sdk"].version, "1.32.2");
+  assert.equal(sdkLock.packages["node_modules/@hono/node-server"].version, "2.1.5");
 });
 
 test("customer docs and the Turbopack configuration match the reviewed pins", async () => {

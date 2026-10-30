@@ -1,6 +1,7 @@
 import type { TrackMCPCorrelationHandleSource, TrackMCPIntentSource, TrackMCPObservationSource, TrackMCPSessionIdSource } from "./types.ts";
 import type { TrackMCPOutcomeAggregate } from "./outcomes.ts";
 import type { TrackMCPDataTrust } from "./data-trust.ts";
+import type { TrackMCPTaskScope } from "./task-scope.ts";
 
 export type CompletionSource = "workflow_events" | "session_heuristic" | "none";
 export type CorrelationQuality = "session_id" | "transport_generated" | "external" | "issued" | "missing" | "mixed";
@@ -425,7 +426,7 @@ export type Analytics = {
       limitation: string;
     };
     identity_source_counts?: { resolver: number; unresolved: number };
-    tasks?: { task_id_hash: string; state: "working" | "input_required" | "completed" | "failed" | "cancelled" | "expired" | "unknown"; first_observed_at: string; last_observed_at: string; observations: number; terminal: boolean; evidence_quality: "observed" | "insufficient_data" | "conflicting" }[];
+    tasks?: { task_id_hash: string; scope: TrackMCPTaskScope; state: "working" | "input_required" | "completed" | "failed" | "cancelled" | "expired" | "unknown"; first_observed_at: string; last_observed_at: string; observations: number; terminal: boolean; evidence_quality: "observed" | "insufficient_data" | "conflicting" }[];
   };
   /** Query provenance and bounded-scan disclosure for every dashboard result. */
   data_trust?: TrackMCPDataTrust;
@@ -437,4 +438,5 @@ export type EntityReadAnalytics = {
   successful_reads: number;
   failed_reads: number;
   input_required_reads: number;
+  transport_breakdown: Array<{ transport: "stdio" | "streamable_http" | "sse" | "custom" | "unknown"; read_events: number; successful_reads: number; failed_reads: number }>;
 };

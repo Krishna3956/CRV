@@ -109,6 +109,13 @@ static class Smoke
         client.RecordAuthorizationOutcome("tools/call", 401, "session-auth");
         client.RecordAuthorizationOutcome("tools/call", 403, "session-auth-2");
         client.RecordAuthorizationOutcome("tools/call", 500, "ignored");
+        client.RecordTaskNotificationForTransport(new JsonObject
+        {
+            ["taskId"] = "secret-task-notification",
+            ["status"] = "input_required",
+            ["inputRequests"] = new JsonObject { ["first"] = new JsonObject { ["value"] = "never-retain" } },
+            ["result"] = new JsonObject { ["private"] = "never-retain" },
+        }, "streamable_http", "session-task");
         await client.FlushAsync();
 
         Require(handler.Body is not null, "flush did not send an event batch");
@@ -127,9 +134,10 @@ static class Smoke
         Require(!handler.Body.Contains("private-resource-content", StringComparison.Ordinal), "raw resource content crossed the boundary");
         Require(!handler.Body.Contains("private-prompt", StringComparison.Ordinal), "raw prompt identity crossed the boundary");
         Require(!handler.Body.Contains("private-prompt-message", StringComparison.Ordinal), "raw prompt content crossed the boundary");
+        Require(!handler.Body.Contains("secret-task-notification", StringComparison.Ordinal) && !handler.Body.Contains("never-retain", StringComparison.Ordinal), "raw task notification content crossed the boundary");
         using var document = JsonDocument.Parse(handler.Body);
         var events = document.RootElement.GetProperty("events");
-        Require(events.GetArrayLength() == 12, "unexpected event count");
+        Require(events.GetArrayLength() == 13, "unexpected event count");
         Require(events[0].GetProperty("direction").GetString() == "client_to_server", "inbound direction was not retained");
         Require(events[0].GetProperty("transport").GetString() == "streamable_http", "caller-verified signal transport label was not retained");
         Require(events[1].GetProperty("result_type").GetString() == "input_required", "protocol result type was not retained");
@@ -156,6 +164,9 @@ static class Smoke
         Require(events[9].GetProperty("payload").GetProperty("_trackmcp").GetProperty("capability_names").GetString() == "io.modelcontextprotocol/sampling,io.modelcontextprotocol/tasks,logging,roots", "capability names were not retained in bounded form");
         Require(events[10].GetProperty("error_code").GetInt32() == 401 && events[10].GetProperty("payload").GetProperty("_trackmcp").GetProperty("authorization_outcome").GetString() == "unauthorized", "401 authorization outcome was not retained");
         Require(events[11].GetProperty("error_code").GetInt32() == 403 && events[11].GetProperty("payload").GetProperty("_trackmcp").GetProperty("authorization_outcome").GetString() == "forbidden", "403 authorization outcome was not retained");
+        Require(events[12].GetProperty("task_id").GetString()!.Length == 64, "task handle was not hashed");
+        Require(events[12].GetProperty("task_status").GetString() == "input_required" && events[12].GetProperty("input_request_count").GetInt32() == 1, "task notification metadata was not retained");
+        Require(events[12].GetProperty("payload").GetProperty("_trackmcp").GetProperty("protocol_family").GetString() == "tasks", "task notification family was not retained");
         Require(!handler.Body.Contains("listChanged", StringComparison.Ordinal) && !handler.Body.Contains("omit", StringComparison.Ordinal), "capability option values crossed the privacy boundary");
     }
 }

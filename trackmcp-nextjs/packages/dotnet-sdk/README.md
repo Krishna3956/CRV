@@ -59,6 +59,13 @@ queued. When the host can verify transport, use
 `RecordProtocolResultForTransport` with `stdio`, `streamable_http`, `sse`, or
 `custom`; unknown labels are rejected.
 
+For a server-directed `notifications/tasks` envelope, call
+`RecordTaskNotification(parameters, sessionId)` or
+`RecordTaskNotificationForTransport(parameters, transport, sessionId,
+direction)`. The helper hashes the task handle locally, allowlists status, and
+counts keyed or list-shaped inputs without inspecting values. It does not poll,
+update, cancel, or reconnect task streams; those remain caller-owned.
+
 Explicit MRTR `requestState`/`interactionId` values are one-way hashed and a
 bounded retry event ID may be retained as top-level metadata. Raw request,
 response, and input values are never queued; this observer does not execute

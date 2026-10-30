@@ -1,5 +1,438 @@
 # Founder OS 100 Customer Readiness Ledger
 
+## 2026-10-30 — production account-identity namespace migration applied
+
+- [x] Applied the reviewed additive migration
+  `20261029000002_account_identity_version.sql` to the production Supabase
+  project `TOP-MCP-v2` through the SQL Editor. The column was added to
+  `public.trackmcp_events`; the current `sha256-v1` backfill was a no-op because
+  the production event set currently has zero non-null `account_key` rows.
+- [x] Added and verified the `trackmcp_events_account_identity_version_check`
+  constraint, the
+  `trackmcp_events_workspace_account_identity_started_idx` index, and the
+  schema comment. The bounded postflight returned
+  `version_column=true`, `version_constraint=true`, `version_index=true`,
+  `total_events=117233`, `keyed_events=0`, `versioned_events=0`,
+  `invalid_versioned_events=0`, and `orphan_versions=0`.
+- [x] Recorded the verified execution in
+  `public.trackmcp_migration_execution` with source SHA
+  `9c46a1a5e0232c43c72b70464977ec69f3669515` and postflight reference
+  `supabase-sql-postflight-2026-10-30-account-identity`; a readback returned
+  the exact row.
+- [ ] This closes the production schema prerequisite only. The current source
+  review branch still needs merge/deployment, and privacy acceptance,
+  customer-owned protocol UAT, backup/PITR, and release-owner approval remain
+  independent gates.
+
+## 2026-10-30 — privacy export preserves catalog transport scope
+
+- [x] Account privacy exports now select and project the caller-verified
+  `transport` label for catalog entity reads, keeping the exported evidence
+  shape aligned with the transport-scoped production schema.
+- [x] The projection uses an explicit allowlist (`stdio`, `streamable_http`,
+  `sse`, `custom`, `unknown`) and maps unsupported or legacy values to
+  `unknown`; no raw URIs, names, arguments, payloads, or content are added.
+- [x] Focused privacy-export tests, the route contract test, TypeScript, and
+  ESLint pass. The full release gate passes 154 suites and the production
+  build passes with 211 routes.
+- [ ] This source fix is on the current review branch and has not changed the
+  deployed `main` runtime until the branch is merged and deployment evidence
+  is available. Privacy acceptance, authenticated customer UAT, and release
+  owner approval remain open gates.
+
+## 2026-10-30 — production transport-scope migrations applied
+
+- [x] Applied `20261030000002_task_transition_scope.sql` to the production
+  Supabase project `TOP-MCP-v2` through the SQL Editor. The migration completed
+  with “Success. No rows returned”; it is additive and leaves legacy rows
+  nullable/unknown.
+- [x] Applied `20261030000003_catalog_entity_transport_scope.sql` to the same
+  production project. The migration completed with “Success. No rows
+  returned”; it adds only the nullable caller-verified transport column,
+  constraint, index, and comment.
+- [x] Ran a read-only `information_schema.columns` postflight. It returned all
+  five expected columns: `service`, `environment`, `server_id`, and
+  `transport` on `trackmcp_task_transitions`, plus `transport` on
+  `trackmcp_catalog_entity_reads`.
+- [x] Ran a second read-only catalog query against `pg_constraint` and
+  `pg_indexes`; both transport checks and both transport-scope indexes returned
+  `true`.
+- [x] Recorded the two verified executions in
+  `public.trackmcp_migration_execution` with bounded operator identity,
+  source SHAs (`0c32f98e` and `6084762e`), and the same postflight reference;
+  a read-only lookup returned both rows.
+- [x] Existing rows were not backfilled or rewritten. Raw task handles,
+  endpoint URLs, resource URIs, prompt names, arguments, and contents remain
+  outside the schema change.
+- [ ] Customer-owned multi-transport UAT, production application deployment
+  of the source projection changes, and release-owner approval remain open.
+
+## 2026-10-30 — v2 protocol activity preserves capability-aware transport and MRTR evidence
+
+- [x] The v2 protocol-activity projection now preserves bounded per-transport
+  outcomes, capability-aware matched-pair counts, MRTR linkage counts, and
+  capability-gap explanations already computed by the v1 analytics engine.
+- [x] Transport and protocol-family labels are allowlisted; counts are capped;
+  malformed values fail closed; and raw payloads, handles, and arguments are
+  never projected.
+- [x] Integration and contract coverage verifies transport bounds, unknown
+  fallback, capability-gap filtering, MRTR provenance, and privacy behavior.
+- [x] The projection preserves the bounded MRTR limitation text and bounds the
+  requested analytics window, so v2 consumers receive the same explanation
+  and uncertainty boundary as the v1 analytics engine.
+- [x] v2 also preserves bounded sampling/elicitation decision counts and
+  completion-friction metadata, including their limitations, instead of
+  silently dropping those modern-protocol evidence fields.
+- [ ] This is a source-level read-model correction. Production migration
+  application, authenticated customer-owned protocol UAT, and release-owner
+  approval remain open gates.
+
+## 2026-10-30 — catalog history transport labels fail closed
+
+- [x] The v2 catalog-history projection now allowlists transport labels and
+  maps malformed or unsupported values to `unknown` for both current and
+  predecessor snapshots.
+- [x] Added integration coverage proving supported labels remain visible while
+  unsupported labels cannot become an unreviewed product claim.
+- [ ] Legacy snapshot rows and cross-transport lineage still require the
+  additive production migration and authenticated customer-owned UAT.
+
+## 2026-10-30 — v2 resource/prompt projections preserve transport coverage
+
+- [x] The v2 Resources and Prompts read-model projection now carries a bounded
+  transport breakdown instead of silently dropping the field from the v1
+  analytics response.
+- [x] Transport labels are allowlisted (`stdio`, `streamable_http`, `sse`,
+  `custom`, `unknown`), counts are clamped, and malformed labels fail closed to
+  `unknown`; no names, URIs, contents, or arguments are introduced.
+- [x] Route integration and contract tests cover preservation, bounds, and
+  privacy behavior for both resources and prompts.
+- [ ] Production legacy rows remain `unknown` until the additive migration is
+  applied; authenticated customer-owned multi-transport UAT remains open.
+
+## 2026-10-30 — transport coverage is visible in Resources & prompts
+
+- [x] The Resources & prompts dashboard now renders the bounded durable
+  `transport_breakdown` for resources and prompts, including reads, successful
+  reads, and failed reads for each caller-verified transport.
+- [x] The example model and live API therefore share the same evidence shape;
+  the UI no longer hides a transport dimension that analytics already exposes.
+- [x] Dashboard contract coverage verifies the field and label are consumed,
+  and the full focused dashboard/typecheck/lint checks pass.
+- [ ] Legacy production entity-read rows remain `unknown` until the additive
+  migration is applied; customer-owned multi-transport UAT remains open.
+
+## 2026-10-30 — resource/prompt interaction handles are server-scoped
+
+- [x] Analytics now namespaces opaque `interaction_id` and `request_state_hash`
+  handles by bounded service, environment, server, and transport provenance
+  before collapsing observations into one resource read or prompt call.
+- [x] Identical handles emitted by separate MCP servers remain separate
+  interactions, so retries, stalls, and completions cannot be fabricated across
+  deployments. Missing provenance is retained as an explicit `unknown` scope.
+- [x] Added a regression fixture for the cross-server collision and updated the
+  history projection so previous-period comparisons use the same scope rule.
+- [ ] Customer-owned multi-server UAT and production migration/application
+  gates remain open; this change is source-level analytics correctness.
+
+## 2026-10-30 — durable resource/prompt reads preserve transport scope
+
+- [x] Hash-only `resources/read` and `prompts/get` projections now retain the
+  caller-verified transport label (`stdio`, `streamable_http`, `sse`, `custom`,
+  or `unknown`) without storing URIs, names, arguments, or contents.
+- [x] The analytics entity-read evidence now exposes bounded per-transport
+  counts, keeping cross-transport reads distinguishable instead of implying a
+  single homogeneous source.
+- [x] Added the additive migration, complete-postflight coverage, worker
+  selection coverage, and privacy-safe projection tests.
+- [ ] Existing production rows remain legacy `unknown` until the migration is
+  applied; authenticated multi-transport customer UAT remains open.
+
+## 2026-10-30 — durable task evidence no longer double-counts event-window facts
+
+- [x] Durable task transition reads now include their bounded source event ID.
+  When the same source event is already present in the selected event window,
+  the lifecycle aggregator keeps one observation instead of counting the
+  durable projection a second time.
+- [x] Late durable transitions without a matching source event remain included,
+  preserving the purpose of the transition history for delayed completion or
+  expiry evidence. Deduplication stays scoped by task hash and issuer scope.
+- [x] Added a regression fixture covering the duplicate durable/event-window
+  path; the raw task handle and payload privacy boundary is unchanged.
+- [ ] This is a read-model correctness fix. Production migration application,
+  customer-owned transport UAT, and release-owner gates remain open.
+
+## 2026-10-30 — task lifecycle joins now carry issuer scope
+
+- [x] Durable task transition rows now retain only bounded issuer provenance:
+  service, environment, optional server ID, and a caller-verified transport
+  label. Raw task handles, URLs, and payloads remain excluded.
+- [x] Task aggregation keys by task hash **and** that scope, so an identical
+  task ID issued by two MCP servers cannot be merged into one lifecycle or
+  manufacture a completed/failed state across tenants or deployments.
+- [x] Existing rows remain readable as `unknown` legacy scope; the additive
+  migration does not backfill or rewrite historical evidence. API responses
+  expose the bounded scope so operators can distinguish separate issuers.
+- [ ] The migration must be applied to the deployed Supabase project before
+  the new durable columns are written. Authenticated customer-owned transport
+  UAT and the external release-owner gates remain open.
+
+## 2026-10-30 — cross-language modern task notifications reconciled
+
+- [x] Python, Go, and .NET now expose explicit caller-owned helpers for the
+  official `notifications/tasks` envelope. They hash task handles locally,
+  allowlist task status, and count keyed or legacy list-shaped inputs without
+  retaining task IDs, values, result content, or status messages.
+- [x] Go and .NET retain caller-verified transport and direction; Python keeps
+  the same bounded transport/direction contract. Invalid provenance and
+  unknown status values fail closed, and all counts remain capped at 100.
+- [x] Python coverage passes **43/43** locally, including modern object-shaped
+  input counts, direct task-notification privacy coverage, and wrapper-path
+  coverage. Hosted CI run `40997420067` passed the Go, .NET, and web/JavaScript
+  lanes for the cross-language source change; the local workspace does not
+  install the Go or .NET toolchains.
+- [ ] This closes source-level cross-language projection parity only. The
+  published TypeScript/Python artifacts and reviewed Go/.NET source packages
+  require the next coordinated release workflow; authenticated customer-owned
+  Tasks UAT and full transport lifecycle ownership remain separate gates.
+
+## 2026-10-30 — modern task-notification telemetry reconciled
+
+- [x] The TypeScript Node transport observer now projects the official
+  `notifications/tasks` lifecycle envelope into the canonical event fields:
+  one-way task-handle hash, explicit task status, and bounded input
+  request/response counts. Task IDs, result content, input values, and status
+  messages remain excluded from telemetry.
+- [x] Object-shaped `inputRequests`/`inputResponses` used by the modern Tasks
+  extension are counted by key only; legacy array-shaped MRTR fixtures remain
+  supported and all counts are capped at 100.
+- [x] SDK regression coverage passes **109/109**, including a notification
+  lifecycle privacy fixture and object-shaped input-count fixture. The README
+  and protocol matrix now describe the observer boundary accurately.
+- [ ] This is a source-level SDK capability correction. The published
+  `@trackmcp/sdk@0.1.25` artifact is unchanged; package publication for the
+  next coordinated version and authenticated customer-owned Tasks UAT remain
+  separate release gates.
+
+## 2026-10-30 — cross-language publication boundary verified
+
+- [x] Hosted CI runs `go test ./...`, `go vet ./...`, and the Go runtime smoke
+  harness; the .NET lane runs Release build, produces a reviewed NuGet package
+  into the runner workspace, and runs the hosted smoke project.
+- [x] The publication workflow has no Go or NuGet upload step. Public docs and
+  package READMEs consistently describe Go and .NET as reviewed source
+  packages, so the product does not imply registry availability that has not
+  been verified.
+- [x] `test:nonpublished-sdk-docs`, `test:package-provenance`,
+  `test:dependency-pins`, `test:publish-workflow`, `test:docs-version`, and
+  `test:package-release-audit` pass locally; the release artifact audit still
+  covers only the approved npm/PyPI train.
+- [x] The consolidated tree also passed the complete **154-suite** release
+  gate, ESLint, and the production build with **211 routes** generated.
+- [ ] Go/.NET registry publication remains an explicit release-owner decision;
+  no package will be published or advertised without that decision and a
+  corresponding clean-consumer/provenance gate.
+
+## 2026-10-30 — transitive MCP dependency advisory closed
+
+- [x] npm audit identified `@hono/node-server@2.1.1` through
+  `@modelcontextprotocol/sdk@1.32.2`, affected by GHSA-rmxm-3fg6-px4f
+  (double-decoding of static request paths in `serveStatic`).
+- [x] Both the web workspace and TypeScript SDK workspace now pin the patched
+  `@hono/node-server@2.1.5` through explicit overrides and synchronized lockfiles.
+  The runtime dependency tree resolves the override rather than the vulnerable
+  transitive version.
+- [x] The dependency-pin contract asserts the override and lockfile versions;
+  both workspace audits report zero vulnerabilities, the TypeScript SDK suite
+  passes 107/107, lint/build pass, and the complete **154-suite** release gate
+  passes.
+- [ ] This closes the identified dependency advisory only; it does not change
+  the separately documented external protocol, privacy, backup, UAT, or
+  release-owner gates.
+
+## 2026-10-30 — cross-language dependency surface rechecked
+
+- [x] The Python SDK has no declared runtime dependencies in `pyproject.toml`;
+  its correctly scoped local unittest run passes **40/40**. The CLI workspace
+  npm audit also reports zero vulnerabilities.
+- [x] The Go SDK is standard-library-only (`go.mod` has no requirements), and
+  the .NET SDK project has no PackageReference entries. Their source packages
+  therefore have no third-party package lock to audit in this checkout.
+- [x] The initial Python command run from the repository root was discarded
+  because it imported the globally installed package rather than local source;
+  the package-directory `PYTHONPATH=.` run is the authoritative result.
+- [ ] Go/.NET compiler and registry verification remain separate environment or
+  publication gates; absence of third-party dependencies is not a publication
+  claim.
+
+## 2026-10-30 — rendered SEO and live blog verification refreshed
+
+- [x] The built standalone app passed `npm run seo:audit`: **157 URLs** were
+  checked and every audited route returned HTTP 200 with a title, description,
+  canonical URL, and exactly one H1.
+- [x] The live expanded blog batch passed the local live-blog audit: all **30**
+  article URLs returned HTTP 200, with complete metadata/source-link checks and
+  article lengths between 1,194 and 1,549 words.
+- [x] Public probes for `/`, `/blog`, `/docs`, `/dashboard`, `/sitemap.xml`,
+  and `/robots.txt` returned HTTP 200. The live robots policy declares both
+  sitemaps, allows the requested search/AI crawlers, and keeps `/admin` and
+  `/api/` disallowed for the wildcard crawler.
+- [ ] Google Search Console indexing/canonical reports and external backlink
+  counts still require credentialed external-tool evidence; sitemap inclusion
+  and successful HTTP responses are not treated as indexing or backlink proof.
+
+## 2026-10-30 — incident volume disclosure copy reconciled
+
+- [x] Issues incident disclosures no longer append a second “affected” label
+  after a summary that already distinguishes observed affected volume from
+  eligible comparison volume. Latency, catalog, and workflow signals remain
+  explicitly unavailable for an affected-event count.
+- [x] The dashboard feature-coverage table now matches the shipped API and UI:
+  supported rate metrics expose the comparison numerator/denominator, while
+  notification attempts remain bounded and lazy-loaded in incident evidence.
+- [x] Dashboard contract coverage, ESLint, TypeScript, and the complete
+  **154-suite** release gate pass on the exact tree before this ledger update.
+- [ ] This is a truth/UX reconciliation only; it does not enable disabled-first
+  alert scheduling or close external endpoint, privacy, backup, or release-owner
+  gates.
+
+## 2026-10-30 — P1-05 incident volume is explicit and metric-scoped
+
+- [x] The authenticated alert-incidents serializer now exposes bounded
+  `affected_volume`, `eligible_volume`, and `volume_basis` fields. For error,
+  empty-result, retry, authorization, and deployment rate findings, affected
+  volume is the observed comparison numerator and eligible volume is the
+  comparison denominator.
+- [x] Latency, catalog-drift, and workflow-completion findings do not receive
+  a fabricated affected count. They return `affected_volume: null` with
+  `volume_basis: "not_defined"` when the metric has no safe per-event
+  interpretation. Existing explicit evidence is accepted only for supported
+  rate metrics and remains bounded.
+- [x] Dashboard Issues uses the new fields while retaining the truthful
+  eligible-volume fallback for legacy fixtures. Serializer, route integration,
+  tenant-boundary, dashboard contract, typecheck, and lint coverage pass.
+- [ ] This improves incident explainability but does not enable alert delivery,
+  change disabled-first scheduling, or close external customer-endpoint,
+  privacy, backup, or release-owner gates.
+
+## 2026-10-30 — exact npx CLI invocation is now a regression contract
+
+- [x] The packed CLI consumer test now runs the exact documented
+  `npx --no-install @trackmcp/cli --help` path in addition to the raw npm bin
+  symlink and `npm exec --package` paths. This protects npm argument forwarding
+  and symlink resolution together, which was the published 0.1.12 failure
+  boundary.
+- [x] The corrected `@trackmcp/cli@0.1.13` registry package still prints help,
+  emits diagnostics for `doctor`, and returns an actionable non-interactive
+  `init` error. Browser authorization remains reached only from an interactive
+  terminal and never runs from package installation hooks.
+- [x] The exact current tree passed the complete **154-suite** release gate,
+  including the package-consumer gate and all CLI, auth, privacy, protocol,
+  dashboard, OTLP, translation, and tenant-isolation checks.
+- [ ] This closes the CLI entrypoint regression evidence. It does not close the
+  separate external pilot gates for customer-owned endpoint UAT, privacy and
+  backup acceptance, registry publication promises, or release-owner GO/NO-GO.
+
+## 2026-10-30 — Setup first-event verification is manually refreshable
+
+- [x] Setup now exposes a visible **Refresh setup check** action beside the
+  connection status. It re-runs the authenticated, workspace-scoped v2 setup
+  evidence query and refreshes the analytics window without claiming health or
+  reachability.
+- [x] The control has an explicit loading state, disabled duplicate requests,
+  keyboard focus styling, and the existing retry path uses the same bounded
+  action. No key material or event payload is sent by the browser.
+- [x] Dashboard contract coverage verifies the refresh token, loading state,
+  action label, and retry wiring; the full release gate remains the required
+  follow-up.
+- [ ] This makes evidence refresh actionable but does not prove SDK
+  installation, server reachability, durable delivery, customer-owned endpoint
+  interoperability, or the other external pilot gates.
+
+## 2026-10-30 — CLI npm-bin silent-exit root cause verified and fixed
+
+- [x] Reproduced the reported behavior from a clean npm cache against the
+  published `@trackmcp/cli@0.1.12`: help returned exit 0 with zero stdout,
+  proving the failure was inside the package entrypoint rather than browser
+  authentication or the local workspace.
+- [x] Identified the cause: the 0.1.12 guard compared a symlinked
+  `node_modules/.bin/trackmcp` path with `resolve()`, so the guard skipped
+  `main()` and silently exited before parsing any command.
+- [x] Verified the `realpathSync()` entrypoint fix in the published
+  `@trackmcp/cli@0.1.13`; clean-cache help, doctor, and non-interactive init
+  now emit deterministic output and status codes.
+- [x] CLI package tests pass all 26 tests, including the packed npm-bin
+  symlink, npm exec, init, doctor, browser failure, and authorization failure
+  paths. Package-lock metadata is synchronized to 0.1.13.
+- [ ] This fixes the CLI release train; it does not close the separate
+  customer-owned endpoint/UAT, provider, backup/PITR, privacy, or release-owner
+  GO/NO-GO gates.
+
+## 2026-10-30 — bounded telemetry recency closes the dashboard freshness gap
+
+- [x] `data_trust` now carries `observation_recency` with four explicit states:
+  `recent`, `stale`, `no_observation`, and `unknown`. The classification uses a
+  fixed 24-hour evidence threshold and never represents service health,
+  connectivity, or delivery success.
+- [x] All public v2 data-trust projections sanitize the new field, preserving
+  the existing workspace-scoped and metadata-only boundary. Malformed or legacy
+  responses degrade to a bounded derived state rather than being trusted.
+- [x] The dashboard Data trust panel now shows **Telemetry recency** alongside
+  the observed watermark and explains the evidence-only limitation.
+- [x] Focused data-trust, v2 projection, and dashboard contract tests passed.
+- [ ] This improves recency visibility only; customer-owned transport UAT,
+  provider/backup/privacy acceptance, and release-owner GO/NO-GO remain open.
+
+## 2026-10-30 — package and release truth rechecked
+
+- [x] Public registry verification was repeated for the current release train:
+  npm serves `@trackmcp/sdk@0.1.25` and `@trackmcp/cli@0.1.13`; PyPI serves
+  `trackmcp==0.1.15` with wheel SHA-256
+  `738e6ca64fb5ea91b80bfe1fc9a88457783cc7e5fc264b5f8e122347922aae07`.
+- [x] The current source tree passed the clean build and lint checks, and the
+  full release gate passed 154 suites.
+- [x] `docs/FOUNDER-OS-PDF-TRUTH-AUDIT.md` now distinguishes registry-verified
+  package artifacts and candidate-verified engineering from the still-open
+  external pilot gates.
+- [ ] This does not close customer-owned endpoint/protocol UAT,
+  privacy/deletion acceptance, backup/PITR, sustained reliability evidence,
+  release-owner GO/NO-GO, or other provider/owner gates listed below.
+
+## 2026-10-30 — protocol decision analytics reconciled with implementation
+
+- [x] The deployed analytics projection already exposes bounded
+  `protocol_decisions` for sampling and elicitation (`accept`, `decline`, and
+  `cancel`) and keeps the values, prompts, schemas, and response content out of
+  the response.
+- [x] Capability-scoped request/response matching is implemented for the
+  protocol-family projection, with negotiated, no-advertisement, and unknown
+  evidence kept distinct. The current integration coverage includes sampling
+  and elicitation matches, cross-server handle isolation, and durable-fact
+  fallback behavior.
+- [x] The PDF truth audit was corrected so these are no longer described as
+  missing engineering vectors. Remaining limitations are explicit: only
+  allowlisted decisions count, accept is not business approval, and
+  authenticated customer-owned transport/UAT remains external.
+- [x] The complete release gate remains green at 154 suites; this is a truth
+  reconciliation of the deployed capability, not a new runtime claim.
+
+## 2026-10-30 — release-gate and package-boundary recheck
+
+- [x] The complete local release gate passed **154 suites** after the CLI and
+  readiness reconciliations; standalone ESLint and the production Next.js build
+  also passed, generating **211 routes**.
+- [x] The published-artifact audit passed for `@trackmcp/sdk@0.1.25`,
+  `@trackmcp/cli@0.1.13`, and `trackmcp==0.1.15`, scanning 18 packed artifact
+  files for credential-shaped values. The non-published SDK contract suite
+  passed **16/16** and continues to state that Go and .NET are reviewed source
+  packages, not registry releases.
+- [x] No application deployment was required for this docs/package evidence
+  recheck. The deployed application remains the immutable runtime recorded in
+  the current release checkpoint above.
+- [ ] Go/.NET registry publication, customer-owned endpoint interoperability,
+  backup/PITR, privacy acceptance, and release-owner GO/NO-GO remain explicit
+  external or owner gates; these green checks do not close them.
+
 ## 2026-10-30 — capability-aware protocol analytics deployed
 
 - [x] Protocol-family request/response joins now precompute bounded capability
@@ -18,6 +451,24 @@
 - [ ] Authenticated customer-owned protocol UAT is still required before this
   becomes customer-interoperability evidence; no unsupported protocol or
   negotiated-support claim is made from the deployed fixture alone.
+
+## 2026-10-30 — production key lifecycle evidence reconciled
+
+- [x] The disposable production UAT recorded on 2026-10-28 verified workspace
+  and key creation (`201`), workspace listing (`200`), active-key rotation
+  (`201`), rejection of the old key after rotation (`401`), acceptance of the
+  replacement (`200`), replacement-key revocation (`200`), and rejection of
+  the replacement after revocation (`401`). Both disposable credentials ended
+  revoked, and the report retained statuses only.
+- [x] The account key and key-status routes have not changed since that UAT;
+  the only later workspace-route change was OAuth provisioning idempotency.
+  The evidence therefore remains applicable to the current deployed route
+  implementation, while the source/runtime release gates remain separate.
+- [x] The active register below now distinguishes the verified key mutation
+  boundary from the still-open customer-owned endpoint and protocol UAT.
+- [ ] This does not close transport-owned reconnect/replay, durable
+  subscriptions, OAuth token exchange, privacy acceptance, backup/PITR, or
+  release-owner approval.
 
 ## 2026-10-30 — translation observer stability fix deployed
 
@@ -1435,7 +1886,7 @@ End of historical checkpoint archive.
 | Worker freshness | Health artifact `12905900486` from run `40891096616`: healthy bounded window with 4 AWS invocations, 0 errors, 4 end-to-end successes, 4 complete worker samples, 0 failed/retryable/parse-failure samples, and `867340 ms` maximum AWS worker lag | **PROVEN / monitor** | Continue scheduled monitoring; reopen only if a later bounded window exceeds the `900000 ms` budget or records worker/scheduler failures |
 | Backup/PITR | Supabase Free Plan has no scheduled backups or PITR | **HOLD / owner decision** | Accepted documented limitation with named recovery owner/runbook, or plan upgrade plus tested restore rehearsal |
 | Privacy acceptance | Engineering export/deletion contracts pass; production acceptance is not recorded | **HOLD / owner decision** | Signed production privacy review and retention/deletion acceptance |
-| Credentialed lifecycle/UAT | Live read-only authenticated smoke `40893382834` passed `37/37` tenant/privacy checks and direct-origin first-ingest smoke `40894964464` passed acceptance plus analytics read-back on `32ff5dfe`; key mutation and customer-owned endpoint/protocol UAT remain unexecuted | **HOLD / credentialed** | Disposable key creation/rotation/revocation evidence, customer-owned endpoint/protocol UAT, and explicit acceptance of reconnect/replay, durable-subscription, and OAuth boundaries |
+| Credentialed lifecycle/UAT | Live read-only authenticated smoke `40893382834` passed `37/37` tenant/privacy checks; direct-origin first-ingest smoke `40894964464` and SDK-shaped public-edge smoke `40896249223` passed bounded acceptance/read-back; disposable production UAT verified key creation, rotation, old-key rejection, replacement acceptance, revocation, and post-revocation rejection on 2026-10-28 | **PARTIALLY PROVEN / customer UAT remains** | Customer-owned endpoint/protocol UAT artifact and explicit acceptance of reconnect/replay, durable-subscription, OAuth token-exchange, privacy, backup/PITR, and release-owner boundaries |
 | Release-owner acceptance | Source, CI, deployment, package publication, and local release gates are green | **HOLD / owner decision** | Explicit approval referencing this register and the current deployed source |
 
 The detailed historical table below is retained for audit continuity and is not

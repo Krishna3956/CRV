@@ -113,6 +113,9 @@ test("resources and prompts have a dedicated evidence-bounded surface", () => {
   assert.match(source, /function ResourcesPromptsView/);
   assert.match(source, /title=\"Resources & prompts\"/);
   assert.match(source, /Hashed entities/);
+  assert.match(source, /transport_breakdown/);
+  assert.match(source, /Transport coverage/);
+  assert.match(source, /formatTransport\(item\.transport\)/);
   assert.match(source, /No resource or prompt evidence yet/);
   assert.match(source, /does not expose resource contents, prompt arguments/);
 });
@@ -231,6 +234,15 @@ test("Setup renders the server readiness contract without making identity mandat
   assert.match(source, /Required setup evidence/);
   assert.match(source, /Identity resolution is optional and does not block a connected state/);
   assert.match(source, /aria-label="Setup readiness"/);
+});
+
+test("Setup exposes an explicit refresh action for first-event evidence", () => {
+  assert.match(source, /setupReloadToken/);
+  assert.match(source, /setSetupReloadToken\(\(value\) => value \+ 1\)/);
+  assert.match(source, /aria-label="Refresh setup check"/);
+  assert.match(source, /Refresh setup check/);
+  assert.match(source, /setupChecking/);
+  assert.match(source, /onClick=\{retrySetupCheck\}/);
 });
 
 test("Setup distinguishes stale ingestion evidence from current health", () => {
@@ -483,6 +495,9 @@ test("Overview exposes Founder OS outcome and evidence-quality states", () => {
   assert.match(source, /Evidence window:/);
   assert.match(source, /bounded scan complete/);
   assert.match(source, /scan limit reached; results may be incomplete/);
+  assert.match(source, /Telemetry recency/);
+  assert.match(source, /evidence watermark, not a service-health claim/);
+  assert.match(source, /No event observed in the last 24 hours/);
 });
 
 test("Data trust exposes bounded derived-refresh health without implying activity", () => {
@@ -584,6 +599,8 @@ test("completion is explicit-outcome-only and tool quality exposes insufficient 
   assert.match(source, /Showing a bounded result/);
   assert.match(source, /Some events may be omitted/);
   assert.match(source, /eligible comparison volume/);
+  assert.match(source, /observed affected/);
+  assert.doesNotMatch(source, /incidentVolumeLabel\(incident\)\} affected/);
   assert.doesNotMatch(source, /eligible comparison events/);
 });
 

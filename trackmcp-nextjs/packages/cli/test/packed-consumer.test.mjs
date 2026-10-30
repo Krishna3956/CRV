@@ -32,6 +32,15 @@ test("packed CLI installs cleanly and executes through the npm bin symlink", asy
     assert.equal(npmExecHelpRun.error, undefined);
     assert.match(npmExecHelpRun.stdout, /TrackMCP CLI/);
 
+    // Exercise the exact documented shorthand. --no-install keeps this
+    // consumer test pinned to the packed dependency instead of reaching the
+    // public registry, while still going through npx's argument forwarding
+    // and .bin resolution path.
+    const npxHelpRun = spawnSync("npx", ["--no-install", "@trackmcp/cli", "--help"], { cwd: consumer, env: { ...npmEnv, npm_config_loglevel: "error" }, encoding: "utf8", timeout: 15_000 });
+    assert.equal(npxHelpRun.status, 0);
+    assert.equal(npxHelpRun.error, undefined);
+    assert.match(npxHelpRun.stdout, /TrackMCP CLI/);
+
     const initHelpRun = spawnSync("node", ["node_modules/.bin/trackmcp", "init", "--help"], { cwd: consumer, env: { ...process.env }, encoding: "utf8", timeout: 15_000 });
     assert.equal(initHelpRun.status, 0);
     assert.match(initHelpRun.stdout, /Usage: npx @trackmcp\/cli init/);

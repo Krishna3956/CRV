@@ -132,6 +132,7 @@ const legacyViewMap: Record<string, View> = {
 };
 const validViews = new Set<View>(allNav.map((item) => item.id));
 const fmt = (value: number) => value.toLocaleString();
+const formatTransport = (value: string) => value === "streamable_http" ? "Streamable HTTP" : value === "stdio" ? "stdio" : value === "sse" ? "SSE" : value === "custom" ? "Custom" : "Unknown";
 const fmtObservedAt = (value: string) => {
   const parsed = Date.parse(value);
   return Number.isFinite(parsed) ? new Date(parsed).toLocaleString(undefined, { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" }) : "unknown";
@@ -328,9 +329,14 @@ function thresholdLabel(threshold: AlertIncident["threshold"]): string {
 }
 
 function incidentVolumeLabel(incident: AlertIncident): string {
-  const denominator = incident.comparison?.denominator;
-  return typeof denominator === "number"
-    ? `${fmt(denominator)} eligible comparison volume`
+  const affected = incident.affected_volume;
+  const eligible = incident.eligible_volume ?? incident.comparison?.denominator;
+  if (typeof affected === "number" && typeof eligible === "number") {
+    return `${fmt(affected)} observed affected · ${fmt(eligible)} eligible comparison volume`;
+  }
+  if (typeof affected === "number") return `${fmt(affected)} observed affected volume`;
+  return typeof eligible === "number"
+    ? `${fmt(eligible)} eligible comparison volume`
     : "Not provided by the API";
 }
 
@@ -459,8 +465,8 @@ const EXAMPLE_ANALYTICS: Analytics = {
   ],
   protocol_family_outcome_source: "event_window",
   interaction_surfaces: {
-    resources: { events: 42, methods: ["resources/list", "resources/read"], entity_count: 12, entity_identity: "sha256_hash_count", entity_analytics: { status: "available", read_events: 31, successful_reads: 28, failed_reads: 2, input_required_reads: 1 } },
-    prompts: { events: 19, methods: ["prompts/list", "prompts/get"], entity_count: 5, entity_identity: "sha256_hash_count", entity_analytics: { status: "available", read_events: 16, successful_reads: 14, failed_reads: 1, input_required_reads: 1 } },
+    resources: { events: 42, methods: ["resources/list", "resources/read"], entity_count: 12, entity_identity: "sha256_hash_count", entity_analytics: { status: "available", read_events: 31, successful_reads: 28, failed_reads: 2, input_required_reads: 1, transport_breakdown: [{ transport: "streamable_http", read_events: 31, successful_reads: 28, failed_reads: 2 }] } },
+    prompts: { events: 19, methods: ["prompts/list", "prompts/get"], entity_count: 5, entity_identity: "sha256_hash_count", entity_analytics: { status: "available", read_events: 16, successful_reads: 14, failed_reads: 1, input_required_reads: 1, transport_breakdown: [{ transport: "streamable_http", read_events: 16, successful_reads: 14, failed_reads: 1 }] } },
   },
   transports: ["streamable_http"],
   methods: ["tools/list", "tools/call"],
@@ -2420,6 +2426,13 @@ function DataTrustPanel({
   const observedThrough = dataTrust.observed_through
     ? dataTrust.observed_through.slice(0, 10)
     : "not available";
+  const recencyLabel = dataTrust.observation_recency.status === "recent"
+    ? "Recent observation"
+    : dataTrust.observation_recency.status === "stale"
+      ? "No event observed in the last 24 hours"
+      : dataTrust.observation_recency.status === "no_observation"
+        ? "No observed event in this window"
+        : "Recency unavailable";
   return (
     <section
       className="mb-6 border border-line bg-white p-4 sm:p-5"
@@ -2432,14 +2445,14 @@ function DataTrustPanel({
             {dataTrust.truncated ? "Bounded scan; results may be incomplete" : "Bounded scan complete"}
           </p>
           <p className="mt-1 text-xs leading-relaxed text-muted">
-            This describes the evidence returned by the selected query. It is not a claim that all activity was observed.
+            This describes the evidence returned by the selected query. Recency is an evidence watermark, not a service-health claim.
           </p>
         </div>
         <span className="inline-flex items-center gap-1.5 border border-line bg-paper px-2.5 py-1.5 text-[11px] font-semibold text-muted">
           <Info size={13} /> {fmt(dataTrust.returned_event_count)} events returned
         </span>
       </div>
-      <dl className="mt-4 grid gap-3 text-xs sm:grid-cols-3">
+      <dl className="mt-4 grid gap-3 text-xs sm:grid-cols-4">
         <div>
           <dt className="text-faint">Evidence window</dt>
           <dd className="mt-1 font-medium text-ink">
@@ -2453,6 +2466,10 @@ function DataTrustPanel({
         <div>
           <dt className="text-faint">Observed through</dt>
           <dd className="mt-1 font-medium text-ink">{observedThrough}</dd>
+        </div>
+        <div>
+          <dt className="text-faint">Telemetry recency</dt>
+          <dd className="mt-1 font-medium text-ink">{recencyLabel}</dd>
         </div>
       </dl>
       {identitySourceCounts && (
@@ -2673,6 +2690,7 @@ function InteractionSurfacePanel({
               <span>Failed</span><span className="text-right font-medium text-ink">{fmt(value.entity_analytics.failed_reads)}</span>
               <span>Needs input</span><span className="text-right font-medium text-ink">{fmt(value.entity_analytics.input_required_reads)}</span>
             </div>
+            {value.entity_analytics.transport_breakdown.length > 0 && <div className="mt-3 border-t border-line pt-2"><p className="text-[10px] uppercase tracking-[0.08em] text-faint">Transport coverage</p><div className="mt-1 space-y-1">{value.entity_analytics.transport_breakdown.slice(0, 5).map((item) => <div key={item.transport} className="flex items-center justify-between gap-2 text-[11px]"><span className="text-muted">{formatTransport(item.transport)}</span><span className="text-right text-ink">{fmt(item.read_events)} reads · {fmt(item.successful_reads)} ok · {fmt(item.failed_reads)} failed</span></div>)}</div></div>}
             <p className="mt-2 text-[10px] uppercase tracking-[0.08em] text-faint">
               {value.entity_analytics.status === "available"
                 ? "Durable read projection"
@@ -3208,6 +3226,7 @@ function ResourcesPromptsView({
             <div className="mt-4 grid grid-cols-2 gap-2 text-xs sm:grid-cols-4">
               {[["Reads", surface.entity_analytics.read_events], ["Successful", surface.entity_analytics.successful_reads], ["Failed", surface.entity_analytics.failed_reads], ["Needs input", surface.entity_analytics.input_required_reads]].map(([metric, value]) => <div key={String(metric)} className="border border-line bg-white p-3"><p className="text-muted">{metric}</p><p className="mt-1 font-semibold text-ink">{fmt(Number(value))}</p></div>)}
             </div>
+            {surface.entity_analytics.transport_breakdown.length > 0 && <div className="mt-4 border-t border-line pt-3"><p className="text-[10px] uppercase tracking-[0.08em] text-faint">Transport coverage</p><div className="mt-2 space-y-1">{surface.entity_analytics.transport_breakdown.slice(0, 5).map((item) => <div key={item.transport} className="flex items-center justify-between gap-2 text-[11px]"><span className="text-muted">{formatTransport(item.transport)}</span><span className="text-right text-ink">{fmt(item.read_events)} reads · {fmt(item.successful_reads)} ok · {fmt(item.failed_reads)} failed</span></div>)}</div></div>}
             <p className="mt-3 text-[10px] uppercase tracking-[0.08em] text-faint">{surface.entity_analytics.status === "available" ? "Durable read projection" : surface.entity_analytics.status === "no_rows" ? "No durable reads in this window" : "Durable read schema unavailable"}</p>
           </Panel>
         ))}
@@ -3815,7 +3834,7 @@ function IncidentCard({
       </div>
       <details className="mt-3 border-t border-line/80 pt-3">
         <summary className="cursor-pointer text-xs font-semibold text-brand-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand">
-          Show incident detail <span className="ml-1 font-normal text-faint">· {incidentVolumeLabel(incident)} affected</span>
+          Show incident detail <span className="ml-1 font-normal text-faint">· {incidentVolumeLabel(incident)}</span>
         </summary>
         <div className="mt-3 grid gap-3 text-xs text-muted sm:grid-cols-2 lg:grid-cols-3">
         <p>
@@ -4319,6 +4338,8 @@ function SetupView({
   const [otelCopied, setOtelCopied] = useState(false);
   const [setupContract, setSetupContract] = useState<SetupContract | null>(null);
   const [setupContractWorkspaceId, setSetupContractWorkspaceId] = useState<string | null>(null);
+  const [setupReloadToken, setSetupReloadToken] = useState(0);
+  const [setupChecking, setSetupChecking] = useState(() => Boolean(workspaceId));
 
   const boundedService = serviceName.replace(/[^a-zA-Z0-9._ -]/g, "").trim().slice(0, 100);
   const boundedEnvironment = environmentName.replace(/[^a-zA-Z0-9._ -]/g, "").trim().slice(0, 64) || "production";
@@ -4360,9 +4381,12 @@ function SetupView({
           setSetupContractWorkspaceId(workspaceId);
           setSetupContract(null);
         }
+      })
+      .finally(() => {
+        if (!cancelled) setSetupChecking(false);
       });
     return () => { cancelled = true; };
-  }, [workspaceId]);
+  }, [setupReloadToken, workspaceId]);
   const activeSetupContract = setupContractWorkspaceId === workspaceId ? setupContract : null;
   const contractChecks = activeSetupContract?.setup?.checks;
   const firstEventLagSeconds = activeSetupContract?.setup?.first_event?.ingestion_lag_seconds;
@@ -4433,6 +4457,12 @@ function SetupView({
       setOtelCopied(false);
     }
   };
+  const retrySetupCheck = () => {
+    if (!workspaceId || setupChecking) return;
+    setSetupChecking(true);
+    setSetupReloadToken((value) => value + 1);
+    onRefresh();
+  };
   return (
     <div>
       <PageIntro
@@ -4477,10 +4507,22 @@ function SetupView({
               </p>
             )}
           </div>
-          <span className={"inline-flex items-center gap-2 border px-3 py-2 text-xs font-semibold " + stateCopy[3]}>
-            <span className={"h-2 w-2 rounded-full " + stateCopy[4]} aria-hidden="true" />
-            {stateCopy[2]}
-          </span>
+          <div className="flex flex-wrap items-center justify-end gap-2">
+            <span className={"inline-flex items-center gap-2 border px-3 py-2 text-xs font-semibold " + stateCopy[3]}>
+              <span className={"h-2 w-2 rounded-full " + stateCopy[4]} aria-hidden="true" />
+              {stateCopy[2]}
+            </span>
+            <button
+              type="button"
+              onClick={retrySetupCheck}
+              disabled={!workspaceId || setupChecking}
+              className="inline-flex cursor-pointer items-center gap-1.5 border border-line-strong bg-white px-3 py-2 text-xs font-semibold text-body hover:bg-paper disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
+              aria-label="Refresh setup check"
+            >
+              <RefreshCw size={13} className={setupChecking ? "animate-spin" : ""} aria-hidden="true" />
+              {setupChecking ? "Checking…" : "Refresh setup check"}
+            </button>
+          </div>
         </div>
         <div className="mt-5 grid gap-2 text-xs sm:grid-cols-4">
           {checks.map(([label, done]) => (
@@ -4537,10 +4579,11 @@ function SetupView({
         {connectionState === "error" && (
           <button
             type="button"
-            onClick={onRefresh}
+            onClick={retrySetupCheck}
+            disabled={setupChecking}
             className="mt-4 inline-flex cursor-pointer items-center gap-1.5 border border-red-200 bg-white px-3 py-2 text-xs font-semibold text-red-800 hover:bg-red-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-600"
           >
-            <RefreshCw size={13} /> Retry connection check
+            <RefreshCw size={13} className={setupChecking ? "animate-spin" : ""} /> {setupChecking ? "Checking…" : "Retry connection check"}
           </button>
         )}
       </section>

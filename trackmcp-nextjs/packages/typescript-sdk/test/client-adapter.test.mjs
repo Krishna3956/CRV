@@ -495,6 +495,34 @@ test("emits bounded request and response observations for non-tool MCP methods",
   await wrapped.close();
 });
 
+test("projects modern task notification lifecycle metadata without retaining task payloads", async () => {
+  const events = [];
+  const raw = new FakeTransport();
+  const adapter = new TrackMCPClientAdapter({ apiKey: "tmcp_test", service: "adapter-test", transport: "stdio", flushIntervalMs: 60000, onEvent: (event) => events.push(event) });
+  const wrapped = adapter.wrapTransport(raw);
+  await wrapped.start();
+  wrapped.onmessage = () => {};
+  raw.onmessage({
+    jsonrpc: "2.0",
+    method: "notifications/tasks",
+    params: {
+      taskId: "secret-task-notification",
+      status: "input_required",
+      inputRequests: { secret: { value: "never-retain" } },
+      result: { private: "never-retain" },
+    },
+  });
+  const notification = events.find((event) => event.mcp_method === "notifications/tasks");
+  assert.ok(notification);
+  assert.equal(notification.task_id.length, 64);
+  assert.equal(notification.task_status, "input_required");
+  assert.equal(notification.input_request_count, 1);
+  assert.equal(notification.payload._trackmcp.observation_kind, "protocol_notification");
+  assert.equal(JSON.stringify(notification).includes("secret-task-notification"), false);
+  assert.equal(JSON.stringify(notification).includes("never-retain"), false);
+  await wrapped.close();
+});
+
 test("records only bounded authorization outcomes for protocol errors", async () => {
   const events = [];
   const raw = new FakeTransport();

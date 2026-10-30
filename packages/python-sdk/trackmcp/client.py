@@ -228,10 +228,12 @@ def _protocol_result_metadata(result: Any) -> Dict[str, Any]:
         metadata["protocol_decision"] = action
     requests = result.get("inputRequests", result.get("input_requests"))
     responses = result.get("inputResponses", result.get("input_responses"))
-    if isinstance(requests, list):
-        metadata["input_request_count"] = min(100, len(requests))
-    if isinstance(responses, list):
-        metadata["input_response_count"] = min(100, len(responses))
+    request_count = _bounded_input_count(requests)
+    response_count = _bounded_input_count(responses)
+    if request_count is not None:
+        metadata["input_request_count"] = request_count
+    if response_count is not None:
+        metadata["input_response_count"] = response_count
     completion = result.get("completion")
     if isinstance(completion, dict):
         values = completion.get("values")
@@ -248,6 +250,13 @@ def _protocol_result_metadata(result: Any) -> Dict[str, Any]:
 
 _PROTOCOL_EVENT_ID = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$")
 _MAX_PROTOCOL_STATE_BYTES = 16 * 1024
+
+
+def _bounded_input_count(value: Any) -> Optional[int]:
+    """Count modern keyed or legacy list inputs without inspecting values."""
+    if isinstance(value, (list, dict)):
+        return min(100, len(value))
+    return None
 
 
 def _protocol_mrtr_metadata(result: Any) -> Dict[str, Any]:
@@ -523,6 +532,58 @@ class TrackMCP:
             "is_error": False,
             "payload": {"_trackmcp": {"observation_kind": "protocol_notification", "protocol_signal": signal}},
         })
+
+    def record_task_notification(
+        self,
+        params: Any,
+        *,
+        transport: Optional[TrackMCPTransport] = None,
+        session_id: Optional[str] = None,
+        direction: str = "server_to_client",
+    ) -> None:
+        """Record modern ``notifications/tasks`` metadata without task payloads.
+
+        The task handle is hashed locally. Status is allowlisted and modern
+        keyed input maps are represented only by bounded key counts.
+        """
+        if transport is not None and transport not in ("stdio", "streamable_http", "sse", "custom"):
+            return
+        if direction not in ("server_to_client", "client_to_server") or not isinstance(params, dict):
+            return
+        task_value = params.get("taskId", params.get("task_id"))
+        task_hash = None
+        if isinstance(task_value, str) and task_value and len(task_value.encode("utf-8")) <= 2048 and not any(ord(char) < 32 or ord(char) == 127 for char in task_value):
+            task_hash = hashlib.sha256(task_value.encode("utf-8")).hexdigest()
+        status = params.get("status", params.get("taskStatus", params.get("task_status")))
+        if status not in ("working", "input_required", "completed", "failed", "cancelled", "expired"):
+            status = None
+        request_count = _bounded_input_count(params.get("inputRequests", params.get("input_requests")))
+        response_count = _bounded_input_count(params.get("inputResponses", params.get("input_responses")))
+        event: Dict[str, Any] = {
+            "event_type": "protocol",
+            "mcp_method": "notifications/tasks",
+            "direction": direction,
+            "session_id": session_id or "transport-session",
+            "started_at": _iso_now(),
+            "success": True,
+            "is_error": False,
+            "payload": {"_trackmcp": {
+                "observation_kind": "protocol_notification",
+                "observation_source": "server" if direction == "server_to_client" else "client",
+                "protocol_family": "tasks",
+            }},
+        }
+        if transport:
+            event["transport"] = transport
+        if task_hash:
+            event["task_id"] = task_hash
+        if status:
+            event["task_status"] = status
+        if request_count is not None:
+            event["input_request_count"] = request_count
+        if response_count is not None:
+            event["input_response_count"] = response_count
+        self.capture(event)
 
     def record_protocol_result(
         self,
@@ -834,6 +895,8 @@ class _TrackMCPMiddleware:
                 self.client.capture({"event_type": "catalog", "mcp_method": method, "request_id": request_id, "session_id": session_id, "session_id_source": session_id_source, "client_name": self.client_name, "client_version": self.client_version, "started_at": _iso_from_epoch(started), "duration_ms": round((time.time() - started) * 1000), "success": not is_error, "is_error": is_error, **observation, "payload": payload})
             elif (entity := interaction_entity_observation(method, params)):
                 self.client.capture(_entity_protocol_event(method, entity, request_id=request_id, session_id=session_id, session_id_source=session_id_source, client_name=self.client_name, client_version=self.client_version, started=started, success=not is_error, result=result_data))
+            elif method == "notifications/tasks":
+                self.client.record_task_notification(params, session_id=session_id, direction="client_to_server")
             elif (signal := _protocol_signal_for_method(method)):
                 self.client.record_protocol_signal(signal, method, session_id=session_id, direction="client_to_server")
             else:
@@ -848,6 +911,8 @@ class _TrackMCPMiddleware:
                 self.client.capture(_event(tool_name, {"args": arguments}, started, None, error, self.client_name, session_id, request_id, self.client_version, self.client.tool_metadata(tool_name), session_id_source))
             elif (entity := interaction_entity_observation(method, params)):
                 self.client.capture(_entity_protocol_event(method, entity, request_id=request_id, session_id=session_id, session_id_source=session_id_source, client_name=self.client_name, client_version=self.client_version, started=started, success=False, error_class="protocol_error"))
+            elif method == "notifications/tasks":
+                self.client.record_task_notification(params, session_id=session_id, direction="client_to_server")
             elif (signal := _protocol_signal_for_method(method)):
                 self.client.record_protocol_signal(signal, method, session_id=session_id, direction="client_to_server")
             else:
@@ -954,6 +1019,8 @@ class _Wrapped:
                                 observation = _catalog_observation(catalog_type, value)
                                 payload = {"name": f"{catalog_type}_discovered"}
                                 client.capture({"event_type": "catalog", "mcp_method": method, "session_id": self.transport_session_id, "session_id_source": "transport_generated", "client_name": self.client_name, "client_version": self.client_version, "started_at": _iso_from_epoch(started), "duration_ms": round((time.time() - started) * 1000), "success": True, "is_error": False, **observation, "payload": payload})
+                            elif method == "notifications/tasks":
+                                client.record_task_notification(params, session_id=self.transport_session_id, direction="client_to_server")
                             elif (signal := _protocol_signal_for_method(method)):
                                 client.record_protocol_signal(signal, method, session_id=self.transport_session_id, direction="client_to_server")
                             elif (entity := interaction_entity_observation(method, params)):
@@ -970,7 +1037,9 @@ class _Wrapped:
                                 self.lifecycle_ended = True
                             signal = _protocol_signal_for_method(method)
                             entity = interaction_entity_observation(method, params)
-                            if signal:
+                            if method == "notifications/tasks":
+                                client.record_task_notification(params, session_id=self.transport_session_id, direction="client_to_server")
+                            elif signal:
                                 client.record_protocol_signal(signal, method, session_id=self.transport_session_id, direction="client_to_server")
                             elif entity:
                                 client.capture(_entity_protocol_event(method, entity, session_id=self.transport_session_id, session_id_source="transport_generated", client_name=self.client_name, client_version=self.client_version, started=started, success=False, error_class="protocol_error"))
@@ -993,6 +1062,8 @@ class _Wrapped:
                     observation = _catalog_observation(catalog_type, result)
                     payload = {"name": f"{catalog_type}_discovered"}
                     client.capture({"event_type": "catalog", "mcp_method": method, "session_id": self.transport_session_id, "session_id_source": "transport_generated", "client_name": self.client_name, "client_version": self.client_version, "started_at": _iso_from_epoch(started), "duration_ms": round((time.time() - started) * 1000), "success": True, "is_error": False, **observation, "payload": payload})
+                elif method == "notifications/tasks":
+                    client.record_task_notification(params, session_id=self.transport_session_id, direction="client_to_server")
                 elif (signal := _protocol_signal_for_method(method)):
                     client.record_protocol_signal(signal, method, session_id=self.transport_session_id, direction="client_to_server")
                 elif (entity := interaction_entity_observation(method, params)):
