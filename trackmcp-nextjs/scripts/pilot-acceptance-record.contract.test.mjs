@@ -24,12 +24,12 @@ function openQueueIds(source) {
 
 test("pilot release record points at the verified deployed baseline", () => {
   const current = section(record, "## Current deployed baseline", "## Historical deployed baseline");
-  assert.match(current, /c6b6e85a43c33629e73694eb312e4e7db24b5a35/);
-  assert.match(current, /40988182608/);
-  assert.match(current, /c6b6e85a43c33629e73694eb312e4e7db24b5a35/);
+  assert.match(current, /177165180383e31bb7760040469f9aaa7f78f8a1/);
+  assert.match(current, /41013186081/);
+  assert.match(current, /9aa7821c67ad6b9f09210ac8f01c2cd495b090ca/);
   assert.match(current, /154 suites/);
   assert.match(current, /211 routes/);
-  assert.match(current, /40891096616/);
+  assert.match(current, /41011008346/);
 });
 
 test("pilot release record keeps unresolved operational gates explicit", () => {
@@ -48,15 +48,15 @@ test("release record preserves non-source acceptance decisions until an owner ac
 });
 
 test("external-gate register names accountable parties and closure evidence", () => {
-  assert.match(externalGates, /c6b6e85a43c33629e73694eb312e4e7db24b5a35/);
-  assert.match(externalGates, /40988182608/);
+  assert.match(externalGates, /177165180383e31bb7760040469f9aaa7f78f8a1/);
+  assert.match(externalGates, /41013186081/);
   assert.match(externalGates, /154 suites passed/);
   assert.match(externalGates, /Current source verification: `main` at/);
   assert.match(externalGates, /40397368253/);
   assert.match(externalGates, /40398170070/);
   assert.match(externalGates, /main`: current default branch/);
   assert.doesNotMatch(externalGates, /main`: `(?:[0-9a-f]{40})`/);
-  assert.match(externalGates, /263 total, 260 checked/);
+  assert.match(externalGates, /queued=0.*running=0.*retryable=0.*failed=0/s);
   assert.match(externalGates, /020 — limited pilot scope/);
   assert.match(externalGates, /157 — database recovery posture/);
   assert.match(externalGates, /260 — final go\/no-go/);
@@ -65,10 +65,10 @@ test("external-gate register names accountable parties and closure evidence", ()
 });
 
 test("acceptance matrix separates current source from deployed runtime", () => {
-  assert.match(acceptanceMatrix, /c6b6e85a43c33629e73694eb312e4e7db24b5a35/);
-  assert.match(acceptanceMatrix, /current\s+repository\s+source\s+is\s+`main`\s+at\s+(?:documentation reconciliation|merged application) commit/);
-  assert.match(acceptanceMatrix, /40893382834/);
-  assert.match(acceptanceMatrix, /40891096616/);
+  assert.match(acceptanceMatrix, /177165180383e31bb7760040469f9aaa7f78f8a1/);
+  assert.match(acceptanceMatrix, /current\s+repository\s+source\s+is\s+`main`\s+at\s+(?:documentation reconciliation|merged application|documentation-only(?: handoff)?) (?:commit|tip)/);
+  assert.match(acceptanceMatrix, /41014068784/);
+  assert.match(acceptanceMatrix, /41011008346/);
   assert.match(acceptanceMatrix, /full local release gate passes 154\s+suites/);
   assert.match(acceptanceMatrix, /alert evaluator remains manual-only/);
 });

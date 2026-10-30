@@ -3,19 +3,20 @@
 Status: **HOLD — no silent waivers**  
 Reconciled: 2026-10-30 (Asia/Kolkata)
 Current deployed baseline: application runtime
-`c6b6e85a43c33629e73694eb312e4e7db24b5a35` (App Runner workflow
-`40988182608`, passed release gate, rollout, production smoke, runtime-safety,
+`177165180383e31bb7760040469f9aaa7f78f8a1` (App Runner workflow
+`41013186081`, passed release gate, rollout, production smoke, runtime-safety,
 translation-provider, and identity checks). The current repository source is
-`main` at merged application commit
-`c6b6e85a43c33629e73694eb312e4e7db24b5a35`; the direct-origin health probe
+`main` at documentation-only handoff commit
+`9aa7821c67ad6b9f09210ac8f01c2cd495b090ca`; the direct-origin health probe
 reports the deployed application SHA.
 The full local release gate passes 154 suites and the production build generates
-211 routes. Read-only authenticated smoke `40893382834` passed 37/37 checks;
-direct-origin first-ingest `40894964464` and SDK-shaped public-edge smoke
-`40896249223` both passed one bounded metadata-only event plus analytics
-read-back. Health evaluation `40891096616` (`12905900486`) is healthy within
-the 15-minute worker-lag budget. The alert evaluator remains manual-only and
-disabled-first; no production alert delivery is claimed.
+211 routes. Authenticated production smoke `41014068784` passed against the
+deployed revision; direct-origin first-ingest `40894964464` and SDK-shaped
+public-edge smoke `40896249223` both passed one bounded metadata-only event plus
+analytics read-back. Health evaluation `41011008346` remains `warning` because
+the bounded window contains only one clean scheduled sample despite the drained
+queue; the freshness gate is still open. The alert evaluator remains manual-only
+and disabled-first; no production alert delivery is claimed.
 This is current runtime and source evidence, not a pilot GO decision.
 
 Historical baseline retained for continuity: application

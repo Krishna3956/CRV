@@ -3,7 +3,7 @@
 **Date:** 2026-10-30 (Asia/Calcutta)
 **Repository:** `Krishna3956/CRV`
 **Default branch:** `main`
-**Current source tip:** `8dd7f8c2` (`docs(handoff): record final release state and runbook`)
+**Current source tip:** `9aa7821c` (`docs(handoff): reconcile current source pointers`)
 **Current deployed application revision:** `177165180383e31bb7760040469f9aaa7f78f8a1`
 **App Runner deployment:** workflow `41013186081`
 **Authenticated production smoke:** workflow `41014068784`

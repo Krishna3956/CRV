@@ -14,7 +14,7 @@ completed the rollout, release gate, read-only production checks, runtime-safety
 translation-provider, and immutable identity checks;
 the direct-origin `/api/health` probe confirms the exact runtime SHA. The
 current source is `main` at documentation-only tip
-`8dd7f8c2fda6d8bd8ab73b4d7f625386bb7de6d2`; the deployed application code is
+`9aa7821c67ad6b9f09210ac8f01c2cd495b090ca`; the deployed application code is
 the immutable revision above. Main CI workflow `41014120839`
 passed the web/JavaScript, Go, and .NET lanes.
 
@@ -23,8 +23,9 @@ The full local release gate passes 154 suites and the production build generates
 deployed revision;
 direct-origin first-ingest `40894964464` and SDK-shaped public-edge smoke
 `40896249223` both passed a bounded metadata-only event and analytics read-back.
-Health evaluation `40891096616` (`12905900486`) reports a healthy bounded worker
-window. GitHub OAuth is configured in Supabase and passed a real browser
+Health evaluation `41011008346` remains `warning`: the queue is drained, but the
+bounded window contains only one clean scheduled sample and historical failures
+remain in the evidence set. GitHub OAuth is configured in Supabase and passed a real browser
 authorization and authenticated dashboard return on 2026-10-29. Google is
 configured in the dedicated Google Cloud project `trusty-diorama-513117-f6`,
 enabled in Supabase, and the TrackMCP account is registered as a test user. A
