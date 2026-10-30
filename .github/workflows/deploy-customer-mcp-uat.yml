@@ -54,11 +54,6 @@ jobs:
           echo "image=$REGISTRY/$ECR_REPO:$REQUESTED_TAG" >> "$GITHUB_OUTPUT"
           echo "access_role_arn=$ACCESS_ROLE_ARN" >> "$GITHUB_OUTPUT"
 
-      - name: Verify authorized ECR repository exists
-        run: |
-          set -euo pipefail
-          aws ecr describe-repositories --repository-names "$ECR_REPO" >/dev/null
-
       - name: Build and push endpoint image
         env:
           REGISTRY: ${{ steps.resolve.outputs.registry }}
