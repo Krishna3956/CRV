@@ -10,6 +10,7 @@ export type AlertScope = {
 
 /** Whether an incident is customer evidence or an intentionally retained test row. */
 export type AlertEvidenceKind = "customer" | "synthetic";
+export type AlertVolumeBasis = "comparison_numerator" | "not_defined";
 
 export type AlertConfiguration = {
   id: string;
@@ -36,6 +37,12 @@ export type AlertIncident = {
   scope: AlertScope;
   /** Server-derived classification; absent only on older in-memory fixtures. */
   evidence_kind?: AlertEvidenceKind;
+  /** Count of observed comparison events behind a supported rate finding. */
+  affected_volume?: number | null;
+  /** Denominator used by the comparison window, when available. */
+  eligible_volume?: number | null;
+  /** Explains whether affected_volume is a numerator or is unavailable. */
+  volume_basis?: AlertVolumeBasis | null;
   data_status: AlertDataStatus;
   baseline: RegressionSummary | null;
   comparison: RegressionSummary | null;

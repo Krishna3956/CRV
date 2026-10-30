@@ -14,8 +14,8 @@ function incident(overrides = {}) {
     tool_name: "search",
     environment: "production",
     data_status: "sufficient",
-    baseline: { value: 0.02, volume: 100 },
-    comparison: { value: 0.2, volume: 120 },
+    baseline: { numerator: 2, denominator: 100, value: 0.02, window: { start: "2026-08-30T00:00:00Z", end: "2026-09-06T00:00:00Z" } },
+    comparison: { numerator: 24, denominator: 120, value: 0.2, window: { start: "2026-09-06T00:00:00Z", end: "2026-09-07T00:00:00Z" } },
     threshold: { relative_increase: 2, minimum_volume: 50 },
     reasons: ["error rate increased"],
     evidence: { affected_volume: 24, comparison_volume: 120 },
@@ -97,6 +97,9 @@ test("alert-incidents serializes bounded safe fields without secrets, webhook pa
   assert.ok(serialized.length < 40_000);
   assert.ok(Object.hasOwn(body.data[0], "evidence"));
   assert.equal(body.data[0].evidence_kind, "customer");
+  assert.equal(body.data[0].affected_volume, 24);
+  assert.equal(body.data[0].eligible_volume, 120);
+  assert.equal(body.data[0].volume_basis, "comparison_numerator");
 });
 
 test("alert-incidents labels retained canary rows as synthetic evidence", async () => {

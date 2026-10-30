@@ -328,9 +328,14 @@ function thresholdLabel(threshold: AlertIncident["threshold"]): string {
 }
 
 function incidentVolumeLabel(incident: AlertIncident): string {
-  const denominator = incident.comparison?.denominator;
-  return typeof denominator === "number"
-    ? `${fmt(denominator)} eligible comparison volume`
+  const affected = incident.affected_volume;
+  const eligible = incident.eligible_volume ?? incident.comparison?.denominator;
+  if (typeof affected === "number" && typeof eligible === "number") {
+    return `${fmt(affected)} observed affected · ${fmt(eligible)} eligible comparison volume`;
+  }
+  if (typeof affected === "number") return `${fmt(affected)} observed affected volume`;
+  return typeof eligible === "number"
+    ? `${fmt(eligible)} eligible comparison volume`
     : "Not provided by the API";
 }
 

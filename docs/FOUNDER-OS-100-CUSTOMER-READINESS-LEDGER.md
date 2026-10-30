@@ -1,5 +1,24 @@
 # Founder OS 100 Customer Readiness Ledger
 
+## 2026-10-30 — P1-05 incident volume is explicit and metric-scoped
+
+- [x] The authenticated alert-incidents serializer now exposes bounded
+  `affected_volume`, `eligible_volume`, and `volume_basis` fields. For error,
+  empty-result, retry, authorization, and deployment rate findings, affected
+  volume is the observed comparison numerator and eligible volume is the
+  comparison denominator.
+- [x] Latency, catalog-drift, and workflow-completion findings do not receive
+  a fabricated affected count. They return `affected_volume: null` with
+  `volume_basis: "not_defined"` when the metric has no safe per-event
+  interpretation. Existing explicit evidence is accepted only for supported
+  rate metrics and remains bounded.
+- [x] Dashboard Issues uses the new fields while retaining the truthful
+  eligible-volume fallback for legacy fixtures. Serializer, route integration,
+  tenant-boundary, dashboard contract, typecheck, and lint coverage pass.
+- [ ] This improves incident explainability but does not enable alert delivery,
+  change disabled-first scheduling, or close external customer-endpoint,
+  privacy, backup, or release-owner gates.
+
 ## 2026-10-30 — exact npx CLI invocation is now a regression contract
 
 - [x] The packed CLI consumer test now runs the exact documented
