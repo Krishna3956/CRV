@@ -1,5 +1,24 @@
 # Founder OS 100 Customer Readiness Ledger
 
+## 2026-10-30 — CLI npm-bin silent-exit root cause verified and fixed
+
+- [x] Reproduced the reported behavior from a clean npm cache against the
+  published `@trackmcp/cli@0.1.12`: help returned exit 0 with zero stdout,
+  proving the failure was inside the package entrypoint rather than browser
+  authentication or the local workspace.
+- [x] Identified the cause: the 0.1.12 guard compared a symlinked
+  `node_modules/.bin/trackmcp` path with `resolve()`, so the guard skipped
+  `main()` and silently exited before parsing any command.
+- [x] Verified the `realpathSync()` entrypoint fix in the published
+  `@trackmcp/cli@0.1.13`; clean-cache help, doctor, and non-interactive init
+  now emit deterministic output and status codes.
+- [x] CLI package tests pass all 26 tests, including the packed npm-bin
+  symlink, npm exec, init, doctor, browser failure, and authorization failure
+  paths. Package-lock metadata is synchronized to 0.1.13.
+- [ ] This fixes the CLI release train; it does not close the separate
+  customer-owned endpoint/UAT, provider, backup/PITR, privacy, or release-owner
+  GO/NO-GO gates.
+
 ## 2026-10-30 — bounded telemetry recency closes the dashboard freshness gap
 
 - [x] `data_trust` now carries `observation_recency` with four explicit states:
