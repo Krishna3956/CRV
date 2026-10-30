@@ -23,11 +23,11 @@ The full local release gate passes 154 suites and the production build generates
 deployed revision;
 direct-origin first-ingest `40894964464` and SDK-shaped public-edge smoke
 `40896249223` both passed a bounded metadata-only event and analytics read-back.
-Health evaluation `41023904744` remains `warning`: AWS scheduler cadence and
-end-to-end scheduled successes are proven with four invocations, four successes,
-and zero AWS errors, but the AWS worker-freshness metric is `976842ms` against the
-`900000ms` budget and retained GitHub recovery history contains one older
-incomplete sample. Serial recovery run `41023757195` is clean at `104488ms`.
+Health evaluation `41025425195` remains `warning`: it records four AWS scheduler
+invocations, three end-to-end scheduled successes, and one scheduler failure;
+the AWS worker-freshness metric is `976842ms` against the `900000ms` budget and
+retained GitHub recovery history contains one older incomplete sample. Serial
+recovery run `41023757195` is clean at `104488ms`.
 GitHub OAuth is configured in Supabase and passed a real browser
 authorization and authenticated dashboard return on 2026-10-29. Google is
 configured in the dedicated Google Cloud project `trusty-diorama-513117-f6`,
@@ -43,13 +43,13 @@ customer-owned endpoint/protocol UAT, and release-owner approval remain open.
 The refresh-health evidence collector was repaired in PR #766, merged as
 `f9fbb0b7`, and its timestamp retention was merged in PR #769 as `a484cbf9`.
 PR #770 then serialized the GitHub recovery path and merged as `96aeb508` after
-all required repository lanes passed. Health run `41023904744` authenticated to
-AWS and proved four scheduler invocations, four end-to-end scheduled successes,
-and zero AWS errors, but the latest AWS worker-freshness metric was `976842ms`
-against the `900000ms` budget. The serial follow-up worker run `41023757195`
-processed `4/4` successfully with zero retries/failures/unparseable responses
-and `104488ms` lag. The scheduler gate remains open until a clean bounded AWS
-window is retained; no readiness claim was loosened.
+all required repository lanes passed. Health run `41025425195` authenticated to
+AWS and recorded four scheduler invocations, three end-to-end scheduled
+successes, and one scheduler failure; the latest AWS worker-freshness metric was
+`976842ms` against the `900000ms` budget. The serial follow-up worker run
+`41023757195` processed `4/4` successfully with zero retries/failures/unparseable
+responses and `104488ms` lag. The scheduler gate remains open until a clean
+bounded AWS window is retained; no readiness claim was loosened.
 
 The prior runtime baseline and historical evidence remain below.
 
