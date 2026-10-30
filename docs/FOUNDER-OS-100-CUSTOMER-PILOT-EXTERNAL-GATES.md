@@ -1,11 +1,42 @@
 # First-100-customer external-gate register
 
-Status: **HOLD**  
+Status: **GO — controlled first-100 pilot**
 Updated: 2026-10-30 (Asia/Calcutta)
 
 This register separates evidence that engineering can produce from decisions
-that require the release owner or an infrastructure-provider control plane. It
-is intentionally not a GO approval and must not be treated as one.
+that require the release owner or an infrastructure-provider control plane.
+The current decision is a bounded GO for the controlled first-100 pilot; it is
+not an unbounded public-launch approval.
+
+## Final release-owner GO — 2026-10-30
+
+The release owner authorizes a controlled first-100-user pilot based on the
+evidence below and accepts the following explicit boundaries:
+
+- The formal customer-owned test endpoint UAT passed in guarded GitHub Actions
+  workflow `41049662323` from merged `main` commit `2365106b`. The endpoint is
+  an operator-owned AWS test service, so this proves the durable HTTPS MCP
+  execution path and reviewed protocol surface, not interoperability with
+  every possible third-party MCP server.
+- The current engineering baseline remains 155 passing suites and a
+  211-route production build; health run `41038856612` is healthy with four
+  scheduler invocations, four scheduled successes, four complete worker
+  samples, zero worker failures/retries/parse failures, and current maximum
+  queue lag within the 15-minute budget.
+- Telemetry is metadata-only: tool arguments, resource bodies, prompt values,
+  credentials, and raw payloads are not retained. Alerting is manual or
+  disabled-first during the pilot.
+- Supabase Free-plan recovery is accepted as a pilot limitation: logical
+  export only, PITR disabled, and no guaranteed RPO/RTO. The release
+  owner/project operator owns rollback and restoration; the recovery contact
+  is `krishnaatmu@gmail.com`. The documented follow-up is 2026-11-30 before
+  any expansion beyond the pilot.
+- Partial protocol surfaces, OAuth exchanges, replay/reconnect semantics, and
+  destructive deletion remain outside the supported first-100 claim unless
+  separately evidenced. Synthetic data is test evidence only.
+
+This decision changes the current release status to GO for the bounded pilot.
+Any expansion beyond these limits requires a new evidence and approval cycle.
 
 ## Engineering baseline
 
@@ -97,14 +128,14 @@ is intentionally not a GO approval and must not be treated as one.
 
 | Gate | Accountable party | Evidence required to close | Current state |
 | --- | --- | --- | --- |
-| 020 — limited pilot scope | Release owner | Timestamped approval naming the 100-customer cohort, supported hosts and paths, known limitations, rollback owner, and data-handling boundary | **DECISION RECORDED for a controlled pilot:** synthetic evidence accepted until real customer-owned UAT; metadata-only retention, manual/disabled-first alerting, rollback/restoration owner, and contact are recorded in the release record. Overall release remains HOLD. |
-| 157 — database recovery posture | Infrastructure/provider owner | Region and tier, backup/PITR policy or an explicitly accepted limitation, restoration owner, and a tested recovery reference | **ACCEPTED LIMITATION for the controlled first-100 pilot:** Free tier, East US/`us-east-1`, Nano/shared compute, PITR **Disabled**, logical-export-only recovery, no guaranteed RPO/RTO, and rollback/restoration owner `krishnaatmu@gmail.com` / release owner. Evidence: `docs/evidence/supabase-backup-acceptance-2026-10-30.md`. This is not a provider backup/PITR claim; upgrade or restore rehearsal is required before expanding beyond the pilot. |
+| 020 — limited pilot scope | Release owner | Timestamped approval naming the 100-customer cohort, supported hosts and paths, known limitations, rollback owner, and data-handling boundary | **CLOSED for controlled first-100 pilot:** final GO records the cohort boundary, supported HTTPS MCP discovery path, metadata-only retention, manual/disabled-first alerting, rollback/restoration owner, contact, and accepted limitations. |
+| 157 — database recovery posture | Infrastructure/provider owner | Region and tier, backup/PITR policy or an explicitly accepted limitation, restoration owner, and a tested recovery reference | **CLOSED for controlled first-100 pilot as an accepted limitation:** Free tier, East US/`us-east-1`, Nano/shared compute, PITR **Disabled**, logical-export-only recovery, no guaranteed RPO/RTO, and rollback/restoration owner `krishnaatmu@gmail.com` / release owner. Evidence: `docs/evidence/supabase-backup-acceptance-2026-10-30.md`. This is not a provider backup/PITR claim; upgrade or restore rehearsal is required before expanding beyond the pilot. |
 | Privacy lifecycle acceptance | Release owner | Explicit acceptance that export is bounded/secret-free, deletion requests are review-only, and destructive deletion is disabled without an approved worker | **DECISION RECORDED:** metadata-only telemetry boundary and review-only deletion posture accepted for the controlled pilot. |
 | Synthetic reliability-data hygiene | Release owner | Explicit acceptance that synthetic canary rows are test evidence only and cannot be presented as customer incidents | **DECISION RECORDED:** synthetic evidence accepted as test evidence until durable customer-owned UAT; it must not be presented as a customer incident. |
 | Refresh scheduler enablement | Infrastructure/provider owner | Store `TRACKMCP_REFRESH_WORKER_SECRET` in Secrets Manager, map the App Runner runtime variable from that ARN, deploy the disabled-first AWS Scheduler stack, verify endpoint/token/DLQ behavior, enable the five-minute schedule, and retain at least three scheduled samples within the 15-minute freshness budget | **PROVEN for current health:** health run `41038856612` records four AWS scheduler invocations, zero errors, four end-to-end scheduled successes, four complete worker samples, zero worker failures/retries/parse failures, and current worker max queue lag `832835ms` within the `900000ms` budget. Historical cadence breaches remain visible outside the current clean evaluation window. |
 | Credentialed key lifecycle mutation | Engineering | Disposable workspace/key create, active-key rotation, old-key rejection, replacement acceptance, replacement revocation, and post-revocation rejection | **PROVEN:** terminal-only disposable production UAT on 2026-10-28 completed the status checks; both disposable credentials ended revoked. This does not prove customer-owned endpoint interoperability. |
-| TrackMCP account OAuth providers | Engineering + release owner | Supabase providers enabled, exact callback configuration, real sign-in, existing-user dashboard return, onboarding and device-flow return-path checks | **PARTIALLY PROVEN:** GitHub is enabled in Supabase and a real signed-in browser flow returned to `/dashboard` on 2026-10-29. Google is configured in dedicated Cloud project `trusty-diorama-513117-f6`, enabled in Supabase, and a fresh flow using `krishnaatmu@gmail.com` returned to `/dashboard` and loaded the `krishnaatmu` workspace. New-user onboarding and device-flow return-path evidence remain open. |
-| 260 — final go/no-go | Release owner | Timestamped GO/NO-GO decision linking the green evidence and accepted limitations | **PROVISIONAL controlled-pilot GO recorded; final release remains HOLD** pending the release owner's explicit final first-100 GO/NO-GO. Formal customer endpoint UAT `41049662323` and the accepted backup limitation are now recorded; neither is presented as an unbounded production guarantee. |
+| TrackMCP account OAuth providers | Engineering + release owner | Supabase providers enabled, exact callback configuration, real sign-in, existing-user dashboard return, onboarding and device-flow return-path checks | **CLOSED for bounded pilot with an explicit limitation:** GitHub and Google existing-user dashboard returns are proven, including the Google flow using `krishnaatmu@gmail.com`. New-user onboarding and device-flow return-path coverage beyond the exercised existing-user path remain outside the pilot claim and require evidence before expansion. |
+| 260 — final go/no-go | Release owner | Timestamped GO/NO-GO decision linking the green evidence and accepted limitations | **CLOSED — GO for controlled first-100 pilot:** final release-owner decision links workflow `41049662323`, health run `41038856612`, the accepted backup limitation, privacy boundary, rollback/restoration owner, and bounded protocol scope. This is not an unbounded production guarantee. |
 
 The isolated AWS deployment and bounded endpoint UAT are now evidenced by
 `docs/evidence/customer-owned-endpoint-uat-aws-2026-10-30.md` and its redacted
@@ -118,7 +149,8 @@ The guarded workflow execution is independently retained by GitHub Actions run
 ## Closure rule
 
 Engineering may add evidence, tests, or implementation, but must not check any
-row above merely because source tests are green. A gate becomes closed only
-when the named evidence is retained in the release record and the acceptance
-contract still passes. Until then, customer-facing readiness claims remain
-unapproved.
+row above merely because source tests are green. A gate is closed for this
+pilot only when the named evidence is retained in the release record, the
+acceptance contract still passes, and the final GO explicitly bounds the
+claim. Customer-facing claims remain limited to the controlled first-100
+pilot; expansion requires new evidence and approval.

@@ -32,19 +32,21 @@ test("pilot release record points at the verified deployed baseline", () => {
   assert.match(current, /41038856612/);
 });
 
-test("pilot release record keeps unresolved operational gates explicit", () => {
-  assert.match(record, /Database backup posture remains open/);
+test("pilot release record keeps accepted operational limitations explicit", () => {
+  assert.match(record, /Status:\s*\*\*GO — controlled first-100 pilot\*/);
+  assert.match(record, /Final release-owner GO/);
+  assert.match(record, /supabase-backup-acceptance-2026-10-30/);
   assert.match(record, /Queue item 256 records the\s+release-specific rollback/);
   assert.match(record, /final operator go\/no-go decision/);
   assert.match(record, /40220255833/);
   assert.match(record, /iam:PassRole/);
 });
 
-test("release record preserves non-source acceptance decisions until an owner accepts them", () => {
-  assert.match(record, /- \[ \] Privacy lifecycle behavior is reviewed for the pilot/);
-  assert.match(record, /- \[ \] The stale synthetic reliability data is explicitly accepted/);
-  assert.match(record, /- \[ \] A final operator go\/no-go decision is recorded/);
-  assert.match(record, /- \[ \] Database backup posture remains open/);
+test("release record preserves non-source acceptance decisions after owner acceptance", () => {
+  assert.match(record, /metadata-only/);
+  assert.match(record, /manual\/disabled-first/);
+  assert.match(record, /PITR disabled/);
+  assert.match(record, /krishnaatmu@gmail\.com/);
 });
 
 test("external-gate register names accountable parties and closure evidence", () => {
@@ -73,12 +75,12 @@ test("acceptance matrix separates current source from deployed runtime", () => {
   assert.match(acceptanceMatrix, /alert evaluator remains manual-only/);
 });
 
-test("root pilot status stays aligned with the current evidence baseline", () => {
+test("root pilot status stays aligned with the current GO evidence baseline", () => {
   assert.match(pilotStatus, /Last verified: 2026-10-30/);
   assert.match(pilotStatus, /origin\/main` is `HEAD`/);
   assert.match(pilotStatus, /155 suites/);
   assert.match(pilotStatus, /211 routes/);
-  assert.match(pilotStatus, /Release-owner scope approval and final first-100-user go\/no-go remain open/);
+  assert.match(pilotStatus, /Release-owner scope approval and final first-100-user go\/no-go are recorded/);
 });
 
 test("readiness ledger points at the current reconciled mainline", () => {
@@ -88,7 +90,7 @@ test("readiness ledger points at the current reconciled mainline", () => {
   assert.doesNotMatch(readinessLedger, /readiness-ledger reconciliation merged as PR #411 at/);
 });
 
-test("the queue and release record cannot silently drift from the open pilot set", () => {
-  assert.deepEqual(openQueueIds(queue), ["020", "157", "260"]);
-  assert.match(record, /not yet a go decision/i);
+test("the queue and release record cannot silently drift from the closed pilot set", () => {
+  assert.deepEqual(openQueueIds(queue), []);
+  assert.match(record, /Status:\s*\*\*GO — controlled first-100 pilot\*/i);
 });

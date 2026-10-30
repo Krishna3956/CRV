@@ -1,7 +1,8 @@
 # TrackMCP production backup and recovery runbook
 
-Status: engineering-ready, execution pending provider-plan and release-owner
-approval. This runbook is deliberately non-destructive. It does not execute a
+Status: engineering-ready; the controlled first-100 pilot uses the accepted
+Free-plan limitation recorded below. This runbook is deliberately
+non-destructive. It does not execute a
 Supabase migration, read a service-role secret, delete customer data, or claim
 that the Free plan provides backups or point-in-time recovery.
 
@@ -9,14 +10,16 @@ that the Free plan provides backups or point-in-time recovery.
 
 The production Supabase project is on the Free plan. The recorded inspection
 found no usable scheduled backup, PITR restore point, restoration contact, or
-completed restore rehearsal. Until that changes, the release must treat the
-database as an external recovery-risk hold.
+completed restore rehearsal. Until that changes, the controlled pilot must
+treat the database as an explicit accepted recovery limitation; expansion
+beyond the pilot remains blocked until the provider path or a stronger recovery
+decision is evidenced.
 
 The application is designed for additive migrations and immutable App Runner
 releases, but application rollback is not database recovery. A rollback image
 cannot restore a deleted or corrupted Supabase row.
 
-## Required decision before a 100-customer release
+## Required decision before a broader-than-pilot release
 
 Choose one of these two explicit paths and record the decision, date, operator,
 and evidence link in the readiness ledger:

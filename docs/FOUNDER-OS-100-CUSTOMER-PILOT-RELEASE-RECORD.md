@@ -1,10 +1,31 @@
 # Founder OS 100-customer pilot release record
 
-Status: **Draft — not yet a go decision; final first-100 GO pending explicit release-owner confirmation**
+Status: **GO — controlled first-100 pilot**
 
-This record is intentionally evidence-first. It must not be changed to
-`GO` until the open gates below are independently verified on the release
-commit and the operator accepts the listed limitations.
+This record is intentionally evidence-first. The current GO is limited to the
+first-100 pilot and the accepted limitations below; it must not be interpreted
+as approval for an unrestricted public launch.
+
+## Final release-owner GO — 2026-10-30
+
+The release owner records **GO** for the controlled first-100-user pilot.
+This decision is based on formal guarded customer endpoint UAT `41049662323`
+from merged `main` commit `2365106b`, healthy scheduler/worker evidence
+`41038856612`, the 155-suite release gate, and the 211-route production build.
+
+The supported claim is the reviewed HTTPS MCP discovery path exercised by the
+operator-owned AWS test endpoint. Telemetry remains metadata-only: tool
+arguments, resource bodies, prompt values, credentials, and raw payloads are
+not retained. Alerting is manual or disabled-first during the pilot. The
+Supabase Free-plan recovery limitation is accepted for this scope: logical
+export only, PITR disabled, and no guaranteed RPO/RTO. Rollback and restoration
+owner is the release owner/project operator; contact is
+`krishnaatmu@gmail.com`; the next recovery review is 2026-11-30.
+
+OAuth token exchange, replay/reconnect semantics, destructive deletion, and
+other partial protocol surfaces remain outside the supported claim unless
+separately evidenced. Synthetic data is test evidence only. Any expansion
+beyond these limits requires a new evidence and approval cycle.
 
 ## Current gate reconciliation — 2026-10-30
 
@@ -16,18 +37,17 @@ commit and the operator accepts the listed limitations.
   no guaranteed RPO/RTO, PITR disabled, and release owner/project operator as
   rollback/restoration owner. See
   `docs/evidence/supabase-backup-acceptance-2026-10-30.md`.
-- The formal release status remains **HOLD** until the release owner records an
-  explicit final first-100 GO/NO-GO against the current evidence and accepted
-  limitations. This is the last governance action in this release goal; it is
-  not a source-code or CI action that engineering may infer.
+- The formal release status is now **GO — controlled first-100 pilot**. The
+  accepted recovery limitation and endpoint evidence are linked above; this
+  does not claim an unbounded public launch.
 
 ## Release-owner decision record — 2026-10-30
 
 The release owner provided explicit decisions for a limited controlled pilot:
 
-- **Pilot scope:** provisional `GO` for controlled engineering/customer-test
-  activity using synthetic evidence until real end-to-end customer-owned UAT is
-  complete. This is not a final first-100 production release GO.
+- **Pilot scope:** final `GO` for the controlled first-100 pilot, including the
+  operator-owned AWS customer test endpoint and its bounded official-client
+  UAT. This is not an unbounded public release GO.
 - **Data boundary:** accept and retain the complete MCP feature surface, but
   keep telemetry metadata-only. Tool arguments, resource bodies, prompt values,
   credentials, and raw payloads remain redacted and are not retained.
@@ -38,12 +58,13 @@ The release owner provided explicit decisions for a limited controlled pilot:
   procedure; this is not a claim of point-in-time recovery.
 - **Rollback and restoration:** accepted owner is the release owner / project
   operator. Recovery contact: `krishnaatmu@gmail.com`.
-- **Synthetic reliability evidence:** accepted as test evidence only until the
-  durable customer-owned HTTPS MCP endpoint is exercised.
+- **Synthetic reliability evidence:** accepted as test evidence only. The
+  durable operator-owned HTTPS MCP test endpoint is now exercised, while
+  third-party customer-server interoperability remains outside the claim.
 
-The overall release remains **HOLD** because the provider-side durable endpoint
-deployment has not yet been granted `apprunner:CreateService`. The exact AWS
-attempts and remaining action are recorded in
+The provider-side durable endpoint deployment and formal guarded UAT are now
+complete. The earlier permission boundary and failed attempts remain retained
+as historical evidence in
 `docs/evidence/customer-owned-endpoint-aws-deployment-2026-10-30.md`.
 
 ## Current deployed baseline — 2026-10-30
@@ -78,11 +99,13 @@ configured in the dedicated Google Cloud project `trusty-diorama-513117-f6`,
 enabled in Supabase, and the TrackMCP account is registered as a test user. A
 fresh Google browser flow using `krishnaatmu@gmail.com` returned to
 `app.trackmcp.com/dashboard` and loaded the `krishnaatmu` workspace. New-user
-onboarding and device-flow OAuth return-path checks remain open. Disposable
+onboarding and device-flow OAuth return-path checks remain outside the bounded
+pilot claim. Disposable
 production key create/rotate/revoke UAT was verified on 2026-10-28, and the
-account key routes have not changed since that run. The release remains
-Draft/HOLD because backup/recovery ownership, privacy acceptance,
-customer-owned endpoint/protocol UAT, and release-owner approval remain open.
+account key routes have not changed since that run. The release is GO for the
+bounded first-100 pilot. Backup/PITR, privacy, endpoint/protocol, and
+release-owner decisions are reconciled above; the remaining limitations are
+explicit launch exclusions rather than unrecorded gates.
 The synthetic customer fixture UAT and the follow-up authenticated product
 synthetic UAT are recorded separately as engineering evidence. The latter
 proved delivery of 126 metadata-only events to the product ingest endpoint and
@@ -92,9 +115,9 @@ does not replace a real customer-owned endpoint.
 ## Release-owner choices required
 
 The release-owner decisions above satisfy the decision-record portion for the
-controlled pilot. The final first-100 release decision remains conditional on
-the open provider-side endpoint deployment and its subsequent redacted UAT
-evidence.
+controlled pilot. The final first-100 release decision is recorded above. The
+historical provider-side endpoint deployment and subsequent redacted UAT
+evidence remain linked for audit continuity.
 
 The refresh-health evidence collector was repaired in PR #766, merged as
 `f9fbb0b7`, and its timestamp retention was merged in PR #769 as `a484cbf9`.

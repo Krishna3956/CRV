@@ -8,7 +8,7 @@ test("backup runbook does not claim Free-plan backup or PITR coverage", () => {
   assert.match(runbook, /Free plan/i);
   assert.match(runbook, /no usable scheduled backup, PITR restore point/i);
   assert.match(runbook, /does not execute a\s+Supabase migration/i);
-  assert.match(runbook, /must continue to show \*\*HOLD\*\*/i);
+  assert.match(runbook, /explicit accepted recovery limitation/i);
 });
 
 test("backup runbook requires a disposable restore rehearsal and postflights", () => {
