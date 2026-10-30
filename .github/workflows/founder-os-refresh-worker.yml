@@ -64,14 +64,15 @@ jobs:
           fi
           echo "::add-mask::$WORKER_SECRET"
           # App Runner can return a provider-generated 502/503 while a cold
-          # instance is starting. Warm the public health route once before
-          # fanning out worker leases; this is read-only and never carries the
-          # worker secret. The refresh requests still retain their own retry
-          # and deadline boundaries below.
+          # instance is starting. Warm the public health route before fanning
+          # out worker leases, using a retry budget long enough to span the
+          # documented cold-start window. This is read-only and never carries
+          # the worker secret. The refresh requests still retain their own
+          # retry and deadline boundaries below.
           WARMUP_URL="${WORKER_URL%/api/internal/refresh/run}/api/health"
-          if timeout --signal=TERM --kill-after=5s 40s curl --fail --silent --show-error \
-            --connect-timeout 5 --retry 5 --retry-delay 2 --retry-all-errors \
-            --retry-max-time 30 --max-time 35 "$WARMUP_URL" >/dev/null; then
+          if timeout --signal=TERM --kill-after=5s 70s curl --fail --silent --show-error \
+            --connect-timeout 5 --retry 10 --retry-delay 3 --retry-all-errors \
+            --retry-max-time 55 --max-time 60 "$WARMUP_URL" >/dev/null; then
             echo "App Runner health warm-up passed."
           else
             echo "::warning::App Runner health warm-up did not complete; continuing with bounded refresh retries."

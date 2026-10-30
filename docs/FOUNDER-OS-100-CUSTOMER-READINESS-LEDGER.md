@@ -1,5 +1,43 @@
 # Founder OS 100 Customer Readiness Ledger
 
+## 2026-10-30 — production refresh worker catalog schema repair
+
+- [x] Investigated the refresh-health warning from worker runs `41008199336`
+  and `41008398867`. The bounded, redacted job diagnostics identified
+  `catalog_recompute` retryable failures caused by the production table
+  `trackmcp_catalog_versions` missing its source-declared `transport` column
+  (`Postgres 42703`); this was a real schema/runtime drift, not a worker
+  freshness false positive.
+- [x] Applied the existing additive migration
+  `supabase/migrations/20261030000001_catalog_transport_scope.sql` to the
+  production Supabase project `TOP-MCP-v2` through the SQL Editor. The
+  migration adds the caller-verified transport scope, labels legacy rows
+  `unknown`, replaces the uniqueness scope, and creates the transport index;
+  it does not delete or rewrite raw event content.
+- [x] Read-only postflight query `6a2c21a2-a320-499e-a24c-75e847a6344c`
+  returned `transport_column=true`, `transport_constraint=true`,
+  `transport_index=true`, `snapshot_unique_constraint=true`,
+  `total_rows=12`, `null_transport_rows=0`, and `unknown_transport_rows=12`.
+- [x] Worker run `41008801744` processed six jobs with `succeeded=6`,
+  `retryable=0`, `failed=0`, and no parse errors, confirming the catalog
+  handler now executes against the repaired schema.
+- [x] The 29 terminal windows created by the earlier schema drift were replayed
+  through the existing service-role `trackmcp_enqueue_refresh_jobs` RPC (four
+  idempotent jobs per bounded 15-minute window; no direct row edits or event
+  deletion). The replay returned HTTP 200 for all 29 windows. Worker run
+  `41009752692` completed 40/40 jobs successfully; the next run completed
+  another 10 before its bounded client deadline, with no handler failures.
+- [x] The refresh workflow now gives App Runner cold starts a bounded 70-second
+  read-only warm-up (`10` retries, `55s` retry budget) and has a contract test
+  for those limits. This prevents a transient provider 502 from being
+  misclassified as a durable worker defect; the older pre-change runs remain
+  retained as evidence.
+- [ ] Freshness is not yet a GO: seven pre-migration catalog retries and two
+  lease-recovery jobs remain in bounded backoff after transient 502 responses.
+  The worker must drain them and a subsequent health report must prove three
+  healthy samples before the freshness gate can be marked complete. No gate
+  was loosened or suppressed.
+
 ## 2026-10-30 — CLI entrypoint fix and deployment retry verified
 
 - [x] Reproduced the published `@trackmcp/cli@0.1.12` defect from a clean npm

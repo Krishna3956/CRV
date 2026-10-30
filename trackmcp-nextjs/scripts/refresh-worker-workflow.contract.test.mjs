@@ -34,6 +34,8 @@ test("scheduled refresh worker emits a bounded redacted lag/retry summary artifa
   assert.match(workflow, /WORKER_SECRET_ARN=arn:aws:secretsmanager:ap-south-1:/);
   assert.match(workflow, /::add-mask::\$WORKER_SECRET/);
   assert.match(workflow, /WARMUP_URL="\$\{WORKER_URL%\/api\/internal\/refresh\/run\}\/api\/health"/);
+  assert.match(workflow, /--retry 10 --retry-delay 3 --retry-all-errors/);
+  assert.match(workflow, /--retry-max-time 55 --max-time 60/);
   assert.match(workflow, /App Runner health warm-up passed/);
   assert.match(workflow, /health warm-up did not complete; continuing with bounded refresh retries/);
   assert.doesNotMatch(workflow, /secrets\.TRACKMCP_REFRESH_WORKER_SECRET/);
