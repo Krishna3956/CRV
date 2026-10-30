@@ -23,9 +23,9 @@ The full local release gate passes 154 suites and the production build generates
 deployed revision;
 direct-origin first-ingest `40894964464` and SDK-shaped public-edge smoke
 `40896249223` both passed a bounded metadata-only event and analytics read-back.
-Health evaluation `41011008346` remains `warning`: the queue is drained, but the
-bounded window contains only one clean scheduled sample and historical failures
-remain in the evidence set. GitHub OAuth is configured in Supabase and passed a real browser
+Health evaluation `41018456722` remains `warning`: AWS scheduler and end-to-end
+cadence are proven, but one current worker metric is `923273ms`, above the
+`900000ms` freshness budget. GitHub OAuth is configured in Supabase and passed a real browser
 authorization and authenticated dashboard return on 2026-10-29. Google is
 configured in the dedicated Google Cloud project `trusty-diorama-513117-f6`,
 enabled in Supabase, and the TrackMCP account is registered as a test user. A
