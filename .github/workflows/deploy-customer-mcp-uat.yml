@@ -1,0 +1,111 @@
+name: Deploy customer MCP UAT endpoint
+
+on:
+  workflow_dispatch:
+    inputs:
+      image_tag:
+        description: Immutable image tag for the controlled UAT endpoint
+        required: true
+        default: uat-2026-10-30
+        type: string
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: deploy-customer-mcp-uat
+  cancel-in-progress: true
+
+env:
+  AWS_REGION: ap-south-1
+  ECR_REPO: trackmcp-customer-mcp-uat
+  SERVICE_NAME: trackmcp-customer-mcp-uat
+  SOURCE_SERVICE_ARN: arn:aws:apprunner:ap-south-1:872575360367:service/trackmcp-web/5d38155bd23141cabb4546b29a4075c7
+  ROLE_ARN: arn:aws:iam::872575360367:role/GitHubActionsDeployRole
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ env.ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Resolve image and App Runner access role
+        id: resolve
+        env:
+          REQUESTED_TAG: ${{ inputs.image_tag }}
+        run: |
+          set -euo pipefail
+          [[ "$REQUESTED_TAG" =~ ^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$ ]] || { echo "::error::image_tag is outside the bounded format."; exit 1; }
+          ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
+          REGISTRY="$ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com"
+          ACCESS_ROLE_ARN=$(aws apprunner describe-service --service-arn "$SOURCE_SERVICE_ARN" --query 'Service.SourceConfiguration.AuthenticationConfiguration.AccessRoleArn' --output text)
+          [[ "$ACCESS_ROLE_ARN" == arn:aws:iam::*:role/* ]] || { echo "::error::Could not resolve the reviewed App Runner ECR access role."; exit 1; }
+          echo "registry=$REGISTRY" >> "$GITHUB_OUTPUT"
+          echo "image=$REGISTRY/$ECR_REPO:$REQUESTED_TAG" >> "$GITHUB_OUTPUT"
+          echo "access_role_arn=$ACCESS_ROLE_ARN" >> "$GITHUB_OUTPUT"
+
+      - name: Ensure ECR repository exists
+        run: |
+          set -euo pipefail
+          aws ecr describe-repositories --repository-names "$ECR_REPO" >/dev/null 2>&1 || \
+            aws ecr create-repository --repository-name "$ECR_REPO" --image-scanning-configuration scanOnPush=true >/dev/null
+
+      - name: Build and push endpoint image
+        env:
+          REGISTRY: ${{ steps.resolve.outputs.registry }}
+          IMAGE: ${{ steps.resolve.outputs.image }}
+        run: |
+          set -euo pipefail
+          aws ecr get-login-password --region "$AWS_REGION" | docker login --username AWS --password-stdin "$REGISTRY"
+          docker build --file trackmcp-nextjs/deploy/customer-mcp-uat.Dockerfile --tag "$IMAGE" .
+          docker push "$IMAGE"
+
+      - name: Create or update App Runner service
+        id: service
+        env:
+          IMAGE: ${{ steps.resolve.outputs.image }}
+          ACCESS_ROLE_ARN: ${{ steps.resolve.outputs.access_role_arn }}
+        run: |
+          set -euo pipefail
+          SERVICE_ARN=$(aws apprunner list-services --query "ServiceSummaryList[?ServiceName=='$SERVICE_NAME'].ServiceArn | [0]" --output text)
+          if [[ "$SERVICE_ARN" == "None" || -z "$SERVICE_ARN" ]]; then
+            SERVICE_ARN=$(aws apprunner create-service \
+              --service-name "$SERVICE_NAME" \
+              --source-configuration "ImageRepository={ImageIdentifier=$IMAGE,ImageRepositoryType=ECR,ImageConfiguration={Port=8080,RuntimeEnvironmentVariables={PORT=8080,CUSTOMER_MCP_ENDPOINT_PORT=8080,CUSTOMER_MCP_ENDPOINT_BIND=0.0.0.0}}},AutoDeploymentsEnabled=false,AuthenticationConfiguration={AccessRoleArn=$ACCESS_ROLE_ARN}" \
+              --instance-configuration Cpu=1,Memory=2GB \
+              --query 'Service.ServiceArn' --output text)
+          else
+            aws apprunner update-service \
+              --service-arn "$SERVICE_ARN" \
+              --source-configuration "ImageRepository={ImageIdentifier=$IMAGE,ImageRepositoryType=ECR,ImageConfiguration={Port=8080,RuntimeEnvironmentVariables={PORT=8080,CUSTOMER_MCP_ENDPOINT_PORT=8080,CUSTOMER_MCP_ENDPOINT_BIND=0.0.0.0}}},AutoDeploymentsEnabled=false,AuthenticationConfiguration={AccessRoleArn=$ACCESS_ROLE_ARN}" \
+              --instance-configuration Cpu=1,Memory=2GB >/dev/null
+          fi
+          echo "service_arn=$SERVICE_ARN" >> "$GITHUB_OUTPUT"
+
+      - name: Wait for endpoint service
+        env:
+          SERVICE_ARN: ${{ steps.service.outputs.service_arn }}
+        run: |
+          set -euo pipefail
+          for attempt in $(seq 1 60); do
+            STATUS=$(aws apprunner describe-service --service-arn "$SERVICE_ARN" --query 'Service.Status' --output text)
+            echo "App Runner status: $STATUS"
+            case "$STATUS" in
+              RUNNING) break ;;
+              CREATE_FAILED|UPDATE_FAILED|DELETE_FAILED|PAUSED) echo "::error::Endpoint service entered $STATUS."; exit 1 ;;
+            esac
+            sleep 10
+          done
+          STATUS=$(aws apprunner describe-service --service-arn "$SERVICE_ARN" --query 'Service.Status' --output text)
+          [[ "$STATUS" == RUNNING ]] || { echo "::error::Endpoint service did not become RUNNING."; exit 1; }
+          HOST=$(aws apprunner describe-service --service-arn "$SERVICE_ARN" --query 'Service.ServiceUrl' --output text)
+          [[ "$HOST" =~ ^[A-Za-z0-9.-]+\.awsapprunner\.com$ ]] || { echo "::error::Invalid App Runner endpoint hostname."; exit 1; }
+          echo "Customer MCP UAT endpoint: https://$HOST/mcp"
