@@ -18,6 +18,7 @@ export type TrackMCPTaskLifecycle = {
 
 export type TrackMCPTaskTransitionObservation = {
   task_id_hash: string;
+  source_event_id?: string;
   scope?: Partial<TrackMCPTaskScope>;
   state: Exclude<TrackMCPTaskState, "unknown">;
   observed_at: string;
@@ -36,13 +37,16 @@ function taskState(fact: TrackMCPFact): TrackMCPTaskState {
  * create a row, and no task is called abandoned from inactivity.
  */
 export function aggregateTaskLifecycles(facts: readonly TrackMCPFact[], transitions: readonly TrackMCPTaskTransitionObservation[] = []): TrackMCPTaskLifecycle[] {
-  const groups = new Map<string, { task_id_hash: string; scope: TrackMCPTaskScope; rows: Array<{ observed_at: string; state: TrackMCPTaskState; evidence_quality: TrackMCPTaskLifecycle["evidence_quality"] }> }>();
+  const groups = new Map<string, { task_id_hash: string; scope: TrackMCPTaskScope; source_event_ids: Set<string>; rows: Array<{ observed_at: string; state: TrackMCPTaskState; evidence_quality: TrackMCPTaskLifecycle["evidence_quality"] }> }>();
   for (const fact of facts) {
     const hash = fact.dimensions.task_id_hash;
     if (!hash || !/^[a-f0-9]{64}$/i.test(hash)) continue;
     const scope = taskScopeForFact(fact);
     const key = `${hash}\u0001${taskScopeKey(scope)}`;
-    const group = groups.get(key) ?? { task_id_hash: hash.toLowerCase(), scope, rows: [] };
+    const group = groups.get(key) ?? { task_id_hash: hash.toLowerCase(), scope, source_event_ids: new Set<string>(), rows: [] };
+    const sourceEventId = fact.source_event_id !== "unknown" ? fact.source_event_id : undefined;
+    if (sourceEventId && group.source_event_ids.has(sourceEventId)) continue;
+    if (sourceEventId) group.source_event_ids.add(sourceEventId);
     group.rows.push({ observed_at: fact.observed_at, state: taskState(fact), evidence_quality: fact.semantic.evidence_quality === "conflicting" ? "conflicting" : fact.semantic.evidence_quality === "observed" ? "observed" : "insufficient_data" });
     groups.set(key, group);
   }
@@ -51,7 +55,9 @@ export function aggregateTaskLifecycles(facts: readonly TrackMCPFact[], transiti
     const scope = normalizeTaskScope(transition.scope);
     const hash = transition.task_id_hash.toLowerCase();
     const key = `${hash}\u0001${taskScopeKey(scope)}`;
-    const group = groups.get(key) ?? { task_id_hash: hash, scope, rows: [] };
+    const group = groups.get(key) ?? { task_id_hash: hash, scope, source_event_ids: new Set<string>(), rows: [] };
+    if (transition.source_event_id && group.source_event_ids.has(transition.source_event_id)) continue;
+    if (transition.source_event_id) group.source_event_ids.add(transition.source_event_id);
     group.rows.push({ observed_at: transition.observed_at, state: transition.state, evidence_quality: transition.evidence_quality });
     groups.set(key, group);
   }

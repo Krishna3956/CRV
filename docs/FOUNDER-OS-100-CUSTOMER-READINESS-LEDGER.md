@@ -1,5 +1,19 @@
 # Founder OS 100 Customer Readiness Ledger
 
+## 2026-10-30 — durable task evidence no longer double-counts event-window facts
+
+- [x] Durable task transition reads now include their bounded source event ID.
+  When the same source event is already present in the selected event window,
+  the lifecycle aggregator keeps one observation instead of counting the
+  durable projection a second time.
+- [x] Late durable transitions without a matching source event remain included,
+  preserving the purpose of the transition history for delayed completion or
+  expiry evidence. Deduplication stays scoped by task hash and issuer scope.
+- [x] Added a regression fixture covering the duplicate durable/event-window
+  path; the raw task handle and payload privacy boundary is unchanged.
+- [ ] This is a read-model correctness fix. Production migration application,
+  customer-owned transport UAT, and release-owner gates remain open.
+
 ## 2026-10-30 — task lifecycle joins now carry issuer scope
 
 - [x] Durable task transition rows now retain only bounded issuer provenance:

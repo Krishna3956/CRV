@@ -671,7 +671,7 @@ export function createAnalyticsHandler(getAdmin: typeof getSupabaseAdmin = getSu
   // A missing schema must not break analytics; when present it extends the
   // bounded event-window projection so late completion/expiry remains visible.
   const transitionResult = await supabase.from("trackmcp_task_transitions")
-    .select("task_id_hash,state,observed_at,evidence_quality,service,environment,server_id,transport")
+    .select("source_event_id,task_id_hash,state,observed_at,evidence_quality,service,environment,server_id,transport")
     .eq("workspace_id", workspaceId).gte("observed_at", since).order("observed_at", { ascending: true }).limit(10000);
   const taskTransitions = transitionResult.error ? [] : ((transitionResult.data || []) as Array<Record<string, unknown>>).flatMap((row): TrackMCPTaskTransitionObservation[] => {
     const state = row.state;
@@ -679,7 +679,7 @@ export function createAnalyticsHandler(getAdmin: typeof getSupabaseAdmin = getSu
     if (typeof row.task_id_hash !== "string" || !/^[a-f0-9]{64}$/i.test(row.task_id_hash) || typeof row.observed_at !== "string") return [];
     if (state !== "working" && state !== "input_required" && state !== "completed" && state !== "failed" && state !== "cancelled" && state !== "expired") return [];
     if (quality !== "observed" && quality !== "insufficient_data" && quality !== "conflicting") return [];
-    return [{ task_id_hash: row.task_id_hash.toLowerCase(), state, observed_at: row.observed_at.slice(0, 80), evidence_quality: quality, scope: {
+    return [{ source_event_id: typeof row.source_event_id === "string" ? row.source_event_id.slice(0, 128) : undefined, task_id_hash: row.task_id_hash.toLowerCase(), state, observed_at: row.observed_at.slice(0, 80), evidence_quality: quality, scope: {
       service: typeof row.service === "string" ? row.service : "unknown",
       environment: typeof row.environment === "string" ? row.environment : "unknown",
       server_id: typeof row.server_id === "string" ? row.server_id : null,
