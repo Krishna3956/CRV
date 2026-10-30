@@ -9,10 +9,11 @@
 - [x] Go and .NET retain caller-verified transport and direction; Python keeps
   the same bounded transport/direction contract. Invalid provenance and
   unknown status values fail closed, and all counts remain capped at 100.
-- [x] Python coverage passes **42/42** locally, including modern object-shaped
-  input counts and a task-notification privacy fixture. Go and .NET source
-  changes are queued for hosted compiler/smoke verification because those
-  toolchains are not installed in this workspace.
+- [x] Python coverage passes **43/43** locally, including modern object-shaped
+  input counts, direct task-notification privacy coverage, and wrapper-path
+  coverage. Hosted CI run `40997420067` passed the Go, .NET, and web/JavaScript
+  lanes for the cross-language source change; the local workspace does not
+  install the Go or .NET toolchains.
 - [ ] This closes source-level cross-language projection parity only. The
   published TypeScript/Python artifacts and reviewed Go/.NET source packages
   require the next coordinated release workflow; authenticated customer-owned
