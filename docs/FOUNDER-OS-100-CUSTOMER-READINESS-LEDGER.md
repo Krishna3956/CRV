@@ -17,6 +17,21 @@
   the separately documented external protocol, privacy, backup, UAT, or
   release-owner gates.
 
+## 2026-10-30 — cross-language dependency surface rechecked
+
+- [x] The Python SDK has no declared runtime dependencies in `pyproject.toml`;
+  its correctly scoped local unittest run passes **40/40**. The CLI workspace
+  npm audit also reports zero vulnerabilities.
+- [x] The Go SDK is standard-library-only (`go.mod` has no requirements), and
+  the .NET SDK project has no PackageReference entries. Their source packages
+  therefore have no third-party package lock to audit in this checkout.
+- [x] The initial Python command run from the repository root was discarded
+  because it imported the globally installed package rather than local source;
+  the package-directory `PYTHONPATH=.` run is the authoritative result.
+- [ ] Go/.NET compiler and registry verification remain separate environment or
+  publication gates; absence of third-party dependencies is not a publication
+  claim.
+
 ## 2026-10-30 — rendered SEO and live blog verification refreshed
 
 - [x] The built standalone app passed `npm run seo:audit`: **157 URLs** were
