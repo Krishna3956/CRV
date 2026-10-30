@@ -3831,7 +3831,7 @@ function IncidentCard({
       </div>
       <details className="mt-3 border-t border-line/80 pt-3">
         <summary className="cursor-pointer text-xs font-semibold text-brand-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand">
-          Show incident detail <span className="ml-1 font-normal text-faint">· {incidentVolumeLabel(incident)} affected</span>
+          Show incident detail <span className="ml-1 font-normal text-faint">· {incidentVolumeLabel(incident)}</span>
         </summary>
         <div className="mt-3 grid gap-3 text-xs text-muted sm:grid-cols-2 lg:grid-cols-3">
         <p>

@@ -597,6 +597,7 @@ test("completion is explicit-outcome-only and tool quality exposes insufficient 
   assert.match(source, /Some events may be omitted/);
   assert.match(source, /eligible comparison volume/);
   assert.match(source, /observed affected/);
+  assert.doesNotMatch(source, /incidentVolumeLabel\(incident\)\} affected/);
   assert.doesNotMatch(source, /eligible comparison events/);
 });
 
