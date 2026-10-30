@@ -45,4 +45,14 @@ test("durable transitions extend the bounded event window without exposing raw h
   assert.equal(task?.state, "expired");
   assert.equal(task?.terminal, true);
   assert.equal(task?.observations, 1);
+  assert.equal(task?.scope.service, "unknown");
+});
+
+test("same task hash remains separate across bounded server scopes", () => {
+  const first = projectTrackMCPFact({ ...event("working", "2026-10-19T00:00:00Z"), service: "orders", environment: "prod", server_id: "server-a", transport: "streamable_http" });
+  const second = projectTrackMCPFact({ ...event("completed", "2026-10-19T00:01:00Z"), service: "billing", environment: "prod", server_id: "server-b", transport: "streamable_http" });
+  const tasks = aggregateTaskLifecycles([first, second]);
+  assert.equal(tasks.length, 2);
+  assert.deepEqual(tasks.map((task) => task.scope.server_id).sort(), ["server-a", "server-b"]);
+  assert.deepEqual(tasks.map((task) => task.state).sort(), ["completed", "working"]);
 });

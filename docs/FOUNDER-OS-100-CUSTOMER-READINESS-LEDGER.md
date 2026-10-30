@@ -1,5 +1,20 @@
 # Founder OS 100 Customer Readiness Ledger
 
+## 2026-10-30 — task lifecycle joins now carry issuer scope
+
+- [x] Durable task transition rows now retain only bounded issuer provenance:
+  service, environment, optional server ID, and a caller-verified transport
+  label. Raw task handles, URLs, and payloads remain excluded.
+- [x] Task aggregation keys by task hash **and** that scope, so an identical
+  task ID issued by two MCP servers cannot be merged into one lifecycle or
+  manufacture a completed/failed state across tenants or deployments.
+- [x] Existing rows remain readable as `unknown` legacy scope; the additive
+  migration does not backfill or rewrite historical evidence. API responses
+  expose the bounded scope so operators can distinguish separate issuers.
+- [ ] The migration must be applied to the deployed Supabase project before
+  the new durable columns are written. Authenticated customer-owned transport
+  UAT and the external release-owner gates remain open.
+
 ## 2026-10-30 — cross-language modern task notifications reconciled
 
 - [x] Python, Go, and .NET now expose explicit caller-owned helpers for the

@@ -16,7 +16,15 @@ function projectTask(value: unknown): Record<string, unknown> | null {
   const lastObservedAt = typeof row.last_observed_at === "string" ? row.last_observed_at.slice(0, 80) : null;
   const observations = typeof row.observations === "number" && Number.isSafeInteger(row.observations) ? Math.max(0, Math.min(10000, row.observations)) : 0;
   const evidenceQuality = typeof row.evidence_quality === "string" && EVIDENCE_QUALITY.has(row.evidence_quality) ? row.evidence_quality : "insufficient_data";
-  return { task_id_hash: taskIdHash, state, first_observed_at: firstObservedAt, last_observed_at: lastObservedAt, observations, terminal: row.terminal === true, evidence_quality: evidenceQuality };
+  const rawScope = row.scope && typeof row.scope === "object" && !Array.isArray(row.scope) ? row.scope as Record<string, unknown> : {};
+  const transport = rawScope.transport;
+  const scope = {
+    service: typeof rawScope.service === "string" && rawScope.service.trim() ? rawScope.service.slice(0, 128) : "unknown",
+    environment: typeof rawScope.environment === "string" && rawScope.environment.trim() ? rawScope.environment.slice(0, 64) : "unknown",
+    server_id: typeof rawScope.server_id === "string" && rawScope.server_id.trim() ? rawScope.server_id.slice(0, 128) : null,
+    transport: transport === "stdio" || transport === "streamable_http" || transport === "sse" || transport === "custom" ? transport : "unknown",
+  };
+  return { task_id_hash: taskIdHash, scope, state, first_observed_at: firstObservedAt, last_observed_at: lastObservedAt, observations, terminal: row.terminal === true, evidence_quality: evidenceQuality };
 }
 
 export function createTasksHandler(analytics = createAnalyticsHandler()) {
