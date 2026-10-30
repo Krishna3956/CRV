@@ -138,6 +138,8 @@ jobs:
             echo "- AWS end-to-end cadence gate: $(jq -r '.aws_end_to_end_cadence_gate.status' "$report") ($(jq -r '.aws_end_to_end_cadence_gate.evidence' "$report"))"
             echo "- AWS worker freshness gate: $(jq -r '.worker_freshness_gate.status' "$report") ($(jq -r '.worker_freshness_gate.evidence' "$report"))"
             echo "- Max queue lag (ms): $(jq -r '.max_queue_lag_ms' "$report")"
+            echo "- Latest AWS metric timestamp: $(jq -r '.scheduler_evidence.latest_metric_timestamp // "unknown"' "$report")"
+            echo "- Max queue-lag metric timestamp: $(jq -r '.scheduler_evidence.worker_max_queue_lag_timestamp // "unknown"' "$report")"
             echo "- AWS scheduler evidence: $(jq -r '.scheduler_evidence | if .healthy then "healthy" else "not-healthy" end' "$report")"
             cat "$report" >> "$GITHUB_STEP_SUMMARY"
             if [ "$state" = "warning" ]; then

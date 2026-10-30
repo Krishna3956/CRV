@@ -152,6 +152,25 @@ test("bounded AWS worker metrics prove freshness without GitHub scheduled sample
   assert.deepEqual(report.reasons, []);
 });
 
+test("AWS health evidence preserves bounded metric timestamps", () => {
+  const report = summarizeRefreshWorkerRuns([run()], {
+    awsScheduler: {
+      enabled: true,
+      invocations: 3,
+      errors: 0,
+      scheduled_successes: 3,
+      scheduled_successes_available: true,
+      datapoints: [
+        { id: "invocations", values: [1], timestamps: ["2026-10-30T07:10:00Z"] },
+        { id: "worker_max_queue_lag", values: [420, 923273], timestamps: ["2026-10-30T07:05:00Z", "2026-10-30T07:10:00Z"] },
+      ],
+      worker_summary: { available: true, samples: 3, complete_samples: 3, parse_failures: 0, failed: 0, retryable: 0, max_queue_lag_ms: 923273 },
+    },
+  });
+  assert.equal(report.scheduler_evidence.latest_metric_timestamp, "2026-10-30T07:10:00Z");
+  assert.equal(report.scheduler_evidence.worker_max_queue_lag_timestamp, "2026-10-30T07:10:00Z");
+});
+
 test("incomplete AWS worker metrics remain a visible freshness warning", () => {
   const report = summarizeRefreshWorkerRuns([
     run({ run_id: 1, event: "workflow_dispatch", created_at: "2026-10-26T00:00:00Z" }),

@@ -17,6 +17,29 @@ function boundedHistogram(value) {
     .reduce((result, [key, count]) => ({ ...result, [key]: Math.min(1000, Math.floor(count)) }), {});
 }
 
+function latestMetricTimestamp(datapoints) {
+  return datapoints
+    .flatMap((item) => Array.isArray(item.timestamps) ? item.timestamps : [])
+    .map((value) => ({ value, time: parseTimestamp(value) }))
+    .filter((item) => item.time !== null)
+    .sort((a, b) => b.time - a.time)[0]?.value ?? null;
+}
+
+function maxMetricTimestamp(datapoints, id) {
+  const point = datapoints.find((item) => item.id === id);
+  if (!point || !Array.isArray(point.values) || !Array.isArray(point.timestamps)) return null;
+  let maxIndex = -1;
+  let maxValue = -1;
+  for (let index = 0; index < point.values.length; index += 1) {
+    const value = boundedNumber(point.values[index], -1);
+    if (value > maxValue && parseTimestamp(point.timestamps[index]) !== null) {
+      maxValue = value;
+      maxIndex = index;
+    }
+  }
+  return maxIndex === -1 ? null : point.timestamps[maxIndex];
+}
+
 function parseTimestamp(value) {
   const time = Date.parse(value ?? "");
   return Number.isFinite(time) ? time : null;
@@ -49,6 +72,8 @@ function normalizeAwsSchedulerEvidence(value, budgetMs = DEFAULT_BUDGET_MS) {
   return {
     enabled: source.enabled === true,
     datapoints: datapoints.length,
+    latest_metric_timestamp: latestMetricTimestamp(datapoints),
+    worker_max_queue_lag_timestamp: maxMetricTimestamp(datapoints, "worker_max_queue_lag"),
     invocations,
     errors,
     scheduled_successes: scheduledSuccesses,
