@@ -2,6 +2,21 @@
 
 Status: active autonomous audit, started 2026-10-21.
 
+## 2026-10-30 — first-login OAuth session race fix is live
+
+- [x] PR #751 merged as
+  `d82cbf6f0318957cc212c4d6aa94d3ef2784454b`; main CI `40982469835` and
+  App Runner deployment `40982469955` passed.
+- [x] The live app and direct App Runner origin report the same immutable SHA.
+  Public health, auth-provider discovery, homepage, sign-in, dashboard,
+  sitemap, and robots probes returned 200; Google/GitHub provider discovery
+  returned explicit `true` flags.
+- [x] The dashboard now hydrates the authoritative Supabase session event
+  before falling through to its no-user state, with bounded polling as a
+  compatibility fallback and duplicate-settlement protection.
+- [ ] This remains a client-side race fix, not proof of every provider-account
+  browser flow, new-user provisioning path, or release-owner pilot decision.
+
 ## 2026-10-30 — dashboard settles first-login OAuth sessions from auth events
 
 - [x] Dashboard hydration now subscribes to Supabase `onAuthStateChange` in
