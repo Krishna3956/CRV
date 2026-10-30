@@ -1,5 +1,20 @@
 # Founder OS 100 Customer Readiness Ledger
 
+## 2026-10-30 — first-login session race fix deployed
+
+- [x] PR #751 merged to `main` as
+  `d82cbf6f0318957cc212c4d6aa94d3ef2784454b`.
+- [x] Main CI workflow `40982469835` passed the web, Go, and .NET lanes.
+- [x] App Runner deployment workflow `40982469955` completed successfully,
+  including the immutable runtime identity and read-only production smoke.
+- [x] Both `https://app.trackmcp.com` and the direct App Runner origin report
+  the merged SHA from `/api/health`; public `/`, `/signin`, `/dashboard`,
+  `/sitemap.xml`, `/robots.txt`, and `/api/auth/providers` returned 200, with
+  Google and GitHub discovery enabled.
+- [ ] Provider-account browser UAT and release-owner acceptance remain open;
+  this release closes the dashboard's client-side session settlement race but
+  does not claim every external OAuth configuration gate is complete.
+
 ## 2026-10-30 — first-login OAuth session settlement hardened
 
 - [x] The dashboard now listens for Supabase's authoritative
