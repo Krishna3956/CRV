@@ -20,6 +20,27 @@
   until a clean bounded AWS window is retained; no readiness claim was
   loosened.
 
+## 2026-10-30 — customer-owned endpoint UAT is operator-ready but unexecuted
+
+- [x] The guarded `customer-endpoint-uat.yml` workflow remains manual-only,
+  requires the exact confirmation phrase, accepts one explicit HTTPS endpoint,
+  selects only the reviewed Streamable HTTP or SSE transport and allowlisted
+  protocol versions, and grants only `contents: read`. It never enables the
+  private-target fixture override in hosted execution.
+- [x] The actual UAT runner and release-gate integration fixtures cover both
+  official transports, bounded initialize/catalog discovery, same-origin
+  redirect handling, protected-resource metadata observation without OAuth
+  exchange, and mode-0600 reports that omit endpoint paths, credentials,
+  session identifiers, and MCP payloads. The focused source, integration, and
+  workflow contract suites pass.
+- [ ] A real customer-owned endpoint run remains open. The repository Actions
+  secret inventory checked on 2026-10-30 does not list
+  `TRACKMCP_CUSTOMER_ENDPOINT_UAT_KEY` or
+  `TRACKMCP_CUSTOMER_ENDPOINT_UAT_AUTH_TOKEN`; an operator must provision
+  disposable credentials and execute the manual workflow before this gate can
+  produce customer evidence. No customer endpoint was contacted by the local
+  fixtures.
+
 ## 2026-10-30 — refresh-health evidence collection repaired and re-evaluated
 
 - [x] Fixed the refresh-health workflow's CloudFormation output lookup to use
