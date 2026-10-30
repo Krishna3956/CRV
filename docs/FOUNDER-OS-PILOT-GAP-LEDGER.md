@@ -2,6 +2,23 @@
 
 Status: active autonomous audit, started 2026-10-21.
 
+## 2026-10-30 — capability-aware protocol pair analytics implemented
+
+- [x] Durable and event-window protocol-family analytics now resolves bounded
+  capability advertisements before joining request/response handles, so scan
+  order cannot turn an observed pair into a negotiated pair by accident.
+- [x] Matched pairs are separated into `matched_advertised`,
+  `matched_without_advertisement`, and `matched_unknown`; no raw handles,
+  capability names, request state, or payload content is returned to the
+  dashboard.
+- [x] Capabilities UI exposes the three evidence states and preserves the
+  existing negotiation caveat. Contract, analytics integration, TypeScript,
+  and privacy-boundary tests pass, including a server-scoped negotiated and
+  unnegotiated fixture.
+- [ ] This closes an analytics truth gap only. Modern lifecycle coverage,
+  customer-owned endpoint interoperability, transport reconnect behavior, and
+  authenticated production UAT remain explicitly partial.
+
 ## 2026-10-30 — translation observer stability fix is live
 
 - [x] PR #754 merged as

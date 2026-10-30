@@ -437,7 +437,7 @@ test("analytics exposes bounded protocol lifecycle signals without treating them
     timeline: [{ date: "2026-09-06", notification: 0, progress: 1, cancelled: 0, catalog_changed: 1, resource_changed: 1, subscription_started: 1, subscription_stopped: 1, observed_events: 5 }],
   });
   assert.deepEqual(body.protocol_family_activity, [{ family: "notifications", observations: 3 }, { family: "resources", observations: 3 }, { family: "tasks", observations: 2 }, { family: "completion", observations: 1 }, { family: "control_signal", observations: 1 }, { family: "elicitation", observations: 1 }, { family: "sampling", observations: 1 }, { family: "subscriptions", observations: 1 }]);
-  assert.deepEqual(body.protocol_family_outcomes, [{ family: "notifications", observations: 3, requests: 0, responses: 0, matched: 0, completed: 0, errors: 0, input_required: 0, unknown: 3, capability_advertised: false }, { family: "resources", observations: 3, requests: 0, responses: 0, matched: 0, completed: 0, errors: 0, input_required: 0, unknown: 3, capability_advertised: false }, { family: "tasks", observations: 2, requests: 0, responses: 0, matched: 0, completed: 0, errors: 0, input_required: 0, unknown: 2, capability_advertised: true }, { family: "completion", observations: 1, requests: 0, responses: 0, matched: 0, completed: 1, errors: 0, input_required: 0, unknown: 0, capability_advertised: false }, { family: "control_signal", observations: 1, requests: 0, responses: 0, matched: 0, completed: 0, errors: 0, input_required: 0, unknown: 1, capability_advertised: false }, { family: "elicitation", observations: 1, requests: 0, responses: 0, matched: 0, completed: 1, errors: 0, input_required: 0, unknown: 0, capability_advertised: false }, { family: "sampling", observations: 1, requests: 0, responses: 0, matched: 0, completed: 0, errors: 0, input_required: 1, unknown: 0, capability_advertised: false }, { family: "subscriptions", observations: 1, requests: 0, responses: 0, matched: 0, completed: 0, errors: 0, input_required: 0, unknown: 1, capability_advertised: false }]);
+  assert.deepEqual(body.protocol_family_outcomes, [{ family: "notifications", observations: 3, requests: 0, responses: 0, matched: 0, matched_advertised: 0, matched_without_advertisement: 0, matched_unknown: 0, completed: 0, errors: 0, input_required: 0, unknown: 3, capability_advertised: false }, { family: "resources", observations: 3, requests: 0, responses: 0, matched: 0, matched_advertised: 0, matched_without_advertisement: 0, matched_unknown: 0, completed: 0, errors: 0, input_required: 0, unknown: 3, capability_advertised: false }, { family: "tasks", observations: 2, requests: 0, responses: 0, matched: 0, matched_advertised: 0, matched_without_advertisement: 0, matched_unknown: 0, completed: 0, errors: 0, input_required: 0, unknown: 2, capability_advertised: true }, { family: "completion", observations: 1, requests: 0, responses: 0, matched: 0, matched_advertised: 0, matched_without_advertisement: 0, matched_unknown: 0, completed: 1, errors: 0, input_required: 0, unknown: 0, capability_advertised: false }, { family: "control_signal", observations: 1, requests: 0, responses: 0, matched: 0, matched_advertised: 0, matched_without_advertisement: 0, matched_unknown: 0, completed: 0, errors: 0, input_required: 0, unknown: 1, capability_advertised: false }, { family: "elicitation", observations: 1, requests: 0, responses: 0, matched: 0, matched_advertised: 0, matched_without_advertisement: 0, matched_unknown: 0, completed: 1, errors: 0, input_required: 0, unknown: 0, capability_advertised: false }, { family: "sampling", observations: 1, requests: 0, responses: 0, matched: 0, matched_advertised: 0, matched_without_advertisement: 0, matched_unknown: 0, completed: 0, errors: 0, input_required: 1, unknown: 0, capability_advertised: false }, { family: "subscriptions", observations: 1, requests: 0, responses: 0, matched: 0, matched_advertised: 0, matched_without_advertisement: 0, matched_unknown: 0, completed: 0, errors: 0, input_required: 0, unknown: 1, capability_advertised: false }]);
   assert.equal(body.protocol_family_outcome_source, "event_window");
   assert.equal(body.founder_os.facts.outcomes.not_observable, 6);
 });
@@ -458,9 +458,34 @@ test("analytics prefers the bounded durable semantic-fact family projection when
   const body = await response.json();
   assert.equal(body.protocol_family_outcome_source, "durable_facts");
   assert.deepEqual(body.protocol_family_outcomes, [
-    { family: "completion", observations: 2, requests: 1, responses: 1, matched: 1, completed: 2, errors: 0, input_required: 0, unknown: 0, capability_advertised: null },
-    { family: "sampling", observations: 1, requests: 0, responses: 1, matched: 0, completed: 0, errors: 0, input_required: 1, unknown: 0, capability_advertised: null },
+    { family: "completion", observations: 2, requests: 1, responses: 1, matched: 1, matched_advertised: 0, matched_without_advertisement: 0, matched_unknown: 1, completed: 2, errors: 0, input_required: 0, unknown: 0, capability_advertised: null },
+    { family: "sampling", observations: 1, requests: 0, responses: 1, matched: 0, matched_advertised: 0, matched_without_advertisement: 0, matched_unknown: 0, completed: 0, errors: 0, input_required: 1, unknown: 0, capability_advertised: null },
   ]);
+});
+
+test("analytics classifies matched protocol pairs by explicit capability negotiation", async () => {
+  const handle = "c".repeat(64);
+  const unnegotiated = "d".repeat(64);
+  const durableFacts = [
+    { source_event_id: "capability-advertisement", semantic: { outcome: "unknown" }, dimensions: { protocol_family: "control_signal", capability_families: ["elicitation"], server_id: "server-a" }, event_type: "session", observed_at: "2026-09-06T00:00:00Z", service: "demo", environment: "prod" },
+    { source_event_id: "elicitation-request", semantic: { outcome: "pending" }, dimensions: { protocol_family: "elicitation", protocol_observation_kind: "protocol_request", interaction_id_hash: handle, server_id: "server-a" }, event_type: "protocol", observed_at: "2026-09-06T00:00:01Z", service: "demo", environment: "prod" },
+    { source_event_id: "elicitation-response", semantic: { outcome: "completed" }, dimensions: { protocol_family: "elicitation", protocol_observation_kind: "protocol_response", interaction_id_hash: handle, server_id: "server-a" }, event_type: "protocol", observed_at: "2026-09-06T00:00:02Z", service: "demo", environment: "prod" },
+    { source_event_id: "sampling-request", semantic: { outcome: "pending" }, dimensions: { protocol_family: "sampling", protocol_observation_kind: "protocol_request", interaction_id_hash: unnegotiated, server_id: "server-a" }, event_type: "protocol", observed_at: "2026-09-06T00:00:03Z", service: "demo", environment: "prod" },
+    { source_event_id: "sampling-response", semantic: { outcome: "completed" }, dimensions: { protocol_family: "sampling", protocol_observation_kind: "protocol_response", interaction_id_hash: unnegotiated, server_id: "server-a" }, event_type: "protocol", observed_at: "2026-09-06T00:00:04Z", service: "demo", environment: "prod" },
+  ];
+  const base = fakeAdmin([]);
+  const originalFrom = base.from.bind(base);
+  base.from = (table) => table === "trackmcp_semantic_facts"
+    ? { select() { return this; }, eq() { return this; }, gte() { return this; }, limit: async () => ({ data: durableFacts, error: null }) }
+    : originalFrom(table);
+  const response = await createAnalyticsHandler(() => base)(new Request("http://analytics.test/api/v1/analytics?days=7", { headers: { authorization: "Bearer key" } }));
+  assert.equal(response.status, 200);
+  const body = await response.json();
+  const elicitation = body.protocol_family_outcomes.find((item) => item.family === "elicitation");
+  const sampling = body.protocol_family_outcomes.find((item) => item.family === "sampling");
+  assert.deepEqual(elicitation, { family: "elicitation", observations: 2, requests: 1, responses: 1, matched: 1, matched_advertised: 1, matched_without_advertisement: 0, matched_unknown: 0, completed: 1, errors: 0, input_required: 1, unknown: 0, capability_advertised: true });
+  assert.deepEqual(sampling, { family: "sampling", observations: 2, requests: 1, responses: 1, matched: 1, matched_advertised: 0, matched_without_advertisement: 1, matched_unknown: 0, completed: 1, errors: 0, input_required: 1, unknown: 0, capability_advertised: false });
+  assert.deepEqual(body.protocol_capability_gaps, [{ family: "sampling", requests_without_advertisement: 1, limitation: "A request without an observed capability advertisement is a negotiation signal, not proof that the peer rejected or could not support the operation." }]);
 });
 
 test("analytics matches durable MRTR evidence through request-state and retry linkage", async () => {
@@ -479,7 +504,7 @@ test("analytics matches durable MRTR evidence through request-state and retry li
   assert.equal(response.status, 200);
   const body = await response.json();
   assert.deepEqual(body.protocol_family_outcomes, [
-    { family: "elicitation", observations: 4, requests: 2, responses: 2, matched: 2, completed: 2, errors: 0, input_required: 2, unknown: 0, capability_advertised: null },
+    { family: "elicitation", observations: 4, requests: 2, responses: 2, matched: 2, matched_advertised: 0, matched_without_advertisement: 0, matched_unknown: 2, completed: 2, errors: 0, input_required: 2, unknown: 0, capability_advertised: null },
   ]);
   assert.deepEqual(body.protocol_mrtr_linkage, {
     request_state_hashes: 1,
@@ -506,7 +531,7 @@ test("analytics does not match identical MRTR handles across server scopes", asy
   assert.equal(response.status, 200);
   const body = await response.json();
   assert.deepEqual(body.protocol_family_outcomes, [
-    { family: "elicitation", observations: 2, requests: 1, responses: 1, matched: 0, completed: 1, errors: 0, input_required: 1, unknown: 0, capability_advertised: null },
+    { family: "elicitation", observations: 2, requests: 1, responses: 1, matched: 0, matched_advertised: 0, matched_without_advertisement: 0, matched_unknown: 0, completed: 1, errors: 0, input_required: 1, unknown: 0, capability_advertised: null },
   ]);
   assert.equal(body.protocol_mrtr_linkage.interaction_hashes, 2);
   assert.equal(body.protocol_mrtr_linkage.matched_pairs, 0);

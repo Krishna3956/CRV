@@ -80,6 +80,21 @@ const ANALYTICS_CACHE_TTL_MS = 2_000;
 const ANALYTICS_CACHE_MAX_ENTRIES = 64;
 const protocolTransportNames = ["stdio", "streamable_http", "sse", "custom"] as const;
 type ProtocolTransportName = typeof protocolTransportNames[number];
+type ProtocolCapabilityMatch = "advertised" | "not_advertised" | "unknown";
+type ProtocolFamilyOutcome = {
+  observations: number;
+  requests: number;
+  responses: number;
+  matched: number;
+  matched_advertised: number;
+  matched_without_advertisement: number;
+  matched_unknown: number;
+  completed: number;
+  errors: number;
+  input_required: number;
+  unknown: number;
+  capability_advertised: boolean | null;
+};
 
 type AnalyticsCacheEntry = { expires_at: number; body: Record<string, unknown> };
 
@@ -399,8 +414,8 @@ export function createAnalyticsHandler(getAdmin: typeof getSupabaseAdmin = getSu
   });
   const catalogCorrelations = correlateCatalogNotifications(catalogNotificationInputs, catalogVersions);
   const protocolFamilyCounts = new Map<string, number>();
-  const protocolFamilyOutcomes = new Map<string, { observations: number; requests: number; responses: number; matched: number; completed: number; errors: number; input_required: number; unknown: number; capability_advertised: boolean | null }>();
-  const protocolFamilyHandles = new Map<string, { requests: Set<string>; responses: Set<string> }>();
+  const protocolFamilyOutcomes = new Map<string, ProtocolFamilyOutcome>();
+  const protocolFamilyHandles = new Map<string, { requests: Map<string, ProtocolCapabilityMatch>; responses: Set<string> }>();
   const protocolTransportOutcomes = new Map<string, { transport: string; observations: number; requests: number; responses: number; matched: number; completed: number; errors: number; input_required: number; unknown: number }>();
   const protocolTransportHandles = new Map<string, { requests: Set<string>; responses: Set<string> }>();
   const mrtrRequestStateHashes = new Set<string>();
@@ -484,20 +499,31 @@ export function createAnalyticsHandler(getAdmin: typeof getSupabaseAdmin = getSu
       retry_of_event_id: typeof event.retry_of_event_id === "string" ? event.retry_of_event_id.slice(0, 128) : undefined,
     }];
   });
+  // Resolve capability advertisements before matching requests and responses.
+  // Event order is not a protocol guarantee, so a response must not become
+  // "negotiated" merely because its initialize event happened to be scanned
+  // first. The map contains only bounded family names and server scopes.
+  for (const row of protocolFamilySourceRows) {
+    if (!row.scope_key || !Array.isArray(row.capability_families) || !row.capability_families.length) continue;
+    const advertised = advertisedFamiliesByScope.get(row.scope_key) || new Set<string>();
+    for (const capabilityFamily of row.capability_families) advertised.add(capabilityFamily);
+    advertisedFamiliesByScope.set(row.scope_key, advertised);
+  }
+  const capabilityMatchForRow = (row: { family: string; scope_key?: string; }): ProtocolCapabilityMatch => {
+    if (!row.scope_key) return "unknown";
+    const advertised = advertisedFamiliesByScope.get(row.scope_key);
+    if (!advertised) return "unknown";
+    return advertised.has(row.family) ? "advertised" : "not_advertised";
+  };
   for (const row of protocolFamilySourceRows) {
     const { family, outcome } = row;
     protocolFamilyCounts.set(family, (protocolFamilyCounts.get(family) || 0) + 1);
-    const current = protocolFamilyOutcomes.get(family) || { observations: 0, requests: 0, responses: 0, matched: 0, completed: 0, errors: 0, input_required: 0, unknown: 0, capability_advertised: null };
+    const current = protocolFamilyOutcomes.get(family) || { observations: 0, requests: 0, responses: 0, matched: 0, matched_advertised: 0, matched_without_advertisement: 0, matched_unknown: 0, completed: 0, errors: 0, input_required: 0, unknown: 0, capability_advertised: null };
     const transportKey = row.transport || "unknown";
     const transportOutcomeKey = `${transportKey}:${family}`;
     const transportCurrent = protocolTransportOutcomes.get(transportOutcomeKey) || { transport: transportKey, observations: 0, requests: 0, responses: 0, matched: 0, completed: 0, errors: 0, input_required: 0, unknown: 0 };
     transportCurrent.observations += 1;
     const scopeKey = typeof row.scope_key === "string" ? row.scope_key : undefined;
-    if (scopeKey && Array.isArray(row.capability_families) && row.capability_families.length) {
-      const advertised = advertisedFamiliesByScope.get(scopeKey) || new Set<string>();
-      for (const capabilityFamily of row.capability_families) advertised.add(capabilityFamily);
-      advertisedFamiliesByScope.set(scopeKey, advertised);
-    }
     if (scopeKey) {
       const scopes = observedFamilyScopes.get(family) || new Set<string>();
       scopes.add(scopeKey);
@@ -520,8 +546,9 @@ export function createAnalyticsHandler(getAdmin: typeof getSupabaseAdmin = getSu
     // handle cannot manufacture a cross-server response pair.
     const scopedLink = primaryLink && scopeKey ? `${scopeKey}:${primaryLink}` : primaryLink;
     if (scopedLink && row.observation_kind) {
-      const handle = protocolFamilyHandles.get(family) || { requests: new Set<string>(), responses: new Set<string>() };
-      handle[row.observation_kind === "protocol_request" ? "requests" : "responses"].add(scopedLink);
+      const handle = protocolFamilyHandles.get(family) || { requests: new Map<string, ProtocolCapabilityMatch>(), responses: new Set<string>() };
+      if (row.observation_kind === "protocol_request") handle.requests.set(scopedLink, capabilityMatchForRow(row));
+      else handle.responses.add(scopedLink);
       protocolFamilyHandles.set(family, handle);
       const transportHandle = protocolTransportHandles.get(transportOutcomeKey) || { requests: new Set<string>(), responses: new Set<string>() };
       transportHandle[row.observation_kind === "protocol_request" ? "requests" : "responses"].add(scopedLink);
@@ -540,7 +567,14 @@ export function createAnalyticsHandler(getAdmin: typeof getSupabaseAdmin = getSu
   }
   for (const [family, handle] of protocolFamilyHandles) {
     const current = protocolFamilyOutcomes.get(family);
-    if (current) current.matched = [...handle.requests].filter((value) => handle.responses.has(value)).length;
+    if (!current) continue;
+    for (const [value, capabilityMatch] of handle.requests) {
+      if (!handle.responses.has(value)) continue;
+      current.matched += 1;
+      if (capabilityMatch === "advertised") current.matched_advertised += 1;
+      else if (capabilityMatch === "not_advertised") current.matched_without_advertisement += 1;
+      else current.matched_unknown += 1;
+    }
   }
   for (const [key, handle] of protocolTransportHandles) {
     const current = protocolTransportOutcomes.get(key);

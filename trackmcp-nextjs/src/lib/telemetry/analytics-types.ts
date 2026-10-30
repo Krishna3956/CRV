@@ -250,7 +250,7 @@ export type Analytics = {
   };
   /** Counts of bounded modern protocol families observed by the SDK observer. */
   protocol_family_activity?: Array<{ family: "sampling" | "elicitation" | "completion" | "tasks" | "control_signal" | "resources" | "prompts" | "tools" | "subscriptions" | "notifications" | "roots" | "logging"; observations: number }>;
-  protocol_family_outcomes?: Array<{ family: "sampling" | "elicitation" | "completion" | "tasks" | "control_signal" | "resources" | "prompts" | "tools" | "subscriptions" | "notifications" | "roots" | "logging"; observations: number; requests: number; responses: number; matched: number; completed: number; errors: number; input_required: number; unknown: number; capability_advertised: boolean | null }>;
+  protocol_family_outcomes?: Array<{ family: "sampling" | "elicitation" | "completion" | "tasks" | "control_signal" | "resources" | "prompts" | "tools" | "subscriptions" | "notifications" | "roots" | "logging"; observations: number; requests: number; responses: number; matched: number; matched_advertised: number; matched_without_advertisement: number; matched_unknown: number; completed: number; errors: number; input_required: number; unknown: number; capability_advertised: boolean | null }>;
   protocol_family_outcome_source?: "durable_facts" | "event_window";
   protocol_transport_outcomes?: Array<{ transport: string; observations: number; requests: number; responses: number; matched: number; completed: number; errors: number; input_required: number; unknown: number }>;
   protocol_mrtr_linkage?: { request_state_hashes: number; interaction_hashes: number; retry_links: number; matched_pairs: number; source: "durable_facts" | "event_window"; limitation: string };

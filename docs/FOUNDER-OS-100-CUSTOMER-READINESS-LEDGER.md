@@ -1,5 +1,19 @@
 # Founder OS 100 Customer Readiness Ledger
 
+## 2026-10-30 — capability-aware protocol analytics implemented locally
+
+- [x] Protocol-family request/response joins now precompute bounded capability
+  advertisements by server scope before matching opaque handles.
+- [x] The dashboard distinguishes negotiated pairs from pairs observed without
+  an advertisement and pairs where capability evidence is unavailable; this
+  avoids presenting a request/result match as proof of negotiated support.
+- [x] Analytics integration and dashboard contract tests pass, with no raw
+  request IDs, interaction handles, capability payloads, or user content in
+  the projection.
+- [ ] This remains local/CI evidence until the next deployed runtime and an
+  authenticated customer-owned protocol UAT prove the same behavior in
+  production.
+
 ## 2026-10-30 — translation observer stability fix deployed
 
 - [x] PR #754 merged to `main` as

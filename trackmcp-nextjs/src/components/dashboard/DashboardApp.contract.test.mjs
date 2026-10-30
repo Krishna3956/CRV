@@ -523,9 +523,12 @@ test("Capabilities exposes bounded modern protocol outcome states", () => {
   assert.match(source, />Requests</);
   assert.match(source, />Responses</);
   assert.match(source, />Matched</);
+  assert.match(source, />Negotiated</);
+  assert.match(source, />No advertisement</);
+  assert.match(source, /matched_without_advertisement/);
   assert.match(source, /Requests and responses are counted from explicit metadata roles/);
   assert.match(source, />Completed</);
-  assert.match(source, /N\/A means no capability advertisement was observed/);
+  assert.match(source, /No-advertisement and unknown pairs remain visible as negotiation evidence/);
   assert.match(source, /Evidence source:/);
 });
 
