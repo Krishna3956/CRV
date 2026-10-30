@@ -6,9 +6,12 @@ OAuth controls now use a shared provider-discovery helper with a three-attempt
 retry budget for transient edge/network failures. Permanent failures and
 malformed settings fail closed, while the email path remains available and the
 loading skeleton prevents a layout shift. Focused auth/translation tests and
-the authoritative full release gate pass. This is not yet a deployed-runtime
-claim: merge/deploy, real Google/GitHub browser acceptance, Supabase custom
-auth-domain verification, and the refresh-health freshness gate remain open.
+the authoritative full release gate pass. PR #765 is deployed as main
+`177165180383e31bb7760040469f9aaa7f78f8a1`; App Runner workflow `41013186081`
+passed smoke, immutable identity, runtime-safety, and translation-provider
+checks, and direct origin postflight matches the release SHA. Real
+Google/GitHub browser acceptance, Supabase custom auth-domain verification,
+and the refresh-health freshness gate remain open.
 
 ## 2026-10-30 refresh backlog checkpoint — schema repair is now drained
 

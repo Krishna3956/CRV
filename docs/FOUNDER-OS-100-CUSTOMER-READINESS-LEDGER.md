@@ -16,9 +16,14 @@
 - [x] The authoritative `npm run test:release-gate` passes all suites after
   updating the translation contract to assert the helper boundary. Lint,
   TypeScript, and the production build remain green locally.
-- [ ] This is source-level resilience pending merge and deployment. It does
-  not replace authenticated Google/GitHub browser UAT, Supabase custom-domain
-  configuration, or the still-open refresh-health freshness gate.
+- [x] PR #765 is merged as main commit `177165180383e31bb7760040469f9aaa7f78f8a1`.
+  App Runner deployment workflow `41013186081` passed the release gate, image
+  rollout, production smoke, immutable identity, runtime-safety audit, and
+  live translation-provider check. Direct origin postflight reports the same
+  release SHA and `/api/auth/providers` returns both providers enabled.
+- [ ] This does not replace authenticated Google/GitHub browser UAT,
+  Supabase custom-domain configuration, or the still-open refresh-health
+  freshness gate.
 
 ## 2026-10-30 — refresh backlog drained after catalog schema repair
 
