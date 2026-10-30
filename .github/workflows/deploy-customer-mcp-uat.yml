@@ -71,14 +71,25 @@ jobs:
           ACCESS_ROLE_ARN: ${{ steps.resolve.outputs.access_role_arn }}
         run: |
           set -euo pipefail
-          # This is a one-time isolated UAT service. The reviewed deploy role
-          # intentionally cannot enumerate App Runner services, so create the
-          # fixed-name service directly and retain the returned ARN for polling.
-          SERVICE_ARN=$(aws apprunner create-service \
-            --service-name "$SERVICE_NAME" \
-            --source-configuration "ImageRepository={ImageIdentifier=$IMAGE,ImageRepositoryType=ECR,ImageConfiguration={Port=8080,RuntimeEnvironmentVariables={PORT=8080,CUSTOMER_MCP_ENDPOINT_PORT=8080,CUSTOMER_MCP_ENDPOINT_BIND=0.0.0.0}}},AutoDeploymentsEnabled=false,AuthenticationConfiguration={AccessRoleArn=$ACCESS_ROLE_ARN}" \
-            --instance-configuration 'Cpu=1 vCPU,Memory=2 GB' \
-            --query 'Service.ServiceArn' --output text)
+          SOURCE_CONFIGURATION="ImageRepository={ImageIdentifier=$IMAGE,ImageRepositoryType=ECR,ImageConfiguration={Port=8080,RuntimeEnvironmentVariables={PORT=8080,CUSTOMER_MCP_ENDPOINT_PORT=8080,CUSTOMER_MCP_ENDPOINT_BIND=0.0.0.0}}},AutoDeploymentsEnabled=false,AuthenticationConfiguration={AccessRoleArn=$ACCESS_ROLE_ARN}"
+          EXISTING_ARN=$(aws apprunner list-services --region "$AWS_REGION" \
+            --query "ServiceSummaryList[?ServiceName=='$SERVICE_NAME'].ServiceArn | [0]" --output text)
+
+          if [[ "$EXISTING_ARN" == "None" || -z "$EXISTING_ARN" ]]; then
+            echo "Creating isolated UAT App Runner service $SERVICE_NAME"
+            SERVICE_ARN=$(aws apprunner create-service \
+              --service-name "$SERVICE_NAME" \
+              --source-configuration "$SOURCE_CONFIGURATION" \
+              --instance-configuration 'Cpu=1 vCPU,Memory=2 GB' \
+              --query 'Service.ServiceArn' --output text)
+          else
+            echo "Updating existing isolated UAT App Runner service $EXISTING_ARN"
+            SERVICE_ARN=$(aws apprunner update-service \
+              --service-arn "$EXISTING_ARN" \
+              --source-configuration "$SOURCE_CONFIGURATION" \
+              --instance-configuration 'Cpu=1 vCPU,Memory=2 GB' \
+              --query 'Service.ServiceArn' --output text)
+          fi
           echo "service_arn=$SERVICE_ARN" >> "$GITHUB_OUTPUT"
 
       - name: Wait for endpoint service
