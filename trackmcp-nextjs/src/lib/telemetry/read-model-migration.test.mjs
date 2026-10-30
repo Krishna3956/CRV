@@ -6,6 +6,7 @@ const migrationPath = new URL("../../../../supabase/migrations/20261018000003_fo
 const taskTransitionMigrationPath = new URL("../../../../supabase/migrations/20261019000005_task_transition_history.sql", import.meta.url);
 const lifecycleFactMigrationPath = new URL("../../../../supabase/migrations/20261024000001_lifecycle_fact_type.sql", import.meta.url);
 const taskTransitionScopeMigrationPath = new URL("../../../../supabase/migrations/20261030000002_task_transition_scope.sql", import.meta.url);
+const catalogEntityTransportMigrationPath = new URL("../../../../supabase/migrations/20261030000003_catalog_entity_transport_scope.sql", import.meta.url);
 
 test("Founder OS read-model migration is additive and bounded", async () => {
   const sql = await readFile(migrationPath, "utf8");
@@ -47,6 +48,15 @@ test("task transition scope migration is additive and bounded", async () => {
   assert.match(sql, /add column if not exists server_id text/i);
   assert.match(sql, /add column if not exists transport text/i);
   assert.match(sql, /trackmcp_task_transitions_transport_check/i);
+  assert.match(sql, /stdio.*streamable_http.*sse.*custom.*unknown/s);
+  assert.doesNotMatch(sql, /\b(drop|truncate|delete)\s+(table|schema|from|database)\b/i);
+  assert.doesNotMatch(sql, /\b(insert|update)\s+into\b/i);
+});
+
+test("catalog entity transport migration is additive and bounded", async () => {
+  const sql = await readFile(catalogEntityTransportMigrationPath, "utf8");
+  assert.match(sql, /add column if not exists transport text/i);
+  assert.match(sql, /trackmcp_catalog_entity_reads_transport_check/i);
   assert.match(sql, /stdio.*streamable_http.*sse.*custom.*unknown/s);
   assert.doesNotMatch(sql, /\b(drop|truncate|delete)\s+(table|schema|from|database)\b/i);
   assert.doesNotMatch(sql, /\b(insert|update)\s+into\b/i);

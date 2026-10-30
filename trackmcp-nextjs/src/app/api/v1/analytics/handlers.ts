@@ -349,7 +349,7 @@ export function createAnalyticsHandler(getAdmin: typeof getSupabaseAdmin = getSu
     limitation: "Snapshot rows are versioned catalog observations. Notification-family counts are correlated only through the bounded same-scope evidence join when a unique snapshot is available; ambiguous or unmatched notifications remain unresolved, and no snapshot version is inferred.",
   };
   const entityReadsQuery = supabase.from("trackmcp_catalog_entity_reads")
-    .select("catalog_kind,entity_hash,success,is_error,result_type,observed_at")
+    .select("catalog_kind,entity_hash,success,is_error,result_type,observed_at,transport")
     .eq("workspace_id", workspaceId).gte("observed_at", since);
   if (until) entityReadsQuery.lt("observed_at", until);
   const entityReadsResult = await entityReadsQuery.order("observed_at", { ascending: true }).limit(10001);
@@ -363,6 +363,12 @@ export function createAnalyticsHandler(getAdmin: typeof getSupabaseAdmin = getSu
       successful_reads: rows.filter((row) => row.success === true && row.is_error !== true).length,
       failed_reads: rows.filter((row) => row.is_error === true || row.success === false).length,
       input_required_reads: rows.filter((row) => row.result_type === "input_required").length,
+      transport_breakdown: ["stdio", "streamable_http", "sse", "custom", "unknown"].map((transport) => ({
+        transport,
+        read_events: rows.filter((row) => (typeof row.transport === "string" ? row.transport : "unknown") === transport).length,
+        successful_reads: rows.filter((row) => (typeof row.transport === "string" ? row.transport : "unknown") === transport && row.success === true && row.is_error !== true).length,
+        failed_reads: rows.filter((row) => (typeof row.transport === "string" ? row.transport : "unknown") === transport && (row.is_error === true || row.success === false)).length,
+      })).filter((item) => item.read_events > 0),
     };
   };
   const refreshJobsResult = await supabase.from("trackmcp_refresh_jobs")

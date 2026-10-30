@@ -464,8 +464,8 @@ const EXAMPLE_ANALYTICS: Analytics = {
   ],
   protocol_family_outcome_source: "event_window",
   interaction_surfaces: {
-    resources: { events: 42, methods: ["resources/list", "resources/read"], entity_count: 12, entity_identity: "sha256_hash_count", entity_analytics: { status: "available", read_events: 31, successful_reads: 28, failed_reads: 2, input_required_reads: 1 } },
-    prompts: { events: 19, methods: ["prompts/list", "prompts/get"], entity_count: 5, entity_identity: "sha256_hash_count", entity_analytics: { status: "available", read_events: 16, successful_reads: 14, failed_reads: 1, input_required_reads: 1 } },
+    resources: { events: 42, methods: ["resources/list", "resources/read"], entity_count: 12, entity_identity: "sha256_hash_count", entity_analytics: { status: "available", read_events: 31, successful_reads: 28, failed_reads: 2, input_required_reads: 1, transport_breakdown: [{ transport: "streamable_http", read_events: 31, successful_reads: 28, failed_reads: 2 }] } },
+    prompts: { events: 19, methods: ["prompts/list", "prompts/get"], entity_count: 5, entity_identity: "sha256_hash_count", entity_analytics: { status: "available", read_events: 16, successful_reads: 14, failed_reads: 1, input_required_reads: 1, transport_breakdown: [{ transport: "streamable_http", read_events: 16, successful_reads: 14, failed_reads: 1 }] } },
   },
   transports: ["streamable_http"],
   methods: ["tools/list", "tools/call"],

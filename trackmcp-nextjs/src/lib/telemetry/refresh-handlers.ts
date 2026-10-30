@@ -3,7 +3,7 @@ import { projectTrackMCPFact, type TrackMCPFact } from "./facts.ts";
 import { persistTrackMCPFacts } from "./fact-writer.ts";
 import { evaluateTrackMCPActionQueue, persistTrackMCPActionQueue } from "./action-queue.ts";
 import { buildCatalogVersionWrites, type CatalogObservationRow, type ExistingCatalogVersion } from "./catalog-refresh.ts";
-import { buildCatalogEntityReadWrites } from "./catalog-entities.ts";
+import { buildCatalogEntityReadWrites, type CatalogEntityReadObservation } from "./catalog-entities.ts";
 import { buildTaskTransitionWrites, persistTrackMCPTaskTransitions } from "./task-transitions.ts";
 import type { RefreshJobHandlerRegistry } from "./refresh-worker.ts";
 
@@ -203,10 +203,10 @@ export function createRefreshJobHandlers(admin: RefreshAdmin, options: RefreshHa
     async catalog_entity_recompute({ job, signal }) {
       if (signal?.aborted) return { outcome: "deferred", detail: "worker deadline deferred this job" };
       try {
-        const query = applyJobWindow(admin.from("trackmcp_events").select("event_id,server_id,environment,catalog_kind,catalog_item_name_hashes,catalog_item_uri_hashes,mcp_method,started_at,success,is_error,result_type").eq("workspace_id", job.workspace_id), job, "started_at");
+        const query = applyJobWindow(admin.from("trackmcp_events").select("event_id,server_id,environment,transport,catalog_kind,catalog_item_name_hashes,catalog_item_uri_hashes,mcp_method,started_at,success,is_error,result_type").eq("workspace_id", job.workspace_id), job, "started_at");
         const result = await query.order("started_at", { ascending: false }).limit(MAX_ROWS);
         if (result.error) return retryable(result.error);
-        const writes = buildCatalogEntityReadWrites(job.workspace_id, (result.data || []) as CatalogObservationRow[]);
+        const writes = buildCatalogEntityReadWrites(job.workspace_id, (result.data || []) as CatalogEntityReadObservation[]);
         if (!writes.length) return { outcome: "succeeded" as const };
         const persisted = await admin.from("trackmcp_catalog_entity_reads").upsert(writes, { onConflict: "workspace_id,source_event_id,catalog_kind,entity_hash", ignoreDuplicates: true });
         return persisted.error ? retryable(persisted.error) : { outcome: "succeeded" as const };

@@ -104,6 +104,7 @@ with required(table_name, column_name) as (
     ('trackmcp_catalog_entity_reads', 'source_event_id'),
     ('trackmcp_catalog_entity_reads', 'catalog_kind'),
     ('trackmcp_catalog_entity_reads', 'entity_hash'),
+    ('trackmcp_catalog_entity_reads', 'transport'),
     ('trackmcp_catalog_entity_reads', 'observed_at'),
     ('trackmcp_cli_device_sessions', 'device_code_hash'),
     ('trackmcp_cli_device_sessions', 'user_code_hash'),

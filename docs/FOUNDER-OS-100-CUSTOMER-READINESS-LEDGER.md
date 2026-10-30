@@ -1,5 +1,18 @@
 # Founder OS 100 Customer Readiness Ledger
 
+## 2026-10-30 — durable resource/prompt reads preserve transport scope
+
+- [x] Hash-only `resources/read` and `prompts/get` projections now retain the
+  caller-verified transport label (`stdio`, `streamable_http`, `sse`, `custom`,
+  or `unknown`) without storing URIs, names, arguments, or contents.
+- [x] The analytics entity-read evidence now exposes bounded per-transport
+  counts, keeping cross-transport reads distinguishable instead of implying a
+  single homogeneous source.
+- [x] Added the additive migration, complete-postflight coverage, worker
+  selection coverage, and privacy-safe projection tests.
+- [ ] Existing production rows remain legacy `unknown` until the migration is
+  applied; authenticated multi-transport customer UAT remains open.
+
 ## 2026-10-30 — durable task evidence no longer double-counts event-window facts
 
 - [x] Durable task transition reads now include their bounded source event ID.

@@ -438,4 +438,5 @@ export type EntityReadAnalytics = {
   successful_reads: number;
   failed_reads: number;
   input_required_reads: number;
+  transport_breakdown: Array<{ transport: "stdio" | "streamable_http" | "sse" | "custom" | "unknown"; read_events: number; successful_reads: number; failed_reads: number }>;
 };
