@@ -21,6 +21,8 @@ import { TrackMCPClientAdapter } from "../packages/typescript-sdk/dist/client-ad
 const confirmation = "I_UNDERSTAND_SYNTHETIC_CUSTOMER_MCP_UAT";
 const apiKey = "tmcp_synthetic_fixture_key";
 const authToken = "synthetic-customer-token";
+const configuredApiKey = process.env.SYNTHETIC_CUSTOMER_MCP_UAT_API_KEY || apiKey;
+const configuredIngestEndpoint = process.env.SYNTHETIC_CUSTOMER_MCP_UAT_INGEST_ENDPOINT || "";
 const appRoot = process.cwd();
 const reportPath = process.env.SYNTHETIC_CUSTOMER_MCP_UAT_REPORT || join(appRoot, "../docs/evidence/synthetic-customer-mcp-uat-2026-10-30.json");
 
@@ -194,14 +196,16 @@ async function main() {
   }
   const fixture = await startSyntheticServer();
   const events = [];
+  const deliveryErrors = [];
   const adapter = new TrackMCPClientAdapter({
-    apiKey,
-    endpoint: `${fixture.origin}/api/v1/ingest`,
+    apiKey: configuredApiKey,
+    endpoint: configuredIngestEndpoint || `${fixture.origin}/api/v1/ingest`,
     service: "synthetic-customer-mcp",
     environment: "uat",
     transport: "streamable_http",
     flushIntervalMs: 60_000,
     onEvent: (event) => events.push(event),
+    onDeliveryError: (error) => deliveryErrors.push({ kind: error.kind, status: error.status, retrying: error.retrying }),
   });
   const transport = new StreamableHTTPClientTransport(new URL(`${fixture.origin}/mcp`), {
     requestInit: { headers: { authorization: `Bearer ${authToken}` } },
@@ -236,28 +240,36 @@ async function main() {
     assert.equal(completion.completion.values.length, 3);
     await client.close();
     await adapter.flush();
+    for (let attempt = 0; attempt < 8 && adapter.getDiagnostics().queuedEvents > 0; attempt += 1) {
+      await new Promise((resolve) => setTimeout(resolve, 50));
+      await adapter.flush();
+    }
 
-    const delivered = fixture.ingested.flatMap((batch) => batch.events || []);
+    const delivered = configuredIngestEndpoint ? events : fixture.ingested.flatMap((batch) => batch.events || []);
     assert.ok(delivered.length >= 70, `expected broad telemetry delivery, got ${delivered.length}`);
     assert.equal(JSON.stringify(delivered).includes("secret-call-argument"), false);
     assert.equal(JSON.stringify(delivered).includes("secret-resource-value"), false);
     assert.equal(JSON.stringify(delivered).includes("secret-prompt-value"), false);
     assert.equal(JSON.stringify(delivered).includes(authToken), false);
     assert.equal(JSON.stringify(delivered).includes(apiKey), false);
-    assert.equal(adapter.getDiagnostics().pending_request_count, 0);
+    const diagnostics = adapter.getDiagnostics();
+    assert.equal(diagnostics.pending_request_count, 0);
+    assert.equal(diagnostics.queuedEvents, 0);
+    if (configuredIngestEndpoint) assert.deepEqual(deliveryErrors, [], `authenticated product ingest reported delivery errors: ${JSON.stringify(deliveryErrors)}`);
 
     const report = {
       outcome: "passed",
-      evidence_class: "synthetic_customer_fixture_uat",
+      evidence_class: configuredIngestEndpoint ? "authenticated_product_synthetic_customer_mcp_uat" : "synthetic_customer_fixture_uat",
       generated_at: new Date().toISOString(),
-      target: "local synthetic customer MCP server",
+      target: configuredIngestEndpoint ? new URL(configuredIngestEndpoint).origin : "local synthetic customer MCP server",
       transport: "streamable_http",
       protocol_version: "2025-06-18",
       catalog: { tools: listedTools.tools.length, resources: listedResources.resources.length, resource_templates: listedTemplates.resourceTemplates.length, prompts: listedPrompts.prompts.length },
       exercised: { tool_calls: fixture.calls.length, resource_reads: resources.length, prompt_gets: prompts.length, completions: 1 },
-      telemetry: { delivered_events: delivered.length, summary: summarize(delivered), diagnostics: adapter.getDiagnostics(), sensitive_values_retained: false },
+      telemetry: { delivered_events: delivered.length, summary: summarize(delivered), diagnostics, sensitive_values_retained: false },
       caveats: [
         "This validates the TrackMCP client/telemetry path against a deterministic synthetic customer server.",
+        ...(configuredIngestEndpoint ? ["Telemetry was delivered to the authenticated TrackMCP product ingest endpoint using a disposable test-workspace key."] : []),
         "It does not replace a real customer-owned endpoint UAT or release-owner approval.",
         "Tool arguments, resource contents, prompt messages, and credentials were not retained in telemetry.",
       ],
