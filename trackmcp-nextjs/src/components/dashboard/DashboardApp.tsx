@@ -132,6 +132,7 @@ const legacyViewMap: Record<string, View> = {
 };
 const validViews = new Set<View>(allNav.map((item) => item.id));
 const fmt = (value: number) => value.toLocaleString();
+const formatTransport = (value: string) => value === "streamable_http" ? "Streamable HTTP" : value === "stdio" ? "stdio" : value === "sse" ? "SSE" : value === "custom" ? "Custom" : "Unknown";
 const fmtObservedAt = (value: string) => {
   const parsed = Date.parse(value);
   return Number.isFinite(parsed) ? new Date(parsed).toLocaleString(undefined, { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" }) : "unknown";
@@ -2689,6 +2690,7 @@ function InteractionSurfacePanel({
               <span>Failed</span><span className="text-right font-medium text-ink">{fmt(value.entity_analytics.failed_reads)}</span>
               <span>Needs input</span><span className="text-right font-medium text-ink">{fmt(value.entity_analytics.input_required_reads)}</span>
             </div>
+            {value.entity_analytics.transport_breakdown.length > 0 && <div className="mt-3 border-t border-line pt-2"><p className="text-[10px] uppercase tracking-[0.08em] text-faint">Transport coverage</p><div className="mt-1 space-y-1">{value.entity_analytics.transport_breakdown.slice(0, 5).map((item) => <div key={item.transport} className="flex items-center justify-between gap-2 text-[11px]"><span className="text-muted">{formatTransport(item.transport)}</span><span className="text-right text-ink">{fmt(item.read_events)} reads · {fmt(item.successful_reads)} ok · {fmt(item.failed_reads)} failed</span></div>)}</div></div>}
             <p className="mt-2 text-[10px] uppercase tracking-[0.08em] text-faint">
               {value.entity_analytics.status === "available"
                 ? "Durable read projection"
@@ -3224,6 +3226,7 @@ function ResourcesPromptsView({
             <div className="mt-4 grid grid-cols-2 gap-2 text-xs sm:grid-cols-4">
               {[["Reads", surface.entity_analytics.read_events], ["Successful", surface.entity_analytics.successful_reads], ["Failed", surface.entity_analytics.failed_reads], ["Needs input", surface.entity_analytics.input_required_reads]].map(([metric, value]) => <div key={String(metric)} className="border border-line bg-white p-3"><p className="text-muted">{metric}</p><p className="mt-1 font-semibold text-ink">{fmt(Number(value))}</p></div>)}
             </div>
+            {surface.entity_analytics.transport_breakdown.length > 0 && <div className="mt-4 border-t border-line pt-3"><p className="text-[10px] uppercase tracking-[0.08em] text-faint">Transport coverage</p><div className="mt-2 space-y-1">{surface.entity_analytics.transport_breakdown.slice(0, 5).map((item) => <div key={item.transport} className="flex items-center justify-between gap-2 text-[11px]"><span className="text-muted">{formatTransport(item.transport)}</span><span className="text-right text-ink">{fmt(item.read_events)} reads · {fmt(item.successful_reads)} ok · {fmt(item.failed_reads)} failed</span></div>)}</div></div>}
             <p className="mt-3 text-[10px] uppercase tracking-[0.08em] text-faint">{surface.entity_analytics.status === "available" ? "Durable read projection" : surface.entity_analytics.status === "no_rows" ? "No durable reads in this window" : "Durable read schema unavailable"}</p>
           </Panel>
         ))}

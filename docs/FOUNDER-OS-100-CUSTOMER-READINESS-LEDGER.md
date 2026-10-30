@@ -1,5 +1,17 @@
 # Founder OS 100 Customer Readiness Ledger
 
+## 2026-10-30 — transport coverage is visible in Resources & prompts
+
+- [x] The Resources & prompts dashboard now renders the bounded durable
+  `transport_breakdown` for resources and prompts, including reads, successful
+  reads, and failed reads for each caller-verified transport.
+- [x] The example model and live API therefore share the same evidence shape;
+  the UI no longer hides a transport dimension that analytics already exposes.
+- [x] Dashboard contract coverage verifies the field and label are consumed,
+  and the full focused dashboard/typecheck/lint checks pass.
+- [ ] Legacy production entity-read rows remain `unknown` until the additive
+  migration is applied; customer-owned multi-transport UAT remains open.
+
 ## 2026-10-30 — resource/prompt interaction handles are server-scoped
 
 - [x] Analytics now namespaces opaque `interaction_id` and `request_state_hash`

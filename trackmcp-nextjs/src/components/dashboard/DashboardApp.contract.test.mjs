@@ -113,6 +113,9 @@ test("resources and prompts have a dedicated evidence-bounded surface", () => {
   assert.match(source, /function ResourcesPromptsView/);
   assert.match(source, /title=\"Resources & prompts\"/);
   assert.match(source, /Hashed entities/);
+  assert.match(source, /transport_breakdown/);
+  assert.match(source, /Transport coverage/);
+  assert.match(source, /formatTransport\(item\.transport\)/);
   assert.match(source, /No resource or prompt evidence yet/);
   assert.match(source, /does not expose resource contents, prompt arguments/);
 });
