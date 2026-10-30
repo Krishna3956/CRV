@@ -73,7 +73,12 @@ is intentionally not a GO approval and must not be treated as one.
   and uploads only a mode-0600 redacted report. It rejects unsafe targets,
   cross-origin redirects, arbitrary tool calls, and implicit OAuth flows. The
   harness improves the evidence path but does not close this gate until a
-  credentialed customer endpoint run is executed and accepted.
+  credentialed customer endpoint run is executed and accepted. The
+  repository-level Actions secret inventory checked on 2026-10-30 contains the
+  refresh-worker secrets but does not contain
+  `TRACKMCP_CUSTOMER_ENDPOINT_UAT_KEY` or
+  `TRACKMCP_CUSTOMER_ENDPOINT_UAT_AUTH_TOKEN`; an operator must provision
+  those disposable credentials before the guarded workflow can run.
 - Rollback and authenticated scope-smoke evidence are reconciled in the
   release record through queue items 256 and 249.
 - Scheduler deployment history is retained: disabled run `40397368253` failed

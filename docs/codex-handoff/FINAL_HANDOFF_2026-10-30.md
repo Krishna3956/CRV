@@ -93,7 +93,10 @@ source tests pass:
   bounded and privacy-safe, but acceptance is a governance decision.
 - Customer-owned MCP endpoint/protocol UAT through the guarded
   `customer-endpoint-uat.yml` workflow. The harness exists; a real customer
-  endpoint run still needs operator-supplied endpoint/version/credentials.
+  endpoint run still needs operator-supplied endpoint/version/credentials. The
+  repository-level Actions secret inventory checked on 2026-10-30 does not list
+  `TRACKMCP_CUSTOMER_ENDPOINT_UAT_KEY` or
+  `TRACKMCP_CUSTOMER_ENDPOINT_UAT_AUTH_TOKEN`.
 - Refresh-health freshness should continue to be monitored. The queue repair
   and replay evidence is recorded, but the health gate must be re-evaluated
   against the latest scheduled sample window rather than inferred from old
