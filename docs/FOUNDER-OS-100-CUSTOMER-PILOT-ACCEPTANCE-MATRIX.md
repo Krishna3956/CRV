@@ -7,16 +7,19 @@ Current deployed baseline: application runtime
 `41013186081`, passed release gate, rollout, production smoke, runtime-safety,
 translation-provider, and identity checks). The current repository source is
 `main` at documentation-only handoff commit
-`f9fbb0b7380ab6bb738c060f825b72cdfd2958a3`; the direct-origin health probe
+`96aeb50865e27fabe03f7511cfedc761aca3dbde`; the direct-origin health probe
 reports the deployed application SHA.
 The full local release gate passes 154 suites and the production build generates
 211 routes. Authenticated production smoke `41014068784` passed against the
 deployed revision; direct-origin first-ingest `40894964464` and SDK-shaped
 public-edge smoke `40896249223` both passed one bounded metadata-only event plus
-analytics read-back. Health evaluation `41018456722` remains `warning` because
-the AWS window still contains one `923273ms` worker-lag sample above the
-`900000ms` freshness budget despite the drained queue; the freshness gate is
-still open. The alert evaluator remains manual-only
+analytics read-back. Health evaluation `41020556319` proves four complete AWS
+worker samples with zero worker failures/retries/parse failures and maximum
+worker lag `845605ms` within the `900000ms` freshness budget, but remains
+`warning` because the bounded AWS window includes one scheduler failure and
+retained GitHub recovery history includes one timed-out sample. Serial recovery
+run `41020485719` is clean at `879644ms`; the provider-owned scheduler gate
+remains open pending a clean bounded AWS window. The alert evaluator remains manual-only
 and disabled-first; no production alert delivery is claimed.
 This is current runtime and source evidence, not a pilot GO decision.
 

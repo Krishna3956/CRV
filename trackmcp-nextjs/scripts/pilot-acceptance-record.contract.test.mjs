@@ -26,10 +26,10 @@ test("pilot release record points at the verified deployed baseline", () => {
   const current = section(record, "## Current deployed baseline", "## Historical deployed baseline");
   assert.match(current, /177165180383e31bb7760040469f9aaa7f78f8a1/);
   assert.match(current, /41013186081/);
-  assert.match(current, /f9fbb0b7380ab6bb738c060f825b72cdfd2958a3/);
+  assert.match(current, /96aeb50865e27fabe03f7511cfedc761aca3dbde/);
   assert.match(current, /154 suites/);
   assert.match(current, /211 routes/);
-  assert.match(current, /41018456722/);
+  assert.match(current, /41020556319/);
 });
 
 test("pilot release record keeps unresolved operational gates explicit", () => {
@@ -68,7 +68,7 @@ test("acceptance matrix separates current source from deployed runtime", () => {
   assert.match(acceptanceMatrix, /177165180383e31bb7760040469f9aaa7f78f8a1/);
   assert.match(acceptanceMatrix, /current\s+repository\s+source\s+is\s+`main`\s+at\s+(?:documentation reconciliation|merged application|documentation-only(?: handoff)?) (?:commit|tip)/);
   assert.match(acceptanceMatrix, /41014068784/);
-  assert.match(acceptanceMatrix, /41018456722/);
+  assert.match(acceptanceMatrix, /41020556319/);
   assert.match(acceptanceMatrix, /full local release gate passes 154\s+suites/);
   assert.match(acceptanceMatrix, /alert evaluator remains manual-only/);
 });
