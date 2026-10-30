@@ -1,5 +1,22 @@
 # Founder OS first-100 readiness snapshot
 
+## 2026-10-30 transport-lineage release checkpoint
+
+The transport-scoped catalog lineage release is live as immutable application
+runtime `1afc766ebcf3db9b9149e02104eab74dd377cd42`. App Runner deployment
+workflow `40978136879` (retry attempt 2) passed the release gate, rollout,
+immutable identity, production smoke, runtime-safety, and live translation
+audits. Mainline CI `40978136898` passed all required lanes. The public health
+endpoint reports the same runtime SHA; `/`, `/sitemap.xml`, and the
+representative tool route return HTTP 200, and unauthenticated `/api/v2/catalogs`
+remains protected with HTTP 401.
+
+The current repository source is `main` at documentation reconciliation commit
+`4f043236b9d1ed51687a4972eba118b7fdfa3616`; that docs-only commit did not
+change the deployed application image. The additive transport migration and
+authenticated customer-owned multi-transport UAT remain open gates, so this is
+not a first-100 release GO.
+
 ## 2026-10-30 CLI release checkpoint
 
 The published `@trackmcp/cli@0.1.13` fixes the npm/npx `.bin` symlink entrypoint
@@ -18,9 +35,10 @@ The protocol-linkage hardening PR #741 merged as
 `0e6457378ad92e1c9a78b5e66acdfa5c5b274e76`. TrackMCP CI
 `40970812291` and App Runner deployment `40970812367` passed, including the
 release gate, immutable release identity, production smoke, runtime safety, and
-live translation-provider checks.
+live translation-provider checks; the transport-lineage release above is the
+newer application runtime.
 
-Updated: 2026-10-30 (Asia/Kolkata; source `0e6457378ad92e1c9a78b5e66acdfa5c5b274e76`; deployed runtime `0e6457378ad92e1c9a78b5e66acdfa5c5b274e76`; hosted evidence reconciled)
+Updated: 2026-10-30 (Asia/Kolkata; source `4f043236b9d1ed51687a4972eba118b7fdfa3616`; deployed runtime `1afc766ebcf3db9b9149e02104eab74dd377cd42`; hosted evidence reconciled)
 
 Status: **Engineering green; release decision HOLD**
 
@@ -49,7 +67,7 @@ replay, backup/PITR, privacy approval, and release-owner GO/NO-GO remain open.
 
 ## Current auth/localization checkpoint — 2026-10-30
 
-- The deployed App Runner runtime is `0e6457378ad92e1c9a78b5e66acdfa5c5b274e76` (workflow `40970812367`). `main` is at the same immutable SHA, and the direct-origin `/api/health` probe reports that exact release identity.
+- The deployed App Runner runtime is `1afc766ebcf3db9b9149e02104eab74dd377cd42` (workflow `40978136879`, retry attempt 2). `main` is now at documentation reconciliation commit `4f043236b9d1ed51687a4972eba118b7fdfa3616`, and the direct-origin `/api/health` probe reports the deployed application SHA.
 - Google and GitHub controls render immediately on the sign-in/sign-up surface and no longer wait for a provider-discovery request or a terms-checkbox interaction. The terms control defaults to checked for the email form; social providers still perform their provider-side consent flow.
 - The dashboard now retries the Supabase session briefly after the OAuth callback and workspace provisioning is idempotent across concurrent first-login callbacks. A fresh browser Google flow with `krishnaatmu@gmail.com` reached the authenticated dashboard in one attempt and loaded the `krishnaatmu` workspace.
 - Marketing-site translation remains a shared client runtime with App Runner-origin fallback. The initial page is held while the first translation batch settles, and a live scroll test preserved `zh-CN` after navigation through the page. Direct Cloudflare requests to `/api/translation` can still be rejected by edge policy; the user-facing runtime fallback is the supported path.
