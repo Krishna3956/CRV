@@ -24,7 +24,7 @@ test("protocol activity keeps family counts and provenance bounded", async () =>
       { transport: "streamable_http", observations: 3, requests: 1, responses: 2, matched: 1, completed: 1, errors: 0, input_required: 1, unknown: 1 },
       { transport: "unsafe", observations: 999999, requests: 999999, responses: 999999, matched: 999999, completed: 999999, errors: 999999, input_required: 999999, unknown: 999999 },
     ],
-    protocol_mrtr_linkage: { request_state_hashes: 3, interaction_hashes: 2, retry_links: 1, matched_pairs: 1, source: "durable_facts", private_payload: "do-not-return" },
+    protocol_mrtr_linkage: { request_state_hashes: 3, interaction_hashes: 2, retry_links: 1, matched_pairs: 1, source: "durable_facts", limitation: "Same-scope explicit handles only.", private_payload: "do-not-return" },
     protocol_capability_gaps: [
       { family: "sampling", requests_without_advertisement: 2, limitation: "Client did not advertise sampling." },
       { family: "private", requests_without_advertisement: 999, limitation: "do-not-return" },
@@ -51,7 +51,7 @@ test("protocol activity keeps family counts and provenance bounded", async () =>
     { transport: "streamable_http", observations: 3, requests: 1, responses: 2, matched: 1, completed: 1, errors: 0, input_required: 1, unknown: 1 },
     { transport: "unknown", observations: 100000, requests: 100000, responses: 100000, matched: 100000, completed: 100000, errors: 100000, input_required: 100000, unknown: 100000 },
   ]);
-  assert.deepEqual(body.protocol_mrtr_linkage, { request_state_hashes: 3, interaction_hashes: 2, retry_links: 1, matched_pairs: 1, source: "durable_facts" });
+  assert.deepEqual(body.protocol_mrtr_linkage, { request_state_hashes: 3, interaction_hashes: 2, retry_links: 1, matched_pairs: 1, source: "durable_facts", limitation: "Same-scope explicit handles only." });
   assert.deepEqual(body.protocol_capability_gaps, [{ family: "sampling", requests_without_advertisement: 2, limitation: "Client did not advertise sampling." }]);
   assert.ok(body.caveats.some((caveat) => caveat.includes("Completed is an explicit protocol result")));
   assert.equal(body.data_trust.source_event_count, 4);

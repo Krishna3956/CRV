@@ -10,6 +10,9 @@
   never projected.
 - [x] Integration and contract coverage verifies transport bounds, unknown
   fallback, capability-gap filtering, MRTR provenance, and privacy behavior.
+- [x] The projection preserves the bounded MRTR limitation text and bounds the
+  requested analytics window, so v2 consumers receive the same explanation
+  and uncertainty boundary as the v1 analytics engine.
 - [ ] This is a source-level read-model correction. Production migration
   application, authenticated customer-owned protocol UAT, and release-owner
   approval remain open gates.

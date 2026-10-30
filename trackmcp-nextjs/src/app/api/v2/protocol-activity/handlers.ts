@@ -6,6 +6,7 @@ import { projectTrackMCPDataTrust } from "../../../../lib/telemetry/data-trust.t
 const FAMILIES = new Set(["sampling", "elicitation", "completion", "tasks", "control_signal", "resources", "prompts", "tools", "subscriptions", "notifications", "roots", "logging"]);
 const TRANSPORTS = new Set(["stdio", "streamable_http", "sse", "custom", "unknown"]);
 const boundedCount = (value: unknown, max = 100_000) => typeof value === "number" && Number.isSafeInteger(value) ? Math.max(0, Math.min(max, value)) : 0;
+const boundedText = (value: unknown, fallback: string) => typeof value === "string" && value.trim().length > 0 ? value.trim().slice(0, 512) : fallback;
 const boundedTransport = (value: unknown) => typeof value === "string" && TRANSPORTS.has(value) ? value : "unknown";
 
 /**
@@ -22,7 +23,7 @@ export function createProtocolActivityHandler(analytics = createAnalyticsHandler
       ? body.protocol_family_activity
         .filter((value): value is { family: string; observations: number } => Boolean(value && typeof value === "object" && typeof (value as { family?: unknown }).family === "string" && typeof (value as { observations?: unknown }).observations === "number"))
         .filter((value) => FAMILIES.has(value.family))
-        .map((value) => ({ family: value.family, observations: Math.max(0, Math.min(100_000, Math.floor(value.observations))) }))
+        .map((value) => ({ family: value.family, observations: boundedCount(value.observations) }))
         .sort((a, b) => b.observations - a.observations || a.family.localeCompare(b.family))
         .slice(0, 10)
       : [];
@@ -49,6 +50,7 @@ export function createProtocolActivityHandler(analytics = createAnalyticsHandler
       retry_links: boundedCount(mrtr.retry_links),
       matched_pairs: boundedCount(mrtr.matched_pairs),
       source: mrtr.source === "durable_facts" || mrtr.source === "event_window" ? mrtr.source : "event_window",
+      limitation: boundedText(mrtr.limitation, "Counts are metadata-only evidence; raw hashes, retry identifiers, and payloads are never returned."),
     } : null;
     const capabilityGaps = Array.isArray(body.protocol_capability_gaps)
       ? body.protocol_capability_gaps.flatMap((value) => {
@@ -59,7 +61,7 @@ export function createProtocolActivityHandler(analytics = createAnalyticsHandler
       }).slice(0, 10)
       : [];
     return NextResponse.json(withTrackMCPV2Envelope({
-      range_days: typeof body.range_days === "number" ? body.range_days : null,
+      range_days: boundedCount(body.range_days, 365) || null,
       protocol_family_activity: activity,
       family_count: activity.length,
       protocol_family_outcomes: outcomes,
