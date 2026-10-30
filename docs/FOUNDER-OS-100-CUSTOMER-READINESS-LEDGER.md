@@ -1,5 +1,25 @@
 # Founder OS 100 Customer Readiness Ledger
 
+## 2026-10-30 — production transport-scope migrations applied
+
+- [x] Applied `20261030000002_task_transition_scope.sql` to the production
+  Supabase project `TOP-MCP-v2` through the SQL Editor. The migration completed
+  with “Success. No rows returned”; it is additive and leaves legacy rows
+  nullable/unknown.
+- [x] Applied `20261030000003_catalog_entity_transport_scope.sql` to the same
+  production project. The migration completed with “Success. No rows
+  returned”; it adds only the nullable caller-verified transport column,
+  constraint, index, and comment.
+- [x] Ran a read-only `information_schema.columns` postflight. It returned all
+  five expected columns: `service`, `environment`, `server_id`, and
+  `transport` on `trackmcp_task_transitions`, plus `transport` on
+  `trackmcp_catalog_entity_reads`.
+- [x] Existing rows were not backfilled or rewritten. Raw task handles,
+  endpoint URLs, resource URIs, prompt names, arguments, and contents remain
+  outside the schema change.
+- [ ] Customer-owned multi-transport UAT, production application deployment
+  of the source projection changes, and release-owner approval remain open.
+
 ## 2026-10-30 — v2 protocol activity preserves capability-aware transport and MRTR evidence
 
 - [x] The v2 protocol-activity projection now preserves bounded per-transport

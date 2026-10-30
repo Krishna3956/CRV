@@ -1,5 +1,15 @@
 # Founder OS first-100 readiness snapshot
 
+## 2026-10-30 production schema checkpoint — transport scope columns applied
+
+The two additive transport-scope migrations are now applied to the production
+Supabase project `TOP-MCP-v2`. A read-only information-schema postflight
+returned the expected five columns across `trackmcp_task_transitions` and
+`trackmcp_catalog_entity_reads`; no historical rows were rewritten. This
+closes the production-schema prerequisite for the source-level transport-scoped
+read models. It does not close customer-owned endpoint UAT, deployment of the
+current review branch, backup/PITR, privacy acceptance, or release-owner GO.
+
 ## 2026-10-30 source checkpoint — transport-scoped analytics is user-visible
 
 The current readiness branch contains the transport-scoped resource/prompt
