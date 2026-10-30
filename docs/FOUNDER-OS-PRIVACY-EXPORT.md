@@ -7,9 +7,10 @@ queue records, catalog-version metadata, and first-accepted-ingest milestones.
 It is read-only and does not issue, rotate, or revoke keys.
 
 The export also includes the bounded catalog entity-read projection. It contains
-only source-event references, protocol kind, SHA-256 identity hashes, bounded
-read outcome fields, and timestamps. Raw resource URIs, prompt names, request
-arguments, and returned content are never exported.
+only source-event references, protocol kind, caller-verified transport labels,
+SHA-256 identity hashes, bounded read outcome fields, and timestamps. Unsupported
+or legacy transport values are exported as `unknown`. Raw resource URIs, prompt
+names, request arguments, and returned content are never exported.
 
 ## Safety boundary
 

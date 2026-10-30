@@ -1,5 +1,21 @@
 # Founder OS 100 Customer Readiness Ledger
 
+## 2026-10-30 — privacy export preserves catalog transport scope
+
+- [x] Account privacy exports now select and project the caller-verified
+  `transport` label for catalog entity reads, keeping the exported evidence
+  shape aligned with the transport-scoped production schema.
+- [x] The projection uses an explicit allowlist (`stdio`, `streamable_http`,
+  `sse`, `custom`, `unknown`) and maps unsupported or legacy values to
+  `unknown`; no raw URIs, names, arguments, payloads, or content are added.
+- [x] Focused privacy-export tests, the route contract test, TypeScript, and
+  ESLint pass. The full release gate passes 154 suites and the production
+  build passes with 211 routes.
+- [ ] This source fix is on the current review branch and has not changed the
+  deployed `main` runtime until the branch is merged and deployment evidence
+  is available. Privacy acceptance, authenticated customer UAT, and release
+  owner approval remain open gates.
+
 ## 2026-10-30 — production transport-scope migrations applied
 
 - [x] Applied `20261030000002_task_transition_scope.sql` to the production

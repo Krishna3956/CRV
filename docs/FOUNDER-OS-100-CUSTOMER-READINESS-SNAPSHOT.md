@@ -1,5 +1,14 @@
 # Founder OS first-100 readiness snapshot
 
+## 2026-10-30 source checkpoint — privacy export transport scope
+
+Account privacy exports now preserve the caller-verified transport label for
+catalog entity reads and fail closed to `unknown` for unsupported or legacy
+values. Focused privacy/contract tests, TypeScript, ESLint, the full 154-suite
+release gate, and the 211-route production build all pass. This is a source
+branch correction and is not a deployed-runtime claim until the review branch
+is merged and deployment evidence is available.
+
 ## 2026-10-30 production schema checkpoint — transport scope columns applied
 
 The two additive transport-scope migrations are now applied to the production

@@ -196,6 +196,7 @@ export function projectCatalogEntityRead(row: JsonRecord): JsonRecord {
     server_id: typeof row.server_id === "string" ? row.server_id : null,
     environment: typeof row.environment === "string" ? row.environment : null,
     catalog_kind: row.catalog_kind === "resources" || row.catalog_kind === "prompts" ? row.catalog_kind : null,
+    transport: row.transport === "stdio" || row.transport === "streamable_http" || row.transport === "sse" || row.transport === "custom" || row.transport === "unknown" ? row.transport : "unknown",
     entity_hash: typeof row.entity_hash === "string" && /^[a-f0-9]{64}$/i.test(row.entity_hash) ? row.entity_hash.toLowerCase() : null,
     observed_at: typeof row.observed_at === "string" ? row.observed_at : null,
     success: typeof row.success === "boolean" ? row.success : null,
