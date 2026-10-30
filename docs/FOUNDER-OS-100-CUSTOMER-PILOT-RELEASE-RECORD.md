@@ -28,10 +28,11 @@ configured in the dedicated Google Cloud project `trusty-diorama-513117-f6`,
 enabled in Supabase, and the TrackMCP account is registered as a test user. A
 fresh Google browser flow using `krishnaatmu@gmail.com` returned to
 `app.trackmcp.com/dashboard` and loaded the `krishnaatmu` workspace. New-user
-onboarding and device-flow OAuth return-path checks remain open. The
-release remains Draft/HOLD because backup/recovery ownership,
-privacy acceptance, credentialed lifecycle/customer-endpoint UAT, and
-release-owner approval remain open.
+onboarding and device-flow OAuth return-path checks remain open. Disposable
+production key create/rotate/revoke UAT was verified on 2026-10-28, and the
+account key routes have not changed since that run. The release remains
+Draft/HOLD because backup/recovery ownership, privacy acceptance,
+customer-owned endpoint/protocol UAT, and release-owner approval remain open.
 
 The prior runtime baseline and historical evidence remain below.
 

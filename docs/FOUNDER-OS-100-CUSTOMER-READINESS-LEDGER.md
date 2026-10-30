@@ -19,6 +19,24 @@
   becomes customer-interoperability evidence; no unsupported protocol or
   negotiated-support claim is made from the deployed fixture alone.
 
+## 2026-10-30 — production key lifecycle evidence reconciled
+
+- [x] The disposable production UAT recorded on 2026-10-28 verified workspace
+  and key creation (`201`), workspace listing (`200`), active-key rotation
+  (`201`), rejection of the old key after rotation (`401`), acceptance of the
+  replacement (`200`), replacement-key revocation (`200`), and rejection of
+  the replacement after revocation (`401`). Both disposable credentials ended
+  revoked, and the report retained statuses only.
+- [x] The account key and key-status routes have not changed since that UAT;
+  the only later workspace-route change was OAuth provisioning idempotency.
+  The evidence therefore remains applicable to the current deployed route
+  implementation, while the source/runtime release gates remain separate.
+- [x] The active register below now distinguishes the verified key mutation
+  boundary from the still-open customer-owned endpoint and protocol UAT.
+- [ ] This does not close transport-owned reconnect/replay, durable
+  subscriptions, OAuth token exchange, privacy acceptance, backup/PITR, or
+  release-owner approval.
+
 ## 2026-10-30 — translation observer stability fix deployed
 
 - [x] PR #754 merged to `main` as
@@ -1435,7 +1453,7 @@ End of historical checkpoint archive.
 | Worker freshness | Health artifact `12905900486` from run `40891096616`: healthy bounded window with 4 AWS invocations, 0 errors, 4 end-to-end successes, 4 complete worker samples, 0 failed/retryable/parse-failure samples, and `867340 ms` maximum AWS worker lag | **PROVEN / monitor** | Continue scheduled monitoring; reopen only if a later bounded window exceeds the `900000 ms` budget or records worker/scheduler failures |
 | Backup/PITR | Supabase Free Plan has no scheduled backups or PITR | **HOLD / owner decision** | Accepted documented limitation with named recovery owner/runbook, or plan upgrade plus tested restore rehearsal |
 | Privacy acceptance | Engineering export/deletion contracts pass; production acceptance is not recorded | **HOLD / owner decision** | Signed production privacy review and retention/deletion acceptance |
-| Credentialed lifecycle/UAT | Live read-only authenticated smoke `40893382834` passed `37/37` tenant/privacy checks and direct-origin first-ingest smoke `40894964464` passed acceptance plus analytics read-back on `32ff5dfe`; key mutation and customer-owned endpoint/protocol UAT remain unexecuted | **HOLD / credentialed** | Disposable key creation/rotation/revocation evidence, customer-owned endpoint/protocol UAT, and explicit acceptance of reconnect/replay, durable-subscription, and OAuth boundaries |
+| Credentialed lifecycle/UAT | Live read-only authenticated smoke `40893382834` passed `37/37` tenant/privacy checks; direct-origin first-ingest smoke `40894964464` and SDK-shaped public-edge smoke `40896249223` passed bounded acceptance/read-back; disposable production UAT verified key creation, rotation, old-key rejection, replacement acceptance, revocation, and post-revocation rejection on 2026-10-28 | **PARTIALLY PROVEN / customer UAT remains** | Customer-owned endpoint/protocol UAT artifact and explicit acceptance of reconnect/replay, durable-subscription, OAuth token-exchange, privacy, backup/PITR, and release-owner boundaries |
 | Release-owner acceptance | Source, CI, deployment, package publication, and local release gates are green | **HOLD / owner decision** | Explicit approval referencing this register and the current deployed source |
 
 The detailed historical table below is retained for audit continuity and is not

@@ -12,9 +12,11 @@ unauthenticated `/api/v2/catalogs` remains protected with HTTP 401.
 
 The current repository source is `main` at the same merged application commit
 `c6b6e85a43c33629e73694eb312e4e7db24b5a35`. Capability-aware matching is
-deployed, but authenticated customer-owned multi-transport UAT, backup/PITR,
-privacy acceptance, and release-owner approval remain open gates, so this is
-not a first-100 release GO.
+deployed. The disposable production key create/rotate/revoke boundary was
+verified on 2026-10-28 and the account key routes have not changed since that
+run; customer-owned multi-transport UAT, backup/PITR, privacy acceptance, and
+release-owner approval remain open gates, so this is not a first-100 release
+GO.
 
 ## 2026-10-30 CLI release checkpoint
 
@@ -59,10 +61,12 @@ despite conflicting workspace query parameters; all v2 and legacy read models
 returned privacy-safe authenticated envelopes; API-key Action Queue access was
 correctly denied; and the revoked key returned the expected 401/403 class.
 The durable redacted evidence record is
-`docs/evidence/production-auth-scope-smoke-2026-10-30.json`. This closes the
-current tenant/authenticated-read evidence point only. Key lifecycle
-mutation, customer-owned endpoint/transport UAT, transport-owned reconnect or
-replay, backup/PITR, privacy approval, and release-owner GO/NO-GO remain open.
+`docs/evidence/production-auth-scope-smoke-2026-10-30.json`. The separate
+disposable production UAT verified key create/rotate/revoke and post-revocation
+rejection on 2026-10-28. This closes the current tenant/authenticated-read and
+key-mutation evidence points only. Customer-owned endpoint/transport UAT,
+transport-owned reconnect or replay, backup/PITR, privacy approval, and
+release-owner GO/NO-GO remain open.
 
 ## Current auth/localization checkpoint — 2026-10-30
 
