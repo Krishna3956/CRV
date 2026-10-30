@@ -10,6 +10,10 @@ not an unbounded public-launch approval.
 
 ## Final release-owner GO — 2026-10-30
 
+The release-owner approval is retained verbatim:
+
+> FINAL GO — I approve TrackMCP for a controlled first-100-customer pilot as of 2026-10-30, accepting metadata-only telemetry, manual/disabled-first alerting, Supabase Free-plan logical-export-only recovery with PITR disabled, the release owner as rollback/restoration owner, and the documented UAT/protocol limitations. This is a controlled pilot approval, not an unbounded production guarantee.
+
 The release owner authorizes a controlled first-100-user pilot based on the
 evidence below and accepts the following explicit boundaries:
 

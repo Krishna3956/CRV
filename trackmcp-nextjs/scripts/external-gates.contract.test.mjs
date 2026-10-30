@@ -10,6 +10,7 @@ test("first-100 external-gate register is explicit GO for the controlled pilot",
   assert.match(register, /Status:\s*\*\*GO — controlled first-100 pilot\*\*/);
   assert.match(register, /Updated:\s*2026-10-30/);
   assert.match(register, /Final release-owner GO/);
+  assert.match(register, /FINAL GO — I approve TrackMCP for a controlled first-100-customer pilot/);
   assert.match(register, /41049662323/);
   assert.match(register, /Current source verification: `main` at/);
   assert.match(register, /155 suites/);
@@ -26,6 +27,7 @@ test("all operator and infrastructure gates remain named with closure evidence",
 });
 
 test("the release record carries the same current source gate evidence", () => {
+  assert.match(releaseRecord, /FINAL GO — I approve TrackMCP for a controlled first-100-customer pilot/);
   assert.match(releaseRecord, /current source is\s+`main`\s+at (?:documentation reconciliation|the same merged application) commit|current source is\s+`main`\s+at documentation-only tip/i);
   assert.match(releaseRecord, /latest local release gate\s+passes\s+\*\*155\s+suites\*\*/i);
   assert.match(releaseRecord, /211 routes/);
