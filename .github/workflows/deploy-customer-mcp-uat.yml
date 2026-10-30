@@ -71,19 +71,14 @@ jobs:
           ACCESS_ROLE_ARN: ${{ steps.resolve.outputs.access_role_arn }}
         run: |
           set -euo pipefail
-          SERVICE_ARN=$(aws apprunner list-services --query "ServiceSummaryList[?ServiceName=='$SERVICE_NAME'].ServiceArn | [0]" --output text)
-          if [[ "$SERVICE_ARN" == "None" || -z "$SERVICE_ARN" ]]; then
-            SERVICE_ARN=$(aws apprunner create-service \
-              --service-name "$SERVICE_NAME" \
-              --source-configuration "ImageRepository={ImageIdentifier=$IMAGE,ImageRepositoryType=ECR,ImageConfiguration={Port=8080,RuntimeEnvironmentVariables={PORT=8080,CUSTOMER_MCP_ENDPOINT_PORT=8080,CUSTOMER_MCP_ENDPOINT_BIND=0.0.0.0}}},AutoDeploymentsEnabled=false,AuthenticationConfiguration={AccessRoleArn=$ACCESS_ROLE_ARN}" \
-              --instance-configuration Cpu=1,Memory=2GB \
-              --query 'Service.ServiceArn' --output text)
-          else
-            aws apprunner update-service \
-              --service-arn "$SERVICE_ARN" \
-              --source-configuration "ImageRepository={ImageIdentifier=$IMAGE,ImageRepositoryType=ECR,ImageConfiguration={Port=8080,RuntimeEnvironmentVariables={PORT=8080,CUSTOMER_MCP_ENDPOINT_PORT=8080,CUSTOMER_MCP_ENDPOINT_BIND=0.0.0.0}}},AutoDeploymentsEnabled=false,AuthenticationConfiguration={AccessRoleArn=$ACCESS_ROLE_ARN}" \
-              --instance-configuration Cpu=1,Memory=2GB >/dev/null
-          fi
+          # This is a one-time isolated UAT service. The reviewed deploy role
+          # intentionally cannot enumerate App Runner services, so create the
+          # fixed-name service directly and retain the returned ARN for polling.
+          SERVICE_ARN=$(aws apprunner create-service \
+            --service-name "$SERVICE_NAME" \
+            --source-configuration "ImageRepository={ImageIdentifier=$IMAGE,ImageRepositoryType=ECR,ImageConfiguration={Port=8080,RuntimeEnvironmentVariables={PORT=8080,CUSTOMER_MCP_ENDPOINT_PORT=8080,CUSTOMER_MCP_ENDPOINT_BIND=0.0.0.0}}},AutoDeploymentsEnabled=false,AuthenticationConfiguration={AccessRoleArn=$ACCESS_ROLE_ARN}" \
+            --instance-configuration Cpu=1,Memory=2GB \
+            --query 'Service.ServiceArn' --output text)
           echo "service_arn=$SERVICE_ARN" >> "$GITHUB_OUTPUT"
 
       - name: Wait for endpoint service
