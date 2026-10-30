@@ -13,6 +13,8 @@
   `test:dependency-pins`, `test:publish-workflow`, `test:docs-version`, and
   `test:package-release-audit` pass locally; the release artifact audit still
   covers only the approved npm/PyPI train.
+- [x] The consolidated tree also passed the complete **154-suite** release
+  gate, ESLint, and the production build with **211 routes** generated.
 - [ ] Go/.NET registry publication remains an explicit release-owner decision;
   no package will be published or advertised without that decision and a
   corresponding clean-consumer/provenance gate.
