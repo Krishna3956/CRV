@@ -520,7 +520,11 @@ transport/version choice, and disposable credentials. Its report is redacted
 and mode `0600`; the release gate also exercises the official Streamable HTTP
 discovery path against an explicit loopback fixture with a private-target
 override. Running the workflow against a real customer endpoint remains an
-external acceptance action.
+external acceptance action. The repository-level Actions secret inventory
+checked on 2026-10-30 does not contain the disposable
+`TRACKMCP_CUSTOMER_ENDPOINT_UAT_KEY` or
+`TRACKMCP_CUSTOMER_ENDPOINT_UAT_AUTH_TOKEN` values required by the guarded
+workflow, so no credentialed customer run is claimed.
 
 ## Non-claims
 
