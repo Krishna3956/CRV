@@ -177,6 +177,7 @@ with required(object_name, object_type) as (
     ('trackmcp_catalog_versions_transport_scope_idx', 'index'),
     ('trackmcp_catalog_entity_reads_scope_idx', 'index'),
     ('trackmcp_catalog_entity_reads_hash_idx', 'index'),
+    ('trackmcp_catalog_entity_reads_transport_scope_idx', 'index'),
     ('trackmcp_events_result_type_check', 'constraint'),
     ('trackmcp_events_request_state_hash_check', 'constraint'),
     ('trackmcp_events_resource_priority_check', 'constraint'),

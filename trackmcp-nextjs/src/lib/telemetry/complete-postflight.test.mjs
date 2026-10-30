@@ -104,6 +104,7 @@ test("catalog entity and workspace-scoped uniqueness postflights are included", 
   const entityTransportMigration = await readFile(new URL("../../../../supabase/migrations/20261030000003_catalog_entity_transport_scope.sql", import.meta.url), "utf8");
   assert.match(entityTransportMigration, /trackmcp_catalog_entity_reads_transport_scope_idx/);
   assert.match(postflight, /'trackmcp_catalog_entity_reads', 'transport'/);
+  assert.match(postflight, /trackmcp_catalog_entity_reads_transport_scope_idx/);
 });
 
 test("lifecycle fact type constraint is included in reviewed postflight evidence", async () => {
