@@ -14,8 +14,8 @@ completed the rollout, release gate, read-only production checks, runtime-safety
 translation-provider, and immutable identity checks;
 the direct-origin `/api/health` probe confirms the exact runtime SHA. The
 current source is `main` at documentation-only tip
-`96aeb50865e27fabe03f7511cfedc761aca3dbde`; the deployed application code is
-the immutable revision above. Main CI workflow `41015565958`
+`c530c193808579ae5b82f9e015515c090ec7f8d9`; the deployed application code is
+the immutable revision above. Main CI workflow `41025977624`
 passed the web/JavaScript, Go, and .NET lanes.
 
 The full local release gate passes 154 suites and the production build generates

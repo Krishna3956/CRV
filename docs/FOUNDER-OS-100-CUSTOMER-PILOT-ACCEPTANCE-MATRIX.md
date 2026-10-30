@@ -7,7 +7,7 @@ Current deployed baseline: application runtime
 `41013186081`, passed release gate, rollout, production smoke, runtime-safety,
 translation-provider, and identity checks). The current repository source is
 `main` at documentation-only handoff commit
-`96aeb50865e27fabe03f7511cfedc761aca3dbde`; the direct-origin health probe
+`c530c193808579ae5b82f9e015515c090ec7f8d9`; the direct-origin health probe
 reports the deployed application SHA.
 The full local release gate passes 154 suites and the production build generates
 211 routes. Authenticated production smoke `41014068784` passed against the

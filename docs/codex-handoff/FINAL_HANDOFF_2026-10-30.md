@@ -3,11 +3,11 @@
 **Date:** 2026-10-30 (Asia/Calcutta)
 **Repository:** `Krishna3956/CRV`
 **Default branch:** `main`
-**Current source tip:** `091cce3b` (`docs: record latest refresh health sample`)
+**Current source tip:** `c530c193` (`docs: record clean recovery evaluation window`)
 **Current deployed application revision:** `177165180383e31bb7760040469f9aaa7f78f8a1`
 **App Runner deployment:** workflow `41013186081`
 **Authenticated production smoke:** workflow `41014068784`
-**Latest main CI:** workflow `41022780280`
+**Latest completed main CI:** workflow `41025977624`
 
 This is the compact knowledge-transfer document for the next engineer. It is
 authoritative for the current handoff date and points to the more detailed
@@ -53,7 +53,7 @@ feature is complete.
   deployed SHA, `/api/auth/providers` returned `{"google":true,"github":true}`,
   and `/signin` returned HTTP 200. The authenticated production smoke workflow
   `41014068784` passed.
-- The latest main CI workflow `41015565958` passed web/JavaScript, Go, and .NET
+- The latest completed main CI workflow `41025977624` passed web/JavaScript, Go, and .NET
   lanes. The Vercel PR check was rate-limited by the account build quota; this
   is recorded as an external CI limitation, not a TrackMCP test failure.
 - The refresh-health workflow fix merged as PR #766, timestamp retention merged
