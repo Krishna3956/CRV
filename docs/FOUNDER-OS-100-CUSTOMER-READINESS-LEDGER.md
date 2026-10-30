@@ -1,5 +1,19 @@
 # Founder OS 100 Customer Readiness Ledger
 
+## 2026-10-30 — translation observer stability fix deployed
+
+- [x] PR #754 merged to `main` as
+  `3a1a70c8e4f2197343f487f3d443d68e334a8027`.
+- [x] Main CI passed web, Go, and .NET; App Runner workflow `40985423350`
+  completed the release gate, image rollout, immutable identity check,
+  production smoke, runtime-safety audit, and live Chinese translation check.
+- [x] Direct App Runner `/api/health` reports the merged SHA. Representative
+  public probes for health, OAuth provider discovery, homepage, sign-in,
+  dashboard, sitemap, and robots returned 200.
+- [ ] The fix prevents the translation runtime from reprocessing its own DOM
+  writes; provider-account UAT, retention/recovery posture, customer-owned
+  transport UAT, and release-owner GO/NO-GO remain open gates.
+
 ## 2026-10-30 — first-login session race fix deployed
 
 - [x] PR #751 merged to `main` as
