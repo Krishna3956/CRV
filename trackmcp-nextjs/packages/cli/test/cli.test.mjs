@@ -49,6 +49,12 @@ test("browser opener handles success and failure without shell interpolation", a
   assert.equal(calls[0].command, "xdg-open");
   assert.equal(calls[0].options.shell, false);
   assert.equal(calls[0].args[0], "https://app.trackmcp.test/device?user_code=F7KQ-2M9D");
+  const macCalls = [];
+  const macSuccess = await openBrowser("https://app.trackmcp.test/device", { platform: "darwin", spawnImpl: (command, args, options) => { macCalls.push({ command, args, options }); const child = new EventEmitter(); queueMicrotask(() => child.emit("spawn")); return child; } });
+  assert.equal(macSuccess, true);
+  assert.equal(macCalls[0].command, "open");
+  assert.equal(macCalls[0].options.shell, false);
+  assert.deepEqual(macCalls[0].args, ["https://app.trackmcp.test/device"]);
   const failure = await openBrowser("https://app.trackmcp.test/device", { spawnImpl: () => { const child = new EventEmitter(); queueMicrotask(() => child.emit("error", new Error("blocked"))); return child; } });
   assert.equal(failure, false);
 });
