@@ -14,8 +14,8 @@ completed the rollout, release gate, read-only production checks, runtime-safety
 translation-provider, and immutable identity checks;
 the direct-origin `/api/health` probe confirms the exact runtime SHA. The
 current source is `main` at documentation-only tip
-`9aa7821c67ad6b9f09210ac8f01c2cd495b090ca`; the deployed application code is
-the immutable revision above. Main CI workflow `41014120839`
+`2533c6038ae452f9f8536f3a96ccd7dce5eb00dd`; the deployed application code is
+the immutable revision above. Main CI workflow `41015565958`
 passed the web/JavaScript, Go, and .NET lanes.
 
 The full local release gate passes 154 suites and the production build generates
@@ -114,7 +114,7 @@ recovery-evidence hardening, not a final operational SLO acceptance.
 
 ## Latest source verification — 2026-10-30
 
-The current repository source is `main` at `8dd7f8c2fda6d8bd8ab73b4d7f625386bb7de6d2`;
+The current repository source is `main` at `2533c6038ae452f9f8536f3a96ccd7dce5eb00dd`;
 the deployed application remains immutable source
 `177165180383e31bb7760040469f9aaa7f78f8a1` as described above.
 The latest local release gate passes **154 suites**, lint, the production build
