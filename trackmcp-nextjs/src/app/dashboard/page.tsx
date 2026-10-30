@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
+import type { AuthChangeEvent, Session } from "@supabase/supabase-js";
 import { DashboardApp } from "@/components/dashboard/DashboardApp";
 import { getSupabaseBrowser } from "@/lib/auth/supabase-browser";
 import type { Analytics, ToolQualityResponse } from "@/lib/telemetry/analytics-types";
@@ -141,34 +142,69 @@ export function DashboardPageContent({ initialView = "overview" }: { initialView
     if (LOCAL_DASHBOARD_BYPASS) {
       return;
     }
+    const auth = getSupabaseBrowser().auth;
+    let disposed = false;
+    let settled = false;
+
+    // The OAuth callback can finish just after the dashboard mounts. Listen to
+    // Supabase's authoritative session event as well as polling getUser(), so a
+    // first-time OAuth user never gets the misleading sign-in empty state while
+    // the shared .trackmcp.com cookie is still being committed.
+    const hydrate = async (user: NonNullable<Awaited<ReturnType<typeof auth.getUser>>["data"]["user"]>) => {
+      if (disposed || settled) return;
+      settled = true;
+      setEmail(user.email || null);
+      setDisplayName(userDisplayName(user));
+      try {
+        const preferred = window.localStorage.getItem("trackmcp.selected_workspace_id") || undefined;
+        let account: Account;
+        try {
+          account = await loadAccount(preferred);
+        } catch (reason) {
+          const status = reason instanceof Error ? (reason as Error & { status?: number }).status : undefined;
+          if (!preferred || status !== 404) throw reason;
+          // A deleted or inaccessible workspace can remain in localStorage after
+          // membership changes. Recover from the user's current memberships.
+          window.localStorage.removeItem("trackmcp.selected_workspace_id");
+          account = await loadAccount();
+        }
+        if (disposed) return;
+        const activeWorkspaceId = account.workspace?.id || null;
+        if (activeWorkspaceId) { setSelectedWorkspaceId(activeWorkspaceId); window.localStorage.setItem("trackmcp.selected_workspace_id", activeWorkspaceId); }
+        if (!account.workspace && !autoProvisionAttempted.current) { autoProvisionAttempted.current = true; await createWorkspace(); }
+        else if (account.workspace) await Promise.all([loadAnalytics("30", activeWorkspaceId || undefined), loadToolQuality("30", activeWorkspaceId || undefined)]);
+      } catch (reason) {
+        if (!disposed) setError(reason instanceof Error ? reason.message : "Could not load your account.");
+      } finally {
+        if (!disposed) setLoading(false);
+      }
+    };
+
+    const { data: authState } = auth.onAuthStateChange((_event: AuthChangeEvent, session: Session | null) => {
+      if (session?.user) void hydrate(session.user);
+    });
+
     void (async () => {
-      const auth = getSupabaseBrowser().auth;
-      // The OAuth callback and the first dashboard render can land in adjacent
-      // browser tasks while the shared .trackmcp.com cookie is being written.
-      // Retry the read briefly instead of showing the misleading empty-state
-      // screen and making a first-time user sign in a second time.
+      // Keep a bounded fallback for browsers that restore the session without
+      // emitting INITIAL_SESSION before the first render task completes.
       let user = (await auth.getUser()).data.user;
-      for (let attempt = 0; !user && attempt < 7; attempt += 1) {
+      for (let attempt = 0; !user && !settled && attempt < 7; attempt += 1) {
         await new Promise((resolve) => window.setTimeout(resolve, 250 * (attempt + 1)));
         user = (await auth.getUser()).data.user;
       }
-      setEmail(user?.email || null); setDisplayName(userDisplayName(user)); if (!user) { setLoading(false); return; } try {
-      const preferred = window.localStorage.getItem("trackmcp.selected_workspace_id") || undefined;
-      let account: Account;
-      try {
-        account = await loadAccount(preferred);
-      } catch (reason) {
-        const status = reason instanceof Error ? (reason as Error & { status?: number }).status : undefined;
-        if (!preferred || status !== 404) throw reason;
-        // A deleted or inaccessible workspace can remain in localStorage after
-        // membership changes. Recover from the user's current memberships.
-        window.localStorage.removeItem("trackmcp.selected_workspace_id");
-        account = await loadAccount();
+      if (user) return hydrate(user);
+      if (!disposed && !settled) {
+        settled = true;
+        setEmail(null);
+        setDisplayName("");
+        setLoading(false);
       }
-      const activeWorkspaceId = account.workspace?.id || null;
-      if (activeWorkspaceId) { setSelectedWorkspaceId(activeWorkspaceId); window.localStorage.setItem("trackmcp.selected_workspace_id", activeWorkspaceId); }
-      if (!account.workspace && !autoProvisionAttempted.current) { autoProvisionAttempted.current = true; await createWorkspace(); } else if (account.workspace) { await Promise.all([loadAnalytics("30", activeWorkspaceId || undefined), loadToolQuality("30", activeWorkspaceId || undefined)]); }
-    } catch (reason) { setError(reason instanceof Error ? reason.message : "Could not load your account."); } finally { setLoading(false); } })();
+    })();
+
+    return () => {
+      disposed = true;
+      authState.subscription.unsubscribe();
+    };
   }, [createWorkspace, loadAccount, loadAnalytics, loadToolQuality]);
 
   if (loading) return <main className="mx-auto min-h-screen max-w-6xl px-6 py-20 text-sm text-muted">Loading your workspace…</main>;

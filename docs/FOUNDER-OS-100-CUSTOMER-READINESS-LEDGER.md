@@ -1,5 +1,20 @@
 # Founder OS 100 Customer Readiness Ledger
 
+## 2026-10-30 — first-login OAuth session settlement hardened
+
+- [x] The dashboard now listens for Supabase's authoritative
+  `onAuthStateChange` session event while retaining a bounded `getUser()`
+  fallback. A callback session that arrives just after the first render is
+  hydrated instead of falling through to the sign-in empty state and asking a
+  new user to authenticate a second time.
+- [x] Hydration is single-settlement and cancellation-safe: duplicate
+  `INITIAL_SESSION`/poll results cannot load the workspace twice, and the
+  auth subscription is removed when the dashboard unmounts.
+- [x] Dashboard page contracts, TypeScript, and ESLint pass for the change.
+- [ ] This closes the client-side session race only. Provider configuration,
+  first-time Google/GitHub browser UAT, workspace provisioning, and the
+  release-owner pilot gates remain separately evidenced.
+
 ## 2026-10-30 — transport-scoped catalog lineage
 
 - [x] Catalog snapshot writes now preserve a bounded caller-verified transport

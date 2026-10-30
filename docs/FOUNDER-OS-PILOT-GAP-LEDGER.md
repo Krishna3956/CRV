@@ -2,6 +2,21 @@
 
 Status: active autonomous audit, started 2026-10-21.
 
+## 2026-10-30 — dashboard settles first-login OAuth sessions from auth events
+
+- [x] Dashboard hydration now subscribes to Supabase `onAuthStateChange` in
+  addition to the bounded `getUser()` retry. This covers the browser timing
+  window where the OAuth callback has succeeded but the shared first-party
+  session cookie is not visible to the dashboard's first render task.
+- [x] The hydrate path is guarded against duplicate event/poll execution and
+  unsubscribes on unmount. The no-user state is shown only after the bounded
+  fallback expires, not while an authoritative session event is still being
+  delivered.
+- [x] Focused dashboard contracts, TypeScript, and ESLint pass.
+- [ ] This is a client-session correctness fix, not evidence that provider
+  setup, workspace provisioning, or the full customer-owned OAuth boundary is
+  complete.
+
 ## 2026-10-30 — catalog lineage now preserves transport scope
 
 - [x] Catalog refresh observations now carry a bounded caller-verified
