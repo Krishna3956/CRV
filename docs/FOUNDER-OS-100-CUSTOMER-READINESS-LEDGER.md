@@ -1,5 +1,29 @@
 # Founder OS 100 Customer Readiness Ledger
 
+## 2026-10-30 — release-owner decisions recorded; durable AWS endpoint permission remains open
+
+- [x] The release owner accepted synthetic evidence until real end-to-end
+  customer-owned UAT, accepted the metadata-only telemetry boundary, accepted
+  manual/disabled-first alerting for the pilot, accepted the current disabled
+  PITR posture as a pilot limitation, accepted release-owner rollback and
+  restoration ownership, and supplied `krishnaatmu@gmail.com` as the recovery
+  contact.
+- [x] The complete bounded MCP fixture surface remains implemented and was
+  exercised through the product: 30 tools, 6 resources, 3 templates, 5
+  prompts, and completion, while raw arguments, resource bodies, prompt values,
+  credentials, and payloads remain redacted.
+- [x] A temporary public HTTPS endpoint UAT passed catalog discovery with
+  authorization supplied and zero queue, delivery, hook, or privacy errors.
+  Evidence: `trackmcp-nextjs/docs/evidence/customer-owned-endpoint-uat-2026-10-30.json`.
+- [ ] The durable AWS endpoint remains open. Runs `41045487252` and
+  `41045964687` proved that the existing OIDC role can authenticate, build, and
+  push the fixture image; the final run was denied only on
+  `apprunner:CreateService` for the isolated UAT service. Evidence:
+  `docs/evidence/customer-owned-endpoint-aws-deployment-2026-10-30.md`.
+- [ ] Overall release remains **HOLD** until the provider permission is granted,
+  the durable endpoint is running, and the same bounded UAT is rerun against
+  that endpoint.
+
 ## 2026-10-30 — clean AWS health window proven; authenticated synthetic product UAT exercised
 
 - [x] Fresh health run `41038856612` on merged `main` completed with evaluator

@@ -6,6 +6,31 @@ This record is intentionally evidence-first. It must not be changed to
 `GO` until the open gates below are independently verified on the release
 commit and the operator accepts the listed limitations.
 
+## Release-owner decision record — 2026-10-30
+
+The release owner provided explicit decisions for a limited controlled pilot:
+
+- **Pilot scope:** provisional `GO` for controlled engineering/customer-test
+  activity using synthetic evidence until real end-to-end customer-owned UAT is
+  complete. This is not a final first-100 production release GO.
+- **Data boundary:** accept and retain the complete MCP feature surface, but
+  keep telemetry metadata-only. Tool arguments, resource bodies, prompt values,
+  credentials, and raw payloads remain redacted and are not retained.
+- **Alerting:** accept manual/disabled-first alerting during the pilot; do not
+  enable unattended production alert delivery from this decision alone.
+- **Backup/PITR:** accept the current disabled-PITR posture as an explicitly
+  accepted pilot limitation, with the documented logical-export and restoration
+  procedure; this is not a claim of point-in-time recovery.
+- **Rollback and restoration:** accepted owner is the release owner / project
+  operator. Recovery contact: `krishnaatmu@gmail.com`.
+- **Synthetic reliability evidence:** accepted as test evidence only until the
+  durable customer-owned HTTPS MCP endpoint is exercised.
+
+The overall release remains **HOLD** because the provider-side durable endpoint
+deployment has not yet been granted `apprunner:CreateService`. The exact AWS
+attempts and remaining action are recorded in
+`docs/evidence/customer-owned-endpoint-aws-deployment-2026-10-30.md`.
+
 ## Current deployed baseline — 2026-10-30
 
 The current live runtime is immutable commit
@@ -51,11 +76,10 @@ does not replace a real customer-owned endpoint.
 
 ## Release-owner choices required
 
-The release owner must explicitly provide a timestamped `GO` or `NO-GO` for the
-limited first-100 pilot, identify the cohort and supported environments,
-accept/reject the documented limitations, name the rollback owner and recovery
-contact, and either accept the current backup/PITR posture or keep the release
-on HOLD. Engineering has not inferred any of those decisions.
+The release-owner decisions above satisfy the decision-record portion for the
+controlled pilot. The final first-100 release decision remains conditional on
+the open provider-side endpoint deployment and its subsequent redacted UAT
+evidence.
 
 The refresh-health evidence collector was repaired in PR #766, merged as
 `f9fbb0b7`, and its timestamp retention was merged in PR #769 as `a484cbf9`.
