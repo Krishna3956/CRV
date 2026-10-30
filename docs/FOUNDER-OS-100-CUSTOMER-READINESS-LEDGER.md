@@ -13,6 +13,9 @@
 - [x] The projection preserves the bounded MRTR limitation text and bounds the
   requested analytics window, so v2 consumers receive the same explanation
   and uncertainty boundary as the v1 analytics engine.
+- [x] v2 also preserves bounded sampling/elicitation decision counts and
+  completion-friction metadata, including their limitations, instead of
+  silently dropping those modern-protocol evidence fields.
 - [ ] This is a source-level read-model correction. Production migration
   application, authenticated customer-owned protocol UAT, and release-owner
   approval remain open gates.

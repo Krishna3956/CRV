@@ -18,7 +18,7 @@ export function createProtocolActivityHandler(analytics = createAnalyticsHandler
   return async function GET(request: Request) {
     const response = await analytics(request);
     if (!response.ok) return response;
-    const body = await response.json() as { range_days?: unknown; protocol_family_activity?: unknown; protocol_family_outcomes?: unknown; protocol_family_outcome_source?: unknown; protocol_transport_outcomes?: unknown; protocol_mrtr_linkage?: unknown; protocol_capability_gaps?: unknown; data_trust?: unknown };
+    const body = await response.json() as { range_days?: unknown; protocol_family_activity?: unknown; protocol_family_outcomes?: unknown; protocol_family_outcome_source?: unknown; protocol_transport_outcomes?: unknown; protocol_mrtr_linkage?: unknown; protocol_capability_gaps?: unknown; protocol_decisions?: unknown; completion_activity?: unknown; data_trust?: unknown };
     const activity = Array.isArray(body.protocol_family_activity)
       ? body.protocol_family_activity
         .filter((value): value is { family: string; observations: number } => Boolean(value && typeof value === "object" && typeof (value as { family?: unknown }).family === "string" && typeof (value as { observations?: unknown }).observations === "number"))
@@ -60,6 +60,29 @@ export function createProtocolActivityHandler(analytics = createAnalyticsHandler
         return [{ family: row.family, requests_without_advertisement: boundedCount(row.requests_without_advertisement), limitation: typeof row.limitation === "string" ? row.limitation.slice(0, 512) : "Capability negotiation evidence is incomplete." }];
       }).slice(0, 10)
       : [];
+    const decisionSource = body.protocol_decisions && typeof body.protocol_decisions === "object" && !Array.isArray(body.protocol_decisions) ? body.protocol_decisions as Record<string, unknown> : null;
+    const decisionGroup = (value: unknown) => {
+      if (!value || typeof value !== "object" || Array.isArray(value)) return { accept: 0, decline: 0, cancel: 0 };
+      const row = value as Record<string, unknown>;
+      return { accept: boundedCount(row.accept), decline: boundedCount(row.decline), cancel: boundedCount(row.cancel) };
+    };
+    const protocolDecisions = decisionSource ? {
+      elicitation: decisionGroup(decisionSource.elicitation),
+      sampling: decisionGroup(decisionSource.sampling),
+      limitation: boundedText(decisionSource.limitation, "Only explicit protocol decisions are counted; user-entered values and business approval are never inferred."),
+    } : null;
+    const completionSource = body.completion_activity && typeof body.completion_activity === "object" && !Array.isArray(body.completion_activity) ? body.completion_activity as Record<string, unknown> : null;
+    const completionActivity = completionSource ? {
+      requests: boundedCount(completionSource.requests),
+      matched_requests: boundedCount(completionSource.matched_requests),
+      unmatched_requests: boundedCount(completionSource.unmatched_requests),
+      capability_advertised: typeof completionSource.capability_advertised === "boolean" ? completionSource.capability_advertised : null,
+      responses_with_metadata: boundedCount(completionSource.responses_with_metadata),
+      with_suggestions: boundedCount(completionSource.with_suggestions),
+      empty_suggestions: boundedCount(completionSource.empty_suggestions),
+      partial: boundedCount(completionSource.partial),
+      limitation: boundedText(completionSource.limitation, "Suggestion values, references, and argument contents are never returned."),
+    } : null;
     return NextResponse.json(withTrackMCPV2Envelope({
       range_days: boundedCount(body.range_days, 365) || null,
       protocol_family_activity: activity,
@@ -69,6 +92,8 @@ export function createProtocolActivityHandler(analytics = createAnalyticsHandler
       protocol_transport_outcomes: transportOutcomes,
       protocol_mrtr_linkage: mrtrLinkage,
       protocol_capability_gaps: capabilityGaps,
+      protocol_decisions: protocolDecisions,
+      completion_activity: completionActivity,
       data_trust: projectTrackMCPDataTrust(body.data_trust),
     }, request, { caveats: ["Counts are bounded protocol metadata observations at the server boundary, not customer demand, successful outcomes, or feature support claims.", "Completed is an explicit protocol result, not business or workflow completion; unknown remains visible when terminal evidence is absent."] }));
   };

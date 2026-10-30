@@ -15,6 +15,8 @@ test("protocol activity is a bounded authenticated v2 projection", () => {
   assert.match(handlers, /protocol_transport_outcomes/);
   assert.match(handlers, /protocol_mrtr_linkage/);
   assert.match(handlers, /protocol_capability_gaps/);
+  assert.match(handlers, /protocol_decisions/);
+  assert.match(handlers, /completion_activity/);
   assert.match(handlers, /matched_advertised/);
   assert.match(handlers, /boundedTransport/);
   assert.match(handlers, /boundedText/);

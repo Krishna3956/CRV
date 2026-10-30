@@ -29,6 +29,24 @@ test("protocol activity keeps family counts and provenance bounded", async () =>
       { family: "sampling", requests_without_advertisement: 2, limitation: "Client did not advertise sampling." },
       { family: "private", requests_without_advertisement: 999, limitation: "do-not-return" },
     ],
+    protocol_decisions: {
+      elicitation: { accept: 2, decline: 1, cancel: 0 },
+      sampling: { accept: 1, decline: 0, cancel: 1 },
+      limitation: "Explicit decisions only.",
+      private_payload: "do-not-return",
+    },
+    completion_activity: {
+      requests: 4,
+      matched_requests: 3,
+      unmatched_requests: 1,
+      capability_advertised: true,
+      responses_with_metadata: 3,
+      with_suggestions: 2,
+      empty_suggestions: 1,
+      partial: 1,
+      limitation: "Completion metadata only.",
+      private_payload: "do-not-return",
+    },
     data_trust: { generated_at: "2026-01-02T00:00:00.000Z", source_event_count: 4, private_payload: "do-not-return" },
   }), { status: 200 }));
   const response = await handler(new Request("https://example.test/api/v2/protocol-activity"));
@@ -53,8 +71,26 @@ test("protocol activity keeps family counts and provenance bounded", async () =>
   ]);
   assert.deepEqual(body.protocol_mrtr_linkage, { request_state_hashes: 3, interaction_hashes: 2, retry_links: 1, matched_pairs: 1, source: "durable_facts", limitation: "Same-scope explicit handles only." });
   assert.deepEqual(body.protocol_capability_gaps, [{ family: "sampling", requests_without_advertisement: 2, limitation: "Client did not advertise sampling." }]);
+  assert.deepEqual(body.protocol_decisions, {
+    elicitation: { accept: 2, decline: 1, cancel: 0 },
+    sampling: { accept: 1, decline: 0, cancel: 1 },
+    limitation: "Explicit decisions only.",
+  });
+  assert.deepEqual(body.completion_activity, {
+    requests: 4,
+    matched_requests: 3,
+    unmatched_requests: 1,
+    capability_advertised: true,
+    responses_with_metadata: 3,
+    with_suggestions: 2,
+    empty_suggestions: 1,
+    partial: 1,
+    limitation: "Completion metadata only.",
+  });
   assert.ok(body.caveats.some((caveat) => caveat.includes("Completed is an explicit protocol result")));
   assert.equal(body.data_trust.source_event_count, 4);
   assert.equal("private_payload" in body.data_trust, false);
   assert.equal("private_payload" in body.protocol_mrtr_linkage, false);
+  assert.equal("private_payload" in body.protocol_decisions, false);
+  assert.equal("private_payload" in body.completion_activity, false);
 });
