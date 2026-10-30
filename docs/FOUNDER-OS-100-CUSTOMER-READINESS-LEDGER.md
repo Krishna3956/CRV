@@ -1,5 +1,20 @@
 # Founder OS 100 Customer Readiness Ledger
 
+## 2026-10-30 — bounded telemetry recency closes the dashboard freshness gap
+
+- [x] `data_trust` now carries `observation_recency` with four explicit states:
+  `recent`, `stale`, `no_observation`, and `unknown`. The classification uses a
+  fixed 24-hour evidence threshold and never represents service health,
+  connectivity, or delivery success.
+- [x] All public v2 data-trust projections sanitize the new field, preserving
+  the existing workspace-scoped and metadata-only boundary. Malformed or legacy
+  responses degrade to a bounded derived state rather than being trusted.
+- [x] The dashboard Data trust panel now shows **Telemetry recency** alongside
+  the observed watermark and explains the evidence-only limitation.
+- [x] Focused data-trust, v2 projection, and dashboard contract tests passed.
+- [ ] This improves recency visibility only; customer-owned transport UAT,
+  provider/backup/privacy acceptance, and release-owner GO/NO-GO remain open.
+
 ## 2026-10-30 — package and release truth rechecked
 
 - [x] Public registry verification was repeated for the current release train:

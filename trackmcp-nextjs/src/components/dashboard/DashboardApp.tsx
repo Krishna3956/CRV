@@ -2420,6 +2420,13 @@ function DataTrustPanel({
   const observedThrough = dataTrust.observed_through
     ? dataTrust.observed_through.slice(0, 10)
     : "not available";
+  const recencyLabel = dataTrust.observation_recency.status === "recent"
+    ? "Recent observation"
+    : dataTrust.observation_recency.status === "stale"
+      ? "No event observed in the last 24 hours"
+      : dataTrust.observation_recency.status === "no_observation"
+        ? "No observed event in this window"
+        : "Recency unavailable";
   return (
     <section
       className="mb-6 border border-line bg-white p-4 sm:p-5"
@@ -2432,14 +2439,14 @@ function DataTrustPanel({
             {dataTrust.truncated ? "Bounded scan; results may be incomplete" : "Bounded scan complete"}
           </p>
           <p className="mt-1 text-xs leading-relaxed text-muted">
-            This describes the evidence returned by the selected query. It is not a claim that all activity was observed.
+            This describes the evidence returned by the selected query. Recency is an evidence watermark, not a service-health claim.
           </p>
         </div>
         <span className="inline-flex items-center gap-1.5 border border-line bg-paper px-2.5 py-1.5 text-[11px] font-semibold text-muted">
           <Info size={13} /> {fmt(dataTrust.returned_event_count)} events returned
         </span>
       </div>
-      <dl className="mt-4 grid gap-3 text-xs sm:grid-cols-3">
+      <dl className="mt-4 grid gap-3 text-xs sm:grid-cols-4">
         <div>
           <dt className="text-faint">Evidence window</dt>
           <dd className="mt-1 font-medium text-ink">
@@ -2453,6 +2460,10 @@ function DataTrustPanel({
         <div>
           <dt className="text-faint">Observed through</dt>
           <dd className="mt-1 font-medium text-ink">{observedThrough}</dd>
+        </div>
+        <div>
+          <dt className="text-faint">Telemetry recency</dt>
+          <dd className="mt-1 font-medium text-ink">{recencyLabel}</dd>
         </div>
       </dl>
       {identitySourceCounts && (

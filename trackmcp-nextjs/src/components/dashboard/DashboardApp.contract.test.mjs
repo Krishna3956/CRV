@@ -483,6 +483,9 @@ test("Overview exposes Founder OS outcome and evidence-quality states", () => {
   assert.match(source, /Evidence window:/);
   assert.match(source, /bounded scan complete/);
   assert.match(source, /scan limit reached; results may be incomplete/);
+  assert.match(source, /Telemetry recency/);
+  assert.match(source, /evidence watermark, not a service-health claim/);
+  assert.match(source, /No event observed in the last 24 hours/);
 });
 
 test("Data trust exposes bounded derived-refresh health without implying activity", () => {
