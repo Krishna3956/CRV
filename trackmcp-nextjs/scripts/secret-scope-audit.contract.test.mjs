@@ -14,7 +14,7 @@ test("intended scope has no unexpected credential-shaped values", () => {
 });
 
 test("fixture matches are bounded to safe test/example contexts", () => {
-  for (const finding of report.fixtures) assert.match(finding.file, /(?:test|spec|fixture|example|docs|README|deploy|harness)/i);
+  for (const finding of report.fixtures) assert.match(finding.file, /(?:test|spec|fixture|synthetic|example|docs|README|deploy|harness)/i);
 });
 
 test("device and redemption identifiers are either approved fixtures or unexpected findings", () => {

@@ -1,7 +1,7 @@
 {
   "outcome": "passed",
   "evidence_class": "synthetic_customer_fixture_uat",
-  "generated_at": "2026-10-30T10:14:56.070Z",
+  "generated_at": "2026-10-30T10:23:29.051Z",
   "target": "local synthetic customer MCP server",
   "transport": "streamable_http",
   "protocol_version": "2025-06-18",
