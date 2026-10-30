@@ -1,5 +1,18 @@
 # Founder OS 100 Customer Readiness Ledger
 
+## 2026-10-30 — v2 resource/prompt projections preserve transport coverage
+
+- [x] The v2 Resources and Prompts read-model projection now carries a bounded
+  transport breakdown instead of silently dropping the field from the v1
+  analytics response.
+- [x] Transport labels are allowlisted (`stdio`, `streamable_http`, `sse`,
+  `custom`, `unknown`), counts are clamped, and malformed labels fail closed to
+  `unknown`; no names, URIs, contents, or arguments are introduced.
+- [x] Route integration and contract tests cover preservation, bounds, and
+  privacy behavior for both resources and prompts.
+- [ ] Production legacy rows remain `unknown` until the additive migration is
+  applied; authenticated customer-owned multi-transport UAT remains open.
+
 ## 2026-10-30 — transport coverage is visible in Resources & prompts
 
 - [x] The Resources & prompts dashboard now renders the bounded durable
