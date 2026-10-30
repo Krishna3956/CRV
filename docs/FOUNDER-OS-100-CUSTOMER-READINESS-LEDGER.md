@@ -9,13 +9,16 @@
 - [x] Worker run `41023757195` completed one bounded batch with `processed=4`,
   `succeeded=4`, zero retryable/failed jobs, zero unparseable responses, and
   `max_queue_lag_ms=104488` (`within_budget`).
-- [x] Health run `41025425195` authenticated to AWS and recorded four scheduler
-  invocations, three end-to-end scheduled successes, and one scheduler failure.
-- [ ] The overall health evaluator remains `warning`: the latest AWS worker
-  freshness metric is `976842ms` against the `900000ms` budget, and the
-  retained GitHub recovery window includes one older incomplete sample. Keep
-  the provider-owned scheduler gate open until a clean bounded AWS window is
-  retained; no readiness claim was loosened.
+- [x] Health run `41026583693` authenticated to AWS and recorded five scheduler
+  invocations, three end-to-end scheduled successes, and two scheduler
+  failures/errors; the AWS end-to-end cadence sub-gate is proven.
+- [x] The bounded GitHub recovery evaluation now has zero stale or incomplete
+  samples after worker run `41026523923`, which observed no backlog.
+- [ ] The overall health evaluator remains `warning`: AWS worker freshness is
+  `1010614ms` against the `900000ms` budget and the current AWS window contains
+  two scheduler failures/errors. Keep the provider-owned scheduler gate open
+  until a clean bounded AWS window is retained; no readiness claim was
+  loosened.
 
 ## 2026-10-30 — refresh-health evidence collection repaired and re-evaluated
 

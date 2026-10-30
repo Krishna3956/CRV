@@ -1,17 +1,17 @@
 # Founder OS first-100 readiness snapshot
 
-## 2026-10-30 refresh-health evidence recheck — AWS scheduler failure remains visible
+## 2026-10-30 refresh-health evidence recheck — GitHub recovery window is now clean; AWS window remains open
 
 The repaired health collector now resolves the deployed scheduler Lambda and
-reads bounded CloudWatch metrics. Health run `41025425195` records four AWS
-scheduler invocations, three end-to-end scheduled successes, and one scheduler
-failure. The evaluator remains `warning` because the latest AWS
-worker-freshness metric is `976842ms` against the `900000ms` pilot budget and
-retained GitHub recovery history includes one older incomplete sample. The
-latest serial recovery run `41023757195` is clean: one batch, `4/4` succeeded,
-zero retries/failures/unparseable responses, and `104488ms` lag. Retain a clean
-bounded AWS window before closing the provider-owned scheduler gate. This is
-operational evidence, not a release-owner approval.
+reads bounded CloudWatch metrics. Health run `41026583693` records five AWS
+scheduler invocations, three end-to-end scheduled successes, and two scheduler
+failures/errors. The AWS end-to-end cadence sub-gate is proven, but the
+evaluator remains `warning` because AWS worker freshness is `1010614ms` against
+the `900000ms` pilot budget. The bounded GitHub recovery evaluation now has
+zero stale or incomplete samples. The latest serial recovery run `41026523923`
+observed no backlog with zero failures/retries/unparseable responses. Retain a
+clean bounded AWS window before closing the provider-owned scheduler gate. This
+is operational evidence, not a release-owner approval.
 
 ## 2026-10-30 OAuth resilience checkpoint — provider discovery is bounded
 

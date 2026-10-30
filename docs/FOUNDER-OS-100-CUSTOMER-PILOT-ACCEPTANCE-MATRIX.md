@@ -13,13 +13,14 @@ The full local release gate passes 154 suites and the production build generates
 211 routes. Authenticated production smoke `41014068784` passed against the
 deployed revision; direct-origin first-ingest `40894964464` and SDK-shaped
 public-edge smoke `40896249223` both passed one bounded metadata-only event plus
-analytics read-back. Health evaluation `41025425195` records four AWS scheduler
-invocations, three end-to-end scheduled successes, and one scheduler failure,
-and remains `warning` because the AWS worker-freshness metric is `976842ms`
-against the `900000ms` freshness budget and retained GitHub recovery history
-includes one older incomplete sample. Serial recovery run `41023757195` is
-clean at `104488ms`; the provider-owned scheduler gate remains open pending a
-clean bounded AWS window. The alert evaluator remains manual-only
+analytics read-back. Health evaluation `41026583693` records five AWS scheduler
+invocations, three end-to-end scheduled successes, and two scheduler
+failures/errors. The AWS end-to-end cadence sub-gate is proven, but the run
+remains `warning` because AWS worker freshness is `1010614ms` against the
+`900000ms` freshness budget. The bounded GitHub recovery evaluation has zero
+stale or incomplete samples. Serial recovery run `41026523923` observed no
+backlog; the provider-owned scheduler gate remains open pending a clean bounded
+AWS window. The alert evaluator remains manual-only
 and disabled-first; no production alert delivery is claimed.
 This is current runtime and source evidence, not a pilot GO decision.
 

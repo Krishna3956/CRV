@@ -58,12 +58,12 @@ feature is complete.
   is recorded as an external CI limitation, not a TrackMCP test failure.
 - The refresh-health workflow fix merged as PR #766, timestamp retention merged
   as PR #769, and the serial recovery hardening merged as PR #770. Health run
-  `41025425195` records four AWS scheduler invocations, three end-to-end
-  scheduled successes, and one scheduler failure; it remains warning because
-  the latest AWS worker-freshness metric is `976842ms` against the `900000ms`
-  budget and the bounded GitHub recovery history contains one older incomplete
-  sample. Worker run `41023757195` is clean at `104488ms`; retain a clean
-  bounded AWS window before changing the provider-owned gate.
+  `41026583693` records five AWS scheduler invocations, three end-to-end
+  scheduled successes, and two scheduler failures/errors; it remains warning
+  because AWS worker freshness is `1010614ms` against the `900000ms` budget.
+  The bounded GitHub recovery evaluation now has zero stale or incomplete
+  samples. Worker run `41026523923` observed no backlog; retain a clean bounded
+  AWS window before changing the provider-owned gate.
 
 ### Current package train
 
