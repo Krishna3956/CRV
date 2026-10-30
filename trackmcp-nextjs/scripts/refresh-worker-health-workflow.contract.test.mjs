@@ -16,6 +16,7 @@ test("health workflow can recover a missed worker tick without overlapping an ac
   assert.match(workflow, /scheduled_successes/);
   assert.doesNotMatch(workflow, /logs filter-log-events/);
   assert.match(workflow, /aws-scheduler\.json/);
+  assert.match(workflow, /OutputKey==`RefreshSchedulerFunctionArn`/);
   assert.match(workflow, /scheduler_evidence/);
   assert.match(workflow, /scheduled_cadence_gate/);
   assert.match(workflow, /aws_scheduler_cadence_gate/);

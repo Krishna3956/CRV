@@ -40,7 +40,7 @@ jobs:
           stack_output=$(aws cloudformation describe-stacks \
             --stack-name trackmcp-refresh-scheduler \
             --region "$AWS_REGION" \
-            --query "Stacks[0].Outputs[?OutputKey=='RefreshSchedulerFunctionArn'].OutputValue | [0]" \
+            --query 'Stacks[0].Outputs[?OutputKey==`RefreshSchedulerFunctionArn`].OutputValue | [0]' \
             --output text 2>/dev/null || true)
           function_name="${stack_output##*:function:}"
           if [[ -z "$function_name" || "$function_name" == "None" || "$function_name" == "$stack_output" ]]; then
