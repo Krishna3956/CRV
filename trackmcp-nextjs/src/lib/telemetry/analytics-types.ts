@@ -18,6 +18,7 @@ export type CatalogVersion = {
   id: string | null;
   server_id: string | null;
   environment_id: string | null;
+  transport: "stdio" | "streamable_http" | "sse" | "custom" | "unknown";
   catalog_kind: string | null;
   item_count: number | null;
   item_name_hashes: string[];
@@ -32,6 +33,7 @@ export type CatalogVersion = {
     id: string | null;
     version: string | null;
     observed_at: string | null;
+    transport: "stdio" | "streamable_http" | "sse" | "custom" | "unknown";
     catalog_kind: string | null;
     item_count: number | null;
     item_name_hashes: string[];

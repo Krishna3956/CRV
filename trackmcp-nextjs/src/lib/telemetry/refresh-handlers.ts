@@ -183,18 +183,18 @@ export function createRefreshJobHandlers(admin: RefreshAdmin, options: RefreshHa
     async catalog_recompute({ job, signal }) {
       if (signal?.aborted) return { outcome: "deferred", detail: "worker deadline deferred this job" };
       try {
-        const query = applyJobWindow(admin.from("trackmcp_events").select("server_id,environment_id,session_id,protocol_version,catalog_kind,catalog_item_count,catalog_item_name_hashes,catalog_item_uri_hashes,started_at").eq("workspace_id", job.workspace_id), job, "started_at");
+        const query = applyJobWindow(admin.from("trackmcp_events").select("server_id,environment_id,session_id,transport,protocol_version,catalog_kind,catalog_item_count,catalog_item_name_hashes,catalog_item_uri_hashes,started_at").eq("workspace_id", job.workspace_id), job, "started_at");
         const result = await query.order("started_at", { ascending: false }).limit(MAX_ROWS);
         if (result.error) return retryable(result.error);
         const observations = (result.data || []) as CatalogObservationRow[];
         const registry = await ensureCatalogServerRegistryRows(admin, job.workspace_id, observations.map((observation) => observation.server_id));
         if (registry.error) return retryable(registry.error);
         const ownedObservations = observations.filter((observation) => registry.owned.has(typeof observation.server_id === "string" ? observation.server_id : ""));
-        const existing = await admin.from("trackmcp_catalog_versions").select("id,server_id,environment_id,catalog_kind,item_count,item_name_hashes,item_uri_hashes,snapshot_hash,complete,truncated,discovered_at").eq("workspace_id", job.workspace_id).order("discovered_at", { ascending: false }).limit(MAX_ROWS);
+        const existing = await admin.from("trackmcp_catalog_versions").select("id,server_id,environment_id,transport,catalog_kind,item_count,item_name_hashes,item_uri_hashes,snapshot_hash,complete,truncated,discovered_at").eq("workspace_id", job.workspace_id).order("discovered_at", { ascending: false }).limit(MAX_ROWS);
         if (existing.error) return retryable(existing.error);
         const writes = buildCatalogVersionWrites(job.workspace_id, ownedObservations, (existing.data || []) as ExistingCatalogVersion[]);
         if (!writes.length) return { outcome: "succeeded" as const };
-        const persisted = await admin.from("trackmcp_catalog_versions").upsert(writes, { onConflict: "workspace_id,server_id,environment_id,catalog_kind,snapshot_hash", ignoreDuplicates: true });
+        const persisted = await admin.from("trackmcp_catalog_versions").upsert(writes, { onConflict: "workspace_id,server_id,environment_id,transport,catalog_kind,snapshot_hash", ignoreDuplicates: true });
         return persisted.error ? retryable(persisted.error) : { outcome: "succeeded" as const };
       } catch (error) {
         return retryable(error);

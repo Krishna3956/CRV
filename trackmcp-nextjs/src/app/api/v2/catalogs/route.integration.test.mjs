@@ -9,6 +9,7 @@ const snapshot = {
   workspace_id: workspace,
   server_id: "11111111-1111-4111-8111-111111111111",
   environment_id: null,
+  transport: "streamable_http",
   catalog_kind: "tools",
   item_count: 2,
   item_name_hashes: ["a".repeat(64), "b".repeat(64)],
@@ -16,7 +17,7 @@ const snapshot = {
   snapshot_hash: "c".repeat(64),
   previous_snapshot_id: "snapshot-1",
   previous_snapshot_status: "available",
-  previous_snapshot: { id: "snapshot-1", version: "e".repeat(64), observed_at: "2026-01-01T00:00:00Z", catalog_kind: "tools", item_count: 1, item_name_hashes: ["f".repeat(64)], item_uri_hashes: [], complete: true, truncated: false, diff: { status: "unchanged" }, private_payload: "should-never-leave-storage" },
+  previous_snapshot: { id: "snapshot-1", version: "e".repeat(64), observed_at: "2026-01-01T00:00:00Z", transport: "streamable_http", catalog_kind: "tools", item_count: 1, item_name_hashes: ["f".repeat(64)], item_uri_hashes: [], complete: true, truncated: false, diff: { status: "unchanged" }, private_payload: "should-never-leave-storage" },
   complete: true,
   truncated: false,
   diff: { status: "computed", changed: true, added_name_count: 1, removed_name_count: 0, added_name_hashes: ["d".repeat(64), "raw-tool-name"], private_diff: "should-never-leave-storage" },
@@ -35,7 +36,7 @@ function fakeAdmin() {
         in(_column, values) { this.ids = values; return this; },
         gte() { return this; },
         order() { return this; },
-        async limit() { return { data: table === "trackmcp_catalog_versions" ? (this.ids.includes("snapshot-1") ? [{ id: "snapshot-1", snapshot_hash: "e".repeat(64), catalog_kind: "tools", item_count: 1, item_name_hashes: ["f".repeat(64)], item_uri_hashes: [], complete: true, truncated: false, diff: { status: "unchanged" }, discovered_at: "2026-01-01T00:00:00Z" }] : [snapshot]) : [], error: null }; },
+        async limit() { return { data: table === "trackmcp_catalog_versions" ? (this.ids.includes("snapshot-1") ? [{ id: "snapshot-1", snapshot_hash: "e".repeat(64), transport: "streamable_http", catalog_kind: "tools", item_count: 1, item_name_hashes: ["f".repeat(64)], item_uri_hashes: [], complete: true, truncated: false, diff: { status: "unchanged" }, discovered_at: "2026-01-01T00:00:00Z" }] : [snapshot]) : [], error: null }; },
       };
       return query;
     },
@@ -58,11 +59,13 @@ test("catalog API exposes bounded historical metadata without raw payloads", asy
   assert.equal(body.versioning.notification_correlations[0].match_window_ms, 600000);
   assert.match(body.caveats.join(" "), /Historical rows contain bounded hashes/);
   assert.equal(body.catalogs[1].version, referenceVersion);
+  assert.equal(body.catalogs[1].transport, "streamable_http");
   assert.equal(body.catalogs[1].diff.added_name_count, referenceAdded);
   assert.deepEqual(body.catalogs[1].diff.added_name_hashes, ["d".repeat(64)]);
   assert.equal(body.catalogs[1].previous_snapshot_status, "available");
   assert.equal(body.catalogs[1].previous_snapshot.id, "snapshot-1");
   assert.equal(body.catalogs[1].previous_snapshot.version, "e".repeat(64));
+  assert.equal(body.catalogs[1].previous_snapshot.transport, "streamable_http");
   assert.deepEqual(body.catalogs[1].previous_snapshot.item_name_hashes, ["f".repeat(64)]);
   assert.equal(JSON.stringify(body).includes("should-never-leave-storage"), false);
   assert.equal(JSON.stringify(body).includes("raw-tool-name"), false);

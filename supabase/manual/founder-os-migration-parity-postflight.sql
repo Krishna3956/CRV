@@ -47,7 +47,8 @@ with expected(migration_version) as (values
   ('20261025000001_migration_execution_ledger'),
   ('20261028000001_coalesce_refresh_jobs'),
   ('20261028000002_coalesce_legacy_refresh_backlog'),
-  ('20261029000002_account_identity_version')
+  ('20261029000002_account_identity_version'),
+  ('20261030000001_catalog_transport_scope')
 ), parity as (
   select expected.migration_version,
     ledger.migration_version is not null as recorded,
@@ -83,7 +84,8 @@ with expected(migration_version) as (values
   ('20261024000002_api_key_last_used_at'), ('20261024000003_privacy_deletion_catalog_entity_reads'),
   ('20261025000001_migration_execution_ledger'), ('20261028000001_coalesce_refresh_jobs'),
   ('20261028000002_coalesce_legacy_refresh_backlog'),
-  ('20261029000002_account_identity_version')
+  ('20261029000002_account_identity_version'),
+  ('20261030000001_catalog_transport_scope')
 ), summary as (
   select count(*)::bigint as expected_count,
     count(ledger.migration_version)::bigint as recorded_count,

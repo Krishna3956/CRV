@@ -1,5 +1,19 @@
 # Founder OS 100 Customer Readiness Ledger
 
+## 2026-10-30 — transport-scoped catalog lineage
+
+- [x] Catalog snapshot writes now preserve a bounded caller-verified transport
+  label (`stdio`, `streamable_http`, `sse`, `custom`, or `unknown`) and use it
+  in snapshot deduplication and predecessor joins.
+- [x] Analytics v1 and v2 return the label with the existing hash/count-only
+  lineage projection; no raw endpoint, session, catalog identity, or payload
+  crosses the browser boundary.
+- [x] The additive migration, read-only postflight, refresh-worker tests,
+  catalog-route tests, and tenant-isolation checks pass locally.
+- [ ] Supabase migration application and authenticated customer-owned
+  multi-transport UAT are still required before this becomes production
+  evidence. Existing rows are deliberately reported as `unknown` until then.
+
 ## 2026-10-30 — OAuth discovery fail-closed hardening
 
 - [x] Social controls now wait for an explicit provider-discovery response and
