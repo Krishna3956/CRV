@@ -1,5 +1,22 @@
 # Founder OS 100 Customer Readiness Ledger
 
+## 2026-10-30 — transitive MCP dependency advisory closed
+
+- [x] npm audit identified `@hono/node-server@2.1.1` through
+  `@modelcontextprotocol/sdk@1.32.2`, affected by GHSA-rmxm-3fg6-px4f
+  (double-decoding of static request paths in `serveStatic`).
+- [x] Both the web workspace and TypeScript SDK workspace now pin the patched
+  `@hono/node-server@2.1.5` through explicit overrides and synchronized lockfiles.
+  The runtime dependency tree resolves the override rather than the vulnerable
+  transitive version.
+- [x] The dependency-pin contract asserts the override and lockfile versions;
+  both workspace audits report zero vulnerabilities, the TypeScript SDK suite
+  passes 107/107, lint/build pass, and the complete **154-suite** release gate
+  passes.
+- [ ] This closes the identified dependency advisory only; it does not change
+  the separately documented external protocol, privacy, backup, UAT, or
+  release-owner gates.
+
 ## 2026-10-30 — rendered SEO and live blog verification refreshed
 
 - [x] The built standalone app passed `npm run seo:audit`: **157 URLs** were
