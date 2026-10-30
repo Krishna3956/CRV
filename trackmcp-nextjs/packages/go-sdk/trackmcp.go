@@ -49,6 +49,7 @@ type Event struct {
 	MCPMethod string `json:"mcp_method,omitempty"`
 	RequestID string `json:"request_id,omitempty"`
 	SessionID string `json:"session_id,omitempty"`
+	TaskID string `json:"task_id,omitempty"`
 	ToolName string `json:"tool_name,omitempty"`
 	StartedAt string `json:"started_at"`
 	DurationMS int64 `json:"duration_ms,omitempty"`
@@ -230,6 +231,40 @@ func (c *Client) RecordProtocolSignalForTransport(signal string, method string, 
 			"observation_kind": "protocol_notification", "protocol_signal": signal,
 		}},
 	})
+}
+
+// RecordTaskNotification records the modern notifications/tasks envelope using
+// only a one-way task-handle hash, an allowlisted status, and bounded input
+// counts. Task IDs, input values, result content, and status messages never
+// enter the event payload.
+func (c *Client) RecordTaskNotification(params map[string]any, sessionID string) {
+	c.RecordTaskNotificationForTransport(params, "", "server_to_client", sessionID)
+}
+
+// RecordTaskNotificationForTransport records a modern Tasks notification with
+// caller-verified transport and direction provenance. It is a primitive for
+// Go transport integrations, not an automatic transport wrapper.
+func (c *Client) RecordTaskNotificationForTransport(params map[string]any, transport string, direction string, sessionID string) {
+	if direction != "server_to_client" && direction != "client_to_server" { return }
+	if transport != "" && !transportKinds[transport] { return }
+	event := Event{
+		EventType: "protocol", Direction: direction, Transport: transport,
+		MCPMethod: "notifications/tasks", SessionID: boundedSessionID(sessionID),
+		Success: boolPtr(true), IsError: boolPtr(false),
+		Payload: map[string]any{"_trackmcp": map[string]any{
+			"observation_kind": "protocol_notification", "observation_source": "server",
+			"protocol_family": "tasks",
+		}},
+	}
+	if taskID, ok := firstString(params, "taskId", "task_id"); ok && len([]byte(taskID)) <= 2048 && strings.IndexFunc(taskID, func(r rune) bool { return r < 0x20 || r == 0x7f }) < 0 {
+		event.TaskID = hashCatalogIdentity(taskID)
+	}
+	if status, ok := firstString(params, "status", "taskStatus", "task_status"); ok && taskStatuses[status] {
+		event.TaskStatus = status
+	}
+	if count, ok := boundedCountFrom(params, "inputRequests", "input_requests"); ok { event.InputRequestCount = &count }
+	if count, ok := boundedCountFrom(params, "inputResponses", "input_responses"); ok { event.InputResponseCount = &count }
+	c.Capture(event)
 }
 
 // RecordCatalog records one bounded catalog page without retaining item names,

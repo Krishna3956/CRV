@@ -248,6 +248,29 @@ class TrackMCPClientTest(TestCase):
         self.assertNotIn("private-value", serialized)
         client._timer.cancel()
 
+    def test_middleware_classifies_task_notifications_without_retaining_params(self):
+        client = TrackMCP(TrackMCPOptions(api_key="tmcp_test", disabled=False, flush_interval_ms=60000))
+
+        class Context:
+            def __init__(self):
+                self.method = "notifications/tasks"
+                self.params = {"taskId": "secret-task", "status": "completed", "inputRequests": {"first": {"secret": "omit"}}, "result": {"private": "omit"}}
+                self.session_id = "session-task"
+                self.request_id = "private-request-id"
+
+        async def call_next(_ctx):
+            return {}
+
+        middleware = _TrackMCPMiddleware(client)
+        asyncio.run(middleware(Context(), call_next))
+        event = client._events[0]
+        self.assertRegex(event["task_id"], r"^[a-f0-9]{64}$")
+        self.assertEqual(event["task_status"], "completed")
+        self.assertEqual(event["input_request_count"], 1)
+        self.assertNotIn("secret-task", json.dumps(event))
+        self.assertNotIn("omit", json.dumps(event))
+        client._timer.cancel()
+
     def test_transport_failure_is_metadata_only_and_bounded(self):
         client = TrackMCP(TrackMCPOptions(api_key="tmcp_test", disabled=False, flush_interval_ms=60000))
         client.record_transport_failure("transport_closed", session_id="session-1", duration_ms=12)
@@ -316,6 +339,41 @@ class TrackMCPClientTest(TestCase):
         client.record_protocol_signal("cancelled", "notifications/cancelled", direction="invalid")
         client.record_protocol_signal("progress", "notifications/progress", transport="private_transport")
         self.assertEqual(len(client._events), count)
+        client._timer.cancel()
+
+    def test_task_notification_is_hashed_and_payload_free(self):
+        client = TrackMCP(TrackMCPOptions(api_key="tmcp_test", disabled=False, flush_interval_ms=60000))
+        client.record_task_notification({
+            "taskId": "secret-task-notification",
+            "status": "input_required",
+            "inputRequests": {"first": {"value": "never-retain"}},
+            "result": {"private": "never-retain"},
+        }, transport="streamable_http", session_id="session-task")
+        event = client._events[0]
+        self.assertEqual(event["mcp_method"], "notifications/tasks")
+        self.assertRegex(event["task_id"], r"^[a-f0-9]{64}$")
+        self.assertEqual(event["task_status"], "input_required")
+        self.assertEqual(event["input_request_count"], 1)
+        self.assertEqual(event["payload"]["_trackmcp"]["protocol_family"], "tasks")
+        serialized = json.dumps(event)
+        self.assertNotIn("secret-task-notification", serialized)
+        self.assertNotIn("never-retain", serialized)
+        count = len(client._events)
+        client.record_task_notification({"taskId": "task-1"}, transport="private_transport")
+        client.record_task_notification({"taskId": "task-1"}, direction="invalid")
+        self.assertEqual(len(client._events), count)
+        client._timer.cancel()
+
+    def test_modern_object_shaped_task_inputs_are_counted_without_values(self):
+        client = TrackMCP(TrackMCPOptions(api_key="tmcp_test", disabled=False, flush_interval_ms=60000))
+        client.record_protocol_result("tools/call", {
+            "inputRequests": {"first": {"secret": "omit"}, "second": {"secret": "omit"}},
+            "inputResponses": {"first": {"secret": "omit"}},
+        })
+        event = client._events[0]
+        self.assertEqual(event["input_request_count"], 2)
+        self.assertEqual(event["input_response_count"], 1)
+        self.assertNotIn("omit", json.dumps(event))
         client._timer.cancel()
 
     def test_protocol_result_is_bounded_and_tracks_task_discriminators(self):

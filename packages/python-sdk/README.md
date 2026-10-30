@@ -66,6 +66,13 @@ stores task handles, request values, response content, or private reasoning.
 This is evidence for analytics, not a claim that the Python middleware
 implements the full Tasks wire lifecycle.
 
+For a server-directed `notifications/tasks` envelope, call
+`client.record_task_notification(params, transport=..., session_id=...)` at
+the transport boundary. The helper hashes the task handle locally, allowlists
+the status, and counts keyed or list-shaped inputs without inspecting their
+values. It is a caller-owned primitive; it does not poll, update, cancel, or
+reconnect a task stream.
+
 When a response supplies explicit MRTR `requestState`/`interactionId` values,
 the observer emits only their SHA-256 hashes plus a bounded retry event ID.
 Raw request, response, and input values remain excluded, and callers still

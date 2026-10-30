@@ -1,5 +1,23 @@
 # Founder OS 100 Customer Readiness Ledger
 
+## 2026-10-30 — cross-language modern task notifications reconciled
+
+- [x] Python, Go, and .NET now expose explicit caller-owned helpers for the
+  official `notifications/tasks` envelope. They hash task handles locally,
+  allowlist task status, and count keyed or legacy list-shaped inputs without
+  retaining task IDs, values, result content, or status messages.
+- [x] Go and .NET retain caller-verified transport and direction; Python keeps
+  the same bounded transport/direction contract. Invalid provenance and
+  unknown status values fail closed, and all counts remain capped at 100.
+- [x] Python coverage passes **42/42** locally, including modern object-shaped
+  input counts and a task-notification privacy fixture. Go and .NET source
+  changes are queued for hosted compiler/smoke verification because those
+  toolchains are not installed in this workspace.
+- [ ] This closes source-level cross-language projection parity only. The
+  published TypeScript/Python artifacts and reviewed Go/.NET source packages
+  require the next coordinated release workflow; authenticated customer-owned
+  Tasks UAT and full transport lifecycle ownership remain separate gates.
+
 ## 2026-10-30 — modern task-notification telemetry reconciled
 
 - [x] The TypeScript Node transport observer now projects the official
