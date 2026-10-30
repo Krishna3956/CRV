@@ -1,5 +1,23 @@
 # Founder OS 100 Customer Readiness Ledger
 
+## 2026-10-30 — exact npx CLI invocation is now a regression contract
+
+- [x] The packed CLI consumer test now runs the exact documented
+  `npx --no-install @trackmcp/cli --help` path in addition to the raw npm bin
+  symlink and `npm exec --package` paths. This protects npm argument forwarding
+  and symlink resolution together, which was the published 0.1.12 failure
+  boundary.
+- [x] The corrected `@trackmcp/cli@0.1.13` registry package still prints help,
+  emits diagnostics for `doctor`, and returns an actionable non-interactive
+  `init` error. Browser authorization remains reached only from an interactive
+  terminal and never runs from package installation hooks.
+- [x] The exact current tree passed the complete **154-suite** release gate,
+  including the package-consumer gate and all CLI, auth, privacy, protocol,
+  dashboard, OTLP, translation, and tenant-isolation checks.
+- [ ] This closes the CLI entrypoint regression evidence. It does not close the
+  separate external pilot gates for customer-owned endpoint UAT, privacy and
+  backup acceptance, registry publication promises, or release-owner GO/NO-GO.
+
 ## 2026-10-30 — Setup first-event verification is manually refreshable
 
 - [x] Setup now exposes a visible **Refresh setup check** action beside the
