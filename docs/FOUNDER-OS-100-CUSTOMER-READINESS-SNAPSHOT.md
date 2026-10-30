@@ -16,6 +16,15 @@ run observed `10,709,040ms` maximum queue lag. The worker and health workflows
 must continue until the retry backlog drains and three healthy samples are
 observed; this is not being reported as a release GO.
 
+The 29 terminal schema-drift windows were subsequently replayed through the
+existing idempotent enqueue RPC. Worker run `41009752692` processed 40/40
+successfully, and the following bounded run processed 10 more before its
+client deadline. The refresh workflow is now hardened with a bounded
+70-second App Runner warm-up to absorb transient cold-start 502 responses.
+Seven catalog retries and two lease-recovery jobs remain under the existing
+backoff/lease policy; the freshness gate remains open until they drain and
+three healthy health samples are observed.
+
 ## 2026-10-30 deployment checkpoint — CLI fix and warm redeploy verified
 
 The published `@trackmcp/cli@0.1.13` is the corrected CLI release. Version

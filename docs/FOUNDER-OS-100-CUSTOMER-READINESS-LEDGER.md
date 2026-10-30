@@ -21,11 +21,22 @@
 - [x] Worker run `41008801744` processed six jobs with `succeeded=6`,
   `retryable=0`, `failed=0`, and no parse errors, confirming the catalog
   handler now executes against the repaired schema.
-- [ ] Freshness is not yet a GO: that run still reported a historical queue
-  lag of `10,709,040ms` because nine pre-migration catalog retries remain
-  scheduled with bounded backoff. The worker must drain those retries and a
-  subsequent health report must prove three healthy samples before the
-  freshness gate can be marked complete. No gate was loosened or suppressed.
+- [x] The 29 terminal windows created by the earlier schema drift were replayed
+  through the existing service-role `trackmcp_enqueue_refresh_jobs` RPC (four
+  idempotent jobs per bounded 15-minute window; no direct row edits or event
+  deletion). The replay returned HTTP 200 for all 29 windows. Worker run
+  `41009752692` completed 40/40 jobs successfully; the next run completed
+  another 10 before its bounded client deadline, with no handler failures.
+- [x] The refresh workflow now gives App Runner cold starts a bounded 70-second
+  read-only warm-up (`10` retries, `55s` retry budget) and has a contract test
+  for those limits. This prevents a transient provider 502 from being
+  misclassified as a durable worker defect; the older pre-change runs remain
+  retained as evidence.
+- [ ] Freshness is not yet a GO: seven pre-migration catalog retries and two
+  lease-recovery jobs remain in bounded backoff after transient 502 responses.
+  The worker must drain them and a subsequent health report must prove three
+  healthy samples before the freshness gate can be marked complete. No gate
+  was loosened or suppressed.
 
 ## 2026-10-30 — CLI entrypoint fix and deployment retry verified
 
