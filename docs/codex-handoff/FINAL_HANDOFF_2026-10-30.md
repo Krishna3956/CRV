@@ -3,11 +3,11 @@
 **Date:** 2026-10-30 (Asia/Calcutta)
 **Repository:** `Krishna3956/CRV`
 **Default branch:** `main`
-**Current source tip:** `091cce3b` (`docs: record latest refresh health sample`)
+**Current source tip:** `c530c193` (`docs: record clean recovery evaluation window`)
 **Current deployed application revision:** `177165180383e31bb7760040469f9aaa7f78f8a1`
 **App Runner deployment:** workflow `41013186081`
 **Authenticated production smoke:** workflow `41014068784`
-**Latest main CI:** workflow `41022780280`
+**Latest completed main CI:** workflow `41025977624`
 
 This is the compact knowledge-transfer document for the next engineer. It is
 authoritative for the current handoff date and points to the more detailed
@@ -53,17 +53,17 @@ feature is complete.
   deployed SHA, `/api/auth/providers` returned `{"google":true,"github":true}`,
   and `/signin` returned HTTP 200. The authenticated production smoke workflow
   `41014068784` passed.
-- The latest main CI workflow `41015565958` passed web/JavaScript, Go, and .NET
+- The latest completed main CI workflow `41025977624` passed web/JavaScript, Go, and .NET
   lanes. The Vercel PR check was rate-limited by the account build quota; this
   is recorded as an external CI limitation, not a TrackMCP test failure.
 - The refresh-health workflow fix merged as PR #766, timestamp retention merged
   as PR #769, and the serial recovery hardening merged as PR #770. Health run
-  `41025425195` records four AWS scheduler invocations, three end-to-end
-  scheduled successes, and one scheduler failure; it remains warning because
-  the latest AWS worker-freshness metric is `976842ms` against the `900000ms`
-  budget and the bounded GitHub recovery history contains one older incomplete
-  sample. Worker run `41023757195` is clean at `104488ms`; retain a clean
-  bounded AWS window before changing the provider-owned gate.
+  `41026583693` records five AWS scheduler invocations, three end-to-end
+  scheduled successes, and two scheduler failures/errors; it remains warning
+  because AWS worker freshness is `1010614ms` against the `900000ms` budget.
+  The bounded GitHub recovery evaluation now has zero stale or incomplete
+  samples. Worker run `41026523923` observed no backlog; retain a clean bounded
+  AWS window before changing the provider-owned gate.
 
 ### Current package train
 

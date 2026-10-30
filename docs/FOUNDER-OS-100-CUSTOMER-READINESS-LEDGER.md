@@ -9,13 +9,37 @@
 - [x] Worker run `41023757195` completed one bounded batch with `processed=4`,
   `succeeded=4`, zero retryable/failed jobs, zero unparseable responses, and
   `max_queue_lag_ms=104488` (`within_budget`).
-- [x] Health run `41025425195` authenticated to AWS and recorded four scheduler
-  invocations, three end-to-end scheduled successes, and one scheduler failure.
-- [ ] The overall health evaluator remains `warning`: the latest AWS worker
-  freshness metric is `976842ms` against the `900000ms` budget, and the
-  retained GitHub recovery window includes one older incomplete sample. Keep
-  the provider-owned scheduler gate open until a clean bounded AWS window is
-  retained; no readiness claim was loosened.
+- [x] Health run `41026583693` authenticated to AWS and recorded five scheduler
+  invocations, three end-to-end scheduled successes, and two scheduler
+  failures/errors; the AWS end-to-end cadence sub-gate is proven.
+- [x] The bounded GitHub recovery evaluation now has zero stale or incomplete
+  samples after worker run `41026523923`, which observed no backlog.
+- [ ] The overall health evaluator remains `warning`: AWS worker freshness is
+  `1010614ms` against the `900000ms` budget and the current AWS window contains
+  two scheduler failures/errors. Keep the provider-owned scheduler gate open
+  until a clean bounded AWS window is retained; no readiness claim was
+  loosened.
+
+## 2026-10-30 — customer-owned endpoint UAT is operator-ready but unexecuted
+
+- [x] The guarded `customer-endpoint-uat.yml` workflow remains manual-only,
+  requires the exact confirmation phrase, accepts one explicit HTTPS endpoint,
+  selects only the reviewed Streamable HTTP or SSE transport and allowlisted
+  protocol versions, and grants only `contents: read`. It never enables the
+  private-target fixture override in hosted execution.
+- [x] The actual UAT runner and release-gate integration fixtures cover both
+  official transports, bounded initialize/catalog discovery, same-origin
+  redirect handling, protected-resource metadata observation without OAuth
+  exchange, and mode-0600 reports that omit endpoint paths, credentials,
+  session identifiers, and MCP payloads. The focused source, integration, and
+  workflow contract suites pass.
+- [ ] A real customer-owned endpoint run remains open. The repository Actions
+  secret inventory checked on 2026-10-30 does not list
+  `TRACKMCP_CUSTOMER_ENDPOINT_UAT_KEY` or
+  `TRACKMCP_CUSTOMER_ENDPOINT_UAT_AUTH_TOKEN`; an operator must provision
+  disposable credentials and execute the manual workflow before this gate can
+  produce customer evidence. No customer endpoint was contacted by the local
+  fixtures.
 
 ## 2026-10-30 — refresh-health evidence collection repaired and re-evaluated
 

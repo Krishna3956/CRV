@@ -18,8 +18,8 @@ is intentionally not a GO approval and must not be treated as one.
   direct-origin health probe confirmed the exact runtime SHA. Authenticated
   production smoke `41014068784` also passed for that deployed revision.
 - Current source verification: `main` at documentation-only tip
-  `96aeb50865e27fabe03f7511cfedc761aca3dbde`. The deployed application code
-  remains the merged application revision above. Main CI `41015565958` passed
+  `c530c193808579ae5b82f9e015515c090ec7f8d9`. The deployed application code
+  remains the merged application revision above. Main CI `41025977624` passed
   all hosted lanes. The full local release gate
   passes 154 suites and the production build generates 211 routes. Read-only
   auth smoke `40893382834`, direct first-ingest `40894964464`, and
@@ -36,13 +36,14 @@ is intentionally not a GO approval and must not be treated as one.
   decisions.
 - Refresh queue postflight after the schema repair reports
   `queued=0`, `running=0`, `retryable=0`, and `failed=0`, with `16883`
-  succeeded jobs. Health run `41025425195` records four AWS scheduler
-  invocations, three end-to-end scheduled successes, and one scheduler
-  failure; it remains a monitored warning because the AWS worker-freshness
-  metric is `976842ms` against the `900000ms` budget and one older incomplete
-  GitHub recovery sample remains in the bounded window. Serial recovery run
-  `41023757195` is clean at `104488ms`; the provider-owned freshness gate
-  remains open until a clean bounded AWS window is retained.
+  succeeded jobs. Health run `41026583693` records five AWS scheduler
+  invocations, three end-to-end scheduled successes, and two scheduler
+  failures/errors; the AWS end-to-end cadence sub-gate is proven, but the AWS
+  worker-freshness metric is `1010614ms` against the `900000ms` budget. The
+  bounded GitHub recovery evaluation now has zero stale or incomplete samples.
+  Serial recovery run `41026523923` is clean with no backlog observed; the
+  provider-owned freshness gate remains open until a clean bounded AWS window
+  is retained.
 - Full release gate: **154 suites passed**, with lint and the 211-route
   production build green (the prior 209/177-route baselines remain retained in
   historical evidence).
@@ -101,7 +102,7 @@ is intentionally not a GO approval and must not be treated as one.
 | 157 — database recovery posture | Infrastructure/provider owner | Region and tier, backup/PITR policy or an explicitly accepted limitation, restoration owner, and a tested recovery reference | OPEN; authenticated Supabase inspection records Free tier, East US/`us-east-1`, Nano/shared compute, and PITR **Disabled**. A fresh signed-in browser inspection of Database → Backups (2026-10-27) showed no usable scheduled-backup or restore-point evidence. No restoration contact or rehearsal is evidenced. |
 | Privacy lifecycle acceptance | Release owner | Explicit acceptance that export is bounded/secret-free, deletion requests are review-only, and destructive deletion is disabled without an approved worker | OPEN in the release record |
 | Synthetic reliability-data hygiene | Release owner | Explicit acceptance that synthetic canary rows are test evidence only and cannot be presented as customer incidents | OPEN in the release record |
-| Refresh scheduler enablement | Infrastructure/provider owner | Store `TRACKMCP_REFRESH_WORKER_SECRET` in Secrets Manager, map the App Runner runtime variable from that ARN, deploy the disabled-first AWS Scheduler stack, verify endpoint/token/DLQ behavior, enable the five-minute schedule, and retain at least three scheduled samples within the 15-minute freshness budget | **OPEN / monitor:** health run `41025425195` records four AWS scheduler invocations, three end-to-end scheduled successes, and one scheduler failure. The AWS worker-freshness metric is `976842ms` against the `900000ms` budget and the bounded recovery history retains one older incomplete sample. Serial recovery run `41023757195` is clean at `104488ms`; retain a clean bounded AWS window before closing this provider-owned gate. |
+| Refresh scheduler enablement | Infrastructure/provider owner | Store `TRACKMCP_REFRESH_WORKER_SECRET` in Secrets Manager, map the App Runner runtime variable from that ARN, deploy the disabled-first AWS Scheduler stack, verify endpoint/token/DLQ behavior, enable the five-minute schedule, and retain at least three scheduled samples within the 15-minute freshness budget | **OPEN / monitor:** health run `41026583693` records five AWS scheduler invocations, three end-to-end scheduled successes, and two scheduler failures/errors. The AWS end-to-end cadence sub-gate is proven, but worker freshness is `1010614ms` against the `900000ms` budget. The bounded GitHub recovery evaluation has zero stale/incomplete samples; serial recovery run `41026523923` is clean with no backlog observed. Retain a clean bounded AWS window before closing this provider-owned gate. |
 | Credentialed key lifecycle mutation | Engineering | Disposable workspace/key create, active-key rotation, old-key rejection, replacement acceptance, replacement revocation, and post-revocation rejection | **PROVEN:** terminal-only disposable production UAT on 2026-10-28 completed the status checks; both disposable credentials ended revoked. This does not prove customer-owned endpoint interoperability. |
 | TrackMCP account OAuth providers | Engineering + release owner | Supabase providers enabled, exact callback configuration, real sign-in, existing-user dashboard return, onboarding and device-flow return-path checks | **PARTIALLY PROVEN:** GitHub is enabled in Supabase and a real signed-in browser flow returned to `/dashboard` on 2026-10-29. Google is configured in dedicated Cloud project `trusty-diorama-513117-f6`, enabled in Supabase, and a fresh flow using `krishnaatmu@gmail.com` returned to `/dashboard` and loaded the `krishnaatmu` workspace. New-user onboarding and device-flow return-path evidence remain open. |
 | 260 — final go/no-go | Release owner | Timestamped GO/NO-GO decision linking the green evidence and accepted limitations | OPEN; engineering recommendation remains HOLD |
