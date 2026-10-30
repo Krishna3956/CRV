@@ -1,5 +1,27 @@
 # Founder OS 100 Customer Readiness Ledger
 
+## 2026-10-30 — refresh-health evidence collection repaired and re-evaluated
+
+- [x] Fixed the refresh-health workflow's CloudFormation output lookup to use
+  the same backtick-literal query form as the successful scheduler deployment
+  workflow. The previous query returned no Lambda ARN in health runs, causing
+  AWS evidence to be replaced by an explicit unavailable marker.
+- [x] PR #766 merged to `main` as `f9fbb0b7`. The focused workflow contract and
+  refresh-health report tests passed, and all hosted web, Go, .NET, and Vercel
+  checks passed.
+- [x] Health run `41017434796` authenticated to AWS, collected the scheduler
+  metrics, and proved four Lambda invocations, four scheduled successes, four
+  complete worker samples, zero AWS errors, zero worker failures, and zero
+  retryable jobs. The first fresh recovery run `41017484783` was complete but
+  narrowly stale at `922692ms`; the follow-up `41017574546` processed four
+  jobs with zero failures/retries/unparseable responses and `5271ms` lag.
+- [ ] The freshness gate remains open. Health run `41017646038` still observed
+  one AWS worker metric at `923273ms`, just above the `900000ms` budget, so the
+  evaluator correctly reported `warning` with
+  `freshness_budget_exceeded` and `aws_worker_freshness_not_proven`. Retain a
+  fresh bounded AWS window with all worker samples within budget before closing
+  this gate; no readiness claim was loosened.
+
 ## 2026-10-30 — OAuth provider discovery tolerates transient edge failures
 
 - [x] Added a bounded provider-discovery helper for the sign-in and sign-up
