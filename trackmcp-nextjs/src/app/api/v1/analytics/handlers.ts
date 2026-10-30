@@ -259,7 +259,7 @@ export function createAnalyticsHandler(getAdmin: typeof getSupabaseAdmin = getSu
   // resolver key. If the bounded scan is capped, the response explicitly
   // marks the classification as insufficient rather than inventing a trend.
   const historyLimit = 100_000;
-  const historySelect = "event_id, account_key, account_identity_source, account_identity_version, started_at, event_type, mcp_method, tool_name, is_error, success, result_type, duration_ms, interaction_id, request_state_hash, retry_number, retry_of_event_id";
+  const historySelect = "event_id, account_key, account_identity_source, account_identity_version, started_at, event_type, mcp_method, tool_name, is_error, success, result_type, duration_ms, interaction_id, request_state_hash, retry_number, retry_of_event_id, service, environment, server_id, transport";
   const readHistory = async (select: string) => supabase.from("trackmcp_events")
     .select(select)
     .eq("workspace_id", workspaceId)
@@ -268,7 +268,7 @@ export function createAnalyticsHandler(getAdmin: typeof getSupabaseAdmin = getSu
     .limit(historyLimit);
   let historyResult = await readHistory(historySelect);
   if (historyResult.error && isMissingAccountIdentityVersionColumn(historyResult.error)) historyResult = await readHistory(historySelect.replace(", account_identity_version", ""));
-  const historyRows = historyResult.error ? [] : ((historyResult.data || []) as Array<{ event_id?: unknown; account_key?: unknown; account_identity_source?: unknown; account_identity_version?: unknown; started_at?: unknown; event_type?: unknown; mcp_method?: unknown; tool_name?: unknown; is_error?: unknown; success?: unknown; result_type?: unknown; duration_ms?: unknown; interaction_id?: unknown; request_state_hash?: unknown; retry_number?: unknown; retry_of_event_id?: unknown }>);
+  const historyRows = historyResult.error ? [] : ((historyResult.data || []) as Array<{ event_id?: unknown; account_key?: unknown; account_identity_source?: unknown; account_identity_version?: unknown; started_at?: unknown; event_type?: unknown; mcp_method?: unknown; tool_name?: unknown; is_error?: unknown; success?: unknown; result_type?: unknown; duration_ms?: unknown; interaction_id?: unknown; request_state_hash?: unknown; retry_number?: unknown; retry_of_event_id?: unknown; service?: unknown; environment?: unknown; server_id?: unknown; transport?: unknown }>);
   const historyCapped = historyRows.length >= historyLimit;
 
   // Snapshot rows are service-written and explicitly workspace-scoped by the
@@ -925,7 +925,7 @@ export function createAnalyticsHandler(getAdmin: typeof getSupabaseAdmin = getSu
   // excluding it from this product-use read model.
   const resourceReadEvents = resourceEvents.filter((event) => event.mcp_method === "resources/read");
   const promptCallEvents = promptEvents.filter((event) => event.mcp_method === "prompts/get");
-  type SurfaceEvent = { event_id?: unknown; mcp_method?: unknown; started_at?: unknown; is_error?: unknown; success?: unknown; result_type?: unknown; interaction_id?: unknown; request_state_hash?: unknown; retry_number?: unknown; retry_of_event_id?: unknown };
+  type SurfaceEvent = { event_id?: unknown; mcp_method?: unknown; started_at?: unknown; is_error?: unknown; success?: unknown; result_type?: unknown; interaction_id?: unknown; request_state_hash?: unknown; retry_number?: unknown; retry_of_event_id?: unknown; service?: unknown; environment?: unknown; server_id?: unknown; transport?: unknown };
   type SurfaceOutcome = "complete" | "stalled" | "errored" | "unknown";
   type SurfaceSummary = { interactions: number; observations: number; complete: number; stalled: number; errored: number; unknown: number; linked_retry_count: number; by_method: Map<string, { interactions: number; complete: number; stalled: number; errored: number; unknown: number }> };
   const surfaceOutcome = (event: SurfaceEvent): SurfaceOutcome => {
@@ -945,7 +945,22 @@ export function createAnalyticsHandler(getAdmin: typeof getSupabaseAdmin = getSu
       // Collapse only evidence that carries a correlation handle. Never group
       // unlinked same-method events, since doing so would invent retry linkage.
       const eventId = typeof event.event_id === "string" && event.event_id ? event.event_id : String(index);
-      const key = interactionId ? `interaction:${interactionId}` : requestState ? `request:${requestState}` : `event:${eventId}`;
+      // Correlation handles are opaque and may be reused independently by
+      // different servers, services, environments, or transports. Namespace
+      // the handle before grouping so unrelated interactions cannot collapse.
+      // Missing provenance is explicit and never silently merged with an
+      // identified scope.
+      const scope = JSON.stringify([
+        typeof event.service === "string" && event.service ? event.service : "unknown",
+        typeof event.environment === "string" && event.environment ? event.environment : "unknown",
+        typeof event.server_id === "string" && event.server_id ? event.server_id : "unknown",
+        typeof event.transport === "string" && event.transport ? event.transport : "unknown",
+      ]);
+      const key = interactionId
+        ? `${scope}|interaction:${interactionId}`
+        : requestState
+          ? `${scope}|request:${requestState}`
+          : `event:${eventId}`;
       const current = interactions.get(key);
       const method = typeof event.mcp_method === "string" && event.mcp_method ? event.mcp_method : "safe method unavailable";
       if (current) {

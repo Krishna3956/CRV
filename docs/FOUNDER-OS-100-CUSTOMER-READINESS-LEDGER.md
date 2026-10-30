@@ -1,5 +1,18 @@
 # Founder OS 100 Customer Readiness Ledger
 
+## 2026-10-30 — resource/prompt interaction handles are server-scoped
+
+- [x] Analytics now namespaces opaque `interaction_id` and `request_state_hash`
+  handles by bounded service, environment, server, and transport provenance
+  before collapsing observations into one resource read or prompt call.
+- [x] Identical handles emitted by separate MCP servers remain separate
+  interactions, so retries, stalls, and completions cannot be fabricated across
+  deployments. Missing provenance is retained as an explicit `unknown` scope.
+- [x] Added a regression fixture for the cross-server collision and updated the
+  history projection so previous-period comparisons use the same scope rule.
+- [ ] Customer-owned multi-server UAT and production migration/application
+  gates remain open; this change is source-level analytics correctness.
+
 ## 2026-10-30 — durable resource/prompt reads preserve transport scope
 
 - [x] Hash-only `resources/read` and `prompts/get` projections now retain the

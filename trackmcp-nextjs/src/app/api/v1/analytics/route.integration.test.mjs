@@ -280,8 +280,8 @@ test("analytics exposes only bounded hashed entity counts for resources and prom
   const response = await handler(new Request("http://analytics.test/api/v1/analytics?days=7", { headers: { authorization: "Bearer key" } }));
   assert.equal(response.status, 200);
   const body = await response.json();
-  assert.deepEqual(body.interaction_surfaces.resources, { events: 1, methods: ["resources/read"], entity_count: 2, entity_identity: "sha256_hash_count", entity_analytics: { status: "no_rows", read_events: 0, successful_reads: 0, failed_reads: 0, input_required_reads: 0 } });
-  assert.deepEqual(body.interaction_surfaces.prompts, { events: 1, methods: ["prompts/get"], entity_count: 1, entity_identity: "sha256_hash_count", entity_analytics: { status: "no_rows", read_events: 0, successful_reads: 0, failed_reads: 0, input_required_reads: 0 } });
+  assert.deepEqual(body.interaction_surfaces.resources, { events: 1, methods: ["resources/read"], entity_count: 2, entity_identity: "sha256_hash_count", entity_analytics: { status: "no_rows", read_events: 0, successful_reads: 0, failed_reads: 0, input_required_reads: 0, transport_breakdown: [] } });
+  assert.deepEqual(body.interaction_surfaces.prompts, { events: 1, methods: ["prompts/get"], entity_count: 1, entity_identity: "sha256_hash_count", entity_analytics: { status: "no_rows", read_events: 0, successful_reads: 0, failed_reads: 0, input_required_reads: 0, transport_breakdown: [] } });
   assert.equal(JSON.stringify(body).includes(hashA), false);
 });
 
@@ -331,6 +331,19 @@ test("Resources and Prompts keeps explicit outcomes separate and collapses only 
   assert.equal(body.resource_prompt_activity.prompt_stall_rate, 0.5);
   assert.equal(body.resource_prompt_activity.prompt_error_rate, 0.5);
   assert.equal(body.resource_prompt_activity.trend.every((item) => item.name === "resources/read" || item.name === "prompts/get"), true);
+});
+
+test("Resources and Prompts scopes opaque correlation handles by server provenance", async () => {
+  const handler = createAnalyticsHandler(() => fakeAdmin([
+    event({ event_id: "server-a-input", event_type: "protocol", service: "catalog-a", server_id: "server-a", transport: "streamable_http", mcp_method: "resources/read", interaction_id: "reused-handle", result_type: "input_required", success: true }),
+    event({ event_id: "server-b-complete", event_type: "protocol", service: "catalog-b", server_id: "server-b", transport: "streamable_http", mcp_method: "resources/read", interaction_id: "reused-handle", result_type: "complete", success: true }),
+  ]));
+  const response = await handler(new Request("http://analytics.test/api/v1/analytics?days=7", { headers: { authorization: "Bearer key" } }));
+  assert.equal(response.status, 200);
+  const body = await response.json();
+  assert.equal(body.resource_prompt_activity.resource_reads, 2);
+  assert.equal(body.resource_prompt_activity.resource_observations, 2);
+  assert.deepEqual(body.resource_prompt_activity.outcomes[0], { kind: "resource", interactions: 2, complete: 1, stalled: 1, errored: 0, unknown: 0, linked_retry_count: 0 });
 });
 
 test("analytics exposes bounded Journey path and stall evidence", async () => {
