@@ -19,10 +19,10 @@ concurrency:
 jobs:
   refresh:
     runs-on: ubuntu-latest
-    # Four bounded requests run concurrently. Each asks for the same small
-    # resumable slice used by the AWS scheduler; keeping fan-out below the old
-    # ten-by-100 recovery profile avoids saturating App Runner/Supabase while
-    # still allowing a manual drain to make progress.
+    # One small bounded request runs at a time. Recovery is a fallback for a
+    # missed GitHub tick, not a second scheduler; keeping it serial prevents
+    # it from competing with the canonical AWS scheduler on App Runner and
+    # Supabase while still allowing a resumable slice to make progress.
     timeout-minutes: 5
     steps:
       - name: Authenticate to AWS to discover the worker origin
@@ -78,18 +78,17 @@ jobs:
             echo "::warning::App Runner health warm-up did not complete; continuing with bounded refresh retries."
           fi
           # Each request is independently bounded by the application’s 45s
-          # lease/deadline and this workflow’s 55s curl timeout. Four
-          # concurrent max_jobs:10 slices provide bounded drain throughput
-          # without recreating the old ten-by-100 saturation profile; the
-          # database claim RPC's skip-locked lease boundary prevents duplicate
-          # claims.
+          # lease/deadline and this workflow’s 55s curl timeout. One
+          # max_jobs:4 slice keeps recovery below the production scheduler's
+          # fan-out; the database claim RPC's skip-locked lease boundary still
+          # prevents duplicate claims.
           failed=0
           timed_out=0
           batch_dir=$(mktemp -d)
           summary_file="$RUNNER_TEMP/trackmcp-refresh-worker-summary.jsonl"
           : > "$summary_file"
           pids=()
-          for batch in $(seq 1 4); do
+          for batch in $(seq 1 1); do
             (
               # Keep a process-level kill boundary in addition to curl's own
               # retry timers. This protects the runner if curl or a transport
@@ -104,12 +103,12 @@ jobs:
                 -X POST \
                 -H "authorization: Bearer $WORKER_SECRET" \
                 -H "content-type: application/json" \
-                --data '{"max_jobs":10}' \
+                --data '{"max_jobs":4}' \
                 "$WORKER_URL" >"$batch_dir/$batch.json" 2>"$batch_dir/$batch.err"
             ) &
             pids+=("$!")
           done
-          for batch in $(seq 1 4); do
+          for batch in $(seq 1 1); do
             set +e
             wait "${pids[$((batch - 1))]}"
             status=$?
