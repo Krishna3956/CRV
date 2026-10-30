@@ -35,6 +35,7 @@ test("pilot release record points at the verified deployed baseline", () => {
 test("pilot release record keeps accepted operational limitations explicit", () => {
   assert.match(record, /Status:\s*\*\*GO — controlled first-100 pilot\*/);
   assert.match(record, /Final release-owner GO/);
+  assert.match(record, /FINAL GO — I approve TrackMCP for a controlled first-100-customer pilot/);
   assert.match(record, /supabase-backup-acceptance-2026-10-30/);
   assert.match(record, /Queue item 256 records the\s+release-specific rollback/);
   assert.match(record, /final operator go\/no-go decision/);

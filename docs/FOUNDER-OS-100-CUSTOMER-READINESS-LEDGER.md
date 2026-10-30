@@ -15,9 +15,14 @@
   guaranteed RPO/RTO; the release owner/project operator owns rollback and
   restoration. Evidence:
   `docs/evidence/supabase-backup-acceptance-2026-10-30.md`.
-- [ ] The final release-owner GO/NO-GO is still required before changing the
-  formal register from **HOLD** to **GO**. The controlled pilot may proceed
-  only within the accepted limitations.
+- [x] The release owner supplied the final approval verbatim: “FINAL GO — I
+  approve TrackMCP for a controlled first-100-customer pilot as of
+  2026-10-30, accepting metadata-only telemetry, manual/disabled-first
+  alerting, Supabase Free-plan logical-export-only recovery with PITR disabled,
+  the release owner as rollback/restoration owner, and the documented
+  UAT/protocol limitations. This is a controlled pilot approval, not an
+  unbounded production guarantee.” The formal register is **GO** for the
+  bounded controlled first-100 pilot.
 
 ## 2026-10-30 — isolated AWS endpoint deployed and bounded UAT passed
 
@@ -34,9 +39,10 @@
   `docs/evidence/customer-owned-endpoint-uat-aws-2026-10-30.md`. It explicitly
   classifies the result as operator-supplied AWS UAT rather than independent
   third-party customer evidence.
-- [ ] Overall release remains **HOLD** for any gate that requires a real
-  customer-owned endpoint, authenticated customer interoperability beyond the
-  bounded metadata pass, or independent provider/customer backup evidence.
+- [x] The bounded pilot gate is closed by the formal customer endpoint UAT and
+  accepted recovery limitation recorded above. This does not claim every
+  third-party customer server, authenticated interoperability beyond the
+  metadata pass, or provider backup/PITR evidence.
 
 ## 2026-10-30 — release-owner decisions recorded; durable AWS endpoint permission remains open
 
