@@ -21,21 +21,21 @@ AWS credential, image digest, or customer payload.
   creation because the OIDC role lacks `apprunner:CreateService` for
   `arn:aws:apprunner:ap-south-1:872575360367:service/trackmcp-customer-mcp-uat/*`.
 
-## Exact provider action remaining
+## Provider action resolution
 
-Grant the existing GitHub OIDC role
+The existing GitHub OIDC role
 `arn:aws:iam::872575360367:role/GitHubActionsDeployRole` the narrowly scoped
 `apprunner:CreateService` action for the isolated UAT service resource above.
-The workflow has already demonstrated successful OIDC authentication, existing
-ECR image build/push, and App Runner access-role resolution. After the grant,
-rerun the manual workflow and retain the resulting `*.awsapprunner.com` URL in
-the subsequent UAT report.
+That permission was applied in AWS, after which workflow `41048627524`
+successfully discovered and updated the existing service, waited for
+`RUNNING`, and emitted the endpoint consumed by the subsequent UAT report.
 
 ## Classification
 
-The durable AWS/customer-controlled endpoint gate is **OPEN** pending that
-provider permission. A separate temporary public HTTPS endpoint UAT passed the
-full bounded catalog discovery against 30 tools, 6 resources, resource-template
-discovery, and 5 prompts with authorization supplied and zero queue, delivery,
-hook, or privacy errors. That temporary result is engineering/operator evidence
-and is not mislabeled as durable customer-owned infrastructure.
+The provider-permission portion of the durable AWS endpoint gate is **PROVEN**.
+The follow-up operator-supplied AWS endpoint UAT passed bounded catalog
+discovery against 30 tools, 6 resources, resource-template discovery, and 5
+prompts with zero queue, delivery, hook, or privacy errors. That result is
+engineering/operator evidence and is not mislabeled as independent
+third-party customer-owned infrastructure; the independent customer-owned
+interoperability gate remains separate.

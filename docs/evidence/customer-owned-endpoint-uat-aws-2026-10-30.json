@@ -1,0 +1,51 @@
+{
+  "outcome": "passed",
+  "generated_at": "2026-10-30T11:33:43.515Z",
+  "target_origin": "https://ahngxh33c2.ap-south-1.awsapprunner.com",
+  "transport": "streamable_http",
+  "protocol_version": "2025-06-18",
+  "authorization_supplied": false,
+  "oauth_metadata": {
+    "outcome": "observed",
+    "candidate_count": 1,
+    "resource_match": true,
+    "authorization_server_count": 1,
+    "scopes_supported_count": 2,
+    "authorization_server_urls_followed": false
+  },
+  "checks": [
+    {
+      "label": "tools/list",
+      "outcome": "observed",
+      "item_count": 30
+    },
+    {
+      "label": "resources/list",
+      "outcome": "observed",
+      "item_count": 6
+    },
+    {
+      "label": "resources/templates/list",
+      "outcome": "observed",
+      "item_count": null
+    },
+    {
+      "label": "prompts/list",
+      "outcome": "observed",
+      "item_count": 5
+    }
+  ],
+  "diagnostics": {
+    "dropped_events": 0,
+    "hook_errors": 0,
+    "privacy_errors": 0,
+    "queued_events": 0,
+    "queued_bytes": 0,
+    "delivery_error_count": 0
+  },
+  "caveats": [
+    "This is an operator-supplied endpoint UAT, not a claim about every customer server.",
+    "The runner only probes protected-resource metadata; it does not follow authorization-server URLs, register clients, exchange or refresh tokens, call tools, replay events, or prove transport-owned reconnect semantics.",
+    "Reports contain no endpoint path, token, API key, session identifier, request body, response body, cursor, tool name, resource URI, or prompt name."
+  ]
+}

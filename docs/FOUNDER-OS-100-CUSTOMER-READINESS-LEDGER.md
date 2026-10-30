@@ -1,5 +1,24 @@
 # Founder OS 100 Customer Readiness Ledger
 
+## 2026-10-30 — isolated AWS endpoint deployed and bounded UAT passed
+
+- [x] The merged `main` workflow run `41048627524` updated the isolated
+  App Runner service `trackmcp-customer-mcp-uat` in `ap-south-1` and waited
+  for `RUNNING`. The provider permission previously blocking service creation
+  is now applied and the durable operator-supplied AWS endpoint is reachable.
+- [x] The same official-client UAT runner passed against that AWS endpoint:
+  30 tools, 6 resources, 5 prompts, protected-resource metadata observed, and
+  zero dropped events, hook errors, privacy errors, queued events, queued
+  bytes, or delivery errors. Redacted report:
+  `docs/evidence/customer-owned-endpoint-uat-aws-2026-10-30.json`.
+- [x] The complete evidence record is retained in
+  `docs/evidence/customer-owned-endpoint-uat-aws-2026-10-30.md`. It explicitly
+  classifies the result as operator-supplied AWS UAT rather than independent
+  third-party customer evidence.
+- [ ] Overall release remains **HOLD** for any gate that requires a real
+  customer-owned endpoint, authenticated customer interoperability beyond the
+  bounded metadata pass, or independent provider/customer backup evidence.
+
 ## 2026-10-30 — release-owner decisions recorded; durable AWS endpoint permission remains open
 
 - [x] The release owner accepted synthetic evidence until real end-to-end
@@ -15,14 +34,11 @@
 - [x] A temporary public HTTPS endpoint UAT passed catalog discovery with
   authorization supplied and zero queue, delivery, hook, or privacy errors.
   Evidence: `trackmcp-nextjs/docs/evidence/customer-owned-endpoint-uat-2026-10-30.json`.
-- [ ] The durable AWS endpoint remains open. Runs `41045487252` and
-  `41045964687` proved that the existing OIDC role can authenticate, build, and
-  push the fixture image; the final run was denied only on
-  `apprunner:CreateService` for the isolated UAT service. Evidence:
-  `docs/evidence/customer-owned-endpoint-aws-deployment-2026-10-30.md`.
-- [ ] Overall release remains **HOLD** until the provider permission is granted,
-  the durable endpoint is running, and the same bounded UAT is rerun against
-  that endpoint.
+- [x] The provider permission was granted, the isolated durable AWS endpoint
+  was deployed successfully, and the same bounded UAT was rerun against it.
+  Deployment history and the earlier permission failure remain preserved in
+  `docs/evidence/customer-owned-endpoint-aws-deployment-2026-10-30.md`; the
+  successful UAT is recorded above.
 
 ## 2026-10-30 — clean AWS health window proven; authenticated synthetic product UAT exercised
 
