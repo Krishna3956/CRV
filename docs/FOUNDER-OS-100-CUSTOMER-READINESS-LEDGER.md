@@ -14,6 +14,13 @@
   five expected columns: `service`, `environment`, `server_id`, and
   `transport` on `trackmcp_task_transitions`, plus `transport` on
   `trackmcp_catalog_entity_reads`.
+- [x] Ran a second read-only catalog query against `pg_constraint` and
+  `pg_indexes`; both transport checks and both transport-scope indexes returned
+  `true`.
+- [x] Recorded the two verified executions in
+  `public.trackmcp_migration_execution` with bounded operator identity,
+  source SHAs (`0c32f98e` and `6084762e`), and the same postflight reference;
+  a read-only lookup returned both rows.
 - [x] Existing rows were not backfilled or rewritten. Raw task handles,
   endpoint URLs, resource URIs, prompt names, arguments, and contents remain
   outside the schema change.

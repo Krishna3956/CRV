@@ -7,8 +7,10 @@ Supabase project `TOP-MCP-v2`. A read-only information-schema postflight
 returned the expected five columns across `trackmcp_task_transitions` and
 `trackmcp_catalog_entity_reads`; no historical rows were rewritten. This
 closes the production-schema prerequisite for the source-level transport-scoped
-read models. It does not close customer-owned endpoint UAT, deployment of the
-current review branch, backup/PITR, privacy acceptance, or release-owner GO.
+read models. The two executions are also recorded in the production migration
+ledger with bounded source SHAs and a postflight reference. It does not close
+customer-owned endpoint UAT, deployment of the current review branch,
+backup/PITR, privacy acceptance, or release-owner GO.
 
 ## 2026-10-30 source checkpoint — transport-scoped analytics is user-visible
 
