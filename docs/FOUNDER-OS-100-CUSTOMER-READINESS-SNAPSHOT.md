@@ -1,5 +1,24 @@
 # Founder OS first-100 readiness snapshot
 
+## 2026-10-30 deployment checkpoint — CLI fix and warm redeploy verified
+
+The published `@trackmcp/cli@0.1.13` is the corrected CLI release. Version
+`0.1.12` was reproduced as a silent no-op because npm/npx invoked the bin
+symlink without satisfying the entrypoint guard. Version `0.1.13` resolves the
+symlink with `realpathSync`, prints help and diagnostics, reports
+non-interactive init errors, and reaches the browser/device-auth path in an
+interactive terminal. Its 26-test package suite and packed-consumer test pass,
+including Node 25.6.0.
+
+PR #761 merged as `4dc0d99196b16a09280f753a855c055d74ff8f01`. App Runner
+workflow `41006257339` passed the release gate, rollout, 36-check production
+smoke, immutable release identity, runtime-safety audit, and live Chinese
+translation-provider audit. The first redeploy (`41005436310`) had a transient
+cold-origin smoke timeout; it remains recorded as a failed attempt rather than
+being hidden. Engineering is verified for this milestone, but privacy
+acceptance, backup/PITR, customer-owned UAT, and release-owner GO/NO-GO remain
+open.
+
 ## 2026-10-30 deployment checkpoint — translation audit retry hardening
 
 PR #760 merged and the candidate App Runner rollout passed build, smoke,
@@ -7,8 +26,8 @@ identity, and runtime-safety checks, but one all-sitemap translation request
 observed a transient HTTP 502. The direct origin recovered to HTTP 200 and the
 provider probe passed. A follow-up branch now retries only bounded transient
 page/probe requests; focused tests, the full 154-suite gate, and the 211-route
-build pass. A green follow-up deployment is still required before treating the
-runtime as fully verified.
+build pass. The warm follow-up deployment is now green; the earlier failed
+attempt is retained as evidence rather than being overwritten.
 
 ## 2026-10-30 production schema checkpoint — account identity namespace applied
 
