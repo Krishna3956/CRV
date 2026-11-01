@@ -1,0 +1,251 @@
+name: Provision AWS Supabase staging
+
+# This workflow is deliberately manual and staging-only. It creates an isolated
+# EC2 baseline, a private/versioned backup bucket, and a staging secret. It does
+# not touch production DNS, App Runner configuration, Supabase Cloud, or any
+# application credentials. The confirmation phrase is an action-time guard.
+on:
+  workflow_dispatch:
+    inputs:
+      confirm:
+        description: "Type PROVISION_STAGING to create billable staging resources"
+        required: true
+        type: string
+      stack_name:
+        description: "CloudFormation stack name"
+        required: true
+        default: trackmcp-supabase-staging
+        type: string
+      instance_type:
+        description: "Staging EC2 size"
+        required: true
+        default: t3.medium
+        type: choice
+        options:
+          - t3.medium
+          - t3.large
+
+permissions:
+  id-token: write
+  contents: read
+
+env:
+  AWS_REGION: us-east-1
+  ROLE_ARN: arn:aws:iam::872575360367:role/GitHubActionsDeployRole
+  BACKUP_BUCKET_PREFIX: trackmcp-supabase-backups
+  SECRET_NAME: trackmcp/supabase/staging
+
+jobs:
+  provision:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - name: Check out the reviewed infrastructure
+        uses: actions/checkout@v4
+
+      - name: Configure AWS OIDC credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ env.ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Validate the explicit staging guard
+        env:
+          CONFIRM: ${{ inputs.confirm }}
+        run: |
+          set -euo pipefail
+          if [[ "$CONFIRM" != "PROVISION_STAGING" ]]; then
+            echo "::error::The confirm input must be exactly PROVISION_STAGING. No resources were created."
+            exit 1
+          fi
+
+      - name: Discover account network metadata
+        id: network
+        env:
+          INSTANCE_TYPE: ${{ inputs.instance_type }}
+        run: |
+          set -euo pipefail
+          ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
+          VPC_ID=$(aws ec2 describe-vpcs \
+            --filters Name=is-default,Values=true Name=state,Values=available \
+            --query 'Vpcs[0].VpcId' --output text)
+          if [[ -z "$VPC_ID" || "$VPC_ID" == "None" ]]; then
+            echo "::error::No available default VPC was found in $AWS_REGION."
+            exit 1
+          fi
+          SUBNET_ID=$(aws ec2 describe-subnets \
+            --filters Name=vpc-id,Values="$VPC_ID" Name=default-for-az,Values=true Name=state,Values=available \
+            --query 'Subnets[0].SubnetId' --output text)
+          if [[ -z "$SUBNET_ID" || "$SUBNET_ID" == "None" ]]; then
+            echo "::error::No available default subnet was found in $VPC_ID."
+            exit 1
+          fi
+          BUCKET_NAME="${BACKUP_BUCKET_PREFIX}-${ACCOUNT_ID}-${AWS_REGION}"
+          echo "vpc_id=$VPC_ID" >> "$GITHUB_OUTPUT"
+          echo "subnet_id=$SUBNET_ID" >> "$GITHUB_OUTPUT"
+          echo "bucket_name=$BUCKET_NAME" >> "$GITHUB_OUTPUT"
+          echo "account_id=$ACCOUNT_ID" >> "$GITHUB_OUTPUT"
+          echo "Using account/network metadata only: region=$AWS_REGION vpc=$VPC_ID subnet=$SUBNET_ID instance_type=$INSTANCE_TYPE"
+
+      - name: Create or verify the private backup bucket
+        env:
+          BUCKET_NAME: ${{ steps.network.outputs.bucket_name }}
+        run: |
+          set -euo pipefail
+          if ! aws s3api head-bucket --bucket "$BUCKET_NAME" 2>/dev/null; then
+            aws s3api create-bucket --bucket "$BUCKET_NAME" --region "$AWS_REGION"
+          fi
+          aws s3api put-public-access-block --bucket "$BUCKET_NAME" --public-access-block-configuration \
+            BlockPublicAcls=true,IgnorePublicAcls=true,BlockPublicPolicy=true,RestrictPublicBuckets=true
+          aws s3api put-bucket-versioning --bucket "$BUCKET_NAME" --versioning-configuration Status=Enabled
+          aws s3api put-bucket-encryption --bucket "$BUCKET_NAME" --server-side-encryption-configuration \
+            '{"Rules":[{"ApplyServerSideEncryptionByDefault":{"SSEAlgorithm":"AES256"}}]}'
+          aws s3api put-bucket-tagging --bucket "$BUCKET_NAME" --tagging \
+            'TagSet=[{Key=Name,Value=trackmcp-supabase-backups},{Key=ManagedBy,Value=github-actions},{Key=MigrationGoal,Value=aws-supabase}]'
+          echo "Private, versioned, encrypted backup bucket is ready: $BUCKET_NAME"
+
+      - name: Create or verify the staging secret container
+        id: secret
+        run: |
+          set -euo pipefail
+          SECRET_ARN=$(aws secretsmanager describe-secret --secret-id "$SECRET_NAME" --query ARN --output text 2>/dev/null || true)
+          if [[ -z "$SECRET_ARN" || "$SECRET_ARN" == "None" ]]; then
+            SECRET_ARN=$(aws secretsmanager create-secret \
+              --name "$SECRET_NAME" \
+              --description "TrackMCP self-hosted Supabase staging configuration; never use for production" \
+              --secret-string '{"status":"PROVISIONED_ONLY","source":"trackmcp"}' \
+              --tags Key=Name,Value=trackmcp-supabase-staging Key=ManagedBy,Value=github-actions Key=MigrationGoal,Value=aws-supabase \
+              --query ARN --output text)
+          fi
+          echo "secret_arn=$SECRET_ARN" >> "$GITHUB_OUTPUT"
+          echo "Staging secret container is ready; secret values are not printed."
+
+      - name: Validate the reviewed CloudFormation template
+        run: aws cloudformation validate-template --template-body file://infra/aws-supabase/template.yaml >/dev/null
+
+      - name: Create or update the isolated EC2 baseline
+        env:
+          STACK_NAME: ${{ inputs.stack_name }}
+          INSTANCE_TYPE: ${{ inputs.instance_type }}
+          VPC_ID: ${{ steps.network.outputs.vpc_id }}
+          SUBNET_ID: ${{ steps.network.outputs.subnet_id }}
+          BUCKET_NAME: ${{ steps.network.outputs.bucket_name }}
+          SECRET_ARN: ${{ steps.secret.outputs.secret_arn }}
+        run: |
+          set -euo pipefail
+          BUCKET_ARN="arn:aws:s3:::$BUCKET_NAME"
+          if aws cloudformation describe-stacks --stack-name "$STACK_NAME" --region "$AWS_REGION" >/dev/null 2>&1; then
+            set +e
+            aws cloudformation update-stack \
+              --stack-name "$STACK_NAME" \
+              --template-body file://infra/aws-supabase/template.yaml \
+              --parameters ParameterKey=VpcId,ParameterValue="$VPC_ID" ParameterKey=SubnetId,ParameterValue="$SUBNET_ID" ParameterKey=InstanceType,ParameterValue="$INSTANCE_TYPE" ParameterKey=RootVolumeGiB,ParameterValue=80 ParameterKey=BackupBucketArn,ParameterValue="$BUCKET_ARN" ParameterKey=SupabaseSecretArn,ParameterValue="$SECRET_ARN" \
+              --capabilities CAPABILITY_NAMED_IAM \
+              --region "$AWS_REGION"
+            UPDATE_EXIT=$?
+            set -e
+            if [[ $UPDATE_EXIT -ne 0 ]]; then
+              if aws cloudformation describe-stack-events --stack-name "$STACK_NAME" --region "$AWS_REGION" --query 'StackEvents[?ResourceStatusReason!=`null`]|[0:5].[LogicalResourceId,ResourceStatus,ResourceStatusReason]' --output table; then true; fi
+              exit $UPDATE_EXIT
+            fi
+          else
+            aws cloudformation create-stack \
+              --stack-name "$STACK_NAME" \
+              --template-body file://infra/aws-supabase/template.yaml \
+              --parameters ParameterKey=VpcId,ParameterValue="$VPC_ID" ParameterKey=SubnetId,ParameterValue="$SUBNET_ID" ParameterKey=InstanceType,ParameterValue="$INSTANCE_TYPE" ParameterKey=RootVolumeGiB,ParameterValue=80 ParameterKey=BackupBucketArn,ParameterValue="$BUCKET_ARN" ParameterKey=SupabaseSecretArn,ParameterValue="$SECRET_ARN" \
+              --capabilities CAPABILITY_NAMED_IAM \
+              --tags Key=Name,Value=trackmcp-supabase-staging Key=ManagedBy,Value=github-actions Key=MigrationGoal,Value=aws-supabase \
+              --region "$AWS_REGION"
+          fi
+          aws cloudformation wait stack-create-complete --stack-name "$STACK_NAME" --region "$AWS_REGION" 2>/dev/null || \
+            aws cloudformation wait stack-update-complete --stack-name "$STACK_NAME" --region "$AWS_REGION"
+          aws cloudformation describe-stacks --stack-name "$STACK_NAME" --region "$AWS_REGION" \
+            --query 'Stacks[0].{name:StackName,status:StackStatus,outputs:Outputs}' --output json
+
+      - name: Wait for SSM management
+        id: instance
+        env:
+          STACK_NAME: ${{ inputs.stack_name }}
+        run: |
+          set -euo pipefail
+          INSTANCE_ID=$(aws cloudformation describe-stacks --stack-name "$STACK_NAME" --region "$AWS_REGION" \
+            --query 'Stacks[0].Outputs[?OutputKey==`InstanceId`].OutputValue' --output text)
+          for attempt in $(seq 1 40); do
+            PING=$(aws ssm describe-instance-information --region "$AWS_REGION" \
+              --filters "Key=InstanceIds,Values=$INSTANCE_ID" --query 'InstanceInformationList[0].PingStatus' --output text 2>/dev/null || true)
+            if [[ "$PING" == "Online" ]]; then
+              echo "instance_id=$INSTANCE_ID" >> "$GITHUB_OUTPUT"
+              echo "EC2 instance is online in SSM: $INSTANCE_ID"
+              exit 0
+            fi
+            sleep 15
+          done
+          echo "::error::EC2 instance did not become available in SSM within the wait window."
+          exit 1
+
+      - name: Install the pinned official Supabase Docker distribution
+        env:
+          INSTANCE_ID: ${{ steps.instance.outputs.instance_id }}
+          SECRET_ARN: ${{ steps.secret.outputs.secret_arn }}
+        run: |
+          set -euo pipefail
+          REMOTE_SCRIPT=$(cat <<EOF
+          set -euo pipefail
+          export AWS_DEFAULT_REGION="$AWS_REGION"
+          command -v aws >/dev/null 2>&1 || dnf install -y awscli2 >/dev/null 2>&1
+          dnf install -y git openssl jq >/dev/null 2>&1
+          install -d -m 0750 /opt/trackmcp-supabase
+          if [[ ! -d /opt/trackmcp-supabase/supabase/.git ]]; then
+            git clone --depth 1 --branch self-hosted/v0.8.3 https://github.com/supabase/supabase /opt/trackmcp-supabase/supabase >/dev/null 2>&1
+          fi
+          if [[ ! -f /opt/trackmcp-supabase/project/.env ]]; then
+            rm -rf /opt/trackmcp-supabase/project
+            install -d -m 0750 /opt/trackmcp-supabase/project
+            cp -rf /opt/trackmcp-supabase/supabase/docker/. /opt/trackmcp-supabase/project/
+            cd /opt/trackmcp-supabase/project
+            printf 'ref=self-hosted/v0.8.3\n' > .supabase-version
+            cp .env.example .env
+            sh utils/generate-keys.sh >/dev/null 2>&1
+            sh utils/add-new-auth-keys.sh >/dev/null 2>&1
+            sed -i -E 's|^SUPABASE_PUBLIC_URL=.*|SUPABASE_PUBLIC_URL=http://127.0.0.1:8000|' .env
+            sed -i -E 's|^API_EXTERNAL_URL=.*|API_EXTERNAL_URL=http://127.0.0.1:8000|' .env
+            sed -i -E 's|^SITE_URL=.*|SITE_URL=http://127.0.0.1:3000|' .env
+            sh run.sh start >/dev/null 2>&1
+            aws secretsmanager put-secret-value --secret-id "$SECRET_ARN" --secret-string file:///opt/trackmcp-supabase/project/.env >/dev/null
+          fi
+          for attempt in $(seq 1 60); do
+            if curl -fsS http://127.0.0.1:8000/auth/v1/settings >/dev/null 2>&1; then
+              echo SUPABASE_STAGING_HEALTHY
+              exit 0
+            fi
+            sleep 10
+          done
+          echo SUPABASE_STAGING_HEALTHCHECK_FAILED
+          exit 1
+          EOF
+          )
+          REMOTE_B64=$(printf '%s' "$REMOTE_SCRIPT" | base64 -w 0)
+          COMMAND_ID=$(aws ssm send-command \
+            --instance-ids "$INSTANCE_ID" \
+            --document-name AWS-RunShellScript \
+            --comment "TrackMCP pinned Supabase staging bootstrap" \
+            --timeout-seconds 1800 \
+            --parameters "commands=echo $REMOTE_B64 | base64 -d | bash" \
+            --region "$AWS_REGION" --query Command.CommandId --output text)
+          aws ssm wait command-executed --command-id "$COMMAND_ID" --instance-id "$INSTANCE_ID" --region "$AWS_REGION"
+          STATUS=$(aws ssm get-command-invocation --command-id "$COMMAND_ID" --instance-id "$INSTANCE_ID" --region "$AWS_REGION" --query Status --output text)
+          OUTPUT=$(aws ssm get-command-invocation --command-id "$COMMAND_ID" --instance-id "$INSTANCE_ID" --region "$AWS_REGION" --query StandardOutputContent --output text)
+          echo "$OUTPUT"
+          if [[ "$STATUS" != "Success" || "$OUTPUT" != *SUPABASE_STAGING_HEALTHY* ]]; then
+            echo "::error::Pinned Supabase staging bootstrap did not report a healthy Auth endpoint."
+            exit 1
+          fi
+
+      - name: Record non-secret staging metadata
+        env:
+          STACK_NAME: ${{ inputs.stack_name }}
+        run: |
+          set -euo pipefail
+          aws cloudformation describe-stacks --stack-name "$STACK_NAME" --region "$AWS_REGION" \
+            --query 'Stacks[0].{name:StackName,status:StackStatus,created:CreationTime,outputs:Outputs}' --output json
+          echo "Staging was provisioned only. Supabase Cloud, production DNS, App Runner configuration, and live traffic were not changed."

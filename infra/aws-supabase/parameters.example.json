@@ -1,0 +1,11 @@
+{
+  "Region": "us-east-1",
+  "VpcId": "REPLACE_WITH_APPROVED_VPC_ID",
+  "SubnetId": "REPLACE_WITH_APPROVED_PUBLIC_SUBNET_ID",
+  "InstanceType": "t3.medium",
+  "RootVolumeGiB": "80",
+  "AllowedAdminCidr": "DISABLED_USE_SSM",
+  "BackupBucketArn": "REPLACE_WITH_PRIVATE_BACKUP_BUCKET_ARN",
+  "SupabaseSecretArn": "REPLACE_WITH_STAGING_SECRET_ARN",
+  "AmiParameter": "/aws/service/ami-amazon-linux-latest/al2023-ami-kernel-default-x86_64"
+}
