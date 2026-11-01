@@ -123,6 +123,9 @@ Resources:
         Fn::Base64: !Sub |
           #!/bin/bash
           set -euo pipefail
+          # AL2023 includes the SSM agent; make its service state explicit so
+          # the workflow can administer this SSH-free host immediately.
+          systemctl enable --now amazon-ssm-agent
           dnf install -y docker
           systemctl enable --now docker
           install -d -m 0750 /opt/trackmcp-supabase
