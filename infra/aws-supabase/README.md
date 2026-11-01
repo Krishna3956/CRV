@@ -23,7 +23,7 @@ Planning ranges, not a quote:
 - safer 8 GiB production candidate: approximately $73–$80/month at low transfer/log volume;
 - 5x growth/capacity case: approximately $140–$180/month after a likely instance/storage increase.
 
-The verified AWS console evidence currently shows an active $1,000 Activate Founders credit with $1,000 remaining and an 2028-11-01 expiry. The additional ~$37 mentioned by the owner is not included until independently verified. Credits are not a hard spending limit; after eligible credits are consumed, charges can accrue.
+The verified AWS console evidence currently shows $1,125.22 total remaining and $1,037.31 estimated remaining. The active `AWS Activate - FOUNDERS` credit shows $1,000 issued and remaining, expiring 2028-10-31 in the current UI. Credits are not a hard spending limit; after eligible credits are consumed, charges can accrue.
 
 ## Apply only after approval
 
