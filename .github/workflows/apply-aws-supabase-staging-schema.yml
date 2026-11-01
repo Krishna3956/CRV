@@ -84,6 +84,7 @@ jobs:
           }
           REMOTE_SCRIPT=$(cat <<'REMOTE_EOF'
           set -euo pipefail
+          trap 'status=$?; echo "STAGING_REMOTE_FAILED status=${status} command=${BASH_COMMAND}"; exit "$status"' ERR
           cd /opt/trackmcp-supabase/project
           test -f .env
           if [[ "${RESET_SCHEMA:-NO}" == "RESET_STAGING_SCHEMA" ]]; then
