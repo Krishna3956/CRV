@@ -63,26 +63,8 @@ jobs:
           tar -czf /tmp/trackmcp-schema-migrations.tgz supabase/migrations
           aws s3 cp /tmp/trackmcp-schema-migrations.tgz "s3://${BUCKET_NAME}/${OBJECT_KEY}" \
             --sse AES256 --only-show-errors
-          echo "bucket_name=$BUCKET_NAME" >> "$GITHUB_OUTPUT"
-          echo "object_key=$OBJECT_KEY" >> "$GITHUB_OUTPUT"
-          echo "Packaged $(find supabase/migrations -type f -name '*.sql' | wc -l | tr -d ' ') reviewed migration files; SQL contents are not printed."
-
-      - name: Apply migrations through SSM
-        env:
-          STACK_NAME: ${{ inputs.stack_name }}
-          RESET_SCHEMA: ${{ inputs.reset_schema }}
-          BUCKET_NAME: ${{ steps.package.outputs.bucket_name }}
-          OBJECT_KEY: ${{ steps.package.outputs.object_key }}
-        run: |
-          set -euo pipefail
-          INSTANCE_ID=$(aws cloudformation describe-stacks \
-            --stack-name "$STACK_NAME" --region "$AWS_REGION" \
-            --query 'Stacks[0].Outputs[?OutputKey==`InstanceId`].OutputValue' --output text)
-          [[ -n "$INSTANCE_ID" && "$INSTANCE_ID" != "None" ]] || {
-            echo "::error::The selected staging stack has no EC2 instance output."
-            exit 1
-          }
-          REMOTE_SCRIPT=$(cat <<'REMOTE_EOF'
+          SCRIPT_OBJECT="staging/schema-remote-${GITHUB_RUN_ID}.sh"
+          cat > /tmp/trackmcp-schema-remote.sh <<'REMOTE_EOF'
           set -euo pipefail
           trap 'status=$?; echo "STAGING_REMOTE_FAILED status=${status} command=${BASH_COMMAND}"; exit "$status"' ERR
           cd /opt/trackmcp-supabase/project
@@ -136,9 +118,31 @@ jobs:
           fi
           echo STAGING_SCHEMA_APPLIED
           REMOTE_EOF
-          )
-          REMOTE_B64=$(printf '%s' "$REMOTE_SCRIPT" | base64 -w 0)
-          COMMANDS_JSON=$(jq -Rn --arg command "export RESET_SCHEMA='$RESET_SCHEMA' MIGRATION_BUCKET='$BUCKET_NAME' MIGRATION_OBJECT='$OBJECT_KEY'; echo $REMOTE_B64 | base64 -d | bash" '{commands:[$command]}')
+          aws s3 cp /tmp/trackmcp-schema-remote.sh "s3://${BUCKET_NAME}/${SCRIPT_OBJECT}" \
+            --sse AES256 --only-show-errors
+          echo "bucket_name=$BUCKET_NAME" >> "$GITHUB_OUTPUT"
+          echo "object_key=$OBJECT_KEY" >> "$GITHUB_OUTPUT"
+          echo "script_object=$SCRIPT_OBJECT" >> "$GITHUB_OUTPUT"
+          echo "Packaged $(find supabase/migrations -type f -name '*.sql' | wc -l | tr -d ' ') reviewed migration files; SQL contents are not printed."
+
+      - name: Apply migrations through SSM
+        env:
+          STACK_NAME: ${{ inputs.stack_name }}
+          RESET_SCHEMA: ${{ inputs.reset_schema }}
+          BUCKET_NAME: ${{ steps.package.outputs.bucket_name }}
+          OBJECT_KEY: ${{ steps.package.outputs.object_key }}
+          SCRIPT_OBJECT: ${{ steps.package.outputs.script_object }}
+        run: |
+          set -euo pipefail
+          INSTANCE_ID=$(aws cloudformation describe-stacks \
+            --stack-name "$STACK_NAME" --region "$AWS_REGION" \
+            --query 'Stacks[0].Outputs[?OutputKey==`InstanceId`].OutputValue' --output text)
+          [[ -n "$INSTANCE_ID" && "$INSTANCE_ID" != "None" ]] || {
+            echo "::error::The selected staging stack has no EC2 instance output."
+            exit 1
+          }
+          REMOTE_COMMAND="export RESET_SCHEMA='$RESET_SCHEMA' MIGRATION_BUCKET='$BUCKET_NAME' MIGRATION_OBJECT='$OBJECT_KEY' SCRIPT_OBJECT='$SCRIPT_OBJECT'; aws s3 cp \"s3://\${MIGRATION_BUCKET}/\${SCRIPT_OBJECT}\" /tmp/trackmcp-schema-remote.sh --only-show-errors; chmod 0700 /tmp/trackmcp-schema-remote.sh; exec bash /tmp/trackmcp-schema-remote.sh"
+          COMMANDS_JSON=$(jq -Rn --arg command "$REMOTE_COMMAND" '{commands:[$command]}')
           COMMAND_ID=$(aws ssm send-command \
             --instance-ids "$INSTANCE_ID" \
             --document-name AWS-RunShellScript \
