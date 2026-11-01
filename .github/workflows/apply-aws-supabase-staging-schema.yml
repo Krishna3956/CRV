@@ -14,6 +14,11 @@ on:
         required: true
         default: trackmcp-supabase-staging-24
         type: string
+      reset_schema:
+        description: "Type RESET_STAGING_SCHEMA only when the isolated staging public schema has no data"
+        required: false
+        default: NO
+        type: string
 
 permissions:
   id-token: write
@@ -65,6 +70,7 @@ jobs:
       - name: Apply migrations through SSM
         env:
           STACK_NAME: ${{ inputs.stack_name }}
+          RESET_SCHEMA: ${{ inputs.reset_schema }}
           BUCKET_NAME: ${{ steps.package.outputs.bucket_name }}
           OBJECT_KEY: ${{ steps.package.outputs.object_key }}
         run: |
@@ -80,6 +86,15 @@ jobs:
           set -euo pipefail
           cd /opt/trackmcp-supabase/project
           test -f .env
+          if [[ "${RESET_SCHEMA:-NO}" == "RESET_STAGING_SCHEMA" ]]; then
+            docker compose exec -T db psql -U postgres -d postgres -v ON_ERROR_STOP=1 <<'SQL'
+          drop schema if exists public cascade;
+          create schema public;
+          grant all on schema public to postgres;
+          grant usage on schema public to anon, authenticated, service_role;
+          SQL
+            echo STAGING_PUBLIC_SCHEMA_RESET
+          fi
           install -d -m 0750 /opt/trackmcp-supabase/migrations
           aws s3 cp "s3://${MIGRATION_BUCKET}/${MIGRATION_OBJECT}" /tmp/trackmcp-schema-migrations.tgz --only-show-errors
           tar -xzf /tmp/trackmcp-schema-migrations.tgz -C /opt/trackmcp-supabase/migrations
@@ -95,7 +110,7 @@ jobs:
           REMOTE_EOF
           )
           REMOTE_B64=$(printf '%s' "$REMOTE_SCRIPT" | base64 -w 0)
-          COMMANDS_JSON=$(jq -Rn --arg command "export MIGRATION_BUCKET='$BUCKET_NAME' MIGRATION_OBJECT='$OBJECT_KEY'; echo $REMOTE_B64 | base64 -d | bash" '{commands:[$command]}')
+          COMMANDS_JSON=$(jq -Rn --arg command "export RESET_SCHEMA='$RESET_SCHEMA' MIGRATION_BUCKET='$BUCKET_NAME' MIGRATION_OBJECT='$OBJECT_KEY'; echo $REMOTE_B64 | base64 -d | bash" '{commands:[$command]}')
           COMMAND_ID=$(aws ssm send-command \
             --instance-ids "$INSTANCE_ID" \
             --document-name AWS-RunShellScript \
