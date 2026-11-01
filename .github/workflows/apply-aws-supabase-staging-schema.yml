@@ -108,12 +108,14 @@ jobs:
             | xargs -0 cat > /tmp/trackmcp-application-migrations.sql
           if ! docker compose exec -T db psql -U postgres -d postgres -v ON_ERROR_STOP=1 \
             </tmp/trackmcp-application-migrations.sql >/tmp/trackmcp-schema-apply.log 2>&1; then
+            echo STAGING_SCHEMA_APPLY_FAILED
             tail -100 /tmp/trackmcp-schema-apply.log
             exit 1
           fi
           if ! docker compose exec -T db psql -U postgres -d postgres -v ON_ERROR_STOP=1 \
             -c "select count(*) from information_schema.tables where table_schema = 'public' and table_name like 'trackmcp_%'" \
             >/tmp/trackmcp-schema-postflight.log 2>&1; then
+            echo STAGING_SCHEMA_POSTFLIGHT_FAILED
             cat /tmp/trackmcp-schema-postflight.log
             exit 1
           fi
