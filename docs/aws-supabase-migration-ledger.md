@@ -3,7 +3,7 @@
 **Goal:** Move TrackMCP from Supabase Cloud Free to an AWS Activate-funded, self-hosted Supabase deployment with the smallest safe application change, while preserving users, authentication, data, security, backups, and rollback safety.
 
 **Status:** IN PROGRESS  
-**Last updated:** 2026-11-02 00:22 IST
+**Last updated:** 2026-11-02 00:26 IST
 **Repository:** `/Users/krishna/Documents/Codex/2026-10-17/okay-x20/CRV`  
 **Branch:** `codex/record-final-go`
 
@@ -86,6 +86,7 @@ This is provisional until current Supabase compatibility requirements, AWS prici
 - Isolated staging retry #12 was dispatched from the reviewed workflow with guard `PROVISION_STAGING`, stack `trackmcp-supabase-staging-12`, and instance type `t3.medium`; GitHub Actions run `41337939660` and job `124941638103` were queued at approximately 00:11 IST. Monitoring is in progress; no production or Supabase Cloud mutation has occurred.
 - Retry #12 reached `SupabaseSecurityGroup CREATE_COMPLETE` and `SupabaseInstanceRole CREATE_COMPLETE`, confirming the previously added EC2 security-group actions are effective. CloudFormation then denied `iam:CreateInstanceProfile` for the staging instance-profile ARN; rollback also denied `iam:RemoveRoleFromInstanceProfile`, leaving the stack `ROLLBACK_FAILED`. No EC2 instance or Supabase installation ran. The staging security group was deleted; the failed profile resource remains for the next guarded cleanup path.
 - The owner confirmed continuation and the IAM editor saved only `iam:CreateInstanceProfile`, `iam:AddRoleToInstanceProfile`, `iam:RemoveRoleFromInstanceProfile`, and `iam:DeleteInstanceProfile`, scoped to `arn:aws:iam::872575360367:instance-profile/trackmcp-supabase-staging-*`. AWS showed `Policy DeployPerms updated.` at approximately 00:22 IST; no broad IAM action, administrator permission, or production resource was added.
+- Retry #12's GitHub Actions run `41337939660` was cancelled after its CloudFormation stack reached `ROLLBACK_FAILED`; the preserved failed stack and source Supabase Cloud project were not deleted. Isolated staging retry #13 was then dispatched with guard `PROVISION_STAGING`, stack `trackmcp-supabase-staging-13`, and instance type `t3.medium`; GitHub Actions run `41339128154` was queued at approximately 00:26 IST. Monitoring is in progress; no production or Supabase Cloud mutation has occurred.
 
 ## Evidence log
 
@@ -141,4 +142,6 @@ This is provisional until current Supabase compatibility requirements, AWS prici
 | 2026-11-02 00:11 IST | Isolated staging retry #12 dispatched | GitHub Actions run `41337939660`, job `124941638103`, was dispatched with `PROVISION_STAGING`, stack `trackmcp-supabase-staging-12`, and `t3.medium`. | IN PROGRESS |
 | 2026-11-02 00:13 IST | Isolated staging retry #12 root cause | CloudFormation stack `trackmcp-supabase-staging-12` reached security-group and instance-role creation, then denied `iam:CreateInstanceProfile` for the staging instance profile. Rollback denied `iam:RemoveRoleFromInstanceProfile`, leaving `ROLLBACK_FAILED`; the security group was deleted and no EC2 host, SSM management, or Supabase installation ran. | FAILED / NARROW IAM INSTANCE-PROFILE PERMISSIONS REQUIRED |
 | 2026-11-02 00:22 IST | IAM instance-profile permissions saved | Owner confirmed continuation; AWS IAM showed `Policy DeployPerms updated.` for only `iam:CreateInstanceProfile`, `iam:AddRoleToInstanceProfile`, `iam:RemoveRoleFromInstanceProfile`, and `iam:DeleteInstanceProfile` on `arn:aws:iam::872575360367:instance-profile/trackmcp-supabase-staging-*`. | VERIFIED / READY FOR ISOLATED RETRY |
+| 2026-11-02 00:23 IST | Retry #12 workflow cancellation | GitHub Actions run `41337939660` was cancelled after the CloudFormation stack reached `ROLLBACK_FAILED`; no production or Supabase Cloud mutation occurred. | VERIFIED |
+| 2026-11-02 00:26 IST | Isolated staging retry #13 dispatched | GitHub Actions run `41339128154` was dispatched with `PROVISION_STAGING`, stack `trackmcp-supabase-staging-13`, and `t3.medium`. | IN PROGRESS |
 
