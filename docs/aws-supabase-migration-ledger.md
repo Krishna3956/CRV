@@ -3,7 +3,7 @@
 **Goal:** Move TrackMCP from Supabase Cloud Free to an AWS Activate-funded, self-hosted Supabase deployment with the smallest safe application change, while preserving users, authentication, data, security, backups, and rollback safety.
 
 **Status:** IN PROGRESS  
-**Last updated:** 2026-11-01 15:05 IST  
+**Last updated:** 2026-11-01 15:24 IST  
 **Repository:** `/Users/krishna/Documents/Codex/2026-10-17/okay-x20/CRV`  
 **Branch:** `codex/record-final-go`
 
@@ -61,7 +61,7 @@ This is provisional until current Supabase compatibility requirements, AWS prici
 - Storage bucket/object inventory is incomplete because the restricted project UI did not load it; source search found no application Storage calls.
 - AWS Credits summary now shows $1,125.22 total remaining and $1,037.31 estimated remaining, including the $1,000 Activate Founders credit; exact credit applicability, tax treatment, and post-credit costs still require billing verification.
 - Auth export compatibility, password-hash preservation, JWT signing-key/session behavior, OAuth provider secrets, and redirect allowlists require staging verification.
-- AWS staging approval is now recorded. The workflow is committed and pushed, but it must be available on the repository default branch before GitHub exposes its manual dispatch form. The pull-request page is currently not rendering after refresh, so no PR URL or workflow run is claimed yet.
+- AWS staging approval is now recorded. The guarded workflow is committed and pushed in [PR #793](https://github.com/Krishna3956/CRV/pull/793), which is mergeable but not merged; it must be available on the repository default branch before GitHub exposes its manual dispatch form. No workflow run or AWS resource creation is claimed yet.
 - Public scripted probes receive a Cloudflare HTTP 403, while browser-compatible requests and the direct App Runner origin return 200; treat this as an edge policy/managed bot rule issue, not evidence that App Runner is down.
 
 ## Evidence log
@@ -85,4 +85,5 @@ This is provisional until current Supabase compatibility requirements, AWS prici
 | 2026-11-01 14:55 IST | AWS deployment path | AWS CloudShell was opened in the authenticated browser, but AWS returned `Unable to create the environment. Your account verification is in progress.` No resource creation was attempted through CloudShell. | BLOCKED / ALTERNATIVE REQUIRED |
 | 2026-11-01 15:05 IST | Owner recovery direction | Owner directed that Supabase Cloud remain untouched and available as the backup/rollback source, requested public availability and authentication recovery before migration, authorized autonomous execution, and requested a redacted repository of key/configuration custody and change evidence. | RECORDED |
 | 2026-11-01 15:05 IST | Guarded deployment commits | Pushed `05306edd` (`infra: prepare guarded AWS Supabase staging`) and `1adb6717` (`infra: harden staging reruns and credit ledger`) to `origin/codex/record-final-go`; YAML parsing and `git diff --check` pass. The workflow has an exact `PROVISION_STAGING` guard and does not mutate Supabase Cloud, production DNS, App Runner, or live traffic. | VERIFIED / PR PENDING |
+| 2026-11-01 15:24 IST | Review and recovery issue published | Confirmed [PR #793](https://github.com/Krishna3956/CRV/pull/793) exists, is able to merge, and remains unmerged. Published [issue #794](https://github.com/Krishna3956/CRV/issues/794) with the recovery order, no-secret policy, backup requirement, and production cutover gate. | VERIFIED |
 
