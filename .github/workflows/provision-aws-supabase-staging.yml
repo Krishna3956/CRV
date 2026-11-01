@@ -228,10 +228,9 @@ jobs:
             # Compose CLI plugin. The official Supabase distribution invokes
             # `docker compose`, so install Docker's pinned standalone plugin
             # before attempting to start the stack.
-            COMPOSE_VERSION=2.30.3
             install -d -m 0755 /usr/local/lib/docker/cli-plugins
             curl --fail --silent --show-error --location \
-              "https://github.com/docker/compose/releases/download/v\${COMPOSE_VERSION}/docker-compose-linux-x86_64" \
+              "https://github.com/docker/compose/releases/download/v2.30.3/docker-compose-linux-x86_64" \
               --output /usr/local/lib/docker/cli-plugins/docker-compose
             chmod 0755 /usr/local/lib/docker/cli-plugins/docker-compose
           fi
