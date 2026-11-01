@@ -3,7 +3,7 @@
 **Goal:** Move TrackMCP from Supabase Cloud Free to an AWS Activate-funded, self-hosted Supabase deployment with the smallest safe application change, while preserving users, authentication, data, security, backups, and rollback safety.
 
 **Status:** IN PROGRESS  
-**Last updated:** 2026-11-02 01:25 IST
+**Last updated:** 2026-11-02 01:35 IST
 **Repository:** `/Users/krishna/Documents/Codex/2026-10-17/okay-x20/CRV`  
 **Branch:** `codex/record-final-go`
 
@@ -24,7 +24,7 @@
 | 1. Existing-system discovery | VERIFIED / PARTIAL | Repository inventory and authenticated cloud read-only checks completed; exact database bytes, egress total, and Storage inventory remain unavailable or incomplete. Public edge availability has now been separately diagnosed. |
 | 2. AWS/Supabase research and architecture | VERIFIED / OPERATING ASSUMPTION | Official self-hosting/restore guidance, current credit state, planning prices, and the approved staging envelope are recorded; region/size remain measurable staging decisions. |
 | 3. Infrastructure as code / deployment process | VERIFIED / PENDING PR | Guarded GitHub OIDC workflow, CloudFormation baseline, redacted custody inventory, and recovery runbooks are committed on `codex/record-final-go`; the isolated staging workflow is reviewed and guarded, while production resources remain unchanged. |
-| 4. Isolated AWS staging | IN PROGRESS / RETRY #15 DISPATCHED | Owner explicitly approved creating infrastructure, preserving Supabase Cloud, and using it as the rollback/source-of-truth. Retry #14 created the security group, instance profile, and role, then failed only at `ec2:CreateTags` for the EC2 instance; rollback completed cleanly. AWS IAM now confirms `Policy DeployPerms updated` with the narrow instance-tagging permission. Retry #15 is dispatched from `main`; no production or Supabase Cloud mutation has occurred. |
+| 4. Isolated AWS staging | IN PROGRESS / RETRY #16 DISPATCHED | Owner explicitly approved creating infrastructure, preserving Supabase Cloud, and using it as the rollback/source-of-truth. Retry #15 created the EC2 instance but failed because the OIDC role lacked read-only `ec2:DescribeInstances`; the failed stack was deleted after that exact permission was saved, and the instance, security group, instance profile, and staging role reached deletion-complete. Retry #16 is dispatched from `main`; no production or Supabase Cloud mutation has occurred. |
 The previous stacks `trackmcp-supabase-staging` and `trackmcp-supabase-staging-2` remain preserved; no rollback stack or source project was deleted. |
 | 5. Database/Auth/storage migration | NOT STARTED | Requires isolated staging and compatibility checks. |
 | 6. TrackMCP integration updates | VERIFIED / PENDING STAGING | Centralized environment-variable integration has been identified; no production values changed. Compatibility matrix records the exact auth/deploy files. |
@@ -153,4 +153,8 @@ This is provisional until current Supabase compatibility requirements, AWS prici
 | 2026-11-02 00:50 IST | Isolated staging retry #14 root cause and cleanup | CloudFormation stack `trackmcp-supabase-staging-14` reached security-group, instance-profile, and role creation, then denied `ec2:CreateTags` on `arn:aws:ec2:us-east-1:872575360367:instance/*`. The stack reached `ROLLBACK_COMPLETE`; the temporary instance, security group, instance profile, and role all show `DELETE_COMPLETE`. No SSM management or Supabase installation ran. | FAILED / NARROW IAM INSTANCE-TAGGING PERMISSION REQUIRED |
 | 2026-11-02 01:24 IST | IAM instance-tagging permission saved | Owner confirmed continuation; AWS visibly reported `Policy DeployPerms updated.` for only `ec2:CreateTags` scoped to account-owned EC2 instance ARNs (`arn:aws:ec2:*:872575360367:instance/*`). | VERIFIED / READY FOR ISOLATED RETRY |
 | 2026-11-02 01:25 IST | Isolated staging retry #15 dispatched | GitHub Actions run `41344180436` was dispatched from `main` with guard `PROVISION_STAGING`, stack `trackmcp-supabase-staging-15`, and `t3.medium`; the stale retry #14 waiter was cancelled after rollback. | IN PROGRESS |
+| 2026-11-02 01:28 IST | Isolated staging retry #15 root cause | CloudFormation created the EC2 instance, then failed because `GitHubActionsDeployRole` lacked read-only `ec2:DescribeInstances`; the stack entered `ROLLBACK_FAILED` because the same missing read permission blocked instance cleanup. Supabase was not installed and no production or Supabase Cloud resource was touched. | FAILED / NARROW EC2 DESCRIBE PERMISSION REQUIRED |
+| 2026-11-02 01:30 IST | IAM instance-describe permission saved | AWS visibly reported `Policy DeployPerms updated.` after adding only read-only `ec2:DescribeInstances` with resource `*`, which is required because the action does not support resource-level restriction. | VERIFIED / READY FOR CLEANUP |
+| 2026-11-02 01:34 IST | Retry #15 failed-stack cleanup verified | CloudFormation deletion of `trackmcp-supabase-staging-15` completed for the EC2 instance, security group, instance profile, and staging role; the stack no longer appears in active CloudFormation stacks. | VERIFIED |
+| 2026-11-02 01:35 IST | Isolated staging retry #16 dispatched | GitHub Actions run `41345055813` was dispatched from `main` with guard `PROVISION_STAGING`, stack `trackmcp-supabase-staging-16`, and `t3.medium`. | IN PROGRESS |
 
