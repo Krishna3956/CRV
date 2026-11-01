@@ -101,11 +101,25 @@ jobs:
             echo STAGING_PUBLIC_SCHEMA_RESET
           fi
           install -d -m 0750 /opt/trackmcp-supabase/migrations
-          aws s3 cp "s3://${MIGRATION_BUCKET}/${MIGRATION_OBJECT}" /tmp/trackmcp-schema-migrations.tgz --only-show-errors
-          tar -xzf /tmp/trackmcp-schema-migrations.tgz -C /opt/trackmcp-supabase/migrations
-          find /opt/trackmcp-supabase/migrations/supabase/migrations -type f -name '*.sql' -print0 \
+          if ! aws s3 cp "s3://${MIGRATION_BUCKET}/${MIGRATION_OBJECT}" /tmp/trackmcp-schema-migrations.tgz --only-show-errors \
+            >/tmp/trackmcp-schema-download.log 2>&1; then
+            echo STAGING_SCHEMA_DOWNLOAD_FAILED
+            cat /tmp/trackmcp-schema-download.log
+            exit 1
+          fi
+          if ! tar -xzf /tmp/trackmcp-schema-migrations.tgz -C /opt/trackmcp-supabase/migrations \
+            >/tmp/trackmcp-schema-extract.log 2>&1; then
+            echo STAGING_SCHEMA_EXTRACT_FAILED
+            cat /tmp/trackmcp-schema-extract.log
+            exit 1
+          fi
+          if ! find /opt/trackmcp-supabase/migrations/supabase/migrations -type f -name '*.sql' -print0 \
             | sort -z \
-            | xargs -0 cat > /tmp/trackmcp-application-migrations.sql
+            | xargs -0 cat > /tmp/trackmcp-application-migrations.sql 2>/tmp/trackmcp-schema-assembly.log; then
+            echo STAGING_SCHEMA_ASSEMBLY_FAILED
+            cat /tmp/trackmcp-schema-assembly.log
+            exit 1
+          fi
           if ! docker compose exec -T db psql -U postgres -d postgres -v ON_ERROR_STOP=1 \
             </tmp/trackmcp-application-migrations.sql >/tmp/trackmcp-schema-apply.log 2>&1; then
             echo STAGING_SCHEMA_APPLY_FAILED
