@@ -238,7 +238,7 @@ jobs:
             sh run.sh start >/dev/null 2>&1
             aws secretsmanager put-secret-value --secret-id "$SECRET_ARN" --secret-string file:///opt/trackmcp-supabase/project/.env >/dev/null
           fi
-          for attempt in $(seq 1 60); do
+          for attempt in {1..60}; do
             if curl -fsS http://127.0.0.1:8000/auth/v1/settings >/dev/null 2>&1; then
               echo SUPABASE_STAGING_HEALTHY
               exit 0
