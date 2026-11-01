@@ -3,7 +3,7 @@
 **Goal:** Move TrackMCP from Supabase Cloud Free to an AWS Activate-funded, self-hosted Supabase deployment with the smallest safe application change, while preserving users, authentication, data, security, backups, and rollback safety.
 
 **Status:** IN PROGRESS  
-**Last updated:** 2026-11-02 00:10 IST
+**Last updated:** 2026-11-02 00:11 IST
 **Repository:** `/Users/krishna/Documents/Codex/2026-10-17/okay-x20/CRV`  
 **Branch:** `codex/record-final-go`
 
@@ -83,6 +83,7 @@ This is provisional until current Supabase compatibility requirements, AWS prici
 - Isolated staging retry #11 was dispatched from the reviewed workflow with guard `PROVISION_STAGING`, stack `trackmcp-supabase-staging-11`, and instance type `t3.medium`; GitHub Actions run `41336781864` and job `124938187996` were queued at approximately 23:58 IST. Monitoring is in progress; no production or Supabase Cloud mutation has occurred.
 - Retry #11 completed with CloudFormation `ROLLBACK_COMPLETE`. The security group was created, then `ec2:AuthorizeSecurityGroupEgress` was denied for `arn:aws:ec2:us-east-1:872575360367:security-group/sg-00f1b5dabd131bc70`; rollback deleted the security group and temporary IAM role. The workflow never reached SSM or Supabase installation.
 - The owner confirmed the exact `ec2:AuthorizeSecurityGroupEgress` action and AWS showed `Policy DeployPerms updated.` at approximately 00:10 IST. The permission is limited to `arn:aws:ec2:us-east-1:872575360367:security-group/*`; no broad action, administrator permission, or production resource was added.
+- Isolated staging retry #12 was dispatched from the reviewed workflow with guard `PROVISION_STAGING`, stack `trackmcp-supabase-staging-12`, and instance type `t3.medium`; GitHub Actions run `41337939660` and job `124941638103` were queued at approximately 00:11 IST. Monitoring is in progress; no production or Supabase Cloud mutation has occurred.
 
 ## Evidence log
 
@@ -135,4 +136,5 @@ This is provisional until current Supabase compatibility requirements, AWS prici
 | 2026-11-02 00:06 IST | Isolated staging attempt #11 root cause | CloudFormation stack `trackmcp-supabase-staging-11` reached security-group creation, then denied `ec2:AuthorizeSecurityGroupEgress` on `arn:aws:ec2:us-east-1:872575360367:security-group/sg-00f1b5dabd131bc70`; stack status became `ROLLBACK_COMPLETE` and cleanup completed. No EC2 host, SSM management, or Supabase installation ran. | FAILED / NARROW IAM EGRESS PERMISSION REQUIRED |
 | 2026-11-02 00:06 IST | IAM egress permission prepared | The next IAM editor change contains only `ec2:AuthorizeSecurityGroupEgress` with resource `arn:aws:ec2:us-east-1:872575360367:security-group/*`; it is not saved pending owner confirmation. | BLOCKED / OWNER CONFIRMATION REQUIRED |
 | 2026-11-02 00:10 IST | IAM egress permission saved | Owner confirmed the exact action-time save; AWS IAM showed `Policy DeployPerms updated.` The permission was limited to `ec2:AuthorizeSecurityGroupEgress` on `arn:aws:ec2:us-east-1:872575360367:security-group/*`. | VERIFIED / READY FOR ISOLATED RETRY |
+| 2026-11-02 00:11 IST | Isolated staging retry #12 dispatched | GitHub Actions run `41337939660`, job `124941638103`, was dispatched with `PROVISION_STAGING`, stack `trackmcp-supabase-staging-12`, and `t3.medium`. | IN PROGRESS |
 
