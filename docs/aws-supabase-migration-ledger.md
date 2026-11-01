@@ -3,7 +3,7 @@
 **Goal:** Move TrackMCP from Supabase Cloud Free to an AWS Activate-funded, self-hosted Supabase deployment with the smallest safe application change, while preserving users, authentication, data, security, backups, and rollback safety.
 
 **Status:** IN PROGRESS  
-**Last updated:** 2026-11-02 00:06 IST
+**Last updated:** 2026-11-02 00:10 IST
 **Repository:** `/Users/krishna/Documents/Codex/2026-10-17/okay-x20/CRV`  
 **Branch:** `codex/record-final-go`
 
@@ -24,7 +24,7 @@
 | 1. Existing-system discovery | VERIFIED / PARTIAL | Repository inventory and authenticated cloud read-only checks completed; exact database bytes, egress total, and Storage inventory remain unavailable or incomplete. Public edge availability has now been separately diagnosed. |
 | 2. AWS/Supabase research and architecture | VERIFIED / OPERATING ASSUMPTION | Official self-hosting/restore guidance, current credit state, planning prices, and the approved staging envelope are recorded; region/size remain measurable staging decisions. |
 | 3. Infrastructure as code / deployment process | VERIFIED / PENDING PR | Guarded GitHub OIDC workflow, CloudFormation baseline, redacted custody inventory, and recovery runbooks are committed on `codex/record-final-go`; the isolated staging workflow is reviewed and guarded, while production resources remain unchanged. |
-| 4. Isolated AWS staging | BLOCKED / NARROW IAM RESOURCE-SCOPE GAP | Owner explicitly approved creating infrastructure, preserving Supabase Cloud, and using it as the rollback/source-of-truth. The guarded GitHub OIDC workflow is on `main`; attempts #6 and #7 failed before Supabase installation. The exact read-only `ec2:DescribeSecurityGroups` permission was saved to the existing OIDC role at 2026-11-01 22:09 IST. The successive narrow EC2 permissions allowed retry #11 to create and clean up the security group, but CloudFormation then denied `ec2:AuthorizeSecurityGroupEgress` on the staging security-group ARN. The editor is being prepared with only that action and the same `arn:aws:ec2:us-east-1:872575360367:security-group/*` resource scope. No production or Supabase Cloud mutation has occurred. |
+| 4. Isolated AWS staging | IN PROGRESS / RETRY #12 READY | Owner explicitly approved creating infrastructure, preserving Supabase Cloud, and using it as the rollback/source-of-truth. The guarded GitHub OIDC workflow is on `main`; attempts #6 through #11 failed before Supabase installation. The exact narrow EC2 permissions have been added incrementally. The owner confirmed the egress action and AWS showed `Policy DeployPerms updated.` at approximately 00:10 IST; retry #12 is the next isolated staging attempt. No production or Supabase Cloud mutation has occurred. |
 The previous stacks `trackmcp-supabase-staging` and `trackmcp-supabase-staging-2` remain preserved; no rollback stack or source project was deleted. |
 | 5. Database/Auth/storage migration | NOT STARTED | Requires isolated staging and compatibility checks. |
 | 6. TrackMCP integration updates | VERIFIED / PENDING STAGING | Centralized environment-variable integration has been identified; no production values changed. Compatibility matrix records the exact auth/deploy files. |
@@ -82,7 +82,7 @@ This is provisional until current Supabase compatibility requirements, AWS prici
 - After retry #10, the IAM editor was prepared with only `ec2:AuthorizeSecurityGroupIngress` added to the existing EC2 statement and only `arn:aws:ec2:us-east-1:872575360367:security-group/*` added as its resource. The owner confirmed the action and AWS confirmed `Policy DeployPerms updated.` at approximately 23:58 IST.
 - Isolated staging retry #11 was dispatched from the reviewed workflow with guard `PROVISION_STAGING`, stack `trackmcp-supabase-staging-11`, and instance type `t3.medium`; GitHub Actions run `41336781864` and job `124938187996` were queued at approximately 23:58 IST. Monitoring is in progress; no production or Supabase Cloud mutation has occurred.
 - Retry #11 completed with CloudFormation `ROLLBACK_COMPLETE`. The security group was created, then `ec2:AuthorizeSecurityGroupEgress` was denied for `arn:aws:ec2:us-east-1:872575360367:security-group/sg-00f1b5dabd131bc70`; rollback deleted the security group and temporary IAM role. The workflow never reached SSM or Supabase installation.
-- The next IAM editor change is limited to `ec2:AuthorizeSecurityGroupEgress` on `arn:aws:ec2:us-east-1:872575360367:security-group/*`; it is prepared for owner confirmation and has not been saved.
+- The owner confirmed the exact `ec2:AuthorizeSecurityGroupEgress` action and AWS showed `Policy DeployPerms updated.` at approximately 00:10 IST. The permission is limited to `arn:aws:ec2:us-east-1:872575360367:security-group/*`; no broad action, administrator permission, or production resource was added.
 
 ## Evidence log
 
@@ -134,4 +134,5 @@ This is provisional until current Supabase compatibility requirements, AWS prici
 | 2026-11-01 23:58 IST | Isolated staging attempt #11 dispatched | GitHub Actions run `41336781864`, job `124938187996`, was dispatched with `PROVISION_STAGING`, stack `trackmcp-supabase-staging-11`, and `t3.medium`. | IN PROGRESS |
 | 2026-11-02 00:06 IST | Isolated staging attempt #11 root cause | CloudFormation stack `trackmcp-supabase-staging-11` reached security-group creation, then denied `ec2:AuthorizeSecurityGroupEgress` on `arn:aws:ec2:us-east-1:872575360367:security-group/sg-00f1b5dabd131bc70`; stack status became `ROLLBACK_COMPLETE` and cleanup completed. No EC2 host, SSM management, or Supabase installation ran. | FAILED / NARROW IAM EGRESS PERMISSION REQUIRED |
 | 2026-11-02 00:06 IST | IAM egress permission prepared | The next IAM editor change contains only `ec2:AuthorizeSecurityGroupEgress` with resource `arn:aws:ec2:us-east-1:872575360367:security-group/*`; it is not saved pending owner confirmation. | BLOCKED / OWNER CONFIRMATION REQUIRED |
+| 2026-11-02 00:10 IST | IAM egress permission saved | Owner confirmed the exact action-time save; AWS IAM showed `Policy DeployPerms updated.` The permission was limited to `ec2:AuthorizeSecurityGroupEgress` on `arn:aws:ec2:us-east-1:872575360367:security-group/*`. | VERIFIED / READY FOR ISOLATED RETRY |
 
