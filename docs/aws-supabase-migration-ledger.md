@@ -3,7 +3,7 @@
 **Goal:** Move TrackMCP from Supabase Cloud Free to an AWS Activate-funded, self-hosted Supabase deployment with the smallest safe application change, while preserving users, authentication, data, security, backups, and rollback safety.
 
 **Status:** IN PROGRESS  
-**Last updated:** 2026-11-02 00:38 IST
+**Last updated:** 2026-11-02 00:46 IST
 **Repository:** `/Users/krishna/Documents/Codex/2026-10-17/okay-x20/CRV`  
 **Branch:** `codex/record-final-go`
 
@@ -147,4 +147,5 @@ This is provisional until current Supabase compatibility requirements, AWS prici
 | 2026-11-02 00:26 IST | Isolated staging retry #13 dispatched | GitHub Actions run `41339128154` was dispatched with `PROVISION_STAGING`, stack `trackmcp-supabase-staging-13`, and `t3.medium`. | IN PROGRESS |
 | 2026-11-02 00:31 IST | Isolated staging retry #13 root cause and cleanup | CloudFormation reached `SupabaseInstanceProfile CREATE_COMPLETE`, then denied `ec2:RunInstances` on `arn:aws:ec2:us-east-1:872575360367:instance/*`. The stack reached `ROLLBACK_COMPLETE`; the temporary instance, security group, instance profile, and role all show `DELETE_COMPLETE`. No SSM management or Supabase installation ran. GitHub cancellation was requested after rollback. | FAILED / NARROW IAM EC2 LAUNCH PERMISSION REQUIRED |
 | 2026-11-02 00:38 IST | IAM EC2 launch permission saved | Owner confirmed the exact action-time save; AWS IAM showed `Policy DeployPerms updated.` The grant covers `ec2:RunInstances` for `arn:aws:ec2:us-east-1::image/ami-*` plus account-owned instance, network-interface, security-group, subnet, and volume resources. | VERIFIED / READY FOR ISOLATED RETRY |
+| 2026-11-02 00:46 IST | Isolated staging retry #14 dispatched | GitHub Actions run `41340808914`, job `124950197396`, was dispatched from `main` with guard `PROVISION_STAGING`, stack `trackmcp-supabase-staging-14`, and `t3.medium`. | IN PROGRESS |
 
