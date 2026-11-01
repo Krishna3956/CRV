@@ -3,7 +3,7 @@
 **Goal:** Move TrackMCP from Supabase Cloud Free to an AWS Activate-funded, self-hosted Supabase deployment with the smallest safe application change, while preserving users, authentication, data, security, backups, and rollback safety.
 
 **Status:** IN PROGRESS  
-**Last updated:** 2026-11-01 15:55 IST
+**Last updated:** 2026-11-02 03:56 IST
 **Repository:** `/Users/krishna/Documents/Codex/2026-10-17/okay-x20/CRV`  
 **Branch:** `codex/record-final-go`
 
@@ -23,12 +23,12 @@
 |---|---|---|
 | 1. Existing-system discovery | VERIFIED / PARTIAL | Repository inventory and authenticated cloud read-only checks completed; exact database bytes, egress total, and Storage inventory remain unavailable or incomplete. Public edge availability has now been separately diagnosed. |
 | 2. AWS/Supabase research and architecture | VERIFIED / OPERATING ASSUMPTION | Official self-hosting/restore guidance, current credit state, planning prices, and the approved staging envelope are recorded; region/size remain measurable staging decisions. |
-| 3. Infrastructure as code / deployment process | VERIFIED / PENDING PR | Guarded GitHub OIDC workflow, CloudFormation baseline, redacted custody inventory, and recovery runbooks are committed on `codex/record-final-go`; the isolated staging workflow is reviewed and guarded, while production resources remain unchanged. |
-| 4. Isolated AWS staging | BLOCKED / INCOMPLETE | Owner explicitly approved creating infrastructure, preserving Supabase Cloud, and using it as the rollback/source-of-truth. The guarded GitHub OIDC workflow is on `main`; attempt #6 reached CloudFormation but was cancelled by the 60-minute job timeout before SSM or Supabase health checks. Preserve the stack for inspection; do not delete or blindly retry. |
-| 5. Database/Auth/storage migration | NOT STARTED | Requires isolated staging and compatibility checks. |
-| 6. TrackMCP integration updates | VERIFIED / PENDING STAGING | Centralized environment-variable integration has been identified; no production values changed. Compatibility matrix records the exact auth/deploy files. |
-| 7. Comprehensive testing | IN PROGRESS | Lint and targeted auth/deploy/migration/secret/rollback contract suites passed; migration-specific staging tests are pending. |
-| 8. Backups and disaster recovery | IN PROGRESS | Existing Free-plan posture has no scheduled provider backup/PITR; preserve Supabase Cloud and create/verify an encrypted logical export before AWS migration. |
+| 3. Infrastructure as code / deployment process | VERIFIED | Guarded GitHub OIDC workflow, CloudFormation baseline, redacted custody inventory, and recovery runbooks are merged to `main`; production resources remain unchanged. |
+| 4. Isolated AWS staging | VERIFIED / OPERATING | Run #29 (`41356840354`) completed from `main` in 35s and emitted `SUPABASE_STAGING_HEALTHY`. Fresh read-only inspection #8 (`41356999546`) completed in 28s: stack `trackmcp-supabase-staging-24` is `CREATE_COMPLETE`, EC2 `i-0eb13e22491e698d7` is `running`, and the security group/instance profile are present. Keep this stack active; do not delete without a new explicit cleanup decision. |
+| 5. Database/Auth/storage migration | NEXT GATE | Staging control plane is healthy. Next safe action is a consistent, logical source export and isolated restore/integrity check; no production writes or source deletion. |
+| 6. TrackMCP integration updates | VERIFIED / PENDING RESTORE | Centralized environment-variable integration has been identified; no production values changed. Compatibility matrix records the exact auth/deploy files. |
+| 7. Comprehensive testing | IN PROGRESS | Lint and targeted auth/deploy/migration/secret/rollback contract suites passed; staging bootstrap and authenticated Auth gateway health now pass. Data, OAuth, RLS, and application smoke tests remain. |
+| 8. Backups and disaster recovery | IN PROGRESS | AWS backup bucket and staging secret container are verified without reading values. Preserve Supabase Cloud and create/verify an encrypted logical export before any production migration. |
 | 9. Production cutover preparation | BLOCKED | Runbook can be prepared; cutover itself requires explicit owner approval. |
 | 10. Production operation | NOT STARTED | Begins only after approved cutover and verified migration. |
 
@@ -91,4 +91,6 @@ This is provisional until current Supabase compatibility requirements, AWS prici
 | 2026-11-01 15:40 IST | Recovery issue and merge evidence | [Issue #794](https://github.com/Krishna3956/CRV/issues/794) is published. [PR #793](https://github.com/Krishna3956/CRV/pull/793) was squash-merged to `main` as `a158ca9`; only the guarded staging workflow and documentation were included. Supabase Cloud, production DNS, App Runner configuration, and live traffic were not changed. | VERIFIED |
 | 2026-11-01 15:47 IST | IAM permission correction | The existing GitHub OIDC role's inline `DeployPerms` policy was updated in AWS IAM to allow `ssm:GetParameters` against the public AL2023 AMI parameter ARN required by CloudFormation. This was the exact denial from attempt #5; no administrator policy or delete permission was added. | VERIFIED |
 | 2026-11-01 15:55 IST | Isolated staging attempt #6 | GitHub Actions run `41291129816`, job `124807805793`, passed network metadata discovery, private/versioned backup bucket verification, staging secret-container verification, and CloudFormation template validation. The job was cancelled at the 60-minute timeout while the CloudFormation create/update step was still in progress; it never reached SSM or Supabase installation. The run had created/used the isolated stack path (`trackmcp-supabase-staging`, stack ID recorded in the workflow evidence); current stack resource state still requires authenticated AWS inspection. No deletion was attempted. | FAILED / PRESERVED FOR INSPECTION |
+| 2026-11-02 03:53 IST | Isolated staging bootstrap verified | GitHub Actions run `41356840354` / job `124998615712`, from merged `main` commit `4bb163d`, completed successfully in 35s for stack `trackmcp-supabase-staging-24`. The install step emitted `SUPABASE_STAGING_HEALTHY` after authenticating the local gateway with the generated anonymous key; the key was not logged or committed. | VERIFIED |
+| 2026-11-02 03:55 IST | Fresh staging inspection verified | Read-only workflow run `41356999546` / job `124999103608` completed successfully in 28s using `INSPECT_STAGING`. It reported stack `CREATE_COMPLETE`, EC2 `i-0eb13e22491e698d7` `running`, security group `sg-0578eb9c309a6fd30`, and a completed instance profile. No secret values were read and no Supabase Cloud, production, DNS, or live-traffic state was changed. | VERIFIED |
 
