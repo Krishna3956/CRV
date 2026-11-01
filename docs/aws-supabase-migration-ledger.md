@@ -3,7 +3,7 @@
 **Goal:** Move TrackMCP from Supabase Cloud Free to an AWS Activate-funded, self-hosted Supabase deployment with the smallest safe application change, while preserving users, authentication, data, security, backups, and rollback safety.
 
 **Status:** IN PROGRESS  
-**Last updated:** 2026-11-01 15:24 IST  
+**Last updated:** 2026-11-01 15:58 IST  
 **Repository:** `/Users/krishna/Documents/Codex/2026-10-17/okay-x20/CRV`  
 **Branch:** `codex/record-final-go`
 
@@ -24,7 +24,7 @@
 | 1. Existing-system discovery | VERIFIED / PARTIAL | Repository inventory and authenticated cloud read-only checks completed; exact database bytes, egress total, and Storage inventory remain unavailable or incomplete. Public edge availability has now been separately diagnosed. |
 | 2. AWS/Supabase research and architecture | VERIFIED / OPERATING ASSUMPTION | Official self-hosting/restore guidance, current credit state, planning prices, and the approved staging envelope are recorded; region/size remain measurable staging decisions. |
 | 3. Infrastructure as code / deployment process | VERIFIED / PENDING PR | Guarded GitHub OIDC workflow, CloudFormation baseline, redacted custody inventory, and recovery runbooks are committed on `codex/record-final-go`; no AWS resource was provisioned. |
-| 4. Isolated AWS staging | READY TO PROVISION / PENDING PR | Owner explicitly approved creating infrastructure, preserving Supabase Cloud, and using it as the rollback/source-of-truth. CloudShell is unavailable while AWS account verification is in progress; the guarded GitHub OIDC path is ready once the workflow is available on the default branch. |
+| 4. Isolated AWS staging | IN PROGRESS | Owner explicitly approved creating infrastructure, preserving Supabase Cloud, and using it as the rollback/source-of-truth. The guarded GitHub OIDC workflow is on `main`; rerun attempt #6 is currently creating the isolated EC2 baseline. |
 | 5. Database/Auth/storage migration | NOT STARTED | Requires isolated staging and compatibility checks. |
 | 6. TrackMCP integration updates | VERIFIED / PENDING STAGING | Centralized environment-variable integration has been identified; no production values changed. Compatibility matrix records the exact auth/deploy files. |
 | 7. Comprehensive testing | IN PROGRESS | Lint and targeted auth/deploy/migration/secret/rollback contract suites passed; migration-specific staging tests are pending. |
@@ -61,7 +61,7 @@ This is provisional until current Supabase compatibility requirements, AWS prici
 - Storage bucket/object inventory is incomplete because the restricted project UI did not load it; source search found no application Storage calls.
 - AWS Credits summary now shows $1,125.22 total remaining and $1,037.31 estimated remaining, including the $1,000 Activate Founders credit; exact credit applicability, tax treatment, and post-credit costs still require billing verification.
 - Auth export compatibility, password-hash preservation, JWT signing-key/session behavior, OAuth provider secrets, and redirect allowlists require staging verification.
-- AWS staging approval is now recorded. The guarded workflow is committed and pushed in [PR #793](https://github.com/Krishna3956/CRV/pull/793), which is mergeable but not merged; it must be available on the repository default branch before GitHub exposes its manual dispatch form. No workflow run or AWS resource creation is claimed yet.
+- AWS staging approval is recorded. The guarded workflow was merged to `main` through [PR #793](https://github.com/Krishna3956/CRV/pull/793) at commit `a158ca9cb75589bb5e989d2b96913e147f196f09`. It has been dispatched only with the exact `PROVISION_STAGING` guard. Attempts #1-#4 stopped before EC2 resource creation while minimum OIDC permissions were corrected; attempt #6 is in progress. No production or Supabase Cloud mutation is claimed.
 - Public scripted probes receive a Cloudflare HTTP 403, while browser-compatible requests and the direct App Runner origin return 200; treat this as an edge policy/managed bot rule issue, not evidence that App Runner is down.
 
 ## Evidence log
@@ -86,4 +86,7 @@ This is provisional until current Supabase compatibility requirements, AWS prici
 | 2026-11-01 15:05 IST | Owner recovery direction | Owner directed that Supabase Cloud remain untouched and available as the backup/rollback source, requested public availability and authentication recovery before migration, authorized autonomous execution, and requested a redacted repository of key/configuration custody and change evidence. | RECORDED |
 | 2026-11-01 15:05 IST | Guarded deployment commits | Pushed `05306edd` (`infra: prepare guarded AWS Supabase staging`) and `1adb6717` (`infra: harden staging reruns and credit ledger`) to `origin/codex/record-final-go`; YAML parsing and `git diff --check` pass. The workflow has an exact `PROVISION_STAGING` guard and does not mutate Supabase Cloud, production DNS, App Runner, or live traffic. | VERIFIED / PR PENDING |
 | 2026-11-01 15:24 IST | Review and recovery issue published | Confirmed [PR #793](https://github.com/Krishna3956/CRV/pull/793) exists, is able to merge, and remains unmerged. Published [issue #794](https://github.com/Krishna3956/CRV/issues/794) with the recovery order, no-secret policy, backup requirement, and production cutover gate. | VERIFIED |
+| 2026-11-01 15:40 IST | Recovery issue and merge evidence | [Issue #794](https://github.com/Krishna3956/CRV/issues/794) is published. [PR #793](https://github.com/Krishna3956/CRV/pull/793) was squash-merged to `main` as `a158ca9`; only the guarded staging workflow and documentation were included. Supabase Cloud, production DNS, App Runner configuration, and live traffic were not changed. | VERIFIED |
+| 2026-11-01 15:47 IST | IAM permission correction | The existing GitHub OIDC role's inline `DeployPerms` policy was updated in AWS IAM to allow `ssm:GetParameters` against the public AL2023 AMI parameter ARN required by CloudFormation. This was the exact denial from attempt #5; no administrator policy or delete permission was added. | VERIFIED |
+| 2026-11-01 15:58 IST | Isolated staging attempt #6 | GitHub Actions run `41291129816`, job `124807805793`, passed network metadata discovery, private/versioned backup bucket verification, staging secret-container verification, and CloudFormation template validation. The isolated EC2 baseline is still in progress; no staging health or Supabase deployment is claimed until the workflow completes and health checks pass. | IN PROGRESS |
 
