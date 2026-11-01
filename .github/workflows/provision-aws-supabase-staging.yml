@@ -145,7 +145,7 @@ jobs:
             UPDATE_EXIT=$?
             set -e
             if [[ $UPDATE_EXIT -ne 0 ]]; then
-              if aws cloudformation describe-stacks --stack-name "$STACK_NAME" --region "$AWS_REGION" --query 'Stacks[0].StackStatus' --output text 2>/dev/null | grep -q '^UPDATE_COMPLETE$' && [[ $UPDATE_EXIT -eq 254 ]]; then
+              if aws cloudformation describe-stacks --stack-name "$STACK_NAME" --region "$AWS_REGION" --query 'Stacks[0].StackStatus' --output text 2>/dev/null | grep -Eq '^(CREATE_COMPLETE|UPDATE_COMPLETE)$' && [[ $UPDATE_EXIT -eq 254 ]]; then
                 echo "CloudFormation reported no changes; retaining the existing isolated staging stack."
               else
                 if aws cloudformation describe-stack-events --stack-name "$STACK_NAME" --region "$AWS_REGION" --query 'StackEvents[?ResourceStatusReason!=`null`]|[0:5].[LogicalResourceId,ResourceStatus,ResourceStatusReason]' --output table; then true; fi
