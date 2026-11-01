@@ -81,7 +81,7 @@ jobs:
           cd /opt/trackmcp-supabase/project
           test -f .env
           install -d -m 0750 /opt/trackmcp-supabase/migrations
-          aws s3 cp "s3://${MIGRATION_BUCKET}/staging/${MIGRATION_OBJECT}" /tmp/trackmcp-schema-migrations.tgz --only-show-errors
+          aws s3 cp "s3://${MIGRATION_BUCKET}/${MIGRATION_OBJECT}" /tmp/trackmcp-schema-migrations.tgz --only-show-errors
           tar -xzf /tmp/trackmcp-schema-migrations.tgz -C /opt/trackmcp-supabase/migrations
           find /opt/trackmcp-supabase/migrations/supabase/migrations -type f -name '*.sql' -print0 \
             | sort -z \
