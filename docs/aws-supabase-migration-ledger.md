@@ -3,7 +3,7 @@
 **Goal:** Move TrackMCP from Supabase Cloud Free to an AWS Activate-funded, self-hosted Supabase deployment with the smallest safe application change, while preserving users, authentication, data, security, backups, and rollback safety.
 
 **Status:** IN PROGRESS  
-**Last updated:** 2026-11-01 15:58 IST  
+**Last updated:** 2026-11-01 15:09 IST
 **Repository:** `/Users/krishna/Documents/Codex/2026-10-17/okay-x20/CRV`  
 **Branch:** `codex/record-final-go`
 
@@ -89,4 +89,5 @@ This is provisional until current Supabase compatibility requirements, AWS prici
 | 2026-11-01 15:40 IST | Recovery issue and merge evidence | [Issue #794](https://github.com/Krishna3956/CRV/issues/794) is published. [PR #793](https://github.com/Krishna3956/CRV/pull/793) was squash-merged to `main` as `a158ca9`; only the guarded staging workflow and documentation were included. Supabase Cloud, production DNS, App Runner configuration, and live traffic were not changed. | VERIFIED |
 | 2026-11-01 15:47 IST | IAM permission correction | The existing GitHub OIDC role's inline `DeployPerms` policy was updated in AWS IAM to allow `ssm:GetParameters` against the public AL2023 AMI parameter ARN required by CloudFormation. This was the exact denial from attempt #5; no administrator policy or delete permission was added. | VERIFIED |
 | 2026-11-01 15:58 IST | Isolated staging attempt #6 | GitHub Actions run `41291129816`, job `124807805793`, passed network metadata discovery, private/versioned backup bucket verification, staging secret-container verification, and CloudFormation template validation. The isolated EC2 baseline is still in progress; no staging health or Supabase deployment is claimed until the workflow completes and health checks pass. | IN PROGRESS |
+| 2026-11-01 15:09 IST | Public recovery verification | Browser inspection of `https://trackmcp.com/signin` renders the sign-in form successfully. The trusted App Runner origin and `/api/health` return HTTP 200; `/api/auth/providers` returns `{"google":false,"github":false}` because production Auth is not yet available through the restricted Supabase path. Scripted public probes still receive Cloudflare HTTP 403, while the browser-compatible page is reachable. No production configuration was changed. | VERIFIED / PARTIAL |
 
