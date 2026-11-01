@@ -254,8 +254,18 @@ jobs:
             sh run.sh start >/dev/null 2>&1
             aws secretsmanager put-secret-value --secret-id "$SECRET_ARN" --secret-string file:///opt/trackmcp-supabase/project/.env >/dev/null
           fi
+          cd /opt/trackmcp-supabase/project
+          ANON_KEY=$(sed -n 's/^ANON_KEY=//p' .env)
+          if [[ -z "$ANON_KEY" ]]; then
+            echo "ANON_KEY is missing from the generated staging environment."
+            exit 1
+          fi
           for attempt in {1..60}; do
-            if curl -fsS http://127.0.0.1:8000/auth/v1/settings >/dev/null 2>&1; then
+            # The gateway protects Auth and REST endpoints with the generated
+            # anonymous key. A bare request returns 401 even when Supabase is
+            # healthy, so authenticate this smoke check without printing the key.
+            if curl -fsS -H "apikey: $ANON_KEY" -H "Authorization: Bearer $ANON_KEY" \
+              http://127.0.0.1:8000/auth/v1/settings >/dev/null 2>&1; then
               echo SUPABASE_STAGING_HEALTHY
               exit 0
             fi
