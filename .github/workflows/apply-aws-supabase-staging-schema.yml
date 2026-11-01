@@ -87,12 +87,17 @@ jobs:
           cd /opt/trackmcp-supabase/project
           test -f .env
           if [[ "${RESET_SCHEMA:-NO}" == "RESET_STAGING_SCHEMA" ]]; then
-            docker compose exec -T db psql -U postgres -d postgres -v ON_ERROR_STOP=1 <<'SQL'
+            if ! docker compose exec -T db psql -U postgres -d postgres -v ON_ERROR_STOP=1 \
+              >/tmp/trackmcp-schema-reset.log 2>&1 <<'SQL'
           drop schema if exists public cascade;
           create schema public;
           grant all on schema public to postgres;
           grant usage on schema public to anon, authenticated, service_role;
           SQL
+            then
+              tail -100 /tmp/trackmcp-schema-reset.log
+              exit 1
+            fi
             echo STAGING_PUBLIC_SCHEMA_RESET
           fi
           install -d -m 0750 /opt/trackmcp-supabase/migrations
@@ -101,11 +106,17 @@ jobs:
           find /opt/trackmcp-supabase/migrations/supabase/migrations -type f -name '*.sql' -print0 \
             | sort -z \
             | xargs -0 cat > /tmp/trackmcp-application-migrations.sql
-          docker compose exec -T db psql -U postgres -d postgres -v ON_ERROR_STOP=1 \
-            </tmp/trackmcp-application-migrations.sql >/tmp/trackmcp-schema-apply.log
-          docker compose exec -T db psql -U postgres -d postgres -v ON_ERROR_STOP=1 \
+          if ! docker compose exec -T db psql -U postgres -d postgres -v ON_ERROR_STOP=1 \
+            </tmp/trackmcp-application-migrations.sql >/tmp/trackmcp-schema-apply.log 2>&1; then
+            tail -100 /tmp/trackmcp-schema-apply.log
+            exit 1
+          fi
+          if ! docker compose exec -T db psql -U postgres -d postgres -v ON_ERROR_STOP=1 \
             -c "select count(*) from information_schema.tables where table_schema = 'public' and table_name like 'trackmcp_%'" \
-            >/tmp/trackmcp-schema-postflight.log
+            >/tmp/trackmcp-schema-postflight.log 2>&1; then
+            cat /tmp/trackmcp-schema-postflight.log
+            exit 1
+          fi
           echo STAGING_SCHEMA_APPLIED
           REMOTE_EOF
           )
