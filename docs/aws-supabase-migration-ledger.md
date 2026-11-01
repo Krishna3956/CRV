@@ -3,7 +3,7 @@
 **Goal:** Move TrackMCP from Supabase Cloud Free to an AWS Activate-funded, self-hosted Supabase deployment with the smallest safe application change, while preserving users, authentication, data, security, backups, and rollback safety.
 
 **Status:** IN PROGRESS  
-**Last updated:** 2026-11-01 14:35 IST  
+**Last updated:** 2026-11-01 15:05 IST  
 **Repository:** `/Users/krishna/Documents/Codex/2026-10-17/okay-x20/CRV`  
 **Branch:** `codex/record-final-go`
 
@@ -23,8 +23,8 @@
 |---|---|---|
 | 1. Existing-system discovery | VERIFIED / PARTIAL | Repository inventory and authenticated cloud read-only checks completed; exact database bytes, egress total, and Storage inventory remain unavailable or incomplete. Public edge availability has now been separately diagnosed. |
 | 2. AWS/Supabase research and architecture | VERIFIED / OPERATING ASSUMPTION | Official self-hosting/restore guidance, current credit state, planning prices, and the approved staging envelope are recorded; region/size remain measurable staging decisions. |
-| 3. Infrastructure as code / deployment process | IN PROGRESS | Non-applied CloudFormation baseline and deployment guidance are prepared; no AWS resource was provisioned. |
-| 4. Isolated AWS staging | READY TO PROVISION | Owner explicitly approved creating infrastructure, preserving Supabase Cloud, and using it as the rollback/source-of-truth. CloudShell is unavailable while AWS account verification is in progress; use an authenticated, auditable AWS deployment path. |
+| 3. Infrastructure as code / deployment process | VERIFIED / PENDING PR | Guarded GitHub OIDC workflow, CloudFormation baseline, redacted custody inventory, and recovery runbooks are committed on `codex/record-final-go`; no AWS resource was provisioned. |
+| 4. Isolated AWS staging | READY TO PROVISION / PENDING PR | Owner explicitly approved creating infrastructure, preserving Supabase Cloud, and using it as the rollback/source-of-truth. CloudShell is unavailable while AWS account verification is in progress; the guarded GitHub OIDC path is ready once the workflow is available on the default branch. |
 | 5. Database/Auth/storage migration | NOT STARTED | Requires isolated staging and compatibility checks. |
 | 6. TrackMCP integration updates | VERIFIED / PENDING STAGING | Centralized environment-variable integration has been identified; no production values changed. Compatibility matrix records the exact auth/deploy files. |
 | 7. Comprehensive testing | IN PROGRESS | Lint and targeted auth/deploy/migration/secret/rollback contract suites passed; migration-specific staging tests are pending. |
@@ -61,7 +61,7 @@ This is provisional until current Supabase compatibility requirements, AWS prici
 - Storage bucket/object inventory is incomplete because the restricted project UI did not load it; source search found no application Storage calls.
 - AWS Credits summary now shows $1,125.22 total remaining and $1,037.31 estimated remaining, including the $1,000 Activate Founders credit; exact credit applicability, tax treatment, and post-credit costs still require billing verification.
 - Auth export compatibility, password-hash preservation, JWT signing-key/session behavior, OAuth provider secrets, and redirect allowlists require staging verification.
-- AWS staging approval is now recorded. The remaining execution dependency is an authenticated AWS deployment path; the CloudShell account reports that environment creation is unavailable while account verification is in progress.
+- AWS staging approval is now recorded. The workflow is committed and pushed, but it must be available on the repository default branch before GitHub exposes its manual dispatch form. The pull-request page is currently not rendering after refresh, so no PR URL or workflow run is claimed yet.
 - Public scripted probes receive a Cloudflare HTTP 403, while browser-compatible requests and the direct App Runner origin return 200; treat this as an edge policy/managed bot rule issue, not evidence that App Runner is down.
 
 ## Evidence log
@@ -83,4 +83,6 @@ This is provisional until current Supabase compatibility requirements, AWS prici
 | 2026-11-01 14:35 IST | Availability and custody update | Direct App Runner origin and `/api/health` return HTTP 200; browser-compatible requests to the public app return HTTP 200; default scripted curl returns Cloudflare HTTP 403 with a managed block page. Added `docs/aws-supabase-secret-inventory.md`; no production DNS, credentials, Supabase data, or traffic changed. | VERIFIED |
 | 2026-11-01 14:50 IST | Owner direction and recovery order | Owner approved autonomous execution, explicitly prohibited Supabase deletion, requested Supabase remain the backup/rollback source, approved AWS resource creation, and requested website availability/authentication recovery before migration. The GitHub issue draft contains no secret values and is awaiting the final publish confirmation required by the browser action policy. | RECORDED |
 | 2026-11-01 14:55 IST | AWS deployment path | AWS CloudShell was opened in the authenticated browser, but AWS returned `Unable to create the environment. Your account verification is in progress.` No resource creation was attempted through CloudShell. | BLOCKED / ALTERNATIVE REQUIRED |
+| 2026-11-01 15:05 IST | Owner recovery direction | Owner directed that Supabase Cloud remain untouched and available as the backup/rollback source, requested public availability and authentication recovery before migration, authorized autonomous execution, and requested a redacted repository of key/configuration custody and change evidence. | RECORDED |
+| 2026-11-01 15:05 IST | Guarded deployment commits | Pushed `05306edd` (`infra: prepare guarded AWS Supabase staging`) and `1adb6717` (`infra: harden staging reruns and credit ledger`) to `origin/codex/record-final-go`; YAML parsing and `git diff --check` pass. The workflow has an exact `PROVISION_STAGING` guard and does not mutate Supabase Cloud, production DNS, App Runner, or live traffic. | VERIFIED / PR PENDING |
 
