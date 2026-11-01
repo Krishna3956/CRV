@@ -1,0 +1,108 @@
+name: Inspect AWS Supabase staging
+
+# Read-only diagnostics for a preserved staging attempt. This workflow never
+# reads secret values and has no mutation or deletion commands.
+on:
+  workflow_dispatch:
+    inputs:
+      confirm:
+        description: "Type INSPECT_STAGING to run read-only diagnostics"
+        required: true
+        type: string
+      stack_name:
+        description: "CloudFormation stack name"
+        required: true
+        default: trackmcp-supabase-staging
+        type: string
+
+permissions:
+  id-token: write
+  contents: read
+
+env:
+  AWS_REGION: us-east-1
+  ROLE_ARN: arn:aws:iam::872575360367:role/GitHubActionsDeployRole
+
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Check out the reviewed infrastructure
+        uses: actions/checkout@v4
+
+      - name: Configure AWS OIDC credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ env.ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Validate the explicit inspection guard
+        env:
+          CONFIRM: ${{ inputs.confirm }}
+        run: |
+          set -euo pipefail
+          [[ "$CONFIRM" == "INSPECT_STAGING" ]] || {
+            echo "::error::The confirm input must be exactly INSPECT_STAGING."
+            exit 1
+          }
+
+      - name: Report non-secret CloudFormation and EC2 state
+        env:
+          STACK_NAME: ${{ inputs.stack_name }}
+        run: |
+          set -euo pipefail
+          echo '--- stack summary ---'
+          aws cloudformation describe-stacks \
+            --stack-name "$STACK_NAME" \
+            --region "$AWS_REGION" \
+            --query 'Stacks[0].{name:StackName,status:StackStatus,created:CreationTime,updated:LastUpdatedTime,outputs:Outputs}' \
+            --output json
+          echo '--- recent stack events (reasons only, no secret values) ---'
+          aws cloudformation describe-stack-events \
+            --stack-name "$STACK_NAME" \
+            --region "$AWS_REGION" \
+            --query 'StackEvents[0:20].[Timestamp,LogicalResourceId,ResourceType,ResourceStatus,ResourceStatusReason]' \
+            --output table
+          echo '--- stack resources ---'
+          aws cloudformation list-stack-resources \
+            --stack-name "$STACK_NAME" \
+            --region "$AWS_REGION" \
+            --query 'StackResourceSummaries[*].[LogicalResourceId,ResourceType,ResourceStatus,PhysicalResourceId,ResourceStatusReason]' \
+            --output table
+          INSTANCE_ID=$(aws cloudformation describe-stacks \
+            --stack-name "$STACK_NAME" \
+            --region "$AWS_REGION" \
+            --query 'Stacks[0].Outputs[?OutputKey==`InstanceId`].OutputValue' \
+            --output text)
+          if [[ -n "$INSTANCE_ID" && "$INSTANCE_ID" != "None" ]]; then
+            echo '--- instance state ---'
+            aws ec2 describe-instances \
+              --instance-ids "$INSTANCE_ID" \
+              --region "$AWS_REGION" \
+              --query 'Reservations[0].Instances[0].{id:InstanceId,state:State.Name,type:InstanceType,privateIp:PrivateIpAddress,publicIp:PublicIpAddress,subnet:SubnetId,securityGroups:SecurityGroups[*].GroupId}' \
+              --output json
+            echo '--- SSM state ---'
+            aws ssm describe-instance-information \
+              --region "$AWS_REGION" \
+              --filters "Key=InstanceIds,Values=$INSTANCE_ID" \
+              --query 'InstanceInformationList[0].{id:InstanceId,ping:PingStatus,agent:AgentVersion,platform:PlatformName}' \
+              --output json
+          fi
+
+      - name: Report backup and secret-container metadata only
+        run: |
+          set -euo pipefail
+          ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
+          BUCKET_NAME="trackmcp-supabase-backups-${ACCOUNT_ID}-${AWS_REGION}"
+          echo "--- backup bucket metadata: $BUCKET_NAME ---"
+          aws s3api head-bucket --bucket "$BUCKET_NAME" --region "$AWS_REGION"
+          aws s3api get-bucket-versioning --bucket "$BUCKET_NAME" --region "$AWS_REGION"
+          aws s3api get-public-access-block --bucket "$BUCKET_NAME" --region "$AWS_REGION"
+          aws s3api get-bucket-encryption --bucket "$BUCKET_NAME" --region "$AWS_REGION"
+          echo '--- staging secret-container metadata (value never read) ---'
+          aws secretsmanager describe-secret \
+            --secret-id trackmcp/supabase/staging \
+            --region "$AWS_REGION" \
+            --query '{arn:ARN,name:Name,status:LastChangedDate,versions:VersionIdsToStages}' \
+            --output json
