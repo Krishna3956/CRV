@@ -3,7 +3,7 @@
 **Goal:** Move TrackMCP from Supabase Cloud Free to an AWS Activate-funded, self-hosted Supabase deployment with the smallest safe application change, while preserving users, authentication, data, security, backups, and rollback safety.
 
 **Status:** IN PROGRESS  
-**Last updated:** 2026-11-02 04:54 IST
+**Last updated:** 2026-11-02 05:00 IST
 **Repository:** `/Users/krishna/Documents/Codex/2026-10-17/okay-x20/CRV`  
 **Branch:** `codex/record-final-go`
 
@@ -96,4 +96,5 @@ This is provisional until current Supabase compatibility requirements, AWS prici
 | 2026-11-02 04:45 IST | SSM command-length fix | Run #10 (`41361250535`) confirmed the diagnosis: the remote command was truncated after `STAGING_PUBLIC_SCHEMA_RESET`; the shell trap and workflow source were present, but no later remote marker was received. The fix moved the remote script to the private backup bucket and reduced the SSM command to a short download-and-execute sequence. | VERIFIED / FIX MERGED |
 | 2026-11-02 04:50 IST | Isolated staging schema replay | Run #11 (`41361605465`), job `125012953677`, completed successfully in 29 seconds from `main` commit `283ec45`. The log contains `SSM command status: Success`, `STAGING_PUBLIC_SCHEMA_RESET`, and `STAGING_SCHEMA_APPLIED`. The script's postflight query completed without printing data. | VERIFIED |
 | 2026-11-02 04:52 IST | Read-only staging inspection | Run #9 (`41361733463`), job `125013335229`, completed successfully in 25 seconds. It confirms stack `trackmcp-supabase-staging-24` is `CREATE_COMPLETE`, instance `i-0eb13e22491e698d7` is `running`, SSM is `Online`, and security group `sg-0578eb9c309a6fd30` is attached. It also confirms backup bucket `trackmcp-supabase-backups-872575360367-us-east-1` is in `us-east-1`, versioning is `Enabled`, public access block is fully enabled, and AES256 server-side encryption is configured. | VERIFIED |
+| 2026-11-02 05:00 IST | Source row export probe | Authenticated Supabase SQL Editor query `select id from auth.users limit 1;` timed out after approximately 27 seconds while the project remained quota-restricted. No row data was exported, no source settings changed, and no password reset was attempted. | BLOCKED / SOURCE ACCESS |
 
