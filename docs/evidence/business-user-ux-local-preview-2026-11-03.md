@@ -486,6 +486,24 @@ Latest verification after `2ac7b4be`:
 - The branch remains local and undeployed; fresh-account, production, and
   non-technical participant evidence are still required.
 
+Latest visual-system verification after `cf0d0d40`:
+
+- The dashboard now uses cool neutral surfaces with indigo as the primary
+  action color. The public site's color tokens are unchanged outside the
+  dashboard shell.
+- Dashboard gradients were removed from the data-source strip and setup-step
+  rail; state meaning remains expressed through text, labels, and contrast.
+- The initial dashboard hydration state is no longer a blank white screen. It
+  now shows the TrackMCP mark, a short explanation, and three preparation
+  steps: account, workspace, and dashboard.
+- `npm run test:business-user-ux`: 84/84 passed.
+- `npx tsc --noEmit --pretty false`: passed.
+- `npm run lint`: passed.
+- `npm run build`: passed; 230 static pages generated.
+- `npm run test:release-gate`: passed all 159 suites.
+- The branch remains local and undeployed; production visual review and human
+  readability testing are still required.
+
 Latest shell verification after `984f2cbe`:
 
 - The desktop language selector now appears only in the global header. The
