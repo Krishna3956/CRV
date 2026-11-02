@@ -46,6 +46,9 @@ and evidence that requires a real account, deployment, or human participant.
   Journeys, Outcomes, Resources, Prompts, Reliability, and Data Trust.
 - Accessibility, PDF parity, documentation navigation/version, mobile layout,
   and pointer/focus contracts pass.
+- Pilot scope, support, status-template, runbook, and acceptance-record
+  contracts pass; these artifacts keep the release claims bounded and
+  secret-safe.
 
 ### Tier 2 — verified in the current production browser, read-only
 
