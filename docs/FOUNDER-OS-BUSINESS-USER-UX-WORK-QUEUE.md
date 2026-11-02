@@ -165,6 +165,10 @@ Legend: `[x]` verified/implemented in this workstream; `[ ]` pending.
       `Feature uses observed`, `Feature uses in previous period`, and
       `Average features per account group` now describe the same existing
       formulas without changing their data source or denominator.
+- [x] ✅ Make the People cards explicit about their evidence boundary:
+      `New this period` now says it is first observed activity, not signup,
+      and `Returning this period` now says it is repeat activity, not a
+      retention claim.
 - [x] ✅ Keep OAuth provider loading placeholders visually non-actionable until
       provider discovery completes; the hand cursor is reserved for real
       controls.

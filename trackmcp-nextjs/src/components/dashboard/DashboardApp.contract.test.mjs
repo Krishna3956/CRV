@@ -173,6 +173,8 @@ test("business users receive orientation before technical detail", () => {
   assert.match(source, /Read this as account-group activity, not a customer census/);
   assert.match(source, /Which assistants are showing up/);
   assert.match(source, /Most active account groups/);
+  assert.match(source, /First observed here; not signup/);
+  assert.match(source, /Observed before; not a retention claim/);
   assert.match(source, /Unknown activity stays visible instead of being silently reassigned/);
   assert.match(source, /question="What should the team investigate next, and how strong is the evidence\?"/);
   assert.match(source, /N\/A means there is not enough evidence yet/);

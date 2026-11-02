@@ -4239,13 +4239,13 @@ function ClientsView({
               label="New this period"
               value={people.new_accounts === null ? "N/A" : fmt(people.new_accounts)}
               icon={Sparkles}
-              helper="First observed in this window"
+              helper="First observed here; not signup"
             />
             <Kpi
               label="Returning this period"
               value={people.returning_accounts === null ? "N/A" : fmt(people.returning_accounts)}
               icon={RotateCcw}
-              helper="Observed before this window"
+              helper="Observed before; not a retention claim"
             />
             <Kpi
               label="Prior-period active"

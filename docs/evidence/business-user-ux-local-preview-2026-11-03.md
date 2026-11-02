@@ -408,6 +408,11 @@ metric contract. The default KPI labels now say `Feature uses observed`,
 The formulas, source telemetry, account-group boundary, and error semantics
 are unchanged; this is a vocabulary improvement for business readers.
 
+The People view now makes its two most easily misread cards explicit: `New
+this period` is first observed activity rather than signup, and `Returning
+this period` is repeat activity rather than a retention claim. The historical
+scan and account-group formulas remain unchanged.
+
 The Resources & prompts default path was reviewed as well. Its first scan now
 starts with the business question and three decision KPIs; the technical
 evidence boundary is still present inside the expanded detail section rather
@@ -444,6 +449,8 @@ Verification after this pass:
 - `npm run test:release-gate`: passed all 159 suites on the capability
   vocabulary change (`d3b7871f`) with the synthetic UAT report redirected to a
   temporary path.
+- `npm run build`: passed after the People-card boundary copy change; 230
+  static pages generated.
 
 The rebuilt standalone server was also started with placeholder Supabase
 values and the documented local dashboard bypass. Node's HTTP client returned
