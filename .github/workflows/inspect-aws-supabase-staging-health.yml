@@ -87,7 +87,7 @@ jobs:
           fi
           POOLER_CONTAINER=$(docker compose ps -q supavisor)
           if [[ -n "$POOLER_CONTAINER" ]]; then
-            POOLER_RUNTIME=$(docker inspect -f '{{.State.Status}}|{{.State.ExitCode}}|{{.RestartCount}}' "$POOLER_CONTAINER")
+            POOLER_RUNTIME=$(docker inspect -f '{{.State.Status}}|{{.State.ExitCode}}|{{.RestartCount}}|{{.State.Error}}|{{.State.OOMKilled}}' "$POOLER_CONTAINER")
             echo "STAGING_SUPABASE_HEALTH_POOLER_RUNTIME=${POOLER_RUNTIME}"
           else
             echo STAGING_SUPABASE_HEALTH_POOLER_RUNTIME=missing
