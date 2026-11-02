@@ -6,6 +6,7 @@
 -- process; it is an explicit parity gap requiring reviewed evidence.
 
 with expected(migration_version) as (values
+  ('20260828000000_mcp_tools_baseline'),
   ('20260829000000_trackmcp_telemetry'),
   ('20260829000001_protocol_observability'),
   ('20260829000002_onboarding'),
@@ -65,6 +66,7 @@ from parity
 order by migration_version;
 
 with expected(migration_version) as (values
+  ('20260828000000_mcp_tools_baseline'),
   ('20260829000000_trackmcp_telemetry'), ('20260829000001_protocol_observability'),
   ('20260829000002_onboarding'), ('20260830000003_profile_identity'),
   ('20260906000004_canonical_event_contract'), ('20260906000005_session_id_source'),

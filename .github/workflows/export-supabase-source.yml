@@ -1,0 +1,118 @@
+name: Export Supabase Cloud source backup
+
+# This workflow is intentionally manual. It performs a read-only PostgreSQL
+# logical export from the preserved Supabase Cloud project and stores the
+# encrypted archive in the existing private, versioned AWS backup bucket.
+# It never writes to Supabase Cloud, production, DNS, or live application
+# configuration.
+on:
+  workflow_dispatch:
+    inputs:
+      confirm:
+        description: "Type EXPORT_SOURCE_BACKUP to run the read-only export"
+        required: true
+        type: string
+
+permissions:
+  id-token: write
+  contents: read
+
+env:
+  AWS_REGION: us-east-1
+  ROLE_ARN: arn:aws:iam::872575360367:role/GitHubActionsDeployRole
+  BACKUP_BUCKET_PREFIX: trackmcp-supabase-backups
+
+jobs:
+  export:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Check out the reviewed export workflow
+        uses: actions/checkout@v4
+
+      - name: Configure AWS OIDC credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ env.ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Validate the explicit export guard
+        env:
+          CONFIRM: ${{ inputs.confirm }}
+        run: |
+          set -euo pipefail
+          [[ "$CONFIRM" == "EXPORT_SOURCE_BACKUP" ]] || {
+            echo "::error::The confirm input must be exactly EXPORT_SOURCE_BACKUP. No source connection was attempted."
+            exit 1
+          }
+
+      - name: Validate the source connection secret without printing it
+        env:
+          SUPABASE_SOURCE_DB_URL: ${{ secrets.SUPABASE_SOURCE_DB_URL }}
+        run: |
+          set -euo pipefail
+          [[ -n "${SUPABASE_SOURCE_DB_URL:-}" ]] || {
+            echo "::error::Repository secret SUPABASE_SOURCE_DB_URL is missing. Add the source PostgreSQL connection string without posting it in chat."
+            exit 1
+          }
+
+      - name: Install the PostgreSQL client
+        run: |
+          set -euo pipefail
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends postgresql-client
+
+      - name: Verify source connectivity without reading application rows
+        env:
+          SUPABASE_SOURCE_DB_URL: ${{ secrets.SUPABASE_SOURCE_DB_URL }}
+          PGSSLMODE: require
+        run: |
+          set -euo pipefail
+          pg_isready --dbname="$SUPABASE_SOURCE_DB_URL" --timeout=15
+
+      - name: Create and upload the logical export
+        env:
+          SUPABASE_SOURCE_DB_URL: ${{ secrets.SUPABASE_SOURCE_DB_URL }}
+          PGSSLMODE: require
+        run: |
+          set -euo pipefail
+          umask 077
+          DUMP_FILE="/tmp/trackmcp-supabase-source-${GITHUB_RUN_ID}.dump"
+          MANIFEST_FILE="/tmp/trackmcp-supabase-source-${GITHUB_RUN_ID}.manifest.txt"
+          trap 'rm -f "$DUMP_FILE" "$MANIFEST_FILE"' EXIT
+
+          pg_dump \
+            --dbname="$SUPABASE_SOURCE_DB_URL" \
+            --format=custom \
+            --no-owner \
+            --no-privileges \
+            --file="$DUMP_FILE"
+
+          SHA256=$(sha256sum "$DUMP_FILE" | awk '{print $1}')
+          BYTES=$(stat -c '%s' "$DUMP_FILE")
+          ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
+          BUCKET_NAME="${BACKUP_BUCKET_PREFIX}-${ACCOUNT_ID}-${AWS_REGION}"
+          OBJECT_PREFIX="source-exports/${GITHUB_RUN_ID}"
+
+          aws s3api head-bucket --bucket "$BUCKET_NAME" --region "$AWS_REGION"
+          cat > "$MANIFEST_FILE" <<EOF
+          export_type=postgresql-custom-logical-dump
+          repository=${GITHUB_REPOSITORY}
+          commit=${GITHUB_SHA}
+          workflow_run=${GITHUB_RUN_ID}
+          pg_dump_version=$(pg_dump --version)
+          dump_bytes=${BYTES}
+          sha256=${SHA256}
+          source_url=redacted
+          source_rows=not_printed
+          EOF
+
+          aws s3 cp "$DUMP_FILE" \
+            "s3://${BUCKET_NAME}/${OBJECT_PREFIX}/trackmcp-supabase-source.dump" \
+            --sse AES256 --only-show-errors
+          aws s3 cp "$MANIFEST_FILE" \
+            "s3://${BUCKET_NAME}/${OBJECT_PREFIX}/manifest.txt" \
+            --sse AES256 --only-show-errors
+
+          echo "Uploaded encrypted source logical export metadata to s3://${BUCKET_NAME}/${OBJECT_PREFIX}/."
+          echo "The PostgreSQL archive contents and source connection string were not printed."
