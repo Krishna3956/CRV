@@ -157,6 +157,10 @@ Legend: `[x]` verified/implemented in this workstream; `[ ]` pending.
       evidence” and “explicit workflow terminals” with business-readable
       explanations that say the values come from server-reported starts,
       failures, and final states.
+- [x] ✅ Make the Setup step rail state-aware: new workspaces highlight the
+      workspace/key step, keyed workspaces without activity highlight sending
+      the first event, and connected workspaces stop showing a misleading
+      always-active first step.
 - [x] ✅ Keep OAuth provider loading placeholders visually non-actionable until
       provider discovery completes; the hand cursor is reserved for real
       controls.

@@ -394,6 +394,14 @@ than exposing internal terms such as “explicit workflow terminals” or
 “semantic evidence”. This is copy-only: the underlying formulas and
 evidence-boundary rules are unchanged.
 
+The Setup step rail was also corrected. It no longer always highlights the
+first card. A new workspace highlights the first provisioning step; a
+workspace with an active key but no observed activity highlights `Send one
+event`; and a workspace with observed activity no longer displays a false
+current-step emphasis. The active card is marked with `aria-current="step"`
+and a concise `Next` label so the visual cue is also available to assistive
+technology.
+
 The Resources & prompts default path was reviewed as well. Its first scan now
 starts with the business question and three decision KPIs; the technical
 evidence boundary is still present inside the expanded detail section rather
@@ -422,4 +430,6 @@ Verification after this pass:
 - `npm run test:p0-truth`: 12/12 passed after the Quality helper-copy change.
 - `npx tsc --noEmit --pretty false`: passed after the Quality helper-copy
   change.
+- `npm run build`: passed after the state-aware Setup rail change; 230 static
+  pages generated.
 - Production deployment and fresh-account browser evidence remain pending.

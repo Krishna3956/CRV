@@ -309,6 +309,12 @@ test("Setup exposes an explicit refresh action for first-event evidence", () => 
   assert.match(source, /onClick=\{retrySetupCheck\}/);
 });
 
+test("Setup highlights the current next step instead of always emphasizing step one", () => {
+  assert.match(source, /const activeSetupStep = !workspaceId \|\| !hasActiveKey/);
+  assert.match(source, /aria-current=\{index === activeSetupStep \? "step" : undefined\}/);
+  assert.match(source, /index === activeSetupStep && <span[^>]*>Next<\/span>/);
+});
+
 test("Setup clears stale workspace evidence while a workspace check is in flight", () => {
   const setupStart = source.indexOf("function SetupView(");
   const setupEnd = source.indexOf("// Kept as an inert compatibility artifact", setupStart);

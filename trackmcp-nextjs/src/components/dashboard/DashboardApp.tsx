@@ -4779,6 +4779,16 @@ function SetupView({
           : contractState === "connected" || (analytics !== null && analytics.total_events > 0)
             ? identityUnresolved ? "identity" : "verified"
             : "checking";
+  const hasObservedActivity = Boolean(
+    analytics?.total_events ||
+    contractState === "connected" ||
+    contractState === "connected_limited_coverage",
+  );
+  const activeSetupStep = !workspaceId || !hasActiveKey
+    ? 0
+    : hasObservedActivity
+      ? -1
+      : 2;
   const stateCopy = {
     "no-key": [workspaceId ? "Create a connection key to begin" : "Create your workspace to begin", workspaceId ? "TrackMCP cannot verify an integration until a connection key is configured and your server sends an event." : "Your account is ready. Create a workspace first, then create a connection key for your server.", "Not connected", "border-line bg-paper text-muted", "bg-slate-400"],
     checking: ["Checking for recent server activity", "Your key is ready. We are checking the selected period for activity from your server.", "Checking", "border-sky-200 bg-sky-50 text-sky-800", "bg-sky-500"],
@@ -4844,10 +4854,17 @@ function SetupView({
       />
       <section className="mb-6 grid gap-3 rounded-2xl border border-brand/20 bg-[linear-gradient(135deg,#f0fbf3,#ffffff_62%)] p-4 sm:grid-cols-3 sm:p-5" aria-label="Setup steps">
         {setupSteps.map(([number, title, detail], index) => (
-          <div key={title} className={"flex items-start gap-3 rounded-xl px-3 py-3 " + (index === 0 ? "bg-white shadow-sm" : "bg-white/55")}>
-            <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-brand-soft text-[11px] font-bold text-brand-strong">{number}</span>
+          <div
+            key={title}
+            aria-current={index === activeSetupStep ? "step" : undefined}
+            className={"flex items-start gap-3 rounded-xl px-3 py-3 " + (index === activeSetupStep ? "bg-white shadow-sm ring-1 ring-brand/20" : "bg-white/55")}
+          >
+            <span className={"grid h-8 w-8 shrink-0 place-items-center rounded-full text-[11px] font-bold " + (index === activeSetupStep ? "bg-brand text-white" : "bg-brand-soft text-brand-strong")}>{number}</span>
             <div>
-              <p className="text-sm font-semibold text-ink">{title}</p>
+              <div className="flex flex-wrap items-center gap-2">
+                <p className="text-sm font-semibold text-ink">{title}</p>
+                {index === activeSetupStep && <span className="rounded-full bg-brand-soft px-2 py-0.5 text-[10px] font-semibold text-brand-strong">Next</span>}
+              </div>
               <p className="mt-1 text-[11px] leading-relaxed text-muted">{detail}</p>
             </div>
           </div>
