@@ -10,6 +10,8 @@ schema replay. It uses SSM and a bounded script that:
 - runs `pg_isready` inside the database container;
 - checks the Auth settings endpoint with the generated anonymous key;
 - checks the REST gateway response without printing its body or the key.
+- emits fixed-string readiness/status sentinels so the GitHub wrapper can
+  distinguish a completed probe from an incomplete SSM output payload.
 
 The key is read only inside the remote command to authenticate the probe and is
 never emitted. No container is started, stopped, recreated, or reconfigured.
