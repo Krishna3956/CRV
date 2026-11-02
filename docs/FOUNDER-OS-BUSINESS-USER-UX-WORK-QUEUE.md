@@ -90,6 +90,9 @@ Legend: `[x]` verified/implemented in this workstream; `[ ]` pending.
       replace avoidable engineering terms such as telemetry, resolver signal,
       and account signal with activity, account group, and plain-English
       evidence wording while keeping technical detail available in disclosures.
+- [x] ✅ Simplify Setup status states so a business reader sees “recent server
+      activity”, “partial view”, and “account grouping unavailable” before
+      technical evidence terminology.
 - [x] ✅ Run dashboard contracts, typecheck, lint, and production build.
 - [x] ✅ Run the consolidated release gate; all 159 suites pass after fixing
       clean-checkout MCP SDK resolution and Python artifact preparation.

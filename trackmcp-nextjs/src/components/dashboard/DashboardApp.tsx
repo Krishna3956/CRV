@@ -4681,11 +4681,11 @@ function SetupView({
             : "checking";
   const stateCopy = {
     "no-key": [workspaceId ? "Create a connection key to begin" : "Create your workspace to begin", workspaceId ? "TrackMCP cannot verify an integration until a scoped key is configured and your server sends an event." : "Your account is ready. Create a workspace first, then create a connection key for your server.", "Not connected", "border-line bg-paper text-muted", "bg-slate-400"],
-    checking: ["Checking for your first event", "Your key is ready. We are checking the selected period for telemetry from your server.", "Checking", "border-sky-200 bg-sky-50 text-sky-800", "bg-sky-500"],
+    checking: ["Checking for recent server activity", "Your key is ready. We are checking the selected period for activity from your server.", "Checking", "border-sky-200 bg-sky-50 text-sky-800", "bg-sky-500"],
     waiting: ["Waiting for your first event", "The key is ready, but key creation alone does not prove that an MCP event arrived. Configure TRACKMCP_KEY, restart the server, make one real tool call, then check again.", "Waiting for event", "border-amber-200 bg-amber-50 text-amber-800", "bg-amber-500"],
-    limited: ["Telemetry is arriving, but the scan is bounded", "TrackMCP observed activity, but the selected query reached its safety limit. Counts and comparisons may be incomplete; narrow the date range before drawing conclusions.", "Limited coverage", "border-amber-200 bg-amber-50 text-amber-800", "bg-amber-500"],
-    identity: ["Telemetry is verified; identity is unresolved", "The first event is confirmed, but the observed account identity could not be resolved. TrackMCP will not present this as a unique person or organization.", "Identity unresolved", "border-sky-200 bg-sky-50 text-sky-800", "bg-sky-500"],
-    verified: ["First event verified", "TrackMCP has observed activity from this workspace. Open Overview to inspect the evidence window, clients, capabilities, and outcomes.", "First event verified", "border-brand/30 bg-brand-soft/40 text-brand-strong", "bg-brand"],
+    limited: ["Activity is visible, but this view is partial", "TrackMCP observed activity, but the selected query reached its safety limit. Counts and comparisons may be incomplete; narrow the date range before drawing conclusions.", "Limited coverage", "border-amber-200 bg-amber-50 text-amber-800", "bg-amber-500"],
+    identity: ["Activity is verified; account grouping is unavailable", "The first event is confirmed, but no account grouping was available. TrackMCP will not present this as a unique person or organization.", "Account grouping unavailable", "border-sky-200 bg-sky-50 text-sky-800", "bg-sky-500"],
+    verified: ["First server activity verified", "TrackMCP has observed activity from this workspace. Open Overview to inspect the evidence window, assistants, capabilities, and outcomes.", "First activity verified", "border-brand/30 bg-brand-soft/40 text-brand-strong", "bg-brand"],
     error: ["We could not check your connection", "Your key was not changed. Retry the check, then confirm the server is running and can reach the TrackMCP ingest URL.", "Check failed", "border-red-200 bg-red-50 text-red-800", "bg-red-500"],
   }[connectionState] as unknown as readonly [string, string, string, string, string];
   const identityResolved: boolean | null = contractIdentity !== undefined
@@ -4699,11 +4699,11 @@ function SetupView({
     ["Connection authorized", contractChecks?.connection_key_ready ?? hasActiveKey],
     ["Server activity recognized", contractChecks?.sdk_event_recognized ?? (connectionState === "verified" || connectionState === "limited" || connectionState === "identity")],
     ["MCP work observed", contractChecks?.mcp_method_observed ?? Boolean(analytics?.tool_calls)],
-    ["Connection method observed", contractChecks?.transport_observed ?? null],
+    ["Connection method identified", contractChecks?.transport_observed ?? null],
     ["Activity saved", contractChecks?.event_persisted ?? (analytics ? analytics.total_events > 0 : null)],
     ["Privacy rules applied", contractChecks?.privacy_policy_applied ?? (analytics ? analytics.total_events > 0 : null)],
     ["Optional account grouping", identityResolved],
-    ["Server scope identified", contractChecks?.deployment_linked ?? null],
+    ["Server details identified", contractChecks?.deployment_linked ?? null],
   ] as const;
   const copy = async () => {
     try {

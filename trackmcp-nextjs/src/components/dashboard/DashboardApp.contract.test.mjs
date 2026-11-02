@@ -268,11 +268,11 @@ test("zero-event activation uses page-specific connection states", () => {
 });
 
 test("Setup exposes truthful first-event and coverage states", () => {
-  assert.match(source, /First event verified/);
+  assert.match(source, /First server activity verified/);
   assert.match(source, /Limited coverage/);
-  assert.match(source, /Identity unresolved/);
+  assert.match(source, /account grouping is unavailable/);
   assert.match(source, /selected query reached its safety limit/);
-  assert.match(source, /observed account identity could not be resolved/);
+  assert.match(source, /no account grouping was available/);
   assert.match(source, /analytics\?\.data_trust\?\.truncated/);
   assert.match(source, /identity_coverage\.denominator > 0/);
   assert.match(source, /account_resolver_observed/);
@@ -280,7 +280,7 @@ test("Setup exposes truthful first-event and coverage states", () => {
   assert.match(source, /Optional account grouping/);
   assert.match(source, /identityResolved: boolean \| null/);
   assert.match(source, /done === null \? "\?"/);
-  assert.match(source, /Connection method observed/);
+  assert.match(source, /Connection method identified/);
   assert.match(source, /Activity saved/);
   assert.match(source, /First event scope:/);
   assert.match(source, /service not reported/);

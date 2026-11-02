@@ -189,6 +189,9 @@ engineering vocabulary. The branch now uses:
   primary Who's using it path; and
 - `customer count or overall product health` as the plain-English boundary for
   the Overview takeaway.
+- Setup status states now lead with recent server activity, partial coverage,
+  and account-group availability; technical evidence remains available below
+  the status summary.
 
 The underlying evidence contracts and technical disclosures were not removed.
 This is a copy and comprehension change, not a metric or read-model change.
