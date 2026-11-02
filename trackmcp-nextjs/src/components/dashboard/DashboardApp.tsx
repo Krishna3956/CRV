@@ -3278,6 +3278,11 @@ function ResourcesPromptsView({
     <div>
       <PageIntro title="Resources & prompts" description="See the non-tool surfaces your MCP exposes and the reads observed at its server boundary." question="What information or guided help do people need most?" actions={pageControls} />
       <DataSourceStrip dataMode={dataMode} hasMyData={hasMyData} view="resources" />
+      <BusinessContext
+        title="Use this view to understand information needs"
+        body="Resource lookups show information people asked the server for. Guided-help requests show where the server was asked to help shape a task. Completion is counted only when the server reports an explicit outcome; an input request or unknown state is not treated as success."
+        action="Compare the top resources and prompts with their error or input-needed rates before changing content or workflows."
+      />
       <section className="mb-6 border border-line bg-white p-4 sm:p-5" aria-label="Resources and prompts evidence boundary">
         <p className="dashboard-label text-faint">Evidence boundary</p>
         <p className="mt-1 max-w-3xl text-xs leading-relaxed text-muted">TrackMCP reports bounded method observations and hashed entity counts. Linked retries are collapsed only when protocol correlation evidence exists. It does not expose resource contents, prompt arguments, unique people, or business completion from these signals.</p>
@@ -3310,7 +3315,7 @@ function ResourcesPromptsView({
           <Panel key={label} title={label} subtitle="Method and read evidence, never content">
             <div className="grid gap-3 sm:grid-cols-2">
               <div className="border border-line bg-paper p-3"><p className="text-xs text-muted">Method events</p><p className="mt-1 text-2xl font-semibold text-ink">{fmt(surface.events)}</p><p className="mt-1 text-[11px] text-muted">{surface.methods.length ? surface.methods.join(", ") : "No methods observed in this window."}</p></div>
-              <div className="border border-line bg-paper p-3"><p className="text-xs text-muted">Hashed entities</p><p className="mt-1 text-2xl font-semibold text-ink">{fmt(surface.entity_count)}</p><p className="mt-1 text-[11px] text-muted">SHA-256 hash counts; no URI, content, or input is shown.</p></div>
+              <div className="border border-line bg-paper p-3"><p className="text-xs text-muted">Distinct items observed</p><p className="mt-1 text-2xl font-semibold text-ink">{fmt(surface.entity_count)}</p><p className="mt-1 text-[11px] text-muted">Privacy-safe hash count; no URI, content, or input is shown.</p></div>
             </div>
             <div className="mt-4 grid grid-cols-2 gap-2 text-xs sm:grid-cols-4">
               {[["Reads", surface.entity_analytics.read_events], ["Successful", surface.entity_analytics.successful_reads], ["Failed", surface.entity_analytics.failed_reads], ["Needs input", surface.entity_analytics.input_required_reads]].map(([metric, value]) => <div key={String(metric)} className="border border-line bg-white p-3"><p className="text-muted">{metric}</p><p className="mt-1 font-semibold text-ink">{fmt(Number(value))}</p></div>)}

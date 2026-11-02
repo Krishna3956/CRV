@@ -175,6 +175,8 @@ test("business users receive orientation before technical detail", () => {
   assert.match(source, /supporting evidence for technical teams/);
   assert.match(source, /Advertised features not yet observed/);
   assert.match(source, /Resource lookups/);
+  assert.match(source, /Use this view to understand information needs/);
+  assert.match(source, /Distinct items observed/);
   assert.match(source, /Feature reliability/);
   assert.match(source, /className="mt-1 text-\[11px\] leading-relaxed text-muted">\{helper\}/);
 });
