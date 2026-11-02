@@ -32,6 +32,8 @@ test("social discovery failures fail closed without causing a layout shift", () 
   assert.match(component, /setProviders\(value\)/);
   assert.match(component, /aria-busy="true"/);
   assert.match(component, /Loading sign-in options/);
+  assert.match(component, /skeletonClass = .*cursor-default/);
+  assert.match(component, /\$\{skeletonClass\} animate-pulse/);
 });
 
 test("provider discovery uses the bounded transient retry helper", () => {

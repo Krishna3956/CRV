@@ -43,6 +43,10 @@ Resources & prompts, The journey, Did it work, What's broken, and Evidence.
 The server was stopped after the read-only smoke; no production tab or
 production data was touched.
 
+The auth affordance pass also keeps provider-discovery skeletons visually
+non-actionable (`cursor-default`) until Google or GitHub is confirmed enabled;
+only actual provider buttons expose the hand cursor.
+
 ## Latest browser confirmation
 
 - Local route: `/dashboard?view=evidence&data=example` on the isolated branch.

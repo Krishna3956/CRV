@@ -59,13 +59,14 @@ export function OAuthButtons({
   };
 
   const buttonClass = "inline-flex h-11 cursor-pointer items-center justify-center gap-2 rounded-lg border border-line-strong bg-white px-3 text-[13px] font-medium text-body transition-colors hover:bg-mist disabled:cursor-not-allowed disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2";
+  const skeletonClass = "inline-flex h-11 cursor-default items-center justify-center gap-2 rounded-lg border border-line bg-white px-3 text-[13px] font-medium text-faint";
   if (providers && !providers.google && !providers.github) return null;
   if (!providers) {
     return (
       <div className="mt-6" aria-busy="true" aria-label="Loading sign-in options">
         <div className="grid grid-cols-2 gap-3">
-          <span className={`${buttonClass} animate-pulse text-faint`} aria-hidden="true">Loading…</span>
-          <span className={`${buttonClass} animate-pulse text-faint`} aria-hidden="true">Loading…</span>
+          <span className={`${skeletonClass} animate-pulse`} aria-hidden="true">Loading…</span>
+          <span className={`${skeletonClass} animate-pulse`} aria-hidden="true">Loading…</span>
         </div>
         <div className="mt-5 flex items-center gap-3 text-[11px] uppercase tracking-[0.14em] text-faint"><span className="h-px flex-1 bg-line" /><span>or use email</span><span className="h-px flex-1 bg-line" /></div>
       </div>

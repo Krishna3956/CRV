@@ -153,6 +153,9 @@ Legend: `[x]` verified/implemented in this workstream; `[ ]` pending.
 - [x] ✅ Replace the remaining “semantic facts” subtitle on Outcome evidence
       with a direct explanation of what the dashboard counts and what it does
       not infer.
+- [x] ✅ Keep OAuth provider loading placeholders visually non-actionable until
+      provider discovery completes; the hand cursor is reserved for real
+      controls.
 - [x] ✅ Run dashboard contracts, typecheck, lint, and production build.
 - [x] ✅ Run the consolidated release gate; all 159 suites pass after fixing
       clean-checkout MCP SDK resolution and Python artifact preparation.
