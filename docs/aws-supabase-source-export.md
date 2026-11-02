@@ -23,6 +23,16 @@ change, and no cleanup/delete operation. It never prints the connection string,
 database rows, or dump contents. The archive must still be inspected and
 restored into isolated staging before any production cutover decision.
 
+## Artifact verification
+
+After the export succeeds, run **Verify Supabase Cloud source export** with the
+exact confirmation string `VERIFY_SOURCE_BACKUP` and the export prefix shown by
+the export workflow, such as `source-exports/1234567890`. The verifier checks
+the manifest redaction marker, dump byte count, SHA-256 checksum, S3 encryption
+metadata, and PostgreSQL archive readability. It prints only aggregate archive
+metadata; it does not connect to Supabase Cloud, restore the dump, read rows, or
+delete or overwrite an S3 object.
+
 ## Required secret
 
 `SUPABASE_SOURCE_DB_URL` must be a PostgreSQL connection string that can read
