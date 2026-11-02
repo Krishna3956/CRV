@@ -498,6 +498,17 @@ Latest local runtime verification after `cf0d0d40`:
 - The server was stopped cleanly. This is local runtime evidence only; it is
   not authenticated production evidence.
 
+Latest typography verification after `b099a7f2`:
+
+- Dashboard Inter typography now uses an explicit 30px page/metric role, 17px
+  section-title role, and 12px label role. Code and dense table detail remain
+  compact.
+- `npm run test:business-user-ux`: 84/84 passed.
+- `npx tsc --noEmit --pretty false`: passed.
+- `npm run lint`: passed.
+- `npm run build`: passed; 230 static pages generated.
+- `npm run test:release-gate`: passed all 159 suites.
+
 Latest visual-system verification after `cf0d0d40`:
 
 - The dashboard now uses cool neutral surfaces with indigo as the primary
