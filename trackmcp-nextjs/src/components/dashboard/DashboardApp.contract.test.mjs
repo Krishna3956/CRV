@@ -47,7 +47,7 @@ test("business-first navigation and KPI hierarchy are explicit", () => {
   assert.match(source, /groupLabel="Investigate & act"/);
   assert.match(
     source,
-    /label="AI clients"[\s\S]*label="Activity"[\s\S]*label="Work completed"[\s\S]*label="Needs attention"/,
+    /label="Assistants using your MCP"[\s\S]*label="Observed work"[\s\S]*label="Work with an explicit success"[\s\S]*label="Needs attention"/,
   );
   assert.doesNotMatch(source, /id: "tool-quality"/);
   assert.doesNotMatch(source, /Open Configure/);
@@ -114,7 +114,7 @@ test("desktop-only pilot boundary is visible on narrow dashboard viewports", () 
 test("resources and prompts have a dedicated evidence-bounded surface", () => {
   assert.match(source, /function ResourcesPromptsView/);
   assert.match(source, /title=\"Resources & prompts\"/);
-  assert.match(source, /Hashed entities/);
+  assert.match(source, /Distinct resources or prompts observed/);
   assert.match(source, /transport_breakdown/);
   assert.match(source, /Transport coverage/);
   assert.match(source, /formatTransport\(item\.transport\)/);
@@ -154,6 +154,16 @@ test("dashboard keeps global controls inside one header and uses actionable empt
   assert.match(source, /Create a connection key/);
   assert.match(source, /Make one real tool call/);
   assert.match(source, /Optional identity <span/);
+});
+
+test("business users receive orientation before technical detail", () => {
+  assert.match(source, /Start here: who is showing up, what are they trying to do, did it work, and what needs attention\?/);
+  assert.match(source, /How to read this overview/);
+  assert.match(source, /What you will get after setup/);
+  assert.match(source, /A technical teammate usually completes this page/);
+  assert.match(source, /question="Which accounts and assistants are showing up, and is activity growing\?"/);
+  assert.match(source, /question="What should the team investigate next, and how strong is the evidence\?"/);
+  assert.match(source, /N\/A means there is not enough evidence yet/);
 });
 
 test("data source state is explicit and never silently substituted", () => {

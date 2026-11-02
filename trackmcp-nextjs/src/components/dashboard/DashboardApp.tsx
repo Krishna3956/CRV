@@ -1656,10 +1656,10 @@ const emptyPageCopy: Record<
     description:
       "See activity, explicit work outcomes, and what deserves attention next.",
     preview: [
-      { label: "AI clients", detail: "Which assistants are using your MCP." },
-      { label: "Activity", detail: "Calls, sessions, errors, and activity over time." },
-      { label: "Work completed", detail: "Explicit outcomes reported by your application." },
-      { label: "Needs attention", detail: "Signals that are worth investigating next." },
+      { label: "Assistants using your MCP", detail: "Which assistants are showing up in observed sessions." },
+      { label: "Observed work", detail: "Bounded activity, sessions, errors, and trends." },
+      { label: "Explicit successes", detail: "Work your application reported as completed." },
+      { label: "Signals to investigate", detail: "Evidence-backed issues worth reviewing next." },
     ],
   },
   journeys: {
@@ -1769,9 +1769,9 @@ function ServerConnectionState({
       : "Your MCP server is not connected yet.";
   const detail =
     state === "workspace"
-      ? "Create a workspace, then connect your server with a connection key."
+      ? "Your account is ready. Connect one server so the business views can start filling in."
       : state === "key"
-        ? "Create a connection key, add it to your server, and send one real event."
+        ? "A technical teammate creates a key, adds it to the server, and sends one real event."
         : "A key exists, but no events have arrived in the selected period. TrackMCP cannot verify server reachability from this screen.";
   const steps = state === "workspace"
     ? ["Create a workspace", "Create a connection key", "Send your first MCP event"]
@@ -1782,6 +1782,10 @@ function ServerConnectionState({
   return (
     <div>
       <PageIntro title={title} description={copy.description} actions={pageControls} />
+      <BusinessContext
+        title="What happens after this step?"
+        body="A technical teammate connects one MCP server. Once TrackMCP receives a real event, this area will show who used it, what they tried, whether it worked, and what needs attention."
+      />
       <section className="overflow-hidden rounded-2xl border border-line bg-white p-6 shadow-[0_24px_60px_-44px_rgba(18,59,42,0.45)] sm:p-8">
         <div className="flex items-start gap-3">
           <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-brand-soft text-brand-strong">
@@ -2029,10 +2033,12 @@ function ViewContent({
 function PageIntro({
   title,
   description,
+  question,
   actions,
 }: {
   title: string;
   description: string;
+  question?: string;
   actions?: ReactNode;
 }) {
   return (
@@ -2042,12 +2048,31 @@ function PageIntro({
         <h2 className="dashboard-page-title tracking-[-0.035em] text-ink">
           {title}
         </h2>
+        {question && <p className="mt-1 text-xs font-semibold text-brand-strong">{question}</p>}
         <p className="mt-1.5 max-w-3xl text-sm leading-relaxed text-muted">
           {description}
         </p>
       </div>
       {actions && <div className="shrink-0 pt-1">{actions}</div>}
     </div>
+  );
+}
+
+function BusinessContext({
+  title,
+  body,
+  action,
+}: {
+  title: string;
+  body: string;
+  action?: string;
+}) {
+  return (
+    <section className="mb-6 border border-brand/20 bg-brand-soft/25 px-4 py-3.5 sm:px-5" aria-label={title}>
+      <p className="text-xs font-semibold text-ink">{title}</p>
+      <p className="mt-1 max-w-4xl text-xs leading-relaxed text-body">{body}</p>
+      {action && <p className="mt-2 text-[11px] font-semibold text-brand-strong">Next: {action}</p>}
+    </section>
   );
 }
 function ExampleEvidencePreview({
@@ -2276,9 +2301,15 @@ function Overview({
       <PageIntro
         title="Overview"
         description="See activity, explicit work outcomes, and what deserves attention next."
+        question="Start here: who is showing up, what are they trying to do, did it work, and what needs attention?"
         actions={pageControls}
       />
       <DataSourceStrip dataMode={dataMode} hasMyData={hasMyData} view="overview" />
+      <BusinessContext
+        title="How to read this overview"
+        body="Observed work is not the same as completed business work. A completed result appears only when your server reports an explicit outcome; N/A means there is not enough evidence yet, not that the product is healthy or unhealthy."
+        action="Open What’s broken when a signal has evidence, or Evidence when you need the technical detail."
+      />
       <div className="mb-6 border border-line bg-white">
         <details>
           <summary className="flex cursor-pointer list-none items-center justify-between gap-4 px-5 py-4 text-sm font-semibold text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand">
@@ -2304,21 +2335,21 @@ function Overview({
       </div>
       <div className="mb-6 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
         <Kpi
-          label="AI clients"
+          label="Assistants using your MCP"
           value={
             analytics.clients.length ? fmt(analytics.clients.length) : "N/A"
           }
           icon={Users}
-          helper="Observed at the server boundary"
+          helper="Client names reported by observed sessions"
         />
         <Kpi
-          label="Activity"
+          label="Observed work"
           value={fmt(analytics.tool_calls)}
           icon={Activity}
-          helper="Observed calls in selected period"
+          helper="Bounded server activity in selected period"
         />
         <Kpi
-          label="Work completed"
+          label="Work with an explicit success"
           value={
             totals.started
               ? fmt(totals.completed) + " / " + fmt(totals.started)
@@ -2329,7 +2360,7 @@ function Overview({
             totals.started
               ? "Explicit outcomes · " +
                 percent(totals.completed / totals.started)
-              : "No explicit workflow outcome data"
+              : "No explicit success outcome data"
           }
         />
         <Kpi
@@ -2843,6 +2874,7 @@ function JourneysView({
       <PageIntro
         title="The journey"
         description="Understand what work is being attempted and where it stops. Completion uses explicit workflow outcomes only."
+        question="Where does a real piece of work start, continue, pause, or stop?"
         actions={pageControls}
       />
       <DataSourceStrip dataMode={dataMode} hasMyData={hasMyData} view="journeys" />
@@ -3047,16 +3079,17 @@ function CapabilitiesView({
       <PageIntro
         title="What they're doing"
         description="See what the server offers and which capabilities are observed in use."
+        question="Which features are people actually using, and where is adoption concentrated?"
         actions={pageControls}
       />
       <DataSourceStrip dataMode={dataMode} hasMyData={hasMyData} view="capabilities" />
       {activity && (
         <>
           <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-            <Kpi label="Total tool calls" value={fmt(activity.total_calls)} icon={Activity} helper={`${analytics.range_days} day window`} />
+            <Kpi label="Observed actions" value={fmt(activity.total_calls)} icon={Activity} helper={`${analytics.range_days} day window`} />
             <Kpi label="Previous period" value={fmt(activity.previous_period_calls)} icon={TrendingUp} helper="Same-length comparison" />
-            <Kpi label="Overall error rate" value={activity.overall_error_rate === null ? "N/A" : percent(activity.overall_error_rate)} icon={ShieldCheck} helper="Explicit call errors" />
-            <Kpi label="Avg tools per account" value={activity.avg_tools_used_per_account === null ? "N/A" : activity.avg_tools_used_per_account.toFixed(1)} icon={Blocks} helper={`of ${fmt(activity.advertised_tools)} advertised`} />
+            <Kpi label="Actions that returned an error" value={activity.overall_error_rate === null ? "N/A" : percent(activity.overall_error_rate)} icon={ShieldCheck} helper="Observed errors only; not a root-cause diagnosis" />
+            <Kpi label="Average features used per account" value={activity.avg_tools_used_per_account === null ? "N/A" : activity.avg_tools_used_per_account.toFixed(1)} icon={Blocks} helper={`of ${fmt(activity.advertised_tools)} advertised`} />
           </div>
           <div className="mt-4 grid gap-4 xl:grid-cols-[1.1fr_0.9fr]">
             <Panel title="Feature leaderboard" subtitle="Which capabilities are carrying the observed activity">
@@ -3226,7 +3259,7 @@ function ResourcesPromptsView({
   const successfulReads = rows.reduce((total, [, surface]) => total + surface.entity_analytics.successful_reads, 0);
   return (
     <div>
-      <PageIntro title="Resources & prompts" description="See the non-tool surfaces your MCP exposes and the reads observed at its server boundary." actions={pageControls} />
+      <PageIntro title="Resources & prompts" description="See the non-tool surfaces your MCP exposes and the reads observed at its server boundary." question="What information or guided help do people need most?" actions={pageControls} />
       <DataSourceStrip dataMode={dataMode} hasMyData={hasMyData} view="resources" />
       <section className="mb-6 border border-line bg-white p-4 sm:p-5" aria-label="Resources and prompts evidence boundary">
         <p className="dashboard-label text-faint">Evidence boundary</p>
@@ -3235,7 +3268,7 @@ function ResourcesPromptsView({
       <div className="grid gap-3 sm:grid-cols-3">
         <Kpi label="Resource interactions" value={activity ? fmt(activity.resource_reads) : "N/A"} icon={FileText} helper={activity ? `${fmt(activity.previous_period_resource_reads)} previous period · ${fmt(activity.resource_observations)} observed` : "Awaiting evidence"} />
         <Kpi label="Prompt interactions" value={activity ? fmt(activity.prompt_calls) : "N/A"} icon={Activity} helper={activity ? `${fmt(activity.previous_period_prompt_calls)} previous period · ${fmt(activity.prompt_observations)} observed` : "Awaiting evidence"} />
-        <Kpi label="Prompt completion" value={activity?.prompt_completion_rate == null ? "N/A" : `${Math.round(activity.prompt_completion_rate * 100)}%`} icon={Check} helper={activity?.prompt_stall_rate == null ? "Explicit outcome evidence only" : `${Math.round(activity.prompt_stall_rate * 100)}% needs input · ${Math.round((activity.prompt_error_rate || 0) * 100)}% error`} />
+        <Kpi label="Prompts completed explicitly" value={activity?.prompt_completion_rate == null ? "N/A" : `${Math.round(activity.prompt_completion_rate * 100)}%`} icon={Check} helper={activity?.prompt_stall_rate == null ? "Explicit outcome evidence only" : `${Math.round(activity.prompt_stall_rate * 100)}% needs input · ${Math.round((activity.prompt_error_rate || 0) * 100)}% error`} />
       </div>
       {activity && <div className="mt-6"><Panel title="Interaction outcomes" subtitle="One terminal evidence state per safely linked interaction; an input request is not a completion">
         <div className="grid gap-3 sm:grid-cols-2">
@@ -3244,8 +3277,8 @@ function ResourcesPromptsView({
       </Panel></div>}
       <div className="mt-3 grid gap-3 sm:grid-cols-3">
         <Kpi label="Observed events" value={surfaces ? fmt(observedEvents) : "N/A"} icon={Activity} helper="Resource and prompt method events" />
-        <Kpi label="Hashed entities" value={surfaces ? fmt(observedEntities) : "N/A"} icon={FileText} helper="Bounded, non-reversible identities" />
-        <Kpi label="Read success" value={surfaces ? fmt(successfulReads) : "N/A"} icon={Check} helper="Durable read projection only" />
+        <Kpi label="Distinct resources or prompts observed" value={surfaces ? fmt(observedEntities) : "N/A"} icon={FileText} helper="Privacy-bounded entity counts" />
+        <Kpi label="Reads with explicit success" value={surfaces ? fmt(successfulReads) : "N/A"} icon={Check} helper="Durable read projection only" />
       </div>
       {activity && <div className="mt-6 grid gap-6 xl:grid-cols-2">
         {[["Top resources", activity.resource_breakdown, "Resource method"], ["Top prompts", activity.prompt_breakdown, "Prompt method"]].map(([title, items, label]) => (
@@ -3359,6 +3392,7 @@ function QualityView({
         <PageIntro
           title="Did it work"
           description="Review observed capability quality without turning insufficient data into a failure."
+          question="What completed, what returned an error, and what is still unobserved?"
           actions={pageControls}
         />
         <LiveDataState
@@ -3373,6 +3407,7 @@ function QualityView({
       <PageIntro
           title="Did it work"
         description="Review observed capability quality without turning insufficient data into a failure."
+        question="What completed, what returned an error, and what is still unobserved?"
         actions={pageControls}
       />
       <DataSourceStrip dataMode={dataMode} hasMyData={hasMyData} view="quality" />
@@ -3608,6 +3643,7 @@ function IssuesView({
       <PageIntro
         title="What's broken"
         description="Review what deserves attention next, ordered by evidence strength and affected volume."
+        question="What should the team investigate next, and how strong is the evidence?"
       />
       <DataSourceStrip dataMode={dataMode} hasMyData={hasMyData} view="issues" />
       {analytics.issue_activity && <div className="mb-6 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
@@ -3964,6 +4000,7 @@ function ClientsView({
       <PageIntro
         title="Who's using it"
         description="See which AI client applications and privacy-safe account signals were observed at the server boundary. This is not a count of users or customers."
+        question="Which accounts and assistants are showing up, and is activity growing?"
         actions={pageControls}
       />
       <DataSourceStrip dataMode={dataMode} hasMyData={hasMyData} view="clients" />
@@ -4113,6 +4150,7 @@ function EvidenceView({
       <PageIntro
         title="Evidence"
         description="Inspect bounded, redacted records only when the business question needs technical detail."
+        question="What supporting detail explains the business signal I am looking at?"
         actions={pageControls}
       />
       <DataSourceStrip dataMode={dataMode} hasMyData={hasMyData} view="evidence" />
@@ -4508,6 +4546,12 @@ function SetupView({
       <PageIntro
         title="Setup"
         description="Three steps to a verified MCP event. Advanced controls stay below until you need them."
+        question="Is TrackMCP receiving activity, and what is the next step if it is not?"
+      />
+      <BusinessContext
+        title="What you will get after setup"
+        body="Once one real event arrives, TrackMCP turns bounded server activity into four views: who is showing up, what they are trying, whether the work completed, and what deserves attention. A technical teammate usually completes this page; business teams return here when they need to verify the connection."
+        action="Create a key, connect one server, make one real tool call, then refresh the check."
       />
       <section className="mb-6 grid gap-3 rounded-2xl border border-brand/20 bg-[linear-gradient(135deg,#f0fbf3,#ffffff_62%)] p-4 sm:grid-cols-3 sm:p-5" aria-label="Setup steps">
         {[
