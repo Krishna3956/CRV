@@ -2816,9 +2816,7 @@ function AttentionPanel({
                     <p className="mt-1 text-xs leading-relaxed text-muted">
                       {insight.detail}
                     </p>
-                    <p className="mt-2 text-[11px] text-muted">
-                      Evidence basis: API insight · affected volume: {insight.affected_volume == null ? "not provided" : fmt(insight.affected_volume)} · eligible volume: {insight.eligible_volume == null ? "not provided" : fmt(insight.eligible_volume)} · confidence: {insight.confidence || "not provided"} · {insight.metric}{insight.threshold ? ` · threshold: ${Object.entries(insight.threshold).slice(0, 3).map(([key, value]) => `${key.replaceAll("_", " ")} ${value}`).join(", ")}` : ""}
-                    </p>
+                    <InsightEvidence insight={insight} />
                     {insight.suggested_action && <p className="mt-2 text-[11px] leading-relaxed text-muted"><strong>Suggested next step:</strong> {insight.suggested_action}</p>}
                   </div>
                 </div>
@@ -2850,6 +2848,19 @@ function AttentionPanel({
         </div>
       </div>
     </Panel>
+  );
+}
+
+function InsightEvidence({ insight }: { insight: NonNullable<Analytics["insights"]>[number] }) {
+  return (
+    <details className="mt-3 border-t border-amber-200 pt-2">
+      <summary className="cursor-pointer text-[11px] font-semibold text-amber-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand">
+        Why this signal is shown
+      </summary>
+      <p className="mt-2 text-[11px] leading-relaxed text-muted">
+        Evidence basis: API insight · affected volume: {insight.affected_volume == null ? "not provided" : fmt(insight.affected_volume)} · eligible volume: {insight.eligible_volume == null ? "not provided" : fmt(insight.eligible_volume)} · confidence: {insight.confidence || "not provided"} · {insight.metric}{insight.threshold ? ` · threshold: ${Object.entries(insight.threshold).slice(0, 3).map(([key, value]) => `${key.replaceAll("_", " ")} ${value}`).join(", ")}` : ""}
+      </p>
+    </details>
   );
 }
 
@@ -3752,9 +3763,7 @@ function IssuesView({
               <p className="mt-1 text-xs leading-relaxed text-muted">
                 {insight.detail}
               </p>
-              <p className="mt-3 text-[11px] text-muted">
-                Evidence basis: API insight · affected volume: {insight.affected_volume == null ? "not provided" : fmt(insight.affected_volume)} · eligible volume: {insight.eligible_volume == null ? "not provided" : fmt(insight.eligible_volume)} · confidence: {insight.confidence || "not provided"} · metric: {insight.metric}{insight.threshold ? ` · threshold: ${Object.entries(insight.threshold).slice(0, 3).map(([key, value]) => `${key.replaceAll("_", " ")} ${value}`).join(", ")}` : ""}
-              </p>
+              <InsightEvidence insight={insight} />
               {insight.suggested_action && <p className="mt-2 text-[11px] leading-relaxed text-muted"><strong>Suggested next step:</strong> {insight.suggested_action}</p>}
             </div>
           ))}
@@ -3826,13 +3835,19 @@ function IssuesView({
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div>
                     <p className="text-sm font-semibold text-ink">{item.title}</p>
-                    <p className="mt-1 text-xs text-muted">Rule: {item.rule_key}</p>
+                    <p className="mt-1 text-xs text-muted">A recommended investigation based on observed activity.</p>
                   </div>
                   <span className="dashboard-label text-faint">{item.severity}</span>
                 </div>
                 <p className="mt-3 text-[11px] leading-relaxed text-muted">
                   This is an investigation signal, not a diagnosis or proof of cause.
                 </p>
+                <details className="mt-3 border-t border-line pt-2">
+                  <summary className="cursor-pointer text-[11px] font-semibold text-brand-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand">
+                    Show technical rule details
+                  </summary>
+                  <p className="mt-2 text-[11px] text-muted">Rule: {item.rule_key}</p>
+                </details>
                 <div className="mt-3 flex flex-wrap gap-2">
                   {(["acknowledge", "snooze", "resolve"] as const).map((action) => (
                     <button
