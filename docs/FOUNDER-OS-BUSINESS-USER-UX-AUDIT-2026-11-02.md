@@ -144,6 +144,8 @@ Implemented on isolated branch `codex/business-user-ux-audit`:
   letting a business reader treat missing outcomes as failure or success.
 - Added an action-oriented “What’s broken” reading guide that explains signal
   ranking, evidence strength, and the correct order for investigating alerts.
+- Added a journey reading guide that explains observed paths and explicit stop
+  evidence without presenting a missing event as abandonment.
 
 Validation on the isolated worktree:
 

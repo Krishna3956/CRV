@@ -28,6 +28,8 @@ Legend: `[x]` verified/implemented in this workstream; `[ ]` pending.
       success from reliability friction and unknown evidence.
 - [x] ✅ Add an action-oriented reading guide to “What’s broken” so business
       users know how to prioritize signals without treating them as diagnoses.
+- [x] ✅ Add a journey reading guide that distinguishes observed paths from
+      explicit stop evidence and avoids abandonment inference.
 - [x] ✅ Perform a read-only browser review of the current production Setup,
       Overview, Example data, and My data states; record live-vs-branch
       differences in the audit.
