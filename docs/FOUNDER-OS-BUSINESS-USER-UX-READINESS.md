@@ -94,6 +94,12 @@ environment, and deployment-linkage metadata is available under the collapsed
 not a deployment inventory or health check. This follows the same progressive
 disclosure rule as the capability and resources views.
 
+The connection status card now keeps the recovery action and plain-language
+state in the first scan. Its individual evidence checks and percentage remain
+available under a collapsed `Setup evidence` disclosure, so engineering teams
+can inspect readiness without making a newly signed-up user decode eight
+technical checks before connecting a server.
+
 ### Tier 3 — still required before pilot readiness
 
 - Fresh-account setup in the deployed branch.

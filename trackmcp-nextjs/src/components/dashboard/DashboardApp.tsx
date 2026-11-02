@@ -4904,32 +4904,38 @@ function SetupView({
             </button>
           </div>
         </div>
-        <div className="mt-5 grid gap-2 text-xs sm:grid-cols-4">
-          {checks.map(([label, done]) => (
-            <div key={label} className="flex items-center gap-2 border border-line bg-paper px-3 py-2 text-muted">
-              <span className={"grid h-5 w-5 place-items-center rounded-full text-[10px] font-bold " + (done === null ? "bg-white text-faint" : done ? "bg-brand-soft text-brand-strong" : "bg-white text-faint")} aria-hidden="true">
-              {done === null ? "?" : done ? "✓" : "—"}
-              </span>
-              {label}
-            </div>
-          ))}
-        </div>
-        {activeSetupContract?.setup?.readiness && (
-          <div className="mt-5 border-t border-line pt-4" aria-label="Setup readiness">
-            <div className="flex flex-wrap items-center justify-between gap-2">
-              <p className="text-xs font-semibold text-ink">Required setup evidence</p>
-              <p className="text-xs font-medium text-muted">
-                {activeSetupContract.setup.readiness.required_completed ?? 0}/{activeSetupContract.setup.readiness.required_total ?? 0} checks · {activeSetupContract.setup.readiness.required_percentage ?? 0}%
+        <details className="mt-5 border-t border-line pt-4">
+          <summary className="flex cursor-pointer list-none items-center justify-between gap-3 text-xs font-semibold text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand">
+            <span>Setup evidence <span className="ml-1 font-normal text-muted">Optional technical detail</span></span>
+            <span className="font-medium text-brand-strong">View checks</span>
+          </summary>
+          <div className="mt-3 grid gap-2 text-xs sm:grid-cols-4">
+            {checks.map(([label, done]) => (
+              <div key={label} className="flex items-center gap-2 border border-line bg-paper px-3 py-2 text-muted">
+                <span className={"grid h-5 w-5 place-items-center rounded-full text-[10px] font-bold " + (done === null ? "bg-white text-faint" : done ? "bg-brand-soft text-brand-strong" : "bg-white text-faint")} aria-hidden="true">
+                {done === null ? "?" : done ? "✓" : "—"}
+                </span>
+                {label}
+              </div>
+            ))}
+          </div>
+          {activeSetupContract?.setup?.readiness && (
+            <div className="mt-4 border-t border-line pt-4" aria-label="Setup readiness">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <p className="text-xs font-semibold text-ink">Required setup evidence</p>
+                <p className="text-xs font-medium text-muted">
+                  {activeSetupContract.setup.readiness.required_completed ?? 0}/{activeSetupContract.setup.readiness.required_total ?? 0} checks · {activeSetupContract.setup.readiness.required_percentage ?? 0}%
+                </p>
+              </div>
+              <div className="mt-2 h-2 overflow-hidden bg-paper" role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={activeSetupContract.setup.readiness.required_percentage ?? 0}>
+                <div className="h-full bg-brand transition-[width]" style={{ width: `${Math.min(100, Math.max(0, activeSetupContract.setup.readiness.required_percentage ?? 0))}%` }} />
+              </div>
+              <p className="mt-2 text-[11px] leading-relaxed text-muted">
+                Identity resolution is optional and does not block a connected state. The percentage reflects only key, event, MCP method, transport, and privacy-policy evidence.
               </p>
             </div>
-            <div className="mt-2 h-2 overflow-hidden bg-paper" role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={activeSetupContract.setup.readiness.required_percentage ?? 0}>
-              <div className="h-full bg-brand transition-[width]" style={{ width: `${Math.min(100, Math.max(0, activeSetupContract.setup.readiness.required_percentage ?? 0))}%` }} />
-            </div>
-            <p className="mt-2 text-[11px] leading-relaxed text-muted">
-              Identity resolution is optional and does not block a connected state. The percentage reflects only key, event, MCP method, transport, and privacy-policy evidence.
-            </p>
-          </div>
-        )}
+          )}
+        </details>
         {activeSetupContract?.setup?.connection_key && (
           <div className="mt-5 border-t border-line pt-4" aria-label="Active connection key scope">
             <div className="flex items-center justify-between gap-2">

@@ -305,6 +305,11 @@ not a deployment inventory or a health check. This keeps technical context
 discoverable without asking a newly signed-up business user to interpret it
 before connecting a server.
 
+The same status card now keeps the individual readiness checks and percentage
+behind a collapsed `Setup evidence` disclosure. The first scan shows only the
+plain-language state and the action to refresh or continue; the technical
+checklist remains available for engineering review.
+
 Verification after this pass:
 
 - `npm run test:business-user-ux`: 80/80 passed.

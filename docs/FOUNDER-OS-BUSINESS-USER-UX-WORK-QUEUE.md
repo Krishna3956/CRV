@@ -121,6 +121,10 @@ Legend: `[x]` verified/implemented in this workstream; `[ ]` pending.
       available without competing with the three-step setup path: move them
       into a collapsed `Observed connection details` disclosure and explain
       that they are bounded labels, not a deployment inventory or health check.
+- [x] ✅ Keep the detailed readiness checklist out of the first setup scan:
+      expose the connection status and recovery action first, then place the
+      individual evidence checks and percentage behind a collapsed `Setup
+      evidence` disclosure.
 - [x] ✅ Apply the same business-readable evidence language inside the Evidence
       tab: remove the engineering-only “Trace Explorer” action label, hide raw
       session identifiers from the primary table, and expose a clear “Open
