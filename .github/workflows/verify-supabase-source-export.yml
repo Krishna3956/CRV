@@ -1,0 +1,106 @@
+name: Verify Supabase Cloud source export
+
+# This workflow is deliberately manual and read-only. It verifies an export
+# artifact already present in the private, versioned S3 backup bucket. It does
+# not connect to Supabase Cloud, restore a database, change staging, or delete
+# any object.
+on:
+  workflow_dispatch:
+    inputs:
+      confirm:
+        description: "Type VERIFY_SOURCE_BACKUP to verify an existing export"
+        required: true
+        type: string
+      object_prefix:
+        description: "S3 prefix, for example source-exports/1234567890"
+        required: true
+        type: string
+
+permissions:
+  id-token: write
+  contents: read
+
+env:
+  AWS_REGION: us-east-1
+  ROLE_ARN: arn:aws:iam::872575360367:role/GitHubActionsDeployRole
+  BACKUP_BUCKET_PREFIX: trackmcp-supabase-backups
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Configure AWS OIDC credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ env.ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Validate the explicit verification guard and object prefix
+        env:
+          CONFIRM: ${{ inputs.confirm }}
+          OBJECT_PREFIX: ${{ inputs.object_prefix }}
+        run: |
+          set -euo pipefail
+          [[ "$CONFIRM" == "VERIFY_SOURCE_BACKUP" ]] || {
+            echo "::error::The confirm input must be exactly VERIFY_SOURCE_BACKUP. No object was read."
+            exit 1
+          }
+          [[ "$OBJECT_PREFIX" =~ ^source-exports/[0-9]+$ ]] || {
+            echo "::error::The object prefix must match source-exports/<numeric-workflow-run-id>."
+            exit 1
+          }
+
+      - name: Install PostgreSQL archive inspection tools
+        run: |
+          set -euo pipefail
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends postgresql-client
+
+      - name: Verify checksum, manifest, encryption, and archive metadata
+        env:
+          OBJECT_PREFIX: ${{ inputs.object_prefix }}
+        run: |
+          set -euo pipefail
+          umask 077
+          ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
+          BUCKET_NAME="${BACKUP_BUCKET_PREFIX}-${ACCOUNT_ID}-${AWS_REGION}"
+          DUMP_FILE="/tmp/trackmcp-source-export.dump"
+          MANIFEST_FILE="/tmp/trackmcp-source-export.manifest.txt"
+          LIST_FILE="/tmp/trackmcp-source-export.list.txt"
+          trap 'rm -f "$DUMP_FILE" "$MANIFEST_FILE" "$LIST_FILE"' EXIT
+
+          aws s3api head-bucket --bucket "$BUCKET_NAME" --region "$AWS_REGION"
+          aws s3api head-object --bucket "$BUCKET_NAME" \
+            --key "$OBJECT_PREFIX/trackmcp-supabase-source.dump" \
+            --region "$AWS_REGION" \
+            --query '{bytes:ContentLength,encryption:ServerSideEncryption,version:VersionId}' \
+            --output json
+          aws s3 cp "s3://${BUCKET_NAME}/${OBJECT_PREFIX}/trackmcp-supabase-source.dump" \
+            "$DUMP_FILE" --only-show-errors
+          aws s3 cp "s3://${BUCKET_NAME}/${OBJECT_PREFIX}/manifest.txt" \
+            "$MANIFEST_FILE" --only-show-errors
+
+          grep -Fx 'source_url=redacted' "$MANIFEST_FILE" >/dev/null
+          SHA256=$(sha256sum "$DUMP_FILE" | awk '{print $1}')
+          EXPECTED_SHA256=$(sed -n 's/^sha256=//p' "$MANIFEST_FILE")
+          [[ "$SHA256" == "$EXPECTED_SHA256" ]] || {
+            echo "::error::Source export checksum mismatch. No restore was attempted."
+            exit 1
+          }
+          BYTES=$(stat -c '%s' "$DUMP_FILE")
+          EXPECTED_BYTES=$(sed -n 's/^dump_bytes=//p' "$MANIFEST_FILE")
+          [[ "$BYTES" == "$EXPECTED_BYTES" ]] || {
+            echo "::error::Source export byte count mismatch. No restore was attempted."
+            exit 1
+          }
+
+          pg_restore --list "$DUMP_FILE" > "$LIST_FILE"
+          ENTRY_COUNT=$(wc -l < "$LIST_FILE" | tr -d ' ')
+          SCHEMA_COUNT=$(awk -F'; ' 'NF > 1 {print $2}' "$LIST_FILE" | awk '{print $1}' | sort -u | wc -l | tr -d ' ')
+          [[ "$ENTRY_COUNT" -gt 0 && "$SCHEMA_COUNT" -gt 0 ]] || {
+            echo "::error::The source archive contains no inspectable PostgreSQL entries. No restore was attempted."
+            exit 1
+          }
+          echo "Verified encrypted source export: bucket=$BUCKET_NAME prefix=$OBJECT_PREFIX bytes=$BYTES sha256=$SHA256 archive_entries=$ENTRY_COUNT archive_schemas=$SCHEMA_COUNT"
+          echo "No source connection was opened, no database was restored, and no S3 object was changed or deleted."
