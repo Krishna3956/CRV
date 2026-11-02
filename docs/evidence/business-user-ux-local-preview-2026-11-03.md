@@ -21,6 +21,10 @@ the customer-facing setup handoff and key-creation error path. The product now
 uses `connection key` consistently while preserving the internal `api_key`
 field names and event identifiers used by the API contract.
 
+The evidence action label is also normalized to `Open evidence` across the
+Overview, Journey, Quality, and Evidence surfaces. This is a copy-consistency
+change only; the underlying trace navigation is unchanged.
+
 ## Latest browser confirmation
 
 - Local route: `/dashboard?view=evidence&data=example` on the isolated branch.

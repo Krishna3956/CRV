@@ -145,6 +145,8 @@ Legend: `[x]` verified/implemented in this workstream; `[ ]` pending.
       tab: remove the engineering-only “Trace Explorer” action label, hide raw
       session identifiers from the primary table, and expose a clear “Open
       evidence” action.
+- [x] ✅ Normalize evidence action capitalization across dashboard surfaces so
+      the same action is always written as `Open evidence`.
 - [x] ✅ Run dashboard contracts, typecheck, lint, and production build.
 - [x] ✅ Run the consolidated release gate; all 159 suites pass after fixing
       clean-checkout MCP SDK resolution and Python artifact preparation.

@@ -685,6 +685,7 @@ test("Capabilities presents bounded modern protocol family activity", () => {
 test("Overview session actions clearly open evidence", () => {
   assert.match(source, /title="Sessions in selected period"[\s\S]*label: "View evidence"/);
   assert.match(source, /Open evidence <ChevronRight/);
+  assert.doesNotMatch(source, />Open Evidence(?:\s|<)/);
 });
 
 test("completion is explicit-outcome-only and tool quality exposes insufficient reasons", () => {
