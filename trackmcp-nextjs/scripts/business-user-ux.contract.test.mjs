@@ -3,6 +3,7 @@ import { readFile } from "node:fs/promises";
 import test from "node:test";
 
 const dashboard = await readFile(new URL("../src/components/dashboard/DashboardApp.tsx", import.meta.url), "utf8");
+const apiDocs = await readFile(new URL("../src/app/docs/api/page.tsx", import.meta.url), "utf8");
 const target = await readFile(new URL("../../docs/FOUNDER-OS-BUSINESS-USER-UX-TARGET.md", import.meta.url), "utf8");
 const strategy = await readFile(new URL("../../docs/FOUNDER-OS-BUSINESS-USER-UX-STRATEGY.md", import.meta.url), "utf8");
 const queue = await readFile(new URL("../../docs/FOUNDER-OS-BUSINESS-USER-UX-WORK-QUEUE.md", import.meta.url), "utf8");
@@ -23,6 +24,12 @@ test("activated-user dashboard is organized around business questions", () => {
   ]) assert.match(dashboard, new RegExp(phrase));
   assert.match(strategy, /Every top-level page must answer one question/);
   assert.match(strategy, /Technical detail belongs in/);
+});
+
+test("customer-facing docs use TrackMCP product language", () => {
+  assert.match(apiDocs, /Versioned TrackMCP analytics reads/);
+  assert.match(apiDocs, /the TrackMCP dashboard/);
+  assert.doesNotMatch(apiDocs, /Founder OS/);
 });
 
 test("uncertainty and technical evidence remain explicit", () => {

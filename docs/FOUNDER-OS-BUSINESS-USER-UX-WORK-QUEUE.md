@@ -37,6 +37,8 @@ Legend: `[x]` verified/implemented in this workstream; `[ ]` pending.
 - [x] ✅ Keep the internal Founder OS project name out of customer-facing
       dashboard labels; use TrackMCP language in the shell and desktop-only
       support notice.
+- [x] ✅ Keep the internal Founder OS project name out of the public API
+      documentation; technical readers see TrackMCP analytics terminology.
 - [x] ✅ Add a requirement-by-requirement readiness matrix that separates
       branch proof, live read-only evidence, and remaining pilot gates.
 - [x] ✅ Rewrite no-data page previews with business language so a first-time

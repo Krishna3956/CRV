@@ -28,7 +28,7 @@ const endpoints: { method: string; path: string; desc: string }[] = [
   { method: "GET", path: "/api/v1/alert-incidents/{id}/deliveries", desc: "Inspect bounded webhook delivery attempts without secrets" },
   { method: "POST", path: "/api/v1/alert-destinations", desc: "Create a generic HTTPS webhook destination using an external secret reference" },
   { method: "GET", path: "/api/v1/traces?session_id=...|correlation_handle=...[&workspace_id=...]", desc: "Inspect ordered events for one protocol session or bounded correlation handle" },
-  { method: "GET", path: "/api/v2/overview?days=30", desc: "Versioned Founder OS overview with data-trust metadata" },
+  { method: "GET", path: "/api/v2/overview?days=30", desc: "Versioned TrackMCP overview with data-trust metadata" },
   { method: "GET", path: "/api/v2/tools?days=30[&limit=50&cursor=...]", desc: "Bounded tool performance and catalog projection with optional cursor pagination" },
   { method: "GET", path: "/api/v2/tools/{name}?days=30", desc: "One tool's observed calls, errors, and latency" },
   { method: "GET", path: "/api/v2/catalogs?days=30", desc: "Bounded catalog snapshots, diffs, and same-scope notification correlation evidence" },
@@ -172,10 +172,10 @@ export default function ApiDocsPage() {
 }`}</Code>
       </DocSection>
 
-      <DocSection title="Versioned Founder OS reads">
+      <DocSection title="Versioned TrackMCP analytics reads">
         <Para>
           The <Inline>/api/v2</Inline> family is the forward-compatible read plane for
-          the Founder OS dashboard. Every endpoint is workspace-scoped and read-only;
+          the TrackMCP dashboard. Every endpoint is workspace-scoped and read-only;
           responses include <Inline>data_trust</Inline> so consumers can see the query
           window, source count, truncation state, and observed watermark. Unknown or
           ambiguous evidence remains unknown. In particular, client metadata is not a
