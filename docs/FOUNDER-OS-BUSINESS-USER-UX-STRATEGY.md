@@ -46,6 +46,10 @@ Every metric shown to a business user must have:
 - A truthful insufficient-data state.
 - A link to the next useful view.
 
+The short definition should be visible beneath the KPI value. An info control
+may provide the same definition as an accessible tooltip, but comprehension
+must not depend on hover or discovery of the icon.
+
 Examples:
 
 - `AI clients` → `Assistants using your MCP`; definition: “Distinct client
