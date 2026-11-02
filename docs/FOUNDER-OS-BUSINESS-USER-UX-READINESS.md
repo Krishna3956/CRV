@@ -112,6 +112,11 @@ non-completion boundary remains available inside the expanded technical detail
 section instead of appearing as another block of protocol vocabulary above the
 KPIs.
 
+Overview now follows the same order: decision KPIs and the Founder OS outcome
+summary render before the expandable evidence/protocol section. This makes the
+default reading path answer the business question before exposing how the
+evidence was collected.
+
 ### Tier 3 — still required before pilot readiness
 
 - Fresh-account setup in the deployed branch.

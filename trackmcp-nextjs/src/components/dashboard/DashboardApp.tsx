@@ -2434,29 +2434,6 @@ function Overview({
         body="Observed work is not the same as completed business work. A completed result appears only when your server reports an explicit outcome; N/A means there is not enough evidence yet, not that the product is healthy or unhealthy."
         action="Open What’s broken when a signal has evidence, or Evidence when you need the technical detail."
       />
-      <div className="mb-6 border border-line bg-white">
-        <details>
-          <summary className="flex cursor-pointer list-none items-center justify-between gap-4 px-5 py-4 text-sm font-semibold text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand">
-            <span>Evidence quality and protocol detail</span>
-            <span className="text-xs font-medium text-muted">Expand details</span>
-          </summary>
-          <div className="border-t border-line px-5 py-5">
-            {analytics.data_trust && (
-              <DataTrustPanel dataTrust={analytics.data_trust} refreshStatus={analytics.refresh_status} identitySourceCounts={analytics.founder_os?.identity_source_counts} />
-            )}
-            {analytics.interaction_surfaces && (
-              <div className="mt-5">
-                <InteractionSurfacePanel surfaces={analytics.interaction_surfaces} />
-              </div>
-            )}
-            {analytics.protocol_signals && (
-              <div className="mt-5">
-                <ProtocolSignalPanel signals={analytics.protocol_signals} snapshotSummary={analytics.catalog_snapshot_summary} />
-              </div>
-            )}
-          </div>
-        </details>
-      </div>
       <div className="mb-6 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
         <Kpi
           label="Assistants using your MCP"
@@ -2505,6 +2482,29 @@ function Overview({
           <FounderOSSignalPanel aggregate={analytics.founder_os.facts} dataTrust={analytics.data_trust} />
         </div>
       )}
+      <div className="mb-6 border border-line bg-white">
+        <details>
+          <summary className="flex cursor-pointer list-none items-center justify-between gap-4 px-5 py-4 text-sm font-semibold text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand">
+            <span>Evidence quality and protocol detail</span>
+            <span className="text-xs font-medium text-muted">Expand details</span>
+          </summary>
+          <div className="border-t border-line px-5 py-5">
+            {analytics.data_trust && (
+              <DataTrustPanel dataTrust={analytics.data_trust} refreshStatus={analytics.refresh_status} identitySourceCounts={analytics.founder_os?.identity_source_counts} />
+            )}
+            {analytics.interaction_surfaces && (
+              <div className="mt-5">
+                <InteractionSurfacePanel surfaces={analytics.interaction_surfaces} />
+              </div>
+            )}
+            {analytics.protocol_signals && (
+              <div className="mt-5">
+                <ProtocolSignalPanel signals={analytics.protocol_signals} snapshotSummary={analytics.catalog_snapshot_summary} />
+              </div>
+            )}
+          </div>
+        </details>
+      </div>
       <div className="grid items-start gap-6 xl:grid-cols-[minmax(0,1.5fr)_minmax(310px,.8fr)]">
         <Panel
           title="Observed work over time"

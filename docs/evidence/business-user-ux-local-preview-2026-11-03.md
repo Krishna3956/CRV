@@ -319,6 +319,10 @@ starts with the business question and three decision KPIs; the technical
 evidence boundary is still present inside the expanded detail section rather
 than competing with the initial reading path.
 
+The Overview order was corrected so the decision KPI row and outcome summary
+appear before the expandable evidence/protocol block. This is a structural
+hierarchy change, not a metric or formula change.
+
 Verification after this pass:
 
 - `npm run test:business-user-ux`: 80/80 passed.
