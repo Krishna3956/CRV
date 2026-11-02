@@ -267,3 +267,21 @@ Verification after this pass:
 - `npm run test:release-gate`: passed; 159 suites.
 - Worktree restored to clean state after the release gate regenerated its
   synthetic UAT timestamp.
+
+## Capability-page progressive disclosure follow-up
+
+After the initial research and comprehension pass, the local bypass preview
+was reopened at `/dashboard?view=capabilities&data=example` on port `3152`
+with deliberately invalid Supabase placeholders and the development
+dashboard bypass enabled. The page rendered successfully and visibly showed:
+
+- `What they're doing` as the business question;
+- `Most-used features`, `Breadth of adoption`, `Trend by feature`, and
+  `Reliability by tool` as the default reading path; and
+- a collapsed `Detailed capability inventory` disclosure for repeated
+  feature counts, catalog history, and the technical capability table.
+
+This confirms the repeated technical inventory no longer competes with the
+business summary on first render. It is local preview evidence only; it does
+not prove the branch is deployed or that production read-model responses are
+complete.

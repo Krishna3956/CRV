@@ -3283,7 +3283,13 @@ function CapabilitiesView({
           <p className="mt-3 text-xs leading-relaxed text-faint">{activity.limitation}</p>
         </>
       )}
-      <div className="grid gap-3 sm:grid-cols-3">
+      <details className="mt-6 rounded-2xl border border-line bg-white">
+        <summary className="flex cursor-pointer list-none items-center justify-between gap-3 px-5 py-4 text-sm font-semibold text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand">
+          <span>Detailed capability inventory <span className="ml-2 text-xs font-normal text-muted">Optional detail for product and engineering teams</span></span>
+          <span className="text-xs font-medium text-brand-strong">Expand details</span>
+        </summary>
+        <div className="border-t border-line px-5 pb-5">
+      <div className="grid gap-3 pt-5 sm:grid-cols-3">
         <Kpi
           label="Features observed"
           value={fmt(analytics.tools.length)}
@@ -3388,6 +3394,8 @@ function CapabilitiesView({
           </div>
         </Panel>
       </div>
+        </div>
+      </details>
     </div>
   );
 }

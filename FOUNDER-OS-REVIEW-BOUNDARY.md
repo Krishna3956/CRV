@@ -27,6 +27,7 @@ reviewer disposition before staging; it is never included by a blanket add.
 | `docs/evidence/production-auth-scope-smoke-2026-10-30.json` | review-required | repository maintainer | release owner | redacted, read-only production tenant/auth scope evidence; review that it contains no credentials, workspace identifiers, raw bodies, or mutation results before release use |
 | `docs/evidence/synthetic-customer-mcp-uat-2026-10-30.json` | review-required | repository maintainer | release owner | redacted synthetic MCP fixture evidence; review that it contains no credentials or customer claims and remains engineering-only evidence rather than real customer interoperability |
 | `docs/evidence/authenticated-product-synthetic-mcp-uat-2026-10-30.json` | review-required | repository maintainer | release owner | redacted authenticated product integration evidence; review disposable-key handling, product-ingest scope, metadata-only retention, and the continued synthetic-server boundary |
+| `docs/evidence/business-user-ux-local-preview-2026-11-03.md` | review-required | repository maintainer | release owner | local UX/browser evidence only; review that it remains clearly separated from production proof and contains no credentials or customer data |
 
 ## Boundary rules
 

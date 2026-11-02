@@ -67,6 +67,9 @@ Legend: `[x]` verified/implemented in this workstream; `[ ]` pending.
       can be compared without relying on progress-bar interpretation.
 - [x] ✅ Move dense protocol-family and lifecycle detail behind an explicit
       “Technical protocol evidence” disclosure on the capability view.
+- [x] ✅ Put the repeated capability inventory and catalog detail behind a
+      second progressive-disclosure boundary so the business summary remains
+      the default reading path.
 - [x] ✅ Clarify capability KPI labels so comparison values, error rates, and
       privacy-safe account-group scope are explicit to business readers.
 - [x] ✅ Align the canonical metric registry and Founder OS metric contract

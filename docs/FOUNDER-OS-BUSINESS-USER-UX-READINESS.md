@@ -28,7 +28,7 @@ remains local and has not been merged or deployed.
 | Overview answers who, what, outcome, and attention questions | **Implemented and tested** | Overview business-question copy, KPI helpers, period context, and chart-table fallback; 80 business UX tests | Verify deployed rendering |
 | Overview gives an evidence-aware next action | **Implemented and tested; verified locally** | `OverviewNextStep` in `DashboardApp.tsx`; local Example-data browser preview; business UX contract | Verify routing and copy with a fresh production account |
 | “Who’s using it” explains account signals versus people/customers | **Implemented and tested** | `ClientsView`; metric contract; business UX tests | Confirm with a business participant |
-| “What they’re doing” leads with adoption and reliability | **Implemented and tested** | `CapabilitiesView`; business UX tests; technical protocol detail is progressively disclosed | Verify deployed rendering |
+| “What they’re doing” leads with adoption and reliability | **Implemented and tested; verified in local preview** | `CapabilitiesView`; business UX tests; technical protocol detail and repeated capability inventory are progressively disclosed | Verify deployed rendering |
 | “Resources & prompts” explains information need and explicit outcomes | **Implemented and tested** | `ResourcesPromptsView`; business UX tests | Verify deployed rendering |
 | “The journey” avoids abandonment inference | **Implemented and tested** | `JourneysView`; Founder OS metric contract; business UX tests | Confirm wording with a business participant |
 | “Did it work” separates explicit success, failure, pending, and unknown | **Implemented and tested** | `QualityView` and `OutcomeEvidencePanel`; business UX tests | Verify real telemetry states in production |
@@ -81,6 +81,11 @@ remains local and has not been merged or deployed.
 
 The branch also provides an accessible table alternative for the capability
 trend chart, so feature comparison does not depend on chart hover behavior.
+
+The local capability preview keeps `Most-used features`, `Breadth of adoption`,
+`Trend by feature`, and `Reliability by tool` in the default reading path;
+repeated inventory and catalog detail are collapsed under `Detailed capability
+inventory`.
 
 ### Tier 3 — still required before pilot readiness
 
