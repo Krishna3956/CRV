@@ -4523,14 +4523,14 @@ function SetupView({
         : analytics.founder_os.identity_coverage.value > 0
       : null;
   const checks = [
-    ["Connection key ready", contractChecks?.connection_key_ready ?? hasActiveKey],
-    ["SDK/event recognized", contractChecks?.sdk_event_recognized ?? (connectionState === "verified" || connectionState === "limited" || connectionState === "identity")],
-    ["MCP method observed", contractChecks?.mcp_method_observed ?? Boolean(analytics?.tool_calls)],
-    ["Transport observed", contractChecks?.transport_observed ?? null],
-    ["Event persisted", contractChecks?.event_persisted ?? (analytics ? analytics.total_events > 0 : null)],
-    ["Privacy policy applied", contractChecks?.privacy_policy_applied ?? (analytics ? analytics.total_events > 0 : null)],
-    ["Identity resolved", identityResolved],
-    ["Deployment linkage observed", contractChecks?.deployment_linked ?? null],
+    ["Connection authorized", contractChecks?.connection_key_ready ?? hasActiveKey],
+    ["Server activity recognized", contractChecks?.sdk_event_recognized ?? (connectionState === "verified" || connectionState === "limited" || connectionState === "identity")],
+    ["MCP work observed", contractChecks?.mcp_method_observed ?? Boolean(analytics?.tool_calls)],
+    ["Connection method observed", contractChecks?.transport_observed ?? null],
+    ["Activity saved", contractChecks?.event_persisted ?? (analytics ? analytics.total_events > 0 : null)],
+    ["Privacy rules applied", contractChecks?.privacy_policy_applied ?? (analytics ? analytics.total_events > 0 : null)],
+    ["Optional account grouping", identityResolved],
+    ["Server scope identified", contractChecks?.deployment_linked ?? null],
   ] as const;
   const copy = async () => {
     try {

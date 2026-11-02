@@ -249,11 +249,11 @@ test("Setup exposes truthful first-event and coverage states", () => {
   assert.match(source, /identity_coverage\.denominator > 0/);
   assert.match(source, /account_resolver_observed/);
   assert.match(source, /contractIdentity !== undefined && contractIdentity !== null/);
-  assert.match(source, /Identity resolved/);
+  assert.match(source, /Optional account grouping/);
   assert.match(source, /identityResolved: boolean \| null/);
   assert.match(source, /done === null \? "\?"/);
-  assert.match(source, /Transport observed/);
-  assert.match(source, /Event persisted/);
+  assert.match(source, /Connection method observed/);
+  assert.match(source, /Activity saved/);
   assert.match(source, /First event scope:/);
   assert.match(source, /service not reported/);
   assert.match(source, /environment not reported/);
@@ -380,7 +380,7 @@ test("Python setup snippet is copy-paste complete", () => {
   const setupSource = source.slice(setupStart, setupEnd);
   assert.match(setupSource, /\/api\/v2\/setup\?workspace_id=/);
   assert.match(setupSource, /waiting_for_first_event/);
-  assert.match(setupSource, /Privacy policy applied/);
+  assert.match(setupSource, /Privacy rules applied/);
   assert.match(setupSource, /next_steps/);
   assert.match(setupSource, /ingestion_lag_seconds/);
   assert.match(setupSource, /Python: `python3 -m pip install trackmcp\\n\\nimport os\\nfrom trackmcp import with_trackmcp/);
