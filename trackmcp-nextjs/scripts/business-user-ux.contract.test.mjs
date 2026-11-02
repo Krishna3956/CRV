@@ -53,6 +53,8 @@ test("activated-user dashboard is organized around business questions", () => {
   assert.match(dashboard, /Recommended next step/);
   assert.match(dashboard, /Connect one server to begin/);
   assert.match(dashboard, /Review the signals that need attention/);
+  assert.doesNotMatch(dashboard, /privacy-safe account signals/);
+  assert.doesNotMatch(dashboard, /Active account signals/);
   assert.match(dashboard, /Loading your selected dashboard view/);
   assert.match(dashboard, /Your live data and Example data stay separate/);
   assert.doesNotMatch(dashboard, /Open Trace Explorer/);

@@ -4196,7 +4196,7 @@ function ClientsView({
         <>
           <BusinessContext
             title="Read this as account-group activity, not a customer census"
-            body="This view shows privacy-safe account signals and the assistant applications that reached your server. It can help you see adoption and repeat activity, but it does not identify people or prove that every customer is represented."
+            body="This view shows privacy-safe account groups and the assistant applications that reached your server. It can help you see adoption and repeat activity, but it does not identify people or prove that every customer is represented."
             action="Use Setup to add optional account grouping if your team needs account-level analysis."
           />
           <div className="mb-6 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
@@ -4254,8 +4254,8 @@ function ClientsView({
           </div>
           <Panel title="Most active account groups" subtitle="Ranked privacy-safe activity; names are intentionally not exposed">
             {people.top_accounts.length ? (
-              <table className="w-full text-left text-sm" aria-label="Most active privacy-safe account signals">
-                <thead className="border-b border-line text-[10px] font-semibold uppercase tracking-[0.08em] text-faint"><tr><th className="pb-3">Rank</th><th className="pb-3">Observed activity</th><th className="pb-3">Active days</th><th className="pb-3">Signal type</th></tr></thead>
+              <table className="w-full text-left text-sm" aria-label="Most active privacy-safe account groups">
+                <thead className="border-b border-line text-[10px] font-semibold uppercase tracking-[0.08em] text-faint"><tr><th className="pb-3">Rank</th><th className="pb-3">Observed activity</th><th className="pb-3">Active days</th><th className="pb-3">Group type</th></tr></thead>
                 <tbody className="divide-y divide-line">{people.top_accounts.map((account) => <tr key={account.rank}><td className="py-3 font-medium text-ink">#{account.rank}</td><td className="py-3 text-muted">{fmt(account.activity_count)} observed events</td><td className="py-3 text-muted">{fmt(account.active_days)}</td><td className="py-3 text-muted">Privacy-safe account group</td></tr>)}</tbody>
               </table>
             ) : <p className="py-6 text-sm text-muted">No privacy-safe account groups were observed in this period.</p>}
@@ -4301,7 +4301,7 @@ function AccountGrowthChart({ points }: { points: NonNullable<Analytics["who_is_
         <table className="w-full min-w-[320px] text-left text-xs">
           <caption className="sr-only">Weekly privacy-safe active account-group counts</caption>
           <thead className="bg-white text-[10px] uppercase tracking-[0.08em] text-faint">
-            <tr><th scope="col" className="px-3 py-2 font-semibold">Week</th><th scope="col" className="px-3 py-2 text-right font-semibold">Active account signals</th></tr>
+            <tr><th scope="col" className="px-3 py-2 font-semibold">Week</th><th scope="col" className="px-3 py-2 text-right font-semibold">Active account groups</th></tr>
           </thead>
           <tbody className="divide-y divide-line">
             {shown.map((point) => <tr key={point.period_start} className="bg-white/70"><th scope="row" className="px-3 py-2 font-medium text-ink">{point.period_start}</th><td className="px-3 py-2 text-right tabular-nums text-muted">{fmt(point.active_accounts)}</td></tr>)}
