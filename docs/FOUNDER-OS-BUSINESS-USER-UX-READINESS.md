@@ -9,8 +9,8 @@ queue. It intentionally separates source-level proof, read-only browser proof,
 and evidence that requires a real account, deployment, or human participant.
 
 Latest branch verification: `npm run test:release-gate` passed all 159 suites
-after the KPI hierarchy polish commit `aa63a153`. The branch remains local and
-has not been merged or deployed.
+after the account-group terminology polish commit `4d7abde6`. The branch
+remains local and has not been merged or deployed.
 
 ## Requirement coverage
 
