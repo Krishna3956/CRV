@@ -308,5 +308,10 @@ before connecting a server.
 Verification after this pass:
 
 - `npm run test:business-user-ux`: 80/80 passed.
-- Source and type checks remain scheduled with the branch release gate.
+- `npx tsc --noEmit --pretty false`: passed.
+- `npm run lint`: passed with no warnings emitted by this branch.
+- `npm run build`: passed; 230 static pages generated.
+- `npm run test:release-gate` passed all 159 suites when the generated
+  synthetic UAT report was redirected to a temporary path, so the tracked
+  evidence fixture remained unchanged.
 - Production deployment and fresh-account browser evidence remain pending.
