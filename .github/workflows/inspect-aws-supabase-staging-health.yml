@@ -95,15 +95,18 @@ jobs:
           done
 
           docker compose exec -T db pg_isready -U postgres >/dev/null
+          echo STAGING_SUPABASE_HEALTH_DB_READY
           AUTH_STATUS=$(curl -sS -o /dev/null -w '%{http_code}' \
             -H "apikey: $ANON_KEY" \
             -H "Authorization: Bearer $ANON_KEY" \
             http://127.0.0.1:8000/auth/v1/settings)
+          echo "STAGING_SUPABASE_HEALTH_AUTH_HTTP_STATUS=${AUTH_STATUS}"
           [[ "$AUTH_STATUS" == "200" ]] || { echo STAGING_SUPABASE_HEALTH_AUTH_HTTP_FAILED status="$AUTH_STATUS"; exit 1; }
           REST_STATUS=$(curl -sS -o /dev/null -w '%{http_code}' \
             -H "apikey: $ANON_KEY" \
             -H "Authorization: Bearer $ANON_KEY" \
             http://127.0.0.1:8000/rest/v1/)
+          echo "STAGING_SUPABASE_HEALTH_REST_HTTP_STATUS=${REST_STATUS}"
           [[ "$REST_STATUS" =~ ^(2|4)[0-9][0-9]$ ]] || { echo STAGING_SUPABASE_HEALTH_REST_HTTP_FAILED status="$REST_STATUS"; exit 1; }
 
           echo "STAGING_SUPABASE_HEALTH_PROBE_PASSED services=db,auth,rest,api-gw auth_http=${AUTH_STATUS} rest_http=${REST_STATUS}"
@@ -126,6 +129,7 @@ jobs:
             --region "$AWS_REGION"
           WAITER_STATUS=$?
           set -e
+          sleep 1
           STATUS=$(aws ssm get-command-invocation \
             --command-id "$COMMAND_ID" --instance-id "$INSTANCE_ID" \
             --region "$AWS_REGION" --query Status --output text)
@@ -140,7 +144,11 @@ jobs:
           if [[ -n "$ERROR_OUTPUT" && "$ERROR_OUTPUT" != "None" ]]; then
             echo "$ERROR_OUTPUT"
           fi
-          if [[ "$WAITER_STATUS" -ne 0 || "$STATUS" != "Success" || "$OUTPUT" != *STAGING_SUPABASE_HEALTH_PROBE_PASSED* ]]; then
+          if [[ "$WAITER_STATUS" -ne 0 || "$STATUS" != "Success" ]] || \
+            ! printf '%s\n' "$OUTPUT" | grep -Fq 'STAGING_SUPABASE_HEALTH_DB_READY' || \
+            ! printf '%s\n' "$OUTPUT" | grep -Fq 'STAGING_SUPABASE_HEALTH_AUTH_HTTP_STATUS=200' || \
+            ! printf '%s\n' "$OUTPUT" | grep -Fq 'STAGING_SUPABASE_HEALTH_REST_HTTP_STATUS=' || \
+            ! printf '%s\n' "$OUTPUT" | grep -Fq 'STAGING_SUPABASE_HEALTH_PROBE_PASSED'; then
             echo "::error::The staging Supabase health probe did not report a clean result."
             exit 1
           fi
