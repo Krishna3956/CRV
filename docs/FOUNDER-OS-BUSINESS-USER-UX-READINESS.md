@@ -13,6 +13,7 @@ and evidence that requires a real account, deployment, or human participant.
 | Requirement | Current status | Evidence | What is still needed |
 | --- | --- | --- | --- |
 | A newly signed-up user understands that a workspace is being prepared | **Implemented and tested** | `trackmcp-nextjs/src/app/dashboard/page.tsx`; `src/app/dashboard/page.contract.test.mjs` | Fresh-account browser verification |
+| Legacy `/onboarding` entry point does not fork the setup story | **Verified in source** | `trackmcp-nextjs/src/app/onboarding/page.tsx` redirects to `/dashboard`; `trackmcp-nextjs/src/app/dashboard/onboarding/page.tsx` does the same | Fresh-account navigation check after deployment |
 | A user with no workspace does not get trapped before setup | **Implemented and tested** | `DashboardApp.tsx` setup-state contract; workspace route contract | Fresh-account verification against production auth/session state |
 | Setup explains the three required steps | **Implemented and tested** | `DashboardApp.tsx`; 76 business UX tests | Confirm copy with a non-technical participant |
 | Setup explains what appears after the first event | **Implemented and tested** | `BusinessContext` “What you will get after setup”; business UX contract | Fresh-account browser verification |
