@@ -80,15 +80,39 @@ jobs:
 
           BACKUP="docker-compose.yml.before-pooler-repair-$(date -u +%Y%m%dT%H%M%SZ)"
           cp -p docker-compose.yml "$BACKUP"
-          if grep -q '^      RLIMIT_NOFILE:' docker-compose.yml; then
-            sed -i -E 's|^      RLIMIT_NOFILE:.*$|      RLIMIT_NOFILE: ""|' docker-compose.yml
-          else
-            grep -q '^      API_JWT_SECRET: \${JWT_SECRET}$' docker-compose.yml || {
-              echo STAGING_POOLER_REPAIR_COMPOSE_SHAPE_UNEXPECTED
-              exit 1
+          awk '
+            {
+              if ($0 == "  realtime:") {
+                in_realtime = 1
+                in_pooler = 0
+                print
+                next
+              }
+              if ($0 == "  supavisor:") {
+                in_pooler = 1
+                in_realtime = 0
+                print
+                next
+              }
+              if ($0 ~ /^  [A-Za-z0-9_-]+:/) {
+                if (in_pooler && !inserted) exit 42
+                in_pooler = 0
+                in_realtime = 0
+              }
+              if (in_realtime && $0 ~ /^      RLIMIT_NOFILE:/) {
+                print "      RLIMIT_NOFILE: \"10000\""
+                next
+              }
+              if (in_pooler && $0 ~ /^      RLIMIT_NOFILE:/) next
+              print
+              if (in_pooler && $0 ~ /^      API_JWT_SECRET: \$\{JWT_SECRET\}$/) {
+                print "      RLIMIT_NOFILE: \"\""
+                inserted = 1
+              }
             }
-            sed -i '/^      API_JWT_SECRET: \${JWT_SECRET}$/a\      RLIMIT_NOFILE: ""' docker-compose.yml
-          fi
+            END { if (!inserted) exit 43 }
+          ' docker-compose.yml > docker-compose.yml.repaired
+          mv docker-compose.yml.repaired docker-compose.yml
           COMPOSE_RLIMIT=$(awk '/^  supavisor:/{in_pooler=1} in_pooler && /^      RLIMIT_NOFILE:/{print; exit}' docker-compose.yml)
           [[ "$COMPOSE_RLIMIT" == '      RLIMIT_NOFILE: ""' ]] || {
             echo STAGING_POOLER_REPAIR_RLIMIT_OVERRIDE_MISSING
