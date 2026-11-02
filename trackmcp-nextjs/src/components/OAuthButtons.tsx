@@ -64,8 +64,8 @@ export function OAuthButtons({
     return (
       <div className="mt-6" aria-busy="true" aria-label="Loading sign-in options">
         <div className="grid grid-cols-2 gap-3">
-          <span className={`${buttonClass} animate-pulse text-transparent`} aria-hidden="true">Google</span>
-          <span className={`${buttonClass} animate-pulse text-transparent`} aria-hidden="true">GitHub</span>
+          <span className={`${buttonClass} animate-pulse text-faint`} aria-hidden="true">Loading…</span>
+          <span className={`${buttonClass} animate-pulse text-faint`} aria-hidden="true">Loading…</span>
         </div>
         <div className="mt-5 flex items-center gap-3 text-[11px] uppercase tracking-[0.14em] text-faint"><span className="h-px flex-1 bg-line" /><span>or use email</span><span className="h-px flex-1 bg-line" /></div>
       </div>

@@ -289,9 +289,10 @@ function Dropdown({
   return (
     <div className="relative">
       <button
+        type="button"
         data-demo={demo}
         onClick={onToggle}
-        className="flex items-center gap-1.5 rounded-lg border border-line bg-white px-2.5 py-1.5 text-[12px] font-medium text-body transition-colors hover:border-line-strong"
+        className="flex cursor-pointer items-center gap-1.5 rounded-lg border border-line bg-white px-2.5 py-1.5 text-[12px] font-medium text-body transition-colors hover:border-line-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
       >
         {display} <ChevronDown size={12} className="text-faint" />
       </button>
@@ -300,9 +301,10 @@ function Dropdown({
           {items.map((it) => (
             <button
               key={it.key}
+              type="button"
               data-demo={`opt-${it.key}`}
               onClick={() => onSelect(it.key)}
-              className="flex w-full items-center justify-between rounded-md px-2.5 py-1.5 text-left text-[12.5px] text-body transition-colors hover:bg-mist"
+              className="flex w-full cursor-pointer items-center justify-between rounded-md px-2.5 py-1.5 text-left text-[12.5px] text-body transition-colors hover:bg-mist focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
             >
               {it.label}
               {it.key === current && <Check size={13} className="text-brand" />}
@@ -527,6 +529,7 @@ export function DashboardMock() {
         <div className="relative flex min-w-0 flex-1 flex-col">
           {menu && (
             <button
+              type="button"
               aria-hidden
               tabIndex={-1}
               className="fixed inset-0 z-10 cursor-default"
@@ -629,7 +632,7 @@ export function DashboardMock() {
                   <div className="rounded-xl border border-line p-3.5">
                     <div className="mb-3 flex items-center justify-between">
                       <span className="text-[12.5px] font-semibold text-ink">Traffic by client</span>
-                      <button onClick={() => pickView("clients")} className="text-[11px] font-medium text-brand">
+                      <button type="button" onClick={() => pickView("clients")} className="cursor-pointer text-[11px] font-medium text-brand focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand">
                         View all
                       </button>
                     </div>
@@ -644,7 +647,7 @@ export function DashboardMock() {
                 <div className="overflow-hidden rounded-xl border border-line">
                   <div className="flex items-center justify-between border-b border-line bg-paper px-3.5 py-2">
                     <span className="text-[11px] font-semibold uppercase tracking-wide text-faint">Top tools</span>
-                    <button data-demo="view-all-tools" onClick={() => pickView("tools")} className="text-[11px] font-medium text-brand">
+                    <button type="button" data-demo="view-all-tools" onClick={() => pickView("tools")} className="cursor-pointer text-[11px] font-medium text-brand focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand">
                       View all
                     </button>
                   </div>
@@ -692,9 +695,10 @@ export function DashboardMock() {
                   ).map((f) => (
                     <button
                       key={f.key}
+                      type="button"
                       data-demo={`filter-${f.key}`}
                       onClick={() => setToolFilter(f.key)}
-                      className={`rounded-lg border px-2.5 py-1 text-[12px] font-medium transition-colors ${
+                      className={`cursor-pointer rounded-lg border px-2.5 py-1 text-[12px] font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand ${
                         toolFilter === f.key
                           ? "border-ink bg-ink text-white"
                           : "border-line bg-white text-muted hover:border-line-strong"
@@ -718,9 +722,10 @@ export function DashboardMock() {
                     return (
                       <button
                         key={t.name}
+                        type="button"
                         data-demo={`tool-${t.name}`}
                         onClick={() => setSelectedTool(t.name)}
-                        className={`grid w-full grid-cols-[1.6fr_0.8fr_0.9fr_0.9fr_0.9fr] items-center gap-2 border-b border-line px-4 py-2 text-left transition-colors last:border-0 ${
+                        className={`grid w-full cursor-pointer grid-cols-[1.6fr_0.8fr_0.9fr_0.9fr_0.9fr] items-center gap-2 border-b border-line px-4 py-2 text-left transition-colors last:border-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand ${
                           selectedTool === t.name ? "bg-brand-soft/50" : "hover:bg-mist"
                         }`}
                       >
@@ -741,7 +746,7 @@ export function DashboardMock() {
                   <div className="flex items-center gap-2">
                     <span className="font-mono text-[13px] font-semibold text-ink">{active.name}</span>
                     <span className={`text-[11px] font-medium ${STATUS[active.status].text}`}>{STATUS[active.status].label}</span>
-                    <button type="button" data-demo="inspect" onClick={() => pickView("sessions")} className="ml-auto flex items-center gap-1 text-[12px] font-medium text-brand">
+                    <button type="button" data-demo="inspect" onClick={() => pickView("sessions")} className="ml-auto flex cursor-pointer items-center gap-1 text-[12px] font-medium text-brand focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand">
                       Inspect calls <ArrowUpRight size={12} />
                     </button>
                   </div>
@@ -964,7 +969,7 @@ export function DashboardMock() {
 
             {view === "reliability" && (
               <>
-                <button type="button" onClick={() => pickView("tools")} className="flex w-full items-start gap-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-left">
+                <button type="button" onClick={() => pickView("tools")} className="flex w-full cursor-pointer items-start gap-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand">
                   <TriangleAlert size={16} className="mt-0.5 shrink-0 text-amber-600" />
                   <span className="text-[12.5px] leading-snug text-amber-900">
                     <span className="font-semibold">send_email needs attention.</span>{" "}
@@ -1093,9 +1098,10 @@ function NavItem({
 }) {
   return (
     <button
+      type="button"
       data-demo={demo}
       onClick={onClick}
-      className={`flex items-center gap-2.5 rounded-lg px-2 py-1.5 text-[13px] font-medium transition-all ${
+      className={`flex cursor-pointer items-center gap-2.5 rounded-lg px-2 py-1.5 text-[13px] font-medium transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand ${
         active
           ? "bg-white text-ink shadow-sm ring-1 ring-black/5"
           : "text-muted hover:bg-mist hover:text-body"

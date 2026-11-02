@@ -32,6 +32,11 @@ test("workspace provisioning is idempotent across concurrent OAuth callbacks", (
   assert.match(source, /if \(created\.data\) await admin\.from\("trackmcp_workspaces"\)\.delete\(\)/);
 });
 
+test("workspace key creation fails closed when the selected workspace row disappears", () => {
+  assert.match(source, /if \(loaded\.error \|\| !loaded\.data\)/);
+  assert.match(source, /Could not load your workspace/);
+});
+
 test("workspace account reads are not cacheable", () => {
   assert.match(source, /keys: \[\][\s\S]*?cache-control.*no-store/);
   assert.match(source, /keys: keys \|\| \[\][\s\S]*?cache-control.*no-store/);

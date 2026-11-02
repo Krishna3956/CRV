@@ -21,6 +21,8 @@ test("root layout exposes a route-aware global language switcher and runtime", a
   const dashboard = await readFile(resolve(root, "src/components/dashboard/DashboardApp.tsx"), "utf8");
   assert.match(dashboard, /@\/components\/LanguageSwitcher/);
   assert.match(dashboard, /<LanguageSwitcher\s*\/>/);
+  const css = await readFile(resolve(root, "src/app/globals.css"), "utf8");
+  assert.match(css, /body:has\(\[data-site-nav\]\) \.global-language-switcher\s*\{\s*display:\s*none\s*!important;/);
 });
 
 test("social auth is fail-closed until Supabase enables a provider", async () => {

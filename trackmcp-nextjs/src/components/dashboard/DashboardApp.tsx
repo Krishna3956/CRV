@@ -96,14 +96,14 @@ export type View =
 type NavItem = { id: View; label: string; icon: LucideIcon };
 const primaryNav: NavItem[] = [
   { id: "overview", label: "Overview", icon: BarChart3 },
-  { id: "journeys", label: "The journey", icon: Route },
+  { id: "clients", label: "Who's using it", icon: Users },
   { id: "capabilities", label: "What they're doing", icon: Blocks },
-  { id: "quality", label: "Did it work", icon: ShieldCheck },
-  { id: "issues", label: "What's broken", icon: AlertTriangle },
+  { id: "resources", label: "Resources & prompts", icon: FileText },
 ];
 const moreNav: NavItem[] = [
-  { id: "resources", label: "Resources & prompts", icon: FileText },
-  { id: "clients", label: "Who's using it", icon: Users },
+  { id: "journeys", label: "The journey", icon: Route },
+  { id: "quality", label: "Did it work", icon: ShieldCheck },
+  { id: "issues", label: "What's broken", icon: AlertTriangle },
   { id: "evidence", label: "Evidence", icon: Search },
   { id: "setup", label: "Setup", icon: Settings2 },
 ];
@@ -1206,24 +1206,24 @@ export function DashboardApp({
     );
 
   return (
-    <div className="dashboard-shell min-h-screen bg-[#f7f8f7] font-sans text-ink">
+    <div className="dashboard-shell min-h-screen bg-[#f2f6f3] font-sans text-ink">
       <div className="border-b border-amber-200 bg-amber-50 px-4 py-3 text-center text-xs leading-relaxed text-amber-900 lg:hidden" role="status">
         Founder OS is supported on desktop browsers for this pilot. For the full dashboard navigation and data tables, open TrackMCP on a desktop-sized browser window.
       </div>
-      <aside className="fixed bottom-0 left-0 top-[52px] z-30 hidden w-[248px] border-r border-line bg-[#fbfcfb] lg:flex lg:flex-col">
+      <aside className="fixed bottom-0 left-0 top-[52px] z-30 hidden w-[248px] border-r border-line bg-[#f8fbf9] lg:flex lg:flex-col">
         <DashboardNav
           view={view}
           items={primaryNav}
           onNavigate={goTo}
           label="Primary navigation"
-          groupLabel=""
+          groupLabel="Understand"
         />
         <DashboardNav
           view={view}
           items={moreNav}
           onNavigate={goTo}
           label="More dashboard navigation"
-          groupLabel="More"
+          groupLabel="Investigate & act"
         />
         <div className="mt-auto border-t border-line p-3">
           <div className="mb-2 px-2">
@@ -1248,7 +1248,7 @@ export function DashboardApp({
         </div>
       </aside>
       <div className="pt-[96px] lg:pl-[248px] lg:pt-[52px]">
-        <header className="fixed left-0 right-0 top-0 z-40 flex min-h-[52px] flex-wrap items-center justify-between gap-2 border-b border-line bg-white px-4 py-2 backdrop-blur sm:px-8 lg:h-[52px] lg:flex-nowrap lg:py-0">
+        <header data-site-nav className="fixed left-0 right-0 top-0 z-40 flex min-h-[52px] flex-wrap items-center justify-between gap-2 border-b border-line bg-white/95 px-4 py-2 shadow-[0_1px_0_rgba(15,23,42,0.03)] backdrop-blur sm:px-8 lg:h-[52px] lg:flex-nowrap lg:py-0">
           <div className="flex min-w-0 flex-1 items-center gap-2">
             <TrackMCPLogo asLink={false} mark size="footer" variant="mono" />
             {workspaces.length > 1 && (
@@ -1265,7 +1265,10 @@ export function DashboardApp({
               </label>
             )}
           </div>
-          <DataModeToggle dataMode={dataMode} onChange={setDataMode} />
+          <div className="flex items-center gap-2 sm:gap-3">
+            <DataModeToggle dataMode={dataMode} onChange={setDataMode} />
+            <LanguageSwitcher />
+          </div>
         </header>
         <div className="border-b border-line bg-white px-4 py-2.5 lg:hidden">
           <div className="flex gap-1 overflow-x-auto" role="navigation" aria-label="Dashboard navigation">
@@ -1278,7 +1281,7 @@ export function DashboardApp({
                 className={
                   "shrink-0 cursor-pointer rounded-md px-3 py-2 text-xs font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand " +
                   (view === item.id
-                    ? "bg-ink text-white"
+                    ? "bg-[#123b2a] text-white"
                     : "text-muted hover:bg-paper hover:text-ink")
                 }
               >
@@ -1292,7 +1295,7 @@ export function DashboardApp({
             <ErrorBanner message={error} onRetry={refreshAll} />
           )}
           {newKey && (
-            <div className="mb-6 flex flex-wrap items-center gap-3 border border-brand/30 bg-brand-soft/35 p-4">
+            <div className="mb-6 flex flex-wrap items-center gap-3 border border-brand/30 bg-brand-soft/35 p-4" role="status" aria-live="polite">
               <div className="min-w-0 flex-1">
                 <p className="text-xs font-semibold uppercase tracking-[0.1em] text-brand-strong">
                   Connection key created
@@ -1462,7 +1465,7 @@ function DashboardNav({
           className={
             "mb-1 flex w-full cursor-pointer items-center gap-3 rounded-lg px-3 py-2.5 text-left text-[13px] font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand " +
             (view === item.id
-              ? "bg-ink text-white"
+              ? "bg-[#123b2a] text-white shadow-[0_8px_20px_-14px_rgba(18,59,42,0.9)]"
               : "text-muted hover:bg-paper hover:text-ink")
           }
         >
@@ -1494,7 +1497,7 @@ function DataModeToggle({
           className={
             "cursor-pointer rounded-md px-3 py-2 text-[12px] font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand " +
             (dataMode === "my"
-              ? "bg-ink text-white"
+              ? "bg-[#123b2a] text-white shadow-[0_6px_16px_-12px_rgba(18,59,42,0.9)]"
               : "text-muted hover:bg-paper hover:text-ink")
           }
         >
@@ -1509,7 +1512,7 @@ function DataModeToggle({
           className={
             "cursor-pointer rounded-md px-3 py-2 text-[12px] font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand " +
             (dataMode === "example"
-              ? "bg-ink text-white"
+              ? "bg-[#123b2a] text-white shadow-[0_6px_16px_-12px_rgba(18,59,42,0.9)]"
               : "text-muted hover:bg-paper hover:text-ink")
           }
         >
@@ -1527,6 +1530,7 @@ function DateRange({
   value: string;
   onChange: (value: string) => void;
 }) {
+  const [customError, setCustomError] = useState("");
   const options = [
     { value: "7", label: "Last 7 days" },
     { value: "30", label: "Last 30 days" },
@@ -1546,7 +1550,7 @@ function DateRange({
             className={
               "cursor-pointer rounded-md px-2.5 py-2 text-[11px] font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand " +
               (value === option.value
-                ? "bg-ink text-white"
+                ? "bg-[#123b2a] text-white shadow-[0_6px_16px_-12px_rgba(18,59,42,0.9)]"
                 : "text-muted hover:bg-paper hover:text-ink")
             }
           >
@@ -1559,14 +1563,31 @@ function DateRange({
           <CalendarDays size={13} /> Custom
         </summary>
         <div className="absolute right-0 z-20 mt-2 grid min-w-[230px] gap-2 rounded-lg border border-line bg-white p-3 shadow-lg">
-          <label className="grid gap-1 text-[11px] font-semibold text-muted">From<input data-range-from type="date" className="h-8 rounded border border-line px-2 text-xs font-normal text-ink" /></label>
-          <label className="grid gap-1 text-[11px] font-semibold text-muted">To<input data-range-to type="date" className="h-8 rounded border border-line px-2 text-xs font-normal text-ink" /></label>
+          <label className="grid gap-1 text-[11px] font-semibold text-muted">From<input data-range-from type="date" onChange={() => setCustomError("")} className="h-8 rounded border border-line px-2 text-xs font-normal text-ink" /></label>
+          <label className="grid gap-1 text-[11px] font-semibold text-muted">To<input data-range-to type="date" onChange={() => setCustomError("")} className="h-8 rounded border border-line px-2 text-xs font-normal text-ink" /></label>
           <button type="button" className="cursor-pointer rounded-md bg-ink px-2.5 py-2 text-[11px] font-semibold text-white hover:bg-brand-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand" onClick={(event) => {
             const root = (event.currentTarget as HTMLButtonElement).parentElement;
-            const from = root?.querySelector<HTMLInputElement>("[data-range-from]")?.value;
-            const to = root?.querySelector<HTMLInputElement>("[data-range-to]")?.value;
-            if (from && to) onChange(`custom:${from}:${to}`);
+            const from = root?.querySelector<HTMLInputElement>("[data-range-from]")?.value || "";
+            const to = root?.querySelector<HTMLInputElement>("[data-range-to]")?.value || "";
+            if (!from || !to) {
+              setCustomError("Choose both a start and end date.");
+              return;
+            }
+            const start = Date.parse(`${from}T00:00:00Z`);
+            const end = Date.parse(`${to}T00:00:00Z`);
+            const maxWindowMs = 90 * 24 * 60 * 60 * 1000;
+            if (!Number.isFinite(start) || !Number.isFinite(end) || end < start) {
+              setCustomError("The end date must be on or after the start date.");
+              return;
+            }
+            if (end - start > maxWindowMs) {
+              setCustomError("Choose a range of 90 days or less.");
+              return;
+            }
+            setCustomError("");
+            onChange(`custom:${from}:${to}`);
           }}>Apply range</button>
+          {customError && <p role="alert" className="text-[10px] leading-relaxed text-red-700">{customError}</p>}
           <p className="text-[10px] leading-relaxed text-faint">Choose a bounded range of up to 90 days. Data is still privacy-safe and scan-capped.</p>
         </div>
       </details>
@@ -1752,13 +1773,18 @@ function ServerConnectionState({
       : state === "key"
         ? "Create a connection key, add it to your server, and send one real event."
         : "A key exists, but no events have arrived in the selected period. TrackMCP cannot verify server reachability from this screen.";
+  const steps = state === "workspace"
+    ? ["Create a workspace", "Create a connection key", "Send your first MCP event"]
+    : state === "key"
+      ? ["Create a connection key", "Add TRACKMCP_KEY to your server", "Make one real tool call"]
+      : ["Restart the server", "Make one real tool call", "Refresh this view"];
 
   return (
     <div>
       <PageIntro title={title} description={copy.description} actions={pageControls} />
-      <section className="border border-line bg-white p-6 sm:p-8">
+      <section className="overflow-hidden rounded-2xl border border-line bg-white p-6 shadow-[0_24px_60px_-44px_rgba(18,59,42,0.45)] sm:p-8">
         <div className="flex items-start gap-3">
-          <span className="grid h-10 w-10 shrink-0 place-items-center rounded-lg bg-paper text-muted">
+          <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-brand-soft text-brand-strong">
             <Info size={19} />
           </span>
           <div className="min-w-0">
@@ -1773,7 +1799,7 @@ function ServerConnectionState({
                 type="button"
                 disabled={working}
                 onClick={onPrimary}
-                className="inline-flex cursor-pointer items-center gap-2 rounded-md bg-ink px-4 py-2.5 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
+                className="inline-flex cursor-pointer items-center gap-2 rounded-lg bg-[#123b2a] px-4 py-2.5 text-sm font-semibold text-white shadow-[0_10px_24px_-14px_rgba(18,59,42,0.9)] hover:bg-brand-strong disabled:cursor-not-allowed disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
               >
                 {working ? "Working…" : primaryLabel}
                 <ArrowRight size={15} />
@@ -1786,6 +1812,14 @@ function ServerConnectionState({
                 See Example data
               </button>
             </div>
+            <ol className="mt-6 grid gap-2 border-t border-line pt-5 text-xs sm:grid-cols-3" aria-label="Next steps">
+              {steps.map((step, index) => (
+                <li key={step} className="flex items-start gap-2 rounded-xl bg-[#f6faf7] px-3 py-3 text-muted">
+                  <span className="grid h-5 w-5 shrink-0 place-items-center rounded-full bg-brand-soft text-[10px] font-bold text-brand-strong">{index + 1}</span>
+                  <span>{step}</span>
+                </li>
+              ))}
+            </ol>
           </div>
         </div>
       </section>
@@ -1838,9 +1872,9 @@ function LiveDataState({
   permission: boolean;
 }) {
   return (
-    <section className="grid min-h-[420px] place-items-center border border-line bg-white p-8 text-center">
+    <section className="grid min-h-[420px] place-items-center rounded-2xl border border-line bg-white p-8 text-center shadow-[0_24px_60px_-44px_rgba(18,59,42,0.35)]">
       <div className="max-w-lg">
-        <span className="mx-auto grid h-12 w-12 place-items-center rounded-lg bg-paper text-muted">
+        <span className="mx-auto grid h-12 w-12 place-items-center rounded-2xl bg-amber-50 text-amber-700">
           <AlertTriangle size={22} />
         </span>
         <h2 className="mt-4 text-xl font-semibold text-ink">
@@ -1854,7 +1888,7 @@ function LiveDataState({
         <button
           type="button"
           onClick={onRetry}
-          className="mt-5 inline-flex cursor-pointer items-center gap-2 rounded-md bg-ink px-4 py-2.5 text-sm font-semibold text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
+          className="mt-5 inline-flex cursor-pointer items-center gap-2 rounded-lg bg-[#123b2a] px-4 py-2.5 text-sm font-semibold text-white shadow-[0_10px_24px_-14px_rgba(18,59,42,0.9)] hover:bg-brand-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
         >
           <RefreshCw size={15} />
           Retry
@@ -2002,8 +2036,9 @@ function PageIntro({
   actions?: ReactNode;
 }) {
   return (
-    <div className="mb-6 flex flex-wrap items-start justify-between gap-4">
+    <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
       <div className="min-w-0">
+        <p className="mb-2 text-[10px] font-semibold uppercase tracking-[0.14em] text-brand-strong">Founder OS workspace</p>
         <h2 className="dashboard-page-title tracking-[-0.035em] text-ink">
           {title}
         </h2>
@@ -2067,7 +2102,7 @@ function DataSourceStrip({
   const canViewMyData = dataMode === "example" && hasMyData;
   return (
     <section
-      className="mb-6 flex flex-wrap items-center gap-3 border border-line bg-[#f3f5f3] px-4 py-3.5"
+      className="mb-6 flex flex-wrap items-center gap-3 rounded-xl border border-brand/15 bg-[linear-gradient(90deg,#f1faf3,#ffffff)] px-4 py-3.5"
       aria-label="Data source state"
     >
       <span className="grid h-8 w-8 place-items-center rounded-full bg-white text-muted">
@@ -2092,7 +2127,7 @@ function DataSourceStrip({
               ? `/dashboard?view=${view}&data=my`
               : "/dashboard?view=setup&data=my"
           }
-          className="ml-auto inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-md bg-ink px-3.5 py-2 text-xs font-semibold text-white hover:bg-[#24332b] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
+          className="ml-auto inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-lg bg-[#123b2a] px-3.5 py-2 text-xs font-semibold text-white shadow-[0_10px_24px_-14px_rgba(18,59,42,0.9)] hover:bg-brand-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
         >
           {canViewMyData ? "View my data" : "Connect your MCP"}
           <ArrowRight size={13} />
@@ -2113,7 +2148,7 @@ function Panel({
   action?: { label: string; onClick?: () => void; href?: string };
 }) {
   return (
-    <section className="border border-line bg-white p-5 sm:p-6">
+    <section className="rounded-2xl border border-line bg-white p-5 shadow-[0_20px_45px_-38px_rgba(18,59,42,0.5)] sm:p-6">
       <div className="flex items-start justify-between gap-4">
         <div className="flex min-w-0 items-center gap-2">
           <h2 className="dashboard-section-title text-ink">{title}</h2>
@@ -4392,6 +4427,7 @@ function SetupView({
     return () => { cancelled = true; };
   }, [setupReloadToken, workspaceId]);
   const activeSetupContract = setupContractWorkspaceId === workspaceId ? setupContract : null;
+  const setupLoading = Boolean(workspaceId && (setupChecking || setupContractWorkspaceId !== workspaceId));
   const contractChecks = activeSetupContract?.setup?.checks;
   const firstEventLagSeconds = activeSetupContract?.setup?.first_event?.ingestion_lag_seconds;
   const firstEventIsStale = typeof firstEventLagSeconds === "number" && firstEventLagSeconds >= 15 * 60;
@@ -4462,7 +4498,7 @@ function SetupView({
     }
   };
   const retrySetupCheck = () => {
-    if (!workspaceId || setupChecking) return;
+    if (!workspaceId || setupLoading) return;
     setSetupChecking(true);
     setSetupReloadToken((value) => value + 1);
     onRefresh();
@@ -4471,9 +4507,24 @@ function SetupView({
     <div>
       <PageIntro
         title="Setup"
-        description="Connect your server and manage the key that authenticates telemetry to this workspace."
+        description="Three steps to a verified MCP event. Advanced controls stay below until you need them."
       />
-      <section className="mb-6 border border-line bg-white p-5 sm:p-6" aria-labelledby="setup-status-title">
+      <section className="mb-6 grid gap-3 rounded-2xl border border-brand/20 bg-[linear-gradient(135deg,#f0fbf3,#ffffff_62%)] p-4 sm:grid-cols-3 sm:p-5" aria-label="Setup steps">
+        {[
+          ["01", "Create a key", "One workspace key authenticates your server."],
+          ["02", "Install the SDK", "Use the language tab that matches your server."],
+          ["03", "Send one event", "Make a real tool call, then verify it here."],
+        ].map(([number, title, detail], index) => (
+          <div key={title} className={"flex items-start gap-3 rounded-xl px-3 py-3 " + (index === 0 ? "bg-white shadow-sm" : "bg-white/55")}>
+            <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-brand-soft text-[11px] font-bold text-brand-strong">{number}</span>
+            <div>
+              <p className="text-sm font-semibold text-ink">{title}</p>
+              <p className="mt-1 text-[11px] leading-relaxed text-muted">{detail}</p>
+            </div>
+          </div>
+        ))}
+      </section>
+      <section className="mb-6 rounded-2xl border border-line bg-white p-5 shadow-[0_20px_45px_-38px_rgba(18,59,42,0.45)] sm:p-6" aria-labelledby="setup-status-title" aria-live="polite">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
             <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-brand-strong">Connection status</p>
@@ -4519,12 +4570,12 @@ function SetupView({
             <button
               type="button"
               onClick={retrySetupCheck}
-              disabled={!workspaceId || setupChecking}
+              disabled={!workspaceId || setupLoading}
               className="inline-flex cursor-pointer items-center gap-1.5 border border-line-strong bg-white px-3 py-2 text-xs font-semibold text-body hover:bg-paper disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
               aria-label="Refresh setup check"
             >
-              <RefreshCw size={13} className={setupChecking ? "animate-spin" : ""} aria-hidden="true" />
-              {setupChecking ? "Checking…" : "Refresh setup check"}
+              <RefreshCw size={13} className={setupLoading ? "animate-spin" : ""} aria-hidden="true" />
+              {setupLoading ? "Checking…" : "Refresh setup check"}
             </button>
           </div>
         </div>
@@ -4584,10 +4635,10 @@ function SetupView({
           <button
             type="button"
             onClick={retrySetupCheck}
-            disabled={setupChecking}
+            disabled={setupLoading}
             className="mt-4 inline-flex cursor-pointer items-center gap-1.5 border border-red-200 bg-white px-3 py-2 text-xs font-semibold text-red-800 hover:bg-red-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-600"
           >
-            <RefreshCw size={13} className={setupChecking ? "animate-spin" : ""} /> {setupChecking ? "Checking…" : "Retry connection check"}
+            <RefreshCw size={13} className={setupLoading ? "animate-spin" : ""} /> {setupLoading ? "Checking…" : "Retry connection check"}
           </button>
         )}
       </section>
@@ -4648,11 +4699,15 @@ function SetupView({
             </label>
           </div>
           <p className="mt-3 text-[11px] leading-relaxed text-faint">These labels are supplied by your server. They are not a TrackMCP deployment record and do not identify a person or customer.</p>
-          <div className="mt-4 flex gap-1 border-b border-line pb-2">
+          <div className="mt-4 flex gap-1 border-b border-line pb-2" role="tablist" aria-label="SDK setup language">
             {(["TypeScript", "Python", "Go", ".NET"] as const).map((item) => (
               <button
                 type="button"
                 key={item}
+                id={`setup-tab-${item.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`}
+                role="tab"
+                aria-selected={language === item}
+                aria-controls="setup-code-panel"
                 onClick={() => setLanguage(item)}
                 className={
                   "cursor-pointer px-3 py-2 text-xs font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand " +
@@ -4665,6 +4720,7 @@ function SetupView({
               </button>
             ))}
           </div>
+          <div id="setup-code-panel" role="tabpanel" aria-live="polite" aria-labelledby={`setup-tab-${language.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`}>
           <pre className="mt-4 overflow-x-auto rounded-md bg-[#101713] p-5 font-mono text-xs leading-relaxed text-white">
             <code>{snippets[language]}</code>
           </pre>
@@ -4710,6 +4766,7 @@ function SetupView({
           <p className="mt-3 text-xs leading-relaxed text-muted">
             After creating a key, set <code className="font-mono text-ink">TRACKMCP_KEY</code> in your server environment, restart the server, and make one real tool call. Your data appears after the first telemetry flush.
           </p>
+          </div>
         </Panel>
         <Panel
           title={workspaceId ? "Connection keys" : "Create your workspace"}
@@ -4722,7 +4779,7 @@ function SetupView({
                 type="button"
                 onClick={onCreateWorkspace}
                 disabled={working}
-                className="mt-4 inline-flex cursor-pointer items-center gap-2 rounded-md bg-ink px-4 py-2.5 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
+                className="mt-4 inline-flex cursor-pointer items-center gap-2 rounded-lg bg-[#123b2a] px-4 py-2.5 text-sm font-semibold text-white shadow-[0_10px_24px_-14px_rgba(18,59,42,0.9)] hover:bg-brand-strong disabled:cursor-not-allowed disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
               >
                 <KeyRound size={15} />
                 {working ? "Creating workspace…" : "Create workspace"}
@@ -4786,46 +4843,53 @@ function SetupView({
                   </p>
                 )}
               </div>
-              <div className="mt-4 border-t border-line pt-4">
-                <label className="flex cursor-pointer items-start gap-2 text-xs font-semibold text-ink">
-                  <input
-                    type="checkbox"
-                    checked={scopeNewKey}
-                    onChange={(event) => setScopeNewKey(event.target.checked)}
-                    className="mt-0.5 h-4 w-4 cursor-pointer rounded border-line-strong text-brand focus:ring-brand"
-                  />
-                  <span>Limit this key to a server and environment <InfoHint label="About scoped keys" text="Scoped keys reject telemetry with different server or environment labels. Leave this off for a workspace-wide key." /></span>
-                </label>
-                {scopeNewKey && (
-                  <div className="mt-3 grid gap-3 pl-6 sm:grid-cols-2">
-                    <label className="text-[11px] font-semibold text-ink">
-                      <span className="flex items-center gap-1.5">Service scope <InfoHint label="About service scope" text="Only telemetry carrying this exact bounded server label is accepted for the key." /></span>
-                      <input
-                        value={serviceName}
-                        onChange={(event) => updateService(event.target.value)}
-                        maxLength={100}
-                        placeholder="my-mcp-server"
-                        className="mt-1 block w-full rounded-md border border-line-strong bg-white px-2.5 py-2 text-xs font-normal text-body focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
-                      />
-                    </label>
-                    <label className="text-[11px] font-semibold text-ink">
-                      <span className="flex items-center gap-1.5">Environment scope <InfoHint label="About environment scope" text="Only telemetry carrying this exact bounded environment label is accepted for the key." /></span>
-                      <input
-                        value={environmentName}
-                        onChange={(event) => updateEnvironment(event.target.value)}
-                        maxLength={64}
-                        placeholder="production"
-                        className="mt-1 block w-full rounded-md border border-line-strong bg-white px-2.5 py-2 text-xs font-normal text-body focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
-                      />
-                    </label>
-                  </div>
-                )}
-              </div>
+              <details className="mt-4 border-t border-line pt-4">
+                <summary className="flex cursor-pointer list-none items-center justify-between gap-3 text-xs font-semibold text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand">
+                  <span>Advanced key scope <span className="ml-1 font-normal text-muted">optional</span></span>
+                  <span className="text-[11px] font-medium text-brand-strong">Configure</span>
+                </summary>
+                <div className="mt-3 rounded-lg border border-line bg-paper p-3">
+                  <label className="flex cursor-pointer items-start gap-2 text-xs font-semibold text-ink">
+                    <input
+                      type="checkbox"
+                      checked={scopeNewKey}
+                      onChange={(event) => setScopeNewKey(event.target.checked)}
+                      className="mt-0.5 h-4 w-4 cursor-pointer rounded border-line-strong text-brand focus:ring-brand"
+                    />
+                    <span>Restrict this key to the server and environment below <InfoHint label="About scoped keys" text="Scoped keys reject telemetry with different server or environment labels. Leave this off for a workspace-wide key." /></span>
+                  </label>
+                  {scopeNewKey && (
+                    <div className="mt-3 grid gap-3 pl-6 sm:grid-cols-2">
+                      <label className="text-[11px] font-semibold text-ink">
+                        <span className="flex items-center gap-1.5">Service scope <InfoHint label="About service scope" text="Only telemetry carrying this exact bounded server label is accepted for the key." /></span>
+                        <input
+                          value={serviceName}
+                          onChange={(event) => updateService(event.target.value)}
+                          maxLength={100}
+                          placeholder="my-mcp-server"
+                          className="mt-1 block w-full rounded-md border border-line-strong bg-white px-2.5 py-2 text-xs font-normal text-body focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
+                        />
+                      </label>
+                      <label className="text-[11px] font-semibold text-ink">
+                        <span className="flex items-center gap-1.5">Environment scope <InfoHint label="About environment scope" text="Only telemetry carrying this exact bounded environment label is accepted for the key." /></span>
+                        <input
+                          value={environmentName}
+                          onChange={(event) => updateEnvironment(event.target.value)}
+                          maxLength={64}
+                          placeholder="production"
+                          className="mt-1 block w-full rounded-md border border-line-strong bg-white px-2.5 py-2 text-xs font-normal text-body focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
+                        />
+                      </label>
+                    </div>
+                  )}
+                  {!scopeNewKey && <p className="mt-2 pl-6 text-[11px] leading-relaxed text-muted">A workspace-wide key is recommended for the first connection. Restrict it only when your server has a stable service and environment label.</p>}
+                </div>
+              </details>
               <button
                 type="button"
                 onClick={() => onGenerateKey(scopeNewKey ? { serviceScope: boundedService, environmentScope: boundedEnvironment } : undefined)}
                 disabled={working}
-                className="mt-4 inline-flex cursor-pointer items-center gap-2 rounded-md bg-ink px-4 py-2.5 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
+                className="mt-4 inline-flex cursor-pointer items-center gap-2 rounded-lg bg-[#123b2a] px-4 py-2.5 text-sm font-semibold text-white shadow-[0_10px_24px_-14px_rgba(18,59,42,0.9)] hover:bg-brand-strong disabled:cursor-not-allowed disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
               >
                 <KeyRound size={15} />
                 {working ? "Creating…" : "Create connection key"}
@@ -4834,7 +4898,11 @@ function SetupView({
           )}
         </Panel>
       </div>
-      <section className="mt-6 border border-line bg-white p-5 sm:p-6" aria-labelledby="setup-identity-title">
+      <details className="mt-6 rounded-2xl border border-line bg-white p-5 shadow-[0_20px_45px_-38px_rgba(18,59,42,0.35)] sm:p-6">
+        <summary className="flex cursor-pointer list-none items-center justify-between gap-3 text-[15px] font-semibold text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand">
+          <span>Optional identity <span className="ml-2 text-xs font-normal text-muted">Resolve account activity without exposing raw identifiers</span></span>
+          <span className="text-xs font-medium text-brand-strong">Configure</span>
+        </summary>
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
             <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-brand-strong">Optional identity</p>
@@ -4855,8 +4923,8 @@ function SetupView({
               ? `client := trackmcp.New(trackmcp.Options{\n  APIKey: os.Getenv("TRACKMCP_KEY"),\n  AccountIDResolver: func() string {\n    return verifiedTenantForRequest()\n  },\n})`
               : `var telemetry = new TrackMcpClient(new TrackMcpOptions(\n    Environment.GetEnvironmentVariable("TRACKMCP_KEY") ?? "",\n    "${boundedService || "my-mcp-server"}",\n    "${boundedEnvironment}",\n    AccountIdResolver: () => verifiedTenantForRequest()));`}</code></pre>
         <p className="mt-3 text-[11px] leading-relaxed text-faint">Only use a stable, non-secret identifier already verified by your application. Do not return emails, tokens, URLs, prompts, completions, or raw user IDs. Without a resolver, activity remains visible but is counted as unresolved.</p>
-      </section>
-      <details className="mt-6 border border-line bg-white p-5 sm:p-6">
+      </details>
+      <details className="mt-6 rounded-2xl border border-line bg-white p-5 shadow-[0_20px_45px_-38px_rgba(18,59,42,0.35)] sm:p-6">
         <summary className="flex cursor-pointer list-none items-center gap-3 text-[15px] font-semibold text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand">
           <span className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-paper text-muted"><Info size={17} /></span>
           <span>Know what you are sharing <span className="ml-2 text-xs font-normal text-muted">Privacy and data flow</span></span>
@@ -4901,9 +4969,9 @@ function SetupView({
         </p>
       </details>
       <PrivacyControls workspaceId={workspaceId} />
-      <details className="mt-6 border border-line bg-white p-5 sm:p-6">
+      <details className="mt-6 rounded-2xl border border-line bg-white p-5 shadow-[0_20px_45px_-38px_rgba(18,59,42,0.35)] sm:p-6">
         <summary className="cursor-pointer text-sm font-semibold text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand">
-          Other connection methods
+          Other connection methods <span className="ml-2 text-xs font-normal text-muted">OpenTelemetry, Go, .NET, tester, and auth guides</span>
         </summary>
         <div className="mt-4 grid gap-3 md:grid-cols-2">
           <div className="border border-line bg-paper p-4">
@@ -5114,7 +5182,7 @@ function DashboardOnboarding({
                 workspace ? onGenerateKey() : onCreateWorkspace()
               }
               disabled={working}
-              className="mt-3 inline-flex cursor-pointer items-center gap-2 rounded-md bg-ink px-4 py-2.5 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
+              className="mt-3 inline-flex cursor-pointer items-center gap-2 rounded-lg bg-[#123b2a] px-4 py-2.5 text-sm font-semibold text-white shadow-[0_10px_24px_-14px_rgba(18,59,42,0.9)] hover:bg-brand-strong disabled:cursor-not-allowed disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
             >
               {working
                 ? "Working…"
@@ -5143,7 +5211,7 @@ function DashboardOnboarding({
             <button
               type="button"
               onClick={onOpenDashboard}
-              className="inline-flex cursor-pointer items-center gap-1.5 rounded-md bg-ink px-3 py-2 text-xs font-semibold text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
+              className="inline-flex cursor-pointer items-center gap-1.5 rounded-lg bg-[#123b2a] px-3 py-2 text-xs font-semibold text-white shadow-[0_8px_20px_-14px_rgba(18,59,42,0.9)] hover:bg-brand-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
             >
               Open Overview <ArrowRight size={13} />
             </button>

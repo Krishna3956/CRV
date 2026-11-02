@@ -13,6 +13,7 @@ type Key = { id: string; name: string; key_prefix: string; revoked_at: string | 
 type KeyCreationOptions = { serviceScope?: string; environmentScope?: string };
 type Account = { workspace: Workspace | null; workspaces: Workspace[]; keys: Key[] };
 const LOCAL_DASHBOARD_BYPASS = process.env.NODE_ENV === "development" && process.env.NEXT_PUBLIC_LOCAL_DASHBOARD_BYPASS === "true";
+const AUTH_HYDRATION_TIMEOUT_MS = 10_000;
 function userDisplayName(user: { email?: string | null; user_metadata?: Record<string, unknown> } | null) {
   const metadata = user?.user_metadata || {};
   const fullName = typeof metadata.full_name === "string" ? metadata.full_name.trim() : "";
@@ -145,6 +146,13 @@ export function DashboardPageContent({ initialView = "overview" }: { initialView
     const auth = getSupabaseBrowser().auth;
     let disposed = false;
     let settled = false;
+    let authHydrationTimer: number | undefined;
+    const clearAuthHydrationTimer = () => {
+      if (authHydrationTimer !== undefined) {
+        window.clearTimeout(authHydrationTimer);
+        authHydrationTimer = undefined;
+      }
+    };
 
     // The OAuth callback can finish just after the dashboard mounts. Listen to
     // Supabase's authoritative session event as well as polling getUser(), so a
@@ -153,6 +161,7 @@ export function DashboardPageContent({ initialView = "overview" }: { initialView
     const hydrate = async (user: NonNullable<Awaited<ReturnType<typeof auth.getUser>>["data"]["user"]>) => {
       if (disposed || settled) return;
       settled = true;
+      clearAuthHydrationTimer();
       setEmail(user.email || null);
       setDisplayName(userDisplayName(user));
       try {
@@ -180,35 +189,53 @@ export function DashboardPageContent({ initialView = "overview" }: { initialView
       }
     };
 
+    authHydrationTimer = window.setTimeout(() => {
+      if (disposed || settled) return;
+      settled = true;
+      setError("We couldn't verify your session. Refresh the page or sign in again.");
+      setLoading(false);
+    }, AUTH_HYDRATION_TIMEOUT_MS);
+
     const { data: authState } = auth.onAuthStateChange((_event: AuthChangeEvent, session: Session | null) => {
       if (session?.user) void hydrate(session.user);
     });
 
     void (async () => {
-      // Keep a bounded fallback for browsers that restore the session without
-      // emitting INITIAL_SESSION before the first render task completes.
-      let user = (await auth.getUser()).data.user;
-      for (let attempt = 0; !user && !settled && attempt < 7; attempt += 1) {
-        await new Promise((resolve) => window.setTimeout(resolve, 250 * (attempt + 1)));
-        user = (await auth.getUser()).data.user;
-      }
-      if (user) return hydrate(user);
-      if (!disposed && !settled) {
-        settled = true;
-        setEmail(null);
-        setDisplayName("");
-        setLoading(false);
+      try {
+        // Keep a bounded fallback for browsers that restore the session without
+        // emitting INITIAL_SESSION before the first render task completes.
+        let user = (await auth.getUser()).data.user;
+        for (let attempt = 0; !user && !settled && attempt < 7; attempt += 1) {
+          await new Promise((resolve) => window.setTimeout(resolve, 250 * (attempt + 1)));
+          user = (await auth.getUser()).data.user;
+        }
+        if (user) return hydrate(user);
+        if (!disposed && !settled) {
+          settled = true;
+          clearAuthHydrationTimer();
+          setEmail(null);
+          setDisplayName("");
+          setLoading(false);
+        }
+      } catch {
+        if (!disposed && !settled) {
+          settled = true;
+          clearAuthHydrationTimer();
+          setError("We couldn't verify your session. Refresh the page or sign in again.");
+          setLoading(false);
+        }
       }
     })();
 
     return () => {
       disposed = true;
+      clearAuthHydrationTimer();
       authState.subscription.unsubscribe();
     };
   }, [createWorkspace, loadAccount, loadAnalytics, loadToolQuality]);
 
   if (loading) return <main className="mx-auto min-h-screen max-w-6xl px-6 py-20 text-sm text-muted">Loading your workspace…</main>;
-  if (!email) return <main className="mx-auto min-h-screen max-w-xl px-6 py-24"><p className="text-xs font-semibold uppercase tracking-wide text-brand">TrackMCP</p><h1 className="mt-3 text-4xl font-medium tracking-tight text-ink">Your workspace is waiting.</h1><p className="mt-4 text-muted">Sign in to create an API key and see how your MCP server is being used.</p><Link href="/signin" className="mt-7 inline-flex rounded-lg bg-ink px-5 py-3 text-sm font-medium text-white">Sign in to continue</Link></main>;
+ if (!email) return <main className="mx-auto min-h-screen max-w-xl px-6 py-24"><p className="text-xs font-semibold uppercase tracking-wide text-brand">TrackMCP dashboard</p><h1 className="mt-3 text-4xl font-medium tracking-tight text-ink">Sign in to open your dashboard.</h1><p className="mt-4 text-muted">Create an API key and see how your MCP server is being used.</p>{error && <p role="alert" className="mt-5 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm leading-relaxed text-amber-900">{error}</p>}<div className="mt-7 flex flex-wrap gap-3"><Link href="/signin" className="inline-flex rounded-lg bg-ink px-5 py-3 text-sm font-medium text-white">Sign in to continue</Link>{error && <button type="button" onClick={() => window.location.reload()} className="inline-flex cursor-pointer rounded-lg border border-line-strong bg-white px-5 py-3 text-sm font-medium text-ink hover:bg-paper focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand">Refresh</button>}</div></main>;
   const selectWorkspace = async (workspaceId: string) => { if (!workspaceId || workspaceId === selectedWorkspaceId) return; setWorking(true); setError(""); setSelectedWorkspaceId(workspaceId); window.localStorage.setItem("trackmcp.selected_workspace_id", workspaceId); try { const account = await loadAccount(workspaceId); await Promise.all([loadAnalytics("30", account.workspace?.id || workspaceId), loadToolQuality("30", account.workspace?.id || workspaceId)]); } catch (reason) { setError(reason instanceof Error ? reason.message : "Could not switch workspaces."); } finally { setWorking(false); } };
   return <DashboardApp displayName={displayName || email} workspace={workspace} workspaces={workspaces} keys={keys} analytics={analytics} toolQuality={toolQuality} newKey={newKey} working={working} error={error} initialView={initialView} onGenerateKey={generateKey} onRevokeKey={revokeKey} onRotateKey={rotateKey} onDismissKey={() => setNewKey("")} onSelectWorkspace={selectWorkspace} onRefresh={(days) => { if (!LOCAL_DASHBOARD_BYPASS) void Promise.all([loadAnalytics(days, selectedWorkspaceId || undefined), loadToolQuality(days, selectedWorkspaceId || undefined)]).catch((reason) => setError(reason instanceof Error ? reason.message : "Could not refresh analytics.")); }} onCreateWorkspace={createWorkspace} onSignOut={() => { if (LOCAL_DASHBOARD_BYPASS) window.location.href = "https://trackmcp.com"; else void getSupabaseBrowser().auth.signOut().then(() => { window.location.href = "https://trackmcp.com"; }); }} />;
 }
