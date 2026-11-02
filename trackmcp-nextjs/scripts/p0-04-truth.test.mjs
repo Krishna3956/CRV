@@ -16,7 +16,7 @@ test("dashboard distinguishes live data and completion evidence", async () => {
   assert.match(dashboard, /Live data/);
   assert.doesNotMatch(dashboard, /session heuristic/);
   assert.match(dashboard, /No explicit workflow outcome data/);
-  assert.match(dashboard, /Source: workflow outcome events/);
+  assert.match(dashboard, /Only outcomes your server explicitly reported count here/);
   assert.match(dashboard, /Open Evidence/);
 });
 
