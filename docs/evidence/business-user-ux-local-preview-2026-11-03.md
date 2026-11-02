@@ -91,3 +91,14 @@ The local browser preview rendered the new signup description before the form:
 your team can read usage, outcomes, and issues in the dashboard.” This makes
 the ownership handoff and post-signup value visible before authentication is
 complete.
+
+## KPI hierarchy visual check
+
+On the local Example-data Overview preview, the four decision KPIs render as
+separate rounded white cards with a restrained brand icon treatment and
+tabular numeric values. The accessibility tree exposed the same business
+labels and helper text as the source contract: `Assistants using your MCP`,
+`Observed work`, `Work with an explicit success`, and `Needs attention`.
+
+This is a visual hierarchy improvement only; it does not change metric formulas
+or evidence status. Verified after commit `aa63a153`.
