@@ -70,3 +70,6 @@ feature usage, while the underlying metric definitions remain unchanged.
 The same activated view now exposes an outcome-trend table in “Did it work,”
 with explicit completed, failed, pending, and unknown values by period. These
 states remain separate and are never collapsed into a single success score.
+
+The local browser verification expanded that table successfully and exposed the
+example rows `2026-08-19` and `2026-08-26` with separate values for each state.
