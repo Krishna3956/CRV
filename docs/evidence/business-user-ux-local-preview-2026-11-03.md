@@ -469,3 +469,19 @@ under the Example-data bypass: `overview`, `clients`, `capabilities`,
 server was stopped cleanly. This confirms route-level rendering for the full
 business navigation, not authenticated production behavior.
 - Production deployment and fresh-account browser evidence remain pending.
+
+Latest verification after `2ac7b4be`:
+
+- Setup active-key scope is now behind a `Key details` disclosure so the
+  primary setup scan stays focused on connection status, SDK instructions, and
+  the first-event action.
+- The disclosure opens automatically when the latest event does not match the
+  configured key scope, preserving a visible recovery path for the one state
+  where the technical detail is actionable.
+- `npm run test:business-user-ux`: 83/83 passed.
+- `npx tsc --noEmit --pretty false`: passed.
+- `npm run lint`: passed.
+- `npm run build`: passed; 230 static pages generated.
+- `npm run test:release-gate`: passed all 159 suites.
+- The branch remains local and undeployed; fresh-account, production, and
+  non-technical participant evidence are still required.
