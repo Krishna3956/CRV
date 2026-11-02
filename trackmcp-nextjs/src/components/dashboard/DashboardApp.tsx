@@ -1808,7 +1808,7 @@ function ServerConnectionState({
       <PageIntro title={title} description={copy.description} actions={pageControls} />
       <BusinessContext
         title="What TrackMCP will help your team understand"
-        body="TrackMCP helps product and operations teams understand how people use their MCP: who is showing up, what they are trying to do, whether the work completed, and what needs attention. A technical teammate connects one server; once a real event arrives, this area starts filling in."
+        body="TrackMCP shows your team who is using the MCP, what they are trying to do, whether work completed, and what needs attention. A technical teammate connects one server; after the first event, these views start filling with evidence."
       />
       <section className="overflow-hidden rounded-2xl border border-line bg-white p-6 shadow-[0_24px_60px_-44px_rgba(55,48,163,0.18)] sm:p-8">
         <div className="flex items-start gap-3">

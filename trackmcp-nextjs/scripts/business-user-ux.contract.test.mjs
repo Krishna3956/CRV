@@ -17,7 +17,7 @@ test("new-user setup explains the business outcome before technical detail", () 
   assert.match(auth, /a technical teammate can connect one server/);
   assert.match(auth, /usage, outcomes, and issues in the dashboard/);
   assert.match(dashboard, /What TrackMCP will help your team understand/);
-  assert.match(dashboard, /product and operations teams understand how people use their MCP/);
+  assert.match(dashboard, /TrackMCP shows your team who is using the MCP/);
   assert.match(dashboard, /What you will get after setup/);
   assert.match(dashboard, /A technical teammate usually completes this page/);
   assert.match(dashboard, /Setup always uses your live connection/);
