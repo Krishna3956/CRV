@@ -215,6 +215,33 @@ TrackMCP application:
   customer, health, and completion claims require the read-model evidence that
   supports them.
 
+### 13. Keep evidence labels readable without weakening their meaning
+
+The latest review also cross-checked the dashboard language against current
+data-visualization and analytics guidance. PostHog separates recurring
+dashboard monitoring from ad-hoc insight exploration, while Amplitude treats a
+dashboard as a shared, trusted view of related metrics. USWDS and Material
+recommend that a visualization state its intended message in plain language,
+and NN/g recommends progressive disclosure when a surface has more commands or
+detail than a first-time reader needs. See [PostHog dashboards](https://posthog.com/docs/product-analytics/dashboards),
+[Amplitude dashboards](https://www.amplitude.com/docs/analytics/dashboard-create),
+[USWDS data visualizations](https://designsystem.digital.gov/components/data-visualizations/),
+[Material data visualization](https://m2.material.io/design/communication/data-visualization.html),
+and [NN/g progressive disclosure](https://www.nngroup.com/articles/progressive-disclosure/).
+
+TrackMCP application:
+
+- Keep business labels such as `Activity observed`, `Activity recency`, and
+  `Dashboard refresh` in the default reading path; retain implementation terms
+  in source contracts and expandable detail where they are useful to engineers.
+- Put technical readiness checks and connection metadata behind an explicit
+  disclosure after the user sees the plain-language status and recovery action.
+- Use a chart only when it adds a visual comparison; pair it with an exact-value
+  table and a sentence explaining what the reader should notice.
+- Treat the dashboard as a trusted recurring decision surface. Do not turn it
+  into a catalog of every protocol signal simply because the SDK can collect
+  the signal.
+
 ## What this means for the current product
 
 ### Strengths already present on this branch
