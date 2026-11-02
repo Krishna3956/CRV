@@ -15,6 +15,7 @@ export function SubmitToolDialog() {
   const [open, setOpen] = useState(false);
   const [url, setUrl] = useState("");
   const [email, setEmail] = useState("");
+  const [selfReportedSource, setSelfReportedSource] = useState("");
   const [status, setStatus] = useState<Status>("idle");
   const [message, setMessage] = useState("");
 
@@ -35,6 +36,7 @@ export function SubmitToolDialog() {
     setMessage("");
     setUrl("");
     setEmail("");
+    setSelfReportedSource("");
   };
 
   const submit = async (e: React.FormEvent) => {
@@ -45,7 +47,12 @@ export function SubmitToolDialog() {
       const res = await fetch("/api/repository/submit", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ url, email }),
+        body: JSON.stringify({
+          url,
+          email,
+          wantsFeatured: false,
+          submission_attribution: { self_reported_source: selfReportedSource },
+        }),
       });
       const data = await res.json();
       if (!res.ok) {
@@ -57,6 +64,9 @@ export function SubmitToolDialog() {
         subject: `New MCP submission, ${data.repo_name || url}`,
         from_name: "TrackMCP · MCP Submit",
         repository: url,
+        email,
+        wants_featured: "No",
+        how_did_you_hear_about_trackmcp: selfReportedSource,
         source: "Browse dialog",
       });
       setStatus("done");
@@ -128,6 +138,29 @@ export function SubmitToolDialog() {
                   placeholder="you@example.com"
                   className="mt-3 w-full rounded-lg border border-line-strong bg-white px-3.5 py-3 text-[15px] text-ink outline-none transition-colors placeholder:text-faint focus:border-brand focus:ring-2 focus:ring-brand/20"
                 />
+                <label htmlFor="submitter-source" className="sr-only">
+                  How did you hear about TrackMCP?
+                </label>
+                <div className="relative mt-3">
+                  <select
+                    id="submitter-source"
+                    required
+                    value={selfReportedSource}
+                    onChange={(e) => setSelfReportedSource(e.target.value)}
+                    className="w-full appearance-none rounded-lg border border-line-strong bg-white px-3.5 py-3 pr-10 text-[15px] text-ink outline-none transition-colors focus:border-brand focus:ring-2 focus:ring-brand/20"
+                  >
+                    <option value="" disabled>How did you hear about TrackMCP?</option>
+                    <option value="google">Google or another search engine</option>
+                    <option value="chatgpt">ChatGPT or another AI assistant</option>
+                    <option value="github">GitHub</option>
+                    <option value="social_media">Social media</option>
+                    <option value="community">Community, Discord, Slack, or forum</option>
+                    <option value="email_newsletter">Email or newsletter</option>
+                    <option value="friend_or_colleague">Friend or colleague</option>
+                    <option value="other">Other</option>
+                  </select>
+                  <span aria-hidden="true" className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-faint">⌄</span>
+                </div>
                 {status === "error" && <p className="mt-2 text-[13px] text-amber-600">{message}</p>}
                 <button
                   type="submit"

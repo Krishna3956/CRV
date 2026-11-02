@@ -3,6 +3,7 @@ import { ArrowRight } from "lucide-react";
 import type { McpTool } from "@/lib/repository/types";
 import { ToolCard } from "./ToolCard";
 import { EarlyAccessButton } from "@/components/EarlyAccessButton";
+import { SubmitToolDialog } from "./SubmitToolDialog";
 
 /* Simple server-rendered listing (used by New, Top, and Category pages). */
 export function RepoListing({
@@ -10,26 +11,35 @@ export function RepoListing({
   title,
   subtitle,
   tools,
+  trendingToolIds,
 }: {
   eyebrow: string;
   title: string;
   subtitle: string;
   tools: McpTool[];
+  trendingToolIds?: string[];
 }) {
   return (
     <>
       <section className="border-b border-line">
         <div className="mx-auto max-w-6xl px-6 py-12">
-          <Link
-            href="/repository"
-            className="text-[12px] font-medium uppercase tracking-[0.04em] text-brand transition-colors hover:text-brand-strong"
-          >
-            {eyebrow}
-          </Link>
-          <h1 className="mt-3 max-w-[22ch] text-[32px] font-medium leading-[1.08] tracking-[-0.03em] text-ink sm:text-[42px]">
-            {title}
-          </h1>
-          <p className="mt-3 max-w-[60ch] text-[16px] leading-[1.5] text-muted">{subtitle}</p>
+          <div className="flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between sm:gap-8">
+            <div>
+              <Link
+                href="/repository"
+                className="text-[12px] font-medium uppercase tracking-[0.04em] text-brand transition-colors hover:text-brand-strong"
+              >
+                {eyebrow}
+              </Link>
+              <h1 className="mt-3 max-w-[22ch] text-[32px] font-medium leading-[1.08] tracking-[-0.03em] text-ink sm:text-[42px]">
+                {title}
+              </h1>
+              <p className="mt-3 max-w-[60ch] text-[16px] leading-[1.5] text-muted">{subtitle}</p>
+            </div>
+            <div className="shrink-0 sm:pt-1">
+              <SubmitToolDialog />
+            </div>
+          </div>
         </div>
       </section>
 
@@ -47,6 +57,7 @@ export function RepoListing({
                 githubUrl={t.github_url}
                 language={t.language || undefined}
                 topics={t.topics || undefined}
+                isTrending={trendingToolIds?.includes(t.id)}
               />
             ))}
           </div>

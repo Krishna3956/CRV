@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { Package, ChevronDown, ArrowRight } from "lucide-react";
 import type { McpTool } from "@/lib/repository/types";
+import { normalizeCategory } from "@/lib/repository/types";
 import { searchToolsAction, toolsByCategoryAction } from "@/lib/repository/actions";
 import { SearchBar } from "./SearchBar";
 import { FilterBar } from "./FilterBar";
@@ -20,10 +21,12 @@ export function BrowseClient({
   initialTools,
   totalCount,
   initialQuery = "",
+  trendingToolIds,
 }: {
   initialTools: McpTool[];
   totalCount: number;
   initialQuery?: string;
+  trendingToolIds?: string[];
 }) {
   const [input, setInput] = useState(initialQuery);
   const [sortBy, setSortBy] = useState("stars");
@@ -85,7 +88,7 @@ export function BrowseClient({
   const filtered = useMemo(() => {
     return tools
       .filter((t) => t.repo_name && t.github_url)
-      .filter((t) => (category === "all" ? true : t.category === category))
+      .filter((t) => (category === "all" ? true : normalizeCategory(t.category) === category))
       .filter(
         (t) =>
           !q ||
@@ -96,15 +99,17 @@ export function BrowseClient({
       .sort((a, b) => {
         if (sortBy === "recent")
           return new Date(b.last_updated || 0).getTime() - new Date(a.last_updated || 0).getTime();
-        if (sortBy === "name") return (a.repo_name || "").localeCompare(b.repo_name || "");
-        return (b.stars || 0) - (a.stars || 0);
+        if (sortBy === "name") return (a.repo_name || "").localeCompare(b.repo_name || "") || a.id.localeCompare(b.id);
+        return (b.stars || 0) - (a.stars || 0) || a.id.localeCompare(b.id);
       });
   }, [tools, q, category, sortBy]);
 
-  const trending = useMemo(() => {
-    const top = [...tools].sort((a, b) => (b.stars || 0) - (a.stars || 0)).slice(0, 5);
-    return new Set(top.map((t) => t.id));
-  }, [tools]);
+  // Trending is a directory-wide property, not a property of whichever
+  // search/category slice happens to be loaded in the browser.
+  const trending = useMemo(
+    () => new Set(trendingToolIds || initialTools.slice(0, 5).map((tool) => tool.id)),
+    [initialTools, trendingToolIds],
+  );
 
   const displayed = q ? filtered : filtered.slice(0, visible);
   const hasMore = !q && visible < filtered.length;

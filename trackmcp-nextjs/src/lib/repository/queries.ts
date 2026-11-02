@@ -1,12 +1,20 @@
 import { getSupabase } from "./supabase";
 import { isBlocked } from "./blocked";
-import { githubPathFromToolSlug, toolSlug } from "./types";
+import { githubPathFromToolSlug, inferCategory, normalizeCategory, toolSlug } from "./types";
 import type { McpTool } from "./types";
 import { unstable_cache, unstable_noStore } from "next/cache";
 
 /* Drop repos that are blocked from the directory (404/invalid/banned). */
 function keep(tools: McpTool[]): McpTool[] {
   return tools.filter((t) => !isBlocked(t.repo_name));
+}
+
+function withDisplayCategory(tool: McpTool): McpTool {
+  return { ...tool, category: inferCategory(tool) };
+}
+
+function withDisplayCategories(tools: McpTool[]): McpTool[] {
+  return tools.map(withDisplayCategory);
 }
 
 /* Server-side queries for the MCP directory (ported from the live site's
@@ -34,9 +42,10 @@ export async function getTopTools(limit = 300): Promise<McpTool[]> {
     .from("mcp_tools")
     .select(FIELDS)
     .in("status", ["approved", "pending"])
-    .order("stars", { ascending: false })
+    .order("stars", { ascending: false, nullsFirst: false })
+    .order("id", { ascending: true })
     .limit(limit);
-  return keep((data as McpTool[]) || []);
+  return withDisplayCategories(keep((data as McpTool[]) || []));
 }
 
 export async function getNewestTools(limit = 60): Promise<McpTool[]> {
@@ -46,9 +55,10 @@ export async function getNewestTools(limit = 60): Promise<McpTool[]> {
     .from("mcp_tools")
     .select(FIELDS)
     .in("status", ["approved", "pending"])
-    .order("created_at", { ascending: false })
+    .order("created_at", { ascending: false, nullsFirst: false })
+    .order("id", { ascending: true })
     .limit(limit);
-  return keep((data as McpTool[]) || []);
+  return withDisplayCategories(keep((data as McpTool[]) || []));
 }
 
 export async function getToolByName(name: string): Promise<McpTool | null> {
@@ -98,14 +108,28 @@ const getCachedToolByName = unstable_cache(
 export async function getToolsByCategory(category: string, limit = 300): Promise<McpTool[]> {
   const supabase = getSupabase();
   if (!supabase) return [];
-  const { data } = await supabase
-    .from("mcp_tools")
-    .select(FIELDS)
-    .in("status", ["approved", "pending"])
-    .eq("category", category)
-    .order("stars", { ascending: false })
-    .limit(limit);
-  return keep((data as McpTool[]) || []);
+  const requested = normalizeCategory(category);
+  const matches: McpTool[] = [];
+  const batch = 1000;
+  const maxRows = 50000;
+  // Imported catalogs contain legacy labels (for example `Other`) and rows
+  // without a category. Read deterministically in pages and apply the same
+  // display-time classifier used by the category counts so category routes do
+  // not return a misleading zero-match page.
+  for (let offset = 0; offset < maxRows && matches.length < limit; offset += batch) {
+    const { data, error } = await supabase
+      .from("mcp_tools")
+      .select(FIELDS)
+      .in("status", ["approved", "pending"])
+      .order("stars", { ascending: false, nullsFirst: false })
+      .order("id", { ascending: true })
+      .range(offset, offset + batch - 1);
+    if (error || !data || data.length === 0) break;
+    const rows = withDisplayCategories(keep((data as McpTool[]) || []));
+    matches.push(...rows.filter((tool) => tool.category === requested));
+    if (data.length < batch) break;
+  }
+  return matches.slice(0, limit);
 }
 
 export async function searchToolsQuery(query: string, limit = 200): Promise<McpTool[]> {
@@ -120,9 +144,10 @@ export async function searchToolsQuery(query: string, limit = 200): Promise<McpT
     .select(FIELDS)
     .in("status", ["approved", "pending"])
     .or(`repo_name.ilike.%${escapedQuery}%,description.ilike.%${escapedQuery}%,github_url.ilike.%${escapedQuery}%`)
-    .order("stars", { ascending: false })
+    .order("stars", { ascending: false, nullsFirst: false })
+    .order("id", { ascending: true })
     .limit(limit);
-  return keep((data as McpTool[]) || []);
+  return withDisplayCategories(keep((data as McpTool[]) || []));
 }
 
 export const TOOL_SITEMAP_PAGE_SIZE = 45000;
@@ -209,14 +234,14 @@ export async function getCategoryCounts(): Promise<Record<string, number>> {
   for (let offset = 0; offset < max; offset += batch) {
     const { data, error } = await supabase
       .from("mcp_tools")
-      .select("id, category, repo_name")
+      .select("id, category, repo_name, description, topics, language")
       .in("status", ["approved", "pending"])
       .order("id", { ascending: true })
       .range(offset, offset + batch - 1);
     if (error || !data || data.length === 0) break;
-    for (const row of data as { id: string; category: string | null; repo_name: string | null }[]) {
+    for (const row of data as { id: string; category: string | null; repo_name: string | null; description: string | null; topics: string[] | null; language: string | null }[]) {
       if (isBlocked(row.repo_name)) continue;
-      const c = row.category || "Others";
+      const c = inferCategory(row);
       counts[c] = (counts[c] || 0) + 1;
     }
     if (data.length < batch) break;

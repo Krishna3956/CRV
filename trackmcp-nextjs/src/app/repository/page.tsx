@@ -22,7 +22,7 @@ export default async function RepositoryPage({
 }: {
   searchParams: Promise<{ q?: string | string[] }>;
 }) {
-  const [tools, count] = await Promise.all([getTopTools(300), getToolCount()]);
+  const [tools, count, trendingTools] = await Promise.all([getTopTools(300), getToolCount(), getTopTools(5)]);
   const params = await searchParams;
   const initialQuery = typeof params.q === "string" ? params.q : "";
   return (
@@ -30,7 +30,12 @@ export default async function RepositoryPage({
       <Nav />
       <main className="flex-1">
         <PageFrame>
-          <BrowseClient initialTools={tools} totalCount={count} initialQuery={initialQuery} />
+          <BrowseClient
+            initialTools={tools}
+            totalCount={count}
+            initialQuery={initialQuery}
+            trendingToolIds={trendingTools.map((tool) => tool.id)}
+          />
         </PageFrame>
       </main>
       <Footer />

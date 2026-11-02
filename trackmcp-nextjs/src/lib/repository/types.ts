@@ -58,6 +58,67 @@ export const CATEGORIES: { id: string; label: string }[] = [
   { id: "Others", label: "Others" },
 ];
 
+const CATEGORY_IDS = new Set(CATEGORIES.map((category) => category.id));
+const CATEGORY_ALIASES: Record<string, string> = {
+  other: "Others",
+  others: "Others",
+  uncategorized: "Others",
+  "ai and machine learning": "AI & Machine Learning",
+  "ai & ml": "AI & Machine Learning",
+  "developer kit": "Developer Kits",
+  "developer kits": "Developer Kits",
+  infrastructure: "Servers & Infrastructure",
+  "servers and infrastructure": "Servers & Infrastructure",
+  search: "Search & Data Retrieval",
+  "search and data retrieval": "Search & Data Retrieval",
+  automation: "Automation & Productivity",
+  "web and internet tools": "Web & Internet Tools",
+  communication: "Communication",
+  files: "File & Data Management",
+  "file and data management": "File & Data Management",
+};
+
+/** Convert legacy/imported category labels into the directory's canonical ids. */
+export function normalizeCategory(value: unknown): string {
+  if (typeof value !== "string") return "Others";
+  const trimmed = value.trim();
+  if (!trimmed) return "Others";
+  if (CATEGORY_IDS.has(trimmed)) return trimmed;
+  return CATEGORY_ALIASES[trimmed.toLowerCase()] || "Others";
+}
+
+/**
+ * Give legacy rows that were imported as `Other` a useful display category
+ * without mutating the source catalog. This is intentionally conservative:
+ * only bounded repository metadata is used and anything ambiguous remains in
+ * Others. A future data backfill can persist the same decisions if desired.
+ */
+export function inferCategory(value: {
+  category?: unknown;
+  repo_name?: string | null;
+  description?: string | null;
+  topics?: string[] | null;
+  language?: string | null;
+}): string {
+  const normalized = normalizeCategory(value.category);
+  if (normalized !== "Others") return normalized;
+  const text = [value.repo_name, value.description, value.language, ...(value.topics || [])]
+    .filter(Boolean)
+    .join(" ")
+    .toLowerCase();
+  const rules: Array<[string, RegExp]> = [
+    ["AI & Machine Learning", /\b(ai|llm|model|ml|machine[- ]learning|embedding|agent|rag|vector)\b/],
+    ["Search & Data Retrieval", /\b(search|retrieval|database|sql|postgres|mysql|redis|elasticsearch|vector|data)\b/],
+    ["Automation & Productivity", /\b(automation|workflow|productivity|calendar|task|notion|zapier|slack bot)\b/],
+    ["Communication", /\b(chat|communication|discord|slack|telegram|email|messaging)\b/],
+    ["File & Data Management", /\b(file|filesystem|storage|drive|dropbox|s3|spreadsheet|document)\b/],
+    ["Web & Internet Tools", /\b(web|browser|http|api|scrape|crawl|website|internet)\b/],
+    ["Developer Kits", /\b(sdk|cli|developer|framework|typescript|javascript|python|go|rust|java)\b/],
+    ["Servers & Infrastructure", /\b(server|hosting|docker|kubernetes|cloud|aws|azure|gcp|infra|monitor)\b/],
+  ];
+  return rules.find(([, pattern]) => pattern.test(text))?.[0] || "Others";
+}
+
 export function categorySlug(id: string): string {
   return id
     .toLowerCase()

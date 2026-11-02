@@ -27,6 +27,7 @@ export default async function TopMcpPage() {
             title="Popular MCP servers"
             subtitle="The most-starred MCP servers and tools in the directory, ranked by GitHub stars."
             tools={tools}
+            trendingToolIds={tools.slice(0, 5).map((tool) => tool.id)}
           />
         </PageFrame>
       </main>
