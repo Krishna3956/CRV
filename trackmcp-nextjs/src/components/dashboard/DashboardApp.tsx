@@ -1676,18 +1676,18 @@ const emptyPageCopy: Record<
     description:
       "See what the server offers and which capabilities are observed in use.",
     preview: [
-      { label: "Capabilities observed", detail: "What your MCP advertises versus what users call." },
-      { label: "Activity", detail: "Call volume and usage share for each capability." },
-      { label: "Errors", detail: "Returned errors and error rates by capability." },
+      { label: "Features observed", detail: "What your MCP offers versus what people use." },
+      { label: "Observed actions", detail: "How much activity each feature receives." },
+      { label: "Reliability", detail: "Returned errors and retries by feature." },
       { label: "Evidence", detail: "A trace to inspect when a capability needs context." },
     ],
   },
   resources: {
     description: "See bounded resource and prompt method observations without exposing content or inputs.",
     preview: [
-      { label: "Resource activity", detail: "Method events and hashed entity counts." },
-      { label: "Prompt activity", detail: "Prompt methods observed at the server boundary." },
-      { label: "Read outcomes", detail: "Successful, failed, and input-required read states." },
+      { label: "Resource activity", detail: "Information lookups and privacy-safe item counts." },
+      { label: "Guided-help activity", detail: "Prompts observed at the server boundary." },
+      { label: "Read outcomes", detail: "Completed, failed, and needs-input states." },
       { label: "Privacy boundary", detail: "No resource content, URI, or prompt argument is shown." },
     ],
   },
@@ -1695,9 +1695,9 @@ const emptyPageCopy: Record<
     description:
       "Review observed capability quality without turning insufficient data into a failure.",
     preview: [
-      { label: "Success", detail: "Observed completion and success signals." },
-      { label: "Errors", detail: "Error and retry rates for each capability." },
-      { label: "Latency", detail: "p95 timing over the selected activity period." },
+      { label: "Explicit success", detail: "Work your server reported as completed." },
+      { label: "Errors and retries", detail: "Reliability friction for each feature." },
+      { label: "Response timing", detail: "Observed response timing over the selected period." },
       { label: "Insufficient data", detail: "A clear reason when a metric is not trustworthy yet." },
     ],
   },
@@ -1707,16 +1707,16 @@ const emptyPageCopy: Record<
     preview: [
       { label: "Issue", detail: "A regression or signal identified from observed data." },
       { label: "Severity", detail: "The current state, such as firing, resolved, or suppressed." },
-      { label: "Affected volume", detail: "Eligible comparison volume behind the signal." },
+      { label: "Affected volume", detail: "How much observed activity supports the signal." },
       { label: "Evidence", detail: "The baseline, comparison, threshold, and recovery context." },
     ],
   },
   clients: {
-    description: "See which AI clients are using the connected server.",
+    description: "See which assistants and privacy-safe account signals are showing up.",
     preview: [
-      { label: "AI clients", detail: "The assistants observed at your server boundary." },
-      { label: "Activity", detail: "Calls and sessions attributed to each client." },
-      { label: "Sessions", detail: "How client activity unfolds over time." },
+      { label: "Assistants", detail: "Applications reported by connected sessions." },
+      { label: "Account signals", detail: "Privacy-safe grouping when your resolver supplies it." },
+      { label: "Activity", detail: "Observed actions and sessions by assistant." },
       { label: "Evidence", detail: "A trace for the activity you want to understand." },
     ],
   },
@@ -1725,7 +1725,7 @@ const emptyPageCopy: Record<
     preview: [
       { label: "Sessions", detail: "A selected task or interaction to investigate." },
       { label: "Timeline", detail: "The ordered steps, timing, and status of the trace." },
-      { label: "Correlation", detail: "The handle that connects related server events." },
+      { label: "Related events", detail: "The link that connects related server events." },
       { label: "Bounded events", detail: "Redacted event detail without unbounded payloads." },
     ],
   },

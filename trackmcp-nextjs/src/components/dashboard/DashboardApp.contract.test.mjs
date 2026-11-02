@@ -188,6 +188,10 @@ test("business users receive orientation before technical detail", () => {
   assert.match(source, /Evidence is the drill-down, not the starting point/);
   assert.match(source, /bounded, redacted steps and timing without exposing payloads or private inputs/);
   assert.match(source, /Observed actions/);
+  assert.match(source, /privacy-safe item counts/);
+  assert.match(source, /assistants and privacy-safe account signals/);
+  assert.match(source, /Errors and retries/);
+  assert.match(source, /Related events/);
   assert.match(source, /className="mt-1 text-\[11px\] leading-relaxed text-muted">\{helper\}/);
 });
 
@@ -529,8 +533,8 @@ test("Setup keeps revoked key history collapsed until explicitly requested", () 
 test("empty page previews explain each product area instead of repeating generic placeholders", () => {
   for (const phrase of [
     "The business tasks users start",
-    "What your MCP advertises versus what users call",
-    "p95 timing over the selected activity period",
+    "What your MCP offers versus what people use",
+    "Observed response timing over the selected period",
     "The current state, such as firing, resolved, or suppressed",
     "The ordered steps, timing, and status of the trace",
   ]) {
