@@ -54,6 +54,8 @@ Legend: `[x]` verified/implemented in this workstream; `[ ]` pending.
 - [x] ✅ Add table alternatives for the Overview activity chart and account
       growth chart so business users can read exact values without relying on
       hover interactions.
+- [x] ✅ Move dense protocol-family and lifecycle detail behind an explicit
+      “Technical protocol evidence” disclosure on the capability view.
 - [x] ✅ Perform a read-only browser review of the current production Setup,
       Overview, Example data, and My data states; record live-vs-branch
       differences in the audit.
