@@ -34,6 +34,8 @@ Legend: `[x]` verified/implemented in this workstream; `[ ]` pending.
       preparation instead of showing a generic loading message.
 - [x] ✅ Add an Evidence-view guide that makes technical drill-down and privacy
       boundaries clear to business readers.
+- [x] ✅ Add a requirement-by-requirement readiness matrix that separates
+      branch proof, live read-only evidence, and remaining pilot gates.
 - [x] ✅ Perform a read-only browser review of the current production Setup,
       Overview, Example data, and My data states; record live-vs-branch
       differences in the audit.
