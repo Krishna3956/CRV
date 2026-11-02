@@ -94,19 +94,36 @@ jobs:
             [[ "$state" == "running" ]] || { echo STAGING_SUPABASE_HEALTH_SERVICE_NOT_RUNNING service="$service" state="$state"; exit 1; }
           done
 
-          docker compose exec -T db pg_isready -U postgres >/dev/null
+          set +e
+          docker compose exec -T db pg_isready -U postgres >/dev/null 2>&1
+          DB_STATUS=$?
+          set -e
+          if [[ "$DB_STATUS" -ne 0 ]]; then
+            echo STAGING_SUPABASE_HEALTH_DB_FAILED status="$DB_STATUS"
+            exit 1
+          fi
           echo STAGING_SUPABASE_HEALTH_DB_READY
+
+          set +e
           AUTH_STATUS=$(curl -sS -o /dev/null -w '%{http_code}' \
             -H "apikey: $ANON_KEY" \
             -H "Authorization: Bearer $ANON_KEY" \
             http://127.0.0.1:8000/auth/v1/settings)
+          AUTH_CURL_STATUS=$?
+          set -e
           echo "STAGING_SUPABASE_HEALTH_AUTH_HTTP_STATUS=${AUTH_STATUS}"
+          [[ "$AUTH_CURL_STATUS" -eq 0 ]] || { echo STAGING_SUPABASE_HEALTH_AUTH_CURL_FAILED status="$AUTH_CURL_STATUS"; exit 1; }
           [[ "$AUTH_STATUS" == "200" ]] || { echo STAGING_SUPABASE_HEALTH_AUTH_HTTP_FAILED status="$AUTH_STATUS"; exit 1; }
+
+          set +e
           REST_STATUS=$(curl -sS -o /dev/null -w '%{http_code}' \
             -H "apikey: $ANON_KEY" \
             -H "Authorization: Bearer $ANON_KEY" \
             http://127.0.0.1:8000/rest/v1/)
+          REST_CURL_STATUS=$?
+          set -e
           echo "STAGING_SUPABASE_HEALTH_REST_HTTP_STATUS=${REST_STATUS}"
+          [[ "$REST_CURL_STATUS" -eq 0 ]] || { echo STAGING_SUPABASE_HEALTH_REST_CURL_FAILED status="$REST_CURL_STATUS"; exit 1; }
           [[ "$REST_STATUS" =~ ^(2|4)[0-9][0-9]$ ]] || { echo STAGING_SUPABASE_HEALTH_REST_HTTP_FAILED status="$REST_STATUS"; exit 1; }
 
           echo "STAGING_SUPABASE_HEALTH_PROBE_PASSED services=db,auth,rest,api-gw auth_http=${AUTH_STATUS} rest_http=${REST_STATUS}"
