@@ -193,5 +193,11 @@ engineering vocabulary. The branch now uses:
   and account-group availability; technical evidence remains available below
   the status summary.
 
+The same Setup route was reopened in a local browser after this pass. Its
+accessibility tree showed `Activity collection is fail-open`, `first activity
+is sent`, `bounded activity metadata`, and `Connection method identified`.
+This confirms the new wording is rendered in the first-time setup path rather
+than only changed in source.
+
 The underlying evidence contracts and technical disclosures were not removed.
 This is a copy and comprehension change, not a metric or read-model change.

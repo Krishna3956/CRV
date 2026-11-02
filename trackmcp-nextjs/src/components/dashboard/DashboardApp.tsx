@@ -4851,7 +4851,7 @@ function SetupView({
               </div>
             </div>
             <p className="mt-2 text-[11px] leading-relaxed text-muted">
-              Your server telemetry must use these labels when they are set. A mismatched label is rejected without changing the key.
+              Your server activity must use these labels when they are set. A mismatched label is rejected without changing the key.
             </p>
             {activeSetupContract.setup.scope_match === false && (
               <div className="mt-3 border border-amber-200 bg-amber-50 px-3 py-2 text-[11px] leading-relaxed text-amber-900" role="alert">
@@ -4873,7 +4873,7 @@ function SetupView({
       </section>
       <Panel
         title="Server and environment"
-        subtitle="Observed scope comes from bounded telemetry; it is not proof that a named customer or deployment exists."
+        subtitle="Observed scope comes from bounded activity metadata; it is not proof that a named customer or deployment exists."
       >
         {analytics?.services?.length || analytics?.environments?.length ? (
           <div className="grid gap-3 sm:grid-cols-2">
@@ -4907,7 +4907,7 @@ function SetupView({
         >
           <div className="mt-4 grid gap-3 sm:grid-cols-2">
             <label className="text-xs font-semibold text-ink">
-              <span className="flex items-center gap-1.5">Server name <InfoHint label="About server name" text="A bounded label supplied by your server and used to group telemetry. It is not a TrackMCP deployment record." /></span>
+              <span className="flex items-center gap-1.5">Server name <InfoHint label="About server name" text="A bounded label supplied by your server and used to group activity. It is not a TrackMCP deployment record." /></span>
               <input
                 value={serviceName}
                 onChange={(event) => updateService(event.target.value)}
@@ -4966,7 +4966,7 @@ function SetupView({
             {copied ? "Copied" : "Copy setup"}
           </button>
           <p className="mt-4 text-xs leading-relaxed text-muted">
-            Telemetry is fail-open. Payloads remain subject to the existing
+            Activity collection is fail-open. Payloads remain subject to the existing
             privacy and redaction policy.
           </p>
           <p className="mt-3 text-xs leading-relaxed text-muted">
@@ -4993,7 +4993,7 @@ function SetupView({
             </p>
           )}
           <p className="mt-3 text-xs leading-relaxed text-muted">
-            After creating a key, set <code className="font-mono text-ink">TRACKMCP_KEY</code> in your server environment, restart the server, and make one real tool call. Your data appears after the first telemetry flush.
+            After creating a key, set <code className="font-mono text-ink">TRACKMCP_KEY</code> in your server environment, restart the server, and make one real tool call. Your data appears after the first activity is sent.
           </p>
           </div>
         </Panel>
@@ -5158,7 +5158,7 @@ function SetupView({
           <span className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-paper text-muted"><Info size={17} /></span>
           <span>Know what you are sharing <span className="ml-2 text-xs font-normal text-muted">Privacy and data flow</span></span>
         </summary>
-        <p className="mt-3 text-xs leading-relaxed text-muted">TrackMCP receives bounded telemetry to explain how your MCP is used, where work succeeds, and where it needs attention.</p>
+        <p className="mt-3 text-xs leading-relaxed text-muted">TrackMCP receives bounded activity metadata to explain how your MCP is used, where work succeeds, and where it needs attention.</p>
         <div className="mt-5 grid gap-3 md:grid-cols-3">
           <div className="border border-line bg-paper p-4">
             <p className="text-[10px] font-semibold uppercase tracking-[0.08em] text-faint">
@@ -5166,7 +5166,7 @@ function SetupView({
             </p>
             <p className="mt-2 text-xs leading-relaxed text-muted">
               Your server SDK observes events, redacts and bounds them locally,
-              then sends telemetry over HTTPS to TrackMCP.
+              then sends the activity metadata over HTTPS to TrackMCP.
             </p>
           </div>
           <div className="border border-line bg-paper p-4">
