@@ -2,7 +2,7 @@
 
 This is a redacted custody ledger. It intentionally contains names, purposes, owners, storage locations, and rotation evidence only. Secret values, passwords, OAuth client secrets, private keys, JWT signing secrets, API tokens, and service-role keys must never be committed here or into any issue.
 
-Last reviewed: 2026-11-01
+Last reviewed: 2026-11-02
 
 ## Rules
 
