@@ -3,7 +3,7 @@
 **Goal:** Move TrackMCP from Supabase Cloud Free to an AWS Activate-funded, self-hosted Supabase deployment with the smallest safe application change, while preserving users, authentication, data, security, backups, and rollback safety.
 
 **Status:** IN PROGRESS  
-**Last updated:** 2026-11-02 09:49 IST
+**Last updated:** 2026-11-02 10:07 IST
 **Repository:** `/Users/krishna/Documents/Codex/2026-10-17/okay-x20/CRV`  
 **Branch:** `codex/record-final-go`
 
@@ -103,4 +103,5 @@ This is provisional until current Supabase compatibility requirements, AWS prici
 | 2026-11-02 09:25 IST | Source credential access check | Authenticated Supabase Database Settings confirms the database password is not viewable after creation; the password-reset control is disabled, and the page warns that resetting it would break existing connections. No reset or project setting change was attempted. The source export remains blocked only on obtaining the existing Postgres connection string through the approved secret store. | VERIFIED / OWNER SECRET ACTION REQUIRED |
 | 2026-11-02 09:39 IST | Application integration inventory | Read-only repository inspection of `trackmcp-nextjs/src/lib/repository/supabase.ts`, `src/lib/auth/supabase-browser.ts`, `src/lib/auth/supabase-server.ts`, `src/proxy.ts`, and `deploy/apprunner-deploy.sh` confirms the runtime dependency is centralized through `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, and the server-only `SUPABASE_SERVICE_ROLE_KEY`. No direct `DATABASE_URL` consumer was found; App Runner injects the service-role key through its Secrets Manager bundle. No production values were changed. | VERIFIED / READY FOR POST-EXPORT CONFIGURATION |
 | 2026-11-02 09:49 IST | Fresh staging inspection | Read-only workflow run #10 (`41387720677`), job `125092166682`, completed successfully in 17 seconds from `main`. It rechecked the preserved CloudFormation stack, EC2/SSM state, security group, private/versioned/encrypted S3 backup bucket, and staging secret-container metadata without reading secret values or mutating resources. GitHub emitted only runner-maintenance notices about Node.js 20 action compatibility and the future `ubuntu-latest` image migration. | VERIFIED / OPERATING |
+| 2026-11-02 10:07 IST | Guarded export artifact verifier | PR [#827](https://github.com/Krishna3956/CRV/pull/827) was squash-merged to `main` as `608209e`. The verifier validates the existing private S3 export object's encryption metadata, redacted manifest, byte count, SHA-256, and `pg_restore --list` readability without connecting to Supabase Cloud, restoring, overwriting, or deleting any object or database. Its contract test passed locally and the pull-request web/JavaScript CI job completed successfully. | VERIFIED / READY FOR SOURCE SECRET |
 
