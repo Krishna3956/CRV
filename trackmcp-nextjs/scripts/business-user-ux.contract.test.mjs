@@ -10,6 +10,8 @@ const research = await readFile(new URL("../../docs/FOUNDER-OS-BUSINESS-USER-UX-
 const queue = await readFile(new URL("../../docs/FOUNDER-OS-BUSINESS-USER-UX-WORK-QUEUE.md", import.meta.url), "utf8");
 
 test("new-user setup explains the business outcome before technical detail", () => {
+  assert.match(dashboard, /What TrackMCP will help your team understand/);
+  assert.match(dashboard, /product and operations teams understand how people use their MCP/);
   assert.match(dashboard, /What you will get after setup/);
   assert.match(dashboard, /A technical teammate usually completes this page/);
   assert.match(dashboard, /Create a key, connect one server, make one real tool call/);

@@ -1789,8 +1789,8 @@ function ServerConnectionState({
     <div>
       <PageIntro title={title} description={copy.description} actions={pageControls} />
       <BusinessContext
-        title="What happens after this step?"
-        body="A technical teammate connects one MCP server. Once TrackMCP receives a real event, this area will show who used it, what they tried, whether it worked, and what needs attention."
+        title="What TrackMCP will help your team understand"
+        body="TrackMCP helps product and operations teams understand how people use their MCP: who is showing up, what they are trying to do, whether the work completed, and what needs attention. A technical teammate connects one server; once a real event arrives, this area starts filling in."
       />
       <section className="overflow-hidden rounded-2xl border border-line bg-white p-6 shadow-[0_24px_60px_-44px_rgba(18,59,42,0.45)] sm:p-8">
         <div className="flex items-start gap-3">
