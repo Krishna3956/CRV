@@ -486,6 +486,18 @@ Latest verification after `2ac7b4be`:
 - The branch remains local and undeployed; fresh-account, production, and
   non-technical participant evidence are still required.
 
+Latest local runtime verification after `cf0d0d40`:
+
+- Rebuilt standalone server started with placeholder Supabase values and the
+  documented local dashboard bypass.
+- HTTP 200 returned for the public routes, docs, device page, sitemap index,
+  sitemap, and every business dashboard view under Example data.
+- `/tool-sitemap.xml` failed closed with HTTP 503 and a positive `Retry-After`
+  header (`300` seconds) because no real database was configured. It did not
+  return an empty successful sitemap.
+- The server was stopped cleanly. This is local runtime evidence only; it is
+  not authenticated production evidence.
+
 Latest visual-system verification after `cf0d0d40`:
 
 - The dashboard now uses cool neutral surfaces with indigo as the primary
