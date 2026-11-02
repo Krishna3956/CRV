@@ -29,6 +29,10 @@ The final source pass also removed the remaining title-case variants from
 secondary action props and tool/issue drill-downs, so the phrase is consistent
 even when the action is rendered outside the primary Evidence table.
 
+The Outcome evidence panel now leads with the reader-facing rule — only
+outcomes explicitly reported by the server count — instead of the internal
+“semantic facts” term.
+
 ## Latest browser confirmation
 
 - Local route: `/dashboard?view=evidence&data=example` on the isolated branch.

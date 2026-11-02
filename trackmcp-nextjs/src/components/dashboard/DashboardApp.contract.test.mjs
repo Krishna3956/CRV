@@ -583,7 +583,8 @@ test("Overview exposes Founder OS outcome and evidence-quality states", () => {
   assert.match(source, /event-weighted, not unique people/);
   assert.match(source, /aria-label="Data trust"/);
   assert.match(source, /title="Outcome evidence"/);
-  assert.match(source, /Semantic facts are separated from activity/);
+  assert.match(source, /TrackMCP counts only outcomes your server explicitly reported/);
+  assert.doesNotMatch(source, /Semantic facts are separated from activity/);
   for (const label of ["Completed", "Failed", "Pending", "Unknown", "Not observable", "Observed", "Inferred", "Insufficient data", "Conflicting"]) {
     assert.match(source, new RegExp(label));
   }

@@ -2738,7 +2738,7 @@ function FounderOSSignalPanel({
   return (
     <Panel
       title="Outcome evidence"
-      subtitle="Semantic facts are separated from activity. Unknown or missing outcomes are never counted as success."
+      subtitle="TrackMCP counts only outcomes your server explicitly reported. Unknown or missing outcomes are never counted as success."
     >
       <div className="grid gap-5 lg:grid-cols-[1.2fr_1fr]">
         <div>

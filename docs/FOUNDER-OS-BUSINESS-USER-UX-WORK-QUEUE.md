@@ -150,6 +150,9 @@ Legend: `[x]` verified/implemented in this workstream; `[ ]` pending.
 - [x] ✅ Remove the last title-case `Open Evidence` labels from secondary
       journey, quality, issue, and evidence actions so business users encounter
       one consistent drill-down phrase throughout the dashboard.
+- [x] ✅ Replace the remaining “semantic facts” subtitle on Outcome evidence
+      with a direct explanation of what the dashboard counts and what it does
+      not infer.
 - [x] ✅ Run dashboard contracts, typecheck, lint, and production build.
 - [x] ✅ Run the consolidated release gate; all 159 suites pass after fixing
       clean-checkout MCP SDK resolution and Python artifact preparation.
