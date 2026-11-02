@@ -11,18 +11,7 @@ export type Block =
   | { t: "callout"; title: string; c: string }
   | { t: "faq"; q: string; a: string }
   | { t: "links"; items: { label: string; href: string; sponsored?: boolean }[] }
-  | { t: "listicle"; heading: string; intro: string; items: ListicleItem[] }
   | { t: "figure"; art: ArtKey; c: string };
-
-export type ListicleItem = {
-  name: string;
-  category: string;
-  bestFor: string;
-  coverage: string;
-  limitations: string;
-  trackMcpFit: string;
-  source?: { label: string; href: string };
-};
 
 export type Post = {
   slug: string;

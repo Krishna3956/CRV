@@ -1,173 +1,476 @@
-import type { ListicleItem } from "./posts";
+import type { Block } from "./posts";
 
-export type Wave2Listicle = {
-  heading: string;
-  intro: string;
-  items: ListicleItem[];
+type ComparisonEntry = {
+  name: string;
+  paragraphs: string[];
+  links?: { label: string; href: string }[];
 };
 
-const item = (
-  name: string,
-  category: string,
-  bestFor: string,
-  coverage: string,
-  limitations: string,
-  trackMcpFit: string,
-  source?: { label: string; href: string },
-): ListicleItem => ({ name, category, bestFor, coverage, limitations, trackMcpFit, source });
+export type Wave2Comparison = {
+  heading: string;
+  intro: string;
+  entries: ComparisonEntry[];
+  trackmcp: ComparisonEntry;
+};
 
-export const wave2Listicles: Record<string, Wave2Listicle> = {
+const entry = (name: string, paragraphs: string[], links?: { label: string; href: string }[]): ComparisonEntry => ({ name, paragraphs, links });
+
+export const wave2Comparisons: Record<string, Wave2Comparison> = {
   "best-mcp-testing-debugging-tools": {
-    heading: "The MCP testing tools, compared one by one",
-    intro: "These tools are not interchangeable. The card for each tool names the boundary it tests, the evidence it produces, and where TrackMCP complements it in production.",
-    items: [
-      item("MCP Inspector", "Interactive protocol inspection", "Exploring a server during development and reproducing one failing request.", "Initialization, capabilities, tool discovery, schemas, arguments, and returned results through an interactive client.", "Manual inspection is not a repeatable release gate and does not prove workflow completion, load behavior, or long-lived production trends.", "TrackMCP starts after the server boundary is instrumented. Use it to see whether the behavior reproduced in Inspector also appears in real client traffic, with duration, result state, and failure context.", { label: "MCP Inspector repository", href: "https://github.com/modelcontextprotocol/inspector" }),
-      item("MCP Conformance", "Protocol requirements", "A pinned CI check for machine-checkable MCP protocol behavior.", "Requirement sets, lifecycle messages, schemas, transports, and scenario results for a declared protocol revision.", "Conformance does not know whether business data is correct, whether a write is safe, or whether a user task completed.", "TrackMCP adds the server-side evidence that explains a conformance failure in a deployed environment and shows whether a protocol-green server still fails in production.", { label: "MCP conformance repository", href: "https://github.com/modelcontextprotocol/conformance" }),
-      item("Postman MCP", "Collections and repeatable requests", "Teams that want shareable request fixtures, environments, and reviewable API checks.", "Repeatable initialization and tool-call requests, environment variables, assertions, and collaboration around request collections.", "A collection can validate a request and response without evaluating agent tool choice, downstream side effects, or production observability.", "Keep Postman fixtures as pre-release checks and use TrackMCP to correlate the same tool calls with live client, server, latency, and outcome evidence.", { label: "Postman MCP guide", href: "https://www.postman.com/explore/mcp" }),
-      item("Promptfoo", "Agent and prompt evaluation", "Testing tool choice, argument formation, refusal behavior, and adversarial prompts across model or client variants.", "Scenario datasets, assertions, provider comparisons, and MCP provider runs that evaluate agent decisions rather than only wire validity.", "Evaluation quality depends on the dataset and assertions. It does not replace protocol, authorization, load, or server runtime checks.", "TrackMCP is the production join. Link an evaluation case to the server-boundary events that show the selected tool, result state, retries, and real completion behavior.", { label: "Promptfoo MCP provider docs", href: "https://www.promptfoo.dev/docs/providers/mcp/" }),
-      item("MCPJam", "MCP and agent test harness", "Interactive and scenario-based testing where tool selection and agent behavior matter.", "MCP-specific fixtures, agent interactions, and repeatable cases for discovering regressions in tool use.", "A harness still needs pinned servers, clients, models, and expected outcomes. It cannot automatically explain an uninstrumented production server.", "Use TrackMCP to validate that the behavior seen in a harness matches the traffic pattern, error rate, and tool adoption seen after release."),
-      item("TrackMCP", "Production server-boundary observability", "Knowing what real clients connect to, discover, call, fail, retry, and complete after the test suite passes.", "Connection, negotiation, catalog, tool-call duration, result-level errors, client context, and server-side outcome evidence at the MCP boundary.", "TrackMCP is not a conformance runner, an agent judge, or a substitute for deterministic fixtures. It explains deployed behavior rather than generating every test case.", "This is TrackMCP's lane. Pair it with Inspector, conformance, collections, and evals so a test finding can be followed into production without guessing.", { label: "TrackMCP production observability listicle", href: "/blog/best-mcp-observability-tools-for-production-servers" }),
+    heading: "How the main MCP testing options fit",
+    intro: "MCP testing tools answer different questions. The useful comparison is not which product has the longest integration list. It is whether the tool can reproduce the failure you need to understand, turn that case into a repeatable check, and preserve enough evidence for a release decision.",
+    trackmcp: entry("TrackMCP", [
+      "TrackMCP is not a test runner. It is the production evidence layer for the MCP server boundary. After a fixture passes in a local harness, TrackMCP shows what real clients discovered and called, how long those calls took, whether a valid protocol response contained an application error, and where an observed workflow stopped.",
+      "That makes TrackMCP useful after a test rather than instead of a test. Use a deterministic runner to create the case, then use TrackMCP to see whether the same server behavior appears in production and to turn a production regression into a stable fixture. The SDK records bounded, privacy-aware server signals and does not claim to see private model reasoning or every host-side event.",
+    ], [
+      { label: "TrackMCP MCP observability", href: "/mcp-observability" },
+      { label: "TrackMCP testing tools", href: "/tools/mcp-server-tester" },
+      { label: "Production observability comparison", href: "/blog/best-mcp-observability-tools-for-production-servers" },
+    ]),
+    entries: [
+      entry("MCP Inspector", [
+        "MCP Inspector is the fastest way to look directly at a server while developing or reproducing one failure. It lets an engineer inspect initialization, capabilities, tool discovery, schemas, arguments, and returned results without first building a large test harness.",
+        "Inspector is strongest as an interactive diagnosis tool. A successful manual call is not a CI contract, a load test, or proof that the user's workflow completed. Preserve the request, server version, protocol revision, and result evidence when converting an Inspector finding into an automated case.",
+      ], [{ label: "MCP Inspector repository", href: "https://github.com/modelcontextprotocol/inspector" }]),
+      entry("MCP Conformance", [
+        "The official MCP conformance work is for machine-checkable protocol requirements. It is the right option when a team needs a pinned requirement set for initialization, lifecycle messages, transports, schemas, or scenario behavior in CI.",
+        "Conformance does not know whether business data is correct, whether authorization protected a write, whether a dependency was slow, or whether a user task completed. Keep its result separate from application contract, reliability, security, and outcome tests.",
+      ], [{ label: "MCP conformance repository", href: "https://github.com/modelcontextprotocol/conformance" }]),
+      entry("Postman MCP", [
+        "Postman is useful when the team wants shareable request collections, environments, assertions, and reviewable fixtures. It gives developers, QA, and support teams a familiar place to reproduce initialization and tool-call requests.",
+        "A collection validates the request and response that you put in the case. It does not automatically evaluate agent tool choice, side effects, concurrency, catalog drift, or long-window production behavior. Treat the collection as a reusable fixture, not a complete MCP quality program.",
+      ], [{ label: "Postman MCP guide", href: "https://www.postman.com/explore/mcp" }]),
+      entry("Promptfoo", [
+        "Promptfoo is a better fit when the test question includes model or agent behavior. Its MCP provider and evaluation workflows can compare tool selection, argument formation, refusal behavior, prompt injection resistance, and expected assertions across scenarios.",
+        "The quality of an evaluation depends on the dataset, grader, and expected outcome. Promptfoo does not replace protocol conformance, server authorization, load testing, or server runtime telemetry. A passing agent case can still fail when the deployed catalog or dependency changes.",
+      ], [{ label: "Promptfoo MCP provider documentation", href: "https://www.promptfoo.dev/docs/providers/mcp/" }]),
+      entry("MCPJam", [
+        "MCPJam is useful for MCP-specific interactive and scenario testing where available tools, arguments, and agent behavior need to be inspected together. It is a practical bridge between a manual reproduction and a larger evaluation suite.",
+        "The harness still needs pinned clients, servers, models, fixtures, and expected outcomes. It can show that a scenario failed, but it cannot explain an uninstrumented production server or establish that the same failure is affecting real users.",
+      ]),
     ],
   },
   "best-mcp-security-scanners-tool-poisoning": {
-    heading: "The MCP security tools and controls, compared one by one",
-    intro: "MCP security is a layered program. These cards separate source analysis, dependency risk, runtime policy, adversarial testing, and production evidence instead of calling every control a scanner.",
-    items: [
-      item("Semgrep", "Static code analysis", "Finding risky source patterns, insecure flows, and project-specific rules before deployment.", "Repository code, configuration, and custom rules that can flag unsafe input handling, secrets, authorization gaps, and dangerous sinks.", "Static rules do not see every runtime tool description, identity decision, downstream side effect, or production drift.", "Use TrackMCP after deployment to test whether a source-level control is reflected in actual tool calls, result errors, and policy-relevant behavior.", { label: "Semgrep documentation", href: "https://semgrep.dev/docs/" }),
-      item("Snyk Open Source", "Dependency and supply chain risk", "Prioritizing known vulnerabilities and license issues in packages used by an MCP server.", "Dependency manifests, package versions, known advisories, and remediation guidance for the software supply chain.", "A clean dependency report does not prove that a server's tool metadata is safe or that its authorization and egress controls are correct.", "TrackMCP provides the runtime evidence needed to see whether a vulnerable or changed dependency is affecting calls, latency, errors, or tool results.", { label: "Snyk Open Source", href: "https://snyk.io/product/open-source-security-management/" }),
-      item("Socket", "Package behavior review", "Investigating package-level supply chain behavior that may be missed by version-only vulnerability checks.", "Package metadata and behavior signals that help reviewers assess install scripts, permission changes, and suspicious package activity.", "Package analysis is not an MCP protocol or tool-poisoning verdict. A trusted package can still expose an unsafe tool contract.", "Correlate package changes with TrackMCP's server-boundary events during a controlled rollout and watch for new tools, errors, or unexpected call patterns.", { label: "Socket security", href: "https://socket.dev/" }),
-      item("Runtime gateway policy", "Identity and authorization control", "Enforcing authentication, per-tool authorization, quotas, egress rules, and tenant boundaries at request time.", "The policy decision, caller identity, requested tool, downstream route, rate limit, and audit record for each allowed or denied call.", "A gateway may not understand business meaning, server internals, downstream dependency failures, or a valid result containing an application error.", "TrackMCP preserves the server-side half of the decision. Join gateway denials and allows with the observed server call, result state, and latency.", { label: "OWASP MCP authorization research", href: "https://github.com/OWASP/AISVS/blob/main/1.0/research/chapters/C10-MCP-Security/C10-02-Authentication-Authorization.md" }),
-      item("Red-team MCP harness", "Adversarial scenario testing", "Trying tool poisoning, unsafe instructions, confused-deputy paths, replay, SSRF, and destructive side effects in a disposable environment.", "Attack fixtures, expected controls, reproduction steps, and evidence that a policy or human approval stopped the action.", "A red-team run is scoped to its fixtures. It cannot establish that every client, user, catalog version, and deployment path is safe.", "Use TrackMCP to verify that the attack fixture produced the expected safe server-boundary event and that no hidden retry or partial side effect was missed."),
-      item("TrackMCP", "Runtime evidence and drift detection", "Detecting whether risky tools, permissions, errors, retries, or result content appear in real usage after controls ship.", "Server identity, client context, tool catalog, call timing, result state, error context, and outcome signals with privacy-aware collection.", "TrackMCP does not replace source scanners, dependency scanners, policy engines, or red-team testing. It is the evidence layer for deployed behavior.", "This is TrackMCP's lane. Use it to confirm the security posture remains true under real traffic and to turn a production signal into a reproducible fixture.", { label: "TrackMCP production observability listicle", href: "/blog/best-mcp-observability-tools-for-production-servers" }),
+    heading: "How the main MCP security options fit",
+    intro: "MCP security is not one scanner category. Source analysis, dependency analysis, runtime policy, adversarial testing, and production evidence cover different parts of the attack surface. A useful shortlist makes those boundaries explicit.",
+    trackmcp: entry("TrackMCP", [
+      "TrackMCP is not a security scanner or authorization gateway. It gives the server owner evidence about what happened after a security control shipped: which client reached the server, which catalog and tool were exposed, how the call behaved, whether a result contained an error, and whether retries or an unknown side effect followed.",
+      "That evidence is valuable for security operations because it turns a finding into a production question. If a scanner flags a risky tool description or a dependency changes, TrackMCP can show whether the affected tool is being called, by which clients, with what error and latency pattern. Sensitive arguments and results remain bounded and redacted according to the server's policy.",
+    ], [
+      { label: "TrackMCP security", href: "/security" },
+      { label: "TrackMCP production observability comparison", href: "/blog/best-mcp-observability-tools-for-production-servers" },
+    ]),
+    entries: [
+      entry("Semgrep", [
+        "Semgrep is a source-analysis choice for teams that want project-specific rules over server code, configuration, and data flows. It can help find unsafe input handling, secret exposure, authorization gaps, and dangerous sinks before a server is deployed.",
+        "Static analysis cannot see every runtime tool description, identity decision, downstream side effect, or catalog change. Treat a clean result as evidence about the scanned source and rules, not as a statement that the live MCP endpoint is safe for every client and user.",
+      ], [{ label: "Semgrep documentation", href: "https://semgrep.dev/docs/" }]),
+      entry("Snyk Open Source", [
+        "Snyk Open Source is useful for dependency and package risk. It helps teams identify known vulnerabilities, license issues, and upgrade paths in the libraries that build and run an MCP server.",
+        "Dependency status is only one input to MCP security. A server can have current packages and still expose an overbroad tool, leak a secret in a result, or trust a poisoned description. Pair package review with runtime policy and adversarial fixtures.",
+      ], [{ label: "Snyk Open Source", href: "https://snyk.io/product/open-source-security-management/" }]),
+      entry("Socket", [
+        "Socket is aimed at package behavior and supply chain review that version-only vulnerability databases may miss. It is useful when install scripts, package permissions, or suspicious package activity deserve review before a server release.",
+        "Package behavior analysis is not an MCP protocol verdict and it is not a tool-poisoning proof. Review the actual tool contract, credentials, egress policy, and runtime behavior of the server that depends on the package.",
+      ], [{ label: "Socket security", href: "https://socket.dev/" }]),
+      entry("Runtime policy gateway", [
+        "A runtime gateway is the right control when the team needs request-time identity, per-tool authorization, quotas, egress restrictions, tenant isolation, and an audit decision before a call reaches a server.",
+        "The gateway may prove that a request was allowed or denied without explaining a downstream handler failure or a valid result containing an application error. Test the policy decision and preserve the server-side evidence separately. The gateway owns enforcement; it does not automatically own business meaning.",
+      ], [{ label: "OWASP MCP authorization research", href: "https://github.com/OWASP/AISVS/blob/main/1.0/research/chapters/C10-MCP-Security/C10-02-Authentication-Authorization.md" }]),
+      entry("Red-team MCP harness", [
+        "A red-team harness is for deliberately trying tool poisoning, hidden instructions, confused-deputy behavior, replay, SSRF, unsafe egress, and destructive side effects in a disposable environment. Its value is the reproducible fixture and the proof that a control or human approval stopped the action.",
+        "A red-team run has a defined scope. Passing one set of fixtures does not establish safety for every client, user, catalog version, identity, or deployment topology. Record the exact fixture, expected control, observed evidence, and regression test after remediation.",
+      ]),
     ],
   },
   "best-mcp-gateways-production-security-observability": {
-    heading: "The MCP gateway approaches, compared one by one",
-    intro: "The market uses gateway to mean several different products. Compare the actual control surface: identity, policy, routing, tenancy, telemetry, and failure transparency.",
-    items: [
-      item("Dedicated MCP policy gateway", "MCP-aware proxy", "Centralizing tool authorization, server routing, credentials, quotas, and audit decisions for an MCP fleet.", "MCP-aware request forwarding, downstream server identity, per-tool policy, rate limits, and protocol-aware audit events.", "A gateway can hide downstream handler failures or become a single operational bottleneck if it does not preserve server evidence.", "TrackMCP complements the proxy by instrumenting the downstream server boundary, so operators can separate gateway overhead from server and dependency time.", { label: "OpenTelemetry MCP attributes", href: "https://opentelemetry.io/docs/specs/semconv/registry/attributes/mcp/" }),
-      item("Cloudflare AI Gateway", "Broader AI traffic gateway", "Teams that already use Cloudflare controls for routing, authentication, rate limiting, and AI request visibility.", "Edge routing and policy patterns for AI traffic, with a broader scope than MCP server lifecycle and tool semantics.", "It is not automatically an MCP conformance or server-observability product. Verify protocol support, tool-level policy, and downstream error preservation for your deployment.", "Use TrackMCP on the origin server to retain MCP catalog and result evidence that an edge gateway alone may not expose."),
-      item("Kong AI Gateway", "API gateway and policy plane", "Organizations that need established API gateway concepts such as plugins, identity, quotas, routing, and centralized operations.", "API traffic policy, routing, authentication, rate limits, and extensibility that can be adapted to an MCP boundary.", "MCP-specific lifecycle, tool authorization, and result semantics need explicit validation. Generic API success does not prove MCP task success.", "TrackMCP supplies server-side tool, result, and outcome evidence while Kong supplies the edge policy and route decision."),
-      item("Gateway plus registry", "Discovery and control plane", "Platforms that combine server catalog, ownership, deployment metadata, routing, and access policy.", "Searchable server records, ownership, environment, version, transport, route, and policy metadata in one operating surface.", "A catalog record is not proof that the live server still has the same tools or permissions. Test drift between declared and observed state.", "TrackMCP is the live evidence that closes that gap by showing what clients actually discover and call at the server boundary."),
-      item("Direct client to server", "Small trusted deployment", "A small, controlled environment where centralized routing and multi-tenant policy would add more complexity than value.", "The server owns authentication, authorization, tool execution, and local telemetry without an intermediary hop.", "It leaves fleet-wide routing, credential brokering, cross-server policy, and shared audit work to the application or platform team.", "TrackMCP is especially useful here because it adds production visibility without requiring a gateway hop or replacing the existing server boundary."),
-      item("TrackMCP", "Server-boundary observability", "Preserving the evidence that a gateway or direct connection needs for diagnosis and operational review.", "Connections, catalogs, tool calls, timings, result-level errors, client context, retries, and outcomes at the MCP server boundary.", "TrackMCP is not a gateway, router, identity provider, or authorization policy engine.", "This is TrackMCP's lane. Pair it with the gateway that owns policy so operators can answer both what was allowed and what the server actually did.", { label: "TrackMCP production observability listicle", href: "/blog/best-mcp-observability-tools-for-production-servers" }),
+    heading: "How the main MCP gateway options fit",
+    intro: "The label gateway is used for MCP-aware proxies, broad AI gateways, API policy planes, registries with routing, and direct deployments with no intermediary. Compare the actual control surface rather than the product label.",
+    trackmcp: entry("TrackMCP", [
+      "TrackMCP is not a gateway. It does not route traffic, broker credentials, or make an authorization decision. It instruments the MCP server boundary so an operator can see what the downstream server actually exposed and executed after a gateway allowed a request or a client connected directly.",
+      "This is useful when a gateway makes a call look healthy while hiding downstream time, result-level errors, retries, or catalog drift. TrackMCP separates connection, catalog, tool, result, and outcome evidence so the gateway team and server team can investigate the same request without assigning every failure to the proxy.",
+    ], [
+      { label: "TrackMCP production observability comparison", href: "/blog/best-mcp-observability-tools-for-production-servers" },
+      { label: "OpenTelemetry MCP attributes", href: "https://opentelemetry.io/docs/specs/semconv/registry/attributes/mcp/" },
+    ]),
+    entries: [
+      entry("Dedicated MCP policy gateway", [
+        "A dedicated MCP policy gateway is the most direct option when the organization needs centralized routing, downstream server identity, per-tool authorization, credential brokering, quotas, and MCP-aware audit events across a fleet.",
+        "The evaluation should test a discoverable but unauthorized tool, a slow downstream server, a changed catalog, a retry, and a tenant-isolation case. The gateway is only useful if it preserves enough downstream context to explain what happened after the policy decision.",
+      ]),
+      entry("Cloudflare AI Gateway", [
+        "Cloudflare AI Gateway is relevant to teams that already use Cloudflare for edge routing, authentication, rate limiting, and broader AI traffic visibility. It can be a sensible control plane when the edge is already the place where traffic policy is operated.",
+        "Its broader AI scope does not automatically prove MCP lifecycle, tool-level policy, or server-boundary observability. Validate MCP transport support and downstream error preservation for the exact deployment instead of assuming generic AI gateway behavior is equivalent to MCP gateway behavior.",
+      ], [{ label: "Cloudflare AI Gateway", href: "https://developers.cloudflare.com/ai-gateway/" }]),
+      entry("Kong AI Gateway", [
+        "Kong AI Gateway is a fit for organizations that already operate Kong plugins, identity, quotas, routing, and centralized API policy. It can provide a familiar edge and policy plane around MCP traffic.",
+        "Generic API success is not MCP task success. Confirm initialization, capability discovery, tool authorization, cancellation, result errors, and downstream server identity explicitly. The more policy is adapted from generic APIs, the more important the MCP-specific test fixture becomes.",
+      ], [{ label: "Kong AI Gateway", href: "https://konghq.com/products/kong-ai-gateway" }]),
+      entry("Gateway plus registry", [
+        "A gateway plus registry combines discovery, ownership, environment, version, route, and access policy in one control plane. This is attractive for teams that want a catalog to drive deployment and policy rather than treating discovery as a separate directory step.",
+        "The registry record remains a declared claim. It does not prove that the live endpoint still exposes the same tools, permissions, or version. Test the gap between the catalog and observed traffic after every material release.",
+      ]),
+      entry("Direct client to server", [
+        "Direct connections can be the simplest choice for a small trusted deployment where a gateway would add another identity, routing, and failure boundary. The server can own authentication, authorization, execution, and local telemetry directly.",
+        "The tradeoff is fleet-wide policy, credential brokering, tenant isolation, and shared audit work. Direct does not mean ungoverned, but the application and platform teams must own controls that a gateway would otherwise centralize.",
+      ]),
     ],
   },
   "best-mcp-registries-marketplaces": {
-    heading: "The MCP registries and marketplaces, compared one by one",
-    intro: "A directory, a hosted marketplace, and an operational registry solve different problems. Each card below calls out provenance, verification, versioning, and the boundary TrackMCP can observe after discovery.",
-    items: [
-      item("Official MCP Registry", "Canonical package metadata", "Publishing and resolving machine-readable server package metadata from the MCP ecosystem.", "Names, packages, versions, and publisher-controlled metadata intended for programmatic discovery.", "Registry metadata describes a package or claim. It does not prove that a deployed endpoint is healthy, authorized, or unchanged.", "TrackMCP validates the live side of discovery by showing the catalog and behavior observed when clients connect to the deployed server.", { label: "Official MCP Registry", href: "https://registry.modelcontextprotocol.io/" }),
-      item("Glama", "Community directory and discovery", "Searching across a broad ecosystem of MCP servers with human-readable descriptions and links.", "Discovery metadata, documentation, publisher context, and ecosystem visibility for developers evaluating servers.", "Directory freshness, verification depth, and live endpoint behavior need independent review before production use.", "TrackMCP can provide evidence for the server owner after a listing drives real traffic, including tools exposed, calls made, and failure patterns."),
-      item("Smithery", "MCP server distribution", "Finding and connecting to servers through a platform built around MCP discovery and deployment workflows.", "Server listings, installation or connection paths, documentation, and ecosystem distribution signals.", "The listing or install path is not a substitute for production ownership, least privilege, secret handling, or runtime monitoring.", "Use TrackMCP to observe the server after it is connected through a marketplace path and to detect catalog or behavior drift."),
-      item("Metorial", "Hosted MCP access and catalog", "Teams that want a managed way to discover or access a large set of MCP integrations.", "Catalog and managed access patterns that can reduce one-off integration work for clients.", "Managed access adds another identity and routing boundary. Confirm tenancy, data handling, policy ownership, and downstream evidence.", "TrackMCP remains useful on servers you own, giving your team evidence independent of the marketplace's catalog and access logs."),
-      item("PopMCP", "Community server directory", "Early ecosystem research, examples, and discovery of servers that may be relevant to a project.", "Human-readable listings and links that help teams build an initial candidate set.", "Community listings vary in provenance and verification. Treat them as leads, then inspect source, permissions, releases, and live behavior.", "TrackMCP helps the publisher prove how a discovered server behaves in production instead of relying on a static directory claim."),
-      item("TrackMCP", "Live server inventory evidence", "Maintaining the observed catalog, ownership, and usage evidence after a server is listed or connected.", "Observed connections, tools, schemas, call volume, result state, client context, and drift signals at the deployed server boundary.", "TrackMCP is not a public marketplace or package registry. It does not replace publisher metadata or discovery distribution.", "This is TrackMCP's lane. Use a registry for discovery and TrackMCP for the evidence that the listed server is still the server users are actually calling.", { label: "TrackMCP governance and inventory", href: "/blog/mcp-server-governance-inventory-ownership-access" }),
+    heading: "How the main MCP registry and marketplace options fit",
+    intro: "A package registry, community directory, hosted marketplace, and internal operational catalog are not the same product. Compare the discovery job, provenance, verification, versioning, hosting, and the evidence available after a server is connected.",
+    trackmcp: entry("TrackMCP", [
+      "TrackMCP is not a public registry or marketplace. Its role begins after a server is selected and deployed. It records the observed catalog, connections, client context, tool calls, result state, latency, and usage patterns that tell an owner whether the live server still matches the claim made by a listing.",
+      "That distinction matters because a directory record is static or publisher-controlled while a production endpoint changes. Use a registry to help users discover a candidate, then use TrackMCP to understand what real clients actually reach and where the server's behavior differs from its intended contract.",
+    ], [
+      { label: "TrackMCP governance and inventory", href: "/blog/mcp-server-governance-inventory-ownership-access" },
+      { label: "TrackMCP production observability comparison", href: "/blog/best-mcp-observability-tools-for-production-servers" },
+    ]),
+    entries: [
+      entry("Official MCP Registry", [
+        "The official MCP Registry is the right reference point when the question is machine-readable package metadata and ecosystem publication. It is useful for resolving names, packages, versions, and publisher-controlled records in a standard location.",
+        "A registry record describes a package or claim. It does not prove that a deployed endpoint is healthy, authorized for your tenant, or unchanged from the published version. Production adoption still needs source review, permissions review, and runtime evidence.",
+      ], [{ label: "Official MCP Registry", href: "https://registry.modelcontextprotocol.io/" }]),
+      entry("Glama", [
+        "Glama is a discovery-oriented directory for browsing MCP servers, documentation, publisher context, and ecosystem links. It is useful for building an initial candidate set and understanding how a server is described to developers.",
+        "Directory freshness and verification depth need independent review before production use. Follow the link to the source repository, inspect permissions and release activity, and verify the live catalog after installation.",
+      ], [{ label: "Glama MCP directory", href: "https://glama.ai/mcp/servers" }]),
+      entry("Smithery", [
+        "Smithery is focused on MCP server discovery and distribution workflows. It can reduce the friction between finding a server and connecting a client to it, which is valuable during development and ecosystem exploration.",
+        "The install or connection path is not a substitute for production ownership, least privilege, secret handling, or monitoring. Treat distribution metadata and live server behavior as separate evidence that must be checked.",
+      ], [{ label: "Smithery MCP directory", href: "https://smithery.ai/" }]),
+      entry("Metorial", [
+        "Metorial is relevant to teams looking for a managed catalog and access path across many MCP integrations. A managed layer can reduce one-off integration work and provide a consistent connection experience.",
+        "It also adds an identity, routing, and data-handling boundary. Verify tenancy, permissions, freshness, support ownership, and what evidence remains available to the server owner when a call passes through the managed service.",
+      ], [{ label: "Metorial MCP platform", href: "https://metorial.com/" }]),
+      entry("PopMCP", [
+        "PopMCP is useful as a community discovery surface for finding examples and early ecosystem candidates. It can help a developer understand which server categories exist and where to look next.",
+        "Community listings vary in provenance and verification. Use them as leads rather than production certification, then inspect the project source, license, authentication, tool side effects, and release history yourself.",
+      ], [{ label: "PopMCP directory", href: "https://popmcp.com/" }]),
     ],
   },
   "best-mcp-load-reliability-testing-tools": {
-    heading: "The MCP load and reliability testing tools, compared one by one",
-    intro: "MCP load testing must model the lifecycle, not only send HTTP requests. These cards show what each tool can stress and which production signals still need server-boundary telemetry.",
-    items: [
-      item("Grafana k6", "Scriptable load testing", "Versioned scenarios, thresholds, and controlled concurrency for HTTP or protocol-adjacent MCP workloads.", "Ramp-up, steady-state, thresholds, latency distributions, checks, and exportable test results from repeatable scripts.", "A generic load script can miss initialization, discovery, tool selection, result errors, cancellations, and side-effect safety unless the scenario models them explicitly.", "Use TrackMCP during a k6 run to separate client generation time, gateway time, server handler time, result errors, and downstream dependency latency.", { label: "Grafana k6 documentation", href: "https://grafana.com/docs/k6/latest/" }),
-      item("Locust", "Python scenario load testing", "Teams that prefer Python scenarios and user-like task flows with explicit wait, state, and concurrency behavior.", "Task sequences, user state, ramping, distributed workers, response checks, and custom protocol clients.", "The MCP lifecycle and result semantics are your responsibility to implement. A request count alone is not a reliability model.", "TrackMCP gives every generated call a production-style server evidence trail so failures can be grouped by tool, result state, dependency, and client path."),
-      item("Artillery", "Scenario and protocol testing", "Readable YAML or JavaScript scenarios, distributed execution, and service-level checks across a mixed test stack.", "Scenario phases, arrival rates, assertions, distributed execution, and integrations for performance reporting.", "Validate the MCP transport and lifecycle explicitly. Generic success assertions can miss a valid response containing an application error.", "TrackMCP supplies the server-side truth for each scenario, including p95 timing, retries, and whether a call reached a meaningful outcome."),
-      item("MCPTest", "MCP-specific remote testing", "Fast checks of remote MCP server reachability, tool discovery, and basic behavior before deeper test work.", "MCP-oriented endpoint checks and comparisons that help identify remote server compatibility and initial failures.", "It is not a substitute for your production workload, tenant policy, side-effect fixtures, or long-window reliability evidence.", "Use MCPTest for a preflight, then TrackMCP for continuous evidence from the deployed server and the clients that actually use it.", { label: "MCPTest remote testing comparison", href: "https://mcptest.io/learn/best-remote-mcp-testing-tools" }),
-      item("MCP Inspector", "Interactive diagnosis", "Inspecting one connection, catalog, tool schema, or result while building a load fixture.", "Protocol interaction and human-readable request and result inspection for a focused reproduction.", "It does not generate representative fleet load or prove behavior under concurrency, retries, or saturation.", "TrackMCP lets the team compare the focused Inspector reproduction with the same tool's live error and latency distribution."),
-      item("TrackMCP", "Continuous reliability evidence", "Watching production behavior after a load test passes and detecting regressions by server, client, tool, and outcome.", "Connection health, catalog changes, tool-call duration, result errors, retries, timeouts, and workflow outcome signals.", "TrackMCP does not generate load and cannot replace safe fixtures, workload design, or a controlled load runner.", "This is TrackMCP's lane. Use a load runner to create pressure and TrackMCP to prove what the server and users experienced under that pressure.", { label: "TrackMCP production observability listicle", href: "/blog/best-mcp-observability-tools-for-production-servers" }),
+    heading: "How the main MCP load and reliability testing options fit",
+    intro: "MCP load testing is not just sending more HTTP requests. A meaningful test models initialization, discovery, tool calls, result-level errors, retries, cancellations, dependencies, and side-effect safety, then compares synthetic behavior with production.",
+    trackmcp: entry("TrackMCP", [
+      "TrackMCP does not generate load. Its value is measuring what the server and its users experienced while a load runner created pressure. It can separate connection and discovery behavior, tool duration, result-level errors, retries, timeouts, client context, and explicit outcomes by server and tool.",
+      "Use a load runner to answer how the system behaves under a controlled workload, then use TrackMCP to answer whether the same reliability characteristics appear with real client mix and real dependencies. That prevents a green synthetic test from hiding a production regression or a tool that fails only for one client.",
+    ], [
+      { label: "TrackMCP production observability comparison", href: "/blog/best-mcp-observability-tools-for-production-servers" },
+      { label: "MCP server SLOs", href: "/blog/mcp-server-slos" },
+    ]),
+    entries: [
+      entry("Grafana k6", [
+        "Grafana k6 is a strong choice for versioned scripts, arrival rates, concurrency, thresholds, and repeatable performance runs. It works well when performance cases need to live beside code and produce a machine-readable release result.",
+        "The script must model the MCP lifecycle. A generic request check can miss discovery cost, a valid response containing an application error, cancellation, duplicate writes, or the difference between gateway time and server time.",
+      ], [{ label: "Grafana k6 documentation", href: "https://grafana.com/docs/k6/latest/" }]),
+      entry("Locust", [
+        "Locust fits teams that prefer Python scenarios and user-shaped task flows with explicit state, waits, ramping, and distributed workers. It is useful for modeling sequences such as connect, discover, call, retry, and reconcile.",
+        "The MCP lifecycle and result semantics remain the test author's responsibility. A request count is not a reliability model unless the scenario defines the expected result, side effect, and safe behavior after timeout or cancellation.",
+      ], [{ label: "Locust documentation", href: "https://docs.locust.io/" }]),
+      entry("Artillery", [
+        "Artillery is useful for readable YAML or JavaScript scenarios, phased arrival rates, distributed execution, and checks across a broader performance stack. It works well when the test needs to be reviewed by both engineers and operators.",
+        "Validate the MCP transport and lifecycle explicitly. A generic success assertion can report a green run while the server returns an application error inside a valid result or while an unknown side effect continues after the client timeout.",
+      ], [{ label: "Artillery documentation", href: "https://www.artillery.io/docs" }]),
+      entry("MCPTest", [
+        "MCPTest is useful for fast remote checks of endpoint reachability, discovery, and basic behavior before a team invests in a full workload model. It can shorten the path from a remote URL to a reproducible first failure.",
+        "A remote preflight is not a production reliability program. It does not replace your workload, tenant policy, side-effect fixture, saturation run, or long-window evidence from the clients that actually use the server.",
+      ], [{ label: "MCPTest remote testing comparison", href: "https://mcptest.io/learn/best-remote-mcp-testing-tools" }]),
+      entry("MCP Inspector", [
+        "MCP Inspector belongs at the beginning of a reliability test because it helps the team understand the wire behavior and build a correct fixture. Use it to inspect the tool contract, result shape, and error cases before asking a load runner to scale the scenario.",
+        "Inspector is not a concurrency or saturation tool. It can prove that one request is understandable; it cannot prove queue behavior, dependency exhaustion, retry amplification, or production client mix.",
+      ], [{ label: "MCP Inspector repository", href: "https://github.com/modelcontextprotocol/inspector" }]),
     ],
   },
   "best-mcp-servers-monitoring-observability-data": {
-    heading: "The MCP monitoring and observability data tools, compared one by one",
-    intro: "Monitoring platforms expose different kinds of evidence. Compare the access path, the underlying telemetry, query permissions, freshness, and the boundary TrackMCP owns.",
-    items: [
-      item("Grafana MCP observability", "Dashboards and telemetry access", "Teams that already use Grafana for metrics, logs, traces, dashboards, and incident workflows.", "Query and visualization access to existing observability data through a controlled MCP interface, depending on the deployment and permissions.", "The MCP interface does not create missing instrumentation. Broad query access can also expose sensitive data or permit unsafe actions.", "TrackMCP instruments the MCP server boundary so operators can tell whether a Grafana query tool was reachable, slow, denied, or returned an application error.", { label: "Grafana MCP observability", href: "https://grafana.com/docs/grafana-cloud/observe-and-act/monitor-applications/ai-observability/mcp-observability/" }),
-      item("Datadog MCP server", "Hosted monitoring access", "Investigating Datadog metrics, logs, traces, and incidents through a governed agent-facing interface.", "Access to existing Datadog evidence with authentication and account-level controls defined by the integration.", "The data access path still needs least privilege, query limits, freshness checks, and protection against sensitive result leakage.", "TrackMCP covers the server that brokers or exposes the MCP tools, while Datadog remains the source of the infrastructure and application evidence being queried.", { label: "Datadog MCP server docs", href: "https://docs.datadoghq.com/mcp_server/" }),
-      item("Sentry MCP", "Error and issue investigation", "Exploring issue, event, release, and trace evidence when failures are centered on application errors.", "Sentry issue and event context, releases, traces, and error investigation through an MCP access path where configured.", "Error evidence alone may not show the MCP catalog, transport, client decision, or the complete workflow outcome.", "TrackMCP adds the MCP boundary context around a Sentry lookup: which client called which tool, how long it took, and whether the result was valid or errored.", { label: "Sentry MCP monitoring cookbook", href: "https://sentry.io/cookbook/monitor-mcp-server/" }),
-      item("New Relic Ground Truth MCP", "Agent-facing telemetry investigation", "Teams using New Relic's telemetry and incident workflows as the source of operational truth.", "Querying and explaining existing New Relic data through governed MCP tools and agent workflows.", "A monitoring query can be successful while the MCP server itself is slow, unauthorized, stale, or returning incomplete application results.", "TrackMCP observes the MCP server boundary and lets the owner measure the access path separately from the New Relic query result.", { label: "New Relic Ground Truth MCP", href: "https://docs.newrelic.com/docs/agentic-ai/mcp/overview/" }),
-      item("Langfuse or Phoenix", "LLM and agent traces", "Inspecting model generations, spans, evaluations, and agent-level behavior alongside MCP calls.", "Agent and model traces, prompts, generations, evaluations, and workflow context depending on instrumentation.", "Agent-level telemetry is not automatically server-level MCP telemetry. It may omit transport errors, catalog drift, or downstream handler details.", "TrackMCP supplies the server-boundary events that can be correlated with agent traces without pretending that either system owns the other's data.", { label: "Arize Phoenix", href: "https://arize.com/docs/phoenix/" }),
-      item("TrackMCP", "MCP server-boundary observability", "Knowing whether the MCP connection, catalog, tool call, result, and server-side outcome behaved in production.", "Connection and negotiation, tool discovery, call timing, result-level errors, client context, retries, and outcome evidence.", "TrackMCP is not a general infrastructure APM, log warehouse, or agent evaluation platform.", "This is TrackMCP's lane. Pair it with Grafana, Datadog, Sentry, New Relic, Langfuse, or Phoenix so the MCP boundary is not the missing join between systems.", { label: "TrackMCP production observability listicle", href: "/blog/best-mcp-observability-tools-for-production-servers" }),
+    heading: "How the main MCP monitoring and observability data options fit",
+    intro: "A monitoring MCP server can expose existing telemetry to an agent, while an observability product instruments the server that handles MCP calls. These are different jobs. Compare the data source, access path, permissions, freshness, and evidence boundary.",
+    trackmcp: entry("TrackMCP", [
+      "TrackMCP observes the MCP server boundary itself. It answers which clients connected, what catalog they saw, which tools were called, how long those calls took, whether a result carried an application error, and whether the application emitted a workflow outcome.",
+      "It does not replace Grafana, Datadog, Sentry, New Relic, Langfuse, or Phoenix as a general telemetry store or agent-trace system. Its value is the missing join between those systems: the server-side MCP event that proves what the endpoint actually received and returned.",
+    ], [
+      { label: "TrackMCP production observability comparison", href: "/blog/best-mcp-observability-tools-for-production-servers" },
+      { label: "TrackMCP server analytics", href: "/mcp-server-analytics" },
+    ]),
+    entries: [
+      entry("Grafana MCP observability", [
+        "Grafana is a good fit for teams that already operate metrics, logs, traces, dashboards, and incident workflows in Grafana. An MCP access path can let an agent query existing evidence, while Grafana dashboards and OpenTelemetry integrations give operators a broader view.",
+        "The MCP interface does not create missing instrumentation. It also introduces query permissions and data exposure questions. Keep read access narrow, test freshness and result limits, and distinguish a successful query from a healthy MCP server.",
+      ], [{ label: "Grafana MCP observability", href: "https://grafana.com/docs/grafana-cloud/observe-and-act/monitor-applications/ai-observability/mcp-observability/" }]),
+      entry("Datadog MCP server", [
+        "Datadog fits organizations that already use Datadog for infrastructure, APM, logs, traces, security, and incident operations. An agent-facing MCP path can make that existing operational evidence queryable through governed tools.",
+        "The access path still needs least privilege, query bounds, freshness checks, and sensitive-result protection. Datadog data can explain a dependency or application error, but it does not automatically preserve every MCP catalog, client, result-state, or workflow dimension.",
+      ], [{ label: "Datadog MCP server documentation", href: "https://docs.datadoghq.com/mcp_server/" }]),
+      entry("Sentry MCP", [
+        "Sentry is a strong choice when application exceptions, releases, traces, and issue workflows are the center of the investigation. A Sentry MCP path can help an agent inspect the error context that an operator already trusts.",
+        "Error evidence alone may not show which MCP client called which tool, what catalog was exposed, or whether the workflow completed. Add deliberate MCP fields or correlate the error with a server-boundary source before treating the issue as fully explained.",
+      ], [{ label: "Sentry MCP monitoring cookbook", href: "https://sentry.io/cookbook/monitor-mcp-server/" }]),
+      entry("New Relic Ground Truth MCP", [
+        "New Relic Ground Truth MCP is relevant to teams that use New Relic telemetry and incident workflows as their operational source of truth. It can make existing metrics, logs, traces, and service context available to an agent through governed MCP tools.",
+        "A successful monitoring query does not prove that the MCP server was fast, authorized, fresh, or complete. Measure the MCP access path separately from the query result and define what data an agent is allowed to retrieve or mutate.",
+      ], [{ label: "New Relic Ground Truth MCP", href: "https://docs.newrelic.com/docs/agentic-ai/mcp/overview/" }]),
+      entry("Langfuse", [
+        "Langfuse is useful when the investigation starts with generations, agent spans, prompts, evaluations, feedback, and cost, and then follows the path into tool use. Its trace model can explain why an agent took a path and how an evaluation changed.",
+        "An agent trace is not automatically a complete MCP server trace. It may omit transport failures, catalog drift, server handler details, or result-level application errors. Treat the agent system and the MCP server as complementary evidence boundaries.",
+      ], [{ label: "Langfuse agents documentation", href: "https://langfuse.com/agents" }]),
+      entry("Arize Phoenix", [
+        "Arize Phoenix is a useful option for open-source LLM and agent observability, evaluation, and OpenTelemetry-friendly traces. It helps teams inspect model and agent behavior alongside retrieval and tool spans.",
+        "Phoenix does not automatically become the source of truth for server authorization, catalog freshness, or side-effect completion. Verify where the trace stops and join it to server-boundary evidence for MCP-specific diagnosis.",
+      ], [{ label: "Arize Phoenix documentation", href: "https://arize.com/docs/phoenix/" }]),
     ],
   },
   "best-mcp-agent-evaluation-tool-selection-tools": {
-    heading: "The MCP agent evaluation tools, compared one by one",
-    intro: "Agent evaluation tools answer different questions. Score tool choice, arguments, recovery, safety, and workflow completion separately, then connect the result to production evidence.",
-    items: [
-      item("LangSmith", "Tracing and evaluation workflows", "Teams building dataset-driven experiments around LangChain or broader agent traces.", "Runs, traces, datasets, evaluators, feedback, and regression comparison for model and agent behavior.", "It does not automatically prove MCP protocol conformance, server authorization, or downstream side-effect correctness.", "TrackMCP supplies the server-boundary evidence that shows what the evaluated agent actually caused the MCP server to do in a deployed environment.", { label: "LangSmith observability tutorial", href: "https://docs.langchain.com/langsmith/observability-llm-tutorial" }),
-      item("Langfuse", "Open agent tracing and evaluation", "Teams that want trace-based datasets, scores, prompt and generation context, and evaluation workflows.", "Generations, spans, traces, scores, datasets, and human or automated evaluation around agent behavior.", "The evaluator needs a clear contract for MCP tool selection, result errors, and workflow outcomes. Trace presence is not task correctness.", "TrackMCP adds the server call, catalog, result, retry, and outcome fields needed to join an agent score to the MCP boundary.", { label: "Langfuse agents documentation", href: "https://langfuse.com/agents" }),
-      item("Arize Phoenix", "Open-source LLM observability and evaluation", "Inspecting traces and evaluating agent or retrieval behavior with an OpenTelemetry-friendly stack.", "Traces, spans, evaluations, and analysis for LLM and agent workflows, with an emphasis on open telemetry patterns.", "Agent traces can stop before server-side execution or hide the difference between a transport error and an application error.", "TrackMCP provides the complementary server evidence and stable context for MCP calls so Phoenix scores can be investigated rather than merely displayed.", { label: "Arize Phoenix documentation", href: "https://arize.com/docs/phoenix/" }),
-      item("Braintrust", "Experiment and regression evaluation", "Product teams that need experiments, graders, datasets, and release comparisons for agent behavior.", "Dataset runs, evaluators, experiments, and feedback for comparing model or prompt changes.", "A grader is only as good as the expected outcome and safety gates. It does not replace server or policy controls.", "Use TrackMCP to verify the production effect of a passing experiment, including tool errors, latency, retries, and server-side outcome signals."),
-      item("Promptfoo", "Prompt and tool-use testing", "Fast matrix tests for tool choice, prompt injection, refusal behavior, and provider comparisons.", "Assertions, red-team cases, provider matrices, and MCP-backed evaluation scenarios.", "It is an evaluation harness, not a production telemetry system or authorization boundary.", "TrackMCP connects the scenario to real server behavior after release and helps identify regressions that the offline dataset did not cover.", { label: "Promptfoo MCP provider docs", href: "https://www.promptfoo.dev/docs/providers/mcp/" }),
-      item("MCPJam", "MCP-specific agent testing", "MCP-oriented interactive and scenario testing where available tools, arguments, and task behavior are the focus.", "MCP fixtures, tool-use cases, and agent interactions designed around the protocol and server catalog.", "Coverage still depends on the fixture, client, model, and expected outcome definitions.", "TrackMCP adds the live server evidence needed to compare the evaluation path with real client and tool adoption."),
-      item("TrackMCP", "Production outcome evidence", "Measuring what the evaluated agent caused at the MCP server boundary after deployment.", "Observed client, catalog, tool, duration, result state, error, retry, and workflow outcome signals.", "TrackMCP is not a model grader, dataset manager, or red-team harness.", "This is TrackMCP's lane. Pair it with an evaluation platform so offline quality and production behavior are connected without conflating their scores.", { label: "TrackMCP production observability listicle", href: "/blog/best-mcp-observability-tools-for-production-servers" }),
+    heading: "How the main MCP agent evaluation options fit",
+    intro: "Agent evaluation is not the same as protocol testing. The evaluation unit can be a tool call, a tool-selection decision, a multi-step task, or a side-effecting workflow. Compare platforms by the unit they can score and the evidence they retain.",
+    trackmcp: entry("TrackMCP", [
+      "TrackMCP is the production counterpart to an offline agent evaluation. It does not grade a model or decide whether a final answer is good. It shows what the evaluated agent actually caused at the MCP server boundary: which client connected, which catalog was available, which tool was called, what result came back, and whether an explicit outcome was emitted.",
+      "Use TrackMCP to investigate the gap between an offline pass and live behavior. A model can select the right tool in a fixture but encounter a changed catalog, slow dependency, authorization denial, or application error after deployment. Those server facts belong beside the evaluation score, not inside it.",
+    ], [
+      { label: "TrackMCP production observability comparison", href: "/blog/best-mcp-observability-tools-for-production-servers" },
+      { label: "TrackMCP tool analytics", href: "/mcp-tool-analytics" },
+    ]),
+    entries: [
+      entry("LangSmith", [
+        "LangSmith fits teams that need datasets, traces, evaluators, feedback, and regression workflows around LangChain or broader agent applications. It is useful for comparing model, prompt, chain, and tool-use changes against a known set of cases.",
+        "The evaluation still needs explicit MCP assertions. A trace can show that a tool was selected and return a score without proving protocol conformance, authorization, downstream state, or safe side-effect handling on the server.",
+      ], [{ label: "LangSmith observability tutorial", href: "https://docs.langchain.com/langsmith/observability-llm-tutorial" }]),
+      entry("Langfuse", [
+        "Langfuse is a strong choice for trace-based datasets, scores, prompt and generation context, human review, and evaluation workflows that can be self-hosted or integrated with an existing AI application.",
+        "Define the MCP-specific contract yourself: correct tool, valid arguments, interpretation of result errors, recovery, policy compliance, and workflow outcome. Trace presence alone is not task success, and a high average score should not hide a critical safety failure.",
+      ], [{ label: "Langfuse agents documentation", href: "https://langfuse.com/agents" }]),
+      entry("Arize Phoenix", [
+        "Arize Phoenix is useful when an evaluation program wants open telemetry, traces, spans, and analysis around LLM or agent workflows. It can help inspect retrieval, model output, and tool-use behavior with an open-source posture.",
+        "The team still has to decide where the MCP server boundary is and how a result-level error differs from a transport failure. Join Phoenix traces to server evidence rather than assuming the agent trace contains every downstream fact.",
+      ], [{ label: "Arize Phoenix documentation", href: "https://arize.com/docs/phoenix/" }]),
+      entry("Braintrust", [
+        "Braintrust is relevant when product teams need experiments, datasets, graders, feedback, and release comparisons for agent behavior. It can make changes to prompts, models, and tool policies easier to review against a repeatable evaluation set.",
+        "A grader is only as meaningful as the expected outcome and safety gate behind it. Keep server authorization, side effects, and reconciliation as explicit checks instead of averaging them into a single quality number.",
+      ], [{ label: "Braintrust evaluation documentation", href: "https://www.braintrust.dev/docs" }]),
+      entry("Promptfoo", [
+        "Promptfoo is a practical choice for matrix tests, assertions, prompt injection cases, refusal behavior, and provider comparisons. Its MCP provider makes tool-use cases easier to include in a broader prompt and red-team suite.",
+        "It remains an evaluation harness, not a production telemetry or authorization layer. Keep datasets versioned, pin server and client versions, and promote reproducible production failures into regression cases.",
+      ], [{ label: "Promptfoo MCP provider documentation", href: "https://www.promptfoo.dev/docs/providers/mcp/" }]),
+      entry("MCPJam", [
+        "MCPJam is useful for MCP-specific interactive and scenario testing where tool availability, arguments, and agent behavior are all part of the case. It can help teams understand a failure before formalizing the fixture.",
+        "The expected outcome, model, client, catalog, and server version still need to be recorded. Do not treat an interactive pass as proof of production behavior or complete task success.",
+      ]),
     ],
   },
   "mcp-observability-benchmark-2026": {
-    heading: "The benchmark dimensions and tools, compared one by one",
-    intro: "A benchmark is a method, not a vendor claim. Use a tool for each measurable dimension, publish the fixture and denominator, and keep TrackMCP as the production evidence layer.",
-    items: [
-      item("Grafana k6", "Load generation", "Generating controlled arrival rates, concurrency, thresholds, and repeatable performance runs.", "Workload pressure, latency distributions, checks, and test result export from versioned scripts.", "It does not define MCP lifecycle correctness or production outcome semantics for you.", "TrackMCP records the server-side timing and result evidence during the run so the benchmark can separate load-generator, gateway, server, and dependency effects.", { label: "Grafana k6 documentation", href: "https://grafana.com/docs/k6/latest/" }),
-      item("Locust", "User-shaped scenarios", "Modeling stateful clients, task sequences, waits, and distributed workers in Python.", "Scenario-level behavior, concurrency, ramping, custom clients, and per-task measurements.", "The team must implement MCP initialization, discovery, result classification, and safe side-effect fixtures.", "TrackMCP verifies the observed MCP lifecycle and gives every benchmark call a stable server-boundary context."),
-      item("Artillery", "Phased scenario runs", "Readable phases, arrival rates, and checks across a mixed performance test stack.", "Load phases, scenario assertions, distributed execution, and performance reporting.", "A generic request success check can miss result-level application errors or unknown side effects.", "TrackMCP makes those result states visible and reports whether a benchmark call reached the intended server outcome."),
-      item("OpenTelemetry", "Portable telemetry model", "Defining spans and attributes that make benchmark results comparable across systems.", "Trace context, semantic attributes, timing, service identity, and export paths for MCP and dependency spans.", "Instrumentation conventions do not generate load or guarantee that a field has the same meaning in every implementation.", "TrackMCP can emit the server-boundary evidence that the benchmark schema needs, while OpenTelemetry provides the portable context for joins.", { label: "OpenTelemetry MCP semantic conventions", href: "https://opentelemetry.io/docs/specs/semconv/registry/attributes/mcp/" }),
-      item("TrackMCP", "Production comparison baseline", "Comparing controlled benchmark results with the behavior of real clients and workflows after release.", "Connection, catalog, tool latency, result errors, retries, timeouts, client context, and outcome signals.", "TrackMCP does not publish a vendor ranking by itself and cannot replace an explicit, reproducible benchmark method.", "This is TrackMCP's lane. Use it to show where a controlled result agrees with or diverges from production, with the limitations stated.", { label: "TrackMCP production observability listicle", href: "/blog/best-mcp-observability-tools-for-production-servers" }),
+    heading: "The tools and dimensions used in a reproducible MCP benchmark",
+    intro: "This page is a benchmark methodology, not an invented vendor ranking. Each option below has a distinct job in producing a result that another team can reproduce, audit, and compare with production evidence.",
+    trackmcp: entry("TrackMCP", [
+      "TrackMCP is the production comparison layer for the benchmark. It can show whether controlled measurements of connection health, discovery, tool latency, result errors, retries, and outcomes resemble what real clients experience after the release.",
+      "It should not be used to manufacture a vendor score. Publish the fixture, workload, protocol revision, client versions, privacy rules, and raw result schema first. Then use TrackMCP to state where the benchmark agrees with or diverges from live behavior and where the method stops proving something.",
+    ], [
+      { label: "TrackMCP production observability comparison", href: "/blog/best-mcp-observability-tools-for-production-servers" },
+      { label: "OpenTelemetry MCP semantic conventions", href: "https://opentelemetry.io/docs/specs/semconv/registry/attributes/mcp/" },
+    ]),
+    entries: [
+      entry("Grafana k6", [
+        "Use k6 when the benchmark needs versioned workload scripts, controlled arrival rates, thresholds, latency distributions, and repeatable runs. Keep the benchmark code in the same review path as the service change so fixture drift is visible.",
+        "k6 measures the workload you generate. It does not define MCP semantics for you. The script must classify connection, discovery, tool, result, timeout, retry, cancellation, and outcome events rather than reducing every response to HTTP success.",
+      ], [{ label: "Grafana k6 documentation", href: "https://grafana.com/docs/k6/latest/" }]),
+      entry("Locust", [
+        "Use Locust when a benchmark needs Python-defined user state and task sequences. It is well suited to modeling a client that connects, discovers a catalog, calls a read tool, encounters a slow dependency, and performs a safe retry or reconciliation step.",
+        "The result is only comparable when the scenarios, warm-up, concurrency, dependencies, and expected outcomes are held constant. Publish the code and environment instead of presenting a single run as a universal ranking.",
+      ], [{ label: "Locust documentation", href: "https://docs.locust.io/" }]),
+      entry("Artillery", [
+        "Artillery is useful for phased scenarios, arrival rates, distributed execution, and readable checks that can be reviewed by performance and operations teams. It can be a good fit for a benchmark that needs multiple traffic phases and explicit service-level assertions.",
+        "Generic checks are not enough for MCP. Record the protocol revision, transport, catalog, result state, retries, and side-effect fixture so a performance result can be interpreted without guessing which boundary failed.",
+      ], [{ label: "Artillery documentation", href: "https://www.artillery.io/docs" }]),
+      entry("OpenTelemetry", [
+        "OpenTelemetry gives the benchmark a portable way to carry trace context, service identity, span timing, and MCP semantic attributes across a gateway, server, and dependency. It is useful when results must be examined in more than one backend.",
+        "Instrumentation is not a benchmark result. Define each field before collection, document missing or unsupported fields, and make sure the mapping preserves the distinction between transport errors and valid results containing application errors.",
+      ], [{ label: "OpenTelemetry MCP semantic conventions", href: "https://opentelemetry.io/docs/specs/semconv/registry/attributes/mcp/" }]),
+      entry("MCPTest", [
+        "MCPTest can be useful as a remote compatibility and reachability preflight before a full benchmark. It helps establish that an endpoint is reachable, discoverable, and suitable for deeper fixture work.",
+        "A preflight cannot establish saturation behavior, tenant policy, workflow completion, or long-window reliability. Keep it as a baseline check and publish the more complete workload and limitations separately.",
+      ], [{ label: "MCPTest remote testing comparison", href: "https://mcptest.io/learn/best-remote-mcp-testing-tools" }]),
     ],
   },
   "mcp-failure-taxonomy-diagnostic-matrix": {
-    heading: "The diagnostic evidence sources, compared one by one",
-    intro: "A failure matrix is useful only when each category has an evidence source and a safe next action. These cards map the common tools and boundaries to the questions they can actually answer.",
-    items: [
-      item("MCP Inspector", "Protocol and catalog evidence", "Checking initialization, capabilities, tool discovery, schemas, and one reproducible request.", "Interactive request and response evidence at the protocol boundary.", "It cannot explain long-window production frequency, tenant scope, or downstream fleet behavior.", "TrackMCP shows whether the same protocol or catalog failure is occurring in real traffic and how it affects calls and outcomes.", { label: "MCP Inspector repository", href: "https://github.com/modelcontextprotocol/inspector" }),
-      item("Sentry", "Application error evidence", "Finding exception groups, releases, traces, and stack context for handler or dependency failures.", "Error events, issue grouping, release context, and trace detail for instrumented application code.", "It may not preserve MCP client, catalog, result-state, or policy context unless those fields are added deliberately.", "TrackMCP supplies the MCP boundary fields that connect a Sentry exception to the tool, client, server, and result state that led to it.", { label: "Sentry MCP monitoring cookbook", href: "https://sentry.io/cookbook/monitor-mcp-server/" }),
-      item("Datadog", "Infrastructure and service evidence", "Correlating logs, metrics, traces, hosts, services, and incidents around a failing deployment.", "Operational telemetry and query access for service health, dependencies, and infrastructure conditions.", "A healthy service metric can coexist with a failing MCP tool or a valid result containing an application error.", "TrackMCP gives the MCP-specific event sequence that lets a Datadog investigation distinguish transport, tool, result, and workflow failure.", { label: "Datadog MCP server docs", href: "https://docs.datadoghq.com/mcp_server/" }),
-      item("OpenTelemetry", "Portable context and spans", "Carrying trace context and consistent attributes across gateway, MCP server, and dependency spans.", "Trace propagation, semantic attributes, span timing, and export to the team's chosen backend.", "Telemetry conventions do not diagnose an incident automatically and do not replace a runbook or ownership model.", "TrackMCP can be the instrumented server boundary in the trace, preserving MCP fields while other systems own infrastructure or application spans.", { label: "OpenTelemetry MCP attributes", href: "https://opentelemetry.io/docs/specs/semconv/registry/attributes/mcp/" }),
-      item("Runbook and reconciliation check", "Safe operational action", "Choosing what to inspect or reconcile before retrying a request with an unknown side effect.", "Known boundary, evidence confidence, owner, retry rule, idempotency key, downstream state, and user communication.", "A runbook is only as good as the evidence and ownership behind it. It cannot replace instrumentation.", "TrackMCP provides the server-boundary signals that make the runbook's first decision concrete instead of relying on a generic red request count."),
-      item("TrackMCP", "MCP failure evidence", "Naming which connection, catalog, tool, result, or outcome boundary failed in production.", "Client and server context, catalog, call timing, result-level errors, retries, timeouts, and outcome evidence.", "TrackMCP does not own infrastructure logs, model reasoning, or every downstream dependency detail.", "This is TrackMCP's lane. Use it as the join between the protocol symptom, the application error, and the operational action in the matrix.", { label: "TrackMCP production observability listicle", href: "/blog/best-mcp-observability-tools-for-production-servers" }),
+    heading: "How the main diagnostic evidence options fit",
+    intro: "A diagnostic matrix becomes useful when every failure category has a boundary, evidence source, owner, and safe next action. The tools below are complementary because no single system sees the whole MCP request path.",
+    trackmcp: entry("TrackMCP", [
+      "TrackMCP gives the matrix a server-boundary evidence source. It can identify the client and server context, observed catalog, tool call, duration, result-level error, retry, timeout, and explicit outcome signal that belong to the MCP request itself.",
+      "That evidence helps an operator distinguish a transport failure from a handler failure, a client refusal from a server outage, and a returned result from a completed workflow. TrackMCP still does not own model reasoning, infrastructure logs, or every downstream dependency detail, so the matrix should name those missing sources rather than infer them.",
+    ], [
+      { label: "TrackMCP production observability comparison", href: "/blog/best-mcp-observability-tools-for-production-servers" },
+      { label: "MCP tool error guide", href: "/blog/how-to-debug-mcp-tool-errors" },
+    ]),
+    entries: [
+      entry("MCP Inspector", [
+        "Use MCP Inspector when the first question is protocol or catalog evidence: did initialization complete, what capabilities were negotiated, which tools were exposed, and what did one request return? It is often the fastest way to turn a vague report into a concrete reproduction.",
+        "Inspector cannot provide long-window frequency, tenant scope, or fleet behavior. Record its request and response as a fixture, then use the deployed evidence source to determine whether the failure is isolated or recurring.",
+      ], [{ label: "MCP Inspector repository", href: "https://github.com/modelcontextprotocol/inspector" }]),
+      entry("Sentry", [
+        "Sentry is the right evidence source when the suspected boundary is an application exception, release regression, or dependency failure inside the handler. Stack traces, issue grouping, release context, and breadcrumbs can explain why a server returned a failure.",
+        "An exception event may not contain the MCP catalog, client, policy decision, or result state. Add those fields deliberately or join the event to MCP-boundary telemetry before declaring the diagnosis complete.",
+      ], [{ label: "Sentry MCP monitoring cookbook", href: "https://sentry.io/cookbook/monitor-mcp-server/" }]),
+      entry("Datadog", [
+        "Datadog is useful when the diagnostic question spans service health, logs, metrics, traces, dependencies, and infrastructure. It can show whether a deployment, host, network, or downstream dependency changed at the same time as the MCP failure.",
+        "A healthy service metric can coexist with a failing tool or a valid result containing an application error. Keep MCP-specific dimensions visible so broad operational evidence does not flatten the failure into a generic red request count.",
+      ], [{ label: "Datadog MCP server documentation", href: "https://docs.datadoghq.com/mcp_server/" }]),
+      entry("OpenTelemetry", [
+        "OpenTelemetry is useful when the matrix needs a portable trace context across gateway, MCP server, and dependencies. Stable trace and span relationships make it easier to follow a request without assuming one backend owns every signal.",
+        "The convention does not diagnose the incident automatically. Define field meaning, propagation, redaction, and sampling, then connect the trace to a runbook that says whether to inspect, retry, reconcile, roll back, or escalate.",
+      ], [{ label: "OpenTelemetry MCP attributes", href: "https://opentelemetry.io/docs/specs/semconv/registry/attributes/mcp/" }]),
+      entry("Runbook and reconciliation check", [
+        "A runbook is the operational option that decides what should happen after the evidence is classified. It should name the owner, alert threshold, idempotency or reconciliation rule, retry behavior, and user-facing explanation for each category.",
+        "This is especially important after a write timeout. Treat the side effect as unknown until downstream state, an idempotency key, or a safe read establishes what happened. No dashboard can make an unsafe blind retry safe by itself.",
+      ]),
     ],
   },
   "mcp-telemetry-field-map-opentelemetry": {
-    heading: "The MCP telemetry field sources, compared one by one",
-    intro: "A useful field map says who owns each field and what it proves. These cards separate portable trace context, application error data, agent traces, and TrackMCP's server-boundary fields.",
-    items: [
-      item("OpenTelemetry", "Portable trace context", "Propagating trace identity and common service attributes across gateway, server, and dependency spans.", "Trace IDs, span relationships, service identity, timing, and semantic attributes that a backend can query.", "It is a transport and data model, not a guarantee that an implementation recorded the right MCP event or redacted the right value.", "TrackMCP can emit the MCP-specific server span and fields that make an OpenTelemetry trace answer protocol and tool questions.", { label: "OpenTelemetry MCP semantic conventions", href: "https://opentelemetry.io/docs/specs/semconv/registry/attributes/mcp/" }),
-      item("TrackMCP", "Server-boundary fields", "Capturing the MCP connection, catalog, tool call, result state, timing, and outcome context in one product boundary.", "Client and server identity, negotiation, discovered tools, call duration, result-level errors, retries, and outcome signals with privacy-aware collection.", "TrackMCP does not own every application span, model generation, infrastructure metric, or warehouse dimension.", "This is TrackMCP's lane. Use its fields as the MCP boundary in a larger trace and preserve their meaning when exporting or joining them.", { label: "TrackMCP production observability listicle", href: "/blog/best-mcp-observability-tools-for-production-servers" }),
-      item("Sentry", "Exception and release context", "Explaining a handler exception, regression, release, or dependency failure inside the MCP server.", "Exception groups, stack traces, releases, breadcrumbs, and traces when the application is instrumented.", "Exception context may not include the MCP catalog, client, policy decision, or result state by default.", "Join Sentry's error event to TrackMCP's tool and result fields so an operator can identify both the code failure and the MCP request that exposed it.", { label: "Sentry MCP monitoring cookbook", href: "https://sentry.io/cookbook/monitor-mcp-server/" }),
-      item("Datadog", "Operational service context", "Correlating service health, logs, traces, dependencies, and infrastructure around an MCP call.", "Metrics, logs, traces, monitors, and service context for infrastructure and application operations.", "Broad observability context can still miss MCP-specific distinctions such as catalog drift or valid result errors.", "TrackMCP supplies the MCP-specific dimensions that can be added to or correlated with Datadog investigations.", { label: "Datadog MCP server docs", href: "https://docs.datadoghq.com/mcp_server/" }),
-      item("Langfuse or Phoenix", "Agent and model context", "Relating model generations, agent spans, evaluations, and prompts to the tool call decision.", "Generations, agent spans, evaluations, prompts, and workflow context depending on the instrumentation.", "Agent traces may stop before the server, and model quality does not prove server reliability or authorization.", "TrackMCP is the complementary server boundary. Join the agent decision to the observed MCP call without collapsing the two evidence scopes.", { label: "Arize Phoenix", href: "https://arize.com/docs/phoenix/" }),
+    heading: "How the main MCP telemetry field sources fit",
+    intro: "A field map is useful only when it says who owns each field and what that field proves. The options below cover portable trace context, server-boundary semantics, application errors, service context, and agent behavior.",
+    trackmcp: entry("TrackMCP", [
+      "TrackMCP owns the MCP server-boundary fields: connection and negotiation context, observed catalog, client and server identity, tool call, duration, result state, error classification, retry or timeout context, and explicit workflow outcome where the application emits one.",
+      "Those fields are not a replacement for every application span or model trace. They are the MCP-specific join that lets an operator answer what the server received and returned without claiming to see private reasoning, hidden provider behavior, or a final answer that the server never observed.",
+    ], [
+      { label: "TrackMCP MCP observability", href: "/mcp-observability" },
+      { label: "TrackMCP production comparison", href: "/blog/best-mcp-observability-tools-for-production-servers" },
+    ]),
+    entries: [
+      entry("OpenTelemetry", [
+        "OpenTelemetry owns the portable context layer. It carries trace identity, span relationships, service identity, timing, and semantic attributes across gateways, MCP servers, and dependencies so a team can export the evidence to the backend it operates.",
+        "It does not guarantee that the implementation captured the MCP lifecycle correctly or that a field has the same meaning across products. Define the fields first, instrument the boundary that owns them, and test the mapping with real fixtures.",
+      ], [{ label: "OpenTelemetry MCP semantic conventions", href: "https://opentelemetry.io/docs/specs/semconv/registry/attributes/mcp/" }]),
+      entry("Sentry", [
+        "Sentry owns exception and release context: stack traces, issue grouping, breadcrumbs, release correlation, and application trace detail. These fields are valuable when a tool handler or dependency throws an error that needs a code-level owner.",
+        "Sentry does not automatically own the MCP catalog, client decision, policy result, or explicit workflow outcome. Preserve those fields at the MCP boundary and correlate them instead of overloading an exception event with unsupported meaning.",
+      ], [{ label: "Sentry MCP monitoring cookbook", href: "https://sentry.io/cookbook/monitor-mcp-server/" }]),
+      entry("Datadog", [
+        "Datadog owns broad operational context across services, logs, metrics, traces, infrastructure, and incidents. It is useful when a telemetry field map needs to answer whether a tool failure coincided with a host, deploy, database, queue, or network condition.",
+        "Broad context can still miss catalog drift, result-level errors, and client-specific behavior unless the MCP fields are deliberately added. Keep the MCP event semantics stable when exporting them into a general backend.",
+      ], [{ label: "Datadog MCP server documentation", href: "https://docs.datadoghq.com/mcp_server/" }]),
+      entry("Langfuse", [
+        "Langfuse owns agent and generation context such as traces, observations, prompts, evaluations, feedback, and cost. It is useful for connecting a model or agent decision to the tool call that followed it.",
+        "The agent trace may stop before the server receives the request or omit the server result and downstream dependency. Treat model intent and MCP execution as separate fields joined by a stable, privacy-safe correlation ID.",
+      ], [{ label: "Langfuse agents documentation", href: "https://langfuse.com/agents" }]),
+      entry("Arize Phoenix", [
+        "Arize Phoenix is useful for open-source LLM and agent traces, evaluations, and OpenTelemetry-compatible analysis. It can provide the model and application side of a field map when an agent workflow is the primary unit of investigation.",
+        "Phoenix should not be treated as proof of server authorization, catalog freshness, or side-effect completion. Add the server-owned fields explicitly and record when a field is unavailable rather than substituting an inferred value.",
+      ], [{ label: "Arize Phoenix documentation", href: "https://arize.com/docs/phoenix/" }]),
     ],
   },
   "mcp-server-reliability-scorecard": {
-    heading: "The MCP reliability scorecard inputs, compared one by one",
-    intro: "An aggregate score is useful only when its raw inputs and disqualifying safety gates remain visible. These cards map each scorecard input to the tool or evidence source that can support it.",
-    items: [
-      item("MCP Conformance", "Protocol coverage", "Scoring whether a declared MCP protocol requirement set passes in CI.", "Pinned lifecycle, schema, transport, and scenario requirements for a supported protocol revision.", "A conformance pass does not score business correctness, load behavior, user outcomes, or safe side effects.", "TrackMCP should not be used to inflate a protocol score. It supplies production evidence for a separate reliability dimension and exposes post-release regressions.", { label: "MCP conformance repository", href: "https://github.com/modelcontextprotocol/conformance" }),
-      item("Grafana k6 or Locust", "Latency and saturation", "Measuring p50, p95, p99, error rate, and behavior under expected and peak concurrency.", "Controlled load, arrival rate, scenario completion, and performance distributions.", "Load output is synthetic and can misrepresent production if the fixture, client mix, or dependency behavior is unrealistic.", "TrackMCP provides the production comparison for the same dimensions and distinguishes server, gateway, and dependency time.", { label: "Grafana k6 documentation", href: "https://grafana.com/docs/k6/latest/" }),
-      item("Sentry or Datadog", "Error and incident context", "Scoring the severity, recurrence, release correlation, and operational response to failures.", "Exception, log, metric, trace, release, and incident evidence for a deployed service.", "Generic error volume can hide MCP result errors, catalog drift, client-specific failures, and unknown side effects.", "TrackMCP adds those MCP-specific dimensions so an incident score is based on the boundary users experienced, not only an application error count.", { label: "Datadog MCP server docs", href: "https://docs.datadoghq.com/mcp_server/" }),
-      item("OpenTelemetry", "Evidence continuity", "Scoring whether trace and event context survives gateway, server, and dependency boundaries.", "Trace propagation, stable attributes, span relationships, and export completeness.", "Instrumentation coverage can look healthy while semantic fields are missing or privacy policy is violated.", "TrackMCP defines the server-boundary evidence that should remain queryable inside that trace and can expose missing or inconsistent fields.", { label: "OpenTelemetry MCP attributes", href: "https://opentelemetry.io/docs/specs/semconv/registry/attributes/mcp/" }),
-      item("TrackMCP", "Production reliability evidence", "Scoring connection health, tool reliability, result errors, catalog drift, and observed outcomes by server and client.", "Long-window production measures with tool, client, result, timing, retry, and outcome dimensions.", "TrackMCP cannot establish protocol conformance, generate load, or grade a model's final answer on its own.", "This is TrackMCP's lane. Keep it as a separately reported scorecard dimension and never average away a critical safety or unknown-side-effect failure.", { label: "TrackMCP production observability listicle", href: "/blog/best-mcp-observability-tools-for-production-servers" }),
+    heading: "How the main MCP reliability scorecard inputs fit",
+    intro: "A scorecard should expose its raw measures and its hard gates. The options below support different dimensions of reliability and should not be collapsed into one unexplained vendor score.",
+    trackmcp: entry("TrackMCP", [
+      "TrackMCP supplies the production reliability evidence: connection health, catalog drift, tool duration, result-level errors, retries, timeouts, client breakdowns, and explicit outcomes over a real traffic window. Those measures show how the server behaves after the controlled test has ended.",
+      "TrackMCP should remain a separately reported scorecard dimension. It cannot establish protocol conformance, generate load, or grade a model's final answer, and a critical safety or unknown-side-effect failure should never be averaged away by good latency numbers.",
+    ], [
+      { label: "TrackMCP production comparison", href: "/blog/best-mcp-observability-tools-for-production-servers" },
+      { label: "MCP server SLOs", href: "/blog/mcp-server-slos" },
+    ]),
+    entries: [
+      entry("MCP Conformance", [
+        "Use MCP Conformance for the protocol coverage dimension. A pinned requirement set can tell you whether lifecycle, transport, schema, and scenario behavior meets the declared MCP revision in CI.",
+        "Conformance is a gate for interoperability, not a complete reliability score. It does not measure production latency, business correctness, incident response, outcome completion, or side-effect safety.",
+      ], [{ label: "MCP conformance repository", href: "https://github.com/modelcontextprotocol/conformance" }]),
+      entry("Grafana k6", [
+        "Use k6 for controlled latency, saturation, concurrency, and threshold measurements. It can produce repeatable p50, p95, p99, timeout, and error distributions under a declared workload.",
+        "The scorecard should record the fixture, client, protocol revision, dependency behavior, and warm-up. Synthetic latency is not a production guarantee when the traffic mix or dependency state is different.",
+      ], [{ label: "Grafana k6 documentation", href: "https://grafana.com/docs/k6/latest/" }]),
+      entry("Locust", [
+        "Use Locust when reliability depends on user-shaped stateful sequences rather than independent requests. It can model a realistic client mix and task flow in a way that makes concurrency and pacing visible in the test code.",
+        "Keep the scenario's expected outcomes and side-effect rules explicit. A user-like sequence is still synthetic, and the scorecard must say which production behaviors were not represented.",
+      ], [{ label: "Locust documentation", href: "https://docs.locust.io/" }]),
+      entry("Sentry", [
+        "Use Sentry for exception severity, recurrence, release correlation, and operational response. It can support the scorecard's incident dimension when application failures are the main reliability concern.",
+        "Raw error volume does not distinguish MCP result errors, transport failures, client-specific refusals, catalog drift, or unknown side effects. Keep those categories separate in the scorecard definitions.",
+      ], [{ label: "Sentry MCP monitoring cookbook", href: "https://sentry.io/cookbook/monitor-mcp-server/" }]),
+      entry("OpenTelemetry", [
+        "Use OpenTelemetry for evidence continuity across gateway, server, and dependencies. Trace propagation and stable attributes make a reliability score auditable across backends.",
+        "Instrumentation coverage is not the same as reliability. A scorecard should penalize missing critical evidence or privacy violations separately instead of rewarding a large volume of incomplete spans.",
+      ], [{ label: "OpenTelemetry MCP attributes", href: "https://opentelemetry.io/docs/specs/semconv/registry/attributes/mcp/" }]),
     ],
   },
   "mcp-tool-adoption-report": {
-    heading: "The MCP adoption measurement tools and signals, compared one by one",
-    intro: "Adoption is behavior over a defined population and time window. These cards distinguish exposure, selection, calls, outcomes, and the systems that can measure each stage.",
-    items: [
-      item("TrackMCP", "MCP adoption funnel", "Measuring which clients connect, which tools are discovered and called, and where calls fail or complete.", "Server-boundary exposure, discovery, tool calls, timing, result state, client context, and outcome signals.", "TrackMCP does not replace product analytics for every UI action or a model evaluation system for reasoning quality.", "This is TrackMCP's lane. It provides the MCP-specific adoption funnel without treating catalog size or one successful call as adoption.", { label: "TrackMCP production observability listicle", href: "/blog/best-mcp-observability-tools-for-production-servers" }),
-      item("OpenTelemetry", "Portable event and trace collection", "Standardizing the context needed to join MCP usage with application and infrastructure behavior.", "Trace identity, service, client, tool, timing, and custom event attributes exported to an observability backend.", "OpenTelemetry does not define the product question or automatically calculate a useful adoption denominator.", "Use TrackMCP's MCP-specific events within the OpenTelemetry context so adoption can be analyzed without losing server-boundary meaning.", { label: "OpenTelemetry MCP attributes", href: "https://opentelemetry.io/docs/specs/semconv/registry/attributes/mcp/" }),
-      item("Langfuse", "Agent and generation behavior", "Understanding whether an agent attempted a tool, how a generation led to a call, and where evaluation scores change.", "Generations, agent spans, traces, and evaluation scores that help explain selection and task behavior.", "An agent trace is not a complete usage denominator and may omit direct clients, rejected calls, or server-side results.", "Join Langfuse agent context to TrackMCP's observed calls and outcomes to separate intent from actual server adoption."),
-      item("Grafana or Datadog", "Operational adoption context", "Monitoring traffic, service health, resource pressure, and tenant or release changes around tool use.", "Metrics, logs, dashboards, monitors, and traces that show operational conditions during adoption changes.", "Infrastructure traffic alone cannot identify which MCP tools were exposed, selected, denied, or completed.", "TrackMCP supplies the MCP dimensions that make a traffic spike or drop attributable to a client, catalog, tool, or result state.", { label: "Grafana MCP observability", href: "https://grafana.com/docs/grafana-cloud/observe-and-act/monitor-applications/ai-observability/mcp-observability/" }),
-      item("Product analytics or warehouse", "Business outcome denominator", "Connecting tool usage to activation, retention, customer segment, and downstream product outcomes.", "User, account, cohort, event, and outcome analysis over a declared population and time window.", "A warehouse event may not preserve protocol, tool, result, retry, or privacy details needed for safe MCP diagnosis.", "TrackMCP provides the server-boundary event that should be joined to business analytics with a documented identity and retention policy."),
+    heading: "How the main MCP adoption measurement options fit",
+    intro: "Adoption is behavior over a defined population and window. A catalog count, a tool call, an agent trace, and a business outcome are different signals. The useful report keeps those stages separate.",
+    trackmcp: entry("TrackMCP", [
+      "TrackMCP measures the MCP adoption funnel at the server boundary: which clients connected, what catalog they discovered, which tools were called, where calls failed or retried, and which explicit outcomes were emitted. It can show that a capability was reachable and used without claiming that a user preferred it or that a model reasoned correctly.",
+      "This is the product's strongest adoption role. Join TrackMCP events to product analytics with a documented identity and retention policy, then report exposed, discovered, called, successful, and completed as separate denominators. Do not call catalog size adoption.",
+    ], [
+      { label: "TrackMCP tool analytics", href: "/mcp-tool-analytics" },
+      { label: "TrackMCP server analytics", href: "/mcp-server-analytics" },
+    ]),
+    entries: [
+      entry("OpenTelemetry", [
+        "OpenTelemetry is useful when adoption needs to be joined across an MCP server, application, gateway, and dependency. Trace identity and stable attributes make it possible to connect a tool call to the broader request without forcing every question into one analytics product.",
+        "OpenTelemetry does not define the denominator or the business question. Decide whether the report is about connections, discovery, calls, successful results, explicit outcomes, active accounts, or retained users before selecting fields and windows.",
+      ], [{ label: "OpenTelemetry MCP attributes", href: "https://opentelemetry.io/docs/specs/semconv/registry/attributes/mcp/" }]),
+      entry("Langfuse", [
+        "Langfuse can explain the agent side of adoption: which generations led to a tool attempt, what spans were produced, and how evaluations or feedback changed across versions. It is useful when tool usage is part of a model or agent product funnel.",
+        "An agent trace is not a complete usage denominator. It may omit direct clients, denied calls, catalog exposure, or server-side result errors. Join it to the MCP boundary rather than treating model intent as actual adoption.",
+      ], [{ label: "Langfuse agents documentation", href: "https://langfuse.com/agents" }]),
+      entry("Grafana", [
+        "Grafana is useful for operational context around adoption changes: traffic, service health, dependency saturation, dashboards, and release markers. It can show whether a rise or drop in calls coincided with an infrastructure or deploy event.",
+        "Infrastructure traffic does not identify which tools were exposed, selected, denied, or completed. Keep the MCP dimensions in the event stream and use Grafana for the broader operating context.",
+      ], [{ label: "Grafana MCP observability", href: "https://grafana.com/docs/grafana-cloud/observe-and-act/monitor-applications/ai-observability/mcp-observability/" }]),
+      entry("Datadog", [
+        "Datadog can support adoption analysis when service, tenant, release, and infrastructure context already live there. Its broad operational data helps explain whether a usage change reflects a client rollout, an error spike, a quota, or a dependency problem.",
+        "Do not use a generic request metric as a tool adoption metric. Add the MCP catalog, client, tool, result, and outcome dimensions deliberately and keep privacy and tenant boundaries explicit.",
+      ], [{ label: "Datadog MCP server documentation", href: "https://docs.datadoghq.com/mcp_server/" }]),
+      entry("Product analytics or warehouse", [
+        "Product analytics and a warehouse own the business denominator: accounts, cohorts, activation, retention, customer segment, and downstream product outcomes. They are the right place to answer whether MCP usage changed a product behavior over time.",
+        "A business event can lose protocol, tool, result, retry, and privacy details that are necessary for diagnosis. Join it to the server-boundary event with a documented stable identifier and never infer a workflow outcome from a click or a tool call alone.",
+      ]),
     ],
   },
   "mcp-observability-glossary-buyers-guide": {
-    heading: "The MCP observability categories, compared one by one",
-    intro: "Buy by evidence boundary, not by the word observability on a product page. These cards separate MCP telemetry from APM, error tracking, agent tracing, and evaluation.",
-    items: [
-      item("TrackMCP", "MCP server observability", "Teams that need connection, catalog, tool, result, and outcome evidence at the MCP server boundary.", "MCP lifecycle, client context, discovered tools, call timing, result-level errors, retries, and server-side outcomes.", "It is not a general APM, model evaluator, public registry, or gateway policy engine.", "This is TrackMCP's core position. It fills the server-boundary gap between an agent trace, a gateway decision, and an application error.", { label: "TrackMCP production observability listicle", href: "/blog/best-mcp-observability-tools-for-production-servers" }),
-      item("OpenTelemetry", "Instrumentation standard", "Teams that want portable context, semantic fields, and backend flexibility across services and vendors.", "Trace context, spans, service identity, semantic conventions, and export pipelines.", "A standard does not automatically provide a product UI, complete MCP instrumentation, or incident ownership.", "TrackMCP can own the MCP-specific implementation while OpenTelemetry carries compatible context into the rest of the stack.", { label: "OpenTelemetry MCP semantic conventions", href: "https://opentelemetry.io/docs/specs/semconv/registry/attributes/mcp/" }),
-      item("Datadog or Grafana", "Infrastructure and application observability", "Teams that need broad metrics, logs, traces, dashboards, alerting, and incident operations.", "Hosts, services, dependencies, logs, metrics, traces, dashboards, and query access through established operations platforms.", "Broad APM data can miss catalog drift, result-level errors, and client-specific MCP behavior without deliberate fields and instrumentation.", "TrackMCP supplies the MCP boundary and can be correlated with the platform's wider infrastructure and application evidence.", { label: "Grafana MCP observability", href: "https://grafana.com/docs/grafana-cloud/observe-and-act/monitor-applications/ai-observability/mcp-observability/" }),
-      item("Sentry", "Error tracking", "Teams that need fast exception grouping, release correlation, stack context, and issue workflows.", "Exceptions, stack traces, releases, breadcrumbs, and traces for instrumented application code.", "Error tracking does not by itself show the full MCP lifecycle, catalog, client decision, or workflow outcome.", "TrackMCP adds the MCP request and result context around the error so the team can distinguish a protocol issue from an application failure.", { label: "Sentry MCP monitoring cookbook", href: "https://sentry.io/cookbook/monitor-mcp-server/" }),
-      item("Langfuse or Phoenix", "LLM and agent observability", "Teams evaluating generations, agent spans, prompts, retrieval, and model behavior around tool use.", "Generations, spans, evaluations, prompt context, and agent workflow traces.", "Agent observability does not prove server health, authorization, catalog freshness, or side-effect completion.", "TrackMCP is the complementary server boundary that lets the team join model intent to actual MCP execution without conflating their scores.", { label: "Arize Phoenix", href: "https://arize.com/docs/phoenix/" }),
-      item("MCP gateway", "Policy and traffic control", "Teams that need identity, authorization, routing, quotas, tenancy, and centralized audit decisions.", "Allowed and denied calls, route, identity, policy, quota, and gateway timing.", "A gateway may hide server internals, downstream errors, or workflow outcomes if it does not preserve context.", "TrackMCP records the downstream server behavior so gateway policy and actual execution can be investigated together."),
+    heading: "How the main MCP observability categories fit",
+    intro: "Buy by evidence boundary, not by the word observability in a product name. The options below solve different problems and should be evaluated against the questions your team must answer during an incident and a product review.",
+    trackmcp: entry("TrackMCP", [
+      "TrackMCP is for teams that own and operate MCP servers and need a focused view of connections, catalogs, tool calls, result errors, latency, retries, sessions, and explicit outcomes. It is the server-boundary layer in a larger observability architecture.",
+      "It is not a general APM, model evaluator, public registry, or gateway policy engine. That boundary is the product's advantage when the unanswered question is what the MCP server actually received and returned, and its limitation when the question belongs entirely to infrastructure or private model reasoning.",
+    ], [
+      { label: "TrackMCP production observability comparison", href: "/blog/best-mcp-observability-tools-for-production-servers" },
+      { label: "TrackMCP observability", href: "/mcp-observability" },
+    ]),
+    entries: [
+      entry("OpenTelemetry", [
+        "OpenTelemetry is an instrumentation and data model choice. It is useful when a team wants portable trace context, semantic fields, collector control, and the freedom to route MCP evidence into its own backend or several backends.",
+        "It does not automatically provide MCP semantics, a polished investigation workflow, or complete instrumentation. The team owns the field definitions, redaction, storage, dashboards, alerting, and maintenance that turn the standard into a useful product.",
+      ], [{ label: "OpenTelemetry MCP semantic conventions", href: "https://opentelemetry.io/docs/specs/semconv/registry/attributes/mcp/" }]),
+      entry("Datadog", [
+        "Datadog is a broad operational platform for teams that want infrastructure, APM, logs, metrics, security, and agent observability in an established workflow. It is a strong choice when the organization already has dashboards, alerting, and incident ownership there.",
+        "Breadth can also mean more configuration and more responsibility for preserving MCP-specific semantics. Verify catalog, client, tool, result, and outcome coverage rather than assuming a generic APM integration answers every MCP question.",
+      ], [{ label: "Datadog MCP server documentation", href: "https://docs.datadoghq.com/mcp_server/" }]),
+      entry("Grafana", [
+        "Grafana is a composable option for teams that want control over metrics, logs, traces, dashboards, collectors, and data routing. It works especially well when Prometheus, Tempo, Loki, and OpenTelemetry already form part of the operating stack.",
+        "The tradeoff is ownership. The team must define MCP semantics, build useful panels and alerts, maintain collectors, and preserve the evidence needed for diagnosis. A broad dashboard is not automatically a useful server-boundary product.",
+      ], [{ label: "Grafana MCP observability", href: "https://grafana.com/docs/grafana-cloud/observe-and-act/monitor-applications/ai-observability/mcp-observability/" }]),
+      entry("Sentry", [
+        "Sentry is an error and performance workflow for teams that prioritize exception grouping, release correlation, stack context, and issue ownership. It can be a strong MCP companion when the main question is which code path or dependency failed.",
+        "Error tracking is not the same as an MCP catalog, client, result, or workflow view. Ask the vendor to demonstrate those dimensions in your runtime instead of assuming they are present because the server emitted an exception.",
+      ], [{ label: "Sentry MCP monitoring cookbook", href: "https://sentry.io/cookbook/monitor-mcp-server/" }]),
+      entry("Langfuse", [
+        "Langfuse is centered on LLM and agent traces, prompts, generations, evaluations, feedback, and cost. It is a good fit when the organization investigates the whole AI application and wants model and tool behavior in one trace-oriented workflow.",
+        "It does not automatically prove server health, authorization, catalog freshness, or side-effect completion. Keep model intent and MCP execution as distinct evidence scopes and test the join under privacy constraints.",
+      ], [{ label: "Langfuse agents documentation", href: "https://langfuse.com/agents" }]),
+      entry("MCP gateway", [
+        "An MCP gateway owns policy and traffic control: identity, authorization, routing, quotas, tenancy, credential brokering, and centralized audit decisions. It is the right category when those controls must be enforced consistently across a fleet.",
+        "A gateway may not see server internals, downstream dependency details, or workflow outcomes. Ask whether it preserves the context needed to join its policy decision to the server evidence instead of treating the gateway as the entire observability stack.",
+      ]),
     ],
   },
 };
+
+export function comparisonBlocks(comparison: Wave2Comparison): Block[] {
+  const blocks: Block[] = [
+    { t: "h2", c: comparison.heading },
+    { t: "p", c: comparison.intro },
+    { t: "h2", c: comparison.trackmcp.name },
+    ...comparison.trackmcp.paragraphs.map((c) => ({ t: "p", c }) as Block),
+  ];
+  if (comparison.trackmcp.links?.length) blocks.push({ t: "links", items: comparison.trackmcp.links });
+  for (const section of comparison.entries) {
+    blocks.push({ t: "h2", c: section.name }, ...section.paragraphs.map((c) => ({ t: "p", c }) as Block));
+    if (section.links?.length) blocks.push({ t: "links", items: section.links });
+  }
+  return blocks;
+}
