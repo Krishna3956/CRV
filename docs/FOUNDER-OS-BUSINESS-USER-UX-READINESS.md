@@ -2,7 +2,7 @@
 
 Date: 2026-11-03  
 Branch: `codex/business-user-ux-audit`  
-Latest verified commit: `ab52c783` (`Polish signed-out dashboard handoff`)
+Latest verified commit: `bf562ec1` (`Simplify capability dashboard reading path`)
 
 This matrix is the release-readiness companion to the UX audit and work
 queue. It intentionally separates source-level proof, read-only browser proof,
@@ -10,7 +10,7 @@ and evidence that requires a real account, deployment, or human participant.
 
 Latest branch verification: `npm run test:release-gate` passed all 159 suites
 after the authentication-affordance, research, and signed-out handoff pass
-(`ab52c783`). The branch
+(`bf562ec1`). The branch
 remains local and has not been merged or deployed.
 
 ## Requirement coverage
