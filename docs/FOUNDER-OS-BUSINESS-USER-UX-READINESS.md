@@ -2,7 +2,7 @@
 
 Date: 2026-11-03  
 Branch: `codex/business-user-ux-audit`  
-Latest verified commit: `c05da96c` (`Use connection key language throughout setup`)
+Latest verified commit: `9c1c6391` (`Normalize evidence action labels`)
 
 This matrix is the release-readiness companion to the UX audit and work
 queue. It intentionally separates source-level proof, read-only browser proof,
@@ -10,7 +10,8 @@ and evidence that requires a real account, deployment, or human participant.
 
 Latest branch verification: `npm run test:release-gate` passed all 159 suites
 after the authentication-affordance, research, signed-out handoff, illustrative
-People-growth coherence, and setup-vocabulary consistency passes (`c05da96c`).
+People-growth coherence, setup-vocabulary consistency, and evidence-action-label
+passes (`9c1c6391`).
 The branch
 remains local and has not been merged or deployed.
 

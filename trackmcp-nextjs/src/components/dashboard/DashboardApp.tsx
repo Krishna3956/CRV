@@ -2606,7 +2606,7 @@ function Overview({
             onClick={() => onViewChange("issues")}
           />
           <ActionButton
-            label="Open Evidence"
+            label="Open evidence"
             icon={Search}
             onClick={() => onViewChange("evidence")}
           />
@@ -3061,7 +3061,7 @@ function JourneysView({
             : "No explicit workflow outcome data"
         }
         action={{
-          label: "Open Evidence",
+          label: "Open evidence",
           onClick: () => onViewChange("evidence"),
         }}
       >
@@ -3678,7 +3678,7 @@ function QualityView({
                         onClick={() => onViewTrace(tool.trace_session_ids[0])}
                         className="cursor-pointer text-xs font-semibold text-brand-strong hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
                       >
-                        {dataMode === "example" ? "View sample trace" : "Open Evidence"}
+                        {dataMode === "example" ? "View sample trace" : "Open evidence"}
                       </button>
                     )}
                   </td>
@@ -4001,7 +4001,7 @@ function IssuesView({
         </div>
         <div className="mt-4 flex flex-wrap gap-2">
           <ActionButton
-            label="Open Evidence"
+            label="Open evidence"
             icon={Search}
             onClick={() => onViewChange("evidence")}
           />
@@ -4123,7 +4123,7 @@ function IncidentCard({
           onClick={onViewEvidence}
           className="inline-flex cursor-pointer items-center gap-1 text-xs font-semibold text-brand-strong hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
         >
-          {example ? "View sample evidence" : "Open Evidence"} <ChevronRight size={13} />
+          {example ? "View sample evidence" : "Open evidence"} <ChevronRight size={13} />
         </button>
       </div>
       <details className="mt-3 border-t border-line/80 pt-3">

@@ -2,7 +2,7 @@
 
 Date: 2026-11-03
 Branch: `codex/business-user-ux-audit`
-Commit under review: `c05da96c` (`Use connection key language throughout setup`)
+Commit under review: `9c1c6391` (`Normalize evidence action labels`)
 
 This is local browser evidence only. It is not production evidence and does
 not replace a fresh-account or real-telemetry walkthrough.
@@ -24,6 +24,10 @@ field names and event identifiers used by the API contract.
 The evidence action label is also normalized to `Open evidence` across the
 Overview, Journey, Quality, and Evidence surfaces. This is a copy-consistency
 change only; the underlying trace navigation is unchanged.
+
+The final source pass also removed the remaining title-case variants from
+secondary action props and tool/issue drill-downs, so the phrase is consistent
+even when the action is rendered outside the primary Evidence table.
 
 ## Latest browser confirmation
 

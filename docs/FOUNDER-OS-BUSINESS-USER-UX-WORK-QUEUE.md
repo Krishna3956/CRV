@@ -147,6 +147,9 @@ Legend: `[x]` verified/implemented in this workstream; `[ ]` pending.
       evidence” action.
 - [x] ✅ Normalize evidence action capitalization across dashboard surfaces so
       the same action is always written as `Open evidence`.
+- [x] ✅ Remove the last title-case `Open Evidence` labels from secondary
+      journey, quality, issue, and evidence actions so business users encounter
+      one consistent drill-down phrase throughout the dashboard.
 - [x] ✅ Run dashboard contracts, typecheck, lint, and production build.
 - [x] ✅ Run the consolidated release gate; all 159 suites pass after fixing
       clean-checkout MCP SDK resolution and Python artifact preparation.
