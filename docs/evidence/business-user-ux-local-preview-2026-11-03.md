@@ -25,6 +25,10 @@ evidence”; raw session identifiers remain an internal routing detail.
 - On the activated Example-data Overview, the new “Recommended next step”
   card appeared above the KPI grid and offered “See the journey” with a
   bounded explanation of what the sample path demonstrates.
+- On the rendered Setup route with no connection key, the status copy now says
+  “TrackMCP cannot verify an integration until a connection key is configured
+  and your server sends an event.” The optional “Advanced key scope” control
+  remains a separate collapsed section rather than the primary setup path.
 
 ## Environment
 
