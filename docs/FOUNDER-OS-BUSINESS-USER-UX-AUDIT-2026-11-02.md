@@ -126,6 +126,9 @@ Implemented on isolated branch `codex/business-user-ux-audit`:
   is connected.
 - Reworded the Overview and key capability/resource metrics in business terms
   without changing the analytics payload or formulas.
+- Moved issue evidence basis and internal rule identifiers behind an explicit
+  detail disclosure so a business reader sees the signal and recommended next
+  step first.
 - Added contract coverage for the new orientation and setup copy.
 - Marked Example data as illustrative through the existing data-source
   contract; no sample data was mixed into My data.
