@@ -594,3 +594,23 @@ Latest recovery-path verification after `a00cf8db`:
 - `npm run test:release-gate`: passed all 159 suites.
 - The branch remains local and undeployed; fresh-account, production, and
   non-technical participant evidence are still required.
+
+## Current verification after `7e2fd060` / `48f4dcf7`
+
+- The first-time dashboard explanation now uses a short business-oriented
+  description: TrackMCP shows who is using the MCP, what they are trying to
+  do, whether work completed, and what needs attention. The technical setup
+  boundary remains explicit without making the empty state a paragraph.
+- `npm run test:business-user-ux`: 87/87 passed.
+- `npx tsc --noEmit --pretty false`: passed.
+- `npm run build`: passed; 230 static pages generated.
+- `npm run test:release-gate`: passed all 159 suites.
+- A fresh standalone runtime with deliberately non-production Supabase
+  placeholders returned HTTP 200 for `/`, `/docs`, both SDK docs, `/device`,
+  the Example-data Setup dashboard, `/sitemap-index.xml`, and `/sitemap.xml`.
+- `/tool-sitemap.xml` returned HTTP 503 with `Retry-After: 300`, proving the
+  database-backed sitemap fails closed rather than returning an empty success.
+- The isolated worktree is clean. No merge, deployment, or production data
+  change was performed.
+- Fresh authenticated-account setup, a real first event, and non-technical
+  participant UAT remain open gates; this evidence is local and synthetic.
