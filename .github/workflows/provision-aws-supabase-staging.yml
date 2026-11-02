@@ -245,6 +245,11 @@ jobs:
             cp -rf /opt/trackmcp-supabase/supabase/docker/. /opt/trackmcp-supabase/project/
             cd /opt/trackmcp-supabase/project
             printf 'ref=self-hosted/v0.8.3\n' > .supabase-version
+            # Supavisor's image entrypoint tries to raise RLIMIT_NOFILE to
+            # 100000. Some EC2 container hosts have a lower hard limit, which
+            # makes the entrypoint exit before Supavisor can start. Keep the
+            # host-provided limit instead of asking the container to raise it.
+            sed -i '/^      API_JWT_SECRET: \${JWT_SECRET}$/a\      RLIMIT_NOFILE: ""' docker-compose.yml
             cp .env.example .env
             # SSM runs this bootstrap non-interactively. Without
             # --update-env the official generator only prints keys and leaves
