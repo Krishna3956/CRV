@@ -101,6 +101,9 @@ Legend: `[x]` verified/implemented in this workstream; `[ ]` pending.
       evidence-backed signals each get a truthful next action.
 - [x] ✅ Keep optional key scoping out of the primary setup instruction; users
       are told to create a connection key first and can configure scopes later.
+- [x] ✅ Prevent deep-linked dashboard routes from briefly rendering the wrong
+      data source while the URL state hydrates; show a neutral loading handoff
+      and gate live-data fetches until the selected route is known.
 - [x] ✅ Apply the same business-readable evidence language inside the Evidence
       tab: remove the engineering-only “Trace Explorer” action label, hide raw
       session identifiers from the primary table, and expose a clear “Open

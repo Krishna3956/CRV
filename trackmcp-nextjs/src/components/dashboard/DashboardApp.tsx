@@ -973,6 +973,7 @@ export function DashboardApp({
   const [view, setView] = useState<View>(
     initialView === "traces" ? "evidence" : "overview",
   );
+  const [routeReady, setRouteReady] = useState(false);
   const [range, setRange] = useState("30");
   const [dataMode, setDataModeState] = useState<DataMode>("my");
   const [traceSessionId, setTraceSessionId] = useState<string | null>(null);
@@ -1036,6 +1037,7 @@ export function DashboardApp({
       setTraceCorrelationHandle(state.correlationHandle);
       setTraceOrigin(state.origin);
       setIncidentId(state.incidentId);
+      setRouteReady(true);
     };
     const timer = window.setTimeout(applyRoute, 0);
     window.addEventListener("popstate", applyRoute);
@@ -1047,7 +1049,7 @@ export function DashboardApp({
 
   useEffect(() => {
     const controller = new AbortController();
-    if (dataMode === "example" || workspaceId === null || !hasActiveKey) {
+    if (!routeReady || dataMode === "example" || workspaceId === null || !hasActiveKey) {
       return () => controller.abort();
     }
 
@@ -1084,11 +1086,11 @@ export function DashboardApp({
       });
 
     return () => controller.abort();
-  }, [alertReloadToken, alertScopeKey, dataMode, hasActiveKey, workspaceId]);
+  }, [alertReloadToken, alertScopeKey, dataMode, hasActiveKey, routeReady, workspaceId]);
 
   useEffect(() => {
     const controller = new AbortController();
-    if (dataMode === "example" || workspaceId === null) {
+    if (!routeReady || dataMode === "example" || workspaceId === null) {
       return () => controller.abort();
     }
     queueMicrotask(() => {
@@ -1117,7 +1119,7 @@ export function DashboardApp({
         setActionQueueLoadState("error");
       });
     return () => controller.abort();
-  }, [alertReloadToken, dataMode, workspaceId]);
+  }, [alertReloadToken, dataMode, routeReady, workspaceId]);
 
   const setDataMode = (next: DataMode) => {
     setDataModeState(next);
@@ -1204,6 +1206,16 @@ export function DashboardApp({
         onRefresh={refreshAll}
       />
     );
+
+  if (!routeReady) {
+    return (
+      <main className="mx-auto min-h-screen max-w-6xl px-6 py-20">
+        <p className="text-xs font-semibold uppercase tracking-[0.14em] text-brand-strong">TrackMCP dashboard</p>
+        <h1 className="mt-3 text-2xl font-semibold tracking-tight text-ink">Loading your selected dashboard view</h1>
+        <p className="mt-3 max-w-xl text-sm leading-relaxed text-muted">We’re opening the view and data source you selected. Your live data and Example data stay separate.</p>
+      </main>
+    );
+  }
 
   return (
     <div className="dashboard-shell min-h-screen bg-[#f2f6f3] font-sans text-ink">
