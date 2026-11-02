@@ -49,6 +49,9 @@ Legend: `[x]` verified/implemented in this workstream; `[ ]` pending.
 - [x] ✅ Research PostHog, Amplitude, GA4, USWDS, Material, NN/g, and
       Microsoft product-writing guidance; record the source-to-change decisions
       in `FOUNDER-OS-BUSINESS-USER-UX-RESEARCH.md`.
+- [x] ✅ Add table alternatives for the Overview activity chart and account
+      growth chart so business users can read exact values without relying on
+      hover interactions.
 - [x] ✅ Perform a read-only browser review of the current production Setup,
       Overview, Example data, and My data states; record live-vs-branch
       differences in the audit.
