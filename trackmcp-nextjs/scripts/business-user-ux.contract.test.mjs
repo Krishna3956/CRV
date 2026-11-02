@@ -3,6 +3,7 @@ import { readFile } from "node:fs/promises";
 import test from "node:test";
 
 const dashboard = await readFile(new URL("../src/components/dashboard/DashboardApp.tsx", import.meta.url), "utf8");
+const dashboardPage = await readFile(new URL("../src/app/dashboard/page.tsx", import.meta.url), "utf8");
 const auth = await readFile(new URL("../src/app/signin/page.tsx", import.meta.url), "utf8");
 const oauth = await readFile(new URL("../src/components/OAuthButtons.tsx", import.meta.url), "utf8");
 const apiDocs = await readFile(new URL("../src/app/docs/api/page.tsx", import.meta.url), "utf8");
@@ -77,6 +78,8 @@ test("first-time authentication controls expose clear interaction affordances", 
   assert.match(auth, /focus-visible:ring-2 focus-visible:ring-brand/);
   assert.match(oauth, /cursor-pointer items-center justify-center gap-2/);
   assert.match(oauth, /Loading sign-in options/);
+  assert.match(dashboardPage, /href="\/signin" className="inline-flex cursor-pointer rounded-lg bg-ink/);
+  assert.match(dashboardPage, /focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2">Sign in to continue/);
 });
 
 test("uncertainty and technical evidence remain explicit", () => {
