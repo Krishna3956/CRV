@@ -68,6 +68,9 @@ and evidence that requires a real account, deployment, or human participant.
 - The live Overview still uses some older KPI labels, proving that the branch
   changes are not currently deployed.
 
+The branch also provides an accessible table alternative for the capability
+trend chart, so feature comparison does not depend on chart hover behavior.
+
 ### Tier 3 — still required before pilot readiness
 
 - Fresh-account setup in the deployed branch.

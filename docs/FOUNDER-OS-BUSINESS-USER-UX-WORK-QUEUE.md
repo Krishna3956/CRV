@@ -54,6 +54,8 @@ Legend: `[x]` verified/implemented in this workstream; `[ ]` pending.
 - [x] ✅ Add table alternatives for the Overview activity chart and account
       growth chart so business users can read exact values without relying on
       hover interactions.
+- [x] ✅ Add a table alternative for the capability trend chart so feature
+      comparisons remain readable without visual or hover-only interpretation.
 - [x] ✅ Move dense protocol-family and lifecycle detail behind an explicit
       “Technical protocol evidence” disclosure on the capability view.
 - [x] ✅ Clarify capability KPI labels so comparison values, error rates, and
