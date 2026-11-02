@@ -44,6 +44,8 @@ Legend: `[x]` verified/implemented in this workstream; `[ ]` pending.
 - [x] ✅ Make the no-workspace “Complete setup” action navigate to Setup while
       workspace provisioning runs, so a first-time user reaches the key and
       SDK instructions instead of remaining on an empty analytics tab.
+- [x] ✅ Make the Setup step rail reflect the real first action for each state:
+      workspace creation, key creation, or reuse of an active key.
 - [x] ✅ Rewrite no-data page previews with business language so a first-time
       reader understands what each tab will show before connecting telemetry.
 - [x] ✅ Research PostHog, Amplitude, GA4, USWDS, Material, NN/g, and

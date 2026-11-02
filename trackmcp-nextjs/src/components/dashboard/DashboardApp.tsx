@@ -4512,6 +4512,23 @@ function SetupView({
   const otelEndpoint = "https://trackmcp.com/api/v1/otel/v1/traces";
   const documentationHref = `https://trackmcp.com/docs/${language === "TypeScript" ? "typescript" : language === "Python" ? "python" : language === "Go" ? "go" : "dotnet"}`;
   const hasActiveKey = keys.some((key) => !key.revoked_at);
+  const setupSteps = !workspaceId
+    ? [
+      ["01", "Create a workspace", "Keep your server connections and analytics together."],
+      ["02", "Create a connection key", "Use one key to authenticate your server."],
+      ["03", "Send one event", "Make a real tool call, then verify it here."],
+    ]
+    : !hasActiveKey
+      ? [
+        ["01", "Create a connection key", "Use one key to authenticate your server."],
+        ["02", "Install the SDK", "Use the language tab that matches your server."],
+        ["03", "Send one event", "Make a real tool call, then verify it here."],
+      ]
+      : [
+        ["01", "Use your active key", "Keep TRACKMCP_KEY in your server environment."],
+        ["02", "Check the SDK setup", "Use the language tab that matches your server."],
+        ["03", "Send one event", "Make a real tool call, then verify it here."],
+      ];
   useEffect(() => {
     if (!workspaceId) return;
     let cancelled = false;
@@ -4627,11 +4644,7 @@ function SetupView({
         action="Create a key, connect one server, make one real tool call, then refresh the check."
       />
       <section className="mb-6 grid gap-3 rounded-2xl border border-brand/20 bg-[linear-gradient(135deg,#f0fbf3,#ffffff_62%)] p-4 sm:grid-cols-3 sm:p-5" aria-label="Setup steps">
-        {[
-          ["01", "Create a key", "One workspace key authenticates your server."],
-          ["02", "Install the SDK", "Use the language tab that matches your server."],
-          ["03", "Send one event", "Make a real tool call, then verify it here."],
-        ].map(([number, title, detail], index) => (
+        {setupSteps.map(([number, title, detail], index) => (
           <div key={title} className={"flex items-start gap-3 rounded-xl px-3 py-3 " + (index === 0 ? "bg-white shadow-sm" : "bg-white/55")}>
             <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-brand-soft text-[11px] font-bold text-brand-strong">{number}</span>
             <div>
