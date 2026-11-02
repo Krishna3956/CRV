@@ -177,3 +177,18 @@ The rendered flow verified that:
 The local API calls returned 503 because the preview intentionally used
 placeholder Supabase values. That is expected fail-closed behavior and is not
 production evidence.
+
+## Final plain-language pass
+
+After the research pass, the primary business path was reviewed for avoidable
+engineering vocabulary. The branch now uses:
+
+- `live server activity` instead of `workspace telemetry` in the data-source
+  marker;
+- `account groups` instead of `account signals` or `resolver signal` in the
+  primary Who's using it path; and
+- `customer count or overall product health` as the plain-English boundary for
+  the Overview takeaway.
+
+The underlying evidence contracts and technical disclosures were not removed.
+This is a copy and comprehension change, not a metric or read-model change.

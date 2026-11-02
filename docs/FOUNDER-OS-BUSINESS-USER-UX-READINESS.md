@@ -19,10 +19,10 @@ remains local and has not been merged or deployed.
 | A newly signed-up user understands that a workspace is being prepared | **Implemented and tested** | `trackmcp-nextjs/src/app/dashboard/page.tsx`; `src/app/dashboard/page.contract.test.mjs` | Fresh-account browser verification |
 | Legacy `/onboarding` entry point does not fork the setup story | **Verified in source** | `trackmcp-nextjs/src/app/onboarding/page.tsx` redirects to `/dashboard`; `trackmcp-nextjs/src/app/dashboard/onboarding/page.tsx` does the same | Fresh-account navigation check after deployment |
 | A user with no workspace does not get trapped before setup | **Implemented and tested** | `DashboardApp.tsx` routes “Complete setup” to Setup while provisioning; setup-state contract; workspace route contract | Fresh-account verification against production auth/session state |
-| Setup explains the three required steps | **Implemented and tested** | `DashboardApp.tsx`; state-aware setup rail; 78 business UX tests | Confirm copy with a non-technical participant |
+| Setup explains the three required steps | **Implemented and tested** | `DashboardApp.tsx`; state-aware setup rail; 79 business UX tests | Confirm copy with a non-technical participant |
 | Setup explains what appears after the first event | **Implemented and tested** | `BusinessContext` “What you will get after setup”; business UX contract | Fresh-account browser verification |
 | My data and Example data are visibly separate | **Implemented and tested; verified live read-only** | `DataSourceStrip`; Example data contract; authenticated Chrome review | Verify after deployment of this branch |
-| Overview answers who, what, outcome, and attention questions | **Implemented and tested** | Overview business-question copy, KPI helpers, period context, and chart-table fallback; 78 business UX tests | Verify deployed rendering |
+| Overview answers who, what, outcome, and attention questions | **Implemented and tested** | Overview business-question copy, KPI helpers, period context, and chart-table fallback; 79 business UX tests | Verify deployed rendering |
 | “Who’s using it” explains account signals versus people/customers | **Implemented and tested** | `ClientsView`; metric contract; business UX tests | Confirm with a business participant |
 | “What they’re doing” leads with adoption and reliability | **Implemented and tested** | `CapabilitiesView`; business UX tests; technical protocol detail is progressively disclosed | Verify deployed rendering |
 | “Resources & prompts” explains information need and explicit outcomes | **Implemented and tested** | `ResourcesPromptsView`; business UX tests | Verify deployed rendering |
@@ -45,7 +45,7 @@ remains local and has not been merged or deployed.
 - Source changes are committed and the worktree is clean.
 - TypeScript, ESLint, business UX contracts, metric contracts, and production
   build pass.
-- The business UX contract suite passes 78/78 tests, including state-aware
+- The business UX contract suite passes 79/79 tests, including state-aware
   setup steps, accessible chart tables, capability KPI vocabulary, and
   progressive protocol disclosure.
 - The build generated 230 static pages.

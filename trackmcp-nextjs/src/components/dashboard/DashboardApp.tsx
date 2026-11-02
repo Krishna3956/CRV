@@ -1718,10 +1718,10 @@ const emptyPageCopy: Record<
     ],
   },
   clients: {
-    description: "See which assistants and privacy-safe account signals are showing up.",
+    description: "See which assistants and privacy-safe account groups are showing up.",
     preview: [
       { label: "Assistants", detail: "Applications reported by connected sessions." },
-      { label: "Account signals", detail: "Privacy-safe grouping when your resolver supplies it." },
+      { label: "Account groups", detail: "Privacy-safe grouping when your team enables it." },
       { label: "Activity", detail: "Observed actions and sessions by assistant." },
       { label: "Evidence", detail: "A trace for the activity you want to understand." },
     ],
@@ -1738,7 +1738,7 @@ const emptyPageCopy: Record<
   setup: {
     description: "Connect a server and manage the key for this workspace.",
     preview: [
-      { label: "Connection key", detail: "The credential your server uses to send telemetry." },
+      { label: "Connection key", detail: "The secure credential your server uses to send activity." },
       { label: "SDK setup", detail: "Install the TypeScript or Python SDK." },
       { label: "First event", detail: "Send one real tool call to confirm the connection." },
       { label: "Data flow", detail: "See what is redacted, bounded, and never requested." },
@@ -2147,8 +2147,8 @@ function DataSourceStrip({
         </p>
         <p className="mt-0.5 text-xs text-muted">
           {dataMode === "example"
-            ? `${EXAMPLE_SERVER.description} This is a guided example, not workspace telemetry.`
-            : "Server-observed events are shown here. This is a data-source state, not a product-health signal."}
+            ? `${EXAMPLE_SERVER.description} This is a guided example, not your live server activity.`
+            : "Server activity is shown here. This tells you where the numbers come from; it is not a product-health score."}
         </p>
       </div>
       {dataMode === "example" && (
@@ -2326,7 +2326,7 @@ function OverviewTakeaway({
         <div>
           <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-brand-strong">At a glance</p>
           <p className="mt-1 max-w-4xl text-sm leading-relaxed text-ink">{body}</p>
-          <p className="mt-2 text-[11px] leading-relaxed text-muted">This summary uses only the selected window and the evidence shown below. It is not a health or customer-count claim.</p>
+          <p className="mt-2 text-[11px] leading-relaxed text-muted">This summary uses only the selected window and the evidence shown below. It is not a measure of customer count or overall product health.</p>
         </div>
       </div>
     </section>
@@ -4116,7 +4116,7 @@ function ClientsView({
     <div>
       <PageIntro
         title="Who's using it"
-        description="See which AI client applications and privacy-safe account signals were observed at the server boundary. This is not a count of users or customers."
+        description="See which assistants and privacy-safe account groups reached your server. This is not a count of people or customers."
         question="Which account groups and assistants are showing up, and is activity growing?"
         actions={pageControls}
       />
@@ -4124,7 +4124,7 @@ function ClientsView({
       {people ? (
         <>
           <BusinessContext
-            title="Read this as account activity, not a customer census"
+            title="Read this as account-group activity, not a customer census"
             body="This view shows privacy-safe account signals and the assistant applications that reached your server. It can help you see adoption and repeat activity, but it does not identify people or prove that every customer is represented."
             action="Use Setup to add optional account grouping if your team needs account-level analysis."
           />
@@ -4185,10 +4185,10 @@ function ClientsView({
             {people.top_accounts.length ? (
               <table className="w-full text-left text-sm" aria-label="Most active privacy-safe account signals">
                 <thead className="border-b border-line text-[10px] font-semibold uppercase tracking-[0.08em] text-faint"><tr><th className="pb-3">Rank</th><th className="pb-3">Observed activity</th><th className="pb-3">Active days</th><th className="pb-3">Signal type</th></tr></thead>
-                <tbody className="divide-y divide-line">{people.top_accounts.map((account) => <tr key={account.rank}><td className="py-3 font-medium text-ink">#{account.rank}</td><td className="py-3 text-muted">{fmt(account.activity_count)} observed events</td><td className="py-3 text-muted">{fmt(account.active_days)}</td><td className="py-3 text-muted">Privacy-safe resolver signal</td></tr>)}</tbody>
+                <tbody className="divide-y divide-line">{people.top_accounts.map((account) => <tr key={account.rank}><td className="py-3 font-medium text-ink">#{account.rank}</td><td className="py-3 text-muted">{fmt(account.activity_count)} observed events</td><td className="py-3 text-muted">{fmt(account.active_days)}</td><td className="py-3 text-muted">Privacy-safe account group</td></tr>)}</tbody>
               </table>
             ) : <p className="py-6 text-sm text-muted">No privacy-safe account groups were observed in this period.</p>}
-            <p className="mt-4 text-xs leading-relaxed text-faint">MCP does not define customer accounts. These groups come from a customer-configured identity resolver; raw resolver keys never leave the server.</p>
+            <p className="mt-4 text-xs leading-relaxed text-faint">MCP does not define customer accounts. These groups come from an optional account-grouping rule configured by your team; raw identity values never leave the server.</p>
           </Panel>
           {people.classification_status === "insufficient_data" && <p className="mt-3 text-xs text-warning">New versus returning account counts are unavailable because the bounded history scan was incomplete.</p>}
         </>

@@ -103,7 +103,7 @@ test("Founder OS vertical slices share one data-trust contract", () => {
   assert.match(source, /signal, not a diagnosis/);
   assert.match(source, /Missing task events are not classified as abandonment/);
   assert.match(source, /insufficient data/i);
-  assert.match(source, /This is a guided example, not workspace telemetry/);
+  assert.match(source, /This is a guided example, not your live server activity/);
 });
 
 test("desktop-only pilot boundary is visible on narrow dashboard viewports", () => {
@@ -163,7 +163,7 @@ test("business users receive orientation before technical detail", () => {
   assert.match(source, /A technical teammate usually completes this page/);
   assert.match(source, /Setup always uses your live connection/);
   assert.match(source, /question="Which account groups and assistants are showing up, and is activity growing\?"/);
-  assert.match(source, /Read this as account activity, not a customer census/);
+  assert.match(source, /Read this as account-group activity, not a customer census/);
   assert.match(source, /Which assistants are showing up/);
   assert.match(source, /Most active account groups/);
   assert.match(source, /Unknown activity stays visible instead of being silently reassigned/);
@@ -193,7 +193,7 @@ test("business users receive orientation before technical detail", () => {
   assert.match(source, /bounded, redacted steps and timing without exposing payloads or private inputs/);
   assert.match(source, /Observed actions/);
   assert.match(source, /privacy-safe item counts/);
-  assert.match(source, /assistants and privacy-safe account signals/);
+  assert.match(source, /assistants and privacy-safe account groups/);
   assert.match(source, /Errors and retries/);
   assert.match(source, /Related events/);
   assert.match(source, /className="mt-1 text-\[11px\] leading-relaxed text-muted">\{helper\}/);
@@ -207,7 +207,7 @@ test("data source state is explicit and never silently substituted", () => {
   );
   assert.match(source, /My data selected/);
   assert.match(source, /Example data selected/);
-  assert.match(source, /This is a guided example, not workspace telemetry/);
+  assert.match(source, /This is a guided example, not your live server activity/);
   assert.match(source, /QuickBooks Finance MCP/);
   assert.match(source, /No other data source was substituted/);
   assert.match(source, /No live data available/);
@@ -757,7 +757,7 @@ test("Overview gives business users a bounded at-a-glance takeaway", () => {
   assert.match(source, /function OverviewTakeaway\(/);
   assert.match(source, /At a glance/);
   assert.match(source, /This summary uses only the selected window/);
-  assert.match(source, /not a health or customer-count claim/);
+  assert.match(source, /not a measure of customer count or overall product health/);
   assert.match(source, /<OverviewTakeaway analytics=\{analytics\} dataMode=\{dataMode\} hasMyData=\{hasMyData\} \/>/);
 });
 

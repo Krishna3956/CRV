@@ -86,6 +86,10 @@ Legend: `[x]` verified/implemented in this workstream; `[ ]` pending.
 - [x] ✅ Add a bounded Overview “At a glance” takeaway so a business reader
       gets the plain-language meaning of the selected window before reading
       KPI cards or charts; reuse read-model fields and state the evidence limit.
+- [x] ✅ Run a final business-language pass on the primary dashboard path:
+      replace avoidable engineering terms such as telemetry, resolver signal,
+      and account signal with activity, account group, and plain-English
+      evidence wording while keeping technical detail available in disclosures.
 - [x] ✅ Run dashboard contracts, typecheck, lint, and production build.
 - [x] ✅ Run the consolidated release gate; all 159 suites pass after fixing
       clean-checkout MCP SDK resolution and Python artifact preparation.
