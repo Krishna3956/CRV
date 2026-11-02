@@ -3095,6 +3095,11 @@ function CapabilitiesView({
         actions={pageControls}
       />
       <DataSourceStrip dataMode={dataMode} hasMyData={hasMyData} view="capabilities" />
+      <BusinessContext
+        title="Start with adoption and reliability"
+        body="Use Most-used features to see what people are trying to do, Breadth of adoption to see whether usage is concentrated, and Reliability by tool to find friction. The protocol cards below are supporting evidence for technical teams, not a required reading path for business decisions."
+        action="Open a feature detail only when a trend or error needs investigation."
+      />
       {activity && (
         <>
           <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
@@ -3142,19 +3147,19 @@ function CapabilitiesView({
       )}
       <div className="grid gap-3 sm:grid-cols-3">
         <Kpi
-          label="Capabilities observed"
+          label="Features observed"
           value={fmt(analytics.tools.length)}
           icon={LayoutGrid}
           helper="Observed tool names"
         />
         <Kpi
-          label="Activity"
+          label="Observed actions"
           value={fmt(analytics.tool_calls)}
           icon={Activity}
           helper="Observed calls"
         />
         <Kpi
-          label="Unused advertised"
+          label="Advertised features not yet observed"
           value={fmt(analytics.unused_tools.length)}
           icon={Info}
           helper="Catalog comparison"
