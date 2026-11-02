@@ -37,6 +37,7 @@ test("activated-user dashboard is organized around business questions", () => {
   assert.match(dashboard, /View feature trend values as a table/);
   assert.match(dashboard, /View outcome trend values as a table/);
   assert.match(dashboard, /View resource and prompt trend values as a table/);
+  assert.match(dashboard, /View journey reach as a table/);
   assert.match(dashboard, /No comparable prior-period activity/);
   assert.match(dashboard, /Technical protocol evidence/);
   assert.match(dashboard, /Optional detail for engineering teams/);
