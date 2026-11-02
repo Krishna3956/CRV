@@ -29,6 +29,8 @@ test("activated-user dashboard is organized around business questions", () => {
   assert.match(dashboard, /Showing \{selectedLabel\.toLowerCase\(\)\}/);
   assert.match(dashboard, /View daily values as a table/);
   assert.match(dashboard, /Daily observed work, events, calls, and errors/);
+  assert.match(dashboard, /View weekly account values as a table/);
+  assert.match(dashboard, /No comparable prior-period activity/);
 });
 
 test("customer-facing docs use TrackMCP product language", () => {

@@ -4040,9 +4040,7 @@ function ClientsView({
     ? (people.active_accounts - people.previous_period_active_accounts) / people.previous_period_active_accounts
     : null;
   const periodComparison = periodDelta === null
-    ? people?.previous_period_active_accounts === 0 && people.active_accounts > 0
-      ? "No prior-period account activity"
-      : "No change from the prior period"
+    ? "No comparable prior-period activity"
     : `${periodDelta > 0 ? "↑" : periodDelta < 0 ? "↓" : "→"} ${Math.abs(Math.round(periodDelta * 100))}% vs. prior period`;
   return (
     <div>
@@ -4154,6 +4152,22 @@ function AccountGrowthChart({ points }: { points: NonNullable<Analytics["who_is_
       <span>{shown[0]?.period_start}</span>
       <span>{latest?.period_start}</span>
     </div>
+    <details className="mt-3 rounded-lg border border-line bg-paper/50">
+      <summary className="cursor-pointer list-none px-3 py-2 text-xs font-semibold text-muted hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand">
+        View weekly account values as a table
+      </summary>
+      <div className="overflow-x-auto border-t border-line">
+        <table className="w-full min-w-[320px] text-left text-xs">
+          <caption className="sr-only">Weekly resolver-linked active account counts</caption>
+          <thead className="bg-white text-[10px] uppercase tracking-[0.08em] text-faint">
+            <tr><th scope="col" className="px-3 py-2 font-semibold">Week</th><th scope="col" className="px-3 py-2 text-right font-semibold">Active account signals</th></tr>
+          </thead>
+          <tbody className="divide-y divide-line">
+            {shown.map((point) => <tr key={point.period_start} className="bg-white/70"><th scope="row" className="px-3 py-2 font-medium text-ink">{point.period_start}</th><td className="px-3 py-2 text-right tabular-nums text-muted">{fmt(point.active_accounts)}</td></tr>)}
+          </tbody>
+        </table>
+      </div>
+    </details>
   </div>;
 }
 
