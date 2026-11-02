@@ -65,6 +65,16 @@ export type ArtKey =
   | "scorecard-detail"
   | "adoption-detail"
   | "buyer-detail"
+  | "analytics-build-cover"
+  | "analytics-build-detail"
+  | "analytics-scratch-cover"
+  | "analytics-scratch-detail"
+  | "analytics-event-cover"
+  | "analytics-event-detail"
+  | "analytics-metrics-cover"
+  | "analytics-metrics-detail"
+  | "analytics-architecture-cover"
+  | "analytics-architecture-detail"
   | "default";
 
 const C = {
@@ -732,6 +742,168 @@ const ScorecardDetail = () => <WaveDetail kind="scorecard" />;
 const AdoptionDetail = () => <WaveDetail kind="adoption" />;
 const BuyerDetail = () => <WaveDetail kind="buyer" />;
 
+/* Dedicated MCP analytics illustrations. Each pair has a cover composition
+   and a second, more diagnostic inline composition so the article explains
+   itself visually without relying on generic dashboards or stock imagery. */
+function AnalyticsBuildCover() {
+  return (
+    <>
+      <Bg />
+      <text x="56" y="46" fontFamily="system-ui" fontSize="12" fill={C.muted}>build versus buy</text>
+      <text x="424" y="46" textAnchor="end" fontFamily="monospace" fontSize="10" fill={C.faint}>decision frame</text>
+      <rect x="56" y="64" width="164" height="126" rx="16" fill={C.ink} />
+      <text x="78" y="89" fontFamily="monospace" fontSize="12" fill={C.white}>BUILD</text>
+      {["event model", "collector", "queries"].map((t, i) => <g key={t}><rect x="78" y={104 + i * 23} width="120" height="15" rx="5" fill={i === 1 ? "#365314" : "#27272a"} /><text x="88" y={115 + i * 23} fontFamily="monospace" fontSize="9" fill={i === 1 ? "#bbf7d0" : C.faint}>{t}</text></g>)}
+      <rect x="260" y="64" width="164" height="126" rx="16" fill={C.brandSoft} stroke={C.brand} strokeWidth="1.5" />
+      <text x="282" y="89" fontFamily="monospace" fontSize="12" fill={C.brandStrong}>BUY</text>
+      {["server evidence", "ready views", "less upkeep"].map((t, i) => <g key={t}><rect x="282" y={104 + i * 23} width="120" height="15" rx="5" fill={C.white} stroke={C.line} /><text x="292" y={115 + i * 23} fontFamily="monospace" fontSize="9" fill={C.body}>{t}</text></g>)}
+      <path d="M220 126 H260" stroke={C.faint} strokeWidth="2" /><path d="M251 126 l-8 -5 v10 z" fill={C.faint} />
+      <text x="240" y="178" textAnchor="middle" fontFamily="system-ui" fontSize="10" fill={C.muted}>same evidence questions</text>
+    </>
+  );
+}
+
+function AnalyticsBuildDetail() {
+  return (
+    <>
+      <Bg />
+      <rect x="64" y="52" width="352" height="136" rx="14" fill={C.white} stroke={C.line} />
+      <text x="86" y="77" fontFamily="system-ui" fontSize="11" fill={C.muted}>decision scorecard</text>
+      {["coverage", "privacy", "portability", "time to evidence"].map((t, i) => <g key={t}><text x="86" y={101 + i * 20} fontFamily="monospace" fontSize="9" fill={C.body}>{t}</text><rect x="218" y={93 + i * 20} width="154" height="11" rx="5" fill={C.mist} /><rect x="218" y={93 + i * 20} width={[126, 96, 112, 138][i]} height="11" rx="5" fill={i === 3 ? C.brand : C.ink} /></g>)}
+      <text x="86" y="177" fontFamily="monospace" fontSize="9" fill={C.faint}>first trustworthy event &gt; first chart</text>
+    </>
+  );
+}
+
+function AnalyticsScratchCover() {
+  return (
+    <>
+      <Bg />
+      <text x="56" y="46" fontFamily="system-ui" fontSize="12" fill={C.muted}>build MCP analytics</text>
+      <text x="424" y="46" textAnchor="end" fontFamily="monospace" fontSize="10" fill={C.faint}>from first event</text>
+      <rect x="56" y="76" width="78" height="72" rx="12" fill={C.ink} /><text x="95" y="103" textAnchor="middle" fontFamily="monospace" fontSize="10" fill={C.white}>MCP</text><text x="95" y="122" textAnchor="middle" fontFamily="monospace" fontSize="9" fill="#86efac">server</text>
+      {[
+        { x: 170, label: "event" },
+        { x: 250, label: "collect" },
+        { x: 330, label: "query" },
+      ].map((n, i) => <g key={n.label}><rect x={n.x} y="76" width="62" height="72" rx="12" fill={i === 1 ? C.brandSoft : C.white} stroke={i === 1 ? C.brand : C.line} /><circle cx={n.x + 31} cy="101" r="8" fill={i === 1 ? C.brand : C.ink} /><text x={n.x + 31} y="105" textAnchor="middle" fontFamily="monospace" fontSize="8" fill={C.white}>{i + 1}</text><text x={n.x + 31} y="128" textAnchor="middle" fontFamily="monospace" fontSize="9" fill={C.body}>{n.label}</text></g>)}
+      {[134, 232, 312].map((x) => <g key={x}><line x1={x} y1="112" x2={x + 36} y2="112" stroke={C.faint} strokeWidth="2" /><path d={`M${x + 36} 112 l-7 -4 v8 z`} fill={C.faint} /></g>)}
+      <text x="240" y="180" textAnchor="middle" fontFamily="system-ui" fontSize="10" fill={C.muted}>instrument → protect → explain</text>
+    </>
+  );
+}
+
+function AnalyticsScratchDetail() {
+  return (
+    <>
+      <Bg />
+      <rect x="64" y="52" width="352" height="136" rx="14" fill={C.white} stroke={C.line} />
+      <text x="86" y="77" fontFamily="system-ui" fontSize="11" fill={C.muted}>first production question</text>
+      <rect x="86" y="92" width="150" height="64" rx="9" fill={C.ink} /><text x="99" y="112" fontFamily="monospace" fontSize="9" fill={C.white}>why did tool X</text><text x="99" y="128" fontFamily="monospace" fontSize="9" fill={C.white}>stop completing?</text><text x="99" y="146" fontFamily="monospace" fontSize="8" fill="#86efac">one bounded answer</text>
+      <path d="M244 124 H274" stroke={C.faint} strokeWidth="2" /><path d="M274 124 l-8 -5 v10 z" fill={C.faint} />
+      <rect x="288" y="92" width="104" height="64" rx="9" fill={C.brandSoft} stroke={C.brand} /><text x="340" y="112" textAnchor="middle" fontFamily="monospace" fontSize="9" fill={C.brandStrong}>event + trace</text><text x="340" y="130" textAnchor="middle" fontFamily="monospace" fontSize="9" fill={C.body}>known source</text><text x="340" y="146" textAnchor="middle" fontFamily="monospace" fontSize="8" fill={C.muted}>tested query</text>
+    </>
+  );
+}
+
+function AnalyticsEventCover() {
+  return (
+    <>
+      <Bg />
+      <text x="56" y="46" fontFamily="system-ui" fontSize="12" fill={C.muted}>MCP analytics event model</text>
+      <text x="424" y="46" textAnchor="end" fontFamily="monospace" fontSize="10" fill={C.faint}>bounded evidence</text>
+      <rect x="70" y="67" width="250" height="124" rx="14" fill={C.ink} />
+      <text x="90" y="91" fontFamily="monospace" fontSize="10" fill="#86efac">mcp.analytics.v1</text>
+      {["operation: tool_call", "result: application_error", "source: server-boundary", "payload: excluded"].map((t, i) => <text key={t} x="90" y={116 + i * 18} fontFamily="monospace" fontSize="9" fill={i === 1 ? "#fca5a5" : C.white}>{t}</text>)}
+      <rect x="344" y="85" width="80" height="80" rx="16" fill={C.brandSoft} stroke={C.brand} /><path d="M384 101 L402 108 V126 C402 143 393 153 384 158 C375 153 366 143 366 126 V108 Z" fill={C.brand} /><path d="M376 127 l6 6 13-16" fill="none" stroke={C.white} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" /><text x="384" y="180" textAnchor="middle" fontFamily="monospace" fontSize="9" fill={C.brandStrong}>redact first</text>
+    </>
+  );
+}
+
+function AnalyticsEventDetail() {
+  return (
+    <>
+      <Bg />
+      <rect x="64" y="52" width="352" height="136" rx="14" fill={C.white} stroke={C.line} />
+      <text x="86" y="77" fontFamily="system-ui" fontSize="11" fill={C.muted}>one event, separate claims</text>
+      {["transport", "protocol", "application", "outcome"].map((t, i) => <g key={t}><rect x={86 + (i % 2) * 164} y={92 + Math.floor(i / 2) * 36} width="140" height="25" rx="7" fill={i === 2 ? C.redSoft : i === 3 ? C.brandSoft : C.mist} stroke={i === 2 ? C.red : i === 3 ? C.brand : C.line} /><circle cx={100 + (i % 2) * 164} cy={104 + Math.floor(i / 2) * 36} r="4" fill={i === 2 ? C.red : i === 3 ? C.brand : C.ink} /><text x={112 + (i % 2) * 164} y={108 + Math.floor(i / 2) * 36} fontFamily="monospace" fontSize="9" fill={C.body}>{t}</text></g>)}
+      <text x="86" y="177" fontFamily="monospace" fontSize="9" fill={C.faint}>do not collapse these into one success flag</text>
+    </>
+  );
+}
+
+function AnalyticsMetricsCover() {
+  return (
+    <>
+      <Bg />
+      <text x="56" y="46" fontFamily="system-ui" fontSize="12" fill={C.muted}>MCP metrics that matter</text>
+      <text x="424" y="46" textAnchor="end" fontFamily="monospace" fontSize="10" fill={C.faint}>from reach to result</text>
+      {[
+        { y: 73, x: 74, w: 332, label: "exposed" },
+        { y: 99, x: 106, w: 268, label: "discovered" },
+        { y: 125, x: 140, w: 200, label: "called" },
+        { y: 151, x: 178, w: 124, label: "completed" },
+      ].map((r, i) => <g key={r.label}><rect x={r.x} y={r.y} width={r.w} height="20" rx="7" fill={i === 3 ? C.brand : C.ink} opacity={i === 3 ? 1 : 0.88 - i * 0.08} /><text x="240" y={r.y + 14} textAnchor="middle" fontFamily="monospace" fontSize="9" fill={C.white}>{r.label}</text></g>)}
+      <text x="240" y="185" textAnchor="middle" fontFamily="system-ui" fontSize="10" fill={C.muted}>each stage has its own denominator</text>
+    </>
+  );
+}
+
+function AnalyticsMetricsDetail() {
+  return (
+    <>
+      <Bg />
+      <rect x="64" y="52" width="352" height="136" rx="14" fill={C.white} stroke={C.line} />
+      <text x="86" y="77" fontFamily="system-ui" fontSize="11" fill={C.muted}>SLO view / tool call</text>
+      <line x1="86" y1="160" x2="392" y2="160" stroke={C.line} />
+      <path d="M92 148 L128 139 L162 145 L196 128 L228 136 L264 118 L296 143 L334 102 L386 124" fill="none" stroke={C.brand} strokeWidth="3" />
+      <line x1="86" y1="116" x2="392" y2="116" stroke={C.red} strokeDasharray="5 5" /><text x="392" y="111" textAnchor="end" fontFamily="monospace" fontSize="9" fill={C.red}>p95 budget</text>
+      <text x="86" y="178" fontFamily="monospace" fontSize="9" fill={C.muted}>tail latency + result state</text>
+    </>
+  );
+}
+
+function AnalyticsArchitectureCover() {
+  return (
+    <>
+      <Bg />
+      <text x="56" y="46" fontFamily="system-ui" fontSize="12" fill={C.muted}>MCP analytics architecture</text>
+      <text x="424" y="46" textAnchor="end" fontFamily="monospace" fontSize="10" fill={C.faint}>preserve meaning</text>
+      {[
+        { y: 70, label: "MCP server", fill: C.ink, color: C.white },
+        { y: 96, label: "Collector", fill: C.brandSoft, color: C.brandStrong },
+        { y: 122, label: "facts + raw", fill: C.white, color: C.body },
+        { y: 148, label: "queries + alerts", fill: C.white, color: C.body },
+        { y: 174, label: "operator", fill: C.brand, color: C.white },
+      ].map((r, i) => <g key={r.label}><rect x={i % 2 ? 154 : 74} y={r.y} width="252" height="20" rx="7" fill={r.fill} stroke={r.fill === C.white ? C.line : r.fill === C.brandSoft ? C.brand : "none"} /><text x="240" y={r.y + 14} textAnchor="middle" fontFamily="monospace" fontSize="9" fill={r.color}>{r.label}</text>{i < 4 && <path d={`M240 ${r.y + 20} V${r.y + 26}`} stroke={C.faint} strokeWidth="2" />}</g>)}
+    </>
+  );
+}
+
+function AnalyticsArchitectureDetail() {
+  return (
+    <>
+      <Bg />
+      <rect x="64" y="52" width="352" height="136" rx="14" fill={C.white} stroke={C.line} />
+      <text x="86" y="77" fontFamily="system-ui" fontSize="11" fill={C.muted}>one call, many views</text>
+      <circle cx="112" cy="126" r="22" fill={C.ink} /><text x="112" y="130" textAnchor="middle" fontFamily="monospace" fontSize="9" fill={C.white}>call</text>
+      {[{ y: 88, t: "trace" }, { y: 126, t: "metric" }, { y: 164, t: "event" }].map((r) => <g key={r.t}><line x1="134" y1="126" x2="218" y2={r.y} stroke={C.faint} strokeWidth="2" /><rect x="218" y={r.y - 13} width="90" height="26" rx="7" fill={r.t === "event" ? C.brandSoft : C.mist} stroke={r.t === "event" ? C.brand : C.line} /><text x="263" y={r.y + 4} textAnchor="middle" fontFamily="monospace" fontSize="9" fill={C.body}>{r.t}</text></g>)}
+      <rect x="328" y="108" width="66" height="36" rx="8" fill={C.ink} /><text x="361" y="124" textAnchor="middle" fontFamily="monospace" fontSize="8" fill={C.white}>same</text><text x="361" y="136" textAnchor="middle" fontFamily="monospace" fontSize="8" fill="#86efac">event id</text>
+    </>
+  );
+}
+
+const AnalyticsBuildCoverArt = () => <AnalyticsBuildCover />;
+const AnalyticsBuildDetailArt = () => <AnalyticsBuildDetail />;
+const AnalyticsScratchCoverArt = () => <AnalyticsScratchCover />;
+const AnalyticsScratchDetailArt = () => <AnalyticsScratchDetail />;
+const AnalyticsEventCoverArt = () => <AnalyticsEventCover />;
+const AnalyticsEventDetailArt = () => <AnalyticsEventDetail />;
+const AnalyticsMetricsCoverArt = () => <AnalyticsMetricsCover />;
+const AnalyticsMetricsDetailArt = () => <AnalyticsMetricsDetail />;
+const AnalyticsArchitectureCoverArt = () => <AnalyticsArchitectureCover />;
+const AnalyticsArchitectureDetailArt = () => <AnalyticsArchitectureDetail />;
+
 function Default() {
   return (
     <>
@@ -811,6 +983,16 @@ const SCENES: Record<ArtKey, () => React.ReactElement> = {
   "scorecard-detail": ScorecardDetail,
   "adoption-detail": AdoptionDetail,
   "buyer-detail": BuyerDetail,
+  "analytics-build-cover": AnalyticsBuildCoverArt,
+  "analytics-build-detail": AnalyticsBuildDetailArt,
+  "analytics-scratch-cover": AnalyticsScratchCoverArt,
+  "analytics-scratch-detail": AnalyticsScratchDetailArt,
+  "analytics-event-cover": AnalyticsEventCoverArt,
+  "analytics-event-detail": AnalyticsEventDetailArt,
+  "analytics-metrics-cover": AnalyticsMetricsCoverArt,
+  "analytics-metrics-detail": AnalyticsMetricsDetailArt,
+  "analytics-architecture-cover": AnalyticsArchitectureCoverArt,
+  "analytics-architecture-detail": AnalyticsArchitectureDetailArt,
   default: Default,
 };
 

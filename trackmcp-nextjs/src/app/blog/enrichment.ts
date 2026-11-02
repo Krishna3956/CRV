@@ -2,6 +2,7 @@ import type { ArtKey } from "./art";
 import type { Block } from "./posts";
 import { nextBatchEnrichment } from "./next-batch-enrichment";
 import { wave2Enrichment } from "./wave2-enrichment";
+import { analyticsBatchEnrichment } from "./analytics-batch-enrichment";
 
 /* Per-post editorial extras: cover art, a key-takeaways summary, and inline
    inserts (figures / callouts) spliced into the body at the given index. This
@@ -25,6 +26,7 @@ const note = (title: string, c: string, after: number) => ({
 export const enrichment: Record<string, Enrichment> = {
   ...nextBatchEnrichment,
   ...wave2Enrichment,
+  ...analyticsBatchEnrichment,
   "mcp-server-conformance-testing-ci": {
     art: "protocol",
     takeaways: [
