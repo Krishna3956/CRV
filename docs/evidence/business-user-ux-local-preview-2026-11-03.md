@@ -441,6 +441,9 @@ Verification after this pass:
 - `npm run test:metric-contract`: 4/4 passed after the capability vocabulary
   change.
 - `npm run lint`: passed after the capability vocabulary change.
+- `npm run test:release-gate`: passed all 159 suites on the capability
+  vocabulary change (`d3b7871f`) with the synthetic UAT report redirected to a
+  temporary path.
 
 The rebuilt standalone server was also started with placeholder Supabase
 values and the documented local dashboard bypass. Node's HTTP client returned
