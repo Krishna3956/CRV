@@ -1225,11 +1225,11 @@ export function DashboardApp({
   }
 
   return (
-    <div className="dashboard-shell min-h-screen bg-[#f2f6f3] font-sans text-ink">
+    <div className="dashboard-shell min-h-screen bg-slate-50 font-sans text-ink">
       <div className="border-b border-amber-200 bg-amber-50 px-4 py-3 text-center text-xs leading-relaxed text-amber-900 lg:hidden" role="status">
         The TrackMCP dashboard is supported on desktop browsers for this pilot. For the full navigation and data tables, open TrackMCP on a desktop-sized browser window.
       </div>
-      <aside className="fixed bottom-0 left-0 top-[52px] z-30 hidden w-[248px] border-r border-line bg-[#f8fbf9] lg:flex lg:flex-col">
+      <aside className="fixed bottom-0 left-0 top-[52px] z-30 hidden w-[248px] border-r border-line bg-white lg:flex lg:flex-col">
         <DashboardNav
           view={view}
           items={primaryNav}
@@ -1297,7 +1297,7 @@ export function DashboardApp({
                 className={
                   "shrink-0 cursor-pointer rounded-md px-3 py-2 text-xs font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand " +
                   (view === item.id
-                    ? "bg-[#123b2a] text-white"
+                    ? "bg-brand-strong text-white"
                     : "text-muted hover:bg-paper hover:text-ink")
                 }
               >
@@ -1486,7 +1486,7 @@ function DashboardNav({
           className={
             "mb-1 flex w-full cursor-pointer items-center gap-3 rounded-lg px-3 py-2.5 text-left text-[13px] font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand " +
             (view === item.id
-              ? "bg-[#123b2a] text-white shadow-[0_8px_20px_-14px_rgba(18,59,42,0.9)]"
+              ? "bg-brand-strong text-white shadow-[0_8px_20px_-14px_rgba(55,48,163,0.32)]"
               : "text-muted hover:bg-paper hover:text-ink")
           }
         >
@@ -1518,7 +1518,7 @@ function DataModeToggle({
           className={
             "cursor-pointer rounded-md px-3 py-2 text-[12px] font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand " +
             (dataMode === "my"
-              ? "bg-[#123b2a] text-white shadow-[0_6px_16px_-12px_rgba(18,59,42,0.9)]"
+              ? "bg-brand-strong text-white shadow-[0_6px_16px_-12px_rgba(55,48,163,0.32)]"
               : "text-muted hover:bg-paper hover:text-ink")
           }
         >
@@ -1533,7 +1533,7 @@ function DataModeToggle({
           className={
             "cursor-pointer rounded-md px-3 py-2 text-[12px] font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand " +
             (dataMode === "example"
-              ? "bg-[#123b2a] text-white shadow-[0_6px_16px_-12px_rgba(18,59,42,0.9)]"
+              ? "bg-brand-strong text-white shadow-[0_6px_16px_-12px_rgba(55,48,163,0.32)]"
               : "text-muted hover:bg-paper hover:text-ink")
           }
         >
@@ -1573,7 +1573,7 @@ function DateRange({
             className={
               "cursor-pointer rounded-md px-2.5 py-2 text-[11px] font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand " +
               (value === option.value
-                ? "bg-[#123b2a] text-white shadow-[0_6px_16px_-12px_rgba(18,59,42,0.9)]"
+                ? "bg-brand-strong text-white shadow-[0_6px_16px_-12px_rgba(55,48,163,0.32)]"
                 : "text-muted hover:bg-paper hover:text-ink")
             }
           >
@@ -1827,7 +1827,7 @@ function ServerConnectionState({
                 type="button"
                 disabled={working}
                 onClick={onPrimary}
-                className="inline-flex cursor-pointer items-center gap-2 rounded-lg bg-[#123b2a] px-4 py-2.5 text-sm font-semibold text-white shadow-[0_10px_24px_-14px_rgba(18,59,42,0.9)] hover:bg-brand-strong disabled:cursor-not-allowed disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
+                className="inline-flex cursor-pointer items-center gap-2 rounded-lg bg-brand-strong px-4 py-2.5 text-sm font-semibold text-white shadow-[0_10px_24px_-14px_rgba(55,48,163,0.32)] hover:bg-brand-strong disabled:cursor-not-allowed disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
               >
                 {working ? "Working…" : primaryLabel}
                 <ArrowRight size={15} />
@@ -1919,7 +1919,7 @@ function LiveDataState({
           <button
             type="button"
             onClick={onRetry}
-            className="inline-flex cursor-pointer items-center gap-2 rounded-lg bg-[#123b2a] px-4 py-2.5 text-sm font-semibold text-white shadow-[0_10px_24px_-14px_rgba(18,59,42,0.9)] hover:bg-brand-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
+            className="inline-flex cursor-pointer items-center gap-2 rounded-lg bg-brand-strong px-4 py-2.5 text-sm font-semibold text-white shadow-[0_10px_24px_-14px_rgba(55,48,163,0.32)] hover:bg-brand-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
           >
             <RefreshCw size={15} />
             Retry
@@ -2164,7 +2164,7 @@ function DataSourceStrip({
   const canViewMyData = dataMode === "example" && hasMyData;
   return (
     <section
-      className="mb-6 flex flex-wrap items-center gap-3 rounded-xl border border-brand/15 bg-[linear-gradient(90deg,#f1faf3,#ffffff)] px-4 py-3.5"
+      className="mb-6 flex flex-wrap items-center gap-3 rounded-xl border border-brand/20 bg-brand-soft/35 px-4 py-3.5"
       aria-label="Data source state"
     >
       <span className="grid h-8 w-8 place-items-center rounded-full bg-white text-muted">
@@ -2189,7 +2189,7 @@ function DataSourceStrip({
               ? `/dashboard?view=${view}&data=my`
               : "/dashboard?view=setup&data=my"
           }
-          className="ml-auto inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-lg bg-[#123b2a] px-3.5 py-2 text-xs font-semibold text-white shadow-[0_10px_24px_-14px_rgba(18,59,42,0.9)] hover:bg-brand-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
+          className="ml-auto inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-lg bg-brand-strong px-3.5 py-2 text-xs font-semibold text-white shadow-[0_10px_24px_-14px_rgba(55,48,163,0.32)] hover:bg-brand-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
         >
           {canViewMyData ? "View my data" : "Connect your MCP"}
           <ArrowRight size={13} />
@@ -4863,7 +4863,7 @@ function SetupView({
         body="Once one real event arrives, TrackMCP turns bounded server activity into four views: who is showing up, what they are trying, whether the work completed, and what deserves attention. A technical teammate usually completes this page; business teams return here when they need to verify the connection. Setup always uses your live connection; choose Example data in the analytics tabs when you want to learn the dashboard before connecting a server."
         action="Create a key, connect one server, make one real tool call, then refresh the check."
       />
-      <section className="mb-6 grid gap-3 rounded-2xl border border-brand/20 bg-[linear-gradient(135deg,#f0fbf3,#ffffff_62%)] p-4 sm:grid-cols-3 sm:p-5" aria-label="Setup steps">
+      <section className="mb-6 grid gap-3 rounded-2xl border border-brand/20 bg-brand-soft/25 p-4 sm:grid-cols-3 sm:p-5" aria-label="Setup steps">
         {setupSteps.map(([number, title, detail], index) => (
           <div
             key={title}
@@ -5134,7 +5134,7 @@ function SetupView({
                 type="button"
                 onClick={onCreateWorkspace}
                 disabled={working}
-                className="mt-4 inline-flex cursor-pointer items-center gap-2 rounded-lg bg-[#123b2a] px-4 py-2.5 text-sm font-semibold text-white shadow-[0_10px_24px_-14px_rgba(18,59,42,0.9)] hover:bg-brand-strong disabled:cursor-not-allowed disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
+                className="mt-4 inline-flex cursor-pointer items-center gap-2 rounded-lg bg-brand-strong px-4 py-2.5 text-sm font-semibold text-white shadow-[0_10px_24px_-14px_rgba(55,48,163,0.32)] hover:bg-brand-strong disabled:cursor-not-allowed disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
               >
                 <KeyRound size={15} />
                 {working ? "Creating workspace…" : "Create workspace"}
@@ -5244,7 +5244,7 @@ function SetupView({
                 type="button"
                 onClick={() => onGenerateKey(scopeNewKey ? { serviceScope: boundedService, environmentScope: boundedEnvironment } : undefined)}
                 disabled={working}
-                className="mt-4 inline-flex cursor-pointer items-center gap-2 rounded-lg bg-[#123b2a] px-4 py-2.5 text-sm font-semibold text-white shadow-[0_10px_24px_-14px_rgba(18,59,42,0.9)] hover:bg-brand-strong disabled:cursor-not-allowed disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
+              className="mt-4 inline-flex cursor-pointer items-center gap-2 rounded-lg bg-brand-strong px-4 py-2.5 text-sm font-semibold text-white shadow-[0_10px_24px_-14px_rgba(55,48,163,0.32)] hover:bg-brand-strong disabled:cursor-not-allowed disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
               >
                 <KeyRound size={15} />
                 {working ? "Creating…" : "Create connection key"}
@@ -5568,7 +5568,7 @@ function DashboardOnboarding({
                 workspace ? onGenerateKey() : onCreateWorkspace()
               }
               disabled={working}
-              className="mt-3 inline-flex cursor-pointer items-center gap-2 rounded-lg bg-[#123b2a] px-4 py-2.5 text-sm font-semibold text-white shadow-[0_10px_24px_-14px_rgba(18,59,42,0.9)] hover:bg-brand-strong disabled:cursor-not-allowed disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
+              className="mt-3 inline-flex cursor-pointer items-center gap-2 rounded-lg bg-brand-strong px-4 py-2.5 text-sm font-semibold text-white shadow-[0_10px_24px_-14px_rgba(55,48,163,0.32)] hover:bg-brand-strong disabled:cursor-not-allowed disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
             >
               {working
                 ? "Working…"
@@ -5597,7 +5597,7 @@ function DashboardOnboarding({
             <button
               type="button"
               onClick={onOpenDashboard}
-              className="inline-flex cursor-pointer items-center gap-1.5 rounded-lg bg-[#123b2a] px-3 py-2 text-xs font-semibold text-white shadow-[0_8px_20px_-14px_rgba(18,59,42,0.9)] hover:bg-brand-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
+              className="inline-flex cursor-pointer items-center gap-1.5 rounded-lg bg-brand-strong px-3 py-2 text-xs font-semibold text-white shadow-[0_8px_20px_-14px_rgba(55,48,163,0.32)] hover:bg-brand-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
             >
               Open Overview <ArrowRight size={13} />
             </button>

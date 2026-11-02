@@ -266,6 +266,59 @@ TrackMCP application:
   collapsed in Setup. If a scope mismatch is detected, open the detail section
   automatically and show the recovery action.
 
+### 15. Color is a role system, not decoration
+
+W3C requires normal text to maintain at least a 4.5:1 contrast ratio and
+large text at least 3:1. It also warns that color differences alone should not
+carry meaning. The dashboard therefore needs a small set of semantic roles:
+neutral surfaces for reading, one primary action color, and separate status
+colors for success, warning, and error. See [WCAG contrast minimum](https://www.w3.org/WAI/WCAG22/Understanding/contrast-minimum).
+
+TrackMCP application:
+
+- Use cool neutral surfaces and dark slate text for the business reading path.
+- Use indigo for primary actions and selected navigation instead of saturating
+  every card with green.
+- Keep status meaning in text and labels as well as color; `N/A`, `Limited`,
+  and `Needs attention` must remain understandable without hue perception.
+- Avoid gradients in dashboard surfaces. Flat fills make hierarchy and data
+  states easier to scan and test.
+
+### 16. Typography should favor comfortable reading over density
+
+USWDS recommends an effective body size of at least 16px for most text and
+using smaller sizes sparingly for captions, tables, and specialized controls.
+Its typography guidance treats hierarchy as a combination of size, line
+height, spacing, and placement—not font size alone. See [USWDS typography](https://designsystem.digital.gov/components/typography/)
+and [USWDS font size tokens](https://designsystem.digital.gov/design-tokens/typesetting/font-size/).
+
+TrackMCP application:
+
+- Keep Inter for dashboard UI and Geist Mono for code/IDs only.
+- Preserve a clear title/section/metric scale, while keeping labels and table
+  captions subordinate rather than shrinking body explanations into unreadable
+  microcopy.
+- Prefer one short explanatory sentence plus an action over multi-line banners.
+- Keep technical caveats in disclosures where they are useful, not in every
+  primary card.
+
+### 17. Loading should explain progress without becoming a blank interruption
+
+Material's progress guidance distinguishes an indeterminate indicator from a
+determinate one and recommends placing the indicator where the new content
+will appear. A loading state should tell the user what is happening, remain
+visually part of the product, and avoid implying that data is already ready.
+See [Material progress indicators](https://m2.material.io/components/progress-indicators/web).
+
+TrackMCP application:
+
+- Replace the old white “Getting your workspace ready” screen with a branded,
+  neutral loading surface that says what is being checked and what will open.
+- Show three short preparation steps—account, workspace, dashboard—without
+  inventing a time estimate or making the user wait on a blank page.
+- Keep the timeout/recovery behavior intact so a stalled auth session still
+  reaches a clear sign-in or refresh action.
+
 ## What this means for the current product
 
 ### Strengths already present on this branch
@@ -308,4 +361,6 @@ TrackMCP application:
 | Stable filter context and progressive scope detail | Visible period context; active key scope collapsed, auto-opened on mismatch | `DashboardApp.contract.test.mjs` |
 | One predictable location for global controls | Language selector remains in the header; duplicate sidebar control removed | `DashboardApp.contract.test.mjs` |
 | Recovery without data substitution | Live-data failure keeps Retry primary and offers an explicit Example-data fallback | `DashboardApp.contract.test.mjs` |
+| Semantic color roles | Cool neutral dashboard surfaces, indigo primary action, no dashboard gradients | `DashboardApp.contract.test.mjs` + CSS review |
+| Honest loading state | Branded workspace-preparation surface with three short steps | `page.contract.test.mjs` |
 

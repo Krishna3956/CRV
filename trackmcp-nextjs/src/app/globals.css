@@ -173,6 +173,25 @@ body:has([data-site-nav]) .global-language-switcher {
   font-family: var(--font-sans);
 }
 
+/* Dashboard visual system: cool neutrals with indigo as the single action
+   color. This keeps the analytics surface calm and legible while the public
+   marketing site can retain its own brand treatment. */
+.dashboard-shell {
+  --color-canvas: #f8fafc;
+  --color-paper: #ffffff;
+  --color-ink: #0f172a;
+  --color-body: #334155;
+  --color-muted: #64748b;
+  --color-faint: #94a3b8;
+  --color-line: #e2e8f0;
+  --color-line-strong: #cbd5e1;
+  --color-brand: #4f46e5;
+  --color-brand-strong: #3730a3;
+  --color-brand-soft: #e0e7ff;
+  --color-mint: #e0e7ff;
+  --color-mint-ink: #3730a3;
+}
+
 /* Every enabled interactive control exposes the same pointer affordance,
    including public tools, auth, docs, and repository surfaces. */
 button:not(:disabled),
@@ -234,7 +253,7 @@ button:disabled {
 }
 
 /* Founder OS dashboard surface language: quiet canvas, clear cards, and a
- * single green action color. The underlying data stays unchanged; these rules
+ * single indigo action color. The underlying data stays unchanged; these rules
  * make hierarchy and state legible without turning every panel into a dark
  * rectangle. */
 .dashboard-shell main > section,

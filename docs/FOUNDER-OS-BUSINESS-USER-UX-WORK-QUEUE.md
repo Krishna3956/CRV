@@ -121,6 +121,12 @@ Legend: `[x]` verified/implemented in this workstream; `[ ]` pending.
 - [x] ✅ Give live-data load failures a safe fallback: keep `Retry` primary,
       but offer `See Example data` so a business reader can continue learning
       without substituting sample values into live data.
+- [x] ✅ Replace the blank first-load screen with a branded workspace-preparation
+      state that explains account, workspace, and dashboard loading in three
+      short steps.
+- [x] ✅ Apply a dashboard-only visual system: cool neutral surfaces, indigo
+      primary actions, semantic status text, and no gradients in dashboard
+      surfaces.
 - [x] ✅ Prevent deep-linked dashboard routes from briefly rendering the wrong
       data source while the URL state hydrates; show a neutral loading handoff
       and gate live-data fetches until the selected route is known.
