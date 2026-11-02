@@ -12,10 +12,10 @@ Latest branch verification: `npm run test:business-user-ux` passed all 82 suites
 after the authentication-affordance, research, signed-out handoff, illustrative
 People-growth coherence, setup-vocabulary consistency, evidence-action-label,
 outcome-copy, Quality helper-copy, final route-smoke, and auth-affordance passes
-(`aca9981f`; runtime evidence was recorded in `be5ee919`). The consolidated `npm run test:release-gate`
-passed all 159 suites on the immediately preceding source commit
-(`2c8e5e03`); the latest change is copy-only and the focused contract, P0 truth,
-typecheck, and lint suites were rerun after it.
+(`aca9981f`; runtime evidence was recorded in `be5ee919`). The consolidated
+`npm run test:release-gate` also passed all 159 suites on the final branch
+state (`4fdba556`) with the synthetic UAT report redirected to a temporary
+path so the tracked evidence fixture remained unchanged.
 The branch remains local and has not been merged or deployed.
 
 Final current-branch build: `npm run build` passed with 230 static pages

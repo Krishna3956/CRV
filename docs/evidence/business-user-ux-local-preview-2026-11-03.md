@@ -422,9 +422,9 @@ Verification after this pass:
 - `npx tsc --noEmit --pretty false`: passed.
 - `npm run lint`: passed with no warnings emitted by this branch.
 - `npm run build`: passed; 230 static pages generated.
-- `npm run test:release-gate` passed all 159 suites when the generated
-  synthetic UAT report was redirected to a temporary path, so the tracked
-  evidence fixture remained unchanged.
+- `npm run test:release-gate` passed all 159 suites on the final branch state
+  (`4fdba556`) when the generated synthetic UAT report was redirected to a
+  temporary path, so the tracked evidence fixture remained unchanged.
 - `npm run test:business-user-ux`: 81/81 passed after the Quality helper-copy
   change.
 - `npm run test:p0-truth`: 12/12 passed after the Quality helper-copy change.
