@@ -180,7 +180,7 @@ test("business users receive orientation before technical detail", () => {
   assert.match(source, /Work waiting for information/);
   assert.match(source, /Most-used features/);
   assert.match(source, /Start with adoption and reliability/);
-  assert.match(source, /Average features used per account group/);
+  assert.match(source, /Average features per account group/);
   assert.match(source, /Privacy-safe account groups/);
   assert.match(source, /Activity without an optional account-group signal/);
   assert.match(source, /supporting evidence for technical teams/);
@@ -198,7 +198,7 @@ test("business users receive orientation before technical detail", () => {
   assert.match(source, /A missing next event does not prove that someone abandoned the task/);
   assert.match(source, /Evidence is the drill-down, not the starting point/);
   assert.match(source, /bounded, redacted steps and timing without exposing payloads or private inputs/);
-  assert.match(source, /Observed actions/);
+  assert.match(source, /Feature uses observed/);
   assert.match(source, /privacy-safe item counts/);
   assert.match(source, /assistants and privacy-safe account groups/);
   assert.match(source, /Errors and retries/);

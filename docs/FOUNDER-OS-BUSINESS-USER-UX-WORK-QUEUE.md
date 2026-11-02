@@ -161,6 +161,10 @@ Legend: `[x]` verified/implemented in this workstream; `[ ]` pending.
       workspace/key step, keyed workspaces without activity highlight sending
       the first event, and connected workspaces stop showing a misleading
       always-active first step.
+- [x] ✅ Align the capability metric vocabulary with the business question:
+      `Feature uses observed`, `Feature uses in previous period`, and
+      `Average features per account group` now describe the same existing
+      formulas without changing their data source or denominator.
 - [x] ✅ Keep OAuth provider loading placeholders visually non-actionable until
       provider discovery completes; the hand cursor is reserved for real
       controls.

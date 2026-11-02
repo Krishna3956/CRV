@@ -1703,7 +1703,7 @@ const emptyPageCopy: Record<
       "See what the server offers and which capabilities are observed in use.",
     preview: [
       { label: "Features observed", detail: "What your MCP offers versus what people use." },
-      { label: "Observed actions", detail: "How much activity each feature receives." },
+      { label: "Feature uses observed", detail: "How much activity each feature receives." },
       { label: "Reliability", detail: "Returned errors and retries by feature." },
       { label: "Evidence", detail: "A trace to inspect when a capability needs context." },
     ],
@@ -1742,7 +1742,7 @@ const emptyPageCopy: Record<
     preview: [
       { label: "Assistants", detail: "Applications reported by connected sessions." },
       { label: "Account groups", detail: "Privacy-safe grouping when your team enables it." },
-      { label: "Activity", detail: "Observed actions and sessions by assistant." },
+      { label: "Activity", detail: "Feature uses and sessions by assistant." },
       { label: "Evidence", detail: "A trace for the activity you want to understand." },
     ],
   },
@@ -3246,10 +3246,10 @@ function CapabilitiesView({
       {activity && (
         <>
           <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-            <Kpi label="Observed actions" value={fmt(activity.total_calls)} icon={Activity} helper={`${analytics.range_days} day window`} />
-            <Kpi label="Prior-period actions" value={fmt(activity.previous_period_calls)} icon={TrendingUp} helper="Same-length comparison window" />
-            <Kpi label="Error rate" value={activity.overall_error_rate === null ? "N/A" : percent(activity.overall_error_rate)} icon={ShieldCheck} helper="Observed errors only; not a root-cause diagnosis" />
-            <Kpi label="Average features used per account group" value={activity.avg_tools_used_per_account === null ? "N/A" : activity.avg_tools_used_per_account.toFixed(1)} icon={Blocks} helper={`Privacy-safe account groups · ${fmt(activity.advertised_tools)} advertised`} />
+            <Kpi label="Feature uses observed" value={fmt(activity.total_calls)} icon={Activity} helper={`${analytics.range_days}-day window`} />
+            <Kpi label="Feature uses in previous period" value={fmt(activity.previous_period_calls)} icon={TrendingUp} helper="Same-length comparison window" />
+            <Kpi label="Error rate" value={activity.overall_error_rate === null ? "N/A" : percent(activity.overall_error_rate)} icon={ShieldCheck} helper="Explicit errors only; not a diagnosis" />
+            <Kpi label="Average features per account group" value={activity.avg_tools_used_per_account === null ? "N/A" : activity.avg_tools_used_per_account.toFixed(1)} icon={Blocks} helper={`Privacy-safe account groups · ${fmt(activity.advertised_tools)} available`} />
           </div>
           <div className="mt-4 grid gap-4 xl:grid-cols-[1.1fr_0.9fr]">
             <Panel title="Most-used features" subtitle="Which capabilities are carrying the observed activity">
@@ -3310,7 +3310,7 @@ function CapabilitiesView({
           helper="Observed tool names"
         />
         <Kpi
-          label="Observed actions"
+          label="Feature uses observed"
           value={fmt(analytics.tool_calls)}
           icon={Activity}
           helper="Observed calls"
@@ -4454,7 +4454,7 @@ function EvidenceView({
               <tr>
                 <th className="pb-3">Observed session</th>
                 <th className="pb-3">Assistant</th>
-                <th className="pb-3">Observed actions</th>
+                <th className="pb-3">Feature uses</th>
                 <th className="pb-3">Evidence link</th>
                 <th className="pb-3">Action</th>
               </tr>

@@ -402,6 +402,12 @@ current-step emphasis. The active card is marked with `aria-current="step"`
 and a concise `Next` label so the visual cue is also available to assistive
 technology.
 
+The capability summary was reviewed against the metric registry and Founder OS
+metric contract. The default KPI labels now say `Feature uses observed`,
+`Feature uses in previous period`, and `Average features per account group`.
+The formulas, source telemetry, account-group boundary, and error semantics
+are unchanged; this is a vocabulary improvement for business readers.
+
 The Resources & prompts default path was reviewed as well. Its first scan now
 starts with the business question and three decision KPIs; the technical
 evidence boundary is still present inside the expanded detail section rather
@@ -432,6 +438,9 @@ Verification after this pass:
   change.
 - `npm run build`: passed after the state-aware Setup rail change; 230 static
   pages generated.
+- `npm run test:metric-contract`: 4/4 passed after the capability vocabulary
+  change.
+- `npm run lint`: passed after the capability vocabulary change.
 
 The rebuilt standalone server was also started with placeholder Supabase
 values and the documented local dashboard bypass. Node's HTTP client returned

@@ -118,7 +118,7 @@ export const METRIC_DEFINITIONS = [
   },
   {
     key: "tool_call_volume",
-    label: "Observed actions",
+    label: "Feature uses observed",
     formula: "count(observed tools/call events)",
     source: "Tool-call telemetry",
     interpretation: "Observed feature activity in the selected period.",
@@ -140,7 +140,7 @@ export const METRIC_DEFINITIONS = [
   },
   {
     key: "tool_adoption_breadth",
-    label: "Average features used per account group",
+    label: "Average features per account group",
     formula: "average(distinct observed tools per resolver-linked account group)",
     source: "Tool-call telemetry with resolver-linked account identity",
     interpretation: "Observed breadth of capability use among account groups with a configured resolver.",
