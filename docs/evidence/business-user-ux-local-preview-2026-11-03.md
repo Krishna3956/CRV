@@ -47,7 +47,7 @@ The auth affordance pass also keeps provider-discovery skeletons visually
 non-actionable (`cursor-default`) until Google or GitHub is confirmed enabled;
 only actual provider buttons expose the hand cursor.
 
-After this change, TypeScript, ESLint, the OAuth contract suite, the 81-test
+After this change, TypeScript, ESLint, the OAuth contract suite, the 85-test
 business UX suite, and the production build all passed; the build generated
 230 static pages.
 
@@ -503,7 +503,7 @@ Latest typography verification after `39196141`:
 - Dashboard Inter typography now uses an explicit 30px page/metric role, 17px
   section-title role, and 12px label role. Code and dense table detail remain
   compact.
-- `npm run test:business-user-ux`: 84/84 passed.
+- `npm run test:business-user-ux`: 85/85 passed.
 - `npx tsc --noEmit --pretty false`: passed.
 - `npm run lint`: passed.
 - `npm run build`: passed; 230 static pages generated.
@@ -519,7 +519,7 @@ Latest visual-system verification after `cf0d0d40`:
 - The initial dashboard hydration state is no longer a blank white screen. It
   now shows the TrackMCP mark, a short explanation, and three preparation
   steps: account, workspace, and dashboard.
-- `npm run test:business-user-ux`: 84/84 passed.
+- `npm run test:business-user-ux`: 85/85 passed.
 - `npx tsc --noEmit --pretty false`: passed.
 - `npm run lint`: passed.
 - `npm run build`: passed; 230 static pages generated.
@@ -557,7 +557,7 @@ Latest recovery-path verification after `a00cf8db`:
   live workspace view.
 - The fallback is available on the main dashboard live-data failure state;
   the quality-specific state keeps its existing retry-only behavior.
-- `npm run test:business-user-ux`: 84/84 passed.
+- `npm run test:business-user-ux`: 85/85 passed.
 - `npx tsc --noEmit --pretty false`: passed.
 - `npm run build`: passed; 230 static pages generated.
 - `npm run test:release-gate`: passed all 159 suites.
