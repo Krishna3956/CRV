@@ -146,6 +146,9 @@ Implemented on isolated branch `codex/business-user-ux-audit`:
   ranking, evidence strength, and the correct order for investigating alerts.
 - Added a journey reading guide that explains observed paths and explicit stop
   evidence without presenting a missing event as abandonment.
+- Improved the post-signup dashboard loading state so a new user understands
+  that TrackMCP is checking the account and preparing the workspace before
+  showing analytics.
 
 Validation on the isolated worktree:
 

@@ -30,6 +30,8 @@ Legend: `[x]` verified/implemented in this workstream; `[ ]` pending.
       users know how to prioritize signals without treating them as diagnoses.
 - [x] ✅ Add a journey reading guide that distinguishes observed paths from
       explicit stop evidence and avoids abandonment inference.
+- [x] ✅ Make the post-signup dashboard loading state explain workspace
+      preparation instead of showing a generic loading message.
 - [x] ✅ Perform a read-only browser review of the current production Setup,
       Overview, Example data, and My data states; record live-vs-branch
       differences in the audit.
