@@ -85,6 +85,13 @@ jobs:
             echo STAGING_SUPABASE_HEALTH_UNHEALTHY_SERVICE
             exit 1
           fi
+          POOLER_CONTAINER=$(docker compose ps -q supavisor)
+          if [[ -n "$POOLER_CONTAINER" ]]; then
+            POOLER_RUNTIME=$(docker inspect -f '{{.State.Status}}|{{.State.ExitCode}}|{{.RestartCount}}' "$POOLER_CONTAINER")
+            echo "STAGING_SUPABASE_HEALTH_POOLER_RUNTIME=${POOLER_RUNTIME}"
+          else
+            echo STAGING_SUPABASE_HEALTH_POOLER_RUNTIME=missing
+          fi
           # The pinned Supabase stack uses api-gw for the gateway service. The
           # older kong name is not present in this deployment.
           for service in db auth rest api-gw; do

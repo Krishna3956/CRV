@@ -13,6 +13,8 @@ test('staging health probe is guarded, read-only, and redacts the anonymous key'
   assert.match(workflow, /id-token: write/);
   assert.match(workflow, /contents: read/);
   assert.match(workflow, /docker compose ps --all/);
+  assert.match(workflow, /STAGING_SUPABASE_HEALTH_POOLER_RUNTIME/);
+  assert.match(workflow, /docker inspect -f/);
   assert.match(workflow, /for service in db auth rest api-gw/);
   assert.match(workflow, /services=db,auth,rest,api-gw/);
   assert.doesNotMatch(workflow, /for service in db auth rest kong/);
