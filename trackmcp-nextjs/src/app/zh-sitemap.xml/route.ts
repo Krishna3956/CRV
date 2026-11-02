@@ -1,4 +1,4 @@
-import { CHINESE_SEO_PATHS, chinesePath, chineseUrl, englishUrl } from "@/lib/chinese-seo";
+import { CHINESE_SEO_PATHS, chineseUrl, englishUrl } from "@/lib/chinese-seo";
 
 export const revalidate = 3600;
 
