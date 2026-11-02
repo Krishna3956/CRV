@@ -183,6 +183,15 @@ This is local browser evidence only. It confirms rendered copy and hierarchy;
 it does not prove production read-model data, account creation, or a real
 first-event connection.
 
+The isolated branch was also opened locally at `/signup` on port `3152`. The
+browser accessibility tree showed the business handoff sentence before the
+form, the Terms and Privacy links, labeled first name, last name, email,
+password, and confirmation fields, the `Create account` action, and the
+`Sign in` mode switch. Provider discovery remained a bounded loading state
+when the preview used deliberately invalid Supabase placeholders; it did not
+block the email form or cause a layout jump. This is local UI evidence only,
+not proof that the production OAuth providers are enabled.
+
 ## First-time handoff preview
 
 A fresh local bypass session was opened at `/dashboard?view=overview&data=my`
