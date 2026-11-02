@@ -172,6 +172,9 @@ test("business users receive orientation before technical detail", () => {
   assert.match(source, /Work waiting for information/);
   assert.match(source, /Most-used features/);
   assert.match(source, /Start with adoption and reliability/);
+  assert.match(source, /Average features used per account group/);
+  assert.match(source, /Privacy-safe account groups/);
+  assert.match(source, /Activity without an optional account-group signal/);
   assert.match(source, /supporting evidence for technical teams/);
   assert.match(source, /Advertised features not yet observed/);
   assert.match(source, /Resource lookups/);

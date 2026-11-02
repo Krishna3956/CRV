@@ -3120,7 +3120,7 @@ function CapabilitiesView({
             <Kpi label="Observed actions" value={fmt(activity.total_calls)} icon={Activity} helper={`${analytics.range_days} day window`} />
             <Kpi label="Prior-period actions" value={fmt(activity.previous_period_calls)} icon={TrendingUp} helper="Same-length comparison window" />
             <Kpi label="Error rate" value={activity.overall_error_rate === null ? "N/A" : percent(activity.overall_error_rate)} icon={ShieldCheck} helper="Observed errors only; not a root-cause diagnosis" />
-            <Kpi label="Average features used per account" value={activity.avg_tools_used_per_account === null ? "N/A" : activity.avg_tools_used_per_account.toFixed(1)} icon={Blocks} helper={`Resolver-linked accounts · ${fmt(activity.advertised_tools)} advertised`} />
+            <Kpi label="Average features used per account group" value={activity.avg_tools_used_per_account === null ? "N/A" : activity.avg_tools_used_per_account.toFixed(1)} icon={Blocks} helper={`Privacy-safe account groups · ${fmt(activity.advertised_tools)} advertised`} />
           </div>
           <div className="mt-4 grid gap-4 xl:grid-cols-[1.1fr_0.9fr]">
             <Panel title="Most-used features" subtitle="Which capabilities are carrying the observed activity">
@@ -3134,9 +3134,9 @@ function CapabilitiesView({
             </Panel>
             <Panel title="Breadth of adoption" subtitle="How many distinct features privacy-safe account groups used">
               <div className="space-y-3">
-                {activity.adoption_distribution.map((item) => <div key={item.bucket} className="flex items-center justify-between border-b border-line pb-2 text-sm"><span className="text-ink">{item.bucket}</span><span className="text-muted">{fmt(item.accounts)} accounts</span></div>)}
+                {activity.adoption_distribution.map((item) => <div key={item.bucket} className="flex items-center justify-between border-b border-line pb-2 text-sm"><span className="text-ink">{item.bucket}</span><span className="text-muted">{fmt(item.accounts)} account groups</span></div>)}
               </div>
-              <p className="mt-4 text-xs leading-relaxed text-faint">Accounts without a configured resolver are excluded from this distribution rather than grouped into a fabricated customer.</p>
+              <p className="mt-4 text-xs leading-relaxed text-faint">Activity without an optional account-group signal is excluded from this distribution. TrackMCP never turns missing identity evidence into a named customer.</p>
             </Panel>
           </div>
           <details className="mt-4 rounded-2xl border border-line bg-white">
