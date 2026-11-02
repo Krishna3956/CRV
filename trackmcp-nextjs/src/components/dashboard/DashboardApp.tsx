@@ -4694,7 +4694,7 @@ function SetupView({
       />
       <BusinessContext
         title="What you will get after setup"
-        body="Once one real event arrives, TrackMCP turns bounded server activity into four views: who is showing up, what they are trying, whether the work completed, and what deserves attention. A technical teammate usually completes this page; business teams return here when they need to verify the connection."
+        body="Once one real event arrives, TrackMCP turns bounded server activity into four views: who is showing up, what they are trying, whether the work completed, and what deserves attention. A technical teammate usually completes this page; business teams return here when they need to verify the connection. Setup always uses your live connection; choose Example data in the analytics tabs when you want to learn the dashboard before connecting a server."
         action="Create a key, connect one server, make one real tool call, then refresh the check."
       />
       <section className="mb-6 grid gap-3 rounded-2xl border border-brand/20 bg-[linear-gradient(135deg,#f0fbf3,#ffffff_62%)] p-4 sm:grid-cols-3 sm:p-5" aria-label="Setup steps">
