@@ -1208,7 +1208,7 @@ export function DashboardApp({
   return (
     <div className="dashboard-shell min-h-screen bg-[#f2f6f3] font-sans text-ink">
       <div className="border-b border-amber-200 bg-amber-50 px-4 py-3 text-center text-xs leading-relaxed text-amber-900 lg:hidden" role="status">
-        Founder OS is supported on desktop browsers for this pilot. For the full dashboard navigation and data tables, open TrackMCP on a desktop-sized browser window.
+        The TrackMCP dashboard is supported on desktop browsers for this pilot. For the full navigation and data tables, open TrackMCP on a desktop-sized browser window.
       </div>
       <aside className="fixed bottom-0 left-0 top-[52px] z-30 hidden w-[248px] border-r border-line bg-[#f8fbf9] lg:flex lg:flex-col">
         <DashboardNav
@@ -2044,7 +2044,7 @@ function PageIntro({
   return (
     <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
       <div className="min-w-0">
-        <p className="mb-2 text-[10px] font-semibold uppercase tracking-[0.14em] text-brand-strong">Founder OS workspace</p>
+        <p className="mb-2 text-[10px] font-semibold uppercase tracking-[0.14em] text-brand-strong">TrackMCP workspace</p>
         <h2 className="dashboard-page-title tracking-[-0.035em] text-ink">
           {title}
         </h2>

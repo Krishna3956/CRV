@@ -107,7 +107,7 @@ test("Founder OS vertical slices share one data-trust contract", () => {
 });
 
 test("desktop-only pilot boundary is visible on narrow dashboard viewports", () => {
-  assert.match(source, /Founder OS is supported on desktop browsers for this pilot/);
+  assert.match(source, /The TrackMCP dashboard is supported on desktop browsers for this pilot/);
   assert.match(source, /className="border-b border-amber-200 bg-amber-50[^\"]*lg:hidden/);
 });
 
