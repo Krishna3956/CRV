@@ -1,8 +1,8 @@
 # TrackMCP translation reliability handoff
 
 Date: 2026-11-02
-Branch: `codex/translation-reliability-20261102`
-Status: implementation verified locally; deployment follows the normal App Runner workflow after review.
+Merged commit: `e666f90ebe85b65e01336a2b7731a7a5343f0f51`
+Status: deployed to App Runner and verified by the post-deploy production gate.
 
 ## Goal
 
@@ -54,7 +54,7 @@ The live runtime audit covered the homepage, feature/product pages, docs, reposi
 
 ## Deployment and rollback
 
-Commit this branch, push it through the repository's normal CI/App Runner workflow, and wait for the deployment workflow to report success. After rollout, repeat:
+The change was merged through PR #854 and deployed by App Runner workflow run `41421327314`. The deployed `/api/health` response reports release SHA `e666f90ebe85b65e01336a2b7731a7a5343f0f51`. The workflow's post-deploy gate completed successfully, including the full sitemap/runtime audit and live provider probe. To repeat the verification manually:
 
 ```bash
 TRANSLATION_AUDIT_BASE_URL=https://trackmcp.com \
