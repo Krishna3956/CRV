@@ -432,4 +432,11 @@ Verification after this pass:
   change.
 - `npm run build`: passed after the state-aware Setup rail change; 230 static
   pages generated.
+
+The rebuilt standalone server was also started with placeholder Supabase
+values and the documented local dashboard bypass. Node's HTTP client returned
+HTTP 200 for `/dashboard?view=setup&data=example`,
+`/dashboard?view=overview&data=example`, `/signin`, and `/signup`. The server
+was stopped cleanly afterward. This verifies local route rendering only; it is
+not authenticated production evidence.
 - Production deployment and fresh-account browser evidence remain pending.
