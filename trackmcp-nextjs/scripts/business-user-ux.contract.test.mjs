@@ -91,6 +91,7 @@ test("research principles are translated into TrackMCP decisions", () => {
   assert.match(research, /curated, not like a chart catalog/);
   assert.match(research, /Use color and chart form to encode meaning sparingly/);
   assert.match(research, /Copy is part of the product's measurement contract/);
+  assert.match(research, /Product marketing should align the product story/);
   assert.match(queue, /Research PostHog, Amplitude, GA4/);
 });
 

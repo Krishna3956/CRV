@@ -189,6 +189,32 @@ TrackMCP application:
 - When a value is unknown, say why it is unknown and what evidence would make it
   known. Never replace uncertainty with a zero or a reassuring color.
 
+### 12. Product marketing should align the product story with the reader's job
+
+Product Marketing Alliance and Salesforce both distinguish positioning from
+copy: positioning decides who the product is for, what problem it solves, and
+why it is different; messaging and copy then adapt that decision to a page,
+audience, or channel. Their frameworks emphasize a single value proposition,
+supporting benefits, proof points, and an explicit call to action rather than a
+feature inventory. See [PMA messaging framework](https://www.productmarketingalliance.com/content/files/2025/02/Messaging-framework.pdf)
+and [Salesforce product messaging template](https://developer.salesforce.com/files/SF-on-SF_Template_V3a.pdf).
+
+TrackMCP application:
+
+- The business reader's job is to decide whether MCP usage is reaching the
+  intended work, whether the experience is succeeding, and what should be
+  investigated next. The dashboard should lead with that job, not the SDK's
+  internal implementation.
+- The technical setup user needs one clear proof path: connect one server,
+  send one real event, then hand the dashboard to the product or operations
+  team.
+- Each primary surface gets one core message, one supporting explanation, one
+  evidence boundary, and one next action. Additional protocol detail is proof
+  or documentation, not a competing headline.
+- Claims stay proportional to proof. Example values are teaching aids; real
+  customer, health, and completion claims require the read-model evidence that
+  supports them.
+
 ## What this means for the current product
 
 ### Strengths already present on this branch
