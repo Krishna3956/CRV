@@ -11,6 +11,18 @@ The final source-level pass also aligns the Evidence tab with the Overview
 language: business readers see “Observed session”, “Evidence link”, and “Open
 evidence”; raw session identifiers remain an internal routing detail.
 
+## Latest browser confirmation
+
+- Local route: `/dashboard?view=evidence&data=example` on the isolated branch.
+- The accessibility tree showed `Observed session 1..6`, `Evidence link`,
+  `Linked to session`, and `View sample evidence`; it did not expose raw session
+  identifiers in the primary table.
+- Local route: `/dashboard?view=overview&data=my` with the local demo bypass.
+- The no-event state showed the business explanation, `Complete setup`, the
+  three setup steps, and the “What you will see here” preview without
+  substituting Example data into My data.
+- This remains local browser evidence, not production or human-UAT evidence.
+
 ## Environment
 
 - Next development server started from the isolated worktree on port `3138`.
