@@ -21,8 +21,7 @@ The branch remains local and has not been merged or deployed.
 Final current-branch build: `npm run build` passed with 230 static pages
 generated after the single-header language-control change. TypeScript and ESLint
 also passed. The full `npm run test:release-gate` passed all 159 suites on
-`2ac7b4be`; the language-control change is covered by the focused 83-test
-business UX suite.
+`984f2cbe`; the tracked evidence update is `7d229f9c`.
 This is still local build evidence; it does not prove a production deployment
 or authenticated production rendering.
 

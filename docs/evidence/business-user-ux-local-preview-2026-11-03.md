@@ -495,6 +495,4 @@ Latest shell verification after `984f2cbe`:
 - `npx tsc --noEmit --pretty false`: passed.
 - `npm run lint`: passed.
 - `npm run build`: passed; 230 static pages generated.
-- The full release gate remains green at 159 suites from the immediately
-  preceding source state; this shell-only change is covered by the focused
-  business UX contract suite.
+- `npm run test:release-gate`: passed all 159 suites after the shell change.
