@@ -314,6 +314,11 @@ The Overview data-trust copy was also reviewed. Visible labels now say
 `Activity observed`, `Activity recency`, `Account-grouped activity`, and
 `Dashboard refresh`; the underlying bounded-evidence caveats remain intact.
 
+The Resources & prompts default path was reviewed as well. Its first scan now
+starts with the business question and three decision KPIs; the technical
+evidence boundary is still present inside the expanded detail section rather
+than competing with the initial reading path.
+
 Verification after this pass:
 
 - `npm run test:business-user-ux`: 80/80 passed.

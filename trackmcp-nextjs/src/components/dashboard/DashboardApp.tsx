@@ -3429,10 +3429,6 @@ function ResourcesPromptsView({
         body="Resource lookups show information people asked the server for. Guided-help requests show where the server was asked to help shape a task. Completion is counted only when the server reports an explicit outcome; an input request or unknown state is not treated as success."
         action="Compare the top resources and prompts with their error or input-needed rates before changing content or workflows."
       />
-      <section className="mb-6 border border-line bg-white p-4 sm:p-5" aria-label="Resources and prompts evidence boundary">
-        <p className="dashboard-label text-faint">Evidence boundary</p>
-        <p className="mt-1 max-w-3xl text-xs leading-relaxed text-muted">TrackMCP reports bounded method observations and hashed entity counts. Linked retries are collapsed only when protocol correlation evidence exists. It does not expose resource contents, prompt arguments, unique people, or business completion from these signals.</p>
-      </section>
       <div className="grid gap-3 sm:grid-cols-3">
         <Kpi label="Resource lookups" value={activity ? fmt(activity.resource_reads) : "N/A"} icon={FileText} helper={activity ? `${fmt(activity.previous_period_resource_reads)} previous period · ${fmt(activity.resource_observations)} observed` : "Awaiting evidence"} />
         <Kpi label="Guided-help requests" value={activity ? fmt(activity.prompt_calls) : "N/A"} icon={Activity} helper={activity ? `${fmt(activity.previous_period_prompt_calls)} previous period · ${fmt(activity.prompt_observations)} observed` : "Awaiting evidence"} />
@@ -3449,6 +3445,10 @@ function ResourcesPromptsView({
           <span className="text-xs font-medium text-brand-strong">Expand details</span>
         </summary>
         <div className="border-t border-line px-5 pb-5">
+      <div className="mt-4 border border-line bg-paper p-3" aria-label="Resources and prompts evidence boundary">
+        <p className="text-xs font-semibold text-ink">Technical evidence boundary</p>
+        <p className="mt-1 text-[11px] leading-relaxed text-muted">TrackMCP reports bounded method observations and hashed entity counts. Linked retries are collapsed only when protocol correlation evidence exists. It does not expose resource contents, prompt arguments, unique people, or business completion from these signals.</p>
+      </div>
       <div className="grid gap-3 pt-5 sm:grid-cols-3">
         <Kpi label="Observed lookups and requests" value={surfaces ? fmt(observedEvents) : "N/A"} icon={Activity} helper="Resource and prompt activity" />
         <Kpi label="Distinct resources or prompts observed" value={surfaces ? fmt(observedEntities) : "N/A"} icon={FileText} helper="Privacy-bounded entity counts" />

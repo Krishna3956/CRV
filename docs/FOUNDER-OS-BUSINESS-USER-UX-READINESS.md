@@ -106,6 +106,12 @@ activity`, and `Dashboard refresh`. The explanatory caveats still make clear
 that evidence recency is not a service-health claim and that refresh jobs do
 not prove customer activity.
 
+The Resources & prompts view now keeps its primary scan on lookup volume,
+guided-help volume, and explicit completion evidence. The privacy and
+non-completion boundary remains available inside the expanded technical detail
+section instead of appearing as another block of protocol vocabulary above the
+KPIs.
+
 ### Tier 3 — still required before pilot readiness
 
 - Fresh-account setup in the deployed branch.

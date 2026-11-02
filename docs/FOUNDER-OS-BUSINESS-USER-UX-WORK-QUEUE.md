@@ -129,6 +129,9 @@ Legend: `[x]` verified/implemented in this workstream; `[ ]` pending.
       vocabulary to business language (`Activity observed`, `Activity
       recency`, `Account-grouped activity`, and `Dashboard refresh`) while
       retaining the underlying evidence caveats and bounded worker metrics.
+- [x] ✅ Move the Resources & prompts technical evidence boundary out of the
+      default KPI scan and into the expanded detail section; keep the privacy
+      and non-completion limits discoverable for engineering readers.
 - [x] ✅ Apply the same business-readable evidence language inside the Evidence
       tab: remove the engineering-only “Trace Explorer” action label, hide raw
       session identifiers from the primary table, and expose a clear “Open
