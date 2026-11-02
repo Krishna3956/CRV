@@ -75,6 +75,10 @@ Legend: `[x]` verified/implemented in this workstream; `[ ]` pending.
 - [x] ✅ Run a local browser preview of the branch with Example data and Setup;
       verify the business-first navigation, visible period context, accessible
       chart tables, state-aware setup rail, and progressive technical detail.
+- [x] ✅ Run a settled-route browser pass across every business-facing tab;
+      verify that direct Example-data links load their own business question,
+      evidence boundary, and data-source marker. Setup remains a live
+      connection workflow even when the global Example-data toggle is selected.
 - [x] ✅ Polish the KPI scan surface with restrained brand hierarchy and
       tabular numerals; keep the change semantic-neutral and evidence-safe.
 - [x] ✅ Run dashboard contracts, typecheck, lint, and production build.

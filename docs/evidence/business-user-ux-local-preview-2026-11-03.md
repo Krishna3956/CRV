@@ -2,7 +2,7 @@
 
 Date: 2026-11-03
 Branch: `codex/business-user-ux-audit`
-Commit under review: `ba9f93a1`
+Commit under review: `d5af5749`
 
 This is local browser evidence only. It is not production evidence and does
 not replace a fresh-account or real-telemetry walkthrough.
@@ -82,6 +82,28 @@ The The journey preview expanded its reach table successfully, showing each
 observed step with reached count and share while retaining the explicit caveat
 that a missing next event is not abandonment.
 
+### Cross-tab browser pass
+
+After waiting for the client route state to settle, direct `data=example`
+links were checked for Overview, Who's using it, What they're doing, Resources
+& prompts, The journey, Did it work, What's broken, and Evidence. Each view
+showed the `Example data selected` marker and its own business question before
+the metrics. The observed introductions were:
+
+- Who's using it: account activity is explicitly not a customer census.
+- What they're doing: adoption and reliability come before protocol evidence.
+- Resources & prompts: information needs and explicit outcomes are explained.
+- The journey: observed paths are separated from guessed funnels.
+- Did it work: explicit success, errors, and unknown evidence remain separate.
+- What's broken: signals are ranked for investigation, not presented as
+  diagnoses.
+- Evidence: technical detail is positioned as a drill-down from a business
+  signal.
+
+Setup intentionally remains a live connection workflow even when the global
+data toggle is set to Example data; it shows the key, SDK, first-event, and
+privacy controls rather than pretending that setup itself is sample telemetry.
+
 ## Signup handoff
 
 Route: `/signup`
@@ -102,3 +124,8 @@ labels and helper text as the source contract: `Assistants using your MCP`,
 
 This is a visual hierarchy improvement only; it does not change metric formulas
 or evidence status. Verified after commit `aa63a153`.
+
+The later account-group language correction was verified in the browser after
+commit `d5af5749`: the Capabilities KPI and adoption distribution now say
+`account group` and explain that missing optional identity evidence is excluded
+without being turned into a named customer.
