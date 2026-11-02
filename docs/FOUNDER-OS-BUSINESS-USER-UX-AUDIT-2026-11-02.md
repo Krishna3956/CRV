@@ -132,6 +132,13 @@ Implemented on isolated branch `codex/business-user-ux-audit`:
 - Added contract coverage for the new orientation and setup copy.
 - Marked Example data as illustrative through the existing data-source
   contract; no sample data was mixed into My data.
+- Added business-reader guidance to “Who’s using it”, including the distinction
+  between account signals and a customer census, assistant-name uncertainty,
+  and privacy-safe ranking language.
+- Added business-reader guidance to “What they’re doing” and “Resources &
+  prompts”, placing adoption/reliability interpretation before protocol detail
+  and explaining resource, prompt, and explicit-outcome signals in plain
+  language.
 
 Validation on the isolated worktree:
 

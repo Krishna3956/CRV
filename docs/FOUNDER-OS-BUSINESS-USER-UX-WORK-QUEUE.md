@@ -20,6 +20,10 @@ Legend: `[x]` verified/implemented in this workstream; `[ ]` pending.
 - [x] ✅ Add contract tests for the orientation and setup copy.
 - [x] ✅ Add plain-language account-activity guidance, assistant naming caveats,
       and privacy-safe signal wording to “Who’s using it”.
+- [x] ✅ Add an adoption-first reading order and technical-detail boundary to
+      “What they’re doing”.
+- [x] ✅ Add plain-language interpretation for resource lookups, guided-help
+      requests, and explicit outcomes in “Resources & prompts”.
 - [x] ✅ Perform a read-only browser review of the current production Setup,
       Overview, Example data, and My data states; record live-vs-branch
       differences in the audit.
