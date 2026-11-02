@@ -2,24 +2,25 @@
 
 Date: 2026-11-03  
 Branch: `codex/business-user-ux-audit`  
-Latest verified commit: `e5deea4b` (`Clarify business outcome metric helpers`)
+Latest verified commit: `aca9981f` (`Make setup guidance reflect current progress`)
 
 This matrix is the release-readiness companion to the UX audit and work
 queue. It intentionally separates source-level proof, read-only browser proof,
 and evidence that requires a real account, deployment, or human participant.
 
-Latest branch verification: `npm run test:business-user-ux` passed all 81 suites
+Latest branch verification: `npm run test:business-user-ux` passed all 82 suites
 after the authentication-affordance, research, signed-out handoff, illustrative
 People-growth coherence, setup-vocabulary consistency, evidence-action-label,
 outcome-copy, Quality helper-copy, final route-smoke, and auth-affordance passes
-(`e5deea4b`). The consolidated `npm run test:release-gate`
+(`aca9981f`). The consolidated `npm run test:release-gate`
 passed all 159 suites on the immediately preceding source commit
 (`2c8e5e03`); the latest change is copy-only and the focused contract, P0 truth,
 typecheck, and lint suites were rerun after it.
 The branch remains local and has not been merged or deployed.
 
 Final current-branch build: `npm run build` passed with 230 static pages
-generated after the auth-affordance change. TypeScript and ESLint also passed.
+generated after the state-aware Setup rail change. TypeScript and ESLint also
+passed.
 This is still local build evidence; it does not prove a production deployment
 or authenticated production rendering.
 
