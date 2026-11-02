@@ -94,14 +94,9 @@ jobs:
             [[ "$state" == "running" ]] || { echo STAGING_SUPABASE_HEALTH_SERVICE_NOT_RUNNING service="$service" state="$state"; exit 1; }
           done
 
-          set +e
-          docker compose exec -T db pg_isready -U postgres >/dev/null 2>&1
-          DB_STATUS=$?
-          set -e
-          if [[ "$DB_STATUS" -ne 0 ]]; then
-            echo STAGING_SUPABASE_HEALTH_DB_FAILED status="$DB_STATUS"
-            exit 1
-          fi
+          DB_LINE=$(printf '%s\n' "$SERVICE_STATE" | awk -F'|' '$1 == "db" { print; exit }')
+          DB_HEALTH=$(printf '%s' "$DB_LINE" | cut -d'|' -f3)
+          [[ "$DB_HEALTH" == "healthy" ]] || { echo STAGING_SUPABASE_HEALTH_DB_FAILED health="$DB_HEALTH"; exit 1; }
           echo STAGING_SUPABASE_HEALTH_DB_READY
 
           set +e
