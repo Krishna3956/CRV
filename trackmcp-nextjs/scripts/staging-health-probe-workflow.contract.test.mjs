@@ -16,7 +16,7 @@ test('staging health probe is guarded, read-only, and redacts the anonymous key'
   assert.match(workflow, /for service in db auth rest api-gw/);
   assert.match(workflow, /services=db,auth,rest,api-gw/);
   assert.doesNotMatch(workflow, /for service in db auth rest kong/);
-  assert.match(workflow, /docker compose exec -T db pg_isready/);
+  assert.match(workflow, /DB_HEALTH=.*cut -d'\|' -f3/);
   assert.match(workflow, /STAGING_SUPABASE_HEALTH_DB_READY/);
   assert.match(workflow, /STAGING_SUPABASE_HEALTH_DB_FAILED/);
   assert.match(workflow, /STAGING_SUPABASE_HEALTH_AUTH_CURL_FAILED/);
