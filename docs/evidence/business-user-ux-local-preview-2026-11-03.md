@@ -36,6 +36,13 @@ outcomes explicitly reported by the server count — instead of the internal
 The current branch also passed `npm run build` after these copy changes;
 Next.js generated 230 static pages. This remains local evidence only.
 
+Final standalone-server smoke on the current build used placeholder Supabase
+values plus the documented local dashboard bypass. These routes all returned
+HTTP 200: Overview, Setup, Who's using it, What they're doing,
+Resources & prompts, The journey, Did it work, What's broken, and Evidence.
+The server was stopped after the read-only smoke; no production tab or
+production data was touched.
+
 ## Latest browser confirmation
 
 - Local route: `/dashboard?view=evidence&data=example` on the isolated branch.
