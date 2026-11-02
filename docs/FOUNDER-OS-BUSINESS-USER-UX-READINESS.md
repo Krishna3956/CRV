@@ -2,7 +2,7 @@
 
 Date: 2026-11-03  
 Branch: `codex/business-user-ux-audit`  
-Latest verified commit: `5a99328a`
+Latest verified commit: local branch `HEAD` (recorded by the branch log)
 
 This matrix is the release-readiness companion to the UX audit and work
 queue. It intentionally separates source-level proof, read-only browser proof,
@@ -49,6 +49,10 @@ and evidence that requires a real account, deployment, or human participant.
 - Pilot scope, support, status-template, runbook, and acceptance-record
   contracts pass; these artifacts keep the release claims bounded and
   secret-safe.
+- The consolidated `npm run test:release-gate` passes all 159 suites after
+  making the customer-endpoint UAT use the same MCP SDK dependency instance as
+  the adapter and ensuring the package-release audit builds the Python wheel
+  and sdist when a clean checkout has no generated artifacts.
 
 ### Tier 2 — verified in the current production browser, read-only
 
@@ -66,6 +70,19 @@ and evidence that requires a real account, deployment, or human participant.
 - Production smoke tests against the deployed commit.
 - Confirmation that all read models return truthful no-data, partial-data, and
   example-data states in production.
+
+Local runtime note: the standalone server starts successfully. With no
+Supabase URL/key it returns HTTP 500 for the homepage because the server cannot
+construct its data client. With deliberately non-production placeholder
+values, `/`, `/docs`, both SDK docs, `/device`, the example dashboard route,
+`/sitemap-index.xml`, and `/sitemap.xml` returned HTTP 200 with the expected
+security headers. The database-backed `/tool-sitemap.xml` correctly failed
+closed with HTTP 503. This is expected safety behavior, not production
+evidence; a real authenticated environment is still required.
+
+The release-gate result is source-level evidence only. It does not replace a
+fresh-account browser walkthrough, a real first event, or a production smoke
+run against this branch.
 
 ## Release interpretation
 

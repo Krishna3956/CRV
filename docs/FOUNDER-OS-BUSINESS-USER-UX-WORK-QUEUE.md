@@ -42,6 +42,8 @@ Legend: `[x]` verified/implemented in this workstream; `[ ]` pending.
       Overview, Example data, and My data states; record live-vs-branch
       differences in the audit.
 - [x] ✅ Run dashboard contracts, typecheck, lint, and production build.
+- [x] ✅ Run the consolidated release gate; all 159 suites pass after fixing
+      clean-checkout MCP SDK resolution and Python artifact preparation.
 - [ ] Run authenticated local runtime smoke; the standalone server starts, but
       the local homepage returns HTTP 500 without local Supabase URL/key values.
 
