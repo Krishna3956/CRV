@@ -51,13 +51,7 @@ jobs:
             exit 1
           }
 
-      - name: Install PostgreSQL archive inspection tools
-        run: |
-          set -euo pipefail
-          sudo apt-get update -qq
-          sudo apt-get install -y --no-install-recommends postgresql-client
-
-      - name: Verify checksum, manifest, encryption, and archive metadata
+      - name: Verify checksum, manifest, encryption, and filtered SQL files
         env:
           OBJECT_PREFIX: ${{ inputs.object_prefix }}
         run: |
@@ -65,42 +59,68 @@ jobs:
           umask 077
           ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
           BUCKET_NAME="${BACKUP_BUCKET_PREFIX}-${ACCOUNT_ID}-${AWS_REGION}"
-          DUMP_FILE="/tmp/trackmcp-source-export.dump"
+          ARCHIVE_FILE="/tmp/trackmcp-source-export.tar.gz"
+          EXTRACT_DIR="/tmp/trackmcp-source-export-files"
           MANIFEST_FILE="/tmp/trackmcp-source-export.manifest.txt"
-          LIST_FILE="/tmp/trackmcp-source-export.list.txt"
-          trap 'rm -f "$DUMP_FILE" "$MANIFEST_FILE" "$LIST_FILE"' EXIT
+          EXPECTED_FILE="/tmp/trackmcp-source-export.expected.txt"
+          ACTUAL_FILE="/tmp/trackmcp-source-export.actual.txt"
+          trap 'rm -rf "$EXTRACT_DIR"; rm -f "$ARCHIVE_FILE" "$MANIFEST_FILE" "$EXPECTED_FILE" "$ACTUAL_FILE"' EXIT
 
           aws s3api head-bucket --bucket "$BUCKET_NAME" --region "$AWS_REGION"
           aws s3api head-object --bucket "$BUCKET_NAME" \
-            --key "$OBJECT_PREFIX/trackmcp-supabase-source.dump" \
+            --key "$OBJECT_PREFIX/trackmcp-supabase-source.tar.gz" \
             --region "$AWS_REGION" \
             --query '{bytes:ContentLength,encryption:ServerSideEncryption,version:VersionId}' \
             --output json
-          aws s3 cp "s3://${BUCKET_NAME}/${OBJECT_PREFIX}/trackmcp-supabase-source.dump" \
-            "$DUMP_FILE" --only-show-errors
+          aws s3 cp "s3://${BUCKET_NAME}/${OBJECT_PREFIX}/trackmcp-supabase-source.tar.gz" \
+            "$ARCHIVE_FILE" --only-show-errors
           aws s3 cp "s3://${BUCKET_NAME}/${OBJECT_PREFIX}/manifest.txt" \
             "$MANIFEST_FILE" --only-show-errors
 
           grep -Fx 'source_url=redacted' "$MANIFEST_FILE" >/dev/null
-          SHA256=$(sha256sum "$DUMP_FILE" | awk '{print $1}')
-          EXPECTED_SHA256=$(sed -n 's/^sha256=//p' "$MANIFEST_FILE")
-          [[ "$SHA256" == "$EXPECTED_SHA256" ]] || {
+          grep -Fx 'export_type=supabase-filtered-sql-dump' "$MANIFEST_FILE" >/dev/null
+          SHA256=$(sha256sum "$ARCHIVE_FILE" | awk '{print $1}')
+          EXPECTED_SHA256=$(sed -n 's/^archive_sha256=//p' "$MANIFEST_FILE")
+          [[ -n "$EXPECTED_SHA256" && "$SHA256" == "$EXPECTED_SHA256" ]] || {
             echo "::error::Source export checksum mismatch. No restore was attempted."
             exit 1
           }
-          BYTES=$(stat -c '%s' "$DUMP_FILE")
-          EXPECTED_BYTES=$(sed -n 's/^dump_bytes=//p' "$MANIFEST_FILE")
-          [[ "$BYTES" == "$EXPECTED_BYTES" ]] || {
+          BYTES=$(stat -c '%s' "$ARCHIVE_FILE")
+          EXPECTED_BYTES=$(sed -n 's/^archive_bytes=//p' "$MANIFEST_FILE")
+          [[ -n "$EXPECTED_BYTES" && "$BYTES" == "$EXPECTED_BYTES" ]] || {
             echo "::error::Source export byte count mismatch. No restore was attempted."
             exit 1
           }
 
-          pg_restore --list "$DUMP_FILE" > "$LIST_FILE"
-          ENTRY_COUNT=$(wc -l < "$LIST_FILE" | tr -d ' ')
-          SCHEMA_COUNT=$(awk -F'; ' 'NF > 1 {print $2}' "$LIST_FILE" | awk '{print $1}' | sort -u | wc -l | tr -d ' ')
-          [[ "$ENTRY_COUNT" -gt 0 && "$SCHEMA_COUNT" -gt 0 ]] || {
-            echo "::error::The source archive contains no inspectable PostgreSQL entries. No restore was attempted."
+          printf '%s\n' data.sql roles.sql schema.sql | sort > "$EXPECTED_FILE"
+          tar -tzf "$ARCHIVE_FILE" | sed 's#^\./##' | sort > "$ACTUAL_FILE"
+          diff -u "$EXPECTED_FILE" "$ACTUAL_FILE" >/dev/null || {
+            echo "::error::The filtered source archive does not contain exactly roles.sql, schema.sql, and data.sql. No restore was attempted."
             exit 1
           }
-          echo "Verified encrypted source export: bucket=$BUCKET_NAME prefix=$OBJECT_PREFIX bytes=$BYTES sha256=$SHA256 archive_entries=$ENTRY_COUNT archive_schemas=$SCHEMA_COUNT"
+          mkdir -m 0700 "$EXTRACT_DIR"
+          tar -xzf "$ARCHIVE_FILE" -C "$EXTRACT_DIR"
+          for file in roles.sql schema.sql data.sql; do
+            test -s "$EXTRACT_DIR/$file"
+            FILE_SHA256=$(sha256sum "$EXTRACT_DIR/$file" | awk '{print $1}')
+            FILE_BYTES=$(stat -c '%s' "$EXTRACT_DIR/$file")
+            EXPECTED_FILE_SHA256=$(sed -n "s/^${file%.*}_sha256=//p" "$MANIFEST_FILE")
+            EXPECTED_FILE_BYTES=$(sed -n "s/^${file%.*}_bytes=//p" "$MANIFEST_FILE")
+            [[ "$FILE_SHA256" == "$EXPECTED_FILE_SHA256" && "$FILE_BYTES" == "$EXPECTED_FILE_BYTES" ]] || {
+              echo "::error::Checksum or byte count mismatch for $file. No restore was attempted."
+              exit 1
+            }
+          done
+          ROLE_LINES=$(wc -l < "$EXTRACT_DIR/roles.sql" | tr -d ' ')
+          SCHEMA_LINES=$(wc -l < "$EXTRACT_DIR/schema.sql" | tr -d ' ')
+          DATA_LINES=$(wc -l < "$EXTRACT_DIR/data.sql" | tr -d ' ')
+          grep -E 'COPY ("auth"|auth)\.("users"|users)' "$EXTRACT_DIR/data.sql" >/dev/null || {
+            echo "::error::The filtered data export does not contain the auth.users relation. No restore was attempted."
+            exit 1
+          }
+          [[ "$ROLE_LINES" -gt 0 && "$SCHEMA_LINES" -gt 0 && "$DATA_LINES" -gt 0 ]] || {
+            echo "::error::One or more filtered SQL files are empty. No restore was attempted."
+            exit 1
+          }
+          echo "Verified encrypted filtered source export: bucket=$BUCKET_NAME prefix=$OBJECT_PREFIX archive_bytes=$BYTES archive_sha256=$SHA256 roles_lines=$ROLE_LINES schema_lines=$SCHEMA_LINES data_lines=$DATA_LINES"
           echo "No source connection was opened, no database was restored, and no S3 object was changed or deleted."
