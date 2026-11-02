@@ -2,7 +2,7 @@
 
 Date: 2026-11-03
 Branch: `codex/business-user-ux-audit`
-Commit under review: latest local commit on `codex/business-user-ux-audit`
+Commit under review: `a4d49517` (`Fix illustrative people growth series`)
 
 This is local browser evidence only. It is not production evidence and does
 not replace a fresh-account or real-telemetry walkthrough.
@@ -10,6 +10,11 @@ not replace a fresh-account or real-telemetry walkthrough.
 The final source-level pass also aligns the Evidence tab with the Overview
 language: business readers see “Observed session”, “Evidence link”, and “Open
 evidence”; raw session identifiers remain an internal routing detail.
+
+The latest fixture correction keeps the illustrative People view internally
+coherent: its weekly growth series now ends at the same 18-account total shown
+by the active-account KPI. This changes Example data only; it does not alter a
+live read model or any production metric formula.
 
 ## Latest browser confirmation
 
@@ -262,7 +267,7 @@ proof are in `trackmcp-nextjs/src/app/signin/page.tsx`,
 
 Verification after this pass:
 
-- `npm run test:business-user-ux`: 80/80 passed.
+- `npm run test:business-user-ux`: 81/81 passed.
 - `npx tsc --noEmit --pretty false`: passed.
 - `npm run lint`: passed.
 - `npm run build`: passed; 230 static pages generated.
@@ -363,7 +368,7 @@ and explicit outcomes.
 
 Verification after this pass:
 
-- `npm run test:business-user-ux`: 80/80 passed.
+- `npm run test:business-user-ux`: 81/81 passed.
 - `npx tsc --noEmit --pretty false`: passed.
 - `npm run lint`: passed with no warnings emitted by this branch.
 - `npm run build`: passed; 230 static pages generated.
