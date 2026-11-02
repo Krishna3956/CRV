@@ -100,6 +100,12 @@ available under a collapsed `Setup evidence` disclosure, so engineering teams
 can inspect readiness without making a newly signed-up user decode eight
 technical checks before connecting a server.
 
+Overview's data-trust panel now uses business-readable labels for the same
+bounded evidence: `Activity observed`, `Activity recency`, `Account-grouped
+activity`, and `Dashboard refresh`. The explanatory caveats still make clear
+that evidence recency is not a service-health claim and that refresh jobs do
+not prove customer activity.
+
 ### Tier 3 — still required before pilot readiness
 
 - Fresh-account setup in the deployed branch.

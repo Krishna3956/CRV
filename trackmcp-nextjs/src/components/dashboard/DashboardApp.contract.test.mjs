@@ -583,20 +583,20 @@ test("Overview exposes Founder OS outcome and evidence-quality states", () => {
   assert.match(source, /Evidence window:/);
   assert.match(source, /bounded scan complete/);
   assert.match(source, /scan limit reached; results may be incomplete/);
-  assert.match(source, /Telemetry recency/);
+  assert.match(source, /Activity recency/);
   assert.match(source, /evidence watermark, not a service-health claim/);
   assert.match(source, /No event observed in the last 24 hours/);
 });
 
 test("Data trust exposes bounded derived-refresh health without implying activity", () => {
   assert.match(source, /refreshStatus=\{analytics\.refresh_status\}/);
-  assert.match(source, /aria-label="Refresh worker status"/);
-  assert.match(source, /Worker metrics are bounded to the latest 100 workspace jobs/);
+  assert.match(source, /aria-label="Dashboard refresh checks"/);
+  assert.match(source, /Refresh metrics are bounded to the latest 100 workspace jobs/);
   assert.match(source, /no job is evidence of no customer activity/);
   assert.match(source, /Max lag/);
   assert.match(source, /worker_health/);
   assert.match(source, /insufficient_data/);
-  assert.match(source, /Some derived-data jobs are queued, retrying, running, or failed/);
+  assert.match(source, /Some dashboard refresh jobs are queued, retrying, running, or failed/);
 });
 
 test("Overview exposes protocol lifecycle signals with an explicit non-outcome caveat", () => {

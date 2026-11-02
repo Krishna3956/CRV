@@ -2655,7 +2655,7 @@ function DataTrustPanel({
           </dd>
         </div>
         <div>
-          <dt className="text-faint">Source events</dt>
+          <dt className="text-faint">Activity observed</dt>
           <dd className="mt-1 font-medium text-ink">{fmt(dataTrust.source_event_count)}</dd>
         </div>
         <div>
@@ -2663,7 +2663,7 @@ function DataTrustPanel({
           <dd className="mt-1 font-medium text-ink">{observedThrough}</dd>
         </div>
         <div>
-          <dt className="text-faint">Telemetry recency</dt>
+          <dt className="text-faint">Activity recency</dt>
           <dd className="mt-1 font-medium text-ink">{recencyLabel}</dd>
         </div>
       </dl>
@@ -2674,7 +2674,7 @@ function DataTrustPanel({
             <span className="text-[11px] text-faint">event-weighted, not unique people</span>
           </div>
           <div className="mt-2 grid gap-2 text-[11px] text-muted sm:grid-cols-2">
-            <span>Resolver-derived {fmt(identitySourceCounts.resolver)}</span>
+            <span>Account-grouped activity {fmt(identitySourceCounts.resolver)}</span>
             <span>Unresolved {fmt(identitySourceCounts.unresolved)}</span>
           </div>
         </div>
@@ -2682,7 +2682,7 @@ function DataTrustPanel({
       {refreshStatus && (
         <div className="mt-4 border-t border-line pt-4" aria-label="Refresh worker status">
           <div className="flex flex-wrap items-center justify-between gap-2">
-            <p className="text-xs font-semibold text-ink">Derived data refresh</p>
+            <p className="text-xs font-semibold text-ink">Dashboard refresh</p>
             <span className={`text-[11px] font-semibold ${refreshStatus.status === "degraded" ? "text-amber-700" : "text-muted"}`}>{refreshStatus.status.replaceAll("_", " ")}</span>
           </div>
           <div className="mt-2 grid gap-2 text-[11px] text-muted sm:grid-cols-4">
@@ -2692,7 +2692,7 @@ function DataTrustPanel({
             <span>Max lag {refreshStatus.max_queue_lag_ms ? `${Math.round(refreshStatus.max_queue_lag_ms / 1000)}s` : "0s"}</span>
           </div>
           {refreshStatus.worker_health && (
-            <div className="mt-3 grid gap-2 text-[11px] text-muted sm:grid-cols-4" aria-label="Worker health findings">
+            <div className="mt-3 grid gap-2 text-[11px] text-muted sm:grid-cols-4" aria-label="Dashboard refresh checks">
               {refreshStatus.worker_health.map((finding) => {
                 const tone = finding.state === "critical" ? "text-red-700" : finding.state === "warning" ? "text-amber-700" : finding.state === "normal" ? "text-emerald-700" : "text-faint";
                 const value = finding.value === null ? "N/A" : finding.unit === "ratio" ? `${Math.round(finding.value * 100)}%` : finding.unit === "minutes" ? `${Math.round(finding.value * 10) / 10}m` : fmt(finding.value);
@@ -2700,8 +2700,8 @@ function DataTrustPanel({
               })}
             </div>
           )}
-          {refreshStatus.status === "degraded" && <p className="mt-2 text-[11px] text-amber-700">Some derived-data jobs are queued, retrying, running, or failed. These metrics may be stale until the worker catches up.</p>}
-          <p className="mt-2 text-[11px] text-faint">Worker metrics are bounded to the latest 100 workspace jobs; no job is evidence of no customer activity.</p>
+          {refreshStatus.status === "degraded" && <p className="mt-2 text-[11px] text-amber-700">Some dashboard refresh jobs are queued, retrying, running, or failed. These metrics may be stale until the refresh catches up.</p>}
+          <p className="mt-2 text-[11px] text-faint">Refresh metrics are bounded to the latest 100 workspace jobs; no job is evidence of no customer activity.</p>
         </div>
       )}
     </section>

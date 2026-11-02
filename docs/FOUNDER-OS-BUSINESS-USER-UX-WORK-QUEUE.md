@@ -125,6 +125,10 @@ Legend: `[x]` verified/implemented in this workstream; `[ ]` pending.
       expose the connection status and recovery action first, then place the
       individual evidence checks and percentage behind a collapsed `Setup
       evidence` disclosure.
+- [x] ✅ Translate the visible Overview data-trust labels from engineering
+      vocabulary to business language (`Activity observed`, `Activity
+      recency`, `Account-grouped activity`, and `Dashboard refresh`) while
+      retaining the underlying evidence caveats and bounded worker metrics.
 - [x] ✅ Apply the same business-readable evidence language inside the Evidence
       tab: remove the engineering-only “Trace Explorer” action label, hide raw
       session identifiers from the primary table, and expose a clear “Open

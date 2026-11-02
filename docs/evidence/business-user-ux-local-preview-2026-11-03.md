@@ -310,6 +310,10 @@ behind a collapsed `Setup evidence` disclosure. The first scan shows only the
 plain-language state and the action to refresh or continue; the technical
 checklist remains available for engineering review.
 
+The Overview data-trust copy was also reviewed. Visible labels now say
+`Activity observed`, `Activity recency`, `Account-grouped activity`, and
+`Dashboard refresh`; the underlying bounded-evidence caveats remain intact.
+
 Verification after this pass:
 
 - `npm run test:business-user-ux`: 80/80 passed.
