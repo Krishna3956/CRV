@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { CHINESE_SEO_PATHS, chineseUrl } from "./chinese-seo";
 
 export const SITE_URL = "https://trackmcp.com";
 export const SITE_DESCRIPTION =
@@ -104,10 +105,14 @@ export function pageMeta({
 }): Metadata {
   const url = path === "/" ? SITE_URL : `${SITE_URL}${path}`;
   const descriptionText = metaDescription(description, "Explore TrackMCP.");
+  const chinesePathMatch = CHINESE_SEO_PATHS.find((candidate) => candidate === path);
   return {
     title,
     description: descriptionText,
-    alternates: { canonical: path },
+    alternates: {
+      canonical: path,
+      ...(chinesePathMatch ? { languages: { en: url, "zh-CN": chineseUrl(chinesePathMatch) } } : {}),
+    },
     openGraph: {
       title,
       description: descriptionText,

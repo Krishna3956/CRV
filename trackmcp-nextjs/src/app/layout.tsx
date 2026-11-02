@@ -81,6 +81,7 @@ export default function RootLayout({ children }: RootLayoutProps) {
   return (
     <html
       lang="en"
+      suppressHydrationWarning
       data-scroll-behavior="smooth"
       className={`${inter.variable} ${geistMono.variable} h-full`}
     >
@@ -91,7 +92,7 @@ export default function RootLayout({ children }: RootLayoutProps) {
           </div>
         </div>
         <Script id="trackmcp-locale-bootstrap" strategy="beforeInteractive">
-          {`try { if (document.cookie.split("; ").some((entry) => entry === "trackmcp_locale=zh-CN")) { document.documentElement.lang = "zh-CN"; document.documentElement.setAttribute("data-trackmcp-translation-pending", "true"); } } catch (_) {}`}
+          {`try { const path = window.location.pathname; const isChinesePath = path === "/zh-cn" || path.startsWith("/zh-cn/"); const hasChineseCookie = document.cookie.split("; ").some((entry) => entry === "trackmcp_locale=zh-CN"); if (isChinesePath || hasChineseCookie) { document.documentElement.lang = "zh-CN"; } if (hasChineseCookie && !isChinesePath) { document.documentElement.setAttribute("data-trackmcp-translation-pending", "true"); } } catch (_) {}`}
         </Script>
         <TranslationRuntime />
         <LanguageSuggestion />

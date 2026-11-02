@@ -14,6 +14,8 @@ export function browserPrefersSimplifiedChinese(): boolean {
 
 export function readSiteLocale(): SiteLocale {
   if (typeof document === "undefined") return "en";
+  const path = window.location.pathname;
+  if (path === "/zh-cn" || path.startsWith("/zh-cn/")) return "zh-CN";
   const match = document.cookie.match(new RegExp(`(?:^|; )${COOKIE_NAME}=([^;]+)`));
   if (match?.[1] === "zh-CN") return "zh-CN";
   if (match?.[1] === "en") return "en";

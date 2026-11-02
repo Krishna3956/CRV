@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { Check, ChevronDown, Globe2 } from "lucide-react";
 import { readSiteLocale, writeSiteLocale, type SiteLocale } from "./site-locale";
+import { CHINESE_SEO_PATHS } from "@/lib/chinese-seo";
 
 const LOCALES: { value: SiteLocale; label: string; short: string }[] = [
   { value: "en", label: "English", short: "EN" },
@@ -22,6 +23,22 @@ function getServerLocale(): SiteLocale {
   return "en";
 }
 
+function localizedCounterpart(locale: SiteLocale): string | null {
+  const pathname = window.location.pathname;
+  const chinesePrefix = "/zh-cn";
+  if (locale === "zh-CN") {
+    if (pathname === chinesePrefix || pathname.startsWith(`${chinesePrefix}/`)) return pathname;
+    const candidate = pathname === "/" ? "/" : pathname;
+    if (CHINESE_SEO_PATHS.includes(candidate as (typeof CHINESE_SEO_PATHS)[number])) {
+      return candidate === "/" ? chinesePrefix : `${chinesePrefix}${candidate}`;
+    }
+    return null;
+  }
+  if (pathname === chinesePrefix) return "/";
+  if (pathname.startsWith(`${chinesePrefix}/`)) return pathname.slice(chinesePrefix.length) || "/";
+  return null;
+}
+
 export function LanguageSwitcher() {
   // useSyncExternalStore keeps the server and first client render deterministic
   // while allowing browser-language detection immediately after hydration.
@@ -32,6 +49,7 @@ export function LanguageSwitcher() {
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    setSelectedLocale(readSiteLocale());
     const onStatus = (event: Event) => {
       const next = (event as CustomEvent<{ status?: string }>).detail?.status;
       if (next === "translating") setStatus("translating");
@@ -63,6 +81,11 @@ export function LanguageSwitcher() {
     setOpen(false);
     setSelectedLocale(next);
     writeSiteLocale(next);
+    const counterpart = localizedCounterpart(next);
+    if (counterpart && counterpart !== window.location.pathname) {
+      window.location.assign(counterpart);
+      return;
+    }
     window.dispatchEvent(new CustomEvent("trackmcp:locale-change", { detail: { locale: next } }));
   };
 

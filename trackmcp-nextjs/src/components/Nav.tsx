@@ -6,6 +6,7 @@ import { Menu, X, ChevronDown, Sparkles, TrendingUp, Boxes, Plus } from "lucide-
 import { TrackMCPLogo } from "./TrackMCPLogo";
 import { EarlyAccessButton } from "./EarlyAccessButton";
 import { LanguageSwitcher } from "./LanguageSwitcher";
+import { usePathname } from "next/navigation";
 
 const links = [
   { label: "Features", href: "/features" },
@@ -24,6 +25,18 @@ const repoLinks = [
 export function Nav() {
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
+  const pathname = usePathname();
+  const isChinese = pathname === "/zh-cn" || pathname.startsWith("/zh-cn/");
+  const navigationLinks = isChinese
+    ? [
+        { label: "功能", href: "/features" },
+        { label: "价格", href: "/pricing" },
+        { label: "文档", href: "/zh-cn/docs" },
+        { label: "博客", href: "/zh-cn/blog" },
+      ]
+    : links;
+  const repositoryLabel = isChinese ? "目录" : "Repository";
+  const signInLabel = isChinese ? "登录" : "Sign in";
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 8);
@@ -43,7 +56,7 @@ export function Nav() {
         <TrackMCPLogo mark />
 
         <nav className="hidden items-center gap-8 md:flex">
-          {links.map((l) => (
+          {navigationLinks.map((l) => (
             <a
               key={l.href}
               href={l.href}
@@ -58,7 +71,7 @@ export function Nav() {
               href="/repository"
               className="inline-flex items-center gap-1 text-[15px] text-body transition-colors hover:text-ink"
             >
-              Repository
+              {repositoryLabel}
               <ChevronDown size={14} className="text-faint transition-transform group-hover:rotate-180" />
             </a>
             <div className="invisible absolute left-1/2 top-full z-50 w-[300px] -translate-x-1/2 pt-3 opacity-0 transition-all duration-150 group-hover:visible group-hover:opacity-100 group-focus-within:visible group-focus-within:opacity-100">
@@ -91,7 +104,7 @@ export function Nav() {
             href="/signin"
             className="hidden text-[15px] text-body transition-colors hover:text-ink sm:block"
           >
-            Sign in
+            {signInLabel}
           </Link>
           <EarlyAccessButton size="sm" className="hidden sm:inline-flex" />
           <button
@@ -108,7 +121,7 @@ export function Nav() {
       {open && (
         <div className="border-t border-line bg-white px-6 py-4 md:hidden">
           <div className="flex flex-col gap-3">
-            {links.map((l) => (
+            {navigationLinks.map((l) => (
               <a
                 key={l.href}
                 href={l.href}
@@ -124,7 +137,7 @@ export function Nav() {
                 onClick={() => setOpen(false)}
                 className="py-1 text-[15px] font-medium text-ink"
               >
-                Repository
+                {repositoryLabel}
               </a>
               <span className="mt-3 block text-[11px] font-semibold uppercase tracking-wide text-faint">
                 Explore the repository

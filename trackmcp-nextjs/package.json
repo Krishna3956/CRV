@@ -123,6 +123,7 @@
     "audit:translation-routes": "node scripts/translation-route-audit.mjs",
     "audit:translation-live": "node scripts/live-translation-sitemap-audit.mjs",
     "audit:translation-live-runtime": "node scripts/live-translation-runtime-audit.mjs",
+    "audit:chinese-seo": "node scripts/chinese-seo-audit.mjs",
     "test:dashboard-contract": "node --test src/components/dashboard/DashboardApp.contract.test.mjs",
     "test:mobile-layout": "node --test scripts/mobile-layout.contract.test.mjs",
     "test:docs-navigation": "node --test scripts/docs-navigation.contract.test.mjs",

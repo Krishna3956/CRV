@@ -24,6 +24,7 @@ TrackMCP also maintains a directory of MCP servers and tools so builders can dis
 - [MCP categories](https://trackmcp.com/categories): Browse AI and ML, developer kits, infrastructure, search, automation, and other categories.
 - [Submit an MCP server](https://trackmcp.com/submit-mcp): Add a project to the TrackMCP directory.
 - [All directory pages](https://trackmcp.com/tool-sitemap.xml): Machine-readable index of individual MCP server pages.
+- [Complete sitemap index](https://trackmcp.com/sitemap-index.xml): One submission point for the marketing and directory sitemaps.
 
 ## Documentation
 

@@ -80,7 +80,15 @@ const socials = [
   },
 ];
 
-export function Footer() {
+export function Footer({ locale = "en" }: { locale?: "en" | "zh-CN" }) {
+  const chinese = locale === "zh-CN";
+  const localizedGroups = chinese ? [
+    { title: "产品", links: [{ label: "MCP 可观测性", href: "/zh-cn/mcp-observability" }, { label: "服务器分析", href: "/zh-cn/mcp-server-analytics" }, { label: "工具分析", href: "/zh-cn/mcp-tool-analytics" }, { label: "远程 HTTP", href: "/mcp-observability/remote-http" }, { label: "价格", href: "/pricing" }] },
+    { title: "开发者", links: [{ label: "文档", href: "/zh-cn/docs" }, { label: "快速开始", href: "/mcp-server-analytics/quickstart" }, { label: "TypeScript SDK", href: "/zh-cn/docs/typescript" }, { label: "Python SDK", href: "/zh-cn/docs/python" }, { label: "API 参考", href: "/docs/api" }, { label: "MCP 服务器测试器", href: "/tools/mcp-server-tester" }] },
+    { title: "探索", links: [{ label: "MCP 目录", href: "/repository" }, { label: "热门服务器", href: "/top-mcp" }, { label: "类别", href: "/categories" }, { label: "免费 MCP 服务器", href: "/zh-cn/free-mcp-servers" }, { label: "社交媒体服务器", href: "/mcp-servers/social-media" }] },
+    { title: "MCP 可观测性", links: [{ label: "可观测性指南", href: "/blog/mcp-observability-guide" }, { label: "最佳工具", href: "/blog/best-mcp-observability-tools-for-production-servers" }, { label: "TrackMCP 对比 Sentry", href: "/mcp-observability/compare/trackmcp-vs-sentry" }, { label: "TrackMCP 对比 Datadog", href: "/mcp-observability/compare/trackmcp-vs-datadog" }] },
+    { title: "公司", links: [{ label: "博客", href: "/zh-cn/blog" }, { label: "更新", href: "/blog/releases" }, { label: "关于我们", href: "/about" }, { label: "安全", href: "/security" }, { label: "支持", href: "/support" }, { label: "联系我们", href: "/contact" }, { label: "隐私", href: "/privacy" }, { label: "条款", href: "/terms" }] },
+  ] : groups;
   return (
     <footer className="mt-20 overflow-hidden border-t border-line bg-white">
       <div className="mx-auto max-w-6xl px-6 pt-14 sm:pt-20">
@@ -88,13 +96,13 @@ export function Footer() {
           <div aria-hidden className="pointer-events-none absolute inset-0 bg-grid opacity-[0.10]" />
           <div className="relative flex flex-col gap-7 lg:flex-row lg:items-center lg:justify-between">
             <div className="max-w-2xl">
-              <p className="text-[12px] font-medium uppercase tracking-[0.1em] text-emerald-300">For MCP server teams</p>
-              <h2 id="footer-cta-title" className="mt-3 max-w-[23ch] text-[28px] font-medium leading-[1.1] tracking-[-0.025em] text-white sm:text-[34px]">See what happens after your server ships.</h2>
-              <p className="mt-3 max-w-[55ch] text-[15px] leading-[1.6] text-white/65">Track clients, tools, latency, errors, sessions, and explicit workflow outcomes at the MCP server boundary.</p>
+              <p className="text-[12px] font-medium uppercase tracking-[0.1em] text-emerald-300">{chinese ? "面向 MCP 服务器团队" : "For MCP server teams"}</p>
+              <h2 id="footer-cta-title" className="mt-3 max-w-[23ch] text-[28px] font-medium leading-[1.1] tracking-[-0.025em] text-white sm:text-[34px]">{chinese ? "了解服务器上线后的真实情况" : "See what happens after your server ships."}</h2>
+              <p className="mt-3 max-w-[55ch] text-[15px] leading-[1.6] text-white/65">{chinese ? "在 MCP 服务器边界观察客户端、工具、延迟、错误、会话和明确的工作流结果。" : "Track clients, tools, latency, errors, sessions, and explicit workflow outcomes at the MCP server boundary."}</p>
             </div>
             <div className="flex shrink-0 flex-col items-start gap-3 sm:flex-row sm:items-center">
-              <EarlyAccessButton variant="white" size="lg" label="Start with TrackMCP" />
-              <a href="/docs" className="inline-flex items-center gap-1.5 px-1 py-2 text-[14px] font-medium text-white/80 transition-colors hover:text-white">Read the docs <ArrowRight size={15} /></a>
+              <EarlyAccessButton variant="white" size="lg" label={chinese ? "开始使用 TrackMCP" : "Start with TrackMCP"} />
+              <a href={chinese ? "/zh-cn/docs" : "/docs"} className="inline-flex items-center gap-1.5 px-1 py-2 text-[14px] font-medium text-white/80 transition-colors hover:text-white">{chinese ? "阅读文档" : "Read the docs"} <ArrowRight size={15} /></a>
             </div>
           </div>
         </section>
@@ -116,7 +124,7 @@ export function Footer() {
           </div>
 
           <nav className="col-span-2 grid grid-cols-2 gap-x-6 gap-y-10 sm:col-span-3 sm:grid-cols-3 sm:gap-x-8 lg:col-span-5 lg:contents" aria-label="Footer navigation">
-            {groups.map((group) => (
+            {localizedGroups.map((group) => (
               <div key={group.title}>
                 <h3 className="mb-4 text-[12px] font-semibold uppercase tracking-[0.08em] text-faint">{group.title}</h3>
                 <ul className="space-y-2.5">
@@ -131,10 +139,10 @@ export function Footer() {
 
         <div className="mt-14 flex flex-col gap-4 border-t border-line py-6 text-[13px] text-muted sm:flex-row sm:items-center sm:justify-between">
           <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5">
-            <span>© 2026 TrackMCP. All rights reserved.</span>
+            <span>{chinese ? "© 2026 TrackMCP。保留所有权利。" : "© 2026 TrackMCP. All rights reserved."}</span>
             <span aria-hidden className="hidden text-line-strong sm:inline">·</span>
-            <a href="/privacy" className="transition-colors hover:text-ink">Privacy</a>
-            <a href="/terms" className="transition-colors hover:text-ink">Terms</a>
+            <a href="/privacy" className="transition-colors hover:text-ink">{chinese ? "隐私" : "Privacy"}</a>
+            <a href="/terms" className="transition-colors hover:text-ink">{chinese ? "条款" : "Terms"}</a>
           </div>
           <span className="font-mono text-[12px] text-faint">trackmcp.com</span>
         </div>
