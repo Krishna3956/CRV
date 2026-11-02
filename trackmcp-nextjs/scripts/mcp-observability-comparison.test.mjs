@@ -49,7 +49,9 @@ test("pillar article covers the requested products and accurate boundaries", () 
 });
 
 test("paid Pydantic profile is disclosed and its links are marked sponsored", () => {
-  assert.match(pillarSource, /Sponsored profile/);
+  assert.match(pillarSource, /Paid research profile/);
+  assert.match(pillarSource, /researched and wrote this profile/);
+  assert.match(pillarSource, /not an independent benchmark or editorial ranking/);
   assert.match(pillarSource, /Pydantic Logfire MCP server documentation/);
   assert.match(pillarSource, /https:\/\/pydantic\.dev\/docs\/logfire\/guides\/mcp-server\//);
   assert.match(pillarSource, /https:\/\/pydantic\.dev\/logfire/);
