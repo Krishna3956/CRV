@@ -156,7 +156,7 @@ test("dashboard typography uses the product type system", () => {
 
 test("dashboard keeps global controls inside one header and uses actionable empty states", () => {
   assert.match(source, /<header data-site-nav/);
-  assert.match(source, /<LanguageSwitcher \/>/);
+  assert.equal((source.match(/<LanguageSwitcher \/>/g) || []).length, 1);
   assert.match(source, /aria-label="Next steps"/);
   assert.match(source, /Create a connection key/);
   assert.match(source, /Make one real tool call/);

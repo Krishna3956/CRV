@@ -115,6 +115,9 @@ Legend: `[x]` verified/implemented in this workstream; `[ ]` pending.
       automatically open it when the latest event does not match the scope so
       the business reader sees the recovery path without a persistent setup
       block.
+- [x] ✅ Keep the language selector in the global header only; remove the
+      duplicate sidebar control so the desktop navigation has one predictable
+      location for global settings.
 - [x] ✅ Prevent deep-linked dashboard routes from briefly rendering the wrong
       data source while the URL state hydrates; show a neutral loading handoff
       and gate live-data fetches until the selected route is known.

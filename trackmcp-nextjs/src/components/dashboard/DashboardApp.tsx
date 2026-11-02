@@ -1245,9 +1245,6 @@ export function DashboardApp({
           groupLabel="Investigate & act"
         />
         <div className="mt-auto border-t border-line p-3">
-          <div className="mb-2 px-2">
-            <LanguageSwitcher />
-          </div>
           <button
             type="button"
             onClick={onSignOut}

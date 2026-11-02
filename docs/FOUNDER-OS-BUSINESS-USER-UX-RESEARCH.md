@@ -306,4 +306,5 @@ TrackMCP application:
 | Clear action-oriented copy | Setup handoff, empty states, product-language cleanup | `business-user-ux.contract.test.mjs` |
 | Dashboard takeaway before interpretation | Bounded Overview “At a glance” summary | `DashboardApp.contract.test.mjs` |
 | Stable filter context and progressive scope detail | Visible period context; active key scope collapsed, auto-opened on mismatch | `DashboardApp.contract.test.mjs` |
+| One predictable location for global controls | Language selector remains in the header; duplicate sidebar control removed | `DashboardApp.contract.test.mjs` |
 
