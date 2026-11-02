@@ -9,7 +9,7 @@ export type Block =
   | { t: "quote"; c: string }
   | { t: "callout"; title: string; c: string }
   | { t: "faq"; q: string; a: string }
-  | { t: "links"; items: { label: string; href: string }[] }
+  | { t: "links"; items: { label: string; href: string; sponsored?: boolean }[] }
   | { t: "figure"; art: ArtKey; c: string };
 
 export type Post = {
@@ -33,7 +33,7 @@ const ul = (c: string[]): Block => ({ t: "ul", c });
 const code = (c: string): Block => ({ t: "code", c });
 const quote = (c: string): Block => ({ t: "quote", c });
 const faq = (q: string, a: string): Block => ({ t: "faq", q, a });
-const links = (items: { label: string; href: string }[]): Block => ({ t: "links", items });
+const links = (items: { label: string; href: string; sponsored?: boolean }[]): Block => ({ t: "links", items });
 const callout = (title: string, c: string): Block => ({ t: "callout", title, c });
 
 export const posts: Post[] = [
@@ -2369,6 +2369,17 @@ const isFresh = Date.now() < freshUntil;`),
         { label: "Grafana MCP observability documentation", href: "https://grafana.com/docs/grafana-cloud/observe-and-act/monitor-applications/ai-observability/mcp-observability/" },
         { label: "Grafana MCP metrics and tracing documentation", href: "https://grafana.com/docs/grafana/latest/developer-resources/mcp/developer/observability-metrics-and-tracing/" },
       ]),
+      h("Pydantic Logfire"),
+      callout(
+        "Sponsored profile",
+        "Pydantic Logfire provided the copy for this profile. TrackMCP has not independently benchmarked or ranked this product; verify current capabilities against the linked Pydantic documentation.",
+      ),
+      p("Pydantic Logfire is an OpenTelemetry-native observability platform from the team behind Pydantic that traces tool calls, LLM calls, database queries, and API requests in a single view. It offers native SDKs for Python, JavaScript/TypeScript, and Rust, stores telemetry as data that can be queried with standard SQL, and includes dashboards, alerts, and evaluation tools. It also provides a hosted MCP server, so coding agents such as Claude Code, Cursor, and Codex can query production telemetry directly."),
+      p("Pydantic Logfire fits when an MCP server lives inside a Python, TypeScript, or Rust application and the team wants traces, SQL-queryable telemetry, and evals in one place. As with any general-purpose OpenTelemetry platform, MCP-specific semantics such as client attribution and workflow outcomes are worth verifying against a specific deployment."),
+      links([
+        { label: "Pydantic Logfire MCP server documentation", href: "https://pydantic.dev/docs/logfire/guides/mcp-server/", sponsored: true },
+        { label: "Pydantic Logfire platform overview", href: "https://pydantic.dev/logfire", sponsored: true },
+      ]),
       h("Langfuse"),
       p("Langfuse focuses on LLM and agent application observability, evaluation, prompt management, and related workflows. Its data model includes traces, observations, and sessions, and its documentation covers tool and retrieval steps, OpenTelemetry, token and cost tracking, and linking MCP client and server operations through trace metadata. It also provides an MCP server for querying Langfuse data from compatible assistants."),
       p("Langfuse is a good fit when the central question spans the full AI application, especially model calls, evaluations, prompts, feedback, and self-hosted deployment. It can be complementary to TrackMCP when a team needs both application-level traces and a focused view of what its MCP server actually exposes and receives. The public documentation reviewed here should be used to verify the exact server-side MCP coverage for a specific deployment."),
@@ -2386,6 +2397,7 @@ const isFresh = Date.now() < freshUntil;`),
         "Choose Sentry when application errors and performance are central, your MCP server is in a supported JavaScript environment, and you want MCP signals alongside Sentry's existing workflow.",
         "Choose Datadog when your organization already operates Datadog across infrastructure, APM, logs, security, and agent observability, and MCP data should join that platform.",
         "Choose Grafana and OpenTelemetry when your team wants composable, vendor-neutral instrumentation and is prepared to operate the collection, storage, dashboards, and semantics.",
+        "Choose Pydantic Logfire when the team wants OpenTelemetry-native tracing, SQL-queryable telemetry, and evals for Python, TypeScript, or Rust services, and wants coding agents to query production data through an MCP server.",
         "Choose Langfuse when model, prompt, evaluation, feedback, and agent traces are the main unit of investigation, with MCP as one part of the wider application.",
         "Choose LangSmith when your application is closely tied to LangChain or when agent and pipeline tracing is the primary debugging and evaluation workflow.",
       ]),
@@ -2400,7 +2412,7 @@ const isFresh = Date.now() < freshUntil;`),
         "Freshness: which MCP specification and SDK versions are supported, and how quickly does the integration track protocol changes?",
       ]),
       h("The practical answer is usually a layered stack"),
-      p("MCP server observability and broader AI observability answer different questions. A team may use TrackMCP or another MCP-aware layer for server adoption and protocol behavior, Sentry or Datadog for application and infrastructure operations, and Langfuse, LangSmith, or an OpenTelemetry stack for broader agent traces and evaluations. The right architecture depends on the system boundary, data policy, and decisions the team needs to make."),
+      p("MCP server observability and broader AI observability answer different questions. A team may use TrackMCP or another MCP-aware layer for server adoption and protocol behavior, Sentry or Datadog for application and infrastructure operations, and Pydantic Logfire, Langfuse, LangSmith, or an OpenTelemetry stack for broader agent traces and evaluations. The right architecture depends on the system boundary, data policy, and decisions the team needs to make."),
       p("Start with one production server and one representative workflow. Confirm that the data answers a real debugging or product question, inspect what is redacted, and record what remains unknown. That evaluation is more useful than choosing a winner from a generic feature-count table."),
       links([
         { label: "Start the MCP observability quickstart", href: "/mcp-server-analytics/quickstart" },

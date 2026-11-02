@@ -32,7 +32,7 @@ test("pillar article is first and has complete editorial metadata", () => {
 });
 
 test("pillar article covers the requested products and accurate boundaries", () => {
-  for (const product of ["TrackMCP", "Sentry", "Datadog", "Grafana and OpenTelemetry", "Langfuse", "LangSmith"]) {
+  for (const product of ["TrackMCP", "Sentry", "Datadog", "Grafana and OpenTelemetry", "Pydantic Logfire", "Langfuse", "LangSmith"]) {
     assert.match(pillarSource, new RegExp(product.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
   }
   for (const phrase of [
@@ -48,6 +48,14 @@ test("pillar article covers the requested products and accurate boundaries", () 
   assert.doesNotMatch(pillarSource, /\u2014/);
 });
 
+test("paid Pydantic profile is disclosed and its links are marked sponsored", () => {
+  assert.match(pillarSource, /Sponsored profile/);
+  assert.match(pillarSource, /Pydantic Logfire MCP server documentation/);
+  assert.match(pillarSource, /https:\/\/pydantic\.dev\/docs\/logfire\/guides\/mcp-server\//);
+  assert.match(pillarSource, /https:\/\/pydantic\.dev\/logfire/);
+  assert.match(articleSource, /item\.sponsored \? "sponsored nofollow noopener noreferrer"/);
+});
+
 test("pillar article has internal and first-party documentation links", () => {
   for (const href of [
     "/mcp-observability",
@@ -59,6 +67,8 @@ test("pillar article has internal and first-party documentation links", () => {
     "https://sentry.io/changelog/mcp-monitoring---generally-available/",
     "https://docs.datadoghq.com/llm_observability/instrument/auto_instrumentation/",
     "https://grafana.com/docs/grafana-cloud/observe-and-act/monitor-applications/ai-observability/mcp-observability/",
+    "https://pydantic.dev/docs/logfire/guides/mcp-server/",
+    "https://pydantic.dev/logfire",
     "https://langfuse.com/docs/observability/features/mcp-tracing",
     "https://docs.langchain.com/langsmith/observability-llm-tutorial",
   ]) {

@@ -123,7 +123,7 @@ function Blocks({ body }: { body: Block[] }) {
               <ul className="mt-2 flex flex-col gap-2">
                 {b.items.map((item) => (
                   <li key={item.href}>
-                    <a href={item.href} target="_blank" rel="noopener noreferrer" className="text-[15px] font-medium text-brand-strong underline underline-offset-2 hover:text-ink">
+                    <a href={item.href} target="_blank" rel={item.sponsored ? "sponsored nofollow noopener noreferrer" : "noopener noreferrer"} className="text-[15px] font-medium text-brand-strong underline underline-offset-2 hover:text-ink">
                       {item.label}
                     </a>
                   </li>
