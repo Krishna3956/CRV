@@ -23,6 +23,7 @@ has not been merged or deployed.
 | Setup explains what appears after the first event | **Implemented and tested** | `BusinessContext` “What you will get after setup”; business UX contract | Fresh-account browser verification |
 | My data and Example data are visibly separate | **Implemented and tested; verified live read-only** | `DataSourceStrip`; Example data contract; authenticated Chrome review | Verify after deployment of this branch |
 | Overview answers who, what, outcome, and attention questions | **Implemented and tested** | Overview business-question copy, KPI helpers, period context, and chart-table fallback; 79 business UX tests | Verify deployed rendering |
+| Overview gives an evidence-aware next action | **Implemented and tested; verified locally** | `OverviewNextStep` in `DashboardApp.tsx`; local Example-data browser preview; business UX contract | Verify routing and copy with a fresh production account |
 | “Who’s using it” explains account signals versus people/customers | **Implemented and tested** | `ClientsView`; metric contract; business UX tests | Confirm with a business participant |
 | “What they’re doing” leads with adoption and reliability | **Implemented and tested** | `CapabilitiesView`; business UX tests; technical protocol detail is progressively disclosed | Verify deployed rendering |
 | “Resources & prompts” explains information need and explicit outcomes | **Implemented and tested** | `ResourcesPromptsView`; business UX tests | Verify deployed rendering |
