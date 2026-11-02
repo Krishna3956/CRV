@@ -3616,6 +3616,22 @@ function OutcomeEvidencePanel({ analytics }: { analytics: Analytics }) {
           <Kpi label="Unknown" value={fmt(activity.unknown + activity.not_observable)} icon={Info} helper="Not silently classified" />
         </div>
         <div className="mt-4 grid gap-2 sm:grid-cols-2 lg:grid-cols-4">{activity.trend.slice(-8).map((item) => <div key={item.period_start} className="border border-line bg-paper p-3"><p className="text-[10px] uppercase tracking-[0.08em] text-faint">{item.period_start}</p><p className="mt-1 text-xs text-ink">{fmt(item.completed)} complete · {fmt(item.failed)} failed</p><p className="mt-1 text-[11px] text-muted">{fmt(item.pending)} pending · {fmt(item.unknown)} unknown</p></div>)}</div>
+        <details className="mt-3 rounded-lg border border-line bg-paper/50">
+          <summary className="cursor-pointer list-none px-3 py-2 text-xs font-semibold text-muted hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand">
+            View outcome trend values as a table
+          </summary>
+          <div className="overflow-x-auto border-t border-line">
+            <table className="min-w-[560px] text-left text-xs">
+              <caption className="sr-only">Explicit outcome states by period</caption>
+              <thead className="bg-white text-[10px] uppercase tracking-[0.08em] text-faint">
+                <tr><th scope="col" className="px-3 py-2 font-semibold">Period</th><th scope="col" className="px-3 py-2 text-right font-semibold">Completed</th><th scope="col" className="px-3 py-2 text-right font-semibold">Failed</th><th scope="col" className="px-3 py-2 text-right font-semibold">Pending</th><th scope="col" className="px-3 py-2 text-right font-semibold">Unknown</th></tr>
+              </thead>
+              <tbody className="divide-y divide-line">
+                {activity.trend.slice(-8).map((item) => <tr key={item.period_start} className="bg-white/70"><th scope="row" className="px-3 py-2 font-medium text-ink">{item.period_start}</th><td className="px-3 py-2 text-right tabular-nums text-muted">{fmt(item.completed)}</td><td className="px-3 py-2 text-right tabular-nums text-muted">{fmt(item.failed)}</td><td className="px-3 py-2 text-right tabular-nums text-muted">{fmt(item.pending)}</td><td className="px-3 py-2 text-right tabular-nums text-muted">{fmt(item.unknown)}</td></tr>)}
+              </tbody>
+            </table>
+          </div>
+        </details>
         <div className="mt-4 border border-line bg-paper p-3"><p className="text-[10px] font-semibold uppercase tracking-[0.08em] text-faint">Latest explicit task states</p><div className="mt-2 grid grid-cols-2 gap-2 text-xs sm:grid-cols-4 lg:grid-cols-7">{[["Working", activity.task_states.working], ["Needs input", activity.task_states.input_required], ["Completed", activity.task_states.completed], ["Failed", activity.task_states.failed], ["Cancelled", activity.task_states.cancelled], ["Expired", activity.task_states.expired], ["Unknown", activity.task_states.unknown]].map(([label, value]) => <div key={String(label)}><p className="text-muted">{label}</p><p className="mt-1 font-semibold text-ink">{fmt(Number(value))}</p></div>)}</div><p className="mt-2 text-[11px] text-faint">Latest state per opaque task handle; task identifiers are never shown.</p></div>
         <p className="mt-3 text-[11px] leading-relaxed text-faint">{activity.limitation}</p>
       </div>}

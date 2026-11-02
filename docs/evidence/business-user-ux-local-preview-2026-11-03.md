@@ -66,3 +66,7 @@ Observed in the browser DOM snapshot:
 
 This confirms the activated business view has a readable path for comparing
 feature usage, while the underlying metric definitions remain unchanged.
+
+The same activated view now exposes an outcome-trend table in “Did it work,”
+with explicit completed, failed, pending, and unknown values by period. These
+states remain separate and are never collapsed into a single success score.
