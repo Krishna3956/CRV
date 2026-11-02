@@ -26,15 +26,16 @@ short labels; longer explanations belong in an expandable detail region.
 
 ## Audit checklist
 
-- [x] All six tabs have one primary question, one primary action, and a compact
-      first viewport.
+- [x] All business-facing tabs and supporting views have one primary question,
+      one primary action, and a compact first viewport.
 - [x] All clickable buttons, links, tab controls, disclosure summaries, and
       row actions have `cursor-pointer`, hover, focus, and disabled/loading
       states where applicable.
 - [x] Information icons are adjacent to metrics or terms whose meaning is not
       self-evident; detailed methodology is not repeated inside every card.
-- [x] Overview, Journeys, Activity, Resources & Prompts, Outcomes, Issues,
-      Clients, Evidence, and Setup use the same card/header/tooltip language.
+- [x] Overview, The journey, What they're doing, Resources & prompts,
+      Did it work, What's broken, Who's using it, Evidence, and Setup use the
+      same card/header/tooltip language.
 - [x] Setup has a direct OTLP/HTTP JSON integration path with copyable endpoint,
       headers/key guidance, supported/unsupported protocol disclosure, and a
       test/verification action.
@@ -52,7 +53,7 @@ short labels; longer explanations belong in an expandable detail region.
 ## Planned implementation order
 
 1. Build a shared dashboard interaction/tooltip/info pattern and apply it to
-   the six tabs and Setup.
+   the business-facing tabs and the supporting Evidence and Setup views.
 2. Reduce first-viewport density and move caveats/methodology into disclosure
    regions while preserving evidence and privacy qualifiers.
 3. Make OTEL and identity setup actionable and verifiable.
