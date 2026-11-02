@@ -451,6 +451,9 @@ Verification after this pass:
   temporary path.
 - `npm run build`: passed after the People-card boundary copy change; 230
   static pages generated.
+- `npm run test:release-gate`: passed all 159 suites on the People-card
+  boundary copy change (`302eeb6f`); the redacted output was captured in
+  `/tmp/trackmcp-release-gate-final3.log`.
 
 The rebuilt standalone server was also started with placeholder Supabase
 values and the documented local dashboard bypass. Node's HTTP client returned
