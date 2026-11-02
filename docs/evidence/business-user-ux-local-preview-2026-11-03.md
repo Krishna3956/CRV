@@ -2,7 +2,7 @@
 
 Date: 2026-11-03
 Branch: `codex/business-user-ux-audit`
-Commit under review: `be8b4b64` (`Clarify outcome evidence for business readers`)
+Commit under review: `f3ce4e98` (`Clarify OAuth loading affordances`)
 
 This is local browser evidence only. It is not production evidence and does
 not replace a fresh-account or real-telemetry walkthrough.
@@ -46,6 +46,10 @@ production data was touched.
 The auth affordance pass also keeps provider-discovery skeletons visually
 non-actionable (`cursor-default`) until Google or GitHub is confirmed enabled;
 only actual provider buttons expose the hand cursor.
+
+After this change, TypeScript, ESLint, the OAuth contract suite, the 81-test
+business UX suite, and the production build all passed; the build generated
+230 static pages.
 
 ## Latest browser confirmation
 

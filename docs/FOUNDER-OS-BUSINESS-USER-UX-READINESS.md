@@ -2,7 +2,7 @@
 
 Date: 2026-11-03  
 Branch: `codex/business-user-ux-audit`  
-Latest verified commit: `d85b2e75` (`Record final dashboard route smoke`)
+Latest verified commit: `f3ce4e98` (`Clarify OAuth loading affordances`)
 
 This matrix is the release-readiness companion to the UX audit and work
 queue. It intentionally separates source-level proof, read-only browser proof,
@@ -11,7 +11,7 @@ and evidence that requires a real account, deployment, or human participant.
 Latest branch verification: `npm run test:business-user-ux` passed all 81 suites
 after the authentication-affordance, research, signed-out handoff, illustrative
 People-growth coherence, setup-vocabulary consistency, evidence-action-label,
-outcome-copy, and final route-smoke passes (`d85b2e75`). The consolidated `npm run test:release-gate`
+outcome-copy, final route-smoke, and auth-affordance passes (`f3ce4e98`). The consolidated `npm run test:release-gate`
 passed all 159 suites on the immediately preceding source commit
 (`2c8e5e03`); the latest change is copy-only and the focused contract, P0 truth,
 typecheck, and lint suites were rerun after it.
@@ -19,8 +19,9 @@ The branch
 remains local and has not been merged or deployed.
 
 Final current-branch build: `npm run build` passed with 230 static pages
-generated. This is still local build evidence; it does not prove a production
-deployment or authenticated production rendering.
+generated after the auth-affordance change. TypeScript and ESLint also passed.
+This is still local build evidence; it does not prove a production deployment
+or authenticated production rendering.
 
 ## Requirement coverage
 
