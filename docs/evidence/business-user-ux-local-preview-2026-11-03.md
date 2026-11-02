@@ -2,10 +2,14 @@
 
 Date: 2026-11-03
 Branch: `codex/business-user-ux-audit`
-Commit under review: `1f1f691f`
+Commit under review: latest local commit on `codex/business-user-ux-audit`
 
 This is local browser evidence only. It is not production evidence and does
 not replace a fresh-account or real-telemetry walkthrough.
+
+The final source-level pass also aligns the Evidence tab with the Overview
+language: business readers see “Observed session”, “Link quality”, and “Open
+evidence”; raw session identifiers remain an internal routing detail.
 
 ## Environment
 

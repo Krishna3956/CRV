@@ -96,6 +96,10 @@ Legend: `[x]` verified/implemented in this workstream; `[ ]` pending.
 - [x] ✅ Make Overview session rows business-readable: show a simple observed
       session label, call the drill-down “Open evidence”, and explain that
       reported completion—not session activity alone—is counted as success.
+- [x] ✅ Apply the same business-readable evidence language inside the Evidence
+      tab: remove the engineering-only “Trace Explorer” action label, hide raw
+      session identifiers from the primary table, and expose a clear “Open
+      evidence” action.
 - [x] ✅ Run dashboard contracts, typecheck, lint, and production build.
 - [x] ✅ Run the consolidated release gate; all 159 suites pass after fixing
       clean-checkout MCP SDK resolution and Python artifact preparation.

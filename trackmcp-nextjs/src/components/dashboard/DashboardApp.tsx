@@ -4335,7 +4335,7 @@ function EvidenceView({
         subtitle={
           dataMode === "example"
             ? "Choose an illustrative session to inspect its sample trace and see where a business task succeeded or failed."
-            : "Choose a session to open Trace Explorer with bounded, redacted technical evidence."
+            : "Choose an observed session to open bounded, redacted evidence when a business signal needs detail."
         }
         action={{
           label: "Back to Overview",
@@ -4353,19 +4353,17 @@ function EvidenceView({
           <table className="w-full min-w-[720px] text-left text-sm">
             <thead className="border-b border-line text-[10px] font-semibold uppercase tracking-[0.08em] text-faint">
               <tr>
-                <th className="pb-3">Session</th>
+                <th className="pb-3">Observed session</th>
                 <th className="pb-3">Assistant</th>
                 <th className="pb-3">Observed actions</th>
-                <th className="pb-3">Correlation</th>
+                <th className="pb-3">Link quality</th>
                 <th className="pb-3">Action</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-line">
-              {analytics.workflows.map((workflow) => (
+              {analytics.workflows.map((workflow, index) => (
                 <tr key={workflow.session_id}>
-                  <td className="py-4 font-mono text-xs text-ink">
-                    {workflow.session_id}
-                  </td>
+                  <td className="py-4 text-xs font-medium text-ink">Observed session {index + 1}</td>
                   <td className="py-4 text-muted">{workflow.client_name}</td>
                   <td className="py-4 text-muted">{fmt(workflow.calls)}</td>
                   <td className="py-4 text-muted">
@@ -4382,7 +4380,7 @@ function EvidenceView({
                       }
                       className="cursor-pointer text-xs font-semibold text-brand-strong hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
                     >
-                      {dataMode === "example" ? "View sample trace" : "Open Trace Explorer"}
+                      {dataMode === "example" ? "View sample evidence" : "Open evidence"}
                     </button>
                   </td>
                 </tr>
