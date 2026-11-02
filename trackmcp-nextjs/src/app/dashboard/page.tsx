@@ -110,8 +110,8 @@ export function DashboardPageContent({ initialView = "overview" }: { initialView
   }, [loadAccount, loadAnalytics, loadToolQuality]);
   const generateKey = async (options?: KeyCreationOptions) => {
     setWorking(true); setError("");
-    try { const workspaceId = selectedWorkspaceId || workspace?.id; if (!workspaceId) throw new Error("Select a workspace before creating a key."); const response = await fetch("/api/v1/account/workspace", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ workspace_id: workspaceId, key_name: `server-${keys.length + 1}`, service_scope: options?.serviceScope || undefined, environment_scope: options?.environmentScope || undefined }) }); const body = await response.json(); if (!response.ok) throw new Error(body.error || "Could not create an API key."); trackActivationEvent("api_key_created", { key_name_category: "server" }); setNewKey(body.api_key); await loadAccount(workspaceId); }
-    catch (reason) { setError(reason instanceof Error ? reason.message : "Could not create an API key."); }
+    try { const workspaceId = selectedWorkspaceId || workspace?.id; if (!workspaceId) throw new Error("Select a workspace before creating a connection key."); const response = await fetch("/api/v1/account/workspace", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ workspace_id: workspaceId, key_name: `server-${keys.length + 1}`, service_scope: options?.serviceScope || undefined, environment_scope: options?.environmentScope || undefined }) }); const body = await response.json(); if (!response.ok) throw new Error(body.error || "Could not create a connection key."); trackActivationEvent("api_key_created", { key_name_category: "server" }); setNewKey(body.api_key); await loadAccount(workspaceId); }
+    catch (reason) { setError(reason instanceof Error ? reason.message : "Could not create a connection key."); }
     finally { setWorking(false); }
   };
   const revokeKey = async (id: string) => {

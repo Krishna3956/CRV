@@ -345,6 +345,8 @@ test("Needs attention renders bounded action context", () => {
 
 test("connection keys are explicitly created from Setup and shown once in full", () => {
   assert.match(source, /Complete setup/);
+  assert.match(source, /missing workspace or connection key/);
+  assert.doesNotMatch(source, /missing workspace or API key/);
   assert.match(source, /className="max-w-full break-all overflow-x-auto/);
   assert.match(source, /\{newKey\}/);
   assert.match(source, /\{key\.key_prefix\}••••••/);

@@ -138,6 +138,9 @@ Legend: `[x]` verified/implemented in this workstream; `[ ]` pending.
 - [x] ✅ Keep the journey's opaque async-task table behind a collapsed
       `Technical task evidence` disclosure; the default journey path remains
       common paths, stop evidence, pauses, and explicit outcomes.
+- [x] ✅ Keep the setup journey's credential name consistent: customer-facing
+      setup copy now uses `connection key` in the error path and setup handoff;
+      internal API field names remain unchanged.
 - [x] ✅ Apply the same business-readable evidence language inside the Evidence
       tab: remove the engineering-only “Trace Explorer” action label, hide raw
       session identifiers from the primary table, and expose a clear “Open

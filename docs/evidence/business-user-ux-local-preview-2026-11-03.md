@@ -16,6 +16,11 @@ coherent: its weekly growth series now ends at the same 18-account total shown
 by the active-account KPI. This changes Example data only; it does not alter a
 live read model or any production metric formula.
 
+The setup vocabulary pass also removed the last visible `API key` wording from
+the customer-facing setup handoff and key-creation error path. The product now
+uses `connection key` consistently while preserving the internal `api_key`
+field names and event identifiers used by the API contract.
+
 ## Latest browser confirmation
 
 - Local route: `/dashboard?view=evidence&data=example` on the isolated branch.

@@ -5494,7 +5494,7 @@ function DashboardOnboarding({
         {workspace ? "Create a connection key" : "Create your workspace"}
       </h2>
       <p className="mt-2 text-sm leading-relaxed text-muted">
-        This route is for a missing workspace or API key. Returning users with
+        This route is for a missing workspace or connection key. Returning users with
         an active key open Overview directly.
       </p>
       <div className="mt-7 space-y-4">
