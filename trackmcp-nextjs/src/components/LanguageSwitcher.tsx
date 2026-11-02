@@ -26,7 +26,6 @@ export function LanguageSwitcher() {
   // useSyncExternalStore keeps the server and first client render deterministic
   // while allowing browser-language detection immediately after hydration.
   const locale = useSyncExternalStore(subscribeLocale, readSiteLocale, getServerLocale);
-  const [selectedLocale, setSelectedLocale] = useState<SiteLocale | null>(null);
   const [open, setOpen] = useState(false);
   const [status, setStatus] = useState<"idle" | "translating" | "error">("idle");
   const ref = useRef<HTMLDivElement>(null);
@@ -42,31 +41,24 @@ export function LanguageSwitcher() {
       }
       else if (next === "ready") setStatus("idle");
     };
-    const onLocaleChange = (event: Event) => {
-      const next = (event as CustomEvent<{ locale?: SiteLocale }>).detail?.locale;
-      if (next === "en" || next === "zh-CN") setSelectedLocale(next);
-    };
     const onOutside = (event: MouseEvent) => {
       if (ref.current && !ref.current.contains(event.target as Node)) setOpen(false);
     };
     window.addEventListener("trackmcp:translation-status", onStatus);
-    window.addEventListener("trackmcp:locale-change", onLocaleChange);
     document.addEventListener("mousedown", onOutside);
     return () => {
       window.removeEventListener("trackmcp:translation-status", onStatus);
-      window.removeEventListener("trackmcp:locale-change", onLocaleChange);
       document.removeEventListener("mousedown", onOutside);
     };
   }, []);
 
   const choose = (next: SiteLocale) => {
     setOpen(false);
-    setSelectedLocale(next);
     writeSiteLocale(next);
     window.dispatchEvent(new CustomEvent("trackmcp:locale-change", { detail: { locale: next } }));
   };
 
-  const active = LOCALES.find((item) => item.value === (selectedLocale || locale)) || LOCALES[0];
+  const active = LOCALES.find((item) => item.value === locale) || LOCALES[0];
   return (
     <div ref={ref} data-no-translate className="relative" aria-label="Language selector">
       <button
@@ -75,7 +67,7 @@ export function LanguageSwitcher() {
         aria-expanded={open}
         aria-label={`Language: ${active.label}`}
         onClick={() => setOpen((value) => !value)}
-        className="inline-flex min-h-9 items-center gap-1.5 rounded-lg border border-line-strong bg-white px-2.5 text-[12px] font-medium text-body shadow-sm transition-colors hover:border-ink hover:text-ink"
+        className="inline-flex min-h-9 cursor-pointer items-center gap-1.5 rounded-lg border border-line-strong bg-white px-2.5 text-[12px] font-medium text-body shadow-sm transition-colors hover:border-ink hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
       >
         <Globe2 size={15} aria-hidden="true" />
         <span>{status === "translating" ? "Translating…" : active.short}</span>
@@ -88,12 +80,12 @@ export function LanguageSwitcher() {
               key={item.value}
               type="button"
               role="option"
-              aria-selected={(selectedLocale || locale) === item.value}
+              aria-selected={locale === item.value}
               onClick={() => choose(item.value)}
-              className="flex w-full items-center justify-between rounded-lg px-3 py-2 text-left text-[13px] text-body transition-colors hover:bg-mist"
+              className="flex w-full cursor-pointer items-center justify-between rounded-lg px-3 py-2 text-left text-[13px] text-body transition-colors hover:bg-mist focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
             >
               <span>{item.label}</span>
-              {(selectedLocale || locale) === item.value && <Check size={14} className="text-brand-strong" aria-hidden="true" />}
+              {locale === item.value && <Check size={14} className="text-brand-strong" aria-hidden="true" />}
             </button>
           ))}
         </div>

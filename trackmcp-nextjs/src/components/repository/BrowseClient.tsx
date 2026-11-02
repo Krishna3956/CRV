@@ -269,7 +269,7 @@ export function BrowseClient({
                 <button
                   type="button"
                   onClick={() => void revealMore()}
-                  className="inline-flex items-center gap-2 rounded-lg border border-line-strong bg-white px-6 py-3 text-[14px] font-medium text-ink shadow-sm transition-colors hover:bg-paper"
+                  className="inline-flex cursor-pointer items-center gap-2 rounded-lg border border-line-strong bg-white px-6 py-3 text-[14px] font-medium text-ink shadow-sm transition-colors hover:bg-paper focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
                 >
                   Reveal more
                   <ChevronDown size={16} className="text-faint" />

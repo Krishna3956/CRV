@@ -84,7 +84,7 @@ export function SubmitToolDialog() {
           type="button"
           onClick={close}
           aria-label="Close"
-          className="absolute right-3 top-3 z-10 grid h-8 w-8 place-items-center rounded-lg text-faint transition-colors hover:bg-mist hover:text-ink"
+          className="absolute right-3 top-3 z-10 grid h-8 w-8 cursor-pointer place-items-center rounded-lg text-faint transition-colors hover:bg-mist hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
         >
           <X size={16} />
         </button>
@@ -101,7 +101,7 @@ export function SubmitToolDialog() {
               <button
                 type="button"
                 onClick={close}
-                className="mt-6 inline-flex items-center justify-center rounded-lg bg-ink px-5 py-2.5 text-[14px] font-medium text-white transition-colors hover:bg-black"
+                className="mt-6 inline-flex cursor-pointer items-center justify-center rounded-lg bg-ink px-5 py-2.5 text-[14px] font-medium text-white transition-colors hover:bg-black focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
               >
                 Done
               </button>
@@ -165,7 +165,7 @@ export function SubmitToolDialog() {
                 <button
                   type="submit"
                   disabled={status === "loading"}
-                  className="mt-3 inline-flex w-full items-center justify-center gap-2 rounded-lg bg-ink px-5 py-3 text-[15px] font-medium text-white transition-colors hover:bg-black disabled:opacity-70"
+                  className="mt-3 inline-flex w-full cursor-pointer items-center justify-center gap-2 rounded-lg bg-ink px-5 py-3 text-[15px] font-medium text-white transition-colors hover:bg-black disabled:cursor-not-allowed disabled:opacity-70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
                 >
                   {status === "loading" ? (
                     <>
@@ -193,7 +193,7 @@ export function SubmitToolDialog() {
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="inline-flex items-center justify-center gap-2 rounded-lg bg-brand px-4 py-2.5 text-[14px] font-medium text-white shadow-sm transition-colors hover:bg-brand-strong"
+        className="inline-flex cursor-pointer items-center justify-center gap-2 rounded-lg bg-brand px-4 py-2.5 text-[14px] font-medium text-white shadow-sm transition-colors hover:bg-brand-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
       >
         <Plus size={16} /> Submit your MCP
       </button>

@@ -21,6 +21,8 @@ test("root layout exposes a route-aware global language switcher and runtime", a
   const dashboard = await readFile(resolve(root, "src/components/dashboard/DashboardApp.tsx"), "utf8");
   assert.match(dashboard, /@\/components\/LanguageSwitcher/);
   assert.match(dashboard, /<LanguageSwitcher\s*\/>/);
+  const css = await readFile(resolve(root, "src/app/globals.css"), "utf8");
+  assert.match(css, /body:has\(\[data-site-nav\]\) \.global-language-switcher\s*\{\s*display:\s*none\s*!important;/);
 });
 
 test("social auth is fail-closed until Supabase enables a provider", async () => {
@@ -82,8 +84,8 @@ test("Chinese browser preferences only drive a non-blocking suggestion", async (
   const switcher = await readFile(resolve(root, "src/components/LanguageSwitcher.tsx"), "utf8");
   assert.match(switcher, /useSyncExternalStore/);
   assert.match(switcher, /getServerLocale/);
-  assert.match(switcher, /selectedLocale/);
-  assert.match(switcher, /setSelectedLocale\(next\)/);
+  assert.match(switcher, /const locale = useSyncExternalStore/);
+  assert.doesNotMatch(switcher, /setSelectedLocale/);
   assert.match(switcher, /writeSiteLocale\(next\)/);
   const suggestion = await readFile(resolve(root, "src/components/LanguageSuggestion.tsx"), "utf8");
   assert.match(suggestion, /是否切换为简体中文/);
@@ -94,6 +96,8 @@ test("Chinese browser preferences only drive a non-blocking suggestion", async (
   assert.match(layout, /<LanguageSuggestion\s*\/>/);
   assert.match(layout, /trackmcp-locale-bootstrap/);
   assert.match(layout, /trackmcp_locale=zh-CN/);
+  const css = await readFile(resolve(root, "src/app/globals.css"), "utf8");
+  assert.match(css, /body:has\(\[data-site-nav\]\) \.global-language-switcher\s*\{\s*display:\s*none\s*!important;/);
 });
 
 test("new submissions stay inside the shared translation runtime", async () => {

@@ -61,11 +61,12 @@ npx @trackmcp/cli init
 # Remote setup: npx @trackmcp/cli init --no-browser
 # Restricted environment: npx @trackmcp/cli init --no-install
 # Diagnostics: npx @trackmcp/cli doctor
-# Manual fallback: open /signup on this documentation origin
-
-# Python
-python3 -m pip install trackmcp
-# Create your key from /dashboard on this documentation origin`}</Code>
+# Manual fallback: open /signup on this documentation origin`}</Code>
+        <Para>
+          The command above is the TypeScript/Node.js activation path. Next, add the
+          wrapper that matches the language of your server.
+        </Para>
+        <p className="mb-2 text-xs font-semibold uppercase tracking-[0.08em] text-faint">TypeScript / Node.js wrapper</p>
         <Code>{`import { withTrackMCP } from "@trackmcp/sdk";
 import { server } from "./mcp";
 
@@ -77,6 +78,31 @@ export default withTrackMCP(server, {
   sdk_version: "0.1.25",         // reviewed SDK release metadata (optional)
   deployment_id: "deploy-42",    // bounded release metadata (optional)
 });`}</Code>
+        <p className="mb-2 mt-5 text-xs font-semibold uppercase tracking-[0.08em] text-faint">Python activation and wrapper</p>
+        <Code>{`# Python
+python3 -m pip install trackmcp
+trackmcp init
+# Remote or CI setup:
+trackmcp init --no-browser
+# Diagnostics:
+trackmcp doctor
+
+import os
+from mcp.server.fastmcp import FastMCP
+from trackmcp import with_trackmcp
+
+server = FastMCP("acme-mcp-server")
+app = with_trackmcp(
+    server,
+    api_key=os.environ["TRACKMCP_KEY"],
+    service="acme-mcp-server",
+    environment="production",
+)`}</Code>
+        <Para>
+          Python follows the same terminal-first activation path through <Inline>trackmcp init</Inline>; do not paste the TypeScript wrapper into a Python server.
+          The SDK and CLI remain separate packages: install the Python package with your
+          package manager, then use the printed key in the process that runs your server.
+        </Para>
         <Para>
           Release labels are metadata only; they do not identify a customer or assert deployment health.
         </Para>

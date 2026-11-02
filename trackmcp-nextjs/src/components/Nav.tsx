@@ -6,6 +6,7 @@ import { Menu, X, ChevronDown, Sparkles, TrendingUp, Boxes, Plus, Library } from
 import { TrackMCPLogo } from "./TrackMCPLogo";
 import { EarlyAccessButton } from "./EarlyAccessButton";
 import { LanguageSwitcher } from "./LanguageSwitcher";
+import { usePathname } from "next/navigation";
 
 const links = [
   { label: "Features", href: "/features" },
@@ -26,6 +27,18 @@ export function Nav() {
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
   const [repoOpen, setRepoOpen] = useState(false);
+  const pathname = usePathname();
+  const isChinese = pathname === "/zh-cn" || pathname.startsWith("/zh-cn/");
+  const navigationLinks = isChinese
+    ? [
+        { label: "功能", href: "/features" },
+        { label: "价格", href: "/pricing" },
+        { label: "文档", href: "/zh-cn/docs" },
+        { label: "博客", href: "/zh-cn/blog" },
+      ]
+    : links;
+  const repositoryLabel = isChinese ? "目录" : "Repository";
+  const signInLabel = isChinese ? "登录" : "Sign in";
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 8);
@@ -53,7 +66,7 @@ export function Nav() {
         <TrackMCPLogo mark />
 
         <nav className="hidden items-center gap-8 md:flex">
-          {links.map((l) => (
+          {navigationLinks.map((l) => (
             <a
               key={l.href}
               href={l.href}
@@ -71,7 +84,7 @@ export function Nav() {
               onClick={() => setRepoOpen((value) => !value)}
               className="inline-flex cursor-pointer items-center gap-1 text-[15px] text-body transition-colors hover:text-ink"
             >
-              Repository
+              {repositoryLabel}
               <ChevronDown size={14} className="text-faint transition-transform group-hover:rotate-180" />
             </button>
             <div
@@ -118,8 +131,10 @@ export function Nav() {
           <button
             type="button"
             aria-label="Menu"
+            aria-expanded={open}
+            aria-controls="site-mobile-menu"
             onClick={() => setOpen((v) => !v)}
-            className="grid h-9 w-9 place-items-center rounded-lg border border-line-strong md:hidden"
+            className="grid h-9 w-9 cursor-pointer place-items-center rounded-lg border border-line-strong md:hidden focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
           >
             {open ? <X size={18} /> : <Menu size={18} />}
           </button>
@@ -127,9 +142,9 @@ export function Nav() {
       </div>
 
       {open && (
-        <div className="border-t border-line bg-white px-6 py-4 md:hidden">
+        <div id="site-mobile-menu" className="border-t border-line bg-white px-6 py-4 md:hidden">
           <div className="flex flex-col gap-3">
-            {links.map((l) => (
+            {navigationLinks.map((l) => (
               <a
                 key={l.href}
                 href={l.href}
@@ -141,7 +156,7 @@ export function Nav() {
             ))}
             <div className="mt-1 border-t border-line pt-3">
               <span className="py-1 text-[15px] font-medium text-ink">
-                Repository
+                {repositoryLabel}
               </span>
               <span className="mt-3 block text-[11px] font-semibold uppercase tracking-wide text-faint">
                 Explore the repository
@@ -159,6 +174,16 @@ export function Nav() {
                   {r.label}
                 </a>
               ))}
+            </div>
+            <div className="flex items-center justify-between border-t border-line pt-3">
+              <Link
+                href="/signin"
+                onClick={() => setOpen(false)}
+                className="py-1 text-[15px] font-medium text-ink"
+              >
+                {signInLabel}
+              </Link>
+              <LanguageSwitcher />
             </div>
             <EarlyAccessButton size="sm" className="mt-3 w-full" />
             <div className="border-t border-line pt-3">

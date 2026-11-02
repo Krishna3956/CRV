@@ -43,6 +43,8 @@ test("business-first navigation and KPI hierarchy are explicit", () => {
   assert.match(source, /id: "clients", label: "Who's using it"/);
   assert.match(source, /id: "evidence", label: "Evidence"/);
   assert.match(source, /id: "setup", label: "Setup"/);
+  assert.match(source, /groupLabel="Understand"/);
+  assert.match(source, /groupLabel="Investigate & act"/);
   assert.match(
     source,
     /label="AI clients"[\s\S]*label="Activity"[\s\S]*label="Work completed"[\s\S]*label="Needs attention"/,
@@ -140,7 +142,18 @@ test("dashboard typography uses the product type system", () => {
   assert.match(globalsSource, /font-size: 1\.75rem/);
   assert.match(globalsSource, /\.dashboard-shell \.dashboard-section-title/);
   assert.match(globalsSource, /font-size: 1rem/);
-  assert.match(source, /dashboard-shell min-h-screen bg-\[#f7f8f7\] font-sans/);
+  assert.match(source, /dashboard-shell min-h-screen bg-\[#f2f6f3\] font-sans/);
+  assert.match(globalsSource, /single green action color/);
+  assert.match(globalsSource, /button:not\(:disabled\):hover/);
+});
+
+test("dashboard keeps global controls inside one header and uses actionable empty states", () => {
+  assert.match(source, /<header data-site-nav/);
+  assert.match(source, /<LanguageSwitcher \/>/);
+  assert.match(source, /aria-label="Next steps"/);
+  assert.match(source, /Create a connection key/);
+  assert.match(source, /Make one real tool call/);
+  assert.match(source, /Optional identity <span/);
 });
 
 test("data source state is explicit and never silently substituted", () => {
@@ -243,6 +256,16 @@ test("Setup exposes an explicit refresh action for first-event evidence", () => 
   assert.match(source, /Refresh setup check/);
   assert.match(source, /setupChecking/);
   assert.match(source, /onClick=\{retrySetupCheck\}/);
+});
+
+test("Setup clears stale workspace evidence while a workspace check is in flight", () => {
+  const setupStart = source.indexOf("function SetupView(");
+  const setupEnd = source.indexOf("// Kept as an inert compatibility artifact", setupStart);
+  const setupSource = source.slice(setupStart, setupEnd);
+  assert.match(setupSource, /const activeSetupContract = setupContractWorkspaceId === workspaceId \? setupContract : null;/);
+  assert.match(setupSource, /const setupLoading = Boolean\(workspaceId && \(setupChecking \|\| setupContractWorkspaceId !== workspaceId\)\);/);
+  assert.match(setupSource, /disabled=\{!workspaceId \|\| setupLoading\}/);
+  assert.match(setupSource, /setSetupChecking\(true\);/);
 });
 
 test("Setup distinguishes stale ingestion evidence from current health", () => {
@@ -356,6 +379,17 @@ test("Setup exposes every documented SDK path without implying publication", () 
   assert.match(source, /reviewed source package rather than a NuGet release/);
 });
 
+test("Setup language selector exposes semantic tabs and announces the active code panel", () => {
+  const setupStart = source.indexOf("function SetupView(");
+  const setupEnd = source.indexOf("// Kept as an inert compatibility artifact", setupStart);
+  const setupSource = source.slice(setupStart, setupEnd);
+  assert.match(setupSource, /role="tablist" aria-label="SDK setup language"/);
+  assert.match(setupSource, /role="tab"/);
+  assert.match(setupSource, /aria-selected=\{language === item\}/);
+  assert.match(setupSource, /aria-controls="setup-code-panel"/);
+  assert.match(setupSource, /id="setup-code-panel" role="tabpanel" aria-live="polite"/);
+});
+
 test("Setup exposes bounded export and non-destructive deletion controls", () => {
   assert.match(source, /function PrivacyControls\(/);
   assert.match(source, /\/api\/v1\/account\/export\?workspace_id=/);
@@ -428,6 +462,16 @@ test("shared dashboard controls expose keyboard focus rings", () => {
     "disabled:cursor-wait disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand",
     "inline-flex cursor-pointer items-center gap-1 text-xs font-semibold text-brand-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand",
   ]) assert.match(source, new RegExp(snippet.replace(/[.*+?^${}()|[\\]\\]/g, "\\\\$&")), `${snippet} must remain keyboard accessible`);
+});
+
+test("custom date ranges validate before changing dashboard state", () => {
+  assert.match(source, /data-range-from type="date" onChange=\{\(\) => setCustomError\(""\)\}/);
+  assert.match(source, /data-range-to type="date" onChange=\{\(\) => setCustomError\(""\)\}/);
+  assert.match(source, /Choose both a start and end date\./);
+  assert.match(source, /The end date must be on or after the start date\./);
+  assert.match(source, /Choose a range of 90 days or less\./);
+  assert.match(source, /onChange\(`custom:\$\{from\}:\$\{to\}`\)/);
+  assert.match(source, /customError && <p role="alert"/);
 });
 
 test("Setup exposes safe rotation alongside revocation for active keys", () => {

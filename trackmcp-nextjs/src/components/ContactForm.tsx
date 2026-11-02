@@ -75,7 +75,7 @@ export function ContactForm() {
       <button
         type="submit"
         disabled={status === "loading"}
-        className="mt-5 inline-flex w-full items-center justify-center gap-2 rounded-lg bg-ink px-5 py-3 text-[15px] font-medium text-white transition-colors hover:bg-black disabled:opacity-70"
+        className="mt-5 inline-flex w-full cursor-pointer items-center justify-center gap-2 rounded-lg bg-ink px-5 py-3 text-[15px] font-medium text-white transition-colors hover:bg-black disabled:cursor-not-allowed disabled:opacity-70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
       >
         {status === "loading" ? (
           <>

@@ -58,7 +58,7 @@ export function CopyButton({
       type="button"
       onClick={onCopy}
       aria-label={done ? "Copied" : label}
-      className={`inline-grid shrink-0 place-items-center rounded-md transition-colors ${className}`}
+      className={`inline-grid shrink-0 cursor-pointer place-items-center rounded-md transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand ${className}`}
     >
       {done ? (
         <Check size={size} className="text-brand" />
