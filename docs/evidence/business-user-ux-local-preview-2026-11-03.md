@@ -199,5 +199,10 @@ is sent`, `bounded activity metadata`, and `Connection method identified`.
 This confirms the new wording is rendered in the first-time setup path rather
 than only changed in source.
 
+The activated Overview path was also reviewed in the local browser. Session
+rows now present `Observed session 1`-style labels and an `Open evidence`
+action, while the completion panel explains that only outcomes explicitly
+reported by the server count as success.
+
 The underlying evidence contracts and technical disclosures were not removed.
 This is a copy and comprehension change, not a metric or read-model change.

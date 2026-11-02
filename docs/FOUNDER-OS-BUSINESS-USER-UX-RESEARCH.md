@@ -76,9 +76,9 @@ Microsoft's product-writing guidance recommends simple words, one clear term per
 
 TrackMCP application:
 
-- Prefer `Work observed`, `Explicit success`, `Needs attention`, and `Open trace` over internal terms such as event volume, outcome ledger, or correlation handle.
+- Prefer `Work observed`, `Reported completion`, `Needs attention`, and `Open evidence` over internal terms such as event volume, outcome ledger, or correlation handle.
 - Keep one term for one concept across navigation, cards, docs, and empty states.
-- Put the action in the button label: `Complete setup`, `View evidence`, `Refresh data`, or `Open trace`.
+- Put the action in the button label: `Complete setup`, `View evidence`, `Refresh data`, or `Open evidence`.
 - Error states explain what happened, whether data is safe, and the next recovery action.
 - Avoid repeating the same technical explanation in every panel; use a short summary and a link to the detail surface.
 

@@ -93,6 +93,9 @@ Legend: `[x]` verified/implemented in this workstream; `[ ]` pending.
 - [x] ✅ Simplify Setup status states so a business reader sees “recent server
       activity”, “partial view”, and “account grouping unavailable” before
       technical evidence terminology.
+- [x] ✅ Make Overview session rows business-readable: show a simple observed
+      session label, call the drill-down “Open evidence”, and explain that
+      reported completion—not session activity alone—is counted as success.
 - [x] ✅ Run dashboard contracts, typecheck, lint, and production build.
 - [x] ✅ Run the consolidated release gate; all 159 suites pass after fixing
       clean-checkout MCP SDK resolution and Python artifact preparation.

@@ -2412,7 +2412,7 @@ function Overview({
           icon={Check}
           helper={
             totals.started
-              ? "Explicit outcomes · " +
+              ? "Reported completion · " +
                 percent(totals.completed / totals.started)
               : "No explicit success outcome data"
           }
@@ -2447,21 +2447,21 @@ function Overview({
       <div className="mt-6 grid gap-6 xl:grid-cols-[minmax(0,1.3fr)_minmax(310px,.7fr)]">
         <Panel
           title="Sessions in selected period"
-          subtitle="Observed sessions; open one trace when technical evidence is needed"
+          subtitle="Observed sessions; open supporting evidence when you need more detail"
           action={{
-            label: "View traces",
+            label: "View evidence",
             onClick: () => onViewChange("evidence"),
           }}
         >
           <div className="divide-y divide-line">
-            {analytics.workflows.slice(0, 5).map((workflow) => (
+            {analytics.workflows.slice(0, 5).map((workflow, index) => (
               <div
                 key={workflow.session_id}
                 className="flex flex-wrap items-center justify-between gap-3 py-3"
               >
                 <div className="min-w-0">
-                  <p className="truncate font-mono text-xs text-ink">
-                    {workflow.session_id}
+                  <p className="truncate text-xs font-semibold text-ink">
+                    Observed session {index + 1}
                   </p>
                   <p className="mt-1 text-[11px] text-muted">
                     {workflow.client_name} · {workflow.calls} calls ·{" "}
@@ -2478,7 +2478,7 @@ function Overview({
                   }
                   className="inline-flex cursor-pointer items-center gap-1 text-xs font-semibold text-brand-strong hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
                 >
-                  Open trace <ChevronRight size={13} />
+                  Open evidence <ChevronRight size={13} />
                 </button>
               </div>
             ))}
@@ -2499,11 +2499,12 @@ function Overview({
             </p>
             <p className="mt-1 text-sm text-muted">
               {totals.started
-                ? "of " + fmt(totals.started) + " explicit started outcomes"
+                ? "of " + fmt(totals.started) + " started work items with a reported outcome"
                 : "No explicit workflow outcome data"}
             </p>
             <p className="mt-4 text-xs text-muted">
-              Source: workflow outcome events. No session-based inference.
+              Only outcomes your server explicitly reported count here; session
+              activity alone is not treated as success.
             </p>
           </div>
         </Panel>
