@@ -1398,6 +1398,7 @@ export function DashboardApp({
               }
               onRetry={refreshAll}
               permission={/authoriz|permission/i.test(error)}
+              onUseExample={() => setDataMode("example")}
             />
           ) : (
             <ViewContent
@@ -1893,10 +1894,12 @@ function LiveDataState({
   message,
   onRetry,
   permission,
+  onUseExample,
 }: {
   message: string;
   onRetry: () => void;
   permission: boolean;
+  onUseExample?: () => void;
 }) {
   return (
     <section className="grid min-h-[420px] place-items-center rounded-2xl border border-line bg-white p-8 text-center shadow-[0_24px_60px_-44px_rgba(18,59,42,0.35)]">
@@ -1912,14 +1915,25 @@ function LiveDataState({
             ? "Request access or return to your workspace. No other data source was substituted."
             : "My data could not be shown for this request. Try again or narrow the selected period."}
         </p>
-        <button
-          type="button"
-          onClick={onRetry}
-          className="mt-5 inline-flex cursor-pointer items-center gap-2 rounded-lg bg-[#123b2a] px-4 py-2.5 text-sm font-semibold text-white shadow-[0_10px_24px_-14px_rgba(18,59,42,0.9)] hover:bg-brand-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
-        >
-          <RefreshCw size={15} />
-          Retry
-        </button>
+        <div className="mt-5 flex flex-wrap justify-center gap-3">
+          <button
+            type="button"
+            onClick={onRetry}
+            className="inline-flex cursor-pointer items-center gap-2 rounded-lg bg-[#123b2a] px-4 py-2.5 text-sm font-semibold text-white shadow-[0_10px_24px_-14px_rgba(18,59,42,0.9)] hover:bg-brand-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
+          >
+            <RefreshCw size={15} />
+            Retry
+          </button>
+          {onUseExample && (
+            <button
+              type="button"
+              onClick={onUseExample}
+              className="inline-flex cursor-pointer items-center gap-2 rounded-lg border border-line-strong bg-white px-4 py-2.5 text-sm font-semibold text-body hover:bg-paper focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
+            >
+              See Example data
+            </button>
+          )}
+        </div>
       </div>
     </section>
   );

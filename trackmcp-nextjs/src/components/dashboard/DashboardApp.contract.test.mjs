@@ -163,6 +163,15 @@ test("dashboard keeps global controls inside one header and uses actionable empt
   assert.match(source, /Optional identity <span/);
 });
 
+test("live-data failures offer a safe illustrative fallback", () => {
+  const start = source.indexOf("function LiveDataState(");
+  const end = source.indexOf("function ViewContent(", start);
+  const liveDataSource = source.slice(start, end);
+  assert.match(liveDataSource, /onUseExample/);
+  assert.match(liveDataSource, /See Example data/);
+  assert.match(liveDataSource, /My data could not be shown for this request/);
+});
+
 test("business users receive orientation before technical detail", () => {
   assert.match(source, /Start here: who is showing up, what are they trying to do, did it work, and what needs attention\?/);
   assert.match(source, /How to read this overview/);

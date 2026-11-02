@@ -307,4 +307,5 @@ TrackMCP application:
 | Dashboard takeaway before interpretation | Bounded Overview “At a glance” summary | `DashboardApp.contract.test.mjs` |
 | Stable filter context and progressive scope detail | Visible period context; active key scope collapsed, auto-opened on mismatch | `DashboardApp.contract.test.mjs` |
 | One predictable location for global controls | Language selector remains in the header; duplicate sidebar control removed | `DashboardApp.contract.test.mjs` |
+| Recovery without data substitution | Live-data failure keeps Retry primary and offers an explicit Example-data fallback | `DashboardApp.contract.test.mjs` |
 
