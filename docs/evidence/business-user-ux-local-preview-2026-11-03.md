@@ -285,3 +285,10 @@ This confirms the repeated technical inventory no longer competes with the
 business summary on first render. It is local preview evidence only; it does
 not prove the branch is deployed or that production read-model responses are
 complete.
+
+The same preview was then opened at `/dashboard?view=resources&data=example`.
+It visibly showed the business question, the information-need context,
+interaction outcomes, and a collapsed `Detailed resource and prompt evidence`
+disclosure. Entity counts, durable-read status, and transport coverage are
+available inside that disclosure rather than competing with the primary
+question on first render.

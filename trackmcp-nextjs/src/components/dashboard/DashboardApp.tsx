@@ -3443,7 +3443,13 @@ function ResourcesPromptsView({
           {activity.outcomes.map((outcome) => <div key={outcome.kind} className="border border-line bg-paper p-4"><div className="flex items-center justify-between gap-3"><p className="text-sm font-medium text-ink">{outcome.kind === "resource" ? "Resources/read" : "Prompts/get"}</p><p className="text-xs text-muted">{fmt(outcome.interactions)} interactions</p></div><div className="mt-3 grid grid-cols-2 gap-2 text-xs sm:grid-cols-4"><div><p className="text-muted">Complete</p><p className="mt-1 font-semibold text-ink">{fmt(outcome.complete)}</p></div><div><p className="text-muted">Needs input</p><p className="mt-1 font-semibold text-ink">{fmt(outcome.stalled)}</p></div><div><p className="text-muted">Error</p><p className="mt-1 font-semibold text-ink">{fmt(outcome.errored)}</p></div><div><p className="text-muted">Unknown</p><p className="mt-1 font-semibold text-ink">{fmt(outcome.unknown)}</p></div></div><p className="mt-3 text-[11px] text-faint">{fmt(outcome.linked_retry_count)} linked retry {outcome.linked_retry_count === 1 ? "observation" : "observations"} collapsed</p></div>)}
         </div>
       </Panel></div>}
-      <div className="mt-3 grid gap-3 sm:grid-cols-3">
+      {(surfaces || activity) && <details className="mt-6 rounded-2xl border border-line bg-white">
+        <summary className="flex cursor-pointer list-none items-center justify-between gap-3 px-5 py-4 text-sm font-semibold text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand">
+          <span>Detailed resource and prompt evidence <span className="ml-2 text-xs font-normal text-muted">Optional detail for product and engineering teams</span></span>
+          <span className="text-xs font-medium text-brand-strong">Expand details</span>
+        </summary>
+        <div className="border-t border-line px-5 pb-5">
+      <div className="grid gap-3 pt-5 sm:grid-cols-3">
         <Kpi label="Observed lookups and requests" value={surfaces ? fmt(observedEvents) : "N/A"} icon={Activity} helper="Resource and prompt activity" />
         <Kpi label="Distinct resources or prompts observed" value={surfaces ? fmt(observedEntities) : "N/A"} icon={FileText} helper="Privacy-bounded entity counts" />
         <Kpi label="Reads with explicit success" value={surfaces ? fmt(successfulReads) : "N/A"} icon={Check} helper="Durable read projection only" />
@@ -3471,6 +3477,8 @@ function ResourcesPromptsView({
           </Panel>
         ))}
       </div>
+        </div>
+      </details>}
       {!rows.length && <StateNote title="No resource or prompt evidence yet" body="This workspace has not reported resource or prompt methods in the selected period. That is an evidence state, not proof that the server has no resources or prompts." />}
     </div>
   );

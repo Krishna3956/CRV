@@ -70,6 +70,9 @@ Legend: `[x]` verified/implemented in this workstream; `[ ]` pending.
 - [x] ✅ Put the repeated capability inventory and catalog detail behind a
       second progressive-disclosure boundary so the business summary remains
       the default reading path.
+- [x] ✅ Put repeated resource/prompt entity and transport detail behind a
+      progressive-disclosure boundary so information-need and outcome KPIs
+      remain the default reading path.
 - [x] ✅ Clarify capability KPI labels so comparison values, error rates, and
       privacy-safe account-group scope are explicit to business readers.
 - [x] ✅ Align the canonical metric registry and Founder OS metric contract
