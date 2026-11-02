@@ -5,7 +5,7 @@ import Script from "next/script";
 import { Analytics } from "@vercel/analytics/react";
 import { SpeedInsights } from "@vercel/speed-insights/react";
 import { ScrollToTop } from "@/components/ScrollToTop";
-import { LanguageSwitcher } from "@/components/LanguageSwitcher";
+import { GlobalLanguageSwitcher } from "@/components/GlobalLanguageSwitcher";
 import { LanguageSuggestion } from "@/components/LanguageSuggestion";
 import { TranslationRuntime } from "@/components/TranslationRuntime";
 import { PostHogIdentity } from "@/components/PostHogIdentity";
@@ -85,11 +85,7 @@ export default function RootLayout({ children }: RootLayoutProps) {
       className={`${inter.variable} ${geistMono.variable} h-full`}
     >
       <body className="min-h-full flex flex-col bg-canvas text-body">
-        <div className="global-language-switcher pointer-events-none fixed inset-x-0 top-[4.75rem] z-[70] hidden justify-end px-4 sm:top-3 sm:flex sm:px-6">
-          <div className="pointer-events-auto">
-            <LanguageSwitcher />
-          </div>
-        </div>
+        <GlobalLanguageSwitcher />
         <Script id="trackmcp-locale-bootstrap" strategy="beforeInteractive">
           {`try { if (document.cookie.split("; ").some((entry) => entry === "trackmcp_locale=zh-CN")) { document.documentElement.lang = "zh-CN"; document.documentElement.setAttribute("data-trackmcp-translation-pending", "true"); } } catch (_) {}`}
         </Script>

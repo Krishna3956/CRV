@@ -62,7 +62,7 @@ const publicDocumentationCoverageGaps = staticPageEntrypoints.filter((page) => p
 const categoryEntries = (await readFile(join(appRoot, "../lib/repository/types.ts"), "utf8"))
   .match(/\bid:\s*["']/g)?.length || 0;
 
-if (!rootLayout.includes("<LanguageSwitcher") || !rootLayout.includes("<TranslationRuntime")) {
+if (!rootLayout.includes("<GlobalLanguageSwitcher") || !rootLayout.includes("<TranslationRuntime")) {
   throw new Error("Root layout is missing the global language runtime.");
 }
 if (publicDocumentationCoverageGaps.length) {

@@ -160,6 +160,9 @@ export function Nav() {
               ))}
             </div>
             <EarlyAccessButton size="sm" className="mt-3 w-full" />
+            <div className="border-t border-line pt-3">
+              <LanguageSwitcher />
+            </div>
           </div>
         </div>
       )}
