@@ -12,6 +12,8 @@ Legend: `[x]` verified/implemented in this workstream; `[ ]` pending.
 - [x] ✅ Add a business question and evidence caveat to each top-level page.
 - [x] ✅ Translate the highest-visibility journey, capability, resource, and
       reliability labels without changing their formulas.
+- [x] ✅ Keep issue evidence and internal rule identifiers behind an explicit
+      detail disclosure so business readers see the signal and next step first.
 - [x] ✅ Keep Example data visibly illustrative and separate from My data.
 - [x] ✅ Add contract tests for the orientation and setup copy.
 - [ ] Run dashboard contracts, typecheck, build, and runtime smoke. (Contracts,
