@@ -38,6 +38,7 @@ export function BrowseClient({
   const [loadingSearch, setLoadingSearch] = useState(false);
   const [loadingCat, setLoadingCat] = useState(false);
   const [categoryLoadedCount, setCategoryLoadedCount] = useState(0);
+  const [categoryExhausted, setCategoryExhausted] = useState(false);
   const gridRef = useRef<HTMLDivElement>(null);
 
   // The grid filters instantly off `input`; this debounced fetch just pulls in
@@ -71,10 +72,13 @@ export function BrowseClient({
     (async () => {
       setVisible(12);
       setLoadingCat(true);
+      setCategoryLoadedCount(0);
+      setCategoryExhausted(false);
       try {
         const rows = await toolsByCategoryAction(category, 500, 0);
         if (cancelled) return;
         setCategoryLoadedCount(rows.length);
+        setCategoryExhausted(rows.length < 500);
         setTools((prev) => {
           const ids = new Set(prev.map((x) => x.id));
           return [...prev, ...rows.filter((x) => !ids.has(x.id))];
@@ -116,16 +120,21 @@ export function BrowseClient({
   );
 
   const displayed = q ? filtered : filtered.slice(0, visible);
-  const categoryTotal = category === "all" ? 0 : categoryCounts[category] || 0;
-  const hasMore = !q && (visible < filtered.length || (category !== "all" && categoryLoadedCount < categoryTotal));
+  const categoryTotal = category === "all" ? 0 : categoryCounts[category] ?? categoryLoadedCount;
+  const hasMore = !q && (
+    visible < filtered.length ||
+    (category !== "all" && !categoryExhausted && categoryLoadedCount < categoryTotal + (categoryCounts[category] === undefined ? 1 : 0))
+  );
   const activeFilters = (category !== "all" ? 1 : 0) + (q ? 1 : 0);
   const availableLabel = q ? filtered.length : category !== "all" ? categoryTotal : totalCount;
 
   const revealMore = async () => {
-    if (category !== "all" && visible >= filtered.length && categoryLoadedCount < categoryTotal) {
+    const categoryTotalKnown = categoryCounts[category] !== undefined;
+    if (category !== "all" && visible >= filtered.length && !categoryExhausted && (!categoryTotalKnown || categoryLoadedCount < categoryTotal)) {
       setLoadingCat(true);
       try {
         const rows = await toolsByCategoryAction(category, 500, categoryLoadedCount);
+        setCategoryExhausted(rows.length < 500);
         setCategoryLoadedCount((current) => current + rows.length);
         setTools((prev) => {
           const ids = new Set(prev.map((x) => x.id));
@@ -174,7 +183,7 @@ export function BrowseClient({
               { label: "Categories", href: "/categories", active: false },
               { label: "Submit your MCP", href: "/submit-mcp", active: false },
             ].map(({ label, href, active }) => (
-              <a
+              <Link
                 key={href}
                 href={href}
                 aria-current={active ? "page" : undefined}
@@ -185,7 +194,7 @@ export function BrowseClient({
                 }`}
               >
                 {label}
-              </a>
+              </Link>
             ))}
           </nav>
         </div>

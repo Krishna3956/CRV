@@ -84,9 +84,10 @@ export function Nav() {
             >
               <div className="rounded-xl border border-line bg-white p-1.5 shadow-[0_20px_50px_-20px_rgba(10,10,10,0.35)]">
                 {repoLinks.map((r) => (
-                  <a
+                  <Link
                     key={r.href}
                     href={r.href}
+                    onClick={() => setRepoOpen(false)}
                     className="flex items-center gap-3 rounded-lg px-2.5 py-2 transition-colors hover:bg-mist"
                   >
                     <span className={`grid h-9 w-9 shrink-0 place-items-center rounded-lg ${r.tile}`}>
@@ -96,7 +97,7 @@ export function Nav() {
                       <span className="block text-[13.5px] font-medium text-ink">{r.label}</span>
                       <span className="block truncate text-[12px] text-muted">{r.desc}</span>
                     </span>
-                  </a>
+                  </Link>
                 ))}
               </div>
             </div>

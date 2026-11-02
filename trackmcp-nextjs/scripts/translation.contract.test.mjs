@@ -175,6 +175,9 @@ test("runtime excludes code and user-editable content", async () => {
   assert.match(source, /OPAQUE_TECHNICAL_LABEL/);
   assert.match(source, /TRANSLATION_REQUEST_TIMEOUT_MS/);
   assert.match(source, /TRANSLATION_PAGE_TIMEOUT_MS/);
+  assert.match(source, /TRANSLATION_BATCH_MAX_CHARS/);
+  assert.match(source, /route-change/);
+  assert.match(source, /usePathname/);
   assert.match(source, /AbortController/);
   assert.match(source, /signal\.aborted/);
   assert.match(source, /data-trackmcp-translation-pending.*true/);
