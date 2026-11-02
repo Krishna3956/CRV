@@ -22,6 +22,9 @@ evidence”; raw session identifiers remain an internal routing detail.
   three setup steps, and the “What you will see here” preview without
   substituting Example data into My data.
 - This remains local browser evidence, not production or human-UAT evidence.
+- On the activated Example-data Overview, the new “Recommended next step”
+  card appeared above the KPI grid and offered “See the journey” with a
+  bounded explanation of what the sample path demonstrates.
 
 ## Environment
 
