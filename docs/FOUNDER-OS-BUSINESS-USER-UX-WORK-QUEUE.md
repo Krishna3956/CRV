@@ -18,8 +18,12 @@ Legend: `[x]` verified/implemented in this workstream; `[ ]` pending.
       preserve the technical evidence contract underneath.
 - [x] ✅ Keep Example data visibly illustrative and separate from My data.
 - [x] ✅ Add contract tests for the orientation and setup copy.
-- [ ] Run dashboard contracts, typecheck, build, and runtime smoke. (Contracts,
-      typecheck, and build pass; runtime smoke needs local Supabase env values.)
+- [x] ✅ Perform a read-only browser review of the current production Setup,
+      Overview, Example data, and My data states; record live-vs-branch
+      differences in the audit.
+- [x] ✅ Run dashboard contracts, typecheck, lint, and production build.
+- [ ] Run authenticated local runtime smoke; the standalone server starts, but
+      the local homepage returns HTTP 500 without local Supabase URL/key values.
 
 ## Slice-by-slice follow-up
 
@@ -46,6 +50,9 @@ Legend: `[x]` verified/implemented in this workstream; `[ ]` pending.
 - [ ] No deployment until focused tests, production build, and authenticated
       read-only smoke checks pass.
 - [ ] Browser review with a new account and an activated example/data account.
+- [x] ✅ Browser review with the existing authenticated account and an
+      activated Example data view (read-only); a new-account review remains
+      pending.
 - [ ] Run `FOUNDER-OS-BUSINESS-USER-UAT-SCRIPT.md` with at least one
       non-technical product/operations participant.
 

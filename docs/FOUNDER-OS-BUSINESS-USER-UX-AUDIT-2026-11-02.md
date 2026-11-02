@@ -157,3 +157,47 @@ Validation on the isolated worktree:
 This is a verified comprehension improvement, not a claim that every Founder
 OS read-model or protocol surface is complete. The remaining product scope is
 tracked in `FOUNDER-OS-BUSINESS-USER-UX-WORK-QUEUE.md`.
+
+## Read-only browser verification of the current production site
+
+The authenticated Chrome session was inspected on 2026-11-02 using the
+existing TrackMCP account and workspace. This was a read-only review; no key,
+workspace, telemetry, or account data was created or changed.
+
+### First-time / no-data path (verified live)
+
+- The Setup view explains three visible steps: create a key, install the SDK,
+  and send one real event.
+- The no-data state says the server is not connected and offers “Complete
+  setup” plus “See Example data”.
+- The page exposes a useful “What you will see here” preview and states that
+  Example data is not substituted into My data.
+- Advanced key scope, optional identity, privacy/data flow, and data controls
+  are collapsed by default, which keeps the first-time path focused.
+
+### Activated / example-data path (verified live)
+
+- Example data is explicitly labeled as an illustrative finance server and is
+  separated from workspace telemetry.
+- The main navigation is business-oriented: Overview, Who’s using it, What
+  they’re doing, Resources & prompts, The journey, Did it work, What’s broken,
+  Evidence, and Setup.
+- The live Overview still presents the older headline labels “AI clients”,
+  “Activity”, and “Work completed”. The isolated branch changes these labels
+  to “Assistants using your MCP”, “Observed work”, and “Work with an explicit
+  success”. This confirms the branch’s copy improvements are not yet a
+  production deployment.
+- Example views provide definitions and evidence boundaries, but some labels
+  still require the reader to understand terms such as “observed”, “explicit
+  outcome”, “hashed entities”, and “transport”. These should remain available
+  as technical detail, but the business meaning should be the first sentence
+  wherever possible.
+
+### Consequence for release readiness
+
+The live product is usable enough for an exploratory business review, but it
+is not evidence that the current branch is live. Before inviting a pilot, the
+business-user UX branch still needs its normal release gate: merge/deploy,
+authenticated read-only smoke checks against the deployed commit, and a
+short UAT with a non-technical participant. The live browser observations are
+therefore recorded as evidence, not as a substitute for deployment testing.
