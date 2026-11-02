@@ -2,15 +2,16 @@
 
 Date: 2026-11-03  
 Branch: `codex/business-user-ux-audit`  
-Latest verified commit: `a4d49517` (`Fix illustrative people growth series`)
+Latest verified commit: `c05da96c` (`Use connection key language throughout setup`)
 
 This matrix is the release-readiness companion to the UX audit and work
 queue. It intentionally separates source-level proof, read-only browser proof,
 and evidence that requires a real account, deployment, or human participant.
 
 Latest branch verification: `npm run test:release-gate` passed all 159 suites
-after the authentication-affordance, research, signed-out handoff, and
-illustrative People-growth coherence pass (`a4d49517`). The branch
+after the authentication-affordance, research, signed-out handoff, illustrative
+People-growth coherence, and setup-vocabulary consistency passes (`c05da96c`).
+The branch
 remains local and has not been merged or deployed.
 
 ## Requirement coverage

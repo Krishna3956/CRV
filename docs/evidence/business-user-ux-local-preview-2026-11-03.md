@@ -2,7 +2,7 @@
 
 Date: 2026-11-03
 Branch: `codex/business-user-ux-audit`
-Commit under review: `a4d49517` (`Fix illustrative people growth series`)
+Commit under review: `c05da96c` (`Use connection key language throughout setup`)
 
 This is local browser evidence only. It is not production evidence and does
 not replace a fresh-account or real-telemetry walkthrough.
