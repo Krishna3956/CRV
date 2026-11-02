@@ -137,6 +137,9 @@ export async function POST(request: Request) {
     }
   } else {
     const loaded = await admin.from("trackmcp_workspaces").select("id, name, slug").eq("id", workspaceId).single();
+    if (loaded.error || !loaded.data) {
+      return NextResponse.json({ error: "Could not load your workspace." }, { status: 500 });
+    }
     workspace = loaded.data;
   }
 

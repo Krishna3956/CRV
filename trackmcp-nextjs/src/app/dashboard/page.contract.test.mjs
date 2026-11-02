@@ -17,11 +17,24 @@ test("dashboard hydrates a workspace from a successful create response", () => {
   assert.match(source, /const activeWorkspace = account\?\.workspace \|\| createdWorkspace \|\| null/);
 });
 
+test("unauthenticated dashboard state explains the required action", () => {
+  assert.match(source, /Sign in to open your dashboard\./);
+  assert.match(source, /Create an API key and see how your MCP server is being used\./);
+  assert.doesNotMatch(source, /Your workspace is waiting\./);
+});
+
 test("dashboard retries the callback session before showing the sign-in empty state", () => {
   assert.match(source, /let user = \(await auth\.getUser\(\)\)\.data\.user/);
   assert.match(source, /for \(let attempt = 0; !user && !settled && attempt < 7; attempt \+= 1\)/);
   assert.match(source, /setTimeout\(resolve, 250 \* \(attempt \+ 1\)\)/);
   assert.match(source, /setEmail\(null\);/);
+});
+
+test("dashboard cannot remain indefinitely blocked on auth hydration", () => {
+  assert.match(source, /AUTH_HYDRATION_TIMEOUT_MS = 10_000/);
+  assert.match(source, /We couldn't verify your session/);
+  assert.match(source, /window\.location\.reload\(\)/);
+  assert.match(source, /catch \{/);
 });
 
 test("dashboard settles from the authoritative Supabase auth event", () => {

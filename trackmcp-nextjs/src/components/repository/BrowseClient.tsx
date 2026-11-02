@@ -183,7 +183,7 @@ export function BrowseClient({
                   setCategory("all");
                   setInput("");
                 }}
-                className="inline-flex items-center gap-1 text-[12.5px] text-muted underline transition-colors hover:text-ink"
+                className="inline-flex cursor-pointer items-center gap-1 text-[12.5px] text-muted underline transition-colors hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
               >
                 Clear filters
               </button>
@@ -233,7 +233,7 @@ export function BrowseClient({
                 <button
                   type="button"
                   onClick={() => setVisible((v) => v + 12)}
-                  className="inline-flex items-center gap-2 rounded-lg border border-line-strong bg-white px-6 py-3 text-[14px] font-medium text-ink shadow-sm transition-colors hover:bg-paper"
+                  className="inline-flex cursor-pointer items-center gap-2 rounded-lg border border-line-strong bg-white px-6 py-3 text-[14px] font-medium text-ink shadow-sm transition-colors hover:bg-paper focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
                 >
                   Reveal more
                   <ChevronDown size={16} className="text-faint" />

@@ -305,7 +305,7 @@ export function SubmitClient() {
               <button
                 type="button"
                 onClick={() => setWantsFeatured((v) => !v)}
-                className={`w-full rounded-xl border p-4 text-left transition-all ${
+                className={`w-full cursor-pointer rounded-xl border p-4 text-left transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand ${
                   wantsFeatured ? "border-brand bg-brand-soft/50" : "border-line bg-paper hover:border-line-strong"
                 }`}
               >
@@ -343,7 +343,7 @@ export function SubmitClient() {
               <button
                 type="submit"
                 disabled={status === "loading"}
-                className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-brand px-5 py-3 text-[15px] font-semibold text-white transition-colors hover:bg-brand-strong disabled:opacity-70"
+                className="inline-flex w-full cursor-pointer items-center justify-center gap-2 rounded-lg bg-brand px-5 py-3 text-[15px] font-semibold text-white transition-colors hover:bg-brand-strong disabled:cursor-not-allowed disabled:opacity-70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
               >
                 {status === "loading" ? (
                   <>

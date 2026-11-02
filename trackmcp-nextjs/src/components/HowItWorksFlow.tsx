@@ -207,9 +207,10 @@ export function HowItWorksFlow() {
           return (
             <li key={s.key} className="relative">
               <button
+                type="button"
                 onClick={() => setActive(i)}
                 aria-current={cur ? "step" : undefined}
-                className="flex w-full flex-col items-center rounded-lg text-center"
+                className="flex w-full cursor-pointer flex-col items-center rounded-lg text-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
               >
                 <span
                   className={`relative z-10 grid h-7 w-7 place-items-center rounded-full border-2 bg-white transition-colors ${
@@ -260,8 +261,9 @@ export function HowItWorksFlow() {
       {/* controls */}
       <div className="mt-4 flex items-center justify-between">
         <button
+          type="button"
           onClick={() => setPlaying((p) => !p)}
-          className="inline-flex items-center gap-1.5 rounded-full border border-line bg-white px-3 py-1.5 text-[12.5px] font-medium text-body transition-colors hover:border-line-strong"
+          className="inline-flex cursor-pointer items-center gap-1.5 rounded-full border border-line bg-white px-3 py-1.5 text-[12.5px] font-medium text-body transition-colors hover:border-line-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
         >
           {playing ? (
             <>
@@ -277,9 +279,10 @@ export function HowItWorksFlow() {
           {STEPS.map((s, i) => (
             <button
               key={s.key}
+              type="button"
               aria-label={`Go to ${s.label}`}
               onClick={() => setActive(i)}
-              className={`h-1.5 rounded-full transition-all ${
+              className={`h-1.5 cursor-pointer rounded-full transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand ${
                 i === active ? "w-5 bg-brand" : "w-1.5 bg-line-strong hover:bg-muted"
               }`}
             />

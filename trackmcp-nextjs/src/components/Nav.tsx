@@ -110,8 +110,10 @@ export function Nav() {
           <button
             type="button"
             aria-label="Menu"
+            aria-expanded={open}
+            aria-controls="site-mobile-menu"
             onClick={() => setOpen((v) => !v)}
-            className="grid h-9 w-9 place-items-center rounded-lg border border-line-strong md:hidden"
+            className="grid h-9 w-9 cursor-pointer place-items-center rounded-lg border border-line-strong md:hidden focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
           >
             {open ? <X size={18} /> : <Menu size={18} />}
           </button>
@@ -119,7 +121,7 @@ export function Nav() {
       </div>
 
       {open && (
-        <div className="border-t border-line bg-white px-6 py-4 md:hidden">
+        <div id="site-mobile-menu" className="border-t border-line bg-white px-6 py-4 md:hidden">
           <div className="flex flex-col gap-3">
             {navigationLinks.map((l) => (
               <a
@@ -155,6 +157,16 @@ export function Nav() {
                   {r.label}
                 </a>
               ))}
+            </div>
+            <div className="flex items-center justify-between border-t border-line pt-3">
+              <Link
+                href="/signin"
+                onClick={() => setOpen(false)}
+                className="py-1 text-[15px] font-medium text-ink"
+              >
+                {signInLabel}
+              </Link>
+              <LanguageSwitcher />
             </div>
             <EarlyAccessButton size="sm" className="mt-3 w-full" />
           </div>

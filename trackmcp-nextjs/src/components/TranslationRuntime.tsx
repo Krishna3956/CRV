@@ -51,7 +51,7 @@ function translationEndpoints(): string[] {
 }
 
 async function requestTranslation(batch: string[]): Promise<string[]> {
-  let lastError: Error | null = null;
+  let lastError: (Error & { status?: number }) | null = null;
   for (const endpoint of translationEndpoints()) {
     try {
       const response = await fetch(endpoint, {
@@ -60,7 +60,7 @@ async function requestTranslation(batch: string[]): Promise<string[]> {
         body: JSON.stringify({ texts: batch, sourceLocale: "en", targetLocale: "zh-CN" }),
       });
       if (!response.ok) {
-        lastError = new Error(`Translation service returned ${response.status}.`);
+        lastError = Object.assign(new Error(`Translation service returned ${response.status}.`), { status: response.status });
         continue;
       }
       const body = (await response.json()) as { translations?: unknown };
@@ -71,7 +71,10 @@ async function requestTranslation(batch: string[]): Promise<string[]> {
       }
       return translations as string[];
     } catch (error) {
-      lastError = error instanceof Error ? error : new Error("Translation service unavailable.");
+      lastError = Object.assign(
+        error instanceof Error ? error : new Error("Translation service unavailable."),
+        { status: 503 },
+      );
     }
   }
   throw lastError || new Error("Translation service unavailable.");
@@ -80,7 +83,16 @@ async function requestTranslation(batch: string[]): Promise<string[]> {
 async function requestTranslationBestEffort(batch: string[]): Promise<Array<string | null>> {
   try {
     return await requestTranslation(batch);
-  } catch {
+  } catch (error) {
+    const status = typeof error === "object" && error !== null && "status" in error
+      ? Number((error as { status?: unknown }).status)
+      : undefined;
+    // A provider outage or rate limit is not an item-level validation error.
+    // Splitting the batch in that case multiplies traffic and can keep the
+    // entire page hidden behind the translation pending state for too long.
+    if (status === 408 || status === 429 || (status !== undefined && status >= 500)) {
+      return batch.map(() => null);
+    }
     // A single provider-rejected label must not discard an entire page. Split
     // the batch until the valid prose can be translated and leave only an
     // individual unsupported token in its source language.
@@ -260,6 +272,7 @@ async function translatePageInternal(generation: number) {
     for (let index = 0; index < uncached.length; index += 80) {
       const batch = uncached.slice(index, index + 80);
       const translations = await requestTranslationBestEffort(batch);
+      if (translations.every((value) => value === null)) throw new Error("Translation service unavailable.");
       batch.forEach((original, batchIndex) => {
         const value = translations[batchIndex];
         if (value) cacheTranslation(original, value);

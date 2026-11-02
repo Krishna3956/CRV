@@ -41,7 +41,7 @@ export function TableOfContents({ items }: { items: TocItem[] }) {
             type="button"
             onClick={() => go(item.id)}
             aria-current={activeId === item.id ? "location" : undefined}
-            className={`block w-full rounded-md px-2.5 py-1.5 text-left text-[12.5px] leading-snug transition-colors ${
+            className={`block w-full cursor-pointer rounded-md px-2.5 py-1.5 text-left text-[12.5px] leading-snug transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand ${
               activeId === item.id
                 ? "bg-brand-soft font-medium text-brand-strong"
                 : "text-muted hover:bg-mist hover:text-body"
@@ -63,7 +63,7 @@ export function TableOfContents({ items }: { items: TocItem[] }) {
         type="button"
         onClick={() => setOpen((v) => !v)}
         aria-expanded={open}
-        className="mb-2 flex w-full items-center justify-between border-b border-line pb-2"
+        className="mb-2 flex w-full cursor-pointer items-center justify-between border-b border-line pb-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
       >
         <span className="flex items-center gap-2 text-[12px] font-semibold text-ink">
           <span className="h-3.5 w-1 rounded-full bg-brand" /> On this page

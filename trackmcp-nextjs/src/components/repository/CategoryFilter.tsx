@@ -20,7 +20,7 @@ export function CategoryFilter({
             key={c.id}
             type="button"
             onClick={() => onChange(c.id)}
-            className={`rounded-full border px-3 py-1.5 text-[12.5px] font-medium transition-colors ${
+            className={`cursor-pointer rounded-full border px-3 py-1.5 text-[12.5px] font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand ${
               on
                 ? "border-brand bg-brand-soft text-brand-strong"
                 : "border-line bg-white text-muted hover:border-line-strong hover:text-body"

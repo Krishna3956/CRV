@@ -13,6 +13,8 @@ test("root layout exposes one global language switcher and runtime", async () =>
   assert.match(nav, /import \{ LanguageSwitcher \} from "\.\/LanguageSwitcher"/);
   assert.match(nav, /<LanguageSwitcher\s*\/>/);
   assert.match(nav, /<div className="hidden md:block">\s*<LanguageSwitcher\s*\/>/);
+  const css = await readFile(resolve(root, "src/app/globals.css"), "utf8");
+  assert.match(css, /body:has\(\[data-site-nav\]\) \.global-language-switcher\s*\{\s*display:\s*none\s*!important;/);
 });
 
 test("social auth is fail-closed until Supabase enables a provider", async () => {
@@ -74,8 +76,8 @@ test("Chinese browser preferences only drive a non-blocking suggestion", async (
   const switcher = await readFile(resolve(root, "src/components/LanguageSwitcher.tsx"), "utf8");
   assert.match(switcher, /useSyncExternalStore/);
   assert.match(switcher, /getServerLocale/);
-  assert.match(switcher, /selectedLocale/);
-  assert.match(switcher, /setSelectedLocale\(next\)/);
+  assert.match(switcher, /const locale = useSyncExternalStore/);
+  assert.doesNotMatch(switcher, /setSelectedLocale/);
   assert.match(switcher, /writeSiteLocale\(next\)/);
   const suggestion = await readFile(resolve(root, "src/components/LanguageSuggestion.tsx"), "utf8");
   assert.match(suggestion, /是否切换为简体中文/);
@@ -112,6 +114,14 @@ test("translation endpoint only accepts English to Simplified Chinese", async ()
   assert.match(source, /status: 429/);
   assert.match(source, /TRACKMCP_TRUST_PROXY/);
   assert.match(source, /!== "true"/);
+});
+
+test("translation outages do not recursively amplify provider traffic", async () => {
+  const runtime = await readFile(resolve(root, "src/components/TranslationRuntime.tsx"), "utf8");
+  assert.match(runtime, /status === 408 \|\| status === 429/);
+  assert.match(runtime, /status !== undefined && status >= 500/);
+  assert.match(runtime, /batch\.map\(\(\) => null\)/);
+  assert.match(runtime, /translations\.every\(\(value\) => value === null\)/);
 });
 
 test("translation batches are bounded and use a configured provider", async () => {

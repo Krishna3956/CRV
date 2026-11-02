@@ -41,14 +41,14 @@ export function LanguageSuggestion() {
         <button
           type="button"
           onClick={() => choose("zh-CN")}
-          className="rounded-lg bg-ink px-3 py-1.5 text-[12px] font-medium text-white transition-colors hover:bg-body"
+          className="cursor-pointer rounded-lg bg-ink px-3 py-1.5 text-[12px] font-medium text-white transition-colors hover:bg-body focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
         >
           切换为中文
         </button>
         <button
           type="button"
           onClick={() => choose("en")}
-          className="rounded-lg border border-line-strong px-3 py-1.5 text-[12px] font-medium text-body transition-colors hover:border-ink hover:text-ink"
+          className="cursor-pointer rounded-lg border border-line-strong px-3 py-1.5 text-[12px] font-medium text-body transition-colors hover:border-ink hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
         >
           Continue in English
         </button>

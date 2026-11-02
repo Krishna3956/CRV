@@ -33,7 +33,7 @@ export function FilterBar({
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
-        className="inline-flex items-center gap-2 rounded-lg border border-line bg-white px-3.5 py-2.5 text-[13.5px] font-medium text-body shadow-sm transition-colors hover:border-line-strong"
+        className="inline-flex cursor-pointer items-center gap-2 rounded-lg border border-line bg-white px-3.5 py-2.5 text-[13.5px] font-medium text-body shadow-sm transition-colors hover:border-line-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
       >
         Sort: <span className="text-ink">{current.label}</span>
         <ChevronDown size={14} className="text-faint" />
@@ -48,7 +48,7 @@ export function FilterBar({
                 onSortChange(o.key);
                 setOpen(false);
               }}
-              className="flex w-full items-center justify-between rounded-md px-2.5 py-1.5 text-left text-[13px] text-body transition-colors hover:bg-mist"
+              className="flex w-full cursor-pointer items-center justify-between rounded-md px-2.5 py-1.5 text-left text-[13px] text-body transition-colors hover:bg-mist focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
             >
               {o.label}
               {o.key === sortBy && <Check size={14} className="text-brand-strong" />}
