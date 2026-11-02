@@ -85,7 +85,9 @@ jobs:
             echo STAGING_SUPABASE_HEALTH_UNHEALTHY_SERVICE
             exit 1
           fi
-          for service in db auth rest kong; do
+          # The pinned Supabase stack uses api-gw for the gateway service. The
+          # older kong name is not present in this deployment.
+          for service in db auth rest api-gw; do
             line=$(printf '%s\n' "$SERVICE_STATE" | awk -F'|' -v name="$service" '$1 == name { print; exit }')
             [[ -n "$line" ]] || { echo STAGING_SUPABASE_HEALTH_SERVICE_MISSING service="$service"; exit 1; }
             state=$(printf '%s' "$line" | cut -d'|' -f2)
@@ -104,7 +106,7 @@ jobs:
             http://127.0.0.1:8000/rest/v1/)
           [[ "$REST_STATUS" =~ ^(2|4)[0-9][0-9]$ ]] || { echo STAGING_SUPABASE_HEALTH_REST_HTTP_FAILED status="$REST_STATUS"; exit 1; }
 
-          echo "STAGING_SUPABASE_HEALTH_PROBE_PASSED services=db,auth,rest,kong auth_http=${AUTH_STATUS} rest_http=${REST_STATUS}"
+          echo "STAGING_SUPABASE_HEALTH_PROBE_PASSED services=db,auth,rest,api-gw auth_http=${AUTH_STATUS} rest_http=${REST_STATUS}"
           echo "No secret value, database row, or application payload was printed; no container or AWS resource was changed."
           REMOTE_EOF
           )
