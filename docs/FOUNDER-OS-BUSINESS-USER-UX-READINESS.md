@@ -2,14 +2,15 @@
 
 Date: 2026-11-03  
 Branch: `codex/business-user-ux-audit`  
-Latest verified commit: `7e320a3f` (`Improve business UX research and auth affordances`)
+Latest verified commit: `ab52c783` (`Polish signed-out dashboard handoff`)
 
 This matrix is the release-readiness companion to the UX audit and work
 queue. It intentionally separates source-level proof, read-only browser proof,
 and evidence that requires a real account, deployment, or human participant.
 
 Latest branch verification: `npm run test:release-gate` passed all 159 suites
-after the authentication-affordance and research pass (`7e320a3f`). The branch
+after the authentication-affordance, research, and signed-out handoff pass
+(`ab52c783`). The branch
 remains local and has not been merged or deployed.
 
 ## Requirement coverage
@@ -19,12 +20,12 @@ remains local and has not been merged or deployed.
 | A newly signed-up user understands that a workspace is being prepared | **Implemented and tested** | `trackmcp-nextjs/src/app/dashboard/page.tsx`; `src/app/dashboard/page.contract.test.mjs` | Fresh-account browser verification |
 | Legacy `/onboarding` entry point does not fork the setup story | **Verified in source** | `trackmcp-nextjs/src/app/onboarding/page.tsx` redirects to `/dashboard`; `trackmcp-nextjs/src/app/dashboard/onboarding/page.tsx` does the same | Fresh-account navigation check after deployment |
 | A user with no workspace does not get trapped before setup | **Implemented and tested** | `DashboardApp.tsx` routes “Complete setup” to Setup while provisioning; setup-state contract; workspace route contract | Fresh-account verification against production auth/session state |
-| Setup explains the three required steps | **Implemented and tested** | `DashboardApp.tsx`; state-aware setup rail; 79 business UX tests | Confirm copy with a non-technical participant |
+| Setup explains the three required steps | **Implemented and tested** | `DashboardApp.tsx`; state-aware setup rail; 80 business UX tests | Confirm copy with a non-technical participant |
 | First-time sign-in/sign-up controls look actionable and remain keyboard-visible | **Implemented and tested** | `src/app/signin/page.tsx`, `src/components/OAuthButtons.tsx`; business UX contract | Confirm affordance and copy in a fresh-account browser walkthrough |
 | Setup explains what appears after the first event | **Implemented and tested** | `BusinessContext` “What you will get after setup”; business UX contract | Fresh-account browser verification |
 | Setup gives an activated user a direct next action into the business dashboard | **Implemented and tested** | `SetupView` shows `Open Overview` after verified, limited, or identity-limited activity; business UX contract | Confirm with a real first-event account |
 | My data and Example data are visibly separate | **Implemented and tested; verified live read-only** | `DataSourceStrip`; Example data contract; authenticated Chrome review | Verify after deployment of this branch |
-| Overview answers who, what, outcome, and attention questions | **Implemented and tested** | Overview business-question copy, KPI helpers, period context, and chart-table fallback; 79 business UX tests | Verify deployed rendering |
+| Overview answers who, what, outcome, and attention questions | **Implemented and tested** | Overview business-question copy, KPI helpers, period context, and chart-table fallback; 80 business UX tests | Verify deployed rendering |
 | Overview gives an evidence-aware next action | **Implemented and tested; verified locally** | `OverviewNextStep` in `DashboardApp.tsx`; local Example-data browser preview; business UX contract | Verify routing and copy with a fresh production account |
 | “Who’s using it” explains account signals versus people/customers | **Implemented and tested** | `ClientsView`; metric contract; business UX tests | Confirm with a business participant |
 | “What they’re doing” leads with adoption and reliability | **Implemented and tested** | `CapabilitiesView`; business UX tests; technical protocol detail is progressively disclosed | Verify deployed rendering |
