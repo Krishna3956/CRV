@@ -4356,7 +4356,7 @@ function EvidenceView({
                 <th className="pb-3">Observed session</th>
                 <th className="pb-3">Assistant</th>
                 <th className="pb-3">Observed actions</th>
-                <th className="pb-3">Link quality</th>
+                <th className="pb-3">Evidence link</th>
                 <th className="pb-3">Action</th>
               </tr>
             </thead>
@@ -5658,12 +5658,12 @@ function metricValue(value: number | null | undefined) {
 function correlationLabel(
   value: Analytics["workflows"][number]["correlation_quality"],
 ): string {
-  if (value === "session_id") return "Session ID";
-  if (value === "transport_generated") return "Transport-generated";
-  if (value === "external") return "External handle";
-  if (value === "issued") return "Issued handle";
-  if (value === "mixed") return "Mixed correlation";
-  return "Legacy/Unknown";
+  if (value === "session_id") return "Linked to session";
+  if (value === "transport_generated") return "Linked by transport";
+  if (value === "external") return "Linked by server";
+  if (value === "issued") return "Linked by TrackMCP";
+  if (value === "mixed") return "Mixed evidence";
+  return "Limited link";
 }
 function insufficientReason(reason: ToolQualityInsufficientReason) {
   const labels: Record<ToolQualityInsufficientReason, string> = {

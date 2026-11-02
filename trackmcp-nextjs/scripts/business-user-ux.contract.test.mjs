@@ -49,6 +49,8 @@ test("activated-user dashboard is organized around business questions", () => {
   assert.match(dashboard, /label="Error rate"/);
   assert.doesNotMatch(dashboard, /Open Trace Explorer/);
   assert.match(dashboard, /Observed session \{index \+ 1\}/);
+  assert.match(dashboard, /Evidence link/);
+  assert.match(dashboard, /Linked to session/);
   assert.match(dashboard, /Open evidence/);
 });
 
