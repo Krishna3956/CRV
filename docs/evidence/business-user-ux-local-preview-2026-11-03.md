@@ -485,3 +485,16 @@ Latest verification after `2ac7b4be`:
 - `npm run test:release-gate`: passed all 159 suites.
 - The branch remains local and undeployed; fresh-account, production, and
   non-technical participant evidence are still required.
+
+Latest shell verification after `984f2cbe`:
+
+- The desktop language selector now appears only in the global header. The
+  duplicate sidebar control was removed so global settings have one predictable
+  location while the sidebar stays focused on navigation and account actions.
+- `npm run test:business-user-ux`: 83/83 passed.
+- `npx tsc --noEmit --pretty false`: passed.
+- `npm run lint`: passed.
+- `npm run build`: passed; 230 static pages generated.
+- The full release gate remains green at 159 suites from the immediately
+  preceding source state; this shell-only change is covered by the focused
+  business UX contract suite.

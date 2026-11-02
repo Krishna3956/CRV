@@ -2,7 +2,7 @@
 
 Date: 2026-11-03  
 Branch: `codex/business-user-ux-audit`  
-Latest verified commit: `2ac7b4be` (`Clarify setup key details for business readers`)
+Latest verified commit: `984f2cbe` (`Keep dashboard language control in one place`)
 
 This matrix is the release-readiness companion to the UX audit and work
 queue. It intentionally separates source-level proof, read-only browser proof,
@@ -19,9 +19,10 @@ temporary path so the tracked evidence fixture remained unchanged.
 The branch remains local and has not been merged or deployed.
 
 Final current-branch build: `npm run build` passed with 230 static pages
-generated after the active-key-details disclosure change. TypeScript and ESLint
+generated after the single-header language-control change. TypeScript and ESLint
 also passed. The full `npm run test:release-gate` passed all 159 suites on
-`2ac7b4be`.
+`2ac7b4be`; the language-control change is covered by the focused 83-test
+business UX suite.
 This is still local build evidence; it does not prove a production deployment
 or authenticated production rendering.
 
