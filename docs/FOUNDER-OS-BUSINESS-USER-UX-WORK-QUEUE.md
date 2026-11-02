@@ -148,6 +148,10 @@ Legend: `[x]` verified/implemented in this workstream; `[ ]` pending.
 - [x] ✅ Give every visible sign-in/sign-up and recovery control a consistent
       pointer affordance, disabled cursor state, and keyboard focus ring so a
       first-time user can tell what is actionable before authentication.
+- [x] ✅ Run a built local runtime smoke with the documented dashboard bypass:
+      `/signin`, `/signup`, the Example-data Overview and Setup routes, `/docs`,
+      and `/sitemap.xml` returned HTTP 200; this remains local evidence, not
+      authenticated production evidence.
 - [ ] Run authenticated local runtime smoke; the standalone server starts, but
       the local homepage returns HTTP 500 without local Supabase URL/key values.
 

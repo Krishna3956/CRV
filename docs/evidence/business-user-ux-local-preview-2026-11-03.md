@@ -270,6 +270,25 @@ Verification after this pass:
 - Worktree restored to clean state after the release gate regenerated its
   synthetic UAT timestamp.
 
+## Built runtime smoke
+
+The production build was started through `scripts/start-standalone.mjs` with
+the documented local dashboard bypass and deliberately invalid placeholder
+Supabase values. The following routes returned HTTP 200 from the built server:
+
+- `/signin`
+- `/signup`
+- `/dashboard?view=overview&data=example`
+- `/dashboard?view=setup&data=example`
+- `/docs`
+- `/sitemap.xml`
+
+The server-rendered signup response contained the expected first-run copy:
+`Create your TrackMCP account`, `technical teammate can connect one server`,
+and `usage, outcomes, and issues`. This is local bypass evidence only; it does
+not prove a real authenticated session, a Supabase-backed workspace, or a
+production deployment.
+
 ## Capability-page progressive disclosure follow-up
 
 After the initial research and comprehension pass, the local bypass preview
