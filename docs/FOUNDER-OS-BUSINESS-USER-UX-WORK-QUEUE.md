@@ -56,6 +56,8 @@ Legend: `[x]` verified/implemented in this workstream; `[ ]` pending.
       hover interactions.
 - [x] ✅ Move dense protocol-family and lifecycle detail behind an explicit
       “Technical protocol evidence” disclosure on the capability view.
+- [x] ✅ Clarify capability KPI labels so comparison values, error rates, and
+      resolver-linked account scope are explicit to business readers.
 - [x] ✅ Perform a read-only browser review of the current production Setup,
       Overview, Example data, and My data states; record live-vs-branch
       differences in the audit.

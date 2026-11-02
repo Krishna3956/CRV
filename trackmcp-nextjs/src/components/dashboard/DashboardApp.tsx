@@ -3117,9 +3117,9 @@ function CapabilitiesView({
         <>
           <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
             <Kpi label="Observed actions" value={fmt(activity.total_calls)} icon={Activity} helper={`${analytics.range_days} day window`} />
-            <Kpi label="Compared with the previous period" value={fmt(activity.previous_period_calls)} icon={TrendingUp} helper="Same-length comparison" />
-            <Kpi label="Actions that returned an error" value={activity.overall_error_rate === null ? "N/A" : percent(activity.overall_error_rate)} icon={ShieldCheck} helper="Observed errors only; not a root-cause diagnosis" />
-            <Kpi label="Average features used per account" value={activity.avg_tools_used_per_account === null ? "N/A" : activity.avg_tools_used_per_account.toFixed(1)} icon={Blocks} helper={`of ${fmt(activity.advertised_tools)} advertised`} />
+            <Kpi label="Prior-period actions" value={fmt(activity.previous_period_calls)} icon={TrendingUp} helper="Same-length comparison window" />
+            <Kpi label="Error rate" value={activity.overall_error_rate === null ? "N/A" : percent(activity.overall_error_rate)} icon={ShieldCheck} helper="Observed errors only; not a root-cause diagnosis" />
+            <Kpi label="Average features used per account" value={activity.avg_tools_used_per_account === null ? "N/A" : activity.avg_tools_used_per_account.toFixed(1)} icon={Blocks} helper={`Resolver-linked accounts · ${fmt(activity.advertised_tools)} advertised`} />
           </div>
           <div className="mt-4 grid gap-4 xl:grid-cols-[1.1fr_0.9fr]">
             <Panel title="Most-used features" subtitle="Which capabilities are carrying the observed activity">
