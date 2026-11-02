@@ -98,6 +98,16 @@ jobs:
               | awk -F= '$1 ~ /^(DATABASE_URL|POOLER_[A-Z0-9_]+|POSTGRES_[A-Z0-9_]+|API_JWT_SECRET|JWT_SECRET|DB_ENC_KEY)$/ { print $1 }' \
               | sort | paste -sd, -)
             echo "STAGING_SUPABASE_HEALTH_POOLER_CONFIG_KEYS=${POOLER_KEYS:-none}"
+            # Supavisor can fail after Docker has accepted its environment.
+            # Emit only sanitized, bounded error lines so the restart cause is
+            # diagnosable without exposing connection strings or credentials.
+            echo STAGING_SUPABASE_HEALTH_POOLER_LOG_ERRORS_START
+            docker logs --tail 100 "$POOLER_CONTAINER" 2>&1 \
+              | grep -Ei 'error|exception|failed|invalid|cannot|crash|shutdown|refused' \
+              | tail -n 20 \
+              | sed -E 's#(postgres(ql)?://)[^[:space:]]+#\1REDACTED#g; s#([Pp]assword|[Ss]ecret|[Tt]oken|[Kk]ey)[=:][^[:space:]]+#\1=REDACTED#g; s/[A-Za-z0-9_-]{40,}/REDACTED/g' \
+              | sed 's/[^[:print:]\t]//g' || true
+            echo STAGING_SUPABASE_HEALTH_POOLER_LOG_ERRORS_END
           else
             echo STAGING_SUPABASE_HEALTH_POOLER_RUNTIME=missing
             echo STAGING_SUPABASE_HEALTH_POOLER_CONFIG_KEYS=none
