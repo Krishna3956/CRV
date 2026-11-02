@@ -90,6 +90,10 @@ Legend: `[x]` verified/implemented in this workstream; `[ ]` pending.
       replace avoidable engineering terms such as telemetry, resolver signal,
       and account signal with activity, account group, and plain-English
       evidence wording while keeping technical detail available in disclosures.
+- [x] ✅ Apply the same interaction affordance contract to the first-time
+      authentication path: primary sign-in/sign-up and social-provider controls
+      expose a pointer cursor, visible keyboard focus, and an explicit disabled
+      state so the first setup step does not look inert.
 - [x] ✅ Simplify Setup status states so a business reader sees “recent server
       activity”, “partial view”, and “account grouping unavailable” before
       technical evidence terminology.

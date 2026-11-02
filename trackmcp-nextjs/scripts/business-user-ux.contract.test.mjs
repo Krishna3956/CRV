@@ -4,6 +4,7 @@ import test from "node:test";
 
 const dashboard = await readFile(new URL("../src/components/dashboard/DashboardApp.tsx", import.meta.url), "utf8");
 const auth = await readFile(new URL("../src/app/signin/page.tsx", import.meta.url), "utf8");
+const oauth = await readFile(new URL("../src/components/OAuthButtons.tsx", import.meta.url), "utf8");
 const apiDocs = await readFile(new URL("../src/app/docs/api/page.tsx", import.meta.url), "utf8");
 const target = await readFile(new URL("../../docs/FOUNDER-OS-BUSINESS-USER-UX-TARGET.md", import.meta.url), "utf8");
 const strategy = await readFile(new URL("../../docs/FOUNDER-OS-BUSINESS-USER-UX-STRATEGY.md", import.meta.url), "utf8");
@@ -65,6 +66,15 @@ test("customer-facing docs use TrackMCP product language", () => {
   assert.doesNotMatch(apiDocs, /Founder OS/);
 });
 
+test("first-time authentication controls expose clear interaction affordances", () => {
+  assert.match(auth, /Create account/);
+  assert.match(auth, /cursor-pointer items-center justify-center gap-2 rounded-lg bg-ink/);
+  assert.match(auth, /disabled:cursor-not-allowed/);
+  assert.match(auth, /focus-visible:ring-2 focus-visible:ring-brand/);
+  assert.match(oauth, /cursor-pointer items-center justify-center gap-2/);
+  assert.match(oauth, /Loading sign-in options/);
+});
+
 test("uncertainty and technical evidence remain explicit", () => {
   assert.match(dashboard, /N\/A means there is not enough evidence yet/);
   assert.match(dashboard, /Why this signal is shown/);
@@ -78,6 +88,9 @@ test("research principles are translated into TrackMCP decisions", () => {
   assert.match(research, /Progressive disclosure/);
   assert.match(research, /Do not add period comparisons/);
   assert.match(research, /Source-to-change mapping/);
+  assert.match(research, /curated, not like a chart catalog/);
+  assert.match(research, /Use color and chart form to encode meaning sparingly/);
+  assert.match(research, /Copy is part of the product's measurement contract/);
   assert.match(queue, /Research PostHog, Amplitude, GA4/);
 });
 

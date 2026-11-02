@@ -125,6 +125,70 @@ TrackMCP application:
   existing read-model fields and cannot invent completion, identity, or health
   claims.
 
+### 9. Make the first review path feel curated, not like a chart catalog
+
+The current product-analytics leaders converge on a small set of repeatable
+review patterns rather than asking every reader to assemble meaning from raw
+events. PostHog groups saved insights into dashboards and lets a team move from
+a drop-off to the supporting evidence. Amplitude explicitly treats a dashboard
+as a recurring team-review surface and marks vetted dashboards as official.
+Mixpanel's report model similarly starts from a question (for example, trends,
+funnels, retention, or flows) and then makes the resulting report shareable.
+See [PostHog dashboards](https://posthog.com/docs/product-analytics/dashboards),
+[Amplitude analytics](https://amplitude.com/docs/analytics), and
+[Mixpanel reports](https://docs.mixpanel.com/docs/reports).
+
+TrackMCP application:
+
+- The first screen should make one recommendation and expose one obvious next
+  action; it should not present every available analysis at equal visual weight.
+- The business-facing tab order is a guided reading sequence: who is present,
+  what they are doing, whether it worked, and what needs attention.
+- Example data is a teaching surface, not a disguised health score. My data
+  remains the source for decisions and must carry its evidence boundary.
+- A future shared Overview should be a stable, reviewed team surface before we
+  add customization, arbitrary chart builders, or a large palette of optional
+  widgets.
+
+### 10. Use color and chart form to encode meaning sparingly
+
+USWDS recommends familiar chart types, one central idea per visualization,
+plain-language summaries, and an accessible table alternative. NN/g's chart
+guidance emphasizes context, contrast, and removing chart junk; its dashboard
+guidance treats dashboards as at-a-glance surfaces for action rather than
+expansive analytical workspaces. See [USWDS data visualizations](https://designsystem.digital.gov/components/data-visualizations/),
+[NN/g chart context](https://www.nngroup.com/articles/choosing-chart-types/),
+and [NN/g dashboards](https://www.nngroup.com/articles/dashboards-preattentive/).
+
+TrackMCP application:
+
+- Keep the neutral canvas and one restrained brand action color. Reserve amber
+  and red for an evidence-backed warning or failure, never for decoration.
+- Put the conclusion in text next to the chart; do not make a reader infer the
+  point from color or shape alone.
+- Keep a table or exact-value alternative for every trend used in a business
+  decision.
+- Treat empty, partial, and example states as first-class designs with their
+  own explanation and next action.
+
+### 11. Copy is part of the product's measurement contract
+
+Microsoft and GOV.UK writing guidance both recommend plain words, concise
+sentences, positive and direct error messages, and a clear recovery action.
+GOV.UK specifically says an error should describe what happened and how to fix
+it. See [Microsoft concise writing](https://learn.microsoft.com/en-us/style-guide/word-choice/use-simple-words-concise-sentences)
+and [GOV.UK error messages](https://design-system.service.gov.uk/components/error-message/).
+
+TrackMCP application:
+
+- Use the same noun for the same concept across navigation, cards, docs, and
+  empty states (for example, `connection key`, not alternating `API key`,
+  `scoped key`, and `credential`).
+- Lead with the status and action: `No server activity yet — connect one server`
+  is better than a paragraph about ingestion internals.
+- When a value is unknown, say why it is unknown and what evidence would make it
+  known. Never replace uncertainty with a zero or a reassuring color.
+
 ## What this means for the current product
 
 ### Strengths already present on this branch

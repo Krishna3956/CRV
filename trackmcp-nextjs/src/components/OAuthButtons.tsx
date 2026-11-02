@@ -58,7 +58,7 @@ export function OAuthButtons({
     }
   };
 
-  const buttonClass = "inline-flex h-11 items-center justify-center gap-2 rounded-lg border border-line-strong bg-white px-3 text-[13px] font-medium text-body transition-colors hover:bg-mist disabled:cursor-not-allowed disabled:opacity-60";
+  const buttonClass = "inline-flex h-11 cursor-pointer items-center justify-center gap-2 rounded-lg border border-line-strong bg-white px-3 text-[13px] font-medium text-body transition-colors hover:bg-mist disabled:cursor-not-allowed disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2";
   if (providers && !providers.google && !providers.github) return null;
   if (!providers) {
     return (
