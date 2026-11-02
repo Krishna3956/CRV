@@ -2,7 +2,7 @@
 
 Date: 2026-11-03
 Branch: `codex/business-user-ux-audit`
-Commit under review: `c2ec08f6` (`Use business language in evidence drill-down`)
+Commit under review: `7ae202c4` (`Remove green dashboard empty-state accents`)
 
 This is local browser evidence only. It is not production evidence and does
 not replace a fresh-account or real-telemetry walkthrough.
