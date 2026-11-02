@@ -34,6 +34,9 @@ Legend: `[x]` verified/implemented in this workstream; `[ ]` pending.
       preparation instead of showing a generic loading message.
 - [x] ✅ Add an Evidence-view guide that makes technical drill-down and privacy
       boundaries clear to business readers.
+- [x] ✅ Keep the internal Founder OS project name out of customer-facing
+      dashboard labels; use TrackMCP language in the shell and desktop-only
+      support notice.
 - [x] ✅ Add a requirement-by-requirement readiness matrix that separates
       branch proof, live read-only evidence, and remaining pilot gates.
 - [x] ✅ Rewrite no-data page previews with business language so a first-time
