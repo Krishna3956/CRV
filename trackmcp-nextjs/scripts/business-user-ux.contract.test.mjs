@@ -11,6 +11,7 @@ const target = await readFile(new URL("../../docs/FOUNDER-OS-BUSINESS-USER-UX-TA
 const strategy = await readFile(new URL("../../docs/FOUNDER-OS-BUSINESS-USER-UX-STRATEGY.md", import.meta.url), "utf8");
 const research = await readFile(new URL("../../docs/FOUNDER-OS-BUSINESS-USER-UX-RESEARCH.md", import.meta.url), "utf8");
 const queue = await readFile(new URL("../../docs/FOUNDER-OS-BUSINESS-USER-UX-WORK-QUEUE.md", import.meta.url), "utf8");
+const uat = await readFile(new URL("../../docs/FOUNDER-OS-BUSINESS-USER-UAT-SCRIPT.md", import.meta.url), "utf8");
 
 test("new-user setup explains the business outcome before technical detail", () => {
   assert.match(auth, /a technical teammate can connect one server/);
@@ -112,4 +113,13 @@ test("the work queue records this UX slice and its remaining scope", () => {
   assert.match(queue, /\[x\] ✅ Keep issue evidence/);
   assert.match(queue, /Slice-by-slice follow-up/);
   assert.match(queue, /No formula or read-model changes without metric-contract review/);
+});
+
+test("the business-user UAT script is executable and has a safety threshold", () => {
+  assert.match(uat, /Do not coach the participant/);
+  assert.match(uat, /My data.*workspace activity/);
+  assert.match(uat, /Example data.*illustrative/);
+  assert.match(uat, /Evidence details are a drill-down/);
+  assert.match(uat, /six of the eight Journey B actions/);
+  assert.match(uat, /secret-handling request is a release\s+blocker/);
 });
