@@ -41,6 +41,10 @@ and evidence that requires a real account, deployment, or human participant.
 - TypeScript, ESLint, business UX contracts, metric contracts, and production
   build pass.
 - The build generated 230 static pages.
+- Dashboard and read-model route contracts pass for Overview, Setup, People,
+  Journeys, Outcomes, Resources, Prompts, Reliability, and Data Trust.
+- Accessibility, PDF parity, documentation navigation/version, mobile layout,
+  and pointer/focus contracts pass.
 
 ### Tier 2 — verified in the current production browser, read-only
 
