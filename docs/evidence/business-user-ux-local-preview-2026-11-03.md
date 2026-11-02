@@ -81,3 +81,13 @@ privacy boundary.
 The The journey preview expanded its reach table successfully, showing each
 observed step with reached count and share while retaining the explicit caveat
 that a missing next event is not abandonment.
+
+## Signup handoff
+
+Route: `/signup`
+
+The local browser preview rendered the new signup description before the form:
+“Create your account. Next, a technical teammate can connect one server, and
+your team can read usage, outcomes, and issues in the dashboard.” This makes
+the ownership handoff and post-signup value visible before authentication is
+complete.
