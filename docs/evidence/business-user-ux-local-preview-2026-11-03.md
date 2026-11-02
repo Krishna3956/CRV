@@ -155,3 +155,25 @@ Verified in the rendered accessibility tree:
 This is local browser evidence only. It confirms rendered copy and hierarchy;
 it does not prove production read-model data, account creation, or a real
 first-event connection.
+
+## First-time handoff preview
+
+A fresh local bypass session was opened at `/dashboard?view=overview&data=my`
+on port `3142` and the primary `Complete setup` action was activated.
+
+The rendered flow verified that:
+
+- The empty Overview explains the business value before showing setup detail.
+- The page states that no Example data is substituted into My data.
+- The primary action navigates directly to `/dashboard?view=setup&data=my`.
+- Setup immediately explains the three steps: create a key, install the SDK,
+  and send one real event.
+- Setup names the next business outcome: who is showing up, what people are
+  trying, whether work completed, and what deserves attention.
+- The CLI-first recommendation, TypeScript/Python/Go/.NET tabs, first-event
+  check, and progressive disclosure for advanced controls are visible in the
+  same setup flow.
+
+The local API calls returned 503 because the preview intentionally used
+placeholder Supabase values. That is expected fail-closed behavior and is not
+production evidence.
