@@ -169,6 +169,7 @@ test("business users receive orientation before technical detail", () => {
   assert.match(source, /Most-used features/);
   assert.match(source, /Resource lookups/);
   assert.match(source, /Feature reliability/);
+  assert.match(source, /className="mt-1 text-\[11px\] leading-relaxed text-muted">\{helper\}/);
 });
 
 test("data source state is explicit and never silently substituted", () => {

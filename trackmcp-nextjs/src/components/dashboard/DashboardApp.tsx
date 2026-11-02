@@ -2248,6 +2248,7 @@ function Kpi({
       <p className="dashboard-metric mt-3 tracking-[-0.04em] text-ink">
         {value}
       </p>
+      <p className="mt-1 text-[11px] leading-relaxed text-muted">{helper}</p>
     </div>
   );
 }
