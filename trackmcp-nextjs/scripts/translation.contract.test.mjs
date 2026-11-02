@@ -5,14 +5,22 @@ import test from "node:test";
 
 const root = resolve(process.cwd());
 
-test("root layout exposes one global language switcher and runtime", async () => {
+test("root layout exposes a route-aware global language switcher and runtime", async () => {
   const source = await readFile(resolve(root, "src/app/layout.tsx"), "utf8");
-  assert.match(source, /<LanguageSwitcher\s*\/>/);
+  assert.match(source, /<GlobalLanguageSwitcher\s*\/>/);
   assert.match(source, /<TranslationRuntime\s*\/>/);
+  const globalSwitcher = await readFile(resolve(root, "src/components/GlobalLanguageSwitcher.tsx"), "utf8");
+  assert.match(globalSwitcher, /\/dashboard/);
+  assert.match(globalSwitcher, /\/onboarding/);
+  assert.match(globalSwitcher, /return null/);
   const nav = await readFile(resolve(root, "src/components/Nav.tsx"), "utf8");
   assert.match(nav, /import \{ LanguageSwitcher \} from "\.\/LanguageSwitcher"/);
   assert.match(nav, /<LanguageSwitcher\s*\/>/);
   assert.match(nav, /<div className="hidden md:block">\s*<LanguageSwitcher\s*\/>/);
+  assert.match(nav, /className="border-t border-line pt-3">\s*<LanguageSwitcher\s*\/>/);
+  const dashboard = await readFile(resolve(root, "src/components/dashboard/DashboardApp.tsx"), "utf8");
+  assert.match(dashboard, /@\/components\/LanguageSwitcher/);
+  assert.match(dashboard, /<LanguageSwitcher\s*\/>/);
 });
 
 test("social auth is fail-closed until Supabase enables a provider", async () => {
@@ -165,6 +173,11 @@ test("runtime excludes code and user-editable content", async () => {
   const footer = await readFile(resolve(root, "src/components/Footer.tsx"), "utf8");
   assert.match(footer, /aria-label="TrackMCP home" data-no-translate/);
   assert.match(source, /OPAQUE_TECHNICAL_LABEL/);
+  assert.match(source, /TRANSLATION_REQUEST_TIMEOUT_MS/);
+  assert.match(source, /TRANSLATION_PAGE_TIMEOUT_MS/);
+  assert.match(source, /AbortController/);
+  assert.match(source, /signal\.aborted/);
+  assert.match(source, /data-trackmcp-translation-pending.*true/);
 });
 
 test("translation hydration prevents a half-translated first paint", async () => {

@@ -39,6 +39,7 @@ import type {
 } from "@/lib/telemetry/analytics-types";
 import type { AlertDeliveryAttempt, AlertIncident } from "@/lib/alerts/types";
 import { TrackMCPLogo } from "@/components/TrackMCPLogo";
+import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { TraceExplorer } from "@/components/dashboard/TraceExplorer";
 import {
   TOOL_QUALITY_MIN_CATALOG_CALLS,
@@ -1225,6 +1226,9 @@ export function DashboardApp({
           groupLabel="More"
         />
         <div className="mt-auto border-t border-line p-3">
+          <div className="mb-2 px-2">
+            <LanguageSwitcher />
+          </div>
           <button
             type="button"
             onClick={onSignOut}

@@ -25,6 +25,10 @@ let translationObserverSuppressed = false;
 let translationObserverDirty = false;
 let translationObserverReleaseTimer: number | undefined;
 let scheduleTranslationRefresh: (() => void) | null = null;
+const TRANSLATION_BATCH_SIZE = 80;
+const TRANSLATION_REQUEST_TIMEOUT_MS = 12_000;
+const TRANSLATION_PAGE_TIMEOUT_MS = 20_000;
+let activeTranslationAbortController: AbortController | null = null;
 
 function suppressTranslationObserver() {
   translationObserverSuppressed = true;
@@ -50,17 +54,25 @@ function translationEndpoints(): string[] {
   return endpoints;
 }
 
-async function requestTranslation(batch: string[]): Promise<string[]> {
-  let lastError: Error | null = null;
+type TranslationRequestError = Error & { status?: number };
+
+async function requestTranslation(batch: string[], signal: AbortSignal): Promise<string[]> {
+  let lastError: TranslationRequestError | null = null;
   for (const endpoint of translationEndpoints()) {
+    if (signal.aborted) throw new DOMException("Translation cancelled.", "AbortError");
+    const controller = new AbortController();
+    const onAbort = () => controller.abort();
+    const timeout = window.setTimeout(() => controller.abort(), TRANSLATION_REQUEST_TIMEOUT_MS);
+    signal.addEventListener("abort", onAbort, { once: true });
     try {
       const response = await fetch(endpoint, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ texts: batch, sourceLocale: "en", targetLocale: "zh-CN" }),
+        signal: controller.signal,
       });
       if (!response.ok) {
-        lastError = new Error(`Translation service returned ${response.status}.`);
+        lastError = Object.assign(new Error(`Translation service returned ${response.status}.`), { status: response.status });
         continue;
       }
       const body = (await response.json()) as { translations?: unknown };
@@ -71,23 +83,37 @@ async function requestTranslation(batch: string[]): Promise<string[]> {
       }
       return translations as string[];
     } catch (error) {
-      lastError = error instanceof Error ? error : new Error("Translation service unavailable.");
+      if (signal.aborted) throw new DOMException("Translation cancelled.", "AbortError");
+      lastError = Object.assign(
+        error instanceof Error ? error : new Error("Translation service unavailable."),
+        { status: 503 },
+      );
+    } finally {
+      window.clearTimeout(timeout);
+      signal.removeEventListener("abort", onAbort);
     }
   }
   throw lastError || new Error("Translation service unavailable.");
 }
 
-async function requestTranslationBestEffort(batch: string[]): Promise<Array<string | null>> {
+async function requestTranslationBestEffort(batch: string[], signal: AbortSignal): Promise<Array<string | null>> {
   try {
-    return await requestTranslation(batch);
-  } catch {
+    return await requestTranslation(batch, signal);
+  } catch (error) {
+    if (signal.aborted) throw error;
+    const status = typeof error === "object" && error !== null && "status" in error
+      ? Number((error as TranslationRequestError).status)
+      : undefined;
+    if (status === 408 || status === 429 || (status !== undefined && status >= 500)) {
+      return batch.map(() => null);
+    }
     // A single provider-rejected label must not discard an entire page. Split
     // the batch until the valid prose can be translated and leave only an
     // individual unsupported token in its source language.
     if (batch.length === 1) return [null];
     const midpoint = Math.ceil(batch.length / 2);
-    const left = await requestTranslationBestEffort(batch.slice(0, midpoint));
-    const right = await requestTranslationBestEffort(batch.slice(midpoint));
+    const left = await requestTranslationBestEffort(batch.slice(0, midpoint), signal);
+    const right = await requestTranslationBestEffort(batch.slice(midpoint), signal);
     return [...left, ...right];
   }
 }
@@ -230,10 +256,13 @@ async function translatePage() {
     translationQueued = true;
     return translationInFlight;
   }
-  translationInFlight = translatePageInternal(translationGeneration);
+  const controller = new AbortController();
+  activeTranslationAbortController = controller;
+  translationInFlight = translatePageInternal(translationGeneration, controller);
   try {
     await translationInFlight;
   } finally {
+    if (activeTranslationAbortController === controller) activeTranslationAbortController = null;
     translationInFlight = null;
     if (translationQueued) {
       translationQueued = false;
@@ -243,11 +272,13 @@ async function translatePage() {
   }
 }
 
-async function translatePageInternal(generation: number) {
-  const initialTranslation = document.documentElement.lang !== "zh-CN";
-  if (initialTranslation) setInitialTranslationPending(true);
+async function translatePageInternal(generation: number, controller: AbortController) {
+  const initialTranslation = document.documentElement.getAttribute("data-trackmcp-translation-pending") === "true";
+  if (!initialTranslation) setInitialTranslationPending(false);
+  const pageTimeout = window.setTimeout(() => controller.abort(), TRANSLATION_PAGE_TIMEOUT_MS);
   const records = collectTranslationRecords();
   if (!records.length) {
+    window.clearTimeout(pageTimeout);
     setInitialTranslationPending(false);
     document.documentElement.lang = "zh-CN";
     emitStatus("ready");
@@ -257,9 +288,9 @@ async function translatePageInternal(generation: number) {
   emitStatus("translating");
   try {
     const uncached = [...new Set(records.map(({ original }) => original))].filter((original) => !translationCache.has(original));
-    for (let index = 0; index < uncached.length; index += 80) {
-      const batch = uncached.slice(index, index + 80);
-      const translations = await requestTranslationBestEffort(batch);
+    for (let index = 0; index < uncached.length; index += TRANSLATION_BATCH_SIZE) {
+      const batch = uncached.slice(index, index + TRANSLATION_BATCH_SIZE);
+      const translations = await requestTranslationBestEffort(batch, controller.signal);
       batch.forEach((original, batchIndex) => {
         const value = translations[batchIndex];
         if (value) cacheTranslation(original, value);
@@ -292,8 +323,11 @@ async function translatePageInternal(generation: number) {
     document.documentElement.lang = "zh-CN";
     emitStatus("ready");
   } catch {
+    window.clearTimeout(pageTimeout);
     restoreEnglish();
     emitStatus("error");
+  } finally {
+    window.clearTimeout(pageTimeout);
   }
 }
 
@@ -314,7 +348,10 @@ export function TranslationRuntime() {
       const next = (event as CustomEvent<{ locale?: SiteLocale }>).detail?.locale;
       translationGeneration += 1;
       if (next === "zh-CN") void translatePage();
-      else restoreEnglish();
+      else {
+        activeTranslationAbortController?.abort();
+        restoreEnglish();
+      }
     };
     const observer = new MutationObserver(() => {
       if (translationObserverSuppressed) {
