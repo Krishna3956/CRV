@@ -2333,6 +2333,62 @@ function OverviewTakeaway({
   );
 }
 
+function OverviewNextStep({
+  analytics,
+  dataMode,
+  hasMyData,
+  onViewChange,
+}: {
+  analytics: Analytics;
+  dataMode: DataMode;
+  hasMyData: boolean;
+  onViewChange: (view: View) => void;
+}) {
+  const totals = explicitOutcomeTotals(analytics);
+  let title = "Explore the example journey";
+  let body = "Use the sample path to see how activity, outcomes, and evidence fit together before connecting a server.";
+  let label = "See the journey";
+  let icon = ListChecks;
+  let view: View = "journeys";
+
+  if (dataMode === "my" && (!hasMyData || analytics.total_events === 0)) {
+    title = "Connect one server to begin";
+    body = "A technical teammate can finish Setup, send one real tool call, and then your business views will start filling in.";
+    label = "Open Setup";
+    icon = ArrowRight;
+    view = "setup";
+  } else if (dataMode === "my" && analytics.insights.length > 0) {
+    title = "Review the signals that need attention";
+    body = "Start with the highest-priority observed signal, then open its evidence before deciding what to change.";
+    label = "Review Issues";
+    icon = AlertTriangle;
+    view = "issues";
+  } else if (dataMode === "my" && totals.started === 0) {
+    title = "See how work is being used";
+    body = "Activity is arriving, but explicit outcomes are not reported yet. Use the journey view to understand observed paths without assuming success or abandonment.";
+    label = "See the journey";
+    icon = ListChecks;
+    view = "journeys";
+  } else if (dataMode === "my") {
+    title = "Understand who is showing up";
+    body = "Use account-group and assistant signals to see where activity is coming from, then open a journey or evidence row for detail.";
+    label = "See who's using it";
+    icon = Users;
+    view = "clients";
+  }
+
+  return (
+    <section className="mb-6 flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-line bg-white px-5 py-4" aria-label="Recommended next step">
+      <div className="min-w-0">
+        <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-brand-strong">Recommended next step</p>
+        <p className="mt-1 text-sm font-semibold text-ink">{title}</p>
+        <p className="mt-1 max-w-3xl text-xs leading-relaxed text-muted">{body}</p>
+      </div>
+      <ActionButton label={label} icon={icon} onClick={() => onViewChange(view)} />
+    </section>
+  );
+}
+
 function Overview({
   analytics,
   dataMode,
@@ -2359,6 +2415,7 @@ function Overview({
       />
       <DataSourceStrip dataMode={dataMode} hasMyData={hasMyData} view="overview" />
       <OverviewTakeaway analytics={analytics} dataMode={dataMode} hasMyData={hasMyData} />
+      <OverviewNextStep analytics={analytics} dataMode={dataMode} hasMyData={hasMyData} onViewChange={onViewChange} />
       <BusinessContext
         title="How to read this overview"
         body="Observed work is not the same as completed business work. A completed result appears only when your server reports an explicit outcome; N/A means there is not enough evidence yet, not that the product is healthy or unhealthy."

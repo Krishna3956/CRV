@@ -96,6 +96,9 @@ Legend: `[x]` verified/implemented in this workstream; `[ ]` pending.
 - [x] ✅ Make Overview session rows business-readable: show a simple observed
       session label, call the drill-down “Open evidence”, and explain that
       reported completion—not session activity alone—is counted as success.
+- [x] ✅ Add a state-aware “Recommended next step” on Overview so a new user,
+      an activated user with missing outcomes, and an activated user with
+      evidence-backed signals each get a truthful next action.
 - [x] ✅ Apply the same business-readable evidence language inside the Evidence
       tab: remove the engineering-only “Trace Explorer” action label, hide raw
       session identifiers from the primary table, and expose a clear “Open
