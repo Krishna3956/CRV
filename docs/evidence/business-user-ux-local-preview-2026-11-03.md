@@ -2,7 +2,7 @@
 
 Date: 2026-11-03
 Branch: `codex/business-user-ux-audit`
-Commit under review: `35be71c4`
+Commit under review: `d30cf7da`
 
 This is local browser evidence only. It is not production evidence and does
 not replace a fresh-account or real-telemetry walkthrough.
@@ -129,3 +129,29 @@ The later account-group language correction was verified in the browser after
 commit `d5af5749`: the Capabilities KPI and adoption distribution now say
 `account group` and explain that missing optional identity evidence is excluded
 without being turned into a named customer.
+
+## Latest local preview after the research pass
+
+The local dashboard was reopened from the isolated branch on port `3141` with
+the same deliberately non-production placeholder Supabase values.
+
+Verified in the rendered accessibility tree:
+
+- Overview with Example data shows `Example data selected` and the explicit
+  boundary that it is illustrative, not workspace telemetry.
+- Overview now renders an `At a glance` summary before the KPI cards. It tells
+  the reader that Example data is illustrative and explicitly says the summary
+  is not a health or customer-count claim.
+- The Overview question, KPI labels, evidence disclosure, and next-question
+  actions remain visible together without requiring protocol knowledge.
+- “Who's using it” now asks which **account groups** and assistants are
+  showing up; the KPI, explanatory text, growth subtitle, and table all keep
+  the privacy-safe account-group vocabulary.
+- Setup remains a live-connection workflow even when the global Example-data
+  toggle is selected. It exposes the three steps, the first-event handoff,
+  CLI-first recommendation, SDK tabs, and progressive disclosure for scope,
+  identity, privacy, and data controls.
+
+This is local browser evidence only. It confirms rendered copy and hierarchy;
+it does not prove production read-model data, account creation, or a real
+first-event connection.
