@@ -181,6 +181,8 @@ test("business users receive orientation before technical detail", () => {
   assert.match(source, /Read success and reliability separately/);
   assert.match(source, /A missing outcome is shown as unknown or insufficient evidence/);
   assert.match(source, /Share of activity/);
+  assert.match(source, /Use this page to decide what to investigate next/);
+  assert.match(source, /A signal is a prompt for investigation, not a diagnosis/);
   assert.match(source, /className="mt-1 text-\[11px\] leading-relaxed text-muted">\{helper\}/);
 });
 

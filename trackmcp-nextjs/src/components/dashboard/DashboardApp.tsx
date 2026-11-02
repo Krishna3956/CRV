@@ -3673,6 +3673,11 @@ function IssuesView({
         question="What should the team investigate next, and how strong is the evidence?"
       />
       <DataSourceStrip dataMode={dataMode} hasMyData={hasMyData} view="issues" />
+      <BusinessContext
+        title="Use this page to decide what to investigate next"
+        body="TrackMCP ranks observed signals by evidence strength and affected volume. A signal is a prompt for investigation, not a diagnosis. Start with the suggested next step, then open Evidence when you need the technical basis."
+        action="Review firing incidents first; treat insufficient-data and synthetic-canary rows as context, not customer failures."
+      />
       {analytics.issue_activity && <div className="mb-6 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
         <Kpi label="Actionable signals" value={fmt(analytics.issue_activity.actionable_signals)} icon={AlertTriangle} helper="Bounded rules with evidence" />
         <Kpi label="High confidence" value={fmt(analytics.issue_activity.high_confidence_signals)} icon={ShieldCheck} helper="Evidence strength, not certainty" />
