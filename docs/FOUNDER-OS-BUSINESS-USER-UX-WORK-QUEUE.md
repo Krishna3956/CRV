@@ -41,6 +41,9 @@ Legend: `[x]` verified/implemented in this workstream; `[ ]` pending.
       documentation; technical readers see TrackMCP analytics terminology.
 - [x] ✅ Add a requirement-by-requirement readiness matrix that separates
       branch proof, live read-only evidence, and remaining pilot gates.
+- [x] ✅ Make the no-workspace “Complete setup” action navigate to Setup while
+      workspace provisioning runs, so a first-time user reaches the key and
+      SDK instructions instead of remaining on an empty analytics tab.
 - [x] ✅ Rewrite no-data page previews with business language so a first-time
       reader understands what each tab will show before connecting telemetry.
 - [x] ✅ Perform a read-only browser review of the current production Setup,

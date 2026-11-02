@@ -1349,7 +1349,10 @@ export function DashboardApp({
               working={working}
               onPrimary={
                 !workspace
-                  ? onCreateWorkspace
+                  ? () => {
+                    goTo("setup");
+                    onCreateWorkspace();
+                  }
                   : !hasActiveKey
                     ? () => goTo("setup")
                     : () => onRefresh(range)

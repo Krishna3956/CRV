@@ -255,6 +255,7 @@ test("zero-event activation uses page-specific connection states", () => {
   assert.match(source, /writeRouteState\(view, range, next, null, null, "evidence"\)/);
   assert.match(source, /!workspace \|\| !hasActiveKey/);
   assert.match(source, /state === "key"\s*\? "Complete setup"/);
+  assert.match(source, /!workspace\s*\? \(\) => \{[\s\S]*goTo\("setup"\);[\s\S]*onCreateWorkspace\(\);/);
   assert.match(
     source,
     /!hasActiveKey\s*\? \(\) => goTo\("setup"\)\s*:/,
