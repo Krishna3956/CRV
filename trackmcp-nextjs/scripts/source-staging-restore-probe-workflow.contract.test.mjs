@@ -13,8 +13,15 @@ test('source restore probe is manually guarded and isolated', () => {
   assert.match(workflow, /id-token: write/);
   assert.match(workflow, /contents: read/);
   assert.match(workflow, /ServerSideEncryption/);
-  assert.match(workflow, /pg_restore --list/);
-  assert.match(workflow, /docker compose exec -T db pg_restore/);
+  assert.match(workflow, /export_type=supabase-filtered-sql-dump/);
+  assert.match(workflow, /trackmcp-supabase-source\.tar\.gz/);
+  assert.match(workflow, /tar -xzf/);
+  assert.match(workflow, /roles\.sql/);
+  assert.match(workflow, /schema\.sql/);
+  assert.match(workflow, /data\.sql/);
+  assert.match(workflow, /COPY.*auth.*users/);
+  assert.match(workflow, /session_replication_role/);
+  assert.doesNotMatch(workflow, /pg_restore/);
   assert.match(workflow, /CREATE DATABASE \$\{RESTORE_DATABASE\}/);
   assert.match(workflow, /DROP DATABASE(?: IF EXISTS)? \$\{RESTORE_DATABASE\}/);
   assert.match(workflow, /STAGING_SOURCE_RESTORE_PROBE_PASSED/);

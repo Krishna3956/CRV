@@ -13,33 +13,38 @@ available.
 2. Run **Export Supabase Cloud source backup** manually and enter the exact
    confirmation string `EXPORT_SOURCE_BACKUP`.
 3. The workflow uses the existing GitHub OIDC role, requires TLS, verifies
-   connectivity with `pg_isready`, and runs a read-only `pg_dump`.
-4. It uploads a PostgreSQL custom-format archive and a checksum manifest to the
-   existing private, versioned, AES-256-encrypted S3 bucket under a unique run
-   prefix.
+   connectivity with `pg_isready`, and runs the pinned Supabase CLI's filtered
+   `supabase db dump` three times to produce `roles.sql`, `schema.sql`, and
+   `data.sql`. This follows Supabase's platform-to-self-hosted restore procedure
+   and avoids copying managed Supabase internal schemas.
+4. It packages those three SQL files into a tarball and uploads it with a
+   checksum manifest to the existing private, versioned, AES-256-encrypted S3
+   bucket under a unique run prefix.
 
 The workflow has no Supabase write operation, no production mutation, no DNS
 change, and no cleanup/delete operation. It never prints the connection string,
-database rows, or dump contents. The archive must still be inspected and
-restored into isolated staging before any production cutover decision.
+database rows, SQL contents, or secret values. The filtered SQL archive must
+still be inspected and restored into isolated staging before any production
+cutover decision.
 
 ## Artifact verification
 
 After the export succeeds, run **Verify Supabase Cloud source export** with the
 exact confirmation string `VERIFY_SOURCE_BACKUP` and the export prefix shown by
 the export workflow, such as `source-exports/1234567890`. The verifier checks
-the manifest redaction marker, dump byte count, SHA-256 checksum, S3 encryption
-metadata, and PostgreSQL archive readability. It prints only aggregate archive
-metadata; it does not connect to Supabase Cloud, restore the dump, read rows, or
-delete or overwrite an S3 object.
+the manifest redaction marker, tarball byte count, per-file checksums, S3
+encryption metadata, and the presence of all three filtered SQL files. It prints
+only aggregate file metadata; it does not connect to Supabase Cloud, restore the
+dump, read rows, or delete or overwrite an S3 object.
 
 ## Required secret
 
 `SUPABASE_SOURCE_DB_URL` must be a PostgreSQL connection string that can read
 the source project, with the password supplied through the repository's secret
-store. Prefer the direct database connection documented by Supabase and keep
-TLS enabled. If the source project remains quota-restricted, the workflow will
-fail at `pg_isready` or `pg_dump`; it cannot bypass provider-side restrictions.
+store. Use a supported direct or session-pooler connection string documented by
+Supabase and keep TLS enabled. If the source project remains quota-restricted,
+the workflow will fail at `pg_isready` or `supabase db dump`; it cannot bypass
+provider-side restrictions.
 
 ## Restore gate
 

@@ -60,13 +60,7 @@ jobs:
             exit 1
           }
 
-      - name: Install PostgreSQL archive inspection tools
-        run: |
-          set -euo pipefail
-          sudo apt-get update -qq
-          sudo apt-get install -y --no-install-recommends postgresql-client
-
-      - name: Verify the private encrypted source archive
+      - name: Verify the private encrypted filtered SQL export
         id: artifact
         env:
           OBJECT_PREFIX: ${{ inputs.object_prefix }}
@@ -75,49 +69,71 @@ jobs:
           umask 077
           ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
           BUCKET_NAME="${BACKUP_BUCKET_PREFIX}-${ACCOUNT_ID}-${AWS_REGION}"
-          DUMP_FILE="/tmp/trackmcp-source-restore-probe.dump"
+          ARCHIVE_FILE="/tmp/trackmcp-source-restore-probe.tar.gz"
+          EXTRACT_DIR="/tmp/trackmcp-source-restore-probe-files"
           MANIFEST_FILE="/tmp/trackmcp-source-restore-probe.manifest.txt"
-          LIST_FILE="/tmp/trackmcp-source-restore-probe.list.txt"
-          trap 'rm -f "$DUMP_FILE" "$MANIFEST_FILE" "$LIST_FILE"' EXIT
+          EXPECTED_FILE="/tmp/trackmcp-source-restore-probe.expected.txt"
+          ACTUAL_FILE="/tmp/trackmcp-source-restore-probe.actual.txt"
+          trap 'rm -rf "$EXTRACT_DIR"; rm -f "$ARCHIVE_FILE" "$MANIFEST_FILE" "$EXPECTED_FILE" "$ACTUAL_FILE"' EXIT
 
           aws s3api head-bucket --bucket "$BUCKET_NAME" --region "$AWS_REGION"
           ENCRYPTION=$(aws s3api head-object --bucket "$BUCKET_NAME" \
-            --key "$OBJECT_PREFIX/trackmcp-supabase-source.dump" \
+            --key "$OBJECT_PREFIX/trackmcp-supabase-source.tar.gz" \
             --region "$AWS_REGION" --query ServerSideEncryption --output text)
           [[ "$ENCRYPTION" == "AES256" ]] || {
             echo "::error::The source archive is not encrypted with the expected AES256 server-side encryption. No restore was attempted."
             exit 1
           }
-          aws s3 cp "s3://${BUCKET_NAME}/${OBJECT_PREFIX}/trackmcp-supabase-source.dump" \
-            "$DUMP_FILE" --only-show-errors
+          aws s3 cp "s3://${BUCKET_NAME}/${OBJECT_PREFIX}/trackmcp-supabase-source.tar.gz" \
+            "$ARCHIVE_FILE" --only-show-errors
           aws s3 cp "s3://${BUCKET_NAME}/${OBJECT_PREFIX}/manifest.txt" \
             "$MANIFEST_FILE" --only-show-errors
 
           grep -Fx 'source_url=redacted' "$MANIFEST_FILE" >/dev/null
-          SHA256=$(sha256sum "$DUMP_FILE" | awk '{print $1}')
-          EXPECTED_SHA256=$(sed -n 's/^sha256=//p' "$MANIFEST_FILE")
-          [[ "$SHA256" == "$EXPECTED_SHA256" ]] || {
+          grep -Fx 'export_type=supabase-filtered-sql-dump' "$MANIFEST_FILE" >/dev/null
+          SHA256=$(sha256sum "$ARCHIVE_FILE" | awk '{print $1}')
+          EXPECTED_SHA256=$(sed -n 's/^archive_sha256=//p' "$MANIFEST_FILE")
+          [[ -n "$EXPECTED_SHA256" && "$SHA256" == "$EXPECTED_SHA256" ]] || {
             echo "::error::Source export checksum mismatch. No restore was attempted."
             exit 1
           }
-          BYTES=$(stat -c '%s' "$DUMP_FILE")
-          EXPECTED_BYTES=$(sed -n 's/^dump_bytes=//p' "$MANIFEST_FILE")
-          [[ "$BYTES" == "$EXPECTED_BYTES" ]] || {
+          BYTES=$(stat -c '%s' "$ARCHIVE_FILE")
+          EXPECTED_BYTES=$(sed -n 's/^archive_bytes=//p' "$MANIFEST_FILE")
+          [[ -n "$EXPECTED_BYTES" && "$BYTES" == "$EXPECTED_BYTES" ]] || {
             echo "::error::Source export byte count mismatch. No restore was attempted."
             exit 1
           }
-          pg_restore --list "$DUMP_FILE" > "$LIST_FILE"
-          ENTRY_COUNT=$(wc -l < "$LIST_FILE" | tr -d ' ')
-          [[ "$ENTRY_COUNT" -gt 0 ]] || {
-            echo "::error::The source archive contains no inspectable PostgreSQL entries. No restore was attempted."
+          printf '%s\n' data.sql roles.sql schema.sql | sort > "$EXPECTED_FILE"
+          tar -tzf "$ARCHIVE_FILE" | sed 's#^\./##' | sort > "$ACTUAL_FILE"
+          diff -u "$EXPECTED_FILE" "$ACTUAL_FILE" >/dev/null || {
+            echo "::error::The filtered source archive does not contain exactly roles.sql, schema.sql, and data.sql. No restore was attempted."
             exit 1
           }
-          OBJECT_KEY="$OBJECT_PREFIX/trackmcp-supabase-source.dump"
+          mkdir -m 0700 "$EXTRACT_DIR"
+          tar -xzf "$ARCHIVE_FILE" -C "$EXTRACT_DIR"
+          for file in roles.sql schema.sql data.sql; do
+            test -s "$EXTRACT_DIR/$file"
+            FILE_SHA256=$(sha256sum "$EXTRACT_DIR/$file" | awk '{print $1}')
+            FILE_BYTES=$(stat -c '%s' "$EXTRACT_DIR/$file")
+            EXPECTED_FILE_SHA256=$(sed -n "s/^${file%.*}_sha256=//p" "$MANIFEST_FILE")
+            EXPECTED_FILE_BYTES=$(sed -n "s/^${file%.*}_bytes=//p" "$MANIFEST_FILE")
+            [[ "$FILE_SHA256" == "$EXPECTED_FILE_SHA256" && "$FILE_BYTES" == "$EXPECTED_FILE_BYTES" ]] || {
+              echo "::error::Checksum or byte count mismatch for $file. No restore was attempted."
+              exit 1
+            }
+          done
+          grep -E 'COPY ("auth"|auth)\.("users"|users)' "$EXTRACT_DIR/data.sql" >/dev/null || {
+            echo "::error::The filtered data export does not contain the auth.users relation. No restore was attempted."
+            exit 1
+          }
+          OBJECT_KEY="$OBJECT_PREFIX/trackmcp-supabase-source.tar.gz"
+          MANIFEST_KEY="$OBJECT_PREFIX/manifest.txt"
           echo "bucket_name=$BUCKET_NAME" >> "$GITHUB_OUTPUT"
           echo "object_key=$OBJECT_KEY" >> "$GITHUB_OUTPUT"
+          echo "manifest_key=$MANIFEST_KEY" >> "$GITHUB_OUTPUT"
           echo "archive_bytes=$BYTES" >> "$GITHUB_OUTPUT"
-          echo "archive_entries=$ENTRY_COUNT" >> "$GITHUB_OUTPUT"
-          echo "Verified the private encrypted source archive metadata; source URL and application rows were not printed."
+          echo "sql_file_count=3" >> "$GITHUB_OUTPUT"
+          echo "Verified the private encrypted filtered SQL export; source URL and application rows were not printed."
 
       - name: Package the isolated restore script
         id: package
@@ -134,8 +150,11 @@ jobs:
           test -f .env
           test -f docker-compose.yml
           install -d -m 0750 /opt/trackmcp-supabase/restore-probes
-          DUMP_FILE="/opt/trackmcp-supabase/restore-probes/source-${RESTORE_ID}.dump"
-          LIST_FILE="/opt/trackmcp-supabase/restore-probes/source-${RESTORE_ID}.list.txt"
+          ARCHIVE_FILE="/opt/trackmcp-supabase/restore-probes/source-${RESTORE_ID}.tar.gz"
+          EXPORT_DIR="/opt/trackmcp-supabase/restore-probes/source-${RESTORE_ID}"
+          MANIFEST_FILE="/opt/trackmcp-supabase/restore-probes/source-${RESTORE_ID}.manifest.txt"
+          EXPECTED_FILE="/opt/trackmcp-supabase/restore-probes/source-${RESTORE_ID}.expected.txt"
+          ACTUAL_FILE="/opt/trackmcp-supabase/restore-probes/source-${RESTORE_ID}.actual.txt"
           RESTORE_DATABASE="trackmcp_restore_${RESTORE_ID}"
           cleanup() {
             status=$?
@@ -143,26 +162,57 @@ jobs:
               docker compose exec -T db psql -U postgres -d postgres -v ON_ERROR_STOP=1 \
                 -c "DROP DATABASE IF EXISTS ${RESTORE_DATABASE}" >/dev/null 2>&1 || true
             fi
-            rm -f "$DUMP_FILE" "$LIST_FILE"
+            rm -rf "$ARCHIVE_FILE" "$EXPORT_DIR" "$MANIFEST_FILE" "$EXPECTED_FILE" "$ACTUAL_FILE"
             if [[ "$status" -ne 0 ]]; then
               echo "STAGING_SOURCE_RESTORE_PROBE_FAILED status=${status}"
             fi
           }
           trap cleanup EXIT
-          aws s3 cp "s3://${MIGRATION_BUCKET}/${MIGRATION_OBJECT}" "$DUMP_FILE" --only-show-errors
-          docker compose exec -T db pg_restore --list < "$DUMP_FILE" > "$LIST_FILE"
-          ENTRY_COUNT=$(wc -l < "$LIST_FILE" | tr -d ' ')
-          [[ "$ENTRY_COUNT" -gt 0 ]] || { echo STAGING_SOURCE_RESTORE_ARCHIVE_EMPTY; exit 1; }
+          aws s3 cp "s3://${MIGRATION_BUCKET}/${MIGRATION_OBJECT}" "$ARCHIVE_FILE" --only-show-errors
+          aws s3 cp "s3://${MIGRATION_BUCKET}/${MIGRATION_MANIFEST}" "$MANIFEST_FILE" --only-show-errors
+          grep -Fx 'source_url=redacted' "$MANIFEST_FILE" >/dev/null
+          grep -Fx 'export_type=supabase-filtered-sql-dump' "$MANIFEST_FILE" >/dev/null
+          ARCHIVE_SHA256=$(sha256sum "$ARCHIVE_FILE" | awk '{print $1}')
+          EXPECTED_ARCHIVE_SHA256=$(sed -n 's/^archive_sha256=//p' "$MANIFEST_FILE")
+          ARCHIVE_BYTES=$(stat -c '%s' "$ARCHIVE_FILE")
+          EXPECTED_ARCHIVE_BYTES=$(sed -n 's/^archive_bytes=//p' "$MANIFEST_FILE")
+          [[ -n "$EXPECTED_ARCHIVE_SHA256" && "$ARCHIVE_SHA256" == "$EXPECTED_ARCHIVE_SHA256" ]] || { echo STAGING_SOURCE_RESTORE_ARCHIVE_CHECKSUM_MISMATCH; exit 1; }
+          [[ -n "$EXPECTED_ARCHIVE_BYTES" && "$ARCHIVE_BYTES" == "$EXPECTED_ARCHIVE_BYTES" ]] || { echo STAGING_SOURCE_RESTORE_ARCHIVE_BYTES_MISMATCH; exit 1; }
+          printf '%s\n' data.sql roles.sql schema.sql | sort > "$EXPECTED_FILE"
+          tar -tzf "$ARCHIVE_FILE" | sed 's#^\./##' | sort > "$ACTUAL_FILE"
+          diff -u "$EXPECTED_FILE" "$ACTUAL_FILE" >/dev/null || { echo STAGING_SOURCE_RESTORE_ARCHIVE_CONTENTS_MISMATCH; exit 1; }
+          mkdir -m 0700 "$EXPORT_DIR"
+          tar -xzf "$ARCHIVE_FILE" -C "$EXPORT_DIR"
+          for file in roles.sql schema.sql data.sql; do
+            test -s "$EXPORT_DIR/$file" || { echo STAGING_SOURCE_RESTORE_SQL_FILE_MISSING file="$file"; exit 1; }
+            FILE_SHA256=$(sha256sum "$EXPORT_DIR/$file" | awk '{print $1}')
+            EXPECTED_FILE_SHA256=$(sed -n "s/^${file%.*}_sha256=//p" "$MANIFEST_FILE")
+            [[ "$FILE_SHA256" == "$EXPECTED_FILE_SHA256" ]] || { echo STAGING_SOURCE_RESTORE_SQL_CHECKSUM_MISMATCH file="$file"; exit 1; }
+          done
+          grep -E 'COPY ("auth"|auth)\.("users"|users)' "$EXPORT_DIR/data.sql" >/dev/null || {
+            echo STAGING_SOURCE_RESTORE_AUTH_DATA_MISSING
+            exit 1
+          }
 
           docker compose exec -T db psql -U postgres -d postgres -v ON_ERROR_STOP=1 \
             -c "CREATE DATABASE ${RESTORE_DATABASE}"
-          docker compose exec -T db pg_restore -U postgres -d "$RESTORE_DATABASE" \
-            --exit-on-error --no-owner --no-privileges < "$DUMP_FILE"
+          # Do not apply roles.sql to the active staging cluster: roles are
+          # cluster-scoped and would mutate the shared staging environment.
+          # The final restore into a fresh destination must apply roles.sql
+          # before schema.sql/data.sql using Supabase's documented procedure.
+          docker compose exec -T db psql -U postgres -d "$RESTORE_DATABASE" \
+            -v ON_ERROR_STOP=1 -f - < "$EXPORT_DIR/schema.sql"
+          docker compose exec -T db psql -U postgres -d "$RESTORE_DATABASE" \
+            -v ON_ERROR_STOP=1 \
+            -c 'SET session_replication_role = replica' \
+            -f - < "$EXPORT_DIR/data.sql"
 
           PUBLIC_TABLES=$(docker compose exec -T db psql -U postgres -d "$RESTORE_DATABASE" -At \
             -c "select count(*) from information_schema.tables where table_schema = 'public'")
           AUTH_USERS_TABLE=$(docker compose exec -T db psql -U postgres -d "$RESTORE_DATABASE" -At \
             -c "select coalesce(to_regclass('auth.users')::text, 'missing')")
+          AUTH_USER_COUNT=$(docker compose exec -T db psql -U postgres -d "$RESTORE_DATABASE" -At \
+            -c "select count(*) from auth.users")
           [[ "$PUBLIC_TABLES" =~ ^[0-9]+$ && "$PUBLIC_TABLES" -gt 0 ]] || {
             echo STAGING_SOURCE_RESTORE_PUBLIC_SCHEMA_MISSING
             exit 1
@@ -171,8 +221,12 @@ jobs:
             echo STAGING_SOURCE_RESTORE_AUTH_SCHEMA_MISSING
             exit 1
           }
+          [[ "$AUTH_USER_COUNT" =~ ^[0-9]+$ && "$AUTH_USER_COUNT" -gt 0 ]] || {
+            echo STAGING_SOURCE_RESTORE_AUTH_DATA_EMPTY
+            exit 1
+          }
 
-          echo "STAGING_SOURCE_RESTORE_PROBE_PASSED archive_entries=${ENTRY_COUNT} public_tables=${PUBLIC_TABLES} auth_users_table=present"
+          echo "STAGING_SOURCE_RESTORE_PROBE_PASSED sql_files=3 public_tables=${PUBLIC_TABLES} auth_users_table=present auth_user_count=${AUTH_USER_COUNT}"
           echo "STAGING_SOURCE_RESTORE_PROBE_CLEANED temporary_database=${RESTORE_DATABASE}"
           REMOTE_EOF
           aws s3 cp /tmp/trackmcp-source-restore-probe.sh \
@@ -185,6 +239,7 @@ jobs:
           STACK_NAME: ${{ inputs.stack_name }}
           BUCKET_NAME: ${{ steps.artifact.outputs.bucket_name }}
           OBJECT_KEY: ${{ steps.artifact.outputs.object_key }}
+          MANIFEST_KEY: ${{ steps.artifact.outputs.manifest_key }}
           SCRIPT_OBJECT: ${{ steps.package.outputs.script_object }}
         run: |
           set -euo pipefail
@@ -195,7 +250,7 @@ jobs:
             echo "::error::The selected staging stack has no EC2 instance output. No restore was attempted."
             exit 1
           }
-          REMOTE_COMMAND="export MIGRATION_BUCKET='$BUCKET_NAME' MIGRATION_OBJECT='$OBJECT_KEY' RESTORE_ID='$GITHUB_RUN_ID' SCRIPT_OBJECT='$SCRIPT_OBJECT'; aws s3 cp \"s3://\${MIGRATION_BUCKET}/\${SCRIPT_OBJECT}\" /tmp/trackmcp-source-restore-probe.sh --only-show-errors; chmod 0700 /tmp/trackmcp-source-restore-probe.sh; exec bash /tmp/trackmcp-source-restore-probe.sh"
+          REMOTE_COMMAND="export MIGRATION_BUCKET='$BUCKET_NAME' MIGRATION_OBJECT='$OBJECT_KEY' MIGRATION_MANIFEST='$MANIFEST_KEY' RESTORE_ID='$GITHUB_RUN_ID' SCRIPT_OBJECT='$SCRIPT_OBJECT'; aws s3 cp \"s3://\${MIGRATION_BUCKET}/\${SCRIPT_OBJECT}\" /tmp/trackmcp-source-restore-probe.sh --only-show-errors; chmod 0700 /tmp/trackmcp-source-restore-probe.sh; exec bash /tmp/trackmcp-source-restore-probe.sh"
           COMMANDS_JSON=$(jq -Rn --arg command "$REMOTE_COMMAND" '{commands:[$command]}')
           COMMAND_ID=$(aws ssm send-command \
             --instance-ids "$INSTANCE_ID" \
@@ -226,9 +281,9 @@ jobs:
           STACK_NAME: ${{ inputs.stack_name }}
           OBJECT_PREFIX: ${{ inputs.object_prefix }}
           ARCHIVE_BYTES: ${{ steps.artifact.outputs.archive_bytes }}
-          ARCHIVE_ENTRIES: ${{ steps.artifact.outputs.archive_entries }}
+          SQL_FILE_COUNT: ${{ steps.artifact.outputs.sql_file_count }}
         run: |
           set -euo pipefail
-          echo "Verified and restored source archive metadata from prefix $OBJECT_PREFIX into a temporary database on isolated stack $STACK_NAME."
-          echo "Archive bytes=$ARCHIVE_BYTES entries=$ARCHIVE_ENTRIES; the temporary database was dropped after schema/auth compatibility checks."
+          echo "Verified and restored filtered SQL metadata from prefix $OBJECT_PREFIX into a temporary database on isolated stack $STACK_NAME."
+          echo "Archive bytes=$ARCHIVE_BYTES sql_files=$SQL_FILE_COUNT; the temporary database was dropped after schema/auth compatibility checks."
           echo "Supabase Cloud, production DNS, App Runner configuration, live traffic, active staging database, and credentials were not changed."

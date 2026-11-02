@@ -21,6 +21,7 @@ env:
   AWS_REGION: us-east-1
   ROLE_ARN: arn:aws:iam::872575360367:role/GitHubActionsDeployRole
   BACKUP_BUCKET_PREFIX: trackmcp-supabase-backups
+  SUPABASE_CLI_VERSION: 2.122.0
 
 jobs:
   export:
@@ -56,11 +57,12 @@ jobs:
             exit 1
           }
 
-      - name: Install the PostgreSQL client
+      - name: Install the PostgreSQL client and pinned Supabase CLI
         run: |
           set -euo pipefail
           sudo apt-get update -qq
           sudo apt-get install -y --no-install-recommends postgresql-client
+          npx --yes "supabase@${SUPABASE_CLI_VERSION}" --version
 
       - name: Verify source connectivity without reading application rows
         env:
@@ -70,49 +72,73 @@ jobs:
           set -euo pipefail
           pg_isready --dbname="$SUPABASE_SOURCE_DB_URL" --timeout=15
 
-      - name: Create and upload the logical export
+      - name: Create and upload the filtered Supabase logical export
         env:
           SUPABASE_SOURCE_DB_URL: ${{ secrets.SUPABASE_SOURCE_DB_URL }}
           PGSSLMODE: require
         run: |
           set -euo pipefail
           umask 077
-          DUMP_FILE="/tmp/trackmcp-supabase-source-${GITHUB_RUN_ID}.dump"
+          EXPORT_DIR="/tmp/trackmcp-supabase-source-${GITHUB_RUN_ID}"
+          ARCHIVE_FILE="/tmp/trackmcp-supabase-source-${GITHUB_RUN_ID}.tar.gz"
           MANIFEST_FILE="/tmp/trackmcp-supabase-source-${GITHUB_RUN_ID}.manifest.txt"
-          trap 'rm -f "$DUMP_FILE" "$MANIFEST_FILE"' EXIT
+          trap 'rm -rf "$EXPORT_DIR"; rm -f "$ARCHIVE_FILE" "$MANIFEST_FILE"' EXIT
+          mkdir -m 0700 "$EXPORT_DIR"
 
-          pg_dump \
-            --dbname="$SUPABASE_SOURCE_DB_URL" \
-            --format=custom \
-            --no-owner \
-            --no-privileges \
-            --file="$DUMP_FILE"
+          SUPABASE_CLI=(npx --yes "supabase@${SUPABASE_CLI_VERSION}")
+          "${SUPABASE_CLI[@]}" db dump \
+            --db-url "$SUPABASE_SOURCE_DB_URL" \
+            --file "$EXPORT_DIR/roles.sql" \
+            --role-only
+          "${SUPABASE_CLI[@]}" db dump \
+            --db-url "$SUPABASE_SOURCE_DB_URL" \
+            --file "$EXPORT_DIR/schema.sql"
+          "${SUPABASE_CLI[@]}" db dump \
+            --db-url "$SUPABASE_SOURCE_DB_URL" \
+            --file "$EXPORT_DIR/data.sql" \
+            --use-copy \
+            --data-only
 
-          SHA256=$(sha256sum "$DUMP_FILE" | awk '{print $1}')
-          BYTES=$(stat -c '%s' "$DUMP_FILE")
+          tar -czf "$ARCHIVE_FILE" -C "$EXPORT_DIR" roles.sql schema.sql data.sql
+
+          ARCHIVE_SHA256=$(sha256sum "$ARCHIVE_FILE" | awk '{print $1}')
+          ARCHIVE_BYTES=$(stat -c '%s' "$ARCHIVE_FILE")
+          ROLES_SHA256=$(sha256sum "$EXPORT_DIR/roles.sql" | awk '{print $1}')
+          ROLES_BYTES=$(stat -c '%s' "$EXPORT_DIR/roles.sql")
+          SCHEMA_SHA256=$(sha256sum "$EXPORT_DIR/schema.sql" | awk '{print $1}')
+          SCHEMA_BYTES=$(stat -c '%s' "$EXPORT_DIR/schema.sql")
+          DATA_SHA256=$(sha256sum "$EXPORT_DIR/data.sql" | awk '{print $1}')
+          DATA_BYTES=$(stat -c '%s' "$EXPORT_DIR/data.sql")
           ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
           BUCKET_NAME="${BACKUP_BUCKET_PREFIX}-${ACCOUNT_ID}-${AWS_REGION}"
           OBJECT_PREFIX="source-exports/${GITHUB_RUN_ID}"
 
           aws s3api head-bucket --bucket "$BUCKET_NAME" --region "$AWS_REGION"
           cat > "$MANIFEST_FILE" <<EOF
-          export_type=postgresql-custom-logical-dump
+          export_type=supabase-filtered-sql-dump
           repository=${GITHUB_REPOSITORY}
           commit=${GITHUB_SHA}
           workflow_run=${GITHUB_RUN_ID}
-          pg_dump_version=$(pg_dump --version)
-          dump_bytes=${BYTES}
-          sha256=${SHA256}
+          supabase_cli_version=${SUPABASE_CLI_VERSION}
+          archive_file=trackmcp-supabase-source.tar.gz
+          archive_bytes=${ARCHIVE_BYTES}
+          archive_sha256=${ARCHIVE_SHA256}
+          roles_bytes=${ROLES_BYTES}
+          roles_sha256=${ROLES_SHA256}
+          schema_bytes=${SCHEMA_BYTES}
+          schema_sha256=${SCHEMA_SHA256}
+          data_bytes=${DATA_BYTES}
+          data_sha256=${DATA_SHA256}
           source_url=redacted
           source_rows=not_printed
           EOF
 
-          aws s3 cp "$DUMP_FILE" \
-            "s3://${BUCKET_NAME}/${OBJECT_PREFIX}/trackmcp-supabase-source.dump" \
+          aws s3 cp "$ARCHIVE_FILE" \
+            "s3://${BUCKET_NAME}/${OBJECT_PREFIX}/trackmcp-supabase-source.tar.gz" \
             --sse AES256 --only-show-errors
           aws s3 cp "$MANIFEST_FILE" \
             "s3://${BUCKET_NAME}/${OBJECT_PREFIX}/manifest.txt" \
             --sse AES256 --only-show-errors
 
-          echo "Uploaded encrypted source logical export metadata to s3://${BUCKET_NAME}/${OBJECT_PREFIX}/."
-          echo "The PostgreSQL archive contents and source connection string were not printed."
+          echo "Uploaded encrypted filtered Supabase logical export metadata to s3://${BUCKET_NAME}/${OBJECT_PREFIX}/."
+          echo "The SQL files, source rows, and source connection string were not printed."
