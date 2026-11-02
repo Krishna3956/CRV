@@ -301,6 +301,9 @@ TrackMCP application:
 - Prefer one short explanatory sentence plus an action over multi-line banners.
 - Keep technical caveats in disclosures where they are useful, not in every
   primary card.
+- Use a small, explicit dashboard type scale: 30px page titles and metrics,
+  17px section titles, and 12px labels. This creates visual hierarchy without
+  enlarging code blocks or dense evidence tables.
 
 ### 17. Loading should explain progress without becoming a blank interruption
 
@@ -384,4 +387,5 @@ TrackMCP application:
 | Semantic color roles | Cool neutral dashboard surfaces, indigo primary action, no dashboard gradients | `DashboardApp.contract.test.mjs` + CSS review |
 | Honest loading state | Branded workspace-preparation surface with three short steps | `page.contract.test.mjs` |
 | Reusable copy discipline | Repo-scoped `trackmcp-business-copy` skill and copy review checklist | `.codex/skills/trackmcp-business-copy/SKILL.md` |
+| Readable dashboard type scale | Inter UI font with explicit 30/17/12px title, section, metric, and label roles | `globals.css` + `DashboardApp.contract.test.mjs` |
 

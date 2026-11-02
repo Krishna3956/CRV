@@ -131,6 +131,9 @@ Legend: `[x]` verified/implemented in this workstream; `[ ]` pending.
       vocabulary, evidence-boundary rules, recovery-copy rules, and a focused
       review checklist so future copy changes do not drift back toward
       technical or over-verbose language.
+- [x] ✅ Tune the dashboard type scale for business scanning: larger page and
+      metric values, clearer section titles, and readable labels while keeping
+      code and dense table detail compact.
 - [x] ✅ Prevent deep-linked dashboard routes from briefly rendering the wrong
       data source while the URL state hydrates; show a neutral loading handoff
       and gate live-data fetches until the selected route is known.

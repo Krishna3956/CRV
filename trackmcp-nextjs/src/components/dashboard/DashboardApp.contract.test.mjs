@@ -146,9 +146,9 @@ test("dashboard typography uses the product type system", () => {
   assert.match(globalsSource, /--font-sans: var\(--font-inter\)/);
   assert.match(globalsSource, /\.dashboard-shell h1/);
   assert.match(globalsSource, /\.dashboard-shell \.dashboard-page-title/);
-  assert.match(globalsSource, /font-size: 1\.75rem/);
+  assert.match(globalsSource, /font-size: 1\.875rem/);
   assert.match(globalsSource, /\.dashboard-shell \.dashboard-section-title/);
-  assert.match(globalsSource, /font-size: 1rem/);
+  assert.match(globalsSource, /font-size: 1\.0625rem/);
   assert.match(source, /dashboard-shell min-h-screen bg-slate-50 font-sans/);
   assert.match(globalsSource, /--color-brand: #4f46e5/);
   assert.match(globalsSource, /Dashboard visual system: cool neutrals with indigo/);
