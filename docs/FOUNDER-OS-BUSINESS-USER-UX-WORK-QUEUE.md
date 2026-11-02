@@ -108,6 +108,9 @@ Legend: `[x]` verified/implemented in this workstream; `[ ]` pending.
 - [x] ✅ Prevent deep-linked dashboard routes from briefly rendering the wrong
       data source while the URL state hydrates; show a neutral loading handoff
       and gate live-data fetches until the selected route is known.
+- [x] ✅ Give an activated Setup user a direct `Open Overview` handoff after
+      first activity is verified, so the setup page explains the next business
+      action instead of making the reader infer where to go.
 - [x] ✅ Apply the same business-readable evidence language inside the Evidence
       tab: remove the engineering-only “Trace Explorer” action label, hide raw
       session identifiers from the primary table, and expose a clear “Open

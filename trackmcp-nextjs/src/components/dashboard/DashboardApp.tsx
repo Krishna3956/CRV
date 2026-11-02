@@ -1353,6 +1353,7 @@ export function DashboardApp({
               onRevokeKey={onRevokeKey}
               onRotateKey={onRotateKey}
               onRefresh={() => onRefresh(range)}
+              onOpenOverview={() => goTo("overview")}
             />
           ) : !isExample && (!workspace || !hasActiveKey || zeroEventState) ? (
             <ServerConnectionState
@@ -4597,6 +4598,7 @@ function SetupView({
   onRevokeKey,
   onRotateKey,
   onRefresh,
+  onOpenOverview,
 }: {
   keys: Key[];
   workspaceId: string | null;
@@ -4608,6 +4610,7 @@ function SetupView({
   onRevokeKey: (id: string) => void;
   onRotateKey: (id: string) => void;
   onRefresh: () => void;
+  onOpenOverview: () => void;
 }) {
   const [showRevokedKeys, setShowRevokedKeys] = useState(false);
   const readSetupValue = (key: string, fallback: string, maxLength: number) => {
@@ -4831,6 +4834,15 @@ function SetupView({
             <p className="mt-1 max-w-2xl text-xs leading-relaxed text-muted">
               {stateCopy[1]}
             </p>
+            {(connectionState === "verified" || connectionState === "identity" || connectionState === "limited") && (
+              <button
+                type="button"
+                onClick={onOpenOverview}
+                className="mt-4 inline-flex cursor-pointer items-center gap-1.5 rounded-md bg-brand px-3 py-2 text-xs font-semibold text-white transition-colors hover:bg-brand-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2"
+              >
+                Open Overview <ArrowRight size={13} aria-hidden="true" />
+              </button>
+            )}
             {activeSetupContract?.setup?.caveat && (
               <p className="mt-3 max-w-2xl border-l-2 border-line-strong pl-3 text-[11px] leading-relaxed text-muted">
                 Evidence note: {activeSetupContract.setup.caveat}

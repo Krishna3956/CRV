@@ -20,6 +20,8 @@ test("new-user setup explains the business outcome before technical detail", () 
   assert.match(dashboard, /A technical teammate usually completes this page/);
   assert.match(dashboard, /Setup always uses your live connection/);
   assert.match(dashboard, /Create a key, connect one server, make one real tool call/);
+  assert.match(dashboard, /onOpenOverview=\{\(\) => goTo\("overview"\)\}/);
+  assert.match(dashboard, /Open Overview/);
   assert.match(target, /The user is told what will appear after the first event/);
   assert.match(dashboard, /const setupSteps = !workspaceId/);
   assert.match(dashboard, /Create a workspace.*Keep your server connections and analytics together/);
