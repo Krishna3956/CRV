@@ -49,3 +49,20 @@ Remaining evidence required:
 - Real first-event ingestion and dashboard refresh.
 - One non-technical product or operations participant completing the UAT
   script in `docs/FOUNDER-OS-BUSINESS-USER-UAT-SCRIPT.md`.
+
+## Activated Example-data state
+
+Route: `/dashboard?view=capabilities&data=example`
+
+Observed in the browser DOM snapshot:
+
+- The page leads with adoption and reliability before protocol detail.
+- “Trend by feature” renders a visual chart and an expanded table alternative.
+- The table exposes week, total calls, and per-feature values using the same
+  bounded example points as the chart.
+- The table is labeled `Weekly observed calls by feature` and is available
+  without relying on hover text.
+- The example data remains explicitly labeled as illustrative.
+
+This confirms the activated business view has a readable path for comparing
+feature usage, while the underlying metric definitions remain unchanged.
