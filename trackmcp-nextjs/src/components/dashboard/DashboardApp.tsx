@@ -2890,6 +2890,11 @@ function JourneysView({
         actions={pageControls}
       />
       <DataSourceStrip dataMode={dataMode} hasMyData={hasMyData} view="journeys" />
+      <BusinessContext
+        title="Follow the work, not a guessed funnel"
+        body="This view shows the steps TrackMCP actually observed and the explicit points where work completed, failed, or asked for more information. A missing next event does not prove that someone abandoned the task."
+        action="Use Common paths for the normal flow, then inspect Where work stops when a product or operations question needs evidence."
+      />
       {analytics.journey_activity && <>
         <div className="mb-6 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
           <Kpi label="Work sessions observed" value={fmt(analytics.journey_activity.interaction_count)} icon={Route} helper="Bounded observed paths" />
