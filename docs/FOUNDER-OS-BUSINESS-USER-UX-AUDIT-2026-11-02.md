@@ -151,6 +151,9 @@ Implemented on isolated branch `codex/business-user-ux-audit`:
   showing analytics.
 - Added an Evidence-view guide that positions traces as a technical drill-down
   behind a business signal, with explicit privacy and non-outcome boundaries.
+- Reworked empty-state previews so a first-time reader sees business labels
+  such as Features observed, Explicit success, Account signals, and Related
+  events instead of technical placeholders.
 
 Validation on the isolated worktree:
 

@@ -36,6 +36,8 @@ Legend: `[x]` verified/implemented in this workstream; `[ ]` pending.
       boundaries clear to business readers.
 - [x] ✅ Add a requirement-by-requirement readiness matrix that separates
       branch proof, live read-only evidence, and remaining pilot gates.
+- [x] ✅ Rewrite no-data page previews with business language so a first-time
+      reader understands what each tab will show before connecting telemetry.
 - [x] ✅ Perform a read-only browser review of the current production Setup,
       Overview, Example data, and My data states; record live-vs-branch
       differences in the audit.
