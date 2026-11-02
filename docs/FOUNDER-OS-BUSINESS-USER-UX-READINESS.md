@@ -2,7 +2,7 @@
 
 Date: 2026-11-03  
 Branch: `codex/business-user-ux-audit`  
-Latest verified commit: `302eeb6f` (`Clarify account activity boundaries`)
+Latest verified commit: `8a0890c0` (`Record full dashboard route smoke`)
 
 This matrix is the release-readiness companion to the UX audit and work
 queue. It intentionally separates source-level proof, read-only browser proof,
