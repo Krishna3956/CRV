@@ -48,10 +48,10 @@ test("pillar article covers the requested products and accurate boundaries", () 
   assert.doesNotMatch(pillarSource, /\u2014/);
 });
 
-test("paid Pydantic profile is disclosed and its links are marked sponsored", () => {
-  assert.match(pillarSource, /Paid research profile/);
-  assert.match(pillarSource, /researched and wrote this profile/);
-  assert.match(pillarSource, /not an independent benchmark or editorial ranking/);
+test("Pydantic profile no longer renders the removed disclosure block", () => {
+  assert.doesNotMatch(pillarSource, /Paid research profile/);
+  assert.doesNotMatch(pillarSource, /researched and wrote this profile/);
+  assert.doesNotMatch(pillarSource, /not an independent benchmark or editorial ranking/);
   assert.match(pillarSource, /Pydantic Logfire MCP server documentation/);
   assert.match(pillarSource, /https:\/\/pydantic\.dev\/docs\/logfire\/guides\/mcp-server\//);
   assert.match(pillarSource, /https:\/\/pydantic\.dev\/logfire/);
