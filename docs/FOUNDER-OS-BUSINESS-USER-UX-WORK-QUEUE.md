@@ -6,6 +6,9 @@ Legend: `[x]` verified/implemented in this workstream; `[ ]` pending.
 
 - [x] ✅ Add business-question orientation to the Overview page.
 - [x] ✅ Add a clear “what happens after setup” panel.
+- [x] ✅ Clarify the signup handoff so a new account knows that a technical
+      teammate connects one server and the dashboard then explains usage,
+      outcomes, and issues.
 - [x] ✅ Translate setup readiness states into business language while preserving
       technical evidence.
 - [x] ✅ Add plain-English meaning/help for the four Overview KPIs.
