@@ -138,6 +138,8 @@ Validation on the isolated worktree:
 - Dashboard contract tests: **72/72 passed**.
 - Business-user UX regression contract: **4/4 passed** (included in
   `npm run test:business-user-ux`).
+- Metric registry contract: **4/4 passed**, including the alignment between
+  executable metric labels and the dashboard copy.
 - TypeScript: **passed** (`npx tsc --noEmit --pretty false`).
 - ESLint: **passed** with `--quiet`.
 - Production build: **passed**, 230 static pages generated.
