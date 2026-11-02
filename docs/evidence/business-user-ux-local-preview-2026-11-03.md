@@ -504,6 +504,17 @@ Latest visual-system verification after `cf0d0d40`:
 - The branch remains local and undeployed; production visual review and human
   readability testing are still required.
 
+Latest copy-system verification after `570ec527`:
+
+- Added `.codex/skills/trackmcp-business-copy/SKILL.md`, a repo-scoped reusable
+  workflow for dashboard, setup, analytics, and release copy.
+- The skill captures the business-reader questions, consistent vocabulary,
+  evidence-boundary rules, concise-copy rules, recovery-path rules, and a
+  review checklist. It does not alter metric formulas or API contracts.
+- The bundled `quick_validate.py` could not run because this environment lacks
+  the optional PyYAML module; the skill's frontmatter and required sections
+  were checked directly and the file is committed with no scaffold placeholders.
+
 Latest shell verification after `984f2cbe`:
 
 - The desktop language selector now appears only in the global header. The

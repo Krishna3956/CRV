@@ -2,7 +2,7 @@
 
 Date: 2026-11-03  
 Branch: `codex/business-user-ux-audit`  
-Latest verified commit: `cf0d0d40` (`Refresh dashboard visual system and loading state`)
+Latest verified commit: `570ec527` (`Add reusable business copy skill`)
 
 This matrix is the release-readiness companion to the UX audit and work
 queue. It intentionally separates source-level proof, read-only browser proof,
