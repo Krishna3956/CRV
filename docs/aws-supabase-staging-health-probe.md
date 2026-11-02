@@ -5,7 +5,7 @@ The manual workflow
 Supabase services on the preserved staging EC2 host after provisioning or
 schema replay. It uses SSM and a bounded script that:
 
-- verifies the `db`, `auth`, `rest`, and `kong` containers are running;
+- verifies the `db`, `auth`, `rest`, and `api-gw` containers are running;
 - rejects an unhealthy or exited container;
 - runs `pg_isready` inside the database container;
 - checks the Auth settings endpoint with the generated anonymous key;
@@ -13,6 +13,10 @@ schema replay. It uses SSM and a bounded script that:
 
 The key is read only inside the remote command to authenticate the probe and is
 never emitted. No container is started, stopped, recreated, or reconfigured.
+The pinned staging distribution names its gateway `api-gw`; `kong` is not a
+service in this deployment. Other optional services, such as `supavisor`, are
+reported in the service list but are not required by this bounded gateway
+probe.
 The workflow does not read AWS secret values, access Supabase Cloud, change
 production DNS or credentials, or modify the active staging database.
 
