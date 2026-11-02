@@ -148,6 +148,9 @@ Legend: `[x]` verified/implemented in this workstream; `[ ]` pending.
 - [x] ✅ Give every visible sign-in/sign-up and recovery control a consistent
       pointer affordance, disabled cursor state, and keyboard focus ring so a
       first-time user can tell what is actionable before authentication.
+- [x] ✅ Keep the illustrative “Who's using it” growth chart coherent with its
+      KPI cards; the example now renders a weekly series ending at the stated
+      active-account total instead of showing a contradictory empty chart.
 - [x] ✅ Run a built local runtime smoke with the documented dashboard bypass:
       `/signin`, `/signup`, the Example-data Overview and Setup routes, `/docs`,
       and `/sitemap.xml` returned HTTP 200; this remains local evidence, not

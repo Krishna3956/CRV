@@ -106,6 +106,13 @@ test("Founder OS vertical slices share one data-trust contract", () => {
   assert.match(source, /This is a guided example, not your live server activity/);
 });
 
+test("illustrative People data keeps its growth chart consistent with its KPIs", () => {
+  assert.match(source, /const scaleGrowth = \[/);
+  assert.match(source, /period_start: "2026-08-05", active_accounts: scale\(6\)/);
+  assert.match(source, /period_start: "2026-09-02", active_accounts: scale\(18\)/);
+  assert.match(source, /active_accounts: scale\(18\),\n    previous_period_active_accounts: scale\(14\)/);
+});
+
 test("desktop-only pilot boundary is visible on narrow dashboard viewports", () => {
   assert.match(source, /The TrackMCP dashboard is supported on desktop browsers for this pilot/);
   assert.match(source, /className="border-b border-amber-200 bg-amber-50[^\"]*lg:hidden/);

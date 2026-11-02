@@ -289,6 +289,18 @@ and `usage, outcomes, and issues`. This is local bypass evidence only; it does
 not prove a real authenticated session, a Supabase-backed workspace, or a
 production deployment.
 
+## Example-data coherence follow-up
+
+The settled local browser pass exposed one concrete comprehension defect in the
+People surface: the KPI cards showed active, new, and returning account-group
+values while `Growth over time` incorrectly rendered “No account activity was
+observed”. The example fixture had never supplied a growth series. The fixture
+now includes a bounded weekly series ending at the same illustrative active
+account total used by the KPI cards. The settled local browser preview now
+shows the chart with a latest value of 18 accounts and a table disclosure.
+This is an illustrative-data correction only; it changes no live read model or
+metric formula.
+
 ## Capability-page progressive disclosure follow-up
 
 After the initial research and comprehension pass, the local bypass preview

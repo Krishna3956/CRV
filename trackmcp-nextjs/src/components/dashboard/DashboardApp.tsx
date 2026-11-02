@@ -740,10 +740,17 @@ const EXAMPLE_QUALITY: ToolQualityResponse = {
 function exampleAnalytics(days: number): Analytics {
   const ratio = days / 30;
   const scale = (value: number) => Math.max(0, Math.round(value * ratio));
-  const scaleGrowth = EXAMPLE_ANALYTICS.who_is_using_it?.growth.map((item) => ({
-    ...item,
-    active_accounts: scale(item.active_accounts),
-  })) || [];
+  // Keep the illustrative People view internally coherent: its KPI cards and
+  // ranked groups should have a visible weekly series rather than rendering a
+  // contradictory empty chart. These are explicitly illustrative values, not
+  // workspace telemetry.
+  const scaleGrowth = [
+    { period_start: "2026-08-05", active_accounts: scale(6) },
+    { period_start: "2026-08-12", active_accounts: scale(9) },
+    { period_start: "2026-08-19", active_accounts: scale(11) },
+    { period_start: "2026-08-26", active_accounts: scale(14) },
+    { period_start: "2026-09-02", active_accounts: scale(18) },
+  ];
   const examplePeople: NonNullable<Analytics["who_is_using_it"]> = {
     active_accounts: scale(18),
     previous_period_active_accounts: scale(14),
