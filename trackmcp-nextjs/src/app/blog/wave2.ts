@@ -1,4 +1,5 @@
 import type { Block, Post } from "./posts";
+import { wave2Listicles } from "./wave2-listicles";
 
 type WaveSpec = {
   slug: string;
@@ -22,6 +23,13 @@ const quote = (c: string): Block => ({ t: "quote", c });
 const faq = (q: string, a: string): Block => ({ t: "faq", q, a });
 const links = (items: { label: string; href: string }[]): Block => ({ t: "links", items });
 
+const listicle = (spec: WaveSpec): Block | null => {
+  const comparison = wave2Listicles[spec.slug];
+  return comparison
+    ? { t: "listicle", heading: comparison.heading, intro: comparison.intro, items: comparison.items }
+    : null;
+};
+
 const internalLinks = (related: string[], sources: { label: string; href: string }[]) =>
   links([
     { label: "Read the production MCP observability listicle", href: "/blog/best-mcp-observability-tools-for-production-servers" },
@@ -31,7 +39,9 @@ const internalLinks = (related: string[], sources: { label: string; href: string
   ]);
 
 const makePost = (spec: WaveSpec): Post => {
+  const comparison = listicle(spec);
   const body: Block[] = [p(spec.answer), quote(spec.takeaway)];
+  if (comparison) body.push(comparison);
   for (const section of spec.sections) body.push(h(section.heading), p(section.body), ul(section.bullets));
   body.push(
     h("Frequently asked questions"),

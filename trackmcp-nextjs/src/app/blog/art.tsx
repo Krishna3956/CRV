@@ -26,6 +26,19 @@ export type ArtKey =
   | "compare"
   | "opentelemetry"
   | "buyer"
+  | "testing-grid"
+  | "security-grid"
+  | "gateway-grid"
+  | "registry-grid"
+  | "load-grid"
+  | "monitoring-grid"
+  | "evaluation-grid"
+  | "benchmark-grid"
+  | "taxonomy-grid"
+  | "telemetry-grid"
+  | "scorecard-grid"
+  | "adoption-grid"
+  | "buyer-grid"
   | "default";
 
 const C = {
@@ -496,6 +509,52 @@ function Buyer() {
   );
 }
 
+function ComparisonGrid({
+  title,
+  labels,
+  accent = C.brand,
+}: {
+  title: string;
+  labels: string[];
+  accent?: string;
+}) {
+  return (
+    <>
+      <Bg />
+      <text x="56" y="48" fontFamily="system-ui" fontSize="12" fill={C.muted}>{title}</text>
+      <text x="424" y="48" textAnchor="end" fontFamily="monospace" fontSize="10" fill={C.faint}>one card per boundary</text>
+      {labels.map((label, i) => {
+        const x = 56 + (i % 3) * 126;
+        const y = 68 + Math.floor(i / 3) * 58;
+        const isTrack = label === "TrackMCP";
+        return (
+          <g key={label}>
+            <rect x={x} y={y} width="108" height="40" rx="9" fill={isTrack ? C.brandSoft : C.white} stroke={isTrack ? accent : C.line} strokeWidth="1.5" />
+            <circle cx={x + 15} cy={y + 20} r="5" fill={isTrack ? accent : i % 2 ? C.ink : C.muted} />
+            <text x={x + 27} y={y + 24} fontFamily="monospace" fontSize="9.5" fill={isTrack ? C.brandStrong : C.ink}>{label}</text>
+          </g>
+        );
+      })}
+      <path d="M56 195 H424" stroke={C.line} />
+      <text x="56" y="216" fontFamily="system-ui" fontSize="10" fill={C.muted}>compare coverage · evidence · limits · fit</text>
+    </>
+  );
+}
+
+const TestingGrid = () => <ComparisonGrid title="MCP testing stack" labels={["Inspector", "Conformance", "Postman", "Promptfoo", "MCPJam", "TrackMCP"]} />;
+const SecurityGrid = () => <ComparisonGrid title="MCP security layers" labels={["Static", "Dependencies", "Runtime", "Red team", "Policy", "TrackMCP"]} accent={C.red} />;
+const GatewayGrid = () => <ComparisonGrid title="MCP gateway boundaries" labels={["Policy", "Routing", "Identity", "Registry", "Direct", "TrackMCP"]} />;
+const RegistryGrid = () => <ComparisonGrid title="MCP discovery surfaces" labels={["Official", "Glama", "Smithery", "Metorial", "PopMCP", "TrackMCP"]} />;
+const LoadGrid = () => <ComparisonGrid title="MCP reliability test bench" labels={["k6", "Locust", "Artillery", "MCPTest", "Inspector", "TrackMCP"]} />;
+const MonitoringGrid = () => <ComparisonGrid title="MCP monitoring data" labels={["Grafana", "Datadog", "Sentry", "New Relic", "Agent traces", "TrackMCP"]} />;
+const EvaluationGrid = () => <ComparisonGrid title="MCP agent evaluation" labels={["LangSmith", "Langfuse", "Phoenix", "Braintrust", "Promptfoo", "TrackMCP"]} />;
+const BenchmarkGrid = () => <ComparisonGrid title="Benchmark dimensions" labels={["Load", "Scenarios", "Telemetry", "Variance", "Outcomes", "TrackMCP"]} />;
+const TaxonomyGrid = () => <ComparisonGrid title="Failure evidence map" labels={["Protocol", "Application", "Infra", "Trace", "Runbook", "TrackMCP"]} accent={C.red} />;
+const TelemetryGrid = () => <ComparisonGrid title="Telemetry field ownership" labels={["Trace", "Server", "Errors", "Service", "Agent", "TrackMCP"]} />;
+const ScorecardGrid = () => <ComparisonGrid title="Reliability scorecard" labels={["Conformance", "Latency", "Errors", "Context", "Safety", "TrackMCP"]} />;
+const AdoptionGrid = () => <ComparisonGrid title="Adoption funnel" labels={["Exposed", "Discovered", "Called", "Succeeded", "Outcome", "TrackMCP"]} />;
+const BuyerGrid = () => <ComparisonGrid title="Buyer evidence boundaries" labels={["MCP", "OTel", "APM", "Errors", "Agent", "TrackMCP"]} />;
+
 function Default() {
   return (
     <>
@@ -536,6 +595,19 @@ const SCENES: Record<ArtKey, () => React.ReactElement> = {
   compare: Compare,
   opentelemetry: OpenTelemetry,
   buyer: Buyer,
+  "testing-grid": TestingGrid,
+  "security-grid": SecurityGrid,
+  "gateway-grid": GatewayGrid,
+  "registry-grid": RegistryGrid,
+  "load-grid": LoadGrid,
+  "monitoring-grid": MonitoringGrid,
+  "evaluation-grid": EvaluationGrid,
+  "benchmark-grid": BenchmarkGrid,
+  "taxonomy-grid": TaxonomyGrid,
+  "telemetry-grid": TelemetryGrid,
+  "scorecard-grid": ScorecardGrid,
+  "adoption-grid": AdoptionGrid,
+  "buyer-grid": BuyerGrid,
   default: Default,
 };
 
