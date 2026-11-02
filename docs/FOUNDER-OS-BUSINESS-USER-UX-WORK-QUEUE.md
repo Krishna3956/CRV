@@ -24,6 +24,8 @@ Legend: `[x]` verified/implemented in this workstream; `[ ]` pending.
       “What they’re doing”.
 - [x] ✅ Add plain-language interpretation for resource lookups, guided-help
       requests, and explicit outcomes in “Resources & prompts”.
+- [x] ✅ Add a business reading guide to “Did it work” that separates explicit
+      success from reliability friction and unknown evidence.
 - [x] ✅ Perform a read-only browser review of the current production Setup,
       Overview, Example data, and My data states; record live-vs-branch
       differences in the audit.

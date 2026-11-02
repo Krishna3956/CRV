@@ -139,6 +139,9 @@ Implemented on isolated branch `codex/business-user-ux-audit`:
   prompts”, placing adoption/reliability interpretation before protocol detail
   and explaining resource, prompt, and explicit-outcome signals in plain
   language.
+- Added a “Did it work” reading guide that separates explicit success,
+  reliability friction, waiting-for-input, and unknown evidence instead of
+  letting a business reader treat missing outcomes as failure or success.
 
 Validation on the isolated worktree:
 
