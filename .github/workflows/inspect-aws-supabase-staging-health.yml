@@ -1,0 +1,152 @@
+name: Inspect AWS Supabase staging health
+
+# This workflow is deliberately manual and read-only. It checks the already
+# provisioned staging host through SSM without reading or printing secret values.
+# It does not start, stop, recreate, or mutate containers, databases, or AWS
+# resources.
+on:
+  workflow_dispatch:
+    inputs:
+      confirm:
+        description: "Type INSPECT_STAGING_HEALTH to run read-only service diagnostics"
+        required: true
+        type: string
+      stack_name:
+        description: "Existing isolated staging CloudFormation stack"
+        required: true
+        default: trackmcp-supabase-staging-24
+        type: string
+
+permissions:
+  id-token: write
+  contents: read
+
+env:
+  AWS_REGION: us-east-1
+  ROLE_ARN: arn:aws:iam::872575360367:role/GitHubActionsDeployRole
+
+jobs:
+  inspect-health:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Check out the reviewed infrastructure
+        uses: actions/checkout@v4
+
+      - name: Configure AWS OIDC credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ env.ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Validate the explicit health-inspection guard
+        env:
+          CONFIRM: ${{ inputs.confirm }}
+        run: |
+          set -euo pipefail
+          [[ "$CONFIRM" == "INSPECT_STAGING_HEALTH" ]] || {
+            echo "::error::The confirm input must be exactly INSPECT_STAGING_HEALTH."
+            exit 1
+          }
+
+      - name: Resolve the preserved staging instance
+        id: instance
+        env:
+          STACK_NAME: ${{ inputs.stack_name }}
+        run: |
+          set -euo pipefail
+          INSTANCE_ID=$(aws cloudformation describe-stacks \
+            --stack-name "$STACK_NAME" \
+            --region "$AWS_REGION" \
+            --query 'Stacks[0].Outputs[?OutputKey==`InstanceId`].OutputValue' \
+            --output text)
+          [[ -n "$INSTANCE_ID" && "$INSTANCE_ID" != "None" ]] || {
+            echo "::error::The selected stack has no EC2 instance output."
+            exit 1
+          }
+          echo "instance_id=$INSTANCE_ID" >> "$GITHUB_OUTPUT"
+
+      - name: Run the bounded read-only service health probe
+        env:
+          INSTANCE_ID: ${{ steps.instance.outputs.instance_id }}
+        run: |
+          set -euo pipefail
+          REMOTE_SCRIPT=$(cat <<'REMOTE_EOF'
+          set -euo pipefail
+          cd /opt/trackmcp-supabase/project
+          test -f .env
+          test -f docker-compose.yml
+          ANON_KEY=$(sed -n 's/^ANON_KEY=//p' .env)
+          [[ -n "$ANON_KEY" ]] || { echo STAGING_SUPABASE_HEALTH_ANON_KEY_MISSING; exit 1; }
+
+          SERVICE_STATE=$(docker compose ps --all --format '{{.Service}}|{{.State}}|{{.Health}}')
+          printf '%s\n' "$SERVICE_STATE"
+          if printf '%s\n' "$SERVICE_STATE" | grep -Eiq '\|unhealthy|\|exited'; then
+            echo STAGING_SUPABASE_HEALTH_UNHEALTHY_SERVICE
+            exit 1
+          fi
+          for service in db auth rest kong; do
+            line=$(printf '%s\n' "$SERVICE_STATE" | awk -F'|' -v name="$service" '$1 == name { print; exit }')
+            [[ -n "$line" ]] || { echo STAGING_SUPABASE_HEALTH_SERVICE_MISSING service="$service"; exit 1; }
+            state=$(printf '%s' "$line" | cut -d'|' -f2)
+            [[ "$state" == "running" ]] || { echo STAGING_SUPABASE_HEALTH_SERVICE_NOT_RUNNING service="$service" state="$state"; exit 1; }
+          done
+
+          docker compose exec -T db pg_isready -U postgres >/dev/null
+          AUTH_STATUS=$(curl -sS -o /dev/null -w '%{http_code}' \
+            -H "apikey: $ANON_KEY" \
+            -H "Authorization: Bearer $ANON_KEY" \
+            http://127.0.0.1:8000/auth/v1/settings)
+          [[ "$AUTH_STATUS" == "200" ]] || { echo STAGING_SUPABASE_HEALTH_AUTH_HTTP_FAILED status="$AUTH_STATUS"; exit 1; }
+          REST_STATUS=$(curl -sS -o /dev/null -w '%{http_code}' \
+            -H "apikey: $ANON_KEY" \
+            -H "Authorization: Bearer $ANON_KEY" \
+            http://127.0.0.1:8000/rest/v1/)
+          [[ "$REST_STATUS" =~ ^(2|4)[0-9][0-9]$ ]] || { echo STAGING_SUPABASE_HEALTH_REST_HTTP_FAILED status="$REST_STATUS"; exit 1; }
+
+          echo "STAGING_SUPABASE_HEALTH_PROBE_PASSED services=db,auth,rest,kong auth_http=${AUTH_STATUS} rest_http=${REST_STATUS}"
+          echo "No secret value, database row, or application payload was printed; no container or AWS resource was changed."
+          REMOTE_EOF
+          )
+          REMOTE_B64=$(printf '%s' "$REMOTE_SCRIPT" | base64 -w 0)
+          COMMAND_ID=$(aws ssm send-command \
+            --instance-ids "$INSTANCE_ID" \
+            --document-name AWS-RunShellScript \
+            --comment "TrackMCP read-only Supabase staging health probe" \
+            --timeout-seconds 600 \
+            --parameters "commands=echo $REMOTE_B64 | base64 -d | bash" \
+            --region "$AWS_REGION" \
+            --query Command.CommandId --output text)
+          set +e
+          aws ssm wait command-executed \
+            --command-id "$COMMAND_ID" \
+            --instance-id "$INSTANCE_ID" \
+            --region "$AWS_REGION"
+          WAITER_STATUS=$?
+          set -e
+          STATUS=$(aws ssm get-command-invocation \
+            --command-id "$COMMAND_ID" --instance-id "$INSTANCE_ID" \
+            --region "$AWS_REGION" --query Status --output text)
+          OUTPUT=$(aws ssm get-command-invocation \
+            --command-id "$COMMAND_ID" --instance-id "$INSTANCE_ID" \
+            --region "$AWS_REGION" --query StandardOutputContent --output text)
+          ERROR_OUTPUT=$(aws ssm get-command-invocation \
+            --command-id "$COMMAND_ID" --instance-id "$INSTANCE_ID" \
+            --region "$AWS_REGION" --query StandardErrorContent --output text)
+          echo "SSM health probe status: $STATUS"
+          echo "$OUTPUT"
+          if [[ -n "$ERROR_OUTPUT" && "$ERROR_OUTPUT" != "None" ]]; then
+            echo "$ERROR_OUTPUT"
+          fi
+          if [[ "$WAITER_STATUS" -ne 0 || "$STATUS" != "Success" || "$OUTPUT" != *STAGING_SUPABASE_HEALTH_PROBE_PASSED* ]]; then
+            echo "::error::The staging Supabase health probe did not report a clean result."
+            exit 1
+          fi
+
+      - name: Record bounded health evidence
+        env:
+          STACK_NAME: ${{ inputs.stack_name }}
+        run: |
+          set -euo pipefail
+          echo "Read-only Supabase service health passed on isolated stack $STACK_NAME."
+          echo "No source connection, production configuration, DNS, live traffic, or Supabase Cloud setting was changed."
