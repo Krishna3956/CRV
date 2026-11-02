@@ -1254,7 +1254,7 @@ export function DashboardApp({
             Sign out
           </button>
           <div className="mt-3 flex items-center gap-2 border-t border-line px-2 pt-3">
-            <span className="grid h-7 w-7 place-items-center rounded-full bg-[#d7e5db] text-[10px] font-bold text-brand-strong">
+            <span className="grid h-7 w-7 place-items-center rounded-full bg-brand-soft text-[10px] font-bold text-brand-strong">
               {displayName.slice(0, 1).toUpperCase()}
             </span>
             <span className="min-w-0 truncate text-[11.5px] text-muted">
@@ -2349,7 +2349,7 @@ function OverviewTakeaway({
   }
 
   return (
-    <section className="mb-6 rounded-2xl border border-brand/20 bg-[#f4faf6] px-5 py-4 shadow-[0_16px_40px_-34px_rgba(18,59,42,0.7)]" aria-label="Overview takeaway">
+    <section className="mb-6 rounded-2xl border border-brand/20 bg-brand-soft/30 px-5 py-4 shadow-[0_16px_40px_-34px_rgba(49,46,129,0.16)]" aria-label="Overview takeaway">
       <div className="flex items-start gap-3">
         <span className="mt-0.5 grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-brand-soft text-brand-strong" aria-hidden="true">
           <Sparkles size={15} />
@@ -5753,10 +5753,10 @@ function UsageChart({ timeline }: { timeline: Analytics["timeline"] }) {
             <text x={tooltipX + 12} y={tooltipY + 19} fontSize="11" fontWeight="600" fill="#ffffff">
               {dateLabel(hoveredDay.date)}
             </text>
-            <text x={tooltipX + 12} y={tooltipY + 38} fontSize="10" fill="#d7e5db">
+            <text x={tooltipX + 12} y={tooltipY + 38} fontSize="10" fill="#c7d2fe">
               Events: {fmt(hoveredDay.events)}
             </text>
-            <text x={tooltipX + 12} y={tooltipY + 54} fontSize="10" fill="#d7e5db">
+            <text x={tooltipX + 12} y={tooltipY + 54} fontSize="10" fill="#c7d2fe">
               Calls: {fmt(hoveredDay.calls)}
             </text>
             <text x={tooltipX + 12} y={tooltipY + 70} fontSize="10" fill="#f2c4a8">

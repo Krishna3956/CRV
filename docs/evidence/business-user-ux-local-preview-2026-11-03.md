@@ -2,7 +2,7 @@
 
 Date: 2026-11-03
 Branch: `codex/business-user-ux-audit`
-Commit under review: `f3ce4e98` (`Clarify OAuth loading affordances`)
+Commit under review: `39196141` (`Record dashboard typography verification`)
 
 This is local browser evidence only. It is not production evidence and does
 not replace a fresh-account or real-telemetry walkthrough.
@@ -498,7 +498,7 @@ Latest local runtime verification after `cf0d0d40`:
 - The server was stopped cleanly. This is local runtime evidence only; it is
   not authenticated production evidence.
 
-Latest typography verification after `b099a7f2`:
+Latest typography verification after `39196141`:
 
 - Dashboard Inter typography now uses an explicit 30px page/metric role, 17px
   section-title role, and 12px label role. Code and dense table detail remain
