@@ -7,16 +7,16 @@ source explicitly says it is an outcome event.
 
 | Key | Dashboard label | Formula | Source | Important boundary |
 | --- | --- | --- | --- | --- |
-| `ai_clients` | AI clients | Distinct observed `client_name` | Server telemetry | Not unique end users |
-| `activity` | Activity | Observed `tool_call` count | Tool-call telemetry | Instrumented traffic only |
-| `work_completed` | Work completed | Explicit completed / explicit started | Workflow outcome events | No session inference |
+| `ai_clients` | Assistants using your MCP | Distinct observed `client_name` | Server telemetry | Not unique end users |
+| `activity` | Observed work | Observed `tool_call` count | Tool-call telemetry | Instrumented traffic only |
+| `work_completed` | Work with an explicit success | Explicit completed / explicit started | Workflow outcome events | No session inference |
 | `work_unresolved` | Unresolved workflows | Explicit started - completed - failed (bounded at zero) | Workflow outcome events | Missing terminal evidence; never labeled as abandonment |
 | `task_pending` | Explicit task still in progress | Allowlisted task status (`working` or `input_required`) | Task event with a task ID | Pending is observed state; it is not abandonment |
 | `task_completed` | Explicit task completion | Allowlisted task status (`completed`) | Task event with a task ID | Task completion is not proof of the customer's business outcome |
 | `task_cancelled` | Explicit cancellation request/state | Allowlisted task status (`cancelled`) | Task event with a task ID | Cancellation is observed protocol state; worker shutdown and side-effect rollback are not inferred |
 | `task_expired` | Explicit task expiry/timeout state | Allowlisted task status (`expired`) | Task event with a task ID | Expiry is observed protocol state; it is not inferred from inactivity, and a later explicit completion remains visible as the latest state |
-| `error_rate` | Error rate | Failed known-outcome calls / known calls | Tool-call telemetry | Unknown outcomes are not failures |
-| `needs_attention` | Needs attention | Count of fired insight rules | Bounded analytics rules | Signals, not diagnoses |
+| `error_rate` | Calls that returned an error | Failed known-outcome calls / known calls | Tool-call telemetry | Unknown outcomes are not failures |
+| `needs_attention` | Signals to investigate | Count of fired insight rules | Bounded analytics rules | Signals, not diagnoses |
 | `identity_coverage` | Verified account coverage | Events with `account_identity_source=resolver` / eligible events | Resolver-labeled server telemetry | Event-weighted coverage; not unique organizations |
 | `active_account_signals` | Active account signals | Distinct resolver-linked account keys with at least one event in the selected range | Resolver-labeled server telemetry | Privacy-safe dimensions; not unique people or customers |
 | `active_accounts` | Active accounts this period | Distinct resolver-linked account keys in the selected period | Server telemetry with resolver identity | Account signals, not people or verified end users |
@@ -24,9 +24,9 @@ source explicitly says it is an outcome event.
 | `returning_accounts` | Returning accounts | Active resolver-linked accounts first observed before the selected period | Bounded historical server telemetry scan | `N/A` when history is incomplete; not a retention claim |
 | `account_growth` | Growth over time | Distinct resolver-linked accounts grouped by UTC day | Server telemetry with resolver identity | Observed activity only; no identity means no count |
 | `top_account_activity` | Top accounts by activity | Ranked resolver-linked account signals by observed event count | Server telemetry with resolver identity | Raw keys and account names never leave the server |
-| `tool_call_volume` | Total tool calls | Count of observed `tools/call` events | Tool-call telemetry | Instrumented traffic only; retries count as calls |
-| `tool_error_rate` | Overall error rate | Explicitly failed tool calls / observed tool calls | Tool-call telemetry | Unknown outcomes are not errors; no business outcome is inferred |
-| `tool_adoption_breadth` | Average tools per account | Average distinct observed tools per resolver-linked account | Tool-call telemetry with resolver identity | Unresolved accounts are excluded; not a demand or retention score |
+| `tool_call_volume` | Observed actions | Count of observed `tools/call` events | Tool-call telemetry | Instrumented traffic only; retries count as calls |
+| `tool_error_rate` | Actions that returned an error | Explicitly failed tool calls / observed tool calls | Tool-call telemetry | Unknown outcomes are not errors; no business outcome is inferred |
+| `tool_adoption_breadth` | Average features used per account | Average distinct observed tools per resolver-linked account | Tool-call telemetry with resolver identity | Unresolved accounts are excluded; not a demand or retention score |
 | `tool_reliability` | Reliability by tool | Per-tool explicit error and `input_required` rates | Tool-call telemetry | `input_required` is friction evidence, not failure |
 | `active_account_signals_7d` | Active in last 7 days | Distinct resolver-linked account keys observed in the trailing seven days | Resolver-labeled server telemetry | Only available inside the selected range; not a weekly active-user claim |
 | `returning_account_signals` | Returning account signals | Distinct resolver-linked account keys observed on more than one calendar day | Resolver-labeled server telemetry | Repeat activity, not retention or account identity proof |
@@ -39,14 +39,14 @@ source explicitly says it is an outcome event.
 | `prompt_events` | Prompt activity | Observed prompt method events | Protocol telemetry | Method observations; no prompt arguments or completion is inferred |
 | `resource_entities` | Resources observed | Count of bounded hashed resource identities | Durable entity-read projection | Hash counts are not unique people or readable resource identities |
 | `prompt_entities` | Prompts observed | Count of bounded hashed prompt identities | Durable entity-read projection | Hash counts are not unique people or prompt content |
-| `resource_reads` | Resource reads | Count of observed `resources/read` events | Protocol telemetry | Raw URIs and resource contents are never exposed; instrumented traffic only |
-| `prompt_calls` | Prompt calls | Count of observed `prompts/get` events | Protocol telemetry | Raw prompt names and arguments are never exposed; a call is not completion |
-| `prompt_completion_rate` | Prompt completion rate | Explicit complete prompt outcomes / observed prompt calls | Prompt protocol telemetry | `N/A` with no calls; unknown outcomes are not completion or failure |
-| `prompt_stall_rate` | Prompt needs-input rate | Explicit `input_required` prompt outcomes / observed prompt calls | Prompt protocol telemetry | Needs-input is friction evidence, not abandonment |
-| `typical_journey_length` | Typical journey length | Median observed tool steps per bounded interaction | Interaction-linked tool telemetry | Multi-server work and missing terminal events are not visible |
-| `journey_stall_rate` | Journey waiting-for-input rate | Interactions with explicit `input_required` / observed interactions | Interaction-linked protocol telemetry | Needs-input is not abandonment or business failure |
-| `explicit_completion_rate` | Explicit completion rate | Completed workflow outcomes / terminal completed-or-failed workflow outcomes | Semantic workflow outcome facts | Unknown, pending, and not-observable states remain outside the denominator |
-| `outcome_error_rate` | Outcome error rate | Failed known outcomes / completed-or-failed known outcomes | Semantic outcome facts | Missing events are not failures; unknown states remain visible |
+| `resource_reads` | Resource lookups | Count of observed `resources/read` events | Protocol telemetry | Raw URIs and resource contents are never exposed; instrumented traffic only |
+| `prompt_calls` | Guided-help requests | Count of observed `prompts/get` events | Protocol telemetry | Raw prompt names and arguments are never exposed; a call is not completion |
+| `prompt_completion_rate` | Prompts completed explicitly | Explicit complete prompt outcomes / observed prompt calls | Prompt protocol telemetry | `N/A` with no calls; unknown outcomes are not completion or failure |
+| `prompt_stall_rate` | Prompts waiting for information | Explicit `input_required` prompt outcomes / observed prompt calls | Prompt protocol telemetry | Needs-input is friction evidence, not abandonment |
+| `typical_journey_length` | Typical steps per piece of work | Median observed tool steps per bounded interaction | Interaction-linked tool telemetry | Multi-server work and missing terminal events are not visible |
+| `journey_stall_rate` | Work waiting for information | Interactions with explicit `input_required` / observed interactions | Interaction-linked protocol telemetry | Needs-input is not abandonment or business failure |
+| `explicit_completion_rate` | Explicit success rate | Completed workflow outcomes / terminal completed-or-failed workflow outcomes | Semantic workflow outcome facts | Unknown, pending, and not-observable states remain outside the denominator |
+| `outcome_error_rate` | Known outcomes that failed | Failed known outcomes / completed-or-failed known outcomes | Semantic outcome facts | Missing events are not failures; unknown states remain visible |
 | `actionable_signals` | Actionable signals | Count of bounded analytics rules with supporting evidence | Analytics insight rules | Signals are not diagnoses; affected volumes may overlap |
 
 ## Read-model rules

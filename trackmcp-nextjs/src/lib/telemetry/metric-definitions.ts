@@ -18,7 +18,7 @@ export type MetricDefinition = {
 export const METRIC_DEFINITIONS = [
   {
     key: "ai_clients",
-    label: "AI clients",
+    label: "Assistants using your MCP",
     formula: "count(distinct observed client_name)",
     source: "Server-observed telemetry events",
     interpretation: "Distinct client names reported at the server boundary.",
@@ -29,7 +29,7 @@ export const METRIC_DEFINITIONS = [
   },
   {
     key: "activity",
-    label: "Activity",
+    label: "Observed work",
     formula: "count(observed tool_call events)",
     source: "Tool-call telemetry",
     interpretation: "The number of tool calls observed in the selected period.",
@@ -40,7 +40,7 @@ export const METRIC_DEFINITIONS = [
   },
   {
     key: "work_completed",
-    label: "Work completed",
+    label: "Work with an explicit success",
     formula: "count(workflow completed) / count(workflow started)",
     source: "Explicit workflow outcome events",
     interpretation: "The share of explicitly started workflows that emitted a completed outcome.",
@@ -51,7 +51,7 @@ export const METRIC_DEFINITIONS = [
   },
   {
     key: "error_rate",
-    label: "Error rate",
+    label: "Calls that returned an error",
     formula: "count(failed observed calls) / count(observed calls)",
     source: "Tool-call telemetry with an explicit error state",
     interpretation: "The proportion of observed calls marked as failed.",
@@ -62,7 +62,7 @@ export const METRIC_DEFINITIONS = [
   },
   {
     key: "needs_attention",
-    label: "Needs attention",
+    label: "Signals to investigate",
     formula: "count(observed insight records)",
     source: "Bounded analytics insight rules",
     interpretation: "Signals that meet an observed threshold and may merit investigation.",
@@ -118,7 +118,7 @@ export const METRIC_DEFINITIONS = [
   },
   {
     key: "tool_call_volume",
-    label: "Total tool calls",
+    label: "Observed actions",
     formula: "count(observed tools/call events)",
     source: "Tool-call telemetry",
     interpretation: "Observed feature activity in the selected period.",
@@ -129,7 +129,7 @@ export const METRIC_DEFINITIONS = [
   },
   {
     key: "tool_error_rate",
-    label: "Overall error rate",
+    label: "Actions that returned an error",
     formula: "count(explicitly failed tool calls) / count(observed tool calls)",
     source: "Tool-call telemetry",
     interpretation: "The share of observed tool calls with an explicit error state.",
@@ -140,7 +140,7 @@ export const METRIC_DEFINITIONS = [
   },
   {
     key: "tool_adoption_breadth",
-    label: "Average tools per account",
+    label: "Average features used per account",
     formula: "average(distinct observed tools per resolver-linked account)",
     source: "Tool-call telemetry with resolver-linked account identity",
     interpretation: "Observed breadth of capability use among accounts with a configured resolver.",
@@ -151,7 +151,7 @@ export const METRIC_DEFINITIONS = [
   },
   {
     key: "resource_reads",
-    label: "Resource reads",
+    label: "Resource lookups",
     formula: "count(observed resources/read events)",
     source: "Protocol telemetry",
     interpretation: "Observed resource reads reaching the instrumented server.",
@@ -159,7 +159,7 @@ export const METRIC_DEFINITIONS = [
   },
   {
     key: "prompt_calls",
-    label: "Prompt calls",
+    label: "Guided-help requests",
     formula: "count(observed prompts/get events)",
     source: "Protocol telemetry",
     interpretation: "Observed prompt retrieval calls reaching the instrumented server.",
@@ -167,7 +167,7 @@ export const METRIC_DEFINITIONS = [
   },
   {
     key: "prompt_completion_rate",
-    label: "Prompt completion rate",
+    label: "Prompts completed explicitly",
     formula: "explicit complete prompt outcomes / observed prompt calls",
     source: "Prompt protocol telemetry",
     interpretation: "Explicitly reported prompt completion evidence.",
@@ -175,7 +175,7 @@ export const METRIC_DEFINITIONS = [
   },
   {
     key: "prompt_stall_rate",
-    label: "Prompt needs-input rate",
+    label: "Prompts waiting for information",
     formula: "input_required prompt outcomes / observed prompt calls",
     source: "Prompt protocol telemetry",
     interpretation: "Explicit prompt calls that require more input.",
@@ -183,7 +183,7 @@ export const METRIC_DEFINITIONS = [
   },
   {
     key: "typical_journey_length",
-    label: "Typical journey length",
+    label: "Typical steps per piece of work",
     formula: "median observed tool steps per bounded interaction",
     source: "Interaction-linked tool telemetry",
     interpretation: "Typical length of the visible server-side path.",
@@ -191,7 +191,7 @@ export const METRIC_DEFINITIONS = [
   },
   {
     key: "journey_stall_rate",
-    label: "Journey waiting-for-input rate",
+    label: "Work waiting for information",
     formula: "interactions with explicit input_required / observed interactions",
     source: "Interaction-linked protocol telemetry",
     interpretation: "Observed friction where the server requested more input.",
@@ -199,7 +199,7 @@ export const METRIC_DEFINITIONS = [
   },
   {
     key: "explicit_completion_rate",
-    label: "Explicit completion rate",
+    label: "Explicit success rate",
     formula: "completed workflow outcomes / terminal completed-or-failed workflow outcomes",
     source: "Semantic workflow outcome facts",
     interpretation: "Observed completion evidence from explicit application events.",
@@ -207,7 +207,7 @@ export const METRIC_DEFINITIONS = [
   },
   {
     key: "outcome_error_rate",
-    label: "Outcome error rate",
+    label: "Known outcomes that failed",
     formula: "failed known outcomes / completed-or-failed known outcomes",
     source: "Semantic outcome facts",
     interpretation: "Explicit failure share among known terminal outcomes.",
