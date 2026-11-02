@@ -242,6 +242,30 @@ TrackMCP application:
   into a catalog of every protocol signal simply because the SDK can collect
   the signal.
 
+### 14. Shared dashboards need a stable filter model and trustworthy comparison
+
+The current guidance from PostHog and Amplitude reinforces two additional
+rules for TrackMCP. A dashboard should apply one visible time window and
+filter context consistently across its cards, while exceptions must be
+obvious. Comparison, breakdown, and cohort controls should be introduced only
+when the underlying data model can define their denominator and scope. See
+[PostHog dashboard filters and date ranges](https://posthog.com/docs/product-analytics/dashboards),
+[PostHog trends and date ranges](https://posthog.com/docs/product-analytics/trends/overview),
+[Amplitude analytics](https://amplitude.com/docs/analytics), and
+[Amplitude dashboard preferences](https://www.amplitude.com/docs/analytics/dashboard-preferences).
+
+TrackMCP application:
+
+- Keep the selected period visible next to decision KPIs and chart headings;
+  do not make readers remember a global filter while scanning a long page.
+- Do not show a comparison percentage unless both the current and comparison
+  windows come from the same read model with a documented denominator.
+- Treat `Example data` as a fixed teaching scenario, not a filter that can be
+  mixed with live workspace evidence.
+- Keep technical scope controls, including active key scope, available but
+  collapsed in Setup. If a scope mismatch is detected, open the detail section
+  automatically and show the recovery action.
+
 ## What this means for the current product
 
 ### Strengths already present on this branch
@@ -281,4 +305,5 @@ TrackMCP application:
 | Visual hierarchy | Neutral canvas, white surfaces, restrained action color | source review + visual QA pending |
 | Clear action-oriented copy | Setup handoff, empty states, product-language cleanup | `business-user-ux.contract.test.mjs` |
 | Dashboard takeaway before interpretation | Bounded Overview “At a glance” summary | `DashboardApp.contract.test.mjs` |
+| Stable filter context and progressive scope detail | Visible period context; active key scope collapsed, auto-opened on mismatch | `DashboardApp.contract.test.mjs` |
 

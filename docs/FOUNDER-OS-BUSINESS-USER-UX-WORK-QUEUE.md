@@ -111,6 +111,10 @@ Legend: `[x]` verified/implemented in this workstream; `[ ]` pending.
       evidence-backed signals each get a truthful next action.
 - [x] ✅ Keep optional key scoping out of the primary setup instruction; users
       are told to create a connection key first and can configure scopes later.
+- [x] ✅ Keep active key scope behind an optional technical-details disclosure;
+      automatically open it when the latest event does not match the scope so
+      the business reader sees the recovery path without a persistent setup
+      block.
 - [x] ✅ Prevent deep-linked dashboard routes from briefly rendering the wrong
       data source while the URL state hydrates; show a neutral loading handoff
       and gate live-data fetches until the selected route is known.

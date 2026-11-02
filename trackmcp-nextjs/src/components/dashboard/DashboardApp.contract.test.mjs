@@ -302,6 +302,14 @@ test("Setup renders the server readiness contract without making identity mandat
   assert.match(source, /aria-label="Setup readiness"/);
 });
 
+test("Setup keeps active key scope behind optional technical detail", () => {
+  assert.match(source, /<details\n\s+className="mt-5 border-t border-line pt-4"/);
+  assert.match(source, /aria-label="Active connection key details"/);
+  assert.match(source, /Key details <span className="ml-1 font-normal text-muted">Optional technical detail<\/span>/);
+  assert.match(source, /View scope/);
+  assert.match(source, /open=\{activeSetupContract\.setup\.scope_match === false\}/);
+});
+
 test("Setup exposes an explicit refresh action for first-event evidence", () => {
   assert.match(source, /setupReloadToken/);
   assert.match(source, /setSetupReloadToken\(\(value\) => value \+ 1\)/);

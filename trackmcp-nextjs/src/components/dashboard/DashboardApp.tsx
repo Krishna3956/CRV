@@ -4967,8 +4967,16 @@ function SetupView({
           )}
         </details>
         {activeSetupContract?.setup?.connection_key && (
-          <div className="mt-5 border-t border-line pt-4" aria-label="Active connection key scope">
-            <div className="flex items-center justify-between gap-2">
+          <details
+            className="mt-5 border-t border-line pt-4"
+            open={activeSetupContract.setup.scope_match === false}
+            aria-label="Active connection key details"
+          >
+            <summary className="flex cursor-pointer list-none items-center justify-between gap-3 text-xs font-semibold text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand">
+              <span>Key details <span className="ml-1 font-normal text-muted">Optional technical detail</span></span>
+              <span className="text-[11px] font-medium text-brand-strong">View scope</span>
+            </summary>
+            <div className="mt-3 flex items-center justify-between gap-2">
               <p className="text-xs font-semibold text-ink">Active key scope</p>
               <span className="text-[11px] text-muted">Secret value never shown</span>
             </div>
@@ -4990,7 +4998,7 @@ function SetupView({
                 The latest observed event does not match this key scope. Update the server/environment values in your SDK configuration or create a key with the intended scope, then send another event.
               </div>
             )}
-          </div>
+          </details>
         )}
         {connectionState === "error" && (
           <button
