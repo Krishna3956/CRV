@@ -34,7 +34,7 @@ Pass criteria:
 6. Open What’s broken and choose one signal worth investigating.
 7. Explain the difference between a signal, a confirmed diagnosis, and
    insufficient evidence.
-8. Open Evidence and describe what technical detail is available without
+8. Open evidence and describe what technical detail is available without
    exposing payloads or secrets.
 
 Pass criteria:

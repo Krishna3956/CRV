@@ -17,7 +17,7 @@ test("dashboard distinguishes live data and completion evidence", async () => {
   assert.doesNotMatch(dashboard, /session heuristic/);
   assert.match(dashboard, /No explicit workflow outcome data/);
   assert.match(dashboard, /Only outcomes your server explicitly reported count here/);
-  assert.match(dashboard, /Open Evidence/);
+  assert.match(dashboard, /Open evidence/);
 });
 
 test("marketing example dashboard uses the real Founder OS tab vocabulary", async () => {
