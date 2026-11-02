@@ -162,6 +162,11 @@ engineering-oriented `Trace Explorer` label. The change is covered by a
 dedicated contract test and keeps the technical identifier copy inside the
 secondary detail surface.
 
+The local browser also opened one illustrative session from the Evidence tab.
+The route displayed `Evidence details`, `Review one bounded interaction in
+observed order`, `Example data`, and redacted event boundaries. This confirms
+the new wording is visible in the actual drill-down, not only in source tests.
+
 The Resources & prompts preview also expanded its trend table successfully,
 showing period, surface, item, and calls while retaining the content/argument
 privacy boundary.
