@@ -32,6 +32,8 @@ Legend: `[x]` verified/implemented in this workstream; `[ ]` pending.
       explicit stop evidence and avoids abandonment inference.
 - [x] ✅ Make the post-signup dashboard loading state explain workspace
       preparation instead of showing a generic loading message.
+- [x] ✅ Add an Evidence-view guide that makes technical drill-down and privacy
+      boundaries clear to business readers.
 - [x] ✅ Perform a read-only browser review of the current production Setup,
       Overview, Example data, and My data states; record live-vs-branch
       differences in the audit.

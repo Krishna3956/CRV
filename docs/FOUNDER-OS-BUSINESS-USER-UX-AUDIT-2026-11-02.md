@@ -149,6 +149,8 @@ Implemented on isolated branch `codex/business-user-ux-audit`:
 - Improved the post-signup dashboard loading state so a new user understands
   that TrackMCP is checking the account and preparing the workspace before
   showing analytics.
+- Added an Evidence-view guide that positions traces as a technical drill-down
+  behind a business signal, with explicit privacy and non-outcome boundaries.
 
 Validation on the isolated worktree:
 
