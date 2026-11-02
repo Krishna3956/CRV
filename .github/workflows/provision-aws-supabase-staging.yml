@@ -246,7 +246,11 @@ jobs:
             cd /opt/trackmcp-supabase/project
             printf 'ref=self-hosted/v0.8.3\n' > .supabase-version
             cp .env.example .env
-            sh utils/generate-keys.sh >/dev/null 2>&1
+            # SSM runs this bootstrap non-interactively. Without
+            # --update-env the official generator only prints keys and leaves
+            # the example values in .env, which can break Supavisor and leave
+            # the deployment with a non-production configuration.
+            sh utils/generate-keys.sh --update-env >/dev/null 2>&1
             sh utils/add-new-auth-keys.sh >/dev/null 2>&1
             sed -i -E 's|^SUPABASE_PUBLIC_URL=.*|SUPABASE_PUBLIC_URL=http://127.0.0.1:8000|' .env
             sed -i -E 's|^API_EXTERNAL_URL=.*|API_EXTERNAL_URL=http://127.0.0.1:8000|' .env
