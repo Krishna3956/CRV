@@ -319,6 +319,26 @@ TrackMCP application:
 - Keep the timeout/recovery behavior intact so a stalled auth session still
   reaches a clear sign-in or refresh action.
 
+### 18. Copy rules should be reusable and evaluated like product behavior
+
+OpenAI's official skills guidance describes a skill as a reusable workflow layer
+with a clear trigger, focused instructions, and supporting resources. Its evals
+guidance recommends defining outcome, process, style, and efficiency checks
+before iterating so a prompt or skill does not drift based on subjective
+“vibes.” See [OpenAI skills](https://developers.openai.com/plugins/concepts/skills)
+and [Testing Agent Skills Systematically with Evals](https://developers.openai.com/blog/eval-skills).
+
+TrackMCP application:
+
+- The repo now contains `.codex/skills/trackmcp-business-copy/SKILL.md` with
+  the product vocabulary, evidence boundaries, concise-copy rules, and review
+  checklist used by future dashboard and setup copy changes.
+- Copy changes should add a focused contract test when a phrase or state is
+  important to comprehension.
+- Copy review should score both style and truth: a shorter sentence is not an
+  improvement if it removes the caveat that prevents a business reader from
+  over-interpreting the metric.
+
 ## What this means for the current product
 
 ### Strengths already present on this branch
@@ -363,4 +383,5 @@ TrackMCP application:
 | Recovery without data substitution | Live-data failure keeps Retry primary and offers an explicit Example-data fallback | `DashboardApp.contract.test.mjs` |
 | Semantic color roles | Cool neutral dashboard surfaces, indigo primary action, no dashboard gradients | `DashboardApp.contract.test.mjs` + CSS review |
 | Honest loading state | Branded workspace-preparation surface with three short steps | `page.contract.test.mjs` |
+| Reusable copy discipline | Repo-scoped `trackmcp-business-copy` skill and copy review checklist | `.codex/skills/trackmcp-business-copy/SKILL.md` |
 

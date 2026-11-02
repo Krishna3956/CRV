@@ -127,6 +127,10 @@ Legend: `[x]` verified/implemented in this workstream; `[ ]` pending.
 - [x] ✅ Apply a dashboard-only visual system: cool neutral surfaces, indigo
       primary actions, semantic status text, and no gradients in dashboard
       surfaces.
+- [x] ✅ Add a repo-scoped `trackmcp-business-copy` skill with customer-facing
+      vocabulary, evidence-boundary rules, recovery-copy rules, and a focused
+      review checklist so future copy changes do not drift back toward
+      technical or over-verbose language.
 - [x] ✅ Prevent deep-linked dashboard routes from briefly rendering the wrong
       data source while the URL state hydrates; show a neutral loading handoff
       and gate live-data fetches until the selected route is known.
