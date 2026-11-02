@@ -3,7 +3,7 @@
 **Goal:** Move TrackMCP from Supabase Cloud Free to an AWS Activate-funded, self-hosted Supabase deployment with the smallest safe application change, while preserving users, authentication, data, security, backups, and rollback safety.
 
 **Status:** IN PROGRESS  
-**Last updated:** 2026-11-02 05:00 IST
+**Last updated:** 2026-11-02 09:39 IST
 **Repository:** `/Users/krishna/Documents/Codex/2026-10-17/okay-x20/CRV`  
 **Branch:** `codex/record-final-go`
 
@@ -101,4 +101,5 @@ This is provisional until current Supabase compatibility requirements, AWS prici
 | 2026-11-02 09:05 IST | CI release-gate repair discovered during PR #822 | The repository release gate exposed that the read-only migration-parity manifest omitted the merged `20260828000000_mcp_tools_baseline` migration in both expected-value lists. Added the missing entry to `supabase/manual/founder-os-migration-parity-postflight.sql`; the parity contract passed and the full release gate passed with 155 suites. | VERIFIED |
 | 2026-11-02 09:17 IST | Source export workflow merged | PR [#822](https://github.com/Krishna3956/CRV/pull/822) was squash-merged to `main` as `ef077a8`. The guarded manual source-export workflow and its parity-gate repair are now present on `main`; no workflow dispatch was attempted because `SUPABASE_SOURCE_DB_URL` is not present, and Supabase Cloud, production traffic, DNS, and credentials remain untouched. | VERIFIED / READY FOR SECRET |
 | 2026-11-02 09:25 IST | Source credential access check | Authenticated Supabase Database Settings confirms the database password is not viewable after creation; the password-reset control is disabled, and the page warns that resetting it would break existing connections. No reset or project setting change was attempted. The source export remains blocked only on obtaining the existing Postgres connection string through the approved secret store. | VERIFIED / OWNER SECRET ACTION REQUIRED |
+| 2026-11-02 09:39 IST | Application integration inventory | Read-only repository inspection of `trackmcp-nextjs/src/lib/repository/supabase.ts`, `src/lib/auth/supabase-browser.ts`, `src/lib/auth/supabase-server.ts`, `src/proxy.ts`, and `deploy/apprunner-deploy.sh` confirms the runtime dependency is centralized through `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, and the server-only `SUPABASE_SERVICE_ROLE_KEY`. No direct `DATABASE_URL` consumer was found; App Runner injects the service-role key through its Secrets Manager bundle. No production values were changed. | VERIFIED / READY FOR POST-EXPORT CONFIGURATION |
 
