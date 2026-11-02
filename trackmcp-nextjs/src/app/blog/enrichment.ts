@@ -272,7 +272,7 @@ export const enrichment: Record<string, Enrichment> = {
     art: "clients",
     takeaways: [
       "MCP server observability starts at the server boundary and answers different questions from model or agent tracing.",
-      "TrackMCP, Sentry, Datadog, Grafana/OpenTelemetry, Pydantic Logfire, Langfuse, and LangSmith fit different operational boundaries.",
+      "TrackMCP, Sentry, Datadog, Grafana/OpenTelemetry, Langfuse, and LangSmith fit different operational boundaries.",
       "A layered stack is often more honest and useful than choosing one platform as a universal replacement.",
       "Verify protocol, SDK, transport, privacy, and outcome semantics before adopting a production integration.",
     ],

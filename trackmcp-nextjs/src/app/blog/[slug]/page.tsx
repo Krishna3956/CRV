@@ -91,6 +91,56 @@ function Blocks({ body }: { body: Block[] }) {
               {b.c}
             </blockquote>
           );
+        if (b.t === "listicle")
+          return (
+            <section key={i} className="my-3" aria-label={b.heading}>
+              <h2
+                id={slugify(b.heading)}
+                className="mt-6 scroll-mt-24 border-t border-line pt-6 text-[24px] font-medium tracking-[-0.02em] text-ink"
+              >
+                {b.heading}
+              </h2>
+              <p className="mt-3 text-[16.5px] leading-[1.75] text-body">{b.intro}</p>
+              <div className="mt-6 grid gap-4">
+                {b.items.map((item, index) => (
+                  <article key={item.name} className="rounded-2xl border border-line bg-white p-5 shadow-[0_1px_2px_rgba(0,0,0,0.03)]">
+                    <div className="flex flex-wrap items-start justify-between gap-3">
+                      <div>
+                        <div className="text-[11px] font-semibold uppercase tracking-[0.12em] text-brand">
+                          {String(index + 1).padStart(2, "0")} · {item.category}
+                        </div>
+                        <h3 className="mt-1.5 text-[21px] font-semibold tracking-[-0.02em] text-ink">{item.name}</h3>
+                      </div>
+                      <span className="rounded-full bg-brand-soft px-2.5 py-1 text-[11px] font-medium text-brand-strong">Compared</span>
+                    </div>
+                    <dl className="mt-4 grid gap-3 text-[15px] leading-[1.65] text-body sm:grid-cols-2">
+                      <div>
+                        <dt className="font-semibold text-ink">Best for</dt>
+                        <dd>{item.bestFor}</dd>
+                      </div>
+                      <div>
+                        <dt className="font-semibold text-ink">What it covers</dt>
+                        <dd>{item.coverage}</dd>
+                      </div>
+                      <div>
+                        <dt className="font-semibold text-ink">Limitations</dt>
+                        <dd>{item.limitations}</dd>
+                      </div>
+                      <div>
+                        <dt className="font-semibold text-ink">Where TrackMCP fits</dt>
+                        <dd>{item.trackMcpFit}</dd>
+                      </div>
+                    </dl>
+                    {item.source ? (
+                      <a href={item.source.href} target="_blank" rel="noopener noreferrer" className="mt-4 inline-flex text-[13px] font-medium text-brand-strong underline underline-offset-2 hover:text-ink">
+                        Primary source: {item.source.label}
+                      </a>
+                    ) : null}
+                  </article>
+                ))}
+              </div>
+            </section>
+          );
         if (b.t === "figure")
           return (
             <figure key={i} className="my-2 overflow-hidden rounded-xl border border-line">
