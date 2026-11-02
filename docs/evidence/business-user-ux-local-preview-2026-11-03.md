@@ -233,3 +233,28 @@ reported by the server count as success.
 
 The underlying evidence contracts and technical disclosures were not removed.
 This is a copy and comprehension change, not a metric or read-model change.
+
+## Research and first-time auth affordance pass
+
+The branch research record was expanded using official PostHog, Amplitude,
+USWDS, Nielsen Norman Group, Microsoft, and GOV.UK guidance. The resulting
+decisions are recorded in `docs/FOUNDER-OS-BUSINESS-USER-UX-RESEARCH.md`: keep
+the first review path curated, use one question per chart, pair visual trends
+with plain-language conclusions and exact-value alternatives, reserve color for
+evidence-backed states, and give every failure a recovery action.
+
+The first-time authentication path now applies the same interaction contract as
+the dashboard: email submit and social-provider controls expose a pointer
+affordance, visible keyboard focus, and an explicit disabled state. The source
+and contract proof are in `trackmcp-nextjs/src/app/signin/page.tsx`,
+`trackmcp-nextjs/src/components/OAuthButtons.tsx`, and
+`trackmcp-nextjs/scripts/business-user-ux.contract.test.mjs`.
+
+Verification after this pass:
+
+- `npm run test:business-user-ux`: 80/80 passed.
+- `npx tsc --noEmit --pretty false`: passed.
+- `npm run build`: passed; 230 static pages generated.
+- `npm run test:release-gate`: passed; 159 suites.
+- Worktree restored to clean state after the release gate regenerated its
+  synthetic UAT timestamp.
