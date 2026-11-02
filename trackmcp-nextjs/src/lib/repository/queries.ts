@@ -115,6 +115,7 @@ export async function getToolsByCategory(category: string, limit = 300, offset =
   const supabase = getSupabase();
   if (!supabase || !Number.isInteger(limit) || limit < 1 || !Number.isInteger(offset) || offset < 0) return [];
   const requested = normalizeCategory(category);
+  const requestedOffset = offset;
   const matches: McpTool[] = [];
   let skipped = 0;
   const batch = 1000;
@@ -123,19 +124,19 @@ export async function getToolsByCategory(category: string, limit = 300, offset =
   // without a category. Read deterministically in pages and apply the same
   // display-time classifier used by the category counts so category routes do
   // not return a misleading zero-match page.
-  for (let offset = 0; offset < maxRows && matches.length < limit; offset += batch) {
+  for (let cursor = 0; cursor < maxRows && matches.length < limit; cursor += batch) {
     const { data, error } = await supabase
       .from("mcp_tools")
       .select(FIELDS)
       .in("status", ["approved", "pending"])
       .order("stars", { ascending: false, nullsFirst: false })
       .order("id", { ascending: true })
-      .range(offset, offset + batch - 1);
+      .range(cursor, cursor + batch - 1);
     if (error || !data || data.length === 0) break;
     const rows = withDisplayCategories(keep((data as McpTool[]) || []));
     for (const tool of rows) {
       if (tool.category !== requested) continue;
-      if (skipped < offset) {
+      if (skipped < requestedOffset) {
         skipped += 1;
         continue;
       }

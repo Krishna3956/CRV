@@ -1,6 +1,7 @@
 "use client";
 
 import { useLayoutEffect } from "react";
+import { usePathname } from "next/navigation";
 import { readSiteLocale, type SiteLocale } from "./site-locale";
 
 type TextRecord = { kind: "text"; node: Text; original: string };
@@ -26,6 +27,7 @@ let translationObserverDirty = false;
 let translationObserverReleaseTimer: number | undefined;
 let scheduleTranslationRefresh: (() => void) | null = null;
 const TRANSLATION_BATCH_SIZE = 80;
+const TRANSLATION_BATCH_MAX_CHARS = 30_000;
 const TRANSLATION_REQUEST_TIMEOUT_MS = 12_000;
 const TRANSLATION_PAGE_TIMEOUT_MS = 20_000;
 let activeTranslationAbortController: AbortController | null = null;
@@ -133,7 +135,7 @@ function isExcluded(node: Text): boolean {
   if (!parent) return true;
   if (parent.closest("[data-no-translate], script, style, noscript, textarea, input, select, option, pre, code, svg, [contenteditable='true'], [aria-hidden='true']")) return true;
   const text = node.nodeValue?.trim() || "";
-  if (text.length < 2 || /^https?:\/\//i.test(text) || /^[a-z0-9.-]+\.[a-z]{2,}$/i.test(text) || OPAQUE_TECHNICAL_LABEL.test(text) || /^[-_./:@#$%{}[\]()<>=+*|\\\d\s]+$/.test(text)) return true;
+  if (text.length < 2 || text.length > 4_000 || /^https?:\/\//i.test(text) || /^[a-z0-9.-]+\.[a-z]{2,}$/i.test(text) || OPAQUE_TECHNICAL_LABEL.test(text) || /^[-_./:@#$%{}[\]()<>=+*|\\\d\s]+$/.test(text)) return true;
   return false;
 }
 
@@ -145,7 +147,7 @@ function isExcludedElement(element: Element): boolean {
 
 function isTranslatableValue(value: string): boolean {
   const text = value.trim();
-  return text.length >= 2 && !/^https?:\/\//i.test(text) && !/^[a-z0-9.-]+\.[a-z]{2,}$/i.test(text) && !OPAQUE_TECHNICAL_LABEL.test(text) && !/^[-_./:@#$%{}[\]()<>=+*|\\\d\s]+$/.test(text);
+  return text.length >= 2 && text.length <= 4_000 && !/^https?:\/\//i.test(text) && !/^[a-z0-9.-]+\.[a-z]{2,}$/i.test(text) && !OPAQUE_TECHNICAL_LABEL.test(text) && !/^[-_./:@#$%{}[\]()<>=+*|\\\d\s]+$/.test(text);
 }
 
 function pruneDisconnectedRecords() {
@@ -275,7 +277,7 @@ async function translatePage() {
 async function translatePageInternal(generation: number, controller: AbortController) {
   const initialTranslation = document.documentElement.getAttribute("data-trackmcp-translation-pending") === "true";
   if (!initialTranslation) setInitialTranslationPending(false);
-  const pageTimeout = window.setTimeout(() => controller.abort(), TRANSLATION_PAGE_TIMEOUT_MS);
+  const pageTimeout = window.setTimeout(() => controller.abort("timeout"), TRANSLATION_PAGE_TIMEOUT_MS);
   const records = collectTranslationRecords();
   if (!records.length) {
     window.clearTimeout(pageTimeout);
@@ -288,8 +290,20 @@ async function translatePageInternal(generation: number, controller: AbortContro
   emitStatus("translating");
   try {
     const uncached = [...new Set(records.map(({ original }) => original))].filter((original) => !translationCache.has(original));
-    for (let index = 0; index < uncached.length; index += TRANSLATION_BATCH_SIZE) {
-      const batch = uncached.slice(index, index + TRANSLATION_BATCH_SIZE);
+    let batch: string[] = [];
+    let batchChars = 0;
+    const batches: string[][] = [];
+    for (const original of uncached) {
+      if (batch.length && (batch.length >= TRANSLATION_BATCH_SIZE || batchChars + original.length > TRANSLATION_BATCH_MAX_CHARS)) {
+        batches.push(batch);
+        batch = [];
+        batchChars = 0;
+      }
+      batch.push(original);
+      batchChars += original.length;
+    }
+    if (batch.length) batches.push(batch);
+    for (const batch of batches) {
       const translations = await requestTranslationBestEffort(batch, controller.signal);
       batch.forEach((original, batchIndex) => {
         const value = translations[batchIndex];
@@ -323,6 +337,7 @@ async function translatePageInternal(generation: number, controller: AbortContro
     document.documentElement.lang = "zh-CN";
     emitStatus("ready");
   } catch {
+    if (controller.signal.aborted && controller.signal.reason === "route-change") return;
     window.clearTimeout(pageTimeout);
     restoreEnglish();
     emitStatus("error");
@@ -332,6 +347,8 @@ async function translatePageInternal(generation: number, controller: AbortContro
 }
 
 export function TranslationRuntime() {
+  const pathname = usePathname();
+
   useLayoutEffect(() => {
     const locale = (): SiteLocale => {
       return readSiteLocale();
@@ -349,7 +366,7 @@ export function TranslationRuntime() {
       translationGeneration += 1;
       if (next === "zh-CN") void translatePage();
       else {
-        activeTranslationAbortController?.abort();
+        activeTranslationAbortController?.abort("locale-change");
         restoreEnglish();
       }
     };
@@ -371,6 +388,8 @@ export function TranslationRuntime() {
     });
     if (locale() === "zh-CN") void translatePage();
     return () => {
+      translationGeneration += 1;
+      activeTranslationAbortController?.abort("route-change");
       if (timer) window.clearTimeout(timer);
       observer.disconnect();
       window.removeEventListener("trackmcp:locale-change", onLocaleChange);
@@ -382,7 +401,7 @@ export function TranslationRuntime() {
       }
       translationObserverSuppressed = false;
     };
-  }, []);
+  }, [pathname]);
 
   return null;
 }
