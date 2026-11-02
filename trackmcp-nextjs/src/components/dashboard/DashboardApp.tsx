@@ -3433,6 +3433,11 @@ function QualityView({
         actions={pageControls}
       />
       <DataSourceStrip dataMode={dataMode} hasMyData={hasMyData} view="quality" />
+      <BusinessContext
+        title="Read success and reliability separately"
+        body="Did it work answers whether the server reported an explicit outcome. Feature reliability shows where observed requests returned errors or retries. A missing outcome is shown as unknown or insufficient evidence, never as an assumed success or failure."
+        action="Use the evidence link on a feature row when a rate is high enough to investigate."
+      />
       <OutcomeEvidencePanel analytics={analytics} />
       <Panel
         title="Feature reliability"
@@ -3453,11 +3458,11 @@ function QualityView({
           <table className="w-full min-w-[980px] text-left text-sm">
             <thead className="border-b border-line text-[10px] font-semibold uppercase tracking-[0.08em] text-faint">
               <tr>
-                <th className="pb-3">Capability</th>
-                <th className="pb-3">Call share</th>
+                <th className="pb-3">Feature</th>
+                <th className="pb-3">Share of activity</th>
                 <th className="pb-3">Error rate</th>
                 <th className="pb-3">Retry rate</th>
-                <th className="pb-3">Work completed</th>
+                <th className="pb-3">Explicit success</th>
                 <th className="pb-3">Evidence</th>
               </tr>
             </thead>
