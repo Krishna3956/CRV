@@ -14,6 +14,8 @@ Legend: `[x]` verified/implemented in this workstream; `[ ]` pending.
       reliability labels without changing their formulas.
 - [x] ✅ Keep issue evidence and internal rule identifiers behind an explicit
       detail disclosure so business readers see the signal and next step first.
+- [x] ✅ Translate the setup readiness checklist into business-language states;
+      preserve the technical evidence contract underneath.
 - [x] ✅ Keep Example data visibly illustrative and separate from My data.
 - [x] ✅ Add contract tests for the orientation and setup copy.
 - [ ] Run dashboard contracts, typecheck, build, and runtime smoke. (Contracts,
