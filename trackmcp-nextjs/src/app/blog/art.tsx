@@ -39,6 +39,32 @@ export type ArtKey =
   | "scorecard-grid"
   | "adoption-grid"
   | "buyer-grid"
+  | "testing-cover"
+  | "security-cover"
+  | "gateway-cover"
+  | "registry-cover"
+  | "load-cover"
+  | "monitoring-cover"
+  | "evaluation-cover"
+  | "benchmark-cover"
+  | "taxonomy-cover"
+  | "telemetry-cover"
+  | "scorecard-cover"
+  | "adoption-cover"
+  | "buyer-cover"
+  | "testing-detail"
+  | "security-detail"
+  | "gateway-detail"
+  | "registry-detail"
+  | "load-detail"
+  | "monitoring-detail"
+  | "evaluation-detail"
+  | "benchmark-detail"
+  | "taxonomy-detail"
+  | "telemetry-detail"
+  | "scorecard-detail"
+  | "adoption-detail"
+  | "buyer-detail"
   | "default";
 
 const C = {
@@ -555,6 +581,157 @@ const ScorecardGrid = () => <ComparisonGrid title="Reliability scorecard" labels
 const AdoptionGrid = () => <ComparisonGrid title="Adoption funnel" labels={["Exposed", "Discovered", "Called", "Succeeded", "Outcome", "TrackMCP"]} />;
 const BuyerGrid = () => <ComparisonGrid title="Buyer evidence boundaries" labels={["MCP", "OTel", "APM", "Errors", "Agent", "TrackMCP"]} />;
 
+/* Wave 2 editorial visuals. These are intentionally code-native rather than
+   stock or generic generated images: each scene names the article's actual
+   decision surface and leaves enough negative space for the wide cover crop. */
+type WaveVisualKind =
+  | "testing" | "security" | "gateway" | "registry" | "load" | "monitoring"
+  | "evaluation" | "benchmark" | "taxonomy" | "telemetry" | "scorecard" | "adoption" | "buyer";
+
+const waveVisualData: Record<WaveVisualKind, { label: string; accent: string; chips: string[] }> = {
+  testing: { label: "failure reproduction", accent: C.brand, chips: ["fixture", "assert", "result"] },
+  security: { label: "risk surface", accent: C.red, chips: ["content", "policy", "side effect"] },
+  gateway: { label: "request boundary", accent: C.brand, chips: ["identity", "route", "audit"] },
+  registry: { label: "catalog trust", accent: C.brand, chips: ["owner", "version", "verify"] },
+  load: { label: "pressure model", accent: C.brand, chips: ["ramp", "tail", "retry"] },
+  monitoring: { label: "live evidence", accent: C.brand, chips: ["client", "tool", "outcome"] },
+  evaluation: { label: "agent behavior", accent: C.brand, chips: ["select", "call", "finish"] },
+  benchmark: { label: "reproducible measure", accent: C.brand, chips: ["fixture", "window", "limit"] },
+  taxonomy: { label: "failure boundary", accent: C.red, chips: ["protocol", "app", "infra"] },
+  telemetry: { label: "field ownership", accent: C.brand, chips: ["span", "event", "metric"] },
+  scorecard: { label: "health dimensions", accent: C.brand, chips: ["availability", "latency", "safety"] },
+  adoption: { label: "usage path", accent: C.brand, chips: ["exposed", "called", "complete"] },
+  buyer: { label: "selection evidence", accent: C.brand, chips: ["coverage", "privacy", "cost"] },
+};
+
+function WaveCover({ kind }: { kind: WaveVisualKind }) {
+  const d = waveVisualData[kind];
+  return (
+    <>
+      <Bg />
+      <text x="56" y="46" fontFamily="system-ui" fontSize="12" fill={C.muted}>{d.label}</text>
+      <text x="424" y="46" textAnchor="end" fontFamily="monospace" fontSize="10" fill={C.faint}>TrackMCP editorial</text>
+      <rect x="56" y="64" width="368" height="126" rx="16" fill={C.white} stroke={C.line} strokeWidth="1.5" />
+      {kind === "testing" && <>
+        <rect x="78" y="84" width="160" height="84" rx="10" fill={C.ink} />
+        <circle cx="94" cy="98" r="4" fill={C.brand} /><circle cx="108" cy="98" r="4" fill={C.red} />
+        {["connect()", "tools/list", "call → result"].map((t, i) => <text key={t} x="86" y={122 + i * 15} fontFamily="monospace" fontSize="10" fill={i === 2 ? "#86efac" : C.white}>{t}</text>)}
+        <path d="M258 105 H382 M258 130 H354 M258 155 H388" stroke={C.line} strokeWidth="7" strokeLinecap="round" />
+        <circle cx="258" cy="105" r="5" fill={C.brand} /><circle cx="258" cy="130" r="5" fill={C.brand} /><circle cx="258" cy="155" r="5" fill={C.red} />
+      </>}
+      {kind === "security" && <>
+        <path d="M142 84 L190 102 V132 C190 151 175 164 142 174 C109 164 94 151 94 132 V102 Z" fill={C.redSoft} stroke={C.red} strokeWidth="2" />
+        <path d="M120 130 l14 14 29-34" fill="none" stroke={C.red} strokeWidth="5" strokeLinecap="round" strokeLinejoin="round" />
+        {d.chips.map((t, i) => <g key={t}><rect x={238} y={84 + i * 28} width="148" height="20" rx="6" fill={i === 1 ? C.ink : C.mist} /><text x="250" y={98 + i * 28} fontFamily="monospace" fontSize="10" fill={i === 1 ? C.white : C.body}>{t}</text></g>)}
+      </>}
+      {kind === "gateway" && <>
+        <circle cx="112" cy="126" r="22" fill={C.ink} /><text x="112" y="130" textAnchor="middle" fontFamily="monospace" fontSize="10" fill={C.white}>client</text>
+        <rect x="196" y="91" width="92" height="70" rx="12" fill={C.brandSoft} stroke={C.brand} strokeWidth="2" /><text x="242" y="121" textAnchor="middle" fontFamily="monospace" fontSize="11" fill={C.brandStrong}>gateway</text><text x="242" y="140" textAnchor="middle" fontFamily="system-ui" fontSize="10" fill={C.body}>policy + route</text>
+        {[{ y:92, t:"server A" }, { y:126, t:"server B" }, { y:160, t:"server C" }].map((s) => <g key={s.t}><line x1="288" y1="126" x2="330" y2={s.y} stroke={C.faint} strokeWidth="2" /><circle cx="356" cy={s.y} r="18" fill={C.white} stroke={C.line} /><text x="356" y={s.y + 3} textAnchor="middle" fontFamily="monospace" fontSize="9" fill={C.body}>{s.t}</text></g>)}
+        <line x1="134" y1="126" x2="196" y2="126" stroke={C.faint} strokeWidth="2" /><path d="M196 126 l-8 -5 v10 z" fill={C.faint} />
+      </>}
+      {kind === "registry" && <>
+        {[0, 1, 2].map((i) => <g key={i}><rect x={78 + i * 112} y={90 + (i % 2) * 22} width="96" height="58" rx="9" fill={i === 1 ? C.brandSoft : C.paper} stroke={i === 1 ? C.brand : C.line} /><circle cx={94 + i * 112} cy={107 + (i % 2) * 22} r="5" fill={i === 1 ? C.brand : C.ink} /><text x={106 + i * 112} y={111 + (i % 2) * 22} fontFamily="monospace" fontSize="9" fill={C.ink}>server {String.fromCharCode(65 + i)}</text><text x={90 + i * 112} y={132 + (i % 2) * 22} fontFamily="system-ui" fontSize="9" fill={C.muted}>{d.chips[i]}</text></g>)}
+        <path d="M84 166 H396" stroke={C.line} strokeDasharray="4 4" /><text x="240" y="181" textAnchor="middle" fontFamily="monospace" fontSize="10" fill={C.muted}>record → claim → verify</text>
+      </>}
+      {kind === "load" && <>
+        <line x1="82" y1="164" x2="398" y2="164" stroke={C.line} />
+        {[20, 34, 48, 70, 42, 92, 58, 112, 66, 126, 76].map((h, i) => <rect key={i} x={84 + i * 28} y={164 - h} width="16" height={h} rx="4" fill={i > 7 ? C.brand : C.ink} opacity={0.55 + i * 0.035} />)}
+        <line x1="84" y1="92" x2="396" y2="92" stroke={C.red} strokeDasharray="5 5" /><text x="396" y="87" textAnchor="end" fontFamily="monospace" fontSize="10" fill={C.red}>p95 budget</text>
+      </>}
+      {kind === "monitoring" && <>
+        <rect x="78" y="84" width="308" height="84" rx="10" fill={C.ink} />
+        <text x="94" y="105" fontFamily="monospace" fontSize="10" fill={C.faint}>server boundary / 24h</text>
+        <path d="M94 147 L130 136 L160 143 L194 116 L222 126 L258 108 L290 130 L324 101 L366 116" fill="none" stroke="#86efac" strokeWidth="3" />
+        <circle cx="324" cy="101" r="5" fill={C.red} /><text x="366" y="153" textAnchor="end" fontFamily="monospace" fontSize="10" fill={C.white}>tool error</text>
+      </>}
+      {kind === "evaluation" && <>
+        {[0, 1, 2, 3].map((i) => <g key={i}><rect x={84 + i * 52} y={150 - i * 19} width={46} height={i * 19 + 18} rx="6" fill={i === 3 ? C.brand : C.ink} opacity={i === 3 ? 1 : 0.78} /><text x={107 + i * 52} y={145 - i * 19} textAnchor="middle" fontFamily="monospace" fontSize="9" fill={C.muted}>{["intent", "select", "call", "finish"][i]}</text></g>)}
+        <path d="M84 86 H388" stroke={C.line} strokeDasharray="4 4" /><text x="388" y="80" textAnchor="end" fontFamily="system-ui" fontSize="10" fill={C.muted}>task evidence</text>
+      </>}
+      {kind === "benchmark" && <>
+        <circle cx="160" cy="126" r="48" fill={C.brandSoft} stroke={C.brand} /><circle cx="160" cy="126" r="29" fill={C.paper} stroke={C.line} />
+        <path d="M160 78 V174 M112 126 H208 M126 92 L194 160 M194 92 L126 160" stroke={C.line} />
+        <path d="M160 95 L190 113 L178 149 L144 157 L128 120 Z" fill={C.brand} opacity="0.75" />
+        {["fixture", "window", "variance"].map((t, i) => <text key={t} x="250" y={105 + i * 25} fontFamily="monospace" fontSize="10" fill={C.body}>● {t}</text>)}
+      </>}
+      {kind === "taxonomy" && <>
+        <circle cx="240" cy="84" r="13" fill={C.ink} /><path d="M240 97 V118 M240 118 H150 M240 118 H330 M150 118 V143 M240 118 V143 M330 118 V143" stroke={C.faint} strokeWidth="2" />
+        {[{ x:150, t:"protocol" }, { x:240, t:"application" }, { x:330, t:"infra" }].map((n) => <g key={n.t}><rect x={n.x - 43} y="143" width="86" height="22" rx="6" fill={n.t === "application" ? C.redSoft : C.white} stroke={n.t === "application" ? C.red : C.line} /><text x={n.x} y="158" textAnchor="middle" fontFamily="monospace" fontSize="9" fill={C.body}>{n.t}</text></g>)}
+      </>}
+      {kind === "telemetry" && <>
+        <rect x="80" y="84" width="112" height="82" rx="10" fill={C.ink} /><text x="136" y="105" textAnchor="middle" fontFamily="monospace" fontSize="10" fill={C.white}>MCP event</text>{["tool", "result", "retry"].map((t, i) => <text key={t} x="94" y={126 + i * 14} fontFamily="monospace" fontSize="9" fill="#86efac">{t}</text>)}
+        {["span", "event", "metric"].map((t, i) => <g key={t}><line x1="192" y1="125" x2="245" y2={95 + i * 31} stroke={C.faint} strokeWidth="2" /><rect x="245" y={84 + i * 31} width="112" height="22" rx="6" fill={i === 0 ? C.brandSoft : C.white} stroke={i === 0 ? C.brand : C.line} /><text x="301" y={99 + i * 31} textAnchor="middle" fontFamily="monospace" fontSize="10" fill={C.body}>{t}</text></g>)}
+      </>}
+      {kind === "scorecard" && <>
+        <circle cx="142" cy="128" r="43" fill="none" stroke={C.line} strokeWidth="12" /><path d="M112 153 A43 43 0 1 1 172 153" fill="none" stroke={C.brand} strokeWidth="12" strokeLinecap="round" /><text x="142" y="134" textAnchor="middle" fontFamily="monospace" fontSize="18" fill={C.ink}>82</text>
+        {d.chips.map((t, i) => <g key={t}><rect x="226" y={91 + i * 27} width="150" height="18" rx="5" fill={C.mist} /><rect x="226" y={91 + i * 27} width={[116, 91, 128][i]} height="18" rx="5" fill={i === 2 ? C.brand : C.ink} opacity="0.85" /><text x="236" y={104 + i * 27} fontFamily="monospace" fontSize="9" fill={i === 2 ? C.white : C.white}>{t}</text></g>)}
+      </>}
+      {kind === "adoption" && <>
+        {[{ x:84, w:300, t:"exposed" }, { x:112, w:244, t:"discovered" }, { x:142, w:184, t:"called" }, { x:176, w:116, t:"complete" }].map((r, i) => <g key={r.t}><rect x={r.x} y={78 + i * 24} width={r.w} height="18" rx="7" fill={i === 3 ? C.brand : C.ink} opacity={0.9 - i * 0.1} /><text x="240" y={91 + i * 24} textAnchor="middle" fontFamily="monospace" fontSize="9" fill={C.white}>{r.t}</text></g>)}
+      </>}
+      {kind === "buyer" && <>
+        <text x="90" y="92" fontFamily="system-ui" fontSize="10" fill={C.muted}>evidence owned by</text>
+        {["MCP boundary", "agent trace", "infra APM"].map((t, i) => <g key={t}><rect x="90" y={104 + i * 21} width="132" height="16" rx="4" fill={i === 0 ? C.brandSoft : C.mist} stroke={i === 0 ? C.brand : "none"} /><text x="100" y={115 + i * 21} fontFamily="monospace" fontSize="9" fill={C.body}>{t}</text></g>)}
+        <path d="M240 112 H380 M240 133 H348 M240 154 H366" stroke={C.line} strokeWidth="8" strokeLinecap="round" /><circle cx="240" cy="112" r="4" fill={C.brand} /><circle cx="240" cy="133" r="4" fill={C.ink} /><circle cx="240" cy="154" r="4" fill={C.muted} />
+      </>}
+    </>
+  );
+}
+
+function WaveDetail({ kind }: { kind: WaveVisualKind }) {
+  const d = waveVisualData[kind];
+  return (
+    <>
+      <Bg />
+      <rect x="64" y="52" width="352" height="136" rx="14" fill={C.white} stroke={C.line} />
+      <text x="86" y="76" fontFamily="system-ui" fontSize="11" fill={C.muted}>{d.label} / field notes</text>
+      {d.chips.map((t, i) => <g key={t}><rect x={86 + (i % 3) * 104} y="92" width="92" height="24" rx="7" fill={i === 1 ? C.ink : C.brandSoft} stroke={i === 1 ? C.ink : C.brand} /><text x={132 + (i % 3) * 104} y="108" textAnchor="middle" fontFamily="monospace" fontSize="9" fill={i === 1 ? C.white : C.brandStrong}>{t}</text></g>)}
+      <path d="M88 140 H392" stroke={C.line} />
+      {kind === "testing" && <><circle cx="112" cy="160" r="6" fill={C.brand} /><circle cx="200" cy="160" r="6" fill={C.brand} /><circle cx="288" cy="160" r="6" fill={C.red} /><path d="M118 160 H194 M206 160 H282" stroke={C.faint} strokeWidth="2" /></>}
+      {kind === "security" && <><path d="M112 155 l18 18 42-45" fill="none" stroke={C.red} strokeWidth="4" strokeLinecap="round" /><text x="218" y="164" fontFamily="monospace" fontSize="10" fill={C.body}>finding → owner → regression test</text></>}
+      {kind === "gateway" && <><path d="M92 160 H172 L208 145 L244 160 H388" fill="none" stroke={C.brand} strokeWidth="3" /><circle cx="208" cy="145" r="6" fill={C.ink} /><text x="92" y="178" fontFamily="monospace" fontSize="9" fill={C.muted}>client</text><text x="360" y="178" fontFamily="monospace" fontSize="9" fill={C.muted}>server</text></>}
+      {kind === "registry" && <><path d="M92 157 H388" stroke={C.line} strokeWidth="9" strokeLinecap="round" /><path d="M92 157 H318" stroke={C.brand} strokeWidth="9" strokeLinecap="round" /><text x="92" y="178" fontFamily="monospace" fontSize="9" fill={C.muted}>publisher identity</text><text x="388" y="178" textAnchor="end" fontFamily="monospace" fontSize="9" fill={C.muted}>verification time</text></>}
+      {kind === "load" && <><path d="M88 165 C118 124 144 174 176 136 S234 129 262 164 S322 122 392 150" fill="none" stroke={C.brand} strokeWidth="3" /><text x="392" y="178" textAnchor="end" fontFamily="monospace" fontSize="9" fill={C.muted}>tail, not average</text></>}
+      {kind === "monitoring" && <><path d="M88 166 L128 151 L160 158 L200 131 L232 144 L272 121 L308 148 L352 113 L392 129" fill="none" stroke={C.brand} strokeWidth="3" /><line x1="88" y1="136" x2="392" y2="136" stroke={C.red} strokeDasharray="5 5" /><text x="392" y="178" textAnchor="end" fontFamily="monospace" fontSize="9" fill={C.muted}>latency + result state</text></>}
+      {kind === "evaluation" && <><rect x="92" y="151" width="88" height="18" rx="5" fill={C.mist} /><rect x="192" y="151" width="88" height="18" rx="5" fill={C.brandSoft} /><rect x="292" y="151" width="88" height="18" rx="5" fill={C.ink} /><text x="136" y="164" textAnchor="middle" fontFamily="monospace" fontSize="9" fill={C.body}>choose</text><text x="236" y="164" textAnchor="middle" fontFamily="monospace" fontSize="9" fill={C.brandStrong}>execute</text><text x="336" y="164" textAnchor="middle" fontFamily="monospace" fontSize="9" fill={C.white}>finish</text></>}
+      {kind === "benchmark" && <><text x="92" y="164" fontFamily="monospace" fontSize="10" fill={C.body}>N=120 fixtures</text><text x="238" y="164" fontFamily="monospace" fontSize="10" fill={C.body}>window=7d</text><text x="350" y="164" fontFamily="monospace" fontSize="10" fill={C.brandStrong}>replayable</text></>}
+      {kind === "taxonomy" && <><path d="M92 161 H160 V146 H228 V161 H296 V146 H388" fill="none" stroke={C.red} strokeWidth="3" /><text x="92" y="178" fontFamily="monospace" fontSize="9" fill={C.muted}>name the first broken boundary</text></>}
+      {kind === "telemetry" && <><text x="92" y="164" fontFamily="monospace" fontSize="10" fill={C.body}>source</text><text x="190" y="164" fontFamily="monospace" fontSize="10" fill={C.body}>meaning</text><text x="300" y="164" fontFamily="monospace" fontSize="10" fill={C.body}>retention</text></>}
+      {kind === "scorecard" && <><rect x="92" y="151" width="296" height="18" rx="5" fill={C.mist} /><rect x="92" y="151" width="214" height="18" rx="5" fill={C.brand} /><text x="240" y="164" textAnchor="middle" fontFamily="monospace" fontSize="9" fill={C.white}>raw measures stay visible</text></>}
+      {kind === "adoption" && <><path d="M92 164 H388" stroke={C.line} strokeWidth="9" strokeLinecap="round" /><path d="M92 164 H284" stroke={C.brand} strokeWidth="9" strokeLinecap="round" /><text x="388" y="178" textAnchor="end" fontFamily="monospace" fontSize="9" fill={C.muted}>call ≠ outcome</text></>}
+      {kind === "buyer" && <><path d="M92 159 H388" stroke={C.line} strokeWidth="2" /><circle cx="148" cy="159" r="7" fill={C.brand} /><circle cx="260" cy="159" r="7" fill={C.ink} /><circle cx="348" cy="159" r="7" fill={C.muted} /><text x="92" y="178" fontFamily="monospace" fontSize="9" fill={C.muted}>choose the owner of the evidence</text></>}
+    </>
+  );
+}
+
+const TestingCover = () => <WaveCover kind="testing" />;
+const SecurityCover = () => <WaveCover kind="security" />;
+const GatewayCover = () => <WaveCover kind="gateway" />;
+const RegistryCover = () => <WaveCover kind="registry" />;
+const LoadCover = () => <WaveCover kind="load" />;
+const MonitoringCover = () => <WaveCover kind="monitoring" />;
+const EvaluationCover = () => <WaveCover kind="evaluation" />;
+const BenchmarkCover = () => <WaveCover kind="benchmark" />;
+const TaxonomyCover = () => <WaveCover kind="taxonomy" />;
+const TelemetryCover = () => <WaveCover kind="telemetry" />;
+const ScorecardCover = () => <WaveCover kind="scorecard" />;
+const AdoptionCover = () => <WaveCover kind="adoption" />;
+const BuyerCover = () => <WaveCover kind="buyer" />;
+const TestingDetail = () => <WaveDetail kind="testing" />;
+const SecurityDetail = () => <WaveDetail kind="security" />;
+const GatewayDetail = () => <WaveDetail kind="gateway" />;
+const RegistryDetail = () => <WaveDetail kind="registry" />;
+const LoadDetail = () => <WaveDetail kind="load" />;
+const MonitoringDetail = () => <WaveDetail kind="monitoring" />;
+const EvaluationDetail = () => <WaveDetail kind="evaluation" />;
+const BenchmarkDetail = () => <WaveDetail kind="benchmark" />;
+const TaxonomyDetail = () => <WaveDetail kind="taxonomy" />;
+const TelemetryDetail = () => <WaveDetail kind="telemetry" />;
+const ScorecardDetail = () => <WaveDetail kind="scorecard" />;
+const AdoptionDetail = () => <WaveDetail kind="adoption" />;
+const BuyerDetail = () => <WaveDetail kind="buyer" />;
+
 function Default() {
   return (
     <>
@@ -608,6 +785,32 @@ const SCENES: Record<ArtKey, () => React.ReactElement> = {
   "scorecard-grid": ScorecardGrid,
   "adoption-grid": AdoptionGrid,
   "buyer-grid": BuyerGrid,
+  "testing-cover": TestingCover,
+  "security-cover": SecurityCover,
+  "gateway-cover": GatewayCover,
+  "registry-cover": RegistryCover,
+  "load-cover": LoadCover,
+  "monitoring-cover": MonitoringCover,
+  "evaluation-cover": EvaluationCover,
+  "benchmark-cover": BenchmarkCover,
+  "taxonomy-cover": TaxonomyCover,
+  "telemetry-cover": TelemetryCover,
+  "scorecard-cover": ScorecardCover,
+  "adoption-cover": AdoptionCover,
+  "buyer-cover": BuyerCover,
+  "testing-detail": TestingDetail,
+  "security-detail": SecurityDetail,
+  "gateway-detail": GatewayDetail,
+  "registry-detail": RegistryDetail,
+  "load-detail": LoadDetail,
+  "monitoring-detail": MonitoringDetail,
+  "evaluation-detail": EvaluationDetail,
+  "benchmark-detail": BenchmarkDetail,
+  "taxonomy-detail": TaxonomyDetail,
+  "telemetry-detail": TelemetryDetail,
+  "scorecard-detail": ScorecardDetail,
+  "adoption-detail": AdoptionDetail,
+  "buyer-detail": BuyerDetail,
   default: Default,
 };
 

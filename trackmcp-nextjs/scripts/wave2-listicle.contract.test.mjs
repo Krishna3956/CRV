@@ -8,6 +8,7 @@ const comparisons = fs.readFileSync(path.join(root, "src/app/blog/wave2-listicle
 const wave2 = fs.readFileSync(path.join(root, "src/app/blog/wave2.ts"), "utf8");
 const posts = fs.readFileSync(path.join(root, "src/app/blog/posts.ts"), "utf8");
 const page = fs.readFileSync(path.join(root, "src/app/blog/[slug]/page.tsx"), "utf8");
+const enrichment = fs.readFileSync(path.join(root, "src/app/blog/wave2-enrichment.ts"), "utf8");
 
 const slugs = [
   "best-mcp-testing-debugging-tools",
@@ -58,4 +59,15 @@ test("all comparison source links open safely in a new tab", () => {
 
 test("the existing successful observability article remains registered", () => {
   assert.match(posts, /slug: "best-mcp-observability-tools-for-production-servers"/);
+});
+
+test("each wave2 article has a distinct cover and inline visual", () => {
+  const visuals = [...enrichment.matchAll(/\["[^\"]+",\s*"([^\"]+)",\s*"([^\"]+)"/g)];
+  const covers = visuals.map((m) => m[1]);
+  const details = visuals.map((m) => m[2]);
+  assert.equal(covers.length, slugs.length);
+  assert.equal(details.length, slugs.length);
+  assert.equal(new Set(covers).size, slugs.length);
+  assert.equal(new Set(details).size, slugs.length);
+  assert.match(enrichment, /t: "figure"/);
 });
