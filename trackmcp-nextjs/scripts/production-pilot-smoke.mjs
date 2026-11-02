@@ -305,7 +305,7 @@ async function main() {
   const publicRoutes = [
     "/", "/docs", "/docs/typescript", "/docs/python", "/docs/go", "/docs/dotnet",
     "/docs/api", "/docs/reference", "/docs/opentelemetry", "/docs/protocol",
-    "/docs/authentication", "/device", "/support", "/sitemap.xml", "/tool-sitemap.xml",
+    "/docs/authentication", "/device", "/support", "/sitemap-index.xml", "/sitemap.xml", "/tool-sitemap.xml",
   ];
   for (const path of publicRoutes) {
     checks.push(await expect(path, 200, undefined, `browser ${path}`, { securityHeaders: true }));
