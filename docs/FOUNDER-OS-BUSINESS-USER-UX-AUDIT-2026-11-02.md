@@ -142,6 +142,8 @@ Implemented on isolated branch `codex/business-user-ux-audit`:
 - Added a “Did it work” reading guide that separates explicit success,
   reliability friction, waiting-for-input, and unknown evidence instead of
   letting a business reader treat missing outcomes as failure or success.
+- Added an action-oriented “What’s broken” reading guide that explains signal
+  ranking, evidence strength, and the correct order for investigating alerts.
 
 Validation on the isolated worktree:
 
