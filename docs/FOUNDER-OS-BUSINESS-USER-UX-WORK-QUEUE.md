@@ -44,6 +44,8 @@ Legend: `[x]` verified/implemented in this workstream; `[ ]` pending.
 - [ ] No deployment until focused tests, production build, and authenticated
       read-only smoke checks pass.
 - [ ] Browser review with a new account and an activated example/data account.
+- [ ] Run `FOUNDER-OS-BUSINESS-USER-UAT-SCRIPT.md` with at least one
+      non-technical product/operations participant.
 
 ## Evidence log
 
