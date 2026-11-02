@@ -2,7 +2,7 @@
 
 Date: 2026-11-03
 Branch: `codex/business-user-ux-audit`
-Commit under review: `7ae202c4` (`Remove green dashboard empty-state accents`)
+Commit under review: `7e2fd060` (`Tighten first-time dashboard explanation`)
 
 This is local browser evidence only. It is not production evidence and does
 not replace a fresh-account or real-telemetry walkthrough.

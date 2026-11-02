@@ -2,7 +2,7 @@
 
 Date: 2026-11-03  
 Branch: `codex/business-user-ux-audit`  
-Latest verified commit: `7ae202c4` (`Remove green dashboard empty-state accents`)
+Latest verified commit: `7e2fd060` (`Tighten first-time dashboard explanation`)
 
 This matrix is the release-readiness companion to the UX audit and work
 queue. It intentionally separates source-level proof, read-only browser proof,
@@ -21,7 +21,7 @@ The branch remains local and has not been merged or deployed.
 Final current-branch build: `npm run build` passed with 230 static pages
 generated after the dashboard typography change. TypeScript and ESLint also
 passed. The full `npm run test:release-gate` passed all 159 suites on
-`7ae202c4`.
+`7e2fd060`.
 This is still local build evidence; it does not prove a production deployment
 or authenticated production rendering.
 
