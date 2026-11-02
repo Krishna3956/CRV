@@ -2289,6 +2289,50 @@ function StateNote({ title, body }: { title: string; body: string }) {
   );
 }
 
+function OverviewTakeaway({
+  analytics,
+  dataMode,
+  hasMyData,
+}: {
+  analytics: Analytics;
+  dataMode: DataMode;
+  hasMyData: boolean;
+}) {
+  const totals = explicitOutcomeTotals(analytics);
+  const isExample = dataMode === "example";
+
+  let body = "Connect a server and send one real event to see what is happening.";
+  if (isExample) {
+    body = "This is illustrative data so your team can learn the dashboard before connecting a server.";
+  } else if (!hasMyData || analytics.total_events === 0) {
+    body = "No server activity has been observed in this period. A technical teammate can connect one server, then refresh this view after the first real event arrives.";
+  } else {
+    const activity = `${fmt(analytics.tool_calls)} observed ${analytics.tool_calls === 1 ? "action" : "actions"}`;
+    const outcomes = totals.started
+      ? `${fmt(totals.completed)} of ${fmt(totals.started)} explicit outcomes completed`
+      : "no explicit completion outcome yet";
+    const attention = analytics.insights.length
+      ? `${fmt(analytics.insights.length)} signal${analytics.insights.length === 1 ? "" : "s"} need review`
+      : "no evidence-backed signal needs review yet";
+    body = `${activity}; ${outcomes}; ${attention}.`;
+  }
+
+  return (
+    <section className="mb-6 rounded-2xl border border-brand/20 bg-[#f4faf6] px-5 py-4 shadow-[0_16px_40px_-34px_rgba(18,59,42,0.7)]" aria-label="Overview takeaway">
+      <div className="flex items-start gap-3">
+        <span className="mt-0.5 grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-brand-soft text-brand-strong" aria-hidden="true">
+          <Sparkles size={15} />
+        </span>
+        <div>
+          <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-brand-strong">At a glance</p>
+          <p className="mt-1 max-w-4xl text-sm leading-relaxed text-ink">{body}</p>
+          <p className="mt-2 text-[11px] leading-relaxed text-muted">This summary uses only the selected window and the evidence shown below. It is not a health or customer-count claim.</p>
+        </div>
+      </div>
+    </section>
+  );
+}
+
 function Overview({
   analytics,
   dataMode,
@@ -2314,6 +2358,7 @@ function Overview({
         actions={pageControls}
       />
       <DataSourceStrip dataMode={dataMode} hasMyData={hasMyData} view="overview" />
+      <OverviewTakeaway analytics={analytics} dataMode={dataMode} hasMyData={hasMyData} />
       <BusinessContext
         title="How to read this overview"
         body="Observed work is not the same as completed business work. A completed result appears only when your server reports an explicit outcome; N/A means there is not enough evidence yet, not that the product is healthy or unhealthy."

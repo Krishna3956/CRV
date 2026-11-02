@@ -753,6 +753,14 @@ test("Overview keeps decision KPIs above expandable evidence detail", () => {
   assert.match(source, /Expand details/);
 });
 
+test("Overview gives business users a bounded at-a-glance takeaway", () => {
+  assert.match(source, /function OverviewTakeaway\(/);
+  assert.match(source, /At a glance/);
+  assert.match(source, /This summary uses only the selected window/);
+  assert.match(source, /not a health or customer-count claim/);
+  assert.match(source, /<OverviewTakeaway analytics=\{analytics\} dataMode=\{dataMode\} hasMyData=\{hasMyData\} \/>/);
+});
+
 test("dashboard panels expose concise information hints and universal pointer affordances", () => {
   assert.match(source, /function InfoHint\(/);
   assert.match(source, /role="tooltip"/);

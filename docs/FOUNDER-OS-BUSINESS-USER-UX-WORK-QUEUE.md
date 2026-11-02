@@ -81,6 +81,9 @@ Legend: `[x]` verified/implemented in this workstream; `[ ]` pending.
       connection workflow even when the global Example-data toggle is selected.
 - [x] ✅ Polish the KPI scan surface with restrained brand hierarchy and
       tabular numerals; keep the change semantic-neutral and evidence-safe.
+- [x] ✅ Add a bounded Overview “At a glance” takeaway so a business reader
+      gets the plain-language meaning of the selected window before reading
+      KPI cards or charts; reuse read-model fields and state the evidence limit.
 - [x] ✅ Run dashboard contracts, typecheck, lint, and production build.
 - [x] ✅ Run the consolidated release gate; all 159 suites pass after fixing
       clean-checkout MCP SDK resolution and Python artifact preparation.

@@ -104,6 +104,27 @@ TrackMCP application:
   arbitrary dashboard customization should wait until the canonical metric
   vocabulary and read models are stable.
 
+### 8. Give the reader a usable takeaway before asking them to interpret charts
+
+PostHog treats dashboards as recurring review surfaces and provides templates,
+starter prompts, and summaries so a new team does not have to assemble meaning
+from a blank grid. Amplitude similarly describes dashboards as a place to keep
+related charts together for a team review, with KPI, chart, and table display
+modes. See [PostHog dashboards](https://posthog.com/docs/product-analytics/dashboards)
+and [Amplitude dashboard display preferences](https://www.amplitude.com/docs/analytics/dashboard-preferences).
+
+TrackMCP application:
+
+- Overview now opens with a short, bounded “At a glance” sentence that says
+  what the selected evidence window means before the KPI cards and charts.
+- The sentence changes for Example data, no-data, and observed-data states so
+  a blank dashboard still tells the reader what to do next.
+- The takeaway explicitly says it is not a health or customer-count claim;
+  the underlying evidence and metric definitions remain the source of truth.
+- This is a reading aid, not a second analytics calculation. It reuses the
+  existing read-model fields and cannot invent completion, identity, or health
+  claims.
+
 ## What this means for the current product
 
 ### Strengths already present on this branch
@@ -142,4 +163,5 @@ TrackMCP application:
 | Progressive disclosure | Collapsed evidence, identity, privacy, and scope detail | setup/dashboard contract tests |
 | Visual hierarchy | Neutral canvas, white surfaces, restrained action color | source review + visual QA pending |
 | Clear action-oriented copy | Setup handoff, empty states, product-language cleanup | `business-user-ux.contract.test.mjs` |
+| Dashboard takeaway before interpretation | Bounded Overview “At a glance” summary | `DashboardApp.contract.test.mjs` |
 
