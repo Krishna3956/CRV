@@ -69,6 +69,8 @@ Legend: `[x]` verified/implemented in this workstream; `[ ]` pending.
       “Technical protocol evidence” disclosure on the capability view.
 - [x] ✅ Clarify capability KPI labels so comparison values, error rates, and
       privacy-safe account-group scope are explicit to business readers.
+- [x] ✅ Align the canonical metric registry and Founder OS metric contract
+      with the dashboard's privacy-safe “account group” vocabulary.
 - [x] ✅ Perform a read-only browser review of the current production Setup,
       Overview, Example data, and My data states; record live-vs-branch
       differences in the audit.
