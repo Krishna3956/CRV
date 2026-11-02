@@ -73,3 +73,7 @@ states remain separate and are never collapsed into a single success score.
 
 The local browser verification expanded that table successfully and exposed the
 example rows `2026-08-19` and `2026-08-26` with separate values for each state.
+
+The Resources & prompts preview also expanded its trend table successfully,
+showing period, surface, item, and calls while retaining the content/argument
+privacy boundary.
