@@ -55,7 +55,7 @@ The auth affordance pass also keeps provider-discovery skeletons visually
 non-actionable (`cursor-default`) until Google or GitHub is confirmed enabled;
 only actual provider buttons expose the hand cursor.
 
-After this change, TypeScript, ESLint, the OAuth contract suite, the 85-test
+After this change, TypeScript, ESLint, the OAuth contract suite, the 87-test
 business UX suite, and the production build all passed; the build generated
 230 static pages.
 
