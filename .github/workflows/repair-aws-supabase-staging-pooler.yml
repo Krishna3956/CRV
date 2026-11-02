@@ -89,7 +89,21 @@ jobs:
             }
             sed -i '/^      API_JWT_SECRET: \${JWT_SECRET}$/a\      RLIMIT_NOFILE: ""' docker-compose.yml
           fi
-          docker compose up -d supavisor >/dev/null
+          COMPOSE_RLIMIT=$(awk '/^  supavisor:/{in_pooler=1} in_pooler && /^      RLIMIT_NOFILE:/{print; exit}' docker-compose.yml)
+          [[ "$COMPOSE_RLIMIT" == '      RLIMIT_NOFILE: ""' ]] || {
+            echo STAGING_POOLER_REPAIR_RLIMIT_OVERRIDE_MISSING
+            exit 1
+          }
+          echo STAGING_POOLER_REPAIR_COMPOSE_RLIMIT=empty
+          docker compose up -d --force-recreate supavisor >/dev/null
+          id=$(docker compose ps -q supavisor)
+          [[ -n "$id" ]] || { echo STAGING_POOLER_REPAIR_CONTAINER_MISSING; exit 1; }
+          effective_rlimit=$(docker inspect -f '{{range .Config.Env}}{{println .}}{{end}}' "$id" | awk -F= '$1 == "RLIMIT_NOFILE" {print $2; found=1} END {if (!found) print "__missing__"}')
+          [[ -z "$effective_rlimit" ]] || {
+            echo STAGING_POOLER_REPAIR_EFFECTIVE_RLIMIT=nonempty
+            exit 1
+          }
+          echo STAGING_POOLER_REPAIR_EFFECTIVE_RLIMIT=empty
 
           previous_restart_count=-1
           stable_samples=0
