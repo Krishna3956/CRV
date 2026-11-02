@@ -29,6 +29,10 @@ evidence”; raw session identifiers remain an internal routing detail.
   “TrackMCP cannot verify an integration until a connection key is configured
   and your server sends an event.” The optional “Advanced key scope” control
   remains a separate collapsed section rather than the primary setup path.
+- A deep-linked local route `/dashboard?view=issues&data=example` opened directly
+  in Example data after route hydration; the initial accessibility tree did not
+  expose the misleading My-data empty state. The neutral route-loading handoff
+  keeps the two data sources separate while the URL state is applied.
 
 ## Environment
 
