@@ -2383,8 +2383,8 @@ function Overview({
       )}
       <div className="grid items-start gap-6 xl:grid-cols-[minmax(0,1.5fr)_minmax(310px,.8fr)]">
         <Panel
-          title="Activity over time"
-          subtitle="Server-observed tool calls in the selected period"
+          title="Observed work over time"
+          subtitle="Bounded server activity in the selected period"
         >
           <UsageChart timeline={analytics.timeline} />
         </Panel>
@@ -2436,7 +2436,7 @@ function Overview({
           </div>
         </Panel>
         <Panel
-          title="Work completed"
+          title="Explicit work outcomes"
           subtitle="Explicit workflow outcome events only"
         >
           <div className="py-3">
@@ -2880,22 +2880,22 @@ function JourneysView({
       <DataSourceStrip dataMode={dataMode} hasMyData={hasMyData} view="journeys" />
       {analytics.journey_activity && <>
         <div className="mb-6 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-          <Kpi label="Interactions" value={fmt(analytics.journey_activity.interaction_count)} icon={Route} helper="Bounded observed paths" />
-          <Kpi label="Typical journey length" value={analytics.journey_activity.typical_journey_length == null ? "N/A" : fmt(analytics.journey_activity.typical_journey_length)} icon={ListChecks} helper="Median observed tool steps" />
-          <Kpi label="Waiting for input" value={fmt(analytics.journey_activity.stalled_interactions)} icon={Info} helper="Explicit input-required states" />
-          <Kpi label="Resumed after stall" value={fmt(analytics.journey_activity.resumed_after_stall)} icon={RotateCcw} helper="Observed retry evidence" />
+          <Kpi label="Work sessions observed" value={fmt(analytics.journey_activity.interaction_count)} icon={Route} helper="Bounded observed paths" />
+          <Kpi label="Typical steps per piece of work" value={analytics.journey_activity.typical_journey_length == null ? "N/A" : fmt(analytics.journey_activity.typical_journey_length)} icon={ListChecks} helper="Median observed steps" />
+          <Kpi label="Work waiting for information" value={fmt(analytics.journey_activity.stalled_interactions)} icon={Info} helper="Explicit input-required states" />
+          <Kpi label="Work that resumed after a pause" value={fmt(analytics.journey_activity.resumed_after_stall)} icon={RotateCcw} helper="Observed retry evidence" />
         </div>
         <div className="mb-6 grid gap-6 xl:grid-cols-2">
-          <Panel title="Common paths" subtitle="Observed tool sequences, not a complete multi-server business journey">
+          <Panel title="Common paths" subtitle="The most common observed ways work moves through the server">
             <div className="divide-y divide-line">{analytics.journey_activity.common_paths.length ? analytics.journey_activity.common_paths.map((path) => <div key={path.path.join("|")} className="py-3"><div className="flex items-center justify-between gap-3"><p className="text-xs text-ink">{path.path.join(" → ")}</p><span className="text-xs text-muted">{fmt(path.interactions)} · {path.share == null ? "N/A" : `${Math.round(path.share * 100)}%`}</span></div></div>) : <StateNote title="No common paths yet" body="No multi-step tool interactions were observed in this period." />}</div>
           </Panel>
-          <Panel title="Where paths stop" subtitle="Only explicit error or input-required evidence is classified">
+          <Panel title="Where work stops" subtitle="Only explicit error or input-required evidence is classified">
             <div className="divide-y divide-line">{analytics.journey_activity.drop_off.length ? analytics.journey_activity.drop_off.map((path) => <div key={path.path.join("|")} className="py-3"><p className="text-xs text-ink">{path.path.join(" → ")}</p><p className="mt-1 text-[11px] capitalize text-muted">{path.terminal_evidence.replaceAll("_", " ")} · {fmt(path.interactions)} interactions</p></div>) : <StateNote title="No path-stop evidence yet" body="A missing terminal event is not treated as abandonment." />}</div>
           </Panel>
-          <Panel title="Top-path funnel" subtitle="Observed reach by step; a missing next step is not abandonment">
+          <Panel title="How far work gets" subtitle="Observed reach by step; a missing next step is not abandonment">
             <div className="space-y-3">{analytics.journey_activity.funnel.length ? analytics.journey_activity.funnel.map((step) => <div key={step.step}><div className="mb-1 flex items-center justify-between gap-3"><p className="text-xs text-ink">{step.step}</p><span className="text-xs text-muted">{fmt(step.reached)} · {step.share == null ? "N/A" : `${Math.round(step.share * 100)}%`}</span></div><div className="h-2 overflow-hidden rounded-full bg-mist"><div className="h-full rounded-full bg-brand" style={{ width: `${Math.max(0, Math.min(100, (step.share || 0) * 100))}%` }} /></div></div>) : <StateNote title="No funnel evidence yet" body="A funnel is shown only when an observed path has bounded interaction evidence." />}</div>
           </Panel>
-          <Panel title="Stall → retry" subtitle="Input-required steps and observed retry evidence">
+          <Panel title="Pause → resume" subtitle="Work that needed more information and whether it resumed">
             <div className="divide-y divide-line">{analytics.journey_activity.stall_retry.length ? analytics.journey_activity.stall_retry.map((item) => <div key={item.step} className="flex items-center justify-between gap-3 py-3"><div><p className="text-xs text-ink">{item.step}</p><p className="mt-1 text-[11px] text-muted">{fmt(item.interactions)} input-required interactions</p></div><span className="text-xs text-muted">{item.status === "resumed" ? "Retry observed" : "No retry observed"}</span></div>) : <StateNote title="No stall evidence yet" body="Only explicit input-required states are shown." />}</div>
           </Panel>
         </div>
@@ -3087,12 +3087,12 @@ function CapabilitiesView({
         <>
           <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
             <Kpi label="Observed actions" value={fmt(activity.total_calls)} icon={Activity} helper={`${analytics.range_days} day window`} />
-            <Kpi label="Previous period" value={fmt(activity.previous_period_calls)} icon={TrendingUp} helper="Same-length comparison" />
+            <Kpi label="Compared with the previous period" value={fmt(activity.previous_period_calls)} icon={TrendingUp} helper="Same-length comparison" />
             <Kpi label="Actions that returned an error" value={activity.overall_error_rate === null ? "N/A" : percent(activity.overall_error_rate)} icon={ShieldCheck} helper="Observed errors only; not a root-cause diagnosis" />
             <Kpi label="Average features used per account" value={activity.avg_tools_used_per_account === null ? "N/A" : activity.avg_tools_used_per_account.toFixed(1)} icon={Blocks} helper={`of ${fmt(activity.advertised_tools)} advertised`} />
           </div>
           <div className="mt-4 grid gap-4 xl:grid-cols-[1.1fr_0.9fr]">
-            <Panel title="Feature leaderboard" subtitle="Which capabilities are carrying the observed activity">
+            <Panel title="Most-used features" subtitle="Which capabilities are carrying the observed activity">
               <div className="space-y-3">
                 {analytics.tools.slice(0, 8).map((tool) => {
                   const share = analytics.tool_calls ? tool.calls / analytics.tool_calls : 0;
@@ -3101,7 +3101,7 @@ function CapabilitiesView({
                 {!analytics.tools.length && <p className="py-6 text-sm text-muted">{analytics.tool_calls > 0 ? `${fmt(analytics.tool_calls)} tool-call events were observed, but no capability name was reported.` : "No tool calls were observed in this period."}</p>}
               </div>
             </Panel>
-            <Panel title="Adoption breadth" subtitle="How many distinct tools resolver-linked accounts used">
+            <Panel title="Breadth of adoption" subtitle="How many distinct features resolver-linked accounts used">
               <div className="space-y-3">
                 {activity.adoption_distribution.map((item) => <div key={item.bucket} className="flex items-center justify-between border-b border-line pb-2 text-sm"><span className="text-ink">{item.bucket}</span><span className="text-muted">{fmt(item.accounts)} accounts</span></div>)}
               </div>
@@ -3266,8 +3266,8 @@ function ResourcesPromptsView({
         <p className="mt-1 max-w-3xl text-xs leading-relaxed text-muted">TrackMCP reports bounded method observations and hashed entity counts. Linked retries are collapsed only when protocol correlation evidence exists. It does not expose resource contents, prompt arguments, unique people, or business completion from these signals.</p>
       </section>
       <div className="grid gap-3 sm:grid-cols-3">
-        <Kpi label="Resource interactions" value={activity ? fmt(activity.resource_reads) : "N/A"} icon={FileText} helper={activity ? `${fmt(activity.previous_period_resource_reads)} previous period · ${fmt(activity.resource_observations)} observed` : "Awaiting evidence"} />
-        <Kpi label="Prompt interactions" value={activity ? fmt(activity.prompt_calls) : "N/A"} icon={Activity} helper={activity ? `${fmt(activity.previous_period_prompt_calls)} previous period · ${fmt(activity.prompt_observations)} observed` : "Awaiting evidence"} />
+        <Kpi label="Resource lookups" value={activity ? fmt(activity.resource_reads) : "N/A"} icon={FileText} helper={activity ? `${fmt(activity.previous_period_resource_reads)} previous period · ${fmt(activity.resource_observations)} observed` : "Awaiting evidence"} />
+        <Kpi label="Guided-help requests" value={activity ? fmt(activity.prompt_calls) : "N/A"} icon={Activity} helper={activity ? `${fmt(activity.previous_period_prompt_calls)} previous period · ${fmt(activity.prompt_observations)} observed` : "Awaiting evidence"} />
         <Kpi label="Prompts completed explicitly" value={activity?.prompt_completion_rate == null ? "N/A" : `${Math.round(activity.prompt_completion_rate * 100)}%`} icon={Check} helper={activity?.prompt_stall_rate == null ? "Explicit outcome evidence only" : `${Math.round(activity.prompt_stall_rate * 100)}% needs input · ${Math.round((activity.prompt_error_rate || 0) * 100)}% error`} />
       </div>
       {activity && <div className="mt-6"><Panel title="Interaction outcomes" subtitle="One terminal evidence state per safely linked interaction; an input request is not a completion">
@@ -3276,7 +3276,7 @@ function ResourcesPromptsView({
         </div>
       </Panel></div>}
       <div className="mt-3 grid gap-3 sm:grid-cols-3">
-        <Kpi label="Observed events" value={surfaces ? fmt(observedEvents) : "N/A"} icon={Activity} helper="Resource and prompt method events" />
+        <Kpi label="Observed lookups and requests" value={surfaces ? fmt(observedEvents) : "N/A"} icon={Activity} helper="Resource and prompt activity" />
         <Kpi label="Distinct resources or prompts observed" value={surfaces ? fmt(observedEntities) : "N/A"} icon={FileText} helper="Privacy-bounded entity counts" />
         <Kpi label="Reads with explicit success" value={surfaces ? fmt(successfulReads) : "N/A"} icon={Check} helper="Durable read projection only" />
       </div>
@@ -3413,7 +3413,7 @@ function QualityView({
       <DataSourceStrip dataMode={dataMode} hasMyData={hasMyData} view="quality" />
       <OutcomeEvidencePanel analytics={analytics} />
       <Panel
-        title="Tool Quality"
+        title="Feature reliability"
         subtitle={
           fmt(data.source_event_count) +
           " observed source events · selected period" +

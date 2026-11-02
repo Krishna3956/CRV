@@ -164,6 +164,11 @@ test("business users receive orientation before technical detail", () => {
   assert.match(source, /question="Which accounts and assistants are showing up, and is activity growing\?"/);
   assert.match(source, /question="What should the team investigate next, and how strong is the evidence\?"/);
   assert.match(source, /N\/A means there is not enough evidence yet/);
+  assert.match(source, /Typical steps per piece of work/);
+  assert.match(source, /Work waiting for information/);
+  assert.match(source, /Most-used features/);
+  assert.match(source, /Resource lookups/);
+  assert.match(source, /Feature reliability/);
 });
 
 test("data source state is explicit and never silently substituted", () => {
