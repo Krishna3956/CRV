@@ -4117,7 +4117,7 @@ function ClientsView({
       <PageIntro
         title="Who's using it"
         description="See which AI client applications and privacy-safe account signals were observed at the server boundary. This is not a count of users or customers."
-        question="Which accounts and assistants are showing up, and is activity growing?"
+        question="Which account groups and assistants are showing up, and is activity growing?"
         actions={pageControls}
       />
       <DataSourceStrip dataMode={dataMode} hasMyData={hasMyData} view="clients" />
@@ -4130,7 +4130,7 @@ function ClientsView({
           />
           <div className="mb-6 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
             <Kpi
-              label="Active accounts"
+              label="Active account groups"
               value={fmt(people.active_accounts)}
               icon={Users}
               helper={`${periodComparison} · ${analytics.range_days}-day window`}

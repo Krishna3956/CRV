@@ -162,7 +162,7 @@ test("business users receive orientation before technical detail", () => {
   assert.match(source, /What you will get after setup/);
   assert.match(source, /A technical teammate usually completes this page/);
   assert.match(source, /Setup always uses your live connection/);
-  assert.match(source, /question="Which accounts and assistants are showing up, and is activity growing\?"/);
+  assert.match(source, /question="Which account groups and assistants are showing up, and is activity growing\?"/);
   assert.match(source, /Read this as account activity, not a customer census/);
   assert.match(source, /Which assistants are showing up/);
   assert.match(source, /Most active account groups/);

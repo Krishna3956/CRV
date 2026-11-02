@@ -85,10 +85,10 @@ export const METRIC_DEFINITIONS = [
   },
   {
     key: "active_accounts",
-    label: "Active accounts this period",
+    label: "Active account groups this period",
     formula: "count(distinct resolver-linked account keys in selected period)",
     source: "Server telemetry with account_identity_source=resolver",
-    interpretation: "The number of privacy-safe account signals observed in the selected window.",
+    interpretation: "The number of privacy-safe account groups observed in the selected window.",
     limitations: [
       "MCP does not define customer accounts; the customer's resolver supplies this dimension.",
       "This is not a count of people, companies, or verified end users.",
@@ -96,10 +96,10 @@ export const METRIC_DEFINITIONS = [
   },
   {
     key: "new_accounts",
-    label: "New accounts",
+    label: "New account groups",
     formula: "active resolver-linked accounts whose first observed timestamp falls in the selected period",
     source: "Bounded historical server telemetry scan",
-    interpretation: "Resolver-linked accounts first observed during the selected window.",
+    interpretation: "Resolver-linked account groups first observed during the selected window.",
     limitations: [
       "N/A is returned when the bounded historical scan is incomplete.",
       "First observed is not the same as account creation or customer signup.",
@@ -107,10 +107,10 @@ export const METRIC_DEFINITIONS = [
   },
   {
     key: "returning_accounts",
-    label: "Returning accounts",
+    label: "Returning account groups",
     formula: "active resolver-linked accounts first observed before the selected period",
     source: "Bounded historical server telemetry scan",
-    interpretation: "Resolver-linked activity that predates the selected window.",
+    interpretation: "Resolver-linked account-group activity that predates the selected window.",
     limitations: [
       "N/A is returned when the bounded historical scan is incomplete.",
       "Repeat activity is not a retention or revenue claim.",
@@ -140,12 +140,12 @@ export const METRIC_DEFINITIONS = [
   },
   {
     key: "tool_adoption_breadth",
-    label: "Average features used per account",
-    formula: "average(distinct observed tools per resolver-linked account)",
+    label: "Average features used per account group",
+    formula: "average(distinct observed tools per resolver-linked account group)",
     source: "Tool-call telemetry with resolver-linked account identity",
-    interpretation: "Observed breadth of capability use among accounts with a configured resolver.",
+    interpretation: "Observed breadth of capability use among account groups with a configured resolver.",
     limitations: [
-      "Accounts without a resolver are excluded rather than guessed.",
+      "Account groups without a resolver are excluded rather than guessed.",
       "This is a usage-surface metric, not a demand, retention, or expansion score.",
     ],
   },
