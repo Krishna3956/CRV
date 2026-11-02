@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { notFound, permanentRedirect } from "next/navigation";
 import { ArrowLeft, ArrowRight, Star, GitBranch, Calendar, ExternalLink } from "lucide-react";
 import { Nav } from "@/components/Nav";
 import { Footer } from "@/components/Footer";
@@ -41,9 +41,12 @@ export async function generateMetadata({
   }
   const repo = tool.repo_name || decodeURIComponent(name);
   const slug = toolSlug(tool.github_url, repo);
+  const rawDescription = tool.description?.trim() || "";
+  const descriptionInput = rawDescription.length >= 70
+    ? rawDescription
+    : `${repo} is an MCP server in the TrackMCP directory.${rawDescription ? ` ${rawDescription}` : ""} Explore its repository, documentation, and usage details.`;
   const desc = metaDescription(
-    tool.description ||
-      `${repo}, an MCP server in the TrackMCP directory. Explore its docs, stars, and usage.`,
+    descriptionInput,
     `${repo} is a Model Context Protocol server listed in the TrackMCP directory. Explore its documentation, GitHub repository, and usage details.`,
   );
   const canonical = `https://trackmcp.com/tool/${encodeURIComponent(slug)}`;
@@ -73,7 +76,11 @@ export default async function ToolPage({ params }: { params: Promise<{ name: str
   const tool = await getToolByName(name);
   if (!tool) notFound();
 
+  const canonicalSlug = toolSlug(tool.github_url, tool.repo_name || name);
+  if (name !== canonicalSlug) permanentRedirect(`/tool/${encodeURIComponent(canonicalSlug)}`);
+
   const owner = ownerFromUrl(tool.github_url);
+  const displayName = tool.repo_name || name;
   const [readme, pool] = await Promise.all([
     getReadme(repoPathFromUrl(tool.github_url)),
     getTopTools(300),
@@ -85,17 +92,17 @@ export default async function ToolPage({ params }: { params: Promise<{ name: str
 
   const faqs = [
     {
-      q: `What is ${tool.repo_name}?`,
+      q: `What is ${displayName}?`,
       a: tool.description
-        ? `${tool.repo_name} is ${tool.description}`
-        : `${tool.repo_name} is a Model Context Protocol (MCP) server listed in the TrackMCP directory.`,
+        ? `${displayName} is ${tool.description}`
+        : `${displayName} is a Model Context Protocol (MCP) server listed in the TrackMCP directory.`,
     },
     {
-      q: `How do I install ${tool.repo_name}?`,
+      q: `How do I install ${displayName}?`,
       a: `Open the GitHub repository and follow its README. Most MCP servers are added to your client's MCP config, then called by your agent.`,
     },
     {
-      q: `Is ${tool.repo_name} open source?`,
+      q: `Is ${displayName} open source?`,
     a: `Yes, it is hosted on GitHub at ${tool.github_url}${
         tool.stars ? ` and has ${tool.stars.toLocaleString()} stars` : ""
       }.`,
@@ -108,8 +115,8 @@ export default async function ToolPage({ params }: { params: Promise<{ name: str
       {
         "@type": "SoftwareApplication",
         "@id": `${toolUrl}#software-application`,
-        name: tool.repo_name,
-        description: tool.description || `${tool.repo_name} is an MCP server listed in the TrackMCP directory.`,
+        name: displayName,
+        description: tool.description || `${displayName} is an MCP server listed in the TrackMCP directory.`,
         url: toolUrl,
         applicationCategory: "DeveloperTool",
         operatingSystem: "Cross-platform",
@@ -117,7 +124,7 @@ export default async function ToolPage({ params }: { params: Promise<{ name: str
       },
       {
         "@type": "SoftwareSourceCode",
-        name: tool.repo_name,
+        name: displayName,
         description: tool.description || undefined,
         url: toolUrl,
         codeRepository: tool.github_url,
@@ -136,7 +143,7 @@ export default async function ToolPage({ params }: { params: Promise<{ name: str
         "@type": "BreadcrumbList",
         itemListElement: [
           { "@type": "ListItem", position: 1, name: "MCP Repository", item: "https://trackmcp.com/repository" },
-          { "@type": "ListItem", position: 2, name: tool.repo_name, item: toolUrl },
+          { "@type": "ListItem", position: 2, name: displayName, item: toolUrl },
         ],
       },
     ],
@@ -176,7 +183,7 @@ export default async function ToolPage({ params }: { params: Promise<{ name: str
                     />
                   )}
                   <h1 className="truncate text-[30px] font-medium tracking-[-0.02em] text-ink sm:text-[36px]">
-                    {tool.repo_name}
+                    {displayName}
                   </h1>
                 </div>
                 <a

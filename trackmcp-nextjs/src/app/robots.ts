@@ -17,6 +17,7 @@ export default function robots(): MetadataRoute.Robots {
       { userAgent: "CCBot", allow: "/" },
     ],
     sitemap: [
+      "https://trackmcp.com/sitemap-index.xml",
       "https://trackmcp.com/sitemap.xml",
       "https://trackmcp.com/tool-sitemap.xml",
     ],

@@ -16,6 +16,16 @@ export async function GET(_request: Request, context: { params: Promise<{ shard?
   const shard = Number(rawShard);
   if (!Number.isSafeInteger(shard) || shard < 0 || shard > 49_999) return new Response("Not found", { status: 404 });
   const tools = await getToolNamesPage(shard * TOOL_SITEMAP_PAGE_SIZE, TOOL_SITEMAP_PAGE_SIZE);
+  if (tools === null) {
+    return new Response("Sitemap temporarily unavailable", {
+      status: 503,
+      headers: {
+        "Content-Type": "text/plain; charset=utf-8",
+        "Cache-Control": "no-store",
+        "Retry-After": "300",
+      },
+    });
+  }
   const urls = tools.map((tool) => {
     const lastmod = tool.updated ? `<lastmod>${escapeXml(tool.updated)}</lastmod>` : "";
     return `<url><loc>${escapeXml(`${BASE}/tool/${encodeURIComponent(tool.slug)}`)}</loc>${lastmod}<changefreq>monthly</changefreq><priority>0.5</priority></url>`;
@@ -23,7 +33,8 @@ export async function GET(_request: Request, context: { params: Promise<{ shard?
   return new Response(`<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">${urls}</urlset>`, {
     headers: {
       "Content-Type": "application/xml; charset=utf-8",
-      "Cache-Control": "public, s-maxage=3600, stale-while-revalidate=86400",
+      "Cache-Control": "public, max-age=300, s-maxage=300, stale-while-revalidate=600",
+      "X-TrackMCP-Sitemap-URLs": String(tools.length),
     },
   });
 }

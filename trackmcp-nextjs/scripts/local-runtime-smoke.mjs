@@ -8,6 +8,7 @@ const publicRoutes = [
   "/docs/python",
   "/device",
   "/dashboard?view=setup&data=example",
+  "/sitemap-index.xml",
   "/sitemap.xml",
   "/tool-sitemap.xml",
 ];

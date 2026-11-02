@@ -35,6 +35,12 @@ export async function getToolCount(): Promise<number> {
   return count || 0;
 }
 
+/** Strict count for sitemap generation: null means the catalog could not be read. */
+export async function getToolCountStrict(): Promise<number | null> {
+  const tools = await getCachedSitemapCatalog();
+  return tools?.length ?? null;
+}
+
 export async function getTopTools(limit = 300): Promise<McpTool[]> {
   const supabase = getSupabase();
   if (!supabase) return [];
@@ -178,7 +184,10 @@ export async function searchToolsQuery(query: string, limit = 200): Promise<McpT
   return withDisplayCategories(keep([...merged.values()]).sort((a, b) => (b.stars || 0) - (a.stars || 0) || a.id.localeCompare(b.id)).slice(0, limit));
 }
 
-export const TOOL_SITEMAP_PAGE_SIZE = 45000;
+// Keep each generated shard comfortably below the protocol ceiling and small
+// enough that a transient database issue cannot turn a very large response
+// into an empty sitemap. Four shards cover the current directory.
+export const TOOL_SITEMAP_PAGE_SIZE = 5000;
 // Supabase/PostgREST commonly caps a response at 1,000 rows even when a
 // larger range is requested. Keep sitemap pages large for the URL protocol,
 // but read them in bounded API-sized windows so the page never silently stops
@@ -186,34 +195,71 @@ export const TOOL_SITEMAP_PAGE_SIZE = 45000;
 const TOOL_QUERY_BATCH_SIZE = 1000;
 
 /** One deterministic sitemap page, kept below the protocol URL ceiling. */
-export async function getToolNamesPage(offset = 0, limit = TOOL_SITEMAP_PAGE_SIZE): Promise<{ name: string; slug: string; updated: string | null }[]> {
-  const supabase = getSupabase();
-  if (!supabase || !Number.isInteger(offset) || offset < 0 || !Number.isInteger(limit) || limit < 1 || limit > TOOL_SITEMAP_PAGE_SIZE) return [];
-  const seen = new Set<string>();
-  const out: { name: string; slug: string; updated: string | null }[] = [];
-  const end = offset + limit - 1;
-  for (let cursor = offset; cursor <= end; cursor += TOOL_QUERY_BATCH_SIZE) {
-    const batchEnd = Math.min(cursor + TOOL_QUERY_BATCH_SIZE - 1, end);
-    const { data, error } = await supabase
-      .from("mcp_tools")
-      .select("id, repo_name, github_url, last_updated")
-      .in("status", ["approved", "pending"])
-      .order("stars", { ascending: false, nullsFirst: false })
-      .order("id", { ascending: true })
-      .range(cursor, batchEnd);
-    if (error || !data) return [];
-    for (const r of data as { repo_name: string | null; github_url: string; last_updated: string | null }[]) {
-      if (!r.repo_name || isBlocked(r.repo_name)) continue;
-      const slug = toolSlug(r.github_url, r.repo_name);
-      if (!seen.has(slug)) {
-        seen.add(slug);
-        out.push({ name: r.repo_name, slug, updated: r.last_updated });
-      }
-    }
-    if (data.length < batchEnd - cursor + 1) break;
-  }
-  return out;
+export async function getToolNamesPage(offset = 0, limit = TOOL_SITEMAP_PAGE_SIZE): Promise<{ name: string; slug: string; updated: string | null }[] | null> {
+  if (!Number.isInteger(offset) || offset < 0 || !Number.isInteger(limit) || limit < 1 || limit > TOOL_SITEMAP_PAGE_SIZE) return [];
+  const tools = await getCachedSitemapCatalog();
+  return tools?.slice(offset, offset + limit) ?? null;
 }
+
+type SitemapTool = { name: string; slug: string; updated: string | null };
+
+/**
+ * Read the catalog once per cache window, then paginate the already-deduped
+ * canonical URL set. A repository can appear more than once in mcp_tools
+ * (for example, casing differences in GitHub URLs); deduping each shard in
+ * isolation would put the same canonical URL in multiple sitemap shards.
+ */
+const getCachedSitemapCatalog = unstable_cache(
+  async (): Promise<SitemapTool[] | null> => {
+    const supabase = getSupabase();
+    if (!supabase) return null;
+
+    const rows: { repo_name: string | null; github_url: string; last_updated: string | null }[] = [];
+    const maxRows = 50_000;
+    const batchSize = TOOL_QUERY_BATCH_SIZE;
+    const concurrency = 6;
+
+    for (let offset = 0; offset < maxRows; offset += batchSize * concurrency) {
+      const ranges = Array.from({ length: concurrency }, (_, index) => {
+        const start = offset + index * batchSize;
+        return { start, end: Math.min(start + batchSize - 1, maxRows - 1) };
+      }).filter(({ start }) => start < maxRows);
+
+      const batches = await Promise.all(ranges.map(({ start, end: batchEnd }) => {
+        const cursor = start;
+        return supabase
+        .from("mcp_tools")
+        .select("id, repo_name, github_url, last_updated")
+        .in("status", ["approved", "pending"])
+        .order("stars", { ascending: false, nullsFirst: false })
+        .order("id", { ascending: true })
+        .range(cursor, batchEnd);
+      }));
+
+      let sawRows = false;
+      for (const { data, error } of batches) {
+        if (error || !data) return null;
+        const batchRows = data as { repo_name: string | null; github_url: string; last_updated: string | null }[];
+        if (batchRows.length > 0) sawRows = true;
+        rows.push(...batchRows);
+      }
+      if (!sawRows || batches.some(({ data }) => !data || data.length < batchSize)) break;
+    }
+
+    const seen = new Set<string>();
+    const out: SitemapTool[] = [];
+    for (const row of rows) {
+      if (!row.repo_name || isBlocked(row.repo_name)) continue;
+      const slug = toolSlug(row.github_url, row.repo_name);
+      if (seen.has(slug)) continue;
+      seen.add(slug);
+      out.push({ name: row.repo_name, slug, updated: row.last_updated });
+    }
+    return out;
+  },
+  ["repository-sitemap-catalog"],
+  { revalidate: 300, tags: ["repository-sitemap", "repository-tools"] },
+);
 
 /* All tool names (for callers that need one bounded list). */
 export async function getAllToolNames(max = 50000): Promise<{ name: string; slug: string; updated: string | null }[]> {
