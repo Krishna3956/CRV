@@ -157,6 +157,11 @@ labels, and a recommended next step. The rendered Setup view showed the
 three-step activation path, connection-key language, SDK tabs, and advanced
 controls behind disclosure. No production credentials or data were used.
 
+The evidence drill-down copy now uses `Evidence details` instead of the
+engineering-oriented `Trace Explorer` label. The change is covered by a
+dedicated contract test and keeps the technical identifier copy inside the
+secondary detail surface.
+
 The Resources & prompts preview also expanded its trend table successfully,
 showing period, surface, item, and calls while retaining the content/argument
 privacy boundary.
