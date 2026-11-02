@@ -2,7 +2,7 @@
 
 Date: 2026-11-03  
 Branch: `codex/business-user-ux-audit`  
-Latest verified commit: `d858f7c6` (`Normalize evidence action labels everywhere`)
+Latest verified commit: `be8b4b64` (`Clarify outcome evidence for business readers`)
 
 This matrix is the release-readiness companion to the UX audit and work
 queue. It intentionally separates source-level proof, read-only browser proof,
@@ -11,9 +11,10 @@ and evidence that requires a real account, deployment, or human participant.
 Latest branch verification: `npm run test:business-user-ux` passed all 81 suites
 after the authentication-affordance, research, signed-out handoff, illustrative
 People-growth coherence, setup-vocabulary consistency, and evidence-action-label
-passes (`d858f7c6`). The consolidated `npm run test:release-gate` had passed all
-159 suites on the immediately preceding source commit (`9c1c6391`); the latest
-change is copy-only and the focused contract suite was rerun after it.
+and outcome-copy passes (`be8b4b64`). The consolidated `npm run test:release-gate`
+passed all 159 suites on the immediately preceding source commit
+(`2c8e5e03`); the latest change is copy-only and the focused contract, P0 truth,
+typecheck, and lint suites were rerun after it.
 The branch
 remains local and has not been merged or deployed.
 

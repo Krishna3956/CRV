@@ -2,7 +2,7 @@
 
 Date: 2026-11-03
 Branch: `codex/business-user-ux-audit`
-Commit under review: `d858f7c6` (`Normalize evidence action labels everywhere`)
+Commit under review: `be8b4b64` (`Clarify outcome evidence for business readers`)
 
 This is local browser evidence only. It is not production evidence and does
 not replace a fresh-account or real-telemetry walkthrough.
