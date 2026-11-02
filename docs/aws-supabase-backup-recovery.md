@@ -1,6 +1,10 @@
 # TrackMCP AWS-hosted Supabase backup and recovery design
 
-This is the proposed recovery posture; it is not evidence that AWS backups are active yet.
+This is the proposed recovery posture. The private, versioned, AES-256-encrypted
+staging S3 backup bucket is verified, but scheduled source exports and a
+source-data restore are not yet active because the source PostgreSQL connection
+secret is still missing. The bucket's existence is not treated as proof that a
+usable backup exists.
 
 ## Initial targets
 

@@ -1,6 +1,11 @@
 # AWS-hosted Supabase architecture and cost decision
 
-Status: proposal for owner approval, 2026-11-01. No AWS resources have been created.
+Status: staging foundation verified; production architecture remains a proposal, 2026-11-02.
+
+The approved staging foundation now exists in `us-east-1`: CloudFormation stack
+`trackmcp-supabase-staging-24`, an SSM-managed EC2 host, and a private,
+versioned, AES-256-encrypted S3 backup bucket. No production AWS resources,
+production DNS, Supabase Cloud settings, or live traffic have been changed.
 
 ## Recommendation
 
@@ -40,7 +45,7 @@ The current account view shows $1,125.22 total amount remaining and $1,037.31 to
 
 ## Approval requested
 
-The owner approved the first gate on 2026-11-01: `us-east-1`, EC2 x86_64, encrypted gp3, SSM-only administration, public 80/443 only, private S3 backups, and a staging spend envelope of approximately `$45/month` with a production planning envelope of approximately `$80/month`, subject to the measurements above. This authorizes staging resource creation only; it does not authorize production cutover or deletion of Supabase Cloud. CloudShell currently cannot create an environment because AWS account verification is in progress, so deployment must use another authenticated AWS path.
+The owner approved the first gate on 2026-11-01: `us-east-1`, EC2 x86_64, encrypted gp3, SSM-only administration, public 80/443 only, private S3 backups, and a staging spend envelope of approximately `$45/month` with a production planning envelope of approximately `$80/month`, subject to the measurements above. That approval was used only for the isolated staging foundation; it does not authorize production cutover or deletion of Supabase Cloud. The staging implementation and its latest read-only inspection are recorded in the migration ledger.
 
 ## Official references
 
