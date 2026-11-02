@@ -10,6 +10,8 @@ Legend: `[x]` verified/implemented in this workstream; `[ ]` pending.
       technical evidence.
 - [x] ✅ Add plain-English meaning/help for the four Overview KPIs.
 - [x] ✅ Add a business question and evidence caveat to each top-level page.
+- [x] ✅ Translate the highest-visibility journey, capability, resource, and
+      reliability labels without changing their formulas.
 - [x] ✅ Keep Example data visibly illustrative and separate from My data.
 - [x] ✅ Add contract tests for the orientation and setup copy.
 - [ ] Run dashboard contracts, typecheck, build, and runtime smoke. (Contracts,
