@@ -1,0 +1,234 @@
+name: Probe Supabase source restore in staging
+
+# This workflow is deliberately manual and staging-only. It validates the
+# existing encrypted source export, restores it into a temporary database on
+# the isolated staging host, checks schema/auth compatibility, and removes the
+# temporary database. It never writes to Supabase Cloud, production, DNS, the
+# active staging database, or application configuration.
+on:
+  workflow_dispatch:
+    inputs:
+      confirm:
+        description: "Type RESTORE_STAGING_SOURCE_PROBE to run the isolated restore probe"
+        required: true
+        type: string
+      object_prefix:
+        description: "S3 prefix, for example source-exports/1234567890"
+        required: true
+        type: string
+      stack_name:
+        description: "Existing isolated staging CloudFormation stack"
+        required: true
+        default: trackmcp-supabase-staging-24
+        type: string
+
+permissions:
+  id-token: write
+  contents: read
+
+env:
+  AWS_REGION: us-east-1
+  ROLE_ARN: arn:aws:iam::872575360367:role/GitHubActionsDeployRole
+  BACKUP_BUCKET_PREFIX: trackmcp-supabase-backups
+
+jobs:
+  restore-probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Check out the reviewed restore probe
+        uses: actions/checkout@v4
+
+      - name: Configure AWS OIDC credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ env.ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Validate the explicit staging guard and object prefix
+        env:
+          CONFIRM: ${{ inputs.confirm }}
+          OBJECT_PREFIX: ${{ inputs.object_prefix }}
+        run: |
+          set -euo pipefail
+          [[ "$CONFIRM" == "RESTORE_STAGING_SOURCE_PROBE" ]] || {
+            echo "::error::The confirm input must be exactly RESTORE_STAGING_SOURCE_PROBE. No object or database was touched."
+            exit 1
+          }
+          [[ "$OBJECT_PREFIX" =~ ^source-exports/[0-9]+$ ]] || {
+            echo "::error::The object prefix must match source-exports/<numeric-workflow-run-id>. No restore was attempted."
+            exit 1
+          }
+
+      - name: Install PostgreSQL archive inspection tools
+        run: |
+          set -euo pipefail
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends postgresql-client
+
+      - name: Verify the private encrypted source archive
+        id: artifact
+        env:
+          OBJECT_PREFIX: ${{ inputs.object_prefix }}
+        run: |
+          set -euo pipefail
+          umask 077
+          ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
+          BUCKET_NAME="${BACKUP_BUCKET_PREFIX}-${ACCOUNT_ID}-${AWS_REGION}"
+          DUMP_FILE="/tmp/trackmcp-source-restore-probe.dump"
+          MANIFEST_FILE="/tmp/trackmcp-source-restore-probe.manifest.txt"
+          LIST_FILE="/tmp/trackmcp-source-restore-probe.list.txt"
+          trap 'rm -f "$DUMP_FILE" "$MANIFEST_FILE" "$LIST_FILE"' EXIT
+
+          aws s3api head-bucket --bucket "$BUCKET_NAME" --region "$AWS_REGION"
+          ENCRYPTION=$(aws s3api head-object --bucket "$BUCKET_NAME" \
+            --key "$OBJECT_PREFIX/trackmcp-supabase-source.dump" \
+            --region "$AWS_REGION" --query ServerSideEncryption --output text)
+          [[ "$ENCRYPTION" == "AES256" ]] || {
+            echo "::error::The source archive is not encrypted with the expected AES256 server-side encryption. No restore was attempted."
+            exit 1
+          }
+          aws s3 cp "s3://${BUCKET_NAME}/${OBJECT_PREFIX}/trackmcp-supabase-source.dump" \
+            "$DUMP_FILE" --only-show-errors
+          aws s3 cp "s3://${BUCKET_NAME}/${OBJECT_PREFIX}/manifest.txt" \
+            "$MANIFEST_FILE" --only-show-errors
+
+          grep -Fx 'source_url=redacted' "$MANIFEST_FILE" >/dev/null
+          SHA256=$(sha256sum "$DUMP_FILE" | awk '{print $1}')
+          EXPECTED_SHA256=$(sed -n 's/^sha256=//p' "$MANIFEST_FILE")
+          [[ "$SHA256" == "$EXPECTED_SHA256" ]] || {
+            echo "::error::Source export checksum mismatch. No restore was attempted."
+            exit 1
+          }
+          BYTES=$(stat -c '%s' "$DUMP_FILE")
+          EXPECTED_BYTES=$(sed -n 's/^dump_bytes=//p' "$MANIFEST_FILE")
+          [[ "$BYTES" == "$EXPECTED_BYTES" ]] || {
+            echo "::error::Source export byte count mismatch. No restore was attempted."
+            exit 1
+          }
+          pg_restore --list "$DUMP_FILE" > "$LIST_FILE"
+          ENTRY_COUNT=$(wc -l < "$LIST_FILE" | tr -d ' ')
+          [[ "$ENTRY_COUNT" -gt 0 ]] || {
+            echo "::error::The source archive contains no inspectable PostgreSQL entries. No restore was attempted."
+            exit 1
+          }
+          OBJECT_KEY="$OBJECT_PREFIX/trackmcp-supabase-source.dump"
+          echo "bucket_name=$BUCKET_NAME" >> "$GITHUB_OUTPUT"
+          echo "object_key=$OBJECT_KEY" >> "$GITHUB_OUTPUT"
+          echo "archive_bytes=$BYTES" >> "$GITHUB_OUTPUT"
+          echo "archive_entries=$ENTRY_COUNT" >> "$GITHUB_OUTPUT"
+          echo "Verified the private encrypted source archive metadata; source URL and application rows were not printed."
+
+      - name: Package the isolated restore script
+        id: package
+        env:
+          BUCKET_NAME: ${{ steps.artifact.outputs.bucket_name }}
+          OBJECT_KEY: ${{ steps.artifact.outputs.object_key }}
+        run: |
+          set -euo pipefail
+          SCRIPT_OBJECT="staging/source-restore-probe-${GITHUB_RUN_ID}.sh"
+          cat > /tmp/trackmcp-source-restore-probe.sh <<'REMOTE_EOF'
+          set -euo pipefail
+
+          cd /opt/trackmcp-supabase/project
+          test -f .env
+          test -f docker-compose.yml
+          install -d -m 0750 /opt/trackmcp-supabase/restore-probes
+          DUMP_FILE="/opt/trackmcp-supabase/restore-probes/source-${RESTORE_ID}.dump"
+          LIST_FILE="/opt/trackmcp-supabase/restore-probes/source-${RESTORE_ID}.list.txt"
+          RESTORE_DATABASE="trackmcp_restore_${RESTORE_ID}"
+          cleanup() {
+            status=$?
+            if [[ -n "${RESTORE_DATABASE:-}" ]]; then
+              docker compose exec -T db psql -U postgres -d postgres -v ON_ERROR_STOP=1 \
+                -c "DROP DATABASE IF EXISTS ${RESTORE_DATABASE}" >/dev/null 2>&1 || true
+            fi
+            rm -f "$DUMP_FILE" "$LIST_FILE"
+            if [[ "$status" -ne 0 ]]; then
+              echo "STAGING_SOURCE_RESTORE_PROBE_FAILED status=${status}"
+            fi
+          }
+          trap cleanup EXIT
+          aws s3 cp "s3://${MIGRATION_BUCKET}/${MIGRATION_OBJECT}" "$DUMP_FILE" --only-show-errors
+          docker compose exec -T db pg_restore --list < "$DUMP_FILE" > "$LIST_FILE"
+          ENTRY_COUNT=$(wc -l < "$LIST_FILE" | tr -d ' ')
+          [[ "$ENTRY_COUNT" -gt 0 ]] || { echo STAGING_SOURCE_RESTORE_ARCHIVE_EMPTY; exit 1; }
+
+          docker compose exec -T db psql -U postgres -d postgres -v ON_ERROR_STOP=1 \
+            -c "CREATE DATABASE ${RESTORE_DATABASE}"
+          docker compose exec -T db pg_restore -U postgres -d "$RESTORE_DATABASE" \
+            --exit-on-error --no-owner --no-privileges < "$DUMP_FILE"
+
+          PUBLIC_TABLES=$(docker compose exec -T db psql -U postgres -d "$RESTORE_DATABASE" -At \
+            -c "select count(*) from information_schema.tables where table_schema = 'public'")
+          AUTH_USERS_TABLE=$(docker compose exec -T db psql -U postgres -d "$RESTORE_DATABASE" -At \
+            -c "select coalesce(to_regclass('auth.users')::text, 'missing')")
+          [[ "$PUBLIC_TABLES" =~ ^[0-9]+$ && "$PUBLIC_TABLES" -gt 0 ]] || {
+            echo STAGING_SOURCE_RESTORE_PUBLIC_SCHEMA_MISSING
+            exit 1
+          }
+          [[ "$AUTH_USERS_TABLE" == "auth.users" ]] || {
+            echo STAGING_SOURCE_RESTORE_AUTH_SCHEMA_MISSING
+            exit 1
+          }
+
+          echo "STAGING_SOURCE_RESTORE_PROBE_PASSED archive_entries=${ENTRY_COUNT} public_tables=${PUBLIC_TABLES} auth_users_table=present"
+          echo "STAGING_SOURCE_RESTORE_PROBE_CLEANED temporary_database=${RESTORE_DATABASE}"
+          REMOTE_EOF
+          aws s3 cp /tmp/trackmcp-source-restore-probe.sh \
+            "s3://${BUCKET_NAME}/${SCRIPT_OBJECT}" --sse AES256 --only-show-errors
+          echo "script_object=$SCRIPT_OBJECT" >> "$GITHUB_OUTPUT"
+          echo "Packaged the bounded staging-only restore probe; no database command has run yet."
+
+      - name: Restore into a temporary staging database and clean it up
+        env:
+          STACK_NAME: ${{ inputs.stack_name }}
+          BUCKET_NAME: ${{ steps.artifact.outputs.bucket_name }}
+          OBJECT_KEY: ${{ steps.artifact.outputs.object_key }}
+          SCRIPT_OBJECT: ${{ steps.package.outputs.script_object }}
+        run: |
+          set -euo pipefail
+          INSTANCE_ID=$(aws cloudformation describe-stacks \
+            --stack-name "$STACK_NAME" --region "$AWS_REGION" \
+            --query 'Stacks[0].Outputs[?OutputKey==`InstanceId`].OutputValue' --output text)
+          [[ -n "$INSTANCE_ID" && "$INSTANCE_ID" != "None" ]] || {
+            echo "::error::The selected staging stack has no EC2 instance output. No restore was attempted."
+            exit 1
+          }
+          REMOTE_COMMAND="export MIGRATION_BUCKET='$BUCKET_NAME' MIGRATION_OBJECT='$OBJECT_KEY' RESTORE_ID='$GITHUB_RUN_ID' SCRIPT_OBJECT='$SCRIPT_OBJECT'; aws s3 cp \"s3://\${MIGRATION_BUCKET}/\${SCRIPT_OBJECT}\" /tmp/trackmcp-source-restore-probe.sh --only-show-errors; chmod 0700 /tmp/trackmcp-source-restore-probe.sh; exec bash /tmp/trackmcp-source-restore-probe.sh"
+          COMMANDS_JSON=$(jq -Rn --arg command "$REMOTE_COMMAND" '{commands:[$command]}')
+          COMMAND_ID=$(aws ssm send-command \
+            --instance-ids "$INSTANCE_ID" \
+            --document-name AWS-RunShellScript \
+            --comment "TrackMCP isolated source restore compatibility probe" \
+            --timeout-seconds 1500 \
+            --parameters "$COMMANDS_JSON" \
+            --region "$AWS_REGION" --query Command.CommandId --output text)
+          set +e
+          aws ssm wait command-executed --command-id "$COMMAND_ID" --instance-id "$INSTANCE_ID" --region "$AWS_REGION"
+          WAITER_STATUS=$?
+          set -e
+          STATUS=$(aws ssm get-command-invocation --command-id "$COMMAND_ID" --instance-id "$INSTANCE_ID" --region "$AWS_REGION" --query Status --output text)
+          OUTPUT=$(aws ssm get-command-invocation --command-id "$COMMAND_ID" --instance-id "$INSTANCE_ID" --region "$AWS_REGION" --query StandardOutputContent --output text)
+          ERROR_OUTPUT=$(aws ssm get-command-invocation --command-id "$COMMAND_ID" --instance-id "$INSTANCE_ID" --region "$AWS_REGION" --query StandardErrorContent --output text)
+          echo "SSM command status: $STATUS"
+          echo "$OUTPUT"
+          if [[ -n "$ERROR_OUTPUT" && "$ERROR_OUTPUT" != "None" ]]; then
+            echo "$ERROR_OUTPUT"
+          fi
+          if [[ "$WAITER_STATUS" -ne 0 || "$STATUS" != "Success" || "$OUTPUT" != *STAGING_SOURCE_RESTORE_PROBE_PASSED* || "$OUTPUT" != *STAGING_SOURCE_RESTORE_PROBE_CLEANED* ]]; then
+            echo "::error::The isolated source restore probe did not report a clean compatibility result."
+            exit 1
+          fi
+
+      - name: Record bounded restore evidence
+        env:
+          STACK_NAME: ${{ inputs.stack_name }}
+          OBJECT_PREFIX: ${{ inputs.object_prefix }}
+          ARCHIVE_BYTES: ${{ steps.artifact.outputs.archive_bytes }}
+          ARCHIVE_ENTRIES: ${{ steps.artifact.outputs.archive_entries }}
+        run: |
+          set -euo pipefail
+          echo "Verified and restored source archive metadata from prefix $OBJECT_PREFIX into a temporary database on isolated stack $STACK_NAME."
+          echo "Archive bytes=$ARCHIVE_BYTES entries=$ARCHIVE_ENTRIES; the temporary database was dropped after schema/auth compatibility checks."
+          echo "Supabase Cloud, production DNS, App Runner configuration, live traffic, active staging database, and credentials were not changed."
