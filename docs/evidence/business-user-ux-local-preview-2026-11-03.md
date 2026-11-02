@@ -496,3 +496,18 @@ Latest shell verification after `984f2cbe`:
 - `npm run lint`: passed.
 - `npm run build`: passed; 230 static pages generated.
 - `npm run test:release-gate`: passed all 159 suites after the shell change.
+
+Latest recovery-path verification after `a00cf8db`:
+
+- When live analytics cannot be loaded, `Retry` remains the primary action.
+- The same state now offers `See Example data` as an explicit, safe fallback;
+  it switches the data source rather than substituting sample values into the
+  live workspace view.
+- The fallback is available on the main dashboard live-data failure state;
+  the quality-specific state keeps its existing retry-only behavior.
+- `npm run test:business-user-ux`: 84/84 passed.
+- `npx tsc --noEmit --pretty false`: passed.
+- `npm run build`: passed; 230 static pages generated.
+- `npm run test:release-gate`: passed all 159 suites.
+- The branch remains local and undeployed; fresh-account, production, and
+  non-technical participant evidence are still required.
