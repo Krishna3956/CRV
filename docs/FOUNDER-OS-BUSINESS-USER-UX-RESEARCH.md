@@ -82,6 +82,28 @@ TrackMCP application:
 - Error states explain what happened, whether data is safe, and the next recovery action.
 - Avoid repeating the same technical explanation in every panel; use a short summary and a link to the detail surface.
 
+### 7. A shared dashboard needs an explicit trust contract
+
+PostHog documents that analytics are only as useful as the events, identities,
+and properties attached to them; the same source model powers trends, funnels,
+retention, and dashboards. Amplitude makes the parallel organizational point:
+teams need dashboards that are trusted, current, relevant, and clearly marked
+as the reviewed source for recurring decisions. See [PostHog product
+analytics](https://posthog.com/docs/product-analytics) and [Amplitude dashboard
+guidance](https://amplitude.com/docs/analytics/dashboard-create).
+
+TrackMCP application:
+
+- Every dashboard page states whether it is showing `My data` or illustrative
+  `Example data`.
+- Evidence window, observed-through watermark, bounded scan state, and refresh
+  status remain available as a technical trust layer rather than being hidden.
+- A KPI cannot be promoted to a “health” claim simply because it is displayed;
+  the read model and metric contract must define its source and evidence class.
+- The eventual official Overview should be a stable shared review surface;
+  arbitrary dashboard customization should wait until the canonical metric
+  vocabulary and read models are stable.
+
 ## What this means for the current product
 
 ### Strengths already present on this branch
