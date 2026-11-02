@@ -6,6 +6,7 @@ const dashboard = await readFile(new URL("../src/components/dashboard/DashboardA
 const apiDocs = await readFile(new URL("../src/app/docs/api/page.tsx", import.meta.url), "utf8");
 const target = await readFile(new URL("../../docs/FOUNDER-OS-BUSINESS-USER-UX-TARGET.md", import.meta.url), "utf8");
 const strategy = await readFile(new URL("../../docs/FOUNDER-OS-BUSINESS-USER-UX-STRATEGY.md", import.meta.url), "utf8");
+const research = await readFile(new URL("../../docs/FOUNDER-OS-BUSINESS-USER-UX-RESEARCH.md", import.meta.url), "utf8");
 const queue = await readFile(new URL("../../docs/FOUNDER-OS-BUSINESS-USER-UX-WORK-QUEUE.md", import.meta.url), "utf8");
 
 test("new-user setup explains the business outcome before technical detail", () => {
@@ -24,6 +25,8 @@ test("activated-user dashboard is organized around business questions", () => {
   ]) assert.match(dashboard, new RegExp(phrase));
   assert.match(strategy, /Every top-level page must answer one question/);
   assert.match(strategy, /Technical detail belongs in/);
+  assert.match(dashboard, /data-range-summary/);
+  assert.match(dashboard, /Showing \{selectedLabel\.toLowerCase\(\)\}/);
 });
 
 test("customer-facing docs use TrackMCP product language", () => {
@@ -37,6 +40,15 @@ test("uncertainty and technical evidence remain explicit", () => {
   assert.match(dashboard, /Why this signal is shown/);
   assert.match(dashboard, /Show technical rule details/);
   assert.match(target, /Do not infer abandonment or completion from a missing event/);
+});
+
+test("research principles are translated into TrackMCP decisions", () => {
+  assert.match(research, /PostHog/);
+  assert.match(research, /Amplitude/);
+  assert.match(research, /Progressive disclosure/);
+  assert.match(research, /Do not add period comparisons/);
+  assert.match(research, /Source-to-change mapping/);
+  assert.match(queue, /Research PostHog, Amplitude, GA4/);
 });
 
 test("the work queue records this UX slice and its remaining scope", () => {

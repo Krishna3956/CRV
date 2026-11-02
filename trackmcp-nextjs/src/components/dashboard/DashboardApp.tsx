@@ -1539,6 +1539,8 @@ function DateRange({
     { value: "30", label: "Last 30 days" },
     { value: "90", label: "Last 90 days" },
   ];
+  const selectedOption = options.find((option) => option.value === value);
+  const selectedLabel = selectedOption?.label || (value.startsWith("custom:") ? "Custom range" : "Selected range");
 
   return (
     <div className="flex flex-wrap items-center gap-1.5" role="group" aria-label="Activity date range">
@@ -1594,6 +1596,9 @@ function DateRange({
           <p className="text-[10px] leading-relaxed text-faint">Choose a bounded range of up to 90 days. Data is still privacy-safe and scan-capped.</p>
         </div>
       </details>
+      <span data-range-summary className="text-[11px] font-medium text-faint" aria-live="polite">
+        Showing {selectedLabel.toLowerCase()}
+      </span>
     </div>
   );
 }

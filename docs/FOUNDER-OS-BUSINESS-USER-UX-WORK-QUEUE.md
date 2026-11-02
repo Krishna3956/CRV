@@ -46,6 +46,9 @@ Legend: `[x]` verified/implemented in this workstream; `[ ]` pending.
       SDK instructions instead of remaining on an empty analytics tab.
 - [x] ✅ Rewrite no-data page previews with business language so a first-time
       reader understands what each tab will show before connecting telemetry.
+- [x] ✅ Research PostHog, Amplitude, GA4, USWDS, Material, NN/g, and
+      Microsoft product-writing guidance; record the source-to-change decisions
+      in `FOUNDER-OS-BUSINESS-USER-UX-RESEARCH.md`.
 - [x] ✅ Perform a read-only browser review of the current production Setup,
       Overview, Example data, and My data states; record live-vs-branch
       differences in the audit.
@@ -59,6 +62,8 @@ Legend: `[x]` verified/implemented in this workstream; `[ ]` pending.
 
 - [ ] Who’s using it: active accounts, new vs returning, growth, client
       breakdown, unknown category, and top accounts backed by the read model.
+- [ ] Overview: add period-over-period comparison only after the read model
+      exposes two trustworthy windows; do not infer comparison values in UI.
 - [ ] What they’re doing: adoption breadth, top capabilities, trends, and
       capability detail with business labels.
 - [ ] Resources & prompts: top resources, top prompts, completion/stall, and
