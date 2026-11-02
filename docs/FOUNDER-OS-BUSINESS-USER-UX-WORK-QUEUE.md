@@ -58,6 +58,8 @@ Legend: `[x]` verified/implemented in this workstream; `[ ]` pending.
       comparisons remain readable without visual or hover-only interpretation.
 - [x] ✅ Add a table alternative for explicit outcome trends so business users
       can compare completed, failed, pending, and unknown states by period.
+- [x] ✅ Add a table alternative for resource and prompt trends so information
+      needs can be compared without relying on card-only visual scanning.
 - [x] ✅ Move dense protocol-family and lifecycle detail behind an explicit
       “Technical protocol evidence” disclosure on the capability view.
 - [x] ✅ Clarify capability KPI labels so comparison values, error rates, and
