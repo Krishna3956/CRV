@@ -6,7 +6,7 @@ import { Nav } from "@/components/Nav";
 import { Footer } from "@/components/Footer";
 import { PageFrame } from "@/components/PageFrame";
 import { Reveal } from "@/components/Reveal";
-import { posts } from "./posts";
+import { posts, sortPostsByDate } from "./posts";
 import { BlogArt } from "./art";
 import { enrichment } from "./enrichment";
 
@@ -18,7 +18,7 @@ export const metadata: Metadata = pageMeta({
 });
 
 export default function BlogPage() {
-  const [featured, ...rest] = posts;
+  const [featured, ...rest] = sortPostsByDate(posts);
   const breadcrumbSchema = breadcrumbJsonLd([
     { name: "Home", path: "/" },
     { name: "Blog", path: "/blog" },
