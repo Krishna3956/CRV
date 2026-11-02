@@ -85,6 +85,19 @@ test("every SDK guide exposes a direct Setup handoff", () => {
   assert.match(shell, /Documentation next steps/);
 });
 
+test("the docs overview gives Python users an executable activation path", () => {
+  assert.match(overview, /python3 -m pip install trackmcp/);
+  assert.match(overview, /trackmcp init/);
+  assert.match(overview, /trackmcp init --no-browser/);
+  assert.match(overview, /from trackmcp import with_trackmcp/);
+  assert.match(overview, /os\.environ\["TRACKMCP_KEY"\]/);
+  assert.match(overview, /Python follows the same terminal-first activation path/);
+  assert.match(overview, /TypeScript \/ Node\.js wrapper/);
+  assert.match(overview, /Python activation and wrapper/);
+  assert.match(overview, /do not paste the TypeScript wrapper into a\s+Python server/);
+  assert.doesNotMatch(overview, /# Manual fallback: open \/signup on this documentation origin\n\n# Python/);
+});
+
 test("the transport observer is discoverable from the SDK navigation", () => {
   assert.match(shell, /Transport observer/);
   assert.match(shell, /href: "\/docs\/typescript#transport-observer"/);
