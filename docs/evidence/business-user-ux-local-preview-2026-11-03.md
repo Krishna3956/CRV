@@ -292,3 +292,21 @@ interaction outcomes, and a collapsed `Detailed resource and prompt evidence`
 disclosure. Entity counts, durable-read status, and transport coverage are
 available inside that disclosure rather than competing with the primary
 question on first render.
+
+## Setup progressive-disclosure follow-up
+
+The Setup view was audited after the capability and resources passes. The
+primary path now stays focused on the three activation steps, connection
+status, server connection instructions, and connection-key actions. The
+observed server/environment labels and deployment-linkage count are still
+available, but they now sit in a collapsed `Observed connection details`
+disclosure. Its copy clarifies that these are bounded labels for comparison,
+not a deployment inventory or a health check. This keeps technical context
+discoverable without asking a newly signed-up business user to interpret it
+before connecting a server.
+
+Verification after this pass:
+
+- `npm run test:business-user-ux`: 80/80 passed.
+- Source and type checks remain scheduled with the branch release gate.
+- Production deployment and fresh-account browser evidence remain pending.

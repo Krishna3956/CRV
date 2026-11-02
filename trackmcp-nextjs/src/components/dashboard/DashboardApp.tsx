@@ -4967,31 +4967,6 @@ function SetupView({
           </button>
         )}
       </section>
-      <Panel
-        title="Server and environment"
-        subtitle="Observed scope comes from bounded activity metadata; it is not proof that a named customer or deployment exists."
-      >
-        {analytics?.services?.length || analytics?.environments?.length ? (
-          <div className="grid gap-3 sm:grid-cols-2">
-            <ScopeValue label="Observed server" values={analytics.services} empty="No service name observed yet" />
-            <ScopeValue label="Observed environment" values={analytics.environments} empty="No environment observed yet" />
-            <div className="border border-line bg-paper p-3 sm:col-span-2">
-              <p className="dashboard-label text-faint">Deployment linkage</p>
-              <p className="mt-2 text-sm font-semibold text-ink">
-                {analytics.deployment_summary ? `${fmt(analytics.deployment_summary.observed_deployments)} observed deployment signals` : "No deployment linkage observed yet"}
-              </p>
-              <p className="mt-2 text-[11px] leading-relaxed text-muted">
-                {analytics.deployment_summary ? `${fmt(analytics.deployment_summary.linked_events)} events carried bounded deployment linkage. This is not deployment health or release status.` : "The server has not supplied a bounded deployment identifier in this window."}
-              </p>
-            </div>
-          </div>
-        ) : (
-          <StateNote
-            title="Waiting for a server event"
-            body="After the SDK sends its first event, TrackMCP will show the bounded service and environment labels observed from the server. It will not infer them from the workspace or connection key."
-          />
-        )}
-      </Panel>
       <div className="grid gap-6 xl:grid-cols-[minmax(0,1.2fr)_minmax(320px,.8fr)]">
         <Panel
           title="Connect the server"
@@ -5223,6 +5198,37 @@ function SetupView({
           )}
         </Panel>
       </div>
+      <details className="mt-6 rounded-2xl border border-line bg-white p-5 shadow-[0_20px_45px_-38px_rgba(18,59,42,0.35)] sm:p-6">
+        <summary className="flex cursor-pointer list-none items-center justify-between gap-3 text-[15px] font-semibold text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand">
+          <span>Observed connection details <span className="ml-2 text-xs font-normal text-muted">Optional detail for product and engineering teams</span></span>
+          <span className="text-xs font-medium text-brand-strong">View details</span>
+        </summary>
+        <p className="mt-3 max-w-3xl text-xs leading-relaxed text-muted">
+          These labels come from bounded activity metadata. They help teams compare server environments, but they are not a deployment inventory or a health check. The three setup steps above are all that is required to get started.
+        </p>
+        <div className="mt-4">
+          {analytics?.services?.length || analytics?.environments?.length ? (
+            <div className="grid gap-3 sm:grid-cols-2">
+              <ScopeValue label="Observed server" values={analytics.services} empty="No service name observed yet" />
+              <ScopeValue label="Observed environment" values={analytics.environments} empty="No environment observed yet" />
+              <div className="border border-line bg-paper p-3 sm:col-span-2">
+                <p className="dashboard-label text-faint">Deployment linkage</p>
+                <p className="mt-2 text-sm font-semibold text-ink">
+                  {analytics.deployment_summary ? `${fmt(analytics.deployment_summary.observed_deployments)} observed deployment signals` : "No deployment linkage observed yet"}
+                </p>
+                <p className="mt-2 text-[11px] leading-relaxed text-muted">
+                  {analytics.deployment_summary ? `${fmt(analytics.deployment_summary.linked_events)} events carried bounded deployment linkage. This is not deployment health or release status.` : "The server has not supplied a bounded deployment identifier in this window."}
+                </p>
+              </div>
+            </div>
+          ) : (
+            <StateNote
+              title="Waiting for a server event"
+              body="After the SDK sends its first event, TrackMCP will show the bounded service and environment labels observed from the server. It will not infer them from the workspace or connection key."
+            />
+          )}
+        </div>
+      </details>
       <details className="mt-6 rounded-2xl border border-line bg-white p-5 shadow-[0_20px_45px_-38px_rgba(18,59,42,0.35)] sm:p-6">
         <summary className="flex cursor-pointer list-none items-center justify-between gap-3 text-[15px] font-semibold text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand">
           <span>Optional identity <span className="ml-2 text-xs font-normal text-muted">Resolve account activity without exposing raw identifiers</span></span>

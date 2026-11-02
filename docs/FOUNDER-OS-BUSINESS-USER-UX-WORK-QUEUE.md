@@ -117,6 +117,10 @@ Legend: `[x]` verified/implemented in this workstream; `[ ]` pending.
 - [x] ✅ Give an activated Setup user a direct `Open Overview` handoff after
       first activity is verified, so the setup page explains the next business
       action instead of making the reader infer where to go.
+- [x] ✅ Keep observed server, environment, and deployment linkage details
+      available without competing with the three-step setup path: move them
+      into a collapsed `Observed connection details` disclosure and explain
+      that they are bounded labels, not a deployment inventory or health check.
 - [x] ✅ Apply the same business-readable evidence language inside the Evidence
       tab: remove the engineering-only “Trace Explorer” action label, hide raw
       session identifiers from the primary table, and expose a clear “Open

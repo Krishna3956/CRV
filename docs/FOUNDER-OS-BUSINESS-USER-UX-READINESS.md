@@ -87,6 +87,13 @@ The local capability preview keeps `Most-used features`, `Breadth of adoption`,
 repeated inventory and catalog detail are collapsed under `Detailed capability
 inventory`.
 
+The local Setup preview keeps the three-step activation story and the `Connect
+the server`/`Connection keys` actions in the primary path. Observed server,
+environment, and deployment-linkage metadata is available under the collapsed
+`Observed connection details` disclosure, with copy that explicitly says it is
+not a deployment inventory or health check. This follows the same progressive
+disclosure rule as the capability and resources views.
+
 ### Tier 3 — still required before pilot readiness
 
 - Fresh-account setup in the deployed branch.
