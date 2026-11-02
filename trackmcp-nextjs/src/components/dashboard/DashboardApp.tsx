@@ -2243,15 +2243,17 @@ function Kpi({
   icon: LucideIcon;
 }) {
   return (
-    <div className="border border-line bg-white p-4">
+    <div className="rounded-xl border border-line bg-white p-4 shadow-[0_12px_28px_-24px_rgba(18,59,42,0.75)] transition-shadow hover:shadow-[0_16px_32px_-24px_rgba(18,59,42,0.8)]">
       <div className="flex items-start justify-between gap-2">
         <span className="flex items-center gap-1.5">
           <span className="dashboard-label text-faint">{label}</span>
           <InfoHint label={`About ${label}`} text={helper} />
         </span>
-        <Icon size={16} className="text-brand-strong" />
+        <span className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-brand-soft text-brand-strong" aria-hidden="true">
+          <Icon size={16} />
+        </span>
       </div>
-      <p className="dashboard-metric mt-3 tracking-[-0.04em] text-ink">
+      <p className="dashboard-metric mt-3 tabular-nums tracking-[-0.04em] text-ink">
         {value}
       </p>
       <p className="mt-1 text-[11px] leading-relaxed text-muted">{helper}</p>
