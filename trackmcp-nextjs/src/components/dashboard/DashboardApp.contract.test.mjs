@@ -156,6 +156,12 @@ test("dashboard typography uses the product type system", () => {
   assert.match(globalsSource, /button:not\(:disabled\):hover/);
 });
 
+test("dashboard decorative accents stay inside the neutral and indigo system", () => {
+  assert.doesNotMatch(source, /bg-\[#d7e5db\]|bg-\[#f4faf6\]|shadow-\[0_16px_40px_-34px_rgba\(18,59,42,0\.7\)\]/);
+  assert.match(source, /bg-brand-soft\/30/);
+  assert.match(source, /fill=\"#c7d2fe\"/);
+});
+
 test("dashboard keeps global controls inside one header and uses actionable empty states", () => {
   assert.match(source, /<header data-site-nav/);
   assert.equal((source.match(/<LanguageSwitcher \/>/g) || []).length, 1);
