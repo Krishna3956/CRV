@@ -18,6 +18,10 @@ typecheck, and lint suites were rerun after it.
 The branch
 remains local and has not been merged or deployed.
 
+Final current-branch build: `npm run build` passed with 230 static pages
+generated. This is still local build evidence; it does not prove a production
+deployment or authenticated production rendering.
+
 ## Requirement coverage
 
 | Requirement | Current status | Evidence | What is still needed |

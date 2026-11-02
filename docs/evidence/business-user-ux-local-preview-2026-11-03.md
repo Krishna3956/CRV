@@ -33,6 +33,9 @@ The Outcome evidence panel now leads with the reader-facing rule — only
 outcomes explicitly reported by the server count — instead of the internal
 “semantic facts” term.
 
+The current branch also passed `npm run build` after these copy changes;
+Next.js generated 230 static pages. This remains local evidence only.
+
 ## Latest browser confirmation
 
 - Local route: `/dashboard?view=evidence&data=example` on the isolated branch.
