@@ -142,6 +142,10 @@ Validation on the isolated worktree:
   source failure. The standalone server started, but the homepage returned
   HTTP 500 because no local Supabase environment values were available. No
   credentials were copied or created.
+- Independent production dashboard fetch: **not verifiable from this
+  environment**. `curl` to `/dashboard?view=overview&data=example` returned
+  Cloudflare HTTP 403, so no claim is made about the current authenticated
+  production rendering of this branch.
 
 This is a verified comprehension improvement, not a claim that every Founder
 OS read-model or protocol surface is complete. The remaining product scope is
