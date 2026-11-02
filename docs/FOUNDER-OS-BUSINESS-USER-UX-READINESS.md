@@ -2,7 +2,7 @@
 
 Date: 2026-11-03  
 Branch: `codex/business-user-ux-audit`  
-Latest verified commit: `aca9981f` (`Make setup guidance reflect current progress`)
+Latest verified commit: `be5ee919` (`Record setup rail runtime smoke`)
 
 This matrix is the release-readiness companion to the UX audit and work
 queue. It intentionally separates source-level proof, read-only browser proof,
@@ -12,7 +12,7 @@ Latest branch verification: `npm run test:business-user-ux` passed all 82 suites
 after the authentication-affordance, research, signed-out handoff, illustrative
 People-growth coherence, setup-vocabulary consistency, evidence-action-label,
 outcome-copy, Quality helper-copy, final route-smoke, and auth-affordance passes
-(`aca9981f`). The consolidated `npm run test:release-gate`
+(`aca9981f`; runtime evidence was recorded in `be5ee919`). The consolidated `npm run test:release-gate`
 passed all 159 suites on the immediately preceding source commit
 (`2c8e5e03`); the latest change is copy-only and the focused contract, P0 truth,
 typecheck, and lint suites were rerun after it.
