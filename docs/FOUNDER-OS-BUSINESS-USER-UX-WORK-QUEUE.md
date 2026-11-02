@@ -75,6 +75,8 @@ Legend: `[x]` verified/implemented in this workstream; `[ ]` pending.
 - [x] ✅ Run a local browser preview of the branch with Example data and Setup;
       verify the business-first navigation, visible period context, accessible
       chart tables, state-aware setup rail, and progressive technical detail.
+- [x] ✅ Polish the KPI scan surface with restrained brand hierarchy and
+      tabular numerals; keep the change semantic-neutral and evidence-safe.
 - [x] ✅ Run dashboard contracts, typecheck, lint, and production build.
 - [x] ✅ Run the consolidated release gate; all 159 suites pass after fixing
       clean-checkout MCP SDK resolution and Python artifact preparation.
