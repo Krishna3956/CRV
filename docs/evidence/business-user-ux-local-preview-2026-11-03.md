@@ -461,4 +461,11 @@ HTTP 200 for `/dashboard?view=setup&data=example`,
 `/dashboard?view=overview&data=example`, `/signin`, and `/signup`. The server
 was stopped cleanly afterward. This verifies local route rendering only; it is
 not authenticated production evidence.
+
+After the People-card copy change, the same rebuilt standalone server was
+started again and every dashboard view returned HTTP 200 with TrackMCP content
+under the Example-data bypass: `overview`, `clients`, `capabilities`,
+`resources`, `journeys`, `quality`, `issues`, `evidence`, and `setup`. The
+server was stopped cleanly. This confirms route-level rendering for the full
+business navigation, not authenticated production behavior.
 - Production deployment and fresh-account browser evidence remain pending.

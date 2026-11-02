@@ -185,6 +185,10 @@ Legend: `[x]` verified/implemented in this workstream; `[ ]` pending.
       `/signin`, `/signup`, the Example-data Overview and Setup routes, `/docs`,
       and `/sitemap.xml` returned HTTP 200; this remains local evidence, not
       authenticated production evidence.
+- [x] ✅ Sweep every current business dashboard view in the rebuilt standalone
+      server with Example data; Overview, Who’s using it, What they’re doing,
+      Resources & prompts, The journey, Did it work, What’s broken, Evidence,
+      and Setup all returned HTTP 200 with TrackMCP content.
 - [ ] Run authenticated local runtime smoke; the standalone server starts, but
       the local homepage returns HTTP 500 without local Supabase URL/key values.
 
