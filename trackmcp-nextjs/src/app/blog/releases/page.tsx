@@ -7,7 +7,7 @@ import { PageFrame } from "@/components/PageFrame";
 import { Reveal } from "@/components/Reveal";
 import { BlogArt } from "../art";
 import { enrichment } from "../enrichment";
-import { posts } from "../posts";
+import { posts, sortPostsByDate } from "../posts";
 import { breadcrumbJsonLd, pageMeta, serializeJsonLd } from "@/lib/seo";
 
 export const metadata: Metadata = pageMeta({
@@ -18,7 +18,7 @@ export const metadata: Metadata = pageMeta({
 });
 
 export default function ReleasesPage() {
-  const releases = posts.filter((post) => post.section === "releases");
+  const releases = sortPostsByDate(posts.filter((post) => post.section === "releases"));
   const breadcrumbSchema = breadcrumbJsonLd([
     { name: "Home", path: "/" },
     { name: "Blog", path: "/blog" },

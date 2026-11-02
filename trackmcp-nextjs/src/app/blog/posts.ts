@@ -28,6 +28,22 @@ export type Post = {
   body: Block[];
 };
 
+/**
+ * Return posts in reverse chronological order without mutating the source
+ * array. The human-readable `date` field is the publication date shown in the
+ * cards, so it is also the ordering key for the public blog indexes. Ties keep
+ * their source order to avoid making same-day releases jump around.
+ */
+export function sortPostsByDate(items: Post[]): Post[] {
+  return items
+    .map((post, index) => ({ post, index, timestamp: Date.parse(post.date) }))
+    .sort((a, b) => {
+      const timestampDifference = b.timestamp - a.timestamp;
+      return timestampDifference || a.index - b.index;
+    })
+    .map(({ post }) => post);
+}
+
 const p = (c: string): Block => ({ t: "p", c });
 const h = (c: string): Block => ({ t: "h2", c });
 const ul = (c: string[]): Block => ({ t: "ul", c });
