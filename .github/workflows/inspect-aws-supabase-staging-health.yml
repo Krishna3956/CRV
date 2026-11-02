@@ -89,9 +89,21 @@ jobs:
           if [[ -n "$POOLER_CONTAINER" ]]; then
             POOLER_RUNTIME=$(docker inspect -f '{{.State.Status}}|{{.State.ExitCode}}|{{.RestartCount}}|{{.State.Error}}|{{.State.OOMKilled}}' "$POOLER_CONTAINER")
             echo "STAGING_SUPABASE_HEALTH_POOLER_RUNTIME=${POOLER_RUNTIME}"
+            # Report only configuration-key presence. Never print pooler
+            # values, connection strings, or generated secrets. This keeps a
+            # restart-loop diagnosis useful without turning a health probe
+            # into a secret-exfiltration path.
+            POOLER_KEYS=$(docker inspect -f '{{range .Config.Env}}{{println .}}{{end}}' "$POOLER_CONTAINER" \
+              | sed 's/=.*$/=present/' \
+              | awk -F= '$1 ~ /^(DATABASE_URL|POOLER_[A-Z0-9_]+|POSTGRES_[A-Z0-9_]+|API_JWT_SECRET|JWT_SECRET|DB_ENC_KEY)$/ { print $1 }' \
+              | sort | paste -sd, -)
+            echo "STAGING_SUPABASE_HEALTH_POOLER_CONFIG_KEYS=${POOLER_KEYS:-none}"
           else
             echo STAGING_SUPABASE_HEALTH_POOLER_RUNTIME=missing
+            echo STAGING_SUPABASE_HEALTH_POOLER_CONFIG_KEYS=none
           fi
+          ENV_KEYS=$(awk -F= '$1 ~ /^(DATABASE_URL|POOLER_[A-Z0-9_]+|POSTGRES_[A-Z0-9_]+|API_JWT_SECRET|JWT_SECRET|DB_ENC_KEY)$/ { print $1 }' .env | sort | paste -sd, -)
+          echo "STAGING_SUPABASE_HEALTH_ENV_CONFIG_KEYS=${ENV_KEYS:-none}"
           # The pinned Supabase stack uses api-gw for the gateway service. The
           # older kong name is not present in this deployment.
           for service in db auth rest api-gw; do
