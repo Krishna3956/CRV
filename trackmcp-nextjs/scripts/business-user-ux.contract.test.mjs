@@ -28,7 +28,7 @@ test("activated-user dashboard is organized around business questions", () => {
   assert.match(strategy, /Every top-level page must answer one question/);
   assert.match(strategy, /Technical detail belongs in/);
   assert.match(dashboard, /data-range-summary/);
-  assert.match(dashboard, /Showing \{selectedLabel\.toLowerCase\(\)\}/);
+  assert.match(dashboard, /\{"Showing " \+ selectedLabel\.toLowerCase\(\)\}/);
   assert.match(dashboard, /View daily values as a table/);
   assert.match(dashboard, /Daily observed work, events, calls, and errors/);
   assert.match(dashboard, /View weekly account values as a table/);

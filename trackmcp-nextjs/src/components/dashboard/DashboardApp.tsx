@@ -1596,9 +1596,7 @@ function DateRange({
           <p className="text-[10px] leading-relaxed text-faint">Choose a bounded range of up to 90 days. Data is still privacy-safe and scan-capped.</p>
         </div>
       </details>
-      <span data-range-summary className="text-[11px] font-medium text-faint" aria-live="polite">
-        Showing {selectedLabel.toLowerCase()}
-      </span>
+      <span data-range-summary className="text-[11px] font-medium text-faint" aria-live="polite">{"Showing " + selectedLabel.toLowerCase()}</span>
     </div>
   );
 }

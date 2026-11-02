@@ -61,6 +61,9 @@ Legend: `[x]` verified/implemented in this workstream; `[ ]` pending.
 - [x] ✅ Perform a read-only browser review of the current production Setup,
       Overview, Example data, and My data states; record live-vs-branch
       differences in the audit.
+- [x] ✅ Run a local browser preview of the branch with Example data and Setup;
+      verify the business-first navigation, visible period context, accessible
+      chart tables, state-aware setup rail, and progressive technical detail.
 - [x] ✅ Run dashboard contracts, typecheck, lint, and production build.
 - [x] ✅ Run the consolidated release gate; all 159 suites pass after fixing
       clean-checkout MCP SDK resolution and Python artifact preparation.
