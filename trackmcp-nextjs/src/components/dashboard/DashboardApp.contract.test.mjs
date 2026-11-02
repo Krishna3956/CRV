@@ -162,6 +162,10 @@ test("business users receive orientation before technical detail", () => {
   assert.match(source, /What you will get after setup/);
   assert.match(source, /A technical teammate usually completes this page/);
   assert.match(source, /question="Which accounts and assistants are showing up, and is activity growing\?"/);
+  assert.match(source, /Read this as account activity, not a customer census/);
+  assert.match(source, /Which assistants are showing up/);
+  assert.match(source, /Most active account signals/);
+  assert.match(source, /Unknown activity stays visible instead of being silently reassigned/);
   assert.match(source, /question="What should the team investigate next, and how strong is the evidence\?"/);
   assert.match(source, /N\/A means there is not enough evidence yet/);
   assert.match(source, /Typical steps per piece of work/);

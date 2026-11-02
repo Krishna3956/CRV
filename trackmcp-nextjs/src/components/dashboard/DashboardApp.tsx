@@ -4022,6 +4022,11 @@ function ClientsView({
       <DataSourceStrip dataMode={dataMode} hasMyData={hasMyData} view="clients" />
       {people ? (
         <>
+          <BusinessContext
+            title="Read this as account activity, not a customer census"
+            body="This view shows privacy-safe account signals and the assistant applications that reached your server. It can help you see adoption and repeat activity, but it does not identify people or prove that every customer is represented."
+            action="Use the Setup view to configure an identity resolver if your team needs account-level grouping."
+          />
           <div className="mb-6 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
             <Kpi
               label="Active accounts"
@@ -4057,7 +4062,7 @@ function ClientsView({
               )}
               <p className="mt-4 text-xs leading-relaxed text-faint">This is account activity, not a count of people. Accounts are only counted when the server supplied a resolver-linked identity.</p>
             </Panel>
-            <Panel title="Who’s connecting" subtitle="Optional client metadata reported by the AI tool">
+            <Panel title="Which assistants are showing up" subtitle="Optional application metadata reported by the connected client">
               <div className="space-y-3">
                 {people.client_breakdown.map((client) => (
                   <div key={client.name} className="text-sm">
@@ -4072,14 +4077,14 @@ function ClientsView({
                 ))}
                 {!people.client_breakdown.length && <p className="py-4 text-sm text-muted">No client metadata was observed.</p>}
               </div>
-              <p className="mt-4 border border-brand/20 bg-brand-soft/30 px-3 py-2.5 text-xs leading-relaxed text-body">Client names are self-reported by the AI tool. Unknown client remains visible when it has volume.</p>
+              <p className="mt-4 border border-brand/20 bg-brand-soft/30 px-3 py-2.5 text-xs leading-relaxed text-body">Assistant names come from the connected client and may be missing or unrecognized. Unknown activity stays visible instead of being silently reassigned.</p>
             </Panel>
           </div>
-          <Panel title="Top accounts by activity" subtitle="Ranked resolver-linked activity; account names are intentionally not exposed">
+          <Panel title="Most active account signals" subtitle="Ranked activity from configured resolver signals; names are intentionally not exposed">
             {people.top_accounts.length ? (
-              <table className="w-full text-left text-sm">
-                <thead className="border-b border-line text-[10px] font-semibold uppercase tracking-[0.08em] text-faint"><tr><th className="pb-3">Rank</th><th className="pb-3">Activity</th><th className="pb-3">Active days</th><th className="pb-3">Identity</th></tr></thead>
-                <tbody className="divide-y divide-line">{people.top_accounts.map((account) => <tr key={account.rank}><td className="py-3 font-medium text-ink">#{account.rank}</td><td className="py-3 text-muted">{fmt(account.activity_count)} events</td><td className="py-3 text-muted">{fmt(account.active_days)}</td><td className="py-3 text-muted">Resolver-linked</td></tr>)}</tbody>
+              <table className="w-full text-left text-sm" aria-label="Most active privacy-safe account signals">
+                <thead className="border-b border-line text-[10px] font-semibold uppercase tracking-[0.08em] text-faint"><tr><th className="pb-3">Rank</th><th className="pb-3">Observed activity</th><th className="pb-3">Active days</th><th className="pb-3">Signal type</th></tr></thead>
+                <tbody className="divide-y divide-line">{people.top_accounts.map((account) => <tr key={account.rank}><td className="py-3 font-medium text-ink">#{account.rank}</td><td className="py-3 text-muted">{fmt(account.activity_count)} observed events</td><td className="py-3 text-muted">{fmt(account.active_days)}</td><td className="py-3 text-muted">Privacy-safe resolver signal</td></tr>)}</tbody>
               </table>
             ) : <p className="py-6 text-sm text-muted">No resolver-linked accounts were observed in this period.</p>}
             <p className="mt-4 text-xs leading-relaxed text-faint">MCP does not define customer accounts. Names can only be shown when a customer configures a verified identity resolver; raw resolver keys never leave the server.</p>

@@ -18,6 +18,8 @@ Legend: `[x]` verified/implemented in this workstream; `[ ]` pending.
       preserve the technical evidence contract underneath.
 - [x] ✅ Keep Example data visibly illustrative and separate from My data.
 - [x] ✅ Add contract tests for the orientation and setup copy.
+- [x] ✅ Add plain-language account-activity guidance, assistant naming caveats,
+      and privacy-safe signal wording to “Who’s using it”.
 - [x] ✅ Perform a read-only browser review of the current production Setup,
       Overview, Example data, and My data states; record live-vs-branch
       differences in the audit.
