@@ -135,6 +135,9 @@ Legend: `[x]` verified/implemented in this workstream; `[ ]` pending.
 - [x] ✅ Keep the Overview's decision KPIs and Founder OS outcome summary
       above the expandable evidence/protocol block so a business reader sees
       the decision surface before implementation detail.
+- [x] ✅ Keep the journey's opaque async-task table behind a collapsed
+      `Technical task evidence` disclosure; the default journey path remains
+      common paths, stop evidence, pauses, and explicit outcomes.
 - [x] ✅ Apply the same business-readable evidence language inside the Evidence
       tab: remove the engineering-only “Trace Explorer” action label, hide raw
       session identifiers from the primary table, and expose a clear “Open

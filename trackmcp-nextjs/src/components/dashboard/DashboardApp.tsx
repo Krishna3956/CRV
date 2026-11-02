@@ -3155,7 +3155,12 @@ function JourneysView({
           </div>
         </Panel>
       </div>
-      <div className="mt-6">
+      <details className="mt-6 rounded-2xl border border-line bg-white">
+        <summary className="flex cursor-pointer list-none items-center justify-between gap-3 px-5 py-4 text-sm font-semibold text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand">
+          <span>Technical task evidence <span className="ml-2 text-xs font-normal text-muted">Optional detail for engineering teams</span></span>
+          <span className="text-xs font-medium text-brand-strong">Expand details</span>
+        </summary>
+        <div className="border-t border-line px-5 pb-5">
         <Panel
           title="Async task evidence"
           subtitle="Explicit task states observed by the server; opaque handles protect task identifiers"
@@ -3195,7 +3200,8 @@ function JourneysView({
             />
           )}
         </Panel>
-      </div>
+        </div>
+      </details>
     </div>
   );
 }

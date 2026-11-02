@@ -117,6 +117,11 @@ summary render before the expandable evidence/protocol section. This makes the
 default reading path answer the business question before exposing how the
 evidence was collected.
 
+The Journey view follows the same hierarchy. Common paths, stop evidence,
+pause/resume behavior, and explicit outcomes remain in the default path; the
+opaque async-task table is available under `Technical task evidence` for
+engineering review.
+
 ### Tier 3 — still required before pilot readiness
 
 - Fresh-account setup in the deployed branch.

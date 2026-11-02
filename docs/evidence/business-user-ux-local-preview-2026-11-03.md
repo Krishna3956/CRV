@@ -323,6 +323,11 @@ The Overview order was corrected so the decision KPI row and outcome summary
 appear before the expandable evidence/protocol block. This is a structural
 hierarchy change, not a metric or formula change.
 
+The Journey view was also checked for technical density. Its async task table
+now sits behind a collapsed `Technical task evidence` disclosure, while the
+business reading path remains common paths, where work stops, pause/resume,
+and explicit outcomes.
+
 Verification after this pass:
 
 - `npm run test:business-user-ux`: 80/80 passed.
