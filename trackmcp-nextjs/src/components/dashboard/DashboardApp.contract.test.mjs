@@ -692,6 +692,9 @@ test("Overview session actions clearly open evidence", () => {
 
 test("completion is explicit-outcome-only and tool quality exposes insufficient reasons", () => {
   assert.match(source, /function explicitOutcomeTotals/);
+  assert.match(source, /Based on work with a reported final state/);
+  assert.match(source, /Server-reported completion/);
+  assert.doesNotMatch(source, /Explicit semantic evidence/);
   assert.match(source, /Explicit workflow outcome events only/);
   assert.match(source, /No explicit workflow outcome data/);
   assert.match(source, /Specific reason:/);

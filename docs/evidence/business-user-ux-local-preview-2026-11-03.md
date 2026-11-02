@@ -387,6 +387,13 @@ The Overview data-trust copy was also reviewed. Visible labels now say
 `Activity observed`, `Activity recency`, `Account-grouped activity`, and
 `Dashboard refresh`; the underlying bounded-evidence caveats remain intact.
 
+The Quality view's helper text was reviewed for a non-technical reader. The
+surface now describes denominators as work with a reported final state and
+describes semantic completion/failure as server-reported outcomes, rather
+than exposing internal terms such as “explicit workflow terminals” or
+“semantic evidence”. This is copy-only: the underlying formulas and
+evidence-boundary rules are unchanged.
+
 The Resources & prompts default path was reviewed as well. Its first scan now
 starts with the business question and three decision KPIs; the technical
 evidence boundary is still present inside the expanded detail section rather
@@ -410,4 +417,9 @@ Verification after this pass:
 - `npm run test:release-gate` passed all 159 suites when the generated
   synthetic UAT report was redirected to a temporary path, so the tracked
   evidence fixture remained unchanged.
+- `npm run test:business-user-ux`: 81/81 passed after the Quality helper-copy
+  change.
+- `npm run test:p0-truth`: 12/12 passed after the Quality helper-copy change.
+- `npx tsc --noEmit --pretty false`: passed after the Quality helper-copy
+  change.
 - Production deployment and fresh-account browser evidence remain pending.

@@ -3748,18 +3748,18 @@ function OutcomeEvidencePanel({ analytics }: { analytics: Analytics }) {
           label="Completion rate"
           value={hasWorkflowTerminalEvidence ? percent(activity.completion_rate) : "N/A"}
           icon={Check}
-          helper={hasWorkflowTerminalEvidence ? "Explicit workflow terminal denominator" : "No explicit workflow terminals"}
+          helper={hasWorkflowTerminalEvidence ? "Based on work with a reported final state" : "No reported final states yet"}
         />
-        <Kpi label="Work started" value={fmt(totals.started)} icon={Route} helper="Explicit workflow events" />
-        <Kpi label="Work failed" value={fmt(totals.failed)} icon={AlertTriangle} helper="Explicit failed outcomes" />
+        <Kpi label="Work started" value={fmt(totals.started)} icon={Route} helper="Server-reported starts" />
+        <Kpi label="Work failed" value={fmt(totals.failed)} icon={AlertTriangle} helper="Server-reported failures" />
       </div>
       <p className="mt-4 border-t border-line pt-3 text-[11px] leading-relaxed text-muted">
         Evidence source: {analytics.completion_source === "workflow_events" ? "explicit workflow events" : analytics.completion_source === "session_heuristic" ? "session-derived activity (not used for the completion KPI)" : "no explicit outcome events"}. Unknown and not-observable outcomes remain separate from failure.
       </p>
       {activity && <div className="mt-5 border-t border-line pt-5">
         <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-          <Kpi label="Completed" value={fmt(activity.completed)} icon={Check} helper="Explicit semantic evidence" />
-          <Kpi label="Failed" value={fmt(activity.failed)} icon={AlertTriangle} helper="Explicit semantic evidence" />
+          <Kpi label="Completed" value={fmt(activity.completed)} icon={Check} helper="Server-reported completion" />
+          <Kpi label="Failed" value={fmt(activity.failed)} icon={AlertTriangle} helper="Server-reported failure" />
           <Kpi label="Pending" value={fmt(activity.pending)} icon={Info} helper="Explicitly still in progress" />
           <Kpi label="Unknown" value={fmt(activity.unknown + activity.not_observable)} icon={Info} helper="Not silently classified" />
         </div>

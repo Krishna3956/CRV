@@ -153,6 +153,10 @@ Legend: `[x]` verified/implemented in this workstream; `[ ]` pending.
 - [x] ✅ Replace the remaining “semantic facts” subtitle on Outcome evidence
       with a direct explanation of what the dashboard counts and what it does
       not infer.
+- [x] ✅ Replace internal-sounding Quality helper labels such as “semantic
+      evidence” and “explicit workflow terminals” with business-readable
+      explanations that say the values come from server-reported starts,
+      failures, and final states.
 - [x] ✅ Keep OAuth provider loading placeholders visually non-actionable until
       provider discovery completes; the hand cursor is reserved for real
       controls.
