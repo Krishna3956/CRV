@@ -136,6 +136,8 @@ Implemented on isolated branch `codex/business-user-ux-audit`:
 Validation on the isolated worktree:
 
 - Dashboard contract tests: **72/72 passed**.
+- Business-user UX regression contract: **4/4 passed** (included in
+  `npm run test:business-user-ux`).
 - TypeScript: **passed** (`npx tsc --noEmit --pretty false`).
 - ESLint: **passed** with `--quiet`.
 - Production build: **passed**, 230 static pages generated.
