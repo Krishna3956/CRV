@@ -9,7 +9,7 @@ queue. It intentionally separates source-level proof, read-only browser proof,
 and evidence that requires a real account, deployment, or human participant.
 
 Latest branch verification: `npm run test:release-gate` passed all 159 suites
-after the Overview truth-contract pass (`1f1f691f`). The branch remains local and
+after the final evidence-language pass (`58dc4136`). The branch remains local and
 has not been merged or deployed.
 
 ## Requirement coverage
