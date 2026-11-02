@@ -4,7 +4,7 @@ import { Nav } from "@/components/Nav";
 import { Footer } from "@/components/Footer";
 import { PageFrame } from "@/components/PageFrame";
 import { BrowseClient } from "@/components/repository/BrowseClient";
-import { getTopTools, getToolCount } from "@/lib/repository/queries";
+import { getCategoryCounts, getTopTools, getToolCount } from "@/lib/repository/queries";
 
 export const metadata: Metadata = pageMeta({
   title: "MCP Server Directory and Repository | TrackMCP",
@@ -22,7 +22,12 @@ export default async function RepositoryPage({
 }: {
   searchParams: Promise<{ q?: string | string[] }>;
 }) {
-  const [tools, count, trendingTools] = await Promise.all([getTopTools(300), getToolCount(), getTopTools(5)]);
+  const [tools, count, trendingTools, categoryCounts] = await Promise.all([
+    getTopTools(300),
+    getToolCount(),
+    getTopTools(5),
+    getCategoryCounts(),
+  ]);
   const params = await searchParams;
   const initialQuery = typeof params.q === "string" ? params.q : "";
   return (
@@ -35,6 +40,7 @@ export default async function RepositoryPage({
             totalCount={count}
             initialQuery={initialQuery}
             trendingToolIds={trendingTools.map((tool) => tool.id)}
+            categoryCounts={categoryCounts}
           />
         </PageFrame>
       </main>

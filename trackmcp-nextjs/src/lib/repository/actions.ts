@@ -9,6 +9,6 @@ export async function searchToolsAction(query: string, limit = 200): Promise<Mcp
   return searchToolsQuery(query, limit);
 }
 
-export async function toolsByCategoryAction(category: string, limit = 300): Promise<McpTool[]> {
-  return getToolsByCategory(category, limit);
+export async function toolsByCategoryAction(category: string, limit = 300, offset = 0): Promise<McpTool[]> {
+  return getToolsByCategory(category, limit, offset);
 }

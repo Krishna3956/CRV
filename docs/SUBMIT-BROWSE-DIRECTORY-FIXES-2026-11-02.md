@@ -81,3 +81,13 @@ Manual acceptance after deployment:
 ## Release notes for the next engineer
 
 This batch should be committed and pushed as one coherent change after the checks above pass. Do not hand-edit production data as part of this UI release. If a persisted category backfill is later approved, reuse `inferCategory` in `src/lib/repository/types.ts`, run it in a bounded/idempotent job, sample the proposed changes, and retain the original metadata for rollback.
+
+## Follow-up QA findings and correction
+
+The first live QA pass identified three gaps that were not covered by the initial checklist:
+
+- The desktop Repository parent navigated immediately instead of being a dropdown trigger with an explicit `Browse all` destination.
+- The repository category view only loaded a bounded first window while the Categories page showed the full count, so the UI could display a smaller loaded count such as 220 beside a total such as 6,454.
+- Search did not have a dedicated repository-name lookup path for newly submitted rows.
+
+The follow-up release changes the parent to a click/keyboard-accessible dropdown trigger, adds `Browse all`, passes full category counts into the client, paginates category rows in 500-row windows, and adds a dedicated repo-name search query merged with the broad search result.

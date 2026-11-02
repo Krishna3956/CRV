@@ -22,11 +22,13 @@ export function BrowseClient({
   totalCount,
   initialQuery = "",
   trendingToolIds,
+  categoryCounts = {},
 }: {
   initialTools: McpTool[];
   totalCount: number;
   initialQuery?: string;
   trendingToolIds?: string[];
+  categoryCounts?: Record<string, number>;
 }) {
   const [input, setInput] = useState(initialQuery);
   const [sortBy, setSortBy] = useState("stars");
@@ -35,6 +37,7 @@ export function BrowseClient({
   const [tools, setTools] = useState<McpTool[]>(initialTools);
   const [loadingSearch, setLoadingSearch] = useState(false);
   const [loadingCat, setLoadingCat] = useState(false);
+  const [categoryLoadedCount, setCategoryLoadedCount] = useState(0);
   const gridRef = useRef<HTMLDivElement>(null);
 
   // The grid filters instantly off `input`; this debounced fetch just pulls in
@@ -69,8 +72,9 @@ export function BrowseClient({
       setVisible(12);
       setLoadingCat(true);
       try {
-        const rows = await toolsByCategoryAction(category, 500);
+        const rows = await toolsByCategoryAction(category, 500, 0);
         if (cancelled) return;
+        setCategoryLoadedCount(rows.length);
         setTools((prev) => {
           const ids = new Set(prev.map((x) => x.id));
           return [...prev, ...rows.filter((x) => !ids.has(x.id))];
@@ -112,9 +116,27 @@ export function BrowseClient({
   );
 
   const displayed = q ? filtered : filtered.slice(0, visible);
-  const hasMore = !q && visible < filtered.length;
+  const categoryTotal = category === "all" ? 0 : categoryCounts[category] || 0;
+  const hasMore = !q && (visible < filtered.length || (category !== "all" && categoryLoadedCount < categoryTotal));
   const activeFilters = (category !== "all" ? 1 : 0) + (q ? 1 : 0);
-  const availableLabel = q || category !== "all" ? filtered.length : totalCount;
+  const availableLabel = q ? filtered.length : category !== "all" ? categoryTotal : totalCount;
+
+  const revealMore = async () => {
+    if (category !== "all" && visible >= filtered.length && categoryLoadedCount < categoryTotal) {
+      setLoadingCat(true);
+      try {
+        const rows = await toolsByCategoryAction(category, 500, categoryLoadedCount);
+        setCategoryLoadedCount((current) => current + rows.length);
+        setTools((prev) => {
+          const ids = new Set(prev.map((x) => x.id));
+          return [...prev, ...rows.filter((x) => !ids.has(x.id))];
+        });
+      } finally {
+        setLoadingCat(false);
+      }
+    }
+    setVisible((current) => current + 12);
+  };
 
   return (
     <>
@@ -237,7 +259,7 @@ export function BrowseClient({
               <div className="mt-8 flex justify-center">
                 <button
                   type="button"
-                  onClick={() => setVisible((v) => v + 12)}
+                  onClick={() => void revealMore()}
                   className="inline-flex items-center gap-2 rounded-lg border border-line-strong bg-white px-6 py-3 text-[14px] font-medium text-ink shadow-sm transition-colors hover:bg-paper"
                 >
                   Reveal more

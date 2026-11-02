@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { Menu, X, ChevronDown, Sparkles, TrendingUp, Boxes, Plus } from "lucide-react";
+import { Menu, X, ChevronDown, Sparkles, TrendingUp, Boxes, Plus, Library } from "lucide-react";
 import { TrackMCPLogo } from "./TrackMCPLogo";
 import { EarlyAccessButton } from "./EarlyAccessButton";
 import { LanguageSwitcher } from "./LanguageSwitcher";
@@ -15,6 +15,7 @@ const links = [
 ];
 
 const repoLinks = [
+  { label: "Browse all", href: "/repository", desc: "Full MCP directory", icon: Library, tile: "bg-brand-soft text-brand-strong" },
   { label: "What's new", href: "/new", desc: "Latest additions", icon: Sparkles, tile: "bg-sky-100 text-sky-600" },
   { label: "Popular", href: "/top-mcp", desc: "Top by GitHub stars", icon: TrendingUp, tile: "bg-amber-100 text-amber-600" },
   { label: "Categories", href: "/categories", desc: "Browse by what they do", icon: Boxes, tile: "bg-violet-100 text-violet-600" },
@@ -24,12 +25,21 @@ const repoLinks = [
 export function Nav() {
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
+  const [repoOpen, setRepoOpen] = useState(false);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 8);
     onScroll();
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
+  useEffect(() => {
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setRepoOpen(false);
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
   }, []);
 
   return (
@@ -54,14 +64,24 @@ export function Nav() {
           ))}
 
           <div className="group relative">
-            <a
-              href="/repository"
-              className="inline-flex items-center gap-1 text-[15px] text-body transition-colors hover:text-ink"
+            <button
+              type="button"
+              aria-expanded={repoOpen}
+              aria-haspopup="menu"
+              onClick={() => setRepoOpen((value) => !value)}
+              className="inline-flex cursor-pointer items-center gap-1 text-[15px] text-body transition-colors hover:text-ink"
             >
               Repository
               <ChevronDown size={14} className="text-faint transition-transform group-hover:rotate-180" />
-            </a>
-            <div className="invisible absolute left-1/2 top-full z-50 w-[300px] -translate-x-1/2 pt-3 opacity-0 transition-all duration-150 group-hover:visible group-hover:opacity-100 group-focus-within:visible group-focus-within:opacity-100">
+            </button>
+            <div
+              role="menu"
+              className={`absolute left-1/2 top-full z-50 w-[300px] -translate-x-1/2 pt-3 transition-all duration-150 ${
+                repoOpen
+                  ? "visible opacity-100"
+                  : "invisible opacity-0 group-hover:visible group-hover:opacity-100 group-focus-within:visible group-focus-within:opacity-100"
+              }`}
+            >
               <div className="rounded-xl border border-line bg-white p-1.5 shadow-[0_20px_50px_-20px_rgba(10,10,10,0.35)]">
                 {repoLinks.map((r) => (
                   <a
@@ -119,13 +139,9 @@ export function Nav() {
               </a>
             ))}
             <div className="mt-1 border-t border-line pt-3">
-              <a
-                href="/repository"
-                onClick={() => setOpen(false)}
-                className="py-1 text-[15px] font-medium text-ink"
-              >
+              <span className="py-1 text-[15px] font-medium text-ink">
                 Repository
-              </a>
+              </span>
               <span className="mt-3 block text-[11px] font-semibold uppercase tracking-wide text-faint">
                 Explore the repository
               </span>

@@ -105,11 +105,12 @@ const getCachedToolByName = unstable_cache(
   { revalidate: 21600, tags: ["repository-tools"] },
 );
 
-export async function getToolsByCategory(category: string, limit = 300): Promise<McpTool[]> {
+export async function getToolsByCategory(category: string, limit = 300, offset = 0): Promise<McpTool[]> {
   const supabase = getSupabase();
-  if (!supabase) return [];
+  if (!supabase || !Number.isInteger(limit) || limit < 1 || !Number.isInteger(offset) || offset < 0) return [];
   const requested = normalizeCategory(category);
   const matches: McpTool[] = [];
+  let skipped = 0;
   const batch = 1000;
   const maxRows = 50000;
   // Imported catalogs contain legacy labels (for example `Other`) and rows
@@ -126,7 +127,15 @@ export async function getToolsByCategory(category: string, limit = 300): Promise
       .range(offset, offset + batch - 1);
     if (error || !data || data.length === 0) break;
     const rows = withDisplayCategories(keep((data as McpTool[]) || []));
-    matches.push(...rows.filter((tool) => tool.category === requested));
+    for (const tool of rows) {
+      if (tool.category !== requested) continue;
+      if (skipped < offset) {
+        skipped += 1;
+        continue;
+      }
+      matches.push(tool);
+      if (matches.length >= limit) break;
+    }
     if (data.length < batch) break;
   }
   return matches.slice(0, limit);
@@ -139,15 +148,34 @@ export async function searchToolsQuery(query: string, limit = 200): Promise<McpT
   const supabase = getSupabase();
   if (!supabase || !query.trim()) return [];
   const escapedQuery = query.trim().replaceAll("%", "\\%").replaceAll("_", "\\_");
-  const { data } = await supabase
-    .from("mcp_tools")
-    .select(FIELDS)
-    .in("status", ["approved", "pending"])
-    .or(`repo_name.ilike.%${escapedQuery}%,description.ilike.%${escapedQuery}%,github_url.ilike.%${escapedQuery}%`)
-    .order("stars", { ascending: false, nullsFirst: false })
-    .order("id", { ascending: true })
-    .limit(limit);
-  return withDisplayCategories(keep((data as McpTool[]) || []));
+  const pattern = `%${escapedQuery}%`;
+  // Keep a dedicated repo-name query alongside the broad OR query. This avoids
+  // losing exact directory matches when a PostgREST OR expression contains a
+  // nullable description or a newly inserted row that is not in the initial
+  // popularity snapshot.
+  const [repoResult, broadResult] = await Promise.all([
+    supabase
+      .from("mcp_tools")
+      .select(FIELDS)
+      .in("status", ["approved", "pending"])
+      .ilike("repo_name", pattern)
+      .order("stars", { ascending: false, nullsFirst: false })
+      .order("id", { ascending: true })
+      .limit(limit),
+    supabase
+      .from("mcp_tools")
+      .select(FIELDS)
+      .in("status", ["approved", "pending"])
+      .or(`repo_name.ilike.${pattern},description.ilike.${pattern},github_url.ilike.${pattern}`)
+      .order("stars", { ascending: false, nullsFirst: false })
+      .order("id", { ascending: true })
+      .limit(limit),
+  ]);
+  const merged = new Map<string, McpTool>();
+  for (const row of [...((repoResult.data as McpTool[]) || []), ...((broadResult.data as McpTool[]) || [])]) {
+    if (!merged.has(row.id)) merged.set(row.id, row);
+  }
+  return withDisplayCategories(keep([...merged.values()]).sort((a, b) => (b.stars || 0) - (a.stars || 0) || a.id.localeCompare(b.id)).slice(0, limit));
 }
 
 export const TOOL_SITEMAP_PAGE_SIZE = 45000;
