@@ -282,7 +282,7 @@ export default function SignInPage({ initialMode = "signin" }: { initialMode?: "
   const codeStep = screen === "signup-code";
   const resetFlow = screen === "reset-email" || screen === "reset-code" || screen === "reset-password";
   const heading = codeStep ? "Verify your email" : mode === "signup" ? "Create your TrackMCP account" : "Sign in to TrackMCP";
-  const description = codeStep ? <>We sent a code to <strong className="font-medium text-body">{requestedEmail}</strong>.</> : mode === "signup" ? "Start observing your MCP server in minutes." : "Welcome back. Continue to your MCP analytics.";
+  const description = codeStep ? <>We sent a code to <strong className="font-medium text-body">{requestedEmail}</strong>.</> : mode === "signup" ? "Create your account. Next, a technical teammate can connect one server, and your team can read usage, outcomes, and issues in the dashboard." : "Welcome back. Continue to your MCP analytics.";
   const resetHeading = screen === "reset-code" ? "Enter your reset code" : screen === "reset-password" ? "Set a new password" : "Reset your password";
   const resetDescription = screen === "reset-password" ? "Choose a new password for your TrackMCP account." : "We’ll email you a code so you can set a password.";
   const field = "w-full rounded-lg border border-line-strong bg-white px-3.5 py-2.5 text-[15px] text-ink outline-none transition-colors placeholder:text-faint focus:border-brand focus:ring-2 focus:ring-brand/20";

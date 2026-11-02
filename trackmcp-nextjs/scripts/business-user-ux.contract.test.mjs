@@ -3,6 +3,7 @@ import { readFile } from "node:fs/promises";
 import test from "node:test";
 
 const dashboard = await readFile(new URL("../src/components/dashboard/DashboardApp.tsx", import.meta.url), "utf8");
+const auth = await readFile(new URL("../src/app/signin/page.tsx", import.meta.url), "utf8");
 const apiDocs = await readFile(new URL("../src/app/docs/api/page.tsx", import.meta.url), "utf8");
 const target = await readFile(new URL("../../docs/FOUNDER-OS-BUSINESS-USER-UX-TARGET.md", import.meta.url), "utf8");
 const strategy = await readFile(new URL("../../docs/FOUNDER-OS-BUSINESS-USER-UX-STRATEGY.md", import.meta.url), "utf8");
@@ -10,6 +11,8 @@ const research = await readFile(new URL("../../docs/FOUNDER-OS-BUSINESS-USER-UX-
 const queue = await readFile(new URL("../../docs/FOUNDER-OS-BUSINESS-USER-UX-WORK-QUEUE.md", import.meta.url), "utf8");
 
 test("new-user setup explains the business outcome before technical detail", () => {
+  assert.match(auth, /a technical teammate can connect one server/);
+  assert.match(auth, /usage, outcomes, and issues in the dashboard/);
   assert.match(dashboard, /What TrackMCP will help your team understand/);
   assert.match(dashboard, /product and operations teams understand how people use their MCP/);
   assert.match(dashboard, /What you will get after setup/);
