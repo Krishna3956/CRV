@@ -77,3 +77,7 @@ example rows `2026-08-19` and `2026-08-26` with separate values for each state.
 The Resources & prompts preview also expanded its trend table successfully,
 showing period, surface, item, and calls while retaining the content/argument
 privacy boundary.
+
+The The journey preview expanded its reach table successfully, showing each
+observed step with reached count and share while retaining the explicit caveat
+that a missing next event is not abandonment.
