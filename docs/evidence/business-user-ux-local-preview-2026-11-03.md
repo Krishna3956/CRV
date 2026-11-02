@@ -2,7 +2,7 @@
 
 Date: 2026-11-03
 Branch: `codex/business-user-ux-audit`
-Commit under review: `9c1c6391` (`Normalize evidence action labels`)
+Commit under review: `d858f7c6` (`Normalize evidence action labels everywhere`)
 
 This is local browser evidence only. It is not production evidence and does
 not replace a fresh-account or real-telemetry walkthrough.
