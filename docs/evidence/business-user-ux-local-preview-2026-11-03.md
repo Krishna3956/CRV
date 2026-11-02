@@ -2,7 +2,7 @@
 
 Date: 2026-11-03
 Branch: `codex/business-user-ux-audit`
-Commit under review: `5e880d7b` (`Refresh UX verification counts`)
+Commit under review: `36851a21` (`Point UX evidence at current branch`)
 
 This is local browser evidence only. It is not production evidence and does
 not replace a fresh-account or real-telemetry walkthrough.
@@ -140,6 +140,14 @@ states remain separate and are never collapsed into a single success score.
 
 The local browser verification expanded that table successfully and exposed the
 example rows `2026-08-19` and `2026-08-26` with separate values for each state.
+
+The latest local browser pass used the isolated branch's Next.js development
+server on port `3175` with the documented local dashboard bypass. The rendered
+Overview showed the indigo action system, cool-neutral canvas, explicit
+`Example data selected` boundary, `At a glance` summary, business-first KPI
+labels, and a recommended next step. The rendered Setup view showed the
+three-step activation path, connection-key language, SDK tabs, and advanced
+controls behind disclosure. No production credentials or data were used.
 
 The Resources & prompts preview also expanded its trend table successfully,
 showing period, surface, item, and calls while retaining the content/argument
