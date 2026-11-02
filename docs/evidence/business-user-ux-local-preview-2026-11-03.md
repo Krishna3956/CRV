@@ -7,6 +7,14 @@ Commit under review: `36851a21` (`Point UX evidence at current branch`)
 This is local browser evidence only. It is not production evidence and does
 not replace a fresh-account or real-telemetry walkthrough.
 
+Read-only production comparison on 2026-11-03 confirms the branch is not live
+yet: `https://trackmcp.com/dashboard?view=capabilities&data=example` still
+shows the pre-branch navigation order and the older `TOTAL TOOL CALLS`,
+`PREVIOUS PERIOD`, `OVERALL ERROR RATE`, and `AVG TOOLS PER ACCOUNT` labels.
+The production shell also still uses the internal pilot notice wording. This
+is recorded as a deployment-state observation only; no production mutation was
+performed.
+
 The final source-level pass also aligns the Evidence tab with the Overview
 language: business readers see “Observed session”, “Evidence link”, and “Open
 evidence”; raw session identifiers remain an internal routing detail.

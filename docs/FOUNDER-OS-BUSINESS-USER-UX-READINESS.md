@@ -90,6 +90,10 @@ or authenticated production rendering.
 - Example data is visibly labeled as illustrative.
 - The live Overview still uses some older KPI labels, proving that the branch
   changes are not currently deployed.
+- A read-only production comparison on the current capabilities route also
+  shows the pre-branch navigation order and older KPI labels. The branch is
+  therefore not live; this is a deployment-state observation, not a production
+  data failure.
 
 The branch also provides an accessible table alternative for the capability
 trend chart, so feature comparison does not depend on chart hover behavior.
