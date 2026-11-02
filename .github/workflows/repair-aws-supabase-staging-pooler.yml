@@ -1,0 +1,156 @@
+name: Repair AWS Supabase staging pooler
+
+# This is a narrowly scoped, manually guarded repair for the preserved
+# isolated staging stack. It never touches Supabase Cloud, production, DNS,
+# application traffic, database data, or credentials.
+on:
+  workflow_dispatch:
+    inputs:
+      confirm:
+        description: "Type REPAIR_STAGING_POOLER to repair only Supavisor"
+        required: true
+        type: string
+      stack_name:
+        description: "Existing isolated staging CloudFormation stack"
+        required: true
+        default: trackmcp-supabase-staging-24
+        type: string
+
+permissions:
+  id-token: write
+  contents: read
+
+env:
+  AWS_REGION: us-east-1
+  ROLE_ARN: arn:aws:iam::872575360367:role/GitHubActionsDeployRole
+
+jobs:
+  repair:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Check out the reviewed infrastructure
+        uses: actions/checkout@v4
+
+      - name: Configure AWS OIDC credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ env.ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Validate the explicit staging-only guard
+        env:
+          CONFIRM: ${{ inputs.confirm }}
+        run: |
+          set -euo pipefail
+          [[ "$CONFIRM" == "REPAIR_STAGING_POOLER" ]] || {
+            echo "::error::The confirm input must be exactly REPAIR_STAGING_POOLER. No repair was applied."
+            exit 1
+          }
+
+      - name: Resolve the preserved staging instance
+        id: instance
+        env:
+          STACK_NAME: ${{ inputs.stack_name }}
+        run: |
+          set -euo pipefail
+          INSTANCE_ID=$(aws cloudformation describe-stacks \
+            --stack-name "$STACK_NAME" --region "$AWS_REGION" \
+            --query 'Stacks[0].Outputs[?OutputKey==`InstanceId`].OutputValue' --output text)
+          [[ -n "$INSTANCE_ID" && "$INSTANCE_ID" != "None" ]] || {
+            echo "::error::The selected stack has no EC2 instance output."
+            exit 1
+          }
+          echo "instance_id=$INSTANCE_ID" >> "$GITHUB_OUTPUT"
+
+      - name: Apply the reversible staging-only pooler repair
+        env:
+          INSTANCE_ID: ${{ steps.instance.outputs.instance_id }}
+        run: |
+          set -euo pipefail
+          REMOTE_SCRIPT=$(cat <<'REMOTE_EOF'
+          set -euo pipefail
+          cd /opt/trackmcp-supabase/project
+          test -f docker-compose.yml
+          POOLER_CONTAINER=$(docker compose ps -q supavisor)
+          [[ -n "$POOLER_CONTAINER" ]] || {
+            echo STAGING_POOLER_REPAIR_CONTAINER_MISSING
+            exit 1
+          }
+
+          BACKUP="docker-compose.yml.before-pooler-repair-$(date -u +%Y%m%dT%H%M%SZ)"
+          cp -p docker-compose.yml "$BACKUP"
+          if grep -q '^      RLIMIT_NOFILE:' docker-compose.yml; then
+            sed -i -E 's|^      RLIMIT_NOFILE:.*$|      RLIMIT_NOFILE: ""|' docker-compose.yml
+          else
+            grep -q '^      API_JWT_SECRET: \${JWT_SECRET}$' docker-compose.yml || {
+              echo STAGING_POOLER_REPAIR_COMPOSE_SHAPE_UNEXPECTED
+              exit 1
+            }
+            sed -i '/^      API_JWT_SECRET: \${JWT_SECRET}$/a\      RLIMIT_NOFILE: ""' docker-compose.yml
+          fi
+          docker compose up -d supavisor >/dev/null
+
+          previous_restart_count=-1
+          stable_samples=0
+          for attempt in $(seq 1 18); do
+            id=$(docker compose ps -q supavisor)
+            [[ -n "$id" ]] || { echo STAGING_POOLER_REPAIR_CONTAINER_MISSING; exit 1; }
+            status=$(docker inspect -f '{{.State.Status}}' "$id")
+            restart_count=$(docker inspect -f '{{.RestartCount}}' "$id")
+            health=$(docker inspect -f '{{if .State.Health}}{{.State.Health.Status}}{{else}}none{{end}}' "$id")
+            echo "STAGING_POOLER_REPAIR_SAMPLE=${status}|${health}|${restart_count}"
+            if [[ "$status" == "running" && "$health" == "healthy" ]]; then
+              if [[ "$restart_count" == "$previous_restart_count" ]]; then
+                stable_samples=$((stable_samples + 1))
+              else
+                stable_samples=0
+              fi
+              if [[ "$stable_samples" -ge 2 ]]; then
+                echo "STAGING_POOLER_REPAIR_PASSED backup=${BACKUP}"
+                exit 0
+              fi
+            else
+              stable_samples=0
+            fi
+            previous_restart_count="$restart_count"
+            sleep 5
+          done
+          echo STAGING_POOLER_REPAIR_FAILED
+          exit 1
+          REMOTE_EOF
+          )
+          REMOTE_B64=$(printf '%s' "$REMOTE_SCRIPT" | base64 -w 0)
+          COMMAND_ID=$(aws ssm send-command \
+            --instance-ids "$INSTANCE_ID" \
+            --document-name AWS-RunShellScript \
+            --comment "TrackMCP reversible staging Supavisor repair" \
+            --timeout-seconds 600 \
+            --parameters "commands=echo $REMOTE_B64 | base64 -d | bash" \
+            --region "$AWS_REGION" --query Command.CommandId --output text)
+          set +e
+          aws ssm wait command-executed --command-id "$COMMAND_ID" --instance-id "$INSTANCE_ID" --region "$AWS_REGION"
+          WAITER_STATUS=$?
+          set -e
+          STATUS=$(aws ssm get-command-invocation --command-id "$COMMAND_ID" --instance-id "$INSTANCE_ID" --region "$AWS_REGION" --query Status --output text)
+          OUTPUT=$(aws ssm get-command-invocation --command-id "$COMMAND_ID" --instance-id "$INSTANCE_ID" --region "$AWS_REGION" --query StandardOutputContent --output text)
+          ERROR_OUTPUT=$(aws ssm get-command-invocation --command-id "$COMMAND_ID" --instance-id "$INSTANCE_ID" --region "$AWS_REGION" --query StandardErrorContent --output text)
+          echo "SSM repair status: $STATUS"
+          echo "$OUTPUT"
+          if [[ -n "$ERROR_OUTPUT" && "$ERROR_OUTPUT" != "None" ]]; then
+            echo "$ERROR_OUTPUT"
+          fi
+          if [[ "$WAITER_STATUS" -ne 0 || "$STATUS" != "Success" ]] || \
+            ! printf '%s\n' "$OUTPUT" | grep -Fq 'STAGING_POOLER_REPAIR_PASSED'; then
+            echo "::error::The staging pooler repair did not report a stable healthy Supavisor container."
+            exit 1
+          fi
+
+      - name: Record bounded repair evidence
+        env:
+          STACK_NAME: ${{ inputs.stack_name }}
+        run: |
+          set -euo pipefail
+          echo "Repaired only the Supavisor compose setting on isolated staging stack $STACK_NAME."
+          echo "A timestamped compose backup was retained on the staging host."
+          echo "No database data, credentials, DNS, production traffic, or Supabase Cloud setting was changed."
