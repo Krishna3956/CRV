@@ -2,7 +2,7 @@
 
 Date: 2026-11-03  
 Branch: `codex/business-user-ux-audit`  
-Latest verified commit: `be8b4b64` (`Clarify outcome evidence for business readers`)
+Latest verified commit: `d85b2e75` (`Record final dashboard route smoke`)
 
 This matrix is the release-readiness companion to the UX audit and work
 queue. It intentionally separates source-level proof, read-only browser proof,
@@ -10,8 +10,8 @@ and evidence that requires a real account, deployment, or human participant.
 
 Latest branch verification: `npm run test:business-user-ux` passed all 81 suites
 after the authentication-affordance, research, signed-out handoff, illustrative
-People-growth coherence, setup-vocabulary consistency, and evidence-action-label
-and outcome-copy passes (`be8b4b64`). The consolidated `npm run test:release-gate`
+People-growth coherence, setup-vocabulary consistency, evidence-action-label,
+outcome-copy, and final route-smoke passes (`d85b2e75`). The consolidated `npm run test:release-gate`
 passed all 159 suites on the immediately preceding source commit
 (`2c8e5e03`); the latest change is copy-only and the focused contract, P0 truth,
 typecheck, and lint suites were rerun after it.
