@@ -61,6 +61,9 @@ and evidence that requires a real account, deployment, or human participant.
 
 - Business-first navigation exists.
 - Setup exposes the three-step path, Example data, and no-data guidance.
+- The first-time no-data state now explains TrackMCP's business value before
+  asking a user to interpret setup steps: who is showing up, what they are
+  trying to do, whether work completed, and what needs attention.
 - Example data is visibly labeled as illustrative.
 - The live Overview still uses some older KPI labels, proving that the branch
   changes are not currently deployed.
