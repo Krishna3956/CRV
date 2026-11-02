@@ -145,6 +145,9 @@ Legend: `[x]` verified/implemented in this workstream; `[ ]` pending.
 - [x] ✅ Run dashboard contracts, typecheck, lint, and production build.
 - [x] ✅ Run the consolidated release gate; all 159 suites pass after fixing
       clean-checkout MCP SDK resolution and Python artifact preparation.
+- [x] ✅ Give every visible sign-in/sign-up and recovery control a consistent
+      pointer affordance, disabled cursor state, and keyboard focus ring so a
+      first-time user can tell what is actionable before authentication.
 - [ ] Run authenticated local runtime smoke; the standalone server starts, but
       the local homepage returns HTTP 500 without local Supabase URL/key values.
 

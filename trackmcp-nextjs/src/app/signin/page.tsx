@@ -289,6 +289,11 @@ export default function SignInPage({ initialMode = "signin" }: { initialMode?: "
 
   return (
     <main className="grid min-h-screen lg:grid-cols-2">
+      <style jsx>{`
+        button:not(:disabled), a { cursor: pointer; }
+        button:disabled { cursor: not-allowed; }
+        button:focus-visible, a:focus-visible { outline: 2px solid rgb(22 163 74); outline-offset: 2px; }
+      `}</style>
       <div className="flex flex-col px-6 py-8">
         <TrackMCPLogo mark href="https://trackmcp.com" />
         <div className="flex flex-1 items-center justify-center">
@@ -298,7 +303,7 @@ export default function SignInPage({ initialMode = "signin" }: { initialMode?: "
 
             {!resetFlow && screen === "credentials" && <>
               <OAuthButtons next={authNext} mode={mode} onError={setError} />
-              {mode === "signup" && <p className="mt-4 text-[12px] leading-relaxed text-muted">By continuing, you agree to the <Link href="/terms" className="font-medium text-brand-strong hover:underline">Terms of Service</Link> and <Link href="/privacy" className="font-medium text-brand-strong hover:underline">Privacy Policy</Link>.</p>}
+              {mode === "signup" && <p className="mt-4 text-[12px] leading-relaxed text-muted">By continuing, you agree to the <Link href="/terms" className="cursor-pointer font-medium text-brand-strong hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand">Terms of Service</Link> and <Link href="/privacy" className="cursor-pointer font-medium text-brand-strong hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand">Privacy Policy</Link>.</p>}
             </>}
 
         {screen === "credentials" || resetFlow ? <form onSubmit={submitCredentials} className="mt-7 flex flex-col gap-3">

@@ -253,9 +253,10 @@ with plain-language conclusions and exact-value alternatives, reserve color for
 evidence-backed states, and give every failure a recovery action.
 
 The first-time authentication path now applies the same interaction contract as
-the dashboard: email submit and social-provider controls expose a pointer
-affordance, visible keyboard focus, and an explicit disabled state. The source
-and contract proof are in `trackmcp-nextjs/src/app/signin/page.tsx`,
+the dashboard: email submit, social-provider, verification, password-reset,
+recovery, legal, and error-recovery controls expose a pointer affordance,
+visible keyboard focus, and an explicit disabled state. The source and contract
+proof are in `trackmcp-nextjs/src/app/signin/page.tsx`,
 `trackmcp-nextjs/src/components/OAuthButtons.tsx`, and
 `trackmcp-nextjs/scripts/business-user-ux.contract.test.mjs`.
 
@@ -263,6 +264,7 @@ Verification after this pass:
 
 - `npm run test:business-user-ux`: 80/80 passed.
 - `npx tsc --noEmit --pretty false`: passed.
+- `npm run lint`: passed.
 - `npm run build`: passed; 230 static pages generated.
 - `npm run test:release-gate`: passed; 159 suites.
 - Worktree restored to clean state after the release gate regenerated its

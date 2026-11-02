@@ -79,6 +79,8 @@ test("first-time authentication controls expose clear interaction affordances", 
   assert.match(auth, /cursor-pointer items-center justify-center gap-2 rounded-lg bg-ink/);
   assert.match(auth, /disabled:cursor-not-allowed/);
   assert.match(auth, /focus-visible:ring-2 focus-visible:ring-brand/);
+  assert.match(auth, /button:not\(:disabled\), a \{ cursor: pointer; \}/);
+  assert.match(auth, /button:focus-visible, a:focus-visible/);
   assert.match(oauth, /cursor-pointer items-center justify-center gap-2/);
   assert.match(oauth, /Loading sign-in options/);
   assert.match(dashboardPage, /href="\/signin" className="inline-flex cursor-pointer rounded-lg bg-ink/);
