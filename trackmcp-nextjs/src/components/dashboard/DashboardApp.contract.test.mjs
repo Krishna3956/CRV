@@ -164,7 +164,7 @@ test("business users receive orientation before technical detail", () => {
   assert.match(source, /question="Which accounts and assistants are showing up, and is activity growing\?"/);
   assert.match(source, /Read this as account activity, not a customer census/);
   assert.match(source, /Which assistants are showing up/);
-  assert.match(source, /Most active account signals/);
+  assert.match(source, /Most active account groups/);
   assert.match(source, /Unknown activity stays visible instead of being silently reassigned/);
   assert.match(source, /question="What should the team investigate next, and how strong is the evidence\?"/);
   assert.match(source, /N\/A means there is not enough evidence yet/);
@@ -757,7 +757,7 @@ test("dashboard panels expose concise information hints and universal pointer af
 });
 
 test("Setup makes server-side account identity configuration discoverable", () => {
-  assert.match(source, /Show resolver-linked account activity/);
+  assert.match(source, /Show optional account-group activity/);
   assert.match(source, /accountIdResolver/);
   assert.match(source, /account_id_resolver/);
   assert.match(source, /AccountIDResolver: func\(\) string/);

@@ -3132,7 +3132,7 @@ function CapabilitiesView({
                 {!analytics.tools.length && <p className="py-6 text-sm text-muted">{analytics.tool_calls > 0 ? `${fmt(analytics.tool_calls)} tool-call events were observed, but no capability name was reported.` : "No tool calls were observed in this period."}</p>}
               </div>
             </Panel>
-            <Panel title="Breadth of adoption" subtitle="How many distinct features resolver-linked accounts used">
+            <Panel title="Breadth of adoption" subtitle="How many distinct features privacy-safe account groups used">
               <div className="space-y-3">
                 {activity.adoption_distribution.map((item) => <div key={item.bucket} className="flex items-center justify-between border-b border-line pb-2 text-sm"><span className="text-ink">{item.bucket}</span><span className="text-muted">{fmt(item.accounts)} accounts</span></div>)}
               </div>
@@ -4081,7 +4081,7 @@ function ClientsView({
           <BusinessContext
             title="Read this as account activity, not a customer census"
             body="This view shows privacy-safe account signals and the assistant applications that reached your server. It can help you see adoption and repeat activity, but it does not identify people or prove that every customer is represented."
-            action="Use the Setup view to configure an identity resolver if your team needs account-level grouping."
+            action="Use Setup to add optional account grouping if your team needs account-level analysis."
           />
           <div className="mb-6 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
             <Kpi
@@ -4110,13 +4110,13 @@ function ClientsView({
             />
           </div>
           <div className="mb-6 grid gap-4 xl:grid-cols-[1.25fr_0.75fr]">
-            <Panel title="Growth over time" subtitle="Distinct resolver-linked accounts observed each week">
+            <Panel title="Growth over time" subtitle="Distinct privacy-safe account groups observed each week">
               {people.growth.length ? (
                 <AccountGrowthChart points={people.growth} />
               ) : (
                 <p className="py-6 text-sm text-muted">No account activity was observed in this period.</p>
               )}
-              <p className="mt-4 text-xs leading-relaxed text-faint">This is account activity, not a count of people. Accounts are only counted when the server supplied a resolver-linked identity.</p>
+              <p className="mt-4 text-xs leading-relaxed text-faint">This is account-group activity, not a count of people. Groups are only counted when the server supplied a verified identity signal.</p>
             </Panel>
             <Panel title="Which assistants are showing up" subtitle="Optional application metadata reported by the connected client">
               <div className="space-y-3">
@@ -4136,14 +4136,14 @@ function ClientsView({
               <p className="mt-4 border border-brand/20 bg-brand-soft/30 px-3 py-2.5 text-xs leading-relaxed text-body">Assistant names come from the connected client and may be missing or unrecognized. Unknown activity stays visible instead of being silently reassigned.</p>
             </Panel>
           </div>
-          <Panel title="Most active account signals" subtitle="Ranked activity from configured resolver signals; names are intentionally not exposed">
+          <Panel title="Most active account groups" subtitle="Ranked privacy-safe activity; names are intentionally not exposed">
             {people.top_accounts.length ? (
               <table className="w-full text-left text-sm" aria-label="Most active privacy-safe account signals">
                 <thead className="border-b border-line text-[10px] font-semibold uppercase tracking-[0.08em] text-faint"><tr><th className="pb-3">Rank</th><th className="pb-3">Observed activity</th><th className="pb-3">Active days</th><th className="pb-3">Signal type</th></tr></thead>
                 <tbody className="divide-y divide-line">{people.top_accounts.map((account) => <tr key={account.rank}><td className="py-3 font-medium text-ink">#{account.rank}</td><td className="py-3 text-muted">{fmt(account.activity_count)} observed events</td><td className="py-3 text-muted">{fmt(account.active_days)}</td><td className="py-3 text-muted">Privacy-safe resolver signal</td></tr>)}</tbody>
               </table>
-            ) : <p className="py-6 text-sm text-muted">No resolver-linked accounts were observed in this period.</p>}
-            <p className="mt-4 text-xs leading-relaxed text-faint">MCP does not define customer accounts. Names can only be shown when a customer configures a verified identity resolver; raw resolver keys never leave the server.</p>
+            ) : <p className="py-6 text-sm text-muted">No privacy-safe account groups were observed in this period.</p>}
+            <p className="mt-4 text-xs leading-relaxed text-faint">MCP does not define customer accounts. These groups come from a customer-configured identity resolver; raw resolver keys never leave the server.</p>
           </Panel>
           {people.classification_status === "insufficient_data" && <p className="mt-3 text-xs text-warning">New versus returning account counts are unavailable because the bounded history scan was incomplete.</p>}
         </>
@@ -4183,7 +4183,7 @@ function AccountGrowthChart({ points }: { points: NonNullable<Analytics["who_is_
       </summary>
       <div className="overflow-x-auto border-t border-line">
         <table className="w-full min-w-[320px] text-left text-xs">
-          <caption className="sr-only">Weekly resolver-linked active account counts</caption>
+          <caption className="sr-only">Weekly privacy-safe active account-group counts</caption>
           <thead className="bg-white text-[10px] uppercase tracking-[0.08em] text-faint">
             <tr><th scope="col" className="px-3 py-2 font-semibold">Week</th><th scope="col" className="px-3 py-2 text-right font-semibold">Active account signals</th></tr>
           </thead>
@@ -4246,7 +4246,7 @@ function ToolDetailPanel({ tool, metadata, onClose }: { tool: NonNullable<Analyt
   return <section className="mt-4 border border-brand/30 bg-brand-soft/20 p-4 sm:p-5" aria-label={`${tool.tool_name} tool detail`}>
     <div className="flex flex-wrap items-start justify-between gap-3"><div><p className="dashboard-label text-faint">Tool detail</p><h3 className="mt-1 font-mono text-base font-semibold text-ink">{tool.tool_name}</h3>{metadata?.description && <p className="mt-2 max-w-3xl text-xs leading-relaxed text-muted">{metadata.description}</p>}</div><button type="button" onClick={onClose} className="cursor-pointer rounded-md border border-line-strong bg-white px-3 py-1.5 text-xs font-semibold text-body focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand">Close</button></div>
     <div className="mt-4 grid gap-3 sm:grid-cols-3"><Kpi label="Volume" value={fmt(tool.calls)} icon={Activity} helper="Observed calls" /><Kpi label="Error rate" value={tool.error_rate === null ? "N/A" : percent(tool.error_rate)} icon={AlertTriangle} helper="Explicit errors only" /><Kpi label="p95 latency" value={tool.p95_ms === null ? "N/A" : `${tool.p95_ms}ms`} icon={Gauge} helper="Reported duration samples" /></div>
-    <div className="mt-4 grid gap-4 lg:grid-cols-2"><div><p className="text-sm font-semibold text-ink">Top resolver-linked account activity</p><p className="mt-1 text-xs text-muted">Ranks and counts are shown; raw resolver keys and customer names never leave the server.</p><div className="mt-3 space-y-2">{tool.top_accounts.map((account) => <div key={account.rank}><div className="flex justify-between text-xs"><span className="text-ink">Account #{account.rank}</span><span className="text-muted">{fmt(account.calls)} calls</span></div><div className="mt-1 h-2 bg-white"><div className="h-full bg-brand" style={{ width: `${(account.calls / maxAccounts) * 100}%` }} /></div></div>)}{!tool.top_accounts.length && <p className="py-3 text-sm text-muted">No resolver-linked account activity is available for this tool.</p>}</div></div><div><p className="text-sm font-semibold text-ink">Error and volume trend</p><div className="mt-3 space-y-2">{tool.trend.map((point) => <div key={point.period_start} className="flex justify-between border-b border-line pb-2 text-xs"><span className="text-muted">{point.period_start}</span><span className="text-ink">{fmt(point.calls)} calls · {point.calls ? percent(point.errors / point.calls) : "N/A"} errors</span></div>)}{!tool.trend.length && <p className="py-3 text-sm text-muted">No trend evidence is available.</p>}</div></div></div>
+    <div className="mt-4 grid gap-4 lg:grid-cols-2"><div><p className="text-sm font-semibold text-ink">Top account-group activity</p><p className="mt-1 text-xs text-muted">Ranks and counts are shown; raw resolver keys and customer names never leave the server.</p><div className="mt-3 space-y-2">{tool.top_accounts.map((account) => <div key={account.rank}><div className="flex justify-between text-xs"><span className="text-ink">Account group #{account.rank}</span><span className="text-muted">{fmt(account.calls)} calls</span></div><div className="mt-1 h-2 bg-white"><div className="h-full bg-brand" style={{ width: `${(account.calls / maxAccounts) * 100}%` }} /></div></div>)}{!tool.top_accounts.length && <p className="py-3 text-sm text-muted">No account-group activity is available for this tool.</p>}</div></div><div><p className="text-sm font-semibold text-ink">Error and volume trend</p><div className="mt-3 space-y-2">{tool.trend.map((point) => <div key={point.period_start} className="flex justify-between border-b border-line pb-2 text-xs"><span className="text-muted">{point.period_start}</span><span className="text-ink">{fmt(point.calls)} calls · {point.calls ? percent(point.errors / point.calls) : "N/A"} errors</span></div>)}{!tool.trend.length && <p className="py-3 text-sm text-muted">No trend evidence is available.</p>}</div></div></div>
   </section>;
 }
 
@@ -5090,7 +5090,7 @@ function SetupView({
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
             <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-brand-strong">Optional identity</p>
-            <h2 id="setup-identity-title" className="mt-1 text-[15px] font-semibold text-ink">Show resolver-linked account activity</h2>
+            <h2 id="setup-identity-title" className="mt-1 text-[15px] font-semibold text-ink">Show optional account-group activity</h2>
             <p className="mt-1 max-w-2xl text-xs leading-relaxed text-muted">
               Configure this in the server-side SDK, not in the browser. Return an already-validated tenant or account handle; TrackMCP hashes it before storage and never displays the raw value.
             </p>
