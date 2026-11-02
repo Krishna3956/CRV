@@ -167,6 +167,11 @@ The route displayed `Evidence details`, `Review one bounded interaction in
 observed order`, `Example data`, and redacted event boundaries. This confirms
 the new wording is visible in the actual drill-down, not only in source tests.
 
+The latest no-data Overview preview also showed the updated indigo/neutral
+empty-state treatment: the business explanation appears before setup, the
+primary `Complete setup` action is distinct from `See Example data`, and the
+three next steps remain visible without the former green decorative surfaces.
+
 The Resources & prompts preview also expanded its trend table successfully,
 showing period, surface, item, and calls while retaining the content/argument
 privacy boundary.

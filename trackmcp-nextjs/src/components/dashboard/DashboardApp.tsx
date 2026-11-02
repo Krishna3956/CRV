@@ -1810,7 +1810,7 @@ function ServerConnectionState({
         title="What TrackMCP will help your team understand"
         body="TrackMCP helps product and operations teams understand how people use their MCP: who is showing up, what they are trying to do, whether the work completed, and what needs attention. A technical teammate connects one server; once a real event arrives, this area starts filling in."
       />
-      <section className="overflow-hidden rounded-2xl border border-line bg-white p-6 shadow-[0_24px_60px_-44px_rgba(18,59,42,0.45)] sm:p-8">
+      <section className="overflow-hidden rounded-2xl border border-line bg-white p-6 shadow-[0_24px_60px_-44px_rgba(55,48,163,0.18)] sm:p-8">
         <div className="flex items-start gap-3">
           <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-brand-soft text-brand-strong">
             <Info size={19} />
@@ -1842,7 +1842,7 @@ function ServerConnectionState({
             </div>
             <ol className="mt-6 grid gap-2 border-t border-line pt-5 text-xs sm:grid-cols-3" aria-label="Next steps">
               {steps.map((step, index) => (
-                <li key={step} className="flex items-start gap-2 rounded-xl bg-[#f6faf7] px-3 py-3 text-muted">
+                <li key={step} className="flex items-start gap-2 rounded-xl bg-brand-soft/20 px-3 py-3 text-muted">
                   <span className="grid h-5 w-5 shrink-0 place-items-center rounded-full bg-brand-soft text-[10px] font-bold text-brand-strong">{index + 1}</span>
                   <span>{step}</span>
                 </li>
@@ -1902,7 +1902,7 @@ function LiveDataState({
   onUseExample?: () => void;
 }) {
   return (
-    <section className="grid min-h-[420px] place-items-center rounded-2xl border border-line bg-white p-8 text-center shadow-[0_24px_60px_-44px_rgba(18,59,42,0.35)]">
+    <section className="grid min-h-[420px] place-items-center rounded-2xl border border-line bg-white p-8 text-center shadow-[0_24px_60px_-44px_rgba(55,48,163,0.16)]">
       <div className="max-w-lg">
         <span className="mx-auto grid h-12 w-12 place-items-center rounded-2xl bg-amber-50 text-amber-700">
           <AlertTriangle size={22} />
@@ -2210,7 +2210,7 @@ function Panel({
   action?: { label: string; onClick?: () => void; href?: string };
 }) {
   return (
-    <section className="rounded-2xl border border-line bg-white p-5 shadow-[0_20px_45px_-38px_rgba(18,59,42,0.5)] sm:p-6">
+    <section className="rounded-2xl border border-line bg-white p-5 shadow-[0_20px_45px_-38px_rgba(55,48,163,0.2)] sm:p-6">
       <div className="flex items-start justify-between gap-4">
         <div className="flex min-w-0 items-center gap-2">
           <h2 className="dashboard-section-title text-ink">{title}</h2>
@@ -2274,7 +2274,7 @@ function Kpi({
   icon: LucideIcon;
 }) {
   return (
-    <div className="rounded-xl border border-line bg-white p-4 shadow-[0_12px_28px_-24px_rgba(18,59,42,0.75)] transition-shadow hover:shadow-[0_16px_32px_-24px_rgba(18,59,42,0.8)]">
+    <div className="rounded-xl border border-line bg-white p-4 shadow-[0_12px_28px_-24px_rgba(55,48,163,0.24)] transition-shadow hover:shadow-[0_16px_32px_-24px_rgba(55,48,163,0.28)]">
       <div className="flex items-start justify-between gap-2">
         <span className="flex items-center gap-1.5">
           <span className="dashboard-label text-faint">{label}</span>
@@ -4881,7 +4881,7 @@ function SetupView({
           </div>
         ))}
       </section>
-      <section className="mb-6 rounded-2xl border border-line bg-white p-5 shadow-[0_20px_45px_-38px_rgba(18,59,42,0.45)] sm:p-6" aria-labelledby="setup-status-title" aria-live="polite">
+      <section className="mb-6 rounded-2xl border border-line bg-white p-5 shadow-[0_20px_45px_-38px_rgba(55,48,163,0.18)] sm:p-6" aria-labelledby="setup-status-title" aria-live="polite">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
             <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-brand-strong">Connection status</p>
@@ -5253,7 +5253,7 @@ function SetupView({
           )}
         </Panel>
       </div>
-      <details className="mt-6 rounded-2xl border border-line bg-white p-5 shadow-[0_20px_45px_-38px_rgba(18,59,42,0.35)] sm:p-6">
+      <details className="mt-6 rounded-2xl border border-line bg-white p-5 shadow-[0_20px_45px_-38px_rgba(55,48,163,0.16)] sm:p-6">
         <summary className="flex cursor-pointer list-none items-center justify-between gap-3 text-[15px] font-semibold text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand">
           <span>Observed connection details <span className="ml-2 text-xs font-normal text-muted">Optional detail for product and engineering teams</span></span>
           <span className="text-xs font-medium text-brand-strong">View details</span>
@@ -5284,7 +5284,7 @@ function SetupView({
           )}
         </div>
       </details>
-      <details className="mt-6 rounded-2xl border border-line bg-white p-5 shadow-[0_20px_45px_-38px_rgba(18,59,42,0.35)] sm:p-6">
+      <details className="mt-6 rounded-2xl border border-line bg-white p-5 shadow-[0_20px_45px_-38px_rgba(55,48,163,0.16)] sm:p-6">
         <summary className="flex cursor-pointer list-none items-center justify-between gap-3 text-[15px] font-semibold text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand">
           <span>Optional identity <span className="ml-2 text-xs font-normal text-muted">Resolve account activity without exposing raw identifiers</span></span>
           <span className="text-xs font-medium text-brand-strong">Configure</span>
@@ -5310,7 +5310,7 @@ function SetupView({
               : `var telemetry = new TrackMcpClient(new TrackMcpOptions(\n    Environment.GetEnvironmentVariable("TRACKMCP_KEY") ?? "",\n    "${boundedService || "my-mcp-server"}",\n    "${boundedEnvironment}",\n    AccountIdResolver: () => verifiedTenantForRequest()));`}</code></pre>
         <p className="mt-3 text-[11px] leading-relaxed text-faint">Only use a stable, non-secret identifier already verified by your application. Do not return emails, tokens, URLs, prompts, completions, or raw user IDs. Without a resolver, activity remains visible but is counted as unresolved.</p>
       </details>
-      <details className="mt-6 rounded-2xl border border-line bg-white p-5 shadow-[0_20px_45px_-38px_rgba(18,59,42,0.35)] sm:p-6">
+      <details className="mt-6 rounded-2xl border border-line bg-white p-5 shadow-[0_20px_45px_-38px_rgba(55,48,163,0.16)] sm:p-6">
         <summary className="flex cursor-pointer list-none items-center gap-3 text-[15px] font-semibold text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand">
           <span className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-paper text-muted"><Info size={17} /></span>
           <span>Know what you are sharing <span className="ml-2 text-xs font-normal text-muted">Privacy and data flow</span></span>
@@ -5355,7 +5355,7 @@ function SetupView({
         </p>
       </details>
       <PrivacyControls workspaceId={workspaceId} />
-      <details className="mt-6 rounded-2xl border border-line bg-white p-5 shadow-[0_20px_45px_-38px_rgba(18,59,42,0.35)] sm:p-6">
+      <details className="mt-6 rounded-2xl border border-line bg-white p-5 shadow-[0_20px_45px_-38px_rgba(55,48,163,0.16)] sm:p-6">
         <summary className="cursor-pointer text-sm font-semibold text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand">
           Other connection methods <span className="ml-2 text-xs font-normal text-muted">OpenTelemetry, Go, .NET, tester, and auth guides</span>
         </summary>
