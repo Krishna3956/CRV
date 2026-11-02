@@ -99,6 +99,8 @@ Legend: `[x]` verified/implemented in this workstream; `[ ]` pending.
 - [x] ✅ Add a state-aware “Recommended next step” on Overview so a new user,
       an activated user with missing outcomes, and an activated user with
       evidence-backed signals each get a truthful next action.
+- [x] ✅ Keep optional key scoping out of the primary setup instruction; users
+      are told to create a connection key first and can configure scopes later.
 - [x] ✅ Apply the same business-readable evidence language inside the Evidence
       tab: remove the engineering-only “Trace Explorer” action label, hide raw
       session identifiers from the primary table, and expose a clear “Open
