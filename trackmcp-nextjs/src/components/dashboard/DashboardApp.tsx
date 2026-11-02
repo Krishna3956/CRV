@@ -4200,6 +4200,11 @@ function EvidenceView({
         actions={pageControls}
       />
       <DataSourceStrip dataMode={dataMode} hasMyData={hasMyData} view="evidence" />
+      <BusinessContext
+        title="Evidence is the drill-down, not the starting point"
+        body="Start with Overview, The journey, or What’s broken to decide what matters. Use Evidence when a business signal needs a trace: it shows bounded, redacted steps and timing without exposing payloads or private inputs."
+        action="Open one session to confirm the sequence behind a metric; do not treat a trace alone as proof of business success."
+      />
       {incident && (
         <IncidentEvidence incident={incident} example={dataMode === "example"} onBack={() => onViewChange("issues")} />
       )}
@@ -4227,8 +4232,8 @@ function EvidenceView({
             <thead className="border-b border-line text-[10px] font-semibold uppercase tracking-[0.08em] text-faint">
               <tr>
                 <th className="pb-3">Session</th>
-                <th className="pb-3">AI client</th>
-                <th className="pb-3">Calls</th>
+                <th className="pb-3">Assistant</th>
+                <th className="pb-3">Observed actions</th>
                 <th className="pb-3">Correlation</th>
                 <th className="pb-3">Action</th>
               </tr>

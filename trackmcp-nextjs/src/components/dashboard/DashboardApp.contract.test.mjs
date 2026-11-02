@@ -185,6 +185,9 @@ test("business users receive orientation before technical detail", () => {
   assert.match(source, /A signal is a prompt for investigation, not a diagnosis/);
   assert.match(source, /Follow the work, not a guessed funnel/);
   assert.match(source, /A missing next event does not prove that someone abandoned the task/);
+  assert.match(source, /Evidence is the drill-down, not the starting point/);
+  assert.match(source, /bounded, redacted steps and timing without exposing payloads or private inputs/);
+  assert.match(source, /Observed actions/);
   assert.match(source, /className="mt-1 text-\[11px\] leading-relaxed text-muted">\{helper\}/);
 });
 
