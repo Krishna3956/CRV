@@ -297,6 +297,9 @@ Legend: `[x]` verified/implemented in this workstream; `[ ]` pending.
       when the live read model is absent, with a direct Setup action and no
       inferred activity. Full top-resource/prompt read-model coverage remains
       pending authenticated verification.
+- [x] ✅ Resource and prompt trend cards use human-readable week labels and
+      surface names (`Resource`/`Prompt`) while keeping the safe method detail
+      available for technical follow-up.
 - [ ] The journey: common paths, explicit stop evidence, stall/retry, and a
       clear statement that missing events are not abandonment.
 - [x] ✅ The journey view now explains what will populate after connection when
