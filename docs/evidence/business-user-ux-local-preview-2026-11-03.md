@@ -798,3 +798,13 @@ unchanged.
 
 The chart fills, focus ring, loading handoff, and dashboard shadows were
 updated to the same token family. The branch remains local and not deployed.
+
+## Rendered lighter-green dashboard check after `e3ef7bed`
+
+The local development dashboard was opened at
+`/dashboard?view=overview&data=example` with the development-only bypass and
+deliberately non-production Supabase placeholders. The accessibility tree
+confirmed the business-first navigation, Example-data disclosure, overview
+takeaway, recommended next step, outcome caveat, and evidence actions after
+the green palette revision. The production build and focused business-user
+suite passed after the check. This remains local preview evidence only.
