@@ -1105,3 +1105,20 @@ The consolidated `npm run test:release-gate` was rerun after the header-control
 fix and passed all 159 suites. The release gate changed only the generated
 timestamp in the synthetic UAT fixture during execution; that timestamp was
 restored to its tracked value before this evidence update was recorded.
+
+## People read-model uncertainty preservation
+
+The `/api/v2/people` projection previously bounded missing or `null`
+`new_accounts` and `returning_accounts` through the non-null integer helper,
+which could turn insufficient history into `0`. The projection now uses a
+nullable bounded integer helper for those fields. The existing UI contract can
+continue to render `N/A` and the `insufficient_data` classification without
+changing the source analytics formulas.
+
+Verification:
+
+- People route contract and integration tests: 3/3 passed, including explicit
+  `null` preservation.
+- `npm run test:business-user-ux`: 100/100 passed.
+- `npx tsc --noEmit --pretty false`: passed.
+- `git diff --check`: passed.

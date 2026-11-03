@@ -259,6 +259,12 @@ business-first reading order and showed `Data source` with `Illustration only`
 beside the language selector. The local route returned HTTP 200; this remains
 local evidence and does not replace authenticated production review.
 
+The versioned People read-model projection now preserves unavailable
+new-versus-returning counts as `null`. Business surfaces can therefore render
+`N/A` when the bounded history scan is incomplete instead of presenting an
+unsupported zero. This is a metric-truth fix; it does not change the underlying
+account resolver or formulas.
+
 After the loading-state and palette revisions, the consolidated release gate
 was rerun and passed all 159 suites. The gate passed in the isolated worktree;
 it does not change the Tier 3 status because authenticated production and

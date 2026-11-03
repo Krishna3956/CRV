@@ -233,6 +233,10 @@ Legend: `[x]` verified/implemented in this workstream; `[ ]` pending.
 - [x] ✅ Keep the desktop dashboard header's data-source and language controls
       together at intermediate widths so the language button cannot wrap over
       the Example-data control.
+- [x] ✅ Preserve unavailable People classification counts as `N/A`: the
+      versioned read-model projection keeps `new_accounts` and
+      `returning_accounts` as `null` when the bounded history scan is
+      incomplete instead of converting uncertainty into zero.
 - [x] ✅ Keep long connection-key histories out of the primary Setup scan:
       show the first three active keys by default, retain explicit access to
       the full active list, and keep revoked keys behind their existing
