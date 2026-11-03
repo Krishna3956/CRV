@@ -4759,6 +4759,7 @@ function SetupView({
   onOpenOverview: () => void;
 }) {
   const [showRevokedKeys, setShowRevokedKeys] = useState(false);
+  const [showAllActiveKeys, setShowAllActiveKeys] = useState(false);
   const readSetupValue = (key: string, fallback: string, maxLength: number) => {
     if (typeof window === "undefined") return fallback;
     try {
@@ -4806,6 +4807,13 @@ function SetupView({
   const [setupContractWorkspaceId, setSetupContractWorkspaceId] = useState<string | null>(null);
   const [setupReloadToken, setSetupReloadToken] = useState(0);
   const [setupChecking, setSetupChecking] = useState(() => Boolean(workspaceId));
+
+  const activeKeys = keys.filter((key) => !key.revoked_at);
+  const revokedKeys = keys.filter((key) => Boolean(key.revoked_at));
+  const visibleKeys = [
+    ...(showAllActiveKeys ? activeKeys : activeKeys.slice(0, 3)),
+    ...(showRevokedKeys ? revokedKeys : []),
+  ];
 
   const boundedService = serviceName.replace(/[^a-zA-Z0-9._ -]/g, "").trim().slice(0, 100);
   const boundedEnvironment = environmentName.replace(/[^a-zA-Z0-9._ -]/g, "").trim().slice(0, 64) || "production";
@@ -5258,8 +5266,18 @@ function SetupView({
                   {showRevokedKeys ? "Hide revoked keys" : `Show revoked keys (${keys.filter((key) => key.revoked_at).length})`}
                 </button>
               )}
+              {activeKeys.length > 3 && (
+                <button
+                  type="button"
+                  aria-expanded={showAllActiveKeys}
+                  onClick={() => setShowAllActiveKeys((visible) => !visible)}
+                  className="mb-3 ml-3 inline-flex cursor-pointer items-center gap-1 text-xs font-semibold text-brand-strong hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
+                >
+                  {showAllActiveKeys ? "Show fewer active keys" : `Show all active keys (${activeKeys.length})`}
+                </button>
+              )}
               <div className="max-h-64 space-y-2 overflow-y-auto pr-1">
-                {keys.filter((key) => showRevokedKeys || !key.revoked_at).map((key) => (
+                {visibleKeys.map((key) => (
                   <div
                     key={key.id}
                     className="flex items-center justify-between gap-3 border border-line bg-paper px-3.5 py-3"
@@ -5298,9 +5316,9 @@ function SetupView({
                     )}
                   </div>
                 ))}
-                {!keys.length && (
+                {!visibleKeys.length && (
                   <p className="py-4 text-sm text-muted">
-                    No connection key exists yet.
+                    {activeKeys.length ? "No active connection key is currently shown." : "No connection key exists yet."}
                   </p>
                 )}
               </div>

@@ -171,6 +171,13 @@ is a comprehension-only change; it does not alter the selected mode, formulas,
 or read-model responses. It remains branch evidence until the deployed
 dashboard is reviewed.
 
+Setup now keeps a long connection-key history out of the primary scan by
+showing the first three active keys and an explicit `Show all active keys`
+control. Revoked keys remain behind the existing disclosure. This is a
+presentation-only change; key creation, rotation, revocation, and scope
+behavior are unchanged. It remains branch evidence until the deployed Setup
+view is reviewed.
+
 The first-load workspace handoff was aligned to the same palette so a new user
 does not see a separate slate/indigo loading surface before entering the
 dashboard. The local Example-data browser preview showed the updated green

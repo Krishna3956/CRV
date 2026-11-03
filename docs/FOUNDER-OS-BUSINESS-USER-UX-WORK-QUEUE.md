@@ -220,6 +220,10 @@ Legend: `[x]` verified/implemented in this workstream; `[ ]` pending.
       the header now labels the control `Data source` and clarifies whether
       the selected view is `Your workspace` or `Illustration only` without
       changing the underlying data mode or read-model behavior.
+- [x] ✅ Keep long connection-key histories out of the primary Setup scan:
+      show the first three active keys by default, retain explicit access to
+      the full active list, and keep revoked keys behind their existing
+      disclosure without changing key lifecycle behavior.
 - [ ] Run an authenticated runtime smoke against a real Supabase session and
       real read-model responses; the local bypass is not evidence of production
       authentication or database-backed analytics.

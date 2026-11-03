@@ -441,6 +441,14 @@ test("connection keys are explicitly created from Setup and shown once in full",
   assert.match(source, /onClick=\{\(\) => onGenerateKey/);
 });
 
+test("Setup keeps a long key history out of the primary scan", () => {
+  assert.match(source, /showAllActiveKeys/);
+  assert.match(source, /Show all active keys/);
+  assert.match(source, /Show fewer active keys/);
+  assert.match(source, /activeKeys\.slice\(0, 3\)/);
+  assert.match(source, /No active connection key is currently shown/);
+});
+
 test("mobile dashboard header wraps without clipping workspace or data controls", () => {
   assert.match(source, /pt-\[96px\] lg:pl-\[248px\] lg:pt-\[52px\]/);
   assert.match(source, /min-h-\[52px\] flex-wrap/);
@@ -629,7 +637,8 @@ test("Setup keeps revoked key history collapsed until explicitly requested", () 
   assert.match(setupSource, /showRevokedKeys/);
   assert.match(setupSource, /aria-expanded=\{showRevokedKeys\}/);
   assert.match(setupSource, /Show revoked keys \(\$\{keys\.filter\(\(key\) => key\.revoked_at\)\.length\}\)/);
-  assert.match(setupSource, /keys\.filter\(\(key\) => showRevokedKeys \|\| !key\.revoked_at\)/);
+  assert.match(setupSource, /const revokedKeys = keys\.filter\(\(key\) => Boolean\(key\.revoked_at\)\)/);
+  assert.match(setupSource, /\.\.\.\(showRevokedKeys \? revokedKeys : \[\]\)/);
 });
 
 test("empty page previews explain each product area instead of repeating generic placeholders", () => {

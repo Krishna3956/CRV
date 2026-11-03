@@ -944,3 +944,12 @@ Current verification for this slice:
 - `npm run test:release-gate`: passed all 159 suites.
 - No production deployment, authenticated production session, or database
   write was performed.
+
+## Production Setup comparison (read-only)
+
+The currently deployed production tab was inspected without changing state at
+`https://trackmcp.com/dashboard?view=setup&data=example`. It still presents
+the older `Founder OS` pilot notice and exposes a long active-key history in
+the primary Setup scan, alongside technical scope and identity controls. This
+confirms that the branch's Setup-density improvements are not live yet. No
+key, workspace, identity setting, or other production state was changed.
