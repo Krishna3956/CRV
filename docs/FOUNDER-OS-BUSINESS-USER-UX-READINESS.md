@@ -2,20 +2,19 @@
 
 Date: 2026-11-03  
 Branch: `codex/business-user-ux-audit`  
-Latest verified commit: `73abc983` (`feat: preserve acronyms in business labels`)
+Latest verified commit: `21e5bbb6` (`feat: clarify supported SDK setup`)
 
 This matrix is the release-readiness companion to the UX audit and work
 queue. It intentionally separates source-level proof, read-only browser proof,
 and evidence that requires a real account, deployment, or human participant.
 
-Latest branch verification: `npm run test:business-user-ux` passed all 109 suites
+Latest branch verification: `npm run test:business-user-ux` passed all 110 suites
 and the consolidated `npm run test:release-gate` passed all 159 suites on the
 current branch. The synthetic UAT report was restored to its tracked fixture
 value after the gate run. The branch remains local and has not been merged or
 deployed.
 A fresh pull-request CI run for the latest pushed head is pending provider
-execution; the last observed run (`41591604161`) had Go and .NET green while
-the web/JavaScript job was in progress. No Vercel deployment is being treated
+execution. No Vercel deployment is being treated
 as release evidence; the provider has an external preview rate limit recorded
 in `docs/evidence/business-user-ux-vercel-preview-rate-limit-2026-11-03.md`.
 A fresh local
@@ -44,7 +43,7 @@ while measured zero remains distinguishable from missing evidence.
 Final current-branch build: `npm run build` passed with 230 static pages
 generated after the dashboard palette revision. TypeScript and ESLint also
 passed. The full `npm run test:release-gate` passed all 159 suites on the
-current branch, and the focused 106-suite business-user contract suite passed
+current branch, and the focused 110-test business-user contract suite passed
 after the capability, resource, and journey comprehension revisions.
 This is still local build evidence; it does not prove a production deployment
 or authenticated production rendering.

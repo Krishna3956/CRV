@@ -361,8 +361,8 @@ Legend: `[x]` verified/implemented in this workstream; `[ ]` pending.
 - Current implementation: `trackmcp-nextjs/src/components/dashboard/DashboardApp.tsx`.
 - Latest UX verification commits: `346bb7bc` (evidence handoff refresh),
   `0700c707` (resource/outcome labels), `7f582337` (feature reliability
-  labels), and `73abc983` (acronym-safe labels). Focused business UX suite:
-  109/109; consolidated release gate: 159
+  labels), `73abc983` (acronym-safe labels), and `21e5bbb6` (setup language
+  copy). Focused business UX suite: 110/110; consolidated release gate: 159
   suites; production build:
   230 static pages.
 - Setup/account orchestration: `trackmcp-nextjs/src/app/dashboard/page.tsx`.
