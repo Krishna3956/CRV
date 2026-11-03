@@ -53,7 +53,7 @@ test("activated-user dashboard is organized around business questions", () => {
   assert.match(dashboard, /Detailed capability inventory/);
   assert.match(dashboard, /Optional detail for product and engineering teams/);
   assert.match(dashboard, /Detailed resource and prompt evidence/);
-  assert.match(dashboard, /label="Feature uses in previous period"/);
+  assert.match(dashboard, /label="Feature activity, previous period"/);
   assert.match(dashboard, /label="Error rate"/);
   assert.match(dashboard, /Recommended next step/);
   assert.match(dashboard, /Connect one server to begin/);

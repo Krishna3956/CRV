@@ -198,15 +198,15 @@ test("business users receive orientation before technical detail", () => {
   assert.match(source, /question="What should the team investigate next, and how strong is the evidence\?"/);
   assert.match(source, /N\/A means there is not enough evidence yet/);
   assert.match(source, /Typical steps per piece of work/);
-  assert.match(source, /Work waiting for information/);
+  assert.match(source, /Work waiting for an answer/);
   assert.match(source, /Most-used features/);
   assert.match(source, /Start with adoption and reliability/);
-  assert.match(source, /Average features per account group/);
+  assert.match(source, /Features used per account group/);
   assert.match(source, /Privacy-safe account groups/);
   assert.match(source, /Activity without an optional account-group signal/);
   assert.match(source, /supporting evidence for technical teams/);
   assert.match(source, /Advertised features not yet observed/);
-  assert.match(source, /Resource lookups/);
+  assert.match(source, /Information lookups/);
   assert.match(source, /Use this view to understand information needs/);
   assert.match(source, /Distinct items observed/);
   assert.match(source, /Feature reliability/);
@@ -219,7 +219,7 @@ test("business users receive orientation before technical detail", () => {
   assert.match(source, /A missing next event does not prove that someone abandoned the task/);
   assert.match(source, /Evidence is the drill-down, not the starting point/);
   assert.match(source, /bounded, redacted steps and timing without exposing payloads or private inputs/);
-  assert.match(source, /Feature uses observed/);
+  assert.match(source, /Feature activity/);
   assert.match(source, /privacy-safe item counts/);
   assert.match(source, /assistants and privacy-safe account groups/);
   assert.match(source, /Errors and retries/);

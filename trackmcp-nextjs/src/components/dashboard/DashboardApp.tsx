@@ -3041,7 +3041,7 @@ function JourneysView({
         <div className="mb-6 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
           <Kpi label="Work sessions observed" value={fmt(analytics.journey_activity.interaction_count)} icon={Route} helper="Bounded observed paths" />
           <Kpi label="Typical steps per piece of work" value={analytics.journey_activity.typical_journey_length == null ? "N/A" : fmt(analytics.journey_activity.typical_journey_length)} icon={ListChecks} helper="Median observed steps" />
-          <Kpi label="Work waiting for information" value={fmt(analytics.journey_activity.stalled_interactions)} icon={Info} helper="Explicit input-required states" />
+          <Kpi label="Work waiting for an answer" value={fmt(analytics.journey_activity.stalled_interactions)} icon={Info} helper="Explicit needs-input states" />
           <Kpi label="Work that resumed after a pause" value={fmt(analytics.journey_activity.resumed_after_stall)} icon={RotateCcw} helper="Observed retry evidence" />
         </div>
         <div className="mb-6 grid gap-6 xl:grid-cols-2">
@@ -3257,10 +3257,10 @@ function CapabilitiesView({
       {activity && (
         <>
           <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-            <Kpi label="Feature uses observed" value={fmt(activity.total_calls)} icon={Activity} helper={`${analytics.range_days}-day window`} />
-            <Kpi label="Feature uses in previous period" value={fmt(activity.previous_period_calls)} icon={TrendingUp} helper="Same-length comparison window" />
+            <Kpi label="Feature activity" value={fmt(activity.total_calls)} icon={Activity} helper={`${analytics.range_days}-day window`} />
+            <Kpi label="Feature activity, previous period" value={fmt(activity.previous_period_calls)} icon={TrendingUp} helper="Same-length comparison window" />
             <Kpi label="Error rate" value={activity.overall_error_rate === null ? "N/A" : percent(activity.overall_error_rate)} icon={ShieldCheck} helper="Explicit errors only; not a diagnosis" />
-            <Kpi label="Average features per account group" value={activity.avg_tools_used_per_account === null ? "N/A" : activity.avg_tools_used_per_account.toFixed(1)} icon={Blocks} helper={`Privacy-safe account groups · ${fmt(activity.advertised_tools)} available`} />
+            <Kpi label="Features used per account group" value={activity.avg_tools_used_per_account === null ? "N/A" : activity.avg_tools_used_per_account.toFixed(1)} icon={Blocks} helper={`Privacy-safe account groups · ${fmt(activity.advertised_tools)} available`} />
           </div>
           <div className="mt-4 grid gap-4 xl:grid-cols-[1.1fr_0.9fr]">
             <Panel title="Most-used features" subtitle="Which capabilities are carrying the observed activity">
@@ -3454,9 +3454,9 @@ function ResourcesPromptsView({
         action="Compare the top resources and prompts with their error or input-needed rates before changing content or workflows."
       />
       <div className="grid gap-3 sm:grid-cols-3">
-        <Kpi label="Resource lookups" value={activity ? fmt(activity.resource_reads) : "N/A"} icon={FileText} helper={activity ? `${fmt(activity.previous_period_resource_reads)} previous period · ${fmt(activity.resource_observations)} observed` : "Awaiting evidence"} />
+        <Kpi label="Information lookups" value={activity ? fmt(activity.resource_reads) : "N/A"} icon={FileText} helper={activity ? `${fmt(activity.previous_period_resource_reads)} previous period · ${fmt(activity.resource_observations)} observed` : "Awaiting evidence"} />
         <Kpi label="Guided-help requests" value={activity ? fmt(activity.prompt_calls) : "N/A"} icon={Activity} helper={activity ? `${fmt(activity.previous_period_prompt_calls)} previous period · ${fmt(activity.prompt_observations)} observed` : "Awaiting evidence"} />
-        <Kpi label="Prompts completed explicitly" value={activity?.prompt_completion_rate == null ? "N/A" : `${Math.round(activity.prompt_completion_rate * 100)}%`} icon={Check} helper={activity?.prompt_stall_rate == null ? "Explicit outcome evidence only" : `${Math.round(activity.prompt_stall_rate * 100)}% needs input · ${Math.round((activity.prompt_error_rate || 0) * 100)}% error`} />
+        <Kpi label="Guided-help completed" value={activity?.prompt_completion_rate == null ? "N/A" : `${Math.round(activity.prompt_completion_rate * 100)}%`} icon={Check} helper={activity?.prompt_stall_rate == null ? "Explicit outcome evidence only" : `${Math.round(activity.prompt_stall_rate * 100)}% needs input · ${Math.round((activity.prompt_error_rate || 0) * 100)}% error`} />
       </div>
       {activity && <div className="mt-6"><Panel title="Interaction outcomes" subtitle="One terminal evidence state per safely linked interaction; an input request is not a completion">
         <div className="grid gap-3 sm:grid-cols-2">
@@ -3874,7 +3874,7 @@ function IssuesView({
       />
       {analytics.issue_activity && <div className="mb-6 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
         <Kpi label="Actionable signals" value={fmt(analytics.issue_activity.actionable_signals)} icon={AlertTriangle} helper="Bounded rules with evidence" />
-        <Kpi label="High confidence" value={fmt(analytics.issue_activity.high_confidence_signals)} icon={ShieldCheck} helper="Evidence strength, not certainty" />
+        <Kpi label="Strong evidence" value={fmt(analytics.issue_activity.high_confidence_signals)} icon={ShieldCheck} helper="Evidence strength, not certainty" />
         <Kpi label="Affected volume" value={analytics.issue_activity.affected_volume == null ? "N/A" : fmt(analytics.issue_activity.affected_volume)} icon={Users} helper="May overlap across signals" />
         <Kpi label="Suggested actions" value={fmt(analytics.issue_activity.suggested_actions)} icon={ArrowRight} helper="Investigation next steps" />
       </div>}
