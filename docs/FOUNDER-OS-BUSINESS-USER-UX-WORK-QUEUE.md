@@ -121,6 +121,9 @@ Legend: `[x]` verified/implemented in this workstream; `[ ]` pending.
 - [x] ✅ Give live-data load failures a safe fallback: keep `Retry` primary,
       but offer `See Example data` so a business reader can continue learning
       without substituting sample values into live data.
+- [x] ✅ Keep the `Did it work` no-data/error state tied to its selected data
+      source, with a plain-language explanation of what appears after a server
+      connects and why a loading failure is not a health result.
 - [x] ✅ Replace the blank first-load screen with a branded workspace-preparation
       state that explains account, workspace, and dashboard loading in three
       short steps.

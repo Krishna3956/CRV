@@ -966,6 +966,22 @@ The server returned HTTP 200 for the rendered dashboard route and was stopped
 cleanly after the read-only check. No production browser tab, account, key,
 workspace, or database state was touched.
 
+## Quality no-data boundary in the current branch
+
+The `Did it work` view now keeps its selected data source visible even when the
+quality response is unavailable. My-data mode explains that explicit outcomes
+and feature reliability appear after the server connects; Example mode explains
+that the illustrative response needs to be retried. The loading state does not
+present a missing response as healthy or unhealthy, and no metric or formula
+changed.
+
+Verification:
+
+- `npm run test:business-user-ux`: 98/98 passed.
+- `npx tsc --noEmit --pretty false`: passed.
+- `npm run build`: passed; 230 static pages generated.
+- `git diff --check`: passed.
+
 ## Production Setup comparison (read-only)
 
 The currently deployed production tab was inspected without changing state at

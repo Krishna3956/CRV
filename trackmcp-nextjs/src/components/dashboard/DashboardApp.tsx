@@ -3691,8 +3691,16 @@ function QualityView({
           question="What completed, what returned an error, and what is still unobserved?"
           actions={pageControls}
         />
+        <DataSourceStrip dataMode={dataMode} hasMyData={hasMyData} view="quality" />
+        <BusinessContext
+          title={dataMode === "my" ? "Quality appears after your server connects" : "Example quality data is unavailable"}
+          body={dataMode === "my"
+            ? "Once your server sends activity, this view will separate explicit outcomes from feature reliability. A loading problem is not evidence that the server is healthy or unhealthy."
+            : "The example quality response could not be loaded. Retry to restore the illustrative view; no live workspace data is substituted."}
+          action={dataMode === "my" ? "Retry after checking the connection in Setup." : "Retry to reload the illustrative quality view."}
+        />
         <LiveDataState
-          message="Quality data could not be loaded"
+          message={dataMode === "my" ? "Quality data could not be loaded" : "Example quality data could not be loaded"}
           onRetry={onRefresh}
           permission={false}
         />

@@ -182,6 +182,16 @@ test("live-data failures offer a safe illustrative fallback", () => {
   assert.match(liveDataSource, /My data could not be shown for this request/);
 });
 
+test("quality no-data states preserve source context and next-step meaning", () => {
+  const start = source.indexOf("function QualityView(");
+  const end = source.indexOf("function IssuesView(", start);
+  const qualitySource = source.slice(start, end);
+  assert.match(qualitySource, /<DataSourceStrip dataMode=\{dataMode\} hasMyData=\{hasMyData\} view="quality"/);
+  assert.match(qualitySource, /Quality appears after your server connects/);
+  assert.match(qualitySource, /Example quality data is unavailable/);
+  assert.match(qualitySource, /A loading problem is not evidence that the server is healthy or unhealthy/);
+});
+
 test("business users receive orientation before technical detail", () => {
   assert.match(source, /Start here: who is showing up, what are they trying to do, did it work, and what needs attention\?/);
   assert.match(source, /How to read this overview/);
