@@ -945,6 +945,27 @@ Current verification for this slice:
 - No production deployment, authenticated production session, or database
   write was performed.
 
+## Fresh browser verification after `98054f78`
+
+The isolated branch was served at
+`http://127.0.0.1:3198/dashboard?view=overview&data=example` with the
+development-only dashboard bypass and placeholder Supabase values. The
+rendered accessibility tree confirmed:
+
+- `Data source` with `Illustration only` and the example-data boundary.
+- The business-first Overview order: at-a-glance, recommended next step,
+  KPIs, period comparison, evidence detail, activity, attention, sessions,
+  and outcomes.
+- The `Needs attention` KPI helper reads `Observed patterns worth a closer
+  look`; the panel explains that observed patterns and confirmed incidents are
+  separate.
+- The sample outcome surface shows reported completion and keeps the
+  evidence rule visible without exposing internal identifiers.
+
+The server returned HTTP 200 for the rendered dashboard route and was stopped
+cleanly after the read-only check. No production browser tab, account, key,
+workspace, or database state was touched.
+
 ## Production Setup comparison (read-only)
 
 The currently deployed production tab was inspected without changing state at

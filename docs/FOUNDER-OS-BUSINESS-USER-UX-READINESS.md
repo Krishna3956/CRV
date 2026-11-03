@@ -19,6 +19,8 @@ A fresh local
 development browser pass now verifies both the My-data no-event state and the
 Example-data Overview on the current branch; this remains bypass evidence, not
 real Supabase authentication or production data.
+The latest browser pass also verified the updated attention/outcome reading
+order and plain-language helper copy on the Example-data Overview.
 
 Final current-branch build: `npm run build` passed with 230 static pages
 generated after the dashboard palette revision. TypeScript and ESLint also
