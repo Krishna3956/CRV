@@ -2,7 +2,7 @@
 
 Date: 2026-11-03
 Branch: `codex/business-user-ux-audit`
-Commit under review: `bfc859ab` (`Point UX readiness at palette revision`)
+Commit under review: `2411b7c3` (`Verify business journey read-model contracts`)
 
 This is local browser evidence only. It is not production evidence and does
 not replace a fresh-account or real-telemetry walkthrough.
