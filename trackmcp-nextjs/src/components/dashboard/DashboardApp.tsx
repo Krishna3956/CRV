@@ -1499,7 +1499,7 @@ function NavItemLabel({ item }: { item: NavItem }) {
 }
 
 const navAccentClasses: Record<NavAccent, { icon: string; marker: string }> = {
-  blue: { icon: "text-blue-600", marker: "bg-blue-50" },
+  blue: { icon: "text-brand-strong", marker: "bg-brand-soft" },
   teal: { icon: "text-teal-700", marker: "bg-teal-50" },
   violet: { icon: "text-violet-700", marker: "bg-violet-50" },
   amber: { icon: "text-amber-700", marker: "bg-amber-50" },
@@ -1589,15 +1589,15 @@ function DataModeToggle({
           className={
             "cursor-pointer rounded-md px-3 py-2 text-[12px] font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand " +
             (dataMode === "example"
-              ? "bg-blue-700 text-white"
-              : "text-blue-700 hover:bg-blue-50")
+              ? "bg-brand text-white"
+              : "text-brand-strong hover:bg-brand-soft")
           }
         >
           Explore
         </button>
       </div>
       <span
-        className={"text-[10px] font-medium " + (dataMode === "example" ? "text-sky-700" : "text-faint")}
+        className={"text-[10px] font-medium " + (dataMode === "example" ? "text-brand-strong" : "text-faint")}
         aria-live="polite"
       >
         {dataMode === "my" ? "Live workspace" : "Guided example"}
@@ -2443,16 +2443,16 @@ function ExecutiveReadout({
 
   return (
     <section
-      className={"mb-6 rounded-2xl border bg-white p-5 shadow-[0_20px_45px_-38px_rgba(15,23,42,0.22)] sm:p-6 " + (example ? "border-sky-200" : "border-line")}
+      className={"mb-6 rounded-2xl border bg-white p-5 shadow-[0_20px_45px_-38px_rgba(15,23,42,0.22)] sm:p-6 " + (example ? "border-brand/20" : "border-line")}
       aria-label="Executive readout"
       data-cxo-readout
     >
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <p className={"dashboard-label " + (example ? "text-sky-700" : "text-brand-strong")}>Executive readout</p>
+          <p className="dashboard-label text-brand-strong">Executive readout</p>
           <h2 className="mt-1 text-base font-semibold tracking-[-0.015em] text-ink">What should a business owner know right now?</h2>
         </div>
-        <span className={"rounded-full border px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.08em] " + (example ? "border-sky-200 bg-sky-50 text-sky-700" : "border-line bg-paper text-faint")}>
+        <span className={"rounded-full border px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.08em] " + (example ? "border-brand/20 bg-brand-soft text-brand-strong" : "border-line bg-paper text-faint")}>
           {example ? "Illustrative" : "Observed"}
         </span>
       </div>
@@ -2473,7 +2473,7 @@ function ExecutiveReadout({
           <button
             type="button"
             onClick={() => onViewChange(leadSignal ? "issues" : "capabilities")}
-            className={"mt-2 inline-flex cursor-pointer items-center gap-1 text-xs font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand " + (example ? "text-sky-700 hover:text-sky-900" : "text-brand-strong hover:text-brand-strong")}
+            className="mt-2 inline-flex cursor-pointer items-center gap-1 text-xs font-semibold text-brand-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand hover:text-brand-strong"
           >
             {leadSignal ? "Review the evidence" : "Explore capability use"}
             <ChevronRight size={13} />
@@ -3979,12 +3979,12 @@ function IssuesView({
         }
       >
         {dataMode === "my" && syntheticIncidents.length > 0 && (
-          <div className="mb-3 border border-sky-200 bg-sky-50/70 p-3 text-xs leading-relaxed text-sky-900">
+          <div className="mb-3 border border-brand/20 bg-brand-soft/70 p-3 text-xs leading-relaxed text-brand-strong">
             {syntheticIncidents.length} synthetic canary incident{syntheticIncidents.length === 1 ? " is" : "s are"} retained as test evidence. These rows are not customer failures or pilot health claims.
           </div>
         )}
         {dataMode === "example" && (
-          <div className="mb-3 border border-blue-200 bg-blue-50/60 p-3 text-xs leading-relaxed text-blue-900">
+          <div className="mb-3 border border-brand/20 bg-brand-soft/60 p-3 text-xs leading-relaxed text-brand-strong">
             These are illustrative examples so you can understand how firing,
             resolved, insufficient-data, and suppressed incidents appear. They
             are not alert history from your workspace.
@@ -4215,7 +4215,7 @@ function IncidentCard({
               </span>
             )}
             {isSyntheticCanaryIncident(incident) && (
-              <span className="text-[10px] font-semibold text-sky-800">Synthetic canary evidence</span>
+              <span className="text-[10px] font-semibold text-brand-strong">Synthetic canary evidence</span>
             )}
           </div>
           <h3 className="mt-2 text-sm font-semibold text-ink">
@@ -4900,10 +4900,10 @@ function SetupView({
       : 2;
   const stateCopy = {
     "no-key": [workspaceId ? "Create a connection key to begin" : "Create your workspace to begin", workspaceId ? "TrackMCP cannot verify an integration until a connection key is configured and your server sends an event." : "Your account is ready. Create a workspace first, then create a connection key for your server.", "Not connected", "border-line bg-paper text-muted", "bg-slate-400"],
-    checking: ["Checking for recent server activity", "Your key is ready. We are checking the selected period for activity from your server.", "Checking", "border-sky-200 bg-sky-50 text-sky-800", "bg-sky-500"],
+    checking: ["Checking for recent server activity", "Your key is ready. We are checking the selected period for activity from your server.", "Checking", "border-brand/20 bg-brand-soft text-brand-strong", "bg-brand"],
     waiting: ["Waiting for your first event", "The key is ready, but key creation alone does not prove that an MCP event arrived. Configure TRACKMCP_KEY, restart the server, make one real tool call, then check again.", "Waiting for event", "border-amber-200 bg-amber-50 text-amber-800", "bg-amber-500"],
     limited: ["Activity is visible, but this view is partial", "TrackMCP observed activity, but the selected query reached its safety limit. Counts and comparisons may be incomplete; narrow the date range before drawing conclusions.", "Limited coverage", "border-amber-200 bg-amber-50 text-amber-800", "bg-amber-500"],
-    identity: ["Activity is verified; account grouping is unavailable", "The first event is confirmed, but no account grouping was available. TrackMCP will not present this as a unique person or organization.", "Account grouping unavailable", "border-sky-200 bg-sky-50 text-sky-800", "bg-sky-500"],
+    identity: ["Activity is verified; account grouping is unavailable", "The first event is confirmed, but no account grouping was available. TrackMCP will not present this as a unique person or organization.", "Account grouping unavailable", "border-brand/20 bg-brand-soft text-brand-strong", "bg-brand"],
     verified: ["First server activity verified", "TrackMCP has observed activity from this workspace. Open Overview to inspect the evidence window, assistants, capabilities, and outcomes.", "First activity verified", "border-brand/30 bg-brand-soft/40 text-brand-strong", "bg-brand"],
     error: ["We could not check your connection", "Your key was not changed. Retry the check, then confirm the server is running and can reach the TrackMCP ingest URL.", "Check failed", "border-red-200 bg-red-50 text-red-800", "bg-red-500"],
   }[connectionState] as unknown as readonly [string, string, string, string, string];

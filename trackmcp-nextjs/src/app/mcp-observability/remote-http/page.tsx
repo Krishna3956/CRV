@@ -19,7 +19,7 @@ export const metadata: Metadata = pageMeta({
 const jsonLd = { "@context": "https://schema.org", "@type": "WebPage", "@id": "https://trackmcp.com/mcp-observability/remote-http#webpage", url: "https://trackmcp.com/mcp-observability/remote-http", name: "Remote HTTP MCP Observability for Servers You Control | TrackMCP", description: "Observe a remote HTTP MCP server from its own process with TrackMCP SDK telemetry. TrackMCP does not proxy arbitrary hosted servers.", about: { "@id": "https://trackmcp.com/#organization" } };
 
 const checks = [
-  [Globe, "Transport", "Did the remote endpoint respond, and how long did the request take?", "bg-sky-100 text-sky-600"],
+  [Globe, "Transport", "Did the remote endpoint respond, and how long did the request take?", "bg-brand-soft text-brand-strong"],
   [LockKeyhole, "Authorization", "Did protected-resource discovery, token exchange, or scope validation fail?", "bg-violet-100 text-violet-600"],
   [Route, "Tool execution", "Which tool was called, what result came back, and did the client retry?", "bg-brand-soft text-brand-strong"],
   [CircleAlert, "Workflow outcome", "Did the multi-step task finish, or did the agent abandon the session?", "bg-amber-100 text-amber-600"],

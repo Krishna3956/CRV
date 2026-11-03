@@ -158,14 +158,14 @@ test("dashboard typography uses the product type system", () => {
   assert.match(globalsSource, /\.dashboard-shell \.dashboard-section-title/);
   assert.match(globalsSource, /font-size: 1\.0625rem/);
   assert.match(source, /dashboard-shell min-h-screen font-sans/);
-  assert.match(globalsSource, /--color-brand: #4f46e5/);
+  assert.match(globalsSource, /--color-brand: #16a34a/);
   assert.match(globalsSource, /--dash-violet: #7c3aed/);
   assert.match(globalsSource, /--dash-teal: #0f766e/);
   assert.match(globalsSource, /--dash-amber: #b45309/);
   assert.match(globalsSource, /--dash-coral: #c2410c/);
   assert.match(globalsSource, /decorative gradients in the dashboard/);
-  assert.match(globalsSource, /--color-brand-strong: #4338ca/);
-  assert.match(globalsSource, /--color-brand-soft: #eef2ff/);
+  assert.match(globalsSource, /--color-brand-strong: #15803d/);
+  assert.match(globalsSource, /--color-brand-soft: #f0fdf4/);
   assert.doesNotMatch(source, /linear-gradient/);
   assert.match(globalsSource, /button:not\(:disabled\):hover/);
 });
@@ -1059,7 +1059,7 @@ test("Overview gives business readers an executive readout before evidence detai
 });
 
 test("Example data is visually distinct from live/status green", () => {
-  assert.match(source, /dataMode === "example"\s*\? "bg-blue-700 text-white/);
+  assert.match(source, /dataMode === "example"\s*\? "bg-brand text-white/);
   assert.match(source, /Guided example only/);
   assert.doesNotMatch(source, /Example data selected · guided walkthrough/);
   assert.match(source, /dataMode === "my" \? "Live workspace" : "Guided example"/);

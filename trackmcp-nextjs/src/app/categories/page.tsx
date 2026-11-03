@@ -21,14 +21,14 @@ export const revalidate = 3600;
 
 const TILES = [
   "bg-violet-100 text-violet-600",
-  "bg-sky-100 text-sky-600",
+  "bg-brand-soft text-brand-strong",
   "bg-brand-soft text-brand-strong",
   "bg-amber-100 text-amber-600",
   "bg-teal-100 text-teal-600",
   "bg-rose-100 text-rose-600",
   "bg-slate-100 text-slate-600",
   "bg-violet-100 text-violet-600",
-  "bg-sky-100 text-sky-600",
+  "bg-brand-soft text-brand-strong",
 ];
 
 export default async function CategoriesPage() {

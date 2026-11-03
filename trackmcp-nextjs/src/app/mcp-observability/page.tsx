@@ -19,7 +19,7 @@ export const metadata: Metadata = pageMeta({
 const jsonLd = { "@context": "https://schema.org", "@type": "WebPage", "@id": "https://trackmcp.com/mcp-observability#webpage", url: "https://trackmcp.com/mcp-observability", name: "MCP Observability for Servers and Agent Workflows | TrackMCP", description: "MCP observability for clients, tools, sessions, errors, latency, retries, and workflow outcomes.", about: { "@id": "https://trackmcp.com/#organization" } };
 
 const layers = [
-  { icon: Users, name: "Connection", body: "Which client connected, with which transport and protocol version?", color: "bg-sky-100 text-sky-600" },
+  { icon: Users, name: "Connection", body: "Which client connected, with which transport and protocol version?", color: "bg-brand-soft text-brand-strong" },
   { icon: Wrench, name: "Discovery", body: "What tools did the client see, and what did it choose to call?", color: "bg-violet-100 text-violet-600" },
   { icon: Activity, name: "Execution", body: "How long did each call take, and what result came back?", color: "bg-brand-soft text-brand-strong" },
   { icon: Route, name: "Session", body: "Where did the ordered workflow slow down or stop?", color: "bg-amber-100 text-amber-600" },

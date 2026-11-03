@@ -41,7 +41,7 @@ const CLIENTS: Client[] = [
 const TOOLS = ["search_docs", "run_query", "create_issue", "send_email"];
 
 const OUTCOMES = [
-  { key: "clients", label: "Who's using it", value: "4 clients", icon: Users, tile: "bg-sky-100 text-sky-600" },
+  { key: "clients", label: "Who's using it", value: "4 clients", icon: Users, tile: "bg-brand-soft text-brand-strong" },
   { key: "tools", label: "Tools", value: "12 active", icon: Wrench, tile: "bg-violet-100 text-violet-600" },
   { key: "sessions", label: "Sessions", value: "3,120", icon: Activity, tile: "bg-brand-soft text-brand-strong" },
   { key: "failures", label: "Silent failures", value: "1 found", icon: TriangleAlert, tile: "bg-rose-100 text-rose-600" },
