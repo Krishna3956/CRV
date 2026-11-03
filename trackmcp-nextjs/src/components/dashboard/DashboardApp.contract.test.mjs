@@ -102,6 +102,8 @@ test("Founder OS vertical slices share one data-trust contract", () => {
   assert.match(source, /humanizeCapability/);
   assert.match(source, /tool\.description\?\.trim\(\) \|\| humanizeCapability\(tool\.name\)/);
   assert.match(source, /function ToolDetailPanel/);
+  assert.match(source, /journeyStepLabel/);
+  assert.match(source, /journeyPathLabel/);
   assert.match(source, /signal, not a diagnosis/);
   assert.match(source, /Missing task events are not classified as abandonment/);
   assert.match(source, /insufficient data/i);
