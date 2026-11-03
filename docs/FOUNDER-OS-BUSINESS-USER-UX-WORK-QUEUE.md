@@ -247,6 +247,9 @@ Legend: `[x]` verified/implemented in this workstream; `[ ]` pending.
 - [x] ✅ Keep unavailable capability breadth visually neutral: when the read
       model cannot calculate breadth, the dashboard shows `N/A` with a neutral
       track instead of an empty green bar that looks like measured zero.
+- [x] ✅ Keep journey reach, assistant distribution, and resource/prompt share
+      bars neutral when their shares are unavailable; no green fill is shown
+      unless the underlying read model provides a measured share.
 - [x] ✅ Keep long connection-key histories out of the primary Setup scan:
       show the first three active keys by default, retain explicit access to
       the full active list, and keep revoked keys behind their existing

@@ -2,7 +2,7 @@
 
 Date: 2026-11-03
 Branch: `codex/business-user-ux-audit`
-Commit under review: `982742e5` (`Keep unavailable capability breadth neutral`)
+Commit under review: `74caa64c` (`Keep unavailable dashboard shares neutral`)
 
 This is local browser evidence only. It is not production evidence and does
 not replace a fresh-account or real-telemetry walkthrough.
@@ -52,6 +52,10 @@ outcome rates now preserve unavailable stall, error, and unknown measures as
 The same pass verified that unavailable capability breadth uses a neutral
 visual track instead of an empty green bar, so `N/A` cannot be mistaken for a
 measured zero.
+
+Journey reach, assistant distribution, and resource/prompt share bars now
+follow the same neutral-unavailable visual contract. This is a presentation
+change only; the underlying read models and formulas are unchanged.
 
 Final standalone-server smoke on the current build used placeholder Supabase
 values plus the documented local dashboard bypass. These routes all returned
