@@ -2,7 +2,7 @@
 
 Date: 2026-11-03  
 Branch: `codex/business-user-ux-audit`  
-Latest verified commit: `3e5e13bf` (`Mark verified UX policy gates`)
+Latest verified commit: `c190bceb` (`Record cross-tab business UX evidence`)
 
 This matrix is the release-readiness companion to the UX audit and work
 queue. It intentionally separates source-level proof, read-only browser proof,
