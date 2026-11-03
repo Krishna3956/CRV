@@ -150,11 +150,11 @@ test("dashboard typography uses the product type system", () => {
   assert.match(globalsSource, /\.dashboard-shell \.dashboard-section-title/);
   assert.match(globalsSource, /font-size: 1\.0625rem/);
   assert.match(source, /dashboard-shell min-h-screen font-sans/);
-  assert.match(globalsSource, /--color-brand: #55b684/);
+  assert.match(globalsSource, /--color-brand: #63c893/);
   assert.match(globalsSource, /Dashboard visual system: warm-neutral surfaces with a familiar emerald/);
-  assert.match(globalsSource, /--color-brand: #55b684/);
-  assert.match(globalsSource, /--color-brand-strong: #3d8c66/);
-  assert.match(globalsSource, /--color-brand-soft: #f2fbf5/);
+  assert.match(globalsSource, /--color-brand: #63c893/);
+  assert.match(globalsSource, /--color-brand-strong: #438d68/);
+  assert.match(globalsSource, /--color-brand-soft: #f3fcf6/);
   assert.doesNotMatch(source, /linear-gradient/);
   assert.match(globalsSource, /button:not\(:disabled\):hover/);
 });
