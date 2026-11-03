@@ -22,9 +22,20 @@ static validation; deployment remains a separate gate.
 - [x] ✅ Run the full production build in the isolated checkout (230 static pages).
 - [x] ✅ Run the repository release gate and inspect any generated evidence diff (159 suites; generated timestamp restored, no evidence file included).
 - [x] ✅ Perform the local runtime smoke pass with the local environment (9 public routes and 10 protected/API checks; dashboard routes exercised by the smoke harness).
-- [ ] Open the release PR, wait for CI, merge only if green.
-- [ ] Confirm the existing GitHub App Runner deployment succeeds.
-- [ ] Fetch public dashboard routes and verify the deployed commit before declaring live.
+- [x] ✅ Open release PR #868 and merge after all CI stacks passed.
+- [x] ✅ Confirm the existing GitHub App Runner deployment succeeds (run `41606599334`).
+- [x] ✅ Fetch public dashboard routes and verify the deployed release identity.
+
+## Release evidence
+
+- Release commit: `621c4335` (merged as `3f7437c3e33b9c046a278134c2da7dfe193d3719`).
+- CI: web/JavaScript, Go, and .NET checks passed in run `41605866154`.
+- App Runner: deployment run `41606599334` passed its release gate, production
+  smoke, release-identity check, safety audit, and translation-provider check.
+- Public verification: `/`, `/dashboard?view=overview&data=example`,
+  `/dashboard?view=setup&data=example`, and `/docs` returned HTTP 200.
+- Local runtime smoke: 9 public routes and 10 protected/API checks passed with
+  the existing local environment; no credentials were written to the branch.
 
 ## Follow-up, not part of this release
 
