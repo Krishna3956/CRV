@@ -357,12 +357,35 @@ jobs:
             echo "::error::App Runner did not return a valid service hostname."
             exit 1
           fi
-          ACTUAL=$(curl --fail --silent --show-error --max-time 30 "https://${SERVICE_HOST}/api/health" | node -e 'let input=""; process.stdin.on("data", c => input += c); process.stdin.on("end", () => { const value = JSON.parse(input); if (value.status !== "ok" || typeof value.release_sha !== "string") process.exit(1); process.stdout.write(value.release_sha); });')
-          if [[ "$ACTUAL" != "$TRACKMCP_EXPECTED_RELEASE_SHA" ]]; then
-            echo "::error::Running origin reported release_sha=$ACTUAL, expected $TRACKMCP_EXPECTED_RELEASE_SHA."
-            exit 1
-          fi
-          echo "Running origin reports the immutable release SHA $ACTUAL."
+          # App Runner can briefly return 502 while the new task is accepting
+          # traffic even after the deployment operation reports SUCCEEDED.
+          # Retry only this read-only identity check for a bounded window so a
+          # transient edge transition is not recorded as a failed release.
+          deadline=$((SECONDS + 180))
+          attempt=0
+          while (( SECONDS < deadline )); do
+            attempt=$((attempt + 1))
+            RESPONSE=$(mktemp)
+            HTTP_STATUS=$(curl --silent --show-error --max-time 30 --output "$RESPONSE" --write-out '%{http_code}' "https://${SERVICE_HOST}/api/health" || true)
+            ACTUAL=$(node - "$RESPONSE" <<'NODE'
+            const fs = require('node:fs');
+            const path = process.argv[2];
+            try {
+              const value = JSON.parse(fs.readFileSync(path, 'utf8'));
+              if (value.status === 'ok' && typeof value.release_sha === 'string') process.stdout.write(value.release_sha);
+            } catch {}
+            NODE
+            )
+            rm -f "$RESPONSE"
+            if [[ "$HTTP_STATUS" == "200" && "$ACTUAL" == "$TRACKMCP_EXPECTED_RELEASE_SHA" ]]; then
+              echo "Running origin reports the immutable release SHA $ACTUAL (attempt $attempt)."
+              exit 0
+            fi
+            echo "Waiting for running release identity (attempt $attempt, http=$HTTP_STATUS, reported=${ACTUAL:-unavailable})."
+            sleep 10
+          done
+          echo "::error::Running origin did not report the expected immutable release SHA within the retry window."
+          exit 1
 
       - name: Audit runtime safety flags
         run: |

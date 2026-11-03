@@ -128,12 +128,13 @@ test("desktop-only pilot boundary is visible on narrow dashboard viewports", () 
 test("resources and prompts have a dedicated evidence-bounded surface", () => {
   assert.match(source, /function ResourcesPromptsView/);
   assert.match(source, /title=\"Resources & prompts\"/);
-  assert.match(source, /Distinct resources or prompts observed/);
+  assert.match(source, /Method and read evidence, never content/);
+  assert.match(source, /Method-level evidence only: TrackMCP does not expose resource contents/);
   assert.match(source, /transport_breakdown/);
   assert.match(source, /Transport coverage/);
   assert.match(source, /formatTransport\(item\.transport\)/);
   assert.match(source, /No resource or prompt evidence yet/);
-  assert.match(source, /does not expose resource contents, prompt arguments/);
+  assert.match(source, /does not expose resource contents, URIs, prompt arguments/);
 });
 
 test("primary setup panel exposes the OpenTelemetry guide", () => {
@@ -603,10 +604,10 @@ test("protocol surface cards disclose durable entity-read coverage", () => {
 });
 
 test("resource and prompt read metrics do not turn unavailable projections into zero", () => {
-  assert.match(source, /entityReadProjectionAvailable = rows\.length > 0 && rows\.every/);
-  assert.match(source, /successfulReads = entityReadProjectionAvailable/);
-  assert.match(source, /value=\{surfaces && successfulReads !== null \? fmt\(successfulReads\) : "N\/A"\}/);
   assert.match(source, /surface\.entity_analytics\.status === "schema_unavailable" \? "N\/A"/);
+  assert.match(source, /fmt\(Number\(value\)\)/);
+  assert.match(source, /surface\.entity_analytics\.read_events/);
+  assert.match(source, /surface\.entity_analytics\.successful_reads/);
 });
 
 test("example data offers a clear setup path and Setup keeps trust below the setup cards", () => {

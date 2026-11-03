@@ -20,7 +20,17 @@ Date: 2026-11-03
 - [x] Add regression tests for color tokens and navigation grouping.
 - [x] Run focused tests, typecheck, lint, build, and runtime smoke.
 - [x] Publish one coherent branch and verify the release through the existing GitHub Action.
-- [ ] Complete the remaining view-by-view simplification and backend-gap audit.
+- [x] Complete the backend-gap audit and document unsupported surfaces explicitly.
+- [x] Harden App Runner release identity verification against transient warm-up 502s.
+
+## Next implementation slices
+
+- [ ] Simplify the remaining high-density views (Resources & prompts, Setup,
+  Evidence) using the same rule: one business question per section, technical
+  detail collapsed, and no duplicate explanatory cards.
+- [ ] Add or tighten focused contract tests for each simplification without
+  changing the typed analytics contract.
+- [ ] Re-run the full release gate and production smoke after the next UI slice.
 
 ## Later, not silently included
 
@@ -28,4 +38,9 @@ Date: 2026-11-03
 - [ ] Add persisted saved views or exports only after a product decision and schema review.
 - [ ] Add replay/heatmap-style evidence only after privacy and retention review.
 - [ ] Revisit mobile/tablet layouts; the current pilot remains desktop-first.
+
+The remaining implementation work is deliberately sequenced by view. A view
+cannot be marked complete merely because it looks better: its metrics must
+still trace through `Analytics`/authenticated response types to bounded server
+queries, as described in `docs/dashboard-backend-gap-audit-2026-11.md`.
 
