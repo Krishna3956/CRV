@@ -2,7 +2,7 @@
 
 Date: 2026-11-03  
 Branch: `codex/business-user-ux-audit`  
-Latest verified commit: `d1fae40c` (`Clarify quality no-data states`)
+Latest verified commit: `1db7070e` (`Bound quality fallback source wording`)
 
 This matrix is the release-readiness companion to the UX audit and work
 queue. It intentionally separates source-level proof, read-only browser proof,

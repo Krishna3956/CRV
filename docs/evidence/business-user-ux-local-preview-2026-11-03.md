@@ -2,7 +2,7 @@
 
 Date: 2026-11-03
 Branch: `codex/business-user-ux-audit`
-Commit under review: `d1fae40c` (`Clarify quality no-data states`)
+Commit under review: `1db7070e` (`Bound quality fallback source wording`)
 
 This is local browser evidence only. It is not production evidence and does
 not replace a fresh-account or real-telemetry walkthrough.
