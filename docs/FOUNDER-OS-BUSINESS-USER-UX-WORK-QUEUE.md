@@ -283,6 +283,10 @@ Legend: `[x]` verified/implemented in this workstream; `[ ]` pending.
       baseline` instead of inferring a comparison.
 - [ ] What they’re doing: adoption breadth, top capabilities, trends, and
       capability detail with business labels.
+- [x] ✅ What-they’re-doing scan now leads with the human-readable capability
+      description and keeps the machine-facing tool identifier as secondary
+      context; capability detail remains available on demand. Week labels in
+      the adoption chart are also formatted for business readers.
 - [x] ✅ What-they’re-doing no-data state now explains that feature activity
       appears after connection and links directly to Setup; it does not imply
       zero adoption when the read model is absent. Full adoption/read-model
