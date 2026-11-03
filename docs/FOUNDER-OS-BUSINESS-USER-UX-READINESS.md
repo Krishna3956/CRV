@@ -243,6 +243,12 @@ paths: `Sign in to continue` for returning users and `Create an account` for
 new users. This removes a signup dead end without changing authentication or
 workspace provisioning behavior.
 
+Workspace creation errors now keep the first-session recovery path actionable:
+when no workspace exists, the visible error banner says `Retry workspace setup`
+and invokes the workspace-creation flow. Once a workspace exists, the same
+banner remains a data-refresh action. This closes a setup dead end without
+changing workspace or key persistence semantics.
+
 After the loading-state and palette revisions, the consolidated release gate
 was rerun and passed all 159 suites. The gate passed in the isolated worktree;
 it does not change the Tier 3 status because authenticated production and

@@ -226,6 +226,10 @@ Legend: `[x]` verified/implemented in this workstream; `[ ]` pending.
       the header now labels the control `Data source` and clarifies whether
       the selected view is `Your workspace` or `Illustration only` without
       changing the underlying data mode or read-model behavior.
+- [x] ✅ Make workspace-creation failures recoverable from the visible error
+      banner: when no workspace exists, `Retry workspace setup` retries the
+      create flow instead of refreshing analytics; established workspaces keep
+      the separate `Retry dashboard data` action.
 - [x] ✅ Keep long connection-key histories out of the primary Setup scan:
       show the first three active keys by default, retain explicit access to
       the full active list, and keep revoked keys behind their existing

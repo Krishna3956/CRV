@@ -1192,6 +1192,8 @@ export function DashboardApp({
     setAlertReloadToken((value) => value + 1);
     onRefresh(range);
   };
+  const retryError = workspace ? refreshAll : onCreateWorkspace;
+  const retryErrorLabel = workspace ? "Retry dashboard data" : "Retry workspace setup";
   const copyKey = async () => {
     if (!newKey) return;
     try {
@@ -1308,7 +1310,7 @@ export function DashboardApp({
         </div>
         <main className="mx-auto max-w-[1440px] px-5 py-6 sm:px-8 sm:py-8">
           {error && (
-            <ErrorBanner message={error} onRetry={refreshAll} />
+            <ErrorBanner message={error} onRetry={retryError} retryLabel={retryErrorLabel} />
           )}
           {newKey && (
             <div className="mb-6 flex flex-wrap items-center gap-3 border border-brand/30 bg-brand-soft/35 p-4" role="status" aria-live="polite">
@@ -1653,9 +1655,11 @@ function PageControls({
 function ErrorBanner({
   message,
   onRetry,
+  retryLabel = "Retry",
 }: {
   message: string;
   onRetry: () => void;
+  retryLabel?: string;
 }) {
   return (
     <div
@@ -1667,9 +1671,10 @@ function ErrorBanner({
       <button
         type="button"
         onClick={onRetry}
+        aria-label={retryLabel}
         className="cursor-pointer font-semibold underline underline-offset-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-600"
       >
-        Retry
+        {retryLabel}
       </button>
     </div>
   );

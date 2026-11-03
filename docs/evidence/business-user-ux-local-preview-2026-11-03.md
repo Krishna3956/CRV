@@ -1058,3 +1058,22 @@ Verification after this slice:
 - `git diff --check`: passed.
 - No production deployment or authenticated production data write was
   performed.
+
+## Workspace setup retry recovery after the current branch change
+
+The dashboard error banner now selects its retry operation from the current
+setup state. Before a workspace exists, it invokes workspace creation and is
+labelled `Retry workspace setup`; after a workspace exists, it keeps the
+existing `Retry dashboard data` behavior. This prevents a failed first-login
+workspace provision from sending the user into an analytics refresh that
+cannot resolve the missing workspace.
+
+Verification after this slice:
+
+- Dashboard, workspace-route, and dashboard-page contract tests: 107/107
+  passed together.
+- `npm run test:business-user-ux`: 99/99 passed.
+- `npx tsc --noEmit --pretty false`: passed.
+- `npm run build`: passed; 230 static pages generated.
+- No production deployment, authenticated production session, or database
+  write was performed.

@@ -503,6 +503,12 @@ test("Setup breaks the no-workspace connection-key loop", () => {
   assert.match(setupSource, /workspaceId \? "Create a connection key to begin" : "Create your workspace to begin"/);
 });
 
+test("workspace creation errors retry workspace setup instead of analytics", () => {
+  assert.match(source, /const retryError = workspace \? refreshAll : onCreateWorkspace/);
+  assert.match(source, /const retryErrorLabel = workspace \? "Retry dashboard data" : "Retry workspace setup"/);
+  assert.match(source, /<ErrorBanner message=\{error\} onRetry=\{retryError\} retryLabel=\{retryErrorLabel\} \/>/);
+});
+
 test("Setup documentation link is external and the connection steps are explicit", () => {
   assert.match(source, /label: "Read documentation"/);
   assert.match(source, /const documentationHref = `https:\/\/trackmcp\.com\/docs\/\$\{/);
