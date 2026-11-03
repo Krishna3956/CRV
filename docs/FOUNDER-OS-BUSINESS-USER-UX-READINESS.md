@@ -254,6 +254,11 @@ one non-wrapping control group at desktop widths, preventing the language
 control from visually colliding with `Example data`. This is a layout-only
 affordance fix; the two controls retain their existing actions and labels.
 
+A fresh local browser pass on the Example-data Overview exposed the same
+business-first reading order and showed `Data source` with `Illustration only`
+beside the language selector. The local route returned HTTP 200; this remains
+local evidence and does not replace authenticated production review.
+
 After the loading-state and palette revisions, the consolidated release gate
 was rerun and passed all 159 suites. The gate passed in the isolated worktree;
 it does not change the Tier 3 status because authenticated production and

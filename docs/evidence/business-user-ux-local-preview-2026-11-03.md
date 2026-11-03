@@ -1091,3 +1091,12 @@ Verification:
 - `npm run test:business-user-ux`: 100/100 passed.
 - `npx tsc --noEmit --pretty false`: passed.
 - `git diff --check`: passed.
+
+A fresh local browser pass at
+`http://127.0.0.1:3200/dashboard?view=overview&data=example` returned HTTP 200
+with the development-only dashboard bypass. The accessibility tree showed
+`Data source`, `Illustration only`, and the language selector as separate
+controls, followed by the business-first Overview order (`At a glance`,
+`Recommended next step`, KPIs, comparison, evidence, activity, attention,
+sessions, and outcomes). The local server was stopped cleanly; no production
+session or database state was touched.
