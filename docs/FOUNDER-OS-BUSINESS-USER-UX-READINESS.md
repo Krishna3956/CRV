@@ -15,11 +15,11 @@ outcome-copy, Quality helper-copy, final route-smoke, and auth-affordance passes
 The consolidated `npm run test:release-gate` passed all 159 suites on the
 current branch with the synthetic UAT report restored to its tracked fixture value
 after the run. The branch remains local and has not been merged or deployed.
-A fresh pull-request CI run (`41579118429`) also passed the required
-web/JavaScript, Go, and .NET jobs for the current branch head (`96a96c90`);
-the latest source verification remains anchored to `2ebc481f` because the
-subsequent commits only record evidence. The pull request remains open; this
-is validation evidence, not merge or deployment evidence.
+A fresh pull-request CI run (`41579733520`) also passed the required
+web/JavaScript, Go, and .NET jobs for the current branch. The latest source
+verification remains anchored to `2ebc481f` because the subsequent commits
+only record evidence. The pull request remains open; this is validation
+evidence, not merge or deployment evidence.
 A fresh local
 development browser pass now verifies both the My-data no-event state and the
 Example-data Overview on the current branch; this remains bypass evidence, not
