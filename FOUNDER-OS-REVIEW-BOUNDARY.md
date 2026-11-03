@@ -40,6 +40,9 @@ reviewer disposition before staging; it is never included by a blanket add.
 | `docs/cxo-dashboard-work-queue.md` | review-required | repository maintainer | release owner | CXO dashboard implementation checklist; review completion marks against focused tests and production evidence |
 | `docs/dashboard-cognitive-load-audit-2026-11.md` | review-required | repository maintainer | release owner | research-backed dashboard simplification rationale; review wording and visual-system claims before release |
 | `docs/dashboard-cognitive-load-work-queue.md` | review-required | repository maintainer | release owner | dashboard simplification checklist; review completion marks against focused tests and production evidence |
+| `docs/dashboard-competitive-research-2026-11.md` | review-required | repository maintainer | release owner | comparative product-analytics research and visual references; review source links and keep competitor claims bounded |
+| `docs/dashboard-ia-and-color-strategy-2026-11.md` | review-required | repository maintainer | release owner | dashboard information-architecture and semantic color strategy; review product-language and accessibility decisions before release |
+| `docs/dashboard-research-work-queue.md` | review-required | repository maintainer | release owner | research and color implementation checklist; review completion marks against tests and deployment evidence |
 
 ## Boundary rules
 
