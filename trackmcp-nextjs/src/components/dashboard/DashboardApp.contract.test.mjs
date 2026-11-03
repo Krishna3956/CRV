@@ -259,6 +259,12 @@ test("Outcome empty state explains the explicit-evidence requirement", () => {
   assert.match(source, /Tool activity alone is not treated as success/);
 });
 
+test("Issues empty state does not overclaim health", () => {
+  assert.match(source, /No confirmed incidents in this period/);
+  assert.match(source, /This is not proof that everything is healthy/);
+  assert.match(source, /review Overview and Evidence for the broader activity context/);
+});
+
 test("Overview exposes same-window comparisons only from read-model fields", () => {
   assert.match(source, /Compared with the previous period/);
   assert.match(source, /previous_period_calls/);

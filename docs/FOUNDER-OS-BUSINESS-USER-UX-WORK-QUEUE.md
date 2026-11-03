@@ -258,6 +258,10 @@ Legend: `[x]` verified/implemented in this workstream; `[ ]` pending.
       coverage remains pending authenticated verification.
 - [ ] What’s broken: affected volume, confidence, likely cause, recommended
       action, and evidence links for every actionable insight.
+- [x] ✅ Empty Issues results now say that no confirmed incidents are not proof
+      of overall health and point readers back to Overview/Evidence for context.
+      Full actionability/read-model coverage remains pending authenticated
+      verification.
 - [ ] Setup: unify server, environment, scoped key, optional identity,
       privacy, and first-event verification into one guided story.
 

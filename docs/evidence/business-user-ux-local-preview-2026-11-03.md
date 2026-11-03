@@ -916,3 +916,10 @@ start and final state from the server. When neither exists, the panel tells the
 reader that outcome evidence will appear after connection and keeps tool
 activity separate from business outcomes. No formula or read-model field was
 changed.
+
+## Issues empty-state interpretation in the current branch
+
+An empty confirmed-incident response now reads `No confirmed incidents in this
+period` and explicitly says that this is not proof that everything is healthy.
+The copy directs a business reader to Overview and Evidence for broader context,
+so an empty alert list is not mistaken for a complete health assessment.

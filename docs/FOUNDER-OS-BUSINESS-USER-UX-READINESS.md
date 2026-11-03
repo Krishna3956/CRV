@@ -201,6 +201,10 @@ starts or final states are present. It tells business readers that completion
 requires server-reported outcome evidence and keeps observed tool activity from
 being interpreted as success. Formula and read-model semantics are unchanged.
 
+Empty confirmed-incident results now use the same evidence boundary: the UI
+says `No confirmed incidents in this period`, explicitly avoids a whole-system
+health claim, and points readers to Overview and Evidence for broader context.
+
 After the loading-state and palette revisions, the consolidated release gate
 was rerun and passed all 159 suites. The gate passed in the isolated worktree;
 it does not change the Tier 3 status because authenticated production and

@@ -4017,9 +4017,10 @@ function IssuesView({
             </button>
           </div>
         ) : alertLoadState === "ready" && !orderedIncidents.length ? (
-          <div className="border border-line bg-paper p-4 text-sm text-muted">
-            No regression incidents were returned for this workspace.
-          </div>
+          <StateNote
+            title="No confirmed incidents in this period"
+            body="No regression incidents were returned for this workspace. This is not proof that everything is healthy; review Overview and Evidence for the broader activity context."
+          />
         ) : (
           <div className="space-y-3">
             {orderedIncidents.length > 0 && (
