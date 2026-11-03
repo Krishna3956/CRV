@@ -93,19 +93,20 @@ export type View =
   | "evidence"
   | "setup";
 
-type NavItem = { id: View; label: string; icon: LucideIcon };
+type NavAccent = "blue" | "teal" | "violet" | "amber" | "coral" | "slate" | "green";
+type NavItem = { id: View; label: string; icon: LucideIcon; accent: NavAccent };
 const primaryNav: NavItem[] = [
-  { id: "overview", label: "Overview", icon: BarChart3 },
-  { id: "clients", label: "Who's using it", icon: Users },
-  { id: "capabilities", label: "What they're doing", icon: Blocks },
-  { id: "resources", label: "Resources & prompts", icon: FileText },
+  { id: "overview", label: "Overview", icon: BarChart3, accent: "blue" },
+  { id: "clients", label: "Who's using it", icon: Users, accent: "teal" },
+  { id: "capabilities", label: "What they're doing", icon: Blocks, accent: "teal" },
+  { id: "resources", label: "Resources & prompts", icon: FileText, accent: "teal" },
 ];
 const moreNav: NavItem[] = [
-  { id: "journeys", label: "The journey", icon: Route },
-  { id: "quality", label: "Did it work", icon: ShieldCheck },
-  { id: "issues", label: "What's broken", icon: AlertTriangle },
-  { id: "evidence", label: "Evidence", icon: Search },
-  { id: "setup", label: "Setup", icon: Settings2 },
+  { id: "journeys", label: "The journey", icon: Route, accent: "violet" },
+  { id: "quality", label: "Did it work", icon: ShieldCheck, accent: "green" },
+  { id: "issues", label: "What's broken", icon: AlertTriangle, accent: "coral" },
+  { id: "evidence", label: "Evidence", icon: Search, accent: "slate" },
+  { id: "setup", label: "Setup", icon: Settings2, accent: "amber" },
 ];
 const allNav = primaryNav.concat(moreNav);
 const viewLabels: Record<View, string> = Object.fromEntries(
@@ -1247,7 +1248,7 @@ export function DashboardApp({
   }
 
   return (
-    <div className="dashboard-shell min-h-screen font-sans text-ink">
+    <div className="dashboard-shell min-h-screen font-sans text-ink" data-dashboard-view={view}>
       <div className="border-b border-amber-200 bg-amber-50 px-4 py-3 text-center text-xs leading-relaxed text-amber-900 lg:hidden" role="status">
         The TrackMCP dashboard is supported on desktop browsers for this pilot. For the full navigation and data tables, open TrackMCP on a desktop-sized browser window.
       </div>
@@ -1479,6 +1480,16 @@ function NavItemLabel({ item }: { item: NavItem }) {
   return <span className="truncate">{item.label}</span>;
 }
 
+const navAccentClasses: Record<NavAccent, { icon: string; marker: string }> = {
+  blue: { icon: "text-blue-600", marker: "bg-blue-50" },
+  teal: { icon: "text-teal-700", marker: "bg-teal-50" },
+  violet: { icon: "text-violet-700", marker: "bg-violet-50" },
+  amber: { icon: "text-amber-700", marker: "bg-amber-50" },
+  coral: { icon: "text-orange-700", marker: "bg-orange-50" },
+  slate: { icon: "text-slate-600", marker: "bg-slate-100" },
+  green: { icon: "text-green-700", marker: "bg-green-50" },
+};
+
 function DashboardNav({
   view,
   items,
@@ -1512,7 +1523,12 @@ function DashboardNav({
               : "text-muted hover:bg-paper hover:text-ink")
           }
         >
-          <item.icon size={16} strokeWidth={view === item.id ? 2.2 : 1.8} />
+          <span className={
+            "grid h-7 w-7 shrink-0 place-items-center rounded-md " +
+            (view === item.id ? "bg-white/15 text-white" : navAccentClasses[item.accent].marker + " " + navAccentClasses[item.accent].icon)
+          }>
+            <item.icon size={15} strokeWidth={view === item.id ? 2.2 : 1.8} />
+          </span>
           <NavItemLabel item={item} />
         </button>
       ))}
@@ -2246,7 +2262,7 @@ function Kpi({
           <span className="dashboard-label text-faint">{label}</span>
           <InfoHint label={`About ${label}`} text={helper} />
         </span>
-        <span className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-brand-soft text-brand-strong" aria-hidden="true">
+        <span data-dashboard-kpi-icon className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-brand-soft text-brand-strong" aria-hidden="true">
           <Icon size={16} />
         </span>
       </div>

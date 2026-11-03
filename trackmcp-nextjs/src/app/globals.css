@@ -173,9 +173,9 @@ body:has([data-site-nav]) .global-language-switcher {
   font-family: var(--font-sans);
 }
 
-/* Dashboard visual system: quiet neutral surfaces with one restrained blue
-   action color. Blue is for navigation and emphasis; green remains reserved
-   for positive status so the interface does not make every card look healthy. */
+/* Dashboard visual system: neutral surfaces with a small semantic palette.
+   Color is reserved for navigation, domain, and status meaning; there are no
+   decorative gradients in the dashboard. */
 .dashboard-shell {
   --color-canvas: #fafaf9;
   --color-paper: #ffffff;
@@ -190,7 +190,36 @@ body:has([data-site-nav]) .global-language-switcher {
   --color-brand-soft: #eff6ff;
   --color-mint: #f8fafc;
   --color-mint-ink: #1e40af;
+  --dash-blue: #2563eb;
+  --dash-violet: #7c3aed;
+  --dash-teal: #0f766e;
+  --dash-amber: #b45309;
+  --dash-coral: #c2410c;
+  --dash-slate: #475569;
+  --dash-green: #15803d;
+  --dash-blue-soft: #eff6ff;
+  --dash-violet-soft: #f5f3ff;
+  --dash-teal-soft: #f0fdfa;
+  --dash-amber-soft: #fffbeb;
+  --dash-coral-soft: #fff7ed;
+  --dash-slate-soft: #f1f5f9;
+  --dash-green-soft: #f0fdf4;
 }
+
+.dashboard-shell .dashboard-accent-blue { color: var(--dash-blue); background-color: var(--dash-blue-soft); }
+.dashboard-shell .dashboard-accent-violet { color: var(--dash-violet); background-color: var(--dash-violet-soft); }
+.dashboard-shell .dashboard-accent-teal { color: var(--dash-teal); background-color: var(--dash-teal-soft); }
+.dashboard-shell .dashboard-accent-amber { color: var(--dash-amber); background-color: var(--dash-amber-soft); }
+.dashboard-shell .dashboard-accent-coral { color: var(--dash-coral); background-color: var(--dash-coral-soft); }
+.dashboard-shell .dashboard-accent-slate { color: var(--dash-slate); background-color: var(--dash-slate-soft); }
+.dashboard-shell .dashboard-accent-green { color: var(--dash-green); background-color: var(--dash-green-soft); }
+
+.dashboard-shell .dashboard-chart-blue { color: var(--dash-blue); background-color: var(--dash-blue); }
+.dashboard-shell .dashboard-chart-violet { color: var(--dash-violet); background-color: var(--dash-violet); }
+.dashboard-shell .dashboard-chart-teal { color: var(--dash-teal); background-color: var(--dash-teal); }
+.dashboard-shell .dashboard-chart-amber { color: var(--dash-amber); background-color: var(--dash-amber); }
+.dashboard-shell .dashboard-chart-coral { color: var(--dash-coral); background-color: var(--dash-coral); }
+.dashboard-shell .dashboard-chart-slate { color: var(--dash-slate); background-color: var(--dash-slate); }
 
 /* Every enabled interactive control exposes the same pointer affordance,
    including public tools, auth, docs, and repository surfaces. */
@@ -237,6 +266,47 @@ button:disabled {
   font-weight: 600;
   line-height: 1.375rem;
 }
+
+/* A small domain marker gives each view a visual identity without turning
+   every panel into a colored card. */
+.dashboard-shell[data-dashboard-view="overview"] .dashboard-section-title::before,
+.dashboard-shell[data-dashboard-view="clients"] .dashboard-section-title::before,
+.dashboard-shell[data-dashboard-view="capabilities"] .dashboard-section-title::before,
+.dashboard-shell[data-dashboard-view="resources"] .dashboard-section-title::before,
+.dashboard-shell[data-dashboard-view="journeys"] .dashboard-section-title::before,
+.dashboard-shell[data-dashboard-view="quality"] .dashboard-section-title::before,
+.dashboard-shell[data-dashboard-view="issues"] .dashboard-section-title::before,
+.dashboard-shell[data-dashboard-view="evidence"] .dashboard-section-title::before,
+.dashboard-shell[data-dashboard-view="setup"] .dashboard-section-title::before {
+  display: inline-block;
+  width: 0.4rem;
+  height: 0.4rem;
+  margin-right: 0.5rem;
+  border-radius: 999px;
+  content: "";
+  vertical-align: 0.08em;
+}
+.dashboard-shell[data-dashboard-view="overview"] .dashboard-section-title::before { background: var(--dash-blue); }
+.dashboard-shell[data-dashboard-view="clients"] .dashboard-section-title::before,
+.dashboard-shell[data-dashboard-view="capabilities"] .dashboard-section-title::before,
+.dashboard-shell[data-dashboard-view="resources"] .dashboard-section-title::before { background: var(--dash-teal); }
+.dashboard-shell[data-dashboard-view="journeys"] .dashboard-section-title::before { background: var(--dash-violet); }
+.dashboard-shell[data-dashboard-view="quality"] .dashboard-section-title::before { background: var(--dash-green); }
+.dashboard-shell[data-dashboard-view="issues"] .dashboard-section-title::before { background: var(--dash-coral); }
+.dashboard-shell[data-dashboard-view="evidence"] .dashboard-section-title::before { background: var(--dash-slate); }
+.dashboard-shell[data-dashboard-view="setup"] .dashboard-section-title::before { background: var(--dash-amber); }
+
+/* KPI icons inherit the current domain so the page has a clear visual cue
+   without turning the entire metric grid into colored cards. */
+.dashboard-shell[data-dashboard-view="overview"] [data-dashboard-kpi-icon] { color: var(--dash-blue); background: var(--dash-blue-soft); }
+.dashboard-shell[data-dashboard-view="clients"] [data-dashboard-kpi-icon],
+.dashboard-shell[data-dashboard-view="capabilities"] [data-dashboard-kpi-icon],
+.dashboard-shell[data-dashboard-view="resources"] [data-dashboard-kpi-icon] { color: var(--dash-teal); background: var(--dash-teal-soft); }
+.dashboard-shell[data-dashboard-view="journeys"] [data-dashboard-kpi-icon] { color: var(--dash-violet); background: var(--dash-violet-soft); }
+.dashboard-shell[data-dashboard-view="quality"] [data-dashboard-kpi-icon] { color: var(--dash-green); background: var(--dash-green-soft); }
+.dashboard-shell[data-dashboard-view="issues"] [data-dashboard-kpi-icon] { color: var(--dash-coral); background: var(--dash-coral-soft); }
+.dashboard-shell[data-dashboard-view="evidence"] [data-dashboard-kpi-icon] { color: var(--dash-slate); background: var(--dash-slate-soft); }
+.dashboard-shell[data-dashboard-view="setup"] [data-dashboard-kpi-icon] { color: var(--dash-amber); background: var(--dash-amber-soft); }
 
 .dashboard-shell .dashboard-label {
   font-size: 0.75rem;
@@ -289,7 +359,7 @@ button:disabled {
   transform: translateY(0);
 }
 .dashboard-shell pre {
-  border: 1px solid rgba(22, 101, 52, 0.2);
+  border: 1px solid rgba(37, 99, 235, 0.2);
   box-shadow: inset 0 1px 0 rgba(255,255,255,0.04);
 }
 .dashboard-shell input:focus-visible,

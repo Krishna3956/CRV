@@ -155,16 +155,24 @@ test("dashboard typography uses the product type system", () => {
   assert.match(globalsSource, /font-size: 1\.0625rem/);
   assert.match(source, /dashboard-shell min-h-screen font-sans/);
   assert.match(globalsSource, /--color-brand: #2563eb/);
-  assert.match(globalsSource, /quiet neutral surfaces with one restrained blue/);
+  assert.match(globalsSource, /--dash-violet: #7c3aed/);
+  assert.match(globalsSource, /--dash-teal: #0f766e/);
+  assert.match(globalsSource, /--dash-amber: #b45309/);
+  assert.match(globalsSource, /--dash-coral: #c2410c/);
+  assert.match(globalsSource, /decorative gradients in the dashboard/);
   assert.match(globalsSource, /--color-brand-strong: #1d4ed8/);
   assert.match(globalsSource, /--color-brand-soft: #eff6ff/);
   assert.doesNotMatch(source, /linear-gradient/);
   assert.match(globalsSource, /button:not\(:disabled\):hover/);
 });
 
-test("dashboard decorative accents stay inside the neutral and green system", () => {
+test("dashboard decorative accents use bounded semantic colors", () => {
   assert.doesNotMatch(source, /bg-\[#d7e5db\]|bg-\[#f4faf6\]|bg-\[#f6faf7\]|18,59,42/);
   assert.doesNotMatch(source, /49,46,129|55,48,163/);
+  assert.match(source, /accent: "teal"/);
+  assert.match(source, /accent: "violet"/);
+  assert.match(source, /accent: "coral"/);
+  assert.match(source, /data-dashboard-kpi-icon/);
   assert.match(source, /bg-brand-soft\/30/);
   assert.match(source, /bg-brand-soft\/20/);
   assert.match(source, /fill=\"#bbf7d0\"/);
