@@ -160,9 +160,10 @@ closed with HTTP 503. This is expected safety behavior, not production
 evidence; a real authenticated environment is still required.
 
 The dashboard palette was revised again after review: primary actions now use
-a restrained green on warm-neutral surfaces rather than a generic analytics
-blue. The lighter green is approachable, with darker green reserved for
-active controls and readable button text. This is a local, verified change only.
+a restrained, muted green on warm-neutral surfaces rather than a generic
+analytics blue. The lower-saturation green is calmer for analytical scanning,
+with darker green reserved for active controls and readable button text. This
+is a local, verified change only.
 
 The first-load workspace handoff was aligned to the same palette so a new user
 does not see a separate slate/indigo loading surface before entering the

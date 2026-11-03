@@ -839,3 +839,32 @@ when the analytics read model returns same-length comparison fields. It uses
 If a previous window is absent, the UI says `Not available`; if the baseline is
 zero, it says `No comparable baseline` rather than inventing a percentage.
 No backend formula or read-model field was changed.
+
+## Muted green dashboard palette after the current review
+
+The dashboard-only accent was softened after review of the rendered interface.
+The previous saturated green tokens were replaced with a muted green system:
+
+- `--color-brand: #2f7d5b` for links, bars, and focus accents.
+- `--color-brand-strong: #256b4b` for active navigation and primary controls.
+- `--color-brand-soft: #e8f3ec` for low-emphasis state surfaces.
+- `--color-mint: #eef4f0` and `--color-mint-ink: #285e43` for secondary green
+  surfaces.
+
+The values preserve the product meaning of green for actions and healthy
+signals, but reduce saturation so the analytical workspace does not read as a
+page of success alerts. Warning, error, and information colors remain separate.
+The public-site tokens and dashboard data/read models were not changed.
+
+Local visual evidence: the Example Overview at
+`/dashboard?view=overview&data=example` rendered the business-first navigation,
+period comparison, source-state banner, and overview panels with the muted
+palette. Verification after the change:
+
+- `npm run test:business-user-ux`: 88/88 passed.
+- `npm run test:metric-contract`: 4/4 passed.
+- `npx tsc --noEmit --pretty false`: passed.
+- `npm run build`: passed; 230 static pages generated.
+- `git diff --check`: passed.
+
+This is local branch evidence only; no production deployment was performed.
