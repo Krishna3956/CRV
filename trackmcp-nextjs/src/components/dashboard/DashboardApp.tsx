@@ -1225,7 +1225,7 @@ export function DashboardApp({
   }
 
   return (
-    <div className="dashboard-shell min-h-screen bg-slate-50 font-sans text-ink">
+    <div className="dashboard-shell min-h-screen font-sans text-ink">
       <div className="border-b border-amber-200 bg-amber-50 px-4 py-3 text-center text-xs leading-relaxed text-amber-900 lg:hidden" role="status">
         The TrackMCP dashboard is supported on desktop browsers for this pilot. For the full navigation and data tables, open TrackMCP on a desktop-sized browser window.
       </div>
@@ -1486,7 +1486,7 @@ function DashboardNav({
           className={
             "mb-1 flex w-full cursor-pointer items-center gap-3 rounded-lg px-3 py-2.5 text-left text-[13px] font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand " +
             (view === item.id
-              ? "bg-brand-strong text-white shadow-[0_8px_20px_-14px_rgba(55,48,163,0.32)]"
+              ? "bg-brand-strong text-white shadow-[0_8px_20px_-14px_rgba(15,118,110,0.32)]"
               : "text-muted hover:bg-paper hover:text-ink")
           }
         >
@@ -1518,7 +1518,7 @@ function DataModeToggle({
           className={
             "cursor-pointer rounded-md px-3 py-2 text-[12px] font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand " +
             (dataMode === "my"
-              ? "bg-brand-strong text-white shadow-[0_6px_16px_-12px_rgba(55,48,163,0.32)]"
+              ? "bg-brand-strong text-white shadow-[0_6px_16px_-12px_rgba(15,118,110,0.32)]"
               : "text-muted hover:bg-paper hover:text-ink")
           }
         >
@@ -1533,7 +1533,7 @@ function DataModeToggle({
           className={
             "cursor-pointer rounded-md px-3 py-2 text-[12px] font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand " +
             (dataMode === "example"
-              ? "bg-brand-strong text-white shadow-[0_6px_16px_-12px_rgba(55,48,163,0.32)]"
+              ? "bg-brand-strong text-white shadow-[0_6px_16px_-12px_rgba(15,118,110,0.32)]"
               : "text-muted hover:bg-paper hover:text-ink")
           }
         >
@@ -1573,7 +1573,7 @@ function DateRange({
             className={
               "cursor-pointer rounded-md px-2.5 py-2 text-[11px] font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand " +
               (value === option.value
-                ? "bg-brand-strong text-white shadow-[0_6px_16px_-12px_rgba(55,48,163,0.32)]"
+                ? "bg-brand-strong text-white shadow-[0_6px_16px_-12px_rgba(15,118,110,0.32)]"
                 : "text-muted hover:bg-paper hover:text-ink")
             }
           >
@@ -1810,7 +1810,7 @@ function ServerConnectionState({
         title="What TrackMCP will help your team understand"
         body="TrackMCP shows your team who is using the MCP, what they are trying to do, whether work completed, and what needs attention. A technical teammate connects one server; after the first event, these views start filling with evidence."
       />
-      <section className="overflow-hidden rounded-2xl border border-line bg-white p-6 shadow-[0_24px_60px_-44px_rgba(55,48,163,0.18)] sm:p-8">
+      <section className="overflow-hidden rounded-2xl border border-line bg-white p-6 shadow-[0_24px_60px_-44px_rgba(15,118,110,0.18)] sm:p-8">
         <div className="flex items-start gap-3">
           <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-brand-soft text-brand-strong">
             <Info size={19} />
@@ -1827,7 +1827,7 @@ function ServerConnectionState({
                 type="button"
                 disabled={working}
                 onClick={onPrimary}
-                className="inline-flex cursor-pointer items-center gap-2 rounded-lg bg-brand-strong px-4 py-2.5 text-sm font-semibold text-white shadow-[0_10px_24px_-14px_rgba(55,48,163,0.32)] hover:bg-brand-strong disabled:cursor-not-allowed disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
+                className="inline-flex cursor-pointer items-center gap-2 rounded-lg bg-brand-strong px-4 py-2.5 text-sm font-semibold text-white shadow-[0_10px_24px_-14px_rgba(15,118,110,0.32)] hover:bg-brand-strong disabled:cursor-not-allowed disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
               >
                 {working ? "Working…" : primaryLabel}
                 <ArrowRight size={15} />
@@ -1902,7 +1902,7 @@ function LiveDataState({
   onUseExample?: () => void;
 }) {
   return (
-    <section className="grid min-h-[420px] place-items-center rounded-2xl border border-line bg-white p-8 text-center shadow-[0_24px_60px_-44px_rgba(55,48,163,0.16)]">
+    <section className="grid min-h-[420px] place-items-center rounded-2xl border border-line bg-white p-8 text-center shadow-[0_24px_60px_-44px_rgba(15,118,110,0.16)]">
       <div className="max-w-lg">
         <span className="mx-auto grid h-12 w-12 place-items-center rounded-2xl bg-amber-50 text-amber-700">
           <AlertTriangle size={22} />
@@ -1919,7 +1919,7 @@ function LiveDataState({
           <button
             type="button"
             onClick={onRetry}
-            className="inline-flex cursor-pointer items-center gap-2 rounded-lg bg-brand-strong px-4 py-2.5 text-sm font-semibold text-white shadow-[0_10px_24px_-14px_rgba(55,48,163,0.32)] hover:bg-brand-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
+            className="inline-flex cursor-pointer items-center gap-2 rounded-lg bg-brand-strong px-4 py-2.5 text-sm font-semibold text-white shadow-[0_10px_24px_-14px_rgba(15,118,110,0.32)] hover:bg-brand-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
           >
             <RefreshCw size={15} />
             Retry
@@ -2189,7 +2189,7 @@ function DataSourceStrip({
               ? `/dashboard?view=${view}&data=my`
               : "/dashboard?view=setup&data=my"
           }
-          className="ml-auto inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-lg bg-brand-strong px-3.5 py-2 text-xs font-semibold text-white shadow-[0_10px_24px_-14px_rgba(55,48,163,0.32)] hover:bg-brand-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
+          className="ml-auto inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-lg bg-brand-strong px-3.5 py-2 text-xs font-semibold text-white shadow-[0_10px_24px_-14px_rgba(15,118,110,0.32)] hover:bg-brand-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
         >
           {canViewMyData ? "View my data" : "Connect your MCP"}
           <ArrowRight size={13} />
@@ -2210,7 +2210,7 @@ function Panel({
   action?: { label: string; onClick?: () => void; href?: string };
 }) {
   return (
-    <section className="rounded-2xl border border-line bg-white p-5 shadow-[0_20px_45px_-38px_rgba(55,48,163,0.2)] sm:p-6">
+    <section className="rounded-2xl border border-line bg-white p-5 shadow-[0_20px_45px_-38px_rgba(15,118,110,0.2)] sm:p-6">
       <div className="flex items-start justify-between gap-4">
         <div className="flex min-w-0 items-center gap-2">
           <h2 className="dashboard-section-title text-ink">{title}</h2>
@@ -2274,7 +2274,7 @@ function Kpi({
   icon: LucideIcon;
 }) {
   return (
-    <div className="rounded-xl border border-line bg-white p-4 shadow-[0_12px_28px_-24px_rgba(55,48,163,0.24)] transition-shadow hover:shadow-[0_16px_32px_-24px_rgba(55,48,163,0.28)]">
+    <div className="rounded-xl border border-line bg-white p-4 shadow-[0_12px_28px_-24px_rgba(15,118,110,0.24)] transition-shadow hover:shadow-[0_16px_32px_-24px_rgba(15,118,110,0.28)]">
       <div className="flex items-start justify-between gap-2">
         <span className="flex items-center gap-1.5">
           <span className="dashboard-label text-faint">{label}</span>
@@ -4881,7 +4881,7 @@ function SetupView({
           </div>
         ))}
       </section>
-      <section className="mb-6 rounded-2xl border border-line bg-white p-5 shadow-[0_20px_45px_-38px_rgba(55,48,163,0.18)] sm:p-6" aria-labelledby="setup-status-title" aria-live="polite">
+      <section className="mb-6 rounded-2xl border border-line bg-white p-5 shadow-[0_20px_45px_-38px_rgba(15,118,110,0.18)] sm:p-6" aria-labelledby="setup-status-title" aria-live="polite">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
             <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-brand-strong">Connection status</p>
@@ -5134,7 +5134,7 @@ function SetupView({
                 type="button"
                 onClick={onCreateWorkspace}
                 disabled={working}
-                className="mt-4 inline-flex cursor-pointer items-center gap-2 rounded-lg bg-brand-strong px-4 py-2.5 text-sm font-semibold text-white shadow-[0_10px_24px_-14px_rgba(55,48,163,0.32)] hover:bg-brand-strong disabled:cursor-not-allowed disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
+                className="mt-4 inline-flex cursor-pointer items-center gap-2 rounded-lg bg-brand-strong px-4 py-2.5 text-sm font-semibold text-white shadow-[0_10px_24px_-14px_rgba(15,118,110,0.32)] hover:bg-brand-strong disabled:cursor-not-allowed disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
               >
                 <KeyRound size={15} />
                 {working ? "Creating workspace…" : "Create workspace"}
@@ -5244,7 +5244,7 @@ function SetupView({
                 type="button"
                 onClick={() => onGenerateKey(scopeNewKey ? { serviceScope: boundedService, environmentScope: boundedEnvironment } : undefined)}
                 disabled={working}
-              className="mt-4 inline-flex cursor-pointer items-center gap-2 rounded-lg bg-brand-strong px-4 py-2.5 text-sm font-semibold text-white shadow-[0_10px_24px_-14px_rgba(55,48,163,0.32)] hover:bg-brand-strong disabled:cursor-not-allowed disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
+              className="mt-4 inline-flex cursor-pointer items-center gap-2 rounded-lg bg-brand-strong px-4 py-2.5 text-sm font-semibold text-white shadow-[0_10px_24px_-14px_rgba(15,118,110,0.32)] hover:bg-brand-strong disabled:cursor-not-allowed disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
               >
                 <KeyRound size={15} />
                 {working ? "Creating…" : "Create connection key"}
@@ -5253,7 +5253,7 @@ function SetupView({
           )}
         </Panel>
       </div>
-      <details className="mt-6 rounded-2xl border border-line bg-white p-5 shadow-[0_20px_45px_-38px_rgba(55,48,163,0.16)] sm:p-6">
+      <details className="mt-6 rounded-2xl border border-line bg-white p-5 shadow-[0_20px_45px_-38px_rgba(15,118,110,0.16)] sm:p-6">
         <summary className="flex cursor-pointer list-none items-center justify-between gap-3 text-[15px] font-semibold text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand">
           <span>Observed connection details <span className="ml-2 text-xs font-normal text-muted">Optional detail for product and engineering teams</span></span>
           <span className="text-xs font-medium text-brand-strong">View details</span>
@@ -5284,7 +5284,7 @@ function SetupView({
           )}
         </div>
       </details>
-      <details className="mt-6 rounded-2xl border border-line bg-white p-5 shadow-[0_20px_45px_-38px_rgba(55,48,163,0.16)] sm:p-6">
+      <details className="mt-6 rounded-2xl border border-line bg-white p-5 shadow-[0_20px_45px_-38px_rgba(15,118,110,0.16)] sm:p-6">
         <summary className="flex cursor-pointer list-none items-center justify-between gap-3 text-[15px] font-semibold text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand">
           <span>Optional identity <span className="ml-2 text-xs font-normal text-muted">Resolve account activity without exposing raw identifiers</span></span>
           <span className="text-xs font-medium text-brand-strong">Configure</span>
@@ -5310,7 +5310,7 @@ function SetupView({
               : `var telemetry = new TrackMcpClient(new TrackMcpOptions(\n    Environment.GetEnvironmentVariable("TRACKMCP_KEY") ?? "",\n    "${boundedService || "my-mcp-server"}",\n    "${boundedEnvironment}",\n    AccountIdResolver: () => verifiedTenantForRequest()));`}</code></pre>
         <p className="mt-3 text-[11px] leading-relaxed text-faint">Only use a stable, non-secret identifier already verified by your application. Do not return emails, tokens, URLs, prompts, completions, or raw user IDs. Without a resolver, activity remains visible but is counted as unresolved.</p>
       </details>
-      <details className="mt-6 rounded-2xl border border-line bg-white p-5 shadow-[0_20px_45px_-38px_rgba(55,48,163,0.16)] sm:p-6">
+      <details className="mt-6 rounded-2xl border border-line bg-white p-5 shadow-[0_20px_45px_-38px_rgba(15,118,110,0.16)] sm:p-6">
         <summary className="flex cursor-pointer list-none items-center gap-3 text-[15px] font-semibold text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand">
           <span className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-paper text-muted"><Info size={17} /></span>
           <span>Know what you are sharing <span className="ml-2 text-xs font-normal text-muted">Privacy and data flow</span></span>
@@ -5355,7 +5355,7 @@ function SetupView({
         </p>
       </details>
       <PrivacyControls workspaceId={workspaceId} />
-      <details className="mt-6 rounded-2xl border border-line bg-white p-5 shadow-[0_20px_45px_-38px_rgba(55,48,163,0.16)] sm:p-6">
+      <details className="mt-6 rounded-2xl border border-line bg-white p-5 shadow-[0_20px_45px_-38px_rgba(15,118,110,0.16)] sm:p-6">
         <summary className="cursor-pointer text-sm font-semibold text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand">
           Other connection methods <span className="ml-2 text-xs font-normal text-muted">OpenTelemetry, Go, .NET, tester, and auth guides</span>
         </summary>
@@ -5568,7 +5568,7 @@ function DashboardOnboarding({
                 workspace ? onGenerateKey() : onCreateWorkspace()
               }
               disabled={working}
-              className="mt-3 inline-flex cursor-pointer items-center gap-2 rounded-lg bg-brand-strong px-4 py-2.5 text-sm font-semibold text-white shadow-[0_10px_24px_-14px_rgba(55,48,163,0.32)] hover:bg-brand-strong disabled:cursor-not-allowed disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
+              className="mt-3 inline-flex cursor-pointer items-center gap-2 rounded-lg bg-brand-strong px-4 py-2.5 text-sm font-semibold text-white shadow-[0_10px_24px_-14px_rgba(15,118,110,0.32)] hover:bg-brand-strong disabled:cursor-not-allowed disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
             >
               {working
                 ? "Working…"
@@ -5597,7 +5597,7 @@ function DashboardOnboarding({
             <button
               type="button"
               onClick={onOpenDashboard}
-              className="inline-flex cursor-pointer items-center gap-1.5 rounded-lg bg-brand-strong px-3 py-2 text-xs font-semibold text-white shadow-[0_8px_20px_-14px_rgba(55,48,163,0.32)] hover:bg-brand-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
+              className="inline-flex cursor-pointer items-center gap-1.5 rounded-lg bg-brand-strong px-3 py-2 text-xs font-semibold text-white shadow-[0_8px_20px_-14px_rgba(15,118,110,0.32)] hover:bg-brand-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
             >
               Open Overview <ArrowRight size={13} />
             </button>
@@ -5713,7 +5713,7 @@ function UsageChart({ timeline }: { timeline: Analytics["timeline"] }) {
             width={barWidth}
             height={Math.max(1, height - bottom - y(day.calls))}
             rx="3"
-            fill={hoveredIndex === index ? "#0c7657" : "#159b73"}
+            fill={hoveredIndex === index ? "#115e59" : "#0f766e"}
             tabIndex={0}
             role="img"
             aria-label={`${dateLabel(day.date)}: ${day.events} events, ${day.calls} calls, ${day.errors} errors`}
@@ -5753,10 +5753,10 @@ function UsageChart({ timeline }: { timeline: Analytics["timeline"] }) {
             <text x={tooltipX + 12} y={tooltipY + 19} fontSize="11" fontWeight="600" fill="#ffffff">
               {dateLabel(hoveredDay.date)}
             </text>
-            <text x={tooltipX + 12} y={tooltipY + 38} fontSize="10" fill="#c7d2fe">
+            <text x={tooltipX + 12} y={tooltipY + 38} fontSize="10" fill="#99f6e4">
               Events: {fmt(hoveredDay.events)}
             </text>
-            <text x={tooltipX + 12} y={tooltipY + 54} fontSize="10" fill="#c7d2fe">
+            <text x={tooltipX + 12} y={tooltipY + 54} fontSize="10" fill="#99f6e4">
               Calls: {fmt(hoveredDay.calls)}
             </text>
             <text x={tooltipX + 12} y={tooltipY + 70} fontSize="10" fill="#f2c4a8">

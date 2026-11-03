@@ -683,3 +683,17 @@ The browser request returned HTTP 200. The setup read-model calls returned
 HTTP 503 because the preview intentionally used placeholder Supabase values;
 this confirms the page's safe no-connection rendering, not production setup
 success. No source code or production data was changed during this inspection.
+
+## Palette revision preview after `af45a856`
+
+The dashboard palette was revised locally after review of the current rendered
+Example-data Overview. The previous implementation mixed a dashboard indigo
+override with legacy green setup accents and indigo-tinted shadows. The new
+dashboard tokens use warm neutral surfaces and deep teal for primary actions;
+green is reserved for confirmed success states, while amber/red/blue remain
+semantic warning, failure, and information colors.
+
+The preview rendered the Example-data Overview successfully with the revised
+tokens and retained the same business hierarchy, copy, navigation, KPI values,
+and evidence boundaries. No analytics or API behavior changed. This is a local
+visual verification only; production has not been changed.
