@@ -2,7 +2,7 @@
 
 Date: 2026-11-03  
 Branch: `codex/business-user-ux-audit`  
-Latest verified commit: `fe5f55c6` (`docs: record final UX CI status`)
+Latest verified commit: `254c2d4b` (`docs: record fresh local UX browser pass`)
 
 This matrix is the release-readiness companion to the UX audit and work
 queue. It intentionally separates source-level proof, read-only browser proof,
@@ -15,14 +15,14 @@ outcome-copy, Quality helper-copy, final route-smoke, and auth-affordance passes
 The consolidated `npm run test:release-gate` passed all 159 suites on the
 current branch with the synthetic UAT report restored to its tracked fixture value
 after the run. The branch remains local and has not been merged or deployed.
-A fresh pull-request CI run (`41582052046`) also passed the required
+A fresh pull-request CI run (`41583167880`) also passed the required
 web/JavaScript, Go, and .NET jobs for the current branch. The latest source
 verification remains anchored to the same UX source changes; the subsequent
 commits record evidence only. The pull request remains open; this is validation
 evidence, not merge or deployment evidence.
-The Vercel Preview for this head is currently rate limited by the external
-provider; the earlier successful preview and rate-limited history are retained
-in `docs/evidence/business-user-ux-vercel-preview-rate-limit-2026-11-03.md`.
+The Vercel Preview for this head also completed successfully. Earlier
+rate-limited history is retained in
+`docs/evidence/business-user-ux-vercel-preview-rate-limit-2026-11-03.md`.
 A fresh local
 development browser pass now verifies both the My-data no-event state and the
 Example-data Overview on the current branch; this remains bypass evidence, not
