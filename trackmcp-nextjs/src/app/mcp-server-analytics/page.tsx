@@ -28,7 +28,7 @@ const jsonLd = {
 };
 
 const signals = [
-  { icon: Users, label: "Who", title: "Clients and connections", body: "See which clients connect, where usage comes from, and which environments are actually active.", tile: "bg-sky-100 text-sky-600" },
+  { icon: Users, label: "Who", title: "Clients and connections", body: "See which clients connect, where usage comes from, and which environments are actually active.", tile: "bg-brand-soft text-brand-strong" },
   { icon: Wrench, label: "What", title: "Tools and workflows", body: "Understand the tools agents reach for, the paths they take, and the catalog gaps visible in observed traffic.", tile: "bg-violet-100 text-violet-600" },
   { icon: Activity, label: "Where", title: "Failures and drop-off", body: "Find the first broken call, retry loop, slow dependency, or silent application error inside a 200 OK.", tile: "bg-rose-100 text-rose-600" },
 ];

@@ -221,7 +221,7 @@ const reliability: Detail[] = [
   },
   {
     icon: ScanSearch,
-    tile: "bg-sky-100 text-sky-600",
+    tile: "bg-brand-soft text-brand-strong",
     eyebrow: "Call inspector",
     title: "Inspect any observed call",
     body: "See bounded sanitized payloads, timing, client metadata, and errors without grepping a log file.",
@@ -233,7 +233,7 @@ const reliability: Detail[] = [
 const adoption: Detail[] = [
   {
     icon: Users,
-    tile: "bg-sky-100 text-sky-600",
+    tile: "bg-brand-soft text-brand-strong",
     eyebrow: "Client breakdown",
     title: "See exactly who is calling your server",
     body: "Split every metric by the agent behind it: Claude, Cursor, ChatGPT, or a custom agent. Know where your adoption actually comes from.",
@@ -294,7 +294,7 @@ function FeatureDetail({ item, reverse }: { item: Detail; reverse: boolean }) {
 const aiCards = [
   {
     icon: ScanSearch,
-    tile: "bg-sky-100 text-sky-600",
+    tile: "bg-brand-soft text-brand-strong",
     title: "Detect",
     body: "Finds the tools failing silently and the ones no agent calls, without you writing a single query.",
   },
@@ -314,7 +314,7 @@ const aiCards = [
 
 const integrations = [
   { icon: Terminal, tile: "bg-slate-100 text-slate-600", title: "TypeScript SDK", body: "Wrap the official MCP server in one line." },
-  { icon: Terminal, tile: "bg-sky-100 text-sky-600", title: "Python SDK", body: "Same one-line wrap for Python servers." },
+  { icon: Terminal, tile: "bg-brand-soft text-brand-strong", title: "Python SDK", body: "Same one-line wrap for Python servers." },
   { icon: Bell, tile: "bg-amber-100 text-amber-600", title: "Slack alerts (Planned)", body: "Notifications are planned; P0 provides dashboard evidence instead." },
   { icon: Webhook, tile: "bg-violet-100 text-violet-600", title: "Webhooks (Planned)", body: "Outbound event delivery is planned; it is not part of P0." },
   { icon: Plug, tile: "bg-teal-100 text-teal-600", title: "REST API", body: "Query your own metrics programmatically." },

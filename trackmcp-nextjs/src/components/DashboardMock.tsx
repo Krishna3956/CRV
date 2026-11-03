@@ -25,7 +25,7 @@ import { TrackMCPAppIcon } from "./TrackMCPAppIcon";
 const NAV = [
   { key: "overview", label: "Overview", icon: LayoutGrid, tile: "bg-slate-100 text-slate-600" },
   { key: "tools", label: "What they're doing", icon: Wrench, tile: "bg-violet-100 text-violet-600" },
-  { key: "sessions", label: "Evidence", icon: Activity, tile: "bg-sky-100 text-sky-600" },
+  { key: "sessions", label: "Evidence", icon: Activity, tile: "bg-brand-soft text-brand-strong" },
   { key: "workflows", label: "The journey", icon: Workflow, tile: "bg-brand-soft text-brand-strong" },
   { key: "clients", label: "Who's using it", icon: Users, tile: "bg-amber-100 text-amber-600" },
   { key: "outcomes", label: "Did it work", icon: Target, tile: "bg-teal-100 text-teal-600" },

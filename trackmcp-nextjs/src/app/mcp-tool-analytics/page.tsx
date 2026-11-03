@@ -27,7 +27,7 @@ const metrics = [
 
 const questions = [
   [BarChart3, "Adoption", "Which tools carry the product, and which ones are never selected?", "bg-violet-100 text-violet-600"],
-  [Wrench, "Selection", "Do agents understand the tool names, descriptions, and input schemas?", "bg-sky-100 text-sky-600"],
+  [Wrench, "Selection", "Do agents understand the tool names, descriptions, and input schemas?", "bg-brand-soft text-brand-strong"],
   [CircleAlert, "Errors", "Which tools fail, retry, or return application errors inside a 200 response?", "bg-amber-100 text-amber-600"],
   [Target, "Completion", "Do the calls add up to a completed workflow or an abandoned session?", "bg-brand-soft text-brand-strong"],
 ];

@@ -17,7 +17,7 @@ const links = [
 
 const repoLinks = [
   { label: "Browse all", href: "/repository", desc: "Full MCP directory", icon: Library, tile: "bg-brand-soft text-brand-strong" },
-  { label: "What's new", href: "/new", desc: "Latest additions", icon: Sparkles, tile: "bg-sky-100 text-sky-600" },
+  { label: "What's new", href: "/new", desc: "Latest additions", icon: Sparkles, tile: "bg-brand-soft text-brand-strong" },
   { label: "Popular", href: "/top-mcp", desc: "Top by GitHub stars", icon: TrendingUp, tile: "bg-amber-100 text-amber-600" },
   { label: "Categories", href: "/categories", desc: "Browse by what they do", icon: Boxes, tile: "bg-violet-100 text-violet-600" },
   { label: "Submit your MCP", href: "/submit-mcp", desc: "Add your MCP server", icon: Plus, tile: "bg-brand-soft text-brand-strong" },

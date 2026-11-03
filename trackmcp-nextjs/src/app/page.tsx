@@ -116,7 +116,7 @@ export default function Home() {
             />
             <div className="relative flex flex-wrap items-center justify-center gap-2.5 px-8 pb-6 pt-5">
               {[
-                { icon: Users, label: "See who is using it", tile: "bg-sky-100 text-sky-600" },
+                { icon: Users, label: "See who is using it", tile: "bg-brand-soft text-brand-strong" },
                 { icon: Wrench, label: "See what they use", tile: "bg-violet-100 text-violet-600" },
                 { icon: TrendingUp, label: "Know what to improve", tile: "bg-brand-soft text-brand-strong" },
               ].map((t, i) => (
