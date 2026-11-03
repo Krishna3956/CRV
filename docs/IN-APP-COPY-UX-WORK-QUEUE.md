@@ -14,12 +14,14 @@ evidence before it is marked complete.
 - [x] ✅ Add focused contract coverage for the revised signup field contract.
 - [x] ✅ Add focused contract coverage for setup method discoverability.
 - [x] ✅ Run the focused UX suite, typecheck, and production build against this
-      change set. The UX suite passes 120/120 and the build generates 230/230
+      change set. The UX suite passes 121/121 and the build generates 230/230
       pages.
 - [x] ✅ Run the consolidated release gate and restore generated evidence
       fixtures. The gate passes 159 suites.
-- [ ] Run the local rendered browser pass against signup, dashboard loading,
-      Setup, and an activated Example data view.
+- [x] ✅ Run the local rendered browser pass against signup, Setup, live-data
+      fallback, and activated Example data. The transient workspace-loading
+      state is covered by the source contract and build; it transitions too
+      quickly for a stable accessibility snapshot.
 - [ ] Deploy only after review and run authenticated new-account and activated-
       account verification.
 - [ ] Run the non-technical participant UAT and record comprehension failures.

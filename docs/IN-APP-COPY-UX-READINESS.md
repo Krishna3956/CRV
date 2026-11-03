@@ -29,12 +29,14 @@ Scope: copy, interaction explanations, signup friction, setup discoverability, l
   the release gate.
 - Local browser review: signup rendered the reduced form and correct signup
   copy; Setup rendered the recommended TypeScript path alongside Python, Go,
-  .NET, and OpenTelemetry; the signup hydration warning was not reproduced
-  after the state-initialization fix.
+  .NET, and OpenTelemetry; Example data rendered the business-first overview;
+  live-data fallback rendered the setup recovery path; and the signup
+  hydration warning was not reproduced after the state-initialization fix.
+  The workspace-loading state is intentionally transient, so its copy remains
+  verified by the source contract and production build rather than a stable
+  browser snapshot.
 
 ## Still required before release
 
-- Local rendered browser review of signup, dashboard loading, Setup, and an
-  activated Example data view.
 - Production deployment and authenticated verification.
 - Non-technical participant UAT.
