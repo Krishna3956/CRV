@@ -1476,3 +1476,18 @@ Supabase values. The browser accessibility tree showed:
 
 This is a local rendering check only. It does not prove authenticated
 production data, and the branch remains unmerged and undeployed.
+
+## Fresh rendered journey-slice pass at `ebab0042`
+
+On 2026-11-03 at 06:44 UTC, the Example-data `The journey` route was rendered
+locally with the development-only dashboard bypass. The accessibility tree
+showed common paths, stop states, reach, and pause/resume rows using readable
+capability descriptions such as `Find an invoice by customer, reference, or
+date.` instead of exposing machine identifiers as the primary label. The
+explicit workflow table retained business labels such as `Invoice Lookup`,
+while the technical session identifiers and Evidence actions remained
+available for investigation.
+
+The page continued to state that missing next events are not abandonment and
+that completion requires explicit workflow outcomes. This is local Example
+data only, not authenticated production evidence.
