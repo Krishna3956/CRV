@@ -2,7 +2,7 @@
 
 Date: 2026-11-03  
 Branch: `codex/business-user-ux-audit`  
-Latest verified commit: `80596208` (`Refine dashboard palette for business analytics`)
+Latest verified commit: `611854c6` (`Record signup journey browser evidence`)
 
 This matrix is the release-readiness companion to the UX audit and work
 queue. It intentionally separates source-level proof, read-only browser proof,
