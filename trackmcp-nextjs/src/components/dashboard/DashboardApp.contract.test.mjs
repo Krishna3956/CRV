@@ -188,7 +188,8 @@ test("dashboard keeps global controls inside one header and uses actionable empt
   assert.match(source, /aria-label="Next steps"/);
   assert.match(source, /Create a connection key/);
   assert.match(source, /Make one real tool call/);
-  assert.match(source, /Optional identity <span/);
+  assert.match(source, /Know what you are sharing/);
+  assert.doesNotMatch(source, /Optional identity <span/);
 });
 
 test("live-data failures offer a safe illustrative fallback", () => {
@@ -950,15 +951,13 @@ test("activity chart uses compact geometry and a table fallback", () => {
   assert.match(source, /View daily values as a table/);
 });
 
-test("Setup makes server-side account identity configuration discoverable", () => {
-  assert.match(source, /Show optional account-group activity/);
-  assert.match(source, /accountIdResolver/);
-  assert.match(source, /account_id_resolver/);
-  assert.match(source, /AccountIDResolver: func\(\) string/);
-  assert.doesNotMatch(source, /ResolveAccount: func\(ctx trackmcp\.Context\)/);
-  assert.match(source, /AccountIdResolver: \(\) => verifiedTenantForRequest\(\)/);
-  assert.match(source, /docs\/typescript#account-identity/);
-  assert.match(source, /Without a resolver, activity remains visible but is counted as unresolved/);
+test("Setup keeps optional identity out of the primary experience", () => {
+  assert.doesNotMatch(source, /Optional identity/);
+  assert.doesNotMatch(source, /Show optional account-group activity/);
+  assert.doesNotMatch(source, /accountIdResolver/);
+  assert.doesNotMatch(source, /account_id_resolver/);
+  assert.match(source, /Know what you are sharing/);
+  assert.match(source, /Other connection methods/);
 });
 
 test("Setup exposes an actionable OTLP endpoint and guide", () => {

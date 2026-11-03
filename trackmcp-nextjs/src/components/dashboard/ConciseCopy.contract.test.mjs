@@ -41,11 +41,13 @@ test("setup keeps the primary path visible and makes technical detail secondary"
   assert.match(source, /setupPath === "sdk"/);
   assert.match(source, /setupPath === "otel"/);
   assert.match(source, /Connect with OpenTelemetry/);
-  assert.match(source, /setup-path-content/);
+  assert.match(source, /setup-path-panel/);
+  assert.match(source, /role="tabpanel"/);
   assert.match(source, /variant="green"/);
   assert.match(source, /groupLabel="Outcome"/);
   assert.match(source, /<details className=\"mt-6 rounded-2xl border border-line bg-white/);
   assert.match(source, /Other connection methods/);
+  assert.doesNotMatch(source, /Optional identity/);
 });
 
 test("evidence boundaries remain explicit after copy reduction", () => {
