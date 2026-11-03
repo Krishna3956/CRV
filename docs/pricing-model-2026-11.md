@@ -15,7 +15,7 @@ retention, environments, and support rather than by seats:
 | Tier | Proposed price | Intended customer | Included event allowance |
 | --- | ---: | --- | ---: |
 | Free | $0 forever | A developer or team evaluating one MCP server | 100,000 events/month |
-| Hobby | $29/month | A small production team | 1,000,000 events/month |
+| Hobby | $129/month | A small production team | 1,000,000 events/month |
 | Enterprise | Custom | Higher volume, governance, procurement, or deployment requirements | Custom |
 
 These numbers are intentionally conservative launch packaging. They are large
@@ -62,11 +62,12 @@ Primary sources:
 - https://newrelic.com/pricing/free-tier
 - https://axiom.co/pricing
 
-## Why TrackMCP starts at $29 instead of $49
+## Why TrackMCP starts at $129 instead of $49
 
 The existing page used $49 for Pro without a live billing system or a proven
-cost-to-serve model. $29 makes the first paid step comparable to Langfuse Core,
-while keeping the product below the higher fixed entry points of infrastructure
+cost-to-serve model. $129 positions the first paid step as a production-team
+plan with substantially more included telemetry and retention than the free
+tier, while remaining below the higher fixed entry points of infrastructure
 observability products. This is a positioning decision, not a final financial
 forecast.
 

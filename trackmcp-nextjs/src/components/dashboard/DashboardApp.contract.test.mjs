@@ -174,7 +174,7 @@ test("dashboard decorative accents use bounded semantic colors", () => {
   assert.doesNotMatch(source, /bg-\[#d7e5db\]|bg-\[#f4faf6\]|bg-\[#f6faf7\]|18,59,42/);
   assert.doesNotMatch(source, /49,46,129|55,48,163/);
   assert.match(source, /accent: "teal"/);
-  assert.match(source, /accent: "violet"/);
+  assert.match(source, /accent: "green"/);
   assert.match(source, /accent: "coral"/);
   assert.match(source, /data-dashboard-kpi-icon/);
   assert.match(source, /bg-brand-soft\/30/);
