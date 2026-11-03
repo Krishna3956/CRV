@@ -12,121 +12,108 @@ import { Reveal } from "@/components/Reveal";
 export const metadata: Metadata = pageMeta({
   title: "Pricing | TrackMCP",
   description:
-    "Usage-based pricing for MCP analytics: start with 1,000 monthly tool calls free, then upgrade to 50,000 calls on Pro.",
+    "Simple, usage-based TrackMCP pricing for MCP teams. Start free, understand your usage, and scale when your servers do.",
   path: "/pricing",
 });
 
 const tiers = [
   {
-    name: "Hobby",
+    name: "Free",
     price: "$0",
     note: "forever",
-    desc: "For side projects and kicking the tires.",
+    desc: "For trying TrackMCP on a side project or a first server.",
     cta: "Start free",
     variant: "ghost" as const,
     featured: false,
     feats: [
-      "1,000 captured tool calls / month",
-      "7-day data retention",
-      "Core analytics dashboard",
-      "1 MCP server",
-      "1 team member",
+      "100,000 captured events / month",
+      "30-day data retention",
+      "1 workspace · 1 MCP server",
+      "3 teammates",
+      "SDK + OpenTelemetry ingestion",
+      "Core business dashboards",
       "Community support",
     ],
   },
   {
-    name: "Pro",
-    price: "$49",
+    name: "Hobby",
+    price: "$29",
     note: "per month",
-    desc: "For teams shipping MCP servers to real users.",
-    cta: "Get started",
+    desc: "For a small production team that wants more headroom and history.",
+    cta: "Join early access",
     variant: "primary" as const,
     featured: true,
     feats: [
-      "50,000 captured tool calls / month",
+      "1,000,000 captured events / month",
       "90-day data retention",
-      "Actionable usage insights",
       "Up to 5 MCP servers",
-      "Privacy-aware telemetry and trace inspection",
-      "Up to 5 team members",
+      "10 teammates",
+      "Up to 3 environments",
+      "API access and export-ready data",
       "Email support",
     ],
   },
   {
     name: "Enterprise",
     price: "Custom",
-    note: "let's talk",
-    desc: "For scale, compliance, and custom terms.",
+    note: "tailored",
+    desc: "For higher volume, governance, procurement, and deployment needs.",
     cta: "Contact us",
     variant: "ghost" as const,
     featured: false,
     feats: [
-      "Custom call volume and pricing",
-      "Custom retention",
-      "Multiple teams and environments",
-      "Security review and custom terms",
+      "Custom event volume and retention",
+      "Multiple workspaces and environments",
+      "SSO, RBAC, and audit requirements",
+      "Security and procurement review",
+      "Custom data residency or deployment",
       "Priority onboarding and support",
+      "Contracted support terms",
     ],
   },
 ];
 
 const compareCols = [
-  { name: "Hobby", price: "$0" },
-  { name: "Pro", price: "$49/mo", featured: true },
-  { name: "Enterprise", price: "Custom" },
+  { name: "Free", price: "$0", sub: "Forever" },
+  { name: "Hobby", price: "$29/mo", sub: "Small production teams", featured: true },
+  { name: "Enterprise", price: "Custom", sub: "Scale and governance" },
 ];
 
 type Cell = boolean | string;
 
 const compareGroups: { group: string; rows: { label: string; vals: [Cell, Cell, Cell] }[] }[] = [
   {
-    group: "Usage & retention",
+    group: "Usage & access",
     rows: [
-      { label: "Captured tool calls / month", vals: ["1,000", "50,000", "Custom"] },
-      { label: "Data retention", vals: ["7 days", "90 days", "Custom"] },
+      { label: "Captured events / month", vals: ["100,000", "1,000,000", "Custom"] },
+      { label: "Data retention", vals: ["30 days", "90 days", "Custom"] },
       { label: "MCP servers", vals: ["1", "5", "Custom"] },
-      { label: "Environments (production, staging)", vals: [false, true, true] },
-      { label: "Team members", vals: ["1", "5", "Custom"] },
+      { label: "Environments", vals: ["1", "3", "Custom"] },
+      { label: "Teammates", vals: ["3", "10", "Custom"] },
+      { label: "Unlimited querying", vals: [true, true, true] },
     ],
   },
   {
-    group: "Analytics",
+    group: "MCP observability",
     rows: [
-      { label: "Tool analytics: calls, ranking, trends", vals: [true, true, true] },
-      { label: "Latency & error rates (p50 / p95)", vals: [true, true, true] },
-      { label: "Errors hidden inside a 200 OK", vals: [true, true, true] },
-      { label: "Client breakdown (Claude, Cursor, custom)", vals: [true, true, true] },
-      { label: "Call trace: bounded sanitized payload, result, timing", vals: [true, true, true] },
-      { label: "Sessions & funnels", vals: [false, true, true] },
-      { label: "Saved views & custom dashboards", vals: [false, true, true] },
+      { label: "TypeScript and Python SDKs", vals: [true, true, true] },
+      { label: "OpenTelemetry ingestion", vals: [true, true, true] },
+      { label: "Usage, outcomes, and issue views", vals: [true, true, true] },
+      { label: "Tool adoption and client breakdown", vals: [true, true, true] },
+      { label: "Latency, errors, and result states", vals: [true, true, true] },
+      { label: "Privacy-aware telemetry controls", vals: [true, true, true] },
+      { label: "Example data and provenance labels", vals: [true, true, true] },
+      { label: "Authenticated API access", vals: [true, true, true] },
     ],
   },
   {
-    group: "Actionable insights",
+    group: "Team workflows",
     rows: [
-      { label: "Weekly plain-English insight digest", vals: [false, true, true] },
-      { label: "Root-cause diagnosis & suggested fix", vals: [false, true, true] },
-      { label: "Impact projection (calls recovered)", vals: [false, true, true] },
-      { label: "Dead-tool detection", vals: [false, true, true] },
-    ],
-  },
-  {
-    group: "Alerts & integrations",
-    rows: [
-      { label: "Email alerts (Planned)", vals: ["Planned", "Planned", "Planned"] },
-      { label: "Slack & webhook alerts (Planned)", vals: ["Planned", "Planned", "Planned"] },
-      { label: "Failure-spike & anomaly alerts (Planned)", vals: ["Planned", "Planned", "Planned"] },
-      { label: "REST API access", vals: [false, true, true] },
-      { label: "Data export (CSV, warehouse) (Planned)", vals: ["Planned", "Planned", "Planned"] },
-      { label: "Custom security / SIEM integrations", vals: [false, false, true] },
-    ],
-  },
-  {
-    group: "Security & compliance",
-    rows: [
-      { label: "Security review", vals: [false, false, true] },
-      { label: "Custom data-processing terms", vals: [false, false, true] },
-      { label: "Custom deployment requirements", vals: [false, false, true] },
+      { label: "Saved views and scheduled exports", vals: ["Planned", "Planned", "Planned"] },
+      { label: "Email, webhook, and Slack alerts", vals: ["Planned", "Planned", "Planned"] },
+      { label: "Custom dashboards", vals: ["Planned", "Planned", "Planned"] },
+      { label: "SSO / SCIM / advanced RBAC", vals: [false, false, "By agreement"] },
+      { label: "Security review and custom terms", vals: [false, false, true] },
     ],
   },
   {
@@ -151,20 +138,28 @@ function CompareValue({ v }: { v: Cell }) {
 
 const faqs = [
   {
-    q: "What counts as a tool call?",
-    a: "Every time an AI agent calls one of your tools, that's one call, whether it succeeds or fails. You never pay for calls we couldn't capture.",
+    q: "Is the paid billing system live yet?",
+    a: "Not yet. TrackMCP is currently in early access, so you can start without a card or a surprise charge. The pricing shown here is the proposed launch packaging; we will announce billing before any paid plan is enabled.",
   },
   {
-    q: "Do I need to change my tools?",
-    a: "No. You wrap your existing MCP server once with the SDK. Your individual tools stay exactly as they are.",
+    q: "What counts as an event?",
+    a: "An event is a bounded telemetry record accepted from your MCP server, such as a tool call, result, error, protocol signal, or explicit outcome. Rejected requests are not counted as accepted events.",
   },
   {
-    q: "Where is my data stored?",
-    a: "TrackMCP currently stores telemetry in managed Postgres infrastructure. Enterprise customers can discuss retention, export, and deployment requirements with us before signing.",
+    q: "Do I pay per seat?",
+    a: "No. The proposed model is usage-led rather than seat-led. Small teams can collaborate on the free tier, and paid tiers add event volume, retention, environments, and support instead of charging for every viewer.",
   },
   {
-    q: "Can I cancel anytime?",
-    a: "Yes. Plans are month-to-month with no lock-in. Downgrade or cancel whenever you like.",
+    q: "Can I use both the SDK and OpenTelemetry?",
+    a: "Yes. Both are supported connection paths. You can use the SDK for the simplest server integration and OpenTelemetry when you already operate an OTel pipeline.",
+  },
+  {
+    q: "What happens if I reach the free allowance?",
+    a: "During early access, we will contact you before enabling paid billing. Once billing is launched, the product will show usage and a clear limit before any charge; there will be no silent overage billing.",
+  },
+  {
+    q: "Can I discuss a larger or self-hosted deployment?",
+    a: "Yes. Enterprise conversations can cover volume, retention, SSO and access controls, security review, data residency, support terms, and deployment requirements.",
   },
 ];
 
@@ -182,18 +177,20 @@ export default function PricingPage() {
             </Reveal>
             <Reveal delay={0.04}>
               <h1 className="mx-auto mt-4 max-w-[18ch] text-balance text-[36px] font-medium leading-[1.05] tracking-[-0.03em] text-ink sm:text-[48px]">
-                Simple, usage-based pricing
+                  Start free. Scale when your MCP does.
               </h1>
             </Reveal>
             <Reveal delay={0.08}>
-              <p className="mx-auto mt-5 max-w-[52ch] text-[16px] leading-[1.5] text-muted sm:text-[18px]">
-                Start free. Only pay when your MCP server has real traffic worth
-                measuring.
-              </p>
+                <p className="mx-auto mt-5 max-w-[54ch] text-[16px] leading-[1.5] text-muted sm:text-[18px]">
+                  TrackMCP pricing is built around the telemetry you actually send—not seats, surprise overages, or a sales call before you can learn anything.
+                </p>
             </Reveal>
-            <p className="mx-auto mt-4 max-w-[60ch] text-center text-xs leading-relaxed text-faint">
-              P0 includes privacy-aware server telemetry, analytics, and authenticated trace inspection. Alerts, exports, and other integrations marked Planned are not available on any paid tier yet.
-            </p>
+              <Reveal delay={0.12}>
+                <div className="mx-auto mt-7 inline-flex max-w-[58ch] items-center gap-2 rounded-full border border-brand/20 bg-brand-soft/40 px-4 py-2 text-left text-[13px] leading-5 text-body">
+                  <span className="h-2 w-2 shrink-0 rounded-full bg-brand" aria-hidden="true" />
+                  Early access is free today. No credit card is required, and paid billing is not active yet.
+                </div>
+              </Reveal>
           </div>
         </section>
 
@@ -210,7 +207,7 @@ export default function PricingPage() {
                 >
                   {t.featured && (
                     <span className="absolute -top-3 left-7 rounded-full bg-brand px-3 py-1 text-[12px] font-medium text-white">
-                      Most popular
+                      Best for a small team
                     </span>
                   )}
                   <h3 className="text-[15px] font-medium text-ink">{t.name}</h3>
@@ -250,11 +247,10 @@ export default function PricingPage() {
         <section className="mx-auto max-w-5xl px-6 pb-16">
           <Reveal className="mx-auto max-w-2xl text-center">
             <h2 className="text-[30px] font-medium leading-[1.1] tracking-[-0.02em] text-ink sm:text-[36px]">
-              Compare every plan
+              Compare the plans
             </h2>
             <p className="mt-3 text-[16px] leading-relaxed text-muted">
-              Every feature, side by side. The whole analytics core is on every plan, including
-              the free one.
+              The analytics core stays available on every plan. Paid tiers add room to grow, not a different product.
             </p>
           </Reveal>
 
@@ -276,6 +272,9 @@ export default function PricingPage() {
                         <span className="block text-[14px] font-semibold text-ink">{c.name}</span>
                         <span className="mt-0.5 block text-[12.5px] font-normal text-faint">
                           {c.price}
+                        </span>
+                        <span className="mt-1 block text-[11px] font-normal text-faint">
+                          {c.sub}
                         </span>
                       </th>
                     ))}
@@ -324,6 +323,26 @@ export default function PricingPage() {
           </Reveal>
         </section>
 
+        <section className="mx-auto max-w-5xl px-6 pb-16">
+          <div className="grid gap-4 md:grid-cols-3">
+            {[
+              ["Usage-led", "We measure accepted telemetry events, not the number of people reading your dashboard."],
+              ["No seat tax", "Invite the business, product, and engineering people who need to understand MCP usage."],
+              ["No surprise bill", "Usage and limits are visible before billing is enabled. Early access is free today."],
+            ].map(([title, body], i) => (
+              <Reveal key={title} delay={i * 0.05}>
+                <div className="rounded-xl border border-line bg-paper px-5 py-5">
+                  <h3 className="text-[15px] font-medium text-ink">{title}</h3>
+                  <p className="mt-2 text-[13.5px] leading-6 text-muted">{body}</p>
+                </div>
+              </Reveal>
+            ))}
+          </div>
+          <p className="mt-5 text-center text-[12px] leading-5 text-faint">
+            The pricing above is proposed launch packaging. Features marked Planned are not available as paid entitlements yet.
+          </p>
+        </section>
+
         <section className="mx-auto max-w-3xl px-6 py-16">
           <Reveal>
             <h2 className="text-center text-[30px] font-medium leading-[1.1] tracking-[-0.02em] text-ink sm:text-[36px]">
@@ -342,6 +361,23 @@ export default function PricingPage() {
               </Reveal>
             ))}
           </div>
+        </section>
+
+        <section className="mx-auto max-w-3xl px-6 pb-20 text-center">
+          <Reveal>
+            <h2 className="text-[28px] font-medium leading-tight tracking-[-0.02em] text-ink">
+              Ready to see what your MCP is doing?
+            </h2>
+            <p className="mx-auto mt-3 max-w-[48ch] text-[15px] leading-6 text-muted">
+              Start free, connect one server, and give your team a useful answer before you decide how much to scale.
+            </p>
+            <div className="mt-7 flex flex-col items-center justify-center gap-3 sm:flex-row">
+              <EarlyAccessButton size="md" />
+              <Button href="/contact" variant="ghost" size="md">
+                Talk to us about Enterprise
+              </Button>
+            </div>
+          </Reveal>
         </section>
        </PageFrame>
       </main>
