@@ -30,6 +30,10 @@ create data, mutate a workspace, or expose authorization material.
   SHA during an initial probe.
 - Subsequent direct probes returned HTTP 502 from the App Runner/Envoy edge for
   both `/api/health` and authenticated API paths.
+- A follow-up direct probe at 2026-11-03 04:36 UTC returned HTTP 503 from the
+  App Runner origin for `/api/health`; the public hostname returned an edge
+  protection response. The service therefore remains unavailable for a fresh
+  authenticated retest.
 - This is an external production-availability failure. It does not prove a
   defect in the UX branch because that branch has not been merged or deployed.
 
