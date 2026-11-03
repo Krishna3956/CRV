@@ -3531,12 +3531,6 @@ function ResourcesPromptsView({
     ["Resources", surfaces.resources],
     ["Prompts", surfaces.prompts],
   ] as const) : [];
-  const observedEvents = rows.reduce((total, [, surface]) => total + surface.events, 0);
-  const observedEntities = rows.reduce((total, [, surface]) => total + surface.entity_count, 0);
-  const entityReadProjectionAvailable = rows.length > 0 && rows.every(([, surface]) => surface.entity_analytics.status !== "schema_unavailable");
-  const successfulReads = entityReadProjectionAvailable
-    ? rows.reduce((total, [, surface]) => total + surface.entity_analytics.successful_reads, 0)
-    : null;
   return (
     <div>
       <PageIntro title="Resources & prompts" description="See which information and guided-help surfaces people use." question="What do people need most?" actions={pageControls} />
@@ -3565,15 +3559,7 @@ function ResourcesPromptsView({
           <span className="text-xs font-medium text-brand-strong">Expand details</span>
         </summary>
         <div className="border-t border-line px-5 pb-5">
-      <div className="mt-4 border border-line bg-paper p-3" aria-label="Resources and prompts evidence boundary">
-        <p className="text-xs font-semibold text-ink">Technical evidence boundary</p>
-        <p className="mt-1 text-[11px] leading-relaxed text-muted">TrackMCP reports bounded method observations and hashed entity counts. Linked retries are collapsed only when protocol correlation evidence exists. It does not expose resource contents, prompt arguments, unique people, or business completion from these signals.</p>
-      </div>
-      <div className="grid gap-3 pt-5 sm:grid-cols-3">
-        <Kpi label="Observed lookups and requests" value={surfaces ? fmt(observedEvents) : "N/A"} icon={Activity} helper="Resource and prompt activity" />
-        <Kpi label="Distinct resources or prompts observed" value={surfaces ? fmt(observedEntities) : "N/A"} icon={FileText} helper="Privacy-bounded entity counts" />
-        <Kpi label="Reads with explicit success" value={surfaces && successfulReads !== null ? fmt(successfulReads) : "N/A"} icon={Check} helper={successfulReads === null ? "Durable read projection unavailable" : "Durable read projection only"} />
-      </div>
+      <p className="pt-4 text-[11px] leading-relaxed text-muted">Method-level evidence only: TrackMCP does not expose resource contents, URIs, prompt arguments, or unique people. Linked retries are collapsed only when protocol correlation evidence exists.</p>
       {activity && <div className="mt-6 grid gap-6 xl:grid-cols-2">
         {[["Top resources", activity.resource_breakdown, "Resource method"], ["Top prompts", activity.prompt_breakdown, "Prompt method"]].map(([title, items, label]) => (
           <Panel key={String(title)} title={String(title)} subtitle="Safe method dimensions only; raw names and inputs are never shown">
