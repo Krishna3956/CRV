@@ -138,6 +138,12 @@ const fmtObservedAt = (value: string) => {
   const parsed = Date.parse(value);
   return Number.isFinite(parsed) ? new Date(parsed).toLocaleString(undefined, { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" }) : "unknown";
 };
+const fmtWeekLabel = (value: string) => {
+  const parsed = Date.parse(`${value}T00:00:00Z`);
+  return Number.isFinite(parsed)
+    ? new Intl.DateTimeFormat(undefined, { month: "short", day: "numeric", timeZone: "UTC" }).format(new Date(parsed))
+    : value;
+};
 const percent = (value: number | null) =>
   value === null || !Number.isFinite(value) ? "N/A" : Math.round(value * 100) + "%";
 
@@ -4471,8 +4477,8 @@ function AccountGrowthChart({ points }: { points: NonNullable<Analytics["who_is_
       {shown.map((point, index) => <circle key={point.period_start} cx={x(index)} cy={y(point.active_accounts)} r="4" fill="currentColor" className="text-brand-strong" />)}
     </svg>
     <div className="mt-2 flex justify-between gap-3 text-[10px] text-faint">
-      <span>{shown[0]?.period_start}</span>
-      <span>{latest?.period_start}</span>
+      <span>{shown[0] ? fmtWeekLabel(shown[0].period_start) : ""}</span>
+      <span>{latest ? fmtWeekLabel(latest.period_start) : ""}</span>
     </div>
     <details className="mt-3 rounded-lg border border-line bg-paper/50">
       <summary className="cursor-pointer list-none px-3 py-2 text-xs font-semibold text-muted hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand">
@@ -4485,7 +4491,7 @@ function AccountGrowthChart({ points }: { points: NonNullable<Analytics["who_is_
             <tr><th scope="col" className="px-3 py-2 font-semibold">Week</th><th scope="col" className="px-3 py-2 text-right font-semibold">Active account groups</th></tr>
           </thead>
           <tbody className="divide-y divide-line">
-            {shown.map((point) => <tr key={point.period_start} className="bg-white/70"><th scope="row" className="px-3 py-2 font-medium text-ink">{point.period_start}</th><td className="px-3 py-2 text-right tabular-nums text-muted">{fmt(point.active_accounts)}</td></tr>)}
+            {shown.map((point) => <tr key={point.period_start} className="bg-white/70"><th scope="row" className="px-3 py-2 font-medium text-ink">{fmtWeekLabel(point.period_start)}</th><td className="px-3 py-2 text-right tabular-nums text-muted">{fmt(point.active_accounts)}</td></tr>)}
           </tbody>
         </table>
       </div>
