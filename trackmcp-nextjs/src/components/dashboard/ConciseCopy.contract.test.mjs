@@ -37,6 +37,13 @@ test("setup keeps the primary path visible and makes technical detail secondary"
   assert.match(source, /npx @trackmcp\/cli init/);
   assert.match(source, /Create connection key/);
   assert.match(source, /Set <code className="font-mono text-ink">TRACKMCP_KEY<\/code>, restart the server, and make one tool call/);
+  assert.match(source, /Connect your server/);
+  assert.match(source, /setupPath === "sdk"/);
+  assert.match(source, /setupPath === "otel"/);
+  assert.match(source, /Connect with OpenTelemetry/);
+  assert.match(source, /setup-path-content/);
+  assert.match(source, /variant="green"/);
+  assert.match(source, /groupLabel="Outcome"/);
   assert.match(source, /<details className=\"mt-6 rounded-2xl border border-line bg-white/);
   assert.match(source, /Other connection methods/);
 });

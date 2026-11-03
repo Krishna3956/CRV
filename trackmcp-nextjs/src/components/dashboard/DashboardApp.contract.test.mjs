@@ -44,7 +44,7 @@ test("business-first navigation and KPI hierarchy are explicit", () => {
   assert.match(source, /id: "evidence", label: "Evidence"/);
   assert.match(source, /id: "setup", label: "Setup"/);
   assert.match(source, /groupLabel="Understand"/);
-  assert.match(source, /groupLabel="Outcomes"/);
+  assert.match(source, /groupLabel="Outcome"/);
   assert.match(source, /groupLabel="Investigate"/);
   assert.match(source, /groupLabel="Configure"/);
   assert.match(
@@ -414,10 +414,10 @@ test("Setup highlights the current next step instead of always emphasizing step 
   assert.match(source, /index === activeSetupStep && <span[^>]*>Next<\/span>/);
 });
 
-test("Setup visual body order follows the key-before-server sequence", () => {
+test("Setup visual body order keeps the server path before connection keys", () => {
   assert.match(source, /function SetupPanelSequence\(\{ children \}: \{ children: ReactNode \}\)/);
-  assert.match(source, /Children\.toArray\(children\)\.reverse\(\)/);
-  assert.match(source, /<SetupPanelSequence>[\s\S]*title="Connect the server"[\s\S]*title=\{workspaceId \? "Connection keys" : "Create your workspace"\}[\s\S]*<\/SetupPanelSequence>/);
+  assert.match(source, /return <>{children}<\/>/);
+  assert.match(source, /<SetupPanelSequence>[\s\S]*title=\{setupPath === "sdk" \? "Connect with the SDK" : "Connect with OpenTelemetry"\}[\s\S]*title=\{workspaceId \? "Connection keys" : "Create your workspace"\}[\s\S]*<\/SetupPanelSequence>/);
   assert.doesNotMatch(source, /className="order-[12]"/);
 });
 
@@ -535,7 +535,7 @@ test("dashboard header keeps data and language controls together", () => {
 });
 
 test("Setup documentation link is external and the connection steps are explicit", () => {
-  assert.match(source, /label: "Read documentation"/);
+  assert.match(source, /label: setupPath === "sdk" \? "Read SDK docs" : "Read OpenTelemetry docs"/);
   assert.match(source, /const documentationHref = `https:\/\/trackmcp\.com\/docs\/\$\{/);
   assert.match(source, /documentationHref/);
   assert.match(source, /target="_blank"/);
@@ -562,7 +562,7 @@ test("Python setup snippet is copy-paste complete", () => {
   assert.match(setupSource, /os\.environ\["TRACKMCP_KEY"\]/);
 });
 
-test("Setup exposes every documented SDK path without implying publication", () => {
+test("Setup keeps SDK language choices inside the SDK path", () => {
   assert.match(source, /\["TypeScript", "Python", "Go", "\.NET"\]/);
   assert.match(source, /language === "Go"[\s\S]*\/docs\/go/);
   assert.match(source, /language === "\.NET"[\s\S]*\/docs\/dotnet/);
@@ -936,12 +936,12 @@ test("dashboard panels expose concise information hints and universal pointer af
   assert.match(globalsSource, /\.dashboard-shell button:not\(:disabled\)/);
 });
 
-test("setup makes every supported connection path visible beside the recommended path", () => {
+test("setup exposes exactly two primary connection paths", () => {
   assert.match(source, /Choose a connection path/);
-  for (const label of ["TypeScript", "Python", "Go", ".NET", "OpenTelemetry"]) {
-    assert.match(source, new RegExp(`\\[\"${label.replace(".", "\\.")}\",`));
-  }
-  assert.match(source, /The recommended path is the native SDK/);
+  assert.match(source, /grid grid-cols-2 gap-2/);
+  assert.match(source, /SDK <ArrowRight/);
+  assert.match(source, /OpenTelemetry <ArrowRight/);
+  assert.match(source, /The next section changes to match your choice/);
 });
 
 test("activity chart uses compact geometry and a table fallback", () => {
