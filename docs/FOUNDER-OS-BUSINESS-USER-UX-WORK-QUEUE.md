@@ -216,6 +216,10 @@ Legend: `[x]` verified/implemented in this workstream; `[ ]` pending.
       development-only dashboard bypass. The current branch rendered the
       My-data no-event state and the Example-data Overview in a browser; the
       public routes and fail-closed sitemap behavior were also verified.
+- [x] ✅ Make the data-source switch self-explanatory for business readers:
+      the header now labels the control `Data source` and clarifies whether
+      the selected view is `Your workspace` or `Illustration only` without
+      changing the underlying data mode or read-model behavior.
 - [ ] Run an authenticated runtime smoke against a real Supabase session and
       real read-model responses; the local bypass is not evidence of production
       authentication or database-backed analytics.

@@ -291,6 +291,13 @@ test("data source state is explicit and never silently substituted", () => {
   assert.doesNotMatch(source, /updated just now/);
 });
 
+test("data source control names the business meaning of each mode", () => {
+  assert.match(source, /Data source/);
+  assert.match(source, /Your workspace/);
+  assert.match(source, /Illustration only/);
+  assert.match(source, /aria-live=\"polite\"/);
+});
+
 test("example mode supplies every Founder OS vertical-slice read model", () => {
   for (const readModel of [
     "examplePeople",

@@ -1507,7 +1507,7 @@ function DataModeToggle({
 }) {
   return (
     <div className="flex items-center gap-1.5" role="group" aria-label="Data source">
-      <span className="hidden text-[11px] font-semibold text-faint sm:inline">Data</span>
+      <span className="hidden text-[11px] font-semibold text-faint sm:inline">Data source</span>
       <div className="inline-flex rounded-lg border border-line bg-white p-0.5">
         <button
           type="button"
@@ -1540,6 +1540,12 @@ function DataModeToggle({
           Example data
         </button>
       </div>
+      <span
+        className="hidden text-[10px] font-medium text-faint xl:inline"
+        aria-live="polite"
+      >
+        {dataMode === "my" ? "Your workspace" : "Illustration only"}
+      </span>
     </div>
   );
 }
