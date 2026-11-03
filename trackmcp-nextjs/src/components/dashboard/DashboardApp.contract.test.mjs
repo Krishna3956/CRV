@@ -977,6 +977,14 @@ test("Capability breadth uses a neutral visual when the measure is unavailable",
   assert.doesNotMatch(source, /tool_adoption\.breadth \|\| 0/);
 });
 
+test("Share bars stay neutral when a distribution share is unavailable", () => {
+  assert.match(source, /step\.share == null \? "bg-line" : "bg-mist"/);
+  assert.match(source, /client\.share == null \? "bg-line" : "bg-paper"/);
+  assert.match(source, /Interaction share unavailable/);
+  assert.doesNotMatch(source, /\(step\.share \|\| 0\) \* 100/);
+  assert.doesNotMatch(source, /\(client\.share \|\| 0\) \* 100/);
+});
+
 test("Example Issues shows illustrative incident lifecycles", () => {
   assert.match(source, /EXAMPLE_ALERT_INCIDENTS: AlertIncident\[\]/);
   assert.match(source, /Illustrative alert lifecycle examples with bounded evidence/);
