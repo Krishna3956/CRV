@@ -2,7 +2,7 @@
 
 Date: 2026-11-03  
 Branch: `codex/business-user-ux-audit`  
-Latest verified commit: `fdb42927` (`Clarify historical UX evidence state`)
+Latest verified commit: `2562b3f0` (`Add business UX release handoff`)
 
 This matrix is the release-readiness companion to the UX audit and work
 queue. It intentionally separates source-level proof, read-only browser proof,
