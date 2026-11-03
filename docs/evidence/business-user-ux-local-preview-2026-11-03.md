@@ -1457,3 +1457,22 @@ server was stopped after the pass.
 
 This confirms the current rendered comprehension path locally. It does not
 close the fresh-account, deployed authenticated smoke, or human-UAT gates.
+
+## Fresh rendered capability-slice pass at `1b82e836`
+
+On 2026-11-03 at 06:39 UTC, the Example-data `What they're doing` route was
+rendered locally with the development-only dashboard bypass and placeholder
+Supabase values. The browser accessibility tree showed:
+
+- `Example data selected` and `Illustration only` remained visible before the
+  metrics;
+- `Most-used features` led with plain-language descriptions such as
+  `Run a bounded finance query against the connected ledger.` and
+  `Find an invoice by customer, reference, or date.`;
+- the machine-facing identifiers (`run_query`, `find_invoice`, and so on)
+  remained visible as secondary context for technical follow-up;
+- the existing adoption, reliability, and technical-evidence boundaries were
+  unchanged.
+
+This is a local rendering check only. It does not prove authenticated
+production data, and the branch remains unmerged and undeployed.
