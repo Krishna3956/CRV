@@ -2,7 +2,7 @@
 
 Date: 2026-11-03  
 Branch: `codex/business-user-ux-audit`  
-Latest verified commit: `7e2fd060` (`Tighten first-time dashboard explanation`)
+Latest verified commit: `f89aa959` (`Record fresh dashboard browser evidence`)
 
 This matrix is the release-readiness companion to the UX audit and work
 queue. It intentionally separates source-level proof, read-only browser proof,
@@ -16,7 +16,10 @@ outcome-copy, Quality helper-copy, final route-smoke, and auth-affordance passes
 `npm run test:release-gate` passed all 159 suites on the current People-card
 boundary-copy state (`302eeb6f`) with the synthetic UAT report redirected to a
 temporary path so the tracked evidence fixture remained unchanged.
-The branch remains local and has not been merged or deployed.
+The branch remains local and has not been merged or deployed. A fresh local
+development browser pass now verifies both the My-data no-event state and the
+Example-data Overview on the current branch; this remains bypass evidence, not
+real Supabase authentication or production data.
 
 Final current-branch build: `npm run build` passed with 230 static pages
 generated after the dashboard typography change. TypeScript and ESLint also
