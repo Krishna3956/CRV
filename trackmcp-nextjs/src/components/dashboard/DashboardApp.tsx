@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, type ReactNode } from "react";
+import { Children, useEffect, useState, type ReactNode } from "react";
 import {
   Activity,
   AlertTriangle,
@@ -4768,6 +4768,10 @@ function IncidentEvidence({
   );
 }
 
+function SetupPanelSequence({ children }: { children: ReactNode }) {
+  return <>{Children.toArray(children).reverse()}</>;
+}
+
 function SetupView({
   keys,
   workspaceId,
@@ -5193,10 +5197,10 @@ function SetupView({
         )}
       </section>
       <div className="grid gap-6 xl:grid-cols-[minmax(0,1.2fr)_minmax(320px,.8fr)]">
+        <SetupPanelSequence>
         <Panel
           title="Connect the server"
           subtitle="Keep the key in your server environment; never commit it"
-          className="order-2"
           action={{
             label: "Read documentation",
             href: documentationHref,
@@ -5297,7 +5301,6 @@ function SetupView({
         <Panel
           title={workspaceId ? "Connection keys" : "Create your workspace"}
           subtitle={workspaceId ? "Full secrets are shown only at creation" : "A workspace is required before you can create a connection key"}
-          className="order-1"
         >
           {!workspaceId ? (
             <div>
@@ -5436,6 +5439,7 @@ function SetupView({
             </>
           )}
         </Panel>
+        </SetupPanelSequence>
       </div>
       <details className="mt-6 rounded-2xl border border-line bg-white p-5 shadow-[0_20px_45px_-38px_rgba(22,163,74,0.14)] sm:p-6">
         <summary className="flex cursor-pointer list-none items-center justify-between gap-3 text-[15px] font-semibold text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand">

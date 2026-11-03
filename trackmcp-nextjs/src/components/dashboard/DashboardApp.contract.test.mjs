@@ -412,8 +412,9 @@ test("Setup highlights the current next step instead of always emphasizing step 
 });
 
 test("Setup visual body order follows the key-before-server sequence", () => {
-  assert.match(source, /title="Connect the server"[\s\S]{0,260}className="order-2"/);
-  assert.match(source, /title=\{workspaceId \? "Connection keys" : "Create your workspace"\}[\s\S]{0,260}className="order-1"/);
+  assert.match(source, /function SetupPanelSequence\(\{ children \}: \{ children: ReactNode \}\)/);
+  assert.match(source, /<SetupPanelSequence>[\s\S]*title="Connect the server"[\s\S]*title=\{workspaceId \? "Connection keys" : "Create your workspace"\}[\s\S]*<\/SetupPanelSequence>/);
+  assert.doesNotMatch(source, /className="order-[12]"/);
 });
 
 test("Setup connection status exposes the current primary action", () => {
