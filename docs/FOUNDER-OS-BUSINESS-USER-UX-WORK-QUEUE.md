@@ -300,6 +300,10 @@ Legend: `[x]` verified/implemented in this workstream; `[ ]` pending.
 - [x] ✅ Resource and prompt trend cards use human-readable week labels and
       surface names (`Resource`/`Prompt`) while keeping the safe method detail
       available for technical follow-up.
+- [x] ✅ Resource and prompt outcome cards now lead with business labels
+      (`Information lookups` and `Guided help`) instead of protocol method
+      names; the technical method remains available as hover context. Explicit
+      outcome trend dates now use readable week labels in both cards and tables.
 - [ ] The journey: common paths, explicit stop evidence, stall/retry, and a
       clear statement that missing events are not abandonment.
 - [x] ✅ The journey view now explains what will populate after connection when
@@ -349,6 +353,10 @@ Legend: `[x]` verified/implemented in this workstream; `[ ]` pending.
 
 - Baseline commit: `085ae29e07d2f69ed4db3b15986e417e0fe4c86f`.
 - Current implementation: `trackmcp-nextjs/src/components/dashboard/DashboardApp.tsx`.
+- Latest UX verification commits: `346bb7bc` (evidence handoff refresh) and
+  `0700c707` (business labels and readable outcome dates). Focused business UX
+  suite: 107/107; consolidated release gate: 159 suites; production build:
+  230 static pages.
 - Setup/account orchestration: `trackmcp-nextjs/src/app/dashboard/page.tsx`.
 - Metric truth contract: `docs/FOUNDER-OS-METRIC-CONTRACT.md`.
 - Setup truth contract: `docs/FOUNDER-OS-SETUP-UX-CONTRACT.md`.
