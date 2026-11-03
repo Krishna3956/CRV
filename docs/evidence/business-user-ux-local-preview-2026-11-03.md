@@ -2,7 +2,7 @@
 
 Date: 2026-11-03
 Branch: `codex/business-user-ux-audit`
-Commit under review: `d6641c1a` (`Record dashboard browser verification`)
+Commit under review: `de9890d4` (`Preserve People metric uncertainty`)
 
 This is local browser evidence only. It is not production evidence and does
 not replace a fresh-account or real-telemetry walkthrough.
@@ -771,6 +771,11 @@ email delivery, or a real Supabase account creation.
 - `npm run test:business-user-ux`: 87/87 passed.
 - `npm run build`: passed; 230 static pages generated.
 - `git diff --check`: passed.
+
+The consolidated `npm run test:release-gate` was rerun after the People
+projection change and passed all 159 suites. The generated synthetic UAT
+fixture timestamp was restored to its tracked value before this evidence was
+recorded.
 - The isolated worktree is clean.
 
 The final cleanup removed the last indigo-tinted dashboard shadows so the

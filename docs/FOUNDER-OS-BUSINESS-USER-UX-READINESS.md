@@ -2,7 +2,7 @@
 
 Date: 2026-11-03  
 Branch: `codex/business-user-ux-audit`  
-Latest verified commit: `d6641c1a` (`Record dashboard browser verification`)
+Latest verified commit: `de9890d4` (`Preserve People metric uncertainty`)
 
 This matrix is the release-readiness companion to the UX audit and work
 queue. It intentionally separates source-level proof, read-only browser proof,
@@ -264,6 +264,10 @@ new-versus-returning counts as `null`. Business surfaces can therefore render
 `N/A` when the bounded history scan is incomplete instead of presenting an
 unsupported zero. This is a metric-truth fix; it does not change the underlying
 account resolver or formulas.
+
+The latest full release gate was rerun after this projection change and passed
+all 159 suites. The generated synthetic fixture timestamp was restored after
+the run; no production data was written.
 
 After the loading-state and palette revisions, the consolidated release gate
 was rerun and passed all 159 suites. The gate passed in the isolated worktree;
