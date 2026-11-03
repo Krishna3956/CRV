@@ -241,6 +241,12 @@ test("Capabilities empty state explains what will populate after connection", ()
   assert.match(source, /href="\/dashboard\?view=setup&data=my"/);
 });
 
+test("Resources and prompts empty state explains the evidence prerequisite", () => {
+  assert.match(source, /Information activity will appear after connection/);
+  assert.match(source, /what information people request and whether those interactions complete/);
+  assert.match(source, /resource or prompt activity/);
+});
+
 test("Overview exposes same-window comparisons only from read-model fields", () => {
   assert.match(source, /Compared with the previous period/);
   assert.match(source, /previous_period_calls/);

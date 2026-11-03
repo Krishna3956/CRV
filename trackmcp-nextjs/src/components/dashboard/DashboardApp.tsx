@@ -3530,6 +3530,15 @@ function ResourcesPromptsView({
         <Kpi label="Guided-help requests" value={activity ? fmt(activity.prompt_calls) : "N/A"} icon={Activity} helper={activity ? `${fmt(activity.previous_period_prompt_calls)} previous period · ${fmt(activity.prompt_observations)} observed` : "Awaiting evidence"} />
         <Kpi label="Guided-help completed" value={activity?.prompt_completion_rate == null ? "N/A" : `${Math.round(activity.prompt_completion_rate * 100)}%`} icon={Check} helper={activity?.prompt_stall_rate == null ? "Explicit outcome evidence only" : `${Math.round(activity.prompt_stall_rate * 100)}% needs input · ${Math.round((activity.prompt_error_rate || 0) * 100)}% error`} />
       </div>
+      {!surfaces && !activity && (
+        <StateNote
+          title={dataMode === "my" ? "Information activity will appear after connection" : "Information activity is unavailable"}
+          body={dataMode === "my"
+            ? "After your server reports resource or prompt activity, this view will show what information people request and whether those interactions complete, need input, or error. No example or inferred activity is substituted."
+            : "The current analytics response did not include resource or prompt activity. No example or inferred activity is substituted."}
+          action={dataMode === "my" ? <a href="/dashboard?view=setup&data=my" className="mt-3 inline-flex cursor-pointer items-center rounded-md bg-brand-strong px-3 py-2 text-xs font-semibold text-white hover:bg-brand-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand">Open Setup</a> : undefined}
+        />
+      )}
       {activity && <div className="mt-6"><Panel title="Interaction outcomes" subtitle="One terminal evidence state per safely linked interaction; an input request is not a completion">
         <div className="grid gap-3 sm:grid-cols-2">
           {activity.outcomes.map((outcome) => <div key={outcome.kind} className="border border-line bg-paper p-4"><div className="flex items-center justify-between gap-3"><p className="text-sm font-medium text-ink">{outcome.kind === "resource" ? "Resources/read" : "Prompts/get"}</p><p className="text-xs text-muted">{fmt(outcome.interactions)} interactions</p></div><div className="mt-3 grid grid-cols-2 gap-2 text-xs sm:grid-cols-4"><div><p className="text-muted">Complete</p><p className="mt-1 font-semibold text-ink">{fmt(outcome.complete)}</p></div><div><p className="text-muted">Needs input</p><p className="mt-1 font-semibold text-ink">{fmt(outcome.stalled)}</p></div><div><p className="text-muted">Error</p><p className="mt-1 font-semibold text-ink">{fmt(outcome.errored)}</p></div><div><p className="text-muted">Unknown</p><p className="mt-1 font-semibold text-ink">{fmt(outcome.unknown)}</p></div></div><p className="mt-3 text-[11px] text-faint">{fmt(outcome.linked_retry_count)} linked retry {outcome.linked_retry_count === 1 ? "observation" : "observations"} collapsed</p></div>)}
@@ -3575,7 +3584,7 @@ function ResourcesPromptsView({
       </div>
         </div>
       </details>}
-      {!rows.length && <StateNote title="No resource or prompt evidence yet" body="This workspace has not reported resource or prompt methods in the selected period. That is an evidence state, not proof that the server has no resources or prompts." />}
+      {rows.length === 0 && (surfaces || activity) && <StateNote title="No resource or prompt evidence yet" body="This workspace has not reported resource or prompt methods in the selected period. That is an evidence state, not proof that the server has no resources or prompts." />}
     </div>
   );
 }

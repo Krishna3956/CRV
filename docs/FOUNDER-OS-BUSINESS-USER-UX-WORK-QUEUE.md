@@ -240,6 +240,10 @@ Legend: `[x]` verified/implemented in this workstream; `[ ]` pending.
       completeness remains pending authenticated verification.
 - [ ] Resources & prompts: top resources, top prompts, completion/stall, and
       privacy-safe detail drill-down.
+- [x] ✅ Resources & prompts now explain what will populate after connection
+      when the live read model is absent, with a direct Setup action and no
+      inferred activity. Full top-resource/prompt read-model coverage remains
+      pending authenticated verification.
 - [ ] The journey: common paths, explicit stop evidence, stall/retry, and a
       clear statement that missing events are not abandonment.
 - [ ] Did it work: outcome rates, error rates, retries, latency, and

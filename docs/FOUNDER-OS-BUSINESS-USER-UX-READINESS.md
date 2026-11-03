@@ -186,6 +186,11 @@ capability read model is absent: it explains what will populate after the first
 connection and links to Setup instead of leaving a business reader with an
 empty capability inventory. This is also source-level evidence only.
 
+The `Resources & prompts` surface now explains its live-data prerequisite when
+both interaction read models are absent, including what the page will show
+after connection and a direct Setup action. This improves comprehension without
+changing the `N/A` metric semantics or adding inferred activity.
+
 After the loading-state and palette revisions, the consolidated release gate
 was rerun and passed all 159 suites. The gate passed in the isolated worktree;
 it does not change the Tier 3 status because authenticated production and

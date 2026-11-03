@@ -890,3 +890,12 @@ after connection, names the business questions the view will answer (feature
 use, breadth of adoption, and reliability friction), and links directly to
 Setup. This prevents a blank inventory or zero-looking surface from being read
 as “nobody is using the server.” Example and live data remain separate.
+
+## Resources and prompts no-data recovery path in the current branch
+
+The `Resources & prompts` view now gives the same explicit guidance when both
+its interaction and surface read models are absent. It explains that the page
+will show information requests, guided-help interactions, and their observed
+outcomes after connection, with a direct Setup action in My-data mode. The
+existing `N/A` values remain truthful, and no example or inferred activity is
+introduced.
