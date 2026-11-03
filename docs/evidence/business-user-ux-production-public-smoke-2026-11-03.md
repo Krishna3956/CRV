@@ -40,3 +40,35 @@ control surface returned `browser.user is unavailable` when asked to claim or
 inspect that tab. Its presence therefore cannot be treated as authenticated
 rendering evidence. No attempt was made to work around that limitation by
 reading credentials, changing browser settings, or mutating the product.
+
+## Authenticated production API baseline (main, not the UX branch)
+
+The repository's GitHub Actions workflow `Authenticated production smoke`
+completed successfully on 2026-11-03 in run `41568279966`.
+
+| Field | Redacted result |
+| --- | --- |
+| Workflow result | `success` |
+| Branch | `main` |
+| Release SHA | `9e79371f2f4218aef912b531f0b4692764b8ff08` |
+| Checks | 37/37 passed |
+| Production target | AWS App Runner deployment (URL intentionally omitted) |
+
+The redacted artifact verified, for two scoped workspaces:
+
+- key-status returned HTTP 200 with `workspace_available=true` and
+  `service_available=true`;
+- conflicting workspace query parameters did not change API-key scope;
+- all twelve `/api/v2/*` business read-model routes returned HTTP 200;
+- the legacy `/api/v1/analytics`, `/api/v1/tool-quality`, and `/api/v1/traces`
+  read-model routes returned HTTP 200;
+- API-key access to the action queue was denied with HTTP 403, as required for
+  the human-session-only mutation boundary; and
+- a revoked key was rejected with HTTP 401.
+
+This is useful production baseline evidence for the read-model and auth
+contracts, but it is **not** evidence that the isolated
+`codex/business-user-ux-audit` branch is deployed. It also does not prove the
+dashboard's rendered UX, fresh-account setup, workspace creation, first-event
+ingestion, or a non-technical participant's unaided completion of the UAT
+script. The branch remains subject to the Tier 3 gates in the readiness matrix.

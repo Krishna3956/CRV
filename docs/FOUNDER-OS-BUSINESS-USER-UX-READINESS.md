@@ -2,7 +2,7 @@
 
 Date: 2026-11-03  
 Branch: `codex/business-user-ux-audit`  
-Latest verified commit: `c190bceb` (`Record cross-tab business UX evidence`)
+Latest verified commit: `ec2bf222` (`Record authenticated production UX baseline`)
 
 This matrix is the release-readiness companion to the UX audit and work
 queue. It intentionally separates source-level proof, read-only browser proof,
@@ -71,7 +71,7 @@ or authenticated production rendering.
 | Metric labels and formulas remain aligned | **Implemented and tested** | `docs/FOUNDER-OS-METRIC-CONTRACT.md`; metric registry tests | Metric review when read models change |
 | Example data is illustrative and not presented as workspace telemetry | **Implemented and tested; verified live read-only** | Example data contract and browser review | Verify deployed branch |
 | No fabricated health, success, identity, or abandonment claims | **Implemented and tested** | Data-trust contracts, outcome contracts, issue contracts | Production smoke test with real no-data and partial-data states |
-| The complete Founder OS read-model surface is backed by production data | **Not yet proven** | Current source contains the views and API contracts | Read-model completeness audit against real production responses |
+| The complete Founder OS read-model surface is backed by production data | **Production baseline verified; UX branch still pending deployment** | Successful authenticated production smoke run `41568279966` on `main` at `9e79371f2f4218aef912b531f0b4692764b8ff08`; twelve `/api/v2/*` read-model routes and legacy read models returned 200 for two scoped workspaces | Repeat against the deployed UX branch and verify rendered no-data, partial-data, and example-data states |
 | A non-technical person can complete the full journey unaided | **Not yet proven** | UAT script exists at `FOUNDER-OS-BUSINESS-USER-UAT-SCRIPT.md` | Run the script with a real participant |
 | The branch is live in production | **Not yet done** | No merge/deployment performed from this branch | Review, merge, deploy, authenticated smoke tests |
 
