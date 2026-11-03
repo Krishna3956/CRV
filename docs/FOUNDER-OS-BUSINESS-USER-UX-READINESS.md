@@ -2,13 +2,13 @@
 
 Date: 2026-11-03  
 Branch: `codex/business-user-ux-audit`  
-Latest verified commit: `b48c8165` (`Lighten dashboard green accent`)
+Latest verified commit: `d6641c1a` (`Record dashboard browser verification`)
 
 This matrix is the release-readiness companion to the UX audit and work
 queue. It intentionally separates source-level proof, read-only browser proof,
 and evidence that requires a real account, deployment, or human participant.
 
-Latest branch verification: `npm run test:business-user-ux` passed all 98 suites
+Latest branch verification: `npm run test:business-user-ux` passed all 100 suites
 after the authentication-affordance, research, signed-out handoff, illustrative
 People-growth coherence, setup-vocabulary consistency, evidence-action-label,
 outcome-copy, Quality helper-copy, final route-smoke, and auth-affordance passes.
@@ -28,7 +28,7 @@ state.
 Final current-branch build: `npm run build` passed with 230 static pages
 generated after the dashboard palette revision. TypeScript and ESLint also
 passed. The full `npm run test:release-gate` passed all 159 suites on the
-current branch, and the focused 98-suite business-user contract suite passed
+current branch, and the focused 100-suite business-user contract suite passed
 after the Setup key-density and outcome-interpretation revisions.
 This is still local build evidence; it does not prove a production deployment
 or authenticated production rendering.

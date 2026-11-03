@@ -2,7 +2,7 @@
 
 Date: 2026-11-03
 Branch: `codex/business-user-ux-audit`
-Commit under review: `b48c8165` (`Lighten dashboard green accent`)
+Commit under review: `d6641c1a` (`Record dashboard browser verification`)
 
 This is local browser evidence only. It is not production evidence and does
 not replace a fresh-account or real-telemetry walkthrough.
@@ -1072,7 +1072,7 @@ Verification after this slice:
 
 - Dashboard, workspace-route, and dashboard-page contract tests: 107/107
   passed together.
-- `npm run test:business-user-ux`: 99/99 passed.
+- `npm run test:business-user-ux`: 100/100 passed.
 - `npx tsc --noEmit --pretty false`: passed.
 - `npm run build`: passed; 230 static pages generated.
 - No production deployment, authenticated production session, or database
@@ -1100,3 +1100,8 @@ controls, followed by the business-first Overview order (`At a glance`,
 `Recommended next step`, KPIs, comparison, evidence, activity, attention,
 sessions, and outcomes). The local server was stopped cleanly; no production
 session or database state was touched.
+
+The consolidated `npm run test:release-gate` was rerun after the header-control
+fix and passed all 159 suites. The release gate changed only the generated
+timestamp in the synthetic UAT fixture during execution; that timestamp was
+restored to its tracked value before this evidence update was recorded.
