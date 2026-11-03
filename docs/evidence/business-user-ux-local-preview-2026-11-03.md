@@ -787,14 +787,14 @@ their formulas or source fields:
 Contract tests and TypeScript passed after the copy-only metric revision. The
 underlying read models, calculations, and privacy boundaries were not changed.
 
-## Warm-neutral and violet palette revision after `250cfd5f`
+## Warm-neutral and lighter green palette revision after `250cfd5f`
 
 The previous cool-neutral and saturated-blue dashboard palette was replaced
-with a warm-neutral canvas and restrained violet action color. Violet is
-limited to navigation, focus, and primary actions; green remains available for
-success states; and the neutral surfaces preserve contrast for tables and
-analytics cards. This is a visual-system change only: data, formulas, routes,
-and backend contracts are unchanged.
+with a warm-neutral canvas and lighter green action color. Lighter green is
+used for approachable accents, with darker green reserved for active controls;
+the neutral surfaces preserve contrast for tables and analytics cards. This is
+a visual-system change only: data, formulas, routes, and backend contracts are
+unchanged.
 
 The chart fills, focus ring, loading handoff, and dashboard shadows were
 updated to the same token family. The branch remains local and not deployed.

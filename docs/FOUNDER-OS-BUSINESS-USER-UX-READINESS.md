@@ -161,13 +161,13 @@ closed with HTTP 503. This is expected safety behavior, not production
 evidence; a real authenticated environment is still required.
 
 The dashboard palette was revised again after review: primary actions now use
-a restrained violet on warm-neutral surfaces rather than a generic analytics
-blue. Violet is reserved for navigation and actions, while green remains a
-semantic success state. This is a local, verified change only.
+a restrained green on warm-neutral surfaces rather than a generic analytics
+blue. The lighter green is approachable, with darker green reserved for
+active controls and readable button text. This is a local, verified change only.
 
 The first-load workspace handoff was aligned to the same palette so a new user
 does not see a separate slate/indigo loading surface before entering the
-dashboard. The local Example-data browser preview showed the updated violet
+dashboard. The local Example-data browser preview showed the updated green
 navigation, controls, source-state banner, and business-first Overview.
 
 The release-gate result is source-level evidence only. It does not replace a

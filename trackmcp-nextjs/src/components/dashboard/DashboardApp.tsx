@@ -5714,7 +5714,7 @@ function UsageChart({ timeline }: { timeline: Analytics["timeline"] }) {
             width={barWidth}
             height={Math.max(1, height - bottom - y(day.calls))}
             rx="3"
-            fill={hoveredIndex === index ? "#5b21b6" : "#6d28d9"}
+            fill={hoveredIndex === index ? "#15803d" : "#16a34a"}
             tabIndex={0}
             role="img"
             aria-label={`${dateLabel(day.date)}: ${day.events} events, ${day.calls} calls, ${day.errors} errors`}
@@ -5754,10 +5754,10 @@ function UsageChart({ timeline }: { timeline: Analytics["timeline"] }) {
             <text x={tooltipX + 12} y={tooltipY + 19} fontSize="11" fontWeight="600" fill="#ffffff">
               {dateLabel(hoveredDay.date)}
             </text>
-            <text x={tooltipX + 12} y={tooltipY + 38} fontSize="10" fill="#ddd6fe">
+            <text x={tooltipX + 12} y={tooltipY + 38} fontSize="10" fill="#bbf7d0">
               Events: {fmt(hoveredDay.events)}
             </text>
-            <text x={tooltipX + 12} y={tooltipY + 54} fontSize="10" fill="#ddd6fe">
+            <text x={tooltipX + 12} y={tooltipY + 54} fontSize="10" fill="#bbf7d0">
               Calls: {fmt(hoveredDay.calls)}
             </text>
             <text x={tooltipX + 12} y={tooltipY + 70} fontSize="10" fill="#f2c4a8">

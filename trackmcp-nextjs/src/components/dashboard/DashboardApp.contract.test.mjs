@@ -150,18 +150,18 @@ test("dashboard typography uses the product type system", () => {
   assert.match(globalsSource, /\.dashboard-shell \.dashboard-section-title/);
   assert.match(globalsSource, /font-size: 1\.0625rem/);
   assert.match(source, /dashboard-shell min-h-screen font-sans/);
-  assert.match(globalsSource, /--color-brand: #6d28d9/);
-  assert.match(globalsSource, /Dashboard visual system: warm-neutral surfaces with a restrained violet/);
+  assert.match(globalsSource, /--color-brand: #16a34a/);
+  assert.match(globalsSource, /Dashboard visual system: warm-neutral surfaces with a restrained green/);
   assert.doesNotMatch(source, /linear-gradient/);
   assert.match(globalsSource, /button:not\(:disabled\):hover/);
 });
 
-test("dashboard decorative accents stay inside the neutral and violet system", () => {
+test("dashboard decorative accents stay inside the neutral and green system", () => {
   assert.doesNotMatch(source, /bg-\[#d7e5db\]|bg-\[#f4faf6\]|bg-\[#f6faf7\]|18,59,42/);
   assert.doesNotMatch(source, /49,46,129|55,48,163/);
   assert.match(source, /bg-brand-soft\/30/);
   assert.match(source, /bg-brand-soft\/20/);
-  assert.match(source, /fill=\"#ddd6fe\"/);
+  assert.match(source, /fill=\"#bbf7d0\"/);
 });
 
 test("dashboard keeps global controls inside one header and uses actionable empty states", () => {
