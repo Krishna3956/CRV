@@ -726,3 +726,21 @@ email delivery, or a real Supabase account creation.
 The final cleanup removed the last indigo-tinted dashboard shadows so the
 dashboard no longer mixes the previous indigo accent with the new teal action
 system. This remains local branch evidence; no merge or deployment was made.
+
+## Metric language pass after `93372622`
+
+The first-scan KPI labels were tightened for business readers without changing
+their formulas or source fields:
+
+- `Feature activity` and `Feature activity, previous period` replace the more
+  technical `feature uses` wording.
+- `Features used per account group` states what the breadth metric represents.
+- `Information lookups` replaces the protocol-specific `resource lookups` label.
+- `Guided-help completed` makes the prompt completion percentage readable while
+  retaining the explicit-outcome caveat in the helper copy.
+- `Work waiting for an answer` replaces `work waiting for information`.
+- `Strong evidence` replaces `High confidence` for issue signals so users do
+  not read evidence strength as statistical certainty.
+
+Contract tests and TypeScript passed after the copy-only metric revision. The
+underlying read models, calculations, and privacy boundaries were not changed.
