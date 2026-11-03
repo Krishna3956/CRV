@@ -16,11 +16,10 @@ const uat = await readFile(new URL("../../docs/FOUNDER-OS-BUSINESS-USER-UAT-SCRI
 test("new-user setup explains the business outcome before technical detail", () => {
   assert.doesNotMatch(auth, /Create your account\. Next, a technical teammate can connect one server/);
   assert.match(auth, /By continuing, you agree to the/);
-  assert.match(dashboard, /What you will see/);
   assert.match(dashboard, /Connect one server to start filling the dashboard/);
-  assert.match(dashboard, /After setup/);
-  assert.match(dashboard, /One real event unlocks adoption, work, outcomes, and issue views/);
-  assert.match(dashboard, /Create a key, connect one server, make one tool call, then refresh/);
+  assert.doesNotMatch(dashboard, /<BusinessContext/);
+  assert.match(dashboard, /Only outcomes your server explicitly reported count here/);
+  assert.match(dashboard, /Create a connection key/);
   assert.match(dashboard, /onOpenOverview=\{\(\) => goTo\("overview"\)\}/);
   assert.match(dashboard, /Open Overview/);
   assert.match(target, /The user is told what will appear after the first event/);
@@ -54,13 +53,10 @@ test("activated-user dashboard is organized around business questions", () => {
   assert.match(dashboard, /Detailed resource and prompt evidence/);
   assert.match(dashboard, /label="Feature activity, previous period"/);
   assert.match(dashboard, /label="Error rate"/);
-  assert.match(dashboard, /Recommended next step/);
-  assert.match(dashboard, /Connect one server to begin/);
-  assert.match(dashboard, /Review the signals that need attention/);
+  assert.doesNotMatch(dashboard, /<OverviewTakeaway|<OverviewNextStep|<ExecutiveReadout/);
   assert.doesNotMatch(dashboard, /privacy-safe account signals/);
   assert.doesNotMatch(dashboard, /Active account signals/);
   assert.match(dashboard, /Loading your selected dashboard view/);
-  assert.match(dashboard, /Your live data and Example data stay separate/);
   assert.doesNotMatch(dashboard, /Open Trace Explorer/);
   assert.match(dashboard, /Observed session \{index \+ 1\}/);
   assert.match(dashboard, /Evidence link/);
@@ -88,7 +84,7 @@ test("first-time authentication controls expose clear interaction affordances", 
 });
 
 test("uncertainty and technical evidence remain explicit", () => {
-  assert.match(dashboard, /Completion appears only when your server reports it/);
+  assert.match(dashboard, /Only outcomes your server explicitly reported count here/);
   assert.match(dashboard, /Why this signal is shown/);
   assert.match(dashboard, /Show technical rule details/);
   assert.match(dashboard, /Unknown \/ unresolved/);

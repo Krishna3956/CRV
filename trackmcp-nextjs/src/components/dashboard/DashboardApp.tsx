@@ -1529,37 +1529,37 @@ function DataModeToggle({
 }) {
   return (
     <div className="flex shrink-0 items-center gap-1.5 whitespace-nowrap" role="group" aria-label="Data source">
-      <span className="hidden text-[11px] font-semibold text-faint sm:inline">View</span>
+      <span className="hidden text-[11px] font-semibold text-faint sm:inline">Data</span>
       <div className="inline-flex rounded-lg border border-line bg-white p-0.5">
         <button
           type="button"
           aria-pressed={dataMode === "my"}
-          aria-label="Show my data"
+          aria-label="Show live workspace data"
           title="Your workspace — show my server data"
           onClick={() => onChange("my")}
           className={
             "cursor-pointer rounded-md px-3 py-2 text-[12px] font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand " +
             (dataMode === "my"
-              ? "bg-brand-strong text-white shadow-[0_6px_16px_-12px_rgba(22,163,74,0.28)]"
+              ? "bg-brand-strong text-white"
               : "text-muted hover:bg-paper hover:text-ink")
           }
         >
-          My data
+          Live
         </button>
         <button
           type="button"
           aria-pressed={dataMode === "example"}
-          aria-label="Show example data"
-          title="Illustration only — guided example data, not live workspace data"
+          aria-label="Explore guided example data"
+          title="Guided example only — not live workspace data"
           onClick={() => onChange("example")}
           className={
             "cursor-pointer rounded-md px-3 py-2 text-[12px] font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand " +
             (dataMode === "example"
-              ? "bg-sky-700 text-white shadow-[0_6px_16px_-12px_rgba(3,105,161,0.28)]"
-              : "text-sky-800 hover:bg-sky-50")
+              ? "bg-blue-700 text-white"
+              : "text-blue-700 hover:bg-blue-50")
           }
         >
-          Example data
+          Explore
         </button>
       </div>
       <span
@@ -1838,10 +1838,6 @@ function ServerConnectionState({
   return (
     <div>
       <PageIntro title={title} description={copy.description} actions={pageControls} />
-      <BusinessContext
-        title="What you will see"
-        body="Connect one server to see adoption, work, outcomes, and issues here."
-      />
       <section className="overflow-hidden rounded-2xl border border-line bg-white p-6 shadow-[0_24px_60px_-44px_rgba(22,163,74,0.16)] sm:p-8">
         <div className="flex items-start gap-3">
           <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-brand-soft text-brand-strong">
@@ -1883,41 +1879,6 @@ function ServerConnectionState({
           </div>
         </div>
       </section>
-      <section className="mt-6 border border-line bg-white p-5 sm:p-6">
-        <div className="flex flex-wrap items-start justify-between gap-3">
-          <div>
-            <h2 className="text-[15px] font-semibold text-ink">
-              What you will see here
-            </h2>
-            <p className="mt-1 text-xs leading-relaxed text-muted">
-              This is a structure preview, not fabricated workspace data.
-              Connect a server or choose Example data to populate it.
-            </p>
-          </div>
-          <span className="rounded-full border border-line bg-paper px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.08em] text-faint">
-            Preview
-          </span>
-        </div>
-        <div className="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-          {copy.preview.map((item) => (
-            <div key={item.label} className="border border-dashed border-line-strong bg-paper p-4">
-              <p className="text-[10px] font-semibold uppercase tracking-[0.08em] text-faint">
-                {item.label}
-              </p>
-              <p className="mt-3 text-xs leading-relaxed text-muted">
-                {item.detail}
-              </p>
-              <p className="mt-3 text-[11px] font-medium text-faint">
-                Populates after connection
-              </p>
-            </div>
-          ))}
-        </div>
-      </section>
-      <p className="mt-4 text-xs text-faint">
-        No Example data is substituted into My data. The selected activity range
-        stays in place when you connect the server or switch data sources.
-      </p>
     </div>
   );
 }
@@ -2112,13 +2073,13 @@ function PageIntro({
   question?: string;
   actions?: ReactNode;
 }) {
+  void question;
   return (
     <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
       <div className="min-w-0">
         <h2 className="dashboard-page-title tracking-[-0.035em] text-ink">
           {title}
         </h2>
-        {question && <p className="mt-1 text-xs font-semibold text-brand-strong">{question}</p>}
         <p className="mt-1.5 max-w-3xl text-sm leading-relaxed text-muted">
           {description}
         </p>
@@ -2137,13 +2098,12 @@ function BusinessContext({
   body: string;
   action?: string;
 }) {
-  return (
-    <section className="mb-6 border border-brand/20 bg-brand-soft/25 px-4 py-3.5 sm:px-5" aria-label={title}>
-      <p className="text-xs font-semibold text-ink">{title}</p>
-      <p className="mt-1 max-w-4xl text-xs leading-relaxed text-body">{body}</p>
-      {action && <p className="mt-2 text-[11px] font-semibold text-brand-strong">Next: {action}</p>}
-    </section>
-  );
+  // Secondary guidance is intentionally not rendered in the primary dashboard.
+  // Definitions belong in the nearby InfoHint; workflows belong in Setup/docs.
+  void title;
+  void body;
+  void action;
+  return null;
 }
 function ExampleEvidencePreview({
   onViewTrace,
@@ -2194,47 +2154,10 @@ function DataSourceStrip({
   hasMyData: boolean;
   view: View;
 }) {
-  const canViewMyData = dataMode === "example" && hasMyData;
-  return (
-    <section
-      className={
-        "mb-6 flex flex-wrap items-center gap-3 rounded-xl border px-4 py-3.5 " +
-        (dataMode === "example"
-          ? "border-sky-200 bg-sky-50"
-          : "border-brand/20 bg-brand-soft/35")
-      }
-      aria-label="Data source state"
-    >
-      <span className={"grid h-8 w-8 place-items-center rounded-full bg-white " + (dataMode === "example" ? "text-sky-700" : "text-muted")}>
-        <Info size={16} />
-      </span>
-      <div className="min-w-0 flex-1">
-        <p className="text-sm font-semibold text-ink">
-          {dataMode === "example"
-            ? "Example data selected · guided walkthrough"
-            : "My data selected"}
-        </p>
-        <p className="mt-0.5 text-xs text-muted">
-          {dataMode === "example"
-            ? `${EXAMPLE_SERVER.description} This is a guided example, not your live server activity.`
-            : "Server activity is shown here. This tells you where the numbers come from; it is not a product-health score."}
-        </p>
-      </div>
-      {dataMode === "example" && (
-        <a
-          href={
-            canViewMyData
-              ? `/dashboard?view=${view}&data=my`
-              : "/dashboard?view=setup&data=my"
-          }
-          className="ml-auto inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-lg bg-brand-strong px-3.5 py-2 text-xs font-semibold text-white shadow-[0_10px_24px_-14px_rgba(22,163,74,0.28)] hover:bg-brand-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
-        >
-          {canViewMyData ? "View my data" : "Connect your MCP"}
-          <ArrowRight size={13} />
-        </a>
-      )}
-    </section>
-  );
+  void dataMode;
+  void hasMyData;
+  void view;
+  return null;
 }
 function Panel({
   title,
@@ -2250,7 +2173,7 @@ function Panel({
   className?: string;
 }) {
   return (
-    <section className={`rounded-2xl border border-line bg-white p-5 shadow-[0_20px_45px_-38px_rgba(22,163,74,0.16)] sm:p-6 ${className ?? ""}`}>
+    <section className={`rounded-lg border border-line bg-white p-5 shadow-none sm:p-6 ${className ?? ""}`}>
       <div className="flex items-start justify-between gap-4">
         <div className="flex min-w-0 items-center gap-2">
           <h2 className="dashboard-section-title text-ink">{title}</h2>
@@ -2283,18 +2206,14 @@ function Panel({
 }
 
 function InfoHint({ label, text }: { label: string; text: string }) {
-  const [open, setOpen] = useState(false);
   const tooltipId = useId();
   return (
     <span className="group relative inline-flex shrink-0">
       <button
         type="button"
         aria-label={label}
-        aria-expanded={open}
-        aria-describedby={open ? tooltipId : undefined}
+        aria-describedby={tooltipId}
         title={text}
-        onClick={() => setOpen((current) => !current)}
-        onBlur={() => window.setTimeout(() => setOpen(false), 120)}
         className="grid h-5 w-5 cursor-pointer place-items-center rounded-full border border-line-strong bg-paper text-[11px] font-bold text-muted transition-colors hover:border-brand hover:text-brand-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
       >
         i
@@ -2302,7 +2221,7 @@ function InfoHint({ label, text }: { label: string; text: string }) {
       <span
         id={tooltipId}
         role="tooltip"
-        className={`pointer-events-none absolute left-0 top-7 z-20 w-64 rounded-md border border-line-strong bg-ink px-3 py-2 text-left text-[11px] font-normal leading-relaxed text-white shadow-lg transition-opacity ${open ? "opacity-100" : "opacity-0"}`}
+        className="pointer-events-none absolute left-0 top-7 z-20 w-64 max-w-[min(16rem,calc(100vw-2rem))] rounded-md border border-line-strong bg-ink px-3 py-2 text-left text-[11px] font-normal leading-relaxed text-white opacity-0 shadow-lg transition-opacity group-hover:opacity-100 group-focus-within:opacity-100"
       >
         {text}
       </span>
@@ -2321,7 +2240,7 @@ function Kpi({
   icon: LucideIcon;
 }) {
   return (
-    <div className="rounded-xl border border-line bg-white p-4 shadow-[0_12px_28px_-24px_rgba(22,163,74,0.18)] transition-shadow hover:shadow-[0_16px_32px_-24px_rgba(22,163,74,0.22)]">
+    <div className="rounded-lg border border-line bg-white p-4 shadow-none">
       <div className="flex items-start justify-between gap-2">
         <span className="flex items-center gap-1.5">
           <span className="dashboard-label text-faint">{label}</span>
@@ -2334,7 +2253,6 @@ function Kpi({
       <p className="dashboard-metric mt-3 tabular-nums tracking-[-0.04em] text-ink">
         {value}
       </p>
-      <p className="mt-1 text-[11px] leading-relaxed text-muted">{helper}</p>
     </div>
   );
 }
@@ -2616,15 +2534,6 @@ function Overview({
         description="See activity, explicit work outcomes, and what deserves attention next."
         question="Start here: who is showing up, what are they trying to do, did it work, and what needs attention?"
         actions={pageControls}
-      />
-      <DataSourceStrip dataMode={dataMode} hasMyData={hasMyData} view="overview" />
-      <OverviewTakeaway analytics={analytics} dataMode={dataMode} hasMyData={hasMyData} />
-      <OverviewNextStep analytics={analytics} dataMode={dataMode} hasMyData={hasMyData} onViewChange={onViewChange} />
-      <ExecutiveReadout analytics={analytics} dataMode={dataMode} onViewChange={onViewChange} />
-      <BusinessContext
-        title="How to read this overview"
-        body="Completion appears only when your server reports it. N/A means evidence is missing, not that work failed."
-        action="Open What’s broken for signals or Evidence for detail."
       />
       <div className="mb-6 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
         <Kpi
@@ -3208,12 +3117,6 @@ function JourneysView({
         question="Where does a real piece of work start, continue, pause, or stop?"
         actions={pageControls}
       />
-      <DataSourceStrip dataMode={dataMode} hasMyData={hasMyData} view="journeys" />
-      <BusinessContext
-        title="Follow observed work"
-        body="Paths show observed steps and explicit outcomes. A missing next event is not proof of abandonment."
-        action="Start with Common paths; open Where work stops when you need evidence."
-      />
       {!analytics.journey_activity && (
         <StateNote
           title={dataMode === "my" ? "Journey evidence will appear after connection" : "Journey evidence is unavailable"}
@@ -3434,12 +3337,6 @@ function CapabilitiesView({
         question="Which features are people actually using, and where is adoption concentrated?"
         actions={pageControls}
       />
-      <DataSourceStrip dataMode={dataMode} hasMyData={hasMyData} view="capabilities" />
-      <BusinessContext
-        title="Start with adoption"
-        body="Most-used features show demand; breadth shows concentration; reliability shows friction."
-        action="Open a feature when a trend or error needs investigation."
-      />
       {activity && (
         <>
           <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
@@ -3647,12 +3544,6 @@ function ResourcesPromptsView({
   return (
     <div>
       <PageIntro title="Resources & prompts" description="See which information and guided-help surfaces people use." question="What do people need most?" actions={pageControls} />
-      <DataSourceStrip dataMode={dataMode} hasMyData={hasMyData} view="resources" />
-      <BusinessContext
-        title="Read information needs"
-        body="Lookups show requested information; prompts show guided-help requests. Completion is reported, never inferred."
-        action="Compare error and input-needed rates before changing content."
-      />
       <div className="grid gap-3 sm:grid-cols-3">
         <Kpi label="Information lookups" value={activity ? fmt(activity.resource_reads) : "N/A"} icon={FileText} helper={activity ? `${fmt(activity.previous_period_resource_reads)} previous period · ${fmt(activity.resource_observations)} observed` : "Awaiting evidence"} />
         <Kpi label="Guided-help requests" value={activity ? fmt(activity.prompt_calls) : "N/A"} icon={Activity} helper={activity ? `${fmt(activity.previous_period_prompt_calls)} previous period · ${fmt(activity.prompt_observations)} observed` : "Awaiting evidence"} />
@@ -3804,14 +3695,6 @@ function QualityView({
           question="What completed, what returned an error, and what is still unobserved?"
           actions={pageControls}
         />
-        <DataSourceStrip dataMode={dataMode} hasMyData={hasMyData} view="quality" />
-        <BusinessContext
-          title={dataMode === "my" ? "Quality appears after your server connects" : "Example quality data is unavailable"}
-          body={dataMode === "my"
-            ? "Once your server sends activity, this view will separate explicit outcomes from feature reliability. A loading problem is not evidence that the server is healthy or unhealthy."
-            : "The example quality response could not be loaded. Retry to restore the illustrative view; no live workspace data is substituted."}
-          action={dataMode === "my" ? "Retry after checking the connection in Setup." : "Retry to reload the illustrative quality view."}
-        />
         <LiveDataState
           message={dataMode === "my" ? "Quality data could not be loaded" : "Example quality data could not be loaded"}
           onRetry={onRefresh}
@@ -3829,12 +3712,6 @@ function QualityView({
         description="Review observed capability quality without turning insufficient data into a failure."
         question="What completed, what returned an error, and what is still unobserved?"
         actions={pageControls}
-      />
-      <DataSourceStrip dataMode={dataMode} hasMyData={hasMyData} view="quality" />
-      <BusinessContext
-        title="Separate outcomes from reliability"
-        body="Outcomes come from explicit server reports. Errors and retries show reliability; missing outcomes stay unknown."
-        action="Open feature evidence when a rate needs investigation."
       />
       <OutcomeEvidencePanel analytics={analytics} />
       <Panel
@@ -4104,12 +3981,6 @@ function IssuesView({
         title="What's broken"
         description="Review what deserves attention next, ordered by evidence strength and affected volume."
         question="What should the team investigate next, and how strong is the evidence?"
-      />
-      <DataSourceStrip dataMode={dataMode} hasMyData={hasMyData} view="issues" />
-      <BusinessContext
-        title="Decide what to investigate"
-        body="Signals are ranked by evidence and affected volume. They guide investigation; they are not diagnoses."
-        action="Review firing incidents first; use Evidence for the technical basis."
       />
       {analytics.issue_activity && <div className="mb-6 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
         <Kpi label="Actionable signals" value={fmt(analytics.issue_activity.actionable_signals)} icon={AlertTriangle} helper="Bounded rules with evidence" />
@@ -4471,14 +4342,8 @@ function ClientsView({
         question="Which account groups and assistants are showing up, and is activity growing?"
         actions={pageControls}
       />
-      <DataSourceStrip dataMode={dataMode} hasMyData={hasMyData} view="clients" />
       {people ? (
         <>
-          <BusinessContext
-            title="Read account-group activity"
-            body="Groups and assistants show adoption patterns; they do not identify people or count every customer."
-            action="Use Setup to add optional account grouping."
-          />
           <div className="mb-6 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
             <Kpi
               label="Active account groups"
@@ -4673,12 +4538,6 @@ function EvidenceView({
         description="Inspect bounded, redacted records only when the business question needs technical detail."
         question="What supporting detail explains the business signal I am looking at?"
         actions={pageControls}
-      />
-      <DataSourceStrip dataMode={dataMode} hasMyData={hasMyData} view="evidence" />
-      <BusinessContext
-        title="Use Evidence for detail"
-        body="Open a redacted trace when a metric needs technical context. Payloads and private inputs stay hidden."
-        action="Use one session to confirm the sequence behind a metric."
       />
       {incident && (
         <IncidentEvidence incident={incident} example={dataMode === "example"} onBack={() => onViewChange("issues")} />
@@ -5117,11 +4976,6 @@ function SetupView({
         title="Setup"
         description="Three steps to a verified MCP event. Advanced controls stay below until you need them."
         question="Is TrackMCP receiving activity, and what is the next step if it is not?"
-      />
-      <BusinessContext
-        title="After setup"
-        body="One real event unlocks adoption, work, outcomes, and issue views."
-        action="Create a key, connect one server, make one tool call, then refresh."
       />
       <section className="mb-6 grid gap-3 rounded-2xl border border-brand/20 bg-brand-soft/25 p-4 sm:grid-cols-3 sm:p-5" aria-label="Setup steps">
         {setupSteps.map(([number, title, detail], index) => (

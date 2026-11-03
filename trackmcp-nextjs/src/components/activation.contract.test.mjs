@@ -92,7 +92,7 @@ test("dashboard preserves truthful activation states", () => {
     "Your MCP server has not sent its first event yet.",
     "Live data could not be loaded",
     "No live data available for this period.",
-    "This is a guided example, not your live server activity",
+    "Your live data and Example data stay separate",
   ]) assert.match(dashboard, new RegExp(phrase.replace(/[.*+?^${}()|[\\]\\]/g, "\\\\$&")));
   assert.match(dashboard, /dataMode === "example"/);
   assert.match(dashboard, /No other data source was substituted/);

@@ -173,10 +173,9 @@ body:has([data-site-nav]) .global-language-switcher {
   font-family: var(--font-sans);
 }
 
-/* Dashboard visual system: warm-neutral surfaces with a familiar emerald
-   accent. Emerald is reserved for actions and healthy signals; warning/error
-   semantics keep their own colors. The lighter values are for surfaces only,
-   so small text and controls retain sufficient contrast. */
+/* Dashboard visual system: quiet neutral surfaces with one restrained blue
+   action color. Blue is for navigation and emphasis; green remains reserved
+   for positive status so the interface does not make every card look healthy. */
 .dashboard-shell {
   --color-canvas: #fafaf9;
   --color-paper: #ffffff;
@@ -186,11 +185,11 @@ body:has([data-site-nav]) .global-language-switcher {
   --color-faint: #a1a1aa;
   --color-line: #e4e4e7;
   --color-line-strong: #d4d4d8;
-  --color-brand: #63c893;
-  --color-brand-strong: #438d68;
-  --color-brand-soft: #f3fcf6;
-  --color-mint: #f8fdf9;
-  --color-mint-ink: #3e7e5d;
+  --color-brand: #2563eb;
+  --color-brand-strong: #1d4ed8;
+  --color-brand-soft: #eff6ff;
+  --color-mint: #f8fafc;
+  --color-mint-ink: #1e40af;
 }
 
 /* Every enabled interactive control exposes the same pointer affordance,
@@ -253,13 +252,20 @@ button:disabled {
   line-height: 2.25rem;
 }
 
-/* Founder OS dashboard surface language: quiet canvas, clear cards, and a
- * single green action color. The underlying data stays unchanged; these rules
- * make hierarchy and state legible without turning every panel into a dark
- * rectangle. */
+/* Keep the dashboard flat and scannable: borders establish grouping, not
+ * stacked shadows and oversized rounded containers. */
 .dashboard-shell main > section,
 .dashboard-shell main > div > section {
-  border-radius: 1rem;
+  border-radius: 0.5rem;
+}
+/* Keep legacy utility-heavy panels from reintroducing the old rounded-card
+ * and colored-shadow treatment while the dashboard is incrementally refactored. */
+.dashboard-shell .rounded-2xl,
+.dashboard-shell .rounded-xl {
+  border-radius: 0.5rem !important;
+}
+.dashboard-shell [class*="shadow-"] {
+  box-shadow: none !important;
 }
 .dashboard-shell table th {
   color: var(--color-faint);
@@ -267,7 +273,7 @@ button:disabled {
 }
 .dashboard-shell button:not(:disabled):hover,
 .dashboard-shell summary:hover {
-  transform: translateY(-1px);
+  transform: none;
 }
 .dashboard-shell button,
 .dashboard-shell summary {
@@ -290,7 +296,7 @@ button:disabled {
 .dashboard-shell select:focus-visible,
 .dashboard-shell textarea:focus-visible {
   border-color: var(--color-brand);
-  box-shadow: 0 0 0 3px rgba(21,128,61,0.2);
+  box-shadow: 0 0 0 3px rgba(37,99,235,0.18);
 }
 
 @layer utilities {

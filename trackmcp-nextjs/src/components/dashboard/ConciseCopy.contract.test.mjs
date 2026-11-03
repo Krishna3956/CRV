@@ -6,6 +6,17 @@ const source = await readFile(new URL("./DashboardApp.tsx", import.meta.url), "u
 
 test("business views lead with short, scannable explanations", () => {
   for (const copy of [
+    'title="Overview"',
+    'title="The journey"',
+    'title="What they\'re doing"',
+    'title="Resources & prompts"',
+    'title="Did it work"',
+    'title="What\'s broken"',
+    'title="Setup"',
+  ]) {
+    assert.match(source, new RegExp(copy.replace(/[.*+?^${}()|[\\]\\]/g, "\\\\$&")));
+  }
+  for (const removed of [
     'title="What you will see"',
     'title="Follow observed work"',
     'title="Start with adoption"',
@@ -15,9 +26,7 @@ test("business views lead with short, scannable explanations", () => {
     'title="Read account-group activity"',
     'title="Use Evidence for detail"',
     'title="After setup"',
-  ]) {
-    assert.match(source, new RegExp(copy.replace(/[.*+?^${}()|[\\]\\]/g, "\\\\$&")));
-  }
+  ]) assert.doesNotMatch(source, new RegExp(removed.replace(/[.*+?^${}()|[\\]\\]/g, "\\\\$&")));
   assert.doesNotMatch(source, /TrackMCP shows your team who is using the MCP/);
   assert.doesNotMatch(source, /A technical teammate connects one server; after the first event/);
   assert.doesNotMatch(source, /This view shows privacy-safe account groups and the assistant applications/);
@@ -33,8 +42,8 @@ test("setup keeps the primary path visible and makes technical detail secondary"
 });
 
 test("evidence boundaries remain explicit after copy reduction", () => {
-  assert.match(source, /Completion appears only when your server reports it/);
-  assert.match(source, /A missing next event is not proof of abandonment/);
-  assert.match(source, /Outcomes come from explicit server reports/);
-  assert.match(source, /Payloads and private inputs stay hidden/);
+  assert.match(source, /Only outcomes your server explicitly reported count here/);
+  assert.match(source, /A missing terminal event is not treated as abandonment/);
+  assert.doesNotMatch(source, /Outcomes come from explicit server reports/);
+  assert.match(source, /bounded, redacted evidence/);
 });
