@@ -1077,3 +1077,17 @@ Verification after this slice:
 - `npm run build`: passed; 230 static pages generated.
 - No production deployment, authenticated production session, or database
   write was performed.
+
+## Dashboard header control grouping after the current branch change
+
+The header's data-source and language controls now use a non-wrapping,
+shrink-protected group at desktop widths. This keeps `Example data`, `My data`,
+and the language selector visually separate instead of allowing the language
+button to wrap over the data-source toggle. The controls' actions, labels, and
+data-mode behavior are unchanged.
+
+Verification:
+
+- `npm run test:business-user-ux`: 100/100 passed.
+- `npx tsc --noEmit --pretty false`: passed.
+- `git diff --check`: passed.

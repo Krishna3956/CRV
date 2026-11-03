@@ -230,6 +230,9 @@ Legend: `[x]` verified/implemented in this workstream; `[ ]` pending.
       banner: when no workspace exists, `Retry workspace setup` retries the
       create flow instead of refreshing analytics; established workspaces keep
       the separate `Retry dashboard data` action.
+- [x] ✅ Keep the desktop dashboard header's data-source and language controls
+      together at intermediate widths so the language button cannot wrap over
+      the Example-data control.
 - [x] ✅ Keep long connection-key histories out of the primary Setup scan:
       show the first three active keys by default, retain explicit access to
       the full active list, and keep revoked keys behind their existing

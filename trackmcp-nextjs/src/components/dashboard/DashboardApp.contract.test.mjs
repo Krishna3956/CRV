@@ -509,6 +509,11 @@ test("workspace creation errors retry workspace setup instead of analytics", () 
   assert.match(source, /<ErrorBanner message=\{error\} onRetry=\{retryError\} retryLabel=\{retryErrorLabel\} \/>/);
 });
 
+test("dashboard header keeps data and language controls together", () => {
+  assert.match(source, /<div className="flex shrink-0 items-center gap-2 sm:gap-3">/);
+  assert.match(source, /<div className="flex shrink-0 items-center gap-1\.5 whitespace-nowrap" role="group" aria-label="Data source">/);
+});
+
 test("Setup documentation link is external and the connection steps are explicit", () => {
   assert.match(source, /label: "Read documentation"/);
   assert.match(source, /const documentationHref = `https:\/\/trackmcp\.com\/docs\/\$\{/);

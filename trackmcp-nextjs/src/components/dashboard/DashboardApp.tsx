@@ -1283,7 +1283,7 @@ export function DashboardApp({
               </label>
             )}
           </div>
-          <div className="flex items-center gap-2 sm:gap-3">
+          <div className="flex shrink-0 items-center gap-2 sm:gap-3">
             <DataModeToggle dataMode={dataMode} onChange={setDataMode} />
             <LanguageSwitcher />
           </div>
@@ -1508,7 +1508,7 @@ function DataModeToggle({
   onChange: (dataMode: DataMode) => void;
 }) {
   return (
-    <div className="flex items-center gap-1.5" role="group" aria-label="Data source">
+    <div className="flex shrink-0 items-center gap-1.5 whitespace-nowrap" role="group" aria-label="Data source">
       <span className="hidden text-[11px] font-semibold text-faint sm:inline">Data source</span>
       <div className="inline-flex rounded-lg border border-line bg-white p-0.5">
         <button

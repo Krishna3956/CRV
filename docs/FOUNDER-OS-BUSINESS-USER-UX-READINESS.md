@@ -249,6 +249,11 @@ and invokes the workspace-creation flow. Once a workspace exists, the same
 banner remains a data-refresh action. This closes a setup dead end without
 changing workspace or key persistence semantics.
 
+The dashboard header now keeps the data-source toggle and language selector in
+one non-wrapping control group at desktop widths, preventing the language
+control from visually colliding with `Example data`. This is a layout-only
+affordance fix; the two controls retain their existing actions and labels.
+
 After the loading-state and palette revisions, the consolidated release gate
 was rerun and passed all 159 suites. The gate passed in the isolated worktree;
 it does not change the Tier 3 status because authenticated production and
