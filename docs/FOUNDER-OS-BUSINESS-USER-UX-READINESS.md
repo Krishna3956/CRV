@@ -237,6 +237,11 @@ change with no metric or formula change. The fallback description names the
 selected source explicitly, so an Example-data failure cannot be mislabeled as
 a My-data failure.
 
+The unauthenticated `/dashboard` handoff now exposes both first-session entry
+paths: `Sign in to continue` for returning users and `Create an account` for
+new users. This removes a signup dead end without changing authentication or
+workspace provisioning behavior.
+
 After the loading-state and palette revisions, the consolidated release gate
 was rerun and passed all 159 suites. The gate passed in the isolated worktree;
 it does not change the Tier 3 status because authenticated production and

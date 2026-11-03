@@ -30,8 +30,10 @@ test("first-time loading state explains what the dashboard is preparing", () => 
 });
 
 test("unauthenticated dashboard state explains the required action", () => {
-  assert.match(source, /Sign in to open your dashboard\./);
-  assert.match(source, /Create a connection key, connect one server, and see how your MCP is being used\./);
+  assert.match(source, /Open your TrackMCP dashboard\./);
+  assert.match(source, /Sign in if you already have an account, or create one/);
+  assert.match(source, /href="\/signup"/);
+  assert.match(source, /Create an account/);
   assert.doesNotMatch(source, /Your workspace is waiting\./);
 });
 

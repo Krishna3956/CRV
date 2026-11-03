@@ -100,6 +100,9 @@ Legend: `[x]` verified/implemented in this workstream; `[ ]` pending.
       authentication path: primary sign-in/sign-up and social-provider controls
       expose a pointer cursor, visible keyboard focus, and an explicit disabled
       state so the first setup step does not look inert.
+- [x] ✅ Keep the unauthenticated `/dashboard` handoff usable for both sides of
+      the first journey: returning users can sign in and new users can create
+      an account without guessing which entry point to choose.
 - [x] ✅ Simplify Setup status states so a business reader sees “recent server
       activity”, “partial view”, and “account grouping unavailable” before
       technical evidence terminology.

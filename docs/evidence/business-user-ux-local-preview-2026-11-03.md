@@ -983,6 +983,22 @@ Verification:
 - `npm run build`: passed; 230 static pages generated.
 - `git diff --check`: passed.
 
+## First-session sign-in and signup handoff in the current branch
+
+The unauthenticated dashboard route now explains both entry paths in one
+sentence: returning users can sign in, while new users can create an account.
+The page exposes separate `Sign in to continue` and `Create an account`
+actions, so a new visitor does not have to infer that `/dashboard` is also a
+signup entry point. The existing bounded auth hydration, workspace creation,
+and setup handoff behavior is unchanged.
+
+Verification:
+
+- `node --test src/app/dashboard/page.contract.test.mjs`: 8/8 passed.
+- `npm run test:business-user-ux`: 98/98 passed.
+- `npx tsc --noEmit --pretty false`: passed.
+- `npm run build`: passed; 230 static pages generated.
+
 ## Production Setup comparison (read-only)
 
 The currently deployed production tab was inspected without changing state at
