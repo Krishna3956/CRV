@@ -1276,3 +1276,26 @@ Verification:
 - `npm run test:business-user-ux`: 100/100 passed.
 - `npx tsc --noEmit --pretty false`: passed.
 - `git diff --check`: passed.
+
+## Semantic Setup order browser proof after `cba60688`
+
+The local development browser was run with the documented development-only
+dashboard bypass and the Example-data Setup route. The accessibility tree
+reported the activation panels in this order:
+
+1. `Connection keys`
+2. `Connect the server`
+
+This is stronger than a visual CSS-order check: the rendered DOM and assistive
+technology traversal now use the same order as the visible three-step rail.
+The route returned HTTP 200. The setup status request returned the expected
+503 because the preview intentionally had no Supabase database; no production
+credentials or database writes were used.
+
+Verification:
+
+- `npm run test:business-user-ux`: 106/106 passed.
+- `npx tsc --noEmit --pretty false`: passed.
+- `npm run build`: passed; 230 static pages generated.
+- `npm run test:release-gate`: passed all 159 suites.
+- Temporary local server and browser tab were stopped/closed after capture.
