@@ -6,8 +6,8 @@ Current local head: `21e5bbb6` (remote branch head matches)
 Scope: evidence handoff for the business-user UX branch; no deployment or
 production mutation was performed by this handoff.
 
-Latest pull-request CI is pending provider execution for the latest head. This
-is branch validation only; the branch
+Pull-request CI run `41593342850` passed the Go, web/JavaScript, and .NET jobs
+for the latest head. This is branch validation only; the branch
 has not been merged or deployed. Vercel preview is not release evidence because
 the provider is currently rate-limiting preview builds.
 
@@ -39,9 +39,9 @@ the provider is currently rate-limiting preview builds.
 | Local rendered Overview/Setup preview | HTTP 200; expected data-source, setup, and navigation states visible |
 | Worktree | clean after restoring the synthetic UAT fixture timestamp |
 
-The local release gate passed all 159 suites on `21e5bbb6`. Provider CI for this
-newer head is still queued; earlier superseded runs are not used as release
-evidence.
+The local release gate passed all 159 suites on `21e5bbb6`. GitHub's separate
+Vercel check remains failed because the provider is rate-limiting deployments;
+that external preview failure is not treated as a source or test failure.
 
 The authenticated production smoke workflow also passed on `main` in run
 `41568279966` at release SHA

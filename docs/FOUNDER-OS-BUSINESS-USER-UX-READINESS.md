@@ -13,8 +13,8 @@ and the consolidated `npm run test:release-gate` passed all 159 suites on the
 current branch. The synthetic UAT report was restored to its tracked fixture
 value after the gate run. The branch remains local and has not been merged or
 deployed.
-A fresh pull-request CI run for the latest pushed head is pending provider
-execution. No Vercel deployment is being treated
+A fresh pull-request CI run for the latest pushed head (`41593342850`) passed
+the Go, web/JavaScript, and .NET jobs. No Vercel deployment is being treated
 as release evidence; the provider has an external preview rate limit recorded
 in `docs/evidence/business-user-ux-vercel-preview-rate-limit-2026-11-03.md`.
 A fresh local
