@@ -158,6 +158,7 @@ test("dashboard typography uses the product type system", () => {
 
 test("dashboard decorative accents stay inside the neutral and teal system", () => {
   assert.doesNotMatch(source, /bg-\[#d7e5db\]|bg-\[#f4faf6\]|bg-\[#f6faf7\]|18,59,42/);
+  assert.doesNotMatch(source, /49,46,129|55,48,163/);
   assert.match(source, /bg-brand-soft\/30/);
   assert.match(source, /bg-brand-soft\/20/);
   assert.match(source, /fill=\"#99f6e4\"/);

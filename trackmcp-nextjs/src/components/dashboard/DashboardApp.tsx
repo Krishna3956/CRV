@@ -2349,7 +2349,7 @@ function OverviewTakeaway({
   }
 
   return (
-    <section className="mb-6 rounded-2xl border border-brand/20 bg-brand-soft/30 px-5 py-4 shadow-[0_16px_40px_-34px_rgba(49,46,129,0.16)]" aria-label="Overview takeaway">
+    <section className="mb-6 rounded-2xl border border-brand/20 bg-brand-soft/30 px-5 py-4 shadow-[0_16px_40px_-34px_rgba(15,118,110,0.16)]" aria-label="Overview takeaway">
       <div className="flex items-start gap-3">
         <span className="mt-0.5 grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-brand-soft text-brand-strong" aria-hidden="true">
           <Sparkles size={15} />
