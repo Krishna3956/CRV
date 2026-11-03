@@ -184,6 +184,28 @@ This is stronger than an HTTP-only smoke because it inspects the rendered
 accessibility/DOM content. It remains local bypass evidence; it does not close
 the fresh-account, real-Supabase, or human-UAT gates.
 
+The same local browser session then opened every dashboard view with Example
+data selected. The cross-tab pass confirmed these lead questions and boundaries:
+
+- Who’s using it — account groups and assistants, explicitly not a people or
+  customer census.
+- What they’re doing — feature adoption and concentration before technical
+  protocol evidence.
+- Resources & prompts — information needs and interaction outcomes before
+  detailed entity evidence.
+- The journey — common paths, stopping points, reach, and pause/resume states.
+- Did it work — completed, error, and unobserved states kept separate.
+- What’s broken — investigation priority and evidence strength, not diagnosis.
+- Evidence — supporting detail for the business signal, with an example
+  session timeline.
+- Setup — connection key and server connection controls with optional technical
+  detail behind disclosure.
+
+Every view retained the `Illustration only`/`Example data selected` boundary
+and the `Connect your MCP` path. This verifies the activated business journey
+across the full navigation in the rendered local UI; it remains illustrative
+data, not production read-model evidence.
+
 Remaining evidence required:
 
 - Fresh authenticated account in a deployed environment.
