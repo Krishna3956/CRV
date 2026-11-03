@@ -2,7 +2,7 @@
 
 Date: 2026-11-03  
 Branch: `codex/business-user-ux-audit`  
-Latest verified commit: `7a0b4f0d` (`docs: record production smoke availability gate`)
+Latest verified commit: `2ebc481f` (`docs: point UX readiness at current head`)
 
 This matrix is the release-readiness companion to the UX audit and work
 queue. It intentionally separates source-level proof, read-only browser proof,
@@ -15,7 +15,7 @@ outcome-copy, Quality helper-copy, final route-smoke, and auth-affordance passes
 The consolidated `npm run test:release-gate` passed all 159 suites on the
 current branch with the synthetic UAT report restored to its tracked fixture value
 after the run. The branch remains local and has not been merged or deployed.
-A fresh pull-request CI run (`41576409402`) also passed the required
+A fresh pull-request CI run (`41578593227`) also passed the required
 web/JavaScript, Go, and .NET jobs for this exact head. The pull request remains
 open; this is validation evidence, not merge or deployment evidence.
 A fresh local

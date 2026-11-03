@@ -2,9 +2,13 @@
 
 Date: 2026-11-03  
 Branch: `codex/business-user-ux-audit`  
-Current local head: `7a0b4f0d`
+Current local head: `2ebc481f`
 Scope: evidence handoff for the business-user UX branch; no deployment or
 production mutation was performed by this handoff.
+
+Latest pull-request CI: run `41578593227` passed the web/JavaScript, Go, and
+.NET jobs for commit `2ebc481f`. This is branch validation only; the branch has
+not been merged or deployed.
 
 ## What is verified locally
 
