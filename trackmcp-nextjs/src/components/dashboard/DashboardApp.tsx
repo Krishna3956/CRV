@@ -1541,7 +1541,7 @@ function DataModeToggle({
         </button>
       </div>
       <span
-        className="hidden text-[10px] font-medium text-faint xl:inline"
+        className="text-[10px] font-medium text-faint"
         aria-live="polite"
       >
         {dataMode === "my" ? "Your workspace" : "Illustration only"}

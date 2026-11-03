@@ -2,7 +2,7 @@
 
 Date: 2026-11-03
 Branch: `codex/business-user-ux-audit`
-Commit under review: `7e2fd060` (`Tighten first-time dashboard explanation`)
+Commit under review: `e584280e` (`Refresh UX readiness evidence counts`)
 
 This is local browser evidence only. It is not production evidence and does
 not replace a fresh-account or real-telemetry walkthrough.
@@ -923,3 +923,24 @@ An empty confirmed-incident response now reads `No confirmed incidents in this
 period` and explicitly says that this is not proof that everything is healthy.
 The copy directs a business reader to Overview and Evidence for broader context,
 so an empty alert list is not mistaken for a complete health assessment.
+
+## Data-source scope labels after `1fbc3286`
+
+The local development dashboard was opened at
+`http://127.0.0.1:3198/dashboard?view=overview&data=my` with the documented
+non-production Supabase placeholders and local dashboard bypass. The browser
+accessibility tree exposed the header label `Data source` and the selected
+scope `Your workspace`. Switching the same control to
+`/dashboard?view=overview&data=example` exposed `Illustration only`, while the
+page also retained its `Example data selected` banner and illustrative-data
+boundary. This confirms that the scope label changes with the selected mode
+without substituting data or changing the read model.
+
+Current verification for this slice:
+
+- `npm run test:business-user-ux`: 95/95 passed.
+- `npx tsc --noEmit --pretty false`: passed.
+- `npm run build`: passed; 230 static pages generated.
+- `npm run test:release-gate`: passed all 159 suites.
+- No production deployment, authenticated production session, or database
+  write was performed.
