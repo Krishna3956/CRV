@@ -186,11 +186,11 @@ body:has([data-site-nav]) .global-language-switcher {
   --color-faint: #a1a1aa;
   --color-line: #e4e4e7;
   --color-line-strong: #d4d4d8;
-  --color-brand: #55b684;
-  --color-brand-strong: #3d8c66;
-  --color-brand-soft: #f2fbf5;
-  --color-mint: #f7fcf8;
-  --color-mint-ink: #397c5c;
+  --color-brand: #63c893;
+  --color-brand-strong: #438d68;
+  --color-brand-soft: #f3fcf6;
+  --color-mint: #f8fdf9;
+  --color-mint-ink: #3e7e5d;
 }
 
 /* Every enabled interactive control exposes the same pointer affordance,
