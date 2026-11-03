@@ -416,6 +416,13 @@ test("Setup visual body order follows the key-before-server sequence", () => {
   assert.match(source, /title=\{workspaceId \? "Connection keys" : "Create your workspace"\}[\s\S]{0,260}className="order-1"/);
 });
 
+test("Setup connection status exposes the current primary action", () => {
+  assert.match(source, /connectionState === "no-key"/);
+  assert.match(source, /workspaceId \? "Create connection key" : "Create workspace"/);
+  assert.match(source, /focusSetupPrimaryAction/);
+  assert.match(source, /id="setup-primary-action"/);
+});
+
 test("Setup clears stale workspace evidence while a workspace check is in flight", () => {
   const setupStart = source.indexOf("function SetupView(");
   const setupEnd = source.indexOf("// Kept as an inert compatibility artifact", setupStart);

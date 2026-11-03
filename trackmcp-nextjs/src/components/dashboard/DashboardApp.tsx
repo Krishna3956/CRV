@@ -4994,6 +4994,11 @@ function SetupView({
       setOtelCopied(false);
     }
   };
+  const focusSetupPrimaryAction = () => {
+    const action = document.getElementById("setup-primary-action");
+    action?.scrollIntoView({ behavior: "smooth", block: "center" });
+    if (action instanceof HTMLButtonElement) action.focus({ preventScroll: true });
+  };
   const retrySetupCheck = () => {
     if (!workspaceId || setupLoading) return;
     setSetupChecking(true);
@@ -5040,6 +5045,22 @@ function SetupView({
             <p className="mt-1 max-w-2xl text-xs leading-relaxed text-muted">
               {stateCopy[1]}
             </p>
+            {connectionState === "no-key" && (
+              <button
+                type="button"
+                onClick={() => {
+                  if (!workspaceId) {
+                    onCreateWorkspace();
+                  } else {
+                    focusSetupPrimaryAction();
+                  }
+                }}
+                disabled={working}
+                className="mt-4 inline-flex cursor-pointer items-center gap-1.5 rounded-md bg-brand-strong px-3 py-2 text-xs font-semibold text-white hover:bg-brand-strong disabled:cursor-not-allowed disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2"
+              >
+                {workspaceId ? "Create connection key" : "Create workspace"} <ArrowRight size={13} aria-hidden="true" />
+              </button>
+            )}
             {(connectionState === "verified" || connectionState === "identity" || connectionState === "limited") && (
               <button
                 type="button"
@@ -5285,6 +5306,7 @@ function SetupView({
                 type="button"
                 onClick={onCreateWorkspace}
                 disabled={working}
+                id="setup-primary-action"
                 className="mt-4 inline-flex cursor-pointer items-center gap-2 rounded-lg bg-brand-strong px-4 py-2.5 text-sm font-semibold text-white shadow-[0_10px_24px_-14px_rgba(22,163,74,0.28)] hover:bg-brand-strong disabled:cursor-not-allowed disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
               >
                 <KeyRound size={15} />
@@ -5405,6 +5427,7 @@ function SetupView({
                 type="button"
                 onClick={() => onGenerateKey(scopeNewKey ? { serviceScope: boundedService, environmentScope: boundedEnvironment } : undefined)}
                 disabled={working}
+                id="setup-primary-action"
               className="mt-4 inline-flex cursor-pointer items-center gap-2 rounded-lg bg-brand-strong px-4 py-2.5 text-sm font-semibold text-white shadow-[0_10px_24px_-14px_rgba(22,163,74,0.28)] hover:bg-brand-strong disabled:cursor-not-allowed disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
               >
                 <KeyRound size={15} />

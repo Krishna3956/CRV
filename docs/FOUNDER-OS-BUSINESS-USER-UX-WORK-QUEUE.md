@@ -258,6 +258,9 @@ Legend: `[x]` verified/implemented in this workstream; `[ ]` pending.
       workspace/connection-key action appears before the SDK/server code, so a
       sighted new user is not asked to configure a server before creating the
       key it needs. DOM-order/accessibility follow-up remains explicit below.
+- [x] ✅ Put the current Setup action in the connection-status card: a new
+      account can create its workspace immediately, and a keyed workspace can
+      jump to the connection-key action without searching the page.
 - [x] ✅ Put business interpretation before implementation detail on the
       Overview attention and outcome surfaces: signal cards lead with an
       observed-pattern explanation, while completion methodology and evidence

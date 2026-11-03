@@ -1229,6 +1229,22 @@ Verification:
 - No production deployment, authenticated production session, or database write
   was performed.
 
+## Setup status-card primary action after the current branch change
+
+The no-key connection-status card now exposes the action required by the
+current state instead of only describing it. A user without a workspace sees
+`Create workspace`, while a workspace without an active key sees `Create
+connection key`; the latter focuses and scrolls to the existing key action so
+there is no duplicate key-generation path. The underlying workspace/key
+handlers are unchanged.
+
+Verification:
+
+- Local Setup route returned HTTP 200 with the state-aware status copy.
+- `npm run test:business-user-ux`: 106/106 passed.
+- `npx tsc --noEmit --pretty false`: passed.
+- `npm run build`: passed; 230 static pages generated.
+
 A fresh local browser pass at
 `http://127.0.0.1:3200/dashboard?view=overview&data=example` returned HTTP 200
 with the development-only dashboard bypass. The accessibility tree showed
