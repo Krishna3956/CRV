@@ -24,11 +24,14 @@ test("first-time loading state explains what the dashboard is preparing", () => 
   assert.match(source, /Load your workspace/);
   assert.match(source, /Open your dashboard/);
   assert.match(source, /Your data is not being changed/);
+  assert.match(source, /dashboard-shell min-h-screen bg-canvas/);
+  assert.match(source, /bg-brand-soft text-brand-strong/);
+  assert.doesNotMatch(source, /bg-slate-50|border-slate-200|bg-indigo-50|text-indigo-700/);
 });
 
 test("unauthenticated dashboard state explains the required action", () => {
   assert.match(source, /Sign in to open your dashboard\./);
-  assert.match(source, /Create an API key and see how your MCP server is being used\./);
+  assert.match(source, /Create a connection key, connect one server, and see how your MCP is being used\./);
   assert.doesNotMatch(source, /Your workspace is waiting\./);
 });
 

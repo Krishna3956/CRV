@@ -237,32 +237,32 @@ export function DashboardPageContent({ initialView = "overview" }: { initialView
   }, [createWorkspace, loadAccount, loadAnalytics, loadToolQuality]);
 
  if (loading) return (
-   <main className="dashboard-shell min-h-screen bg-slate-50 px-6 py-10 text-body sm:py-16" aria-busy="true" aria-live="polite">
+   <main className="dashboard-shell min-h-screen bg-canvas px-6 py-10 text-body sm:py-16" aria-busy="true" aria-live="polite">
      <div className="mx-auto max-w-4xl">
        <div className="flex items-center gap-3">
          <TrackMCPLogo asLink={false} mark size="nav" variant="mono" />
          <span className="text-xs font-semibold text-muted">Dashboard</span>
        </div>
-       <section className="mt-14 rounded-2xl border border-slate-200 bg-white p-7 shadow-sm sm:p-10">
+       <section className="mt-14 rounded-2xl border border-line bg-paper p-7 shadow-[0_24px_60px_-44px_rgba(37,99,235,0.14)] sm:p-10">
          <div className="flex items-start gap-4">
-           <span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-indigo-50 text-indigo-700">
+           <span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-brand-soft text-brand-strong">
              <Loader2 size={20} className="animate-spin" aria-hidden="true" />
            </span>
            <div>
-             <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-indigo-700">TrackMCP dashboard</p>
-             <h1 className="mt-2 text-2xl font-semibold tracking-tight text-slate-900 sm:text-3xl">Opening your workspace</h1>
-             <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-600">We’re checking your sign-in and preparing the workspace where your MCP activity will appear.</p>
+             <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-brand-strong">TrackMCP dashboard</p>
+             <h1 className="mt-2 text-2xl font-semibold tracking-tight text-ink sm:text-3xl">Opening your workspace</h1>
+             <p className="mt-2 max-w-2xl text-sm leading-6 text-muted">We’re checking your sign-in and preparing the workspace where your MCP activity will appear.</p>
            </div>
          </div>
-         <div className="mt-8 grid gap-3 border-t border-slate-200 pt-6 sm:grid-cols-3" aria-label="Workspace preparation steps">
+         <div className="mt-8 grid gap-3 border-t border-line pt-6 sm:grid-cols-3" aria-label="Workspace preparation steps">
            {["Check your account", "Load your workspace", "Open your dashboard"].map((step, index) => (
-             <div key={step} className="flex items-center gap-2 rounded-lg bg-slate-50 px-3 py-3 text-xs font-medium text-slate-600">
-               <span className="grid h-6 w-6 shrink-0 place-items-center rounded-full bg-indigo-100 text-[11px] font-bold text-indigo-700">{index + 1}</span>
+             <div key={step} className="flex items-center gap-2 rounded-lg bg-canvas px-3 py-3 text-xs font-medium text-muted">
+               <span className="grid h-6 w-6 shrink-0 place-items-center rounded-full bg-brand-soft text-[11px] font-bold text-brand-strong">{index + 1}</span>
                {step}
              </div>
            ))}
          </div>
-         <p className="mt-5 text-xs text-slate-500">This normally takes a few seconds. Your data is not being changed.</p>
+         <p className="mt-5 text-xs text-faint">This normally takes a few seconds. Your data is not being changed.</p>
        </section>
      </div>
    </main>
