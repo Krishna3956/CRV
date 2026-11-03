@@ -2,7 +2,7 @@
 
 Date: 2026-11-03
 Branch: `codex/business-user-ux-audit`
-Commit under review: `b36400ea` (`Add signup handoff from dashboard`)
+Commit under review: `b48c8165` (`Lighten dashboard green accent`)
 
 This is local browser evidence only. It is not production evidence and does
 not replace a fresh-account or real-telemetry walkthrough.
@@ -591,6 +591,14 @@ Latest recovery-path verification after `a00cf8db`:
 - `npm run test:business-user-ux`: 85/85 passed.
 - `npx tsc --noEmit --pretty false`: passed.
 - `npm run build`: passed; 230 static pages generated.
+
+The unauthenticated route was also rendered in a local browser at
+`http://127.0.0.1:3199/dashboard` with placeholder Supabase values. After the
+bounded auth hydration settled, the accessibility tree showed the heading
+`Open your TrackMCP dashboard.`, the explanation for returning and new users,
+and separate `Sign in to continue` and `Create an account` links. The local
+server returned HTTP 200 and was stopped cleanly; no production session or
+data was touched.
 - `npm run test:release-gate`: passed all 159 suites.
 - The branch remains local and undeployed; fresh-account, production, and
   non-technical participant evidence are still required.
@@ -1027,3 +1035,26 @@ Verification after this slice:
 - `git diff --check`: passed.
 - No production deployment, authenticated production session, or database
   write was performed.
+
+## Lighter green dashboard palette after `b48c8165`
+
+The dashboard-only visual tokens now use a lighter green accent while keeping
+the stronger green available for readable text and active controls:
+
+- `--color-brand: #4aa879`
+- `--color-brand-strong: #347d5b`
+- `--color-brand-soft: #eff9f3`
+- `--color-mint: #f5fbf7`
+- `--color-mint-ink: #327354`
+
+Only `trackmcp-nextjs/src/app/globals.css` changed for this slice. Public
+brand tokens, layout, copy, metrics, formulas, and behavior were not changed.
+
+Verification after this slice:
+
+- `npm run test:business-user-ux`: 98/98 passed.
+- `npx tsc --noEmit --pretty false`: passed.
+- `npm run build`: passed; 230 static pages generated.
+- `git diff --check`: passed.
+- No production deployment or authenticated production data write was
+  performed.

@@ -2,13 +2,13 @@
 
 Date: 2026-11-03  
 Branch: `codex/business-user-ux-audit`  
-Latest verified commit: `b36400ea` (`Add signup handoff from dashboard`)
+Latest verified commit: `b48c8165` (`Lighten dashboard green accent`)
 
 This matrix is the release-readiness companion to the UX audit and work
 queue. It intentionally separates source-level proof, read-only browser proof,
 and evidence that requires a real account, deployment, or human participant.
 
-Latest branch verification: `npm run test:business-user-ux` passed all 97 suites
+Latest branch verification: `npm run test:business-user-ux` passed all 98 suites
 after the authentication-affordance, research, signed-out handoff, illustrative
 People-growth coherence, setup-vocabulary consistency, evidence-action-label,
 outcome-copy, Quality helper-copy, final route-smoke, and auth-affordance passes.
@@ -28,7 +28,7 @@ state.
 Final current-branch build: `npm run build` passed with 230 static pages
 generated after the dashboard palette revision. TypeScript and ESLint also
 passed. The full `npm run test:release-gate` passed all 159 suites on the
-current branch, and the focused 97-suite business-user contract suite passed
+current branch, and the focused 98-suite business-user contract suite passed
 after the Setup key-density and outcome-interpretation revisions.
 This is still local build evidence; it does not prove a production deployment
 or authenticated production rendering.
@@ -165,10 +165,11 @@ closed with HTTP 503. This is expected safety behavior, not production
 evidence; a real authenticated environment is still required.
 
 The dashboard palette was revised again after review: primary actions now use
-a restrained, muted green on warm-neutral surfaces rather than a generic
-analytics blue. The lower-saturation green is calmer for analytical scanning,
-with darker green reserved for active controls and readable button text. This
-is a local, verified change only.
+a lighter, calmer green on warm-neutral surfaces rather than a generic
+analytics blue. The accent is `#4aa879`, with `#347d5b` reserved for stronger
+text and active controls; the supporting soft/mint surfaces were lightened to
+match. This is a local, verified change only and does not alter layout, copy,
+metrics, or behavior.
 
 The dashboard data-source control now makes its scope explicit in the header:
 `Your workspace` for live data and `Illustration only` for Example data. This
