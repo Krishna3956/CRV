@@ -1789,7 +1789,7 @@ const emptyPageCopy: Record<
     description: "Connect a server and manage the key for this workspace.",
     preview: [
       { label: "Connection key", detail: "The secure credential your server uses to send activity." },
-      { label: "SDK setup", detail: "Install the TypeScript or Python SDK." },
+      { label: "SDK setup", detail: "Install the SDK for your server language." },
       { label: "First event", detail: "Send one real tool call to confirm the connection." },
       { label: "Data flow", detail: "See what is redacted, bounded, and never requested." },
     ],

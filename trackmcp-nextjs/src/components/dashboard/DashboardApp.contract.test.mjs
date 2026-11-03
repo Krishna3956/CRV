@@ -263,6 +263,11 @@ test("capability labels preserve common product acronyms", () => {
   assert.match(source, /replace\(\/\(\[a-z0-9\]\)\(\[A-Z\]\)\/g, "\$1 \$2"\)/);
 });
 
+test("setup preview does not imply only two supported SDK languages", () => {
+  assert.match(source, /Install the SDK for your server language/);
+  assert.doesNotMatch(source, /Install the TypeScript or Python SDK\./);
+});
+
 test("People empty state explains the live-data prerequisite and routes to Setup", () => {
   assert.match(source, /Account activity will appear after connection/);
   assert.match(source, /verified account-group signal/);
