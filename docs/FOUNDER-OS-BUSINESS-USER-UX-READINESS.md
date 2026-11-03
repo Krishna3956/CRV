@@ -164,6 +164,12 @@ engineering review.
 
 ### Tier 3 — still required before pilot readiness
 
+- The first authenticated smoke attempt for this candidate (`41577636745`)
+  failed before any checks because production returned HTTP 503 for the first
+  workspace key-status request; subsequent direct probes observed HTTP 502 from
+  the App Runner/Envoy edge. This is recorded in
+  `docs/evidence/business-user-ux-production-auth-smoke-2026-11-03.md` and is
+  an external availability gate, not evidence of a UX-branch defect.
 - Fresh-account setup in the deployed branch.
 - A real first-event connection and dashboard refresh.
 - A non-technical participant completing the UAT script.
