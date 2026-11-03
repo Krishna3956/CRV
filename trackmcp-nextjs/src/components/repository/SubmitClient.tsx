@@ -6,33 +6,21 @@ import {
   Rocket,
   Users,
   Zap,
-  Trophy,
   GitBranch,
   Mail,
-  Sparkles,
-  Check,
   CheckCircle2,
   Loader2,
 } from "lucide-react";
 import { sendWeb3Form } from "@/lib/web3forms";
 import { captureSubmissionAttribution, trackMarketingEvent } from "@/lib/marketing-analytics";
 
-/* Full submit-a-tool page (ported from the live site): two-column layout with a
-   value prop + "why submit" on the left, and the form with a
-   $8/mo Featured upsell on the right, plus an FAQ. Restyled to ink + green.
-   Posts to /api/repository/submit. */
+/* Full submit-a-tool page: a focused three-field submission flow. Posts to
+   /api/repository/submit while preserving the existing attribution contract. */
 
 const WHY = [
   { icon: Users, title: "Reach MCP builders", body: "Give your server a public listing that people can discover, inspect, and share." },
   { icon: Zap, title: "Keep your listing useful", body: "We pull repository details and documentation so visitors can evaluate the server before installing it." },
-  { icon: Trophy, title: "Stand out", body: "Get featured and boost discoverability." },
-];
-
-const FEATURED_BENEFITS = [
-  { icon: Trophy, text: "Top search placement" },
-  { icon: Sparkles, text: "Featured badge & highlight" },
-  { icon: Zap, text: "Featured placement" },
-  { icon: Users, text: "Priority support" },
+  { icon: Zap, title: "Stay discoverable", body: "Give builders one clear place to find and evaluate your server." },
 ];
 
 const FAQS = [
@@ -41,7 +29,7 @@ const FAQS = [
     a: "TrackMCP is an MCP server directory. Submitting gives your server a public page with repository details and documentation pulled from your README.",
   },
   { q: "How long does approval take?", a: "Submissions are reviewed before they are listed. Timing can vary with the submission and review queue." },
-  { q: "Is there a cost to submit?", a: "No, submitting your tool is completely free. The Featured option ($8/mo) is optional and gives you premium placement." },
+  { q: "Is there a cost to submit?", a: "No, submitting your tool is completely free." },
   { q: "What if my tool is rejected?", a: "We'll explain why and give constructive feedback. Most tools get approved, so feel free to resubmit after improvements." },
   { q: "Can I edit after submitting?", a: "Yes. You can edit your submission anytime before approval. Just reply to our confirmation email with the changes." },
   { q: "What makes a good MCP tool?", a: "A well-documented GitHub repo with clear setup, examples, and an active maintenance history." },
@@ -53,8 +41,6 @@ export function SubmitClient() {
   const [url, setUrl] = useState("");
   const [email, setEmail] = useState("");
   const [selfReportedSource, setSelfReportedSource] = useState("");
-  const [selfReportedDetail, setSelfReportedDetail] = useState("");
-  const [wantsFeatured, setWantsFeatured] = useState(false);
   const [status, setStatus] = useState<"idle" | "loading" | "done" | "error">("idle");
   const [message, setMessage] = useState("");
   const formStarted = useRef(false);
@@ -89,7 +75,7 @@ export function SubmitClient() {
       form_session_id: getFormSessionId(),
       submission_event_id: submissionEventId,
       has_email: Boolean(email),
-      wants_featured: wantsFeatured,
+      wants_featured: false,
     });
     try {
       const submissionAttribution = captureSubmissionAttribution();
@@ -99,12 +85,11 @@ export function SubmitClient() {
         body: JSON.stringify({
           url,
           email,
-          wantsFeatured,
+          wantsFeatured: false,
           submission_event_id: submissionEventId,
           submission_attribution: {
             ...submissionAttribution,
             self_reported_source: selfReportedSource,
-            self_reported_detail: selfReportedDetail || null,
           },
         }),
       });
@@ -134,8 +119,9 @@ export function SubmitClient() {
         subject: `New MCP submission, ${data.repo_name || url}`,
         from_name: "TrackMCP · MCP Submit",
         repository: url,
-        email: email || "(not provided)",
-        wants_featured: wantsFeatured ? "Yes" : "No",
+        email,
+        wants_featured: "No",
+        how_did_you_hear_about_trackmcp: selfReportedSource,
         source: "Submit page",
       });
       setStatus("done");
@@ -157,8 +143,7 @@ export function SubmitClient() {
         </span>
         <h2 className="mt-5 text-[24px] font-medium text-ink">Thank you!</h2>
         <p className="mt-2 text-[15px] leading-relaxed text-muted">
-          Your tool has been submitted. We&apos;ll review it and email you a
-          confirmation{wantsFeatured ? ", plus details to start your Featured listing" : ""}.
+          Your tool has been submitted. We&apos;ll review it and email you a confirmation.
         </p>
         <Link
           href="/repository"
@@ -213,7 +198,7 @@ export function SubmitClient() {
               </span>
             </div>
             <p className="mt-1.5 text-[13.5px] text-muted">
-              Just two fields. Takes two minutes. We handle the rest.
+              Three short steps. We handle the repository details for you.
             </p>
 
             <form
@@ -252,39 +237,6 @@ export function SubmitClient() {
               </div>
 
               <div>
-                <label htmlFor="source" className="mb-1.5 flex items-center gap-1.5 text-[13px] font-medium text-body">
-                  How did you hear about TrackMCP? <span className="text-amber-600">*</span>
-                </label>
-                <select
-                  id="source"
-                  required
-                  value={selfReportedSource}
-                  onChange={(e) => setSelfReportedSource(e.target.value)}
-                  className="w-full rounded-lg border border-line-strong bg-white px-3.5 py-3 text-[14.5px] text-ink outline-none transition-colors focus:border-brand focus:ring-2 focus:ring-brand/20"
-                >
-                  <option value="" disabled>Select the closest source</option>
-                  <option value="google">Google or another search engine</option>
-                  <option value="chatgpt">ChatGPT or another AI assistant</option>
-                  <option value="github">GitHub</option>
-                  <option value="social_media">Social media</option>
-                  <option value="community">Community, Discord, Slack, or forum</option>
-                  <option value="email_newsletter">Email or newsletter</option>
-                  <option value="friend_or_colleague">Friend or colleague</option>
-                  <option value="other">Other</option>
-                </select>
-                <input
-                  id="source-detail"
-                  type="text"
-                  value={selfReportedDetail}
-                  onChange={(e) => setSelfReportedDetail(e.target.value.slice(0, 128))}
-                  placeholder="Optional: name the site, community, or person"
-                  maxLength={128}
-                  className="mt-2 w-full rounded-lg border border-line bg-white px-3.5 py-2.5 text-[13px] text-ink outline-none transition-colors placeholder:text-faint focus:border-brand focus:ring-2 focus:ring-brand/20"
-                />
-                <p className="mt-1.5 text-[12px] text-faint">This helps us measure sources that browsers cannot reveal, such as private shares.</p>
-              </div>
-
-              <div>
                 <label htmlFor="em" className="mb-1.5 flex items-center gap-1.5 text-[13px] font-medium text-body">
                   <Mail size={14} className="text-brand-strong" /> Email address{" "}
                   <span className="text-amber-600">*</span>
@@ -301,42 +253,34 @@ export function SubmitClient() {
                 <p className="mt-1.5 text-[12px] text-faint">We&apos;ll send you updates and confirmation.</p>
               </div>
 
-              {/* Featured upsell */}
-              <button
-                type="button"
-                onClick={() => setWantsFeatured((v) => !v)}
-                className={`w-full cursor-pointer rounded-xl border p-4 text-left transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand ${
-                  wantsFeatured ? "border-brand bg-brand-soft/50" : "border-line bg-paper hover:border-line-strong"
-                }`}
-              >
-                <div className="flex items-start gap-3">
-                  <span
-                    className={`mt-0.5 grid h-5 w-5 shrink-0 place-items-center rounded border ${
-                      wantsFeatured ? "border-brand bg-brand text-white" : "border-line-strong bg-white text-transparent"
-                    }`}
-                  >
-                    <Check size={13} />
-                  </span>
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-center justify-between gap-2">
-                      <span className="inline-flex items-center gap-1.5 text-[14px] font-semibold text-ink">
-                        <Sparkles size={15} className="text-brand-strong" /> Get featured
-                      </span>
-                      <span className="rounded-full bg-ink px-2.5 py-0.5 text-[11px] font-bold text-white">$8/mo</span>
-                    </div>
-                    <p className="mt-1 text-[12.5px] text-muted">
-                      Get 3x more visibility and reach thousands of developers.
-                    </p>
-                    <div className="mt-3 grid grid-cols-2 gap-1.5">
-                      {FEATURED_BENEFITS.map((b) => (
-                        <span key={b.text} className="inline-flex items-center gap-1.5 text-[12px] text-body">
-                          <b.icon size={13} className="shrink-0 text-brand-strong" /> {b.text}
-                        </span>
-                      ))}
-                    </div>
+              {email.trim().length > 0 && (
+                <div>
+                  <label htmlFor="source" className="mb-1.5 flex items-center gap-1.5 text-[13px] font-medium text-body">
+                    How did you hear about TrackMCP? <span className="text-amber-600">*</span>
+                  </label>
+                  <div className="relative">
+                    <select
+                      id="source"
+                      required
+                      value={selfReportedSource}
+                      onChange={(e) => setSelfReportedSource(e.target.value)}
+                      className="w-full appearance-none rounded-lg border border-line-strong bg-white px-3.5 py-3 pr-10 text-[14.5px] text-ink outline-none transition-colors focus:border-brand focus:ring-2 focus:ring-brand/20"
+                    >
+                      <option value="" disabled>Select the closest source</option>
+                      <option value="google">Google or another search engine</option>
+                      <option value="chatgpt">ChatGPT or another AI assistant</option>
+                      <option value="github">GitHub</option>
+                      <option value="social_media">Social media</option>
+                      <option value="community">Community, Discord, Slack, or forum</option>
+                      <option value="email_newsletter">Email or newsletter</option>
+                      <option value="friend_or_colleague">Friend or colleague</option>
+                      <option value="other">Other</option>
+                    </select>
+                    <span aria-hidden="true" className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-faint">⌄</span>
                   </div>
+                  <p className="mt-1.5 text-[12px] text-faint">One answer helps us understand which channels bring builders here.</p>
                 </div>
-              </button>
+              )}
 
               {status === "error" && <p className="text-[13px] text-amber-600">{message}</p>}
 
@@ -351,7 +295,7 @@ export function SubmitClient() {
                   </>
                 ) : (
                   <>
-                    <Rocket size={16} /> {wantsFeatured ? "Submit & start Featured ($8/mo)" : "Submit MCP"}
+                    <Rocket size={16} /> Submit MCP
                   </>
                 )}
               </button>
