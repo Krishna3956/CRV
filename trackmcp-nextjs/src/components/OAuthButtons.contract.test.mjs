@@ -13,6 +13,16 @@ test("social auth offers the configured Google and GitHub OAuth flows", () => {
   assert.match(component, /type=\"button\"/g);
 });
 
+test("Google keeps the official multicolor mark independent of the TrackMCP theme", () => {
+  assert.match(component, /#4285F4/);
+  assert.match(component, /#34A853/);
+  assert.match(component, /#FBBC05/);
+  assert.match(component, /#EA4335/);
+  const googleIcon = component.match(/function GoogleIcon\(\)[\s\S]*?\n}\n/)
+    ?.at(0) || "";
+  assert.doesNotMatch(googleIcon, /fill-current|currentColor/);
+});
+
 test("sign-in and sign-up share the same social auth surface", () => {
   assert.match(signInPage, /<OAuthButtons/);
   assert.match(signInPage, /mode=\{mode\}/);
