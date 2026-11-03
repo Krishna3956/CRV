@@ -203,40 +203,39 @@ test("quality no-data states preserve source context and next-step meaning", () 
 test("business users receive orientation before technical detail", () => {
   assert.match(source, /Start here: who is showing up, what are they trying to do, did it work, and what needs attention\?/);
   assert.match(source, /How to read this overview/);
-  assert.match(source, /What you will get after setup/);
-  assert.match(source, /A technical teammate usually completes this page/);
-  assert.match(source, /Setup always uses your live connection/);
+  assert.match(source, /After setup/);
+  assert.match(source, /One real event unlocks adoption, work, outcomes, and issue views/);
   assert.match(source, /question="Which account groups and assistants are showing up, and is activity growing\?"/);
-  assert.match(source, /Read this as account-group activity, not a customer census/);
+  assert.match(source, /Read account-group activity/);
   assert.match(source, /Which assistants are showing up/);
   assert.match(source, /Most active account groups/);
   assert.match(source, /First observed here; not signup/);
   assert.match(source, /Observed before; not a retention claim/);
   assert.match(source, /Unknown activity stays visible instead of being silently reassigned/);
   assert.match(source, /question="What should the team investigate next, and how strong is the evidence\?"/);
-  assert.match(source, /N\/A means there is not enough evidence yet/);
+  assert.match(source, /Completion appears only when your server reports it/);
   assert.match(source, /Typical steps per piece of work/);
   assert.match(source, /Work waiting for an answer/);
   assert.match(source, /Most-used features/);
-  assert.match(source, /Start with adoption and reliability/);
+  assert.match(source, /Start with adoption/);
   assert.match(source, /Features used per account group/);
   assert.match(source, /Privacy-safe account groups/);
   assert.match(source, /Activity without an optional account-group signal/);
-  assert.match(source, /supporting evidence for technical teams/);
+  assert.match(source, /Open a feature when a trend or error needs investigation/);
   assert.match(source, /Advertised features not yet observed/);
   assert.match(source, /Information lookups/);
-  assert.match(source, /Use this view to understand information needs/);
+  assert.match(source, /Read information needs/);
   assert.match(source, /Distinct items observed/);
   assert.match(source, /Feature reliability/);
-  assert.match(source, /Read success and reliability separately/);
-  assert.match(source, /A missing outcome is shown as unknown or insufficient evidence/);
+  assert.match(source, /Separate outcomes from reliability/);
+  assert.match(source, /Outcomes come from explicit server reports/);
   assert.match(source, /Share of activity/);
-  assert.match(source, /Use this page to decide what to investigate next/);
-  assert.match(source, /A signal is a prompt for investigation, not a diagnosis/);
-  assert.match(source, /Follow the work, not a guessed funnel/);
-  assert.match(source, /A missing next event does not prove that someone abandoned the task/);
-  assert.match(source, /Evidence is the drill-down, not the starting point/);
-  assert.match(source, /bounded, redacted steps and timing without exposing payloads or private inputs/);
+  assert.match(source, /Decide what to investigate/);
+  assert.match(source, /Signals are ranked by evidence and affected volume/);
+  assert.match(source, /Follow observed work/);
+  assert.match(source, /A missing next event is not proof of abandonment/);
+  assert.match(source, /Use Evidence for detail/);
+  assert.match(source, /Payloads and private inputs stay hidden/);
   assert.match(source, /Feature activity/);
   assert.match(source, /privacy-safe item counts/);
   assert.match(source, /assistants and privacy-safe account groups/);
@@ -470,7 +469,7 @@ test("Setup distinguishes stale ingestion evidence from current health", () => {
 
 test("Setup keeps deployment linkage count-only and non-health claiming", () => {
   assert.match(source, /Deployment linkage/);
-  assert.match(source, /not deployment health or release status/);
+  assert.match(source, /not release health/);
 });
 
 test("The journey renders bounded task evidence without claiming business completion", () => {
@@ -590,8 +589,8 @@ test("Setup exposes every documented SDK path without implying publication", () 
   assert.match(source, /\["TypeScript", "Python", "Go", "\.NET"\]/);
   assert.match(source, /language === "Go"[\s\S]*\/docs\/go/);
   assert.match(source, /language === "\.NET"[\s\S]*\/docs\/dotnet/);
-  assert.match(source, /reviewed source package rather than a registry release/);
-  assert.match(source, /reviewed source package rather than a NuGet release/);
+  assert.match(source, /Go uses the reviewed source package for now/);
+  assert.match(source, /.NET uses the reviewed source package for now/);
 });
 
 test("Setup language selector exposes semantic tabs and announces the active code panel", () => {

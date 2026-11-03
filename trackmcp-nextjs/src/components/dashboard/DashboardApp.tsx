@@ -1825,10 +1825,10 @@ function ServerConnectionState({
       : "Your MCP server is not connected yet.";
   const detail =
     state === "workspace"
-      ? "Your account is ready. Connect one server so the business views can start filling in."
+      ? "Connect one server to start filling the dashboard."
       : state === "key"
-        ? "A technical teammate creates a key, adds it to the server, and sends one real event."
-        : "A key exists, but no events have arrived in the selected period. TrackMCP cannot verify server reachability from this screen.";
+        ? "Create a key, add it to the server, and send one event."
+        : "A key exists, but no event arrived in this period.";
   const steps = state === "workspace"
     ? ["Create a workspace", "Create a connection key", "Send your first MCP event"]
     : state === "key"
@@ -1839,8 +1839,8 @@ function ServerConnectionState({
     <div>
       <PageIntro title={title} description={copy.description} actions={pageControls} />
       <BusinessContext
-        title="What TrackMCP will help your team understand"
-        body="TrackMCP shows your team who is using the MCP, what they are trying to do, whether work completed, and what needs attention. A technical teammate connects one server; after the first event, these views start filling with evidence."
+        title="What you will see"
+        body="Connect one server to see adoption, work, outcomes, and issues here."
       />
       <section className="overflow-hidden rounded-2xl border border-line bg-white p-6 shadow-[0_24px_60px_-44px_rgba(22,163,74,0.16)] sm:p-8">
         <div className="flex items-start gap-3">
@@ -2115,7 +2115,6 @@ function PageIntro({
   return (
     <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
       <div className="min-w-0">
-        <p className="mb-2 text-[10px] font-semibold uppercase tracking-[0.14em] text-brand-strong">TrackMCP workspace</p>
         <h2 className="dashboard-page-title tracking-[-0.035em] text-ink">
           {title}
         </h2>
@@ -2553,8 +2552,8 @@ function Overview({
       <OverviewNextStep analytics={analytics} dataMode={dataMode} hasMyData={hasMyData} onViewChange={onViewChange} />
       <BusinessContext
         title="How to read this overview"
-        body="Observed work is not the same as completed business work. A completed result appears only when your server reports an explicit outcome; N/A means there is not enough evidence yet, not that the product is healthy or unhealthy."
-        action="Open What’s broken when a signal has evidence, or Evidence when you need the technical detail."
+        body="Completion appears only when your server reports it. N/A means evidence is missing, not that work failed."
+        action="Open What’s broken for signals or Evidence for detail."
       />
       <div className="mb-6 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
         <Kpi
@@ -3140,9 +3139,9 @@ function JourneysView({
       />
       <DataSourceStrip dataMode={dataMode} hasMyData={hasMyData} view="journeys" />
       <BusinessContext
-        title="Follow the work, not a guessed funnel"
-        body="This view shows the steps TrackMCP actually observed and the explicit points where work completed, failed, or asked for more information. A missing next event does not prove that someone abandoned the task."
-        action="Use Common paths for the normal flow, then inspect Where work stops when a product or operations question needs evidence."
+        title="Follow observed work"
+        body="Paths show observed steps and explicit outcomes. A missing next event is not proof of abandonment."
+        action="Start with Common paths; open Where work stops when you need evidence."
       />
       {!analytics.journey_activity && (
         <StateNote
@@ -3366,9 +3365,9 @@ function CapabilitiesView({
       />
       <DataSourceStrip dataMode={dataMode} hasMyData={hasMyData} view="capabilities" />
       <BusinessContext
-        title="Start with adoption and reliability"
-        body="Use Most-used features to see what people are trying to do, Breadth of adoption to see whether usage is concentrated, and Reliability by tool to find friction. The protocol cards below are supporting evidence for technical teams, not a required reading path for business decisions."
-        action="Open a feature detail only when a trend or error needs investigation."
+        title="Start with adoption"
+        body="Most-used features show demand; breadth shows concentration; reliability shows friction."
+        action="Open a feature when a trend or error needs investigation."
       />
       {activity && (
         <>
@@ -3576,12 +3575,12 @@ function ResourcesPromptsView({
     : null;
   return (
     <div>
-      <PageIntro title="Resources & prompts" description="See the non-tool surfaces your MCP exposes and the reads observed at its server boundary." question="What information or guided help do people need most?" actions={pageControls} />
+      <PageIntro title="Resources & prompts" description="See which information and guided-help surfaces people use." question="What do people need most?" actions={pageControls} />
       <DataSourceStrip dataMode={dataMode} hasMyData={hasMyData} view="resources" />
       <BusinessContext
-        title="Use this view to understand information needs"
-        body="Resource lookups show information people asked the server for. Guided-help requests show where the server was asked to help shape a task. Completion is counted only when the server reports an explicit outcome; an input request or unknown state is not treated as success."
-        action="Compare the top resources and prompts with their error or input-needed rates before changing content or workflows."
+        title="Read information needs"
+        body="Lookups show requested information; prompts show guided-help requests. Completion is reported, never inferred."
+        action="Compare error and input-needed rates before changing content."
       />
       <div className="grid gap-3 sm:grid-cols-3">
         <Kpi label="Information lookups" value={activity ? fmt(activity.resource_reads) : "N/A"} icon={FileText} helper={activity ? `${fmt(activity.previous_period_resource_reads)} previous period · ${fmt(activity.resource_observations)} observed` : "Awaiting evidence"} />
@@ -3762,9 +3761,9 @@ function QualityView({
       />
       <DataSourceStrip dataMode={dataMode} hasMyData={hasMyData} view="quality" />
       <BusinessContext
-        title="Read success and reliability separately"
-        body="Did it work answers whether the server reported an explicit outcome. Feature reliability shows where observed requests returned errors or retries. A missing outcome is shown as unknown or insufficient evidence, never as an assumed success or failure."
-        action="Use the evidence link on a feature row when a rate is high enough to investigate."
+        title="Separate outcomes from reliability"
+        body="Outcomes come from explicit server reports. Errors and retries show reliability; missing outcomes stay unknown."
+        action="Open feature evidence when a rate needs investigation."
       />
       <OutcomeEvidencePanel analytics={analytics} />
       <Panel
@@ -4037,9 +4036,9 @@ function IssuesView({
       />
       <DataSourceStrip dataMode={dataMode} hasMyData={hasMyData} view="issues" />
       <BusinessContext
-        title="Use this page to decide what to investigate next"
-        body="TrackMCP ranks observed signals by evidence strength and affected volume. A signal is a prompt for investigation, not a diagnosis. Start with the suggested next step, then open Evidence when you need the technical basis."
-        action="Review firing incidents first; treat insufficient-data and synthetic-canary rows as context, not customer failures."
+        title="Decide what to investigate"
+        body="Signals are ranked by evidence and affected volume. They guide investigation; they are not diagnoses."
+        action="Review firing incidents first; use Evidence for the technical basis."
       />
       {analytics.issue_activity && <div className="mb-6 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
         <Kpi label="Actionable signals" value={fmt(analytics.issue_activity.actionable_signals)} icon={AlertTriangle} helper="Bounded rules with evidence" />
@@ -4405,9 +4404,9 @@ function ClientsView({
       {people ? (
         <>
           <BusinessContext
-            title="Read this as account-group activity, not a customer census"
-            body="This view shows privacy-safe account groups and the assistant applications that reached your server. It can help you see adoption and repeat activity, but it does not identify people or prove that every customer is represented."
-            action="Use Setup to add optional account grouping if your team needs account-level analysis."
+            title="Read account-group activity"
+            body="Groups and assistants show adoption patterns; they do not identify people or count every customer."
+            action="Use Setup to add optional account grouping."
           />
           <div className="mb-6 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
             <Kpi
@@ -4606,9 +4605,9 @@ function EvidenceView({
       />
       <DataSourceStrip dataMode={dataMode} hasMyData={hasMyData} view="evidence" />
       <BusinessContext
-        title="Evidence is the drill-down, not the starting point"
-        body="Start with Overview, The journey, or What’s broken to decide what matters. Use Evidence when a business signal needs a trace: it shows bounded, redacted steps and timing without exposing payloads or private inputs."
-        action="Open one session to confirm the sequence behind a metric; do not treat a trace alone as proof of business success."
+        title="Use Evidence for detail"
+        body="Open a redacted trace when a metric needs technical context. Payloads and private inputs stay hidden."
+        action="Use one session to confirm the sequence behind a metric."
       />
       {incident && (
         <IncidentEvidence incident={incident} example={dataMode === "example"} onBack={() => onViewChange("issues")} />
@@ -5049,9 +5048,9 @@ function SetupView({
         question="Is TrackMCP receiving activity, and what is the next step if it is not?"
       />
       <BusinessContext
-        title="What you will get after setup"
-        body="Once one real event arrives, TrackMCP turns bounded server activity into four views: who is showing up, what they are trying, whether the work completed, and what deserves attention. A technical teammate usually completes this page; business teams return here when they need to verify the connection. Setup always uses your live connection; choose Example data in the analytics tabs when you want to learn the dashboard before connecting a server."
-        action="Create a key, connect one server, make one real tool call, then refresh the check."
+        title="After setup"
+        body="One real event unlocks adoption, work, outcomes, and issue views."
+        action="Create a key, connect one server, make one tool call, then refresh."
       />
       <section className="mb-6 grid gap-3 rounded-2xl border border-brand/20 bg-brand-soft/25 p-4 sm:grid-cols-3 sm:p-5" aria-label="Setup steps">
         {setupSteps.map(([number, title, detail], index) => (
@@ -5324,8 +5323,7 @@ function SetupView({
             {copied ? "Copied" : "Copy setup"}
           </button>
           <p className="mt-4 text-xs leading-relaxed text-muted">
-            Activity collection is fail-open. Payloads remain subject to the existing
-            privacy and redaction policy.
+            Collection is fail-open; existing privacy and redaction rules apply.
           </p>
           <p className="mt-3 text-xs leading-relaxed text-muted">
             Using an existing collector? <a href="/docs/opentelemetry" className="cursor-pointer font-semibold text-brand-strong hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand">Open the OpenTelemetry setup guide <ArrowRight size={12} className="inline" /></a>
@@ -5337,21 +5335,21 @@ function SetupView({
           )}
           {language === "Python" && (
             <p className="mt-3 text-xs leading-relaxed text-muted">
-              Python uses the package manager plus a workspace connection key. Install <code className="font-mono text-ink">trackmcp</code>, then create or copy a key from the Connection keys panel below and keep it in the server environment.
+              Install <code className="font-mono text-ink">trackmcp</code>, then add a workspace connection key to the server environment.
             </p>
           )}
           {language === "Go" && (
             <p className="mt-3 text-xs leading-relaxed text-muted">
-              Go is currently distributed as a reviewed source package rather than a registry release. <a href="/docs/go" className="cursor-pointer font-semibold text-brand-strong hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand">Open the Go guide</a> for the pinned checkout, middleware capture, and first-event verification steps.
+              Go uses the reviewed source package for now. <a href="/docs/go" className="cursor-pointer font-semibold text-brand-strong hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand">Open the Go guide</a>.
             </p>
           )}
           {language === ".NET" && (
             <p className="mt-3 text-xs leading-relaxed text-muted">
-              .NET is currently distributed as a reviewed source package rather than a NuGet release. <a href="/docs/dotnet" className="cursor-pointer font-semibold text-brand-strong hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand">Open the .NET guide</a> for the project reference, middleware capture, and first-event verification steps.
+              .NET uses the reviewed source package for now. <a href="/docs/dotnet" className="cursor-pointer font-semibold text-brand-strong hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand">Open the .NET guide</a>.
             </p>
           )}
           <p className="mt-3 text-xs leading-relaxed text-muted">
-            After creating a key, set <code className="font-mono text-ink">TRACKMCP_KEY</code> in your server environment, restart the server, and make one real tool call. Your data appears after the first activity is sent.
+            Set <code className="font-mono text-ink">TRACKMCP_KEY</code>, restart the server, and make one tool call. Data appears after the first event.
           </p>
           </div>
         </Panel>
@@ -5480,7 +5478,7 @@ function SetupView({
                       </label>
                     </div>
                   )}
-                  {!scopeNewKey && <p className="mt-2 pl-6 text-[11px] leading-relaxed text-muted">A workspace-wide key is recommended for the first connection. Restrict it only when your server has a stable service and environment label.</p>}
+                  {!scopeNewKey && <p className="mt-2 pl-6 text-[11px] leading-relaxed text-muted">Use a workspace-wide key first. Add a scope only when labels are stable.</p>}
                 </div>
               </details>
               <button
@@ -5504,7 +5502,7 @@ function SetupView({
           <span className="text-xs font-medium text-brand-strong">View details</span>
         </summary>
         <p className="mt-3 max-w-3xl text-xs leading-relaxed text-muted">
-          These labels come from bounded activity metadata. They help teams compare server environments, but they are not a deployment inventory or a health check. The three setup steps above are all that is required to get started.
+          These labels help compare environments. They are not deployment health checks. The setup steps above are all you need to start.
         </p>
         <div className="mt-4">
           {analytics?.services?.length || analytics?.environments?.length ? (
@@ -5517,14 +5515,14 @@ function SetupView({
                   {analytics.deployment_summary ? `${fmt(analytics.deployment_summary.observed_deployments)} observed deployment signals` : "No deployment linkage observed yet"}
                 </p>
                 <p className="mt-2 text-[11px] leading-relaxed text-muted">
-                  {analytics.deployment_summary ? `${fmt(analytics.deployment_summary.linked_events)} events carried bounded deployment linkage. This is not deployment health or release status.` : "The server has not supplied a bounded deployment identifier in this window."}
+                  {analytics.deployment_summary ? `${fmt(analytics.deployment_summary.linked_events)} events included deployment linkage. This is not release health.` : "No deployment identifier was reported in this window."}
                 </p>
               </div>
             </div>
           ) : (
             <StateNote
               title="Waiting for a server event"
-              body="After the SDK sends its first event, TrackMCP will show the bounded service and environment labels observed from the server. It will not infer them from the workspace or connection key."
+              body="After the first event, TrackMCP shows the service and environment labels reported by the server."
             />
           )}
         </div>

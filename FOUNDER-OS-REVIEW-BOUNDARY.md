@@ -32,6 +32,10 @@ reviewer disposition before staging; it is never included by a blanket add.
 | `docs/IN-APP-COPY-UX-STRATEGY-2026-11.md` | review-required | repository maintainer | release owner | research-backed copy and interaction strategy; review wording and product claims before publication |
 | `docs/IN-APP-COPY-UX-TARGET.md` | review-required | repository maintainer | release owner | UX acceptance target; review the evidence mapping and keep production/UAT boundaries explicit |
 | `docs/IN-APP-COPY-UX-WORK-QUEUE.md` | review-required | repository maintainer | release owner | implementation checklist; review completion marks against tests and browser evidence before release |
+| `docs/CONCISE-COPY-STRATEGY-2026-11.md` | review-required | repository maintainer | release owner | research-backed concise-copy strategy; review wording and product claims before publication |
+| `docs/CONCISE-COPY-TARGET.md` | review-required | repository maintainer | release owner | concise-copy acceptance target; keep local and production evidence separate |
+| `docs/CONCISE-COPY-WORK-QUEUE.md` | review-required | repository maintainer | release owner | concise-copy implementation checklist; review completion marks against tests and browser evidence |
+| `docs/CONCISE-COPY-READINESS.md` | review-required | repository maintainer | release owner | concise-copy release ledger; production merge/deploy/UAT remain explicit gates |
 
 ## Boundary rules
 

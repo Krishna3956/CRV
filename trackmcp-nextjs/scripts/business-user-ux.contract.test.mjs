@@ -16,12 +16,11 @@ const uat = await readFile(new URL("../../docs/FOUNDER-OS-BUSINESS-USER-UAT-SCRI
 test("new-user setup explains the business outcome before technical detail", () => {
   assert.doesNotMatch(auth, /Create your account\. Next, a technical teammate can connect one server/);
   assert.match(auth, /By continuing, you agree to the/);
-  assert.match(dashboard, /What TrackMCP will help your team understand/);
-  assert.match(dashboard, /TrackMCP shows your team who is using the MCP/);
-  assert.match(dashboard, /What you will get after setup/);
-  assert.match(dashboard, /A technical teammate usually completes this page/);
-  assert.match(dashboard, /Setup always uses your live connection/);
-  assert.match(dashboard, /Create a key, connect one server, make one real tool call/);
+  assert.match(dashboard, /What you will see/);
+  assert.match(dashboard, /Connect one server to start filling the dashboard/);
+  assert.match(dashboard, /After setup/);
+  assert.match(dashboard, /One real event unlocks adoption, work, outcomes, and issue views/);
+  assert.match(dashboard, /Create a key, connect one server, make one tool call, then refresh/);
   assert.match(dashboard, /onOpenOverview=\{\(\) => goTo\("overview"\)\}/);
   assert.match(dashboard, /Open Overview/);
   assert.match(target, /The user is told what will appear after the first event/);
@@ -89,7 +88,7 @@ test("first-time authentication controls expose clear interaction affordances", 
 });
 
 test("uncertainty and technical evidence remain explicit", () => {
-  assert.match(dashboard, /N\/A means there is not enough evidence yet/);
+  assert.match(dashboard, /Completion appears only when your server reports it/);
   assert.match(dashboard, /Why this signal is shown/);
   assert.match(dashboard, /Show technical rule details/);
   assert.match(dashboard, /Unknown \/ unresolved/);
