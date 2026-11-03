@@ -655,3 +655,31 @@ content and the intended heading:
 This confirms route reachability and the business-facing vocabulary in the
 current build. It does not prove that a real workspace has populated read-model
 responses for every view.
+
+## Setup journey inspection after `4739c007`
+
+The local Example-data Setup route was inspected in a fresh browser session on
+port `3195` with the development-only local dashboard bypass and deliberately
+non-production Supabase placeholders. The visible path is coherent for a
+technical teammate while remaining understandable to a business user reading
+the page later:
+
+- The page starts with a short explanation of what the dashboard will show
+  after the first real event.
+- The primary rail is explicit: create a connection key, install the SDK, and
+  send one real event.
+- The connection state is plain-language (`Not connected`) with a single
+  recovery action (`Refresh setup check`).
+- The SDK panel exposes TypeScript, Python, Go, and .NET tabs; the TypeScript
+  default shows the install command and a minimal wrapper example.
+- Advanced key scope, observed connection details, optional identity, privacy,
+  data controls, and alternate connection methods are collapsed rather than
+  competing with the activation path.
+- The page recommends `npx @trackmcp/cli init` before a manual package-manager
+  install and explains the required sequence: create a key, set
+  `TRACKMCP_KEY`, restart the server, make one real tool call, then refresh.
+
+The browser request returned HTTP 200. The setup read-model calls returned
+HTTP 503 because the preview intentionally used placeholder Supabase values;
+this confirms the page's safe no-connection rendering, not production setup
+success. No source code or production data was changed during this inspection.
