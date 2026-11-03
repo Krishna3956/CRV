@@ -1519,3 +1519,11 @@ The Did it work accessibility tree showed:
 Both routes rendered HTTP 200. The local preview used no production credentials,
 made no database writes, and does not close the authenticated production or
 human-UAT gates.
+
+## Fresh rendered feature-reliability pass at `7f582337`
+
+The Example-data `Did it work` route was rendered again after the feature-label
+pass. The reliability table now leads with readable capability labels such as
+`Run query`, `Find invoice`, and `Create report`; the raw identifiers remain
+secondary monospace context for technical investigation. This keeps the table
+useful to business readers without hiding the exact server capability name.

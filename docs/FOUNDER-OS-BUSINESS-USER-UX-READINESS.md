@@ -2,19 +2,20 @@
 
 Date: 2026-11-03  
 Branch: `codex/business-user-ux-audit`  
-Latest verified commit: `26537c9a` (`Record journey slice browser evidence`)
+Latest verified commit: `7f582337` (`feat: label feature reliability for business users`)
 
 This matrix is the release-readiness companion to the UX audit and work
 queue. It intentionally separates source-level proof, read-only browser proof,
 and evidence that requires a real account, deployment, or human participant.
 
-Latest branch verification: `npm run test:business-user-ux` passed all 106 suites
+Latest branch verification: `npm run test:business-user-ux` passed all 108 suites
 and the consolidated `npm run test:release-gate` passed all 159 suites on the
 current branch. The synthetic UAT report was restored to its tracked fixture
 value after the gate run. The branch remains local and has not been merged or
 deployed.
-A fresh pull-request CI run (`41591604161`) has Go and .NET green while the
-web/JavaScript job is still in progress. No Vercel deployment is being treated
+A fresh pull-request CI run for the latest pushed head is pending provider
+execution; the last observed run (`41591604161`) had Go and .NET green while
+the web/JavaScript job was in progress. No Vercel deployment is being treated
 as release evidence; the provider has an external preview rate limit recorded
 in `docs/evidence/business-user-ux-vercel-preview-rate-limit-2026-11-03.md`.
 A fresh local
@@ -304,7 +305,7 @@ The latest full release gate was rerun after this projection change and passed
 all 159 suites. The generated synthetic fixture timestamp was restored after
 the run; no production data was written.
 
-After the loading-state and palette revisions, the consolidated release gate
+After the resource/outcome and feature-label revisions, the consolidated release gate
 was rerun and passed all 159 suites. The gate passed in the isolated worktree;
 it does not change the Tier 3 status because authenticated production and
 human business-user UAT evidence are still outstanding.
