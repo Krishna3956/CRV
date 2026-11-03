@@ -413,6 +413,7 @@ test("Setup highlights the current next step instead of always emphasizing step 
 
 test("Setup visual body order follows the key-before-server sequence", () => {
   assert.match(source, /function SetupPanelSequence\(\{ children \}: \{ children: ReactNode \}\)/);
+  assert.match(source, /Children\.toArray\(children\)\.reverse\(\)/);
   assert.match(source, /<SetupPanelSequence>[\s\S]*title="Connect the server"[\s\S]*title=\{workspaceId \? "Connection keys" : "Create your workspace"\}[\s\S]*<\/SetupPanelSequence>/);
   assert.doesNotMatch(source, /className="order-[12]"/);
 });
