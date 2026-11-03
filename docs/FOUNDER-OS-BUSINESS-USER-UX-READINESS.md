@@ -2,7 +2,7 @@
 
 Date: 2026-11-03  
 Branch: `codex/business-user-ux-audit`  
-Latest verified commit: `229aa80b` (`Record browser proof for dashboard interpretation`)
+Latest verified commit: `d1fae40c` (`Clarify quality no-data states`)
 
 This matrix is the release-readiness companion to the UX audit and work
 queue. It intentionally separates source-level proof, read-only browser proof,
@@ -21,6 +21,9 @@ Example-data Overview on the current branch; this remains bypass evidence, not
 real Supabase authentication or production data.
 The latest browser pass also verified the updated attention/outcome reading
 order and plain-language helper copy on the Example-data Overview.
+The quality no-data path now preserves the same source context and explains
+what will appear after connection instead of presenting a generic failure
+state.
 
 Final current-branch build: `npm run build` passed with 230 static pages
 generated after the dashboard palette revision. TypeScript and ESLint also
@@ -226,6 +229,11 @@ closer look, confirmed incidents remain a separate evidence type, and the
 completion methodology is available behind `How completion is calculated`.
 The underlying outcome source, formulas, and read models are unchanged. This
 is branch evidence until the deployed dashboard is reviewed.
+
+The `Did it work` no-data/error path now keeps the selected source visible and
+uses separate My-data and Example-data recovery explanations. A missing quality
+response is not presented as a health result; this is a presentation-only
+change with no metric or formula change.
 
 After the loading-state and palette revisions, the consolidated release gate
 was rerun and passed all 159 suites. The gate passed in the isolated worktree;
