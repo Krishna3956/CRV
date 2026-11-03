@@ -150,18 +150,18 @@ test("dashboard typography uses the product type system", () => {
   assert.match(globalsSource, /\.dashboard-shell \.dashboard-section-title/);
   assert.match(globalsSource, /font-size: 1\.0625rem/);
   assert.match(source, /dashboard-shell min-h-screen font-sans/);
-  assert.match(globalsSource, /--color-brand: #2563eb/);
-  assert.match(globalsSource, /Dashboard visual system: cool neutral surfaces with a restrained blue/);
+  assert.match(globalsSource, /--color-brand: #6d28d9/);
+  assert.match(globalsSource, /Dashboard visual system: warm-neutral surfaces with a restrained violet/);
   assert.doesNotMatch(source, /linear-gradient/);
   assert.match(globalsSource, /button:not\(:disabled\):hover/);
 });
 
-test("dashboard decorative accents stay inside the neutral and blue system", () => {
+test("dashboard decorative accents stay inside the neutral and violet system", () => {
   assert.doesNotMatch(source, /bg-\[#d7e5db\]|bg-\[#f4faf6\]|bg-\[#f6faf7\]|18,59,42/);
   assert.doesNotMatch(source, /49,46,129|55,48,163/);
   assert.match(source, /bg-brand-soft\/30/);
   assert.match(source, /bg-brand-soft\/20/);
-  assert.match(source, /fill=\"#bfdbfe\"/);
+  assert.match(source, /fill=\"#ddd6fe\"/);
 });
 
 test("dashboard keeps global controls inside one header and uses actionable empty states", () => {
@@ -870,7 +870,7 @@ test("Example Issues shows illustrative incident lifecycles", () => {
   assert.doesNotMatch(source, /Alert incidents are available for My data only/);
 });
 
-test("example Capabilities, Quality, and Evidence omit the explanatory blue summary panels", () => {
+test("example Capabilities, Quality, and Evidence omit the explanatory accent summary panels", () => {
   assert.doesNotMatch(source, /function ExampleServerSummary/);
   assert.doesNotMatch(source, /What this example server does/);
   assert.doesNotMatch(source, /How to read this example/);

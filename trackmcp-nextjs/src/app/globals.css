@@ -173,25 +173,25 @@ body:has([data-site-nav]) .global-language-switcher {
   font-family: var(--font-sans);
 }
 
-/* Dashboard visual system: cool neutral surfaces with a restrained blue
-   action color. Blue is reserved for navigation, focus, and primary actions;
-   green remains available to communicate success instead of competing with
-   every control. This gives the analytics UI a familiar SaaS language while
-   preserving the TrackMCP mark as the brand anchor. */
+/* Dashboard visual system: warm-neutral surfaces with a restrained violet
+   action color. Violet is reserved for navigation, focus, and primary
+   actions; green remains available to communicate success instead of
+   competing with every control. The warmer canvas keeps the analytics UI
+   human and distinctive without turning the product into a loud theme. */
 .dashboard-shell {
-  --color-canvas: #f8fafc;
+  --color-canvas: #fafaf9;
   --color-paper: #ffffff;
-  --color-ink: #0f172a;
-  --color-body: #334155;
-  --color-muted: #64748b;
-  --color-faint: #94a3b8;
-  --color-line: #e2e8f0;
-  --color-line-strong: #cbd5e1;
-  --color-brand: #2563eb;
-  --color-brand-strong: #1d4ed8;
-  --color-brand-soft: #eff6ff;
-  --color-mint: #f1f5f9;
-  --color-mint-ink: #1e40af;
+  --color-ink: #18181b;
+  --color-body: #3f3f46;
+  --color-muted: #71717a;
+  --color-faint: #a1a1aa;
+  --color-line: #e4e4e7;
+  --color-line-strong: #d4d4d8;
+  --color-brand: #6d28d9;
+  --color-brand-strong: #5b21b6;
+  --color-brand-soft: #f5f3ff;
+  --color-mint: #f4f4f5;
+  --color-mint-ink: #52525b;
 }
 
 /* Every enabled interactive control exposes the same pointer affordance,
@@ -255,7 +255,7 @@ button:disabled {
 }
 
 /* Founder OS dashboard surface language: quiet canvas, clear cards, and a
- * single blue action color. The underlying data stays unchanged; these rules
+ * single violet action color. The underlying data stays unchanged; these rules
  * make hierarchy and state legible without turning every panel into a dark
  * rectangle. */
 .dashboard-shell main > section,
@@ -291,7 +291,7 @@ button:disabled {
 .dashboard-shell select:focus-visible,
 .dashboard-shell textarea:focus-visible {
   border-color: var(--color-brand);
-  box-shadow: 0 0 0 3px rgba(22,163,74,0.14);
+  box-shadow: 0 0 0 3px rgba(109,40,217,0.16);
 }
 
 @layer utilities {

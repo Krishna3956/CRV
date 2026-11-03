@@ -5685,14 +5685,14 @@ function UsageChart({ timeline }: { timeline: Analytics["timeline"] }) {
                 y1={lineY}
                 x2={width - right}
                 y2={lineY}
-                stroke={fraction === 0 ? "#cbd6cf" : "#edf1ee"}
+                stroke={fraction === 0 ? "#d4d4d8" : "#f4f4f5"}
               />
               <text
                 x={left - 9}
                 y={lineY + 4}
                 textAnchor="end"
                 fontSize="10"
-                fill="#8b958f"
+                fill="#a1a1aa"
               >
                 {value}
               </text>
@@ -5704,7 +5704,7 @@ function UsageChart({ timeline }: { timeline: Analytics["timeline"] }) {
           y1={height - bottom}
           x2={width - right}
           y2={height - bottom}
-          stroke="#dfe6e1"
+          stroke="#e4e4e7"
         />
         {timeline.map((day, index) => (
           <rect
@@ -5714,7 +5714,7 @@ function UsageChart({ timeline }: { timeline: Analytics["timeline"] }) {
             width={barWidth}
             height={Math.max(1, height - bottom - y(day.calls))}
             rx="3"
-            fill={hoveredIndex === index ? "#1d4ed8" : "#2563eb"}
+            fill={hoveredIndex === index ? "#5b21b6" : "#6d28d9"}
             tabIndex={0}
             role="img"
             aria-label={`${dateLabel(day.date)}: ${day.events} events, ${day.calls} calls, ${day.errors} errors`}
@@ -5731,13 +5731,13 @@ function UsageChart({ timeline }: { timeline: Analytics["timeline"] }) {
             y={height - bottom + 18}
             textAnchor="end"
             fontSize="10"
-            fill="#64706a"
+            fill="#71717a"
             transform={`rotate(-45 ${x(index) + barWidth / 2} ${height - bottom + 18})`}
           >
             {dateLabel(day.date)}
           </text>
         ))}
-        <text x={left} y={14} fontSize="11" fill="#64706a">
+        <text x={left} y={14} fontSize="11" fill="#71717a">
           Daily tool calls
         </text>
         {hoveredDay && hoveredIndex !== null && (
@@ -5748,16 +5748,16 @@ function UsageChart({ timeline }: { timeline: Analytics["timeline"] }) {
               width={tooltipWidth}
               height={tooltipHeight}
               rx="6"
-              fill="#101713"
+              fill="#18181b"
               opacity="0.97"
             />
             <text x={tooltipX + 12} y={tooltipY + 19} fontSize="11" fontWeight="600" fill="#ffffff">
               {dateLabel(hoveredDay.date)}
             </text>
-            <text x={tooltipX + 12} y={tooltipY + 38} fontSize="10" fill="#bfdbfe">
+            <text x={tooltipX + 12} y={tooltipY + 38} fontSize="10" fill="#ddd6fe">
               Events: {fmt(hoveredDay.events)}
             </text>
-            <text x={tooltipX + 12} y={tooltipY + 54} fontSize="10" fill="#bfdbfe">
+            <text x={tooltipX + 12} y={tooltipY + 54} fontSize="10" fill="#ddd6fe">
               Calls: {fmt(hoveredDay.calls)}
             </text>
             <text x={tooltipX + 12} y={tooltipY + 70} fontSize="10" fill="#f2c4a8">
