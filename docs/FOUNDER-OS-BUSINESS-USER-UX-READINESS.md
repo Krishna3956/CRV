@@ -2,7 +2,7 @@
 
 Date: 2026-11-03  
 Branch: `codex/business-user-ux-audit`  
-Latest verified commit: `2411b7c3` (`Verify business journey read-model contracts`)
+Latest verified commit: `602ae307` (`Make local sitemap smoke fail-closed aware`)
 
 This matrix is the release-readiness companion to the UX audit and work
 queue. It intentionally separates source-level proof, read-only browser proof,

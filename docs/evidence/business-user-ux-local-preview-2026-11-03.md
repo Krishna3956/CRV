@@ -2,7 +2,7 @@
 
 Date: 2026-11-03
 Branch: `codex/business-user-ux-audit`
-Commit under review: `2411b7c3` (`Verify business journey read-model contracts`)
+Commit under review: `602ae307` (`Make local sitemap smoke fail-closed aware`)
 
 This is local browser evidence only. It is not production evidence and does
 not replace a fresh-account or real-telemetry walkthrough.
