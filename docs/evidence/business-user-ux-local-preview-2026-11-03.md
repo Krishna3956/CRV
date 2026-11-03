@@ -2,7 +2,7 @@
 
 Date: 2026-11-03
 Branch: `codex/business-user-ux-audit`
-Commit under review: `cba60688` (`Preserve Setup order for assistive technology`)
+Commit under review: `bfc859ab` (`Point UX readiness at palette revision`)
 
 This is local browser evidence only. It is not production evidence and does
 not replace a fresh-account or real-telemetry walkthrough.
@@ -1299,6 +1299,18 @@ Verification:
 - `npm run build`: passed; 230 static pages generated.
 - `npm run test:release-gate`: passed all 159 suites.
 - Temporary local server and browser tab were stopped/closed after capture.
+
+## Consolidated release gate at `bfc859ab`
+
+The full isolated-branch release gate was rerun after the dashboard palette
+revision and the evidence-only commits. It passed all 159 suites. The run
+included the 106-test business-user UX suite, type checks, package consumer
+tests for TypeScript/CLI/Python, tenant-isolation checks, all v2 read-model
+route contracts, and the production-smoke workflow contracts.
+
+The synthetic customer fixture generated a new timestamp during the run. It
+was restored to the tracked value `2026-10-30T10:23:29.051Z`; the worktree is
+clean and local/remote branch SHAs match.
 
 ## Lighter dashboard green revision
 
