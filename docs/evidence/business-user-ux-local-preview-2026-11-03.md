@@ -2,7 +2,7 @@
 
 Date: 2026-11-03
 Branch: `codex/business-user-ux-audit`
-Commit under review: `98054f78` (`Clarify dashboard outcome interpretation`)
+Commit under review: `229aa80b` (`Record browser proof for dashboard interpretation`)
 
 This is local browser evidence only. It is not production evidence and does
 not replace a fresh-account or real-telemetry walkthrough.
