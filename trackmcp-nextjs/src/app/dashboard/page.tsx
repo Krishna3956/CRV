@@ -243,15 +243,15 @@ export function DashboardPageContent({ initialView = "overview" }: { initialView
          <TrackMCPLogo asLink={false} mark size="nav" variant="mono" />
          <span className="text-xs font-semibold text-muted">Dashboard</span>
        </div>
-       <section className="mt-14 rounded-2xl border border-line bg-paper p-7 shadow-[0_24px_60px_-44px_rgba(22,163,74,0.14)] sm:p-10">
+       <section className="mt-10 rounded-2xl border border-line bg-paper p-7 shadow-[0_24px_60px_-44px_rgba(22,163,74,0.14)] sm:p-10">
          <div className="flex items-start gap-4">
            <span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-brand-soft text-brand-strong">
              <Loader2 size={20} className="animate-spin" aria-hidden="true" />
            </span>
            <div>
              <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-brand-strong">TrackMCP dashboard</p>
-             <h1 className="mt-2 text-2xl font-semibold tracking-tight text-ink sm:text-3xl">Opening your workspace</h1>
-             <p className="mt-2 max-w-2xl text-sm leading-6 text-muted">We’re checking your sign-in and preparing the workspace where your MCP activity will appear.</p>
+             <h1 className="mt-2 text-2xl font-semibold tracking-tight text-ink sm:text-3xl">Getting your workspace ready</h1>
+             <p className="mt-2 max-w-2xl text-sm leading-6 text-muted">We’re signing you in, loading your workspace, and preparing the dashboard. Your data is not being changed.</p>
            </div>
          </div>
          <div className="mt-8 grid gap-3 border-t border-line pt-6 sm:grid-cols-3" aria-label="Workspace preparation steps">
@@ -262,7 +262,11 @@ export function DashboardPageContent({ initialView = "overview" }: { initialView
              </div>
            ))}
          </div>
-         <p className="mt-5 text-xs text-faint">This normally takes a few seconds. Your data is not being changed.</p>
+         <div className="mt-6 grid gap-2" aria-hidden="true">
+           <div className="h-2 w-2/5 animate-pulse rounded-full bg-line" />
+           <div className="h-2 w-4/5 animate-pulse rounded-full bg-line" />
+         </div>
+         <p className="mt-4 text-xs text-faint">This normally takes a few seconds. If it takes longer, refresh or sign in again.</p>
        </section>
      </div>
    </main>

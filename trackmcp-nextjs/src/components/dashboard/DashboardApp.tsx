@@ -1,6 +1,6 @@
 "use client";
 
-import { Children, useEffect, useState, type ReactNode } from "react";
+import { Children, useEffect, useId, useState, type ReactNode } from "react";
 import {
   Activity,
   AlertTriangle,
@@ -2279,19 +2279,26 @@ function Panel({
 }
 
 function InfoHint({ label, text }: { label: string; text: string }) {
+  const [open, setOpen] = useState(false);
+  const tooltipId = useId();
   return (
     <span className="group relative inline-flex shrink-0">
       <button
         type="button"
         aria-label={label}
+        aria-expanded={open}
+        aria-describedby={open ? tooltipId : undefined}
         title={text}
+        onClick={() => setOpen((current) => !current)}
+        onBlur={() => window.setTimeout(() => setOpen(false), 120)}
         className="grid h-5 w-5 cursor-pointer place-items-center rounded-full border border-line-strong bg-paper text-[11px] font-bold text-muted transition-colors hover:border-brand hover:text-brand-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
       >
         i
       </button>
       <span
+        id={tooltipId}
         role="tooltip"
-        className="pointer-events-none absolute left-0 top-7 z-20 hidden w-64 rounded-md border border-line-strong bg-ink px-3 py-2 text-left text-[11px] font-normal leading-relaxed text-white shadow-lg group-hover:block group-focus-within:block"
+        className={`pointer-events-none absolute left-0 top-7 z-20 w-64 rounded-md border border-line-strong bg-ink px-3 py-2 text-left text-[11px] font-normal leading-relaxed text-white shadow-lg transition-opacity ${open ? "opacity-100" : "opacity-0"}`}
       >
         {text}
       </span>
@@ -5221,6 +5228,31 @@ function SetupView({
           </button>
         )}
       </section>
+      <section className="mb-6 rounded-2xl border border-line bg-white p-5 sm:p-6" aria-labelledby="setup-methods-title">
+        <div className="flex flex-wrap items-end justify-between gap-3">
+          <div>
+            <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-brand-strong">Choose a connection path</p>
+            <h2 id="setup-methods-title" className="mt-1 text-lg font-semibold text-ink">Use the path that matches your server</h2>
+            <p className="mt-1 max-w-2xl text-xs leading-relaxed text-muted">The recommended path is the native SDK. Other supported paths are visible here so you do not have to hunt for them at the bottom of the page.</p>
+          </div>
+          <a href="/docs" className="inline-flex cursor-pointer items-center gap-1 text-xs font-semibold text-brand-strong hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand">Compare setup guides <ArrowRight size={12} /></a>
+        </div>
+        <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          {[
+            ["TypeScript", "/docs/typescript", "Recommended", "Native SDK + one-command CLI setup"],
+            ["Python", "/docs/python", "Native SDK", "Install with pip, then use your key"],
+            ["Go", "/docs/go", "Source package", "Reviewed middleware integration"],
+            [".NET", "/docs/dotnet", "Source package", "Reviewed ASP.NET integration"],
+            ["OpenTelemetry", "/docs/opentelemetry", "Collector path", "OTLP/HTTP for existing collectors"],
+          ].map(([label, href, badge, detail]) => (
+            <a key={label} href={href} className="group rounded-xl border border-line bg-paper p-4 transition-colors hover:border-brand/40 hover:bg-brand-soft/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand">
+              <div className="flex items-center justify-between gap-2"><p className="text-sm font-semibold text-ink">{label}</p><ArrowRight size={14} className="text-faint transition-transform group-hover:translate-x-0.5 group-hover:text-brand-strong" /></div>
+              <p className="mt-2 text-[10px] font-semibold uppercase tracking-[0.08em] text-brand-strong">{badge}</p>
+              <p className="mt-1 text-xs leading-relaxed text-muted">{detail}</p>
+            </a>
+          ))}
+        </div>
+      </section>
       <div className="grid gap-6 xl:grid-cols-[minmax(0,1.2fr)_minmax(320px,.8fr)]">
         <SetupPanelSequence>
         <Panel
@@ -5834,16 +5866,16 @@ function UsageChart({ timeline }: { timeline: Analytics["timeline"] }) {
 
   if (!timeline.length)
     return (
-      <div className="grid h-[250px] place-items-center text-sm text-muted">
+      <div className="grid h-[180px] place-items-center text-sm text-muted">
         No activity in the selected period.
       </div>
     );
   const width = Math.max(820, 48 * timeline.length + 60),
-    height = 320,
+    height = 276,
     left = 48,
     right = 24,
     top = 24,
-    bottom = 84,
+    bottom = 68,
     plotWidth = width - left - right,
     plotHeight = height - top - bottom;
   const max = Math.max(1, ...timeline.map((day) => day.calls));

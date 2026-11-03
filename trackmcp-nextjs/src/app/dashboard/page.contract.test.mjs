@@ -18,12 +18,13 @@ test("dashboard hydrates a workspace from a successful create response", () => {
 });
 
 test("first-time loading state explains what the dashboard is preparing", () => {
-  assert.match(source, /Opening your workspace/);
-  assert.match(source, /preparing the workspace where your MCP activity will appear/);
+  assert.match(source, /Getting your workspace ready/);
+  assert.match(source, /signing you in, loading your workspace, and preparing the dashboard/);
   assert.match(source, /Check your account/);
   assert.match(source, /Load your workspace/);
   assert.match(source, /Open your dashboard/);
   assert.match(source, /Your data is not being changed/);
+  assert.match(source, /If it takes longer, refresh or sign in again/);
   assert.match(source, /dashboard-shell min-h-screen bg-canvas/);
   assert.match(source, /bg-brand-soft text-brand-strong/);
   assert.doesNotMatch(source, /bg-slate-50|border-slate-200|bg-indigo-50|text-indigo-700/);

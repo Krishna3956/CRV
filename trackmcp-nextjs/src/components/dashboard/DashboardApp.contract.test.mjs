@@ -957,8 +957,24 @@ test("Overview gives business users a bounded at-a-glance takeaway", () => {
 test("dashboard panels expose concise information hints and universal pointer affordances", () => {
   assert.match(source, /function InfoHint\(/);
   assert.match(source, /role="tooltip"/);
+  assert.match(source, /aria-expanded=\{open\}/);
+  assert.match(source, /onClick=\{\(\) => setOpen/);
   assert.match(source, /About \$\{title\}/);
   assert.match(globalsSource, /\.dashboard-shell button:not\(:disabled\)/);
+});
+
+test("setup makes every supported connection path visible beside the recommended path", () => {
+  assert.match(source, /Choose a connection path/);
+  for (const label of ["TypeScript", "Python", "Go", ".NET", "OpenTelemetry"]) {
+    assert.match(source, new RegExp(`\\[\"${label.replace(".", "\\.")}\",`));
+  }
+  assert.match(source, /The recommended path is the native SDK/);
+});
+
+test("activity chart uses compact geometry and a table fallback", () => {
+  assert.match(source, /height = 276/);
+  assert.match(source, /className="grid h-\[180px\]/);
+  assert.match(source, /View daily values as a table/);
 });
 
 test("Setup makes server-side account identity configuration discoverable", () => {
