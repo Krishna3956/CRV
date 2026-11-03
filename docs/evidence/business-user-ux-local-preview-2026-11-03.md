@@ -697,3 +697,21 @@ The preview rendered the Example-data Overview successfully with the revised
 tokens and retained the same business hierarchy, copy, navigation, KPI values,
 and evidence boundaries. No analytics or API behavior changed. This is a local
 visual verification only; production has not been changed.
+
+## Signed-up user entry inspection after `80596208`
+
+The local `/signup` route was opened in a fresh browser session with the same
+non-production placeholders. The accessibility tree showed:
+
+- a clear `Create your TrackMCP account` heading;
+- a concise expectation that a technical teammate connects one server and the
+  business team then reads usage, outcomes, and issues;
+- Google/GitHub discovery kept in a stable loading footprint while provider
+  availability is resolved;
+- the email form with first name, last name, email, password, and confirmation;
+- a single `Create account` action and an explicit sign-in escape hatch;
+- terms and privacy links before account creation.
+
+The route returned HTTP 200. This verifies the local entry experience and
+accessible content structure, but it does not verify provider configuration,
+email delivery, or a real Supabase account creation.
