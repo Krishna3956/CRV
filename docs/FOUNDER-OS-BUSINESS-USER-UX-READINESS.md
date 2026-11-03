@@ -265,6 +265,12 @@ new-versus-returning counts as `null`. Business surfaces can therefore render
 unsupported zero. This is a metric-truth fix; it does not change the underlying
 account resolver or formulas.
 
+The Resources & prompts surface now applies the same boundary to durable
+entity-read metrics. When the read projection is unavailable, read success,
+failure, and input-needed counts show `N/A`; a real `no_rows` projection still
+shows zero. This prevents a schema availability problem from looking like
+healthy or empty activity.
+
 The latest full release gate was rerun after this projection change and passed
 all 159 suites. The generated synthetic fixture timestamp was restored after
 the run; no production data was written.

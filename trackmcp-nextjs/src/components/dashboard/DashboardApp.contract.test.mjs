@@ -583,6 +583,13 @@ test("protocol surface cards disclose durable entity-read coverage", () => {
   assert.match(source, /Needs input/);
 });
 
+test("resource and prompt read metrics do not turn unavailable projections into zero", () => {
+  assert.match(source, /entityReadProjectionAvailable = rows\.length > 0 && rows\.every/);
+  assert.match(source, /successfulReads = entityReadProjectionAvailable/);
+  assert.match(source, /value=\{surfaces && successfulReads !== null \? fmt\(successfulReads\) : "N\/A"\}/);
+  assert.match(source, /surface\.entity_analytics\.status === "schema_unavailable" \? "N\/A"/);
+});
+
 test("example data offers a clear setup path and Setup keeps trust below the setup cards", () => {
   assert.match(source, /["']\/dashboard\?view=setup&data=my["']/);
   assert.match(source, /Connect your MCP/);

@@ -3537,7 +3537,10 @@ function ResourcesPromptsView({
   ] as const) : [];
   const observedEvents = rows.reduce((total, [, surface]) => total + surface.events, 0);
   const observedEntities = rows.reduce((total, [, surface]) => total + surface.entity_count, 0);
-  const successfulReads = rows.reduce((total, [, surface]) => total + surface.entity_analytics.successful_reads, 0);
+  const entityReadProjectionAvailable = rows.length > 0 && rows.every(([, surface]) => surface.entity_analytics.status !== "schema_unavailable");
+  const successfulReads = entityReadProjectionAvailable
+    ? rows.reduce((total, [, surface]) => total + surface.entity_analytics.successful_reads, 0)
+    : null;
   return (
     <div>
       <PageIntro title="Resources & prompts" description="See the non-tool surfaces your MCP exposes and the reads observed at its server boundary." question="What information or guided help do people need most?" actions={pageControls} />
@@ -3579,7 +3582,7 @@ function ResourcesPromptsView({
       <div className="grid gap-3 pt-5 sm:grid-cols-3">
         <Kpi label="Observed lookups and requests" value={surfaces ? fmt(observedEvents) : "N/A"} icon={Activity} helper="Resource and prompt activity" />
         <Kpi label="Distinct resources or prompts observed" value={surfaces ? fmt(observedEntities) : "N/A"} icon={FileText} helper="Privacy-bounded entity counts" />
-        <Kpi label="Reads with explicit success" value={surfaces ? fmt(successfulReads) : "N/A"} icon={Check} helper="Durable read projection only" />
+        <Kpi label="Reads with explicit success" value={surfaces && successfulReads !== null ? fmt(successfulReads) : "N/A"} icon={Check} helper={successfulReads === null ? "Durable read projection unavailable" : "Durable read projection only"} />
       </div>
       {activity && <div className="mt-6 grid gap-6 xl:grid-cols-2">
         {[["Top resources", activity.resource_breakdown, "Resource method"], ["Top prompts", activity.prompt_breakdown, "Prompt method"]].map(([title, items, label]) => (
@@ -3597,7 +3600,7 @@ function ResourcesPromptsView({
               <div className="border border-line bg-paper p-3"><p className="text-xs text-muted">Distinct items observed</p><p className="mt-1 text-2xl font-semibold text-ink">{fmt(surface.entity_count)}</p><p className="mt-1 text-[11px] text-muted">Privacy-safe hash count; no URI, content, or input is shown.</p></div>
             </div>
             <div className="mt-4 grid grid-cols-2 gap-2 text-xs sm:grid-cols-4">
-              {[["Reads", surface.entity_analytics.read_events], ["Successful", surface.entity_analytics.successful_reads], ["Failed", surface.entity_analytics.failed_reads], ["Needs input", surface.entity_analytics.input_required_reads]].map(([metric, value]) => <div key={String(metric)} className="border border-line bg-white p-3"><p className="text-muted">{metric}</p><p className="mt-1 font-semibold text-ink">{fmt(Number(value))}</p></div>)}
+              {[["Reads", surface.entity_analytics.read_events], ["Successful", surface.entity_analytics.successful_reads], ["Failed", surface.entity_analytics.failed_reads], ["Needs input", surface.entity_analytics.input_required_reads]].map(([metric, value]) => <div key={String(metric)} className="border border-line bg-white p-3"><p className="text-muted">{metric}</p><p className="mt-1 font-semibold text-ink">{surface.entity_analytics.status === "schema_unavailable" ? "N/A" : fmt(Number(value))}</p></div>)}
             </div>
             {surface.entity_analytics.transport_breakdown.length > 0 && <div className="mt-4 border-t border-line pt-3"><p className="text-[10px] uppercase tracking-[0.08em] text-faint">Transport coverage</p><div className="mt-2 space-y-1">{surface.entity_analytics.transport_breakdown.slice(0, 5).map((item) => <div key={item.transport} className="flex items-center justify-between gap-2 text-[11px]"><span className="text-muted">{formatTransport(item.transport)}</span><span className="text-right text-ink">{fmt(item.read_events)} reads · {fmt(item.successful_reads)} ok · {fmt(item.failed_reads)} failed</span></div>)}</div></div>}
             <p className="mt-3 text-[10px] uppercase tracking-[0.08em] text-faint">{surface.entity_analytics.status === "available" ? "Durable read projection" : surface.entity_analytics.status === "no_rows" ? "No durable reads in this window" : "Durable read schema unavailable"}</p>

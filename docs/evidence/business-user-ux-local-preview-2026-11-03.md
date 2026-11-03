@@ -776,6 +776,20 @@ The consolidated `npm run test:release-gate` was rerun after the People
 projection change and passed all 159 suites. The generated synthetic UAT
 fixture timestamp was restored to its tracked value before this evidence was
 recorded.
+
+## Resource and prompt read-projection boundary
+
+The Resources & prompts surface now distinguishes a durable entity-read
+projection that is unavailable from a projection that is available but has no
+rows. The former renders `N/A` for read outcome counts and explains that the
+projection is unavailable; the latter continues to render zero. Method-level
+observations remain separate and unchanged.
+
+Verification:
+
+- `npm run test:business-user-ux`: 101/101 passed.
+- `npx tsc --noEmit --pretty false`: passed.
+- `git diff --check`: passed.
 - The isolated worktree is clean.
 
 The final cleanup removed the last indigo-tinted dashboard shadows so the

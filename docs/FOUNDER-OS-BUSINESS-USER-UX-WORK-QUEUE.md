@@ -237,6 +237,10 @@ Legend: `[x]` verified/implemented in this workstream; `[ ]` pending.
       versioned read-model projection keeps `new_accounts` and
       `returning_accounts` as `null` when the bounded history scan is
       incomplete instead of converting uncertainty into zero.
+- [x] ✅ Preserve unavailable durable resource/prompt read evidence as `N/A`:
+      the Resources & prompts surface no longer renders zero successful/failed
+      reads when the entity-read schema is unavailable; genuine `no_rows`
+      evidence remains zero.
 - [x] ✅ Keep long connection-key histories out of the primary Setup scan:
       show the first three active keys by default, retain explicit access to
       the full active list, and keep revoked keys behind their existing
