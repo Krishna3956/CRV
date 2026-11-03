@@ -974,6 +974,10 @@ export function DashboardApp({
   working,
   error,
   initialView = "overview",
+  sampleOnly = false,
+  preview = false,
+  controlledView,
+  onViewChange,
   onGenerateKey,
   onRevokeKey,
   onRotateKey,
@@ -993,6 +997,10 @@ export function DashboardApp({
   working: boolean;
   error: string;
   initialView?: "overview" | "traces";
+  sampleOnly?: boolean;
+  preview?: boolean;
+  controlledView?: View;
+  onViewChange?: (view: View) => void;
   onGenerateKey: (options?: KeyCreationOptions) => void;
   onRevokeKey: (id: string) => void;
   onRotateKey: (id: string) => void;
@@ -1002,12 +1010,12 @@ export function DashboardApp({
   onSelectWorkspace: (workspaceId: string) => void;
   onSignOut: () => void;
 }) {
-  const [view, setView] = useState<View>(
+  const [internalView, setInternalView] = useState<View>(
     initialView === "traces" ? "evidence" : "overview",
   );
-  const [routeReady, setRouteReady] = useState(false);
+  const [routeReady, setRouteReady] = useState(sampleOnly);
   const [range, setRange] = useState("30");
-  const [dataMode, setDataModeState] = useState<DataMode>("my");
+  const [dataMode, setDataModeState] = useState<DataMode>(sampleOnly ? "example" : "my");
   const [traceSessionId, setTraceSessionId] = useState<string | null>(null);
   const [traceCorrelationHandle, setTraceCorrelationHandle] = useState<
     string | null
@@ -1025,6 +1033,7 @@ export function DashboardApp({
   const [actionQueueError, setActionQueueError] = useState("");
   const [actionQueueMutation, setActionQueueMutation] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
+  const view = controlledView ?? internalView;
   const hasActiveKey = keys.some((key) => !key.revoked_at);
   const isExample = dataMode === "example";
   const displayedAnalytics = isExample
@@ -1059,10 +1068,18 @@ export function DashboardApp({
 
   useEffect(() => {
     const applyRoute = () => {
+      if (sampleOnly) {
+        setDataModeState("example");
+        setTraceSessionId(null);
+        setTraceCorrelationHandle(null);
+        setIncidentId(null);
+        setRouteReady(true);
+        return;
+      }
       const state = readRouteState(
         initialView === "traces" ? "evidence" : "overview",
       );
-      setView(state.view);
+      setInternalView(state.view);
       setRange(state.range);
       setDataModeState(state.dataMode);
       setTraceSessionId(state.sessionId);
@@ -1077,7 +1094,7 @@ export function DashboardApp({
       window.clearTimeout(timer);
       window.removeEventListener("popstate", applyRoute);
     };
-  }, [initialView]);
+  }, [initialView, sampleOnly]);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -1154,6 +1171,10 @@ export function DashboardApp({
   }, [alertReloadToken, dataMode, routeReady, workspaceId]);
 
   const setDataMode = (next: DataMode) => {
+    if (sampleOnly) {
+      setDataModeState("example");
+      return;
+    }
     setDataModeState(next);
     setTraceSessionId(null);
     setTraceCorrelationHandle(null);
@@ -1162,11 +1183,12 @@ export function DashboardApp({
     writeRouteState(view, range, next, null, null, "evidence");
   };
   const goTo = (next: View) => {
-    setView(next);
+    setInternalView(next);
+    onViewChange?.(next);
     setTraceSessionId(null);
     setTraceCorrelationHandle(null);
     setIncidentId(null);
-    writeRouteState(next, range, dataMode);
+    if (!sampleOnly) writeRouteState(next, range, dataMode);
   };
   const openTrace = (sessionId: string, correlationHandle?: string | null) => {
     const origin = view;
@@ -1174,48 +1196,55 @@ export function DashboardApp({
     setTraceCorrelationHandle(correlationHandle || null);
     setTraceOrigin(origin);
     setIncidentId(null);
-    setView("evidence");
-    writeRouteState(
-      "evidence",
-      range,
-      dataMode,
-      sessionId,
-      correlationHandle || null,
-      origin,
-    );
+    setInternalView("evidence");
+    onViewChange?.("evidence");
+    if (!sampleOnly) {
+      writeRouteState(
+        "evidence",
+        range,
+        dataMode,
+        sessionId,
+        correlationHandle || null,
+        origin,
+      );
+    }
   };
   const closeTrace = () => {
     setTraceSessionId(null);
     setTraceCorrelationHandle(null);
     setIncidentId(null);
-    setView(traceOrigin);
-    writeRouteState(traceOrigin, range, dataMode);
+    setInternalView(traceOrigin);
+    onViewChange?.(traceOrigin);
+    if (!sampleOnly) writeRouteState(traceOrigin, range, dataMode);
   };
   const selectRange = (next: string) => {
     setRange(next);
-    if (dataMode === "my") onRefresh(next);
-    writeRouteState(view, next, dataMode);
+    if (!sampleOnly && dataMode === "my") onRefresh(next);
+    if (!sampleOnly) writeRouteState(view, next, dataMode);
   };
   const openIncidentEvidence = (nextIncidentId: string) => {
     setIncidentId(nextIncidentId);
     setTraceSessionId(null);
     setTraceCorrelationHandle(null);
     setTraceOrigin("issues");
-    setView("evidence");
-    writeRouteState(
-      "evidence",
-      range,
-      dataMode,
-      null,
-      null,
-      "issues",
-      false,
-      nextIncidentId,
-    );
+    setInternalView("evidence");
+    onViewChange?.("evidence");
+    if (!sampleOnly) {
+      writeRouteState(
+        "evidence",
+        range,
+        dataMode,
+        null,
+        null,
+        "issues",
+        false,
+        nextIncidentId,
+      );
+    }
   };
   const refreshAll = () => {
     setAlertReloadToken((value) => value + 1);
-    onRefresh(range);
+    if (!sampleOnly) onRefresh(range);
   };
   const retryError = workspace ? refreshAll : onCreateWorkspace;
   const retryErrorLabel = workspace ? "Retry dashboard data" : "Retry workspace setup";
@@ -1252,11 +1281,11 @@ export function DashboardApp({
   }
 
   return (
-    <div className="dashboard-shell min-h-screen font-sans text-ink" data-dashboard-view={view}>
-      <div className="border-b border-amber-200 bg-amber-50 px-4 py-3 text-center text-xs leading-relaxed text-amber-900 lg:hidden" role="status">
+    <div className={"dashboard-shell min-h-screen font-sans text-ink " + (preview ? "relative h-full min-h-0 overflow-hidden" : "relative")} data-dashboard-view={view}>
+      {!preview && <div className="border-b border-amber-200 bg-amber-50 px-4 py-3 text-center text-xs leading-relaxed text-amber-900 lg:hidden" role="status">
         The TrackMCP dashboard is supported on desktop browsers for this pilot. For the full navigation and data tables, open TrackMCP on a desktop-sized browser window.
-      </div>
-      <aside className="fixed bottom-0 left-0 top-[52px] z-30 hidden w-[248px] border-r border-line bg-white lg:flex lg:flex-col">
+      </div>}
+      <aside className={(preview ? "absolute " : "fixed ") + "bottom-0 left-0 top-[52px] z-30 hidden w-[248px] border-r border-line bg-white lg:flex lg:flex-col"}>
         <DashboardNav
           view={view}
           items={primaryNav}
@@ -1304,8 +1333,8 @@ export function DashboardApp({
           </div>
         </div>
       </aside>
-      <div className="pt-[96px] lg:pl-[248px] lg:pt-[52px]">
-        <header data-site-nav className="fixed left-0 right-0 top-0 z-40 flex min-h-[52px] flex-wrap items-center justify-between gap-2 border-b border-line bg-white/95 px-4 py-2 shadow-[0_1px_0_rgba(15,23,42,0.03)] backdrop-blur sm:px-8 lg:h-[52px] lg:flex-nowrap lg:py-0">
+      <div className={preview ? "h-full overflow-y-auto pt-[96px] lg:pl-[248px] lg:pt-[52px]" : "pt-[96px] lg:pl-[248px] lg:pt-[52px]"}>
+        <header data-site-nav className={preview ? "absolute left-0 right-0 top-0 z-40 flex min-h-[52px] flex-wrap items-center justify-between gap-2 border-b border-line bg-white/95 px-4 py-2 shadow-[0_1px_0_rgba(15,23,42,0.03)] backdrop-blur sm:px-8 lg:h-[52px] lg:flex-nowrap lg:py-0" : "fixed left-0 right-0 top-0 z-40 flex min-h-[52px] flex-wrap items-center justify-between gap-2 border-b border-line bg-white/95 px-4 py-2 shadow-[0_1px_0_rgba(15,23,42,0.03)] backdrop-blur sm:px-8 lg:h-[52px] lg:flex-nowrap lg:py-0"}>
           <div className="flex min-w-0 flex-1 items-center gap-2">
             <TrackMCPLogo asLink={false} mark size="footer" variant="green" />
             {workspaces.length > 1 && (
@@ -1323,11 +1352,11 @@ export function DashboardApp({
             )}
           </div>
           <div className="flex shrink-0 items-center gap-2 sm:gap-3">
-            <DataModeToggle dataMode={dataMode} onChange={setDataMode} />
+            {sampleOnly ? <ExampleDataBadge /> : <DataModeToggle dataMode={dataMode} onChange={setDataMode} />}
             <LanguageSwitcher />
           </div>
         </header>
-        <div className="border-b border-line bg-white px-4 py-2.5 lg:hidden">
+        {!preview && <div className="border-b border-line bg-white px-4 py-2.5 lg:hidden">
           <div className="flex gap-1 overflow-x-auto" role="navigation" aria-label="Dashboard navigation">
             {allNav.map((item) => (
               <button
@@ -1346,7 +1375,7 @@ export function DashboardApp({
               </button>
             ))}
           </div>
-        </div>
+        </div>}
         <main className="mx-auto max-w-[1440px] px-5 py-6 sm:px-8 sm:py-8">
           {error && (
             <ErrorBanner message={error} onRetry={retryError} retryLabel={retryErrorLabel} />
@@ -1399,6 +1428,7 @@ export function DashboardApp({
               onRotateKey={onRotateKey}
               onRefresh={() => onRefresh(range)}
               onOpenOverview={() => goTo("overview")}
+              readOnly={sampleOnly}
             />
           ) : !isExample && (!workspace || !hasActiveKey || zeroEventState) ? (
             <ServerConnectionState
@@ -1603,6 +1633,18 @@ function DataModeToggle({
         {dataMode === "my" ? "Live workspace" : "Guided example"}
       </span>
     </div>
+  );
+}
+
+function ExampleDataBadge() {
+  return (
+    <span
+      className="inline-flex items-center gap-2 rounded-md border border-brand/25 bg-brand-soft px-3 py-2 text-[11px] font-semibold text-brand-strong"
+      aria-label="Example data only"
+    >
+      <span className="h-1.5 w-1.5 rounded-full bg-brand" aria-hidden="true" />
+      Example data
+    </span>
   );
 }
 
@@ -4727,6 +4769,7 @@ function SetupView({
   onRotateKey,
   onRefresh,
   onOpenOverview,
+  readOnly = false,
 }: {
   keys: Key[];
   workspaceId: string | null;
@@ -4739,6 +4782,7 @@ function SetupView({
   onRotateKey: (id: string) => void;
   onRefresh: () => void;
   onOpenOverview: () => void;
+  readOnly?: boolean;
 }) {
   type SetupPath = "sdk" | "otel";
   const [showRevokedKeys, setShowRevokedKeys] = useState(false);
@@ -4838,7 +4882,7 @@ function SetupView({
         ["03", "Send one event", "Make a real tool call, then verify it here."],
       ];
   useEffect(() => {
-    if (!workspaceId) return;
+    if (!workspaceId || readOnly) return;
     let cancelled = false;
     void fetch(`/api/v2/setup?workspace_id=${encodeURIComponent(workspaceId)}&days=30`, { cache: "no-store" })
       .then(async (response) => {
@@ -4861,7 +4905,7 @@ function SetupView({
         if (!cancelled) setSetupChecking(false);
       });
     return () => { cancelled = true; };
-  }, [setupReloadToken, workspaceId]);
+  }, [readOnly, setupReloadToken, workspaceId]);
   const activeSetupContract = setupContractWorkspaceId === workspaceId ? setupContract : null;
   const setupLoading = Boolean(workspaceId && (setupChecking || setupContractWorkspaceId !== workspaceId));
   const contractChecks = activeSetupContract?.setup?.checks;
@@ -4962,6 +5006,11 @@ function SetupView({
   };
   return (
     <div>
+      {readOnly && (
+        <div className="mb-5 border border-brand/20 bg-brand-soft/25 px-4 py-3 text-xs text-brand-strong" role="note">
+          This is a guided example of the setup experience. No workspace, key, or server settings can be changed from the homepage preview.
+        </div>
+      )}
       <PageIntro
         title="Setup"
         description="Three steps to a verified MCP event. Advanced controls stay below until you need them."
@@ -5005,7 +5054,7 @@ function SetupView({
                     focusSetupPrimaryAction();
                   }
                 }}
-                disabled={working}
+                disabled={readOnly || working}
                 className="mt-4 inline-flex cursor-pointer items-center gap-1.5 rounded-md bg-brand-strong px-3 py-2 text-xs font-semibold text-white hover:bg-brand-strong disabled:cursor-not-allowed disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2"
               >
                 {workspaceId ? "Create connection key" : "Create workspace"} <ArrowRight size={13} aria-hidden="true" />
@@ -5117,7 +5166,7 @@ function SetupView({
           <button
             type="button"
             onClick={retrySetupCheck}
-            disabled={setupLoading}
+              disabled={setupLoading}
             className="mt-4 inline-flex cursor-pointer items-center gap-1.5 border border-red-200 bg-white px-3 py-2 text-xs font-semibold text-red-800 hover:bg-red-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-600"
           >
             <RefreshCw size={13} className={setupLoading ? "animate-spin" : ""} /> {setupLoading ? "Checking…" : "Retry connection check"}
@@ -5179,6 +5228,7 @@ function SetupView({
               <input
                 value={serviceName}
                 onChange={(event) => updateService(event.target.value)}
+                disabled={readOnly}
                 maxLength={100}
                 placeholder="my-mcp-server"
                 className="mt-1.5 block w-full rounded-md border border-line-strong bg-white px-3 py-2 text-sm font-normal text-body focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
@@ -5189,6 +5239,7 @@ function SetupView({
               <input
                 value={environmentName}
                 onChange={(event) => updateEnvironment(event.target.value)}
+                disabled={readOnly}
                 maxLength={64}
                 placeholder="production"
                 className="mt-1.5 block w-full rounded-md border border-line-strong bg-white px-3 py-2 text-sm font-normal text-body focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
@@ -5297,7 +5348,7 @@ function SetupView({
               <button
                 type="button"
                 onClick={onCreateWorkspace}
-                disabled={working}
+                disabled={readOnly || working}
                 id="setup-primary-action"
                 className="mt-4 inline-flex cursor-pointer items-center gap-2 rounded-lg bg-brand-strong px-4 py-2.5 text-sm font-semibold text-white shadow-[0_10px_24px_-14px_rgba(22,163,74,0.28)] hover:bg-brand-strong disabled:cursor-not-allowed disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
               >
@@ -5350,7 +5401,7 @@ function SetupView({
                         <button
                           type="button"
                           onClick={() => onRotateKey(key.id)}
-                          disabled={working}
+                          disabled={readOnly || working}
                           className="cursor-pointer text-xs font-semibold text-brand-strong hover:underline disabled:cursor-not-allowed disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
                         >
                           Rotate
@@ -5358,7 +5409,7 @@ function SetupView({
                         <button
                           type="button"
                           onClick={() => onRevokeKey(key.id)}
-                          disabled={working}
+                          disabled={readOnly || working}
                           className="cursor-pointer text-xs font-semibold text-red-700 hover:underline disabled:cursor-not-allowed disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-600"
                         >
                           Revoke
@@ -5383,7 +5434,8 @@ function SetupView({
                     <input
                       type="checkbox"
                       checked={scopeNewKey}
-                      onChange={(event) => setScopeNewKey(event.target.checked)}
+                          onChange={(event) => setScopeNewKey(event.target.checked)}
+                          disabled={readOnly}
                       className="mt-0.5 h-4 w-4 cursor-pointer rounded border-line-strong text-brand focus:ring-brand"
                     />
                     <span>Restrict this key to the server and environment below <InfoHint label="About scoped keys" text="Scoped keys reject telemetry with different server or environment labels. Leave this off for a workspace-wide key." /></span>
@@ -5395,6 +5447,7 @@ function SetupView({
                         <input
                           value={serviceName}
                           onChange={(event) => updateService(event.target.value)}
+                          disabled={readOnly}
                           maxLength={100}
                           placeholder="my-mcp-server"
                           className="mt-1 block w-full rounded-md border border-line-strong bg-white px-2.5 py-2 text-xs font-normal text-body focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
@@ -5405,6 +5458,7 @@ function SetupView({
                         <input
                           value={environmentName}
                           onChange={(event) => updateEnvironment(event.target.value)}
+                          disabled={readOnly}
                           maxLength={64}
                           placeholder="production"
                           className="mt-1 block w-full rounded-md border border-line-strong bg-white px-2.5 py-2 text-xs font-normal text-body focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
@@ -5418,7 +5472,7 @@ function SetupView({
               <button
                 type="button"
                 onClick={() => onGenerateKey(scopeNewKey ? { serviceScope: boundedService, environmentScope: boundedEnvironment } : undefined)}
-                disabled={working}
+                disabled={readOnly || working}
                 id="setup-primary-action"
               className="mt-4 inline-flex cursor-pointer items-center gap-2 rounded-lg bg-brand-strong px-4 py-2.5 text-sm font-semibold text-white shadow-[0_10px_24px_-14px_rgba(22,163,74,0.28)] hover:bg-brand-strong disabled:cursor-not-allowed disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
               >
