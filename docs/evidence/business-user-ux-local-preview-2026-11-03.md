@@ -2,7 +2,7 @@
 
 Date: 2026-11-03
 Branch: `codex/business-user-ux-audit`
-Commit under review: `2d96f2b9` (`Preserve unavailable resource outcome rates`)
+Commit under review: `982742e5` (`Keep unavailable capability breadth neutral`)
 
 This is local browser evidence only. It is not production evidence and does
 not replace a fresh-account or real-telemetry walkthrough.
@@ -45,9 +45,13 @@ The current branch also passed `npm run build` after these copy changes;
 Next.js generated 230 static pages. This remains local evidence only.
 
 The latest metric-trust verification also passed the focused business-user
-suite (102/102), TypeScript, and the production build. Resource and prompt
+suite (103/103), TypeScript, and the production build. Resource and prompt
 outcome rates now preserve unavailable stall, error, and unknown measures as
 `N/A` rather than implying a measured `0%`.
+
+The same pass verified that unavailable capability breadth uses a neutral
+visual track instead of an empty green bar, so `N/A` cannot be mistaken for a
+measured zero.
 
 Final standalone-server smoke on the current build used placeholder Supabase
 values plus the documented local dashboard bypass. These routes all returned

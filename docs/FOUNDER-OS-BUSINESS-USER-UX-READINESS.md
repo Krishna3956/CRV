@@ -2,13 +2,13 @@
 
 Date: 2026-11-03  
 Branch: `codex/business-user-ux-audit`  
-Latest verified commit: `2d96f2b9` (`Preserve unavailable resource outcome rates`)
+Latest verified commit: `982742e5` (`Keep unavailable capability breadth neutral`)
 
 This matrix is the release-readiness companion to the UX audit and work
 queue. It intentionally separates source-level proof, read-only browser proof,
 and evidence that requires a real account, deployment, or human participant.
 
-Latest branch verification: `npm run test:business-user-ux` passed all 102 suites
+Latest branch verification: `npm run test:business-user-ux` passed all 103 suites
 after the authentication-affordance, research, signed-out handoff, illustrative
 People-growth coherence, setup-vocabulary consistency, evidence-action-label,
 outcome-copy, Quality helper-copy, final route-smoke, and auth-affordance passes.
@@ -30,10 +30,14 @@ explicit: `N/A` is shown for unavailable stall, error, and unknown rates rather
 than silently rendering `0%`. This preserves the distinction between a real
 zero and an unavailable projection.
 
+Capability breadth now uses the same visual contract: an unavailable breadth
+measure renders `N/A` with a neutral track rather than an empty green bar that
+could be read as measured zero.
+
 Final current-branch build: `npm run build` passed with 230 static pages
 generated after the dashboard palette revision. TypeScript and ESLint also
 passed. The full `npm run test:release-gate` passed all 159 suites on the
-current branch, and the focused 102-suite business-user contract suite passed
+current branch, and the focused 103-suite business-user contract suite passed
 after the Setup key-density and outcome-interpretation revisions.
 This is still local build evidence; it does not prove a production deployment
 or authenticated production rendering.

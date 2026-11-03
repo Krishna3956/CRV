@@ -244,6 +244,9 @@ Legend: `[x]` verified/implemented in this workstream; `[ ]` pending.
 - [x] ✅ Preserve unavailable resource/prompt outcome rates as `N/A`:
       prompt and per-entity stall, error, and unknown rates no longer fall
       back to `0%` when the read model does not provide those measures.
+- [x] ✅ Keep unavailable capability breadth visually neutral: when the read
+      model cannot calculate breadth, the dashboard shows `N/A` with a neutral
+      track instead of an empty green bar that looks like measured zero.
 - [x] ✅ Keep long connection-key histories out of the primary Setup scan:
       show the first three active keys by default, retain explicit access to
       the full active list, and keep revoked keys behind their existing
