@@ -970,6 +970,13 @@ test("Resources and prompts preserve unavailable outcome rates as N/A", () => {
   assert.doesNotMatch(source, /Math\.round\(\(item\.(stall_rate|error_rate|unknown_rate) \|\| 0\) \* 100\)/);
 });
 
+test("Capability breadth uses a neutral visual when the measure is unavailable", () => {
+  assert.match(source, /analytics\.tool_adoption\.breadth == null \? "bg-line" : "bg-paper"/);
+  assert.match(source, /Capability breadth unavailable/);
+  assert.match(source, /analytics\.tool_adoption\.breadth != null && <div className="h-full bg-brand"/);
+  assert.doesNotMatch(source, /tool_adoption\.breadth \|\| 0/);
+});
+
 test("Example Issues shows illustrative incident lifecycles", () => {
   assert.match(source, /EXAMPLE_ALERT_INCIDENTS: AlertIncident\[\]/);
   assert.match(source, /Illustrative alert lifecycle examples with bounded evidence/);

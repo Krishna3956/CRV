@@ -3437,7 +3437,9 @@ function CapabilitiesView({
             </div>
             <span className="text-2xl font-semibold text-ink">{analytics.tool_adoption.breadth === null ? "N/A" : percent(analytics.tool_adoption.breadth)}</span>
           </div>
-          <div className="mt-4 h-2 overflow-hidden bg-paper"><div className="h-full bg-brand" style={{ width: `${Math.min(100, Math.max(0, (analytics.tool_adoption.breadth || 0) * 100))}%` }} /></div>
+          <div className={`mt-4 h-2 overflow-hidden ${analytics.tool_adoption.breadth == null ? "bg-line" : "bg-paper"}`} aria-label={analytics.tool_adoption.breadth == null ? "Capability breadth unavailable" : `Capability breadth ${percent(analytics.tool_adoption.breadth)}`}>
+            {analytics.tool_adoption.breadth != null && <div className="h-full bg-brand" style={{ width: `${Math.min(100, Math.max(0, analytics.tool_adoption.breadth * 100))}%` }} />}
+          </div>
           <p className="mt-2 text-[11px] text-faint">{fmt(analytics.tool_adoption.observed)} of {fmt(analytics.tool_adoption.advertised)} advertised capabilities observed · {fmt(analytics.tool_adoption.unused)} not observed</p>
         </section>
       )}
