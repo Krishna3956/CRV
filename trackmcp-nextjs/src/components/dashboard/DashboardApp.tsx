@@ -2469,7 +2469,7 @@ function Overview({
           helper="Bounded server activity in selected period"
         />
         <Kpi
-          label="Work with an explicit success"
+          label="Reported completion"
           value={
             totals.started
               ? fmt(totals.completed) + " / " + fmt(totals.started)
@@ -2480,7 +2480,7 @@ function Overview({
             totals.started
               ? "Reported completion · " +
                 percent(totals.completed / totals.started)
-              : "No explicit success outcome data"
+              : "No explicit completion outcome data"
           }
         />
         <Kpi

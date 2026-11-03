@@ -9,7 +9,7 @@ source explicitly says it is an outcome event.
 | --- | --- | --- | --- | --- |
 | `ai_clients` | Assistants using your MCP | Distinct observed `client_name` | Server telemetry | Not unique end users |
 | `activity` | Observed work | Observed `tool_call` count | Tool-call telemetry | Instrumented traffic only |
-| `work_completed` | Work with an explicit success | Explicit completed / explicit started | Workflow outcome events | No session inference |
+| `work_completed` | Reported completion | Explicit completed / explicit started | Workflow outcome events | No session inference |
 | `work_unresolved` | Unresolved workflows | Explicit started - completed - failed (bounded at zero) | Workflow outcome events | Missing terminal evidence; never labeled as abandonment |
 | `task_pending` | Explicit task still in progress | Allowlisted task status (`working` or `input_required`) | Task event with a task ID | Pending is observed state; it is not abandonment |
 | `task_completed` | Explicit task completion | Allowlisted task status (`completed`) | Task event with a task ID | Task completion is not proof of the customer's business outcome |

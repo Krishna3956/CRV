@@ -40,7 +40,7 @@ export const METRIC_DEFINITIONS = [
   },
   {
     key: "work_completed",
-    label: "Work with an explicit success",
+    label: "Reported completion",
     formula: "count(workflow completed) / count(workflow started)",
     source: "Explicit workflow outcome events",
     interpretation: "The share of explicitly started workflows that emitted a completed outcome.",

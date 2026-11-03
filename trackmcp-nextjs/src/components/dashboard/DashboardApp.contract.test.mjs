@@ -47,7 +47,7 @@ test("business-first navigation and KPI hierarchy are explicit", () => {
   assert.match(source, /groupLabel="Investigate & act"/);
   assert.match(
     source,
-    /label="Assistants using your MCP"[\s\S]*label="Observed work"[\s\S]*label="Work with an explicit success"[\s\S]*label="Needs attention"/,
+    /label="Assistants using your MCP"[\s\S]*label="Observed work"[\s\S]*label="Reported completion"[\s\S]*label="Needs attention"/,
   );
   assert.doesNotMatch(source, /id: "tool-quality"/);
   assert.doesNotMatch(source, /Open Configure/);

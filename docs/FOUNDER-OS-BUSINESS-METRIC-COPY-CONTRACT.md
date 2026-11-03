@@ -8,7 +8,7 @@ detail.
 | --- | --- | --- | --- |
 | AI clients | Assistants using your MCP | Distinct client names reported by observed sessions | Directional/self-reported |
 | Activity | Observed work | Bounded calls observed in the selected period | Not a count of business outcomes |
-| Work completed | Work with an explicit success | Started workflows with an explicit completion event | Missing event is not failure |
+| Work completed | Reported completion | Started workflows with an explicit completion event | Missing event is not failure |
 | Needs attention | Signals to investigate | Returned insights with evidence and affected volume | A signal is not a diagnosis |
 | Capabilities observed | Features people used | Server capabilities observed in the period | A capability may be advertised but unused |
 | Error rate | Calls that returned an error | Observed error responses divided by observed calls | Does not explain root cause alone |
