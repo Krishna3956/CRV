@@ -2,7 +2,7 @@
 
 Date: 2026-11-03  
 Branch: `codex/business-user-ux-audit`  
-Current local head: `1ed90f11`  
+Current local head: `76c29f7c`
 Scope: evidence handoff for the business-user UX branch; no deployment or
 production mutation was performed by this handoff.
 
@@ -33,6 +33,9 @@ production mutation was performed by this handoff.
 | `npm run build` | passed; 230 static pages generated |
 | Local rendered Overview/Setup preview | HTTP 200; expected data-source, setup, and navigation states visible |
 | Worktree | clean |
+
+The pull-request CI run `41576409402` passed the web/JavaScript, Go, and .NET
+jobs for this head. Earlier superseded runs are not used as release evidence.
 
 The authenticated production smoke workflow also passed on `main` in run
 `41568279966` at release SHA

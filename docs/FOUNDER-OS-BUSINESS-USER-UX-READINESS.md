@@ -2,7 +2,7 @@
 
 Date: 2026-11-03  
 Branch: `codex/business-user-ux-audit`  
-Latest verified commit: `7d2c7371` (`Add business UX release handoff`)
+Latest verified commit: `76c29f7c` (`Point UX readiness at handoff`)
 
 This matrix is the release-readiness companion to the UX audit and work
 queue. It intentionally separates source-level proof, read-only browser proof,
@@ -15,6 +15,9 @@ outcome-copy, Quality helper-copy, final route-smoke, and auth-affordance passes
 The consolidated `npm run test:release-gate` passed all 159 suites on the
 current branch with the synthetic UAT report restored to its tracked fixture value
 after the run. The branch remains local and has not been merged or deployed.
+A fresh pull-request CI run (`41576409402`) also passed the required
+web/JavaScript, Go, and .NET jobs for this exact head. The pull request remains
+open; this is validation evidence, not merge or deployment evidence.
 A fresh local
 development browser pass now verifies both the My-data no-event state and the
 Example-data Overview on the current branch; this remains bypass evidence, not
@@ -179,8 +182,8 @@ evidence; a real authenticated environment is still required.
 
 The dashboard palette was softened after review: primary actions now use a
 lighter, calmer green on warm-neutral surfaces rather than a saturated
-emerald. The dashboard-only primary is `#55b684`, with `#3d8c66` reserved for
-stronger text and active controls; `#f2fbf5` and `#f7fcf8` are surface-only
+emerald. The dashboard-only primary is `#63c893`, with `#438d68` reserved for
+stronger text and active controls; `#f3fcf6` and `#f8fdf9` are surface-only
 values. This is a color-only change: layout, copy, metrics, and behavior are
 unchanged. Public-site color tokens remain separate.
 
