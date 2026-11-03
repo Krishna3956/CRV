@@ -3,9 +3,6 @@ import {
   Check,
   FileText,
   Sparkles,
-  TrendingUp,
-  Users,
-  Wrench,
   Zap,
 } from "lucide-react";
 import { Nav } from "@/components/Nav";
@@ -15,7 +12,7 @@ import { EarlyAccessButton } from "@/components/EarlyAccessButton";
 import { CopyButton } from "@/components/CopyButton";
 import { Reveal } from "@/components/Reveal";
 import { PageFrame } from "@/components/PageFrame";
-import { HeroDashboardScene } from "@/components/HeroDashboardScene";
+import { HomepageDashboardDemo } from "@/components/HomepageDashboardDemo";
 import { TrackMCPMark } from "@/components/TrackMCPMark";
 import { DotGrid } from "@/components/DotGrid";
 import { SectionCurve } from "@/components/SectionCurve";
@@ -101,43 +98,8 @@ export default function Home() {
           </div>
         </section>
 
-        {/* ══════════ FIRST-FOLD DIVISION — stepped white bridge → tag stack → dashboard ══════════ */}
-        <section className="relative hidden bg-mist pb-14 md:block md:pb-20">
-          {/* white bridge: a sharp trapezoid dips from the hero into the mist,
-              holding the tag stack */}
-          <div className="relative mx-auto hidden w-full max-w-[680px] px-6 md:block">
-            <div
-              aria-hidden
-              className="absolute inset-0 bg-white"
-              style={{
-                clipPath: "polygon(0 0, 100% 0, calc(100% - 60px) 100%, 60px 100%)",
-                filter: "drop-shadow(0 20px 32px rgba(10,10,10,0.05))",
-              }}
-            />
-            <div className="relative flex flex-wrap items-center justify-center gap-2.5 px-8 pb-6 pt-5">
-              {[
-                { icon: Users, label: "See who is using it", tile: "bg-brand-soft text-brand-strong" },
-                { icon: Wrench, label: "See what they use", tile: "bg-violet-100 text-violet-600" },
-                { icon: TrendingUp, label: "Know what to improve", tile: "bg-brand-soft text-brand-strong" },
-              ].map((t, i) => (
-                <Reveal key={t.label} delay={0.3 + i * 0.08}>
-                  <span className="inline-flex items-center gap-2 rounded-full border border-line bg-white py-1.5 pl-1.5 pr-3.5 text-[13px] font-medium text-body shadow-[0_2px_8px_-4px_rgba(10,10,10,0.15)]">
-                    <span className={`grid h-6 w-6 place-items-center rounded-full ${t.tile}`}>
-                      <t.icon size={13} />
-                    </span>
-                    {t.label}
-                  </span>
-                </Reveal>
-              ))}
-            </div>
-          </div>
-
-          {/* dashboard — the single central product object, in the mist.
-              Hidden on mobile (phones), shown from the md breakpoint up. */}
-          <div className="relative z-10 mx-auto mt-0 hidden max-w-[1000px] px-6 md:mt-8 md:block">
-            <HeroDashboardScene />
-          </div>
-        </section>
+        {/* ══════════ FIRST-FOLD DIVISION — interactive dashboard proof ══════════ */}
+        <HomepageDashboardDemo />
 
         {/* ══════════ CHAPTER 5 · MCP ANALYTICS SOFTWARE → TOOL ANALYTICS PROOF ══════════ */}
         <section className="relative">

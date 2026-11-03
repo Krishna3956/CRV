@@ -1,11 +1,12 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { motion, useReducedMotion } from "motion/react";
 import {
   LayoutGrid,
   Wrench,
   Activity,
+  FileText,
   Workflow,
   Users,
   Target,
@@ -24,15 +25,16 @@ import { TrackMCPAppIcon } from "./TrackMCPAppIcon";
 
 const NAV = [
   { key: "overview", label: "Overview", icon: LayoutGrid, tile: "bg-slate-100 text-slate-600" },
-  { key: "tools", label: "What they're doing", icon: Wrench, tile: "bg-violet-100 text-violet-600" },
-  { key: "sessions", label: "Evidence", icon: Activity, tile: "bg-brand-soft text-brand-strong" },
-  { key: "workflows", label: "The journey", icon: Workflow, tile: "bg-brand-soft text-brand-strong" },
   { key: "clients", label: "Who's using it", icon: Users, tile: "bg-amber-100 text-amber-600" },
-  { key: "outcomes", label: "Did it work", icon: Target, tile: "bg-teal-100 text-teal-600" },
-  { key: "reliability", label: "What's broken", icon: TriangleAlert, tile: "bg-rose-100 text-rose-600" },
+  { key: "capabilities", label: "What they're doing", icon: Wrench, tile: "bg-brand-soft text-brand-strong" },
+  { key: "resources", label: "Resources & prompts", icon: FileText, tile: "bg-brand-soft text-brand-strong" },
+  { key: "journeys", label: "The journey", icon: Workflow, tile: "bg-brand-soft text-brand-strong" },
+  { key: "quality", label: "Did it work", icon: Target, tile: "bg-brand-soft text-brand-strong" },
+  { key: "issues", label: "What's broken", icon: TriangleAlert, tile: "bg-rose-100 text-rose-600" },
+  { key: "evidence", label: "Evidence", icon: Activity, tile: "bg-brand-soft text-brand-strong" },
   { key: "setup", label: "Setup", icon: Settings, tile: "bg-stone-100 text-stone-600" },
 ] as const;
-type View = (typeof NAV)[number]["key"];
+export type View = (typeof NAV)[number]["key"];
 
 const RANGES = {
   "24h": {
@@ -318,8 +320,19 @@ function Dropdown({
 
 /* ─────────────────────────── component ─────────────────────────── */
 
-export function DashboardMock() {
-  const [view, setView] = useState<View>("overview");
+export function DashboardMock({
+  controlledView,
+  onViewChange,
+}: {
+  controlledView?: View;
+  onViewChange?: (view: View) => void;
+} = {}) {
+  const [internalView, setInternalView] = useState<View>("overview");
+  const view = controlledView ?? internalView;
+  const setView = useCallback((nextView: View) => {
+    setInternalView(nextView);
+    onViewChange?.(nextView);
+  }, [onViewChange]);
   const [range, setRange] = useState<RangeKey>("7d");
   const [env, setEnv] = useState<Env>("Production");
   const [menu, setMenu] = useState<null | "range" | "env">(null);
@@ -397,8 +410,8 @@ export function DashboardMock() {
     const steps: { sel: string; run: () => void; dwell: number }[] = [
       // 1. Land on Overview
       { sel: '[data-demo="nav-overview"]', run: () => setView("overview"), dwell: 2200 },
-      // 2. Click "View all" on Top tools → jump into the Tools page
-      { sel: '[data-demo="view-all-tools"]', run: () => setView("tools"), dwell: 1900 },
+      // 2. Click "View all" on Top tools → jump into the capability page
+      { sel: '[data-demo="view-all-tools"]', run: () => setView("capabilities"), dwell: 1900 },
       // 3. Filter to Needs attention
       { sel: '[data-demo="filter-attention"]', run: () => setToolFilter("attention"), dwell: 1700 },
       // 4. Filter to Unused
@@ -406,15 +419,15 @@ export function DashboardMock() {
       // 5. Quick tap on Inspect calls
       { sel: '[data-demo="inspect"]', run: () => setToolFilter("all"), dwell: 1500 },
       // 6. Peek at Sessions
-      { sel: '[data-demo="nav-sessions"]', run: () => setView("sessions"), dwell: 2200 },
-      // 7. Move to Workflows
-      { sel: '[data-demo="nav-workflows"]', run: () => setView("workflows"), dwell: 2200 },
+      { sel: '[data-demo="nav-evidence"]', run: () => setView("evidence"), dwell: 2200 },
+      // 7. Move to the Journey view
+      { sel: '[data-demo="nav-journeys"]', run: () => setView("journeys"), dwell: 2200 },
       // 8. Toggle the date range to Last 24 hours, read the data
       { sel: '[data-demo="range"]', run: () => setMenu("range"), dwell: 900 },
       { sel: '[data-demo="opt-24h"]', run: () => { setRange("24h"); setMenu(null); }, dwell: 2400 },
       // 9. Client Outcomes, then Reliability
-      { sel: '[data-demo="nav-outcomes"]', run: () => setView("outcomes"), dwell: 2200 },
-      { sel: '[data-demo="nav-reliability"]', run: () => setView("reliability"), dwell: 2600 },
+      { sel: '[data-demo="nav-quality"]', run: () => setView("quality"), dwell: 2200 },
+      { sel: '[data-demo="nav-issues"]', run: () => setView("issues"), dwell: 2600 },
     ];
 
     const runStep = (idx: number) => {
@@ -445,7 +458,7 @@ export function DashboardMock() {
       cancelled = true;
       timers.forEach(clearTimeout);
     };
-  }, [demoActive]);
+  }, [demoActive, setView]);
 
   const pickView = (v: View) => {
     setLocked(true);
@@ -647,7 +660,7 @@ export function DashboardMock() {
                 <div className="overflow-hidden rounded-xl border border-line">
                   <div className="flex items-center justify-between border-b border-line bg-paper px-3.5 py-2">
                     <span className="text-[11px] font-semibold uppercase tracking-wide text-faint">Top tools</span>
-                    <button type="button" data-demo="view-all-tools" onClick={() => pickView("tools")} className="cursor-pointer text-[11px] font-medium text-brand focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand">
+                    <button type="button" data-demo="view-all-tools" onClick={() => pickView("capabilities")} className="cursor-pointer text-[11px] font-medium text-brand focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand">
                       View all
                     </button>
                   </div>
@@ -683,7 +696,7 @@ export function DashboardMock() {
               </>
             )}
 
-            {view === "tools" && (
+            {view === "capabilities" && (
               <>
                 <div className="flex items-center gap-1.5">
                   {(
@@ -746,7 +759,7 @@ export function DashboardMock() {
                   <div className="flex items-center gap-2">
                     <span className="font-mono text-[13px] font-semibold text-ink">{active.name}</span>
                     <span className={`text-[11px] font-medium ${STATUS[active.status].text}`}>{STATUS[active.status].label}</span>
-                    <button type="button" data-demo="inspect" onClick={() => pickView("sessions")} className="ml-auto flex cursor-pointer items-center gap-1 text-[12px] font-medium text-brand focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand">
+                    <button type="button" data-demo="inspect" onClick={() => pickView("evidence")} className="ml-auto flex cursor-pointer items-center gap-1 text-[12px] font-medium text-brand focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand">
                       Inspect calls <ArrowUpRight size={12} />
                     </button>
                   </div>
@@ -768,7 +781,35 @@ export function DashboardMock() {
               </>
             )}
 
-            {view === "sessions" && (
+            {view === "resources" && (
+              <>
+                <div className="grid grid-cols-3 gap-3">
+                  <StatCard label="Resources used" value="18" delta="+4" good arrow="up" prev={r.prev} />
+                  <StatCard label="Prompts used" value="9" delta="+2" good arrow="up" prev={r.prev} />
+                  <StatCard label="Most used resource" value="Invoice" delta="32% share" good arrow="up" prev={r.prev} />
+                </div>
+                <div className="overflow-hidden rounded-xl border border-line">
+                  <div className="grid grid-cols-[1.5fr_0.8fr_0.8fr] gap-2 border-b border-line bg-paper px-4 py-2 text-[10.5px] font-semibold uppercase tracking-wide text-faint">
+                    <span>Resource or prompt</span>
+                    <span className="text-right">Uses</span>
+                    <span className="text-right">Share</span>
+                  </div>
+                  {[
+                    ["invoice://recent", "410", "32%"],
+                    ["prompt://summarize-report", "286", "22%"],
+                    ["resource://customer-profile", "194", "15%"],
+                  ].map(([name, uses, share]) => (
+                    <div key={name} className="grid grid-cols-[1.5fr_0.8fr_0.8fr] gap-2 border-b border-line px-4 py-2.5 text-[12px] last:border-0">
+                      <span className="truncate font-mono text-body">{name}</span>
+                      <span className="text-right font-mono text-muted">{uses}</span>
+                      <span className="text-right font-mono text-muted">{share}</span>
+                    </div>
+                  ))}
+                </div>
+              </>
+            )}
+
+            {view === "evidence" && (
               <>
                 <div className="rounded-xl border border-line p-4">
                   <div className="mb-4 text-[13px] font-semibold text-ink">Session funnel</div>
@@ -828,7 +869,7 @@ export function DashboardMock() {
               </>
             )}
 
-            {view === "workflows" && (
+            {view === "journeys" && (
               <>
                 <div className="grid grid-cols-3 gap-3">
                   <StatCard label="Workflows" value="6" delta="+2" good arrow="up" prev={r.prev} />
@@ -923,7 +964,7 @@ export function DashboardMock() {
               </>
             )}
 
-            {view === "outcomes" && (
+            {view === "quality" && (
               <>
                 <div className="grid grid-cols-3 gap-3">
                   <StatCard label="Completion rate" value={`${kpis.completion}%`} delta="+3.1pt" good arrow="up" prev={r.prev} />
@@ -967,9 +1008,9 @@ export function DashboardMock() {
               </>
             )}
 
-            {view === "reliability" && (
+            {view === "issues" && (
               <>
-                <button type="button" onClick={() => pickView("tools")} className="flex w-full cursor-pointer items-start gap-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand">
+                <button type="button" onClick={() => pickView("capabilities")} className="flex w-full cursor-pointer items-start gap-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand">
                   <TriangleAlert size={16} className="mt-0.5 shrink-0 text-amber-600" />
                   <span className="text-[12.5px] leading-snug text-amber-900">
                     <span className="font-semibold">send_email needs attention.</span>{" "}
