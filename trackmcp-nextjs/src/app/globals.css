@@ -173,11 +173,10 @@ body:has([data-site-nav]) .global-language-switcher {
   font-family: var(--font-sans);
 }
 
-/* Dashboard visual system: warm-neutral surfaces with a restrained green
-   accent. The accent is intentionally muted and less saturated than the public
-   brand green so the dashboard reads as a calm analytical workspace rather
-   than a page of success states. Green is reserved for actions and healthy
-   signals; warning/error semantics keep their own colors. */
+/* Dashboard visual system: warm-neutral surfaces with a familiar emerald
+   accent. Emerald is reserved for actions and healthy signals; warning/error
+   semantics keep their own colors. The lighter values are for surfaces only,
+   so small text and controls retain sufficient contrast. */
 .dashboard-shell {
   --color-canvas: #fafaf9;
   --color-paper: #ffffff;
@@ -187,11 +186,11 @@ body:has([data-site-nav]) .global-language-switcher {
   --color-faint: #a1a1aa;
   --color-line: #e4e4e7;
   --color-line-strong: #d4d4d8;
-  --color-brand: #4aa879;
-  --color-brand-strong: #347d5b;
-  --color-brand-soft: #eff9f3;
-  --color-mint: #f5fbf7;
-  --color-mint-ink: #327354;
+  --color-brand: #15803d;
+  --color-brand-strong: #166534;
+  --color-brand-soft: #f0fdf4;
+  --color-mint: #ecfdf5;
+  --color-mint-ink: #14532d;
 }
 
 /* Every enabled interactive control exposes the same pointer affordance,
@@ -291,7 +290,7 @@ button:disabled {
 .dashboard-shell select:focus-visible,
 .dashboard-shell textarea:focus-visible {
   border-color: var(--color-brand);
-  box-shadow: 0 0 0 3px rgba(74,168,121,0.18);
+  box-shadow: 0 0 0 3px rgba(21,128,61,0.2);
 }
 
 @layer utilities {

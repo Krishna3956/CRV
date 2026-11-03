@@ -1107,6 +1107,16 @@ the stronger green available for readable text and active controls:
 Only `trackmcp-nextjs/src/app/globals.css` changed for this slice. Public
 brand tokens, layout, copy, metrics, formulas, and behavior were not changed.
 
+## Emerald dashboard palette after the follow-up color review
+
+The muted eucalyptus primary was replaced with a familiar emerald system after
+review feedback that the lighter green did not read like a conventional SaaS
+analytics product. The dashboard now uses `#15803d` for primary actions,
+`#166534` for stronger text and active controls, and `#f0fdf4`/`#ecfdf5` only
+for pale surfaces. Layout, copy, metrics, formulas, and behavior are
+unchanged. The color remains dashboard-scoped; public brand surfaces are not
+changed. This is local branch evidence until deployment.
+
 Verification after this slice:
 
 - `npm run test:business-user-ux`: 98/98 passed.

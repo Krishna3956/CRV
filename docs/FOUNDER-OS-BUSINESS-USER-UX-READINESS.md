@@ -178,11 +178,12 @@ closed with HTTP 503. This is expected safety behavior, not production
 evidence; a real authenticated environment is still required.
 
 The dashboard palette was revised again after review: primary actions now use
-a lighter, calmer green on warm-neutral surfaces rather than a generic
-analytics blue. The accent is `#4aa879`, with `#347d5b` reserved for stronger
-text and active controls; the supporting soft/mint surfaces were lightened to
-match. This is a local, verified change only and does not alter layout, copy,
-metrics, or behavior.
+a clearer emerald on warm-neutral surfaces rather than a muted eucalyptus or
+generic analytics blue. The primary is `#15803d`, with `#166534` reserved for
+stronger text and active controls; `#f0fdf4` and `#ecfdf5` are surface-only
+values. This is a color-only change: layout, copy, metrics, and behavior are
+unchanged. The stronger interactive values also keep small text and controls
+within a readable contrast range.
 
 The dashboard data-source control now makes its scope explicit in the header:
 `Your workspace` for live data and `Illustration only` for Example data. This
