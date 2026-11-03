@@ -212,8 +212,13 @@ Legend: `[x]` verified/implemented in this workstream; `[ ]` pending.
       server with Example data; Overview, Who’s using it, What they’re doing,
       Resources & prompts, The journey, Did it work, What’s broken, Evidence,
       and Setup all returned HTTP 200 with TrackMCP content.
-- [ ] Run authenticated local runtime smoke; the standalone server starts, but
-      the local homepage returns HTTP 500 without local Supabase URL/key values.
+- [x] ✅ Run a fresh local development runtime smoke with the explicit,
+      development-only dashboard bypass. The current branch rendered the
+      My-data no-event state and the Example-data Overview in a browser; the
+      public routes and fail-closed sitemap behavior were also verified.
+- [ ] Run an authenticated runtime smoke against a real Supabase session and
+      real read-model responses; the local bypass is not evidence of production
+      authentication or database-backed analytics.
 
 ## Slice-by-slice follow-up
 

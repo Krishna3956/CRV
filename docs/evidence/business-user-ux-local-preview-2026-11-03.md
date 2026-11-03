@@ -614,3 +614,23 @@ Latest recovery-path verification after `a00cf8db`:
   change was performed.
 - Fresh authenticated-account setup, a real first event, and non-technical
   participant UAT remain open gates; this evidence is local and synthetic.
+
+## Fresh browser verification after `53fb22c6`
+
+- Started the current branch with `next dev` on port `3193`, deliberately
+  using placeholder Supabase values and the development-only
+  `NEXT_PUBLIC_LOCAL_DASHBOARD_BYPASS=true` flag.
+- Opened `/dashboard?view=overview&data=my` in a browser. The rendered My-data
+  state showed the business orientation sentence, the three setup steps, the
+  `Complete setup` action, the `See Example data` action, and the preview cards
+  without substituting sample values into the live state.
+- Switched to Example data in the same browser session. The rendered Overview
+  showed the explicit Example-data banner, the business-oriented `At a glance`
+  summary, the recommended next step, four decision KPIs, evidence-aware
+  attention signals, observed sessions, and explicit outcomes.
+- The screenshot and accessibility tree showed the neutral/indigo dashboard
+  hierarchy, two navigation groups (`Understand` and `Investigate & act`), and
+  no blank workspace screen after the development-only handoff.
+- This is stronger than source-only evidence but remains local bypass evidence:
+  it does not prove a real Supabase login, real workspace data, or a deployed
+  production read model.
