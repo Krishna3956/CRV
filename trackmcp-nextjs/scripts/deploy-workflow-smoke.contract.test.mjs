@@ -107,7 +107,10 @@ test("deployment carries and verifies an immutable runtime release identity", ()
   assert.match(workflow, /--build-arg TRACKMCP_RELEASE_SHA="\$TRACKMCP_DEPLOY_SHA"/);
   assert.match(workflow, /Verify running release identity/);
   assert.match(workflow, /\/api\/health/);
-  assert.match(workflow, /Running origin reported release_sha=/);
+  assert.match(workflow, /Running origin reports the immutable release SHA/);
+  assert.match(workflow, /deadline=\$\(\(SECONDS \+ 180\)\)/);
+  assert.match(workflow, /HTTP_STATUS=\$\(curl/);
+  assert.match(workflow, /reported=\$\{ACTUAL:-unavailable\}/);
 });
 
 test("distributed rate-limit enablement preserves and verifies the App Runner configuration", () => {
