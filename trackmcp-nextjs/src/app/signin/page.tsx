@@ -39,6 +39,9 @@ export default function SignInPage({ initialMode = "signin" }: { initialMode?: "
 
   useEffect(() => {
     const requestedMode = new URLSearchParams(window.location.search).get("mode");
+    // The query string is client-only; apply it after hydration to avoid a
+    // server/client markup mismatch on direct /signin?mode=signup links.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     if (requestedMode === "signup") setMode("signup");
     const next = new URLSearchParams(window.location.search).get("next");
     nextPath.current = safeAuthNext(next);
