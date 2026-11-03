@@ -3857,6 +3857,12 @@ function OutcomeEvidencePanel({ analytics }: { analytics: Analytics }) {
       <p className="mt-4 border-t border-line pt-3 text-[11px] leading-relaxed text-muted">
         Evidence source: {analytics.completion_source === "workflow_events" ? "explicit workflow events" : analytics.completion_source === "session_heuristic" ? "session-derived activity (not used for the completion KPI)" : "no explicit outcome events"}. Unknown and not-observable outcomes remain separate from failure.
       </p>
+      {!activity && totals.started === 0 && (
+        <StateNote
+          title="Outcome evidence will appear after connection"
+          body="TrackMCP can show completion only when your server reports an explicit workflow start and final state. Tool activity alone is not treated as success, and no outcome is inferred from missing events."
+        />
+      )}
       {activity && <div className="mt-5 border-t border-line pt-5">
         <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
           <Kpi label="Completed" value={fmt(activity.completed)} icon={Check} helper="Server-reported completion" />

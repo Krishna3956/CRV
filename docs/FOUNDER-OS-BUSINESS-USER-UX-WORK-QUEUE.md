@@ -252,6 +252,10 @@ Legend: `[x]` verified/implemented in this workstream; `[ ]` pending.
       pending authenticated verification.
 - [ ] Did it work: outcome rates, error rates, retries, latency, and
       insufficient-data states with consistent definitions.
+- [x] ✅ Did-it-work now explains the explicit workflow evidence prerequisite
+      when no starts or outcomes exist; it does not turn tool activity or
+      missing events into assumed success. Full reliability/outcome read-model
+      coverage remains pending authenticated verification.
 - [ ] What’s broken: affected volume, confidence, likely cause, recommended
       action, and evidence links for every actionable insight.
 - [ ] Setup: unify server, environment, scoped key, optional identity,

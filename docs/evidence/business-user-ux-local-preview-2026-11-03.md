@@ -907,3 +907,12 @@ steps are absent. It tells a My-data reader that common paths, explicit stops,
 pauses, and observed retries will appear after connection, links to Setup, and
 explicitly avoids creating a funnel from missing events. Example and live data
 remain separate.
+
+## Outcome no-data guidance in the current branch
+
+The shared `Did it work` outcome panel now explains why a blank completion
+surface is not a success or failure: completion requires an explicit workflow
+start and final state from the server. When neither exists, the panel tells the
+reader that outcome evidence will appear after connection and keeps tool
+activity separate from business outcomes. No formula or read-model field was
+changed.

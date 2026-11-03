@@ -253,6 +253,12 @@ test("Journey empty state explains observed-path prerequisites", () => {
   assert.match(source, /No example or inferred funnel is substituted/);
 });
 
+test("Outcome empty state explains the explicit-evidence requirement", () => {
+  assert.match(source, /Outcome evidence will appear after connection/);
+  assert.match(source, /completion only when your server reports an explicit workflow start and final state/);
+  assert.match(source, /Tool activity alone is not treated as success/);
+});
+
 test("Overview exposes same-window comparisons only from read-model fields", () => {
   assert.match(source, /Compared with the previous period/);
   assert.match(source, /previous_period_calls/);
