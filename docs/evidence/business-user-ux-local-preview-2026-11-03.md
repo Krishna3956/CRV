@@ -899,3 +899,11 @@ will show information requests, guided-help interactions, and their observed
 outcomes after connection, with a direct Setup action in My-data mode. The
 existing `N/A` values remain truthful, and no example or inferred activity is
 introduced.
+
+## Journey no-data recovery path in the current branch
+
+The `The journey` view now explains its live-data prerequisite when linked work
+steps are absent. It tells a My-data reader that common paths, explicit stops,
+pauses, and observed retries will appear after connection, links to Setup, and
+explicitly avoids creating a funnel from missing events. Example and live data
+remain separate.

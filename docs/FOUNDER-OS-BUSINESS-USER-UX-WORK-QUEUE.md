@@ -246,6 +246,10 @@ Legend: `[x]` verified/implemented in this workstream; `[ ]` pending.
       pending authenticated verification.
 - [ ] The journey: common paths, explicit stop evidence, stall/retry, and a
       clear statement that missing events are not abandonment.
+- [x] ✅ The journey view now explains what will populate after connection when
+      linked work-step evidence is absent, with a direct Setup action and no
+      inferred funnel. Full path/stop/retry read-model coverage remains
+      pending authenticated verification.
 - [ ] Did it work: outcome rates, error rates, retries, latency, and
       insufficient-data states with consistent definitions.
 - [ ] What’s broken: affected volume, confidence, likely cause, recommended

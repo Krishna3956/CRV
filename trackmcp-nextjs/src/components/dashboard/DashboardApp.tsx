@@ -3100,6 +3100,15 @@ function JourneysView({
         body="This view shows the steps TrackMCP actually observed and the explicit points where work completed, failed, or asked for more information. A missing next event does not prove that someone abandoned the task."
         action="Use Common paths for the normal flow, then inspect Where work stops when a product or operations question needs evidence."
       />
+      {!analytics.journey_activity && (
+        <StateNote
+          title={dataMode === "my" ? "Journey evidence will appear after connection" : "Journey evidence is unavailable"}
+          body={dataMode === "my"
+            ? "After your server reports linked work steps, this view will show common paths, explicit stops, pauses, and observed retries. No example or inferred funnel is substituted."
+            : "The current analytics response did not include journey evidence. No example or inferred funnel is substituted."}
+          action={dataMode === "my" ? <a href="/dashboard?view=setup&data=my" className="mt-3 inline-flex cursor-pointer items-center rounded-md bg-brand-strong px-3 py-2 text-xs font-semibold text-white hover:bg-brand-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand">Open Setup</a> : undefined}
+        />
+      )}
       {analytics.journey_activity && <>
         <div className="mb-6 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
           <Kpi label="Work sessions observed" value={fmt(analytics.journey_activity.interaction_count)} icon={Route} helper="Bounded observed paths" />

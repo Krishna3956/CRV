@@ -247,6 +247,12 @@ test("Resources and prompts empty state explains the evidence prerequisite", () 
   assert.match(source, /resource or prompt activity/);
 });
 
+test("Journey empty state explains observed-path prerequisites", () => {
+  assert.match(source, /Journey evidence will appear after connection/);
+  assert.match(source, /common paths, explicit stops, pauses, and observed retries/);
+  assert.match(source, /No example or inferred funnel is substituted/);
+});
+
 test("Overview exposes same-window comparisons only from read-model fields", () => {
   assert.match(source, /Compared with the previous period/);
   assert.match(source, /previous_period_calls/);

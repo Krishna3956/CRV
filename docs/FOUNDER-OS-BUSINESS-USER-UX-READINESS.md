@@ -191,6 +191,11 @@ both interaction read models are absent, including what the page will show
 after connection and a direct Setup action. This improves comprehension without
 changing the `N/A` metric semantics or adding inferred activity.
 
+The Journey surface now uses the same no-data contract when linked work-step
+evidence is absent: it explains the future path/stop/retry view, links to Setup,
+and does not infer a funnel from missing events. This remains source-level
+evidence until a real authenticated read-model response is exercised.
+
 After the loading-state and palette revisions, the consolidated release gate
 was rerun and passed all 159 suites. The gate passed in the isolated worktree;
 it does not change the Tier 3 status because authenticated production and
