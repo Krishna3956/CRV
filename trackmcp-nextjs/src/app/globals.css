@@ -27,12 +27,12 @@ body:has([data-site-nav]) .global-language-switcher {
   --color-line: #e5e5e5;
   --color-line-strong: #d4d4d4;
   /* Brand */
-  --color-brand: #16a34a;
-  --color-brand-strong: #15803d;
-  --color-brand-soft: #dcfce7;
+  --color-brand: #4f46e5;
+  --color-brand-strong: #4338ca;
+  --color-brand-soft: #eef2ff;
   /* Accents */
-  --color-mint: #dcfce7;
-  --color-mint-ink: #166534;
+  --color-mint: #eef2ff;
+  --color-mint-ink: #3730a3;
   --color-violet: #9281f7;
   /* Code window */
   --color-code-bg: #0b0c0e;
@@ -59,8 +59,8 @@ body:has([data-site-nav]) .global-language-switcher {
   50% { transform: translate(0, -16px); }
 }
 @keyframes pulseDot {
-  0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(22,163,74,.35); }
-  50% { opacity: .85; box-shadow: 0 0 0 6px rgba(22,163,74,0); }
+  0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(79,70,229,.35); }
+  50% { opacity: .85; box-shadow: 0 0 0 6px rgba(79,70,229,0); }
 }
 
 /* ── Signal motion language ── */
@@ -185,11 +185,11 @@ body:has([data-site-nav]) .global-language-switcher {
   --color-faint: #a1a1aa;
   --color-line: #e4e4e7;
   --color-line-strong: #d4d4d8;
-  --color-brand: #2563eb;
-  --color-brand-strong: #1d4ed8;
-  --color-brand-soft: #eff6ff;
+  --color-brand: #4f46e5;
+  --color-brand-strong: #4338ca;
+  --color-brand-soft: #eef2ff;
   --color-mint: #f8fafc;
-  --color-mint-ink: #1e40af;
+  --color-mint-ink: #3730a3;
   --dash-blue: #2563eb;
   --dash-violet: #7c3aed;
   --dash-teal: #0f766e;

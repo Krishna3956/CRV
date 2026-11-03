@@ -24,3 +24,9 @@ test("signup query mode is applied after hydration without a window-dependent in
   assert.match(source, /const requestedMode = new URLSearchParams\(window\.location\.search\)\.get\("mode"\);/);
   assert.match(source, /if \(requestedMode === "signup"\) setMode\("signup"\);/);
 });
+
+test("sign-in navigation cannot remain blocked by a slow auth or profile request", () => {
+  assert.match(source, /withAuthTimeout/);
+  assert.match(source, /Sign-in is taking too long/);
+  assert.match(source, /void withAuthTimeout\(getSupabaseBrowser\(\)\.auth\.getUser\(\)/);
+});

@@ -15,6 +15,33 @@ import { identifyMarketingUser, saveContentAttribution, trackActivationEvent, tr
 type AuthStatus = "idle" | "requesting" | "verifying" | "updating" | "error";
 type AuthScreen = "credentials" | "signup-code" | "reset-email" | "reset-code" | "reset-password";
 
+const AUTH_OPERATION_TIMEOUT_MS = 12_000;
+
+function withAuthTimeout<T>(operation: PromiseLike<T>, message: string, timeoutMs = AUTH_OPERATION_TIMEOUT_MS): Promise<T> {
+  return new Promise<T>((resolve, reject) => {
+    let settled = false;
+    const timer = window.setTimeout(() => {
+      if (settled) return;
+      settled = true;
+      reject(new Error(message));
+    }, timeoutMs);
+    Promise.resolve(operation).then(
+      (value) => {
+        if (settled) return;
+        settled = true;
+        window.clearTimeout(timer);
+        resolve(value);
+      },
+      (error) => {
+        if (settled) return;
+        settled = true;
+        window.clearTimeout(timer);
+        reject(error);
+      },
+    );
+  });
+}
+
 export default function SignInPage({ initialMode = "signin" }: { initialMode?: "signin" | "signup" }) {
   const router = useRouter();
   const [mode, setMode] = useState<"signin" | "signup">(initialMode);
@@ -69,16 +96,25 @@ export default function SignInPage({ initialMode = "signin" }: { initialMode?: "
     if (screen === "signup-code" || screen === "reset-code") codeInputRef.current?.focus();
   }, [screen]);
 
-  const finishAuth = async (eventName: "signup_completed" | "signin_completed") => {
-    const { data: { user } } = await getSupabaseBrowser().auth.getUser();
-    if (user) {
-      const metadata = user.user_metadata || {};
-      identifyMarketingUser(user.id, {
-        first_name: metadata.first_name,
-        last_name: metadata.last_name,
-        company_name: metadata.company_name,
+  const finishAuth = (eventName: "signup_completed" | "signin_completed") => {
+    // Do not hold the successful auth transition on a second profile request.
+    // Supabase has already established the session; profile enrichment and
+    // analytics are best-effort and must never leave the button stuck on
+    // “Sending”.
+    void withAuthTimeout(getSupabaseBrowser().auth.getUser(), "Profile lookup timed out", 2_500)
+      .then((result: Awaited<ReturnType<ReturnType<typeof getSupabaseBrowser>["auth"]["getUser"]>>) => {
+        const user = result.data?.user;
+        if (!user) return;
+        const metadata = user.user_metadata || {};
+        identifyMarketingUser(user.id, {
+          first_name: metadata.first_name,
+          last_name: metadata.last_name,
+          company_name: metadata.company_name,
+        });
+      })
+      .catch(() => {
+        // Session navigation remains successful when enrichment is unavailable.
       });
-    }
     trackActivationEvent(eventName, { auth_mode: mode });
     router.replace(nextPath.current);
   };
@@ -180,7 +216,18 @@ export default function SignInPage({ initialMode = "signin" }: { initialMode?: "
     trackMarketingEvent("auth_request_started", { auth_mode: mode });
     setStatus("requesting");
     setError("");
-    const { error: authError } = await getSupabaseBrowser().auth.signInWithPassword({ email: normalizedEmail, password });
+    let authResult: Awaited<ReturnType<ReturnType<typeof getSupabaseBrowser>["auth"]["signInWithPassword"]>>;
+    try {
+      authResult = await withAuthTimeout(
+        getSupabaseBrowser().auth.signInWithPassword({ email: normalizedEmail, password }),
+        "Sign-in is taking too long. Check your connection and try again.",
+      );
+    } catch (timeoutError) {
+      setError(timeoutError instanceof Error ? timeoutError.message : "Sign-in is taking too long. Check your connection and try again.");
+      setStatus("error");
+      return;
+    }
+    const { error: authError } = authResult;
     if (authError) {
       setError(authError.code === "email_not_confirmed" ? "Please verify your email address before signing in." : "That email and password combination didn’t work. Reset your password or create an account.");
       setStatus("error");
@@ -363,7 +410,7 @@ export default function SignInPage({ initialMode = "signin" }: { initialMode?: "
       )}
       <div className="relative hidden overflow-hidden bg-ink lg:block">
         <div className="pointer-events-none absolute inset-0 bg-grid opacity-[0.12]" />
-        <div className="pointer-events-none absolute inset-x-0 top-0 h-72 bg-[radial-gradient(60%_100%_at_50%_0%,rgba(22,163,74,0.28),transparent_70%)]" />
+        <div className="pointer-events-none absolute inset-x-0 top-0 h-72 bg-[radial-gradient(60%_100%_at_50%_0%,rgba(79,70,229,0.28),transparent_70%)]" />
         <div className="relative flex h-full flex-col justify-center px-14">
           <TrackMCPMark size={40} className="text-white" />
           <h2 className="mt-6 max-w-[16ch] text-[34px] font-medium leading-[1.1] tracking-[-0.02em] text-white">See how your MCP server is being used</h2>
