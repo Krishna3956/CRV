@@ -2217,14 +2217,16 @@ function Panel({
   subtitle,
   children,
   action,
+  className,
 }: {
   title: string;
   subtitle?: string;
   children: ReactNode;
   action?: { label: string; onClick?: () => void; href?: string };
+  className?: string;
 }) {
   return (
-    <section className="rounded-2xl border border-line bg-white p-5 shadow-[0_20px_45px_-38px_rgba(22,163,74,0.16)] sm:p-6">
+    <section className={`rounded-2xl border border-line bg-white p-5 shadow-[0_20px_45px_-38px_rgba(22,163,74,0.16)] sm:p-6 ${className ?? ""}`}>
       <div className="flex items-start justify-between gap-4">
         <div className="flex min-w-0 items-center gap-2">
           <h2 className="dashboard-section-title text-ink">{title}</h2>
@@ -5173,6 +5175,7 @@ function SetupView({
         <Panel
           title="Connect the server"
           subtitle="Keep the key in your server environment; never commit it"
+          className="order-2"
           action={{
             label: "Read documentation",
             href: documentationHref,
@@ -5273,6 +5276,7 @@ function SetupView({
         <Panel
           title={workspaceId ? "Connection keys" : "Create your workspace"}
           subtitle={workspaceId ? "Full secrets are shown only at creation" : "A workspace is required before you can create a connection key"}
+          className="order-1"
         >
           {!workspaceId ? (
             <div>

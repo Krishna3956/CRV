@@ -1206,6 +1206,24 @@ Verification:
 - `npx tsc --noEmit --pretty false`: passed.
 - `git diff --check`: passed.
 
+## Setup body order after `a5b65204`
+
+The Setup body now follows the same order as the visible step rail. The
+workspace/connection-key panel is presented first, followed by the server SDK
+configuration panel. This prevents a first-time user from being shown server
+configuration before the credential required by that configuration exists.
+The change is presentational only: workspace creation, key generation, SDK
+snippets, and ingestion behavior are unchanged.
+
+Verification:
+
+- The Setup contract now asserts the key-before-server order.
+- `npm run test:business-user-ux`: 105/105 passed.
+- `npx tsc --noEmit --pretty false`: passed.
+- `npm run build`: passed; 230 static pages generated.
+- No production deployment, authenticated production session, or database write
+  was performed.
+
 A fresh local browser pass at
 `http://127.0.0.1:3200/dashboard?view=overview&data=example` returned HTTP 200
 with the development-only dashboard bypass. The accessibility tree showed

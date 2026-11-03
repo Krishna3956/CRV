@@ -411,6 +411,11 @@ test("Setup highlights the current next step instead of always emphasizing step 
   assert.match(source, /index === activeSetupStep && <span[^>]*>Next<\/span>/);
 });
 
+test("Setup body follows the key-before-server reading order", () => {
+  assert.match(source, /title="Connect the server"[\s\S]{0,260}className="order-2"/);
+  assert.match(source, /title=\{workspaceId \? "Connection keys" : "Create your workspace"\}[\s\S]{0,260}className="order-1"/);
+});
+
 test("Setup clears stale workspace evidence while a workspace check is in flight", () => {
   const setupStart = source.indexOf("function SetupView(");
   const setupEnd = source.indexOf("// Kept as an inert compatibility artifact", setupStart);
