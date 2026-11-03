@@ -4,8 +4,9 @@ import test from "node:test";
 
 const root = new URL("../src/", import.meta.url);
 const read = (path) => readFile(new URL(path, root), "utf8");
-const [home, docs, device, dashboard, docsShell] = await Promise.all([
+const [home, homepageDemo, docs, device, dashboard, docsShell] = await Promise.all([
   read("app/page.tsx"),
+  read("components/HomepageDashboardDemo.tsx"),
   read("app/docs/page.tsx"),
   read("components/DeviceApprovalClient.tsx"),
   read("components/dashboard/DashboardApp.tsx"),
@@ -20,7 +21,8 @@ test("homepage keeps primary actions stacked before the small-screen breakpoint"
 });
 
 test("homepage hides the desktop-only hero bridge on phones", () => {
-  assert.match(home, /<section className="relative hidden bg-mist pb-14 md:block md:pb-20">/);
+  assert.match(homepageDemo, /<section className="relative hidden bg-mist pb-14 md:block md:pb-20/);
+  assert.match(homepageDemo, /aria-label="Interactive TrackMCP dashboard preview"/);
 });
 
 test("docs overview uses responsive grids and overflow-safe code blocks", () => {

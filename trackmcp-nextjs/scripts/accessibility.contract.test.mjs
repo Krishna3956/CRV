@@ -12,6 +12,7 @@ const setupModal = read("src/components/dashboard/SetupModal.tsx");
 const docsShell = read("src/components/DocsShell.tsx");
 const tester = read("src/components/mcp-tester/McpTesterApp.tsx");
 const dashboardMock = read("src/components/DashboardMock.tsx");
+const homepageDemo = read("src/components/HomepageDashboardDemo.tsx");
 const howItWorks = read("src/components/HowItWorksFlow.tsx");
 const logo = read("src/components/TrackMCPLogo.tsx");
 const nav = read("src/components/Nav.tsx");
@@ -78,6 +79,7 @@ test("docs, onboarding, and MCP tester controls expose visible focus rings", () 
 });
 
 test("interactive marketing demos use explicit button semantics", () => {
+  assert.match(homepageDemo, /<button[\s\S]*aria-pressed=\{active\}[\s\S]*onClick=\{\(\) => setView\(choiceView\)\}/);
   assert.match(dashboardMock, /<button\s+type="button"\s+data-demo=\{demo\}/);
   assert.match(dashboardMock, /<button\s*\n\s*key=\{it\.key\}\s*\n\s*type="button"/);
   assert.match(dashboardMock, /<button type="button" onClick=\{\(\) => pickView\("clients"\)\}/);
