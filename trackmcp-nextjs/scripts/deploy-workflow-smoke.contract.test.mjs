@@ -110,6 +110,7 @@ test("deployment carries and verifies an immutable runtime release identity", ()
   assert.match(workflow, /Running origin reports the immutable release SHA/);
   assert.match(workflow, /deadline=\$\(\(SECONDS \+ 180\)\)/);
   assert.match(workflow, /HTTP_STATUS=\$\(curl/);
+  assert.match(workflow, /node -e 'const fs = require\("node:fs"\)/);
   assert.match(workflow, /reported=\$\{ACTUAL:-unavailable\}/);
 });
 

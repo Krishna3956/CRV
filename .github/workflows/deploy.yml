@@ -367,15 +367,7 @@ jobs:
             attempt=$((attempt + 1))
             RESPONSE=$(mktemp)
             HTTP_STATUS=$(curl --silent --show-error --max-time 30 --output "$RESPONSE" --write-out '%{http_code}' "https://${SERVICE_HOST}/api/health" || true)
-            ACTUAL=$(node - "$RESPONSE" <<'NODE'
-            const fs = require('node:fs');
-            const path = process.argv[2];
-            try {
-              const value = JSON.parse(fs.readFileSync(path, 'utf8'));
-              if (value.status === 'ok' && typeof value.release_sha === 'string') process.stdout.write(value.release_sha);
-            } catch {}
-            NODE
-            )
+            ACTUAL=$(node -e 'const fs = require("node:fs"); try { const value = JSON.parse(fs.readFileSync(process.argv[1], "utf8")); if (value.status === "ok" && typeof value.release_sha === "string") process.stdout.write(value.release_sha); } catch {}' "$RESPONSE")
             rm -f "$RESPONSE"
             if [[ "$HTTP_STATUS" == "200" && "$ACTUAL" == "$TRACKMCP_EXPECTED_RELEASE_SHA" ]]; then
               echo "Running origin reports the immutable release SHA $ACTUAL (attempt $attempt)."
