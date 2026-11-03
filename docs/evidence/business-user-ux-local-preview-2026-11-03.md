@@ -1421,3 +1421,39 @@ Verification:
 - `npm run test:business-user-ux`: 106/106 passed.
 - `npm run test:release-gate`: passed all 159 suites.
 - `git diff --check`: passed and the worktree is clean.
+
+## Fresh rendered browser pass at `95d29c11`
+
+On 2026-11-03 at 05:18 UTC, the isolated branch was served locally with
+`NEXT_PUBLIC_LOCAL_DASHBOARD_BYPASS=true` and deliberately non-production
+Supabase placeholders. No production credentials or database writes were used.
+
+The rendered Example-data Overview exposed:
+
+- `Example data selected` and `Illustration only` as the data-source boundary;
+- the business-first question: who is showing up, what they are trying to do,
+  whether it worked, and what needs attention;
+- an `At a glance` caveat stating that the view is illustrative, not a customer
+  count or overall health claim;
+- a `Recommended next step` card linking to the example journey;
+- readable KPI labels, explicit outcome wording, and `Open evidence` actions.
+
+The rendered My-data Setup route exposed:
+
+- `Your workspace` as the selected data source;
+- the post-setup explanation before technical detail;
+- the three-step sequence `Create a connection key` → `Install the SDK` →
+  `Send one event`;
+- a primary `Create connection key` action for a workspace with no key;
+- `Advanced key scope`, observed connection details, identity, privacy, and
+  deletion controls behind optional disclosures;
+- the recommended `npx @trackmcp/cli init` path with manual installation as a
+  fallback.
+
+The page rendered HTTP 200 in both routes. The local preview's database-backed
+setup calls returned the expected unavailable response because no database was
+provided; this is safety behavior and not production evidence. The development
+server was stopped after the pass.
+
+This confirms the current rendered comprehension path locally. It does not
+close the fresh-account, deployed authenticated smoke, or human-UAT gates.
