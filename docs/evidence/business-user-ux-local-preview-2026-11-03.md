@@ -1491,3 +1491,31 @@ available for investigation.
 The page continued to state that missing next events are not abandonment and
 that completion requires explicit workflow outcomes. This is local Example
 data only, not authenticated production evidence.
+
+## Fresh rendered resources and outcome-slice pass at `0700c707`
+
+On 2026-11-03 after the resource/outcome comprehension pass, the Example-data
+`Resources & prompts` and `Did it work` routes were rendered locally with the
+development-only dashboard bypass and placeholder Supabase values.
+
+The Resources & prompts accessibility tree showed:
+
+- the `Example data selected` and `Illustration only` boundary before metrics;
+- business-first cards named `Information lookups`, `Guided-help requests`,
+  and `Guided-help completed`;
+- interaction outcomes named `Information lookups` and `Guided help`, with
+  complete, needs-input, error, and unknown states visible;
+- protocol method names retained only as technical hover context, not as the
+  primary business label.
+
+The Did it work accessibility tree showed:
+
+- a separate explicit-outcome explanation before reliability detail;
+- readable trend labels such as `Aug 19` and `Aug 26` rather than raw ISO dates;
+- `N/A`, pending, and unknown states preserved where evidence is insufficient;
+- feature reliability rows leading with human-readable capability labels while
+  retaining the raw tool identifier as secondary context.
+
+Both routes rendered HTTP 200. The local preview used no production credentials,
+made no database writes, and does not close the authenticated production or
+human-UAT gates.
