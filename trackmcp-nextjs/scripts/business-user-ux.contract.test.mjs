@@ -14,8 +14,8 @@ const queue = await readFile(new URL("../../docs/FOUNDER-OS-BUSINESS-USER-UX-WOR
 const uat = await readFile(new URL("../../docs/FOUNDER-OS-BUSINESS-USER-UAT-SCRIPT.md", import.meta.url), "utf8");
 
 test("new-user setup explains the business outcome before technical detail", () => {
-  assert.match(auth, /a technical teammate can connect one server/);
-  assert.match(auth, /usage, outcomes, and issues in the dashboard/);
+  assert.doesNotMatch(auth, /Create your account\. Next, a technical teammate can connect one server/);
+  assert.match(auth, /By continuing, you agree to the/);
   assert.match(dashboard, /What TrackMCP will help your team understand/);
   assert.match(dashboard, /TrackMCP shows your team who is using the MCP/);
   assert.match(dashboard, /What you will get after setup/);
