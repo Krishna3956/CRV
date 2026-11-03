@@ -961,6 +961,15 @@ test("Issues renders latency regression summaries in milliseconds, not percentag
   assert.match(source, /summaryLabel\(incident\.baseline, incident\.metric\)/);
 });
 
+test("Resources and prompts preserve unavailable outcome rates as N/A", () => {
+  assert.match(source, /percent\(activity\?\.prompt_stall_rate \?\? null\)/);
+  assert.match(source, /percent\(activity\?\.prompt_error_rate \?\? null\)/);
+  assert.match(source, /percent\(item\.stall_rate \?\? null\)/);
+  assert.match(source, /percent\(item\.error_rate \?\? null\)/);
+  assert.match(source, /percent\(item\.unknown_rate \?\? null\)/);
+  assert.doesNotMatch(source, /Math\.round\(\(item\.(stall_rate|error_rate|unknown_rate) \|\| 0\) \* 100\)/);
+});
+
 test("Example Issues shows illustrative incident lifecycles", () => {
   assert.match(source, /EXAMPLE_ALERT_INCIDENTS: AlertIncident\[\]/);
   assert.match(source, /Illustrative alert lifecycle examples with bounded evidence/);
