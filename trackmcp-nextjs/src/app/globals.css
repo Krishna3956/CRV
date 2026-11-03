@@ -173,24 +173,25 @@ body:has([data-site-nav]) .global-language-switcher {
   font-family: var(--font-sans);
 }
 
-/* Dashboard visual system: warm neutrals with a deep teal action color.
-   Teal keeps a relationship to the TrackMCP green brand without using
-   success-green as the default action state. Status colors remain semantic,
-   so a customer can distinguish action, success, warning, and failure. */
+/* Dashboard visual system: cool neutral surfaces with a restrained blue
+   action color. Blue is reserved for navigation, focus, and primary actions;
+   green remains available to communicate success instead of competing with
+   every control. This gives the analytics UI a familiar SaaS language while
+   preserving the TrackMCP mark as the brand anchor. */
 .dashboard-shell {
-  --color-canvas: #f7f8f7;
+  --color-canvas: #f8fafc;
   --color-paper: #ffffff;
-  --color-ink: #16211c;
-  --color-body: #3f4b45;
-  --color-muted: #66736d;
-  --color-faint: #98a59e;
-  --color-line: #dde5e0;
-  --color-line-strong: #c7d2cc;
-  --color-brand: #0f766e;
-  --color-brand-strong: #115e59;
-  --color-brand-soft: #ccfbf1;
-  --color-mint: #e8f5f1;
-  --color-mint-ink: #115e59;
+  --color-ink: #0f172a;
+  --color-body: #334155;
+  --color-muted: #64748b;
+  --color-faint: #94a3b8;
+  --color-line: #e2e8f0;
+  --color-line-strong: #cbd5e1;
+  --color-brand: #2563eb;
+  --color-brand-strong: #1d4ed8;
+  --color-brand-soft: #eff6ff;
+  --color-mint: #f1f5f9;
+  --color-mint-ink: #1e40af;
 }
 
 /* Every enabled interactive control exposes the same pointer affordance,
@@ -254,7 +255,7 @@ button:disabled {
 }
 
 /* Founder OS dashboard surface language: quiet canvas, clear cards, and a
- * single teal action color. The underlying data stays unchanged; these rules
+ * single blue action color. The underlying data stays unchanged; these rules
  * make hierarchy and state legible without turning every panel into a dark
  * rectangle. */
 .dashboard-shell main > section,

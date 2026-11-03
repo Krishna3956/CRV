@@ -698,6 +698,20 @@ tokens and retained the same business hierarchy, copy, navigation, KPI values,
 and evidence boundaries. No analytics or API behavior changed. This is a local
 visual verification only; production has not been changed.
 
+## Blue analytics palette revision after `53e77497`
+
+The first teal revision was rejected in review as too distinctive for a
+business analytics product. The dashboard now uses a restrained blue primary
+(`--color-brand: #2563eb`) on cool-neutral surfaces (`#f8fafc`, white cards,
+slate text, and slate borders). This follows a familiar SaaS convention:
+blue is reserved for navigation, focus, and action; success, warning, and
+failure remain semantic states rather than competing with the primary action
+color. Dashboard shadows and chart fills use the same blue family, with no
+gradient added and no data or metric formulas changed.
+
+The revised palette passed the business-user contract suite, TypeScript, and
+the production build in the isolated worktree. It is not deployed.
+
 ## Signed-up user entry inspection after `80596208`
 
 The local `/signup` route was opened in a fresh browser session with the same

@@ -159,6 +159,11 @@ security headers. The database-backed `/tool-sitemap.xml` correctly failed
 closed with HTTP 503. This is expected safety behavior, not production
 evidence; a real authenticated environment is still required.
 
+The dashboard palette was revised again after review: primary actions now use
+a restrained analytics blue on cool-neutral surfaces rather than the previous
+teal treatment. The goal is a familiar SaaS visual language with green kept
+for semantic success states. This is a local, verified change only.
+
 The release-gate result is source-level evidence only. It does not replace a
 fresh-account browser walkthrough, a real first event, or a production smoke
 run against this branch.
