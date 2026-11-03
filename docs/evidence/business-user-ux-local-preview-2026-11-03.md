@@ -806,6 +806,23 @@ email delivery, or a real Supabase account creation.
 - `npm run build`: passed; 230 static pages generated.
 - `git diff --check`: passed.
 
+## Measured versus unavailable resource/prompt share tracks
+
+The resource/prompt distribution bars now use a visible neutral background
+track for measured shares and a quieter line track when the share is
+unavailable. The green fill is still rendered only when the read model provides
+an actual share. This keeps a measured zero, a measured non-zero share, and
+missing evidence visually distinct without changing any metric values.
+
+Verification after this slice:
+
+- `npm run test:business-user-ux`: 104/104 passed.
+- `npx tsc --noEmit --pretty false`: passed.
+- `npm run build`: passed; 230 static pages generated.
+- `git diff --check`: passed.
+- No production deployment or authenticated production data write was
+  performed.
+
 ## Fresh no-workspace Setup browser pass after `a51293e3`
 
 Local route exercised:

@@ -983,6 +983,7 @@ test("Capability breadth uses a neutral visual when the measure is unavailable",
 test("Share bars stay neutral when a distribution share is unavailable", () => {
   assert.match(source, /step\.share == null \? "bg-line" : "bg-mist"/);
   assert.match(source, /client\.share == null \? "bg-line" : "bg-paper"/);
+  assert.match(source, /item\.share == null \? "bg-line" : "bg-mist"/);
   assert.match(source, /Interaction share unavailable/);
   assert.doesNotMatch(source, /\(step\.share \|\| 0\) \* 100/);
   assert.doesNotMatch(source, /\(client\.share \|\| 0\) \* 100/);
