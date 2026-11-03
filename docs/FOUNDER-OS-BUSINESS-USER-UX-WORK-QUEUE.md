@@ -234,6 +234,10 @@ Legend: `[x]` verified/implemented in this workstream; `[ ]` pending.
       baseline` instead of inferring a comparison.
 - [ ] What they’re doing: adoption breadth, top capabilities, trends, and
       capability detail with business labels.
+- [x] ✅ What-they’re-doing no-data state now explains that feature activity
+      appears after connection and links directly to Setup; it does not imply
+      zero adoption when the read model is absent. Full adoption/read-model
+      completeness remains pending authenticated verification.
 - [ ] Resources & prompts: top resources, top prompts, completion/stall, and
       privacy-safe detail drill-down.
 - [ ] The journey: common paths, explicit stop evidence, stall/retry, and a

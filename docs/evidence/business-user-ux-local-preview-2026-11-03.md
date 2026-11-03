@@ -881,3 +881,12 @@ metadata is rendered as `Unrecognized assistant` rather than an empty label.
 The contract suite covers the copy, Setup route, and unknown-category label;
 the implementation does not change analytics formulas, identity handling, or
 privacy boundaries.
+
+## Capabilities no-data recovery path in the current branch
+
+The `What they’re doing` view now has an explicit My-data empty state when the
+capability read model is absent. It explains that feature activity will appear
+after connection, names the business questions the view will answer (feature
+use, breadth of adoption, and reliability friction), and links directly to
+Setup. This prevents a blank inventory or zero-looking surface from being read
+as “nobody is using the server.” Example and live data remain separate.

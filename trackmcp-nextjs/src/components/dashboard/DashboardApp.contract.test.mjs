@@ -235,6 +235,12 @@ test("People empty state explains the live-data prerequisite and routes to Setup
   assert.match(source, /client\.name \|\| "unknown"/);
 });
 
+test("Capabilities empty state explains what will populate after connection", () => {
+  assert.match(source, /Feature activity will appear after connection/);
+  assert.match(source, /which features are used, how broadly they are adopted/);
+  assert.match(source, /href="\/dashboard\?view=setup&data=my"/);
+});
+
 test("Overview exposes same-window comparisons only from read-model fields", () => {
   assert.match(source, /Compared with the previous period/);
   assert.match(source, /previous_period_calls/);

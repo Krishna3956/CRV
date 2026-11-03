@@ -3370,6 +3370,15 @@ function CapabilitiesView({
           <p className="mt-3 text-xs leading-relaxed text-faint">{activity.limitation}</p>
         </>
       )}
+      {!activity && (
+        <StateNote
+          title={dataMode === "my" ? "Feature activity will appear after connection" : "Feature activity is unavailable"}
+          body={dataMode === "my"
+            ? "Once your server reports tool activity, this view will show which features are used, how broadly they are adopted, and where errors or input requests need attention. No example or inferred activity is substituted."
+            : "The current analytics response did not include feature activity. No example or inferred activity is substituted."}
+          action={dataMode === "my" ? <a href="/dashboard?view=setup&data=my" className="mt-3 inline-flex cursor-pointer items-center rounded-md bg-brand-strong px-3 py-2 text-xs font-semibold text-white hover:bg-brand-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand">Open Setup</a> : undefined}
+        />
+      )}
       <details className="mt-6 rounded-2xl border border-line bg-white">
         <summary className="flex cursor-pointer list-none items-center justify-between gap-3 px-5 py-4 text-sm font-semibold text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand">
           <span>Detailed capability inventory <span className="ml-2 text-xs font-normal text-muted">Optional detail for product and engineering teams</span></span>

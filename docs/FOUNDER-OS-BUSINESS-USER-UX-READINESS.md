@@ -181,6 +181,11 @@ unrecognized assistant metadata is labeled `Unrecognized assistant`. This is a
 source-level comprehension improvement; authenticated read-model completeness
 and production behavior remain unverified.
 
+The `What they're doing` surface now uses the same recovery contract when its
+capability read model is absent: it explains what will populate after the first
+connection and links to Setup instead of leaving a business reader with an
+empty capability inventory. This is also source-level evidence only.
+
 After the loading-state and palette revisions, the consolidated release gate
 was rerun and passed all 159 suites. The gate passed in the isolated worktree;
 it does not change the Tier 3 status because authenticated production and
