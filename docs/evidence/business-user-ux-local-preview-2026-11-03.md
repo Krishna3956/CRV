@@ -2,7 +2,7 @@
 
 Date: 2026-11-03
 Branch: `codex/business-user-ux-audit`
-Commit under review: `e584280e` (`Refresh UX readiness evidence counts`)
+Commit under review: `3f35599f` (`Reduce setup key list density`)
 
 This is local browser evidence only. It is not production evidence and does
 not replace a fresh-account or real-telemetry walkthrough.
@@ -938,7 +938,7 @@ without substituting data or changing the read model.
 
 Current verification for this slice:
 
-- `npm run test:business-user-ux`: 95/95 passed.
+- `npm run test:business-user-ux`: 96/96 passed.
 - `npx tsc --noEmit --pretty false`: passed.
 - `npm run build`: passed; 230 static pages generated.
 - `npm run test:release-gate`: passed all 159 suites.
