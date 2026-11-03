@@ -22,12 +22,17 @@ Date: 2026-11-03
 - [x] Publish one coherent branch and verify the release through the existing GitHub Action.
 - [x] Complete the backend-gap audit and document unsupported surfaces explicitly.
 - [x] Harden App Runner release identity verification against transient warm-up 502s.
+- [x] Verify the deployed release identity and public dashboard routes after the App Runner rollout.
+- [x] Run the redacted production pilot smoke (37 checks; read-only mode) against the deployed release.
 
 ## Next implementation slices
 
-- [ ] Simplify the remaining high-density views (Resources & prompts, Setup,
-  Evidence) using the same rule: one business question per section, technical
-  detail collapsed, and no duplicate explanatory cards.
+- [x] Simplify Resources & prompts so the business summary leads and method-level
+  evidence stays behind one optional disclosure; the displayed breakdowns remain
+  sourced from `resource_prompt_activity` and `interaction_surfaces`.
+- [ ] Simplify the remaining high-density views (Setup, Evidence) using the same
+  rule: one business question per section, technical detail collapsed, and no
+  duplicate explanatory cards.
 - [ ] Add or tighten focused contract tests for each simplification without
   changing the typed analytics contract.
 - [ ] Re-run the full release gate and production smoke after the next UI slice.
@@ -43,4 +48,15 @@ The remaining implementation work is deliberately sequenced by view. A view
 cannot be marked complete merely because it looks better: its metrics must
 still trace through `Analytics`/authenticated response types to bounded server
 queries, as described in `docs/dashboard-backend-gap-audit-2026-11.md`.
+
+## Release evidence (2026-11-03)
+
+- App Runner deployment workflow `41623263856` completed successfully for
+  release `f48c79976396fa89dc60e18d55044bb37d8853cf`.
+- `https://trackmcp.com/api/health` returned HTTP 200 and the same release SHA.
+- `/dashboard` overview, Resources & prompts, Setup, and Evidence example-mode
+  routes each returned HTTP 200.
+- The redacted production pilot smoke passed 37 checks in read-only mode. It
+  intentionally skipped authenticated key-status and first-ingest writes.
+- The local full release gate passed 159 suites before the production smoke.
 
