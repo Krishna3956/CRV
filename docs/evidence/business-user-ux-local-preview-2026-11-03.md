@@ -1158,8 +1158,8 @@ brand tokens, layout, copy, metrics, formulas, and behavior were not changed.
 
 The muted eucalyptus primary was replaced with a familiar emerald system after
 review feedback that the lighter green did not read like a conventional SaaS
-analytics product. The dashboard now uses `#15803d` for primary actions,
-`#166534` for stronger text and active controls, and `#f0fdf4`/`#ecfdf5` only
+analytics product. The dashboard now uses `#16a34a` for primary actions,
+`#15803d` for stronger text and active controls, and `#f0fdf4`/`#ecfdf5` only
 for pale surfaces. Layout, copy, metrics, formulas, and behavior are
 unchanged. The color remains dashboard-scoped; public brand surfaces are not
 changed. This is local branch evidence until deployment.
