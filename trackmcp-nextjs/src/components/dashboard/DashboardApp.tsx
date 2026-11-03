@@ -2556,7 +2556,7 @@ function Overview({
           icon={AlertTriangle}
           helper={
             analytics.insights.length
-              ? "Observed signals · confidence not provided"
+              ? "Observed patterns worth a closer look"
               : analytics.total_events === 0
                 ? "Insufficient data to identify an issue"
                 : "No actionable signals yet"
@@ -3000,7 +3000,7 @@ function AttentionPanel({
   return (
     <Panel
       title="Needs attention"
-      subtitle="Neutral signals are separated from confirmed evidence"
+      subtitle="Observed patterns are separate from confirmed incidents"
     >
       <div className="flex min-h-[320px] max-h-[320px] flex-col">
         <div
@@ -3848,7 +3848,7 @@ function OutcomeEvidencePanel({ analytics }: { analytics: Analytics }) {
   return (
     <Panel
       title="Did the work complete?"
-      subtitle="Only explicit workflow outcome events count as completion evidence. Tool activity alone is not a business outcome."
+      subtitle="See what work was reported as complete, failed, pending, or still unknown."
     >
       <div className="grid gap-3 sm:grid-cols-3">
         <Kpi
@@ -3860,9 +3860,19 @@ function OutcomeEvidencePanel({ analytics }: { analytics: Analytics }) {
         <Kpi label="Work started" value={fmt(totals.started)} icon={Route} helper="Server-reported starts" />
         <Kpi label="Work failed" value={fmt(totals.failed)} icon={AlertTriangle} helper="Server-reported failures" />
       </div>
-      <p className="mt-4 border-t border-line pt-3 text-[11px] leading-relaxed text-muted">
-        Evidence source: {analytics.completion_source === "workflow_events" ? "explicit workflow events" : analytics.completion_source === "session_heuristic" ? "session-derived activity (not used for the completion KPI)" : "no explicit outcome events"}. Unknown and not-observable outcomes remain separate from failure.
-      </p>
+      <details className="mt-4 border-t border-line pt-3">
+        <summary className="cursor-pointer text-[11px] font-semibold text-muted hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand">
+          How completion is calculated
+        </summary>
+        <p className="mt-2 text-[11px] leading-relaxed text-muted">
+          Completion is based only on an explicit final outcome reported by your
+          server. Session activity alone does not count as success, and unknown
+          or unobservable work is not silently classified as a failure.
+        </p>
+        <p className="mt-2 text-[11px] leading-relaxed text-faint">
+          Evidence source: {analytics.completion_source === "workflow_events" ? "explicit workflow events" : analytics.completion_source === "session_heuristic" ? "session-derived activity (not used for the completion KPI)" : "no explicit outcome events"}.
+        </p>
+      </details>
       {!activity && totals.started === 0 && (
         <StateNote
           title="Outcome evidence will appear after connection"
@@ -4064,7 +4074,7 @@ function IssuesView({
       {analytics.issue_activity && <p className="mt-4 text-[11px] leading-relaxed text-faint">{analytics.issue_activity.limitation}</p>}
       <Panel
         title="Needs attention"
-        subtitle="Observed signals and regression incidents remain separate evidence types"
+        subtitle="Observed patterns and confirmed incidents are shown separately"
       >
         <div className="space-y-3">
           {analytics.insights.map((insight) => (

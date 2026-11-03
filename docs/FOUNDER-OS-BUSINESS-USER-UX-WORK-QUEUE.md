@@ -224,6 +224,10 @@ Legend: `[x]` verified/implemented in this workstream; `[ ]` pending.
       show the first three active keys by default, retain explicit access to
       the full active list, and keep revoked keys behind their existing
       disclosure without changing key lifecycle behavior.
+- [x] ✅ Put business interpretation before implementation detail on the
+      Overview attention and outcome surfaces: signal cards lead with an
+      observed-pattern explanation, while completion methodology and evidence
+      source remain available behind an explicit disclosure.
 - [ ] Run an authenticated runtime smoke against a real Supabase session and
       real read-model responses; the local bypass is not evidence of production
       authentication or database-backed analytics.

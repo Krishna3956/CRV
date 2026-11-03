@@ -672,6 +672,14 @@ test("Overview always renders Needs attention and preserves uncertainty", () => 
   assert.doesNotMatch(source, /sufficient observed evidence/);
 });
 
+test("business readers get plain-language signal and outcome guidance first", () => {
+  assert.match(source, /Observed patterns worth a closer look/);
+  assert.match(source, /Observed patterns are separate from confirmed incidents/);
+  assert.match(source, /See what work was reported as complete, failed, pending, or still unknown/);
+  assert.match(source, /How completion is calculated/);
+  assert.match(source, /Session activity alone does not count as success/);
+});
+
 test("Overview exposes Founder OS outcome and evidence-quality states", () => {
   assert.match(source, /analytics\.founder_os/);
   assert.match(source, /function FounderOSSignalPanel/);
