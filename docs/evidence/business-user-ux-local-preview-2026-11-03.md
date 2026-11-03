@@ -1391,3 +1391,31 @@ public-site palette:
 
 This is a presentation-only change. It does not alter formulas, data sources,
 read models, or setup behavior.
+
+## Rendered preview after the lighter green revision
+
+At branch commit `a3e83d37` (with the matching contract update in `6f85f140`),
+the local dashboard was rendered in the in-app browser with the development-only
+dashboard bypass. The Overview and Setup routes returned HTTP 200 and showed
+the lighter green accent in the data-source controls, active navigation,
+primary action, setup status, and setup-step rail. The public-site palette and
+dashboard layout were unchanged.
+
+The Setup accessibility tree still presented the intended first-time sequence:
+
+1. `Create a connection key`
+2. `Install the SDK`
+3. `Send one event`
+
+The My-data preview continued to state that a connection key and one real tool
+call are required, while the Example-data preview continued to identify itself
+as illustrative. The preview intentionally used placeholder Supabase values;
+its unauthenticated API calls returned 401 and no production credentials or
+database writes were used. The local development server was stopped cleanly
+after capture.
+
+Verification:
+
+- `npm run test:business-user-ux`: 106/106 passed.
+- `npm run test:release-gate`: passed all 159 suites.
+- `git diff --check`: passed and the worktree is clean.

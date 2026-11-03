@@ -2,7 +2,7 @@
 
 Date: 2026-11-03  
 Branch: `codex/business-user-ux-audit`  
-Latest verified commit: `ec2bf222` (`Record authenticated production UX baseline`)
+Latest verified commit: `6badb334` (`Record lighter palette browser preview`)
 
 This matrix is the release-readiness companion to the UX audit and work
 queue. It intentionally separates source-level proof, read-only browser proof,
