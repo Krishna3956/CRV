@@ -634,3 +634,24 @@ Latest recovery-path verification after `a00cf8db`:
 - This is stronger than source-only evidence but remains local bypass evidence:
   it does not prove a real Supabase login, real workspace data, or a deployed
   production read model.
+
+## Business-tab sweep after `5ea24d8b`
+
+Using the same local development bypass and Example-data source, a browser
+route sweep rendered every current business-facing dashboard view with TrackMCP
+content and the intended heading:
+
+| Route state | Rendered heading |
+| --- | --- |
+| `clients` | Who's using it |
+| `capabilities` | What they're doing |
+| `resources` | Resources & prompts |
+| `journeys` | The journey |
+| `quality` | Did it work |
+| `issues` | What's broken |
+| `evidence` | Evidence |
+| `setup` | Setup |
+
+This confirms route reachability and the business-facing vocabulary in the
+current build. It does not prove that a real workspace has populated read-model
+responses for every view.
