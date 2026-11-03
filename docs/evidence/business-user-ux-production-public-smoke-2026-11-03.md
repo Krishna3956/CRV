@@ -32,3 +32,11 @@ Before calling the business-user UX goal production-ready, run the authenticated
 read-only smoke and the fresh-account walkthrough described in
 `FOUNDER-OS-BUSINESS-USER-UAT-SCRIPT.md` against the deployed branch, then run
 the script with at least one non-technical product or operations participant.
+
+## Browser-session limitation
+
+The available desktop state listed a TrackMCP Setup tab, but the browser
+control surface returned `browser.user is unavailable` when asked to claim or
+inspect that tab. Its presence therefore cannot be treated as authenticated
+rendering evidence. No attempt was made to work around that limitation by
+reading credentials, changing browser settings, or mutating the product.
