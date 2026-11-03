@@ -1529,13 +1529,13 @@ function DataModeToggle({
 }) {
   return (
     <div className="flex shrink-0 items-center gap-1.5 whitespace-nowrap" role="group" aria-label="Data source">
-      <span className="hidden text-[11px] font-semibold text-faint sm:inline">Data source</span>
+      <span className="hidden text-[11px] font-semibold text-faint sm:inline">View</span>
       <div className="inline-flex rounded-lg border border-line bg-white p-0.5">
         <button
           type="button"
           aria-pressed={dataMode === "my"}
           aria-label="Show my data"
-          title="Show my server data"
+          title="Your workspace — show my server data"
           onClick={() => onChange("my")}
           className={
             "cursor-pointer rounded-md px-3 py-2 text-[12px] font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand " +
@@ -1550,23 +1550,23 @@ function DataModeToggle({
           type="button"
           aria-pressed={dataMode === "example"}
           aria-label="Show example data"
-          title="Show illustrative example data"
+          title="Illustration only — guided example data, not live workspace data"
           onClick={() => onChange("example")}
           className={
             "cursor-pointer rounded-md px-3 py-2 text-[12px] font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand " +
             (dataMode === "example"
-              ? "bg-brand-strong text-white shadow-[0_6px_16px_-12px_rgba(22,163,74,0.28)]"
-              : "text-muted hover:bg-paper hover:text-ink")
+              ? "bg-sky-700 text-white shadow-[0_6px_16px_-12px_rgba(3,105,161,0.28)]"
+              : "text-sky-800 hover:bg-sky-50")
           }
         >
           Example data
         </button>
       </div>
       <span
-        className="text-[10px] font-medium text-faint"
+        className={"text-[10px] font-medium " + (dataMode === "example" ? "text-sky-700" : "text-faint")}
         aria-live="polite"
       >
-        {dataMode === "my" ? "Your workspace" : "Illustration only"}
+        {dataMode === "my" ? "Live workspace" : "Guided example"}
       </span>
     </div>
   );
@@ -2197,16 +2197,21 @@ function DataSourceStrip({
   const canViewMyData = dataMode === "example" && hasMyData;
   return (
     <section
-      className="mb-6 flex flex-wrap items-center gap-3 rounded-xl border border-brand/20 bg-brand-soft/35 px-4 py-3.5"
+      className={
+        "mb-6 flex flex-wrap items-center gap-3 rounded-xl border px-4 py-3.5 " +
+        (dataMode === "example"
+          ? "border-sky-200 bg-sky-50"
+          : "border-brand/20 bg-brand-soft/35")
+      }
       aria-label="Data source state"
     >
-      <span className="grid h-8 w-8 place-items-center rounded-full bg-white text-muted">
+      <span className={"grid h-8 w-8 place-items-center rounded-full bg-white " + (dataMode === "example" ? "text-sky-700" : "text-muted")}>
         <Info size={16} />
       </span>
       <div className="min-w-0 flex-1">
         <p className="text-sm font-semibold text-ink">
           {dataMode === "example"
-            ? "Example data selected"
+            ? "Example data selected · guided walkthrough"
             : "My data selected"}
         </p>
         <p className="mt-0.5 text-xs text-muted">
@@ -2463,6 +2468,71 @@ function OverviewNextStep({
   );
 }
 
+function ExecutiveReadout({
+  analytics,
+  dataMode,
+  onViewChange,
+}: {
+  analytics: Analytics;
+  dataMode: DataMode;
+  onViewChange: (view: View) => void;
+}) {
+  const totals = explicitOutcomeTotals(analytics);
+  const activeAccounts = analytics.who_is_using_it?.active_accounts ?? null;
+  const previousAccounts = analytics.who_is_using_it?.previous_period_active_accounts ?? null;
+  const adoptionDelta = typeof activeAccounts === "number" && typeof previousAccounts === "number" && previousAccounts > 0
+    ? (activeAccounts - previousAccounts) / previousAccounts
+    : null;
+  const completionRate = totals.started > 0 ? totals.completed / totals.started : null;
+  const advertised = analytics.tool_adoption?.advertised ?? analytics.capability_activity?.advertised_tools ?? null;
+  const observed = analytics.tool_adoption?.observed ?? null;
+  const leadSignal = analytics.insights[0] ?? null;
+  const example = dataMode === "example";
+
+  return (
+    <section
+      className={"mb-6 rounded-2xl border bg-white p-5 shadow-[0_20px_45px_-38px_rgba(15,23,42,0.22)] sm:p-6 " + (example ? "border-sky-200" : "border-line")}
+      aria-label="Executive readout"
+      data-cxo-readout
+    >
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <p className={"dashboard-label " + (example ? "text-sky-700" : "text-brand-strong")}>Executive readout</p>
+          <h2 className="mt-1 text-base font-semibold tracking-[-0.015em] text-ink">What should a business owner know right now?</h2>
+        </div>
+        <span className={"rounded-full border px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.08em] " + (example ? "border-sky-200 bg-sky-50 text-sky-700" : "border-line bg-paper text-faint")}>
+          {example ? "Illustrative" : "Observed"}
+        </span>
+      </div>
+      <div className="mt-5 grid gap-3 lg:grid-cols-3">
+        <div className="rounded-xl border border-line bg-paper p-4">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-faint">Adoption</p>
+          <p className="mt-2 text-2xl font-semibold tabular-nums tracking-[-0.04em] text-ink">{activeAccounts === null ? "N/A" : fmt(activeAccounts)}</p>
+          <p className="mt-1 text-xs leading-relaxed text-muted">active account groups observed{adoptionDelta === null ? " in this window" : ` · ${adoptionDelta >= 0 ? "up" : "down"} ${Math.abs(Math.round(adoptionDelta * 100))}% vs the previous window`}</p>
+        </div>
+        <div className="rounded-xl border border-line bg-paper p-4">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-faint">Value signal</p>
+          <p className="mt-2 text-2xl font-semibold tabular-nums tracking-[-0.04em] text-ink">{completionRate === null ? "N/A" : percent(completionRate)}</p>
+          <p className="mt-1 text-xs leading-relaxed text-muted">explicit work completed{typeof advertised === "number" && typeof observed === "number" ? ` · ${observed} of ${advertised} capabilities used` : " · reported outcomes only"}</p>
+        </div>
+        <div className="rounded-xl border border-line bg-paper p-4">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-faint">Decision cue</p>
+          <p className="mt-2 line-clamp-2 min-h-[3.5rem] text-sm font-semibold leading-snug text-ink">{leadSignal?.title || "No evidence-backed signal needs review"}</p>
+          <button
+            type="button"
+            onClick={() => onViewChange(leadSignal ? "issues" : "capabilities")}
+            className={"mt-2 inline-flex cursor-pointer items-center gap-1 text-xs font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand " + (example ? "text-sky-700 hover:text-sky-900" : "text-brand-strong hover:text-brand-strong")}
+          >
+            {leadSignal ? "Review the evidence" : "Explore capability use"}
+            <ChevronRight size={13} />
+          </button>
+        </div>
+      </div>
+      <p className="mt-4 text-[11px] leading-relaxed text-muted">Use this row for the decision, then open the supporting view for the evidence. It never infers customer count, revenue, or success from missing events.</p>
+    </section>
+  );
+}
+
 function PeriodComparisonPanel({ analytics }: { analytics: Analytics }) {
   const rows = [
     {
@@ -2550,6 +2620,7 @@ function Overview({
       <DataSourceStrip dataMode={dataMode} hasMyData={hasMyData} view="overview" />
       <OverviewTakeaway analytics={analytics} dataMode={dataMode} hasMyData={hasMyData} />
       <OverviewNextStep analytics={analytics} dataMode={dataMode} hasMyData={hasMyData} onViewChange={onViewChange} />
+      <ExecutiveReadout analytics={analytics} dataMode={dataMode} onViewChange={onViewChange} />
       <BusinessContext
         title="How to read this overview"
         body="Completion appears only when your server reports it. N/A means evidence is missing, not that work failed."
