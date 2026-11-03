@@ -715,3 +715,14 @@ non-production placeholders. The accessibility tree showed:
 The route returned HTTP 200. This verifies the local entry experience and
 accessible content structure, but it does not verify provider configuration,
 email delivery, or a real Supabase account creation.
+
+## Final palette verification after `10d00500`
+
+- `npm run test:business-user-ux`: 87/87 passed.
+- `npm run build`: passed; 230 static pages generated.
+- `git diff --check`: passed.
+- The isolated worktree is clean.
+
+The final cleanup removed the last indigo-tinted dashboard shadows so the
+dashboard no longer mixes the previous indigo accent with the new teal action
+system. This remains local branch evidence; no merge or deployment was made.
