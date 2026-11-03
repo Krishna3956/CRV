@@ -13,6 +13,13 @@ test("authenticated production smoke is explicit, HTTPS-only, and secret-free in
   assert.match(source, /trustedHost/);
   assert.match(source, /workspace_scope_verified/);
   assert.match(source, /founderOsReadModels/);
+  assert.match(source, /founderOsSurfaceContracts/);
+  assert.match(source, /verifySetupJourney/);
+  assert.match(source, /Journey A setup readiness contract/);
+  assert.match(source, /Journey B business surface contract/);
+  assert.match(source, /identity_optional: true/);
+  assert.match(source, /setup_contract_verified: true/);
+  assert.match(source, /business_surface_contract_verified: true/);
   assert.match(source, /\/api\/v2\/protocol-activity/);
   assert.match(source, /authenticated workspace envelope/);
   assert.match(source, /forbiddenReadModelKeys/);

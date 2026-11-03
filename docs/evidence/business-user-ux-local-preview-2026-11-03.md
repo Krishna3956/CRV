@@ -206,6 +206,17 @@ empty-state treatment: the business explanation appears before setup, the
 primary `Complete setup` action is distinct from `See Example data`, and the
 three next steps remain visible without the former green decorative surfaces.
 
+The authenticated production smoke now checks the two business journeys at the
+read-model boundary, rather than treating HTTP 200 as sufficient. Journey A
+(`setup`) must expose bounded state, checks, readiness, caveat, next steps, and
+an explicitly optional identity signal. Journey B must expose the business
+surface fields required by Overview, People, Capabilities, Resources & prompts,
+The journey, Did it work, What's broken, and the supporting Catalogs, Tasks,
+Data trust, and protocol-activity surfaces. The smoke still inspects only keys,
+scope, and bounded response shape; it never persists response values or
+credentials. The contract tests pass locally, but the authenticated production
+run remains pending because it requires operator-supplied production secrets.
+
 The Resources & prompts preview also expanded its trend table successfully,
 showing period, surface, item, and calls while retaining the content/argument
 privacy boundary.

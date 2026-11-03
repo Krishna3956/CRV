@@ -106,6 +106,25 @@ const founderOsReadModels = [
   "/api/v2/protocol-activity",
 ];
 
+// The authenticated smoke is also the executable contract for the two
+// business-user journeys. A 200 response alone is not enough: a route can be
+// reachable while silently omitting fields the dashboard needs to explain
+// setup, activity, outcomes, and next actions.
+const founderOsSurfaceContracts = new Map([
+  ["/api/v2/overview", ["founder_os", "data_trust"]],
+  ["/api/v2/people", ["who_is_using_it", "activity_signals"]],
+  ["/api/v2/tools", ["tools", "insights"]],
+  ["/api/v2/resources", ["observed", "activity", "coverage"]],
+  ["/api/v2/prompts", ["observed", "activity", "coverage"]],
+  ["/api/v2/journeys", ["journeys", "journey_summary"]],
+  ["/api/v2/outcomes", ["outcomes", "completion"]],
+  ["/api/v2/reliability", ["observed", "evidence"]],
+  ["/api/v2/catalogs", ["catalogs", "versioning"]],
+  ["/api/v2/tasks", ["tasks", "task_count"]],
+  ["/api/v2/data-trust", ["data_trust"]],
+  ["/api/v2/protocol-activity", ["protocol_family_activity", "protocol_family_outcomes"]],
+]);
+
 // Read models are intentionally safe projections. Keep this check at the
 // production boundary so a route cannot pass the tenant-scope smoke while
 // accidentally returning credential material or customer content. We inspect
@@ -130,6 +149,28 @@ function assertPrivacySafe(value, path = "$", depth = 0) {
   }
 }
 
+async function verifySetupJourney(key, keyLabel) {
+  const response = await request("/api/v2/setup?days=30", key);
+  if (response.status !== 200) fail(`${keyLabel} setup journey expected HTTP 200, received HTTP ${response.status}`);
+  let body = {};
+  try {
+    const parsed = await response.json();
+    if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) body = parsed;
+  } catch {
+    fail(`${keyLabel} setup journey did not return JSON.`);
+  }
+  assertPrivacySafe(body);
+  const setup = body.setup && typeof body.setup === "object" && !Array.isArray(body.setup) ? body.setup : null;
+  if (!setup) fail(`${keyLabel} setup journey omitted the setup state.`);
+  for (const field of ["state", "checks", "readiness", "caveat", "next_steps"]) {
+    if (!(field in setup)) fail(`${keyLabel} setup journey omitted ${field}.`);
+  }
+  const readiness = setup.readiness && typeof setup.readiness === "object" && !Array.isArray(setup.readiness) ? setup.readiness : null;
+  if (!readiness || readiness.identity_required !== false) fail(`${keyLabel} setup journey did not expose identity as optional.`);
+  if (!Array.isArray(setup.next_steps) || setup.next_steps.length > 4) fail(`${keyLabel} setup journey next steps are not bounded.`);
+  return { label: `${keyLabel} Journey A setup readiness contract`, status: response.status, setup_contract_verified: true, identity_optional: true };
+}
+
 async function verifyFounderOsReadModels(key, keyLabel) {
   const checks = [];
   for (const path of founderOsReadModels) {
@@ -146,8 +187,11 @@ async function verifyFounderOsReadModels(key, keyLabel) {
     if (scope?.type !== "workspace" || scope?.value !== "authenticated") {
       fail(`${keyLabel} ${path} did not return an authenticated workspace envelope.`);
     }
+    for (const field of founderOsSurfaceContracts.get(path) || []) {
+      if (!(field in body)) fail(`${keyLabel} ${path} omitted business surface field ${field}.`);
+    }
     assertPrivacySafe(body);
-    checks.push({ label: `${keyLabel} ${path} authenticated read model`, status: response.status, workspace_scope_verified: true, privacy_projection_verified: true });
+    checks.push({ label: `${keyLabel} ${path} Journey B business surface contract`, status: response.status, workspace_scope_verified: true, business_surface_contract_verified: true, privacy_projection_verified: true });
   }
   return checks;
 }
@@ -195,6 +239,8 @@ async function main() {
   checks.push(await keyStatus(keyB, "workspace B"));
   checks.push(await verifyKeyScope(keyA, "workspace A", workspaceA, workspaceB));
   checks.push(await verifyKeyScope(keyB, "workspace B", workspaceB, workspaceA));
+  checks.push(await verifySetupJourney(keyA, "workspace A"));
+  checks.push(await verifySetupJourney(keyB, "workspace B"));
   checks.push(...await verifyFounderOsReadModels(keyA, "workspace A"));
   checks.push(...await verifyFounderOsReadModels(keyB, "workspace B"));
   checks.push(...await verifyLegacyReadModels(keyA, "workspace A", workspaceB));
