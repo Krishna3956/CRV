@@ -20,6 +20,10 @@ web/JavaScript, Go, and .NET jobs for the current branch. The latest source
 verification remains anchored to `2ebc481f` because the subsequent commits
 only record evidence. The pull request remains open; this is validation
 evidence, not merge or deployment evidence.
+The Vercel Preview check for this commit is externally rate limited and did not
+produce a preview; this is recorded in
+`docs/evidence/business-user-ux-vercel-preview-rate-limit-2026-11-03.md` and
+does not contradict the passing repository CI checks.
 A fresh local
 development browser pass now verifies both the My-data no-event state and the
 Example-data Overview on the current branch; this remains bypass evidence, not
