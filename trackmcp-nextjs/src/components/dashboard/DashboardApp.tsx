@@ -1,6 +1,6 @@
 "use client";
 
-import { Children, useEffect, useId, useState, type ReactNode } from "react";
+import { useEffect, useId, useState, type ReactNode } from "react";
 import {
   Activity,
   AlertTriangle,
@@ -1269,7 +1269,7 @@ export function DashboardApp({
           items={outcomeNav}
           onNavigate={goTo}
           label="Outcome navigation"
-          groupLabel="Outcomes"
+          groupLabel="Outcome"
         />
         <DashboardNav
           view={view}
@@ -1307,7 +1307,7 @@ export function DashboardApp({
       <div className="pt-[96px] lg:pl-[248px] lg:pt-[52px]">
         <header data-site-nav className="fixed left-0 right-0 top-0 z-40 flex min-h-[52px] flex-wrap items-center justify-between gap-2 border-b border-line bg-white/95 px-4 py-2 shadow-[0_1px_0_rgba(15,23,42,0.03)] backdrop-blur sm:px-8 lg:h-[52px] lg:flex-nowrap lg:py-0">
           <div className="flex min-w-0 flex-1 items-center gap-2">
-            <TrackMCPLogo asLink={false} mark size="footer" variant="mono" />
+            <TrackMCPLogo asLink={false} mark size="footer" variant="green" />
             {workspaces.length > 1 && (
               <label className="flex min-w-0 items-center gap-2 text-[11px] text-muted">
                 <span className="sr-only">Workspace</span>
@@ -1522,9 +1522,9 @@ function DashboardNav({
   groupLabel: string;
 }) {
   return (
-    <nav aria-label={label} className={groupLabel ? "mt-6 px-3" : "mt-7 px-3"}>
+    <nav aria-label={label} className={groupLabel ? "mt-3 px-3" : "mt-4 px-3"}>
       {groupLabel && (
-        <p className="mb-2 px-3 text-[10px] font-semibold uppercase tracking-[0.14em] text-faint">
+        <p className="mb-1 px-2.5 text-[9px] font-semibold uppercase tracking-[0.14em] text-faint">
           {groupLabel}
         </p>
       )}
@@ -1535,14 +1535,14 @@ function DashboardNav({
           aria-current={view === item.id ? "page" : undefined}
           onClick={() => onNavigate(item.id)}
           className={
-            "mb-1 flex w-full cursor-pointer items-center gap-3 rounded-lg px-3 py-2.5 text-left text-[13px] font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand " +
+            "mb-0.5 flex w-full cursor-pointer items-center gap-2.5 rounded-lg px-2.5 py-1.5 text-left text-[12px] font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand " +
             (view === item.id
               ? "bg-brand-strong text-white shadow-[0_8px_20px_-14px_rgba(22,163,74,0.28)]"
               : "text-muted hover:bg-paper hover:text-ink")
           }
         >
           <span className={
-            "grid h-7 w-7 shrink-0 place-items-center rounded-md " +
+            "grid h-6 w-6 shrink-0 place-items-center rounded-md " +
             (view === item.id ? "bg-white/15 text-white" : navAccentClasses[item.accent].marker + " " + navAccentClasses[item.accent].icon)
           }>
             <item.icon size={15} strokeWidth={view === item.id ? 2.2 : 1.8} />
@@ -4712,7 +4712,7 @@ function IncidentEvidence({
 }
 
 function SetupPanelSequence({ children }: { children: ReactNode }) {
-  return <>{Children.toArray(children).reverse()}</>;
+  return <>{children}</>;
 }
 
 function SetupView({
@@ -4740,6 +4740,7 @@ function SetupView({
   onRefresh: () => void;
   onOpenOverview: () => void;
 }) {
+  type SetupPath = "sdk" | "otel";
   const [showRevokedKeys, setShowRevokedKeys] = useState(false);
   const [showAllActiveKeys, setShowAllActiveKeys] = useState(false);
   const readSetupValue = (key: string, fallback: string, maxLength: number) => {
@@ -4780,6 +4781,7 @@ function SetupView({
   const [language, setLanguage] = useState<"TypeScript" | "Python" | "Go" | ".NET">(
     "TypeScript",
   );
+  const [setupPath, setSetupPath] = useState<SetupPath>("sdk");
   const [serviceName, setServiceName] = useState(() => readSetupValue("trackmcp.setup.service", "", 100));
   const [environmentName, setEnvironmentName] = useState(() => readSetupValue("trackmcp.setup.environment", "production", 64));
   const [scopeNewKey, setScopeNewKey] = useState(false);
@@ -4940,6 +4942,12 @@ function SetupView({
     } catch {
       setOtelCopied(false);
     }
+  };
+  const selectSetupPath = (path: SetupPath) => {
+    setSetupPath(path);
+    window.requestAnimationFrame(() => {
+      document.getElementById("setup-path-content")?.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
   };
   const focusSetupPrimaryAction = () => {
     const action = document.getElementById("setup-primary-action");
@@ -5120,37 +5128,47 @@ function SetupView({
         <div className="flex flex-wrap items-end justify-between gap-3">
           <div>
             <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-brand-strong">Choose a connection path</p>
-            <h2 id="setup-methods-title" className="mt-1 text-lg font-semibold text-ink">Use the path that matches your server</h2>
-            <p className="mt-1 max-w-2xl text-xs leading-relaxed text-muted">The recommended path is the native SDK. Other supported paths are visible here so you do not have to hunt for them at the bottom of the page.</p>
+            <h2 id="setup-methods-title" className="mt-1 text-lg font-semibold text-ink">Connect your server</h2>
+            <p className="mt-1 max-w-2xl text-xs leading-relaxed text-muted">Choose one of the two supported paths. The next section changes to match your choice.</p>
           </div>
           <a href="/docs" className="inline-flex cursor-pointer items-center gap-1 text-xs font-semibold text-brand-strong hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand">Compare setup guides <ArrowRight size={12} /></a>
         </div>
-        <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-          {[
-            ["TypeScript", "/docs/typescript", "Recommended", "Native SDK + one-command CLI setup"],
-            ["Python", "/docs/python", "Native SDK", "Install with pip, then use your key"],
-            ["Go", "/docs/go", "Source package", "Reviewed middleware integration"],
-            [".NET", "/docs/dotnet", "Source package", "Reviewed ASP.NET integration"],
-            ["OpenTelemetry", "/docs/opentelemetry", "Collector path", "OTLP/HTTP for existing collectors"],
-          ].map(([label, href, badge, detail]) => (
-            <a key={label} href={href} className="group rounded-xl border border-line bg-paper p-4 transition-colors hover:border-brand/40 hover:bg-brand-soft/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand">
-              <div className="flex items-center justify-between gap-2"><p className="text-sm font-semibold text-ink">{label}</p><ArrowRight size={14} className="text-faint transition-transform group-hover:translate-x-0.5 group-hover:text-brand-strong" /></div>
-              <p className="mt-2 text-[10px] font-semibold uppercase tracking-[0.08em] text-brand-strong">{badge}</p>
-              <p className="mt-1 text-xs leading-relaxed text-muted">{detail}</p>
-            </a>
-          ))}
+        <div className="mt-4 grid grid-cols-2 gap-2" role="tablist" aria-label="Connection path">
+          <button
+            type="button"
+            role="tab"
+            aria-selected={setupPath === "sdk"}
+            onClick={() => selectSetupPath("sdk")}
+            className={"cursor-pointer rounded-lg border px-3 py-3 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand " + (setupPath === "sdk" ? "border-brand bg-brand-soft/35 text-ink" : "border-line bg-paper text-muted hover:border-brand/40 hover:bg-brand-soft/15")}
+          >
+            <span className="flex items-center justify-between gap-2 text-sm font-semibold">SDK <ArrowRight size={14} className={setupPath === "sdk" ? "text-brand-strong" : "text-faint"} /></span>
+            <span className="mt-1 block text-[11px] leading-relaxed">Recommended for TypeScript, Python, Go, and .NET servers.</span>
+          </button>
+          <button
+            type="button"
+            role="tab"
+            aria-selected={setupPath === "otel"}
+            onClick={() => selectSetupPath("otel")}
+            className={"cursor-pointer rounded-lg border px-3 py-3 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand " + (setupPath === "otel" ? "border-brand bg-brand-soft/35 text-ink" : "border-line bg-paper text-muted hover:border-brand/40 hover:bg-brand-soft/15")}
+          >
+            <span className="flex items-center justify-between gap-2 text-sm font-semibold">OpenTelemetry <ArrowRight size={14} className={setupPath === "otel" ? "text-brand-strong" : "text-faint"} /></span>
+            <span className="mt-1 block text-[11px] leading-relaxed">Use an existing OTLP/HTTP collector when you do not want native SDK instrumentation.</span>
+          </button>
         </div>
       </section>
       <div className="grid gap-6 xl:grid-cols-[minmax(0,1.2fr)_minmax(320px,.8fr)]">
         <SetupPanelSequence>
         <Panel
-          title="Connect the server"
-          subtitle="Keep the key in your server environment; never commit it"
+          title={setupPath === "sdk" ? "Connect with the SDK" : "Connect with OpenTelemetry"}
+          subtitle={setupPath === "sdk" ? "Keep the key in your server environment; never commit it" : "Send bounded OTLP/HTTP traces with the connection key"}
           action={{
-            label: "Read documentation",
-            href: documentationHref,
+            label: setupPath === "sdk" ? "Read SDK docs" : "Read OpenTelemetry docs",
+            href: setupPath === "sdk" ? documentationHref : "/docs/opentelemetry",
           }}
         >
+          <div id="setup-path-content" className="scroll-mt-24">
+          {setupPath === "sdk" ? (
+          <>
           <div className="mt-4 grid gap-3 sm:grid-cols-2">
             <label className="text-xs font-semibold text-ink">
               <span className="flex items-center gap-1.5">Server name <InfoHint label="About server name" text="A bounded label supplied by your server and used to group activity. It is not a TrackMCP deployment record." /></span>
@@ -5240,6 +5258,29 @@ function SetupView({
           <p className="mt-3 text-xs leading-relaxed text-muted">
             Set <code className="font-mono text-ink">TRACKMCP_KEY</code>, restart the server, and make one tool call. Data appears after the first event.
           </p>
+          </div>
+          </>
+          ) : (
+          <div className="mt-4 space-y-4">
+            <div className="rounded-lg border border-brand/20 bg-brand-soft/20 p-4">
+              <p className="text-sm font-semibold text-ink">Collector endpoint</p>
+              <p className="mt-1 text-xs leading-relaxed text-muted">Point your collector at this OTLP/HTTP endpoint and authenticate with the connection key you create below.</p>
+              <code className="mt-3 block overflow-x-auto rounded bg-ink px-3 py-2 text-[11px] text-white">{otelEndpoint}</code>
+              <div className="mt-3 flex flex-wrap items-center gap-2">
+                <button type="button" onClick={() => void copyOtelEndpoint()} className="inline-flex cursor-pointer items-center gap-1.5 rounded-md border border-line-strong bg-white px-3 py-2 text-xs font-semibold text-body hover:bg-paper focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand">
+                  <Clipboard size={13} /> {otelCopied ? "Copied" : "Copy endpoint"}
+                </button>
+                <a href="/docs/opentelemetry" className="inline-flex cursor-pointer items-center gap-1 text-xs font-semibold text-brand-strong hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand">Open guide <ArrowRight size={12} /></a>
+              </div>
+            </div>
+            <div className="grid gap-2 text-xs sm:grid-cols-3">
+              <div className="border border-line bg-paper p-3"><p className="font-semibold text-ink">1. Create a key</p><p className="mt-1 leading-relaxed text-muted">Use the connection key panel below.</p></div>
+              <div className="border border-line bg-paper p-3"><p className="font-semibold text-ink">2. Configure the collector</p><p className="mt-1 leading-relaxed text-muted">Set the endpoint and Authorization header.</p></div>
+              <div className="border border-line bg-paper p-3"><p className="font-semibold text-ink">3. Send one trace</p><p className="mt-1 leading-relaxed text-muted">Refresh this page to verify the first event.</p></div>
+            </div>
+            <p className="text-[11px] leading-relaxed text-muted">Native SDK instrumentation remains the recommended path for complete MCP semantics. OpenTelemetry is the right choice when a collector already exists.</p>
+          </div>
+          )}
           </div>
         </Panel>
         <Panel
@@ -5447,7 +5488,7 @@ function SetupView({
           <span className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-paper text-muted"><Info size={17} /></span>
           <span>Know what you are sharing <span className="ml-2 text-xs font-normal text-muted">Privacy and data flow</span></span>
         </summary>
-        <p className="mt-3 text-xs leading-relaxed text-muted">TrackMCP receives bounded activity metadata to explain how your MCP is used, where work succeeds, and where it needs attention.</p>
+        <p className="mt-3 text-xs leading-relaxed text-muted">TrackMCP receives bounded activity metadata to explain how your MCP is used, where work succeeds, and where it needs attention. <a href="/privacy" className="cursor-pointer font-semibold text-brand-strong hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand">Read the privacy details</a>.</p>
         <div className="mt-5 grid gap-3 md:grid-cols-3">
           <div className="border border-line bg-paper p-4">
             <p className="text-[10px] font-semibold uppercase tracking-[0.08em] text-faint">
