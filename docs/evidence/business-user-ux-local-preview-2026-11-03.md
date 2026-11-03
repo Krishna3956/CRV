@@ -2,7 +2,7 @@
 
 Date: 2026-11-03
 Branch: `codex/business-user-ux-audit`
-Commit under review: `74caa64c` (`Keep unavailable dashboard shares neutral`)
+Commit under review: `a51293e3` (`Record emerald palette verification`)
 
 This is local browser evidence only. It is not production evidence and does
 not replace a fresh-account or real-telemetry walkthrough.
@@ -805,6 +805,36 @@ email delivery, or a real Supabase account creation.
 - `npm run test:business-user-ux`: 87/87 passed.
 - `npm run build`: passed; 230 static pages generated.
 - `git diff --check`: passed.
+
+## Fresh no-workspace Setup browser pass after `a51293e3`
+
+Local route exercised:
+
+`http://127.0.0.1:3140/dashboard?view=setup&data=my`
+
+The route rendered in the local development server with the development-only
+dashboard bypass and placeholder Supabase values. The accessibility tree
+confirmed the intended first-session sequence:
+
+1. The source state is explicitly `Your workspace`.
+2. The page explains the post-setup value before technical controls: who is
+   showing up, what they are trying, whether work completed, and what needs
+   attention.
+3. The three setup steps are visible in order: create a connection key, install
+   the SDK, and send one event.
+4. With no workspace key, the connection state says `Create a connection key
+   to begin`, keeps refresh disabled, and exposes technical checks only under
+   `Setup evidence`.
+5. The TypeScript setup path is visible by default, with Python, Go, and .NET
+   available as semantic tabs. The CLI recommendation and manual fallback are
+   both explicit.
+6. Advanced key scope, observed connection details, optional identity, data
+   privacy, export/deletion, and alternate connection methods remain collapsed
+   below the primary path.
+
+This verifies the local first-time information hierarchy and keyboard-readable
+labels. It does not prove authenticated workspace creation, key persistence, or
+first-event ingestion against production; those remain Tier 3 gates.
 
 The consolidated `npm run test:release-gate` was rerun after the People
 projection change and passed all 159 suites. The generated synthetic UAT
