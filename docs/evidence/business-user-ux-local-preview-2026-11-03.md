@@ -729,6 +729,17 @@ The route returned HTTP 200 and the accessibility tree exposed the expected
 business labels. This is local Example-data evidence only; no authenticated
 production session or live read model was used.
 
+## Consolidated release gate after `18f4a398`
+
+`npm run test:release-gate` passed all 159 suites after the blue palette and
+workspace-loading changes. The gate includes the business-user contracts,
+dashboard and setup routes, package-consumer checks, tenant isolation,
+privacy/safety checks, production-smoke contracts, and the bounded MCP
+protocol/SDK suites. The synthetic customer fixture rewrote only its tracked
+timestamp during the gate; that generated timestamp was restored so the
+fixture remains unchanged. This is source-level release evidence, not proof
+of a real authenticated production session or live read-model completeness.
+
 ## Signed-up user entry inspection after `80596208`
 
 The local `/signup` route was opened in a fresh browser session with the same

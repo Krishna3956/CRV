@@ -174,6 +174,11 @@ The release-gate result is source-level evidence only. It does not replace a
 fresh-account browser walkthrough, a real first event, or a production smoke
 run against this branch.
 
+After the loading-state and palette revisions, the consolidated release gate
+was rerun and passed all 159 suites. The gate passed in the isolated worktree;
+it does not change the Tier 3 status because authenticated production and
+human business-user UAT evidence are still outstanding.
+
 ## Release interpretation
 
 This branch is a verified business-comprehension improvement, not a claim that
