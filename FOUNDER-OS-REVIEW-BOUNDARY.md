@@ -36,6 +36,8 @@ reviewer disposition before staging; it is never included by a blanket add.
 | `docs/CONCISE-COPY-TARGET.md` | review-required | repository maintainer | release owner | concise-copy acceptance target; keep local and production evidence separate |
 | `docs/CONCISE-COPY-WORK-QUEUE.md` | review-required | repository maintainer | release owner | concise-copy implementation checklist; review completion marks against tests and browser evidence |
 | `docs/CONCISE-COPY-READINESS.md` | review-required | repository maintainer | release owner | concise-copy release ledger; production merge/deploy/UAT remain explicit gates |
+| `docs/cxo-dashboard-readout-2026-11.md` | review-required | repository maintainer | release owner | CXO dashboard readout strategy; review evidence-backed metrics and keep illustrative data separate from production claims |
+| `docs/cxo-dashboard-work-queue.md` | review-required | repository maintainer | release owner | CXO dashboard implementation checklist; review completion marks against focused tests and production evidence |
 
 ## Boundary rules
 

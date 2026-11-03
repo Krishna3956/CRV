@@ -1080,3 +1080,20 @@ test("page headers do not add a divider before page content", () => {
   const pageIntroSource = source.slice(pageIntroStart, pageIntroEnd);
   assert.doesNotMatch(pageIntroSource, /border-b border-line/);
 });
+
+test("Overview gives business readers an executive readout before evidence detail", () => {
+  assert.match(source, /function ExecutiveReadout\(/);
+  assert.match(source, /aria-label="Executive readout"/);
+  assert.match(source, /What should a business owner know right now\?/);
+  assert.match(source, /Adoption/);
+  assert.match(source, /Value signal/);
+  assert.match(source, /Decision cue/);
+  assert.match(source, /onViewChange\(leadSignal \? "issues" : "capabilities"\)/);
+});
+
+test("Example data is visually distinct from live/status green", () => {
+  assert.match(source, /dataMode === "example"\s*\? "bg-sky-700 text-white/);
+  assert.match(source, /Example data selected · guided walkthrough/);
+  assert.match(source, /dataMode === "example"\s*\? "border-sky-200 bg-sky-50"/);
+  assert.match(source, /dataMode === "my" \? "Live workspace" : "Guided example"/);
+});
