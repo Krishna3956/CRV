@@ -79,7 +79,7 @@ system and does not copy another company's brand.
 - Removed source strips and business-context cards from the other primary views.
 - Removed the secondary “What you will see here” preview grid from empty states.
 - Changed the shared data switch to concise `Live` / `Explore` labels.
-- Changed dashboard brand tokens to blue/neutral and removed dashboard shadows
+- Changed dashboard brand tokens to indigo/neutral and removed dashboard shadows
   and oversized radius treatment via scoped CSS.
 - Changed InfoHint from click-toggle state to hover/focus disclosure.
 - Removed repeated helper copy under KPI values.

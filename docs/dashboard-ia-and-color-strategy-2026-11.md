@@ -34,7 +34,7 @@ Color is assigned by meaning and domain. All values meet a readable contrast tar
 
 | Token | Hex | Meaning |
 | --- | --- | --- |
-| `--dash-blue` | `#2563eb` | primary navigation, selection, links |
+| `--color-brand` | `#4f46e5` | primary actions, navigation, selection, links |
 | `--dash-violet` | `#7c3aed` | journeys, flows, sequence analysis |
 | `--dash-teal` | `#0f766e` | adoption, resources, capability breadth |
 | `--dash-amber` | `#b45309` | attention, incomplete evidence, setup work |
