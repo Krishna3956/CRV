@@ -97,7 +97,7 @@ test("Founder OS vertical slices share one data-trust contract", () => {
   assert.match(source, /N\/A/);
   assert.match(source, /Growth over time[\s\S]*observed each week/);
   assert.match(source, /function AccountGrowthChart/);
-  assert.match(source, /Unrecognized tool/);
+  assert.match(source, /Unrecognized assistant/);
   assert.match(source, /function CapabilityTrendChart/);
   assert.match(source, /function ToolDetailPanel/);
   assert.match(source, /signal, not a diagnosis/);
@@ -225,6 +225,14 @@ test("business users receive orientation before technical detail", () => {
   assert.match(source, /Errors and retries/);
   assert.match(source, /Related events/);
   assert.match(source, /className="mt-1 text-\[11px\] leading-relaxed text-muted">\{helper\}/);
+});
+
+test("People empty state explains the live-data prerequisite and routes to Setup", () => {
+  assert.match(source, /Account activity will appear after connection/);
+  assert.match(source, /verified account-group signal/);
+  assert.match(source, /href="\/dashboard\?view=setup&data=my"/);
+  assert.match(source, /Unrecognized assistant/);
+  assert.match(source, /client\.name \|\| "unknown"/);
 });
 
 test("Overview exposes same-window comparisons only from read-model fields", () => {

@@ -224,6 +224,11 @@ Legend: `[x]` verified/implemented in this workstream; `[ ]` pending.
 
 - [ ] Who’s using it: active accounts, new vs returning, growth, client
       breakdown, unknown category, and top accounts backed by the read model.
+- [x] ✅ People no-data state now explains the verified account-group
+      prerequisite and links a My-data reader directly to Setup; blank or
+      unrecognized assistant metadata is shown as `Unrecognized assistant`
+      instead of an empty label. The full read-model/runtime slice remains
+      pending until authenticated evidence is available.
 - [x] ✅ Overview: add period-over-period comparison from the read model's
       same-length windows; the UI shows `Not available` or `No comparable
       baseline` instead of inferring a comparison.

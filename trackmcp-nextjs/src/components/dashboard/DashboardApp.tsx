@@ -2312,11 +2312,12 @@ function ActionButton({
     </button>
   );
 }
-function StateNote({ title, body }: { title: string; body: string }) {
+function StateNote({ title, body, action }: { title: string; body: string; action?: ReactNode }) {
   return (
     <div className="border border-line bg-white p-4">
       <p className="text-xs font-semibold text-ink">{title}</p>
       <p className="mt-1 text-xs leading-relaxed text-muted">{body}</p>
+      {action}
     </div>
   );
 }
@@ -4338,10 +4339,10 @@ function ClientsView({
             </Panel>
             <Panel title="Which assistants are showing up" subtitle="Optional application metadata reported by the connected client">
               <div className="space-y-3">
-                {people.client_breakdown.map((client) => (
-                  <div key={client.name} className="text-sm">
+                {people.client_breakdown.map((client, clientIndex) => (
+                  <div key={`${client.identity_source}-${client.name || "unknown"}-${clientIndex}`} className="text-sm">
                     <div className="flex items-center justify-between gap-3">
-                      <span className="truncate text-ink">{client.identity_source === "unrecognized" ? "Unrecognized tool" : client.name}</span>
+                      <span className="truncate text-ink">{client.identity_source === "unrecognized" || !client.name.trim() ? "Unrecognized assistant" : client.name}</span>
                       <span className="shrink-0 text-muted">{client.share === null ? "N/A" : percent(client.share)} · {fmt(client.calls)} calls</span>
                     </div>
                     <div className="mt-1.5 h-2 overflow-hidden rounded-full bg-paper" aria-hidden="true">
@@ -4367,8 +4368,11 @@ function ClientsView({
         </>
       ) : (
         <StateNote
-          title="Account activity is unavailable"
-          body="The current analytics response did not include the privacy-safe account read model. Client activity and server evidence remain separate; no example or inferred account data is substituted."
+          title={dataMode === "my" ? "Account activity will appear after connection" : "Account activity is unavailable"}
+          body={dataMode === "my"
+            ? "Once your server sends activity with a verified account-group signal, this view will show repeat activity, assistant mix, and growth. No example or inferred account data is substituted."
+            : "The current analytics response did not include the privacy-safe account read model. Client activity and server evidence remain separate; no example or inferred account data is substituted."}
+          action={dataMode === "my" ? <a href="/dashboard?view=setup&data=my" className="mt-3 inline-flex cursor-pointer items-center rounded-md bg-brand-strong px-3 py-2 text-xs font-semibold text-white hover:bg-brand-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand">Open Setup</a> : undefined}
         />
       )}
     </div>

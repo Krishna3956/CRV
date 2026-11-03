@@ -174,6 +174,13 @@ The release-gate result is source-level evidence only. It does not replace a
 fresh-account browser walkthrough, a real first event, or a production smoke
 run against this branch.
 
+The People surface now has a clearer My-data empty state: when the privacy-safe
+account read model is not present, the user is told that account activity will
+appear after connection and is given a direct Setup action. Blank or
+unrecognized assistant metadata is labeled `Unrecognized assistant`. This is a
+source-level comprehension improvement; authenticated read-model completeness
+and production behavior remain unverified.
+
 After the loading-state and palette revisions, the consolidated release gate
 was rerun and passed all 159 suites. The gate passed in the isolated worktree;
 it does not change the Tier 3 status because authenticated production and

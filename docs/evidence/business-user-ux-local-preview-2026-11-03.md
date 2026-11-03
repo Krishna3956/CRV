@@ -868,3 +868,16 @@ palette. Verification after the change:
 - `git diff --check`: passed.
 
 This is local branch evidence only; no production deployment was performed.
+
+## People no-data recovery path in the current branch
+
+The `Who's using it` view now keeps a missing live read model honest and
+actionable. In My-data mode it says `Account activity will appear after
+connection`, explains that verified account-group activity is required, and
+links directly to Setup. It does not substitute Example data or imply that a
+missing account signal means zero customers. Blank or unrecognized assistant
+metadata is rendered as `Unrecognized assistant` rather than an empty label.
+
+The contract suite covers the copy, Setup route, and unknown-category label;
+the implementation does not change analytics formulas, identity handling, or
+privacy boundaries.
