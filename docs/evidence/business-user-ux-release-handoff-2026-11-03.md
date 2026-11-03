@@ -2,13 +2,14 @@
 
 Date: 2026-11-03  
 Branch: `codex/business-user-ux-audit`  
-Current local head: `f52417ae`
+Current local head: `7f8a4be9`
 Scope: evidence handoff for the business-user UX branch; no deployment or
 production mutation was performed by this handoff.
 
-Latest pull-request CI: run `41579733520` passed the web/JavaScript, Go, and
-.NET jobs for the current branch. This is branch validation only; the branch has
-not been merged or deployed.
+Latest pull-request CI: run `41581034039` passed the web/JavaScript, Go, and
+.NET jobs for commit `7f8a4be9`. This is branch validation only; the branch has
+not been merged or deployed. The Vercel Preview check remains externally rate
+limited for 24 hours; it is not a source or test failure.
 
 ## What is verified locally
 
@@ -38,7 +39,7 @@ not been merged or deployed.
 | Local rendered Overview/Setup preview | HTTP 200; expected data-source, setup, and navigation states visible |
 | Worktree | clean |
 
-The pull-request CI run `41576409402` passed the web/JavaScript, Go, and .NET
+The pull-request CI run `41581034039` passed the web/JavaScript, Go, and .NET
 jobs for this head. Earlier superseded runs are not used as release evidence.
 
 The authenticated production smoke workflow also passed on `main` in run

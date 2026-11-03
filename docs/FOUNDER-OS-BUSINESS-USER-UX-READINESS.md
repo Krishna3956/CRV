@@ -2,7 +2,7 @@
 
 Date: 2026-11-03  
 Branch: `codex/business-user-ux-audit`  
-Latest verified commit: `2ebc481f` (`docs: point UX readiness at current head`)
+Latest verified commit: `7f8a4be9` (`docs: record recovered production auth smoke`)
 
 This matrix is the release-readiness companion to the UX audit and work
 queue. It intentionally separates source-level proof, read-only browser proof,
@@ -15,10 +15,10 @@ outcome-copy, Quality helper-copy, final route-smoke, and auth-affordance passes
 The consolidated `npm run test:release-gate` passed all 159 suites on the
 current branch with the synthetic UAT report restored to its tracked fixture value
 after the run. The branch remains local and has not been merged or deployed.
-A fresh pull-request CI run (`41579733520`) also passed the required
+A fresh pull-request CI run (`41581034039`) also passed the required
 web/JavaScript, Go, and .NET jobs for the current branch. The latest source
-verification remains anchored to `2ebc481f` because the subsequent commits
-only record evidence. The pull request remains open; this is validation
+verification remains anchored to the same UX source changes; the subsequent
+commits record evidence only. The pull request remains open; this is validation
 evidence, not merge or deployment evidence.
 The Vercel Preview check for this commit is externally rate limited and did not
 produce a preview; this is recorded in
