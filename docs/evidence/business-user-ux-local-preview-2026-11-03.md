@@ -712,6 +712,23 @@ gradient added and no data or metric formulas changed.
 The revised palette passed the business-user contract suite, TypeScript, and
 the production build in the isolated worktree. It is not deployed.
 
+## Rendered blue palette and workspace handoff after `ccac8e58`
+
+The local development-only dashboard bypass was opened at
+`/dashboard?view=overview&data=example` on port `3198` with deliberately
+non-production Supabase placeholders. The rendered page visibly showed:
+
+- a white shell with a slate-neutral canvas and clear blue primary actions;
+- the blue selected navigation state, date-range controls, and Example-data
+  toggle without gradients or success-green overload;
+- the business-first Overview hierarchy: source state, at-a-glance meaning,
+  recommended next step, interpretation guidance, KPIs, and evidence detail;
+- a single global language control and an explicit `Connect your MCP` path.
+
+The route returned HTTP 200 and the accessibility tree exposed the expected
+business labels. This is local Example-data evidence only; no authenticated
+production session or live read model was used.
+
 ## Signed-up user entry inspection after `80596208`
 
 The local `/signup` route was opened in a fresh browser session with the same
