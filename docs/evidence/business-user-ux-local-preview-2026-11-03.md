@@ -2,7 +2,7 @@
 
 Date: 2026-11-03
 Branch: `codex/business-user-ux-audit`
-Commit under review: `e76c955e` (`Expose Setup primary action`)
+Commit under review: `cdc31a6c` (`Lighten dashboard green accent`)
 
 This is local browser evidence only. It is not production evidence and does
 not replace a fresh-account or real-telemetry walkthrough.
