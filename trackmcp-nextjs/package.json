@@ -155,6 +155,8 @@
     "test:sitewide-ctas": "node --test scripts/sitewide-cta-audit.test.mjs",
     "test:mcp-discovery": "node --test scripts/mcp-discovery-seo.test.mjs",
     "test:footer": "node --test scripts/footer.test.mjs",
+    "test:link-integrity": "node --test scripts/link-integrity.test.mjs",
+    "audit:links": "node scripts/link-integrity-audit.mjs",
     "test:release-post": "node --test scripts/release-post.test.mjs",
     "test:release-hygiene": "node --test scripts/release-hygiene.test.mjs",
     "test:security-headers": "node --test scripts/security-headers.contract.test.mjs",
