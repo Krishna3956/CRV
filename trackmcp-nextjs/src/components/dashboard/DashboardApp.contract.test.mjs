@@ -411,7 +411,7 @@ test("Setup highlights the current next step instead of always emphasizing step 
   assert.match(source, /index === activeSetupStep && <span[^>]*>Next<\/span>/);
 });
 
-test("Setup body follows the key-before-server reading order", () => {
+test("Setup visual body order follows the key-before-server sequence", () => {
   assert.match(source, /title="Connect the server"[\s\S]{0,260}className="order-2"/);
   assert.match(source, /title=\{workspaceId \? "Connection keys" : "Create your workspace"\}[\s\S]{0,260}className="order-1"/);
 });

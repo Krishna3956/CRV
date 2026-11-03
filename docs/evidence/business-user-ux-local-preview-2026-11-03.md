@@ -1206,18 +1206,23 @@ Verification:
 - `npx tsc --noEmit --pretty false`: passed.
 - `git diff --check`: passed.
 
-## Setup body order after `a5b65204`
+## Setup visual body order after `a5b65204`
 
-The Setup body now follows the same order as the visible step rail. The
+The visible Setup body now follows the same order as the step rail. The
 workspace/connection-key panel is presented first, followed by the server SDK
-configuration panel. This prevents a first-time user from being shown server
-configuration before the credential required by that configuration exists.
-The change is presentational only: workspace creation, key generation, SDK
-snippets, and ingestion behavior are unchanged.
+configuration panel. This prevents a sighted first-time user from being shown
+server configuration before the credential required by that configuration
+exists. The change is presentational only: workspace creation, key generation,
+SDK snippets, and ingestion behavior are unchanged.
+
+The browser accessibility tree still follows the authored DOM order because
+the implementation uses grid ordering. A future semantic reorder should move
+the connection-key panel before the server panel in the JSX rather than relying
+on CSS `order`; this is intentionally not claimed as complete here.
 
 Verification:
 
-- The Setup contract now asserts the key-before-server order.
+- The Setup contract now asserts the key-before-server visual order.
 - `npm run test:business-user-ux`: 105/105 passed.
 - `npx tsc --noEmit --pretty false`: passed.
 - `npm run build`: passed; 230 static pages generated.

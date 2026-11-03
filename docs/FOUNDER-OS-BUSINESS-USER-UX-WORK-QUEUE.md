@@ -254,10 +254,10 @@ Legend: `[x]` verified/implemented in this workstream; `[ ]` pending.
       show the first three active keys by default, retain explicit access to
       the full active list, and keep revoked keys behind their existing
       disclosure without changing key lifecycle behavior.
-- [x] ✅ Align the Setup body with the stated three-step sequence: the
+- [x] ✅ Align the visible Setup body with the stated three-step sequence: the
       workspace/connection-key action appears before the SDK/server code, so a
-      new user is not asked to configure a server before creating the key it
-      needs.
+      sighted new user is not asked to configure a server before creating the
+      key it needs. DOM-order/accessibility follow-up remains explicit below.
 - [x] ✅ Put business interpretation before implementation detail on the
       Overview attention and outcome surfaces: signal cards lead with an
       observed-pattern explanation, while completion methodology and evidence
