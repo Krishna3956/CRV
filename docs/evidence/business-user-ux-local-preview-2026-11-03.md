@@ -2,7 +2,7 @@
 
 Date: 2026-11-03
 Branch: `codex/business-user-ux-audit`
-Commit under review: `a51293e3` (`Record emerald palette verification`)
+Commit under review: `b12f52f9` (`Differentiate measured share tracks`)
 
 This is local browser evidence only. It is not production evidence and does
 not replace a fresh-account or real-telemetry walkthrough.
