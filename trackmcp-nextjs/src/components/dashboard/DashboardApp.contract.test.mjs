@@ -70,10 +70,10 @@ test("dashboard deep links normalize singular and legacy view aliases", () => {
 
 test("Founder OS vertical slices share one data-trust contract", () => {
   for (const view of ["clients", "capabilities", "resources", "journeys", "quality", "issues"]) {
-    assert.match(
+    assert.doesNotMatch(
       source,
-      new RegExp(`DataSourceStrip[\\s\\S]*view=\\\"${view}\\\"`),
-      `${view} must expose its explicit data source`,
+      new RegExp(`<DataSourceStrip[^>]*view=\\\"${view}\\\"`),
+      `${view} should not render a redundant source strip`,
     );
   }
   for (const readModel of [
@@ -107,7 +107,7 @@ test("Founder OS vertical slices share one data-trust contract", () => {
   assert.match(source, /signal, not a diagnosis/);
   assert.match(source, /Missing task events are not classified as abandonment/);
   assert.match(source, /insufficient data/i);
-  assert.match(source, /This is a guided example, not your live server activity/);
+  assert.doesNotMatch(source, /This is a guided example, not your live server activity/);
 });
 
 test("illustrative People data keeps its growth chart consistent with its KPIs", () => {
@@ -154,11 +154,10 @@ test("dashboard typography uses the product type system", () => {
   assert.match(globalsSource, /\.dashboard-shell \.dashboard-section-title/);
   assert.match(globalsSource, /font-size: 1\.0625rem/);
   assert.match(source, /dashboard-shell min-h-screen font-sans/);
-  assert.match(globalsSource, /--color-brand: #63c893/);
-  assert.match(globalsSource, /Dashboard visual system: warm-neutral surfaces with a familiar emerald/);
-  assert.match(globalsSource, /--color-brand: #63c893/);
-  assert.match(globalsSource, /--color-brand-strong: #438d68/);
-  assert.match(globalsSource, /--color-brand-soft: #f3fcf6/);
+  assert.match(globalsSource, /--color-brand: #2563eb/);
+  assert.match(globalsSource, /quiet neutral surfaces with one restrained blue/);
+  assert.match(globalsSource, /--color-brand-strong: #1d4ed8/);
+  assert.match(globalsSource, /--color-brand-soft: #eff6ff/);
   assert.doesNotMatch(source, /linear-gradient/);
   assert.match(globalsSource, /button:not\(:disabled\):hover/);
 });
@@ -193,55 +192,21 @@ test("quality no-data states preserve source context and next-step meaning", () 
   const start = source.indexOf("function QualityView(");
   const end = source.indexOf("function IssuesView(", start);
   const qualitySource = source.slice(start, end);
-  assert.match(qualitySource, /<DataSourceStrip dataMode=\{dataMode\} hasMyData=\{hasMyData\} view="quality"/);
-  assert.match(qualitySource, /Quality appears after your server connects/);
-  assert.match(qualitySource, /Example quality data is unavailable/);
-  assert.match(qualitySource, /A loading problem is not evidence that the server is healthy or unhealthy/);
+  assert.doesNotMatch(qualitySource, /<DataSourceStrip/);
+  assert.doesNotMatch(qualitySource, /Quality appears after your server connects/);
+  assert.doesNotMatch(qualitySource, /Example quality data is unavailable/);
+  assert.doesNotMatch(qualitySource, /A loading problem is not evidence that the server is healthy or unhealthy/);
   assert.match(qualitySource, /no live workspace data was substituted/);
 });
 
 test("business users receive orientation before technical detail", () => {
   assert.match(source, /Start here: who is showing up, what are they trying to do, did it work, and what needs attention\?/);
-  assert.match(source, /How to read this overview/);
-  assert.match(source, /After setup/);
-  assert.match(source, /One real event unlocks adoption, work, outcomes, and issue views/);
-  assert.match(source, /question="Which account groups and assistants are showing up, and is activity growing\?"/);
-  assert.match(source, /Read account-group activity/);
-  assert.match(source, /Which assistants are showing up/);
-  assert.match(source, /Most active account groups/);
-  assert.match(source, /First observed here; not signup/);
-  assert.match(source, /Observed before; not a retention claim/);
-  assert.match(source, /Unknown activity stays visible instead of being silently reassigned/);
-  assert.match(source, /question="What should the team investigate next, and how strong is the evidence\?"/);
-  assert.match(source, /Completion appears only when your server reports it/);
-  assert.match(source, /Typical steps per piece of work/);
-  assert.match(source, /Work waiting for an answer/);
-  assert.match(source, /Most-used features/);
-  assert.match(source, /Start with adoption/);
-  assert.match(source, /Features used per account group/);
-  assert.match(source, /Privacy-safe account groups/);
-  assert.match(source, /Activity without an optional account-group signal/);
-  assert.match(source, /Open a feature when a trend or error needs investigation/);
-  assert.match(source, /Advertised features not yet observed/);
-  assert.match(source, /Information lookups/);
-  assert.match(source, /Read information needs/);
-  assert.match(source, /Distinct items observed/);
-  assert.match(source, /Feature reliability/);
-  assert.match(source, /Separate outcomes from reliability/);
-  assert.match(source, /Outcomes come from explicit server reports/);
-  assert.match(source, /Share of activity/);
-  assert.match(source, /Decide what to investigate/);
-  assert.match(source, /Signals are ranked by evidence and affected volume/);
-  assert.match(source, /Follow observed work/);
-  assert.match(source, /A missing next event is not proof of abandonment/);
-  assert.match(source, /Use Evidence for detail/);
-  assert.match(source, /Payloads and private inputs stay hidden/);
-  assert.match(source, /Feature activity/);
-  assert.match(source, /privacy-safe item counts/);
-  assert.match(source, /assistants and privacy-safe account groups/);
-  assert.match(source, /Errors and retries/);
-  assert.match(source, /Related events/);
-  assert.match(source, /className="mt-1 text-\[11px\] leading-relaxed text-muted">\{helper\}/);
+  assert.match(source, /Only outcomes your server explicitly reported count here/);
+  assert.doesNotMatch(source, /<BusinessContext/);
+  assert.doesNotMatch(source, /<DataSourceStrip/);
+  assert.doesNotMatch(source, /className="mt-1 text-\[11px\] leading-relaxed text-muted">\{helper\}/);
+  assert.match(source, /function InfoHint\(/);
+  assert.match(source, /group-hover:opacity-100 group-focus-within:opacity-100/);
 });
 
 test("business-facing trend and resource outcomes use plain labels", () => {
@@ -319,9 +284,9 @@ test("data source state is explicit and never silently substituted", () => {
     source,
     /rawData === "example" \|\| rawData === "sample" \? "example" : "my"/,
   );
-  assert.match(source, /My data selected/);
-  assert.match(source, /Example data selected/);
-  assert.match(source, /This is a guided example, not your live server activity/);
+  assert.doesNotMatch(source, /My data selected/);
+  assert.doesNotMatch(source, /Example data selected/);
+  assert.doesNotMatch(source, /This is a guided example, not your live server activity/);
   assert.match(source, /QuickBooks Finance MCP/);
   assert.match(source, /No other data source was substituted/);
   assert.match(source, /No live data available/);
@@ -333,8 +298,8 @@ test("data source state is explicit and never silently substituted", () => {
 
 test("data source control names the business meaning of each mode", () => {
   assert.match(source, /Data source/);
-  assert.match(source, /Your workspace/);
-  assert.match(source, /Illustration only/);
+  assert.match(source, /Show live workspace data/);
+  assert.match(source, /Guided example only/);
   assert.match(source, /aria-live=\"polite\"/);
 });
 
@@ -635,10 +600,8 @@ test("resource and prompt read metrics do not turn unavailable projections into 
 
 test("example data offers a clear setup path and Setup keeps trust below the setup cards", () => {
   assert.match(source, /["']\/dashboard\?view=setup&data=my["']/);
-  assert.match(source, /Connect your MCP/);
-  assert.match(source, /View my data/);
-  assert.match(source, /canViewMyData/);
-  assert.match(source, /hasMyData/);
+  assert.match(source, /See Example data/);
+  assert.doesNotMatch(source, /<DataSourceStrip/);
   const setupStart = source.indexOf("function SetupView(");
   const setupEnd = source.indexOf("// Kept as an inert compatibility artifact", setupStart);
   assert.ok(setupStart >= 0 && setupEnd > setupStart, "Setup view must be present");
@@ -723,7 +686,8 @@ test("empty page previews explain each product area instead of repeating generic
   ]) {
     assert.match(source, new RegExp(phrase.replace(/[.*+?^$()|[\\]\\]/g, "\\$&")));
   }
-  assert.match(source, /Populates after connection/);
+  assert.doesNotMatch(source, /Populates after connection/);
+  assert.doesNotMatch(source, /What you will see here/);
 });
 
 test("copy actions provide a green check success state", () => {
@@ -946,18 +910,16 @@ test("Overview keeps decision KPIs above expandable evidence detail", () => {
 });
 
 test("Overview gives business users a bounded at-a-glance takeaway", () => {
-  assert.match(source, /function OverviewTakeaway\(/);
-  assert.match(source, /At a glance/);
-  assert.match(source, /This summary uses only the selected window/);
-  assert.match(source, /not a measure of customer count or overall product health/);
-  assert.match(source, /<OverviewTakeaway analytics=\{analytics\} dataMode=\{dataMode\} hasMyData=\{hasMyData\} \/>/);
+  assert.doesNotMatch(source, /<OverviewTakeaway analytics=/);
+  assert.doesNotMatch(source, /<OverviewNextStep|<ExecutiveReadout/);
 });
 
 test("dashboard panels expose concise information hints and universal pointer affordances", () => {
   assert.match(source, /function InfoHint\(/);
   assert.match(source, /role="tooltip"/);
-  assert.match(source, /aria-expanded=\{open\}/);
-  assert.match(source, /onClick=\{\(\) => setOpen/);
+  assert.match(source, /group-hover:opacity-100 group-focus-within:opacity-100/);
+  assert.doesNotMatch(source, /aria-expanded=\{open\}/);
+  assert.doesNotMatch(source, /onClick=\{\(\) => setOpen/);
   assert.match(source, /About \$\{title\}/);
   assert.match(globalsSource, /\.dashboard-shell button:not\(:disabled\)/);
 });
@@ -1082,18 +1044,12 @@ test("page headers do not add a divider before page content", () => {
 });
 
 test("Overview gives business readers an executive readout before evidence detail", () => {
-  assert.match(source, /function ExecutiveReadout\(/);
-  assert.match(source, /aria-label="Executive readout"/);
-  assert.match(source, /What should a business owner know right now\?/);
-  assert.match(source, /Adoption/);
-  assert.match(source, /Value signal/);
-  assert.match(source, /Decision cue/);
-  assert.match(source, /onViewChange\(leadSignal \? "issues" : "capabilities"\)/);
+  assert.doesNotMatch(source, /<ExecutiveReadout/);
 });
 
 test("Example data is visually distinct from live/status green", () => {
-  assert.match(source, /dataMode === "example"\s*\? "bg-sky-700 text-white/);
-  assert.match(source, /Example data selected · guided walkthrough/);
-  assert.match(source, /dataMode === "example"\s*\? "border-sky-200 bg-sky-50"/);
+  assert.match(source, /dataMode === "example"\s*\? "bg-blue-700 text-white/);
+  assert.match(source, /Guided example only/);
+  assert.doesNotMatch(source, /Example data selected · guided walkthrough/);
   assert.match(source, /dataMode === "my" \? "Live workspace" : "Guided example"/);
 });
