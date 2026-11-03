@@ -245,6 +245,13 @@ test("business users receive orientation before technical detail", () => {
   assert.match(source, /className="mt-1 text-\[11px\] leading-relaxed text-muted">\{helper\}/);
 });
 
+test("business-facing trend and resource outcomes use plain labels", () => {
+  assert.match(source, /Information lookups/);
+  assert.match(source, /Guided help/);
+  assert.match(source, /title=\{outcome\.kind === "resource" \? "MCP resources\/read" : "MCP prompts\/get"\}/);
+  assert.match(source, /fmtWeekLabel\(item\.period_start\)/);
+});
+
 test("People empty state explains the live-data prerequisite and routes to Setup", () => {
   assert.match(source, /Account activity will appear after connection/);
   assert.match(source, /verified account-group signal/);
