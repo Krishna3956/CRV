@@ -2,7 +2,7 @@
 
 Date: 2026-11-03  
 Branch: `codex/business-user-ux-audit`  
-Latest verified commit: `54f2a063` (`Align Setup panels with activation steps`)
+Latest verified commit: `e76c955e` (`Expose Setup primary action`)
 
 This matrix is the release-readiness companion to the UX audit and work
 queue. It intentionally separates source-level proof, read-only browser proof,
