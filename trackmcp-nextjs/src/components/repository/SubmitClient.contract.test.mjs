@@ -24,6 +24,16 @@ test("submission analytics uses only a boolean email-presence signal", () => {
   assert.doesNotMatch(source, /trackMarketingEvent\(\"submission_attempted\"[\s\S]{0,300}email:\s*email/);
 });
 
+test("submit page preserves the three-step flow and Web3Forms attribution", () => {
+  const emailField = source.indexOf('id="em"');
+  const sourceReveal = source.indexOf("{email.trim().length > 0 && (");
+  assert.ok(emailField >= 0, "email field is present");
+  assert.ok(sourceReveal > emailField, "source field is revealed after the email field");
+  assert.doesNotMatch(source, /source-detail|selfReportedDetail|Get featured|FEATURED_BENEFITS/);
+  assert.match(source, /how_did_you_hear_about_trackmcp:\s*selfReportedSource/);
+  assert.match(source, /wantsFeatured:\s*false/);
+});
+
 test("page attribution and identity stitching remain privacy-safe", () => {
   assert.match(tracker, /marketing_pageview/);
   assert.match(tracker, /captureSubmissionAttribution/);
