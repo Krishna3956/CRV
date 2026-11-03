@@ -124,9 +124,9 @@ Legend: `[x]` verified/implemented in this workstream; `[ ]` pending.
 - [x] ✅ Replace the blank first-load screen with a branded workspace-preparation
       state that explains account, workspace, and dashboard loading in three
       short steps.
-- [x] ✅ Apply a dashboard-only visual system: cool neutral surfaces, indigo
-      primary actions, semantic status text, and no gradients in dashboard
-      surfaces.
+- [x] ✅ Apply a dashboard-only visual system: cool neutral surfaces, a
+      restrained blue primary action color, semantic status text, and no
+      gradients in dashboard surfaces.
 - [x] ✅ Add a repo-scoped `trackmcp-business-copy` skill with customer-facing
       vocabulary, evidence-boundary rules, recovery-copy rules, and a focused
       review checklist so future copy changes do not drift back toward

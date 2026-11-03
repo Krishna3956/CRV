@@ -2,7 +2,7 @@
 
 Date: 2026-11-03  
 Branch: `codex/business-user-ux-audit`  
-Latest verified commit: `366c0b23` (`Record business metric language pass`)
+Latest verified commit: `53b16ccb` (`Refine dashboard palette for analytics SaaS`)
 
 This matrix is the release-readiness companion to the UX audit and work
 queue. It intentionally separates source-level proof, read-only browser proof,
@@ -22,9 +22,10 @@ Example-data Overview on the current branch; this remains bypass evidence, not
 real Supabase authentication or production data.
 
 Final current-branch build: `npm run build` passed with 230 static pages
-generated after the dashboard typography change. TypeScript and ESLint also
+generated after the dashboard palette revision. TypeScript and ESLint also
 passed. The full `npm run test:release-gate` passed all 159 suites on
-`7e2fd060`.
+`7e2fd060`; the palette-only revision then passed the focused 87-suite
+business-user contract suite and a fresh production build.
 This is still local build evidence; it does not prove a production deployment
 or authenticated production rendering.
 
