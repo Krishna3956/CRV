@@ -353,9 +353,10 @@ Legend: `[x]` verified/implemented in this workstream; `[ ]` pending.
 
 - Baseline commit: `085ae29e07d2f69ed4db3b15986e417e0fe4c86f`.
 - Current implementation: `trackmcp-nextjs/src/components/dashboard/DashboardApp.tsx`.
-- Latest UX verification commits: `346bb7bc` (evidence handoff refresh) and
-  `0700c707` (business labels and readable outcome dates). Focused business UX
-  suite: 107/107; consolidated release gate: 159 suites; production build:
+- Latest UX verification commits: `346bb7bc` (evidence handoff refresh),
+  `0700c707` (resource/outcome labels), and `7f582337` (feature reliability
+  labels). Focused business UX suite: 108/108; consolidated release gate: 159
+  suites; production build:
   230 static pages.
 - Setup/account orchestration: `trackmcp-nextjs/src/app/dashboard/page.tsx`.
 - Metric truth contract: `docs/FOUNDER-OS-METRIC-CONTRACT.md`.
