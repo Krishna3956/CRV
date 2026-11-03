@@ -4946,7 +4946,7 @@ function SetupView({
   const selectSetupPath = (path: SetupPath) => {
     setSetupPath(path);
     window.requestAnimationFrame(() => {
-      document.getElementById("setup-path-content")?.scrollIntoView({ behavior: "smooth", block: "start" });
+      document.getElementById("setup-path-panel")?.scrollIntoView({ behavior: "smooth", block: "start" });
     });
   };
   const focusSetupPrimaryAction = () => {
@@ -5137,7 +5137,9 @@ function SetupView({
           <button
             type="button"
             role="tab"
+            id="setup-path-tab-sdk"
             aria-selected={setupPath === "sdk"}
+            aria-controls="setup-path-panel"
             onClick={() => selectSetupPath("sdk")}
             className={"cursor-pointer rounded-lg border px-3 py-3 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand " + (setupPath === "sdk" ? "border-brand bg-brand-soft/35 text-ink" : "border-line bg-paper text-muted hover:border-brand/40 hover:bg-brand-soft/15")}
           >
@@ -5147,7 +5149,9 @@ function SetupView({
           <button
             type="button"
             role="tab"
+            id="setup-path-tab-otel"
             aria-selected={setupPath === "otel"}
+            aria-controls="setup-path-panel"
             onClick={() => selectSetupPath("otel")}
             className={"cursor-pointer rounded-lg border px-3 py-3 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand " + (setupPath === "otel" ? "border-brand bg-brand-soft/35 text-ink" : "border-line bg-paper text-muted hover:border-brand/40 hover:bg-brand-soft/15")}
           >
@@ -5166,7 +5170,7 @@ function SetupView({
             href: setupPath === "sdk" ? documentationHref : "/docs/opentelemetry",
           }}
         >
-          <div id="setup-path-content" className="scroll-mt-24">
+          <div id="setup-path-panel" role="tabpanel" aria-live="polite" aria-labelledby={setupPath === "sdk" ? "setup-path-tab-sdk" : "setup-path-tab-otel"} className="scroll-mt-24">
           {setupPath === "sdk" ? (
           <>
           <div className="mt-4 grid gap-3 sm:grid-cols-2">
@@ -5456,32 +5460,6 @@ function SetupView({
             />
           )}
         </div>
-      </details>
-      <details className="mt-6 rounded-2xl border border-line bg-white p-5 shadow-[0_20px_45px_-38px_rgba(22,163,74,0.14)] sm:p-6">
-        <summary className="flex cursor-pointer list-none items-center justify-between gap-3 text-[15px] font-semibold text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand">
-          <span>Optional identity <span className="ml-2 text-xs font-normal text-muted">Resolve account activity without exposing raw identifiers</span></span>
-          <span className="text-xs font-medium text-brand-strong">Configure</span>
-        </summary>
-        <div className="flex flex-wrap items-start justify-between gap-3">
-          <div>
-            <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-brand-strong">Optional identity</p>
-            <h2 id="setup-identity-title" className="mt-1 text-[15px] font-semibold text-ink">Show optional account-group activity</h2>
-            <p className="mt-1 max-w-2xl text-xs leading-relaxed text-muted">
-              Configure this in the server-side SDK, not in the browser. Return an already-validated tenant or account handle; TrackMCP hashes it before storage and never displays the raw value.
-            </p>
-          </div>
-              <a href={language === "TypeScript" ? "/docs/typescript#account-identity" : language === "Python" ? "/docs/python#account-identity" : language === "Go" ? "/docs/go#account-identity" : "/docs/dotnet#account-identity"} className="inline-flex cursor-pointer items-center gap-1 text-xs font-semibold text-brand-strong hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand">
-            View {language} example <ArrowRight size={12} aria-hidden="true" />
-          </a>
-        </div>
-        <pre className="mt-4 overflow-x-auto rounded-md bg-[#101713] p-4 font-mono text-[11px] leading-relaxed text-white"><code>{language === "TypeScript"
-          ? `withTrackMCP(server, {\n  apiKey: process.env.TRACKMCP_KEY!,\n  accountIdResolver: ({ sessionId }) => verifiedTenantForSession(sessionId),\n});`
-          : language === "Python"
-            ? `with_trackmcp(server,\n    api_key=os.environ["TRACKMCP_KEY"],\n    account_id_resolver=lambda context: context.get("tenant_id"),\n)`
-            : language === "Go"
-              ? `client := trackmcp.New(trackmcp.Options{\n  APIKey: os.Getenv("TRACKMCP_KEY"),\n  AccountIDResolver: func() string {\n    return verifiedTenantForRequest()\n  },\n})`
-              : `var telemetry = new TrackMcpClient(new TrackMcpOptions(\n    Environment.GetEnvironmentVariable("TRACKMCP_KEY") ?? "",\n    "${boundedService || "my-mcp-server"}",\n    "${boundedEnvironment}",\n    AccountIdResolver: () => verifiedTenantForRequest()));`}</code></pre>
-        <p className="mt-3 text-[11px] leading-relaxed text-faint">Only use a stable, non-secret identifier already verified by your application. Do not return emails, tokens, URLs, prompts, completions, or raw user IDs. Without a resolver, activity remains visible but is counted as unresolved.</p>
       </details>
       <details className="mt-6 rounded-2xl border border-line bg-white p-5 shadow-[0_20px_45px_-38px_rgba(22,163,74,0.14)] sm:p-6">
         <summary className="flex cursor-pointer list-none items-center gap-3 text-[15px] font-semibold text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand">
