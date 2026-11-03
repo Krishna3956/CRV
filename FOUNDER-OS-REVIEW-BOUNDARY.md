@@ -43,6 +43,7 @@ reviewer disposition before staging; it is never included by a blanket add.
 | `docs/dashboard-competitive-research-2026-11.md` | review-required | repository maintainer | release owner | comparative product-analytics research and visual references; review source links and keep competitor claims bounded |
 | `docs/dashboard-ia-and-color-strategy-2026-11.md` | review-required | repository maintainer | release owner | dashboard information-architecture and semantic color strategy; review product-language and accessibility decisions before release |
 | `docs/dashboard-research-work-queue.md` | review-required | repository maintainer | release owner | research and color implementation checklist; review completion marks against tests and deployment evidence |
+| `docs/dashboard-data-contract-2026-11.md` | review-required | repository maintainer | release owner | metric-to-backend source mapping; review every new metric against the typed analytics response and bounded source |
 
 ## Boundary rules
 

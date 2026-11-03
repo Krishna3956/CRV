@@ -44,13 +44,16 @@ test("business-first navigation and KPI hierarchy are explicit", () => {
   assert.match(source, /id: "evidence", label: "Evidence"/);
   assert.match(source, /id: "setup", label: "Setup"/);
   assert.match(source, /groupLabel="Understand"/);
-  assert.match(source, /groupLabel="Investigate & act"/);
+  assert.match(source, /groupLabel="Outcomes"/);
+  assert.match(source, /groupLabel="Investigate"/);
+  assert.match(source, /groupLabel="Configure"/);
   assert.match(
     source,
-    /label="Assistants using your MCP"[\s\S]*label="Observed work"[\s\S]*label="Reported completion"[\s\S]*label="Needs attention"/,
+    /label="Assistants using your MCP"[\s\S]*label="Observed work"[\s\S]*label="Reported completion"/,
   );
   assert.doesNotMatch(source, /id: "tool-quality"/);
   assert.doesNotMatch(source, /Open Configure/);
+  assert.doesNotMatch(source, /Choose the next question/);
 });
 
 test("every dashboard tab button is wired to the shared route transition", () => {
@@ -717,7 +720,7 @@ test("Overview always renders Needs attention and preserves uncertainty", () => 
 });
 
 test("business readers get plain-language signal and outcome guidance first", () => {
-  assert.match(source, /Observed patterns worth a closer look/);
+  assert.match(source, /Observed signal/);
   assert.match(source, /Observed patterns are separate from confirmed incidents/);
   assert.match(source, /See what work was reported as complete, failed, pending, or still unknown/);
   assert.match(source, /How completion is calculated/);

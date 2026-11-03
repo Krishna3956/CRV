@@ -101,14 +101,18 @@ const primaryNav: NavItem[] = [
   { id: "capabilities", label: "What they're doing", icon: Blocks, accent: "teal" },
   { id: "resources", label: "Resources & prompts", icon: FileText, accent: "teal" },
 ];
-const moreNav: NavItem[] = [
+const outcomeNav: NavItem[] = [
   { id: "journeys", label: "The journey", icon: Route, accent: "violet" },
   { id: "quality", label: "Did it work", icon: ShieldCheck, accent: "green" },
+];
+const investigationNav: NavItem[] = [
   { id: "issues", label: "What's broken", icon: AlertTriangle, accent: "coral" },
   { id: "evidence", label: "Evidence", icon: Search, accent: "slate" },
+];
+const configureNav: NavItem[] = [
   { id: "setup", label: "Setup", icon: Settings2, accent: "amber" },
 ];
-const allNav = primaryNav.concat(moreNav);
+const allNav = primaryNav.concat(outcomeNav, investigationNav, configureNav);
 const viewLabels: Record<View, string> = Object.fromEntries(
   allNav.map((item) => [item.id, item.label]),
 ) as Record<View, string>;
@@ -1262,10 +1266,24 @@ export function DashboardApp({
         />
         <DashboardNav
           view={view}
-          items={moreNav}
+          items={outcomeNav}
           onNavigate={goTo}
-          label="More dashboard navigation"
-          groupLabel="Investigate & act"
+          label="Outcome navigation"
+          groupLabel="Outcomes"
+        />
+        <DashboardNav
+          view={view}
+          items={investigationNav}
+          onNavigate={goTo}
+          label="Investigation navigation"
+          groupLabel="Investigate"
+        />
+        <DashboardNav
+          view={view}
+          items={configureNav}
+          onNavigate={goTo}
+          label="Configuration navigation"
+          groupLabel="Configure"
         />
         <div className="mt-auto border-t border-line p-3">
           <button
@@ -2551,7 +2569,7 @@ function Overview({
         question="Start here: who is showing up, what are they trying to do, did it work, and what needs attention?"
         actions={pageControls}
       />
-      <div className="mb-6 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="mb-6 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
         <Kpi
           label="Assistants using your MCP"
           value={
@@ -2579,18 +2597,6 @@ function Overview({
               ? "Reported completion · " +
                 percent(totals.completed / totals.started)
               : "No explicit completion outcome data"
-          }
-        />
-        <Kpi
-          label="Needs attention"
-          value={fmt(analytics.insights.length)}
-          icon={AlertTriangle}
-          helper={
-            analytics.insights.length
-              ? "Observed patterns worth a closer look"
-              : analytics.total_events === 0
-                ? "Insufficient data to identify an issue"
-                : "No actionable signals yet"
           }
         />
       </div>
@@ -2696,32 +2702,6 @@ function Overview({
             </p>
           </div>
         </Panel>
-      </div>
-      <div className="mt-6 border border-line bg-white p-5">
-        <p className="text-sm font-semibold text-ink">
-          Choose the next question
-        </p>
-        <p className="mt-1 text-xs text-muted">
-          Start with the business signal; technical Evidence stays one click
-          away.
-        </p>
-        <div className="mt-4 flex flex-wrap gap-2">
-          <ActionButton
-            label="See Journeys"
-            icon={ListChecks}
-            onClick={() => onViewChange("journeys")}
-          />
-          <ActionButton
-            label="Review Issues"
-            icon={AlertTriangle}
-            onClick={() => onViewChange("issues")}
-          />
-          <ActionButton
-            label="Open evidence"
-            icon={Search}
-            onClick={() => onViewChange("evidence")}
-          />
-        </div>
       </div>
     </div>
   );
@@ -3157,7 +3137,7 @@ function JourneysView({
             <div className="divide-y divide-line">{analytics.journey_activity.drop_off.length ? analytics.journey_activity.drop_off.map((path) => <div key={path.path.join("|")} className="py-3"><p className="text-xs text-ink" title={path.path.join(" → ")}>{journeyPathLabel(path.path)}</p><p className="mt-1 text-[11px] capitalize text-muted">{path.terminal_evidence.replaceAll("_", " ")} · {fmt(path.interactions)} interactions</p></div>) : <StateNote title="No path-stop evidence yet" body="A missing terminal event is not treated as abandonment." />}</div>
           </Panel>
           <Panel title="How far work gets" subtitle="Observed reach by step; a missing next step is not abandonment">
-            <div className="space-y-3">{analytics.journey_activity.funnel.length ? analytics.journey_activity.funnel.map((step) => <div key={step.step}><div className="mb-1 flex items-center justify-between gap-3"><p className="text-xs text-ink" title={step.step}>{journeyStepLabel(step.step)}</p><span className="text-xs text-muted">{fmt(step.reached)} · {step.share == null ? "N/A" : `${Math.round(step.share * 100)}%`}</span></div><div className={`h-2 overflow-hidden rounded-full ${step.share == null ? "bg-line" : "bg-mist"}`} aria-label={step.share == null ? "Journey reach unavailable" : `Journey reach ${Math.round(step.share * 100)}%`}>{step.share != null && <div className="h-full rounded-full bg-brand" style={{ width: `${Math.max(0, Math.min(100, step.share * 100))}%` }} />}</div></div>) : <StateNote title="No funnel evidence yet" body="A funnel is shown only when an observed path has bounded interaction evidence." />}</div>
+            <div className="space-y-3">{analytics.journey_activity.funnel.length ? analytics.journey_activity.funnel.map((step) => <div key={step.step}><div className="mb-1 flex items-center justify-between gap-3"><p className="text-xs text-ink" title={step.step}>{journeyStepLabel(step.step)}</p><span className="text-xs text-muted">{fmt(step.reached)} · {step.share == null ? "N/A" : `${Math.round(step.share * 100)}%`}</span></div><div className={`h-2 overflow-hidden rounded-full ${step.share == null ? "bg-line" : "bg-mist"}`} aria-label={step.share == null ? "Journey reach unavailable" : `Journey reach ${Math.round(step.share * 100)}%`}>{step.share != null && <div className="h-full rounded-full dashboard-chart-violet" style={{ width: `${Math.max(0, Math.min(100, step.share * 100))}%` }} />}</div></div>) : <StateNote title="No funnel evidence yet" body="A funnel is shown only when an observed path has bounded interaction evidence." />}</div>
             {analytics.journey_activity.funnel.length > 0 && <details className="mt-3 rounded-lg border border-line bg-paper/50"><summary className="cursor-pointer list-none px-3 py-2 text-xs font-semibold text-muted hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand">View journey reach as a table</summary><div className="overflow-x-auto border-t border-line"><table className="min-w-[420px] text-left text-xs"><caption className="sr-only">Observed journey reach by step</caption><thead className="bg-white text-[10px] uppercase tracking-[0.08em] text-faint"><tr><th scope="col" className="px-3 py-2 font-semibold">Step</th><th scope="col" className="px-3 py-2 text-right font-semibold">Reached</th><th scope="col" className="px-3 py-2 text-right font-semibold">Share</th></tr></thead><tbody className="divide-y divide-line">{analytics.journey_activity.funnel.map((step) => <tr key={`${step.step}-table`} className="bg-white/70"><th scope="row" className="px-3 py-2 font-medium text-ink" title={step.step}>{journeyStepLabel(step.step)}</th><td className="px-3 py-2 text-right tabular-nums text-muted">{fmt(step.reached)}</td><td className="px-3 py-2 text-right tabular-nums text-muted">{step.share == null ? "N/A" : `${Math.round(step.share * 100)}%`}</td></tr>)}</tbody></table></div></details>}
           </Panel>
           <Panel title="Pause → resume" subtitle="Work that needed more information and whether it resumed">
@@ -4450,8 +4430,8 @@ function AccountGrowthChart({ points }: { points: NonNullable<Analytics["who_is_
   return <div>
     <svg viewBox={`0 0 ${width} ${height}`} role="img" aria-label={`Weekly active account growth. Latest: ${latest?.active_accounts ?? 0} accounts.`} className="h-48 w-full overflow-visible" preserveAspectRatio="none">
       <line x1={padding} x2={width - padding} y1={height - padding} y2={height - padding} stroke="currentColor" className="text-line" />
-      <path d={path} fill="none" stroke="currentColor" strokeWidth="3" vectorEffect="non-scaling-stroke" className="text-brand-strong" />
-      {shown.map((point, index) => <circle key={point.period_start} cx={x(index)} cy={y(point.active_accounts)} r="4" fill="currentColor" className="text-brand-strong" />)}
+      <path d={path} fill="none" stroke="currentColor" strokeWidth="3" vectorEffect="non-scaling-stroke" className="dashboard-chart-blue" />
+      {shown.map((point, index) => <circle key={point.period_start} cx={x(index)} cy={y(point.active_accounts)} r="4" fill="currentColor" className="dashboard-chart-blue" />)}
     </svg>
     <div className="mt-2 flex justify-between gap-3 text-[10px] text-faint">
       <span>{shown[0] ? fmtWeekLabel(shown[0].period_start) : ""}</span>
@@ -4479,7 +4459,7 @@ function AccountGrowthChart({ points }: { points: NonNullable<Analytics["who_is_
 function CapabilityTrendChart({ points }: { points: NonNullable<Analytics["capability_activity"]>["trend"] }) {
   const periods = [...new Set(points.map((point) => point.period_start))].slice(-12);
   const names = [...new Set(points.map((point) => point.tool_name))];
-  const colors = ["bg-brand", "bg-brand-strong", "bg-sky-500", "bg-amber-500", "bg-violet-500", "bg-rose-500", "bg-slate-400"];
+  const colors = ["dashboard-chart-blue", "dashboard-chart-violet", "dashboard-chart-teal", "dashboard-chart-amber", "dashboard-chart-coral", "dashboard-chart-slate", "dashboard-chart-green"];
   const byPeriod = new Map(periods.map((period) => [period, points.filter((point) => point.period_start === period)]));
   const max = Math.max(1, ...periods.map((period) => (byPeriod.get(period) || []).reduce((sum, point) => sum + point.calls, 0)));
   return <div>
