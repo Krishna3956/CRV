@@ -10,8 +10,10 @@ test("pricing page presents the proposed three-tier early-access model", () => {
   assert.match(page, /name: "Enterprise"/);
   assert.match(page, /100,000 captured events \/ month/);
   assert.match(page, /1,000,000 captured events \/ month/);
-  assert.match(page, /price: "\$29"/);
-  assert.match(page, /paid billing is not active yet/);
+  assert.match(page, /price: "\$129"/);
+  assert.match(page, /cta: "Get started"/);
+  assert.doesNotMatch(page, /Early access is free today/);
+  assert.doesNotMatch(page, /Is the paid billing system live yet\?/);
 });
 
 test("pricing page does not present the old unsupported Pro packaging", () => {

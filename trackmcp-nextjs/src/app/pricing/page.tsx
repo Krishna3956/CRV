@@ -37,10 +37,10 @@ const tiers = [
   },
   {
     name: "Hobby",
-    price: "$29",
+    price: "$129",
     note: "per month",
     desc: "For a small production team that wants more headroom and history.",
-    cta: "Join early access",
+    cta: "Get started",
     variant: "primary" as const,
     featured: true,
     feats: [
@@ -75,7 +75,7 @@ const tiers = [
 
 const compareCols = [
   { name: "Free", price: "$0", sub: "Forever" },
-  { name: "Hobby", price: "$29/mo", sub: "Small production teams", featured: true },
+  { name: "Hobby", price: "$129/mo", sub: "Small production teams", featured: true },
   { name: "Enterprise", price: "Custom", sub: "Scale and governance" },
 ];
 
@@ -138,10 +138,6 @@ function CompareValue({ v }: { v: Cell }) {
 
 const faqs = [
   {
-    q: "Is the paid billing system live yet?",
-    a: "Not yet. TrackMCP is currently in early access, so you can start without a card or a surprise charge. The pricing shown here is the proposed launch packaging; we will announce billing before any paid plan is enabled.",
-  },
-  {
     q: "What counts as an event?",
     a: "An event is a bounded telemetry record accepted from your MCP server, such as a tool call, result, error, protocol signal, or explicit outcome. Rejected requests are not counted as accepted events.",
   },
@@ -185,12 +181,6 @@ export default function PricingPage() {
                   TrackMCP pricing is built around the telemetry you actually send—not seats, surprise overages, or a sales call before you can learn anything.
                 </p>
             </Reveal>
-              <Reveal delay={0.12}>
-                <div className="mx-auto mt-7 inline-flex max-w-[58ch] items-center gap-2 rounded-full border border-brand/20 bg-brand-soft/40 px-4 py-2 text-left text-[13px] leading-5 text-body">
-                  <span className="h-2 w-2 shrink-0 rounded-full bg-brand" aria-hidden="true" />
-                  Early access is free today. No credit card is required, and paid billing is not active yet.
-                </div>
-              </Reveal>
           </div>
         </section>
 
@@ -328,7 +318,7 @@ export default function PricingPage() {
             {[
               ["Usage-led", "We measure accepted telemetry events, not the number of people reading your dashboard."],
               ["No seat tax", "Invite the business, product, and engineering people who need to understand MCP usage."],
-              ["No surprise bill", "Usage and limits are visible before billing is enabled. Early access is free today."],
+              ["Usage controls", "Usage and limits are visible before any charge."],
             ].map(([title, body], i) => (
               <Reveal key={title} delay={i * 0.05}>
                 <div className="rounded-xl border border-line bg-paper px-5 py-5">
