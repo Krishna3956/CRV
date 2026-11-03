@@ -99,6 +99,8 @@ test("Founder OS vertical slices share one data-trust contract", () => {
   assert.match(source, /function AccountGrowthChart/);
   assert.match(source, /Unrecognized assistant/);
   assert.match(source, /function CapabilityTrendChart/);
+  assert.match(source, /humanizeCapability/);
+  assert.match(source, /tool\.description\?\.trim\(\) \|\| humanizeCapability\(tool\.name\)/);
   assert.match(source, /function ToolDetailPanel/);
   assert.match(source, /signal, not a diagnosis/);
   assert.match(source, /Missing task events are not classified as abandonment/);
@@ -327,7 +329,7 @@ test("example mode supplies every Founder OS vertical-slice read model", () => {
   assert.match(source, /resource_reads: scale\(/);
   assert.match(source, /interaction_count: scale\(/);
   assert.match(source, /completion_rate: 37 \/ 50/);
-  assert.match(source, /tool\.description &&/);
+  assert.match(source, /tool\.description\?\.trim\(\) \|\| humanizeCapability\(tool\.name\)/);
   assert.match(source, /Run a bounded finance query/);
   assert.match(source, /Account activity is unavailable/);
   assert.match(source, /no example or inferred account data is substituted/);
