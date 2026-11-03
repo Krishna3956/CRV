@@ -2,7 +2,7 @@
 
 Date: 2026-11-03
 Branch: `codex/business-user-ux-audit`
-Commit under review: `cdc31a6c` (`Lighten dashboard green accent`)
+Commit under review: `cba60688` (`Preserve Setup order for assistive technology`)
 
 This is local browser evidence only. It is not production evidence and does
 not replace a fresh-account or real-telemetry walkthrough.
