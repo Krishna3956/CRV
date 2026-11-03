@@ -1365,7 +1365,7 @@ Verification:
 - `npm run test:release-gate`: passed all 159 suites.
 - Temporary local server and browser tab were stopped/closed after capture.
 
-## Consolidated release gate at `bfc859ab`
+## Consolidated release gate at historical commit `bfc859ab`
 
 The full isolated-branch release gate was rerun after the dashboard palette
 revision and the evidence-only commits. It passed all 159 suites. The run
@@ -1374,8 +1374,10 @@ tests for TypeScript/CLI/Python, tenant-isolation checks, all v2 read-model
 route contracts, and the production-smoke workflow contracts.
 
 The synthetic customer fixture generated a new timestamp during the run. It
-was restored to the tracked value `2026-10-30T10:23:29.051Z`; the worktree is
-clean and local/remote branch SHAs match.
+was restored to the tracked value `2026-10-30T10:23:29.051Z`. At that
+historical commit the isolated branch was clean and matched its remote; later
+local-only evidence commits intentionally leave the branch ahead of
+`origin/codex/business-user-ux-audit`.
 
 ## Lighter dashboard green revision
 
