@@ -2,7 +2,7 @@
 
 Date: 2026-11-03
 Branch: `codex/business-user-ux-audit`
-Commit under review: `3f35599f` (`Reduce setup key list density`)
+Commit under review: `98054f78` (`Clarify dashboard outcome interpretation`)
 
 This is local browser evidence only. It is not production evidence and does
 not replace a fresh-account or real-telemetry walkthrough.
@@ -938,7 +938,7 @@ without substituting data or changing the read model.
 
 Current verification for this slice:
 
-- `npm run test:business-user-ux`: 96/96 passed.
+- `npm run test:business-user-ux`: 97/97 passed.
 - `npx tsc --noEmit --pretty false`: passed.
 - `npm run build`: passed; 230 static pages generated.
 - `npm run test:release-gate`: passed all 159 suites.
@@ -953,3 +953,23 @@ the older `Founder OS` pilot notice and exposes a long active-key history in
 the primary Setup scan, alongside technical scope and identity controls. This
 confirms that the branch's Setup-density improvements are not live yet. No
 key, workspace, identity setting, or other production state was changed.
+
+## Outcome and attention interpretation after `98054f78`
+
+The Overview KPI now describes non-empty attention output as `Observed
+patterns worth a closer look` instead of exposing a missing confidence value
+in the primary scan. The attention panel and Issues panel explicitly separate
+observed patterns from confirmed incidents. The `Did the work complete?`
+surface now leads with the business states a reader can interpret; the
+completion methodology and evidence source remain available under the
+collapsed `How completion is calculated` disclosure. No formula, read-model
+field, or evidence classification changed.
+
+Verification after this slice:
+
+- `npm run test:business-user-ux`: 97/97 passed.
+- `npx tsc --noEmit --pretty false`: passed.
+- `npm run build`: passed; 230 static pages generated.
+- `git diff --check`: passed.
+- No production deployment, authenticated production session, or database
+  write was performed.

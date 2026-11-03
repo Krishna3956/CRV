@@ -2,13 +2,13 @@
 
 Date: 2026-11-03  
 Branch: `codex/business-user-ux-audit`  
-Latest verified commit: `3f35599f` (`Reduce setup key list density`)
+Latest verified commit: `98054f78` (`Clarify dashboard outcome interpretation`)
 
 This matrix is the release-readiness companion to the UX audit and work
 queue. It intentionally separates source-level proof, read-only browser proof,
 and evidence that requires a real account, deployment, or human participant.
 
-Latest branch verification: `npm run test:business-user-ux` passed all 96 suites
+Latest branch verification: `npm run test:business-user-ux` passed all 97 suites
 after the authentication-affordance, research, signed-out handoff, illustrative
 People-growth coherence, setup-vocabulary consistency, evidence-action-label,
 outcome-copy, Quality helper-copy, final route-smoke, and auth-affordance passes.
@@ -23,8 +23,8 @@ real Supabase authentication or production data.
 Final current-branch build: `npm run build` passed with 230 static pages
 generated after the dashboard palette revision. TypeScript and ESLint also
 passed. The full `npm run test:release-gate` passed all 159 suites on the
-current branch, and the focused 96-suite business-user contract suite passed
-after the Setup key-density revision.
+current branch, and the focused 97-suite business-user contract suite passed
+after the Setup key-density and outcome-interpretation revisions.
 This is still local build evidence; it does not prove a production deployment
 or authenticated production rendering.
 
@@ -35,12 +35,12 @@ or authenticated production rendering.
 | A newly signed-up user understands that a workspace is being prepared | **Implemented and tested** | `trackmcp-nextjs/src/app/dashboard/page.tsx`; `src/app/dashboard/page.contract.test.mjs` | Fresh-account browser verification |
 | Legacy `/onboarding` entry point does not fork the setup story | **Verified in source** | `trackmcp-nextjs/src/app/onboarding/page.tsx` redirects to `/dashboard`; `trackmcp-nextjs/src/app/dashboard/onboarding/page.tsx` does the same | Fresh-account navigation check after deployment |
 | A user with no workspace does not get trapped before setup | **Implemented and tested** | `DashboardApp.tsx` routes “Complete setup” to Setup while provisioning; setup-state contract; workspace route contract | Fresh-account verification against production auth/session state |
-| Setup explains the three required steps | **Implemented and tested** | `DashboardApp.tsx`; state-aware setup rail; 96 business UX tests | Confirm copy with a non-technical participant |
+| Setup explains the three required steps | **Implemented and tested** | `DashboardApp.tsx`; state-aware setup rail; 97 business UX tests | Confirm copy with a non-technical participant |
 | First-time sign-in/sign-up controls look actionable and remain keyboard-visible | **Implemented and tested** | `src/app/signin/page.tsx`, `src/components/OAuthButtons.tsx`; business UX contract | Confirm affordance and copy in a fresh-account browser walkthrough |
 | Setup explains what appears after the first event | **Implemented and tested** | `BusinessContext` “What you will get after setup”; business UX contract | Fresh-account browser verification |
 | Setup gives an activated user a direct next action into the business dashboard | **Implemented and tested** | `SetupView` shows `Open Overview` after verified, limited, or identity-limited activity; business UX contract | Confirm with a real first-event account |
 | My data and Example data are visibly separate | **Implemented and tested; verified live read-only** | `DataSourceStrip`; Example data contract; authenticated Chrome review | Verify after deployment of this branch |
-| Overview answers who, what, outcome, and attention questions | **Implemented and tested** | Overview business-question copy, same-window period comparison, KPI helpers, period context, and chart-table fallback; 96 business UX tests | Verify deployed rendering |
+| Overview answers who, what, outcome, and attention questions | **Implemented and tested** | Overview business-question copy, same-window period comparison, KPI helpers, period context, and chart-table fallback; 97 business UX tests | Verify deployed rendering |
 | Overview gives an evidence-aware next action | **Implemented and tested; verified locally** | `OverviewNextStep` in `DashboardApp.tsx`; local Example-data browser preview; business UX contract | Verify routing and copy with a fresh production account |
 | “Who’s using it” explains account signals versus people/customers | **Implemented and tested** | `ClientsView`; metric contract; business UX tests | Confirm with a business participant |
 | “What they’re doing” leads with adoption and reliability | **Implemented and tested; verified in local preview** | `CapabilitiesView`; business UX tests; technical protocol detail and repeated capability inventory are progressively disclosed | Verify deployed rendering |
@@ -64,7 +64,7 @@ or authenticated production rendering.
 - Source changes are committed and the worktree is clean.
 - TypeScript, ESLint, business UX contracts, metric contracts, and production
   build pass.
-- The business UX contract suite passes 96/96 tests, including state-aware
+- The business UX contract suite passes 97/97 tests, including state-aware
   setup steps, accessible chart tables, capability KPI vocabulary, and
   progressive protocol disclosure.
 - The build generated 230 static pages.
@@ -217,6 +217,13 @@ being interpreted as success. Formula and read-model semantics are unchanged.
 Empty confirmed-incident results now use the same evidence boundary: the UI
 says `No confirmed incidents in this period`, explicitly avoids a whole-system
 health claim, and points readers to Overview and Evidence for broader context.
+
+The Overview attention and outcome surfaces now lead with plain-language
+interpretation: attention signals are described as observed patterns worth a
+closer look, confirmed incidents remain a separate evidence type, and the
+completion methodology is available behind `How completion is calculated`.
+The underlying outcome source, formulas, and read models are unchanged. This
+is branch evidence until the deployed dashboard is reviewed.
 
 After the loading-state and palette revisions, the consolidated release gate
 was rerun and passed all 159 suites. The gate passed in the isolated worktree;
