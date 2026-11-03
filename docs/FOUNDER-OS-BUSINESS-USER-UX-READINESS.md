@@ -2,27 +2,21 @@
 
 Date: 2026-11-03  
 Branch: `codex/business-user-ux-audit`  
-Latest verified commit: `254c2d4b` (`docs: record fresh local UX browser pass`)
+Latest verified commit: `26537c9a` (`Record journey slice browser evidence`)
 
 This matrix is the release-readiness companion to the UX audit and work
 queue. It intentionally separates source-level proof, read-only browser proof,
 and evidence that requires a real account, deployment, or human participant.
 
 Latest branch verification: `npm run test:business-user-ux` passed all 106 suites
-after the authentication-affordance, research, signed-out handoff, illustrative
-People-growth coherence, setup-vocabulary consistency, evidence-action-label,
-outcome-copy, Quality helper-copy, final route-smoke, and auth-affordance passes.
-The consolidated `npm run test:release-gate` passed all 159 suites on the
-current branch with the synthetic UAT report restored to its tracked fixture value
-after the run. The branch remains local and has not been merged or deployed.
-A fresh pull-request CI run (`41583167880`) also passed the required
-web/JavaScript, Go, and .NET jobs for the current branch. The latest source
-verification remains anchored to the same UX source changes; the subsequent
-commits record evidence only. The pull request remains open; this is validation
-evidence, not merge or deployment evidence.
-The Vercel Preview for this head also completed successfully. Earlier
-rate-limited history is retained in
-`docs/evidence/business-user-ux-vercel-preview-rate-limit-2026-11-03.md`.
+and the consolidated `npm run test:release-gate` passed all 159 suites on the
+current branch. The synthetic UAT report was restored to its tracked fixture
+value after the gate run. The branch remains local and has not been merged or
+deployed.
+A fresh pull-request CI run (`41591604161`) has Go and .NET green while the
+web/JavaScript job is still in progress. No Vercel deployment is being treated
+as release evidence; the provider has an external preview rate limit recorded
+in `docs/evidence/business-user-ux-vercel-preview-rate-limit-2026-11-03.md`.
 A fresh local
 development browser pass now verifies both the My-data no-event state and the
 Example-data Overview on the current branch; this remains bypass evidence, not
@@ -49,8 +43,8 @@ while measured zero remains distinguishable from missing evidence.
 Final current-branch build: `npm run build` passed with 230 static pages
 generated after the dashboard palette revision. TypeScript and ESLint also
 passed. The full `npm run test:release-gate` passed all 159 suites on the
-current branch, and the focused 104-suite business-user contract suite passed
-after the Setup key-density and outcome-interpretation revisions.
+current branch, and the focused 106-suite business-user contract suite passed
+after the capability, resource, and journey comprehension revisions.
 This is still local build evidence; it does not prove a production deployment
 or authenticated production rendering.
 

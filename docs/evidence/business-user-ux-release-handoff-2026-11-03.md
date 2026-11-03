@@ -2,14 +2,15 @@
 
 Date: 2026-11-03  
 Branch: `codex/business-user-ux-audit`  
-Current local head: `254c2d4b`
+Current local head: `26537c9a6cb363fdc693eae84a06dbf63682d3fb`
 Scope: evidence handoff for the business-user UX branch; no deployment or
 production mutation was performed by this handoff.
 
-Latest pull-request CI: run `41583167880` passed the web/JavaScript, Go, and
-.NET jobs for commit `254c2d4b`. The Vercel Preview also completed
-successfully. This is branch validation only; the branch has not been merged
-or deployed.
+Latest pull-request CI: run `41591604161` has Go and .NET completed
+successfully; the web/JavaScript job is still in progress. This is branch
+validation only; the branch has not been merged or deployed. Vercel preview is
+not release evidence because the provider is currently rate-limiting preview
+builds.
 
 ## What is verified locally
 
@@ -37,7 +38,7 @@ or deployed.
 | `npx tsc --noEmit --pretty false` | passed |
 | `npm run build` | passed; 230 static pages generated |
 | Local rendered Overview/Setup preview | HTTP 200; expected data-source, setup, and navigation states visible |
-| Worktree | clean |
+| Worktree | clean after restoring the synthetic UAT fixture timestamp |
 
 The pull-request CI run `41583167880` passed the web/JavaScript, Go, and .NET
 jobs for this head. Earlier superseded runs are not used as release evidence.
