@@ -2,7 +2,7 @@
 
 Date: 2026-11-03  
 Branch: `codex/business-user-ux-audit`  
-Latest verified commit: `53b16ccb` (`Refine dashboard palette for analytics SaaS`)
+Latest verified commit: `3e201ffa` (`Record rendered dashboard palette preview`)
 
 This matrix is the release-readiness companion to the UX audit and work
 queue. It intentionally separates source-level proof, read-only browser proof,
@@ -164,6 +164,11 @@ The dashboard palette was revised again after review: primary actions now use
 a restrained analytics blue on cool-neutral surfaces rather than the previous
 teal treatment. The goal is a familiar SaaS visual language with green kept
 for semantic success states. This is a local, verified change only.
+
+The first-load workspace handoff was aligned to the same palette so a new user
+does not see a separate slate/indigo loading surface before entering the
+dashboard. The local Example-data browser preview showed the updated blue
+navigation, controls, source-state banner, and business-first Overview.
 
 The release-gate result is source-level evidence only. It does not replace a
 fresh-account browser walkthrough, a real first event, or a production smoke
