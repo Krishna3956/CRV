@@ -824,3 +824,18 @@ change only; the explicit-outcome formula, read models, and evidence boundary
 are unchanged. The synthetic UAT runner refreshed its timestamp during the
 gate and the tracked fixture was restored afterward. No production deployment
 or authenticated real-account smoke was performed.
+
+## Overview period comparison in the current branch
+
+- `npm run test:business-user-ux`: 88/88 passed.
+- `npm run test:metric-contract`: 4/4 passed.
+- `npx tsc --noEmit --pretty false`: passed.
+- `npm run build`: passed; 230 static pages generated.
+
+The Overview now includes a compact `Compared with the previous period` block
+when the analytics read model returns same-length comparison fields. It uses
+`capability_activity.previous_period_calls` for observed work and
+`who_is_using_it.previous_period_active_accounts` for active account groups.
+If a previous window is absent, the UI says `Not available`; if the baseline is
+zero, it says `No comparable baseline` rather than inventing a percentage.
+No backend formula or read-model field was changed.

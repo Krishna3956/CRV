@@ -224,8 +224,9 @@ Legend: `[x]` verified/implemented in this workstream; `[ ]` pending.
 
 - [ ] Who’s using it: active accounts, new vs returning, growth, client
       breakdown, unknown category, and top accounts backed by the read model.
-- [ ] Overview: add period-over-period comparison only after the read model
-      exposes two trustworthy windows; do not infer comparison values in UI.
+- [x] ✅ Overview: add period-over-period comparison from the read model's
+      same-length windows; the UI shows `Not available` or `No comparable
+      baseline` instead of inferring a comparison.
 - [ ] What they’re doing: adoption breadth, top capabilities, trends, and
       capability detail with business labels.
 - [ ] Resources & prompts: top resources, top prompts, completion/stall, and

@@ -227,6 +227,14 @@ test("business users receive orientation before technical detail", () => {
   assert.match(source, /className="mt-1 text-\[11px\] leading-relaxed text-muted">\{helper\}/);
 });
 
+test("Overview exposes same-window comparisons only from read-model fields", () => {
+  assert.match(source, /Compared with the previous period/);
+  assert.match(source, /previous_period_calls/);
+  assert.match(source, /previous_period_active_accounts/);
+  assert.match(source, /No comparable baseline/);
+  assert.match(source, /previous comparison window was not returned/);
+});
+
 test("data source state is explicit and never silently substituted", () => {
   assert.match(source, /params\.set\("data", dataMode\)/);
   assert.match(

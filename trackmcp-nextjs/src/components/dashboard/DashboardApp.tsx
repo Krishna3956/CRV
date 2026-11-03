@@ -2421,6 +2421,66 @@ function OverviewNextStep({
   );
 }
 
+function PeriodComparisonPanel({ analytics }: { analytics: Analytics }) {
+  const rows = [
+    {
+      label: "Observed work",
+      current: analytics.tool_calls,
+      previous: analytics.capability_activity?.previous_period_calls ?? null,
+      unit: "calls",
+    },
+    {
+      label: "Active account groups",
+      current: analytics.who_is_using_it?.active_accounts ?? null,
+      previous: analytics.who_is_using_it?.previous_period_active_accounts ?? null,
+      unit: "groups",
+    },
+  ].filter((row) => row.current !== null);
+
+  if (!rows.length) return null;
+
+  return (
+    <section className="mb-6 border border-line bg-white p-4 sm:p-5" aria-label="Period comparison">
+      <div>
+        <p className="dashboard-label text-faint">Compared with the previous period</p>
+        <p className="mt-1 text-sm font-semibold text-ink">Is activity moving up or down?</p>
+        <p className="mt-1 max-w-3xl text-xs leading-relaxed text-muted">
+          These are same-length windows returned by the analytics read model. A missing comparison means there is not enough evidence yet.
+        </p>
+      </div>
+      <div className="mt-4 grid gap-3 sm:grid-cols-2">
+        {rows.map((row) => {
+          const current = row.current as number;
+          const previous = row.previous;
+          const comparable = typeof previous === "number";
+          const hasBaseline = comparable && previous > 0;
+          const delta = hasBaseline ? (current - previous) / previous : null;
+          const headline = !comparable
+            ? "Not available"
+            : hasBaseline
+              ? `${delta! > 0 ? "↑" : delta! < 0 ? "↓" : "→"} ${Math.abs(Math.round(delta! * 100))}%`
+              : current === 0
+                ? "No change"
+                : "No comparable baseline";
+          return (
+            <div key={row.label} className="border border-line bg-paper p-3">
+              <div className="flex items-start justify-between gap-3">
+                <p className="text-xs font-semibold text-ink">{row.label}</p>
+                <p className="text-lg font-semibold tabular-nums text-ink">{headline}</p>
+              </div>
+              <p className="mt-2 text-[11px] leading-relaxed text-muted">
+                {comparable
+                  ? `${fmt(current)} ${row.unit} now vs ${fmt(previous)} in the previous window.`
+                  : "The previous comparison window was not returned for this view."}
+              </p>
+            </div>
+          );
+        })}
+      </div>
+    </section>
+  );
+}
+
 function Overview({
   analytics,
   dataMode,
@@ -2496,6 +2556,7 @@ function Overview({
           }
         />
       </div>
+      <PeriodComparisonPanel analytics={analytics} />
       {analytics.founder_os && (
         <div className="mb-6">
           <FounderOSSignalPanel aggregate={analytics.founder_os.facts} dataTrust={analytics.data_trust} />
