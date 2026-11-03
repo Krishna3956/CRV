@@ -243,7 +243,7 @@ export function DashboardPageContent({ initialView = "overview" }: { initialView
          <TrackMCPLogo asLink={false} mark size="nav" variant="mono" />
          <span className="text-xs font-semibold text-muted">Dashboard</span>
        </div>
-       <section className="mt-14 rounded-2xl border border-line bg-paper p-7 shadow-[0_24px_60px_-44px_rgba(37,99,235,0.14)] sm:p-10">
+       <section className="mt-14 rounded-2xl border border-line bg-paper p-7 shadow-[0_24px_60px_-44px_rgba(22,163,74,0.14)] sm:p-10">
          <div className="flex items-start gap-4">
            <span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-brand-soft text-brand-strong">
              <Loader2 size={20} className="animate-spin" aria-hidden="true" />
