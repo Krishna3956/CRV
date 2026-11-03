@@ -1299,3 +1299,18 @@ Verification:
 - `npm run build`: passed; 230 static pages generated.
 - `npm run test:release-gate`: passed all 159 suites.
 - Temporary local server and browser tab were stopped/closed after capture.
+
+## Lighter dashboard green revision
+
+The dashboard-only color tokens were softened to a lighter green while
+preserving the existing layout, copy, metrics, interaction behavior, and
+public-site palette:
+
+- primary: `#55b684`
+- strong text/active controls: `#3d8c66`
+- soft surface: `#f2fbf5`
+- mint surface: `#f7fcf8`
+- mint text: `#397c5c`
+
+This is a presentation-only change. It does not alter formulas, data sources,
+read models, or setup behavior.
