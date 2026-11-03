@@ -30,6 +30,7 @@ reviewer disposition before staging; it is never included by a blanket add.
 | `docs/evidence/business-user-ux-local-preview-2026-11-03.md` | review-required | repository maintainer | release owner | local UX/browser evidence only; review that it remains clearly separated from production proof and contains no credentials or customer data |
 | `docs/IN-APP-COPY-UX-READINESS.md` | review-required | repository maintainer | release owner | UX/copy readiness ledger; review implementation evidence, remaining browser/UAT gates, and keep local-only claims separate from production approval |
 | `docs/IN-APP-COPY-UX-STRATEGY-2026-11.md` | review-required | repository maintainer | release owner | research-backed copy and interaction strategy; review wording and product claims before publication |
+| `docs/IN-APP-COPY-UX-TARGET.md` | review-required | repository maintainer | release owner | UX acceptance target; review the evidence mapping and keep production/UAT boundaries explicit |
 | `docs/IN-APP-COPY-UX-WORK-QUEUE.md` | review-required | repository maintainer | release owner | implementation checklist; review completion marks against tests and browser evidence before release |
 
 ## Boundary rules

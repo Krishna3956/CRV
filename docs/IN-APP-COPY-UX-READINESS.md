@@ -1,6 +1,6 @@
 # In-app copy and interaction clarity readiness
 
-Status: implementation complete; review and browser validation pending
+Status: implementation and local validation complete; production/UAT pending
 Branch: `codex/business-user-ux-audit`
 Scope: copy, interaction explanations, signup friction, setup discoverability, loading states, and chart density
 
@@ -24,7 +24,9 @@ Scope: copy, interaction explanations, signup friction, setup discoverability, l
 - TypeScript: passed with `npx tsc --noEmit --pretty false`.
 - Production build: passed; 230/230 pages generated.
 - Consolidated release gate: passed; 159 suites.
-- Review-boundary ledger: updated for all three new UX planning documents.
+- Review-boundary ledger: updated for all new UX planning documents.
+- UX target: recorded in `docs/IN-APP-COPY-UX-TARGET.md` with requirement-level
+  evidence and explicit production/UAT boundaries.
 - Generated synthetic evidence was restored to its committed timestamp after
   the release gate.
 - Local browser review: signup rendered the reduced form and correct signup
