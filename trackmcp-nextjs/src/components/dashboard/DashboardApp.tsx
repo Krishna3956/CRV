@@ -5012,33 +5012,6 @@ function SetupView({
                 Open Overview <ArrowRight size={13} aria-hidden="true" />
               </button>
             )}
-            {activeSetupContract?.setup?.caveat && (
-              <p className="mt-3 max-w-2xl border-l-2 border-line-strong pl-3 text-[11px] leading-relaxed text-muted">
-                Evidence note: {activeSetupContract.setup.caveat}
-              </p>
-            )}
-            {activeSetupContract?.setup?.next_steps?.length ? (
-              <ol className="mt-3 list-decimal space-y-1 pl-5 text-[11px] leading-relaxed text-muted">
-                {activeSetupContract.setup.next_steps.slice(0, 4).map((step) => <li key={step}>{step}</li>)}
-              </ol>
-            ) : null}
-            {typeof activeSetupContract?.setup?.first_event?.ingestion_lag_seconds === "number" && (
-              <p className="mt-3 text-[11px] text-faint">
-                Last observed event lag: {activeSetupContract.setup.first_event.ingestion_lag_seconds < 60
-                  ? `${activeSetupContract.setup.first_event.ingestion_lag_seconds}s`
-                  : `${Math.floor(activeSetupContract.setup.first_event.ingestion_lag_seconds / 60)}m`}
-              </p>
-            )}
-            {firstEventIsStale && (
-              <p className="mt-2 border-l-2 border-amber-400 pl-3 text-[11px] leading-relaxed text-amber-800">
-                This is historical ingestion evidence, not a current health check. Make a fresh MCP call and refresh this page before diagnosing the running server.
-              </p>
-            )}
-            {activeSetupContract?.setup?.first_event && (
-              <p className="mt-2 text-[11px] text-faint">
-                First event scope: {activeSetupContract.setup.first_event.service || "service not reported"} · {activeSetupContract.setup.first_event.environment || "environment not reported"}
-              </p>
-            )}
           </div>
           <div className="flex flex-wrap items-center justify-end gap-2">
             <span className={"inline-flex items-center gap-2 border px-3 py-2 text-xs font-semibold " + stateCopy[3]}>
@@ -5086,6 +5059,15 @@ function SetupView({
               <p className="mt-2 text-[11px] leading-relaxed text-muted">
                 Identity resolution is optional and does not block a connected state. The percentage reflects only key, event, MCP method, transport, and privacy-policy evidence.
               </p>
+            </div>
+          )}
+          {(activeSetupContract?.setup?.caveat || activeSetupContract?.setup?.next_steps?.length || activeSetupContract?.setup?.first_event) && (
+            <div className="mt-4 border-t border-line pt-4">
+              <p className="text-xs font-semibold text-ink">Latest check details</p>
+              {activeSetupContract.setup.caveat && <p className="mt-2 border-l-2 border-line-strong pl-3 text-[11px] leading-relaxed text-muted">{activeSetupContract.setup.caveat}</p>}
+              {activeSetupContract.setup.next_steps?.length ? <ol className="mt-2 list-decimal space-y-1 pl-5 text-[11px] leading-relaxed text-muted">{activeSetupContract.setup.next_steps.slice(0, 4).map((step) => <li key={step}>{step}</li>)}</ol> : null}
+              {activeSetupContract.setup.first_event && <p className="mt-2 text-[11px] text-faint">First event scope: {activeSetupContract.setup.first_event.service || "service not reported"} · {activeSetupContract.setup.first_event.environment || "environment not reported"}{typeof activeSetupContract.setup.first_event.ingestion_lag_seconds === "number" ? ` · ${activeSetupContract.setup.first_event.ingestion_lag_seconds < 60 ? `${activeSetupContract.setup.first_event.ingestion_lag_seconds}s` : `${Math.floor(activeSetupContract.setup.first_event.ingestion_lag_seconds / 60)}m`} lag` : ""}</p>}
+              {firstEventIsStale && <p className="mt-2 border-l-2 border-amber-400 pl-3 text-[11px] leading-relaxed text-amber-800">This is historical ingestion evidence, not a current health check. Make a fresh MCP call and refresh this page before diagnosing the running server.</p>}
             </div>
           )}
         </details>
