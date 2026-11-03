@@ -306,6 +306,9 @@ Legend: `[x]` verified/implemented in this workstream; `[ ]` pending.
       linked work-step evidence is absent, with a direct Setup action and no
       inferred funnel. Full path/stop/retry read-model coverage remains
       pending authenticated verification.
+- [x] ✅ Journey paths, reach steps, and pause/resume rows now lead with the
+      connected capability descriptions while retaining the raw tool name in
+      the title/technical context for follow-up.
 - [ ] Did it work: outcome rates, error rates, retries, latency, and
       insufficient-data states with consistent definitions.
 - [x] ✅ Did-it-work now explains the explicit workflow evidence prerequisite
