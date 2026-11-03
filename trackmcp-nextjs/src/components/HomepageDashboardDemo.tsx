@@ -1,31 +1,30 @@
 "use client";
 
-import { TrendingUp, Users, Wrench } from "lucide-react";
+import { Blocks, Route, Users } from "lucide-react";
 import { useState } from "react";
 import { Reveal } from "@/components/Reveal";
-import { HeroDashboardScene } from "@/components/HeroDashboardScene";
-import type { View } from "@/components/DashboardMock";
+import { DashboardApp, type View } from "@/components/dashboard/DashboardApp";
 
 const demoChoices: { view: View; icon: typeof Users; label: string }[] = [
   { view: "clients", icon: Users, label: "See who is using it" },
-  { view: "capabilities", icon: Wrench, label: "See what they use" },
-  { view: "issues", icon: TrendingUp, label: "Know what to improve" },
+  { view: "capabilities", icon: Blocks, label: "See what they use" },
+  { view: "journeys", icon: Route, label: "See what needs attention" },
 ];
 
 /**
- * The homepage product proof is wired to the same business-facing view names
- * as the dashboard. Visitors can choose the question they care about and see
- * the corresponding dashboard surface without leaving the page.
+ * The homepage uses the production dashboard itself in a bounded, read-only
+ * example mode. This keeps the proof surface honest: the navigation, cards,
+ * charts, empty states, and sample calculations cannot drift from /dashboard.
  */
 export function HomepageDashboardDemo() {
   const [view, setView] = useState<View>("overview");
 
   return (
     <section className="relative hidden bg-mist pb-14 md:block md:pb-20" aria-label="Interactive TrackMCP dashboard preview">
-      <div className="relative mx-auto hidden w-full max-w-[680px] px-6 md:block">
+      <div className="relative mx-auto hidden w-full max-w-[1120px] px-6 md:block">
         <div
           aria-hidden
-          className="absolute inset-0 bg-white"
+          className="absolute inset-x-8 top-0 h-20 bg-white"
           style={{
             clipPath: "polygon(0 0, 100% 0, calc(100% - 60px) 100%, 60px 100%)",
             filter: "drop-shadow(0 20px 32px rgba(10,10,10,0.05))",
@@ -57,10 +56,36 @@ export function HomepageDashboardDemo() {
         </div>
       </div>
 
-      <div className="relative z-10 mx-auto mt-0 hidden max-w-[1000px] px-6 md:mt-8 md:block">
-        <HeroDashboardScene controlledView={view} onViewChange={setView} />
+      <div
+        className="relative z-10 mx-auto mt-0 hidden max-w-[1120px] overflow-hidden rounded-[18px] border border-line-strong bg-white shadow-[0_28px_70px_-38px_rgba(15,23,42,0.35)] md:block md:mt-8"
+        data-homepage-dashboard-preview
+      >
+        <div className="h-[720px]">
+          <DashboardApp
+            displayName="Example workspace"
+            workspace={{ id: "example-workspace", name: "Example workspace", slug: "example-workspace" }}
+            workspaces={[{ id: "example-workspace", name: "Example workspace", slug: "example-workspace" }]}
+            keys={[{ id: "example-key", name: "Example connection", key_prefix: "tmcp_example", revoked_at: null, created_at: "2026-01-01T00:00:00.000Z" }]}
+            analytics={null}
+            toolQuality={null}
+            newKey=""
+            working={false}
+            error=""
+            sampleOnly
+            preview
+            controlledView={view}
+            onViewChange={setView}
+            onGenerateKey={() => undefined}
+            onRevokeKey={() => undefined}
+            onRotateKey={() => undefined}
+            onDismissKey={() => undefined}
+            onRefresh={() => undefined}
+            onCreateWorkspace={() => undefined}
+            onSelectWorkspace={() => undefined}
+            onSignOut={() => undefined}
+          />
+        </div>
       </div>
     </section>
   );
 }
-
