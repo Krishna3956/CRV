@@ -92,6 +92,9 @@ test("uncertainty and technical evidence remain explicit", () => {
   assert.match(dashboard, /N\/A means there is not enough evidence yet/);
   assert.match(dashboard, /Why this signal is shown/);
   assert.match(dashboard, /Show technical rule details/);
+  assert.match(dashboard, /Unknown \/ unresolved/);
+  assert.match(dashboard, /not counted as success or failure/);
+  assert.doesNotMatch(dashboard, /Tasks that stop, error, or lack a reported outcome/);
   assert.match(target, /Do not infer abandonment or completion from a missing event/);
 });
 

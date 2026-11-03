@@ -1692,7 +1692,8 @@ const emptyPageCopy: Record<
     preview: [
       { label: "Work attempted", detail: "The business tasks users start, such as invoice lookup." },
       { label: "Completed", detail: "Tasks with an explicit successful outcome." },
-      { label: "Failed", detail: "Tasks that stop, error, or lack a reported outcome." },
+      { label: "Explicitly failed", detail: "Tasks your server reported as failed or ended with an error." },
+      { label: "Unknown / unresolved", detail: "Work without an explicit outcome; it is not counted as success or failure." },
       { label: "Sessions", detail: "The client, steps, timing, and trace behind each task." },
     ],
   },
