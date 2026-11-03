@@ -2,7 +2,7 @@
 
 Date: 2026-11-03  
 Branch: `codex/business-user-ux-audit`  
-Latest verified commit: `de9890d4` (`Preserve People metric uncertainty`)
+Latest verified commit: `456ad9ee` (`Preserve unavailable read metrics`)
 
 This matrix is the release-readiness companion to the UX audit and work
 queue. It intentionally separates source-level proof, read-only browser proof,
@@ -270,6 +270,10 @@ entity-read metrics. When the read projection is unavailable, read success,
 failure, and input-needed counts show `N/A`; a real `no_rows` projection still
 shows zero. This prevents a schema availability problem from looking like
 healthy or empty activity.
+
+The full release gate was rerun after this change and passed all 159 suites;
+the generated synthetic fixture timestamp was restored to its tracked value
+after the run.
 
 The latest full release gate was rerun after this projection change and passed
 all 159 suites. The generated synthetic fixture timestamp was restored after

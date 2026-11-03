@@ -2,7 +2,7 @@
 
 Date: 2026-11-03
 Branch: `codex/business-user-ux-audit`
-Commit under review: `de9890d4` (`Preserve People metric uncertainty`)
+Commit under review: `456ad9ee` (`Preserve unavailable read metrics`)
 
 This is local browser evidence only. It is not production evidence and does
 not replace a fresh-account or real-telemetry walkthrough.
@@ -790,6 +790,10 @@ Verification:
 - `npm run test:business-user-ux`: 101/101 passed.
 - `npx tsc --noEmit --pretty false`: passed.
 - `git diff --check`: passed.
+
+The consolidated `npm run test:release-gate` was rerun after this slice and
+passed all 159 suites. The generated synthetic fixture timestamp was restored
+to its tracked value before the evidence update was recorded.
 - The isolated worktree is clean.
 
 The final cleanup removed the last indigo-tinted dashboard shadows so the
