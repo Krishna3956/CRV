@@ -152,6 +152,38 @@ Pass for the local comprehension contract. The page answers what TrackMCP is
 for, what the business user should expect after setup, and who normally owns
 the technical step without presenting missing data as a product failure.
 
+## Latest local browser pass at `53c1e744`
+
+On 2026-11-03, a development server was run from the isolated branch with
+`NEXT_PUBLIC_LOCAL_DASHBOARD_BYPASS=true` and placeholder Supabase values. No
+production credentials or database writes were used.
+
+The rendered My-data Overview showed, in order:
+
+- the business explanation of what TrackMCP helps the team understand;
+- the explicit `Your workspace` data-source boundary;
+- `Your MCP server is not connected yet`;
+- the primary `Complete setup` action;
+- three concrete next steps: create a connection key, add `TRACKMCP_KEY`, and
+  make one real tool call;
+- a structure preview explicitly labeled as not fabricated workspace data.
+
+The rendered Setup view showed the same sequence in the UI: connection key,
+SDK installation, and one real event. It also exposed the post-setup outcome
+story, kept advanced key scope and identity controls behind disclosure, and
+recommended `npx @trackmcp/cli init` before a manual package-manager fallback.
+
+The rendered Example-data Overview showed `Illustration only`, the business
+questions, an at-a-glance caveat, a recommended next step, explicit outcome
+wording, and an evidence drill-down path. The rendered What-they’re-doing view
+showed adoption and reliability before technical protocol detail, with
+human-readable feature descriptions and a neutral privacy boundary for account
+groups.
+
+This is stronger than an HTTP-only smoke because it inspects the rendered
+accessibility/DOM content. It remains local bypass evidence; it does not close
+the fresh-account, real-Supabase, or human-UAT gates.
+
 Remaining evidence required:
 
 - Fresh authenticated account in a deployed environment.
