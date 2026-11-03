@@ -2,7 +2,7 @@
 
 Date: 2026-11-03  
 Branch: `codex/business-user-ux-audit`  
-Latest verified commit: current branch HEAD (`Refine dashboard palette for business analytics`)
+Latest verified commit: `3a925b16` (`Clarify completion metric language`)
 
 This matrix is the release-readiness companion to the UX audit and work
 queue. It intentionally separates source-level proof, read-only browser proof,
@@ -11,21 +11,20 @@ and evidence that requires a real account, deployment, or human participant.
 Latest branch verification: `npm run test:business-user-ux` passed all 87 suites
 after the authentication-affordance, research, signed-out handoff, illustrative
 People-growth coherence, setup-vocabulary consistency, evidence-action-label,
-outcome-copy, Quality helper-copy, final route-smoke, and auth-affordance passes
-(`aca9981f`; runtime evidence was recorded in `be5ee919`). The consolidated
-`npm run test:release-gate` passed all 159 suites on the current People-card
-boundary-copy state (`302eeb6f`) with the synthetic UAT report redirected to a
-temporary path so the tracked evidence fixture remained unchanged.
-The branch remains local and has not been merged or deployed. A fresh local
+outcome-copy, Quality helper-copy, final route-smoke, and auth-affordance passes.
+The consolidated `npm run test:release-gate` passed all 159 suites on
+`3a925b16` with the synthetic UAT report restored to its tracked fixture value
+after the run. The branch remains local and has not been merged or deployed.
+A fresh local
 development browser pass now verifies both the My-data no-event state and the
 Example-data Overview on the current branch; this remains bypass evidence, not
 real Supabase authentication or production data.
 
 Final current-branch build: `npm run build` passed with 230 static pages
 generated after the dashboard palette revision. TypeScript and ESLint also
-passed. The full `npm run test:release-gate` passed all 159 suites on
-`7e2fd060`; the palette-only revision then passed the focused 87-suite
-business-user contract suite and a fresh production build.
+passed. The full `npm run test:release-gate` passed all 159 suites on the
+current branch, and the focused 87-suite business-user contract suite passed
+after the completion-label copy revision.
 This is still local build evidence; it does not prove a production deployment
 or authenticated production rendering.
 

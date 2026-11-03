@@ -808,3 +808,19 @@ confirmed the business-first navigation, Example-data disclosure, overview
 takeaway, recommended next step, outcome caveat, and evidence actions after
 the green palette revision. The production build and focused business-user
 suite passed after the check. This remains local preview evidence only.
+
+## Current branch verification after `3a925b16`
+
+- `npm run test:business-user-ux`: 87/87 passed.
+- `npm run test:metric-contract`: 4/4 passed.
+- `npx tsc --noEmit --pretty false`: passed.
+- `npm run build`: passed; 230 static pages generated.
+- `git diff --check`: passed.
+- `npm run test:release-gate`: passed all 159 suites.
+
+The completion KPI now reads `Reported completion` in the Overview, metric
+registry, contracts, and metric documentation. This is a label/helper-copy
+change only; the explicit-outcome formula, read models, and evidence boundary
+are unchanged. The synthetic UAT runner refreshed its timestamp during the
+gate and the tracked fixture was restored afterward. No production deployment
+or authenticated real-account smoke was performed.
